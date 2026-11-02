@@ -5287,7 +5287,15 @@ async function verifierPostesVacantsEtAutoPourvoir() {
       const debutSecours = lundiMinuitParisApresSemaines(now, 0);
       cycle.dateDebutMandatTs = debutSecours;
       delete cycle.dissolutionUtilisee;
-      ouvrirSuccessionSurCycle(cycle, debutSecours, MANDAT_SEMAINES);
+      // LE SECOURS N'EFFACE PAS UN SCRUTIN EN COURS (audit E6, 02/11/2026). Rouvrir la succession
+      // vidait candidats et bulletins : un poste devenu vacant avec des candidats declares les
+      // perdait au premier lundi. Le PNJ assure alors l'interim jusqu'au resultat de ce scrutin,
+      // qui garde ses dates ; la succession n'est ouverte que si aucun scrutin n'est engage.
+      const scrutinEngage = (Array.isArray(cycle.candidats) && cycle.candidats.length > 0)
+        || Object.keys(cycle.votes || {}).length > 0;
+      if (!scrutinEngage || !(Number(cycle.dateResultats) > now.getTime())) {
+        ouvrirSuccessionSurCycle(cycle, debutSecours, MANDAT_SEMAINES);
+      }
       // Archives des mandats (chantier "Hotel de Ville / elections", 4 septembre 2026) : un
       // mandat de maire PNJ de secours suit desormais la meme tracabilite dateDebutMandatTs/
       // indicateursDebutMandat qu'un mandat PJ, pour que la proclamation future (boucle
@@ -5890,6 +5898,9 @@ export default async function handler(req, res) {
       const country = row.country;
       const ville = row.city || null;
       const posteNom = POSTE_NOMS[posteId] || posteId;
+      // NOM AFFICHE DE LA VILLE (audit E7, 02/11/2026) : les annonces montraient la cle technique
+      // (« Maire (capitale) »). VILLES_SERVEUR est la copie generee de VILLES (data.js).
+      const villeNom = ville ? (((VILLES_SERVEUR[country] || {})[ville] || {}).nom || ville) : null;
       const scope = POSTE_SCOPE[posteId] || 'national';
 
       // LES DEUX BLOCS QUI VIVAIENT ICI SONT SUPPRIMES (correctif du 11 octobre 2026), ET C'EST
@@ -5952,7 +5963,16 @@ export default async function handler(req, res) {
         // Bornes du TOUR proclame (02/11/2026) : la contestation ne recompte et ne revele que
         // les fraudes de ce tour-la, jamais celles du tour suivant ni du precedent.
         debutTour: cycle.debutTour || null, finTour: dateResultats,
-        candidats: cycle.candidats || [], votes: cycle.votes || {}, votesPNJ: cycle.votesPNJ || {}
+        candidats: cycle.candidats || [], votes: cycle.votes || {}, votesPNJ: cycle.votesPNJ || {},
+        // LE MANDAT EN COURS AVANT LA PROCLAMATION (audit E4/E5, 02/11/2026). Si la contestation
+        // annule l'election proclamee (le recompte renvoie au second tour ou a la prolongation),
+        // election_contestation_appliquer rend le poste a ce titulaire, avec son debut de mandat.
+        titulaireAvant: cycle.eluId || null,
+        elusAvant: Array.isArray(cycle.elus) ? cycle.elus : [],
+        debutMandatAvant: cycle.dateDebutMandatTs || null,
+        indicateursAvant: cycle.indicateursDebutMandat || null,
+        // Noms affiches, pour l'annonce d'un resultat corrige par contestation (E5/E7).
+        posteNom, villeNom
       }));
 
       const sortantSimple = cycle.eluId || null;
@@ -6007,12 +6027,12 @@ export default async function handler(req, res) {
             // AUCUN BULLETIN. Les neuf sortants restent deputes, et le scrutin est rejoue.
             prolonger(PROLONGATION_SEMAINES, 'aucun_bulletin');
             evenementAPoser = { country, city: ville,
-              texte: `🗳️ Aucun bulletin aux législatives de ${ville} : les député(e)s en fonction le restent, un nouveau scrutin est ouvert.` };
+              texte: `🗳️ Aucun bulletin aux législatives de ${villeNom} : les député(e)s en fonction le restent, un nouveau scrutin est ouvert.` };
           } else if (resultatDepute.blancMajoritaire) {
             // VOTE BLANC MAJORITAIRE. Meme principe : le scrutin est invalide, pas le mandat.
             prolonger(PROLONGATION_SEMAINES, 'vote_blanc_majoritaire');
             evenementAPoser = { country, city: ville,
-              texte: `🗳️ VOTE BLANC MAJORITAIRE : les élections législatives de ${ville} sont invalidées. Les député(e)s en fonction le restent jusqu'au nouveau scrutin.` };
+              texte: `🗳️ VOTE BLANC MAJORITAIRE : les élections législatives de ${villeNom} sont invalidées. Les député(e)s en fonction le restent jusqu'au nouveau scrutin.` };
             results.push({ poste: 'depute', country, city: ville, statut: 'invalide_vote_blanc' });
           } else {
             // LES NEUF CHANGENT EN UNE SEULE ECRITURE. `cycle.elus` est le tableau que
@@ -6025,12 +6045,12 @@ export default async function handler(req, res) {
             }
             cycle.elus = elusFinaux2;
             prendreFonctions();
-            evenementAPoser = { country, city: ville, texte: `🗳️ RÉSULTATS : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s de ${ville} (3 sièges).` };
+            evenementAPoser = { country, city: ville, texte: `🗳️ RÉSULTATS : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s de ${villeNom} (3 sièges).` };
             chroniqueAPoser = {
               id: `election-${row.id}-${dateResultats}`,
               country, city: ville, type: 'election_resultat',
               personnages: elusFinaux2,
-              libelle: `Assemblée de ${ville} : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s (3 sièges).`,
+              libelle: `Assemblée de ${villeNom} : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s (3 sièges).`,
               data: { poste_id: 'depute', elus: elusFinaux2, cycle_row_id: row.id }, source_ref: row.id
             };
             results.push({ poste: 'depute', country, city: ville, statut: 'elu', elus: elusFinaux2 });
@@ -6042,11 +6062,11 @@ export default async function handler(req, res) {
         if (!resultatSimple || resultatSimple.totalExprimes === 0) {
           prolonger(PROLONGATION_SEMAINES, 'aucun_bulletin');
           evenementAPoser = { country, city: scope === 'local' ? ville : null,
-            texte: `🗳️ Aucun bulletin à l'élection de ${posteNom}${ville ? ` (${ville})` : ''} : le titulaire en fonction le reste, un nouveau scrutin est ouvert.` };
+            texte: `🗳️ Aucun bulletin à l'élection de ${posteNom}${ville ? ` (${villeNom})` : ''} : le titulaire en fonction le reste, un nouveau scrutin est ouvert.` };
         } else if (resultatSimple.blancMajoritaire) {
           prolonger(PROLONGATION_SEMAINES, 'vote_blanc_majoritaire');
           evenementAPoser = { country, city: scope === 'local' ? ville : null,
-            texte: `🗳️ VOTE BLANC MAJORITAIRE : l'élection de ${posteNom} est invalidée. Le titulaire en fonction le reste jusqu'au nouveau scrutin.` };
+            texte: `🗳️ VOTE BLANC MAJORITAIRE : l'élection de ${posteNom}${villeNom ? ` (${villeNom})` : ''} est invalidée. Le titulaire en fonction le reste jusqu'au nouveau scrutin.` };
           results.push({ poste: posteId, country, city: ville, statut: 'invalide_vote_blanc' });
         } else if (resultatSimple.elu) {
           // ARCHIVE DU MANDAT DE MAIRE QUI S'ACHEVE. Elle etait posee par le bloc de
@@ -6062,7 +6082,7 @@ export default async function handler(req, res) {
           if (posteId === 'maire') {
             cycle.indicateursDebutMandat = await capturerIndicateursMunicipaux(country, ville).catch(() => null);
           }
-          const villeLabel = ville ? ` (${ville})` : '';
+          const villeLabel = ville ? ` (${villeNom})` : '';
           const pourcentageVoix = Math.round((resultatSimple.scores[resultatSimple.elu] / resultatSimple.totalExprimes) * 100);
           evenementAPoser = { country, city: scope === 'local' ? ville : null,
             texte: `🗳️ RÉSULTATS : ${resultatSimple.elu} est élu(e) ${posteNom}${villeLabel} avec ${pourcentageVoix}% des voix.` };
@@ -6097,7 +6117,7 @@ export default async function handler(req, res) {
           cycle.dateFinMandat = calST.dateResultats;   // le mandat finit quand le second tour tranche
           cycle.phase = 'second_tour';
           cycle.resultatsTraites = false;
-          const villeLabel2 = ville ? ` (${ville})` : '';
+          const villeLabel2 = ville ? ` (${villeNom})` : '';
           evenementAPoser = { country, city: scope === 'local' ? ville : null,
             texte: `🗳️ SECOND TOUR : Aucune majorité absolue pour ${posteNom}${villeLabel2}. Second tour entre ${resultatSimple.secondTour.join(' et ')}. Le titulaire en fonction le reste jusqu'au résultat.` };
           results.push({ poste: posteId, country, city: ville, statut: 'second_tour', candidats: resultatSimple.secondTour,
@@ -6109,7 +6129,7 @@ export default async function handler(req, res) {
           // prolongation muette serait invisible pour les joueurs.
           prolonger(PROLONGATION_SEMAINES, 'aucun_verdict');
           evenementAPoser = { country, city: scope === 'local' ? ville : null,
-            texte: `🗳️ Aucun résultat définitif à l'élection de ${posteNom}${ville ? ` (${ville})` : ''} : le titulaire en fonction le reste, un nouveau scrutin est ouvert.` };
+            texte: `🗳️ Aucun résultat définitif à l'élection de ${posteNom}${ville ? ` (${villeNom})` : ''} : le titulaire en fonction le reste, un nouveau scrutin est ouvert.` };
         }
       }
 
