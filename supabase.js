@@ -1071,6 +1071,8 @@ async function sbLoadPersonnage(name) {
     // defaut couvrent aussi bien un personnage jamais agresse qu'une colonne encore absente.
     hospitalisation: r.hospitalisation || null,
     statsAffaiblies: r.stats_affaiblies || {},
+    // Effets temporaires (boulette...) : poses par le serveur, lus ici, jamais sauvegardes.
+    effetsActifs:    Array.isArray(r.effets_actifs) ? r.effets_actifs : [],
     regenJour:       (typeof r.regen_jour === 'number') ? r.regen_jour : null
   };
 }

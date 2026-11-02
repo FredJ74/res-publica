@@ -1905,8 +1905,9 @@ function applyCharToState(char) {
     // actif -- bonusEntIntegrationLocale() est un calcul independant, purement personnel.
     if (statGrid) statGrid.innerHTML = STAT_DEFS.map(({k}) => {
       const brut = char.stats[k] || 8;
-      const suffixeEnt = (k === 'ENT' && typeof bonusEntIntegrationLocale === 'function' && bonusEntIntegrationLocale())
-        ? ' <span style="color:#6ab858">(+1)</span>' : '';
+      const bonusAffiche = (k === 'ENT' && typeof bonusEntIntegrationLocale === 'function' ? bonusEntIntegrationLocale() : 0)
+        + (typeof bonusTemporaire === 'function' ? bonusTemporaire(state.effetsActifs, k, Date.now()) : 0);
+      const suffixeEnt = bonusAffiche ? ' <span style="color:#6ab858">(+' + bonusAffiche + ')</span>' : '';
       return `
       <div class="stat-mini">
         <div class="stat-mini-name">${k}</div>

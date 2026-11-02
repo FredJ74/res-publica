@@ -3124,7 +3124,9 @@ function getStatEffective(stat) {
   // state.char.stats.CHA (la caracteristique de base), disparait des la levee (excommunie remis
   // a null) sans aucune trace residuelle.
   const malusExcommunication = (stat === 'CHA' && state.char?.excommunie) ? -2 : 0;
-  const valeurNormale = base + bonusLocal + malusExcommunication;
+  // Effets temporaires poses par le serveur (boulette : ENT +2 jusqu'a minuit, 2 novembre 2026).
+  const bonusTemp = (typeof bonusTemporaire === 'function') ? bonusTemporaire(state.effetsActifs, stat, Date.now()) : 0;
+  const valeurNormale = base + bonusLocal + malusExcommunication + bonusTemp;
   if (state.statsAffaiblies && state.statsAffaiblies[stat] !== undefined) {
     const fraction = Math.max(0, Math.min(1, (state.hp || 0) / 100));
     return Math.max(1, Math.round(valeurNormale * fraction));
