@@ -1182,6 +1182,27 @@ ORDINAIRES['jodie_moitout_autruche'] = Object.assign({}, ORDINAIRES['jodie_moito
     .replace("ce qu'on dit au marché et qu'on ne dirait pas ailleurs", "ce qu'on vient confier à un journal et qu'on ne dirait pas ailleurs")
 });
 
+// ---------------------------------------------------------------------------
+// SAVOIRS SUR LES DROGUES (2 novembre 2026, demande de Fred)
+// ---------------------------------------------------------------------------
+// Les drogues de la Republia sont fictives : la Brume et l'Estadine (GAME-DESIGN-DROGUES.md).
+// Les dealers et les commissaires savent en expliquer les effets, en termes de personnage et sans
+// promotion ; le directeur d'Helvetia connait l'Estadine, et elle seule. Ces textes s'ajoutent au
+// savoir de la fiche : ils ne changent ni le caractere ni le style.
+const EFFETS_BRUME_RP = `LA BRUME, une herbe qu'on fume : elle détend, remonte le moral et rend plus entreprenant jusqu'au soir, mais elle fatigue (on a moins d'énergie pour la journée) et abîme un peu la santé à chaque pochon. L'effet ne dépend pas de l'ancienneté du pochon.`;
+const EFFETS_ESTADINE_RP = `L'ESTADINE, une poudre blanche venue d'El Estado : un coup de fouet immédiat (énergie, euphorie, aplomb et charme pendant quelques heures), puis environ six heures plus tard une descente brutale qui fait payer chaque dose : abattement, santé entamée, et une journée suivante plus courte. Prise régulièrement, elle use l'esprit : la réflexion s'émousse petit à petit ; il faut une quinzaine de jours sans en reprendre pour que chaque dose cesse de peser.`;
+const STATUT_DROGUES_RP = `En Républia, consommer n'est pas un délit ; acheter et transporter ces produits, si. Les douanes saisissent la marchandise.`;
+const SAVOIRS_DROGUES = {
+  ced_labone: 'drogues_dealer', ronan_lafourgue: 'drogues_dealer', jojo_laferraille: 'drogues_dealer',
+  raoul_toufaud: 'drogues_police', martial_morvan: 'drogues_police', gabriel_pelletier: 'drogues_police',
+  hans_von_discret: 'estadine_banquier'
+};
+const TEXTES_SAVOIRS_DROGUES = {
+  drogues_dealer: `CE QUE TU SAIS DE TA MARCHANDISE, ET QUE TU EXPLIQUES SANS MENTIR quand on te le demande :\n${EFFETS_BRUME_RP}\n${EFFETS_ESTADINE_RP}\nTu ne caches pas la descente de l'Estadine : un client qui s'effondre est un client qui ne revient pas. Tu ne vantes jamais la drogue comme une bonne idée ; tu vends, tu ne fais pas de prosélytisme. Tu n'emploies jamais de nom de drogue du monde réel.`,
+  drogues_police: `CE QUE TU SAIS DES STUPÉFIANTS EN CIRCULATION, en policier qui en voit les ravages, et que tu peux expliquer à qui te le demande :\n${EFFETS_BRUME_RP}\n${EFFETS_ESTADINE_RP}\n${STATUT_DROGUES_RP}\nTu en parles avec le recul du métier : sans complaisance, sans sermon interminable. Tu n'emploies jamais de nom de drogue du monde réel.`,
+  estadine_banquier: `UNE CHOSE QUE TU SAIS, PAR TA CLIENTÈLE, ET QUE TU N'ÉVOQUES QU'À DEMI-MOT :\n${EFFETS_ESTADINE_RP}\nTu as vu des fortunes se défaire entre une montée et une descente ; tu ne nommes jamais aucun client. De la Brume, tu ne sais rien : ce n'est pas un produit de ta clientèle. Tu n'emploies jamais de nom de drogue du monde réel.`
+};
+
 function profilsPersonnalites() {
   const table = {};
   for (const [id, p] of Object.entries(ORDINAIRES)) table[id] = profilOrdinaire(p);
@@ -1193,6 +1214,11 @@ function profilsPersonnalites() {
   // Ce qui les distingue n'est pas leur savoir, c'est qu'elles ont une identite
   // stable -- et donc, pour l'une d'elles, une memoire.
   for (const [id, p] of Object.entries(ESCORTS_REPUBLIA)) table[id] = profilOrdinaire(p);
+  for (const [id, cle] of Object.entries(SAVOIRS_DROGUES)) {
+    if (!table[id]) continue;
+    const base = String(table[id].savoir || '').replace(/ Rien d'autre\.$/, '');
+    table[id] = Object.assign({}, table[id], { savoir: (base ? base + '\n\n' : '') + TEXTES_SAVOIRS_DROGUES[cle] });
+  }
   return table;
 }
 
