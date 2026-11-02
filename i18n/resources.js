@@ -1521,8 +1521,13 @@ window.RP_I18N_RESOURCES = {
         archetype: { step: "الخطوة 4 من 7", title: "الطبيعة الحقيقية", subtitle: "من أنت حقًا بعيدًا عن ماضيك؟" },
         career: { step: "الخطوة 5 من 7", title: "المهنة", subtitle: "مسارك المهني قبل دخول اللعبة الكبرى." },
         stats: { step: "الخطوة 6 من 7", title: "السمات", subtitle: "وزّع نقاطك الحرة. أُضيفت المكافآت المكتسبة بالفعل." },
-        identity: { step: "الخطوة 7 من 7", title: "هوية الشخصية", subtitle: "امنح شخصيتك وجهًا واسمًا وقصة." }
-      }
+        identity: { step: "الخطوة 7 من 7", title: "هوية الشخصية", subtitle: "امنح شخصيتك وجهًا واسمًا وقصة." },
+        review: {"step":"الملخص","title":"بطاقة شخصيتك"}
+      },
+      city: {"modalTitle":"اختر مدينة إقامتك","capitalBadge":"(العاصمة)"},
+      review: {"lifePath":"مسار الحياة","characteristics":"السمات","startingResources":"الموارد الأولية","biography":"السيرة الذاتية","money":"المال","influence":"النفوذ","popularity":"الشعبية","discretion":"التكتم","tier":"المستوى {{tier}}","maxInGame":"الحد الأقصى 100","wealthTier1":"1 - معدم","wealthTier2":"2 - متواضع","wealthTier3":"3 - ميسور","wealthTier4":"4 - غني","wealthTier5":"5 - ثري جدًا"},
+      success: {"title":"مرحبًا بك في اللعبة الكبرى","ready":"شخصيتك جاهزة.","text":"يدخل {{name}} ساحة {{country}}. تبدأ اللعبة الكبرى: تحالفات وخيانات وفساد وأسرار.","fallbackCountry":"هذا العالم"},
+      genders: {"male":"رجل","female":"امرأة","nonbinary":"غير ثنائي","other":"أخرى"}
     }
   } },
   'pt-BR': { translation: { home: {
@@ -1564,8 +1569,13 @@ window.RP_I18N_RESOURCES = {
         archetype: { step: "Etapa 4 de 7", title: "Natureza profunda", subtitle: "Quem é você de verdade, independentemente do seu passado?" },
         career: { step: "Etapa 5 de 7", title: "Carreira", subtitle: "Sua trajetória profissional antes de entrar no grande jogo." },
         stats: { step: "Etapa 6 de 7", title: "Atributos", subtitle: "Distribua seus pontos livres. Os bônus adquiridos já foram incluídos." },
-        identity: { step: "Etapa 7 de 7", title: "Identidade do personagem", subtitle: "Dê ao seu alter ego um rosto, um nome e uma história." }
-      }
+        identity: { step: "Etapa 7 de 7", title: "Identidade do personagem", subtitle: "Dê ao seu alter ego um rosto, um nome e uma história." },
+        review: {"step":"Resumo","title":"Sua ficha de personagem"}
+      },
+      city: {"modalTitle":"Escolha sua cidade de residência","capitalBadge":"(Capital)"},
+      review: {"lifePath":"Trajetória de vida","characteristics":"Atributos","startingResources":"Recursos iniciais","biography":"Biografia","money":"Dinheiro","influence":"Influência","popularity":"Popularidade","discretion":"Discrição","tier":"Faixa {{tier}}","maxInGame":"Máximo 100 no jogo","wealthTier1":"1 - Miséria","wealthTier2":"2 - Modesto","wealthTier3":"3 - Confortável","wealthTier4":"4 - Rico","wealthTier5":"5 - Oligarca"},
+      success: {"title":"Bem-vindo ao Grande Jogo","ready":"Seu personagem está pronto.","text":"{{name}} entra na arena de {{country}}. Começa o Grande Jogo: alianças, traições e corrupção.","fallbackCountry":"este mundo"},
+      genders: {"male":"Homem","female":"Mulher","nonbinary":"Não binário","other":"Outro"}
     }
   } },
   'de': { translation: { home: {
@@ -1607,8 +1617,13 @@ window.RP_I18N_RESOURCES = {
         archetype: { step: "Schritt 4 von 7", title: "Wahres Wesen", subtitle: "Wer bist du wirklich, unabhängig von deiner Vergangenheit?" },
         career: { step: "Schritt 5 von 7", title: "Laufbahn", subtitle: "Dein beruflicher Werdegang vor dem großen Spiel." },
         stats: { step: "Schritt 6 von 7", title: "Eigenschaften", subtitle: "Verteile deine freien Punkte. Bereits erhaltene Boni sind eingerechnet." },
-        identity: { step: "Schritt 7 von 7", title: "Charakteridentität", subtitle: "Gib deinem Alter Ego ein Gesicht, einen Namen und eine Geschichte." }
-      }
+        identity: { step: "Schritt 7 von 7", title: "Charakteridentität", subtitle: "Gib deinem Alter Ego ein Gesicht, einen Namen und eine Geschichte." },
+        review: {"step":"Zusammenfassung","title":"Dein Charakterbogen"}
+      },
+      city: {"modalTitle":"Wähle deine Heimatstadt","capitalBadge":"(Hauptstadt)"},
+      review: {"lifePath":"Lebensweg","characteristics":"Eigenschaften","startingResources":"Startressourcen","biography":"Biografie","money":"Geld","influence":"Einfluss","popularity":"Beliebtheit","discretion":"Diskretion","tier":"Stufe {{tier}}","maxInGame":"Maximal 100 im Spiel","wealthTier1":"1 - Mittellos","wealthTier2":"2 - Bescheiden","wealthTier3":"3 - Wohlhabend","wealthTier4":"4 - Reich","wealthTier5":"5 - Oligarch"},
+      success: {"title":"Willkommen im Großen Spiel","ready":"Dein Charakter ist bereit.","text":"{{name}} betritt die Arena von {{country}}. Das Große Spiel beginnt mit Bündnissen, Verrat und Korruption.","fallbackCountry":"diese Welt"},
+      genders: {"male":"Mann","female":"Frau","nonbinary":"Nichtbinär","other":"Andere"}
     }
   } }
 };
