@@ -25,6 +25,11 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Audit de la chaîne élective — Claude, 02/11/2026
+
+Branche `claude/audit-chaine-elective-20261102`. Rapport : `outils/audits/AUDIT-CHAINE-ELECTIVE-20261102.md` (lecture seule, aucune écriture en production).
+Deux bloquants : **E1** la candidature par le programme (`candidature_publier`) n'inscrit pas sur le bulletin du cycle (constaté : Jean Népa, 14/10) ; **E2** mairie de Luthécia figée à l'ancien format (`resultatsTraites` vrai, aucun scrutin de succession, candidatures refusées). Puis E3 fraudes du 1er tour recomptées au 2nd, E4 contestation d'un 1er tour pendant le 2nd, E5 résultat contesté non annoncé, E6 secours PNJ qui vide un scrutin, E7 textes, E8 portes directes. Corrections non commencées.
+
 ### Audit global Républia — Codex, 02/11/2026
 
 Branche `codex/audit-global-republia-20261102`, issue du main `a99c4069`
