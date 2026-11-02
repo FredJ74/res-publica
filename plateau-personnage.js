@@ -570,6 +570,14 @@ function switchSelfTab(tab, el) {
         html += '<span><i class="ti ti-refresh" style="font-size:.85rem"></i> Renouveler un blocus syndical</span></button>';
       }
     }
+    // Commissaire : intervention sur les blocus de sa ville depuis sa propre interface (decision de
+    // Fred, 02/11/2026). 2 PA ; le serveur revalide le poste et la ville (blocus_syndical_intervenir).
+    if (state.poste?.id === 'commissaire' && typeof ouvrirChoixBlocusCommissaire === 'function') {
+      html += '<button onclick="closeSelfView();ouvrirChoixBlocusCommissaire(\'disperser\')" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a2a1a;background:#0d0a08;color:#C9A84C;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
+      html += '<span><i class="ti ti-shield" style="font-size:.85rem"></i> Disperser un blocus syndical</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem">2 PA</span></button>';
+      html += '<button onclick="closeSelfView();ouvrirChoixBlocusCommissaire(\'reprimer\')" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a2a1a;background:#0d0a08;color:#C9A84C;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
+      html += '<span><i class="ti ti-shield" style="font-size:.85rem"></i> Réprimer un blocus syndical</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem">2 PA</span></button>';
+    }
 
     const tauxIncendie = Math.max(5, 30 - malusISN);
     html += '<button onclick="doOrder(\'incendier\',3,0,\'Incendier\',\'Vous mettez le feu.\','+tauxIncendie+');closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #4a1a08;background:#100805;color:#aa5a30;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
