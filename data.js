@@ -6404,7 +6404,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#181410,#221c15)",
-        imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1200&q=80",
+        imageUrl: "images/montrouge/Montrouge_raffinerie_salle_ventes.png",
         desc: "L'accueil et la salle de vente directe du carburant produit sur place.",
         persons: [],
         orders: [{fn:'vente_directe_usine', label:'Vente directe', pa:0, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'}]
