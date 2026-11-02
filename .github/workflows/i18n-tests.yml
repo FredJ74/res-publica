@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'i18n/**'
+      - '.github/workflows/i18n-tests.yml'
       - 'index.html'
       - 'plateau.html'
       - 'outils/bancs/banc-accueil-neuf-langues.cjs'
@@ -23,6 +24,7 @@ on:
     branches: [main, chatgpt/accueil-9-langues-20261102]
     paths:
       - 'i18n/**'
+      - '.github/workflows/i18n-tests.yml'
       - 'index.html'
       - 'plateau.html'
       - 'outils/bancs/banc-accueil-neuf-langues.cjs'
