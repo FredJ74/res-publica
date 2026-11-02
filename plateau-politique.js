@@ -9909,7 +9909,8 @@ async function confirmerMobilisationPolice(id, label, isn, pop, fn) {
 }
 
 // Choix du blocus par le commissaire : la liste vient du serveur (blocus actifs du pays), filtree
-// sur la ville du commissaire. Le serveur revalide poste, ville et bureau.
+// sur la ville du commissaire. Ouvert depuis son menu de personnage, ou son bureau ; le serveur
+// revalide le poste et la ville (decision de Fred du 02/11/2026 : pas d'obligation d'etre au bureau).
 async function ouvrirChoixBlocusCommissaire(mode) {
   const ville = state.poste?.city || state.currentCity;
   const liste = (typeof sbRpc === 'function') ? await sbRpc('blocus_syndicaux_actifs', { p_pays: state.country || 'republic' }).catch(() => null) : null;

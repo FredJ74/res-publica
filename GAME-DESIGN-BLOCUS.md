@@ -28,6 +28,9 @@ production le 02/11 ; banc annulé `outils/bancs/banc-blocus-syndical.sql`).
 7. **Les hôpitaux sont exclus des blocus** : seul lieu où un blocus ne peut pas s'exercer. Appliqué aux
    hôpitaux publics (dispensaires) et à la clinique privée (migration
    `20261102151241_blocus_syndical_hopitaux_exclus`, appliquée le 02/11).
+8. **Le commissaire intervient depuis sa propre interface** (menu du personnage), où qu'il se trouve :
+   plus d'obligation d'être dans son bureau (migration `20261102152414_blocus_commissaire_depuis_son_menu`,
+   appliquée le 02/11). L'ordre de son bureau reste aussi disponible.
 
 ## Règles déjà présentes dans le code (août 2026), conservées
 
@@ -54,7 +57,7 @@ production le 02/11 ; banc annulé `outils/bancs/banc-blocus-syndical.sql`).
   régénérable par `outils/generateurs/generer_blocus_ordres_batiments.py`). « Faire intervenir les
   forces de l'ordre » n'y figure pas. Un joueur déjà dans une pièce intérieure quand le blocus tombe y
   reste, mais ne peut ni passer d'ordre du bâtiment ni changer de pièce, sauf pour revenir à la première.
-- **Commissaire** (bureau du commissaire, ordre « Faire intervenir les forces de l'ordre », 2 PA) :
+- **Commissaire** (menu du personnage, ou ordre « Faire intervenir les forces de l'ordre » de son bureau, 2 PA) :
   « Disperser un blocus syndical » ou « Réprimer un blocus syndical par la force », parmi les blocus
   de sa ville (`blocus_syndical_intervenir`). Dispersion réussie : blocus levé, −8 POP au commissaire,
   mail au dirigeant. Répression : le blocus tient, +1 répression subie au syndicat, −15 POP ; refusée
@@ -70,8 +73,8 @@ production le 02/11 ; banc annulé `outils/bancs/banc-blocus-syndical.sql`).
 
 ## Points ouverts (à trancher par Fred)
 
-- Conséquence littérale de la décision 2 : dans un commissariat bloqué, le commissaire ne peut plus rejoindre son bureau
-  pour intervenir, et les détenus ne peuvent plus tenter de s'évader.
+- Conséquence littérale de la décision 2 : dans un commissariat bloqué, les détenus ne peuvent plus
+  tenter de s'évader (le commissaire, lui, intervient depuis son menu : décision 8).
 
 ## Règle « une seule réalité » (tenue)
 

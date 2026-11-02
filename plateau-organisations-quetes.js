@@ -3311,7 +3311,6 @@ const RAISONS_BLOCUS = {
   deja_bloque: 'Un blocus est déjà en cours ici.',
   aucun_blocus: "Ce blocus n'est plus en cours.",
   reserve_commissaire: 'Réservé au commissaire de la ville.',
-  depuis_bureau_commissaire: "L'intervention se commande depuis le bureau du commissaire.",
   police_en_greve: "Un syndicat de policiers est en grève : la répression est impossible tant qu'il n'y met pas fin.",
   mode_inconnu: 'Intervention inconnue.'
 };
