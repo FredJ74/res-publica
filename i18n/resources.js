@@ -1715,3 +1715,72 @@ window.RP_I18N_RESOURCES = {
  tr.creation.genders={"male":"남성","female":"여성","nonbinary":"논바이너리","other":"기타"};
  tr.creation.steps.stats.warning_one="배분하지 않은 포인트가 {{count}}점 남았습니다. 나중에 캐릭터 정보에서 배분할 수 있습니다.";
 }
+
+// Champs de connexion sur la page d'accueil, anciennement codés en français dans le HTML.
+for (const [locale,labels] of Object.entries({
+  "fr": {
+    "signIn": "Me connecter à mon compte",
+    "signInEmailPlaceholder": "Votre adresse e-mail...",
+    "signInPasswordPlaceholder": "Votre mot de passe...",
+    "signInSubmit": "Se connecter",
+    "cancel": "Annuler"
+  },
+  "en": {
+    "signIn": "Sign in to my account",
+    "signInEmailPlaceholder": "Your email address...",
+    "signInPasswordPlaceholder": "Your password...",
+    "signInSubmit": "Sign in",
+    "cancel": "Cancel"
+  },
+  "es": {
+    "signIn": "Iniciar sesión en mi cuenta",
+    "signInEmailPlaceholder": "Tu correo electrónico...",
+    "signInPasswordPlaceholder": "Tu contraseña...",
+    "signInSubmit": "Iniciar sesión",
+    "cancel": "Cancelar"
+  },
+  "zh-TW": {
+    "signIn": "登入我的帳號",
+    "signInEmailPlaceholder": "你的電子郵件地址…",
+    "signInPasswordPlaceholder": "你的密碼…",
+    "signInSubmit": "登入",
+    "cancel": "取消"
+  },
+  "ru": {
+    "signIn": "Войти в учётную запись",
+    "signInEmailPlaceholder": "Ваш адрес электронной почты...",
+    "signInPasswordPlaceholder": "Ваш пароль...",
+    "signInSubmit": "Войти",
+    "cancel": "Отмена"
+  },
+  "ko": {
+    "signIn": "내 계정에 로그인",
+    "signInEmailPlaceholder": "이메일 주소...",
+    "signInPasswordPlaceholder": "비밀번호...",
+    "signInSubmit": "로그인",
+    "cancel": "취소"
+  },
+  "ar": {
+    "signIn": "تسجيل الدخول إلى حسابي",
+    "signInEmailPlaceholder": "عنوان بريدك الإلكتروني...",
+    "signInPasswordPlaceholder": "كلمة المرور...",
+    "signInSubmit": "تسجيل الدخول",
+    "cancel": "إلغاء"
+  },
+  "pt-BR": {
+    "signIn": "Entrar na minha conta",
+    "signInEmailPlaceholder": "Seu endereço de e-mail...",
+    "signInPasswordPlaceholder": "Sua senha...",
+    "signInSubmit": "Entrar",
+    "cancel": "Cancelar"
+  },
+  "de": {
+    "signIn": "Bei meinem Konto anmelden",
+    "signInEmailPlaceholder": "Deine E-Mail-Adresse...",
+    "signInPasswordPlaceholder": "Dein Passwort...",
+    "signInSubmit": "Anmelden",
+    "cancel": "Abbrechen"
+  }
+})) {
+  Object.assign(window.RP_I18N_RESOURCES[locale].translation.auth,labels);
+}
