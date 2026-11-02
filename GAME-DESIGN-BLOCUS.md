@@ -16,9 +16,19 @@ production le 02/11 ; banc annulé `outils/bancs/banc-blocus-syndical.sql`).
    relève du commissaire. Conséquence technique : depuis son bureau, le commissaire choisit parmi
    les blocus en cours dans sa ville.
 
+## Décisions explicites de Fred (02/11/2026, après la remise en service)
+
+4. **Participants** : un blocus demande un nombre minimum de participants, PJ ou PNJ. Les PNJ sont
+   des syndicalistes PNJ (militants recrutés) ; les PJ sont des syndicalistes qui se groupent au
+   leader syndical (Secrétaire Général ou Adjoint). Traduction retenue : l'organisateur, les PJ de son
+   groupe membres du même syndicat et présents dans la même pièce, et les militants mobilisés ;
+   minimum 2 au total ; un participant PJ compte comme un militant dans les chances et l'intensité.
+5. **Coût** : 2 PA par PJ participant, tout ou rien.
+6. **Une seule tentative par jour et par syndicat** (le SG et l'Adjoint la partagent), réussie ou non.
+
 ## Règles déjà présentes dans le code (août 2026), conservées
 
-- Prérequis : au moins 2 militants PNJ recrutés dans le syndicat.
+- ~~Prérequis : au moins 2 militants PNJ recrutés~~ remplacé par la décision 4 (2 participants, PJ ou PNJ).
 - Réussite : min(90, 10 + 6 × militants mobilisés + puissance/5) % ; intensité : min(90, 10 + 6 × militants).
 - Renouvellement quotidien ; fin automatique après 25 h sans renouvellement (nuit).
 - Effet de nuit : le maire de la ville perd max(1, intensité/15) POP.
@@ -30,8 +40,9 @@ production le 02/11 ; banc annulé `outils/bancs/banc-blocus-syndical.sql`).
 
 - **Organiser** (menu du personnage, dans le bâtiment où l'on se tient) : `blocus_syndical_organiser`
   vérifie le grade (Secrétaire Général = rang le plus haut ou chef de l'organisation, Adjoint = rang
-  juste en dessous), compte les militants actifs du syndicat, tire le jet, pose le blocus et ajoute
-  +1 au palmarès. Aucun coût en PA : l'ancien parcours n'en avait pas.
+  juste en dessous), réunit les participants (décision 4), prélève 2 PA à chaque PJ participant,
+  consomme la tentative du jour du syndicat, tire le jet, pose le blocus et ajoute +1 au palmarès
+  (migration `20261102144753_blocus_syndical_participants_cout`, appliquée le 02/11).
 - **Renouveler** (menu du personnage, à distance) : choix parmi les blocus en cours du syndicat
   (`blocus_syndical_renouveler`).
 - **Effet** : le serveur refuse toute pièce autre que la première (déplacement, motif
@@ -56,7 +67,6 @@ production le 02/11 ; banc annulé `outils/bancs/banc-blocus-syndical.sql`).
 
 ## Points ouverts (à trancher par Fred)
 
-- Organiser un blocus ne coûte rien : un échec peut être retenté aussitôt, sans limite.
 - Conséquences littérales de la décision 2 : dans un hôpital bloqué, « Sortir de l'hôpital » et le
   repas sont refusés ; dans un commissariat bloqué, le commissaire ne peut plus rejoindre son bureau
   pour intervenir, et les détenus ne peuvent plus tenter de s'évader.
