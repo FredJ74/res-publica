@@ -280,6 +280,126 @@
   }
 };
   for(const [locale,labels] of Object.entries(extendedLabels)) Object.assign(translations[locale],labels);
+  const secondaryLabels={
+  "fr": {
+    "building": "Bâtiment",
+    "category": "Catégorie",
+    "worldMap": "Carte du monde",
+    "orgChart": "Organigramme",
+    "postalCard": "Carte postale",
+    "subject": "Sujet",
+    "messageLabel": "Message",
+    "citizen": "Citoyen",
+    "streetHint": "Dans la rue — Cliquez sur un bâtiment pour entrer",
+    "noItems": "Aucun objet",
+    "gameGuide": "Res Publica — Guide du joueur"
+  },
+  "en": {
+    "building": "Building",
+    "category": "Category",
+    "worldMap": "World map",
+    "orgChart": "Organization chart",
+    "postalCard": "Postcard",
+    "subject": "Subject",
+    "messageLabel": "Message",
+    "citizen": "Citizen",
+    "streetHint": "In the street — Click a building to enter",
+    "noItems": "No items",
+    "gameGuide": "Res Publica — Player guide"
+  },
+  "es": {
+    "building": "Edificio",
+    "category": "Categoría",
+    "worldMap": "Mapa del mundo",
+    "orgChart": "Organigrama",
+    "postalCard": "Tarjeta postal",
+    "subject": "Asunto",
+    "messageLabel": "Mensaje",
+    "citizen": "Ciudadano",
+    "streetHint": "En la calle — Haz clic en un edificio para entrar",
+    "noItems": "Sin objetos",
+    "gameGuide": "Res Publica — Guía del jugador"
+  },
+  "zh-TW": {
+    "building": "建築",
+    "category": "類別",
+    "worldMap": "世界地圖",
+    "orgChart": "組織架構",
+    "postalCard": "明信片",
+    "subject": "主旨",
+    "messageLabel": "訊息",
+    "citizen": "公民",
+    "streetHint": "街道上 — 點選建築即可進入",
+    "noItems": "沒有物品",
+    "gameGuide": "Res Publica — 玩家指南"
+  },
+  "ru": {
+    "building": "Здание",
+    "category": "Категория",
+    "worldMap": "Карта мира",
+    "orgChart": "Организационная схема",
+    "postalCard": "Открытка",
+    "subject": "Тема",
+    "messageLabel": "Сообщение",
+    "citizen": "Гражданин",
+    "streetHint": "На улице — Нажмите на здание, чтобы войти",
+    "noItems": "Нет предметов",
+    "gameGuide": "Res Publica — Руководство игрока"
+  },
+  "ko": {
+    "building": "건물",
+    "category": "분류",
+    "worldMap": "세계 지도",
+    "orgChart": "조직도",
+    "postalCard": "엽서",
+    "subject": "제목",
+    "messageLabel": "메시지",
+    "citizen": "시민",
+    "streetHint": "거리 — 건물을 눌러 입장하세요",
+    "noItems": "아이템 없음",
+    "gameGuide": "Res Publica — 플레이어 안내서"
+  },
+  "ar": {
+    "building": "المبنى",
+    "category": "الفئة",
+    "worldMap": "خريطة العالم",
+    "orgChart": "الهيكل التنظيمي",
+    "postalCard": "بطاقة بريدية",
+    "subject": "الموضوع",
+    "messageLabel": "الرسالة",
+    "citizen": "مواطن",
+    "streetHint": "في الشارع — انقر على مبنى للدخول إليه",
+    "noItems": "لا توجد أغراض",
+    "gameGuide": "Res Publica — دليل اللاعب"
+  },
+  "pt-BR": {
+    "building": "Edifício",
+    "category": "Categoria",
+    "worldMap": "Mapa do mundo",
+    "orgChart": "Organograma",
+    "postalCard": "Cartão-postal",
+    "subject": "Assunto",
+    "messageLabel": "Mensagem",
+    "citizen": "Cidadão",
+    "streetHint": "Na rua — Clique em um edifício para entrar",
+    "noItems": "Nenhum item",
+    "gameGuide": "Res Publica — Guia do jogador"
+  },
+  "de": {
+    "building": "Gebäude",
+    "category": "Kategorie",
+    "worldMap": "Weltkarte",
+    "orgChart": "Organigramm",
+    "postalCard": "Postkarte",
+    "subject": "Betreff",
+    "messageLabel": "Nachricht",
+    "citizen": "Bürger",
+    "streetHint": "Auf der Straße — Klicke auf ein Gebäude, um es zu betreten",
+    "noItems": "Keine Gegenstände",
+    "gameGuide": "Res Publica — Spielerhandbuch"
+  }
+};
+  for(const [locale,labels] of Object.entries(secondaryLabels)) Object.assign(translations[locale],labels);
   for(const [locale,labels] of Object.entries(translations)) {
     if(resources[locale]?.translation) resources[locale].translation.plateau={...labels};
   }
