@@ -7,6 +7,7 @@ on:
       - 'index.html'
       - 'outils/bancs/banc-accueil-neuf-langues.cjs'
       - 'outils/bancs/banc-i18n-couverture.cjs'
+      - 'outils/bancs/banc-i18n-pont-plateau.cjs'
   push:
     branches: [main]
     paths:
@@ -29,7 +30,10 @@ jobs:
         run: node --test outils/bancs/banc-accueil-neuf-langues.cjs
       - name: Couverture réelle des ressources et variables
         run: node --test outils/bancs/banc-i18n-couverture.cjs
+      - name: Pont passif du plateau
+        run: node --test outils/bancs/banc-i18n-pont-plateau.cjs
       - name: Syntaxe du moteur et des ressources
         run: |
           node --check i18n/resources.js
           node --check i18n/i18n-init.js
+          node --check i18n/plateau-bridge.js
