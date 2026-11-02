@@ -922,10 +922,10 @@ const WORLD = {
         'centre-commercial': {
           roomOverrides: {
             hall: { imageUrl: "images/port-sainte-marie-centre-commercial-hall.webp", persons: [{name:'Cédric Legoff (PNJ)', role:'Agent de sécurité privée', rel:'neutral', job:'agent_securite'}] },
-            vitrine_principale: { imageUrl: "images/port-sainte-marie-centre-commercial-local-grand.png" },
-            boutique_milieu: { imageUrl: "images/port-sainte-marie-centre-commercial-local-moyen.png" },
-            arriere_boutique: { imageUrl: "images/port-sainte-marie-centre-commercial-local-petit.png" },
-            cave_reserve: { imageUrl: "images/port-sainte-marie-centre-commercial-local-micro.png" }
+            vitrine_principale: { imageUrl: "images/port-sainte-marie-centre-commercial-local-grand.webp" },
+            boutique_milieu: { imageUrl: "images/port-sainte-marie-centre-commercial-local-moyen.webp" },
+            arriere_boutique: { imageUrl: "images/port-sainte-marie-centre-commercial-local-petit.webp" },
+            cave_reserve: { imageUrl: "images/port-sainte-marie-centre-commercial-local-micro.webp" }
           }
         },
         'stade': {
@@ -1201,7 +1201,7 @@ const WORLD = {
           // Bureau du commissaire (29/10/2026) : ordres du gabarit commun ; aucun PNJ tant qu'il n'a pas de profil de dialogue.
           roomOverrides: { bureau_commissaire: {
             desc: "Le bureau du commissaire de Montrouge, en tension permanente avec le syndicat local.",
-            imageUrl: "images/montrouge/montrouge-commissariat-bureau.jpg.png",
+            imageUrl: "images/montrouge/montrouge-commissariat-bureau.webp",
             // Le PJ nommé occupe le poste de commissaire ; Gabriel demeure le référent PNJ,
             // en qualité d'adjoint, sans accès aux ordres réservés au titulaire du poste.
             persons: [{name:'Gabriel Pelletier (PNJ)', role:'Commissaire adjoint — référent police', rel:'neutral', job:'commissaire'}]
@@ -2587,7 +2587,7 @@ const BUILDINGS = {
         name: "Salle de Presse",
         imageBg: "linear-gradient(135deg,#0f0f18,#181820)",
         desc: "La salle de presse officielle du gouvernement. Microphones, cameras, journalistes accrédités.",
-        imageUrl: "images/Luthecia%20palais%20gouvernement%20salle%20presse.png?v=20261018-2",
+        imageUrl: "images/Luthecia%20palais%20gouvernement%20salle%20presse.webp?v=20261102",
         persons: [
           // CORINNE TITE-DECLAZ (11 octobre 2026) remplace le « Porte-parole (PNJ) » anonyme. Meme
           // logique que le Porte-parole presidentiel livre la veille : referente de la COMMUNICATION
@@ -6418,7 +6418,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#181410,#221c15)",
-        imageUrl: "images/montrouge/Montrouge_raffinerie_salle_ventes.png",
+        imageUrl: "images/montrouge/Montrouge_raffinerie_salle_ventes.webp",
         desc: "L'accueil et la salle de vente directe du carburant produit sur place.",
         persons: [],
         orders: [{fn:'vente_directe_usine', label:'Vente directe', pa:0, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'}]
@@ -7489,7 +7489,7 @@ const TERRAIN_PNJ_PROFILES = {
       "rel": "ally",
       "prob": 0.25,
       "agressif": false,
-      "photoUrl": "images/squatteur-cool-republic.png",
+      "photoUrl": "images/squatteur-cool-republic.webp",
       "photoPos": "40% 25%",
       "trait": "Ont installé un barbecue, un canapé et une télé sur le terrain. Très accueillants."
     },
