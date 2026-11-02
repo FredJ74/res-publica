@@ -66,7 +66,10 @@ window.RP_I18N_LANGUAGES = {
   es: { nativeName: 'Español' },
   'zh-TW': { nativeName: '繁體中文（台灣）' },
   ru: { nativeName: 'Русский' },
-  ko: { nativeName: '한국어' }
+  ko: { nativeName: '한국어' },
+  ar: { nativeName: 'العربية' },
+  'pt-BR': { nativeName: 'Português (Brasil)' },
+  de: { nativeName: 'Deutsch' }
 };
 
 window.RP_I18N_RESOURCES = {
@@ -1453,5 +1456,36 @@ window.RP_I18N_RESOURCES = {
         }
       }
     }
-  }
+  },
+  // Nouveaux choix sur l'accueil uniquement ; le parcours restant utilise le fallback FR.
+  'ar': { translation: { home: {
+    brand: "Human Gambit",
+    descriptor: "لعبة استراتيجية اجتماعية",
+    signature: "لا أحد ينجح بمفرده.",
+    createCharacter: "إنشاء شخصيتي",
+    findCharacter: "العثور على شخصيتي",
+    findCharacterPlaceholder: "اسم شخصيتك...",
+    loadCharacter: "تحميل هذه الشخصية",
+    beta: { title: "تفتح Human Gambit نسختها التجريبية." }
+  } } },
+  'pt-BR': { translation: { home: {
+    brand: "Human Gambit",
+    descriptor: "UM JOGO DE ESTRATÉGIA SOCIAL",
+    signature: "NINGUÉM VENCE SOZINHO.",
+    createCharacter: "Criar meu personagem",
+    findCharacter: "Encontrar meu personagem",
+    findCharacterPlaceholder: "Nome do personagem...",
+    loadCharacter: "Carregar este personagem",
+    beta: { title: "Human Gambit abre sua versão beta." }
+  } } },
+  'de': { translation: { home: {
+    brand: "Human Gambit",
+    descriptor: "EIN SOZIALES STRATEGIESPIEL",
+    signature: "NIEMAND SCHAFFT ES ALLEIN.",
+    createCharacter: "Charakter erstellen",
+    findCharacter: "Charakter wiederfinden",
+    findCharacterPlaceholder: "Name deines Charakters...",
+    loadCharacter: "Diesen Charakter laden",
+    beta: { title: "Human Gambit startet die Beta." }
+  } } }
 };
