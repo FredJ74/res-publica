@@ -1491,13 +1491,13 @@ window.RP_I18N_RESOURCES = {
     creation: {
       nav: { back: "رجوع", next: "التالي", seeSheet: "عرض بطاقتي", edit: "تعديل", validate: "تأكيد والدخول إلى اللعبة", enter: "الدخول إلى اللعبة" },
       steps: {
-        country: { step: "الخطوة 1 من 7", title: "اختر إمبراطوريتك" },
-        origin: { step: "الخطوة 2 من 7", title: "الخلفية الاجتماعية" },
-        school: { step: "الخطوة 3 من 7", title: "التعليم" },
-        archetype: { step: "الخطوة 4 من 7", title: "الطبيعة الحقيقية" },
-        career: { step: "الخطوة 5 من 7", title: "المهنة" },
-        stats: { step: "الخطوة 6 من 7", title: "السمات" },
-        identity: { step: "الخطوة 7 من 7", title: "هوية الشخصية" }
+        country: { step: "الخطوة 1 من 7", title: "اختر إمبراطوريتك", subtitle: "لكل إمبراطورية قوانينها وأساليبها الخاصة في الفساد." },
+        origin: { step: "الخطوة 2 من 7", title: "الخلفية الاجتماعية", subtitle: "تؤثر خلفيتك الاجتماعية في مواردك الأولية." },
+        school: { step: "الخطوة 3 من 7", title: "التعليم", subtitle: "يفتح التعليم بعض الفرص ويغلق فرصًا أخرى." },
+        archetype: { step: "الخطوة 4 من 7", title: "الطبيعة الحقيقية", subtitle: "من أنت حقًا بعيدًا عن ماضيك؟" },
+        career: { step: "الخطوة 5 من 7", title: "المهنة", subtitle: "مسارك المهني قبل دخول اللعبة الكبرى." },
+        stats: { step: "الخطوة 6 من 7", title: "السمات", subtitle: "وزّع نقاطك الحرة. أُضيفت المكافآت المكتسبة بالفعل." },
+        identity: { step: "الخطوة 7 من 7", title: "هوية الشخصية", subtitle: "امنح شخصيتك وجهًا واسمًا وقصة." }
       }
     }
   } },
@@ -1534,13 +1534,13 @@ window.RP_I18N_RESOURCES = {
     creation: {
       nav: { back: "Voltar", next: "Próximo", seeSheet: "Ver minha ficha", edit: "Editar", validate: "Confirmar e entrar no jogo", enter: "Entrar no jogo" },
       steps: {
-        country: { step: "Etapa 1 de 7", title: "Escolha seu império" },
-        origin: { step: "Etapa 2 de 7", title: "Origem social" },
-        school: { step: "Etapa 3 de 7", title: "Educação" },
-        archetype: { step: "Etapa 4 de 7", title: "Natureza profunda" },
-        career: { step: "Etapa 5 de 7", title: "Carreira" },
-        stats: { step: "Etapa 6 de 7", title: "Atributos" },
-        identity: { step: "Etapa 7 de 7", title: "Identidade do personagem" }
+        country: { step: "Etapa 1 de 7", title: "Escolha seu império", subtitle: "Cada império tem suas regras, seus códigos e seu próprio jeito de ser corrupto." },
+        origin: { step: "Etapa 2 de 7", title: "Origem social", subtitle: "Sua origem social determina seus recursos iniciais." },
+        school: { step: "Etapa 3 de 7", title: "Educação", subtitle: "A educação molda suas habilidades e abre ou fecha oportunidades." },
+        archetype: { step: "Etapa 4 de 7", title: "Natureza profunda", subtitle: "Quem é você de verdade, independentemente do seu passado?" },
+        career: { step: "Etapa 5 de 7", title: "Carreira", subtitle: "Sua trajetória profissional antes de entrar no grande jogo." },
+        stats: { step: "Etapa 6 de 7", title: "Atributos", subtitle: "Distribua seus pontos livres. Os bônus adquiridos já foram incluídos." },
+        identity: { step: "Etapa 7 de 7", title: "Identidade do personagem", subtitle: "Dê ao seu alter ego um rosto, um nome e uma história." }
       }
     }
   } },
@@ -1577,13 +1577,13 @@ window.RP_I18N_RESOURCES = {
     creation: {
       nav: { back: "Zurück", next: "Weiter", seeSheet: "Charakterbogen ansehen", edit: "Bearbeiten", validate: "Bestätigen und Spiel betreten", enter: "Spiel betreten" },
       steps: {
-        country: { step: "Schritt 1 von 7", title: "Wähle dein Imperium" },
-        origin: { step: "Schritt 2 von 7", title: "Soziale Herkunft" },
-        school: { step: "Schritt 3 von 7", title: "Bildung" },
-        archetype: { step: "Schritt 4 von 7", title: "Wahres Wesen" },
-        career: { step: "Schritt 5 von 7", title: "Laufbahn" },
-        stats: { step: "Schritt 6 von 7", title: "Eigenschaften" },
-        identity: { step: "Schritt 7 von 7", title: "Charakteridentität" }
+        country: { step: "Schritt 1 von 7", title: "Wähle dein Imperium", subtitle: "Jedes Imperium hat seine eigenen Regeln, Gewohnheiten und Methoden der Korruption." },
+        origin: { step: "Schritt 2 von 7", title: "Soziale Herkunft", subtitle: "Deine Herkunft bestimmt deine anfänglichen Mittel." },
+        school: { step: "Schritt 3 von 7", title: "Bildung", subtitle: "Bildung prägt deine Fähigkeiten und eröffnet oder verschließt Wege." },
+        archetype: { step: "Schritt 4 von 7", title: "Wahres Wesen", subtitle: "Wer bist du wirklich, unabhängig von deiner Vergangenheit?" },
+        career: { step: "Schritt 5 von 7", title: "Laufbahn", subtitle: "Dein beruflicher Werdegang vor dem großen Spiel." },
+        stats: { step: "Schritt 6 von 7", title: "Eigenschaften", subtitle: "Verteile deine freien Punkte. Bereits erhaltene Boni sind eingerechnet." },
+        identity: { step: "Schritt 7 von 7", title: "Charakteridentität", subtitle: "Gib deinem Alter Ego ein Gesicht, einen Namen und eine Geschichte." }
       }
     }
   } }
