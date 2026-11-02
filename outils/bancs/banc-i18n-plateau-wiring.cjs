@@ -28,3 +28,12 @@ test('les panneaux statiques portent des clés de localisation sans modifier les
  assert.match(plateau,/onclick="ouvrirCalepinCampagne\(\)"/);
  assert.match(plateau,/id="action-context-bat"/);
 });
+
+test('navigation principale, forum et courrier gardent leurs clés et événements',()=>{
+ for(const key of ['personalActions','inventory','organizations','identity','statistics','rules','forum','localForum','mailbox','receivedMessages','financeManagement','characterSheet','conversation']) {
+  assert.ok(plateau.includes('data-i18n="plateau.'+key+'"'),key);
+ }
+ assert.match(plateau,/onclick="switchSelfTab\('actions',this\)"/);
+ assert.match(plateau,/onclick="switchSelfTab\('inventaire',this\)"/);
+ assert.match(plateau,/id="pnj-modal-title"/);
+});
