@@ -1490,7 +1490,7 @@ window.RP_I18N_RESOURCES = {
     findCharacter: "العثور على شخصيتي",
     findCharacterPlaceholder: "اسم شخصيتك...",
     loadCharacter: "تحميل هذه الشخصية",
-    beta: { title: "تفتح Human Gambit نسختها التجريبية." }
+    beta: { title: "تفتح Human Gambit نسختها التجريبية.", body: "تفتح ريبوبليا أبوابها أولًا: ثلاث مدن ومجلس ومحاكم وبطولة وشخصيات لا تخلو من الشبهات. لا تزال أنظمة أخرى قيد التطوير، والإمبراطوريات المجاورة تنتظر دورها. ما تفعله هنا وما تشاركه معنا سيؤثر في مستقبل اللعبة." }
   }, auth: {
       title: "قبل إنشاء شخصيتك",
       intro: "أدخل عنوان بريد إلكتروني واختر كلمة مرور. ستساعدك هذه البيانات على استعادة شخصيتك وتسجيل الدخول من أي جهاز.",
@@ -1540,7 +1540,7 @@ window.RP_I18N_RESOURCES = {
     findCharacter: "Encontrar meu personagem",
     findCharacterPlaceholder: "Nome do personagem...",
     loadCharacter: "Carregar este personagem",
-    beta: { title: "Human Gambit abre sua versão beta." }
+    beta: { title: "Human Gambit abre sua versão beta.", body: "Républia é o primeiro império a abrir suas portas: três cidades, uma Assembleia, tribunais, um campeonato e algumas figuras pouco recomendáveis. Outros sistemas ainda estão em desenvolvimento, e os impérios vizinhos aguardam sua vez. Suas ações e seus comentários ajudarão a moldar o futuro do jogo." }
   }, auth: {
       title: "Antes de criar seu personagem",
       intro: "Informe seu e-mail e escolha uma senha. Assim você poderá recuperar seu personagem e entrar em Res Publica de qualquer dispositivo.",
@@ -1590,7 +1590,7 @@ window.RP_I18N_RESOURCES = {
     findCharacter: "Charakter wiederfinden",
     findCharacterPlaceholder: "Name deines Charakters...",
     loadCharacter: "Diesen Charakter laden",
-    beta: { title: "Human Gambit startet die Beta." }
+    beta: { title: "Human Gambit startet die Beta.", body: "Républia öffnet als erstes Imperium seine Tore: drei Städte, eine Versammlung, Gerichte, eine Meisterschaft und einige fragwürdige Gestalten. Weitere Systeme werden noch entwickelt, und die benachbarten Imperien warten auf ihren Einsatz. Was du hier tust und uns berichtest, gestaltet die Zukunft des Spiels." }
   }, auth: {
       title: "Bevor du deinen Charakter erstellst",
       intro: "Gib deine E-Mail-Adresse ein und wähle ein Passwort. Damit kannst du deinen Charakter wiederfinden und dich von jedem Gerät bei Res Publica anmelden.",
