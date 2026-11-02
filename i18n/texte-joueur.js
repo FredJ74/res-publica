@@ -28,5 +28,22 @@
   element.textContent=view(record,locale,showOriginal).text;
   return true;
  }
- global.RPPlayerText=Object.freeze({view,renderText});
+ function attachToggle(element,button,record,locale,labels) {
+  if(!element || !button || typeof button.addEventListener!=='function') return null;
+  let showOriginal=false;
+  const names=labels||{};
+  function render() {
+   const result=view(record,locale,showOriginal);
+   element.textContent=result.text;
+   button.hidden=!result.showOriginalAvailable;
+   button.textContent=showOriginal?(names.showTranslation||'Voir la traduction'):(names.showOriginal||"Voir l'original");
+   button.setAttribute?.('aria-pressed',showOriginal?'true':'false');
+   return result;
+  }
+  function toggle(){showOriginal=!showOriginal;render();}
+  button.addEventListener('click',toggle);
+  render();
+  return Object.freeze({render,detach:function(){button.removeEventListener?.('click',toggle)}});
+ }
+ global.RPPlayerText=Object.freeze({view,renderText,attachToggle});
 })(window);
