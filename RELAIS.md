@@ -25,6 +25,21 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Audit technique transversal de clôture #135 — Codex, 02/11/2026
+
+Mission : commentaire `6585083787` du ticket #135 (18 h 32 UTC).
+Branche `codex/audit-transversal-cloture-135-20261102`, base main `9e105f08`.
+Inventaire des PR publiques lu : pas de mission transversale identique repérée.
+#375 conférence réservé à son auteur ; #369 n'est pas réintégrée (#371 déjà fusionnée).
+Exclus : PNJ, DeepSeek, textes et migrations de Claude ; pas de réouverture #219.
+Relais et audits #250/#262/#282 réutilisés. Première lecture : #219/#349/#366/#371
+fusionnées, mais livraison réelle à distinguer des rapports ; les bancs existants
+position, greffes et commissariats passent localement. Matrice de livraison,
+rendu navigateur et inventaire différentiel des anciennes routes en cours.
+GitHub public HTTPS lisible ; API GraphQL/REST refusée. Aucune donnée joueur ni
+production modifiée ; aucune fusion/migration autorisée par cette mission.
+
+
 ### Audit global Républia — Codex, 02/11/2026
 
 Branche `codex/audit-global-republia-20261102`, issue du main `a99c4069`
