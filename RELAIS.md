@@ -54,6 +54,10 @@ commissariats, 3 villes × 2 largeurs : 12 scénarios + parent réussis. Chargem
 avec cache périmé/panne/autre UID : 9 cas. Deux bancs historiques adaptés à la
 disparition des convocations locales et au nouveau nom du vote organisation.
 Contrôles globaux hors ligne 12/12 ; contrôleur clients relancé après ces corrections.
+Quatrième défaut reproduit : le GET partiel du greffe effaçait la révision de
+l’inventaire. Le lecteur commun reprend inventaire_reception_etat et adopte sa
+réponse exacte, provenance incluse ; 10 tests (4 échecs sur le corps ancien).
+Prévol ciblé purement SELECT préparé, pas exécuté en production.
 GitHub public HTTPS lisible ; API GraphQL/REST refusée. Aucune donnée joueur ni
 production modifiée ; aucune fusion/migration autorisée par cette mission.
 

@@ -14593,15 +14593,13 @@ function greffeRefus(v, defaut) {
 // Une lecture qui echoue ne casse rien : l'objet EST en base, et le prochain chargement de la
 // fiche le montrera. On ne simule jamais un objet qu'on n'a pas lu.
 async function rafraichirInventaireDepuisServeur() {
-  if (typeof sbGet !== 'function' || !state.char?.name) return false;
-  const rows = await sbGet('personnages',
-    'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
-  const inv = (Array.isArray(rows) && rows[0] && Array.isArray(rows[0].inventory))
-    ? rows[0].inventory : null;
-  if (!inv) return false;
-  if (typeof sbAdopterInventaireServeur === 'function') {
-    if (!sbAdopterInventaireServeur(rows[0])) return false;
-  } else state.inventory = inv;
+  if (typeof sbInventaireReceptionEtat !== 'function' ||
+      typeof sbAdopterInventaireServeur !== 'function' || !state.char?.name) return false;
+  // Même lecteur que les réceptions : la révision et la provenance accompagnent
+  // l'inventaire jusqu'à l'adoption. Un GET inventory seul effaçait sa révision.
+  const v = await sbInventaireReceptionEtat(state.char.name).catch(() => null);
+  if (!v || v.ok !== true || !Number.isSafeInteger(v.revision) ||
+      !Array.isArray(v.inventory) || !sbAdopterInventaireServeur(v)) return false;
   if (typeof renderInventory === 'function') renderInventory();
   return true;
 }
