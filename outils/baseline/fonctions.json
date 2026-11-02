@@ -767,10 +767,6 @@
    "sbLoadOrganisationsServeur"
   ],
   [
-   "api/cron-minuit.js",
-   "sbSaveOrganisationServeur"
-  ],
-  [
    "api/_journal-collecte.js",
    "sbGet"
   ],

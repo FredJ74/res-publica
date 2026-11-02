@@ -25,6 +25,30 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Audit global Républia — Codex, 02/11/2026
+
+Branche `codex/audit-global-republia-20261102`, issue du main `a99c4069`
+(#351/#352 conservées). Lecture du catalogue effectif : 102 bâtiments, 305 pièces,
+219 occurrences PNJ, 1 141 ordres. Audit de code achevé, limites de recette documentées, sans RPC ni production.
+Corrections démontrées : les quatre images de locaux libres PSM étaient masquées
+par les variantes Luthécia. Deux avocats sans profil sont explicitement déclarés
+muets par le banc historique : aucun profil ajouté après relecture.
+Moteurs et état occupé existants conservés ; aucune personnalité inventée.
+Raccordement #351 complété dans le moteur de coûts des postes nommés (six tarifs
+existants, aucun prix changé) : Baseline et Referential redevenus verts sans
+changer leurs références. 9 tests ciblés, Chromium 2/2, 164 bancs clients, globaux
+12/12 ; dix défauts reproduits sur main. Rapport : `outils/audits/AUDIT-GLOBAL-REPUBLIA-20261102.md` et inventaire JSON.
+Métadonnées des deux journalistes corrigées (lieu de rédaction, pas d’identité).
+Aucun chantier #219 ni immobilier repris.
+Main `791ab6c4` (#350) intégré sans changer ses cinq migrations ; exception de
+copie devenue périmée retirée du contrôle (fonction autonome du cron conservée).
+Globaux 12/12, tests étape B 4+2 ; PR tentée, API GraphQL Forbidden. Branche
+poussée ; pas de fusion ni déploiement. Vérification finale : 164/164 clients,
+9/9 ciblés, Chromium 2/2, 43 épreuves PNJ, 12/12 globaux et dix contre-épreuves.
+Preuve : `outils/audits/VERIFICATIONS-AUDIT-REPUBLIA-20261102.json`.
+Rapport distingue 25 besoins graphiques,
+quatre accès sans zone à Montrouge, muets volontaires et tests sans production.
+
 ### Organisations, étape B : fin de la double autorité (Claude, branche `claude/organisations-etape-b-20261102`, PR #350)
 
 - **Fait (02/11)** : les 16 chemins sans commande portés (détail et table : `outils/audits/ORGANISATIONS-ECRITURES-20261031.md`, section « Étape B ») ; `sauvegarderOrga` / `sbSaveOrganisation` et les replis morts retirés de l'écran ; tests `test-organisations-ecritures-inventaire.mjs` (zéro écriture de l'écran) et `test-organisations-vie-referentiel.mjs` (grades recopiés = data.js).
