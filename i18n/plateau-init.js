@@ -20,7 +20,9 @@
     global.document.documentElement.lang=locale;
     global.document.querySelectorAll('[data-i18n]').forEach(function(element){
       const key=element.getAttribute('data-i18n');
-      element.textContent=engine.t(key);
+      const translated=engine.t(key);
+      element.textContent=element.hasAttribute('data-i18n-uppercase')
+        ? translated.toLocaleUpperCase(locale) : translated;
       if(locale==='ar') element.setAttribute('dir','rtl');
     });
   });
