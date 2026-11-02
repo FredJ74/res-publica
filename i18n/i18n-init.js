@@ -97,6 +97,13 @@ function appliquerTraductionsRP() {
     el.setAttribute('placeholder', i18next.t(el.getAttribute('data-i18n-placeholder')));
   });
   document.documentElement.lang = i18next.language;
+  // Ne pas retourner toute la mise en page : les cartes, images et controles
+  // restent a leur place. Seuls les textes traduits deviennent RTL pour l'arabe.
+  const texteRTL = i18next.language === 'ar';
+  document.querySelectorAll('[data-i18n], [data-i18n-placeholder]').forEach(function (el) {
+    if (texteRTL) el.setAttribute('dir', 'rtl');
+    else el.removeAttribute('dir');
+  });
   // Titre du document recompose depuis les cles d'accueil (marque + descripteur) : il etait
   // reconstruit ici a chaque changement de langue depuis la chaine 'Res Publica —' codee en
   // dur, ce qui ecrasait systematiquement le <title> de index.html au premier rendu i18n.
