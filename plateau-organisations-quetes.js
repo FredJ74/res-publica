@@ -3301,8 +3301,12 @@ const RAISONS_BLOCUS = {
   batiment_inconnu: 'Ce lieu ne peut pas être bloqué.',
   syndicat_introuvable: 'Syndicat introuvable.',
   reserve_secretaire_general: "Réservé au Secrétaire Général et au Secrétaire Général Adjoint du syndicat.",
-  militants_insuffisants: 'Il faut au moins 2 militants recrutés pour organiser un blocus.',
-  nombre_militants_invalide: 'Nombre de militants invalide (au moins 2, au plus vos militants recrutés).',
+  militants_insuffisants: 'Il faut au moins 2 participants pour organiser un blocus.',
+  participants_insuffisants: 'Il faut au moins 2 participants (vous, les syndiqués de votre groupe présents ici et vos militants mobilisés).',
+  nombre_militants_invalide: 'Nombre de militants invalide (au plus vos militants recrutés).',
+  chef_de_groupe_requis: 'Vous devez être le chef de votre groupe pour mener le blocus.',
+  tentative_du_jour_deja_faite: 'Votre syndicat a déjà tenté un blocus aujourd\'hui. Une seule tentative par jour.',
+  pa_insuffisants_participants: 'Chaque PJ participant doit avoir 2 PA.',
   deja_bloque: 'Un blocus est déjà en cours ici.',
   aucun_blocus: "Ce blocus n'est plus en cours.",
   reserve_commissaire: 'Réservé au commissaire de la ville.',
@@ -3326,6 +3330,9 @@ function getMonSyndicatEtGrade() {
 function blocusRefuser(r, titre) {
   if (!r) { showToast(titre, "Le serveur n'a pas confirmé. Rien n'a été enregistré.", false); return; }
   if (r.raison === 'paiement_refuse' && r.paiement && typeof signalerRefusCout === 'function') { signalerRefusCout(r.paiement); return; }
+  if (r.raison === 'pa_insuffisants_participants' && Array.isArray(r.sans_pa)) {
+    showToast(titre, 'Chaque PJ participant doit avoir 2 PA. Il en manque à : ' + r.sans_pa.join(', ') + '. Personne n\'a payé.', false); return;
+  }
   showToast(titre, RAISONS_BLOCUS[r.raison] || "Action refusée par le serveur.", false);
 }
 
@@ -3335,11 +3342,11 @@ async function doOrganiserBlocusSyndical() {
   if (!state.currentBuilding) { showToast('Blocus impossible', RAISONS_BLOCUS.hors_batiment, false); return; }
   const { syndicat } = infos;
   const militants = (syndicat.membres || []).filter(m => m.estPnj).length;
-  if (militants < 2) { showToast('Effectifs insuffisants', RAISONS_BLOCUS.militants_insuffisants, false); return; }
 
   let html = '<div class="cpj-dialogue" style="padding:1rem">';
-  html += '<div class="cpj-note" style="margin-bottom:.6rem">Militants recrutés : ' + militants + '. Plus vous en mobilisez, plus le blocus a de chances de réussir et sera intense.</div>';
-  html += '<input id="blocus-nb-militants" class="cpj-champ" type="number" min="2" max="' + militants + '" value="' + militants + '" style="width:100%;margin-bottom:.6rem" />';
+  html += '<div class="cpj-note" style="margin-bottom:.6rem">Participants : vous, les syndiqués de votre groupe présents ici, et les militants que vous mobilisez (au moins 2 au total). Chaque PJ participant paie 2 PA. Une seule tentative par jour pour le syndicat. Plus il y a de participants, plus le blocus a de chances de réussir et sera intense.</div>';
+  html += '<div class="cpj-note" style="margin-bottom:.3rem">Militants mobilisés (sur ' + militants + ')</div>';
+  html += '<input id="blocus-nb-militants" class="cpj-champ" type="number" min="0" max="' + militants + '" value="' + militants + '" style="width:100%;margin-bottom:.6rem" />';
   html += '<div class="cpj-note" style="margin-bottom:.3rem">Revendication syndicale</div>';
   html += '<textarea id="blocus-revendication" class="cpj-champ" rows="2" maxlength="280" placeholder="Ex : Contre la précarité des travailleurs du bâtiment..." style="width:100%;box-sizing:border-box"></textarea>';
   html += '<button class="cpj-touche cpj-primaire" onclick="confirmerOrganiserBlocus(\'' + syndicat.id + '\')" style="margin-top:.6rem">Organiser le blocus</button>';
@@ -3352,7 +3359,7 @@ async function doOrganiserBlocusSyndical() {
 let _blocusEnvoi = false;
 async function confirmerOrganiserBlocus(syndicatId) {
   if (_blocusEnvoi) return;
-  const nbMilitants = parseInt(document.getElementById('blocus-nb-militants')?.value || '2', 10);
+  const nbMilitants = parseInt(document.getElementById('blocus-nb-militants')?.value || '0', 10);
   const revendication = (document.getElementById('blocus-revendication')?.value || '').trim();
   _blocusEnvoi = true;
   const r = (typeof sbRpc === 'function')
@@ -3361,6 +3368,7 @@ async function confirmerOrganiserBlocus(syndicatId) {
   _blocusEnvoi = false;
   if (!r || r.ok !== true) { blocusRefuser(r, 'Blocus impossible'); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
   if (r.reussi !== true) {
     showToast('Blocus raté', "Les militants n'ont pas réussi à s'organiser cette fois-ci (" + r.taux + ' % de chances).', false);
     addJournalEntry('Tentative de blocus syndical ratée.', 'event-bad');
@@ -3372,7 +3380,7 @@ async function confirmerOrganiserBlocus(syndicatId) {
   if (typeof chargerOrganisations === 'function') await chargerOrganisations();
   updateUI();
   showToast('Blocus organisé !', 'Le bâtiment est bloqué (intensité ' + r.intensite + '). Renouvelez-le chaque jour depuis votre menu.', true, true);
-  addJournalEntry('Blocus syndical organisé (' + (r.blocus?.nbMilitants || nbMilitants) + ' militants) : "' + (r.blocus?.revendication || '') + '"', 'event-good');
+  addJournalEntry('Blocus syndical organisé (' + (r.blocus?.nbPj || 1) + ' PJ, ' + (r.blocus?.nbMilitants || 0) + ' militants) : "' + (r.blocus?.revendication || '') + '"', 'event-good');
   if (typeof addExternalEvent === 'function') {
     addExternalEvent('✊ Un blocus syndical a été organisé dans un bâtiment de la ville : "' + (r.blocus?.revendication || '') + '"', 'local');
   }
