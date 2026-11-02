@@ -189,3 +189,13 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - PR #249 : branche dédiée, issue du `main` 27198955, sans importer les groupes inachevés #219. Les raccordements d'inventaire de #213 sont réconciliés avec le code récent des écrans. Aucun déploiement, aucune migration de fermeture à cette étape.
 - Dix migrations métier déjà installées en base ; six fermetures différées au déploiement d'un client compatible : `20261028210000`, `20261028210500`, `20261028210600`, `20261028210700`, `20261028210800`, `20261028210900`. Ne pas activer le verrou final sans observation et accord du game designer.
 - CI au SHA de la PR #249 et validation des chemins d'inventaire impératives avant fusion. La garde fret `hg_fret_contenu_source` demeure désactivée en attendant le nouveau client.
+
+### Internationalisation 9 langues — PR #377 (02/11/2026, en brouillon)
+
+- Travail de ChatGPT, branche `chatgpt/accueil-9-langues-20261102`, distincte de l'audit transversal Codex #379 et des PNJ/DeepSeek de Claude.
+- Réutilise **i18next déjà opérationnel** : langues FR, EN, ES, ZH-TW, RU, KO, AR, PT-BR, DE. La PR #278 (`HGI18n`) est un prototype non chargé ; ne jamais faire tourner deux moteurs.
+- Catalogue accueil et création : **213/213 clés françaises présentes dans les 9 langues**, variantes CLDR russes additionnelles ; tests de clés, interpolations et vocabulaire sur `.github/workflows/i18n-tests.yml`.
+- Plateau : couche `i18n/plateau-resources.js` (14 libellés × 9 langues), `plateau-bridge.js` (préférence et conservation du texte original), `plateau-init.js` et premiers champs `data-i18n` dans `plateau.html`. Le reste des textes dynamiques du plateau et tous les dialogues PNJ **ne sont pas encore internationalisés**.
+- Contrat PNJ préparé dans `i18n/PLAN-PNJ-9-LANGUES.md`, sans modifier les profils ni l'API DeepSeek : attendre le socle stabilisé de Claude.
+- Ne pas fusionner ou déployer publiquement cette PR incomplète. Le jeu doit rester jouable en français tant que le plateau, les notifications et les textes joueurs n'ont pas leur recette complète.
+- Dernière série de tests CI à lire sur le SHA exact avant livraison ; ne pas confondre une parité des clés et une relecture éditoriale.
