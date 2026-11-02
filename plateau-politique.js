@@ -4408,9 +4408,8 @@ function renderRoomActions(room, buildingId, roomId) {
     boutonsOrganises.push(...buttons.slice(ordresTerrainLuthecia.length));
   }
 
-  // Greffes de Républia : mêmes familles d'ordres à Luthécia, PSM et Montrouge.
-  // La répartition est purement visuelle : les boutons filles gardent leurs handlers,
-  // gardes, coûts et conditions. Aucun ordre n'est créé ni exécuté par le menu.
+  // Greffes : boutons principaux au gabarit standard, sous-ordres dans la modale.
+  // Conserver les boutons et handlers originaux, sans modifier les conditions métier.
   if (state.country === 'republic' && ['tribunal','tribunal-local'].includes(buildingId) && roomId === 'greffe') {
     const familles = [
       {titre:'Consulter les affaires', icone:'ti-folders', fns:['archives','greffe_affaires','greffe_archives','demander_juge_instruction']},
@@ -4418,20 +4417,17 @@ function renderRoomActions(room, buildingId, roomId) {
       {titre:'Profession d’avocat', icone:'ti-briefcase', fns:['avocat_dossiers','avocat_barreau']},
       {titre:'Actions illégales', icone:'ti-alert-triangle', fns:['falsifier_document','greffe_corrompre_dossier','greffe_corrompre_faux_casier']}
     ];
+    window._greffeOrdresGroupes = {};
     const dejaRendus = new Set();
-    const menus = familles.map(famille => {
-      const fils = ordresTerrainLuthecia.map((ordre,index) => {
-        if (!famille.fns.includes(ordre.fn)) return '';
-        dejaRendus.add(ordre.fn);
-        return buttons[index] || '';
-      }).filter(Boolean);
-      if (!fils.length) return '';
-      return '<details class="greffe-sous-menu" style="width:100%">' +
-        '<summary class="action-btn legal" style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:.5rem">' +
-        '<i class="ti ' + famille.icone + '"></i> ' + famille.titre +
-        ' <i class="ti ti-chevron-down" style="margin-left:auto"></i></summary>' +
-        '<div style="display:flex;flex-direction:column;gap:.4rem;padding:.45rem 0 .45rem .8rem">' +
-        fils.join('') + '</div></details>';
+    const menus = familles.map((famille, index) => {
+      const entries = ordresTerrainLuthecia.map((ordre,i) => ({ordre, html:buttons[i]}))
+        .filter(e => famille.fns.includes(e.ordre.fn) && e.html);
+      if (!entries.length) return '';
+      entries.forEach(e => dejaRendus.add(e.ordre.fn));
+      window._greffeOrdresGroupes[index] = {titre:famille.titre, entries};
+      return '<button type="button" class="action-btn legal" onclick="ouvrirMenuOrdresGreffe(' + index +
+        ')" title="' + famille.titre + '"><i class="ti ' + famille.icone +
+        '" style="font-size:.82rem"></i> ' + famille.titre + ' <span class="pa-cost">▾</span></button>';
     }).filter(Boolean);
     const nonClasses = ordresTerrainLuthecia.map((ordre,index) =>
       dejaRendus.has(ordre.fn) ? '' : buttons[index]).filter(Boolean);
@@ -4542,6 +4538,21 @@ async function confirmerLoyerLotTerrain(lotId, index) {
 
 function expliquerAchatTerrainBloque() {
   showToast('Achat impossible', 'Achat impossible, vous devez libérer le terrain en gérant les intrus', false);
+}
+
+function ouvrirMenuOrdresGreffe(index) {
+  const groupe = window._greffeOrdresGroupes?.[index];
+  if (!groupe || !['tribunal','tribunal-local'].includes(state.currentBuilding) ||
+      state.currentRoom !== 'greffe' || state.country !== 'republic') return;
+  const titre = document.getElementById('postes-modal-title');
+  const corps = document.getElementById('postes-body');
+  const modal = document.getElementById('modal-postes');
+  if (!titre || !corps || !modal) return;
+  titre.textContent = groupe.titre;
+  corps.innerHTML = '<div style="display:grid;gap:.8rem;padding:1rem">' +
+    groupe.entries.map(e => '<div style="padding:.7rem;border:1px solid #5b4825;border-radius:8px">' +
+      e.html + '</div>').join('') + '</div>';
+  modal.classList.add('open');
 }
 
 function ouvrirMenuOrdresTerrain(index) {

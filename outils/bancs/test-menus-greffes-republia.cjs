@@ -6,14 +6,18 @@ const root=path.resolve(__dirname,'../..');
 const source=fs.readFileSync(path.join(root,'plateau-politique.js'),'utf8');
 const data=fs.readFileSync(path.join(root,'data.js'),'utf8');
 test('greffes republicains : regroupement commun sans retirer les ordres',()=>{
-  const section=source.slice(source.indexOf('// Greffes de Républia :'),source.indexOf("document.getElementById('actions-row-bat').innerHTML",source.indexOf('// Greffes de Républia :')));
+  const section=source.slice(source.indexOf('// Greffes : boutons principaux'),source.indexOf("document.getElementById('actions-row-bat').innerHTML",source.indexOf('// Greffes : boutons principaux')));
   assert.match(section,/\['tribunal','tribunal-local'\]\.includes\(buildingId\) && roomId === 'greffe'/);
   for(const fn of ['archives','greffe_affaires','greffe_archives','demander_juge_instruction','casier_mon_extrait','casier_extrait_enquete','orga_extrait_duplicata','avocat_dossiers','avocat_barreau','falsifier_document','greffe_corrompre_dossier','greffe_corrompre_faux_casier']){
     assert.ok(section.includes("'"+fn+"'"),'ordre non classé: '+fn);
   }
   assert.match(section,/buttons\[index\]/);
   assert.match(section,/buttons\.slice\(ordresTerrainLuthecia\.length\)/);
-  assert.match(section,/<details class="greffe-sous-menu"/);
+  assert.doesNotMatch(section, /<details/);
+  assert.ok(section.includes('action-btn legal'));
+  assert.match(section, /ouvrirMenuOrdresGreffe/);
+  assert.ok(source.includes('function ouvrirMenuOrdresGreffe(index)'));
+  assert.ok(source.includes("modal.classList.add('open')"));
   assert.match(section,/nonClasses/);
   assert.match(data,/'tribunal-local': \{/);
   assert.match(data,/'tribunal': \{/);
