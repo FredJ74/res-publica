@@ -43,8 +43,10 @@ test('aucune interpolation ne diverge du français', () => {
 test('l état réel de couverture est calculable, sans confondre fallback et traduction', () => {
   const report = Object.fromEntries(Object.keys(langs).map(lang => {
     const translated = flatten(data[lang].translation);
-    return [lang, { translated: Object.keys(translated).length, reference: keys.length,
-      percent: Number((100 * Object.keys(translated).length / keys.length).toFixed(1)) }];
+    const covered = keys.filter(key => Object.hasOwn(translated, key)).length;
+    return [lang, { translated: covered, reference: keys.length,
+      languageSpecificPluralVariants: Object.keys(translated).length - covered,
+      percent: Number((100 * covered / keys.length).toFixed(1)) }];
   }));
   console.log('COUVERTURE I18N ACCUEIL/CREATION (hors plateau): ' + JSON.stringify(report));
   assert.equal(report.fr.percent, 100);
