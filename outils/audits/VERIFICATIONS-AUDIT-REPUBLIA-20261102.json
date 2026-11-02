@@ -1,0 +1,136 @@
+{
+  "production_modifiee": false,
+  "main_initial": "a99c406928ec7449f7dc11f5a447177c59b5452b",
+  "main_reconcilie": "791ab6c4",
+  "catalogue": {
+    "batiments": 102,
+    "pieces": 305,
+    "pnj_occurrences": 219,
+    "pnj_noms_distincts": 188,
+    "ordres_occurrences": 1141,
+    "ordres_uniques": 308,
+    "references_images": 601,
+    "images_distinctes": 436
+  },
+  "images_formats": {
+    "verifiees": 677,
+    "erreurs": 0,
+    "webp": 544,
+    "jpeg": 102,
+    "png": 31,
+    "videos_non_verifiees": 2
+  },
+  "tests": {
+    "controleur_client": {
+      "reussis": 164,
+      "total": 164
+    },
+    "cibles_audit": {
+      "reussis": 9,
+      "total": 9
+    },
+    "chromium_rues": {
+      "reussis": 2,
+      "total": 2,
+      "largeurs": [
+        1280,
+        390
+      ],
+      "autorite_navigation_simulee": true
+    },
+    "dialogues_historiques_epreuves": 43,
+    "organisations_etape_b": [
+      4,
+      2
+    ],
+    "globaux": {
+      "reussis": 12,
+      "total": 12
+    },
+    "contre_epreuves_main_initial": {
+      "reference": "a99c406928ec7449f7dc11f5a447177c59b5452b",
+      "production": false,
+      "defauts_reproduits": 10,
+      "cas": [
+        {
+          "cas": "image_libre_vitrine_principale",
+          "defaut_reproduit": true
+        },
+        {
+          "cas": "image_libre_boutique_milieu",
+          "defaut_reproduit": true
+        },
+        {
+          "cas": "image_libre_arriere_boutique",
+          "defaut_reproduit": true
+        },
+        {
+          "cas": "image_libre_cave_reserve",
+          "defaut_reproduit": true
+        },
+        {
+          "cas": "nommer_directeur_pharma",
+          "defaut_reproduit": true
+        },
+        {
+          "cas": "revoquer_directeur_pharma",
+          "defaut_reproduit": true
+        },
+        {
+          "cas": "nommer_directeur_tabac_alcools",
+          "defaut_reproduit": true
+        },
+        {
+          "cas": "revoquer_directeur_tabac_alcools",
+          "defaut_reproduit": true
+        },
+        {
+          "cas": "nommer_directeur_raffinerie",
+          "defaut_reproduit": true
+        },
+        {
+          "cas": "revoquer_directeur_raffinerie",
+          "defaut_reproduit": true
+        }
+      ]
+    }
+  },
+  "couts_generes": {
+    "avant": "08306aaf890f46d6",
+    "apres": "0ffc6e1caad1f581",
+    "reference_preexistante": "0ffc6e1caad1f581",
+    "triples_retablis": 6,
+    "reference_modifiee": false,
+    "baseline_ou_seeds_modifies": false
+  },
+  "images_illus_restantes": {
+    "photos_web_de_pieces": 19,
+    "pieces_sans_image": 6,
+    "repli_ville_ancien_plan": 1
+  },
+  "production_authentifiee": false,
+  "github_pr_creation": "Forbidden GraphQL",
+  "ci_distante_observee": false,
+  "lectures_ressources_vercel": [
+    {
+      "ressource": "/data.js",
+      "erreur": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "ressource": "/plateau-variantes-pieces.js",
+      "erreur": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "ressource": "/images/montrouge/Montrouge_raffinerie_salle_ventes.png",
+      "erreur": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "ressource": "/images/port-sainte-marie-centre-commercial-local-grand.png",
+      "erreur": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    }
+  ],
+  "artefacts": {
+    "AUDIT-GLOBAL-REPUBLIA-20261102.md": "8c69ffe6eed18ab29fcf4ee033160fdf159a47f3a33cdc06cf8c3d8c1d1e9348",
+    "AUDIT-GLOBAL-REPUBLIA-20261102.json": "ac2e9ee5098c2f8661d1bae7d7b8c713105cf6e4363300ca6ad6873f7d615227"
+  }
+}

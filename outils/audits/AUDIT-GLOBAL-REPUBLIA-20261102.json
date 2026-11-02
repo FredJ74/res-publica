@@ -7,8 +7,8 @@
     "pnjNoms": 188,
     "ordresOccurrences": 1141,
     "ordresUniques": 308,
-    "imagesOccurrences": 585,
-    "imagesDistinctes": 423,
+    "imagesOccurrences": 601,
+    "imagesDistinctes": 436,
     "fichiersImages": 679
   },
   "images": [
@@ -4806,6 +4806,118 @@
       "type": "rue",
       "statut": "locale_presente",
       "url": "images/montrouge/montrouge-place-marche-tabac-cafe.jpg"
+    },
+    {
+      "modele": "chantier_en_cours",
+      "type": "etat_chantier",
+      "statut": "locale_presente",
+      "url": "images/chantier-en-cours.webp"
+    },
+    {
+      "modele": "hangar",
+      "type": "etat_construction",
+      "statut": "locale_presente",
+      "url": "images/hangar-construction-terrain.webp"
+    },
+    {
+      "modele": "commerce_standard",
+      "type": "etat_construction",
+      "statut": "locale_presente",
+      "url": "images/commerce-standard-construction-terrain.webp"
+    },
+    {
+      "modele": "commerce_premium",
+      "type": "etat_construction",
+      "statut": "locale_presente",
+      "url": "images/commerce-premium-construction-terrain.webp"
+    },
+    {
+      "modele": "building",
+      "type": "etat_construction",
+      "statut": "locale_presente",
+      "url": "images/building-construction-terrain.webp"
+    },
+    {
+      "modele": "logements_petit",
+      "type": "etat_construction",
+      "statut": "locale_presente",
+      "url": "images/commerce-standard-construction-terrain.webp"
+    },
+    {
+      "modele": "logements_moyen",
+      "type": "etat_construction",
+      "statut": "locale_presente",
+      "url": "images/commerce-premium-construction-terrain.webp"
+    },
+    {
+      "modele": "logements_barre",
+      "type": "etat_construction",
+      "statut": "locale_presente",
+      "url": "images/building-construction-terrain.webp"
+    },
+    {
+      "ville": "capitale",
+      "batiment": "musee-ville-luthecia",
+      "piece": "salle_maires",
+      "type": "etat_enigme",
+      "statut": "locale_presente",
+      "url": "images/salle-maires-cadre-vide-luthecia.webp"
+    },
+    {
+      "ville": "capitale",
+      "batiment": "musee-ville-luthecia",
+      "piece": "salle_maires",
+      "type": "gros_plan_enigme",
+      "statut": "locale_presente",
+      "url": "images/cadre-vide-torcieu-maire.webp"
+    },
+    {
+      "ville": "capitale",
+      "batiment": "musee-ville-luthecia",
+      "piece": "salle_criminels",
+      "type": "etat_enigme",
+      "statut": "locale_presente",
+      "url": "images/salle-criminels-cadre-vide-luthecia.webp"
+    },
+    {
+      "ville": "capitale",
+      "batiment": "musee-ville-luthecia",
+      "piece": "salle_criminels",
+      "type": "gros_plan_enigme",
+      "statut": "locale_presente",
+      "url": "images/cadre-vide-caillon-criminel.webp"
+    },
+    {
+      "ville": "capitale",
+      "batiment": "musee-ville-luthecia",
+      "piece": "salle_entrepreneurs",
+      "type": "etat_enigme",
+      "statut": "locale_presente",
+      "url": "images/salle-entrepreneurs-cadre-vide-luthecia.webp"
+    },
+    {
+      "ville": "capitale",
+      "batiment": "musee-ville-luthecia",
+      "piece": "salle_entrepreneurs",
+      "type": "gros_plan_enigme",
+      "statut": "locale_presente",
+      "url": "images/cadre-vide-moulin-entrepreneur.webp"
+    },
+    {
+      "ville": "capitale",
+      "batiment": "musee-ville-luthecia",
+      "piece": "salle_plumes",
+      "type": "etat_enigme",
+      "statut": "locale_presente",
+      "url": "images/salle-plumes-cadre-vide-luthecia.webp"
+    },
+    {
+      "ville": "capitale",
+      "batiment": "musee-ville-luthecia",
+      "piece": "salle_plumes",
+      "type": "gros_plan_enigme",
+      "statut": "locale_presente",
+      "url": "images/cadre-vide-tintabin-plume.webp"
     }
   ],
   "anomalies": [],

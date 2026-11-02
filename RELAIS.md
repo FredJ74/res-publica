@@ -29,7 +29,7 @@ Règles : voir `AGENTS.md`.
 
 Branche `codex/audit-global-republia-20261102`, issue du main `a99c4069`
 (#351/#352 conservées). Lecture du catalogue effectif : 102 bâtiments, 305 pièces,
-219 occurrences PNJ, 1 141 ordres. Audit en cours sans RPC ni production.
+219 occurrences PNJ, 1 141 ordres. Audit de code achevé, limites de recette documentées, sans RPC ni production.
 Corrections démontrées : les quatre images de locaux libres PSM étaient masquées
 par les variantes Luthécia. Deux avocats sans profil sont explicitement déclarés
 muets par le banc historique : aucun profil ajouté après relecture.
@@ -43,7 +43,10 @@ Aucun chantier #219 ni immobilier repris.
 Main `791ab6c4` (#350) intégré sans changer ses cinq migrations ; exception de
 copie devenue périmée retirée du contrôle (fonction autonome du cron conservée).
 Globaux 12/12, tests étape B 4+2 ; PR tentée, API GraphQL Forbidden. Branche
-poussée ; pas de fusion ni déploiement. Rapport distingue 25 besoins graphiques,
+poussée ; pas de fusion ni déploiement. Vérification finale : 164/164 clients,
+9/9 ciblés, Chromium 2/2, 43 épreuves PNJ, 12/12 globaux et dix contre-épreuves.
+Preuve : `outils/audits/VERIFICATIONS-AUDIT-REPUBLIA-20261102.json`.
+Rapport distingue 25 besoins graphiques,
 quatre accès sans zone à Montrouge, muets volontaires et tests sans production.
 
 ### Organisations, étape B : fin de la double autorité (Claude, branche `claude/organisations-etape-b-20261102`, PR #350)

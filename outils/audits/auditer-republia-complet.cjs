@@ -25,7 +25,7 @@ function verifierImage(url,ensemble){if(!url)return {statut:'sans_image'};if(/^h
  const variantes=[...ensemble].filter(x=>x.toLowerCase()===p.toLowerCase());return {statut:variantes.length?'casse_incorrecte':'fichier_absent',url:p,candidats:variantes};}
 function analyser(){const data=charger(),images=fichiers(path.join(ROOT,'images')),set=new Set(images),anomalies=[],imagesReferences=[],npcs=[],ordres=[];
  const router=lire('plateau-router.js');
- function image(url,lieu,type){const v=verifierImage(url,set);imagesReferences.push({...lieu,type,...v});if(['fichier_absent','casse_incorrecte'].includes(v.statut))anomalies.push({gravite:'P2',code:'image_introuvable',...lieu,type,...v});return v;}
+ function image(url,lieu,type){const v=verifierImage(url,set);imagesReferences.push({...lieu,type,...v});if(['fichier_absent','casse_incorrecte','url_invalide'].includes(v.statut))anomalies.push({gravite:'P2',code:'image_introuvable',...lieu,type,...v});return v;}
  for(const v of data.villes){image(v.image,{ville:v.id},'ville');for(const b of v.batiments){if(b.absent){anomalies.push({gravite:'P1',code:'batiment_absent',ville:v.id,batiment:b.id});continue;}
  for(const r of b.pieces){const lieu={ville:v.id,batiment:b.id,piece:r.id};image(r.image,lieu,'piece');for(const [etat,u]of Object.entries(r.variantes))image(u,{...lieu,etat},'variante');
  for(const [source,u]of Object.entries(r.imagesDeclarees))if(u&&u!==r.image)image(u,{...lieu,source},'repli_masque');
@@ -34,6 +34,20 @@ function analyser(){const data=charger(),images=fichiers(path.join(ROOT,'images'
  }} }
  // Les quatre arrivées du carrefour PSM sont conservées et contrôlées séparément.
  const balayer=(x,loc)=>{if(!x||typeof x!=='object')return;for(const[k,v]of Object.entries(x)){if(typeof v==='string'&&(v.startsWith('images/')||/^https?:/.test(v)))image(v,{scene:loc+'.'+k},'rue');else if(v&&typeof v==='object')balayer(v,loc+'.'+k);}};balayer(data.rues,'republic');
+ // Les variantes historiques précédant PIECE_VARIANTES sont inventoriées aussi,
+ // sans évaluer coutTotalConstruction ni exécuter une action de quête.
+ image('images/chantier-en-cours.webp',{modele:'chantier_en_cours'},'etat_chantier');
+ const ch=lire('plateau-justice-economie.js');
+ const niveaux=acorn.parse(ch,{ecmaVersion:'latest'}).body.find(n=>n.type==='VariableDeclaration'&&n.declarations.some(d=>d.id.name==='NIVEAUX_CONSTRUCTION'));
+ for(const prop of niveaux.declarations[0].init.properties){
+  const url=prop.value.properties.find(p=>(p.key.name||p.key.value)==='imageUrl')?.value.value;
+  image(url,{modele:prop.key.name||prop.key.value},'etat_construction');
+ }
+ const enigme=lire('plateau-enigme-portrait.js');
+ const cadres=acorn.parse(enigme,{ecmaVersion:'latest'}).body.find(n=>n.type==='VariableDeclaration'&&n.declarations.some(d=>d.id.name==='ENIGME1_SALLES_CADRE_VIDE'));
+ for(const prop of cadres.declarations[0].init.properties)for(const champ of prop.value.properties){
+  if(['imageUrl','imageGrosPlan'].includes(champ.key.name))image(champ.value.value,{ville:'capitale',batiment:'musee-ville-luthecia',piece:prop.key.name},champ.key.name==='imageUrl'?'etat_enigme':'gros_plan_enigme');
+ }
  const referencesSource=new Set();for(const f of fs.readdirSync(ROOT).filter(f=>/\.(?:js|mjs|html|css)$/.test(f))){for(const m of lire(f).matchAll(/images\/[A-Za-z0-9_./À-ÿ%+ -]+\.(?:webp|png|jpg|jpeg|gif|svg)/g))referencesSource.add(decodeURIComponent(m[0]));}
  // "Non référencée en source" n'est PAS "inutilisée" : les chemins peuvent venir de SQL/DB.
  const nonReferencees=images.filter(x=>!referencesSource.has(x));

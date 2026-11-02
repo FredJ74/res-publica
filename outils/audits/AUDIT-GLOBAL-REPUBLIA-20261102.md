@@ -28,9 +28,11 @@ examinées, **pas 305 visites authentifiées**. Caserne/QHS : leurs scènes de r
 présentes dans Républia sont inventoriées, mais leurs intérieurs et les autres
 empires ne font pas partie de la recette des trois villes.
 
-**585 références d'images** contrôlées, dont 423 URL/chemins distincts :
+**601 références d'images** contrôlées, dont 436 URL/chemins distincts :
 305 fonds de pièces, 34 variantes, 110 portraits explicites, 50 images de scènes
-(variantes d'arrivée incluses), trois fonds de ville et 83 replis masqués.
+(variantes d'arrivée incluses), trois fonds de ville, 83 replis masqués et
+16 variantes historiques (chantier en cours, sept niveaux de construction,
+quatre salles de quête à cadre vide et leurs quatre gros plans).
 Le dossier contient **679 médias : 677 images raster et deux vidéos**.
 Pillow a ouvert et vérifié les 677 images : **544 WebP, 102 JPEG, 31 PNG,
 aucun fichier illisible** ; dimensions et formats sont dans l'annexe JSON.
@@ -47,7 +49,7 @@ ce ne sont pas automatiquement 109 images manquantes.
    de l'ancien plan, pas une nouvelle illustration nécessaire aux scènes actuelles.
    Les 44 références Unsplash de replis déjà remplacés ne sont pas comptées comme
    44 commandes d'images supplémentaires.
-3. **Locales présentes** : 515 occurrences (dont 39 replis masqués). Leur présence,
+3. **Locales présentes** : 531 occurrences (dont 39 replis masqués). Leur présence,
    format et sélection déclarative sont contrôlés ; cela ne certifie pas à soi
    seul la pertinence artistique de chaque image ou le bon cadrage en jeu.
 
@@ -401,3 +403,17 @@ https://github.com/FredJ74/res-publica/compare/main...codex/audit-global-republi
 Les ressources publiques Vercel ont donné un refus du tunnel (403) ; ni déploiement
 ni recette authentifiée de production ne sont donc certifiés. Aucune donnée joueur,
 financière ou d'inventaire, aucune identité ou mémoire de PNJ réelle modifiée.
+
+### Dernier passage complet sur main réconcilié
+
+**164/164 bancs clients réussis**, puis **9/9 tests ciblés**, **43/43 épreuves de
+dialogue**, **2/2 Chromium** (1280 et 390 px), **4+2** tests étape B et **12/12
+contrôles globaux. Dix défauts du main initial reproduits par les contre-épreuves.
+Les variantes historiques de construction et d'enquête (16 références) ont aussi
+été inventoriées sans exécuter de calcul de coût ni de progression de quête.
+
+Preuve minimale : `VERIFICATIONS-AUDIT-REPUBLIA-20261102.json`. La CI distante
+n'est pas observée et la PR n'a pas pu être créée (Forbidden) ; le lien de
+comparaison ci-dessus contient les commits à relire. **Audit de code et corrections
+locales réalisés ; recette globale en production non réalisée. Républia n'est
+pas déclarée clôturée** : les écarts et limites des sections C/E restent ouverts.

@@ -10,6 +10,8 @@ const root=new URL('../../',import.meta.url),lire=f=>fs.readFileSync(new URL(f,r
 test('le catalogue réel des trois villes est examiné sans chemin cassé',()=>{
  const a=analyser();assert.equal(a.compteurs.villes,3);assert.ok(a.compteurs.batiments>=102);assert.ok(a.compteurs.pieces>=305);
  assert.deepEqual(a.anomalies.filter(x=>x.code==='image_introuvable'),[]);
+ assert.equal(a.images.filter(i=>i.type==='etat_construction').length,7);
+ assert.equal(a.images.filter(i=>i.type==='etat_enigme'||i.type==='gros_plan_enigme').length,8);
 });
 test('chemins URL : espaces encodés admis, casse et références manquantes refusées',()=>{
  const fichiers=new Set(['images/Salle presse.png']);
