@@ -8,11 +8,12 @@
  * un endpoint de traduction non authentifié.
  */
 const SOURCES = Object.freeze({
-  forum_post: Object.freeze({table:'forum_posts',id:'id',fields:Object.freeze(['content']),privacy:'forum_visibility'}),
+  forum_post: Object.freeze({table:'forum_posts',id:'id',fields:Object.freeze(['content']),privacy:'rls_select_public'}),
   forum_topic: Object.freeze({table:'forum_topics',id:'id',fields:Object.freeze(['title']),privacy:'forum_visibility'}),
-  chat_message: Object.freeze({table:'messages_chat',id:'id',fields:Object.freeze(['message']),privacy:'conversation_membership'}),
-  court_message: Object.freeze({table:'audience_messages',id:'rang',fields:Object.freeze(['texte']),privacy:'court_access'}),
-  pending_article: Object.freeze({table:'journal_articles_en_attente',id:'id',fields:Object.freeze(['titre','texte']),privacy:'editorial_access'})
+  chat_message: Object.freeze({table:'messages_chat',id:'id',fields:Object.freeze(['message']),privacy:'rls_chat_participe'}),
+  // Audience et articles en attente : aucune politique SELECT RLS ordinaire
+  // démontrée le 03/11/2026. Ne pas rendre traduisibles avant une porte
+  // de lecture serveur canoniquement autorisée et testée.
 });
 function validerSource(type,id,field) {
  const source=Object.hasOwn(SOURCES,type)?SOURCES[type]:null;
