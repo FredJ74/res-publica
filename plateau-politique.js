@@ -4408,9 +4408,8 @@ function renderRoomActions(room, buildingId, roomId) {
     boutonsOrganises.push(...buttons.slice(ordresTerrainLuthecia.length));
   }
 
-  // Greffes de Républia : mêmes familles d'ordres à Luthécia, PSM et Montrouge.
-  // La répartition est purement visuelle : les boutons filles gardent leurs handlers,
-  // gardes, coûts et conditions. Aucun ordre n'est créé ni exécuté par le menu.
+  // Greffes de Républia : les en-têtes sont des boutons ordinaires.
+  // La pop-up affiche les boutons d'origine, avec leurs gardes et coûts inchangés.
   if (state.country === 'republic' && ['tribunal','tribunal-local'].includes(buildingId) && roomId === 'greffe') {
     const familles = [
       {titre:'Consulter les affaires', icone:'ti-folders', fns:['archives','greffe_affaires','greffe_archives','demander_juge_instruction']},
@@ -4419,19 +4418,18 @@ function renderRoomActions(room, buildingId, roomId) {
       {titre:'Actions illégales', icone:'ti-alert-triangle', fns:['falsifier_document','greffe_corrompre_dossier','greffe_corrompre_faux_casier']}
     ];
     const dejaRendus = new Set();
-    const menus = familles.map(famille => {
+    window._greffeOrdresGroupes = {};
+    const menus = familles.map((famille, groupeIndex) => {
       const fils = ordresTerrainLuthecia.map((ordre,index) => {
-        if (!famille.fns.includes(ordre.fn)) return '';
+        if (!famille.fns.includes(ordre.fn)) return null;
         dejaRendus.add(ordre.fn);
-        return buttons[index] || '';
-      }).filter(Boolean);
+        return {ordre, html:buttons[index]};
+      }).filter(x => x?.html);
       if (!fils.length) return '';
-      return '<details class="greffe-sous-menu" style="width:100%">' +
-        '<summary class="action-btn legal" style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:.5rem">' +
-        '<i class="ti ' + famille.icone + '"></i> ' + famille.titre +
-        ' <i class="ti ti-chevron-down" style="margin-left:auto"></i></summary>' +
-        '<div style="display:flex;flex-direction:column;gap:.4rem;padding:.45rem 0 .45rem .8rem">' +
-        fils.join('') + '</div></details>';
+      window._greffeOrdresGroupes[groupeIndex] = {titre:famille.titre, fils};
+      return '<button type="button" class="action-btn legal" onclick="ouvrirMenuOrdresGreffe(' + groupeIndex +
+        ')"><i class="ti ' + famille.icone + '"></i> ' + famille.titre +
+        ' <span class="pa-cost">▾</span></button>';
     }).filter(Boolean);
     const nonClasses = ordresTerrainLuthecia.map((ordre,index) =>
       dejaRendus.has(ordre.fn) ? '' : buttons[index]).filter(Boolean);
@@ -4559,6 +4557,33 @@ function ouvrirMenuOrdresTerrain(index) {
     groupe.entries.map(e => '<div style="padding:.7rem;border:1px solid #5b4825;border-radius:8px">' + e.html + '</div>').join('') +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// Greffes : pop-up existante utilisée aussi par la rédaction, sans changer les ordres.
+function ouvrirMenuOrdresGreffe(index) {
+  if (!['tribunal','tribunal-local'].includes(state.currentBuilding) || state.currentRoom !== 'greffe') return;
+  const groupe = window._greffeOrdresGroupes?.[index];
+  if (!groupe) return;
+  const modal = document.getElementById('modal-postes');
+  const titre = document.getElementById('postes-modal-title');
+  const corps = document.getElementById('postes-body');
+  if (!modal || !titre || !corps) return;
+  titre.textContent = groupe.titre;
+  corps.innerHTML = '';
+  const liste = document.createElement('div');
+  liste.style.cssText = 'display:flex;flex-direction:column;gap:.7rem;padding:1rem;max-height:70vh;overflow-y:auto;';
+  groupe.fils.forEach(({html}) => {
+    const ligne = document.createElement('div');
+    ligne.innerHTML = html;
+    const bouton = ligne.firstElementChild;
+    if (!bouton) return;
+    bouton.style.width = '100%';
+    bouton.style.textAlign = 'left';
+    if (!bouton.disabled) bouton.addEventListener('click', () => modal.classList.remove('open'), {capture:true});
+    liste.appendChild(bouton);
+  });
+  corps.appendChild(liste);
+  modal.classList.add('open');
 }
 
 function ouvrirMenuOrdresTribune(index) {
