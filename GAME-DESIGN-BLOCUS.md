@@ -25,6 +25,9 @@ production le 02/11 ; banc annulé `outils/bancs/banc-blocus-syndical.sql`).
    minimum 2 au total ; un participant PJ compte comme un militant dans les chances et l'intensité.
 5. **Coût** : 2 PA par PJ participant, tout ou rien.
 6. **Une seule tentative par jour et par syndicat** (le SG et l'Adjoint la partagent), réussie ou non.
+7. **Les hôpitaux sont exclus des blocus** : seul lieu où un blocus ne peut pas s'exercer. Appliqué aux
+   hôpitaux publics (dispensaires) et à la clinique privée (migration
+   `20261102151241_blocus_syndical_hopitaux_exclus`, appliquée le 02/11).
 
 ## Règles déjà présentes dans le code (août 2026), conservées
 
@@ -67,8 +70,7 @@ production le 02/11 ; banc annulé `outils/bancs/banc-blocus-syndical.sql`).
 
 ## Points ouverts (à trancher par Fred)
 
-- Conséquences littérales de la décision 2 : dans un hôpital bloqué, « Sortir de l'hôpital » et le
-  repas sont refusés ; dans un commissariat bloqué, le commissaire ne peut plus rejoindre son bureau
+- Conséquence littérale de la décision 2 : dans un commissariat bloqué, le commissaire ne peut plus rejoindre son bureau
   pour intervenir, et les détenus ne peuvent plus tenter de s'évader.
 
 ## Règle « une seule réalité » (tenue)
