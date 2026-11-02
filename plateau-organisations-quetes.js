@@ -3299,6 +3299,7 @@ const RAISONS_BLOCUS = {
   acteur_non_authentifie: "Votre personnage n'est pas identifié.",
   hors_batiment: 'Placez-vous dans le bâtiment à bloquer.',
   batiment_inconnu: 'Ce lieu ne peut pas être bloqué.',
+  hopital_exclu: 'Les hôpitaux et la clinique ne peuvent pas être bloqués.',
   syndicat_introuvable: 'Syndicat introuvable.',
   reserve_secretaire_general: "Réservé au Secrétaire Général et au Secrétaire Général Adjoint du syndicat.",
   militants_insuffisants: 'Il faut au moins 2 participants pour organiser un blocus.',
@@ -3340,6 +3341,7 @@ async function doOrganiserBlocusSyndical() {
   const infos = getMonSyndicatEtGrade();
   if (!infos || !infos.dirigeant) { showToast('Accès refusé', RAISONS_BLOCUS.reserve_secretaire_general, false); return; }
   if (!state.currentBuilding) { showToast('Blocus impossible', RAISONS_BLOCUS.hors_batiment, false); return; }
+  if (['dispensaire-public', 'dispensaire-public-v', 'clinique-privee'].includes(state.currentBuilding)) { showToast('Blocus impossible', RAISONS_BLOCUS.hopital_exclu, false); return; }
   const { syndicat } = infos;
   const militants = (syndicat.membres || []).filter(m => m.estPnj).length;
 

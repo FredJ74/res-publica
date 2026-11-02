@@ -14,13 +14,15 @@ import json
 import sys
 
 HORS_BATIMENT = {'mobiliser_police'}
+# Décision de Fred (02/11/2026) : les hôpitaux ne peuvent pas être bloqués.
+LIEUX_EXCLUS = {'dispensaire-public', 'dispensaire-public-v', 'clinique-privee'}
 
 
 def main():
     source = sys.argv[1] if len(sys.argv) > 1 else 'outils/audits/AUDIT-GLOBAL-REPUBLIA-20261102.json'
     d = json.load(open(source, encoding='utf-8'))
     lignes = sorted({(o['ville'], o['batiment'], o['fn']) for o in d['ordres']
-                     if o.get('fn') and o['fn'] not in HORS_BATIMENT})
+                     if o.get('fn') and o['fn'] not in HORS_BATIMENT and o['batiment'] not in LIEUX_EXCLUS})
     q = lambda s: "'" + s.replace("'", "''") + "'"
     print('-- Source : %s (commit %s), %d ordres.' % (source, d.get('source_git', '?'), len(lignes)))
     par_batiment = {}
