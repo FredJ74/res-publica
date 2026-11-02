@@ -192,8 +192,7 @@ print('2. CHAQUE PNJ VISIBLE A-T-IL UN PROFIL SERVEUR ?');
 var MUETS_DECLARES = {
   // bernard_piluler et marcel_silo raccordes le 29/10/2026, yvon_paletier et norbert_charton le
   // 31/10/2026 (fiches dans _pnj-personnalites.js).
-  'maitre_ali_bihanbeton': "Avocat commis d'office de Port-Sainte-Marie — aucune personnalite ecrite",
-  'maitre_henri_nossant':  "Avocat commis d'office de Montrouge — idem"
+  // maitre_ali_bihanbeton et maitre_henri_nossant raccordes le 02/11/2026 (demande de Fred).
 };
 // Jean Bonde vit dans une scene de rue (plateau-rue-centrale.js), que cet inventaire ne parcourt pas :
 // on verifie donc sa fiche nommement, avec celles des deux directeurs raccordes le meme jour.
@@ -245,9 +244,8 @@ INJECTES.forEach(function (j) {
 var DEPUTES = ['Étienne Vauclerc', 'Sophie Maréchal', 'President Laroche', 'Yann Legall',
                'Maëlle Leroux', 'Loïc Kermeur', 'Nathalie Charron', 'Gérard Pichon',
                'Élodie Vasseur'];
-var DEPUTES_MUETS_DECLARES = ['etienne_vauclerc', 'sophie_marechal', 'yann_legall',
-                              'maelle_leroux', 'loic_kermeur', 'nathalie_charron',
-                              'gerard_pichon', 'elodie_vasseur'];
+// Les huit deputes muets sont raccordes le 02/11/2026 (demande de Fred) : plus aucun muet declare.
+var DEPUTES_MUETS_DECLARES = [];
 var deputesInattendus = [], deputesRaccordes = [];
 DEPUTES.forEach(function (nom) {
   var id = __profilDe({ name: nom });
@@ -256,7 +254,7 @@ DEPUTES.forEach(function (nom) {
   if (muet && !declare) deputesInattendus.push(nom + ' [' + id + ']');
   if (!muet && declare) deputesRaccordes.push(id);
 });
-att('aucun depute PNJ n est muet en dehors des huit declares',
+att('aucun depute PNJ n est muet (les huit raccordes le 02/11)',
     deputesInattendus.length === 0, deputesInattendus.join(', '));
 att('et aucun des huit n a ete raccorde sans qu on retire sa ligne',
     deputesRaccordes.length === 0, deputesRaccordes.join(', '));
@@ -270,8 +268,10 @@ var CANDIDATS_GROBRAS = ['albert_hagarde', 'anatole_crocs', 'brigitte_ronde', 'f
   'gerard_menvussa', 'ginette_molosse', 'josette_cadenas', 'leon_tourniquet', 'marcel_mordu',
   'rachel_barrage', 'roger_croquignol', 'sylvain_guerite'];
 var grobrasRaccordes = CANDIDATS_GROBRAS.filter(function (id) { return !!__TOUS[id]; });
-att('les douze candidats de Grobras sont declares muets, et le restent',
-    grobrasRaccordes.length === 0, 'raccordes sans retrait de leur ligne : ' + grobrasRaccordes.join(', '));
+// Raccordes le 02/11/2026 (demande de Fred) : les douze doivent repondre.
+att('les douze candidats de Grobras ont une fiche de dialogue',
+    grobrasRaccordes.length === CANDIDATS_GROBRAS.length,
+    'sans fiche : ' + CANDIDATS_GROBRAS.filter(function (id) { return !__TOUS[id]; }).join(', '));
 
 // LES TROIS DERNIERS CHAPITRES SONT ASYNCHRONES, ET ILS DOIVENT L'ETRE. `talkToPnj` est une
 // fonction `async` : lire `pnj-speech` sans l'attendre mesure l'ecran AVANT la reponse -- c'est
