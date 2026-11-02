@@ -1466,7 +1466,28 @@ window.RP_I18N_RESOURCES = {
     findCharacter: "العثور على شخصيتي",
     findCharacterPlaceholder: "اسم شخصيتك...",
     loadCharacter: "تحميل هذه الشخصية",
-    beta: { title: "تفتح Human Gambit نسختها التجريبية." }
+    beta: { title: "تفتح Human Gambit نسختها التجريبية." },
+    auth: {
+      title: "قبل إنشاء شخصيتك",
+      intro: "أدخل عنوان بريد إلكتروني واختر كلمة مرور. ستساعدك هذه البيانات على استعادة شخصيتك وتسجيل الدخول من أي جهاز.",
+      promise: "شخصيتك ترافقك أينما ذهبت.",
+      emailPlaceholder: "عنوان بريدك الإلكتروني...",
+      emailHint: "يُستخدم هذا العنوان لحماية حسابك واستعادته فقط.",
+      passwordPlaceholder: "اختر كلمة مرور...",
+      passwordHint: "ثمانية أحرف على الأقل.",
+      submit: "إنشاء حسابي والمتابعة",
+      working: "جارٍ إنشاء الحساب...",
+      alreadyHaveAccount: "لدي حساب بالفعل — العودة إلى الصفحة الرئيسية",
+      errEmail: "يرجى التحقق من عنوان البريد الإلكتروني.",
+      errPassword: "اختر كلمة مرور من ثمانية أحرف على الأقل.",
+      errEmailTaken: "هذا البريد مستخدم بالفعل. ارجع إلى الصفحة الرئيسية وسجّل الدخول.",
+      errSession: "تعذّر بدء الجلسة. تحقق من اتصالك وحاول مجددًا.",
+      errUnavailable: "إنشاء الحساب غير متاح مؤقتًا.",
+      errGeneric: "تعذّر إنشاء حسابك. حاول مجددًا.",
+      reconnectTitle: "سجّل الدخول مجددًا",
+      reconnectBody: "انتهت جلستك. سجّل الدخول لاستعادة شخصيتك.",
+      reconnectButton: "إعادة تسجيل الدخول"
+    }
   } } },
   'pt-BR': { translation: { home: {
     brand: "Human Gambit",
@@ -1476,7 +1497,28 @@ window.RP_I18N_RESOURCES = {
     findCharacter: "Encontrar meu personagem",
     findCharacterPlaceholder: "Nome do personagem...",
     loadCharacter: "Carregar este personagem",
-    beta: { title: "Human Gambit abre sua versão beta." }
+    beta: { title: "Human Gambit abre sua versão beta." },
+    auth: {
+      title: "Antes de criar seu personagem",
+      intro: "Informe seu e-mail e escolha uma senha. Assim você poderá recuperar seu personagem e entrar em Res Publica de qualquer dispositivo.",
+      promise: "Seu personagem vai com você a qualquer lugar.",
+      emailPlaceholder: "Seu endereço de e-mail...",
+      emailHint: "Este endereço protege sua conta e permite recuperá-la. Não será usado para outra finalidade.",
+      passwordPlaceholder: "Escolha uma senha...",
+      passwordHint: "No mínimo oito caracteres.",
+      submit: "Criar minha conta e continuar",
+      working: "Criando sua conta...",
+      alreadyHaveAccount: "Já tenho uma conta — voltar ao início",
+      errEmail: "Verifique seu endereço de e-mail.",
+      errPassword: "Escolha uma senha com pelo menos oito caracteres.",
+      errEmailTaken: "Este e-mail já está em uso. Volte ao início e entre na sua conta.",
+      errSession: "Não foi possível iniciar a sessão. Verifique sua conexão e tente novamente.",
+      errUnavailable: "A criação de contas está temporariamente indisponível.",
+      errGeneric: "Não foi possível criar sua conta. Tente novamente.",
+      reconnectTitle: "Entre novamente",
+      reconnectBody: "Sua sessão expirou. Entre com seu e-mail e senha para recuperar seu personagem.",
+      reconnectButton: "Entrar novamente"
+    }
   } } },
   'de': { translation: { home: {
     brand: "Human Gambit",
@@ -1486,6 +1528,27 @@ window.RP_I18N_RESOURCES = {
     findCharacter: "Charakter wiederfinden",
     findCharacterPlaceholder: "Name deines Charakters...",
     loadCharacter: "Diesen Charakter laden",
-    beta: { title: "Human Gambit startet die Beta." }
+    beta: { title: "Human Gambit startet die Beta." },
+    auth: {
+      title: "Bevor du deinen Charakter erstellst",
+      intro: "Gib deine E-Mail-Adresse ein und wähle ein Passwort. Damit kannst du deinen Charakter wiederfinden und dich von jedem Gerät bei Res Publica anmelden.",
+      promise: "Dein Charakter begleitet dich überallhin.",
+      emailPlaceholder: "Deine E-Mail-Adresse...",
+      emailHint: "Diese Adresse schützt dein Konto und hilft bei der Wiederherstellung. Sie wird für nichts anderes verwendet.",
+      passwordPlaceholder: "Wähle ein Passwort...",
+      passwordHint: "Mindestens acht Zeichen.",
+      submit: "Konto erstellen und fortfahren",
+      working: "Konto wird erstellt...",
+      alreadyHaveAccount: "Ich habe bereits ein Konto — zurück zum Start",
+      errEmail: "Bitte überprüfe deine E-Mail-Adresse.",
+      errPassword: "Wähle ein Passwort mit mindestens acht Zeichen.",
+      errEmailTaken: "Diese Adresse wird bereits verwendet. Kehre zum Start zurück und melde dich an.",
+      errSession: "Die Sitzung konnte nicht gestartet werden. Prüfe deine Verbindung und versuche es erneut.",
+      errUnavailable: "Die Kontoerstellung ist vorübergehend nicht verfügbar.",
+      errGeneric: "Dein Konto konnte nicht erstellt werden. Versuche es erneut.",
+      reconnectTitle: "Erneut anmelden",
+      reconnectBody: "Deine Sitzung ist abgelaufen. Melde dich mit E-Mail und Passwort an, um deinen Charakter wiederzufinden.",
+      reconnectButton: "Erneut anmelden"
+    }
   } } }
 };
