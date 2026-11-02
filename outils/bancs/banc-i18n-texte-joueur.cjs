@@ -27,3 +27,23 @@ test('un texte malveillant ne peut pas injecter de HTML via le rendu',()=>{
  assert.equal(mod.renderText(element,record,'de',true),true);
  assert.equal(element.textContent,'<script>alert(1)</script>');
 });
+
+test('bouton Voir original : bascule sans perdre la traduction ni injecter de HTML',()=>{
+ const mod=api(),element={textContent:''};
+ const handlers={};
+ const button={hidden:false,textContent:'',attrs:{},
+  addEventListener(k,f){handlers[k]=f},removeEventListener(k){delete handlers[k]},
+  setAttribute(k,v){this.attrs[k]=v}};
+ const record=Object.freeze({original:'<b>Bonjour</b>',originalLanguage:'fr',translation:'<script>Hallo</script>',translationLanguage:'de'});
+ const ctrl=mod.attachToggle(element,button,record,'de',{showOriginal:"Voir l'original",showTranslation:'Voir la traduction'});
+ assert.equal(element.textContent,'<script>Hallo</script>');
+ assert.equal(button.hidden,false);
+ assert.equal(button.attrs['aria-pressed'],'false');
+ handlers.click();
+ assert.equal(element.textContent,'<b>Bonjour</b>');
+ assert.equal(button.attrs['aria-pressed'],'true');
+ assert.equal(record.original,'<b>Bonjour</b>');
+ handlers.click();
+ assert.equal(element.textContent,'<script>Hallo</script>');
+ ctrl.detach();assert.equal(handlers.click,undefined);
+});
