@@ -2824,28 +2824,27 @@ async function doBlocusPortuaire(pa, cost) {
 }
 
 async function doInspecterCargaisons(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const int_ = getStatEffective('INT');
-  const pays = state.country || 'republic';
-  const isBonus = pays === 'soviet';
-  const taux = Math.max(5, 80 + Math.floor(int_/10) + (isBonus ? 15 : 0));
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    state.inf = Math.min(100, state.inf + 5);
-    updateUI();
-    const trouve = Math.random() < 0.4;
-    if (trouve) {
-      showToast('Contrebande détectée !', 'Une cargaison suspecte a été repérée. +5 INF. Ouvrir une enquête ?', true, true);
-      addExternalEvent('INSPECTION : Contrebande détectée au port par ' + (state.char?.name||'Anonyme') + '. Enquête en cours.');
+  // #379 : 2 PA, jet INT et +/- INF sont validés et appliqués ensemble
+  // par la commande serveur. Un navigateur ancien ne peut plus choisir le tirage.
+  const v = await executerOrdreJaugesServeur('inspecter_cargaisons', {});
+  if (!v) return;
+  updateUI();
+  if (v.rejeu === true) {
+    showToast('Inspection déjà traitée',
+      'Le serveur a déjà enregistré cette inspection. Aucun nouveau coût ni gain.', true);
+    return;
+  }
+  if (v.inspection_reussie === true) {
+    if (v.contrebande_detectee === true) {
+      showToast('Contrebande détectée !',
+        'Une cargaison suspecte a été repérée. +5 INF. Ouvrir une enquête ?', true, true);
+      addExternalEvent('INSPECTION : Contrebande détectée au port par ' +
+        (state.char?.name || 'Anonyme') + '. Enquête en cours.');
     } else {
-      showToast('Inspection terminée', 'Rien d\'anormal. +5 INF.', true);
+      showToast('Inspection terminée', 'Rien d’anormal. +5 INF.', true);
     }
   } else {
     showToast('Inspection sans résultat', 'Rien à signaler. -3 INF.', false);
-    state.inf = Math.max(0, state.inf - 3);
-    updateUI();
   }
 }
 
