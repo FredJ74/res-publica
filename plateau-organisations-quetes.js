@@ -9326,36 +9326,8 @@ async function confirmerTerminerGreve(orgaId) {
 // migration_greves.sql -- coordonne PLUSIEURS organisations, ne peut pas vivre dans le jsonb
 // d'une seule d'entre elles, meme besoin structurel que demandes_manifestation en son temps).
 // =====================
-const GREVE_GENERALE_ACTIVITE_MAX_JOURS = 30;
-
-// §4 du cahier des charges : source fiable de "derniere activite reelle du chef" -- personnages.
-// updated_at, retouchee au minimum toutes les 30s de connexion active (filet de securite
-// periodique, voir sbVerifierEtSauvegarderPersonnage/supabase.js) ainsi qu'a chaque action de
-// jeu -- deja utilisee dans ce but exact ailleurs dans ce projet.
-async function chefActifRecemment(nomChef) {
-  if (!nomChef || typeof sbGet !== 'function') return false;
-  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomChef)}&select=updated_at`).catch(() => null);
-  const updatedAt = rows?.[0]?.updated_at;
-  if (!updatedAt) return false;
-  const ecouleMs = Date.now() - new Date(updatedAt).getTime();
-  return ecouleMs <= GREVE_GENERALE_ACTIVITE_MAX_JOURS * 24 * 60 * 60 * 1000;
-}
-
-// Liste FIGEE au moment ou elle est appelee (au lancement de la consultation, jamais recalculee
-// apres coup -- §4 : "au lancement de la consultation, etablir la liste des syndicats actifs
-// eligibles"). Un syndicat qui ne remplit pas ces conditions ne compte pas dans le denominateur
-// et n'a aucun pouvoir de blocage.
-async function syndicatsEligiblesGreveGenerale(pays) {
-  const toutes = (typeof sbLoadOrganisations === 'function') ? await sbLoadOrganisations().catch(() => []) : [];
-  const syndicats = (toutes || []).filter(o =>
-    o.type === 'syndicale' && o.country_origine === pays && o.chef && (o.membres?.length || 0) >= GREVE_MEMBRES_MIN
-  );
-  const resultats = [];
-  for (const s of syndicats) {
-    if (await chefActifRecemment(s.chef)) resultats.push(s);
-  }
-  return resultats;
-}
+// Liste des syndicats eligibles (au moins 5 membres, chef actif depuis 30 jours au plus) : figee par
+// le serveur au lancement de la consultation (greve_generale_lancer, 03/11/2026).
 
 function compterAdherentsUniques(orgasListe) {
   const noms = new Set();
@@ -9412,33 +9384,23 @@ async function confirmerAppelGreveGenerale(orgaId) {
   if (nbMembres < GREVE_MEMBRES_MIN) { showToast('Syndicat trop petit', '', false); return; }
   if (orga.greveGeneraleEnCoursId) { showToast('Déjà engagé', '', false); return; }
 
-  const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
+  // CONSULTATION OUVERTE PAR LE SERVEUR (03/11/2026) : greve_generale_lancer verifie le chef, la
+  // taille du syndicat, paie 1 PA, fige la liste des eligibles et cree la ligne. L'ecran envoie
+  // ensuite les courriers et le sujet du forum.
+  const brut = typeof sbRpc === 'function'
+    ? await sbRpc('greve_generale_lancer', { p_orga: orga.id, p_revendications: revendications }).catch(() => null) : null;
+  const rl = Array.isArray(brut) ? brut[0] : brut;
+  if (!rl || rl.ok !== true) {
+    const motifs = { reserve_au_chef: 'Réservé au chef du syndicat.', syndicat_trop_petit: 'Au moins ' + GREVE_MEMBRES_MIN + ' membres sont nécessaires.',
+      deja_engage: 'Ce syndicat participe déjà à une consultation ou une grève générale en cours.',
+      revendications_requises: 'Rédigez vos revendications avant de lancer la consultation.', pa_insuffisants: '1 PA requis.' };
+    showToast('Consultation refusée', motifs[rl?.raison] || "La consultation n'a pas pu être lancée (" + (rl?.raison || 'sans réponse') + ').', false);
+    return;
+  }
+  if (rl.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(rl.paiement);
   const pays = orga.country_origine || state.country;
-  const eligibles = await syndicatsEligiblesGreveGenerale(pays);
-  // L'initiateur est toujours reput eligible (c'est son chef qui agit a l'instant meme).
-  if (!eligibles.some(s => s.id === orga.id)) eligibles.push(orga);
-
-  const ggId = 'greve_generale_' + Date.now();
-  const participants = eligibles.map(s => ({
-    orgaId: s.id,
-    orgaNom: s.nom,
-    chef: s.chef,
-    statut: s.id === orga.id ? 'accepte' : 'en_discussion'
-  }));
-
-  const inserted = (typeof sbInsert === 'function') ? await sbInsert('greves_generales', {
-    id: ggId, country: pays, statut: 'consultation',
-    initiateur: orga.chef, syndicat_initiateur_id: orga.id,
-    revendications, participants,
-    date_lancement: new Date().toISOString(), jours_actifs: 0
-  }).catch(() => null) : null;
-  if (!inserted) { showToast('Erreur', "La consultation n'a pas pu être lancée.", false); return; }
-
-  // L'initiateur soutient d'office son propre appel : rattachement recopie par le serveur depuis la
-  // ligne greves_generales (etape B, 02/11/2026), jamais ecrit par l'ecran.
-  if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
+  const ggId = rl.id;
+  const eligibles = (rl.participants || []).map(p => ({ id: p.orgaId, nom: p.orgaNom, chef: p.chef }));
   if (typeof chargerOrganisations === 'function') chargerOrganisations();
 
   // Mail a chaque chef eligible SAUF l'initiateur (deja acquis) -- boutons Accepter/Refuser en
@@ -9462,7 +9424,7 @@ async function confirmerAppelGreveGenerale(orgaId) {
     if (topicId) {
       const corpsTopic = orga.chef + ', chef du syndicat « ' + orga.nom + ' », appelle à une grève générale.<br><br><i>Revendications :</i><br>' + escapeHtmlText(revendications);
       await sbCreatePost(topicId, orga.chef, corpsTopic, time, true, false, [], null, orga.chef, orga.id, orga.avatar || null).catch(() => {});
-      await sbUpdate('greves_generales', `id=eq.${encodeURIComponent(ggId)}`, { forum_topic_id: topicId }).catch(() => {});
+      if (typeof sbRpc === 'function') await sbRpc('greve_generale_lier_sujet', { p_gg: ggId, p_topic: String(topicId) }).catch(() => {});
     }
   }
 
@@ -9483,77 +9445,30 @@ async function repondreAppelGreveGenerale(ggId, orgaId, reponse) {
   if (!orga) { showToast('Syndicat introuvable', '', false); return; }
   if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef de ce syndicat.', false); return; }
 
-  let ggFinal = null;
-  for (let tentative = 0; tentative < 5 && !ggFinal; tentative++) {
-    const rows = await sbGet('greves_generales', `id=eq.${encodeURIComponent(ggId)}`).catch(() => null);
-    const gg = rows?.[0];
-    if (!gg) { showToast('Consultation introuvable', 'Cette grève générale n\'existe plus.', false); return; }
-    if (gg.statut !== 'consultation') { showToast('Trop tard', 'Cette consultation est déjà close.', false); return; }
-    const participants = gg.participants || [];
-    const idx = participants.findIndex(p => p.orgaId === orgaId);
-    if (idx === -1) { showToast('Non concerné', 'Votre syndicat ne fait pas partie de cette consultation.', false); return; }
-    if (participants[idx].statut !== 'en_discussion') { showToast('Déjà répondu', 'Votre syndicat a déjà répondu à cet appel.', false); return; }
-
-    const nouveauxParticipants = participants.map((p, i) => i === idx ? { ...p, statut: reponse } : p);
-    const filtreCAS = `id=eq.${encodeURIComponent(ggId)}&participants=eq.${encodeURIComponent(JSON.stringify(gg.participants))}`;
-    const res = await sbUpdate('greves_generales', filtreCAS, { participants: nouveauxParticipants }).catch(() => null);
-    if (res && res.length > 0) ggFinal = res[0];
+  // REPONSE ET ADOPTION PAR LE SERVEUR (03/11/2026) : greve_generale_repondre enregistre la reponse
+  // et adopte la greve (2/3 des eligibles, 100 adherents uniques, palier) dans la meme transaction.
+  const brut = typeof sbRpc === 'function'
+    ? await sbRpc('greve_generale_repondre', { p_gg: ggId, p_orga: orgaId, p_reponse: reponse }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
+  if (!r || r.ok !== true) {
+    const motifs = { consultation_introuvable: 'Cette grève générale n\'existe plus.', consultation_close: 'Cette consultation est déjà close.',
+      non_concerne: 'Votre syndicat ne fait pas partie de cette consultation.', deja_repondu: 'Votre syndicat a déjà répondu à cet appel.',
+      reserve_au_chef: 'Réservé au chef de ce syndicat.' };
+    showToast('Réponse non enregistrée', motifs[r?.raison] || 'Le serveur a refusé la réponse (' + (r?.raison || 'sans réponse') + ').', false);
+    return;
   }
-  if (!ggFinal) { showToast('Réponse non enregistrée', 'Une autre réponse a été traitée au même moment, réessayez.', false); return; }
-
-  // Reponse recopiee sur le syndicat par le serveur (etape B, 02/11/2026).
-  if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
-
+  if (typeof chargerOrganisations === 'function') chargerOrganisations();
   showToast(reponse === 'accepte' ? 'Grève générale acceptée' : 'Grève générale refusée', 'Votre syndicat "' + orga.nom + '" a répondu.', true);
   addJournalEntry('"' + orga.nom + '" a ' + (reponse === 'accepte' ? 'accepté' : 'refusé') + ' l\'appel à la grève générale.', 'event-info');
-
-  await verifierAdoptionGreveGenerale(ggId);
+  if (r.adoptee) {
+    showToast('Grève générale adoptée !', 'Niveau ' + r.niveau + ' — ' + r.adherents + ' adhérents mobilisés.', true, true);
+    addJournalEntry('La grève générale est entrée en vigueur (niveau ' + r.niveau + ').', 'event-info');
+    addExternalEvent('🔥 La grève générale entre en vigueur ! ' + r.adherents + ' adhérents mobilisés à travers le pays.');
+  }
   updateUI();
 }
 
-// §5 du cahier des charges : adoption des que >= 2/3 des syndicats eligibles (arrondi superieur)
-// ont accepte ET que les syndicats ayant accepte representent ensemble >= 100 adherents uniques.
-// Verifiee apres CHAQUE reponse (jamais une seule fois par un cron) -- une reponse peut a tout
-// moment faire basculer le seuil.
-async function verifierAdoptionGreveGenerale(ggId) {
-  const rows = await sbGet('greves_generales', `id=eq.${encodeURIComponent(ggId)}`).catch(() => null);
-  const gg = rows?.[0];
-  if (!gg || gg.statut !== 'consultation') return;
-  const participants = gg.participants || [];
-  const eligibles = participants.length;
-  if (eligibles === 0) return;
-  const acceptes = participants.filter(p => p.statut === 'accepte');
-  const seuil = Math.ceil(eligibles * 2 / 3);
-  if (acceptes.length < seuil) return;
-
-  const toutesOrgas = (typeof sbLoadOrganisations === 'function') ? await sbLoadOrganisations().catch(() => []) : [];
-  const orgasAcceptees = acceptes.map(p => toutesOrgas.find(o => o.id === p.orgaId)).filter(Boolean);
-  const adherentsUniques = compterAdherentsUniques(orgasAcceptees);
-  if (adherentsUniques < GREVE_GENERALE_ADHERENTS_MIN) return; // pas encore assez d'adherents mobilises, la consultation reste ouverte
-
-  const palier = palierGreveGenerale(adherentsUniques);
-  const filtreCAS = `id=eq.${encodeURIComponent(ggId)}&statut=eq.consultation`;
-  const res = await sbUpdate('greves_generales', filtreCAS, {
-    statut: 'active',
-    date_entree_vigueur: new Date().toISOString(),
-    puissance_niveau: palier ? palier.niveau : 1
-  }).catch(() => null);
-  if (!res || res.length === 0) return; // deja adoptee entretemps par une autre reponse concurrente
-
-  // Syndicats non-acceptants : "ne sont associes a rien" (§5) -- detaches de la consultation.
-  // Syndicats acceptants : passent en participation active (visibleSi de greve_generale_retirer).
-  // Recopie par le serveur (etape B, 02/11/2026) : l'ecran d'un chef ne reecrit plus les
-  // syndicats des autres. Les acceptants sont aussi rattaches, et peuvent donc se retirer.
-  if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
-  if (typeof chargerOrganisations === 'function') chargerOrganisations();
-
-  showToast('Grève générale adoptée !', 'Niveau ' + (palier ? palier.niveau : 1) + ' — ' + adherentsUniques + ' adhérents mobilisés.', true, true);
-  addJournalEntry('La grève générale est entrée en vigueur (niveau ' + (palier ? palier.niveau : 1) + ').', 'event-info');
-  addExternalEvent('🔥 La grève générale entre en vigueur ! ' + adherentsUniques + ' adhérents mobilisés à travers le pays.');
-}
-
-// §8 du cahier des charges : pas de second vote collectif, chaque chef retire son syndicat
-// individuellement, definitivement, sans attendre le lendemain (recalcul immediat).
+// RETRAIT D'UN SYNDICAT (greve_generale_retirer, serveur).
 async function confirmerRetraitGreveGenerale(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
@@ -9562,84 +9477,26 @@ async function confirmerRetraitGreveGenerale(orgaId) {
     showToast('Non concerné', 'Ce syndicat ne participe à aucune grève générale active.', false);
     return;
   }
-  const ggId = orga.greveGeneraleEnCoursId;
-
-  let retireOk = false;
-  for (let tentative = 0; tentative < 5 && !retireOk; tentative++) {
-    const rows = await sbGet('greves_generales', `id=eq.${encodeURIComponent(ggId)}`).catch(() => null);
-    const gg = rows?.[0];
-    if (!gg || gg.statut !== 'active') {
-      if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
-      if (typeof chargerOrganisations === 'function') chargerOrganisations();
-      showToast('Grève générale déjà terminée', '', false);
-      return;
-    }
-    const participants = gg.participants || [];
-    const idx = participants.findIndex(p => p.orgaId === orgaId);
-    if (idx === -1 || participants[idx].statut !== 'accepte') { showToast('Non concerné', '', false); return; }
-    const nouveauxParticipants = participants.map((p, i) => i === idx ? { ...p, statut: 'retire' } : p);
-    const filtreCAS = `id=eq.${encodeURIComponent(ggId)}&participants=eq.${encodeURIComponent(JSON.stringify(gg.participants))}`;
-    const res = await sbUpdate('greves_generales', filtreCAS, { participants: nouveauxParticipants }).catch(() => null);
-    if (res && res.length > 0) retireOk = true;
-  }
-  if (!retireOk) { showToast('Retrait non enregistré', 'Réessayez.', false); return; }
-
-  if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
+  // RETRAIT ET RECALCUL PAR LE SERVEUR (03/11/2026) : greve_generale_retirer retire le syndicat,
+  // puis clot la greve sous 100 adherents uniques ou recalcule son palier.
+  const brut = typeof sbRpc === 'function' ? await sbRpc('greve_generale_retirer', { p_orga: orgaId }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
   if (typeof chargerOrganisations === 'function') chargerOrganisations();
-
+  if (!r || r.ok !== true) {
+    showToast(r?.raison === 'pas_de_greve_active' ? 'Grève générale déjà terminée' : 'Retrait non enregistré',
+      r?.raison === 'non_concerne' ? 'Ce syndicat ne participe pas à cette grève générale.' : (r?.raison === 'pas_de_greve_active' ? '' : 'Réessayez.'), false);
+    return;
+  }
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Syndicat retiré', '"' + orga.nom + '" ne participe plus à la grève générale.', true);
   addJournalEntry('"' + orga.nom + '" se retire de la grève générale.', 'event-info');
   addExternalEvent('🚪 "' + orga.nom + '" se retire de la grève générale.');
-
-  await recalculerPuissanceApresRetraitGreveGenerale(ggId);
-  updateUI();
-}
-
-// Recalcul IMMEDIAT (jamais differe au cron du lendemain) sur les adherents uniques des
-// syndicats ENCORE participants -- exemple du cahier des charges §8 (500 -> niveau 5, retrait de
-// 130 -> 370 restants -> niveau 3). En-dessous de 100 adherents uniques restants : fin
-// automatique de la grève générale.
-async function recalculerPuissanceApresRetraitGreveGenerale(ggId) {
-  const rows = await sbGet('greves_generales', `id=eq.${encodeURIComponent(ggId)}`).catch(() => null);
-  const gg = rows?.[0];
-  if (!gg || gg.statut !== 'active') return;
-  const participants = gg.participants || [];
-  const restants = participants.filter(p => p.statut === 'accepte');
-
-  const toutesOrgas = (typeof sbLoadOrganisations === 'function') ? await sbLoadOrganisations().catch(() => []) : [];
-  const orgasRestantes = restants.map(p => toutesOrgas.find(o => o.id === p.orgaId)).filter(Boolean);
-  const adherentsUniques = compterAdherentsUniques(orgasRestantes);
-
-  if (adherentsUniques < GREVE_GENERALE_ADHERENTS_MIN) {
-    await sbUpdate('greves_generales', `id=eq.${encodeURIComponent(ggId)}`, { statut: 'terminee' }).catch(() => {});
-    if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
-    if (typeof chargerOrganisations === 'function') chargerOrganisations();
+  if (r.terminee) {
     addExternalEvent('🏳 La grève générale s\'effondre : moins de ' + GREVE_GENERALE_ADHERENTS_MIN + ' adhérents mobilisés.');
     addJournalEntry('La grève générale a pris fin (effondrement de la mobilisation).', 'event-info');
-    return;
   }
-
-  const palier = palierGreveGenerale(adherentsUniques);
-  await sbUpdate('greves_generales', `id=eq.${encodeURIComponent(ggId)}`, { puissance_niveau: palier ? palier.niveau : 1 }).catch(() => {});
+  updateUI();
 }
-
-// ===========================================================================================
-// LES SYNDICATS ETUDIANTS DE LA SALLE DE REUNION (13 octobre 2026)
-// ===========================================================================================
-//
-// DEUX ECRANS, ET ILS NE DECIDENT RIEN. `syndicat_etudiant_domicilier` verifie la PRESENCE dans
-// la salle, paie 150 FR de frais de greffe a la caisse du Tribunal par `payer_ordre`, ecrit le
-// syndicat et DELIVRE l'extrait de domiciliation -- le tout dans une seule transaction. Le
-// navigateur envoie un nom et affiche un verdict.
-//
-// AUCUNE EXCLUSIVITE. La porte ne verifie PAS si le local est deja occupe : plusieurs syndicats
-// sont domicilies ici en meme temps, et c'est la nature nouvelle de la piece. C'est l'inverse
-// exact de `confirmerCreationOrga`, le chemin des locaux loues, qui refuse sur `localId` -- et
-// ce chemin-la n'est plus atteignable ici, la salle n'etant plus louable.
-//
-// AUCUNE PREROGATIVE NOUVELLE. Un syndicat etudiant est un syndicat : les ecrans de membres,
-// d'adhesion et d'ordres sont CEUX QUI EXISTENT, reutilises tels quels.
 
 const SYNDICAT_ETUDIANT_LOCAL = 'universite:salle_reunion';
 
