@@ -33,6 +33,19 @@ def main():
   q.execute((R/'migrations/20261103011234_objectifs_secrets_jauges_serveur.sql').read_text())
   migration=(R/'migrations/20261103004219_jauges_ordres_transactionnels.sql').read_text();q.execute('SAVEPOINT installation');q.execute(migration);q.execute('ROLLBACK TO SAVEPOINT installation');q.execute("SELECT to_regprocedure('public.jauges_ordre_executer(text,uuid,jsonb)')IS NULL");assert q.fetchone()[0]
   q.execute(migration);q.execute(migration);cas.append({'cas':'installation_rollback_double_rejeu','ok':True})
+  q.execute(h.re.search(r'CREATE TABLE IF NOT EXISTS public.organisation_commandes_recus \(.*?\n\);',(R/'migrations/20261031113600_organisations_commandes_administratives.sql').read_text(),h.re.S)[0])
+  q.execute('ALTER TABLE organisation_commandes_recus ENABLE ROW LEVEL SECURITY')
+  q.execute(h.fonction('migrations/20261102001000_organisations_vie_commandes_serveur.sql','organisation_vie_commande'))
+  q.execute('REVOKE ALL ON FUNCTION organisation_vie_commande(text,text,text,jsonb)FROM PUBLIC,anon;GRANT EXECUTE ON FUNCTION organisation_vie_commande(text,text,text,jsonb)TO authenticated')
+  orgmigration=(R/'migrations/20261103015011_organisations_jauges_commandes.sql').read_text()
+  q.execute('SAVEPOINT org_install');q.execute(orgmigration);q.execute('ROLLBACK TO SAVEPOINT org_install')
+  q.execute(orgmigration);q.execute(orgmigration);cas.append({'cas':'organisation_patch_garde_rollback_double_rejeu','ok':True})
+  if '--contre-rejeu-organisation'in sys.argv:
+   q.execute("SELECT pg_get_functiondef('organisation_vie_commande(text,text,text,jsonb)'::regprocedure)")
+   definition=q.fetchone()[0];avant="v_rec.resultat || public.organisation_jauges_fiche_interne(v_moi) || jsonb_build_object('rejeu',true)"
+   assert definition.count(avant)==1
+   q.execute(definition.replace(avant,"v_rec.resultat || jsonb_build_object('rejeu',true)"))
+
   def own(sql,args=None):
    if sql.startswith('ROLLBACK'):q.execute(sql);q.execute('RESET ROLE');return
    q.execute('RESET ROLE');q.execute(sql,args)if args else q.execute(sql);return q.fetchone()[0]if q.description else None
@@ -202,6 +215,64 @@ def main():
    except psycopg2.Error as e:assert 'panne_objectifs'in str(e);own('ROLLBACK TO SAVEPOINT panne_objectifs')
    assert photo()==p and own("SELECT to_jsonb(e)FROM jauges_objectifs_etats e WHERE acteur='Fixture'")==suivi
   case('objectifs_panne_annule_gain_suivi_et_recu',objectifspanne)
+  def orga(fn='orga_meeting',ident=1,org='o',params=None,cur=None):
+   cc=cur or q
+   cc.execute("SELECT set_config('role','authenticated',true),set_config('request.path','/rpc/organisation_vie_commande',true),set_config('request.jwt.claim.sub','00000000-0000-4000-9000-000000000001',true)")
+   cc.execute('SELECT organisation_vie_commande(%s,%s,%s,%s)',('orgcmd-fixture-'+str(ident),org,'ordre_jauges',Json(params if params is not None else {'fn':fn})));return cc.fetchone()[0]
+  def preparerorga(type='politique'):
+   own("UPDATE personnages_donnees SET arg=10000,liquide=10000 WHERE name='Fixture'")
+   own("INSERT INTO organisations(id,country_origine,data)VALUES('o','republic',%s)",(json.dumps({'type':type,'nom':'Orga Fixture','chef':'Fixture','membres':[{'nom':'Fixture'}]}),))
+  regles=[('orga_petition','politique',2,0,None,0,0),('orga_meeting','politique',3,500,5,3,0),('orga_benediction','religieuse',2,200,5,0,10),('orga_pelerinage','religieuse',3,1000,8,0,0),('orga_cooptation','loge',2,1000,0,5,0),('orga_rituel','loge',2,500,0,6,0),('orga_reseau','loge',2,300,0,8,0),('orga_campagne_presse','mediatique',2,500,6,5,0),('orga_scoop','mediatique',2,0,0,10,0)]
+  for fn,type,pa,cout,pop,inf,moral in regles:
+   def scenario(fn=fn,type=type,pa=pa,cout=cout,pop=pop,inf=inf,moral=moral):
+    preparerorga(type);v=orga(fn);assert v['ok'],v
+    assert v['pa']==20-pa and v['arg']==10000-cout and v['inf']==10+inf and v['moral']==60+moral,v
+    assert v['pop']==10+pop if pop is not None else 13<=v['pop']<=20,v
+    assert orga(fn)['pop']==v['pop'] and own('SELECT count(*)FROM organisation_commandes_recus')==1
+   case('organisation_'+fn+'_paiement_effets_et_rejeu',scenario)
+  def orgrefus():
+   preparerorga();p=photo()
+   own("UPDATE organisations SET data='{\"type\":\"politique\",\"chef\":\"AutreFixture\",\"membres\":[]}'")
+   assert orga()['raison']=='membre_requis'and photo()==p
+   own("UPDATE organisations SET data='{\"type\":\"religieuse\",\"chef\":\"Fixture\"}'")
+   assert orga()['raison']=='type_invalide'and photo()==p
+   own("UPDATE organisations SET data='{\"type\":\"politique\",\"chef\":\"Fixture\",\"dissoute\":true}'")
+   assert orga()['raison']=='organisation_dissoute'and photo()==p
+  case('organisation_autorite_fraiche_avant_tout_debit',orgrefus)
+  def orglie():
+   preparerorga();assert orga()['ok'];p=photo()
+   own("INSERT INTO organisations(id,country_origine,data)SELECT 'autre',country_origine,data FROM organisations WHERE id='o'")
+   assert orga(org='autre')['raison']=='requete_reutilisee'and photo()==p
+   assert orga(params={'fn':'orga_meeting','gain_inf':99})['raison']=='requete_reutilisee'and photo()==p
+  case('organisation_recu_lie_a_org_et_parametres',orglie)
+  def orgdeux():
+   preparerorga();a=orga();b=orga(ident=2)
+   assert a['inf']==13 and b['inf']==16 and b['pa']==14 and b['arg']==9000
+  case('organisation_deux_gains_legitimes_deux_requetes',orgdeux)
+  def orgfonds():
+   preparerorga();own("UPDATE personnages_donnees SET arg=0,liquide=0 WHERE name='Fixture'");p=photo()
+   assert orga()['raison']=='fonds_insuffisants'and photo()==p
+   assert own('SELECT count(*)FROM organisation_commandes_recus')==0
+  case('organisation_fonds_insuffisants_aucune_mutation',orgfonds)
+  def orgretard():
+   preparerorga();v=orga();assert v['inf']==13
+   own("UPDATE personnages_donnees SET pa=7,resources=jsonb_set(resources,'{inf}','40')WHERE name='Fixture'")
+   v=orga();assert v['rejeu']and v['inf']==40 and v['pa']==7 and v['paiement']['pa']==7
+  case('organisation_rejeu_retourne_fiche_courante_pas_snapshot_ancien',orgretard)
+  def orgpanne():
+   preparerorga();p=photo()
+   own("CREATE FUNCTION fixture_panne_org()RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'panne_org';END$$;CREATE TRIGGER fixture_panne_org BEFORE INSERT ON organisation_commandes_recus FOR EACH ROW EXECUTE FUNCTION fixture_panne_org()")
+   own('SAVEPOINT panne_org')
+   try:orga();raise AssertionError('panne absente')
+   except psycopg2.Error as e:assert 'panne_org'in str(e);own('ROLLBACK TO SAVEPOINT panne_org')
+   assert photo()==p
+  case('organisation_panne_recu_annule_paiement_et_jauges',orgpanne)
+  def orggarde():
+   own("CREATE OR REPLACE FUNCTION organisation_vie_commande(p_requete text,p_organisation text,p_action text,p_parametres jsonb)RETURNS jsonb LANGUAGE sql AS $$SELECT '{}'::jsonb$$")
+   own('SAVEPOINT garde_org')
+   try:own(orgmigration);raise AssertionError('garde absente')
+   except psycopg2.Error as e:assert 'organisation_vie_definition_a_reexaminer'in str(e);own('ROLLBACK TO SAVEPOINT garde_org')
+  case('organisation_corps_inconnu_refuse_pas_ecrase',orggarde)
   c.commit()
   def agir():
    cc=psycopg2.connect(srv.get_uri())
@@ -220,7 +291,16 @@ def main():
   with ThreadPoolExecutor(2)as pool:a,b=list(pool.map(objectifconcurrent,range(2)))
   assert sorted([a['gain_inf'],b['gain_inf']])==[0,2] and a['inf']==b['inf']==13
   cas.append({'cas':'objectifs_deux_connexions_requetes_distinctes_un_seul_lot','ok':True})
-  print(json.dumps({'production':False,'moteur':version,'tests':cas,'limites':['Payer_ordre et inspection réels du baseline ; pas un clone du catalogue vivant ni son interception blocus ajoutée ensuite.','Concurrence committée seulement dans le cluster détruit.']},ensure_ascii=False,indent=2));return 0 if all(t['ok']for t in cas)else 1
+  preparerorga();avant=photo();c.commit()
+  def orgconcurrent(_):
+   cc=psycopg2.connect(srv.get_uri())
+   try:
+    v=orga(ident=999,cur=cc.cursor());cc.commit();return v
+   finally:cc.close()
+  with ThreadPoolExecutor(2)as pool:a,b=list(pool.map(orgconcurrent,range(2)))
+  assert a['inf']==b['inf']==avant['resources']['inf']+3 and photo()['pa']==avant['pa']-3 and photo()['arg']==avant['arg']-500
+  cas.append({'cas':'organisation_deux_connexions_un_recu_un_paiement','ok':True})
+  print(json.dumps({'production':False,'contre_rejeu_organisation':'--contre-rejeu-organisation'in sys.argv,'moteur':version,'tests':cas,'limites':['Payer_ordre et inspection réels du baseline ; pas un clone du catalogue vivant ni son interception blocus ajoutée ensuite.','Concurrence committée seulement dans le cluster détruit.']},ensure_ascii=False,indent=2));return 0 if all(t['ok']for t in cas)else 1
  finally:
   if c:c.rollback();c.close()
   srv.cleanup()

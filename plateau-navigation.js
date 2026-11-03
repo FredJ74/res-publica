@@ -2812,66 +2812,15 @@ async function doContrebandePort(pa, cost) {
 }
 
 async function doBlocusPortuaire(pa, cost) {
-  // LE BLOCUS PORTUAIRE EST UNE ACTION SYNDICALE (decision de game design du 17 septembre 2026).
-  //
-  // Correctif du 25 aout 2026 (bug remonte en production v69 : n'importe quel PJ pouvait
-  // declencher un blocus depuis le quai principal) : le blocus est reserve au chef du syndicat
-  // des dockers et revalide ici INDEPENDAMMENT de l'affichage -- un appel direct au handler par un
-  // non-chef echoue avant tout cout ou effet de bord.
-  //
-  // Ce qui change aujourd'hui : ce controle etait encadre par `if (state.country === 'republic')`,
-  // ce qui revenait a traiter l'ABSENCE de syndicat comme une autorite valable. A El Estado, ou
-  // data.js declare aussi blocus_portuaire mais sans syndicat constitue, n'importe quel PJ pouvait
-  // donc paralyser le port. L'autorite est desormais cherchee GENERIQUEMENT pour le territoire ou
-  // l'on se trouve (syndicatDockersDuTerritoire) : plus de test sur le nom du pays.
-  //
-  // Si aucun syndicat de dockers n'existe sur ce territoire, l'ordre est REFUSE avec un message
-  // explicite -- il n'est pas supprime en silence, et l'absence de structure ne vaut pas
-  // permission. ARBITRAGE/CONTENU GD EN ATTENTE : quelle organisation portera cette autorite a El
-  // Estado (nom, siege, chef par defaut) releve du chantier de contenu de cet empire ; rien n'est
-  // invente ici.
-  const ville = state.currentCity;
-  let syndicat = (typeof syndicatDockersDuTerritoire === 'function')
-    ? syndicatDockersDuTerritoire(state.country, ville) : null;
-  // Republia : le syndicat est cree paresseusement a la premiere visite de sa salle. On le
-  // materialise ici aussi, pour ne rien changer au parcours existant.
-  if (!syndicat && state.country === 'republic' && ville === 'ville_a'
-      && typeof chargerOuCreerSyndicatDockersPSM === 'function') {
-    syndicat = await chargerOuCreerSyndicatDockersPSM();
-  }
-  if (!syndicat) {
-    showToast('Aucun syndicat compétent',
-      "Le blocus portuaire est une action syndicale : aucun syndicat des dockers n'est constitué ici.", false);
+  // GAME-DESIGN-BLOCUS.md, Fred 02/11 : même blocus, mêmes participants,
+  // mêmes 2 PA par PJ et même tentative quotidienne. L'ancien jet local
+  // portuaire ne créait aucun blocus serveur et fabriquait un malus POP.
+  // Le formulaire existant prépare la commande canonique, sans prélèvement ici.
+  if (typeof doOrganiserBlocusSyndical !== 'function') {
+    showToast('Blocus indisponible', 'Le formulaire syndical n’est pas disponible.', false);
     return;
   }
-  if (syndicat.chef !== (state.char?.name || '')) {
-    showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut déclencher un blocus portuaire.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const vol = getStatEffective('VOL');
-  const ent = getStatEffective('ENT');
-  const taux = Math.max(5, 60 + Math.floor(vol/10) + Math.floor(ent/10) - getMalusISN());
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const pays = state.country || 'republic';
-
-  if (roll <= taux) {
-    if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IE = Math.max(0, INDICES_NATIONAUX[pays].IE - 5);
-    updateUI();
-    // Etait affiche en ECHEC (3e argument false) alors que cette branche est celle du SUCCES du
-    // jet (if (roll <= taux) juste au-dessus) : le blocus a bien ete declenche. Corrige en succes
-    // (lot ergonomique 1, 5 septembre 2026). Aucun effet de jeu modifie, uniquement la couleur et
-    // le cadre du toast.
-    showToast('Blocus déclenché !', 'Le port est paralysé pour 24h. -5 IE.', true);
-    addExternalEvent('GRÈVE : Blocus portuaire déclenché ! Importations/exportations suspendues 24h. -5 IE.');
-    addJournalEntry('Blocus portuaire initié.', 'event-info');
-  } else {
-    state.pop = Math.max(0, state.pop - 8);
-    updateUI();
-    showToast('Échec du blocus', 'Le mouvement n\'a pas pris. -8 POP.', false);
-    // checkDetection('blocus_portuaire', 'fail') retire (27/10/2026) : un echec n'est jamais detecte, l'appel ne faisait rien.
-  }
+  return doOrganiserBlocusSyndical();
 }
 
 async function doInspecterCargaisons(pa, cost) {

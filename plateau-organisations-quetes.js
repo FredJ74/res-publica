@@ -921,6 +921,30 @@ async function executerOrdreOrgaFinancier(orga, fn, ordre) {
   updateUI();
 }
 
+// Même commande et même reçu que les autres actes de vie de l'organisation.
+async function executerOrdreOrgaJauges(orgaId, fn, ordre) {
+  const contexte=contexteGroupePj();
+  if(!contexte.nom||!contexte.uid||typeof sbOrganisationVie!=='function')return;
+  const v=await sbOrganisationVie(orgaId,'ordre_jauges',{fn});
+  if(!contexteGroupePjValide(contexte))return;
+  if(!v||v.ok!==true){signalerRefusCout(v||{raison:'commande_non_confirmee'});return;}
+  if(v.contrat_jauges!==1||v.acteur!==contexte.nom||v.organisation!==orgaId||v.ordre!==fn
+      ||!['pop','inf','pa','hp','moral','gain_pop','gain_inf','gain_moral'].every(k=>typeof v[k]==='number'&&Number.isFinite(v[k]))) {
+    showToast('Action non confirmée','La réponse reçue ne permet pas de confirmer cet ordre.',false);return;
+  }
+  appliquerPaiementServeur(v);
+  adopterJaugeServeur('pop',v.pop);adopterJaugeServeur('inf',v.inf);
+  state.moral=v.moral;state.hp=v.hp;
+  if(typeof sbFicheBaseAdopter==='function')sbFicheBaseAdopter(v);
+  updateUI();
+  if(!v.rejeu){
+    const gains=[['POP',v.gain_pop],['INF',v.gain_inf],['Moral',v.gain_moral]].filter(([,n])=>n!==0).map(([k,n])=>(n>0?'+':'')+n+' '+k).join(', ');
+    showToast(ordre.label||'Ordre exécuté',gains||'Action confirmée par le serveur.',true);
+    addJournalEntry((ordre.label||fn)+' : '+gains+'.','event-good');
+    addExternalEvent(ordre.label||fn);
+  }
+}
+
 async function executerOrdreOrga(orgaId, fn) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
@@ -938,6 +962,9 @@ async function executerOrdreOrga(orgaId, fn) {
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const ordre = (def.ordres || []).find(o => o.fn === fn);
   if (!ordre) return;
+  if (["orga_petition", "orga_meeting", "orga_benediction", "orga_pelerinage", "orga_campagne_presse", "orga_scoop", "orga_rituel", "orga_reseau", "orga_cooptation"].includes(fn)) {
+    await executerOrdreOrgaJauges(orgaId,fn,ordre);return;
+  }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   // GARDE D'AUTORITE SUR LES ORDRES FINANCIERS — CENTRALISEE ICI (Lot 4.3).
@@ -972,17 +999,8 @@ async function executerOrdreOrga(orgaId, fn) {
   // disponibilite des PA. Appelee avant tout effet de bord (bloc "effets" plus bas) :
   // fail-closed.
   const effets = {
-    orga_petition:       () => { const gain = Math.floor(Math.random()*8)+3; state.pop = Math.min(100,(state.pop||0)+gain); showToast('Pétition lancée !','+'+gain+' POP.',true); addJournalEntry('Pétition de "'+orga.nom+'". +'+gain+' POP.','event-good'); addExternalEvent('📋 "'+orga.nom+'" lance une pétition publique.'); },
-    orga_meeting:        () => { state.pop=Math.min(100,(state.pop||0)+5); state.inf=Math.min(100,(state.inf||0)+3); showToast('Meeting !','+5 POP +3 INF.',true,true); addJournalEntry('Meeting de "'+orga.nom+'".','event-good'); addExternalEvent('📢 "'+orga.nom+'" organise un meeting.'); },
     // orga_collecte / orga_dividendes : executerOrdreOrgaFinancier (serveur), plus d'effet local.
-    orga_benediction:    () => { state.moral=Math.min(100,(state.moral||50)+10); state.pop=Math.min(100,(state.pop||0)+5); showToast('Bénédiction !','Cérémonie en votre honneur. +10 Moral +5 POP.',true,true); addJournalEntry('Bénédiction de "'+orga.nom+'".','event-good'); addExternalEvent('✨ "'+orga.nom+'" organise une cérémonie de bénédiction.'); },
     orga_anatheme:       () => { state.moral=Math.max(0,(state.moral||50)-15); state.pop=Math.max(0,(state.pop||0)-10); showToast('Anathème !','Cérémonie contre un PJ. -15 Moral -10 POP à la cible.',false); addJournalEntry('Anathème prononcé par "'+orga.nom+'".','event-bad'); addExternalEvent('⛧ "'+orga.nom+'" prononce un anathème public.'); },
-    orga_pelerinage:     () => { state.pop=Math.min(100,(state.pop||0)+8); showToast('Pèlerinage !','+8 POP. Grand rassemblement.',true,true); addExternalEvent('🕊 "'+orga.nom+'" organise un grand pèlerinage.'); },
-    orga_campagne_presse:() => { state.pop=Math.min(100,(state.pop||0)+6); state.inf=Math.min(100,(state.inf||0)+5); showToast('Article favorable !','+6 POP +5 INF.',true,true); addExternalEvent('📰 "'+orga.nom+'" publie une campagne de presse favorable.'); },
-    orga_scoop:          () => { state.inf=Math.min(100,(state.inf||0)+10); showToast('Scoop publié !','+10 INF. Scandale public.',true,true); addExternalEvent('🔥 "'+orga.nom+'" publie un scoop explosif !'); },
-    orga_rituel:         () => { state.inf=Math.min(100,(state.inf||0)+6); showToast('Rituel accompli.','+6 INF. Nouveau membre initié.',true); },
-    orga_reseau:         () => { state.inf=Math.min(100,(state.inf||0)+8); showToast('Réseau activé.','+8 INF. Information exclusive obtenue.',true,true); addJournalEntry('Réseau de la Loge activé. +8 INF.','event-good'); },
-    orga_cooptation:     () => { state.inf=Math.min(100,(state.inf||0)+5); showToast('Cooptation discrète.','Un poste peut être attribué sans élection.',true); },
     orga_hooliganisme:   () => {
       const pays = state.country || 'republic';
       if (INDICES_NATIONAUX[pays]) {
