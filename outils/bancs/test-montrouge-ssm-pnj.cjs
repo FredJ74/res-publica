@@ -23,9 +23,10 @@ test('images des deux pièces présentes, noms et rôles du personnel distincts'
  assert.match(block,/role:'Assistante sociale'/);
  assert.match(block,/role:'Agente d’accueil des services sociaux'/);
 });
-test('rendez-vous et demande de logement social sont les seuls ordres des deux pièces',()=>{
+test('les trois ordres de service social incluent une orientation gratuite à l’accueil',()=>{
  assert.equal((block.match(/orders: \[/g)||[]).length,2);
  assert.equal((block.match(/persons: \[/g)||[]).length,2);
+ assert.match(block,/fn:'ssm_besoin_aide', label:'Besoin d’aide \?', pa:0, cost:0/);
  assert.match(block,/fn:'ssm_demander_rendezvous'/);
  assert.match(block,/fn:'demander_logement_social'/);
 });
@@ -50,4 +51,12 @@ test('Edwige oriente sur les soins sans inventer de prestations',()=>{
    assert.ok(fiche.includes(mot),'information manquante : '+mot);
  }
  assert.match(fiche,/sans prétendre fournir toi-même de soins/);
+});
+
+test('Pascale dispose du portrait WebP issu de son image d’accueil',()=>{
+ const portrait='images/personnages/pascale-ssm-portrait.webp';
+ assert.ok(block.includes("photoUrl:'"+portrait+"'"),'portrait non relié à la fiche Pascale');
+ const b=fs.readFileSync(path.join(root,portrait));
+ assert.equal(b.toString('ascii',0,4),'RIFF');
+ assert.equal(b.toString('ascii',8,12),'WEBP');
 });
