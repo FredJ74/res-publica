@@ -75,9 +75,9 @@ BEGIN
    'Pascale — Services sociaux de Montrouge',
    v_nom,
    'Votre rendez-vous avec Edwige Jacquard',
-   'Bonjour,\n\nVotre rendez-vous avec Edwige Jacquard, assistante sociale des Services sociaux de Montrouge, est fixé au '
-      ||to_char(v_rdv,'DD/MM/YYYY')||'.\n\nVous pourrez vous présenter à l’accueil puis entrer dans son bureau pendant toute cette journée (heure de Paris).'
-      ||' En dehors de cette date, l’accès au bureau est réservé.\n\nÀ bientôt,\nPascale — Services sociaux de Montrouge',
+   'Bonjour,'||chr(10)||chr(10)||'Votre rendez-vous avec Edwige Jacquard, assistante sociale des Services sociaux de Montrouge, est fixé au '
+      ||to_char(v_rdv,'DD/MM/YYYY')||'.'||chr(10)||chr(10)||'Vous pourrez vous présenter à l’accueil puis entrer dans son bureau pendant toute cette journée (heure de Paris).'
+      ||' En dehors de cette date, l’accès au bureau est réservé.'||chr(10)||chr(10)||'À bientôt,'||chr(10)||'Pascale — Services sociaux de Montrouge',
    NULL
  );
  IF coalesce(v_courrier->>'ok','false') <> 'true' THEN
