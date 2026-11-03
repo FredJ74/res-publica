@@ -1051,28 +1051,15 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
       // via PEINES.delit_mineur (pas 1) et ouvrirait un choix corruption/fuite/resistance non
       // souhaite ici (flagrant delit, sanction immediate et non negociable).
       // Tous les tracts calomnieux ont ete detruits par le serveur (inventaire deja adopte).
-      if (state.immuniteMilitaireActuelle) {
+      // L'ARRESTATION EST FAITE PAR LE SERVEUR (03/11/2026) : calomnie_distribuer_consommer
+      // ecroue le joueur (1 jour) dans la transaction du flagrant delit, immunite militaire
+      // comprise. L'ecran adopte la peine et la position decidees.
+      if (res.arrestation && res.arrestation.raison === 'immunite_militaire') {
         showToast('Immunité militaire', 'Flagrant délit, mais votre immunité militaire vous protège de toute poursuite.', true);
         addJournalEntry('Distribution de tract calomnieux — flagrant délit, immunité militaire invoquée.', 'event-info');
       } else {
-        // Registre carcerale (26 aout 2026) : toute incarcération réelle doit apparaître au
-        // registre du commissariat -- ce flux positionnait state.estEmprisonne directement,
-        // contournant enregistrerDetention (donc la ligne detentions correspondante n'était
-        // jamais créée). On garde l'assignation synchrone immediate (navigation/UI ne doivent
-        // pas attendre l'aller-retour reseau pour refleter la contrainte), enregistrerDetention
-        // vient ensuite fusionner le detentionId et persister est_emprisonne cote serveur.
         const motifsTracts = [{ type: 'Distribution de tracts calomnieux', jour_fait: state.day, city: state.currentCity, jours: 1, source: 'flagrant_delit' }];
-        state.estEmprisonne = { jours: 1, jourFin: (state.day || 1) + 1, raison: 'Distribution de tracts calomnieux' };
-        if (typeof enregistrerDetention === 'function') {
-          // L'assignation synchrone ci-dessus est un PARI : si le serveur n'ouvre pas la peine,
-          // il est defait (9 octobre 2026). Sans cela le joueur restait enferme par la navigation
-          // alors qu'aucune detention n'existait en base -- et aucune liberation ne viendrait
-          // jamais, le filet nocturne n'ayant aucune ligne a liberer.
-          enregistrerDetention(state.char?.name, 'Distribution de tracts calomnieux', (state.day || 1) + 1, undefined, state.currentCity, {
-            country: state.country,
-            motifs: motifsTracts
-          }).then(id => { if (!id) state.estEmprisonne = null; }).catch(() => { state.estEmprisonne = null; });
-        }
+        if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(res.arrestation);
         showToast('Flagrant délit !', pnjName + ' alerte immédiatement la police. Tous vos tracts calomnieux sont détruits. 1 jour de détention.', false, true);
         addJournalEntry('Distribution de tract calomnieux à ' + pnjName + ' — échec critique. Tracts calomnieux détruits, 1 jour de détention.', 'event-bad');
 

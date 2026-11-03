@@ -25,6 +25,11 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Arrestations en flagrant délit au serveur + libération des déserteurs (Claude, branche `claude/deserteurs-liberation-20261103`)
+
+- Fait : migration `20261103140000_arrestations_flagrant_delit_serveur` (moteur `arrestation_flagrant_interne`, barème serveur, flagrant délit en attente et fenêtre de choix `arrestation_flagrant_choisir`, `couvre_feu_patrouille`, `militaire_detachement_arrestation`, arrestation dans `terrain_permis_corrompre` / `calomnie_distribuer_consommer` / `militaire_subtiliser_tenter`, flagrant délit posé par `assemblee_neutraliser_depute` et `crime_empoisonner`, déserteur reconnu à ses motifs dans `detention_clore_motif_eteint`, fermeture de `detention_ouvrir_soi` / `detention_prolonger_soi`). Écran raccordé ; garde `test-arrestations-flagrant-serveur.mjs`.
+- Reste : jouer le banc annulé `outils/bancs/banc-arrestations-flagrant-delit.sql` (le canal Supabase a demandé une confirmation humaine restée sans réponse), fusionner, attendre Vercel READY, **puis** appliquer la migration (l'ancien écran appelle encore les portes fermées).
+
 ### Audit global Républia — Codex, 02/11/2026
 
 Branche `codex/audit-global-republia-20261102`, issue du main `a99c4069`
