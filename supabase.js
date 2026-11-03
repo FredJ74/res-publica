@@ -1085,8 +1085,17 @@ async function sbListPersonnages() {
 // =====================
 // FORUM
 // =====================
+// Les identifiants nationaux et locaux sont historiques et communs aux pays.
+// Le pays réel de chaque sujet est la colonne country, pas son auteur affiché.
+function sbForumEstTerritorial(forumId) {
+  return forumId === 'national' || (typeof forumId === 'string' && forumId.startsWith('local_'));
+}
+function sbForumSujetDansPays(forumId, paysSujet, paysCourant) {
+  return !sbForumEstTerritorial(forumId) || (paysSujet === paysCourant);
+}
 async function sbLoadForumTopics(forumId) {
-  return sbGet('forum_topics', `forum_id=eq.${forumId}&order=created_at.desc`);
+  const filtrePays = sbForumEstTerritorial(forumId) ? '&country=eq.' + encodeURIComponent(state.country) : '';
+  return sbGet('forum_topics', 'forum_id=eq.' + encodeURIComponent(forumId) + filtrePays + '&order=created_at.desc');
 }
 
 // LA MEME LECTURE, QUI DISTINGUE « AUCUN SUJET » DE « JE N'AI PAS PU LIRE » (chantier 5,
@@ -1103,15 +1112,17 @@ async function sbCompterSujetsForums(idsForums) {
   const compteurs = Object.fromEntries(ids.map(id => [id, 0]));
   if (!ids.length) return compteurs;
   const filtre = ids.map(encodeURIComponent).join(',');
+  const paysLecture = state.country;
   const taillePage = 200;
   let debut = 0;
   while (true) {
     const rows = await sbGet('forum_topics',
-      'select=forum_id&forum_id=in.(' + filtre + ')&order=created_at.asc' +
+      'select=forum_id,country&forum_id=in.(' + filtre + ')&order=created_at.asc' +
       '&limit=' + taillePage + '&offset=' + debut);
     if (!Array.isArray(rows)) throw new Error('forum_compteurs_lecture_indisponible');
     rows.forEach(row => {
-      if (Object.prototype.hasOwnProperty.call(compteurs, row.forum_id))
+      if (Object.prototype.hasOwnProperty.call(compteurs, row.forum_id) &&
+          sbForumSujetDansPays(row.forum_id, row.country, paysLecture))
         compteurs[row.forum_id]++;
     });
     if (rows.length < taillePage) return compteurs;
@@ -1123,13 +1134,17 @@ async function sbLoadForumTopicsVerdict(forumId) {
   // Lecture seule : borne indépendante du transport générique, sans toucher aux écritures.
   // AbortController arrête effectivement la requête, contrairement à Promise.race.
   const controller = new AbortController();
+  const paysLecture = state.country;
   const timer = setTimeout(() => controller.abort(), 8000);
   try {
     const url = SUPABASE_URL + '/rest/v1/forum_topics?forum_id=eq.' +
-      encodeURIComponent(forumId) + '&order=created_at.desc';
+      encodeURIComponent(forumId) +
+      (sbForumEstTerritorial(forumId) ? '&country=eq.' + encodeURIComponent(paysLecture) : '') +
+      '&order=created_at.desc';
     const response = await fetch(url, { method: 'GET', headers: sbEnTetes(), signal: controller.signal });
     if (!response.ok) return { ok: false, raison: 'http_' + response.status };
     const rows = await response.json();
+    if (paysLecture !== state.country) return { ok: false, raison: 'territoire_change' };
     return { ok: true, donnees: Array.isArray(rows) ? rows : [] };
   } catch (e) {
     return { ok: false, raison: controller.signal.aborted ? 'delai_depasse' : 'reseau_indisponible' };
@@ -1213,6 +1228,7 @@ async function sbActiviteForumCibles(idsForums, pageSize) {
   const cibles = new Set(idsForums || []);
   if (cibles.size === 0) return {};
   const idsFiltre = Array.from(cibles).map(encodeURIComponent).join(',');
+  const paysLecture = state.country;
 
   async function dernierParForum(table, select, filtre, extraireForumId) {
     const resultats = {};
@@ -1232,7 +1248,8 @@ async function sbActiviteForumCibles(idsForums, pageSize) {
       if (lignes.length === 0) break; // flux (scope) epuise (succes, page vide), rien de plus a trouver
       lignes.forEach(l => {
         const fid = extraireForumId(l);
-        if (fid && restants.has(fid) && !(fid in resultats)) {
+        if (fid && restants.has(fid) && !(fid in resultats) &&
+            sbForumSujetDansPays(fid, l.country ?? l.forum_topics?.country, paysLecture)) {
           resultats[fid] = l.created_at; // 1ere occurrence rencontree = la plus recente (ordre desc)
           restants.delete(fid);
         }
@@ -1244,8 +1261,8 @@ async function sbActiviteForumCibles(idsForums, pageSize) {
   }
 
   const [topics, posts] = await Promise.all([
-    dernierParForum('forum_topics', 'forum_id,created_at', `forum_id=in.(${idsFiltre})`, l => l.forum_id),
-    dernierParForum('forum_posts', 'created_at,forum_topics!inner(forum_id)', `forum_topics.forum_id=in.(${idsFiltre})`, l => l.forum_topics?.forum_id)
+    dernierParForum('forum_topics', 'forum_id,country,created_at', `forum_id=in.(${idsFiltre})`, l => l.forum_id),
+    dernierParForum('forum_posts', 'created_at,forum_topics!inner(forum_id,country)', `forum_topics.forum_id=in.(${idsFiltre})`, l => l.forum_topics?.forum_id)
   ]);
 
   const parForum = {};
@@ -1266,6 +1283,7 @@ async function sbActiviteForumDepuis(idsAccessibles, curseurTopics, curseurPosts
   const ids = new Set(idsAccessibles || []);
   if (ids.size === 0) return { parForum: {}, curseurTopics, curseurPosts };
   const idsFiltre = Array.from(ids).map(encodeURIComponent).join(',');
+  const paysLecture = state.country;
 
   async function depuis(table, select, filtreScope, extraireForumId, curseur) {
     const parForum = {};
@@ -1285,7 +1303,9 @@ async function sbActiviteForumDepuis(idsAccessibles, curseurTopics, curseurPosts
       if (lignes.length === 0) break;
       lignes.forEach(l => {
         const fid = extraireForumId(l);
-        if (fid) { if (!parForum[fid] || l.created_at > parForum[fid]) parForum[fid] = l.created_at; }
+        if (fid && sbForumSujetDansPays(fid, l.country ?? l.forum_topics?.country, paysLecture)) {
+          if (!parForum[fid] || l.created_at > parForum[fid]) parForum[fid] = l.created_at;
+        }
         if (!dernier || l.created_at > dernier) dernier = l.created_at;
       });
       if (lignes.length < pageSize) break;
@@ -1295,8 +1315,8 @@ async function sbActiviteForumDepuis(idsAccessibles, curseurTopics, curseurPosts
   }
 
   const [t, p] = await Promise.all([
-    depuis('forum_topics', 'forum_id,created_at', `forum_id=in.(${idsFiltre})`, l => l.forum_id, curseurTopics),
-    depuis('forum_posts', 'created_at,forum_topics!inner(forum_id)', `forum_topics.forum_id=in.(${idsFiltre})`, l => l.forum_topics?.forum_id, curseurPosts)
+    depuis('forum_topics', 'forum_id,country,created_at', `forum_id=in.(${idsFiltre})`, l => l.forum_id, curseurTopics),
+    depuis('forum_posts', 'created_at,forum_topics!inner(forum_id,country)', `forum_topics.forum_id=in.(${idsFiltre})`, l => l.forum_topics?.forum_id, curseurPosts)
   ]);
 
   const parForum = {};
