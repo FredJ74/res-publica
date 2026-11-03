@@ -3656,18 +3656,10 @@ async function sbMarquerTestamentStatut(id, statut) {
 // simple droit d'information globale du conjoint des l'ouverture, jamais une convocation avec
 // decision/echeance -- ne pas les confondre (voir rapport d'architecture).
 // =====================
-async function sbCreerSuccession(succession) {
-  return sbInsert('successions', succession);
-}
-
 async function sbGetSuccession(id) {
   if (!id) return null;
   const rows = await sbGet('successions', `id=eq.${encodeURIComponent(id)}`).catch(() => []);
   return (rows && rows.length > 0) ? rows[0] : null;
-}
-
-async function sbUpdateSuccession(id, patch) {
-  return sbUpdate('successions', `id=eq.${encodeURIComponent(id)}`, patch);
 }
 
 // Successions en_attente d'un pays -- le filtrage par beneficiaire/conjoint se fait cote client
