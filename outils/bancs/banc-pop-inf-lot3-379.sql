@@ -116,6 +116,62 @@ RESET ROLE;
 INSERT INTO banc SELECT '3c_objet_sorti_en_base',jsonb_array_length(inventory)=2 AND NOT inventory @> '[{"id":"k1"}]',inventory::text
   FROM public.personnages_donnees WHERE name='BancChef';
 
+-- ===== 3d. Dîner d'affaires du Capitaine Sauvage (contrat commerce_v1) =====
+CREATE OR REPLACE FUNCTION public.appliquer_taxe_transaction(p_pays text,p_ville text,p_montant_brut numeric)
+RETURNS jsonb LANGUAGE sql AS $$ SELECT jsonb_build_object('net',p_montant_brut) $$; -- fiscalité non semée (annulé)
+INSERT INTO public.ordres_couts(fn,pa,cost) VALUES ('diner_affaires',2,150) ON CONFLICT DO NOTHING;
+INSERT INTO public.pa_bonus_differes(source,montant) VALUES ('diner_affaires',3) ON CONFLICT DO NOTHING;
+INSERT INTO public.entreprises(id,data) VALUES ('brasserie-republic-ville_a-capitaine-sauvage-salle_principale',
+ '{"type":"brasserie","country":"republic","city":"ville_a","caisse":0,"carte":["menu_psm_1","menu_psm_2","menu_psm_3","vin"],
+   "stockProduits":{"menu_psm_1":1,"menu_psm_2":5,"menu_psm_3":0,"vin":3}}')
+ ON CONFLICT (id) DO UPDATE SET data=EXCLUDED.data;
+UPDATE public.personnages_donnees SET current_city='ville_a',current_building='capitaine-sauvage',current_room='salle_principale',pa=50,bonus_pa_differe=0
+ WHERE name IN('BancChef','BancMembre');
+SELECT 1 FROM (SELECT set_config('request.path','/rpc/restaurant_diner_servir',true)) z;
+CREATE TEMP TABLE diner(id bigint) ON COMMIT DROP; GRANT ALL ON diner TO authenticated;
+CREATE FUNCTION public.banc379_stock() RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS
+ $$ SELECT data->'stockProduits' FROM public.entreprises WHERE id='brasserie-republic-ville_a-capitaine-sauvage-salle_principale' $$;
+GRANT EXECUTE ON FUNCTION public.banc379_stock() TO authenticated;
+SET LOCAL ROLE authenticated;
+DO $b$ DECLARE r jsonb; BEGIN
+ r:=public.restaurant_diner_creer('diner-banc379-psm-0001','BancMembre',false,'Un verre ?');
+ INSERT INTO diner VALUES((r->>'id')::bigint);
+ INSERT INTO banc VALUES('3d_invitation_pj_en_attente',coalesce((r->>'ok')::boolean,false) AND r->>'statut'='attente' AND (r->>'prix')::int=150,r::text);
+ r:=public.restaurant_diner_creer('diner-banc379-psm-0002','Personne Inventee',true,'');
+ INSERT INTO banc VALUES('3d_pnj_absent_refuse',r->>'raison'='pnj_non_present',r::text);
+ r:=public.restaurant_diner_creer('diner-banc379-psm-0003','Marine Leroux',true,'');
+ INSERT INTO banc VALUES('3d_pnj_present_tire_serveur',r->>'statut' IN('acceptee','refusee'),r::text);
+ r:=public.restaurant_diner_servir((SELECT id FROM diner));
+ INSERT INTO banc VALUES('3d_servir_avant_acceptation_refuse',r->>'raison'='acceptation_requise',r::text);
+END $b$;
+RESET ROLE;
+SELECT 1 FROM (SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-4000-9000-000000003792","role":"authenticated"}',true)) z;
+SET LOCAL ROLE authenticated;
+DO $b$ DECLARE r jsonb; BEGIN
+ r:=public.restaurant_diner_repondre((SELECT id FROM diner),true,'Avec plaisir');
+ INSERT INTO banc VALUES('3d_invite_accepte',coalesce((r->>'ok')::boolean,false),r::text);
+ r:=public.restaurant_diner_servir((SELECT id FROM diner));
+ INSERT INTO banc VALUES('3d_invite_ne_sert_pas',r->>'raison'='pas_mon_invitation',r::text);
+END $b$;
+RESET ROLE;
+SELECT 1 FROM (SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-4000-9000-000000003791","role":"authenticated"}',true)) z;
+SET LOCAL ROLE authenticated;
+DO $b$ DECLARE r jsonb; c0 jsonb; m0 jsonb; c1 jsonb; m1 jsonb; st jsonb; BEGIN
+ c0:=public.banc379_j('BancChef'); m0:=public.banc379_j('BancMembre');
+ r:=public.restaurant_diner_servir((SELECT id FROM diner));
+ c1:=public.banc379_j('BancChef'); m1:=public.banc379_j('BancMembre'); st:=public.banc379_stock();
+ INSERT INTO banc VALUES('3d_servi_paye_une_fois',coalesce((r->>'ok')::boolean,false) AND (c1->>'arg')::numeric=(c0->>'arg')::numeric-150
+   AND (c1->>'pa')::int=(c0->>'pa')::int-2 AND (m1->>'arg')::numeric=(m0->>'arg')::numeric,r::text||' '||c0::text||' -> '||c1::text);
+ INSERT INTO banc VALUES('3d_effets_deux_convives',(c1->>'inf')::int=least(100,(c0->>'inf')::int+5) AND (m1->>'inf')::int=least(100,(m0->>'inf')::int+5)
+   AND (c1->>'moral')::int=(c0->>'moral')::int+2 AND (m1->>'hp')::int=least(100,(m0->>'hp')::int+10),m0::text||' -> '||m1::text);
+ INSERT INTO banc VALUES('3d_stock_consomme_dans_l_ordre',st->>'menu_psm_1'='0' AND st->>'menu_psm_2'='4' AND st->>'vin'='2',st::text);
+ r:=public.restaurant_diner_servir((SELECT id FROM diner));
+ INSERT INTO banc VALUES('3d_rejeu_sans_double_effet',(r->>'rejeu')::boolean AND public.banc379_j('BancChef')=c1 AND public.banc379_stock()=st,r::text);
+ r:=public.restaurant_diner_suivre();
+ INSERT INTO banc VALUES('3d_suivi_voit_le_contrat',jsonb_array_length(r->'invitations')>=1,r::text);
+END $b$;
+RESET ROLE;
+
 -- @@SUITE@@
 
 SELECT cas, ok, CASE WHEN ok THEN '' ELSE detail END FROM banc ORDER BY cas;

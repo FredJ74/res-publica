@@ -28,7 +28,7 @@ const lignes = vm.runInContext(`(() => { const out = [];
       const pieces = new Set([...Object.keys(b.rooms || {}), ...Object.keys(getBuildingContext(id)?.roomsExtra || {})]);
       for (const piece of pieces) for (const p of (personnesNormalesDeLaPiece(id, piece) || [])) {
         if (!p || p.isPJ || typeof p.name !== 'string') continue;
-        out.push([pays, ville, id, piece, p.name.replace(' (PNJ)', '').trim(), (p.job || 'default')]);
+        out.push([pays, ville, id, piece, p.name.replace(' (PNJ)', '').trim(), (p.job || 'default'), (p.rel || 'neutral')]);
       }
     } }
   return JSON.parse(JSON.stringify(out)); })()`, ctx);
@@ -41,5 +41,5 @@ for (const l of lignes) {
   valeurs.push('(' + l.map(q).join(',') + ')');
 }
 process.stdout.write('-- ' + valeurs.length + ' PNJ (généré par outils/generateurs/generer-pnj-lieux-metiers.cjs)\n'
-  + 'INSERT INTO public.pnj_lieux_metiers(pays,ville,building_id,room_id,nom,job) VALUES\n'
-  + valeurs.join(',\n') + '\nON CONFLICT (pays,ville,building_id,room_id,nom) DO UPDATE SET job=EXCLUDED.job;\n');
+  + 'INSERT INTO public.pnj_lieux_metiers(pays,ville,building_id,room_id,nom,job,rel) VALUES\n'
+  + valeurs.join(',\n') + '\nON CONFLICT (pays,ville,building_id,room_id,nom) DO UPDATE SET job=EXCLUDED.job,rel=EXCLUDED.rel;\n');

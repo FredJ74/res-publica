@@ -2651,56 +2651,8 @@ const CONFIG_INVITATIONS_SOCIALES = {
   boire_verre:    { verbe: 'boire un verre', hp: 5, inf: 2, ent: 2, paDiffere: 0, emoji: '🍷' }
 };
 
-// Republia — dîner d'affaires (lot finition boucle economique, 21 aout 2026 ; affine lots carte
-// gastronomique + Marche, 21 aout 2026) : rattache diner_affaires au stock reel du restaurant SANS
-// creer de seconde logique d'invitation -- simples fonctions d'appoint appelees depuis les deux
-// points d'acceptation existants (envoyerInvitationSociale, chemin PNJ immediat ;
-// verifierReponseInvitationSociale, chemin PJ differe). boire_verre n'appelle jamais ces
-// fonctions (gate explicite sur type==='diner_affaires' a chaque appel) : son comportement reste
-// strictement inchange. Toujours exactement 2 diners (l'inviteur + le seul invite possible : ce
-// mecanisme n'a jamais gere de groupe, contrairement a offrir_tournee) donc 2 menus -- jamais un
-// nombre arbitraire -- PLUS 1 vin (demande explicite : le diner necessite specifiquement la
-// recette 'vin', pas n'importe quelle boisson de la carte).
-//
-// Les 2 menus peuvent provenir de N'IMPORTE LEQUEL des 3 types (demande explicite, 21 aout 2026) :
-// prelevement simple et deterministe, jamais d'interface de choix -- parcourt data.carte dans son
-// ordre de declaration (menu_gastronomique_1 puis 2 puis 3) et prend autant d'unites que
-// disponibles a chaque menu jusqu'a atteindre 2 au total. Verification en lecture seule d'abord
-// (aucune mutation ici) ; le prelevement precis retourne est ensuite applique tel quel par
-// consommerStockDinerAffaires, jamais recalcule.
-async function verifierStockDinerAffaires() {
-  if (typeof resoudreCommerceActuel !== 'function' || typeof chargerCommerce !== 'function') return null;
-  const c = resoudreCommerceActuel();
-  if (!c) return null;
-  const data = await chargerCommerce(c.type, state.country || 'republic', state.currentCity || 'capitale', c.buildingId, c.roomId);
-  if (!data) return null;
-  const menuIds = (data.carte || []).filter(id => typeof RECETTES_ALIMENTAIRES !== 'undefined' && RECETTES_ALIMENTAIRES[id]?.categorie === 'menu');
-  let restant = 2;
-  const prelevement = [];
-  for (const id of menuIds) {
-    if (restant <= 0) break;
-    const dispo = data.stockProduits[id] || 0;
-    if (dispo <= 0) continue;
-    const pris = Math.min(dispo, restant);
-    prelevement.push({ id, qte: pris });
-    restant -= pris;
-  }
-  if (restant > 0) return null;
-  if ((data.stockProduits.vin || 0) < 1) return null;
-  return { data, prelevement };
-}
-
-// CHANTIER C / PHASE 3, mode 'service' : le diner d'affaires est FACTURE PAR L'ORDRE
-// (diner_affaires, cout declare dans data.js), pas par un prix de carte. C'est donc la RPC qui
-// preleve -- via payer_ordre, qui valide le couple (pa, cost) contre le miroir -- puis taxe ce
-// montant et credite la caisse, apres avoir verifie le stock des DEUX plats et du vin.
-// L'appelant ne doit plus appeler deduireCoutOrdre pour ce cas, sous peine de double debit.
-async function consommerStockDinerAffaires(data, prelevement, pa, cost, nomInvite) {
-  const articles = prelevement.map(p => ({ produit: p.id, qte: p.qte }));
-  articles.push({ produit: 'vin', qte: 1 });
-  if (typeof commerceVendreProduit !== 'function') return { ok: false, raison: 'indisponible' };
-  return await commerceVendreProduit(data.id, articles, 'service', 'diner_affaires', pa, cost);
-}
+// verifierStockDinerAffaires / consommerStockDinerAffaires retirees (#379, 03/11/2026) : le stock et
+// la vente du diner d'affaires sont dans la porte serveur restaurant_diner_servir.
 
 function ouvrirModalInvitationSociale(type, pa, cost, successRate) {
   const cfg = CONFIG_INVITATIONS_SOCIALES[type];
@@ -2756,152 +2708,33 @@ function appliquerGainENT(montant) {
   return true;
 }
 
+// INVITATIONS SOCIALES AU SERVEUR (#379, 03/11/2026). Le diner d'affaires n'est plus propose qu'a
+// La Republia (Luthecia) et au Capitaine Sauvage (PSM), tous deux servis par le contrat atomique
+// restaurant_diner_* : acceptation d'un PNJ tiree au serveur, paiement, stock et effets des deux
+// convives dans une seule transaction. L'ancien chemin de l'ecran (tirage Math.random, debit puis
+// +Sante/+Moral/+INF locaux, et l'invite PJ qui se les ajoutait meme sans diner servi) est retire.
+// « Boire un verre » n'est plus propose par aucun lieu (remplace par « Offrir une tournee »).
 async function envoyerInvitationSociale(type, nomInvite, pa, cost, estPJ) {
-  if(type==='diner_affaires'&&typeof restaurantLutheciaIci==='function'&&restaurantLutheciaIci()) return restaurantLutheciaInviter(nomInvite,estPJ);
-  const messageEnvoye = (document.getElementById("invitation-message-input")?.value || "").trim().slice(0, 200);
-  document.getElementById('modal-postes').classList.remove('open');
-  const cfgPnj = CONFIG_INVITATIONS_SOCIALES[type] || {};
-
-  if (!estPJ) {
-    if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' FR requis.', false); return; }
-    const estDansMonGroupe = typeof getMonGroupePNJ === 'function' && getMonGroupePNJ().some(g => g.nom === nomInvite);
-    const roomActuelle2 = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-    const pnjInfo = (roomActuelle2?.persons || []).find(pp => pp.name.replace(' (PNJ)', '') === nomInvite);
-    const rel = pnjInfo?.rel || 'neutral';
-    const chance = estDansMonGroupe ? 95 : (rel === 'ally' ? 85 : rel === 'enemy' ? 20 : 60);
-    const roll = Math.floor(Math.random() * 100) + 1;
-    if (roll <= chance) {
-      // Republia (lot finition boucle economique, 21 aout 2026) : verifie le stock du restaurant
-      // AVANT tout debit si diner_affaires -- rien n'est encore mute a cet instant, refus propre
-      // symetrique a repas_gastronomique. N'affecte jamais boire_verre (dinerStock reste null).
-      let dinerStock = null;
-      if (type === 'diner_affaires') {
-        dinerStock = await verifierStockDinerAffaires();
-        if (!dinerStock) {
-          showToast('Rupture de stock', nomInvite + ' a accepté, mais le restaurant n\'a rien à servir pour l\'instant.', false);
-          addJournalEntry('Invitation à dîner avec ' + nomInvite + ' acceptée, mais rupture de stock au restaurant.', 'event-bad');
-          return;
-        }
-      }
-      // Deduction PA+cout centralisee (Lot 2A, correctif de fuite PA identifiee par l'audit du
-      // 19 aout 2026 : diner_affaires/boire_verre ne debitaient jusqu'ici jamais leurs PA,
-      // meme sous TEST_MODE=false, ni via deduireCoutOrdre() ni par mutation directe). Cout du
-      // uniquement en cas d'acceptation (roll reussi), comme deja pour l'argent -- meme moment
-      // exact que l'ancien `state.arg -= cost` qu'elle remplace.
-      // Meme regle que sur le chemin differe (chantier C, phase 3) : quand un restaurant sert
-      // reellement, prelevement et consommation de stock se font dans la MEME transaction.
-      const r = dinerStock
-        ? await consommerStockDinerAffaires(dinerStock.data, dinerStock.prelevement, pa, cost, nomInvite)
-        : await deduireCoutOrdre({ pa, cost });
-      if (!r.ok) {
-        const raisonTxt = r.raison === 'pa_insuffisants' ? 'plus assez de PA' : 'plus les fonds';
-        showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', nomInvite + ' a accepté, mais vous n\'avez ' + raisonTxt + ' pour ' + cfgPnj.verbe + '.', false);
-        addJournalEntry('Invitation à ' + cfgPnj.verbe + ' avec ' + nomInvite + ' acceptée, mais ' + (r.raison === 'pa_insuffisants' ? 'PA' : 'fonds') + ' insuffisants.', 'event-bad');
-        return;
-      }
-      if (cfgPnj.hp) state.hp = Math.min(100, (state.hp || 0) + cfgPnj.hp);
-      if (cfgPnj.moral) state.moral = Math.min(100, (state.moral || 0) + cfgPnj.moral);
-      if (cfgPnj.inf) state.inf = Math.min(100, (state.inf || 0) + cfgPnj.inf);
-      if (cfgPnj.ent) appliquerGainENT(cfgPnj.ent);
-      // Bonus differe atteste : c'est le serveur qui detient le montant de chaque invitation.
-      if (cfgPnj.paDiffere && typeof sbRpc === 'function' && state.char?.name) { sbRpc('pa_bonus_differe_crediter', { p_acteur: state.char.name, p_source: type }).catch(() => {}); }
-      updateUI();
-      showToast('Invitation acceptée !', nomInvite + ' a accepté votre invitation à ' + cfgPnj.verbe + '. -' + cost + ' FR.', true, true);
-      addJournalEntry('Invitation à ' + cfgPnj.verbe + ' avec ' + nomInvite + ' : acceptée. -' + cost + ' FR.', 'event-good');
-      if (typeof advanceTime === 'function') advanceTime(Math.max(0, pa || 0));
-    } else {
-      showToast('Invitation refusée', nomInvite + ' a décliné votre invitation.', false);
-      addJournalEntry('Invitation à ' + cfgPnj.verbe + ' avec ' + nomInvite + ' : refusée.', 'event-info');
-    }
-    return;
+  if (type === 'diner_affaires' && typeof restaurantDinerContratIci === 'function' && restaurantDinerContratIci()) {
+    return restaurantLutheciaInviter(nomInvite, estPJ);
   }
-
-  if (typeof sbCreerInvitationDiner !== 'function') return;
-  await sbCreerInvitationDiner(state.char?.name, nomInvite, state.country, state.currentCity, state.currentBuilding, state.currentRoom, cost, type, messageEnvoye).catch(() => {});
-  state._invitationSocialeEnAttente = {
-    type, invite: nomInvite, pa, cost,
-    country: state.country, city: state.currentCity,
-    buildingId: state.currentBuilding, roomId: state.currentRoom
-  };
-  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-  const cfg = CONFIG_INVITATIONS_SOCIALES[type] || {};
-  showToast('Invitation envoyée', 'En attente de la réponse de ' + nomInvite + '...', true);
-  addJournalEntry('Invitation à ' + (cfg.verbe || type) + ' envoyée à ' + nomInvite + '.', 'event-info');
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Invitation indisponible', 'Ce lieu ne propose pas ce service. Rien n\'a été facturé.', false);
 }
 
+// Anciennes invitations de l'ecran (avant le 03/11/2026) encore en attente : elles sont closes
+// sans effet ni debit ; les diners sous contrat sont suivis par restaurantLutheciaSuivre.
 async function verifierReponseInvitationSociale() {
   if(typeof restaurantLutheciaSuivre==='function') await restaurantLutheciaSuivre();
   if (!state._invitationSocialeEnAttente || !state.char?.name) return;
   const infos = state._invitationSocialeEnAttente;
-  const cfg = CONFIG_INVITATIONS_SOCIALES[infos.type];
-  if (!cfg) { state._invitationSocialeEnAttente = null; if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {}); return; }
-
-  // Invitation caduque si l'inviteur (nous-meme) a quitte la piece d'origine
-  if (state.currentBuilding !== infos.buildingId || state.currentRoom !== infos.roomId) {
-    state._invitationSocialeEnAttente = null;
-    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-    return;
+  state._invitationSocialeEnAttente = null;
+  if (typeof sbGetInvitationsDinerTraitees === 'function' && typeof sbSupprimerInvitationDiner === 'function') {
+    const rows = await sbGetInvitationsDinerTraitees(state.char.name, infos.invite).catch(() => null);
+    for (const ligne of (rows || []).filter(r => !r.contrat_restaurant)) sbSupprimerInvitationDiner(ligne.id).catch(() => {});
   }
-
-  if (typeof sbGetInvitationsDinerTraitees !== 'function') return;
-  try {
-    const rows = await sbGetInvitationsDinerTraitees(state.char.name, infos.invite);
-    const ligne = (rows || []).find(r => r.type === infos.type && !r.contrat_restaurant);
-    if (!ligne) return;
-
-    if (ligne.statut === 'acceptee') {
-      // Republia (lot finition boucle economique, 21 aout 2026) : meme verification de stock que
-      // le chemin PNJ immediat, AVANT tout debit. N'affecte jamais boire_verre (dinerStock reste
-      // null, la branche suivante s'execute alors exactement comme avant ce lot).
-      let dinerStock = null;
-      if (infos.type === 'diner_affaires') dinerStock = await verifierStockDinerAffaires();
-      if (infos.type === 'diner_affaires' && !dinerStock) {
-        showToast('Rupture de stock', infos.invite + ' a accepté, mais le restaurant n\'a rien à servir pour l\'instant.', false);
-        addJournalEntry('Invitation à dîner avec ' + infos.invite + ' acceptée, mais rupture de stock au restaurant.', 'event-bad');
-      } else {
-      // Deduction PA+cout centralisee (Lot 2A, correctif de fuite PA) -- moment logique de
-      // consommation : exactement celui deja utilise pour l'argent (confirmation de
-      // l'acceptation differee), jamais a l'envoi de l'invitation. Aucun changement de
-      // comportement pour l'argent : meme instant, meme condition, juste route via
-      // deduireCoutOrdre() pour couvrir aussi les PA. Nettoyage (suppression de la ligne
-      // Supabase + _invitationSocialeEnAttente=null) deja inconditionnel plus bas, donc aucun
-      // risque de retraitement/double debit meme en cas d'echec ici.
-      // Quand un restaurant est reellement servi, le prelevement ET la consommation de stock se
-      // font dans la MEME transaction serveur (chantier C, phase 3) -- jamais deux appels qui
-      // pourraient diverger. Les autres types d'invitation n'ont pas de commerce : ils gardent
-      // le chemin ordinaire.
-      const r = dinerStock
-        ? await consommerStockDinerAffaires(dinerStock.data, dinerStock.prelevement,
-                                            infos.pa, infos.cost, infos.invite)
-        : await deduireCoutOrdre({ pa: infos.pa, cost: infos.cost });
-      if (r.ok) {
-        if (cfg.hp) state.hp = Math.min(100, (state.hp || 0) + cfg.hp);
-        if (cfg.moral) state.moral = Math.min(100, (state.moral || 0) + cfg.moral);
-        if (cfg.inf) state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
-        if (cfg.ent) appliquerGainENT(cfg.ent);
-        // Bonus differe atteste : c'est le serveur qui detient le montant de chaque invitation.
-        if (cfg.paDiffere && typeof sbRpc === 'function' && state.char?.name) { sbRpc('pa_bonus_differe_crediter', { p_acteur: state.char.name, p_source: infos.type }).catch(() => {}); }
-        showToast('Invitation acceptée !', infos.invite + ' a accepté votre invitation à ' + cfg.verbe + (ligne.reponse ? ' ("' + ligne.reponse + '")' : '') + '. -' + infos.cost + ' FR.', true, true);
-        addJournalEntry('Invitation à ' + cfg.verbe + ' avec ' + infos.invite + ' : acceptée. -' + infos.cost + ' FR.', 'event-good');
-        if (typeof advanceTime === 'function') advanceTime(Math.max(0, infos.pa || 0));
-      } else {
-        const raisonTxt = r.raison === 'pa_insuffisants' ? 'plus assez de PA' : 'plus les fonds';
-        showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', infos.invite + ' a accepté, mais vous n\'avez ' + raisonTxt + ' pour régler.', false);
-        addJournalEntry('Invitation à ' + cfg.verbe + ' avec ' + infos.invite + ' acceptée, mais ' + (r.raison === 'pa_insuffisants' ? 'PA' : 'fonds') + ' insuffisants pour payer.', 'event-bad');
-      }
-      }
-      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur(infos.type + '_accepte', infos.invite);
-    } else if (ligne.statut === 'refusee') {
-      showToast('Invitation refusée', infos.invite + ' a décliné votre invitation' + (ligne.reponse ? ' ("' + ligne.reponse + '")' : '') + '.', false);
-      addJournalEntry('Invitation à ' + cfg.verbe + ' avec ' + infos.invite + ' : refusée.', 'event-info');
-      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur(infos.type + '_refuse', infos.invite);
-    }
-
-    if (typeof sbSupprimerInvitationDiner === 'function') sbSupprimerInvitationDiner(ligne.id).catch(() => {});
-    state._invitationSocialeEnAttente = null;
-    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-    updateUI();
-  } catch(e) {}
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+  addJournalEntry('Ancienne invitation à ' + infos.invite + ' close sans frais.', 'event-info');
 }
 
 async function verifierInvitationsSocialesRecues() {
@@ -2933,28 +2766,13 @@ async function verifierInvitationsSocialesRecues() {
 }
 
 async function repondreInvitationSociale(id, accepte, nomInviteur) {
-  if(state._invitationSocialeCourante?.contrat_restaurant==='luthecia_v1') return restaurantLutheciaRepondre(id,accepte);
-  const reponseEnvoyee = (document.getElementById("invitation-reponse-input")?.value || "").trim().slice(0, 200);
+  if(['luthecia_v1','commerce_v1'].includes(state._invitationSocialeCourante?.contrat_restaurant)) return restaurantLutheciaRepondre(id,accepte);
   document.getElementById('modal-postes').classList.remove('open');
   state._invitationSocialeModalOuvert = false;
-  const valide = state._invitationSocialeCourante;
-  const cfg = CONFIG_INVITATIONS_SOCIALES[valide?.type] || {};
-  if (typeof sbRepondreInvitationDiner === 'function') await sbRepondreInvitationDiner(id, accepte, reponseEnvoyee).catch(() => {});
-  if (accepte) {
-    if (cfg.hp) state.hp = Math.min(100, (state.hp || 0) + cfg.hp);
-    if (cfg.moral) state.moral = Math.min(100, (state.moral || 0) + cfg.moral);
-    if (cfg.inf) state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
-    if (cfg.ent) appliquerGainENT(cfg.ent);
-    // Bonus differe atteste : c'est le serveur qui detient le montant de chaque invitation.
-    if (cfg.paDiffere && typeof sbRpc === 'function' && state.char?.name) { sbRpc('pa_bonus_differe_crediter', { p_acteur: state.char.name, p_source: valide?.type }).catch(() => {}); }
-    updateUI();
-    showToast('Invitation acceptée !', 'Vous rejoignez ' + nomInviteur + ' pour ' + (cfg.verbe || 'un moment') + '.', true, true);
-    addJournalEntry('Vous avez accepté l\'invitation de ' + nomInviteur + ' (' + (cfg.verbe || '') + ').', 'event-good');
-  } else {
-    showToast('Invitation déclinée', 'Vous avez refusé l\'invitation de ' + nomInviteur + '.', false);
-    addJournalEntry('Vous avez refusé l\'invitation à ' + (cfg.verbe || '') + ' de ' + nomInviteur + '.', 'event-info');
-  }
   state._invitationSocialeCourante = null;
+  // Ancienne invitation de l'ecran : close comme declinee, aucun effet ni debit.
+  if (typeof sbRepondreInvitationDiner === 'function') await sbRepondreInvitationDiner(id, false, '').catch(() => {});
+  showToast('Invitation expirée', 'L\'invitation de ' + nomInviteur + ' n\'est plus valable. Rien n\'a été facturé.', false);
 }
 
 // Un seul sondage social par session, sans requêtes superposées et sans onglet masqué.

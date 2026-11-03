@@ -12,6 +12,7 @@ const PORTES = {
   'plateau-divers.js': ['appliquerMalusPopExcommunication'],
   'plateau-justice-economie.js': ['appliquerBonusLocation', 'confirmerDonObjetPnj'],
   'plateau-multijoueur.js': ['payerEscorts'],
+  'plateau-pnj.js': ['envoyerInvitationSociale', 'verifierReponseInvitationSociale', 'repondreInvitationSociale'],
 };
 
 function corps(fichier, nom) {
@@ -49,3 +50,7 @@ for (const nom of ['confirmerDonArgent', 'confirmerDonPnj']) {
     if (nom === 'confirmerDonPnj') assert.doesNotMatch(c, /state\.arg\s*(\+=|-=)/);
   });
 }
+
+test('« boire un verre » n’est plus routé (aucun lieu ne le propose)', () => {
+  assert.doesNotMatch(fs.readFileSync('plateau-router.js', 'utf8'), /boire_verre/);
+});
