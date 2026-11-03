@@ -350,7 +350,7 @@ def policies_creees_migration(texte):
             and stmt.table.schemaname == 'public'}
 
 
-def fonctions_creees_migration(texte):
+def fonctions_creees_migration(texte, signatures_connues=None):
     """Déclarations immédiates ou en-têtes constants des blocs DO.
 
     Une chaîne dans un commentaire ou une fonction non exécutée ne crée rien.
@@ -365,6 +365,13 @@ def fonctions_creees_migration(texte):
         if type(stmt).__name__=='CreateFunctionStmt':
             noms.add(stmt.funcname[-1].sval)
         if type(stmt).__name__!='DoStmt':continue
+        import importlib.util as iu
+        spec=iu.spec_from_file_location('dynamiques_autorite',os.path.join(os.path.dirname(__file__),'declarations_dynamiques.py'))
+        module=iu.module_from_spec(spec);spec.loader.exec_module(module)
+        for source,cible in module.derives(stmt):
+            types=[('.'.join(x.sval for x in p.argType.names)+('[]'if p.argType.arrayBounds else ''))for p in source.parameters or []]
+            sig=source.funcname[-1].sval+'('+','.join(types)+')'
+            if signatures_connues is None or sig in signatures_connues:noms.add(cible.funcname[-1].sval)
         corps=next(x.arg.sval for x in stmt.args if x.defname=='as')
         # Les clonages existants construisent aussi l'en-tête par replace(),
         # puis EXECUTE s. Scanner les littéraux du DO (pas ses commentaires),
@@ -407,7 +414,7 @@ def declarations_rpc_migrations():
     declarations = collections.defaultdict(list)
     for chemin in sorted(glob.glob(os.path.join(RACINE, "migrations", "*.sql"))):
         texte = open(chemin, encoding="utf-8").read()
-        for nom in re.findall(r"(?mi)^\s*CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+public\.([a-z_0-9]+)\s*\(", texte):
+        for nom in fonctions_creees_migration(texte):
             court = os.path.relpath(chemin, RACINE)
             if court not in declarations[nom]:
                 declarations[nom].append(court)
@@ -694,7 +701,7 @@ def main():
         # Les adaptateurs privés créés par EXECUTE format('CREATE FUNCTION ...')
         # figurent aussi ici ; cela ne constitue toujours pas une preuve de
         # déploiement (invariant 13), seulement la déclaration dans CE fichier.
-        creees = fonctions_creees_migration(texte)
+        creees = fonctions_creees_migration(texte, signatures_connues)
         for m in re.finditer(r"ON FUNCTION public\.([a-z_0-9]+)\(([^)]*)\)", texte):
             # LES ESPACES NE FONT PAS LA SIGNATURE. Le catalogue rend
             # « ville_est_reelle(text,text) » ; un auteur de migration ecrit
