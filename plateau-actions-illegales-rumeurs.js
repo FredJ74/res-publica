@@ -3837,7 +3837,7 @@ async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cos
     const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].label : m;
     const vendable = Math.min(qteDispo, placeRestante);
     html += '<div style="padding:.65rem;border:1px solid #455365;margin-bottom:.65rem">';
-    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + label + ' : ' + stockActuel + ' / sans plafond</div>';
+    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + label + ' : ' + stockActuel + '/' + stockMax + '</div>';
     html += '<div style="font-size:.84rem;color:#a9b7c9;margin:.3rem 0">Prix d\'achat : ' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + ' / unité — Vous en possédez : ' + qteDispo + '</div>';
     html += '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">';
     html += '<label for="vendre-commerce-qte-' + m + '" style="font-size:.83rem;color:#c0b090">Quantité à céder</label>';
@@ -5366,7 +5366,7 @@ async function doVendreMatiereArmurerie() {
     const stockMax = null;
     const vendable = qteDispo;
     html += '<div style="padding:.65rem;border:1px solid #455365;margin-bottom:.65rem">';
-    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + (res?.label || m) + ' : ' + stockActuel + '/' + stockMax + '</div>';
+    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + (res?.label || m) + ' : ' + stockActuel + ' / sans plafond</div>';
     html += '<div style="font-size:.84rem;color:#a9b7c9;margin:.3rem 0">Prix d\'achat : ' + Number(prixUnitaire).toLocaleString('fr-FR') + ' ' + cur + ' / unité — Vous en possédez : ' + qteDispo + '</div>';
     html += '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">';
     html += '<label for="vendre-qte-' + m + '" style="font-size:.82rem;color:#c0b090">Quantité à céder</label>';
