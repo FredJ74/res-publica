@@ -167,6 +167,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Ordre présent dans les trois mairies (décision de Fred, 29/10/2026) ; seule Montrouge a des
   // logements sociaux aujourd'hui. Aucun coût n'est prélevé avant ce message.
   // Socle (29/10/2026) : le serveur dit s'il existe des logements sociaux dans la ville, avant tout coût.
+  if (fn === 'ssm_besoin_aide') { ouvrirAidePascaleSsm(); return; }
   if (fn === 'ssm_demander_rendezvous') { demanderRendezVousSsm(); return; }
   if (fn === 'demander_logement_social') { demanderLogementSocialCommun(pa, cost); return; }
   if (fn === 'gerer_logement_social') { gererLogementSocial(); return; }
@@ -687,7 +688,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_capitaine') { ouvrirNommerCapitaine(pa, cost); return; }
   if (fn === 'nommer_lieutenant') { ouvrirNommerLieutenant(pa, cost); return; }
   if (fn === 'gerer_detachement') { doGererDetachement(); return; }
-  if (fn === 'assigner_mission') { doAssignerMission(pa, cost); return; }
   // GRAND TERMINAL DEPUIS LE LOT T. doVoirMaSection rendait une liste en lecture
   // seule sans inventaire et lisait le blob complet des compagnies par REST ;
   // ouvrirTerminalSection passe par militaire_terminal_section(), qui ne rend que

@@ -4684,8 +4684,9 @@ const BUILDINGS = {
         desc: 'Un hall accueillant, avec une banque de réception, des brochures et une salle d’attente. Pascale oriente les visiteurs vers les services sociaux.',
         imageUrl: 'images/montrouge/montrouge-ssm-accueil.png',
         imageBg: 'linear-gradient(135deg,#403026,#8b6547)',
-        persons: [{name:'Pascale (PNJ)', role:'Agente d’accueil des services sociaux', rel:'neutral', job:'citoyen'}],
+        persons: [{name:'Pascale (PNJ)', role:'Agente d’accueil des services sociaux', rel:'neutral', job:'citoyen', photoUrl:'images/personnages/pascale-ssm-portrait.webp'}],
         orders: [
+          {fn:'ssm_besoin_aide', label:'Besoin d’aide ?', pa:0, cost:0, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Pascale vous oriente gratuitement vers les services existants, sans rendez-vous.'},
           {fn:'ssm_demander_rendezvous', label:'Prendre rendez-vous avec Edwige Jacquard', pa:0, cost:0, type:'legal', icon:'ti-calendar-event', successRate:100, desc:'Pascale vous fixe un rendez-vous pour le lendemain et vous envoie immédiatement un courrier. Le bureau est accessible toute la journée prévue.'}
         ]
       },
@@ -5731,7 +5732,6 @@ const BUILDINGS = {
           // Aucune mecanique de recompletement n'est recreee ici. Sa ligne du miroir des couts
           // ('recruter_section',2,0) est retiree dans la meme passe : plus aucun appelant.
           {fn:'gerer_detachement',   label:'Gérer mon détachement',      pa:0, cost:0,    type:'legal',   icon:'ti-users',         successRate:100, requiresPost:'lieutenant', desc:'Deposer ou recuperer des soldats dans cette piece.'},
-          {fn:'assigner_mission',    label:'Attribuer une mission',      pa:1, cost:0,    type:'legal',   icon:'ti-target',        successRate:100, requiresPost:'lieutenant', desc:'Donner une consigne au detachement present dans cette piece.'},
           {fn:'voir_ma_section',     label:'Voir ma section',            pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, requiresPost:'lieutenant', desc:'Fiche individuelle de vos 24 soldats (matricule, formation, equipement).'},
           {fn:'entrainer_section',   label:'Entrainer la section',       pa:0, cost:0,    type:'legal',   icon:'ti-barbell',       successRate:100, requiresPost:'lieutenant', desc:'Combat rapproche, Tir, Reconnaissance ou Secourisme. 12 soldats max par seance. 6 PA pour vous et 6 PA par soldat, preleves par le serveur.'},
           // REPOS QUOTIDIEN (23 septembre 2026). Place juste apres l'entrainement, parce que c'est

@@ -1306,7 +1306,7 @@ async function confirmerAchatArme(armeId) {
   // Registre local par armurerie (A2, 16 aout 2026) : city = ville reelle de l'armurerie ou la
   // vente a lieu (achat toujours effectue physiquement sur place, meme raisonnement que
   // chargerArmurerieLocale).
-  if (typeof sbEnregistrerVenteArme === 'function') {
+  {
     // Premier producteur de la memoire des renseignements (Phase 1, 22 aout 2026) : l'acheteur
     // se souvient de sa propre action (mode_acquisition 'action_personnelle', source = lui-meme
     // -- regle de design validee, Arnie qui achete son revolver). Ecriture BEST-EFFORT, apres
@@ -1331,18 +1331,9 @@ async function confirmerAchatArme(armeId) {
         if (!resultat) console.error('Renseignement (achat arme) non enregistre -- achat non affecte.');
       }).catch(() => console.error('Renseignement (achat arme) non enregistre -- achat non affecte.'));
     };
-    sbEnregistrerVenteArme({
-      joueur: state.char?.name || 'Anonyme',
-      arme: arme.name,
-      prix: prixApplique,
-      pays: pays,
-      city: state.currentCity || 'capitale',
-      jour: state.day || 1,
-      heure: state.hour || 8
-    }).then(rows => {
-      const registreId = Array.isArray(rows) && rows[0] && rows[0].id != null ? rows[0].id : null;
-      enregistrerRenseignementAchatArme(registreId);
-    }).catch(() => enregistrerRenseignementAchatArme(null));
+    // La vente est inscrite au registre par arme_acheter, dans la meme transaction (03/11/2026) :
+    // l'ecran ne fait plus que relier le renseignement a la ligne rendue.
+    enregistrerRenseignementAchatArme(r.registre_id != null ? r.registre_id : null);
   }
 
   updateUI();
@@ -1708,7 +1699,8 @@ async function confirmerSubtilisationExplosif() {
     // Ne passe PAS par procederArrestation : celui-ci telporte au commissariat de la ville et
     // applique un bareme de peine, alors qu'il s'agit ici d'une sanction militaire propre.
     // Les autres motifs de recherche et de detention sont integralement preserves.
-    await placerAuQHS(pays, JOURS_QHS_SUBTILISATION, 'Vol de matériel militaire', CASERNE_CITY);
+    // Peine QHS ouverte par le serveur dans la transaction du vol (03/11/2026).
+    await placerAuQHS(verdict.arrestation);
     if (!contexteGroupePjValide(c)) return false;
     showToast('Pris sur le fait', 'La garde vous a surpris. Quartier Haute Sécurité, '
       + JOURS_QHS_SUBTILISATION + ' jours.', false, true);
@@ -5357,7 +5349,7 @@ async function confirmerProduction(produitId) {
 // des ventes d'armes -- contournement legal reel confirme par audit. Leur logique economique
 // (stock reel, prixVente, caisse, historique, taxes) est desormais fusionnee dans
 // confirmerAchatArme/confirmerAchatArmeIllegal ci-dessus, qui restent l'UNIQUE porte d'achat
-// et alimentent systematiquement sbEnregistrerVenteArme() cote legal.
+// et alimentent systematiquement inscription au registre par arme_acheter cote legal.
 
 // Fix 9 aout 2026 (confirme par test en jeu) : ne reconnaissait que la forme d'inventoire de
 // la recolte (type:'matiere_premiere'), jamais la forme empilable produite par un achat a

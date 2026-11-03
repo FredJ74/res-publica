@@ -1373,9 +1373,7 @@ async function sbIncrementViews(topicId) {
 // =====================
 // REGISTRE DE VENTE D'ARMES
 // =====================
-async function sbEnregistrerVenteArme(vente) {
-  return sbInsert('registre_ventes_armes', vente);
-}
+// sbEnregistrerVenteArme supprimee le 03/11/2026 : arme_acheter inscrit la vente au registre.
 
 // A2 (16 aout 2026) : registre local par armurerie -- city obligatoire pour toute consultation
 // en jeu (le registre national agrege n'existe plus, cf. afficherRegistreArmes). Parametre
@@ -1878,9 +1876,7 @@ async function sbGetIndicesVille(key) {
   return rows[0].data;
 }
 
-async function sbSaveIndicesVille(key, data) {
-  return sbUpsert('indices_villes', { id: key, data, updated_at: new Date().toISOString() });
-}
+// sbSaveIndicesVille supprimee le 03/11/2026 : indices_villes n'est plus ecrivable par l'ecran.
 
 // LEDGER DES CONTRIBUTIONS DE PIETE : ecrit et lu par le serveur seul depuis le 27 octobre 2026
 // (religion_agir, piete_villes_actualiser). Les anciens acces directs sont supprimes.
@@ -2908,8 +2904,6 @@ async function sbGetObjetsAbandonnesDansPiece(country, city, buildingId, roomId)
 // et depose dans la meme transaction. Ne subsistent ici que les depots SANS source d'inventaire,
 // pour lesquels il n'y a rien a retirer et donc rien a rendre atomique :
 //   - delivrerDocumentUrbanisme (plateau-immobilier.js) : le document est cree pour l'occasion ;
-//   - recupererVolsEnAttente (plateau-communication.js) : butin de vol, famille non encore
-//     migree -- elle a son propre protocole de confirmation en deux temps (type_butin).
 // FERME LE 17 SEPTEMBRE 2026 (P0). Cette fonction faisait un sbInsert CLIENT dans objets_recus,
 // une table qui avait la RLS desactivee, zero policy et tous les droits DML accordes a anon.
 // N'importe qui, meme non authentifie, pouvait donc fabriquer un objet arbitraire au profit de
@@ -3411,7 +3405,8 @@ async function sbTraiterDemandeNaturalisation(id, statut) {
 // =====================
 // Le depot d'un vol est fait par le serveur (crime_voler, 27/10/2026) : sbDeposerVol supprimee.
 
-// Les transferts de crime_voler sont immédiats ; aucun consommateur/marqueur navigateur.
+// sbRecupererVolsEnAttente et sbMarquerVolTraite SUPPRIMEES (03/11/2026) : les vols sont appliques
+// immediatement par crime_voler, la ligne est inseree deja traitee (branche morte).
 
 // =====================
 // ACTIONS TRACABLES (pour le systeme de rumeurs vraies)
@@ -3480,13 +3475,7 @@ async function sbGetEtatUrgence(country) {
   return (rows && rows[0]) || null;
 }
 
-async function sbSetEtatUrgence(country, actif, activePar, jour) {
-  const existant = await sbGetEtatUrgence(country).catch(() => null);
-  if (existant) {
-    return sbUpdate('etats_urgence', `country=eq.${encodeURIComponent(country)}`, { actif, active_par: activePar, jour_debut: jour });
-  }
-  return sbInsert('etats_urgence', { country, actif, active_par: activePar, jour_debut: jour });
-}
+// sbSetEtatUrgence supprimee le 03/11/2026 : etat_urgence_decider (serveur).
 
 // sbCreerDetention A ETE SUPPRIMEE LE 9 OCTOBRE 2026. C'etait le dernier INSERT direct du
 // navigateur dans `detentions` : il ouvrait une peine sans poser est_emprisonne, les deux
@@ -6386,11 +6375,7 @@ async function sbMilitaireRecupererSoldats(compagnieId, sectionId, nb) {
     { p_compagnie_id: compagnieId, p_section_id: sectionId, p_nb: nb });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
-async function sbMilitaireAssignerMission(compagnieId, sectionId, mission, cible) {
-  const rows = await sbRpc('militaire_assigner_mission',
-    { p_compagnie_id: compagnieId, p_section_id: sectionId, p_mission: mission, p_cible: cible || null });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
+// sbMilitaireAssignerMission retiree (03/11/2026) : plus de mission choisie, voir GAME-DESIGN-ARMEE.md.
 async function sbMilitaireEntrainerSection(compagnieId, sectionId, stat) {
   const rows = await sbRpc('militaire_entrainer_section',
     { p_compagnie_id: compagnieId, p_section_id: sectionId, p_stat: stat });

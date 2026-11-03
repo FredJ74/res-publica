@@ -437,29 +437,28 @@ async function confirmerRenouvellementEffort() {
         : (v.raison === 'pas_actif' ? 'Aucun Effort de guerre actif.' : 'Réservé au Président.'), false);
     return;
   }
-  const cout = (typeof COUT_PA_EFFORT_GUERRE === 'number') ? COUT_PA_EFFORT_GUERRE : 2;
-  const r = await deduireCoutOrdre({ pa: cout, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const renouvele = renouvelerEffortDeGuerre(effort, Date.now(), guerre);
-  await ecrireEffortGuerre(pays, renouvele);
-
-  // PENALITE D'IS : seulement hors guerre. L'IS national est la moyenne des trois villes et
-  // n'existe pas en base : on applique donc -2 sur la cle reelle 'social' de CHACUNE des villes,
-  // ce qui deplace la moyenne de -2 sans creer aucune notion d'indice nouvelle.
-  if (v.penaliteIS && typeof modifierIndiceVille === 'function') {
-    const delta = (typeof IS_PROLONGATION_PREVENTIVE === 'number') ? IS_PROLONGATION_PREVENTIVE : -2;
-    const villes = ['capitale', 'ville_a', 'ville_b'];
-    for (let i = 0; i < villes.length; i++) {
-      await modifierIndiceVille(pays, villes[i], 'social', delta).catch(function () {});
-    }
+  // RENOUVELLEMENT PAR LE SERVEUR (03/11/2026) : effort_guerre_renouveler reprend le verdict, paie
+  // 2 PA, repousse l'echeance et pose la penalite d'origine hors guerre (-2 Social dans chaque ville).
+  const brut = typeof sbRpc === 'function' ? await sbRpc('effort_guerre_renouveler', {}).catch(() => null) : null;
+  const rs = Array.isArray(brut) ? brut[0] : brut;
+  if (!rs || rs.ok !== true) {
+    const motifs = { prolongation_preventive_epuisee: 'Hors guerre déclarée, l\'Effort ne peut dépasser deux périodes consécutives.',
+      pas_actif: 'Aucun Effort de guerre actif.', reserve_au_president: 'Réservé au Président.', pa_insuffisants: 'Points d\'action insuffisants.' };
+    showToast('Renouvellement impossible', motifs[rs?.raison] || 'Le serveur n\'a pas enregistré le renouvellement (' + (rs?.raison || 'sans réponse') + ').', false);
+    return;
   }
+  if (rs.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(rs.paiement);
+  state.effortGuerreCache = rs.effort || state.effortGuerreCache;
+  if (rs.indices && typeof INDICES_VILLES_CACHE !== 'undefined') {
+    Object.keys(rs.indices).forEach(function (k) { INDICES_VILLES_CACHE[k] = Object.assign({}, INDICE_VILLE_DEFAUT, rs.indices[k]); });
+  }
+  const penalite = rs.penalite_is === true;
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
   showToast('Effort renouvelé', 'Nouvelle période de 3 jours. Commandes, réglages et stocks conservés.'
-    + (v.penaliteIS ? ' −2 IS dans les trois villes.' : ''), true, true);
-  addJournalEntry('Effort de guerre renouvelé pour 3 jours.' + (v.penaliteIS ? ' −2 IS (prolongation préventive).' : ''), 'event-info');
+    + (penalite ? ' −2 IS dans les trois villes.' : ''), true, true);
+  addJournalEntry('Effort de guerre renouvelé pour 3 jours.' + (penalite ? ' −2 IS (prolongation préventive).' : ''), 'event-info');
 }
 
 async function confirmerArretEffort() {

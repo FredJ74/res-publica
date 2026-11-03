@@ -7041,32 +7041,25 @@ async function confirmerEtatUrgence(activer, pa, cost) {
   const pays = state.country;
   const from = state.char?.name || 'Le President';
 
-  // ECRITURE PARTAGEE D'ABORD, PA ENSUITE. sbSetEtatUrgence renvoie null quand PostgREST refuse
-  // l'ecriture (RLS, reseau) ; l'appel etait enveloppe dans un .catch(() => {}) muet, si bien que
-  // le President perdait 3 PA, encaissait le malus POP et voyait le toast de confirmation alors
-  // que RIEN n'avait ete ecrit -- l'etat d'urgence n'existait pour personne. On refuse desormais
-  // sans le moindre effet de bord, avant tout prelevement.
-  if (typeof sbSetEtatUrgence !== 'function') {
-    showToast('Indisponible', "La liaison avec le registre national est interrompue.", false);
+  // PORTE SERVEUR (03/11/2026) : etat_urgence_decider verifie le poste, paie 3 PA, ecrit le registre
+  // national et tire le malus POP / bonus INF du President. L'ecran n'ecrit plus etats_urgence.
+  const brut = typeof sbRpc === 'function' ? await sbRpc('etat_urgence_decider', { p_activer: !!activer }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
+  if (!r || r.ok !== true) {
+    const motifs = { reserve_au_president: "Seul le President peut declarer ou lever l'etat d'urgence.",
+      deja_en_vigueur: "L'etat d'urgence est deja en vigueur.", pas_en_vigueur: "Aucun etat d'urgence n'est en vigueur.",
+      pa_insuffisants: pa + ' PA requis.' };
+    showToast('Echec', motifs[r?.raison] || "Le registre national n'a pas enregistre la decision (" + (r?.raison || 'sans reponse') + ').', false);
     return;
   }
-  const ecrit = await sbSetEtatUrgence(pays, activer, from, state.day || 1).catch(() => null);
-  if (!ecrit) {
-    showToast('Echec', "Le registre national n'a pas enregistre la decision. Aucun PA n'a ete preleve, reessayez.", false);
-    return;
-  }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
 
   if (activer) {
-    const popEffect = -(Math.floor(Math.random() * 15) + 5);
-    const infEffect = Math.floor(Math.random() * 10) + 5;
-    state.pop = Math.max(0, Math.min(100, (state.pop || 50) + popEffect));
-    state.inf = Math.min(100, (state.inf || 0) + infEffect);
+    if (typeof r.pop === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', r.pop);
+    if (typeof r.inf === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('inf', r.inf);
     updateUI();
     addExternalEvent("ETAT D'URGENCE declare par " + from + ". Certaines libertes sont suspendues jusqu'a nouvel ordre.");
-    addJournalEntry("Etat d'urgence declare. " + popEffect + ' POP, +' + infEffect + ' INF.', 'event-bad');
+    addJournalEntry("Etat d'urgence declare. " + r.delta_pop + ' POP, +' + r.delta_inf + ' INF.', 'event-bad');
     showToast("Etat d'urgence declare", 'Mesures exceptionnelles activees pour ' + (COUNTRIES[pays]?.n || pays) + '.', true);
   } else {
     addExternalEvent("Fin de l'etat d'urgence, annoncee par " + from + '.');
@@ -8007,7 +8000,8 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
       return;
     }
   }
-  if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, state.currentCity || 'capitale', 'social', 3).catch(() => {});
+  // Social +3 de la ville du ministre : pose par la porte de versement (03/11/2026), relu ici.
+  if (typeof chargerIndicesRepublia === 'function') await chargerIndicesRepublia().catch(() => {});
   updateUI();
   showToast('Subvention accordée', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' versés à ' + nomCible + '. +3 IS.', true, true);
   addJournalEntry('Subvention de ' + montantVerse + ' FR accordée à ' + nomCible + '.', 'event-good');
@@ -8296,7 +8290,7 @@ function executerOrdreContact(action, nomCible) {
                   + 'Rien n\'a été annoncé au bénéficiaire. Signalez l\'incident.', false, true);
         return;
       }
-      if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, state.currentCity || 'capitale', 'social', 3).catch(() => {});
+      // Ancien chemin (subvention_cible, hors catalogue) : plus d'ecriture d'indice par l'ecran (03/11/2026).
       updateUI();
       showToast('Subvention accordée', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' versés à ' + nomCible + '. +3 IS.', true, true);
       addJournalEntry('Subvention de ' + montantVerse + ' FR accordée à ' + nomCible + '.', 'event-good');
@@ -8343,32 +8337,40 @@ async function ouvrirInterdireManif(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// PORTE SERVEUR (03/11/2026) : poste min_int, 2 PA, Social -5 et interdiction de 3 jours inscrite au
+// budget municipal par manifestation_interdire. L'ecran n'ecrit plus ni indices_villes ni le budget.
+const MOTIFS_MANIFESTATION = {
+  reserve_ministre_interieur: 'Réservé au Ministre de l\'Intérieur.',
+  ville_inconnue: 'Ville inconnue.',
+  police_en_greve: 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.',
+  pa_insuffisants: 'Points d\'action insuffisants.'
+};
+
+function adopterIndicesVilleServeur(pays, ville, indices) {
+  if (pays === 'republic' && indices && typeof INDICES_VILLES_CACHE !== 'undefined') {
+    INDICES_VILLES_CACHE['republic_' + ville] = Object.assign({}, INDICE_VILLE_DEFAUT, indices);
+  }
+}
+
 async function confirmerInterdireManif(pa, cost) {
   const sujet = document.getElementById('interdire-manif-sujet')?.value?.trim() || 'Manifestation non precisee';
   const ville = document.getElementById('interdire-manif-ville')?.value || state.currentCity || 'capitale';
   document.getElementById('modal-postes')?.classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   const nomVille = villeNom(pays, ville) || ville;
-
-  if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, ville, 'social', -5).catch(() => {});
-
-  const budgetMuni = await chargerBudgetMunicipalPourVille(pays, ville);
-  // L'interdiction est inscrite DANS le budget municipal : sans budget lisible, l'ecrire
-  // reviendrait a reconstruire la ligne entiere et donc a remettre la caisse de la ville a zero.
-  if (!budgetMuni) {
-    showToast('Ville injoignable', 'Le registre municipal de ' + nomVille + ' n\'a pas pu etre lu. '
-      + 'L\'interdiction n\'est pas enregistree.', false);
-  } else {
-    budgetMuni.manifestationInterdite = { sujet, jour: state.day || 1, expireJour: (state.day || 1) + 3 };
-    if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(pays + '_' + ville, budgetMuni).catch(() => {});
+  const brut = typeof sbRpc === 'function'
+    ? await sbRpc('manifestation_interdire', { p_ville: ville, p_sujet: sujet }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
+  if (!r || r.ok !== true) {
+    showToast('Interdiction refusée', MOTIFS_MANIFESTATION[r?.raison] || 'Le serveur n\'a pas enregistré l\'interdiction (' + (r?.raison || 'sans réponse') + ').', false);
+    return;
   }
-
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+  adopterIndicesVilleServeur(pays, ville, r.indices);
   updateUI();
-  showToast('Manifestation interdite', sujet + ' — interdite a ' + nomVille + '. -5 Social local.', true);
-  addExternalEvent('INTERDICTION : La manifestation "' + sujet + '" a ete interdite par le Ministre de l\'Interieur a ' + nomVille + '.');
-  addJournalEntry('Manifestation interdite : ' + sujet + ' (' + nomVille + ').', 'event-info');
+  showToast('Manifestation interdite', r.sujet + ' — interdite a ' + nomVille + '. -5 Social local.', true);
+  addExternalEvent('INTERDICTION : La manifestation "' + r.sujet + '" a ete interdite par le Ministre de l\'Interieur a ' + nomVille + '.');
+  addJournalEntry('Manifestation interdite : ' + r.sujet + ' (' + nomVille + ').', 'event-info');
 }
 
 // REPRIMER UNE MANIFESTATION (Ministre de l'Interieur) -- meme exception que ci-dessus (cible
@@ -8405,73 +8407,35 @@ async function ouvrirReprimerManif(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// PORTE SERVEUR (03/11/2026) : manifestation_reprimer tranche tout (poste min_int, greve des
+// policiers, 3 PA, bareme -5/+5 ou -8/+8 si une interdiction court, PV -10 et VOL -10 de chaque PJ
+// present dans la ville). L'ecran ecrivait la fiche des autres joueurs par la vue, ce qui etait refuse.
 async function confirmerReprimerManif(pa, cost) {
   const sujet = document.getElementById('reprimer-manif-sujet')?.value?.trim() || 'Rassemblement non precise';
   const ville = document.getElementById('reprimer-manif-ville')?.value || state.currentCity || 'capitale';
   document.getElementById('modal-postes')?.classList.remove('open');
-  // §9 "Greves" : revalidation independante au moment de l'execution -- un syndicat de policiers
-  // a pu se mettre en greve entre l'ouverture du modal et ce clic.
-  if (typeof syndicatPoliceEnGreve === 'function' && syndicatPoliceEnGreve(state.country || 'republic')) {
-    showToast('Répression impossible', 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   const nomVille = villeNom(pays, ville) || ville;
-
-  const budgetMuni = await chargerBudgetMunicipalPourVille(pays, ville);
-  // Budget illisible : on ne PEUT PAS savoir si la manifestation avait ete interdite. Le bareme
-  // etant plus lourd dans ce cas, on retient l'hypothese la plus clemente -- on ne sanctionne
-  // pas davantage sur une information qu'on n'a pas.
-  const interdictionRecente = !!budgetMuni && budgetMuni.manifestationInterdite
-    && budgetMuni.manifestationInterdite.expireJour >= (state.day || 1);
-  // Bareme arrete le 7 septembre 2026 : la repression paie en cohesion sociale ce qu'elle rapporte
-  // en securite, symetriquement, et davantage quand la manifestation avait deja ete interdite --
-  // disperser un rassemblement interdit est un geste plus lourd des deux cotes.
-  //   manifestation autorisee            -5 Social / +5 Securite
-  //   manifestation prealablement interdite  -8 Social / +8 Securite
-  //
-  // LES DEUX INDICES SONT LOCAUX ET PERSISTES (table indices_villes, cles 'social' et 'isn') : on
-  // ne touche PAS a INDICES_NATIONAUX, qui n'est qu'une constante en memoire client, perdue au
-  // rechargement. C'est la ville reprimee qui en porte durablement la trace, pas le navigateur du
-  // ministre.
-  const baisseSocial = interdictionRecente ? 8 : 5;
-  const hausseSecurite = interdictionRecente ? 8 : 5;
-  if (typeof modifierIndiceVille === 'function') {
-    await modifierIndiceVille(pays, ville, 'social', -baisseSocial).catch(() => {});
-    await modifierIndiceVille(pays, ville, 'isn', hausseSecurite).catch(() => {});
+  const brut = typeof sbRpc === 'function'
+    ? await sbRpc('manifestation_reprimer', { p_ville: ville, p_sujet: sujet }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
+  if (!r || r.ok !== true) {
+    showToast('Répression impossible', MOTIFS_MANIFESTATION[r?.raison] || 'Le serveur n\'a pas enregistré la répression (' + (r?.raison || 'sans réponse') + ').', false);
+    return;
   }
-
-  if (interdictionRecente) {
-    delete budgetMuni.manifestationInterdite;
-    if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(pays + '_' + ville, budgetMuni).catch(() => {});
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+  adopterIndicesVilleServeur(pays, ville, r.indices);
+  if (r.moi && typeof r.moi.hp === 'number') {
+    state.hp = r.moi.hp;
+    if (state.char?.stats && typeof r.moi.vol === 'number') state.char.stats.VOL = r.moi.vol;
   }
-
-  // PJ "participants" = tout PJ actuellement dans cette ville, faute de systeme de presence a
-  // un evenement dans le jeu (decision technique assumee, voir plan valide avec Fred).
-  let nbTouches = 0;
-  if (typeof sbGet === 'function' && typeof sbUpdate === 'function') {
-    const rows = await sbGet('personnages', `country=eq.${encodeURIComponent(pays)}&current_city=eq.${encodeURIComponent(ville)}`).catch(() => []);
-    for (const r of (rows || [])) {
-      const nouveauHp = Math.max(1, (r.hp || 100) - 10);
-      const stats = r.stats || {};
-      const nouveauxStats = { ...stats, VOL: Math.max(1, (stats.VOL || 6) - 10) };
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(r.name)}`, { hp: nouveauHp, stats: nouveauxStats }).catch(() => {});
-      nbTouches++;
-    }
-    if (state.currentCity === ville && state.country === pays) {
-      state.hp = Math.max(1, (state.hp || 100) - 10);
-      if (state.char?.stats) state.char.stats.VOL = Math.max(1, (state.char.stats.VOL || 6) - 10);
-    }
-  }
-
+  const nbTouches = Number(r.touches || 0);
   updateUI();
-  showToast('Repression menee', sujet + ' — Social -' + baisseSocial + ', Securite +' + hausseSecurite +
-    (interdictionRecente ? ' (manifestation deja interdite)' : '') + '. ' + nbTouches +
+  showToast('Repression menee', r.sujet + ' — Social -' + r.baisse_social + ', Securite +' + r.hausse_securite +
+    (r.interdiction_recente ? ' (manifestation deja interdite)' : '') + '. ' + nbTouches +
     ' PJ present(s) touche(s) (-10 HP, -10 VOL).', false, true);
-  addExternalEvent('REPRESSION : Dispersion forcee de "' + sujet + '" a ' + nomVille + '.');
-  addJournalEntry('Repression ordonnee : ' + sujet + ' (' + nomVille + '). ' + nbTouches + ' PJ touche(s).', 'event-bad');
+  addExternalEvent('REPRESSION : Dispersion forcee de "' + r.sujet + '" a ' + nomVille + '.');
+  addJournalEntry('Repression ordonnee : ' + r.sujet + ' (' + nomVille + '). ' + nbTouches + ' PJ touche(s).', 'event-bad');
 }
 
 async function executerOrdreTexte(action) {
@@ -12594,53 +12558,14 @@ async function carteDetachementPiece(pays, ville, buildingId, roomId) {
   };
 }
 
-// ---- MISSIONS DES DETACHEMENTS ----
-const MISSIONS_DETACHEMENT = [
-  { id: 'bloquer_acces', label: 'Bloquer l\'accès au bâtiment' },
-  { id: 'securiser', label: 'Sécuriser la pièce (malus actes illégaux)' },
-  { id: 'assassiner', label: 'Assassiner toute personne entrant' },
-  { id: 'arreter', label: 'Arrêter toute personne entrant' },
-  { id: 'surveiller', label: 'Surveiller (rapport passif)' }
-  // 'escorter' RETIRE le 18 septembre 2026 (arbitrage GD). Elle etait assignable et affichee mais
-  // n'a jamais rien fait : son seul effet, suivreEscorteAvecMoi, avait ete neutralise au lot
-  // leaderCourant. La fonction existe ailleurs et elle marche -- militaire_affecter_leader confie
-  // des hommes a un PJ present, qui les mene ensuite via leaderCourant. Un soldat qui suit un chef
-  // n'a pas de position propre : il se deplace donc avec lui par construction, sans mission.
-];
-
-async function doAssignerMission(pa, cost) {
-  if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
-  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
-  const section = getSectionDuLieutenant(compagnie);
-  const iciCount = section?.soldats.filter(s => soldatEstIci(s, state.currentCity, state.currentBuilding, state.currentRoom)).length || 0;
-  if (iciCount <= 0) { showToast('Aucun soldat ici', '', false); return; }
-
-  document.getElementById('postes-modal-title').textContent = 'Attribuer une mission';
-  let html = '<div style="padding:1rem">';
-  MISSIONS_DETACHEMENT.forEach(m => {
-    html += '<button onclick="confirmerMission(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + m.id + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid ' + (section.mission===m.id?'#8a6a20':'#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + m.label + '</button>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerMission(compagnieId, sectionId, missionId, pa, cost) {
-  document.getElementById('modal-postes')?.classList.remove('open');
-  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
-  const section = compagnie?.sections.find(s => s.id === sectionId);
-  if (!section) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const rMis = await sbMilitaireAssignerMission(compagnieId, sectionId, missionId, null);
-  if (!rMis || rMis.ok !== true) {
-    showToast('Mission impossible',
-      rMis && rMis.raison === 'pas_lieutenant_de_cette_section'
-        ? 'Vous ne commandez pas cette section.' : 'Mission refusée.', false);
-    return;
-  }
-  showToast('Mission attribuée', MISSIONS_DETACHEMENT.find(m=>m.id===missionId)?.label, true, true);
-}
+// ---- SOLDATS POSTES : RENFORTS POLICIERS (regle de Fred, 03/11/2026) ----
+// On ne choisit pas la mission des soldats : en temps de paix, des soldats postes sont des
+// renforts policiers (dissuasion, detection et interpellation des PJ recherches, comme la police).
+// Ils n'attaquent personne, sauf en guerre declaree, contre les soldats, policiers et douaniers
+// du pays adverse. L'ordre « Attribuer une mission » et ses cinq missions (bloquer, securiser,
+// assassiner, arreter, surveiller) n'avaient jamais ete demandes : ils sont retires.
+// Voir GAME-DESIGN-ARMEE.md.
+const LIBELLE_SOLDATS_POSTES = 'Renfort policier';
 
 // ---- MOBILISATION ----
 async function doMobiliserArmee(pa, cost) {
@@ -12743,7 +12668,8 @@ async function rafraichirCacheImmuniteMilitaire() {
   // est cette ligne-ci et qu'il ne doit y avoir qu'une seule autorite sur le chiffre final.
   if (typeof getAffichageDetachementPiece === 'function') {
     const det = await getAffichageDetachementPiece(state.country || 'republic', state.currentCity, state.currentBuilding, state.currentRoom).catch(() => null);
-    const soldats = (det?.mission === 'securiser') ? (Number(det.nombre) || 0) : 0;
+    // Tout soldat poste est un renfort policier (03/11/2026), sans mission a choisir.
+    const soldats = Number(det?.nombre) || 0;
     let gardes = 0;
     if (typeof sbGardePiece === 'function') {
       const g = await sbGardePiece(state.currentBuilding, state.currentRoom).catch(() => null);
@@ -12762,54 +12688,8 @@ async function rafraichirCacheImmuniteMilitaire() {
 
 // Verifie si un detachement hostile bloque/attaque l'entree d'un joueur. Retourne true si l'entree doit etre annulee.
 async function verifierMissionMilitaireEntree(buildingId, roomId) {
-  if (typeof getAffichageDetachementPiece !== 'function') return false;
-  const det = await getAffichageDetachementPiece(state.country || 'republic', state.currentCity, buildingId, roomId);
-  if (!det || !det.mission) return false;
-
-  // Exemption : la chaine de commandement de la meme section n'est jamais bloquee/attaquee par ses propres troupes
-  if (['lieutenant', 'capitaine', 'commandant', 'min_def'].includes(state.poste?.id)) return false;
-
-  if (det.mission === 'bloquer_acces') {
-    showToast('Accès bloqué', 'Un détachement militaire (' + det.nombre + ' soldats) interdit l\'accès.', false);
-    return true;
-  }
-  if (det.mission === 'surveiller' && det.lieutenantNom && typeof sbSendMail === 'function') {
-    // ANTI-SPAM (18 septembre 2026). Cette branche n'avait jamais pu s'executer : le crochet
-    // d'entree passait roomId = null et ne matchait aucun detachement. Maintenant qu'elle
-    // s'execute reellement, un aller-retour dans un couloir surveille enverrait un rapport a
-    // chaque pas. Un rapport par zone et par jour suffit a dire « cette personne est passee »,
-    // qui est tout ce que la mission promet. Garde technique, pas un equilibrage.
-    const jourSurv = (typeof jourPartageISO === 'function') ? jourPartageISO() : String(state.day || 0);
-    const cleSurv = jourSurv + '|' + state.currentCity + '/' + buildingId + '/' + roomId;
-    if (!state.surveillancesSignalees || state.surveillancesSignalees.jour !== jourSurv) {
-      state.surveillancesSignalees = { jour: jourSurv, zones: [] };
-    }
-    if (!state.surveillancesSignalees.zones.includes(cleSurv)) {
-      state.surveillancesSignalees.zones.push(cleSurv);
-      sbSendMail('Détachement militaire', det.lieutenantNom, 'Rapport de surveillance',
-        (state.char?.name || 'Une personne') + ' a été vue dans la zone surveillée.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-    }
-    return false;
-  }
-  if (det.mission === 'assassiner' || det.mission === 'arreter') {
-    const chance = Math.min(90, 30 + det.nombre * 2); // plus le detachement est nombreux, plus le jet est favorable aux soldats
-    const roll = Math.floor(Math.random() * 100) + 1;
-    if (roll <= chance) {
-      if (det.mission === 'assassiner' && typeof sbDeposerImpactIndice === 'function') {
-        const palier = roll <= chance * 0.5 ? 'totale' : 'partielle';
-        const pv = palier === 'totale' ? 0 : 25;
-        state.hp = pv;
-        // Combat perdu : PA à 0, le serveur hospitalise (règle de Fred, 01/11/2026).
-        if (typeof declencherHospitalisation === 'function') declencherHospitalisation(palier);
-        updateUI();
-        showToast('Neutralisé(e) !', 'Le détachement militaire vous a pris pour cible. PV : ' + pv + '.', false);
-      } else if (det.mission === 'arreter' && typeof procederArrestation === 'function') {
-        showToast('Arrêté(e) !', 'Le détachement militaire vous a intercepté.', false);
-        procederArrestation('intrusion_zone_militaire', false, false);
-      }
-      return true;
-    }
-  }
+  // Plus aucune mission choisie (03/11/2026) : des soldats postes sont des renforts policiers,
+  // decides au serveur (detection, interpellation et dissuasion avec la police). Rien a jouer ici.
   return false;
 }
 
@@ -13222,8 +13102,6 @@ function renderInspectionRevue(etat) {
 }
 
 function renderInspectionDetaillee(etat) {
-  const labelsMission = {};
-  MISSIONS_DETACHEMENT.forEach(m => { labelsMission[m.id] = m.label; });
 
   let html = '<div style="padding:1rem;max-height:70vh;overflow-y:auto;font-size:.8rem">';
   html += renderBlocVueEnsembleArmee(etat);
@@ -13250,7 +13128,7 @@ function renderInspectionDetaillee(etat) {
             + ' PNJ + ' + (s.effectifPj || 0) + ' joueur(s)</div>';
       html += '<div style="color:#a89870;margin-bottom:.2rem">Armes attribuées — Arme de poing : ' + (s.armesUnite.arme_de_poing||0) + ' · Mitraillette : ' + (s.armesUnite.mitraillette||0) + ' (stock libre non distribué : ' + (s.stockLibre.arme_de_poing||0) + ' / ' + (s.stockLibre.mitraillette||0) + ')</div>';
       html += '<div style="color:#a89870;margin-bottom:.2rem">Taux d\'équipement : ' + (s.tauxEquipement==null?'non calculable (section vide)':Math.round(s.tauxEquipement*100)+'%') + '</div>';
-      html += '<div style="color:#a89870">Mission : ' + (s.mission ? ((labelsMission[s.mission]||s.mission)) : 'aucune mission assignée') + '</div>';
+      html += '<div style="color:#a89870">Rôle : ' + LIBELLE_SOLDATS_POSTES + '</div>';
       html += '</div>';
     });
     html += '</div>';
@@ -14070,36 +13948,10 @@ function estExempteCouvreFeu() {
 
 // A appeler a chaque changement de batiment : verifie et applique une eventuelle violation de couvre-feu
 async function verifierCouvreFeu() {
-  const pays = state.country || 'republic';
-  const budgetNat = await chargerBudgetNational(pays).catch(() => null);
-  if (!budgetNat?.couvreFeu?.actif) return;
-  // ECHEANCE PARTAGEE : le couvre-feu est stocke dans le budget national, donc lu par TOUS les
-  // joueurs -- mais state.day est un compteur PRIVE, propre a chaque navigateur. Comparer une
-  // echeance partagee a un compteur prive faisait expirer le couvre-feu a une date differente
-  // pour chaque joueur : le premier joueur tres avance dans SES journees le levait pour tout le
-  // monde, un joueur nouvellement inscrit (state.day = 1) ne le voyait jamais expirer.
-  // On lit desormais dateFin, deja pose par confirmerCouvreFeu (Date.now() + 2 jours reels).
-  // jourFin reste lu en repli pour les couvre-feux poses avant l'ajout de dateFin.
-  const finCouvreFeu = budgetNat.couvreFeu.dateFin;
-  const couvreFeuEchu = finCouvreFeu ? (Date.now() > Number(finCouvreFeu))
-                                     : (state.day > budgetNat.couvreFeu.jourFin);
-  // L'expiration est constatee par la passe de nuit du serveur (27/10/2026) : l'ecran ne
-  // l'ecrit plus, il se contente de ne pas appliquer un couvre-feu echu.
-  if (couvreFeuEchu) return;
-  const heure = state.hour ?? 12;
-  const enCouvreFeu = heure >= 20 || heure < 6;
-  if (!enCouvreFeu || estExempteCouvreFeu()) return;
-
-  const chancePatrouille = 0.45;
-  if (Math.random() < chancePatrouille) {
-    const recidive = state.char?.violationsCouvreFeu > 0;
-    state.char.violationsCouvreFeu = (state.char?.violationsCouvreFeu || 0) + 1;
-    const dureeHeures = recidive ? 24 : null; // null = jusqu'a la fin du couvre-feu (6h)
-    if (typeof procederArrestation === 'function') {
-      showToast('Interpellé(e) !', 'Violation du couvre-feu' + (recidive ? ' (récidive, 24h de détention)' : ' (jusqu\'à la fin du couvre-feu)') + '.', false);
-      procederArrestation('violation_couvre_feu', false, false);
-    }
-  }
+  // LA PATROUILLE EST JOUEE PAR LE DEPLACEMENT SERVEUR (navigation_interieure, 03/11/2026) :
+  // couvre-feu en vigueur, heure de Paris, exemptions et jet de 45 % sont relus en base a chaque
+  // entree dans un batiment ; l'arrestation eventuelle revient avec la reponse du deplacement.
+  // Le nom reste pour l'appelant historique de enterBuilding.
 }
 
 // Applique la degradation quotidienne d'IS/POP tant que le couvre-feu est actif

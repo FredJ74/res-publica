@@ -139,7 +139,7 @@ ligne trouvée fausse se corrige ici.
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
 | Carrière militaire | Grades, unités, engagement, solde, désertion. | Serveur | Grades et unités. |
-| Opérations | Missions, combats, armurerie, ravitaillement, effort de guerre. | Serveur | Matériel et casernes. |
+| Opérations | Soldats postés = renforts policiers en paix, sans mission choisie (GAME-DESIGN-ARMEE.md, 03/11), combats, armurerie, ravitaillement, effort de guerre. | Serveur | Matériel et casernes. |
 
 ### Presse et opinion
 
