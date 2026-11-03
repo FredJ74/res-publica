@@ -89,8 +89,8 @@ test('DeepSeek : les deux agentes ont un corpus métier, pas le prompt des PNJ o
  const rich=profiles.slice(profiles.indexOf('const RICHES = {'),profiles.indexOf('const SOCIAUX = {'));
  assert.doesNotMatch(ordinary,/'pascale':/);
  assert.doesNotMatch(ordinary,/'edwige_jacquard':/);
- assert.match(rich,/'pascale':[\\s\\S]*?savoirs:/);
- assert.match(rich,/'edwige_jacquard':[\\s\\S]*?savoirs:/);
+ assert.match(rich,/'pascale':[\s\S]*?savoirs:/);
+ assert.match(rich,/'edwige_jacquard':[\s\S]*?savoirs:/);
  assert.match(rich,/Marcel Demine/);
  assert.match(rich,/dépensant 1 PA/);
  assert.match(rich,/aucune démarche ou prestation absente/);
