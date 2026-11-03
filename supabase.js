@@ -1373,9 +1373,7 @@ async function sbIncrementViews(topicId) {
 // =====================
 // REGISTRE DE VENTE D'ARMES
 // =====================
-async function sbEnregistrerVenteArme(vente) {
-  return sbInsert('registre_ventes_armes', vente);
-}
+// sbEnregistrerVenteArme supprimee le 03/11/2026 : arme_acheter inscrit la vente au registre.
 
 // A2 (16 aout 2026) : registre local par armurerie -- city obligatoire pour toute consultation
 // en jeu (le registre national agrege n'existe plus, cf. afficherRegistreArmes). Parametre
@@ -3478,13 +3476,7 @@ async function sbGetEtatUrgence(country) {
   return (rows && rows[0]) || null;
 }
 
-async function sbSetEtatUrgence(country, actif, activePar, jour) {
-  const existant = await sbGetEtatUrgence(country).catch(() => null);
-  if (existant) {
-    return sbUpdate('etats_urgence', `country=eq.${encodeURIComponent(country)}`, { actif, active_par: activePar, jour_debut: jour });
-  }
-  return sbInsert('etats_urgence', { country, actif, active_par: activePar, jour_debut: jour });
-}
+// sbSetEtatUrgence supprimee le 03/11/2026 : etat_urgence_decider (serveur).
 
 // sbCreerDetention A ETE SUPPRIMEE LE 9 OCTOBRE 2026. C'etait le dernier INSERT direct du
 // navigateur dans `detentions` : il ouvrait une peine sans poser est_emprisonne, les deux

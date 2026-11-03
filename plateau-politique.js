@@ -7051,32 +7051,25 @@ async function confirmerEtatUrgence(activer, pa, cost) {
   const pays = state.country;
   const from = state.char?.name || 'Le President';
 
-  // ECRITURE PARTAGEE D'ABORD, PA ENSUITE. sbSetEtatUrgence renvoie null quand PostgREST refuse
-  // l'ecriture (RLS, reseau) ; l'appel etait enveloppe dans un .catch(() => {}) muet, si bien que
-  // le President perdait 3 PA, encaissait le malus POP et voyait le toast de confirmation alors
-  // que RIEN n'avait ete ecrit -- l'etat d'urgence n'existait pour personne. On refuse desormais
-  // sans le moindre effet de bord, avant tout prelevement.
-  if (typeof sbSetEtatUrgence !== 'function') {
-    showToast('Indisponible', "La liaison avec le registre national est interrompue.", false);
+  // PORTE SERVEUR (03/11/2026) : etat_urgence_decider verifie le poste, paie 3 PA, ecrit le registre
+  // national et tire le malus POP / bonus INF du President. L'ecran n'ecrit plus etats_urgence.
+  const brut = typeof sbRpc === 'function' ? await sbRpc('etat_urgence_decider', { p_activer: !!activer }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
+  if (!r || r.ok !== true) {
+    const motifs = { reserve_au_president: "Seul le President peut declarer ou lever l'etat d'urgence.",
+      deja_en_vigueur: "L'etat d'urgence est deja en vigueur.", pas_en_vigueur: "Aucun etat d'urgence n'est en vigueur.",
+      pa_insuffisants: pa + ' PA requis.' };
+    showToast('Echec', motifs[r?.raison] || "Le registre national n'a pas enregistre la decision (" + (r?.raison || 'sans reponse') + ').', false);
     return;
   }
-  const ecrit = await sbSetEtatUrgence(pays, activer, from, state.day || 1).catch(() => null);
-  if (!ecrit) {
-    showToast('Echec', "Le registre national n'a pas enregistre la decision. Aucun PA n'a ete preleve, reessayez.", false);
-    return;
-  }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
 
   if (activer) {
-    const popEffect = -(Math.floor(Math.random() * 15) + 5);
-    const infEffect = Math.floor(Math.random() * 10) + 5;
-    state.pop = Math.max(0, Math.min(100, (state.pop || 50) + popEffect));
-    state.inf = Math.min(100, (state.inf || 0) + infEffect);
+    if (typeof r.pop === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', r.pop);
+    if (typeof r.inf === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('inf', r.inf);
     updateUI();
     addExternalEvent("ETAT D'URGENCE declare par " + from + ". Certaines libertes sont suspendues jusqu'a nouvel ordre.");
-    addJournalEntry("Etat d'urgence declare. " + popEffect + ' POP, +' + infEffect + ' INF.', 'event-bad');
+    addJournalEntry("Etat d'urgence declare. " + r.delta_pop + ' POP, +' + r.delta_inf + ' INF.', 'event-bad');
     showToast("Etat d'urgence declare", 'Mesures exceptionnelles activees pour ' + (COUNTRIES[pays]?.n || pays) + '.', true);
   } else {
     addExternalEvent("Fin de l'etat d'urgence, annoncee par " + from + '.');
