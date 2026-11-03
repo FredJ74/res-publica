@@ -6377,10 +6377,6 @@ async function doOuvrirVendreMatierePremiereUsine(buildingId, pa, cost) {
   const etat = (typeof sbGetBatimentEtat === 'function')
     ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
   if (contexte !== state.char?.name + '|' + state.country + '|' + state.currentCity + '|' + state.currentBuilding) return;
-  if (!etat && typeof sbGetBatimentEtat === 'function') {
-    showToast('Stock indisponible', "Impossible de consulter les stocks de cette usine.", false);
-    return;
-  }
   const usine = etat?.usine || defautUsine(buildingId, pays, ville);
   const matieres = matieresAccepteesParUsine(buildingId, pays, ville);
   const produits = produitsManufacturesUsine(buildingId, pays, ville);
