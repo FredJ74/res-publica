@@ -4711,8 +4711,8 @@ const BUILDINGS = {
       imageUrl: 'images/montrouge/montrouge-parking.webp',
       imageBg: 'linear-gradient(135deg,#181b20,#30343a)',
       persons: [
-        {name:'Jean Tarte', role:'Agent de sécurité', rel:'neutral', job:'agent_securite'},
-        {name:'Basile Decoq', role:'Dealer', rel:'neutral', job:'criminel'}
+        {name:'Jean Tarte', role:'Agent de sécurité', rel:'neutral', job:'agent_securite', photoUrl:'images/personnages/jean-tarte.webp'},
+        {name:'Basile Decoq', role:'Dealer', rel:'neutral', job:'criminel', photoUrl:'images/personnages/basile-decoq.webp'}
       ],
       orders: []
     } }
