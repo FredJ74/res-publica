@@ -336,6 +336,15 @@ async function commanderNavigationInterieure(buildingId,roomId) {
       return false;
     }
     if(moi?.updated_at)state._dernierUpdatedAtConnu=moi.updated_at;
+    // CONTROLES D'ENTREE TIRES PAR LE SERVEUR (03/11/2026) : patrouille du couvre-feu et detachement
+    // en mission « arreter » sont joues dans la transaction du deplacement. Interpelle, le joueur
+    // est conduit en cellule par la fiche relue ; on n'entre pas dans la piece demandee.
+    if(r.arrestation&&r.arrestation.ok===true&&typeof adopterArrestationServeur==='function'){
+      if(typeof showToast==='function')showToast(r.arrestation.controle==='couvre_feu'?'Interpellé(e) !':'Arrêté(e) !',
+        r.arrestation.controle==='couvre_feu'?'Violation du couvre-feu.':'Le détachement militaire vous a intercepté.',false);
+      await adopterArrestationServeur(r.arrestation);
+      return true;
+    }
     if (buildingId === null && roomId === null) {
       const ancien = state.currentBuilding;
       if (state.char) { state.char.currentBuilding = null; state.char.currentRoom = null; }
