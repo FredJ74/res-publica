@@ -456,19 +456,47 @@ function _cleDernierPassageForumId(forumId) {
   return cle && forumId ? cle + '_' + forumId : null;
 }
 
+// Horodatages serveur PostgreSQL (+00:00, microsecondes) et client (Z, ms)
+// ne sont PAS comparables lexicalement. Toute comparaison de lecture passe
+// par l'horloge UTC réelle, y compris les données migrées de l'ancien cache.
+function _instantForum(iso) {
+  const n = typeof iso === 'string' ? Date.parse(iso) : NaN;
+  return Number.isFinite(n) ? n : null;
+}
+const forumLecturesMemoire = Object.create(null);
+function _lectureForumLaPlusRecente(...dates) {
+  return dates.reduce((best, date) => {
+    const n = _instantForum(date);
+    return n !== null && (best === null || n > best) ? n : best;
+  }, null);
+}
 function _dernierPassageForumId(forumId) {
   const cle = _cleDernierPassageForumId(forumId);
   if (!cle) return null;
+  const valeurs = [forumLecturesMemoire[cle]];
+  try { valeurs.push(localStorage.getItem(cle)); } catch (_) {}
+  // Si localStorage atteint son quota (photos de PJ en base64), le curseur lu
+  // reste disponible pendant la session et entre deux rechargements de l'onglet.
   try {
-    const valeur = localStorage.getItem(cle);
-    if (valeur) return valeur;
-    // Migration douce, paresseuse (une seule fois par forum, a la premiere lecture) depuis
-    // l'ancienne cle globale -- jamais de balayage de tous les forums au demarrage.
-    const cleGlobale = _cleDernierPassageForum();
-    const ancienne = cleGlobale ? localStorage.getItem(cleGlobale) : null;
-    if (ancienne) { try { localStorage.setItem(cle, ancienne); } catch(e) {} }
-    return ancienne;
-  } catch(e) { return null; }
+    if (typeof sessionStorage !== 'undefined') valeurs.push(sessionStorage.getItem(cle));
+  } catch (_) {}
+  let instant = _lectureForumLaPlusRecente(...valeurs);
+  if (instant !== null) return new Date(instant).toISOString();
+
+  // Migration douce de l'ancienne clé globale : conserver son horodatage.
+  try {
+    const globale = _cleDernierPassageForum();
+    const ancienne = globale ? localStorage.getItem(globale) : null;
+    const t = _instantForum(ancienne);
+    if (t !== null) {
+      const canonique = new Date(t).toISOString();
+      forumLecturesMemoire[cle] = canonique;
+      try { localStorage.setItem(cle, canonique); } catch (_) {}
+      try { if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(cle, canonique); } catch (_) {}
+      return canonique;
+    }
+  } catch (_) {}
+  return null;
 }
 
 // Marque UN forum precis comme visite PAR CE PERSONNAGE (jamais global, jamais un autre
@@ -483,10 +511,13 @@ function marquerForumRubriqueVisitee(forumId) {
   if (!cle) return;
   // Le timestamp du serveur prévaut si son horloge avance sur celle du navigateur.
   // Sinon le même contenu réallume indéfiniment le point à chaque sondage.
-  const maintenant = new Date().toISOString();
-  const contenu = forumActiviteCache[forumId];
-  const passage = contenu && contenu > maintenant ? contenu : maintenant;
+  const maintenant = Date.now();
+  const horodatageServeur = _instantForum(forumActiviteCache[forumId]);
+  const ancien = _instantForum(_dernierPassageForumId(forumId));
+  const passage = new Date(Math.max(maintenant, horodatageServeur ?? 0, ancien ?? 0)).toISOString();
+  forumLecturesMemoire[cle] = passage;
   try { localStorage.setItem(cle, passage); } catch(e) {}
+  try { if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(cle, passage); } catch(e) {}
   forumActivite.forums[forumId] = false;
   const f = getForums()[forumId];
   recalculerActiviteForumAgregat(f?.cat);
@@ -537,7 +568,9 @@ async function verifierActiviteForumNonVue() {
     if (idsAccessibles.length > 0 && typeof sbActiviteForumDepuis === 'function') {
       const delta = await sbActiviteForumDepuis(idsAccessibles, forumActiviteCurseur.topics, forumActiviteCurseur.posts);
       Object.entries(delta.parForum).forEach(([id, iso]) => {
-        if (!forumActiviteCache[id] || iso > forumActiviteCache[id]) forumActiviteCache[id] = iso;
+        const entrant = _instantForum(iso);
+        const present = _instantForum(forumActiviteCache[id]);
+        if (entrant !== null && (present === null || entrant > present)) forumActiviteCache[id] = iso;
       });
       if (delta.curseurTopics) forumActiviteCurseur.topics = delta.curseurTopics;
       if (delta.curseurPosts) forumActiviteCurseur.posts = delta.curseurPosts;
@@ -554,7 +587,9 @@ async function verifierActiviteForumNonVue() {
       const dernierContenu = forumActiviteCache[id];
       if (!dernierContenu) { forumActivite.forums[id] = false; return; }
       const dernierPassage = _dernierPassageForumId(id);
-      forumActivite.forums[id] = !dernierPassage || dernierContenu > dernierPassage;
+      const dernier = _instantForum(dernierContenu);
+      const lu = _instantForum(dernierPassage);
+      forumActivite.forums[id] = dernier !== null && (lu === null || dernier > lu);
     });
     recalculerActiviteForumAgregat();
     // Correctif bug brouillon detruit (26 aout 2026) : l'ancienne garde ne verifiait que
@@ -2457,6 +2492,9 @@ async function loadForumTopicsFromSB(forumId) {
     if (currentForumId === forumId && forumView === 'list' &&
         document.getElementById('modal-forum')?.classList.contains('open')) {
       renderForumModal();
+      // Une lecture asynchrone peut se terminer APRÈS le premier clic : son
+      // horodatage serveur doit alors être acquitté, sans attendre le polling.
+      if (!FORUM_LECTURE_ECHOUEE[forumId]) marquerForumRubriqueVisitee(forumId);
     }
   }
 }
