@@ -2,6 +2,12 @@
 -- Réutilise le moteur de mail et la demande de logement social existants.
 -- Prévol des deux fonctions vivantes : 03/11/2026. Échec fermé si les corps divergent.
 
+-- Cette commande est gratuite et n'utilise pas payer_ordre. Le triplet
+-- 0 PA / 0 FR est malgré tout déclaré dans le miroir canonique des ordres.
+INSERT INTO public.ordres_couts(fn,pa,cost)
+VALUES ('ssm_demander_rendezvous',0,0)
+ON CONFLICT DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS public.ssm_rendezvous (
   personnage text PRIMARY KEY,
   user_id uuid NOT NULL,
