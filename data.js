@@ -4685,7 +4685,9 @@ const BUILDINGS = {
         imageUrl: 'images/montrouge/montrouge-ssm-accueil.png',
         imageBg: 'linear-gradient(135deg,#403026,#8b6547)',
         persons: [{name:'Pascale (PNJ)', role:'Agente d’accueil des services sociaux', rel:'neutral', job:'citoyen'}],
-        orders: []
+        orders: [
+          {fn:'ssm_demander_rendezvous', label:'Prendre rendez-vous avec Edwige Jacquard', pa:0, cost:0, type:'legal', icon:'ti-calendar-event', successRate:100, desc:'Pascale vous fixe un rendez-vous pour le lendemain et vous envoie immédiatement un courrier. Le bureau est accessible toute la journée prévue.'}
+        ]
       },
       bureau_assistante_sociale: {
         name: 'Bureau de l’assistante sociale',
@@ -4693,7 +4695,9 @@ const BUILDINGS = {
         imageUrl: 'images/montrouge/montrouge-ssm-bureau.png',
         imageBg: 'linear-gradient(135deg,#403026,#8b6547)',
         persons: [{name:'Edwige Jacquard (PNJ)', role:'Assistante sociale', rel:'neutral', job:'citoyen'}],
-        orders: []
+        orders: [
+          {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Même demande que chez l’adjoint au maire : réservée aux résidents officiels de Montrouge. L’adjoint décide de l’attribution ; Edwige accompagne le dépôt pendant votre rendez-vous."}
+        ]
       }
     }
   },
