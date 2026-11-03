@@ -4677,8 +4677,25 @@ const BUILDINGS = {
   'services-sociaux-montrouge': {
     name: 'Services Sociaux de Montrouge', shortName: 'S.S.M.', cat: 'Administration',
     icon: 'ti-building-community', bgColor: '#16191c',
-    desc: 'Le service social municipal de Montrouge.',
-    rooms: { accueil: { name: 'Accueil', desc: 'Le hall des Services Sociaux de Montrouge. Les services seront détaillés ultérieurement.', imageBg: 'linear-gradient(135deg,#16191c,#25292e)', persons: [], orders: [] } }
+    desc: 'Le service social municipal de Montrouge. Accueil, écoute et accompagnement des habitants.',
+    rooms: {
+      accueil: {
+        name: 'Accueil',
+        desc: 'Un hall accueillant, avec une banque de réception, des brochures et une salle d’attente. Pascale oriente les visiteurs vers les services sociaux.',
+        imageUrl: 'images/montrouge/montrouge-ssm-accueil.png',
+        imageBg: 'linear-gradient(135deg,#403026,#8b6547)',
+        persons: [{name:'Pascale (PNJ)', role:'Agente d’accueil des services sociaux', rel:'neutral', job:'agent_accueil'}],
+        orders: []
+      },
+      bureau_assistante_sociale: {
+        name: 'Bureau de l’assistante sociale',
+        desc: 'Un bureau simple, entouré de dossiers et de plantes. Edwige Jacquard reçoit les habitants avec discrétion et bienveillance.',
+        imageUrl: 'images/montrouge/montrouge-ssm-bureau.png',
+        imageBg: 'linear-gradient(135deg,#403026,#8b6547)',
+        persons: [{name:'Edwige Jacquard (PNJ)', role:'Assistante sociale', rel:'neutral', job:'assistant_social'}],
+        orders: []
+      }
+    }
   },
   'parking-tribunal-montrouge': {
     name: 'Parking du tribunal', shortName: 'Parking', cat: 'Services',
