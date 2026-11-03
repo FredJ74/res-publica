@@ -1,4 +1,4 @@
--- Banc annulé #379, lot présidence (Claude, 03/11/2026). Base jetable uniquement :
+-- Banc annulé #379, lots présidence et 2 (Claude, 03/11/2026). Base jetable uniquement :
 --   outils/bancs/monter-base-jetable.sh puis
 --   psql -h /tmp/pgjet -p 54329 -U postgres -d jet -v ON_ERROR_STOP=1 -f outils/bancs/banc-pop-inf-presidence-379.sql
 -- Tout est annulé à la fin : ROLLBACK.
@@ -6,7 +6,7 @@ BEGIN;
 ALTER TABLE public.personnages_donnees DISABLE TRIGGER trg_personnage_pays_declare; -- référentiel absent de la base jetable
 SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-4000-9000-000000000379","role":"authenticated"}',true);
 -- Coûts relevés en production le 03/11 (le catalogue n'est pas semé dans la base jetable).
-INSERT INTO public.ordres_couts(fn,pa,cost) VALUES ('censurer_media',2,0),('mobiliser_police',2,0),('banquet_diplo',3,0),('reception_etat',2,0) ON CONFLICT DO NOTHING;
+INSERT INTO public.ordres_couts(fn,pa,cost) VALUES ('censurer_media',2,0),('mobiliser_police',2,0),('banquet_diplo',3,0),('reception_etat',2,0),('corrompre_armurier#reussite',0,100),('traiter_manifestations',1,0) ON CONFLICT DO NOTHING;
 INSERT INTO auth.users(id) VALUES ('00000000-0000-4000-9000-000000000379') ON CONFLICT DO NOTHING;
 INSERT INTO public.personnages_donnees(name,country,user_id,pa,moral,resources,poste,current_city)
 VALUES ('Banc379','republic','00000000-0000-4000-9000-000000000379',50,50,
@@ -14,7 +14,7 @@ VALUES ('Banc379','republic','00000000-0000-4000-9000-000000000379',50,50,
 CREATE TEMP TABLE banc(cas text, ok boolean, detail text) ON COMMIT DROP;
 GRANT ALL ON banc TO authenticated;
 CREATE FUNCTION public.banc379_jauges() RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS
- $$ SELECT jsonb_build_object('pop',resources->'pop','inf',resources->'inf','pa',pa,'moral',moral)
+ $$ SELECT jsonb_build_object('pop',resources->'pop','inf',resources->'inf','pa',pa,'moral',moral,'arg',arg)
     FROM public.personnages_donnees WHERE name='Banc379' $$;
 GRANT EXECUTE ON FUNCTION public.banc379_jauges() TO authenticated;
 SELECT set_config('request.path','/rpc/jauges_ordre_executer',true);
@@ -88,6 +88,32 @@ BEGIN
     CASE WHEN (r->>'venus')::int=1 THEN (r->'jauges'->>'gain_pop')::int=15 AND (r->'jauges'->>'gain_moral')::int=5
          ELSE (r->'jauges'->>'gain_pop')::int=-25 AND (r->'jauges'->>'gain_inf')::int=-20 END, r::text);
  EXCEPTION WHEN OTHERS THEN INSERT INTO banc VALUES('banquet_jauges_selon_venue',false,SQLERRM); END;
+ -- Lot 2 : corruption de l'armurier.
+ r:=public.jauges_ordre_executer('corrompre_armurier',gen_random_uuid(),'{}');
+ INSERT INTO banc VALUES('armurier_hors_comptoir_refuse', r->>'raison'='pas_sur_place', r::text);
+ RESET ROLE;
+ UPDATE public.personnages_donnees SET current_building='armurerie', liquide=100000, arg=100000 WHERE name='Banc379';
+ SET LOCAL ROLE authenticated;
+ vus_scandale:=false; vus_calme:=false;
+ FOR i IN 1..60 LOOP
+  avant:=public.banc379_jauges();
+  r:=public.jauges_ordre_executer('corrompre_armurier',gen_random_uuid(),'{}');
+  IF (r->>'corruption_reussie')::boolean THEN
+    vus_scandale:=vus_scandale OR ((r->>'gain_inf')::int=5 AND (r->>'arg')::numeric=(avant->>'arg')::numeric-100);
+  ELSE vus_calme:=vus_calme OR ((r->>'gain_pop')::int=-5 AND (r->>'gain_inf')::int=-5); END IF;
+ END LOOP;
+ INSERT INTO banc VALUES('armurier_reussite_et_echec_serveur', vus_scandale AND vus_calme, '');
+ -- Lot 2 : demande de manifestation traitée par le ministre de l'Intérieur.
+ RESET ROLE;
+ UPDATE public.personnages_donnees SET poste='{"id":"min_int"}', resources='{"pop":50,"inf":50}', pa=20 WHERE name='Banc379';
+ INSERT INTO public.demandes_manifestation(id,statut,data) VALUES ('banc-manif-379','attente','{"pays":"republic","sujet":"Banc"}');
+ SET LOCAL ROLE authenticated;
+ r:=public.jauges_ordre_executer('manifestation_traiter',gen_random_uuid(),'{"id":"banc-manif-379","autorise":false}');
+ INSERT INTO banc VALUES('manifestation_interdite_moins_8', r->>'ok'='true' AND (r->>'gain_pop')::int=-8 AND (r->>'pa')::int=19
+   AND (SELECT statut FROM public.demandes_manifestation WHERE id='banc-manif-379')='interdite', r::text);
+ r:=public.jauges_ordre_executer('manifestation_traiter',gen_random_uuid(),'{"id":"banc-manif-379","autorise":true}');
+ INSERT INTO banc VALUES('manifestation_deja_traitee_gratuite', r->>'raison'='demande_deja_traitee'
+   AND (public.banc379_jauges()->>'pa')::int=19, r::text);
  -- Aide interne inaccessible aux navigateurs.
  BEGIN
   PERFORM public.jauges_effet_appliquer_interne('Banc379',50,50);

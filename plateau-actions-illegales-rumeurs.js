@@ -1458,20 +1458,17 @@ async function confirmerCorruptionRegistre() {
   const cout = 100;
   if (state.arg < cout) { showToast('Fonds insuffisants', cout.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
 
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 30) {
-    state.arg -= cout;
-    state.inf = Math.min(100, (state.inf || 0) + 5);
-    state.pop = Math.min(100, (state.pop || 0) + 5);
-    updateUI();
+  // Jet (30 %), 100 FR seulement si réussite, POP et INF : tout par le serveur (#379).
+  const v = await executerOrdreJaugesServeur('corrompre_armurier');
+  if (!v) return;
+  updateUI();
+  if (v.rejeu) return;
+  if (v.corruption_reussie === true) {
     showToast('Corruption réussie', 'L\'armurier accepte. +5 INF, +5 POP.', true);
     addJournalEntry('Registre consulté après corruption de l\'armurier. -' + cout.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-info');
     // Corruption locale : ne donne acces qu'au registre de l'armurerie ou elle est tentee.
     await afficherRegistreArmes(state.country || 'republic', state.currentCity || 'capitale', true);
   } else {
-    state.inf = Math.max(0, (state.inf || 0) - 5);
-    state.pop = Math.max(0, (state.pop || 0) - 5);
-    updateUI();
     showToast('Refusé !', 'L\'armurier refuse et le fait savoir. -5 INF, -5 POP.', false);
     addJournalEntry('Tentative de corruption de l\'armurier échouée. -5 INF, -5 POP.', 'event-bad');
   }
@@ -4491,7 +4488,7 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
   } else {
     if (effets.hp) state.hp = Math.min(100, Math.max(0, (state.hp || 0) + effets.hp));
     if (effets.moral) state.moral = Math.min(100, Math.max(0, (state.moral || 0) + effets.moral));
-    if (effets.pop) state.pop = Math.min(100, Math.max(0, (state.pop || 0) + effets.pop));
+    // effets.pop retiré (#379) : aucune recette ne le porte ; une jauge ne s'écrit plus à l'écran.
     // Bonus differe atteste : le serveur lit le montant de la recette dans son miroir, le
     // client ne fait que nommer la source (16 septembre 2026).
     if (effets.paDiffere && typeof sbRpc === 'function' && state.char?.name) {

@@ -7,7 +7,9 @@ import fs from 'node:fs';
 const PORTES = {
   'plateau-politique.js': ['publierDecret', 'publierMessagePresidentiel', 'censurer',
     'confirmerMobilisationPolice', 'confirmerBanquetDiplomatique', 'doReceptionAvecBonus', 'confirmerGuerreEmpire',
-    'executerOrdreTexte'],
+    'executerOrdreTexte', 'traiterDemandeManifestation'],
+  'plateau-actions-illegales-rumeurs.js': ['confirmerCorruptionRegistre'],
+  'plateau-divers.js': ['appliquerMalusPopExcommunication'],
 };
 
 function corps(fichier, nom) {

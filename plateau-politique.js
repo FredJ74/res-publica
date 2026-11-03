@@ -9961,11 +9961,11 @@ const DELAI_EFFET_APRES_DEBUT_MIN = 90; // 1h30 apres le debut de l'evenement po
 async function traiterDemandeManifestation(id, autorise, pa, cost) {
   const demande = await sbGetDemandeManifestationParId(id);
   if (!demande) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // PA, statut de la demande et -8 POP du ministre en cas d'interdiction : serveur (#379).
+  const v = await executerOrdreJaugesServeur('manifestation_traiter', { id: String(id), autorise: !!autorise });
+  if (!v) return;
   document.getElementById('modal-postes')?.classList.remove('open');
-
-  await sbMajDemandeManifestation(id, autorise ? 'autorisee' : 'interdite', {});
+  if (v.rejeu) { updateUI(); return; }
 
   if (autorise) {
     showToast('Manifestation autorisée', demande.sujet + ' — effet connu 1h30 après le début.', true, true);
@@ -9981,7 +9981,7 @@ async function traiterDemandeManifestation(id, autorise, pa, cost) {
     const minIntNom = minIntInfo?.estPJ ? minIntInfo.nom : null;
     if (minIntNom) {
       if (minIntNom === state.char?.name) {
-        state.pop = Math.max(0, (state.pop||0) - 8);
+        // -8 POP déjà appliqué par le serveur ; la DIS reste hors du périmètre #379.
         state.dis = Math.max(0, (state.dis||0) - 5);
         updateUI();
       } else if (typeof sbGet === 'function') {

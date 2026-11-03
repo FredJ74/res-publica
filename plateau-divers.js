@@ -420,8 +420,10 @@ async function estGrandPretreActuel(nom) {
 // meme vs joueur distant) que debiterCitoyenPlafonne (plateau-politique.js) : resources est un
 // blob JSON {inf,pop,dis}, jamais une colonne plate.
 async function appliquerMalusPopExcommunication(nomCible) {
+  // Soi-même compris (#379) : la même primitive serveur, qui vérifie le Grand Prêtre en exercice.
   if (nomCible === state.char?.name) {
-    state.pop = Math.max(0, (state.pop || 0) - 15);
+    const pop = typeof sbAjusterPopJoueur === 'function' ? await sbAjusterPopJoueur(nomCible, -15, 'excommunication') : null;
+    if (typeof pop === 'number' && Number.isFinite(pop)) adopterJaugeServeur('pop', pop);
     return;
   }
   // CORRIGE LE 17 SEPTEMBRE 2026 (audit des frontieres d'autorite). C'etait un lire-modifier-

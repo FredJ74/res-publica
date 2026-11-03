@@ -3408,74 +3408,7 @@ function genererPnjTerrain(buildingId) {
   return profilOccupationTerrain(getTerrainState(buildingId), state.country || 'republic');
 }
 
-async function interagirPnjTerrain(pnjId) {
-  const country = state.country || 'republic';
-  const profiles = TERRAIN_PNJ_PROFILES?.[country] || TERRAIN_PNJ_PROFILES?.republic || [];
-  const pnj = profiles.find(p => p.id === pnjId);
-  if (!pnj) return;
-
-  const indices = INDICES_NATIONAUX?.[country] || { ISN:30, IE:50, ID:40, IS:45 };
-  const is = indices.IS || 45;
-  const cha = getStatEffective('CHA');
-  const cur = COUNTRIES[country]?.cur || 'FR';
-
-  // Squatteurs agressifs — jet CHA + IS
-  if (pnj.agressif) {
-    const bonusCHA = Math.floor(cha / 2);
-    const bonusIS  = Math.floor(is / 10);
-    const taux = Math.min(80, 20 + bonusCHA + bonusIS);
-    const roll = Math.floor(Math.random() * 100) + 1;
-
-    if (roll <= taux) {
-      // Succès — CHA évite l'agression
-      state.inf = Math.min(100, (state.inf||0) + 2);
-      updateUI();
-      addJournalEntry('Vous avez calmé les squatteurs par votre charisme. +2 INF.', 'event-good');
-      showToast('Tension désamorcée !', 'Votre charisme a évité la bagarre. (Jet ' + roll + '/' + taux + '%)', true);
-    } else {
-      // Échec — bagarre
-      const degats = Math.floor(Math.random() * 15) + 10;
-      state.hp = Math.max(0, (state.hp||100) - degats);
-      state.dis = Math.max(0, (state.dis||50) - 5);
-      updateUI();
-      addJournalEntry('Vous avez été attaqué par des squatteurs. -' + degats + ' HP. -5 DIS.', 'event-bad');
-      showToast('Bagarre !', '-' + degats + ' HP · -5 DIS (Jet ' + roll + '/' + taux + '%)', false);
-    }
-    return;
-  }
-
-  // Squatteurs cools — bière et côtelette
-  if (pnj.id === 'squatter_cool') {
-    const hpBonus = Math.floor(Math.random() * 8) + 5;
-    const moralBonus = Math.floor(Math.random() * 8) + 5;
-    state.hp = Math.min(100, (state.hp||100) + hpBonus);
-    state.moral = Math.min(100, (state.moral||50) + moralBonus);
-    // Info gratuite parfois
-    const infoBonus = Math.random() > 0.5;
-    if (infoBonus) state.inf = Math.min(100, (state.inf||0) + 3);
-    updateUI();
-    addJournalEntry('Les squatteurs vous offrent bière et côtelette. +' + hpBonus + ' HP · +' + moralBonus + ' Moral' + (infoBonus ? ' · +3 INF' : '') + '.', 'event-good');
-    showToast('Accueil chaleureux !', '+' + hpBonus + ' HP · +' + moralBonus + ' Moral' + (infoBonus ? ' · +3 INF (tuyau)' : ''), true);
-    return;
-  }
-
-  // Cadavre — blocage administratif
-  if (pnj.id === 'cadavre') {
-    const id_idx = indices.ID || 40;
-    const delai = Math.max(1, Math.round(5 - id_idx/25));
-    state.dis = Math.max(0, (state.dis||50) - 10);
-    updateUI();
-    addJournalEntry('Cadavre découvert sur le terrain ! Enquête obligatoire. Blocage administratif : ' + delai + ' jour(s). -10 DIS.', 'event-bad');
-    showToast('Cadavre découvert !', 'Enquête requise. Formalités bloquées ' + delai + ' jour(s). -10 DIS.', false);
-    // Signaler à la police
-    if (!state.recherche) state.recherche = [];
-    addExternalEvent('🚨 Cadavre découvert sur un terrain à ' + (WORLD[country]?.[state.currentCity]?.name || 'la ville') + '. Enquête en cours.');
-    return;
-  }
-
-  // Par défaut — juste parler
-  showToast(pnj.name, pnj.trait || 'Un personnage mystérieux.', true);
-}
+// interagirPnjTerrain SUPPRIMEE (#379, 03/11/2026) : aucun appel ; elle creditait INF a l'ecran.
 
 async function chargerPnjTerrain(buildingId) {
   if (!buildingId?.startsWith('terrain-a-batir')) return false;

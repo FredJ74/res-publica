@@ -1,7 +1,7 @@
 -- #379, lot présidence et gouvernement (Claude, 03/11/2026) : POP/INF décidées par le serveur
 -- pour le décret inutile, le référendum, le jour de deuil, la censure d'un média, l'intervention
 -- policière, le banquet diplomatique, la réception d'État, la déclaration de guerre et les trois
--- prises de parole de tribune (conférence, propagande, démenti).
+-- prises de parole de tribune (conférence, propagande).
 -- Formules d'origine de l'écran conservées à l'identique ; aucune règle de jeu nouvelle.
 -- Dépend de 20261103203000 (dispatcher des jauges). Ne pas appliquer avant la certification #379.
 
@@ -119,7 +119,8 @@ BEGIN
  EXECUTE replace(v_def,v_ancre,E'  RETURN public.jauges_effet_appliquer_interne(v_moi,-20,10)\n    || jsonb_build_object(''ok'', true, ''id'', v_id,');
 END $patch$;
 
--- 6. Tribune : conférence +15 POP +10 INF, propagande +20 POP, démenti +8 POP +5 INF.
+-- 6. Tribune : conférence +15 POP +10 INF, propagande +20 POP. Le démenti de tribune n'est ouvert
+--    par aucun menu ; le vrai démenti est dementi_executer (déjà serveur) : pas de second gain.
 DO $patch$
 DECLARE v_def text; v_ancre text;
 BEGIN
@@ -129,8 +130,8 @@ BEGIN
  IF (length(v_def)-length(replace(v_def,v_ancre,'')))/length(v_ancre)<>1 THEN RAISE EXCEPTION '379_presidence_ancre_tribune'; END IF;
  EXECUTE replace(v_def,v_ancre,
   E'  RETURN public.jauges_effet_appliquer_interne(v_moi,\n'
-  ||E'    CASE p_fn WHEN ''conference_presse'' THEN 15 WHEN ''propagande_etat'' THEN 20 WHEN ''dementi'' THEN 8 ELSE 0 END,\n'
-  ||E'    CASE p_fn WHEN ''conference_presse'' THEN 10 WHEN ''dementi'' THEN 5 ELSE 0 END)\n'
+  ||E'    CASE p_fn WHEN ''conference_presse'' THEN 15 WHEN ''propagande_etat'' THEN 20 ELSE 0 END,\n'
+  ||E'    CASE p_fn WHEN ''conference_presse'' THEN 10 ELSE 0 END)\n'
   ||E'    || jsonb_build_object(''ok'', true, ''topic'', v_topic,');
 END $patch$;
 
