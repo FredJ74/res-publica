@@ -4684,7 +4684,7 @@ const BUILDINGS = {
         desc: 'Un hall accueillant, avec une banque de réception, des brochures et une salle d’attente. Pascale oriente les visiteurs vers les services sociaux.',
         imageUrl: 'images/montrouge/montrouge-ssm-accueil.png',
         imageBg: 'linear-gradient(135deg,#403026,#8b6547)',
-        persons: [{name:'Pascale (PNJ)', role:'Agente d’accueil des services sociaux', rel:'neutral', job:'agent_accueil'}],
+        persons: [{name:'Pascale (PNJ)', role:'Agente d’accueil des services sociaux', rel:'neutral', job:'citoyen'}],
         orders: []
       },
       bureau_assistante_sociale: {
@@ -4692,7 +4692,7 @@ const BUILDINGS = {
         desc: 'Un bureau simple, entouré de dossiers et de plantes. Edwige Jacquard reçoit les habitants avec discrétion et bienveillance.',
         imageUrl: 'images/montrouge/montrouge-ssm-bureau.png',
         imageBg: 'linear-gradient(135deg,#403026,#8b6547)',
-        persons: [{name:'Edwige Jacquard (PNJ)', role:'Assistante sociale', rel:'neutral', job:'assistant_social'}],
+        persons: [{name:'Edwige Jacquard (PNJ)', role:'Assistante sociale', rel:'neutral', job:'citoyen'}],
         orders: []
       }
     }
