@@ -58,10 +58,12 @@ test('l adjoint et Edwige utilisent la même RPC, sans attribuer directement un 
  assert.match(profiles,/Marcel Demine/);
 });
 
-test('les quatre scripts modifiés ont une version de cache commune et récente',()=>{
+test('les quatre scripts SSM restent versionnés après les autres chantiers',()=>{
  for(const name of ['data.js','plateau-navigation.js','plateau-logements-sociaux.js','plateau-router.js']){
-  assert.ok(html.includes(name+'?v=ssm-rdv-20261103'),name);
+  const version = html.match(new RegExp(name.replace('.', '\\\\.') + '\\\\?v=([^"]+)'));
+  assert.ok(version && version[1],name+' sans version navigateur');
  }
+ assert.match(html,/plateau-logements-sociaux\\.js\\?v=ssm-rdv-20261103/);
 });
 
 test('écran : succès uniquement si serveur confirme ; aucun mail inventé en cas de refus',async()=>{
