@@ -18,6 +18,15 @@
 
 Implémentation : `securite_malus_lieu_interne(acteur)` ; ajouté au taux de `crime_detecter_interne` (détection commune), au jet de contrebande, corruption, falsification, empoisonnement, explosifs, incendie, neutralisation d'un député, achats au marché noir (explosifs, arme), retiré du score de vol (PJ et matériaux). Migration `20261103003000_securite_dissuasion_hommes_armes`, **appliquée le 03/11** (registre `securite_dissuasion_hommes_armes_20261103003000`), banc annulé `outils/bancs/banc-securite-dissuasion.sql` joué juste avant en production.
 
+## Agence de sécurité privée d'un PJ — décisions de Fred (1er et 3 novembre 2026, appliquées)
+
+11. On ne duplique pas Grobras Sécurité en province (01/11) : ce sont les PJ qui ouvrent leur propre agence. Le propriétaire d'un commerce l'ouvre ou la ferme depuis la gestion de son commerce ; l'agence porte l'enseigne du commerce.
+12. L'agence a un **vivier propre** de candidats PNJ locaux, comme Grobras (03/11) : un vivier par ville, 4 agents et 2 maîtres-chiens, commun à toutes les agences de PJ de la ville.
+13. **Tout PJ** peut embaucher dans le vivier, comme chez Grobras (03/11) : il devient l'employeur ; mêmes tarifs (500 FR l'agent, 700 FR le maître-chien), mêmes quotas (4 et 2 par joueur, plafond de 10 employés) ; les frais d'embauche vont **à la caisse du commerce**, c'est le revenu du patron. Il faut être dans le local de l'agence. Fermer l'agence ne renvoie pas les agents déjà embauchés.
+14. Noms validés par Fred le 03/11 (accroches écrites par Claude, à sa relecture) — PSM : Gwen Darm, Loïc Adenas, Tanguy Ronde, Maëlle Arm ; maîtres-chiens Corentin Kerbrat (Bosco), Soizic Lemolosse (Taïga). Montrouge : Alain Terdit, Ginette Planton, Dédé Fensive, Marcel Rondier ; maîtres-chiens Josiane Croquette (Sultan), Raymond Collier (Coron). Luthécia : Paul Icier, Sandrine Terdiction, Bruno Ssard, Nadia Lerte ; maîtres-chiens Hugo Zeille (Brutus), Fanny Mordant (Pepsi).
+
+Implémentation : socle d'embauche des agences du 5 octobre réutilisé (`pnj_employeurs.fonds_id`/`vivier`, `employeur_candidats` lit le vivier, `employeur_embaucher_agence` dérivée d'`employeur_embaucher`), `agence_securite_ouvrir` / `_fermer` / `_lire`. Migration `20261103011000_agences_securite_pj`, **appliquée le 03/11** (registre `agences_securite_pj_20261103011000`), banc annulé `outils/bancs/banc-agences-securite-pj.sql` joué juste avant en production. Écran : gestion du commerce (ouvrir / fermer l'agence) et page publique du commerce (« Recruter un agent de sécurité », « Recruter un maître-chien »), comptoir commun `plateau-agence-emploi.js`.
+
 ## Historique de la proposition initiale — PR #212 (révisée par l’audit ci-dessous)
 
 - `securite_ordre_detection_interne` constitue les unités par appartenance explicite, puis les ordonne police avant privé, effectif décroissant et tirage aléatoire à égalité.
