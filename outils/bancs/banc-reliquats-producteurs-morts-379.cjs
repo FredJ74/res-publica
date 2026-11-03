@@ -10,7 +10,8 @@ test('l ancien sondage sans ordre de catalogue ne peut plus produire INF',()=>{
  assert.doesNotMatch(data,/fn\s*:\s*['"]commander_sondage['"]/);
  assert.doesNotMatch(router,/commanderSondage\(/);
  assert.doesNotMatch(divers,/function commanderSondage\(/);
- assert.doesNotMatch(divers,/function publierSondage\(/);
+ assert.match(divers,/async function publierSondage\(/); // contrat forum conservé
+ assert.doesNotMatch(divers.slice(divers.indexOf('async function publierSondage('),divers.indexOf('// INDICES IMPERIAUX')),/state\.inf\s*=/);
  assert.match(politique,/executerOrdreJaugesServeur\('commanditer_sondage'/);
 });
 
