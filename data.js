@@ -4685,7 +4685,9 @@ const BUILDINGS = {
         imageUrl: 'images/montrouge/montrouge-ssm-accueil.png',
         imageBg: 'linear-gradient(135deg,#403026,#8b6547)',
         persons: [{name:'Pascale (PNJ)', role:'Agente d’accueil des services sociaux', rel:'neutral', job:'citoyen'}],
-        orders: []
+        orders: [
+          {fn:'ssm_demander_rendezvous', label:'Prendre rendez-vous avec Edwige Jacquard', pa:0, cost:0, type:'legal', icon:'ti-calendar-event', successRate:100, desc:'Pascale vous fixe un rendez-vous pour le lendemain et vous envoie immédiatement un courrier. Le bureau est accessible toute la journée prévue.'}
+        ]
       },
       bureau_assistante_sociale: {
         name: 'Bureau de l’assistante sociale',
@@ -4693,7 +4695,9 @@ const BUILDINGS = {
         imageUrl: 'images/montrouge/montrouge-ssm-bureau.png',
         imageBg: 'linear-gradient(135deg,#403026,#8b6547)',
         persons: [{name:'Edwige Jacquard (PNJ)', role:'Assistante sociale', rel:'neutral', job:'citoyen'}],
-        orders: []
+        orders: [
+          {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Même demande que chez l’adjoint au maire : réservée aux résidents officiels de Montrouge. L’adjoint décide de l’attribution ; Edwige accompagne le dépôt pendant votre rendez-vous."}
+        ]
       }
     }
   },
@@ -4701,7 +4705,17 @@ const BUILDINGS = {
     name: 'Parking du tribunal', shortName: 'Parking', cat: 'Services',
     icon: 'ti-parking', bgColor: '#181b20',
     desc: 'Le parking couvert à droite du tribunal.',
-    rooms: { accueil: { name: 'Parking couvert', desc: 'Le parking du tribunal de Montrouge. Aucun service supplémentaire pour le moment.', imageBg: 'linear-gradient(135deg,#181b20,#30343a)', persons: [], orders: [] } }
+    rooms: { accueil: {
+      name: 'Parking couvert',
+      desc: 'Un parking couvert à plusieurs niveaux, sous les poutrelles métalliques, près du tribunal de Montrouge.',
+      imageUrl: 'images/montrouge/montrouge-parking.webp',
+      imageBg: 'linear-gradient(135deg,#181b20,#30343a)',
+      persons: [
+        {name:'Jean Tarte', role:'Agent de sécurité', rel:'neutral', job:'agent_securite'},
+        {name:'Basile Decoq', role:'Dealer', rel:'neutral', job:'criminel'}
+      ],
+      orders: []
+    } }
   },
 
   'siege-syndical': {

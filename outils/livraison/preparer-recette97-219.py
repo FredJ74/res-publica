@@ -19,15 +19,27 @@ def preparer(paquet=None):
  for nom in COMPLEMENTS:es.append({'version':Path(nom).name[:14],'fichier':nom,'sha256':hashlib.sha256((R/nom).read_bytes()).hexdigest()})
  verifier_ordre(es)
  source=json.loads(subprocess.check_output([sys.executable,str(R/'outils/generateurs/generer_ordres_couts.py'),'--json'],cwd=R,text=True))
- cmp=module('delta_recette97','outils/baseline/comparer-couts-captures.py');ts=sorted(cmp.triples(source));md5=hashlib.md5('\n'.join('%s|%d|%d'%t for t in ts).encode()).hexdigest()
- rapport={'production_executee':False,'execution_autorisee':False,'migrations':es,'nombre':97,'tarifs_source':{'lignes':len(ts),'md5':md5},'ancien_plan_tarifaire_conforme_source':couts['apres']=={'lignes':len(ts),'md5':md5},'etapes':['valider paquet atomique et SHA indépendants','rendre et seeds depuis les exports ; comparer six racines, douze référentiels et locale','réconcilier le delta tarifaire complet ; régénérer le plan SQL et ses contrôles','95 : panne tardive + rollback, installation atomique, rejeu refusé sans mutation','recettes groupes/organisations puis #318 et #324 dans cet ordre, avec leurs gardes et reçus de registre','recette finale GoTrue/PostgREST : 27 cas, puis contre-épreuves et contrôles globaux'], 'limite':'Plan d’ordre et de provenance seulement ; aucun clone courant certifié ni migration exécutée.'}
+ # Le plan 97 est une photographie HISTORIQUE des 461 triplets. Le SSM a depuis
+ # ajouté un ordre à 0 PA / 0 FR, enregistré par sa propre migration et jamais
+ # exécuté par ce plan. On contrôle explicitement ce seul ajout, sans falsifier
+ # l'empreinte des coûts historiques ni modifier leur liste.
+ hors_coupe=[x for x in source if x['fn']=='ssm_demander_rendezvous']
+ if hors_coupe!=[{'fn':'ssm_demander_rendezvous','pa':0,'cost':0}]:
+  raise ValueError('Ordre SSM non conforme ou absent du catalogue actuel')
+ source_historique=[x for x in source if x['fn']!='ssm_demander_rendezvous']
+ cmp=module('delta_recette97','outils/baseline/comparer-couts-captures.py')
+ ts=sorted(cmp.triples(source_historique))
+ md5=hashlib.md5('\n'.join('%s|%d|%d'%t for t in ts).encode()).hexdigest()
+ triplets_actuels=sorted(cmp.triples(source))
+ md5_actuel=hashlib.md5('\n'.join('%s|%d|%d'%t for t in triplets_actuels).encode()).hexdigest()
+ rapport={'production_executee':False,'execution_autorisee':False,'migrations':es,'nombre':97,'tarifs_source':{'lignes':len(ts),'md5':md5},'tarifs_ajoutes_apres_plan97':hors_coupe,'tarifs_actuels':{'lignes':len(triplets_actuels),'md5':md5_actuel},'ancien_plan_tarifaire_conforme_source':couts['apres']=={'lignes':len(ts),'md5':md5},'etapes':['valider paquet atomique et SHA indépendants','rendre et seeds depuis les exports ; comparer six racines, douze référentiels et locale','réconcilier le delta tarifaire complet ; régénérer le plan SQL et ses contrôles','95 : panne tardive + rollback, installation atomique, rejeu refusé sans mutation','recettes groupes/organisations puis #318 et #324 dans cet ordre, avec leurs gardes et reçus de registre','recette finale GoTrue/PostgREST : 27 cas, puis contre-épreuves et contrôles globaux'], 'limite':'Plan d’ordre et de provenance seulement ; aucun clone courant certifié ni migration exécutée.'}
  if paquet:
   editor=module('paquet_recette97','outils/livraison/export-sql-editor-219.py');paquet=Path(paquet).resolve()
   # Les sept octets originaux doivent être présents, pas une reconstruction manuelle.
   fs={e['fichier']:(paquet/e['fichier']).read_bytes() for e in editor.manifeste()['requetes']};ann=editor.lire_json((paquet/editor.MANIFESTE).read_bytes());docs,_=editor.verifier_documents(fs,ann)
   for e in ann['fichiers']:
    if len(fs[e['fichier']])!=e['octets'] or editor.h(fs[e['fichier']])!=e['sha256']:raise ValueError('Intégrité privée contraire au manifeste')
-  rapport['registre_capture']=docs['empreinte']['registre'];rapport['delta_tarifaire_a_revoir']=cmp.comparer(source,docs['referentiels']['ordres_couts'])
+  rapport['registre_capture']=docs['empreinte']['registre'];rapport['delta_tarifaire_a_revoir']=cmp.comparer(source_historique,docs['referentiels']['ordres_couts'])
  return rapport
 def main():
  a=argparse.ArgumentParser(description=__doc__);a.add_argument('--paquet',type=Path);a.add_argument('--sortie',type=Path,required=True);o=a.parse_args();sortie=o.sortie.resolve();relais=module('prive_plan97','outils/livraison/relais-canonique-219.py')

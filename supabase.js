@@ -1819,10 +1819,6 @@ async function sbGetNiveauPrison(key) {
   return rows[0].data;
 }
 
-async function sbSaveNiveauPrison(key, data) {
-  return sbUpsert('niveaux_prison', { id: key, data, updated_at: new Date().toISOString() });
-}
-
 async function sbGetBudgetNational(pays) {
   const rows = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(pays)}`);
   if (!rows || rows.length === 0) return null;

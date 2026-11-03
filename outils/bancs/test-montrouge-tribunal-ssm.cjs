@@ -19,12 +19,30 @@ test('image et aller-retour de la rue du tribunal de Montrouge', () => {
     assert.match(scene, new RegExp("buildingId: '" + id + "'"));
   }
 });
-test('SSM et parking sont des lieux visitables sans mécanique anticipée', () => {
+test('SSM et parking restent visitables ; seul le SSM obtient ses nouveaux ordres', () => {
   for (const id of ['services-sociaux-montrouge','parking-tribunal-montrouge']) {
     const start = data.indexOf("  '" + id + "': {");
     assert.ok(start >= 0, 'batiment absent ' + id);
     const block = data.slice(start, data.indexOf("\n  },", start) + 5);
     assert.match(block, /rooms:\s*\{\s*accueil:/);
-    assert.match(block, /orders: \[\]/);
+    if (id === 'parking-tribunal-montrouge') assert.match(block, /orders: \[\]/);
+    else { assert.match(block, /fn:'ssm_demander_rendezvous'/); assert.match(block, /fn:'demander_logement_social'/); }
   }
+});
+
+test('parking : WebP authentique et deux PNJ raccordés, sans nouvel ordre', () => {
+  const image = path.join(root,'images/montrouge/montrouge-parking.webp');
+  assert.ok(fs.existsSync(image),'image parking WebP absente');
+  assert.equal(fs.readFileSync(image).toString('ascii',8,12),'WEBP','format réel non WebP');
+  const start=data.indexOf("  'parking-tribunal-montrouge': {");
+  const end=data.indexOf("\n  },",start);
+  assert.ok(start>=0&&end>start);
+  const block=data.slice(start,end);
+  assert.ok(block.includes("imageUrl: 'images/montrouge/montrouge-parking.webp'"));
+  assert.match(block,/name:'Jean Tarte'.*job:'agent_securite'/);
+  assert.match(block,/name:'Basile Decoq'.*job:'criminel'/);
+  assert.match(block,/orders: \[\]/);
+  const profiles=fs.readFileSync(path.join(root,'api/_pnj-personnalites.js'),'utf8');
+  assert.match(profiles,/'jean_tarte':\s*\{ nom: "Jean Tarte"/);
+  assert.match(profiles,/'basile_decoq':\s*\{ nom: "Basile Decoq"/);
 });
