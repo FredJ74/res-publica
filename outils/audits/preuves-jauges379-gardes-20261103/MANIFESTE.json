@@ -1,0 +1,14 @@
+{
+  "nature": "Preuves locales, aucun accès de production",
+  "main_integre": "3674d3c2",
+  "limite": "Schéma de test partiel ; pas clone vivant. Garde ancienne sauvegarde POP/INF non fermée.",
+  "fichiers": {
+    "hg379-chromium-apres3674.log": "2c8d990d60170216765f1edcb3c394498cf456f84c64e731c4eafe6e074a5fbe",
+    "hg379-controles-apres3674-corrige.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb",
+    "hg379-jauges-gardes-contre17.json": "68282f8a4cc63816bd9357439ec9a75483cef09bf2353d7fe1ae79708fd8b39a",
+    "hg379-jauges-gardes-objectifs16.json": "4c7aea02aef6621ac76d5ed9905f76965f78587e9fdd588159127049f379a64b",
+    "hg379-jauges-gardes-objectifs17.json": "f8f38c396ea89b16660e9235f1ff3e24a9e0267c295b708e731f5f0b76c3db50",
+    "hg379-transversaux-apres3674-corrige.log": "e1685397d1479d2708b1a57546e3b693855e8fd82a61f82b666f23ec7ef469ce",
+    "resultats.json": "ae7b0821a0ab3efb1fe83bd23ef0a8eb3d75ace1103db7a6ae4a2f383663e738"
+  }
+}

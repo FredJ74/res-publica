@@ -48,11 +48,11 @@ test('sauvegarde générique : position en fusion à trois voies (une copie anci
  assert.match(supa,/state\.personnageChargeDepuisServeur !== false/,'aucune position écrite avant la lecture serveur');
 });
 
-// Dépendance extérieure : l'autorité serveur sur toute écriture de position (garde
+// Dépendance livrée et désormais éprouvée : l'autorité serveur sur toute écriture de position (garde
 // navigation_positions_garder) et la restauration sans commande de navigation après F5
-// (representerPositionServeur, #318) arrivent avec #219 + #318. Ce test passera seul quand
-// elles seront dans main ; il ne duplique pas leur correction.
-test('dépendance #219/#318 : garde serveur des positions et restauration sans renavigation',{todo:'livré par #219 et #318 (non fusionnés)'},()=>{
+// (representerPositionServeur, #318) sont livrées avec #219 + #318. Le test actif
+// vérifie ces dépendances sans dupliquer leur correction.
+test('dépendance #219/#318 : garde serveur des positions et restauration sans renavigation',()=>{
  const migrations=fs.readdirSync(path.join(root,'migrations')).filter(f=>f.endsWith('.sql')).map(f=>fs.readFileSync(path.join(root,'migrations',f),'utf8')).join('\n');
  assert.match(migrations,/navigation_positions_garder/);
  assert.match(core,/representerPositionServeur/);

@@ -1,0 +1,710 @@
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71)
+    at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:47:55)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71)
+    at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:47:55)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71)
+    at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:47:55)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71)
+    at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:47:55)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71)
+    at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:47:55)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71)
+    at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:47:55)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71)
+    at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:51:48)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71)
+    at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:54:75)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71)
+    at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:54:75)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71)
+    at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:54:75)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+✖ subtilisation succes : PA officiels, inventaire et révision originaux (168.567934ms)
+✖ subtilisation echec : PA officiels, inventaire et révision originaux (87.732853ms)
+✖ subtilisation detecte : PA officiels, inventaire et révision originaux (59.486448ms)
+✖ subtilisation stock : PA officiels, inventaire et révision originaux (62.230174ms)
+✔ subtilisation : réponse absente/incomplète ne recalcule aucun PA null (56.066514ms)
+✔ subtilisation : réponse absente/incomplète ne recalcule aucun PA {"ok":false} (70.05531ms)
+✖ subtilisation : réponse absente/incomplète ne recalcule aucun PA {"ok":true} (55.819348ms)
+✖ subtilisation : réponse absente/incomplète ne recalcule aucun PA {"ok":true,"contrat":1,"pa":8,"inventory":[]} (57.245583ms)
+✖ subtilisation : double clic et réponse tardive / personnage (55.693234ms)
+✖ subtilisation : double clic et réponse tardive / uid (60.951606ms)
+✖ subtilisation : double clic et réponse tardive / session (63.998359ms)
+✖ subtilisation : provenance rejetée, aucun autre miroir appliqué (69.877455ms)
+✖ subtilisation : réponse perdue, état relu sans seconde tentative (66.017472ms)
+✖ subtilisation : un refus versionné actualise les PA sans dépense locale (69.44691ms)
+✖ impact pop : seul l’état serveur relu est adopté, zéro conservé (65.48176ms)
+✖ impact inf : seul l’état serveur relu est adopté, zéro conservé (46.067302ms)
+✖ impact dis : seul l’état serveur relu est adopté, zéro conservé (44.361031ms)
+✖ impact moral_carte_postale : seul l’état serveur relu est adopté, zéro conservé (64.333223ms)
+✖ impact hp_set : seul l’état serveur relu est adopté, zéro conservé (67.990537ms)
+✖ impact poison_start : seul l’état serveur relu est adopté, zéro conservé (43.469503ms)
+✖ impact : réponse perdue après effet, relecture sans appliquer une seconde fois (48.053387ms)
+✖ impact : refus ou ancien contrat ne permet aucun effet local {"ok":false,"raison":"indice_non_pris_en_charge"} (63.967242ms)
+✖ impact : refus ou ancien contrat ne permet aucun effet local {"ok":true,"marques":1} (49.451353ms)
+✖ impact : refus ou ancien contrat ne permet aucun effet local {"ok":false,"raison":"client_obsolete"} (67.790732ms)
+✖ impact : réponse tardive / personnage (78.140226ms)
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+✖ impact : réponse tardive / uid (59.395597ms)
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+✖ impact : réponse tardive / session (55.872706ms)
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71)
+    at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:61:84)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+✔ impact : plafond quotidien déjà atteint, aucune annonce de gain (46.757151ms)
+recupererImpactsEnAttente error AssertionError [ERR_ASSERTION]: aucune sauvegarde générale
+    at c.sbSavePersonnage (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:12:32)
+    at Object.recupererImpactsEnAttente (evalmachine.<anonymous>:138:71)
+    at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:64:133)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail',
+  diff: 'simple'
+}
+✖ impact : échec de relecture ou mauvais propriétaire, aucune projection inventée (56.630947ms)
+✖ impact : double clic ne crée pas deux consommations (52.641207ms)
+✖ les helpers demandent le contrat avant tout acte : aucun repli sur une surcharge historique (34.751051ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 3
+ℹ fail 28
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1957.400393
+
+✖ failing tests:
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:18:57
+✖ subtilisation succes : PA officiels, inventaire et révision originaux (168.567934ms)
+  AssertionError [ERR_ASSERTION]: aucun GET partiel sans révision
+      at c.sbGet (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:13:21)
+      at Object.confirmerSubtilisationExplosif (evalmachine.<anonymous>:31:28)
+      at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:20:51)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:18:57
+✖ subtilisation echec : PA officiels, inventaire et révision originaux (87.732853ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  98 !== 8
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:20:99)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 98,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:18:57
+✖ subtilisation detecte : PA officiels, inventaire et révision originaux (59.486448ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  98 !== 8
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:20:99)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 98,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:18:57
+✖ subtilisation stock : PA officiels, inventaire et révision originaux (62.230174ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  98 !== 8
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:20:99)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 98,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:22:82
+✖ subtilisation : réponse absente/incomplète ne recalcule aucun PA {"ok":true} (55.819348ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  98 !== 100
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:23:117)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 98,
+    expected: 100,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:22:82
+✖ subtilisation : réponse absente/incomplète ne recalcule aucun PA {"ok":true,"contrat":1,"pa":8,"inventory":[]} (57.245583ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  98 !== 100
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:23:117)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 98,
+    expected: 100,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:25:56
+✖ subtilisation : double clic et réponse tardive / personnage (55.693234ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:26:192)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:25:56
+✖ subtilisation : double clic et réponse tardive / uid (60.951606ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:26:192)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:25:56
+✖ subtilisation : double clic et réponse tardive / session (63.998359ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:26:192)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:30:1
+✖ subtilisation : provenance rejetée, aucun autre miroir appliqué (69.877455ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  98 !== 100
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:31:193)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 98,
+    expected: 100,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:33:1
+✖ subtilisation : réponse perdue, état relu sans seconde tentative (66.017472ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  100 !== 8
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:38:34)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 100,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:40:1
+✖ subtilisation : un refus versionné actualise les PA sans dépense locale (69.44691ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  100 !== 1
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:41:198)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 100,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:46:85
+✖ impact pop : seul l’état serveur relu est adopté, zéro conservé (65.48176ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:47:49)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:46:85
+✖ impact inf : seul l’état serveur relu est adopté, zéro conservé (46.067302ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:47:49)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:46:85
+✖ impact dis : seul l’état serveur relu est adopté, zéro conservé (44.361031ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:47:49)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:46:85
+✖ impact moral_carte_postale : seul l’état serveur relu est adopté, zéro conservé (64.333223ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:47:49)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:46:85
+✖ impact hp_set : seul l’état serveur relu est adopté, zéro conservé (67.990537ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:47:49)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:46:85
+✖ impact poison_start : seul l’état serveur relu est adopté, zéro conservé (43.469503ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:47:49)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:50:1
+✖ impact : réponse perdue après effet, relecture sans appliquer une seconde fois (48.053387ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - false
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:51:42)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:53:120
+✖ impact : refus ou ancien contrat ne permet aucun effet local {"ok":false,"raison":"indice_non_pris_en_charge"} (63.967242ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - false
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:54:69)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:53:120
+✖ impact : refus ou ancien contrat ne permet aucun effet local {"ok":true,"marques":1} (49.451353ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - false
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:54:69)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:53:120
+✖ impact : refus ou ancien contrat ne permet aucun effet local {"ok":false,"raison":"client_obsolete"} (67.790732ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - false
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:54:69)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:56:56
+✖ impact : réponse tardive / personnage (78.140226ms)
+  TypeError: finir is not a function
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:58:139)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:56:56
+✖ impact : réponse tardive / uid (59.395597ms)
+  TypeError: finir is not a function
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:58:139)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:56:56
+✖ impact : réponse tardive / session (55.872706ms)
+  TypeError: finir is not a function
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:58:139)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:63:1
+✖ impact : échec de relecture ou mauvais propriétaire, aucune projection inventée (56.630947ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - false
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:64:127)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:66:1
+✖ impact : double clic ne crée pas deux consommations (52.641207ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:67:186)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:69:1
+✖ les helpers demandent le contrat avant tout acte : aucun repli sur une surcharge historique (34.751051ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  undefined !== 1
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-subtilisation-impacts-379.cjs:71:124)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

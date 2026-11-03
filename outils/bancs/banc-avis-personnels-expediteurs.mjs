@@ -45,12 +45,12 @@ function expediteursAvisPersonnels() {
       if (!res.has(nom)) res.set(nom, f);
     }
   }
-  // Expéditeur calculé de la convocation douanière (plateau-navigation.js) : table explicite.
+  // Les convocations douanières sont émises dans la transaction serveur #219.
+  // Une ancienne table locale a été supprimée : ne pas l'exiger pour certifier
+  // les avis encore émis par l'écran. Sa réapparition doit toutefois être auditée.
   const nav = lire('plateau-navigation.js');
-  const table = nav.match(/const commissairePays = \{([^}]*)\}\[pays\] \|\| '([^']*)'/);
-  assert.ok(table, 'table des commissaires de la convocation douanière introuvable');
-  for (const m of table[1].matchAll(/:'((?:[^'\\]|\\.)*)'/g)) res.set(m[1], 'plateau-navigation.js');
-  res.set(table[2], 'plateau-navigation.js');
+  assert.doesNotMatch(nav, /const commissairePays\s*=/, 'convocation locale concurrente');
+  assert.match(nav, /sbRpcVerdict\('douane_controle_groupe'/, 'contrôle et avis côté serveur');
   return res;
 }
 

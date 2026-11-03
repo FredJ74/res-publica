@@ -2452,6 +2452,58 @@ function adopterJaugeServeur(cle, valeur) {
   if (envoye !== null) state[champBase] = valeur;
 }
 
+// Jauges rendues par une commande serveur existante (#379) : l'écran adopte, il ne calcule rien.
+function adopterJaugesReponse(j) {
+  if (!j || typeof j !== 'object') return false;
+  adopterJaugeServeur('pop', j.pop);
+  adopterJaugeServeur('inf', j.inf);
+  if (typeof j.moral === 'number' && Number.isFinite(j.moral)) state.moral = j.moral;
+  if (typeof updateUI === 'function') updateUI();
+  return true;
+}
+
+// Adaptation d'ordres historiques : le coût ET les jauges sont décidés ensemble.
+// La clé demeure après réponse perdue, y compris après rechargement ; aucun retry
+// automatique et aucune valeur mécanique proposée par l'écran.
+const RP_JAUGES_EN_COURS = new Set();
+async function executerOrdreJaugesServeur(ordre, contexte = {}) {
+  const c = contexteGroupePj();
+  if (!c.nom || !c.uid || typeof sbRpcVerdict !== 'function') return null;
+  const params = JSON.parse(JSON.stringify(contexte));
+  const intention = JSON.stringify([c.uid, c.nom, ordre, params]);
+  const cle = 'rp_jauges:' + intention;
+  if (RP_JAUGES_EN_COURS.has(cle)) return null;
+  RP_JAUGES_EN_COURS.add(cle);
+  try {
+    const empreinte = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(intention));
+    const stockage = 'rp_jauges:' + Array.from(new Uint8Array(empreinte), x => x.toString(16).padStart(2,'0')).join('');
+    const requete = localStorage.getItem(stockage) || crypto.randomUUID();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requete)) return null;
+    localStorage.setItem(stockage, requete);
+    const v = await sbRpcVerdict('jauges_ordre_executer', {p_ordre: ordre, p_requete: requete, p_contexte: params});
+    if (!contexteGroupePjValide(c)) return null;
+    if (v?.ok !== true) {
+      if (v?.raison && !v.transport) localStorage.removeItem(stockage);
+      signalerRefusCout(v || {raison:'reponse_absente'});
+      return null;
+    }
+    if (v.contrat_jauges !== 1 || v.acteur !== c.nom || v.requete !== requete || v.ordre !== ordre
+        || (ordre==='inspecter_troupes'&&v.perimetre?.ok!==true)
+        || (ordre==='campagne_securite'&&(typeof v.pays!=='string'||typeof v.ville!=='string'||!['isn_ville','isn_delta','montant_preleve','solde_caisse'].every(k=>typeof v[k]==='number'&&Number.isFinite(v[k]))))
+        || ![v.pop,v.inf,v.pa,v.hp].every(x => typeof x === 'number' && Number.isFinite(x))) return null;
+    localStorage.removeItem(stockage);
+    appliquerPaiementServeur(v);
+    adopterJaugeServeur('pop', v.pop);
+    adopterJaugeServeur('inf', v.inf);
+    state.hp = v.hp;
+    if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({pa:v.pa,hp:v.hp});
+    return v;
+  } catch (_) {
+    if (contexteGroupePjValide(c)) showToast('Action non confirmée', 'Consultez votre état avant de renouveler la demande.', false);
+    return null;
+  } finally { RP_JAUGES_EN_COURS.delete(cle); }
+}
+
 async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur', fn = null } = {}) {
   // ===========================================================================
   // CHANTIER C / PHASE 1 — LE PRELEVEMENT PASSE PAR LE SERVEUR (13 septembre 2026)

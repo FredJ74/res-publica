@@ -34,13 +34,14 @@ jobs:
         run: node outils/bancs/banc-jodie-portraits-journal.cjs
       - name: "Portrait Jodie — autorisation, contenu signé, anti-doublons"
         run: node outils/bancs/banc-jodie-portrait-api.cjs
-      - name: Calendrier sur main (PR couvertes par les controles dedies)
-        if: github.event_name == 'push'
-        run: node --test outils/bancs/test-*.mjs
       - name: Constructeur Vercel épinglé pour la régression de chargement
         run: npm ci --prefix outils/vercel --no-audit --no-fund
       - name: Installer les dépendances du pilote navigateur avant les bancs client
         run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Calendrier sur main (PR couvertes par les controles dedies)
+        if: github.event_name == 'push'
+        run: node --test outils/bancs/test-*.mjs
+
       - name: Services sociaux Montrouge — rendez-vous, courrier et logements (hors production)
         run: |
           node --test outils/bancs/test-montrouge-ssm-rendezvous.cjs outils/bancs/test-montrouge-ssm-pnj.cjs
@@ -145,6 +146,10 @@ jobs:
         run: python3 outils/bancs/banc-assemblage-electronique-local.py
       - name: Publications Jodie sur PostgreSQL local
         run: python3 outils/bancs/banc-jodie-publications-local.py
+      - name: "Reliquats #379, effets atomiques et contrats versionnes sur PostgreSQL jetable"
+        run: python3 outils/bancs/banc-reliquats-379-local.py
+      - name: Jauges, forum, objectifs et organisations transactionnels, PostgreSQL jetable
+        run: python3 outils/bancs/banc-jauges-ordres-379-local.py
       - name: Commandes administratives organisations sur PostgreSQL local
         run: python3 outils/bancs/banc-organisations-commandes-local.py
       - name: Adhesions et grades organisations sur PostgreSQL local

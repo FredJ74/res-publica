@@ -1,0 +1,778 @@
+{
+  "url": "https://github.com/FredJ74/res-publica/pull/379/checks?lecture=4034751e",
+  "releve_utc": "2026-11-02T23:51:50.648105+00:00",
+  "source": "pages publiques GitHub",
+  "aucun_secret": true,
+  "headSha": "4034751e6e6cfbe4524ae9fc97d1786d990d4ce5",
+  "baseSha": "6256929cbdb4906732f698671558d391e17641c8",
+  "state": "DRAFT",
+  "favicon": [
+    "success"
+  ],
+  "jobs": [
+    {
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41547781879/job/125627497486",
+      "sha_cites": [
+        "4034751e6e6cfbe4524ae9fc97d1786d990d4ce5"
+      ],
+      "etapes": [
+        {
+          "name": "Set up job",
+          "number": "1",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:03Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "number": "2",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:10Z"
+        },
+        {
+          "name": "Mesurer le payload et le comparer au plafond déclaré",
+          "number": "3",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:10Z"
+        },
+        {
+          "name": "Rapport détaillé (toujours, y compris après un échec)",
+          "number": "4",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:10Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "number": "8",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:11Z"
+        },
+        {
+          "name": "Complete job",
+          "number": "9",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:11Z"
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41547781882/job/125627497951",
+      "sha_cites": [
+        "4034751e6e6cfbe4524ae9fc97d1786d990d4ce5"
+      ],
+      "etapes": [
+        {
+          "name": "Set up job",
+          "number": "1",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:04Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "number": "2",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:20Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "number": "3",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:20Z"
+        },
+        {
+          "name": "Run node --test outils/bancs/test-detention-jours-civils.mjs",
+          "number": "4",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:20Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "number": "7",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:21Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "number": "8",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:21Z"
+        },
+        {
+          "name": "Complete job",
+          "number": "9",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:21Z"
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41547781896/job/125627497740",
+      "sha_cites": [
+        "4034751e6e6cfbe4524ae9fc97d1786d990d4ce5"
+      ],
+      "etapes": [
+        {
+          "name": "Set up job",
+          "number": "1",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:04Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "number": "2",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:24Z"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "number": "3",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:24Z"
+        },
+        {
+          "name": "Run python3 -m pip install -r outils/bancs/requirements-postgres-local.txt",
+          "number": "4",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:27Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "number": "5",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:28Z"
+        },
+        {
+          "name": "Run npm ci --prefix outils/vercel --no-audit --no-fund",
+          "number": "6",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:30Z"
+        },
+        {
+          "name": "Acheter, financer, autoriser, construire et receptionner les cinq terrains",
+          "number": "7",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:32Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "number": "12",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:32Z"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "number": "13",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:33Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "number": "14",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:33Z"
+        },
+        {
+          "name": "Complete job",
+          "number": "15",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:33Z"
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41547781912/job/125627497644",
+      "sha_cites": [
+        "4034751e6e6cfbe4524ae9fc97d1786d990d4ce5"
+      ],
+      "etapes": [
+        {
+          "name": "Set up job",
+          "number": "1",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:03Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "number": "2",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:12Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "number": "3",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:13Z"
+        },
+        {
+          "name": "Run node --test outils/bancs/test-fermetures-jours-civils.mjs",
+          "number": "4",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:13Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "number": "7",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:13Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "number": "8",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:13Z"
+        },
+        {
+          "name": "Complete job",
+          "number": "9",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:14Z"
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41547781915/job/125627498300",
+      "sha_cites": [
+        "4034751e6e6cfbe4524ae9fc97d1786d990d4ce5"
+      ],
+      "etapes": [
+        {
+          "name": "Set up job",
+          "number": "1",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:04Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "number": "2",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:13Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "number": "3",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:13Z"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "number": "4",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:13Z"
+        },
+        {
+          "name": "Dépendances du PostgreSQL jetable",
+          "number": "5",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:15Z"
+        },
+        {
+          "name": "Syntaxe des fonctions API, sans appel distant",
+          "number": "6",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:16Z"
+        },
+        {
+          "name": "Portraits Jodie dans le journal quotidien",
+          "number": "7",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:16Z"
+        },
+        {
+          "name": "Portrait Jodie — autorisation, contenu signé, anti-doublons",
+          "number": "8",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:16Z"
+        },
+        {
+          "name": "Constructeur Vercel épinglé pour la régression de chargement",
+          "number": "9",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:18Z"
+        },
+        {
+          "name": "Installer les dépendances du pilote navigateur avant les bancs client",
+          "number": "10",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:19Z"
+        },
+        {
+          "name": "Calendrier sur main (PR couvertes par les controles dedies)",
+          "number": "11",
+          "conclusion": "skipped",
+          "completed-at": "2026-11-02T23:45:19Z"
+        },
+        {
+          "name": "Commerce Premium PSM après lecture des baux",
+          "number": "12",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:19Z"
+        },
+        {
+          "name": "Boutiques PSM — mêmes ordres et variantes que Luthécia",
+          "number": "13",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:19Z"
+        },
+        {
+          "name": "Garde du pays et de la ville serveur après F5",
+          "number": "14",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:19Z"
+        },
+        {
+          "name": "Rumeurs contre organisations secrètes — confidentialité",
+          "number": "15",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:19Z"
+        },
+        {
+          "name": "Bancs JavaScript, transports simulés",
+          "number": "16",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:12Z"
+        },
+        {
+          "name": "Destinations du centre multimodal",
+          "number": "17",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:12Z"
+        },
+        {
+          "name": "Signature chez le notaire, solde encaissé par le serveur seul",
+          "number": "18",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:13Z"
+        },
+        {
+          "name": "Squatteurs et cadavres, police et dissimulation décidées par le serveur",
+          "number": "19",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:13Z"
+        },
+        {
+          "name": "Caisses communales à l'accueil, ordre de l'Hôtel de Ville retiré",
+          "number": "20",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:13Z"
+        },
+        {
+          "name": "Publications forum institutionnelles acceptées par la base (sondage, affaire, retrait)",
+          "number": "21",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:13Z"
+        },
+        {
+          "name": "Avis personnels signés d'expéditeurs déclarés",
+          "number": "22",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:13Z"
+        },
+        {
+          "name": "Purge certifiée et manifeste 95 migrations avant livraison",
+          "number": "23",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:13Z"
+        },
+        {
+          "name": "Caisses des clubs et organisations tenues par le serveur (écran,",
+          "number": "24",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:13Z"
+        },
+        {
+          "name": "Caisses entières, dialogues lisibles et genre non supposé",
+          "number": "25",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:13Z"
+        },
+        {
+          "name": "Fiche PJ jamais autoritaire (fusion à trois voies, double clic, réponse perdue)",
+          "number": "26",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:29Z"
+        },
+        {
+          "name": "Création de personnage après réponse réseau perdue",
+          "number": "27",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:29Z"
+        },
+        {
+          "name": "Genre du personnage dans les dialogues PNJ (handler réel, IA simulée)",
+          "number": "28",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:29Z"
+        },
+        {
+          "name": "Régression de sortie de bâtiment avec réponse perdue",
+          "number": "29",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:29Z"
+        },
+        {
+          "name": "Refus serveur des ajouts d'inventaire et reprise client sans écrasement",
+          "number": "30",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:29Z"
+        },
+        {
+          "name": "Pilote joueur, fixtures locales sans compte ni Supabase",
+          "number": "31",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:47:57Z"
+        },
+        {
+          "name": "Collecte SQL Editor identique et plan 95 puis 318 et 324",
+          "number": "32",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:48:00Z"
+        },
+        {
+          "name": "Exports canoniques complets et reconstruction des séquences, PostgreSQL jetable",
+          "number": "33",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:48:05Z"
+        },
+        {
+          "name": "Manifeste de collecte privé, SELECT et contre-épreuves",
+          "number": "34",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:48:05Z"
+        },
+        {
+          "name": "Cinq commandes organisations, paiements protégés et rollback indivisible",
+          "number": "35",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:48:07Z"
+        },
+        {
+          "name": "Réconciliation des tarifs et refus du couple gilet 0 PA/600 FR",
+          "number": "36",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:48:09Z"
+        },
+        {
+          "name": "Relais canonique exact, snapshot et exclusion des fichiers privés",
+          "number": "37",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:48:10Z"
+        },
+        {
+          "name": "Caisses collectives sur PostgreSQL jetable, contre-épreuve et fermeture (#295)",
+          "number": "38",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:48:11Z"
+        },
+        {
+          "name": "Verrou final inventaire sur PostgreSQL jetable, données fictives",
+          "number": "39",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:48:12Z"
+        },
+        {
+          "name": "Audit Arnie sur PostgreSQL jetable, aucune identite reelle",
+          "number": "40",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:48:13Z"
+        },
+        {
+          "name": "Groupes et batailles mixtes sur PostgreSQL jetable",
+          "number": "41",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:48:22Z"
+        },
+        {
+          "name": "Contrôles policiers ordinaires et sanctions atomiques sur PostgreSQL jetable",
+          "number": "42",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:48:32Z"
+        },
+        {
+          "name": "Cinq rounds, commandement et fuites directionnelles sur PostgreSQL jetable",
+          "number": "43",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:48:42Z"
+        },
+        {
+          "name": "Replis, calendrier et anciens camions sur les corps SQL communiqués",
+          "number": "44",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:48:51Z"
+        },
+        {
+          "name": "Combats civils et squatteurs dans les mêmes rounds, PostgreSQL jetable",
+          "number": "45",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:02Z"
+        },
+        {
+          "name": "Audit securite privee et groupes sur PostgreSQL jetable",
+          "number": "46",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:03Z"
+        },
+        {
+          "name": "Achat sur PostgreSQL local, sans identifiant Supabase",
+          "number": "47",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:04Z"
+        },
+        {
+          "name": "Restaurant gastronomique sur PostgreSQL local, sans identifiant Supabase",
+          "number": "48",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:06Z"
+        },
+        {
+          "name": "Reservation Republica, accueil et persistance atomique hors production",
+          "number": "49",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:07Z"
+        },
+        {
+          "name": "Catalogue et tournée sur PostgreSQL local, sans identifiant Supabase",
+          "number": "50",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:08Z"
+        },
+        {
+          "name": "Réception atomique sur PostgreSQL local, sans identifiant Supabase",
+          "number": "51",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:09Z"
+        },
+        {
+          "name": "Receptions inventaire au role authenticated, PostgreSQL jetable",
+          "number": "52",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:26Z"
+        },
+        {
+          "name": "Assemblage electronique sur PostgreSQL local",
+          "number": "53",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:27Z"
+        },
+        {
+          "name": "Publications Jodie sur PostgreSQL local",
+          "number": "54",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:28Z"
+        },
+        {
+          "name": "Reliquats #379, effets atomiques et contrats versionnes sur PostgreSQL jetable",
+          "number": "55",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:29Z"
+        },
+        {
+          "name": "Commandes administratives organisations sur PostgreSQL local",
+          "number": "56",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:30Z"
+        },
+        {
+          "name": "Adhesions et grades organisations sur PostgreSQL local",
+          "number": "57",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:32Z"
+        },
+        {
+          "name": "Invitations et elections avec paiement reel sur PostgreSQL local",
+          "number": "58",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:33Z"
+        },
+        {
+          "name": "Coherence rues et sorties sur PostgreSQL local",
+          "number": "59",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:34Z"
+        },
+        {
+          "name": "Equipements collectifs sur PostgreSQL local",
+          "number": "60",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:35Z"
+        },
+        {
+          "name": "Fontaine de chocolat, garde serveur sur PostgreSQL jetable",
+          "number": "61",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:36Z"
+        },
+        {
+          "name": "Placements nationaux atomiques et idempotents sur PostgreSQL local",
+          "number": "62",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:37Z"
+        },
+        {
+          "name": "Journal des ventes prive, PostgreSQL jetable",
+          "number": "63",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:38Z"
+        },
+        {
+          "name": "Depot de permis indivisible sur PostgreSQL local",
+          "number": "64",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:39Z"
+        },
+        {
+          "name": "Negociation des squatteurs atomique sur PostgreSQL local",
+          "number": "65",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:40Z"
+        },
+        {
+          "name": "Achat Ced atomique et quota football au jour commun sur PostgreSQL local",
+          "number": "66",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:40Z"
+        },
+        {
+          "name": "Occupation persistante des terrains sur PostgreSQL local",
+          "number": "67",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:41Z"
+        },
+        {
+          "name": "Construction et materiaux atomiques sur PostgreSQL local",
+          "number": "68",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:43Z"
+        },
+        {
+          "name": "Chaîne immobilière complète sur PostgreSQL jetable, cinq terrains",
+          "number": "69",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:45Z"
+        },
+        {
+          "name": "Prime de signature adoptée du serveur (écran, double clic, réponse perdue)",
+          "number": "70",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:45Z"
+        },
+        {
+          "name": "Prime de signature sur PostgreSQL jetable, contre-épreuve (20261031220000)",
+          "number": "71",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:46Z"
+        },
+        {
+          "name": "Organisations, étape A préparée sur PostgreSQL jetable (20261031230000, non appliquée)",
+          "number": "72",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:47Z"
+        },
+        {
+          "name": "Conserver les résultats des bancs",
+          "number": "73",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:49Z"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "number": "144",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:49Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "number": "145",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:49Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "number": "146",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:49Z"
+        },
+        {
+          "name": "Complete job",
+          "number": "147",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:49:49Z"
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41547782141/job/125627498506",
+      "sha_cites": [
+        "4034751e6e6cfbe4524ae9fc97d1786d990d4ce5"
+      ],
+      "etapes": [
+        {
+          "name": "Set up job",
+          "number": "1",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:04Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "number": "2",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:14Z"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "number": "3",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:14Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "number": "4",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:15Z"
+        },
+        {
+          "name": "Run python3 -m pip install -r outils/bancs/requirements-postgres-local.txt",
+          "number": "5",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:18Z"
+        },
+        {
+          "name": "Run node --test outils/bancs/test-placement-national-securise.mjs",
+          "number": "6",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:18Z"
+        },
+        {
+          "name": "Run python3 outils/bancs/banc-placement-national-local.py",
+          "number": "7",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:19Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "number": "12",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:19Z"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "number": "13",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:19Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "number": "14",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:19Z"
+        },
+        {
+          "name": "Complete job",
+          "number": "15",
+          "conclusion": "success",
+          "completed-at": "2026-11-02T23:45:19Z"
+        }
+      ]
+    }
+  ],
+  "relecture_etapes_utc": "2026-11-03T00:00:35.608412+00:00",
+  "precision": "URL des jobs complétées avec le nom du dépôt ; étapes relues, SHA vérifié, aucun échec ni étape en attente."
+}

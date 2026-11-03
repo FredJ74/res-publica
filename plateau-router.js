@@ -132,7 +132,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'pouls_populaire') { doPoulsPopulaire(); return; }
   if (fn === 'lancer_rumeur_cible') { ouvrirModalLancerRumeur(pa, cost, successRate); return; }
   if (fn === 'diner_affaires') { ouvrirModalInvitationSociale('diner_affaires', pa, cost, successRate); return; }
-  if (fn === 'boire_verre') { ouvrirModalInvitationSociale('boire_verre', pa, cost, successRate); return; }
   if (fn === 'recruter_informateur_pnj') { doRecruterInformateurPNJ(pa); return; }
   // Comptoir d'embauche d'une agence (5 octobre 2026). Le routeur ne transmet
   // NI pa NI cost : agenceEmploiOuvrir relit l'ordre dans la piece pour y lire
@@ -568,8 +567,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demander_benediction') { doDemanderBenediction(pa, cost); return; }
   if (fn === 'pelerin')              { doPelerin(pa, cost); return; }
   if (fn === 'excommunier')          { ouvrirModalCibleRepertoire('excommunier', 'Excommunier'); return; }
-  if (fn === 'benediction_etat')     { doBenedictionEtat(pa, cost); return; }
-  if (fn === 'consulter_confessions'){ doConsulterConfessions(pa, cost); return; }
   if (fn === 'acheter_relique')      { doAcheterRelique(pa, cost); return; }
   // Route 'scanner_aleatoire' supprimee (27/10/2026) : aucun ordre de ce nom dans data.js.
   if (fn === 'accord_diplomatique')  { ouvrirModalNegociationDiplomatique(pa, cost); return; }
@@ -793,11 +790,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acte_officiel_juge') { ouvrirActeOfficielJuge(pa, cost); return; }
   if (fn === 'acte_officiel_notaire') { ouvrirActeOfficielNotaire(pa, cost); return; }
 
-  if (fn === 'interdire_manif_cible')   { ouvrirModalTexteLibre('interdire_manif', 'Interdire une manifestation', 'Preciser le nom ou sujet de la manifestation a interdire...'); return; }
-  if (fn === 'reprimer_manif_cible')    { ouvrirModalTexteLibre('reprimer_manif', 'Ordonner la repression', 'Preciser la manifestation ou le rassemblement cible...'); return; }
   if (fn === 'redressement_cible')      { ouvrirModalCibleRepertoire('redressement_fiscal', 'Redressement fiscal'); return; }
   if (fn === 'subvention_cible')        { ouvrirModalCibleRepertoire('subvention', 'Accorder une subvention'); return; }
-  if (fn === 'allegemement_secteur')    { ouvrirModalSecteur(); return; }
   if (fn === 'allegement_fiscal')       { doAllegementFiscalIndisponible(); return; }
   if (fn === 'preempter_entreprise')    { ouvrirPreemptionEntreprise(); return; }
   if (fn === 'stage_caserne')           { doStageCaserne(pa, cost); return; }

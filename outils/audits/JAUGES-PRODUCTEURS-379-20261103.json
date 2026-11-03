@@ -1,0 +1,1727 @@
+{
+  "nature": "Inventaire statique intermédiaire, pas verdict de déploiement",
+  "main_integre": "3674d3c2",
+  "sources_sha256": {
+    "plateau-actions-illegales-rumeurs.js": "59b930c3b4126a818141d791fd539e7420f1c461b302663a75ec06107651cbf3",
+    "plateau-core.js": "9a223866d0837d862d28afe6c4783256e85b5e1c32bc3fc2f555046dec1d2df9",
+    "plateau-divers.js": "83265bd2051f7c04f1d673f3aa29efabb22cf4c439f86a41499c1805f675d97d",
+    "plateau-justice-economie.js": "1e0442064493bad9ff671a64d6608320f2b002e050161019c34466e527aa7cd7",
+    "plateau-multijoueur.js": "d8f4f926b34d7330fea6c6998461a45a0558cf49d478cbe3bf19c6862c7e40cf",
+    "plateau-navigation.js": "0932cd36e9c929dbca9598b8b80ac14e3e774914b51e8b88644366d27a8f02b3",
+    "plateau-pnj.js": "0a5a0412ab835440208e8d2ef597d68566dc915a9d4b68dd09873c93f2089572",
+    "plateau-politique.js": "571891206744ed8b7e1d225472a416da6165c55f3e620046293b2d261afd571c"
+  },
+  "producteurs": [
+    {
+      "fonction": "applyCharToState",
+      "fichier": "plateau-core.js",
+      "ligne": 1806,
+      "mutations": [
+        {
+          "fonction": "applyCharToState",
+          "fichier": "plateau-core.js",
+          "ligne": 1854,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "applyCharToState",
+          "fichier": "plateau-core.js",
+          "ligne": 1855,
+          "cible": "state.pop",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "applyCharToState",
+          "source": "loadCharacter",
+          "fichier": "plateau-core.js",
+          "ligne": 1221,
+          "type": "appel"
+        },
+        {
+          "cible": "applyCharToState",
+          "source": "loadCharacter",
+          "fichier": "plateau-core.js",
+          "ligne": 1432,
+          "type": "appel"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "loadCharacter",
+          "source": null,
+          "fichier": "plateau-core.js",
+          "ligne": 787,
+          "type": "appel"
+        },
+        {
+          "cible": "applyCharToState",
+          "source": "loadCharacter",
+          "fichier": "plateau-core.js",
+          "ligne": 1221,
+          "type": "appel"
+        }
+      ],
+      "etat": "Chargement de fiche ; distinguer adoption d’un gain.",
+      "preuve_courte": "loadCharacter (plateau-core.js:1221) ; loadCharacter (plateau-core.js:1432)"
+    },
+    {
+      "fonction": "doInspecterCargaisons",
+      "fichier": "plateau-navigation.js",
+      "ligne": 2826,
+      "mutations": [
+        {
+          "fonction": "doInspecterCargaisons",
+          "fichier": "plateau-navigation.js",
+          "ligne": 2836,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "doInspecterCargaisons",
+          "fichier": "plateau-navigation.js",
+          "ligne": 2847,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "doInspecterCargaisons",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 453,
+          "type": "appel"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "doInspecterCargaisons",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 453,
+          "type": "appel"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "doOrder (plateau-router.js:453)"
+    },
+    {
+      "fonction": "envoyerInvitationSociale",
+      "fichier": "plateau-pnj.js",
+      "ligne": 2759,
+      "mutations": [
+        {
+          "fonction": "envoyerInvitationSociale",
+          "fichier": "plateau-pnj.js",
+          "ligne": 2804,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "envoyerInvitationSociale",
+          "fichier": "plateau-pnj.js",
+          "ligne": 2730,
+          "source": "ouvrirModalInvitationSociale",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "ouvrirModalInvitationSociale",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 134,
+          "type": "appel"
+        },
+        {
+          "cible": "envoyerInvitationSociale",
+          "fichier": "plateau-pnj.js",
+          "ligne": 2730,
+          "source": "ouvrirModalInvitationSociale",
+          "type": "interface"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "ouvrirModalInvitationSociale (plateau-pnj.js:2730)"
+    },
+    {
+      "fonction": "verifierReponseInvitationSociale",
+      "fichier": "plateau-pnj.js",
+      "ligne": 2832,
+      "mutations": [
+        {
+          "fonction": "verifierReponseInvitationSociale",
+          "fichier": "plateau-pnj.js",
+          "ligne": 2880,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [],
+      "cheminPotentiel": null,
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "Aucun appel entrant statique retrouvé ; ne prouve pas l’inexécutabilité."
+    },
+    {
+      "fonction": "repondreInvitationSociale",
+      "fichier": "plateau-pnj.js",
+      "ligne": 2935,
+      "mutations": [
+        {
+          "fonction": "repondreInvitationSociale",
+          "fichier": "plateau-pnj.js",
+          "ligne": 2946,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "repondreInvitationSociale",
+          "fichier": "plateau-pnj.js",
+          "ligne": 2928,
+          "source": "verifierInvitationsSocialesRecues",
+          "type": "interface"
+        },
+        {
+          "cible": "repondreInvitationSociale",
+          "fichier": "plateau-pnj.js",
+          "ligne": 2929,
+          "source": "verifierInvitationsSocialesRecues",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": null,
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "verifierInvitationsSocialesRecues (plateau-pnj.js:2928) ; verifierInvitationsSocialesRecues (plateau-pnj.js:2929)"
+    },
+    {
+      "fonction": "interagirPnjTerrain",
+      "fichier": "plateau-pnj.js",
+      "ligne": 3411,
+      "mutations": [
+        {
+          "fonction": "interagirPnjTerrain",
+          "fichier": "plateau-pnj.js",
+          "ligne": 3431,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "interagirPnjTerrain",
+          "fichier": "plateau-pnj.js",
+          "ligne": 3455,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [],
+      "cheminPotentiel": null,
+      "etat": "Ancien parcours sans appel entrant retrouvé ; hors chantiers immobiliers de Claude.",
+      "preuve_courte": "Aucun appel entrant statique retrouvé ; ne prouve pas l’inexécutabilité."
+    },
+    {
+      "fonction": "payerEscorts",
+      "fichier": "plateau-multijoueur.js",
+      "ligne": 923,
+      "mutations": [
+        {
+          "fonction": "payerEscorts",
+          "fichier": "plateau-multijoueur.js",
+          "ligne": 935,
+          "cible": "state.pop",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "payerEscorts",
+          "source": "doDormir",
+          "fichier": "plateau-personnage.js",
+          "ligne": 2427,
+          "type": "appel"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doDormir",
+          "fichier": "plateau-personnage.js",
+          "ligne": 509,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "payerEscorts",
+          "source": "doDormir",
+          "fichier": "plateau-personnage.js",
+          "ligne": 2427,
+          "type": "appel"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "doDormir (plateau-personnage.js:2427)"
+    },
+    {
+      "fonction": "publierDecret",
+      "fichier": "plateau-politique.js",
+      "ligne": 4712,
+      "mutations": [
+        {
+          "fonction": "publierDecret",
+          "fichier": "plateau-politique.js",
+          "ligne": 4717,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "publierDecret",
+          "fichier": "plateau-politique.js",
+          "ligne": 4718,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "publierDecret",
+          "fichier": "plateau-politique.js",
+          "ligne": 4703,
+          "source": "signerDecretInutile",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "signerDecretInutile",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 426,
+          "type": "appel"
+        },
+        {
+          "cible": "publierDecret",
+          "fichier": "plateau-politique.js",
+          "ligne": 4703,
+          "source": "signerDecretInutile",
+          "type": "interface"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "signerDecretInutile (plateau-politique.js:4703)"
+    },
+    {
+      "fonction": "publierMessagePresidentiel",
+      "fichier": "plateau-politique.js",
+      "ligne": 5086,
+      "mutations": [
+        {
+          "fonction": "publierMessagePresidentiel",
+          "fichier": "plateau-politique.js",
+          "ligne": 5221,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "publierMessagePresidentiel",
+          "fichier": "plateau-politique.js",
+          "ligne": 5222,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "publierMessagePresidentiel",
+          "fichier": "plateau-politique.js",
+          "ligne": 5076,
+          "source": "ouvrirForumNationalSousForumPresident",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "ouvrirForumNationalSousForumPresident",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 337,
+          "type": "appel"
+        },
+        {
+          "cible": "publierMessagePresidentiel",
+          "fichier": "plateau-politique.js",
+          "ligne": 5076,
+          "source": "ouvrirForumNationalSousForumPresident",
+          "type": "interface"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "ouvrirForumNationalSousForumPresident (plateau-politique.js:5076)"
+    },
+    {
+      "fonction": "confirmerEtatUrgence",
+      "fichier": "plateau-politique.js",
+      "ligne": 7031,
+      "mutations": [
+        {
+          "fonction": "confirmerEtatUrgence",
+          "fichier": "plateau-politique.js",
+          "ligne": 7065,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerEtatUrgence",
+          "fichier": "plateau-politique.js",
+          "ligne": 7066,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "confirmerEtatUrgence",
+          "fichier": "plateau-politique.js",
+          "ligne": 7023,
+          "source": "doEtatUrgence",
+          "type": "interface"
+        },
+        {
+          "cible": "confirmerEtatUrgence",
+          "fichier": "plateau-politique.js",
+          "ligne": 7025,
+          "source": "doEtatUrgence",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "doEtatUrgence",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 620,
+          "type": "appel"
+        },
+        {
+          "cible": "confirmerEtatUrgence",
+          "fichier": "plateau-politique.js",
+          "ligne": 7023,
+          "source": "doEtatUrgence",
+          "type": "interface"
+        }
+      ],
+      "etat": "Coordination Claude : commande serveur de ce domaine en chantier sur main. Ne pas dupliquer ; raccorder les gains au contrat final.",
+      "preuve_courte": "doEtatUrgence (plateau-politique.js:7023) ; doEtatUrgence (plateau-politique.js:7025)"
+    },
+    {
+      "fonction": "confirmerGrace",
+      "fichier": "plateau-politique.js",
+      "ligne": 7484,
+      "mutations": [
+        {
+          "fonction": "confirmerGrace",
+          "fichier": "plateau-politique.js",
+          "ligne": 7527,
+          "cible": "state.pop",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "confirmerGrace",
+          "fichier": "plateau-politique.js",
+          "ligne": 7475,
+          "source": "ouvrirModalGracier",
+          "type": "interface"
+        },
+        {
+          "cible": "confirmerGrace",
+          "fichier": "plateau-politique.js",
+          "ligne": 7476,
+          "source": "ouvrirModalGracier",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "ouvrirModalGracier",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 336,
+          "type": "appel"
+        },
+        {
+          "cible": "confirmerGrace",
+          "fichier": "plateau-politique.js",
+          "ligne": 7475,
+          "source": "ouvrirModalGracier",
+          "type": "interface"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "ouvrirModalGracier (plateau-politique.js:7475) ; ouvrirModalGracier (plateau-politique.js:7476)"
+    },
+    {
+      "fonction": "executerOrdreTexte",
+      "fichier": "plateau-politique.js",
+      "ligne": 8477,
+      "mutations": [
+        {
+          "fonction": "executerOrdreTexte",
+          "fichier": "plateau-politique.js",
+          "ligne": 8483,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "executerOrdreTexte",
+          "fichier": "plateau-politique.js",
+          "ligne": 8489,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "executerOrdreTexte",
+          "fichier": "plateau-politique.js",
+          "ligne": 8499,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "executerOrdreTexte",
+          "fichier": "plateau-politique.js",
+          "ligne": 8315,
+          "source": "ouvrirModalTexteLibre",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "ouvrirModalTexteLibre",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 686,
+          "type": "appel"
+        },
+        {
+          "cible": "executerOrdreTexte",
+          "fichier": "plateau-politique.js",
+          "ligne": 8315,
+          "source": "ouvrirModalTexteLibre",
+          "type": "interface"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "ouvrirModalTexteLibre (plateau-politique.js:8315)"
+    },
+    {
+      "fonction": "appliquerAllegement",
+      "fichier": "plateau-politique.js",
+      "ligne": 8528,
+      "mutations": [
+        {
+          "fonction": "appliquerAllegement",
+          "fichier": "plateau-politique.js",
+          "ligne": 8531,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "appliquerAllegement",
+          "fichier": "plateau-politique.js",
+          "ligne": 8521,
+          "source": "ouvrirModalSecteur",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "ouvrirModalSecteur",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 800,
+          "type": "appel"
+        },
+        {
+          "cible": "appliquerAllegement",
+          "fichier": "plateau-politique.js",
+          "ligne": 8521,
+          "source": "ouvrirModalSecteur",
+          "type": "interface"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "ouvrirModalSecteur (plateau-politique.js:8521)"
+    },
+    {
+      "fonction": "censurer",
+      "fichier": "plateau-politique.js",
+      "ligne": 9095,
+      "mutations": [
+        {
+          "fonction": "censurer",
+          "fichier": "plateau-politique.js",
+          "ligne": 9103,
+          "cible": "state.pop",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "censurer",
+          "fichier": "plateau-politique.js",
+          "ligne": 9088,
+          "source": "ouvrirModalMedia",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "ouvrirModalMedia",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 685,
+          "type": "appel"
+        },
+        {
+          "cible": "censurer",
+          "fichier": "plateau-politique.js",
+          "ligne": 9088,
+          "source": "ouvrirModalMedia",
+          "type": "interface"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "ouvrirModalMedia (plateau-politique.js:9088)"
+    },
+    {
+      "fonction": "confirmerBanquetDiplomatique",
+      "fichier": "plateau-politique.js",
+      "ligne": 9771,
+      "mutations": [
+        {
+          "fonction": "confirmerBanquetDiplomatique",
+          "fichier": "plateau-politique.js",
+          "ligne": 9789,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerBanquetDiplomatique",
+          "fichier": "plateau-politique.js",
+          "ligne": 9790,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerBanquetDiplomatique",
+          "fichier": "plateau-politique.js",
+          "ligne": 9796,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerBanquetDiplomatique",
+          "fichier": "plateau-politique.js",
+          "ligne": 9797,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerBanquetDiplomatique",
+          "fichier": "plateau-politique.js",
+          "ligne": 9802,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerBanquetDiplomatique",
+          "fichier": "plateau-politique.js",
+          "ligne": 9803,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "confirmerBanquetDiplomatique",
+          "fichier": "plateau-politique.js",
+          "ligne": 9765,
+          "source": "ouvrirBanquetDiplomatique",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "ouvrirBanquetDiplomatique",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 826,
+          "type": "appel"
+        },
+        {
+          "cible": "confirmerBanquetDiplomatique",
+          "fichier": "plateau-politique.js",
+          "ligne": 9765,
+          "source": "ouvrirBanquetDiplomatique",
+          "type": "interface"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "ouvrirBanquetDiplomatique (plateau-politique.js:9765)"
+    },
+    {
+      "fonction": "doReceptionAvecBonus",
+      "fichier": "plateau-politique.js",
+      "ligne": 9812,
+      "mutations": [
+        {
+          "fonction": "doReceptionAvecBonus",
+          "fichier": "plateau-politique.js",
+          "ligne": 9838,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "doReceptionAvecBonus",
+          "fichier": "plateau-politique.js",
+          "ligne": 9839,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "doReceptionAvecBonus",
+          "fichier": "plateau-politique.js",
+          "ligne": 9845,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "doReceptionAvecBonus",
+          "fichier": "plateau-politique.js",
+          "ligne": 9846,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "doReceptionAvecBonus",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 825,
+          "type": "appel"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "doReceptionAvecBonus",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 825,
+          "type": "appel"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "doOrder (plateau-router.js:825)"
+    },
+    {
+      "fonction": "confirmerMobilisationPolice",
+      "fichier": "plateau-politique.js",
+      "ligne": 9906,
+      "mutations": [
+        {
+          "fonction": "confirmerMobilisationPolice",
+          "fichier": "plateau-politique.js",
+          "ligne": 9933,
+          "cible": "state.pop",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "confirmerMobilisationPolice",
+          "fichier": "plateau-politique.js",
+          "ligne": 9897,
+          "source": "doMobiliserPolice",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "doMobiliserPolice",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 618,
+          "type": "appel"
+        },
+        {
+          "cible": "confirmerMobilisationPolice",
+          "fichier": "plateau-politique.js",
+          "ligne": 9897,
+          "source": "doMobiliserPolice",
+          "type": "interface"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "doMobiliserPolice (plateau-politique.js:9897)"
+    },
+    {
+      "fonction": "traiterDemandeManifestation",
+      "fichier": "plateau-politique.js",
+      "ligne": 10041,
+      "mutations": [
+        {
+          "fonction": "traiterDemandeManifestation",
+          "fichier": "plateau-politique.js",
+          "ligne": 10064,
+          "cible": "state.pop",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "traiterDemandeManifestation",
+          "fichier": "plateau-politique.js",
+          "ligne": 10030,
+          "source": "doTraiterManifestations",
+          "type": "interface"
+        },
+        {
+          "cible": "traiterDemandeManifestation",
+          "fichier": "plateau-politique.js",
+          "ligne": 10031,
+          "source": "doTraiterManifestations",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "doTraiterManifestations",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 756,
+          "type": "appel"
+        },
+        {
+          "cible": "traiterDemandeManifestation",
+          "fichier": "plateau-politique.js",
+          "ligne": 10030,
+          "source": "doTraiterManifestations",
+          "type": "interface"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "doTraiterManifestations (plateau-politique.js:10030) ; doTraiterManifestations (plateau-politique.js:10031)"
+    },
+    {
+      "fonction": "confirmerGuerreEmpire",
+      "fichier": "plateau-politique.js",
+      "ligne": 10864,
+      "mutations": [
+        {
+          "fonction": "confirmerGuerreEmpire",
+          "fichier": "plateau-politique.js",
+          "ligne": 10880,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerGuerreEmpire",
+          "fichier": "plateau-politique.js",
+          "ligne": 10881,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "confirmerGuerreEmpire",
+          "fichier": "plateau-politique.js",
+          "ligne": 10856,
+          "source": "ouvrirModalGuerreEmpire",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "ouvrirModalGuerreEmpire",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 335,
+          "type": "appel"
+        },
+        {
+          "cible": "confirmerGuerreEmpire",
+          "fichier": "plateau-politique.js",
+          "ligne": 10856,
+          "source": "ouvrirModalGuerreEmpire",
+          "type": "interface"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "ouvrirModalGuerreEmpire (plateau-politique.js:10856)"
+    },
+    {
+      "fonction": "confirmerDonArgent",
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 47,
+      "mutations": [
+        {
+          "fonction": "confirmerDonArgent",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 156,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "confirmerDonArgent",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 42,
+          "source": "doDonnerArgentPnj",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "doDonnerArgentPnj",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 407,
+          "type": "appel"
+        },
+        {
+          "cible": "confirmerDonArgent",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 42,
+          "source": "doDonnerArgentPnj",
+          "type": "interface"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "doDonnerArgentPnj (plateau-justice-economie.js:42)"
+    },
+    {
+      "fonction": "appliquerBonusLocation",
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 3617,
+      "mutations": [
+        {
+          "fonction": "appliquerBonusLocation",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3631,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "appliquerBonusLocation",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3632,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "appliquerBonusLocation",
+          "source": "payerLocations",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3600,
+          "type": "appel"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doDormir",
+          "fichier": "plateau-personnage.js",
+          "ligne": 509,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "payerLocations",
+          "source": "doDormir",
+          "fichier": "plateau-personnage.js",
+          "ligne": 2418,
+          "type": "appel"
+        },
+        {
+          "cible": "appliquerBonusLocation",
+          "source": "payerLocations",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3600,
+          "type": "appel"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "payerLocations (plateau-justice-economie.js:3600)"
+    },
+    {
+      "fonction": "confirmerDonPnj",
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 3911,
+      "mutations": [
+        {
+          "fonction": "confirmerDonPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3980,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerDonPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3981,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerDonPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3985,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerDonPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3985,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerDonPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3988,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerDonPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3988,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerDonPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3990,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerDonPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3991,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerDonPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3992,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerDonPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3993,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "confirmerDonPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 3858,
+          "source": "ouvrirDonPnjModal",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": null,
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "ouvrirDonPnjModal (plateau-justice-economie.js:3858)"
+    },
+    {
+      "fonction": "confirmerDonObjetPnj",
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 4025,
+      "mutations": [
+        {
+          "fonction": "confirmerDonObjetPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 4069,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerDonObjetPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 4069,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerDonObjetPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 4074,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerDonObjetPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 4078,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "confirmerDonObjetPnj",
+          "fichier": "plateau-justice-economie.js",
+          "ligne": 4016,
+          "source": "ouvrirDonObjetPnjModal",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": null,
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "ouvrirDonObjetPnjModal (plateau-justice-economie.js:4016)"
+    },
+    {
+      "fonction": "confirmerCorruptionRegistre",
+      "fichier": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 1464,
+      "mutations": [
+        {
+          "fonction": "confirmerCorruptionRegistre",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 1473,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerCorruptionRegistre",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 1474,
+          "cible": "state.pop",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerCorruptionRegistre",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 1481,
+          "cible": "state.inf",
+          "type": "="
+        },
+        {
+          "fonction": "confirmerCorruptionRegistre",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 1482,
+          "cible": "state.pop",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "confirmerCorruptionRegistre",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 1458,
+          "source": "ouvrirModalCorruptionRegistre",
+          "type": "interface"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "doConsulterRegistre",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 174,
+          "type": "appel"
+        },
+        {
+          "cible": "ouvrirModalCorruptionRegistre",
+          "source": "doConsulterRegistre",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 1439,
+          "type": "appel"
+        },
+        {
+          "cible": "confirmerCorruptionRegistre",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 1458,
+          "source": "ouvrirModalCorruptionRegistre",
+          "type": "interface"
+        }
+      ],
+      "etat": "Coordination Claude : commande serveur de ce domaine en chantier sur main. Ne pas dupliquer ; raccorder les gains au contrat final.",
+      "preuve_courte": "ouvrirModalCorruptionRegistre (plateau-actions-illegales-rumeurs.js:1458)"
+    },
+    {
+      "fonction": "commanderProduitCommerce",
+      "fichier": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 4460,
+      "mutations": [
+        {
+          "fonction": "commanderProduitCommerce",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 4521,
+          "cible": "state.pop",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "commanderProduitCommerce",
+          "source": "doCommanderProduitCommerceUI",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 4605,
+          "type": "appel"
+        },
+        {
+          "cible": "commanderProduitCommerce",
+          "source": "doCommanderAchatCommerceUI",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 4744,
+          "type": "appel"
+        },
+        {
+          "cible": "commanderProduitCommerce",
+          "source": "confirmerConsommerBoissonUI",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 4865,
+          "type": "appel"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "doConsommerBoissonGenerique",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 378,
+          "type": "appel"
+        },
+        {
+          "cible": "doConsommerBoisson",
+          "source": "doConsommerBoissonGenerique",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 4775,
+          "type": "appel"
+        },
+        {
+          "cible": "confirmerConsommerBoissonUI",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 4850,
+          "source": "doConsommerBoisson",
+          "type": "interface"
+        },
+        {
+          "cible": "commanderProduitCommerce",
+          "source": "confirmerConsommerBoissonUI",
+          "fichier": "plateau-actions-illegales-rumeurs.js",
+          "ligne": 4865,
+          "type": "appel"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "doCommanderProduitCommerceUI (plateau-actions-illegales-rumeurs.js:4605) ; doCommanderAchatCommerceUI (plateau-actions-illegales-rumeurs.js:4744) ; confirmerConsommerBoissonUI (plateau-actions-illegales-rumeurs.js:4865)"
+    },
+    {
+      "fonction": "commanderSondage",
+      "fichier": "plateau-divers.js",
+      "ligne": 69,
+      "mutations": [
+        {
+          "fonction": "commanderSondage",
+          "fichier": "plateau-divers.js",
+          "ligne": 118,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [],
+      "cheminPotentiel": null,
+      "etat": "Ancien parcours sans appel entrant retrouvé ; ne pas confondre avec commanditer_sondage.",
+      "preuve_courte": "Aucun appel entrant statique retrouvé ; ne prouve pas l’inexécutabilité."
+    },
+    {
+      "fonction": "appliquerMalusPopExcommunication",
+      "fichier": "plateau-divers.js",
+      "ligne": 478,
+      "mutations": [
+        {
+          "fonction": "appliquerMalusPopExcommunication",
+          "fichier": "plateau-divers.js",
+          "ligne": 480,
+          "cible": "state.pop",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "appliquerMalusPopExcommunication",
+          "source": "appliquerExcommunication",
+          "fichier": "plateau-divers.js",
+          "ligne": 504,
+          "type": "appel"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "ouvrirModalCibleRepertoire",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 331,
+          "type": "appel"
+        },
+        {
+          "cible": "executerOrdreContact",
+          "fichier": "plateau-politique.js",
+          "ligne": 8176,
+          "source": "ouvrirModalCibleRepertoire",
+          "type": "interface"
+        },
+        {
+          "cible": "appliquerExcommunication",
+          "source": "executerOrdreContact",
+          "fichier": "plateau-politique.js",
+          "ligne": 8201,
+          "type": "appel"
+        },
+        {
+          "cible": "appliquerMalusPopExcommunication",
+          "source": "appliquerExcommunication",
+          "fichier": "plateau-divers.js",
+          "ligne": 504,
+          "type": "appel"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "appliquerExcommunication (plateau-divers.js:504)"
+    },
+    {
+      "fonction": "doFaireDon",
+      "fichier": "plateau-divers.js",
+      "ligne": 599,
+      "mutations": [
+        {
+          "fonction": "doFaireDon",
+          "fichier": "plateau-divers.js",
+          "ligne": 614,
+          "cible": "state.pop",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "doFaireDon",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 566,
+          "type": "appel"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "doFaireDon",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 566,
+          "type": "appel"
+        }
+      ],
+      "etat": "Raccordement serveur complet à vérifier/terminer ; pas autorisé à fermer la sauvegarde à cette étape.",
+      "preuve_courte": "doOrder (plateau-router.js:566)"
+    },
+    {
+      "fonction": "doBenedictionEtat",
+      "fichier": "plateau-divers.js",
+      "ligne": 772,
+      "mutations": [
+        {
+          "fonction": "doBenedictionEtat",
+          "fichier": "plateau-divers.js",
+          "ligne": 776,
+          "cible": "state.pop",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "doBenedictionEtat",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 570,
+          "type": "appel"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "doBenedictionEtat",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 570,
+          "type": "appel"
+        }
+      ],
+      "etat": "Ordre retiré du catalogue ; ne pas le réactiver.",
+      "preuve_courte": "doOrder (plateau-router.js:570)"
+    },
+    {
+      "fonction": "doConsulterConfessions",
+      "fichier": "plateau-divers.js",
+      "ligne": 782,
+      "mutations": [
+        {
+          "fonction": "doConsulterConfessions",
+          "fichier": "plateau-divers.js",
+          "ligne": 792,
+          "cible": "state.inf",
+          "type": "="
+        }
+      ],
+      "appelsEntrants": [
+        {
+          "cible": "doConsulterConfessions",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 571,
+          "type": "appel"
+        }
+      ],
+      "cheminPotentiel": [
+        {
+          "cible": "switchSelfTab",
+          "fichier": "plateau.html",
+          "ligne": 1,
+          "source": null,
+          "type": "interface"
+        },
+        {
+          "cible": "doOrder",
+          "fichier": "plateau-personnage.js",
+          "ligne": 528,
+          "source": "switchSelfTab",
+          "type": "interface"
+        },
+        {
+          "cible": "doConsulterConfessions",
+          "source": "doOrder",
+          "fichier": "plateau-router.js",
+          "ligne": 571,
+          "type": "appel"
+        }
+      ],
+      "etat": "Ordre retiré du catalogue ; ne pas le réactiver.",
+      "preuve_courte": "doOrder (plateau-router.js:571)"
+    }
+  ]
+}

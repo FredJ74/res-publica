@@ -1474,96 +1474,7 @@ function doAllerDouanesAeroport() {
 
 // Devient async (chantier C, 14 septembre 2026) : la confiscation passe par le guichet serveur.
 async function doPasserDouanesAeroport() {
-  if(state._navigationServeur===true)return commanderDouanesServeur();
-  const pays = state.country || 'republic';
-  const msgs = {
-    republic: "L'inspecteur Prosper Tampon examine vos papiers, tamponne trois formulaires et vous laisse passer.",
-    narco:    "Juanita Soborno vous sourit. Vous glissez un billet. Elle regarde ailleurs. Bonne route.",
-    soviet:   "Nadejda Contrôle fouille votre bagage méthodiquement. Tout est en ordre, Camarade.",
-    khalija:  "Le Chambellan Al-Transit incline la tête. Vos papiers sont en règle. Bienvenue."
-  };
-
-  // VALISE DIPLOMATIQUE (Fred, 25/10/2026) : pas de passage en douane pour un ambassadeur en
-  // poste. Le statut est lu sur le serveur (ambassade_mon_statut).
-  const statutDiplo = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_mon_statut', {}).catch(() => null) : null;
-  if (statutDiplo && statutDiplo.ok === true && statutDiplo.ambassadeur === true) {
-    showToast('Valise diplomatique', 'Votre passeport diplomatique vous dispense du contrôle douanier.', true);
-    addJournalEntry('Passage en douane : dispense diplomatique.', 'event-info');
-    state.douanePassee = true;
-    if (typeof updateUI === 'function') updateUI();
-    return;
-  }
-
-  // Si Recherché : jet de détection
-  if (state.recherche?.length > 0) {
-    // DIS fantome corrige (bêta) : state.dis est la vraie ressource Discretion (0-100),
-    // deja utilisee correctement partout ailleurs -- stats.DIS n'a jamais existe.
-    const dis = state.dis || 50;
-    const roll = Math.floor(Math.random() * 100) + 1;
-    const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
-    if (roll > taux) {
-      showToast('Intercepté !', 'Votre statut de Recherché a été détecté. Vous êtes arrêté(e).', false);
-      addJournalEntry('Interception aux douanes. Arrestation.', 'event-bad');
-      return;
-    }
-  }
-
-  // Inspection douaniere des objets prohibes (9 aout 2026) : controle physique deterministe -
-  // trouve systematiquement ce qu'il y a a trouver (pas de jet de chance, contrairement au
-  // controle Recherche ci-dessus). Armes et poisons illegaux confisques, convocation au
-  // commissariat sous 24h - meme mecanisme que l'achat d'arme illegal rate (state.convocations/
-  // se_justifier/traiterConvocations), le joueur reste libre de circuler, pas d'arrestation
-  // immediate. "Drogue" volontairement hors perimetre : aucun type d'objet drogue n'existe
-  // encore dans le jeu (voir chantier note au journal).
-  // tract_calomnieux ajoute (24 aout 2026, lot tracts electoraux/calomnieux PSM) : reutilise ce
-  // seul point de controle/fouille reel du jeu (aucun autre trouve inspectant l'inventaire) --
-  // memes consequences que les autres objets prohibes ici (confiscation + convocation), jamais
-  // la detention 1 jour prevue pour l'echec critique de distribution (ce controle n'a jamais ete
-  // branche sur procederArrestation/state.estEmprisonne, seulement sur les convocations).
-  // BRIQUE COMMUNE (13 septembre 2026). Ce filtre etait jusqu'ici code en dur ici, et divergeait
-  // de la fouille policiere sur deux points : il exigeait `legal === false` EN PLUS du type, et
-  // il ignorait totalement les interdictions votees par l'Assemblee (§39) -- une marchandise
-  // devenue illegale par une loi passait donc la douane, alors qu'elle etait saisie dans la rue.
-  // Les trois circuits (douane, fouille policiere, arrestation) lisent desormais objetsSaisissables.
-  const saisissables = (typeof objetsSaisissables === 'function')
-    ? objetsSaisissables(state.inventory) : null;
-  // Repli local SUPPRIME (chantier C, 14 septembre 2026) : sans la brique commune, ce controle
-  // retombait sur son propre filtre et reecrivait l'inventaire depuis le navigateur. La saisie
-  // passe desormais par le guichet serveur, qui recalcule lui-meme le perimetre.
-  const objetsProhibes = Array.isArray(saisissables) ? saisissables : [];
-  // Le serveur recalcule le perimetre et fait foi : s'il ne saisit rien, il n'y a ni
-  // confiscation ni convocation -- jamais une peine pour une saisie qui n'a pas eu lieu.
-  const nomsConfisques = objetsProhibes.length > 0 ? await confisquerObjets(objetsProhibes) : '';
-  if (nomsConfisques) {
-    if (!state.convocations) state.convocations = [];
-    state.convocations.push({
-      // id stable, lu par le trigger personnages_preserver_judiciaire (chantier Assemblee).
-      id: 'conv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-      motif: 'possession_illegale_douane',
-      jourEmission: state.day || 1,
-      heureEmission: state.hour || 8,
-      jourLimite: (state.day || 1) + 1,
-      heureLimite: state.hour || 8,
-      traitee: false
-    });
-
-    const commissairePays = { republic:'Raoul Toufaud', narco:'El Capitan Gordo', soviet:'Camarade Borodine', khalija:'Chambellan Ibn Protocole' }[pays] || 'Le Commissariat';
-    addMailNotification(commissairePays, 'Convocation officielle', 'Le contrôle douanier a détecté des objets prohibés dans vos bagages (' + nomsConfisques + '), désormais confisqués. Présentez-vous au commissariat sous 24h pour vous justifier, faute de quoi vous serez arrêté(e).');
-
-    showToast('Objets confisqués', nomsConfisques + ' confisqué(s) par la douane. Convocation au commissariat sous 24h.', false, true);
-    addJournalEntry('Contrôle douanier : objets prohibés confisqués (' + nomsConfisques + '). Convocation reçue.', 'event-bad');
-    updateUI();
-  }
-
-  state.douanePassee = true;
-  const msg = msgs[pays] || msgs['republic'];
-  showToast('Douanes passées', msg, true);
-  addJournalEntry('Contrôle douanier passé. Accès zone embarquement autorisé.', 'event-info');
-
-  // Redirige automatiquement vers la zone d'embarquement (9 aout 2026, retour de test en jeu) :
-  // plus besoin de re-cliquer un onglet apres avoir passe la douane avec succes. Remplace
-  // l'ancien bricolage qui se contentait de deverrouiller visuellement l'onglet sans y entrer.
-  if (typeof enterRoom === 'function') enterRoom(state.currentBuilding, 'zone_embarquement', null);
+  return commanderDouanesServeur();
 }
 
 function checkZoneEmbarquementAcces(buildingId, roomId) {
@@ -2795,78 +2706,8 @@ async function commanderTransportServeur(mode,pays,ville) {
 }
 
 async function executerVoyage(mode, empireId, villeId) {
-  if(state._navigationServeur===true)return commanderTransportServeur(mode,empireId,villeId);
-  const config = TRANSPORT_CONFIG[mode];
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  // Surcharge (Lot 1.5.4) : dernier verrou avant le debit et le deplacement reel. confirmerTransport
-  // a deja refuse en amont, mais cette fonction est appelable directement depuis le bouton de
-  // confirmation des douanes -- la garde d'ecran ne suffirait pas.
-  if (typeof refuserSiSurcharge === 'function' && refuserSiSurcharge('Prendre un transport')) return;
-  // Debit atomique unique (PA + FR revalides ici, au point reel du debit -- correctif du
-  // 24 aout 2026 : auparavant seuls les PA etaient revalides ici, les FR n'etaient verifies
-  // qu'en amont dans confirmerTransport puis debites sans nouvelle verification, un ecart de
-  // temps theorique entre les deux). Un seul appel : jamais de double debit, jamais de solde
-  // negatif (deduireCoutOrdre refuse et ne touche a rien si l'un des deux manque).
-  // `fn` explicite : ce site facture apres une modale, donc hors du passage de doOrder qui pose
-  // state._ordreEnCours. Sans lui, le bouton taxi de la Caserne/du QHS payait sous le nom de
-  // l'ordre precedent -- voir le commentaire de TRANSPORT_CONFIG.
-  const rVoyage = await deduireCoutOrdre({ pa: config.pa, cost: config.cost, fn: config.ordre });
-  if (!rVoyage.ok) {
-    // CORRECTIF DU 14 septembre 2026 : ce site annoncait "Fonds insuffisants" pour TOUTE raison
-    // autre qu'un manque de PA -- y compris 'personnage_introuvable', qui n'a rien a voir avec
-    // l'argent. Un joueur disposant de ses fonds se voyait donc refuser son billet pour un
-    // "budget insuffisant". signalerRefusCout dit desormais la vraie raison.
-    signalerRefusCout({ ...rVoyage, cost: config.cost, pa: config.pa });
-    return;
-  }
-  const ancienEmpire = state.country;
-  state.country = empireId;
-  state.currentCity = villeId;
-  state.currentBuilding = null;
-  state.currentRoom = null;
-  if (state.char) {
-    state.char.country = empireId;
-    state.char.currentCity = villeId;
-  }
-  applyEmpireTheme(empireId);
-  buildCityTabs();
-  updateUI();
-  const buildingArriveeVoyage = typeof getBuildingIdCentreMultimodal === 'function' ? getBuildingIdCentreMultimodal(villeId, empireId) : null;
-  // Repositionne le souvenir de rue centrale sur la scene du Centre Multimodal d'arrivee,
-  // sinon en sortant du batiment on retombe sur la derniere scene visitee dans cette ville —
-  // parfois perimee de plusieurs jours (bug remonte le 8 aout 2026).
-  if (buildingArriveeVoyage && typeof memoriserNoeudRueCentrale === 'function' && typeof trouverNoeudRueCentralePourBatiment === 'function') {
-    const noeudArriveeVoyage = trouverNoeudRueCentralePourBatiment(empireId, buildingArriveeVoyage);
-    if (noeudArriveeVoyage) memoriserNoeudRueCentrale(empireId, villeId, noeudArriveeVoyage);
-  }
-  if (buildingArriveeVoyage && typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingArriveeVoyage] && typeof enterBuilding === 'function') {
-    enterBuilding(buildingArriveeVoyage);
-  } else {
-    forceRenderCity(villeId);
-  }
-  // Le paiement ne prouve pas que la nouvelle position est en base.
-  // Entrer dans la salle déclenche déjà une sauvegarde asynchrone ; attendre
-  // explicitement la file commune avant d'annoncer l'arrivée comme acquise.
-  // Aucun nouveau débit, aucune nouvelle RPC de déplacement.
-  let positionConfirmee = false;
-  if (typeof sbSavePersonnage === 'function' && state?.char?.name &&
-      state.personnageChargeDepuisServeur !== false) {
-    try {
-      positionConfirmee = !!(await sbSavePersonnage(state));
-    } catch (erreurPosition) {
-      console.warn('Persistance de la position après transport impossible', erreurPosition);
-    }
-  }
-  if (!positionConfirmee) {
-    showToast('Position non confirmée',
-      'Le trajet a été payé, mais la position serveur n’a pas été confirmée. N’actualisez pas la page : une reconnexion pourrait vous replacer dans l’ancienne ville.', false);
-    return;
-  }
-  const villeName = villeNom(empireId, villeId) || villeId;
-  const empireName = EMPIRES_CONFIG[empireId]?.name || empireId;
-  showToast('Bienvenue à ' + villeName + ' !', empireName + ' · -' + config.cost + ' ' + cur, true, true);
-  addJournalEntry('Voyage en ' + config.label + ' → ' + villeName + ' (' + empireName + ')', 'event-info');
-  addExternalEvent((state.char?.name||'Anonyme') + ' est arrivé(e) à ' + villeName + ' (' + empireName + ').');
+  // Même acte atomique pour tous : le drapeau du navigateur ne choisit pas une autre caisse.
+  return commanderTransportServeur(mode, empireId, villeId);
 }
 
 // Dialogue scripte de Mireille Guichet (lot du 24 aout 2026) -- texte fixe, pas de chat IA
@@ -2887,144 +2728,7 @@ function ouvrirRenseignementMireilleGuichet() {
 }
 
 async function confirmerTransport(mode, empireId, villeId) {
-  if(state._navigationServeur===true)return commanderTransportServeur(mode,empireId,villeId);
-  document.getElementById('modal-postes').classList.remove('open');
-  const config = TRANSPORT_CONFIG[mode];
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  // Surcharge (Lot 1.5.4) : refus AVANT les douanes et tout debit, pour que le joueur sache
-  // immediatement pourquoi. executerVoyage porte le meme verrou en dernier ressort.
-  if (typeof refuserSiSurcharge === 'function' && refuserSiSurcharge('Prendre un transport')) return;
-
-  if (getFondsDisponiblesOrdinaires() < config.cost) {
-    showToast('Fonds insuffisants', 'Il vous faut ' + config.cost + ' ' + cur, false);
-    return;
-  }
-
-  // Controle douanes obligatoire pour avion et bateau
-  if (mode === 'avion' || mode === 'bateau') {
-    const msgs = {
-      republic: "L'inspecteur Prosper Tampon examine vos papiers, tamponne trois formulaires et vous laisse passer.",
-      narco:    "Juanita Soborno vous sourit. Vous glissez un billet. Elle regarde ailleurs. Bonne route.",
-      soviet:   "Nadejda Contrôle fouille votre bagage méthodiquement. Tout est en ordre, Camarade.",
-      khalija:  "Le Chambellan Al-Transit incline la tête. Vos papiers sont en règle. Bienvenue."
-    };
-
-    // Si recherche : jet de detection
-    if (state.recherche?.length > 0) {
-      // DIS fantome corrige (bêta) : voir plateau-navigation.js:703 pour le detail.
-      const dis = state.dis || 50;
-      const roll = Math.floor(Math.random() * 100) + 1;
-      const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
-      if (roll > taux) {
-        showToast('Intercepté aux douanes !', 'Votre statut de Recherché a été détecté. Vous êtes arrêté(e).', false);
-        addJournalEntry('Interception aux douanes. Arrestation.', 'event-bad');
-        addExternalEvent((state.char?.name||'Anonyme') + ' a été intercepté(e) aux douanes.');
-        return;
-      }
-    }
-
-    // Afficher modal douanes avant de voyager
-    const msg = msgs[state.country] || msgs['republic'];
-    document.getElementById('postes-modal-title').textContent = '🛂 Contrôle douanier';
-    document.getElementById('postes-body').innerHTML =
-      '<div style="padding:1.2rem">' +
-      '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">' + msg + '</div>' +
-      '<div style="margin-top:1rem;text-align:right">' +
-      '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');executerVoyage(\'' + mode + '\',\'' + empireId + '\',\'' + villeId + '\')" ' +
-      'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Embarquer →</button>' +
-      '</div></div>';
-    document.getElementById('modal-postes').classList.add('open');
-    addJournalEntry('Passage aux douanes.', 'event-info');
-    return; // On attend la confirmation
-  }
-
-  // CORRECTIF DU 14 septembre 2026 — TRANSPORTS INTRA-EMPIRE (train, bus).
-  //
-  // Ce chemin avait deux defauts, tous deux visibles en production :
-  //   1. il annoncait au serveur un cout de 0 FR (`cost: 0`) alors que l'ordre prendre_train /
-  //      prendre_bus declare son prix dans data.js. Depuis que payer_ordre valide le couple
-  //      (pa, cost) contre le miroir, ce couple n'existe pas : l'ordre etait refuse en
-  //      'cout_non_declare' -- et le message affiche disait "PA insuffisants", ce qui n'avait
-  //      aucun rapport ;
-  //   2. le prix etait ensuite preleve par le NAVIGATEUR (debiterFondsOrdinaires), hors de
-  //      toute validation serveur.
-  // Un seul appel couvre desormais les deux composantes, exactement comme le fait deja
-  // executerVoyage pour l'avion et le bateau. Memes PA, meme prix : aucune regle ne change.
-  // `fn` explicite, meme raison qu'en executerVoyage : facturation differee par une modale.
-  const rTransport = await deduireCoutOrdre({ pa: config.pa, cost: config.cost, fn: config.ordre });
-  if (!rTransport.ok) { signalerRefusCout({ ...rTransport, cost: config.cost, pa: config.pa }); return; }
-
-  // Changer d'empire et de ville
-  const ancienEmpire = state.country;
-  state.country = empireId;
-  state.currentCity = villeId;
-  state.currentBuilding = null;
-  state.currentRoom = null;
-
-  // Sauvegarder dans localStorage
-  if (state.char) {
-    state.char.country = empireId;
-    state.char.currentCity = villeId;
-    state.char.currentBuilding = null;
-    state.char.currentRoom = null;
-    try {
-      localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
-    } catch (e) {
-      console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
-    }
-  }
-
-  // Reconstruire l'interface pour le nouvel empire
-  buildCityTabs();
-  updateUI();
-  updateLocationDisplay();
-  renderMinimap(villeId);
-
-  // Forcer le rechargement de la vue rue dans le nouvel empire
-  const world = WORLD[empireId];
-  const city = world?.[villeId];
-  if (city) {
-    document.getElementById('city-name-display').textContent = city.name + ', ' + (COUNTRIES[empireId]?.n || empireId);
-    document.querySelectorAll('.city-tab').forEach(t => {
-      t.classList.toggle('active', t.textContent === city.name);
-    });
-    // Mettre a jour le titre et la description de la rue
-    const rueTitle = document.getElementById('rue-title');
-    const rueDesc = document.getElementById('rue-desc');
-    if (rueTitle) rueTitle.textContent = city.isCapitale ? 'Avenue Principale' : 'Rue principale de ' + city.name;
-    if (rueDesc) rueDesc.textContent = city.desc || '';
-    // Mettre a jour l'image de la rue
-    const rueImage = document.getElementById('rue-image');
-    if (rueImage && city.imageUrl) {
-      rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%), url('${city.imageUrl}') center/cover no-repeat`;
-      rueImage.style.backgroundSize = 'cover';
-    }
-    // Afficher la vue rue
-    document.getElementById('vue-rue').classList.add('active');
-    document.getElementById('vue-batiment').classList.remove('active');
-    // Mettre a jour les personnes presentes
-    renderPersonsList(city.persons || []);
-  }
-
-  const villeName = villeNom(empireId, villeId) || city?.name || villeId;
-  const empireName = EMPIRES_CONFIG[empireId]?.name || empireId;
-  showToast('Bienvenue à ' + villeName + ' !', empireName + ' · -' + config.cost + ' ' + cur, true, true);
-  addJournalEntry('Voyage en ' + config.label + ' → ' + villeName + ' (' + empireName + ')', 'event-info');
-  addExternalEvent((state.char?.name||'Anonyme') + ' est arrivé(e) à ' + villeName + ' (' + empireName + ').');
-
-  const buildingArriveeTransport = typeof getBuildingIdCentreMultimodal === 'function' ? getBuildingIdCentreMultimodal(villeId, empireId) : null;
-  // Repositionne le souvenir de rue centrale sur la scene du Centre Multimodal d'arrivee —
-  // voir le meme correctif dans executerVoyage ci-dessus.
-  if (buildingArriveeTransport && typeof memoriserNoeudRueCentrale === 'function' && typeof trouverNoeudRueCentralePourBatiment === 'function') {
-    const noeudArriveeTransport = trouverNoeudRueCentralePourBatiment(empireId, buildingArriveeTransport);
-    if (noeudArriveeTransport) memoriserNoeudRueCentrale(empireId, villeId, noeudArriveeTransport);
-  }
-  if (buildingArriveeTransport && typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingArriveeTransport] && typeof enterBuilding === 'function') {
-    enterBuilding(buildingArriveeTransport);
-  } else {
-    forceRenderCity(villeId);
-  }
+  return commanderTransportServeur(mode, empireId, villeId);
 }
 
 function doControlDouanes() {
@@ -3055,23 +2759,7 @@ function doControlDouanes() {
 // pot-de-vin fonctionne ou non -- l'ancien comportement "gratuit en cas d'echec" etait
 // l'anomalie, pas l'inverse).
 async function doCorrompreDoanier(pa, cost) {
-  if(state._navigationServeur===true)return commanderCorruptionDouanesServeur(pa,cost);
-  // PAR LE SERVEUR (27 octobre 2026) : crime_corrompre_douanier (PA et prix a la tentative, jet
-  // 55 + DUP/10 + INF/10 + 20, discretion, detection). Le passage debloque reste tenu ici.
-  const v = await appelerCrimeServeur('crime_corrompre_douanier', { p_pa: pa, p_cost: cost });
-  if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
-  adopterEtatCrimeServeur(v);
-  if (v.reussi) {
-    state.douanePassee = true;
-    showToast('Agent corrompu', 'L\'agent regarde ailleurs. -' + cost + ' FR -5 DIS. Accès à l\'embarquement autorisé.', true);
-    addJournalEntry('Corruption douanière réussie.', 'event-bad');
-    adopterDetectionServeur(v, 'corrompre_douanier');
-    updateUI();
-    if (typeof enterRoom === 'function') enterRoom(state.currentBuilding, 'zone_embarquement', null);
-  } else {
-    showToast('Refus !', 'L\'agent n\'a pas mordu. Tentative notée.', false);
-    updateUI();
-  }
+  return commanderCorruptionDouanesServeur(pa, cost);
 }
 
 let corruptionDouanesServeurEnCours=null;
@@ -3133,91 +2821,39 @@ async function doContrebandePort(pa, cost) {
 }
 
 async function doBlocusPortuaire(pa, cost) {
-  // LE BLOCUS PORTUAIRE EST UNE ACTION SYNDICALE (decision de game design du 17 septembre 2026).
-  //
-  // Correctif du 25 aout 2026 (bug remonte en production v69 : n'importe quel PJ pouvait
-  // declencher un blocus depuis le quai principal) : le blocus est reserve au chef du syndicat
-  // des dockers et revalide ici INDEPENDAMMENT de l'affichage -- un appel direct au handler par un
-  // non-chef echoue avant tout cout ou effet de bord.
-  //
-  // Ce qui change aujourd'hui : ce controle etait encadre par `if (state.country === 'republic')`,
-  // ce qui revenait a traiter l'ABSENCE de syndicat comme une autorite valable. A El Estado, ou
-  // data.js declare aussi blocus_portuaire mais sans syndicat constitue, n'importe quel PJ pouvait
-  // donc paralyser le port. L'autorite est desormais cherchee GENERIQUEMENT pour le territoire ou
-  // l'on se trouve (syndicatDockersDuTerritoire) : plus de test sur le nom du pays.
-  //
-  // Si aucun syndicat de dockers n'existe sur ce territoire, l'ordre est REFUSE avec un message
-  // explicite -- il n'est pas supprime en silence, et l'absence de structure ne vaut pas
-  // permission. ARBITRAGE/CONTENU GD EN ATTENTE : quelle organisation portera cette autorite a El
-  // Estado (nom, siege, chef par defaut) releve du chantier de contenu de cet empire ; rien n'est
-  // invente ici.
-  const ville = state.currentCity;
-  let syndicat = (typeof syndicatDockersDuTerritoire === 'function')
-    ? syndicatDockersDuTerritoire(state.country, ville) : null;
-  // Republia : le syndicat est cree paresseusement a la premiere visite de sa salle. On le
-  // materialise ici aussi, pour ne rien changer au parcours existant.
-  if (!syndicat && state.country === 'republic' && ville === 'ville_a'
-      && typeof chargerOuCreerSyndicatDockersPSM === 'function') {
-    syndicat = await chargerOuCreerSyndicatDockersPSM();
-  }
-  if (!syndicat) {
-    showToast('Aucun syndicat compétent',
-      "Le blocus portuaire est une action syndicale : aucun syndicat des dockers n'est constitué ici.", false);
+  // GAME-DESIGN-BLOCUS.md, Fred 02/11 : même blocus, mêmes participants,
+  // mêmes 2 PA par PJ et même tentative quotidienne. L'ancien jet local
+  // portuaire ne créait aucun blocus serveur et fabriquait un malus POP.
+  // Le formulaire existant prépare la commande canonique, sans prélèvement ici.
+  if (typeof doOrganiserBlocusSyndical !== 'function') {
+    showToast('Blocus indisponible', 'Le formulaire syndical n’est pas disponible.', false);
     return;
   }
-  if (syndicat.chef !== (state.char?.name || '')) {
-    showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut déclencher un blocus portuaire.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const vol = getStatEffective('VOL');
-  const ent = getStatEffective('ENT');
-  const taux = Math.max(5, 60 + Math.floor(vol/10) + Math.floor(ent/10) - getMalusISN());
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const pays = state.country || 'republic';
-
-  if (roll <= taux) {
-    if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IE = Math.max(0, INDICES_NATIONAUX[pays].IE - 5);
-    updateUI();
-    // Etait affiche en ECHEC (3e argument false) alors que cette branche est celle du SUCCES du
-    // jet (if (roll <= taux) juste au-dessus) : le blocus a bien ete declenche. Corrige en succes
-    // (lot ergonomique 1, 5 septembre 2026). Aucun effet de jeu modifie, uniquement la couleur et
-    // le cadre du toast.
-    showToast('Blocus déclenché !', 'Le port est paralysé pour 24h. -5 IE.', true);
-    addExternalEvent('GRÈVE : Blocus portuaire déclenché ! Importations/exportations suspendues 24h. -5 IE.');
-    addJournalEntry('Blocus portuaire initié.', 'event-info');
-  } else {
-    state.pop = Math.max(0, state.pop - 8);
-    updateUI();
-    showToast('Échec du blocus', 'Le mouvement n\'a pas pris. -8 POP.', false);
-    // checkDetection('blocus_portuaire', 'fail') retire (27/10/2026) : un echec n'est jamais detecte, l'appel ne faisait rien.
-  }
+  return doOrganiserBlocusSyndical();
 }
 
 async function doInspecterCargaisons(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const int_ = getStatEffective('INT');
-  const pays = state.country || 'republic';
-  const isBonus = pays === 'soviet';
-  const taux = Math.max(5, 80 + Math.floor(int_/10) + (isBonus ? 15 : 0));
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    state.inf = Math.min(100, state.inf + 5);
-    updateUI();
-    const trouve = Math.random() < 0.4;
-    if (trouve) {
-      showToast('Contrebande détectée !', 'Une cargaison suspecte a été repérée. +5 INF. Ouvrir une enquête ?', true, true);
-      addExternalEvent('INSPECTION : Contrebande détectée au port par ' + (state.char?.name||'Anonyme') + '. Enquête en cours.');
+  // #379 : 2 PA, jet INT et +/- INF sont validés et appliqués ensemble
+  // par la commande serveur. Un navigateur ancien ne peut plus choisir le tirage.
+  const v = await executerOrdreJaugesServeur('inspecter_cargaisons', {});
+  if (!v) return;
+  updateUI();
+  if (v.rejeu === true) {
+    showToast('Inspection déjà traitée',
+      'Le serveur a déjà enregistré cette inspection. Aucun nouveau coût ni gain.', true);
+    return;
+  }
+  if (v.inspection_reussie === true) {
+    if (v.contrebande_detectee === true) {
+      showToast('Contrebande détectée !',
+        'Une cargaison suspecte a été repérée. +5 INF. Ouvrir une enquête ?', true, true);
+      addExternalEvent('INSPECTION : Contrebande détectée au port par ' +
+        (state.char?.name || 'Anonyme') + '. Enquête en cours.');
     } else {
-      showToast('Inspection terminée', 'Rien d\'anormal. +5 INF.', true);
+      showToast('Inspection terminée', 'Rien d’anormal. +5 INF.', true);
     }
   } else {
     showToast('Inspection sans résultat', 'Rien à signaler. -3 INF.', false);
-    state.inf = Math.max(0, state.inf - 3);
-    updateUI();
   }
 }
 

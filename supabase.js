@@ -2783,6 +2783,13 @@ async function sbOrganisationVie(orgaId, action, parametres) {
     localStorage.setItem(cle, requete);
     const r = await sbRpcVerdict('organisation_vie_commande',
       { p_requete: requete, p_organisation: orgaId || null, p_action: action, p_parametres: params });
+    // Une réponse tronquée n'atteste pas un ordre à effets : conserver le reçu à rejouer.
+    if(action==='ordre_jauges'&&r?.ok===true&&(r.contrat_jauges!==1||r.acteur!==nom
+        ||r.organisation!==orgaId||r.ordre!==params.fn
+        ||(params.fn==='orga_anatheme'&&(r.effets_cible?.nom!==params.cible||!['pop','moral'].every(k=>typeof r.effets_cible[k]==='number'&&Number.isFinite(r.effets_cible[k]))))
+        ||!['pop','inf','pa','hp','moral','gain_pop','gain_inf','gain_moral'].every(k=>typeof r[k]==='number'&&Number.isFinite(r[k])))) {
+      return {ok:false,raison:'contrat_invalide',transport:{etat:'confirmation_incertaine'}};
+    }
     // Un refus metier est definitif pour ce geste ; seul un transport incertain garde la cle.
     if (r && (r.ok === true || (r.raison && !r.transport))) { try { localStorage.removeItem(cle); } catch (_) {} }
     return r || { ok: false, raison: 'reponse_absente' };
@@ -4998,7 +5005,7 @@ async function sbRecupererImpactsEnAttente(victime) {
 
 // Reserve a la VICTIME : la RPC ne marque que ses propres lignes. Un tiers obtient marques:0.
 async function sbMarquerImpactTraite(impactId) {
-  const rows = await sbRpc('impact_marquer_traite', { p_id: impactId });
+  const rows = await sbRpc('impact_marquer_traite', { p_id: impactId, p_contrat: 1 });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
