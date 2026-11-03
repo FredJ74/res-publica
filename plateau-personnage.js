@@ -2275,7 +2275,6 @@ async function doDormir() {
     // (detention_clore_purgee), et checkArrestationAuReveil lit state.estEmprisonne juste apres.
     await verifierLiberationPrisonniers();
     if (!retourActif()) return false;
-    verifierDecouverteCrimesPasses();
     checkArrestationAuReveil();
     verifierProgressionHospitalisation();
     if (typeof verifierEffetsManifestationsEcoulees === 'function') verifierEffetsManifestationsEcoulees(state.country);

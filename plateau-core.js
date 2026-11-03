@@ -2564,7 +2564,6 @@ async function runMidnightUpdate() {
   // Attendue depuis le 9 octobre 2026 : la liberation est desormais prononcee par le serveur
   // (detention_clore_purgee), et la suite de la passe de minuit lit state.estEmprisonne.
   await verifierLiberationPrisonniers();
-  verifierDecouverteCrimesPasses();
   // DEUX APPELS ONT ETE RETIRES ICI (chantier 4F, 7 octobre 2026), et les deux etaient des
   // distributeurs de recettes nationales concurrents de la cascade serveur.
   //
