@@ -25,6 +25,11 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Forums territoriaux et privés — ChatGPT, 03/11/2026 (PR à ouvrir)
+
+Branche `chatgpt/forums-territoires-et-adhesions-20261103`, issue de main après #421. Décision dans `GAME-DESIGN-FORUMS.md`. Cause PJ : `local_ville_a` est partagé par PSM et Puerto Negro sans isolation par pays ; `national` est commun aux empires ; getForums propose toutes les organisations du catalogue indépendamment de l'adhésion. Correction sur `forum.js` et `supabase.js` : navigation et comptes isolés, requêtes territoriales, vérification d'adhésion, cache purgé lors d'un changement de pays, réponses tardives ignorées. Migration RLS non appliquée : `migrations/20261103222000_forums_territoires_et_adhesions.sql` ; sécurise sujets et réponses via le personnage serveur et la table organisations, sans réécrire les données. Prévol transactionnel sur Supabase **annulé avec ROLLBACK** : SQL valide, acteurs Républia/El Estado, chef/tiers d'organisation, RLS sujet et réponse ; aucun déploiement ni migration. Banc client : `outils/bancs/banc-forums-territoires-adhesions-20261103.cjs`. Reste : exécution Node réelle/CI, contrôle des migrations simultanées avec Claude #410, application au registre, déploiement READY et recette PJ. Ne pas fusionner avant ces vérifications.
+
+
 ### POP/INF : fin de l'autorité du navigateur (#379 → PR #410) — repris par Claude le 03/11 au soir
 
 **Décision de Fred (03/11, 21 h 19) : Claude reprend le chantier de ChatGPT, qui s'arrête.** Branche à reprendre telle quelle : `chatgpt/379-grace-atomique-reprise-20261103` (PR #410, brouillon, sans conflit au 03/11). État transmis par ChatGPT : grâce présidentielle transactionnelle (15/15) ; garde POP/INF contre les sauvegardes périmées (18/18) **insuffisante** (une base courante + `pop=99` passe encore) ; seconde migration stricte écrite (refus de toute variation POP/INF venant de la sauvegarde générale, 3/3 contre-épreuves) **à ne pas appliquer** avant le raccordement des producteurs légitimes ; inventaire des 30 producteurs POP/INF sur la branche, un seul raccordé (inspection des cargaisons au port, 14/14) ; deux circuits morts retirés, publication du forum conservée. PR #379 (Codex, en conflit) : référence seulement, ne pas la fusionner. Formules d'origine conservées à chaque raccordement (aucune décision de design attendue).
