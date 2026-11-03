@@ -13,7 +13,7 @@ async function fixture(strict=true){
  await db.exec("CREATE FUNCTION public.est_appel_serveur() RETURNS boolean LANGUAGE sql AS $$ SELECT false $$");
  const migration=fs.readFileSync('migrations/20261103183000_pop_inf_refuser_deltas_perimes_379.sql','utf8');
  await db.exec(migration.slice(migration.indexOf('CREATE OR REPLACE FUNCTION')));
- if(strict)await db.exec(fs.readFileSync('migrations/20261103204000_pop_inf_commande_serveur_uniquement_379.sql','utf8'));
+ if(strict)await db.exec(fs.readFileSync('outils/livraison/preparatifs-379/fermeture-pop-inf-serveur-seul.sql','utf8'));
  await db.exec("CREATE TRIGGER controle BEFORE UPDATE ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION public.personnages_fusionner_pop()");
  await db.exec("INSERT INTO personnages_donnees VALUES ('Fixture','{\"pop\":10,\"inf\":10}')");
  await db.exec("SELECT set_config('request.path','/rest/v1/personnages_donnees',false)");
