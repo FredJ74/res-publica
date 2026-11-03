@@ -32,11 +32,14 @@ function forumScene(){
  const element={'forum-activity-dot':dot,'modal-forum-title':titre,'forum-sidebar':side,'forum-body':body,
    'modal-forum':{classList:{contains:()=>true}}};
  const ctx={
-   state:{char:{name:'Joueur de test'}},forumActivite:{forums:{},groupes:{},global:false},
+   state:{char:{name:'Joueur de test'}},stockageBloque:false,session:new Map(),
+   forumActivite:{forums:{},groupes:{},global:false},
    forumActiviteCache:{},forumView:'list',currentForumId:'national',forumCategorieActive:'intra',
    forumSousGroupeOuvert:false,FORUM_TOPICS:{},mailRubrique:'recus',
    getForums:()=>forums,canAccessForum:id=>id!=='ancien',
-   localStorage:{getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,v)},
+   localStorage:{getItem:k=>{if(ctx.stockageBloque)throw Error('quota depasse');return map.get(k)||null;},
+                 setItem:(k,v)=>{if(ctx.stockageBloque)throw Error('quota depasse');map.set(k,v)}},
+   sessionStorage:{getItem:k=>ctx.session.get(k)||null,setItem:(k,v)=>ctx.session.set(k,v)},
    document:{getElementById:id=>element[id]||null},
    mailsRecusVisibles:()=>[],renderForumSidebar:()=>'',renderForumContent:()=>'',console
  };
@@ -121,4 +124,33 @@ test('sans portrait : silhouette visible, jamais photo d’un autre compte',()=>
 test('URL dangereuse ne produit pas de balise image',()=>{
  const nodes=reconnexionScene({name:'Arnie',photoUrl:'javascript:alert(1)'});
  assert.equal(nodes.filter(n=>n.tag==='img').length,0);
+});
+
+test('badge lu : ancien cache local saturé ne rallume pas le voyant après polling',()=>{
+ const s=forumScene();
+ s.ctx.stockageBloque=true;
+ s.ctx.forumActiviteCache.national='2026-11-03T21:10:00Z';
+ s.ctx.forumActivite.forums.national=true;
+ s.ctx.recalculerActiviteForumAgregat();
+ s.ctx.marquerForumRubriqueVisitee('national');
+ assert.equal(s.dot.style.display,'none');
+ assert.ok(s.ctx.session.get('respublica_dernier_passage_forum_Joueur de test_national'));
+ assert.equal(s.ctx._instantForum(s.ctx._dernierPassageForumId('national')) >=
+   s.ctx._instantForum('2026-11-03T21:10:00Z'),true);
+ assert.equal(s.ctx._instantForum('2026-11-03T21:10:00Z') >
+   s.ctx._instantForum(s.ctx._dernierPassageForumId('national')),false);
+});
+test('horodatages : un instant identique au format PostgreSQL ou ISO ne crée pas un non-lu',()=>{
+ const s=forumScene();
+ const a='2026-11-03T21:10:00+00:00',b='2026-11-03T21:10:00.000Z';
+ assert.equal(s.ctx._instantForum(a),s.ctx._instantForum(b));
+ assert.equal(s.ctx._instantForum('2026-11-03T21:10:00.000000+00:00'),s.ctx._instantForum(b));
+ assert.equal(s.ctx._instantForum('2026-11-03T22:10:00+01:00'),s.ctx._instantForum(b));
+});
+test('lecture décalée : si réponse serveur arrive après ouverture, horodatage de dernière lecture suit',()=>{
+ const s=forumScene();
+ s.ctx.forumActiviteCache.national='2030-01-01T00:00:00+00:00';
+ s.ctx.marquerForumRubriqueVisitee('national');
+ assert.equal(s.ctx._instantForum(s.ctx._dernierPassageForumId('national')),
+   s.ctx._instantForum('2030-01-01T00:00:00Z'));
 });
