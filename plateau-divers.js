@@ -223,11 +223,10 @@ async function modifierIndiceVille(pays, ville, cle, delta) {
     }
     return;
   }
-  const key = 'republic_' + ville;
-  if (!INDICES_VILLES_CACHE[key]) INDICES_VILLES_CACHE[key] = { ...INDICE_VILLE_DEFAUT };
-  const iv = INDICES_VILLES_CACHE[key];
-  iv[cle] = Math.max(0, Math.min(100, (iv[cle] ?? INDICE_VILLE_DEFAUT[cle] ?? 50) + delta));
-  if (typeof sbSaveIndicesVille === 'function') await sbSaveIndicesVille(key, iv).catch(() => {});
+  // REPUBLIA : INDICES ECRITS PAR LE SERVEUR SEUL (03/11/2026). La table indices_villes est fermee a
+  // l'ecran ; chaque acte pose son effet dans sa fonction serveur (indice_ville_ajuster_interne) et
+  // l'ecran relit (chargerIndicesRepublia) ou adopte les indices rendus. La piete est imposee par le
+  // registre des contributions. Un appel restant ici ne modifie donc rien, pas meme l'affichage.
 }
 
 // Indice "national" calcule a la volee (moyenne des villes de Republia). Pour les 3 autres

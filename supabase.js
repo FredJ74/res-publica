@@ -1878,9 +1878,7 @@ async function sbGetIndicesVille(key) {
   return rows[0].data;
 }
 
-async function sbSaveIndicesVille(key, data) {
-  return sbUpsert('indices_villes', { id: key, data, updated_at: new Date().toISOString() });
-}
+// sbSaveIndicesVille supprimee le 03/11/2026 : indices_villes n'est plus ecrivable par l'ecran.
 
 // LEDGER DES CONTRIBUTIONS DE PIETE : ecrit et lu par le serveur seul depuis le 27 octobre 2026
 // (religion_agir, piete_villes_actualiser). Les anciens acces directs sont supprimes.

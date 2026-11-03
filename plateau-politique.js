@@ -8017,7 +8017,8 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
       return;
     }
   }
-  if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, state.currentCity || 'capitale', 'social', 3).catch(() => {});
+  // Social +3 de la ville du ministre : pose par la porte de versement (03/11/2026), relu ici.
+  if (typeof chargerIndicesRepublia === 'function') await chargerIndicesRepublia().catch(() => {});
   updateUI();
   showToast('Subvention accordée', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' versés à ' + nomCible + '. +3 IS.', true, true);
   addJournalEntry('Subvention de ' + montantVerse + ' FR accordée à ' + nomCible + '.', 'event-good');
@@ -8283,7 +8284,7 @@ function executerOrdreContact(action, nomCible) {
                   + 'Rien n\'a été annoncé au bénéficiaire. Signalez l\'incident.', false, true);
         return;
       }
-      if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, state.currentCity || 'capitale', 'social', 3).catch(() => {});
+      // Ancien chemin (subvention_cible, hors catalogue) : plus d'ecriture d'indice par l'ecran (03/11/2026).
       updateUI();
       showToast('Subvention accordée', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' versés à ' + nomCible + '. +3 IS.', true, true);
       addJournalEntry('Subvention de ' + montantVerse + ' FR accordée à ' + nomCible + '.', 'event-good');
@@ -8330,32 +8331,40 @@ async function ouvrirInterdireManif(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// PORTE SERVEUR (03/11/2026) : poste min_int, 2 PA, Social -5 et interdiction de 3 jours inscrite au
+// budget municipal par manifestation_interdire. L'ecran n'ecrit plus ni indices_villes ni le budget.
+const MOTIFS_MANIFESTATION = {
+  reserve_ministre_interieur: 'Réservé au Ministre de l\'Intérieur.',
+  ville_inconnue: 'Ville inconnue.',
+  police_en_greve: 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.',
+  pa_insuffisants: 'Points d\'action insuffisants.'
+};
+
+function adopterIndicesVilleServeur(pays, ville, indices) {
+  if (pays === 'republic' && indices && typeof INDICES_VILLES_CACHE !== 'undefined') {
+    INDICES_VILLES_CACHE['republic_' + ville] = Object.assign({}, INDICE_VILLE_DEFAUT, indices);
+  }
+}
+
 async function confirmerInterdireManif(pa, cost) {
   const sujet = document.getElementById('interdire-manif-sujet')?.value?.trim() || 'Manifestation non precisee';
   const ville = document.getElementById('interdire-manif-ville')?.value || state.currentCity || 'capitale';
   document.getElementById('modal-postes')?.classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   const nomVille = villeNom(pays, ville) || ville;
-
-  if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, ville, 'social', -5).catch(() => {});
-
-  const budgetMuni = await chargerBudgetMunicipalPourVille(pays, ville);
-  // L'interdiction est inscrite DANS le budget municipal : sans budget lisible, l'ecrire
-  // reviendrait a reconstruire la ligne entiere et donc a remettre la caisse de la ville a zero.
-  if (!budgetMuni) {
-    showToast('Ville injoignable', 'Le registre municipal de ' + nomVille + ' n\'a pas pu etre lu. '
-      + 'L\'interdiction n\'est pas enregistree.', false);
-  } else {
-    budgetMuni.manifestationInterdite = { sujet, jour: state.day || 1, expireJour: (state.day || 1) + 3 };
-    if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(pays + '_' + ville, budgetMuni).catch(() => {});
+  const brut = typeof sbRpc === 'function'
+    ? await sbRpc('manifestation_interdire', { p_ville: ville, p_sujet: sujet }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
+  if (!r || r.ok !== true) {
+    showToast('Interdiction refusée', MOTIFS_MANIFESTATION[r?.raison] || 'Le serveur n\'a pas enregistré l\'interdiction (' + (r?.raison || 'sans réponse') + ').', false);
+    return;
   }
-
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+  adopterIndicesVilleServeur(pays, ville, r.indices);
   updateUI();
-  showToast('Manifestation interdite', sujet + ' — interdite a ' + nomVille + '. -5 Social local.', true);
-  addExternalEvent('INTERDICTION : La manifestation "' + sujet + '" a ete interdite par le Ministre de l\'Interieur a ' + nomVille + '.');
-  addJournalEntry('Manifestation interdite : ' + sujet + ' (' + nomVille + ').', 'event-info');
+  showToast('Manifestation interdite', r.sujet + ' — interdite a ' + nomVille + '. -5 Social local.', true);
+  addExternalEvent('INTERDICTION : La manifestation "' + r.sujet + '" a ete interdite par le Ministre de l\'Interieur a ' + nomVille + '.');
+  addJournalEntry('Manifestation interdite : ' + r.sujet + ' (' + nomVille + ').', 'event-info');
 }
 
 // REPRIMER UNE MANIFESTATION (Ministre de l'Interieur) -- meme exception que ci-dessus (cible
@@ -8392,73 +8401,35 @@ async function ouvrirReprimerManif(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// PORTE SERVEUR (03/11/2026) : manifestation_reprimer tranche tout (poste min_int, greve des
+// policiers, 3 PA, bareme -5/+5 ou -8/+8 si une interdiction court, PV -10 et VOL -10 de chaque PJ
+// present dans la ville). L'ecran ecrivait la fiche des autres joueurs par la vue, ce qui etait refuse.
 async function confirmerReprimerManif(pa, cost) {
   const sujet = document.getElementById('reprimer-manif-sujet')?.value?.trim() || 'Rassemblement non precise';
   const ville = document.getElementById('reprimer-manif-ville')?.value || state.currentCity || 'capitale';
   document.getElementById('modal-postes')?.classList.remove('open');
-  // §9 "Greves" : revalidation independante au moment de l'execution -- un syndicat de policiers
-  // a pu se mettre en greve entre l'ouverture du modal et ce clic.
-  if (typeof syndicatPoliceEnGreve === 'function' && syndicatPoliceEnGreve(state.country || 'republic')) {
-    showToast('Répression impossible', 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   const nomVille = villeNom(pays, ville) || ville;
-
-  const budgetMuni = await chargerBudgetMunicipalPourVille(pays, ville);
-  // Budget illisible : on ne PEUT PAS savoir si la manifestation avait ete interdite. Le bareme
-  // etant plus lourd dans ce cas, on retient l'hypothese la plus clemente -- on ne sanctionne
-  // pas davantage sur une information qu'on n'a pas.
-  const interdictionRecente = !!budgetMuni && budgetMuni.manifestationInterdite
-    && budgetMuni.manifestationInterdite.expireJour >= (state.day || 1);
-  // Bareme arrete le 7 septembre 2026 : la repression paie en cohesion sociale ce qu'elle rapporte
-  // en securite, symetriquement, et davantage quand la manifestation avait deja ete interdite --
-  // disperser un rassemblement interdit est un geste plus lourd des deux cotes.
-  //   manifestation autorisee            -5 Social / +5 Securite
-  //   manifestation prealablement interdite  -8 Social / +8 Securite
-  //
-  // LES DEUX INDICES SONT LOCAUX ET PERSISTES (table indices_villes, cles 'social' et 'isn') : on
-  // ne touche PAS a INDICES_NATIONAUX, qui n'est qu'une constante en memoire client, perdue au
-  // rechargement. C'est la ville reprimee qui en porte durablement la trace, pas le navigateur du
-  // ministre.
-  const baisseSocial = interdictionRecente ? 8 : 5;
-  const hausseSecurite = interdictionRecente ? 8 : 5;
-  if (typeof modifierIndiceVille === 'function') {
-    await modifierIndiceVille(pays, ville, 'social', -baisseSocial).catch(() => {});
-    await modifierIndiceVille(pays, ville, 'isn', hausseSecurite).catch(() => {});
+  const brut = typeof sbRpc === 'function'
+    ? await sbRpc('manifestation_reprimer', { p_ville: ville, p_sujet: sujet }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
+  if (!r || r.ok !== true) {
+    showToast('Répression impossible', MOTIFS_MANIFESTATION[r?.raison] || 'Le serveur n\'a pas enregistré la répression (' + (r?.raison || 'sans réponse') + ').', false);
+    return;
   }
-
-  if (interdictionRecente) {
-    delete budgetMuni.manifestationInterdite;
-    if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(pays + '_' + ville, budgetMuni).catch(() => {});
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+  adopterIndicesVilleServeur(pays, ville, r.indices);
+  if (r.moi && typeof r.moi.hp === 'number') {
+    state.hp = r.moi.hp;
+    if (state.char?.stats && typeof r.moi.vol === 'number') state.char.stats.VOL = r.moi.vol;
   }
-
-  // PJ "participants" = tout PJ actuellement dans cette ville, faute de systeme de presence a
-  // un evenement dans le jeu (decision technique assumee, voir plan valide avec Fred).
-  let nbTouches = 0;
-  if (typeof sbGet === 'function' && typeof sbUpdate === 'function') {
-    const rows = await sbGet('personnages', `country=eq.${encodeURIComponent(pays)}&current_city=eq.${encodeURIComponent(ville)}`).catch(() => []);
-    for (const r of (rows || [])) {
-      const nouveauHp = Math.max(1, (r.hp || 100) - 10);
-      const stats = r.stats || {};
-      const nouveauxStats = { ...stats, VOL: Math.max(1, (stats.VOL || 6) - 10) };
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(r.name)}`, { hp: nouveauHp, stats: nouveauxStats }).catch(() => {});
-      nbTouches++;
-    }
-    if (state.currentCity === ville && state.country === pays) {
-      state.hp = Math.max(1, (state.hp || 100) - 10);
-      if (state.char?.stats) state.char.stats.VOL = Math.max(1, (state.char.stats.VOL || 6) - 10);
-    }
-  }
-
+  const nbTouches = Number(r.touches || 0);
   updateUI();
-  showToast('Repression menee', sujet + ' — Social -' + baisseSocial + ', Securite +' + hausseSecurite +
-    (interdictionRecente ? ' (manifestation deja interdite)' : '') + '. ' + nbTouches +
+  showToast('Repression menee', r.sujet + ' — Social -' + r.baisse_social + ', Securite +' + r.hausse_securite +
+    (r.interdiction_recente ? ' (manifestation deja interdite)' : '') + '. ' + nbTouches +
     ' PJ present(s) touche(s) (-10 HP, -10 VOL).', false, true);
-  addExternalEvent('REPRESSION : Dispersion forcee de "' + sujet + '" a ' + nomVille + '.');
-  addJournalEntry('Repression ordonnee : ' + sujet + ' (' + nomVille + '). ' + nbTouches + ' PJ touche(s).', 'event-bad');
+  addExternalEvent('REPRESSION : Dispersion forcee de "' + r.sujet + '" a ' + nomVille + '.');
+  addJournalEntry('Repression ordonnee : ' + r.sujet + ' (' + nomVille + '). ' + nbTouches + ' PJ touche(s).', 'event-bad');
 }
 
 async function executerOrdreTexte(action) {
