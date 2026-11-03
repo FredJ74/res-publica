@@ -12,7 +12,7 @@
    (1 PA, payee par la caisse de l'organisation). La marchandise part en caisse
    de fret vers le port industriel de PSM. Le chef autorise ses traders.
 
-   TOUT EST DECIDE PAR LE SERVEUR : emplacements (2 en version gratuite),
+   TOUT EST DECIDE PAR LE SERVEUR : emplacements (3 en gratuit, 6 avec l'option premium du bureau),
    jouissance, connexion, prix, stock, caisse, PA. Cet ecran n'affiche que ses
    reponses et n'ecrit rien lui-meme.
    =========================================================================== */
@@ -23,7 +23,8 @@ const EQUIPEMENTS_REFUS = {
   acteur_non_authentifie: 'Votre personnage n\'est pas identifié.',
   pas_dans_un_local: 'Il faut être dans un local.',
   pas_de_jouissance: 'Vous n\'avez pas la jouissance légale de ce local (bail à votre nom ou à celui de votre organisation).',
-  emplacements_pleins: 'Les deux emplacements de ce bureau sont occupés.',
+  emplacements_pleins: 'Tous les emplacements de ce bureau sont occupés.',
+  option_deja_active: 'L\'option premium est déjà active pour ce bureau.',
   deja_installe: 'Cet équipement est déjà installé ici.',
   objet_absent: 'Vous n\'avez pas cet équipement sur vous.',
   equipement_inconnu: 'Cet objet ne s\'installe pas.',
@@ -68,8 +69,15 @@ async function ouvrirModalEquipements() {
   const r = await sbRpc('equipements_local_lire', {}).catch(function () { return null; });
   if (!r || r.ok !== true) { equipementsModale('Équipements du bureau', '<p class="cpj-note">' + equipementsEchapper(equipementsRefus(r)) + '</p>'); return; }
 
-  let h = '<p class="cpj-note">' + r.emplacements + ' emplacements d\'équipement dans ce bureau.' +
+  let h = '<p class="cpj-note">' + r.installes.length + ' / ' + r.emplacements + ' emplacements d\'équipement occupés dans ce bureau' +
+    (r.option_premium_bureau ? ' (option premium).' : '.') +
     (r.jouissance ? '' : ' Vous n\'en avez pas la jouissance légale : vous ne pouvez rien y installer.') + '</p>';
+  if (r.jouissance && !r.option_premium_bureau) {
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin:.3rem 0">' +
+      '<span class="cpj-note">Option premium : ' + r.emplacements_premium + ' emplacements au lieu de ' + r.emplacements_gratuits +
+      ', pour ce bureau, tant que vous le gardez. Gratuite pendant la bêta.</span>' +
+      equipementsBouton('equipementOptionPremium()', 'Activer l\'option') + '</div>';
+  }
 
   h += '<div class="cpj-titre">Installés</div>';
   if (!r.installes.length) h += '<p class="cpj-note">Aucun équipement.</p>';
@@ -106,6 +114,13 @@ async function equipementInstaller(generique) {
   if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(r);
   if (typeof renderInventory === 'function') renderInventory();
   showToast('Équipement installé', EQUIPEMENTS_LIBELLES[generique] || generique, true);
+  ouvrirModalEquipements();
+}
+
+async function equipementOptionPremium() {
+  const r = await sbRpc('equipement_option_premium_activer', {}).catch(function () { return null; });
+  if (!r || r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
+  showToast('Option premium activée', r.emplacements + ' emplacements dans ce bureau.', true);
   ouvrirModalEquipements();
 }
 
