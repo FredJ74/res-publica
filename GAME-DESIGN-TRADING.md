@@ -37,8 +37,20 @@
 - Écran commun « Offres d'achat » (`plateau-equipements.js`) : depuis la fenêtre de trading (trader) et le tableau de bord de l'entrepôt (directeur).
 - Migration `20261103030000_trading_offres_achat` (appliquée le 03/11), banc annulé `outils/bancs/banc-trading-offres.sql` (côté trader ; aucun directeur en poste pour éprouver le côté directeur en production).
 
+## Implémentation (étape 3, 3 novembre 2026) — perte de la jouissance du local
+
+16. Décision du 31/10 : si le PJ perd la jouissance du local (bail non valide), il perd la connexion immédiatement et dispose de **48 h pour désinstaller** ; faute de quoi le matériel devient la propriété du **propriétaire foncier**.
+
+- La connexion était déjà coupée dès la perte du bail (`trading_connexion_interne` exige la jouissance).
+- Passe de nuit `equipements_jouissance_nuit` (étape 5 d du cron) : la première nuit sans bail valide, le délai est daté et un courrier « Équipement à désinstaller sous 48 h » part au propriétaire de l'équipement ; deux nuits plus tard (48 h), transfert. Si le bail redevient valide entre-temps, le délai est effacé. Le délai court donc à partir de la nuit qui constate la perte du bail.
+- Propriétaire foncier résolu comme pour le loyer : lot d'un bien subdivisé → propriétaire actuel du terrain ; tout autre local (bureaux du centre d'affaires) → la commune.
+  - PJ : l'équipement reste installé et lui appartient ; il peut le désinstaller sur place (courrier).
+  - Organisation : il lui appartient, son chef peut le désinstaller.
+  - Commune : saisi par la commune et retiré du local (journal `equipements_saisis`).
+- Écran : l'ancien locataire voit l'échéance de son délai à côté de son équipement.
+- Migration `20261103040000_trading_equipements_perte_jouissance` (appliquée le 03/11), banc annulé `outils/bancs/banc-trading-perte-jouissance.sql`.
+
 ## Reste à faire
 
-- Perte de la jouissance du local : perte immédiate de la connexion (déjà vrai), puis 48 h pour désinstaller faute de quoi le matériel revient au propriétaire foncier (décision du 31/10, non codée).
 - Cours des autres empires et achats internationaux : avec les autres empires.
-- Premium : 4 emplacements au lieu de 2 (annoncé à l'écran depuis l'origine, non codé).
+- Premium : 4 emplacements au lieu de 2. **Non codable pour l'instant** : le jeu n'a encore aucun statut de compte premium (aucune donnée ni fonction serveur ne dit qui est premium ; les offres premium existantes sont gratuites en bêta ou « Bientôt disponible »). Le serveur répond aujourd'hui `emplacements: 2` à un seul endroit (`equipements_local_lire`, `equipement_installer`) : il suffira d'y lire le futur statut premium.
