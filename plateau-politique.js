@@ -3890,6 +3890,10 @@ function renderRoomActions(room, buildingId, roomId) {
 
   // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
   const allOrders = ordresDeclares
+    // Ordres usine conservés au référentiel tarifaire historique, mais retirés
+    // de l'interface : la vente affiche déjà stock, plafond et prix ; la caisse
+    // d'un commerce non institutionnel n'est pas publique.
+    .filter(o => !['consulter_caisse_usine','consulter_stock_usine'].includes(o.fn))
     .filter(o => !dynMasque.includes(o.fn))
     // Autorisation judiciaire de la quête du musée : ordre uniquement dans l'accueil bancaire.
     .filter(o => o.fn !== 'presenter_autorisation_coffre' || (

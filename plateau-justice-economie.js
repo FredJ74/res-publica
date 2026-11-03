@@ -6367,37 +6367,57 @@ function doVendreMatierePremiereUsineGenerique(pa, cost) {
   doOuvrirVendreMatierePremiereUsine(buildingId, pa, cost);
 }
 
+// Catalogue d'achat public du bâtiment : la lecture n'exige pas d'inventaire.
+// La commande seule vérifie quantité, fonds et plafond dans vendre_matiere_a_usine (RPC).
 async function doOuvrirVendreMatierePremiereUsine(buildingId, pa, cost) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
-  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
-  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const contexte = state.char?.name + '|' + pays + '|' + ville + '|' + buildingId;
+  const etat = (typeof sbGetBatimentEtat === 'function')
+    ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
+  if (contexte !== state.char?.name + '|' + state.country + '|' + state.currentCity + '|' + state.currentBuilding) return;
   const usine = etat?.usine || defautUsine(buildingId, pays, ville);
   const matieres = matieresAccepteesParUsine(buildingId, pays, ville);
-  const disponibles = matieres.filter(m => (state.inventory || []).some(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0));
-  const prixDetail = usineRachatePrixDetail(buildingId, pays, ville);
-
+  const produits = produitsManufacturesUsine(buildingId, pays, ville);
   document.getElementById('postes-modal-title').textContent = "Vendre des matières à l'usine";
   let html = '<div style="padding:1rem">';
-  if (disponibles.length === 0) {
-    html += '<div style="font-size:.9rem;color:#8a8060">Vous ne possédez aucune matière utilisée par cette usine' + (matieres.length ? ' (' + matieres.map(m => (RESSOURCES_ECONOMIE[m]?.label || m)).join(', ') + ')' : '') + '.</div>';
-  } else {
-    html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat au ' + (prixDetail ? 'tarif détail' : 'tarif fournisseur') + ' en vigueur.</div>';
-  }
-  disponibles.forEach(m => {
-    const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0);
-    const qteDispo = lot?.qty || 0;
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">Stocks et prix d\'achat de cet établissement. La vente est possible uniquement pour les matières présentes dans votre inventaire et tant qu\'il reste de la place.</div>';
+  if (!matieres.length) html += '<div style="font-size:.85rem;color:#8a8060">Aucune matière première acceptée actuellement.</div>';
+  matieres.forEach(m => {
     const res = RESSOURCES_ECONOMIE[m];
+    if (!res) return;
+    const qteDispo = (state.inventory || []).filter(i => i.stackKey === m && (i.qty || 0) > 0)
+      .reduce((total, i) => total + Number(i.qty || 0), 0);
     const prixUnitaire = prixRachatMatierePremiereUsine(buildingId, pays, ville, res);
-    const stockActuel = usine.stockMatieres[m] || 0;
-    const placeRestante = Math.max(0, res.plafond - stockActuel);
-    const qteInitiale = Math.max(1, Math.min(qteDispo, placeRestante));
-    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
-    html += '<span style="flex:1;font-size:.88rem;color:#c0b090">' + res.label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + ', capacité restante ' + placeRestante + '</span>';
-    html += '<input type="number" id="vendre-usine-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
-    html += '<button ' + (placeRestante === 0 ? 'disabled style="padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.82rem"' : 'onclick="confirmerVendreMatierePremiereUsineUI(\'' + buildingId + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
+    const stockActuel = Number(usine.stockMatieres?.[m] || 0);
+    const plafond = Number(res.plafond || 0);
+    const placeRestante = Math.max(0, plafond - stockActuel);
+    const vendable = Math.min(qteDispo, placeRestante);
+    html += '<div style="padding:.65rem;border:1px solid #455365;margin-bottom:.65rem">';
+    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + res.label + ' : ' + stockActuel + '/' + plafond + '</div>';
+    html += '<div style="font-size:.84rem;color:#a9b7c9;margin:.3rem 0">Prix d\'achat : ' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + ' / unité — Vous en possédez : ' + qteDispo + '</div>';
+    html += '<div style="display:flex;align-items:center;gap:.5rem">';
+    html += '<label for="vendre-usine-qte-' + m + '" style="font-size:.83rem;color:#c0b090">Quantité à vendre</label>';
+    html += '<input type="number" id="vendre-usine-qte-' + m + '" min="1" max="' + vendable + '" ' +
+      (vendable <= 0 ? 'disabled value="" placeholder="—"' : 'value="' + vendable + '"') +
+      ' style="width:76px;background:#202b39;border:1px solid #455365;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
+    html += '<button ' + (vendable <= 0 ? 'disabled' :
+      'onclick="confirmerVendreMatierePremiereUsineUI(\'' + buildingId + '\',\'' + m + '\')"') +
+      ' style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:' +
+      (vendable <= 0 ? '#667080;cursor:default' : '#6ab858;cursor:pointer') + ';font-size:.82rem">Vendre</button>';
+    html += '</div>';
+    if (!qteDispo) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Vous ne possédez pas cette matière.</div>';
+    else if (!placeRestante) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Stock complet : aucun achat supplémentaire possible.</div>';
     html += '</div>';
   });
+  if (produits.length) {
+    html += '<div style="font-size:.84rem;color:#c0b090;margin:.8rem 0 .4rem">Produits finis disponibles</div>';
+    produits.forEach(id => {
+      const p = PRODUITS_MANUFACTURES_USINE[id];
+      if (p) html += '<div style="font-size:.84rem;color:#a9b7c9;margin-bottom:.3rem">' + p.label + ' : ' + Number(usine.stockProduits?.[id] || 0) + '</div>';
+    });
+  }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');

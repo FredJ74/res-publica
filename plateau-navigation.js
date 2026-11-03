@@ -464,62 +464,43 @@ function enterBuilding(buildingId, skipAutoRoom) {
   document.getElementById('bat-nom').textContent = displayName;
   document.getElementById('bat-cat').textContent = displayCat;
 
-  // Affichage de la caisse — entrepots/usines/armurerie, visible de tous des l'entree
-  // (decision Fred 8 aout 2026 : transparence totale sur ces caisses economiques,
-  // contrairement aux caisses institutionnelles qui restent cachees sauf ordre dedie).
+  // Pas de transparence sur la caisse des commerces privés ni des usines.
+  // Seuls les entrepôts PUBLICS conservent ici leur bandeau institutionnel.
   const BATIMENTS_CAISSE_VISIBLE = {
-    'entrepot-logistique-luthecia': 'entrepot', 'entrepot-logistique-psm': 'entrepot', 'entrepot-logistique-montrouge': 'entrepot',
-    'usine-pharmaceutique-luthecia': 'usine', 'pole-tabac-alcools-psm': 'usine', 'raffinerie-montrouge': 'usine'
+    'entrepot-logistique-luthecia': 'entrepot',
+    'entrepot-logistique-psm': 'entrepot',
+    'entrepot-logistique-montrouge': 'entrepot'
   };
   const cleCaisse = BATIMENTS_CAISSE_VISIBLE[buildingId];
   const elCaisse = document.getElementById('bat-caisse');
   const elStock = document.getElementById('bat-stock');
+  if (elCaisse) { elCaisse.style.display = 'none'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; elCaisse.title = ''; }
+  if (elStock) { elStock.style.display = 'none'; elStock.onclick = null; elStock.style.cursor = 'default'; elStock.title = ''; }
 
   if (buildingId === 'armurerie') {
-    // Armurerie ajoutee le 9 aout 2026 (retour de test en jeu, main d'oeuvre de production) :
-    // stock/caisse existent depuis longtemps mais sur un systeme different des entrepots/usines
-    // (table 'entreprises' via chargerArmurerieLocale/sbGetEntreprise, pas 'batiments_etat'/
-    // sbGetBatimentEtat) - ne peut donc pas juste rejoindre BATIMENTS_CAISSE_VISIBLE tel quel.
-    // Stock de matieres affiche en plus de la caisse : c'est la seule des 3 ressources limitant
-    // produire_arme (PA/matiere/caisse) qui n'etait visible nulle part avant de cliquer produire.
-    if (elCaisse) { elCaisse.style.display = 'block'; elCaisse.textContent = 'Caisse : ...'; }
-    if (elStock) { elStock.style.display = 'block'; elStock.textContent = 'Stock matières : ...'; }
+    // Le propriétaire conserve l'accès à la gestion, sans révéler la caisse.
     if (typeof chargerArmurerieLocale === 'function') {
+      const paysRequete = state.country, villeRequete = state.currentCity;
       chargerArmurerieLocale().then(data => {
-        if (state.currentBuilding !== buildingId) return; // le joueur a change de batiment entre temps
-        const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
-        // Gerer mon armurerie / vendre des matieres premieres ne sont plus des ordres
-        // visibles dans la liste (peaufinage Armurerie, 9 aout 2026) : on y acceed desormais
-        // en cliquant sur la caisse/le stock affiches en en-tete, comme un raccourci "sur place".
+        if (state.currentBuilding !== buildingId || state.country !== paysRequete ||
+            state.currentCity !== villeRequete) return;
         const estProprietaire = !!data && data.proprietaire === state.char?.name;
-        if (elCaisse) {
-          elCaisse.textContent = 'Caisse : ' + (data?.caisse ?? 0).toLocaleString('fr-FR') + ' ' + cur;
-          elCaisse.style.cursor = estProprietaire ? 'pointer' : 'default';
-          elCaisse.title = estProprietaire ? 'Gérer mon armurerie' : '';
-          elCaisse.onclick = estProprietaire && typeof doGererArmurerie === 'function' ? doGererArmurerie : null;
-        }
-        if (elStock) {
-          const matieres = Object.entries(data?.stockMatieres || {});
-          elStock.textContent = 'Stock matières : ' + (matieres.length ? matieres.map(([m, q]) => q + ' ' + m).join(', ') : 'aucune');
-          elStock.style.cursor = 'pointer';
-          elStock.title = 'Vendre des matières premières';
-          elStock.onclick = typeof doVendreMatiereArmurerie === 'function' ? doVendreMatiereArmurerie : null;
-        }
-      }).catch(() => {
-        if (elCaisse) { elCaisse.textContent = 'Caisse : indisponible'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; }
-        if (elStock) { elStock.textContent = 'Stock matières : indisponible'; elStock.onclick = null; elStock.style.cursor = 'default'; }
-      });
+        if (!elCaisse || !estProprietaire) return;
+        elCaisse.textContent = 'Gérer mon armurerie';
+        elCaisse.style.display = 'block';
+        elCaisse.style.cursor = 'pointer';
+        elCaisse.title = 'Accéder à la gestion de mon commerce';
+        elCaisse.onclick = typeof doGererArmurerie === 'function' ? doGererArmurerie : null;
+      }).catch(() => {});
     }
   } else if (cleCaisse && elCaisse) {
     elCaisse.style.display = 'block';
     elCaisse.textContent = 'Caisse : ...';
-    elCaisse.onclick = null;
-    elCaisse.style.cursor = 'default';
-    elCaisse.title = '';
-    if (elStock) elStock.style.display = 'none';
     if (typeof sbGetBatimentEtat === 'function') {
-      sbGetBatimentEtat(state.country || 'republic', state.currentCity, buildingId).then(etat => {
-        if (state.currentBuilding !== buildingId) return; // le joueur a change de batiment entre temps
+      const paysRequete = state.country, villeRequete = state.currentCity;
+      sbGetBatimentEtat(paysRequete, villeRequete, buildingId).then(etat => {
+        if (state.currentBuilding !== buildingId || state.country !== paysRequete ||
+            state.currentCity !== villeRequete) return;
         const solde = etat?.[cleCaisse]?.caisse ?? 0;
         const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
         elCaisse.textContent = 'Caisse : ' + solde.toLocaleString('fr-FR') + ' ' + cur;
