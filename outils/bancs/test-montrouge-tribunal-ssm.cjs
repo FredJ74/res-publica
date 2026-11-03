@@ -19,12 +19,13 @@ test('image et aller-retour de la rue du tribunal de Montrouge', () => {
     assert.match(scene, new RegExp("buildingId: '" + id + "'"));
   }
 });
-test('SSM et parking sont des lieux visitables sans mécanique anticipée', () => {
+test('SSM et parking restent visitables ; seul le SSM obtient ses nouveaux ordres', () => {
   for (const id of ['services-sociaux-montrouge','parking-tribunal-montrouge']) {
     const start = data.indexOf("  '" + id + "': {");
     assert.ok(start >= 0, 'batiment absent ' + id);
     const block = data.slice(start, data.indexOf("\n  },", start) + 5);
     assert.match(block, /rooms:\s*\{\s*accueil:/);
-    assert.match(block, /orders: \[\]/);
+    if (id === 'parking-tribunal-montrouge') assert.match(block, /orders: \[\]/);
+    else { assert.match(block, /fn:'ssm_demander_rendezvous'/); assert.match(block, /fn:'demander_logement_social'/); }
   }
 });
