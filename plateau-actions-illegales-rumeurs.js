@@ -3837,7 +3837,7 @@ async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cos
     const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].label : m;
     const vendable = Math.min(qteDispo, placeRestante);
     html += '<div style="padding:.65rem;border:1px solid #455365;margin-bottom:.65rem">';
-    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + label + ' : ' + stockActuel + '/' + stockMax + '</div>';
+    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + label + ' : ' + stockActuel + ' / sans plafond</div>';
     html += '<div style="font-size:.84rem;color:#a9b7c9;margin:.3rem 0">Prix d\'achat : ' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + ' / unité — Vous en possédez : ' + qteDispo + '</div>';
     html += '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">';
     html += '<label for="vendre-commerce-qte-' + m + '" style="font-size:.83rem;color:#c0b090">Quantité à céder</label>';
@@ -5361,9 +5361,10 @@ async function doVendreMatiereArmurerie() {
     const qteDispo = (state.inventory || []).filter(i => i.stackKey === m && (i.qty || 0) > 0)
       .reduce((n,i) => n + Number(i.qty || 0),0);
     const stockActuel = Number(data.stockMatieres?.[m] || 0);
-    const stockMax = STOCK_MAX_COMMERCE;
-    const placeRestante = Math.max(0, stockMax - stockActuel);
-    const vendable = Math.min(qteDispo, placeRestante);
+    // Le serveur ne fixe AUCUN plafond aux matières de l'armurerie.
+    // Ne pas inventer ici une limite de 20 valable seulement pour les commerces alimentaires.
+    const stockMax = null;
+    const vendable = qteDispo;
     html += '<div style="padding:.65rem;border:1px solid #455365;margin-bottom:.65rem">';
     html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + (res?.label || m) + ' : ' + stockActuel + '/' + stockMax + '</div>';
     html += '<div style="font-size:.84rem;color:#a9b7c9;margin:.3rem 0">Prix d\'achat : ' + Number(prixUnitaire).toLocaleString('fr-FR') + ' ' + cur + ' / unité — Vous en possédez : ' + qteDispo + '</div>';
@@ -5379,7 +5380,6 @@ async function doVendreMatiereArmurerie() {
       'onclick="confirmerVenteMatiere(\'' + m + '\',\'don\')" style="padding:.3rem .6rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.82rem"') + '>Donner</button>';
     html += '</div>';
     if (!qteDispo) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Vous ne possédez pas cette matière.</div>';
-    else if (!placeRestante) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Stock maximum atteint.</div>';
     html += '</div>';
   });
   if (!Object.keys(prix).length) html += '<div style="font-size:.85rem;color:#8a8060">Aucune matière achetée actuellement.</div>';
