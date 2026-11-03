@@ -23,9 +23,11 @@ test('images des deux pièces présentes, noms et rôles du personnel distincts'
  assert.match(block,/role:'Assistante sociale'/);
  assert.match(block,/role:'Agente d’accueil des services sociaux'/);
 });
-test('aucun ordre ou prestation sociale inventé dans les deux pièces',()=>{
- assert.equal((block.match(/orders: \[\]/g)||[]).length,2);
+test('rendez-vous et demande de logement social sont les seuls ordres des deux pièces',()=>{
+ assert.equal((block.match(/orders: \[/g)||[]).length,2);
  assert.equal((block.match(/persons: \[/g)||[]).length,2);
+ assert.match(block,/fn:'ssm_demander_rendezvous'/);
+ assert.match(block,/fn:'demander_logement_social'/);
 });
 test('les deux profils PNJ sont raccordables par identifiant serveur',()=>{
  assert.match(profiles,/'pascale':\s*\{ nom: "Pascale"/);
