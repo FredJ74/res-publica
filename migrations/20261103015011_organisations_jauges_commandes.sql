@@ -78,8 +78,13 @@ DECLARE corps text;definition text;
 BEGIN
  SELECT prosrc,pg_get_functiondef(oid)INTO corps,definition FROM pg_proc
   WHERE oid=to_regprocedure('public.organisation_vie_commande(text,text,text,jsonb)');
- IF md5(corps)='06309ee82f090059d30b18105aef55ea'THEN RETURN;END IF;
- IF corps IS NULL OR md5(corps)<>'298da01bbbe4a19db5acb203e88e8d99'THEN RAISE EXCEPTION 'organisation_vie_definition_a_reexaminer';END IF;
+ IF corps IS NULL THEN RAISE EXCEPTION 'organisation_vie_definition_a_reexaminer';END IF;
+ IF position('ordre_jauges' in corps)>0 THEN RETURN;END IF;
+ -- Corps examinés : jetable (298da…) et production du 03/11 (e3fe89…, réécrit par main).
+ IF md5(corps) NOT IN('298da01bbbe4a19db5acb203e88e8d99','e3fe89bed456a4f84776b9dfd423db1d')THEN RAISE EXCEPTION 'organisation_vie_definition_a_reexaminer';END IF;
+ IF (length(corps)-length(replace(corps,$a1$  SELECT country, current_city, current_building, current_room, arg,$a1$,'')))<>length($a1$  SELECT country, current_city, current_building, current_room, arg,$a1$)
+  OR (length(corps)-length(replace(corps,$a2$    RETURN v_rec.resultat || jsonb_build_object('rejeu', true);$a2$,'')))<>length($a2$    RETURN v_rec.resultat || jsonb_build_object('rejeu', true);$a2$)
+ THEN RAISE EXCEPTION 'organisation_vie_ancres_absentes';END IF;
  corps:=replace(corps,$avant1$  SELECT country, current_city, current_building, current_room, arg,$avant1$,$apres1$  IF p_action = 'ordre_jauges' THEN
     v_res := public.organisation_jauges_interne(v_moi,p_organisation,p_parametres);
     IF NOT coalesce((v_res->>'ok')::boolean,false) THEN RETURN v_res;END IF;
@@ -95,7 +100,7 @@ BEGIN
       RETURN v_rec.resultat || public.organisation_jauges_fiche_interne(v_moi) || jsonb_build_object('rejeu',true);
     END IF;
     RETURN v_rec.resultat || jsonb_build_object('rejeu', true);$apres2$);
- IF md5(corps)<>'06309ee82f090059d30b18105aef55ea'THEN RAISE EXCEPTION 'organisation_vie_patch_incomplet';END IF;
+ IF position('organisation_jauges_interne' in corps)=0 OR position('organisation_jauges_fiche_interne' in corps)=0 THEN RAISE EXCEPTION 'organisation_vie_patch_incomplet';END IF;
  EXECUTE replace(definition,(SELECT prosrc FROM pg_proc WHERE oid=to_regprocedure('public.organisation_vie_commande(text,text,text,jsonb)')),corps);
 END;$patch$;
 NOTIFY pgrst,'reload schema';
