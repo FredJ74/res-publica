@@ -57,14 +57,13 @@ test('parking : WebP authentique et deux PNJ raccordés, sans nouvel ordre', () 
 
 test('Jean et Basile renseignent selon les règles documentées du jeu',()=>{
   const profiles=fs.readFileSync(path.join(root,'api/_pnj-personnalites.js'),'utf8');
-  const section=(key)=>{const start=profiles.indexOf("'"+key+"': {");assert.ok(start>=0,key+' absent');return profiles.slice(start,profiles.indexOf("\n  },",start));};
+  const section=(key)=>{const start=profiles.indexOf("'"+key+"': {");assert.ok(start>=0,key+' absent');const end=profiles.indexOf("\n  '",start+key.length+5);assert.ok(end>start);return profiles.slice(start,end);};
   const jean=section('jean_tarte');
   for(const terme of ['Grobras Sécurité','500 FR','700 FR','maîtres-chiens','policiers','remettent le suspect à la police']) {
     assert.ok(jean.includes(terme),'Jean doit connaître : '+terme);
   }
   const basile=section('basile_decoq');
-  for(const terme of ['Brume','Estadine','+10 au moral','+2 ENT','-']) {
-    if(terme==='-') continue;
+  for(const terme of ['Brume','Estadine','+10 au moral','+2 ENT']) {
     assert.ok(basile.includes(terme),'Basile doit connaître : '+terme);
   }
   for(const terme of ['+3 PA','+15 moral','+2 CHA','25 points de moral','10 de santé','0,1 INT','quinze jours','acheter et transporter','ne vend rien']) {
