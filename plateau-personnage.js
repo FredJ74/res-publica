@@ -1113,8 +1113,9 @@ function handlePhotoFileChange(event) {
   const f = event.target.files[0];
   if (!f) return;
   const r = new FileReader();
-  r.onload = e => {
-    _photoTemp = e.target.result;
+  r.onload = async e => {
+    // Portrait reduit avant tout envoi (04/11/2026, #55/#60) : ~30 Ko au lieu de plusieurs Mo.
+    _photoTemp = (typeof rpReduirePortrait === 'function') ? await rpReduirePortrait(e.target.result) : e.target.result;
     document.getElementById('photo-preview-zone').innerHTML = '<img src="' + _photoTemp + '" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #8a6a20">';
   };
   r.readAsDataURL(f);
@@ -1133,6 +1134,7 @@ async function confirmerChangementPhoto() {
   if (typeof sbUpdatePhotoBio === 'function') {
     await sbUpdatePhotoBio(state.char.name, photoFinal, undefined).catch(() => {});
   }
+  if (typeof sbOublierAnnuaire === 'function') sbOublierAnnuaire();
 
   // Forcer la mise a jour du cache partage immediatement (sinon il faut attendre jusqu'a 60s)
   if (window._cachePhotosJoueurs && state.char.name) {
@@ -3031,6 +3033,8 @@ async function confirmerVendreRessourceMedicaleUI(buildingId, ressource) {
 // client envoie un lieu qui n'est pas celui ou le serveur croit le joueur. Nommer le motif rendra
 // donc aussi visible la divergence de position, si c'est elle qui a frappe.
 const MOTIFS_REFUS_CHAMBRE = {
+  tarif_local_introuvable: ['Tarif indisponible', 'Le prix de la chambre n\'a pas ete retrouve pour cette piece. Rechargez la page ; aucun paiement n\'a ete tente.'],
+  paiement_indisponible: ['Paiement indisponible', 'Le service de paiement n\'a pas confirme la transaction. Aucun achat n\'est confirme ; verifiez vos reservations avant de reessayer.'],
   pa_insuffisants: ['PA insuffisants', 'Vous n\'avez pas assez de points d\'action.'],
   fonds_insuffisants: ['Fonds insuffisants', 'Le montant requis dépasse vos fonds disponibles.'],
   introuvable: ['Hôtel indisponible', 'Le commerce de cet établissement est introuvable côté serveur.'],
@@ -3082,7 +3086,13 @@ async function doReserverChambreHotel(pa) {
   const bonus = confortMap[state.currentBuilding] || { moral: 2, paBonus: 1 };
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const ordre = room?.orders?.find(o => o.fn === 'reserver_chambre_hotel');
-  const cout = ordre?.cost || 60;
+  // Le prix doit etre celui de l'ordre affiche, jamais un repli arbitraire (60 FR).
+  // En cas de decalage de piece/chargement, refuser avant tout paiement.
+  if (!ordre || !Number.isFinite(Number(ordre.cost)) || Number(ordre.cost) <= 0) {
+    signalerRefusReservationChambre({ raison: 'tarif_local_introuvable' }, 0);
+    return;
+  }
+  const cout = Number(ordre.cost);
   // CHANTIER C / PHASE 3. Le Republica encaisse dans SA caisse d'entreprise : prelevement et
   // credit doivent alors se faire dans la MEME transaction serveur, sinon l'un peut aboutir
   // sans l'autre. Les autres hotels versent dans une caisse institutionnelle et gardent le
@@ -3186,9 +3196,13 @@ async function doServiceEtage(pa) {
   }
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const ordre = room?.orders?.find(o => o.fn === 'service_etage');
-  const cout = ordre?.cost || 150;
-  const r = await deduireCoutOrdre({ pa, cost: cout });
-  if (!r.ok) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
+  if (!ordre || Number(ordre.cost) !== 150) {
+    showToast('Service indisponible', 'Le tarif du service d’étage n’est pas reconnu dans cette chambre.', false);
+    return;
+  }
+  const cout = Number(ordre.cost);
+  const r = await deduireCoutOrdre({ fn: 'service_etage', pa, cost: cout });
+  if (!r.ok) { showToast('Service d’étage refusé', 'Le serveur a refusé le paiement : ' + (r.raison || 'indisponible') + '. Aucun service accordé.', false); return; }
   state.hp = Math.min(100, (state.hp || 0) + 10);
   state.moral = Math.min(100, (state.moral || 0) + 1);
   // Bonus differe atteste : le serveur tient le compteur et connait le montant de la source.

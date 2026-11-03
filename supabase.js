@@ -543,7 +543,14 @@ async function sbSavePersonnage(charState) {
 // l'emplacement du bloc bouge.
 function sbPayloadPersonnage(charState) {
   const photoKey = 'respublica_photo_' + (charState.char?.name || 'default');
-  const savedPhoto = (typeof localStorage !== 'undefined') ? localStorage.getItem(photoKey) : null;
+  let savedPhoto = (typeof localStorage !== 'undefined') ? localStorage.getItem(photoKey) : null;
+  // 04/11/2026 (#55/#60) : un ancien portrait brut de plusieurs Mo garde dans ce navigateur
+  // n'est plus renvoye a chaque sauvegarde (le serveur le refuserait de toute facon) : on
+  // l'oublie et l'on garde le portrait de la fiche.
+  if (savedPhoto && savedPhoto.length > 120000) {
+    try { localStorage.removeItem(photoKey); } catch (_) {}
+    savedPhoto = null;
+  }
   const data = {
     name:             charState.char?.name,
     country:          charState.country,
@@ -1077,9 +1084,50 @@ async function sbLoadPersonnage(name) {
   };
 }
 
+// ANNUAIRE MUTUALISE (04/11/2026, #55/#60). Une quarantaine d'ecrans appellent cet annuaire,
+// et il porte les portraits : chaque appel redescendait tout le repertoire. Les appels
+// rapproches partagent desormais une seule lecture (30 s, requete en vol reutilisee) ; chaque
+// appelant recoit ses propres copies d'objets, pour qu'aucune modification locale ne fuie.
+let _sbAnnuaireCache = null, _sbAnnuaireInstant = 0, _sbAnnuaireEnVol = null;
 async function sbListPersonnages() {
   // archetype (vocation) volontairement exclu - reste secret pour les autres joueurs
-  return sbGet('personnages', 'select=name,country,current_city,poste,photo_url,domicile&order=created_at.asc');
+  const copier = rows => Array.isArray(rows) ? rows.map(r => ({ ...r })) : rows;
+  if (_sbAnnuaireCache && Date.now() - _sbAnnuaireInstant < 30000) return copier(_sbAnnuaireCache);
+  if (!_sbAnnuaireEnVol) {
+    _sbAnnuaireEnVol = sbGet('personnages', 'select=name,country,current_city,poste,photo_url,domicile&order=created_at.asc')
+      .then(rows => { if (Array.isArray(rows)) { _sbAnnuaireCache = rows; _sbAnnuaireInstant = Date.now(); } return rows; })
+      .finally(() => { _sbAnnuaireEnVol = null; });
+  }
+  return copier(await _sbAnnuaireEnVol);
+}
+function sbOublierAnnuaire() { _sbAnnuaireCache = null; }
+
+// PORTRAITS REDUITS (04/11/2026, #55/#60). Un portrait choisi par le joueur est ramene a
+// 320 px de cote au plus, en JPEG qualite 0,8 sur fond blanc (~30 Ko au lieu de plusieurs Mo),
+// AVANT tout envoi. Le serveur refuse de toute facon un portrait en data URL de plus de
+// 120 000 caracteres (trg_personnages_portrait_borner). Une URL http(s) est rendue telle quelle.
+function rpReduirePortrait(source, cote = 320, qualite = 0.8) {
+  return new Promise(resolve => {
+    if (typeof source !== 'string' || !source.startsWith('data:image')) { resolve(source); return; }
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const echelle = Math.min(1, cote / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+        const l = Math.max(1, Math.round(img.naturalWidth * echelle));
+        const h = Math.max(1, Math.round(img.naturalHeight * echelle));
+        const toile = document.createElement('canvas');
+        toile.width = l; toile.height = h;
+        const ctx = toile.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, l, h);
+        ctx.drawImage(img, 0, 0, l, h);
+        const reduit = toile.toDataURL('image/jpeg', qualite);
+        resolve(reduit.length < source.length ? reduit : source);
+      } catch (_) { resolve(source); }
+    };
+    img.onerror = () => resolve(source);
+    img.src = source;
+  });
 }
 
 // =====================

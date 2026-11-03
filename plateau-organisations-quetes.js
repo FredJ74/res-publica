@@ -3788,7 +3788,10 @@ async function confirmerEntrainement(stat, pa, cost) {
   if (typeof sbFootballEntrainementConsommer !== 'function') {
     showToast('Indisponible', "L'entraînement n'est pas disponible pour le moment.", false); return;
   }
+  const identiteAuDepart = state.char?.name + '|' + state.country + '|' + state.currentCity;
   const r = await sbFootballEntrainementConsommer(stat);
+  // Ne jamais appliquer à un autre PJ une réponse différée de son prédécesseur.
+  if (identiteAuDepart !== state.char?.name + '|' + state.country + '|' + state.currentCity) return;
   if (!r || r.ok !== true) {
     const motif = r && r.raison;
     if (motif === 'limite_quotidienne_atteinte') {
@@ -3806,25 +3809,32 @@ async function confirmerEntrainement(stat, pa, cost) {
   if (typeof r.pa === 'number') state.pa = r.pa;
   state.char.entrainementsJour = { jour: r.jour, nb: Number(r.nb) || 0 };
 
-  const blesse = Math.random() < 0.05;
-  if (blesse) {
-    const grave = Math.random() < 0.3;
-    const duree = grave ? (7 + Math.floor(Math.random()*4)) : (2 + Math.floor(Math.random()*2));
-    const degatsPV = grave ? 30 : 15;
-    state.char.blessureSportive = { jusquauJour: (state.day||1) + duree, gravite: grave ? 'grave' : 'legere' };
-    state.hp = Math.max(1, (state.hp||100) - degatsPV);
-    // Ecriture explicite via sbAppliquerBlessureSportive (correctif audit football, 31 aout 2026) :
-    // cette fonction est desormais la SEULE autorite d'ecriture de blessure_sportive (voir
-    // sbSavePersonnage, supabase.js, qui ne l'ecrit plus du tout) -- sauvegarderPersonnageImmediat()
-    // juste apres reste necessaire pour entrainementsJour/hp/etc., mais ne persiste plus la
-    // blessure elle-meme. Aucun changement de probabilite/gravite/duree/degats.
-    if (typeof sbAppliquerBlessureSportive === 'function') {
-      await sbAppliquerBlessureSportive(state.char.name, state.char.blessureSportive, degatsPV).catch(() => {});
+  // #309 : résultat intégralement arrêté par football_entrainement_consommer.
+  // Pas de tirage, d'écriture de blessure ou de décrément PV par le navigateur.
+  if (r.blesse === true) {
+    const duree = Number(r.duree);
+    const degatsPV = Number(r.degatsPV);
+    const grave = r.blessure?.gravite === 'grave';
+    if (!Number.isInteger(duree) || duree < 1 || duree > 3 ||
+        !Number.isInteger(degatsPV) || ![15, 30].includes(degatsPV) ||
+        !Number.isFinite(Number(r.hp)) || !r.blessure) {
+      showToast('Résultat indisponible',
+        "L'entraînement a été enregistré, mais la blessure n'a pas pu être affichée. Actualisez votre fiche.", false);
+      return;
     }
-    sauvegarderPersonnageImmediat();
+    state.char.blessureSportive = r.blessure;
+    state.hp = Number(r.hp);
     document.getElementById('modal-postes')?.classList.remove('open');
     updateUI();
-    showToast('Blessure à l\'entraînement !', (grave?'Grave':'Légère') + '. Indisponible ' + duree + ' jour(s). -' + degatsPV + ' PV.', false);
+    showToast('Blessure à l\'entraînement !',
+      (grave ? 'Grave' : 'Légère') + '. Indisponible ' + duree + ' jour(s). -' + degatsPV + ' PV.', false);
+    return;
+  }
+  // Contrat serveur strict : une réponse ancienne sans champ blesse ne signifie
+  // PAS « réussite sans blessure », sinon le navigateur masquerait une décision.
+  if (r.blesse !== false) {
+    showToast('Résultat indisponible',
+      "L'entraînement a été enregistré mais le résultat du serveur est incomplet. Actualisez votre fiche.", false);
     return;
   }
 

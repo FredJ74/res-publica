@@ -53,6 +53,12 @@ jobs:
           python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261103222000_forums_territoires_et_adhesions.sql').read_text()); print('SQL forums : syntaxe PostgreSQL valide')"
       - name: Commerces, usines et armureries — vente de matières et stocks visibles
         run: node outils/bancs/banc-commerces-stock-unique-20261104.cjs
+      - name: Football — entraînement sans blessure navigateur, indisponibilité 3 jours maximum
+        run: |
+          node --test outils/bancs/banc-football-blessures-entrainement-3j.cjs
+          python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261104002000_football_entrainement_blessure_serveur_3j.sql').read_text()); print('Football SQL syntaxe OK')"
+      - name: Trois correctifs prêts — tarifs hôtels, service d'étage et contacts ambassade
+        run: node --test outils/bancs/banc-livraison-hotels-ambassade-20261104.cjs
       - name: Commerce Premium PSM après lecture des baux
         run: node outils/bancs/banc-psm-premium-bail.cjs
       - name: Boutiques PSM — mêmes ordres et variantes que Luthécia
