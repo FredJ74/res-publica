@@ -112,11 +112,10 @@ function synchroniserCachesForumsTerritoriaux() {
   forumPaysGeneration++;
   ['national', ...Object.keys(FORUM_TOPICS).filter(k => k.startsWith('local_'))].forEach(id => {
     delete FORUM_TOPICS[id];
-    for (const nom of ['FORUM_LECTURE_TERMINEE', 'FORUM_LECTURE_ECHOUEE',
-      'FORUM_DERNIERE_LECTURE', 'FORUM_LECTURE_EN_COURS']) {
-      const cache = typeof globalThis !== 'undefined' ? globalThis[nom] : null;
-      if (cache) delete cache[id];
-    }
+    delete FORUM_LECTURE_TERMINEE[id];
+    delete FORUM_LECTURE_ECHOUEE[id];
+    delete FORUM_DERNIERE_LECTURE[id];
+    delete FORUM_LECTURE_EN_COURS[id];
   });
   Object.keys(forumCompteursServeur).forEach(k => delete forumCompteursServeur[k]);
   forumCompteursDernierChargement = 0;
