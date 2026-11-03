@@ -134,7 +134,9 @@ Les élections, le cron et la dissuasion restent ceux de main. Le renderer conse
 notre échappement d’attributs ; aucun ancien écran n’est réintroduit. Les bancs
 ciblés du vote, des adaptateurs historiques, des organisations et du catalogue
 public passent, ainsi que les 12 contrôles globaux relancés. Les suites complètes
-ci-dessus précèdent cette seconde intégration ; elles ne sont pas redatées.
+ci-dessus précèdent cette seconde intégration ; elles ne sont pas redatées. Le
+contrôleur clients a ensuite été entièrement relancé sur `1bae28f3` : **171/171**,
+preuves supplémentaires archivées sous `clients-main385-final*`.
 La CI de la tête finale couvre à nouveau l’ensemble des suites du workflow.
 
 **Attention au prévol :** #385 change légitimement le score de `crime_voler`

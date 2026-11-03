@@ -103,12 +103,24 @@
       "sha256": "f93a85d48b7d6f57c4c33666802b0c73dcfb53d4facb2723fac0a9df346ceb60"
     },
     "ci-4034751e-public.json": {
-      "octets": 1254,
-      "sha256": "beb4ebaf665dc52fcce19ca4770e95b428737c60112888d3807c9d1c63d1ce47"
+      "octets": 25740,
+      "sha256": "856e7724d89b458324981c059e2ed6e8249f1eff982199c3ca211317bc22c4b5"
     },
     "clients-execution.json": {
       "octets": 88,
       "sha256": "fedddb059cc269f3e7b269ef8f776719b973af3ef1e69d90bdb7b98fa02203dc"
+    },
+    "clients-main385-final-execution.json": {
+      "octets": 88,
+      "sha256": "fedddb059cc269f3e7b269ef8f776719b973af3ef1e69d90bdb7b98fa02203dc"
+    },
+    "clients-main385-final.json": {
+      "octets": 20896,
+      "sha256": "3861fbbc406164e3878321cec9a991927b243ae1acffa8044db4a5188c580131"
+    },
+    "clients-main385-final.log": {
+      "octets": 6006,
+      "sha256": "48927d7e882dde5740114e36f57dfaaecf5159bbbc8b3c72069147648ae5d74b"
     },
     "clients-premiere-passe-environnement-incomplet.log": {
       "octets": 13872,
@@ -138,6 +150,10 @@
       "octets": 3654,
       "sha256": "966fb3854aa138f35d87ced8b70a43db9c75a130f65cc817bf6d77f7fcc5e4c7"
     },
+    "globaux-main385.log": {
+      "octets": 1345,
+      "sha256": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb"
+    },
     "globaux.log": {
       "octets": 1345,
       "sha256": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb"
@@ -154,6 +170,10 @@
       "octets": 41286,
       "sha256": "2bc2b1892bcbc27ff23c49a0cb0a081e310aba305bf49c5074ef6e39bb34595a"
     },
+    "reconciliation-main385.log": {
+      "octets": 3822,
+      "sha256": "f5a955c8c76dd78b395d2fad3ab1bab016f68446270d6dc46b9e406cbc43d0f6"
+    },
     "subtilisation-impacts-client.log": {
       "octets": 2908,
       "sha256": "82fd16b60b2bb8daf8660970c7dd3ec77997440a5a0c6a03a380e81e43d1ef39"
@@ -166,23 +186,20 @@
       "octets": 1095,
       "sha256": "fd0d4f32f3a467b8a4dca9e6c87b2d106bdb71c548503eb93c69d9b45b518138"
     },
-    "reconciliation-main385.log": {
-      "octets": 3822,
-      "sha256": "f5a955c8c76dd78b395d2fad3ab1bab016f68446270d6dc46b9e406cbc43d0f6"
-    },
     "vote-main385.log": {
       "octets": 2509,
       "sha256": "6d298a486d918a1d7e4ee27ae05e45f183b94d80f7c8228cd3750082a67bf992"
-    },
-    "globaux-main385.log": {
-      "octets": 1345,
-      "sha256": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb"
     }
   },
   "reconciliation_ulterieure": {
     "main": "e37290666c2591dde2728fe2fc8027fcacf9041f",
     "fusion": "7a821d6784340dc1c91240100eaf5774485058a6",
     "difference": "#382–#385 : élections, cron et dissuasion, trois migrations reprises de main ; sauvegarde ancienne inchangée.",
-    "tests": "Bancs ciblés vote, chemins historiques, commandes organisation, catalogue public ; 12 contrôles globaux. Les suites complètes précédentes ont été exécutées sur main 6256929c ; CI finale à vérifier séparément."
+    "tests": "Bancs ciblés vote, chemins historiques, commandes organisation, catalogue public ; 12 contrôles globaux. Les suites complètes précédentes ont été exécutées sur main 6256929c ; CI finale à vérifier séparément.",
+    "clients_complets_sur_tete_finale": {
+      "sha": "1bae28f326172def865526854e5ef41b0408114b",
+      "reussis": 171,
+      "prevus": 171
+    }
   }
 }
