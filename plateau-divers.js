@@ -69,6 +69,36 @@ async function genererEvenementAleatoire() {
 // commanditer_sondage est transactionnel dans jauges_ordre_executer.
 // =====================
 
+async function publierSondage(texte) {
+  document.getElementById('modal-postes').classList.remove('open');
+  if (typeof sbCreateTopic === 'function') {
+    const from = state.char?.name || 'Anonyme';
+    // Le sondage appartient a la ville ou il est lance (16 septembre 2026).
+    // ARGUMENTS DECALES CORRIGES (31/10/2026) : le texte du sondage partait comme AUTEUR et le
+    // nom du PJ comme pays ; la politique RLS refusait donc toujours le sujet (auteur different
+    // du personnage) alors que l'ecran annoncait « Sondage publie ! ». Le sujet porte maintenant
+    // l'auteur reel, le texte devient son premier message, et le succes n'est annonce qu'apres
+    // l'ecriture effective.
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
+    const topicId = await sbCreateTopic(typeof idForumLocal === 'function' ? idForumLocal() : 'local',
+      '📊 Sondage : ' + texte.substring(0, 50) + '...', from, state.country, time).catch(() => null);
+    const postId = topicId && typeof sbCreatePost === 'function'
+      ? await sbCreatePost(topicId, from, texte, time).catch(() => null) : null;
+    if (!topicId || !postId) {
+      showToast('Publication impossible', "Le forum n'a pas enregistré le sondage. Réessayez plus tard.", false);
+      return;
+    }
+    showToast('Sondage publié !', 'Visible sur le forum local.', true);
+    addJournalEntry('Sondage publié sur le forum.', 'event-info');
+  } else {
+    showToast('Forum indisponible', 'Impossible de publier.', false);
+  }
+}
+
+// =====================
+
+// =====================
+
 // INDICES IMPERIAUX - CORRIGE
 // =====================
 // Indices de ville, persistes (Supabase, table indices_villes) — construits pour Republia
