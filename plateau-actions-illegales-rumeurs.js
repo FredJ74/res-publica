@@ -1613,12 +1613,7 @@ async function doSubtiliserExplosifsMilitaires(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-let RP_SUBTILISATION = null;
 async function confirmerSubtilisationExplosif() {
-  const c = contexteGroupePj();
-  if (!c.nom || (RP_SUBTILISATION && contexteGroupePjValide(RP_SUBTILISATION))) return false;
-  RP_SUBTILISATION = c;
-  try {
   document.getElementById('modal-postes')?.classList.remove('open');
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'caserne';
@@ -1629,44 +1624,33 @@ async function confirmerSubtilisationExplosif() {
   // que demander et raconter -- il n'arbitre plus rien, et ne debite plus les PA non plus :
   // militaire_subtiliser_tenter prend les 2 PA lui-meme, avant le jet, comme toute tentative.
   const verdict = (typeof sbMilitaireSubtiliserTenter === 'function')
-    ? await sbMilitaireSubtiliserTenter(pays).catch(() => null) : null;
-  if (!contexteGroupePjValide(c)) return false;
-  if (!verdict && typeof sbLoadPersonnage === 'function' && typeof sbInventaireReceptionEtat === 'function') {
-    // Réponse perdue : relecture uniquement, jamais une seconde tentative.
-    const [fiche, inventaire] = await Promise.all([
-      sbLoadPersonnage(c.nom).catch(() => null), sbInventaireReceptionEtat(c.nom).catch(() => null)]);
-    if (!contexteGroupePjValide(c)) return false;
-    if (fiche && (!c.uid || fiche.userId === c.uid) && Number.isSafeInteger(fiche.pa) && fiche.pa >= 0 &&
-        inventaire?.ok === true && Number.isSafeInteger(inventaire.revision) &&
-        typeof sbAdopterInventaireServeur === 'function' && sbAdopterInventaireServeur(inventaire)) {
-      appliquerPaiementServeur({ pa: fiche.pa });
-    }
-  }
-  if (verdict?.ok !== true) {
-    // Les refus versionnés peuvent aussi fournir l'état réellement relu.
-    if (verdict?.contrat === 1 && Number.isSafeInteger(verdict.pa) && verdict.pa >= 0 &&
-        Number.isSafeInteger(verdict.revision) && Array.isArray(verdict.inventory) &&
-        typeof sbAdopterInventaireServeur === 'function' && sbAdopterInventaireServeur(verdict)) appliquerPaiementServeur(verdict);
+    ? await sbMilitaireSubtiliserTenter(pays) : null;
+  if (!verdict || verdict.ok !== true) {
     const motifs = { pas_sur_place: 'Vous devez être à la caserne.',
                      pa_insuffisants: 'Il vous faut ' + PA_SUBTILISATION + ' PA.',
                      personnage_absent: 'Personnage introuvable.' };
-    showToast(verdict ? 'Impossible' : 'Confirmation indisponible', (verdict && motifs[verdict.raison]) || 'Consultez votre état avant de renouveler la tentative.', false);
+    showToast('Impossible', (verdict && motifs[verdict.raison]) || 'Tentative refusée.', false);
     return;
   }
-  if (verdict.contrat !== 1 || !Number.isSafeInteger(verdict.pa) || verdict.pa < 0 ||
-      !Number.isSafeInteger(verdict.revision) || !Array.isArray(verdict.inventory) ||
-      typeof sbAdopterInventaireServeur !== 'function' || !sbAdopterInventaireServeur(verdict)) {
-    showToast('État à relire', 'Le serveur doit encore confirmer les PA et l’inventaire. Ne renouvelez pas la tentative avant vérification.', false);
-    return false;
-  }
-  // Réponse originale avec provenance et révision, jamais un delta de l'ancien écran.
-  appliquerPaiementServeur(verdict);
+  // Le serveur a deja debite les PA. On reflete la BAISSE en local pour que l'affichage suive :
+  // les triggers de la vue conservent les baisses clientes et ignorent les hausses, donc ce
+  // miroir ne peut pas creer de PA, seulement remettre l'ecran d'accord avec la base.
+  state.pa = Math.max(0, (state.pa || 0) - PA_SUBTILISATION);
+  updateUI();
 
   if (verdict.reussite) {
     // L'explosif a ete pose dans l'inventaire par le SERVEUR. On relit plutot que de recreer :
     // le recreer ici le doublerait.
     const lot = verdict.lot || 'legacy';
-    if (typeof renderInventory === 'function') renderInventory();
+    if (typeof sbGet === 'function' && state.char?.name) {
+      const lignes = await sbGet('personnages',
+        'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
+      if (lignes && lignes[0] && Array.isArray(lignes[0].inventory)) {
+        { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(lignes[0]); else state.inventory = lignes[0].inventory; }
+        if (state.char) state.char.inventory = state.inventory;
+        if (typeof renderInventory === 'function') renderInventory();
+      }
+    }
 
     // Trace d'enquete anonyme : le fait est constatable, l'auteur ne l'est pas. Aucune ligne au
     // registre reglementaire -- c'est toute la difference avec un retrait.
@@ -1676,13 +1660,12 @@ async function confirmerSubtilisationExplosif() {
         auteur: state.char?.name, cible: null, type_action: 'subtilisation_explosif',
         country: pays, city: ville, jour: state.day || 1, jour_expiration: (state.day || 1) + 15
       }).catch(() => {});
-      if (!contexteGroupePjValide(c)) return false;
     }
     if (typeof addExternalEvent === 'function') {
       addExternalEvent('Un explosif manque à l\'inventaire de l\'armurerie militaire.', 'local');
     }
     updateUI();
-
+    if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
     showToast('Explosif subtilisé', 'Personne ne vous a vu. L\'objet ne figure sur aucun registre.', true, true);
     addJournalEntry('Explosif militaire subtilisé à l\'armurerie de la caserne (lot ' + lot + ').', 'event-bad');
     return;
@@ -1701,7 +1684,6 @@ async function confirmerSubtilisationExplosif() {
     // Les autres motifs de recherche et de detention sont integralement preserves.
     // Peine QHS ouverte par le serveur dans la transaction du vol (03/11/2026).
     await placerAuQHS(verdict.arrestation);
-    if (!contexteGroupePjValide(c)) return false;
     showToast('Pris sur le fait', 'La garde vous a surpris. Quartier Haute Sécurité, '
       + JOURS_QHS_SUBTILISATION + ' jours.', false, true);
     addJournalEntry('Subtilisation d\'explosifs : pris sur le fait. ' + JOURS_QHS_SUBTILISATION
@@ -1719,7 +1701,6 @@ async function confirmerSubtilisationExplosif() {
   }
   showToast('Échec', 'Vous repartez les mains vides, mais personne ne vous a repéré.', false);
   addJournalEntry('Tentative manquée de subtilisation d\'explosifs. Personne ne vous a vu.', 'event-info');
-  } finally { if (RP_SUBTILISATION === c) RP_SUBTILISATION = null; }
 }
 
 // =====================

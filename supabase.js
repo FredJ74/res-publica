@@ -4687,7 +4687,7 @@ async function sbMilitaireDecorer(decore, intitule, citation) {
 // resultat. AUCUNE inscription au registre reglementaire : c'est toute la difference avec un
 // retrait d'armurerie, et elle reste portee par deux RPC distinctes plutot que par un drapeau.
 async function sbMilitaireSubtiliserTenter(pays) {
-  const rows = await sbRpc('militaire_subtiliser_tenter', { p_pays: pays, p_contrat: 1 });
+  const rows = await sbRpc('militaire_subtiliser_tenter', { p_pays: pays });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 

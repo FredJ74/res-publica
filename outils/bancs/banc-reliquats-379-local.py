@@ -7,7 +7,8 @@ import hashlib,importlib.util,json,os,re,sys,tempfile,time,traceback
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 R=Path(__file__).resolve().parents[2]
-M=['20261102202046_subtilisation_reponse_serveur_versionnee.sql','20261102202047_impacts_consommation_serveur_atomique.sql']
+# Subtilisation retirée le 03/11 (Claude) : le corps serveur de main #409 fait foi, plus de contrat 379.
+M=['20261102202047_impacts_consommation_serveur_atomique.sql']
 def fonction(f,nom):
  s=(R/f).read_text();a=re.search(r'CREATE OR REPLACE FUNCTION public\.'+nom+r'\(',s).start();m=re.search(r'AS\s+(\$\w*\$).*?\1;',s[a:],re.S);return s[a:a+m.end()]
 def table(q,f,nom):
@@ -65,7 +66,6 @@ def main():
   cas.append({'cas':'installation_rollback_rejeu_idempotence','ok':True})
   if '--contre' in sys.argv:
    own(fonction('baseline/domaines/justice/20_fonctions-2.sql','impact_marquer_traite'))
-   own(fonction('baseline/domaines/militaire/20_fonctions-3.sql','militaire_subtiliser_tenter'))
    own("CREATE OR REPLACE FUNCTION impact_marquer_traite(p_id text,p_contrat integer)RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path=public,pg_temp AS $$ SELECT public.impact_marquer_traite(p_id)||'{\"contrat\":1,\"applique\":true}'::jsonb $$")
   def impact(kind,delta=5,details=None,id='i',qui=1):
    own('INSERT INTO impacts_indices_attente(id,victime,indice,delta,details,palier)VALUES(%s,%s,%s,%s,%s,%s)',(id,'Fixture',kind,delta,Json(details or {}),'partielle'));return rpc('impact_marquer_traite',[id,1],qui)
@@ -100,30 +100,6 @@ def main():
   def inactive():
    p=photo();v=rpc('employe_recruter',['codetenu','NomFixture',None,None,None,None]);assert v['raison']=='metier_non_recrutable'and photo()==p
   case('codetenu_refuse_par_commande_canonique_sans_paiement',inactive)
-  def sub():
-   issues=set()
-   for k in range(100):
-    own('SAVEPOINT tirage');own('SELECT setseed(%s)',((k-50)/51,));v=rpc('militaire_subtiliser_tenter',['republic',1]);assert v['pa']==8 and v['contrat']==1 and isinstance(v['revision'],int)
-    if v.get('reussite'):
-     issues.add('succes');assert len(v['inventory'])==1 and v['revision']==1;assert own("SELECT (data->'stockArmurerieMilitaire'->>'explosif_militaire')::int FROM budgets_nationaux WHERE id='republic'")==4
-    else:issues.add('detecte'if v.get('detecte')else'echec')
-    own('ROLLBACK TO SAVEPOINT tirage')
-    if len(issues)==3:break
-   assert len(issues)==3,issues
-  case('subtilisation_succes_refus_jet_et_detection_PA_officiels',sub)
-  def vide():
-   own("UPDATE budgets_nationaux SET data='{}'")
-   for k in range(100):
-    own('SAVEPOINT tirage');own('SELECT setseed(%s)',((k-50)/51,));v=rpc('militaire_subtiliser_tenter',['republic',1]);own('ROLLBACK TO SAVEPOINT tirage')
-    if v.get('raison')=='stock_insuffisant':assert v['pa']==8 and v['revision']==0 and v['inventory']==[];return
-   raise AssertionError('branche stock insuffisant non atteinte')
-  case('subtilisation_stock_vide_cout_tentative_preserve',vide)
-  def horslieu():
-   own("UPDATE personnages_donnees SET current_building='mairie'WHERE name='Fixture'");p=photo();assert rpc('militaire_subtiliser_tenter',['republic',1])['raison']=='pas_sur_place'and photo()==p
-  case('subtilisation_hors_caserne_sans_mutation',horslieu)
-  def manque():
-   own("UPDATE personnages_donnees SET pa=1 WHERE name='Fixture'");p=photo();assert rpc('militaire_subtiliser_tenter',['republic',1])['raison']=='pa_insuffisants'and photo()==p
-  case('subtilisation_PA_insuffisants_sans_mutation',manque)
   def rollback():
    own("CREATE FUNCTION fixture_refuser_marque() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.traite THEN RAISE EXCEPTION 'panne_marque_fixture';END IF;RETURN NEW;END $$;CREATE TRIGGER fixture_refuser_marque BEFORE UPDATE ON impacts_indices_attente FOR EACH ROW EXECUTE FUNCTION fixture_refuser_marque()")
    own("INSERT INTO impacts_indices_attente(id,victime,indice,delta)VALUES('i','Fixture','pop',5)");p=photo();own('SAVEPOINT panne')
@@ -133,28 +109,18 @@ def main():
   case('panne_acquittement_annule_effet_impact',rollback)
   def prevol():
    own("CREATE OR REPLACE FUNCTION impact_marquer_traite(p_id text)RETURNS jsonb LANGUAGE sql AS $$ SELECT '{}'::jsonb $$");own('SAVEPOINT garde')
-   try:own((R/'migrations'/M[1]).read_text());raise AssertionError('corps non examiné écrasé')
+   try:own((R/'migrations'/M[0]).read_text());raise AssertionError('corps non examiné écrasé')
    except psycopg2.Error as e:assert '379_definition_non_examinee'in str(e);own('ROLLBACK TO SAVEPOINT garde')
   case('prevol_refuse_definition_serveur_inconnue',prevol)
   def acl():
-   for f in ['impact_marquer_traite(text,integer)','militaire_subtiliser_tenter(text,integer)']:
+   for f in ['impact_marquer_traite(text,integer)']:
     assert own("SELECT has_function_privilege('authenticated',%s,'EXECUTE')",(f,))
     for role in ['anon','service_role']:assert not own("SELECT has_function_privilege(%s,%s,'EXECUTE')",(role,f))
   case('droits_nouveaux_contrats_authentifies_seulement',acl)
-  def depot_panne():
-   own("CREATE OR REPLACE FUNCTION inventaire_deposer_interne(p_nom text,p_objet jsonb,p_automatique boolean DEFAULT false)RETURNS jsonb LANGUAGE sql AS $$ SELECT '{\"ok\":false}'::jsonb $$")
-   for k in range(100):
-    own('SAVEPOINT depot');p=photo();own('SELECT setseed(%s)',((k-50)/51,))
-    try:rpc('militaire_subtiliser_tenter',['republic',1])
-    except psycopg2.Error as e:
-     assert 'subtilisation_depot_refuse'in str(e);own('ROLLBACK TO SAVEPOINT depot');assert photo()==p;return
-    own('ROLLBACK TO SAVEPOINT depot')
-   raise AssertionError('panne de depot non observee')
-  case('panne_depot_annule_PA_et_stock_dans_meme_transaction',depot_panne)
   def precision():
    own("UPDATE personnages_donnees SET resources='{\"pop\":0.5}'WHERE name='Fixture'");assert impact('pop',5)['ok'];assert own("SELECT (resources->>'pop')::numeric FROM personnages_donnees WHERE name='Fixture'")==5.5
   case('impact_conserve_fraction_indice_historique',precision)
-  for fn,args in [('impact_marquer_traite',['i',0]),('militaire_subtiliser_tenter',['republic',0])]:
+  for fn,args in [('impact_marquer_traite',['i',0])]:
    def contrat(fn=fn,args=args):
     p=photo();assert rpc(fn,args)['raison']=='contrat_invalide'and photo()==p
    case('version_refusee_avant_mutation_'+fn,contrat)
