@@ -24,7 +24,7 @@ t('ecran : sbUpdatePret seulement avec { statut: succession }',
   (tous.match(/sbUpdatePret\(/g) || []).length === 2 && /sbUpdatePret\(pret\.id, \{ statut: 'succession' \}\)/.test(perso));
 t('ecran : sbCreerPret n est plus appele', !/[^/]\s*await sbCreerPret\(|[;{]\s*sbCreerPret\(/.test(tous.replace(/async function sbCreerPret/, '')));
 t('ecran : budget neuf = { key, tauxFoncier: 0.05 }', /function budgetMunicipalNeuf\(key\) \{\s*return \{\s*key,[\s\S]{0,300}?tauxFoncier: 0\.05\s*\};/.test(poli));
-t('ecran : sbSaveBudgetMunicipal a exactement 3 appelants', (tous.match(/await sbSaveBudgetMunicipal\(/g) || []).length === 3);
+t('ecran : sbSaveBudgetMunicipal a exactement 1 appelant (interdire/reprimer par le serveur depuis le 03/11)', (tous.match(/await sbSaveBudgetMunicipal\(/g) || []).length === 1);
 t('ecran : les taux du maire passent par taux_imposition_fixer', /taux_imposition_fixer/.test(tous));
 
 // Mariage (décision de Fred : pas de mariage contre son gré)
