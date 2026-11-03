@@ -26,3 +26,11 @@ test('inspection : réponse sans périmètre ne consomme pas la clé de reprise'
 
 test('campagne municipale : aucune caisse fictive ni argent personnel modifié par l’écran',async()=>{const c=jeu();c.COUNTRIES={republic:{cur:'FR'}};c.INDICES_VILLES_CACHE={republic_ville_a:{isn:50,social:40}};c.INDICE_VILLE_DEFAUT={isn:50};c.updateUI=()=>{};c.addExternalEvent=()=>{};c.state.arg=100;c.getBudgetInstitution=()=>assert.fail('budget navigateur interdit');c.executerOrdreJaugesServeur=async fn=>{assert.equal(fn,'campagne_securite');return{pays:'republic',ville:'ville_a',isn_ville:60,isn_delta:10,gain_pop:-3,montant_preleve:500};};vm.runInContext(extraire('plateau-justice-economie.js','doCampagneSecurite'),c);await c.doCampagneSecurite();assert.equal(c.INDICES_VILLES_CACHE.republic_ville_a.isn,60);assert.equal(c.INDICES_VILLES_CACHE.republic_ville_a.social,40);assert.equal(c.state.arg,100);assert.equal(c.state.pop,10,'les jauges sont adoptées par le guichet, pas recalculées ici');});
 test('campagne municipale : réponse perdue sans indice ou dépense fabriqués',async()=>{const c=jeu();c.updateUI=()=>assert.fail('pas de fausse réussite');c.executerOrdreJaugesServeur=async()=>null;vm.runInContext(extraire('plateau-justice-economie.js','doCampagneSecurite'),c);await c.doCampagneSecurite();assert.equal(c.state.pop,10);assert.equal(c.state.pa,20);});
+
+for(const suite of ['succes','absente','session'])test('sondage : '+suite+', contrat commun et aucune jauge locale',async()=>{
+ const c=jeu();c.document={getElementById:id=>id==='texte-libre-input'?{value:'Opinion publique'}:{classList:{remove(){}}}};c.updateUI=()=>{};
+ c.executerOrdreJaugesServeur=async(ordre,params)=>{assert.equal(ordre,'commanditer_sondage');assert.equal(params.texte,'Opinion publique');if(suite==='session')c.session='nouvelle';return suite==='absente'?null:{ok:true,gain_inf:5};};
+ c.deduireCoutOrdre=()=>assert.fail('deuxième paiement');
+ vm.runInContext(extraire('plateau-politique.js','executerOrdreTexte'),c);await c.executerOrdreTexte('commanditer_sondage');
+ assert.equal(c.state.inf,10);assert.equal(c.toasts.length,suite==='succes'?1:0);
+});

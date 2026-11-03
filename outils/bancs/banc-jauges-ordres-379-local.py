@@ -98,6 +98,36 @@ def main():
     if k not in ['resources','pa']:assert a[k]==b[k],k
    assert b['resources']==dict(a['resources'],inf=11)
   case('observer_paiement_et_gain_sans_autre_mutation',journaliste)
+  def lieu_sondage():
+   own("UPDATE personnages_donnees SET current_building='palais-gouvernement',current_room='bureau_min_info',poste='{\"id\":\"min_info\"}',arg=1000,liquide=1000 WHERE name='Fixture'")
+  def sondage():
+   lieu_sondage();v=rpc('commanditer_sondage',ctx={'texte':'Opinion publique'})
+   assert v['ok']and v['inf']==15 and v['pop']==10 and v['pa']==19 and v['liquide']==800,v
+   assert own('SELECT count(*)FROM forum_topics')==1 and own('SELECT count(*)FROM forum_posts')==1
+   v=rpc('commanditer_sondage',ctx={'texte':'Opinion publique'});assert v['rejeu']and v['inf']==15 and v['liquide']==800
+   assert own('SELECT count(*)FROM forum_posts')==1
+   assert rpc('commanditer_sondage',ctx={'texte':'Autre sujet'})['raison']=='requete_reutilisee'
+  case('sondage_publie_paie_et_gagne_INF_une_fois_sans_bonus_POP',sondage)
+  def sondage_refus():
+   lieu_sondage();own("UPDATE personnages_donnees SET poste=NULL WHERE name='Fixture'");p=photo()
+   assert rpc('commanditer_sondage',ctx={'texte':'Sujet'})['raison']=='poste_requis'and photo()==p
+   lieu_sondage();own("UPDATE personnages_donnees SET current_room='accueil'WHERE name='Fixture'");p=photo()
+   assert rpc('commanditer_sondage',ctx={'texte':'Sujet'})['raison']=='pas_sur_place'and photo()==p
+   assert own('SELECT count(*)FROM forum_posts')==0
+  case('sondage_poste_et_piece_serveur_avant_paiement',sondage_refus)
+  def sondage_fonds():
+   lieu_sondage();own("UPDATE personnages_donnees SET arg=0,liquide=0 WHERE name='Fixture'");p=photo()
+   assert not rpc('commanditer_sondage',ctx={'texte':'Sujet'})['ok']and photo()==p
+   assert own('SELECT count(*)FROM forum_topics')==0
+  case('sondage_refus_paiement_aucune_publication_ni_jauge',sondage_fonds)
+  def sondage_panne():
+   lieu_sondage();own("CREATE FUNCTION fixture_sondage_refuse()RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RETURN NULL;END$$;CREATE TRIGGER fixture_sondage_refuse BEFORE INSERT ON forum_posts FOR EACH ROW EXECUTE FUNCTION fixture_sondage_refuse()")
+   p=photo();v=rpc('commanditer_sondage',ctx={'texte':'Sujet'});assert v['raison']=='publication_refusee'and photo()==p,v
+   assert own('SELECT count(*)FROM forum_topics')==0 and own('SELECT count(*)FROM jauges_actions_recus')==0
+  case('sondage_refus_ecriture_annule_paiement_et_sujet',sondage_panne)
+  def sondage_falsifie():
+   lieu_sondage();p=photo();assert rpc('commanditer_sondage',ctx={'texte':'Sujet','gain_inf':100})['raison']=='contexte_invalide'and photo()==p
+  case('sondage_delta_fourni_par_client_refuse',sondage_falsifie)
   def deux():
    assert rpc('observer_debats')['inf']==11;assert rpc('observer_debats',2)['inf']==12;assert photo()['pa']==18
   case('deux_gains_legitimes_deux_requetes',deux)

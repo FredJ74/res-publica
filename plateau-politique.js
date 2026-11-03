@@ -8491,14 +8491,11 @@ async function executerOrdreTexte(action) {
     showToast('Repression ordonnee', texte + ' — +10 ISN -15 POP.', false);
     addExternalEvent('REPRESSION : Ordre de dispersion force pour "' + texte + '".');
   } else if (action === 'commanditer_sondage') {
-    // Deduction PA+cout centralisee (Lot 2C, double fuite corrigee : ni les PA ni les 200 FR
-    // n'etaient preleves auparavant). Avant la seule mutation de cette branche (INF). Montant
-    // et effet inchanges.
-    const r = await deduireCoutOrdre({ pa: 1, cost: 200 });
-    if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '1 PA requis.' : '200 FR requis.', false); return; }
-    state.inf = Math.min(100, state.inf + 5);
+    const contexte=contexteGroupePj();
+    const r=await executerOrdreJaugesServeur('commanditer_sondage',{texte});
+    if(!r||!contexteGroupePjValide(contexte))return;
     updateUI();
-    showToast('Sondage publie', '"' + texte + '" publie dans le forum national. +5 INF.', true);
+    if(!r.rejeu)showToast('Sondage publié','Le sondage est enregistré dans le forum national. +'+r.gain_inf+' INF.',true);
   } else {
     showToast(action, texte, true);
     addJournalEntry(action + ' : ' + texte, 'event-info');

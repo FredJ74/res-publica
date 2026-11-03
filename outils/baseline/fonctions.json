@@ -550,7 +550,8 @@
    "mecanisme": "epinglee",
    "empreinte_serveur": "c5127b8e5cfcc3c2",
    "empreinte_canon": "edd84a342cfe3edc",
-   "_pourquoi": "LIT LA BASE (par personnageExisteReellement). Determine qui est convoque apres un refus de succession : le delai de 10 jours est ecrit des deux cotes sous deux noms (DELAI_CONVOCATION_MS et DELAI_CONVOCATION_MS_SUCCESSION), mesures egaux. Epinglee parce qu'elle ne peut pas s'executer hors base."
+   "_pourquoi": "PR #401 (main 26dc2fc2) a retiré determinerEtapeSuivante du navigateur : succession_repondre juge maintenant les réponses en SQL. Le cron conserve determinerEtapeSuivanteServeur et son empreinte originale pour les échéances autonomes. Comme pour les expulsions, le contrôle exige l’absence AST du mécanisme client et garde les deux anciennes empreintes, sans restaurer le doublon.",
+   "canon_absent": true
   },
   {
    "cle": "economie/prix-ressource",

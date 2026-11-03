@@ -9,7 +9,7 @@ DECLARE f regprocedure:=to_regprocedure('public.jauges_ordre_executer(text,uuid,
 BEGIN
  IF(f IS NULL)<>(t IS NULL)THEN RAISE EXCEPTION 'jauges_installation_partielle';END IF;
  IF f IS NOT NULL THEN
-  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=f AND md5(prosrc)='a6692cfbfad1d577afae4d18c76ad322'
+  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=f AND md5(prosrc)='ca8a583886c03d76e9e3b0873ccf2b7b'
      AND prosecdef AND prorettype='jsonb'::regtype AND proconfig=ARRAY['search_path=public, pg_temp'])THEN
    RAISE EXCEPTION 'jauges_definition_a_reexaminer';END IF;
   IF NOT(SELECT relrowsecurity FROM pg_class WHERE oid=t)
@@ -46,7 +46,7 @@ BEGIN
     RETURN jsonb_build_object('ok',false,'raison','requete_invalide'); END IF;
   SELECT * INTO a FROM public.personnages_donnees WHERE name=public.mon_personnage() FOR UPDATE;
   IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
-  contexte_recu:=CASE WHEN p_ordre='forum_publier' THEN jsonb_build_object('sha256',encode(sha256(convert_to(p_contexte::text,'UTF8')),'hex')) ELSE p_contexte END;
+  contexte_recu:=CASE WHEN p_ordre IN('forum_publier','commanditer_sondage') THEN jsonb_build_object('sha256',encode(sha256(convert_to(p_contexte::text,'UTF8')),'hex')) ELSE p_contexte END;
   SELECT * INTO rec FROM public.jauges_actions_recus WHERE acteur=a.name AND requete=p_requete;
   IF FOUND THEN
     IF rec.ordre IS DISTINCT FROM p_ordre OR rec.contexte IS DISTINCT FROM contexte_recu THEN
@@ -65,6 +65,28 @@ BEGIN
       'solde_national',coalesce((SELECT solde FROM public.comptes_bancaires WHERE personnage=a.name AND banque='nationale'),0));
   END IF;
   CASE p_ordre
+  WHEN 'commanditer_sondage' THEN
+    IF a.current_building IS DISTINCT FROM 'palais-gouvernement'OR a.current_room IS DISTINCT FROM 'bureau_min_info'OR a.current_city IS DISTINCT FROM 'capitale'THEN
+      RETURN jsonb_build_object('ok',false,'raison','pas_sur_place');END IF;
+    IF a.poste->>'id'IS DISTINCT FROM 'min_info'THEN RETURN jsonb_build_object('ok',false,'raison','poste_requis');END IF;
+    IF p_contexte-ARRAY['texte']<>'{}'::jsonb OR jsonb_typeof(p_contexte->'texte')IS DISTINCT FROM 'string'
+       OR nullif(btrim(p_contexte->>'texte'),'')IS NULL THEN
+      RETURN jsonb_build_object('ok',false,'raison','contexte_invalide');END IF;
+    -- Même forum, mêmes déclencheurs : pas de deuxième moteur de publication.
+    -- Un refus après paiement annule tout le sous-bloc avant de rendre le verdict.
+    BEGIN
+      paiement:=public.payer_ordre(a.name,p_ordre,1,200);
+      IF NOT coalesce((paiement->>'ok')::boolean,false)THEN RETURN paiement;END IF;
+      publication:=public.forum_publication_jauges_interne(a.name,p_requete,
+        jsonb_build_object('forum','national','titre','Sondage — '||btrim(p_contexte->>'texte'),
+          'contenu',btrim(p_contexte->>'texte')));
+      IF NOT coalesce((publication->>'ok')::boolean,false)THEN
+        RAISE EXCEPTION 'sondage_publication_refusee' USING ERRCODE='23514';END IF;
+    EXCEPTION WHEN check_violation THEN
+      RETURN jsonb_build_object('ok',false,'raison','publication_refusee');
+    END;
+    -- Le bonus de cet ordre est +5 INF, sans bonus supplémentaire de forum.
+    pa_cout:=NULL;inf_gain:=5;
   WHEN 'objectifs_actualiser' THEN
     IF p_contexte<>'{}'::jsonb THEN RETURN jsonb_build_object('ok',false,'raison','contexte_invalide');END IF;
     IF to_regprocedure('public.objectifs_secrets_actualiser_interne(text)')IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','ordre_non_raccorde');END IF;
