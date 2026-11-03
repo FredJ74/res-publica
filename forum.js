@@ -88,6 +88,56 @@ const FORUM_TOPICS = {
   gouvernement: [], presse: []
 };
 
+// Les compteurs proviennent de la liste de forums autorisés et non du seul
+// forum dont le PJ a ouvert les sujets. Ils n'acquittent jamais une nouveauté.
+const forumCompteursServeur = Object.create(null);
+let forumCompteursDernierChargement = 0;
+let forumCompteursChargement = null;
+let forumCompteursIdentite = '';
+function nombreSujetsForum(id) {
+  if (Object.prototype.hasOwnProperty.call(forumCompteursServeur, id))
+    return forumCompteursServeur[id] + ' sujet(s)';
+  if (FORUM_LECTURE_TERMINEE[id] && !FORUM_LECTURE_ECHOUEE[id])
+    return (FORUM_TOPICS[id] || []).length + ' sujet(s)';
+  return '… sujet(s)';
+}
+async function rafraichirCompteursForums() {
+  if (typeof sbCompterSujetsForums !== 'function') return;
+  const forums = getForums();
+  const ids = Object.keys(forums).filter(id => !forums[id].private || canAccessForum(id));
+  const identite = (state.char?.name || '') + '|' + (state.currentCity || '') + '|' + ids.join(',');
+  if (forumCompteursChargement && forumCompteursIdentite === identite)
+    return forumCompteursChargement;
+  if (forumCompteursIdentite === identite &&
+      Date.now() - forumCompteursDernierChargement < 30000) {
+    rafraichirVoyantsEtCompteursForum();
+    return;
+  }
+  forumCompteursIdentite = identite;
+  const enCours = (async () => {
+    try {
+      const compteurs = await sbCompterSujetsForums(ids);
+      // Si le PJ a changé de ville ou de personnage entre deux réponses, ignorer
+      // l'ancienne liste sans afficher de nombres potentiellement interdits.
+      if (identite !== forumCompteursIdentite) return;
+      Object.keys(forumCompteursServeur).forEach(id => delete forumCompteursServeur[id]);
+      ids.forEach(id => {
+        if (Number.isInteger(compteurs[id]) && compteurs[id] >= 0)
+          forumCompteursServeur[id] = compteurs[id];
+      });
+      forumCompteursDernierChargement = Date.now();
+      rafraichirVoyantsEtCompteursForum();
+    } catch (e) {
+      console.warn('[Forum] Compteurs non disponibles', e);
+      // Une panne n'est pas un forum vide.
+    }
+  })();
+  forumCompteursChargement = enCours;
+  try { await enCours; } finally {
+    if (forumCompteursChargement === enCours) forumCompteursChargement = null;
+  }
+}
+
 // Mails inter-joueurs
 const MAILS_STORAGE_KEY = 'respublica_mails';
 
@@ -346,7 +396,7 @@ function onboardingArmerComposeCanvas() { onboardingComposeEnCours = true; }
 // permet au Calendrier electoral d'envoyer un candidat rediger son programme, puis d'offrir a
 // tous « voir le programme » -- sans qu'aucun ecran de campagne ne duplique le forum.
 function ouvrirForumSurEditeur(forumId, titreSuggere) {
-  currentForumId = forumId || 'local';
+  currentForumId = forumId || idForumLocal();
   currentTopicId = null;
   const f = getForums()[currentForumId];
   if (f?.cat) forumCategorieActive = f.cat;
@@ -375,7 +425,7 @@ function ouvrirForumSurTopic(topicId) {
   Object.keys(FORUM_TOPICS || {}).forEach(function (fid) {
     if ((FORUM_TOPICS[fid] || []).some(function (t) { return t.id === topicId; })) forumTrouve = fid;
   });
-  currentForumId = forumTrouve || currentForumId || 'local';
+  currentForumId = forumTrouve || currentForumId || idForumLocal();
   const f = getForums()[currentForumId];
   if (f?.cat) forumCategorieActive = f.cat;
   renderForumModal();
@@ -398,6 +448,9 @@ function openForum_module(forumId) {
   }
   renderForumModal();
   document.getElementById('modal-forum').classList.add('open');
+  // Dès l'ouverture, charger les compteurs de toutes les rubriques accessibles.
+  // Ce chargement n'acquitte aucune lecture et ne remplace pas la zone centrale.
+  rafraichirCompteursForums().catch(() => {});
   // LES VOYANTS DE LA MESSAGERIE SE METTENT A JOUR DES L'OUVERTURE (25 octobre 2026) : une
   // lecture du serveur, puis seulement la barre laterale et le bouton sont repeints -- jamais
   // la zone centrale, ou un brouillon peut etre en cours.
@@ -651,7 +704,7 @@ function renderForumNavItem(id, f) {
     <i class="ti ${f.icon}" style="font-size:.85rem"></i>
     <div>
       <div class="forum-nav-name">${f.name}${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
-      <div class="forum-nav-count">${(FORUM_TOPICS[id]||[]).length} sujet(s)</div>
+      <div class="forum-nav-count">${nombreSujetsForum(id)}</div>
     </div>
     ${f.private ? `<i class="ti ti-lock" style="font-size:.65rem;color:#4a4030;margin-left:auto"></i>` : ''}
   </div>`;
@@ -664,7 +717,9 @@ function renderForumCategorieItems(cat) {
   if (cat === 'intra') {
     const directs = entries.filter(([id, f]) => !f.sousGroupe);
     const institutions = entries.filter(([id, f]) => f.sousGroupe === 'institutions');
-    const parLocal = directs.filter(([id]) => id === 'local');
+    // Le forum local est local_<ville> ; l'ancien filtre "local" masquait
+    // complètement sa rubrique, tout en laissant son point rouge actif.
+    const parLocal = directs.filter(([id]) => id === idForumLocal());
     const parNational = directs.filter(([id]) => id === 'national');
     const parPresse = directs.filter(([id]) => id === 'presse');
     return `<div class="forum-categorie-items">` +
@@ -2483,6 +2538,9 @@ async function loadForumTopicsFromSB(forumId) {
     delete FORUM_LECTURE_ECHOUEE[forumId];
     FORUM_DERNIERE_LECTURE[forumId] = Date.now();
     const rows = v.donnees;
+    // Le compteur isolé n'attend pas le prochain rafraîchissement global.
+    forumCompteursServeur[forumId] = rows.length;
+    rafraichirVoyantsEtCompteursForum();
     if (rows.length === 0) return;
     // Fusionner avec les topics locaux existants
     if (!FORUM_TOPICS[forumId]) FORUM_TOPICS[forumId] = [];

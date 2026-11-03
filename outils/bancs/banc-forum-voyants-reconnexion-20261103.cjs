@@ -37,6 +37,8 @@ function forumScene(){
    forumActiviteCache:{},forumView:'list',currentForumId:'national',forumCategorieActive:'intra',
    forumSousGroupeOuvert:false,FORUM_TOPICS:{},mailRubrique:'recus',
    getForums:()=>forums,canAccessForum:id=>id!=='ancien',
+   idForumLocal:()=> 'local_ville_a',
+   nombreSujetsForum:id=> ((ctx.FORUM_TOPICS[id]||[]).length)+' sujet(s)',
    localStorage:{getItem:k=>{if(ctx.stockageBloque)throw Error('quota depasse');return map.get(k)||null;},
                  setItem:(k,v)=>{if(ctx.stockageBloque)throw Error('quota depasse');map.set(k,v)}},
    sessionStorage:{getItem:k=>ctx.session.get(k)||null,setItem:(k,v)=>ctx.session.set(k,v)},
