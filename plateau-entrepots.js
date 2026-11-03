@@ -221,6 +221,9 @@ function rendreTableauEntrepot(onglet) {
   });
   html += '</div>';
 
+  // Offres d'achat (trading, etape 2, 03/11/2026) : fenetre commune avec les traders.
+  html += '<div style="margin-bottom:.8rem"><button class="cpj-touche cpj-primaire" onclick="ouvrirOffresAchat(\'directeur\')">Offres d\'achat</button></div>';
+
   if (onglet === 'stocks')   html += vueStocksEntrepot(d, cur);
   if (onglet === 'marche')   html += vueMarcheEntrepot(d, cur);
   if (onglet === 'registre') html += vueRegistreEntrepot(d, cur);

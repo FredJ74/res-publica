@@ -6328,6 +6328,16 @@ export default async function handler(req, res) {
       loyersMursOk ? null : (loyersMurs ? (loyersMurs.erreurs || []).length + ' titre(s) en erreur' : 'RPC murs_loyers_nuit indisponible'),
       resumeContexte(loyersMurs ? loyersMurs.verdicts || {} : {}), Date.now() - debutLoyersMurs);
 
+    // 5 c. Offres d'achat du trading echues (3 novembre 2026) : la part non servie revient a la
+    //    caisse qui l'avait bloquee ; rejouable sans double effet (une offre close n'est plus touchee).
+    const debutOffres = Date.now();
+    const offresRows = SUPABASE_SERVICE_ROLE ? await sbRpc('offres_achat_expirer_nuit', {}, HEADERS_SERVICE) : null;
+    const offres = Array.isArray(offresRows) ? offresRows[0] : offresRows;
+    const offresOk = !!(offres && offres.ok === true && !(offres.erreurs || []).length);
+    await journaliserCron('offres_achat_expirees', jourParisISO(), offresOk ? 'ok' : 'echec',
+      offresOk ? null : (offres ? (offres.erreurs || []).length + ' offre(s) en erreur' : 'RPC offres_achat_expirer_nuit indisponible'),
+      resumeContexte({ expirees: offres ? offres.expirees : 0, rembourse: offres ? offres.rembourse : 0 }), Date.now() - debutOffres);
+
     // 5 b. Descentes d'Estadine echues (2 novembre 2026) : appliquees par le serveur pour les
     //    joueurs hors ligne ; rejouable sans double effet (chaque descente est marquee).
     const debutDescentes = Date.now();

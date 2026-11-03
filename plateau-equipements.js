@@ -156,6 +156,7 @@ async function ouvrirTrading() {
     h += '</table>';
   });
 
+  h += '<div style="margin-top:1rem">' + equipementsBouton('ouvrirOffresAchat(\'trader\')', 'Offres d\'achat', true) + '</div>';
   if (r.organisations.some(function (o) { return o.chef; })) {
     h += '<div style="margin-top:1rem">' + equipementsBouton('ouvrirTradingTraders()', 'Gérer mes traders') + '</div>';
   }
@@ -206,4 +207,127 @@ async function tradingAutoriser(orga, nom, autorise) {
   if (!r || r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
   showToast('Traders', autorise ? nom + ' peut désormais trader.' : nom + ' ne trade plus.', true);
   ouvrirTradingTraders();
+}
+
+// ---------------------------------------------------------------------------
+// OFFRES D'ACHAT (etape 2, 3 novembre 2026)
+// ---------------------------------------------------------------------------
+// Directeur d'entrepot (depuis son tableau de bord) ou trader connecte (depuis son bureau).
+// Publier bloque l'argent (caisse de l'entrepot ou de l'organisation) ; la part non servie revient
+// au retrait ou apres 7 jours. Servir : directeur depuis le stock de son entrepot, trader depuis ses
+// matieres ou le stock d'un de ses locaux (paye a son organisation). Vente partielle admise.
+Object.assign(EQUIPEMENTS_REFUS, {
+  poste_non_detenu: 'Vous ne dirigez pas d\'entrepôt.',
+  prix_invalide: 'Prix invalide.',
+  capacite_insuffisante: 'L\'entrepôt n\'a pas la place.',
+  capacite_acheteur_insuffisante: 'L\'entrepôt acheteur n\'a plus la place.',
+  tresorerie_insuffisante: 'La trésorerie de l\'entrepôt ne suffit pas.',
+  offre_introuvable: 'Cette offre n\'existe plus.',
+  offre_close: 'Cette offre est close.',
+  pas_auteur: 'Seul l\'auteur peut retirer son offre.',
+  propre_offre: 'Vous ne pouvez pas servir votre propre offre.',
+  matiere_insuffisante: 'Vous n\'avez pas assez de cette matière à cet endroit.',
+  pas_proprietaire_local: 'Ce local ne vous appartient pas.',
+  source_inconnue: 'Choisissez d\'où part la marchandise.'
+});
+let RP_OFFRES_MODE = 'trader';
+
+function offresLibelleRessource(cle) {
+  return (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[cle]?.label) || cle;
+}
+
+async function ouvrirOffresAchat(mode) {
+  RP_OFFRES_MODE = mode || RP_OFFRES_MODE;
+  equipementsModale('Offres d\'achat', '<p class="cpj-note">…</p>');
+  const r = await sbRpc('offres_achat_lire', {}).catch(function () { return null; });
+  if (!r || r.ok !== true) { equipementsModale('Offres d\'achat', '<p class="cpj-note">' + equipementsEchapper(equipementsRefus(r)) + '</p>'); return; }
+  const directeur = RP_OFFRES_MODE === 'directeur' && !!r.directeur_de;
+  let orgas = [];
+  if (!directeur) {
+    const c = await sbRpc('trading_cours', {}).catch(function () { return null; });
+    orgas = (c && c.ok === true) ? c.organisations : [];
+  }
+  const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
+  const ressources = (typeof RESSOURCES_ECONOMIE !== 'undefined') ? Object.keys(RESSOURCES_ECONOMIE) : [];
+
+  let h = '<p class="cpj-note">' + (directeur
+    ? 'Vous agissez pour votre entrepôt : vos offres sont payées par sa trésorerie, vous servez depuis son stock.'
+    : 'Vous agissez pour une organisation : ses offres sont payées par sa caisse ; quand vous servez, elle est payée.') +
+    ' L\'argent d\'une offre est bloqué à la publication ; la part non servie revient au retrait ou après 7 jours.</p>';
+
+  if (!directeur && orgas.length) {
+    h += '<label class="cpj-note" for="offre-orga">Organisation</label> <select id="offre-orga" class="cpj-champ">' +
+      orgas.map(function (o) { return '<option value="' + equipementsEchapper(o.id) + '">' + equipementsEchapper(o.nom) + '</option>'; }).join('') + '</select>';
+  }
+  if (!directeur) {
+    h += ' <label class="cpj-note" for="offre-source">Marchandise prise</label> <select id="offre-source" class="cpj-champ">' +
+      '<option value="inventaire|">sur moi</option>' +
+      (r.locaux || []).map(function (l) { return '<option value="local|' + equipementsEchapper(l.id) + '">dans ' + equipementsEchapper(l.enseigne || 'mon local') + '</option>'; }).join('') +
+      '</select>';
+  }
+
+  h += '<div class="cpj-titre">Offres ouvertes</div>';
+  if (!r.offres.length) h += '<p class="cpj-note">Aucune offre en cours.</p>';
+  r.offres.forEach(function (o) {
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin:.35rem 0;flex-wrap:wrap">' +
+      '<span>' + equipementsEchapper(o.acheteur) + ' achète <strong>' + o.restante + '</strong> ' + equipementsEchapper(offresLibelleRessource(o.ressource)) +
+      ' à ' + equipementsEchapper(o.prix) + ' ' + equipementsEchapper(cur) + '</span><span>' +
+      (o.a_moi
+        ? equipementsBouton('offreRetirer(\'' + o.id + '\')', 'Retirer')
+        : ((directeur || orgas.length)
+            ? '<input id="offre-q-' + o.id + '" class="cpj-champ" type="number" min="1" max="' + o.restante + '" value="' + o.restante + '" style="width:4.5rem"> ' +
+              equipementsBouton('offreServir(\'' + o.id + '\')', 'Vendre', true)
+            : '')) + '</span></div>';
+  });
+
+  if (directeur || orgas.length) {
+    h += '<div class="cpj-titre">Publier une offre</div>' +
+      '<select id="offre-res" class="cpj-champ">' + ressources.map(function (k) {
+        return '<option value="' + k + '">' + equipementsEchapper(offresLibelleRessource(k)) + '</option>'; }).join('') + '</select> ' +
+      '<input id="offre-qte" class="cpj-champ" type="number" min="1" value="10" style="width:5rem" title="Quantité"> × ' +
+      '<input id="offre-prix" class="cpj-champ" type="number" min="0.01" step="0.01" value="5" style="width:5rem" title="Prix unitaire"> ' +
+      equipementsEchapper(cur) + ' ' + equipementsBouton('offrePublier()', 'Publier', true);
+  }
+  if (!directeur) h += '<div style="margin-top:1rem">' + equipementsBouton('ouvrirTrading()', 'Retour aux cours') + '</div>';
+  else h += '<div style="margin-top:1rem">' + equipementsBouton('ouvrirTableauBordEntrepot()', 'Retour au tableau de bord') + '</div>';
+  equipementsModale('Offres d\'achat', h);
+}
+
+async function offrePublier() {
+  const directeur = RP_OFFRES_MODE === 'directeur';
+  const params = {
+    p_type: directeur ? 'entrepot' : 'organisation',
+    p_organisation: directeur ? null : ((document.getElementById('offre-orga') || {}).value || null),
+    p_ressource: (document.getElementById('offre-res') || {}).value,
+    p_quantite: parseInt((document.getElementById('offre-qte') || {}).value, 10),
+    p_prix: Number((document.getElementById('offre-prix') || {}).value)
+  };
+  const r = await sbRpc('offre_achat_publier', params).catch(function () { return null; });
+  if (!r || r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
+  showToast('Offre publiée', r.montant_bloque + ' bloqués (' + r.acheteur + ').', true);
+  ouvrirOffresAchat();
+}
+
+async function offreRetirer(id) {
+  const r = await sbRpc('offre_achat_retirer', { p_offre: id }).catch(function () { return null; });
+  if (!r || r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
+  showToast('Offre retirée', r.rembourse + ' remboursés.', true);
+  ouvrirOffresAchat();
+}
+
+async function offreServir(id) {
+  const directeur = RP_OFFRES_MODE === 'directeur';
+  const q = parseInt((document.getElementById('offre-q-' + id) || {}).value, 10);
+  const src = directeur ? ['entrepot', ''] : String((document.getElementById('offre-source') || {}).value || 'inventaire|').split('|');
+  const r = await sbRpc('offre_achat_servir', {
+    p_offre: id, p_quantite: q, p_source: src[0],
+    p_organisation: directeur ? null : ((document.getElementById('offre-orga') || {}).value || null),
+    p_fonds: src[1] || null
+  }).catch(function () { return null; });
+  if (!r || r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
+  if (src[0] === 'inventaire' && typeof sbAdopterInventaireServeur === 'function') {
+    sbAdopterInventaireServeur(r); if (typeof renderInventory === 'function') renderInventory();
+  }
+  showToast('Vente conclue', r.quantite + ' ' + offresLibelleRessource(r.ressource) + ' vendus ' + r.montant + ' (' + r.vendeur + '). Livraison au cron de minuit.', true, true);
+  ouvrirOffresAchat();
 }
