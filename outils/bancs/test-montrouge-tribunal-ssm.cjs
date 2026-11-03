@@ -24,7 +24,7 @@ test('SSM et parking sont des lieux visitables sans mécanique anticipée', () =
     const start = data.indexOf("  '" + id + "': {");
     assert.ok(start >= 0, 'batiment absent ' + id);
     const block = data.slice(start, data.indexOf("\n  },", start) + 5);
-    assert.match(block, /rooms: \{ accueil:/);
+    assert.match(block, /rooms:\s*\{\s*accueil:/);
     assert.match(block, /orders: \[\]/);
   }
 });
