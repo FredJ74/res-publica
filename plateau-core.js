@@ -2438,6 +2438,7 @@ async function executerOrdreJaugesServeur(ordre, contexte = {}) {
       return null;
     }
     if (v.contrat_jauges !== 1 || v.acteur !== c.nom || v.requete !== requete || v.ordre !== ordre
+        || (ordre==='inspecter_troupes'&&v.perimetre?.ok!==true)
         || ![v.pop,v.inf,v.pa,v.hp].every(x => typeof x === 'number' && Number.isFinite(x))) return null;
     localStorage.removeItem(stockage);
     appliquerPaiementServeur(v);

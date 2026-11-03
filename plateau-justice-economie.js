@@ -2207,9 +2207,11 @@ function doSeReposer(fn) {
 // l'audience. Un avocat peut y plaider ; c'est le JUGE qui decide, et il est humain.
 
 async function doGreveFaim() {
+  const contexte=contexteGroupePj();
   const v = await executerOrdreJaugesServeur('greve_faim');
-  if (!v) return;
+  if (!v||!contexteGroupePjValide(contexte)) return;
   updateUI();
+  if(v.rejeu)return;
   showToast('Greve de la faim', '-5 HP +3 POP. Pression politique sur l\'administration.', false);
   addExternalEvent((state.char?.name||'Un detenu') + ' entame une greve de la faim. Pression politique.');
 }

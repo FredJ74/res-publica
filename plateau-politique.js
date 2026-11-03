@@ -9861,15 +9861,16 @@ const DOSSIERS_GOUVERNEMENTAUX = [
 ];
 
 async function doConsulterDossiersGouv(pa, cost) {
+  const contexte=contexteGroupePj();
   const r = await executerOrdreJaugesServeur('consulter_dossiers_gouv');
-  if (!r) return;
+  if (!r||!contexteGroupePjValide(contexte)) return;
   const dossier = DOSSIERS_GOUVERNEMENTAUX[Math.floor(Math.random() * DOSSIERS_GOUVERNEMENTAUX.length)];
   document.getElementById('postes-modal-title').textContent = 'Dossier confidentiel';
   const html = '<div style="padding:1rem;font-size:.85rem;color:#c0b090;line-height:1.6;font-style:italic">« ' + dossier + ' »</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
   updateUI();
-  addJournalEntry('Consultation d\'un dossier confidentiel du gouvernement. +2 INF.', 'event-info');
+  if(!r.rejeu)addJournalEntry('Consultation d\'un dossier confidentiel du gouvernement. +2 INF.', 'event-info');
 }
 
 function doMobiliserPolice(fn) {
@@ -13087,14 +13088,18 @@ async function ouvrirInspecterTroupes() {
 async function confirmerInspectionTroupes(niveau) {
   // LE VERDICT EST REDEMANDE ICI, et ce n'est pas une precaution de style : cette fonction est
   // globale, donc appelable directement. Le controle de l'ouverture ne protege que l'ouverture.
-  const perim = await perimetreInspectionTroupes();
+  const contexte=contexteGroupePj();
+  let perim = await perimetreInspectionTroupes();
+  if(!contexteGroupePjValide(contexte))return;
   if (!perim.ok) { signalerRefusInspection(perim); return; }
   const cfg = NIVEAUX_INSPECTION_TROUPES[niveau];
   if (!cfg) return;
   // `fn` explicite : ne jamais dependre de state._ordreEnCours, qui porte le dernier ordre route
   // et serait faux des que cette fenetre est rouverte depuis un autre chemin.
   const r = await executerOrdreJaugesServeur('inspecter_troupes', {niveau});
-  if (!r) return;
+  if (!r||!contexteGroupePjValide(contexte)) return;
+  perim=r.perimetre;
+  if(!perim?.ok)return;
 
   // Gain deterministe (pas de jet) : coherent avec l'ancien successRate:100 declare dans
   // data.js, jamais garanti par le moteur generique (doOrder) faute d'etre dans son alwaysSuccess
@@ -13107,11 +13112,13 @@ async function confirmerInspectionTroupes(niveau) {
   // les echelons superieurs l'armee : c'est la liste rendue par la porte qui le decide, jamais
   // une deduction locale.
   const etat = await construireEtatArmee(perim.pays || state.country || 'republic', perim);
+  if(!contexteGroupePjValide(contexte))return;
   document.getElementById('postes-modal-title').textContent = cfg.label
     + (perim.portee === 'section' ? ' — ma section'
        : perim.portee === 'compagnie' ? ' — ma compagnie' : '');
   document.getElementById('postes-body').innerHTML = niveau === 'detaillee' ? renderInspectionDetaillee(etat) : renderInspectionRevue(etat);
   document.getElementById('modal-postes').classList.add('open');
+  if(r.rejeu)return;
   showToast(cfg.label, 'Inspection effectuée (+' + cfg.inf + ' INF).', true, true);
   addJournalEntry(cfg.label + ' (+' + cfg.inf + ' INF).', 'event-good');
 }

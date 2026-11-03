@@ -1574,18 +1574,21 @@ async function questionnerDeputeAssemblee(siegeId) {
 async function observerDebats(pa, cost) {
   if (typeof sbGetAssembleePropositions !== 'function') { assembleeIndisponible(); return; }
 
+  const contexte=contexteGroupePj();
   const pays = state.country || 'republic';
   await rafraichirAssemblee();
+  if(!contexteGroupePjValide(contexte))return;
   const occ = assembleeOccupation();
   if (!occ) { assembleeIndisponible(); return; }
 
   const sessions = await sbGetAssembleePropositions(pays, ['session']).catch(() => null);
+  if(!contexteGroupePjValide(contexte))return;
   if (!sessions) { assembleeIndisponible(); return; }
 
   // Le PA se paie APRES avoir verifie qu'on peut reellement produire le snapshot, et AVANT de
   // l'afficher. Un joueur ne doit pas payer pour un ecran d'indisponibilite.
   const r = await executerOrdreJaugesServeur('observer_debats');
-  if (!r) return;
+  if (!r||!contexteGroupePjValide(contexte)) return;
 
   const horodatage = new Date().toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   let html = '<div style="padding:1rem">';
@@ -1647,6 +1650,7 @@ async function observerDebats(pa, cost) {
   }
   html += '</div>';
 
+  if(!contexteGroupePjValide(contexte))return;
   document.getElementById('postes-modal-title').textContent = 'Observer les débats';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');

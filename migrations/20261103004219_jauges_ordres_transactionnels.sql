@@ -66,12 +66,12 @@ BEGIN
     IF NOT coalesce((publication->>'ok')::boolean,false)THEN RETURN publication;END IF;
     pa_cout:=NULL;pop_gain:=2;
   WHEN 'observer_debats' THEN
-    IF a.current_building IS DISTINCT FROM 'assemblee' THEN
+    IF a.current_building IS DISTINCT FROM 'assemblee'OR a.current_room IS DISTINCT FROM 'hemicycle'OR a.current_city IS DISTINCT FROM 'capitale' THEN
       RETURN jsonb_build_object('ok',false,'raison','pas_sur_place'); END IF;
     IF p_contexte<>'{}'::jsonb THEN RETURN jsonb_build_object('ok',false,'raison','contexte_invalide');END IF;
     pa_cout:=1; inf_gain:=CASE WHEN a.career='press' THEN 1 ELSE 0 END;
   WHEN 'consulter_dossiers_gouv' THEN
-    IF a.current_building IS DISTINCT FROM 'palais-gouvernement' THEN
+    IF a.current_building IS DISTINCT FROM 'palais-gouvernement'OR a.current_room IS DISTINCT FROM 'archives_gouv'OR a.current_city IS DISTINCT FROM 'capitale' THEN
       RETURN jsonb_build_object('ok',false,'raison','pas_sur_place'); END IF;
     IF nullif(a.poste->>'id','') IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','poste_requis'); END IF;
     IF p_contexte<>'{}'::jsonb THEN RETURN jsonb_build_object('ok',false,'raison','contexte_invalide');END IF;
@@ -84,7 +84,7 @@ BEGIN
     pa_cout:=CASE WHEN p_contexte->>'niveau'='revue' THEN 1 ELSE 2 END;
     inf_gain:=CASE WHEN p_contexte->>'niveau'='revue' THEN 3 ELSE 5 END;
   WHEN 'greve_faim' THEN
-    IF a.current_building IS DISTINCT FROM 'qhs-prison' OR jsonb_typeof(a.est_emprisonne) IS DISTINCT FROM 'object'
+    IF a.current_building IS DISTINCT FROM 'qhs-prison'OR a.current_room IS DISTINCT FROM 'cellules_qhs' OR jsonb_typeof(a.est_emprisonne) IS DISTINCT FROM 'object'
        OR a.est_emprisonne='{}'::jsonb THEN RETURN jsonb_build_object('ok',false,'raison','detention_requise');END IF;
     IF p_contexte<>'{}'::jsonb THEN RETURN jsonb_build_object('ok',false,'raison','contexte_invalide');END IF;
     pa_cout:=0;pop_gain:=3;

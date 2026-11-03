@@ -47,7 +47,7 @@ def main():
   for n in ['forum_topics','forum_posts']:q.execute('CREATE TRIGGER trg_hospitalisation_ecriture_j0 BEFORE INSERT ON '+n+' FOR EACH ROW EXECUTE FUNCTION hospitalisation_ecriture_j0_garder()')
   q.execute((R/'migrations/20261103010231_forum_publications_jauges_serveur.sql').read_text())
   q.execute((R/'baseline/seeds/95_a-regenerer/ordres_couts.sql').read_text())
-  q.execute("INSERT INTO personnages_donnees(name,country,user_id,current_city,current_building,career,pa,hp,moral,resources,arg,liquide,stats)VALUES('Fixture','republic','00000000-0000-4000-9000-000000000001','capitale','assemblee','press',20,70,60,'{\"pop\":10,\"inf\":10,\"dis\":42}',100,100,'{\"INT\":12}');")
+  q.execute("INSERT INTO personnages_donnees(name,country,user_id,current_city,current_building,current_room,career,pa,hp,moral,resources,arg,liquide,stats)VALUES('Fixture','republic','00000000-0000-4000-9000-000000000001','capitale','assemblee','hemicycle','press',20,70,60,'{\"pop\":10,\"inf\":10,\"dis\":42}',100,100,'{\"INT\":12}');")
   q.execute("INSERT INTO personnages_donnees(name,country,user_id,archetype,poste,pa,hp,moral,resources,arg,liquide)VALUES('AncienneFixture','republic','00000000-0000-4000-9000-000000000002','ambitieux','{\"id\":\"president\"}',20,70,60,'{\"pop\":10,\"inf\":85}',100,100)")
   q.execute((R/'migrations/20261103011234_objectifs_secrets_jauges_serveur.sql').read_text())
   migration=(R/'migrations/20261103004219_jauges_ordres_transactionnels.sql').read_text();q.execute('SAVEPOINT installation');q.execute(migration);q.execute('ROLLBACK TO SAVEPOINT installation');q.execute("SELECT to_regprocedure('public.jauges_ordre_executer(text,uuid,jsonb)')IS NULL");assert q.fetchone()[0]
@@ -113,13 +113,20 @@ def main():
   case('inspection_citoyen_refuse',refuse)
   def faim():
    p=photo();assert rpc('greve_faim')['raison']=='detention_requise'and photo()==p
-   own("UPDATE personnages_donnees SET current_building='qhs-prison',est_emprisonne='{\"motif\":\"fixture\"}',hp=3")
+   own("UPDATE personnages_donnees SET current_building='qhs-prison',current_room='cellules_qhs',est_emprisonne='{\"motif\":\"fixture\"}',hp=3")
    v=rpc('greve_faim');assert v['hp']==1 and v['pop']==13 and v['pa']==20;assert rpc('greve_faim')['pop']==13
   case('faim_detention_HP_plancher_et_rejeu',faim)
   def dossier():
-   own("UPDATE personnages_donnees SET current_building='palais-gouvernement'");p=photo();assert rpc('consulter_dossiers_gouv')['raison']=='poste_requis'and photo()==p
+   own("UPDATE personnages_donnees SET current_building='palais-gouvernement',current_room='archives_gouv'");p=photo();assert rpc('consulter_dossiers_gouv')['raison']=='poste_requis'and photo()==p
    own("UPDATE personnages_donnees SET poste='{\"id\":\"min_info\"}'");v=rpc('consulter_dossiers_gouv');assert v['inf']==12 and v['pa']==18
   case('dossier_poste_serveur',dossier)
+  def pieces():
+   for ordre,building,room in [('observer_debats','assemblee','couloirs'),('consulter_dossiers_gouv','palais-gouvernement','accueil')]:
+    own("UPDATE personnages_donnees SET current_building=%s,current_room=%s,poste='{\"id\":\"min_info\"}'WHERE name='Fixture'",(building,room))
+    p=photo();assert rpc(ordre)['raison']=='pas_sur_place'and photo()==p
+   own("UPDATE personnages_donnees SET current_building='qhs-prison',current_room='entree_qhs',est_emprisonne='{\"motif\":\"fixture\"}'WHERE name='Fixture'")
+   p=photo();assert rpc('greve_faim')['raison']=='detention_requise'and photo()==p
+  case('ordres_piece_effective_requise_pas_seulement_batiment',pieces)
   def lie():
    rpc('observer_debats');p=photo();assert rpc('inspecter_troupes',ctx={'niveau':'revue'})['raison']=='requete_reutilisee'and photo()==p
   case('requete_liee_a_intention',lie)
