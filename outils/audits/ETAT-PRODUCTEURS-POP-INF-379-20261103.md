@@ -10,38 +10,44 @@
 - Inspection portuaire : `20261103203000`, 14/14 PGlite et contrôles client ; bonus INF +5 ou malus -3 décidé par serveur, 2 PA, rôle min_def, présence au quai, reçu anti-rejeu.
 - Sondage historique et allègement fiscal inatteignables : supprimés de la branche, 2/2 tests ciblés. L'ordre officiel `commanditer_sondage` transactionnel et le message « allegement fiscal indisponible » sont conservés.
 
+## Reprise Claude (03/11 au soir)
+
+- Main #404–#418 fusionné dans la branche (conflits : main fait foi). La subtilisation suit le corps serveur de #409 ; l'ancienne migration `20261102202046` est retirée.
+- Lot présidence `20261103230000` et lot 2 `20261103233000` : banc annulé `outils/bancs/banc-pop-inf-presidence-379.sql` sur base jetable (17/17) ; garde écran `outils/bancs/test-pop-inf-producteurs-379.mjs`.
+- Lot 3 restant : invitations sociales (3), dons aux PNJ (argent, objets, promoteur), bonus de location du chef d'organisation, impayé d'escort.
+
 ## Producteurs de l'inventaire d'origine : état des travaux
 
 | Producteur | État sur la branche #410 | Action restante |
 |---|---|---|
 | `applyCharToState` | Chargement de fiche, pas un producteur de gain | Contrôler l'adoption au retour de commande |
 | `doInspecterCargaisons` | **Raccordé**, RPC reçue atomiquement | Certification PG natif et cohérence avec groupes/effects |
-| `envoyerInvitationSociale` | Gain INF encore local | Porter contrat, PA et invitation au serveur |
+| `envoyerInvitationSociale` | Gain INF encore local | **Lot 3** : porter contrat, PA et invitation au serveur |
 | `verifierReponseInvitationSociale` | Gain INF encore local | Contrat reçu et anti-rejeu |
 | `repondreInvitationSociale` | Gain INF encore local | Contrat reçu et anti-rejeu |
-| `interagirPnjTerrain` | Aucun appel statique retrouvé | Prouver l'inaccessibilité ou porter les deux gains |
-| `payerEscorts` | Malus POP local de non-paiement | Coupler au paiement/renvoi serveur |
-| `publierDecret` | POP et INF locales, publication séparée | Transaction publication/PA/jauges |
-| `publierMessagePresidentiel` | POP et INF locales | Déterminer puis transférer la récompense validée |
-| `confirmerEtatUrgence` | Ancienne implémentation présente sur #379 | **Réutiliser la migration Claude de main**, pas la dupliquer |
+| `interagirPnjTerrain` | **Supprimée** (Claude, lot 2) : aucun appel | Aucun |
+| `payerEscorts` | Malus POP local de non-paiement (paiement lui-même encore local) | **Lot 3** : coupler au paiement/renvoi serveur |
+| `publierDecret` | **Raccordé** (lot présidence) : `decret_inutile`, aléa serveur | Aucun |
+| `publierMessagePresidentiel` | **Raccordé** : tribunes dans `communication_officielle_publier`, référendum/deuil par `message_presidentiel` | « annonce » sans menu : aucun gain |
+| `confirmerEtatUrgence` | Remplacé par main #405 (serveur) à la fusion | Aucun |
 | `confirmerGrace` | **Raccordée** dans #410 | Prévol PG natif, contrôle compatibilité clients anciens |
-| `executerOrdreTexte` | Malus POP local pour manifestations | **Réutiliser la migration manifestations de main**, comparer les autres branches |
+| `executerOrdreTexte` | Branches interdire/réprimer **supprimées** (aucun ordre ne les ouvrait) | Aucun |
 | `appliquerAllegement` | **Supprimée** ; route orpheline retirée | Aucun ordre à réactiver sans arbitrage |
-| `censurer` | Malus POP local aléatoire | Porter l'indice, le jet et la dépense au serveur |
-| `confirmerBanquetDiplomatique` | Débit serveur partiel, jauges locales | Terminer commande unique et aléa serveur |
-| `doReceptionAvecBonus` | Débit serveur partiel, jauges locales | Terminer commande unique et aléa serveur |
-| `confirmerMobilisationPolice` | POP locale | Relier au serveur et indices de main |
-| `traiterDemandeManifestation` | POP locale | Réutiliser contrats de manifestations sur main |
-| `confirmerGuerreEmpire` | POP/INF locales | Commande militaire/diplomatique server |
-| `confirmerDonArgent` | INF locale dans branche PNJ | Coupler au don serveur |
-| `appliquerBonusLocation` | POP/INF locales au réveil | Coupler aux loyers réellement encaissés au cron |
-| `confirmerDonPnj` | POP/INF locales selon PNJ | Paiement/reward par destinataire |
-| `confirmerDonObjetPnj` | POP/INF locales selon objet | Transaction remise/effet |
-| `confirmerCorruptionRegistre` | Ancienne implémentation sur #379 | Réutiliser travaux Claude de main |
-| `commanderProduitCommerce` | POP locale après consommation | Créditer lors de la vente/consommation serveur |
+| `censurer` | **Raccordé** : `censurer_media` (jet 30 %, -20 POP) | IS national encore affiché localement (hors POP/INF) |
+| `confirmerBanquetDiplomatique` | **Raccordé** : jauges dans `indice_diplomatique_ordre` | Aucun |
+| `doReceptionAvecBonus` | **Raccordé** : jauges dans `indice_diplomatique_ordre` | Aucun |
+| `confirmerMobilisationPolice` | **Raccordé** : `mobiliser_police` (commissaire) | ISN national encore local (hors POP/INF) |
+| `traiterDemandeManifestation` | **Raccordé** (lot 2) : `manifestation_traiter`, statut sous verrou | DIS -5 encore locale (hors POP/INF) |
+| `confirmerGuerreEmpire` | **Raccordé** : jauges dans `guerre_declarer` | Aucun |
+| `confirmerDonArgent` | INF locale (promoteur) | **Lot 3** (dons aux PNJ) |
+| `appliquerBonusLocation` | POP/INF locales au réveil | **Lot 3** : coupler aux loyers encaissés |
+| `confirmerDonPnj` | POP/INF locales selon PNJ (argent aussi local) | **Lot 3** |
+| `confirmerDonObjetPnj` | POP/INF locales selon objet | **Lot 3** |
+| `confirmerCorruptionRegistre` | **Raccordé** (lot 2) : `corrompre_armurier` | Aucun |
+| `commanderProduitCommerce` | Ligne POP **supprimée** : aucune recette ne porte d'effet POP | Aucun |
 | `commanderSondage` | **Supprimée**, aucun appel d'ordre ni UI | Aucun ; le vrai sondage reste `commanditer_sondage` |
-| `appliquerMalusPopExcommunication` | Local si cible=self, RPC sinon | Unifier le jugement et l'effet au serveur |
-| `doFaireDon` | République déjà par `religionAgirServeur` | Garder autres empires hors périmètre ou porter plus tard |
+| `appliquerMalusPopExcommunication` | **Raccordé** : soi-même par `personnage_ajuster_pop_inf` (cause vérifiée) | Aucun |
+| `doFaireDon` | République déjà serveur | Autres empires (non ouverts) : à porter avec eux |
 | `doBenedictionEtat` | **Supprimée** avec l'ancien ordre religieux | Aucun |
 | `doConsulterConfessions` | **Supprimée** avec l'ancien ordre religieux | Aucun |
 

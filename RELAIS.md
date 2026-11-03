@@ -25,9 +25,13 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### POP/INF : fin de l'autorité du navigateur (#379 → PR #410) — repris par Claude le 03/11 au soir
+### POP/INF : fin de l'autorité du navigateur (#379 → PR #410) — Claude, 03/11 au soir
 
-**Décision de Fred (03/11, 21 h 19) : Claude reprend le chantier de ChatGPT, qui s'arrête.** Branche à reprendre telle quelle : `chatgpt/379-grace-atomique-reprise-20261103` (PR #410, brouillon, sans conflit au 03/11). État transmis par ChatGPT : grâce présidentielle transactionnelle (15/15) ; garde POP/INF contre les sauvegardes périmées (18/18) **insuffisante** (une base courante + `pop=99` passe encore) ; seconde migration stricte écrite (refus de toute variation POP/INF venant de la sauvegarde générale, 3/3 contre-épreuves) **à ne pas appliquer** avant le raccordement des producteurs légitimes ; inventaire des 30 producteurs POP/INF sur la branche, un seul raccordé (inspection des cargaisons au port, 14/14) ; deux circuits morts retirés, publication du forum conservée. PR #379 (Codex, en conflit) : référence seulement, ne pas la fusionner. Formules d'origine conservées à chaque raccordement (aucune décision de design attendue).
+**Décision de Fred (03/11, 21 h 19) : Claude reprend le chantier de ChatGPT, qui s'arrête.** Branche `chatgpt/379-grace-atomique-reprise-20261103`, **PR #410 désormais dirigée vers `main`** (brouillon ; elle contient #379 entier + main + les raccordements). PR #379 : référence seulement, ne pas la fusionner.
+- **Fait (Claude)** : main #404–#418 fusionné (main fait foi ; subtilisation = corps serveur #409, ancienne migration `20261102202046` retirée). Lot présidence `20261103230000` (décret inutile, référendum, deuil, censure, intervention policière, banquet, réception, guerre, tribunes) et lot 2 `20261103233000` (corruption de l'armurier, demandes de manifestation) ; excommunication de soi par la primitive serveur ; deux producteurs morts retirés. Formules d'origine conservées, aucune décision de design attendue.
+- **Preuves** : banc annulé `outils/bancs/banc-pop-inf-presidence-379.sql` sur base jetable (`monter-base-jetable.sh`) 17/17 ; garde écran `test-pop-inf-producteurs-379.mjs`. État détaillé : `outils/audits/ETAT-PRODUCTEURS-POP-INF-379-20261103.md`.
+- **Reste (lot 3)** : invitations sociales (3 fonctions), dons aux PNJ (argent, objets, promoteur — l'argent y est encore local), bonus de location du chef d'organisation, impayé d'escort. Puis : contre-épreuves de la garde stricte, prévol des empreintes en production, fusion et application dans l'ordre des migrations (feu vert de Fred pour la livraison).
+- **Ne pas appliquer** `outils/livraison/preparatifs-379/fermeture-pop-inf-serveur-seul.sql` avant le lot 3.
 
 ### Audit global Républia — Codex, 02/11/2026
 
