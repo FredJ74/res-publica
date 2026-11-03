@@ -15,7 +15,7 @@ DECLARE
   v_ville text;
 BEGIN
   IF p_forum IS NULL THEN RETURN false; END IF;
-  IF p_forum LIKE 'org\\_%' ESCAPE '\\' THEN
+  IF left(p_forum,4) = 'org_' THEN
     IF v_nom IS NULL THEN RETURN false; END IF;
     RETURN EXISTS (
       SELECT 1 FROM public.organisations o
@@ -32,7 +32,7 @@ BEGIN
          )
     );
   END IF;
-  IF p_forum = 'national' OR p_forum LIKE 'local\\_%' ESCAPE '\\' THEN
+  IF p_forum = 'national' OR left(p_forum,6) = 'local_' THEN
     IF v_nom IS NULL THEN RETURN false; END IF;
     SELECT country, current_city INTO v_pays, v_ville
       FROM public.personnages_donnees WHERE name = v_nom;
