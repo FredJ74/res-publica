@@ -9848,14 +9848,13 @@ const DOSSIERS_GOUVERNEMENTAUX = [
 ];
 
 async function doConsulterDossiersGouv(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  const r = await executerOrdreJaugesServeur('consulter_dossiers_gouv');
+  if (!r) return;
   const dossier = DOSSIERS_GOUVERNEMENTAUX[Math.floor(Math.random() * DOSSIERS_GOUVERNEMENTAUX.length)];
   document.getElementById('postes-modal-title').textContent = 'Dossier confidentiel';
   const html = '<div style="padding:1rem;font-size:.85rem;color:#c0b090;line-height:1.6;font-style:italic">« ' + dossier + ' »</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
-  state.inf = Math.min(100, (state.inf || 0) + 2);
   updateUI();
   addJournalEntry('Consultation d\'un dossier confidentiel du gouvernement. +2 INF.', 'event-info');
 }
@@ -13081,15 +13080,14 @@ async function confirmerInspectionTroupes(niveau) {
   if (!cfg) return;
   // `fn` explicite : ne jamais dependre de state._ordreEnCours, qui porte le dernier ordre route
   // et serait faux des que cette fenetre est rouverte depuis un autre chemin.
-  const r = await deduireCoutOrdre({ pa: cfg.pa, cost: cfg.cost, fn: cfg.fn });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  const r = await executerOrdreJaugesServeur('inspecter_troupes', {niveau});
+  if (!r) return;
 
   // Gain deterministe (pas de jet) : coherent avec l'ancien successRate:100 declare dans
   // data.js, jamais garanti par le moteur generique (doOrder) faute d'etre dans son alwaysSuccess
   // -- comme les autres ordres a effet garanti du jeu (voir stage_caserne, applyEffects
   // court-circuite), cette action n'emprunte jamais le chemin generique. state.inf plafonne a
   // 100 exactement comme applyEffects() le fait pour tous les autres ordres du jeu.
-  state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
   updateUI();
 
   // LE PERIMETRE VIENT DU SERVEUR. Un Lieutenant inspecte sa section, un Capitaine sa compagnie,

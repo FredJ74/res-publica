@@ -1584,8 +1584,8 @@ async function observerDebats(pa, cost) {
 
   // Le PA se paie APRES avoir verifie qu'on peut reellement produire le snapshot, et AVANT de
   // l'afficher. Un joueur ne doit pas payer pour un ecran d'indisponibilite.
-  const r = await deduireCoutOrdre({ pa: pa || 1, cost: cost || 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  const r = await executerOrdreJaugesServeur('observer_debats');
+  if (!r) return;
 
   const horodatage = new Date().toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   let html = '<div style="padding:1rem">';
@@ -1642,8 +1642,7 @@ async function observerDebats(pa, cost) {
   // Bonus journaliste conserve de l'ancienne implementation. updateUI() est desormais appele
   // dans TOUS les cas (l'audit avait releve que la jauge de PA restait fausse pour les
   // non-journalistes, updateUI n'etant appele que dans cette branche).
-  if (state.char?.career === 'press') {
-    state.inf = Math.min(100, (state.inf || 0) + 1);
+  if (r.gain_inf === 1) {
     html += '<div style="font-size:.74rem;color:#C9A84C;margin-top:.5rem">+1 INF (bonus journaliste)</div>';
   }
   html += '</div>';

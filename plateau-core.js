@@ -2412,6 +2412,43 @@ function adopterJaugeServeur(cle, valeur) {
   if (envoye !== null) state[champBase] = valeur;
 }
 
+// Adaptation d'ordres historiques : le coût ET les jauges sont décidés ensemble.
+// La clé demeure après réponse perdue, y compris après rechargement ; aucun retry
+// automatique et aucune valeur mécanique proposée par l'écran.
+const RP_JAUGES_EN_COURS = new Set();
+async function executerOrdreJaugesServeur(ordre, contexte = {}) {
+  const c = contexteGroupePj();
+  if (!c.nom || !c.uid || typeof sbRpcVerdict !== 'function') return null;
+  const params = JSON.parse(JSON.stringify(contexte));
+  const cle = 'rp_jauges:' + JSON.stringify([c.uid, c.nom, ordre, params]);
+  if (RP_JAUGES_EN_COURS.has(cle)) return null;
+  RP_JAUGES_EN_COURS.add(cle);
+  try {
+    const requete = localStorage.getItem(cle) || crypto.randomUUID();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requete)) return null;
+    localStorage.setItem(cle, requete);
+    const v = await sbRpcVerdict('jauges_ordre_executer', {p_ordre: ordre, p_requete: requete, p_contexte: params});
+    if (!contexteGroupePjValide(c)) return null;
+    if (v?.ok !== true) {
+      if (v?.raison && !v.transport) localStorage.removeItem(cle);
+      signalerRefusCout(v || {raison:'reponse_absente'});
+      return null;
+    }
+    if (v.contrat_jauges !== 1 || v.acteur !== c.nom || v.requete !== requete || v.ordre !== ordre
+        || ![v.pop,v.inf,v.pa,v.hp].every(x => typeof x === 'number' && Number.isFinite(x))) return null;
+    localStorage.removeItem(cle);
+    appliquerPaiementServeur(v);
+    adopterJaugeServeur('pop', v.pop);
+    adopterJaugeServeur('inf', v.inf);
+    state.hp = v.hp;
+    if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({pa:v.pa,hp:v.hp});
+    return v;
+  } catch (_) {
+    if (contexteGroupePjValide(c)) showToast('Action non confirmée', 'Consultez votre état avant de renouveler la demande.', false);
+    return null;
+  } finally { RP_JAUGES_EN_COURS.delete(cle); }
+}
+
 async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur', fn = null } = {}) {
   // ===========================================================================
   // CHANTIER C / PHASE 1 — LE PRELEVEMENT PASSE PAR LE SERVEUR (13 septembre 2026)
