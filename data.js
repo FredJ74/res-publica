@@ -4705,7 +4705,17 @@ const BUILDINGS = {
     name: 'Parking du tribunal', shortName: 'Parking', cat: 'Services',
     icon: 'ti-parking', bgColor: '#181b20',
     desc: 'Le parking couvert à droite du tribunal.',
-    rooms: { accueil: { name: 'Parking couvert', desc: 'Le parking du tribunal de Montrouge. Aucun service supplémentaire pour le moment.', imageBg: 'linear-gradient(135deg,#181b20,#30343a)', persons: [], orders: [] } }
+    rooms: { accueil: {
+      name: 'Parking couvert',
+      desc: 'Un parking couvert à plusieurs niveaux, sous les poutrelles métalliques, près du tribunal de Montrouge.',
+      imageUrl: 'images/montrouge/montrouge-parking.webp',
+      imageBg: 'linear-gradient(135deg,#181b20,#30343a)',
+      persons: [
+        {name:'Jean Tarte', role:'Agent de sécurité', rel:'neutral', job:'agent_securite'},
+        {name:'Basile Decoq', role:'Dealer', rel:'neutral', job:'criminel'}
+      ],
+      orders: []
+    } }
   },
 
   'siege-syndical': {
