@@ -8511,25 +8511,8 @@ function doAllegementFiscalIndisponible() {
   showToast('Pas encore disponible', 'L\'allegement fiscal sera active une fois le systeme de taxation alimentant les caisses de l\'Etat finalise.', false);
 }
 
-function ouvrirModalSecteur() {
-  document.getElementById('postes-modal-title').textContent = 'Allegement fiscal sectoriel';
-  let html = '<div style="padding:1rem"><div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir le secteur beneficiaire :</div>';
-  SECTEURS.forEach(s => {
-    html += '<button onclick="appliquerAllegement(\'' + s + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem">' + s + '</button>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function appliquerAllegement(secteur) {
-  document.getElementById('modal-postes').classList.remove('open');
-  INDICES_NATIONAUX[state.country].IE = Math.min(100, INDICES_NATIONAUX[state.country].IE + 5);
-  state.inf = Math.min(100, state.inf + 8);
-  updateUI();
-  showToast('Allegement accorde', secteur + ' : -taxes +5 IE +8 INF.', true);
-  addJournalEntry('Allegement fiscal accorde au secteur : ' + secteur, 'event-info');
-}
+// Le circuit sectoriel non raccordé a été retiré : aucun ordre de catalogue
+// ne l'expose. L'ordre allegement_fiscal reste explicitement indisponible.
 
 // LE CLASSEMENT MINISTERIEL A ETE SUPPRIME (12 octobre 2026) -- CENT DIX LIGNES RETIREES ICI.
 //
