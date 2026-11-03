@@ -567,8 +567,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demander_benediction') { doDemanderBenediction(pa, cost); return; }
   if (fn === 'pelerin')              { doPelerin(pa, cost); return; }
   if (fn === 'excommunier')          { ouvrirModalCibleRepertoire('excommunier', 'Excommunier'); return; }
-  if (fn === 'benediction_etat')     { doBenedictionEtat(pa, cost); return; }
-  if (fn === 'consulter_confessions'){ doConsulterConfessions(pa, cost); return; }
   if (fn === 'acheter_relique')      { doAcheterRelique(pa, cost); return; }
   // Route 'scanner_aleatoire' supprimee (27/10/2026) : aucun ordre de ce nom dans data.js.
   if (fn === 'accord_diplomatique')  { ouvrirModalNegociationDiplomatique(pa, cost); return; }
