@@ -36,8 +36,10 @@ const fs=require('node:fs'),assert=require('node:assert/strict');
      'port-sainte-marie','quai_principal','{"INT":12}','{}','[]',
      100,10,'{"pop":10,"inf":10}',null,50,100,100,null);
   `);
+  const base=fs.readFileSync('migrations/20261103004219_jauges_ordres_transactionnels.sql','utf8');
+  await db.exec(base.slice(base.indexOf('CREATE OR REPLACE FUNCTION')));
   const sql=fs.readFileSync('migrations/20261103203000_inspection_cargaisons_jauges_serveur_379.sql','utf8');
-  await db.exec(sql.slice(sql.indexOf('CREATE OR REPLACE FUNCTION')));
+  await db.exec(sql); // prévol MD5 du corps précédent, puis installation complète
   const query=async(id,ctx={})=>(await db.query(
    'SELECT public.jauges_ordre_executer($1,$2,$3::jsonb) AS r',
    ['inspecter_cargaisons',id,JSON.stringify(ctx)])).rows[0].r;
