@@ -167,6 +167,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Ordre présent dans les trois mairies (décision de Fred, 29/10/2026) ; seule Montrouge a des
   // logements sociaux aujourd'hui. Aucun coût n'est prélevé avant ce message.
   // Socle (29/10/2026) : le serveur dit s'il existe des logements sociaux dans la ville, avant tout coût.
+  if (fn === 'ssm_demander_rendezvous') { demanderRendezVousSsm(); return; }
   if (fn === 'demander_logement_social') { demanderLogementSocialCommun(pa, cost); return; }
   if (fn === 'gerer_logement_social') { gererLogementSocial(); return; }
   if (fn === 'traiter_demandes_logement_social') { ouvrirTableauLogementsSociaux(); return; }
