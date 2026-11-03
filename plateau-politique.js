@@ -12565,53 +12565,14 @@ async function carteDetachementPiece(pays, ville, buildingId, roomId) {
   };
 }
 
-// ---- MISSIONS DES DETACHEMENTS ----
-const MISSIONS_DETACHEMENT = [
-  { id: 'bloquer_acces', label: 'Bloquer l\'accès au bâtiment' },
-  { id: 'securiser', label: 'Sécuriser la pièce (malus actes illégaux)' },
-  { id: 'assassiner', label: 'Assassiner toute personne entrant' },
-  { id: 'arreter', label: 'Arrêter toute personne entrant' },
-  { id: 'surveiller', label: 'Surveiller (rapport passif)' }
-  // 'escorter' RETIRE le 18 septembre 2026 (arbitrage GD). Elle etait assignable et affichee mais
-  // n'a jamais rien fait : son seul effet, suivreEscorteAvecMoi, avait ete neutralise au lot
-  // leaderCourant. La fonction existe ailleurs et elle marche -- militaire_affecter_leader confie
-  // des hommes a un PJ present, qui les mene ensuite via leaderCourant. Un soldat qui suit un chef
-  // n'a pas de position propre : il se deplace donc avec lui par construction, sans mission.
-];
-
-async function doAssignerMission(pa, cost) {
-  if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
-  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
-  const section = getSectionDuLieutenant(compagnie);
-  const iciCount = section?.soldats.filter(s => soldatEstIci(s, state.currentCity, state.currentBuilding, state.currentRoom)).length || 0;
-  if (iciCount <= 0) { showToast('Aucun soldat ici', '', false); return; }
-
-  document.getElementById('postes-modal-title').textContent = 'Attribuer une mission';
-  let html = '<div style="padding:1rem">';
-  MISSIONS_DETACHEMENT.forEach(m => {
-    html += '<button onclick="confirmerMission(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + m.id + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid ' + (section.mission===m.id?'#8a6a20':'#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + m.label + '</button>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerMission(compagnieId, sectionId, missionId, pa, cost) {
-  document.getElementById('modal-postes')?.classList.remove('open');
-  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
-  const section = compagnie?.sections.find(s => s.id === sectionId);
-  if (!section) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const rMis = await sbMilitaireAssignerMission(compagnieId, sectionId, missionId, null);
-  if (!rMis || rMis.ok !== true) {
-    showToast('Mission impossible',
-      rMis && rMis.raison === 'pas_lieutenant_de_cette_section'
-        ? 'Vous ne commandez pas cette section.' : 'Mission refusée.', false);
-    return;
-  }
-  showToast('Mission attribuée', MISSIONS_DETACHEMENT.find(m=>m.id===missionId)?.label, true, true);
-}
+// ---- SOLDATS POSTES : RENFORTS POLICIERS (regle de Fred, 03/11/2026) ----
+// On ne choisit pas la mission des soldats : en temps de paix, des soldats postes sont des
+// renforts policiers (dissuasion, detection et interpellation des PJ recherches, comme la police).
+// Ils n'attaquent personne, sauf en guerre declaree, contre les soldats, policiers et douaniers
+// du pays adverse. L'ordre « Attribuer une mission » et ses cinq missions (bloquer, securiser,
+// assassiner, arreter, surveiller) n'avaient jamais ete demandes : ils sont retires.
+// Voir GAME-DESIGN-ARMEE.md.
+const LIBELLE_SOLDATS_POSTES = 'Renfort policier';
 
 // ---- MOBILISATION ----
 async function doMobiliserArmee(pa, cost) {
@@ -12714,7 +12675,8 @@ async function rafraichirCacheImmuniteMilitaire() {
   // est cette ligne-ci et qu'il ne doit y avoir qu'une seule autorite sur le chiffre final.
   if (typeof getAffichageDetachementPiece === 'function') {
     const det = await getAffichageDetachementPiece(state.country || 'republic', state.currentCity, state.currentBuilding, state.currentRoom).catch(() => null);
-    const soldats = (det?.mission === 'securiser') ? (Number(det.nombre) || 0) : 0;
+    // Tout soldat poste est un renfort policier (03/11/2026), sans mission a choisir.
+    const soldats = Number(det?.nombre) || 0;
     let gardes = 0;
     if (typeof sbGardePiece === 'function') {
       const g = await sbGardePiece(state.currentBuilding, state.currentRoom).catch(() => null);
@@ -12733,58 +12695,8 @@ async function rafraichirCacheImmuniteMilitaire() {
 
 // Verifie si un detachement hostile bloque/attaque l'entree d'un joueur. Retourne true si l'entree doit etre annulee.
 async function verifierMissionMilitaireEntree(buildingId, roomId) {
-  if (typeof getAffichageDetachementPiece !== 'function') return false;
-  const det = await getAffichageDetachementPiece(state.country || 'republic', state.currentCity, buildingId, roomId);
-  if (!det || !det.mission) return false;
-
-  // Exemption : la chaine de commandement de la meme section n'est jamais bloquee/attaquee par ses propres troupes
-  if (['lieutenant', 'capitaine', 'commandant', 'min_def'].includes(state.poste?.id)) return false;
-
-  if (det.mission === 'bloquer_acces') {
-    showToast('Accès bloqué', 'Un détachement militaire (' + det.nombre + ' soldats) interdit l\'accès.', false);
-    return true;
-  }
-  if (det.mission === 'surveiller' && det.lieutenantNom && typeof sbSendMail === 'function') {
-    // ANTI-SPAM (18 septembre 2026). Cette branche n'avait jamais pu s'executer : le crochet
-    // d'entree passait roomId = null et ne matchait aucun detachement. Maintenant qu'elle
-    // s'execute reellement, un aller-retour dans un couloir surveille enverrait un rapport a
-    // chaque pas. Un rapport par zone et par jour suffit a dire « cette personne est passee »,
-    // qui est tout ce que la mission promet. Garde technique, pas un equilibrage.
-    const jourSurv = (typeof jourPartageISO === 'function') ? jourPartageISO() : String(state.day || 0);
-    const cleSurv = jourSurv + '|' + state.currentCity + '/' + buildingId + '/' + roomId;
-    if (!state.surveillancesSignalees || state.surveillancesSignalees.jour !== jourSurv) {
-      state.surveillancesSignalees = { jour: jourSurv, zones: [] };
-    }
-    if (!state.surveillancesSignalees.zones.includes(cleSurv)) {
-      state.surveillancesSignalees.zones.push(cleSurv);
-      sbSendMail('Détachement militaire', det.lieutenantNom, 'Rapport de surveillance',
-        (state.char?.name || 'Une personne') + ' a été vue dans la zone surveillée.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-    }
-    return false;
-  }
-  if (det.mission === 'arreter') {
-    // L'INTERCEPTION EST TIREE PAR LE SERVEUR (03/11/2026) : soldats en mission « arreter »
-    // comptes a la position relue en base, jet min(90, 30 + 2 x soldats), arrestation ouverte
-    // dans la meme transaction.
-    // Desormais joue par le deplacement serveur lui-meme (navigation_interieure) : rien a faire ici.
-    return false;
-  }
-  if (det.mission === 'assassiner') {
-    const chance = Math.min(90, 30 + det.nombre * 2); // plus le detachement est nombreux, plus le jet est favorable aux soldats
-    const roll = Math.floor(Math.random() * 100) + 1;
-    if (roll <= chance) {
-      if (det.mission === 'assassiner' && typeof sbDeposerImpactIndice === 'function') {
-        const palier = roll <= chance * 0.5 ? 'totale' : 'partielle';
-        const pv = palier === 'totale' ? 0 : 25;
-        state.hp = pv;
-        // Combat perdu : PA à 0, le serveur hospitalise (règle de Fred, 01/11/2026).
-        if (typeof declencherHospitalisation === 'function') declencherHospitalisation(palier);
-        updateUI();
-        showToast('Neutralisé(e) !', 'Le détachement militaire vous a pris pour cible. PV : ' + pv + '.', false);
-      }
-      return true;
-    }
-  }
+  // Plus aucune mission choisie (03/11/2026) : des soldats postes sont des renforts policiers,
+  // decides au serveur (detection, interpellation et dissuasion avec la police). Rien a jouer ici.
   return false;
 }
 
@@ -13192,8 +13104,6 @@ function renderInspectionRevue(etat) {
 }
 
 function renderInspectionDetaillee(etat) {
-  const labelsMission = {};
-  MISSIONS_DETACHEMENT.forEach(m => { labelsMission[m.id] = m.label; });
 
   let html = '<div style="padding:1rem;max-height:70vh;overflow-y:auto;font-size:.8rem">';
   html += renderBlocVueEnsembleArmee(etat);
@@ -13220,7 +13130,7 @@ function renderInspectionDetaillee(etat) {
             + ' PNJ + ' + (s.effectifPj || 0) + ' joueur(s)</div>';
       html += '<div style="color:#a89870;margin-bottom:.2rem">Armes attribuées — Arme de poing : ' + (s.armesUnite.arme_de_poing||0) + ' · Mitraillette : ' + (s.armesUnite.mitraillette||0) + ' (stock libre non distribué : ' + (s.stockLibre.arme_de_poing||0) + ' / ' + (s.stockLibre.mitraillette||0) + ')</div>';
       html += '<div style="color:#a89870;margin-bottom:.2rem">Taux d\'équipement : ' + (s.tauxEquipement==null?'non calculable (section vide)':Math.round(s.tauxEquipement*100)+'%') + '</div>';
-      html += '<div style="color:#a89870">Mission : ' + (s.mission ? ((labelsMission[s.mission]||s.mission)) : 'aucune mission assignée') + '</div>';
+      html += '<div style="color:#a89870">Rôle : ' + LIBELLE_SOLDATS_POSTES + '</div>';
       html += '</div>';
     });
     html += '</div>';
