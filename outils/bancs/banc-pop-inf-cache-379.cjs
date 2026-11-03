@@ -18,4 +18,34 @@ const {PGlite}=require('../vercel/node_modules/@electric-sql/pglite');
     const refuse=async (json,regex)=>{
       let threw=false;
       try{await update(json)}catch(e){threw=true;assert.match(e.message,regex)}
-      assert.equal(threw,true,'expected stale rejection');tests++;¶»§q«^
+      assert.equal(threw,true,'expected stale rejection');tests++;
+    };
+    await db.exec("SELECT set_config('request.path','/rest/v1/personnages_donnees',false)");
+    await update({pop:15,popBase:10,inf:10,infBase:10});
+    await check({pop:15,inf:10},'premier navigateur');
+    await refuse({pop:15,popBase:10,inf:10,infBase:10},/379_pop_base_perimee/);
+    await check({pop:15,inf:10},'second onglet refuse');
+    await db.exec("SELECT set_config('request.path','/rpc/tracts_appliquer_effet_pop',false)");
+    await update({pop:20,inf:10});
+    await db.exec("SELECT set_config('request.path','/rest/v1/personnages_donnees',false)");
+    await refuse({pop:15,popBase:10,inf:10,infBase:10},/379_pop_base_perimee/);
+    await check({pop:20,inf:10},'serveur 20 jamais double');
+    await update({pop:10,popBase:10,inf:10,infBase:10});
+    await check({pop:20,inf:10},'delta nul est accepte');
+    await db.exec("SELECT set_config('request.path','/rpc/tracts_appliquer_effet_pop',false)");
+    await update({pop:20,inf:15});
+    await db.exec("SELECT set_config('request.path','/rest/v1/personnages_donnees',false)");
+    await refuse({pop:20,popBase:20,inf:15,infBase:10},/379_inf_base_perimee/);
+    await check({pop:20,inf:15},'INF ancien cache refuse');
+    await refuse({pop:20,popBase:'10',inf:15,infBase:15},/379_pop_base_invalide/);
+    await check({pop:20,inf:15},'base malformee refusee');
+    await update({pop:20,popBase:20,inf:17,infBase:15});
+    await check({pop:20,inf:17},'gain legitime INF conserve si base courante');
+    await db.exec("SELECT set_config('request.path','/rpc/ordres',false)");
+    await update({pop:25,inf:17});
+    await check({pop:25,inf:17},'commande serveur conservee');
+    await refuse({pop:26,popBase:20,inf:17,infBase:17},/379_pop_base_perimee/);
+    await check({pop:25,inf:17},'RPC ne contourne pas le conflit ancien cache');
+    console.log(tests+'/'+tests+' tests PostgreSQL PGlite passed');
+  } finally{await db.close()}
+})().catch(e=>{console.error(e);process.exitCode=1});
