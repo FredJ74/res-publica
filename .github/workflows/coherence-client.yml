@@ -52,6 +52,8 @@ jobs:
         run: |
           node --test outils/bancs/banc-football-blessures-entrainement-3j.cjs
           python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261104002000_football_entrainement_blessure_serveur_3j.sql').read_text()); print('Football SQL syntaxe OK')"
+      - name: Trois correctifs prêts — tarifs hôtels, service d'étage et contacts ambassade
+        run: node --test outils/bancs/banc-livraison-hotels-ambassade-20261104.cjs
       - name: Commerce Premium PSM après lecture des baux
         run: node outils/bancs/banc-psm-premium-bail.cjs
       - name: Boutiques PSM — mêmes ordres et variantes que Luthécia
