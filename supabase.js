@@ -6376,11 +6376,7 @@ async function sbMilitaireRecupererSoldats(compagnieId, sectionId, nb) {
     { p_compagnie_id: compagnieId, p_section_id: sectionId, p_nb: nb });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
-async function sbMilitaireAssignerMission(compagnieId, sectionId, mission, cible) {
-  const rows = await sbRpc('militaire_assigner_mission',
-    { p_compagnie_id: compagnieId, p_section_id: sectionId, p_mission: mission, p_cible: cible || null });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
+// sbMilitaireAssignerMission retiree (03/11/2026) : plus de mission choisie, voir GAME-DESIGN-ARMEE.md.
 async function sbMilitaireEntrainerSection(compagnieId, sectionId, stat) {
   const rows = await sbRpc('militaire_entrainer_section',
     { p_compagnie_id: compagnieId, p_section_id: sectionId, p_stat: stat });

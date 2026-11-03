@@ -690,7 +690,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_capitaine') { ouvrirNommerCapitaine(pa, cost); return; }
   if (fn === 'nommer_lieutenant') { ouvrirNommerLieutenant(pa, cost); return; }
   if (fn === 'gerer_detachement') { doGererDetachement(); return; }
-  if (fn === 'assigner_mission') { doAssignerMission(pa, cost); return; }
   // GRAND TERMINAL DEPUIS LE LOT T. doVoirMaSection rendait une liste en lecture
   // seule sans inventaire et lisait le blob complet des compagnies par REST ;
   // ouvrirTerminalSection passe par militaire_terminal_section(), qui ne rend que

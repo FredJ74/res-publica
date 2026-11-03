@@ -24,7 +24,10 @@ def preparer(destination=None):
  if ssm != [{'fn':'ssm_besoin_aide','pa':0,'cost':0},
             {'fn':'ssm_demander_rendezvous','pa':0,'cost':0}]:
   raise ValueError('Tarifs SSM non examines ou absents')
- t=sorted((r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm)
+ # « Attribuer une mission », retire le 03/11/2026 (GAME-DESIGN-ARMEE.md), appartient a la
+ # photographie historique : on l'y remet tel quel.
+ if any(r['fn']=='assigner_mission' for r in gen):raise ValueError('assigner_mission ne doit plus figurer au catalogue')
+ t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm]+[('assigner_mission',1,0)])
  md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
  if md5!=cm['apres']['md5'] or len(t)!=cm['apres']['lignes']:raise ValueError('Sources de tarifs changées : réexaminer le plan')
  entrees=om['migrations']+gm['prerequis']+gm['migrations']+[{'version':cm['version'],'fichier':cm['migration'],'sha256':cm['sha256']}]
