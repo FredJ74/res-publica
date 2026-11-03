@@ -1559,11 +1559,51 @@ function afficherBandeauReconnexion() {
     "Votre session a expiré. Reconnectez-vous avec votre adresse e-mail et votre mot de passe "
     + "pour retrouver votre personnage : il est intact.") + (adresse ? ' (' + adresse + ')' : '');
 
+  // L'encart d'identité remplace le grand rectangle qui ressemblait à un bouton.
+  // N'utiliser que la fiche déjà affichée et son cache nominatif : jamais la photo
+  // globale d'un autre PJ ni une requête non authentifiée.
+  const identitePJ = (typeof state !== 'undefined' && state.char) ? state.char : null;
+  const nomPJ = typeof identitePJ?.name === 'string' ? identitePJ.name : '';
+  let sourcePhoto = typeof identitePJ?.photoUrl === 'string' ? identitePJ.photoUrl : '';
+  if (nomPJ) {
+    try {
+      const cachePhoto = localStorage.getItem('respublica_photo_' + nomPJ);
+      if (cachePhoto) sourcePhoto = cachePhoto;
+    } catch (_) {}
+  }
+  const presentation = document.createElement('div');
+  presentation.style.cssText = 'display:flex;align-items:flex-start;gap:1rem;margin-top:1.3rem;flex-wrap:wrap';
+  const portrait = document.createElement('div');
+  portrait.style.cssText = 'width:108px;height:136px;flex:none;border:1px solid #6a5a20;'
+    + 'background:#211d15;display:flex;align-items:center;justify-content:center;'
+    + 'border-radius:3px;overflow:hidden;cursor:default;pointer-events:none';
+  portrait.setAttribute('aria-label', nomPJ ? 'Portrait de ' + nomPJ : 'Portrait indisponible');
+  const silhouette = document.createElement('span');
+  silhouette.textContent = '♟';
+  silhouette.style.cssText = 'font-size:3rem;color:#8a7851';
+  portrait.appendChild(silhouette);
+  if (sourcePhoto && (/^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(sourcePhoto)
+      || /^https:\/\//i.test(sourcePhoto) || /^images\/[\w./-]+$/i.test(sourcePhoto))) {
+    const image = document.createElement('img');
+    image.alt = nomPJ ? 'Portrait de ' + nomPJ : 'Portrait du personnage';
+    image.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
+    image.onerror = () => { image.remove(); silhouette.style.display = ''; };
+    image.onload = () => { silhouette.style.display = 'none'; };
+    image.src = sourcePhoto;
+    portrait.appendChild(image);
+  }
   const actions = document.createElement('div');
-  actions.style.cssText = 'margin-top:1.3rem;display:flex;gap:.6rem;flex-wrap:wrap';
+  actions.style.cssText = 'display:flex;flex:1;min-width:220px;flex-direction:column;'
+    + 'gap:.7rem;align-items:flex-start';
+  const identiteTexte = document.createElement('div');
+  identiteTexte.textContent = nomPJ || 'Votre personnage';
+  identiteTexte.style.cssText = 'font-family:Crimson Pro,serif;font-size:.9rem;color:#C9A84C';
+  actions.appendChild(identiteTexte);
   const bouton = document.createElement('button');
+  bouton.type = 'button';
   bouton.style.cssText = 'font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;'
-    + 'padding:.55rem 1.3rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer';
+    + 'padding:.55rem 1.3rem;border:1px solid #8a6a20;background:transparent;'
+    + 'color:#C9A84C;cursor:pointer;align-self:flex-start;flex:none';
   bouton.textContent = trad('auth.reconnectButton', 'Me reconnecter');
   bouton.addEventListener('click', () => {
     // Conserver le plateau et le personnage tant que l'authentification n'est pas confirmée.
@@ -1620,7 +1660,9 @@ function afficherBandeauReconnexion() {
   });
   actions.appendChild(bouton);
 
-  boite.appendChild(titre); boite.appendChild(corps); boite.appendChild(actions);
+  presentation.appendChild(portrait);
+  presentation.appendChild(actions);
+  boite.appendChild(titre); boite.appendChild(corps); boite.appendChild(presentation);
   div.appendChild(boite);
   document.body.appendChild(div);
 }
