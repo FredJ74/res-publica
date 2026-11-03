@@ -43,65 +43,31 @@ function ouvrirRecrutementCodetenu(nomCodetenu) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+let RP_CODETENU_RECRUTEMENT = null;
 async function confirmerRecrutementCodetenu(nomCodetenu, tarif) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  if ((state.employes || []).some(e => e.job === 'codetenu')) {
-    showToast('Deja recrute', 'Vous avez deja un codetenu dans votre groupe.', false);
-    return;
-  }
-  if ((state.employes || []).length >= MAX_EMPLOYES) {
-    showToast('Limite atteinte', 'Maximum ' + MAX_EMPLOYES + ' employes.', false);
-    return;
-  }
-  if (state.arg < tarif) {
-    showToast('Fonds insuffisants', tarif + ' ' + cur + ' requis pour la premiere journee.', false);
-    return;
-  }
-  state.arg -= tarif;
-
-  const statsCodetenu = {
-    FOR: Math.floor(Math.random() * 5) + 8,
-    DUP: Math.floor(Math.random() * 5) + 8
-  };
-
-  const infoActuel = CODETENUS_CATALOGUE.find(c => c.nom === nomCodetenu) || CODETENUS_CATALOGUE[0];
-
-  if (!state.employes) state.employes = [];
-  state.employes.push({
-    nom: nomCodetenu, role: 'Codetenu', job: 'codetenu',
-    photoUrl: infoActuel.photoUrl, photoPos: '50% 15%',
-    cout: tarif, inGroupe: true,
-    buildingId: state.currentBuilding,
-    roomId: state.currentRoom,
-    city: state.currentCity,
-    depuis: state.day || 1,
-    stats: statsCodetenu
-  });
-  updateUI();
-  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
-
-  const restants = CODETENUS_CATALOGUE.filter(c => c.nom !== nomCodetenu);
-  const autre = restants[Math.floor(Math.random() * restants.length)] || CODETENUS_CATALOGUE[0];
-  if (!state.codetenuRemplacant) state.codetenuRemplacant = {};
-  const cleSlot = state.currentBuilding + '_' + state.currentRoom;
-  state.codetenuRemplacant[cleSlot] = {
-    name: autre.nom + ' (PNJ)',
-    role: 'Detenu',
-    job: 'codetenu',
-    rel: 'neutral',
-    photoUrl: autre.photoUrl,
-    photoPos: '50% 15%'
-  };
-
-  if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
-    const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-    if (room?.persons) renderPersonsList(room.persons);
-  }
-
-  showToast('Codetenu recrute !', nomCodetenu + ' rejoint votre groupe. -' + tarif + ' ' + cur + '/reveil.', true, true);
-  addJournalEntry('Recrutement codetenu : ' + nomCodetenu + '. -' + tarif + ' ' + cur + '/reveil.', 'event-info');
+  const c = contexteGroupePj();
+  if (!c.nom || (RP_CODETENU_RECRUTEMENT && contexteGroupePjValide(RP_CODETENU_RECRUTEMENT))) return false;
+  RP_CODETENU_RECRUTEMENT = c;
+  try {
+    document.getElementById('modal-postes')?.classList.remove('open');
+    // Métier prévu mais non activé au catalogue : le moteur commun prononce
+    // metier_non_recrutable. Ni le prix du bouton ni une liste locale ne font foi.
+    const r = typeof sbEmployeRecruter === 'function'
+      ? await sbEmployeRecruter('codetenu', nomCodetenu, null, null, null, null).catch(() => null) : null;
+    if (!contexteGroupePjValide(c)) return false;
+    if (r?.ok !== true) {
+      const motifs = { metier_non_recrutable: 'Ce poste n’est pas ouvert au recrutement.',
+        quota_metier_atteint: 'Vous employez déjà une personne à ce poste.',
+        plafond_employes: 'Le plafond d’accompagnants est atteint.',
+        acteur_non_authentifie: 'Votre session doit être rétablie.' };
+      showToast('Recrutement non confirmé', motifs[r?.raison] || 'Consultez vos accompagnants avant de renouveler la demande.', false);
+      return false;
+    }
+    // Un futur catalogue pourrait ouvrir ce métier : aucune reconstruction
+    // locale d'employé, de salaire ou de caractéristiques dans cet adaptateur.
+    showToast('Recrutement enregistré', 'Consultez vos accompagnants pour retrouver l’état confirmé par le serveur.', true);
+    return true;
+  } finally { if (RP_CODETENU_RECRUTEMENT === c) RP_CODETENU_RECRUTEMENT = null; }
 }
 
 // LA SUBSTITUTION ALEATOIRE A ETE SUPPRIMEE LE 1er OCTOBRE 2026.
@@ -954,50 +920,45 @@ async function confirmerRenvoyerEscort(nomEscort) {
 }
 
 
-function payerEscorts() {
-  if (!state.escortActive?.length) return;
+// PAIE DES ESCORTS AU SERVEUR (#379, 03/11/2026). Le navigateur se debitait lui-meme et posait
+// le -20 POP de l'impaye ; le serveur ne debitait rien. escorts_payer_jour paie chaque escort sur
+// les fonds ordinaires, une fois par jour reel, et en cas d'impaye la libere et applique -20 POP
+// dans la meme transaction. Reste a l'ecran : -15 DIS, courrier du tribunal, article, journal.
+// Appelee sans attendre dans la sequence du reveil : rien n'est annonce avant le verdict.
+async function payerEscorts() {
+  if (!state.escortActive?.length || typeof sbRpcVerdict !== 'function') return;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const toRemove = [];
-
-  state.escortActive.forEach((escort, i) => {
-    if (state.arg >= escort.tarif) {
-      state.arg -= escort.tarif;
-      addJournalEntry('Escort ' + escort.nom + ' payée. -' + escort.tarif + ' ' + cur + '.', 'event-info');
-    } else {
-      // Non-paiement — esclandre
-      toRemove.push(i);
-      state.pop = Math.max(0, (state.pop||0) - 20);
-      state.dis = Math.max(0, (state.dis||50) - 15);
-      addMailNotification('Tribunal', 'Plainte déposée par ' + escort.nom,
-        escort.nom + ' a déposé une plainte pour non-paiement de services. -20 POP -15 DIS. La presse a été informée.');
-      addExternalEvent('📰 SCANDALE : ' + (state.char?.name||'Anonyme') + ' accusé(e) de non-paiement par ' + escort.nom + ' !');
-      addJournalEntry('Non-paiement escort. Plainte + article presse. -20 POP -15 DIS.', 'event-bad');
-      // DEPART PRONONCE AU SOCLE (27 septembre 2026). Les consequences ci-dessus sont INCHANGEES --
-      // -20 POP, -15 DIS, mail Tribunal, scandale diffuse : c'est le comportement historique et il
-      // reste tel quel. Seul s'ajoute le fait de dire au serveur que ce PNJ n'est plus employe,
-      // sans quoi le socle garderait une escort active appartenant a un joueur qui l'a perdue.
-      // Volontairement sans await : cette fonction est appelee dans la sequence du reveil, et
-      // l'effet local ne doit pas attendre le reseau.
-      if (escort.pnjId && typeof sbEmployeLiberer === 'function') {
-        sbEmployeLiberer(escort.pnjId, 'impaye').catch(() => {});
-      }
-      // Retirer du groupe
-      if (state.group?.members) {
-        state.group.members = state.group.members.filter(m => m !== escort.nom);
-      }
-    }
-  });
-
-  // RETRAIT SYMETRIQUE (26 septembre 2026). Une escort vit dans TROIS structures a la fois
-  // (escortActive, employes, group.members). Le non-paiement ne la retirait que des deux
-  // premieres : elle restait dans state.employes, donc toujours affichee comme accompagnante
-  // dans « Personnes presentes » alors qu'elle venait de porter plainte et de partir.
-  // Seuls confirmerRenvoyerEscort et licencierPnj nettoyaient les trois ; on le fait ici aussi.
-  const partantes = toRemove.map(i => state.escortActive[i]?.nom).filter(Boolean);
-  toRemove.reverse().forEach(i => state.escortActive.splice(i, 1));
-  if (partantes.length && Array.isArray(state.employes)) {
-    state.employes = state.employes.filter(e => !(e.job === 'escort' && partantes.includes(e.nom)));
+  const moi = state.char?.name;
+  const v = await sbRpcVerdict('escorts_payer_jour', {}).catch(() => null);
+  if (state.char?.name !== moi) return;
+  if (v?.ok !== true || v.acteur !== moi || !Array.isArray(v.paies)) {
+    if (v && !v.transport) signalerRefusCout(v);
+    return;
   }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
+  if (typeof v.pop === 'number') adopterJaugeServeur('pop', v.pop);
+  const partantes = [];
+  for (const p of v.paies) {
+    if (p.paye) {
+      addJournalEntry('Escort ' + p.nom + ' payée. -' + p.tarif + ' ' + cur + '.', 'event-info');
+      continue;
+    }
+    partantes.push(p.nom);
+    state.dis = Math.max(0, (state.dis||50) - 15);
+    addMailNotification('Tribunal', 'Plainte déposée par ' + p.nom,
+      p.nom + ' a déposé une plainte pour non-paiement de services. -20 POP -15 DIS. La presse a été informée.');
+    addExternalEvent('📰 SCANDALE : ' + (moi||'Anonyme') + ' accusé(e) de non-paiement par ' + p.nom + ' !');
+    addJournalEntry('Non-paiement escort. Plainte + article presse. -20 POP -15 DIS.', 'event-bad');
+  }
+  // RETRAIT SYMETRIQUE (26 septembre 2026) : une escort vit dans escortActive, employes et
+  // group.members ; la partante est retiree des trois.
+  if (partantes.length) {
+    state.escortActive = (state.escortActive || []).filter(e => !partantes.includes(e.nom));
+    if (Array.isArray(state.employes)) state.employes = state.employes.filter(e => !(e.job === 'escort' && partantes.includes(e.nom)));
+    if (state.group?.members) state.group.members = state.group.members.filter(m => !partantes.includes(m));
+  }
+  updateUI();
+  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
 }
 
 

@@ -2926,7 +2926,7 @@ const OBJECTIFS_SECRETS = {
   }
 };
 
-function afficherObjectifsSecrets() {
+async function afficherObjectifsSecrets() {
   // Tant que le tronc commun de la quete d'accueil OU une branche specialisee (ex: Pat
   // Hounette/Brigitte Menottes cote criminel) est active, "Mes Objectifs" devient le carnet de
   // quete simple (action suivante a accomplir), pas le catalogue d'objectifs secrets
@@ -2949,21 +2949,14 @@ function afficherObjectifsSecrets() {
     return;
   }
 
+  const contexte = contexteGroupePj();
+  await verifierObjectifs();
+  if (!contexteGroupePjValide(contexte)) return;
   const archetype = state.char?.archetype || 'ambitieux';
   const obj = OBJECTIFS_SECRETS[archetype] || OBJECTIFS_SECRETS.ambitieux;
   const completed = state.objectifs_completes || [];
 
-  // Vérifier nouvelles complétion
-  obj.objectifs.forEach(o => {
-    if (!completed.includes(o.id) && o.condition(state)) {
-      completed.push(o.id);
-      state.objectifs_completes = completed;
-      state.inf = Math.min(100, (state.inf||0) + Math.floor(o.points/5));
-      showToast('🎯 Objectif accompli !', o.desc + ' (+' + o.points + ' pts)', true);
-      addJournalEntry('🎯 Objectif secret accompli : ' + o.desc, 'event-good');
-    }
-  });
-
+  // Les points affichés restent descriptifs ; seule la récompense serveur donne de l’INF.
   const totalPoints = obj.objectifs.reduce((s,o) => s + (completed.includes(o.id) ? o.points : 0), 0);
   const maxPoints   = obj.objectifs.reduce((s,o) => s + o.points, 0);
 
@@ -2992,29 +2985,26 @@ function afficherObjectifsSecrets() {
 
 // Vérifier objectifs à chaque updateUI
 let _verifyingObjectifs = false;
-function verifierObjectifs() {
-  if (_verifyingObjectifs) return;
-  const archetype = state.char?.archetype;
-  if (!archetype || !OBJECTIFS_SECRETS[archetype]) return;
-  const obj = OBJECTIFS_SECRETS[archetype];
-  const completed = state.objectifs_completes || [];
-  let changed = false;
-  obj.objectifs.forEach(o => {
-    try {
-      if (!completed.includes(o.id) && o.condition(state)) {
-        completed.push(o.id);
-        state.objectifs_completes = completed;
-        changed = true;
-        showToast('🎯 Objectif accompli !', o.desc, true);
-        addJournalEntry('🎯 ' + o.desc, 'event-good');
-      }
-    } catch(e) {} // Condition peut échouer si state incomplet
-  });
-  if (changed) {
-    _verifyingObjectifs = true;
-    state.inf = Math.min(100, (state.inf||0) + 2);
-    _verifyingObjectifs = false;
-  }
+async function verifierObjectifs() {
+  if (_verifyingObjectifs || !state.char?.name || !OBJECTIFS_SECRETS[state.char?.archetype]
+      || typeof executerOrdreJaugesServeur!=='function')return;
+  const signature=JSON.stringify([state.char?.name,state.char?.archetype,state.poste,state.pop,state.inf,state.dis,state.banque,state.informateurs]);
+  if(state._objectifsSignatureConfirmee===signature)return;
+  const contexte=contexteGroupePj();
+  _verifyingObjectifs=true;
+  try {
+    const v=await executerOrdreJaugesServeur('objectifs_actualiser');
+    if(!contexteGroupePjValide(contexte)||!v||!Array.isArray(v.objectifs_completes)||!Array.isArray(v.objectifs_nouveaux))return;
+    state.objectifs_completes=v.objectifs_completes;
+    // Une réponse perdue peut avoir précédé un autre événement : ne pas figer une
+    // signature locale qui ferait oublier une nouvelle éligibilité au prochain geste.
+    state._objectifsSignatureConfirmee=v.rejeu?null:signature;
+    if(v.objectifs_nouveaux.length){
+      showToast('Objectifs accomplis','+2 INF pour ce nouveau lot (plafond 100).',true);
+      addJournalEntry('Objectifs nouveaux reconnus par le serveur : +2 INF par lot.','event-good');
+      updateUI();
+    }
+  } finally { _verifyingObjectifs=false; }
 }
 
 // =====================
@@ -4298,7 +4288,7 @@ function renderRoomActions(room, buildingId, roomId) {
     const blockedCls = (needsBientot || needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsPoliceIndisponible || needsLicenceIndisponible || needsSuiteIndisponible || needsElectionIndisponible || needsPatientChambre || needsRoleLocal) ? ' blocked' : '';
     const coutJoint = [costDisplay, paDisplay].filter(Boolean).join(' · ');
     const tooltipFinal = needsBientot ? bientotTooltip.replace(/"/g, '&quot;') : (needsPoliceIndisponible ? policeTooltip.replace(/"/g, '&quot;') : (needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : (needsElectionIndisponible ? electionTooltip.replace(/"/g, '&quot;') : (needsPatientChambre ? patientChambreTooltip.replace(/"/g, '&quot;') : (needsRoleLocal ? roleLocalTooltip.replace(/"/g, '&quot;') : tooltip))))));
-    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
+    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn.replace(/"/g, '&quot;') + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 
   // #57 — groupes de commandes des cinq terrains, sans fabriquer de nouveaux handlers.
@@ -4697,20 +4687,16 @@ async function signerDecretInutile(pa, cost) {
     const r = await rpRedaction('decret', prompt);
     const decret = r.texte || 'Décret indisponible.';
 
-    // Effets gameplay pré-calculés pour l'aperçu, appliqués uniquement au clic "Publier"
-    // (publierDecret) -- ne jamais les appliquer ici, avant toute confirmation du joueur.
-    const popEffect = Math.floor(Math.random() * 20) - 5; // -5 à +15
-    const infEffect = Math.floor(Math.random() * 10) + 2;
+    // L'effet est tiré par le serveur à la signature (#379) : l'aperçu n'en montre que la fourchette.
 
     document.getElementById('postes-modal-title').textContent = '📜 Décret Présidentiel';
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1rem">' +
       '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.6rem;border-bottom:1px solid #2a2010;padding-bottom:.4rem">Signé par ' + (state.char?.name || 'Le Président') + ' · Jour ' + (state.day || 1) + '</div>' +
       '<div style="font-size:.85rem;color:#c0a060;line-height:1.9;white-space:pre-line;font-family:Crimson Pro,Georgia,serif">' + decret + '</div>' +
-      '<div style="margin-top:.8rem;font-size:.72rem;color:' + (popEffect >= 0 ? '#4a8a4a' : '#8a3a2a') + '">' +
-        (popEffect >= 0 ? '+' : '') + popEffect + ' POP · +' + infEffect + ' INF</div>' +
+      '<div class="cpj-note" style="margin-top:.8rem;font-size:.72rem">Effet tiré à la signature : de -5 à +14 POP · de +2 à +11 INF</div>' +
       '<div style="margin-top:.6rem;display:flex;gap:.5rem">' +
-      '<button onclick="publierDecret(this.dataset.txt,' + popEffect + ',' + infEffect + ',' + pa + ',' + cost + ',this.dataset.sujet)" data-txt="' + decret.replace(/"/g, '&quot;') + '" data-sujet="' + sujet.replace(/"/g, '&quot;') + '" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-speakerphone" style="font-size:.7rem"></i> Publier</button>' +
+      '<button onclick="publierDecret(this.dataset.txt,' + pa + ',' + cost + ',this.dataset.sujet)" data-txt="' + decret.replace(/"/g, '&quot;') + '" data-sujet="' + sujet.replace(/"/g, '&quot;') + '" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-speakerphone" style="font-size:.7rem"></i> Publier</button>' +
       '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #3a2a10;background:transparent;color:#6a5a30;cursor:pointer">Fermer</button>' +
       '</div></div>';
 
@@ -4719,14 +4705,15 @@ async function signerDecretInutile(pa, cost) {
   }
 }
 
-async function publierDecret(texte, popEffect, infEffect, pa, cost, sujet) {
+async function publierDecret(texte, pa, cost, sujet) {
   if (!exigerPoste('president', 'Seul le Président peut signer un décret.')) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // PA, POP et INF décidés ensemble par le serveur (#379), formule d'origine conservée.
+  const v = await executerOrdreJaugesServeur('decret_inutile');
+  if (!v) return;
   document.getElementById('modal-postes').classList.remove('open');
-  state.pop = Math.max(0, Math.min(100, (state.pop || 50) + popEffect));
-  state.inf = Math.min(100, (state.inf || 0) + infEffect);
   updateUI();
+  if (v.rejeu) return;
+  const popEffect = v.gain_pop, infEffect = v.gain_inf;
   addJournalEntry('📜 Décret signé sur : ' + sujet + '. ' + (popEffect >= 0 ? '+' : '') + popEffect + ' POP · +' + infEffect + ' INF.', 'event-info');
   const from = state.char?.name || 'Le Président';
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : `Jour ${state.day}`;
@@ -5113,6 +5100,8 @@ async function publierMessagePresidentiel(type, pa, cost) {
   const time = formatDateHeureJeu();
 
   let titre, contenu, blocs = [], topicServeur = null, tempsServeur = null, conferenceAOuvrir = null;
+  // POP et INF : seulement ce que le serveur a décidé et renvoyé (#379).
+  let gainsServeur = { pop: 0, inf: 0 };
   if (type === 'referendum') {
     titre = document.getElementById('pres-ref-question')?.value?.trim();
     const rep1 = document.getElementById('pres-ref-rep1')?.value?.trim();
@@ -5120,8 +5109,9 @@ async function publierMessagePresidentiel(type, pa, cost) {
     const rep3 = document.getElementById('pres-ref-rep3')?.value?.trim();
     const duree = parseInt(document.getElementById('pres-ref-duree')?.value || '5');
     if (!titre || !rep1 || !rep2) { showToast('Champs requis', 'Question et au moins 2 réponses.', false); return; }
-    const rRef = await deduireCoutOrdre({ pa, cost });
-    if (!rRef.ok) { signalerRefusCout(rRef); return; }
+    const rRef = await executerOrdreJaugesServeur('message_presidentiel', { type: 'referendum' });
+    if (!rRef) return;
+    gainsServeur = { pop: rRef.gain_pop, inf: rRef.gain_inf };
     const reponses = [rep1, rep2, ...(rep3 ? [rep3] : [])].map(r => ({ label: r, voix: 0 }));
     if (!state.referendums) state.referendums = [];
     state.referendums.push({ question: titre, reponses, jourFin: state.day + duree, clos: false });
@@ -5191,6 +5181,7 @@ async function publierMessagePresidentiel(type, pa, cost) {
       }
       topicServeur = r.topic;
       tempsServeur = r.temps;
+      if (adopterJaugesReponse(r.jauges)) gainsServeur = { pop: r.jauges.gain_pop || 0, inf: r.jauges.gain_inf || 0 };
       conferenceAOuvrir = r.conference || null;
       // QUELLE CAISSE A PAYE : on le sait sans le redemander au serveur, parce que la caisse de
       // repli n'est utilisee QUE si l'humain a dit oui au second temps du financement.
@@ -5200,6 +5191,10 @@ async function publierMessagePresidentiel(type, pa, cost) {
           + (surSaCaisse ? 'la caisse institutionnelle de votre fonction'
                          : 'le budget du Ministère de l\'Information') + '.', 'event-info');
       }
+    } else if (type === 'deuil') {
+      const rMsg = await executerOrdreJaugesServeur('message_presidentiel', { type: 'deuil' });
+      if (!rMsg) return;
+      gainsServeur = { pop: rMsg.gain_pop, inf: rMsg.gain_inf };
     } else {
       const rMsg = await deduireCoutOrdre({ pa, cost });
       if (!rMsg.ok) { signalerRefusCout(rMsg); return; }
@@ -5228,8 +5223,6 @@ async function publierMessagePresidentiel(type, pa, cost) {
   });
 
   // Appliquer les effets
-  if (ef.pop) state.pop = Math.min(100, state.pop + ef.pop);
-  if (ef.inf) state.inf = Math.min(100, state.inf + ef.inf);
   if (ef.is && INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IS = Math.min(100, INDICES_NATIONAUX[pays].IS + ef.is);
   // L'Indice Diplomatique est tenu par le serveur (25/10/2026) : la propagande y coute 5 points,
   // appliques par communication_officielle_publier. On recharge la copie d'affichage.
@@ -5241,8 +5234,8 @@ async function publierMessagePresidentiel(type, pa, cost) {
   closeForumView();
 
   const efParts = [];
-  if (ef.pop) efParts.push((ef.pop>0?'+':'')+ef.pop+' POP');
-  if (ef.inf) efParts.push((ef.inf>0?'+':'')+ef.inf+' INF');
+  if (gainsServeur.pop) efParts.push((gainsServeur.pop>0?'+':'')+gainsServeur.pop+' POP');
+  if (gainsServeur.inf) efParts.push((gainsServeur.inf>0?'+':'')+gainsServeur.inf+' INF');
   showToast('Publié !', titre + (efParts.length ? ' · ' + efParts.join(' ') : ''), true, true);
   addJournalEntry('Publication présidentielle : ' + titre, 'event-good');
   addExternalEvent('PRESIDENCE : ' + titre + (type === 'deuil' ? ' — Journée de deuil national.' : ''));
@@ -7486,54 +7479,54 @@ async function ouvrirModalGracier(pa, cost) {
 
 async function confirmerGrace(demandeId, nomCondamne, accepte, pa, cost) {
   if (!exigerPoste('president', 'Seul le Président peut accorder ou refuser une grâce.')) return;
+
+  // Le serveur décide et facture : le dossier, les 2 PA, la libération, le QHS et la POP.
+  // Aucun paramètre PA/FR ni nom affiché dans cet ancien écran ne fait autorité.
+  // Un dossier déjà traité est reconnu en rejeu, même après réponse perdue.
+  const v = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('grace_presidentielle_decider', {
+        p_demande_id: demandeId, p_accepte: !!accepte
+      }).catch(() => null)
+    : null;
+  if (!v || v.ok !== true) {
+    const explications = {
+      pa_insuffisants: 'Vous ne disposez pas des 2 PA nécessaires.',
+      non_detenu: 'La personne concernée n’est plus détenue. Aucun PA prélevé.',
+      hors_pays: 'Cette demande ne relève pas de votre présidence.',
+      dossier_introuvable: 'La demande de grâce n’est plus disponible.',
+      acteur_non_authentifie: 'Reconnectez-vous avant de traiter cette demande.'
+    };
+    showToast('Grâce non traitée',
+      explications[v?.raison] || 'Le serveur n’a pas confirmé la décision. Vérifiez le dossier avant de réessayer.', false);
+    return;
+  }
+
   document.getElementById('modal-postes')?.classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  await sbMajDemandeGrace(demandeId, accepte ? 'acceptee' : 'refusee');
+  if (v.rejoue === true) {
+    showToast('Demande déjà traitée', 'Cette grâce a déjà fait l’objet d’une décision : aucun nouvel effet.', true);
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
+  if (typeof adopterJaugeServeur === 'function' && typeof v.pop === 'number') {
+    adopterJaugeServeur('pop', v.pop);
+  }
+  if (typeof updateUI === 'function') updateUI();
 
-  if (accepte) {
-    // CORRECTIF (Lot 4.3). La liberation n'agissait que sur state.prisonniers, l'etat LOCAL du
-    // navigateur du President : si sa liste etait desynchronisee, l'annonce publique partait sans
-    // que personne ne soit libere. On agit desormais sur la SOURCE PERSISTANTE canonique --
-    // personnages.est_emprisonne, et la ligne de detentions cloturee avec un mode_fin explicite,
-    // exactement comme le fait la liberation anticipee par avocat.
-    //
-    // ET L'ANNONCE NE PART QUE SI LA LIBERATION A EU LIEU. C'est l'inversion qui compte : une
-    // grace annoncee mais non appliquee est pire qu'une grace qui echoue silencieusement.
-    // GRACIER EST UN POUVOIR, PAS UNE ECRITURE (chantier B, 13 septembre 2026). Ces deux
-    // sbUpdate ecrivaient directement sur la ligne du condamne et sur son registre : la
-    // fermeture RLS les a rendus inoperants -- et c'etait de toute facon une porte ouverte,
-    // exigerPoste('president') ne vivant que dans le navigateur du joueur. La RPC relit le
-    // poste de l'appelant sur sa propre ligne et fait les deux ecritures dans UNE transaction.
-    // Meme regle qu'avant, meme mode_fin : seule l'autorite change de camp.
-    let libere = false;
-    if (typeof sbRpc === 'function') {
-      const rows = await sbRpc('presidence_gracier', {
-        p_condamne: nomCondamne,
-        p_jour: state.day
-      });
-      const r = Array.isArray(rows) ? rows[0] : rows;
-      libere = !!(r && r.ok === true && r.libere === true);
-    }
-    // L'etat local du President est aligne s'il se trouve l'avoir en memoire -- confort d'affichage,
-    // jamais la source de verite.
-    const condamne = (state.prisonniers || []).find(p => p.nom === nomCondamne);
-    if (condamne) condamne.jourFin = state.day;
-
-    if (!libere) {
-      showToast('Grâce sans effet', nomCondamne + ' n\'est plus détenu(e) : aucune libération n\'a été appliquée.', false);
-      addJournalEntry('Grâce accordée à ' + nomCondamne + ', sans effet : la personne n\'était plus détenue.', 'event-info');
-      return;
-    }
-
-    const popBonus = state.pop > 50 ? 5 : -2;
-    state.pop = Math.min(100, state.pop + popBonus);
-    updateUI();
-    showToast('Grâce accordée', nomCondamne + ' est libéré(e). ' + (popBonus > 0 ? '+' : '') + popBonus + ' POP.', true, true);
-    addExternalEvent('⚖️ GRÂCE PRÉSIDENTIELLE : ' + nomCondamne + ' a été gracié(e) par le Président.');
-  } else {
+  const cible = typeof v.condamne === 'string' ? v.condamne : nomCondamne;
+  if (v.accepte === true && v.libere === true) {
+    // Alignement visuel seulement : la détention est déjà close côté serveur.
+    const prisonnier = (state.prisonniers || []).find(p => p.nom === cible);
+    if (prisonnier) prisonnier.jourFin = state.day;
+    const delta = Number(v.pop_delta || 0);
+    showToast('Grâce accordée', cible + ' est libéré(e). ' +
+      (delta > 0 ? '+' : '') + delta + ' POP.', true, true);
+    addExternalEvent('⚖️ GRÂCE PRÉSIDENTIELLE : ' + cible +
+      ' a été gracié(e) par le Président.');
+  } else if (v.accepte === false) {
     showToast('Grâce refusée', 'La recommandation du Ministre de la Justice a été rejetée.', false);
-    addJournalEntry('Grâce de ' + nomCondamne + ' refusée par le Président.', 'event-info');
+    addJournalEntry('Grâce de ' + cible + ' refusée par le Président.', 'event-info');
+  } else {
+    showToast('Décision enregistrée', 'Le dossier a été traité par le serveur.', true);
   }
 }
 
@@ -8113,7 +8106,8 @@ async function confirmerVirementMinistereUsine(pa, cost) {
   addJournalEntry('Virement du Ministère des Finances vers ' + nomUsine + ' (' + montantPreleve + ' FR).', 'event-good');
 }
 
-async function ouvrirCiblageFiscal(action, titre) {
+async function ouvrirCiblageFiscal(action, titre, selectionCible) {
+  const contexteSelection=typeof selectionCible==='function'?contexteGroupePj():null;
   document.getElementById('postes-modal-title').textContent = titre;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -8121,14 +8115,36 @@ async function ouvrirCiblageFiscal(action, titre) {
   const pays = state.country || 'republic';
   let joueurs = [];
   if (typeof sbListPersonnages === 'function') {
-    try { joueurs = await sbListPersonnages() || []; } catch(e) {}
-  }
+    try {
+      const lus=await sbListPersonnages();
+      if(contexteSelection&&!Array.isArray(lus))throw Error('annuaire_indisponible');
+      joueurs=lus||[];
+    } catch(e) {
+      if(contexteSelection){showToast('Annuaire indisponible','Aucun ordre n’a été exécuté.',false);return;}
+    }
+  } else if(contexteSelection){showToast('Annuaire indisponible','Aucun ordre n’a été exécuté.',false);return;}
+  if(contexteSelection&&!contexteGroupePjValide(contexteSelection))return;
   const myName = state.char?.name;
   const cibles = joueurs.filter(j => {
     const domicilePays = j.domicile?.country || j.country;
     return (domicilePays === pays || j.country === pays) && j.name !== myName;
   });
 
+  if(contexteSelection){
+    const liste=document.createElement('div');liste.className='cpj-dialogue';
+    const note=document.createElement('p');note.className='cpj-note';
+    note.textContent=cibles.length?'Choisir la cible :':'Aucun autre citoyen domicilié ou présent sur le territoire.';liste.appendChild(note);
+    for(const cible of cibles){
+      const bouton=document.createElement('button');bouton.className='cpj-touche';bouton.textContent=cible.name;
+      bouton.onclick=()=>{
+        if(!contexteGroupePjValide(contexteSelection))return;
+        document.getElementById('modal-postes').classList.remove('open');
+        return selectionCible(cible.name);
+      };
+      liste.appendChild(bouton);
+    }
+    document.getElementById('postes-body').replaceChildren(liste);return;
+  }
   let html = '<div style="padding:1rem">';
   if (cibles.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun autre citoyen domicilié ou présent sur le territoire pour l\'instant.</div>';
@@ -8429,27 +8445,14 @@ async function executerOrdreTexte(action) {
   const texte = document.getElementById('texte-libre-input')?.value?.trim();
   if (!texte) { showToast('Champ requis', 'Veuillez remplir le champ.', false); return; }
   document.getElementById('modal-postes').classList.remove('open');
-  if (action === 'interdire_manif') {
-    INDICES_NATIONAUX[state.country].ISN = Math.min(100, INDICES_NATIONAUX[state.country].ISN + 5);
-    state.pop = Math.max(0, state.pop - 5);
+  // interdire_manif / reprimer_manif retirés (#379) : aucun ordre ne les ouvrait (voir
+  // ouvrirInterdireManif et ouvrirReprimerManif, commandes serveur).
+  if (action === 'commanditer_sondage') {
+    const contexte=contexteGroupePj();
+    const r=await executerOrdreJaugesServeur('commanditer_sondage',{texte});
+    if(!r||!contexteGroupePjValide(contexte))return;
     updateUI();
-    showToast('Manifestation interdite', texte + ' — +5 ISN -5 POP.', true);
-    addExternalEvent('INTERDICTION : La manifestation "' + texte + '" a ete interdite par le Ministre de l\'Interieur.');
-  } else if (action === 'reprimer_manif') {
-    INDICES_NATIONAUX[state.country].ISN = Math.min(100, INDICES_NATIONAUX[state.country].ISN + 10);
-    state.pop = Math.max(0, state.pop - 15);
-    updateUI();
-    showToast('Repression ordonnee', texte + ' — +10 ISN -15 POP.', false);
-    addExternalEvent('REPRESSION : Ordre de dispersion force pour "' + texte + '".');
-  } else if (action === 'commanditer_sondage') {
-    // Deduction PA+cout centralisee (Lot 2C, double fuite corrigee : ni les PA ni les 200 FR
-    // n'etaient preleves auparavant). Avant la seule mutation de cette branche (INF). Montant
-    // et effet inchanges.
-    const r = await deduireCoutOrdre({ pa: 1, cost: 200 });
-    if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '1 PA requis.' : '200 FR requis.', false); return; }
-    state.inf = Math.min(100, state.inf + 5);
-    updateUI();
-    showToast('Sondage publie', '"' + texte + '" publie dans le forum national. +5 INF.', true);
+    if(!r.rejeu)showToast('Sondage publié','Le sondage est enregistré dans le forum national. +'+r.gain_inf+' INF.',true);
   } else {
     showToast(action, texte, true);
     addJournalEntry(action + ' : ' + texte, 'event-info');
@@ -8465,25 +8468,8 @@ function doAllegementFiscalIndisponible() {
   showToast('Pas encore disponible', 'L\'allegement fiscal sera active une fois le systeme de taxation alimentant les caisses de l\'Etat finalise.', false);
 }
 
-function ouvrirModalSecteur() {
-  document.getElementById('postes-modal-title').textContent = 'Allegement fiscal sectoriel';
-  let html = '<div style="padding:1rem"><div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir le secteur beneficiaire :</div>';
-  SECTEURS.forEach(s => {
-    html += '<button onclick="appliquerAllegement(\'' + s + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem">' + s + '</button>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function appliquerAllegement(secteur) {
-  document.getElementById('modal-postes').classList.remove('open');
-  INDICES_NATIONAUX[state.country].IE = Math.min(100, INDICES_NATIONAUX[state.country].IE + 5);
-  state.inf = Math.min(100, state.inf + 8);
-  updateUI();
-  showToast('Allegement accorde', secteur + ' : -taxes +5 IE +8 INF.', true);
-  addJournalEntry('Allegement fiscal accorde au secteur : ' + secteur, 'event-info');
-}
+// Le circuit sectoriel non raccordé a été retiré : aucun ordre de catalogue
+// ne l'expose. L'ordre allegement_fiscal reste explicitement indisponible.
 
 // LE CLASSEMENT MINISTERIEL A ETE SUPPRIME (12 octobre 2026) -- CENT DIX LIGNES RETIREES ICI.
 //
@@ -9045,13 +9031,13 @@ function ouvrirModalMedia(pa, cost) {
 
 async function censurer(media, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // PA, scandale (3 fois sur 10) et -20 POP tirés par le serveur (#379).
+  const v = await executerOrdreJaugesServeur('censurer_media', { media });
+  if (!v) return;
+  if (v.rejeu) { updateUI(); return; }
   INDICES_NATIONAUX[state.country].IS = Math.max(0, INDICES_NATIONAUX[state.country].IS - 8);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 30) {
+  if (v.scandale === true) {
     addExternalEvent('SCANDALE : La censure de ' + media + ' a ete revelee ! -20 POP.');
-    state.pop = Math.max(0, state.pop - 20);
     updateUI();
   } else {
     showToast('Media censure', media + ' suspendu. -8 IS.', false);
@@ -9736,24 +9722,15 @@ async function confirmerBanquetDiplomatique(pa, cost) {
   const venus = invites.slice(0, Math.max(0, Number(r.venus) || 0));
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
+  // POP, INF et moral rendus par le serveur avec l'issue (#379).
+  adopterJaugesReponse(r.jauges);
   if (venus.length === invites.length) {
-    state.pop = Math.min(100, state.pop + 15);
-    state.inf = Math.min(100, state.inf + 12);
-    state.moral = Math.min(100, state.moral + 5);
-    updateUI();
     showToast('Banquet réussi !', 'Tous les invités sont venus. +15 POP +12 INF +5 Moral +8 ID.', true, true);
     addJournalEntry('Banquet diplomatique réussi — tous les invités présents.', 'event-good');
   } else if (venus.length > 0) {
-    state.pop = Math.min(100, state.pop + 5);
-    state.inf = Math.min(100, state.inf + 5);
-    updateUI();
     showToast('Banquet mitigé', 'Seuls ' + venus.length + '/' + invites.length + ' invités sont venus. +5 POP +5 INF.', true);
     addJournalEntry('Banquet diplomatique mitigé (' + venus.length + '/' + invites.length + ' présents).', 'event-info');
   } else {
-    state.pop = Math.max(0, state.pop - 25);
-    state.inf = Math.max(0, state.inf - 20);
-    state.moral = Math.max(0, state.moral - 10);
-    updateUI();
     showToast('Fiasco !', 'Aucun invité ne s\'est présenté. -25 POP -20 INF -10 Moral.', false);
     addJournalEntry('Fiasco du banquet diplomatique — aucun invité présent.', 'event-bad');
     addExternalEvent('HUMILIATION : Le banquet diplomatique du Président s\'est tenu... sans aucun invité.');
@@ -9785,18 +9762,11 @@ async function doReceptionAvecBonus(fn, cost) {
   budgetPresidence.solde -= budgetPresidence.coutOrdre;
 
   // L'issue a ete tiree par le serveur.
+  adopterJaugesReponse(rPa.jauges);
   if (rPa.reussi === true) {
-    state.pop = Math.min(100, state.pop + 10);
-    state.inf = Math.min(100, state.inf + 8);
-    state.moral = Math.min(100, state.moral + 5);
-    updateUI();
     showToast(fn === 'reception_etat' ? 'Reception reussie !' : 'Banquet reussi !', '+10 POP +8 INF +5 Moral +5 ID.', true, true);
     addJournalEntry(fn === 'reception_etat' ? 'Reception d\'Etat reussie.' : 'Banquet diplomatique reussi.', 'event-good');
   } else {
-    state.pop = Math.max(0, state.pop - 30);
-    state.inf = Math.max(0, state.inf - 30);
-    state.moral = Math.max(0, state.moral - 10);
-    updateUI();
     showToast('Echec !', 'Les invites ont boude votre ' + (fn === 'reception_etat' ? 'reception' : 'banquet') + '. -30 POP -30 INF -10 Moral.', false);
     addExternalEvent('HUMILIATION : La ' + (fn === 'reception_etat' ? 'reception' : 'banquet diplomatique') + ' du President s\'est soldee par un echec cuisant. -30 POP -30 INF -10 Moral.');
   }
@@ -9812,16 +9782,16 @@ const DOSSIERS_GOUVERNEMENTAUX = [
 ];
 
 async function doConsulterDossiersGouv(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  const contexte=contexteGroupePj();
+  const r = await executerOrdreJaugesServeur('consulter_dossiers_gouv');
+  if (!r||!contexteGroupePjValide(contexte)) return;
   const dossier = DOSSIERS_GOUVERNEMENTAUX[Math.floor(Math.random() * DOSSIERS_GOUVERNEMENTAUX.length)];
   document.getElementById('postes-modal-title').textContent = 'Dossier confidentiel';
   const html = '<div style="padding:1rem;font-size:.85rem;color:#c0b090;line-height:1.6;font-style:italic">« ' + dossier + ' »</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
-  state.inf = Math.min(100, (state.inf || 0) + 2);
   updateUI();
-  addJournalEntry('Consultation d\'un dossier confidentiel du gouvernement. +2 INF.', 'event-info');
+  if(!r.rejeu)addJournalEntry('Consultation d\'un dossier confidentiel du gouvernement. +2 INF.', 'event-info');
 }
 
 function doMobiliserPolice(fn) {
@@ -9875,13 +9845,12 @@ async function confirmerMobilisationPolice(id, label, isn, pop, fn) {
   // l'audit). 'mobiliser' route vers ce meme handler partage (bug de routage distinct, classe
   // E, hors perimetre de ce lot) : aucune deduction pour ce cas, comportement inchange tant que
   // l'arbitrage sur le routage n'a pas eu lieu. Placee avant toute mutation.
-  if (fn === 'mobiliser_police') {
-    const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
-    if (!rPa.ok) { signalerRefusCout(rPa); return; }
-  }
-
+  // PA et POP par le serveur (#379), catalogue d'origine ; réservé au commissaire.
+  const v = await executerOrdreJaugesServeur('mobiliser_police', { option: id });
+  if (!v) return;
+  if (v.rejeu) { updateUI(); return; }
+  isn = v.isn; pop = v.gain_pop;
   if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + isn);
-  state.pop = Math.max(0, Math.min(100, state.pop + pop));
   updateUI();
   showToast('Intervention menée', label + ' — +' + isn + ' ISN, ' + (pop<=0?pop:'+'+pop) + ' POP.', pop >= 0, true);
   addJournalEntry('Intervention des forces de l\'ordre : ' + label + '.', pop < -5 ? 'event-bad' : 'event-info');
@@ -9992,11 +9961,11 @@ const DELAI_EFFET_APRES_DEBUT_MIN = 90; // 1h30 apres le debut de l'evenement po
 async function traiterDemandeManifestation(id, autorise, pa, cost) {
   const demande = await sbGetDemandeManifestationParId(id);
   if (!demande) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // PA, statut de la demande et -8 POP du ministre en cas d'interdiction : serveur (#379).
+  const v = await executerOrdreJaugesServeur('manifestation_traiter', { id: String(id), autorise: !!autorise });
+  if (!v) return;
   document.getElementById('modal-postes')?.classList.remove('open');
-
-  await sbMajDemandeManifestation(id, autorise ? 'autorisee' : 'interdite', {});
+  if (v.rejeu) { updateUI(); return; }
 
   if (autorise) {
     showToast('Manifestation autorisée', demande.sujet + ' — effet connu 1h30 après le début.', true, true);
@@ -10012,7 +9981,7 @@ async function traiterDemandeManifestation(id, autorise, pa, cost) {
     const minIntNom = minIntInfo?.estPJ ? minIntInfo.nom : null;
     if (minIntNom) {
       if (minIntNom === state.char?.name) {
-        state.pop = Math.max(0, (state.pop||0) - 8);
+        // -8 POP déjà appliqué par le serveur ; la DIS reste hors du périmètre #379.
         state.dis = Math.max(0, (state.dis||0) - 5);
         updateUI();
       } else if (typeof sbGet === 'function') {
@@ -10828,8 +10797,7 @@ async function confirmerGuerreEmpire(empireId, empireName, pa, cost) {
     showToast('Déclaration refusée', motifs[rG && rG.raison] || 'Le serveur a refusé la déclaration.', false);
     return;
   }
-  state.pop = Math.max(0, (state.pop||0) - 20);
-  state.inf = Math.min(100, (state.inf||0) + 10);
+  adopterJaugesReponse(rG.jauges); // -20 POP +10 INF appliqués par guerre_declarer (#379)
   // -20 Indice Diplomatique : applique par guerre_declarer (serveur, 25/10/2026).
   INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 15);
   chargerIndicesDiplomatiques().catch(() => {});
@@ -12955,32 +12923,37 @@ async function ouvrirInspecterTroupes() {
 async function confirmerInspectionTroupes(niveau) {
   // LE VERDICT EST REDEMANDE ICI, et ce n'est pas une precaution de style : cette fonction est
   // globale, donc appelable directement. Le controle de l'ouverture ne protege que l'ouverture.
-  const perim = await perimetreInspectionTroupes();
+  const contexte=contexteGroupePj();
+  let perim = await perimetreInspectionTroupes();
+  if(!contexteGroupePjValide(contexte))return;
   if (!perim.ok) { signalerRefusInspection(perim); return; }
   const cfg = NIVEAUX_INSPECTION_TROUPES[niveau];
   if (!cfg) return;
   // `fn` explicite : ne jamais dependre de state._ordreEnCours, qui porte le dernier ordre route
   // et serait faux des que cette fenetre est rouverte depuis un autre chemin.
-  const r = await deduireCoutOrdre({ pa: cfg.pa, cost: cfg.cost, fn: cfg.fn });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  const r = await executerOrdreJaugesServeur('inspecter_troupes', {niveau});
+  if (!r||!contexteGroupePjValide(contexte)) return;
+  perim=r.perimetre;
+  if(!perim?.ok)return;
 
   // Gain deterministe (pas de jet) : coherent avec l'ancien successRate:100 declare dans
   // data.js, jamais garanti par le moteur generique (doOrder) faute d'etre dans son alwaysSuccess
   // -- comme les autres ordres a effet garanti du jeu (voir stage_caserne, applyEffects
   // court-circuite), cette action n'emprunte jamais le chemin generique. state.inf plafonne a
   // 100 exactement comme applyEffects() le fait pour tous les autres ordres du jeu.
-  state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
   updateUI();
 
   // LE PERIMETRE VIENT DU SERVEUR. Un Lieutenant inspecte sa section, un Capitaine sa compagnie,
   // les echelons superieurs l'armee : c'est la liste rendue par la porte qui le decide, jamais
   // une deduction locale.
   const etat = await construireEtatArmee(perim.pays || state.country || 'republic', perim);
+  if(!contexteGroupePjValide(contexte))return;
   document.getElementById('postes-modal-title').textContent = cfg.label
     + (perim.portee === 'section' ? ' — ma section'
        : perim.portee === 'compagnie' ? ' — ma compagnie' : '');
   document.getElementById('postes-body').innerHTML = niveau === 'detaillee' ? renderInspectionDetaillee(etat) : renderInspectionRevue(etat);
   document.getElementById('modal-postes').classList.add('open');
+  if(r.rejeu)return;
   showToast(cfg.label, 'Inspection effectuée (+' + cfg.inf + ' INF).', true, true);
   addJournalEntry(cfg.label + ' (+' + cfg.inf + ' INF).', 'event-good');
 }

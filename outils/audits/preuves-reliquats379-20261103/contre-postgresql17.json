@@ -1,0 +1,160 @@
+{
+  "production": false,
+  "moteur": "170006",
+  "icu": [
+    "153.121",
+    "153.121"
+  ],
+  "role": "authenticated, request.path /rpc/<fonction>, JWT fictifs",
+  "tests": [
+    {
+      "cas": "installation_rollback_rejeu_idempotence",
+      "ok": true
+    },
+    {
+      "cas": "impact_pop_serveur_une_fois",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 74, in effet\n    v=impact(kind);assert v['ok'] and v['marques']==1;assert own(\"SELECT (resources->>%s)::int FROM personnages_donnees WHERE name='Fixture'\",(kind,))=={'pop':15,'inf':25,'dis':5}[kind]\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "impact_inf_serveur_une_fois",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 74, in effet\n    v=impact(kind);assert v['ok'] and v['marques']==1;assert own(\"SELECT (resources->>%s)::int FROM personnages_donnees WHERE name='Fixture'\",(kind,))=={'pop':15,'inf':25,'dis':5}[kind]\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "impact_dis_serveur_une_fois",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 74, in effet\n    v=impact(kind);assert v['ok'] and v['marques']==1;assert own(\"SELECT (resources->>%s)::int FROM personnages_donnees WHERE name='Fixture'\",(kind,))=={'pop':15,'inf':25,'dis':5}[kind]\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "carte_plafond_expediteur_Paris_et_deux_acquittements",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 78, in carte\n    a=impact('moral_carte_postale',10);b=impact('moral_carte_postale',10,id='j');assert a['applique'] and not b['applique'];assert own(\"SELECT moral FROM personnages_donnees WHERE name='Fixture'\")==85\n                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "hp_set_PA0_et_declencheur_hospitalisation_existant",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 83, in hp\n    assert own(\"SELECT jsonb_build_array(hp,pa,regen_jour,hospitalisation->>'regime',(SELECT count(*)FROM jsonb_object_keys(stats_affaiblies)))FROM personnages_donnees WHERE name='Fixture'\")==[25,0,1,'pa0',2]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "poison_details_conserves_sans_tirage_client",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 87, in poison\n    assert own(\"SELECT poison_actif->>'poisonType' FROM personnages_donnees WHERE name='Fixture'\")=='ghb'\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "impact_invalide_inconnu5",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 92, in refuse\n    v=impact(kind,delta,details);assert not v['ok'];assert own(\"SELECT traite FROM impacts_indices_attente WHERE id='i'\")is False;assert own(\"SELECT hp FROM personnages_donnees WHERE name='Fixture'\")==100\n                                        ^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "impact_invalide_poison_start0",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 92, in refuse\n    v=impact(kind,delta,details);assert not v['ok'];assert own(\"SELECT traite FROM impacts_indices_attente WHERE id='i'\")is False;assert own(\"SELECT hp FROM personnages_donnees WHERE name='Fixture'\")==100\n                                        ^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "impact_invalide_hp_set101",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 92, in refuse\n    v=impact(kind,delta,details);assert not v['ok'];assert own(\"SELECT traite FROM impacts_indices_attente WHERE id='i'\")is False;assert own(\"SELECT hp FROM personnages_donnees WHERE name='Fixture'\")==100\n                                        ^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "impact_invalide_moral_carte_postale999",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 92, in refuse\n    v=impact(kind,delta,details);assert not v['ok'];assert own(\"SELECT traite FROM impacts_indices_attente WHERE id='i'\")is False;assert own(\"SELECT hp FROM personnages_donnees WHERE name='Fixture'\")==100\n                                        ^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "autre_identite_ne_consomme_pas",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 95, in autre\n    v=impact('pop',qui=2);assert not v['ok'];assert own(\"SELECT traite FROM impacts_indices_attente WHERE id='i'\")is False\n                                 ^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "ancien_contrat_refuse_sans_effet_ni_marque",
+      "ok": false,
+      "erreur": "'raison'",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 98, in vieux\n    own(\"INSERT INTO impacts_indices_attente(id,victime,indice,delta)VALUES('i','Fixture','pop',5)\");p=photo();assert rpc('impact_marquer_traite',['i'])['raison']=='client_obsolete';assert photo()==p\n                                                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^\nKeyError: 'raison'\n"
+    },
+    {
+      "cas": "codetenu_refuse_par_commande_canonique_sans_paiement",
+      "ok": true
+    },
+    {
+      "cas": "subtilisation_succes_refus_jet_et_detection_PA_officiels",
+      "ok": false,
+      "erreur": "'pa'",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 106, in sub\n    own('SAVEPOINT tirage');own('SELECT setseed(%s)',((k-50)/51,));v=rpc('militaire_subtiliser_tenter',['republic',1]);assert v['pa']==8 and v['contrat']==1 and isinstance(v['revision'],int)\n                                                                                                                              ~^^^^^^\nKeyError: 'pa'\n"
+    },
+    {
+      "cas": "subtilisation_stock_vide_cout_tentative_preserve",
+      "ok": false,
+      "erreur": "'pa'",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 118, in vide\n    if v.get('raison')=='stock_insuffisant':assert v['pa']==8 and v['revision']==0 and v['inventory']==[];return\n                                                   ~^^^^^^\nKeyError: 'pa'\n"
+    },
+    {
+      "cas": "subtilisation_hors_caserne_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "subtilisation_PA_insuffisants_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "panne_acquittement_annule_effet_impact",
+      "ok": true
+    },
+    {
+      "cas": "prevol_refuse_definition_serveur_inconnue",
+      "ok": true
+    },
+    {
+      "cas": "droits_nouveaux_contrats_authentifies_seulement",
+      "ok": true
+    },
+    {
+      "cas": "panne_depot_annule_PA_et_stock_dans_meme_transaction",
+      "ok": false,
+      "erreur": "panne de depot non observee",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 152, in depot_panne\n    raise AssertionError('panne de depot non observee')\nAssertionError: panne de depot non observee\n"
+    },
+    {
+      "cas": "impact_conserve_fraction_indice_historique",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 155, in precision\n    own(\"UPDATE personnages_donnees SET resources='{\\\"pop\\\":0.5}'WHERE name='Fixture'\");assert impact('pop',5)['ok'];assert own(\"SELECT (resources->>'pop')::numeric FROM personnages_donnees WHERE name='Fixture'\")==5.5\n                                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "version_refusee_avant_mutation_impact_marquer_traite",
+      "ok": false,
+      "erreur": "'raison'",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 49, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 159, in contrat\n    p=photo();assert rpc(fn,args)['raison']=='contrat_invalide'and photo()==p\n                     ~~~~~~~~~~~~^^^^^^^^^^\nKeyError: 'raison'\n"
+    },
+    {
+      "cas": "version_refusee_avant_mutation_militaire_subtiliser_tenter",
+      "ok": true
+    },
+    {
+      "cas": "acquittements_concurrents_reponse_perdue_un_effet",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-379-local.py\", line 174, in main\n    deux.rollback();assert own(\"SELECT (resources->>'pop')::int FROM personnages_donnees WHERE name='Fixture'\")==15\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    }
+  ],
+  "limites": [
+    "Géographie hospitalière simulée, déclencheur pa0 réel.",
+    "Pas un clone du catalogue vivant.",
+    "Un acquittement fictif committé pour la concurrence ; cluster détruit."
+  ],
+  "migrations": [
+    "20261102202046_subtilisation_reponse_serveur_versionnee.sql",
+    "20261102202047_impacts_consommation_serveur_atomique.sql"
+  ]
+}

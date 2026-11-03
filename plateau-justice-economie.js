@@ -151,13 +151,9 @@ async function confirmerDonArgent(pa, cost) {
         showToast('Volés et tabassés !', '-' + montant + ' ' + cur + ' · -10 HP.', false);
       }
     },
-    promoteur: () => {
-      // Le promoteur révèle des infos
-      state.inf = Math.min(100, (state.inf || 0) + 5);
-      updateUI();
-      addJournalEntry('Gérard Spéculos vous donne des infos sur le marché pour ' + montant + ' ' + cur + '. +5 INF.', 'event-good');
-      showToast('Info obtenue !', '+5 INF. Il sait des choses sur ce quartier.', true);
-    },
+    // #379 (03/11/2026) : branche « promoteur » (+5 INF locale) retirée. L'occupation d'un
+    // terrain est lue au serveur (terrain_occupation_lire) et ne peut être que squatteurs ou
+    // cadavre (profilOccupationTerrain) : ce PNJ n'apparaît jamais sur un terrain.
     default: () => {
       updateUI();
       addJournalEntry('Don de ' + montant + ' ' + cur + ' accepté.', 'event-info');
@@ -2148,10 +2144,12 @@ function doSeReposer(fn) {
 // meme fichier : `ouvrirAvocatsDisponibles`, la demande de defense, le dossier de l'avocat,
 // l'audience. Un avocat peut y plaider ; c'est le JUGE qui decide, et il est humain.
 
-function doGreveFaim() {
-  state.hp = Math.max(1, state.hp - 5);
-  state.pop = Math.min(100, state.pop + 3);
+async function doGreveFaim() {
+  const contexte=contexteGroupePj();
+  const v = await executerOrdreJaugesServeur('greve_faim');
+  if (!v||!contexteGroupePjValide(contexte)) return;
   updateUI();
+  if(v.rejeu)return;
   showToast('Greve de la faim', '-5 HP +3 POP. Pression politique sur l\'administration.', false);
   addExternalEvent((state.char?.name||'Un detenu') + ' entame une greve de la faim. Pression politique.');
 }
@@ -2350,30 +2348,20 @@ function verifierBudgetInstitution(inst) {
 // regle de jeu ne disparait avec elle, puisqu'elle n'en appliquait aucune.
 
 async function doCampagneSecurite() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 500;
-  // Arbitrage de conception (correctif Lot 2C) : payeur exclusif = budget institutionnel de la
-  // mairie (state.budgets.mairie via getBudgetInstitution), jamais l'argent personnel du joueur.
-  // Debit du cout REEL de cet ordre (500 FR) -- pas le cout generique de
-  // verifierBudgetInstitution (b.coutOrdre = 250 FR pour la mairie) : les deux ne se cumulent
-  // plus, un seul debit de 500 FR sur le budget mairie. Verification AVANT toute deduction PA :
-  // si le budget est insuffisant, ni PA ni FR ne sont debites.
-  const budgetMairie = getBudgetInstitution('mairie');
-  if (budgetMairie.solde < cost) {
-    showToast('Budget insuffisant', 'Le budget de la mairie (' + cost + ' ' + cur + ' requis) est insuffisant. Le Ministre des Finances doit revoir la répartition budgétaire.', false);
-    return;
+  const contexte=contexteGroupePj();
+  const v=await executerOrdreJaugesServeur('campagne_securite');
+  if(!v||!contexteGroupePjValide(contexte))return;
+  if(typeof INDICES_VILLES_CACHE!=='undefined'){
+    const key=v.pays+'_'+v.ville;
+    INDICES_VILLES_CACHE[key]={...(INDICES_VILLES_CACHE[key]||INDICE_VILLE_DEFAUT),isn:v.isn_ville};
   }
-  // Deduction PA centralisee (Lot 2C) -- apres verification du budget mairie, avant toute mutation.
-  const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
-  budgetMairie.solde -= cost;
-  const pays = state.country || 'republic';
-  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 10);
-  state.pop = Math.max(0, state.pop - 3);
   updateUI();
-  showToast('Campagne de sécurité', '+10 ISN local. -3 POP. ' + cost + ' ' + cur + ' prélevés sur le budget de la mairie.', false);
-  addExternalEvent('MAIRIE : Campagne de sécurité lancée par le Maire. +10 ISN.');
+  if(v.rejeu)return;
+  const cur=COUNTRIES[v.pays]?.cur||'FR';
+  showToast('Campagne de sécurité','+'+v.isn_delta+' ISN local. '+v.gain_pop+' POP. '+v.montant_preleve+' '+cur+' prélevés sur la caisse de la mairie.',false);
+  addExternalEvent('MAIRIE : Campagne de sécurité lancée par le Maire. +'+v.isn_delta+' ISN local.');
 }
+
 
 // =====================
 // ACTES OFFICIELS ("Demander un acte officiel" + délivrance professionnelle, refonte du
@@ -2542,37 +2530,8 @@ async function soumettreConte(idx, pa, cost) {
 // nulle part dans le depot et faisaient planter systematiquement doTaxiSpecial des le premier
 // appel, pour taxi_caserne ET taxi_qhs (bug preexistant, sans rapport avec la migration Phase K).
 async function doTaxiSpecial(destination, pa, cost) {
-  if (state._navigationServeur && typeof commanderTransportServeur === 'function') {
-    if (!['caserne','qhs'].includes(destination)) return false;
-    return commanderTransportServeur('taxi_' + destination, state.country, destination);
-  }
-  // Surcharge (Lot 1.5.4) : le taxi vers la Caserne/le QHS est un vrai changement de ville.
-  if (typeof refuserSiSurcharge === 'function' && refuserSiSurcharge('Prendre un taxi')) return;
-  const label = destination === 'caserne' ? 'la Caserne' : 'le QHS';
-  const cityKey = destination === 'caserne' ? 'caserne' : 'qhs';
-
-  // Voyage OK
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  state.currentCity = cityKey;
-  state.currentBuilding = null;
-  state.currentRoom = null;
-  if (state.char) {
-    state.char.currentCity = cityKey;
-    state.char.currentBuilding = null;
-    state.char.currentRoom = null;
-    try {
-      localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
-    } catch (e) {
-      console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
-    }
-  }
-  buildCityTabs();
-  updateUI();
-  forceRenderCity(cityKey);
-  showToast('En route !', 'Vous arrivez à ' + label + '. -' + cost + ' ' + cur, true);
-  addJournalEntry('Taxi vers ' + label, 'event-info');
+  if (!['caserne','qhs'].includes(destination)) return false;
+  return commanderTransportServeur('taxi_' + destination, state.country, destination);
 }
 
 function ouvrirFalsifierDocument(pa, cost) {
@@ -3564,20 +3523,12 @@ function payerLocations() {
 function appliquerBonusLocation(loc) {
   const orga = getOrgaById(loc.orgaId);
   if (!orga) return;
-
-  // Stocker les bonus dans l'orga
-  if (!orga.bonusLocaux) orga.bonusLocaux = { pop: 0, inf: 0, dis: 0 };
-  orga.bonusLocaux.pop = (orga.bonusLocaux.pop || 0) + (loc.bonusPOP || 0);
-  orga.bonusLocaux.inf = (orga.bonusLocaux.inf || 0) + (loc.bonusINF || 0);
-  orga.bonusLocaux.dis = (orga.bonusLocaux.dis || 0) + (loc.bonusDIS || 0);
-
-  // Appliquer au joueur (fraction des bonus)
+  // #379 (03/11/2026) : les 30 % de POP et d'INF du chef sont versés par le serveur au moment où
+  // le loyer est réellement payé (prelever_loyer_bail, migration 20261103234000). L'ancien cumul
+  // orga.bonusLocaux n'était lu nulle part et l'organisation n'est plus écrite par l'écran.
   const mult = 0.3; // 30% des bonus de l'orga profitent directement au chef
-  const estChef = orga.chef === state.char?.name;
-  if (estChef) {
-    if (loc.bonusPOP > 0) state.pop = Math.min(100, (state.pop || 0) + Math.floor(loc.bonusPOP * mult));
-    if (loc.bonusINF > 0) state.inf = Math.min(100, (state.inf || 0) + Math.floor(loc.bonusINF * mult));
-    if (loc.bonusDIS > 0) state.dis = Math.min(100, (state.dis || 50) + Math.floor(loc.bonusDIS * mult));
+  if (orga.chef === state.char?.name && loc.bonusDIS > 0) {
+    state.dis = Math.min(100, (state.dis || 50) + Math.floor(loc.bonusDIS * mult));
   }
 }
 
@@ -3906,46 +3857,51 @@ async function confirmerDonPnj(encodedPnj) {
     return;
   }
 
-  // Don a un PNJ : aucune ligne de personnage en face, l'argent est detruit. Le debit local reste
-  // donc le mecanisme (inchange), applique seulement une fois la branche PJ ecartee.
-  state.arg -= montant;
-  updateUI();
-  const dup = getStatEffective('DUP');
+  // DON A UN PNJ AU SERVEUR (#379, 03/11/2026). Le navigateur se debitait lui-meme (debit fictif :
+  // l'argent est protege en base) et s'ajoutait POP, INF, moral et sante. La commande don_argent_pnj
+  // verifie la presence du PNJ, tire le refus des metiers a risque, debite et applique les jauges
+  // dans une transaction, formules d'origine. Restent a l'ecran : les jets de DIS des metiers qui
+  // n'agissent que sur la DIS (commissaire, policier, inspecteur, juge, banquier).
   const nomCourt = pnj.name.replace(' (PNJ)','');
-  const jobsRisques = ['commissaire','policier','inspecteur','juge'];
-  const tauxRefus = jobsRisques.includes(job) ? Math.max(0, isn - 30) / 2 : 0;
-  const rollRefus = Math.floor(Math.random() * 100) + 1;
-  if (tauxRefus > 0 && rollRefus <= tauxRefus) {
-    state.arg += montant;
+  const v = await executerOrdreJaugesServeur('don_argent_pnj', { nom: nomCourt, montant });
+  if (!v) return;
+  if (typeof v.moral === 'number') state.moral = v.moral;
+  if (v.refuse) {
     state.dis = Math.max(0, (state.dis||50) - 15);
     updateUI();
     addJournalEntry('Don refuse par ' + nomCourt + '. -15 DIS.', 'event-bad');
     showToast('Refus indigne !', nomCourt + ' a refuse. -15 DIS.', false);
     return;
   }
-  const effets = {
-    serveur:     () => { state.moral=Math.min(100,(state.moral||50)+5); state.inf=Math.min(100,(state.inf||0)+2); showToast('Pourboire verse !','+5 Moral +2 INF.',true); addJournalEntry('Pourboire a '+nomCourt+'. +5 Moral +2 INF.','event-good'); },
-    barman:      () => { state.inf=Math.min(100,(state.inf||0)+5); showToast('Le barman apprecie !','+5 INF.',true,true); addJournalEntry('Don barman. +5 INF.','event-good'); },
-    commissaire: () => { const t=Math.min(70,30+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-5);showToast('Arrangement discret','-5 DIS.',true);addJournalEntry('Corruption commissaire. -5 DIS.','event-bad');}else{state.dis=Math.max(0,(state.dis||50)-20);showToast('Refus !','-20 DIS.',false);} },
-    policier:    () => { const t=Math.min(65,25+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-3);showToast('Il regarde ailleurs.','-3 DIS.',true);}else{state.dis=Math.max(0,(state.dis||50)-15);showToast('Refus !','-15 DIS.',false);} },
-    inspecteur:  () => { const t=Math.min(70,35+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-5);showToast('Inspecteur convaincu !','-5 DIS.',true);}else{state.dis=Math.max(0,(state.dis||50)-15);showToast('Refus !','-15 DIS.',false);} },
-    journaliste: () => { state.inf=Math.min(100,(state.inf||0)+8); state.pop=Math.min(100,(state.pop||0)+5); showToast('Article favorable !','+8 INF +5 POP.',true,true); addExternalEvent((state.char?.name||'Anonyme')+' beneficie d\'une couverture favorable.'); },
-    banquier:    () => { state.dis=Math.min(100,(state.dis||50)+5); showToast('Service discret.','+5 DIS.',true); },
-    medecin:     () => { const s=Math.min(25,Math.floor(montant/10)); state.hp=Math.min(100,(state.hp||100)+s); showToast('Soins off-record !','+'+s+' HP.',true); },
-    commercant:  () => { state.pop=Math.min(100,(state.pop||0)+4); state.inf=Math.min(100,(state.inf||0)+2); showToast('Reputation locale !','+4 POP +2 INF.',true); },
-    juge:        () => { const t=Math.min(55,20+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-8);showToast('Le juge est comprehensif.','-8 DIS.',true,true);}else{state.dis=Math.max(0,(state.dis||50)-25);showToast('SCANDALE !','-25 DIS.',false);} },
-    avocat:      () => { state.inf=Math.min(100,(state.inf||0)+5); showToast('L\'avocat note votre generosite.','+5 INF.',true); },
-    loge:        () => { state.inf=Math.min(100,(state.inf||0)+8); showToast('Don a la Loge.','+8 INF.',true,true); },
-    grand_pretre:() => { state.pop=Math.min(100,(state.pop||0)+5); state.moral=Math.min(100,(state.moral||50)+5); showToast('Don beni !','+5 POP +5 Moral.',true,true); },
-    escort:      () => { state.inf=Math.min(100,(state.inf||0)+6); showToast('Information exclusive !','+6 INF.',true,true); },
+  const dup = getStatEffective('DUP');
+  const jetDis = (base, plafond, gain, perte, okTxt, koTxt) => {
+    const t = Math.min(plafond, base + Math.floor(dup*2)); const r = Math.floor(Math.random()*100)+1;
+    if (r <= t) { state.dis = Math.max(0,(state.dis||50)-gain); showToast(okTxt, '-' + gain + ' DIS.', true); }
+    else { state.dis = Math.max(0,(state.dis||50)-perte); showToast(koTxt, '-' + perte + ' DIS.', false); }
   };
-  const effet = effets[job];
-  if (effet) { effet(); }
+  const gains = [];
+  if (v.gain_pop) gains.push('+' + v.gain_pop + ' POP');
+  if (v.gain_inf) gains.push('+' + v.gain_inf + ' INF');
+  if (v.gain_moral) gains.push('+' + v.gain_moral + ' Moral');
+  if (v.gain_hp) gains.push('+' + v.gain_hp + ' HP');
+  const txt = gains.join(' ');
+  const messages = {
+    serveur: ['Pourboire verse !', 'Pourboire a ' + nomCourt + '.'], barman: ['Le barman apprecie !', 'Don barman.'],
+    journaliste: ['Article favorable !', 'Don a ' + nomCourt + '.'], medecin: ['Soins off-record !', 'Don a ' + nomCourt + '.'],
+    commercant: ['Reputation locale !', 'Don a ' + nomCourt + '.'], avocat: ['L\'avocat note votre generosite.', 'Don a ' + nomCourt + '.'],
+    loge: ['Don a la Loge.', 'Don a la Loge.'], grand_pretre: ['Don beni !', 'Don a ' + nomCourt + '.'],
+    escort: ['Information exclusive !', 'Don a ' + nomCourt + '.']
+  };
+  if (v.job === 'commissaire') jetDis(30, 70, 5, 20, 'Arrangement discret', 'Refus !');
+  else if (v.job === 'policier') jetDis(25, 65, 3, 15, 'Il regarde ailleurs.', 'Refus !');
+  else if (v.job === 'inspecteur') jetDis(35, 70, 5, 15, 'Inspecteur convaincu !', 'Refus !');
+  else if (v.job === 'juge') jetDis(20, 55, 8, 25, 'Le juge est comprehensif.', 'SCANDALE !');
+  else if (v.job === 'banquier') { state.dis = Math.min(100,(state.dis||50)+5); showToast('Service discret.','+5 DIS.',true); }
   else {
-    const moralBonus = Math.min(8, Math.floor(montant / 50));
-    state.moral = Math.min(100,(state.moral||50)+moralBonus);
-    showToast('Don accepte.', nomCourt+' apprecie. +'+moralBonus+' Moral.', true);
-    addJournalEntry('Don a '+nomCourt+'.','event-good');
+    const m = messages[v.job] || ['Don accepte.', 'Don a ' + nomCourt + '.'];
+    showToast(m[0], (v.job in messages ? '' : nomCourt + ' apprecie. ') + txt, true, v.job === 'journaliste' || v.job === 'loge' || v.job === 'grand_pretre' || v.job === 'escort');
+    addJournalEntry(m[1] + (txt ? ' ' + txt + '.' : ''), 'event-good');
+    if (v.job === 'journaliste') addExternalEvent((state.char?.name||'Anonyme')+' beneficie d\'une couverture favorable.');
   }
   updateUI();
 }
@@ -3977,7 +3933,7 @@ async function confirmerDonObjetPnj(objIdx, encodedPnj) {
   const job = pnj.job || 'default';
   const nomCourt = pnj.name.replace(' (PNJ)','');
   document.getElementById('modal-postes').classList.remove('open');
-  let msg = '', bon = true;
+
   if (obj.type === 'colis_secret_pat') {
     // Quete Pat Hounette/Brigitte Menottes : ce colis n'est destine qu'a elle -- a tout autre
     // PNJ, transfert refuse plutot que de le laisser se perdre hors de la chaine de la quete
@@ -4002,33 +3958,33 @@ async function confirmerDonObjetPnj(objIdx, encodedPnj) {
     return;
   }
 
-  // Le retrait passe par le guichet serveur (chantier C, 14 septembre 2026) et precede tout
-  // effet : un refus laisse l'inventaire ET les ressources exactement en l'etat, jamais un gain
-  // d'INF/POP obtenu pour un objet qui serait reste en poche.
-  const rDon = await removeFromInventory(objIdx, 'remettre', { destinataire: nomCourt });
-  if (!rDon.ok) {
-    showToast('Impossible', messageRefusSortieInventaire(rDon.raison), false);
-    return;
-  }
-
-  if (obj.type === 'kompromat') {
-    if (['journaliste','redacteur'].includes(job)) {
-      state.inf=Math.min(100,(state.inf||0)+8); state.pop=Math.min(100,(state.pop||0)+5);
-      const cible=obj.cible||'une personnalite';
-      addExternalEvent('SCANDALE : Un kompromat sur '+cible+' a ete divulgue !');
-      msg='Le journaliste s\'empare du dossier. +8 INF +5 POP.';
-    } else {
-      state.inf=Math.min(100,(state.inf||0)+3);
-      msg=nomCourt+' prend le document. +3 INF.';
-    }
+  // DON D'OBJET A UN PNJ AU SERVEUR (#379, 03/11/2026). Le retrait de l'objet et les jauges sont
+  // une seule transaction (don_objet_pnj) : presence du PNJ verifiee, objet lu en base, formules
+  // d'origine (kompromat a un journaliste +8 INF +5 POP, a un autre +3 INF ; autre objet +3 Moral
+  // +2 INF). Un refus laisse l'inventaire et les jauges exactement en l'etat.
+  const signature = typeof signatureObjetInventaire === 'function' ? signatureObjetInventaire(obj) : null;
+  if (!signature) return;
+  const v = await executerOrdreJaugesServeur('don_objet_pnj', { nom: nomCourt, index: objIdx, signature });
+  if (!v) return;
+  if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
+  if (typeof renderInventory === 'function') renderInventory();
+  if (typeof v.moral === 'number') state.moral = v.moral;
+  const gains = [];
+  if (v.gain_pop) gains.push('+' + v.gain_pop + ' POP');
+  if (v.gain_inf) gains.push('+' + v.gain_inf + ' INF');
+  if (v.gain_moral) gains.push('+' + v.gain_moral + ' Moral');
+  let msg;
+  if (obj.type === 'kompromat' && v.scandale) {
+    addExternalEvent('SCANDALE : Un kompromat sur ' + (obj.cible || 'une personnalite') + ' a ete divulgue !');
+    msg = 'Le journaliste s\'empare du dossier. ' + gains.join(' ') + '.';
+  } else if (obj.type === 'kompromat') {
+    msg = nomCourt + ' prend le document. ' + gains.join(' ') + '.';
   } else {
-    state.moral=Math.min(100,(state.moral||50)+3); state.inf=Math.min(100,(state.inf||0)+2);
-    msg=nomCourt+' accepte le cadeau. +3 Moral +2 INF.';
-    addJournalEntry('Objet offert a '+nomCourt+'.','event-good');
+    msg = nomCourt + ' accepte le cadeau. ' + gains.join(' ') + '.';
+    addJournalEntry('Objet offert a ' + nomCourt + '.', 'event-good');
   }
   updateUI();
-  showToast(bon?'Don effectue !':'Action risquee.', msg, bon);
-  if (pnj.isPJ) tracerActionPourRumeur('don_objet', nomCourt);
+  showToast('Don effectue !', msg, true);
 }
 
 // doAcheterEntreprise : ancien ajout local sans appelant retire (chantier inventaire, 27/10).
@@ -12820,7 +12776,7 @@ async function confirmerVirementJoueur(automatique) {
     const m = v && REFUS_VIREMENT[v.raison];
     if (m) { showToast(m[0], m[1], false); return; }
     if (v && v.raison && !v.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(v); return; }
-    showToast('Virement non effectué', "L'opération n'a pas abouti : rien n'a été prélevé ni versé.", false);
+    showToast('Confirmation indisponible', "La réponse du serveur n'a pas pu être confirmée. Consultez votre compte avant de renouveler la demande.", false);
     return;
   }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, arg: v.arg, solde_national: v.solde_national });
@@ -14319,15 +14275,13 @@ function greffeRefus(v, defaut) {
 // Une lecture qui echoue ne casse rien : l'objet EST en base, et le prochain chargement de la
 // fiche le montrera. On ne simule jamais un objet qu'on n'a pas lu.
 async function rafraichirInventaireDepuisServeur() {
-  if (typeof sbGet !== 'function' || !state.char?.name) return false;
-  const rows = await sbGet('personnages',
-    'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
-  const inv = (Array.isArray(rows) && rows[0] && Array.isArray(rows[0].inventory))
-    ? rows[0].inventory : null;
-  if (!inv) return false;
-  if (typeof sbAdopterInventaireServeur === 'function') {
-    if (!sbAdopterInventaireServeur(rows[0])) return false;
-  } else state.inventory = inv;
+  if (typeof sbInventaireReceptionEtat !== 'function' ||
+      typeof sbAdopterInventaireServeur !== 'function' || !state.char?.name) return false;
+  // Même lecteur que les réceptions : la révision et la provenance accompagnent
+  // l'inventaire jusqu'à l'adoption. Un GET inventory seul effaçait sa révision.
+  const v = await sbInventaireReceptionEtat(state.char.name).catch(() => null);
+  if (!v || v.ok !== true || !Number.isSafeInteger(v.revision) ||
+      !Array.isArray(v.inventory) || !sbAdopterInventaireServeur(v)) return false;
   if (typeof renderInventory === 'function') renderInventory();
   return true;
 }

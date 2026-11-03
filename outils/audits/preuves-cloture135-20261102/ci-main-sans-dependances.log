@@ -1,0 +1,86 @@
+node:internal/modules/cjs/loader:1517
+  const err = new Error(message);
+              ^
+
+Error: Cannot find module '../vercel/node_modules/acorn'
+Require stack:
+- /tmp/hg135-main-sans-dependances/outils/audits/auditer-republia-complet.cjs
+- /tmp/hg135-main-sans-dependances/outils/bancs/test-audit-global-republia.mjs
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)
+    at Module._load (node:internal/modules/cjs/loader:1294:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1617:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (/tmp/hg135-main-sans-dependances/outils/audits/auditer-republia-complet.cjs:3:13)
+    at Module._compile (node:internal/modules/cjs/loader:1872:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/tmp/hg135-main-sans-dependances/outils/audits/auditer-republia-complet.cjs',
+    '/tmp/hg135-main-sans-dependances/outils/bancs/test-audit-global-republia.mjs'
+  ]
+}
+
+Node.js v24.19.0
+✖ outils/bancs/test-audit-global-republia.mjs (80.158746ms)
+✔ écran : organiser et renouveler passent par le serveur, sans dé ni écriture (4.645045ms)
+✔ commissaire : intervention au serveur, plus de levée par l'écran ni par le ministre (6.791376ms)
+✔ routeur : ordres du bâtiment bloqués, intervention du commissaire jamais bloquée (0.658043ms)
+✔ cron : la nuit des blocus est déléguée aux fonctions serveur (2.523018ms)
+✔ migration : portes patchées et écriture écran fermée (0.957265ms)
+✔ cron calcule les peines sur des dates Paris, non 24h (1.615498ms)
+✔ client laisse le serveur trancher la peine (0.353882ms)
+✔ SQL contrôle le calendrier et garde la clôture atomique (0.120949ms)
+✔ le détecteur reconnaît une écriture par la vue, pas par la table (2.228303ms)
+✔ aucune migration récente n'écrit la fiche par la vue de l'écran (9.979366ms)
+✔ les correctifs du 30/10 sont présents (0.599426ms)
+✔ la descente calcule les objets exactement comme la racine (1.187905ms)
+✔ les deux requêtes sont en lecture seule et enveloppées (0.565686ms)
+✔ la référence de production couvre les six familles, 16 seaux chacune (2.696705ms)
+✔ une fermeture datée ne dépend pas du jour personnel (24.029498ms)
+✔ la date de fin est décidée par PostgreSQL (0.660025ms)
+✔ la suppression d antenne est uniquement dans le contexte de Luthecia (17.230221ms)
+✔ la consommation sur place est possible pour les boissons (0.493319ms)
+✔ hotel-port : hall sans ordres de bar (1.405266ms)
+✔ hotel-mineur : hall sans ordres de bar (0.366101ms)
+✔ La Républia garde ses ordres de bar (0.540729ms)
+✔ hors enquête ou après autorisation : refus nommé, aucun coût (4.944517ms)
+✔ pendant l'enquête : le juge reçoit (le coût est demandé) (2.218187ms)
+✔ l'écran masque l'ordre hors enquête (3.690924ms)
+✔ ordre présent exactement dans les salles de province pourvues de figures (1.071353ms)
+✔ même identifiant de salle : chaque musée lit ses propres figures (0.296017ms)
+✔ aucune sauvegarde générale ni écriture directe de la table organisations dans le navigateur (70.599178ms)
+✔ les chemins avec commande #219 la gardent (0.835695ms)
+✔ les chemins portés à l’étape B passent par leur porte serveur (0.455644ms)
+✔ la fermeture de la table est écrite et gardée (0.272562ms)
+✔ référentiel serveur = TYPES_ORGANISATIONS pour les types fondables en local loué (1.884064ms)
+✔ premier grade des supporters identique côté serveur (0.441903ms)
+✔ les quinze parcelles de Républia : surface connue, prix à 12 FR/m², même parcours (24.16609ms)
+✔ hors Républia, le lot 6 partagé garde son prix et sa surface inconnue (11.274801ms)
+✔ le dépôt de permis reste déclaré au miroir des coûts sans bouton propre (5.365188ms)
+✔ une seule transaction debite les especes ou le compte national (1.225821ms)
+✔ les operations repetées gardent leur id et ne repassent pas par le debit (0.28425ms)
+✔ pas de nouvelle interdiction de plusieurs placements actifs (0.204482ms)
+✔ l interface unifiee presente les deux sources et conserve une intention en attente (0.525136ms)
+✔ le détecteur reconnaît une copie rehorodatée d une préparation déjà appliquée (1.320602ms)
+✔ aucune copie rehorodatée d une préparation déjà appliquée dans migrations/ (6.868959ms)
+OK livraison #219 : 95 migrations uniques et empreintes intactes, 53 sources historiques archivées, 6 préparations isolées, aucun doublon exécutable
+✔ outils/bancs/test-purge-migrations-219.mjs (54.459675ms)
+✔ les RPC du navigateur sont appelables après le lot, les anciens appels sont refusés (704.240524ms)
+✔ travail sur chantier : porte chantier_commande, montant rendu par le serveur (17.863597ms)
+ℹ tests 45
+ℹ suites 0
+ℹ pass 44
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1238.259603
+
+✖ failing tests:
+
+test at outils/bancs/test-audit-global-republia.mjs:1:1
+✖ outils/bancs/test-audit-global-republia.mjs (80.158746ms)
+  'test failed'

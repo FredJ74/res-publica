@@ -11,6 +11,9 @@ import sys
 
 ROOT=Path(__file__).resolve().parent.parent
 def main():
+    if '--appels' in sys.argv:
+        import subprocess
+        return subprocess.run(['node',str(ROOT/'outils/analyser-appels-client.cjs')],check=True).returncode
     resultat={'nature':'Index de code local, sans connexion ni donnees de joueurs.',
               'tables':[], 'rpc':[], 'miroirs':[], 'fusions':[]}
     for p in sorted(list(ROOT.glob('*.js'))+list((ROOT/'api').glob('*.js'))):

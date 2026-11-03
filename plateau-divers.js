@@ -64,65 +64,10 @@ async function genererEvenementAleatoire() {
 
 // =====================
 
-// SONDAGES ABSURDES
+// SONDAGES : ancien producteur local retire (#379). Aucun ordre du catalogue
+// ne rappelle commanderSondage ou publierSondage ; l'ordre reel
+// commanditer_sondage est transactionnel dans jauges_ordre_executer.
 // =====================
-async function commanderSondage() {
-  const co = COUNTRIES[state.country];
-  const cur = co?.cur || 'FR';
-
-  const debit = await debiterFondsOrdinaires(200);
-  if (!debit.ok) {
-    showToast('Fonds insuffisants', '200 ' + cur + ' requis.', false);
-    return;
-  }
-
-  const sujets = [
-    'la popularité du fromage local comme symbole national',
-    'l\'opportunité de renommer la capitale',
-    'l\'instauration d\'une journée nationale obligatoire de sieste',
-    'la privatisation de la météo',
-    'l\'élection du PNJ le plus sympathique de la ville',
-    'l\'interdiction des réunions de plus de 3 personnes le lundi matin',
-    'la construction d\'une statue du fondateur de l\'empire',
-    'la légalisation du troc comme monnaie officielle',
-    'l\'obligation de porter un chapeau dans les institutions',
-    'la semaine de travail à 2 jours'
-  ];
-  const sujet = sujets[Math.floor(Math.random() * sujets.length)];
-  const empireStyle = EMPIRE_STYLES?.[state.country] || { tone: 'parodique', religion: 'la Foi Locale', leader: 'le Chef' };
-
-  const prompt = 'Tu travailles dans un institut de sondage parodique dans l\'empire ' + (co?.n || 'inconnu') + '. ' +
-    'Style : ' + empireStyle.tone + '. Religion locale : ' + empireStyle.religion + '. Chef suprême : ' + empireStyle.leader + '. ' +
-    'Génère un sondage absurde et parodique sur : ' + sujet + '. ' +
-    'Format : 1 question + 4 choix de réponse + 1 résultat fictif avec pourcentages. ' +
-    'Maximum 6 lignes. Très drôle et dans le style de l\'empire. Pas de vrais dieux.';
-
-  document.getElementById('postes-modal-title').textContent = 'Sondage en cours...';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Institut de Sondage au travail...</div>';
-  document.getElementById('modal-postes').classList.add('open');
-
-  try {
-    const r = await rpRedaction('sondage', prompt);
-    const resultat = r.texte || 'Sondage indisponible.';
-
-    document.getElementById('postes-modal-title').textContent = '📊 Sondage Officiel';
-    document.getElementById('postes-body').innerHTML =
-      '<div style="padding:1rem">' +
-      '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.6rem;font-style:italic">Commandé par ' + (state.char?.name || 'Anonyme') + ' · Coût : 200 ' + cur + '</div>' +
-      '<div style="font-size:.85rem;color:#c0a060;line-height:1.8;white-space:pre-line;font-family:Crimson Pro,Georgia,serif">' + resultat + '</div>' +
-      '<div style="margin-top:.8rem;display:flex;gap:.5rem">' +
-      '<button onclick="publierSondage(this.dataset.txt)" data-txt="' + resultat.replace(/"/g, '&quot;') + '"" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-news" style="font-size:.7rem"></i> Publier sur le forum</button>' +
-      '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #3a2a10;background:transparent;color:#6a5a30;cursor:pointer">Fermer</button>' +
-      '</div></div>';
-
-    state.inf = Math.min(100, (state.inf || 0) + 3);
-    updateUI();
-    addJournalEntry('Sondage commandé sur : ' + sujet + '. -200 ' + cur, 'event-info');
-
-  } catch(e) {
-    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a3a20">Erreur lors de la génération du sondage.</div>';
-  }
-}
 
 async function publierSondage(texte) {
   document.getElementById('modal-postes').classList.remove('open');
@@ -475,8 +420,10 @@ async function estGrandPretreActuel(nom) {
 // meme vs joueur distant) que debiterCitoyenPlafonne (plateau-politique.js) : resources est un
 // blob JSON {inf,pop,dis}, jamais une colonne plate.
 async function appliquerMalusPopExcommunication(nomCible) {
+  // Soi-même compris (#379) : la même primitive serveur, qui vérifie le Grand Prêtre en exercice.
   if (nomCible === state.char?.name) {
-    state.pop = Math.max(0, (state.pop || 0) - 15);
+    const pop = typeof sbAjusterPopJoueur === 'function' ? await sbAjusterPopJoueur(nomCible, -15, 'excommunication') : null;
+    if (typeof pop === 'number' && Number.isFinite(pop)) adopterJaugeServeur('pop', pop);
     return;
   }
   // CORRIGE LE 17 SEPTEMBRE 2026 (audit des frontieres d'autorite). C'etait un lire-modifier-
@@ -768,33 +715,7 @@ async function doDemanderBenedictionContact(pnjNom) {
   }
 }
 
-async function doBenedictionEtat(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  modifierIP(10);
-  state.pop = Math.min(100, state.pop + 5);
-  updateUI();
-  showToast('Bénédiction d\'État', '+10 IP national. +5 POP pour le chef d\'État.', true, true);
-  addExternalEvent('RELIGION : Un acte d\'État a reçu la bénédiction du ' + (RELIGIONS[state.country]?.grandPretre||'Grand Prêtre') + '.');
-}
-
-async function doConsulterConfessions(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const confessions = [
-    'Un haut fonctionnaire a avoué détourner des fonds depuis 3 ans.',
-    'Un ministre a confessé ses contacts avec un empire étranger.',
-    'Un député a avoué avoir vendu son vote lors du dernier scrutin.',
-    'Un officier de police a confessé avoir falsifié des preuves.'
-  ];
-  const secret = confessions[Math.floor(Math.random() * confessions.length)];
-  state.inf = Math.min(100, state.inf + 8);
-  updateUI();
-  document.getElementById('postes-modal-title').textContent = 'Archives des Confessions';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem"><div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7">"' + secret + '"</div><div style="font-size:.7rem;color:#9a8a68;margin-top:.6rem">Source : confessions scellées · +8 INF</div></div>';
-  document.getElementById('modal-postes').classList.add('open');
-}
-
+// Ordres benediction_etat / consulter_confessions retires du catalogue.
 async function doAcheterRelique(pa, cost) {
   // Vente legale : regle generale des interdictions (arbitrage du 11 septembre 2026), avant tout debit.
   if (typeof assembleeControlerVenteLegale === 'function'

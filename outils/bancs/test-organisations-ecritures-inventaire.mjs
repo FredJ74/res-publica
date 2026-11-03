@@ -22,7 +22,7 @@ export const AVEC_COMMANDE = {
   refuserInvitationOrga: 'refuser_invitation', sauvegarderOptionsOrga: 'informations',
   renommerOrga: 'informations', toggleVisibiliteOrga: 'visibilite', quitterOrga: 'quitter',
   confirmerDeclenchementElection: 'declencher_election', seProsenterCandidat: 'candidature',
-  voterElection: 'vote', verifierElectionsOrganisations: 'avancer_election',
+  voterElectionOrganisation: 'vote', verifierElectionsOrganisations: 'avancer_election',
 };
 // Chemin porté → motif qui prouve qu'il passe par sa porte serveur.
 export const PORTES_ETAPE_B = {

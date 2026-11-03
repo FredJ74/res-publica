@@ -149,17 +149,8 @@ function closeCharSheet() {
 // =====================
 // WORLD MAP
 // =====================
-function openWorldMap() {
-  const body = document.getElementById('world-map-body');
-  body.innerHTML = renderWorldMapSVG();
-  body.style.display = 'flex';
-  body.style.flexDirection = 'column';
-  body.style.height = '520px';
-  document.getElementById('modal-world').classList.add('open');
-}
-function closeWorldMap() {
-  document.getElementById('modal-world').classList.remove('open');
-}
+
+
 
 // =====================
 // REGLES DU JEU

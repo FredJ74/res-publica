@@ -558,7 +558,7 @@ function renderOngletOrgas() {
             ? '<button onclick="seProsenterCandidat(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">Se présenter</button>'
             : '') +
           (orga.election.phase === 'vote'
-            ? orga.election.candidats.map(c => '<button onclick="voterElection(\'' + orga.id + '\',\'' + c.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;border:1px solid ' + (orga.election.votes[state.char?.name] === c.nom ? '#C9A84C' : '#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer">' + c.nom + '</button>').join('')
+            ? orga.election.candidats.map(c => '<button onclick="voterElectionOrganisation(\'' + orga.id + '\',\'' + c.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;border:1px solid ' + (orga.election.votes[state.char?.name] === c.nom ? '#C9A84C' : '#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer">' + c.nom + '</button>').join('')
             : '') +
           '</div>'
         ) : (
@@ -924,6 +924,44 @@ async function executerOrdreOrgaFinancier(orga, fn, ordre) {
   updateUI();
 }
 
+// Même commande et même reçu que les autres actes de vie de l'organisation.
+async function executerOrdreOrgaJauges(orgaId, fn, ordre, parametres = {}) {
+  const contexte=contexteGroupePj();
+  if(!contexte.nom||!contexte.uid||typeof sbOrganisationVie!=='function')return;
+  const v=await sbOrganisationVie(orgaId,'ordre_jauges',{...parametres,fn});
+  if(!contexteGroupePjValide(contexte))return;
+  if(!v||v.ok!==true){signalerRefusCout(v||{raison:'commande_non_confirmee'});return;}
+  if(v.contrat_jauges!==1||v.acteur!==contexte.nom||v.organisation!==orgaId||v.ordre!==fn
+      ||(fn==='orga_anatheme'&&(v.effets_cible?.nom!==parametres.cible||!['pop','moral'].every(k=>typeof v.effets_cible[k]==='number'&&Number.isFinite(v.effets_cible[k]))))
+      ||!['pop','inf','pa','hp','moral','gain_pop','gain_inf','gain_moral'].every(k=>typeof v[k]==='number'&&Number.isFinite(v[k]))) {
+    showToast('Action non confirmée','La réponse reçue ne permet pas de confirmer cet ordre.',false);return;
+  }
+  appliquerPaiementServeur(v);
+  adopterJaugeServeur('pop',v.pop);adopterJaugeServeur('inf',v.inf);
+  state.moral=v.moral;state.hp=v.hp;
+  if(typeof sbFicheBaseAdopter==='function')sbFicheBaseAdopter(v);
+  updateUI();
+  if(!v.rejeu){
+    const gains=[['POP',v.gain_pop],['INF',v.gain_inf],['Moral',v.gain_moral]].filter(([,n])=>n!==0).map(([k,n])=>(n>0?'+':'')+n+' '+k).join(', ');
+    const effetCible=v.effets_cible? v.effets_cible.nom+' : '+v.effets_cible.moral+' Moral, '+v.effets_cible.pop+' POP':null;
+    showToast(ordre.label||'Ordre exécuté',effetCible||gains||'Action confirmée par le serveur.',true);
+    addJournalEntry((ordre.label||fn)+' : '+(effetCible||gains)+'.',v.effets_cible?'event-bad':'event-good');
+    // Conserver les annonces historiques : les rituels/réseaux/cooptations de
+    // loge ne publiaient aucun événement et ne doivent pas révéler une loge.
+    const nom=v.organisation_nom||'l’organisation';
+    const annonces={
+      orga_petition:'📋 "'+nom+'" lance une pétition publique.',
+      orga_meeting:'📢 "'+nom+'" organise un meeting.',
+      orga_benediction:'✨ "'+nom+'" organise une cérémonie de bénédiction.',
+      orga_anatheme:'⛧ "'+nom+'" prononce un anathème public.',
+      orga_pelerinage:'🕊 "'+nom+'" organise un grand pèlerinage.',
+      orga_campagne_presse:'📰 "'+nom+'" publie une campagne de presse favorable.',
+      orga_scoop:'🔥 "'+nom+'" publie un scoop explosif !'
+    };
+    if(annonces[fn])addExternalEvent(annonces[fn]);
+  }
+}
+
 async function executerHooliganismeServeur(orga, ordre) {
   const brut = typeof sbRpc === 'function'
     ? await sbRpc('organisation_hooliganisme', { p_orga: orga.id }).catch(() => null) : null;
@@ -967,6 +1005,14 @@ async function executerOrdreOrga(orgaId, fn) {
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const ordre = (def.ordres || []).find(o => o.fn === fn);
   if (!ordre) return;
+  if(fn==='orga_anatheme'){
+    await ouvrirCiblageFiscal(fn,ordre.label||'Cérémonie d’anathème',
+      cible=>executerOrdreOrgaJauges(orgaId,fn,ordre,{cible}));
+    return;
+  }
+  if (["orga_petition", "orga_meeting", "orga_benediction", "orga_pelerinage", "orga_campagne_presse", "orga_scoop", "orga_rituel", "orga_reseau", "orga_cooptation"].includes(fn)) {
+    await executerOrdreOrgaJauges(orgaId,fn,ordre);return;
+  }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   // GARDE D'AUTORITE SUR LES ORDRES FINANCIERS — CENTRALISEE ICI (Lot 4.3).
@@ -1009,18 +1055,8 @@ async function executerOrdreOrga(orgaId, fn) {
   // disponibilite des PA. Appelee avant tout effet de bord (bloc "effets" plus bas) :
   // fail-closed.
   const effets = {
-    orga_petition:       () => { const gain = Math.floor(Math.random()*8)+3; state.pop = Math.min(100,(state.pop||0)+gain); showToast('Pétition lancée !','+'+gain+' POP.',true); addJournalEntry('Pétition de "'+orga.nom+'". +'+gain+' POP.','event-good'); addExternalEvent('📋 "'+orga.nom+'" lance une pétition publique.'); },
-    orga_meeting:        () => { state.pop=Math.min(100,(state.pop||0)+5); state.inf=Math.min(100,(state.inf||0)+3); showToast('Meeting !','+5 POP +3 INF.',true,true); addJournalEntry('Meeting de "'+orga.nom+'".','event-good'); addExternalEvent('📢 "'+orga.nom+'" organise un meeting.'); },
     // orga_collecte / orga_dividendes : executerOrdreOrgaFinancier (serveur), plus d'effet local.
-    orga_benediction:    () => { state.moral=Math.min(100,(state.moral||50)+10); state.pop=Math.min(100,(state.pop||0)+5); showToast('Bénédiction !','Cérémonie en votre honneur. +10 Moral +5 POP.',true,true); addJournalEntry('Bénédiction de "'+orga.nom+'".','event-good'); addExternalEvent('✨ "'+orga.nom+'" organise une cérémonie de bénédiction.'); },
-    orga_anatheme:       () => { state.moral=Math.max(0,(state.moral||50)-15); state.pop=Math.max(0,(state.pop||0)-10); showToast('Anathème !','Cérémonie contre un PJ. -15 Moral -10 POP à la cible.',false); addJournalEntry('Anathème prononcé par "'+orga.nom+'".','event-bad'); addExternalEvent('⛧ "'+orga.nom+'" prononce un anathème public.'); },
-    orga_pelerinage:     () => { state.pop=Math.min(100,(state.pop||0)+8); showToast('Pèlerinage !','+8 POP. Grand rassemblement.',true,true); addExternalEvent('🕊 "'+orga.nom+'" organise un grand pèlerinage.'); },
-    orga_campagne_presse:() => { state.pop=Math.min(100,(state.pop||0)+6); state.inf=Math.min(100,(state.inf||0)+5); showToast('Article favorable !','+6 POP +5 INF.',true,true); addExternalEvent('📰 "'+orga.nom+'" publie une campagne de presse favorable.'); },
-    orga_scoop:          () => { state.inf=Math.min(100,(state.inf||0)+10); showToast('Scoop publié !','+10 INF. Scandale public.',true,true); addExternalEvent('🔥 "'+orga.nom+'" publie un scoop explosif !'); },
-    orga_rituel:         () => { state.inf=Math.min(100,(state.inf||0)+6); showToast('Rituel accompli.','+6 INF. Nouveau membre initié.',true); },
-    orga_reseau:         () => { state.inf=Math.min(100,(state.inf||0)+8); showToast('Réseau activé.','+8 INF. Information exclusive obtenue.',true,true); addJournalEntry('Réseau de la Loge activé. +8 INF.','event-good'); },
-    orga_cooptation:     () => { state.inf=Math.min(100,(state.inf||0)+5); showToast('Cooptation discrète.','Un poste peut être attribué sans élection.',true); },
-    // orga_hooliganisme : executerHooliganismeServeur (serveur, 03/11/2026), plus d'effet local.
+    // orga_hooliganisme : executerHooliganismeServeur, sans effet local.
   };
 
   // ---------------------------------------------------------------------------
@@ -7733,7 +7769,7 @@ async function seProsenterCandidat(orgaId) {
   if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
 }
 
-async function voterElection(orgaId, candidatNom) {
+async function voterElectionOrganisation(orgaId, candidatNom) {
   const orga = getOrgaById(orgaId);
   if (!orga?.election?.enCours || orga.election.phase !== 'vote') { showToast('Indisponible', 'Le vote n\'est pas ouvert.', false); return; }
   const estMembre = orga.membres?.some(m => m.nom === state.char?.name);

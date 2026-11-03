@@ -421,6 +421,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('solliciter_audience_president',0,0),
   ('sortie_hopital',0,0),
   ('sponsoriser_club',1,0),
+  ('ssm_demander_rendezvous',0,0),
   ('stage_caserne',3,0),
   ('subvention',2,0),
   ('subvention_min_int',0,0),

@@ -1,0 +1,12 @@
+{
+  "production": false,
+  "main_integre": "5c96fb72",
+  "fichiers": {
+    "hg379-sondage-client-contre.log": "e40512582fdd81b123d37ea997e2b6f20e7dea20a2d4cbf2bec9624e476fa488",
+    "hg379-sondage17.json": "b4920b53435383b558c46879a0c568b87226e5362cc6dd862d7e4f5470233e6d",
+    "hg379-sondage16.json": "90619d515ccb095c4270962f787ddb5588a51a0bf6e6f774dfbf97edabd25685",
+    "hg379-sondage-globaux-corrige.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb",
+    "hg379-sondage-client.log": "0cb48a18dc5d801415ce9113f39e9a5706352ef1c44f6c5f672d93f9d2f7cf24",
+    "hg379-successions-reference.log": "fdf2cf092073b4f87d17acd4763097b4af2911a964557681298f7629a1a1ae9f"
+  }
+}

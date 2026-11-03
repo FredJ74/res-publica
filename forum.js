@@ -2204,35 +2204,19 @@ async function submitNewTopic() {
   const time = formatDateHeureJeu();
   const blocks = htmlToBlocks(content);
 
-  // Supabase
-  let topicId;
-  if (typeof sbCreateTopic === 'function') {
-    topicId = await sbCreateTopic(currentForumId, title, authorName, state.country, time, authorIsOrg, authorSecret, authorReal, idOrga, orgIcon);
-    if (topicId) await sbCreatePost(topicId, authorName, content, time, authorIsOrg, authorSecret, blocks, null, authorReal, idOrga, orgIcon);
-  }
-
-  // ON N'ANNONCE PLUS UN SUJET QUI N'EXISTE PAS (chantier 5, 7 octobre 2026). sbCreateTopic
-  // rendait son id sans jamais verifier l'ecriture ; cette fonction fabriquait alors un id local
-  // (`topicId || 'topic-' + Date.now()`), affichait le sujet, creditait 2 POP et le journalisait
-  // -- pour qu'il disparaisse au rechargement. Depuis que sbCreateTopic rend null sur echec, on
-  // peut enfin le dire au joueur. Son texte n'est pas perdu : le formulaire reste ouvert.
-  if (typeof sbCreateTopic === 'function' && !topicId) {
-    showToast('Publication refusée', "Le sujet n'a pas pu être enregistré sur le serveur. "
-      + 'Votre texte est toujours là : réessayez dans un instant.', false);
-    return;
-  }
-
+  const publication=await forumPublierAvecJauges(null,title,content,blocks,null,{idOrga,authorSecret,orgIcon});
+  if(!publication)return;
+  const topicId=publication.topic;
   // Local aussi pour affichage immédiat
   const newTopic = {
-    id: topicId || 'topic-' + Date.now(), title, author: authorName,
+    id: topicId, title, author: authorName,
     authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon,
     time, views: 1, replies: 0,
     lastPostAuthor: authorName, lastPostTime: time,
-    posts: [{ id:'p-'+Date.now(), author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon, time, content, blocks }]
+    posts: [{ id:publication.post, author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon, time, content, blocks }]
   };
   if (!FORUM_TOPICS[currentForumId]) FORUM_TOPICS[currentForumId] = [];
-  FORUM_TOPICS[currentForumId].unshift(newTopic);
-  state.pop = Math.min(100, (state.pop||0) + 2);
+  if(!FORUM_TOPICS[currentForumId].some(t=>t.id===topicId))FORUM_TOPICS[currentForumId].unshift(newTopic);
   updateUI();
   forumView = 'list';
   document.getElementById('forum-main').innerHTML = renderForumContent();
@@ -2272,18 +2256,18 @@ async function submitReply() {
     return;
   }
   const { authorName, authorIsOrg, authorSecret, authorReal, orgaId: idOrga, orgIcon } = identite;
-  const postId = await sbCreatePost(topic.id, authorName, content, time, authorIsOrg, authorSecret, blocks, null, authorReal, idOrga, orgIcon).catch(() => null);
+  const publication=await forumPublierAvecJauges(topic.id,null,content,blocks,null,{idOrga,authorSecret,orgIcon});
+  const postId=publication?.post;
   if (!postId) {
     showToast('Échec de la publication', "La réponse n'a pas pu être enregistrée. Réessayez.", false);
     return;
   }
 
   // Local
-  topic.posts.push({ id: postId, author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon, time, content, blocks });
+  if(!topic.posts.some(p=>p.id===postId))topic.posts.push({ id: postId, author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon, time, content, blocks });
   topic.replies = topic.posts.length - 1;
   topic.lastPostAuthor = authorName;
   topic.lastPostTime = time;
-  state.pop = Math.min(100, (state.pop||0) + 1);
   updateUI();
   forumView = 'topic';
   document.getElementById('forum-main').innerHTML = renderForumContent();
@@ -2368,17 +2352,17 @@ async function submitReplyComposed(layout, content) {
   const { authorName, authorIsOrg, authorSecret, authorReal, orgaId: idOrga, orgIcon } = identite;
   const time = formatDateHeureJeu();
 
-  const postId = await sbCreatePost(topic.id, authorName, content, time, authorIsOrg, authorSecret, [], layout, authorReal, idOrga, orgIcon).catch(() => null);
+  const publication=await forumPublierAvecJauges(topic.id,null,content,[],layout,{idOrga,authorSecret,orgIcon});
+  const postId=publication?.post;
   if (!postId) {
     showToast('Échec de la publication', "La réponse n'a pas pu être enregistrée. Réessayez.", false);
     return;
   }
 
-  topic.posts.push({ id: postId, author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon, time, content, blocks: [], content_layout: layout });
+  if(!topic.posts.some(p=>p.id===postId))topic.posts.push({ id: postId, author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon, time, content, blocks: [], content_layout: layout });
   topic.replies = topic.posts.length - 1;
   topic.lastPostAuthor = authorName;
   topic.lastPostTime = time;
-  state.pop = Math.min(100, (state.pop || 0) + 1);
   updateUI();
   forumView = 'topic';
   document.getElementById('forum-main').innerHTML = renderForumContent();
@@ -2484,19 +2468,9 @@ async function submitComposeCanvas() {
   // après (le flag est mono-thread, rien d'autre ne le modifie pendant cet appel async).
   const eraOnboarding = onboardingComposeEnCours;
 
-  const topicId = await sbCreateTopic(currentForumId, title, authorName, state.country, time, authorIsOrg, authorSecret, authorReal, idOrga, orgIcon).catch(() => null);
-  if (!topicId) {
-    showToast('Échec de la publication', "Le sujet n'a pas pu être créé. Réessayez.", false);
-    return;
-  }
-
-  const postId = await sbCreatePost(topicId, authorName, content, time, authorIsOrg, authorSecret, [], layout, authorReal, idOrga, orgIcon).catch(() => null);
-  if (!postId) {
-    if (typeof sbDelete === 'function') await sbDelete('forum_topics', `id=eq.${encodeURIComponent(topicId)}`).catch(() => {});
-    showToast('Échec de la publication', "Le message n'a pas pu être enregistré. Rien n'a été publié.", false);
-    return;
-  }
-
+  const publication=await forumPublierAvecJauges(null,title,content,[],layout,{idOrga,authorSecret,orgIcon});
+  if(!publication)return;
+  const topicId=publication.topic,postId=publication.post;
   // Local aussi pour affichage immédiat, même geste que submitNewTopic.
   const newTopic = {
     id: topicId, title, author: authorName,
@@ -2506,8 +2480,7 @@ async function submitComposeCanvas() {
     posts: [{ id: postId, author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon, time, content, blocks: [], content_layout: layout }]
   };
   if (!FORUM_TOPICS[currentForumId]) FORUM_TOPICS[currentForumId] = [];
-  FORUM_TOPICS[currentForumId].unshift(newTopic);
-  state.pop = Math.min(100, (state.pop || 0) + 2);
+  if(!FORUM_TOPICS[currentForumId].some(t=>t.id===topicId))FORUM_TOPICS[currentForumId].unshift(newTopic);
   updateUI();
   forumView = 'list';
   document.getElementById('forum-main').innerHTML = renderForumContent();
@@ -3064,4 +3037,12 @@ function submitMail() {
   mailView = 'inbox';
   renderForumModal();
   setTimeout(function() { _mailEnvoiEnCours = false; }, 1500);
+}
+
+// Publication et gain POP dans la même transaction, mêmes sujets et messages.
+async function forumPublierAvecJauges(topic,titre,contenu,blocs,miseEnPage,identite) {
+  if(typeof executerOrdreJaugesServeur!=='function')return null;
+  const v=await executerOrdreJaugesServeur('forum_publier',{forum:currentForumId,topic,titre,contenu,blocs,mise_en_page:miseEnPage,organisation:identite.idOrga||null,secret:!!identite.authorSecret,icone:identite.orgIcon||null});
+  if(!v||typeof v.topic!=='string'||typeof v.post!=='string')return null;
+  return v;
 }

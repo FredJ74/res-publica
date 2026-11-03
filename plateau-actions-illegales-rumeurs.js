@@ -440,58 +440,21 @@ const FORMULATIONS_RUMEUR_VRAIE = {
 };
 
 async function ecouterRumeurs(successRate, pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
-  const char = state.char;
-  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-  const ordreEcoute = room?.orders?.find(o => o.fn === 'ecouter_rumeurs');
-  const pnjPresents = ordreEcoute?.sourceOverride ? [ordreEcoute.sourceOverride] : ['Le Commissaire', 'Un député', 'Un journaliste', 'Un commerçant', 'Un inconnu'];
-  const source = pnjPresents[Math.floor(Math.random() * pnjPresents.length)];
-
-  showToast('Vous tendez l\'oreille...', 'En attente d\'une information.', false);
-
-  const roll = Math.random() * 100;
-  const succes = roll < (successRate ?? 70);
-
-  // Rumeurs VRAIES uniquement, basees sur une action reellement tracee.
-  // Aucun repli IA/invente : si le jet echoue ou qu'il n'y a rien a reveler,
-  // le joueur repart simplement bredouille.
-  let actionsDisponibles = [];
-  if (succes && typeof sbGetActionsTracables === 'function') {
-    try {
-      actionsDisponibles = await sbGetActionsTracables(state.country, state.currentCity, state.day || 1);
-      // Ne jamais reveler sa propre action a soi-meme
-      actionsDisponibles = actionsDisponibles.filter(a => a.auteur !== char?.name);
-    } catch(e) {}
-  }
-
-  if (succes && actionsDisponibles.length > 0) {
-    const action = actionsDisponibles[Math.floor(Math.random() * actionsDisponibles.length)];
-    const formulateur = FORMULATIONS_RUMEUR_VRAIE[action.type_action];
-    if (formulateur) {
-      const texte = formulateur(action.auteur, action.cible || 'quelqu\'un');
-      document.getElementById('postes-modal-title').textContent = source + ' vous glisse à l\'oreille...';
-      document.getElementById('postes-body').innerHTML =
-        '<div style="padding:1.2rem">' +
-        '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">"' + texte + '"</div>' +
-        '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">Source : ' + source + ' · Information vérifiée</div>' +
-        '</div>';
-      document.getElementById('modal-postes').classList.add('open');
-      state.inf = Math.min(100, state.inf + 1);
-      updateUI();
-      addJournalEntry('Rumeur entendue à ' + ville, 'event-info');
-      return;
-    }
-  }
-
-  // Echec du jet ou aucune rumeur vraie disponible
-  document.getElementById('postes-modal-title').textContent = source + '...';
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1.2rem">' +
-    '<div style="font-size:.85rem;color:#8a8060;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">Rien de croustillant à se mettre sous la dent aujourd\'hui.</div>' +
-    '</div>';
+  const contexte=contexteGroupePj();
+  const v=await executerOrdreJaugesServeur('ecouter_rumeurs');
+  if(!v||!contexteGroupePjValide(contexte))return;
+  const action=v.rumeur;
+  const formulateur=action&&FORMULATIONS_RUMEUR_VRAIE[action.type_action];
+  const source=v.source_rumeur||'Une voix';
+  document.getElementById('postes-modal-title').textContent=source+(formulateur?' vous glisse à l’oreille...':'...');
+  document.getElementById('postes-body').innerHTML='<div class="cpj-dialogue" style="padding:1.2rem"><div id="rumeur-vraie-texte" class="cpj-note"></div></div>';
+  // Les noms et la cible restent du texte : aucune trace ne devient du HTML.
+  document.getElementById('rumeur-vraie-texte').textContent=formulateur
+    ?formulateur(action.auteur,action.cible||'quelqu’un')
+    :"Rien de croustillant à se mettre sous la dent aujourd'hui.";
   document.getElementById('modal-postes').classList.add('open');
+  updateUI();
+  if(formulateur&&!v.rejeu)addJournalEntry('Rumeur entendue à '+(WORLD[state.country]?.[state.currentCity]?.name||'la ville'),'event-info');
 }
 
 async function solliciterAudiencePresident() {
@@ -1495,20 +1458,17 @@ async function confirmerCorruptionRegistre() {
   const cout = 100;
   if (state.arg < cout) { showToast('Fonds insuffisants', cout.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
 
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 30) {
-    state.arg -= cout;
-    state.inf = Math.min(100, (state.inf || 0) + 5);
-    state.pop = Math.min(100, (state.pop || 0) + 5);
-    updateUI();
+  // Jet (30 %), 100 FR seulement si réussite, POP et INF : tout par le serveur (#379).
+  const v = await executerOrdreJaugesServeur('corrompre_armurier');
+  if (!v) return;
+  updateUI();
+  if (v.rejeu) return;
+  if (v.corruption_reussie === true) {
     showToast('Corruption réussie', 'L\'armurier accepte. +5 INF, +5 POP.', true);
     addJournalEntry('Registre consulté après corruption de l\'armurier. -' + cout.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-info');
     // Corruption locale : ne donne acces qu'au registre de l'armurerie ou elle est tentee.
     await afficherRegistreArmes(state.country || 'republic', state.currentCity || 'capitale', true);
   } else {
-    state.inf = Math.max(0, (state.inf || 0) - 5);
-    state.pop = Math.max(0, (state.pop || 0) - 5);
-    updateUI();
     showToast('Refusé !', 'L\'armurier refuse et le fait savoir. -5 INF, -5 POP.', false);
     addJournalEntry('Tentative de corruption de l\'armurier échouée. -5 INF, -5 POP.', 'event-bad');
   }
@@ -2742,23 +2702,7 @@ const BONUS_CARRIERE_VOL = {
 //
 // La suppression retablit l'original, qui applique bien PEINES_ACTES.
 
-// DOUBLON de doSesoigner (plateau-personnage.js:2544), corps identique. Les deux fichiers
-// etant charges a la suite, c'est CETTE definition qui l'emporte a l'execution. Migre vers
-// l'entonnoir serveur comme l'autre (chantier C, 14 septembre 2026) : tant que le doublon
-// existe, laisser l'une des deux ecrire en direct suffirait a rouvrir le contournement.
-// Le doublon lui-meme n'est pas supprime ici -- ce serait une modification de structure sans
-// rapport avec la securisation, a faire dans une passe dediee.
-async function doSesoigner() {
-  const medocs = (state.inventory || []).filter(i => i.type === 'medicament');
-  if (medocs.length === 0) { showToast('Aucun medicament', '', false); return; }
-  const idx = state.inventory.indexOf(medocs[0]);
-  const r = await removeFromInventory(idx, 'consommer');
-  if (!r.ok) { showToast('Soins impossibles', messageRefusSortieInventaire(r.raison), false); return; }
-  state.hp = Math.min(100, state.hp + 20);
-  updateUI();
-  showToast('Soins', '+20 Sante. ' + (state.inventory.filter(i=>i.type==='medicament').length) + ' medicament(s) restant(s).', true);
-  switchSelfTab('inventaire', null);
-}
+// Le soin unique est défini dans plateau-personnage.js ; les boutons gardent ce même nom.
 
 // =====================
 // MOTEUR D'ENTREPRISE PRIVEE (fondations)
@@ -4544,7 +4488,7 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
   } else {
     if (effets.hp) state.hp = Math.min(100, Math.max(0, (state.hp || 0) + effets.hp));
     if (effets.moral) state.moral = Math.min(100, Math.max(0, (state.moral || 0) + effets.moral));
-    if (effets.pop) state.pop = Math.min(100, Math.max(0, (state.pop || 0) + effets.pop));
+    // effets.pop retiré (#379) : aucune recette ne le porte ; une jauge ne s'écrit plus à l'écran.
     // Bonus differe atteste : le serveur lit le montant de la recette dans son miroir, le
     // client ne fait que nommer la source (16 septembre 2026).
     if (effets.paDiffere && typeof sbRpc === 'function' && state.char?.name) {
@@ -6504,43 +6448,12 @@ async function confirmerRecolte(matiere, pa, cost) {
 }
 
 async function doConsommerBuvette(pa, cost) {
-  const cout = 50;
-  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
-
-  // Doctrine (A3, lot finition financiere locale, 17 aout 2026) : la buvette n'a pas de caisse
-  // financiere autonome -- tout argent genere dans l'enceinte du stade appartient a la caisse du
-  // stade de cette ville. La ligne legacy 'stade-buvette' (88 FR, origine non demontrable avec
-  // certitude) reste intacte et ne recoit plus aucune nouvelle recette.
-  const pays = state.country || 'republic';
-  const idCaisseStade = typeof getCaisseLocaleId === 'function'
-    ? getCaisseLocaleId('stade', state.currentCity) : 'stade';
-
-  // Lot « ventes a une structure » (17 septembre 2026) : prelevement, taxe locale+nationale et
-  // recette du stade sont desormais UNE seule transaction serveur. Avant, la taxe etait un appel
-  // client distinct du prelevement -- donc contournable par un client modifie -- et le credit de
-  // la caisse un tir-et-oublie dont le retour n'etait jamais lu : un verre pouvait etre paye sans
-  // que le stade encaisse quoi que ce soit. Memes taux, meme caisse, meme montant declare.
-  let recetteEncaissee = false;
-  let r;
-  if (typeof encaisserVenteStructure === 'function') {
-    r = await encaisserVenteStructure('consommer_buvette', pa, cost,
-                                      pays + '_' + idCaisseStade, state.currentCity);
-    recetteEncaissee = r.ok;
-  } else {
-    // PLUS DE REPLI CLIENT (8 octobre 2026). Cette branche debitait le joueur par
-    // deduireCoutOrdre, puis un bloc plus bas recalculait la taxe et creditait le stade --
-    // c'est-a-dire le triple appel que le lot « ventes a une structure » avait precisement
-    // remplace. Ce repli ne s'activait que si `encaisserVenteStructure` manquait de la page, un
-    // defaut de deploiement et non une panne reseau ; mais il ecrivait
-    // `budgets_municipaux.data.caisse`, une cle supprimee par le chantier municipal, et il
-    // l'aurait donc RECREEE avec de l'argent dedans. On refuse au lieu de prelever : un joueur
-    // qui ne consomme pas est preferable a une taxe qui n'arrive nulle part.
-    r = { ok: false, raison: 'encaissement_indisponible' };
-  }
-  if (!r.ok) { signalerRefusCout(r); return; }
-  state.pop = Math.min(100, (state.pop || 0) + 2);
-
+  const contexte=contexteGroupePj();
+  const v=await executerOrdreJaugesServeur('consommer_buvette');
+  if(!v||!contexteGroupePjValide(contexte))return;
   updateUI();
-  showToast('Un verre entre supporters', '+2 POP.', true, true);
-  addJournalEntry('Un verre pris à la buvette (-' + cout + ' FR).', 'event-good');
+  if(!v.rejeu){
+    showToast('Un verre entre supporters','+'+v.gain_pop+' POP.',true,true);
+    addJournalEntry('Un verre pris à la buvette (-'+v.montant_preleve+' FR).','event-good');
+  }
 }

@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { profilExiste, construirePromptSysteme } from '../../api/_pnj-profils.js';
-const require=createRequire(import.meta.url),{analyser,verifierImage}=require('../audits/auditer-republia-complet.cjs');
+const require=createRequire(import.meta.url),{analyser,charger,verifierImage}=require('../audits/auditer-republia-complet.cjs');
 const root=new URL('../../',import.meta.url),lire=f=>fs.readFileSync(new URL(f,root),'utf8');
 test('le catalogue réel des trois villes est examiné sans chemin cassé',()=>{
  const a=analyser();assert.equal(a.compteurs.villes,3);assert.ok(a.compteurs.batiments>=102);assert.ok(a.compteurs.pieces>=305);
@@ -76,4 +76,10 @@ test('étape B #350 : aucune ancienne exemption de copie pour la sauvegarde orga
  assert.match(lire('api/cron-minuit.js'),/async function sbSaveOrganisationServeur\(/,'le traitement serveur autonome est conservé');
  const config=JSON.parse(lire('outils/baseline/fonctions.json'));
  assert.ok(!config.hors_perimetre.some(([f,n])=>f==='api/cron-minuit.js'&&n==='sbSaveOrganisationServeur'),'plus de copie navigateur à exempter');
+});
+
+test('inventaire des producteurs : le chargeur réutilisé couvre les quatre empires sans mélanger les images',()=>{
+ const pays=['republic','narco','soviet','khalija'];
+ for(const p of pays){const a=charger(p);assert.ok(a.villes.length>0,p);assert.ok(a.villes.every(v=>v.batiments.length>0),p);assert.ok(pays.every(n=>a.pays_disponibles.includes(n)));}
+ assert.deepEqual(charger().villes,charger('republic').villes,'le comportement Républia reste la valeur par défaut');
 });

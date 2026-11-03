@@ -1,0 +1,47 @@
+✔ tous les scripts chargés : une seule définition de chaque fonction globale (1501.755216ms)
+✔ openCandidatureModal : interface officielle sans toucher le cache historique (1.211761ms)
+✔ openElectionsModal : interface officielle sans toucher le cache historique (0.509623ms)
+✔ confirmerVote : interface officielle sans toucher le cache historique (0.59549ms)
+✔ compatibilité du vote : un argument consulte, deux délèguent au moteur organisation (0.730359ms)
+✔ contrat organisation absent : aucun repli ni faux vote réussi (0.50736ms)
+✔ contre-épreuve : le vrai bulletin historique est refusé par la même vérification (1.62392ms)
+✔ contre-épreuve : réintroduire un ancien global rétablit un doublon détecté (1.545433ms)
+✔ le graphe reconnaît un bouton construit par le code, pas un commentaire (0.611194ms)
+✔ virement : reponse_perdue ne fabrique aucun résultat bancaire (1.558663ms)
+✔ virement : transport ne fabrique aucun résultat bancaire (0.775436ms)
+✔ virement : exception ne fabrique aucun résultat bancaire (0.657462ms)
+✔ virement : refus ne fabrique aucun résultat bancaire (0.577003ms)
+✔ virement : succes ne fabrique aucun résultat bancaire (0.618835ms)
+✔ absence du contrat confirmée : aucun repli vers une sauvegarde générale (12.91896ms)
+✔ refus/panne ne declenche aucune sauvegarde legacy {"ok":false,"transport":{"http":403,"code":"42501"}} (5.120877ms)
+✔ refus/panne ne declenche aucune sauvegarde legacy {"ok":false,"transport":{"http":503}} (4.512908ms)
+✔ refus/panne ne declenche aucune sauvegarde legacy {"ok":false,"transport":{"http":404,"code":"autre"}} (5.076872ms)
+✔ refus/panne ne declenche aucune sauvegarde legacy {"ok":false,"raison":"transport_indisponible"} (7.047914ms)
+✔ rejeu confirme : relecture actuelle, jamais le solde contenu dans un ancien recu (7.762971ms)
+✔ ancienne session : reponse non appliquee (5.672472ms)
+✔ reponse perdue et F5 : meme identifiant et une seule commande en vol (13.051025ms)
+✔ stockage indisponible : aucune commande envoyee, aucun repli (7.618998ms)
+✔ transaction confirmee mais relecture en panne : pas de snapshot local invente (6.768701ms)
+✔ election/candidature : la confirmation serveur precede le rendu (11.706518ms)
+✔ election/vote : la confirmation serveur precede le rendu (13.606145ms)
+✔ dissolution : aucun DELETE general apres reponse du nouveau contrat {"ok":false,"disponible":true} (7.447936ms)
+✔ dissolution : aucun DELETE general apres reponse du nouveau contrat {"ok":true,"disponible":true,"dissoute":"autre"} (5.354111ms)
+✔ dissolution : aucun DELETE general apres reponse du nouveau contrat {"ok":true,"disponible":true,"dissoute":"o"} (6.338376ms)
+✔ lecture organisation texte et jsonb : meme representation, sans tableau accepte (6.646ms)
+✔ le catalogue réel des trois villes est examiné sans chemin cassé (269.400451ms)
+✔ chemins URL : espaces encodés admis, casse et références manquantes refusées (0.315696ms)
+✔ PSM : quatre images locales libres, sans mutation des variantes Luthécia ou des loyers (20.239587ms)
+✔ les avocats de PSM et Montrouge ont une fiche de dialogue (raccordés le 02/11, demande de Fred) (0.54148ms)
+✔ raccordements : profils de dialogue, routes et liens déclaratifs (776.088296ms)
+✔ directions d’usine #351 : les actes conservent leur ordre de paiement hors du menu (147.902239ms)
+✔ #352 : la salle des ventes de la raffinerie conserve son image locale (118.371012ms)
+✔ les journalistes communs parlent depuis une rédaction, sans ancien hôtel ni fausse enseigne (0.840271ms)
+✔ étape B #350 : aucune ancienne exemption de copie pour la sauvegarde organisations (2.23342ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1753.967709
