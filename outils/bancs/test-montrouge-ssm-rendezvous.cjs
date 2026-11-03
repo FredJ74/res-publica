@@ -83,3 +83,15 @@ test('écran : succès uniquement si serveur confirme ; aucun mail inventé en c
  assert.match(events[0][1],/déjà fixé/);
  assert.equal(events.length,1,'aucun journal supplémentaire quand le rendez-vous existait');
 });
+
+test('DeepSeek : les deux agentes ont un corpus métier, pas le prompt des PNJ ordinaires',()=>{
+ const ordinary=profiles.slice(profiles.indexOf('const ORDINAIRES = {'),profiles.indexOf('const RICHES = {'));
+ const rich=profiles.slice(profiles.indexOf('const RICHES = {'),profiles.indexOf('const SOCIAUX = {'));
+ assert.doesNotMatch(ordinary,/'pascale':/);
+ assert.doesNotMatch(ordinary,/'edwige_jacquard':/);
+ assert.match(rich,/'pascale':[\\s\\S]*?savoirs:/);
+ assert.match(rich,/'edwige_jacquard':[\\s\\S]*?savoirs:/);
+ assert.match(rich,/Marcel Demine/);
+ assert.match(rich,/dépensant 1 PA/);
+ assert.match(rich,/aucune démarche ou prestation absente/);
+});
