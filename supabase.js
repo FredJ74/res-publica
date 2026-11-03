@@ -1094,6 +1094,31 @@ async function sbLoadForumTopics(forumId) {
 // une indisponibilite de Supabase : la liste etait vide parce que la LECTURE avait echoue, et
 // rien dans la chaine ne permettait de le savoir -- `if (!rows || rows.length === 0) return;`
 // repondait la meme chose aux deux situations.
+// Lecture groupée des seuls nombres de sujets visibles (droits PostgREST/RLS
+// inchangés). Aucun sujet n'est marqué lu et aucun contenu privé n'est renvoyé
+// par ce banc de compteurs. La pagination évite qu'un forum très actif coupe
+// silencieusement les autres compteurs.
+async function sbCompterSujetsForums(idsForums) {
+  const ids = [...new Set((idsForums || []).filter(id => typeof id === 'string' && id.length))];
+  const compteurs = Object.fromEntries(ids.map(id => [id, 0]));
+  if (!ids.length) return compteurs;
+  const filtre = ids.map(encodeURIComponent).join(',');
+  const taillePage = 200;
+  let debut = 0;
+  while (true) {
+    const rows = await sbGet('forum_topics',
+      'select=forum_id&forum_id=in.(' + filtre + ')&order=created_at.asc' +
+      '&limit=' + taillePage + '&offset=' + debut);
+    if (!Array.isArray(rows)) throw new Error('forum_compteurs_lecture_indisponible');
+    rows.forEach(row => {
+      if (Object.prototype.hasOwnProperty.call(compteurs, row.forum_id))
+        compteurs[row.forum_id]++;
+    });
+    if (rows.length < taillePage) return compteurs;
+    debut += taillePage;
+  }
+}
+
 async function sbLoadForumTopicsVerdict(forumId) {
   // Lecture seule : borne indépendante du transport générique, sans toucher aux écritures.
   // AbortController arrête effectivement la requête, contrairement à Promise.race.
