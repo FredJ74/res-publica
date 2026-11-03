@@ -76,7 +76,10 @@ async function ouvrirModalEquipements() {
   r.installes.forEach(function (e) {
     h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin:.3rem 0">' +
       '<span>' + equipementsEchapper(EQUIPEMENTS_LIBELLES[e.generique_id] || e.nom) +
-      (e.a_moi ? '' : ' <span class="cpj-note">(à ' + equipementsEchapper(e.proprietaire) + ')</span>') + '</span>' +
+      (e.a_moi ? '' : ' <span class="cpj-note">(à ' + equipementsEchapper(e.proprietaire) + ')</span>') +
+      (e.a_moi && e.delai_jusqu_au ? ' <span class="cpj-note">— bail perdu : à désinstaller avant le ' +
+        equipementsEchapper(new Date(e.delai_jusqu_au).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })) +
+        ', sinon il revient au propriétaire des lieux</span>' : '') + '</span>' +
       (e.a_moi ? equipementsBouton('equipementDesinstaller(\'' + e.id + '\')', 'Désinstaller') : '') + '</div>';
   });
 
