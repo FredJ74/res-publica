@@ -6328,6 +6328,27 @@ export default async function handler(req, res) {
       loyersMursOk ? null : (loyersMurs ? (loyersMurs.erreurs || []).length + ' titre(s) en erreur' : 'RPC murs_loyers_nuit indisponible'),
       resumeContexte(loyersMurs ? loyersMurs.verdicts || {} : {}), Date.now() - debutLoyersMurs);
 
+    // 5 c. Offres d'achat du trading echues (3 novembre 2026) : la part non servie revient a la
+    //    caisse qui l'avait bloquee ; rejouable sans double effet (une offre close n'est plus touchee).
+    const debutOffres = Date.now();
+    const offresRows = SUPABASE_SERVICE_ROLE ? await sbRpc('offres_achat_expirer_nuit', {}, HEADERS_SERVICE) : null;
+    const offres = Array.isArray(offresRows) ? offresRows[0] : offresRows;
+    const offresOk = !!(offres && offres.ok === true && !(offres.erreurs || []).length);
+    await journaliserCron('offres_achat_expirees', jourParisISO(), offresOk ? 'ok' : 'echec',
+      offresOk ? null : (offres ? (offres.erreurs || []).length + ' offre(s) en erreur' : 'RPC offres_achat_expirer_nuit indisponible'),
+      resumeContexte({ expirees: offres ? offres.expirees : 0, rembourse: offres ? offres.rembourse : 0 }), Date.now() - debutOffres);
+
+    // 5 d. Equipements dont le local n'est plus en jouissance legale (3 novembre 2026) : courrier
+    //    « 48 h pour desinstaller » la premiere nuit, puis transfert au proprietaire foncier ;
+    //    rejouable sans double effet (le delai est date dans la ligne).
+    const debutEquip = Date.now();
+    const equipRows = SUPABASE_SERVICE_ROLE ? await sbRpc('equipements_jouissance_nuit', {}, HEADERS_SERVICE) : null;
+    const equip = Array.isArray(equipRows) ? equipRows[0] : equipRows;
+    const equipOk = !!(equip && equip.ok === true && !(equip.erreurs || []).length);
+    await journaliserCron('equipements_jouissance', jourParisISO(), equipOk ? 'ok' : 'echec',
+      equipOk ? null : (equip ? (equip.erreurs || []).length + ' equipement(s) en erreur' : 'RPC equipements_jouissance_nuit indisponible'),
+      resumeContexte({ avertis: equip ? equip.avertis : 0, transferes: equip ? equip.transferes : 0, saisis: equip ? equip.saisis : 0 }), Date.now() - debutEquip);
+
     // 5 b. Descentes d'Estadine echues (2 novembre 2026) : appliquees par le serveur pour les
     //    joueurs hors ligne ; rejouable sans double effet (chaque descente est marquee).
     const debutDescentes = Date.now();
