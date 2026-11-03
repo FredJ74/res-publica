@@ -556,7 +556,13 @@ function _cleDernierPassageForum() {
 
 function _cleDernierPassageForumId(forumId) {
   const cle = _cleDernierPassageForum();
-  return cle && forumId ? cle + '_' + forumId : null;
+  if (!cle || !forumId) return null;
+  // Le local_<ville> et le national existent dans plusieurs pays. Ne jamais
+  // réutiliser une marque de lecture d'un pays pour acquitter celle d'un autre.
+  // Conserver la clé historique pour Républia (premier pays en production).
+  const territoire = forumId === 'national' || forumId.startsWith('local_');
+  const pays = (typeof state !== 'undefined' && state.country) || 'republic';
+  return cle + '_' + (territoire && pays !== 'republic' ? pays + '_' : '') + forumId;
 }
 
 // Horodatages serveur PostgreSQL (+00:00, microsecondes) et client (Z, ms)
@@ -588,7 +594,11 @@ function _dernierPassageForumId(forumId) {
 
   // Migration douce de l'ancienne clé globale : conserver son horodatage.
   try {
-    const globale = _cleDernierPassageForum();
+    const territorialisé = forumId === 'national' || forumId.startsWith('local_');
+    const pays = (typeof state !== 'undefined' && state.country) || 'republic';
+    // L'ancien marqueur global n'était pas séparé par pays : l'importer dans
+    // un autre empire masquerait des publications jamais lues.
+    const globale = territorialisé && pays !== 'republic' ? null : _cleDernierPassageForum();
     const ancienne = globale ? localStorage.getItem(globale) : null;
     const t = _instantForum(ancienne);
     if (t !== null) {
