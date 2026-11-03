@@ -3807,49 +3807,53 @@ function doVendreMatiereCommerceGenerique(pa, cost) {
   doVendreMatiereCommerce(c.type, c.buildingId, c.roomId, pa, cost);
 }
 
+// Une seule fenêtre de stock/prix/vente pour le commerce. La liste provient
+// toujours de la carte serveur, et non des seuls objets du PJ.
 async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cost) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
+  const personnage = state.char?.name;
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
-  // chargerCommerce passe par entreprise_assurer_existence : un `null` ici n'est
-  // pas « le commerce n'existe pas », c'est « le serveur n'a pas repondu ».
-  if (!data) { showToast('Commerce injoignable',
-    "Les informations de ce commerce n'ont pas pu être chargées. Réessayez dans un instant.", false); return; }
-
-  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  if (state.country !== pays || state.currentCity !== ville ||
+      state.currentBuilding !== buildingId || state.char?.name !== personnage ||
+      (roomId && state.currentRoom !== roomId)) return;
+  if (!data) {
+    showToast('Commerce injoignable', "Les informations de ce commerce n'ont pas pu être chargées. Réessayez dans un instant.", false);
+    return;
+  }
+  const cur = COUNTRIES[pays]?.cur || 'FR';
   const matieres = matieresAccepteesParCommerce(data);
-  const disponibles = matieres.filter(m => (state.inventory || []).some(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0));
-
   document.getElementById('postes-modal-title').textContent = 'Vendre des matières au commerce';
   let html = '<div style="padding:1rem">';
-  if (disponibles.length === 0) {
-    html += '<div style="font-size:.9rem;color:#8a8060">Vous ne possédez aucune matière que ce commerce accepte' + (matieres.length ? ' (' + matieres.map(m => (RESSOURCES_ECONOMIE[m]?.label || m)).join(', ') + ')' : '') + '.</div>';
-  } else {
-    html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat fixés par le commerce.</div>';
-  }
-  disponibles.forEach(m => {
-    const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0);
-    const qteDispo = lot?.qty || 0;
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Stock et prix d\'achat pratiqués par ce commerce. Vous pouvez consulter ces informations sans posséder de matières premières.</div>';
+  if (!matieres.length) html += '<div style="font-size:.9rem;color:#8a8060">Aucune matière première achetée actuellement.</div>';
+  matieres.forEach(m => {
+    const qteDispo = (state.inventory || []).filter(i => i.stackKey === m && (i.qty || 0) > 0)
+      .reduce((total,i) => total + Number(i.qty || 0), 0);
     const prixUnitaire = prixAchatMatiereCommerce(data, m);
     const stockMax = plafondEffectifCommerce(data, m);
-    const stockActuel = data.stockMatieres[m] || 0;
+    const stockActuel = Number(data.stockMatieres?.[m] || 0);
     const placeRestante = Math.max(0, stockMax - stockActuel);
     const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].label : m;
-    const qteInitiale = Math.max(1, Math.min(qteDispo, placeRestante));
-    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
-    html += '<span style="flex:1;font-size:.88rem;color:#c0b090">' + label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + ', capacité restante ' + placeRestante + '</span>';
-    html += '<input type="number" id="vendre-commerce-qte-' + m + '" min="1" max="' + Math.min(qteDispo, placeRestante) + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
-    // VENDRE ET DONNER, COTE A COTE (30 septembre 2026). Le don ne demande rien a
-    // la caisse : il reste donc propose meme quand le commerce n'a pas de quoi
-    // acheter. Seule la place restante les desactive tous les deux -- un commerce
-    // plein ne peut pas plus recevoir un cadeau qu'un achat.
-    const plein = (placeRestante === 0);
-    const styleInactif = 'padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.82rem';
-    html += '<button ' + (plein ? 'disabled style="' + styleInactif + '"'
-      : 'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\',\'vente\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
-    html += '<button ' + (plein ? 'disabled style="' + styleInactif + '"'
-      : 'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\',\'don\')" style="padding:.3rem .6rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.82rem"')
-      + ' title="Céder cette quantité sans contrepartie. Possible même si la caisse du commerce est vide.">Donner</button>';
+    const vendable = Math.min(qteDispo, placeRestante);
+    html += '<div style="padding:.65rem;border:1px solid #455365;margin-bottom:.65rem">';
+    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + label + ' : ' + stockActuel + '/' + stockMax + '</div>';
+    html += '<div style="font-size:.84rem;color:#a9b7c9;margin:.3rem 0">Prix d\'achat : ' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + ' / unité — Vous en possédez : ' + qteDispo + '</div>';
+    html += '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">';
+    html += '<label for="vendre-commerce-qte-' + m + '" style="font-size:.83rem;color:#c0b090">Quantité à céder</label>';
+    html += '<input type="number" id="vendre-commerce-qte-' + m + '" min="1" max="' + vendable + '" ' +
+      (vendable <= 0 ? 'disabled value="" placeholder="—"' : 'value="' + vendable + '"') +
+      ' style="width:76px;background:#202b39;border:1px solid #455365;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
+    const inactif = 'padding:.3rem .6rem;border:1px solid #455365;background:transparent;color:#667080;cursor:default;font-size:.82rem';
+    html += '<button ' + (vendable <= 0 ? 'disabled style="' + inactif + '"' :
+      'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\',\'vente\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
+    // Le don existant reste disponible, sans solliciter la caisse.
+    html += '<button ' + (vendable <= 0 ? 'disabled style="' + inactif + '"' :
+      'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\',\'don\')" style="padding:.3rem .6rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.82rem"') +
+      ' title="Céder sans contrepartie. Ne prélève rien dans la caisse.">Donner</button>';
+    html += '</div>';
+    if (!qteDispo) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Vous ne possédez pas cette matière.</div>';
+    else if (!placeRestante) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Le commerce a atteint sa limite d\'achat.</div>';
     html += '</div>';
   });
   html += '</div>';
