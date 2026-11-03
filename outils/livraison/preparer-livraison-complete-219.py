@@ -17,13 +17,14 @@ def preparer(destination=None):
  om=json.loads(org.MAN.read_text());gm=json.loads(grp.MAN.read_text());cm=json.loads((R/'outils/audits/LIVRAISON-COUTS-219-20261031.json').read_text());p=R/cm['migration'];cout=p.read_text()
  if hashlib.sha256(p.read_bytes()).hexdigest()!=cm['sha256']:raise ValueError('Migration de tarifs modifiée')
  gen=json.loads(subprocess.check_output([sys.executable,str(R/'outils/generateurs/generer_ordres_couts.py'),'--json'],cwd=R,text=True))
- # Le paquet 95 est une photographie historique : ne jamais recalculer ses tarifs
- # avec une commande ajoutée ultérieurement. Vérifier plutôt l'unique delta
- # explicitement autorisé et conserver intégralement les 461 anciens triplets.
- ssm=[r for r in gen if r['fn']=='ssm_demander_rendezvous']
- if ssm != [{'fn':'ssm_demander_rendezvous','pa':0,'cost':0}]:
-  raise ValueError('Tarif SSM non examine ou absent')
- t=sorted((r['fn'],r['pa'],r['cost']) for r in gen if r['fn']!='ssm_demander_rendezvous')
+ # Le paquet 95 est une photographie historique. Les deux ordres SSM
+ # gratuits ont ete ajoutes plus tard, hors de ce paquet historique.
+ ajouts_ssm=('ssm_besoin_aide','ssm_demander_rendezvous')
+ ssm=sorted((r for r in gen if r['fn'] in ajouts_ssm),key=lambda r:r['fn'])
+ if ssm != [{'fn':'ssm_besoin_aide','pa':0,'cost':0},
+            {'fn':'ssm_demander_rendezvous','pa':0,'cost':0}]:
+  raise ValueError('Tarifs SSM non examines ou absents')
+ t=sorted((r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm)
  md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
  if md5!=cm['apres']['md5'] or len(t)!=cm['apres']['lignes']:raise ValueError('Sources de tarifs changées : réexaminer le plan')
  entrees=om['migrations']+gm['prerequis']+gm['migrations']+[{'version':cm['version'],'fichier':cm['migration'],'sha256':cm['sha256']}]
