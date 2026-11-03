@@ -11,6 +11,7 @@ const PORTES = {
   'plateau-actions-illegales-rumeurs.js': ['confirmerCorruptionRegistre'],
   'plateau-divers.js': ['appliquerMalusPopExcommunication'],
   'plateau-justice-economie.js': ['appliquerBonusLocation'],
+  'plateau-multijoueur.js': ['payerEscorts'],
 };
 
 function corps(fichier, nom) {
@@ -37,4 +38,10 @@ for (const [fichier, noms] of Object.entries(PORTES)) {
 
 test('les ordres morts interdire_manif_cible / reprimer_manif_cible ne sont plus routés', () => {
   assert.doesNotMatch(fs.readFileSync('plateau-router.js', 'utf8'), /manif_cible/);
+});
+
+// Don d'argent sur un terrain : la branche « promoteur » (+5 INF) est retirée ; les jets des
+// squatteurs (hors POP/INF) restent à l'écran, d'où une garde limitée aux jauges.
+test('confirmerDonArgent : aucune écriture locale de POP ou INF', () => {
+  assert.doesNotMatch(corps('plateau-justice-economie.js', 'confirmerDonArgent'), /state\.(pop|inf)\s*(=[^=]|\+=|-=)/);
 });

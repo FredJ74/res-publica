@@ -51,6 +51,31 @@ BEGIN
  INSERT INTO banc VALUES('3a_impaye_sans_bonus',v<>'paye' AND ap->'pop'=av->'pop' AND ap->'inf'=av->'inf', v);
 END $b$;
 
+-- ===== 3b. Paie des escorts (escorts_payer_jour, rôle authenticated) =====
+INSERT INTO public.pnj_membres(id,famille,classe,nom,pays,proprietaire_pj,leader_pj,pa,statut)
+VALUES ('esc_ok','employe','beta','Escort Payable','republic','BancChef','BancChef',12,'actif'),
+       ('esc_ko','employe','beta','Escort Ruineuse','republic','BancChef','BancChef',12,'actif');
+INSERT INTO public.pnj_employes_metier(pnj_id,job,role_libelle,cout_jour) VALUES ('esc_ok','escort','Escort',300),('esc_ko','escort','Escort',99999);
+SELECT 1 FROM (SELECT set_config('request.path','/rpc/escorts_payer_jour',true)) z;
+SELECT 1 FROM (SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-4000-9000-000000003791","role":"authenticated"}',true)) z;
+SET LOCAL ROLE authenticated;
+DO $b$
+DECLARE r jsonb; av jsonb; ap jsonb;
+BEGIN
+ av:=public.banc379_j('BancChef');
+ r:=public.escorts_payer_jour();
+ ap:=public.banc379_j('BancChef');
+ INSERT INTO banc VALUES('3b_paie_et_impaye',coalesce((r->>'ok')::boolean,false) AND jsonb_array_length(r->'paies')=2
+   AND (ap->>'arg')::numeric=(av->>'arg')::numeric-300 AND (ap->>'pop')::int=(av->>'pop')::int-20,
+   r::text||' '||av::text||' -> '||ap::text);
+ r:=public.escorts_payer_jour();
+ INSERT INTO banc VALUES('3b_rejeu_meme_jour_sans_effet',jsonb_array_length(r->'paies')=0 AND public.banc379_j('BancChef')=ap, r::text);
+END $b$;
+RESET ROLE;
+INSERT INTO banc SELECT '3b_escort_impayee_partie',statut='disparu',statut FROM public.pnj_membres WHERE id='esc_ko';
+INSERT INTO banc SELECT '3b_escort_payee_reste',statut='actif',statut FROM public.pnj_membres WHERE id='esc_ok';
+INSERT INTO banc SELECT '3b_recus_fermes_aux_clients',NOT has_table_privilege('authenticated','public.escorts_paies_recus','SELECT'),'';
+
 -- @@SUITE@@
 
 SELECT cas, ok, CASE WHEN ok THEN '' ELSE detail END FROM banc ORDER BY cas;

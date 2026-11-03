@@ -151,13 +151,9 @@ async function confirmerDonArgent(pa, cost) {
         showToast('Volés et tabassés !', '-' + montant + ' ' + cur + ' · -10 HP.', false);
       }
     },
-    promoteur: () => {
-      // Le promoteur révèle des infos
-      state.inf = Math.min(100, (state.inf || 0) + 5);
-      updateUI();
-      addJournalEntry('Gérard Spéculos vous donne des infos sur le marché pour ' + montant + ' ' + cur + '. +5 INF.', 'event-good');
-      showToast('Info obtenue !', '+5 INF. Il sait des choses sur ce quartier.', true);
-    },
+    // #379 (03/11/2026) : branche « promoteur » (+5 INF locale) retirée. L'occupation d'un
+    // terrain est lue au serveur (terrain_occupation_lire) et ne peut être que squatteurs ou
+    // cadavre (profilOccupationTerrain) : ce PNJ n'apparaît jamais sur un terrain.
     default: () => {
       updateUI();
       addJournalEntry('Don de ' + montant + ' ' + cur + ' accepté.', 'event-info');
