@@ -966,8 +966,8 @@ async function resoudreCompromisEntreprisesExpires() {
 // stockes, mutation, ecriture -- pas un second moteur temporel. Table 'successions' stocke
 // dispositions en jsonb natif (comme 'entreprises', pas de JSON.parse/stringify contrairement a
 // terrains_etat). Toute la logique de cascade/reglement est dupliquee ici dans l'idiome raw-fetch
-// du cron -- le code client (plateau-personnage.js, determinerEtapeSuivante/doRepondreHeritage)
-// tourne dans un runtime navigateur totalement isole, aucun partage de code possible.
+// du cron. Depuis le 03/11/2026, l'ouverture et la reponse explicite d'un heritier sont des
+// fonctions SQL (succession_ouvrir, succession_repondre, migration 20261103110000) : meme cascade.
 // =====================
 
 const DELAI_CONVOCATION_MS_SUCCESSION = 10 * 24 * 60 * 60 * 1000; // 10 jours reels
@@ -980,7 +980,7 @@ async function personnageExisteReellementServeur(nom) {
 
 // Cascade principal -> remplacant -> legal_conjoint, amorcee a partir du role qui vient de
 // renoncer (explicitement ou tacitement) -- jamais de retour en arriere (dejaConvoques), jamais
-// de transmission automatique. Miroir exact de determinerEtapeSuivante() cote client.
+// de transmission automatique. Miroir exact de la cascade de succession_repondre (SQL).
 async function determinerEtapeSuivanteServeur(disposition, roleActuel, conjointNom) {
   const maintenant = Date.now();
   const expiresAt = new Date(maintenant + DELAI_CONVOCATION_MS_SUCCESSION).toISOString();
