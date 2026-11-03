@@ -25,6 +25,17 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Prochain chantier repéré : détention et écritures directes de l'écran (Claude, 03/11, audit en lecture seule)
+
+Relevé en production le 03/11 (droits du rôle `authenticated`), à reprendre dans une **nouvelle session** :
+
+1. **Évasion et rébellion tirées par l'écran** (`doTentativeEvasion`, `doSeRebeller`, `plateau-justice-economie.js` ~2255-2450) : jets `Math.random`, une tentative par jour tenue dans `state`, amende de 500 FR de l'évasion ratée retirée de `state.arg` sans être versée, bonus de bénédiction et du déserteur lus dans `state`. Les portes serveur appelées sont ouvertes à l'écran : **`detention_clore_evasion()`** (un joueur peut s'évader quand il veut en l'appelant directement), `detention_transferer_qhs`, `detention_prolonger_soi`, `detention_ouvrir_soi`, `detention_clore_purgee`, `detention_clore_motif_eteint`. À faire : deux RPC `detention_tenter_evasion` / `detention_se_rebeller` qui tirent et appliquent tout (formules actuelles conservées : évasion `clamp(10 + 2(DUP-10) - (ISN-45)/3, 2, 40)` +5 bénédiction, puis bonus déserteur plafonné à 90 ; rébellion `min(60, 3 VOL + FOR codétenu / 2)`, grilles −4 à −10), l'amende par `amende_imposer_interne`, puis retirer l'exécution écran de `detention_clore_evasion`.
+2. **Grilles des cellules** : `niveaux_prison` écrit par l'écran (`sbSaveNiveauPrison`) ; à passer dans `detention_se_rebeller`, puis fermer INSERT/UPDATE.
+3. **Découverte des crimes à l'écran** (`traiterDecouverteCrimes`, ~2230) : jet `Math.random` par le navigateur ; déjà noté côté serveur (`minuit_decouverte_crimes`, amendes non versées).
+4. **Tables encore écrivables par tout joueur identifié sans garde** (politique `acteur_identifie()` seule, aucun trigger) : `successions` (`sbCreerSuccession`/`sbUpdateSuccession`, argent des héritages), `greves_generales` (`plateau-organisations-quetes.js` ~9409-9477), `etats_urgence` (`supabase.js` ~3490), `indices_villes` (garde de la seule piété), `niveaux_prison`, `registre_ventes_armes` (insertion seule). Les autres tables écrivables ont une garde (trigger ou politique au nom de l'acteur).
+
+Ordre conseillé : 1 et 2 ensemble (sanctions), puis `successions` (argent), puis le reste.
+
 ### Audit global Républia — Codex, 02/11/2026
 
 Branche `codex/audit-global-republia-20261102`, issue du main `a99c4069`
