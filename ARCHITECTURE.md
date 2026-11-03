@@ -86,7 +86,7 @@ ligne trouvée fausse se corrige ici.
 |---|---|---|---|
 | Entreprises et commerces | Commerces de joueurs, prix, stocks, ventes. | Serveur | Entreprises et commerces du pays. |
 | Usines et chaînes | Production, matières, directeurs, ventes directes. | Serveur | Usines et chaînes du pays. |
-| Entrepôts et ressources | Stocks régionaux, prix, matières premières. | Serveur | Ressources disponibles, prix. |
+| Entrepôts et ressources | Stocks régionaux, prix, matières premières. Trading (03/11) : ordinateur + box installés dans un bureau (`equipements_installes`), cours et achat à distance pour une organisation économique, livraison en caisse de fret au port de PSM (`GAME-DESIGN-TRADING.md`). | Serveur | Ressources disponibles, prix. |
 | Port et fret | Bateau, colis, box, douane, criée, marchandises non réclamées (achat d'un lot encore décidé par l'écran). | Mixte | Ports et routes. |
 | Bureau de l'Emploi | Postes à pourvoir, annonces, référentes. | Serveur | Agences et référentes. |
 | Chantiers | Travail à l'heure, taux du propriétaire, ouvriers PNJ. | Serveur | Rien : commun. |

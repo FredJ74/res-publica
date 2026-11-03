@@ -315,7 +315,7 @@ const ORDRE_EQUIPEMENTS = {
   fn: 'installer_equipements',
   label: 'Installer des équipements',
   pa: 0, cost: 0, type: 'legal', icon: 'ti-tools', successRate: 100,
-  desc: 'Fonctionnalité en cours de développement.'
+  desc: 'Installer un ordinateur et une box internet dans ce bureau ; une fois connecté, trader des matières premières.'
 };
 
 /* Les quatre postes de l'Open Space du Centre d'Affaires de Luthecia.
