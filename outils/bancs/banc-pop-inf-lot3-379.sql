@@ -1,0 +1,58 @@
+-- Banc annulé #379, lot 3 (Claude, 03/11/2026). Base jetable uniquement :
+--   outils/bancs/monter-base-jetable.sh puis
+--   psql -h /tmp/pgjet -p 54329 -U postgres -d jet -v ON_ERROR_STOP=1 -f outils/bancs/banc-pop-inf-lot3-379.sql
+-- Tout est annulé à la fin : ROLLBACK. Chaque section porte le nom de son sous-lot.
+BEGIN;
+ALTER TABLE public.personnages_donnees DISABLE TRIGGER trg_personnage_pays_declare; -- référentiel absent de la base jetable
+CREATE TEMP TABLE banc(cas text, ok boolean, detail text) ON COMMIT DROP;
+GRANT ALL ON banc TO authenticated;
+INSERT INTO auth.users(id) VALUES ('00000000-0000-4000-9000-000000003791'),('00000000-0000-4000-9000-000000003792') ON CONFLICT DO NOTHING;
+SELECT 1 FROM (SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-4000-9000-000000003792","role":"authenticated"}',true)) z;
+INSERT INTO public.personnages_donnees(name,country,user_id,pa,moral,hp,arg,liquide,resources,current_city)
+VALUES ('BancMembre','republic','00000000-0000-4000-9000-000000003792',50,50,80,5000,5000,'{"pop":50,"inf":50}','capitale');
+SELECT 1 FROM (SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-4000-9000-000000003791","role":"authenticated"}',true)) z;
+INSERT INTO public.personnages_donnees(name,country,user_id,pa,moral,hp,arg,liquide,resources,current_city)
+VALUES ('BancChef','republic','00000000-0000-4000-9000-000000003791',50,50,80,5000,5000,'{"pop":50,"inf":50}','capitale');
+CREATE FUNCTION public.banc379_j(p text) RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS
+ $$ SELECT jsonb_build_object('pop',resources->'pop','inf',resources->'inf','pa',pa,'moral',moral,'hp',hp,'arg',arg,'liquide',liquide)
+    FROM public.personnages_donnees WHERE name=p $$;
+GRANT EXECUTE ON FUNCTION public.banc379_j(text) TO authenticated;
+
+-- ===== 3a. Bonus de location (prelever_loyer_bail, rôle serveur) =====
+-- La caisse de la mairie n'est pas semée dans la base jetable : recette municipale simulée (annulée).
+CREATE OR REPLACE FUNCTION public.recette_municipale(p_pays text,p_ville text,p_montant numeric,p_canal text)
+RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true}'::jsonb $$;
+INSERT INTO public.organisations(id,country_origine,data) VALUES
+ ('orgBanc','republic','{"chef":"BancChef","membres":["BancMembre"],"caisse":0}');
+INSERT INTO public.locations_actives(id,country,data) VALUES
+ ('bailChef','republic',jsonb_build_object('country','republic','city','capitale','buildingId','banc-bat','roomId','vitrine',
+   'prix',100,'bonusPOP',10,'bonusINF',5,'bonusDIS',0,'orgaId','orgBanc','locataire','BancChef')),
+ ('bailMembre','republic',jsonb_build_object('country','republic','city','capitale','buildingId','banc-bat','roomId','boutique',
+   'prix',100,'bonusPOP',10,'bonusINF',5,'bonusDIS',0,'orgaId','orgBanc','locataire','BancMembre')),
+ ('bailPauvre','republic',jsonb_build_object('country','republic','city','capitale','buildingId','banc-bat','roomId','cave',
+   'prix',999999,'bonusPOP',10,'bonusINF',5,'bonusDIS',0,'orgaId','orgBanc','locataire','BancChef'));
+DO $b$
+DECLARE v text; av jsonb; ap jsonb;
+BEGIN
+ av:=public.banc379_j('BancChef');
+ v:=public.prelever_loyer_bail('bailChef');
+ ap:=public.banc379_j('BancChef');
+ INSERT INTO banc VALUES('3a_loyer_paye_bonus_chef',v='paye' AND (ap->>'pop')::int=(av->>'pop')::int+3 AND (ap->>'inf')::int=(av->>'inf')::int+1
+   AND (ap->>'arg')::numeric=(av->>'arg')::numeric-100, v||' '||av::text||' -> '||ap::text);
+ v:=public.prelever_loyer_bail('bailChef');
+ INSERT INTO banc VALUES('3a_rejeu_meme_jour_sans_bonus',v='deja_preleve' AND public.banc379_j('BancChef')=ap, v);
+ av:=public.banc379_j('BancMembre');
+ v:=public.prelever_loyer_bail('bailMembre');
+ ap:=public.banc379_j('BancMembre');
+ INSERT INTO banc VALUES('3a_locataire_non_chef_sans_bonus',v='paye' AND ap->'pop'=av->'pop' AND ap->'inf'=av->'inf', v||' '||ap::text);
+ av:=public.banc379_j('BancChef');
+ v:=public.prelever_loyer_bail('bailPauvre');
+ ap:=public.banc379_j('BancChef');
+ INSERT INTO banc VALUES('3a_impaye_sans_bonus',v<>'paye' AND ap->'pop'=av->'pop' AND ap->'inf'=av->'inf', v);
+END $b$;
+
+-- @@SUITE@@
+
+SELECT cas, ok, CASE WHEN ok THEN '' ELSE detail END FROM banc ORDER BY cas;
+SELECT count(*) FILTER (WHERE ok)||'/'||count(*) AS bilan FROM banc;
+ROLLBACK;

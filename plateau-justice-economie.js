@@ -3527,20 +3527,12 @@ function payerLocations() {
 function appliquerBonusLocation(loc) {
   const orga = getOrgaById(loc.orgaId);
   if (!orga) return;
-
-  // Stocker les bonus dans l'orga
-  if (!orga.bonusLocaux) orga.bonusLocaux = { pop: 0, inf: 0, dis: 0 };
-  orga.bonusLocaux.pop = (orga.bonusLocaux.pop || 0) + (loc.bonusPOP || 0);
-  orga.bonusLocaux.inf = (orga.bonusLocaux.inf || 0) + (loc.bonusINF || 0);
-  orga.bonusLocaux.dis = (orga.bonusLocaux.dis || 0) + (loc.bonusDIS || 0);
-
-  // Appliquer au joueur (fraction des bonus)
+  // #379 (03/11/2026) : les 30 % de POP et d'INF du chef sont versés par le serveur au moment où
+  // le loyer est réellement payé (prelever_loyer_bail, migration 20261103234000). L'ancien cumul
+  // orga.bonusLocaux n'était lu nulle part et l'organisation n'est plus écrite par l'écran.
   const mult = 0.3; // 30% des bonus de l'orga profitent directement au chef
-  const estChef = orga.chef === state.char?.name;
-  if (estChef) {
-    if (loc.bonusPOP > 0) state.pop = Math.min(100, (state.pop || 0) + Math.floor(loc.bonusPOP * mult));
-    if (loc.bonusINF > 0) state.inf = Math.min(100, (state.inf || 0) + Math.floor(loc.bonusINF * mult));
-    if (loc.bonusDIS > 0) state.dis = Math.min(100, (state.dis || 50) + Math.floor(loc.bonusDIS * mult));
+  if (orga.chef === state.char?.name && loc.bonusDIS > 0) {
+    state.dis = Math.min(100, (state.dis || 50) + Math.floor(loc.bonusDIS * mult));
   }
 }
 

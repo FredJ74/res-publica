@@ -10,6 +10,7 @@ const PORTES = {
     'executerOrdreTexte', 'traiterDemandeManifestation'],
   'plateau-actions-illegales-rumeurs.js': ['confirmerCorruptionRegistre'],
   'plateau-divers.js': ['appliquerMalusPopExcommunication'],
+  'plateau-justice-economie.js': ['appliquerBonusLocation'],
 };
 
 function corps(fichier, nom) {
