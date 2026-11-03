@@ -2214,43 +2214,11 @@ function doGreveFaim() {
   addExternalEvent((state.char?.name||'Un detenu') + ' entame une greve de la faim. Pression politique.');
 }
 
-// Actes pouvant faire l'objet d'une decouverte differee (succes non sanctionne sur le moment).
-// Vol est volontairement exclu : ses echecs sont deja sanctionnes immediatement (verbalisation/amende sur le champ),
-// et ses succes ne sont pas inscrits a l'historique — pas de risque de double sanction.
-const ACTES_DECOUVRABLES = ['assassinat', 'empoisonnement', 'achat_arme_illegal', 'acheter_bombe_illegale', 'incendier', 'utiliser_explosifs', 'hooliganisme', 'corruption_fonctionnaire'];
-
-function verifierDecouverteCrimesPasses() {
-  if (!state.historiqueCrimes || state.historiqueCrimes.length === 0) return;
-  // Les traces d'origine SERVEUR sont exclues de la decouverte differee (chantier Assemblee,
-  // 10 septembre 2026). Elles ne sont d'ailleurs pas decouvrables aujourd'hui -- leur seul acte,
-  // 'transaction_interdite', ne figure pas dans ACTES_DECOUVRABLES, son circuit etant la
-  // convocation. Mais l'invariant doit rester vrai si la liste s'etend un jour : le trigger
-  // personnages_preserver_judiciaire REINJECTE toute trace serveur non expiree absente d'une
-  // sauvegarde. Si ce code en retirait une par decouverte, elle reviendrait a la sauvegarde
-  // suivante et serait redecouverte chaque nuit -- arrestation perpetuelle.
-  const candidats = state.historiqueCrimes.filter(c =>
-    c.origine !== 'serveur' && ACTES_DECOUVRABLES.includes(c.acte) && c.expireJour > state.day
-  );
-  if (candidats.length === 0) return;
-
-  for (const c of candidats) {
-    const tauxDecouverte = ACTES_ILLEGAUX[c.acte]?.detectRate || 25;
-    const roll = Math.floor(Math.random() * 100) + 1;
-    if (roll <= tauxDecouverte) {
-      // Retirer l'entree decouverte de l'historique
-      state.historiqueCrimes = state.historiqueCrimes.filter(x => x !== c);
-      // Meme correctif de canal que traiterPlaintes/traiterEnquetes : state.mails n'est jamais
-      // rendu, le joueur etait arrete sans jamais pouvoir lire pourquoi.
-      const motifArrestation = 'Une enquête a permis de vous identifier comme responsable de : ' + (getPeineParActe(c.acte, true).label) + '. Vous êtes arrêté(e).';
-      if (state.char?.name && typeof sbSendMail === 'function') {
-        sbSendMail('Brigade Criminelle', state.char.name, 'Affaire résolue', motifArrestation,
-          typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-      }
-      procederArrestation(c.acte, false, true); // demasque = true -> peine doublee
-      break; // Une seule arrestation a la fois, le reste sera reexamine au prochain cycle
-    }
-  }
-}
+// DECOUVERTE DIFFEREE DES CRIMES : SERVEUR SEUL (03/11/2026). verifierDecouverteCrimesPasses tirait
+// au navigateur (Math.random) la decouverte des traces posees par l'ecran, puis arretait le joueur.
+// Toutes les traces decouvrables sont desormais posees par le serveur (crime_tracer_interne ; la
+// derniere, le hooliganisme, depuis organisation_hooliganisme) et examinees chaque nuit par
+// minuit_decouverte_crimes (cron), qui arrete, inflige l'amende et envoie le courrier.
 
 // EVASION ET REBELLION TIREES PAR LE SERVEUR (03/11/2026). Le navigateur tirait les jets, tenait la
 // tentative du jour dans `state`, retirait l'amende de `state.arg` sans la verser, et pouvait appeler
