@@ -5,7 +5,17 @@ R=Path(__file__).resolve().parents[2]
 s=importlib.util.spec_from_file_location('plan97',R/'outils/livraison/preparer-recette97-219.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
 class Plan(unittest.TestCase):
  def test_ordre_exact_et_sources_verifiees(self):
-  v=m.preparer();self.assertEqual(v['nombre'],97);self.assertEqual(v['tarifs_source'],{'lignes':461,'md5':'0ffc6e1caad1f58114eeba150d3d5f48'});self.assertEqual(v['tarifs_ajoutes_apres_plan97'],[{'fn':'ssm_demander_rendezvous','pa':0,'cost':0}]);self.assertEqual(v['tarifs_actuels'],{'lignes':462,'md5':'ff9d27096e7e8dbd3fbca1da39d0f2f5'});self.assertFalse(v['execution_autorisee']);self.assertTrue(v['ancien_plan_tarifaire_conforme_source']);self.assertEqual([x['version'] for x in v['migrations'][-2:]],['20261101170000','20261101171000'])
+  v=m.preparer();self.assertEqual(v['nombre'],97);self.assertEqual(v['tarifs_source'],{'lignes':461,'md5':'0ffc6e1caad1f58114eeba150d3d5f48'});self.assertEqual(v['tarifs_ajoutes_apres_plan97'],[{'fn':'ssm_besoin_aide','pa':0,'cost':0},{'fn':'ssm_demander_rendezvous','pa':0,'cost':0}]);self.assertEqual(v['tarifs_actuels']['lignes'],463);self.assertRegex(v['tarifs_actuels']['md5'],r'^[0-9a-f]{32};self.assertFalse(v['execution_autorisee']);self.assertTrue(v['ancien_plan_tarifaire_conforme_source']);self.assertEqual([x['version'] for x in v['migrations'][-2:]],['20261101170000','20261101171000'])
+ def test_omission_inversion_et_source_alteree_refusees(self):
+  es=m.preparer()['migrations']
+  for modif in ('omission','inversion','empreinte'):
+   e=copy.deepcopy(es)
+   if modif=='omission':e.pop()
+   elif modif=='inversion':e[-1],e[-2]=e[-2],e[-1]
+   else:e[-1]['sha256']='0'*64
+   with self.subTest(modif=modif),self.assertRaises(ValueError):m.verifier_ordre(e)
+if __name__=='__main__':unittest.main(verbosity=2)
+);self.assertFalse(v['execution_autorisee']);self.assertTrue(v['ancien_plan_tarifaire_conforme_source']);self.assertEqual([x['version'] for x in v['migrations'][-2:]],['20261101170000','20261101171000'])
  def test_omission_inversion_et_source_alteree_refusees(self):
   es=m.preparer()['migrations']
   for modif in ('omission','inversion','empreinte'):
