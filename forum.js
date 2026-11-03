@@ -651,6 +651,9 @@ async function verifierActiviteForumNonVue() {
   try {
     const forums = getForums();
     const idsAccessibles = Object.keys(forums).filter(id => !forums[id].private || canAccessForum(id));
+    const paysDemarrage = state.country;
+    const generationDemarrage = forumPaysGeneration;
+    const contexteEncoreValide = () => paysDemarrage === state.country && generationDemarrage === forumPaysGeneration;
 
     Object.keys(forumActiviteCache).forEach(id => {
       if (!idsAccessibles.includes(id)) delete forumActiviteCache[id];
@@ -658,6 +661,7 @@ async function verifierActiviteForumNonVue() {
 
     if (!forumActiviteCurseurEtabli && typeof sbDernierHorodatageForum === 'function') {
       const sommet = await sbDernierHorodatageForum();
+      if (!contexteEncoreValide()) return;
       forumActiviteCurseur.topics = sommet.topics;
       forumActiviteCurseur.posts = sommet.posts;
       forumActiviteCurseurEtabli = true;
@@ -665,11 +669,14 @@ async function verifierActiviteForumNonVue() {
 
     const idsNonResolus = idsAccessibles.filter(id => !(id in forumActiviteCache));
     if (idsNonResolus.length > 0 && typeof sbActiviteForumCibles === 'function') {
-      Object.assign(forumActiviteCache, await sbActiviteForumCibles(idsNonResolus));
+      const resolved = await sbActiviteForumCibles(idsNonResolus);
+      if (!contexteEncoreValide()) return;
+      Object.assign(forumActiviteCache, resolved);
     }
 
     if (idsAccessibles.length > 0 && typeof sbActiviteForumDepuis === 'function') {
       const delta = await sbActiviteForumDepuis(idsAccessibles, forumActiviteCurseur.topics, forumActiviteCurseur.posts);
+      if (!contexteEncoreValide()) return;
       Object.entries(delta.parForum).forEach(([id, iso]) => {
         const entrant = _instantForum(iso);
         const present = _instantForum(forumActiviteCache[id]);
