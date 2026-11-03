@@ -280,8 +280,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'vente_directe_usine') { doOuvrirVenteDirecteUsine(pa, cost); return; }
   if (fn === 'acheter_sels_ammoniaque') { doAcheterSelsAmmoniaque(pa, cost); return; }
   if (fn === 'vendre_matiere_usine') { doVendreMatierePremiereUsineGenerique(pa, cost); return; }
-  if (fn === 'consulter_caisse_usine') { doConsulterCaisseUsine(); return; }
-  if (fn === 'consulter_stock_usine') { doConsulterStockUsine(); return; }
+  // Ordres publics caisse/stock des usines supprimés : le catalogue de vente affiche seulement les stocks/limites/tarifs.
   if (fn === 'fabriquer_armoire_souvenirs') { doFabriquerArmoireSouvenirs(); return; }
   if (fn === 'acheter_armoire_souvenirs') { doAcheterArmoireSouvenirs(); return; }
   if (fn === 'produire_medicaments') { doProduireUsine('medicaments'); return; }
