@@ -145,7 +145,10 @@ async function rafraichirCompteursForums() {
   if (typeof sbCompterSujetsForums !== 'function') return;
   const forums = getForums();
   const ids = Object.keys(forums).filter(id => !forums[id].private || canAccessForum(id));
-  const identite = (state.char?.name || '') + '|' + (state.country || '') + '|' + (state.currentCity || '') + '|' + ids.join(',');
+  const nomAuDepart = state.char?.name || '';
+  const paysAuDepart = state.country || '';
+  const villeAuDepart = state.currentCity || '';
+  const identite = nomAuDepart + '|' + paysAuDepart + '|' + villeAuDepart + '|' + ids.join(',');
   if (forumCompteursChargement && forumCompteursIdentite === identite)
     return forumCompteursChargement;
   if (forumCompteursIdentite === identite &&
@@ -159,7 +162,8 @@ async function rafraichirCompteursForums() {
       const compteurs = await sbCompterSujetsForums(ids);
       // Si le PJ a changé de ville ou de personnage entre deux réponses, ignorer
       // l'ancienne liste sans afficher de nombres potentiellement interdits.
-      if (identite !== forumCompteursIdentite) return;
+      if (identite !== forumCompteursIdentite || (state.char?.name || '') !== nomAuDepart ||
+          (state.country || '') !== paysAuDepart || (state.currentCity || '') !== villeAuDepart) return;
       Object.keys(forumCompteursServeur).forEach(id => delete forumCompteursServeur[id]);
       ids.forEach(id => {
         if (Number.isInteger(compteurs[id]) && compteurs[id] >= 0)
