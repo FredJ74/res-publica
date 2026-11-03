@@ -58,16 +58,16 @@ test('les compteurs n’exposent pas les forums inaccessibles',async()=>{
  assert.ok(!demandes.includes('gouvernement'));
 });
 function conteur(reponses){
- const c={console,Set,encodeURIComponent,sbGet:async (_table,requete)=>{
+ const c={console,Set,encodeURIComponent,state:{country:'republic'},sbGet:async (_table,requete)=>{
   const offset=Number((requete.match(/offset=(\d+)/)||[])[1]||0);
   return reponses.slice(offset,offset+200);
  }};
  vm.createContext(c);
- vm.runInContext(bloc(supabase,'async function sbCompterSujetsForums(', 'async function sbLoadForumTopicsVerdict('),c);
+ vm.runInContext(bloc(supabase,'function sbForumEstTerritorial(', 'async function sbLoadForumTopicsVerdict('),c);
  return c;
 }
 test('requête groupée paginée : 205 sujets répartis sans limite de 200',async()=>{
- const data=Array.from({length:205},(_,i)=>({forum_id:i%2?'gouvernement':'national'}));
+ const data=Array.from({length:205},(_,i)=>({forum_id:i%2?'gouvernement':'national',country:'republic'}));
  const c=conteur(data);
  const resultat=await vm.runInContext("sbCompterSujetsForums(['national','gouvernement','vide'])",c);
  assert.equal(resultat.national,103);
