@@ -937,12 +937,10 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => appliquerNaturalisationAcceptee(), 2100);
   setTimeout(() => { if (typeof appliquerVictoireElectorale === 'function') appliquerVictoireElectorale(); }, 2350);
   setTimeout(() => recupererDonsEnAttente(), 2000);
-  setTimeout(() => recupererVolsEnAttente(), 2200);
   setTimeout(() => recupererImpactsEnAttente(), 2400);
   setTimeout(() => verifierLancementQuete(), 2600);
   setInterval(() => lancerLectureFond('evenements', chargerEvenementsPartages), 90000);
   setInterval(recupererDonsEnAttente, 90000);
-  setInterval(recupererVolsEnAttente, 90000);
   setInterval(recupererImpactsEnAttente, 90000);
 
   // Présence en pièce — re-publier + rafraîchir les joueurs visibles toutes les 30 secondes

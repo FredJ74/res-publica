@@ -2897,8 +2897,6 @@ async function sbGetObjetsAbandonnesDansPiece(country, city, buildingId, roomId)
 // et depose dans la meme transaction. Ne subsistent ici que les depots SANS source d'inventaire,
 // pour lesquels il n'y a rien a retirer et donc rien a rendre atomique :
 //   - delivrerDocumentUrbanisme (plateau-immobilier.js) : le document est cree pour l'occasion ;
-//   - recupererVolsEnAttente (plateau-communication.js) : butin de vol, famille non encore
-//     migree -- elle a son propre protocole de confirmation en deux temps (type_butin).
 // FERME LE 17 SEPTEMBRE 2026 (P0). Cette fonction faisait un sbInsert CLIENT dans objets_recus,
 // une table qui avait la RLS desactivee, zero policy et tous les droits DML accordes a anon.
 // N'importe qui, meme non authentifie, pouvait donc fabriquer un objet arbitraire au profit de
@@ -3400,14 +3398,8 @@ async function sbTraiterDemandeNaturalisation(id, statut) {
 // =====================
 // Le depot d'un vol est fait par le serveur (crime_voler, 27/10/2026) : sbDeposerVol supprimee.
 
-async function sbRecupererVolsEnAttente(victime) {
-  const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false`;
-  return sbGet('vols_en_attente', filtre) || [];
-}
-
-async function sbMarquerVolTraite(volId) {
-  return sbUpdate('vols_en_attente', `id=eq.${encodeURIComponent(volId)}`, { traite: true });
-}
+// sbRecupererVolsEnAttente et sbMarquerVolTraite SUPPRIMEES (03/11/2026) : les vols sont appliques
+// immediatement par crime_voler, la ligne est inseree deja traitee (branche morte).
 
 // =====================
 // ACTIONS TRACABLES (pour le systeme de rumeurs vraies)
