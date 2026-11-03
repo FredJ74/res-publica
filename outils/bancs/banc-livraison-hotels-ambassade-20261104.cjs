@@ -90,7 +90,8 @@ test('#315 les noms de contacts sont échappés dans value et libellé',()=>{
  document:{getElementById:id=>elements.get(id)}};
  vm.createContext(c);vm.runInContext(html,c);c.ouvrirModalNommerAmbassadeur(0,0);
  const out=elements.get('postes-body').innerHTML;
- assert.doesNotMatch(out,/<img(?:\\s|>)/i, 'aucune balise image active');\n assert.match(out,/&lt;img src=x onerror=alert\\(1\\)&gt;/, 'le nom hostile demeure uniquement texte échappé');
+ assert.doesNotMatch(out,/<img(?:\\s|>)/i, 'aucune balise image active');
+ assert.match(out,/&lt;img src=x onerror=alert\\(1\\)&gt;/, 'le nom hostile demeure uniquement texte échappé');
  assert.match(out,/Jean &quot;&lt;img/);
  assert.match(out,/&amp; O&#39;Neil/);
 });
