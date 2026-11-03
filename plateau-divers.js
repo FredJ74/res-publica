@@ -769,33 +769,7 @@ async function doDemanderBenedictionContact(pnjNom) {
   }
 }
 
-async function doBenedictionEtat(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  modifierIP(10);
-  state.pop = Math.min(100, state.pop + 5);
-  updateUI();
-  showToast('Bénédiction d\'État', '+10 IP national. +5 POP pour le chef d\'État.', true, true);
-  addExternalEvent('RELIGION : Un acte d\'État a reçu la bénédiction du ' + (RELIGIONS[state.country]?.grandPretre||'Grand Prêtre') + '.');
-}
-
-async function doConsulterConfessions(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const confessions = [
-    'Un haut fonctionnaire a avoué détourner des fonds depuis 3 ans.',
-    'Un ministre a confessé ses contacts avec un empire étranger.',
-    'Un député a avoué avoir vendu son vote lors du dernier scrutin.',
-    'Un officier de police a confessé avoir falsifié des preuves.'
-  ];
-  const secret = confessions[Math.floor(Math.random() * confessions.length)];
-  state.inf = Math.min(100, state.inf + 8);
-  updateUI();
-  document.getElementById('postes-modal-title').textContent = 'Archives des Confessions';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem"><div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7">"' + secret + '"</div><div style="font-size:.7rem;color:#9a8a68;margin-top:.6rem">Source : confessions scellées · +8 INF</div></div>';
-  document.getElementById('modal-postes').classList.add('open');
-}
-
+// Ordres benediction_etat / consulter_confessions retires du catalogue.
 async function doAcheterRelique(pa, cost) {
   // Vente legale : regle generale des interdictions (arbitrage du 11 septembre 2026), avant tout debit.
   if (typeof assembleeControlerVenteLegale === 'function'
