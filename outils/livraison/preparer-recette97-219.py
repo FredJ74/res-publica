@@ -19,14 +19,16 @@ def preparer(paquet=None):
  for nom in COMPLEMENTS:es.append({'version':Path(nom).name[:14],'fichier':nom,'sha256':hashlib.sha256((R/nom).read_bytes()).hexdigest()})
  verifier_ordre(es)
  source=json.loads(subprocess.check_output([sys.executable,str(R/'outils/generateurs/generer_ordres_couts.py'),'--json'],cwd=R,text=True))
- # Le plan 97 est une photographie HISTORIQUE des 461 triplets. Le SSM a depuis
- # ajouté un ordre à 0 PA / 0 FR, enregistré par sa propre migration et jamais
- # exécuté par ce plan. On contrôle explicitement ce seul ajout, sans falsifier
- # l'empreinte des coûts historiques ni modifier leur liste.
- hors_coupe=[x for x in source if x['fn']=='ssm_demander_rendezvous']
- if hors_coupe!=[{'fn':'ssm_demander_rendezvous','pa':0,'cost':0}]:
-  raise ValueError('Ordre SSM non conforme ou absent du catalogue actuel')
- source_historique=[x for x in source if x['fn']!='ssm_demander_rendezvous']
+ # Le plan 97 est une photographie HISTORIQUE des 461 triplets. Deux ordres SSM
+ # gratuits ont ete ajoutes depuis (rendez-vous puis information Pascale).
+ # Ils n'etaient pas executes par ce plan : les exclure de la comparaison
+ # historique, mais les controler explicitement dans le catalogue actuel.
+ ajouts_ssm=('ssm_besoin_aide','ssm_demander_rendezvous')
+ hors_coupe=sorted((x for x in source if x['fn'] in ajouts_ssm),key=lambda x:x['fn'])
+ if hors_coupe!=[{'fn':'ssm_besoin_aide','pa':0,'cost':0},
+                 {'fn':'ssm_demander_rendezvous','pa':0,'cost':0}]:
+  raise ValueError('Ordres SSM non conformes ou absents du catalogue actuel')
+ source_historique=[x for x in source if x['fn'] not in ajouts_ssm]
  cmp=module('delta_recette97','outils/baseline/comparer-couts-captures.py')
  ts=sorted(cmp.triples(source_historique))
  md5=hashlib.md5('\n'.join('%s|%d|%d'%t for t in ts).encode()).hexdigest()
