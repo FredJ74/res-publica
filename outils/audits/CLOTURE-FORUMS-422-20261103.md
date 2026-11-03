@@ -1,7 +1,7 @@
 # Forums #422 — correction vérifiée localement, livraison bloquée
 
 Branche existante `chatgpt/forums-territoires-et-adhesions-20261103` conservée.
-Base réconciliée : main `4c657b53` (#410), fusion de travail `2a2ad0e4`.
+Base réconciliée : main `fbed5ced` (#423), après `4c657b53` (#410). Fusions de travail `2a2ad0e4` puis `5ef8dd5a`.
 Corrections : `92242533`, `0c03d2f6`. Aucune fusion ni migration de production.
 
 ## Changements
@@ -50,7 +50,7 @@ Voir `preuves-forums422-20261103/MANIFESTE.json` et les fichiers hachés.
   authenticated/anon et JWT fictifs. Chaque scénario est annulé ; cluster détruit.
   Ce décor ne constitue pas une reconstruction du catalogue vivant.
 - **21/21** cas de contexte client ; **19/19** cas territoriaux initiaux.
-- Contrôleur complet après installation des dépendances de main : **187/187 bancs**.
+- Contrôleur complet après installation des dépendances de main : **188/188 bancs**.
   Une première passe sans PGlite avait quatre erreurs d'environnement ; elles ont
   été réparées par `npm ci`, sans modifier les bancs POP/INF de Claude.
 - Chromium local complet : **119/119**, dont rendu réel du local et du forum privé.
@@ -107,3 +107,14 @@ La PR reste en brouillon. Ne pas la fusionner sur la seule foi de ses bancs vert
    Aucune modification de finances, caractéristiques, possessions ou identité PJ.
 
 Aucune manipulation SQL ni commande n'est à déléguer au game designer.
+
+## Dernière réconciliation #423
+
+Les corrections commerciales de `fbed5ced` sont conservées intégralement. Le seul
+conflit de workflow a été résolu en gardant les deux étapes. Après intégration :
+188/188 bancs clients, 119/119 Chromium, 14/14 cas Montrouge explicites, 25/25
+PostgreSQL17.6 et16.2 (table REST et appel RPC sous leurs chemins respectifs).
+Les quatre contrôles globaux restent rouges ; leurs traces sont conservées, sans
+autoriser une fusion. Aucun code POP/INF ni fichier immobilier n'a été modifié
+par les corrections forum. Le dernier SHA publié et ses jobs CI sont consultables
+sur la PR #422 ; cette preuve distante complète les observations locales.

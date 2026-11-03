@@ -94,7 +94,7 @@ def main():
   numero_publication=[98]
   def publier(message,i=1):
    numero_publication[0]+=1
-   acteur(i);q.execute('SELECT fixture_publication(%s,%s::jsonb)',(f'00000000-0000-4000-9000-{numero_publication[0]:012d}',json.dumps(message)));return q.fetchone()[0]
+   acteur(i);q.execute("SELECT set_config('request.path','/rpc/fixture_publication',true)");q.execute('SELECT fixture_publication(%s,%s::jsonb)',(f'00000000-0000-4000-9000-{numero_publication[0]:012d}',json.dumps(message)));return q.fetchone()[0]
   def chef_publication():
    v=publier({'forum':'org_club','titre':'Privé','contenu':'x'},3);assert v['ok'],v
    v=publier({'topic':v['topic'],'contenu':'Réponse étrangère adhérente'},2);assert v['ok'],v
