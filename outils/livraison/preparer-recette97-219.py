@@ -29,6 +29,12 @@ def preparer(paquet=None):
                  {'fn':'ssm_demander_rendezvous','pa':0,'cost':0}]:
   raise ValueError('Ordres SSM non conformes ou absents du catalogue actuel')
  source_historique=[x for x in source if x['fn'] not in ajouts_ssm]
+ # Ordre retire depuis (03/11/2026, GAME-DESIGN-ARMEE.md) : « Attribuer une mission » n'avait
+ # jamais ete demande. Il faisait partie de la photographie historique : on l'y remet tel quel.
+ retires=[{'fn':'assigner_mission','pa':1,'cost':0}]
+ if any(x['fn']=='assigner_mission' for x in source):
+  raise ValueError('assigner_mission ne doit plus figurer au catalogue actuel')
+ source_historique=source_historique+retires
  cmp=module('delta_recette97','outils/baseline/comparer-couts-captures.py')
  ts=sorted(cmp.triples(source_historique))
  md5=hashlib.md5('\n'.join('%s|%d|%d'%t for t in ts).encode()).hexdigest()
