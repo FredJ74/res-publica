@@ -52,3 +52,11 @@ test('Edwige oriente sur les soins sans inventer de prestations',()=>{
  }
  assert.match(fiche,/sans prétendre fournir toi-même de soins/);
 });
+
+test('Pascale dispose du portrait WebP issu de son image d’accueil',()=>{
+ const portrait='images/personnages/pascale-ssm-portrait.webp';
+ assert.ok(block.includes("photoUrl:'"+portrait+"'"),'portrait non relié à la fiche Pascale');
+ const b=fs.readFileSync(path.join(root,portrait));
+ assert.equal(b.toString('ascii',0,4),'RIFF');
+ assert.equal(b.toString('ascii',8,12),'WEBP');
+});
