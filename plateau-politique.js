@@ -8109,7 +8109,8 @@ async function confirmerVirementMinistereUsine(pa, cost) {
   addJournalEntry('Virement du Ministère des Finances vers ' + nomUsine + ' (' + montantPreleve + ' FR).', 'event-good');
 }
 
-async function ouvrirCiblageFiscal(action, titre) {
+async function ouvrirCiblageFiscal(action, titre, selectionCible) {
+  const contexteSelection=typeof selectionCible==='function'?contexteGroupePj():null;
   document.getElementById('postes-modal-title').textContent = titre;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -8117,14 +8118,36 @@ async function ouvrirCiblageFiscal(action, titre) {
   const pays = state.country || 'republic';
   let joueurs = [];
   if (typeof sbListPersonnages === 'function') {
-    try { joueurs = await sbListPersonnages() || []; } catch(e) {}
-  }
+    try {
+      const lus=await sbListPersonnages();
+      if(contexteSelection&&!Array.isArray(lus))throw Error('annuaire_indisponible');
+      joueurs=lus||[];
+    } catch(e) {
+      if(contexteSelection){showToast('Annuaire indisponible','Aucun ordre n’a été exécuté.',false);return;}
+    }
+  } else if(contexteSelection){showToast('Annuaire indisponible','Aucun ordre n’a été exécuté.',false);return;}
+  if(contexteSelection&&!contexteGroupePjValide(contexteSelection))return;
   const myName = state.char?.name;
   const cibles = joueurs.filter(j => {
     const domicilePays = j.domicile?.country || j.country;
     return (domicilePays === pays || j.country === pays) && j.name !== myName;
   });
 
+  if(contexteSelection){
+    const liste=document.createElement('div');liste.className='cpj-dialogue';
+    const note=document.createElement('p');note.className='cpj-note';
+    note.textContent=cibles.length?'Choisir la cible :':'Aucun autre citoyen domicilié ou présent sur le territoire.';liste.appendChild(note);
+    for(const cible of cibles){
+      const bouton=document.createElement('button');bouton.className='cpj-touche';bouton.textContent=cible.name;
+      bouton.onclick=()=>{
+        if(!contexteGroupePjValide(contexteSelection))return;
+        document.getElementById('modal-postes').classList.remove('open');
+        return selectionCible(cible.name);
+      };
+      liste.appendChild(bouton);
+    }
+    document.getElementById('postes-body').replaceChildren(liste);return;
+  }
   let html = '<div style="padding:1rem">';
   if (cibles.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun autre citoyen domicilié ou présent sur le territoire pour l\'instant.</div>';

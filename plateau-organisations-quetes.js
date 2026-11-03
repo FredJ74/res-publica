@@ -922,13 +922,14 @@ async function executerOrdreOrgaFinancier(orga, fn, ordre) {
 }
 
 // Même commande et même reçu que les autres actes de vie de l'organisation.
-async function executerOrdreOrgaJauges(orgaId, fn, ordre) {
+async function executerOrdreOrgaJauges(orgaId, fn, ordre, parametres = {}) {
   const contexte=contexteGroupePj();
   if(!contexte.nom||!contexte.uid||typeof sbOrganisationVie!=='function')return;
-  const v=await sbOrganisationVie(orgaId,'ordre_jauges',{fn});
+  const v=await sbOrganisationVie(orgaId,'ordre_jauges',{...parametres,fn});
   if(!contexteGroupePjValide(contexte))return;
   if(!v||v.ok!==true){signalerRefusCout(v||{raison:'commande_non_confirmee'});return;}
   if(v.contrat_jauges!==1||v.acteur!==contexte.nom||v.organisation!==orgaId||v.ordre!==fn
+      ||(fn==='orga_anatheme'&&(v.effets_cible?.nom!==parametres.cible||!['pop','moral'].every(k=>typeof v.effets_cible[k]==='number'&&Number.isFinite(v.effets_cible[k]))))
       ||!['pop','inf','pa','hp','moral','gain_pop','gain_inf','gain_moral'].every(k=>typeof v[k]==='number'&&Number.isFinite(v[k]))) {
     showToast('Action non confirmée','La réponse reçue ne permet pas de confirmer cet ordre.',false);return;
   }
@@ -939,9 +940,22 @@ async function executerOrdreOrgaJauges(orgaId, fn, ordre) {
   updateUI();
   if(!v.rejeu){
     const gains=[['POP',v.gain_pop],['INF',v.gain_inf],['Moral',v.gain_moral]].filter(([,n])=>n!==0).map(([k,n])=>(n>0?'+':'')+n+' '+k).join(', ');
-    showToast(ordre.label||'Ordre exécuté',gains||'Action confirmée par le serveur.',true);
-    addJournalEntry((ordre.label||fn)+' : '+gains+'.','event-good');
-    addExternalEvent(ordre.label||fn);
+    const effetCible=v.effets_cible? v.effets_cible.nom+' : '+v.effets_cible.moral+' Moral, '+v.effets_cible.pop+' POP':null;
+    showToast(ordre.label||'Ordre exécuté',effetCible||gains||'Action confirmée par le serveur.',true);
+    addJournalEntry((ordre.label||fn)+' : '+(effetCible||gains)+'.',v.effets_cible?'event-bad':'event-good');
+    // Conserver les annonces historiques : les rituels/réseaux/cooptations de
+    // loge ne publiaient aucun événement et ne doivent pas révéler une loge.
+    const nom=v.organisation_nom||'l’organisation';
+    const annonces={
+      orga_petition:'📋 "'+nom+'" lance une pétition publique.',
+      orga_meeting:'📢 "'+nom+'" organise un meeting.',
+      orga_benediction:'✨ "'+nom+'" organise une cérémonie de bénédiction.',
+      orga_anatheme:'⛧ "'+nom+'" prononce un anathème public.',
+      orga_pelerinage:'🕊 "'+nom+'" organise un grand pèlerinage.',
+      orga_campagne_presse:'📰 "'+nom+'" publie une campagne de presse favorable.',
+      orga_scoop:'🔥 "'+nom+'" publie un scoop explosif !'
+    };
+    if(annonces[fn])addExternalEvent(annonces[fn]);
   }
 }
 
@@ -962,6 +976,11 @@ async function executerOrdreOrga(orgaId, fn) {
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const ordre = (def.ordres || []).find(o => o.fn === fn);
   if (!ordre) return;
+  if(fn==='orga_anatheme'){
+    await ouvrirCiblageFiscal(fn,ordre.label||'Cérémonie d’anathème',
+      cible=>executerOrdreOrgaJauges(orgaId,fn,ordre,{cible}));
+    return;
+  }
   if (["orga_petition", "orga_meeting", "orga_benediction", "orga_pelerinage", "orga_campagne_presse", "orga_scoop", "orga_rituel", "orga_reseau", "orga_cooptation"].includes(fn)) {
     await executerOrdreOrgaJauges(orgaId,fn,ordre);return;
   }
@@ -1000,7 +1019,6 @@ async function executerOrdreOrga(orgaId, fn) {
   // fail-closed.
   const effets = {
     // orga_collecte / orga_dividendes : executerOrdreOrgaFinancier (serveur), plus d'effet local.
-    orga_anatheme:       () => { state.moral=Math.max(0,(state.moral||50)-15); state.pop=Math.max(0,(state.pop||0)-10); showToast('Anathème !','Cérémonie contre un PJ. -15 Moral -10 POP à la cible.',false); addJournalEntry('Anathème prononcé par "'+orga.nom+'".','event-bad'); addExternalEvent('⛧ "'+orga.nom+'" prononce un anathème public.'); },
     orga_hooliganisme:   () => {
       const pays = state.country || 'republic';
       if (INDICES_NATIONAUX[pays]) {

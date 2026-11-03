@@ -36,6 +36,8 @@ def main():
   q.execute((R/'migrations/20261103021155_rumeurs_ecoute_jauges_serveur.sql').read_text())
   q.execute('ALTER TABLE personnages_donnees ADD PRIMARY KEY(name);ALTER TABLE personnages_donnees ENABLE ROW LEVEL SECURITY;CREATE VIEW personnages AS SELECT * FROM personnages_donnees;ALTER TABLE ordres_couts_inconnus ADD PRIMARY KEY(fn);ALTER TABLE ordres_couts_ecarts ADD PRIMARY KEY(fn,pa,cost)')
   for n in ['mon_personnage','est_appel_serveur','est_mon_personnage','exiger_acteur']:q.execute(h.fonction('baseline/domaines/socle/20_fonctions.sql',n))
+  q.execute(h.fonction('baseline/domaines/personnage-et-presence/20_fonctions-2.sql','personnages_fusionner_pop'))
+  q.execute('CREATE TRIGGER fixture_fusion_pop BEFORE UPDATE OF resources ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_fusionner_pop()')
   q.execute(h.fonction('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre'))
   q.execute(h.fonction('baseline/domaines/militaire/20_fonctions-2.sql','militaire_inspection_perimetre'))
   for n in ['forum_topics','forum_posts']:h.table(q,'baseline/domaines/communication/10_tables.sql',n)
@@ -311,6 +313,46 @@ def main():
     assert v['pop']==10+pop if pop is not None else 13<=v['pop']<=20,v
     assert orga(fn)['pop']==v['pop'] and own('SELECT count(*)FROM organisation_commandes_recus')==1
    case('organisation_'+fn+'_paiement_effets_et_rejeu',scenario)
+  def anatheme():
+   preparerorga('religieuse');acteur=photo();victime=own("SELECT to_jsonb(d)FROM personnages_donnees d WHERE name='AncienneFixture'")
+   v=orga('orga_anatheme',params={'fn':'orga_anatheme','cible':'AncienneFixture'})
+   assert v['ok']and v['pop']==acteur['resources']['pop']and v['moral']==acteur['moral']and v['arg']==9800 and v['pa']==18,v
+   apres=own("SELECT to_jsonb(d)FROM personnages_donnees d WHERE name='AncienneFixture'")
+   assert apres['resources']['pop']==0 and apres['moral']==45 and apres['arg']==victime['arg']and apres['resources']['inf']==85
+   assert orga('orga_anatheme',params={'fn':'orga_anatheme','cible':'AncienneFixture'})['rejeu']
+   assert own("SELECT moral FROM personnages_donnees WHERE name='AncienneFixture'")==45
+  case('anatheme_autre_PJ_seul_touche_paiement_et_rejeu_atomiques',anatheme)
+  def anathemefaux():
+   preparerorga('religieuse');p=photo()
+   for cible in [None,'Fixture','AbsentFixture','PNJFixture',{'name':'AncienneFixture'}]:
+    v=orga('orga_anatheme',params={'fn':'orga_anatheme','cible':cible});assert v['raison']=='autre_joueur_requis'and photo()==p,v
+   assert own('SELECT count(*)FROM organisation_commandes_recus')==0
+   assert own("SELECT attnotnull FROM pg_attribute WHERE attrelid='personnages_donnees'::regclass AND attname='user_id'")
+  case('anatheme_cible_obligatoire_pas_soi_pas_PNJ_ni_cible_inventee',anathemefaux)
+  def anathemeplancher():
+   preparerorga('religieuse');own("UPDATE personnages_donnees SET moral=4,resources=jsonb_set(resources,'{pop}','3')WHERE name='AncienneFixture'")
+   assert orga('orga_anatheme',params={'fn':'orga_anatheme','cible':'AncienneFixture'})['ok']
+   assert own("SELECT moral FROM personnages_donnees WHERE name='AncienneFixture'")==0
+   assert own("SELECT (resources->>'pop')::numeric FROM personnages_donnees WHERE name='AncienneFixture'")==0
+  case('anatheme_planchers_cible_pas_de_perte_negative',anathemeplancher)
+  def anathemeterritoire():
+   preparerorga('religieuse');own("UPDATE personnages_donnees SET country='soviet',domicile='{}'WHERE name='AncienneFixture'");p=photo()
+   assert orga('orga_anatheme',params={'fn':'orga_anatheme','cible':'AncienneFixture'})['raison']=='territoire_invalide'and photo()==p
+   own("UPDATE personnages_donnees SET domicile='{\"country\":\"republic\"}'WHERE name='AncienneFixture'")
+   assert orga('orga_anatheme',params={'fn':'orga_anatheme','cible':'AncienneFixture'})['ok']
+  case('anatheme_perimetre_commun_citoyen_domicilie_ou_present',anathemeterritoire)
+  def anathemeretarget():
+   preparerorga('religieuse');assert orga('orga_anatheme',params={'fn':'orga_anatheme','cible':'AncienneFixture'})['ok'];p=photo()
+   assert orga('orga_anatheme',params={'fn':'orga_anatheme','cible':'AutreFixture'})['raison']=='requete_reutilisee'and photo()==p
+  case('anatheme_recu_ne_peut_pas_changer_de_cible',anathemeretarget)
+  def anathemepanne():
+   preparerorga('religieuse');p=photo();v=own("SELECT to_jsonb(d)FROM personnages_donnees d WHERE name='AncienneFixture'")
+   own("CREATE FUNCTION fixture_panne_anatheme()RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'panne_anatheme';END$$;CREATE TRIGGER fixture_panne_anatheme BEFORE INSERT ON organisation_commandes_recus FOR EACH ROW EXECUTE FUNCTION fixture_panne_anatheme()")
+   own('SAVEPOINT panne_anatheme')
+   try:orga('orga_anatheme',params={'fn':'orga_anatheme','cible':'AncienneFixture'});raise AssertionError('panne absente')
+   except psycopg2.Error as e:assert 'panne_anatheme'in str(e);own('ROLLBACK TO SAVEPOINT panne_anatheme')
+   assert photo()==p and own("SELECT to_jsonb(d)FROM personnages_donnees d WHERE name='AncienneFixture'")==v
+  case('anatheme_panne_annule_cible_auteur_debit_et_recu',anathemepanne)
   def orgrefus():
    preparerorga();p=photo()
    own("UPDATE organisations SET data='{\"type\":\"politique\",\"chef\":\"AutreFixture\",\"membres\":[]}'")
@@ -381,6 +423,18 @@ def main():
   with ThreadPoolExecutor(2)as pool:a,b=list(pool.map(orgconcurrent,range(2)))
   assert a['inf']==b['inf']==avant['resources']['inf']+3 and photo()['pa']==avant['pa']-3 and photo()['arg']==avant['arg']-500
   cas.append({'cas':'organisation_deux_connexions_un_recu_un_paiement','ok':True})
+  own("UPDATE organisations SET data=jsonb_set(data::jsonb,'{type}','\"religieuse\"')::text WHERE id='o'")
+  avant=photo();victime=own("SELECT to_jsonb(d)FROM personnages_donnees d WHERE name='AncienneFixture'");c.commit()
+  def anathemeconcurrent(_):
+   cc=psycopg2.connect(srv.get_uri())
+   try:
+    v=orga('orga_anatheme',ident=1000,params={'fn':'orga_anatheme','cible':'AncienneFixture'},cur=cc.cursor());cc.commit();return v
+   finally:cc.close()
+  with ThreadPoolExecutor(2)as pool:a,b=list(pool.map(anathemeconcurrent,range(2)))
+  assert a['ok']and b['ok']and photo()['arg']==avant['arg']-200 and photo()['pa']==avant['pa']-2
+  assert photo()['resources']==avant['resources']and photo()['moral']==avant['moral']
+  assert own("SELECT moral FROM personnages_donnees WHERE name='AncienneFixture'")==victime['moral']-15
+  cas.append({'cas':'anatheme_deux_connexions_un_debit_une_consequence_cible','ok':True})
   print(json.dumps({'production':False,'contre_rejeu_organisation':'--contre-rejeu-organisation'in sys.argv,'moteur':version,'tests':cas,'limites':['Payer_ordre et inspection réels du baseline ; pas un clone du catalogue vivant ni son interception blocus ajoutée ensuite.','Concurrence committée seulement dans le cluster détruit.']},ensure_ascii=False,indent=2));return 0 if all(t['ok']for t in cas)else 1
  finally:
   if c:c.rollback();c.close()

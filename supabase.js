@@ -2769,6 +2769,7 @@ async function sbOrganisationVie(orgaId, action, parametres) {
     // Une réponse tronquée n'atteste pas un ordre à effets : conserver le reçu à rejouer.
     if(action==='ordre_jauges'&&r?.ok===true&&(r.contrat_jauges!==1||r.acteur!==nom
         ||r.organisation!==orgaId||r.ordre!==params.fn
+        ||(params.fn==='orga_anatheme'&&(r.effets_cible?.nom!==params.cible||!['pop','moral'].every(k=>typeof r.effets_cible[k]==='number'&&Number.isFinite(r.effets_cible[k]))))
         ||!['pop','inf','pa','hp','moral','gain_pop','gain_inf','gain_moral'].every(k=>typeof r[k]==='number'&&Number.isFinite(r[k])))) {
       return {ok:false,raison:'contrat_invalide',transport:{etat:'confirmation_incertaine'}};
     }
