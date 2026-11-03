@@ -26,7 +26,7 @@ test('images des deux pièces présentes, noms et rôles du personnel distincts'
 test('les trois ordres de service social incluent une orientation gratuite à l’accueil',()=>{
  assert.equal((block.match(/orders: \[/g)||[]).length,2);
  assert.equal((block.match(/persons: \[/g)||[]).length,2);
- assert.match(block,/fn:'ssm_besoin_aide', label:'Besoin d’aide \\?', pa:0, cost:0/);
+ assert.match(block,/fn:'ssm_besoin_aide', label:'Besoin d’aide \?', pa:0, cost:0/);
  assert.match(block,/fn:'ssm_demander_rendezvous'/);
  assert.match(block,/fn:'demander_logement_social'/);
 });
