@@ -577,7 +577,7 @@ function recalculerActiviteForumAgregat(categorieSeule) {
   const forums = getForums();
   const groupes = {};
   Object.entries(forums).forEach(([id, f]) => {
-    if (!f.cat) return;
+    if (!f.cat || (f.private && !canAccessForum(id))) return;
     groupes[f.cat] = !!groupes[f.cat] || !!forumActivite.forums[id];
   });
   if (categorieSeule) {
