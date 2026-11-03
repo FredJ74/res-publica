@@ -5338,35 +5338,51 @@ async function confirmerProduction(produitId) {
 // l'entrepot (stackable/stackKey) - or l'Armurerie n'existe qu'a Luthecia, qui n'a aucune
 // ressource recoltable localement (MATIERES_PREMIERES_VILLE n'a pas d'entree pour 'capitale').
 // L'ordre etait donc inutilisable en pratique. Meme correctif que vendre_bois_imprimerie.
+// Armurerie : la même information commerciale (stock, plafond, prix) doit être
+// consultable par tout visiteur, même sans matière dans son inventaire.
 async function doVendreMatiereArmurerie() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const nom = state.char?.name;
   const data = await chargerArmurerieLocale();
-  if (!data) { showToast('Armurerie injoignable',
-    "Les informations de cette armurerie n'ont pas pu être chargées. Réessayez dans un instant.", false); return; }
-
-  document.getElementById('postes-modal-title').textContent = 'Vendre des matières premières';
+  if (state.country !== pays || state.currentCity !== ville ||
+      state.currentBuilding !== 'armurerie' || state.char?.name !== nom) return;
+  if (!data) {
+    showToast('Armurerie injoignable', "Les informations de cette armurerie n'ont pas pu être chargées.", false);
+    return;
+  }
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = 'Vendre des matières à l\'armurerie';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat fixés par le propriétaire de l\'armurerie.</div>';
-  Object.entries(data.parametres.prixAchatMatiere).forEach(([m, prix]) => {
-    const lot = (state.inventory || []).find(i => i.stackKey === m && (i.qty || 0) > 0);
-    const qteDispo = lot?.qty || 0;
-    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
-    const nomM = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m])
-      ? RESSOURCES_ECONOMIE[m].label : m;
-    html += '<span style="flex:1;font-size:.78rem;color:#c0b090">' + nomM + ' (' + prix + ' FR/unité) — vous en avez ' + qteDispo + '</span>';
-    html += '<input type="number" id="vendre-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + (qteDispo > 0 ? qteDispo : 1) + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.78rem;outline:none"/>';
-    // L'armurerie garde son propre ecran, mais pas son propre vocabulaire : VENDRE
-    // et DONNER y sont proposes comme dans l'interface commune, sur la meme
-    // primitive serveur. Le don ne sollicite pas la caisse et reste donc offert
-    // meme a une armurerie sans le sou.
-    const inactifArm = 'padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.72rem';
-    html += '<button ' + (qteDispo <= 0 ? 'disabled style="' + inactifArm + '"'
-      : 'onclick="confirmerVenteMatiere(\'' + m + '\',\'vente\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem"') + '>Vendre</button>';
-    html += '<button ' + (qteDispo <= 0 ? 'disabled style="' + inactifArm + '"'
-      : 'onclick="confirmerVenteMatiere(\'' + m + '\',\'don\')" style="padding:.3rem .6rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.72rem"')
-      + ' title="Céder cette quantité sans contrepartie. Possible même si la caisse est vide.">Donner</button>';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">Stock de matières premières et prix d\'achat pratiqués par l\'armurerie.</div>';
+  const prix = data.parametres?.prixAchatMatiere || {};
+  Object.entries(prix).forEach(([m, prixUnitaire]) => {
+    const res = typeof RESSOURCES_ECONOMIE !== 'undefined' ? RESSOURCES_ECONOMIE[m] : null;
+    const qteDispo = (state.inventory || []).filter(i => i.stackKey === m && (i.qty || 0) > 0)
+      .reduce((n,i) => n + Number(i.qty || 0),0);
+    const stockActuel = Number(data.stockMatieres?.[m] || 0);
+    const stockMax = STOCK_MAX_COMMERCE;
+    const placeRestante = Math.max(0, stockMax - stockActuel);
+    const vendable = Math.min(qteDispo, placeRestante);
+    html += '<div style="padding:.65rem;border:1px solid #455365;margin-bottom:.65rem">';
+    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + (res?.label || m) + ' : ' + stockActuel + '/' + stockMax + '</div>';
+    html += '<div style="font-size:.84rem;color:#a9b7c9;margin:.3rem 0">Prix d\'achat : ' + Number(prixUnitaire).toLocaleString('fr-FR') + ' ' + cur + ' / unité — Vous en possédez : ' + qteDispo + '</div>';
+    html += '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">';
+    html += '<label for="vendre-qte-' + m + '" style="font-size:.82rem;color:#c0b090">Quantité à céder</label>';
+    html += '<input type="number" id="vendre-qte-' + m + '" min="1" max="' + vendable + '" ' +
+      (vendable <= 0 ? 'disabled value="" placeholder="—"' : 'value="' + vendable + '"') +
+      ' style="width:76px;background:#202b39;border:1px solid #455365;color:#f0ead6;padding:.3rem;font-size:.85rem;outline:none"/>';
+    const inactif = 'padding:.3rem .6rem;border:1px solid #455365;background:transparent;color:#667080;cursor:default;font-size:.82rem';
+    html += '<button ' + (vendable <= 0 ? 'disabled style="' + inactif + '"' :
+      'onclick="confirmerVenteMatiere(\'' + m + '\',\'vente\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
+    html += '<button ' + (vendable <= 0 ? 'disabled style="' + inactif + '"' :
+      'onclick="confirmerVenteMatiere(\'' + m + '\',\'don\')" style="padding:.3rem .6rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.82rem"') + '>Donner</button>';
+    html += '</div>';
+    if (!qteDispo) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Vous ne possédez pas cette matière.</div>';
+    else if (!placeRestante) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Stock maximum atteint.</div>';
     html += '</div>';
   });
-  html += '<div style="font-size:.7rem;color:#5a5040;font-style:italic;margin-top:.6rem">Nécessite d\'avoir ces matières dans votre inventaire (achetées à l\'Entrepôt Logistique).</div>';
+  if (!Object.keys(prix).length) html += '<div style="font-size:.85rem;color:#8a8060">Aucune matière achetée actuellement.</div>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
