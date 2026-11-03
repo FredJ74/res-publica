@@ -481,10 +481,16 @@ function _dernierPassageForumId(forumId) {
 function marquerForumRubriqueVisitee(forumId) {
   const cle = _cleDernierPassageForumId(forumId);
   if (!cle) return;
-  try { localStorage.setItem(cle, new Date().toISOString()); } catch(e) {}
+  // Le timestamp du serveur prévaut si son horloge avance sur celle du navigateur.
+  // Sinon le même contenu réallume indéfiniment le point à chaque sondage.
+  const maintenant = new Date().toISOString();
+  const contenu = forumActiviteCache[forumId];
+  const passage = contenu && contenu > maintenant ? contenu : maintenant;
+  try { localStorage.setItem(cle, passage); } catch(e) {}
   forumActivite.forums[forumId] = false;
   const f = getForums()[forumId];
   recalculerActiviteForumAgregat(f?.cat);
+  if (typeof rafraichirVoyantsEtCompteursForum === 'function') rafraichirVoyantsEtCompteursForum();
 }
 
 // Point d'entree unique du sondage (60s + visibilitychange, cadence inchangee -- voir
@@ -537,6 +543,10 @@ async function verifierActiviteForumNonVue() {
       if (delta.curseurPosts) forumActiviteCurseur.posts = delta.curseurPosts;
     }
 
+    // Un forum d'une ancienne ville ne doit plus entretenir le voyant global.
+    Object.keys(forumActivite.forums).forEach(id => {
+      if (!(id in forums)) delete forumActivite.forums[id];
+    });
     Object.keys(forums).forEach(id => {
       const f = forums[id];
       const accessible = !f.private || canAccessForum(id);
@@ -567,7 +577,7 @@ function recalculerActiviteForumAgregat(categorieSeule) {
   const forums = getForums();
   const groupes = {};
   Object.entries(forums).forEach(([id, f]) => {
-    if (!f.cat) return;
+    if (!f.cat || (f.private && !canAccessForum(id))) return;
     groupes[f.cat] = !!groupes[f.cat] || !!forumActivite.forums[id];
   });
   if (categorieSeule) {
@@ -575,7 +585,8 @@ function recalculerActiviteForumAgregat(categorieSeule) {
   } else {
     forumActivite.groupes = groupes;
   }
-  forumActivite.global = Object.values(forumActivite.forums).some(Boolean);
+  forumActivite.global = Object.entries(forums).some(([id, f]) =>
+    (!f.private || canAccessForum(id)) && !!forumActivite.forums[id]);
   const dot = document.getElementById('forum-activity-dot');
   if (dot) dot.style.display = forumActivite.global ? 'inline-block' : 'none';
 }
@@ -626,7 +637,7 @@ function renderForumCategorieItems(cat) {
       parNational.map(([id, f]) => renderForumNavItem(id, f)).join('') +
       (institutions.length > 0 ? `<div class="forum-nav-item" onclick="toggleSousGroupeForum()">
         <i class="ti ti-building-bank" style="font-size:.85rem"></i>
-        <div><div class="forum-nav-name">Institutionnels</div></div>
+        <div><div class="forum-nav-name">Institutionnels${institutions.some(([id, f]) => (!f.private || canAccessForum(id)) && !!forumActivite.forums[id]) ? htmlPointRougeActivite('.4rem') : ''}</div></div>
         <i class="ti ti-chevron-right forum-categorie-chevron ${forumSousGroupeOuvert ? 'ouvert' : ''}" style="margin-left:auto"></i>
       </div>` +
         `<div class="forum-sousgroupe">` +
@@ -729,7 +740,8 @@ function renderForumSidebar() {
 function rafraichirVoyantsEtCompteursForum() {
   if (!document.getElementById('modal-forum')?.classList.contains('open')) return;
   const titreModal = document.getElementById('modal-forum-title');
-  if (titreModal) titreModal.innerHTML = 'Forum' + (forumADeLActiviteNonVue() ? htmlPointRougeActivite('.4rem') : '');
+  // La modalité indique précisément la rubrique dans la sidebar, pas sur le titre.
+  if (titreModal) titreModal.textContent = 'Forum';
   const sidebar = document.getElementById('forum-sidebar');
   if (sidebar) sidebar.innerHTML = renderForumSidebar();
 }
@@ -744,7 +756,7 @@ function renderForumModal() {
   // forum precis, peut l'eteindre.
   const forumNonVu = forumADeLActiviteNonVue();
   const titreModal = document.getElementById('modal-forum-title');
-  if (titreModal) titreModal.innerHTML = 'Forum' + (forumNonVu ? htmlPointRougeActivite('.4rem') : '');
+  if (titreModal) titreModal.textContent = 'Forum';
   modal.innerHTML = `
     <div class="forum-layout">
       <div class="forum-sidebar" id="forum-sidebar">${renderForumSidebar()}</div>
