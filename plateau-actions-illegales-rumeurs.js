@@ -5382,7 +5382,7 @@ async function confirmerProduction(produitId) {
 // des ventes d'armes -- contournement legal reel confirme par audit. Leur logique economique
 // (stock reel, prixVente, caisse, historique, taxes) est desormais fusionnee dans
 // confirmerAchatArme/confirmerAchatArmeIllegal ci-dessus, qui restent l'UNIQUE porte d'achat
-// et alimentent systematiquement sbEnregistrerVenteArme() cote legal.
+// et alimentent systematiquement inscription au registre par arme_acheter cote legal.
 
 // Fix 9 aout 2026 (confirme par test en jeu) : ne reconnaissait que la forme d'inventoire de
 // la recolte (type:'matiere_premiere'), jamais la forme empilable produite par un achat a
