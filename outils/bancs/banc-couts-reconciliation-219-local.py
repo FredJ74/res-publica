@@ -11,7 +11,7 @@ def main():
  from psycopg2.extras import Json
  # La capture brute reste privée hors Git. Le diff avant/après public suffit
  # pour reconstituer ce décor de TEST à partir du générateur (pas une preuve vivante).
- plan=json.loads((R/'outils/audits/LIVRAISON-COUTS-219-20261031.json').read_text());source=json.loads(subprocess.check_output(['python3',str(R/'outils/generateurs/generer_ordres_couts.py'),'--json'],text=True,cwd=R));canon={(x['fn'],x['pa'],x['cost']) for x in source}
+ plan=json.loads((R/'outils/audits/LIVRAISON-COUTS-219-20261031.json').read_text());source=json.loads(subprocess.check_output(['python3',str(R/'outils/generateurs/generer_ordres_couts.py'),'--json'],text=True,cwd=R));nouveaux={(x['fn'],x['pa'],x['cost']) for x in source if x['fn']=='ssm_demander_rendezvous'};assert nouveaux=={('ssm_demander_rendezvous',0,0)},'ordre SSM absent ou cout non canonique';canon={(x['fn'],x['pa'],x['cost']) for x in source if x['fn']!='ssm_demander_rendezvous'}
  retire={(x['fn'],x['pa'],x['cost']) for x in plan['retirer']};ajoute={(x['fn'],x['pa'],x['cost']) for x in plan['ajouter']};capture=sorted((canon-ajoute)|retire)
  assert len(capture)==plan['avant']['lignes']
  base=charger('base','outils/bancs/banc-inventaire-receptions-local.py');a=charger('sources','outils/bancs/banc-audit-securite-135-local.py')
@@ -51,5 +51,5 @@ def main():
  q.execute('BEGIN');v=achat(1);check(v['ok'],'achat légitime conservé');q.execute('RESET ROLE');q.execute("SELECT pa,liquide,jsonb_array_length(inventory) FROM personnages_donnees WHERE name='Fixture'");check(q.fetchone()==(29,400,1),'un PA, 600 FR, un objet serveur');q.execute('ROLLBACK');check(photo()==avant,'achat fictif intégralement annulé')
  q.execute('BEGIN');v=achat(0,380);check(v['ok'],'variante déclarée 380 FR et zéro PA conservée');q.execute('RESET ROLE');q.execute("SELECT pa,liquide FROM personnages_donnees WHERE name='Fixture'");check(q.fetchone()==(30,620),'variante sans mélange PA/prix');q.execute('ROLLBACK');check(photo()==avant,'variante fictive annulée')
  for t in [('choisir_arme',1,0),('donner_argent_pnj',1,0),('corrompre_fonct',3,500),('corrompre_fonct',3,1500),('corrompre_fonct#reussite',0,500),('corrompre_fonct#reussite',0,1500)]:check(t in matrice(),'coût légitime conservé '+str(t))
- c.close();srv.cleanup();print(json.dumps({'ok':True,'assertions':n,'source_lignes':len(canon),'ancien_miroir':len(capture),'production':False,'role_achats':'authenticated','limite':'Décor de test reconstitué du diff publié ; aucun nouvel export ni contrôle vivant.'},ensure_ascii=False,indent=2))
+ c.close();srv.cleanup();print(json.dumps({'ok':True,'assertions':n,'source_lignes':len(canon),'ancien_miroir':len(capture),'nouveau_ssm_hors_capture':list(nouveaux),'production':False,'role_achats':'authenticated','limite':'Décor de test reconstitué du diff publié ; aucun nouvel export ni contrôle vivant.'},ensure_ascii=False,indent=2))
 if __name__=='__main__':main()
