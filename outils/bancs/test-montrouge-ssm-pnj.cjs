@@ -40,3 +40,14 @@ test('navigation serveur limitée au nouveau bureau, sans modifier les positions
  assert.doesNotMatch(sql,/UPDATE\s+public\.personnages|DELETE\s+FROM\s+public\.personnages/i);
  assert.doesNotMatch(sql,/services-sociaux-montrouge.*parking-tribunal-montrouge/);
 });
+
+test('Edwige oriente sur les soins sans inventer de prestations',()=>{
+ const profileStart=profiles.indexOf("'edwige_jacquard': {");
+ const profileEnd=profiles.indexOf("\n  },",profileStart);
+ assert.ok(profileStart>=0&&profileEnd>profileStart);
+ const fiche=profiles.slice(profileStart,profileEnd);
+ for(const mot of ['dispensaire','gratuitement','0 PA','J0','J1','J2','20 PA','1 000 FR','30 FR','empoisonnement']){
+   assert.ok(fiche.includes(mot),'information manquante : '+mot);
+ }
+ assert.match(fiche,/sans prétendre fournir toi-même de soins/);
+});

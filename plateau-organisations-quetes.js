@@ -959,6 +959,32 @@ async function executerOrdreOrgaJauges(orgaId, fn, ordre, parametres = {}) {
   }
 }
 
+async function executerHooliganismeServeur(orga, ordre) {
+  const brut = typeof sbRpc === 'function'
+    ? await sbRpc('organisation_hooliganisme', { p_orga: orga.id }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
+  if (!r || r.ok !== true) {
+    const motifs = {
+      grade_insuffisant: 'Réservé aux Meneurs.',
+      pas_membre: "Vous n'êtes pas membre de cette organisation.",
+      ordre_hors_type: "Cet ordre n'existe pas pour ce type d'organisation.",
+      pa_insuffisants: ordre.pa + ' PA requis.'
+    };
+    showToast('Opération refusée', motifs[r?.raison] || "Le serveur n'a pas enregistré l'opération (" + (r?.raison || 'sans réponse') + ').', false);
+    return;
+  }
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+  if (r.pays === 'republic' && r.indices && typeof INDICES_VILLES_CACHE !== 'undefined') {
+    INDICES_VILLES_CACHE['republic_' + r.ville] = Object.assign({}, INDICE_VILLE_DEFAUT, r.indices);
+  }
+  if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('hooliganisme', null);
+  showToast('Échauffourées !', 'Les supporters sèment le chaos après le match. -5 Sécurité, -5 Social dans la ville.', true, true);
+  addJournalEntry('Échauffourées organisées par "' + orga.nom + '". Impact sur la sécurité et le climat social de la ville.', 'event-bad');
+  addExternalEvent('⚠️ Des échauffourées éclatent en marge d\'un match, attribuées aux supporters de "' + orga.nom + '".');
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+}
+
 async function executerOrdreOrga(orgaId, fn) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
@@ -1008,6 +1034,14 @@ async function executerOrdreOrga(orgaId, fn) {
     return;
   }
 
+  // ECHAUFFOUREES DECIDEES PAR LE SERVEUR (03/11/2026) : grade de Meneur, paiement, -5 Securite et
+  // -5 Social a la ville du PJ et trace penale (decouverte de minuit) dans organisation_hooliganisme.
+  // L'ecran posait la trace lui-meme (donc pouvait l'effacer) et ne baissait qu'une copie locale.
+  if (fn === 'orga_hooliganisme') {
+    await executerHooliganismeServeur(orga, ordre);
+    return;
+  }
+
   // Vérif coût financier (garde metier/financiere conservee). La disponibilite des PA est
   // desormais tranchee uniquement par deduireCoutOrdre() ci-dessous (Lot 1, correctif suite a
   // revue) -- plus de garde manuelle state.pa<..., qui bloquait a tort meme sous
@@ -1019,19 +1053,7 @@ async function executerOrdreOrga(orgaId, fn) {
   // fail-closed.
   const effets = {
     // orga_collecte / orga_dividendes : executerOrdreOrgaFinancier (serveur), plus d'effet local.
-    orga_hooliganisme:   () => {
-      const pays = state.country || 'republic';
-      if (INDICES_NATIONAUX[pays]) {
-        INDICES_NATIONAUX[pays].ISN = Math.max(0, INDICES_NATIONAUX[pays].ISN - 5);
-        INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - 5);
-      }
-      if (!state.historiqueCrimes) state.historiqueCrimes = [];
-      state.historiqueCrimes.push({ acte: 'hooliganisme', cible: null, jour: state.day, expireJour: (state.day||1) + 8 });
-      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('hooliganisme', null);
-      showToast('Échauffourées !', 'Les supporters sèment le chaos après le match. -5 Sécurité Nationale, -5 Social.', true, true);
-      addJournalEntry('Échauffourées organisées par "' + orga.nom + '". Impact sur la sécurité nationale et le climat social.', 'event-bad');
-      addExternalEvent('⚠️ Des échauffourées éclatent en marge d\'un match, attribuées aux supporters de "' + orga.nom + '".');
-    },
+    // orga_hooliganisme : executerHooliganismeServeur, sans effet local.
   };
 
   // ---------------------------------------------------------------------------
