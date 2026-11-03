@@ -97,9 +97,9 @@ test('DeepSeek : les deux agentes ont un corpus métier, pas le prompt des PNJ o
 });
 
 test('Besoin d’aide : orientation libre, quatre rubriques et portrait récupéré depuis le PNJ',()=>{
- assert.match(block,/fn:'ssm_besoin_aide', label:'Besoin d’aide \\?', pa:0, cost:0/);
- assert.match(router,/if \\(fn === 'ssm_besoin_aide'\\) \\{ ouvrirAidePascaleSsm\\(\\)/);
- assert.match(housing,/function ouvrirAidePascaleSsm\\(rubrique\\)/);
+ assert.match(block,/fn:'ssm_besoin_aide', label:'Besoin d’aide \?', pa:0, cost:0/);
+ assert.match(router,/if \(fn === 'ssm_besoin_aide'\) \{ ouvrirAidePascaleSsm\(\)/);
+ assert.match(housing,/function ouvrirAidePascaleSsm\(rubrique\)/);
  for(const rubrique of ['Se loger','Se nourrir','Se soigner','Trouver du travail'])assert.ok(housing.includes(rubrique),rubrique);
  const begin=housing.indexOf('function ouvrirAidePascaleSsm(rubrique)');
  const implementation=housing.slice(begin);
