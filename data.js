@@ -4686,6 +4686,7 @@ const BUILDINGS = {
         imageBg: 'linear-gradient(135deg,#403026,#8b6547)',
         persons: [{name:'Pascale (PNJ)', role:'Agente d’accueil des services sociaux', rel:'neutral', job:'citoyen'}],
         orders: [
+          {fn:'ssm_besoin_aide', label:'Besoin d’aide ?', pa:0, cost:0, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Pascale vous oriente gratuitement vers les services existants, sans rendez-vous.'},
           {fn:'ssm_demander_rendezvous', label:'Prendre rendez-vous avec Edwige Jacquard', pa:0, cost:0, type:'legal', icon:'ti-calendar-event', successRate:100, desc:'Pascale vous fixe un rendez-vous pour le lendemain et vous envoie immédiatement un courrier. Le bureau est accessible toute la journée prévue.'}
         ]
       },
