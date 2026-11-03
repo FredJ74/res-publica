@@ -6,7 +6,9 @@
 // Un appel travaille environ 1 s puis rend la main ; la page se recharge seule jusqu'à
 // « Terminé ». Protégée par une clé, à supprimer une fois l'opération faite.
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { decode, Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
+import jpeg from "npm:jpeg-js@0.4.4";
+import { PNG } from "npm:pngjs@7.0.0";
+import { Buffer } from "node:buffer";
 
 const CLE = "9D0z9f3_rGvoC0SV1kd0SHcQ";
 const SEUIL = 60000;
@@ -41,15 +43,33 @@ async function reduire(dataUrl: string): Promise<string | null> {
   if (deja) return deja.nouveau;
   const virgule = dataUrl.indexOf(",");
   if (virgule < 0) return null;
-  let img: any;
-  try { img = await decode(b64VersOctets(dataUrl.slice(virgule + 1))); } catch (_) { return null; }
-  if (!(img instanceof Image)) img = img?.[0]; // GIF : première image
-  if (!img) return null;
-  const echelle = Math.min(1, COTE / Math.max(img.width, img.height));
-  if (echelle < 1) img = img.resize(Math.max(1, Math.round(img.width * echelle)), Math.max(1, Math.round(img.height * echelle)));
-  const fond = new Image(img.width, img.height).fill(0xffffffff).composite(img, 0, 0);
-  const jpeg = await fond.encodeJPEG(80);
-  const nouveau = "data:image/jpeg;base64," + octetsVersB64(jpeg);
+  // PNG et JPEG seulement, decodeurs 100 % JavaScript (aucun module telecharge a la volee).
+  const octets = Buffer.from(b64VersOctets(dataUrl.slice(virgule + 1)));
+  let src: { width: number; height: number; data: Uint8Array };
+  try {
+    if (/^data:image\/png;/i.test(dataUrl)) src = PNG.sync.read(octets);
+    else if (/^data:image\/jpe?g;/i.test(dataUrl)) src = jpeg.decode(octets, { useTArray: true, maxMemoryUsageInMB: 1024 });
+    else return null;
+  } catch (_) { return null; }
+  // Reduction par moyenne de blocs, sur fond blanc (la transparence devient blanche).
+  const echelle = Math.min(1, COTE / Math.max(src.width, src.height));
+  const l = Math.max(1, Math.round(src.width * echelle)), h = Math.max(1, Math.round(src.height * echelle));
+  const out = new Uint8Array(l * h * 4);
+  for (let y = 0; y < h; y++) {
+    const y0 = Math.floor(y * src.height / h), y1 = Math.max(y0 + 1, Math.floor((y + 1) * src.height / h));
+    for (let x = 0; x < l; x++) {
+      const x0 = Math.floor(x * src.width / l), x1 = Math.max(x0 + 1, Math.floor((x + 1) * src.width / l));
+      let r = 0, g = 0, b = 0, n = 0;
+      for (let yy = y0; yy < y1; yy++) for (let xx = x0; xx < x1; xx++) {
+        const k = (yy * src.width + xx) * 4, a = src.data[k + 3] / 255;
+        r += src.data[k] * a + 255 * (1 - a); g += src.data[k + 1] * a + 255 * (1 - a); b += src.data[k + 2] * a + 255 * (1 - a); n++;
+      }
+      const o = (y * l + x) * 4;
+      out[o] = r / n; out[o + 1] = g / n; out[o + 2] = b / n; out[o + 3] = 255;
+    }
+  }
+  const jpg = jpeg.encode({ data: out, width: l, height: h }, 80).data as Uint8Array;
+  const nouveau = "data:image/jpeg;base64," + octetsVersB64(new Uint8Array(jpg));
   if (nouveau.length >= dataUrl.length) return null;
   await sb.from("portraits_recompression").upsert({
     empreinte: cle, nouveau, ancien_ko: Math.round(dataUrl.length / 1024), nouveau_ko: Math.round(nouveau.length / 1024),
@@ -79,13 +99,11 @@ async function nettoyer(v: any, fin: number): Promise<{ v: any; change: boolean;
   return { v, change: false, complet: true };
 }
 
+// Supabase sert les reponses des fonctions en texte brut : page lisible sans HTML.
 function page(titre: string, lignes: string[], recharger: boolean): Response {
-  const meta = recharger ? '<meta http-equiv="refresh" content="2">' : "";
-  return new Response(
-    `<!doctype html><meta charset="utf-8">${meta}<title>${titre}</title>` +
-      `<body style="font-family:sans-serif;padding:2rem"><h2>${titre}</h2><ul>${lignes.map((l) => `<li>${l}</li>`).join("")}</ul></body>`,
-    { headers: { "Content-Type": "text/html; charset=utf-8" } },
-  );
+  const suite = recharger ? "\n\n>>> Recharge la page (Cmd + R) pour continuer." : "";
+  return new Response(`${titre}\n\n${lignes.map((l) => "- " + l).join("\n")}${suite}\n`,
+    { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }
 
 Deno.serve(async (req) => {
@@ -98,7 +116,7 @@ Deno.serve(async (req) => {
   const { data: fiches, error: e1 } = await sb.rpc("portraits_lourds_lister");
   if (e1) return page("Erreur", [e1.message], false);
   for (const f of fiches || []) {
-    if (performance.now() > fin) return page("En cours…", [...journal, "La page se recharge seule."], true);
+    if (performance.now() > fin) return page("En cours…", [...journal, "Travail en cours."], true);
     const { data: ligne } = await sb.from("personnages_donnees").select("photo_url").eq("id", f.id).single();
     const ancien = ligne?.photo_url as string;
     const r = await reduire(ancien);
@@ -116,7 +134,7 @@ Deno.serve(async (req) => {
   const { data: editions, error: e2 } = await sb.rpc("editions_portraits_lourds_lister");
   if (e2) return page("Erreur", [...journal, e2.message], false);
   for (const ed of editions || []) {
-    if (performance.now() > fin) return page("En cours…", [...journal, "La page se recharge seule."], true);
+    if (performance.now() > fin) return page("En cours…", [...journal, "Travail en cours."], true);
     const { data: ligne } = await sb.from("journal_editions").select("faits_sources").eq("id", ed.id).single();
     const r = await nettoyer(ligne?.faits_sources, fin);
     if (r.change) {
@@ -124,7 +142,7 @@ Deno.serve(async (req) => {
       if (error) return page("Erreur", [...journal, `Édition ${ed.id} : ${error.message}`], false);
       journal.push(`Édition ${ed.id} allégée`);
     }
-    if (!r.complet) return page("En cours…", [...journal, "La page se recharge seule."], true);
+    if (!r.complet) return page("En cours…", [...journal, "Travail en cours."], true);
     await sb.rpc("editions_portraits_lourds_ignorer", { p_id: ed.id }); // édition traitée
   }
   return page("Terminé", [...journal, "Tous les portraits sont réduits. Tu peux fermer cette page."], false);
