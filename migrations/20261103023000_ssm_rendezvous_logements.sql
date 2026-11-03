@@ -2,11 +2,38 @@
 -- Réutilise le moteur de mail et la demande de logement social existants.
 -- Prévol des deux fonctions vivantes : 03/11/2026. Échec fermé si les corps divergent.
 
--- Cette commande est gratuite et n'utilise pas payer_ordre. Le triplet
--- 0 PA / 0 FR est malgré tout déclaré dans le miroir canonique des ordres.
-INSERT INTO public.ordres_couts(fn,pa,cost)
-VALUES ('ssm_demander_rendezvous',0,0)
-ON CONFLICT DO NOTHING;
+-- Même pour un ordre gratuit sans prélèvement, la source canonique contient
+-- le triplet. Le miroir de production et sa sentinelle évoluent ENSEMBLE,
+-- sous verrou et empreintes contrôlées. Les 461 coûts historiques ne changent pas.
+DO $coutssm$
+DECLARE h text; n bigint; sentinelle text;
+BEGIN
+ LOCK TABLE public.ordres_couts IN SHARE ROW EXCLUSIVE MODE;
+ SELECT count(*),md5(string_agg(fn||'|'||pa||'|'||cost,E'\\n'
+     ORDER BY fn COLLATE "C",pa,cost))
+   INTO n,h FROM public.ordres_couts;
+ SELECT empreinte INTO STRICT sentinelle
+ FROM public.ordres_couts_empreinte WHERE seul FOR UPDATE;
+ IF n=462 AND h='ff9d27096e7e8dbd3fbca1da39d0f2f5'
+   AND sentinelle='ff9d27096e7e8dbd' THEN RETURN; END IF;
+ IF n<>461 OR h<>'0ffc6e1caad1f58114eeba150d3d5f48'
+   OR sentinelle<>'0ffc6e1caad1f581' THEN
+   RAISE EXCEPTION 'ssm_miroir_couts_prevol_non_conforme';
+ END IF;
+ INSERT INTO public.ordres_couts(fn,pa,cost)
+ VALUES ('ssm_demander_rendezvous',0,0) ON CONFLICT DO NOTHING;
+ SELECT count(*),md5(string_agg(fn||'|'||pa||'|'||cost,E'\\n'
+     ORDER BY fn COLLATE "C",pa,cost))
+   INTO n,h FROM public.ordres_couts;
+ IF n<>462 OR h<>'ff9d27096e7e8dbd3fbca1da39d0f2f5' THEN
+   RAISE EXCEPTION 'ssm_miroir_couts_apres_non_conforme';
+ END IF;
+ UPDATE public.ordres_couts_empreinte
+ SET empreinte=left(h,16),pose_le=clock_timestamp()
+ WHERE seul;
+ IF NOT FOUND THEN RAISE EXCEPTION 'ssm_sentinelle_absente'; END IF;
+END
+$coutssm$;
 
 CREATE TABLE IF NOT EXISTS public.ssm_rendezvous (
   personnage text PRIMARY KEY,
