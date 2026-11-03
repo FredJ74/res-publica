@@ -10,7 +10,7 @@ const PORTES = {
     'executerOrdreTexte', 'traiterDemandeManifestation'],
   'plateau-actions-illegales-rumeurs.js': ['confirmerCorruptionRegistre'],
   'plateau-divers.js': ['appliquerMalusPopExcommunication'],
-  'plateau-justice-economie.js': ['appliquerBonusLocation'],
+  'plateau-justice-economie.js': ['appliquerBonusLocation', 'confirmerDonObjetPnj'],
   'plateau-multijoueur.js': ['payerEscorts'],
 };
 
@@ -42,6 +42,10 @@ test('les ordres morts interdire_manif_cible / reprimer_manif_cible ne sont plus
 
 // Don d'argent sur un terrain : la branche « promoteur » (+5 INF) est retirée ; les jets des
 // squatteurs (hors POP/INF) restent à l'écran, d'où une garde limitée aux jauges.
-test('confirmerDonArgent : aucune écriture locale de POP ou INF', () => {
-  assert.doesNotMatch(corps('plateau-justice-economie.js', 'confirmerDonArgent'), /state\.(pop|inf)\s*(=[^=]|\+=|-=)/);
-});
+for (const nom of ['confirmerDonArgent', 'confirmerDonPnj']) {
+  test(nom + ' : aucune écriture locale de POP ou INF, aucun débit local', () => {
+    const c = corps('plateau-justice-economie.js', nom).replace(/\/\/.*$/gm, '');
+    assert.doesNotMatch(c, /state\.(pop|inf)\s*(=[^=]|\+=|-=)/);
+    if (nom === 'confirmerDonPnj') assert.doesNotMatch(c, /state\.arg\s*(\+=|-=)/);
+  });
+}

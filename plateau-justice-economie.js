@@ -3857,46 +3857,51 @@ async function confirmerDonPnj(encodedPnj) {
     return;
   }
 
-  // Don a un PNJ : aucune ligne de personnage en face, l'argent est detruit. Le debit local reste
-  // donc le mecanisme (inchange), applique seulement une fois la branche PJ ecartee.
-  state.arg -= montant;
-  updateUI();
-  const dup = getStatEffective('DUP');
+  // DON A UN PNJ AU SERVEUR (#379, 03/11/2026). Le navigateur se debitait lui-meme (debit fictif :
+  // l'argent est protege en base) et s'ajoutait POP, INF, moral et sante. La commande don_argent_pnj
+  // verifie la presence du PNJ, tire le refus des metiers a risque, debite et applique les jauges
+  // dans une transaction, formules d'origine. Restent a l'ecran : les jets de DIS des metiers qui
+  // n'agissent que sur la DIS (commissaire, policier, inspecteur, juge, banquier).
   const nomCourt = pnj.name.replace(' (PNJ)','');
-  const jobsRisques = ['commissaire','policier','inspecteur','juge'];
-  const tauxRefus = jobsRisques.includes(job) ? Math.max(0, isn - 30) / 2 : 0;
-  const rollRefus = Math.floor(Math.random() * 100) + 1;
-  if (tauxRefus > 0 && rollRefus <= tauxRefus) {
-    state.arg += montant;
+  const v = await executerOrdreJaugesServeur('don_argent_pnj', { nom: nomCourt, montant });
+  if (!v) return;
+  if (typeof v.moral === 'number') state.moral = v.moral;
+  if (v.refuse) {
     state.dis = Math.max(0, (state.dis||50) - 15);
     updateUI();
     addJournalEntry('Don refuse par ' + nomCourt + '. -15 DIS.', 'event-bad');
     showToast('Refus indigne !', nomCourt + ' a refuse. -15 DIS.', false);
     return;
   }
-  const effets = {
-    serveur:     () => { state.moral=Math.min(100,(state.moral||50)+5); state.inf=Math.min(100,(state.inf||0)+2); showToast('Pourboire verse !','+5 Moral +2 INF.',true); addJournalEntry('Pourboire a '+nomCourt+'. +5 Moral +2 INF.','event-good'); },
-    barman:      () => { state.inf=Math.min(100,(state.inf||0)+5); showToast('Le barman apprecie !','+5 INF.',true,true); addJournalEntry('Don barman. +5 INF.','event-good'); },
-    commissaire: () => { const t=Math.min(70,30+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-5);showToast('Arrangement discret','-5 DIS.',true);addJournalEntry('Corruption commissaire. -5 DIS.','event-bad');}else{state.dis=Math.max(0,(state.dis||50)-20);showToast('Refus !','-20 DIS.',false);} },
-    policier:    () => { const t=Math.min(65,25+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-3);showToast('Il regarde ailleurs.','-3 DIS.',true);}else{state.dis=Math.max(0,(state.dis||50)-15);showToast('Refus !','-15 DIS.',false);} },
-    inspecteur:  () => { const t=Math.min(70,35+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-5);showToast('Inspecteur convaincu !','-5 DIS.',true);}else{state.dis=Math.max(0,(state.dis||50)-15);showToast('Refus !','-15 DIS.',false);} },
-    journaliste: () => { state.inf=Math.min(100,(state.inf||0)+8); state.pop=Math.min(100,(state.pop||0)+5); showToast('Article favorable !','+8 INF +5 POP.',true,true); addExternalEvent((state.char?.name||'Anonyme')+' beneficie d\'une couverture favorable.'); },
-    banquier:    () => { state.dis=Math.min(100,(state.dis||50)+5); showToast('Service discret.','+5 DIS.',true); },
-    medecin:     () => { const s=Math.min(25,Math.floor(montant/10)); state.hp=Math.min(100,(state.hp||100)+s); showToast('Soins off-record !','+'+s+' HP.',true); },
-    commercant:  () => { state.pop=Math.min(100,(state.pop||0)+4); state.inf=Math.min(100,(state.inf||0)+2); showToast('Reputation locale !','+4 POP +2 INF.',true); },
-    juge:        () => { const t=Math.min(55,20+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-8);showToast('Le juge est comprehensif.','-8 DIS.',true,true);}else{state.dis=Math.max(0,(state.dis||50)-25);showToast('SCANDALE !','-25 DIS.',false);} },
-    avocat:      () => { state.inf=Math.min(100,(state.inf||0)+5); showToast('L\'avocat note votre generosite.','+5 INF.',true); },
-    loge:        () => { state.inf=Math.min(100,(state.inf||0)+8); showToast('Don a la Loge.','+8 INF.',true,true); },
-    grand_pretre:() => { state.pop=Math.min(100,(state.pop||0)+5); state.moral=Math.min(100,(state.moral||50)+5); showToast('Don beni !','+5 POP +5 Moral.',true,true); },
-    escort:      () => { state.inf=Math.min(100,(state.inf||0)+6); showToast('Information exclusive !','+6 INF.',true,true); },
+  const dup = getStatEffective('DUP');
+  const jetDis = (base, plafond, gain, perte, okTxt, koTxt) => {
+    const t = Math.min(plafond, base + Math.floor(dup*2)); const r = Math.floor(Math.random()*100)+1;
+    if (r <= t) { state.dis = Math.max(0,(state.dis||50)-gain); showToast(okTxt, '-' + gain + ' DIS.', true); }
+    else { state.dis = Math.max(0,(state.dis||50)-perte); showToast(koTxt, '-' + perte + ' DIS.', false); }
   };
-  const effet = effets[job];
-  if (effet) { effet(); }
+  const gains = [];
+  if (v.gain_pop) gains.push('+' + v.gain_pop + ' POP');
+  if (v.gain_inf) gains.push('+' + v.gain_inf + ' INF');
+  if (v.gain_moral) gains.push('+' + v.gain_moral + ' Moral');
+  if (v.gain_hp) gains.push('+' + v.gain_hp + ' HP');
+  const txt = gains.join(' ');
+  const messages = {
+    serveur: ['Pourboire verse !', 'Pourboire a ' + nomCourt + '.'], barman: ['Le barman apprecie !', 'Don barman.'],
+    journaliste: ['Article favorable !', 'Don a ' + nomCourt + '.'], medecin: ['Soins off-record !', 'Don a ' + nomCourt + '.'],
+    commercant: ['Reputation locale !', 'Don a ' + nomCourt + '.'], avocat: ['L\'avocat note votre generosite.', 'Don a ' + nomCourt + '.'],
+    loge: ['Don a la Loge.', 'Don a la Loge.'], grand_pretre: ['Don beni !', 'Don a ' + nomCourt + '.'],
+    escort: ['Information exclusive !', 'Don a ' + nomCourt + '.']
+  };
+  if (v.job === 'commissaire') jetDis(30, 70, 5, 20, 'Arrangement discret', 'Refus !');
+  else if (v.job === 'policier') jetDis(25, 65, 3, 15, 'Il regarde ailleurs.', 'Refus !');
+  else if (v.job === 'inspecteur') jetDis(35, 70, 5, 15, 'Inspecteur convaincu !', 'Refus !');
+  else if (v.job === 'juge') jetDis(20, 55, 8, 25, 'Le juge est comprehensif.', 'SCANDALE !');
+  else if (v.job === 'banquier') { state.dis = Math.min(100,(state.dis||50)+5); showToast('Service discret.','+5 DIS.',true); }
   else {
-    const moralBonus = Math.min(8, Math.floor(montant / 50));
-    state.moral = Math.min(100,(state.moral||50)+moralBonus);
-    showToast('Don accepte.', nomCourt+' apprecie. +'+moralBonus+' Moral.', true);
-    addJournalEntry('Don a '+nomCourt+'.','event-good');
+    const m = messages[v.job] || ['Don accepte.', 'Don a ' + nomCourt + '.'];
+    showToast(m[0], (v.job in messages ? '' : nomCourt + ' apprecie. ') + txt, true, v.job === 'journaliste' || v.job === 'loge' || v.job === 'grand_pretre' || v.job === 'escort');
+    addJournalEntry(m[1] + (txt ? ' ' + txt + '.' : ''), 'event-good');
+    if (v.job === 'journaliste') addExternalEvent((state.char?.name||'Anonyme')+' beneficie d\'une couverture favorable.');
   }
   updateUI();
 }
@@ -3928,7 +3933,7 @@ async function confirmerDonObjetPnj(objIdx, encodedPnj) {
   const job = pnj.job || 'default';
   const nomCourt = pnj.name.replace(' (PNJ)','');
   document.getElementById('modal-postes').classList.remove('open');
-  let msg = '', bon = true;
+
   if (obj.type === 'colis_secret_pat') {
     // Quete Pat Hounette/Brigitte Menottes : ce colis n'est destine qu'a elle -- a tout autre
     // PNJ, transfert refuse plutot que de le laisser se perdre hors de la chaine de la quete
@@ -3953,33 +3958,33 @@ async function confirmerDonObjetPnj(objIdx, encodedPnj) {
     return;
   }
 
-  // Le retrait passe par le guichet serveur (chantier C, 14 septembre 2026) et precede tout
-  // effet : un refus laisse l'inventaire ET les ressources exactement en l'etat, jamais un gain
-  // d'INF/POP obtenu pour un objet qui serait reste en poche.
-  const rDon = await removeFromInventory(objIdx, 'remettre', { destinataire: nomCourt });
-  if (!rDon.ok) {
-    showToast('Impossible', messageRefusSortieInventaire(rDon.raison), false);
-    return;
-  }
-
-  if (obj.type === 'kompromat') {
-    if (['journaliste','redacteur'].includes(job)) {
-      state.inf=Math.min(100,(state.inf||0)+8); state.pop=Math.min(100,(state.pop||0)+5);
-      const cible=obj.cible||'une personnalite';
-      addExternalEvent('SCANDALE : Un kompromat sur '+cible+' a ete divulgue !');
-      msg='Le journaliste s\'empare du dossier. +8 INF +5 POP.';
-    } else {
-      state.inf=Math.min(100,(state.inf||0)+3);
-      msg=nomCourt+' prend le document. +3 INF.';
-    }
+  // DON D'OBJET A UN PNJ AU SERVEUR (#379, 03/11/2026). Le retrait de l'objet et les jauges sont
+  // une seule transaction (don_objet_pnj) : presence du PNJ verifiee, objet lu en base, formules
+  // d'origine (kompromat a un journaliste +8 INF +5 POP, a un autre +3 INF ; autre objet +3 Moral
+  // +2 INF). Un refus laisse l'inventaire et les jauges exactement en l'etat.
+  const signature = typeof signatureObjetInventaire === 'function' ? signatureObjetInventaire(obj) : null;
+  if (!signature) return;
+  const v = await executerOrdreJaugesServeur('don_objet_pnj', { nom: nomCourt, index: objIdx, signature });
+  if (!v) return;
+  if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
+  if (typeof renderInventory === 'function') renderInventory();
+  if (typeof v.moral === 'number') state.moral = v.moral;
+  const gains = [];
+  if (v.gain_pop) gains.push('+' + v.gain_pop + ' POP');
+  if (v.gain_inf) gains.push('+' + v.gain_inf + ' INF');
+  if (v.gain_moral) gains.push('+' + v.gain_moral + ' Moral');
+  let msg;
+  if (obj.type === 'kompromat' && v.scandale) {
+    addExternalEvent('SCANDALE : Un kompromat sur ' + (obj.cible || 'une personnalite') + ' a ete divulgue !');
+    msg = 'Le journaliste s\'empare du dossier. ' + gains.join(' ') + '.';
+  } else if (obj.type === 'kompromat') {
+    msg = nomCourt + ' prend le document. ' + gains.join(' ') + '.';
   } else {
-    state.moral=Math.min(100,(state.moral||50)+3); state.inf=Math.min(100,(state.inf||0)+2);
-    msg=nomCourt+' accepte le cadeau. +3 Moral +2 INF.';
-    addJournalEntry('Objet offert a '+nomCourt+'.','event-good');
+    msg = nomCourt + ' accepte le cadeau. ' + gains.join(' ') + '.';
+    addJournalEntry('Objet offert a ' + nomCourt + '.', 'event-good');
   }
   updateUI();
-  showToast(bon?'Don effectue !':'Action risquee.', msg, bon);
-  if (pnj.isPJ) tracerActionPourRumeur('don_objet', nomCourt);
+  showToast('Don effectue !', msg, true);
 }
 
 // doAcheterEntreprise : ancien ajout local sans appelant retire (chantier inventaire, 27/10).

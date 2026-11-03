@@ -76,6 +76,46 @@ INSERT INTO banc SELECT '3b_escort_impayee_partie',statut='disparu',statut FROM 
 INSERT INTO banc SELECT '3b_escort_payee_reste',statut='actif',statut FROM public.pnj_membres WHERE id='esc_ok';
 INSERT INTO banc SELECT '3b_recus_fermes_aux_clients',NOT has_table_privilege('authenticated','public.escorts_paies_recus','SELECT'),'';
 
+-- ===== 3c. Dons aux PNJ (dispatcher, rôle authenticated) =====
+-- BancChef au restaurant de La Républia (Marie Leblanc journaliste, Gaston Sauceblanche serveur).
+UPDATE public.personnages_donnees SET current_building='hotel-republica',current_room='restaurant',
+  inventory='[{"id":"k1","type":"kompromat","name":"Dossier","cible":"X"},{"id":"t1","type":"tract","name":"Tract"},{"id":"c1","type":"cadeau","name":"Fleurs"}]'
+ WHERE name='BancChef';
+SELECT 1 FROM (SELECT set_config('request.path','/rpc/jauges_ordre_executer',true)) z;
+SET LOCAL ROLE authenticated;
+DO $b$
+DECLARE r jsonb; av jsonb; ap jsonb; inv jsonb;
+BEGIN
+ av:=public.banc379_j('BancChef');
+ r:=public.jauges_ordre_executer('don_argent_pnj',gen_random_uuid(),'{"nom":"Marie Leblanc","montant":200}');
+ ap:=public.banc379_j('BancChef');
+ INSERT INTO banc VALUES('3c_argent_journaliste',coalesce((r->>'ok')::boolean,false) AND r->>'job'='journaliste'
+   AND (ap->>'arg')::numeric=(av->>'arg')::numeric-200 AND (ap->>'inf')::int=least(100,(av->>'inf')::int+8) AND (ap->>'pop')::int=least(100,(av->>'pop')::int+5),
+   r::text);
+ av:=ap;
+ r:=public.jauges_ordre_executer('don_argent_pnj',gen_random_uuid(),'{"nom":"Gaston Sauceblanche","montant":100}');
+ ap:=public.banc379_j('BancChef');
+ INSERT INTO banc VALUES('3c_argent_serveur_moral',(ap->>'moral')::int=(av->>'moral')::int+5 AND (ap->>'inf')::int=least(100,(av->>'inf')::int+2), r::text);
+ av:=ap;
+ r:=public.jauges_ordre_executer('don_argent_pnj',gen_random_uuid(),'{"nom":"Personne Inventee","montant":100}');
+ INSERT INTO banc VALUES('3c_pnj_absent_refuse',r->>'raison'='pnj_non_present' AND public.banc379_j('BancChef')=av, r::text);
+ r:=public.jauges_ordre_executer('don_argent_pnj',gen_random_uuid(),'{"nom":"Marie Leblanc","montant":99999999}');
+ INSERT INTO banc VALUES('3c_fonds_insuffisants_rien',r->>'raison'='fonds_insuffisants' AND public.banc379_j('BancChef')=av, r::text);
+ r:=public.jauges_ordre_executer('don_argent_pnj',gen_random_uuid(),'{"nom":"Marie Leblanc","montant":-5}');
+ INSERT INTO banc VALUES('3c_montant_negatif_refuse',r->>'raison'='contexte_invalide', r::text);
+ r:=public.jauges_ordre_executer('don_objet_pnj',gen_random_uuid(),'{"nom":"Marie Leblanc","index":1,"signature":{"id":"t1","type":"tract","name":"Tract"}}');
+ INSERT INTO banc VALUES('3c_tract_refuse',r->>'raison' IN('objet_non_donnable','objet_absent') AND public.banc379_j('BancChef')=av, r::text);
+ r:=public.jauges_ordre_executer('don_objet_pnj',gen_random_uuid(),'{"nom":"Marie Leblanc","index":0,"signature":{"id":"k1","type":"kompromat","name":"Dossier","cible":"X"}}');
+ ap:=public.banc379_j('BancChef');
+ inv:=r->'inventory';
+ INSERT INTO banc VALUES('3c_kompromat_journaliste',coalesce((r->>'ok')::boolean,false) AND (r->>'scandale')::boolean
+   AND jsonb_array_length(inv)=2 AND jsonb_typeof(r->'inventory')='array' AND (ap->>'inf')::int=least(100,(av->>'inf')::int+8),
+   r::text);
+END $b$;
+RESET ROLE;
+INSERT INTO banc SELECT '3c_objet_sorti_en_base',jsonb_array_length(inventory)=2 AND NOT inventory @> '[{"id":"k1"}]',inventory::text
+  FROM public.personnages_donnees WHERE name='BancChef';
+
 -- @@SUITE@@
 
 SELECT cas, ok, CASE WHEN ok THEN '' ELSE detail END FROM banc ORDER BY cas;
