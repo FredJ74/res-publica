@@ -41,12 +41,12 @@ test('parking : WebP authentique et deux PNJ raccordés, sans nouvel ordre', () 
   assert.ok(block.includes("imageUrl: 'images/montrouge/montrouge-parking.webp'"));
   assert.match(block,/name:'Jean Tarte'.*job:'agent_securite'/);
   assert.match(block,/name:'Basile Decoq'.*job:'criminel'/);
-  assert.match(block,/orders: \\[\\]/);
+  assert.ok(block.includes('orders: []'));
   for (const [nom,fichier] of [['Jean Tarte','jean-tarte.webp'],['Basile Decoq','basile-decoq.webp']]) {
     const photo=path.join(root,'images/personnages',fichier);
     assert.ok(fs.existsSync(photo),'portrait manquant : '+fichier);
     assert.equal(fs.readFileSync(photo).toString('ascii',8,12),'WEBP','portrait non WebP : '+fichier);
-    const ligne=block.split('\\n').find(l=>l.includes("name:'"+nom+"'"));
+    const ligne=block.split('\n').find(l=>l.includes("name:'"+nom+"'"));
     assert.ok(ligne,'personnage absent : '+nom);
     assert.ok(ligne.includes("photoUrl:'images/personnages/"+fichier+"'"),'portrait non raccordé : '+nom);
   }
