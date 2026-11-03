@@ -64,94 +64,9 @@ async function genererEvenementAleatoire() {
 
 // =====================
 
-// SONDAGES ABSURDES
-// =====================
-async function commanderSondage() {
-  const co = COUNTRIES[state.country];
-  const cur = co?.cur || 'FR';
-
-  const debit = await debiterFondsOrdinaires(200);
-  if (!debit.ok) {
-    showToast('Fonds insuffisants', '200 ' + cur + ' requis.', false);
-    return;
-  }
-
-  const sujets = [
-    'la popularité du fromage local comme symbole national',
-    'l\'opportunité de renommer la capitale',
-    'l\'instauration d\'une journée nationale obligatoire de sieste',
-    'la privatisation de la météo',
-    'l\'élection du PNJ le plus sympathique de la ville',
-    'l\'interdiction des réunions de plus de 3 personnes le lundi matin',
-    'la construction d\'une statue du fondateur de l\'empire',
-    'la légalisation du troc comme monnaie officielle',
-    'l\'obligation de porter un chapeau dans les institutions',
-    'la semaine de travail à 2 jours'
-  ];
-  const sujet = sujets[Math.floor(Math.random() * sujets.length)];
-  const empireStyle = EMPIRE_STYLES?.[state.country] || { tone: 'parodique', religion: 'la Foi Locale', leader: 'le Chef' };
-
-  const prompt = 'Tu travailles dans un institut de sondage parodique dans l\'empire ' + (co?.n || 'inconnu') + '. ' +
-    'Style : ' + empireStyle.tone + '. Religion locale : ' + empireStyle.religion + '. Chef suprême : ' + empireStyle.leader + '. ' +
-    'Génère un sondage absurde et parodique sur : ' + sujet + '. ' +
-    'Format : 1 question + 4 choix de réponse + 1 résultat fictif avec pourcentages. ' +
-    'Maximum 6 lignes. Très drôle et dans le style de l\'empire. Pas de vrais dieux.';
-
-  document.getElementById('postes-modal-title').textContent = 'Sondage en cours...';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Institut de Sondage au travail...</div>';
-  document.getElementById('modal-postes').classList.add('open');
-
-  try {
-    const r = await rpRedaction('sondage', prompt);
-    const resultat = r.texte || 'Sondage indisponible.';
-
-    document.getElementById('postes-modal-title').textContent = '📊 Sondage Officiel';
-    document.getElementById('postes-body').innerHTML =
-      '<div style="padding:1rem">' +
-      '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.6rem;font-style:italic">Commandé par ' + (state.char?.name || 'Anonyme') + ' · Coût : 200 ' + cur + '</div>' +
-      '<div style="font-size:.85rem;color:#c0a060;line-height:1.8;white-space:pre-line;font-family:Crimson Pro,Georgia,serif">' + resultat + '</div>' +
-      '<div style="margin-top:.8rem;display:flex;gap:.5rem">' +
-      '<button onclick="publierSondage(this.dataset.txt)" data-txt="' + resultat.replace(/"/g, '&quot;') + '"" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-news" style="font-size:.7rem"></i> Publier sur le forum</button>' +
-      '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #3a2a10;background:transparent;color:#6a5a30;cursor:pointer">Fermer</button>' +
-      '</div></div>';
-
-    state.inf = Math.min(100, (state.inf || 0) + 3);
-    updateUI();
-    addJournalEntry('Sondage commandé sur : ' + sujet + '. -200 ' + cur, 'event-info');
-
-  } catch(e) {
-    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a3a20">Erreur lors de la génération du sondage.</div>';
-  }
-}
-
-async function publierSondage(texte) {
-  document.getElementById('modal-postes').classList.remove('open');
-  if (typeof sbCreateTopic === 'function') {
-    const from = state.char?.name || 'Anonyme';
-    // Le sondage appartient a la ville ou il est lance (16 septembre 2026).
-    // ARGUMENTS DECALES CORRIGES (31/10/2026) : le texte du sondage partait comme AUTEUR et le
-    // nom du PJ comme pays ; la politique RLS refusait donc toujours le sujet (auteur different
-    // du personnage) alors que l'ecran annoncait « Sondage publie ! ». Le sujet porte maintenant
-    // l'auteur reel, le texte devient son premier message, et le succes n'est annonce qu'apres
-    // l'ecriture effective.
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
-    const topicId = await sbCreateTopic(typeof idForumLocal === 'function' ? idForumLocal() : 'local',
-      '📊 Sondage : ' + texte.substring(0, 50) + '...', from, state.country, time).catch(() => null);
-    const postId = topicId && typeof sbCreatePost === 'function'
-      ? await sbCreatePost(topicId, from, texte, time).catch(() => null) : null;
-    if (!topicId || !postId) {
-      showToast('Publication impossible', "Le forum n'a pas enregistré le sondage. Réessayez plus tard.", false);
-      return;
-    }
-    showToast('Sondage publié !', 'Visible sur le forum local.', true);
-    addJournalEntry('Sondage publié sur le forum.', 'event-info');
-  } else {
-    showToast('Forum indisponible', 'Impossible de publier.', false);
-  }
-}
-
-// =====================
-
+// SONDAGES : ancien producteur local retire (#379). Aucun ordre du catalogue
+// ne rappelle commanderSondage ou publierSondage ; l'ordre reel
+// commanditer_sondage est transactionnel dans jauges_ordre_executer.
 // =====================
 
 // INDICES IMPERIAUX - CORRIGE
