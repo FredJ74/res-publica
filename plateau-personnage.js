@@ -1113,8 +1113,9 @@ function handlePhotoFileChange(event) {
   const f = event.target.files[0];
   if (!f) return;
   const r = new FileReader();
-  r.onload = e => {
-    _photoTemp = e.target.result;
+  r.onload = async e => {
+    // Portrait reduit avant tout envoi (04/11/2026, #55/#60) : ~30 Ko au lieu de plusieurs Mo.
+    _photoTemp = (typeof rpReduirePortrait === 'function') ? await rpReduirePortrait(e.target.result) : e.target.result;
     document.getElementById('photo-preview-zone').innerHTML = '<img src="' + _photoTemp + '" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #8a6a20">';
   };
   r.readAsDataURL(f);
@@ -1133,6 +1134,7 @@ async function confirmerChangementPhoto() {
   if (typeof sbUpdatePhotoBio === 'function') {
     await sbUpdatePhotoBio(state.char.name, photoFinal, undefined).catch(() => {});
   }
+  if (typeof sbOublierAnnuaire === 'function') sbOublierAnnuaire();
 
   // Forcer la mise a jour du cache partage immediatement (sinon il faut attendre jusqu'a 60s)
   if (window._cachePhotosJoueurs && state.char.name) {

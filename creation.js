@@ -754,8 +754,9 @@ function adjStat(k,dir){
 function handlePhoto(inp){
   const f=inp.files[0]; if(!f) return;
   const r=new FileReader();
-  r.onload=e=>{
-    G.photoUrl=e.target.result;
+  r.onload=async e=>{
+    // Portrait reduit avant tout envoi (04/11/2026, #55/#60) : ~30 Ko au lieu de plusieurs Mo.
+    G.photoUrl=(typeof rpReduirePortrait==='function')?await rpReduirePortrait(e.target.result):e.target.result;
     document.getElementById('pprev').innerHTML=`<img src="${G.photoUrl}" class="pphoto" alt="Photo de profil"/>`;
   };
   r.readAsDataURL(f);
