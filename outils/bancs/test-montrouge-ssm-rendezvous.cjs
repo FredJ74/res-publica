@@ -60,10 +60,9 @@ test('l adjoint et Edwige utilisent la même RPC, sans attribuer directement un 
 
 test('les quatre scripts SSM restent versionnés après les autres chantiers',()=>{
  for(const name of ['data.js','plateau-navigation.js','plateau-logements-sociaux.js','plateau-router.js']){
-  const version = html.match(new RegExp(name.replace('.', '\\\\.') + '\\\\?v=([^"]+)'));
-  assert.ok(version && version[1],name+' sans version navigateur');
+  assert.ok(html.includes(name+'?v='),name+' sans version navigateur');
  }
- assert.match(html,/plateau-logements-sociaux\\.js\\?v=ssm-rdv-20261103/);
+ assert.ok(html.includes('plateau-logements-sociaux.js?v=ssm-rdv-20261103'));
 });
 
 test('écran : succès uniquement si serveur confirme ; aucun mail inventé en cas de refus',async()=>{
