@@ -172,6 +172,24 @@ DO $b$ DECLARE r jsonb; c0 jsonb; m0 jsonb; c1 jsonb; m1 jsonb; st jsonb; BEGIN
 END $b$;
 RESET ROLE;
 
+-- ===== Fermeture : la sauvegarde générale ne fabrique plus de jauges (20261104000000) =====
+-- Même montage que banc-pop-inf-forge-379.cjs : table témoin + trigger, navigateur simulé.
+CREATE OR REPLACE FUNCTION public.est_appel_serveur() RETURNS boolean LANGUAGE sql AS $$ SELECT false $$; -- annulé
+CREATE TEMP TABLE fiche(name text PRIMARY KEY, resources jsonb NOT NULL DEFAULT '{}'::jsonb) ON COMMIT DROP;
+CREATE TRIGGER controle BEFORE INSERT OR UPDATE ON fiche FOR EACH ROW EXECUTE FUNCTION public.personnages_fusionner_pop();
+INSERT INTO fiche VALUES ('F','{"pop":10,"inf":10,"dis":50}');
+SELECT 1 FROM (SELECT set_config('request.path','/rest/v1/personnages',true)) z;
+UPDATE fiche SET resources='{"pop":99,"popBase":10,"inf":99,"infBase":10,"dis":42}';
+INSERT INTO banc SELECT 'F_base_courante_falsifiee_ignoree',(resources->>'pop')::int=10 AND (resources->>'inf')::int=10
+  AND (resources->>'dis')::int=42 AND NOT resources ? 'popBase' AND NOT resources ? 'infBase',resources::text FROM fiche;
+UPDATE fiche SET resources='{"pop":3,"popBase":50,"inf":80,"infBase":1,"dis":42}';
+INSERT INTO banc SELECT 'F_base_perimee_deux_onglets_ignoree',(resources->>'pop')::int=10 AND (resources->>'inf')::int=10,resources::text FROM fiche;
+UPDATE fiche SET resources='{"dis":40}';
+INSERT INTO banc SELECT 'F_jauges_absentes_conservees',(resources->>'pop')::int=10 AND (resources->>'inf')::int=10,resources::text FROM fiche;
+SELECT 1 FROM (SELECT set_config('request.path','/rpc/jauges_ordre_executer',true)) z;
+UPDATE fiche SET resources='{"pop":17,"inf":12,"dis":40}';
+INSERT INTO banc SELECT 'F_commande_serveur_ecrit',(resources->>'pop')::int=17 AND (resources->>'inf')::int=12,resources::text FROM fiche;
+
 -- @@SUITE@@
 
 SELECT cas, ok, CASE WHEN ok THEN '' ELSE detail END FROM banc ORDER BY cas;
