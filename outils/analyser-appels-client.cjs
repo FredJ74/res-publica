@@ -2,7 +2,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path');
 const acorn=require(require.resolve('acorn',{paths:[path.join(__dirname,'e2e'),path.join(__dirname,'vercel')]}));
-const proteges=new Set(['inventory','arg','liquide','pa','hp','moral','group','employes','currentCity','currentBuilding','currentRoom','currentStreet','estEmprisonne','detentionQHS']);
+const proteges=new Set(['inventory','arg','liquide','pa','hp','moral','pop','inf','resources','group','employes','currentCity','currentBuilding','currentRoom','currentStreet','estEmprisonne','detentionQHS']);
 function analyser(fichiers,html=''){
  const definitions=[],appels=[],mutations=[],sql=[],inconnus=[];
  const propriete=n=>n?.type==='Identifier'?n.name:n?.type==='Literal'?String(n.value):null;
@@ -22,11 +22,18 @@ function analyser(fichiers,html=''){
      if((/^sb(?:Rpc|RpcVerdict|TransportRpc|Get|Update|Insert|Delete|Upsert|PatcherBlob)$/.test(n.callee.name)||n.callee.name==='executerReceptionInventaire'))sql.push({fonction:owner,fichier:nom,ligne,transport:n.callee.name,objet:n.arguments[0]?.type==='Literal'?n.arguments[0].value:'<dynamique>'});
     }else if(n.callee.computed)inconnus.push({fonction:owner,fichier:nom,ligne,type:'appel_calculé'});
     const cible=membre(n.callee);
+    if(cible==='Object.assign'&&membre(n.arguments[0])==='state'){
+     for(const arg of n.arguments.slice(1)){
+      if(arg.type==='ObjectExpression')for(const p of arg.properties||[]){const k=propriete(p.key);if(proteges.has(k))mutations.push({fonction:owner,fichier:nom,ligne,cible:'state.'+k,type:'fusion_objet'});}
+      else inconnus.push({fonction:owner,fichier:nom,ligne,type:'fusion_state_source_calculee'});
+     }
+    }
     if(cible?.startsWith('state.')&&/\.(push|splice|pop|shift|unshift)$/.test(cible)&&proteges.has(cible.split('.')[1]))mutations.push({fonction:owner,fichier:nom,ligne,cible,type:'mutation_tableau'});
    }
    if(n.type==='AssignmentExpression'||n.type==='UpdateExpression'){
     const cible=membre(n.left||n.argument);
     if(cible?.startsWith('state.')&&proteges.has(cible.split('.')[1]))mutations.push({fonction:owner,fichier:nom,ligne,cible,type:n.operator});
+    else if(cible==='state.*')inconnus.push({fonction:owner,fichier:nom,ligne,type:'affectation_state_calculee'});
    }
    if(n.type==='Literal'&&typeof n.value==='string')interfaceTexte(n.value,nom,ligne,owner);
    if(n.type==='TemplateElement')interfaceTexte(n.value.cooked||'',nom,ligne,owner);

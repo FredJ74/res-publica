@@ -2189,7 +2189,14 @@ async function commercePjActualiserPersonnage(options = {}) {
     if (version !== RP_CPJ_ETAT_VERSION || !Array.isArray(rows) || rows.length !== 1 || rows[0].user_id !== uid
         || state.char?.name !== nom || state.country !== pays || rpAuthUid() !== uid
         || (typeof rpAuthJeton === 'function' && (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) !== jeton)) return false;
-    if(options.social) { if(typeof rows[0].resources?.inf === 'number' && Number.isFinite(rows[0].resources.inf)) { state.inf=rows[0].resources.inf; state.char.resources={...state.char.resources,inf:state.inf}; } if(rows[0].stats) state.char.stats={...state.char.stats,...rows[0].stats}; }
+    if(options.social) {
+      if(typeof rows[0].resources?.inf === 'number' && Number.isFinite(rows[0].resources.inf)) {
+        if (typeof adopterJaugeServeur !== 'function') return false;
+        adopterJaugeServeur('inf', rows[0].resources.inf);
+        state.char.resources={...state.char.resources,inf:state.inf};
+      }
+      if(rows[0].stats) state.char.stats={...state.char.stats,...rows[0].stats};
+    }
     for (const champ of ['arg','liquide','hp','moral','pa']) {
       const valeur = rows[0][champ];
       if (typeof valeur === 'number' && Number.isFinite(valeur)) {

@@ -2420,23 +2420,26 @@ async function executerOrdreJaugesServeur(ordre, contexte = {}) {
   const c = contexteGroupePj();
   if (!c.nom || !c.uid || typeof sbRpcVerdict !== 'function') return null;
   const params = JSON.parse(JSON.stringify(contexte));
-  const cle = 'rp_jauges:' + JSON.stringify([c.uid, c.nom, ordre, params]);
+  const intention = JSON.stringify([c.uid, c.nom, ordre, params]);
+  const cle = 'rp_jauges:' + intention;
   if (RP_JAUGES_EN_COURS.has(cle)) return null;
   RP_JAUGES_EN_COURS.add(cle);
   try {
-    const requete = localStorage.getItem(cle) || crypto.randomUUID();
+    const empreinte = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(intention));
+    const stockage = 'rp_jauges:' + Array.from(new Uint8Array(empreinte), x => x.toString(16).padStart(2,'0')).join('');
+    const requete = localStorage.getItem(stockage) || crypto.randomUUID();
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requete)) return null;
-    localStorage.setItem(cle, requete);
+    localStorage.setItem(stockage, requete);
     const v = await sbRpcVerdict('jauges_ordre_executer', {p_ordre: ordre, p_requete: requete, p_contexte: params});
     if (!contexteGroupePjValide(c)) return null;
     if (v?.ok !== true) {
-      if (v?.raison && !v.transport) localStorage.removeItem(cle);
+      if (v?.raison && !v.transport) localStorage.removeItem(stockage);
       signalerRefusCout(v || {raison:'reponse_absente'});
       return null;
     }
     if (v.contrat_jauges !== 1 || v.acteur !== c.nom || v.requete !== requete || v.ordre !== ordre
         || ![v.pop,v.inf,v.pa,v.hp].every(x => typeof x === 'number' && Number.isFinite(x))) return null;
-    localStorage.removeItem(cle);
+    localStorage.removeItem(stockage);
     appliquerPaiementServeur(v);
     adopterJaugeServeur('pop', v.pop);
     adopterJaugeServeur('inf', v.inf);

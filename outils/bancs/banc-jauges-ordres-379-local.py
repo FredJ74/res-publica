@@ -21,15 +21,23 @@ def main():
   for n in ['mon_personnage','est_appel_serveur','est_mon_personnage','exiger_acteur']:q.execute(h.fonction('baseline/domaines/socle/20_fonctions.sql',n))
   q.execute(h.fonction('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre'))
   q.execute(h.fonction('baseline/domaines/militaire/20_fonctions-2.sql','militaire_inspection_perimetre'))
+  for n in ['forum_topics','forum_posts']:h.table(q,'baseline/domaines/communication/10_tables.sql',n)
+  h.table(q,'baseline/domaines/personnage-et-presence/10_tables.sql','organisations')
+  q.execute('ALTER TABLE forum_topics ADD PRIMARY KEY(id);ALTER TABLE forum_posts ADD PRIMARY KEY(id);ALTER TABLE forum_posts ADD FOREIGN KEY(topic_id)REFERENCES forum_topics(id);ALTER TABLE organisations ADD PRIMARY KEY(id)')
+  for n in ['hospitalisation_jour_pa0','hospitalisation_ecriture_j0_garder']:q.execute(h.fonction('migrations/20261101171000_hospitalisation_pa0.sql',n))
+  for n in ['forum_topics','forum_posts']:q.execute('CREATE TRIGGER trg_hospitalisation_ecriture_j0 BEFORE INSERT ON '+n+' FOR EACH ROW EXECUTE FUNCTION hospitalisation_ecriture_j0_garder()')
+  q.execute((R/'migrations/20261103010231_forum_publications_jauges_serveur.sql').read_text())
   q.execute((R/'baseline/seeds/95_a-regenerer/ordres_couts.sql').read_text())
   q.execute("INSERT INTO personnages_donnees(name,country,user_id,current_city,current_building,career,pa,hp,moral,resources,arg,liquide,stats)VALUES('Fixture','republic','00000000-0000-4000-9000-000000000001','capitale','assemblee','press',20,70,60,'{\"pop\":10,\"inf\":10,\"dis\":42}',100,100,'{\"INT\":12}');")
+  q.execute("INSERT INTO personnages_donnees(name,country,user_id,archetype,poste,pa,hp,moral,resources,arg,liquide)VALUES('AncienneFixture','republic','00000000-0000-4000-9000-000000000002','ambitieux','{\"id\":\"president\"}',20,70,60,'{\"pop\":10,\"inf\":85}',100,100)")
+  q.execute((R/'migrations/20261103011234_objectifs_secrets_jauges_serveur.sql').read_text())
   migration=(R/'migrations/20261103004219_jauges_ordres_transactionnels.sql').read_text();q.execute('SAVEPOINT installation');q.execute(migration);q.execute('ROLLBACK TO SAVEPOINT installation');q.execute("SELECT to_regprocedure('public.jauges_ordre_executer(text,uuid,jsonb)')IS NULL");assert q.fetchone()[0]
   q.execute(migration);q.execute(migration);cas.append({'cas':'installation_rollback_double_rejeu','ok':True})
   def own(sql,args=None):
    if sql.startswith('ROLLBACK'):q.execute(sql);q.execute('RESET ROLE');return
    q.execute('RESET ROLE');q.execute(sql,args)if args else q.execute(sql);return q.fetchone()[0]if q.description else None
-  def rpc(ordre,ident=1,ctx=None,cur=None):
-   cc=cur or q;cc.execute("SELECT set_config('role','authenticated',true),set_config('request.path','/rpc/jauges_ordre_executer',true),set_config('request.jwt.claim.sub','00000000-0000-4000-9000-000000000001',true)");cc.execute('SELECT public.jauges_ordre_executer(%s,%s,%s)',(ordre,f'00000000-0000-4000-9000-{ident:012d}',Json(ctx or {})));return cc.fetchone()[0]
+  def rpc(ordre,ident=1,ctx=None,cur=None,qui=1):
+   cc=cur or q;cc.execute("SELECT set_config('role','authenticated',true),set_config('request.path','/rpc/jauges_ordre_executer',true),set_config('request.jwt.claim.sub',%s,true)",(f'00000000-0000-4000-9000-{qui:012d}',));cc.execute('SELECT public.jauges_ordre_executer(%s,%s,%s)',(ordre,f'00000000-0000-4000-9000-{ident:012d}',Json(ctx or {})));return cc.fetchone()[0]
   def photo():return own("SELECT to_jsonb(d)FROM personnages_donnees d WHERE name='Fixture'")
   def case(n,fn):
    own('SAVEPOINT scenario')
@@ -95,6 +103,79 @@ def main():
    assert not own("SELECT has_function_privilege('anon','jauges_ordre_executer(text,uuid,jsonb)','EXECUTE')")
    assert not own("SELECT has_table_privilege('authenticated','jauges_actions_recus','INSERT')")
   case('recu_non_fabricable_par_client',droits)
+  def message(**kw):
+   return dict({'forum':'national','topic':None,'titre':'Sujet de fixture','contenu':'Texte réel fictif','blocs':[],'mise_en_page':None,'organisation':None,'secret':False,'icone':None},**kw)
+  def forum():
+   v=rpc('forum_publier',ctx=message());assert v['pop']==12 and v['pa']==20
+   r=rpc('forum_publier',2,message(topic=v['topic'],titre=None));assert r['pop']==13
+   assert own('SELECT count(*)FROM forum_topics')==1 and own('SELECT count(*)FROM forum_posts')==2
+   assert own('SELECT replies FROM forum_topics')==1
+   r=rpc('forum_publier',ctx=message());assert r['rejeu']and r['pop']==13 and own('SELECT count(*)FROM forum_posts')==2
+  case('forum_sujet_reponse_rejeu_meme_transaction',forum)
+  def forumdeux():
+   assert rpc('forum_publier',ctx=message())['pop']==12
+   assert rpc('forum_publier',2,message())['pop']==14
+  case('forum_deux_publications_legitimes_distinctes',forumdeux)
+  def forumfaux():
+   p=photo();assert rpc('forum_publier',ctx=message(pop=900))['raison']=='champs_interdits'and photo()==p
+   rpc('forum_publier',ctx=message());p=photo();assert rpc('forum_publier',ctx=message(contenu='autre'))['raison']=='requete_reutilisee'and photo()==p
+  case('forum_delta_et_requete_recyclee_refuses',forumfaux)
+  def forumprive():
+   p=photo();assert rpc('forum_publier',ctx=message(forum='gouvernement'))['raison']=='poste_requis'and photo()==p
+   own("UPDATE personnages_donnees SET career='craft'");assert rpc('forum_publier',ctx=message(forum='presse'))['raison']=='carriere_requise'
+   assert rpc('forum_publier',ctx=message(forum='presidence'))['raison']=='poste_requis'
+   own("INSERT INTO forum_topics(id,forum_id,title,author,country)VALUES('presse','presse','Autre sujet','AutreFixture','republic')")
+   assert rpc('forum_publier',ctx=message(topic='presse',titre=None))['pop']==11
+  case('forum_presse_presidence_reponses_publiques_gouvernement_prive',forumprive)
+  def forumterritoire():
+   for f in ['local_ville_a','tribunal_ville_b','inconnu']:
+    p=photo();assert rpc('forum_publier',ctx=message(forum=f))['raison']=='forum_inconnu'and photo()==p
+   own("INSERT INTO forum_topics(id,forum_id,title,author,country)VALUES('etranger','national','Sujet étranger','AutreFixture','soviet')")
+   assert rpc('forum_publier',ctx=message(topic='etranger',titre=None))['raison']=='territoire_invalide'
+  case('forum_restrictions_territoriales_et_sujet_absent',forumterritoire)
+  def organisation():
+   own("INSERT INTO organisations(id,country_origine,data)VALUES('o','republic','{\"nom\":\"Orga fixture\",\"chef\":\"AutreFixture\",\"membres\":[]}')")
+   assert rpc('forum_publier',ctx=message(organisation='o'))['raison']=='chef_organisation_requis'
+   assert rpc('forum_publier',ctx=message(forum='org_o'))['raison']=='membre_requis'
+   own("UPDATE organisations SET data='{\"nom\":\"Orga fixture\",\"chef\":\"Fixture\",\"membres\":[{\"nom\":\"Fixture\"}]}'")
+   v=rpc('forum_publier',ctx=message(forum='org_o',organisation='o',secret=True));assert v['pop']==12
+   assert own('SELECT author FROM forum_posts')=='Orga fixture'and own('SELECT author_real FROM forum_posts')=='Fixture'
+  case('forum_identite_organisation_et_membre_attestes',organisation)
+  def forumpanne():
+   own("CREATE FUNCTION fixture_refuser_post()RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RETURN NULL;END$$;CREATE TRIGGER fixture_refuser_post BEFORE INSERT ON forum_posts FOR EACH ROW EXECUTE FUNCTION fixture_refuser_post()")
+   p=photo();assert rpc('forum_publier',ctx=message())['raison']=='publication_refusee'and photo()==p
+   assert own('SELECT count(*)FROM forum_topics')==0 and own('SELECT count(*)FROM jauges_actions_recus')==0
+  case('forum_refus_post_annule_sujet_POP_et_recu',forumpanne)
+  def hospitalise():
+   own("UPDATE personnages_donnees SET hospitalisation=jsonb_build_object('regime','pa0','dateDebutParis',(now()AT TIME ZONE'Europe/Paris')::date::text)")
+   p=photo();assert rpc('forum_publier',ctx=message())['raison']=='publication_refusee'and photo()==p
+   assert own('SELECT count(*)FROM forum_topics')==0
+  case('forum_declencheur_hospitalisation_j0_preserve',hospitalise)
+  def layout():
+   v=rpc('forum_publier',ctx=message(mise_en_page={'version':1,'elements':[{'type':'image','src':'fixture.webp'}]}));assert v['pop']==12
+   assert own("SELECT content_layout->>'version'FROM forum_posts")=='1'
+  case('forum_composition_et_images_preservees',layout)
+  def objectifsanciens():
+   v=rpc('objectifs_actualiser',qui=2);assert v['inf']==85 and v['gain_inf']==0 and len(v['objectifs_completes'])==3
+  case('objectifs_eligibles_avant_bascule_aucun_recredit',objectifsanciens)
+  def objectifsnouveaux():
+   own("UPDATE personnages_donnees SET archetype='ambitieux',poste='{\"id\":\"president\"}'WHERE name='Fixture'")
+   v=rpc('objectifs_actualiser');assert v['inf']==12 and v['gain_inf']==2 and len(v['objectifs_nouveaux'])==2 and v['pa']==20
+   assert rpc('objectifs_actualiser',2)['gain_inf']==0 and rpc('objectifs_actualiser')['inf']==12
+   own("UPDATE personnages_donnees SET resources=jsonb_set(resources,'{inf}','80')WHERE name='Fixture'")
+   v=rpc('objectifs_actualiser',3);assert v['inf']==82 and v['gain_inf']==2 and v['objectifs_nouveaux']==['obj_inf80']
+   v=rpc('objectifs_actualiser');assert v['inf']==82 and len(v['objectifs_completes'])==3
+   own("UPDATE personnages_donnees SET resources=jsonb_set(resources,'{inf}','70')WHERE name='Fixture'");assert rpc('objectifs_actualiser',4)['gain_inf']==0
+   own("UPDATE personnages_donnees SET resources=jsonb_set(resources,'{inf}','80')WHERE name='Fixture'");assert rpc('objectifs_actualiser',5)['gain_inf']==0
+  case('objectifs_2_INF_par_lot_une_fois_meme_en_redevenant_eligible',objectifsnouveaux)
+  def objectifsrejeu():
+   own("UPDATE personnages_donnees SET archetype='ambitieux',poste='{\"id\":\"president\"}'WHERE name='Fixture'")
+   own((R/'migrations/20261103011234_objectifs_secrets_jauges_serveur.sql').read_text())
+   v=rpc('objectifs_actualiser');assert v['inf']==12 and v['gain_inf']==2
+  case('objectifs_rejouer_migration_ne_mange_pas_nouvelle_eligibilite',objectifsrejeu)
+  def objectifsfaux():
+   p=photo();assert rpc('objectifs_actualiser',ctx={'gain_inf':99,'acquis':['obj_inf80']})['raison']=='contexte_invalide'and photo()==p
+  case('objectifs_criteres_client_non_acceptes',objectifsfaux)
   c.commit()
   def agir():
    cc=psycopg2.connect(srv.get_uri())

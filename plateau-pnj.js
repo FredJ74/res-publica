@@ -3015,7 +3015,7 @@ async function confirmerFabriquerKompromat(nomAgent, nomCible) {
   const v = await executerReceptionInventaire('kompromat_fabriquer', { p_agent: nomAgent, p_cible: nomCible });
   if (!v) return;
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ arg: v.arg, liquide: v.liquide });
-  if (typeof v.inf === 'number') state.inf = v.inf;
+  if (typeof adopterJaugeServeur === 'function') adopterJaugeServeur('inf', v.inf);
   updateUI();
   const prompt = `Tu joues dans Res Publica, jeu politique parodique.
 ${nomAgent} a recueilli des informations compromettantes sur ${nomCible} dans l'empire ${co?.n}.
@@ -3374,7 +3374,11 @@ async function confirmerEscortPiege(nomCible, pa, cost) {
   const v = await executerReceptionInventaire('escort_piege_tenter', { p_cible: nomCible, p_pa: pa, p_cost: cost });
   if (!v) return;
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, arg: v.arg, liquide: v.liquide });
-  ['inf', 'pop', 'dis'].forEach(function (k) { if (typeof v[k] === 'number') state[k] = v[k]; });
+  if (typeof adopterJaugeServeur === 'function') {
+    adopterJaugeServeur('inf', v.inf);
+    adopterJaugeServeur('pop', v.pop);
+  }
+  if (typeof v.dis === 'number') state.dis = v.dis;
   updateUI();
 
   if (v.reussi) {

@@ -2926,7 +2926,7 @@ const OBJECTIFS_SECRETS = {
   }
 };
 
-function afficherObjectifsSecrets() {
+async function afficherObjectifsSecrets() {
   // Tant que le tronc commun de la quete d'accueil OU une branche specialisee (ex: Pat
   // Hounette/Brigitte Menottes cote criminel) est active, "Mes Objectifs" devient le carnet de
   // quete simple (action suivante a accomplir), pas le catalogue d'objectifs secrets
@@ -2949,21 +2949,12 @@ function afficherObjectifsSecrets() {
     return;
   }
 
+  await verifierObjectifs();
   const archetype = state.char?.archetype || 'ambitieux';
   const obj = OBJECTIFS_SECRETS[archetype] || OBJECTIFS_SECRETS.ambitieux;
   const completed = state.objectifs_completes || [];
 
-  // Vérifier nouvelles complétion
-  obj.objectifs.forEach(o => {
-    if (!completed.includes(o.id) && o.condition(state)) {
-      completed.push(o.id);
-      state.objectifs_completes = completed;
-      state.inf = Math.min(100, (state.inf||0) + Math.floor(o.points/5));
-      showToast('🎯 Objectif accompli !', o.desc + ' (+' + o.points + ' pts)', true);
-      addJournalEntry('🎯 Objectif secret accompli : ' + o.desc, 'event-good');
-    }
-  });
-
+  // Les points affichés restent descriptifs ; seule la récompense serveur donne de l’INF.
   const totalPoints = obj.objectifs.reduce((s,o) => s + (completed.includes(o.id) ? o.points : 0), 0);
   const maxPoints   = obj.objectifs.reduce((s,o) => s + o.points, 0);
 
@@ -2992,29 +2983,25 @@ function afficherObjectifsSecrets() {
 
 // Vérifier objectifs à chaque updateUI
 let _verifyingObjectifs = false;
-function verifierObjectifs() {
-  if (_verifyingObjectifs) return;
-  const archetype = state.char?.archetype;
-  if (!archetype || !OBJECTIFS_SECRETS[archetype]) return;
-  const obj = OBJECTIFS_SECRETS[archetype];
-  const completed = state.objectifs_completes || [];
-  let changed = false;
-  obj.objectifs.forEach(o => {
-    try {
-      if (!completed.includes(o.id) && o.condition(state)) {
-        completed.push(o.id);
-        state.objectifs_completes = completed;
-        changed = true;
-        showToast('🎯 Objectif accompli !', o.desc, true);
-        addJournalEntry('🎯 ' + o.desc, 'event-good');
-      }
-    } catch(e) {} // Condition peut échouer si state incomplet
-  });
-  if (changed) {
-    _verifyingObjectifs = true;
-    state.inf = Math.min(100, (state.inf||0) + 2);
-    _verifyingObjectifs = false;
-  }
+async function verifierObjectifs() {
+  if (_verifyingObjectifs || !state.char?.name || !OBJECTIFS_SECRETS[state.char?.archetype]
+      || typeof executerOrdreJaugesServeur!=='function')return;
+  const signature=JSON.stringify([state.char?.name,state.char?.archetype,state.poste,state.pop,state.inf,state.dis,state.banque,state.informateurs]);
+  if(state._objectifsSignatureConfirmee===signature)return;
+  _verifyingObjectifs=true;
+  try {
+    const v=await executerOrdreJaugesServeur('objectifs_actualiser');
+    if(!v||!Array.isArray(v.objectifs_completes)||!Array.isArray(v.objectifs_nouveaux))return;
+    state.objectifs_completes=v.objectifs_completes;
+    // Une réponse perdue peut avoir précédé un autre événement : ne pas figer une
+    // signature locale qui ferait oublier une nouvelle éligibilité au prochain geste.
+    state._objectifsSignatureConfirmee=v.rejeu?null:signature;
+    if(v.objectifs_nouveaux.length){
+      showToast('Objectifs accomplis','+2 INF pour ce nouveau lot (plafond 100).',true);
+      addJournalEntry('Objectifs nouveaux reconnus par le serveur : +2 INF par lot.','event-good');
+      updateUI();
+    }
+  } finally { _verifyingObjectifs=false; }
 }
 
 // =====================
