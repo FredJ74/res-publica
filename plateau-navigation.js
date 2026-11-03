@@ -312,7 +312,7 @@ async function commanderNavigationInterieure(buildingId,roomId) {
         membre_loge_requis:'Tous les membres du groupe doivent être admis dans la loge.',
         visite_refusee:'Les visites sont interdites à un membre de ce groupe.',
         acces_collectif_a_raccorder:'Cet accès particulier n’est pas encore disponible pour un groupe.',
-        batiment_ferme:'Ce bâtiment est fermé.',blocus_syndical:'Un blocus syndical interdit d’aller plus loin que la première pièce.',destination_inconnue:'Cette destination n’est pas référencée.',
+        batiment_ferme:'Ce bâtiment est fermé.',blocus_syndical:'Un blocus syndical interdit d’aller plus loin que la première pièce.',rendezvous_ssm_requis:'Le bureau d’Edwige Jacquard est accessible uniquement le jour de votre rendez-vous. Demandez un rendez-vous à Pascale, à l’accueil.',destination_inconnue:'Cette destination n’est pas référencée.',
         entree_non_accessible:'Ce bâtiment n’est pas accessible depuis votre position.',groupe_disperse:'Les membres du groupe ne sont plus réunis.'};
       const incident=r||v;
       const perdu=['non_authentifie','acteur_non_authentifie','session_perdue'].includes(incident?.raison)||incident?.transport?.etat==='session_perdue';

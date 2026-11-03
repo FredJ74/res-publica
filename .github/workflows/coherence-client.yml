@@ -41,6 +41,10 @@ jobs:
         run: npm ci --prefix outils/vercel --no-audit --no-fund
       - name: Installer les dépendances du pilote navigateur avant les bancs client
         run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Services sociaux Montrouge — rendez-vous, courrier et logements (hors production)
+        run: |
+          node --test outils/bancs/test-montrouge-ssm-rendezvous.cjs outils/bancs/test-montrouge-ssm-pnj.cjs
+          python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261103023000_ssm_rendezvous_logements.sql').read_text()); print('SQL SSM : syntaxe PostgreSQL valide')"
       - name: Commerce Premium PSM après lecture des baux
         run: node outils/bancs/banc-psm-premium-bail.cjs
       - name: Boutiques PSM — mêmes ordres et variantes que Luthécia
