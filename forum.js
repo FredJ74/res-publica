@@ -489,12 +489,31 @@ async function ouvrirForumSurTopic(topicId) {
   if(!await confirmerAdhesionsForums())return;
   if (!topicId) return;
   // Le sujet peut vivre dans n'importe quel forum : on le retrouve par son id, sans supposer
-  // lequel. Si le cache local ne l'a pas encore, openTopic le chargera.
+  // lequel. Un sujet absent du cache est résolu en lecture serveur puis par le chargeur commun.
   let forumTrouve = null;
   Object.keys(FORUM_TOPICS || {}).forEach(function (fid) {
     if ((FORUM_TOPICS[fid] || []).some(function (t) { return t.id === topicId; })) forumTrouve = fid;
   });
-  currentForumId = forumTrouve || currentForumId || idForumLocal();
+  if(!forumTrouve && typeof sbGet==='function') {
+    const contexte=cleContexteAccesForums();
+    let lignes;
+    try{lignes=await sbGet('forum_topics','id=eq.'+encodeURIComponent(topicId)+'&limit=1');}catch(_){}
+    if(contexte!==cleContexteAccesForums())return;
+    const sujet=Array.isArray(lignes)?lignes.find(t=>t.id===topicId):null;
+    const id=sujet?.forum_id;
+    if(id && getForums()[id] && canAccessForum(id)) {
+      // Même chargeur et même cache que la navigation ordinaire, pas de sujet
+      // recomposé depuis une URL ni de repli sur le forum local par défaut.
+      await loadForumTopicsFromSB(id);
+      if(contexte!==cleContexteAccesForums())return;
+      if((FORUM_TOPICS[id]||[]).some(t=>t.id===topicId))forumTrouve=id;
+    }
+  }
+  if(!forumTrouve) {
+    showToast('Sujet indisponible','La lecture n’a pas permis de confirmer ce sujet. Réessayez.',false);
+    return;
+  }
+  currentForumId = forumTrouve;
   if (!getForums()[currentForumId] || !canAccessForum(currentForumId)) {
     showToast('Accès restreint', 'Ce forum n’est pas accessible depuis votre position ou votre organisation.', false);
     return;

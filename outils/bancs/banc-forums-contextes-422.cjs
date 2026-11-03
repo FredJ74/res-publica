@@ -61,3 +61,11 @@ test('adhésions fraîches : changement de compte pendant la lecture, aucune ado
 test('adhésions fraîches : panne ne confirme aucun droit',async()=>{
  const c=scene();chargerReel(c);c.showToast=()=>{};c.sbLoadOrganisations=async()=>{throw Error('réseau');};assert.equal(await c.confirmerAdhesionsForums(),false);
 });
+for(const situation of ['autorise','hors-ville','tardive','absent'])test('lien direct non préchargé : '+situation,async()=>{
+ const c=scene(),d=differer();c.chargerOrganisations=async()=>true;c.showToast=()=>{};c.renderForumModal=()=>{};c.document.getElementById=()=>({classList:{add(){}}});let charges=0,ouverts=0;
+ c.sbGet=(_,filtre)=>{assert.match(filtre,/id=eq\.t/);return d.p;};
+ c.loadForumTopicsFromSB=async id=>{charges++;assert.equal(id,'national');c.get("FORUM_TOPICS.national=[{id:'t',posts:[]}]");};c.openTopic=id=>{ouverts++;assert.equal(id,'t');};
+ const p=c.ouvrirForumSurTopic('t');await new Promise(r=>setImmediate(r));if(situation==='tardive')c.uid='autre';
+ d.finir(situation==='absent'?[]:[{id:'t',forum_id:situation==='hors-ville'?'local_ville_a':'national',country:'republic'}]);await p;
+ assert.equal(charges,situation==='autorise'?1:0);assert.equal(ouverts,situation==='autorise'?1:0);
+});

@@ -15,7 +15,7 @@ publications officielles.
 Les réponses de sujets, messages, compteurs et activité sont maintenant liées à
 l'identité, la session, la position et l'adhésion. Les caches locaux sont renouvelés
 à l'aller et au retour ; les caches privés et leurs voyants sont purgés lors d'une
-perte d'accès. Une réponse vide confirmée ne conserve plus d'anciens messages. Le
+perte d'accès. Un lien direct non préchargé est résolu en lecture serveur puis via le même chargeur ; il ne suppose plus le forum local courant. Quatre contre-épreuves échouent sur `0ca1a6a0`, puis passent sur le correctif. Une réponse vide confirmée ne conserve plus d'anciens messages. Le
 délai de lecture est libéré et une ancienne requête ne déverrouille pas la suivante.
 
 L'ouverture et les accès directs par l'interface relisent les organisations avec
@@ -49,7 +49,7 @@ Voir `preuves-forums422-20261103/MANIFESTE.json` et les fichiers hachés.
 - Tables, vue `personnages`, identité et politiques réelles du baseline, rôles
   authenticated/anon et JWT fictifs. Chaque scénario est annulé ; cluster détruit.
   Ce décor ne constitue pas une reconstruction du catalogue vivant.
-- **17/17** cas de contexte client ; **19/19** cas territoriaux initiaux.
+- **21/21** cas de contexte client ; **19/19** cas territoriaux initiaux.
 - Contrôleur complet après installation des dépendances de main : **187/187 bancs**.
   Une première passe sans PGlite avait quatre erreurs d'environnement ; elles ont
   été réparées par `npm ci`, sans modifier les bancs POP/INF de Claude.
