@@ -38,7 +38,7 @@ test('parking : WebP authentique et deux PNJ raccordés, sans nouvel ordre', () 
   const end=data.indexOf("\n  },",start);
   assert.ok(start>=0&&end>start);
   const block=data.slice(start,end);
-  assert.match(block,/imageUrl: 'images\\/montrouge\\/montrouge-parking\\.webp'/);
+  assert.ok(block.includes("imageUrl: 'images/montrouge/montrouge-parking.webp'"));
   assert.match(block,/name:'Jean Tarte'.*job:'agent_securite'/);
   assert.match(block,/name:'Basile Decoq'.*job:'criminel'/);
   assert.match(block,/orders: \[\]/);
