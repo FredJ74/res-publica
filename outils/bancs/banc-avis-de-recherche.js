@@ -89,11 +89,15 @@ att('le cron a son propre appel, avec sa cible nommee',
 // 27 octobre 2026 (soir) : achats au marche noir, deputes et empoisonnement aussi, au serveur.
 // 31 octobre 2026 : l'echec de la dissimulation d'un cadavre inscrit l'avis au serveur
 // (terrain_occupation_action -> recherche_inscrire), plus par l'ecran.
+// 3 novembre 2026 : la rebellion reussie face aux agents inscrit l'avis au serveur
+// (arrestation_flagrant_choisir -> recherche_inscrire).
 att('les inscriptions restantes passent par le helper',
-    partout(/inscrireRecherche\(/g) >= 5, partout(/inscrireRecherche\(/g) + ' appel(s)');
+    partout(/inscrireRecherche\(/g) >= 4, partout(/inscrireRecherche\(/g) + ' appel(s)');
 // 27 octobre 2026 : le retrait apres justification a quitte l'ecran (convocation_se_justifier).
+// 3 novembre 2026 : le retrait du motif juge apres une arrestation se fait au serveur
+// (arrestation_flagrant_interne), dans la transaction qui ouvre la peine.
 att('les retraits restants passent par le helper',
-    partout(/retirerRecherche\(/g) >= 4, partout(/retirerRecherche\(/g) + ' appel(s)');
+    partout(/retirerRecherche\(/g) >= 3, partout(/retirerRecherche\(/g) + ' appel(s)');
 
 print('');
 print('3. LES HELPERS RECOPIENT L ETAT DU SERVEUR, ILS NE LE RECALCULENT PAS');
@@ -127,21 +131,13 @@ att('checkDetection est async',
     SRC['plateau-justice-economie.js'].indexOf('async function checkDetection(') >= 0);
 att('procederArrestation est async',
     SRC['plateau-justice-economie.js'].indexOf('async function procederArrestation(') >= 0);
-att('tenterResistance est async',
-    SRC['plateau-justice-economie.js'].indexOf('async function tenterResistance(') >= 0);
-
-// Le retrait suit désormais la confirmation et la relecture : aucun motif ne
-// disparaît à partir d'une détention anticipée dans le navigateur.
-var bArr = bloc('plateau-justice-economie.js', 'procederArrestation');
-att("dans procederArrestation, le retrait suit la détention confirmée et son rendu",
-    bArr.lastIndexOf('await retirerRecherche(') > bArr.lastIndexOf('state.estEmprisonne = frais.estEmprisonne')
-    && bArr.lastIndexOf('await retirerRecherche(') > bArr.lastIndexOf('afficherPositionNavigationConfirmee(frais)'),
-    'retrait a ' + bArr.lastIndexOf('await retirerRecherche(')
-    + ', drapeau a ' + bArr.lastIndexOf('state.estEmprisonne = frais.estEmprisonne')
-    + ', teleportation a ' + bArr.lastIndexOf('afficherPositionNavigationConfirmee(frais)'));
-att("une seule attente de retrait dans procederArrestation",
-    compte(sansCommentaires(bArr), /await retirerRecherche\(/g) === 1,
-    compte(sansCommentaires(bArr), /await retirerRecherche\(/g) + ' occurrence(s)');
+// 3 novembre 2026 : resistance et arrestation sont tranchees par le serveur
+// (arrestation_flagrant_choisir) ; l'ecran delegue et adopte la fiche relue.
+att('tenterResistance delegue au serveur',
+    /function tenterResistance\(\) \{ return choisirFlagrantDelit\('resistance'\); \}/.test(SRC['plateau-justice-economie.js']));
+var bArr = bloc('plateau-justice-economie.js', 'adopterArrestationServeur');
+att("l'arrestation adoptee ne retire plus de motif a l'ecran",
+    compte(sansCommentaires(bArr), /retirerRecherche\(/g) === 0);
 
 print('');
 print('6. LE CRON NE FAIT PLUS DE LECTURE-MODIFICATION-ECRITURE');
