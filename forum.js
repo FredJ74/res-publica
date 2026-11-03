@@ -30,7 +30,17 @@ function idForumLocal(villeId) {
   return 'local_' + v;
 }
 
+// Le catalogue global des organisations peut inclure celles auxquelles le PJ
+// n'adhère pas. Ne jamais en tirer une rubrique privée par simple existence.
+function estMembreOrganisationForum(o) {
+  const nom = (typeof state !== 'undefined' && state.char?.name) || null;
+  if (!nom || !o) return false;
+  return o.chef === nom || (Array.isArray(o.membres) &&
+    o.membres.some(m => (typeof m === 'string' ? m : m?.nom) === nom));
+}
+
 function getForums() {
+  if (typeof synchroniserCachesForumsTerritoriaux === 'function') synchroniserCachesForumsTerritoriaux();
   const villeId = (typeof state !== 'undefined' && state.currentCity) || 'capitale';
   const tribunalKey = 'tribunal_' + villeId;
   const villeNom = (typeof WORLD !== 'undefined' && typeof state !== 'undefined')
@@ -39,7 +49,7 @@ function getForums() {
 
   const orgForums = {};
   ((typeof state !== 'undefined' && state.organisations) || []).forEach(o => {
-    if (!o?.id) return;
+    if (!o?.id || !estMembreOrganisationForum(o)) return;
     orgForums['org_' + o.id] = {
       name: o.nom || 'Organisation',
       icon: 'ti-users-group',
@@ -88,6 +98,37 @@ const FORUM_TOPICS = {
   gouvernement: [], presse: []
 };
 
+// Les identifiants historiques (national, local_<ville>) sont utilisés par les
+// publications serveur. Leur territoire réel est la colonne country des sujets.
+// À un changement de pays, aucun cache d'un précédent pays ne doit être réutilisé.
+let forumPaysCache = null;
+let forumPaysGeneration = 0;
+function synchroniserCachesForumsTerritoriaux() {
+  const pays = typeof state !== 'undefined' ? state.country : null;
+  if (!pays || pays === forumPaysCache) return;
+  const ancien = forumPaysCache;
+  forumPaysCache = pays;
+  if (!ancien) return;
+  forumPaysGeneration++;
+  ['national', ...Object.keys(FORUM_TOPICS).filter(k => k.startsWith('local_'))].forEach(id => {
+    delete FORUM_TOPICS[id];
+    for (const nom of ['FORUM_LECTURE_TERMINEE', 'FORUM_LECTURE_ECHOUEE',
+      'FORUM_DERNIERE_LECTURE', 'FORUM_LECTURE_EN_COURS']) {
+      const cache = typeof globalThis !== 'undefined' ? globalThis[nom] : null;
+      if (cache) delete cache[id];
+    }
+  });
+  Object.keys(forumCompteursServeur).forEach(k => delete forumCompteursServeur[k]);
+  forumCompteursDernierChargement = 0;
+  forumCompteursIdentite = '';
+  Object.keys(forumActiviteCache).forEach(k => delete forumActiviteCache[k]);
+  Object.keys(forumActivite.forums).forEach(k => delete forumActivite.forums[k]);
+  forumActiviteCurseurEtabli = false;
+  if (currentForumId && currentForumId.startsWith('local_')) currentForumId = null;
+  currentTopicId = null;
+  if (typeof recalculerActiviteForumAgregat === 'function') recalculerActiviteForumAgregat();
+}
+
 // Les compteurs proviennent de la liste de forums autorisés et non du seul
 // forum dont le PJ a ouvert les sujets. Ils n'acquittent jamais une nouveauté.
 const forumCompteursServeur = Object.create(null);
@@ -105,7 +146,7 @@ async function rafraichirCompteursForums() {
   if (typeof sbCompterSujetsForums !== 'function') return;
   const forums = getForums();
   const ids = Object.keys(forums).filter(id => !forums[id].private || canAccessForum(id));
-  const identite = (state.char?.name || '') + '|' + (state.currentCity || '') + '|' + ids.join(',');
+  const identite = (state.char?.name || '') + '|' + (state.country || '') + '|' + (state.currentCity || '') + '|' + ids.join(',');
   if (forumCompteursChargement && forumCompteursIdentite === identite)
     return forumCompteursChargement;
   if (forumCompteursIdentite === identite &&
@@ -397,6 +438,10 @@ function onboardingArmerComposeCanvas() { onboardingComposeEnCours = true; }
 // tous « voir le programme » -- sans qu'aucun ecran de campagne ne duplique le forum.
 function ouvrirForumSurEditeur(forumId, titreSuggere) {
   currentForumId = forumId || idForumLocal();
+  if (!getForums()[currentForumId] || !canAccessForum(currentForumId)) {
+    showToast('Accès restreint', 'Ce forum n’est pas accessible depuis votre position ou votre organisation.', false);
+    return;
+  }
   currentTopicId = null;
   const f = getForums()[currentForumId];
   if (f?.cat) forumCategorieActive = f.cat;
@@ -426,6 +471,10 @@ function ouvrirForumSurTopic(topicId) {
     if ((FORUM_TOPICS[fid] || []).some(function (t) { return t.id === topicId; })) forumTrouve = fid;
   });
   currentForumId = forumTrouve || currentForumId || idForumLocal();
+  if (!getForums()[currentForumId] || !canAccessForum(currentForumId)) {
+    showToast('Accès restreint', 'Ce forum n’est pas accessible depuis votre position ou votre organisation.', false);
+    return;
+  }
   const f = getForums()[currentForumId];
   if (f?.cat) forumCategorieActive = f.cat;
   renderForumModal();
@@ -437,6 +486,8 @@ function ouvrirForumSurTopic(topicId) {
 // MODAL PRINCIPALE
 // =====================
 function openForum_module(forumId) {
+  synchroniserCachesForumsTerritoriaux();
+  if (forumId && (!getForums()[forumId] || !canAccessForum(forumId))) forumId = null;
   currentForumId = forumId || null;
   currentTopicId = null;
   forumView = 'list';
@@ -760,7 +811,7 @@ function toggleCategorieForum(cat) {
   forumCategorieActive = cat;
   forumView = 'list';
   const forums = getForums();
-  const premiereEntree = Object.entries(forums).find(([id, f]) => f.cat === cat);
+  const premiereEntree = Object.entries(forums).find(([id, f]) => f.cat === cat && canAccessForum(id));
   currentForumId = premiereEntree ? premiereEntree[0] : null;
   currentTopicId = null;
   renderForumModal();
@@ -837,6 +888,12 @@ function rafraichirVoyantsEtCompteursForum() {
 }
 
 function renderForumModal() {
+  const accessibles = getForums();
+  if (currentForumId && (!accessibles[currentForumId] || !canAccessForum(currentForumId))) {
+    currentForumId = null;
+    currentTopicId = null;
+    forumView = 'list';
+  }
   const modal = document.getElementById('forum-body');
   // Voyants de rubrique (revu le 22 aout 2026 : desormais un point par forum + par groupe, plus
   // seulement le point global -- voir la section "VOYANTS D'ACTIVITE FORUM, PAR RUBRIQUE"
@@ -859,10 +916,11 @@ function renderForumModal() {
 
 function canAccessForum(forumId) {
   const f = FORUMS[forumId];
-  if (!f || !f.private) return true;
+  if (!f) return false;
+  if (!f.private) return true;
   if (f.requiredOrgId) {
-    const orga = (state.organisations || []).find(o => o.id === f.requiredOrgId);
-    return !!orga && (orga.membres || []).some(m => m.nom === state.char?.name);
+    const orga = (state.organisations || []).find(o => String(o.id) === String(f.requiredOrgId));
+    return estMembreOrganisationForum(orga);
   }
   // Presse & Medias (correctif du 20 aout 2026) : lecture publique -- seule la CREATION d'un
   // nouveau sujet reste reservee (garde dedie dans submitComposeCanvas(), meme patron que
@@ -877,6 +935,11 @@ function canAccessForum(forumId) {
 }
 
 function switchForum(id) {
+  if (!getForums()[id] || !canAccessForum(id)) {
+    showToast('Accès restreint', 'Ce forum n’est plus accessible.', false);
+    renderForumModal();
+    return;
+  }
   currentForumId = id;
   currentTopicId = null;
   forumView = 'list';
@@ -2521,6 +2584,8 @@ async function loadForumTopicsFromSB(forumId) {
   }
   if (FORUM_LECTURE_EN_COURS[forumId]) return;
   FORUM_LECTURE_EN_COURS[forumId] = true;
+  const paysLecture = state.country;
+  const generationLecture = forumPaysGeneration;
   const debutLectureForum = Date.now();
   delete FORUM_LECTURE_TERMINEE[forumId];
   try {
@@ -2530,6 +2595,8 @@ async function loadForumTopicsFromSB(forumId) {
       sbLoadForumTopicsVerdict(forumId),
       new Promise(resolve => setTimeout(() => resolve({ ok: false, raison: 'delai_depasse' }), 12000))
     ]);
+    if (generationLecture !== forumPaysGeneration || paysLecture !== state.country) return;
+    if (!getForums()[forumId] || !canAccessForum(forumId)) return;
     if (!v.ok) {
       FORUM_LECTURE_ECHOUEE[forumId] = v.raison || 'transport_indisponible';
       console.error('loadForumTopicsFromSB: lecture indisponible (' + FORUM_LECTURE_ECHOUEE[forumId] + ')');
@@ -2569,6 +2636,7 @@ async function loadForumTopicsFromSB(forumId) {
     FORUM_LECTURE_ECHOUEE[forumId] = 'exception_lecture';
     console.warn('loadForumTopicsFromSB error', e);
   } finally {
+    if (generationLecture !== forumPaysGeneration || paysLecture !== state.country) return;
     delete FORUM_LECTURE_EN_COURS[forumId];
     FORUM_LECTURE_TERMINEE[forumId] = true;
     console.info('[Forum] Lecture ' + forumId + ' : ' + Math.round(Date.now() - debutLectureForum) + ' ms' + (FORUM_LECTURE_ECHOUEE[forumId] ? ' (échec)' : ''));
