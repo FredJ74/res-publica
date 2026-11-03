@@ -1719,7 +1719,8 @@ async function confirmerSubtilisationExplosif() {
     // Ne passe PAS par procederArrestation : celui-ci telporte au commissariat de la ville et
     // applique un bareme de peine, alors qu'il s'agit ici d'une sanction militaire propre.
     // Les autres motifs de recherche et de detention sont integralement preserves.
-    await placerAuQHS(pays, JOURS_QHS_SUBTILISATION, 'Vol de matériel militaire', CASERNE_CITY);
+    // Peine QHS ouverte par le serveur dans la transaction du vol (03/11/2026).
+    await placerAuQHS(verdict.arrestation);
     showToast('Pris sur le fait', 'La garde vous a surpris. Quartier Haute Sécurité, '
       + JOURS_QHS_SUBTILISATION + ' jours.', false, true);
     addJournalEntry('Subtilisation d\'explosifs : pris sur le fait. ' + JOURS_QHS_SUBTILISATION

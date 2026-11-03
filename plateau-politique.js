@@ -12762,7 +12762,18 @@ async function verifierMissionMilitaireEntree(buildingId, roomId) {
     }
     return false;
   }
-  if (det.mission === 'assassiner' || det.mission === 'arreter') {
+  if (det.mission === 'arreter') {
+    // L'INTERCEPTION EST TIREE PAR LE SERVEUR (03/11/2026) : soldats en mission « arreter »
+    // comptes a la position relue en base, jet min(90, 30 + 2 x soldats), arrestation ouverte
+    // dans la meme transaction.
+    if (typeof sbRpc !== 'function') return false;
+    const v = await sbRpc('militaire_detachement_arrestation', {}).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    if (!v || v.ok !== true || v.interpelle !== true) return false;
+    showToast('Arrêté(e) !', 'Le détachement militaire vous a intercepté.', false);
+    if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
+    return true;
+  }
+  if (det.mission === 'assassiner') {
     const chance = Math.min(90, 30 + det.nombre * 2); // plus le detachement est nombreux, plus le jet est favorable aux soldats
     const roll = Math.floor(Math.random() * 100) + 1;
     if (roll <= chance) {
@@ -12774,9 +12785,6 @@ async function verifierMissionMilitaireEntree(buildingId, roomId) {
         if (typeof declencherHospitalisation === 'function') declencherHospitalisation(palier);
         updateUI();
         showToast('Neutralisé(e) !', 'Le détachement militaire vous a pris pour cible. PV : ' + pv + '.', false);
-      } else if (det.mission === 'arreter' && typeof procederArrestation === 'function') {
-        showToast('Arrêté(e) !', 'Le détachement militaire vous a intercepté.', false);
-        procederArrestation('intrusion_zone_militaire', false, false);
       }
       return true;
     }
@@ -14056,16 +14064,13 @@ async function verifierCouvreFeu() {
   const enCouvreFeu = heure >= 20 || heure < 6;
   if (!enCouvreFeu || estExempteCouvreFeu()) return;
 
-  const chancePatrouille = 0.45;
-  if (Math.random() < chancePatrouille) {
-    const recidive = state.char?.violationsCouvreFeu > 0;
-    state.char.violationsCouvreFeu = (state.char?.violationsCouvreFeu || 0) + 1;
-    const dureeHeures = recidive ? 24 : null; // null = jusqu'a la fin du couvre-feu (6h)
-    if (typeof procederArrestation === 'function') {
-      showToast('Interpellé(e) !', 'Violation du couvre-feu' + (recidive ? ' (récidive, 24h de détention)' : ' (jusqu\'à la fin du couvre-feu)') + '.', false);
-      procederArrestation('violation_couvre_feu', false, false);
-    }
-  }
+  // LA PATROUILLE EST TIREE PAR LE SERVEUR (03/11/2026) : couvre-feu en vigueur, heure de Paris,
+  // exemptions et jet de 45 % relus en base ; l'arrestation est ouverte dans la meme transaction.
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('couvre_feu_patrouille', {}).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  if (!v || v.ok !== true || v.interpelle !== true) return;
+  showToast('Interpellé(e) !', 'Violation du couvre-feu.', false);
+  if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
 }
 
 // Applique la degradation quotidienne d'IS/POP tant que le couvre-feu est actif

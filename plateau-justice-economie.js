@@ -1119,99 +1119,108 @@ function ouvrirModalArrestation(acte) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function tenterCorruptionArrestation(peineType, cout, taux) {
-  const country = state.country || 'republic';
-  const cur = (window.COUNTRIES?.[country]?.cur) || 'FR';
-
-  if (state.arg < cout) {
-    showToast('Fonds insuffisants', `Il vous faut ${cout} ${cur} pour corrompre l'gent.`, false);
-    return;
-  }
-
-  state.arg -= cout;
-  const dup = getStatEffective('DUP');
-  const bonus = Math.floor(dup / 10) * 5;
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const tauxFinal = Math.min(85, taux + bonus);
-
-  // Répliques succès/échec par empire
-  const succesRepliques = {
+// PRIS SUR LE FAIT : LE CHOIX EST TRANCHE PAR LE SERVEUR (03/11/2026). La fenetre d'arrestation
+// n'existe que si une fonction serveur a pose un flagrant delit en attente (neutralisation d'un
+// depute ratee, empoisonnement rate). arrestation_flagrant_choisir tire le jet avec les formules
+// d'origine (corruption, fuite, resistance), applique DIS et PV, et ecroue le joueur avec le
+// bareme du serveur. L'ecran ne fait plus que raconter le verdict.
+const REPLIQUES_CORRUPTION_ARRESTATION = {
+  succes: {
     republic: "Très bien. Je n'ai rien vu. Je ne vois d'ailleurs jamais rien le mercredi.",
     narco:    "¡Excelente! El Don dit que la générosité est une vertu. Bonne journée, señor.",
     soviet:   "Le formulaire d'arrestation se sera... égaré. Ça arrive. Bonne journée, Camarade.",
     khalija:  "Que le Loukoum Divin bénisse votre générosité. Le Chambellan n'a rien remarqué."
-  };
-  const echecRepliques = {
+  },
+  echec: {
     republic: "Comment osez-vous ? Ajoutez 'tentative de corruption' au dossier. Et doublez la mise.",
     narco:    "¡Dios mío! Vous croyez que je suis corruptible ? Doublez et on en reparle.",
     soviet:   "Trahison contre-révolutionnaire ! Formulaire de corruption en quadruple. Plus deux ans.",
     khalija:  "Ô impudent ! Ceci est une insulte au protocole royal. Et le montant était insuffisant."
-  };
-
-  document.getElementById('modal-postes').classList.remove('open');
-
-  if (roll <= tauxFinal) {
-    state.dis = Math.max(0, state.dis - 10);
-    updateUI();
-    const rep = succesRepliques[country] || succesRepliques.republic;
-    showToast('Corruption réussie !', `"${rep}"`, true, true);
-    addJournalEntry(`Corruption réussie. -${cout} ${cur} · -10 DIS. Vous êtes libre.`, 'event-good');
-    // Effacer une infraction
-    if (state.recherche?.length > 0) state.recherche.pop();
-  } else {
-    state.dis = Math.max(0, state.dis - 15);
-    updateUI();
-    const rep = echecRepliques[country] || echecRepliques.republic;
-    showToast('Corruption ratée !', `"${rep}"`, false);
-    addJournalEntry(`Tentative de corruption échouée. -${cout} ${cur} · -15 DIS. Arrestation aggravée.`, 'event-bad');
-    procederArrestation(peineType, true, false);
   }
+};
+
+async function choisirFlagrantDelit(choix) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof sbRpc !== 'function') return false;
+  const v = await sbRpc('arrestation_flagrant_choisir', { p_choix: choix })
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  if (!v || v.ok !== true) {
+    const motifs = { fonds_insuffisants: 'Il vous faut 500 FR pour corrompre l’agent.',
+      aucun_flagrant: 'Les agents sont repartis : plus rien à négocier.' };
+    showToast('Action impossible', (v && motifs[v.raison]) || 'Le serveur n’a pas répondu. Rechargez le jeu.', false);
+    return false;
+  }
+  if (typeof v.dis === 'number') state.dis = v.dis;
+  if (typeof v.hp === 'number') state.hp = v.hp;
+  if (Array.isArray(v.recherche)) state.recherche = v.recherche;
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ liquide: v.liquide, arg: v.arg });
+  const pays = state.country || 'republic';
+  if (v.reussi) {
+    if (choix === 'corruption') {
+      showToast('Corruption réussie !', '"' + (REPLIQUES_CORRUPTION_ARRESTATION.succes[pays] || REPLIQUES_CORRUPTION_ARRESTATION.succes.republic) + '"', true, true);
+      addJournalEntry('Corruption réussie. −500 FR · −10 DIS. Vous êtes libre.', 'event-good');
+    } else if (choix === 'fuite') {
+      showToast('Fuite réussie !', 'Vous échappez aux policiers. −20 Discrétion.', true, true);
+      addJournalEntry('Vous avez pris la fuite face aux policiers. Votre discrétion chute.', 'event-bad');
+    } else {
+      showToast('Résistance réussie !', 'Vous vous échappez malgré tout. −30 DIS −15 PV.', true);
+      addJournalEntry('Vous avez résisté violemment aux forces de l\'ordre. Fortement recherché(e).', 'event-bad');
+    }
+    updateUI();
+    return true;
+  }
+  if (choix === 'corruption') {
+    showToast('Corruption ratée !', '"' + (REPLIQUES_CORRUPTION_ARRESTATION.echec[pays] || REPLIQUES_CORRUPTION_ARRESTATION.echec.republic) + '"', false);
+    addJournalEntry('Tentative de corruption échouée. −500 FR · −15 DIS. Arrestation aggravée.', 'event-bad');
+  } else if (choix === 'fuite') {
+    addExternalEvent('Tentative de fuite échouée. Arrestation avec circonstance aggravante.');
+  } else if (choix === 'resistance') {
+    addExternalEvent('Résistance aux forces de l\'ordre. Arrestation avec chef de rébellion.');
+  }
+  return adopterArrestationServeur(v.arrestation);
 }
 
-let arrestationHistoriqueEnCours = null;
-async function procederArrestation(acte, resistanceAggravante, demasque) {
-  // La porte historique décide toujours de la détention. Aucun état anticipé,
-  // débit local, perte de poste ou téléportation en cas de refus/réponse perdue.
-  const contexte = contexteInterceptionJudiciaire();
-  if (!contexte.nom || arrestationHistoriqueEnCours) return false;
-  arrestationHistoriqueEnCours = contexte;
-  try {
-    if (state.immuniteMilitaireActuelle) {
-      showToast('Immunité militaire', 'Vérifiez la situation militaire avant toute poursuite.', false);
-      return false;
+function tenterCorruptionArrestation() { return choisirFlagrantDelit('corruption'); }
+
+// « Se rendre » dans la fenetre d'arrestation. Le nom est garde pour les appelants historiques
+// (autres empires) : sans flagrant delit pose par le serveur, il n'y a plus d'arrestation.
+async function procederArrestation() { return choisirFlagrantDelit('reddition'); }
+
+// UNE ARRESTATION OUVERTE PAR LE SERVEUR (03/11/2026) : l'ecran relit la fiche, recopie la peine
+// et la position que le serveur a decidees, et ne pose rien lui-meme.
+let arrestationAdoptionEnCours = false;
+async function adopterArrestationServeur(arr) {
+  if (!arr || arr.ok !== true) {
+    if (arr && arr.raison === 'immunite_militaire') {
+      showToast('Immunité militaire', 'Votre statut militaire vous protège de l’arrestation.', false);
+    } else if (arr && arr.raison !== 'deja_detenu') {
+      showToast('Arrestation non confirmée', 'Le serveur n’a pas ouvert de détention.', false);
     }
-    const peine = getPeineParActe(acte, demasque);
-    const jours = peine.jours + (resistanceAggravante ? 2 : 0);
-    const motifs = [{type:peine.label, jour_fait:state.day, city:state.currentCity,
-      jours:peine.jours, source:'flagrant_delit', date_evenement:new Date().toISOString()}];
-    if (resistanceAggravante) motifs.push({type:'Résistance à l’arrestation',
-      jour_fait:state.day, city:state.currentCity, jours:2, source:'flagrant_delit'});
-    const id = await enregistrerDetention(contexte.nom, peine.label, state.day + jours,
-      undefined, state.currentCity, {country:state.country, motifs}).catch(() => null);
-    if (!contexteInterceptionJudiciaireValide(contexte)) return false;
-    // Même en cas de réponse perdue, la relecture peut retrouver une détention
-    // commise. Elle ne rejoue jamais l'ordre et n'invente aucune conséquence.
-    const frais = typeof sbLoadPersonnage === 'function'
-      ? await sbLoadPersonnage(contexte.nom).catch(() => null) : null;
-    if (!contexteInterceptionJudiciaireValide(contexte)) return false;
-    if (!frais || (contexte.uid && frais.userId !== contexte.uid) || !frais.estEmprisonne ||
-        (id && frais.estEmprisonne.detentionId !== id)) {
+    return false;
+  }
+  if (arrestationAdoptionEnCours || !state.char?.name || typeof sbLoadPersonnage !== 'function') return false;
+  arrestationAdoptionEnCours = true;
+  try {
+    const frais = await sbLoadPersonnage(state.char.name).catch(() => null);
+    if (!frais || !frais.estEmprisonne) {
       showToast('Arrestation non confirmée',
-        'La détention n’a pas pu être confirmée. Resynchronisez le jeu avant de poursuivre.', false);
+        'La détention n’a pas pu être relue. Resynchronisez le jeu avant de poursuivre.', false);
       return false;
     }
     state.estEmprisonne = frais.estEmprisonne;
+    if (frais.estEmprisonne.qhs === true) state.detentionQHS = { enQHS: true, paLimite1Jour: false };
     state.pa = frais.pa;
-    state.group = frais.group;
-    state._groupeConfirme = frais._groupeConfirme;
-    // Le serveur a déjà déplacé le PJ par le circuit carcéral commun.
+    state.recherche = frais.recherche || state.recherche;
+    if (frais.group !== undefined) state.group = frais.group;
+    if (frais._groupeConfirme !== undefined) state._groupeConfirme = frais._groupeConfirme;
+    // Le serveur a deja deplace le PJ par le circuit carceral commun.
     if (typeof afficherPositionNavigationConfirmee === 'function') afficherPositionNavigationConfirmee(frais);
+    else if (typeof teleporterVersCellule === 'function') teleporterVersCellule(state.estEmprisonne);
     if (typeof updateUI === 'function') updateUI();
-    addJournalEntry('Détention confirmée : ' + frais.estEmprisonne.raison + '.', 'event-bad');
-    if (id) await retirerRecherche([acte]);
+    addJournalEntry('Détention confirmée : ' + (arr.raison_peine || frais.estEmprisonne.raison) + ' (' + (arr.jours || frais.estEmprisonne.jours) + ' jour(s)).', 'event-bad');
     return true;
   } finally {
-    if (arrestationHistoriqueEnCours === contexte) arrestationHistoriqueEnCours = null;
+    arrestationAdoptionEnCours = false;
   }
 }
 
@@ -1266,45 +1275,15 @@ function teleporterVersCellule(detention) {
 //      de la sentence QHS du tribunal), jamais remplacee : les autres peines se purgent.
 //   3. La ville de retour est memorisee sur la detention, pour que la liberation ramene le
 //      joueur la ou il a ete pris, et non dans une ville quelconque.
-async function placerAuQHS(pays, jours, raison, villeRetour) {
-  const j = Math.max(1, Math.floor(Number(jours) || 1));
-  const nom = state.char?.name;
-  const maintenant = new Date().toISOString();
-  const motif = { type: raison, jour_fait: state.day, city: state.currentCity,
-                  jours: j, source: 'flagrant_delit', date_evenement: maintenant };
-
-  // LE PLACEMENT AU QHS EST UNE TRANSACTION SERVEUR (9 octobre 2026). La ligne du registre du
-  // QHS et le drapeau de la fiche etaient deux ecritures clientes avalees, posees APRES coup et
-  // dans les DEUX branches -- et le drapeau partait en JSON.stringify sur une colonne jsonb, donc
-  // sous une forme que pa_repos_nocturne ne sait pas lire : le plafond de PA du quartier ne
-  // s'appliquait jamais aux QHS poses par le navigateur. Les deux portes serveur les posent
-  // desormais elles-memes, dans la transaction de la peine : detention_prolonger_soi quand la
-  // sanction s'AJOUTE a une peine en cours, detention_ouvrir_soi quand elle en ouvre une.
-  // Aucune des deux regles ne change : la bascule reste additive sur un detenu, une peine neuve
-  // de j jours sur une personne libre.
-  let ok = false;
-  if (state.estEmprisonne && state.estEmprisonne.detentionId && typeof prolongerDetentionActive === 'function') {
-    ok = await prolongerDetentionActive(nom, [motif], true);
-    if (ok) {
-      state.estEmprisonne.qhs = true;
-      if (!state.estEmprisonne.retourVille) state.estEmprisonne.retourVille = villeRetour || null;
-    }
-  } else if (typeof enregistrerDetention === 'function') {
-    const jourFin = (state.day || 1) + j;
-    ok = !!(await enregistrerDetention(nom, raison, jourFin, true, 'qhs',
-      { country: pays, motifs: [motif], retourVille: villeRetour || null }));
-  }
-  // VERDICT CONSOMME : sans peine en base, personne n'est teleporte au quartier de haute
-  // securite -- un joueur enferme dans une zone speciale sans peine n'aurait aucune sortie.
-  if (!ok) {
-    showToast('Transfert impossible', 'Le quartier de haute securite n\'a pas enregistre votre arrivee. Aucune peine n\'a ete ouverte.', false);
-    return;
-  }
+// Le serveur (militaire_subtiliser_tenter) a deja ouvert la peine au QHS ou l'a prolongee, et
+// memorise la caserne comme ville de retour (03/11/2026). L'ecran adopte et conduit en cellule.
+async function placerAuQHS(arrestation) {
+  const ok = await adopterArrestationServeur(arrestation);
+  if (!ok) return false;
   state.detentionQHS = { enQHS: true, paLimite1Jour: false };
-
   teleporterVersCellule(state.estEmprisonne);
   updateUI();
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+  return true;
 }
 
 // LA FIN D'UNE PEINE EST UNE TRANSACTION SERVEUR (9 octobre 2026). Cette fonction ecrivait
@@ -1381,46 +1360,9 @@ async function verifierLiberationPrisonniers() {
   }
 }
 
-function tenterFuite() {
-  document.getElementById('modal-postes').classList.remove('open');
-  const vol = getStatEffective('VOL');
-  const bonus = Math.floor(state.dis / 10) + Math.floor(vol / 2);
-  const taux = Math.min(70, 30 + bonus);
-  const roll = Math.floor(Math.random() * 100) + 1;
+function tenterFuite() { return choisirFlagrantDelit('fuite'); }
 
-  if (roll <= taux) {
-    state.dis = Math.max(0, state.dis - 20);
-    updateUI();
-    showToast('Fuite reussie !', 'Vous echappez aux policiers. -20 Discretion.', true, true);
-    addJournalEntry('Vous avez pris la fuite face aux policiers. Votre discretion chute.', 'event-bad');
-  } else {
-    addExternalEvent('Tentative de fuite echouee. Arrestation avec circonstance aggravante.');
-    const peineType = state.recherche?.[0]?.acte || 'delit_mineur';
-    procederArrestation(peineType, true, false);
-  }
-}
-
-async function tenterResistance(peineType) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const vol = getStatEffective('VOL');
-  const taux = Math.min(30, vol * 2);
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    state.dis = Math.max(0, state.dis - 30);
-    state.hp = Math.max(1, state.hp - 15);
-    updateUI();
-    showToast('Resistance reussie !', 'Vous vous echappez malgre tout. -30 DIS -15 HP.', true);
-    addJournalEntry('Vous avez resiste violemment aux forces de l\'ordre. Fortement recherche(e).', 'event-bad');
-    // Aggravation du statut
-    await inscrireRecherche({ acte: 'rebellion', type: 'delit_grave', jour: state.day });
-  } else {
-    addExternalEvent('Resistance aux forces de l\'ordre. Arrestation avec chef de rebellion.');
-    procederArrestation(peineType, true, false);
-    state.hp = Math.max(1, state.hp - 20);
-    updateUI();
-  }
-}
+function tenterResistance() { return choisirFlagrantDelit('resistance'); }
 
 // Resout la provenance d'un jugement vers son nom de ville affichable, en reutilisant
 // exclusivement les donnees WORLD deja existantes (aucune table de correspondance codee en dur).
@@ -8666,7 +8608,8 @@ async function doCorrompreFonctionnairePermis(pa, cost) {
   if (v.decouvert) {
     showToast('Corruption découverte !', 'Le fonctionnaire vous dénonce.', false);
     addJournalEntry('Tentative de corruption d\'un fonctionnaire découverte (-' + cost + ' FR).', 'event-bad');
-    if (typeof procederArrestation === 'function') procederArrestation('corruption_fonctionnaire', false, false);
+    // Le serveur a ecroue le joueur dans la meme transaction (terrain_permis_corrompre, 03/11/2026).
+    if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
     return;
   }
   showToast('Dossier accéléré', 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', true, true);
@@ -10897,100 +10840,13 @@ async function confirmerSubventionMinInt(pa, cost) {
 // du fait d'origine (dont on ne connait, au mieux, qu'un jour de jeu sans ancrage calendaire
 // fiable -- voir jour_fait, jamais affiche). L'affichage (ouvrirDetailDetention) choisit le
 // libelle honnete selon `source`, jamais "date des faits" pour un motif dont ce n'est pas le cas.
-async function enregistrerDetention(nom, raison, jourFin, qhs, city, opts) {
-  const contexte = contexteInterceptionJudiciaire();
-  if (nom !== contexte.nom) return null;
-  opts = opts || {};
-  const jourDebut = state.day || 1;
-  const country = opts.country || state.country || 'republic';
-  const villeReelle = city || state.currentCity || 'capitale';
-  const motifs = (opts.motifs && opts.motifs.length) ? opts.motifs : [{
-    type: raison,
-    jour_fait: jourDebut,
-    city: villeReelle,
-    jours: (jourFin !== undefined && jourFin !== null) ? (jourFin - jourDebut) : null,
-    source: opts.source || 'legacy',
-    date_evenement: new Date().toISOString()
-  }];
-
-  // UNE INCARCERATION EST UNE TRANSACTION SERVEUR (9 octobre 2026). Cette fonction enchainait
-  // deux ecritures independantes -- `detentions` (dont le retour etait lu mais jamais teste) puis
-  // `personnages.est_emprisonne` (avalee). Un detenu pouvait donc exister dans une table et pas
-  // dans l'autre, et quand c'etait l'insertion qui echouait, `detentionId: null` partait quand
-  // meme sur la fiche : la peine devenait introuvable pour toute prolongation ou liberation.
-  //
-  // detention_ouvrir_soi fait les deux dans la meme transaction. Sa cible est TOUJOURS le joueur
-  // courant -- c'est deja le cas de tous les appelants de cette fonction, l'incarceration d'un
-  // tiers passant par justice_executer_condamnation depuis le 16 septembre 2026 -- et le serveur
-  // la lit par mon_personnage() plutot que de la recevoir.
-  //
-  // Ce qui est desormais construit PAR LE SERVEUR et non plus ici :
-  // - city/country sur est_emprisonne (lot "salle des geoles", 26 aout 2026), qui permettent a la
-  //   salle des geoles de savoir QUELLE prison heberge reellement chaque detenu, independamment
-  //   de la ville de condamnation ;
-  // - debutTs, l'ANCRE TEMPS REEL (chantier A / P0-3, 14 septembre 2026) : jourFin s'exprime en
-  //   state.day, compteur PRIVE de chaque personnage, dont le serveur ne peut rien deduire. Sans
-  //   cette ancre, une peine n'expirait que si son detenu revenait se connecter. Le filet de
-  //   securite nocturne (libererDetentionsEchuesServeur) libere a debutTs + jours x 24 h ;
-  // - jour_debut, pris sur la colonne `day` de la fiche plutot que sur state.day, dont elle est
-  //   le miroir : le jour de la peine n'est plus a la main du navigateur.
-  // `jourFin == null` AVANT isFinite : Number(null) vaut 0, qui est fini -- une peine sans terme
-  // aurait donc traverse la garde et ouvert une peine de zero jour, purgeable le jour meme.
-  // Defaut trouve par banc-detention-plateau, 9 octobre 2026.
-  if (jourFin === null || jourFin === undefined || !Number.isFinite(Number(jourFin))) {
-    // Aucun appelant ne fait cela aujourd'hui, et une peine sans terme n'expirerait jamais
-    // (state.day >= null est faux) : on refuse plutot que d'inventer une duree.
-    console.warn('enregistrerDetention : jourFin absent, aucune peine ouverte', nom, raison);
-    return null;
-  }
-  if (typeof sbRpc !== 'function') return null;
-  const vOuv = await sbRpc('detention_ouvrir_soi', {
-    p_raison: raison,
-    p_jours: Math.max(0, Number(jourFin) - jourDebut),
-    p_city: villeReelle,
-    p_motifs: motifs,
-    p_qhs: !!qhs,
-    p_extras: {
-      jour_affaire: (opts.jourAffaire !== undefined) ? opts.jourAffaire : null,
-      issue_judiciaire: opts.issueJudiciaire || null,
-      autorite: opts.autorite || null,
-      ville_condamnation: opts.villeCondamnation || null,
-      detention_precedente_id: opts.detentionPrecedenteId || null,
-      reliquat_jours: (opts.reliquatJours !== undefined) ? opts.reliquatJours : null,
-      retour_ville: opts.retourVille || null
-    }
-  }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
-
-  // VERDICT CONSOMME : sans peine en base, rien n'est pose localement. Le cas « cible_deja_detenue »
-  // n'est pas un echec de transport mais la garde de rejeu de la primitive : la peine en cours
-  // reste celle qui vaut.
-  if (!contexteInterceptionJudiciaireValide(contexte) || !vOuv || vOuv.ok !== true || !vOuv.detention_id) return null;
-
-  const detentionId = vOuv.detention_id || null;
-  const jourFinReel = (vOuv.jour_fin != null) ? vOuv.jour_fin : Number(jourFin);
-  const joursReels = jourFinReel - ((vOuv.jour_debut != null) ? vOuv.jour_debut : jourDebut);
-
-  if (!state.prisonniers) state.prisonniers = [];
-  const entree = { nom, depuis: 'Jour ' + ((vOuv.jour_debut != null) ? vOuv.jour_debut : jourDebut), raison, jourFin: jourFinReel };
-  if (qhs) entree.qhs = true;
-  state.prisonniers.push(entree);
-
-  if (nom === state.char?.name) {
-    // Fusion, jamais ecrasement : si l'appelant (ex. procederArrestation) a deja positionne
-    // state.estEmprisonne de facon synchrone pour que l'UI/la navigation reagisse
-    // immediatement (avant meme que cette fonction async ait fini), on ne fait qu'y ajouter
-    // detentionId plutot que de remplacer l'objet.
-    if (!state.estEmprisonne) state.estEmprisonne = { raison };
-    state.estEmprisonne.jours = joursReels;
-    state.estEmprisonne.jourFin = jourFinReel;
-    state.estEmprisonne.detentionId = detentionId;
-    state.estEmprisonne.city = villeReelle;
-    state.estEmprisonne.country = country;
-    if (opts.retourVille && !state.estEmprisonne.retourVille) state.estEmprisonne.retourVille = opts.retourVille;
-    if (qhs) state.estEmprisonne.qhs = true;
-  }
-
-  return detentionId;
+// OUVERTURE D'UNE PEINE « SUR SOI » : FERMEE (03/11/2026). La duree etait choisie par l'ecran et
+// la porte detention_ouvrir_soi pouvait ne jamais etre appelee. Toute peine est desormais ouverte
+// par la fonction serveur de l'acte (arrestation_flagrant_interne, justice_executer_condamnation…).
+// Le nom reste pour les appelants historiques : il n'ouvre plus rien et le dit.
+async function enregistrerDetention() {
+  console.warn('enregistrerDetention : voie fermée, aucune peine ouverte par l’écran');
+  return null;
 }
 
 // Construit le HTML du resultat mecanique REEL d'une arrestation (motifs + duree totale + ville +
@@ -11054,13 +10910,11 @@ async function prolongerDetentionActive(nom, motifsSupplementaires, forcerQhs) {
   // reecrire : un echec de lecture ECRASAIT tous les motifs deja enregistres. Le moteur les relit
   // sous verrou, dans la transaction qui les concatene.
   if (typeof sbRpc !== 'function') return false;
-  const rows = (nom && nom !== state.char?.name)
-    ? await sbRpc('justice_prolonger_peine', {
+  // detention_prolonger_soi est fermee (03/11/2026) : une sanction s'ajoute a une peine par la
+  // porte du juge, ou par la fonction serveur de l'acte qui la provoque.
+  if (!nom) return false;
+  const rows = await sbRpc('justice_prolonger_peine', {
         p_cible: nom,
-        p_motifs: motifsSupplementaires || [],
-        p_forcer_qhs: !!forcerQhs
-      })
-    : await sbRpc('detention_prolonger_soi', {
         p_motifs: motifsSupplementaires || [],
         p_forcer_qhs: !!forcerQhs
       });
@@ -11488,10 +11342,9 @@ async function executerCondamnationRecherchee(nom, entree, rechercheActuelle, vi
       };
       return { motif: verdict.motif || motif, joursTotal, detentionId: verdict.detention_id };
     }
-    // Flagrant délit distinct d'un jugement : conserver le chemin existant.
-    const detentionId = (typeof enregistrerDetention === 'function')
-      ? await enregistrerDetention(nom, motif, (state.day || 1) + joursTotal, undefined, ville, extra) : null;
-    return { motif, joursTotal, detentionId };
+    // Flagrant délit distinct d'un jugement : l'écran ne peut plus ouvrir de peine sur soi
+    // (03/11/2026). Seule une condamnation s'exécute ici ; le reste relève de l'acte serveur.
+    return { motif, joursTotal: 0, detentionId: null, echec: true };
   }
   const rEx = (typeof sbRpc === 'function' && entree && entree.id)
     ? await sbRpc('justice_executer_condamnation', { p_jugement_id: entree.id, p_ville: ville })
