@@ -161,3 +161,59 @@ async function demanderRendezVousSsm() {
   if (typeof addJournalEntry === 'function' && !v.deja_fixe)
     addJournalEntry('Rendez-vous avec Edwige Jacquard fixé au ' + d + '.', 'event-info');
 }
+
+
+/**
+ * Accueil des Services sociaux de Montrouge : panneau d'orientation de Pascale.
+ * Lecture seule, gratuit, sans rendez-vous. Aucun RPC, PA, FR ou état PJ modifié.
+ * Le portrait est celui de la fiche PNJ (aucun portrait fictif de substitution).
+ */
+const SSM_AIDE_PASCALE_RUBRIQUES = Object.freeze({
+  logement: {titre:'Se loger', texte:'Vous cherchez un logement ? Prenez rendez-vous à cet accueil avec Edwige Jacquard. Elle vous expliquera la demande de logement social, que l’adjoint au maire examinera. Le rendez-vous est fixé pour le lendemain et confirmé par courrier.'},
+  nourriture: {titre:'Se nourrir', texte:'Les jardins ouvriers de Montrouge permettent de récolter gratuitement des légumes selon les règles du jardin. Edwige peut vous expliquer où les trouver. Pour lui parler dans son bureau, prenez rendez-vous à l’accueil.'},
+  soins: {titre:'Se soigner', texte:'Le dispensaire public dispense des soins gratuits. Si votre état nécessite une hospitalisation, ce sont les règles de santé et le serveur du jeu qui déterminent la prise en charge. Pascale ne soigne pas elle-même.'},
+  travail: {titre:'Trouver du travail', texte:'Pour gagner vos premiers revenus, renseignez-vous sur les emplois proposés dans les bâtiments et commerces de Montrouge. Les agences de sécurité privées peuvent notamment recruter des agents ou maîtres-chiens. L’embauche se fait par les ordres du lieu concerné, pas ici.'}
+});
+
+function ouvrirAidePascaleSsm(rubrique) {
+  const modal = document.getElementById('modal-postes');
+  const title = document.getElementById('postes-modal-title');
+  const body = document.getElementById('postes-body');
+  if (!modal || !title || !body) return;
+  const sections = SSM_AIDE_PASCALE_RUBRIQUES;
+  const section = Object.prototype.hasOwnProperty.call(sections, rubrique) ? sections[rubrique] : null;
+  const pnj = (typeof BUILDINGS !== 'undefined' && BUILDINGS['services-sociaux-montrouge']
+    && BUILDINGS['services-sociaux-montrouge'].rooms
+    && BUILDINGS['services-sociaux-montrouge'].rooms.accueil
+    && BUILDINGS['services-sociaux-montrouge'].rooms.accueil.persons || [])
+    .find(p => p.name === 'Pascale (PNJ)');
+  const photo = pnj && typeof pnj.photoUrl === 'string' && /^(?:images\\/|https:\\/\\/)/.test(pnj.photoUrl)
+    ? pnj.photoUrl : '';
+  const portrait = photo
+    ? '<img src="' + logementsSociauxEchapper(photo) + '" alt="Portrait de Pascale" style="width:76px;height:92px;object-fit:cover;border-radius:5px;border:1px solid #7f6540" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'
+      + '<span aria-label="Portrait indisponible" style="display:none;width:76px;height:92px;align-items:center;justify-content:center;border:1px solid #7f6540;border-radius:5px;color:#c9a84c"><i class="ti ti-user-heart" style="font-size:2rem"></i></span>'
+    : '<span aria-label="Portrait de Pascale non disponible" style="display:flex;width:76px;height:92px;align-items:center;justify-content:center;border:1px solid #7f6540;border-radius:5px;color:#c9a84c"><i class="ti ti-user-heart" style="font-size:2rem"></i></span>';
+
+  title.textContent = 'Besoin d’aide ?';
+  let html = '<div style="padding:1rem;max-width:600px">'
+    + '<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">'
+    + portrait
+    + '<div><strong style="color:#c9a84c">Pascale — Accueil du service social</strong>'
+    + '<p style="margin:.4rem 0 0;color:#d9cbb4;font-size:.88rem">Bonjour, je peux vous orienter. Dites-moi simplement ce dont vous avez besoin.</p></div></div>';
+  if (section) {
+    html += '<div style="border-top:1px solid #44351c;padding-top:.9rem">'
+      + '<h3 style="margin:0 0 .6rem;color:#c9a84c;font-size:1rem">' + logementsSociauxEchapper(section.titre) + '</h3>'
+      + '<p style="color:#d9cbb4;line-height:1.55;font-size:.9rem">' + logementsSociauxEchapper(section.texte) + '</p>'
+      + '<button type="button" class="action-btn legal" onclick="ouvrirAidePascaleSsm()" style="margin-top:.7rem">Retour aux rubriques</button>'
+      + '</div>';
+  } else {
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.6rem">';
+    for (const [cle, entree] of Object.entries(sections)) {
+      html += '<button type="button" class="action-btn legal" onclick="ouvrirAidePascaleSsm(\'' + cle + '\')">'
+        + logementsSociauxEchapper(entree.titre) + '</button>';
+    }
+    html += '</div>';
+  }
+  body.innerHTML = html + '</div>';
+  modal.classList.add('open');
+}
