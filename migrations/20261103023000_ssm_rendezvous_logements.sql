@@ -9,7 +9,7 @@ DO $coutssm$
 DECLARE h text; n bigint; sentinelle text;
 BEGIN
  LOCK TABLE public.ordres_couts IN SHARE ROW EXCLUSIVE MODE;
- SELECT count(*),md5(string_agg(fn||'|'||pa||'|'||cost,E'\\n'
+ SELECT count(*),md5(string_agg(fn||'|'||pa||'|'||cost,E'\n'
      ORDER BY fn COLLATE "C",pa,cost))
    INTO n,h FROM public.ordres_couts;
  SELECT empreinte INTO STRICT sentinelle
@@ -22,7 +22,7 @@ BEGIN
  END IF;
  INSERT INTO public.ordres_couts(fn,pa,cost)
  VALUES ('ssm_demander_rendezvous',0,0) ON CONFLICT DO NOTHING;
- SELECT count(*),md5(string_agg(fn||'|'||pa||'|'||cost,E'\\n'
+ SELECT count(*),md5(string_agg(fn||'|'||pa||'|'||cost,E'\n'
      ORDER BY fn COLLATE "C",pa,cost))
    INTO n,h FROM public.ordres_couts;
  IF n<>462 OR h<>'ff9d27096e7e8dbd3fbca1da39d0f2f5' THEN
