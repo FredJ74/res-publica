@@ -7483,54 +7483,54 @@ async function ouvrirModalGracier(pa, cost) {
 
 async function confirmerGrace(demandeId, nomCondamne, accepte, pa, cost) {
   if (!exigerPoste('president', 'Seul le Président peut accorder ou refuser une grâce.')) return;
+
+  // Le serveur décide et facture : le dossier, les 2 PA, la libération, le QHS et la POP.
+  // Aucun paramètre PA/FR ni nom affiché dans cet ancien écran ne fait autorité.
+  // Un dossier déjà traité est reconnu en rejeu, même après réponse perdue.
+  const v = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('grace_presidentielle_decider', {
+        p_demande_id: demandeId, p_accepte: !!accepte
+      }).catch(() => null)
+    : null;
+  if (!v || v.ok !== true) {
+    const explications = {
+      pa_insuffisants: 'Vous ne disposez pas des 2 PA nécessaires.',
+      non_detenu: 'La personne concernée n’est plus détenue. Aucun PA prélevé.',
+      hors_pays: 'Cette demande ne relève pas de votre présidence.',
+      dossier_introuvable: 'La demande de grâce n’est plus disponible.',
+      acteur_non_authentifie: 'Reconnectez-vous avant de traiter cette demande.'
+    };
+    showToast('Grâce non traitée',
+      explications[v?.raison] || 'Le serveur n’a pas confirmé la décision. Vérifiez le dossier avant de réessayer.', false);
+    return;
+  }
+
   document.getElementById('modal-postes')?.classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  await sbMajDemandeGrace(demandeId, accepte ? 'acceptee' : 'refusee');
+  if (v.rejoue === true) {
+    showToast('Demande déjà traitée', 'Cette grâce a déjà fait l’objet d’une décision : aucun nouvel effet.', true);
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
+  if (typeof adopterJaugeServeur === 'function' && typeof v.pop === 'number') {
+    adopterJaugeServeur('pop', v.pop);
+  }
+  if (typeof updateUI === 'function') updateUI();
 
-  if (accepte) {
-    // CORRECTIF (Lot 4.3). La liberation n'agissait que sur state.prisonniers, l'etat LOCAL du
-    // navigateur du President : si sa liste etait desynchronisee, l'annonce publique partait sans
-    // que personne ne soit libere. On agit desormais sur la SOURCE PERSISTANTE canonique --
-    // personnages.est_emprisonne, et la ligne de detentions cloturee avec un mode_fin explicite,
-    // exactement comme le fait la liberation anticipee par avocat.
-    //
-    // ET L'ANNONCE NE PART QUE SI LA LIBERATION A EU LIEU. C'est l'inversion qui compte : une
-    // grace annoncee mais non appliquee est pire qu'une grace qui echoue silencieusement.
-    // GRACIER EST UN POUVOIR, PAS UNE ECRITURE (chantier B, 13 septembre 2026). Ces deux
-    // sbUpdate ecrivaient directement sur la ligne du condamne et sur son registre : la
-    // fermeture RLS les a rendus inoperants -- et c'etait de toute facon une porte ouverte,
-    // exigerPoste('president') ne vivant que dans le navigateur du joueur. La RPC relit le
-    // poste de l'appelant sur sa propre ligne et fait les deux ecritures dans UNE transaction.
-    // Meme regle qu'avant, meme mode_fin : seule l'autorite change de camp.
-    let libere = false;
-    if (typeof sbRpc === 'function') {
-      const rows = await sbRpc('presidence_gracier', {
-        p_condamne: nomCondamne,
-        p_jour: state.day
-      });
-      const r = Array.isArray(rows) ? rows[0] : rows;
-      libere = !!(r && r.ok === true && r.libere === true);
-    }
-    // L'etat local du President est aligne s'il se trouve l'avoir en memoire -- confort d'affichage,
-    // jamais la source de verite.
-    const condamne = (state.prisonniers || []).find(p => p.nom === nomCondamne);
-    if (condamne) condamne.jourFin = state.day;
-
-    if (!libere) {
-      showToast('Grâce sans effet', nomCondamne + ' n\'est plus détenu(e) : aucune libération n\'a été appliquée.', false);
-      addJournalEntry('Grâce accordée à ' + nomCondamne + ', sans effet : la personne n\'était plus détenue.', 'event-info');
-      return;
-    }
-
-    const popBonus = state.pop > 50 ? 5 : -2;
-    state.pop = Math.min(100, state.pop + popBonus);
-    updateUI();
-    showToast('Grâce accordée', nomCondamne + ' est libéré(e). ' + (popBonus > 0 ? '+' : '') + popBonus + ' POP.', true, true);
-    addExternalEvent('⚖️ GRÂCE PRÉSIDENTIELLE : ' + nomCondamne + ' a été gracié(e) par le Président.');
-  } else {
+  const cible = typeof v.condamne === 'string' ? v.condamne : nomCondamne;
+  if (v.accepte === true && v.libere === true) {
+    // Alignement visuel seulement : la détention est déjà close côté serveur.
+    const prisonnier = (state.prisonniers || []).find(p => p.nom === cible);
+    if (prisonnier) prisonnier.jourFin = state.day;
+    const delta = Number(v.pop_delta || 0);
+    showToast('Grâce accordée', cible + ' est libéré(e). ' +
+      (delta > 0 ? '+' : '') + delta + ' POP.', true, true);
+    addExternalEvent('⚖️ GRÂCE PRÉSIDENTIELLE : ' + cible +
+      ' a été gracié(e) par le Président.');
+  } else if (v.accepte === false) {
     showToast('Grâce refusée', 'La recommandation du Ministre de la Justice a été rejetée.', false);
-    addJournalEntry('Grâce de ' + nomCondamne + ' refusée par le Président.', 'event-info');
+    addJournalEntry('Grâce de ' + cible + ' refusée par le Président.', 'event-info');
+  } else {
+    showToast('Décision enregistrée', 'Le dossier a été traité par le serveur.', true);
   }
 }
 
