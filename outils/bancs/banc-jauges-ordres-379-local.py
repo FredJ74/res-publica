@@ -17,6 +17,19 @@ def main():
   c=psycopg2.connect(srv.get_uri());q=c.cursor();q.execute('SHOW server_version_num');version=q.fetchone()[0]
   q.execute("CREATE ROLE authenticated;CREATE ROLE anon;CREATE ROLE service_role;CREATE SCHEMA auth;CREATE FUNCTION auth.uid()RETURNS uuid LANGUAGE sql STABLE AS $$SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;GRANT USAGE ON SCHEMA public,auth TO authenticated")
   for f,n in [('personnage-et-presence','personnages_donnees'),('economie','ordres_couts'),('economie','ordres_couts_inconnus'),('economie','ordres_couts_ecarts'),('banque','comptes_bancaires'),('politique-et-elections','presidence_memoire_ordres'),('immobilier-et-territoire','acquisitions_transactions_internes'),('immobilier-et-territoire','permis_transactions_internes'),('militaire','compagnies_militaires')]:h.table(q,'baseline/domaines/'+f+'/10_tables.sql',n)
+  for domaine,nom in [('finances-publiques',n)for n in ['caisses_batiments','budgets_municipaux','budgets_nationaux','recettes_municipales','salaires_caisses']]+[('immobilier-et-territoire','villes')]:
+   h.table(q,'baseline/domaines/'+domaine+'/10_tables.sql',nom)
+  q.execute('ALTER TABLE caisses_batiments ADD PRIMARY KEY(id);ALTER TABLE budgets_municipaux ADD PRIMARY KEY(id);ALTER TABLE budgets_nationaux ADD PRIMARY KEY(id);ALTER TABLE salaires_caisses ADD PRIMARY KEY(poste_id);ALTER TABLE villes ADD PRIMARY KEY(pays,ville);ALTER TABLE recettes_municipales ADD PRIMARY KEY(pays,ville,jour,canal)')
+  for nom in ['salaire_caisse_de','recette_municipale','appliquer_taxe_transaction','caisse_institution_mouvement']:
+   q.execute(h.fonction('baseline/domaines/finances-publiques/20_fonctions-1.sql',nom))
+  q.execute(h.fonction('baseline/domaines/finances-publiques/20_fonctions-2.sql','vente_structure_encaisser'))
+  for seed in ['95_a-regenerer/villes.sql','90_socle/salaires_caisses.sql']:
+   q.execute((R/'baseline/seeds'/seed).read_text())
+  q.execute("INSERT INTO budgets_nationaux(id,data)VALUES('republic','{\"tauxNational\":2}')")
+  for ville in ['capitale','ville_a','ville_b']:
+   q.execute("INSERT INTO budgets_municipaux(id,data)VALUES(%s,'{\"tauxLocal\":2}')",('republic_'+ville,))
+   mairie='republic_mairie-capitale'if ville=='capitale'else'republic_mairie_'+ville
+   q.execute("INSERT INTO caisses_batiments(id,data)VALUES(%s,'{\"solde\":0}'),(%s,'{\"solde\":0}')",(mairie,'republic_stade_'+ville))
   q.execute('ALTER TABLE personnages_donnees ADD PRIMARY KEY(name);ALTER TABLE personnages_donnees ENABLE ROW LEVEL SECURITY;CREATE VIEW personnages AS SELECT * FROM personnages_donnees;ALTER TABLE ordres_couts_inconnus ADD PRIMARY KEY(fn);ALTER TABLE ordres_couts_ecarts ADD PRIMARY KEY(fn,pa,cost)')
   for n in ['mon_personnage','est_appel_serveur','est_mon_personnage','exiger_acteur']:q.execute(h.fonction('baseline/domaines/socle/20_fonctions.sql',n))
   q.execute(h.fonction('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre'))
@@ -215,6 +228,30 @@ def main():
    except psycopg2.Error as e:assert 'panne_objectifs'in str(e);own('ROLLBACK TO SAVEPOINT panne_objectifs')
    assert photo()==p and own("SELECT to_jsonb(e)FROM jauges_objectifs_etats e WHERE acteur='Fixture'")==suivi
   case('objectifs_panne_annule_gain_suivi_et_recu',objectifspanne)
+  def stade(ville='capitale'):
+   own("UPDATE personnages_donnees SET current_building='stade',current_room='buvette',current_city=%s WHERE name='Fixture'",(ville,))
+  def caisses():return own("SELECT jsonb_object_agg(id,data)FROM caisses_batiments")
+  for ville in ['capitale','ville_a','ville_b']:
+   def consommation(ville=ville):
+    stade(ville);v=rpc('consommer_buvette');assert v['ok']and v['pop']==12 and v['pa']==19 and v['arg']==50,v
+    assert v['montant_preleve']==50 and v['taxe']['taxeLocale']==v['taxe']['taxeNationale']==1
+    assert own("SELECT (data->>'solde')::numeric FROM caisses_batiments WHERE id=%s",('republic_stade_'+ville,))==48
+    assert rpc('consommer_buvette')['pop']==12 and photo()['arg']==50
+   case('buvette_'+ville+'_un_debit_taxes_caisse_POP_et_rejeu',consommation)
+  def staderefus():
+   p=photo();caisse=caisses();assert rpc('consommer_buvette')['raison']=='pas_sur_place'and photo()==p and caisses()==caisse
+   stade();own("UPDATE personnages_donnees SET arg=0,liquide=0 WHERE name='Fixture'");p=photo()
+   assert rpc('consommer_buvette')['raison']=='fonds_insuffisants'and photo()==p and caisses()==caisse
+  case('buvette_rue_et_fonds_insuffisants_aucune_mutation',staderefus)
+  def stadepanne():
+   stade();p=photo();cash=caisses()
+   own("CREATE FUNCTION fixture_panne_stade()RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'panne_stade';END$$;CREATE TRIGGER fixture_panne_stade BEFORE INSERT ON jauges_actions_recus FOR EACH ROW EXECUTE FUNCTION fixture_panne_stade()")
+   own('SAVEPOINT panne_stade')
+   try:rpc('consommer_buvette');raise AssertionError('panne absente')
+   except psycopg2.Error as e:assert 'panne_stade'in str(e);own('ROLLBACK TO SAVEPOINT panne_stade')
+   assert photo()==p and caisses()==cash
+   assert own('SELECT count(*)FROM recettes_municipales')==0 and own("SELECT (data->>'reserveJour')::numeric FROM budgets_nationaux WHERE id='republic'")is None
+  case('buvette_panne_recu_annule_debit_taxes_caisse_et_gain',stadepanne)
   def orga(fn='orga_meeting',ident=1,org='o',params=None,cur=None):
    cc=cur or q
    cc.execute("SELECT set_config('role','authenticated',true),set_config('request.path','/rpc/organisation_vie_commande',true),set_config('request.jwt.claim.sub','00000000-0000-4000-9000-000000000001',true)")

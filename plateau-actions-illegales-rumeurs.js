@@ -6515,43 +6515,11 @@ async function confirmerRecolte(matiere, pa, cost) {
 }
 
 async function doConsommerBuvette(pa, cost) {
-  const cout = 50;
-  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
-
-  // Doctrine (A3, lot finition financiere locale, 17 aout 2026) : la buvette n'a pas de caisse
-  // financiere autonome -- tout argent genere dans l'enceinte du stade appartient a la caisse du
-  // stade de cette ville. La ligne legacy 'stade-buvette' (88 FR, origine non demontrable avec
-  // certitude) reste intacte et ne recoit plus aucune nouvelle recette.
-  const pays = state.country || 'republic';
-  const idCaisseStade = typeof getCaisseLocaleId === 'function'
-    ? getCaisseLocaleId('stade', state.currentCity) : 'stade';
-
-  // Lot « ventes a une structure » (17 septembre 2026) : prelevement, taxe locale+nationale et
-  // recette du stade sont desormais UNE seule transaction serveur. Avant, la taxe etait un appel
-  // client distinct du prelevement -- donc contournable par un client modifie -- et le credit de
-  // la caisse un tir-et-oublie dont le retour n'etait jamais lu : un verre pouvait etre paye sans
-  // que le stade encaisse quoi que ce soit. Memes taux, meme caisse, meme montant declare.
-  let recetteEncaissee = false;
-  let r;
-  if (typeof encaisserVenteStructure === 'function') {
-    r = await encaisserVenteStructure('consommer_buvette', pa, cost,
-                                      pays + '_' + idCaisseStade, state.currentCity);
-    recetteEncaissee = r.ok;
-  } else {
-    // PLUS DE REPLI CLIENT (8 octobre 2026). Cette branche debitait le joueur par
-    // deduireCoutOrdre, puis un bloc plus bas recalculait la taxe et creditait le stade --
-    // c'est-a-dire le triple appel que le lot « ventes a une structure » avait precisement
-    // remplace. Ce repli ne s'activait que si `encaisserVenteStructure` manquait de la page, un
-    // defaut de deploiement et non une panne reseau ; mais il ecrivait
-    // `budgets_municipaux.data.caisse`, une cle supprimee par le chantier municipal, et il
-    // l'aurait donc RECREEE avec de l'argent dedans. On refuse au lieu de prelever : un joueur
-    // qui ne consomme pas est preferable a une taxe qui n'arrive nulle part.
-    r = { ok: false, raison: 'encaissement_indisponible' };
-  }
-  if (!r.ok) { signalerRefusCout(r); return; }
-  state.pop = Math.min(100, (state.pop || 0) + 2);
-
+  const v=await executerOrdreJaugesServeur('consommer_buvette');
+  if(!v)return;
   updateUI();
-  showToast('Un verre entre supporters', '+2 POP.', true, true);
-  addJournalEntry('Un verre pris à la buvette (-' + cout + ' FR).', 'event-good');
+  if(!v.rejeu){
+    showToast('Un verre entre supporters','+'+v.gain_pop+' POP.',true,true);
+    addJournalEntry('Un verre pris à la buvette (-'+v.montant_preleve+' FR).','event-good');
+  }
 }

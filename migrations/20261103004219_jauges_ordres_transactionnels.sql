@@ -33,7 +33,8 @@ BEGIN
     END IF;
     -- Le verdict d'action est stable ; la fiche retournée est celle d'aujourd'hui.
     RETURN rec.resultat || jsonb_build_object('rejeu',true,'pop',a.resources->'pop','inf',a.resources->'inf',
-      'pa',a.pa,'hp',a.hp,'moral',a.moral,'arg',a.arg,'liquide',a.liquide);
+      'pa',a.pa,'hp',a.hp,'moral',a.moral,'arg',a.arg,'liquide',a.liquide,
+      'solde_national',coalesce((SELECT solde FROM public.comptes_bancaires WHERE personnage=a.name AND banque='nationale'),0));
   END IF;
   CASE p_ordre
   WHEN 'objectifs_actualiser' THEN
@@ -49,6 +50,15 @@ BEGIN
     IF coalesce((publication->>'ok')::boolean,false) IS NOT TRUE THEN RETURN publication;END IF;
     pop_gain:=(publication->>'gain_pop')::integer;
     pa_cout:=NULL; -- publier au forum ne coûte aucun PA : règle préexistante.
+  WHEN 'consommer_buvette' THEN
+    IF p_contexte<>'{}'::jsonb THEN RETURN jsonb_build_object('ok',false,'raison','contexte_invalide');END IF;
+    IF a.current_building IS DISTINCT FROM 'stade'OR a.current_room IS DISTINCT FROM 'buvette'
+       OR NOT EXISTS(SELECT 1 FROM public.villes WHERE pays=a.country AND ville=a.current_city)THEN
+      RETURN jsonb_build_object('ok',false,'raison','pas_sur_place');END IF;
+    -- Même vente à la structure : débit, taxes et recette du stade, pas un second paiement.
+    publication:=public.vente_structure_encaisser('consommer_buvette',1,50,a.country||'_stade_'||a.current_city,a.current_city);
+    IF NOT coalesce((publication->>'ok')::boolean,false)THEN RETURN publication;END IF;
+    pa_cout:=NULL;pop_gain:=2;
   WHEN 'observer_debats' THEN
     IF a.current_building IS DISTINCT FROM 'assemblee' THEN
       RETURN jsonb_build_object('ok',false,'raison','pas_sur_place'); END IF;
@@ -88,7 +98,8 @@ BEGIN
     WHERE name=a.name RETURNING * INTO a;
   sortie:=coalesce(publication,'{}'::jsonb)||jsonb_build_object('ok',true,'contrat_jauges',1,'acteur',a.name,'requete',p_requete,'ordre',p_ordre,
     'pop',a.resources->'pop','inf',a.resources->'inf','gain_pop',pop_gain,'gain_inf',inf_gain,
-    'pa',a.pa,'hp',a.hp,'moral',a.moral,'arg',a.arg,'liquide',a.liquide,'perimetre',perimetre);
+    'pa',a.pa,'hp',a.hp,'moral',a.moral,'arg',a.arg,'liquide',a.liquide,'perimetre',perimetre,
+    'solde_national',coalesce((SELECT solde FROM public.comptes_bancaires WHERE personnage=a.name AND banque='nationale'),0));
   INSERT INTO public.jauges_actions_recus(acteur,requete,ordre,contexte,resultat)VALUES(a.name,p_requete,p_ordre,contexte_recu,sortie);
   RETURN sortie;
 END;$function$;
