@@ -2543,30 +2543,20 @@ function verifierBudgetInstitution(inst) {
 // regle de jeu ne disparait avec elle, puisqu'elle n'en appliquait aucune.
 
 async function doCampagneSecurite() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 500;
-  // Arbitrage de conception (correctif Lot 2C) : payeur exclusif = budget institutionnel de la
-  // mairie (state.budgets.mairie via getBudgetInstitution), jamais l'argent personnel du joueur.
-  // Debit du cout REEL de cet ordre (500 FR) -- pas le cout generique de
-  // verifierBudgetInstitution (b.coutOrdre = 250 FR pour la mairie) : les deux ne se cumulent
-  // plus, un seul debit de 500 FR sur le budget mairie. Verification AVANT toute deduction PA :
-  // si le budget est insuffisant, ni PA ni FR ne sont debites.
-  const budgetMairie = getBudgetInstitution('mairie');
-  if (budgetMairie.solde < cost) {
-    showToast('Budget insuffisant', 'Le budget de la mairie (' + cost + ' ' + cur + ' requis) est insuffisant. Le Ministre des Finances doit revoir la répartition budgétaire.', false);
-    return;
+  const contexte=contexteGroupePj();
+  const v=await executerOrdreJaugesServeur('campagne_securite');
+  if(!v||!contexteGroupePjValide(contexte))return;
+  if(typeof INDICES_VILLES_CACHE!=='undefined'){
+    const key=v.pays+'_'+v.ville;
+    INDICES_VILLES_CACHE[key]={...(INDICES_VILLES_CACHE[key]||INDICE_VILLE_DEFAUT),isn:v.isn_ville};
   }
-  // Deduction PA centralisee (Lot 2C) -- apres verification du budget mairie, avant toute mutation.
-  const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
-  budgetMairie.solde -= cost;
-  const pays = state.country || 'republic';
-  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 10);
-  state.pop = Math.max(0, state.pop - 3);
   updateUI();
-  showToast('Campagne de sécurité', '+10 ISN local. -3 POP. ' + cost + ' ' + cur + ' prélevés sur le budget de la mairie.', false);
-  addExternalEvent('MAIRIE : Campagne de sécurité lancée par le Maire. +10 ISN.');
+  if(v.rejeu)return;
+  const cur=COUNTRIES[v.pays]?.cur||'FR';
+  showToast('Campagne de sécurité','+'+v.isn_delta+' ISN local. '+v.gain_pop+' POP. '+v.montant_preleve+' '+cur+' prélevés sur la caisse de la mairie.',false);
+  addExternalEvent('MAIRIE : Campagne de sécurité lancée par le Maire. +'+v.isn_delta+' ISN local.');
 }
+
 
 // =====================
 // ACTES OFFICIELS ("Demander un acte officiel" + délivrance professionnelle, refonte du

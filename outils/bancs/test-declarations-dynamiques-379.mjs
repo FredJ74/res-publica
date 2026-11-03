@@ -38,6 +38,11 @@ variantes={
  'renommage_concurrent':texte.replace(' EXECUTE f;'," f := replace(f, a_entete, 'public.fantome(p_id text)');\n EXECUTE f;"),
  'ancre_modifiee':texte.replace(' EXECUTE f;'," a_entete := 'public.copie(p_org text,p_id text)';\n EXECUTE f;"),
  'expression_ulterieure':texte.replace(' EXECUTE f;'," f := replace(f, 'public.copie(p_org text,p_id text)', 'public.fantome(p_id text)');\n EXECUTE f;"),
+ 'execute_conditionnel':texte.replace(' EXECUTE f;', ' IF false THEN\n EXECUTE f;\n END IF;'),
+ 'copie_conditionnelle':texte.replace(" f := pg_get_functiondef('public.source(text)'::regprocedure);"," IF false THEN\n f := pg_get_functiondef('public.source(text)'::regprocedure);\n END IF;"),
+ 'renommage_conditionnel':texte.replace(" f := replace(f, a_entete, 'public.copie(p_org text,p_id text)');"," IF false THEN\n f := replace(f, a_entete, 'public.copie(p_org text,p_id text)');\n END IF;"),
+ 'retour_avant_execute':texte.replace(' EXECUTE f;', ' RETURN;\n EXECUTE f;'),
+ 'langage_autre':texte.replace('END $x$;', 'END $x$ LANGUAGE plpython3u;'),
  'commentaire':"/*\n"+texte.split('REVOKE')[0]+"*/",
  'fonction_non_executee':texte.split('REVOKE')[0].replace('DO $x$',"CREATE FUNCTION public.non_executee()RETURNS void LANGUAGE plpgsql AS $x$"),
 }
@@ -52,5 +57,5 @@ print(json.dumps({'positif':True,'contre_epreuves':list(variantes)+['source_abse
 `;
 test('déclaration dérivée : vraie chaîne exécutée, source présente et droits exigés',()=>{
  const v=JSON.parse(execFileSync('python3',['-c',script],{encoding:'utf8',maxBuffer:2**20}));
- assert.equal(v.positif,true);assert.equal(v.migration_reelle_reconnue,true);assert.equal(v.contre_epreuves.length,13);
+ assert.equal(v.positif,true);assert.equal(v.migration_reelle_reconnue,true);assert.equal(v.contre_epreuves.length,18);
 });

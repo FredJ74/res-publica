@@ -11,6 +11,9 @@ from pglast import parse_sql, scan
 def derives(stmt):
     if type(stmt).__name__ != 'DoStmt':
         return []
+    langue = next((x.arg.sval for x in stmt.args if x.defname == 'language'), 'plpgsql')
+    if langue.lower() != 'plpgsql':
+        return []
     corps = next(x.arg.sval for x in stmt.args if x.defname == 'as')
     tokens = list(scan(corps))
     morceaux = list(corps)
@@ -19,6 +22,20 @@ def derives(stmt):
             morceaux[t.start:t.end + 1] = ' ' * (t.end - t.start + 1)
     texte = ''.join(morceaux)
     chaines = [(t.start, t.end) for t in tokens if t.name == 'SCONST']
+    def niveau(position):
+        profondeur = 0
+        precedent = None
+        for t in tokens:
+            if t.start >= position:
+                break
+            if t.name in ('SQL_COMMENT', 'C_COMMENT', 'SCONST'):
+                continue
+            mot = corps[t.start:t.end + 1].upper()
+            if mot in ('IF', 'LOOP'):
+                profondeur += -1 if precedent == 'END' else 1
+            precedent = mot
+        return profondeur
+
     def hors_chaine(position):
         return not any(a <= position <= b for a, b in chaines)
     def valeur(litteral):
@@ -28,7 +45,7 @@ def derives(stmt):
     source_re = r'(?mi)^\s*(\w+)\s*:=\s*pg_get_functiondef\(\s*' + lit + r'::regprocedure\s*\)\s*;'
     for source in re.finditer(source_re, texte):
         debut = source.start() + len(source[0]) - len(source[0].lstrip())
-        if not hors_chaine(debut):
+        if not hors_chaine(debut) or niveau(debut) != 0:
             continue
         variable = source[1]
         identite = valeur(source[2])
@@ -37,7 +54,7 @@ def derives(stmt):
         ren_re = r'(?mi)^\s*' + re.escape(variable) + r'\s*:=\s*replace\(\s*' + re.escape(variable) + r'\s*,\s*(\w+)\s*,\s*' + lit + r'\s*\)\s*;'
         for ren in re.finditer(ren_re, texte[source.end():]):
             position = source.end() + ren.start()
-            if not hors_chaine(position + len(ren[0]) - len(ren[0].lstrip())):
+            if not hors_chaine(position + len(ren[0]) - len(ren[0].lstrip())) or niveau(position + len(ren[0]) - len(ren[0].lstrip())) != 0:
                 continue
             if re.search(r'(?mi)^\s*' + re.escape(variable) + r'\s*:=', texte[source.end():position]):
                 continue
@@ -69,6 +86,13 @@ def derives(stmt):
                 continue
             execution = executions[0]
             if not hors_chaine(fin_ren + execution.start() + len(execution[0]) - len(execution[0].lstrip())):
+                continue
+            position_execution = fin_ren + execution.start() + len(execution[0]) - len(execution[0].lstrip())
+            if niveau(position_execution) != 0:
+                continue
+            if any(t.name not in ('SCONST', 'SQL_COMMENT', 'C_COMMENT')
+                   and corps[t.start:t.end + 1].upper() == 'RETURN'
+                   and source.end() <= t.start < position_execution for t in tokens):
                 continue
             # Pas de réaffectation opaque entre la copie et son exécution.
             segment = texte[source.end():fin_ren + execution.start()]

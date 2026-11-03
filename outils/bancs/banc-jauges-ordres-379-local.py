@@ -46,6 +46,22 @@ def main():
   for n in ['hospitalisation_jour_pa0','hospitalisation_ecriture_j0_garder']:q.execute(h.fonction('migrations/20261101171000_hospitalisation_pa0.sql',n))
   for n in ['forum_topics','forum_posts']:q.execute('CREATE TRIGGER trg_hospitalisation_ecriture_j0 BEFORE INSERT ON '+n+' FOR EACH ROW EXECUTE FUNCTION hospitalisation_ecriture_j0_garder()')
   q.execute((R/'migrations/20261103010231_forum_publications_jauges_serveur.sql').read_text())
+  for domaine,nom in [('finances-publiques','caisses_autorites'),('politique-et-elections','indices_villes'),('immobilier-et-territoire','batiments_etat')]:
+   h.table(q,'baseline/domaines/'+domaine+'/10_tables.sql',nom)
+  q.execute('ALTER TABLE indices_villes ADD PRIMARY KEY(id);ALTER TABLE batiments_etat ADD PRIMARY KEY(id)')
+  for f,nom in [('socle','acteur_poste_courant'),('finances-publiques','caisse_territoire'),('finances-publiques','caisse_postes_requis'),('finances-publiques','caisse_refus_autorite'),('immobilier-et-territoire','ville_est_reelle'),('immobilier-et-territoire','batiment_etat_lire'),('politique-et-elections','indice_ville_ajuster_interne')]:
+   fichier=next(p for p in sorted((R/'baseline/domaines'/f).glob('20_fonctions*.sql'))if('CREATE OR REPLACE FUNCTION public.'+nom+'(')in p.read_text())
+   q.execute(h.fonction(str(fichier.relative_to(R)),nom))
+  q.execute((R/'baseline/seeds/90_socle/caisses_autorites.sql').read_text())
+  blocus=(R/'migrations/20261102135437_blocus_syndical_serveur.sql').read_text()
+  q.execute(h.re.search(r'CREATE TABLE IF NOT EXISTS public.blocus_ordres_batiments \(.*?\n\);',blocus,h.re.S)[0])
+  for nom in ['blocus_actif_interne','blocus_ordre_refuse_interne']:
+   q.execute(h.fonction('migrations/20261102135437_blocus_syndical_serveur.sql',nom))
+  for ville in ['capitale','ville_a','ville_b']:
+   q.execute("INSERT INTO indices_villes(id,data)VALUES(%s,'{\"isn\":50,\"social\":40}')",('republic_'+ville,))
+   q.execute("INSERT INTO blocus_ordres_batiments(pays,ville,batiment,fn)VALUES('republic',%s,%s,'campagne_securite')",(ville,'mairie-capitale'if ville=='capitale'else'mairie'))
+  q.execute((R/'migrations/20261103094049_mairie_campagne_securite_transactionnelle.sql').read_text())
+
   q.execute((R/'baseline/seeds/95_a-regenerer/ordres_couts.sql').read_text())
   q.execute("INSERT INTO personnages_donnees(name,country,user_id,current_city,current_building,current_room,career,pa,hp,moral,resources,arg,liquide,stats)VALUES('Fixture','republic','00000000-0000-4000-9000-000000000001','capitale','assemblee','hemicycle','press',20,70,60,'{\"pop\":10,\"inf\":10,\"dis\":42}',100,100,'{\"INT\":12}');")
   q.execute("INSERT INTO personnages_donnees(name,country,user_id,archetype,poste,pa,hp,moral,resources,arg,liquide)VALUES('AncienneFixture','republic','00000000-0000-4000-9000-000000000002','ambitieux','{\"id\":\"president\"}',20,70,60,'{\"pop\":10,\"inf\":85}',100,100)")
@@ -265,6 +281,53 @@ def main():
    assert photo()==p and caisses()==cash
    assert own('SELECT count(*)FROM recettes_municipales')==0 and own("SELECT (data->>'reserveJour')::numeric FROM budgets_nationaux WHERE id='republic'")is None
   case('buvette_panne_recu_annule_debit_taxes_caisse_et_gain',stadepanne)
+  def maire(ville='capitale',solde=1000):
+   own("UPDATE personnages_donnees SET poste=jsonb_build_object('id','maire','city',%s),current_city=%s,current_building=%s WHERE name='Fixture'",(ville,ville,'mairie-capitale'if ville=='capitale'else'mairie'))
+   own("UPDATE caisses_batiments SET data=jsonb_build_object('solde',%s)WHERE id=salaire_caisse_de('maire','republic',%s)",(solde,ville))
+  def campagnephoto():return[photo(),caisses(),own("SELECT jsonb_object_agg(id,data)FROM indices_villes")]
+  for ville in ['capitale','ville_a','ville_b']:
+   def scenario(ville=ville):
+    maire(ville);p=photo();v=rpc('campagne_securite')
+    assert v['ok']and v['pop']==7 and v['pa']==18 and v['arg']==p['arg']and v['liquide']==p['liquide'],v
+    assert v['solde_caisse']==500 and v['isn_ville']==60 and v['isn_delta']==10 and v['montant_preleve']==500
+    assert own("SELECT(data->>'solde')::numeric FROM caisses_batiments WHERE id=%s",(v['caisse'],))==500
+    assert rpc('campagne_securite')['rejeu']and photo()['pa']==18
+   case('campagne_'+ville+'_mairie_PA_indice_POP_un_seul_debit',scenario)
+  def campagnerefus():
+   p=campagnephoto();assert rpc('campagne_securite')['raison']=='reserve_au_maire'and campagnephoto()==p
+   maire(solde=499);own("UPDATE personnages_donnees SET arg=10000,liquide=10000 WHERE name='Fixture'");p=campagnephoto()
+   assert rpc('campagne_securite')['raison']=='caisse_institution_insuffisante'and campagnephoto()==p
+   maire();own("UPDATE personnages_donnees SET pa=1 WHERE name='Fixture'");p=campagnephoto()
+   assert rpc('campagne_securite')['raison']=='pa_insuffisants'and campagnephoto()==p
+  case('campagne_refus_avant_mutation_pas_de_repli_argent_personnel',campagnerefus)
+  def campagneblocus():
+   maire();own("INSERT INTO batiments_etat(id,country,city,building_id,data)VALUES('republic_capitale_mairie-capitale','republic','capitale','mairie-capitale',jsonb_build_object('blocus',jsonb_build_object('dernierRenouvellementTimestamp',extract(epoch FROM clock_timestamp())*1000)))")
+   p=campagnephoto();assert rpc('campagne_securite')['raison']=='blocus_syndical'and campagnephoto()==p
+  case('campagne_blocus_commun_refuse_sans_PA_debit_ni_gain',campagneblocus)
+  def campagneville():
+   maire('ville_a');own("UPDATE personnages_donnees SET current_city='capitale',current_building='mairie-capitale'WHERE name='Fixture'")
+   v=rpc('campagne_securite');assert v['ville']=='ville_a'and v['caisse']=='republic_mairie_ville_a'and v['isn_ville']==60
+   assert own("SELECT(data->>'isn')::integer FROM indices_villes WHERE id='republic_capitale'")==50
+  case('campagne_caisse_et_indice_ville_du_mandat_pas_ecran',campagneville)
+  def campagneplafond():
+   maire();own("UPDATE indices_villes SET data=jsonb_set(data,'{isn}','95')WHERE id='republic_capitale'")
+   v=rpc('campagne_securite');assert v['isn_ville']==100 and v['isn_delta']==5
+   own("UPDATE indices_villes SET data=jsonb_set(data,'{isn}','80')WHERE id='republic_capitale'")
+   own("UPDATE caisses_batiments SET data=jsonb_set(data,'{solde}','123')WHERE id='republic_mairie-capitale'")
+   v=rpc('campagne_securite');assert v['rejeu']and v['isn_ville']==80 and v['solde_caisse']==123
+  case('campagne_plafond_et_rejeu_reconcilient_valeurs_courantes',campagneplafond)
+  def campagnepanne():
+   maire();p=campagnephoto()
+   own("CREATE FUNCTION fixture_panne_campagne()RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'panne_campagne';END$$;CREATE TRIGGER fixture_panne_campagne BEFORE INSERT ON jauges_actions_recus FOR EACH ROW EXECUTE FUNCTION fixture_panne_campagne()")
+   own('SAVEPOINT panne_campagne')
+   try:rpc('campagne_securite');raise AssertionError('panne absente')
+   except psycopg2.Error as e:assert 'panne_campagne'in str(e);own('ROLLBACK TO SAVEPOINT panne_campagne')
+   assert campagnephoto()==p
+  case('campagne_panne_annule_caisse_PA_POP_et_indice',campagnepanne)
+  def campagnefictive():
+   maire();own("UPDATE personnages_donnees SET country='soviet'WHERE name='Fixture'");p=campagnephoto()
+   assert rpc('campagne_securite')['raison']=='indices_territoriaux_non_disponibles'and campagnephoto()==p
+  case('campagne_pas_de_facturation_pour_indice_non_persistant',campagnefictive)
   def ecoute(building='hotel-republica',room='bar',city='capitale',pays='republic'):
    own("UPDATE personnages_donnees SET current_building=%s,current_room=%s,current_city=%s,country=%s WHERE name='Fixture'",(building,room,city,pays))
   def tracer(type='vol',auteur='AutreFixture',pays='republic',ville='capitale',expire=0):
@@ -442,7 +505,20 @@ def main():
   assert photo()['resources']==avant['resources']and photo()['moral']==avant['moral']
   assert own("SELECT moral FROM personnages_donnees WHERE name='AncienneFixture'")==victime['moral']-15
   cas.append({'cas':'anatheme_deux_connexions_un_debit_une_consequence_cible','ok':True})
-  print(json.dumps({'production':False,'contre_rejeu_organisation':'--contre-rejeu-organisation'in sys.argv,'moteur':version,'tests':cas,'limites':['Payer_ordre et inspection réels du baseline ; pas un clone du catalogue vivant ni son interception blocus ajoutée ensuite.','Concurrence committée seulement dans le cluster détruit.']},ensure_ascii=False,indent=2));return 0 if all(t['ok']for t in cas)else 1
+  for meme_requete in [True,False]:
+   maire(solde=500);avant=photo();c.commit()
+   def campagneconcurrent(i):
+    cc=psycopg2.connect(srv.get_uri())
+    try:
+     ident=2000 if meme_requete else 3000+i
+     v=rpc('campagne_securite',ident=ident,cur=cc.cursor());cc.commit();return v
+    finally:cc.close()
+   with ThreadPoolExecutor(2)as pool:a,b=list(pool.map(campagneconcurrent,range(2)))
+   assert photo()['pa']==avant['pa']-2 and photo()['arg']==avant['arg']and photo()['resources']['pop']==max(0,avant['resources']['pop']-3)
+   assert own("SELECT(data->>'solde')::numeric FROM caisses_batiments WHERE id='republic_mairie-capitale'")==0
+   assert (a['ok']and b['ok'])if meme_requete else sorted([a['ok'],b['ok']])==[False,True]
+   cas.append({'cas':'campagne_concurrence_'+('meme_recu_un_debit'if meme_requete else'deux_requetes_budget_pour_une'),'ok':True})
+  print(json.dumps({'production':False,'contre_rejeu_organisation':'--contre-rejeu-organisation'in sys.argv,'moteur':version,'tests':cas,'limites':['Payer_ordre/inspection et primitives de caisse réels du baseline ; garde de blocus de la campagne réelle. Ce n’est pas un clone du catalogue vivant ni du wrapper actuel de payer_ordre.','Concurrence committée seulement dans le cluster détruit.']},ensure_ascii=False,indent=2));return 0 if all(t['ok']for t in cas)else 1
  finally:
   if c:c.rollback();c.close()
   srv.cleanup()

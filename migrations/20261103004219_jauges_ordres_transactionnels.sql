@@ -28,6 +28,11 @@ BEGIN
   IF FOUND THEN
     IF rec.ordre IS DISTINCT FROM p_ordre OR rec.contexte IS DISTINCT FROM contexte_recu THEN
       RETURN jsonb_build_object('ok',false,'raison','requete_reutilisee'); END IF;
+    IF p_ordre='campagne_securite'THEN
+      rec.resultat:=rec.resultat||jsonb_build_object(
+       'solde_caisse',(SELECT data->'solde'FROM public.caisses_batiments WHERE id=rec.resultat->>'caisse'),
+       'isn_ville',(SELECT data->'isn'FROM public.indices_villes WHERE id=(rec.resultat->>'pays')||'_'||(rec.resultat->>'ville')));
+    END IF;
     IF p_ordre='objectifs_actualiser' THEN
       rec.resultat:=rec.resultat||jsonb_build_object('objectifs_completes',(SELECT acquis FROM public.jauges_objectifs_etats WHERE acteur=a.name));
     END IF;
@@ -50,6 +55,12 @@ BEGIN
     IF coalesce((publication->>'ok')::boolean,false) IS NOT TRUE THEN RETURN publication;END IF;
     pop_gain:=(publication->>'gain_pop')::integer;
     pa_cout:=NULL; -- publier au forum ne coûte aucun PA : règle préexistante.
+  WHEN 'campagne_securite'THEN
+    IF p_contexte<>'{}'::jsonb THEN RETURN jsonb_build_object('ok',false,'raison','contexte_invalide');END IF;
+    IF to_regprocedure('public.mairie_campagne_securite_interne(text)')IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','ordre_non_raccorde');END IF;
+    publication:=public.mairie_campagne_securite_interne(a.name);
+    IF NOT coalesce((publication->>'ok')::boolean,false)THEN RETURN publication;END IF;
+    pa_cout:=NULL;pop_gain:=-3;
   WHEN 'ecouter_rumeurs' THEN
     IF p_contexte<>'{}'::jsonb THEN RETURN jsonb_build_object('ok',false,'raison','contexte_invalide');END IF;
     IF to_regprocedure('public.rumeur_ecoute_jauges_interne(text)')IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','ordre_non_raccorde');END IF;

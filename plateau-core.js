@@ -2439,6 +2439,7 @@ async function executerOrdreJaugesServeur(ordre, contexte = {}) {
     }
     if (v.contrat_jauges !== 1 || v.acteur !== c.nom || v.requete !== requete || v.ordre !== ordre
         || (ordre==='inspecter_troupes'&&v.perimetre?.ok!==true)
+        || (ordre==='campagne_securite'&&(typeof v.pays!=='string'||typeof v.ville!=='string'||!['isn_ville','isn_delta','montant_preleve','solde_caisse'].every(k=>typeof v[k]==='number'&&Number.isFinite(v[k]))))
         || ![v.pop,v.inf,v.pa,v.hp].every(x => typeof x === 'number' && Number.isFinite(x))) return null;
     localStorage.removeItem(stockage);
     appliquerPaiementServeur(v);
