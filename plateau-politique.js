@@ -2949,7 +2949,9 @@ async function afficherObjectifsSecrets() {
     return;
   }
 
+  const contexte = contexteGroupePj();
   await verifierObjectifs();
+  if (!contexteGroupePjValide(contexte)) return;
   const archetype = state.char?.archetype || 'ambitieux';
   const obj = OBJECTIFS_SECRETS[archetype] || OBJECTIFS_SECRETS.ambitieux;
   const completed = state.objectifs_completes || [];
@@ -2988,10 +2990,11 @@ async function verifierObjectifs() {
       || typeof executerOrdreJaugesServeur!=='function')return;
   const signature=JSON.stringify([state.char?.name,state.char?.archetype,state.poste,state.pop,state.inf,state.dis,state.banque,state.informateurs]);
   if(state._objectifsSignatureConfirmee===signature)return;
+  const contexte=contexteGroupePj();
   _verifyingObjectifs=true;
   try {
     const v=await executerOrdreJaugesServeur('objectifs_actualiser');
-    if(!v||!Array.isArray(v.objectifs_completes)||!Array.isArray(v.objectifs_nouveaux))return;
+    if(!contexteGroupePjValide(contexte)||!v||!Array.isArray(v.objectifs_completes)||!Array.isArray(v.objectifs_nouveaux))return;
     state.objectifs_completes=v.objectifs_completes;
     // Une réponse perdue peut avoir précédé un autre événement : ne pas figer une
     // signature locale qui ferait oublier une nouvelle éligibilité au prochain geste.

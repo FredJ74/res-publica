@@ -176,6 +176,32 @@ def main():
   def objectifsfaux():
    p=photo();assert rpc('objectifs_actualiser',ctx={'gain_inf':99,'acquis':['obj_inf80']})['raison']=='contexte_invalide'and photo()==p
   case('objectifs_criteres_client_non_acceptes',objectifsfaux)
+  def objectifsplafond():
+   own("UPDATE personnages_donnees SET archetype='ambitieux',poste='{\"id\":\"president\"}',resources=jsonb_set(resources,'{inf}','99')WHERE name='Fixture'")
+   v=rpc('objectifs_actualiser');assert v['inf']==100 and v['gain_inf']==2 and len(v['objectifs_nouveaux'])==3
+   assert rpc('objectifs_actualiser',2)['gain_inf']==0 and photo()['resources']['inf']==100
+  case('objectifs_plafond_100_lot_acquis_sans_recompense_retardee',objectifsplafond)
+  def objectifscopie():
+   own("UPDATE personnages_donnees SET archetype='ambitieux',poste='{\"id\":\"president\"}'WHERE name='Fixture'")
+   assert rpc('objectifs_actualiser')['inf']==12
+   own("UPDATE personnages_donnees SET resources=jsonb_set(resources,'{inf}','40')WHERE name='Fixture'")
+   v=rpc('objectifs_actualiser');assert v['rejeu'] and v['inf']==40
+  case('objectifs_reponse_perdue_rejeu_ne_recopie_pas_ancienne_jauge',objectifscopie)
+  def objectifsprives():
+   for f in ['objectifs_secrets_actualiser_interne(text)','objectifs_secrets_eligibles_interne(text)']:
+    assert not own("SELECT has_function_privilege('authenticated',%s,'EXECUTE')",(f,))
+   for table in ['jauges_objectifs_etats','jauges_objectifs_bascule']:
+    assert not own("SELECT has_table_privilege('authenticated',%s,'INSERT,UPDATE,DELETE,SELECT')",(table,))
+  case('objectifs_suivi_et_helpers_inaccessibles_au_navigateur',objectifsprives)
+  def objectifspanne():
+   own("UPDATE personnages_donnees SET archetype='ambitieux',poste='{\"id\":\"president\"}'WHERE name='Fixture'")
+   own("CREATE FUNCTION fixture_panne_objectifs()RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'panne_objectifs';END$$;CREATE TRIGGER fixture_panne_objectifs BEFORE INSERT ON jauges_actions_recus FOR EACH ROW EXECUTE FUNCTION fixture_panne_objectifs()")
+   p=photo();suivi=own("SELECT to_jsonb(e)FROM jauges_objectifs_etats e WHERE acteur='Fixture'")
+   own('SAVEPOINT panne_objectifs')
+   try:rpc('objectifs_actualiser');raise AssertionError('panne absente')
+   except psycopg2.Error as e:assert 'panne_objectifs'in str(e);own('ROLLBACK TO SAVEPOINT panne_objectifs')
+   assert photo()==p and own("SELECT to_jsonb(e)FROM jauges_objectifs_etats e WHERE acteur='Fixture'")==suivi
+  case('objectifs_panne_annule_gain_suivi_et_recu',objectifspanne)
   c.commit()
   def agir():
    cc=psycopg2.connect(srv.get_uri())
@@ -185,6 +211,15 @@ def main():
   with ThreadPoolExecutor(2)as pool:a,b=list(pool.map(lambda _:agir(),range(2)))
   assert a['inf']==b['inf']==11 and own("SELECT pa FROM personnages_donnees WHERE name='Fixture'")==19
   cas.append({'cas':'deux_connexions_un_gain_un_paiement','ok':True})
+  own("UPDATE personnages_donnees SET archetype='ambitieux',poste='{\"id\":\"president\"}'WHERE name='Fixture'");c.commit()
+  def objectifconcurrent(i):
+   cc=psycopg2.connect(srv.get_uri())
+   try:
+    v=rpc('objectifs_actualiser',880+i,cur=cc.cursor());cc.commit();return v
+   finally:cc.close()
+  with ThreadPoolExecutor(2)as pool:a,b=list(pool.map(objectifconcurrent,range(2)))
+  assert sorted([a['gain_inf'],b['gain_inf']])==[0,2] and a['inf']==b['inf']==13
+  cas.append({'cas':'objectifs_deux_connexions_requetes_distinctes_un_seul_lot','ok':True})
   print(json.dumps({'production':False,'moteur':version,'tests':cas,'limites':['Payer_ordre et inspection réels du baseline ; pas un clone du catalogue vivant ni son interception blocus ajoutée ensuite.','Concurrence committée seulement dans le cluster détruit.']},ensure_ascii=False,indent=2));return 0 if all(t['ok']for t in cas)else 1
  finally:
   if c:c.rollback();c.close()
