@@ -14,9 +14,7 @@ function between(src,first,last){
  return src.slice(start,end);
 }
 const forumFunctions=[
- between(forum,'function marquerForumRubriqueVisitee(', '// Point d\'entree unique du sondage'),
- between(forum,'function recalculerActiviteForumAgregat(', '// Voyant global'),
- between(forum,'function renderForumNavItem(', 'function renderForumCategorieItems('),
+ between(forum,'function _cleDernierPassageForum(', 'function renderForumCategorieItems('),
  between(forum,'function renderForumCategorieItems(', 'function toggleSousGroupeForum('),
  between(forum,'function renderCategorieHeader(', '// Extrait de renderForumModal'),
  between(forum,'function rafraichirVoyantsEtCompteursForum(', 'function renderForumModal('),
