@@ -1,0 +1,131 @@
+{
+  "production": false,
+  "moteur": "170006",
+  "contre": true,
+  "contre_publication": false,
+  "tests": [
+    {
+      "cas": "migration_annulation_et_double_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "publication_ecritures_et_recompense_existantes_inchangees",
+      "ok": true
+    },
+    {
+      "cas": "sujets_et_reponses_identite_1",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 54, in cas\n    try:fn();tests.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 58, in lecture\n    def lecture(i=i,attendus=attendus):acteur(i);assert lire()==sorted(attendus);assert lire('forum_posts')==sorted('p-'+x for x in attendus)\n                                                        ^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "sujets_et_reponses_identite_2",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 54, in cas\n    try:fn();tests.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 58, in lecture\n    def lecture(i=i,attendus=attendus):acteur(i);assert lire()==sorted(attendus);assert lire('forum_posts')==sorted('p-'+x for x in attendus)\n                                                        ^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "sujets_et_reponses_identite_3",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 54, in cas\n    try:fn();tests.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 58, in lecture\n    def lecture(i=i,attendus=attendus):acteur(i);assert lire()==sorted(attendus);assert lire('forum_posts')==sorted('p-'+x for x in attendus)\n                                                        ^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "sujets_et_reponses_identite_4",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 54, in cas\n    try:fn();tests.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 58, in lecture\n    def lecture(i=i,attendus=attendus):acteur(i);assert lire()==sorted(attendus);assert lire('forum_posts')==sorted('p-'+x for x in attendus)\n                                                        ^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "aller_retour_local_et_national_permanent",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 54, in cas\n    try:fn();tests.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 61, in voyage\n    acteur();assert 'lc'in lire()and 'la'not in lire()\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "pays_homonyme_et_acces_direct_isoles",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 54, in cas\n    try:fn();tests.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 66, in territoire\n    own(\"UPDATE personnages_donnees SET country='narco',current_city='ville_a'WHERE name='Alice'\");acteur();ids=lire();assert 'na'in ids and 'nn'in ids and 'nr'not in ids and 'la'not in ids\n                                                                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "perte_adhesion_chef_et_nouvelle_adhesion",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 54, in cas\n    try:fn();tests.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 71, in adhesion\n    own(\"UPDATE organisations SET data='{\\\"chef\\\":\\\"Chef\\\",\\\"membres\\\":[]}'WHERE id='club'\");acteur();assert 'pr'not in lire()and 'p-pr'not in lire('forum_posts')\n                                                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "organisation_invalide_aucune_fuite_ni_panne_globale",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 54, in cas\n    try:fn();tests.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 76, in organisation_invalide\n    own(\"UPDATE organisations SET data='invalide'WHERE id='club'\");acteur();assert 'pr'not in lire()and 'p-pr'not in lire('forum_posts')\n                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "anonyme_territoriaux_prives_fermes_institutions_inchangees",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 54, in cas\n    try:fn();tests.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 78, in anonyme\n    def anonyme():acteur(0,'anon');assert lire()==['gouv','inter','pres','presse','sport'];assert lire('forum_posts')==['p-gouv','p-inter','p-pres','p-presse','p-sport']\n                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "refus_sujet_pays_etranger",
+      "ok": true
+    },
+    {
+      "cas": "refus_sujet_ville_absente",
+      "ok": true
+    },
+    {
+      "cas": "refus_reponse_sujet_etranger",
+      "ok": false,
+      "erreur": "écriture acceptée",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 54, in cas\n    try:fn();tests.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 84, in <lambda>\n    for nom,sql in [('sujet_pays_etranger',\"INSERT INTO forum_topics(id,forum_id,country,title,author)VALUES('x','national','narco','x','Alice')\"),('sujet_ville_absente',\"INSERT INTO forum_topics(id,forum_id,country,title,author)VALUES('x','local_ville_a','republic','x','Alice')\"),('reponse_sujet_etranger',\"INSERT INTO forum_posts(id,topic_id,author,content)VALUES('x','na','Alice','x')\"),('reponse_usurpation',\"INSERT INTO forum_posts(id,topic_id,author,content)VALUES('x','lc','Chef','x')\"),('deplacer_sujet',\"UPDATE forum_topics SET forum_id='local_ville_a'WHERE id='lc'\")]:cas('refus_'+nom,lambda sql=sql:rejet(sql))\n                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ^^^^^^^^^^\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 82, in rejet\n    try:q.execute(sql);raise AssertionError('écriture acceptée')\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: écriture acceptée\n"
+    },
+    {
+      "cas": "refus_reponse_usurpation",
+      "ok": true
+    },
+    {
+      "cas": "refus_deplacer_sujet",
+      "ok": true
+    },
+    {
+      "cas": "publication_institutionnelle_author_real_conservee",
+      "ok": true
+    },
+    {
+      "cas": "ancien_auteur_non_adherent_ne_modifie_ni_supprime",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 54, in cas\n    try:fn();tests.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-forums422/outils/bancs/banc-forums-territoires-local.py\", line 90, in suppression\n    q.execute(\"DELETE FROM forum_posts WHERE id='p-pr'\");assert q.rowcount==0\n                                                                ^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "publication_transactionnelle_chef_et_membre_etranger",
+      "ok": true
+    },
+    {
+      "cas": "publication_transactionnelle_tiers_refuse_sujet_et_reponse",
+      "ok": true
+    },
+    {
+      "cas": "publication_transactionnelle_hors_ville_et_pays_refusee",
+      "ok": true
+    },
+    {
+      "cas": "politique_permissive_concurrente_refusee",
+      "ok": true
+    },
+    {
+      "cas": "RLS_inactive_refusee",
+      "ok": true
+    },
+    {
+      "cas": "fonction_inconnue_pas_ecrasee",
+      "ok": true
+    },
+    {
+      "cas": "publication_inconnue_pas_ecrasee",
+      "ok": true
+    }
+  ],
+  "limite": "Tables, vue personnages et mon_personnage du baseline ; auth.uid de fixture. Pas un clone du catalogue vivant, aucun HTTP production."
+}

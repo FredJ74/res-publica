@@ -1,0 +1,268 @@
+✖ réponses privées tardives / ville (5.692008ms)
+✖ réponses privées tardives / pays (1.361651ms)
+✖ réponses privées tardives / personnage (0.992706ms)
+✖ réponses privées tardives / uid (1.07675ms)
+✖ réponses privées tardives / session (1.239921ms)
+✖ réponses privées tardives / adhesion (0.861864ms)
+✖ messages vides confirmés : aucun ancien message privé conservé (1.038404ms)
+✖ aller-retour : cache local renouvelé, national conservé dans le même pays (1.490793ms)
+✖ perte d’adhésion : purge des sujets, compteurs et voyants privés (1.321412ms)
+✖ compteurs tardifs après perte d’adhésion ignorés sans nouvelle ouverture (1.783455ms)
+✖ activité tardive après déplacement ignorée (2.028807ms)
+✖ sujets : identité changée, réponse ignorée et délai libéré (1.287372ms)
+✖ ancienne requête terminée ne déverrouille pas la nouvelle lecture (1.04905ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 0
+ℹ fail 13
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 99.23083
+
+✖ failing tests:
+
+test at outils/bancs/banc-forums-contextes-422.cjs:10:82
+✖ réponses privées tardives / ville (5.692008ms)
+  AssertionError [ERR_ASSERTION]: aucun ancien message ne doit être adopté
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:20:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:10:82
+✖ réponses privées tardives / pays (1.361651ms)
+  AssertionError [ERR_ASSERTION]: aucun ancien message ne doit être adopté
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:20:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:10:82
+✖ réponses privées tardives / personnage (0.992706ms)
+  AssertionError [ERR_ASSERTION]: aucun ancien message ne doit être adopté
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:20:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:10:82
+✖ réponses privées tardives / uid (1.07675ms)
+  AssertionError [ERR_ASSERTION]: aucun ancien message ne doit être adopté
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:20:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:10:82
+✖ réponses privées tardives / session (1.239921ms)
+  AssertionError [ERR_ASSERTION]: aucun ancien message ne doit être adopté
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:20:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:10:82
+✖ réponses privées tardives / adhesion (0.861864ms)
+  AssertionError [ERR_ASSERTION]: aucun ancien message ne doit être adopté
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:20:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:22:1
+✖ messages vides confirmés : aucun ancien message privé conservé (1.038404ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:24:43)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:26:1
+✖ aller-retour : cache local renouvelé, national conservé dans le même pays (1.490793ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + [
+  +   {
+  +     id: 'local'
+  +   }
+  + ]
+  - undefined
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:27:168)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { id: 'local' } ],
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:30:1
+✖ perte d’adhésion : purge des sujets, compteurs et voyants privés (1.321412ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + [
+  +   {
+  +     id: 'prive'
+  +   }
+  + ]
+  - undefined
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:32:111)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { id: 'prive' } ],
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:34:1
+✖ compteurs tardifs après perte d’adhésion ignorés sans nouvelle ouverture (1.783455ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  999 !== undefined
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:35:176)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 999,
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:37:1
+✖ activité tardive après déplacement ignorée (2.028807ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '2026-11-03T12:00:00Z'
+  - undefined
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:38:324)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '2026-11-03T12:00:00Z',
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:40:1
+✖ sujets : identité changée, réponse ignorée et délai libéré (1.287372ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:41:189)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:43:1
+✖ ancienne requête terminée ne déverrouille pas la nouvelle lecture (1.04905ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:44:350)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

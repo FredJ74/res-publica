@@ -1,0 +1,20 @@
+OK 1 organisation étrangère absente
+OK 2 organisation adhérente visible
+OK 3 chef admis
+OK 4 accès direct organisation étrangère refusé
+OK 5 forum local Luthécia
+OK 6 forum PSM uniquement sur place
+OK 7 marques de lecture nationales distinctes entre pays
+OK 8 cache national purgé au changement de pays
+OK 9 retour à Luthécia
+OK 10 sections Supabase présentes
+OK 11 compteur national filtré par pays
+OK 12 compteur local étranger nul
+OK 13 international inchangé
+OK 14 requête nationale filtrée dès PostgREST
+OK 15 requête locale filtrée dès PostgREST
+OK 16 activité locale étrangère ignorée
+OK 17 activité nationale locale conservée
+OK 18 delta étranger ignoré
+OK 19 delta national conservé
+19/19 vérifications réussies

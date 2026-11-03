@@ -1,0 +1,29 @@
+{
+  "base_main": "4c657b5307d7a681a7e9c5496f3185d4934740fc",
+  "tete_code": "0c03d2f66cbc60b2a95dd3fdabdc4c27bc98d5e2",
+  "production_modifiee": false,
+  "limite": "Preuves locales, pas de prévol Supabase actuel ni de recette authentifiée de production. Contrôles globaux 8/12 et transversaux99/100 : mêmes échecs sur main.",
+  "sources_sha256": {
+    "forum.js": "56f31a3172561e9902758712d331464d09b402ed76aee7b439d0dc44a32f497b",
+    "supabase.js": "bf4870554e81caba3dfa283a63e2c3aa31d73050e45c86f379890837f5704423",
+    "plateau-organisations-quetes.js": "d71fcea58fc5c3c81029225af84d51d5a19d1ee87e4811504d1a06e3b9f247e1",
+    "migrations/20261103222000_forums_territoires_et_adhesions.sql": "bbeb887e971e0bb7e4e3a9ea4e9dd898ef74d768e541d83d2d7e252a86e8201a"
+  },
+  "fichiers_sha256": {
+    "chromium.log": "b38378b4f285141a35a03d9f5b94de35a70a9c8d2200c130d7809dbd2d1bf1e8",
+    "ci-initiale.json": "991fe2966c2e5788ac4dd0d99559b3952a048a678c0d2e5ef506b72b753307e2",
+    "clients.json": "7a65084a87971326d7a58dd072571c4f2a3ea68ead71ee77dc4213f4c4ff5fce",
+    "contextes-client.log": "2def7c566cbf3dbe98856d4085a5638009a994235e3dde8bc1e27957190ca282",
+    "contre-contextes.log": "7700be0e0655a7a053c54668779f3cc069e1a147aa950fa7a7b35ba4e8202575",
+    "contre-politiques.json": "6a845794b9b317bd5c52cd0ccfe1f58b2a51149723c3ecab93d2569f0b8ae91c",
+    "contre-publication.json": "8392a2cec23b0beaab9bd548530e8f6498e5105dd1518ad6f0612a5ed4477edd",
+    "globaux-branche.log": "ac6730dbc15a29155088bde31b9b3d04bbd085983a58623686f1b91439a7bdc5",
+    "globaux-main410.log": "db032c65d26de9a84e7746830f600d1495bd03a942ca0f7ab4f911f0ec3c2d68",
+    "postgresql16.json": "b566d5f931acd0a38c5c01418a2eab64fec01bfbb29415c1925b13a2b0e0d80b",
+    "postgresql17.json": "3eabcba6ac2735f15283c5fa2776b57b618b191244663e5cc339fdb4697b5d08",
+    "territoires-client.log": "5a831ea8a471ae6a4c39a1b7cd36d102ebc4954a05f50c9ee69bf938589d2233",
+    "transversaux-branche.log": "117656c6a844ab73f06138f20450756c10adf52a978fbf6e10acb42b77c729b3",
+    "transversaux-main410.log": "f649217f52f690c313884705ba98695eeec3d8f654ad9e9908beade6adf617e3",
+    "vercel-public.json": "4b4bc31746e7778be7a8a9f284660b1f707f827353a4795a09d455bbce102622"
+  }
+}

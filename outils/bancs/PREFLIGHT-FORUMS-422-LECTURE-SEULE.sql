@@ -5,6 +5,7 @@ BEGIN;
 SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;
 SELECT now()AS releve_utc,current_database()AS base,current_setting('server_version')AS version;
 SELECT count(*)AS migrations,max(version)AS derniere_version FROM supabase_migrations.schema_migrations;
+SELECT rolname,rolbypassrls FROM pg_roles WHERE rolname IN('anon','authenticated','service_role');
 SELECT version,name FROM supabase_migrations.schema_migrations
  WHERE name ILIKE '%forum%'OR version='20261103222000'ORDER BY version;
 SELECT p.oid::regprocedure::text AS signature,md5(p.prosrc)AS md5_corps,
