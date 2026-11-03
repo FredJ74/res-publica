@@ -24,7 +24,7 @@
 
 ## Implémentation (étape 1, 3 novembre 2026)
 
-- Ordre existant « Installer des équipements » des bureaux du centre d'affaires : 2 emplacements (version gratuite) ; installer / désinstaller son ordinateur et sa box ; bouton « Trading de matières premières » quand les deux sont installés.
+- Ordre existant « Installer des équipements » des bureaux du centre d'affaires : 2 emplacements à l'origine (3 depuis la décision 18) ; installer / désinstaller son ordinateur et sa box ; bouton « Trading de matières premières » quand les deux sont installés.
 - Jouissance légale = bail actif au nom du PJ ou d'une organisation dont il est membre (`locations_actives`).
 - Prix et disponibilité : ceux de la vente sur place à l'entrepôt (prix manuel du directeur, sinon prix de référence ; stock moins la réserve militaire).
 - Paiement : caisse de l'organisation → caisse de l'entrepôt ; stock de l'entrepôt diminué ; caisse de fret `en_transit` vers `port-sainte-marie`, déjà dédouanée, au nom du trader ; arrivée, retrait et mise en vente à J15 par le cycle existant du fret.
@@ -50,7 +50,19 @@
 - Écran : l'ancien locataire voit l'échéance de son délai à côté de son équipement.
 - Migration `20261103040000_trading_equipements_perte_jouissance` (appliquée le 03/11), banc annulé `outils/bancs/banc-trading-perte-jouissance.sql`.
 
+## Décisions du 3 novembre 2026 (option premium des bureaux)
+
+17. Il n'y a **pas de compte premium** dans Human Gambit, mais des **options premium** payantes, achetées une à une.
+18. Un bureau offre **3 emplacements** d'équipement en gratuit ; l'option premium en donne **6**. (Remplace les « 2 gratuits / 4 premium » de la première version.)
+19. L'option s'achète **pour un bureau donné**, **définitive** tant que l'acheteur garde ce bureau ; elle est perdue avec la jouissance du local. **Gratuite pendant la bêta** (comme la publicité premium), le paiement viendra plus tard.
+
+## Implémentation (option premium, 3 novembre 2026)
+
+- Table `bureaux_option_premium` (acheteur, bureau, `paiement = 'gratuit_beta'`) ; `equipements_emplacements_interne` est le seul endroit qui décide 3 ou 6 (6 si un occupant légal du bureau a activé l'option) ; `equipement_option_premium_activer` (bureau en jouissance, une fois) ; la passe de nuit efface l'option d'un acheteur qui n'a plus la jouissance du bureau.
+- Écran : « x / 3 emplacements occupés » et bouton « Activer l'option » (gratuite pendant la bêta) dans la fenêtre des équipements.
+- Le paiement réel se branchera dans `equipement_option_premium_activer` (commentaire en place).
+- Migration `20261103090000_trading_option_premium_emplacements` (appliquée le 03/11), banc annulé `outils/bancs/banc-trading-option-premium.sql`.
+
 ## Reste à faire
 
 - Cours des autres empires et achats internationaux : avec les autres empires.
-- Premium : 4 emplacements au lieu de 2. **Non codable pour l'instant** : le jeu n'a encore aucun statut de compte premium (aucune donnée ni fonction serveur ne dit qui est premium ; les offres premium existantes sont gratuites en bêta ou « Bientôt disponible »). Le serveur répond aujourd'hui `emplacements: 2` à un seul endroit (`equipements_local_lire`, `equipement_installer`) : il suffira d'y lire le futur statut premium.
