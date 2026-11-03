@@ -7,6 +7,7 @@
     "test": "node --experimental-vm-modules --test ../bancs/banc-vercel-bundle.cjs"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15",
     "@vercel/node": "5.3.25"
   }
 }
