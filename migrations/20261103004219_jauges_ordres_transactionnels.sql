@@ -50,6 +50,12 @@ BEGIN
     IF coalesce((publication->>'ok')::boolean,false) IS NOT TRUE THEN RETURN publication;END IF;
     pop_gain:=(publication->>'gain_pop')::integer;
     pa_cout:=NULL; -- publier au forum ne coûte aucun PA : règle préexistante.
+  WHEN 'ecouter_rumeurs' THEN
+    IF p_contexte<>'{}'::jsonb THEN RETURN jsonb_build_object('ok',false,'raison','contexte_invalide');END IF;
+    IF to_regprocedure('public.rumeur_ecoute_jauges_interne(text)')IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','ordre_non_raccorde');END IF;
+    publication:=public.rumeur_ecoute_jauges_interne(a.name);
+    IF NOT coalesce((publication->>'ok')::boolean,false)THEN RETURN publication;END IF;
+    pa_cout:=(publication->>'pa_cout')::integer;inf_gain:=(publication->>'gain_inf')::integer;
   WHEN 'consommer_buvette' THEN
     IF p_contexte<>'{}'::jsonb THEN RETURN jsonb_build_object('ok',false,'raison','contexte_invalide');END IF;
     IF a.current_building IS DISTINCT FROM 'stade'OR a.current_room IS DISTINCT FROM 'buvette'

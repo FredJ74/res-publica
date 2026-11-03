@@ -30,6 +30,10 @@ def main():
    q.execute("INSERT INTO budgets_municipaux(id,data)VALUES(%s,'{\"tauxLocal\":2}')",('republic_'+ville,))
    mairie='republic_mairie-capitale'if ville=='capitale'else'republic_mairie_'+ville
    q.execute("INSERT INTO caisses_batiments(id,data)VALUES(%s,'{\"solde\":0}'),(%s,'{\"solde\":0}')",(mairie,'republic_stade_'+ville))
+  h.table(q,'baseline/domaines/justice/10_tables.sql','actions_tracables')
+  h.table(q,'baseline/domaines/politique-et-elections/10_tables.sql','rp_epoques')
+  q.execute(h.fonction('baseline/domaines/socle/20_fonctions.sql','jour_de_jeu_pays'))
+  q.execute((R/'migrations/20261103021155_rumeurs_ecoute_jauges_serveur.sql').read_text())
   q.execute('ALTER TABLE personnages_donnees ADD PRIMARY KEY(name);ALTER TABLE personnages_donnees ENABLE ROW LEVEL SECURITY;CREATE VIEW personnages AS SELECT * FROM personnages_donnees;ALTER TABLE ordres_couts_inconnus ADD PRIMARY KEY(fn);ALTER TABLE ordres_couts_ecarts ADD PRIMARY KEY(fn,pa,cost)')
   for n in ['mon_personnage','est_appel_serveur','est_mon_personnage','exiger_acteur']:q.execute(h.fonction('baseline/domaines/socle/20_fonctions.sql',n))
   q.execute(h.fonction('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre'))
@@ -252,6 +256,46 @@ def main():
    assert photo()==p and caisses()==cash
    assert own('SELECT count(*)FROM recettes_municipales')==0 and own("SELECT (data->>'reserveJour')::numeric FROM budgets_nationaux WHERE id='republic'")is None
   case('buvette_panne_recu_annule_debit_taxes_caisse_et_gain',stadepanne)
+  def ecoute(building='hotel-republica',room='bar',city='capitale',pays='republic'):
+   own("UPDATE personnages_donnees SET current_building=%s,current_room=%s,current_city=%s,country=%s WHERE name='Fixture'",(building,room,city,pays))
+  def tracer(type='vol',auteur='AutreFixture',pays='republic',ville='capitale',expire=0):
+   own("INSERT INTO actions_tracables(id,auteur,cible,type_action,country,city,jour,jour_expiration)VALUES('trace',%s,'CibleFixture',%s,%s,%s,jour_de_jeu_pays(%s),jour_de_jeu_pays(%s)+%s)",(auteur,type,pays,ville,pays,pays,expire))
+  def seed_ecoute(succes=True,taux=90):
+   for i in range(100):
+    seed=i/100;own('SELECT setseed(%s)',(seed,));tirage=own('SELECT random()')*100
+    if (tirage<taux)==succes:own('SELECT setseed(%s)',(seed,));return
+   raise AssertionError('graine absente')
+  def rumeurvraie():
+   ecoute();tracer();seed_ecoute();v=rpc('ecouter_rumeurs');assert v['inf']==11 and v['pa']==20 and v['source_rumeur']=='Marco'
+   assert v['rumeur']=={'type_action':'vol','auteur':'AutreFixture','cible':'CibleFixture'}
+   assert rpc('ecouter_rumeurs')['inf']==11
+   seed_ecoute();assert rpc('ecouter_rumeurs',2)['inf']==12
+  case('rumeurs_trace_vraie_gain_une_fois_et_deux_ecoutes_legitimes',rumeurvraie)
+  def rumeurechec():
+   ecoute('assemblee','couloirs');tracer();seed_ecoute(False,70);v=rpc('ecouter_rumeurs')
+   assert v['inf']==10 and v['pa']==19 and v['rumeur']is None
+  case('rumeurs_jet_rate_paie_mais_aucun_gain_ni_rumeur_inventee',rumeurechec)
+  for motif,args in [('propre',{'auteur':'Fixture'}),('expiree',{'expire':-1}),('autre_pays',{'pays':'soviet'}),('autre_ville',{'ville':'ville_a'}),('type_sans_formulation',{'type':'inconnu'})]:
+   def scenario(args=args):
+    ecoute();tracer(**args);seed_ecoute();v=rpc('ecouter_rumeurs');assert v['inf']==10 and v['rumeur']is None
+   case('rumeurs_pas_de_gain_sur_trace_'+motif,scenario)
+  def rumeurcouverture():
+   ecoute();tracer(type='presence_suspecte',auteur='CouvertureFixture');seed_ecoute();v=rpc('ecouter_rumeurs');assert v['inf']==11
+   assert set(v['rumeur'])=={'type_action','auteur','cible'}and v['rumeur']['auteur']=='CouvertureFixture'
+  case('rumeurs_agent_seule_identite_de_couverture_existante',rumeurcouverture)
+  def rumeurlieux():
+   ident=1
+   for pays in ['republic','narco','soviet','khalija']:
+    for building,room,pa in [('hotel-republica','bar',0),('hotel-republica','restaurant',0),('assemblee','couloirs',1)]:
+     ecoute(building,room,pays=pays);p=photo();v=rpc('ecouter_rumeurs',ident);ident+=1
+     assert v['pa']==p['pa']-pa and v['inf']==10 and v['rumeur']is None
+   for building,room in [('bar-des-pecheurs','salle_bar'),('capitaine-sauvage','salle_principale')]:
+    ecoute(building,room,'ville_a');v=rpc('ecouter_rumeurs',ident);ident+=1;assert v['pa_cout']==0 and v['inf']==10
+  case('rumeurs_quatorze_lieux_effectifs_tarifs_conserves',rumeurlieux)
+  def rumeurfaux():
+   p=photo();assert rpc('ecouter_rumeurs')['raison']=='pas_sur_place'and photo()==p
+   ecoute();p=photo();assert rpc('ecouter_rumeurs',ctx={'gain_inf':99,'successRate':100})['raison']=='contexte_invalide'and photo()==p
+  case('rumeurs_lieu_et_tirage_pas_decides_par_ecran',rumeurfaux)
   def orga(fn='orga_meeting',ident=1,org='o',params=None,cur=None):
    cc=cur or q
    cc.execute("SELECT set_config('role','authenticated',true),set_config('request.path','/rpc/organisation_vie_commande',true),set_config('request.jwt.claim.sub','00000000-0000-4000-9000-000000000001',true)")

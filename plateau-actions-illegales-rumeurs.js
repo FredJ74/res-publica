@@ -440,58 +440,21 @@ const FORMULATIONS_RUMEUR_VRAIE = {
 };
 
 async function ecouterRumeurs(successRate, pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
-  const char = state.char;
-  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-  const ordreEcoute = room?.orders?.find(o => o.fn === 'ecouter_rumeurs');
-  const pnjPresents = ordreEcoute?.sourceOverride ? [ordreEcoute.sourceOverride] : ['Le Commissaire', 'Un député', 'Un journaliste', 'Un commerçant', 'Un inconnu'];
-  const source = pnjPresents[Math.floor(Math.random() * pnjPresents.length)];
-
-  showToast('Vous tendez l\'oreille...', 'En attente d\'une information.', false);
-
-  const roll = Math.random() * 100;
-  const succes = roll < (successRate ?? 70);
-
-  // Rumeurs VRAIES uniquement, basees sur une action reellement tracee.
-  // Aucun repli IA/invente : si le jet echoue ou qu'il n'y a rien a reveler,
-  // le joueur repart simplement bredouille.
-  let actionsDisponibles = [];
-  if (succes && typeof sbGetActionsTracables === 'function') {
-    try {
-      actionsDisponibles = await sbGetActionsTracables(state.country, state.currentCity, state.day || 1);
-      // Ne jamais reveler sa propre action a soi-meme
-      actionsDisponibles = actionsDisponibles.filter(a => a.auteur !== char?.name);
-    } catch(e) {}
-  }
-
-  if (succes && actionsDisponibles.length > 0) {
-    const action = actionsDisponibles[Math.floor(Math.random() * actionsDisponibles.length)];
-    const formulateur = FORMULATIONS_RUMEUR_VRAIE[action.type_action];
-    if (formulateur) {
-      const texte = formulateur(action.auteur, action.cible || 'quelqu\'un');
-      document.getElementById('postes-modal-title').textContent = source + ' vous glisse à l\'oreille...';
-      document.getElementById('postes-body').innerHTML =
-        '<div style="padding:1.2rem">' +
-        '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">"' + texte + '"</div>' +
-        '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">Source : ' + source + ' · Information vérifiée</div>' +
-        '</div>';
-      document.getElementById('modal-postes').classList.add('open');
-      state.inf = Math.min(100, state.inf + 1);
-      updateUI();
-      addJournalEntry('Rumeur entendue à ' + ville, 'event-info');
-      return;
-    }
-  }
-
-  // Echec du jet ou aucune rumeur vraie disponible
-  document.getElementById('postes-modal-title').textContent = source + '...';
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1.2rem">' +
-    '<div style="font-size:.85rem;color:#8a8060;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">Rien de croustillant à se mettre sous la dent aujourd\'hui.</div>' +
-    '</div>';
+  const contexte=contexteGroupePj();
+  const v=await executerOrdreJaugesServeur('ecouter_rumeurs');
+  if(!v||!contexteGroupePjValide(contexte))return;
+  const action=v.rumeur;
+  const formulateur=action&&FORMULATIONS_RUMEUR_VRAIE[action.type_action];
+  const source=v.source_rumeur||'Une voix';
+  document.getElementById('postes-modal-title').textContent=source+(formulateur?' vous glisse à l’oreille...':'...');
+  document.getElementById('postes-body').innerHTML='<div class="cpj-dialogue" style="padding:1.2rem"><div id="rumeur-vraie-texte" class="cpj-note"></div></div>';
+  // Les noms et la cible restent du texte : aucune trace ne devient du HTML.
+  document.getElementById('rumeur-vraie-texte').textContent=formulateur
+    ?formulateur(action.auteur,action.cible||'quelqu’un')
+    :"Rien de croustillant à se mettre sous la dent aujourd'hui.";
   document.getElementById('modal-postes').classList.add('open');
+  updateUI();
+  if(formulateur&&!v.rejeu)addJournalEntry('Rumeur entendue à '+(WORLD[state.country]?.[state.currentCity]?.name||'la ville'),'event-info');
 }
 
 async function solliciterAudiencePresident() {
@@ -6515,8 +6478,9 @@ async function confirmerRecolte(matiere, pa, cost) {
 }
 
 async function doConsommerBuvette(pa, cost) {
+  const contexte=contexteGroupePj();
   const v=await executerOrdreJaugesServeur('consommer_buvette');
-  if(!v)return;
+  if(!v||!contexteGroupePjValide(contexte))return;
   updateUI();
   if(!v.rejeu){
     showToast('Un verre entre supporters','+'+v.gain_pop+' POP.',true,true);
