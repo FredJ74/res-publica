@@ -25,7 +25,7 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### Forums territoriaux et privés — ChatGPT, 03/11/2026 (PR à ouvrir)
+### Forums territoriaux et privés — ChatGPT, 03/11/2026 (PR #422, brouillon)
 
 Branche `chatgpt/forums-territoires-et-adhesions-20261103`, issue de main après #421. Décision dans `GAME-DESIGN-FORUMS.md`. Cause PJ : `local_ville_a` est partagé par PSM et Puerto Negro sans isolation par pays ; `national` est commun aux empires ; getForums propose toutes les organisations du catalogue indépendamment de l'adhésion. Correction sur `forum.js` et `supabase.js` : navigation et comptes isolés, requêtes territoriales, vérification d'adhésion, cache purgé lors d'un changement de pays, réponses tardives ignorées. Migration RLS non appliquée : `migrations/20261103222000_forums_territoires_et_adhesions.sql` ; sécurise sujets et réponses via le personnage serveur et la table organisations, sans réécrire les données. Prévol transactionnel sur Supabase **annulé avec ROLLBACK** : SQL valide, acteurs Républia/El Estado, chef/tiers d'organisation, RLS sujet et réponse ; aucun déploiement ni migration. Banc client : `outils/bancs/banc-forums-territoires-adhesions-20261103.cjs`. Reste : exécution Node réelle/CI, contrôle des migrations simultanées avec Claude #410, application au registre, déploiement READY et recette PJ. Ne pas fusionner avant ces vérifications.
 
