@@ -124,3 +124,25 @@ CREATE POLICY forum_posts_suppression_auteur ON public.forum_posts
  FOR DELETE TO authenticated
  USING((author=public.mon_personnage()OR author_real=public.mon_personnage())
    AND EXISTS(SELECT 1 FROM public.forum_topics t WHERE t.id=forum_posts.topic_id));
+
+-- Après #410 : la publication transactionnelle est SECURITY DEFINER. Elle doit
+-- appliquer la même autorité d'accès que les lectures, sans toucher aux jauges.
+-- Gardes sur le corps examiné de main ; aucun remplacement d'une version inconnue.
+DO $publication_forums$
+DECLARE f regprocedure:=to_regprocedure('public.forum_publication_jauges_interne(text,uuid,jsonb)');
+ definition text;corps text;
+BEGIN
+ IF f IS NULL THEN RAISE EXCEPTION 'forum_dependance_publication_absente';END IF;
+ SELECT prosrc INTO corps FROM pg_proc WHERE oid=f;
+ IF md5(corps)='2a6b4d5f8c468aa12504c2cbf39def54'THEN
+  definition:=pg_get_functiondef(f);
+  definition:=replace(definition,$avant1$IF f NOT IN('international','sport')AND t.country IS DISTINCT FROM a.country THEN$avant1$,$apres1$IF f NOT IN('international','sport')AND left(f,4)<>'org_'AND t.country IS DISTINCT FROM a.country THEN$apres1$);
+  definition:=replace(definition,$avant2$  SELECT EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(o->'membres','[]'::jsonb))m WHERE m->>'nom'=a.name)INTO membre;$avant2$,$apres2$  membre:=public.forum_lecture_autorisee(f,a.country);$apres2$);
+  definition:=replace(definition,$avant3$ IF f IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','forum_inconnu');END IF;$avant3$,$apres3$ IF f IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','forum_inconnu');END IF;
+ IF NOT public.forum_lecture_autorisee(f,CASE WHEN nouveau THEN a.country ELSE t.country END)THEN
+  RETURN jsonb_build_object('ok',false,'raison','forum_inaccessible');END IF;$apres3$);
+  EXECUTE definition;
+ ELSIF md5(corps)<>'536c0751b6cddf32381dcac7a8cbd581'THEN
+  RAISE EXCEPTION 'forum_publication_definition_non_examinee';
+ END IF;
+END;$publication_forums$;

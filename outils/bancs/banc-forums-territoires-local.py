@@ -29,8 +29,17 @@ def main():
   q.execute("INSERT INTO organisations(id,country_origine,data)VALUES('club','republic','{\"chef\":\"Chef\",\"membres\":[{\"nom\":\"Alice\"},\"Bob\"]}')")
   for id,forum,pays in [('lc','local_capitale','republic'),('la','local_ville_a','republic'),('na','local_ville_a','narco'),('nr','national','republic'),('nn','national','narco'),('pr','org_club','republic'),('pres','presidence','republic'),('gouv','gouvernement','republic'),('presse','presse','narco'),('inter','international','narco'),('sport','sport','narco')]:
    q.execute("INSERT INTO forum_topics(id,forum_id,country,title,author)VALUES(%s,%s,%s,'Sujet fictif','Alice')",(id,forum,pays));q.execute("INSERT INTO forum_posts(id,topic_id,author,content)VALUES(%s,%s,'Alice','Réponse fictive')",('p-'+id,id))
+  q.execute((ROOT/'migrations/20261103010231_forum_publications_jauges_serveur.sql').read_text())
+  # Entrée de fixture authentifiée vers le helper privé, comme depuis le moteur
+  # existant. Elle n'applique aucun effet POP/INF et n'existe pas en production.
+  q.execute("CREATE FUNCTION fixture_publication(p_id uuid,p_message jsonb)RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path TO public,pg_temp AS $$SELECT public.forum_publication_jauges_interne(public.mon_personnage(),p_id,p_message)$$;REVOKE ALL ON FUNCTION fixture_publication(uuid,jsonb)FROM PUBLIC;GRANT EXECUTE ON FUNCTION fixture_publication(uuid,jsonb)TO authenticated")
   migration=MIGRATION.read_text();q.execute('SAVEPOINT installation');q.execute(migration);q.execute('ROLLBACK TO SAVEPOINT installation');q.execute("SELECT to_regprocedure('public.forum_lecture_autorisee(text,text)')IS NULL");assert q.fetchone()[0]
   q.execute(migration);q.execute(migration);tests.append({'cas':'migration_annulation_et_double_rejeu','ok':True})
+  q.execute("SELECT prosrc FROM pg_proc WHERE oid='public.forum_publication_jauges_interne(text,uuid,jsonb)'::regprocedure");corps=q.fetchone()[0]
+  original=(ROOT/'migrations/20261103010231_forum_publications_jauges_serveur.sql').read_text().split('AS $function$',1)[1].split('$function$;',1)[0]
+  assert corps.split('auteur:=a.name;',1)[1]==original.split('auteur:=a.name;',1)[1]
+  tests.append({'cas':'publication_ecritures_et_recompense_existantes_inchangees','ok':True})
+  if '--contre-publication'in sys.argv:q.execute((ROOT/'migrations/20261103010231_forum_publications_jauges_serveur.sql').read_text())
   if '--contre'in sys.argv:
    q.execute('ALTER POLICY forum_topics_lecture ON forum_topics USING(true);ALTER POLICY forum_posts_lecture ON forum_posts USING(true)')
   def own(sql,args=()):
@@ -82,6 +91,22 @@ def main():
    q.execute("DELETE FROM forum_topics WHERE id='pr'");assert q.rowcount==0
    q.execute("UPDATE forum_posts SET content='interdit'WHERE id='p-pr'");assert q.rowcount==0
   cas('ancien_auteur_non_adherent_ne_modifie_ni_supprime',suppression)
+  numero_publication=[98]
+  def publier(message,i=1):
+   numero_publication[0]+=1
+   acteur(i);q.execute('SELECT fixture_publication(%s,%s::jsonb)',(f'00000000-0000-4000-9000-{numero_publication[0]:012d}',json.dumps(message)));return q.fetchone()[0]
+  def chef_publication():
+   v=publier({'forum':'org_club','titre':'Privé','contenu':'x'},3);assert v['ok'],v
+   v=publier({'topic':v['topic'],'contenu':'Réponse étrangère adhérente'},2);assert v['ok'],v
+  cas('publication_transactionnelle_chef_et_membre_etranger',chef_publication)
+  def tiers_publication():
+   v=publier({'forum':'org_club','titre':'Intrusion','contenu':'x'},4);assert not v['ok'],v
+   v=publier({'topic':'pr','contenu':'Intrusion'},4);assert not v['ok'],v
+  cas('publication_transactionnelle_tiers_refuse_sujet_et_reponse',tiers_publication)
+  def ancien_local():
+   v=publier({'topic':'la','contenu':'Hors ville'});assert not v['ok'],v
+   v=publier({'topic':'nn','contenu':'Hors pays'});assert not v['ok'],v
+  cas('publication_transactionnelle_hors_ville_et_pays_refusee',ancien_local)
   def garde():
    own('CREATE POLICY fixture_lecture ON forum_topics FOR SELECT USING(true)');own('SAVEPOINT garde')
    try:own(migration);raise AssertionError('politique concurrente acceptée')
@@ -93,7 +118,8 @@ def main():
    except psycopg2.Error as e:assert motif in str(e);own('ROLLBACK TO SAVEPOINT definition')
   cas('RLS_inactive_refusee',lambda:garde_definition('ALTER TABLE forum_posts DISABLE ROW LEVEL SECURITY','forum_RLS_inactive'))
   cas('fonction_inconnue_pas_ecrasee',lambda:garde_definition("CREATE OR REPLACE FUNCTION forum_lecture_autorisee(p_forum text,p_pays text)RETURNS boolean LANGUAGE sql SECURITY DEFINER AS $$SELECT true$$",'forum_definition_non_examinee'))
-  print(json.dumps({'production':False,'moteur':version,'contre':'--contre'in sys.argv,'tests':tests,'limite':'Tables, vue personnages et mon_personnage du baseline ; auth.uid de fixture. Pas un clone du catalogue vivant, aucun HTTP production.'},ensure_ascii=False,indent=2));return 0 if all(t['ok']for t in tests)else 1
+  cas('publication_inconnue_pas_ecrasee',lambda:garde_definition("CREATE OR REPLACE FUNCTION forum_publication_jauges_interne(p_acteur text,p_requete uuid,p_message jsonb)RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $$SELECT '{}'::jsonb$$",'forum_publication_definition_non_examinee'))
+  print(json.dumps({'production':False,'moteur':version,'contre':'--contre'in sys.argv,'contre_publication':'--contre-publication'in sys.argv,'tests':tests,'limite':'Tables, vue personnages et mon_personnage du baseline ; auth.uid de fixture. Pas un clone du catalogue vivant, aucun HTTP production.'},ensure_ascii=False,indent=2));return 0 if all(t['ok']for t in tests)else 1
  finally:
   if db:db.rollback();db.close()
   srv.cleanup()
