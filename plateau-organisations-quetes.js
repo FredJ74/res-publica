@@ -3785,7 +3785,10 @@ async function confirmerEntrainement(stat, pa, cost) {
   if (typeof sbFootballEntrainementConsommer !== 'function') {
     showToast('Indisponible', "L'entraînement n'est pas disponible pour le moment.", false); return;
   }
+  const identiteAuDepart = state.char?.name + '|' + state.country + '|' + state.currentCity;
   const r = await sbFootballEntrainementConsommer(stat);
+  // Ne jamais appliquer à un autre PJ une réponse différée de son prédécesseur.
+  if (identiteAuDepart !== state.char?.name + '|' + state.country + '|' + state.currentCity) return;
   if (!r || r.ok !== true) {
     const motif = r && r.raison;
     if (motif === 'limite_quotidienne_atteinte') {
