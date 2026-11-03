@@ -17,6 +17,11 @@
 10. Consulter les cours : **0 PA**. Passer un achat à distance : **1 PA** par commande.
 11. La marchandise part le jour même en caisse de fret vers le **port industriel de Port-Sainte-Marie** (le port industriel de la Républia) et arrive au cron de minuit, **sans droits de douane** : elle ne quitte pas la Républia.
 
+12. Offres d'achat : l'argent est **bloqué dès la publication** (caisse de l'entrepôt pour un directeur, caisse de l'organisation pour un trader).
+13. Une offre vaut **7 jours** ; la part non servie revient à la caisse qui l'avait bloquée, au retrait par son auteur ou à l'échéance.
+14. Un **directeur** sert une offre depuis le stock de son entrepôt (tableau de bord), payé à la caisse de l'entrepôt. Un **trader** la sert depuis son bureau connecté, avec des matières qu'il a sur lui **ou dans le stock d'un de ses locaux**, payé à la caisse de son organisation. Vente **partielle** admise.
+15. Livraison au cron de minuit : dans l'entrepôt si l'acheteur est directeur, en caisse de fret au port industriel de PSM si l'acheteur est trader.
+
 ## Implémentation (étape 1, 3 novembre 2026)
 
 - Ordre existant « Installer des équipements » des bureaux du centre d'affaires : 2 emplacements (version gratuite) ; installer / désinstaller son ordinateur et sa box ; bouton « Trading de matières premières » quand les deux sont installés.
@@ -26,9 +31,14 @@
 - Chef : « Gérer mes traders » (autoriser / retirer un membre).
 - Migration `20261103020000_trading_matieres_premieres` (appliquée le 03/11), banc annulé `outils/bancs/banc-trading-matieres.sql`.
 
+## Implémentation (étape 2, 3 novembre 2026)
+
+- Table `offres_achat` ; `offre_achat_publier` / `_retirer` / `_servir`, `offres_achat_lire`, `offres_achat_expirer_nuit` (étape 5 c du cron de minuit).
+- Écran commun « Offres d'achat » (`plateau-equipements.js`) : depuis la fenêtre de trading (trader) et le tableau de bord de l'entrepôt (directeur).
+- Migration `20261103030000_trading_offres_achat` (appliquée le 03/11), banc annulé `outils/bancs/banc-trading-offres.sql` (côté trader ; aucun directeur en poste pour éprouver le côté directeur en production).
+
 ## Reste à faire
 
-- Étape 2 : offres d'achat (décision 7).
 - Perte de la jouissance du local : perte immédiate de la connexion (déjà vrai), puis 48 h pour désinstaller faute de quoi le matériel revient au propriétaire foncier (décision du 31/10, non codée).
 - Cours des autres empires et achats internationaux : avec les autres empires.
 - Premium : 4 emplacements au lieu de 2 (annoncé à l'écran depuis l'origine, non codé).
