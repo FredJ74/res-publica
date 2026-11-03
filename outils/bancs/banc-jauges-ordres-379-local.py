@@ -158,6 +158,35 @@ def main():
    assert not own("SELECT has_function_privilege('anon','jauges_ordre_executer(text,uuid,jsonb)','EXECUTE')")
    assert not own("SELECT has_table_privilege('authenticated','jauges_actions_recus','INSERT')")
   case('recu_non_fabricable_par_client',droits)
+  def gardejauges(modifier,erreur):
+   own(modifier);own('SAVEPOINT garde_jauges')
+   try:own(migration);raise AssertionError('installation acceptée à tort')
+   except psycopg2.Error as e:assert erreur in str(e);own('ROLLBACK TO SAVEPOINT garde_jauges')
+  case('jauges_refus_table_manquante_pas_de_recreation_historique',lambda:gardejauges('ALTER TABLE jauges_actions_recus RENAME TO fixture_recus_absents','jauges_installation_partielle'))
+  case('jauges_refus_fonction_manquante_pas_de_restauration_aveugle',lambda:gardejauges('ALTER FUNCTION jauges_ordre_executer(text,uuid,jsonb)RENAME TO fixture_fonction_absente','jauges_installation_partielle'))
+  case('jauges_refus_corps_inconnu',lambda:gardejauges("CREATE OR REPLACE FUNCTION jauges_ordre_executer(p_ordre text,p_requete uuid,p_contexte jsonb DEFAULT '{}'::jsonb)RETURNS jsonb LANGUAGE sql AS $$SELECT '{}'::jsonb$$",'jauges_definition_a_reexaminer'))
+  case('jauges_refus_politique_non_examinee',lambda:gardejauges('CREATE POLICY fixture_inconnue ON jauges_actions_recus FOR SELECT USING(true)','jauges_recus_autorite_a_reexaminer'))
+  def gardeobjectifs(modifier,erreur):
+   own(modifier);own('SAVEPOINT garde_objectifs')
+   try:own((R/'migrations/20261103011234_objectifs_secrets_jauges_serveur.sql').read_text());raise AssertionError('réinitialisation acceptée')
+   except psycopg2.Error as e:assert erreur in str(e);own('ROLLBACK TO SAVEPOINT garde_objectifs')
+  case('objectifs_refus_memoire_manquante',lambda:gardeobjectifs('ALTER TABLE jauges_objectifs_etats RENAME TO fixture_memoire_absente','objectifs_installation_partielle'))
+  case('objectifs_refus_marque_bascule_absente',lambda:gardeobjectifs('DELETE FROM jauges_objectifs_bascule','objectifs_bascule_absente'))
+  case('objectifs_refus_politique_non_examinee',lambda:gardeobjectifs('CREATE POLICY fixture_inconnue ON jauges_objectifs_etats FOR SELECT USING(true)','objectifs_autorite_a_reexaminer'))
+  def rlsrecus():
+   own('GRANT SELECT,INSERT,UPDATE,DELETE ON jauges_actions_recus TO authenticated')
+   own('SAVEPOINT rls_recu')
+   q.execute("SELECT set_config('role','authenticated',true),set_config('request.jwt.claim.sub','00000000-0000-4000-9000-000000000001',true)")
+   try:
+    q.execute("INSERT INTO jauges_actions_recus(acteur,requete,ordre,contexte,resultat)VALUES('Fixture','00000000-0000-4000-9000-000000000001','observer_debats','{}','{\"ok\":true}')")
+    raise AssertionError('reçu client fabriqué')
+   except psycopg2.errors.InsufficientPrivilege as e:assert 'row-level security'in str(e);own('ROLLBACK TO SAVEPOINT rls_recu')
+   assert rpc('observer_debats')['ok']
+   q.execute('SELECT count(*)FROM jauges_actions_recus');assert q.fetchone()[0]==0
+   q.execute("UPDATE jauges_actions_recus SET resultat='{}'");assert q.rowcount==0
+   q.execute('DELETE FROM jauges_actions_recus');assert q.rowcount==0
+   assert own('SELECT count(*)FROM jauges_actions_recus')==1
+  case('recu_RLS_protege_meme_avec_privileges_DML_de_defaut',rlsrecus)
   def message(**kw):
    return dict({'forum':'national','topic':None,'titre':'Sujet de fixture','contenu':'Texte réel fictif','blocs':[],'mise_en_page':None,'organisation':None,'secret':False,'icone':None},**kw)
   def forum():

@@ -1,5 +1,28 @@
 -- #379 : adaptateurs des ordres existants ; aucun delta choisi par le navigateur.
 -- Ne ferme PAS encore les sauvegardes : les autres producteurs doivent être raccordés.
+-- BEGIN GARDE HG379
+-- Empreinte de la définition PRÉPARÉE ci-dessous, pas d'un relevé de production.
+-- Un rejeu est permis ; une installation partielle ou un autre corps exige examen.
+DO $prevol_jauges$
+DECLARE f regprocedure:=to_regprocedure('public.jauges_ordre_executer(text,uuid,jsonb)');
+ t regclass:=to_regclass('public.jauges_actions_recus');forme text[];
+BEGIN
+ IF(f IS NULL)<>(t IS NULL)THEN RAISE EXCEPTION 'jauges_installation_partielle';END IF;
+ IF f IS NOT NULL THEN
+  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=f AND md5(prosrc)='a6692cfbfad1d577afae4d18c76ad322'
+     AND prosecdef AND prorettype='jsonb'::regtype AND proconfig=ARRAY['search_path=public, pg_temp'])THEN
+   RAISE EXCEPTION 'jauges_definition_a_reexaminer';END IF;
+  IF NOT(SELECT relrowsecurity FROM pg_class WHERE oid=t)
+     OR EXISTS(SELECT 1 FROM pg_policy WHERE polrelid=t)THEN
+   RAISE EXCEPTION 'jauges_recus_autorite_a_reexaminer';END IF;
+  SELECT array_agg(attname::text||':'||format_type(atttypid,atttypmod)||':'||attnotnull::text ORDER BY attnum)
+   INTO forme FROM pg_attribute WHERE attrelid=t AND attnum>0 AND NOT attisdropped;
+  IF forme IS DISTINCT FROM ARRAY['acteur:text:true','requete:uuid:true','ordre:text:true','contexte:jsonb:true','resultat:jsonb:true','cree_le:timestamp with time zone:true']
+     OR NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid=t AND contype='p'AND conkey=ARRAY[1,2]::smallint[])THEN
+   RAISE EXCEPTION 'jauges_recus_schema_a_reexaminer';END IF;
+ END IF;
+END;$prevol_jauges$;
+-- END GARDE HG379
 CREATE TABLE IF NOT EXISTS public.jauges_actions_recus (
   acteur text NOT NULL,
   requete uuid NOT NULL,
