@@ -4687,20 +4687,16 @@ async function signerDecretInutile(pa, cost) {
     const r = await rpRedaction('decret', prompt);
     const decret = r.texte || 'Décret indisponible.';
 
-    // Effets gameplay pré-calculés pour l'aperçu, appliqués uniquement au clic "Publier"
-    // (publierDecret) -- ne jamais les appliquer ici, avant toute confirmation du joueur.
-    const popEffect = Math.floor(Math.random() * 20) - 5; // -5 à +15
-    const infEffect = Math.floor(Math.random() * 10) + 2;
+    // L'effet est tiré par le serveur à la signature (#379) : l'aperçu n'en montre que la fourchette.
 
     document.getElementById('postes-modal-title').textContent = '📜 Décret Présidentiel';
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1rem">' +
       '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.6rem;border-bottom:1px solid #2a2010;padding-bottom:.4rem">Signé par ' + (state.char?.name || 'Le Président') + ' · Jour ' + (state.day || 1) + '</div>' +
       '<div style="font-size:.85rem;color:#c0a060;line-height:1.9;white-space:pre-line;font-family:Crimson Pro,Georgia,serif">' + decret + '</div>' +
-      '<div style="margin-top:.8rem;font-size:.72rem;color:' + (popEffect >= 0 ? '#4a8a4a' : '#8a3a2a') + '">' +
-        (popEffect >= 0 ? '+' : '') + popEffect + ' POP · +' + infEffect + ' INF</div>' +
+      '<div class="cpj-note" style="margin-top:.8rem;font-size:.72rem">Effet tiré à la signature : de -5 à +14 POP · de +2 à +11 INF</div>' +
       '<div style="margin-top:.6rem;display:flex;gap:.5rem">' +
-      '<button onclick="publierDecret(this.dataset.txt,' + popEffect + ',' + infEffect + ',' + pa + ',' + cost + ',this.dataset.sujet)" data-txt="' + decret.replace(/"/g, '&quot;') + '" data-sujet="' + sujet.replace(/"/g, '&quot;') + '" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-speakerphone" style="font-size:.7rem"></i> Publier</button>' +
+      '<button onclick="publierDecret(this.dataset.txt,' + pa + ',' + cost + ',this.dataset.sujet)" data-txt="' + decret.replace(/"/g, '&quot;') + '" data-sujet="' + sujet.replace(/"/g, '&quot;') + '" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-speakerphone" style="font-size:.7rem"></i> Publier</button>' +
       '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #3a2a10;background:transparent;color:#6a5a30;cursor:pointer">Fermer</button>' +
       '</div></div>';
 
@@ -4709,14 +4705,15 @@ async function signerDecretInutile(pa, cost) {
   }
 }
 
-async function publierDecret(texte, popEffect, infEffect, pa, cost, sujet) {
+async function publierDecret(texte, pa, cost, sujet) {
   if (!exigerPoste('president', 'Seul le Président peut signer un décret.')) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // PA, POP et INF décidés ensemble par le serveur (#379), formule d'origine conservée.
+  const v = await executerOrdreJaugesServeur('decret_inutile');
+  if (!v) return;
   document.getElementById('modal-postes').classList.remove('open');
-  state.pop = Math.max(0, Math.min(100, (state.pop || 50) + popEffect));
-  state.inf = Math.min(100, (state.inf || 0) + infEffect);
   updateUI();
+  if (v.rejeu) return;
+  const popEffect = v.gain_pop, infEffect = v.gain_inf;
   addJournalEntry('📜 Décret signé sur : ' + sujet + '. ' + (popEffect >= 0 ? '+' : '') + popEffect + ' POP · +' + infEffect + ' INF.', 'event-info');
   const from = state.char?.name || 'Le Président';
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : `Jour ${state.day}`;
@@ -5103,6 +5100,8 @@ async function publierMessagePresidentiel(type, pa, cost) {
   const time = formatDateHeureJeu();
 
   let titre, contenu, blocs = [], topicServeur = null, tempsServeur = null, conferenceAOuvrir = null;
+  // POP et INF : seulement ce que le serveur a décidé et renvoyé (#379).
+  let gainsServeur = { pop: 0, inf: 0 };
   if (type === 'referendum') {
     titre = document.getElementById('pres-ref-question')?.value?.trim();
     const rep1 = document.getElementById('pres-ref-rep1')?.value?.trim();
@@ -5110,8 +5109,9 @@ async function publierMessagePresidentiel(type, pa, cost) {
     const rep3 = document.getElementById('pres-ref-rep3')?.value?.trim();
     const duree = parseInt(document.getElementById('pres-ref-duree')?.value || '5');
     if (!titre || !rep1 || !rep2) { showToast('Champs requis', 'Question et au moins 2 réponses.', false); return; }
-    const rRef = await deduireCoutOrdre({ pa, cost });
-    if (!rRef.ok) { signalerRefusCout(rRef); return; }
+    const rRef = await executerOrdreJaugesServeur('message_presidentiel', { type: 'referendum' });
+    if (!rRef) return;
+    gainsServeur = { pop: rRef.gain_pop, inf: rRef.gain_inf };
     const reponses = [rep1, rep2, ...(rep3 ? [rep3] : [])].map(r => ({ label: r, voix: 0 }));
     if (!state.referendums) state.referendums = [];
     state.referendums.push({ question: titre, reponses, jourFin: state.day + duree, clos: false });
@@ -5181,6 +5181,7 @@ async function publierMessagePresidentiel(type, pa, cost) {
       }
       topicServeur = r.topic;
       tempsServeur = r.temps;
+      if (adopterJaugesReponse(r.jauges)) gainsServeur = { pop: r.jauges.gain_pop || 0, inf: r.jauges.gain_inf || 0 };
       conferenceAOuvrir = r.conference || null;
       // QUELLE CAISSE A PAYE : on le sait sans le redemander au serveur, parce que la caisse de
       // repli n'est utilisee QUE si l'humain a dit oui au second temps du financement.
@@ -5190,6 +5191,10 @@ async function publierMessagePresidentiel(type, pa, cost) {
           + (surSaCaisse ? 'la caisse institutionnelle de votre fonction'
                          : 'le budget du Ministère de l\'Information') + '.', 'event-info');
       }
+    } else if (type === 'deuil') {
+      const rMsg = await executerOrdreJaugesServeur('message_presidentiel', { type: 'deuil' });
+      if (!rMsg) return;
+      gainsServeur = { pop: rMsg.gain_pop, inf: rMsg.gain_inf };
     } else {
       const rMsg = await deduireCoutOrdre({ pa, cost });
       if (!rMsg.ok) { signalerRefusCout(rMsg); return; }
@@ -5218,8 +5223,6 @@ async function publierMessagePresidentiel(type, pa, cost) {
   });
 
   // Appliquer les effets
-  if (ef.pop) state.pop = Math.min(100, state.pop + ef.pop);
-  if (ef.inf) state.inf = Math.min(100, state.inf + ef.inf);
   if (ef.is && INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IS = Math.min(100, INDICES_NATIONAUX[pays].IS + ef.is);
   // L'Indice Diplomatique est tenu par le serveur (25/10/2026) : la propagande y coute 5 points,
   // appliques par communication_officielle_publier. On recharge la copie d'affichage.
@@ -5231,8 +5234,8 @@ async function publierMessagePresidentiel(type, pa, cost) {
   closeForumView();
 
   const efParts = [];
-  if (ef.pop) efParts.push((ef.pop>0?'+':'')+ef.pop+' POP');
-  if (ef.inf) efParts.push((ef.inf>0?'+':'')+ef.inf+' INF');
+  if (gainsServeur.pop) efParts.push((gainsServeur.pop>0?'+':'')+gainsServeur.pop+' POP');
+  if (gainsServeur.inf) efParts.push((gainsServeur.inf>0?'+':'')+gainsServeur.inf+' INF');
   showToast('Publié !', titre + (efParts.length ? ' · ' + efParts.join(' ') : ''), true, true);
   addJournalEntry('Publication présidentielle : ' + titre, 'event-good');
   addExternalEvent('PRESIDENCE : ' + titre + (type === 'deuil' ? ' — Journée de deuil national.' : ''));
@@ -8442,19 +8445,9 @@ async function executerOrdreTexte(action) {
   const texte = document.getElementById('texte-libre-input')?.value?.trim();
   if (!texte) { showToast('Champ requis', 'Veuillez remplir le champ.', false); return; }
   document.getElementById('modal-postes').classList.remove('open');
-  if (action === 'interdire_manif') {
-    INDICES_NATIONAUX[state.country].ISN = Math.min(100, INDICES_NATIONAUX[state.country].ISN + 5);
-    state.pop = Math.max(0, state.pop - 5);
-    updateUI();
-    showToast('Manifestation interdite', texte + ' — +5 ISN -5 POP.', true);
-    addExternalEvent('INTERDICTION : La manifestation "' + texte + '" a ete interdite par le Ministre de l\'Interieur.');
-  } else if (action === 'reprimer_manif') {
-    INDICES_NATIONAUX[state.country].ISN = Math.min(100, INDICES_NATIONAUX[state.country].ISN + 10);
-    state.pop = Math.max(0, state.pop - 15);
-    updateUI();
-    showToast('Repression ordonnee', texte + ' — +10 ISN -15 POP.', false);
-    addExternalEvent('REPRESSION : Ordre de dispersion force pour "' + texte + '".');
-  } else if (action === 'commanditer_sondage') {
+  // interdire_manif / reprimer_manif retirés (#379) : aucun ordre ne les ouvrait (voir
+  // ouvrirInterdireManif et ouvrirReprimerManif, commandes serveur).
+  if (action === 'commanditer_sondage') {
     const contexte=contexteGroupePj();
     const r=await executerOrdreJaugesServeur('commanditer_sondage',{texte});
     if(!r||!contexteGroupePjValide(contexte))return;
@@ -9038,13 +9031,13 @@ function ouvrirModalMedia(pa, cost) {
 
 async function censurer(media, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // PA, scandale (3 fois sur 10) et -20 POP tirés par le serveur (#379).
+  const v = await executerOrdreJaugesServeur('censurer_media', { media });
+  if (!v) return;
+  if (v.rejeu) { updateUI(); return; }
   INDICES_NATIONAUX[state.country].IS = Math.max(0, INDICES_NATIONAUX[state.country].IS - 8);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 30) {
+  if (v.scandale === true) {
     addExternalEvent('SCANDALE : La censure de ' + media + ' a ete revelee ! -20 POP.');
-    state.pop = Math.max(0, state.pop - 20);
     updateUI();
   } else {
     showToast('Media censure', media + ' suspendu. -8 IS.', false);
@@ -9729,24 +9722,15 @@ async function confirmerBanquetDiplomatique(pa, cost) {
   const venus = invites.slice(0, Math.max(0, Number(r.venus) || 0));
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
+  // POP, INF et moral rendus par le serveur avec l'issue (#379).
+  adopterJaugesReponse(r.jauges);
   if (venus.length === invites.length) {
-    state.pop = Math.min(100, state.pop + 15);
-    state.inf = Math.min(100, state.inf + 12);
-    state.moral = Math.min(100, state.moral + 5);
-    updateUI();
     showToast('Banquet réussi !', 'Tous les invités sont venus. +15 POP +12 INF +5 Moral +8 ID.', true, true);
     addJournalEntry('Banquet diplomatique réussi — tous les invités présents.', 'event-good');
   } else if (venus.length > 0) {
-    state.pop = Math.min(100, state.pop + 5);
-    state.inf = Math.min(100, state.inf + 5);
-    updateUI();
     showToast('Banquet mitigé', 'Seuls ' + venus.length + '/' + invites.length + ' invités sont venus. +5 POP +5 INF.', true);
     addJournalEntry('Banquet diplomatique mitigé (' + venus.length + '/' + invites.length + ' présents).', 'event-info');
   } else {
-    state.pop = Math.max(0, state.pop - 25);
-    state.inf = Math.max(0, state.inf - 20);
-    state.moral = Math.max(0, state.moral - 10);
-    updateUI();
     showToast('Fiasco !', 'Aucun invité ne s\'est présenté. -25 POP -20 INF -10 Moral.', false);
     addJournalEntry('Fiasco du banquet diplomatique — aucun invité présent.', 'event-bad');
     addExternalEvent('HUMILIATION : Le banquet diplomatique du Président s\'est tenu... sans aucun invité.');
@@ -9778,18 +9762,11 @@ async function doReceptionAvecBonus(fn, cost) {
   budgetPresidence.solde -= budgetPresidence.coutOrdre;
 
   // L'issue a ete tiree par le serveur.
+  adopterJaugesReponse(rPa.jauges);
   if (rPa.reussi === true) {
-    state.pop = Math.min(100, state.pop + 10);
-    state.inf = Math.min(100, state.inf + 8);
-    state.moral = Math.min(100, state.moral + 5);
-    updateUI();
     showToast(fn === 'reception_etat' ? 'Reception reussie !' : 'Banquet reussi !', '+10 POP +8 INF +5 Moral +5 ID.', true, true);
     addJournalEntry(fn === 'reception_etat' ? 'Reception d\'Etat reussie.' : 'Banquet diplomatique reussi.', 'event-good');
   } else {
-    state.pop = Math.max(0, state.pop - 30);
-    state.inf = Math.max(0, state.inf - 30);
-    state.moral = Math.max(0, state.moral - 10);
-    updateUI();
     showToast('Echec !', 'Les invites ont boude votre ' + (fn === 'reception_etat' ? 'reception' : 'banquet') + '. -30 POP -30 INF -10 Moral.', false);
     addExternalEvent('HUMILIATION : La ' + (fn === 'reception_etat' ? 'reception' : 'banquet diplomatique') + ' du President s\'est soldee par un echec cuisant. -30 POP -30 INF -10 Moral.');
   }
@@ -9868,13 +9845,12 @@ async function confirmerMobilisationPolice(id, label, isn, pop, fn) {
   // l'audit). 'mobiliser' route vers ce meme handler partage (bug de routage distinct, classe
   // E, hors perimetre de ce lot) : aucune deduction pour ce cas, comportement inchange tant que
   // l'arbitrage sur le routage n'a pas eu lieu. Placee avant toute mutation.
-  if (fn === 'mobiliser_police') {
-    const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
-    if (!rPa.ok) { signalerRefusCout(rPa); return; }
-  }
-
+  // PA et POP par le serveur (#379), catalogue d'origine ; réservé au commissaire.
+  const v = await executerOrdreJaugesServeur('mobiliser_police', { option: id });
+  if (!v) return;
+  if (v.rejeu) { updateUI(); return; }
+  isn = v.isn; pop = v.gain_pop;
   if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + isn);
-  state.pop = Math.max(0, Math.min(100, state.pop + pop));
   updateUI();
   showToast('Intervention menée', label + ' — +' + isn + ' ISN, ' + (pop<=0?pop:'+'+pop) + ' POP.', pop >= 0, true);
   addJournalEntry('Intervention des forces de l\'ordre : ' + label + '.', pop < -5 ? 'event-bad' : 'event-info');
@@ -10821,8 +10797,7 @@ async function confirmerGuerreEmpire(empireId, empireName, pa, cost) {
     showToast('Déclaration refusée', motifs[rG && rG.raison] || 'Le serveur a refusé la déclaration.', false);
     return;
   }
-  state.pop = Math.max(0, (state.pop||0) - 20);
-  state.inf = Math.min(100, (state.inf||0) + 10);
+  adopterJaugesReponse(rG.jauges); // -20 POP +10 INF appliqués par guerre_declarer (#379)
   // -20 Indice Diplomatique : applique par guerre_declarer (serveur, 25/10/2026).
   INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 15);
   chargerIndicesDiplomatiques().catch(() => {});

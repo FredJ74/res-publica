@@ -791,8 +791,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acte_officiel_juge') { ouvrirActeOfficielJuge(pa, cost); return; }
   if (fn === 'acte_officiel_notaire') { ouvrirActeOfficielNotaire(pa, cost); return; }
 
-  if (fn === 'interdire_manif_cible')   { ouvrirModalTexteLibre('interdire_manif', 'Interdire une manifestation', 'Preciser le nom ou sujet de la manifestation a interdire...'); return; }
-  if (fn === 'reprimer_manif_cible')    { ouvrirModalTexteLibre('reprimer_manif', 'Ordonner la repression', 'Preciser la manifestation ou le rassemblement cible...'); return; }
   if (fn === 'redressement_cible')      { ouvrirModalCibleRepertoire('redressement_fiscal', 'Redressement fiscal'); return; }
   if (fn === 'subvention_cible')        { ouvrirModalCibleRepertoire('subvention', 'Accorder une subvention'); return; }
   if (fn === 'allegement_fiscal')       { doAllegementFiscalIndisponible(); return; }

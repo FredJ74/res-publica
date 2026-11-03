@@ -2410,6 +2410,16 @@ function adopterJaugeServeur(cle, valeur) {
   if (envoye !== null) state[champBase] = valeur;
 }
 
+// Jauges rendues par une commande serveur existante (#379) : l'écran adopte, il ne calcule rien.
+function adopterJaugesReponse(j) {
+  if (!j || typeof j !== 'object') return false;
+  adopterJaugeServeur('pop', j.pop);
+  adopterJaugeServeur('inf', j.inf);
+  if (typeof j.moral === 'number' && Number.isFinite(j.moral)) state.moral = j.moral;
+  if (typeof updateUI === 'function') updateUI();
+  return true;
+}
+
 // Adaptation d'ordres historiques : le coût ET les jauges sont décidés ensemble.
 // La clé demeure après réponse perdue, y compris après rechargement ; aucun retry
 // automatique et aucune valeur mécanique proposée par l'écran.
