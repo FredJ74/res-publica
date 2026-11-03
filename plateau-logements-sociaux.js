@@ -187,7 +187,8 @@ function ouvrirAidePascaleSsm(rubrique) {
     && BUILDINGS['services-sociaux-montrouge'].rooms.accueil
     && BUILDINGS['services-sociaux-montrouge'].rooms.accueil.persons || [])
     .find(p => p.name === 'Pascale (PNJ)');
-  const photo = pnj && typeof pnj.photoUrl === 'string' && /^(?:images\\/|https:\\/\\/)/.test(pnj.photoUrl)
+  const photo = pnj && typeof pnj.photoUrl === 'string'
+    && (pnj.photoUrl.startsWith('images/') || pnj.photoUrl.startsWith('https://'))
     ? pnj.photoUrl : '';
   const portrait = photo
     ? '<img src="' + logementsSociauxEchapper(photo) + '" alt="Portrait de Pascale" style="width:76px;height:92px;object-fit:cover;border-radius:5px;border:1px solid #7f6540" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'
