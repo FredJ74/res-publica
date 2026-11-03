@@ -12766,12 +12766,8 @@ async function verifierMissionMilitaireEntree(buildingId, roomId) {
     // L'INTERCEPTION EST TIREE PAR LE SERVEUR (03/11/2026) : soldats en mission « arreter »
     // comptes a la position relue en base, jet min(90, 30 + 2 x soldats), arrestation ouverte
     // dans la meme transaction.
-    if (typeof sbRpc !== 'function') return false;
-    const v = await sbRpc('militaire_detachement_arrestation', {}).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
-    if (!v || v.ok !== true || v.interpelle !== true) return false;
-    showToast('Arrêté(e) !', 'Le détachement militaire vous a intercepté.', false);
-    if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
-    return true;
+    // Desormais joue par le deplacement serveur lui-meme (navigation_interieure) : rien a faire ici.
+    return false;
   }
   if (det.mission === 'assassiner') {
     const chance = Math.min(90, 30 + det.nombre * 2); // plus le detachement est nombreux, plus le jet est favorable aux soldats
@@ -14044,33 +14040,10 @@ function estExempteCouvreFeu() {
 
 // A appeler a chaque changement de batiment : verifie et applique une eventuelle violation de couvre-feu
 async function verifierCouvreFeu() {
-  const pays = state.country || 'republic';
-  const budgetNat = await chargerBudgetNational(pays).catch(() => null);
-  if (!budgetNat?.couvreFeu?.actif) return;
-  // ECHEANCE PARTAGEE : le couvre-feu est stocke dans le budget national, donc lu par TOUS les
-  // joueurs -- mais state.day est un compteur PRIVE, propre a chaque navigateur. Comparer une
-  // echeance partagee a un compteur prive faisait expirer le couvre-feu a une date differente
-  // pour chaque joueur : le premier joueur tres avance dans SES journees le levait pour tout le
-  // monde, un joueur nouvellement inscrit (state.day = 1) ne le voyait jamais expirer.
-  // On lit desormais dateFin, deja pose par confirmerCouvreFeu (Date.now() + 2 jours reels).
-  // jourFin reste lu en repli pour les couvre-feux poses avant l'ajout de dateFin.
-  const finCouvreFeu = budgetNat.couvreFeu.dateFin;
-  const couvreFeuEchu = finCouvreFeu ? (Date.now() > Number(finCouvreFeu))
-                                     : (state.day > budgetNat.couvreFeu.jourFin);
-  // L'expiration est constatee par la passe de nuit du serveur (27/10/2026) : l'ecran ne
-  // l'ecrit plus, il se contente de ne pas appliquer un couvre-feu echu.
-  if (couvreFeuEchu) return;
-  const heure = state.hour ?? 12;
-  const enCouvreFeu = heure >= 20 || heure < 6;
-  if (!enCouvreFeu || estExempteCouvreFeu()) return;
-
-  // LA PATROUILLE EST TIREE PAR LE SERVEUR (03/11/2026) : couvre-feu en vigueur, heure de Paris,
-  // exemptions et jet de 45 % relus en base ; l'arrestation est ouverte dans la meme transaction.
-  if (typeof sbRpc !== 'function') return;
-  const v = await sbRpc('couvre_feu_patrouille', {}).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
-  if (!v || v.ok !== true || v.interpelle !== true) return;
-  showToast('Interpellé(e) !', 'Violation du couvre-feu.', false);
-  if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
+  // LA PATROUILLE EST JOUEE PAR LE DEPLACEMENT SERVEUR (navigation_interieure, 03/11/2026) :
+  // couvre-feu en vigueur, heure de Paris, exemptions et jet de 45 % sont relus en base a chaque
+  // entree dans un batiment ; l'arrestation eventuelle revient avec la reponse du deplacement.
+  // Le nom reste pour l'appelant historique de enterBuilding.
 }
 
 // Applique la degradation quotidienne d'IS/POP tant que le couvre-feu est actif

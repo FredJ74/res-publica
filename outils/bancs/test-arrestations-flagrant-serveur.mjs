@@ -22,8 +22,10 @@ test('les arrestations passent par les portes serveur', () => {
   const justice = lire('plateau-justice-economie.js');
   const politique = lire('plateau-politique.js');
   assert.match(justice, /sbRpc\('arrestation_flagrant_choisir'/);
-  assert.match(politique, /sbRpc\('couvre_feu_patrouille'/);
-  assert.match(politique, /sbRpc\('militaire_detachement_arrestation'/);
+  // 03/11 : patrouille et detachement joues par le deplacement serveur (navigation_interieure).
+  assert.ok(!/sbRpc\('couvre_feu_patrouille'/.test(politique));
+  assert.ok(!/sbRpc\('militaire_detachement_arrestation'/.test(politique));
+  assert.match(lire('plateau-navigation.js'), /r\.arrestation&&r\.arrestation\.ok===true/);
   assert.match(lire('plateau-communication.js'), /adopterArrestationServeur\(res\.arrestation\)/);
   assert.match(lire('plateau-actions-illegales-rumeurs.js'), /placerAuQHS\(verdict\.arrestation\)/);
 });
