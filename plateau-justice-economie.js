@@ -2252,114 +2252,64 @@ function verifierDecouverteCrimesPasses() {
   }
 }
 
-// Une tentative d'evasion par jour maximum (bug de spam remonte le 4 aout 2026 : les PA
-// illimites de la phase de test permettaient de retenter indefiniment). Taux de base 10%,
-// modifie par DUP et l'indice de securite du pays — meme formule que le vol/cambriolage.
+// EVASION ET REBELLION TIREES PAR LE SERVEUR (03/11/2026). Le navigateur tirait les jets, tenait la
+// tentative du jour dans `state`, retirait l'amende de `state.arg` sans la verser, et pouvait appeler
+// directement la cloture d'evasion. Deux portes font desormais tout : detention_tenter_evasion et
+// detention_se_rebeller (formules d'origine, migration 20261103100000). L'ecran n'envoie que
+// l'intention et affiche le verdict.
+function libelleRefusDetention(r) {
+  const raisons = {
+    non_detenu: 'Vous devez être emprisonné(e).',
+    une_tentative_par_jour: 'Une seule tentative d\'évasion par jour.',
+    pa_insuffisants: 'Points d\'action insuffisants.',
+    fonds_insuffisants: 'Fonds insuffisants.'
+  };
+  return raisons[r?.raison] || 'Le serveur a refusé l\'ordre (' + (r?.raison || 'sans réponse') + ').';
+}
+
+function adopterPeineServeur(r) {
+  if (r?.paiement) appliquerPaiementServeur(r.paiement);
+  if (typeof r?.pa === 'number' || typeof r?.arg === 'number') appliquerPaiementServeur(r);
+  if (r?.est_emprisonne && typeof r.est_emprisonne === 'object' && state.estEmprisonne) {
+    state.estEmprisonne = Object.assign({}, state.estEmprisonne, r.est_emprisonne);
+  }
+  if (typeof r?.hp === 'number') state.hp = r.hp;
+  if (typeof r?.dis === 'number') state.dis = r.dis;
+}
+
 async function doTentativeEvasion(pa, cost) {
   if (!state.estEmprisonne) {
     showToast('Non emprisonne', 'Vous devez etre emprisonne pour tenter de vous evader.', false);
     return;
   }
-
-  const jourActuel = jourPartageISO();
-  if (state.estEmprisonne.dernierJourEvasion === jourActuel) {
-    showToast('Trop tôt', 'Une seule tentative d\'évasion par jour.', false);
+  // La benediction reste consommee a l'ecran, comme pour le vol (crime_voler) : le serveur
+  // ajoute ses +5 points.
+  const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc('detention_tenter_evasion', { p_pa: pa, p_cost: cost, p_benediction: benediction })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!r || r.ok !== true) {
+    showToast('Evasion impossible', libelleRefusDetention(r), false);
+    updateUI();
     return;
   }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  state.estEmprisonne.dernierJourEvasion = jourActuel;
-
-  const pays = state.country;
-  const dup = getStatEffective('DUP');
-  const ville = state.currentCity || 'capitale';
-  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
-  let taux = 10 + (dup - 10) * 2 - (isn - 45) / 3;
-  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
-  taux = Math.max(2, Math.min(40, Math.round(taux)));
-  // BONUS DU DESERTEUR (arbitrage du conflit technique, 13 septembre 2026) : on calcule
-  // normalement, on applique le plafond ordinaire de 40 %, PUIS on ajoute le bonus -- dans cet
-  // ordre precis. L'equilibrage de l'evasion ordinaire reste donc rigoureusement inchange pour
-  // tout detenu non deserteur, et le maximum absolu est 90 %.
-  if (typeof bonusEvasionDeserteur === 'function') {
-    const bonusDeserteur = bonusEvasionDeserteur();
-    if (bonusDeserteur > 0) taux = Math.min(90, taux + bonusDeserteur);
-  }
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= taux) {
-    // Evasion reussie != liberation (regle validee, 26 aout 2026) : la peine n'est pas purgee.
-    // On cloture la detention interrompue avec mode_fin='evasion' (jour_fin n'est JAMAIS
-    // reecrit : la peine d'origine reste identifiable telle quelle), on calcule le reliquat
-    // reellement restant (simple soustraction, rien d'invente), et on fait rebasculer la
-    // personne en recherche avec : les motifs d'origine conserves comme historique + un motif
-    // "Evasion" distinct de 2 jours + le reliquat calcule -- jamais reparti dans les anciens
-    // motifs. La continuite avec la detention interrompue est portee par detention_precedente_id.
-    // LA CLOTURE PAR EVASION EST UNE TRANSACTION SERVEUR (chantier 5, 9 octobre 2026). Ce bloc
-    // lisait les motifs, patchait `detentions` en avalant l'echec, puis se contentait de
-    // `state.estEmprisonne = null` EN MEMOIRE : un evade qui fermait son onglet restait detenu en
-    // base -- alors que l'evasion est precisement le moment ou la fiche doit cesser de dire
-    // « detenu ». Meme defaut que la chaine 11, dans un endroit que l'inventaire n'avait pas vu.
-    //
-    // detention_clore_evasion fait les trois ecritures ensemble et RECALCULE elle-meme ce que ce
-    // bloc deduisait : le reliquat, les motifs d'origine et le pays. jour_fin n'est JAMAIS
-    // reecrit -- la peine d'origine reste identifiable telle quelle.
-    // date_fin_effective (lot « dates reelles », 26 aout 2026) est capturee par la porte, a
-    // l'instant de l'evasion, jamais deduite de jour_fin_effective.
-    const vEvasion = (typeof sbRpc === 'function')
-      ? await sbRpc('detention_clore_evasion', {})
-          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-      : null;
-    if (!vEvasion || vEvasion.ok !== true) {
-      // VERDICT CONSOMME : la detention n'est pas close, donc l'evasion n'a pas eu lieu. Le jeu ne
-      // libere pas un detenu que la base tient toujours -- il resterait enferme par la navigation
-      // sans aucun avis de recherche pour le rattraper.
-      showToast('Evasion manquee', 'Les geoles n\'ont pas enregistre votre sortie. Vous etes toujours detenu(e).', false);
-      updateUI();
-      return;
-    }
-    const detentionId = vEvasion.detention_id || null;
-    const reliquat = Number(vEvasion.reliquat_jours || 0);
-    const motifsOrigine = Array.isArray(vEvasion.motifs) ? vEvasion.motifs : [];
-    const countryOrigine = vEvasion.country || state.country;
-    const dateEvasion = new Date().toISOString();
-
-    const motifsRecherche = motifsOrigine.concat([
-      { type: 'Évasion', jour_fait: state.day, city: state.currentCity, jours: 2, source: 'evasion', date_evenement: dateEvasion }
-    ]);
-    if (typeof ajouterCondamnationRecherche === 'function') {
-      await ajouterCondamnationRecherche(state.char?.name, {
-        id: 'rech-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-        type: 'condamnation',
-        country: countryOrigine,
-        motifs: motifsRecherche,
-        detention_precedente_id: detentionId,
-        reliquat_jours: reliquat,
-        jour_condamnation: state.day
-      });
-    }
-
+  adopterPeineServeur(r);
+  if (r.reussi) {
+    // Evasion reussie != liberation : la peine n'est pas purgee. Le serveur a clos la detention
+    // (mode_fin = 'evasion') et inscrit l'avis de recherche (motifs d'origine + « Évasion » + reliquat).
+    if (Array.isArray(r.recherche)) state.recherche = r.recherche;
     state.estEmprisonne = null;
-    // LE `state.recherche = []` QUI SE TROUVAIT ICI A ETE SUPPRIME (13 septembre 2026). Il etait
-    // doublement destructeur : il effacait les autres motifs de poursuite, et surtout il ecrasait
-    // l'entree « Evasion + reliquat » que ajouterCondamnationRecherche venait d'ecrire EN BASE
-    // quelques lignes plus haut -- celle-ci ne passe que par sbUpdate sans toucher state, si bien
-    // que la prochaine sbSavePersonnage (declenchee par le moindre changement de piece) republiait
-    // un tableau vide par-dessus. Une evasion pouvait donc s'auto-amnistier.
-    // Rien n'est efface : l'evasion AJOUTE un motif, elle n'en eteint aucun.
+    const reliquat = Number(r.reliquat_jours || 0);
     showToast('Evasion reussie !', 'Vous etes libre ! Restez discret.', true, true);
     addJournalEntry('Evasion reussie ! Peine non purgee : reliquat de ' + reliquat + ' jour(s) + 2 jours pour evasion, exigibles a une prochaine arrestation.', 'event-good');
   } else {
     const cur = COUNTRIES[state.country]?.cur || 'FR';
-    if (state.estEmprisonne) {
-      state.estEmprisonne.jours += 1;
-      state.estEmprisonne.jourFin += 1;
-    }
-    state.arg = Math.max(0, (state.arg || 0) - 500);
-    updateUI();
-    showToast('Evasion echouee', 'Tentative echouee. +1 jour de detention, -500 ' + cur + '.', false);
-    addJournalEntry('Tentative d\'evasion echouee. Peine aggravee de 1 jour, amende de 500 ' + cur + '.', 'event-bad');
+    const amende = Number(r.amende || 0);
+    showToast('Evasion echouee', 'Tentative echouee. +1 jour de detention, -' + amende + ' ' + cur + '.', false);
+    addJournalEntry('Tentative d\'evasion echouee. Peine aggravee de 1 jour, amende de ' + amende + ' ' + cur + '.', 'event-bad');
   }
+  updateUI();
 }
 
 async function doSeRebeller(pa, cost) {
@@ -2367,84 +2317,33 @@ async function doSeRebeller(pa, cost) {
     showToast('Non emprisonne', 'Vous devez etre emprisonne pour vous rebeller.', false);
     return;
   }
-  const rDeduc = await deduireCoutOrdre({ pa, cost });
-  if (!rDeduc.ok) { signalerRefusCout(rDeduc); return; }
-
-  const pays = state.country;
-  const ville = state.currentCity;
-  const cur = COUNTRIES[pays]?.cur || 'FR';
-
-  // FOR fantome corrige (bêta) : le joueur n'a jamais eu de caracteristique FOR (toujours
-  // undefined, repli fixe a 8) -- VOL est deja la caracteristique de confrontation physique du
-  // joueur ailleurs dans le code (tenterResistance, assassinat mains nues). codetenu.stats.FOR
-  // reste inchange : un PNJ employe, avec sa propre FOR reelle (PNJ_STATS_PAR_JOB, data.js).
-  const volBase = getStatEffective('VOL');
-  const codetenu = (state.employes || []).find(e => e.job === 'codetenu');
-  const bonusCodetenu = codetenu?.stats?.FOR ? Math.floor(codetenu.stats.FOR / 2) : 0;
-  const taux = Math.min(60, volBase * 3 + bonusCodetenu);
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  const degats = Math.floor(Math.random() * 7) + 4;
-  if (typeof endommagerGrillePrison === 'function') await endommagerGrillePrison(pays, ville, degats).catch(() => {});
-
-  if (roll <= taux) {
-    state.dis = Math.min(100, (state.dis || 0) + 6);
-    if (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
-      INDICES_NATIONAUX[pays].POP = Math.max(0, (INDICES_NATIONAUX[pays].POP || 50) - 2);
-    }
-    state.hp = Math.max(1, (state.hp || 100) - 10);
-    if (state.estEmprisonne) {
-      state.estEmprisonne.jours += 1;
-      state.estEmprisonne.jourFin += 1;
-    }
+  const ville = state.estEmprisonne.city || state.currentCity;
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc('detention_se_rebeller', { p_pa: pa, p_cost: cost })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!r || r.ok !== true) {
+    showToast('Rebellion impossible', libelleRefusDetention(r), false);
+    updateUI();
+    return;
+  }
+  adopterPeineServeur(r);
+  const degats = Number(r.grilles?.degats || 0);
+  if (r.reussi) {
     updateUI();
     showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -10 PV.', true, true);
     addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +1 jour de peine, -10 PV.', 'event-info');
     if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('rebellion_cellule', ville);
-    // Registre carcerale : le jour supplementaire devient un motif propre sur la detention en
-    // cours, pas seulement une mutation locale de state.estEmprisonne perdue au premier reload.
-    if (typeof prolongerDetentionActive === 'function') {
-      await prolongerDetentionActive(state.char?.name, [{ type: 'Rébellion en cellule', jour_fait: state.day, city: ville, jours: 1, source: 'evenement_detention', date_evenement: new Date().toISOString() }]);
-    }
   } else {
-    state.hp = Math.max(1, (state.hp || 100) - 25);
-    state.dis = Math.max(0, (state.dis || 0) - 15);
-    // Registre carcerale : la rebellion matee remplace entierement la detention en cours par un
-    // transfert QHS (comportement d'origine, jour_fin non prolonge mais reinitialise a +30) --
-    // traite donc comme une nouvelle incarceration liee a la precedente via
-    // detention_precedente_id, plutot qu'une simple prolongation qui suppose une continuite de
-    // duree qui n'existe pas ici. L'ancienne ligne DOIT etre cloturee explicitement (mode_fin =
-    // 'transfert_qhs') -- la laisser a NULL la ferait apparaitre comme encore en cours dans le
-    // registre, ce qui est faux : elle est bien terminee, juste pas par une liberation.
-    // LE TRANSFERT EST UNE TRANSACTION SERVEUR (9 octobre 2026). Cette bascule tenait en QUATRE
-    // ecritures independantes, dont trois avalees : cloture de l'ancienne ligne, inscription au
-    // registre du QHS, drapeau sur la fiche, puis ouverture de la nouvelle peine. Le detenu
-    // pouvait donc se retrouver sans peine en cours, avec deux, ou au QHS sans peine -- et le
-    // drapeau partait en JSON.stringify sur une colonne jsonb, donc sous une forme que
-    // pa_repos_nocturne ne sait pas lire : le plafond de PA du QHS ne s'appliquait pas.
-    const vQhs = (typeof sbRpc === 'function')
-      ? await sbRpc('detention_transferer_qhs', {
-          p_raison: 'Rebellion en cellule matee - transfert QHS',
-          p_jours: 30,
-          p_city: ville,
-          p_motifs: [{ type: 'Rébellion en cellule matée — transfert QHS', jour_fait: state.day, city: ville, jours: 30, source: 'evenement_detention', date_evenement: new Date().toISOString() }]
-        }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-      : null;
-    if (!vQhs || vQhs.ok !== true) {
-      // VERDICT CONSOMME : sans transfert en base, la peine en cours reste celle qui vaut et le
-      // jeu n'annonce pas un QHS qui n'existe pas. Les points de vie et la discretion perdus plus
-      // haut sont deja des consequences locales de la rebellion elle-meme, qui a bien eu lieu.
-      updateUI();
-      showToast('Rebellion matee', 'Les gardiens vous ont maitrise. -25 PV, -15 DIS.', false);
-      addJournalEntry('Rebellion en cellule matee par les gardiens. Grilles endommagees (-' + degats + ').', 'event-bad');
-      return;
-    }
-    state.estEmprisonne = { jours: 30, jourFin: vQhs.jour_fin, raison: 'Rebellion en cellule matee - transfert QHS',
-                            detentionId: vQhs.detention_id, qhs: true, city: ville, country: pays };
+    state.estEmprisonne = { jours: 30, jourFin: r.jour_fin, raison: 'Rebellion en cellule matee - transfert QHS',
+                            detentionId: r.detention_id, qhs: true, city: ville, country: state.country };
     state.detentionQHS = { enQHS: true, paLimite1Jour: false };
     updateUI();
     showToast('Rebellion matee', 'Transfere au QHS. -25 PV, -15 DIS.', false);
     addJournalEntry('Rebellion en cellule matee par les gardiens. Transfert au QHS. Grilles endommagees (-' + degats + ').', 'event-bad');
+  }
+  if (r.grilles && typeof verifierSeuilsGrillePrison === 'function') {
+    await verifierSeuilsGrillePrison(state.country, ville, Number(r.grilles.niveau)).catch(() => {});
   }
 }
 
@@ -12209,37 +12108,14 @@ async function verifierArrestationRecherchePolice(options = {}) {
   return true;
 }
 
-async function chargerNiveauPrison(pays, ville) {
-  const key = pays + '_' + ville;
-  if (typeof sbGetNiveauPrison !== 'function') return { key, niveau: 100 };
-  let data = await sbGetNiveauPrison(key).catch(() => null);
-  if (!data) {
-    data = { niveau: 100 };
-    await sbSaveNiveauPrison(key, data).catch(() => {});
-  }
-  return { key, niveau: 100, ...data };
-}
-
-async function endommagerGrillePrison(pays, ville, degats) {
-  const n = await chargerNiveauPrison(pays, ville);
-  n.niveau = Math.max(0, n.niveau - degats);
-  if (typeof sbSaveNiveauPrison === 'function') await sbSaveNiveauPrison(n.key, { niveau: n.niveau }).catch(() => {});
-  await verifierSeuilsGrillePrison(pays, ville, n.niveau);
-  return n.niveau;
-}
-
+// Les grilles des cellules sont endommagees par le serveur (detention_se_rebeller, 03/11/2026) :
+// l'ecran ne les ecrit plus, il affiche seulement les seuils que le verdict lui rend.
 async function verifierSeuilsGrillePrison(pays, ville, niveau) {
   const nomVille = (typeof WORLD !== 'undefined' && WORLD[pays]?.[ville]?.name) || ville;
   if (niveau <= 0) {
     if (typeof addExternalEvent === 'function') {
       addExternalEvent('INSURRECTION : les grilles des cellules de ' + nomVille + ' cedent sous la pression des detenus. Evasion collective en cours.', 'local');
     }
-    if (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
-      INDICES_NATIONAUX[pays].POP = Math.max(0, (INDICES_NATIONAUX[pays].POP || 50) - 10);
-      INDICES_NATIONAUX[pays].INF = Math.min(100, (INDICES_NATIONAUX[pays].INF || 0) + 10);
-    }
-    const key = pays + '_' + ville;
-    if (typeof sbSaveNiveauPrison === 'function') await sbSaveNiveauPrison(key, { niveau: 100 }).catch(() => {});
   } else if (niveau <= 25) {
     if (typeof addExternalEvent === 'function') {
       addExternalEvent('Tensions carcerales a ' + nomVille + ' : les grilles des cellules menacent de ceder.', 'local');
