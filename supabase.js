@@ -6555,6 +6555,21 @@ async function sbEmployeurEmbaucher(candidatId) {
   return await sbRpc('employeur_embaucher', { p_candidat_id: candidatId });
 }
 
+// Agence de securite privee d'un PJ (#135, 03/11/2026) : meme socle, l'agence est nommee
+// explicitement ; le serveur verifie presence, vivier, tarif et credite la caisse du commerce.
+async function sbEmployeurEmbaucherAgence(employeurId, candidatId) {
+  return await sbRpc('employeur_embaucher_agence', { p_employeur_id: employeurId, p_candidat_id: candidatId });
+}
+async function sbAgenceSecuriteLire(fondsId) {
+  return await sbRpc('agence_securite_lire', { p_fonds_id: fondsId });
+}
+async function sbAgenceSecuriteOuvrir(fondsId) {
+  return await sbRpc('agence_securite_ouvrir', { p_fonds_id: fondsId });
+}
+async function sbAgenceSecuriteFermer(fondsId) {
+  return await sbRpc('agence_securite_fermer', { p_fonds_id: fondsId });
+}
+
 // Depart d'un employe : licenciement, renvoi, ou impaye. JAMAIS une suppression -- la garde de
 // suppression refuserait un PNJ actif, et un employe qui s'en va n'est pas mort. Il est delie et
 // marque disparu, comme un agent de la force publique retire faute de budget.

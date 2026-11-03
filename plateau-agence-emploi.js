@@ -53,7 +53,18 @@ async function agenceEmploiCatalogue(employeurId, forcerRelecture) {
 // piece pour en connaitre le cout : c'est l'ordre qui porte sa declaration, pas
 // le routeur. Ici il porte deux champs de plus, `employeur` et `metier`, et
 // c'est tout ce qui rattache ce comptoir generique a une maison precise.
+// AGENCE D'UN PJ (#135, 03/11/2026). Son guichet n'est pas un ordre de data.js : c'est le
+// commerce du PJ qui le declare, avec l'identifiant d'employeur rendu par le serveur. On lui
+// fabrique la meme declaration (employeur, metier) ; seule la porte d'embauche change.
+let RP_AGENCES_PJ_ORDRES = {};
+function agenceEmploiOuvrirAgencePJ(employeurId, metier) {
+  const fn = 'agence_pj:' + employeurId + ':' + metier;
+  RP_AGENCES_PJ_ORDRES[fn] = { fn: fn, employeur: employeurId, metier: metier, agencePj: true };
+  return agenceEmploiOuvrir(fn);
+}
+
 function agenceEmploiOrdreCourant(fn) {
+  if (RP_AGENCES_PJ_ORDRES[fn]) return RP_AGENCES_PJ_ORDRES[fn];
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const ordre = room?.orders?.find(function (o) { return o.fn === fn; });
   if (!ordre || !ordre.employeur || !ordre.metier) return null;
@@ -213,7 +224,10 @@ async function agenceEmploiEmbaucher(candidatId, fn) {
     showToast('Action impossible', 'Votre personnage n\'est pas chargé.', false); return;
   }
 
-  const r = await sbEmployeurEmbaucher(candidatId).catch(function () { return null; });
+  const ordreAgence = fn ? agenceEmploiOrdreCourant(fn) : null;
+  const r = await ((ordreAgence && ordreAgence.agencePj && typeof sbEmployeurEmbaucherAgence === 'function')
+      ? sbEmployeurEmbaucherAgence(ordreAgence.employeur, candidatId)
+      : sbEmployeurEmbaucher(candidatId)).catch(function () { return null; });
   if (!r) { showToast('Action impossible', 'L\'agence ne répond pas.', false); return; }
   if (r.ok !== true) {
     const motifs = {
@@ -227,6 +241,8 @@ async function agenceEmploiEmbaucher(candidatId, fn) {
                               + ' personne(s) à ce poste : c\'est le maximum.',
       deja_employe:           (r.nom || 'Cette personne') + ' travaille déjà pour vous.',
       ordre_non_declare:      'Le tarif de ce recrutement n\'est pas déclaré.',
+      agence_fermee:          'Cette agence a fermé ses portes.',
+      pas_sur_place:          'Il faut être dans les locaux de l\'agence.',
       paiement_refuse:        'Fonds ou PA insuffisants.'
     };
     showToast('Refusé', motifs[r.raison] || 'L\'agence a décliné.', false);

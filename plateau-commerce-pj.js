@@ -268,7 +268,19 @@ const I18N_COMMERCE_PJ_FR = {
   'commercepj.refus.session_perdue':              "Votre session a expiré. Reconnectez-vous puis réessayez.",
   'commercepj.refus.transport_indisponible':      "Le service n'a pas répondu. Rien n'a été modifié — réessayez.",
   'commercepj.refus.reseau_indisponible':         "Connexion interrompue. Rien n'a été modifié — réessayez.",
-  'commercepj.refus.inconnu':                     "Refusé par le serveur ({motif}). Rien n'a été modifié."
+  'commercepj.refus.inconnu':                     "Refusé par le serveur ({motif}). Rien n'a été modifié.",
+  // Agence de securite privee d'un PJ (#135, decisions de Fred du 03/11/2026).
+  'commercepj.agence.titre':          "Agence de sécurité privée",
+  'commercepj.agence.fermee':         "Votre commerce peut aussi servir d'agence de sécurité : les candidats de la ville s'y présentent, tout joueur venu ici peut les embaucher, et les frais d'embauche entrent dans votre caisse.",
+  'commercepj.agence.ouverte':        "Votre agence est ouverte : les joueurs qui viennent ici peuvent embaucher agents et maîtres-chiens ; les frais d'embauche entrent dans votre caisse.",
+  'commercepj.agence.ouvrir':         "Ouvrir l'agence",
+  'commercepj.agence.fermer':         "Fermer l'agence",
+  'commercepj.agence.recruterAgent':  "Recruter un agent de sécurité",
+  'commercepj.agence.recruterChien':  "Recruter un maître-chien",
+  'commercepj.agence.recruterAide':   "L'agence présente les candidats de la ville.",
+  'commercepj.agence.ouverteOk':      "Agence ouverte.",
+  'commercepj.agence.fermeeOk':       "Agence fermée. Les agents déjà embauchés restent au service de leurs employeurs.",
+  'commercepj.refus.aucun_vivier_ici': "Aucun candidat ne se présente dans cette ville."
 };
 
 // Accesseur unique. Aucune chaine visible n'est ecrite ailleurs dans ce fichier.
@@ -1094,6 +1106,16 @@ async function commercePjEcranGestion(ctx) {
     '<p class="cpj-note">Aucun paiement ni code promotionnel ne peut être utilisé pour le moment.</p>' +
     '</section>';
 
+  // --- AGENCE DE SECURITE PRIVEE (#135, 03/11/2026) -----------------------
+  // L'etat de l'agence vient du serveur ; l'ecran n'en garde aucune copie.
+  const agence = await commercePjAgenceLire(ctx.fondsId);
+  h += '<div class="cpj-titre">' + commercePjEchapper(tCommercePJ('commercepj.agence.titre')) + '</div>';
+  h += '<p class="cpj-note">' + commercePjEchapper(tCommercePJ(agence.agence
+    ? 'commercepj.agence.ouverte' : 'commercepj.agence.fermee')) + '</p>';
+  h += '<div class="cpj-barre">' + (agence.agence
+    ? commercePjTouche('commercePjAgenceBasculer(false)', tCommercePJ('commercepj.agence.fermer'))
+    : commercePjTouche('commercePjAgenceBasculer(true)', tCommercePJ('commercepj.agence.ouvrir'))) + '</div>';
+
   // --- TOUCHES DE L'ECRAN -------------------------------------------------
   h += '<div class="cpj-barre">';
   if (mesTypes.length) {
@@ -1652,6 +1674,20 @@ async function commercePjEcranPublic(ctx) {
         commercePjEchapper(tCommercePJ(e[2])) + '</div></div>';
   });
 
+  // Agence de securite privee : le guichet n'apparait que si le serveur la dit ouverte.
+  const agence = await commercePjAgenceLire(ctx.fondsId);
+  if (agence.agence && agence.employeur_id) {
+    [['agent_securite', 'commercepj.agence.recruterAgent'],
+     ['maitre_chien',   'commercepj.agence.recruterChien']].forEach(function (e) {
+      html += '<div onclick="agenceEmploiOuvrirAgencePJ(\'' + commercePjEchapper(agence.employeur_id) + '\',\'' + e[0] + '\')" ' +
+        'style="border:1px solid #2a2620;padding:.8rem .9rem;margin-bottom:.6rem;cursor:pointer">' +
+        '<div style="color:#e0d8c0;font-size:.95rem;margin-bottom:.2rem">' +
+          commercePjEchapper(tCommercePJ(e[1])) + '</div>' +
+        '<div style="font-size:.8rem;color:#8a8060">' +
+          commercePjEchapper(tCommercePJ('commercepj.agence.recruterAide')) + '</div></div>';
+    });
+  }
+
   // Le proprietaire present chez lui utilise les fonctions publiques comme tout
   // le monde ; sa gestion reste une porte separee, jamais melangee a celle-ci.
   if (ctx.jeSuisProprietaire) {
@@ -1660,6 +1696,32 @@ async function commercePjEcranPublic(ctx) {
   }
   html += '</div>';
   commercePjModale(tCommercePJ('commercepj.public.titre'), html);
+}
+
+// ---------------------------------------------------------------------------
+// AGENCE DE SECURITE PRIVEE D'UN PJ (#135, 03/11/2026)
+// ---------------------------------------------------------------------------
+// Le commerce sert de guichet au socle d'embauche des agences (plateau-agence-emploi.js) ;
+// le vivier, les tarifs, les quotas et le credit de la caisse sont decides par le serveur.
+async function commercePjAgenceLire(fondsId) {
+  if (!fondsId || typeof sbAgenceSecuriteLire !== 'function') return { agence: false };
+  const r = await sbAgenceSecuriteLire(fondsId).catch(function () { return null; });
+  return (r && r.ok === true) ? r : { agence: false };
+}
+
+async function commercePjAgenceBasculer(ouvrir) {
+  const ctx = await commercePjContexte();
+  if (!ctx.fondsId || !ctx.jeSuisProprietaire) {
+    showToast('—', commercePjRefus({ raison: 'pas_proprietaire' }), false); return;
+  }
+  const r = await (ouvrir ? sbAgenceSecuriteOuvrir(ctx.fondsId) : sbAgenceSecuriteFermer(ctx.fondsId))
+    .catch(function () { return null; });
+  if (!r || r.ok !== true) {
+    showToast('—', commercePjRefus(r || { raison: 'reseau_indisponible' }), false); return;
+  }
+  showToast(tCommercePJ('commercepj.agence.titre'),
+            tCommercePJ(ouvrir ? 'commercepj.agence.ouverteOk' : 'commercepj.agence.fermeeOk'), true);
+  commercePjEcranGestion(ctx);
 }
 
 // ---------------------------------------------------------------------------
