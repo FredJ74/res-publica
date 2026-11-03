@@ -135,3 +135,29 @@ async function attribuerLogementSocialCommun(demandeId) {
   addJournalEntry('Logement social attribué à ' + v.beneficiaire + '.', 'event-good');
   ouvrirTableauLogementsSociaux();
 }
+
+/**
+ * Services sociaux de Montrouge : aucun coût ni date choisie par l'écran.
+ * Le serveur fixe demain (heure de Paris), verrouille la demande et envoie
+ * un courrier une seule fois pour le rendez-vous en cours.
+ */
+async function demanderRendezVousSsm() {
+  const v = await sbRpcVerdict('ssm_rendezvous_demander', {}).catch(() => null);
+  if (!v || v.ok !== true) {
+    const motifs = {
+      pas_a_l_accueil: 'Présentez-vous à l’accueil des Services sociaux de Montrouge.',
+      acteur_non_authentifie: 'Reconnectez-vous pour prendre rendez-vous.'
+    };
+    showToast('Rendez-vous non confirmé',
+      motifs[v?.raison] || 'Le serveur n’a pas confirmé le rendez-vous. Aucun rendez-vous n’est annoncé.', false);
+    return;
+  }
+  const d = typeof v.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v.date)
+    ? v.date.split('-').reverse().join('/') : 'la date indiquée dans votre courrier';
+  const message = v.deja_fixe
+    ? 'Votre rendez-vous est déjà fixé au ' + d + '. Retrouvez les informations dans votre courrier.'
+    : 'Pascale vous a envoyé un courrier : votre rendez-vous avec Edwige est fixé au ' + d + '. Vous pourrez entrer dans son bureau pendant toute cette journée.';
+  showToast('Services sociaux de Montrouge', message, true, true);
+  if (typeof addJournalEntry === 'function' && !v.deja_fixe)
+    addJournalEntry('Rendez-vous avec Edwige Jacquard fixé au ' + d + '.', 'event-info');
+}
