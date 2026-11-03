@@ -15,6 +15,9 @@ function jeu(){
  vm.runInContext('let RP_SUBTILISATION=null,RP_IMPACTS_RECEPTION=null;'+fonctions('plateau-communication.js',['recupererImpactsEnAttente']),c);
  return c;
 }
+function impacts(){const c=jeu();c.marques=[];c.lectures=0;c.sbRecupererImpactsEnAttente=async()=>[{id:'i',indice:'hp_set',delta:999}];c.reponse={ok:true,contrat:1,marques:1,applique:true,indice:'hp_set'};
+ c.sbMarquerImpactTraite=async id=>{c.marques.push(id);return c.reponse;};c.frais={userId:'U',pa:0,hp:0,moral:0,dis:0,pop:0,inf:0,statsAffaiblies:{ENT:true},empoisonnement:null,hospitalisation:{regime:'pa0'}};
+ c.sbLoadPersonnage=async()=>{c.lectures++;return c.frais;};return c;}
 for(const type of ['pop','inf','dis','moral_carte_postale','hp_set','poison_start'])test('impact '+type+' : seul l’état serveur relu est adopté, zéro conservé',async()=>{
  const c=impacts();c.reponse.indice=type;assert.equal(await c.recupererImpactsEnAttente(),true);assert.equal(c.lectures,1);
  for(const k of ['pa','hp','moral','pop','inf','dis'])assert.equal(c.state[k],0,k);assert.deepEqual(c.marques,['i']);assert.equal(c.state.statsAffaiblies,c.frais.statsAffaiblies);assert.equal(c.base.hp,0);

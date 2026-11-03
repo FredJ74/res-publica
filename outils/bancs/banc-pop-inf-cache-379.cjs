@@ -9,7 +9,7 @@ const {PGlite}=require('../vercel/node_modules/@electric-sql/pglite');
     await db.exec("CREATE FUNCTION public.est_appel_serveur() RETURNS boolean LANGUAGE sql AS $$ SELECT false $$;");
     const migration=fs.readFileSync('migrations/20261103183000_pop_inf_refuser_deltas_perimes_379.sql','utf8');
     // Reproduction de la faille sur le corps EXACT extrait de production (sans aucun compte réel).
-    const legacy=fs.readFileSync('outils/bancs/fixtures/personnages_fusionner_pop-prod-20261103.sql','utf8');
+    const legacy=fs.readFileSync('outils/bancs/fixtures/personnages_fusionner_pop-prod-20261103.sql.fixture','utf8');
     await db.exec(legacy);
 
     await db.exec("CREATE TRIGGER pop_inf_test BEFORE UPDATE ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION public.personnages_fusionner_pop()");

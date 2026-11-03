@@ -3,11 +3,11 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const acorn=require('../vercel/node_modules/acorn'),R=path.resolve(__dirname,'../..');
 const lire=f=>process.env.HG379_CONTRE?require('node:child_process').execFileSync('git',['show',process.env.HG379_CONTRE+':'+f],{cwd:R,encoding:'utf8'}):fs.readFileSync(path.join(R,f),'utf8');
 function corps(f,nom){const s=lire(f),n=acorn.parse(s,{ecmaVersion:'latest'}).body.find(n=>n.id?.name===nom);assert.ok(n,nom);return s.slice(n.start,n.end);}
-for(const type of ['argent','credit','objet','matiere'])test('ancienne file '+type+' : aucun débit, don, sauvegarde ni marquage local',async()=>{
- const appels=[],c=vm.createContext({console,COUNTRIES:{republic:{cur:'FR'}},state:{char:{name:'Fixture'},country:'republic',arg:100,liquide:100,inventory:[{id:'objet',qty:5,stackKey:'bois',stackable:true}]},updateUI(){},showToast(){},addJournalEntry(){}});
- for(const fn of ['sbSavePersonnage','sbMarquerVolTraite','sbObjetSasDeposer'])c[fn]=async()=>{appels.push(fn);return null;};
- c.sbRecupererVolsEnAttente=async()=>{appels.push('lecture-ancienne-file');return [{id:'ancien',type_butin:type==='credit'?'argent':type,montant:type==='credit'?-25:1,objet_id:type==='matiere'?'bois':'objet',voleur:'AutreFixture'}];};
- const avant=JSON.stringify(c.state);vm.runInContext(corps('plateau-communication.js','recupererVolsEnAttente'),c);await c.recupererVolsEnAttente();assert.equal(JSON.stringify(c.state),avant);assert.deepEqual(appels,[]);
+// main #416 a supprimé la consommation locale des vols (branche morte) : plus aucun consommateur.
+test('ancienne file des vols : aucun consommateur ni marqueur navigateur',()=>{
+ assert.doesNotMatch(lire('plateau-communication.js'),/function recupererVolsEnAttente\b/);
+ assert.doesNotMatch(lire('supabase.js'),/function sb(RecupererVolsEnAttente|MarquerVolTraite)\b/);
+ assert.doesNotMatch(lire('plateau-core.js'),/recupererVolsEnAttente\(/);
 });
 function jeu(){
  const c=vm.createContext({state:{char:{name:'Fixture'},employes:[],arg:100,liquide:100},session:'S',COUNTRIES:{republic:{cur:'FR'}},MAX_EMPLOYES:10,console,toasts:[],appels:[],document:{getElementById:()=>({classList:{remove(){}}})},Math:Object.assign(Object.create(Math),{random:()=>assert.fail('aucun profil aléatoire local')})});

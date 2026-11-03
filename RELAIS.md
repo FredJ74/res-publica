@@ -31,7 +31,7 @@ Règles : voir `AGENTS.md`.
 - **Fait (Claude)** : main #404–#418 fusionné (main fait foi ; subtilisation = corps serveur #409, ancienne migration `20261102202046` retirée). Lot présidence `20261103230000` (décret inutile, référendum, deuil, censure, intervention policière, banquet, réception, guerre, tribunes) et lot 2 `20261103233000` (corruption de l'armurier, demandes de manifestation) ; excommunication de soi par la primitive serveur ; deux producteurs morts retirés. Formules d'origine conservées, aucune décision de design attendue.
 - **Preuves** : banc annulé `outils/bancs/banc-pop-inf-presidence-379.sql` sur base jetable (`monter-base-jetable.sh`) 17/17 ; garde écran `test-pop-inf-producteurs-379.mjs`. État détaillé : `outils/audits/ETAT-PRODUCTEURS-POP-INF-379-20261103.md`.
 - **Reste (lot 3)** : invitations sociales (3 fonctions), dons aux PNJ (argent, objets, promoteur — l'argent y est encore local), bonus de location du chef d'organisation, impayé d'escort. Puis : contre-épreuves de la garde stricte, prévol des empreintes en production, fusion et application dans l'ordre des migrations (feu vert de Fred pour la livraison).
-- **Ne pas appliquer** `outils/livraison/preparatifs-379/fermeture-pop-inf-serveur-seul.sql` avant le lot 3.
+- **Ne pas appliquer** `outils/livraison/preparatifs-379/fermeture-pop-inf-serveur-seul.sql.prepa` avant le lot 3.
 
 ### Audit global Républia — Codex, 02/11/2026
 

@@ -5,7 +5,7 @@
 
 - **Ancienne fusion en production** : MD5 `248b3f7f5e8c24148afa624649ee3f47`, prévol Supabase lecture seule. La migration de protection n'est pas appliquée.
 - Première protection `20261103183000` : 18/18 tests PGlite (vieux cache et répétitions), mais un client avec `popBase=10,pop=99` et `infBase=10,inf=99` passe toujours ; **interdit de présenter ce lot comme une fermeture complète**.
-- Fermeture stricte : `outils/livraison/preparatifs-379/fermeture-pop-inf-serveur-seul.sql` volontairement **hors dossier migrations**. Rejouer `node --test outils/bancs/banc-pop-inf-forge-379.cjs` ; 3/3 preuves en environnement isolé (contre-preuve première protection puis refus par la stricte). Ne livrer qu'après migration de tous les producteurs actifs.
+- Fermeture stricte : `outils/livraison/preparatifs-379/fermeture-pop-inf-serveur-seul.sql.prepa` volontairement **hors dossier migrations**. Rejouer `node --test outils/bancs/banc-pop-inf-forge-379.cjs` ; 3/3 preuves en environnement isolé (contre-preuve première protection puis refus par la stricte). Ne livrer qu'après migration de tous les producteurs actifs.
 - Grâce présidentielle : `20261103133000`, 15/15 SQL isolés, 5/5 côté client ; réparation de l'ancien circuit PA/QHS/POP. Ce lot n'est pas une certification de production.
 - Inspection portuaire : `20261103203000`, 14/14 PGlite et contrôles client ; bonus INF +5 ou malus -3 décidé par serveur, 2 PA, rôle min_def, présence au quai, reçu anti-rejeu.
 - Sondage historique et allègement fiscal inatteignables : supprimés de la branche, 2/2 tests ciblés. L'ordre officiel `commanditer_sondage` transactionnel et le message « allegement fiscal indisponible » sont conservés.
