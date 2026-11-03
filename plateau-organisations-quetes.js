@@ -241,8 +241,8 @@ async function organisationEssayerCommande(orgaId, action, parametres) {
 
 // Charge toutes les organisations depuis Supabase au demarrage (remplace l'ancien state.orgasEmpire local perdu au rafraichissement)
 let RP_ORGANISATIONS_LECTURE = 0;
-async function chargerOrganisations() {
-  if (typeof sbLoadOrganisations !== 'function') return;
+async function chargerOrganisations(options = {}) {
+  if (typeof sbLoadOrganisations !== 'function') return false;
   const version = ++RP_ORGANISATIONS_LECTURE, personnage = state.char;
   const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
   const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
@@ -250,16 +250,19 @@ async function chargerOrganisations() {
     const orgas = await sbLoadOrganisations();
     if (version !== RP_ORGANISATIONS_LECTURE || state.char !== personnage
         || (typeof rpAuthUid === 'function' && rpAuthUid() !== uid)
-        || (typeof rpAuthJeton === 'function' && rpAuthJeton() !== jeton)) return;
+        || (typeof rpAuthJeton === 'function' && rpAuthJeton() !== jeton)) return false;
     if (!Array.isArray(orgas)) throw new Error('organisations_lecture_indisponible');
     state.organisations = orgas;
+    if (!options.lectureSeule) {
     if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations();
     // Rafraichir l'affichage si la fiche est ouverte sur l'onglet organisations
     const tab = document.querySelector('#vue-self .piece-tab.active');
     if (tab && document.getElementById('vue-self')?.classList.contains('active')) {
       switchSelfTab('orgas', null);
     }
-  } catch(e) { console.warn('chargerOrganisations error', e); }
+    }
+    return true;
+  } catch(e) { console.warn('chargerOrganisations error', e);return false; }
 }
 
 // Trouve le responsable de la loge maçonnique (chef d'organisation type 'loge')

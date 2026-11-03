@@ -4,6 +4,20 @@
 -- RLS : la lecture des sujets ET réponses est interdite hors territoire ou
 -- sans adhésion à l'organisation, y compris par appel direct à PostgREST.
 
+-- Empreinte de NOTRE définition préparée, jamais imposée à une autre version.
+-- Une politique permissive supplémentaire rendrait les restrictions inopérantes.
+DO $prevol_forums$
+BEGIN
+ IF EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('public.forum_lecture_autorisee(text,text)')
+   AND(md5(prosrc)<>'8c3942ad7d820a9533bb54a5111c87a2'OR NOT prosecdef))THEN
+  RAISE EXCEPTION 'forum_definition_non_examinee';END IF;
+ IF EXISTS(SELECT 1 FROM pg_class WHERE oid IN('public.forum_topics'::regclass,'public.forum_posts'::regclass)AND NOT relrowsecurity)THEN
+  RAISE EXCEPTION 'forum_RLS_inactive';END IF;
+ IF EXISTS(SELECT 1 FROM pg_policy WHERE polrelid IN('public.forum_topics'::regclass,'public.forum_posts'::regclass)
+   AND polpermissive AND polcmd IN('r','*')AND polname NOT IN('forum_topics_lecture','forum_posts_lecture'))THEN
+  RAISE EXCEPTION 'forum_politique_lecture_non_examinee';END IF;
+END;$prevol_forums$;
+
 CREATE OR REPLACE FUNCTION public.forum_lecture_autorisee(p_forum text, p_pays text)
 RETURNS boolean
 LANGUAGE plpgsql STABLE SECURITY DEFINER
@@ -20,7 +34,7 @@ BEGIN
     RETURN EXISTS (
       SELECT 1 FROM public.organisations o
        WHERE o.id = substring(p_forum from 5)
-         AND (
+         AND CASE WHEN o.data IS JSON OBJECT THEN (
            (o.data::jsonb ->> 'chef') = v_nom
            OR EXISTS (
              SELECT 1 FROM jsonb_array_elements(
@@ -29,7 +43,7 @@ BEGIN
              ) m(elem)
              WHERE coalesce(m.elem ->> 'nom', m.elem #>> '{}') = v_nom
            )
-         )
+         ) ELSE false END
     );
   END IF;
   IF p_forum = 'national' OR left(p_forum,6) = 'local_' THEN
@@ -98,3 +112,15 @@ CREATE POLICY forum_posts_maj_auteur ON public.forum_posts
     (author = public.mon_personnage() OR author_real = public.mon_personnage())
     AND EXISTS (SELECT 1 FROM public.forum_topics t WHERE t.id = forum_posts.topic_id)
   );
+
+-- Quitter le territoire ou l'organisation ferme aussi l'ancienne porte DELETE.
+DROP POLICY IF EXISTS forum_topics_suppression_auteur ON public.forum_topics;
+CREATE POLICY forum_topics_suppression_auteur ON public.forum_topics
+ FOR DELETE TO authenticated
+ USING((author=public.mon_personnage()OR author_real=public.mon_personnage())
+   AND public.forum_lecture_autorisee(forum_id,country));
+DROP POLICY IF EXISTS forum_posts_suppression_auteur ON public.forum_posts;
+CREATE POLICY forum_posts_suppression_auteur ON public.forum_posts
+ FOR DELETE TO authenticated
+ USING((author=public.mon_personnage()OR author_real=public.mon_personnage())
+   AND EXISTS(SELECT 1 FROM public.forum_topics t WHERE t.id=forum_posts.topic_id));
