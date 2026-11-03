@@ -25,6 +25,10 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### POP/INF : fin de l'autorité du navigateur (#379 → PR #410) — repris par Claude le 03/11 au soir
+
+**Décision de Fred (03/11, 21 h 19) : Claude reprend le chantier de ChatGPT, qui s'arrête.** Branche à reprendre telle quelle : `chatgpt/379-grace-atomique-reprise-20261103` (PR #410, brouillon, sans conflit au 03/11). État transmis par ChatGPT : grâce présidentielle transactionnelle (15/15) ; garde POP/INF contre les sauvegardes périmées (18/18) **insuffisante** (une base courante + `pop=99` passe encore) ; seconde migration stricte écrite (refus de toute variation POP/INF venant de la sauvegarde générale, 3/3 contre-épreuves) **à ne pas appliquer** avant le raccordement des producteurs légitimes ; inventaire des 30 producteurs POP/INF sur la branche, un seul raccordé (inspection des cargaisons au port, 14/14) ; deux circuits morts retirés, publication du forum conservée. PR #379 (Codex, en conflit) : référence seulement, ne pas la fusionner. Formules d'origine conservées à chaque raccordement (aucune décision de design attendue).
+
 ### Audit global Républia — Codex, 02/11/2026
 
 Branche `codex/audit-global-republia-20261102`, issue du main `a99c4069`
