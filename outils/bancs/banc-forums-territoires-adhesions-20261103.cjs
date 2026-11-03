@@ -35,7 +35,10 @@ async function main() {
   state.currentCity = 'ville_a';
   verifier('forum PSM uniquement sur place',
     !!obtenir('getForums().local_ville_a') && !obtenir('getForums().local_capitale'));
+  const lectureRepublic = obtenir("_cleDernierPassageForumId('national')");
   state.country = 'narco';
+  const lectureNarco = obtenir("_cleDernierPassageForumId('national')");
+  verifier('marques de lecture nationales distinctes entre pays', lectureRepublic !== lectureNarco);
   obtenir("FORUM_TOPICS.national = [{id:'cache-republic'}]");
   obtenir('getForums()');
   verifier('cache national purgé au changement de pays', !obtenir('FORUM_TOPICS.national'));
