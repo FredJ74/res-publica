@@ -30,8 +30,8 @@ test('rendez-vous et demande de logement social sont les seuls ordres des deux p
  assert.match(block,/fn:'demander_logement_social'/);
 });
 test('les deux profils PNJ sont raccordables par identifiant serveur',()=>{
- assert.match(profiles,/'pascale':\s*\{ nom: "Pascale"/);
- assert.match(profiles,/'edwige_jacquard':\s*\{ nom: "Edwige Jacquard"/);
+ assert.match(profiles,/'pascale':\s*\{\s*nom:\s*"Pascale"/);
+ assert.match(profiles,/'edwige_jacquard':\s*\{\s*nom:\s*"Edwige Jacquard"/);
  assert.match(profiles,/const ORDINAIRES = \{/);
 });
 test('navigation serveur limitée au nouveau bureau, sans modifier les positions PJ',()=>{
