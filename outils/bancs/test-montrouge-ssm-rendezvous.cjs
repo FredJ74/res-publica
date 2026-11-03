@@ -95,3 +95,32 @@ test('DeepSeek : les deux agentes ont un corpus métier, pas le prompt des PNJ o
  assert.match(rich,/dépensant 1 PA/);
  assert.match(rich,/aucune démarche ou prestation absente/);
 });
+
+test('Besoin d’aide : orientation libre, quatre rubriques et portrait récupéré depuis le PNJ',()=>{
+ assert.match(block,/fn:'ssm_besoin_aide', label:'Besoin d’aide \\?', pa:0, cost:0/);
+ assert.match(router,/if \\(fn === 'ssm_besoin_aide'\\) \\{ ouvrirAidePascaleSsm\\(\\)/);
+ assert.match(housing,/function ouvrirAidePascaleSsm\\(rubrique\\)/);
+ for(const rubrique of ['Se loger','Se nourrir','Se soigner','Trouver du travail'])assert.ok(housing.includes(rubrique),rubrique);
+ const begin=housing.indexOf('function ouvrirAidePascaleSsm(rubrique)');
+ const implementation=housing.slice(begin);
+ assert.ok(implementation.includes("p.name === 'Pascale (PNJ)'"));
+ assert.ok(implementation.includes('pnj.photoUrl'));
+ assert.ok(implementation.includes("modal.classList.add('open')"));
+ assert.doesNotMatch(implementation,/sbRpc|deduireCoutOrdre|appliquerPaiementServeur/);
+ const mockModal={classList:{add:()=>{}},innerHTML:''};
+ const mockTitle={textContent:''};
+ const mockBody={innerHTML:''};
+ const ctx={
+   document:{getElementById:id=>({'modal-postes':mockModal,'postes-modal-title':mockTitle,'postes-body':mockBody})[id]},
+   BUILDINGS:{'services-sociaux-montrouge':{rooms:{accueil:{persons:[{name:'Pascale (PNJ)',photoUrl:'images/personnages/portrait-de-pascale.webp'}]}}}},
+   console
+ };
+ vm.createContext(ctx);vm.runInContext(housing,ctx);
+ vm.runInContext('ouvrirAidePascaleSsm()',ctx);
+ assert.equal(mockTitle.textContent,'Besoin d’aide ?');
+ assert.match(mockBody.innerHTML,/portrait-de-pascale.webp/);
+ for(const rubrique of ['Se loger','Se nourrir','Se soigner','Trouver du travail'])assert.ok(mockBody.innerHTML.includes(rubrique),rubrique);
+ vm.runInContext("ouvrirAidePascaleSsm('logement')",ctx);
+ assert.match(mockBody.innerHTML,/Edwige Jacquard/);
+ assert.match(mockBody.innerHTML,/Retour aux rubriques/);
+});
