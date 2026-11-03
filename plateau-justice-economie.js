@@ -6530,6 +6530,69 @@ async function doConsulterStockUsine() {
 // sbGetBatimentEtat/sbSetBatimentEtat -- aucun nouveau mecanisme de persistance.
 // =====================
 
+// Catalogue commun des produits manufacturés : la navigation sépare les actions,
+// les RPC de fabrication/achat existantes restent les seules autorités économiques.
+// La liste est filtrée par pays, ville et bâtiment : aucune fuite entre usines.
+async function doConsulterCatalogueManufactures() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const batiment = state.currentBuilding;
+  const ids = produitsManufacturesUsine(batiment, pays, ville);
+  if (!ids.length) {
+    showToast('Aucun article', 'Ce commerce ne propose aucun produit manufacturé.', false);
+    return;
+  }
+  const etat = typeof sbGetBatimentEtat === 'function'
+    ? await sbGetBatimentEtat(pays, ville, batiment).catch(() => null) : null;
+  if (!etat || !etat.usine) {
+    showToast('Catalogue indisponible', 'Impossible de confirmer le stock auprès du serveur.', false);
+    return;
+  }
+  const usine = etat.usine;
+  const devise = COUNTRIES[pays]?.cur || 'FR';
+  // Les actions sont les contrôleurs métier déjà employés à la Scierie.
+  // Toute extension du registre nécessite un contrôleur existant et audité.
+  const actions = {
+    armoire_souvenirs: ['doFabriquerArmoireSouvenirs()', 'doAcheterArmoireSouvenirs()']
+  };
+  const echapper = (valeur) => String(valeur ?? '').replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+  let html = '<div style="padding:1rem;display:flex;flex-direction:column;gap:.8rem">';
+  for (const id of ids) {
+    const p = PRODUITS_MANUFACTURES_USINE[id];
+    const stock = Math.max(0, Number(usine.stockProduits?.[p.type]) || 0);
+    const materiaux = Object.entries(p.recette?.materiaux || {});
+    const details = materiaux.map(([m,q]) =>
+      echapper(q) + ' ' + echapper(RESSOURCES_ECONOMIE[m]?.label || m) +
+      ' (stock : ' + echapper(usine.stockMatieres?.[m] || 0) + ')').join(' · ');
+    const possible = materiaux.every(([m,q]) => (Number(usine.stockMatieres?.[m]) || 0) >= q);
+    const boutons = actions[id];
+    html += '<div style="border:1px solid #394656;background:#252D38;padding:.8rem">';
+    html += '<div style="font-size:1rem;color:#e6d5af;font-weight:bold">' + echapper(p.label) + '</div>';
+    html += '<div style="font-size:.82rem;color:#c2bdaf;margin:.5rem 0">Prix : ' +
+      Number(p.prixVente).toLocaleString('fr-FR') + ' ' + echapper(devise) +
+      ' · Stock disponible : ' + stock + ' · Encombrement : ' + echapper(p.encombrement) + '</div>';
+    html += '<div style="font-size:.8rem;color:#c2bdaf">Fabrication : ' +
+      echapper(p.recette?.pa || 0) + ' PA · ' + details + '</div>';
+    html += '<div style="display:flex;gap:.5rem;margin-top:.75rem">';
+    if (boutons) {
+      const bouton = (action, titre, autorise) =>
+        '<button ' + (autorise ? 'onclick="' + action + '"' : 'disabled') +
+        ' style="flex:1;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;' +
+        (autorise ? 'cursor:pointer' : 'opacity:.5;cursor:not-allowed') + '">' + titre + '</button>';
+      html += bouton(boutons[0], 'Produire', possible) +
+        bouton(boutons[1], 'Acheter', stock > 0);
+    } else {
+      html += '<span style="color:#cc5540">Opérations indisponibles pour cet article</span>';
+    }
+    html += '</div></div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Catalogue des produits';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
 async function doFabriquerArmoireSouvenirs() {
   const p = PRODUITS_MANUFACTURES_USINE.armoire_souvenirs;
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(p.pays, p.ville, p.buildingId).catch(() => null) : null;
@@ -6577,7 +6640,7 @@ async function confirmerFabriquerArmoireSouvenirs() {
   updateUI();
   showToast('Fabrication réussie', '+1 ' + p.label + ' disponible à la vente.', true, true);
   addJournalEntry('Fabrication d\'une ' + p.label + ' à la Scierie Guy Tarembois.', 'event-good');
-  doFabriquerArmoireSouvenirs();
+  doConsulterCatalogueManufactures();
 }
 
 
