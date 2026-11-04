@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -6668,6 +6668,37 @@ const BUILDINGS = {
         orders: [
           {fn:'louer_local', label:'Louer cet appartement (1200 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Les anciens appartements de l\'impératrice. +15 POP +15 INF +5 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      }
+    }
+  },
+  // Entrepot Logistique de Novomirsk (vue 8) : interface copiee de Luthecia, ordres « Bientot
+  // disponible » (decision de Fred, 04/11/2026). Le socle connait desormais le pays de chaque
+  // entrepot (migration 20261104230000) ; reste l'approvisionnement propre a Sovarka. Directeur
+  // PNJ nomme par Fred le 05/11/2026 : Boris Stockov.
+  'entrepot-logistique-novomirsk': {
+    name: "Entrepôt Logistique de Novomirsk",
+    shortName: "Entrepôt Logistique",
+    cat: "Économie",
+    icon: "ti-building-warehouse",
+    bgColor: "#141210",
+    desc: "L'entrepôt d'État de Novomirsk. Les matières premières y arrivent selon le Plan, et en repartent selon le Plan. Le reste est une affaire de formulaires.",
+    rooms: {
+      salle_ventes: {
+        name: "Salle des Ventes",
+        imageBg: "linear-gradient(135deg,#141210,#1c1815)",
+        desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
+        persons: [],
+        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).', bientot:'Bientôt disponible : l\'entrepôt de Novomirsk ouvrira avec l\'économie de Sovarka.'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.', bientot:'Bientôt disponible : l\'entrepôt de Novomirsk ouvrira avec l\'économie de Sovarka.'}]
+      },
+      bureau_direction: {
+        name: "Bureau de Direction",
+        imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
+        desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
+        persons: [{name:'Boris Stockov (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
+        orders: [
+          {fn:'tableau_bord_entrepot', label:'Tableau de bord logistique', pa:0, cost:0, type:'legal', icon:'ti-layout-dashboard', successRate:100, requiresPost:'directeur_entrepot', desc:"Trésorerie, stocks et capacité, stocks cibles, marché des fournisseurs, commandes et registre de l'établissement.", bientot:'Bientôt disponible : l\'entrepôt de Novomirsk ouvrira avec l\'économie de Sovarka.'},
+          {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix de vente", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue par l'entrepôt. Laissez vide pour revenir au prix automatique.", bientot:'Bientôt disponible : l\'entrepôt de Novomirsk ouvrira avec l\'économie de Sovarka.'}
         ]
       }
     }

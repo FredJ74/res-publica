@@ -604,6 +604,7 @@ TU ES RUGUEUX ET PRAGMATIQUE : tu veux du concret pour le port, des emplois et d
   // Ambassadeur d'El Estado à Novomirsk (nom choisi par Fred, 04/11/2026 ; ambassades « Bientôt disponible »).
   'don_esteban_cortesano':         { nom: "Don Esteban Cortesano", role: "Ambassadeur d'El Estado", lieu: "Palais des Ambassades de Novomirsk" },
   'docteur_lev_patrimonov':        { nom: "Docteur Lev Patrimonov", role: "PNJ - Conservateur du musée", lieu: "Musée municipal de Novomirsk" },
+  'boris_stockov':                 { nom: "Boris Stockov", role: "Directeur de l'Entrepôt Logistique", lieu: "Entrepôt Logistique de Novomirsk" },
   'irina_guichetova':              { nom: "Irina Guichetova", role: "PNJ - Accueil du musée", lieu: "Musée municipal de Novomirsk" },
   'lena_glaconova':                { nom: "Lena Glaçonova", role: "Serveuse façon traiteur", lieu: "Bar du Pavillon des Ambassadeurs, Novomirsk" },
   'louis_chevillard':              { nom: "Louis Chevillard", role: "Policier en retraite", lieu: "Dispensaire Public" },
