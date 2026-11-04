@@ -17,7 +17,7 @@
    reponses et n'ecrit rien lui-meme.
    =========================================================================== */
 
-const EQUIPEMENTS_LIBELLES = { 'ordinateur-complet': 'Ordinateur', 'box-internet': 'Box internet' };
+const EQUIPEMENTS_LIBELLES = { 'ordinateur-complet': 'Ordinateur', 'box-internet': 'Box internet', 'armoire_souvenirs': 'Armoire à souvenirs' };
 const TRADING_VILLES = { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' };
 const EQUIPEMENTS_REFUS = {
   acteur_non_authentifie: 'Votre personnage n\'est pas identifié.',
@@ -40,7 +40,19 @@ const EQUIPEMENTS_REFUS = {
   caisse_organisation_insuffisante: 'La caisse de l\'organisation ne suffit pas.',
   entrepot_inconnu: 'Entrepôt inconnu.',
   pas_chef: 'Seul le chef de l\'organisation peut autoriser un trader.',
-  pas_membre: 'Cette personne n\'est pas membre de l\'organisation.'
+  pas_membre: 'Cette personne n\'est pas membre de l\'organisation.',
+  // Serrures (04/11/2026, issue #434)
+  armoire_fermee_a_cle: 'Cette armoire est fermée à clé : ouvrez-la d\'abord avec sa clé.',
+  serrure_introuvable: 'Cette serrure est introuvable.',
+  serrure_deja_posee: 'Cette serrure est déjà posée.',
+  serrure_detruite: 'Cette serrure a été détruite (fin du bail) : sa clé n\'ouvre plus rien.',
+  serrure_non_posee: 'Cette serrure n\'est pas encore posée.',
+  deja_une_serrure: 'Il y a déjà une serrure ici.',
+  cle_requise: 'Il vous faut une clé de cette serrure.',
+  cle_vierge_requise: 'Il vous faut une clé vierge (vendue en armurerie).',
+  cible_invalide: 'Cible invalide.',
+  cible_exclue: 'On ne pose pas de serrure sur une chambre d\'hôtel ou de clinique.',
+  armoire_introuvable: 'Cette armoire n\'est pas installée ici.'
 };
 
 function equipementsEchapper(t) {
@@ -65,11 +77,11 @@ function equipementsBouton(onclick, libelle, primaire) {
 }
 
 async function ouvrirModalEquipements() {
-  equipementsModale('Équipements du bureau', '<p class="cpj-note">…</p>');
+  equipementsModale('Équipements du local', '<p class="cpj-note">…</p>');
   const r = await sbRpc('equipements_local_lire', {}).catch(function () { return null; });
-  if (!r || r.ok !== true) { equipementsModale('Équipements du bureau', '<p class="cpj-note">' + equipementsEchapper(equipementsRefus(r)) + '</p>'); return; }
+  if (!r || r.ok !== true) { equipementsModale('Équipements du local', '<p class="cpj-note">' + equipementsEchapper(equipementsRefus(r)) + '</p>'); return; }
 
-  let h = '<p class="cpj-note">' + r.installes.length + ' / ' + r.emplacements + ' emplacements d\'équipement occupés dans ce bureau' +
+  let h = '<p class="cpj-note">' + r.installes.length + ' / ' + r.emplacements + ' emplacements d\'équipement occupés dans ce local' +
     (r.option_premium_bureau ? ' (option premium).' : '.') +
     (r.jouissance ? '' : ' Vous n\'en avez pas la jouissance légale : vous ne pouvez rien y installer.') + '</p>';
   if (r.jouissance && !r.option_premium_bureau) {
@@ -87,8 +99,11 @@ async function ouvrirModalEquipements() {
       (e.a_moi ? '' : ' <span class="cpj-note">(à ' + equipementsEchapper(e.proprietaire) + ')</span>') +
       (e.a_moi && e.delai_jusqu_au ? ' <span class="cpj-note">— bail perdu : à désinstaller avant le ' +
         equipementsEchapper(new Date(e.delai_jusqu_au).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })) +
-        ', sinon il revient au propriétaire des lieux</span>' : '') + '</span>' +
-      (e.a_moi ? equipementsBouton('equipementDesinstaller(\'' + e.id + '\')', 'Désinstaller') : '') + '</div>';
+        ', sinon il revient au propriétaire des lieux</span>' : '') +
+      (e.serrure ? ' <span class="cpj-note">— serrure n° ' + equipementsEchapper(e.serrure.numero) + (e.serrure.fermee ? ', fermée à clé' : ', ouverte') + '</span>' : '') +
+      '</span><span style="display:flex;gap:.3rem">' +
+      (e.serrure && e.serrure.a_cle ? equipementsBouton('serrureBasculer(\'' + e.serrure.id + '\',' + (!e.serrure.fermee) + ')', e.serrure.fermee ? 'Ouvrir' : 'Fermer à clé') : '') +
+      (e.a_moi ? equipementsBouton('equipementDesinstaller(\'' + e.id + '\')', 'Désinstaller') : '') + '</span></div>';
   });
 
   if (r.jouissance && r.installables.length) {
@@ -100,12 +115,13 @@ async function ouvrirModalEquipements() {
     });
   }
 
+  h += serruresBlocLocalHtml(r);
   h += '<div class="cpj-titre">Connexion internet</div>';
   h += r.connexion
     ? '<p class="cpj-note">Votre ordinateur et votre box sont installés : vous êtes connecté.</p>' +
       equipementsBouton('ouvrirTrading()', 'Trading de matières premières', true)
     : '<p class="cpj-note">Installez ici votre ordinateur et votre box internet pour vous connecter.</p>';
-  equipementsModale('Équipements du bureau', h);
+  equipementsModale('Équipements du local', h);
 }
 
 async function equipementInstaller(generique) {
@@ -348,4 +364,150 @@ async function offreServir(id) {
   }
   showToast('Vente conclue', r.quantite + ' ' + offresLibelleRessource(r.ressource) + ' vendus ' + r.montant + ' (' + r.vendeur + '). Livraison au cron de minuit.', true, true);
   ouvrirOffresAchat();
+}
+
+// ---------------------------------------------------------------------------
+// SERRURES (4 novembre 2026 -- issue #434, GAME-DESIGN-SERRURES.md)
+// ---------------------------------------------------------------------------
+// Decisions de Fred : une serrure se pose sur place, depuis l'inventaire, sur une armoire a
+// souvenirs installee ou sur un local / appartement dont on a la jouissance ; une cle la ferme ou
+// l'ouvre ; fermee, elle interdit d'entrer (ou d'ouvrir l'armoire) a qui n'a pas de cle ; une cle
+// vierge taillee sur une cle detenue devient un double ; au depart du locataire, la serrure du lieu
+// est detruite. TOUT est decide par le serveur (serrure_poser, serrure_basculer, cle_dupliquer,
+// serrure_etat, equipements_local_lire) : cet ecran n'affiche que ses reponses.
+
+function serrureIllustration(icone) {
+  return '<div style="text-align:center;font-size:3rem;margin:.2rem 0 .6rem"><i class="ti ' + icone + '"></i></div>';
+}
+function serrureLieuLibelle(r) {
+  const piece = (typeof BUILDINGS !== 'undefined' && BUILDINGS[r.batiment]?.rooms?.[r.piece]?.name) || r.piece || '';
+  return piece.replace(/ — Local à louer$/, '') + (TRADING_VILLES[r.ville] ? ' (' + TRADING_VILLES[r.ville] + ')' : '');
+}
+function serrureRefusInventaire(x) { showToast('Refusé', equipementsRefus(x), false); return true; }
+
+// Bloc « Serrure de ce local » de la fenetre des equipements.
+function serruresBlocLocalHtml(r) {
+  const s = r.serrures;
+  if (!s) return '';
+  const ligne = function (texte, bouton) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin:.3rem 0"><span>' + texte + '</span>' + (bouton || '') + '</div>';
+  };
+  let h = '<div class="cpj-titre">Serrure de ce local</div>';
+  if (s.lieu) {
+    h += ligne('Serrure n° ' + equipementsEchapper(s.lieu.numero) + ' — ' + (s.lieu.fermee ? 'fermée à clé' : 'ouverte'),
+      s.lieu.a_cle ? equipementsBouton('serrureBasculer(\'' + s.lieu.id + '\',' + (!s.lieu.fermee) + ')', s.lieu.fermee ? 'Ouvrir' : 'Fermer à clé', true)
+                   : '<span class="cpj-note">Vous n\'en avez pas la clé.</span>');
+  } else if (s.lieu_posable && s.blocs.length) {
+    s.blocs.forEach(function (b) {
+      h += ligne('Aucune serrure.', equipementsBouton('serrurePoser(\'' + b.id + '\',\'lieu\',null)', 'Poser la serrure n° ' + b.numero, true));
+    });
+  } else {
+    h += '<p class="cpj-note">Aucune serrure.' + (s.lieu_posable ? ' Les serrures à clé se vendent en armurerie.' : '') + '</p>';
+  }
+  if (s.armoires_posables.length && s.blocs.length) {
+    s.armoires_posables.forEach(function (id, i) {
+      h += ligne('Armoire à souvenirs' + (s.armoires_posables.length > 1 ? ' ' + (i + 1) : '') + ' sans serrure',
+        equipementsBouton('serrurePoser(\'' + s.blocs[0].id + '\',\'armoire\',\'' + id + '\')', 'Poser la serrure n° ' + s.blocs[0].numero));
+    });
+  }
+  return h;
+}
+
+async function serrurePoser(serrureId, cible, equipementId) {
+  const v = await executerReceptionInventaire('serrure_poser',
+    { p_serrure: serrureId, p_cible: cible, p_equipement: equipementId || null }, { surRefus: serrureRefusInventaire });
+  if (!v) return;
+  if (typeof renderInventory === 'function') renderInventory();
+  showToast('Serrure posée', 'Serrure n° ' + (v.numero || '') + (cible === 'armoire' ? ' posée sur l\'armoire.' : ' posée sur ce local.') +
+    ' Elle est ouverte : fermez-la avec sa clé.', true);
+  ouvrirModalEquipements();
+}
+
+async function serrureBasculer(serrureId, fermer, retourCle) {
+  const r = await sbRpc('serrure_basculer', { p_serrure: serrureId, p_fermer: fermer }).catch(function () { return null; });
+  if (!r || r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
+  showToast(r.fermee ? 'Fermé à clé' : 'Ouvert', 'Serrure n° ' + r.numero + (r.fermee ? ' fermée à clé.' : ' ouverte.'), true);
+  if (retourCle != null) ouvrirSerrureObjet(retourCle); else ouvrirModalEquipements();
+}
+
+// Clic sur un objet de serrurerie dans l'inventaire.
+function ouvrirSerrureObjet(idx) {
+  const item = state.inventory[idx];
+  if (!item) return;
+  if (item.type === 'serrure_cle') return ouvrirPoseSerrure(idx);
+  if (item.type === 'cle_serrure') return ouvrirCleSerrure(idx);
+  if (item.type === 'cle_vierge') return ouvrirDoubleCle(idx);
+}
+
+async function ouvrirPoseSerrure(idx) {
+  const item = state.inventory[idx];
+  const titre = 'Installer la serrure n° ' + (item.numero || '');
+  equipementsModale(titre, serrureIllustration('ti-lock') + '<p class="cpj-note">…</p>');
+  const r = await sbRpc('equipements_local_lire', {}).catch(function () { return null; });
+  const s = r && r.ok === true ? r.serrures : null;
+  let h = serrureIllustration('ti-lock') + '<p class="cpj-note">Bloc serrure, vendu avec sa clé. Il se pose ici, maintenant : choisissez sur quoi.</p>';
+  const cibles = [];
+  if (s && s.lieu_posable) cibles.push(equipementsBouton('serrurePoser(\'' + item.serrureId + '\',\'lieu\',null)', 'Sur ce local', true));
+  (s ? s.armoires_posables : []).forEach(function (id, i) {
+    cibles.push(equipementsBouton('serrurePoser(\'' + item.serrureId + '\',\'armoire\',\'' + id + '\')',
+      'Sur l\'armoire à souvenirs' + (s.armoires_posables.length > 1 ? ' ' + (i + 1) : '')));
+  });
+  h += cibles.length ? '<div style="display:flex;flex-direction:column;gap:.4rem">' + cibles.join('') + '</div>'
+    : '<p class="cpj-note">Rien ici ne peut recevoir cette serrure. Elle se pose sur une armoire à souvenirs installée, ou sur un local ou un appartement dont vous avez la jouissance, en y étant.</p>';
+  equipementsModale(titre, h);
+}
+
+async function ouvrirCleSerrure(idx) {
+  const item = state.inventory[idx];
+  const titre = 'Clé n° ' + (item.numero || '');
+  equipementsModale(titre, serrureIllustration('ti-key') + '<p class="cpj-note">…</p>');
+  const r = await sbRpc('serrure_etat', { p_serrure: item.serrureId }).catch(function () { return null; });
+  let h = serrureIllustration('ti-key');
+  if (!r || r.ok !== true) h += '<p class="cpj-note">' + equipementsEchapper(equipementsRefus(r)) + '</p>';
+  else if (r.statut === 'detruite') h += '<p class="cpj-note">La serrure n° ' + equipementsEchapper(r.numero) + ' a été détruite à la fin du bail : cette clé n\'ouvre plus rien.</p>';
+  else if (r.statut === 'neuve') h += '<p class="cpj-note">La serrure n° ' + equipementsEchapper(r.numero) + ' n\'est pas encore posée.</p>';
+  else {
+    h += '<p>Serrure n° ' + equipementsEchapper(r.numero) + ' — ' +
+      (r.cible === 'lieu' ? 'porte de ' + equipementsEchapper(serrureLieuLibelle(r)) : 'armoire à souvenirs') +
+      ' — <strong>' + (r.fermee ? 'fermée à clé' : 'ouverte') + '</strong></p>';
+    h += r.a_portee
+      ? equipementsBouton('serrureBasculer(\'' + r.serrure + '\',' + (!r.fermee) + ',' + idx + ')', r.fermee ? 'Ouvrir' : 'Fermer à clé', true)
+      : '<p class="cpj-note">' + (r.cible === 'lieu' ? 'Pour la fermer ou l\'ouvrir, soyez dans le bâtiment.' : 'Pour la fermer ou l\'ouvrir, soyez dans la pièce de l\'armoire.') + '</p>';
+  }
+  h += '<p class="cpj-note">Une clé se donne ou s\'échange comme tout objet : elle ouvre pour qui la détient.</p>';
+  equipementsModale(titre, h);
+}
+
+function ouvrirDoubleCle(idx) {
+  const cles = {};
+  (state.inventory || []).forEach(function (o) { if (o && o.type === 'cle_serrure' && o.serrureId) cles[o.serrureId] = o.numero; });
+  let h = serrureIllustration('ti-key') + '<p class="cpj-note">Taillée sur une clé que vous détenez, une clé vierge devient un double de cette clé.</p>';
+  const ids = Object.keys(cles);
+  h += ids.length ? '<div style="display:flex;flex-direction:column;gap:.4rem">' + ids.map(function (id) {
+      return equipementsBouton('cleDupliquer(\'' + id + '\')', 'Double de la clé n° ' + cles[id], true); }).join('') + '</div>'
+    : '<p class="cpj-note">Vous ne détenez aucune clé à reproduire.</p>';
+  equipementsModale('Clé vierge', h);
+}
+
+async function cleDupliquer(serrureId) {
+  const v = await executerReceptionInventaire('cle_dupliquer', { p_serrure: serrureId }, { surRefus: serrureRefusInventaire });
+  if (!v) return;
+  if (typeof renderInventory === 'function') renderInventory();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Double taillé', 'Une clé n° ' + (v.numero || '') + ' de plus dans votre inventaire.', true);
+}
+
+// L'ordre « Équipements et serrure » dans tout local a louer (hors hotel et clinique), en plus
+// des bureaux du centre d'affaires qui le declarent deja : meme fn, donc jamais de doublon.
+function ordresSerrureDuLocal(buildingId, roomId) {
+  if (!buildingId || !roomId || /hotel|clinique|hopital/i.test(buildingId)) return [];
+  const room = (typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingId]?.rooms?.[roomId])
+    || (typeof getBuildingContext === 'function' && getBuildingContext(buildingId)?.roomsExtra?.[roomId]);
+  if (!room || !room.isLocationRoom) return [];
+  return [{ fn: 'installer_equipements', label: 'Équipements et serrure', pa: 0, cost: 0, type: 'legal', icon: 'ti-lock',
+    successRate: 100, desc: 'Installer vos équipements (ordinateur, box, armoire à souvenirs) et poser, fermer ou ouvrir une serrure.' }];
+}
+if (typeof window !== 'undefined') {
+  window.RP_ORDRES_DYNAMIQUES = window.RP_ORDRES_DYNAMIQUES || [];
+  if (!window.RP_ORDRES_DYNAMIQUES.includes(ordresSerrureDuLocal)) window.RP_ORDRES_DYNAMIQUES.push(ordresSerrureDuLocal);
 }

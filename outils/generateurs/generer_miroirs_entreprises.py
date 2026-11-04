@@ -20,7 +20,7 @@ Sorties :
   python3 outils/generateurs/generer_miroirs_entreprises.py --json      -> JSON brut
   python3 outils/generateurs/generer_miroirs_entreprises.py --empreinte -> empreinte stable
 
-REJOUER apres toute modification de RECETTES_PRODUCTION, RECETTES_ALIMENTAIRES,
+REJOUER apres toute modification de RECETTES_PRODUCTION, RECETTES_ALIMENTAIRES, QUINCAILLERIE_PRODUITS,
 DOTATIONS_COMMERCE_PILOTE ou BUILDING_COMMERCE_TYPE : sinon le serveur refusera un
 commerce legitime (miroir fail-closed).
 """
@@ -59,6 +59,7 @@ var src = readFile('data.js') + "\n" + readFile('plateau-actions-illegales-rumeu
 var g = (new Function(src + "\n; return {"
   + " RP: typeof RECETTES_PRODUCTION!=='undefined'?RECETTES_PRODUCTION:null,"
   + " RA: typeof RECETTES_ALIMENTAIRES!=='undefined'?RECETTES_ALIMENTAIRES:null,"
+  + " QP: typeof QUINCAILLERIE_PRODUITS!=='undefined'?QUINCAILLERIE_PRODUITS:null,"
   + " PM: typeof PRODUITS_MARCHE!=='undefined'?PRODUITS_MARCHE:null,"
   + " BCT: typeof BUILDING_COMMERCE_TYPE!=='undefined'?BUILDING_COMMERCE_TYPE:null,"
   + " DOT: typeof DOTATIONS_COMMERCE_PILOTE!=='undefined'?DOTATIONS_COMMERCE_PILOTE:null,"
@@ -118,6 +119,9 @@ Object.keys(g.PM || {}).sort().forEach(function (id) {
   if (g.RA && g.RA[id]) { return; }  // RECETTES_ALIMENTAIRES gagne, comme resoudreProduitCommerce
   pousserRecette(id, g.PM[id], 'marche');
 });
+// Quincaillerie des armureries (serrures, 04/11/2026) : produits non-armes, vendus et fabriques
+// par les armureries ; jamais dans RECETTES_PRODUCTION (circuit des armes).
+Object.keys(g.QP || {}).sort().forEach(function (id) { pousserRecette(id, g.QP[id], 'quincaillerie'); });
 
 Object.keys(g.BCT || {}).sort().forEach(function (cle) {
   out.types_commerce.push({ cle: cle, type: g.BCT[cle] });
