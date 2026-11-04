@@ -2624,6 +2624,12 @@ async function commanderDouanesServeur() {
   if(Array.isArray(v.inventory)&&typeof sbAdopterInventaireServeur==='function'&&!sbAdopterInventaireServeur(v))return false;
   try{localStorage.removeItem(cle);}catch(_){}
   if(v.ok!==true){
+   // #433 : à l'aéroport, un recherché détecté par les douaniers entre dans l'interception
+   // commune (combat, fuite, reddition) au lieu d'une arrestation décidée d'office.
+   if(v.interception===true&&typeof reprendreInterceptionJudiciaireServeur==='function'){
+    showToast('Contrôle douanier','Les douaniers vous ont reconnu(e).',false);
+    await reprendreInterceptionJudiciaireServeur();return false;
+   }
    if(v.arrestation){
     const frais=await sbLoadPersonnage(c.nom).catch(()=>null);
     if(!contexteNavigationRueValide(c))return false;
@@ -2710,23 +2716,6 @@ function ouvrirRenseignementMireilleGuichet() {
 
 async function confirmerTransport(mode, empireId, villeId) {
   return commanderTransportServeur(mode, empireId, villeId);
-}
-
-function doControlDouanes() {
-  if (!state.recherche?.length) {
-    showToast('Contrôle', 'Contrôle routinier. Tout est en ordre. Bonne route.', true);
-    return;
-  }
-  // DIS fantome corrige (bêta) : voir plateau-navigation.js:703 pour le detail.
-  const dis = state.dis || 50;
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
-  if (roll <= taux) {
-    showToast('Contrôle passé', 'L\'agent a regardé vos papiers sans trop y prêter attention. Ouf.', true);
-  } else {
-    showToast('Interception !', 'L\'agent a reconnu votre signalement. Vous êtes arrêté(e).', false);
-    addJournalEntry('Interception aux douanes.', 'event-bad');
-  }
 }
 
 // Correctif du 24 aout 2026 (audit dedie) : la fonction n'acceptait auparavant aucun parametre
