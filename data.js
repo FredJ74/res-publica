@@ -969,10 +969,15 @@ const WORLD = {
         // Images propres a PSM pour le VRAI buildingId navigable 'commissariat-local' (template
         // partage avec Montrouge, BUILDINGS['commissariat-local']) -- roomOverrides uniquement
         // sur imageUrl, meme pattern que Montrouge (armurerie/centre-commercial ci-dessus) :
-        // ne touche jamais persons/orders de la base partagee, aucun impact sur Montrouge.
+        // Portrait d’accueil surchargé à PSM uniquement ; identité, métier et ordres conservés.
+        // La base partagée et les PNJ de Montrouge restent inchangés.
         'commissariat-local': {
           roomOverrides: {
-            accueil_loc: { imageUrl: "images/port-sainte-marie-commissariat-accueil.webp" },
+            accueil_loc: {
+              imageUrl: "images/port-sainte-marie-commissariat-accueil.webp",
+              persons: [{name:'Brigadier Local (PNJ)', role:'Officier de garde', rel:'neutral', job:'policier',
+                photoUrl:'images/port-sainte-marie-commissariat-brigadier-accueil.webp', photoPos:'50% 35%'}]
+            },
             // Loic Karamel (PNJ), lot du 24 aout 2026 : detenu decoratif, meme precedent exact
             // que Tristan Cabane (BUILDINGS['commissariat'].prison, Luthecia) -- job:'detenu'
             // deja utilise la, aucun nouveau job cree. Purement narratif, ne remplace pas les

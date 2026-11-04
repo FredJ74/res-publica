@@ -25,6 +25,15 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Commissariat PSM : contexte PNJ et portrait — Codex, 04/11/2026
+
+Branche `codex/psm-commissariat-dialogue-portrait-20261104`, issue de main `06657545` (PR #447 conservée). Vérification du relais, des branches et PR publiques : aucune correction concurrente Morvan/portrait accueil identifiée. Morvan n'avait aucun lieu dans sa fiche ; le chat ne recevait jamais la position. Lecture commune `rue_position_lire()` sous JWT, noms du lieu issus du générateur/casting existant (`generer-pnj-lieux-metiers.cjs --scenes-js` → `api/_pnj-scenes-generes.js`), aucun nouveau moteur de navigation ni mutation. La fiche précise le bureau, personnalité/rôle conservés ; aucune réplique de remplacement codée en dur. Si position/presence non confirmées, le prompt l'indique, sans inventer de localisation.
+
+Portrait du seul brigadier d'accueil PSM : crop320×320+(55,260) de `images/port-sainte-marie-commissariat-accueil.webp`, encodé WebP sans perte, pixels RGBA identiques. Source et autres villes inchangées, identité/métier/ordres inchangés ; `photoUrl`/`photoPos` de l'override PSM. Versions data.js majorées dans les deux pages.
+
+Premières validations : 52 cas dialogue/police,95 assertions du hall après ajout de la 8e lecture,2 Chromium (390/1280, vraie carte et composant avatar),13 compilations/chargements Vercel CommonJS. IA distante non testée : aucune clé DeepSeek disponible. Contrôleur complet en cours, écarts globaux/transversaux comparés à main avant toute conclusion. Aucun SQL ni joueur touché. Ne pas confondre composants locaux, appels fournisseur simulés et recette production. Rapport et résultat final à compléter avant livraison.
+
+
 ### Forums par pays, ville et adhésion — ChatGPT, PR #422 (ouverte au 04/11)
 
 Décision de Fred : forum local = ville courante, national = pays courant, forums privés réservés aux adhérents. Migration RLS `20261103222000` **non appliquée** (absente du registre au 04/11, fichier encore hors de main). Reste : CI, conflits avec main, application, Vercel READY, recette PJ.
