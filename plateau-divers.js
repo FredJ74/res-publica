@@ -803,7 +803,14 @@ const PLAFOND_INVENTAIRE_EMPILABLE = 100;
 // les objets NON empilables qui en definissent un. Aucun objet existant avant ce lot ne
 // definit ce champ -- comportement byte-identique pour tout le reste de l'inventaire.
 function getTotalInventaire() {
-  return (state.inventory || []).reduce((s, i) => s + (i.qty || i.encombrement || 1), 0);
+  // Les tracts utilisaient "quantite" (pile POUR/CONTRE un PJ), et ne pesaient jusqu'ici
+  // qu'une unite quelle que soit la taille du lot. Chaque tract occupe une place sur 100.
+  // Pour les autres objets, conserver strictement qty / encombrement / 1.
+  return (state.inventory || []).reduce((total, objet) => {
+    const tracts = objet?.type === 'tract' || objet?.type === 'tract_calomnieux';
+    const unites = tracts ? (Number(objet.quantite) || 1) : (objet?.qty || objet?.encombrement || 1);
+    return total + Math.max(0, Number(unites) || 1);
+  }, 0);
 }
 
 // Ajoute un objet a l'inventaire, plafonne globalement a PLAFOND_INVENTAIRE_EMPILABLE (tout
