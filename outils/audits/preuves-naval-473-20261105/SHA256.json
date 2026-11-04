@@ -1,0 +1,57 @@
+{
+  "concurrence-final.log.gz": {
+    "sha256_archive": "a0fc5a7ec4ddb5dd43f75ee6a4540e6fa6b5329ad97490b99ee07ca405b8009f",
+    "sha256_log": "028e4c824be9da83947ade247c6809ec03f51d6bf1c16d98bfba040153e0e821",
+    "octets_log": 3726
+  },
+  "interface-final.log.gz": {
+    "sha256_archive": "a290ad6b25e75f25df3fe7f61db5786b79204415e4ff43f6b604cba24d676db2",
+    "sha256_log": "34c353940549dadc48496b725669fc0e45b410cf4ce18d164c154e2ea04c45a3",
+    "octets_log": 1227
+  },
+  "clients-final.log.gz": {
+    "sha256_archive": "66e8f4be89c3a3b0454f5c18c7ce909a0ae9276e20708801716e600f5ebe5036",
+    "sha256_log": "bb9d5da964239dba1d3edbd0d4c3ff0d679ca1ee6d0899be8b13c78fe6226aa1",
+    "octets_log": 7019
+  },
+  "globaux-final.log.gz": {
+    "sha256_archive": "ae8773d151a0529b366aac59a8918113658ecaddf04af721a3989cda681a2838",
+    "sha256_log": "d9cf1af008623d20e6fbf250b1306ebd80b1f1b854cf7b15766a8ef0900ac819",
+    "octets_log": 6889
+  },
+  "calendrier-final.log.gz": {
+    "sha256_archive": "488e1650766176b0d7a5bbcc192eaf73bc71801737daab901e0bed955df03031",
+    "sha256_log": "b24e5cf35d963a134b36b6c781d3ba8df991132960f9aa050535be01f62d4ff0",
+    "octets_log": 13095
+  },
+  "reference-globaux.log.gz": {
+    "sha256_archive": "c15334237fd9f0493b87c49a40d6d9dc1dbb07ad77b65737b486dc9d440d2acc",
+    "sha256_log": "b3fe2ac956837292145e1c018c98ced9d18469b39bd3263cfc911d45402d4a1f",
+    "octets_log": 6879
+  },
+  "reference-calendrier.log.gz": {
+    "sha256_archive": "838edfaabd42c257d1a4e8b23d65a2f9bbca5ab3d0daf2688044cf71f4aabb6f",
+    "sha256_log": "2c9667431ccc34a90d780a9bc7391b0d4e32135166833e8a306c21a98ca97a15",
+    "octets_log": 13085
+  },
+  "original-final.log.gz": {
+    "sha256_archive": "106deba2e930ef5535bc7b51acf3ee0f1631388fd0e67b2c59d241321ff8cfc6",
+    "sha256_log": "3cbef021a26e100d3758af4889366e2ee317e7baec5284b368556995faef4330",
+    "octets_log": 339
+  },
+  "pg16.log.gz": {
+    "sha256_archive": "b14d226faeda17b63770cfd69338764daaa321b4198d49d9e2d3735686e2d533",
+    "sha256_log": "9c28bf655915d144288f2027e4f3004064f67b5c6b9806bdbaf233bb61129524",
+    "octets_log": 3369
+  },
+  "ci-acces.log.gz": {
+    "sha256_archive": "ec150dd80a46316eb802b3e927f33bd8e25eabdc12073bda9159d895a9a1f649",
+    "sha256_log": "e99b9d02ed58a11d6d21f1b3ca1a0ffcb1c25c6474caa261a0a5d25ff9cd651b",
+    "octets_log": 105
+  },
+  "vercel-acces.log.gz": {
+    "sha256_archive": "4de1a534da0e19b0ec4f074cffd89457dc3d546f9b309917712e933a3062bccd",
+    "sha256_log": "fbaf350e0b56dd5871c300f32cfcc28d4cbbb5aae9bbafaa89078d944ac69d44",
+    "octets_log": 507
+  }
+}

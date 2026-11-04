@@ -9,7 +9,9 @@ for(const largeur of [390,1280])test(`catalogue naval Chromium ${largeur}px : de
  try{
   server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/css');res.end(fs.readFileSync(path.join(R,'style.css')));});
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
-  chrome=await lancerChromium({executable:process.env.CHROMIUM||'/usr/bin/chromium',profil});
+  const executable=process.env.HG_CHROMIUM||['/usr/bin/chromium','/usr/bin/google-chrome','/usr/bin/google-chrome-stable'].find(p=>fs.existsSync(p));
+  if(!executable)throw Error('HG_CHROMIUM_SPAWN : navigateur requis');
+  chrome=await lancerChromium({executable,profil});
   browser=await chromium.connectOverCDP('http://127.0.0.1:'+chrome.port);
   const page=await browser.newPage({viewport:{width:largeur,height:850}});
   await page.setContent(`<link rel="stylesheet" href="http://127.0.0.1:${server.address().port}/style.css"><div class="modal-overlay" id="modal-postes"><div class="modal-box"><div id="postes-modal-title"></div><div class="modal-body" id="postes-body"></div></div></div>`);

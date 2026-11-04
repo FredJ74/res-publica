@@ -313,3 +313,11 @@ vrais moteurs financiers, concurrence et rollback sur PostgreSQL jetable ; UI Ch
 `outils/bancs/prevol-chantier-naval-473.sql`. Aucune migration appliquée en production.
 API GitHub et accès Vercel refusés dans cette session ; aucun connecteur Supabase exposé.
 Ne pas confondre ces essais avec une recette authentifiée ou une livraison effective.
+
+Clôture locale du lot naval : rapport
+`outils/audits/CERTIFICATION-CHANTIER-NAVAL-473-20261105.md`.
+`main` intégré jusqu'à `1d1e36e5`, merge local `6d48953d`, sans écrasement des travaux
+Novomirsk/#476. 68 assertions PostgreSQL 17.6, 13 tests d'interface dont 2 Chromium,
+197/197 bancs clients. Globaux 9/12 et calendrier 114/116 : rouges hérités documentés,
+non masqués. PR brouillon impossible à créer : GraphQL Forbidden. Prévol Supabase,
+CI distante et Vercel non vérifiés, donc ne pas considérer #473 comme clos en production.

@@ -55,4 +55,7 @@ test('le cron prépare la progression après l arrivée en entrepôt', () => {
   const cron = lire('api/cron-minuit.js');
   assert.ok(cron.indexOf("tacheQuotidienne('chantiers_navals'") >
     cron.indexOf("tacheQuotidienne('transits_entrepots'"));
+  assert.ok(cron.indexOf("tacheQuotidienne('chantiers_navals'") > cron.indexOf("tacheQuotidienne('production_transformateurs'"));
+  assert.match(cron,/sbRpc\('chantier_naval_avancer_jour', \{\}, HEADERS_SERVICE\)/);
+  assert.match(cron,/exportationsPort, production, chantiersNavals,/);
 });

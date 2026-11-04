@@ -397,3 +397,12 @@ indisponibilités). Ce n'est pas une recette de l'interface du jeu en production
 Aucun moteur métier remplacé ; aucun joueur réel utilisé. État et limites :
 `outils/audits/INTEGRATION95-ET-CAISSES300-219-20261031.md`. Le payeur est compatible :
 ne pas confondre l'empreinte de son corps et celle de sa définition complète.
+
+### Chantier naval de PSM — certification corrective #473 (05/11/2026)
+
+Le moteur `chantier_naval_*` construit des bateaux physiques au port, hors inventaire.
+Le client adopte son résultat via le pilote transactionnel commun ; le cron progresse
+après les approvisionnements et transformations, sans rattrapage de journées.
+Correction et historique préparés sous `20261104231550`, non appliqués ici ;
+preuve locale et limites de livraison :
+`outils/audits/CERTIFICATION-CHANTIER-NAVAL-473-20261105.md`.
