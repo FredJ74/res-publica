@@ -2712,23 +2712,6 @@ async function confirmerTransport(mode, empireId, villeId) {
   return commanderTransportServeur(mode, empireId, villeId);
 }
 
-function doControlDouanes() {
-  if (!state.recherche?.length) {
-    showToast('Contrôle', 'Contrôle routinier. Tout est en ordre. Bonne route.', true);
-    return;
-  }
-  // DIS fantome corrige (bêta) : voir plateau-navigation.js:703 pour le detail.
-  const dis = state.dis || 50;
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
-  if (roll <= taux) {
-    showToast('Contrôle passé', 'L\'agent a regardé vos papiers sans trop y prêter attention. Ouf.', true);
-  } else {
-    showToast('Interception !', 'L\'agent a reconnu votre signalement. Vous êtes arrêté(e).', false);
-    addJournalEntry('Interception aux douanes.', 'event-bad');
-  }
-}
-
 // Correctif du 24 aout 2026 (audit dedie) : la fonction n'acceptait auparavant aucun parametre
 // (pa/cost transmis par le routeur etaient ignores) -- le PA declare n'etait donc jamais debite,
 // et surtout state.douanePassee n'etait jamais mis a true en cas de succes : la corruption
