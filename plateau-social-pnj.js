@@ -100,8 +100,8 @@ async function pnjSocialEntreeZone(buildingId, roomId) {
 // ---------------------------------------------------------------------------
 // LA FENETRE D'INTERVENTION
 // ---------------------------------------------------------------------------
-// Reutilise la modale commune du jeu (#modal-postes), comme la quete d'accueil et
-// les ecrans de commerce. Aucun composant nouveau, aucune refonte graphique.
+// Reutilise directement la modale de conversation (#modal-pnj), avec le meme
+// champ de reponse et la meme porte IA que lors d'un clic sur le personnage.
 // L'interpellation est la premiere phrase de la conversation ordinaire :
 // le joueur repond immediatement avec le textarea PNJ et le moteur serveur existant.
 // Le serveur social choisit le jalon ; la definition du personnage est lue dans la
@@ -113,7 +113,7 @@ function socialAfficherJalon(jalon, buildingId, roomId) {
   const ctx = (typeof getBuildingContext === 'function') ? getBuildingContext(buildingId) : null;
   const salle = ctx?.roomsExtra?.[roomId] || BUILDINGS?.[buildingId]?.rooms?.[roomId];
   const pnj = (salle?.persons || []).find(p =>
-    String(p.name || '').replace(/\\s*\\(PNJ\\)\\s*$/i, '').trim() === j.pnj);
+    String(p.name || '').replace(/\s*\(PNJ\)\s*$/i, '').trim() === j.pnj);
   if (!pnj) return; // Aucun dialogue si ce PNJ n'est plus reellement dans la piece.
 
   const texte = j.texte((state.char && state.char.name) || '');
