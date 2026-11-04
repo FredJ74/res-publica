@@ -35,6 +35,8 @@ Validation intermédiaire : PostgreSQL17.6 jetable,55 assertions, transaction an
 
 ### Commissariat PSM : contexte PNJ et portrait — Codex, 04/11/2026
 
+**Livré : PR #450 fusionnée le 04/11 à 14 h 37 (head `b39cfd61`, branche entièrement contenue dans main ; vérifié par Claude le 04/11 à 19 h 15).** La mention « PR non créée » ci-dessous est périmée. **À constater en jeu** : parler à Martial Morvan, qui situe correctement son bureau ; portrait du brigadier d'accueil de PSM.
+
 Branche `codex/psm-commissariat-dialogue-portrait-20261104`, issue de main `06657545` (PR #447 conservée). Vérification du relais, des branches et PR publiques : aucune correction concurrente Morvan/portrait accueil identifiée. Morvan n'avait aucun lieu dans sa fiche ; le chat ne recevait jamais la position. Lecture commune `rue_position_lire()` sous JWT, noms du lieu issus du générateur/casting existant (`generer-pnj-lieux-metiers.cjs --scenes-js` → `api/_pnj-scenes-generes.js`), aucun nouveau moteur de navigation ni mutation. La fiche précise le bureau, personnalité/rôle conservés ; aucune réplique de remplacement codée en dur. Si position/presence non confirmées, le prompt l'indique, sans inventer de localisation.
 
 Portrait du seul brigadier d'accueil PSM : crop320×320+(55,260) de `images/port-sainte-marie-commissariat-accueil.webp`, encodé WebP sans perte, pixels RGBA identiques. Source et autres villes inchangées, identité/métier/ordres inchangés ; `photoUrl`/`photoPos` de l'override PSM. Versions data.js majorées dans les deux pages.
@@ -162,6 +164,8 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - Louer un local dans les centres de Montrouge et de PSM ; acheter un terrain pour la commune en tant que maire ; attribuer un logement social en tant qu'adjoint.
 
 ## Derniers chantiers
+
+- 04/11/2026 — **Manifeste du port lisible (Claude, branche `claude/manifeste-lisible-20261104`, demande de Fred)**. `doConsulterManifeste` réécrit : vrais noms de villes/pays (`VILLES`, `COUNTRIES`, plus de `ville_b` / `republic`), statuts en clair (« En mer », « Arrivée, à retirer »…), tableaux (caisse, trajet avec dates, valeur, état), arrivages regroupés par jour (7 derniers jours), répartition et exportations en tableaux, pourcentages arrondis ; classes `cpj-*`. Écran seul. Rendu vérifié sous Chromium. Les caisses terrestres (entrepôt → entrepôt) n'apparaissent pas au manifeste du port, qui ne liste que ce qui part du port ou y arrive. Les anciennes lignes du journal (avant 18 h) mentionnent encore le port de PSM : historique, non réécrit. Test 6/6.
 
 - 04/11/2026 — **Courrier d'arrivée des caisses terrestres (Claude, branche `claude/courrier-arrivee-caisses-20261104`, décision de Fred)**. `fret_arrivees_constater()` envoie « Votre caisse est arrivée à l'entrepôt de X » à chaque destinataire (une seule fois : bascule en_transit → arrivee). Appelée par l'écran juste avant la lecture du courrier (toutes les minutes, `constaterArriveesPuisMails`, plateau-core.js) et par la tâche de minuit avant sa propre boucle (sinon elle basculait les caisses terrestres sans courrier). Migration `20261104183000` **appliquée** (registre `livraison_terrestre_courrier_arrivee_20261104183000`), banc annulé vert (1 constatée, rejeu 0, courrier reçu). Libellé « Réceptionner une caisse » conservé (le renommage proposé n'a pas été retenu). Test écran 5/5. **À constater en jeu** : courrier de Jaaj vers minuit pour sa caisse à l'entrepôt de Luthécia.
 

@@ -9463,45 +9463,72 @@ async function doConsulterManifeste() {
 
   const port = await getEtatPort();
 
+  // Lisibilité (demande de Fred, 04/11/2026) : vrais noms de villes et de pays, statuts en
+  // clair, tableaux, arrivages regroupés par jour. Classes communes cpj-*, pas de couleur en dur.
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  const lieu = (pays, ville) => {
+    const v = (typeof VILLES !== 'undefined' && VILLES[pays]?.[ville]?.nom) || null;
+    const p = (typeof COUNTRIES !== 'undefined' && COUNTRIES[pays]?.n) || pays || '—';
+    return v ? (pays === (state.country || 'republic') ? v : v + ' (' + p + ')') : p;
+  };
+  const STATUTS = { ouverte: 'En chargement', fermee: 'Fermée, en attente de départ', en_transit: 'En mer',
+    arrivee: 'Arrivée, à retirer', a_vendre: 'Non réclamée, en vente', vendue: 'Vendue', videe: 'Retirée' };
+  const jour = d => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '—';
+  const tableau = (entetes, lignes) => '<table style="width:100%;border-collapse:collapse;font-size:.8rem;margin-bottom:.6rem">' +
+    '<tr class="cpj-note">' + entetes.map((h, i) => '<th style="text-align:' + (i ? 'center' : 'left') + ';padding:.2rem .3rem">' + h + '</th>').join('') + '</tr>' +
+    lignes.map(l => '<tr>' + l.map((c, i) => '<td style="text-align:' + (i ? 'center' : 'left') + ';padding:.25rem .3rem;border-top:1px solid rgba(255,255,255,.08)">' + c + '</td>').join('') + '</tr>').join('') +
+    '</table>';
+
   document.getElementById('postes-modal-title').textContent = 'Manifeste du Port';
-  let html = '<div style="padding:1rem;max-height:70vh;overflow-y:auto">';
+  let html = '<div class="cpj-dialogue" style="padding:1rem;max-height:70vh;overflow-y:auto">';
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">FRET PRIVÉ DÉCLARÉ</div>';
+  html += '<div class="cpj-titre">Fret privé déclaré</div>';
   if (caisses.length === 0) {
-    html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.7rem">Aucune caisse enregistrée pour l\'instant.</div>';
+    html += '<p class="cpj-note">Aucune caisse enregistrée pour l\'instant.</p>';
   } else {
-    caisses.forEach(c => {
-      const dep = c.date_depart ? new Date(c.date_depart).toLocaleDateString('fr-FR') : 'non partie';
-      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .6rem;margin-bottom:.4rem;font-size:.76rem;color:#8a8060">';
-      html += '<div style="color:#c0b090">Expéditeur : ' + (c.leader || '—') + ' — Destinataire : ' + (c.destinataire || 'non déclaré') + '</div>';
-      html += '<div>Origine : ' + (c.ville_origine || '—') + ' — Destination : ' + (c.pays_destination || '—') + '</div>';
-      html += '<div>Déclaration douanière : ' + (c.declaration_douaniere || 'non déclarée') + ' — Valeur déclarée : ' + (c.valeur_declaree != null ? Math.round(c.valeur_declaree) + ' FR' : '—') + '</div>';
-      html += '<div>Statut : ' + (c.statut || '—') + ' — Départ : ' + dep + '</div>';
-      html += '</div>';
-    });
+    html += '<p class="cpj-note">Déclarations des expéditeurs ; le contenu réel des caisses n\'est jamais affiché.</p>';
+    html += tableau(['Caisse', 'Trajet', 'Valeur', 'État'], caisses.map(c => [
+      '<strong>' + esc(c.declaration_douaniere || 'Sans déclaration') + '</strong><br><span class="cpj-note">' +
+        esc(c.leader || '—') + ' → ' + esc(c.destinataire || 'destinataire non déclaré') + '</span>',
+      esc(lieu(c.pays_origine, c.ville_origine)) + ' → ' + esc(lieu(c.pays_destination, c.ville_destination)) +
+        '<br><span class="cpj-note">départ ' + esc(jour(c.date_depart)) + (c.statut === 'en_transit' && c.date_arrivee_prevue ? ', arrivée ' + esc(jour(c.date_arrivee_prevue)) : '') + '</span>',
+      c.valeur_declaree != null ? '<span style="white-space:nowrap">' + esc(Math.round(c.valeur_declaree)) + ' FR</span>' : '—',
+      esc(STATUTS[c.statut] || c.statut || '—')
+    ]));
   }
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.8rem 0 .4rem">FLUX INSTITUTIONNELS</div>';
-  const arrivages = (port.arrivages || []).slice(0, 10);
-  if (arrivages.length === 0) {
-    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.5rem">Aucun arrivage institutionnel enregistré pour l\'instant.</div>';
+  html += '<div class="cpj-titre">Arrivages institutionnels</div>';
+  const parJour = {};
+  (port.arrivages || []).forEach(a => {
+    const j = new Date(a.jour).toISOString().slice(0, 10);
+    const lib = RESSOURCES_ECONOMIE[a.resource]?.label || a.resource;
+    parJour[j] = parJour[j] || {};
+    parJour[j][lib] = (parJour[j][lib] || 0) + Math.round(a.qte || 0);
+  });
+  const jours = Object.keys(parJour).sort().reverse().slice(0, 7);
+  if (jours.length === 0) {
+    html += '<p class="cpj-note">Aucun arrivage institutionnel enregistré pour l\'instant.</p>';
   } else {
-    arrivages.forEach(a => {
-      const res = RESSOURCES_ECONOMIE[a.resource];
-      const date = new Date(a.jour);
-      html += '<div style="font-size:.76rem;color:#8a8060">' + date.toLocaleDateString('fr-FR') + ' — arrivage ' + (res?.label || a.resource) + ' : +' + Math.round(a.qte) + '</div>';
-    });
+    html += tableau(['Jour', 'Marchandises reçues'], jours.map(j => [
+      esc(new Date(j + 'T12:00:00Z').toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit' })),
+      Object.entries(parJour[j]).map(([lib, q]) => esc(lib) + ' +' + esc(q)).join(' · ')
+    ]));
   }
-  RESSOURCES_PORT_IMPORTEES.forEach(cle => {
-    const res = RESSOURCES_ECONOMIE[cle];
+
+  html += '<div class="cpj-titre">Répartition des importations entre les villes</div>';
+  html += tableau(['Marchandise', 'Luthécia', 'Port-Sainte-Marie', 'Montrouge'], RESSOURCES_PORT_IMPORTEES.map(cle => {
     const rep = port.repartition?.[cle] || REPARTITION_PORT_DEFAUT;
-    html += '<div style="font-size:.76rem;color:#8a8060;margin-top:.2rem">Répartition ' + (res?.label || cle) + ' — Luthécia ' + arrondiPct(rep.capitale) + '% / Port-Sainte-Marie ' + arrondiPct(rep.ville_a) + '% / Montrouge ' + arrondiPct(rep.ville_b) + '%</div>';
-  });
-  Object.entries(EXPORTATIONS_PORT_INFOS).forEach(([cle, infos]) => {
-    const exp = port.exportations?.[cle];
-    if (!exp) return;
-    html += '<div style="font-size:.76rem;color:#8a8060;margin-top:.2rem">Exportation ' + infos.label + ' vers ' + infos.destination + ' : ' + Math.round(exp.envoye) + '/' + exp.contrat + ' (' + exp.satisfactionPct + '%)</div>';
-  });
+    return [esc(RESSOURCES_ECONOMIE[cle]?.label || cle), Math.round(rep.capitale) + ' %', Math.round(rep.ville_a) + ' %', Math.round(rep.ville_b) + ' %'];
+  }));
+
+  const exports = Object.entries(EXPORTATIONS_PORT_INFOS).filter(([cle]) => port.exportations?.[cle]);
+  if (exports.length) {
+    html += '<div class="cpj-titre">Contrats d\'exportation</div>';
+    html += tableau(['Marchandise', 'Destination', 'Envoyé / contrat', 'Rempli'], exports.map(([cle, infos]) => {
+      const exp = port.exportations[cle];
+      return [esc(infos.label), esc(infos.destination), esc(Math.round(exp.envoye)) + ' / ' + esc(exp.contrat), esc(Math.round(exp.satisfactionPct)) + ' %'];
+    }));
+  }
 
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
