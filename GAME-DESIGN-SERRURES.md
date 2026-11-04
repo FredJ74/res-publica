@@ -62,6 +62,12 @@ Le socle doit inclure :
 - Mise en œuvre (lecture naturelle de cette règle, sans mécanique ajoutée) : une serrure posée est **ouverte** ou **fermée à clé**. Fermée, elle interdit d'**entrer** dans le lieu (ou d'ouvrir / désinstaller l'armoire) à qui ne détient pas une de ses clés ; on **sort** toujours. Le détenteur d'une clé entre, et la porte reste fermée derrière lui. Fermer ou ouvrir exige une clé et d'être sur place : dans le bâtiment pour une porte, dans la pièce de l'armoire (ou en la portant) pour une armoire.
 - En groupe, chaque membre doit pouvoir entrer : un membre sans clé arrête le groupe devant une porte fermée.
 
+## Affichage d'un lieu fermé à clé (décision de Fred du 04/11/2026, 14 h 07)
+
+- « Si c'est tout un bâtiment qui est fermé à clé, l'infobulle lorsque l'on passe la souris sur le bâtiment indique qu'il est fermé à clé. Seul un PJ possédant une clé peut cliquer pour entrer dans le bâtiment. Une fois dans le bâtiment, il peut décider de l'ouvrir au public ou non. Si c'est un local dans un bâtiment : même principe. »
+- **Local (livré le 04/11)** : l'onglet du local porte un cadenas et l'infobulle « Fermé à clé » ; il est grisé et ne s'ouvre pas pour qui n'a pas de clé (le serveur refuse de toute façon) ; le détenteur d'une clé lit « Fermé à clé — vous en avez la clé » et entre ; dans le local, il choisit « Ouvrir au public » ou « Fermer à clé ». Lecture serveur `serrures_portes_lire`.
+- **Bâtiment entier** : règle d'affichage décidée ; la pose d'une serrure sur un bâtiment entier n'existe pas encore (voir la question ouverte dans RELAIS.md / issue #434).
+
 ## Prix (décision de Fred du 04/11/2026)
 
 - « La règle de fixation des prix existe, on ne va pas la réinventer. » Commerce PNJ : la serrure à **60 FR** (décision du 01/11) ; la clé vierge à **14 FR**, par la règle PNJ des commerces (2 × le coût de revient : (1 métal à 20 FR + 1 PA à 50 FR) / 10 = 7 FR). Un propriétaire PJ d'armurerie fixe ses prix et plafonds de quincaillerie comme pour ses armes (pas de fourchette en armurerie).

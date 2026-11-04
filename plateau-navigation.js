@@ -571,6 +571,9 @@ function enterBuilding(buildingId, skipAutoRoom) {
   if (typeof hydraterPiecesDynamiques === 'function') hydraterPiecesDynamiques(buildingId);
 
   const rooms = renderOngletsPieces(buildingId);
+  // Serrures (04/11/2026, #434) : les portes fermees a cle de ce batiment, lues au serveur ;
+  // les onglets sont redessines a l'arrivee de la reponse (cadenas, infobulle, clic reserve).
+  if (typeof serruresPortesCharger === 'function') serruresPortesCharger(buildingId);
 
   // Entrer dans la premiere piece — sauf si on s'apprete a restaurer une position precise juste apres
   // (sinon cette navigation automatique ecrase la bonne piece dans localStorage avant qu'on ait pu la restaurer)
@@ -622,8 +625,16 @@ function renderOngletsPieces(buildingId, roomActifId) {
     conteneur.innerHTML = rooms.map(([roomId, room], i) => {
       const isZoneEmb = roomId === 'zone_embarquement';
       const locked = isZoneEmb && state._navigationServeur!==true && !state.douanePassee;
-      const style = locked ? 'opacity:.4;pointer-events:none;cursor:not-allowed' : '';
-      const icon = locked ? '🔒 ' : '';
+      // Porte fermee a cle (serrures, decision de Fred du 04/11/2026) : l'infobulle le dit ; seul
+      // un PJ qui detient une cle peut cliquer pour entrer. Le serveur refuse de toute facon
+      // (navigation_interieure : porte_fermee_a_cle) : l'onglet ne fait qu'annoncer sa reponse.
+      const porte = (typeof serrurePorteEtat === 'function') ? serrurePorteEtat(buildingId, roomId) : null;
+      const porteInterdite = !!(porte && !porte.a_cle && roomId !== state.currentRoom);
+      const style = locked ? 'opacity:.4;pointer-events:none;cursor:not-allowed' : (porteInterdite ? 'opacity:.55;cursor:not-allowed' : '');
+      const icon = (locked || porte) ? '🔒 ' : '';
+      const titre = porte ? (porte.a_cle ? 'Fermé à clé — vous en avez la clé' : 'Fermé à clé') : '';
+      const clic = porteInterdite ? "showToast('Fermé à clé','Seul un détenteur de la clé peut entrer.',false)"
+        : "enterRoom('" + buildingId + "','" + roomId + "',this)";
       // Meme regle de nom que le titre de la piece (plateau-variantes-pieces.js) :
       // un local occupe ne doit pas rester annonce « a louer » dans son onglet
       // alors que son titre ne l'annonce plus. Rend null pour toute piece non
@@ -632,7 +643,7 @@ function renderOngletsPieces(buildingId, roomActifId) {
       const tabName = ((typeof varianteNomPiece === 'function')
         ? varianteNomPiece(buildingId, roomId, state.currentCity, tabNameBase) : null) || tabNameBase;
       const actif = roomActifId ? (roomId === roomActifId) : (i === 0);
-      return `<div class="piece-tab ${actif ? 'active' : ''}" data-piece="${roomId}" onclick="enterRoom('${buildingId}','${roomId}',this)" style="${style}">
+      return `<div class="piece-tab ${actif ? 'active' : ''}" data-piece="${roomId}" onclick="${clic}" style="${style}"${titre ? ` title="${titre}"` : ''}>
         ${icon}${tabName}
       </div>`;
     }).join('')
