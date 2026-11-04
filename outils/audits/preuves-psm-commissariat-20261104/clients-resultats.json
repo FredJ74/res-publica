@@ -1,0 +1,1148 @@
+[
+  {
+    "banc": "banc-achats-cle-unicite-ecran.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.215
+  },
+  {
+    "banc": "banc-acte-notaire-solde.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-administration-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-ambassades-bientot-20261101.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-amendes-tresor.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-annuaire-territoires.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.215
+  },
+  {
+    "banc": "banc-api-supabase.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-appro-chantier.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.115
+  },
+  {
+    "banc": "banc-archives-musee.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.167
+  },
+  {
+    "banc": "banc-assemblee-hall.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-autorite-detecteurs.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.566
+  },
+  {
+    "banc": "banc-avis-de-recherche.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-avis-personnels-expediteurs.mjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.215
+  },
+  {
+    "banc": "banc-banque-guichet-135.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.315
+  },
+  {
+    "banc": "banc-barreau-temoins-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-caisses-accueil-communal.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-caisses-collectives-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.219
+  },
+  {
+    "banc": "banc-caisses-dialogue-lisibilite-20261031.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-calendrier-electoral.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.115
+  },
+  {
+    "banc": "banc-calendrier-succession.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.215
+  },
+  {
+    "banc": "banc-candidatures-nocturnes.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-carrieres-creation-et-audience-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.116
+  },
+  {
+    "banc": "banc-catalogue-manufactures-20261104.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-ced-football-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-chaines-17-a-20.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-chantier-progression-serveur.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.115
+  },
+  {
+    "banc": "banc-chat-disponibilite.mjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.265
+  },
+  {
+    "banc": "banc-chemins-historiques.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.824
+  },
+  {
+    "banc": "banc-chromium-cycle.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 8.255
+  },
+  {
+    "banc": "banc-circuits-residuels-219-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.72
+  },
+  {
+    "banc": "banc-coherence-banques.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.219
+  },
+  {
+    "banc": "banc-coherence-organisations.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.219
+  },
+  {
+    "banc": "banc-coherence-sauvegarde.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.168
+  },
+  {
+    "banc": "banc-commerce-etat-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.166
+  },
+  {
+    "banc": "banc-commerce-transactions.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.318
+  },
+  {
+    "banc": "banc-commerce-unifie-navigateur.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.432
+  },
+  {
+    "banc": "banc-commerce-unifie.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 4.388
+  },
+  {
+    "banc": "banc-commerces-stock-unique-20261104.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-commissariats-pouvoirs.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-compromis-nocturnes.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.115
+  },
+  {
+    "banc": "banc-conference-presse-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.115
+  },
+  {
+    "banc": "banc-consommation-inventaire.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-construction-commandes.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-contexte-public-dialogue.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-continuite-municipale.mjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.718
+  },
+  {
+    "banc": "banc-controleur-processus.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 7.648
+  },
+  {
+    "banc": "banc-cotisations-organisations.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-creation-personnage-reseau-20261028.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.117
+  },
+  {
+    "banc": "banc-cron-paris.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-cycle-plaintes.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-deploiement-sobre.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.375
+  },
+  {
+    "banc": "banc-desertion-liberation.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-destinations-multimodal-20261028.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.117
+  },
+  {
+    "banc": "banc-detention-plateau.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.166
+  },
+  {
+    "banc": "banc-dialogue-pnj-republia.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.223
+  },
+  {
+    "banc": "banc-ecritures-ecran.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.315
+  },
+  {
+    "banc": "banc-equipements-collectifs-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.517
+  },
+  {
+    "banc": "banc-etat-terrain.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-fiche-verite-serveur-20261030.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 15.673
+  },
+  {
+    "banc": "banc-fonds-murs-ecran-66.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-football-blessures-entrainement-3j.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-forum-auteur-institutionnel.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.167
+  },
+  {
+    "banc": "banc-forum-local-compteurs-20261103.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-forum-voyants-reconnexion-20261103.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-generateur-couts-serveur.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 2.631
+  },
+  {
+    "banc": "banc-genre-pnj-dialogue.mjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-grace-atomique-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-grace-sql-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.739
+  },
+  {
+    "banc": "banc-greffe-documents-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-greve-generale.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-groupes-arrestation-confirmee.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.416
+  },
+  {
+    "banc": "banc-groupes-bataille-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 2.075
+  },
+  {
+    "banc": "banc-groupes-calendrier-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.215
+  },
+  {
+    "banc": "banc-groupes-cibles-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.418
+  },
+  {
+    "banc": "banc-groupes-cinq-rounds-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.265
+  },
+  {
+    "banc": "banc-groupes-controle-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.266
+  },
+  {
+    "banc": "banc-groupes-douanes-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.365
+  },
+  {
+    "banc": "banc-groupes-effectifs-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.768
+  },
+  {
+    "banc": "banc-groupes-interieurs-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.519
+  },
+  {
+    "banc": "banc-groupes-police-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.771
+  },
+  {
+    "banc": "banc-groupes-provenance-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.315
+  },
+  {
+    "banc": "banc-groupes-transports-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.315
+  },
+  {
+    "banc": "banc-groupes-universels.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.47
+  },
+  {
+    "banc": "banc-hospitalisation-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.52
+  },
+  {
+    "banc": "banc-hydratation-personnage.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.218
+  },
+  {
+    "banc": "banc-infobulles-navigateur.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.557
+  },
+  {
+    "banc": "banc-inspection-cargaisons-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.682
+  },
+  {
+    "banc": "banc-interception-reseau.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 2.074
+  },
+  {
+    "banc": "banc-inventaire-raccordements.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.769
+  },
+  {
+    "banc": "banc-inventaire-receptions.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.216
+  },
+  {
+    "banc": "banc-inventaire-relecture-services.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.769
+  },
+  {
+    "banc": "banc-jauges-copies-forum-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.467
+  },
+  {
+    "banc": "banc-jauges-ordres-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.624
+  },
+  {
+    "banc": "banc-jodie-confirmation.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.265
+  },
+  {
+    "banc": "banc-jodie-interview-navigateur.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 9.513
+  },
+  {
+    "banc": "banc-jodie-portrait-api.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-jodie-portraits-journal.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.116
+  },
+  {
+    "banc": "banc-journal-ventes-navigateur.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.117
+  },
+  {
+    "banc": "banc-justice-peine-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.117
+  },
+  {
+    "banc": "banc-livraison-hotels-ambassade-20261104.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-locaux-loyers.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-logements-sociaux.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-mail-systeme.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-mails-defilement-navigateur.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 4.593
+  },
+  {
+    "banc": "banc-mairie-acquereur.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.115
+  },
+  {
+    "banc": "banc-mairies-communes.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-memoire-mandats-dialogue.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-moteur-javascript.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.265
+  },
+  {
+    "banc": "banc-multimodal-psm-20261101.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-mutation-terrain.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-navigation-rues.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.215
+  },
+  {
+    "banc": "banc-negociation-squatteurs-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.115
+  },
+  {
+    "banc": "banc-nominations-municipales.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.22
+  },
+  {
+    "banc": "banc-objectifs-secrets-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.067
+  },
+  {
+    "banc": "banc-occupant-terrain-visible.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.167
+  },
+  {
+    "banc": "banc-occupation-actions-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.315
+  },
+  {
+    "banc": "banc-ordre-de-bataille-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-ordres-territoires.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.216
+  },
+  {
+    "banc": "banc-organisations-activation-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.215
+  },
+  {
+    "banc": "banc-organisations-commandes-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.214
+  },
+  {
+    "banc": "banc-organisations-evenements-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.265
+  },
+  {
+    "banc": "banc-organisations-jauges-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.42
+  },
+  {
+    "banc": "banc-organisations-membres-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.365
+  },
+  {
+    "banc": "banc-palais-gouvernement.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-parcelles-135.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-parquet-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-patcher-blob.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-permis-cron-acquisition-135.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-permis-depot-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-pnj-localisation-psm.mjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.265
+  },
+  {
+    "banc": "banc-pop-inf-cache-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.622
+  },
+  {
+    "banc": "banc-pop-inf-forge-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 6.621
+  },
+  {
+    "banc": "banc-portrait-liquide.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-position-f5-luthecia-20261101.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-position-ville-serveur-f5.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-preemptions.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-presidence-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-prets-bancaires.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-prime-signature-client.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-prime-signature-saisie.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.265
+  },
+  {
+    "banc": "banc-psm-boutiques-location.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-psm-portrait-navigateur.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 2.178
+  },
+  {
+    "banc": "banc-psm-premium-bail.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-quatrieme-passe-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-reception-objets.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.319
+  },
+  {
+    "banc": "banc-reception-rest-20261028.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-reconnexion-trois-villes.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.366
+  },
+  {
+    "banc": "banc-referent-commandant.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.166
+  },
+  {
+    "banc": "banc-referents-palais.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.166
+  },
+  {
+    "banc": "banc-reliquats-producteurs-morts-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.216
+  },
+  {
+    "banc": "banc-reliquats-religion-jauges-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.167
+  },
+  {
+    "banc": "banc-reliquats-subtilisation-impacts-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.822
+  },
+  {
+    "banc": "banc-reliquats-vols-codetenu-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.316
+  },
+  {
+    "banc": "banc-reservation-republica.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.369
+  },
+  {
+    "banc": "banc-restaurant-luthecia.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.22
+  },
+  {
+    "banc": "banc-retours-acteur.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.265
+  },
+  {
+    "banc": "banc-rues-navigateur.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 5.469
+  },
+  {
+    "banc": "banc-rumeur-organisations-secretes.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-rumeurs-ecoute-jauges-379.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.366
+  },
+  {
+    "banc": "banc-sanctions-financieres.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-seance-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-session-nocturne.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.319
+  },
+  {
+    "banc": "banc-sortie-reponse-perdue-20261028.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-sorties-batiments.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.866
+  },
+  {
+    "banc": "banc-souvenirs-et-achat-direct.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-squatteurs-roleplay.mjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-stabilisation-session.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.315
+  },
+  {
+    "banc": "banc-subventions-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.166
+  },
+  {
+    "banc": "banc-successions-reglement.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-taux-imposition.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.119
+  },
+  {
+    "banc": "banc-taxe-fonciere.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-terrain-achat-intrus.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-terrain-banque-reprise-135.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.217
+  },
+  {
+    "banc": "banc-terrain-intrus-seulement.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.215
+  },
+  {
+    "banc": "banc-terrain-position-occupation.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.215
+  },
+  {
+    "banc": "banc-titre-pnj-de-poste.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-tournee-cloture.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.115
+  },
+  {
+    "banc": "banc-transport-rest.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.115
+  },
+  {
+    "banc": "banc-transports-sans-repli-local.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.722
+  },
+  {
+    "banc": "banc-tribunal-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-universite-calendrier.js",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-universite-et-pnj-client.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-universite-missions-autres.js",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-universite-missions-medecin.js",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-urbanisme-nature-refusee.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.165
+  },
+  {
+    "banc": "banc-vercel-bundle.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 5.446
+  },
+  {
+    "banc": "banc-verrou-inventaire-client-20261031.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-virements-pelisson-20261104.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.164
+  },
+  {
+    "banc": "banc-vote-electoral.js",
+    "code": 0,
+    "moteur": "lanceur historique",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-workflow-dependances.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 0.114
+  },
+  {
+    "banc": "banc-workflow-rangement.cjs",
+    "code": 0,
+    "moteur": "Node natif",
+    "secondes": 1.269
+  }
+]

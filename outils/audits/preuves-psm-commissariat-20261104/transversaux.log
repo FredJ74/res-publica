@@ -1,0 +1,159 @@
+✔ aucune écriture de `arg` sur la vue personnages depuis l’écran (54.155416ms)
+✔ les anciens écrivains de solde ont disparu (97.555005ms)
+✔ paie des employés, don aux squatteurs, don religieux : une porte serveur, aucun débit local (11.960599ms)
+✔ subvention du répertoire : par subvention_citoyen_verser (4.731384ms)
+✔ aucun appel aux portes de détention « sur soi » (65.593002ms)
+✔ les arrestations passent par les portes serveur (13.62571ms)
+✔ plus de jet d’arrestation à l’écran pour la corruption, la fuite et la résistance (7.643899ms)
+✔ le catalogue réel des trois villes est examiné sans chemin cassé (322.031203ms)
+✔ chemins URL : espaces encodés admis, casse et références manquantes refusées (0.296388ms)
+✔ PSM : quatre images locales libres, sans mutation des variantes Luthécia ou des loyers (20.044117ms)
+✔ les avocats de PSM et Montrouge ont une fiche de dialogue (raccordés le 02/11, demande de Fred) (0.451498ms)
+✖ raccordements : profils de dialogue, routes et liens déclaratifs (1223.98ms)
+✔ directions d’usine #351 : les actes conservent leur ordre de paiement hors du menu (215.324653ms)
+✔ #352 : la salle des ventes de la raffinerie conserve son image locale (142.572811ms)
+✔ les journalistes communs parlent depuis une rédaction, sans ancien hôtel ni fausse enseigne (1.104351ms)
+✔ étape B #350 : aucune ancienne exemption de copie pour la sauvegarde organisations (3.99292ms)
+✔ inventaire des producteurs : le chargeur réutilisé couvre les quatre empires sans mélanger les images (245.438189ms)
+✔ écran : organiser et renouveler passent par le serveur, sans dé ni écriture (21.970109ms)
+✔ commissaire : intervention au serveur, plus de levée par l'écran ni par le ministre (13.422249ms)
+✔ routeur : ordres du bâtiment bloqués, intervention du commissaire jamais bloquée (0.856656ms)
+✔ cron : la nuit des blocus est déléguée aux fonctions serveur (9.270814ms)
+✔ migration : portes patchées et écriture écran fermée (1.183429ms)
+OK : découverte et trace du hooliganisme au serveur (2/2)
+✔ outils/bancs/test-crimes-decouverte-serveur.mjs (84.849234ms)
+✔ déclaration dérivée : vraie chaîne exécutée, source présente et droits exigés (158.061803ms)
+✔ cron calcule les peines sur des dates Paris, non 24h (1.31287ms)
+✔ client laisse le serveur trancher la peine (0.586908ms)
+✔ SQL contrôle le calendrier et garde la clôture atomique (0.239915ms)
+✔ le détecteur reconnaît une écriture par la vue, pas par la table (1.971815ms)
+✔ aucune migration récente n'écrit la fiche par la vue de l'écran (14.290813ms)
+✔ les correctifs du 30/10 sont présents (0.549503ms)
+✔ la descente calcule les objets exactement comme la racine (0.778971ms)
+✔ les deux requêtes sont en lecture seule et enveloppées (2.929671ms)
+✔ la référence de production couvre les six familles, 16 seaux chacune (2.48317ms)
+✔ une fermeture datée ne dépend pas du jour personnel (19.48438ms)
+✔ la date de fin est décidée par PostgreSQL (0.410687ms)
+✔ la suppression d antenne est uniquement dans le contexte de Luthecia (27.819088ms)
+✔ la consommation sur place est possible pour les boissons (3.559842ms)
+✔ aucune écriture directe du fret par l’écran (43.990291ms)
+✔ le contrôle du Chef et les commandes de caisse passent par leurs portes serveur (6.032366ms)
+✔ le jet de douane du navigateur ne revient pas (65.081436ms)
+OK : grève générale au serveur
+✔ outils/bancs/test-greves-generales-serveur.mjs (128.364808ms)
+✔ hotel-port : hall sans ordres de bar (1.498685ms)
+✔ hotel-mineur : hall sans ordres de bar (0.39273ms)
+✔ La Républia garde ses ordres de bar (0.701958ms)
+OK : indices de ville écrits par le serveur seul
+✔ outils/bancs/test-indices-villes-serveur.mjs (131.303408ms)
+✔ hors enquête ou après autorisation : refus nommé, aucun coût (6.820368ms)
+✔ pendant l'enquête : le juge reçoit (le coût est demandé) (3.338472ms)
+✔ l'écran masque l'ordre hors enquête (5.236147ms)
+✔ ordre présent exactement dans les salles de province pourvues de figures (1.271219ms)
+✔ même identifiant de salle : chaque musée lit ses propres figures (0.293874ms)
+✔ aucune sauvegarde générale ni écriture directe de la table organisations dans le navigateur (104.405464ms)
+✔ les chemins avec commande #219 la gardent (0.991405ms)
+✖ les chemins portés à l’étape B passent par leur porte serveur (0.865849ms)
+✔ la fermeture de la table est écrite et gardée (0.246685ms)
+✔ référentiel serveur = TYPES_ORGANISATIONS pour les types fondables en local loué (3.237544ms)
+✔ premier grade des supporters identique côté serveur (0.632635ms)
+✔ les quinze parcelles de Républia : surface connue, prix à 12 FR/m², même parcours (26.234896ms)
+✔ hors Républia, le lot 6 partagé garde son prix et sa surface inconnue (9.788904ms)
+✔ le dépôt de permis reste déclaré au miroir des coûts sans bouton propre (3.777512ms)
+✔ une seule transaction debite les especes ou le compte national (1.266381ms)
+✔ les operations repetées gardent leur id et ne repassent pas par le debit (0.29832ms)
+✔ pas de nouvelle interdiction de plusieurs placements actifs (0.322537ms)
+✔ l interface unifiee presente les deux sources et conserve une intention en attente (0.565145ms)
+✔ publierDecret : aucune écriture locale de POP ou INF (7.087453ms)
+✔ publierMessagePresidentiel : aucune écriture locale de POP ou INF (8.482454ms)
+✔ censurer : aucune écriture locale de POP ou INF (5.476863ms)
+✔ confirmerMobilisationPolice : aucune écriture locale de POP ou INF (3.691885ms)
+✔ confirmerBanquetDiplomatique : aucune écriture locale de POP ou INF (4.18238ms)
+✔ doReceptionAvecBonus : aucune écriture locale de POP ou INF (3.432352ms)
+✔ confirmerGuerreEmpire : aucune écriture locale de POP ou INF (4.554119ms)
+✔ executerOrdreTexte : aucune écriture locale de POP ou INF (3.657175ms)
+✔ traiterDemandeManifestation : aucune écriture locale de POP ou INF (6.10423ms)
+✔ confirmerCorruptionRegistre : aucune écriture locale de POP ou INF (2.148234ms)
+✔ appliquerMalusPopExcommunication : aucune écriture locale de POP ou INF (0.652875ms)
+✔ appliquerBonusLocation : aucune écriture locale de POP ou INF (4.485328ms)
+✔ confirmerDonObjetPnj : aucune écriture locale de POP ou INF (4.738081ms)
+✔ payerEscorts : aucune écriture locale de POP ou INF (0.970564ms)
+✔ envoyerInvitationSociale : aucune écriture locale de POP ou INF (1.415972ms)
+✔ verifierReponseInvitationSociale : aucune écriture locale de POP ou INF (1.366569ms)
+✔ repondreInvitationSociale : aucune écriture locale de POP ou INF (1.373239ms)
+✔ les ordres morts interdire_manif_cible / reprimer_manif_cible ne sont plus routés (1.528248ms)
+✔ confirmerDonArgent : aucune écriture locale de POP ou INF, aucun débit local (4.2296ms)
+✔ confirmerDonPnj : aucune écriture locale de POP ou INF, aucun débit local (2.776343ms)
+✔ « boire un verre » n’est plus routé (aucun lieu ne le propose) (0.436194ms)
+✔ premier appel : lit les portraits ; second : aucune lecture de portrait (3.699687ms)
+✔ portrait change : seul celui-ci est relu ; portrait retire : efface (2.947005ms)
+✔ le détecteur reconnaît une copie rehorodatée d une préparation déjà appliquée (1.383645ms)
+✔ aucune copie rehorodatée d une préparation déjà appliquée dans migrations/ (12.718663ms)
+OK livraison #219 : 95 migrations uniques et empreintes intactes, 53 sources historiques archivées, 6 préparations isolées, aucun doublon exécutable
+✔ outils/bancs/test-purge-migrations-219.mjs (72.945953ms)
+✔ les RPC du navigateur sont appelables après le lot, les anciens appels sont refusés (1413.631722ms)
+✔ travail sur chantier : porte chantier_commande, montant rendu par le serveur (22.233302ms)
+✔ la quincaillerie reste hors du circuit des armes, et le miroir la porte (139.351196ms)
+✔ les ecrans des serrures ne passent que par les portes serveur (3.958269ms)
+✔ l'ordre « Equipements et serrure » : local a louer oui, hotel non (1.930693ms)
+✔ aucune écriture directe de successions dans les fichiers de l’écran (82.236576ms)
+✔ l’ouverture et la réponse passent par leurs portes serveur (2.78123ms)
+✔ succession : corps nocturne épinglé, ancien client absent et réintroductions détectées (1222.191082ms)
+OK : état d'urgence et registre des armes au serveur
+✔ outils/bancs/test-urgence-registre-armes.mjs (117.371572ms)
+ℹ tests 98
+ℹ suites 0
+ℹ pass 96
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3301.880225
+
+✖ failing tests:
+
+test at outils/bancs/test-audit-global-republia.mjs:41:1
+✖ raccordements : profils de dialogue, routes et liens déclaratifs (1223.98ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   {
+  +     chemin: 'non_identifie',
+  +     fn: 'consulter_caisse_usine'
+  +   },
+  +   {
+  +     chemin: 'non_identifie',
+  +     fn: 'consulter_stock_usine'
+  +   }
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///workspace/res-publica-psm-commissariat/outils/bancs/test-audit-global-republia.mjs:44:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { fn: 'consulter_caisse_usine', chemin: 'non_identifie' }, { fn: 'consulter_stock_usine', chemin: 'non_identifie' } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/test-organisations-ecritures-inventaire.mjs:79:1
+✖ les chemins portés à l’étape B passent par leur porte serveur (0.865849ms)
+  AssertionError [ERR_ASSERTION]: confirmerAppelGreveGenerale
+      at TestContext.<anonymous> (file:///workspace/res-publica-psm-commissariat/outils/bancs/test-organisations-ecritures-inventaire.mjs:83:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: `async function confirmerAppelGreveGenerale(orgaId) {\n  const orga = getOrgaById(orgaId);\n  if (!orga) return;\n  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }\n  const revendications = (document.getElementById('greve-generale-revendications-input')?.value || '').trim();\n  if (!revendications) { showToast('Revendications requises', 'Rédigez vos revendications avant de lancer la consultation.', false); return; }\n  const nbMembres = orga.membres?.length || 0;\n  if (nbMembres < GREVE_MEMBRES_MIN) { showToast('Syndicat trop petit', '', false); return; }\n  if (orga.greveGeneraleEnCoursId) { showToast('Déjà engagé', '', false); return; }\n\n  // CONSULTATION OUVERTE PAR LE SERVEUR (03/11/2026) : greve_generale_lancer verifie le chef, la\n  // taille du syndicat, paie 1 PA, fige la liste des eligibles et cree la ligne. L'ecran envoie\n  // ensuite les courriers et le sujet du forum.\n  const brut = typeof sbRpc === 'function'\n    ? await sbRpc('greve_generale_lancer', { p_orga: orga.id, p_revendications: revendications }).catch(() => null) : null;\n  const rl = Array.isArray(brut) ? brut[0] : brut;\n  if (!rl || rl.ok !== true) {\n    const motifs = { reserve_au_chef: 'Réservé au chef du syndicat.', syndicat_trop_petit: 'Au moins ' + GREVE_MEMBRES_MIN + ' membres sont nécessaires.',\n      deja_engage: 'Ce syndicat participe déjà à une consultation ou une grève générale en cours.',\n      revendications_requises: 'Rédigez vos revendications avant de lancer la consultation.', pa_insuffisants: '1 PA requis.' };\n    showToast('Consultation refusée', motifs[rl?.raison] || "La consultation n'a pas pu être lancée (" + (rl?.raison || 'sans réponse') + ').', false);\n    return;\n  }\n  if (rl.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(rl.paiement);\n  const pays = orga.country_origine || state.country;\n  const ggId = rl.id;\n  const eligibles = (rl.participants || []).map(p => ({ id: p.orgaId, nom: p.orgaNom, chef: p.chef }));\n  if (typeof chargerOrganisations === 'function') chargerOrganisations();\n\n  // Mail a chaque chef eligible SAUF l'initiateur (deja acquis) -- boutons Accepter/Refuser en\n  // ligne, meme pattern que le vote de confiance (notifierDeputesPourVoteConfiance,\n  // plateau-politique.js).\n  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);\n  const sujet = 'Appel à la grève générale — ' + orga.nom;\n  for (const s of eligibles) {\n    if (s.id === orga.id) continue;\n    const corps = orga.chef + ', chef du syndicat « ' + orga.nom + ' », appelle à une grève générale.<br><br>' +\n      '<i>Revendications :</i> ' + escapeHtmlText(revendications) + '<br><br>' +\n      marqueurActionMail('greve_oui', ggId, s.id) + marqueurActionMail('greve_non', ggId, s.id);\n    await sbSendMail(orga.nom, s.chef, sujet, corps, time).catch(() => {});\n  }\n\n  // Sujet public sur le Forum National (pas 'presse', reserve aux journalistes -- pas\n  // 'gouvernement', prive aux ministres, voir audit).\n  if (typeof sbCreateTopic === 'function') {\n    const titre = 'Appel à la grève générale — ' + orga.nom;\n    const topicId = await sbCreateTopic('national', titre, orga.chef, pays, time, true, false, orga.chef, orga.id, orga.avatar || (TYPES_ORGANISATIONS.syndicale?.icon)).catch(() => null);\n    if (topicId) {\n      const corpsTopic = orga.chef + ', chef du syndicat « ' + orga.nom + ' », appelle à une grève générale.<br><br><i>Revendications :</i><br>' + escapeHtmlText(revendications);\n      await sbCreatePost(topicId, orga.chef, corpsTopic, time, true, false, [], null, orga.chef, orga.id, orga.avatar || null).catch(() => {});\n      if (typeof sbRpc === 'function') await sbRpc('greve_generale_lier_sujet', { p_gg: ggId, p_topic: String(topicId) }).catch(() => {});\n    }\n  }\n\n  document.getElementById('modal-postes').classList.remove('open');\n  showToast('Consultation lancée !', eligibles.length + ' syndicat(s) éligible(s) consulté(s).', true, true);\n  addJournalEntry('Appel à la grève générale lancé par "' + orga.nom + '".', 'event-info');\n  addExternalEvent('📣 "' + orga.nom + '" appelle à une grève générale. Consultation intersyndicale en cours.');\n  updateUI();\n}\n\n// Appelee depuis les boutons du mail (meme pattern que voterConfiance, plateau-politique.js) --\n// verifie que le repondant est bien le chef ACTUEL du syndicat concerne, relit la ligne en\n// direct (jamais un cache), et applique la reponse via un CAS structurel sur la colonne jsonb\n// "participants" (meme doctrine que journal_editions.double_page_centrale) pour ne jamais\n// perdre une reponse concurrente d'un autre chef repondant au meme moment.`,
+    expected: /sbGreveGeneraleSynchroniser\(ggId\)/,
+    operator: 'match',
+    diff: 'simple'
+  }

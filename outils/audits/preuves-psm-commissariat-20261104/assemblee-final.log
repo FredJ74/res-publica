@@ -1,0 +1,128 @@
+
+LES TROIS PNJ DU HALL SONT TOUJOURS LA, ET NOMMES
+============================================================
+  ok  le garde est dans le hall
+  ok  l'hotesse est dans le hall
+  ok  l'agente d'entretien est dans le hall
+  ok  elle porte desormais un NOM : Renee Toitout
+  ok  et son role dit son metier
+  ok  son nom se normalise exactement en son identifiant de profil
+  ok  le nom de l'hotesse se normalise en son identifiant
+  ok  les trois portraits existent reellement sur le disque
+  ok  l'image de Renee est INCHANGEE : seul le personnage est nomme
+  ok  l'ancien identifiant `agent_entretien` n'est plus adressable
+
+LE GARDE NE PRETEND PLUS ETRE A L ELYSEE
+============================================================
+  ok  il a un profil serveur
+  ok  il ne declare aucun lieu de travail
+  ok  et il dit explicitement etre en faction a l'un des trois
+  ok  le Palais de l'Elysee n'est plus son adresse
+  ok  il ne se dit plus charge de la securite PRESIDENTIELLE
+  ok  il sait que la Garde tient TROIS postes nationaux
+  ok  il connait le garde permanent gratuit et ses quatre heures
+  ok  il connait le renfort : 24 h, 50 FR par homme, sur la caisse de la Defense
+  ok  il sait qu'un renfort tombe n'est PAS remplace
+  ok  il sait que la Garde appartient a l'Etat, pas au ministre
+  ok  il ne nomme pas son poste, il dit « ici »
+  ok  il ne dit jamais qui est passe
+  ok  il n'a aucune autorite politique
+  ok  il renvoie la procedure de l Assemblee a l hotesse
+
+L HOTESSE EXPLIQUE LA PROCEDURE REELLE, PAS UN PARLEMENT THEORIQUE
+============================================================
+  ok  elle connait le socle : neuf sieges, trois par ville
+  ok  elle connait le mandat de cinq semaines et le minimum de 5 INF
+  ok  elle sait que les deputes sont elus AU NIVEAU DE LA VILLE
+  ok  elle sait qui peut deposer, et que le President ne peut PAS
+  ok  elle sait que le depot exige la presence dans l hemicycle
+  ok  elle connait les couts reels de l hemicycle
+  ok  elle sait que le marchandage est preleve meme en cas d echec, et qu il est LEGAL
+  ok  elle sait qu'un amendement s'ajoute SOUS le texte et ne le remplace jamais
+  ok  elle connait l echeance du mercredi 22 heures
+  ok  elle sait qu'un vote arrive apres l echeance est refuse meme sans depouillement
+  ok  elle distingue les trois natures de proposition, et le sort de la loi RP
+  ok  elle distingue ADOPTEE et EN VIGUEUR
+  ok  elle sait que c'est le Ministre de l'Interieur qui met en application, en 36 heures
+  ok  elle connait le bareme de sanction et qui il frappe
+  ok  elle sait que la portee RESTREINT et n elargit jamais
+  ok  elle connait l'indemnite reelle du depute : 250 FR par jour
+  ok  elle connait les couloirs et les archives
+
+ET ELLE DIT CE QUI N EXISTE PAS, AU LIEU DE L INVENTER
+============================================================
+  ok  ni commission, ni seance des questions, ni motion de censure, ni navette
+  ok  le vote de confiance n'appartient pas a l'Assemblee
+  ok  la dissolution est un pouvoir presidentiel, decide a l Elysee
+  ok  aucun PNJ du hall n a d autorite
+  ok  aucune note de depute, aucun classement, aucun score d assiduite
+
+L HOTESSE NE COMMENTE PAS, NE JUGE PAS, NE SAIT RIEN DE PRIVE
+============================================================
+  ok  elle ne commente jamais politiquement
+  ok  elle ne juge ni les deputes ni les joueurs
+  ok  elle ne connait aucune information privee
+  ok  elle n'invente aucune procedure
+  ok  elle n'a aucune autorite
+
+RENEE CONSTATE, ELLE N ENQUETE PAS
+============================================================
+  ok  elle a un profil serveur
+  ok  elle sait que les faits transmis sont les SEULS qu elle connaisse
+  ok  si on ne lui donne rien, elle n'a rien vu -- et c'est ecrit en premier
+  ok  elle n'invente JAMAIS une anecdote pour remplir le silence
+  ok  elle constate et ne conclut pas
+  ok  elle ne peut pas affirmer une negociation, un complot ou de l argent
+  ok  elle n'invente jamais le contenu d'une conversation
+  ok  une impression reste une impression, donnee comme telle
+  ok  elle sait que les deputes PNJ ne se deplacent pas
+  ok  elle sait que l'assiduite ne se juge qu'au depouillement
+  ok  elle ne donne aucune information privee
+  ok  elle n'est ni espionne ni enquetrice
+  ok  elle est discrete dans son comportement, meme quand elle est critique
+  ok  elle digresse parce qu on lui donne rarement l occasion de parler
+  ok  son nom ne fait l objet d aucune explication dans son prompt
+
+CHACUNE IGNORE LE DOMAINE DE L AUTRE
+============================================================
+  ok  Renee ne connait PAS la procedure parlementaire
+  ok  l'hotesse ne recoit PAS les regards de Renee
+  ok  les deux partagent le socle de la maison
+  ok  les deux portent la frontiere du batiment
+  ok  Renee renvoie la procedure a l'hotesse
+
+LE CINQUIEME CANAL : CE QUE LE BLOC DIT, ET CE QU IL AVOUE NE PAS SAVOIR
+============================================================
+  ok  rien a signaler : le bloc le dit explicitement
+  ok  et il ordonne de le dire simplement, sans inventer
+  ok  aucune liste de passages n est fabriquee quand il n y en a pas
+  ok  un passage est rendu avec son compte, ses pieces et sa date
+  ok  le poste est donne comme celui d AUJOURD HUI, pas celui du jour-la
+  ok  l'absence de raison institutionnelle est donnee comme un FAIT, pas un soupcon
+  ok  une co-presence est rendue, et bornee a ce qu elle est
+  ok  un depute endormi se voit, et seulement lui
+  ok  aucun scrutin : le bloc interdit de conclure a une assiduite
+  ok  aucun passage : le bloc le dit au lieu de se taire
+  ok  aucune rencontre : le bloc le dit, et interdit d en inventer
+  ok  un scrutin depouille est rendu nominativement, non-votants compris
+  ok  et une liste vide se dit « personne », jamais par un blanc
+
+LE CANAL N EST DEMANDE QUE POUR RENEE
+============================================================
+  ok  chat.js ne demande les regards que pour `renee_toitout`
+  ok  et la porte ne recoit QU UNE fenetre en jours -- ni pays, ni batiment, ni nom
+  ok  le canal est lu sous le JETON DU JOUEUR, jamais sous une cle de service
+  ok  les huit canaux partent ensemble et restent distincts
+  ok  et le sixieme n est demande que pour Jeremy, pas pour Renee
+
+AUCUN DE CES PNJ NE RECOIT UN POUVOIR NI UNE JAUGE
+============================================================
+  ok  garde_republicain : aucun score ni jauge de sympathie
+  ok  garde_republicain : il ne fait entrer personne par faveur et n engage aucune caisse
+  ok  hotesse_accueil : aucun score ni jauge de sympathie
+  ok  hotesse_accueil : il ne fait entrer personne par faveur et n engage aucune caisse
+  ok  renee_toitout : aucun score ni jauge de sympathie
+  ok  renee_toitout : il ne fait entrer personne par faveur et n engage aucune caisse
+
+============================================================
+LES 95 EPREUVES SONT VERTES.

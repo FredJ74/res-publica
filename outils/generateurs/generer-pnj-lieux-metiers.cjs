@@ -18,6 +18,29 @@ const extraire = (fichier, debut) => {
 };
 vm.runInContext(extraire('plateau-navigation.js', 'getBuildingContext'), ctx);
 vm.runInContext(extraire('plateau-multijoueur.js', 'personnesNormalesDeLaPiece'), ctx);
+// Même casting canonique pour le contexte IA ; aucune règle de déplacement ici.
+if (process.argv.includes('--scenes-js')) {
+  const scenes = vm.runInContext(`(() => { const out = {};
+    for (const pays of Object.keys(WORLD)) for (const ville of Object.keys(WORLD[pays] || {})) {
+      const cite = WORLD[pays][ville]; if (!Array.isArray(cite?.buildings)) continue;
+      state.country = pays; state.currentCity = ville;
+      for (const id of cite.buildings) {
+        const b = BUILDINGS[id]; if (!b) continue;
+        const ctx = getBuildingContext(id);
+        const pieces = new Set([...Object.keys(b.rooms || {}), ...Object.keys(ctx?.roomsExtra || {})]);
+        for (const piece of pieces) {
+          const r = ctx?.roomOverrides?.[piece] || ctx?.roomsExtra?.[piece] || b.rooms?.[piece];
+          out[JSON.stringify([pays,ville,id,piece])] = {
+            pays: COUNTRIES[pays]?.n || pays, ville: VILLES[pays]?.[ville]?.nom || cite.name || ville,
+            batiment: ctx?.name || b.name || id, piece: r?.name || b.rooms?.[piece]?.name || piece,
+            personnes: personnesNormalesDeLaPiece(id,piece).map(p => p.name.replace(' (PNJ)','').trim())
+          };
+        }
+      }
+    } return out; })()`, ctx);
+  process.stdout.write('// Généré par outils/generateurs/generer-pnj-lieux-metiers.cjs --scenes-js ; ne pas éditer.\n'
+    + 'export const SCENES_PNJ = ' + JSON.stringify(scenes, null, 2) + ';\n');
+} else {
 const lignes = vm.runInContext(`(() => { const out = [];
   // Républia seulement : les autres empires ne sont pas ouverts, leur casting n'est pas arrêté.
   for (const pays of ['republic']) for (const ville of Object.keys(WORLD[pays] || {})) {
@@ -43,3 +66,5 @@ for (const l of lignes) {
 process.stdout.write('-- ' + valeurs.length + ' PNJ (généré par outils/generateurs/generer-pnj-lieux-metiers.cjs)\n'
   + 'INSERT INTO public.pnj_lieux_metiers(pays,ville,building_id,room_id,nom,job,rel) VALUES\n'
   + valeurs.join(',\n') + '\nON CONFLICT (pays,ville,building_id,room_id,nom) DO UPDATE SET job=EXCLUDED.job,rel=EXCLUDED.rel;\n');
+
+}

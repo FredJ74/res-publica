@@ -25,6 +25,15 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Commissariat PSM : contexte PNJ et portrait — Codex, 04/11/2026
+
+Branche `codex/psm-commissariat-dialogue-portrait-20261104`, issue de main `06657545` (PR #447 conservée). Vérification du relais, des branches et PR publiques : aucune correction concurrente Morvan/portrait accueil identifiée. Morvan n'avait aucun lieu dans sa fiche ; le chat ne recevait jamais la position. Lecture commune `rue_position_lire()` sous JWT, noms du lieu issus du générateur/casting existant (`generer-pnj-lieux-metiers.cjs --scenes-js` → `api/_pnj-scenes-generes.js`), aucun nouveau moteur de navigation ni mutation. La fiche précise le bureau, personnalité/rôle conservés ; aucune réplique de remplacement codée en dur. Si position/presence non confirmées, le prompt l'indique, sans inventer de localisation.
+
+Portrait du seul brigadier d'accueil PSM : crop320×320+(55,260) de `images/port-sainte-marie-commissariat-accueil.webp`, encodé WebP sans perte, pixels RGBA identiques. Source et autres villes inchangées, identité/métier/ordres inchangés ; `photoUrl`/`photoPos` de l'override PSM. Versions data.js majorées dans les deux pages.
+
+Validation : 53 cas dialogue/police (56 avec serrures après intégration main `578764b2`/#449),95 assertions du hall,2 Chromium,13 tests du bundle Vercel,191/191 bancs clients avant et après intégration ; journaux dans les preuves. Même 8/12 contrôles globaux et 96/98 transversaux sur branche et main isolé : échecs hérités documentés, aucune référence falsifiée. PR non créée : API GitHub GraphQL Forbidden ; branche poussée. Production inaccessible via le proxy (CONNECT403), aucune fusion ni livraison vérifiée. IA réelle et session authentifiée non testées. Aucun SQL ni joueur touché. Rapport : `outils/audits/COMMISSARIAT-PSM-PNJ-PORTRAIT-20261104.md`. Créer la PR depuis la branche puis vérifier CI et recette avant fusion ; ne pas confondre les composants locaux et la production.
+
+
 ### Forums par pays, ville et adhésion — ChatGPT, PR #422 (ouverte au 04/11)
 
 Décision de Fred : forum local = ville courante, national = pays courant, forums privés réservés aux adhérents. Migration RLS `20261103222000` **non appliquée** (absente du registre au 04/11, fichier encore hors de main). Reste : CI, conflits avec main, application, Vercel READY, recette PJ.
