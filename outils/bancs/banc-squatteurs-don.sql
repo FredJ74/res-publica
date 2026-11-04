@@ -1,19 +1,19 @@
 -- A jouer APRES le corps de la migration 20261104020000, dans la meme transaction annulee.
 -- BANC (annulé) : Jean Jaaj placé sur le terrain 1 (Luthécia) le temps de la transaction ;
 -- les jets sont rendus déterministes en remplaçant terrain_negociation_jet_interne (annulé aussi).
-CREATE OR REPLACE FUNCTION public.terrain_negociation_jet_interne() RETURNS integer
- LANGUAGE plpgsql SET search_path TO 'public','pg_temp' AS $j$
-DECLARE s text := current_setting('banc.jets', true); v integer;
-BEGIN
-  v := split_part(s, ',', 1)::integer;
-  PERFORM set_config('banc.jets', CASE WHEN position(',' in s) > 0 THEN substr(s, position(',' in s) + 1) ELSE '' END, true);
-  RETURN v;
-END $j$;
-
 DO $$
 DECLARE n text := 'Jean Jaaj'; u uuid; r jsonb; occ text; q uuid := gen_random_uuid(); fonds0 numeric; fonds numeric;
   pa0 integer; hp0 integer;
 BEGIN
+  -- Jets déterministes : la fonction de jet est remplacée le temps de la transaction annulée.
+  EXECUTE $j$CREATE OR REPLACE FUNCTION public.terrain_negociation_jet_interne() RETURNS integer
+   LANGUAGE plpgsql SET search_path TO 'public','pg_temp' AS $f$
+  DECLARE s text := current_setting('banc.jets', true); v integer;
+  BEGIN
+    v := split_part(s, ',', 1)::integer;
+    PERFORM set_config('banc.jets', CASE WHEN position(',' in s) > 0 THEN substr(s, position(',' in s) + 1) ELSE '' END, true);
+    RETURN v;
+  END $f$$j$;
   SELECT user_id INTO u FROM public.personnages_donnees WHERE name = n;
   UPDATE public.personnages_donnees SET country='republic', current_city='capitale', current_building='terrain-a-batir-1',
          pa = greatest(coalesce(pa,0), 10), hp = 100, hospitalisation = NULL WHERE name = n;
