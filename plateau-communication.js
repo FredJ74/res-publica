@@ -314,7 +314,15 @@ function capaciteImpressionTracts(stockBois) {
   const fonds = (typeof getFondsDisponiblesOrdinaires === 'function')
     ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
   const parFonds = enTest ? parBois : Math.floor(fonds / prixLot);
-  return { lots: Math.max(0, Math.min(parBois, parPa, parFonds)), parBois, parPa, parFonds, fonds, prixLot };
+  // Les piles de tracts ont "quantite" et non "qty" : chaque tract occupe une place.
+  const charge = typeof getTotalInventaire === 'function' ? getTotalInventaire()
+    : (state.inventory || []).reduce((total, o) => total +
+      ((o?.type === 'tract' || o?.type === 'tract_calomnieux')
+        ? (Number(o.quantite) || 1) : Number(o?.qty || o?.encombrement || 1)), 0);
+  const libres = Math.max(0, 100 - charge);
+  const parPlace = Math.floor(libres / TRACTS_PAR_LOT);
+  return { lots: Math.max(0, Math.min(parBois, parPa, parFonds, parPlace)),
+           parBois, parPa, parFonds, parPlace, charge, libres, fonds, prixLot };
 }
 
 // Production d'un ou plusieurs lots, commune aux tracts electoraux et calomnieux. Chaque lot de 10 :
@@ -342,6 +350,8 @@ async function imprimerTractsServeur(nbLots, cible, sens, calomnieux) {
       showToast('PA insuffisants', 'Il faut ' + (r.requis || nbLots) + ' PA pour produire ' + (nbLots * 10) + ' tracts (1 PA par lot de 10).', false);
     } else if (raison === 'fonds_insuffisants') {
       showToast('Fonds insuffisants', 'Il vous faut ' + (r.cout || '') + ' ' + cur, false);
+    } else if (raison === 'inventaire_plein') {
+      showToast('Inventaire plein', 'Chaque tract occupe une unité. Libérez assez de place pour produire sans dépasser 100 unités.', false);
     } else if (raison === 'atelier_introuvable') {
       showToast('Atelier introuvable', 'Ces tracts ne s\'impriment que dans un atelier d\'imprimerie.', false);
     } else {
@@ -428,8 +438,8 @@ async function ouvrirModalImprimerTractsElectoraux(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cap = capaciteImpressionTracts(stockBois);
   const prixLot = cap.prixLot;
-  // Les tracts finis sont verses a l'inventaire du PJ, pas au stock de l'imprimerie.
-  // Ce stock n'a actuellement aucun plafond serveur : ne pas en inventer un dans l'ecran.
+  // Les tracts finis vont a l'inventaire du PJ et comptent chacun dans son
+  // plafond universel de 100 unites, sans stock de tracts distinct a l'imprimerie.
   const tractsDejaPossedes = (state.inventory || [])
     .filter(o => o && o.type === 'tract' && o.origineQuete !== 'jean_lou')
     .reduce((total, o) => total + Math.max(0, Number(o.quantite) || 0), 0);
@@ -444,12 +454,15 @@ async function ouvrirModalImprimerTractsElectoraux(pa, cost) {
   html += '<section style="padding:.8rem;border:1px solid #554525;border-radius:6px;background:#17130b;margin-bottom:.8rem" aria-label="Stocks et capacité de production">';
   html += '<div style="font-family:Bebas Neue,sans-serif;color:#C9A84C;font-size:.84rem;letter-spacing:.1em;margin-bottom:.5rem">STOCKS ET PRODUCTION</div>';
   html += '<div style="font-size:.81rem;color:' + (cap.parBois >= 1 ? '#ddd2b8' : '#cc5540') + ';margin-bottom:.35rem"><i class="ti ti-trees"></i> Matière première — bois de ' + (imprimeur ? echapperTexteTract(imprimeur) : 'l\'imprimerie') + ' : <strong>' + stockBois + ' / ' + STOCK_BOIS_MAX_IMPRIMERIE_PNJ + '</strong></div>';
-  html += '<div style="font-size:.8rem;color:#c7bda8;margin-bottom:.35rem">Tracts électoraux déjà dans votre inventaire : <strong>' + tractsDejaPossedes + '</strong> (stock personnel, sans plafond de fabrication distinct).</div>';
+  html += '<div style="font-size:.8rem;color:#c7bda8;margin-bottom:.35rem">Tracts électoraux déjà dans votre inventaire : <strong>' + tractsDejaPossedes + '</strong>.</div>';
+  html += '<div style="font-size:.82rem;color:' + (cap.parPlace > 0 ? '#c7bda8' : '#cc5540') + ';margin-bottom:.35rem">Inventaire personnel : <strong>' + cap.charge + ' / 100 unités</strong> · ' + cap.libres + ' place(s) libre(s) (1 tract = 1 unité).</div>';
   html += '<div style="font-size:.8rem;color:#c7bda8;margin-bottom:.35rem">Vos PA : <strong>' + (state.pa || 0) + '</strong> · Fonds : <strong>' + cap.fonds.toLocaleString('fr-FR') + ' ' + cur + '</strong></div>';
   html += '<div style="font-size:.84rem;color:' + (cap.lots ? '#9ec38c' : '#cc5540') + '">Production possible maintenant : <strong>' + (cap.lots * TRACTS_PAR_LOT) + ' tracts</strong> (' + cap.lots + ' lot' + (cap.lots > 1 ? 's' : '') + ' de 10).</div>';
   html += '</section>';
   if (cibles.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060">Aucun personnage à viser n\'est accessible pour l\'instant.</div>';
+  } else if (cap.parPlace < 1) {
+    html += '<div style="font-size:.85rem;color:#cc5540">Inventaire plein ou moins de 10 places libres : libérez de la place pour recevoir un lot de tracts.</div>';
   } else if (cap.parBois < 1) {
     html += '<div style="font-size:.85rem;color:#cc5540">L\'imprimerie n\'a plus de bois. Vendez-lui des matières premières avant de commander.</div>';
   } else if (cap.parPa < 1) {
@@ -478,7 +491,8 @@ async function ouvrirModalImprimerTractsElectoraux(pa, cost) {
     html += '<input type="number" id="tract-electoral-lots" min="1" max="' + cap.lots + '" step="1" value="1" inputmode="numeric" oninput="actualiserApercuTractsElectoraux()" style="width:100%;box-sizing:border-box;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.4rem">';
     html += '<div id="tract-electoral-apercu" style="font-size:.76rem;color:#b8a67f;margin-bottom:.65rem" aria-live="polite">1 lot : 10 tracts · ' + prixLot + ' ' + cur + ' · 1 bois · 1 PA.</div>';
     let limite = 'le stock de bois de l\'imprimerie';
-    if (cap.parPa <= cap.parBois && cap.parPa <= cap.parFonds) limite = 'vos PA';
+    if (cap.parPlace <= Math.min(cap.parBois, cap.parPa, cap.parFonds)) limite = 'les places libres de votre inventaire';
+    else if (cap.parPa <= cap.parBois && cap.parPa <= cap.parFonds) limite = 'vos PA';
     else if (cap.parFonds <= cap.parBois) limite = 'vos fonds';
     html += '<div style="font-size:.72rem;color:#7a7050;font-style:italic;margin-bottom:.8rem">Maximum ici : ' + cap.lots + ' lot' + (cap.lots > 1 ? 's' : '') + ', limité par ' + limite + '.</div>';
     html += '<button onclick="confirmerImprimerTractsElectoraux(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Commander</button>';
@@ -595,6 +609,8 @@ async function ouvrirModalImprimerTractsCalomnieux(pa, cost) {
   html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock ' + (imprimeur ? 'de ' + imprimeur : 'de l\'imprimerie') + ' : ' + stockBois + '</div>';
   if (cibles.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060">Aucun autre joueur enregistré à viser pour l\'instant.</div>';
+  } else if (capaciteImpressionTracts(stockBois).parPlace < 1) {
+    html += '<div style="font-size:.85rem;color:#cc5540">Inventaire plein : il vous faut 10 places libres pour recevoir les tracts.</div>';
   } else if (stockBois < BOIS_PAR_LOT_TRACTS) {
     html += '<div style="font-size:.85rem;color:#cc5540">L\'imprimerie n\'a plus de bois. Vendez-lui des matières premières avant de commander.</div>';
   } else {
