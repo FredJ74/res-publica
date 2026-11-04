@@ -5531,6 +5531,10 @@ async function reglerCreancesHelvetiaServeur() {
 // administrative restante lors d'une eventuelle liquidation J15.
 async function traiterArriveesCaissesFret() {
   const resultats = { arrivees: 0 };
+  // Caisses terrestres (entrepôts logistiques, 04/11/2026) : constatées d'abord par la fonction
+  // serveur, qui envoie le courrier d'arrivée ; la boucle ci-dessous ne voit plus que le reste.
+  const terrestres = await sbRpc('fret_arrivees_constater', {}).catch(() => null);
+  if (typeof terrestres === 'number') resultats.arrivees += terrestres;
   const caisses = await sbGet('caisses_fret', 'statut=eq.en_transit');
   if (!caisses) return resultats;
 
