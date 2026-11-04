@@ -26,7 +26,7 @@ différentes pièces ; Fred générera ensuite les images avec ChatGPT. En atten
 copié porte `imagesAVenir: true` dans son `buildingContext` : ses pièces s'affichent sur leur
 fond, sans emprunter les images de la ville d'origine.
 
-Monnaie : Sovarka n'a dans le code que le sigle « RP » (pas de nom complet, pas de taux de change : mêmes chiffres que les FR). Les libellés de loyer des bâtiments de Novomirsk affichent « RP ».
+Monnaie (décision de Fred, 04/11/2026) : le **para sovarkien, sigle PSK** (le para était le centime du dinar yougoslave), à la place de l'ancien sigle « RP ». Pas de taux de change : mêmes chiffres que les FR. Les libellés de loyer de Novomirsk affichent « PSK ». La monnaie d'El Estado (« PS ») n'est pas encore validée.
 
 ## Couches à dupliquer pour un bâtiment existant du gabarit
 

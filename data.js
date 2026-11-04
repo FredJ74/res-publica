@@ -16,7 +16,7 @@ const COUNTRIES = {
     bases:{INT:6,CHA:7,VOL:8,PER:8,DUP:8,ENT:5}
   },
   soviet: {
-    n:'Sovarka', col:'#cc4444', cur:'RP', icon:'ti-hammer',
+    n:'Sovarka', col:'#cc4444', cur:'PSK', icon:'ti-hammer',
     desc:'Parti unique en tension interne. Reformistes contre conservateurs.',
     tags:['Parti unique','Factions'],
     bases:{INT:8,CHA:6,VOL:9,PER:8,DUP:7,ENT:6}
@@ -6546,7 +6546,7 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 0, bonusINF: 8, bonusDIS: 10, label: 'Suite Privée', tier: 1 },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cette suite (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite luxueuse et très discrète. +8 INF +10 DIS à votre organisation.'},
+          {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite luxueuse et très discrète. +8 INF +10 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
@@ -6558,7 +6558,7 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 8, bonusINF: 8, bonusDIS: 2, label: 'Suite Présidentielle', tier: 1 },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cette suite (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat. +8 POP +8 INF +2 DIS à votre organisation.'},
+          {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat. +8 POP +8 INF +2 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
@@ -6570,7 +6570,7 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 10, bonusINF: 6, bonusDIS: 2, label: 'Suite du Parti', tier: 1 },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cette suite (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat où l\'on se montre. +10 POP +6 INF +2 DIS à votre organisation.'},
+          {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat où l\'on se montre. +10 POP +6 INF +2 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }
@@ -6604,7 +6604,7 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°1', tier: 1 },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cet appartement (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
@@ -6616,7 +6616,7 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°2', tier: 1 },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cet appartement (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
@@ -6628,7 +6628,7 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°3', tier: 1 },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cet appartement (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
@@ -6640,7 +6640,7 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°4', tier: 1 },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cet appartement (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
@@ -6652,7 +6652,7 @@ const BUILDINGS = {
         locationData: { prix: 1200, bonusPOP: 15, bonusINF: 15, bonusDIS: 5, label: 'Grand Appartement impérial', tier: 1 },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cet appartement (1200 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Les anciens appartements de l\'impératrice. +15 POP +15 INF +5 DIS à votre organisation.'},
+          {fn:'louer_local', label:'Louer cet appartement (1200 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Les anciens appartements de l\'impératrice. +15 POP +15 INF +5 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }
