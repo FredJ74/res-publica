@@ -5020,6 +5020,31 @@ export const SCENES_PNJ = {
     "piece": "Bureau du Président",
     "personnes": []
   },
+  "[\"soviet\",\"capitale\",\"entrepot-logistique-novomirsk\",\"accueil\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Entrepôt logistique de Novomirsk",
+    "piece": "Accueil",
+    "personnes": [
+      "Agent logistique de Novomirsk"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"entrepot-logistique-novomirsk\",\"salle_ventes\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Entrepôt logistique de Novomirsk",
+    "piece": "Salle des Ventes",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"entrepot-logistique-novomirsk\",\"bureau_direction\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Entrepôt logistique de Novomirsk",
+    "piece": "Bureau de Direction",
+    "personnes": [
+      "Directeur logistique de Novomirsk"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",

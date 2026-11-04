@@ -2988,7 +2988,7 @@ async function livrerEntrepotsQuotidien() {
     // elle sert a savoir si les desideratas poses par un PJ sont encore les siens.
     const directeursEnPoste = {};
     try {
-      const dirs = await sbGet('personnages', 'select=name,poste&poste->>id=eq.directeur_entrepot');
+      const dirs = await sbGet('personnages', 'select=name,poste&country=eq.republic&poste->>id=eq.directeur_entrepot');
       (dirs || []).forEach(d => { if (d.poste && d.poste.city) directeursEnPoste[d.poste.city] = d.name; });
     } catch (e) { /* aucun directeur PJ lisible : les valeurs PNJ s'appliqueront */ }
 

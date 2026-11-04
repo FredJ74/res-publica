@@ -108,7 +108,7 @@ const POSTES_UNIQUES_A_MASQUER = ['president','pm','maire','min_int','min_fin','
 // Le drapeau est DECLARATIF et porte par le PNJ lui-meme dans data.js : aucun nom en dur ici,
 // aucune liste parallele, et le comportement vaut pour tout futur ministre.
 function filtrerPnjPostesPourvus(persons) {
-  const cache = window._titulairesPostes || {};
+  const cache = window._titulairesPostesPays === state.country ? (window._titulairesPostes || {}) : {};
   return persons.filter(p => {
     if (!p.job || !POSTES_UNIQUES_A_MASQUER.includes(p.job)) return true;
     if (!p.name || !p.name.includes('(PNJ)')) return true;
@@ -119,11 +119,14 @@ function filtrerPnjPostesPourvus(persons) {
 }
 
 async function rafraichirTitulairesPostesElectifs() {
+  const paysLecture = state.country;
   if (typeof sbListPersonnages !== 'function') return;
   try {
     const joueurs = await sbListPersonnages() || [];
+    if (state.country !== paysLecture) return;
     const cache = {};
     joueurs.forEach(j => {
+      if (j.country !== state.country) return; // Une capitale étrangère ne fournit jamais notre titulaire.
       let poste = j.poste;
       if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
       if (!poste || !poste.id) return;
@@ -131,6 +134,7 @@ async function rafraichirTitulairesPostesElectifs() {
       cache[cle] = j.name;
     });
     window._titulairesPostes = cache;
+    window._titulairesPostesPays = paysLecture;
   } catch(e) {}
   // Le tick de presence existant (30 s) actualise aussi les deux secretariats,
   // sans nouveau timer ni requete supplementaire dans les autres lieux.

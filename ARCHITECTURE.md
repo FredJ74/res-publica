@@ -397,3 +397,15 @@ indisponibilités). Ce n'est pas une recette de l'interface du jeu en production
 Aucun moteur métier remplacé ; aucun joueur réel utilisé. État et limites :
 `outils/audits/INTEGRATION95-ET-CAISSES300-219-20261031.md`. Le payeur est compatible :
 ne pas confondre l'empreinte de son corps et celle de sa définition complète.
+
+### Entrepôt de Novomirsk — préparation ciblée du 4 novembre 2026, non déployée
+
+Dérogation explicite de Fred au calendrier général des empires : raccorder cet entrepôt
+local, sans ouvrir le commerce international. Branche `codex/entrepot-novomirsk-20261104`.
+Le moteur existant reste commun : achats, offres, caisses, reçus et nomination ; son
+référentiel devient `(pays,ville)` au lieu de `ville`. L'écran dérive ses établissements
+d'`ENTREPOTS_LOGISTIQUES`, les noms de ville de `VILLES`. Les références historiques #219
+ne sont pas réécrites : le nouveau bâtiment a sa déclaration de navigation dans la migration
+dédiée. L'approvisionnement automatique de Sovarka n'est pas inventé : voir la recherche
+`outils/audits/SPECIFICITES-ECONOMIQUES-SOVARKA-20261104.md`. Aucun déploiement ni prévol vivant
+certifié par cette préparation.

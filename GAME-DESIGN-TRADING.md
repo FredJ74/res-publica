@@ -66,3 +66,10 @@
 ## Reste à faire
 
 - Cours des autres empires et achats internationaux : avec les autres empires.
+
+## Raccordement local de Novomirsk — demande de Fred du 4 novembre 2026
+
+- Entrepôt de Novomirsk : réutiliser les entrepôts, les caisses, les nominations et les offres existants ; aucun moteur économique propre à un bâtiment.
+- Identités techniques stables : `soviet` / `capitale` / `entrepot-logistique-novomirsk`. Les villes homonymes d'identifiant sont toujours distinguées par le pays.
+- Cette demande n'ouvre aucun achat international, fret maritime ou droit de douane supplémentaire. Les achats et livraisons de trading restent nationaux.
+- Préparation non déployée : branche `codex/entrepot-novomirsk-20261104`. Les règles retrouvées sur le bois et les autres spécificités sont référencées dans `outils/audits/SPECIFICITES-ECONOMIQUES-SOVARKA-20261104.md`. Les 150 bois/jour historiques exportés vers Républia ne sont pas une dotation supplémentaire à Novomirsk. Aucun panier national sovarkien n'est déduit des dotations républiennes.

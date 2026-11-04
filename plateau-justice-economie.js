@@ -5620,7 +5620,7 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
 function imprimerieCouranteVente() {
   const ville = state.currentCity || 'capitale';
   const building = state.currentBuilding || 'la-tribune';
-  const entrepot = (typeof ENTREPOT_PAR_VILLE === 'object' && ENTREPOT_PAR_VILLE[ville]) || 'entrepot-logistique-luthecia';
+  const entrepot = entrepotLogistiqueDe(state.country, ville);
   return { ville, building, entrepot };
 }
 
@@ -5744,7 +5744,7 @@ const ENTREPOT_PAR_VILLE = {
 
 function getBuildingIdDirecteurEntrepot() {
   const ville = state.poste?.city;
-  return ville ? ENTREPOT_PAR_VILLE[ville] : null;
+  return ville ? entrepotLogistiqueDe(state.country, ville) : null;
 }
 
 async function doOuvrirFixerPrixAchatEntrepot(pa, cost) {
@@ -5801,13 +5801,11 @@ async function confirmerFixerPrixAchatEntrepot(buildingId, pa, cost) {
     }
     prix[cle] = Math.round(n * 100) / 100;
   }
-  const r = await deduireCoutOrdre({ pa, cost, fn: 'fixer_prix_achat_entrepot' });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const v = await sbRpc('fixer_prix_entrepot', {
-    p_acteur: state.char?.name, p_pays: state.country, p_prix: prix
-  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
-  if (!v || v.ok !== true) {
+  const v = await executerReceptionInventaire('fixer_prix_entrepot', {
+    p_acteur: state.char?.name, p_pays: state.country, p_prix: prix, p_pa: pa, p_cost: cost
+  });
+  if (!v) return;
+  if (v.ok !== true) {
     showToast('Modification refusée', (v && v.raison === 'poste_non_detenu')
       ? 'Seul le directeur en poste peut fixer ces prix.'
       : 'Refusé (' + ((v && v.raison) || 'indisponible') + ').', false);

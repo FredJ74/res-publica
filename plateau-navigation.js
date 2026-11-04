@@ -482,7 +482,8 @@ function enterBuilding(buildingId, skipAutoRoom) {
   const BATIMENTS_CAISSE_VISIBLE = {
     'entrepot-logistique-luthecia': 'entrepot',
     'entrepot-logistique-psm': 'entrepot',
-    'entrepot-logistique-montrouge': 'entrepot'
+    'entrepot-logistique-montrouge': 'entrepot',
+    'entrepot-logistique-novomirsk': 'entrepot'
   };
   const cleCaisse = BATIMENTS_CAISSE_VISIBLE[buildingId];
   const elCaisse = document.getElementById('bat-caisse');
@@ -555,7 +556,8 @@ function enterBuilding(buildingId, skipAutoRoom) {
     'raffinerie-montrouge':          { posteId: 'directeur_raffinerie', city: null },
     'entrepot-logistique-luthecia':  { posteId: 'directeur_entrepot', city: 'capitale' },
     'entrepot-logistique-psm':       { posteId: 'directeur_entrepot', city: 'ville_a' },
-    'entrepot-logistique-montrouge': { posteId: 'directeur_entrepot', city: 'ville_b' }
+    'entrepot-logistique-montrouge': { posteId: 'directeur_entrepot', city: 'ville_b' },
+    'entrepot-logistique-novomirsk': { posteId: 'directeur_entrepot', city: 'capitale' }
   };
   const cfgDirecteur = BATIMENTS_DIRECTEUR[buildingId];
   const elDirecteur = document.getElementById('bat-directeur');

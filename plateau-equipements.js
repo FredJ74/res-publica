@@ -18,7 +18,7 @@
    =========================================================================== */
 
 const EQUIPEMENTS_LIBELLES = { 'ordinateur-complet': 'Ordinateur', 'box-internet': 'Box internet', 'armoire_souvenirs': 'Armoire à souvenirs' };
-const TRADING_VILLES = { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' };
+function nomVilleTrading(ville) { return VILLES[state.country]?.[ville]?.nom || ville; }
 const EQUIPEMENTS_REFUS = {
   acteur_non_authentifie: 'Votre personnage n\'est pas identifié.',
   pas_dans_un_local: 'Il faut être dans un local.',
@@ -181,12 +181,12 @@ async function ouvrirTrading() {
     h += ' <label class="cpj-note" for="trading-livraison">Livrer à</label> ' +
       '<select id="trading-livraison" class="cpj-champ">' + r.entrepots.map(function (e) {
         return '<option value="' + equipementsEchapper(e.id) + '"' + (e.ville === villeIci ? ' selected' : '') + '>Entrepôt de ' +
-          equipementsEchapper(TRADING_VILLES[e.ville] || e.ville) + '</option>';
+          equipementsEchapper(nomVilleTrading(e.ville) || e.ville) + '</option>';
       }).join('') + '</select>';
   }
 
   r.entrepots.forEach(function (e) {
-    h += '<div class="cpj-titre">Entrepôt — ' + equipementsEchapper(TRADING_VILLES[e.ville] || e.ville) + '</div>';
+    h += '<div class="cpj-titre">Entrepôt — ' + equipementsEchapper(nomVilleTrading(e.ville) || e.ville) + '</div>';
     h += '<table style="width:100%;border-collapse:collapse;font-size:.85rem"><tr class="cpj-note">' +
       '<th style="text-align:left">Matière</th><th>Prix</th><th>Disponible</th><th></th></tr>';
     e.cours.forEach(function (c) {
@@ -216,12 +216,14 @@ async function tradingAcheter(entrepot, ressource) {
   const q = parseInt(champ && champ.value, 10);
   if (!orga || !(q > 0)) { showToast('Refusé', EQUIPEMENTS_REFUS.quantite_invalide, false); return; }
   const livraison = (document.getElementById('trading-livraison') || {}).value || null;
-  const r = await sbRpc('trading_acheter', { p_organisation: orga, p_entrepot: entrepot, p_ressource: ressource, p_quantite: q, p_livraison: livraison })
+  const r = await executerReceptionInventaire('trading_acheter', { p_organisation: orga, p_entrepot: entrepot, p_ressource: ressource, p_quantite: q, p_livraison: livraison })
     .catch(function () { return null; });
-  if (!r || r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
-  if (typeof r.pa === 'number' && typeof state !== 'undefined') { state.pa = r.pa; if (typeof updateUI === 'function') updateUI(); }
+  if (!r) return;
+  if (r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
+  // Les PA et l'inventaire viennent déjà de l'état courant du reçu, y compris au rejeu.
+  if (typeof updateUI === 'function') updateUI();
   const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
-  const ou = 'l\'Entrepôt Logistique de ' + (TRADING_VILLES[r.ville_livraison] || r.ville_livraison || '?');
+  const ou = 'l\'Entrepôt Logistique de ' + (nomVilleTrading(r.ville_livraison) || r.ville_livraison || '?');
   showToast('Commande passée', r.quantite + ' × ' + r.ressource + ' pour ' + r.montant + ' ' + cur +
     ' (' + r.organisation + '). Caisse en route vers ' + ou + ' : retrait à la Salle des ventes, détails par courrier.', true, true);
   if (typeof addJournalEntry === 'function') {
@@ -351,15 +353,17 @@ async function offrePublier() {
     p_quantite: parseInt((document.getElementById('offre-qte') || {}).value, 10),
     p_prix: Number((document.getElementById('offre-prix') || {}).value)
   };
-  const r = await sbRpc('offre_achat_publier', params).catch(function () { return null; });
-  if (!r || r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
+  const r = await executerReceptionInventaire('offre_achat_publier', params).catch(function () { return null; });
+  if (!r) return;
+  if (r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
   showToast('Offre publiée', r.montant_bloque + ' bloqués (' + r.acheteur + ').', true);
   ouvrirOffresAchat();
 }
 
 async function offreRetirer(id) {
-  const r = await sbRpc('offre_achat_retirer', { p_offre: id }).catch(function () { return null; });
-  if (!r || r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
+  const r = await executerReceptionInventaire('offre_achat_retirer', { p_offre: id }).catch(function () { return null; });
+  if (!r) return;
+  if (r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
   showToast('Offre retirée', r.rembourse + ' remboursés.', true);
   ouvrirOffresAchat();
 }
@@ -368,12 +372,13 @@ async function offreServir(id) {
   const directeur = RP_OFFRES_MODE === 'directeur';
   const q = parseInt((document.getElementById('offre-q-' + id) || {}).value, 10);
   const src = directeur ? ['entrepot', ''] : String((document.getElementById('offre-source') || {}).value || 'inventaire|').split('|');
-  const r = await sbRpc('offre_achat_servir', {
+  const r = await executerReceptionInventaire('offre_achat_servir', {
     p_offre: id, p_quantite: q, p_source: src[0],
     p_organisation: directeur ? null : ((document.getElementById('offre-orga') || {}).value || null),
     p_fonds: src[1] || null
   }).catch(function () { return null; });
-  if (!r || r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
+  if (!r) return;
+  if (r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
   if (src[0] === 'inventaire' && typeof sbAdopterInventaireServeur === 'function') {
     sbAdopterInventaireServeur(r); if (typeof renderInventory === 'function') renderInventory();
   }
@@ -397,10 +402,10 @@ function serrureIllustration(icone) {
 function serrureLieuLibelle(r) {
   if (r.cible === 'batiment') {
     const nomBat = (typeof BUILDINGS !== 'undefined' && BUILDINGS[r.batiment]?.name) || r.batiment || '';
-    return nomBat + (TRADING_VILLES[r.ville] ? ' (' + TRADING_VILLES[r.ville] + ')' : '');
+    return nomBat + (nomVilleTrading(r.ville) ? ' (' + nomVilleTrading(r.ville) + ')' : '');
   }
   const piece = (typeof BUILDINGS !== 'undefined' && BUILDINGS[r.batiment]?.rooms?.[r.piece]?.name) || r.piece || '';
-  return piece.replace(/ — Local à louer$/, '') + (TRADING_VILLES[r.ville] ? ' (' + TRADING_VILLES[r.ville] + ')' : '');
+  return piece.replace(/ — Local à louer$/, '') + (nomVilleTrading(r.ville) ? ' (' + nomVilleTrading(r.ville) + ')' : '');
 }
 function serrureRefusInventaire(x) { showToast('Refusé', equipementsRefus(x), false); return true; }
 

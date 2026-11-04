@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','entrepot-logistique-novomirsk'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -7311,6 +7311,33 @@ const BUILDINGS = {
           {fn:'inspecter_cargaisons', label:'Inspecter les cargaisons', pa:2, cost:0, type:'legal', icon:'ti-search', successRate:80, requiresPost:'min_def', desc:'Révèle contrebandes en cours.'}
         ]
       }
+    }
+  }
+};
+
+// Référentiel des établissements : identifiants économiques indépendants des libellés.
+const ENTREPOTS_LOGISTIQUES = {
+  republic: { capitale: 'entrepot-logistique-luthecia', ville_a: 'entrepot-logistique-psm', ville_b: 'entrepot-logistique-montrouge' },
+  soviet: { capitale: 'entrepot-logistique-novomirsk' }
+};
+function entrepotLogistiqueDe(pays, ville) { return ENTREPOTS_LOGISTIQUES[pays]?.[ville] || null; }
+
+// Même catalogue et mêmes ordres que les entrepôts existants, aucun moteur spécifique.
+// Les illustrations républiennes portent leur nom de ville : ne pas les présenter comme Novomirsk.
+BUILDINGS['entrepot-logistique-novomirsk'] = {
+  ...BUILDINGS['entrepot-logistique-luthecia'],
+  name: 'Entrepôt logistique de Novomirsk',
+  desc: 'L’entrepôt public de Novomirsk : matières premières, stocks et direction logistique.',
+  rooms: {
+    accueil: {
+      name: 'Accueil', imageBg: 'linear-gradient(135deg,#202a36,#344354)',
+      desc: 'Accueil de l’entrepôt logistique. La salle des ventes et le bureau de direction sont accessibles depuis la liste des salles.',
+      persons: [{name: 'Agent logistique de Novomirsk (PNJ)', role: 'Accueil logistique', job: 'fonctionnaire', rel: 'neutral'}], orders: []
+    },
+    salle_ventes: {...BUILDINGS['entrepot-logistique-luthecia'].rooms.salle_ventes, imageUrl: null},
+    bureau_direction: {
+      ...BUILDINGS['entrepot-logistique-luthecia'].rooms.bureau_direction, imageUrl: null,
+      persons: [{name: 'Directeur logistique de Novomirsk (PNJ)', role: 'Directeur de l’entrepôt logistique', job: 'directeur_entrepot', rel: 'neutral'}]
     }
   }
 };

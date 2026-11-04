@@ -1,0 +1,75 @@
+{
+  "note": "Journaux locaux exacts compressés sans modification ; aucune capture privée de production.",
+  "fichiers": [
+    {
+      "fichier": "clients.log.gz",
+      "octets": 2076,
+      "sha256": "5326401656e6438976b5191f04c22a1b5b0b185d7620fe1ce1df07ea31f45ff5",
+      "octets_decompresses": 6997,
+      "sha256_decompresse": "102bba19e04b72fa1950ede35bab8d3168cbba7473a06f0d049a3d8e629c3fc9"
+    },
+    {
+      "fichier": "cibles.log.gz",
+      "octets": 2674,
+      "sha256": "66afc54b4ac371c1e31a10b5aa2e17d9f8255f340ca32c47489469da4d73a977",
+      "octets_decompresses": 11757,
+      "sha256_decompresse": "d1830a53468fa53b18c6a1d0eae611c6806975a0d6a9e231fa206ec4a32b574b"
+    },
+    {
+      "fichier": "postgresql17.log.gz",
+      "octets": 1488,
+      "sha256": "bbf2e9a89b327adcd7c0277fe8814c88d5fb1b8a9558ce9ac5a5d90fd8daf7b3",
+      "octets_decompresses": 3330,
+      "sha256_decompresse": "255449ac1224e861968dbdb5721e3c31a5f59a2807187503fcb7d5d710694b1d"
+    },
+    {
+      "fichier": "concurrence.log.gz",
+      "octets": 1619,
+      "sha256": "3ac5bf6ff575063689c0a26102dee6734a9be3a1104cd07febea26b23f804400",
+      "octets_decompresses": 3669,
+      "sha256_decompresse": "74139f91f70f6e9f353566e83576142249b07fec93588b913e19d7ef3648b591"
+    },
+    {
+      "fichier": "chromium-navigation-inventaire.log.gz",
+      "octets": 774,
+      "sha256": "1dd58ef647888dc7bdbc01da733f6c6b02256e5f136ac74c6947ea391f231974",
+      "octets_decompresses": 1736,
+      "sha256_decompresse": "faea0a47f2bb6369972247659b622e49ab07456d12d03075350b724c80d483bc"
+    },
+    {
+      "fichier": "bundle-vercel.log.gz",
+      "octets": 861,
+      "sha256": "35c3a4dbced94d4731b21238ab624e82062bc6ba9b2f1c5fd8e06d3ce27a8965",
+      "octets_decompresses": 6604,
+      "sha256_decompresse": "0580e3aeb6bd2ac5dd672f0df6059b8bdd8eeeb845c10d55b0fc1d349b5d4aa6"
+    },
+    {
+      "fichier": "globaux.log.gz",
+      "octets": 2199,
+      "sha256": "d0634d24e7c6260111a7917ddda0f7df549cdacfdd82226f1108fc2fe214d9c4",
+      "octets_decompresses": 6864,
+      "sha256_decompresse": "93ed3dc256ad21b4051ca56157e67709998763a8d15be28f877e8f3680ba8670"
+    },
+    {
+      "fichier": "reference-main-7def091f-globaux.log.gz",
+      "octets": 2281,
+      "sha256": "87084061930f37e228694719c733886d328abf24e5bc042a47ac14f2775109f2",
+      "octets_decompresses": 7003,
+      "sha256_decompresse": "5c1e7930273dfc8d4d68b91fbbc867165a1e448352168d866e695bfea08f7693"
+    },
+    {
+      "fichier": "workflow-contre-epreuves.log.gz",
+      "octets": 544,
+      "sha256": "25855e09ad2ac42b36d7fd17a0906a01cb6ad63a84afd51bd5dbca9c27da6d69",
+      "octets_decompresses": 949,
+      "sha256_decompresse": "96e6318eb8103026555f6444b21430f28734c260c030e378a046d8598f666b0d"
+    },
+    {
+      "fichier": "clients-resultats.json.gz",
+      "octets": 2726,
+      "sha256": "210ec5954f3f4555662e4aadf432552a3698ce315dc31c32865d5e982c25424a",
+      "octets_decompresses": 23998,
+      "sha256_decompresse": "b97fb2ca7d305a397c1773340ba925a42e4fe371101a9b63acb7ce5828b67fc9"
+    }
+  ]
+}
