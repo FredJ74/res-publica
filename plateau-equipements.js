@@ -395,7 +395,7 @@ function serruresBlocLocalHtml(r) {
   let h = '<div class="cpj-titre">Serrure de ce local</div>';
   if (s.lieu) {
     h += ligne('Serrure n° ' + equipementsEchapper(s.lieu.numero) + ' — ' + (s.lieu.fermee ? 'fermée à clé' : 'ouverte'),
-      s.lieu.a_cle ? equipementsBouton('serrureBasculer(\'' + s.lieu.id + '\',' + (!s.lieu.fermee) + ')', s.lieu.fermee ? 'Ouvrir' : 'Fermer à clé', true)
+      s.lieu.a_cle ? equipementsBouton('serrureBasculer(\'' + s.lieu.id + '\',' + (!s.lieu.fermee) + ')', s.lieu.fermee ? 'Ouvrir au public' : 'Fermer à clé', true)
                    : '<span class="cpj-note">Vous n\'en avez pas la clé.</span>');
   } else if (s.lieu_posable && s.blocs.length) {
     s.blocs.forEach(function (b) {
@@ -426,11 +426,33 @@ async function serrurePoser(serrureId, cible, equipementId) {
 async function serrureBasculer(serrureId, fermer, retourCle) {
   const r = await sbRpc('serrure_basculer', { p_serrure: serrureId, p_fermer: fermer }).catch(function () { return null; });
   if (!r || r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
-  showToast(r.fermee ? 'Fermé à clé' : 'Ouvert', 'Serrure n° ' + r.numero + (r.fermee ? ' fermée à clé.' : ' ouverte.'), true);
+  showToast(r.fermee ? 'Fermé à clé' : 'Ouvert', 'Serrure n° ' + r.numero + (r.fermee ? ' fermée à clé.' : (r.cible === 'lieu' ? ' : le local est ouvert au public.' : ' ouverte.')), true);
+  if (state.currentBuilding) serruresPortesCharger(state.currentBuilding);
   if (retourCle != null) ouvrirSerrureObjet(retourCle); else ouvrirModalEquipements();
 }
 
 // Clic sur un objet de serrurerie dans l'inventaire.
+// Portes fermees a cle du batiment courant (decision de Fred du 04/11/2026, 14 h 07) : cadenas et
+// infobulle « Fermé à clé » sur l'onglet du local ; clic reserve a qui detient une cle. Cache
+// rempli par la lecture serveur serrures_portes_lire, a l'entree du batiment et apres chaque
+// fermeture/ouverture ; les onglets sont redessines si l'etat a change.
+let RP_SERRURES_PORTES = { cle: '', pieces: {} };
+function serrurePorteEtat(buildingId, roomId) {
+  const cle = [state.country, state.currentCity, buildingId].join('|');
+  return RP_SERRURES_PORTES.cle === cle ? (RP_SERRURES_PORTES.pieces[roomId] || null) : null;
+}
+async function serruresPortesCharger(buildingId) {
+  if (!buildingId || typeof sbRpc !== 'function') return;
+  const cle = [state.country, state.currentCity, buildingId].join('|');
+  const r = await sbRpc('serrures_portes_lire', { p_batiment: buildingId }).catch(function () { return null; });
+  if (!r || r.ok !== true || state.currentBuilding !== buildingId) return;
+  const avant = RP_SERRURES_PORTES.cle === cle ? JSON.stringify(RP_SERRURES_PORTES.pieces) : null;
+  RP_SERRURES_PORTES = { cle: cle, pieces: r.pieces || {} };
+  if (avant !== JSON.stringify(RP_SERRURES_PORTES.pieces) && typeof renderOngletsPieces === 'function') {
+    renderOngletsPieces(buildingId, state.currentRoom);
+  }
+}
+
 function ouvrirSerrureObjet(idx) {
   const item = state.inventory[idx];
   if (!item) return;
@@ -471,7 +493,7 @@ async function ouvrirCleSerrure(idx) {
       (r.cible === 'lieu' ? 'porte de ' + equipementsEchapper(serrureLieuLibelle(r)) : 'armoire à souvenirs') +
       ' — <strong>' + (r.fermee ? 'fermée à clé' : 'ouverte') + '</strong></p>';
     h += r.a_portee
-      ? equipementsBouton('serrureBasculer(\'' + r.serrure + '\',' + (!r.fermee) + ',' + idx + ')', r.fermee ? 'Ouvrir' : 'Fermer à clé', true)
+      ? equipementsBouton('serrureBasculer(\'' + r.serrure + '\',' + (!r.fermee) + ',' + idx + ')', r.fermee ? (r.cible === 'lieu' ? 'Ouvrir au public' : 'Ouvrir') : 'Fermer à clé', true)
       : '<p class="cpj-note">' + (r.cible === 'lieu' ? 'Pour la fermer ou l\'ouvrir, soyez dans le bâtiment.' : 'Pour la fermer ou l\'ouvrir, soyez dans la pièce de l\'armoire.') + '</p>';
   }
   h += '<p class="cpj-note">Une clé se donne ou s\'échange comme tout objet : elle ouvre pour qui la détient.</p>';
