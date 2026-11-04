@@ -104,7 +104,9 @@ function minimapCard(id) {
 
   const locked = b.locked ? '<span style="font-size:.8rem;color:#5a3020">· Accès restreint</span>' : '';
 
+  const serrureBat = (typeof serrureBatimentEtat === 'function') ? serrureBatimentEtat(id) : null;
   const tooltipData = JSON.stringify({
+    batiment: id,
     name: localName,
     desc: localDesc.substring(0,140) + (localDesc.length > 140 ? '...' : ''),
     pnj: pnjList.slice(0, 4).map(p => (p.name||'').replace(' (PNJ)','')),
@@ -114,7 +116,7 @@ function minimapCard(id) {
   return '<div class="minimap-building ' + (b.capitaleOnly ? 'capital-only' : '') + '" onclick="enterBuilding(\'' + id + '\')" onmouseenter="showBuildingTooltip(' + tooltipData + ')" onmouseleave="hideBuildingTooltip()">' +
     '<div class="minimap-bld-icon"><i class="ti ' + b.icon + '" style="font-size:.8rem"></i></div>' +
     '<div class="minimap-bld-info">' +
-      '<div class="minimap-bld-name">' + localName + '</div>' +
+      '<div class="minimap-bld-name">' + localName + (serrureBat ? ' <i class="ti ' + (serrureBat.fermee ? 'ti-lock' : 'ti-lock-open') + '"></i>' : '') + '</div>' +
       '<div class="minimap-bld-cat">' + b.cat + ' ' + locked + '</div>' +
       (personCount > 0 ? '<div class="minimap-persons">' + personCount + ' personne' + (personCount > 1 ? 's' : '') + '</div>' : '') +
     '</div>' +
@@ -125,6 +127,9 @@ function showBuildingTooltip(data) {
   const el = document.getElementById('building-hover-tooltip');
   if (!el) return;
   let html = '<div class="mtt-title">' + data.name + '</div>';
+  const serrureBat = (data.batiment && typeof serrureBatimentEtat === 'function') ? serrureBatimentEtat(data.batiment) : null;
+  if (serrureBat) html += '<div class="mtt-desc"><i class="ti ' + (serrureBat.fermee ? 'ti-lock' : 'ti-lock-open') + '"></i> '
+    + (serrureBat.fermee ? (serrureBat.a_cle ? 'Fermé à clé — vous en avez la clé' : 'Fermé à clé') : 'Ouvert au public') + '</div>';
   if (data.desc) html += '<div class="mtt-desc">' + data.desc + '</div>';
   if (data.pnj && data.pnj.length) {
     html += '<div class="mtt-pnj">' + data.pnj.map(n => '<div style="font-size:.72rem;color:#8a8060">· ' + n + '</div>').join('') + '</div>';
@@ -149,6 +154,7 @@ function hideBuildingTooltip() {
 // carte le trottoir correspondant, au lieu de dependre d'une memoire locale (voir plus bas).
 function showVueRue(batimentQuitte, positionConfirmee = null) {
   hideBuildingTooltip();
+  if (typeof serruresBatimentsCharger === 'function') serruresBatimentsCharger();
   document.getElementById('vue-rue').classList.add('active');
   document.getElementById('vue-batiment').classList.remove('active');
   state.currentBuilding = null;
@@ -314,6 +320,7 @@ async function commanderNavigationInterieure(buildingId,roomId) {
         acces_collectif_a_raccorder:'Cet accès particulier n’est pas encore disponible pour un groupe.',
         batiment_ferme:'Ce bâtiment est fermé.',porte_fermee_a_cle:'Cette porte est fermée à clé.',blocus_syndical:'Un blocus syndical interdit d’aller plus loin que la première pièce.',rendezvous_ssm_requis:'Le bureau d’Edwige Jacquard est accessible uniquement le jour de votre rendez-vous. Demandez un rendez-vous à Pascale, à l’accueil.',destination_inconnue:'Cette destination n’est pas référencée.',
         entree_non_accessible:'Ce bâtiment n’est pas accessible depuis votre position.',groupe_disperse:'Les membres du groupe ne sont plus réunis.'};
+      if(r?.raison==='porte_fermee_a_cle'&&typeof serrurePopupFermee==='function'){serrurePopupFermee(r.batiment?'batiment':'local');return false;}
       const incident=r||v;
       const perdu=['non_authentifie','acteur_non_authentifie','session_perdue'].includes(incident?.raison)||incident?.transport?.etat==='session_perdue';
       if(typeof showToast==='function')showToast(perdu?'Session expirée':'Déplacement non confirmé',
@@ -361,6 +368,12 @@ async function commanderNavigationInterieure(buildingId,roomId) {
 }
 
 function enterBuilding(buildingId, skipAutoRoom) {
+  // Batiment ferme a cle (decision de Fred du 04/11) : seul un detenteur de cle entre ; le serveur
+  // refuse de toute facon (navigation_interieure : porte_fermee_a_cle).
+  if (state.currentBuilding !== buildingId && typeof serrureBatimentEtat === 'function') {
+    const eb = serrureBatimentEtat(buildingId);
+    if (eb && eb.fermee && !eb.a_cle) { serrurePopupFermee('batiment'); return; }
+  }
   if(state._navigationServeur===true&&state.currentBuilding!==buildingId
       &&navigationInterieureRendu?.buildingId!==buildingId){
     const b=BUILDINGS[buildingId],ctx=getBuildingContext(buildingId);
@@ -628,12 +641,14 @@ function renderOngletsPieces(buildingId, roomActifId) {
       // Porte fermee a cle (serrures, decision de Fred du 04/11/2026) : l'infobulle le dit ; seul
       // un PJ qui detient une cle peut cliquer pour entrer. Le serveur refuse de toute facon
       // (navigation_interieure : porte_fermee_a_cle) : l'onglet ne fait qu'annoncer sa reponse.
+      // Decision du 04/11 (14 h 27) : un cadenas dessine a cote du nom, ouvert ou ferme selon l'etat ;
+      // clic sur un local ferme sans cle : une fenetre le dit.
       const porte = (typeof serrurePorteEtat === 'function') ? serrurePorteEtat(buildingId, roomId) : null;
-      const porteInterdite = !!(porte && !porte.a_cle && roomId !== state.currentRoom);
-      const style = locked ? 'opacity:.4;pointer-events:none;cursor:not-allowed' : (porteInterdite ? 'opacity:.55;cursor:not-allowed' : '');
-      const icon = (locked || porte) ? '🔒 ' : '';
-      const titre = porte ? (porte.a_cle ? 'Fermé à clé — vous en avez la clé' : 'Fermé à clé') : '';
-      const clic = porteInterdite ? "showToast('Fermé à clé','Seul un détenteur de la clé peut entrer.',false)"
+      const porteInterdite = !!(porte && porte.fermee && !porte.a_cle && roomId !== state.currentRoom);
+      const style = locked ? 'opacity:.4;pointer-events:none;cursor:not-allowed' : (porteInterdite ? 'cursor:not-allowed' : '');
+      const icon = locked ? '🔒 ' : (porte ? '<i class="ti ' + (porte.fermee ? 'ti-lock' : 'ti-lock-open') + '"></i> ' : '');
+      const titre = porte ? (porte.fermee ? (porte.a_cle ? 'Fermé à clé — vous en avez la clé' : 'Fermé à clé') : 'Ouvert au public') : '';
+      const clic = porteInterdite ? "serrurePopupFermee('local')"
         : "enterRoom('" + buildingId + "','" + roomId + "',this)";
       // Meme regle de nom que le titre de la piece (plateau-variantes-pieces.js) :
       // un local occupe ne doit pas rester annonce « a louer » dans son onglet
