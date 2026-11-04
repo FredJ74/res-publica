@@ -3061,7 +3061,14 @@ function submitMail() {
 // Publication et gain POP dans la même transaction, mêmes sujets et messages.
 async function forumPublierAvecJauges(topic,titre,contenu,blocs,miseEnPage,identite) {
   if(typeof executerOrdreJaugesServeur!=='function')return null;
-  const v=await executerOrdreJaugesServeur('forum_publier',{forum:currentForumId,topic,titre,contenu,blocs,mise_en_page:miseEnPage,organisation:identite.idOrga||null,secret:!!identite.authorSecret,icone:identite.orgIcon||null});
+  const forumId = currentForumId;
+  // Controle du forum local juste avant l'envoi : un voyage peut rendre le
+  // forum de l'editeur perime, meme si son affichage n'a pas encore change.
+  if (!forumId || (forumId.startsWith('local_') && forumId !== idForumLocal(state.currentCity))) {
+    showToast('Forum local à rouvrir', 'La ville du forum a changé. Rouvrez le forum local pour publier dans la bonne ville.', false);
+    return null;
+  }
+  const v=await executerOrdreJaugesServeur('forum_publier',{forum:forumId,topic,titre,contenu,blocs,mise_en_page:miseEnPage,organisation:identite.idOrga||null,secret:!!identite.authorSecret,icone:identite.orgIcon||null});
   if(!v||typeof v.topic!=='string'||typeof v.post!=='string')return null;
   return v;
 }
