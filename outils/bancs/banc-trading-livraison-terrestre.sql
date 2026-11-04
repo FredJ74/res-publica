@@ -3,11 +3,10 @@
 -- caisse terrestre vers l'Entrepot Logistique de Luthecia (plus le port de PSM), courrier recu,
 -- retrait refuse au port, accepte a la Salle des ventes une fois la caisse arrivee.
 -- La connexion (ordinateur + box) est simulee dans la transaction : elle n'est pas l'objet du banc.
-CREATE OR REPLACE FUNCTION public.trading_connexion_interne(p_acteur text) RETURNS boolean
-LANGUAGE sql AS $f$ SELECT true $f$;
 DO $$
 DECLARE n text := 'Jean Jaaj'; u uuid; r jsonb; c record; org text; nmail integer; inv0 numeric; inv1 numeric; rev bigint; ligne uuid;
 BEGIN
+  EXECUTE 'CREATE OR REPLACE FUNCTION public.trading_connexion_interne(p_acteur text) RETURNS boolean LANGUAGE sql AS ''SELECT true''';
   SELECT user_id INTO u FROM public.personnages_donnees WHERE name = n;
   SELECT t.id INTO org FROM public.trading_organisations_interne(n) t LIMIT 1;
   UPDATE public.personnages_donnees SET pa = greatest(coalesce(pa,0), 10) WHERE name = n;
