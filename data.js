@@ -1382,8 +1382,9 @@ const WORLD = {
         },
         // Images d'interieur (18 aout 2026, suite du chantier images Montrouge) : roomOverrides
         // couvre les rooms deja existantes (image seule, jamais persons/orders/mecanique).
-        // banque-locale recoit en plus une room roomsExtra "bureau_directeur" -- purement
-        // spatiale/visuelle (aucun ordre, aucun PNJ, aucune mecanique bancaire), meme principe
+        // banque-locale recoit en plus une room roomsExtra "bureau_directeur" : Robert Pelisson
+        // y tient le meme role de directeur que Marie Le Roux a PSM, sans ordre metier en plus.
+        // Seuls le casting et le dialogue changent, aucune mecanique bancaire, meme principe
         // deja etabli que 'imprimerie' (la-tribune) ou 'salle_elections'/'salle_archives'
         // (mairie) ci-dessus. L'override mort 'banque-nationale' (ligne 355, jamais atteignable
         // car absent de la liste "buildings" de Montrouge) est laisse tel quel, hors perimetre.
@@ -1398,7 +1399,9 @@ const WORLD = {
               imageBg: "linear-gradient(135deg,#0d0d08,#181808)",
               desc: "Le bureau du directeur de l'agence. Porte capitonnee, silence feutre.",
               imageUrl: "images/montrouge/montrouge-banque-bureau-directeur.jpg",
-              persons: [],
+              persons: [
+                {name:'Robert Pelisson (PNJ)', role:'Directeur de la Banque Cheminote de Montrouge', rel:'neutral', job:'directeur'}
+              ],
               orders: []
             }
           }
@@ -3343,8 +3346,8 @@ const BUILDINGS = {
         orders: [
           {fn:'gerer_finances', label:'Gérer mon compte / mes placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},
           {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
-          {fn:'virement_joueur', label:'Faire un virement', pa:1, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:"Virer de l'argent de votre compte vers celui d'un autre joueur, en une fois."},
-          {fn:'virement_automatique', label:'Mettre en place un virement automatique', pa:1, cost:0, type:'legal', icon:'ti-repeat', successRate:100, desc:"Verser chaque jour ou chaque semaine une somme à un autre joueur (un salaire, par exemple). Il s'arrête à tout moment depuis votre fiche."},
+          // Sous-menu de navigation gratuit ; chacune des deux operations conserve son debit serveur de 1 PA.
+          {fn:'virements', label:'Virements', pa:0, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:'Choisir un virement unique ou un virement récurrent (1 PA lors de sa confirmation).'},
           {fn:'presenter_autorisation_coffre', label:'Présenter une autorisation judiciaire', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Accéder à un coffre grâce à une autorisation du juge.'}
         ]
       },
@@ -4831,8 +4834,8 @@ const BUILDINGS = {
         orders: [
           {fn:'gerer_finances', label:'Gérer mon compte / mes placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},
           {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
-          {fn:'virement_joueur', label:'Faire un virement', pa:1, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:"Virer de l'argent de votre compte vers celui d'un autre joueur, en une fois."},
-          {fn:'virement_automatique', label:'Mettre en place un virement automatique', pa:1, cost:0, type:'legal', icon:'ti-repeat', successRate:100, desc:"Verser chaque jour ou chaque semaine une somme à un autre joueur (un salaire, par exemple). Il s'arrête à tout moment depuis votre fiche."}
+          // Sous-menu de navigation gratuit ; chacune des deux operations conserve son debit serveur de 1 PA.
+          {fn:'virements', label:'Virements', pa:0, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:'Choisir un virement unique ou un virement récurrent (1 PA lors de sa confirmation).'}
         ]
       }
     }

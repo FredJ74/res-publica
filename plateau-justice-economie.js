@@ -12544,6 +12544,27 @@ async function confirmerPrelevementCaisseBNE() {
   ouvrirCaisseBNE();
 }
 
+// Guichets nationaux et locaux : un seul ordre d'accueil, aucun debit a l'ouverture.
+// Les formulaires existants et les RPC serveur restent les seules voies de paiement.
+function ouvrirChoixVirements() {
+  if (!['banque-nationale', 'banque-locale'].includes(state.currentBuilding)) {
+    showToast('Accès réservé', 'Présentez-vous au guichet de la Banque Nationale.', false);
+    return;
+  }
+  const titre = document.getElementById('postes-modal-title');
+  const corps = document.getElementById('postes-body');
+  const modal = document.getElementById('modal-postes');
+  if (!titre || !corps || !modal) return;
+  titre.textContent = 'Virements — Banque Nationale';
+  corps.innerHTML = '<div class="cpj-dialogue">'
+    + '<p class="cpj-note" style="margin:0 0 .8rem">Choisissez le type de virement. Aucun PA n’est dépensé à cette étape.</p>'
+    + '<button type="button" class="cpj-touche cpj-primaire" style="display:block;width:100%;margin-bottom:.65rem" onclick="ouvrirVirementJoueur(false)">Virement unique</button>'
+    + '<button type="button" class="cpj-touche" style="display:block;width:100%" onclick="ouvrirVirementJoueur(true)">Virement récurrent</button>'
+    + '<p class="cpj-note" style="margin:.8rem 0 0">Chaque virement coûte 1 PA à sa confirmation. Le virement récurrent peut être quotidien ou hebdomadaire.</p>'
+    + '</div>';
+  modal.classList.add('open');
+}
+
 async function ouvrirVirementJoueur(automatique) {
   VIREMENT_DESTINATAIRE = null;
   const titre = automatique ? 'Virement automatique — Banque Nationale' : 'Faire un virement — Banque Nationale';
