@@ -28,7 +28,8 @@ class Plan(unittest.TestCase):
         self.assertEqual(result['tarifs_ajoutes_manufactures'], [
             {'fn': 'consulter_catalogue_manufactures', 'pa': 0, 'cost': 0}
         ])
-        self.assertEqual(result['tarifs_actuels']['lignes'], 460)
+        # +4 prix d'achat des parcelles de PSM (04/11/2026).
+        self.assertEqual(result['tarifs_actuels']['lignes'], 464)
         self.assertEqual(len(result['tarifs_actuels']['md5']), 32)
         self.assertFalse(result['execution_autorisee'])
         self.assertTrue(result['ancien_plan_tarifaire_conforme_source'])

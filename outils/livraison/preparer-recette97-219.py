@@ -35,7 +35,13 @@ def preparer(paquet=None):
  hors_coupe_manufactures=[x for x in source if x['fn'] in ajouts_manufactures]
  if hors_coupe_manufactures!=[{'fn':'consulter_catalogue_manufactures','pa':0,'cost':0}]:
   raise ValueError('Catalogue manufacturé absent ou tarif inattendu')
- source_historique=[x for x in source if x['fn'] not in ajouts_ssm+ajouts_manufactures]
+ # Six parcelles de PSM (decision de Fred, 04/11/2026) : nouveaux prix d'achat (12 FR/m²)
+ # des lots 9, 11, 12 et 13, absents du plan 97 (26 400 FR existait deja a Montrouge). Exclus de la photographie, controles ici.
+ ajouts_terrains_psm=[{'fn':'acheter_terrain','pa':2,'cost':c} for c in (19800,37200,50400,66000)]
+ cle=lambda x:(x['fn'],x['pa'],x['cost'])
+ if not all(any(cle(x)==cle(t) for x in source) for t in ajouts_terrains_psm):
+  raise ValueError('Prix des terrains de PSM absents du catalogue actuel')
+ source_historique=[x for x in source if x['fn'] not in ajouts_ssm+ajouts_manufactures and cle(x) not in {cle(t) for t in ajouts_terrains_psm}]
  # Les deux virements bancaires sont désormais un sous-menu graphique (04/11) :
  # leurs anciens triplets sont maintenus dans la photographie d'origine,
  # et le menu gratuit 'virements' n'appartenait pas au plan 97.
