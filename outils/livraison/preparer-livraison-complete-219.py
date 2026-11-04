@@ -29,12 +29,18 @@ def preparer(destination=None):
  nouveau='consulter_catalogue_manufactures'
  if [r for r in gen if r['fn']==nouveau]!=[{'fn':nouveau,'pa':0,'cost':0}]:
   raise ValueError('Ordre catalogue manufacture absent ou incorrect')
+ # Sous-menu de virement ajoute apres la photographie 95 : il est gratuit,
+ # et les deux voies de paiement originelles restent dans le catalogue historique.
+ if [r for r in gen if r['fn']=='virements']!=[{'fn':'virements','pa':0,'cost':0}]:
+  raise ValueError('Menu Virements absent ou tarif non conforme')
  retires=[('assigner_mission',1,0),
           ('fabriquer_armoire_souvenirs',3,0),
-          ('acheter_armoire_souvenirs',0,0)]
+          ('acheter_armoire_souvenirs',0,0),
+          ('virement_joueur',1,0),
+          ('virement_automatique',1,0)]
  if any(r['fn'] in {t[0] for t in retires} for r in gen):
   raise ValueError('Ordre retiré réintroduit dans les commandes actuelles')
- t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,)]+retires)
+ t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements')]+retires)
  md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
  if md5!=cm['apres']['md5'] or len(t)!=cm['apres']['lignes']:raise ValueError('Sources de tarifs changées : réexaminer le plan')
  entrees=om['migrations']+gm['prerequis']+gm['migrations']+[{'version':cm['version'],'fichier':cm['migration'],'sha256':cm['sha256']}]

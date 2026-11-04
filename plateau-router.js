@@ -821,6 +821,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Bureau National de l'Emploi (9 aout 2026)
   if (fn === 'consulter_offres_emploi')    { ouvrirOffresEmploiBNE(); return; }
   if (fn === 'bne_passer_annonce')         { ouvrirFormulaireAnnonceBNE(); return; }
+  if (fn === 'virements')                  { ouvrirChoixVirements(); return; }
   if (fn === 'virement_joueur')            { ouvrirVirementJoueur(false); return; }
   if (fn === 'virement_automatique')       { ouvrirVirementJoueur(true); return; }
 

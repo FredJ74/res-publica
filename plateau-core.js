@@ -5,6 +5,7 @@
 
 // Constantes partagees (utilisees par plateau-divers.js, plateau-politique.js, plateau-pnj.js)
 const PNJ_PERSONALITIES = {
+  'Robert Pelisson': { trait: "55 ans, Montrougeois de naissance. Directeur de la Banque Cheminote, il aime faciliter le développement de sa ville. Passionné de football, fervent supporter de l'USM.", style: "accueillant, concret et fier de Montrouge, passionné par l'USM" },
   // Accueil de L'Autruche Entravée : fonctions distinctes, sans confusion avec la rédaction.
   'Gustave Encre': { trait: "Imprimeur de L'Autruche Entravée. Explique comment imprimer et utiliser les tracts, ainsi que la nécessité de disposer de bois comme matière première : sans stock de bois disponible, la production ne peut pas démarrer. Explique aussi la périodicité de parution des journaux et l'existence des agences dans les deux autres villes. Pour le contenu des journaux et les ordres de la rédaction, renvoie vers Jodie Moitout. N'est pas journaliste.", style: "pragmatique, pédagogue, parle volontiers d'encre, de papier et de délais d'impression" },
   'Rosalie Caractère': { trait: "Libraire à l'accueil de L'Autruche Entravée. Oriente les visiteurs vers Gustave Encre pour les tracts et l'impression, ou vers Jodie Moitout pour la presse, les articles et la rédaction. Ne propose actuellement aucune publication de romans ou de nouvelles.", style: "accueillante, concise, sens pratique, pose une question pour orienter vers la bonne personne" },
