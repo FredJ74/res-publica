@@ -41,13 +41,14 @@ test('les ordres morts interdire_manif_cible / reprimer_manif_cible ne sont plus
   assert.doesNotMatch(fs.readFileSync('plateau-router.js', 'utf8'), /manif_cible/);
 });
 
-// Don d'argent sur un terrain : la branche « promoteur » (+5 INF) est retirée ; les jets des
-// squatteurs (hors POP/INF) restent à l'écran, d'où une garde limitée aux jauges.
+// Don d'argent sur un terrain : la branche « promoteur » (+5 INF) est retirée ; depuis le 04/11/2026
+// les jets et le prélèvement des squatteurs sont au serveur (terrain_squatteurs_don).
 for (const nom of ['confirmerDonArgent', 'confirmerDonPnj']) {
   test(nom + ' : aucune écriture locale de POP ou INF, aucun débit local', () => {
     const c = corps('plateau-justice-economie.js', nom).replace(/\/\/.*$/gm, '');
     assert.doesNotMatch(c, /state\.(pop|inf)\s*(=[^=]|\+=|-=)/);
-    if (nom === 'confirmerDonPnj') assert.doesNotMatch(c, /state\.arg\s*(\+=|-=)/);
+    assert.doesNotMatch(c, /state\.arg\s*(\+=|-=)/);
+    if (nom === 'confirmerDonArgent') assert.doesNotMatch(c, /Math\.random\(\)/);
   });
 }
 

@@ -96,8 +96,11 @@ att('les inscriptions restantes passent par le helper',
 // 27 octobre 2026 : le retrait apres justification a quitte l'ecran (convocation_se_justifier).
 // 3 novembre 2026 : le retrait du motif juge apres une arrestation se fait au serveur
 // (arrestation_flagrant_interne), dans la transaction qui ouvre la peine.
-att('les retraits restants passent par le helper',
-    partout(/retirerRecherche\(/g) >= 3, partout(/retirerRecherche\(/g) + ' appel(s)');
+// 4 novembre 2026 : la desertion est retiree au serveur (demobilisation nationale, incorporation) ;
+// il ne reste que le helper lui-meme, pour un futur retrait legitime.
+att('les retraits restants passent par le helper (aucun retrait direct)',
+    partout(/retirerRecherche\(/g) >= 1 && partout(/sbRpc\('recherche_retirer'/g) === 1,
+    partout(/retirerRecherche\(/g) + ' occurrence(s)');
 
 print('');
 print('3. LES HELPERS RECOPIENT L ETAT DU SERVEUR, ILS NE LE RECALCULENT PAS');
@@ -157,17 +160,16 @@ var dPol = CODE['plateau-politique.js'];
 // fichier relevent d'autres chaines (17 et 18 pour la revocation d'un titulaire et des deputes)
 // ou d'autres mecanismes : les compter ici ferait rougir ce banc pour un defaut qui n'est pas le
 // sien.
-att("plus aucun sbUpdate('personnages') dans les deux chemins de desertion",
-    compte(sansCommentaires(bloc('plateau-politique.js', 'eteindrePoursuitesDesertion')),
-           /sbUpdate\('personnages'/g) === 0
-    && compte(sansCommentaires(bloc('plateau-politique.js', 'doAccepterIncorporation')),
+// eteindrePoursuitesDesertion retiree le 04/11/2026 : l'extinction est nationale et serveur.
+att("eteindrePoursuitesDesertion n'existe plus (extinction serveur)",
+    dPol.indexOf('async function eteindrePoursuitesDesertion(') < 0);
+att("plus aucun sbUpdate('personnages') dans l'incorporation",
+    compte(sansCommentaires(bloc('plateau-politique.js', 'doAccepterIncorporation')),
            /sbUpdate\('personnages'/g) === 0);
 att("plus aucune requisition serialisee en chaine avant d'etre ecrite",
     dPol.indexOf('JSON.stringify(state.char.requisition)') < 0);
-att("sbSavePersonnage reste le seul ecrivain du blob dans ces deux chemins",
-    compte(sansCommentaires(bloc('plateau-politique.js', 'eteindrePoursuitesDesertion')),
-           /sbSavePersonnage\(/g) === 1
-    && compte(sansCommentaires(bloc('plateau-politique.js', 'doAccepterIncorporation')),
+att("sbSavePersonnage reste le seul ecrivain du blob dans l'incorporation",
+    compte(sansCommentaires(bloc('plateau-politique.js', 'doAccepterIncorporation')),
            /sbSavePersonnage\(/g) === 1);
 
 print('');
