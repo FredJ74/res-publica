@@ -340,6 +340,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('produire_arme',0,0),
   ('produire_carburant',1,0),
   ('produire_commerce',0,0),
+  ('produire_derives_petrochimiques',1,0),
   ('produire_desinfectant',1,0),
   ('produire_fuite',2,0),
   ('produire_medicaments',1,0),

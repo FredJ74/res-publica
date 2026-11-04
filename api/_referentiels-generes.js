@@ -257,6 +257,12 @@ export const RESSOURCES_ECONOMIE_SERVEUR = {
     "prixAchatFournisseur": 10,
     "source": "transformation"
   },
+  "derives_petrochimiques": {
+    "plafond": 100,
+    "prixBase": 20,
+    "prixAchatFournisseur": 10,
+    "source": "transformation"
+  },
   "desinfectant": {
     "plafond": 100,
     "prixBase": 18,

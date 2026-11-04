@@ -6681,10 +6681,11 @@ const BUILDINGS = {
         name: "Salle de Production",
         imageBg: "linear-gradient(135deg,#0a0d10,#12161a)",
         imageUrl: "images/montrouge/montrouge-raffinerie-usine-production.jpg",
-        desc: "Les installations de raffinage. Le pétrole brut livré y est transformé en carburant.",
+        desc: "Les installations de raffinage. Le pétrole brut livré y est transformé en carburant ou en dérivés pétrochimiques. Ces derniers servent à fabriquer vernis, goudron, résines, diluants et revêtements selon les besoins des industries.",
         persons: [],
         orders: [
           {fn:'produire_carburant', label:'Produire du carburant', pa:1, cost:0, type:'legal', icon:'ti-gas-station', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 70 FR. Consomme 5 pétrole du stock de matières de l\'usine, produit 10 carburants.'},
+          {fn:'produire_derives_petrochimiques', label:'Produire des dérivés pétrochimiques', pa:1, cost:0, type:'legal', icon:'ti-flask', successRate:100, desc:'1 PA, 70 FR de main-d’œuvre, 5 pétrole pour 10 unités de dérivés pétrochimiques (résines, vernis, diluants, goudrons selon l’usage).'},
           // Audit PSM/Montrouge (01/11/2026) : sans cet ordre, aucune matiere ne pouvait entrer
           // dans cette usine (vendre_matiere_a_usine accepte deja ses chaines cote serveur).
           {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.'}
@@ -8610,6 +8611,7 @@ const RESSOURCES_ECONOMIE = {
   alcool:       { label: 'Alcool',       icon: 'ti-glass-full',  prixBase: 14, prixAchatFournisseur: 7,   plafond: 100, source: 'transformation' },
   tabac:        { label: 'Tabac',        icon: 'ti-cigarette',   prixBase: 18, prixAchatFournisseur: 9,   plafond: 100, source: 'transformation' },
   carburant:    { label: 'Carburant',    icon: 'ti-gas-station', prixBase: 20, prixAchatFournisseur: 10,  plafond: 100, source: 'transformation' },
+  derives_petrochimiques: { label: 'Dérivés pétrochimiques', icon: 'ti-flask', prixBase: 20, prixAchatFournisseur: 10, plafond: 100, source: 'transformation' },
   // Filiere alcool->desinfectant (20 aout 2026) : valeurs validees par Fred. Aucun debouche
   // medical/effet de soin ajoute pour l'instant -- une ressource transformee comme les autres.
   desinfectant: { label: 'Désinfectant', icon: 'ti-droplet',     prixBase: 18, prixAchatFournisseur: 9,   plafond: 100, source: 'transformation' }

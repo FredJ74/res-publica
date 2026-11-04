@@ -250,6 +250,11 @@ const RESSOURCES_ECONOMIE = {
     "prixBase": 20,
     "prixAchatFournisseur": 10
   },
+  "derives_petrochimiques": {
+    "plafond": 100,
+    "prixBase": 20,
+    "prixAchatFournisseur": 10
+  },
   "desinfectant": {
     "plafond": 100,
     "prixBase": 18,
