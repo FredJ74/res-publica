@@ -1903,6 +1903,11 @@ const WORLD = {
           name: "Librairie du Peuple",
           imagesAVenir: true,
           desc: "La librairie du Parti, sur la Place du Peuple. On y imprime livres, brochures et tracts, sous l'oeil bienveillant du Comite.",
+          roomOverrides: {
+            accueil_imprimerie: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novo_librairie_accueil.png'
+            }
+          },
           persons: [{name: 'Ludmila Pamphletova (PNJ)', role: 'PNJ - Libraire-imprimeuse du Parti', rel: 'neutral', job: 'imprimeur'}]
         },
         // Restaurant La Mere Volga (vue 2) : copie du Capitaine Sauvage de PSM (decision de Fred,
