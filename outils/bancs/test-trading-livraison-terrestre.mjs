@@ -51,3 +51,12 @@ test("le courrier d'arrivée est déclenché par la lecture du courrier et par l
   const f = cron.slice(cron.indexOf('async function traiterArriveesCaissesFret('));
   assert.ok(f.indexOf("sbRpc('fret_arrivees_constater'") < f.indexOf("sbGet('caisses_fret'"));
 });
+
+test('le manifeste du port affiche des noms de villes et des statuts en clair, jamais les identifiants', () => {
+  const src = lire('plateau-justice-economie.js');
+  const f = src.slice(src.indexOf('async function doConsulterManifeste('), src.indexOf('// FRET MARITIME INTERNATIONAL — CAISSES PERSISTANTES'));
+  assert.match(f, /VILLES\[pays\]\?\.\[ville\]\?\.nom/);
+  assert.match(f, /en_transit: 'En mer'/);
+  assert.doesNotMatch(f, /'Origine : ' \+ \(c\.ville_origine/);
+  assert.doesNotMatch(f, /'Statut : ' \+ \(c\.statut/);
+});
