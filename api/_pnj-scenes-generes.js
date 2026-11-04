@@ -5197,6 +5197,22 @@ export const SCENES_PNJ = {
       "Don Esteban Cortesano"
     ]
   },
+  "[\"soviet\",\"capitale\",\"entrepot-logistique-novomirsk\",\"salle_ventes\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Entrepôt Logistique de Novomirsk",
+    "piece": "Salle des Ventes",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"entrepot-logistique-novomirsk\",\"bureau_direction\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Entrepôt Logistique de Novomirsk",
+    "piece": "Bureau de Direction",
+    "personnes": [
+      "Boris Stockov"
+    ]
+  },
   "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"hall_pavillon\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
