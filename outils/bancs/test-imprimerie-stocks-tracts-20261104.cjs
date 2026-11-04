@@ -27,7 +27,7 @@ function faireContexte(stock=3,pa=5,fonds=1500) {
   COUNTRIES:{republic:{cur:'FR'}},STOCK_BOIS_MAX_IMPRIMERIE_PNJ:10,BOIS_PAR_LOT_TRACTS:1,TRACTS_PAR_LOT:10,SALAIRE_LOT_TRACTS:50,
   listerCiblesTractsElectoraux:async()=>[{nom:'Alice',enCampagne:true}],
   stockBoisAtelier:async()=>stock,
-  capaciteImpressionTracts:()=>({lots:Math.max(0,Math.min(stock,pa,Math.floor(fonds/150))),parBois:stock,parPa:pa,parFonds:Math.floor(fonds/150),fonds,prixLot:150}),
+  capaciteImpressionTracts:(stockBois)=>({lots:Math.max(0,Math.min(stockBois,pa,Math.floor(fonds/150))),parBois:stockBois,parPa:pa,parFonds:Math.floor(fonds/150),fonds,prixLot:150}),
   prixLotTractsAtelier:()=>150, atelierImprimerieCourant:()=>({pays:'republic',ville:'capitale',building:'la-tribune'}),
   echapperTexteTract:x=>x,showToast:(...a)=>toasts.push(a),
   imprimerTractsServeur:async(...a)=>{appels.push(a);return {montantDebite:a[0]*150,paConsommes:a[0],salaire:a[0]*50}},
