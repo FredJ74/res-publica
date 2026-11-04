@@ -102,6 +102,21 @@ def test():
             check(q.fetchone()[0]=='100','prélèvement malgré blocage')
             q.execute("""UPDATE batiments_etat SET data='{"entrepot":{"stock":{"bois":2200,"metal":2200,"derives_petrochimiques":1200},"prixManuel":{}}}'::jsonb
              WHERE id='republic_ville_a_entrepot-logistique-psm'""")
+            # Surcout marchand anormal : le contrat bloque sans materiaux ni 65 % de paiement.
+            q.execute("""UPDATE batiments_etat SET data=
+               jsonb_set(public.batiment_etat_lire(data),'{entrepot,prixManuel}',
+                 '{"bois":1000,"metal":1000,"derives_petrochimiques":1000}'::jsonb)
+               WHERE id='republic_ville_a_entrepot-logistique-psm'""")
+            q.execute("SELECT chantier_naval_avancer_interne(%s)",(commande,))
+            hausse=q.fetchone()[0]
+            check(hausse['raison']=='prix_matiere_superieur_budget','couts explosifs sans credit force')
+            q.execute("SELECT jours_faits,somme_versee,depense_matieres FROM chantier_naval_commandes WHERE id=%s",(commande,))
+            check(tuple(q.fetchone())==(0,31500,0),'absence de paiement si prix trop haut')
+            q.execute("SELECT batiment_etat_lire(data)#>>'{entrepot,stock,metal}' FROM batiments_etat")
+            check(q.fetchone()[0]=='2200','pas de prelevement si prix trop haut')
+            q.execute("""UPDATE batiments_etat SET data=
+              jsonb_set(public.batiment_etat_lire(data),'{entrepot,prixManuel}','{}'::jsonb)
+              WHERE id='republic_ville_a_entrepot-logistique-psm'""")
             q.execute("SELECT chantier_naval_avancer_interne(%s)",(commande,))
             r=q.fetchone()[0]
             check(r['ok'] is True and r['jours']==1,'premier jour')
