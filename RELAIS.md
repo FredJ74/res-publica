@@ -25,6 +25,14 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Certification chantier naval #473 — Codex, 05/11/2026
+
+Branche `codex/certification-chantier-naval-473-20261105`, base main `dcf1dff9` (PR #473, livraison `11d819b3` déjà intégrée). Aucun développement de la PR fusionnée recommencé. Mission explicite de Fred : certifier les deux parcours, stocks, argent et bateau physique ; navigation privée interdite. Nouvelle migration **préparée, non appliquée** `20261104231550_chantier_naval_certification.sql`, à appliquer seulement après prévol réel et comparaison des corps ; ne pas rejouer les deux migrations initiales sans registre.
+
+Contre-épreuve exécutée : ancien serveur acceptait une commande depuis la rue si current_building était NULL. Correction par comparaison territoriale NULL-safe. Primitives financières réelles testées (les premiers bancs les simulaient), PA/soldes frais rendus et pilote de requête commun côté écran, réponses tardives et comptes distincts protégés, réserve militaire préservée, historique des paiements/journées et attribution des sorties de stock au contrat, détail du bateau livré. Progression après approvisionnements et transformations, compte rendu du cron complété. Aucun acteur réel ni bateau réel manipulé. 59 assertions PostgreSQL17.6 annulées, concurrence et contrôles complets en cours ; les deux étapes de bancs navals restent dans le même workflow CI avec les nouvelles contre-épreuves.
+
+Accès externes vérifiés : aucun outil Supabase exposé ; API Actions GitHub Forbidden ; production Vercel bloquée par le proxy (CONNECT403). Les migrations initiales, l'échec CI distant précis et le déploiement ne sont donc pas certifiés. L'étape Calendrier de la CI reproduit localement deux échecs hors naval (parcelles et signature trading) ; comparaison avec main en cours. Ne pas annoncer chantier livré ni fusionner avant certification réelle.
+
 ### Novomirsk : raccordement vue par vue — Claude, 04/11/2026 (à reprendre)
 
 Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêta : V1 Librairie du Peuple, V2 La Mère Volga et Musée municipal, V6 Palais des Ambassades (ordres « Bientôt disponible »), V7 Pavillon des Ambassadeurs et Résidence impériale ; Grand Hôtel sans suites ; monnaie PSK ; navigation de rue serveur dans toute ville à rues (PR #474).

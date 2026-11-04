@@ -6510,15 +6510,6 @@ export default async function handler(req, res) {
       return r || { ok: false, raison: 'rpc_indisponible' };
     });
 
-    // Chantiers navals : après arrivée des marchandises aux entrepôts, avant le
-    // reste des travaux quotidiens. Une journée n'avance que si chaque matière
-    // nécessaire est réellement disponible ; le serveur verrouille et paye.
-    // Toute absence bloque sans perte de jour ni débit ; pas de rattrapage.
-    const chantiersNavals = await tacheQuotidienne('chantiers_navals', async function () {
-      const r = await sbRpc('chantier_naval_avancer_jour', {});
-      return r || {ok:false,raison:'rpc_indisponible'};
-    });
-
     // 11 quater. CELLULES DE RENSEIGNEMENT.
     //
     // Deux balayages serveur, tous deux idempotents (ils ne voient que ce qui est
@@ -6643,6 +6634,17 @@ export default async function handler(req, res) {
     // 13. Production quotidienne des transformateurs (mode PNJ), redistribution 60/40
     const production = await tacheQuotidienne('production_transformateurs', produireTransformateursQuotidien);
 
+    // Chantiers navals : après arrivée des marchandises aux entrepôts, avant le
+    // reste des travaux quotidiens. Une journée n'avance que si chaque matière
+    // nécessaire est réellement disponible ; le serveur verrouille et paye.
+    // Toute absence bloque sans perte de jour ni débit ; pas de rattrapage.
+    const chantiersNavals = await tacheQuotidienne('chantiers_navals', async function () {
+      const r = await sbRpc('chantier_naval_avancer_jour', {}, HEADERS_SERVICE);
+      return r || {ok:false,raison:'rpc_indisponible'};
+    });
+
+
+
     // 13b. EFFORT DE GUERRE (13 septembre 2026) — expiration, reserve, ravitaillement, production.
     // POSITION IMPERATIVE : APRES les livraisons (12) et la production des transformateurs (13),
     // pour que la reserve porte sur les flux REELLEMENT arrives dans les entrepots cette nuit,
@@ -6717,7 +6719,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, chantiersNavals, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

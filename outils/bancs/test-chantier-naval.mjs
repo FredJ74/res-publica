@@ -29,9 +29,10 @@ test('ordres en deux salles, même route, achat toujours sous autorité serveur'
   const chantier = data.slice(a,b);
   assert.equal((chantier.match(/fn:'consulter_devis_chantier_naval'/g)||[]).length,2);
   assert.match(router,/if \(fn === 'consulter_devis_chantier_naval'\) \{ ouvrirDevisChantierNaval\(\); return; \}/);
-  assert.match(ui,/sbRpc\('chantier_naval_devis', \{\}\)/);
-  assert.match(ui,/sbRpc\('chantier_naval_commander', \{p_modele:modele,p_requete:requete\}\)/);
-  assert.match(ui,/sessionStorage\.setItem\(cle,requete\)/);
+  assert.match(ui,/sbRpcVerdict\('chantier_naval_devis', \{\}/);
+  assert.match(ui,/executerReceptionInventaire\('chantier_naval_commander', \{p_modele:modele\}\)/);
+  assert.match(lire('plateau-divers.js'),/sessionStorage\.setItem\(cle, JSON\.stringify\(intention\)\)/);
+  assert.doesNotMatch(ui,/naval-commande-attente:/);
   assert.match(ui,/commanderBateauNaval/);
   assert.match(lire('baseline/seeds/95_a-regenerer/ordres_couts.sql'),/\('consulter_devis_chantier_naval',0,0\)/);
 });
