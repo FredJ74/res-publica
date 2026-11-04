@@ -152,3 +152,14 @@ plateau-football-realisateur-tests.js
 # Krasnov : decors non actifs. Conserver en Git, exclure du deploy Vercel.
 # Retirer cette exclusion lorsque les lieux de Sovarka seront effectivement raccordes.
 images/krasnov/
+
+# --- ORIGINAUX PNG PSM REMPLACES PAR SIX WEBP -------------------------
+# Ces fichiers sont conserves comme sources dans GitHub. Les six pieces
+# utilisent maintenant exclusivement images/psm-*.webp. Ne jamais exclure
+# les WebP correspondants, qui sont les ressources effectivement servies.
+images/PSM_entrepot logistique municipal.png
+images/PSM_entrepot logistique munipal_bureau.png
+images/PSM_pole alcool_salle ventes.png
+images/PSM_pole alcool_bureau direction.png
+images/PSM_pole alcool-distillerie.png
+images/PSM_pole alcool_manufacture tabac.png
