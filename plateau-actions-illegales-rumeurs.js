@@ -1204,11 +1204,77 @@ async function ouvrirModalAcheterArme() {
   });
 
   html += '</div>';
+  html += htmlQuincaillerieVitrine(data, pays, cur);
   html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="margin-top:.8rem;width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;padding:.4rem;border:1px solid #2a2010;background:transparent;color:#9a8a68;cursor:pointer">Renoncer à l\'achat</button>';
   html += '</div>';
 
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// QUINCAILLERIE (serrures, 04/11/2026, issue #434) : rayon distinct des armes, dans la meme
+// vitrine. Achat legal au comptoir seulement (ni marche noir, ni registre des armes). Prix et
+// stock lus dans l'armurerie ; l'achat, le paiement et l'objet sont decides par le serveur
+// (quincaillerie_acheter, cle d'unicite : un clic rejoue, il ne repaie pas).
+function htmlQuincaillerieVitrine(data, pays, cur) {
+  const produits = getQuincailleriePays(pays);
+  const ids = Object.keys(produits);
+  if (!ids.length) return '';
+  const esc = (t) => (typeof escapeHtmlText === 'function' ? escapeHtmlText(String(t)) : String(t));
+  let h = '<div class="cpj-titre" style="margin-top:1rem">Quincaillerie</div>';
+  h += '<p class="cpj-note">Serrures et clés : articles de quincaillerie, vendus au comptoir. Chaque serrure est vendue avec sa clé.</p>';
+  ids.forEach((id) => {
+    const p = produits[id];
+    const stock = data.stockProduits?.[id] || 0;
+    const prix = data.parametres?.prixVente?.[id];
+    const rupture = stock <= 0 || prix == null;
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin:.4rem 0;padding:.5rem;border:1px solid #2f3b4a">';
+    h += '<div><div><i class="ti ' + p.icon + '"></i> <strong>' + esc(p.label) + '</strong>'
+      + (prix != null ? ' — ' + Number(prix).toLocaleString('fr-FR') + ' ' + cur + (id === 'cle_vierge' ? ' l\'unité' : '') : '') + '</div>'
+      + '<div class="cpj-note">' + esc(p.desc) + '</div>'
+      + '<div class="cpj-note">' + (stock > 0 ? 'En stock : ' + stock : 'Rupture de stock') + '</div></div>';
+    h += '<div style="display:flex;flex-direction:column;gap:.3rem;min-width:9rem">';
+    if (!rupture) {
+      if (id === 'cle_vierge') {
+        h += '<input id="quinc-qte-' + id + '" class="cpj-champ" type="number" min="1" max="' + Math.min(50, stock) + '" value="1" style="width:100%">';
+      }
+      h += '<button class="cpj-touche cpj-primaire" onclick="confirmerAchatQuincaillerie(\'' + id + '\')">Acheter</button>';
+    }
+    h += '<button class="cpj-touche" ' + (commercePeutProduire(data) ? 'onclick="confirmerProduction(\'' + id + '\')"' : 'disabled') + '>Produire</button>';
+    h += '</div></div>';
+  });
+  return h;
+}
+
+async function confirmerAchatQuincaillerie(produitId) {
+  const pays = state.country || 'republic';
+  const p = getQuincailleriePays(pays)[produitId];
+  const data = await chargerArmurerieLocale();
+  if (!p || !data) { showToast('Indisponible', '', false); return; }
+  const qte = produitId === 'cle_vierge'
+    ? Math.max(1, Math.min(50, parseInt(document.getElementById('quinc-qte-' + produitId)?.value || '1', 10) || 1)) : 1;
+  const motifs = {
+    stock_insuffisant: 'L\'armurerie n\'en a plus autant en stock.',
+    fonds_insuffisants: 'Vous n\'avez pas assez d\'argent.',
+    pa_insuffisants: 'Il vous faut 1 PA.',
+    quantite_invalide: 'Quantité invalide (une serrure à la fois, 1 à 50 clés vierges).',
+    produit_non_propose: 'Cet article n\'est pas vendu ici.',
+    prix_non_defini: 'Cet article n\'a pas de prix fixé.',
+    inventaire_plein: 'Votre inventaire est plein.',
+    pas_sur_place: 'Il faut être dans l\'armurerie.'
+  };
+  let refus = null;
+  const v = await executerReceptionInventaire('quincaillerie_acheter',
+    { p_entreprise: data.id, p_produit: produitId, p_qte: qte },
+    { surRefus: (x) => { refus = x; showToast('Achat refusé', motifs[x.raison] || ('Refus du serveur (' + (x.raison || '?') + ').'), false); return true; } });
+  if (!v) return;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof updateUI === 'function') updateUI();
+  const total = Number(v.total || 0).toLocaleString('fr-FR') + ' ' + (COUNTRIES[pays]?.cur || 'FR');
+  showToast('Achat effectué', produitId === 'serrure_cle'
+    ? 'Serrure n° ' + (v.serrure?.numero || '?') + ' et sa clé — ' + total
+    : qte + ' clé(s) vierge(s) — ' + total, true);
+  addJournalEntry('Achat à l\'armurerie : ' + (produitId === 'serrure_cle' ? 'une serrure à clé' : qte + ' clé(s) vierge(s)') + ' (' + total + ').', 'event-info');
 }
 
 async function ouvrirFicheArmeCommerce(id) {
@@ -2759,6 +2825,11 @@ const QUINCAILLERIE_PRODUITS = {
 function getQuincailleriePays(pays) {
   return Object.fromEntries(Object.entries(QUINCAILLERIE_PRODUITS)
     .filter(([, r]) => !r.paysAutorises || r.paysAutorises.includes(pays)));
+}
+
+// Tout ce que fabrique et vend une armurerie de ce pays : armes puis quincaillerie.
+function produitsArmureriePays(pays) {
+  return Object.assign({}, getRecettesPays(pays), getQuincailleriePays(pays));
 }
 
 const PRIX_RACHAT_ARMURERIE = 130000;
@@ -5332,7 +5403,8 @@ async function confirmerProduction(produitId) {
   const data = await chargerArmurerieLocale();
   if (!data) { showToast('Indisponible', '', false); return; }
   if(!commercePeutProduire(data)){showToast('Production non autorisée','Vous n’êtes pas habilité à produire ici.',false);return;}
-  const recette = getRecettesPays(state.country || 'republic')[produitId];
+  const recette = getRecettesPays(state.country || 'republic')[produitId]
+    || getQuincailleriePays(state.country || 'republic')[produitId];
 
   const r = await commerceProduire(data.id, produitId, 'produire_arme');
   if (!r.ok) {
@@ -6360,7 +6432,7 @@ async function doGererArmurerie() {
   let html = '<div style="padding:1rem">';
   html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.8rem">Caisse : ' + data.caisse.toLocaleString('fr-FR') + ' FR</div>';
 
-  html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.6rem">Salaire de production fixe : 100 FR par arme (2 PA), non réglable.</div>';
+  html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.6rem">Salaire de production fixe : 100 FR par arme (2 PA), 50 FR par lot de quincaillerie (1 PA), non réglable.</div>';
 
   html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.3rem">Prix d\'achat des matières (FR/unité)</div>';
   Object.keys(data.parametres.prixAchatMatiere).forEach(m => {
@@ -6368,9 +6440,10 @@ async function doGererArmurerie() {
   });
 
   html += '<div style="font-size:.72rem;color:#8a8060;margin:.5rem 0 .3rem">Prix de vente et stock maximum</div>';
-  Object.keys(getRecettesPays(state.country || 'republic')).forEach(id => {
+  const catalogueGestion = produitsArmureriePays(state.country || 'republic');
+  Object.keys(catalogueGestion).forEach(id => {
     html += '<div style="display:flex;gap:.4rem;margin-bottom:.3rem;align-items:center">';
-    html += '<span style="flex:1;font-size:.75rem;color:#c0b090">' + RECETTES_PRODUCTION[id].label + '</span>';
+    html += '<span style="flex:1;font-size:.75rem;color:#c0b090">' + catalogueGestion[id].label + '</span>';
     html += '<input id="gere-prix-' + id + '" type="number" value="' + (data.parametres.prixVente[id]||0) + '" placeholder="Prix" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.72rem;outline:none"/>';
     html += '<input id="gere-max-' + id + '" type="number" value="' + (data.parametres.stockMax[id]||0) + '" placeholder="Stock max" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.72rem;outline:none"/>';
     html += '</div>';
@@ -6390,7 +6463,7 @@ async function confirmerGestionArmurerie(entrepriseId) {
   Object.keys(data.parametres.prixAchatMatiere || {}).forEach(m => {
     prixAchatMatiere[m] = Math.max(0, parseInt(document.getElementById('gere-mat-' + m)?.value || '0'));
   });
-  Object.keys(getRecettesPays(state.country || 'republic')).forEach(id => {
+  Object.keys(produitsArmureriePays(state.country || 'republic')).forEach(id => {
     prixVente[id] = Math.max(0, parseInt(document.getElementById('gere-prix-' + id)?.value || '0'));
     stockMax[id] = Math.max(0, parseInt(document.getElementById('gere-max-' + id)?.value || '0'));
   });

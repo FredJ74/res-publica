@@ -9,7 +9,7 @@
 - Prix de vente dans un commerce PNJ : **60 FR / serrure** dans Républia.
 - Commercialisation : armureries et armureries-quincailleries de Républia, dont Montrouge ; pas de marché noir, pas de registre de vente d'armes.
 - Objet physique destiné à l'inventaire, avec capacité future d'installation sur armoire à souvenirs, appartement, local loué ou suite d'hôtel louée dans la durée.
-- **La pose et le contrôle d'accès ne sont pas dans cette livraison.** Pas d'effet fictif de fermeture ; aucune mécanique de crochetage pour l'instant.
+- Pose et contrôle d'accès : livrés le 04/11/2026 (voir « Ce que fait une serrure posée » et « Statut »). Aucune mécanique de crochetage pour l'instant.
 
 ## Règles d'installation confirmées (01/11/2026)
 
@@ -56,9 +56,27 @@ Le socle doit inclure :
 
 **Ne pas livrer une vitrine proposant un bouton qui ne serait pas branché à la RPC serveur.**
 
-## Statut
+## Ce que fait une serrure posée (décision de Fred du 04/11/2026)
 
-Règles de fabrication, vente, installation et duplication documentées ; fabrication, achat et visibilité **non encore implémentés**. Aucune donnée en production modifiée.
+- « Une serrure permet de fermer à clé. Sa pose ne suffit donc pas. Une clé permet ensuite de fermer ou d'ouvrir. Chaque serrure est vendue avec 1 clé. »
+- Mise en œuvre (lecture naturelle de cette règle, sans mécanique ajoutée) : une serrure posée est **ouverte** ou **fermée à clé**. Fermée, elle interdit d'**entrer** dans le lieu (ou d'ouvrir / désinstaller l'armoire) à qui ne détient pas une de ses clés ; on **sort** toujours. Le détenteur d'une clé entre, et la porte reste fermée derrière lui. Fermer ou ouvrir exige une clé et d'être sur place : dans le bâtiment pour une porte, dans la pièce de l'armoire (ou en la portant) pour une armoire.
+- En groupe, chaque membre doit pouvoir entrer : un membre sans clé arrête le groupe devant une porte fermée.
+
+## Prix (décision de Fred du 04/11/2026)
+
+- « La règle de fixation des prix existe, on ne va pas la réinventer. » Commerce PNJ : la serrure à **60 FR** (décision du 01/11) ; la clé vierge à **14 FR**, par la règle PNJ des commerces (2 × le coût de revient : (1 métal à 20 FR + 1 PA à 50 FR) / 10 = 7 FR). Un propriétaire PJ d'armurerie fixe ses prix et plafonds de quincaillerie comme pour ses armes (pas de fourchette en armurerie).
+- Plafonds de stock par défaut d'une armurerie PNJ : 10 serrures, 50 clés vierges (5 lots), réglables par un propriétaire PJ.
+
+## Statut (04/11/2026, issue #434)
+
+**Implémenté et appliqué en production** (six migrations `20261104124000` à `20261104124400`, banc annulé `outils/bancs/banc-serrures.sql` vert) :
+- fabrication en armurerie de Républia (main-d'œuvre au tarif commun, 50 FR/PA) et vente au comptoir de la vitrine, rayon « Quincaillerie » distinct des armes, une serrure par achat, 1 à 50 clés vierges ; ni marché noir, ni registre des armes ;
+- pose depuis l'inventaire (bloc → Installer), sur place : le local où l'on se trouve si l'on en a la jouissance (bail à son nom ou à celui de son organisation), ou une armoire à souvenirs installée qui nous appartient ; chambres d'hôtel et de clinique exclues ; une serrure par lieu et par armoire ; le bloc est consommé ;
+- fermer / ouvrir avec une clé détenue ; porte fermée refusée par le serveur ; doubles illimités (clé vierge + clé détenue, sans autre frais) ; clés empilées par serrure, transmissibles par les ordres ordinaires (donner, déposer) ;
+- armoire à souvenirs installable comme l'ordinateur (encombrement 3, plusieurs par pièce possibles, 48 h pour désinstaller après la perte du bail) ; fermée à clé, elle ne se désinstalle pas ;
+- fin de bail : la serrure du lieu est détruite pour tout le monde (avec un courrier au poseur), dès qu'on la touche et dans la passe de nuit ; ses clés n'ouvrent plus rien et ne se dupliquent plus.
+
+**Non couvert, faute de décision** : le crochetage ; la suite d'hôtel louée dans la durée (aucune location longue de suite n'existe aujourd'hui : la cible sera ouverte quand elle existera) ; le contenu de l'armoire (remplissage hors périmètre depuis août) ; une illustration dessinée du bloc serrure (icône en attendant).
 
 ## Armoire à souvenirs : installation et droit de poser une serrure (décision du 04/11/2026)
 
