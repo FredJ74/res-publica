@@ -44,7 +44,12 @@ def preparer(destination=None):
  ajouts_terrains_psm={('acheter_terrain',2,c) for c in (19800,37200,50400,66000)}
  if not ajouts_terrains_psm<= {(r['fn'],r['pa'],r['cost']) for r in gen}:
   raise ValueError('Prix des terrains de PSM absents du catalogue actuel')
- t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements') and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
+ # La sous-famille petro-chimique est posterieure a la coupe historique 95.
+ # Controle strict de son unique cout sans reecrire l'empreinte ancienne.
+ petro=[r for r in gen if r['fn']=='produire_derives_petrochimiques']
+ if petro != [{'fn':'produire_derives_petrochimiques','pa':1,'cost':0}]:
+  raise ValueError('Ordre petro-chimique absent ou altere')
+ t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements','produire_derives_petrochimiques') and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
  md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
  if md5!=cm['apres']['md5'] or len(t)!=cm['apres']['lignes']:raise ValueError('Sources de tarifs changées : réexaminer le plan')
  entrees=om['migrations']+gm['prerequis']+gm['migrations']+[{'version':cm['version'],'fichier':cm['migration'],'sha256':cm['sha256']}]
