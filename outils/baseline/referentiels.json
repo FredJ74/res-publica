@@ -18,7 +18,7 @@
    ]
   },
   "ressources_economie": {
-   "_role": "les 18 matieres et leurs prix",
+   "_role": "les 19 matieres et leurs prix",
    "canon": {
     "fichier": "data.js",
     "expression": "RESSOURCES_ECONOMIE"
@@ -179,11 +179,11 @@
     "table_empreinte": "ressources_economie_empreinte",
     "fonction_reelle": "ressources_economie_empreinte_reelle",
     "fonction_reelle_en_base": true,
-    "data_js": "d65ae14b210eaac4",
-    "lignes": 18,
+    "data_js": "1fd7c288182a01ef",
+    "lignes": 19,
     "posee": "2c2a88b3833ca978",
-    "reelle": "d65ae14b210eaac4",
-    "verdict": "Projection des18 ressources égale au générateur existant ; sentinelle réelle périmée conservée et signalée.",
+    "reelle": "1fd7c288182a01ef",
+    "verdict": "Projection des 19 ressources egale au generateur et au catalogue Supabase observe apres regroupement petro-chimique ; sentinelle historique perimee conservee et signalee.",
     "_data_js_precedent_219": "2c2a88b3833ca978"
    },
    "ordres_couts": {

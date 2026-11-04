@@ -298,6 +298,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'produire_alcool') { doProduireUsine('alcool'); return; }
   if (fn === 'produire_tabac') { doProduireUsine('tabac'); return; }
   if (fn === 'produire_carburant') { doProduireUsine('carburant'); return; }
+  if (fn === 'produire_derives_petrochimiques') { doProduireUsine('derives_petrochimiques'); return; }
   if (fn === 'nommer_directeur_pharma') { ouvrirModalNommerDirecteurPharma(); return; }
   if (fn === 'nommer_directeur_tabac_alcools') { ouvrirModalNommerDirecteurTabacAlcools(); return; }
   if (fn === 'nommer_directeur_raffinerie') { ouvrirModalNommerDirecteurRaffinerie(); return; }

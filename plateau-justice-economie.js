@@ -5977,6 +5977,7 @@ const CHAINES_PRODUCTION_USINE = {
   alcool:       { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'cereales', salairePA: 55 },
   tabac:        { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'plantes',  salairePA: 66 },
   carburant:    { buildingId: 'raffinerie-montrouge',          city: 'ville_b',  matiere: 'petrole',  salairePA: 70 },
+  derives_petrochimiques: { buildingId: 'raffinerie-montrouge', city: 'ville_b', matiere: 'petrole', salairePA: 70 },
   // Filiere alcool->desinfectant (20 aout 2026, valeurs validees par Fred) : meme usine que
   // medicaments, seconde chaine independante -- aucun changement sur la chaine plantes/medicaments
   // existante. Approvisionnement en alcool volontairement NON automatique (aucune redirection
