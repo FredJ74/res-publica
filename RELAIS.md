@@ -25,6 +25,10 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Novomirsk : raccorder les bâtiments vue par vue (test de duplication du socle) — Claude, 04/11/2026
+
+Demande de Fred (04/11, 19 h 26), exception explicite et limitée à la feuille de route : test, pas ouverture de Sovarka. Branche `claude/sovarka-navigation-20261104`. Rapport : `outils/audits/DUPLICATION-SOCLE-NOVOMIRSK-20261104.md`. **Fait** : la couche rue n'existait pas au serveur (0 nœud, 0 entrée) ; générateur générique `outils/generateurs/rue-ville-serveur.cjs` ; migration `20261104184000_novomirsk_rue_serveur` **appliquée** (registre `novomirsk_rue_serveur_20261104184000` ; 18 nœuds, 17 entrées), banc annulé `banc-novomirsk-rue-serveur.sql` vert avant. **Reste** : les 17 zones « à venir », vue par vue, sur décision de Fred (homologues listés dans le rapport) ; 12 bâtiments de la ville sans entrée de rue. Après tout ajout de zone : relancer le générateur (`soviet capitale novomirsk- <nouvelle migration>`).
+
 ### Commissariat PSM : contexte PNJ et portrait — Codex, 04/11/2026
 
 **Livré : PR #450 fusionnée le 04/11 à 14 h 37 (head `b39cfd61`, branche entièrement contenue dans main ; vérifié par Claude le 04/11 à 19 h 15).** La mention « PR non créée » ci-dessous est périmée. **À constater en jeu** : parler à Martial Morvan, qui situe correctement son bureau ; portrait du brigadier d'accueil de PSM.
