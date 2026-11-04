@@ -61,7 +61,8 @@ Fred valide un **malus de 30 % au jet de détection** des personnes recherchées
 ## Décisions de Fred du 04/11/2026 (issue #433)
 
 - **Aéroport de Luthécia : un poste de douane**, soit un groupe de 3 douaniers (seul aéroport doté d'un hall des douanes).
-- **Fausse déclaration au port industriel** : quand l'inspection trouve des marchandises non déclarées, **amende au Trésor** égale au **double des frais de douane** (10 %) sur ce qui n'a pas été déclaré, soit 2 × 10 % × valeur. Fred : à payer par l'expéditeur ou par celui qui retire la caisse. Mise en œuvre : imposée à l'expéditeur par le contrat commun des sanctions (prélevée tout de suite, reste recouvré chaque nuit).
+- **Fausse déclaration au port industriel** : quand l'inspection trouve des marchandises non déclarées, **amende au Trésor** égale au **double des frais de douane** (10 %) sur ce qui n'a pas été déclaré, soit 2 × 10 % × valeur.
+- **Qui paie l'amende** (Fred, 04/11, précisé) : l'expéditeur, souvent étranger, échappe à la loi républienne et peut ignorer l'injonction. L'amende reste donc **due sur la caisse** : l'expéditeur peut la régler ; sinon le destinataire qui veut récupérer sa commande la paie (avec le dédouanement) et se débrouille ensuite avec le vendeur (non codé) ; si personne ne paie, la caisse est **saisie et vendue pour le compte du Trésor** (vente des caisses non réclamées à J15, produit versé au Trésor). Migration `20261104123000_fret_amende_caisse`.
 - **Valeur des marchandises non déclarées** : prix de référence du jeu — prix de base des matières (`ressources_economie`), prix fixe des produits de commerce ; un objet sans prix connu ne compte pas.
 
 ## Mise en œuvre (04/11/2026, Claude)
