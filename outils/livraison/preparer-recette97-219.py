@@ -41,8 +41,8 @@ def preparer(paquet=None):
  retires=[{'fn':'assigner_mission','pa':1,'cost':0},
           {'fn':'fabriquer_armoire_souvenirs','pa':3,'cost':0},
           {'fn':'acheter_armoire_souvenirs','pa':0,'cost':0}]
- if any(x['fn']=='assigner_mission' for x in source):
-  raise ValueError('assigner_mission ne doit plus figurer au catalogue actuel')
+ if any(x['fn'] in {r['fn'] for r in retires} for x in source):
+  raise ValueError('Un ordre retiré ne doit plus figurer au catalogue actuel')
  source_historique=source_historique+retires
  cmp=module('delta_recette97','outils/baseline/comparer-couts-captures.py')
  ts=sorted(cmp.triples(source_historique))
