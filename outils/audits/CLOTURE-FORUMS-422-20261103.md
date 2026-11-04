@@ -1,5 +1,42 @@
 # Forums #422 — migration appliquée ; collecte canonique à recevoir
 
+## État final de cette reprise — main #438 et verrou de transfert
+
+Main `30773320` intégré (fusion `02246626`), après #431/#432/#436/#437. Cache
+portraits de #438 préservé ; pas de restauration d'un ancien sbListPersonnages.
+Versions cache des pages majorées `forums422-r6-main438` pour la source réconciliée.
+**191/191 bancs clients, 94/94 transversaux, 12/12 globaux et 23/23 portraits +
+contextes Forums réussis sur cette base**. 119/119 Chromium et25/25 SQL17.6 ainsi
+que les contre-épreuves SQL de la passe main #437 restent acquis ; ce ne sont
+pas des tests authentifiés de production ni un clone fidèle de la nouvelle coupe.
+
+La preuve externe du transfert est maintenant retrouvée dans le commentaire
+[6627701834](https://github.com/FredJ74/res-publica/pull/422#issuecomment-6627701834) :
+la collecte et le chiffrement ont réussi, mais le **transfert intégral vers
+Codex n'a pas abouti** (limite de lecture Vercel, export HTTP non récupérable,
+commande d'extraction refusée dans l'autre session). Aucun téléchargement ou
+restauration n'est simulé. La source publique ne donne pas de lien de fichier
+accessible ; le manifeste original, le ciphertext et le JSON sont absents ici.
+Les outils/jetons/clé nécessaires ne sont pas disponibles dans cette session.
+
+**Unique action extérieure immédiate : l'intégrateur transmet le JSON existant
+déjà déchiffré en pièce jointe privée**. Aucun SQL à Fred, aucune nouvelle collecte
+si l'original est disponible, aucune clé à exposer. SHA et taille annoncés sont
+conservés comme attentes non vérifiées. Si la production a évolué depuis cette
+capture, comparer sa coupe au registre actuel avant toute certification ; ne
+pas forcer1190 ou une empreinte pour suivre un nouveau fichier.
+
+Pour `42839714`, la page Checks affiche « There are no checks for this commit »
+et l'accès `gh pr checks` est refusé (`api.github.com/graphql: Forbidden`).
+Aucun échec de code n'est inféré de l'absence de run, aucune cause fournisseur
+inventée, aucun ancien5/5 promu comme preuve de cette tête. La tête finale doit
+être relevée séparément après push. Sans baseline réextrait, pas de fusion même
+si les tests hors ligne sont verts. Pas de Vercel READY/SHA servi ni recette PJ
+revendiqués ; GET public Vercel refusé par le proxy403. Aucune donnée de production
+modifiée, migration #422 déjà appliquée `20261104001711` jamais rejouée ici.
+
+---
+
 ## Dernière reprise — capture privée annoncée, non reçue
 
 Main `ea199d56` intégré dans `780db210` : #431, #432, #436 et #437 conservées,

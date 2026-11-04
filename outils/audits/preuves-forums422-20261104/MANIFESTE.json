@@ -88,5 +88,27 @@
       "outils/bancs/collecte-forums422/MANIFESTE.json": "e03d9d3399c67233ad789337387cb8190d9e0df64638176dc4293afd3a130638",
       "outils/bancs/banc-prets-bancaires.js": "5a0af03652007924cdd5f9be1cbbf281f77910d4740a1b8a306720da169cda31"
     }
+  },
+  "integration_main438": {
+    "main": "30773320",
+    "fusion": "02246626",
+    "capture_recuperee": false,
+    "baseline_vivant_reconstruit": false,
+    "ci_precedente_tete42839714": "Aucun contrôle affiché sur la page publique ; API GraphQL Forbidden. Pas de 5/5 inféré.",
+    "preuve_transfert_externe": "https://github.com/FredJ74/res-publica/pull/422#issuecomment-6627701834",
+    "fichiers_sha256": {
+      "globaux-main438.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb",
+      "clients-main438.json": "0a9fa75d797949a78fd904579775374834f7877ff006ab66ec7ac3805271569b",
+      "transversaux-main438.log": "7731c2b4a3ae48f31ec24e7b2801795a4bc3a78e8aeb12e4713f961c3b802e9c",
+      "portraits-contextes-main438.log": "e073ba764fcbb3309f6921ee4e5e7107d51b10402644eaddb574dd132dcd2650",
+      "vercel-main438.json": "ebb15079092b3adcf13daa39c794824138d0b6eb2a728c1e72bcfdd1e7bbbf2c"
+    },
+    "sources_sha256": {
+      "forum.js": "632a390b12b4405b11cb3685a960e9b7a94fd5dc78c8d8dfd9cd6ada97b8fc07",
+      "supabase.js": "cd957c61273211624f7db2d3a0771ad1daa344723231cfbc764d554df80e8ec1",
+      "plateau-organisations-quetes.js": "3295e912ba8a8bd0d96eb6d67eafc77e1a2290ac1ec7fc7ded67c5858e82f33f",
+      "index.html": "75af25c5f7ae8c0f12f1423d181e05550a6ede1a384975f81eec8d96a6919d6b",
+      "plateau.html": "8b2fe87cc05cd05ec2af334ed49a4b57dbfd897f0020f54c89c7e2a3691dfa9f"
+    }
   }
 }
