@@ -1,4 +1,4 @@
--- Banc annulé de la migration 20261104213000 (Palais des Ambassades de Novomirsk). Attendu : erreur 'banc_ok'.
+-- Banc annulé de la migration 20261104213100 (Palais des Ambassades de Novomirsk). Attendu : erreur 'banc_ok'.
 BEGIN;
 INSERT INTO public.navigation_lieux_regles(pays, ville, batiment, pieces, ferme, membership) VALUES
   ('soviet', 'capitale', 'palais-ambassades-novomirsk',
