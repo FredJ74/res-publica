@@ -734,7 +734,7 @@ const WORLD = {
       imageUrl:'images/port-sainte-marie.webp',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','phare-psm','marche-psm','musee-port-sainte-marie','pole-tabac-alcools-psm','entrepot-logistique-psm'],
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','terrain-a-batir-psm-12','terrain-a-batir-psm-13','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','phare-psm','marche-psm','musee-port-sainte-marie','pole-tabac-alcools-psm','entrepot-logistique-psm'],
       buildingContext: {
         // Rattrapage fonctionnel de la mairie de PSM (audit dedie, meme jour) : modele
         // structurel identique a celui deja utilise pour Montrouge (roomOverrides +
@@ -5468,11 +5468,11 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        desc: "Terrain de 1 650 m² a Port-Sainte-Marie.",
         imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (1 650 m² — 19 800 FR)', pa:2, cost:19800, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
@@ -5491,11 +5491,11 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        desc: "Terrain de 2 200 m² a Port-Sainte-Marie.",
         imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (2 200 m² — 26 400 FR)', pa:2, cost:26400, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
@@ -5514,11 +5514,60 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        desc: "Terrain de 3 100 m² a Port-Sainte-Marie.",
         imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (3 100 m² — 37 200 FR)', pa:2, cost:37200, type:'legal', icon:'ti-home-plus', successRate:100},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
+        ]
+      }
+    }
+  },
+  // Lots 12 et 13 de Port-Sainte-Marie (decision de Fred, 04/11/2026 : six parcelles, 1500, 1650,
+  // 2200, 3100, 4200 et 5500 m², 12 FR/m²). Id scopes 'terrain-a-batir-psm-N' pour eviter toute
+  // collision avec les id generiques deja pris par d'autres villes (meme choix qu'a Montrouge).
+  'terrain-a-batir-psm-12': {
+    name: "Terrain a batir - Lot 12",
+    shortName: "Terrain Lot 12",
+    cat: "Immobilier",
+    icon: "ti-fence",
+    bgColor: "#0a0a05",
+    desc: "Terrain a Port-Sainte-Marie.",
+    rooms: {
+      terrain: {
+        name: "Terrain",
+        image: "\ud83c\udfd7\ufe0f",
+        imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
+        desc: "Terrain de 4 200 m² a Port-Sainte-Marie.",
+        imageUrl: "images/terrain-a-vendre-republic.webp",
+        persons: [],
+        orders: [
+          {fn:'acheter_terrain', label:'Acheter ce terrain (4 200 m² — 50 400 FR)', pa:2, cost:50400, type:'legal', icon:'ti-home-plus', successRate:100},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
+        ]
+      }
+    }
+  },
+  'terrain-a-batir-psm-13': {
+    name: "Terrain a batir - Lot 13",
+    shortName: "Terrain Lot 13",
+    cat: "Immobilier",
+    icon: "ti-fence",
+    bgColor: "#0a0a05",
+    desc: "Terrain a Port-Sainte-Marie.",
+    rooms: {
+      terrain: {
+        name: "Terrain",
+        image: "\ud83c\udfd7\ufe0f",
+        imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
+        desc: "Terrain de 5 500 m² a Port-Sainte-Marie.",
+        imageUrl: "images/terrain-a-vendre-republic.webp",
+        persons: [],
+        orders: [
+          {fn:'acheter_terrain', label:'Acheter ce terrain (5 500 m² — 66 000 FR)', pa:2, cost:66000, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
