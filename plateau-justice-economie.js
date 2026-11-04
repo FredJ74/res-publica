@@ -4756,7 +4756,7 @@ const TERRAINS_LUTHECIA = ['terrain-a-batir-1', 'terrain-a-batir-2', 'terrain-a-
 // (plateau-navigation.js) -- ne jamais dupliquer cette liste ailleurs.
 const TERRAINS_PAR_VILLE = {
   capitale: TERRAINS_LUTHECIA,
-  ville_a:  ['terrain-a-batir-8', 'terrain-a-batir-9', 'terrain-a-batir-10', 'terrain-a-batir-11'],
+  ville_a:  ['terrain-a-batir-8', 'terrain-a-batir-9', 'terrain-a-batir-10', 'terrain-a-batir-11', 'terrain-a-batir-psm-12', 'terrain-a-batir-psm-13'],
   ville_b:  ['terrain-a-batir-6', 'terrain-a-batir-montrouge-3', 'terrain-a-batir-montrouge-7', 'terrain-a-batir-montrouge-8', 'terrain-a-batir-montrouge-9', 'terrain-a-batir-montrouge-12']
 };
 

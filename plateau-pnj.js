@@ -3760,9 +3760,12 @@ const SURFACE_TERRAINS = {
   // capitales des autres empires, qui ne changent pas.
   'republic|ville_b|terrain-a-batir-6': 2100,
   'terrain-a-batir-8': 1500,
-  'terrain-a-batir-9': 1500,
-  'terrain-a-batir-10': 1500,
-  'terrain-a-batir-11': 1500
+  'terrain-a-batir-9': 1650,
+  'terrain-a-batir-10': 2200,
+  'terrain-a-batir-11': 3100,
+  // Six parcelles de PSM (decision de Fred, 04/11/2026).
+  'terrain-a-batir-psm-12': 4200,
+  'terrain-a-batir-psm-13': 5500
 };
 const PRIX_AU_M2_TERRAIN = 12;
 

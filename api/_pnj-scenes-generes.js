@@ -1565,6 +1565,20 @@ export const SCENES_PNJ = {
     "piece": "Terrain",
     "personnes": []
   },
+  "[\"republic\",\"ville_a\",\"terrain-a-batir-psm-12\",\"terrain\"]": {
+    "pays": "Republia",
+    "ville": "Port-Sainte-Marie",
+    "batiment": "Terrain a batir - Lot 12",
+    "piece": "Terrain",
+    "personnes": []
+  },
+  "[\"republic\",\"ville_a\",\"terrain-a-batir-psm-13\",\"terrain\"]": {
+    "pays": "Republia",
+    "ville": "Port-Sainte-Marie",
+    "batiment": "Terrain a batir - Lot 13",
+    "piece": "Terrain",
+    "personnes": []
+  },
   "[\"republic\",\"ville_a\",\"stade\",\"terrain\"]": {
     "pays": "Republia",
     "ville": "Port-Sainte-Marie",

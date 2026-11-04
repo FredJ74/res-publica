@@ -40,7 +40,11 @@ def preparer(destination=None):
           ('virement_automatique',1,0)]
  if any(r['fn'] in {t[0] for t in retires} for r in gen):
   raise ValueError('Ordre retiré réintroduit dans les commandes actuelles')
- t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements')]+retires)
+ # Prix d'achat des nouvelles parcelles de PSM (decision de Fred, 04/11/2026), posterieurs a la photographie.
+ ajouts_terrains_psm={('acheter_terrain',2,c) for c in (19800,37200,50400,66000)}
+ if not ajouts_terrains_psm<= {(r['fn'],r['pa'],r['cost']) for r in gen}:
+  raise ValueError('Prix des terrains de PSM absents du catalogue actuel')
+ t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements') and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
  md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
  if md5!=cm['apres']['md5'] or len(t)!=cm['apres']['lignes']:raise ValueError('Sources de tarifs changées : réexaminer le plan')
  entrees=om['migrations']+gm['prerequis']+gm['migrations']+[{'version':cm['version'],'fichier':cm['migration'],'sha256':cm['sha256']}]
