@@ -1,0 +1,68 @@
+✔ conversation sabri_coledur : vrai prompt et historique, sans alteration (43.828151ms)
+✔ conversation ced_labone : vrai prompt et historique, sans alteration (2.811467ms)
+✔ conversation henrico_stot : vrai prompt et historique, sans alteration (3.595893ms)
+✔ conversation gerard_poincon : vrai prompt et historique, sans alteration (1.041949ms)
+✔ conversation jeremy : vrai prompt et historique, sans alteration (1.341123ms)
+✔ conversation les_gars_du_bas : vrai prompt et historique, sans alteration (2.01898ms)
+✔ conversation la_bande_a_rotule : vrai prompt et historique, sans alteration (1.052274ms)
+✔ conversation los_relajados : vrai prompt et historique, sans alteration (0.976291ms)
+✔ conversation los_violentos : vrai prompt et historique, sans alteration (1.207334ms)
+✔ conversation famille_kolkhozov : vrai prompt et historique, sans alteration (1.169167ms)
+✔ conversation miliciens_zeles : vrai prompt et historique, sans alteration (1.031232ms)
+✔ conversation famille_al_bedouin : vrai prompt et historique, sans alteration (0.855391ms)
+✔ conversation clan_al_resistant : vrai prompt et historique, sans alteration (1.06371ms)
+✔ fournisseur : cle_absente, diagnostic prive et erreur publique neutre (0.992324ms)
+✔ fournisseur : authentification, diagnostic prive et erreur publique neutre (1.085473ms)
+✔ fournisseur : credits_epuises, diagnostic prive et erreur publique neutre (0.918895ms)
+✔ fournisseur : debit_limite, diagnostic prive et erreur publique neutre (0.649745ms)
+✔ fournisseur : panne_fournisseur, diagnostic prive et erreur publique neutre (0.735132ms)
+✔ fournisseur : requete_invalide, diagnostic prive et erreur publique neutre (1.019705ms)
+✔ fournisseur : reponse_vide, diagnostic prive et erreur publique neutre (0.757025ms)
+✔ fournisseur : reseau, diagnostic prive et erreur publique neutre (0.780259ms)
+✔ fournisseur : delai_depasse, diagnostic prive et erreur publique neutre (17.185575ms)
+✔ authentification : {"sansJeton":true}, aucun appel payant (0.53125ms)
+✔ authentification : {"authHttp":401}, aucun appel payant (0.298293ms)
+✔ authentification : {"authHttp":503}, aucun appel payant (0.156042ms)
+✔ authentification : {"authReseau":true}, aucun appel payant (0.122522ms)
+✔ authentification : {"authLente":true,"accelerer":true}, aucun appel payant (5.878825ms)
+✔ profil invalide refuse avant authentification et IA (0.50851ms)
+✔ budget IA calcule apres authentification et lectures, marge avant Vercel (1.023992ms)
+✔ contexte facultatif indisponible : {"contexteLent":true,"accelerer":true} (6.543928ms)
+✔ contexte facultatif indisponible : {"contexteHttp":503} (0.859817ms)
+✔ contexte facultatif indisponible : {"profil":"le_maire_de_luthecia","contexteLent":true,"accelerer":true} (6.865872ms)
+✔ autres API : appel sans options conserve le contrat auth historique (0.783434ms)
+✔ aucun cadavre ne dispose de profil de conversation (0.266636ms)
+ok    memes ordres, memes couts, memes postes requis qu a Luthecia
+ok    bureau du commissaire present avec enquete, filature, chasse a l homme et dossiers
+ok    accueil : archives et arrestation d urgence
+ok    habillages de ville trouves (2)
+ok    aucun habillage ne porte d ordres ni de piece ajoutee
+
+5/5 tests passes
+✔ outils/bancs/banc-commissariats-pouvoirs.cjs (68.961159ms)
+✔ scènes : régénération exacte depuis le même moteur de casting que le jeu (106.817842ms)
+✔ Morvan : identité, fonction, ville et bureau explicitement dans le prompt (1.540669ms)
+✔ position non confirmée : absente (0.185075ms)
+✔ position non confirmée : refus (0.105167ms)
+✔ position non confirmée : incomplete (0.254799ms)
+✔ position non confirmée : inconnue (0.23527ms)
+✔ position non confirmée : pays (0.370821ms)
+✔ autre commissariat : Luthécia (0.846448ms)
+✔ autre commissariat : Montrouge (0.182311ms)
+✔ même identifiant de ville dans un autre pays : aucune localisation PSM usurpée (1.006044ms)
+✔ mauvaise pièce : ne transforme pas le lieu du visiteur en présence attestée de Morvan (0.193869ms)
+✔ requête réellement envoyée au fournisseur (réponse simulée) : Où sommes-nous ? (42.538114ms)
+✔ requête réellement envoyée au fournisseur (réponse simulée) : Où se trouve votre bureau ? (2.22121ms)
+✔ requête réellement envoyée au fournisseur (réponse simulée) : Quel est votre rôle ? (1.27869ms)
+✔ position forgée par le navigateur refusée avant lecture et IA (0.640081ms)
+✔ lecture de position en panne : pas de faux lieu ni deuxième moteur de dialogue (1.178561ms)
+✔ bureau du commissaire : deux boutons standards ouvrent une pop-up, jamais un details (2.552442ms)
+✔ sous-menu : mêmes 2 familles et commandes préexistantes ; hors bureau interdit (3.517817ms)
+ℹ tests 53
+ℹ suites 0
+ℹ pass 53
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 289.089772
