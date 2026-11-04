@@ -59,3 +59,11 @@ Le socle doit inclure :
 ## Statut
 
 Règles de fabrication, vente, installation et duplication documentées ; fabrication, achat et visibilité **non encore implémentés**. Aucune donnée en production modifiée.
+
+## Armoire à souvenirs : installation et droit de poser une serrure (décision du 04/11/2026)
+
+- **Même mécanique que l'ordinateur et la box** (matériels par combinaison) : l'armoire s'**installe** dans un lieu dont le PJ a la jouissance légale (appartement ou local, en propriété ou par bail valide). Le PJ peut la désinstaller.
+- Le droit de poser une serrure sur l'armoire vient de la **jouissance du lieu où elle est installée**, vérifiée par le serveur au moment de l'acte ; il n'y a **pas de titre de propriété attaché à l'objet**.
+- Une armoire **non installée** est un objet ordinaire (donnée, vendue, volée…) : on ne peut pas y poser de serrure.
+- **Perte de jouissance** du lieu (bail non valide) : comme pour l'ordinateur, le PJ dispose de **48 h pour désinstaller** l'armoire, faute de quoi elle devient la propriété du propriétaire foncier.
+- La facture d'achat avec « référence secrète » prévue en août (ancien code navigateur, non enregistrée par le serveur) n'est **pas** la source du droit.
