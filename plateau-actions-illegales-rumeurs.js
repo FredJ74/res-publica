@@ -4653,7 +4653,9 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
     const composition = Object.entries(recette.materiaux).map(([m, q]) => q + ' ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m] ? RESSOURCES_ECONOMIE[m].label : m)).join(', ');
     const effetsTxt = Object.entries(recette.effets || {}).map(([k, v]) => (v > 0 ? '+' : '') + v + ' ' + k.toUpperCase()).join(', ');
     const enRupture = stock <= 0;
-    html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #394656;background:#252D38;border-radius:9px;margin-bottom:.5rem;align-items:center;' + (enRupture ? 'opacity:.5' : '') + '">';
+    // La rupture ne bloque que l'achat : ne pas rendre « Produire » visuellement inactif.
+    // Ce bouton garde son propre contrôle d'habilitation, sans modifier la transaction.
+    html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #394656;background:#252D38;border-radius:9px;margin-bottom:.5rem;align-items:center">';
     if (recette.image) html += '<img src="' + recette.image + '" style="width:56px;height:56px;object-fit:cover;border-radius:4px;flex-shrink:0" />';
     html += '<div style="flex:1">';
     html += '<b style="font-size:.93rem;color:#E5C477">' + recette.label + '</b><br>';
