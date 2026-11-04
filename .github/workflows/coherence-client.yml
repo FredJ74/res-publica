@@ -50,6 +50,7 @@ jobs:
         run: |
           node outils/bancs/banc-forums-territoires-adhesions-20261103.cjs
           python3 outils/bancs/banc-forums-territoires-local.py
+          python3 outils/bancs/test-collecte-forums422.py
           python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261103222000_forums_territoires_et_adhesions.sql').read_text()); print('SQL forums : syntaxe PostgreSQL valide')"
       - name: Commerces, usines et armureries — vente de matières et stocks visibles
         run: node outils/bancs/banc-commerces-stock-unique-20261104.cjs

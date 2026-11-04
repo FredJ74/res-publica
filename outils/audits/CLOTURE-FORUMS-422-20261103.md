@@ -1,4 +1,64 @@
-# Forums #422 — contrôles locaux conformes, livraison à certifier
+# Forums #422 — migration appliquée ; collecte canonique à recevoir
+
+## État courant — 04/11, après application par l'intégrateur
+
+**La migration n'est plus à appliquer.** Version réelle `20261104001711`, nom
+`forums_territoires_et_adhesions`. Confirmation publique lue dans le commentaire
+[6618966376](https://github.com/FredJ74/res-publica/pull/422#issuecomment-6618966376).
+MD5 lecture `8c3942ad7d820a9533bb54a5111c87a2`, publication
+`536c0751b6cddf32381dcac7a8cbd581` ; huit policies et contrôles sans JWT confirmés
+par ChatGPT. Ce sont des vérifications de l'intégrateur, pas des appels Supabase
+exécutés par Codex. Ne pas renommer/rejouer le fichier Git. Les mentions « non
+appliquée » plus bas décrivent les étapes historiques et sont désormais dépassées.
+
+**Priorité bloquante avant fusion : les quatre exports actuels n'ont pas encore
+été reçus.** Aucun SQL du baseline n'a été modifié à la main ; aucune nouvelle
+réextraction ni régénération complète des seeds revendiquée. Les résultats12/12
+hors ligne ne prouvent pas que ce baseline ancien contient les dernières RPC.
+
+Main #430 (`943df3fb`) intégré ; code CRON/SQL financier identique à main, #428 non
+importée. Les12 contrôles relancés après réconciliation passent. Les191/119/88 et
+25+25 tests précédents restent acquis, pas rejoués sans changement des moteurs.
+Cinq CI vertes réellement observées sur `59d4fe6b` ; CI du prochain SHA à vérifier.
+
+### Handoff immédiatement exploitable par ChatGPT
+
+Ouvrir `outils/bancs/collecte-forums422/README.md` et **récupérer les quatre exports
+canoniques** via le connecteur, avec `outils/bancs/COLLECTE-FORUMS422-capture_atomique.sql` de préférence. Il
+réutilise le collecteur existant et les SELECT exacts de `requetes.py`, le contrôle,
+le registre et les seeds authored autorisés. Les quatre SELECT séparés sont aussi
+fournis, tailles et SHA256 dans `MANIFESTE.json`. Aucun secret ni donnée privée
+reçu n'est dans ce paquet public. Les résultats doivent être transmis en privé,
+hors Git, complets, avec SHA256 indépendant calculé à la source.
+
+Le validateur existant est renforcé pour comparer comptes et empreinte des ACL au
+contrôle global du même snapshot, séquences comprises. Tests : un GRANT réel sur
+une séquence est exporté ; retrait d'une ligne, falsification du compteur et perte
+d'un privilège à nombre égal sont tous refusés. **24/24 tests sous PostgreSQL17.6
+et16.2**, héritant des contre-épreuves du collecteur (lecture seule, snapshots
+mélangés, seeds privés, intégrité, interdiction de sortie dans Git).
+
+La réception produit les quatre JSON et fichiers de contrôle/provenance pour les
+générateurs existants ; aucun nouveau moteur d'extraction/reconstruction. Le
+collecteur existant ne prend que dix tables authored : ne pas régénérer tous les
+seeds à partir d'un sous-ensemble en déclarant les autres frais. Émettre la requête
+`seeds.py --sql` depuis les exports reçus, relire sa surface et collecter le
+contenu autorisé nécessaire (ou provenance explicite des seeds conservés).
+
+Ensuite rendre, régénérer, classer les objets nouveaux si nécessaire, contrôler
+et expliquer tout le diff, archiver uniquement les migrations réellement reprises
+dans le baseline selon registre par nom. Aucun écrasement d'attente depuis le
+résultat rendu. Réconcilier main, certifier le SHA et CI, fusionner, observer READY,
+SHA et ressources servies, puis lectures authentifiées isolées. Aucune mutation
+sur un vrai PJ pour fabriquer les scénarios voyage/exclusion. Le mode d'emploi
+donne les commandes exactes pour les agents et les critères de recette.
+
+**État B de la mission : intervention de ChatGPT intégrateur indispensable pour
+l'acquisition des exports ; tout le dispositif est préparé, aucun SQL à demander
+au game designer.** Pas d'accès Supabase exposé ici ; pas de fusion ni déploiement
+annoncé. Les traces antérieures sont conservées ci-dessous.
+
+---
 
 Branche existante `chatgpt/forums-territoires-et-adhesions-20261103` conservée.
 Base réconciliée : main `fbed5ced` (#423), après `4c657b53` (#410). Fusions de travail `2a2ad0e4` puis `5ef8dd5a`.

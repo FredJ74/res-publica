@@ -25,5 +25,21 @@
     "baseline/seeds/95_a-regenerer/ordres_couts.sql": "2bd1420dac818dd2a40fa411053a715a57f7a85f12570249a54362a6014a7a03",
     "outils/bancs/banc-indices-autorite-422.cjs": "6900a9a720bb8a9d49d04825d086483b3d93bf04180d863d93c90b2e9ccc800c",
     "outils/bancs/fixtures/indices-client-avant-404.txt": "16a3526c9edda9e1d2905a6b98f1cef0219460c743b3f456f63464b42a75e879"
+  },
+  "reprise_collecte": {
+    "main_integre": "943df3fb",
+    "migration": "Appliquée par intégrateur : 20261104001711, preuve commentaire6618966376 ; aucune application depuis Codex.",
+    "exports_actuels_recus": false,
+    "baseline_reextrait": false,
+    "sources_sha256": {
+      "outils/livraison/relais-canonique-219.py": "ce7bf8c3327a57281cb5278662abee90911001c3066b881185f3017cec89577b",
+      "outils/bancs/test-collecte-forums422.py": "6b3bd7f2e04b46106aa46d7525e3a42b0af8584e0ca66ee63dfbc756fff4195a",
+      "outils/bancs/collecte-forums422/MANIFESTE.json": "a434186e6fc64fc361aee9bdb6ac9eea5d3c5ca3287cef923ae0ca4fc6fcb505"
+    },
+    "preuves_sha256": {
+      "collecte-postgresql16.log": "3b3535db43e8c11f8293faac7b3ec4461df4b251524f4d92f3909a02853ee593",
+      "collecte-postgresql17.log": "76a233df9f3c561c87f21a6084482539a3878fe44df3b8462e258b18acd3a4d8",
+      "globaux-apres-main430.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb"
+    }
   }
 }

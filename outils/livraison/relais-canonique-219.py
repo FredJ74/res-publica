@@ -123,6 +123,22 @@ def valider(document):
         raise ValueError('Comptes structure/contrôle global contradictoires')
     if datetime.fromisoformat(document['releve_utc']) != datetime.fromisoformat(ctl['releve_le']):
         raise ValueError('Relevés non simultanés : aucune promotion du baseline')
+    # Les droits des séquences font partie des relations. Une catégorie présente
+    # mais amputée ne doit pas devenir un baseline apparemment complet (#422).
+    for cle in ('droits_relations', 'droits_fonctions', 'droits_colonnes'):
+        if ctl['totaux'].get(cle) != len(exp[cle]):
+            raise ValueError('Comptes des droits contradictoires : ' + cle)
+    hors = set(requetes.tables_hors_baseline())
+    droits = [':'.join(str(x[k]) for k in ('genre', 'objet', 'beneficiaire', 'privileges'))
+              for x in exp['droits_relations']
+              if not (x['genre'] == 'TABLE' and x['objet'] in hors)]
+    droits += [':'.join(str(x[k]) for k in ('genre', 'objet', 'beneficiaire', 'privileges'))
+               for x in exp['droits_fonctions']]
+    droits += ['COLUMN:' + x['tbl'] + '.' + x['colonne'] + ':' + x['beneficiaire'] + ':' + x['privileges']
+               for x in exp['droits_colonnes'] if x['tbl'] not in hors]
+    empreinte_droits = hashlib.md5('|'.join(sorted(droits)).encode()).hexdigest() if droits else None
+    if ctl.get('empreintes', {}).get('droits') != empreinte_droits:
+        raise ValueError('Empreinte des droits contradictoire (séquences comprises)')
     refs = document.get('referentiels_controle', [])
     noms_refs = {'ordres_couts','ressources_economie','pa_bonus_differes','postes_nommes_regles','villes'}
     if len(refs) != len(noms_refs) or {x.get('table_name') for x in refs} != noms_refs:
