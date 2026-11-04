@@ -25,6 +25,13 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Douanes et fret au serveur — Claude, branche `claude/douanes-fret-serveur-20261104` (#433, 04/11)
+
+Décisions de Fred du 04/11 consignées dans `GAME-DESIGN-DOUANES.md` (1 poste de 3 douaniers à l'aéroport ; amende de fausse déclaration = 2 × 10 % × valeur de référence).
+- **Fait et appliqué** : `20261104105114_fret_caisses_serveur` (registre `fret_caisses_serveur_20261104105114`) et `20261104110500_fret_contenu_source_portes` : commandes des caisses (`fret_caisse_commande`), contrôle du Chef (`douane_caisse_controler`), inspection 1 caisse sur 3 à l'expédition, déclaration par lot, écritures directes de l'écran fermées. Banc annulé `banc-fret-caisses-serveur.sql` vert. Jet mort `doControlDouanes` retiré. Garde `test-fret-serveur.mjs`.
+- **Préparé, NON appliqué** : `20261104121000_douanes_aeroport_poste` (poste de l'aéroport, détection par les douaniers via le socle police, port sans fouille et détection × 0,70) + relève dans `api/cron-minuit.js` + interception côté écran. Le banc `banc-douanes-voyageurs.sql` n'a pas pu être joué (le canal Supabase a demandé une confirmation humaine restée sans réponse). À jouer puis appliquer.
+- Reste : PR, fusion, Vercel READY.
+
 ### Forums par pays, ville et adhésion — ChatGPT, PR #422 (ouverte au 04/11)
 
 Décision de Fred : forum local = ville courante, national = pays courant, forums privés réservés aux adhérents. Migration RLS `20261103222000` **non appliquée** (absente du registre au 04/11, fichier encore hors de main). Reste : CI, conflits avec main, application, Vercel READY, recette PJ.
