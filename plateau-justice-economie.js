@@ -5620,7 +5620,7 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
 function imprimerieCouranteVente() {
   const ville = state.currentCity || 'capitale';
   const building = state.currentBuilding || 'la-tribune';
-  const entrepot = (typeof ENTREPOT_PAR_VILLE === 'object' && ENTREPOT_PAR_VILLE[ville]) || 'entrepot-logistique-luthecia';
+  const entrepot = entrepotLogistiqueDe(state.country, ville);
   return { ville, building, entrepot };
 }
 
@@ -5744,7 +5744,7 @@ const ENTREPOT_PAR_VILLE = {
 
 function getBuildingIdDirecteurEntrepot() {
   const ville = state.poste?.city;
-  return ville ? ENTREPOT_PAR_VILLE[ville] : null;
+  return ville ? entrepotLogistiqueDe(state.country, ville) : null;
 }
 
 async function doOuvrirFixerPrixAchatEntrepot(pa, cost) {

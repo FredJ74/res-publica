@@ -25,6 +25,14 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Entrepôt de Novomirsk — Codex, 04/11/2026
+
+Branche `codex/entrepot-novomirsk-20261104`, base main `7def091f`. Mission explicite de Fred : raccordement local Sovarka, aucun échange international. Relais et branches consultés, aucun lot Novomirsk concurrent identifié ; pas de chantier immobilier ou PNJ parallèle repris. Ordres/catalogues existants réutilisés, référentiel client pays/ville et migration préparée pour la clé serveur `(pays,ville)`. Navigation depuis `novomirsk-vue-8`, accueil/ventes/direction. PNJ à identités fonctionnelles, pas de personnalité particulière inventée. Aucune illustration générée : images républiennes portent leur ville, donc fonds existants sans faux visuel intérieur. Stocks et caisse initialisés à zéro uniquement si absents, pas de dotation inventée.
+
+Migration **non appliquée** `20261104180710_entrepot_novomirsk_isolation_pays.sql` : corps existants adaptés avec gardes de définition, circuits nationaux séparés, anciens endpoints financiers remplacés par surcharges utilisant les reçus d'achat existants (rejeu et protection du navigateur). Défauts démontrés corrigés : caisse d'achat dans un blob au lieu de la caisse canonique ; crédit fournisseur ignoré après débit ; réserve militaire vendable dans commande directeur ; ancien résolveur ignorant le pays. Dépendances et prévol réel à contrôler avant toute application (`outils/livraison/prevol-entrepot-novomirsk.sql`). Ne pas appliquer l'ancienne migration de trading une seconde fois : correction de fragment uniquement pour sa reconstruction locale (saut de ligne qui faisait échouer le patch).
+
+Tests intermédiaires : PostgreSQL17.6 jetable, 43 assertions (rôle authenticated, transaction annulée, rollback/rejeu, achats/ventes/offres et isolement),10 clients/trading. Chromium, contre-épreuves complètes et contrôles globaux en cours. Aucune donnée ni migration de production touchée. Accès Supabase non exposé dans cette session ; PR et recette réelle restent à vérifier. Ne pas fusionner en l'état.
+
 ### Commissariat PSM : contexte PNJ et portrait — Codex, 04/11/2026
 
 Branche `codex/psm-commissariat-dialogue-portrait-20261104`, issue de main `06657545` (PR #447 conservée). Vérification du relais, des branches et PR publiques : aucune correction concurrente Morvan/portrait accueil identifiée. Morvan n'avait aucun lieu dans sa fiche ; le chat ne recevait jamais la position. Lecture commune `rue_position_lire()` sous JWT, noms du lieu issus du générateur/casting existant (`generer-pnj-lieux-metiers.cjs --scenes-js` → `api/_pnj-scenes-generes.js`), aucun nouveau moteur de navigation ni mutation. La fiche précise le bureau, personnalité/rôle conservés ; aucune réplique de remplacement codée en dur. Si position/presence non confirmées, le prompt l'indique, sans inventer de localisation.

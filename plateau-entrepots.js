@@ -53,7 +53,7 @@ const I18N_ENTREPOTS_FR = {
   'entrepots.delai.j1':           "J+1",
   'entrepots.delai.j2':           "J+2",
   'entrepots.origine.port':       "Port industriel",
-  'entrepots.origine.national':   "Républia",
+  'entrepots.origine.national':   "Marché national",
   'entrepots.dispo.illimite':     "—",
   'entrepots.vide.marche':        "Aucun fournisseur ne propose cette ressource pour le moment.",
   'entrepots.vide.registre':      "Aucune opération enregistrée pour l'instant.",
@@ -98,7 +98,7 @@ let _entrepotTableau = null;
 function entrepotIdCourant() {
   const b = (typeof getBuildingIdDirecteurEntrepot === 'function') ? getBuildingIdDirecteurEntrepot() : null;
   const ville = state.poste?.city;
-  return (b && ville) ? ('republic_' + ville + '_' + b) : null;
+  return (b && ville) ? (state.country + '_' + ville + '_' + b) : null;
 }
 
 function fmtFR(n) {
@@ -120,18 +120,13 @@ async function chargerTableauEntrepot() {
     sbGetCaisseBatiment(state.country + '_entrepot_' + state.poste.city).catch(() => null),
     sbGet('entrepot_transits', 'destination_id=eq.' + encodeURIComponent(monId) + '&order=arrivee_le.asc').catch(() => []),
     sbGet('entrepot_journal', 'entrepot_id=eq.' + encodeURIComponent(monId) + '&order=horodatage.desc&limit=40').catch(() => []),
-    sbRpc('fournisseurs_etrangers', {}).catch(() => []),
-    sbGet('batiments_etat', 'building_id=like.entrepot-logistique-*').catch(() => []),
-    sbGetBatimentEtat('republic', 'ville_a', 'port-sainte-marie').catch(() => null)
+    Promise.resolve([]), // International non ouvert : aucune proposition étrangère.
+    sbGet('batiments_etat', 'country=eq.' + encodeURIComponent(state.country) + '&building_id=like.entrepot-logistique-*').catch(() => []),
+    (state.country === 'republic' ? sbGetBatimentEtat('republic', 'ville_a', 'port-sainte-marie').catch(() => null) : Promise.resolve(null))
   ]);
 
   // Embargos en vigueur, lus une fois pour tout l'ecran.
   const embargos = {};
-  for (const pays of ['narco', 'soviet', 'khalija']) {
-    embargos[pays] = await sbRpc('embargo_actif', { p_pays_soi: 'republic', p_pays_cible: pays })
-      .then(function (r) { return Array.isArray(r) ? r[0] === true : r === true; })
-      .catch(function () { return false; });
-  }
 
   return {
     monId: monId,
@@ -298,7 +293,8 @@ async function enregistrerDesiderata() {
     { p_acteur: state.char?.name, p_desiderata: desiderata })
     .then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
     .catch(function () { return null; });
-  if (!v || v.ok !== true) {
+  if (!v) return;
+  if (v.ok !== true) {
     showToast(tEntrepot('entrepots.msg.refus'), messageRefusEntrepot(v && v.raison), false);
     return;
   }
@@ -446,13 +442,13 @@ async function commanderDepuisMarche(index) {
   const qte = Math.floor(Number(document.getElementById('cmd-qte-' + index)?.value || 0));
   if (!(qte > 0)) { showToast(tEntrepot('entrepots.msg.refus'), tEntrepot('entrepots.refus.quantite'), false); return; }
 
-  const v = await sbRpc('entrepot_commander', {
+  const v = await executerReceptionInventaire('entrepot_commander', {
     p_acteur: state.char?.name, p_ressource: l.ressource, p_quantite: qte,
     p_fournisseur_type: l.type, p_fournisseur_id: l.id
-  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
-    .catch(function () { return null; });
+  });
 
-  if (!v || v.ok !== true) {
+  if (!v) return;
+  if (v.ok !== true) {
     showToast(tEntrepot('entrepots.msg.refus'), messageRefusEntrepot(v && v.raison), false);
     return;
   }
@@ -526,7 +522,8 @@ function vueRegistreEntrepot(d, cur) {
 const ENTREPOT_VILLE_PAR_BATIMENT = {
   'entrepot-logistique-luthecia': 'capitale',
   'entrepot-logistique-psm': 'ville_a',
-  'entrepot-logistique-montrouge': 'ville_b'
+  'entrepot-logistique-montrouge': 'ville_b',
+  'entrepot-logistique-novomirsk': 'capitale'
 };
 
 function villeEntrepot(buildingId) { return ENTREPOT_VILLE_PAR_BATIMENT[buildingId] || null; }

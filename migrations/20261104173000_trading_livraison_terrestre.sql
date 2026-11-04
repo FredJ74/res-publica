@@ -68,7 +68,9 @@ $n$  -- Livraison terrestre nationale (décision de Fred, 04/11/2026) : entrepô
   RETURNING id INTO v_caisse;
   PERFORM public.trading_livraison_courrier_interne(v_moi, v_dest.ville, v_prevue,
     'Achat de trading : ' || p_quantite || ' × ' || p_ressource || ' pour ' || v_org.nom || '.');$n$);
-  v_new := replace(v_new, $a$'pa', m.pa - 1, 'arrivee', 'port-sainte-marie');$a$,
+  -- Le corps d'origine sépare ces deux champs par un saut de ligne. L'espace
+  -- n'est pas une règle métier : tolérer sa mise en forme, conserver les gardes.
+  v_new := regexp_replace(v_new, $a$'pa', m\.pa - 1,[[:space:]]*'arrivee', 'port-sainte-marie'\);$a$,
     $n$'pa', m.pa - 1, 'arrivee', v_dest.building_id, 'ville_livraison', v_dest.ville, 'disponible_apres', v_prevue);$n$);
   IF v_new = v_def OR position('v_dest.building_id' in v_new) = 0 OR position('''ville_livraison''' in v_new) = 0
      OR position('p_livraison text DEFAULT' in v_new) = 0 THEN

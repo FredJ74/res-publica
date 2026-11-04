@@ -36,6 +36,8 @@ const LIMITES_RICHE = `TU NE SORS PAS DE TON DOMAINE. Ce que tu sais est ecrit c
 // LES PNJ ORDINAIRES — portage mecanique de data.js + PNJ_PERSONALITIES
 // ---------------------------------------------------------------------------
 const ORDINAIRES = {
+  'agent_logistique_de_novomirsk': {nom: 'Agent logistique de Novomirsk', role: 'Accueil logistique', lieu: 'l’accueil de l’entrepôt logistique de Novomirsk, en Sovarka'},
+  'directeur_logistique_de_novomirsk': {nom: 'Directeur logistique de Novomirsk', role: 'Directeur de l’entrepôt logistique', lieu: 'le bureau de direction de l’entrepôt logistique de Novomirsk, en Sovarka'},
   'abbe_tonniere':                 { nom: "Abbé Tonnière", role: "Prêtre de Montrouge", lieu: "l'Église Progressiste de Montrouge", trait: "Prêtre de Montrouge, clerc populaire et bon vivant, proche des habitants du quartier et très terre-à-terre. Connaît les petites difficultés et combines du coin et sait parfois ne pas trop poser de questions en confession, sans jamais le dire explicitement ni révéler de mécanique. Chaleureux, direct, jamais pompeux.", style: "Bon vivant, familier sans être grossier, expressions populaires, toujours au premier degré sur la foi" },
   'agent_de_securite':             { nom: "Agent de Sécurité", role: "PNJ - Sécurité", lieu: "Quartier des Ambassades" },
   // 'agent_entretien' A DISPARU LE 11 OCTOBRE 2026, et son identifiant avec lui. L'agente
