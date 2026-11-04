@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -1883,6 +1883,29 @@ const WORLD = {
           name: "Distribution Collective",
           desc: "Files organisées par ordre alphabétique.",
           persons: [{"name": "Distributeur Équitable (PNJ)", "role": "Distributeur", "rel": "neutral", "job": "commercant"}]
+        },
+        // Librairie du Peuple (vue 1, Place du Peuple) : copie de l'Imprimerie-Librairie Gutenberg
+        // de Port-Sainte-Marie (decision de Fred, 04/11/2026) -- memes pieces, memes ordres, meme
+        // caisse d'atelier dans batiments_etat (soviet_capitale_imprimerie-librairie). Libraire
+        // propre a Novomirsk, nom choisi par Fred (regle « pas de connexion entre les villes »).
+        // Images : aucune pour l'instant (imagesAVenir) ; Fred les generera une fois l'interface
+        // de chaque batiment en place. Les images de PSM ne sont pas empruntees.
+        'imprimerie-librairie': {
+          name: "Librairie du Peuple",
+          imagesAVenir: true,
+          desc: "La librairie du Parti, sur la Place du Peuple. On y imprime livres, brochures et tracts, sous l'oeil bienveillant du Comite.",
+          persons: [{name: 'Ludmila Pamphletova (PNJ)', role: 'PNJ - Libraire-imprimeuse du Parti', rel: 'neutral', job: 'imprimeur'}]
+        },
+        // Restaurant La Mere Volga (vue 2) : copie du Capitaine Sauvage de PSM (decision de Fred,
+        // 04/11/2026 ; la carte sera retravaillee plus tard). Meme commerce du socle
+        // (commerces_types/commerces_dotations « capitaine-sauvage|salle_principale », entreprise
+        // brasserie-soviet-capitale-capitaine-sauvage-salle_principale creee par le serveur au
+        // premier acces). Serveuse propre a Novomirsk, nom choisi par Fred.
+        'capitaine-sauvage': {
+          name: "Restaurant La Mère Volga",
+          imagesAVenir: true,
+          desc: "La cantine de quartier du Prospekt du Peuple : nappes à carreaux, samovar fumant et portions réglementaires. La Mère Volga nourrit le prolétariat depuis trois plans quinquennaux.",
+          persons: [{name: 'Tatiana Bortchova (PNJ)', role: 'Serveuse', rel: 'neutral', job: 'serveur'}]
         }
       }
     },
@@ -4150,6 +4173,111 @@ const BUILDINGS = {
         imageUrl: "images/salle-scandales-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-scandales-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      }
+    }
+  },
+  // Musee municipal de Novomirsk (vue 2) : copie du musee de Port-Sainte-Marie (decision de Fred,
+  // 04/11/2026) -- pantheon de la ville, memes salles et meme ordre generique ; figures historiques
+  // ecrites par Claude a la relecture de Fred (MUSEE_PROVINCE_PERSONNALITES, plateau-musee-
+  // personnalites.js), Salle des Plumes laissee aux joueurs. PNJ propres a Novomirsk, noms choisis
+  // par Fred. Aucune image ni audioguide pour l'instant : Fred generera les images ensuite.
+  'musee-novomirsk': {
+    name: "Musée municipal de Novomirsk",
+    shortName: "Musée",
+    cat: "Culture",
+    icon: "ti-building-monument",
+    bgColor: "#1c160c",
+    desc: "Le musée de l'histoire de Novomirsk et de ses grandes figures. Chaque salle immortalise une catégorie de Novomirskois célèbres, pour le meilleur et pour le pire, selon la version en vigueur.",
+    rooms: {
+      hall: {
+        name: "Hall d'accueil",
+        imageBg: "linear-gradient(135deg,#1c160c,#241c10)",
+        desc: "Le hall d'accueil du musée. Sol en granit du Parti, maquette du premier tracteur de la ville, registre des visiteurs à remplir en trois exemplaires. Irina Guichetova tient l'accueil ; le Docteur Lev Patrimonov, conservateur, veille sur les collections.",
+        persons: [
+          {name:'Irina Guichetova (PNJ)', role:'PNJ - Accueil du musée', rel:'neutral', job:'hotesse'},
+          {name:'Docteur Lev Patrimonov (PNJ)', role:'PNJ - Conservateur du musée', rel:'neutral', job:'conservateur'},
+          {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide'}
+        ],
+        orders: []
+      },
+      salle_criminels: {
+        name: "Salle des Grands Criminels Novomirskois",
+        imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
+        desc: "Portraits et dossiers des ennemis du peuple les plus tristement célèbres de Novomirsk. Les dossiers sont complets ; les aveux aussi.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_maires: {
+        name: "Salle des Présidents du Soviet municipal",
+        imageBg: "linear-gradient(135deg,#14120c,#1e1a10)",
+        desc: "Les maires de Novomirsk, que l'on appelle ici présidents du Soviet municipal. Certains portraits ont été repeints, d'autres retirés puis raccrochés.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_personnalites: {
+        name: "Salle des Héros du Peuple",
+        imageBg: "linear-gradient(135deg,#10141a,#161c24)",
+        desc: "Les figures les plus aimées de la ville, toutes générations confondues — du moins celles dont l'amour a été officiellement constaté.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_entrepreneurs: {
+        name: "Salle des Grands Bâtisseurs de la Production",
+        imageBg: "linear-gradient(135deg,#121410,#1a1e16)",
+        desc: "Directeurs de kombinat, stakhanovistes et inventeurs : ceux qui ont dépassé le Plan, ou l'ont fait croire.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_organisations: {
+        name: "Salle des Organisations Novomirskoises",
+        imageBg: "linear-gradient(135deg,#140c14,#1e141e)",
+        desc: "Le Parti, les syndicats, les cultes et les clubs de la ville, à travers leurs plus grands représentants.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_plumes: {
+        name: "Salle des Plumes Novomirskoises",
+        imageBg: "linear-gradient(135deg,#181018,#221824)",
+        desc: "Les plus belles diatribes, lettres ouvertes et autocritiques qui ont marqué la vie forumiale de Novomirsk. Contenu à venir.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide'} ],
+        orders: []
+      },
+      salle_honneur_militaire: {
+        name: "Salle d'Honneur Militaire",
+        imageBg: "linear-gradient(135deg,#141410,#201f18)",
+        desc: "Les faits d'armes et les soldats les plus décorés originaires de Novomirsk. Il y a beaucoup de médailles, et presque autant de soldats.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_unions: {
+        name: "Salle des Unions Célèbres",
+        imageBg: "linear-gradient(135deg,#1c1414,#281c1c)",
+        desc: "Les mariages et alliances les plus marquants de l'histoire de la ville, certains autorisés par le Comité.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_scandales: {
+        name: "Salle des Scandales et Affaires",
+        imageBg: "linear-gradient(135deg,#100c10,#181018)",
+        desc: "Les grandes crises politiques et affaires qui ont secoué Novomirsk. La plupart n'ont officiellement jamais eu lieu.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide'} ],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
         ]

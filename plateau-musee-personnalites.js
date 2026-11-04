@@ -140,6 +140,56 @@ const MUSEE_PROVINCE_PERSONNALITES = {
       { nom: 'La criée truquée', dates: '2015', bio: "Le même thon vendu sept fois dans la même matinée, à sept acheteurs ravis." }
     ]
   },
+  // Musee municipal de Novomirsk (04/11/2026) : figures ecrites par Claude, a la relecture de Fred.
+  'musee-novomirsk': {
+    salle_criminels: [
+      { nom: '« Le Fantôme du Kolkhoze n° 7 »', dates: 'années 1920', bio: "Volait chaque nuit une betterave du silo collectif. Jamais pris ; le silo fut déclaré « en sous-production chronique »." },
+      { nom: 'Grigori Faussaire', dates: '1898–1961', bio: "Imprima de faux tickets de rationnement si parfaits que le Comité les préférait aux vrais." },
+      { nom: 'Nina « La Samovar » Kipiatova', dates: '1934–2002', bio: "Contrebandière de thé étranger, dissimulé dans des samovars d'État. Condamnée à servir le thé au tribunal pendant vingt ans." },
+      { nom: 'Oleg Revendov', dates: '1979–', bio: "Revendit trois fois le même tracteur de parade au marché noir. Le tracteur est toujours sur la Place du Peuple." }
+    ],
+    salle_maires: [
+      { nom: 'Camarade Fiodor Plankine', dates: '1871–1940', bio: "Premier président du Soviet municipal. Fit tracer le Prospekt du Peuple à la règle, en ligne droite, à travers trois maisons et une église." },
+      { nom: 'Antonina Bétonova', dates: '1903–1979', bio: "Présidente pendant vingt-six ans. On lui doit tous les immeubles gris de la ville, et le gris lui-même, déclaré couleur municipale." },
+      { nom: 'Camarade Ivan Provizorov', dates: '1928–1991', bio: "Président par intérim pendant dix-neuf ans : le Comité ne se décida jamais à le nommer pour de bon." },
+      { nom: 'Mikhaïl Plénitoudov', dates: '1950–', bio: "Élu avec 104 % des voix. A demandé un recomptage, pour la forme." }
+    ],
+    salle_personnalites: [
+      { nom: 'Babouchka Agafia Pirojkova', dates: '1866–1951', bio: "Nourrit tout le quartier du port pendant l'hiver de la Grande Pénurie avec une seule marmite, jamais vidée." },
+      { nom: 'Alexeï Balalaïkine', dates: '1912–1988', bio: "Chanteur officiel du Parti : trois cents chansons, toutes sur le même tracteur." },
+      { nom: 'Docteure Zinaïda Garrotova', dates: '1930–2009', bio: "Chirurgienne de l'hôpital public pendant quarante ans ; opérait à la lampe de poche les soirs de coupure." },
+      { nom: 'Kostia Poussetov', dates: '1985–', bio: "Champion municipal de déneigement à la pelle. Refuse la déneigeuse « par principe idéologique »." }
+    ],
+    salle_entrepreneurs: [
+      { nom: 'Directeur Pavel Kombinatov', dates: '1880–1946', bio: "Fonda le premier kombinat de Novomirsk, qui produisait à la fois des tracteurs, des casseroles et des médailles." },
+      { nom: 'Alexandra Stakhanova', dates: '1909–1983', bio: "Dépassa le Plan de 1 400 % en une seule nuit. L'usine dut fermer une semaine, faute de matières premières." },
+      { nom: 'Ingénieur Boris Pharmakov', dates: '1948–2014', bio: "Fondateur de l'usine Pharmanov. Inventa un sirop contre la toux qui soignait aussi, d'après l'étiquette, le doute idéologique." },
+      { nom: 'Dmitri Startoupov', dates: '1996–', bio: "Créa la première entreprise privée de la ville : une application qui signale les files d'attente. Toutes les files." }
+    ],
+    salle_organisations: [
+      { nom: 'Grand Mécanicien Ephrem Tractorine', dates: '1859–1932', bio: "Fondateur du culte du Tractorisme. Bénit le premier tracteur de la ville, qui démarra du premier coup : on y vit un miracle." },
+      { nom: 'Camarade Vassili Cellulov', dates: '1897–1970', bio: "Secrétaire de la cellule du Parti du port pendant quarante ans. Connaissait le nom, l'adresse et les opinions de chacun." },
+      { nom: 'Lioubov Grèvina', dates: '1922–1999', bio: "Meneuse de la grève des tricoteuses de 1956, la seule grève jamais tolérée : elles tricotaient des chaussettes pour l'armée pendant le piquet." },
+      { nom: 'Gena Ultrasov', dates: '1970–', bio: "Chef des supporters du Dynamo Novomirsk. Interdit de stade depuis 2001, il encourage l'équipe depuis le toit du commissariat." }
+    ],
+    salle_honneur_militaire: [
+      { nom: 'Général Arkadi Neigeov', dates: '1862–1930', bio: "Défendit Novomirsk tout un hiver, à la tête de deux régiments et d'un seul manteau, qu'ils se passaient à tour de rôle." },
+      { nom: 'Sergent Tamara Chenillova', dates: '1920–1944', bio: "Conduisit son char à travers un lac gelé pour ravitailler la ville. Le char coula ; le ravitaillement arriva." },
+      { nom: 'Caporal Iouri Parado', dates: '1955–', bio: "Médaille du mérite pour trente défilés sur la Place du Peuple, sans jamais rater le pas." },
+      { nom: 'Lieutenante Daria Radarova', dates: '1984–', bio: "Première femme à commander la batterie antiaérienne de la ville. N'a jamais tiré : tout le monde l'a vue venir." }
+    ],
+    salle_unions: [
+      { nom: 'Stepan Tchernov et Anna Belova', dates: 'mariés en 1911', bio: "Leur union réconcilia le quartier du port et celui des usines. La noce dura neuf jours et vida les réserves de kvas." },
+      { nom: 'Fiodor et Galina Patiencev', dates: 'mariés en 1947', bio: "Attendirent onze ans un appartement commun ; ils y vécurent ensuite cinquante ans, avec deux autres familles." },
+      { nom: 'Igor Rebondov et Svetlana Rebondova', dates: 'mariés en 1983, 1986 et 1990', bio: "Trois mariages, deux divorces, toujours le même formulaire. Le Bureau d'état civil leur a offert un tampon." }
+    ],
+    salle_scandales: [
+      { nom: "L'affaire du tracteur en carton", dates: '1931', bio: "Le tracteur présenté au Comité central était une maquette peinte. Il défila quand même, poussé par six ouvriers." },
+      { nom: 'Le scandale des betteraves comptées deux fois', dates: '1964', bio: "Le kombinat déclara une récolte record. On découvrit plus tard qu'il comptait chaque betterave en entrée et en sortie du silo." },
+      { nom: "L'affaire du polonium au thé", dates: '1988', bio: "Un délégué étranger tomba malade après une tasse de thé au Grand Hôtel. Selon la version officielle, il était allergique au sucre." },
+      { nom: 'Le grand ravalement', dates: '2016', bio: "Le budget de rénovation des façades du Prospekt disparut. Les façades furent repeintes en gris, la couleur d'origine." }
+    ]
+  },
   'musee-histoire-montrouge': {
     salle_terre: [
       { nom: 'Abbé Hippolyte Ferrand', dates: '1790–1861', bio: "Géologue amateur, découvrit le charbon du bassin en creusant un puits pour son presbytère." },

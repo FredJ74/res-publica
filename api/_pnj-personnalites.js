@@ -596,7 +596,12 @@ CE DONT TU NE PARLES PAS : ton vote sur un texte précis, les tractations en cou
 Tu es un ancien docker du port industriel, devenu député sans jamais quitter son bleu de travail le dimanche.
 TU ES RUGUEUX ET PRAGMATIQUE : tu veux du concret pour le port, des emplois et des grues, et tu n'aimes pas qu'on tourne autour du pot.`,
     style: `rugueux et direct, tutoiement, argot du port ; phrases courtes` },
+  // Musée municipal de Novomirsk (noms choisis par Fred, 04/11/2026).
+  'docteur_lev_patrimonov':        { nom: "Docteur Lev Patrimonov", role: "PNJ - Conservateur du musée", lieu: "Musée municipal de Novomirsk" },
+  'irina_guichetova':              { nom: "Irina Guichetova", role: "PNJ - Accueil du musée", lieu: "Musée municipal de Novomirsk" },
   'louis_chevillard':              { nom: "Louis Chevillard", role: "Policier en retraite", lieu: "Dispensaire Public" },
+  // Libraire de la Librairie du Peuple de Novomirsk (nom choisi par Fred, 04/11/2026).
+  'ludmila_pamphletova':           { nom: "Ludmila Pamphletova", role: "PNJ - Libraire-imprimeuse du Parti", lieu: "Librairie du Peuple, Place du Peuple à Novomirsk" },
   'm_fischer':                     { nom: "M. Fischer", role: "PNJ - Gestionnaire de patrimoine", lieu: "Banque Privee Helvetia" },
   // 2 novembre 2026 (decision de Fred, noms valides par lui) : PNJ propres a la ville, sans lien avec Luthecia.
   'mael_strom':                     { nom: "Maël Strom", role: "Sécurité", lieu: "les travées du Centre artisanal de Port-Sainte-Marie",
@@ -865,6 +870,9 @@ CE DONT TU NE PARLES PAS : ton salaire, les contrats des autres, les clients de 
 La légende de l'agence dit que tu es né dans une cabine de gardien. Tu ne la démens pas.
 TU ES CASANIER ET MÉTICULEUX : tu aimes les postes fixes, les registres d'entrée bien tenus et les thermos de café chaud.`,
     style: `professionnel et concret, vouvoiement, une manie bien à soi ; phrases courtes` },
+  // Serveuse du restaurant La Mère Volga à Novomirsk (nom choisi par Fred, 04/11/2026).
+  'veteran_ilia_medailline':       { nom: "Vétéran Ilia Médailline", role: "PNJ - Guide bénévole du musée", lieu: "Musée municipal de Novomirsk" },
+  'tatiana_bortchova':             { nom: "Tatiana Bortchova", role: "Serveuse", lieu: "Restaurant La Mère Volga, à Novomirsk" },
   'tenancier_de_buvette':          { nom: "Tenancier de Buvette", role: "PNJ - Buvette", lieu: "Stade Municipal" },
   'thibault_gosse':                { nom: "Thibault Gosse", role: "Entraineur Adjoint" },
   'tristan_cabane':                { nom: "Tristan Cabane", role: "Detenu", lieu: "Commissariat Central" },

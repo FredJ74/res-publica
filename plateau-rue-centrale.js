@@ -787,7 +787,7 @@ const RUE_CENTRALE_NOEUDS = {
   // salle vide ou de ne rien faire du tout. Le jour ou le batiment est developpe, il suffit de
   // remplacer { type: 'a-venir' } par { type: 'batiment', buildingId: '...' }.
   //
-  // Compte exact a la livraison : 34 hotspots, dont 17 raccordes (16 batiments distincts, le
+  // Compte exact a la livraison (15/09) : 34 hotspots, dont 17 raccordes (16 batiments distincts, le
   // Grand Hotel comptant deux entrees) et 17 encore fermes. Le message du commit ef4bcc9
   // annoncait par erreur 13 raccordes / 21 fermes ; les chiffres exacts sont ceux-ci, verifies
   // par banc_novomirsk.py.
@@ -798,7 +798,8 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-1': {
       image: 'images/rue-palais-gouvernement-place-novomirsk.webp',
       zones: [
-        { xPct: [0, 17],  yPct: [36, 90], nom: 'Librairie du Peuple', type: 'a-venir' },
+        // Raccordee le 04/11/2026 (decision de Fred) : copie de l'Imprimerie-Librairie de PSM.
+        { xPct: [0, 17],  yPct: [36, 90], nom: 'Librairie du Peuple', type: 'batiment', buildingId: 'imprimerie-librairie' },
         // Le grand palais abritera plus tard la Presidence ET le Gouvernement ; son nom
         // fonctionnel est desormais "Palais du Gouvernement de Sovarka", quel que soit
         // l'ancien nom du fichier image.
@@ -812,8 +813,10 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-2': {
       image: 'images/rue-musee-restaurant-novomirsk.webp',
       zones: [
-        { xPct: [0, 23],   yPct: [22, 70], nom: 'Restaurant La Mère Volga', type: 'a-venir' },
-        { xPct: [76, 100], yPct: [0, 74],  nom: 'Musée municipal de Novomirsk', type: 'a-venir' }
+        // Raccorde le 04/11/2026 (decision de Fred) : copie du Capitaine Sauvage de PSM.
+        { xPct: [0, 23],   yPct: [22, 70], nom: 'Restaurant La Mère Volga', type: 'batiment', buildingId: 'capitaine-sauvage' },
+        // Raccorde le 04/11/2026 (decision de Fred) : copie du musee de PSM (pantheon de la ville).
+        { xPct: [76, 100], yPct: [0, 74],  nom: 'Musée municipal de Novomirsk', type: 'batiment', buildingId: 'musee-novomirsk' }
       ],
       liens: { toutDroit: 'novomirsk-vue-1', arriere: 'novomirsk-vue-3' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
