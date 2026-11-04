@@ -301,3 +301,13 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - PR #249 : branche dédiée, issue du `main` 27198955, sans importer les groupes inachevés #219. Les raccordements d'inventaire de #213 sont réconciliés avec le code récent des écrans. Aucun déploiement, aucune migration de fermeture à cette étape.
 - Dix migrations métier déjà installées en base ; six fermetures différées au déploiement d'un client compatible : `20261028210000`, `20261028210500`, `20261028210600`, `20261028210700`, `20261028210800`, `20261028210900`. Ne pas activer le verrou final sans observation et accord du game designer.
 - CI au SHA de la PR #249 et validation des chemins d'inventaire impératives avant fusion. La garde fret `hg_fret_contenu_source` demeure désactivée en attendant le nouveau client.
+
+### 05/11/2026 — Certification corrective du chantier naval #473 (Codex, EN COURS)
+
+Branche `codex/certification-chantier-naval-473-20261105`, premier correctif poussé `3759c46c`.
+Contre-épreuve du défaut de commande depuis la rue NULL, rôles authenticated/service_role,
+vrais moteurs financiers, concurrence et rollback sur PostgreSQL jetable ; UI Chromium
+390/1280 sans compte réel. Prévol lecture seule préparé dans
+`outils/bancs/prevol-chantier-naval-473.sql`. Aucune migration appliquée en production.
+API GitHub et accès Vercel refusés dans cette session ; aucun connecteur Supabase exposé.
+Ne pas confondre ces essais avec une recette authentifiée ou une livraison effective.

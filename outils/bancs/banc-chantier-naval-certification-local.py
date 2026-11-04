@@ -52,7 +52,8 @@ def main(concurrence=False):
   CREATE VIEW personnages AS SELECT * FROM personnages_donnees;
   CREATE TABLE comptes_bancaires(id text PRIMARY KEY,personnage text,banque text,solde numeric,updated_at timestamptz DEFAULT now());
   CREATE TABLE villes(pays text,ville text);INSERT INTO villes VALUES('republic','ville_a');
-  ALTER TABLE entrepot_journal ADD COLUMN contrepartie text;
+  ALTER TABLE entrepot_journal ADD COLUMN contrepartie text,ADD COLUMN fret_unitaire numeric,ADD COLUMN statut text;
+  CREATE TABLE entrepot_transits(id text PRIMARY KEY,destination_id text,ressource text,quantite integer,arrivee_le date,cree_le timestamptz,origine_type text,origine_libelle text,prix_unitaire numeric,fret_unitaire numeric,montant_total numeric,commande_par text);
   GRANT USAGE ON SCHEMA public,auth TO authenticated,service_role;
   ALTER TABLE ressources_economie ADD COLUMN prix_achat_fournisseur numeric,ADD COLUMN plafond integer,ADD COLUMN source text;
   INSERT INTO caisses_batiments VALUES('republic_entrepot_ville_a','{"solde":0}',now());
@@ -65,9 +66,12 @@ def main(concurrence=False):
    ('baseline/domaines/immobilier-et-territoire/20_fonctions-1.sql',['batiment_etat_lire']),
    ('baseline/domaines/banque/20_fonctions.sql',['helvetia_debiter_fonds_ordinaires']),
    ('baseline/domaines/finances-publiques/20_fonctions-1.sql',['caisse_institution_mouvement']),
-   ('baseline/domaines/economie/20_fonctions-2.sql',['entrepot_caisse_id','entrepot_caisse_mouvement'])]:
+   ('baseline/domaines/economie/20_fonctions-1.sql',['capacite_entrepot']),
+   ('baseline/domaines/economie/20_fonctions-2.sql',['entrepot_caisse_id','entrepot_caisse_mouvement','entrepot_livrer_transits'])]:
    for name in names:
     for definition in defs(f,name):sql(definition)
+  # Retirer les trois prix fictifs du banc historique avant le seed canonique.
+  sql('DELETE FROM ressources_economie')
   sql((R/'baseline/seeds/95_a-regenerer/ressources_economie.sql').read_text())
   sql(ref.MODELES.read_text());sql(ref.MOTEUR.read_text())
   print('PostgreSQL',own('SHOW server_version'),flush=True)
@@ -99,7 +103,13 @@ def main(concurrence=False):
   check(avancer(cid)['raison']=='prix_matiere_superieur_budget' and snap()==before,'prix trop hauts sans dépassement du contrat ni paiement')
   stock(bois=2000,metal=2000,derives=1000,reserve={'bois':2000});before=snap()
   check(avancer(cid)['raison']=='matieres_insuffisantes' and snap()==before,'réserve militaire jamais consommée par un chantier civil')
-  stock();v=avancer(cid);check(v['ok'] and v['jours']==1,'reprise automatique après réapprovisionnement réel du stock partagé')
+  # Le transit institutionnel existant alimente exactement le stock consommé par le naval.
+  stock(bois=0,metal=2000,derives=1000)
+  own("INSERT INTO entrepot_transits VALUES('fixture-transit',%s,'bois',2000,current_date,now(),'auto','Fixture locale',5,0,10000,'fixture')",(ENT,))
+  livraison=rpc('entrepot_livrer_transits',role='service_role')
+  check(livraison['ok'] and livraison['unites_livrees']==2000,'transit commun : livraison dans le stock réel PSM')
+  v=avancer(cid);check(v['ok'] and v['jours']==1,'reprise automatique après réapprovisionnement réel du stock partagé')
+  check(own('SELECT count(*) FROM entrepot_transits')==0,'transit reçu une seule fois et retiré par le moteur commun')
   before=snap();check(avancer(cid)['rejeu'] and snap()==before,'traitement quotidien répété sans second jour ou paiement')
   own("UPDATE chantier_naval_commandes SET dernier_jour=(now() AT TIME ZONE 'Europe/Paris')::date+1 WHERE id=%s",(cid,));before=snap()
   check(avancer(cid)['rejeu'] and snap()==before,'horloge antérieure au dernier jour : aucune progression rétroactive')
@@ -118,6 +128,7 @@ def main(concurrence=False):
   for j in range(3,8):nextday(cid);check(avancer(cid)['jours']==j,'standard journée '+str(j))
   own("UPDATE chantier_naval_modeles SET prix_total_fr=90000 WHERE code='bateau_3'")
   check(own('SELECT somme_versee FROM chantier_naval_commandes WHERE id=%s',(cid,))==90000,'prix contractuel standard conservé exactement')
+  check(own('SELECT depense_matieres FROM chantier_naval_commandes WHERE id=%s',(cid,))==36000,'matières standard aux prix de référence réels : 36 000 FR')
   check(own('SELECT matieres_consommees FROM chantier_naval_commandes WHERE id=%s',(cid,))=={'bois':1200,'metal':1200,'derives_petrochimiques':600},'recette standard exacte')
   before=snap();check(avancer(cid)['etat']=='acheve' and snap()==before,'livraison standard répétée sans effet')
   stock();c2=rpc('chantier_naval_commander',['bateau_5',token(2)]);cid2=c2['commande'];check(c2['acompte']==52500,'35 pourcent du grand modèle')
@@ -125,6 +136,7 @@ def main(concurrence=False):
    if j>1:nextday(cid2)
    check(avancer(cid2)['jours']==j,'grande capacité journée '+str(j))
   check(own('SELECT matieres_consommees FROM chantier_naval_commandes WHERE id=%s',(cid2,))=={'bois':1800,'metal':1800,'derives_petrochimiques':600},'recette grande capacité exacte')
+  check(own('SELECT depense_matieres FROM chantier_naval_commandes WHERE id=%s',(cid2,))==48000,'matières grande capacité aux prix de référence réels : 48 000 FR')
   commandes=rpc('chantier_naval_mes_commandes');check(len(commandes)==2 and all(c['bateau']['immatriculation']==c['bateau_id'] and c['bateau']['port']=='port-sainte-marie' and not c['bateau']['navigation_active'] for c in commandes),'deux bateaux immatriculés localisés et non navigables')
   check(sorted((c['bateau']['passagers'],c['bateau']['fret']) for c in commandes)==[(3,300),(5,500)],'capacités physiques des deux bateaux exactes')
   check(own('SELECT count(*) FROM chantier_naval_bateaux')==2,'un seul bateau physique par contrat')
@@ -136,6 +148,8 @@ def main(concurrence=False):
   caisses=own("SELECT sum((data->>'solde')::numeric) FROM caisses_batiments")
   check(restant==160000 and caisses==240000 and restant+caisses==400000,'conservation de tous les fonds joueur, banque, séquestres et bénéficiaires')
   check(own("SELECT sum((data->>'solde')::numeric) FROM caisses_batiments WHERE id LIKE 'republic_ville_a_chantier-naval-commande-%'")==0,'séquestres soldés après livraison')
+  check(own("SELECT (data->>'solde')::numeric FROM caisses_batiments WHERE id='republic_entrepot_ville_a'")==84000,'caisse canonique de l’entrepôt créditée de toutes les matières')
+  check(own("SELECT (data->>'solde')::numeric FROM caisses_batiments WHERE id='republic_ville_a_chantier-naval'")==156000,'caisse du constructeur : reliquats exacts des deux contrats')
   check(rpc('chantier_naval_mes_commandes',uid='00000000-0000-4000-8000-0000000004ca')==[],'autre PJ : aucun contrat ni bateau privé exposé')
   check(not own("SELECT has_table_privilege('authenticated','chantier_naval_bateaux','SELECT')"),'lecture directe des bateaux privée refusée')
   own('ROLLBACK TO SAVEPOINT correction');check(own("SELECT count(*) FROM information_schema.columns WHERE table_name='chantier_naval_commandes' AND column_name='historique'")==0,'rollback de la correction annule le schéma et tous les scénarios')

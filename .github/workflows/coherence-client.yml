@@ -85,7 +85,7 @@ jobs:
           python3 outils/bancs/banc-chantier-naval-local.py
           python3 outils/bancs/banc-chantier-naval-certification-local.py --concurrence
       - name: Chantier naval PSM — deux devis et garde serveur
-        run: node --test outils/bancs/test-chantier-naval.mjs outils/bancs/banc-chantier-naval-client.cjs
+        run: node --test outils/bancs/test-chantier-naval.mjs outils/bancs/banc-chantier-naval-client.cjs outils/bancs/banc-chantier-naval-chromium.cjs
       - name: Bancs JavaScript, transports simulés
         run: python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs
       - name: Destinations du centre multimodal
