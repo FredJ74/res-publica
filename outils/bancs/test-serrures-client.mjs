@@ -44,12 +44,12 @@ test('les ecrans des serrures ne passent que par les portes serveur', () => {
   assert.ok(!/sbInsert|sbUpdate|sbDelete|fetch\(|Math\.random|inventory\.push|state\.inventory\s*=/.test(bloc),
     'aucune ecriture ni tirage dans le navigateur');
   const appels = new Set([...bloc.matchAll(/(?:sbRpc|executerReceptionInventaire)\('([a-z_]+)'/g)].map((m) => m[1]));
-  assert.deepEqual([...appels].sort(), ['cle_dupliquer', 'equipements_local_lire', 'serrure_basculer', 'serrure_etat', 'serrure_poser', 'serrures_portes_lire']);
+  assert.deepEqual([...appels].sort(), ['cle_dupliquer', 'equipements_local_lire', 'serrure_basculer', 'serrure_etat', 'serrure_poser', 'serrures_batiments_lire', 'serrures_portes_lire']);
   const migrations = fs.readdirSync(path.join(RACINE, 'migrations')).filter((f) => /serrures/.test(f))
     .map((f) => lire(path.join('migrations', f))).join('\n')
     + (fs.existsSync(path.join(RACINE, 'historique/migrations-appliquees')) ? fs.readdirSync(path.join(RACINE, 'historique/migrations-appliquees'))
       .filter((f) => /serrures/.test(f)).map((f) => lire(path.join('historique/migrations-appliquees', f))).join('\n') : '');
-  for (const fn of ['cle_dupliquer', 'serrure_basculer', 'serrure_etat', 'serrure_poser', 'quincaillerie_acheter', 'serrures_portes_lire']) {
+  for (const fn of ['cle_dupliquer', 'serrure_basculer', 'serrure_etat', 'serrure_poser', 'quincaillerie_acheter', 'serrures_portes_lire', 'serrures_batiments_lire']) {
     assert.match(migrations, new RegExp('GRANT EXECUTE ON FUNCTION public\\.' + fn + '\\('), fn + ' ouverte aux joueurs');
   }
   const vitrine = lire('plateau-actions-illegales-rumeurs.js');

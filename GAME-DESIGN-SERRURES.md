@@ -65,8 +65,10 @@ Le socle doit inclure :
 ## Affichage d'un lieu fermé à clé (décision de Fred du 04/11/2026, 14 h 07)
 
 - « Si c'est tout un bâtiment qui est fermé à clé, l'infobulle lorsque l'on passe la souris sur le bâtiment indique qu'il est fermé à clé. Seul un PJ possédant une clé peut cliquer pour entrer dans le bâtiment. Une fois dans le bâtiment, il peut décider de l'ouvrir au public ou non. Si c'est un local dans un bâtiment : même principe. »
-- **Local (livré le 04/11)** : l'onglet du local porte un cadenas et l'infobulle « Fermé à clé » ; il est grisé et ne s'ouvre pas pour qui n'a pas de clé (le serveur refuse de toute façon) ; le détenteur d'une clé lit « Fermé à clé — vous en avez la clé » et entre ; dans le local, il choisit « Ouvrir au public » ou « Fermer à clé ». Lecture serveur `serrures_portes_lire`.
-- **Bâtiment entier** : règle d'affichage décidée ; la pose d'une serrure sur un bâtiment entier n'existe pas encore (voir la question ouverte dans RELAIS.md / issue #434).
+- **Local (livré le 04/11)** : l'onglet du local porte un cadenas et l'infobulle « Fermé à clé » ; il ne s'ouvre pas pour qui n'a pas de clé (fenêtre pop-up ; le serveur refuse de toute façon) ; le détenteur d'une clé lit « Fermé à clé — vous en avez la clé » et entre ; dans le local, il choisit « Ouvrir au public » ou « Fermer à clé ». Lecture serveur `serrures_portes_lire`.
+- **Bâtiment entier (décision du 04/11, 14 h 27)** : « Seule une personne qui a l'intégralité de la jouissance d'un bâtiment peut fermer un bâtiment entier. » Mise en œuvre : propriétaire ou copropriétaire du bâtiment construit (ou membre de l'organisation propriétaire), sans aucun lot loué à quelqu'un d'autre. La serrure se pose sur l'entrée ; elle est détruite dès que cette intégralité se perd (vente, lot loué à un tiers). Dans la rue, l'infobulle du bâtiment indique « Fermé à clé » ; seul un détenteur de clé entre ; dedans, il ouvre au public ou referme.
+- **Cadenas dessiné (décision du 04/11, 14 h 27)** : à côté du nom du local (onglet) ou du bâtiment (plan de la ville, infobulle de la rue), un cadenas **ouvert** ou **fermé** selon l'état de la serrure.
+- **Clic sur un local ou un bâtiment fermé sans clé (décision du 04/11, 14 h 27)** : une fenêtre pop-up indique qu'on ne peut pas entrer car le lieu est fermé à clé (au lieu d'un simple message).
 
 ## Prix (décision de Fred du 04/11/2026)
 

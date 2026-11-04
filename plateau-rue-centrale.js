@@ -1329,7 +1329,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
       div.style.top = z.yPct[0] + '%';
       div.style.height = (z.yPct[1] - z.yPct[0]) + '%';
     }
-    div.addEventListener('mousemove', (e) => afficherTooltipRue(e, z.nom, z.type));
+    div.addEventListener('mousemove', (e) => afficherTooltipRue(e, z.nom, z.type, z.buildingId));
     div.addEventListener('mouseleave', masquerTooltipRue);
     // Zoom leger sur toute l'image, mais avec le point d'origine du zoom place au centre
     // horizontal du batiment survole, ce qui accentue visuellement ce batiment.
@@ -1364,6 +1364,8 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
         // V4 et V5). sortieNoeudId fixe alors la scene ou le joueur ressortira, quelle que soit
         // celle par laquelle il est entre : sans cela, la sortie le rend a la derniere scene
         // memorisee, donc a l'entree de service au lieu de l'entree principale.
+        const serrureBat = (typeof serrureBatimentEtat === 'function') ? serrureBatimentEtat(z.buildingId) : null;
+        if (serrureBat && serrureBat.fermee && !serrureBat.a_cle) { serrurePopupFermee('batiment'); return; }
         if (z.sortieNoeudId && typeof state !== 'undefined' && state.currentCity) {
           memoriserNoeudRueCentrale(pays, state.currentCity, z.sortieNoeudId, null);
         }
@@ -1374,7 +1376,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   });
 }
 
-function afficherTooltipRue(e, nom, type) {
+function afficherTooltipRue(e, nom, type, buildingId) {
   // Un mousemove deja en file ne doit pas ressusciter la bulle apres entree.
   if (document.getElementById('vue-batiment')?.classList.contains('active')) {
     masquerTooltipRue();
@@ -1402,6 +1404,15 @@ function afficherTooltipRue(e, nom, type) {
     surveillance.observe(document.body, {childList:true,subtree:true,attributes:true,attributeFilter:['class']});
   }
   tip.textContent = (type === 'a-venir' ? 'Fermé : ' : 'Entrer dans : ') + nom;
+  // Batiment ferme a cle (04/11/2026) : cadenas et etat dans l'infobulle.
+  const serrureBat = (buildingId && typeof serrureBatimentEtat === 'function') ? serrureBatimentEtat(buildingId) : null;
+  if (serrureBat) {
+    const ic = document.createElement('i');
+    ic.className = 'ti ' + (serrureBat.fermee ? 'ti-lock' : 'ti-lock-open');
+    tip.appendChild(document.createTextNode(' — '));
+    tip.appendChild(ic);
+    tip.appendChild(document.createTextNode(' ' + (serrureBat.fermee ? (serrureBat.a_cle ? 'Fermé à clé (vous avez la clé)' : 'Fermé à clé') : 'Ouvert au public')));
+  }
   tip.style.left = (e.pageX + 16) + 'px';
   tip.style.top = (e.pageY - 10) + 'px';
   tip.classList.add('visible');
