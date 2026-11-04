@@ -5620,7 +5620,7 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
 function imprimerieCouranteVente() {
   const ville = state.currentCity || 'capitale';
   const building = state.currentBuilding || 'la-tribune';
-  const entrepot = (typeof ENTREPOT_PAR_VILLE === 'object' && ENTREPOT_PAR_VILLE[ville]) || 'entrepot-logistique-luthecia';
+  const entrepot = entrepotDeLaVille(state.country, ville);
   return { ville, building, entrepot };
 }
 
@@ -5736,15 +5736,24 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
 // et dans les trois descriptions d'ordre etait obsolete : aucune borne de ce genre n'a jamais
 // existe cote serveur pour l'entrepot.
 // =====================
-const ENTREPOT_PAR_VILLE = {
-  capitale: 'entrepot-logistique-luthecia',
-  ville_a:  'entrepot-logistique-psm',
-  ville_b:  'entrepot-logistique-montrouge'
+// Par pays PUIS par ville (04/11/2026) : 'capitale' existe dans chaque pays, et Novomirsk
+// (soviet, capitale) ne doit jamais retomber sur l'entrepot de Luthecia. Miroir ecran de la table
+// serveur `entrepots_par_ville` (cle pays + ville), qui seule fait autorite.
+const ENTREPOT_PAR_PAYS_VILLE = {
+  republic: {
+    capitale: 'entrepot-logistique-luthecia',
+    ville_a:  'entrepot-logistique-psm',
+    ville_b:  'entrepot-logistique-montrouge'
+  }
 };
+function entrepotDeLaVille(pays, ville) {
+  const parVille = ENTREPOT_PAR_PAYS_VILLE[pays || 'republic'] || {};
+  return (ville && parVille[ville]) || null;
+}
 
 function getBuildingIdDirecteurEntrepot() {
   const ville = state.poste?.city;
-  return ville ? ENTREPOT_PAR_VILLE[ville] : null;
+  return entrepotDeLaVille(state.country, ville);
 }
 
 async function doOuvrirFixerPrixAchatEntrepot(pa, cost) {

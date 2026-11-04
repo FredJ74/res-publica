@@ -2531,6 +2531,11 @@ function getPrixRessourceServeur(cle, quantiteEnStock) {
   return Math.round(res.prixBase * (1 + variation) * 100) / 100;
 }
 
+// ENTREPOTS DE REPUBLIA SEULEMENT (04/11/2026) : cette passe est l'economie de Republia (usines
+// locales, port de PSM). Un entrepot d'un autre pays n'est PAS ajoute ici, il serait approvisionne
+// par les usines de Republia. Le pays est desormais dans la cle serveur (`entrepots_par_ville.pays`) ;
+// l'approvisionnement des entrepots des autres empires viendra avec leur propre economie.
+const PAYS_ENTREPOTS_VILLES = 'republic';
 const ENTREPOTS_VILLES = [
   { buildingId: 'entrepot-logistique-luthecia', city: 'capitale' },
   { buildingId: 'entrepot-logistique-psm',      city: 'ville_a' },
@@ -2988,8 +2993,9 @@ async function livrerEntrepotsQuotidien() {
     // elle sert a savoir si les desideratas poses par un PJ sont encore les siens.
     const directeursEnPoste = {};
     try {
-      const dirs = await sbGet('personnages', 'select=name,poste&poste->>id=eq.directeur_entrepot');
-      (dirs || []).forEach(d => { if (d.poste && d.poste.city) directeursEnPoste[d.poste.city] = d.name; });
+      // Le pays compte : un directeur d'entrepot de Novomirsk (soviet, capitale) n'est pas celui de Luthecia.
+      const dirs = await sbGet('personnages', 'select=name,poste,country&poste->>id=eq.directeur_entrepot&country=eq.' + PAYS_ENTREPOTS_VILLES);
+      (dirs || []).forEach(d => { if (d.poste && d.poste.city && d.country === PAYS_ENTREPOTS_VILLES) directeursEnPoste[d.poste.city] = d.name; });
     } catch (e) { /* aucun directeur PJ lisible : les valeurs PNJ s'appliqueront */ }
 
     // LA LECTURE DES CAISSES MUNICIPALES A DISPARU (8 octobre 2026). Elle ne servait qu'au
