@@ -16,8 +16,9 @@ appliquée » plus bas décrivent les étapes historiques et sont désormais dé
 réextraction ni régénération complète des seeds revendiquée. Les résultats12/12
 hors ligne ne prouvent pas que ce baseline ancien contient les dernières RPC.
 
-Main #430 (`943df3fb`) intégré ; code CRON/SQL financier identique à main, #428 non
-importée. Les12 contrôles relancés après réconciliation passent. Les191/119/88 et
+Main #430 puis `bcdbe141` intégrés. #428 a été fusionnée indépendamment par
+l’intégrateur pendant cette reprise ; aucun import séparé de sa branche. Ses
+corrections et le CRON financier restent identiques à main. Les12 contrôles relancés après réconciliation passent. Les191/119/88 et
 25+25 tests précédents restent acquis, pas rejoués sans changement des moteurs.
 Cinq CI vertes réellement observées sur `59d4fe6b` ; CI du prochain SHA à vérifier.
 
@@ -260,3 +261,19 @@ ne doivent pas diminuer la dette ; le remboursement utilise le montant confirmé
 **33/33 assertions ciblées ; contre-épreuve de l'ancien CRON `d2617483` : 9 échecs
 attendus sur33.** Aucun code du moteur, du CRON ou des règles financières modifié.
 Contrôleur complet relancé ; résultats finaux/CI à observer avant promotion.
+
+## Réconciliation finale de main #428, fusionnée indépendamment
+
+Pendant la recette, main est passé à `bcdbe141` (PR #428 fusionnée par intégrateur).
+Fusion sans conflit, code catalogue/routeur/data/CRON identique à main, aucune
+nouvelle implémentation de commerce. Les cinq tests du catalogue existants
+passent, 33/33 prêts et 24/24 collecte passent ; globaux12/12 relancés. Le
+contrôleur complet avait fini191/191 avant cette nouvelle arrivée ; sa CI doit
+maintenant couvrir aussi le banc ajouté par main. Seed miroir monde neuf et
+empreinte **source** régénérés par les outils après le changement de data.js ;
+aucune observation historique de production ni tarif du plan97 modifié.
+
+Les exports vivants restent absents : le baseline et les seeds de production
+n'ont donc pas été réextraits. Le seul input encore indispensable est la capture
+privée issue de `outils/bancs/COLLECTE-FORUMS422-capture_atomique.sql`, à récupérer
+par ChatGPT intégrateur. Ne pas demander une nouvelle application de #422.

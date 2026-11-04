@@ -51,5 +51,17 @@
       "prets-contre-avant430.log": "2405f5e51a08fa4748d32e2de72563e249e571cb0d8f318606eaa3ca040efa28",
       "clients-apres-main430.json": "c5571808211a9aff9a6b3f2effef201724d26afc170ef786c37956e60cd909d4"
     }
+  },
+  "integration_main428": {
+    "base": "bcdbe141",
+    "fonctions_jeu_modifiees_par_ce_lot": false,
+    "catalogue_tests": 5,
+    "collecte_tests": 24,
+    "globaux": 12,
+    "exports_actuels_recus": false,
+    "fichiers_sha256": {
+      "globaux-apres-main428.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb",
+      "catalogue-main428.log": "1a721796d4757eca7b4488099dc97c96034c62045768c0d9662a558282b43730"
+    }
   }
 }

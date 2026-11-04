@@ -87,7 +87,7 @@ rapprochement du registre par nom et dépendances.
 ## Livraison après réconciliation
 
 Conserver #410/#423/#424/#425/#426/#427/#430 et les évolutions de main. Ne pas
-importer la branche #428. Contrôler l'exact SHA final et ses cinq CI, puis sortir
+importer séparément la branche #428 ; sa fusion indépendante dans main `bcdbe141` est conservée. Contrôler l'exact SHA final et ses cinq CI, puis sortir
 #422 du brouillon/fusionner seulement si les conditions sont satisfaites.
 
 Pour Vercel : observer le statut READY et le commit du déploiement de production ;

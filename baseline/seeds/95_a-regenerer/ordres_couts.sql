@@ -2,7 +2,6 @@
 -- Ne pas retoucher ; régénérer avec outils/baseline/regenerer-seeds-miroirs.py.
 INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
 ('acheter_accessoire_personnalise',0,0),
-  ('acheter_armoire_souvenirs',0,0),
   ('acheter_bombe_illegale',2,0),
   ('acheter_bombe_illegale#reussite',0,1200),
   ('acheter_criee',0,0),
@@ -88,6 +87,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('consulter_caisse_usine',0,0),
   ('consulter_carte_commerce',0,0),
   ('consulter_carte_commerce',1,0),
+  ('consulter_catalogue_manufactures',0,0),
   ('consulter_classement_joueurs_club',0,75),
   ('consulter_dossier_notarial',0,0),
   ('consulter_dossiers_gouv',2,0),
@@ -174,7 +174,6 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('etat_civil',0,0),
   ('etouffer',1,1000),
   ('expedier_colis',2,200),
-  ('fabriquer_armoire_souvenirs',3,0),
   ('fabriquer_scandale',3,800),
   ('faire_achats_marche',0,0),
   ('faire_disparaitre_cadavre',2,0),
