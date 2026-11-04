@@ -78,6 +78,15 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
     return;
   }
 
+  // Avertissement avant de tomber à 0 PA (décision de Fred, 04/11/2026) : tomber à 0 PA envoie
+  // à l'hôpital (GAME-DESIGN-HOSPITALISATION.md). Toujours affiché, non désactivable, et
+  // seulement si le coût annoncé laisse exactement 0 PA. Aide d'écran : le serveur décide seul.
+  if (!TEST_MODE && pa > 0 && state.pa - pa === 0 && state._zeroPaConfirme !== fn) {
+    avertirZeroPa(() => { state._zeroPaConfirme = fn; doOrder(fn, pa, cost, label, desc, successRate); }, label);
+    return;
+  }
+  if (typeof state !== 'undefined') state._zeroPaConfirme = null;
+
   // Argent check — ignore pour les ordres finances par le budget d'une institution (pas le portefeuille personnel)
   // Lot 3 (chantier fiscalite/Helvetia) : verifie desormais les fonds ORDINAIRES (liquide +
   // Banque nationale), jamais arg seul -- garde amont partagee par la quasi-totalite des
@@ -834,6 +843,41 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'repas_gastronomique') { doRepasGastronomiqueGenerique(pa, cost, label, desc, successRate); return; }
 
   executerOrdreGenerique(fn, pa, cost, label, desc, successRate);
+}
+
+// Fenêtre de confirmation avant un ordre qui laisserait 0 PA (décision de Fred, 04/11/2026).
+// Fermer la fenêtre ou « Annuler » n'engage rien : l'ordre n'est jamais envoyé.
+function avertirZeroPa(confirmer, label) {
+  const modal = document.getElementById('modal-postes');
+  const titre = document.getElementById('postes-modal-title');
+  const corps = document.getElementById('postes-body');
+  if (!modal || !titre || !corps) {
+    showToast('Ordre suspendu', 'Cet ordre vous laisserait à 0 PA : la confirmation n\'a pas pu s\'afficher.', false);
+    return;
+  }
+  titre.textContent = 'Attention : 0 PA';
+  const boite = document.createElement('div');
+  boite.className = 'cpj-dialogue';
+  boite.style.padding = '1rem';
+  const texte = document.createElement('p');
+  texte.className = 'cpj-note';
+  texte.textContent = (label ? '« ' + label + ' » vous laissera' : 'Cet ordre vous laissera') +
+    ' à 0 PA : vous serez transféré(e) à l\'hôpital. Continuer ?';
+  const actions = document.createElement('div');
+  actions.className = 'cpj-actions';
+  const oui = document.createElement('button');
+  oui.className = 'cpj-touche cpj-primaire';
+  oui.textContent = 'Confirmer';
+  const non = document.createElement('button');
+  non.className = 'cpj-touche';
+  non.textContent = 'Annuler';
+  let fait = false;
+  oui.onclick = () => { if (fait) return; fait = true; modal.classList.remove('open'); confirmer(); };
+  non.onclick = () => { fait = true; modal.classList.remove('open'); };
+  actions.append(oui, non);
+  boite.append(texte, actions);
+  corps.replaceChildren(boite);
+  modal.classList.add('open');
 }
 
 // Extrait de doOrder() (lot Le Republica, 21 aout 2026) -- comportement generique (PA/argent,
