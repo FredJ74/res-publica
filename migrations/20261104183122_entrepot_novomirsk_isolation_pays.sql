@@ -1,7 +1,7 @@
 -- Entrepôts multi-empires : même moteur, clé (pays, ville), aucun échange international.
--- PRÉVOL RÉEL OBLIGATOIRE : outils/livraison/prevol-entrepot-novomirsk.sql.
+-- PRÉVOL RÉEL OBLIGATOIRE : outils/bancs/prevol-entrepot-novomirsk.sql.
 -- Non appliquée. Aucun stock, solde ou poste PJ existant n'est réécrit.
--- Dépendances : trading_livraison_terrestre (20261104173000) et socles #219/#379.
+-- Dépendances : livraisons terrestres 20261104173000/181000/183000 et socles #219/#379.
 ALTER TABLE public.entrepots_par_ville ADD COLUMN IF NOT EXISTS pays text NOT NULL DEFAULT 'republic';
 ALTER TABLE public.entrepots_par_ville ALTER COLUMN pays DROP DEFAULT;
 DO $cle$
@@ -69,7 +69,20 @@ BEGIN
       IF NOT coalesce((v_rep->>'ok')::boolean,false) THEN RAISE EXCEPTION 'recette_fournisseur_non_confirmee';END IF;$fragment$),
   ($fragment$public.entrepot_commander(text,text,integer,text,text)$fragment$,$fragment$PERFORM public.caisse_institution_mouvement('republic_port-sainte-marie',
                                                   round(p_quantite * v_prix, 2), false);$fragment$,$fragment$v_rep := public.caisse_institution_mouvement('republic_port-sainte-marie',round(p_quantite * v_prix, 2),true);
-      IF NOT coalesce((v_rep->>'ok')::boolean,false) THEN RAISE EXCEPTION 'recette_port_non_confirmee';END IF;$fragment$)
+      IF NOT coalesce((v_rep->>'ok')::boolean,false) THEN RAISE EXCEPTION 'recette_port_non_confirmee';END IF;$fragment$),
+  ($fragment$public.trading_livraison_courrier_interne(text,text,timestamp with time zone,text)$fragment$,$fragment$v_nom := CASE p_ville WHEN 'capitale' THEN 'Luthécia' WHEN 'ville_a' THEN 'Port-Sainte-Marie'
+                        WHEN 'ville_b' THEN 'Montrouge' ELSE p_ville END;$fragment$,$fragment$SELECT coalesce(v.nom,p_ville) INTO v_nom FROM public.villes v
+    JOIN public.personnages_donnees p ON p.country=v.pays AND p.name=p_dest WHERE v.ville=p_ville;
+  v_nom:=coalesce(v_nom,p_ville);$fragment$),
+  ($fragment$public.fret_arrivees_constater()$fragment$,$fragment$RETURNING k.destinataire, k.ville_destination, k.declaration_douaniere$fragment$,$fragment$RETURNING k.destinataire, k.pays_destination, k.ville_destination, k.declaration_douaniere$fragment$),
+  ($fragment$public.fret_arrivees_constater()$fragment$,$fragment$v_nom := CASE c.ville_destination WHEN 'capitale' THEN 'Luthécia' WHEN 'ville_a' THEN 'Port-Sainte-Marie'
+                                      WHEN 'ville_b' THEN 'Montrouge' ELSE c.ville_destination END;$fragment$,$fragment$SELECT coalesce(v.nom,c.ville_destination) INTO v_nom FROM public.villes v
+     WHERE v.pays=c.pays_destination AND v.ville=c.ville_destination;
+    v_nom:=coalesce(v_nom,c.ville_destination);$fragment$),
+  ($fragment$public.trading_acheter(text,text,text,integer,text)$fragment$,$fragment$  v_caisse_ent := public.entrepot_caisse_id(p_entrepot);$fragment$,$fragment$  IF p_livraison IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.entrepots_par_ville ep
+    WHERE ep.pays=m.country AND ep.pays||'_'||ep.ville||'_'||ep.building_id=p_livraison) THEN
+    RETURN jsonb_build_object('ok',false,'raison','international_non_ouvert'); END IF;
+  v_caisse_ent := public.entrepot_caisse_id(p_entrepot);$fragment$)
  ) AS fragments(signature,ancien,nouveau) LOOP
   IF to_regprocedure(r.signature) IS NULL THEN RAISE EXCEPTION 'dependance_absente: %',r.signature; END IF;
   d:=pg_get_functiondef(to_regprocedure(r.signature));

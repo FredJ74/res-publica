@@ -6,7 +6,7 @@ Ne certifie pas le catalogue vivant. Tout est annulé à la fin (y compris la mi
 from pathlib import Path
 import re, tempfile, importlib.util, os
 R=Path(__file__).resolve().parents[2]
-M='migrations/20261104180710_entrepot_novomirsk_isolation_pays.sql'
+M='migrations/20261104183122_entrepot_novomirsk_isolation_pays.sql'
 def fn(f,n):
  s=(R/f).read_text();a=re.search(r'CREATE OR REPLACE FUNCTION public\.'+n+r'\(',s).start();m=re.search(r'AS\s+(\$\w*\$).*?\1;',s[a:],re.S);return s[a:a+m.end()]
 def main():
@@ -23,9 +23,9 @@ def main():
    q.execute(s,args) if args is not None else q.execute(s)
    return q.fetchone()[0] if q.description else None
   print('PostgreSQL',sql('SHOW server_version'),flush=True)
-  sql("CREATE ROLE service_role; ALTER TABLE personnages_donnees ADD COLUMN poste jsonb;")
+  sql("CREATE ROLE service_role; ALTER TABLE personnages_donnees ADD COLUMN poste jsonb,ADD COLUMN current_street text;")
   sources='\n'.join(p.read_text() for p in (R/'baseline/domaines').glob('*/10_tables.sql'))
-  for t in ['villes','batiments_etat','entrepots_par_ville','ressources_economie','entrepot_transits','caisses_fret','contenu_caisses_fret','rue_sorties_batiments']:
+  for t in ['villes','batiments_etat','entrepots_par_ville','ressources_economie','entrepot_transits','caisses_fret','contenu_caisses_fret','rue_sorties_batiments','rue_noeuds_serveur']:
    sql(re.search(r'CREATE TABLE public\.'+t+r' \(.*?\n\);',sources,re.S)[0])
   sql("CREATE SEQUENCE entrepot_journal_id_seq");sql(re.search(r'CREATE TABLE public.entrepot_journal \(.*?\n\);',sources,re.S)[0])
   sql("ALTER TABLE entrepots_par_ville ADD PRIMARY KEY(ville);ALTER TABLE batiments_etat ADD PRIMARY KEY(id);ALTER TABLE rue_sorties_batiments ADD PRIMARY KEY(country,city,noeud,building)")
@@ -37,19 +37,22 @@ def main():
   sql("INSERT INTO ressources_economie(cle,prix_base) VALUES('bois',5); INSERT INTO ordres_couts VALUES('acheter_ressources_entrepot',0,0)")
   for f,names in [
    ('baseline/domaines/immobilier-et-territoire/20_fonctions-1.sql',['batiment_etat_lire']),
-   ('baseline/domaines/socle/20_fonctions.sql',['acteur_poste_courant','mouvement_titulaire']),
+   ('baseline/domaines/socle/20_fonctions.sql',['acteur_poste_courant','mouvement_titulaire','rue_sortie_batiment_lire']),
    ('baseline/domaines/economie/20_fonctions-1.sql',['capacite_entrepot','acheter_a_entrepot','chantier_commande','chantier_jour_traiter']),
    ('baseline/domaines/economie/20_fonctions-2.sql',['entrepot_caisse_id','entrepot_caisse_lire','entrepot_capacite_disponible','entrepot_du_directeur','entrepot_commander','entrepot_fixer_desiderata','fixer_prix_entrepot']),
    ('migrations/20261103020000_trading_matieres_premieres.sql',['trading_organisations_interne','trading_cours','trading_acheter']),
    ('migrations/20261103030000_trading_offres_achat.sql',['offre_achat_publier','offres_achat_lire','offre_achat_servir','offre_achat_rembourser_interne','offre_achat_retirer']),
    ('migrations/20261104173000_trading_livraison_terrestre.sql',['trading_livraison_entrepot_interne']),
+   ('migrations/20261104181000_livraison_terrestre_tranches_4h.sql',['trading_livraison_courrier_interne']),
+   ('migrations/20261104183000_livraison_terrestre_courrier_arrivee.sql',['fret_arrivees_constater']),
    ('historique/migrations-appliquees/20261030180000_achats_cle_unicite.sql',['achat_requete_ouvrir_interne','achat_requete_clore_interne'])]:
    for name in names:sql(fn(f,name))
   # L'enveloppe d'achat versionnée est distincte du noyau historique (même nom).
   src=(R/'baseline/domaines/economie/20_fonctions-1.sql').read_text();a=src.index('CREATE OR REPLACE FUNCTION public.acheter_a_entrepot(p_requete');m=re.search(r'AS\s+(\$\w*\$).*?\1;',src[a:],re.S);sql(src[a:a+m.end()])
-  src=(R/'migrations/20261104173000_trading_livraison_terrestre.sql').read_text();sql(re.search(r'DO \$mig\$.*?END \$mig\$;',src,re.S)[0])
+  src=(R/'migrations/20261104173000_trading_livraison_terrestre.sql').read_text();[sql(bloc) for bloc in re.findall(r'DO \$mig\$.*?END \$mig\$;',src,re.S)[:2]]
+  sql((R/'migrations/20261104181000_livraison_terrestre_tranches_4h.sql').read_text());sql(fn('migrations/20261104183000_livraison_terrestre_courrier_arrivee.sql','fret_arrivees_constater'))
   # Services annexes simulés, sans logique économique alternative.
-  sql("CREATE FUNCTION trading_connexion_interne(text) RETURNS boolean LANGUAGE sql AS $$SELECT true$$; CREATE FUNCTION matiere_refus_circuit_legal_lot(text,jsonb,text) RETURNS jsonb LANGUAGE sql AS $$SELECT NULL::jsonb$$;")
+  sql("CREATE TABLE fixture_courriers(dest text,sujet text);CREATE FUNCTION mail_systeme_poser_interne(text,text,text,text) RETURNS void LANGUAGE sql AS $$INSERT INTO fixture_courriers VALUES($2,$3)$$; CREATE FUNCTION trading_connexion_interne(text) RETURNS boolean LANGUAGE sql AS $$SELECT true$$; CREATE FUNCTION matiere_refus_circuit_legal_lot(text,jsonb,text) RETURNS jsonb LANGUAGE sql AS $$SELECT NULL::jsonb$$;")
   for city,b in [('capitale','luthecia'),('ville_a','psm'),('ville_b','montrouge')]:
    sql('INSERT INTO batiments_etat(id,country,city,building_id,data) VALUES(%s,%s,%s,%s,%s)',('republic_'+city+'_entrepot-logistique-'+b,'republic',city,'entrepot-logistique-'+b,Json({'entrepot':{'stock':{'bois':100},'prixManuel':{'bois':5},'reserveMilitaire':{'bois':10}}})))
    sql('INSERT INTO caisses_batiments(id,data) VALUES(%s,%s)',('republic_entrepot_'+city,Json({'solde':1000})))
@@ -59,12 +62,14 @@ def main():
    assert v,msg;n+=1;print('OK',n,msg,flush=True)
   def own(s,args=None):sql('RESET ROLE');return sql(s,args)
   numero_requete=200
-  def call(f,args):
+  def call(f,args,requete=None):
    nonlocal numero_requete
    if f in ('offre_achat_publier','offre_achat_servir','offre_achat_retirer','trading_acheter'):
-    numero_requete+=1;args=[f'00000000-0000-4000-8000-{numero_requete:012d}']+args
+    numero_requete+=1;args=[requete or f'00000000-0000-4000-8000-{numero_requete:012d}']+args
    sql("SELECT set_config('role','authenticated',true),set_config('request.path',%s,true)",('/rpc/'+f,));return sql(('SELECT entrepot_id FROM public.' if f=='entrepot_du_directeur' else 'SELECT public.')+f+'('+','.join(['%s']*len(args))+')',args)
-  def snap():return own("SELECT jsonb_build_array((SELECT jsonb_agg(to_jsonb(p)) FROM personnages_donnees p),(SELECT jsonb_agg(to_jsonb(b)) FROM batiments_etat b),(SELECT jsonb_agg(to_jsonb(c)) FROM caisses_batiments c),(SELECT jsonb_agg(to_jsonb(t)) FROM entrepot_transits t),(SELECT jsonb_agg(to_jsonb(o)) FROM offres_achat o),(SELECT jsonb_agg(to_jsonb(r)) FROM inventaire_actions_recus r))")
+  def snap():
+   tables=['personnages_donnees','comptes_bancaires','batiments_etat','caisses_batiments','entrepot_transits','entrepot_journal','offres_achat','inventaire_actions_recus','organisations','caisses_fret','contenu_caisses_fret','fixture_courriers']
+   return own('SELECT jsonb_build_array('+','.join('(SELECT jsonb_agg(to_jsonb(t)) FROM '+t+' t)' for t in tables)+')')
   def actor(pays,city='capitale',job='directeur_entrepot',building=None,room='bureau_direction'):
    own('UPDATE personnages_donnees SET country=%s,current_city=%s,current_building=%s,current_room=%s,poste=%s WHERE name=\'Fixture\'',(pays,city,building or ('entrepot-logistique-novomirsk' if pays=='soviet' else 'entrepot-logistique-'+{'capitale':'luthecia','ville_a':'psm','ville_b':'montrouge'}[city]),room,Json({'id':job,'city':city}) if job else None))
   def uid(i):return f'00000000-0000-4000-8000-{i:012d}'
@@ -72,6 +77,8 @@ def main():
   sql('RESET ROLE');sql('SAVEPOINT avant_migration');sql((R/M).read_text());check(own('SELECT count(*) FROM entrepots_par_ville')==4,'quatre clés pays/ville, trois entrepôts républiens conservés')
   sql((R/M).read_text());check(own('SELECT count(*) FROM entrepots_par_ville')==4,'rejeu migration idempotent')
   check(call('entrepot_du_directeur',['Fixture'])=='soviet_capitale_entrepot-logistique-novomirsk','directeur sovarkien isolé')
+  own("INSERT INTO rue_noeuds_serveur(country,city,noeud) VALUES('soviet','capitale','novomirsk-vue-8')")
+  check(call('rue_sortie_batiment_lire',[])['noeud']=='novomirsk-vue-8','sortie serveur vers la vraie rue de Novomirsk')
   check(own("SELECT data->>'solde' FROM caisses_batiments WHERE id='soviet_entrepot_capitale'")=='0','aucune dotation monétaire inventée')
   check(call('entrepot_capacite_disponible',['soviet_capitale_entrepot-logistique-novomirsk','bois'])==5000,'capacité commune 5000 par matière')
   v=call('fixer_prix_entrepot',['Fixture','soviet',Json({'bois':6})]);check(v['ok'],'prix manuels Sovarka par moteur existant')
@@ -89,7 +96,8 @@ def main():
   actor('soviet',job=None);before=snap();v=call('fixer_prix_entrepot',['Fixture','soviet',Json({'bois':9})]);check(not v['ok'] and snap()==before,'non-directeur sans droits de prix')
   check(not own("SELECT has_function_privilege('authenticated','entrepot_commander(text,text,integer,text,text)','EXECUTE')"),'ancienne commande non versionnée fermée au navigateur')
   actor('soviet');own("UPDATE caisses_batiments SET data='{\"solde\":1000}' WHERE id='soviet_entrepot_capitale'")
-  v=call('offre_achat_publier',['entrepot',None,'bois',10,5]);offre=v['offre'];check(v['ok'] and v['montant_bloque']==50,'offre sovarkienne et blocage de caisse communs')
+  v=call('offre_achat_publier',['entrepot',None,'bois',10,5],requete=uid(60));offre=v['offre'];check(v['ok'] and v['montant_bloque']==50,'offre sovarkienne et blocage de caisse communs')
+  before=snap();v=call('offre_achat_publier',['entrepot',None,'bois',10,5],requete=uid(60));check(v['rejeu'] and snap()==before,'publication rejouée : aucun deuxième blocage ni offre')
   v=call('offres_achat_lire',[]);check(len(v['offres'])==1 and v['directeur_de'].startswith('soviet_'),'offres locales Sovarka visibles')
   actor('republic');before=snap();v=call('offre_achat_servir',[offre,1,'entrepot',None,None]);check(v['raison']=='international_non_ouvert' and snap()==before,'offre étrangère connue par identifiant refusée')
   actor('soviet');v=call('offre_achat_retirer',[offre]);check(v['ok'] and v['rembourse']==50,'offre retirée : restitution exacte')
@@ -104,6 +112,13 @@ def main():
   actor('soviet',job=None,room='accueil');before=snap();v=call('acheter_a_entrepot',[uid(51),'Fixture','soviet','capitale','entrepot-logistique-novomirsk',Json({'bois':2}),0,0]);check(not v['ok'] and snap()==before,'achat hors salle des ventes refusé sans paiement')
   actor('soviet',job=None,room='salle_ventes');before=snap();v=call('acheter_a_entrepot',[uid(52),'Fixture','republic','capitale','entrepot-logistique-luthecia',Json({'bois':2}),0,0]);check(not v['ok'] and snap()==before,'achat direct au pays étranger refusé')
   own("UPDATE personnages_donnees SET liquide=0 WHERE name='Fixture';UPDATE comptes_bancaires SET solde=0 WHERE personnage='Fixture'");before=snap();v=call('acheter_a_entrepot',[uid(53),'Fixture','soviet','capitale','entrepot-logistique-novomirsk',Json({'bois':2}),0,0]);check(not v['ok'] and snap()==before,'fonds insuffisants sans objet ni débit partiel')
+  # Réconciliation des caisses de trading : source et destination restent nationales.
+  own("INSERT INTO organisations VALUES('trading-fixture','{\"type\":\"economique\",\"nom\":\"Trader fixture\",\"chef\":\"Fixture\",\"caisse\":100}')")
+  before=snap();v=call('trading_acheter',['trading-fixture','republic_capitale_entrepot-logistique-luthecia','bois',1,None]);check(not v['ok'] and snap()==before,'source de trading étrangère refusée avant mutation')
+  before=snap();v=call('trading_acheter',['trading-fixture','soviet_capitale_entrepot-logistique-novomirsk','bois',1,'republic_capitale_entrepot-logistique-luthecia']);check(v['raison']=='international_non_ouvert' and snap()==before,'destination internationale refusée avant paiement')
+  v=call('trading_acheter',['trading-fixture','soviet_capitale_entrepot-logistique-novomirsk','bois',1,None],requete=uid(70));check(v['ok'] and v['ville_livraison']=='capitale' and v['arrivee']=='entrepot-logistique-novomirsk','achat de trading local avec caisse terrestre à Novomirsk')
+  caisse=v['caisse_fret'];check(own("SELECT pays_origine=pays_destination AND pays_destination='soviet' AND dedouanee FROM caisses_fret WHERE id=%s",(caisse,)),'caisse nationale sans droits de douane')
+  before=snap();v=call('trading_acheter',['trading-fixture','soviet_capitale_entrepot-logistique-novomirsk','bois',1,None],requete=uid(70));check(v['rejeu'] and snap()==before,'achat trading rejoué sans nouveau débit ni caisse')
   # Un trader local sert le stock manquant ; aucune création de matière.
   actor('soviet');v=call('offre_achat_publier',['entrepot',None,'bois',3,5]);offre=v['offre']
   own("INSERT INTO organisations VALUES('sov-org','{\"type\":\"economique\",\"nom\":\"Organisation fixture\",\"chef\":\"Fixture\",\"caisse\":0}')")
@@ -111,6 +126,20 @@ def main():
   v=call('offre_achat_servir',[offre,3,'inventaire','sov-org',None]);check(v['ok'],'vente locale depuis inventaire par moteur des offres')
   check(own("SELECT (data::jsonb->>'caisse')::numeric FROM organisations WHERE id='sov-org'")==15,'organisation vendeuse payée exactement')
   before=snap();check(not call('offre_achat_servir',[offre,3,'inventaire','sov-org',None])['ok'] and snap()==before,'offre épuisée impossible à resservir')
+  courriers_avant=own('SELECT count(*) FROM fixture_courriers')
+  own("SELECT trading_livraison_courrier_interne('Fixture','capitale',now(),'Commande fixture')")
+  check('Novomirsk' in own('SELECT sujet FROM fixture_courriers ORDER BY sujet LIMIT 1'),'courrier de départ nommé dans le bon pays')
+  own("INSERT INTO caisses_fret(id,leader,pays_origine,ville_origine,building_origine,destinataire,pays_destination,ville_destination,building_destination,statut,date_arrivee_prevue) VALUES(%s,'Fixture','soviet','capitale','entrepot-logistique-novomirsk','Fixture','soviet','capitale','entrepot-logistique-novomirsk','en_transit',now()-interval '1 hour')",(uid(999),))
+  check(call('fret_arrivees_constater',[])==1,'arrivée terrestre constatée par moteur commun')
+  check(own("SELECT count(*) FROM fixture_courriers WHERE sujet LIKE 'Votre caisse%%Novomirsk'")==1,'courrier d’arrivée avec pays de destination')
+  check(call('fret_arrivees_constater',[])==0 and own('SELECT count(*) FROM fixture_courriers')==courriers_avant+2,'double constat sans double courrier')
+  # Un appelant du référentiel non audité bloque intégralement l’application.
+  before=snap();own('SAVEPOINT inconnu')
+  own("CREATE FUNCTION fixture_appelant_inconnu() RETURNS text LANGUAGE sql AS $$SELECT building_id FROM entrepots_par_ville LIMIT 1$$")
+  try:sql((R/M).read_text());raise AssertionError('appelant inconnu accepté')
+  except psycopg2.Error as e:
+   assert 'appelant_entrepots_a_auditer' in str(e),str(e);sql('ROLLBACK TO SAVEPOINT inconnu')
+  check(snap()==before,'contre-épreuve : appelant inconnu => rollback, jamais ignoré')
   # Échec de crédit fournisseur après débit : toute la commande doit être annulée.
   actor('republic','ville_a');own("DELETE FROM caisses_batiments WHERE id='republic_entrepot_capitale'");before=snap();own('SAVEPOINT panne')
   try:call('entrepot_commander',[uid(5),'Fixture','bois',2,'entrepot','republic_capitale_entrepot-logistique-luthecia']);raise AssertionError('crédit absent accepté')

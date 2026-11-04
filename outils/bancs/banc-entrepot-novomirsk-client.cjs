@@ -9,6 +9,8 @@ function contexte(pays='soviet'){
 }
 test('quatre entrepôts distincts, aucune capitale de repli hors pays configuré',()=>{
  const c=contexte();for(const [p,v,b]of[['soviet','capitale','novomirsk'],['republic','capitale','luthecia'],['republic','ville_a','psm'],['republic','ville_b','montrouge']])assert.equal(vm.runInContext(`entrepotLogistiqueDe('${p}','${v}')`,c),'entrepot-logistique-'+b);
+ assert.equal(vm.runInContext("Object.values(WORLD.narco).some(v=>(v.buildings||[]).includes('entrepot-logistique-novomirsk'))",c),false);
+ assert.equal(vm.runInContext("Object.values(WORLD.khalija).some(v=>(v.buildings||[]).includes('entrepot-logistique-novomirsk'))",c),false);
  assert.equal(vm.runInContext("entrepotLogistiqueDe('narco','capitale')",c),null);assert.equal(vm.runInContext("entrepotLogistiqueDe('soviet','ville_a')",c),null);
  assert.equal(vm.runInContext('entrepotIdCourant()',c),'soviet_capitale_entrepot-logistique-novomirsk');
 });

@@ -3464,31 +3464,6 @@ export const SCENES_PNJ = {
     "piece": "Bureau du Président",
     "personnes": []
   },
-  "[\"narco\",\"capitale\",\"entrepot-logistique-novomirsk\",\"accueil\"]": {
-    "pays": "El Estado",
-    "ville": "Ciudad Roja",
-    "batiment": "Entrepôt logistique de Novomirsk",
-    "piece": "Accueil",
-    "personnes": [
-      "Agent logistique de Novomirsk"
-    ]
-  },
-  "[\"narco\",\"capitale\",\"entrepot-logistique-novomirsk\",\"salle_ventes\"]": {
-    "pays": "El Estado",
-    "ville": "Ciudad Roja",
-    "batiment": "Entrepôt logistique de Novomirsk",
-    "piece": "Salle des Ventes",
-    "personnes": []
-  },
-  "[\"narco\",\"capitale\",\"entrepot-logistique-novomirsk\",\"bureau_direction\"]": {
-    "pays": "El Estado",
-    "ville": "Ciudad Roja",
-    "batiment": "Entrepôt logistique de Novomirsk",
-    "piece": "Bureau de Direction",
-    "personnes": [
-      "Directeur logistique de Novomirsk"
-    ]
-  },
   "[\"narco\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "El Estado",
     "ville": "Puerto Negro",
@@ -6624,31 +6599,6 @@ export const SCENES_PNJ = {
     "batiment": "Stade Municipal",
     "piece": "Bureau du Président",
     "personnes": []
-  },
-  "[\"khalija\",\"capitale\",\"entrepot-logistique-novomirsk\",\"accueil\"]": {
-    "pays": "Al-Khalija",
-    "ville": "Al Madina",
-    "batiment": "Entrepôt logistique de Novomirsk",
-    "piece": "Accueil",
-    "personnes": [
-      "Agent logistique de Novomirsk"
-    ]
-  },
-  "[\"khalija\",\"capitale\",\"entrepot-logistique-novomirsk\",\"salle_ventes\"]": {
-    "pays": "Al-Khalija",
-    "ville": "Al Madina",
-    "batiment": "Entrepôt logistique de Novomirsk",
-    "piece": "Salle des Ventes",
-    "personnes": []
-  },
-  "[\"khalija\",\"capitale\",\"entrepot-logistique-novomirsk\",\"bureau_direction\"]": {
-    "pays": "Al-Khalija",
-    "ville": "Al Madina",
-    "batiment": "Entrepôt logistique de Novomirsk",
-    "piece": "Bureau de Direction",
-    "personnes": [
-      "Directeur logistique de Novomirsk"
-    ]
   },
   "[\"khalija\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Al-Khalija",

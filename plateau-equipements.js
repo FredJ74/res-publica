@@ -220,7 +220,8 @@ async function tradingAcheter(entrepot, ressource) {
     .catch(function () { return null; });
   if (!r) return;
   if (r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
-  if (typeof r.pa === 'number' && typeof state !== 'undefined') { state.pa = r.pa; if (typeof updateUI === 'function') updateUI(); }
+  // Les PA et l'inventaire viennent déjà de l'état courant du reçu, y compris au rejeu.
+  if (typeof updateUI === 'function') updateUI();
   const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
   const ou = 'l\'Entrepôt Logistique de ' + (nomVilleTrading(r.ville_livraison) || r.ville_livraison || '?');
   showToast('Commande passée', r.quantite + ' × ' + r.ressource + ' pour ' + r.montant + ' ' + cur +

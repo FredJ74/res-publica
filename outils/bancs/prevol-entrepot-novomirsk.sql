@@ -15,7 +15,7 @@ SELECT p.oid::regprocedure AS signature,pg_get_functiondef(p.oid) AS definition,
  has_function_privilege('anon',p.oid,'EXECUTE') AS anonyme
  FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.prokind='f'
  AND (p.prosrc LIKE '%entrepots_par_ville%' OR p.proname IN
- ('entrepot_commander','acheter_a_entrepot','offre_achat_servir','entrepot_caisse_id','caisse_refus_autorite','poste_autorite_de'))
+ ('entrepot_commander','acheter_a_entrepot','offre_achat_servir','entrepot_caisse_id','caisse_refus_autorite','poste_autorite_de','trading_livraison_courrier_interne','fret_arrivees_constater'))
  ORDER BY p.oid::regprocedure::text;
 SELECT tablename,policyname,roles,cmd,qual,with_check FROM pg_policies
  WHERE schemaname='public' AND tablename IN ('entrepots_par_ville','entrepot_journal','entrepot_transits','offres_achat');
