@@ -1094,13 +1094,73 @@ async function sbListPersonnages() {
   const copier = rows => Array.isArray(rows) ? rows.map(r => ({ ...r })) : rows;
   if (_sbAnnuaireCache && Date.now() - _sbAnnuaireInstant < 30000) return copier(_sbAnnuaireCache);
   if (!_sbAnnuaireEnVol) {
-    _sbAnnuaireEnVol = sbGet('personnages', 'select=name,country,current_city,poste,photo_url,domicile&order=created_at.asc')
-      .then(rows => { if (Array.isArray(rows)) { _sbAnnuaireCache = rows; _sbAnnuaireInstant = Date.now(); } return rows; })
+    // Portraits hors de la requete (04/11/2026, #55/#60) : ils viennent du cache des portraits,
+    // qui ne relit que ceux dont l'empreinte serveur a change. Meme forme de reponse qu'avant.
+    _sbAnnuaireEnVol = sbGet('personnages', 'select=name,country,current_city,poste,domicile&order=created_at.asc')
+      .then(async rows => {
+        if (!Array.isArray(rows)) return rows;
+        const portraits = await sbPortraitsPour(rows.map(r => r.name)).catch(() => ({}));
+        rows.forEach(r => { r.photo_url = portraits[r.name] ?? null; });
+        _sbAnnuaireCache = rows; _sbAnnuaireInstant = Date.now();
+        return rows;
+      })
       .finally(() => { _sbAnnuaireEnVol = null; });
   }
   return copier(await _sbAnnuaireEnVol);
 }
-function sbOublierAnnuaire() { _sbAnnuaireCache = null; }
+function sbOublierAnnuaire() { _sbAnnuaireCache = null; _sbEmpreintesInstant = 0; }
+
+// CACHE DES PORTRAITS (04/11/2026, #55/#60). Un portrait ne redescend du serveur que s'il est
+// nouveau ou si son empreinte (md5, RPC portraits_empreintes) a change. Cache en memoire, recopie
+// dans localStorage quand le navigateur le permet (sinon memoire seule). Le serveur reste la
+// seule source : une empreinte absente cote serveur efface le portrait du cache.
+const SB_PORTRAITS_CLE = 'rp_portraits_v1';
+let _sbPortraits = null, _sbEmpreintes = null, _sbEmpreintesInstant = 0, _sbEmpreintesEnVol = null;
+function sbPortraitsCharger() {
+  if (_sbPortraits) return _sbPortraits;
+  try { _sbPortraits = JSON.parse(localStorage.getItem(SB_PORTRAITS_CLE) || '{}') || {}; }
+  catch (_) { _sbPortraits = {}; }
+  return _sbPortraits;
+}
+function sbPortraitsSauver() {
+  try { localStorage.setItem(SB_PORTRAITS_CLE, JSON.stringify(_sbPortraits || {})); } catch (_) {}
+}
+async function sbPortraitsEmpreintes() {
+  if (_sbEmpreintes && Date.now() - _sbEmpreintesInstant < 30000) return _sbEmpreintes;
+  if (!_sbEmpreintesEnVol) {
+    _sbEmpreintesEnVol = sbRpc('portraits_empreintes', {}).then(rows => {
+      if (!Array.isArray(rows)) throw new Error('empreintes_indisponibles');
+      const carte = {};
+      rows.forEach(r => { if (r && r.name) carte[r.name] = r.empreinte; });
+      _sbEmpreintes = carte; _sbEmpreintesInstant = Date.now();
+      return carte;
+    }).finally(() => { _sbEmpreintesEnVol = null; });
+  }
+  return _sbEmpreintesEnVol;
+}
+// { nom: portrait | null } pour les noms demandes.
+async function sbPortraitsPour(noms) {
+  const cache = sbPortraitsCharger();
+  let empreintes;
+  try { empreintes = await sbPortraitsEmpreintes(); }
+  catch (_) {
+    // Repli : lecture directe des portraits demandes (comportement d'avant le cache).
+    const rows = await sbGet('personnages', 'name=in.(' + noms.map(n => '"' + String(n).replace(/"/g, '\\"') + '"').map(encodeURIComponent).join(',') + ')&select=name,photo_url').catch(() => []);
+    const r = {}; (rows || []).forEach(x => { r[x.name] = x.photo_url || null; }); return r;
+  }
+  const manquants = noms.filter(n => empreintes[n] && cache[n]?.e !== empreintes[n]);
+  let modifie = false;
+  for (let i = 0; i < manquants.length; i += 20) {
+    const lot = manquants.slice(i, i + 20);
+    const rows = await sbGet('personnages', 'name=in.(' + lot.map(n => '"' + String(n).replace(/"/g, '\\"') + '"').map(encodeURIComponent).join(',') + ')&select=name,photo_url').catch(() => null);
+    (rows || []).forEach(x => { if (x.photo_url) { cache[x.name] = { e: empreintes[x.name], u: x.photo_url }; modifie = true; } });
+  }
+  noms.forEach(n => { if (!empreintes[n] && cache[n]) { delete cache[n]; modifie = true; } });
+  if (modifie) sbPortraitsSauver();
+  const r = {};
+  noms.forEach(n => { r[n] = empreintes[n] && cache[n]?.e === empreintes[n] ? cache[n].u : null; });
+  return r;
+}
 
 // PORTRAITS REDUITS (04/11/2026, #55/#60). Un portrait choisi par le joueur est ramene a
 // 320 px de cote au plus, en JPEG qualite 0,8 sur fond blanc (~30 Ko au lieu de plusieurs Mo),
