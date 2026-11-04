@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -1883,6 +1883,17 @@ const WORLD = {
           name: "Distribution Collective",
           desc: "Files organisées par ordre alphabétique.",
           persons: [{"name": "Distributeur Équitable (PNJ)", "role": "Distributeur", "rel": "neutral", "job": "commercant"}]
+        },
+        // Librairie du Peuple (vue 1, Place du Peuple) : copie de l'Imprimerie-Librairie Gutenberg
+        // de Port-Sainte-Marie (decision de Fred, 04/11/2026) -- memes pieces, memes ordres, meme
+        // caisse d'atelier dans batiments_etat (soviet_capitale_imprimerie-librairie). Libraire
+        // propre a Novomirsk, nom choisi par Fred (regle « pas de connexion entre les villes »).
+        // Les images des pieces restent provisoirement celles de PSM : aucune image d'interieur
+        // n'existe encore pour Sovarka.
+        'imprimerie-librairie': {
+          name: "Librairie du Peuple",
+          desc: "La librairie du Parti, sur la Place du Peuple. On y imprime livres, brochures et tracts, sous l'oeil bienveillant du Comite.",
+          persons: [{name: 'Ludmila Pamphletova (PNJ)', role: 'PNJ - Libraire-imprimeuse du Parti', rel: 'neutral', job: 'imprimeur'}]
         }
       }
     },

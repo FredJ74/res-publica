@@ -5034,6 +5034,24 @@ export const SCENES_PNJ = {
     "piece": "Bureau du Président",
     "personnes": []
   },
+  "[\"soviet\",\"capitale\",\"imprimerie-librairie\",\"accueil_imprimerie\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Librairie du Peuple",
+    "piece": "Accueil / Bureau",
+    "personnes": [
+      "Ludmila Pamphletova"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"imprimerie-librairie\",\"atelier\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Librairie du Peuple",
+    "piece": "Atelier d'Imprimerie",
+    "personnes": [
+      "Ouvrier typographe"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",

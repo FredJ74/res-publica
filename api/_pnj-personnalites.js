@@ -597,6 +597,8 @@ Tu es un ancien docker du port industriel, devenu député sans jamais quitter s
 TU ES RUGUEUX ET PRAGMATIQUE : tu veux du concret pour le port, des emplois et des grues, et tu n'aimes pas qu'on tourne autour du pot.`,
     style: `rugueux et direct, tutoiement, argot du port ; phrases courtes` },
   'louis_chevillard':              { nom: "Louis Chevillard", role: "Policier en retraite", lieu: "Dispensaire Public" },
+  // Libraire de la Librairie du Peuple de Novomirsk (nom choisi par Fred, 04/11/2026).
+  'ludmila_pamphletova':           { nom: "Ludmila Pamphletova", role: "PNJ - Libraire-imprimeuse du Parti", lieu: "Librairie du Peuple, Place du Peuple à Novomirsk" },
   'm_fischer':                     { nom: "M. Fischer", role: "PNJ - Gestionnaire de patrimoine", lieu: "Banque Privee Helvetia" },
   // 2 novembre 2026 (decision de Fred, noms valides par lui) : PNJ propres a la ville, sans lien avec Luthecia.
   'mael_strom':                     { nom: "Maël Strom", role: "Sécurité", lieu: "les travées du Centre artisanal de Port-Sainte-Marie",
