@@ -31,19 +31,19 @@ for(const actif of [true,false])test(`salarie enregistre/${actif} : production s
 test('present dans le commerce : production sans etre proprietaire ni salarie',()=>{const c=jeu();const d={proprietaire:'Bob',country:'republic',city:'capitale',buildingId:'commerce',roomId:'salle'};assert.equal(c.commercePeutProduire(d),true);assert.equal(c.commercePeutProduire({...d,buildingId:'ailleurs'}),false);assert.equal(c.commercePeutProduire({proprietaire:'Bob'}),false);assert.equal(c.commercePeutProduire({proprietaire:'Alice'}),true);});
 
 for(const type of ['bar','cafe','restaurant','brasserie','marche']) {
-  test(`rupture au ${type} : commander désactivé, produire et fiche restent visuellement actifs`,async()=>{
+  test('rupture au '+type+' : seul achat grisé, production et fiche actives',async()=>{
     const c=jeu();
     c.data.proprietaire='Alice';
     c.data.stockProduits.biere=0;
     await c.doConsulterCarteCommerce(type,'commerce','salle',0,0);
     const html=c.html();
-    const ligne=html.slice(html.indexOf('Stock : 0')-650,html.indexOf('Stock : 0')+950);
-    assert.doesNotMatch(ligne,/opacity:\\s*\\.5(?=[^<]*<\\/div>)/);
-    assert.match(html,/<button disabled[^>]*>(Commander|Acheter)<\\/button>/);
-    assert.match(html,/<button onclick="doProduireRecetteCommerceUI[^>]+>Produire<\\/button>/);
-    assert.match(html,/<button onclick="ouvrirFicheProduitCommerce[^>]+>Fiche produit<\\/button>/);
-    const d=jeu();d.data.proprietaire='Bob';await d.doConsulterCarteCommerce(type,'commerce','salle',0,0);
+    assert.doesNotMatch(html,/align-items:center;opacity:\.5/);
+    assert.match(html,/<button disabled[^>]*>(Commander|Acheter)<\/button>/);
+    assert.match(html,/<button onclick="doProduireRecetteCommerceUI[^>]+>Produire<\/button>/);
+    assert.match(html,/<button onclick="ouvrirFicheProduitCommerce[^>]+>Fiche produit<\/button>/);
+    const d=jeu();d.data.proprietaire='Bob';
+    await d.doConsulterCarteCommerce(type,'commerce','salle',0,0);
     assert.doesNotMatch(d.html(),/<button onclick="doProduireRecetteCommerceUI/);
-    assert.match(d.html(),/<button disabled[^>]*>Produire<\\/button>/);
+    assert.match(d.html(),/<button disabled[^>]*>Produire<\/button>/);
   });
 }
