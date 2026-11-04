@@ -42,6 +42,13 @@ jobs:
         if: github.event_name == 'push'
         run: node --test outils/bancs/test-*.mjs
 
+      - name: Tracts — plafond commun de 100 unités avant toute impression
+        run: |
+          node --check plateau-divers.js
+          node --check plateau-communication.js
+          node --test outils/bancs/test-tracts-plafond-inventaire-100.cjs outils/bancs/test-imprimerie-stocks-tracts-20261104.cjs
+          python3 -c "from pathlib import Path; from pglast import parse_sql; sql=Path('migrations/20261104164500_tracts_imprimer_plafond_inventaire.sql').read_text(); assert len(parse_sql(sql))==1; print('Migration plafond tracts : syntaxe PostgreSQL valide')"
+
       - name: Services sociaux Montrouge — rendez-vous, courrier et logements (hors production)
         run: |
           node --test outils/bancs/test-montrouge-ssm-rendezvous.cjs outils/bancs/test-montrouge-ssm-pnj.cjs
