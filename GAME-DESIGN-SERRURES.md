@@ -40,7 +40,8 @@
 - Une duplication réussie transforme transactionnellement **une clé vierge** en **un double de clé** lié à l'identifiant unique de la serrure. Pas de clonage d'objets ni de double débit en cas de rejeu/double clic.
 - Un double ne confère aucun droit supérieur à la clé source. Toute clé d'une serrure désactivée demeure inutilisable pour l'accès, malgré sa présence éventuelle en inventaire.
 - **Nombre de doubles illimité** pour une même serrure (décision de Fred du 04/11/2026).
-- La transmissibilité des clés et un coût éventuel de duplication au-delà de la clé vierge ne sont pas encore spécifiés ; ne pas inventer de restriction ou de frais.
+- **La clé est un objet transmissible** (décision de Fred du 04/11/2026) : elle peut être donnée, vendue ou échangée comme tout objet d'inventaire, et le PJ qui la détient peut s'en servir. Le droit d'ouvrir vient de la clé détenue (et de la validité de l'installation), pas de l'identité de l'acheteur.
+- Un coût éventuel de duplication au-delà de la clé vierge n'est pas spécifié ; ne pas inventer de frais.
 
 ## Contraintes techniques constatées
 
