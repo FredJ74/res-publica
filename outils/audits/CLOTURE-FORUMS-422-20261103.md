@@ -186,3 +186,5 @@ Ordre exact :
 Pas de migration ni fusion #422 exécutée ici ; pas de READY ni recette production
 revendiqués. Les obstacles de canal ne sont pas un abandon : le lot exact est prêt
 pour l'intégrateur autorisé. La CI du prochain SHA doit être observée séparément.
+
+CI `5fda5c62` : quatre jobs verts ; cinquième arrêté sur la référence de chemin SQL football dans le workflow, restée à l’ancien horodatage. Chemin corrigé et commandes exactes (banc puis parser SQL) rejouées localement ; le prochain SHA doit être observé. Aucun résultat CI rouge présenté comme vert.
