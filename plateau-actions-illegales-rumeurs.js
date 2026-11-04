@@ -2737,6 +2737,30 @@ function getRecettesPays(pays) {
   return Object.fromEntries(Object.entries(RECETTES_PRODUCTION).filter(([, r]) => r.pays === pays));
 }
 
+// QUINCAILLERIE DES ARMURERIES (serrures, 04/11/2026 -- GAME-DESIGN-SERRURES.md, issue #434).
+// Articles de quincaillerie, PAS des armes : jamais dans ARMES_CATALOGUE ni RECETTES_PRODUCTION
+// (ni marche noir, ni registre de vente d'armes). Miroir serveur : recettes_commerce, source
+// 'quincaillerie' (outils/generateurs/generer_miroirs_entreprises.py).
+// Decisions de Fred : 2 metal + 1 PA = 2 serrures, 60 FR la serrure en commerce PNJ ;
+// 1 metal + 1 PA = 10 cles vierges. Prix PNJ de la cle vierge : regle PNJ existante (2 x le cout
+// de revient : (1 metal a 20 FR + 1 PA a 50 FR) / 10 = 7 FR -> 14 FR). Un proprietaire PJ fixe ses
+// prix comme pour le reste de son armurerie.
+const QUINCAILLERIE_PRODUITS = {
+  serrure_cle: { label: 'Serrure à clé', pa: 1, portions: 2, materiaux: { metal: 2 },
+    categorie: 'quincaillerie', typesAutorises: ['armurerie'], paysAutorises: ['republic'],
+    icon: 'ti-lock', prixPnj: 60, stockMaxPnj: 10,
+    desc: 'Un bloc serrure vendu avec sa clé. Se pose sur une armoire à souvenirs installée, ou sur un local ou un appartement dont vous avez la jouissance.' },
+  cle_vierge: { label: 'Clé vierge', pa: 1, portions: 10, materiaux: { metal: 1 },
+    categorie: 'quincaillerie', typesAutorises: ['armurerie'], paysAutorises: ['republic'],
+    icon: 'ti-key', prixPnj: 14, stockMaxPnj: 50,
+    desc: 'Une clé brute. Taillée sur une clé que vous détenez, elle devient un double.' }
+};
+
+function getQuincailleriePays(pays) {
+  return Object.fromEntries(Object.entries(QUINCAILLERIE_PRODUITS)
+    .filter(([, r]) => !r.paysAutorises || r.paysAutorises.includes(pays)));
+}
+
 const PRIX_RACHAT_ARMURERIE = 130000;
 
 // A2 (16 aout 2026) : id local par ville -- une armurerie de Republia n'est plus une entreprise
@@ -2868,6 +2892,10 @@ function defautArmurerie(pays, ville) {
   Object.entries(recettes).forEach(([id, r]) => {
     prixVente[id] = prixVenteDefaut[r.ut] || 500;
     stockMax[id] = r.ut === 1 ? 10 : (r.ut === 2 ? 5 : 5);
+  });
+  Object.entries(getQuincailleriePays(pays || 'republic')).forEach(([id, r]) => {
+    prixVente[id] = r.prixPnj;
+    stockMax[id] = r.stockMaxPnj;
   });
 
   return {
