@@ -6530,6 +6530,60 @@ async function doConsulterStockUsine() {
 // sbGetBatimentEtat/sbSetBatimentEtat -- aucun nouveau mecanisme de persistance.
 // =====================
 
+// Catalogue commun des produits manufactures. Le catalogue est une presentation :
+// chaque bouton conserve sa transaction serveur canonique de production ou d'achat.
+// Pas de nouvel etat client, d'ecriture directe ni de nouveau droit de production.
+async function doOuvrirCatalogueProduitsManufactures() {
+  const pays = state.country;
+  const ville = state.currentCity;
+  const batiment = state.currentBuilding;
+  const articles = Object.values(PRODUITS_MANUFACTURES_USINE).filter(p =>
+    p.pays === pays && p.ville === ville && p.buildingId === batiment
+  );
+  if (!articles.length) {
+    showToast('Catalogue indisponible', 'Aucun article manufacture dans cet etablissement.', false);
+    return;
+  }
+  const etat = typeof sbGetBatimentEtat === 'function'
+    ? await sbGetBatimentEtat(pays, ville, batiment).catch(() => null) : null;
+  if (!etat) {
+    showToast('Catalogue indisponible', 'Le stock du commerce ne peut pas etre confirme par le serveur.', false);
+    return;
+  }
+  const usine = etat.usine || {};
+  const monnaie = COUNTRIES[pays]?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = 'Catalogue des produits';
+  let html = '<div style="padding:1rem">';
+  for (const p of articles) {
+    const stock = Math.max(0, Number(usine.stockProduits?.[p.type]) || 0);
+    const recette = p.recette || {};
+    const materiaux = Object.entries(recette.materiaux || {}).map(([m, q]) =>
+      q + ' ' + (RESSOURCES_ECONOMIE[m]?.label || m)
+      + ' (stock : ' + (Number(usine.stockMatieres?.[m]) || 0) + ')').join(' + ');
+    const productionPossible = Object.entries(recette.materiaux || {}).every(([m, q]) =>
+      (Number(usine.stockMatieres?.[m]) || 0) >= Number(q));
+    // Seules les actions deja prises en charge par les transactions serveur sont proposees.
+    const armoire = p.type === 'armoire_souvenirs';
+    const style = 'font-family:Bebas Neue,sans-serif;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer';
+    html += '<div style="border:1px solid #394656;padding:.8rem;margin-bottom:.8rem">';
+    html += '<div style="font-weight:bold;margin-bottom:.4rem">' + p.label + '</div>';
+    html += '<div style="font-size:.82rem;color:#c0b090">Prix : ' + Number(p.prixVente).toLocaleString('fr-FR')
+      + ' ' + monnaie + ' · Stock : ' + stock + ' · Encombrement : ' + p.encombrement + '</div>';
+    html += '<div style="font-size:.78rem;color:#8a8060;margin:.5rem 0">Fabrication : '
+      + (recette.pa || 0) + ' PA · ' + materiaux + '</div>';
+    if (armoire) {
+      html += '<div style="display:flex;gap:.5rem">';
+      html += '<button ' + (!productionPossible ? 'disabled ' : '') + 'onclick="doFabriquerArmoireSouvenirs()" style="flex:1;' + style + '">Produire</button>';
+      html += '<button ' + (stock <= 0 ? 'disabled ' : '') + 'onclick="doAcheterArmoireSouvenirs()" style="flex:1;' + style + '">Acheter</button>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
 async function doFabriquerArmoireSouvenirs() {
   const p = PRODUITS_MANUFACTURES_USINE.armoire_souvenirs;
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(p.pays, p.ville, p.buildingId).catch(() => null) : null;
