@@ -27,6 +27,8 @@ Règles : voir `AGENTS.md`.
 
 ### Commissariat PSM : contexte PNJ et portrait — Codex, 04/11/2026
 
+**Livré : PR #450 fusionnée le 04/11 à 14 h 37 (head `b39cfd61`, branche entièrement contenue dans main ; vérifié par Claude le 04/11 à 19 h 15).** La mention « PR non créée » ci-dessous est périmée. **À constater en jeu** : parler à Martial Morvan, qui situe correctement son bureau ; portrait du brigadier d'accueil de PSM.
+
 Branche `codex/psm-commissariat-dialogue-portrait-20261104`, issue de main `06657545` (PR #447 conservée). Vérification du relais, des branches et PR publiques : aucune correction concurrente Morvan/portrait accueil identifiée. Morvan n'avait aucun lieu dans sa fiche ; le chat ne recevait jamais la position. Lecture commune `rue_position_lire()` sous JWT, noms du lieu issus du générateur/casting existant (`generer-pnj-lieux-metiers.cjs --scenes-js` → `api/_pnj-scenes-generes.js`), aucun nouveau moteur de navigation ni mutation. La fiche précise le bureau, personnalité/rôle conservés ; aucune réplique de remplacement codée en dur. Si position/presence non confirmées, le prompt l'indique, sans inventer de localisation.
 
 Portrait du seul brigadier d'accueil PSM : crop320×320+(55,260) de `images/port-sainte-marie-commissariat-accueil.webp`, encodé WebP sans perte, pixels RGBA identiques. Source et autres villes inchangées, identité/métier/ordres inchangés ; `photoUrl`/`photoPos` de l'override PSM. Versions data.js majorées dans les deux pages.
