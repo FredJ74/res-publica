@@ -1905,7 +1905,12 @@ const WORLD = {
           desc: "La librairie du Parti, sur la Place du Peuple. On y imprime livres, brochures et tracts, sous l'oeil bienveillant du Comite.",
           roomOverrides: {
             accueil_imprimerie: {
-              imageUrl: 'images/Sovarka/Novomirsk/Novo_librairie_accueil.png'
+              imageUrl: 'images/Sovarka/Novomirsk/Novo_librairie_accueil.webp',
+              persons: [{name: 'Ludmila Pamphletova (PNJ)', role: 'PNJ - Libraire-imprimeuse du Parti', rel: 'neutral', job: 'imprimeur', photoUrl: 'images/Sovarka/Novomirsk/Novo_ludmila_pamphletova_portrait.webp'}]
+            },
+            atelier: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novo_librairie_atelier.webp',
+              persons: [{name: 'Ouvrier typographe (PNJ)', role: 'PNJ - Typographe', rel: 'neutral', job: 'typographe', photoUrl: 'images/Sovarka/Novomirsk/Novo_typographe_portrait.webp'}]
             }
           },
           persons: [{name: 'Ludmila Pamphletova (PNJ)', role: 'PNJ - Libraire-imprimeuse du Parti', rel: 'neutral', job: 'imprimeur'}]
