@@ -1626,7 +1626,7 @@ async function sortirBatiment() {
     }
   }
 
-  const retourVersTerrainsMontrouge = typeof TERRAINS_PAR_VILLE !== 'undefined' && TERRAINS_PAR_VILLE.ville_b.includes(batimentQuitte);
+  const retourVersTerrainsVille = typeof villeTerrainsSousLieu === 'function' ? villeTerrainsSousLieu(batimentQuitte) : null;
 
   // Le meme contrat pour tous les batiments : sortie declaree puis ordre serveur.
   if(state.country==='republic'){
@@ -1660,7 +1660,7 @@ async function sortirBatiment() {
     }
   }
   showVueRue(batimentQuitte,positionSortieConfirmee);
-  if (retourVersTerrainsMontrouge && typeof ouvrirTerrainsMontrouge === 'function') ouvrirTerrainsMontrouge();
+  if (retourVersTerrainsVille && typeof ouvrirTerrainsVille === 'function') ouvrirTerrainsVille(retourVersTerrainsVille);
   addJournalEntry(`Vous sortez du batiment.`, '');
   }finally{if(sortieBatimentEnCours===contexteSortie)sortieBatimentEnCours=null;}
 }

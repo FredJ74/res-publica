@@ -534,11 +534,12 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'psm-terrains-vente': {
-      // 'psm-terrains-lots' est un PLACEHOLDER (sous-scene des 5 lots, pas encore codee,
-      // sur le modele de 'luthecia-terrains-lots').
+      // Terrains a batir de PSM : sous-lieu a onglets (une parcelle par onglet), comme Montrouge
+      // (decision de Fred, 04/11/2026 : plus de selection sur l'image, dont les infobulles ne
+      // correspondaient pas aux parcelles). Les entrees serveur des terrains sont sur ce noeud.
       image: 'images/rue-terrains-vente-psm.webp',
       zones: [
-        { xPct: [55, 95], nom: 'Terrains à Bâtir', type: 'noeud', noeudId: 'psm-terrains-lots' }
+        { xPct: [55, 95], nom: 'Terrains à bâtir de Port-Sainte-Marie', type: 'sous-lieu' }
       ],
       liens: { droite: 'psm-pole-tabac-entrepot', arriere: 'psm-chantier-naval' },
       flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
@@ -564,24 +565,11 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'psm-terrains-lots': {
+      // Ancienne sous-scene des lots (selection sur l'image), retiree le 04/11/2026 : les terrains
+      // s'ouvrent par onglets depuis psm-terrains-vente. Le noeud reste declare pour qu'un PJ qui
+      // s'y trouvait encore puisse revenir en arriere ; il n'ouvre plus aucun terrain.
       image: 'images/rue-terrains-lots-detail-psm.webp',
-      zones: [
-        // Correctif du 5 septembre 2026 (arbitrage valide) : Port-Sainte-Marie a QUATRE terrains,
-        // ceux reellement declares dans WORLD.republic.ville_a (-8 a -11). Une 5e zone ouvrait
-        // 'terrain-a-batir-2', qui est le lot 2 de la Chataigneraie, terrain de LUTHECIA (et deja
-        // possede par un joueur) : incoherence ancienne, la zone est supprimee. Aucun 5e terrain
-        // n'est cree, aucun identifiant n'est renumerote.
-        //
-        // Les surfaces annoncees ici (1650 / 2200 / 3100 / 4200 / 5500 m²) ne correspondaient a
-        // AUCUNE donnee : les quatre terrains de PSM sont declares a 1500 m² chacun dans data.js.
-        // Les libelles sont donc alignes sur la donnee canonique, et nommes d'apres le terrain
-        // qu'ils ouvrent reellement. Les xPct des 4 zones conservees sont INCHANGEES (aucune
-        // modification de zone cliquable dans ce lot).
-        { xPct: [30, 45], nom: 'Lot 8 (1500 m²)',  type: 'batiment', buildingId: 'terrain-a-batir-8' },
-        { xPct: [58, 68], nom: 'Lot 9 (1500 m²)',  type: 'batiment', buildingId: 'terrain-a-batir-9' },
-        { xPct: [48, 58], nom: 'Lot 10 (1500 m²)', type: 'batiment', buildingId: 'terrain-a-batir-10' },
-        { xPct: [78, 92], nom: 'Lot 11 (1500 m²)', type: 'batiment', buildingId: 'terrain-a-batir-11' }
-      ],
+      zones: [],
       liens: { arriere: 'psm-terrains-vente' },
       flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
     },
@@ -1349,7 +1337,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
     });
     div.addEventListener('click', () => {
       if (z.type === 'noeud') naviguerVersNoeudRue(pays, z.noeudId, z.nom);
-      else if (z.type === 'sous-lieu') ouvrirTerrainsMontrouge();
+      else if (z.type === 'sous-lieu') ouvrirTerrainsVille(state.currentCity);
       else if (z.type === 'a-venir') {
         // Batiment dessine sur l'image mais dont l'interieur/la mecanique n'existe pas encore.
         // Refus explicite et discret : ni faux interieur, ni clic mort. Avant ce type, une zone
@@ -1514,15 +1502,28 @@ function entrerDansBatimentRue(buildingId, nom) {
 // SURFACE_TERRAINS (plateau-justice-economie.js / plateau-pnj.js), sources uniques de verite,
 // jamais dupliquees ici. Le lot 6 a recu sa superficie le 01/11/2026 (2100 m², decision de Fred) ;
 // un terrain sans entree dans SURFACE_TERRAINS afficherait juste "Lot N", sans "m²" invente.
-function ouvrirTerrainsMontrouge() {
-  const ids = (typeof TERRAINS_PAR_VILLE !== 'undefined') ? TERRAINS_PAR_VILLE.ville_b : [];
+// Generalise le 04/11/2026 a Port-Sainte-Marie (decision de Fred). Une ville a sous-lieu de
+// terrains se declare ici ; la liste des terrains reste TERRAINS_PAR_VILLE[ville].
+const TERRAINS_SOUS_LIEUX = {
+  ville_a: { nom: 'Terrains à bâtir de Port-Sainte-Marie', ville: 'Port-Sainte-Marie', image: 'images/rue-terrains-lots-detail-psm.webp' },
+  ville_b: { nom: 'Terrains à bâtir de Montrouge', ville: 'Montrouge', image: 'images/montrouge/montrouge-terrains-vue-ensemble.jpg' }
+};
+function villeTerrainsSousLieu(buildingId) {
+  if (typeof TERRAINS_PAR_VILLE === 'undefined' || state.country !== 'republic') return null;
+  return Object.keys(TERRAINS_SOUS_LIEUX).find(v => (TERRAINS_PAR_VILLE[v] || []).includes(buildingId)) || null;
+}
+function ouvrirTerrainsMontrouge() { ouvrirTerrainsVille('ville_b'); }
+function ouvrirTerrainsVille(ville) {
+  const conf = TERRAINS_SOUS_LIEUX[ville];
+  if (!conf) return;
+  const ids = (typeof TERRAINS_PAR_VILLE !== 'undefined') ? (TERRAINS_PAR_VILLE[ville] || []) : [];
 
   document.getElementById('vue-rue').classList.remove('active');
   document.getElementById('vue-batiment').classList.add('active');
   const ancienConteneurRue = document.getElementById('rue-centrale-conteneur');
   if (ancienConteneurRue) ancienConteneurRue.remove();
 
-  document.getElementById('bat-nom').textContent = 'Terrains à bâtir de Montrouge';
+  document.getElementById('bat-nom').textContent = conf.nom;
   document.getElementById('bat-cat').textContent = 'Immobilier';
   const elCaisse = document.getElementById('bat-caisse');
   const elStock = document.getElementById('bat-stock');
@@ -1533,20 +1534,20 @@ function ouvrirTerrainsMontrouge() {
 
   document.getElementById('pieces-tabs').innerHTML = ids.map(id => {
     const numero = id.split('-').pop();
-    const surface = (typeof SURFACE_TERRAINS !== 'undefined') ? (SURFACE_TERRAINS['republic|ville_b|' + id] ?? SURFACE_TERRAINS[id]) : null;
+    const surface = (typeof SURFACE_TERRAINS !== 'undefined') ? (SURFACE_TERRAINS['republic|' + ville + '|' + id] ?? SURFACE_TERRAINS[id]) : null;
     const label = 'Lot ' + numero + (surface ? ' — ' + surface.toLocaleString('fr-FR') + ' m²' : '');
     return '<div class="piece-tab" onclick="enterBuilding(\'' + id + '\')">' + label + '</div>';
   }).join('');
 
   const pieceImg = document.getElementById('piece-image');
-  pieceImg.style.background = "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('images/montrouge/montrouge-terrains-vue-ensemble.jpg') center/cover no-repeat";
-  document.getElementById('piece-nom').textContent = 'Terrains à bâtir de Montrouge';
-  document.getElementById('piece-desc').textContent = 'Six parcelles disponibles autour de la ville. Choisissez un lot ci-dessus pour vous y rendre.';
+  pieceImg.style.background = "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('" + conf.image + "') center/cover no-repeat";
+  document.getElementById('piece-nom').textContent = conf.nom;
+  document.getElementById('piece-desc').textContent = ids.length + ' parcelles. Choisissez un lot ci-dessus pour vous y rendre.';
 
   renderPersonsList([]);
-  document.getElementById('action-context-bat').textContent = 'TERRAINS À BÂTIR DE MONTROUGE — CHOISISSEZ UNE PARCELLE';
+  document.getElementById('action-context-bat').textContent = conf.nom.toUpperCase() + ' — CHOISISSEZ UNE PARCELLE';
   document.getElementById('actions-row-bat').innerHTML = '';
 
-  document.getElementById('loc-name').textContent = 'Montrouge';
-  document.getElementById('loc-sub').textContent = 'Terrains à bâtir de Montrouge';
+  document.getElementById('loc-name').textContent = conf.ville;
+  document.getElementById('loc-sub').textContent = conf.nom;
 }
