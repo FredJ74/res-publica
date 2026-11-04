@@ -5197,6 +5197,52 @@ export const SCENES_PNJ = {
       "Don Esteban Cortesano"
     ]
   },
+  "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"hall_pavillon\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Pavillon des Ambassadeurs",
+    "piece": "Hall du Pavillon",
+    "personnes": [
+      "Arkadi Discretov"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"salle_reception\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Pavillon des Ambassadeurs",
+    "piece": "Grande Salle de Réception",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"bar\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Pavillon des Ambassadeurs",
+    "piece": "Bar",
+    "personnes": [
+      "Lena Glaçonova"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"suite_privee\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Pavillon des Ambassadeurs",
+    "piece": "Suite Privée — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"suite_presidentielle\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Pavillon des Ambassadeurs",
+    "piece": "Suite Présidentielle — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"suite_parti\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Pavillon des Ambassadeurs",
+    "piece": "Suite du Parti — Local à louer",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",

@@ -29,7 +29,11 @@ for (const [r, R] of Object.entries(postes)) {
   const l = R.locationData; attendus['centre-affaires|' + r + '|capitale'] = [l.prix, l.bonusPOP, l.bonusINF, l.bonusDIS].join(',');
 }
 
-const sql = lire('historique/migrations-appliquees/20261029184321_location_locaux_par_serveur.sql');
+// Le referentiel de depart, plus les locaux ajoutes ensuite par une migration (meme format de ligne),
+// par exemple les suites du Pavillon des Ambassadeurs de Novomirsk (20261104215000).
+const sql = [lire('historique/migrations-appliquees/20261029184321_location_locaux_par_serveur.sql')]
+  .concat(fs.readdirSync(path.join(racine, 'migrations')).filter(f => f.endsWith('.sql')).sort()
+    .map(f => lire('migrations/' + f)).filter(t => t.includes('INSERT INTO public.locaux_loyers_referentiel'))).join('\n');
 const serveur = {}; const nonLouables = [];
 for (const m of sql.matchAll(/\('([a-z-]+)','([a-z_-]+)','([*a-z_]+)',(\d+),(\d+),(\d+),(\d+),'[^']*',(true|false)\)/g)) {
   if (m[8] === 'false') { nonLouables.push(m[1] + '|' + m[2] + '|' + m[3]); continue; }

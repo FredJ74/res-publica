@@ -3750,7 +3750,11 @@ const BUILDING_COMMERCE_TYPE = {
   // buildingId seule (commerce mono-piece, une seule room 'salle', meme convention que
   // cafe-gare-montrouge ci-dessus). getCommerceId() integre deja buildingId : ce commerce est
   // entierement distinct du Cafe de la Gare (stock/caisse propres) des sa premiere creation.
-  'cafe-tabac-cheminots-montrouge': 'cafe'
+  'cafe-tabac-cheminots-montrouge': 'cafe',
+  // Bar du Pavillon des Ambassadeurs (Novomirsk, 04/11/2026, decision de Fred : copie du Bar du
+  // Republica) : type 'bar', meme moteur que le Bar des Pecheurs, caisse autonome. Cle
+  // room-scopee (le Pavillon a aussi des suites et une salle de reception sans commerce).
+  'pavillon-ambassadeurs-novomirsk|bar': 'bar'
 };
 
 // Types de commerce sans caisse autonome (paiement client/salaire de production routes vers la
@@ -4169,6 +4173,23 @@ const DOTATIONS_COMMERCE_PILOTE = {
   // typesAutorises:['bar'] (biere_pression/vin/cafe_boisson/boisson_sans_alcool/snack_buvette),
   // aucune recette modifiee. Specialite locale PSM PAS encore ajoutee : proposee au rapport de ce
   // lot, en attente du choix de Fred avant tout ajout a cette carte.
+  // Bar du Pavillon des Ambassadeurs (Novomirsk, 04/11/2026) : carte des boissons et snacks du
+  // Bar du Republica (vin, cafe, biere, snack ; les menus gastronomiques restent verrouilles au
+  // Republica). Caisse, stocks et couts de depart repris du Bar des Pecheurs, seul autre commerce
+  // de type 'bar' : aucun chiffre invente.
+  'pavillon-ambassadeurs-novomirsk|bar': function(data) {
+    data.caisse = 2000;
+    data.stockMatieres = { cereales: 10, fruits_legumes: 10, produits_exotiques: 10 };
+    data.coutMoyenMatieres = { cereales: 3, fruits_legumes: 4, produits_exotiques: 6 };
+    data.carte = ['vin', 'cafe_boisson', 'biere_pression', 'snack_buvette'];
+    data.parametres.stockMax = { vin: 20, cafe_boisson: 20, biere_pression: 20, snack_buvette: 20 };
+    data.parametres.prixVente = {
+      vin: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.vin)),
+      cafe_boisson: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.cafe_boisson)),
+      biere_pression: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.biere_pression)),
+      snack_buvette: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.snack_buvette))
+    };
+  },
   'bar-des-pecheurs|salle_bar': function(data) {
     data.caisse = 2000;
     data.stockMatieres = { cereales: 10, fruits_legumes: 10, produits_exotiques: 10 };

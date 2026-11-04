@@ -875,7 +875,8 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-7': {
       image: 'images/rue-residences-eglise-novomirsk.webp',
       zones: [
-        { xPct: [0, 16],   yPct: [18, 74], nom: 'Pavillon des Ambassadeurs', type: 'a-venir' },
+        // Raccorde le 04/11/2026 (decisions de Fred) : appartements de luxe, trois suites, salle de reception, bar.
+        { xPct: [0, 16],   yPct: [18, 74], nom: 'Pavillon des Ambassadeurs', type: 'batiment', buildingId: 'pavillon-ambassadeurs-novomirsk' },
         { xPct: [33, 70],  yPct: [2, 74],  nom: 'Grande Église du Tractorisme', type: 'batiment', buildingId: 'kolkhoze-spirituel' },
         { xPct: [85, 100], yPct: [18, 74], nom: 'Résidence impériale', type: 'a-venir' }
       ],

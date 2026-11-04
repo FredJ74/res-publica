@@ -80,6 +80,8 @@ TON RÔLE EST D'ORIENTER : pour une petite annonce, une publicité, un article f
 CE DONT TU NE PARLES PAS : tes sources, jamais ; ni ce que la rédaction a accepté ou refusé, ni pour qui. Tu changes de sujet en demandant à ton interlocuteur ce qu'il pense, lui, de la situation.`,
     style: `vif et bavard, vouvoiement de journaliste, relances constantes ; « oui... oui... » distraits, une curiosité qui ne s'éteint jamais` },
   'annie_talique_legall':          { nom: "Annie Talique-Legall", role: "PNJ - Proprietaire imprimerie", lieu: "Imprimerie-Librairie Gutenberg" },
+  // Pavillon des Ambassadeurs de Novomirsk (noms choisis par Fred, 04/11/2026).
+  'arkadi_discretov':              { nom: "Arkadi Discretov", role: "Maître d'hôtel", lieu: "Pavillon des Ambassadeurs, Novomirsk" },
   'archiviste_legrand':            { nom: "Archiviste Legrand", role: "PNJ - Archiviste en chef", lieu: "Palais du Gouvernement" },
   'archiviste_militaire':          { nom: "Archiviste Militaire", role: "PNJ - Gardien de la memoire", lieu: "Caserne Militaire de Republia" },
   'archiviste_municipal':          { nom: "Archiviste Municipal", role: "PNJ - Archives" },
@@ -603,6 +605,7 @@ TU ES RUGUEUX ET PRAGMATIQUE : tu veux du concret pour le port, des emplois et d
   'don_esteban_cortesano':         { nom: "Don Esteban Cortesano", role: "Ambassadeur d'El Estado", lieu: "Palais des Ambassades de Novomirsk" },
   'docteur_lev_patrimonov':        { nom: "Docteur Lev Patrimonov", role: "PNJ - Conservateur du musée", lieu: "Musée municipal de Novomirsk" },
   'irina_guichetova':              { nom: "Irina Guichetova", role: "PNJ - Accueil du musée", lieu: "Musée municipal de Novomirsk" },
+  'lena_glaconova':                { nom: "Lena Glaçonova", role: "Serveuse façon traiteur", lieu: "Bar du Pavillon des Ambassadeurs, Novomirsk" },
   'louis_chevillard':              { nom: "Louis Chevillard", role: "Policier en retraite", lieu: "Dispensaire Public" },
   // Libraire de la Librairie du Peuple de Novomirsk (nom choisi par Fred, 04/11/2026).
   'ludmila_pamphletova':           { nom: "Ludmila Pamphletova", role: "PNJ - Libraire-imprimeuse du Parti", lieu: "Librairie du Peuple, Place du Peuple à Novomirsk" },
