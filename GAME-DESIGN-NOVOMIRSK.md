@@ -16,6 +16,7 @@ Grand Hôtel ayant deux entrées), 17 marquées « à venir ».
 | 04/11/2026 | V1 Place du Peuple | Palais du Gouvernement | **Pas réellement raccordé** malgré sa zone cliquable (constat de Fred). Gros morceau : gardé pour la fin du tour. |
 | 04/11/2026 | V2 | Restaurant La Mère Volga | Copie du Capitaine Sauvage de PSM ; la carte sera retravaillée plus tard. Serveuse propre à Novomirsk : **Tatiana Bortchova** (nom choisi par Fred). |
 | 04/11/2026 | V2 | Musée municipal de Novomirsk | Copie du musée de PSM : panthéon de la ville (nouveau bâtiment `musee-novomirsk`). PNJ propres choisis par Fred : **Irina Guichetova** (accueil), **Docteur Lev Patrimonov** (conservateur), **Vétéran Ilia Médailline** (guide bénévole). Figures historiques des salles écrites par Claude, **à relire par Fred** (`plateau-musee-personnalites.js`) ; Salle des Plumes laissée aux joueurs. |
+| 04/11/2026 | V6 | Palais des Ambassades | Copie du Quartier des Ambassades de Luthécia (nouveau bâtiment `palais-ambassades-novomirsk`, pour ne pas hériter des contrôles d'accès propres aux ambassades ouvertes en Républia). Bureaux de Républia, d'Al-Khalija et d'El Estado ; ambassadeurs nommés par Fred : **Hubert de La Courtoisie**, **Cheikh Rachid Al-Diplomi**, **Don Esteban Cortesano**. Tous les ordres « Bientôt disponible » jusqu'au voyage entre empires. |
 
 **Méthode (Fred, 04/11/2026)** : d'abord l'interface intérieure de chaque bâtiment, avec ses
 différentes pièces ; Fred générera ensuite les images avec ChatGPT. En attendant, un bâtiment

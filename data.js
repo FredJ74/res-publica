@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -6413,6 +6413,79 @@ const BUILDINGS = {
     }
   },
 
+  // Palais des Ambassades de Novomirsk (vue 6) : copie du Quartier des Ambassades de Luthecia
+  // (decision de Fred, 04/11/2026), batiment distinct pour ne pas heriter des portes et des
+  // controles d'acces de Luthecia, qui raisonnent sur les ambassades ouvertes EN REPUBLIA.
+  // Les ambassades relevent des liens entre empires : tous les ordres sont « Bientot disponible »
+  // (grises, aucun appel) jusqu'au voyage entre empires. Bureaux de Republia, d'Al-Khalija et
+  // d'El Estado ; ambassadeurs nommes par Fred. Images a venir.
+  'palais-ambassades-novomirsk': {
+    name: "Palais des Ambassades",
+    shortName: "Ambassades",
+    cat: "Diplomatie",
+    icon: "ti-flag",
+    bgColor: "#12100a",
+    desc: "Le quartier diplomatique de Novomirsk. Trois bureaux réservés aux ambassadeurs étrangers, sous la surveillance discrète mais constante du Parti.",
+    rooms: {
+      accueil_ambassades_novomirsk: {
+        name: "Accueil du Palais des Ambassades",
+        imageBg: "linear-gradient(135deg,#12100a,#1a1610)",
+        desc: "Le hall d'accueil du palais diplomatique. Trois bureaux d'ambassadeurs, un portrait officiel par mur, et un employé du Parti qui note les allées et venues.",
+        persons: [
+          {name:'Hôtesse d\'Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse'},
+          {name:'Agent de Sécurité (PNJ)', role:'PNJ - Sécurité', rel:'neutral', job:'agent_securite'}
+        ],
+        orders: [
+          {fn:'demander_audience_ambassadeur', label:'Demander audience à l\'ambassadeur', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:100, desc:'Solliciter une audience. La réponse arrive par courrier ; une audience accordée ouvre le bureau de l\'ambassadeur pendant 48 heures.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'demander_asile_politique', label:'Demander l\'asile politique', pa:2, cost:0, type:'legal', icon:'ti-shield-check', successRate:100, desc:'Déposer une demande d\'asile auprès d\'une ambassade. Réponse par courrier ; un réfugié ne peut pas être arrêté tant qu\'il reste au Palais des Ambassades.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'reserver_salle_reception', label:'Réserver la Salle de Réception', pa:1, cost:0, type:'legal', icon:'ti-calendar-event', successRate:100, desc:'Réserver la salle pour aujourd\'hui (réservé aux ambassadeurs en poste ici).', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+        ]
+      },
+      salle_reception: {
+        name: "Salle de Réception",
+        imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
+        desc: "Une salle commune aux trois ambassades, réservée aux réceptions diplomatiques organisées par les ambassadeurs.",
+        persons: [],
+        orders: []
+      },
+      bureau_republia_novomirsk: {
+        name: "Ambassade de Républia",
+        imageBg: "linear-gradient(135deg,#10141c,#161c26)",
+        desc: "Le bureau de l'ambassadeur de Républia. On n'y est reçu que sur audience, demandée à l'accueil.",
+        persons: [{name:'Hubert de La Courtoisie (PNJ)', role:"Ambassadeur de Républia", rel:'neutral', job:'ambassadeur'}],
+        orders: [
+          {fn:'relations_bilaterales', label:'Consulter les relations bilatérales', pa:0, cost:0, type:'legal', icon:'ti-file-analytics', successRate:100, desc:'État des relations avec Républia.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, desc:'Réserver la Salle de Réception commune.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'financer_oeuvre_culturelle', label:'Financer une œuvre culturelle', pa:1, cost:600, type:'legal', icon:'ti-palette', successRate:100, desc:'Soft power local.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'demander_transfert_detenu', label:'Demander le transfert d\'un détenu', pa:1, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+        ]
+      },
+      bureau_khalija_novomirsk: {
+        name: "Ambassade d'Al-Khalija",
+        imageBg: "linear-gradient(135deg,#1a160c,#241e10)",
+        desc: "Le bureau de l'ambassadeur d'Al-Khalija. On n'y est reçu que sur audience, demandée à l'accueil.",
+        persons: [{name:'Cheikh Rachid Al-Diplomi (PNJ)', role:"Ambassadeur d'Al-Khalija", rel:'neutral', job:'ambassadeur'}],
+        orders: [
+          {fn:'relations_bilaterales', label:'Consulter les relations bilatérales', pa:0, cost:0, type:'legal', icon:'ti-file-analytics', successRate:100, desc:'État des relations avec Al-Khalija.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, desc:'Réserver la Salle de Réception commune.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'financer_oeuvre_culturelle', label:'Financer une œuvre culturelle', pa:1, cost:600, type:'legal', icon:'ti-palette', successRate:100, desc:'Soft power local.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'demander_transfert_detenu', label:'Demander le transfert d\'un détenu', pa:1, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+        ]
+      },
+      bureau_estado_novomirsk: {
+        name: "Ambassade d'El Estado",
+        imageBg: "linear-gradient(135deg,#1a0e0c,#241410)",
+        desc: "Le bureau de l'ambassadeur d'El Estado. On n'y est reçu que sur audience, demandée à l'accueil.",
+        persons: [{name:'Don Esteban Cortesano (PNJ)', role:"Ambassadeur d'El Estado", rel:'neutral', job:'ambassadeur'}],
+        orders: [
+          {fn:'relations_bilaterales', label:'Consulter les relations bilatérales', pa:0, cost:0, type:'legal', icon:'ti-file-analytics', successRate:100, desc:'État des relations avec El Estado.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, desc:'Réserver la Salle de Réception commune.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'financer_oeuvre_culturelle', label:'Financer une œuvre culturelle', pa:1, cost:600, type:'legal', icon:'ti-palette', successRate:100, desc:'Soft power local.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'demander_transfert_detenu', label:'Demander le transfert d\'un détenu', pa:1, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+        ]
+      }
+    }
+  },
   'qhs-prison': {
     name: "Quartier Haute Securite",
     shortName: "QHS",

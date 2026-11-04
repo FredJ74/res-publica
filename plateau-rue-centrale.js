@@ -862,7 +862,9 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-6': {
       image: 'images/rue-ambassades-armurerie-novomirsk.webp',
       zones: [
-        { xPct: [0, 30],   yPct: [0, 72],  nom: 'Palais des Ambassades', type: 'a-venir' },
+        // Raccorde le 04/11/2026 (decision de Fred) : copie du Quartier des Ambassades de Luthecia,
+        // ordres « Bientot disponible » jusqu'au voyage entre empires.
+        { xPct: [0, 30],   yPct: [0, 72],  nom: 'Palais des Ambassades', type: 'batiment', buildingId: 'palais-ambassades-novomirsk' },
         { xPct: [79, 100], yPct: [14, 78], nom: 'Armurerie de Novomirsk', type: 'batiment', buildingId: 'armurerie' }
       ],
       liens: { arriere: 'novomirsk-vue-5', toutDroit: 'novomirsk-vue-7' },

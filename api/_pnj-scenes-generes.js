@@ -5153,6 +5153,50 @@ export const SCENES_PNJ = {
       "Vétéran Ilia Médailline"
     ]
   },
+  "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"accueil_ambassades_novomirsk\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Palais des Ambassades",
+    "piece": "Accueil du Palais des Ambassades",
+    "personnes": [
+      "Hôtesse d'Accueil",
+      "Agent de Sécurité"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"salle_reception\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Palais des Ambassades",
+    "piece": "Salle de Réception",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"bureau_republia_novomirsk\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Palais des Ambassades",
+    "piece": "Ambassade de Républia",
+    "personnes": [
+      "Hubert de La Courtoisie"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"bureau_khalija_novomirsk\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Palais des Ambassades",
+    "piece": "Ambassade d'Al-Khalija",
+    "personnes": [
+      "Cheikh Rachid Al-Diplomi"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"bureau_estado_novomirsk\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Palais des Ambassades",
+    "piece": "Ambassade d'El Estado",
+    "personnes": [
+      "Don Esteban Cortesano"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
