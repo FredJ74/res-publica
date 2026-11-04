@@ -5801,13 +5801,11 @@ async function confirmerFixerPrixAchatEntrepot(buildingId, pa, cost) {
     }
     prix[cle] = Math.round(n * 100) / 100;
   }
-  const r = await deduireCoutOrdre({ pa, cost, fn: 'fixer_prix_achat_entrepot' });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const v = await sbRpc('fixer_prix_entrepot', {
-    p_acteur: state.char?.name, p_pays: state.country, p_prix: prix
-  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
-  if (!v || v.ok !== true) {
+  const v = await executerReceptionInventaire('fixer_prix_entrepot', {
+    p_acteur: state.char?.name, p_pays: state.country, p_prix: prix, p_pa: pa, p_cost: cost
+  });
+  if (!v) return;
+  if (v.ok !== true) {
     showToast('Modification refusée', (v && v.raison === 'poste_non_detenu')
       ? 'Seul le directeur en poste peut fixer ces prix.'
       : 'Refusé (' + ((v && v.raison) || 'indisponible') + ').', false);

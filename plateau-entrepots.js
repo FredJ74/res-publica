@@ -111,6 +111,7 @@ function fmtFR(n) {
 async function chargerTableauEntrepot() {
   const monId = entrepotIdCourant();
   if (!monId) return null;
+  const paysLecture = state.country, personnageLecture = state.char;
 
   // LA TRESORERIE EST UNE CAISSE, PLUS UNE CLE DE BLOB (8 octobre 2026). Elle vit dans
   // caisses_batiments.<pays>_entrepot_<ville>, sous controle d'autorite et journalisee, comme
@@ -128,6 +129,7 @@ async function chargerTableauEntrepot() {
   // Embargos en vigueur, lus une fois pour tout l'ecran.
   const embargos = {};
 
+  if (state.country !== paysLecture || state.char !== personnageLecture || entrepotIdCourant() !== monId) return null;
   return {
     monId: monId,
     entrepot: (etatMoi && etatMoi.entrepot) || { stock: {}, prixManuel: {}, desiderata: {} },
@@ -167,7 +169,7 @@ async function ouvrirTableauBordEntrepot() {
 
 function rendreTableauEntrepot(onglet) {
   const d = _entrepotTableau;
-  if (!d) return;
+  if (!d || d.monId !== entrepotIdCourant()) return;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   let html = '<div style="padding:1rem">';
@@ -312,12 +314,12 @@ async function enregistrerDesiderata() {
 function vueMarcheEntrepot(d, cur) {
   const lignes = [];
 
-  // --- Les autres entrepots de Republia ---
+  // --- Les autres entrepôts du même pays (filtrage serveur à la lecture) ---
   d.autres.forEach(function (row) {
     let etat; try { etat = JSON.parse(typeof row.data === 'string' ? row.data : JSON.stringify(row.data)); }
     catch (e) { return; }
     const ent = (etat && etat.entrepot) || {};
-    const stock = ent.stock || {}, pm = ent.prixManuel || {};
+    const stock = (typeof stockCivilDisponible === 'function' ? stockCivilDisponible(etat) : null) || ent.stock || {}, pm = ent.prixManuel || {};
     Object.keys(stock).forEach(function (cle) {
       if (!RESSOURCES_ECONOMIE[cle] || (stock[cle] || 0) <= 0) return;
       lignes.push({

@@ -41,3 +41,9 @@ test('cache des titulaires séparé par pays et réponse tardive ignorée',async
  c.window._titulairesPostes={directeur_entrepot_capitale:'Ancien'};c.window._titulairesPostesPays='republic';assert.equal(vm.runInContext("filtrerPnjPostesPourvus([{name:'Direction (PNJ)',job:'directeur_entrepot'}]).length",c),1);
  let resolve;c.sbListPersonnages=()=>new Promise(r=>resolve=r);const p=vm.runInContext('rafraichirTitulairesPostesElectifs()',c);c.state.country='republic';resolve([{name:'Tardif',country:'republic',poste:{id:'directeur_entrepot',city:'capitale'}}]);await p;assert.equal(c.window._titulairesPostes.directeur_entrepot_capitale,'Ancien');
 });
+
+test('réponse du tableau tardive après changement de pays : aucune donnée adoptable',async()=>{
+ const c=contexte();let finir;
+ Object.assign(c,{sbGetBatimentEtat:()=>new Promise(r=>finir=r),sbGetCaisseBatiment:async()=>({solde:0}),sbGet:async()=>[]});
+ const p=vm.runInContext('chargerTableauEntrepot()',c);c.state.country='republic';finir({entrepot:{stock:{bois:123}}});assert.equal(await p,null);
+});

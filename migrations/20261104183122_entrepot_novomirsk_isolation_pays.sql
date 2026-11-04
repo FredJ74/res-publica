@@ -2,6 +2,17 @@
 -- PRÉVOL RÉEL OBLIGATOIRE : outils/bancs/prevol-entrepot-novomirsk.sql.
 -- Non appliquée. Aucun stock, solde ou poste PJ existant n'est réécrit.
 -- Dépendances : livraisons terrestres 20261104173000/181000/183000 et socles #219/#379.
+-- Ne pas attribuer implicitement Républia à une ligne inconnue ajoutée depuis la capture.
+DO $origine$
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public'
+  AND table_name='entrepots_par_ville' AND column_name='pays') AND EXISTS(
+   SELECT 1 FROM public.entrepots_par_ville e WHERE (e.ville,e.building_id) NOT IN
+    (('capitale','entrepot-logistique-luthecia'),('ville_a','entrepot-logistique-psm'),
+     ('ville_b','entrepot-logistique-montrouge'),('zzville-a','entrepot-zztest-a'),('zzville-b','entrepot-zztest-b'))) THEN
+  RAISE EXCEPTION 'referentiel_legacy_a_identifier';
+ END IF;
+END $origine$;
 ALTER TABLE public.entrepots_par_ville ADD COLUMN IF NOT EXISTS pays text NOT NULL DEFAULT 'republic';
 ALTER TABLE public.entrepots_par_ville ALTER COLUMN pays DROP DEFAULT;
 DO $cle$
@@ -82,7 +93,13 @@ BEGIN
   ($fragment$public.trading_acheter(text,text,text,integer,text)$fragment$,$fragment$  v_caisse_ent := public.entrepot_caisse_id(p_entrepot);$fragment$,$fragment$  IF p_livraison IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.entrepots_par_ville ep
     WHERE ep.pays=m.country AND ep.pays||'_'||ep.ville||'_'||ep.building_id=p_livraison) THEN
     RETURN jsonb_build_object('ok',false,'raison','international_non_ouvert'); END IF;
-  v_caisse_ent := public.entrepot_caisse_id(p_entrepot);$fragment$)
+  v_caisse_ent := public.entrepot_caisse_id(p_entrepot);$fragment$),
+  ($fragment$public.fixer_prix_entrepot(text,text,jsonb)$fragment$,$fragment$IF v_val IS NULL OR v_val <= 0 OR NOT (v_val = v_val) THEN$fragment$,$fragment$IF v_val IS NULL OR v_val <= 0 OR v_val::text IN ('NaN','Infinity','-Infinity') THEN$fragment$),
+  ($fragment$public.offre_achat_servir(uuid,integer,text,text,text)$fragment$,$fragment$  IF o.acheteur_type = 'entrepot' AND public.entrepot_capacite_disponible(o.entrepot_id, o.ressource) < q THEN$fragment$,$fragment$  -- Même ordre de verrouillage que la commande directeur : capacité et stock restent cohérents.
+  PERFORM 1 FROM public.batiments_etat e
+   WHERE e.id=o.entrepot_id OR (p_source='entrepot' AND e.id=(SELECT entrepot_id FROM public.entrepot_du_directeur(v_moi)))
+   ORDER BY e.id FOR UPDATE;
+  IF o.acheteur_type = 'entrepot' AND public.entrepot_capacite_disponible(o.entrepot_id, o.ressource) < q THEN$fragment$)
  ) AS fragments(signature,ancien,nouveau) LOOP
   IF to_regprocedure(r.signature) IS NULL THEN RAISE EXCEPTION 'dependance_absente: %',r.signature; END IF;
   d:=pg_get_functiondef(to_regprocedure(r.signature));
@@ -214,3 +231,26 @@ END $versionnee$;
 REVOKE ALL ON FUNCTION public.trading_acheter(text,text,text,integer,text) FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.trading_acheter(uuid,text,text,text,integer,text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.trading_acheter(uuid,text,text,text,integer,text) TO authenticated,service_role;
+
+-- La fixation des prix coûtait 1 PA dans un appel séparé, avant de pouvoir être refusée.
+-- Même enveloppe transactionnelle que les achats, sans deuxième prélèvement côté écran.
+CREATE OR REPLACE FUNCTION public.fixer_prix_entrepot(p_requete uuid,p_acteur text,p_pays text,p_prix jsonb,p_pa integer DEFAULT 1,p_cost integer DEFAULT 0)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $prix$
+DECLARE prm jsonb;v jsonb;d text;
+BEGIN
+ PERFORM public.exiger_acteur(p_acteur);
+ prm:=jsonb_build_object('pays',p_pays,'prix',p_prix,'pa',p_pa,'cost',p_cost);
+ v:=public.achat_requete_ouvrir_interne(p_acteur,p_requete,'fixer_prix_entrepot',prm);
+ IF v IS NOT NULL THEN RETURN v;END IF;
+ BEGIN
+  v:=public.fixer_prix_entrepot(p_acteur,p_pays,p_prix);
+  IF NOT coalesce((v->>'ok')::boolean,false) THEN RAISE EXCEPTION 'prix_refuses' USING ERRCODE='HG001',DETAIL=v::text;END IF;
+  v:=v||jsonb_build_object('paiement',public.payer_ordre(p_acteur,'fixer_prix_achat_entrepot',p_pa,p_cost));
+  IF NOT coalesce((v->'paiement'->>'ok')::boolean,false) THEN RAISE EXCEPTION 'prix_paiement_refuse' USING ERRCODE='HG001',DETAIL=(v->'paiement')::text;END IF;
+ EXCEPTION WHEN SQLSTATE 'HG001' THEN GET STACKED DIAGNOSTICS d=PG_EXCEPTION_DETAIL;RETURN d::jsonb;
+ END;
+ RETURN public.achat_requete_clore_interne(p_acteur,p_requete,'fixer_prix_entrepot',prm,v);
+END $prix$;
+REVOKE ALL ON FUNCTION public.fixer_prix_entrepot(text,text,jsonb) FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.fixer_prix_entrepot(uuid,text,text,jsonb,integer,integer) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.fixer_prix_entrepot(uuid,text,text,jsonb,integer,integer) TO authenticated,service_role;

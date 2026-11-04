@@ -1,5 +1,6 @@
 -- Lecture seule, à exécuter par l'intégrateur technique avant toute application.
-BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;
+BEGIN;
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;
 SELECT version(), current_database();
 SELECT count(*) AS migrations, max(version) AS derniere_version FROM supabase_migrations.schema_migrations;
 SELECT version,name FROM supabase_migrations.schema_migrations
