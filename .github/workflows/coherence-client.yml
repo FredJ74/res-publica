@@ -80,6 +80,10 @@ jobs:
         run: node outils/bancs/banc-position-ville-serveur-f5.cjs
       - name: Rumeurs contre organisations secrètes — confidentialité
         run: node outils/bancs/banc-rumeur-organisations-secretes.cjs
+      - name: Chantier naval PSM — moteur transactionnel sur PostgreSQL jetable
+        run: python3 outils/bancs/banc-chantier-naval-local.py
+      - name: Chantier naval PSM — deux devis et garde serveur
+        run: node --test outils/bancs/test-chantier-naval.mjs
       - name: Bancs JavaScript, transports simulés
         run: python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs
       - name: Destinations du centre multimodal

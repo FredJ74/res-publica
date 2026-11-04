@@ -5443,7 +5443,9 @@ const BUILDINGS = {
         desc: "L'entree du chantier naval de Port-Sainte-Marie, entre coques en reparation et bateaux en cale.",
         imageUrl: "images/hall-chantier-naval-psm.webp",
         persons: [],
-        orders: []
+        orders: [
+          {fn:'consulter_devis_chantier_naval', label:'Consulter les devis des bateaux', pa:0, cost:0, type:'legal', icon:'ti-ship', successRate:100, desc:'Deux modèles et stocks réels de bois, métal et dérivés pétrochimiques. Consultation gratuite.'}
+        ]
       },
       bureau: {
         name: "Bureau",
@@ -5453,7 +5455,9 @@ const BUILDINGS = {
         persons: [
           {name:'Pierrick Le Roux (PNJ)', role:'PNJ - Chef d\'entreprise du Chantier Naval', rel:'neutral', job:'chef_entreprise', photoUrl:'images/bureau-chantier-naval-psm.webp', photoPos:'62% 22%'}
         ],
-        orders: []
+        orders: [
+          {fn:'consulter_devis_chantier_naval', label:'Consulter les devis des bateaux', pa:0, cost:0, type:'legal', icon:'ti-ship', successRate:100, desc:'Deux modèles et stocks réels de bois, métal et dérivés pétrochimiques. Consultation gratuite.'}
+        ]
       }
     }
   },

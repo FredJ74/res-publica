@@ -6510,6 +6510,15 @@ export default async function handler(req, res) {
       return r || { ok: false, raison: 'rpc_indisponible' };
     });
 
+    // Chantiers navals : après arrivée des marchandises aux entrepôts, avant le
+    // reste des travaux quotidiens. Une journée n'avance que si chaque matière
+    // nécessaire est réellement disponible ; le serveur verrouille et paye.
+    // Toute absence bloque sans perte de jour ni débit ; pas de rattrapage.
+    const chantiersNavals = await tacheQuotidienne('chantiers_navals', async function () {
+      const r = await sbRpc('chantier_naval_avancer_jour', {});
+      return r || {ok:false,raison:'rpc_indisponible'};
+    });
+
     // 11 quater. CELLULES DE RENSEIGNEMENT.
     //
     // Deux balayages serveur, tous deux idempotents (ils ne voient que ce qui est

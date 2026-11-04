@@ -46,7 +46,10 @@ def preparer(paquet=None):
  ajouts_petrochimie=[{'fn':'produire_derives_petrochimiques','pa':1,'cost':0}]
  if [x for x in source if x['fn'] in {t['fn'] for t in ajouts_petrochimie}] != ajouts_petrochimie:
   raise ValueError('Ordres petro-chimiques manquants, dupliques ou mal tarifes')
- source_historique=[x for x in source if x['fn'] not in ajouts_ssm+ajouts_manufactures and cle(x) not in {cle(t) for t in ajouts_terrains_psm} and x not in ajouts_petrochimie]
+ ajouts_naval=[{'fn':'consulter_devis_chantier_naval','pa':0,'cost':0}]
+ if [x for x in source if x['fn']=='consulter_devis_chantier_naval']!=ajouts_naval:
+  raise ValueError('Devis naval absent ou tarif anormal')
+ source_historique=[x for x in source if x['fn'] not in ajouts_ssm+ajouts_manufactures and cle(x) not in {cle(t) for t in ajouts_terrains_psm} and x not in ajouts_petrochimie+ajouts_naval]
  # Les deux virements bancaires sont désormais un sous-menu graphique (04/11) :
  # leurs anciens triplets sont maintenus dans la photographie d'origine,
  # et le menu gratuit 'virements' n'appartenait pas au plan 97.
@@ -69,7 +72,7 @@ def preparer(paquet=None):
  md5=hashlib.md5('\n'.join('%s|%d|%d'%t for t in ts).encode()).hexdigest()
  triplets_actuels=sorted(cmp.triples(source))
  md5_actuel=hashlib.md5('\n'.join('%s|%d|%d'%t for t in triplets_actuels).encode()).hexdigest()
- rapport={'production_executee':False,'execution_autorisee':False,'migrations':es,'nombre':97,'tarifs_source':{'lignes':len(ts),'md5':md5},'tarifs_ajoutes_apres_plan97':hors_coupe,'tarifs_ajoutes_manufactures':hors_coupe_manufactures,'tarifs_ajoutes_petrochimie':ajouts_petrochimie,'tarifs_actuels':{'lignes':len(triplets_actuels),'md5':md5_actuel},'ancien_plan_tarifaire_conforme_source':couts['apres']=={'lignes':len(ts),'md5':md5},'etapes':['valider paquet atomique et SHA indépendants','rendre et seeds depuis les exports ; comparer six racines, douze référentiels et locale','réconcilier le delta tarifaire complet ; régénérer le plan SQL et ses contrôles','95 : panne tardive + rollback, installation atomique, rejeu refusé sans mutation','recettes groupes/organisations puis #318 et #324 dans cet ordre, avec leurs gardes et reçus de registre','recette finale GoTrue/PostgREST : 27 cas, puis contre-épreuves et contrôles globaux'], 'limite':'Plan d’ordre et de provenance seulement ; aucun clone courant certifié ni migration exécutée.'}
+ rapport={'production_executee':False,'execution_autorisee':False,'migrations':es,'nombre':97,'tarifs_source':{'lignes':len(ts),'md5':md5},'tarifs_ajoutes_apres_plan97':hors_coupe,'tarifs_ajoutes_manufactures':hors_coupe_manufactures,'tarifs_ajoutes_petrochimie':ajouts_petrochimie,'tarifs_ajoutes_naval':ajouts_naval,'tarifs_actuels':{'lignes':len(triplets_actuels),'md5':md5_actuel},'ancien_plan_tarifaire_conforme_source':couts['apres']=={'lignes':len(ts),'md5':md5},'etapes':['valider paquet atomique et SHA indépendants','rendre et seeds depuis les exports ; comparer six racines, douze référentiels et locale','réconcilier le delta tarifaire complet ; régénérer le plan SQL et ses contrôles','95 : panne tardive + rollback, installation atomique, rejeu refusé sans mutation','recettes groupes/organisations puis #318 et #324 dans cet ordre, avec leurs gardes et reçus de registre','recette finale GoTrue/PostgREST : 27 cas, puis contre-épreuves et contrôles globaux'], 'limite':'Plan d’ordre et de provenance seulement ; aucun clone courant certifié ni migration exécutée.'}
  if paquet:
   editor=module('paquet_recette97','outils/livraison/export-sql-editor-219.py');paquet=Path(paquet).resolve()
   # Les sept octets originaux doivent être présents, pas une reconstruction manuelle.
