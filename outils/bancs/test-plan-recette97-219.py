@@ -32,7 +32,8 @@ class Plan(unittest.TestCase):
         self.assertEqual(result['tarifs_ajoutes_petrochimie'], [
             {'fn': 'produire_derives_petrochimiques', 'pa': 1, 'cost': 0}
         ])
-        self.assertEqual(result['tarifs_actuels']['lignes'], 465)
+        self.assertEqual(result['tarifs_ajoutes_naval'], [{'fn': 'consulter_devis_chantier_naval', 'pa': 0, 'cost': 0}])
+        self.assertEqual(result['tarifs_actuels']['lignes'], 466)
         self.assertEqual(len(result['tarifs_actuels']['md5']), 32)
         self.assertFalse(result['execution_autorisee'])
         self.assertTrue(result['ancien_plan_tarifaire_conforme_source'])
