@@ -28,10 +28,19 @@ def preparer(paquet=None):
  if hors_coupe!=[{'fn':'ssm_besoin_aide','pa':0,'cost':0},
                  {'fn':'ssm_demander_rendezvous','pa':0,'cost':0}]:
   raise ValueError('Ordres SSM non conformes ou absents du catalogue actuel')
- source_historique=[x for x in source if x['fn'] not in ajouts_ssm]
- # Ordre retire depuis (03/11/2026, GAME-DESIGN-ARMEE.md) : « Attribuer une mission » n'avait
- # jamais ete demande. Il faisait partie de la photographie historique : on l'y remet tel quel.
- retires=[{'fn':'assigner_mission','pa':1,'cost':0}]
+ # Le catalogue manufacturé gratuit remplace deux anciens boutons (04/11/2026).
+ # Ce nouveau point d'entrée n'existait pas lors du plan 97. Les deux anciens
+ # ordres restent dans la photographie d'origine, sans revenir à l'écran.
+ ajouts_manufactures=('consulter_catalogue_manufactures',)
+ hors_coupe_manufactures=[x for x in source if x['fn'] in ajouts_manufactures]
+ if hors_coupe_manufactures!=[{'fn':'consulter_catalogue_manufactures','pa':0,'cost':0}]:
+  raise ValueError('Catalogue manufacturé absent ou tarif inattendu')
+ source_historique=[x for x in source if x['fn'] not in ajouts_ssm+ajouts_manufactures]
+ # Ordres retirés depuis la coupe historique : restauration UNIQUEMENT pour
+ # vérifier son empreinte d'origine, jamais dans le catalogue de jeu courant.
+ retires=[{'fn':'assigner_mission','pa':1,'cost':0},
+          {'fn':'fabriquer_armoire_souvenirs','pa':3,'cost':0},
+          {'fn':'acheter_armoire_souvenirs','pa':0,'cost':0}]
  if any(x['fn']=='assigner_mission' for x in source):
   raise ValueError('assigner_mission ne doit plus figurer au catalogue actuel')
  source_historique=source_historique+retires
@@ -40,7 +49,7 @@ def preparer(paquet=None):
  md5=hashlib.md5('\n'.join('%s|%d|%d'%t for t in ts).encode()).hexdigest()
  triplets_actuels=sorted(cmp.triples(source))
  md5_actuel=hashlib.md5('\n'.join('%s|%d|%d'%t for t in triplets_actuels).encode()).hexdigest()
- rapport={'production_executee':False,'execution_autorisee':False,'migrations':es,'nombre':97,'tarifs_source':{'lignes':len(ts),'md5':md5},'tarifs_ajoutes_apres_plan97':hors_coupe,'tarifs_actuels':{'lignes':len(triplets_actuels),'md5':md5_actuel},'ancien_plan_tarifaire_conforme_source':couts['apres']=={'lignes':len(ts),'md5':md5},'etapes':['valider paquet atomique et SHA indépendants','rendre et seeds depuis les exports ; comparer six racines, douze référentiels et locale','réconcilier le delta tarifaire complet ; régénérer le plan SQL et ses contrôles','95 : panne tardive + rollback, installation atomique, rejeu refusé sans mutation','recettes groupes/organisations puis #318 et #324 dans cet ordre, avec leurs gardes et reçus de registre','recette finale GoTrue/PostgREST : 27 cas, puis contre-épreuves et contrôles globaux'], 'limite':'Plan d’ordre et de provenance seulement ; aucun clone courant certifié ni migration exécutée.'}
+ rapport={'production_executee':False,'execution_autorisee':False,'migrations':es,'nombre':97,'tarifs_source':{'lignes':len(ts),'md5':md5},'tarifs_ajoutes_apres_plan97':hors_coupe,'tarifs_ajoutes_manufactures':hors_coupe_manufactures,'tarifs_actuels':{'lignes':len(triplets_actuels),'md5':md5_actuel},'ancien_plan_tarifaire_conforme_source':couts['apres']=={'lignes':len(ts),'md5':md5},'etapes':['valider paquet atomique et SHA indépendants','rendre et seeds depuis les exports ; comparer six racines, douze référentiels et locale','réconcilier le delta tarifaire complet ; régénérer le plan SQL et ses contrôles','95 : panne tardive + rollback, installation atomique, rejeu refusé sans mutation','recettes groupes/organisations puis #318 et #324 dans cet ordre, avec leurs gardes et reçus de registre','recette finale GoTrue/PostgREST : 27 cas, puis contre-épreuves et contrôles globaux'], 'limite':'Plan d’ordre et de provenance seulement ; aucun clone courant certifié ni migration exécutée.'}
  if paquet:
   editor=module('paquet_recette97','outils/livraison/export-sql-editor-219.py');paquet=Path(paquet).resolve()
   # Les sept octets originaux doivent être présents, pas une reconstruction manuelle.
