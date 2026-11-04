@@ -55,3 +55,18 @@ Relevé sur la Librairie du Peuple (migration `20261104203000_novomirsk_librairi
   dessinés tant que la ville n'a pas son propre cadastre.
 - Plusieurs noms anciens du `buildingContext` de Novomirsk ne correspondent pas aux noms des
   zones de rue (ex. « Distribution Collective » pour le Marché) ; à harmoniser vue par vue.
+
+## Entrepôts : le pays dans la clé (04/11/2026, chantier socle demandé par Fred)
+
+Avant le V8, la table serveur `entrepots_par_ville` ne connaissait que la ville : « capitale »
+désignait Luthécia pour tous les pays, et un entrepôt copié à Novomirsk aurait lu et vendu le
+stock de Luthécia. Désormais (migration `20261104230000_entrepots_par_pays`) la clé est
+**pays + ville** ; les huit fonctions serveur qui lisent la table filtrent sur le pays, le
+directeur d'entrepôt est rattaché à l'entrepôt de son propre pays, l'embargo se juge depuis le
+pays de l'entrepôt qui commande, la vente du port est payée à la caisse de ce port.
+Pour raccorder l'entrepôt de Novomirsk, il suffit d'ajouter la ligne
+(`soviet`, `capitale`, `entrepot-logistique-novomirsk`) et l'entrée écran `ENTREPOT_PAR_PAYS_VILLE.soviet`.
+
+Restent hors de ce chantier (économie propre à Sovarka, à décider avec Fred) : l'approvisionnement
+de nuit (la passe de minuit ne nourrit que les entrepôts de Républia, avec ses usines et le port
+de PSM), un port de Sovarka, le directeur PNJ de l'entrepôt dans la cascade des postes.

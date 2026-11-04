@@ -1822,6 +1822,11 @@ const WORLD = {
         'palais-gouvernement': {
           name: 'Siège du Comité Central',
           desc: 'Le vrai pouvoir de Sovarka. Chaque décision est votée à l\'unanimité — le Parti ne connaît pas le désaccord.',
+          roomOverrides: {
+            hall: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novo_palais_hall.png'
+            }
+          },
           persons: []
         },
         'assemblee': {

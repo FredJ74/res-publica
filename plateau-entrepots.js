@@ -98,7 +98,8 @@ let _entrepotTableau = null;
 function entrepotIdCourant() {
   const b = (typeof getBuildingIdDirecteurEntrepot === 'function') ? getBuildingIdDirecteurEntrepot() : null;
   const ville = state.poste?.city;
-  return (b && ville) ? ('republic_' + ville + '_' + b) : null;
+  // Le pays fait partie de l'identifiant (04/11/2026) : 'capitale' existe dans chaque pays.
+  return (b && ville) ? ((state.country || 'republic') + '_' + ville + '_' + b) : null;
 }
 
 function fmtFR(n) {
@@ -121,14 +122,16 @@ async function chargerTableauEntrepot() {
     sbGet('entrepot_transits', 'destination_id=eq.' + encodeURIComponent(monId) + '&order=arrivee_le.asc').catch(() => []),
     sbGet('entrepot_journal', 'entrepot_id=eq.' + encodeURIComponent(monId) + '&order=horodatage.desc&limit=40').catch(() => []),
     sbRpc('fournisseurs_etrangers', {}).catch(() => []),
-    sbGet('batiments_etat', 'building_id=like.entrepot-logistique-*').catch(() => []),
-    sbGetBatimentEtat('republic', 'ville_a', 'port-sainte-marie').catch(() => null)
+    // Les entrepots du MEME pays seulement : le serveur refuse une commande a un entrepot etranger.
+    sbGet('batiments_etat', 'building_id=like.entrepot-logistique-*&country=eq.' + encodeURIComponent(state.country)).catch(() => []),
+    // Le port de PSM est le port de Republia ; les autres pays n'ont pas encore le leur.
+    state.country === 'republic' ? sbGetBatimentEtat('republic', 'ville_a', 'port-sainte-marie').catch(() => null) : Promise.resolve(null)
   ]);
 
   // Embargos en vigueur, lus une fois pour tout l'ecran.
   const embargos = {};
-  for (const pays of ['narco', 'soviet', 'khalija']) {
-    embargos[pays] = await sbRpc('embargo_actif', { p_pays_soi: 'republic', p_pays_cible: pays })
+  for (const pays of ['republic', 'narco', 'soviet', 'khalija'].filter(function (p) { return p !== state.country; })) {
+    embargos[pays] = await sbRpc('embargo_actif', { p_pays_soi: state.country, p_pays_cible: pays })
       .then(function (r) { return Array.isArray(r) ? r[0] === true : r === true; })
       .catch(function () { return false; });
   }
@@ -142,7 +145,7 @@ async function chargerTableauEntrepot() {
     transits: transits || [],
     journal: journal || [],
     etrangers: etrangers || [],
-    autres: (tousEntrepots || []).filter(function (r) { return r.id !== monId; }),
+    autres: (tousEntrepots || []).filter(function (r) { return r.id !== monId && r.country === state.country; }),
     port: (port && port.port) || null,
     embargos: embargos
   };
@@ -331,7 +334,7 @@ function vueMarcheEntrepot(d, cur) {
         dispo: stock[cle],
         prix: (pm[cle] != null) ? pm[cle] : RESSOURCES_ECONOMIE[cle].prixBase,
         fret: 0, delai: 'entrepots.delai.j1',
-        posteId: 'directeur_entrepot', posteVille: villeEntrepot(row.building_id), bloque: false
+        posteId: 'directeur_entrepot', posteVille: row.city || villeEntrepot(row.building_id), bloque: false
       });
     });
   });
