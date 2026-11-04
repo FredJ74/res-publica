@@ -3,7 +3,7 @@
 -- Lots 8 à 11 existants (aucun propriétaire au 04/11) : surfaces 1500, 1650, 2200, 3100.
 -- Nouveaux lots terrain-a-batir-psm-12 (4200 m²) et -13 (5500 m²), mêmes couches que le lot 8 :
 -- référentiel, état initial, pièces autorisées, entrée de rue (onglets de psm-terrains-vente),
--- ordres bloqués par un blocus (copiés du lot 8). Idempotente.
+-- ordres bloqués par un blocus (copiés du lot 8), tarifs déclarés. Idempotente.
 INSERT INTO public.terrains_referentiel(pays,ville,batiment,surface,prix_achat) VALUES
   ('republic','ville_a','terrain-a-batir-9',1650,19800),
   ('republic','ville_a','terrain-a-batir-10',2200,26400),
@@ -42,6 +42,11 @@ CROSS JOIN (VALUES ('terrain-a-batir-psm-12'),('terrain-a-batir-psm-13')) n(id)
 WHERE b.pays='republic' AND b.ville='ville_a' AND b.batiment='terrain-a-batir-8'
   AND NOT EXISTS (SELECT 1 FROM public.blocus_ordres_batiments x WHERE x.pays=b.pays AND x.ville=b.ville AND x.batiment=n.id AND x.fn=b.fn);
 
+-- Tarifs déclarés des nouveaux prix d'achat (payer_ordre refuse un triplet absent ; 26 400 existe déjà).
+INSERT INTO public.ordres_couts(fn,pa,cost)
+SELECT 'acheter_terrain',2,c FROM (VALUES (19800),(37200),(50400),(66000)) v(c)
+WHERE NOT EXISTS (SELECT 1 FROM public.ordres_couts o WHERE o.fn='acheter_terrain' AND o.pa=2 AND o.cost=v.c);
+
 DO $$
 DECLARE n8 int;
 BEGIN
@@ -50,6 +55,7 @@ BEGIN
      OR (SELECT count(*) FROM public.terrains_etat WHERE building_id IN ('terrain-a-batir-psm-12','terrain-a-batir-psm-13')) <> 2
      OR (SELECT count(*) FROM public.navigation_lieux_regles WHERE pays='republic' AND ville='ville_a' AND batiment LIKE 'terrain-a-batir-psm-%') <> 2
      OR (SELECT count(*) FROM public.rue_sorties_batiments WHERE country='republic' AND city='ville_a' AND noeud='psm-terrains-vente' AND building LIKE 'terrain-a-batir-%') <> 6
+     OR (SELECT count(*) FROM public.ordres_couts WHERE fn='acheter_terrain' AND pa=2 AND cost IN (19800,26400,37200,50400,66000)) <> 5
      OR (SELECT count(*) FROM public.blocus_ordres_batiments WHERE pays='republic' AND ville='ville_a' AND batiment LIKE 'terrain-a-batir-psm-%') <> 2*n8 THEN
     RAISE EXCEPTION 'psm_six_terrains_incomplet';
   END IF;

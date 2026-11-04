@@ -38,6 +38,11 @@ CROSS JOIN (VALUES ('terrain-a-batir-psm-12'),('terrain-a-batir-psm-13')) n(id)
 WHERE b.pays='republic' AND b.ville='ville_a' AND b.batiment='terrain-a-batir-8'
   AND NOT EXISTS (SELECT 1 FROM public.blocus_ordres_batiments x WHERE x.pays=b.pays AND x.ville=b.ville AND x.batiment=n.id AND x.fn=b.fn);
 
+-- Tarifs déclarés des nouveaux prix d'achat (payer_ordre refuse un triplet absent ; 26 400 existe déjà).
+INSERT INTO public.ordres_couts(fn,pa,cost)
+SELECT 'acheter_terrain',2,c FROM (VALUES (19800),(37200),(50400),(66000)) v(c)
+WHERE NOT EXISTS (SELECT 1 FROM public.ordres_couts o WHERE o.fn='acheter_terrain' AND o.pa=2 AND o.cost=v.c);
+
 DO $$
 DECLARE n8 int;
 BEGIN
@@ -46,11 +51,10 @@ BEGIN
      OR (SELECT count(*) FROM public.terrains_etat WHERE building_id IN ('terrain-a-batir-psm-12','terrain-a-batir-psm-13')) <> 2
      OR (SELECT count(*) FROM public.navigation_lieux_regles WHERE pays='republic' AND ville='ville_a' AND batiment LIKE 'terrain-a-batir-psm-%') <> 2
      OR (SELECT count(*) FROM public.rue_sorties_batiments WHERE country='republic' AND city='ville_a' AND noeud='psm-terrains-vente' AND building LIKE 'terrain-a-batir-%') <> 6
+     OR (SELECT count(*) FROM public.ordres_couts WHERE fn='acheter_terrain' AND pa=2 AND cost IN (19800,26400,37200,50400,66000)) <> 5
      OR (SELECT count(*) FROM public.blocus_ordres_batiments WHERE pays='republic' AND ville='ville_a' AND batiment LIKE 'terrain-a-batir-psm-%') <> 2*n8 THEN
     RAISE EXCEPTION 'psm_six_terrains_incomplet';
   END IF;
 END $$;
-DO $$ BEGIN
-  RAISE EXCEPTION 'BANC_VERT %', (SELECT string_agg(batiment||'='||surface||'/'||prix_achat, ' ' ORDER BY surface) FROM public.terrains_referentiel WHERE pays='republic' AND ville='ville_a');
-END $$;
+DO $$ BEGIN RAISE EXCEPTION 'BANC_VERT'; END $$;
 ROLLBACK;
