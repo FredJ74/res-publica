@@ -862,7 +862,9 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-6': {
       image: 'images/rue-ambassades-armurerie-novomirsk.webp',
       zones: [
-        { xPct: [0, 30],   yPct: [0, 72],  nom: 'Palais des Ambassades', type: 'a-venir' },
+        // Raccorde le 04/11/2026 (decision de Fred) : copie du Quartier des Ambassades de Luthecia,
+        // ordres « Bientot disponible » jusqu'au voyage entre empires.
+        { xPct: [0, 30],   yPct: [0, 72],  nom: 'Palais des Ambassades', type: 'batiment', buildingId: 'palais-ambassades-novomirsk' },
         { xPct: [79, 100], yPct: [14, 78], nom: 'Armurerie de Novomirsk', type: 'batiment', buildingId: 'armurerie' }
       ],
       liens: { arriere: 'novomirsk-vue-5', toutDroit: 'novomirsk-vue-7' },
@@ -873,9 +875,11 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-7': {
       image: 'images/rue-residences-eglise-novomirsk.webp',
       zones: [
-        { xPct: [0, 16],   yPct: [18, 74], nom: 'Pavillon des Ambassadeurs', type: 'a-venir' },
+        // Raccorde le 04/11/2026 (decisions de Fred) : appartements de luxe, trois suites, salle de reception, bar.
+        { xPct: [0, 16],   yPct: [18, 74], nom: 'Pavillon des Ambassadeurs', type: 'batiment', buildingId: 'pavillon-ambassadeurs-novomirsk' },
         { xPct: [33, 70],  yPct: [2, 74],  nom: 'Grande Église du Tractorisme', type: 'batiment', buildingId: 'kolkhoze-spirituel' },
-        { xPct: [85, 100], yPct: [18, 74], nom: 'Résidence impériale', type: 'a-venir' }
+        // Raccordee le 04/11/2026 (decisions de Fred) : logements de prestige louables.
+        { xPct: [85, 100], yPct: [18, 74], nom: 'Résidence impériale', type: 'batiment', buildingId: 'residence-imperiale-novomirsk' }
       ],
       liens: { arriere: 'novomirsk-vue-6', gauche: 'novomirsk-vue-18', droite: 'novomirsk-vue-8' },
       flechesStyle: { arriere: RC_FLECHE_BAS }

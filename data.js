@@ -16,7 +16,7 @@ const COUNTRIES = {
     bases:{INT:6,CHA:7,VOL:8,PER:8,DUP:8,ENT:5}
   },
   soviet: {
-    n:'Sovarka', col:'#cc4444', cur:'RP', icon:'ti-hammer',
+    n:'Sovarka', col:'#cc4444', cur:'PSK', icon:'ti-hammer',
     desc:'Parti unique en tension interne. Reformistes contre conservateurs.',
     tags:['Parti unique','Factions'],
     bases:{INT:8,CHA:6,VOL:9,PER:8,DUP:7,ENT:6}
@@ -1744,11 +1744,15 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
           desc: "Toutes les chambres sont identiques. Olga Soupe gère la cantine avec efficacité soviétique.",
+          // Pas de suites a Novomirsk (decision de Fred, 04/11/2026) : elles sont au Pavillon des
+          // Ambassadeurs (vue 7), qui en a trois.
+          roomsExclues: ['suite_privee', 'suite_presidentielle'],
+          roomOverrides: { accueil: { excludeOrders: ['choisir_suite'] } },
           persons: [{"name": "Olga Soupe (PNJ)", "role": "Cantinière", "rel": "neutral", "job": "serveur"}, {"name": "Boris Betterave (PNJ)", "role": "Cuisinier", "rel": "neutral", "job": "serveur"}, {"name": "Natasha Privilege (PNJ)", "role": "Réservée aux cadres du Parti", "rel": "neutral", "job": "escort"}]
         },
         'commissariat': {
@@ -6413,6 +6417,247 @@ const BUILDINGS = {
     }
   },
 
+  // Palais des Ambassades de Novomirsk (vue 6) : copie du Quartier des Ambassades de Luthecia
+  // (decision de Fred, 04/11/2026), batiment distinct pour ne pas heriter des portes et des
+  // controles d'acces de Luthecia, qui raisonnent sur les ambassades ouvertes EN REPUBLIA.
+  // Les ambassades relevent des liens entre empires : tous les ordres sont « Bientot disponible »
+  // (grises, aucun appel) jusqu'au voyage entre empires. Bureaux de Republia, d'Al-Khalija et
+  // d'El Estado ; ambassadeurs nommes par Fred. Images a venir.
+  'palais-ambassades-novomirsk': {
+    name: "Palais des Ambassades",
+    shortName: "Ambassades",
+    cat: "Diplomatie",
+    icon: "ti-flag",
+    bgColor: "#12100a",
+    desc: "Le quartier diplomatique de Novomirsk. Trois bureaux réservés aux ambassadeurs étrangers, sous la surveillance discrète mais constante du Parti.",
+    rooms: {
+      accueil_ambassades_novomirsk: {
+        name: "Accueil du Palais des Ambassades",
+        imageBg: "linear-gradient(135deg,#12100a,#1a1610)",
+        desc: "Le hall d'accueil du palais diplomatique. Trois bureaux d'ambassadeurs, un portrait officiel par mur, et un employé du Parti qui note les allées et venues.",
+        persons: [
+          {name:'Hôtesse d\'Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse'},
+          {name:'Agent de Sécurité (PNJ)', role:'PNJ - Sécurité', rel:'neutral', job:'agent_securite'}
+        ],
+        orders: [
+          {fn:'demander_audience_ambassadeur', label:'Demander audience à l\'ambassadeur', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:100, desc:'Solliciter une audience. La réponse arrive par courrier ; une audience accordée ouvre le bureau de l\'ambassadeur pendant 48 heures.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'demander_asile_politique', label:'Demander l\'asile politique', pa:2, cost:0, type:'legal', icon:'ti-shield-check', successRate:100, desc:'Déposer une demande d\'asile auprès d\'une ambassade. Réponse par courrier ; un réfugié ne peut pas être arrêté tant qu\'il reste au Palais des Ambassades.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'reserver_salle_reception', label:'Réserver la Salle de Réception', pa:1, cost:0, type:'legal', icon:'ti-calendar-event', successRate:100, desc:'Réserver la salle pour aujourd\'hui (réservé aux ambassadeurs en poste ici).', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+        ]
+      },
+      salle_reception: {
+        name: "Salle de Réception",
+        imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
+        desc: "Une salle commune aux trois ambassades, réservée aux réceptions diplomatiques organisées par les ambassadeurs.",
+        persons: [],
+        orders: []
+      },
+      bureau_republia_novomirsk: {
+        name: "Ambassade de Républia",
+        imageBg: "linear-gradient(135deg,#10141c,#161c26)",
+        desc: "Le bureau de l'ambassadeur de Républia. On n'y est reçu que sur audience, demandée à l'accueil.",
+        persons: [{name:'Hubert de La Courtoisie (PNJ)', role:"Ambassadeur de Républia", rel:'neutral', job:'ambassadeur'}],
+        orders: [
+          {fn:'relations_bilaterales', label:'Consulter les relations bilatérales', pa:0, cost:0, type:'legal', icon:'ti-file-analytics', successRate:100, desc:'État des relations avec Républia.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, desc:'Réserver la Salle de Réception commune.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'financer_oeuvre_culturelle', label:'Financer une œuvre culturelle', pa:1, cost:600, type:'legal', icon:'ti-palette', successRate:100, desc:'Soft power local.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'demander_transfert_detenu', label:'Demander le transfert d\'un détenu', pa:1, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+        ]
+      },
+      bureau_khalija_novomirsk: {
+        name: "Ambassade d'Al-Khalija",
+        imageBg: "linear-gradient(135deg,#1a160c,#241e10)",
+        desc: "Le bureau de l'ambassadeur d'Al-Khalija. On n'y est reçu que sur audience, demandée à l'accueil.",
+        persons: [{name:'Cheikh Rachid Al-Diplomi (PNJ)', role:"Ambassadeur d'Al-Khalija", rel:'neutral', job:'ambassadeur'}],
+        orders: [
+          {fn:'relations_bilaterales', label:'Consulter les relations bilatérales', pa:0, cost:0, type:'legal', icon:'ti-file-analytics', successRate:100, desc:'État des relations avec Al-Khalija.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, desc:'Réserver la Salle de Réception commune.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'financer_oeuvre_culturelle', label:'Financer une œuvre culturelle', pa:1, cost:600, type:'legal', icon:'ti-palette', successRate:100, desc:'Soft power local.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'demander_transfert_detenu', label:'Demander le transfert d\'un détenu', pa:1, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+        ]
+      },
+      bureau_estado_novomirsk: {
+        name: "Ambassade d'El Estado",
+        imageBg: "linear-gradient(135deg,#1a0e0c,#241410)",
+        desc: "Le bureau de l'ambassadeur d'El Estado. On n'y est reçu que sur audience, demandée à l'accueil.",
+        persons: [{name:'Don Esteban Cortesano (PNJ)', role:"Ambassadeur d'El Estado", rel:'neutral', job:'ambassadeur'}],
+        orders: [
+          {fn:'relations_bilaterales', label:'Consulter les relations bilatérales', pa:0, cost:0, type:'legal', icon:'ti-file-analytics', successRate:100, desc:'État des relations avec El Estado.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, desc:'Réserver la Salle de Réception commune.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'financer_oeuvre_culturelle', label:'Financer une œuvre culturelle', pa:1, cost:600, type:'legal', icon:'ti-palette', successRate:100, desc:'Soft power local.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'demander_transfert_detenu', label:'Demander le transfert d\'un détenu', pa:1, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+        ]
+      }
+    }
+  },
+  // Pavillon des Ambassadeurs de Novomirsk (vue 7) : appartements de luxe, pas specialement reserves
+  // aux ambassadeurs -- l'equivalent des suites de l'hotel Republica a Luthecia (decisions de Fred,
+  // 04/11/2026). Trois suites louables (Suite Privee et Suite Presidentielle reprises a l'identique,
+  // Suite du Parti +10 POP +6 INF +2 DIS), une grande salle de reception (copie de celle des
+  // ambassadeurs, sans ordre) et un bar (copie du Bar du Republica, commerce 'bar' propre au
+  // Pavillon). Maitre d'hotel et serveuse facon traiteur nommes par Fred. Images a venir.
+  // « Organiser une rencontre piege » n'est pas repris : aucune agence d'escorts a Novomirsk.
+  'pavillon-ambassadeurs-novomirsk': {
+    name: "Pavillon des Ambassadeurs",
+    shortName: "Pavillon",
+    cat: "Hôtellerie",
+    icon: "ti-crown",
+    bgColor: "#1a0d10",
+    desc: "Les appartements de luxe de la Place de la Grande Église. On y loge les ambassadeurs, les cadres du Parti et tous ceux qui peuvent payer pour en avoir l'air.",
+    rooms: {
+      hall_pavillon: {
+        name: "Hall du Pavillon",
+        imageBg: "linear-gradient(135deg,#1a0d10,#241218)",
+        desc: "Marbre rouge, lustres de cristal et tapis épais. Arkadi Discretov, le maître d'hôtel, accueille les résidents et ne retient jamais un visage — officiellement.",
+        persons: [
+          {name:'Arkadi Discretov (PNJ)', role:'Maître d\'hôtel', rel:'neutral', job:'hotesse'}
+        ],
+        orders: []
+      },
+      salle_reception: {
+        name: "Grande Salle de Réception",
+        imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
+        desc: "Une grande salle de réception sous verrière, où l'on donne les dîners officiels et les réceptions qui le sont moins.",
+        persons: [],
+        orders: []
+      },
+      bar: {
+        name: "Bar",
+        imageBg: "linear-gradient(135deg,#120d05,#1e1508)",
+        desc: "Le bar du Pavillon. Petits fours, vodka glacée et conversations à voix basse : Lena Glaçonova sert comme un traiteur de réception, et entend tout.",
+        persons: [
+          {name:'Lena Glaçonova (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur'}
+        ],
+        orders: [
+          {fn:'ecouter_rumeurs', label:'Écouter la serveuse', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:90, desc:'La serveuse entend tout. Révèle une rumeur vraie ou générée selon le contexte.', sourceOverride:'Lena'},
+          {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'},
+          {fn:'produire_commerce', label:'Préparer les consommations', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
+          {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 FR par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'},
+          {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
+        ]
+      },
+      suite_privee: {
+        name: "Suite Privée — Local à louer",
+        imageBg: "linear-gradient(135deg,#1a0d10,#250f18)",
+        desc: "📋 À LOUER — Suite luxueuse et très discrète. On y reçoit une clientèle triée sur le volet. Informations exclusives garanties.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 0, bonusINF: 8, bonusDIS: 10, label: 'Suite Privée', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite luxueuse et très discrète. +8 INF +10 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      suite_presidentielle: {
+        name: "Suite Présidentielle — Local à louer",
+        imageBg: "linear-gradient(135deg,#181008,#20140a)",
+        desc: "📋 À LOUER — Suite d'apparat, vue sur la Grande Église du Tractorisme. Le nec plus ultra pour recevoir en grande pompe.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 8, bonusINF: 8, bonusDIS: 2, label: 'Suite Présidentielle', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat. +8 POP +8 INF +2 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      suite_parti: {
+        name: "Suite du Parti — Local à louer",
+        imageBg: "linear-gradient(135deg,#200a0a,#2a1010)",
+        desc: "📋 À LOUER — Suite d'apparat aux tentures rouges, où l'on se montre. Le portrait du Secrétaire général veille sur chaque réception.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 10, bonusINF: 6, bonusDIS: 2, label: 'Suite du Parti', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat où l\'on se montre. +10 POP +6 INF +2 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      }
+    }
+  },
+  // Residence imperiale de Novomirsk (vue 7) : logements de prestige louables comme les suites du
+  // Pavillon (decisions de Fred, 04/11/2026) -- quatre appartements a 500/jour (+4 POP +4 INF +4 DIS)
+  // et un grand appartement a 1 200/jour (+15 POP +15 INF +5 DIS). Images a venir.
+  'residence-imperiale-novomirsk': {
+    name: "Résidence impériale",
+    shortName: "Résidence",
+    cat: "Logement",
+    icon: "ti-building-castle",
+    bgColor: "#16120c",
+    desc: "L'ancienne résidence de la cour impériale, nationalisée puis découpée en appartements de prestige. Le Parti y loge ceux qu'il veut récompenser, et ceux qui peuvent payer.",
+    rooms: {
+      hall_residence: {
+        name: "Hall de la Résidence",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "Un escalier d'honneur à double révolution, des aigles impériaux martelés et repeints en étoiles rouges. Le gardien note chaque visiteur dans un registre.",
+        persons: [
+          {name:'Gardien de la Résidence (PNJ)', role:'PNJ - Gardien', rel:'neutral', job:'gardien'}
+        ],
+        orders: []
+      },
+      appartement_1: {
+        name: "Appartement n°1 — Local à louer",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°1', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      appartement_2: {
+        name: "Appartement n°2 — Local à louer",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°2', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      appartement_3: {
+        name: "Appartement n°3 — Local à louer",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°3', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      appartement_4: {
+        name: "Appartement n°4 — Local à louer",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°4', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      grand_appartement: {
+        name: "Grand Appartement impérial — Local à louer",
+        imageBg: "linear-gradient(135deg,#1e1608,#2a1e0a)",
+        desc: "📋 À LOUER — Les anciens appartements de l'impératrice : enfilade de salons, dorures d'origine, balcon sur la Place de la Grande Église. Un seul locataire, très convoité.",
+        isLocationRoom: true,
+        locationData: { prix: 1200, bonusPOP: 15, bonusINF: 15, bonusDIS: 5, label: 'Grand Appartement impérial', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (1200 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Les anciens appartements de l\'impératrice. +15 POP +15 INF +5 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      }
+    }
+  },
   'qhs-prison': {
     name: "Quartier Haute Securite",
     shortName: "QHS",

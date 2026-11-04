@@ -16,11 +16,17 @@ Grand Hôtel ayant deux entrées), 17 marquées « à venir ».
 | 04/11/2026 | V1 Place du Peuple | Palais du Gouvernement | **Pas réellement raccordé** malgré sa zone cliquable (constat de Fred). Gros morceau : gardé pour la fin du tour. |
 | 04/11/2026 | V2 | Restaurant La Mère Volga | Copie du Capitaine Sauvage de PSM ; la carte sera retravaillée plus tard. Serveuse propre à Novomirsk : **Tatiana Bortchova** (nom choisi par Fred). |
 | 04/11/2026 | V2 | Musée municipal de Novomirsk | Copie du musée de PSM : panthéon de la ville (nouveau bâtiment `musee-novomirsk`). PNJ propres choisis par Fred : **Irina Guichetova** (accueil), **Docteur Lev Patrimonov** (conservateur), **Vétéran Ilia Médailline** (guide bénévole). Figures historiques des salles écrites par Claude, **à relire par Fred** (`plateau-musee-personnalites.js`) ; Salle des Plumes laissée aux joueurs. |
+| 04/11/2026 | V6 | Palais des Ambassades | Copie du Quartier des Ambassades de Luthécia (nouveau bâtiment `palais-ambassades-novomirsk`, pour ne pas hériter des contrôles d'accès propres aux ambassades ouvertes en Républia). Bureaux de Républia, d'Al-Khalija et d'El Estado ; ambassadeurs nommés par Fred : **Hubert de La Courtoisie**, **Cheikh Rachid Al-Diplomi**, **Don Esteban Cortesano**. Tous les ordres « Bientôt disponible » jusqu'au voyage entre empires. |
+| 04/11/2026 | V7 | Pavillon des Ambassadeurs | Appartements de luxe, pas spécialement réservés aux ambassadeurs : l'équivalent des suites de l'hôtel Républica (nouveau bâtiment `pavillon-ambassadeurs-novomirsk`). **Trois suites** louables à 500 FR/jour : Suite Privée (+8 INF +10 DIS) et Suite Présidentielle (+8 POP +8 INF +2 DIS) à l'identique, **Suite du Parti (+10 POP +6 INF +2 DIS)** ; une **grande salle de réception** (copie de celle des ambassadeurs, sans ordre) ; un **bar** (copie du Bar du Républica : commerce `bar`, boissons et snacks). PNJ nommés par Fred : **Arkadi Discretov** (maître d'hôtel), **Lena Glaçonova** (serveuse façon traiteur). « Organiser une rencontre piège » non repris (aucune agence d'escorts à Novomirsk). |
+| 04/11/2026 | V4/V5 | Grand Hôtel de Sovarka | **Plus de suites** (elles sont au Pavillon) : pièces `suite_privee` et `suite_presidentielle` exclues, ordre « Louer une suite » retiré. Lecture retenue de « n'aura que des chambres, pas de suites » : seules les suites sont retirées ; restaurant et bar de l'hôtel restent en place, à confirmer par Fred. |
+| 04/11/2026 | V7 | Résidence impériale | Logements de prestige louables comme les suites du Pavillon (nouveau bâtiment `residence-imperiale-novomirsk`) : **quatre appartements à 500/jour (+4 POP +4 INF +4 DIS)** et **un grand appartement à 1 200/jour (+15 POP +15 INF +5 DIS)**. Gardien anonyme. |
 
 **Méthode (Fred, 04/11/2026)** : d'abord l'interface intérieure de chaque bâtiment, avec ses
 différentes pièces ; Fred générera ensuite les images avec ChatGPT. En attendant, un bâtiment
 copié porte `imagesAVenir: true` dans son `buildingContext` : ses pièces s'affichent sur leur
 fond, sans emprunter les images de la ville d'origine.
+
+Monnaie (décision de Fred, 04/11/2026) : le **para sovarkien, sigle PSK** (le para était le centime du dinar yougoslave), à la place de l'ancien sigle « RP ». Pas de taux de change : mêmes chiffres que les FR. Les libellés de loyer de Novomirsk affichent « PSK ». La monnaie d'El Estado (« PS ») n'est pas encore validée.
 
 ## Couches à dupliquer pour un bâtiment existant du gabarit
 

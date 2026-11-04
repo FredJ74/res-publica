@@ -2559,7 +2559,7 @@ const TRANSPORT_CONFIG = {
 const EMPIRES_CONFIG = {
   republic: { name:'Républia', cur:'FR' },
   narco:    { name:'El Estado', cur:'PS' },
-  soviet:   { name:'Sovarka',   cur:'RP' },
+  soviet:   { name:'Sovarka',   cur:'PSK' },
   khalija:  { name:'Al-Khalija',cur:'DR' }
 };
 

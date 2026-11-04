@@ -5153,6 +5153,140 @@ export const SCENES_PNJ = {
       "Vétéran Ilia Médailline"
     ]
   },
+  "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"accueil_ambassades_novomirsk\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Palais des Ambassades",
+    "piece": "Accueil du Palais des Ambassades",
+    "personnes": [
+      "Hôtesse d'Accueil",
+      "Agent de Sécurité"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"salle_reception\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Palais des Ambassades",
+    "piece": "Salle de Réception",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"bureau_republia_novomirsk\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Palais des Ambassades",
+    "piece": "Ambassade de Républia",
+    "personnes": [
+      "Hubert de La Courtoisie"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"bureau_khalija_novomirsk\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Palais des Ambassades",
+    "piece": "Ambassade d'Al-Khalija",
+    "personnes": [
+      "Cheikh Rachid Al-Diplomi"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"bureau_estado_novomirsk\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Palais des Ambassades",
+    "piece": "Ambassade d'El Estado",
+    "personnes": [
+      "Don Esteban Cortesano"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"hall_pavillon\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Pavillon des Ambassadeurs",
+    "piece": "Hall du Pavillon",
+    "personnes": [
+      "Arkadi Discretov"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"salle_reception\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Pavillon des Ambassadeurs",
+    "piece": "Grande Salle de Réception",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"bar\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Pavillon des Ambassadeurs",
+    "piece": "Bar",
+    "personnes": [
+      "Lena Glaçonova"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"suite_privee\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Pavillon des Ambassadeurs",
+    "piece": "Suite Privée — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"suite_presidentielle\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Pavillon des Ambassadeurs",
+    "piece": "Suite Présidentielle — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"suite_parti\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Pavillon des Ambassadeurs",
+    "piece": "Suite du Parti — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"hall_residence\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Résidence impériale",
+    "piece": "Hall de la Résidence",
+    "personnes": [
+      "Gardien de la Résidence"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"appartement_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Résidence impériale",
+    "piece": "Appartement n°1 — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"appartement_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Résidence impériale",
+    "piece": "Appartement n°2 — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"appartement_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Résidence impériale",
+    "piece": "Appartement n°3 — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"appartement_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Résidence impériale",
+    "piece": "Appartement n°4 — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"grand_appartement\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Résidence impériale",
+    "piece": "Grand Appartement impérial — Local à louer",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
