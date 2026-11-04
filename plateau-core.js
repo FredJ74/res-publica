@@ -3087,6 +3087,46 @@ function signalerRefusCout(resultat) {
     console.warn('[cout] appel au serveur non abouti — action refusee, aucun prelevement.');
     return;
   }
+  // Refus de session ou panne PostgREST : ces deux causes peuvent apparaitre
+  // comme « Action impossible » lors de la publication des forums, alors que
+  // la commande n'est jamais partie ou que sa reponse a expire.
+  // Aucun repli client vers un INSERT direct : la publication reste transactionnelle.
+  if (r.raison === 'session_perdue' || r.transport?.etat === 'session_perdue') {
+    showToast('Session expirée',
+      'Votre connexion de joueur doit être rétablie avant de publier. Votre brouillon reste ouvert. Reconnectez-vous puis réessayez.',
+      false, true);
+    return;
+  }
+  if (r.transport && (r.transport.etat === 'reseau' || Number(r.transport.http) >= 500)) {
+    showToast('Serveur temporairement indisponible',
+      'La publication n’est pas confirmée. Conservez votre brouillon et réessayez lorsque le serveur répond. La même demande est protégée contre les doublons.',
+      false, true);
+    return;
+  }
+  if (r.raison === 'forum_inaccessible' || r.raison === 'territoire_invalide') {
+    showToast('Forum local non accessible',
+      'Le serveur ne vous situe pas dans la ville de ce forum. Vérifiez votre position et rouvrez le forum local.',
+      false);
+    return;
+  }
+  if (r.raison === 'forum_inconnu') {
+    showToast('Forum introuvable',
+      'Cette rubrique ne correspond plus à votre ville actuelle. Rouvrez le forum local de votre ville.',
+      false);
+    return;
+  }
+  if (r.raison === 'publication_vide' || r.raison === 'titre_vide') {
+    showToast('Publication incomplète',
+      'Le serveur n’a pas reçu de titre ou de texte exploitable. Vérifiez le contenu de votre brouillon avant de réessayer.',
+      false);
+    return;
+  }
+  if (r.raison === 'publication_refusee') {
+    showToast('Publication refusée',
+      'Le serveur a refusé l’enregistrement du sujet. Aucune publication n’est confirmée ; conservez votre brouillon.',
+      false);
+    return;
+  }
   // Raison absente/inconnue : on ne fabrique aucun chiffre.
   showToast('Action impossible', 'Cette action n\'a pas pu être effectuée.', false);
 }
