@@ -991,7 +991,12 @@ function enterRoom(buildingId, roomId, tabEl) {
     pieceImg.removeAttribute('data-ancrage');
   }
 
-  const imgUrl = enigme1Img || chantierImg || varianteImg || roomOverride?.imageUrl || empireRoomImg || room.imageUrl;
+  // Batiment copie d'une autre ville dont les images ne sont pas encore faites (Novomirsk,
+  // 04/11/2026, decision de Fred : l'interface d'abord, les images ensuite) : pas d'image
+  // empruntee a la ville d'origine, seulement le fond de la piece, tant qu'aucune image
+  // propre n'est declaree dans roomOverrides.
+  const imageEmpruntee = ctx?.imagesAVenir === true && !roomOverride?.imageUrl;
+  const imgUrl = imageEmpruntee ? null : (enigme1Img || chantierImg || varianteImg || roomOverride?.imageUrl || empireRoomImg || room.imageUrl);
   if (imgUrl) {
     pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {

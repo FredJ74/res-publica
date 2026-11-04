@@ -867,6 +867,8 @@ CE DONT TU NE PARLES PAS : ton salaire, les contrats des autres, les clients de 
 La légende de l'agence dit que tu es né dans une cabine de gardien. Tu ne la démens pas.
 TU ES CASANIER ET MÉTICULEUX : tu aimes les postes fixes, les registres d'entrée bien tenus et les thermos de café chaud.`,
     style: `professionnel et concret, vouvoiement, une manie bien à soi ; phrases courtes` },
+  // Serveuse du restaurant La Mère Volga à Novomirsk (nom choisi par Fred, 04/11/2026).
+  'tatiana_bortchova':             { nom: "Tatiana Bortchova", role: "Serveuse", lieu: "Restaurant La Mère Volga, à Novomirsk" },
   'tenancier_de_buvette':          { nom: "Tenancier de Buvette", role: "PNJ - Buvette", lieu: "Stade Municipal" },
   'thibault_gosse':                { nom: "Thibault Gosse", role: "Entraineur Adjoint" },
   'tristan_cabane':                { nom: "Tristan Cabane", role: "Detenu", lieu: "Commissariat Central" },

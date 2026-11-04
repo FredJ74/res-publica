@@ -5052,6 +5052,15 @@ export const SCENES_PNJ = {
       "Ouvrier typographe"
     ]
   },
+  "[\"soviet\",\"capitale\",\"capitaine-sauvage\",\"salle_principale\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Restaurant La Mère Volga",
+    "piece": "Salle Principale",
+    "personnes": [
+      "Tatiana Bortchova"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
