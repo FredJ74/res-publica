@@ -163,7 +163,7 @@ async function ouvrirTrading() {
   // logistique de la ville choisie, sans douane ; retrait à la Salle des ventes.
   let h = '<p class="cpj-note">Cours des matières dans les entrepôts. À distance, on ne peut qu\'acheter : ' +
     'la marchandise est livrée par voie terrestre, en caisse, à l\'entrepôt logistique de la ville que vous choisissez. ' +
-    'Elle y est disponible après la passe de minuit qui suit les 24 h de transport : Salle des ventes, « Réceptionner une caisse ». ' +
+    'Six livraisons par jour (0 h, 4 h, 8 h, 12 h, 16 h, 20 h) : une commande est livrée à la fin de la tranche suivante (commandée à 7 h, livrée à 12 h). Retrait à la Salle des ventes, « Réceptionner une caisse ». ' +
     'Chaque commande coûte 1 PA et elle est payée par la caisse de l\'organisation.</p>';
 
   if (!r.organisations.length) {
