@@ -5243,6 +5243,50 @@ export const SCENES_PNJ = {
     "piece": "Suite du Parti — Local à louer",
     "personnes": []
   },
+  "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"hall_residence\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Résidence impériale",
+    "piece": "Hall de la Résidence",
+    "personnes": [
+      "Gardien de la Résidence"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"appartement_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Résidence impériale",
+    "piece": "Appartement n°1 — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"appartement_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Résidence impériale",
+    "piece": "Appartement n°2 — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"appartement_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Résidence impériale",
+    "piece": "Appartement n°3 — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"appartement_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Résidence impériale",
+    "piece": "Appartement n°4 — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"grand_appartement\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Résidence impériale",
+    "piece": "Grand Appartement impérial — Local à louer",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",

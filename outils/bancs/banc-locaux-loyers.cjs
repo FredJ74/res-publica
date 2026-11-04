@@ -35,7 +35,7 @@ const sql = [lire('historique/migrations-appliquees/20261029184321_location_loca
   .concat(fs.readdirSync(path.join(racine, 'migrations')).filter(f => f.endsWith('.sql')).sort()
     .map(f => lire('migrations/' + f)).filter(t => t.includes('INSERT INTO public.locaux_loyers_referentiel'))).join('\n');
 const serveur = {}; const nonLouables = [];
-for (const m of sql.matchAll(/\('([a-z-]+)','([a-z_-]+)','([*a-z_]+)',(\d+),(\d+),(\d+),(\d+),'[^']*',(true|false)\)/g)) {
+for (const m of sql.matchAll(/\('([a-z-]+)','([a-z0-9_-]+)','([*a-z_]+)',(\d+),(\d+),(\d+),(\d+),'[^']*',(true|false)\)/g)) {
   if (m[8] === 'false') { nonLouables.push(m[1] + '|' + m[2] + '|' + m[3]); continue; }
   if (m[2] === 'box-portuaire') continue;
   serveur[m[1] + '|' + m[2] + '|' + m[3]] = [m[4], m[5], m[6], m[7]].join(',');

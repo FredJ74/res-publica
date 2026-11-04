@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','pavillon-ambassadeurs-novomirsk'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -6546,7 +6546,7 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 0, bonusINF: 8, bonusDIS: 10, label: 'Suite Privée', tier: 1 },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cette suite (500 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite luxueuse et très discrète. +8 INF +10 DIS à votre organisation.'},
+          {fn:'louer_local', label:'Louer cette suite (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite luxueuse et très discrète. +8 INF +10 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
@@ -6558,7 +6558,7 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 8, bonusINF: 8, bonusDIS: 2, label: 'Suite Présidentielle', tier: 1 },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cette suite (500 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat. +8 POP +8 INF +2 DIS à votre organisation.'},
+          {fn:'louer_local', label:'Louer cette suite (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat. +8 POP +8 INF +2 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
@@ -6570,7 +6570,89 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 10, bonusINF: 6, bonusDIS: 2, label: 'Suite du Parti', tier: 1 },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cette suite (500 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat où l\'on se montre. +10 POP +6 INF +2 DIS à votre organisation.'},
+          {fn:'louer_local', label:'Louer cette suite (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat où l\'on se montre. +10 POP +6 INF +2 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      }
+    }
+  },
+  // Residence imperiale de Novomirsk (vue 7) : logements de prestige louables comme les suites du
+  // Pavillon (decisions de Fred, 04/11/2026) -- quatre appartements a 500/jour (+4 POP +4 INF +4 DIS)
+  // et un grand appartement a 1 200/jour (+15 POP +15 INF +5 DIS). Images a venir.
+  'residence-imperiale-novomirsk': {
+    name: "Résidence impériale",
+    shortName: "Résidence",
+    cat: "Logement",
+    icon: "ti-building-castle",
+    bgColor: "#16120c",
+    desc: "L'ancienne résidence de la cour impériale, nationalisée puis découpée en appartements de prestige. Le Parti y loge ceux qu'il veut récompenser, et ceux qui peuvent payer.",
+    rooms: {
+      hall_residence: {
+        name: "Hall de la Résidence",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "Un escalier d'honneur à double révolution, des aigles impériaux martelés et repeints en étoiles rouges. Le gardien note chaque visiteur dans un registre.",
+        persons: [
+          {name:'Gardien de la Résidence (PNJ)', role:'PNJ - Gardien', rel:'neutral', job:'gardien'}
+        ],
+        orders: []
+      },
+      appartement_1: {
+        name: "Appartement n°1 — Local à louer",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°1', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      appartement_2: {
+        name: "Appartement n°2 — Local à louer",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°2', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      appartement_3: {
+        name: "Appartement n°3 — Local à louer",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°3', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      appartement_4: {
+        name: "Appartement n°4 — Local à louer",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°4', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (500 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      grand_appartement: {
+        name: "Grand Appartement impérial — Local à louer",
+        imageBg: "linear-gradient(135deg,#1e1608,#2a1e0a)",
+        desc: "📋 À LOUER — Les anciens appartements de l'impératrice : enfilade de salons, dorures d'origine, balcon sur la Place de la Grande Église. Un seul locataire, très convoité.",
+        isLocationRoom: true,
+        locationData: { prix: 1200, bonusPOP: 15, bonusINF: 15, bonusDIS: 5, label: 'Grand Appartement impérial', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (1200 RP/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Les anciens appartements de l\'impératrice. +15 POP +15 INF +5 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }
