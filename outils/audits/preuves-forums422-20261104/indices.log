@@ -1,0 +1,11 @@
+✔ indices Republia : aucun effet local ni écriture depuis le client (30.218319ms)
+✔ indices legacy : comportement hors Republia préservé et borné (10.391702ms)
+✔ contre-épreuve : ancien écrivain client effectivement détecté (3.760531ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 50.701229

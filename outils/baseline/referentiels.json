@@ -191,7 +191,7 @@
     "table_empreinte": "ordres_couts_empreinte",
     "fonction_reelle": "ordres_couts_empreinte_reelle",
     "fonction_reelle_en_base": true,
-    "data_js": "ff9d27096e7e8dbd",
+    "data_js": "b1f921f349ac2b6a",
     "_remesure_du_1er_novembre_2026_parcelles": "Audit PSM/Montrouge (Claude). La valeur posee ici (20e52d8f9bbe8e3f) etait deja perimee : le generateur rendait 08caa3915b4ffb03 sur main avant ce chantier. Apres lui : 346c0950a876de3d. Trois triples changent, tous de parcelles : (acheter_terrain,2,25200) apparait (lot 6 de Montrouge, 2 100 m2, decision de Fred) ; (acheter_terrain,2,3500) disparait (lots de PSM passes a 18 000 FR, decision de Fred) ; (corrompre_chantier,2,1500) disparait (plus aucune parcelle ne l affiche, empires non P2W). La migration 20261031234500 fait les memes trois changements en base. deposer_demande_permis et corrompre_fonctionnaire_permis restent declares (ORDRE_DEPOSER_PERMIS dans plateau-justice-economie.js ; gabarit des parcelles). Le generateur tourne desormais aussi par Node quand JavaScriptCore est absent. Puis 346c0950a876de3d -> e51340fd668f014e : (service_etage,0,50) apparait (hotels de province, decision de Fred du 01/11), ajoute en base par la meme migration.",
     "lignes": 439,
     "posee": "6de4a84c58ed9b2b",
@@ -211,7 +211,11 @@
     "_data_js_precedent_219": "e51340fd668f014e",
     "_data_js_precedent_335": "e4f22df47ad847b9",
     "_actualisation_335": "01/11/2026 (Claude, intégrateur #219) : main #335 déclare commerces_fonds_murs (0 PA, 0 FR) ; data.js passe de 460 à 461 triples (e4f22df47ad847b9 -> 0ffc6e1caad1f581). La migration de réconciliation 20261031185432 vise désormais 461 ; production relue le 01/11 vers 21 h 50 : 439 lignes, 870e48d44fcaeabd, sentinelle 6de4a84c58ed9b2b, état attendu par ses gardes.",
-    "_remesure_sources_20261103_ssm": "Générateur exécuté après intégration de main 3674d3c2 : 0ffc6e1caad1f581 -> ff9d27096e7e8dbd. Un seul ajout au seed généré : (ssm_demander_rendezvous,0,0), PR #390. Source locale uniquement ; reelle, posee et lignes de production conservées. Aucun relevé Supabase réalisé."
+    "_remesure_sources_20261103_ssm": "Générateur exécuté après intégration de main 3674d3c2 : 0ffc6e1caad1f581 -> ff9d27096e7e8dbd. Un seul ajout au seed généré : (ssm_demander_rendezvous,0,0), PR #390. Source locale uniquement ; reelle, posee et lignes de production conservées. Aucun relevé Supabase réalisé.",
+    "_source_422": {
+     "ancienne_empreinte_source": "ff9d27096e7e8dbd",
+     "methode": "Générateur réel --empreinte exécuté après main d2617483 ; reelle, posee et lignes de production inchangées. Seed monde neuf régénéré, pas un relevé de production."
+    }
    },
    "villes": {
     "generateur": "outils/generateurs/generer_villes.py",

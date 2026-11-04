@@ -1,0 +1,29 @@
+{
+  "main_integre": "d2617483",
+  "production_modifiee": false,
+  "limite": "Contrôles hors ligne et fixtures locales, pas une extraction du catalogue vivant. Prévol transmis par ChatGPT distinct des opérations exécutées ici.",
+  "fichiers_sha256": {
+    "acces.json": "366cdf9679c6184f0cc724e0b61a761bbcf428d779aa98980465b4c4835fdf09",
+    "chromium.log": "2beed3eeded4d48b48330263f455c17846a671b90520b6d0fafe35048c4e3564",
+    "clients.json": "75d994dc11c842517ab0ac662b2395531cf43a3af591d27889ac37b1e4c12895",
+    "contre-publication.json": "8392a2cec23b0beaab9bd548530e8f6498e5105dd1518ad6f0612a5ed4477edd",
+    "contre-rls.json": "6a845794b9b317bd5c52cd0ccfe1f58b2a51149723c3ecab93d2569f0b8ae91c",
+    "globaux.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb",
+    "indices.log": "70686bb4f0974797d046c42d75233af2aa21050807206ac7d9000f4bf08f17ff",
+    "sql16.json": "b566d5f931acd0a38c5c01418a2eab64fec01bfbb29415c1925b13a2b0e0d80b",
+    "sql17.json": "3eabcba6ac2735f15283c5fa2776b57b618b191244663e5cc339fdb4697b5d08",
+    "transversaux.log": "a3ecd64aee716e1f844b918cf15b1552c1bf71894e3a95c755a6ae8b4fdaee63"
+  },
+  "sources_sha256": {
+    "forum.js": "632a390b12b4405b11cb3685a960e9b7a94fd5dc78c8d8dfd9cd6ada97b8fc07",
+    "supabase.js": "6f751b173f162bc149c79214fdb68817eb32bef6e2d6831a59935315a6bed6b2",
+    "plateau-organisations-quetes.js": "c0a909632847984a55401bc0429c051eb91fd07be58142931848254cae333fc7",
+    "migrations/20261103222000_forums_territoires_et_adhesions.sql": "bbeb887e971e0bb7e4e3a9ea4e9dd898ef74d768e541d83d2d7e252a86e8201a",
+    "outils/baseline/verifier-autorite.py": "292eb0beebd47cc5cbd69a3fe36fe7befaca10d5e7809f7d3b851d90ffe6cb43",
+    "outils/baseline/fonctions.json": "216dd7bfca5d70dc1af57b9886ef641b49d09b42a7eca7fa635a46ca080f182f",
+    "outils/baseline/referentiels.json": "79ccc8b6531bfd40f6a819f1d60f99a0068ba58f6ec3127afb70d81e8a1d86aa",
+    "baseline/seeds/95_a-regenerer/ordres_couts.sql": "2bd1420dac818dd2a40fa411053a715a57f7a85f12570249a54362a6014a7a03",
+    "outils/bancs/banc-indices-autorite-422.cjs": "6900a9a720bb8a9d49d04825d086483b3d93bf04180d863d93c90b2e9ccc800c",
+    "outils/bancs/fixtures/indices-client-avant-404.txt": "16a3526c9edda9e1d2905a6b98f1cef0219460c743b3f456f63464b42a75e879"
+  }
+}
