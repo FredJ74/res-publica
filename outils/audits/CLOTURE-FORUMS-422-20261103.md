@@ -248,3 +248,15 @@ revendiqués. Les obstacles de canal ne sont pas un abandon : le lot exact est p
 pour l'intégrateur autorisé. La CI du prochain SHA doit être observée séparément.
 
 CI `5fda5c62` : quatre jobs verts ; cinquième arrêté sur la référence de chemin SQL football dans le workflow, restée à l’ancien horodatage. Chemin corrigé et commandes exactes (banc puis parser SQL) rejouées localement ; le prochain SHA doit être observé. Aucun résultat CI rouge présenté comme vert.
+
+## Suivi CI du paquet de collecte, après main #430
+
+`61b994ca` : quatre CI vertes, cohérence échoue dans les bancs JavaScript.
+Reproduction locale précise : `banc-prets-bancaires.js` simulait encore un PATCH
+`arg/liquide`, alors que #430 appelle le moteur financier serveur. Le test détecte
+maintenant la commande RPC **et** l'ancien PATCH (qui reste interdit), vérifie
+l'absence de débit avant revendication, le rejeu et le gel. Refus/panne du moteur
+ne doivent pas diminuer la dette ; le remboursement utilise le montant confirmé.
+**33/33 assertions ciblées ; contre-épreuve de l'ancien CRON `d2617483` : 9 échecs
+attendus sur33.** Aucun code du moteur, du CRON ou des règles financières modifié.
+Contrôleur complet relancé ; résultats finaux/CI à observer avant promotion.

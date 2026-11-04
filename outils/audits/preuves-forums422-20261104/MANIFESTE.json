@@ -41,5 +41,15 @@
       "collecte-postgresql17.log": "76a233df9f3c561c87f21a6084482539a3878fe44df3b8462e258b18acd3a4d8",
       "globaux-apres-main430.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb"
     }
+  },
+  "contrat_prets_430": {
+    "production_modifiee": false,
+    "tests": 33,
+    "contre_epreuve_echecs": 9,
+    "fichiers_sha256": {
+      "prets-contrat430.log": "4d6388af6bcadfa5f8427e4930b7aa72e9baa893fafa83c4963f12a5d578faf0",
+      "prets-contre-avant430.log": "2405f5e51a08fa4748d32e2de72563e249e571cb0d8f318606eaa3ca040efa28",
+      "clients-apres-main430.json": "c5571808211a9aff9a6b3f2effef201724d26afc170ef786c37956e60cd909d4"
+    }
   }
 }
