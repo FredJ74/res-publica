@@ -1144,7 +1144,7 @@ function trouverNoeudRueCentralePourBatiment(pays, buildingId) {
 
 async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
   const contexte=contexteNavigationRue(),lecture=++rueCentraleLecturePosition;
-  if (rueCentraleServeur(pays, state.currentCity)) {
+  if ((typeof rueCentraleServeur === 'function' ? rueCentraleServeur(pays, state.currentCity) : pays === 'republic')) {
     // Une reconnexion ne reprend jamais une position provenant du localStorage.
     // Le cache ne sert qu'a choisir l'orientation de la scene, pas le lieu.
     if (typeof sbRpc !== 'function') return;
@@ -1212,7 +1212,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   if (!positionDejaConfirmee && typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[noeudId];
   if (!noeud) return;
-  if (rueCentraleServeur(pays, state.currentCity) && !positionDejaConfirmee) {
+  if ((typeof rueCentraleServeur === 'function' ? rueCentraleServeur(pays, state.currentCity) : pays === 'republic') && !positionDejaConfirmee) {
     if (typeof sbRpc !== 'function') return;
     if(rueCentraleDeplacementEnCours&&contexteNavigationRueValide(rueCentraleDeplacementEnCours))return;
     rueCentraleDeplacementEnCours=contexte;
