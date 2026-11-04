@@ -2041,19 +2041,20 @@ async function preleverPretsBancairesServeur() {
       const aPayer = Math.min(pret.mensualite, pret.montant_restant);
 
       if ((emprunteur.arg || 0) >= aPayer) {
-        const nouveauRestant = pret.montant_restant - aPayer;
         // arg ET liquide. arg est le capital affiche, liquide la part reellement depensable
         // (debiterFondsOrdinaires, plateau-core.js, ne sait puiser que dans liquide + compte
         // national). Debiter arg seul laissait liquide > arg : le joueur remboursait a l'ecran
         // sans jamais perdre un centime de pouvoir d'achat.
-        await sbUpdate('personnages', `name=eq.${encodeURIComponent(pret.emprunteur)}`, {
-          arg: emprunteur.arg - aPayer,
-          liquide: Math.max(0, (emprunteur.liquide || 0) - aPayer)
-        });
+        // 04/11/2026 : le serveur preleve liquide puis compte national (arg est un total calcule,
+        // 20261104013000_argent_arg_derive) ; seul ce qui a ete reellement pris rembourse.
+        const deb = await sbRpc('argent_mouvement_serveur',
+          { p_nom: pret.emprunteur, p_montant: aPayer, p_sens: 'debit' }, HEADERS_SERVICE);
+        if (!deb || !deb.ok) { resultats.echecs_prelevement = (resultats.echecs_prelevement || 0) + 1; continue; }
+        const nouveauRestantReel = pret.montant_restant - (Number(deb.applique) || 0);
         await sbUpdatePret(pret.id, {
-          montant_restant: nouveauRestant,
+          montant_restant: nouveauRestantReel,
           jours_impayes: 0,
-          statut: nouveauRestant <= 0 ? 'remboursé' : 'en_cours'
+          statut: nouveauRestantReel <= 0 ? 'remboursé' : 'en_cours'
         });
         resultats.preleves++;
       } else {
@@ -2104,9 +2105,9 @@ async function preleverPretsBancairesServeur() {
         } else {
           if (nouveauxJoursImpayes >= 1 && nouveauxJoursImpayes <= 3) {
             const fraisRappel = Math.round(pret.mensualite * 0.15);
+            await sbRpc('argent_mouvement_serveur',
+              { p_nom: pret.emprunteur, p_montant: fraisRappel, p_sens: 'debit' }, HEADERS_SERVICE);
             await sbUpdate('personnages', `name=eq.${encodeURIComponent(pret.emprunteur)}`, {
-              arg: Math.max(0, (emprunteur.arg || 0) - fraisRappel),
-              liquide: Math.max(0, (emprunteur.liquide || 0) - fraisRappel),
               moral: Math.max(0, (emprunteur.moral || 75) - 10)
             });
             await sbUpdatePret(pret.id, { montant_restant: pret.montant_restant + fraisRappel });
@@ -4800,8 +4801,11 @@ async function traiterLicencesSportivesSaison() {
         resultats.nonRenouvellements++;
       } else {
         const club = CLUBS_SPORTIFS_SERVEUR.find(c => c.id === lic.clubId);
-        if ((perso.arg || 0) >= LICENCE_SPORTIVE_MONTANT) {
-          patch.arg = (perso.arg || 0) - LICENCE_SPORTIVE_MONTANT;
+        const debLicence = (perso.arg || 0) >= LICENCE_SPORTIVE_MONTANT
+          ? await sbRpc('argent_mouvement_serveur',
+              { p_nom: perso.name, p_montant: LICENCE_SPORTIVE_MONTANT, p_sens: 'debit' }, HEADERS_SERVICE)
+          : null;
+        if (debLicence && debLicence.ok && Number(debLicence.applique) >= LICENCE_SPORTIVE_MONTANT) {
           patch.licence_sportive = { ...lic, statut: 'active', derniereSaisonTraitee: saisonActuelle.numero };
           journalTexte = 'Votre licence sportive au ' + (club?.nom || 'club') + ' a été renouvelée pour la nouvelle saison. ' + LICENCE_SPORTIVE_MONTANT + ' FR ont été prélevés.';
           resultats.renouvellements++;
@@ -5390,7 +5394,10 @@ async function resoudreInvestissementsExpires() {
     const demRows = await sbGet('personnages', `name=eq.${encodeURIComponent(inv.joueur)}`);
     const demandeur = demRows && demRows[0];
     if (demandeur) {
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(inv.joueur)}`, { arg: (demandeur.arg || 0) + montantFinal });
+      // 04/11/2026 : verse sur le compte national (arg seul n'etait depensable nulle part).
+      const cred = await sbRpc('argent_mouvement_serveur',
+        { p_nom: inv.joueur, p_montant: montantFinal, p_sens: 'credit' }, HEADERS_SERVICE);
+      if (!cred || !cred.ok) continue;  // investissement laisse en cours, repris la nuit suivante
     }
     await sbUpdate('investissements', `id=eq.${encodeURIComponent(inv.id)}`, {
       statut: 'resolu',
