@@ -815,7 +815,8 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [
         // Raccorde le 04/11/2026 (decision de Fred) : copie du Capitaine Sauvage de PSM.
         { xPct: [0, 23],   yPct: [22, 70], nom: 'Restaurant La Mère Volga', type: 'batiment', buildingId: 'capitaine-sauvage' },
-        { xPct: [76, 100], yPct: [0, 74],  nom: 'Musée municipal de Novomirsk', type: 'a-venir' }
+        // Raccorde le 04/11/2026 (decision de Fred) : copie du musee de PSM (pantheon de la ville).
+        { xPct: [76, 100], yPct: [0, 74],  nom: 'Musée municipal de Novomirsk', type: 'batiment', buildingId: 'musee-novomirsk' }
       ],
       liens: { toutDroit: 'novomirsk-vue-1', arriere: 'novomirsk-vue-3' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }

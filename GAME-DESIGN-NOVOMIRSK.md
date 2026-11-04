@@ -15,6 +15,7 @@ Grand Hôtel ayant deux entrées), 17 marquées « à venir ».
 | 04/11/2026 | V1 Place du Peuple | Librairie du Peuple | Copie de l'Imprimerie-Librairie Gutenberg de Port-Sainte-Marie (tracts électoraux à l'accueil ; tracts calomnieux et vente de bois à l'atelier). Libraire propre à Novomirsk : **Ludmila Pamphletova** (nom choisi par Fred). L'ouvrier typographe reste anonyme, comme à PSM. |
 | 04/11/2026 | V1 Place du Peuple | Palais du Gouvernement | **Pas réellement raccordé** malgré sa zone cliquable (constat de Fred). Gros morceau : gardé pour la fin du tour. |
 | 04/11/2026 | V2 | Restaurant La Mère Volga | Copie du Capitaine Sauvage de PSM ; la carte sera retravaillée plus tard. Serveuse propre à Novomirsk : **Tatiana Bortchova** (nom choisi par Fred). |
+| 04/11/2026 | V2 | Musée municipal de Novomirsk | Copie du musée de PSM : panthéon de la ville (nouveau bâtiment `musee-novomirsk`). PNJ propres choisis par Fred : **Irina Guichetova** (accueil), **Docteur Lev Patrimonov** (conservateur), **Vétéran Ilia Médailline** (guide bénévole). Figures historiques des salles écrites par Claude, **à relire par Fred** (`plateau-musee-personnalites.js`) ; Salle des Plumes laissée aux joueurs. |
 
 **Méthode (Fred, 04/11/2026)** : d'abord l'interface intérieure de chaque bâtiment, avec ses
 différentes pièces ; Fred générera ensuite les images avec ChatGPT. En attendant, un bâtiment

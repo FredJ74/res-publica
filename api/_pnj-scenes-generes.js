@@ -5061,6 +5061,98 @@ export const SCENES_PNJ = {
       "Tatiana Bortchova"
     ]
   },
+  "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"hall\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée municipal de Novomirsk",
+    "piece": "Hall d'accueil",
+    "personnes": [
+      "Irina Guichetova",
+      "Docteur Lev Patrimonov",
+      "Vétéran Ilia Médailline"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_criminels\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée municipal de Novomirsk",
+    "piece": "Salle des Grands Criminels Novomirskois",
+    "personnes": [
+      "Vétéran Ilia Médailline"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_maires\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée municipal de Novomirsk",
+    "piece": "Salle des Présidents du Soviet municipal",
+    "personnes": [
+      "Vétéran Ilia Médailline"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_personnalites\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée municipal de Novomirsk",
+    "piece": "Salle des Héros du Peuple",
+    "personnes": [
+      "Vétéran Ilia Médailline"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_entrepreneurs\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée municipal de Novomirsk",
+    "piece": "Salle des Grands Bâtisseurs de la Production",
+    "personnes": [
+      "Vétéran Ilia Médailline"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_organisations\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée municipal de Novomirsk",
+    "piece": "Salle des Organisations Novomirskoises",
+    "personnes": [
+      "Vétéran Ilia Médailline"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_plumes\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée municipal de Novomirsk",
+    "piece": "Salle des Plumes Novomirskoises",
+    "personnes": [
+      "Vétéran Ilia Médailline"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_honneur_militaire\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée municipal de Novomirsk",
+    "piece": "Salle d'Honneur Militaire",
+    "personnes": [
+      "Vétéran Ilia Médailline"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_unions\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée municipal de Novomirsk",
+    "piece": "Salle des Unions Célèbres",
+    "personnes": [
+      "Vétéran Ilia Médailline"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_scandales\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée municipal de Novomirsk",
+    "piece": "Salle des Scandales et Affaires",
+    "personnes": [
+      "Vétéran Ilia Médailline"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
