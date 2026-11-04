@@ -113,3 +113,4 @@ BEGIN
   v := v || ' | republic_en_dur=' || (SELECT count(*) FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname IN ('entrepot_du_directeur','entrepot_commander') AND prosrc ~ '''republic');
   RAISE EXCEPTION 'BANC %', v;
 END $b$;
+ROLLBACK;
