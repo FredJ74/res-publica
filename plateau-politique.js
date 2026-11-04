@@ -7563,62 +7563,9 @@ function confirmerNationalisation(idx) {
   addExternalEvent('NATIONALISATION : ' + e.nom + ' placee sous controle de l\'Etat par decret presidentiel.');
 }
 
-// SANS AUCUN APPELANT DEPUIS LE 9 OCTOBRE 2026, ET CONSERVEE EXPRES.
-//
-// Son unique appelant etait la branche `redressement_fiscal` de executerOrdreContact, alignee ce
-// jour-la sur le chemin arbitre -- qui REFUSE le prelevement sur la fortune d'un particulier,
-// l'arbitrage restant a rendre. Elle ne vit donc plus aucun chemin du jeu.
-//
-// POURQUOI ELLE RESTE. Elle porte le resultat d'une analyse qu'il serait couteux de refaire :
-// c'est le seul precedent ecrit d'une mutation cross-joueur lue sous verdict (sbGetVerdict pour
-// le solde, sbEcrireSoldePersonnage pour l'ecriture conditionnelle), et deux autres endroits du
-// depot la citent comme reference. Si l'arbitrage autorise un jour la ponction d'un particulier,
-// elle dit deja ce qu'il faut verifier -- mais la bonne forme sera alors une RPC, comme pour les
-// clubs, les entreprises et les organisations, et non une ecriture cliente.
-//
-// NE PAS LA REBRANCHER SANS CET ARBITRAGE : la vue `personnages` masque `arg` d'un tiers et son
-// declencheur INSTEAD OF refuse l'ecriture, donc elle rend toujours 0 pour une cible distante.
-async function debiterCitoyenPlafonne(nomCible, montantVise) {
-  if (nomCible === state.char?.name) {
-    const preleve = Math.min(state.arg || 0, montantVise);
-    state.arg -= preleve;
-    updateUI();
-    return preleve;
-  }
-  // UN PRELEVEMENT NON ECRIT NE DOIT PLUS ETRE ANNONCE (chantier 5, 9 octobre 2026).
-  //
-  // Cette fonction rend le montant preleve, et TOUS ses appelants le reversent ailleurs -- au
-  // Tresor, a une caisse. L'ecriture etait avalee par `.catch(() => {})` et le montant rendu
-  // quand meme : quand elle echouait, l'argent etait credite d'un cote sans etre debite de
-  // l'autre. De l'argent CREE a partir de rien, en silence.
-  //
-  // Et la lecture `.catch(() => [])` puis `?? 0` avait son propre defaut : une panne faisait
-  // lire un solde de zero, donc prelever zero, et le prelevement comptait comme applique.
-  //
-  // Les deux sont fermes en rendant 0 -- rien preleve, donc rien a reverser -- des que
-  // l'operation n'est pas PROUVEE. sbEcrireSoldePersonnage ecrit sous condition du solde lu :
-  // si une autre ecriture est passee entre-temps, zero ligne touchee, et on le sait.
-  if (typeof sbGetVerdict !== 'function' || typeof sbEcrireSoldePersonnage !== 'function') return 0;
-  const v = await sbGetVerdict('personnages', `name=eq.${encodeURIComponent(nomCible)}&select=arg`)
-    .catch(() => ({ ok: false, raison: 'reseau_indisponible' }));
-  if (!v.ok) {
-    console.error('debiterCitoyenPlafonne : solde de ' + nomCible + ' illisible (' + v.raison
-                  + ') -- aucun prelevement');
-    return 0;
-  }
-  const rows = v.donnees;
-  if (!Array.isArray(rows) || rows.length === 0) return 0;   // personnage absent : rien a prelever
-  const argActuel = rows[0].arg ?? 0;
-  const preleve = Math.min(argActuel, montantVise);
-  if (preleve <= 0) return 0;
-  const w = await sbEcrireSoldePersonnage(nomCible, argActuel, argActuel - preleve);
-  if (!w.ok) {
-    console.error('debiterCitoyenPlafonne : prelevement de ' + preleve + ' sur ' + nomCible
-                  + ' non ecrit (' + w.raison + ') -- rien n\'est reverse');
-    return 0;
-  }
-  return preleve;
-}
+// debiterCitoyenPlafonne RETIREE (04/11/2026) : sans appelant depuis le 9 octobre, elle ecrivait le
+// solde d'un tiers depuis le navigateur. Si un prelevement sur la fortune d'un particulier est un
+// jour arbitre, il se fera dans une fonction serveur (argent_debiter_interne), jamais ici.
 
 // =====================
 // CIBLAGE FISCAL ÉTENDU — citoyens, clubs sportifs, entreprises, organisations
@@ -7694,91 +7641,9 @@ async function ouvrirCiblageFiscalType(action, typeCible, titre) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-// Lit le solde actuel d'une cible, quel que soit son type
-// UNE PANNE DE LECTURE N'EST PAS UN SOLDE DE ZERO (chantier 5, 7 octobre 2026).
-//
-// Cette fonction rendait `0` pour les quatre types de cible des que la lecture echouait :
-// `.catch(() => [])` puis `rows?.[0]?.arg ?? 0` pour un citoyen, `.catch(() => null)` puis
-// `e?.caisse || 0` pour une entreprise. Son unique appelante est ajusterSoldeCibleFiscale, qui
-// calcule `montantReel = -Math.min(soldeActuel, -delta)` : un solde lu a zero par erreur fait
-// donc prelever ZERO lors d'un redressement fiscal, et le redressement est compte comme
-// applique. L'inverse d'un prelevement excessif, mais une fausse ecriture quand meme.
-//
-// Rend desormais `null` quand elle n'a pas pu lire, et l'appelante renonce. Les cibles lues en
-// memoire (le joueur lui-meme, une organisation deja chargee) ne peuvent pas echouer et gardent
-// leur chiffre.
-async function getSoldeCibleFiscale(typeCible, idCible) {
-  const pays = state.country || 'republic';
-  if (typeCible === 'citoyen') {
-    if (idCible === state.char?.name) return state.arg || 0;
-    const v = await sbGetVerdict('personnages', `name=eq.${encodeURIComponent(idCible)}&select=arg`)
-      .catch(() => ({ ok: false, raison: 'reseau_indisponible' }));
-    if (!v.ok) { console.error('getSoldeCibleFiscale: ' + idCible + ' illisible (' + v.raison + ')'); return null; }
-    // Vide REEL : ce personnage n'existe pas. Zero est alors la bonne reponse.
-    return v.donnees?.[0]?.arg ?? 0;
-  }
-  if (typeCible === 'club_sportif') { const b = await chargerBudgetClub(idCible); return b?.caisse || 0; }
-  // Lecture PURE (chantier C, phase 3) : consulter le solde d'une cible fiscale ne doit pas
-  // creer l'entreprise au passage -- c'est desormais le role de entreprise_assurer_existence,
-  // appele depuis le commerce lui-meme.
-  if (typeCible === 'entreprise') {
-    const v = await sbGetVerdict('entreprises', `id=eq.${encodeURIComponent(idCible)}`)
-      .catch(() => ({ ok: false, raison: 'reseau_indisponible' }));
-    if (!v.ok) { console.error('getSoldeCibleFiscale: entreprise ' + idCible + ' illisible (' + v.raison + ')'); return null; }
-    // `caisse` vit DANS le blob `data` de la ligne, pas en colonne -- c'est ce que rend
-    // sbGetEntreprise, et s'en ecarter aurait lu undefined donc zero sur toutes les entreprises.
-    const ligne = Array.isArray(v.donnees) ? v.donnees[0] : null;
-    return ligne ? ((ligne.data && ligne.data.caisse) || 0) : 0;   // absente en base = zero, et c'est juste
-  }
-  if (typeCible === 'organisation') { const o = (state.organisations || []).find(x => x.id === idCible); return o?.caisse || 0; }
-  return 0;
-}
-
-// Ajuste le solde d'une cible (delta positif ou negatif), quel que soit son type. Retourne le montant reel applique.
-async function ajusterSoldeCibleFiscale(typeCible, idCible, delta) {
-  const pays = state.country || 'republic';
-  const soldeActuel = await getSoldeCibleFiscale(typeCible, idCible);
-  // Solde illisible : on ne prelevé rien et on le dit. Prelever sur un solde suppose a zero
-  // compterait le redressement comme applique sans qu'un centime ait bouge.
-  if (soldeActuel === null) return null;
-  const montantReel = delta >= 0 ? delta : -Math.min(soldeActuel, -delta);
-
-  if (typeCible === 'citoyen') {
-    if (idCible === state.char?.name) { state.arg = (state.arg||0) + montantReel; updateUI(); }
-    else {
-      // MEME DEFAUT QUE debiterCitoyenPlafonne, ET MEME CONSEQUENCE (chantier 5, 9 octobre
-      // 2026). La lecture avait deja ete corrigee le 7 octobre -- getSoldeCibleFiscale rend
-      // `null` et l'appelante renonce -- mais l'ECRITURE restait avalee, et la fonction rendait
-      // `montantReel` quand meme. L'appelant reversait donc au Tresor un redressement qui
-      // n'avait pas eu lieu. Corriger la lecture sans corriger l'ecriture ne fermait que la
-      // moitie du chemin.
-      const w = await sbEcrireSoldePersonnage(idCible, soldeActuel, soldeActuel + montantReel);
-      if (!w.ok) {
-        console.error('ajusterSoldeCibleFiscale : ' + idCible + ' non ajuste de ' + montantReel
-                      + ' (' + w.raison + ') -- rien n\'est reverse');
-        return null;
-      }
-    }
-  } else if (typeCible === 'club_sportif' || typeCible === 'organisation') {
-    // Plus aucune ecriture de caisse collective par l'ecran (#295) : subvention_collective_verser
-    // et redressement_fiscal_appliquer sont les seules portes. Refus explicite plutot qu'un
-    // credit local que la base ignorerait.
-    console.error('ajusterSoldeCibleFiscale : ' + typeCible + ' passe par le serveur, rien n\'est ajuste ici');
-    return null;
-  } else if (typeCible === 'entreprise') {
-    // CHANTIER C / PHASE 3. Cette branche relisait la caisse, la recalculait et reecrivait le
-    // blob entier -- sans controle de poste dans la fonction elle-meme (il n'existait qu'a
-    // l'ouverture du formulaire). entreprise_mouvement_fiscal exige le poste min_fin reel,
-    // replafonne le prelevement sur le solde reel et n'ecrit que la caisse. Elle rend le montant
-    // REELLEMENT applique, que l'appelant reverse au Tresor -- comportement inchange.
-    const rFisc = await sbRpc('entreprise_mouvement_fiscal', {
-      p_acteur: state.char?.name, p_entreprise: idCible, p_delta: montantReel
-    }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
-    if (!rFisc || rFisc.ok !== true) return 0;
-    return rFisc.montantReel;
-  }
-  return montantReel;
-}
+// getSoldeCibleFiscale / ajusterSoldeCibleFiscale RETIREES (04/11/2026). Leur seul appelant etait la
+// derniere branche de confirmerSubventionMontant, inatteignable (les quatre types de cible ont chacun
+// leur porte serveur), et leur branche « citoyen » ecrivait le solde d'un tiers depuis le navigateur.
 
 function nomAffichageCible(typeCible, idCible) {
   if (typeCible === 'club_sportif') return getClub(idCible)?.nom || idCible;
@@ -7990,22 +7855,9 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
       if (o && typeof r.caisse === 'number') o.caisse = r.caisse;
     }
   } else {
-    montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', montant) : 0;
-    if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
-    // L'ARGENT A DEJA QUITTE LE MINISTERE A CETTE LIGNE. Si le credit de la cible echoue, il
-    // est detruit : ajusterSoldeCibleFiscale rend desormais null quand elle n'a pas pu lire le
-    // solde de la cible (chantier 5), et le ministre doit l'apprendre immediatement plutot que
-    // de lire « Subvention accordee ». La reparation du non-atomique lui-meme -- debit et credit
-    // dans une seule transaction serveur -- est une brique economique, consignee en dette.
-    const credit = await ajusterSoldeCibleFiscale(typeCible, idCible, montantVerse);
-    if (credit === null) {
-      showToast('Subvention a verifier', montantVerse.toLocaleString('fr-FR') + ' ' + cur
-        + ' ont quitte le Ministere mais le solde de ' + nomCible + ' etait illisible : le credit '
-        + "n'est PAS confirme. Signalez-le avant de recommencer.", false);
-      addJournalEntry('Subvention de ' + montantVerse + ' FR a ' + nomCible
-        + ' : debit effectue, credit NON confirme.', 'event-bad');
-      return;
-    }
+    // Type de cible inconnu : aucune porte serveur, donc aucun versement (04/11/2026).
+    showToast('Subvention refusée', 'Ce bénéficiaire ne peut pas recevoir de subvention.', false);
+    return;
   }
   // Social +3 de la ville du ministre : pose par la porte de versement (03/11/2026), relu ici.
   if (typeof chargerIndicesRepublia === 'function') await chargerIndicesRepublia().catch(() => {});
@@ -8258,46 +8110,31 @@ function executerOrdreContact(action, nomCible) {
     showToast('Redressement impossible', 'Le prélèvement sur la fortune d\'un particulier n\'est pas en vigueur.', false);
     addJournalEntry('Redressement fiscal contre ' + nomCible + ' : aucun prélèvement possible sur un particulier.', 'event-bad');
   } else if (action === 'subvention') {
+    // ANCIEN CHEMIN DU REPERTOIRE (subvention_cible, hors catalogue), ALIGNE SUR LA PORTE SERVEUR
+    // (04/11/2026). Il debitait la caisse du ministere puis creditait le beneficiaire en ecrivant son
+    // `arg` depuis le navigateur -- ecriture neutralisee depuis que `arg` est un total calcule :
+    // l'argent quittait la caisse sans arriver nulle part. subvention_citoyen_verser fait le debit
+    // et le credit (argent_crediter_interne) dans une seule transaction et verifie le poste min_fin.
     const montant = 500;
     document.getElementById('modal-postes')?.classList.remove('open');
-    const pays = state.country || 'republic';
     (async () => {
-      const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function'
-        ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', montant)
-        : 0;
-      if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
-      // ON N'ANNONCE PLUS UNE SUBVENTION QUE PERSONNE N'A RECUE (chantier 5, 9 octobre 2026).
-      //
-      // La caisse du Ministere est debitee JUSTE AU-DESSUS. Le credit du beneficiaire etait
-      // ensuite avale par `.catch(() => {})`, et la suite s'executait quand meme : toast
-      // « Subvention accordee », entree au journal, et un MAIL au beneficiaire lui annoncant un
-      // argent qu'il n'avait pas recu. L'argent sortait de la caisse sans entrer nulle part, et
-      // le jeu affirmait le contraire aux deux parties.
-      //
-      // CE QUI N'EST PAS FAIT ICI, ET POURQUOI. On ne RECREDITE PAS la caisse. Un verdict
-      // d'echec de transport ne permet pas d'affirmer que l'ecriture n'est pas partie
-      // (`envoyee: true` le dit explicitement) : recrediter sur un credit qui aurait finalement
-      // abouti CREERAIT de l'argent, c'est-a-dire le defaut symetrique et pire. La seule
-      // correction propre est une RPC transactionnelle qui debite et credite dans la MEME
-      // transaction -- elle est consignee comme prochain lot. En attendant, l'incoherence est
-      // VISIBLE au lieu d'etre affirmee comme un succes.
-      const rSub = (typeof sbAppliquerSalaire === 'function')
-        ? await sbAppliquerSalaire(nomCible, montantVerse)
-                .catch(e => ({ ok: false, raison: 'exception', message: e && e.message }))
-        : { ok: false, raison: 'helper_absent' };
-      if (!rSub || rSub.ok !== true) {
-        console.error('subvention : caisse debitee de ' + montantVerse + ' mais ' + nomCible
-                      + ' n\'a pas ete credite', rSub);
-        addJournalEntry('Subvention à ' + nomCible + ' : le versement n\'a pas abouti ('
-                        + ((rSub && rSub.raison) || 'cause inconnue')
-                        + '). Le Ministère des Finances a été débité : signaler l\'incident.',
-                        'event-bad');
-        showToast('Versement non abouti',
-                  'La caisse a été débitée mais ' + nomCible + ' n\'a pas été crédité. '
-                  + 'Rien n\'a été annoncé au bénéficiaire. Signalez l\'incident.', false, true);
+      const rows = (typeof sbRpc === 'function')
+        ? await sbRpc('subvention_citoyen_verser', { p_beneficiaire: nomCible, p_montant: montant }).catch(() => null) : null;
+      const r = Array.isArray(rows) ? rows[0] : rows;
+      if (!r || r.ok !== true) {
+        const motif = (r && r.raison === 'beneficiaire_introuvable') ? 'Ce bénéficiaire est introuvable.'
+          : (r && r.raison === 'autorite_insuffisante') ? 'Seul le Ministre des Finances peut accorder une subvention.'
+          : (r && r.raison === 'caisse_insuffisante') ? 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.'
+          : 'Le serveur n\'a pas confirmé le versement. Vérifiez avant de recommencer.';
+        showToast(r && r.raison === 'caisse_insuffisante' ? 'Caisse insuffisante' : 'Subvention refusée', motif, false);
         return;
       }
-      // Ancien chemin (subvention_cible, hors catalogue) : plus d'ecriture d'indice par l'ecran (03/11/2026).
+      const montantVerse = Number(r.verse || 0);
+      if (nomCible === state.char?.name) {
+        state.arg = (state.arg || 0) + montantVerse;
+        if (state.char) state.char.arg = state.arg;
+      }
+      if (typeof chargerIndicesRepublia === 'function') await chargerIndicesRepublia().catch(() => {});
       updateUI();
       showToast('Subvention accordée', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' versés à ' + nomCible + '. +3 IS.', true, true);
       addJournalEntry('Subvention de ' + montantVerse + ' FR accordée à ' + nomCible + '.', 'event-good');
@@ -13665,10 +13502,15 @@ async function doDemobiliser() {
   state.mobilisationNationaleCache = false;
 
   // EXTINCTION DES POURSUITES POUR DESERTION (13 septembre 2026) — et de celles-la SEULEMENT.
-  await eteindrePoursuitesDesertion(pays);
+  // Faite par le serveur pour TOUT le pays dans la meme transaction (04/11/2026) : avis de
+  // recherche pour desertion retires, requisitions « deserteur » eteintes, detenus pour seule
+  // desertion liberes et prevenus par la Caserne. Avant, eteindrePoursuitesDesertion travaillait
+  // sur l'ecran du ministre : les deserteurs restaient recherches et detenus.
+  const liberes = Array.isArray(rDemob.extinction?.liberes) ? rDemob.extinction.liberes : [];
 
   updateUI();
-  showToast('Démobilisation', 'La mobilisation nationale est levée. Les réquisitions cessent, les poursuites pour désertion s\'éteignent et l\'immunité militaire prend fin.', true, true);
+  showToast('Démobilisation', 'La mobilisation nationale est levée. Les réquisitions cessent, les poursuites pour désertion s\'éteignent et l\'immunité militaire prend fin.'
+    + (liberes.length ? ' ' + liberes.length + ' déserteur(s) libéré(s).' : ''), true, true);
   addJournalEntry('Démobilisation nationale ordonnée.', 'event-info');
   addExternalEvent('🎖️ DÉMOBILISATION : la mobilisation nationale est levée.');
 }
@@ -13687,64 +13529,8 @@ function estMotifDesertion(entree) {
 
 // Retire les seules entrees de desertion, sur la fiche du joueur courant ET en base. Tout autre
 // motif (crime, condamnation en attente, mandat, motif d'un autre empire) est conserve tel quel.
-async function eteindrePoursuitesDesertion(pays) {
-  const nom = state.char?.name;
-  const estMienne = function (e) {
-    return estMotifDesertion(e) && (!e.country || e.country === pays);
-  };
-
-  // LE RETRAIT EST UNE PORTE (chantier 5, chaine 14, 10 octobre 2026). `estMienne` reste ecrit
-  // ici parce qu'il documente la regle, mais c'est le SERVEUR qui l'applique : meme filtre,
-  // acte et pays, et l'etat local recopie le verdict au lieu de recalculer le tableau.
-  await retirerRecherche(['desertion'], pays);
-  // HISTORIQUE CONSERVE : on trace l'episode, on n'efface pas le souvenir de la desertion.
-  if (state.char?.requisition && state.char.requisition.statut === 'deserteur') {
-    state.char.requisition = Object.assign({}, state.char.requisition,
-      { statut: 'eteinte', eteinteJour: state.day || 1 });
-  }
-  // Le bonus d'evasion est PROPRE A L'EPISODE : une nouvelle mobilisation repart de zero.
-  if (state.char) state.char.joursDetenuDeserteur = 0;
-
-  // LA LIBERATION EST UNE TRANSACTION SERVEUR (10 octobre 2026). Ce bloc vidait
-  // `state.estEmprisonne` et comptait sur le sbSavePersonnage ci-dessous pour le persister --
-  // mais il NE CLOSAIT JAMAIS la ligne `detentions`. Le registre carceral declarait donc detenu,
-  // indefiniment, un personnage que la demobilisation avait libere.
-  //
-  // detention_clore_motif_eteint fait les quatre ecritures que toute fin de detention doit faire
-  // -- ligne close par `poursuites_eteintes`, fiche videe, drapeau QHS abaisse, ligne du registre
-  // du QHS liberee -- et verifie elle-meme la regle de jeu : on ne libere QUE si la detention ne
-  // tenait qu'a la desertion. La condition reste donc exactement celle qui etait ici.
-  if (state.estEmprisonne && state.estEmprisonne.motifDesertionSeul === true) {
-    const vFin = (typeof sbRpc === 'function')
-      ? await sbRpc('detention_clore_motif_eteint', { p_mode: 'poursuites_eteintes' })
-          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-      : null;
-    if (vFin && vFin.ok === true) {
-      state.estEmprisonne = null;
-      addMailNotification('Caserne', 'Poursuites éteintes',
-        'La démobilisation met fin aux poursuites pour désertion. Vous êtes libéré(e).');
-    } else {
-      // VERDICT CONSOMME : le registre tient toujours la peine, donc le jeu ne libere pas. Les
-      // autres effets de la demobilisation -- requisition eteinte, avis de recherche retires --
-      // sont acquis et restent acquis : ils ne dependent pas de la detention.
-      addMailNotification('Caserne', 'Poursuites éteintes',
-        'La démobilisation met fin aux poursuites pour désertion. Votre détention, elle, reste '
-        + 'enregistrée : présentez-vous au commissariat.');
-    }
-  }
-
-  // LA SECONDE ECRITURE A ETE SUPPRIMEE (chantier 5, chaine 15, 10 octobre 2026). C'etait
-  // exactement le defaut que l'inventaire nommait : `sbSavePersonnage` (48 colonnes) suivi d'un
-  // `sbUpdate` CIBLE sur la meme ligne, les deux avales -- deux ecritures en course, dont la
-  // seconde ne portait qu'une colonne que la premiere envoyait DEJA (verifie : supabase.js
-  // transmet `recherche` et `requisition` dans son blob).
-  //
-  // Elle est devenue inutile pour une seconde raison : depuis que `recherche` est
-  // serveur-autoritaire, cette ecriture ne pouvait de toute facon plus rien poser -- le
-  // declencheur l'ignorait. Le retrait, lui, a deja ete fait par `retirerRecherche` ci-dessus,
-  // dans sa propre transaction.
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-}
+// eteindrePoursuitesDesertion RETIREE (04/11/2026) : l'extinction est nationale et faite par le
+// serveur a la demobilisation (militaire_mobilisation_fixer -> deserteurs_eteindre_poursuites_interne).
 
 // DETENU DESERTEUR : le choix du transfert revient CHAQUE JOUR tant que la mobilisation dure.
 // Accepter n'efface aucune autre peine : si la detention porte d'autres motifs, ils se purgent
@@ -13806,60 +13592,53 @@ async function accepterTransfertCaserne() {
 }
 
 async function doAccepterIncorporation() {
-  const pays = state.country || 'republic';
   const req = state.char?.requisition;
   if (!state.estEmprisonne) { showToast('Impossible', 'Vous n\'êtes pas détenu(e).', false); return; }
   if (!req || req.statut !== 'deserteur') { showToast('Sans objet', 'Vous n\'êtes pas détenu(e) comme déserteur(se).', false); return; }
   if (!state.mobilisationNationaleCache) { showToast('Mobilisation levée', 'Plus aucune incorporation n\'est possible.', false); return; }
 
+  // LE SERVEUR DECIDE (04/11/2026). L'ecran n'appelait la porte que si `motifDesertionSeul` etait
+  // vrai -- drapeau que personne ne pose : aucun deserteur n'etait jamais incorpore. La porte lit
+  // les motifs de la detention : seule desertion -> detention close et conduite au corps de garde ;
+  // d'autres peines -> incorporation actee (`differee`), effective a la liberation.
+  const v = (typeof sbRpc === 'function')
+    ? await sbRpc('detention_clore_motif_eteint', { p_mode: 'incorporation' })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!v || v.ok !== true) {
+    const motifs = { mobilisation_levee: 'La mobilisation est levée : plus aucune incorporation n\'est possible.',
+      pas_deserteur: 'Vous n\'êtes pas détenu(e) comme déserteur(se).', non_detenu: 'Vous n\'êtes pas détenu(e).' };
+    showToast('Transfert impossible', (v && motifs[v.raison]) || 'Les geôles n\'ont pas enregistré votre transfert : vous restez détenu(e). Réessayez.', false);
+    updateUI();
+    return;
+  }
   state.char.requisition = Object.assign({}, req, { statut: 'incorpore', incorporeJour: state.day || 1 });
-  await retirerRecherche(['desertion'], pays);
-
-  if (state.estEmprisonne.motifDesertionSeul === true) {
-    // LE TRANSFERT EST UNE TRANSACTION SERVEUR (10 octobre 2026). Ce bloc vidait
-    // `state.estEmprisonne` sans JAMAIS clore la ligne `detentions` : un incorpore restait
-    // detenu au registre carceral, indefiniment. Meme porte que la demobilisation, autre mode
-    // de fin -- c'est le registre qui dit lequel des deux actes a mis fin a la peine.
-    const vInc = (typeof sbRpc === 'function')
-      ? await sbRpc('detention_clore_motif_eteint', { p_mode: 'incorporation' })
-          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-      : null;
-    if (!vInc || vInc.ok !== true) {
-      // VERDICT CONSOMME : sans cloture, personne n'est conduit a la caserne. On REVIENT sur
-      // l'incorporation posee quelques lignes plus haut -- la laisser ferait un soldat detenu.
-      state.char.requisition = req;
-      showToast('Transfert impossible', 'Les geoles n\'ont pas enregistre votre sortie : vous '
-        + 'restez detenu(e). Reessayez.', false);
-      updateUI();
-      return;
-    }
+  if (v.differee === true) {
+    showToast('Transfert accepté', 'Vous serez incorporé(e) à votre libération : d\'autres peines restent à purger.', true, true);
+  } else {
     state.estEmprisonne = null;
+    if (state.char) state.char.joursDetenuDeserteur = 0;
     if (state._navigationServeur === true && typeof adopterPositionServeurRelue === 'function') {
       // #219 : detention_clore_motif_eteint a conduit le PJ au corps de garde.
       await adopterPositionServeurRelue();
     } else {
-    state.currentCity = 'caserne';
-    state.currentBuilding = 'caserne-militaire';
-    state.currentRoom = 'corps_garde';
-    if (typeof enterBuilding === 'function' && document.getElementById('vue-batiment')) {
-      enterBuilding('caserne-militaire', true);
-      if (typeof enterRoom === 'function') enterRoom('caserne-militaire', 'corps_garde', null);
-    }
+      state.currentCity = 'caserne';
+      state.currentBuilding = 'caserne-militaire';
+      state.currentRoom = 'corps_garde';
+      if (typeof enterBuilding === 'function' && document.getElementById('vue-batiment')) {
+        enterBuilding('caserne-militaire', true);
+        if (typeof enterRoom === 'function') enterRoom('caserne-militaire', 'corps_garde', null);
+      }
     }
     showToast('Transfert accepté', 'Vous êtes conduit(e) à la caserne et incorporé(e).', true, true);
-  } else {
-    // D'autres peines courent : l'incorporation est actee mais differee a la liberation.
-    state.estEmprisonne.incorporationAcceptee = true;
-    showToast('Transfert accepté', 'Vous serez incorporé(e) à votre libération : d\'autres peines restent à purger.', true, true);
   }
-  // MEME SUPPRESSION QU'A LA DEMOBILISATION CI-DESSUS (chaine 15). Celle-ci etait pire d'un
-  // cran : elle renvoyait `requisition` SERIALISEE EN CHAINE (`JSON.stringify`) la ou
-  // `sbSavePersonnage` envoie l'objet. Deux ecritures en course sur la meme colonne, avec deux
-  // ENCODAGES differents -- selon laquelle arrivait la derniere, la requisition se lisait comme
-  // un objet ou comme une chaine.
+  // Le motif « desertion » est retire par la porte elle-meme (20261104023000) ; l'ecran relit l'avis.
+  const fiche = (typeof sbLoadPersonnage === 'function' && state.char?.name)
+    ? await sbLoadPersonnage(state.char.name).catch(() => null) : null;
+  if (Array.isArray(fiche?.recherche)) state.recherche = fiche.recherche;
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
   updateUI();
-  addJournalEntry('Transfert vers la caserne accepté : incorporation.', 'event-info');
+  addJournalEntry('Transfert vers la caserne accepté : incorporation' + (v.differee === true ? ' à la libération.' : '.'), 'event-info');
 }
 
 // BONUS D'EVASION DU DESERTEUR : +10 points par jour REELLEMENT passe en detention comme
