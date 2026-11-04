@@ -90,6 +90,10 @@ globalThis.fetch = function (url, options) {
     return reponse(true, [{ name: 'Emprunteur', arg: 10000, liquide: 10000 }]);
   }
   if (methode === 'GET') return reponse(true, []);
+  // 04/11/2026 : le debit passe par le moteur serveur (arg est un total calcule).
+  if (methode === 'POST' && String(url).indexOf('rpc/argent_mouvement_serveur') !== -1) {
+    return reponse(true, { ok: true, applique: appel.corps.p_montant });
+  }
   return reponse(true, []);
 };
 
@@ -109,6 +113,8 @@ function rejouer(reponse) {
   return sync(preleverPretsBancairesServeur());
 }
 
+// Depuis le 04/11/2026 (arg calcule), la mensualite est debitee par argent_mouvement_serveur, et
+// plus jamais par un PATCH de la fiche.
 function debitsEmis() {
   return APPELS.filter(function (a) {
     return (a.methode === 'PATCH' && a.url.indexOf('personnages') !== -1)
@@ -155,6 +161,7 @@ vrai('la revendication est la PREMIERE ecriture de la passe',
 // ----------------------------------------- 3. revendication acquise : la mensualite part
 verifier('une mensualite est prelevee', r.preleves, 1);
 verifier('un seul debit emis sur l emprunteur', debitsEmis().length, 1);
+vrai('le debit passe par le moteur serveur, jamais par la fiche', debitsEmis()[0].methode === 'POST' && debitsEmis()[0].corps.p_sens === 'debit');
 // #430 : arg est dérivé, seul le moteur financier serveur prélève les poches.
 verifier('le debit utilise le moteur financier et son montant exact',
   debitsEmis()[0] && debitsEmis()[0].corps, {p_nom:'Emprunteur',p_montant:500,p_sens:'debit'});

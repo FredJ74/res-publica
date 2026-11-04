@@ -1205,39 +1205,36 @@ function confirmerRecrutPnj(encodedPnj, cout) {
 // =====================
 // PAIEMENT DES EMPLOYÉS AU RÉVEIL
 // =====================
-function payerEmployes() {
+// PAIE DES EMPLOYES AU SERVEUR (04/11/2026, reste hors #379). L'ecran faisait `state.arg -= cout`
+// et comptait sur la sauvegarde ; depuis que `arg` est un total calcule, rien ne sortait.
+// employes_payer_jour paie chaque employe actif (hors escorts, payees par escorts_payer_jour) de son
+// salaire du jour, une fois par jour reel, et en cas d'impaye le libere dans la meme transaction.
+// Les employes sans identifiant serveur (anciens recrutements locaux) n'ont pas de salaire connu
+// du serveur : ils ne sont ni payes ni renvoyes ici.
+async function payerEmployes() {
   const employes = getEmployes();
-  if (employes.length === 0) return;
+  if (!employes.some(e => e.job !== 'escort' && e.pnjId) || typeof sbRpcVerdict !== 'function') return;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const toFire = [];
-
-  employes.forEach((emp, i) => {
-    // DOUBLE FACTURATION DES ESCORTS (26 septembre 2026).
-    // Une escort recrutee est poussee a la fois dans state.escortActive (avec `tarif`) et dans
-    // state.employes (avec `cout: tarif`) -- cf. escortsAgenceRecruter. Or payerEscorts() et
-    // payerEmployes() sont appelees coup sur coup au reveil : la meme escort etait payee DEUX FOIS,
-    // et le journal affichait deux lignes pour un seul service.
-    // payerEscorts() reste le payeur de reference : c'est elle qui porte les consequences propres
-    // au metier (plainte au tribunal, -20 POP, -15 DIS, article de presse) que payerEmployes()
-    // n'a pas. On saute donc les escorts ici, sans toucher a l'alignement des index de toFire.
-    if (emp.job === 'escort') return;
-    if (state.arg >= emp.cout) {
-      state.arg -= emp.cout;
-      addJournalEntry('Salaire ' + emp.nom + '. -' + emp.cout + ' ' + cur + '.', 'event-info');
-    } else {
-      toFire.push(i);
-      addMailNotification('Ressources Humaines', emp.nom + ' a quitté votre service',
-        emp.nom + ' n\'a pas été payé(e). Il/elle quitte votre groupe immédiatement.');
-      addJournalEntry(emp.nom + ' non payé(e). Départ.', 'event-bad');
-      showToast('Départ de ' + emp.nom, 'Fonds insuffisants. -1 employé.', false);
-      // Depart prononce au socle, meme raison que pour l'escort. Effets historiques inchanges.
-      if (emp.pnjId && typeof sbEmployeLiberer === 'function') {
-        sbEmployeLiberer(emp.pnjId, 'impaye').catch(() => {});
-      }
-    }
-  });
-
-  toFire.reverse().forEach(i => state.employes.splice(i, 1));
+  const moi = state.char?.name;
+  const v = await sbRpcVerdict('employes_payer_jour', {}).catch(() => null);
+  if (state.char?.name !== moi) return;
+  if (v?.ok !== true || v.acteur !== moi || !Array.isArray(v.paies)) {
+    if (v && !v.transport) signalerRefusCout(v);
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
+  const partis = [];
+  for (const p of v.paies) {
+    if (p.paye) { addJournalEntry('Salaire ' + p.nom + '. -' + p.salaire + ' ' + cur + '.', 'event-info'); continue; }
+    partis.push(p.pnj_id);
+    addMailNotification('Ressources Humaines', p.nom + ' a quitté votre service',
+      p.nom + ' n\'a pas été payé(e). Il/elle quitte votre groupe immédiatement.');
+    addJournalEntry(p.nom + ' non payé(e). Départ.', 'event-bad');
+    showToast('Départ de ' + p.nom, 'Fonds insuffisants. -1 employé.', false);
+  }
+  if (partis.length) state.employes = getEmployes().filter(e => !partis.includes(e.pnjId));
+  updateUI();
+  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
 }
 
 // =====================

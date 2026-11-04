@@ -367,7 +367,7 @@ async function getTitulaireReligieux(posteId, city) {
 // (audit « une seule verite »).
 const GRADES_RELIGIEUX_LABELS = { enfant_de_choeur: 'Enfant de chœur', clerc: 'Clerc', pretre: 'Prêtre' };
 const MOTIFS_RELIGION = { pas_sur_place: 'Il faut être dans l\'église de la ville.',
-                          hors_republia: 'Cette action ne passe pas par ce chemin dans votre empire.' };
+                          hors_republia: 'Les cultes de cet empire ne sont pas encore ouverts.' };
 
 async function religionAgirServeur(fn, pa, cost) {
   const brut = (typeof sbRpc === 'function')
@@ -544,22 +544,14 @@ async function doSeConfeser(pa, cost) {
 
 async function doFaireDon(pa, cost) {
   const pays = state.country || 'republic';
-  if (pays === 'republic') {
-    // Republia : religionAgirServeur fait tout -- prelevement et credit de la caisse de l'eglise
-    // dans la meme transaction (un don n'est pas taxe), +3 popularite, +5 piete (meme pour un
-    // excommunie), grade et conquete des charges.
-    const v = await religionAgirServeur('faire_don', pa, cost);
-    if (!v) return;
-  } else {
-    const r = await deduireCoutOrdre({ pa, cost });
-    if (!r.ok) {
-      showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false);
-      return;
-    }
-    modifierIP(5);
-    state.pop = Math.min(100, state.pop + 3);
-    updateUI();
-  }
+  // UNE SEULE PORTE POUR TOUS LES EMPIRES (04/11/2026, reste hors #379). religion_agir preleve le
+  // don et credite la caisse de l'eglise dans la meme transaction (un don n'est pas taxe), +3
+  // popularite, +5 piete (meme pour un excommunie), grade et conquete des charges. Les autres
+  // empires ne sont pas encore ouverts : leur don se debitait et posait +3 POP / +5 IP a l'ecran,
+  // sans rien envoyer a aucune caisse. Le serveur les refuse desormais en le disant
+  // (« hors_republia ») ; ils recevront la meme porte quand leur socle sera duplique.
+  const v = await religionAgirServeur('faire_don', pa, cost);
+  if (!v) return;
   showToast('Don effectué', '+5 IP +3 POP. Le ' + (RELIGIONS[pays]?.grandPretre||'Grand Prêtre') + ' vous bénit.', true);
 }
 

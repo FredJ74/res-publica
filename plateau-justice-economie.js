@@ -44,124 +44,74 @@ function doDonnerArgentPnj(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// DON D'ARGENT AUX SQUATTEURS : LE SERVEUR DECIDE (04/11/2026, reste hors #379).
+// Le refus selon l'ISN, le jet de depart, le prelevement, les -10 DIS / -10 PV et le depart des
+// squatteurs sont tires et ecrits par terrain_squatteurs_don, dans une transaction ; l'ecran
+// n'adopte que la reponse. Une demande perdue se reprend avec la meme requete (aucun second jet).
+// Le seul autre occupant possible d'un terrain est un cadavre : le serveur refuse de lui donner.
+// Les anciennes branches inspecteur / gardien / promoteur etaient inatteignables (l'occupation
+// d'un terrain ne peut etre que squatteurs ou cadavre, profilOccupationTerrain) : supprimees.
+let donSquatteursEnCours = false;
 async function confirmerDonArgent(pa, cost) {
-  const id = state.currentBuilding;
-  const ts = getTerrainState(id);
-  const pnj = ts.pnjData;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const montant = parseInt(document.getElementById('don-montant')?.value || 0);
-  const indices = INDICES_NATIONAUX?.[state.country] || { ISN:30, IE:50, IS:45 };
-  const isn = indices.ISN || 30;
-
+  const montant = parseInt(document.getElementById('don-montant')?.value || 0, 10);
   if (!montant || montant <= 0) { showToast('Montant invalide', 'Entrez un montant.', false); return; }
-  if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
-  const rDon = await deduireCoutOrdre({ pa, cost });
-  if (!rDon.ok) { signalerRefusCout(rDon); return; }
-
-  const dup = getStatEffective('DUP');
-  const dis = state.dis || 50;
-
-  // Jet de refus selon ISN
-  const tauxRefus = Math.max(0, isn - 50) / 2;
-  const rollRefus = Math.floor(Math.random() * 100) + 1;
-
-  document.getElementById('modal-postes').classList.remove('open');
-
-  if (rollRefus <= tauxRefus) {
-    // Refus — pénalité DIS
-    state.dis = Math.max(0, (state.dis || 50) - 10);
-    updateUI();
-    addJournalEntry('Don refusé par ' + (pnj?.name || 'le PNJ') + '. -10 DIS. (Refus ' + rollRefus + '/' + Math.round(tauxRefus) + '%)', 'event-bad');
-    showToast('Refus !', (pnj?.name || 'Le PNJ') + ' a refusé avec indignation. -10 DIS.', false);
-    return;
+  if (donSquatteursEnCours || typeof sbRpcVerdict !== 'function') return;
+  const c = contexteNegociationSquatteurs();
+  const cle = 'squatteurs-don:' + JSON.stringify([c.uid, c.personnage?.name, c.pays, c.ville, c.terrain, montant]);
+  let intention = null;
+  try { intention = JSON.parse(sessionStorage.getItem(cle) || 'null'); } catch (_) { intention = null; }
+  if (!intention) {
+    const plan = await occupationPreparer('police');
+    if (!plan || !memeContexteNegociation(c)) return;
+    intention = { requete: crypto.randomUUID(), occupation: plan.occupation };
+    try { sessionStorage.setItem(cle, JSON.stringify(intention)); }
+    catch (_) { showToast('Don non lancé', 'La reprise sûre ne peut pas être conservée.', false); return; }
   }
-
-  // Don accepté — effets selon type de PNJ
-  state.arg -= montant;
-
-  const effets = {
-    inspecteur: () => {
-      // Corruption inspecteur — ferme les yeux sur les manquements
-      const taux = Math.min(85, Math.floor(dup * 3 + montant / 50));
-      const roll = Math.floor(Math.random() * 100) + 1;
-      if (roll <= taux) {
-        setTerrainState(id, { inspecteurCorrompu: true, permisImplicite: true });
-        state.dis = Math.max(0, (state.dis || 50) - 5);
-        updateUI();
-        addJournalEntry('Inspecteur corrompu pour ' + montant + ' ' + cur + '. Manquements ignorés. -5 DIS.', 'event-good');
-        showToast('Arrangement conclu !', 'L\'inspecteur regarde ailleurs. -5 DIS.', true);
-        // Retirer le PNJ
-        setTerrainState(id, { pnj: null, pnjData: null });
-        sessionStorage.removeItem('terrain_pnj_' + id);
-        if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
-      } else {
-        state.dis = Math.max(0, (state.dis || 50) - 15);
-        updateUI();
-        addJournalEntry('Tentative de corruption échouée. -' + montant + ' ' + cur + ' · -15 DIS.', 'event-bad');
-        showToast('Refus indigné !', 'L\'inspecteur menace de faire un rapport. -15 DIS.', false);
-      }
-    },
-    gardien: () => {
-      setTerrainState(id, { pnj: null, pnjData: null });
-      sessionStorage.removeItem('terrain_pnj_' + id);
-      state.dis = Math.min(100, (state.dis || 50) + 3);
-      updateUI();
-      addJournalEntry('Gardien soudoyé pour ' + montant + ' ' + cur + '. +3 DIS.', 'event-good');
-      showToast('Gardien convaincu !', 'Il regarde ailleurs. +3 DIS.', true);
-      if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
-    },
-    squatter_cool: () => {
-      const bonus = Math.min(40, Math.floor(montant / 100));
-      const cha = getStatEffective('CHA');
-      const taux = Math.min(85, cha * 3 + bonus);
-      const roll = Math.floor(Math.random() * 100) + 1;
-      if (roll <= taux) {
-        setTerrainState(id, { pnj: null, pnjData: null });
-        sessionStorage.removeItem('terrain_pnj_' + id);
-        updateUI();
-        addJournalEntry('Squatteurs partis pour ' + montant + ' ' + cur + '. Jet ' + roll + '/' + taux + '%.', 'event-good');
-        showToast('Ils s\'en vont !', '"Ok on se casse. Ciao." -' + montant + ' ' + cur, true);
-        if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
-      } else {
-        updateUI();
-        showToast('Ils prennent l\'argent mais restent...', '-' + montant + ' ' + cur, false);
-        addJournalEntry('Squatteurs ont pris ' + montant + ' ' + cur + ' mais refusent de partir. Jet ' + roll + '/' + taux + '%.', 'event-bad');
-      }
-    },
-    squatter_agr: () => {
-      if (montant < 500) {
-        state.arg += montant; // Rembourser
-        showToast('Insulté !', 'Ils ont jeté vos billets. Minimum 500 ' + cur + '.', false);
-        return;
-      }
-      const bonus = Math.min(40, Math.floor(montant / 100));
-      const taux = Math.min(70, 15 + bonus);
-      const roll = Math.floor(Math.random() * 100) + 1;
-      if (roll <= taux) {
-        setTerrainState(id, { pnj: null, pnjData: null });
-        sessionStorage.removeItem('terrain_pnj_' + id);
-        updateUI();
-        addJournalEntry('Squatteurs agressifs partis pour ' + montant + ' ' + cur + '. Jet ' + roll + '/' + taux + '%.', 'event-good');
-        showToast('Ils partent !', '"On se casse. Cette fois." -' + montant + ' ' + cur, true);
-        if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
-      } else {
-        state.hp = Math.max(0, (state.hp || 100) - 10);
-        updateUI();
-        addJournalEntry('Squatteurs ont pris ' + montant + ' ' + cur + ' et vous ont frappé. -10 HP.', 'event-bad');
-        showToast('Volés et tabassés !', '-' + montant + ' ' + cur + ' · -10 HP.', false);
-      }
-    },
-    // #379 (03/11/2026) : branche « promoteur » (+5 INF locale) retirée. L'occupation d'un
-    // terrain est lue au serveur (terrain_occupation_lire) et ne peut être que squatteurs ou
-    // cadavre (profilOccupationTerrain) : ce PNJ n'apparaît jamais sur un terrain.
-    default: () => {
-      updateUI();
-      addJournalEntry('Don de ' + montant + ' ' + cur + ' accepté.', 'event-info');
-      showToast('Don accepté', (pnj?.name || 'Le PNJ') + ' apprécie le geste.', true);
+  donSquatteursEnCours = true;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  try {
+    let r;
+    try {
+      r = await sbRpcVerdict('terrain_squatteurs_don', { p_terrain: c.terrain, p_montant: montant,
+        p_occupation: intention.occupation, p_requete: intention.requete });
+    } catch (_) { r = null; }
+    if (!memeContexteNegociation(c)) return;
+    if (!r?.ok) {
+      if (r && !r.transport) sessionStorage.removeItem(cle);
+      const motifs = { fonds_insuffisants: 'Fonds insuffisants : ' + montant + ' ' + cur + ' requis.',
+        aucun_squatteur: 'Il n\'y a personne à qui donner de l\'argent ici.',
+        occupation_modifiee: 'La situation du terrain a changé. Rouvrez le terrain.',
+        intervention_en_cours: 'La police est déjà en route.' };
+      if (!r || r.transport) showToast('Don non confirmé', 'Réponse incertaine. Refaites le même don pour vérifier son résultat.', false);
+      else if (motifs[r.raison]) showToast('Don impossible', motifs[r.raison], false);
+      else signalerRefusCout(r);
+      return;
     }
-  };
-
-  (effets[pnj?.id] || effets.default)();
+    sessionStorage.removeItem(cle);
+    appliquerPaiementServeur(r);
+    if (typeof r.hp === 'number') state.hp = r.hp;
+    if (typeof r.dis === 'number') state.dis = r.dis;
+    if (r.etat && typeof remplacerTerrainState === 'function') remplacerTerrainState(c.terrain, r.etat);
+    if (r.issue === 'depart') {
+      setTerrainState(c.terrain, { pnj: null, pnjData: null });
+      sessionStorage.removeItem('terrain_pnj_' + c.terrain);
+    }
+    updateUI();
+    const jet = r.jet == null ? '' : ' Jet ' + r.jet + '/' + r.taux + ' %.';
+    const textes = {
+      refus: ['Refus !', 'Ils ont refusé avec indignation. -10 DIS.', false, 'Don refusé par les squatteurs. -10 DIS.'],
+      insulte: ['Insultés !', 'Ils ont jeté vos billets. Minimum 500 ' + cur + '.', false, 'Squatteurs insultés : billets jetés (minimum 500 ' + cur + ').'],
+      depart: ['Ils s\'en vont !', '"Ok on se casse." -' + montant + ' ' + cur, true, 'Squatteurs partis pour ' + montant + ' ' + cur + '.' + jet],
+      restent: r.occupation === 'squatter_agr'
+        ? ['Volés et tabassés !', '-' + montant + ' ' + cur + ' · -10 PV.', false, 'Squatteurs ont pris ' + montant + ' ' + cur + ' et vous ont frappé. -10 PV.' + jet]
+        : ['Ils prennent l\'argent mais restent...', '-' + montant + ' ' + cur, false, 'Squatteurs ont pris ' + montant + ' ' + cur + ' mais refusent de partir.' + jet]
+    };
+    const t = textes[r.issue] || ['Don enregistré', '', true, 'Don enregistré.'];
+    showToast(t[0], t[1], t[2]);
+    addJournalEntry(t[3] + (r.rejeu ? ' (résultat déjà enregistré)' : ''), t[2] ? 'event-good' : 'event-bad');
+    if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
+  } finally { donSquatteursEnCours = false; }
 }
 
 function doExpulsionLegale(){ return occupationExecuterPolice("police"); }
