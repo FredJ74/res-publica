@@ -567,9 +567,14 @@ const RUE_CENTRALE_NOEUDS = {
     'psm-terrains-lots': {
       // Ancienne sous-scene des lots (selection sur l'image), retiree le 04/11/2026 : les terrains
       // s'ouvrent par onglets depuis psm-terrains-vente. Le noeud reste declare pour qu'un PJ qui
-      // s'y trouvait encore puisse revenir en arriere ; il n'ouvre plus aucun terrain.
+      // s'y trouvait encore puisse revenir en arriere. Correctif du 04/11 (signale par Fred) : un PJ
+      // reste positionne ici voyait l'image sans aucune zone ni onglet ; toute l'image ramene
+      // desormais au point de vue des Terrains a batir (seul noeud ou le serveur accepte l'entree
+      // dans un terrain), d'ou s'ouvre l'ecran a onglets.
       image: 'images/rue-terrains-lots-detail-psm.webp',
-      zones: [],
+      zones: [
+        { xPct: [0, 100], nom: 'Terrains à bâtir de Port-Sainte-Marie', type: 'noeud', noeudId: 'psm-terrains-vente' }
+      ],
       liens: { arriere: 'psm-terrains-vente' },
       flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
     },
