@@ -2624,6 +2624,12 @@ async function commanderDouanesServeur() {
   if(Array.isArray(v.inventory)&&typeof sbAdopterInventaireServeur==='function'&&!sbAdopterInventaireServeur(v))return false;
   try{localStorage.removeItem(cle);}catch(_){}
   if(v.ok!==true){
+   // #433 : à l'aéroport, un recherché détecté par les douaniers entre dans l'interception
+   // commune (combat, fuite, reddition) au lieu d'une arrestation décidée d'office.
+   if(v.interception===true&&typeof reprendreInterceptionJudiciaireServeur==='function'){
+    showToast('Contrôle douanier','Les douaniers vous ont reconnu(e).',false);
+    await reprendreInterceptionJudiciaireServeur();return false;
+   }
    if(v.arrestation){
     const frais=await sbLoadPersonnage(c.nom).catch(()=>null);
     if(!contexteNavigationRueValide(c))return false;
