@@ -15,7 +15,7 @@ BEGIN
     RAISE EXCEPTION 'patchs absents'; END IF;
 
   -- Relève : un douanier hors de combat est remplacé.
-  SELECT id INTO v_chef FROM public.pnj_membres WHERE famille = 'douanier' AND building_id = 'centre-multinodal-luthecia' AND leader_pnj_id IS NOT NULL LIMIT 1;
+  SELECT id INTO v_chef FROM public.pnj_membres WHERE famille = 'douanier' AND proprietaire_perimetre = 'capitale:centre-multinodal-luthecia' AND leader_pnj_id IS NOT NULL LIMIT 1;
   UPDATE public.pnj_membres SET pa = 0 WHERE id = v_chef;
   r := public.douane_aeroport_relever_interne();
   IF (r->>'remplaces')::integer <> 1 OR (r->>'gardes')::integer <> 2 THEN RAISE EXCEPTION 'releve: %', r; END IF;

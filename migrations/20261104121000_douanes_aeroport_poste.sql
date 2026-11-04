@@ -58,11 +58,14 @@ BEGIN
   ELSE
     UPDATE public.batiments_etat SET data = CASE WHEN jsonb_typeof(v_brut) = 'string' THEN to_jsonb(v_etat::text) ELSE v_etat END WHERE id = v_id;
   END IF;
+  -- Dégrouper avant le miroir (un suiveur n'a pas de position propre : pnj_position_deux_etats).
+  UPDATE public.pnj_membres SET leader_pnj_id = NULL, ville = v_ville, building_id = v_bat, room_id = 'hall_douanes', maj_le = now()
+   WHERE famille = 'douanier' AND pays = v_pays AND proprietaire_perimetre = v_ville || ':' || v_bat AND leader_pnj_id IS NOT NULL;
   PERFORM public.pnj_miroir_douane(v_pays, v_ville, v_bat);
   -- Les trois forment un groupe (force collective à la détection et au combat).
   v_chef := public.douane_pnj_id(v_pays, v_ville, v_liste->0->>'matricule');
-  UPDATE public.pnj_membres SET leader_pnj_id = NULL, ville = v_ville, building_id = v_bat, room_id = 'hall_douanes', maj_le = now() WHERE id = v_chef;
-  UPDATE public.pnj_membres SET leader_pnj_id = v_chef, ville = v_ville, building_id = v_bat, room_id = 'hall_douanes', maj_le = now()
+  UPDATE public.pnj_membres SET ville = v_ville, building_id = v_bat, room_id = 'hall_douanes', maj_le = now() WHERE id = v_chef;
+  UPDATE public.pnj_membres SET leader_pnj_id = v_chef, ville = NULL, building_id = NULL, room_id = NULL, maj_le = now()
    WHERE id IN (SELECT public.douane_pnj_id(v_pays, v_ville, x->>'matricule') FROM jsonb_array_elements(v_liste) x) AND id <> v_chef;
   RETURN jsonb_build_object('ok', true, 'gardes', v_gardes, 'remplaces', v_remplaces, 'chef', v_chef);
 END; $$;
