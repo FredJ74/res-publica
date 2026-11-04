@@ -1,7 +1,7 @@
 /* ===========================================================================
    BANC DE preleverPretsBancairesServeur — api/cron-minuit.js
    SOURCES: api/_referentiels-generes.js api/cron-minuit.js
-   Chantier 6, 9 octobre 2026
+   Chantier 6, 9 octobre 2026 ; contrat financier #430, 4 novembre 2026
    ===========================================================================
 
    CE QU'IL PROUVE. Ce traitement posait bien son marqueur de journee AVANT le mouvement --
@@ -11,7 +11,7 @@
    l'inverse exact de la doctrine de tacheQuotidienne(), qui relit son marqueur et RENONCE.
 
    LA PREUVE QUI COMPTE EST L'ABSENCE DE DEBIT. Le banc enregistre chaque appel reseau dans
-   l'ordre et exige qu'AUCUN PATCH sur personnages ne soit emis des que la revendication n'a
+   l'ordre et exige qu'AUCUNE commande de debit (RPC ou ancien PATCH) ne soit emise si la revendication n'a
    pas abouti -- panne de transport comme journee deja prise. Lire `resultats` ne suffirait
    pas : un compteur a zero n'empeche pas un debit deja parti.
 
@@ -57,6 +57,7 @@ var PRET = {
 
 var APPELS = [];
 var REPONSE_REVENDICATION = { ok: true, corps: [{ id: 'pret-banc' }] };
+var REPONSE_DEBIT = { transport: true, corps: { ok: true, applique: 500 } };
 
 function estRevendication(appel) {
   return appel.methode === 'PATCH' && appel.url.indexOf('prets') !== -1
@@ -77,6 +78,9 @@ globalThis.fetch = function (url, options) {
     });
   }
 
+  if (methode === 'POST' && String(url).indexOf('/rpc/argent_mouvement_serveur') !== -1) {
+    return reponse(REPONSE_DEBIT.transport, REPONSE_DEBIT.corps);
+  }
   if (estRevendication(appel)) {
     if (!REPONSE_REVENDICATION.ok) return reponse(false, { message: 'panne simulee' }, 500);
     return reponse(true, REPONSE_REVENDICATION.corps);
@@ -86,10 +90,6 @@ globalThis.fetch = function (url, options) {
     return reponse(true, [{ name: 'Emprunteur', arg: 10000, liquide: 10000 }]);
   }
   if (methode === 'GET') return reponse(true, []);
-  // 04/11/2026 : le debit passe par le moteur serveur (arg est un total calcule).
-  if (methode === 'POST' && String(url).indexOf('rpc/argent_mouvement_serveur') !== -1) {
-    return reponse(true, { ok: true, applique: appel.corps.p_montant });
-  }
   return reponse(true, []);
 };
 
@@ -114,7 +114,7 @@ function rejouer(reponse) {
 function debitsEmis() {
   return APPELS.filter(function (a) {
     return (a.methode === 'PATCH' && a.url.indexOf('personnages') !== -1)
-        || (a.methode === 'POST' && a.url.indexOf('rpc/argent_mouvement_serveur') !== -1);
+      || (a.methode === 'POST' && a.url.indexOf('/rpc/argent_mouvement_serveur') !== -1 && a.corps.p_sens === 'debit');
   });
 }
 
@@ -157,13 +157,20 @@ vrai('la revendication est la PREMIERE ecriture de la passe',
 // ----------------------------------------- 3. revendication acquise : la mensualite part
 verifier('une mensualite est prelevee', r.preleves, 1);
 verifier('un seul debit emis sur l emprunteur', debitsEmis().length, 1);
-vrai('le debit passe par le moteur serveur, jamais par la fiche',
-     debitsEmis()[0].methode === 'POST' && debitsEmis()[0].corps.p_sens === 'debit');
-verifier('le debit porte la mensualite', debitsEmis()[0].corps.p_montant, 500);
-verifier('sur l emprunteur', debitsEmis()[0].corps.p_nom, 'Emprunteur');
+vrai('le debit passe par le moteur serveur, jamais par la fiche', debitsEmis()[0].methode === 'POST' && debitsEmis()[0].corps.p_sens === 'debit');
+// #430 : arg est dérivé, seul le moteur financier serveur prélève les poches.
+verifier('le debit utilise le moteur financier et son montant exact',
+  debitsEmis()[0] && debitsEmis()[0].corps, {p_nom:'Emprunteur',p_montant:500,p_sens:'debit'});
+vrai('aucun ancien PATCH financier sur la fiche', !APPELS.some(function(a){
+  return a.methode === 'PATCH' && a.url.indexOf('personnages') !== -1 && a.corps && ('arg' in a.corps || 'liquide' in a.corps);
+}));
+vrai('la dette baisse du montant confirme', APPELS.some(function(a){
+  return a.methode === 'PATCH' && a.url.indexOf('prets') !== -1 && a.corps.montant_restant === 4500;
+}));
 vrai('le debit suit la revendication, jamais avant',
      (apresRevendication() || []).some(function (a) {
-       return a.methode === 'POST' && a.url.indexOf('rpc/argent_mouvement_serveur') !== -1;
+       return (a.methode === 'PATCH' && a.url.indexOf('personnages') !== -1)
+      || (a.methode === 'POST' && a.url.indexOf('/rpc/argent_mouvement_serveur') !== -1 && a.corps.p_sens === 'debit');
      }));
 
 // ----------------------------------------- 4. journee DEJA prise : aucun debit
@@ -181,6 +188,24 @@ verifier('panne de transport : le marqueur est declare non pose', r.marqueurs_no
 verifier('panne de transport : AUCUN debit emis', debitsEmis().length, 0);
 verifier('panne de transport : AUCUNE requete apres la revendication',
          (apresRevendication() || ['(aucune)']).length, 0);
+
+// #430 : le refus/panne du moteur ne doit pas diminuer la dette malgré le marqueur.
+for (var modeDebit of [{transport:true,corps:{ok:false,raison:'fonds_insuffisants'}},
+                       {transport:false,corps:{message:'panne simulee'}}]) {
+  REPONSE_DEBIT = modeDebit;
+  r = rejouer({ok:true,corps:[{id:'pret-banc'}]});
+  verifier('debit refuse ou reseau perdu : aucun remboursement annonce', r.preleves, 0);
+  verifier('debit refuse ou reseau perdu : echec explicite', r.echecs_prelevement, 1);
+  vrai('debit refuse ou reseau perdu : aucune baisse de dette', !APPELS.some(function(a){
+    return a.methode === 'PATCH' && a.url.indexOf('prets') !== -1 && a.corps.montant_restant !== undefined;
+  }));
+}
+REPONSE_DEBIT = {transport:true,corps:{ok:true,applique:300}};
+r = rejouer({ok:true,corps:[{id:'pret-banc'}]});
+vrai('seul le montant reellement confirme reduit la dette', APPELS.some(function(a){
+ return a.methode === 'PATCH' && a.url.indexOf('prets') !== -1 && a.corps.montant_restant === 4700;
+}));
+REPONSE_DEBIT = {transport:true,corps:{ok:true,applique:500}};
 
 // ----------------------------------------- 6. la garde amont et le gel tiennent toujours
 PRET.jour_dernier_prelevement = jour;

@@ -30,11 +30,10 @@ export const PORTES_ETAPE_B = {
   chargerOuCreerSyndicatDockersPSM: /sbOrganisationVie\('orga_syndicat_dockers_republic_ville_a', 'dockers_assurer'/,
   validerLancementGreve: /sbOrganisationVie\(orga\.id, 'greve_lancer'/,
   confirmerTerminerGreve: /sbOrganisationVie\(orga\.id, 'greve_terminer'/,
-  confirmerAppelGreveGenerale: /sbGreveGeneraleSynchroniser\(ggId\)/,
-  repondreAppelGreveGenerale: /sbGreveGeneraleSynchroniser\(ggId\)/,
-  verifierAdoptionGreveGenerale: /sbGreveGeneraleSynchroniser\(ggId\)/,
-  confirmerRetraitGreveGenerale: /sbGreveGeneraleSynchroniser\(ggId\)/,
-  recalculerPuissanceApresRetraitGreveGenerale: /sbGreveGeneraleSynchroniser\(ggId\)/,
+  // #410 ouvre désormais la consultation dans une transaction serveur.
+  confirmerAppelGreveGenerale: /sbRpc\('greve_generale_lancer'/,
+  repondreAppelGreveGenerale: /sbRpc\('greve_generale_repondre'/,
+  confirmerRetraitGreveGenerale: /sbRpc\('greve_generale_retirer'/,
   doRejoindreClubSupporters: /sbCaisseCollective\('club_supporters_adherer'/,
   doRecruterMilitants: /sbRecruterMilitant\(/,
   validerLancementRumeur: /sbRpc\('rumeur_lancer'/,
@@ -82,9 +81,22 @@ test('les chemins portés à l’étape B passent par leur porte serveur', () =>
     assert.ok(corps, nom + ' introuvable');
     assert.match(corps, motif, nom);
   }
+  assert.match(toutes.get('confirmerAppelGreveGenerale'), /sbRpc\('greve_generale_lier_sujet'/);
+  assert.doesNotMatch(toutes.get('confirmerAppelGreveGenerale'), /sb(?:Insert|Upsert|Update)\(\s*'greves_generales'/);
   assert.doesNotMatch(toutes.get('doRecruterMilitants'), /membres\.push/, 'le militant est inscrit par le serveur');
   assert.doesNotMatch(toutes.get('validerLancementRumeur'), /orga\.influence\s*=/, "l'influence est retirée par le serveur");
   for (const nom of SANS_ECRITURE) assert.ok(toutes.has(nom), nom + ' introuvable');
+});
+
+test('adoption et recalcul ne restent pas exécutables dans le navigateur', () => {
+  for (const nom of ['verifierAdoptionGreveGenerale', 'recalculerPuissanceApresRetraitGreveGenerale']) {
+    assert.equal(toutes.has(nom), false, nom + ' recréerait une autorité locale concurrente');
+    for (const f of CLIENT) assert.doesNotMatch(sansCommentaires(lire(f)), new RegExp('\\b' + nom + '\\s*\\('));
+  }
+  const sql = lire('migrations/20261103112517_greves_generales_serveur.sql');
+  assert.match(sql, /v_acc >= ceil\(v_n \* 2\.0 \/ 3\.0\) AND v_adh >= 100/);
+  assert.match(sql, /IF v_adh < 100 THEN/);
+  assert.match(sql, /participants = v_part, puissance_niveau = v_niveau/);
 });
 
 test('la fermeture de la table est écrite et gardée', () => {

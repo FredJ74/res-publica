@@ -633,8 +633,8 @@
    "symbole_canon": "modifierIndiceVille",
    "mecanisme": "epinglee",
    "empreinte_serveur": "fd4e1d3324798569",
-   "empreinte_canon": "1f3ac5a10ab76592",
-   "_pourquoi": "ECRIT EN BASE. Deux differences voulues : la copie serveur accepte un PLANCHER en argument, et elle REFUSE explicitement tout empire autre que Republia la ou le canon mute INDICES_NATIONAUX en memoire -- les trois autres empires n'ont aucune persistance d'indices (constat du chantier 4G, non referme). Le blob par defaut du serveur est le meme objet que INDICE_VILLE_DEFAUT, verifie valeur par valeur. Epinglee parce qu'elle ecrit."
+   "empreinte_canon": "2567100a57fcb16a",
+   "_pourquoi": "Écriture CRON épinglée inchangée. Depuis main #404 (conservé par #410), le client Republia est volontairement sans effet : indice_ville_ajuster_interne est la porte serveur des actes. Le client legacy des autres empires est conservé ; le cron les refuse toujours. Empreinte client revue après lecture et tests exécutables (banc-indices-autorite-422.cjs), dont contre-épreuve ancien écrivain. Aucune formule POP/INF modifiée."
   },
   {
    "cle": "militaire/pa-travail",

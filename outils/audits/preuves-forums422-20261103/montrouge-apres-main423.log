@@ -1,0 +1,22 @@
+✔ images des deux pièces présentes, noms et rôles du personnel distincts (1.471655ms)
+✔ les trois ordres de service social incluent une orientation gratuite à l’accueil (0.243761ms)
+✔ les deux profils PNJ sont raccordables par identifiant serveur (0.48684ms)
+✔ navigation serveur limitée au nouveau bureau, sans modifier les positions PJ (0.346331ms)
+✔ Edwige oriente sur les soins sans inventer de prestations (0.350929ms)
+✔ Pascale dispose du portrait WebP issu de son image d’accueil (0.345891ms)
+✔ Pascale propose un RDV gratuit ; Edwige reprend exactement la demande mairie 1 PA (1.36679ms)
+✔ le rendez-vous ne dépend ni du navigateur ni de sa date locale (0.420782ms)
+✔ le bureau est bloqué par le SERVEUR sans RDV aujourd hui, même en vérification (0.333373ms)
+✔ l adjoint et Edwige utilisent la même RPC, sans attribuer directement un logement (0.465708ms)
+✔ les quatre scripts SSM restent versionnés après les autres chantiers (0.348705ms)
+✔ écran : succès uniquement si serveur confirme ; aucun mail inventé en cas de refus (2.305467ms)
+✔ DeepSeek : les deux agentes ont un corpus métier, pas le prompt des PNJ ordinaires (0.647176ms)
+✔ Besoin d’aide : orientation libre, quatre rubriques et portrait récupéré depuis le PNJ (1.682136ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 99.853154

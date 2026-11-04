@@ -34,9 +34,9 @@ Portrait du seul brigadier d'accueil PSM : crop320×320+(55,260) de `images/port
 Validation : 53 cas dialogue/police (56 avec serrures après intégration main `578764b2`/#449),95 assertions du hall,2 Chromium,13 tests du bundle Vercel,191/191 bancs clients avant et après intégration ; journaux dans les preuves. Même 8/12 contrôles globaux et 96/98 transversaux sur branche et main isolé : échecs hérités documentés, aucune référence falsifiée. PR non créée : API GitHub GraphQL Forbidden ; branche poussée. Production inaccessible via le proxy (CONNECT403), aucune fusion ni livraison vérifiée. IA réelle et session authentifiée non testées. Aucun SQL ni joueur touché. Rapport : `outils/audits/COMMISSARIAT-PSM-PNJ-PORTRAIT-20261104.md`. Créer la PR depuis la branche puis vérifier CI et recette avant fusion ; ne pas confondre les composants locaux et la production.
 
 
-### Forums par pays, ville et adhésion — ChatGPT, PR #422 (ouverte au 04/11)
+### Forums par pays, ville et adhésion — PR #422 (ChatGPT, fusion reprise par Claude le 04/11)
 
-Décision de Fred : forum local = ville courante, national = pays courant, forums privés réservés aux adhérents. Migration RLS `20261103222000` **non appliquée** (absente du registre au 04/11, fichier encore hors de main). Reste : CI, conflits avec main, application, Vercel READY, recette PJ.
+Décision de Fred : forum local = ville courante, national = pays courant, forums privés réservés aux adhérents (`GAME-DESIGN-FORUMS.md`). **Migration déjà appliquée** : registre `forums_territoires_et_adhesions`, version `20261104001711` (fichier `20261103222000_…`) ; **NE PAS RÉAPPLIQUER**. L'ancienne note « non appliquée » venait d'une recherche par numéro au lieu du nom (relevé Claude du 04/11, 14 h 50). Main `8a721f3` (#451) intégré : seul conflit, ce fichier. Vérifications locales : bancs forums 19/19 et contextes 21/21, prêts 34/34, syntaxe des scripts. La réextraction du baseline attendue par l'ancienne note de #422 relève de #435, pas de cette fusion. **À constater en jeu** : forum local de la ville où l'on se trouve, forum national du pays seul, forum d'une organisation invisible pour un non-adhérent.
 
 ### Audit global Républia — Codex, 02/11/2026
 

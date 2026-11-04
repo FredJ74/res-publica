@@ -405,6 +405,32 @@ def fonctions_creees_migration(texte, signatures_connues=None):
     return noms
 
 
+def signatures_immediates_migration(texte):
+    """Signatures exactes créées au niveau SQL, pas des noms cités dans un DO.
+
+    Inventaire de dépendances préparées, jamais preuve de déploiement.
+    Les paramètres OUT ne font pas partie de l'identité PostgreSQL.
+    """
+    from pglast import parse_sql
+    resultat = set()
+    for raw in parse_sql(texte):
+        st = raw.stmt
+        if type(st).__name__ != 'CreateFunctionStmt':
+            continue
+        if len(st.funcname) != 2 or st.funcname[0].sval != 'public':
+            continue
+        types = []
+        for p in st.parameters or []:
+            if p.mode.name in ('FUNC_PARAM_OUT', 'FUNC_PARAM_TABLE'):
+                continue
+            nom = '.'.join(x.sval for x in p.argType.names)
+            nom = nom.removeprefix('pg_catalog.')
+            nom = {'int4': 'integer', 'int8': 'bigint', 'bool': 'boolean', 'float8': 'doubleprecision'}.get(nom, nom)
+            types.append(nom + ('[]' if p.argType.arrayBounds else ''))
+        resultat.add(st.funcname[-1].sval + '(' + ','.join(types) + ')')
+    return resultat
+
+
 def declarations_rpc_migrations():
     """Localiser une declaration sans la presenter comme une fonction deployee.
 
@@ -682,6 +708,8 @@ def main():
     for chemin in sorted(glob.glob(os.path.join(MIGRATIONS, "*.sql"))):
         court = os.path.basename(chemin)
         texte = open(chemin, encoding="utf-8").read()
+        # Les migrations précédentes sont des dépendances, sans devenir le baseline.
+        signatures_connues.update(signatures_immediates_migration(texte))
         # les tables declarees dans le tableau `surface` de la migration 2
         for m in re.finditer(r"\['([a-z_0-9]+)','[IUD]{1,3}'\]", texte):
             if m.group(1) not in tables_connues and m.group(1) not in set(re.findall(

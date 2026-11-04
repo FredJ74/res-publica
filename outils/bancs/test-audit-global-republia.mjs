@@ -83,3 +83,15 @@ test('inventaire des producteurs : le chargeur réutilisé couvre les quatre emp
  for(const p of pays){const a=charger(p);assert.ok(a.villes.length>0,p);assert.ok(a.villes.every(v=>v.batiments.length>0),p);assert.ok(pays.every(n=>a.pays_disponibles.includes(n)));}
  assert.deepEqual(charger().villes,charger('republic').villes,'le comportement Républia reste la valeur par défaut');
 });
+
+// Une déclaration tarifaire masquée n'est pas un ordre exécutable sans route.
+test('audit : seules les exclusions inconditionnelles du rendu sont reconnues',()=>{
+ const {exclusionsRendu}=require('../audits/auditer-raccordements-republia.cjs');
+ const rendu="const allOrders=ordresDeclares.filter(o=>!['retire'].includes(o.fn));";
+ assert.deepEqual([...exclusionsRendu(rendu)],['retire']);
+ assert.equal(exclusionsRendu(rendu.replace('!','')).size,0);
+ assert.equal(exclusionsRendu(rendu.replace("!['retire'].includes(o.fn)","autorise && !['retire'].includes(o.fn)")).size,0);
+ assert.equal(exclusionsRendu(rendu.replace('allOrders','autreListe')).size,0);
+ assert.equal(exclusionsRendu("// "+rendu).size,0);
+ assert.ok(exclusionsRendu(lire('plateau-politique.js')).has('consulter_caisse_usine'));
+});

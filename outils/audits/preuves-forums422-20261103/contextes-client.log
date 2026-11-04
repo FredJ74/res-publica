@@ -1,0 +1,29 @@
+✔ réponses privées tardives / ville (7.780453ms)
+✔ réponses privées tardives / pays (2.184456ms)
+✔ réponses privées tardives / personnage (1.810694ms)
+✔ réponses privées tardives / uid (1.948809ms)
+✔ réponses privées tardives / session (1.823784ms)
+✔ réponses privées tardives / adhesion (2.737815ms)
+✔ messages vides confirmés : aucun ancien message privé conservé (1.40792ms)
+✔ aller-retour : cache local renouvelé, national conservé dans le même pays (2.348979ms)
+✔ perte d’adhésion : purge des sujets, compteurs et voyants privés (1.832807ms)
+✔ compteurs tardifs après perte d’adhésion ignorés sans nouvelle ouverture (1.614865ms)
+✔ activité tardive après déplacement ignorée (1.558171ms)
+✔ sujets : identité changée, réponse ignorée et délai libéré (1.544782ms)
+✔ ancienne requête terminée ne déverrouille pas la nouvelle lecture (2.005182ms)
+✔ adhésions fraîches : réouverture après exclusion, lecture sans élection (110.671231ms)
+✔ adhésions fraîches : chargeur normal conserve ses traitements existants (62.264542ms)
+✔ adhésions fraîches : changement de compte pendant la lecture, aucune adoption (37.683102ms)
+✔ adhésions fraîches : panne ne confirme aucun droit (42.230195ms)
+✔ lien direct non préchargé : autorise (9.102346ms)
+✔ lien direct non préchargé : hors-ville (6.10012ms)
+✔ lien direct non préchargé : tardive (1.086585ms)
+✔ lien direct non préchargé : absent (1.073025ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 382.650764
