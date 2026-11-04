@@ -845,8 +845,14 @@ window.addEventListener('DOMContentLoaded', () => {
     Promise.resolve().then(fn).catch(e => console.warn('[Fond] ' + nom, e))
       .finally(() => lecturesFondEnCours.delete(nom));
   }
-  lancerLectureFond('mails', verifierNouveauxMails);
-  setInterval(() => lancerLectureFond('mails', verifierNouveauxMails), 60000);
+  // Avant la lecture du courrier : le serveur constate les caisses terrestres arrivées à échéance
+  // et prévient leurs destinataires (livraisons par tranches de 4 h, 04/11/2026).
+  async function constaterArriveesPuisMails() {
+    if (typeof sbRpc === 'function') await sbRpc('fret_arrivees_constater', {}).catch(() => null);
+    return verifierNouveauxMails();
+  }
+  lancerLectureFond('mails', constaterArriveesPuisMails);
+  setInterval(() => lancerLectureFond('mails', constaterArriveesPuisMails), 60000);
 
   // Voyant d'activité forum (17 août 2026) — même cadence que la vérification des mails, même
   // raison de réduction

@@ -42,3 +42,12 @@ test('la réception fait constater les arrivées terrestres échues avant de lis
   const constat = rec.indexOf("sbRpc('fret_arrivees_constater'");
   assert.ok(constat > 0 && constat < rec.indexOf("sbGet('caisses_fret'"));
 });
+
+test("le courrier d'arrivée est déclenché par la lecture du courrier et par la tâche de minuit", () => {
+  const core = lire('plateau-core.js');
+  assert.match(core, /sbRpc\('fret_arrivees_constater'[\s\S]{0,80}verifierNouveauxMails\(\)/);
+  assert.match(core, /setInterval\(\(\) => lancerLectureFond\('mails', constaterArriveesPuisMails\)/);
+  const cron = lire('api/cron-minuit.js');
+  const f = cron.slice(cron.indexOf('async function traiterArriveesCaissesFret('));
+  assert.ok(f.indexOf("sbRpc('fret_arrivees_constater'") < f.indexOf("sbGet('caisses_fret'"));
+});
