@@ -9629,6 +9629,26 @@ async function ouvrirExpedierColis(pa, cost) {
     return;
   }
 
+  // Amendes de fausse déclaration dues sur mes caisses expédiées (règle de Fred du 04/11) :
+  // l'expéditeur peut les régler ici ; sinon le destinataire paiera, ou la caisse sera vendue.
+  if (!window._fretAmendesVues) {
+    const amendes = typeof sbGet === 'function'
+      ? await sbGet('caisses_fret', 'leader=eq.' + encodeURIComponent(moi) + '&amende_due=gt.0&amende_payee=is.false&statut=in.(fermee,en_transit,arrivee)').catch(() => [])
+      : [];
+    if (amendes && amendes.length > 0) {
+      let h = '<div style="padding:1rem"><div class="cpj-note" style="margin-bottom:.8rem">Injonction des douanes : amende de fausse déclaration due sur vos caisses. Si vous ne payez pas, le destinataire devra la régler pour retirer la caisse ; sinon elle sera saisie et vendue au profit du Trésor.</div>';
+      amendes.forEach(c => {
+        h += '<div style="padding:.6rem .8rem;margin-bottom:.4rem;border:1px solid #a98d56">Caisse vers ' + escapeHtmlText(c.destinataire || '?')
+          + ' — amende : ' + Number(c.amende_due) + ' FR'
+          + '<button class="cpj-touche cpj-primaire" style="width:100%;margin-top:.4rem" onclick="payerAmendeCaisseFret(\'' + c.id + '\',' + pa + ',' + cost + ')">Payer l\'amende</button></div>';
+      });
+      h += '<button class="cpj-touche" style="width:100%" onclick="window._fretAmendesVues=true;ouvrirExpedierColis(' + pa + ',' + cost + ')">Continuer vers l\'expédition</button></div>';
+      document.getElementById('postes-body').innerHTML = h;
+      return;
+    }
+  }
+  window._fretAmendesVues = false;
+
   const caisses = typeof sbGet === 'function'
     ? await sbGet('caisses_fret', 'leader=eq.' + encodeURIComponent(moi) + '&building_origine=eq.' + encodeURIComponent(buildingId) + '&statut=eq.ouverte').catch(() => [])
     : [];
@@ -9688,11 +9708,20 @@ async function commanderFretServeur(action, caisseId, params) {
     const motifs = { pas_au_port: 'Vous devez être au port.', pas_responsable: 'Seul le responsable de la caisse peut faire cela.',
       pas_destinataire: 'Seul le destinataire peut faire cela.', caisse_fermee: 'La caisse est déjà fermée.', caisse_vide: 'La caisse est vide.',
       destinataire_invalide: 'Destinataire invalide.', port_indisponible: 'Aucun port de fret n\'est ouvert dans l\'empire de ce destinataire.',
-      caisse_non_fermee: 'La caisse doit d\'abord être fermée.', personnage_introuvable: 'Personnage introuvable.' };
+      caisse_non_fermee: 'La caisse doit d\'abord être fermée.', fonds_insuffisants: 'Fonds insuffisants.', aucune_amende: 'Aucune amende due.', caisse_saisie: 'La caisse a été saisie.', personnage_introuvable: 'Personnage introuvable.' };
     showToast('Action refusée', motifs[v.raison] || ('Le serveur refuse : ' + (v.raison || 'état indisponible') + '.'), false);
     return null;
   }
   return v;
+}
+
+async function payerAmendeCaisseFret(caisseId, pa, cost) {
+  const v = await commanderFretServeur('amende_payer', caisseId, {});
+  if (!v) return;
+  await relirePaiementFret();
+  showToast('Amende payée', v.amende + ' FR versés au Trésor.', true, true);
+  addJournalEntry('Amende de fausse déclaration payée (' + v.amende + ' FR).', 'event-info');
+  await ouvrirExpedierColis(pa, cost);
 }
 
 async function relirePaiementFret() {
@@ -10024,8 +10053,10 @@ async function afficherCaisseArriveeFret(caisseId, pa) {
   if (!caisse.dedouanee) {
     const douane = calculerDroitsDouaneCaisseFret(caisse);
     const gardiennage = calculerGardiennageCaisseFret(caisse, Date.now());
-    const total = douane + gardiennage;
-    html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.4rem">Caisse non dédouanée. Droits de douane : ' + douane + ' FR' + (gardiennage > 0 ? ' · Gardiennage : ' + gardiennage + ' FR' : '') + ' · <strong>Total : ' + total + ' FR</strong>.</div>';
+    // Amende de fausse déclaration encore due sur la caisse (montant enregistré par le serveur).
+    const amende = caisse.amende_payee ? 0 : Math.max(0, Number(caisse.amende_due || 0));
+    const total = douane + gardiennage + amende;
+    html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.4rem">Caisse non dédouanée. Droits de douane : ' + douane + ' FR' + (gardiennage > 0 ? ' · Gardiennage : ' + gardiennage + ' FR' : '') + (amende > 0 ? ' · Amende de fausse déclaration (au Trésor) : ' + amende + ' FR' : '') + ' · <strong>Total : ' + total + ' FR</strong>.</div>';
     if (estDestinataire) {
       html += '<button onclick="dedouanerCaisseFret(\'' + caisseId + '\',' + pa + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Payer et dédouaner</button>';
     } else {
@@ -10101,8 +10132,10 @@ async function dedouanerCaisseFret(caisseId, pa) {
   if (typeof rDed.liquide === 'number') state.liquide = rDed.liquide;
 
   updateUI();
-  showToast('Caisse dédouanée', total + ' FR versés à la caisse du port. Retraits libres.', true, true);
-  addJournalEntry('Caisse de fret dédouanée (' + total + ' FR versés à la caisse du port).', 'event-good');
+  const amendePayee = Number(rDed.amende || 0);
+  const detail = amendePayee > 0 ? ' (dont ' + amendePayee + ' FR d\'amende au Trésor)' : '';
+  showToast('Caisse dédouanée', total + ' FR payés' + detail + '. Retraits libres.', true, true);
+  addJournalEntry('Caisse de fret dédouanée : ' + total + ' FR payés' + detail + '.', 'event-good');
   await afficherCaisseArriveeFret(caisseId, pa);
 }
 
