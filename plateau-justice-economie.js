@@ -6557,7 +6557,7 @@ async function doConsulterCatalogueManufactures() {
   };
   const echapper = (valeur) => String(valeur ?? '').replace(/[&<>"']/g, c =>
     ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
-  let html = '<div style="padding:1rem;display:flex;flex-direction:column;gap:.8rem">';
+  let html = '<div style="padding:1rem;background:#151A21;color:#e0e6ed">';
   for (const id of ids) {
     const p = PRODUITS_MANUFACTURES_USINE[id];
     const stock = Math.max(0, Number(usine.stockProduits?.[p.type]) || 0);
@@ -6567,8 +6567,8 @@ async function doConsulterCatalogueManufactures() {
       ' (stock : ' + echapper(usine.stockMatieres?.[m] || 0) + ')').join(' · ');
     const possible = materiaux.every(([m,q]) => (Number(usine.stockMatieres?.[m]) || 0) >= q);
     const boutons = actions[id];
-    html += '<div style="border:1px solid #394656;background:#252D38;padding:.8rem">';
-    html += '<div style="font-size:1rem;color:#e6d5af;font-weight:bold">' + echapper(p.label) + '</div>';
+    html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #394656;background:#252D38;border-radius:9px;margin-bottom:.5rem;align-items:center;flex-wrap:wrap">';
+    html += '<div style="font-size:.93rem;color:#E5C477;font-weight:bold">' + echapper(p.label) + '</div>';
     html += '<div style="font-size:.82rem;color:#c2bdaf;margin:.5rem 0">Prix : ' +
       Number(p.prixVente).toLocaleString('fr-FR') + ' ' + echapper(devise) +
       ' · Stock disponible : ' + stock + ' · Encombrement : ' + echapper(p.encombrement) + '</div>';
@@ -6578,7 +6578,7 @@ async function doConsulterCatalogueManufactures() {
     if (boutons) {
       const bouton = (action, titre, autorise) =>
         '<button ' + (autorise ? 'onclick="' + action + '"' : 'disabled') +
-        ' style="flex:1;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;' +
+        ' style="padding:.45rem .7rem;border:1px solid #526176;border-radius:5px;background:#394656;color:#f2f4f6;' +
         (autorise ? 'cursor:pointer' : 'opacity:.5;cursor:not-allowed') + '">' + titre + '</button>';
       html += bouton(boutons[0], 'Produire', possible) +
         bouton(boutons[1], 'Acheter', stock > 0);
