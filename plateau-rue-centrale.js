@@ -5,6 +5,16 @@ const RUE_CENTRALE_DEPART = {
   // Autres villes/empires a ajouter au fur et a mesure des images produites
 };
 
+// NAVIGATION DE RUE TENUE PAR LE SERVEUR, POUR TOUTE VILLE QUI A DES RUES (4 novembre 2026).
+// Le deplacement de rue, la sortie d'un batiment et la reprise apres rechargement etaient
+// confirmes par le serveur pour la seule Republia (« si le pays est Republia ») : a Novomirsk, la
+// sortie n'etait jamais enregistree, le serveur gardait le PJ dans le batiment quitte, et un
+// rechargement le ramenait au Centre multimodal (constat de Fred). Les fonctions serveur sont
+// communes a tous les empires ; seule la presence de rues dans la ville decide.
+function rueCentraleServeur(pays, ville) {
+  return !!(RUE_CENTRALE_DEPART[pays] && RUE_CENTRALE_DEPART[pays][ville]);
+}
+
 // =====================================================================
 // LES PREMIERS PAS D'UN PERSONNAGE NEUF (2 octobre 2026)
 // =====================================================================
@@ -1134,7 +1144,7 @@ function trouverNoeudRueCentralePourBatiment(pays, buildingId) {
 
 async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
   const contexte=contexteNavigationRue(),lecture=++rueCentraleLecturePosition;
-  if (pays === 'republic') {
+  if ((typeof rueCentraleServeur === 'function' ? rueCentraleServeur(pays, state.currentCity) : pays === 'republic')) {
     // Une reconnexion ne reprend jamais une position provenant du localStorage.
     // Le cache ne sert qu'a choisir l'orientation de la scene, pas le lieu.
     if (typeof sbRpc !== 'function') return;
@@ -1184,7 +1194,7 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
         capitale: 'luthecia-palais-presidentiel',
         ville_a: 'psm-centre-multimodal',
         ville_b: 'montrouge-vue-3'
-      }[state.currentCity];
+      }[state.currentCity] || RUE_CENTRALE_DEPART[pays]?.[state.currentCity];
       if (departOfficiel && RUE_CENTRALE_NOEUDS[pays]?.[departOfficiel]) {
         await afficherNoeudRue(pays, departOfficiel, null);
         return;
@@ -1202,7 +1212,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   if (!positionDejaConfirmee && typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[noeudId];
   if (!noeud) return;
-  if (pays === 'republic' && !positionDejaConfirmee) {
+  if ((typeof rueCentraleServeur === 'function' ? rueCentraleServeur(pays, state.currentCity) : pays === 'republic') && !positionDejaConfirmee) {
     if (typeof sbRpc !== 'function') return;
     if(rueCentraleDeplacementEnCours&&contexteNavigationRueValide(rueCentraleDeplacementEnCours))return;
     rueCentraleDeplacementEnCours=contexte;

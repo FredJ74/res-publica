@@ -34,9 +34,10 @@ test('le cache local ne fournit jamais bâtiment ni pièce',()=>{
  assert.doesNotMatch(l,/positionLocale|currentBuilding\s*=\s*char\.|currentRoom\s*=\s*char\./,'aucune réimposition locale');
 });
 
-test('rue de Républia : position relue au serveur, le cache ne sert qu à l orientation',()=>{
+test('rue (Républia et toute ville à rues) : position relue au serveur, le cache ne sert qu à l orientation',()=>{
  const f=fonction(rue,'async function initialiserRueCentrale(');
- const branche=f.slice(f.indexOf("if (pays === 'republic')"));
+ assert.ok(f.indexOf("if ((typeof rueCentraleServeur === 'function' ? rueCentraleServeur(pays, state.currentCity) : pays === 'republic'))")>=0,'branche serveur commune à toute ville à rues');
+ const branche=f.slice(f.indexOf("if ((typeof rueCentraleServeur === 'function' ? rueCentraleServeur(pays, state.currentCity) : pays === 'republic'))"));
  assert.match(branche,/sbRpc\('rue_position_lire'/,'lecture serveur de la rue');
  assert.ok(branche.indexOf('rue_position_lire')<(branche.indexOf('obtenirNoeudRueCentraleMemorise')>>>0),'lecture serveur avant tout souvenir local');
  assert.match(branche,/position\.city !== state\.currentCity/,'refus nommé si la ville ne correspond pas');

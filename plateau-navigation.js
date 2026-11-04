@@ -1634,7 +1634,8 @@ async function sortirBatiment() {
   const retourVersTerrainsVille = typeof villeTerrainsSousLieu === 'function' ? villeTerrainsSousLieu(batimentQuitte) : null;
 
   // Le meme contrat pour tous les batiments : sortie declaree puis ordre serveur.
-  if(state.country==='republic'){
+  // Toute ville qui a des rues (rueCentraleServeur, plateau-rue-centrale.js), plus seulement Republia.
+  if(typeof rueCentraleServeur==='function'?rueCentraleServeur(state.country,state.currentCity):state.country==='republic'){
     const resultat=await confirmerSortieBatimentServeur(contexteSortie);
     if(resultat?.obsolete)return;
     if(!contexteNavigationRueValide(contexteSortie)&&!(resultat?.verdict?.transport?.etat==='session_perdue'&&sortieBatimentSessionPerdueVisible(contexteSortie)))return;
