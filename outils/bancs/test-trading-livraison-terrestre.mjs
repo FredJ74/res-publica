@@ -35,3 +35,10 @@ test('la réception ne liste que les caisses livrées dans le bâtiment courant,
   assert.match(rec, /\+ ici\)/);
   assert.match(src, /startsWith\('entrepot-logistique-'\) \? 'salle_ventes' : ROOM_CHARGEMENT_FRET/);
 });
+
+test('la réception fait constater les arrivées terrestres échues avant de lister (tranches de 4 h)', () => {
+  const src = lire('plateau-justice-economie.js');
+  const rec = src.slice(src.indexOf('async function ouvrirReceptionnerCommande('), src.indexOf('async function afficherCaisseArriveeFret('));
+  const constat = rec.indexOf("sbRpc('fret_arrivees_constater'");
+  assert.ok(constat > 0 && constat < rec.indexOf("sbGet('caisses_fret'"));
+});

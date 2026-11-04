@@ -10012,6 +10012,9 @@ async function ouvrirReceptionnerCommande(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 
   let caisses = [];
+  // Livraison terrestre par tranches de 4 h (04/11/2026) : le serveur constate d'abord les
+  // caisses arrivées à échéance (la tâche de minuit ne passe qu'une fois par jour).
+  if (typeof sbRpc === 'function') await sbRpc('fret_arrivees_constater', {}).catch(() => null);
   if (typeof sbGet === 'function') {
     // Seulement les caisses livrées dans CE bâtiment (port ou entrepôt logistique, 04/11/2026).
     const ici = '&building_destination=eq.' + encodeURIComponent(state.currentBuilding || '');
@@ -10023,7 +10026,7 @@ async function ouvrirReceptionnerCommande(pa, cost) {
   }
 
   if (caisses.length === 0) {
-    document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Aucune caisse arrivée pour vous ici. Une caisse en route n\'apparaît qu\'après la passe de minuit qui suit son arrivée prévue.</div>';
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Aucune caisse arrivée pour vous ici. Une caisse en route apparaît à l\'heure de livraison annoncée par courrier.</div>';
     return;
   }
   if (caisses.length === 1) { await afficherCaisseArriveeFret(caisses[0].id, pa); return; }
