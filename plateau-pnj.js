@@ -729,7 +729,7 @@ async function actualiserCibleCombatPnj(pnj) {
   zone.replaceChildren(bouton);return true;
 }
 
-function openPnjModal(encodedPnj) {
+function openPnjModal(encodedPnj, options = null) {
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); }
   catch(e) { return; }
@@ -1132,7 +1132,13 @@ function openPnjModal(encodedPnj) {
       + (['squatter_cool','squatter_agr'].includes(pnj.terrainPnjId || pnj.id) ? '_terrain_rp3' : '');
     const histOpen = state.pnjConversations?.[convKeyOpen] || [];
 
-    if (pnjNameClean === 'Jérémy' && histOpen.length >= 2) {
+    if (options && typeof options.initialSpeech === 'string') {
+      // Interpellation sociale : le PNJ vient de parler. Afficher sa vraie phrase
+      // immédiatement, dans la conversation existante, sans seconde salutation IA.
+      // L'envoi et l'historique restent gérés exclusivement par talkToPnj().
+      const speechEl = document.getElementById('pnj-speech');
+      if (speechEl) speechEl.textContent = options.initialSpeech;
+    } else if (pnjNameClean === 'Jérémy' && histOpen.length >= 2) {
       // Ne jamais reafficher la derniere reponse pour Jeremy (peut preter a confusion selon
       // le lieu/contexte au moment de la reouverture) : on repart sur une invitation neutre.
       const speechElJeremy = document.getElementById('pnj-speech');
