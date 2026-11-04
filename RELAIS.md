@@ -25,6 +25,12 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Novomirsk : raccordement vue par vue — Claude, 04/11/2026 (à reprendre)
+
+Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêta : V1 Librairie du Peuple, V2 La Mère Volga et Musée municipal, V6 Palais des Ambassades (ordres « Bientôt disponible »), V7 Pavillon des Ambassadeurs et Résidence impériale ; Grand Hôtel sans suites ; monnaie PSK ; navigation de rue serveur dans toute ville à rues (PR #474).
+**Prochaine étape décidée par Fred** : V8 Entrepôt logistique = copie de Luthécia en **interface + ordres « Bientôt disponible »** (directeur PNJ à faire nommer par Fred). Raison : `entrepots_par_ville` est indexé par ville sans pays (8 fonctions serveur et la passe de minuit) ; une copie naïve vendrait les stocks de Luthécia. Ajouter le pays aux entrepôts = **chantier socle à part**, avant les autres empires.
+Restent ensuite, zones « à venir » : V8 Direction du Renseignement ; V11 Caserne centrale (2 entrées) et Garage ; V12 Salon de coiffure ; V14 Logements et Pharmacie officielle ; V16 Marchande de poissons ; V18 Usine Pharmanov et Musée de la République de Sovarka (copie probable du Musée national, à demander). Puis le **Palais du Gouvernement** (V1, pas réellement raccordé, gardé pour la fin). À confirmer par Fred : le Grand Hôtel garde-t-il restaurant et bar ? Figures du musée municipal à relire. Méthode de Fred : une question de design à la fois, l'interface d'abord, les images ensuite (`imagesAVenir`).
+
 ### Commissariat PSM : contexte PNJ et portrait — Codex, 04/11/2026
 
 **Livré : PR #450 fusionnée le 04/11 à 14 h 37 (head `b39cfd61`, branche entièrement contenue dans main ; vérifié par Claude le 04/11 à 19 h 15).** La mention « PR non créée » ci-dessous est périmée. **À constater en jeu** : parler à Martial Morvan, qui situe correctement son bureau ; portrait du brigadier d'accueil de PSM.
