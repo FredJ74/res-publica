@@ -11,9 +11,10 @@ def main():
  from psycopg2.extras import Json
  # La capture brute reste privée hors Git. Le diff avant/après public suffit
  # pour reconstituer ce décor de TEST à partir du générateur (pas une preuve vivante).
- plan=json.loads((R/'outils/audits/LIVRAISON-COUTS-219-20261031.json').read_text());source=json.loads(subprocess.check_output(['python3',str(R/'outils/generateurs/generer_ordres_couts.py'),'--json'],text=True,cwd=R));ajouts_ssm=('ssm_besoin_aide','ssm_demander_rendezvous');nouveaux={(x['fn'],x['pa'],x['cost']) for x in source if x['fn'] in ajouts_ssm};assert nouveaux=={('ssm_besoin_aide',0,0),('ssm_demander_rendezvous',0,0)},'ordres SSM absents ou tarifs non canoniques';canon={(x['fn'],x['pa'],x['cost']) for x in source if x['fn'] not in ajouts_ssm}
- # « Attribuer une mission », retire le 03/11/2026 (GAME-DESIGN-ARMEE.md), appartenait a la capture historique.
- assert not any(x['fn']=='assigner_mission' for x in source),'assigner_mission encore au catalogue';canon|={('assigner_mission',1,0)}
+ plan=json.loads((R/'outils/audits/LIVRAISON-COUTS-219-20261031.json').read_text());source=json.loads(subprocess.check_output(['python3',str(R/'outils/generateurs/generer_ordres_couts.py'),'--json'],text=True,cwd=R));ajouts_ssm=('ssm_besoin_aide','ssm_demander_rendezvous');nouveaux={(x['fn'],x['pa'],x['cost']) for x in source if x['fn'] in ajouts_ssm};assert nouveaux=={('ssm_besoin_aide',0,0),('ssm_demander_rendezvous',0,0)},'ordres SSM absents ou tarifs non canoniques';ajouts_manufactures=('consulter_catalogue_manufactures',);nouveau={(x['fn'],x['pa'],x['cost']) for x in source if x['fn'] in ajouts_manufactures};assert nouveau=={('consulter_catalogue_manufactures',0,0)},'ordre catalogue manufacture absent ou incorrect';canon={(x['fn'],x['pa'],x['cost']) for x in source if x['fn'] not in ajouts_ssm+ajouts_manufactures}
+ # Photographie historique : ancien ordre militaire et deux anciens boutons scierie.
+ retires_historique={('assigner_mission',1,0),('fabriquer_armoire_souvenirs',3,0),('acheter_armoire_souvenirs',0,0)}
+ assert not any(x['fn'] in {t[0] for t in retires_historique} for x in source),'ancien ordre encore au catalogue';canon|=retires_historique
  retire={(x['fn'],x['pa'],x['cost']) for x in plan['retirer']};ajoute={(x['fn'],x['pa'],x['cost']) for x in plan['ajouter']};capture=sorted((canon-ajoute)|retire)
  assert len(capture)==plan['avant']['lignes']
  base=charger('base','outils/bancs/banc-inventaire-receptions-local.py');a=charger('sources','outils/bancs/banc-audit-securite-135-local.py')

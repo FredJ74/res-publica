@@ -24,10 +24,17 @@ def preparer(destination=None):
  if ssm != [{'fn':'ssm_besoin_aide','pa':0,'cost':0},
             {'fn':'ssm_demander_rendezvous','pa':0,'cost':0}]:
   raise ValueError('Tarifs SSM non examines ou absents')
- # « Attribuer une mission », retire le 03/11/2026 (GAME-DESIGN-ARMEE.md), appartient a la
- # photographie historique : on l'y remet tel quel.
- if any(r['fn']=='assigner_mission' for r in gen):raise ValueError('assigner_mission ne doit plus figurer au catalogue')
- t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm]+[('assigner_mission',1,0)])
+ # Le catalogue manufacturé du 04/11 remplace deux boutons de la scierie.
+ # Ils appartiennent à cette photographie historique, pas au jeu actuel.
+ nouveau='consulter_catalogue_manufactures'
+ if [r for r in gen if r['fn']==nouveau]!=[{'fn':nouveau,'pa':0,'cost':0}]:
+  raise ValueError('Ordre catalogue manufacture absent ou incorrect')
+ retires=[('assigner_mission',1,0),
+          ('fabriquer_armoire_souvenirs',3,0),
+          ('acheter_armoire_souvenirs',0,0)]
+ if any(r['fn'] in {t[0] for t in retires} for r in gen):
+  raise ValueError('Ordre retiré réintroduit dans les commandes actuelles')
+ t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,)]+retires)
  md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
  if md5!=cm['apres']['md5'] or len(t)!=cm['apres']['lignes']:raise ValueError('Sources de tarifs changées : réexaminer le plan')
  entrees=om['migrations']+gm['prerequis']+gm['migrations']+[{'version':cm['version'],'fichier':cm['migration'],'sha256':cm['sha256']}]
