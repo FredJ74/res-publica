@@ -1,9 +1,32 @@
 # Réception du catalogue après Forums #422 — intégrateur ChatGPT
 
-**Demande explicite à ChatGPT intégrateur :** récupérer maintenant les quatre exports
-canoniques actuels du projet `jxpwoosmmhohoihxpbuc`, puis transmettre leurs résultats
-intégraux par fichier privé avec SHA-256 indépendant. Aucun SQL à faire exécuter par
-Fred. La migration est déjà appliquée sous `20261104001711` : ne pas la rejouer.
+**État courant : la collecte a déjà été exécutée par ChatGPT, mais son fichier
+n'est pas présent dans le workspace Codex. Ne pas la recommencer si l'original
+est disponible.** Aucun outil/jeton Vercel ou Supabase ni clé PGP n'est exposé ici.
+L'identifiant d'instantané seul n'est pas un fichier téléchargeable.
+
+**Action unique pour ChatGPT intégrateur : transmettre le JSON déjà déchiffré de
+la capture existante en fichier privé.** Ne publier ni archive ni catalogue ni clé
+sur GitHub/CI. La migration `20261104001711` est déjà appliquée, ne pas la rejouer.
+
+Paquet annoncé, **non reçu et non vérifié ici** :
+- instantané `snap_VVIJobjaBuB1JmUk0KnbWfkzXRFQ`, expiration annoncée 11/11/2026 ;
+- `hg422-capture.pgp.b64` : 1 236 916 octets, SHA256
+  `60676500e22ff0a7bd787424d122d3c1965fce3607e872883043094050a043f8` ;
+- JSON déchiffré : 5 639 402 octets, SHA256
+  `054043e74e8f50dbfcff6f42cc224bf7f547953779126c73cfd1a162305af954` ;
+- manifeste original `hg422_capture_manifest.json` non reçu. Le MANIFESTE de ce
+  dossier conserve ces **attentes communiquées**, sans se faire passer pour lui.
+
+Ces empreintes ne valent que pour cette capture précise. Un autre relevé exige
+sa propre provenance et ses empreintes indépendantes, jamais un hash forcé.
+Le JSON original déchiffré suffit : aucune clé privée à transmettre à Codex.
+Après réception, comparer taille/SHA256, puis utiliser le validateur existant
+avec `--sortie-privee` comme indiqué plus bas. Comparer registre et empreintes,
+rendre/seeds, contrôler le diff et seulement ensuite certifier la livraison.
+
+Les requêtes ci-dessous restent le dispositif de collecte **de remplacement**,
+à utiliser par l'intégrateur uniquement si le paquet existant est irrécupérable.
 
 Les quatre fichiers `outils/bancs/COLLECTE-FORUMS422-export_*.sql` sont exactement les SELECT imprimés par
 `outils/baseline/requetes.py --export <nom>`. `outils/bancs/COLLECTE-FORUMS422-controle_global.sql` est le contrôle

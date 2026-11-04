@@ -1,5 +1,55 @@
 # Forums #422 — migration appliquée ; collecte canonique à recevoir
 
+## Dernière reprise — capture privée annoncée, non reçue
+
+Main `ea199d56` intégré dans `780db210` : #431, #432, #436 et #437 conservées,
+aucun ancien moteur rétabli. Le conflit du seul banc prêts garde les assertions
+de main et les cas de panne/refus (34 assertions). Version cache de supabase.js
+majorée dans les deux pages. Les correctifs Forums restent raccordés à la même
+source serveur. Aucun code financier, immobilier ou combat modifié par ce lot.
+
+Vérifications réexécutées après main : **12/12 globaux, 191/191 clients,
+119/119 Chromium, 92/92 transversaux, 25/25 PostgreSQL17.6**. Les anciennes policies
+et l'ancien helper échouent réellement en contre-épreuves. Ces fixtures locales
+ne certifient pas un clone fidèle au nouveau catalogue, ni une session PJ réelle.
+La CI du prochain SHA reste à observer, pas déduite de `844d0f3d`.
+
+### Verrou extérieur de transfert, solutions accessibles épuisées
+
+Le dernier prompt annonce une collecte déjà réussie (403 tables,1449 fonctions,
+252 policies,1190 migrations), dans l'instantané Vercel
+`snap_VVIJobjaBuB1JmUk0KnbWfkzXRFQ` (expiration annoncée11/11). **Ces données et
+empreintes sont des attentes transmises par l'intégrateur, pas une réception.**
+Aucun catalogue complet ni fichier chiffré n'est publié ici.
+
+Recherches locales effectuées : noms de capture/manifeste, fichiers cryptographiques
+liés à #422 et fichiers des deux tailles annoncées, dans /workspace et /tmp.
+Aucun trouvé ; aucune récupération active. `gpg` est installé mais aucune clé
+privée ni GNUPGHOME n'est disponible. Aucun outil Supabase/Vercel, CLI Vercel,
+jeton ou configuration d'authentification sur les emplacements usuels. Les outils
+exposés ne permettent pas de restaurer un instantané Vercel. L'identifiant seul
+ne fournit ni URL privée ni autorisation ; aucune restauration fictive tentée.
+Supabase direct n'a pas de jeton ni de canal authentifié disponible. Aucun
+contournement par une ancienne capture, un rôle anonyme ou une fonction de joueur.
+
+**Unique action nécessaire : ChatGPT intégrateur transmet le JSON existant déjà
+déchiffré en pièce jointe privée** (5 639 402 octets ; SHA256
+`054043e74e8f50dbfcff6f42cc224bf7f547953779126c73cfd1a162305af954`).
+Cela évite la transmission d'une clé et une nouvelle collecte inutile. Le manifeste
+original `hg422_capture_manifest.json` n'est pas reconstitué artificiellement :
+les attentes sont consignées séparément dans le MANIFESTE du paquet de réception.
+Si un autre snapshot est fourni, sa provenance et son SHA indépendant doivent
+l'accompagner ; jamais remplacer une empreinte pour le faire accepter.
+
+Après réception : SHA/taille, validateur existant et matérialisation privée, rendu
+canonique, seeds autorisés, diff intégral, empreintes, registre et contrôles.
+La migration Forums demeure **déjà appliquée sous `20261104001711`** ; ne pas la
+rejouer. Aucune nouvelle migration ni donnée PJ touchée dans cette reprise.
+Baseline de production non régénéré, fusion non effectuée, Vercel READY et recette
+authentifiée non vérifiés. Le paquet de réception précédent reste fonctionnel.
+
+---
+
 ## État courant — 04/11, après application par l'intégrateur
 
 **La migration n'est plus à appliquer.** Version réelle `20261104001711`, nom

@@ -38,5 +38,29 @@
   "reception_privee": {
     "format_prefere": "Résultat intégral du SELECT capture_atomique.sql (colonne relais_canonique_219) ; SHA-256 indépendant calculé sur le fichier original.",
     "format_alternatif": "Quatre résultats JSON natifs ou enveloppes execute_sql reconnus par rendre.charger_exports, plus contrôle global et provenance cohérente. Ne pas mélanger des captures."
+  },
+  "capture_annoncee_non_recue_20261104": {
+    "provenance": "Mission utilisateur ; empreintes et comptes annoncés, non vérifiés sur un fichier reçu.",
+    "capture_effectuee_par_integrateur": true,
+    "recue_dans_ce_workspace": false,
+    "comptes_annonces": {
+      "tables": 403,
+      "fonctions": 1449,
+      "policies": 252,
+      "registre": 1190
+    },
+    "instantane_vercel": "snap_VVIJobjaBuB1JmUk0KnbWfkzXRFQ",
+    "expiration_annoncee": "2026-11-11",
+    "manifeste_original_non_recu": "hg422_capture_manifest.json",
+    "archive_chiffree": {
+      "fichier": "hg422-capture.pgp.b64",
+      "octets": 1236916,
+      "sha256": "60676500e22ff0a7bd787424d122d3c1965fce3607e872883043094050a043f8"
+    },
+    "json_dechiffre": {
+      "octets": 5639402,
+      "sha256": "054043e74e8f50dbfcff6f42cc224bf7f547953779126c73cfd1a162305af954"
+    },
+    "action_unique": "ChatGPT intégrateur : transmettre le JSON existant déjà déchiffré comme fichier privé, sans publier la capture ni transmettre de clé. Ne pas recollecter si le fichier original reste disponible."
   }
 }

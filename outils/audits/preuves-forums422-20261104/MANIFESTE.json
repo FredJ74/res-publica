@@ -63,5 +63,30 @@
       "globaux-apres-main428.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb",
       "catalogue-main428.log": "1a721796d4757eca7b4488099dc97c96034c62045768c0d9662a558282b43730"
     }
+  },
+  "reprise_capture_privee": {
+    "main": "ea199d56",
+    "capture_annoncee_recuperee": false,
+    "cle_privee_disponible": false,
+    "donnees_production_modifiees": false,
+    "baseline_reconstruit_depuis_nouvelle_capture": false,
+    "fichiers_sha256": {
+      "globaux-main437.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb",
+      "clients-main437.json": "1faaa5c6eab458a0596f2d5e67e2880f85ffdc5227a9e0078933dd7a8b304444",
+      "chromium-main437.log": "47a6224b4f2fdb66ebd0c66becc97ea824b051998f4a78dc3c607f5c7dbef268",
+      "transversaux-main437.log": "b79bdcd8d0e6d51dbd82bccde975c19aa0743010f8dd641365b023c6fb9c8288",
+      "transfert-prive-metadata.json": "edef1839fc30567d21758cc1a98d1de1d550845574e31fc521866a905d887920",
+      "sql17-main437.json": "3eabcba6ac2735f15283c5fa2776b57b618b191244663e5cc339fdb4697b5d08",
+      "contre-rls-main437.json": "6a845794b9b317bd5c52cd0ccfe1f58b2a51149723c3ecab93d2569f0b8ae91c",
+      "contre-publication-main437.json": "8392a2cec23b0beaab9bd548530e8f6498e5105dd1518ad6f0612a5ed4477edd"
+    },
+    "sources_sha256": {
+      "forum.js": "632a390b12b4405b11cb3685a960e9b7a94fd5dc78c8d8dfd9cd6ada97b8fc07",
+      "supabase.js": "4e0bbe02bc36912dc71b1537eb29f21f07aa28151fd30f956903302bb1acc1b7",
+      "index.html": "3d46850fd5fdad193ace7476126cfcb6a9dd318cab5a4e395338432d32c1c813",
+      "plateau.html": "cc7bbfe621b87c14a52d4caa148864e025353c950a0dcd36ac77802be63e4e08",
+      "outils/bancs/collecte-forums422/MANIFESTE.json": "e03d9d3399c67233ad789337387cb8190d9e0df64638176dc4293afd3a130638",
+      "outils/bancs/banc-prets-bancaires.js": "5a0af03652007924cdd5f9be1cbbf281f77910d4740a1b8a306720da169cda31"
+    }
   }
 }

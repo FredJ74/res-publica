@@ -90,10 +90,6 @@ globalThis.fetch = function (url, options) {
     return reponse(true, [{ name: 'Emprunteur', arg: 10000, liquide: 10000 }]);
   }
   if (methode === 'GET') return reponse(true, []);
-  // 04/11/2026 : le debit passe par le moteur serveur (arg est un total calcule).
-  if (methode === 'POST' && String(url).indexOf('rpc/argent_mouvement_serveur') !== -1) {
-    return reponse(true, { ok: true, applique: appel.corps.p_montant });
-  }
   return reponse(true, []);
 };
 
