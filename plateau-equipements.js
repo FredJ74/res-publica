@@ -10,7 +10,7 @@
    une connexion ; depuis ce bureau, le PJ consulte les cours des entrepots
    (0 PA) et achete a distance pour le compte d'une organisation economique
    (1 PA, payee par la caisse de l'organisation). La marchandise part en caisse
-   de fret vers le port industriel de PSM. Le chef autorise ses traders.
+   terrestre vers l'entrepôt logistique choisi (04/11). Le chef autorise ses traders.
 
    TOUT EST DECIDE PAR LE SERVEUR : emplacements (3 en gratuit, 6 avec l'option premium du bureau),
    jouissance, connexion, prix, stock, caisse, PA. Cet ecran n'affiche que ses
@@ -159,8 +159,11 @@ async function ouvrirTrading() {
   if (!r || r.ok !== true) { equipementsModale('Trading de matières premières', '<p class="cpj-note">' + equipementsEchapper(equipementsRefus(r)) + '</p>'); return; }
   const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
 
+  // Livraison terrestre nationale (décision de Fred, 04/11/2026) : camion ou train vers l'entrepôt
+  // logistique de la ville choisie, sans douane ; retrait à la Salle des ventes.
   let h = '<p class="cpj-note">Cours des matières dans les entrepôts. À distance, on ne peut qu\'acheter : ' +
-    'la marchandise part en caisse de fret vers le port industriel de Port-Sainte-Marie, où vous la retirerez. ' +
+    'la marchandise est livrée par voie terrestre, en caisse, à l\'entrepôt logistique de la ville que vous choisissez. ' +
+    'Elle y est disponible après la passe de minuit qui suit les 24 h de transport : Salle des ventes, « Réceptionner une caisse ». ' +
     'Chaque commande coûte 1 PA et elle est payée par la caisse de l\'organisation.</p>';
 
   if (!r.organisations.length) {
@@ -170,6 +173,15 @@ async function ouvrirTrading() {
       '<select id="trading-orga" class="cpj-champ">' + r.organisations.map(function (o) {
         return '<option value="' + equipementsEchapper(o.id) + '">' + equipementsEchapper(o.nom) + ' — caisse ' +
           equipementsEchapper(o.caisse) + ' ' + equipementsEchapper(cur) + '</option>';
+      }).join('') + '</select>';
+  }
+
+  if (r.organisations.length && r.entrepots.length) {
+    const villeIci = state.currentCity || 'capitale';
+    h += ' <label class="cpj-note" for="trading-livraison">Livrer à</label> ' +
+      '<select id="trading-livraison" class="cpj-champ">' + r.entrepots.map(function (e) {
+        return '<option value="' + equipementsEchapper(e.id) + '"' + (e.ville === villeIci ? ' selected' : '') + '>Entrepôt de ' +
+          equipementsEchapper(TRADING_VILLES[e.ville] || e.ville) + '</option>';
       }).join('') + '</select>';
   }
 
@@ -203,16 +215,18 @@ async function tradingAcheter(entrepot, ressource) {
   const champ = document.getElementById('trading-q-' + entrepot + '-' + ressource);
   const q = parseInt(champ && champ.value, 10);
   if (!orga || !(q > 0)) { showToast('Refusé', EQUIPEMENTS_REFUS.quantite_invalide, false); return; }
-  const r = await sbRpc('trading_acheter', { p_organisation: orga, p_entrepot: entrepot, p_ressource: ressource, p_quantite: q })
+  const livraison = (document.getElementById('trading-livraison') || {}).value || null;
+  const r = await sbRpc('trading_acheter', { p_organisation: orga, p_entrepot: entrepot, p_ressource: ressource, p_quantite: q, p_livraison: livraison })
     .catch(function () { return null; });
   if (!r || r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
   if (typeof r.pa === 'number' && typeof state !== 'undefined') { state.pa = r.pa; if (typeof updateUI === 'function') updateUI(); }
   const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
+  const ou = 'l\'Entrepôt Logistique de ' + (TRADING_VILLES[r.ville_livraison] || r.ville_livraison || '?');
   showToast('Commande passée', r.quantite + ' × ' + r.ressource + ' pour ' + r.montant + ' ' + cur +
-    ' (' + r.organisation + '). Caisse de fret en route vers le port de Port-Sainte-Marie.', true, true);
+    ' (' + r.organisation + '). Caisse en route vers ' + ou + ' : retrait à la Salle des ventes, détails par courrier.', true, true);
   if (typeof addJournalEntry === 'function') {
     addJournalEntry('Trading : ' + r.quantite + ' ' + r.ressource + ' achetés ' + r.montant + ' ' + cur +
-      ' pour ' + r.organisation + '. Caisse de fret en route vers le port industriel de Port-Sainte-Marie.', 'event-good');
+      ' pour ' + r.organisation + '. Caisse en route vers ' + ou + ' (Salle des ventes, « Réceptionner une caisse »).', 'event-good');
   }
   ouvrirTrading();
 }

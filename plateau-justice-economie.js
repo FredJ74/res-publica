@@ -9569,10 +9569,13 @@ function estObjetInterditFret(item) {
 }
 
 // ---- HELPERS ----
-async function jeSuisPresentDansRoomFret(pays, ville, buildingId) {
+function roomRetraitCaisseFret(buildingId) {
+  return String(buildingId || '').startsWith('entrepot-logistique-') ? 'salle_ventes' : ROOM_CHARGEMENT_FRET;
+}
+async function jeSuisPresentDansRoomFret(pays, ville, buildingId, roomId) {
   if (typeof sbGetPresencesInRoom !== 'function') return true; // repli permissif si le service est indisponible
   const moi = state.char?.name || '';
-  const presents = await sbGetPresencesInRoom(pays, ville, buildingId, ROOM_CHARGEMENT_FRET).catch(() => []);
+  const presents = await sbGetPresencesInRoom(pays, ville, buildingId, roomId || ROOM_CHARGEMENT_FRET).catch(() => []);
   return (presents || []).some(p => p.name === moi);
 }
 
@@ -10004,21 +10007,23 @@ async function expedierCaisseFret(caisseId) {
 async function ouvrirReceptionnerCommande(pa, cost) {
   const pays = state.country || 'republic';
   const moi = state.char?.name || '';
-  document.getElementById('postes-modal-title').textContent = 'Fret maritime — Réception';
+  document.getElementById('postes-modal-title').textContent = 'Réception de caisses';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
   let caisses = [];
   if (typeof sbGet === 'function') {
-    const commeDestinataire = await sbGet('caisses_fret', 'destinataire=eq.' + encodeURIComponent(moi) + '&pays_destination=eq.' + encodeURIComponent(pays) + '&statut=eq.arrivee').catch(() => []) || [];
-    const commeReceptionnaire = await sbGet('caisses_fret', 'pays_destination=eq.' + encodeURIComponent(pays) + '&statut=eq.arrivee&receptionnaires_autorises=cs.{' + encodeURIComponent(moi) + '}').catch(() => []) || [];
+    // Seulement les caisses livrées dans CE bâtiment (port ou entrepôt logistique, 04/11/2026).
+    const ici = '&building_destination=eq.' + encodeURIComponent(state.currentBuilding || '');
+    const commeDestinataire = await sbGet('caisses_fret', 'destinataire=eq.' + encodeURIComponent(moi) + '&pays_destination=eq.' + encodeURIComponent(pays) + '&statut=eq.arrivee' + ici).catch(() => []) || [];
+    const commeReceptionnaire = await sbGet('caisses_fret', 'pays_destination=eq.' + encodeURIComponent(pays) + '&statut=eq.arrivee&receptionnaires_autorises=cs.{' + encodeURIComponent(moi) + '}' + ici).catch(() => []) || [];
     const parId = {};
     [...commeDestinataire, ...commeReceptionnaire].forEach(c => { parId[c.id] = c; });
     caisses = Object.values(parId);
   }
 
   if (caisses.length === 0) {
-    document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Aucune caisse en attente pour vous à ce port.</div>';
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Aucune caisse arrivée pour vous ici. Une caisse en route n\'apparaît qu\'après la passe de minuit qui suit son arrivée prévue.</div>';
     return;
   }
   if (caisses.length === 1) { await afficherCaisseArriveeFret(caisses[0].id, pa); return; }
@@ -10045,8 +10050,11 @@ async function afficherCaisseArriveeFret(caisseId, pa) {
   const estDestinataire = caisse.destinataire === moi;
   const estReceptionnaire = (caisse.receptionnaires_autorises || []).includes(moi);
   if (!estDestinataire && !estReceptionnaire) { showToast('Accès refusé', '', false); return; }
-  const presentIci = await jeSuisPresentDansRoomFret(caisse.pays_destination, caisse.ville_destination, caisse.building_destination);
-  if (!presentIci) { showToast('Absent du port', 'Vous devez être physiquement présent au port pour agir sur cette caisse.', false); return; }
+  // Livraison terrestre nationale (04/11/2026) : à l'entrepôt logistique, la caisse se retire à la
+  // Salle des ventes ; au port, dans la pièce de chargement (même règle que fret_objet_agir).
+  const presentIci = await jeSuisPresentDansRoomFret(caisse.pays_destination, caisse.ville_destination, caisse.building_destination,
+    roomRetraitCaisseFret(caisse.building_destination));
+  if (!presentIci) { showToast('Pas sur place', 'Vous devez être présent là où la caisse a été livrée pour agir sur elle.', false); return; }
 
   let html = '<div style="padding:1rem">';
 
