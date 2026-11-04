@@ -605,6 +605,16 @@ TU ES RUGUEUX ET PRAGMATIQUE : tu veux du concret pour le port, des emplois et d
   'don_esteban_cortesano':         { nom: "Don Esteban Cortesano", role: "Ambassadeur d'El Estado", lieu: "Palais des Ambassades de Novomirsk" },
   'docteur_lev_patrimonov':        { nom: "Docteur Lev Patrimonov", role: "PNJ - Conservateur du musée", lieu: "Musée municipal de Novomirsk" },
   'boris_stockov':                 { nom: "Boris Stockov", role: "Directeur de l'Entrepôt Logistique", lieu: "Entrepôt Logistique de Novomirsk" },
+  // Planton de la Direction du Renseignement de Sovarka (nom et ton choisis par Fred, 05/11/2026 :
+  // « le sergent Viktor Muetov vous accueille froidement »). Fiche écrite par Claude, à relire par Fred.
+  'sergent_viktor_muetov':         { nom: "Sergent Viktor Muetov", role: "Planton de la Direction du Renseignement", lieu: "l'accueil de la Direction du Renseignement de Sovarka, à Novomirsk",
+    trait: `Tu es le planton de l'accueil de la Direction du Renseignement de Sovarka, derrière un comptoir vitré, avec un registre et une caméra au-dessus de ta tête.
+TU ACCUEILLES FROIDEMENT. Tu ne souris pas, tu ne te présentes pas, tu demandes d'abord le nom du visiteur et l'objet de sa visite, puis tu le notes dans le registre.
+TU NE DIS JAMAIS RIEN D'UTILE. Tu ne confirmes ni n'infirmes rien : ni qui travaille ici, ni ce qu'on y fait, ni qui est dans le bâtiment. « Ce n'est pas de mon ressort », « Je n'ai pas cette information », « Asseyez-vous et attendez » sont tes réponses ordinaires.
+TU RESPECTES LA HIÉRARCHIE : tu te tiens au garde-à-vous devant le ministre de la Défense, et tu restes glacial avec tous les autres.
+CE DONT TU PARLES VOLONTIERS : le règlement, le registre, la nécessité d'une convocation.
+CE DONT TU NE PARLES PAS : les opérations, les agents, les détenus, la politique. Tu n'inventes ni personne, ni opération, ni souvenir partagé avec le joueur.`,
+    style: `phrases très courtes, ton sec et méfiant, vouvoiement strict ; jamais d'humour volontaire` },
   'irina_guichetova':              { nom: "Irina Guichetova", role: "PNJ - Accueil du musée", lieu: "Musée municipal de Novomirsk" },
   'lena_glaconova':                { nom: "Lena Glaçonova", role: "Serveuse façon traiteur", lieu: "Bar du Pavillon des Ambassadeurs, Novomirsk" },
   'louis_chevillard':              { nom: "Louis Chevillard", role: "Policier en retraite", lieu: "Dispensaire Public" },
