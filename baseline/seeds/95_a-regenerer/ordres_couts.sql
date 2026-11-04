@@ -89,6 +89,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('consulter_carte_commerce',1,0),
   ('consulter_catalogue_manufactures',0,0),
   ('consulter_classement_joueurs_club',0,75),
+  ('consulter_devis_chantier_naval',0,0),
   ('consulter_dossier_notarial',0,0),
   ('consulter_dossiers_gouv',2,0),
   ('consulter_dossiers_urbanisme',0,0),
