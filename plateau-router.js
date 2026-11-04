@@ -444,7 +444,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'prendre_avion')          { ouvrirModalTransport('avion'); return; }
   if (fn === 'aller_douanes_aeroport') { doAllerDouanesAeroport(); return; }
   if (fn === 'prendre_bateau')         { ouvrirModalTransport('bateau'); return; }
-  if (fn === 'controle_douanes')       { doControlDouanes(); return; }
   if (fn === 'corrompre_douanier')     { doCorrompreDoanier(pa, cost); return; }
   if (fn === 'expedier_colis')         { ouvrirExpedierColis(pa, cost); return; }
   if (fn === 'receptionner_commande')  { ouvrirReceptionnerCommande(pa, cost); return; }
@@ -822,6 +821,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Bureau National de l'Emploi (9 aout 2026)
   if (fn === 'consulter_offres_emploi')    { ouvrirOffresEmploiBNE(); return; }
   if (fn === 'bne_passer_annonce')         { ouvrirFormulaireAnnonceBNE(); return; }
+  if (fn === 'virements')                  { ouvrirChoixVirements(); return; }
   if (fn === 'virement_joueur')            { ouvrirVirementJoueur(false); return; }
   if (fn === 'virement_automatique')       { ouvrirVirementJoueur(true); return; }
 

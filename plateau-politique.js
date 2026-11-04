@@ -4378,33 +4378,30 @@ function renderRoomActions(room, buildingId, roomId) {
     buttons.push('<button class="action-btn legal" onclick="ouvrirAudioguide(\'' + room.audioUrl + '\',\'' + safeNom + '\')" title="Ecouter l\'audioguide de cette salle"><i class="ti ti-headphones" style="font-size:.82rem"></i> Écouter l\'audioguide <span class="pa-cost">gratuit · 0 PA</span></button>');
   }
 
-  // Bureau du commissaire : deux menus visuels communs aux trois villes.
-  // Les actions filles conservent leur definition, leurs couts et les gardes serveur
-  // identiques. Les en-tetes n'ont ni fn ni debit PA/FR.
+  // Bureau du commissaire : boutons principaux identiques aux greffes ;
+  // les sous-ordres complets (postes, couts, refus, handlers) ouvrent une pop-up.
+  // Fonctionnement et composition communs a Luthecia, PSM et Montrouge.
   let boutonsOrganises = buttons;
-  if (['commissariat', 'commissariat-local'].includes(buildingId) && roomId === 'bureau_commissaire') {
-    const enquete = new Set(['mener_enquete', 'organiser_filature', 'organiser_chasse_homme']);
-    const effectifs = new Set(['gerer_effectifs_police', 'recruter_policier', 'recruter_policier_cynophile']);
-    const sousMenu = (titre, icone, groupe) => {
-      const enfants = ordresTerrainLuthecia.map((o, index) => groupe.has(o.fn) ? buttons[index] : '').filter(Boolean);
-      return '<details class="commissariat-sous-menu" style="width:100%">' +
-        '<summary class="action-btn legal" style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:.5rem">' +
-        '<i class="ti ' + icone + '"></i> ' + titre + ' <i class="ti ti-chevron-down" style="margin-left:auto"></i></summary>' +
-        '<div style="display:flex;flex-direction:column;gap:.4rem;padding:.45rem 0 .45rem .8rem">' +
-        enfants.join('') + '</div></details>';
-    };
-    boutonsOrganises = [];
-    let enquetesInserees = false, effectifsInseres = false;
-    ordresTerrainLuthecia.forEach((o, index) => {
-      if (enquete.has(o.fn)) {
-        if (!enquetesInserees) { boutonsOrganises.push(sousMenu('Enquêtes', 'ti-search', enquete)); enquetesInserees = true; }
-      } else if (effectifs.has(o.fn)) {
-        if (!effectifsInseres) { boutonsOrganises.push(sousMenu('Gérer les effectifs', 'ti-users-group', effectifs)); effectifsInseres = true; }
-      } else {
-        boutonsOrganises.push(buttons[index]);
-      }
-    });
-    boutonsOrganises.push(...buttons.slice(ordresTerrainLuthecia.length));
+  if (state.country === 'republic' && ['commissariat', 'commissariat-local'].includes(buildingId) && roomId === 'bureau_commissaire') {
+    const familles = [
+      {titre:'Enquêtes', icone:'ti-search', fns:['mener_enquete','organiser_filature','organiser_chasse_homme']},
+      {titre:'Gérer les effectifs', icone:'ti-users-group', fns:['gerer_effectifs_police','recruter_policier','recruter_policier_cynophile']}
+    ];
+    window._commissaireOrdresGroupes = {};
+    const utilises = new Set();
+    const menus = familles.map((famille, index) => {
+      const entries = ordresTerrainLuthecia.map((ordre, i) => ({ordre, html:buttons[i]}))
+        .filter(e => famille.fns.includes(e.ordre.fn) && e.html);
+      if (!entries.length) return '';
+      entries.forEach(e => utilises.add(e.ordre.fn));
+      window._commissaireOrdresGroupes[index] = {titre:famille.titre, entries};
+      return '<button type="button" class="action-btn legal" onclick="ouvrirMenuOrdresCommissaire(' + index +
+        ')" title="' + famille.titre + '"><i class="ti ' + famille.icone +
+        '" style="font-size:.82rem"></i> ' + famille.titre + ' <span class="pa-cost">▾</span></button>';
+    }).filter(Boolean);
+    const nonClasses = ordresTerrainLuthecia.map((ordre,index) => ({ordre, html:buttons[index]}))
+      .filter(e => !utilises.has(e.ordre.fn)).map(e => e.html);
+    boutonsOrganises = [...menus, ...nonClasses, ...buttons.slice(ordresTerrainLuthecia.length)];
   }
 
   // Greffes : boutons principaux au gabarit standard, sous-ordres dans la modale.
@@ -4537,6 +4534,24 @@ async function confirmerLoyerLotTerrain(lotId, index) {
 
 function expliquerAchatTerrainBloque() {
   showToast('Achat impossible', 'Achat impossible, vous devez libérer le terrain en gérant les intrus', false);
+}
+
+// Les boutons restent au format standard ; seuls leurs sous-ordres s'affichent en pop-up.
+// Aucune commande ne part tant qu'un sous-ordre existant n'est pas cliqué.
+function ouvrirMenuOrdresCommissaire(index) {
+  const groupe = window._commissaireOrdresGroupes?.[index];
+  if (!groupe || state.country !== 'republic' ||
+      !['commissariat', 'commissariat-local'].includes(state.currentBuilding) ||
+      state.currentRoom !== 'bureau_commissaire') return;
+  const titre = document.getElementById('postes-modal-title');
+  const corps = document.getElementById('postes-body');
+  const modal = document.getElementById('modal-postes');
+  if (!titre || !corps || !modal) return;
+  titre.textContent = groupe.titre;
+  corps.innerHTML = '<div style="display:grid;gap:.8rem;padding:1rem">' +
+    groupe.entries.map(e => '<div style="padding:.7rem;border:1px solid #5b4825;border-radius:8px">' +
+      e.html + '</div>').join('') + '</div>';
+  modal.classList.add('open');
 }
 
 function ouvrirMenuOrdresGreffe(index) {

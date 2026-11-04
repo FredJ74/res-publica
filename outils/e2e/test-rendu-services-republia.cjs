@@ -30,7 +30,7 @@ test('greffes et commissariats : clics réels dans les trois villes, deux largeu
     await page.route('**/*',route=>route.request().url().startsWith(origine)?route.continue():route.abort());
     try{
      await page.goto(origine);await page.addScriptTag({content:lire('data.js')});
-     await page.addScriptTag({content:fonctions('plateau-politique.js',['renderRoomActions','ouvrirMenuOrdresGreffe'])});
+     await page.addScriptTag({content:fonctions('plateau-politique.js',['renderRoomActions','ouvrirMenuOrdresGreffe','ouvrirMenuOrdresCommissaire'])});
      const attendu=await page.evaluate(({ville,service})=>{
       window.TEST_MODE=false;window.getMalusISN=()=>0;window.clics=[];
       // Ordres capturés : aucun paiement, effet métier ni appel serveur exécuté.
@@ -61,16 +61,35 @@ test('greffes et commissariats : clics réels dans les trois villes, deux largeu
        await page.locator('#modal-postes').evaluate(e=>e.classList.remove('open'));
       }
      }else{
-      const groupes=page.locator('#actions-row-bat details');assert.equal(await groupes.count(),2);
-      for(let i=0;i<2;i++){await groupes.nth(i).locator('summary').click();assert.equal(await groupes.nth(i).getAttribute('open'),'');}
-      await verifierBoutons(page.locator('#actions-row-bat button'));
-      // Les menus ne donnent aucun droit : un visiteur voit les mêmes ordres réservés grisés.
+      // Le bureau du commissaire suit maintenant la convention validée au greffe :
+      // deux boutons principaux au format normal ouvrent une modale.
+      const menus=page.locator('#actions-row-bat > button[onclick^="ouvrirMenuOrdresCommissaire"]');
+      assert.equal(await menus.count(),2);
+      assert.equal(await page.locator('#actions-row-bat details, #actions-row-bat summary').count(),0);
+      for(let i=0;i<2;i++){
+       await menus.nth(i).click();
+       assert.equal(await page.locator('#modal-postes').evaluate(e=>e.classList.contains('open')),true);
+       const box=await page.locator('.modal-box').boundingBox();
+       assert.ok(box.x>=-1&&box.x+box.width<=largeur+1,'modale du commissaire dans le viewport');
+       assert.equal(await page.locator('#postes-body button').count(),3);
+       await verifierBoutons(page.locator('#postes-body button'));
+       await page.locator('#modal-postes').evaluate(e=>e.classList.remove('open'));
+      }
+      await verifierBoutons(page.locator('#actions-row-bat > button:not([onclick^="ouvrirMenuOrdresCommissaire"])'));
+      // Les menus ne donnent aucun droit : les sous-ordres réservés restent grisés.
       await page.evaluate(()=>{state.poste=null;renderRoomActions(BUILDINGS[state.currentBuilding].rooms.bureau_commissaire,state.currentBuilding,'bureau_commissaire');});
-      for(const fn of ['mener_enquete','organiser_filature','organiser_chasse_homme','gerer_effectifs_police']){
-       const label=attendu.find(o=>o.fn===fn).label;
-       const ordre=page.locator('#actions-row-bat button').filter({hasText:label});
-       assert.equal(await ordre.count(),1);assert.ok(await ordre.evaluate(b=>b.classList.contains('blocked')&&b.getAttribute('onclick').includes('showPostRequired')),fn+' refusé au visiteur');
-       await page.evaluate(()=>clics=[]);await ordre.evaluate(b=>b.click());assert.deepEqual(await page.evaluate(()=>clics.map(c=>c[0])),['refus-poste']);
+      for(let i=0;i<2;i++){
+       await page.locator('#actions-row-bat > button[onclick^="ouvrirMenuOrdresCommissaire"]').nth(i).click();
+       for(const fn of (i===0?['mener_enquete','organiser_filature','organiser_chasse_homme']:['gerer_effectifs_police','recruter_policier','recruter_policier_cynophile'])){
+        const label=attendu.find(o=>o.fn===fn).label;
+        const ordre=page.locator('#postes-body button').filter({hasText:label});
+        assert.equal(await ordre.count(),1);
+        assert.ok(await ordre.evaluate(b=>b.classList.contains('blocked')&&b.getAttribute('onclick').includes('showPostRequired')),fn+' refusé au visiteur');
+        await page.evaluate(()=>clics=[]);
+        await ordre.evaluate(b=>b.click());
+        assert.deepEqual(await page.evaluate(()=>clics.map(c=>c[0])),['refus-poste']);
+       }
+       await page.locator('#modal-postes').evaluate(e=>e.classList.remove('open'));
       }
      }
      assert.deepEqual(trouves.sort(),attendu.map(o=>o.fn).sort(),'chaque ordre déclaré demeure accessible par son vrai bouton');

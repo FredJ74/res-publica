@@ -969,10 +969,15 @@ const WORLD = {
         // Images propres a PSM pour le VRAI buildingId navigable 'commissariat-local' (template
         // partage avec Montrouge, BUILDINGS['commissariat-local']) -- roomOverrides uniquement
         // sur imageUrl, meme pattern que Montrouge (armurerie/centre-commercial ci-dessus) :
-        // ne touche jamais persons/orders de la base partagee, aucun impact sur Montrouge.
+        // Portrait d’accueil surchargé à PSM uniquement ; identité, métier et ordres conservés.
+        // La base partagée et les PNJ de Montrouge restent inchangés.
         'commissariat-local': {
           roomOverrides: {
-            accueil_loc: { imageUrl: "images/port-sainte-marie-commissariat-accueil.webp" },
+            accueil_loc: {
+              imageUrl: "images/port-sainte-marie-commissariat-accueil.webp",
+              persons: [{name:'Brigadier Local (PNJ)', role:'Officier de garde', rel:'neutral', job:'policier',
+                photoUrl:'images/port-sainte-marie-commissariat-brigadier-accueil.webp', photoPos:'50% 35%'}]
+            },
             // Loic Karamel (PNJ), lot du 24 aout 2026 : detenu decoratif, meme precedent exact
             // que Tristan Cabane (BUILDINGS['commissariat'].prison, Luthecia) -- job:'detenu'
             // deja utilise la, aucun nouveau job cree. Purement narratif, ne remplace pas les
@@ -1382,8 +1387,9 @@ const WORLD = {
         },
         // Images d'interieur (18 aout 2026, suite du chantier images Montrouge) : roomOverrides
         // couvre les rooms deja existantes (image seule, jamais persons/orders/mecanique).
-        // banque-locale recoit en plus une room roomsExtra "bureau_directeur" -- purement
-        // spatiale/visuelle (aucun ordre, aucun PNJ, aucune mecanique bancaire), meme principe
+        // banque-locale recoit en plus une room roomsExtra "bureau_directeur" : Robert Pelisson
+        // y tient le meme role de directeur que Marie Le Roux a PSM, sans ordre metier en plus.
+        // Seuls le casting et le dialogue changent, aucune mecanique bancaire, meme principe
         // deja etabli que 'imprimerie' (la-tribune) ou 'salle_elections'/'salle_archives'
         // (mairie) ci-dessus. L'override mort 'banque-nationale' (ligne 355, jamais atteignable
         // car absent de la liste "buildings" de Montrouge) est laisse tel quel, hors perimetre.
@@ -1398,7 +1404,9 @@ const WORLD = {
               imageBg: "linear-gradient(135deg,#0d0d08,#181808)",
               desc: "Le bureau du directeur de l'agence. Porte capitonnee, silence feutre.",
               imageUrl: "images/montrouge/montrouge-banque-bureau-directeur.jpg",
-              persons: [],
+              persons: [
+                {name:'Robert Pelisson (PNJ)', role:'Directeur de la Banque Cheminote de Montrouge', rel:'neutral', job:'directeur'}
+              ],
               orders: []
             }
           }
@@ -3343,8 +3351,8 @@ const BUILDINGS = {
         orders: [
           {fn:'gerer_finances', label:'Gérer mon compte / mes placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},
           {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
-          {fn:'virement_joueur', label:'Faire un virement', pa:1, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:"Virer de l'argent de votre compte vers celui d'un autre joueur, en une fois."},
-          {fn:'virement_automatique', label:'Mettre en place un virement automatique', pa:1, cost:0, type:'legal', icon:'ti-repeat', successRate:100, desc:"Verser chaque jour ou chaque semaine une somme à un autre joueur (un salaire, par exemple). Il s'arrête à tout moment depuis votre fiche."},
+          // Sous-menu de navigation gratuit ; chacune des deux operations conserve son debit serveur de 1 PA.
+          {fn:'virements', label:'Virements', pa:0, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:'Choisir un virement unique ou un virement récurrent (1 PA lors de sa confirmation).'},
           {fn:'presenter_autorisation_coffre', label:'Présenter une autorisation judiciaire', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Accéder à un coffre grâce à une autorisation du juge.'}
         ]
       },
@@ -4831,8 +4839,8 @@ const BUILDINGS = {
         orders: [
           {fn:'gerer_finances', label:'Gérer mon compte / mes placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},
           {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
-          {fn:'virement_joueur', label:'Faire un virement', pa:1, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:"Virer de l'argent de votre compte vers celui d'un autre joueur, en une fois."},
-          {fn:'virement_automatique', label:'Mettre en place un virement automatique', pa:1, cost:0, type:'legal', icon:'ti-repeat', successRate:100, desc:"Verser chaque jour ou chaque semaine une somme à un autre joueur (un salaire, par exemple). Il s'arrête à tout moment depuis votre fiche."}
+          // Sous-menu de navigation gratuit ; chacune des deux operations conserve son debit serveur de 1 PA.
+          {fn:'virements', label:'Virements', pa:0, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:'Choisir un virement unique ou un virement récurrent (1 PA lors de sa confirmation).'}
         ]
       }
     }
@@ -6546,7 +6554,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#181410,#221c15)",
-        imageUrl: "images/entrepot-pole-tabac-psm.webp",
+        imageUrl: "images/psm-pole-alcool-tabac-salle-ventes.webp",
         desc: "L'accueil et la salle de vente directe, alcools et tabac confondus.",
         persons: [],
         orders: [{fn:'vente_directe_usine', label:'Vente directe', pa:0, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'}]
@@ -6554,7 +6562,7 @@ const BUILDINGS = {
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "images/psm-pole-alcool-tabac-bureau-direction.webp",
         desc: "Le bureau du directeur du pôle. Accès sur rendez-vous.",
         persons: [{name:'Fernand Cendrier (PNJ)', role:'Directeur du Pôle Tabac & Alcools', rel:'neutral', job:'directeur_tabac_alcools'}],
         orders: [
@@ -6566,7 +6574,7 @@ const BUILDINGS = {
       distillerie: {
         name: "Distillerie",
         imageBg: "linear-gradient(135deg,#0a0d10,#12161a)",
-        imageUrl: "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=1200&q=80",
+        imageUrl: "images/psm-pole-alcool-tabac-distillerie.webp",
         desc: "Les alambics. Céréales et fruits livrés y sont distillés en alcool.",
         persons: [],
         orders: [
@@ -6579,7 +6587,7 @@ const BUILDINGS = {
       manufacture_tabac: {
         name: "Manufacture de Tabac",
         imageBg: "linear-gradient(135deg,#100d0a,#1a1512)",
-        imageUrl: "https://images.unsplash.com/photo-1519669417670-68775a50919f?w=1200&q=80",
+        imageUrl: "images/psm-pole-alcool-tabac-manufacture-tabac.webp",
         desc: "Les lignes de manufacture. Les plantes livrées y sont transformées en tabac.",
         persons: [],
         orders: [
@@ -6603,7 +6611,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#141210,#1c1815)",
-        imageUrl: "images/entrepot-pole-tabac-psm.webp",
+        imageUrl: "images/psm-entrepot-logistique-salle-ventes.webp",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
         orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
@@ -6611,7 +6619,7 @@ const BUILDINGS = {
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "images/psm-entrepot-logistique-bureau-direction.webp",
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Yvon Paletier (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [

@@ -9629,6 +9629,26 @@ async function ouvrirExpedierColis(pa, cost) {
     return;
   }
 
+  // Amendes de fausse déclaration dues sur mes caisses expédiées (règle de Fred du 04/11) :
+  // l'expéditeur peut les régler ici ; sinon le destinataire paiera, ou la caisse sera vendue.
+  if (!window._fretAmendesVues) {
+    const amendes = typeof sbGet === 'function'
+      ? await sbGet('caisses_fret', 'leader=eq.' + encodeURIComponent(moi) + '&amende_due=gt.0&amende_payee=is.false&statut=in.(fermee,en_transit,arrivee)').catch(() => [])
+      : [];
+    if (amendes && amendes.length > 0) {
+      let h = '<div style="padding:1rem"><div class="cpj-note" style="margin-bottom:.8rem">Injonction des douanes : amende de fausse déclaration due sur vos caisses. Si vous ne payez pas, le destinataire devra la régler pour retirer la caisse ; sinon elle sera saisie et vendue au profit du Trésor.</div>';
+      amendes.forEach(c => {
+        h += '<div style="padding:.6rem .8rem;margin-bottom:.4rem;border:1px solid #a98d56">Caisse vers ' + escapeHtmlText(c.destinataire || '?')
+          + ' — amende : ' + Number(c.amende_due) + ' FR'
+          + '<button class="cpj-touche cpj-primaire" style="width:100%;margin-top:.4rem" onclick="payerAmendeCaisseFret(\'' + c.id + '\',' + pa + ',' + cost + ')">Payer l\'amende</button></div>';
+      });
+      h += '<button class="cpj-touche" style="width:100%" onclick="window._fretAmendesVues=true;ouvrirExpedierColis(' + pa + ',' + cost + ')">Continuer vers l\'expédition</button></div>';
+      document.getElementById('postes-body').innerHTML = h;
+      return;
+    }
+  }
+  window._fretAmendesVues = false;
+
   const caisses = typeof sbGet === 'function'
     ? await sbGet('caisses_fret', 'leader=eq.' + encodeURIComponent(moi) + '&building_origine=eq.' + encodeURIComponent(buildingId) + '&statut=eq.ouverte').catch(() => [])
     : [];
@@ -9673,25 +9693,52 @@ async function ouvrirExpedierColis(pa, cost) {
   await afficherGestionCaisseOuverteFret(caisses[0].id);
 }
 
+// FRET AU SERVEUR (#433, 04/11/2026) : toute écriture d'une caisse passe par
+// fret_caisse_commande ; l'écran n'écrit plus caisses_fret ni contenu_caisses_fret.
+// Le reçu est conservé le temps de la requête : une réponse perdue ne repaie pas.
+async function commanderFretServeur(action, caisseId, params) {
+  const cle = 'hg-fret:' + JSON.stringify([state.char?.name || '', action, caisseId || null, params || {}]);
+  let requete;
+  try { requete = localStorage.getItem(cle); if (!requete) { requete = crypto.randomUUID(); localStorage.setItem(cle, requete); } }
+  catch (_) { showToast('Action non envoyée', 'Le reçu ne peut pas être conservé.', false); return null; }
+  const v = await sbRpcVerdict('fret_caisse_commande', { p_action: action, p_caisse: caisseId || null, p_params: params || {}, p_requete: requete }).catch(() => null);
+  if (!v || v.transport) { showToast('Action non confirmée', 'La réponse est incertaine. Le même reçu évitera un double effet.', false); return null; }
+  try { localStorage.removeItem(cle); } catch (_) {}
+  if (v.ok !== true) {
+    const motifs = { pas_au_port: 'Vous devez être au port.', pas_responsable: 'Seul le responsable de la caisse peut faire cela.',
+      pas_destinataire: 'Seul le destinataire peut faire cela.', caisse_fermee: 'La caisse est déjà fermée.', caisse_vide: 'La caisse est vide.',
+      destinataire_invalide: 'Destinataire invalide.', port_indisponible: 'Aucun port de fret n\'est ouvert dans l\'empire de ce destinataire.',
+      caisse_non_fermee: 'La caisse doit d\'abord être fermée.', fonds_insuffisants: 'Fonds insuffisants.', aucune_amende: 'Aucune amende due.', caisse_saisie: 'La caisse a été saisie.', personnage_introuvable: 'Personnage introuvable.' };
+    showToast('Action refusée', motifs[v.raison] || ('Le serveur refuse : ' + (v.raison || 'état indisponible') + '.'), false);
+    return null;
+  }
+  return v;
+}
+
+async function payerAmendeCaisseFret(caisseId, pa, cost) {
+  const v = await commanderFretServeur('amende_payer', caisseId, {});
+  if (!v) return;
+  await relirePaiementFret();
+  showToast('Amende payée', v.amende + ' FR versés au Trésor.', true, true);
+  addJournalEntry('Amende de fausse déclaration payée (' + v.amende + ' FR).', 'event-info');
+  await ouvrirExpedierColis(pa, cost);
+}
+
+async function relirePaiementFret() {
+  const nom = state.char?.name || '';
+  const [frais, comptes] = await Promise.all([sbLoadPersonnage(nom).catch(() => null), sbGetComptesBancaires(nom).catch(() => null)]);
+  if (frais && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ ok: true, pa: frais.pa, liquide: frais.liquide, arg: frais.arg });
+  if (Array.isArray(comptes) && typeof construireMapComptesBancaires === 'function') state.comptesBancaires = construireMapComptesBancaires(comptes);
+  if (typeof updateUI === 'function') updateUI();
+}
+
 async function confirmerReservationCaisseFret(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
-  const caisse = {
-    leader: state.char?.name || 'Inconnu',
-    pays_origine: window._fretPaysOrigine || state.country || 'republic',
-    ville_origine: window._fretVilleOrigine || state.currentCity,
-    building_origine: window._fretBuildingOrigine || state.currentBuilding,
-    statut: 'ouverte',
-    chargeurs_autorises: [],
-    receptionnaires_autorises: [],
-    dedouanee: false
-  };
-  const rows = typeof sbInsert === 'function' ? await sbInsert('caisses_fret', caisse).catch(() => null) : null;
-  const nouvelle = rows && rows[0];
-  if (!nouvelle) { showToast('Erreur', 'Impossible de réserver la caisse.', false); return; }
+  const v = await commanderFretServeur('reserver', null, {});
+  if (!v) return;
+  await relirePaiementFret();
   showToast('Caisse réservée', 'Vous pouvez maintenant y déposer des marchandises.', true, true);
   addJournalEntry('Caisse de fret réservée au port.', 'event-info');
-  await afficherGestionCaisseOuverteFret(nouvelle.id);
+  await afficherGestionCaisseOuverteFret(v.caisse);
 }
 
 async function afficherGestionCaisseOuverteFret(caisseId) {
@@ -9779,21 +9826,11 @@ async function reprendreDeCaisseFret(caisseId, contenuId) {
 async function ajouterChargeurFret(caisseId) {
   const nom = document.getElementById('fret-nouveau-chargeur')?.value?.trim();
   if (!nom) return;
-  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = rows && rows[0];
-  if (!caisse || caisse.leader !== (state.char?.name || '')) return;
-  const liste = Array.from(new Set([...(caisse.chargeurs_autorises || []), nom]));
-  if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { chargeurs_autorises: liste }).catch(() => {});
-  await afficherGestionCaisseOuverteFret(caisseId);
+  if (await commanderFretServeur('chargeur_ajouter', caisseId, { nom })) await afficherGestionCaisseOuverteFret(caisseId);
 }
 
 async function retirerChargeurFret(caisseId, nom) {
-  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = rows && rows[0];
-  if (!caisse || caisse.leader !== (state.char?.name || '')) return;
-  const liste = (caisse.chargeurs_autorises || []).filter(n => n !== nom);
-  if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { chargeurs_autorises: liste }).catch(() => {});
-  await afficherGestionCaisseOuverteFret(caisseId);
+  if (await commanderFretServeur('chargeur_retirer', caisseId, { nom })) await afficherGestionCaisseOuverteFret(caisseId);
 }
 
 // ---- FERMETURE + DECLARATION (leader uniquement) ----
@@ -9832,58 +9869,24 @@ async function ouvrirFermerCaisseFret(caisseId) {
   html += '<input type="text" id="fret-fermeture-declaration" placeholder="Ex. denrées diverses" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">VALEUR DÉCLARÉE (FR)</div>';
   html += '<input type="number" id="fret-fermeture-valeur" value="0" min="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-  html += '<button onclick="confirmerFermetureCaisseFret(\'' + caisseId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Fermer la caisse</button>';
+  // Déclaration par lot (règle de Fred du 04/11) : un lot décoché n'est pas déclaré ; s'il est
+  // découvert à l'inspection, l'amende vaut le double des droits de douane sur sa valeur.
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">LOTS DÉCLARÉS</div>';
+  lignes.filter(l => (l.quantite || 0) > 0).forEach(l => {
+    html += '<label class="cpj-note" style="display:block;margin-bottom:.25rem"><input type="checkbox" class="fret-lot-declare" value="' + l.id + '" checked> '
+      + escapeHtmlText(l.objet?.name || l.objet?.type || '?') + ' × ' + l.quantite + '</label>';
+  });
+  html += '<div class="cpj-note" style="margin:.3rem 0 .8rem">Un lot non déclaré découvert par la douane entraîne une amende : le double des droits de douane sur sa valeur.</div>';
+  html += '<button onclick="confirmerFermetureCaisseFret(\'' + caisseId + '\')"style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Fermer la caisse</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   window._fretJoueursFermeture = joueurs;
 }
 
-// ---- DISSIMULATION DES CAISSES DE FRET (lot du 25 aout 2026, §4-5) ----
-// Audit prealable (§4) : caisses_fret/contenu_caisses_fret sont de VRAIES tables Postgres a
-// schema fixe (migration executee manuellement, voir git show 2542984) -- aucune colonne de
-// dissimulation n'existe aujourd'hui et en ajouter une exigerait une nouvelle migration SQL.
-// Pour eviter ce blocage (§17), la difficulte de dissimulation est persistee a cote, dans le
-// meme store generique flexible batiments_etat deja reutilise pour le BNE/les prets/le blocus
-// (sbGetBatimentEtat/sbSetBatimentEtat, voir supabase.js) -- une entree globale unique et
-// partagee (meme convention que sbGetEtatBNE/sbSetEtatBNE), car une caisse peut relier deux pays
-// differents (pays_origine != pays_destination) et son id est deja une cle globalement unique
-// (uuid Postgres reel) : aucune partition par pays/ville necessaire.
-// Valeur persistee UNE SEULE FOIS, au moment de la fermeture+declaration
-// (confirmerFermetureCaisseFret, juste apres -- seul point ou le contenu est fige et ou le leader
-// agit encore en son nom propre) : la DIS EFFECTIVE du leader a cet instant
-// (calculerDisEffective(), meme normalisation 8-18 deja utilisee partout ailleurs pour comparer
-// une DIS a un PER via calculerChancePJ -- pas le state.dis brut 0-100, qui n'est pas sur la
-// meme echelle que PER_SERVICE_DOUANES). Jamais recalculee ni relue depuis le personnage au
-// moment du controle (§5 : la difficulte reste attachee a la caisse, independante de la DIS
-// courante de son auteur au moment ou le Chef controle).
-async function chargerDissimulationCaissesFret() {
-  const etat = await sbGetBatimentEtat('global', 'national', 'dissimulation-fret').catch(() => ({}));
-  return etat?.parCaisse || {};
-}
-
-async function sauvegarderDissimulationCaisseFret(caisseId, valeur) {
-  const parCaisse = await chargerDissimulationCaissesFret();
-  parCaisse[caisseId] = valeur;
-  if (typeof sbSetBatimentEtat === 'function') {
-    await sbSetBatimentEtat('global', 'national', 'dissimulation-fret', { parCaisse }).catch(() => {});
-  }
-}
-
-// Meme bucket global partage (cle 'controles', voisine de 'parCaisse' ci-dessus, fusion
-// superficielle deja geree par sbSetBatimentEtat) : une caisse ne peut etre ciblee qu'une seule
-// fois par le Chef des Douanes (evite le grinding d'une meme caisse jusqu'a un jet favorable).
-async function chargerControlesCaissesFret() {
-  const etat = await sbGetBatimentEtat('global', 'national', 'dissimulation-fret').catch(() => ({}));
-  return etat?.controles || {};
-}
-
-async function marquerCaisseControleeFret(caisseId, resultat) {
-  const controles = await chargerControlesCaissesFret();
-  controles[caisseId] = { resultat, controleeLe: Date.now() };
-  if (typeof sbSetBatimentEtat === 'function') {
-    await sbSetBatimentEtat('global', 'national', 'dissimulation-fret', { controles }).catch(() => {});
-  }
-}
+// ---- DISSIMULATION DES CAISSES DE FRET ----
+// Depuis le 04/11/2026 (#433), la difficulté de dissimulation est posée par le serveur à la
+// fermeture (8 + DIS/10 du responsable, colonne caisses_fret.dissimulation) et le contrôle du
+// Chef est marqué sur la caisse (controle_chef) : plus aucun blob écrit par l'écran.
 
 // ---- CONTROLE DOUANIER D'UNE CAISSE (lot du 25 aout 2026, §2-3-5-6-10) ----
 // Philosophie validee (§1) : aucun PJ douanier, seul le Chef des Douanes decide. Il consulte le
@@ -9908,8 +9911,6 @@ async function marquerCaisseControleeFret(caisseId, resultat) {
 // deja presente dans ce fichier). Chaque objet illegal garde son deposant exact par ligne
 // (contenu_caisses_fret.deposant), donc l'attribution n'est jamais ambigue meme si plusieurs
 // personnes ont deposé dans la meme caisse.
-const CAISSE_FRET_TYPES_ILLEGAUX_CONTROLES = ['arme', 'poison', 'tract_calomnieux'];
-
 async function ouvrirControlerCaisseDouane(pa, cost) {
   const check = chefDouanesValide();
   if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
@@ -9922,20 +9923,19 @@ async function ouvrirControlerCaisseDouane(pa, cost) {
     sbGet('caisses_fret', 'building_origine=eq.' + encodeURIComponent(BUILDING_ID_PORT) + '&statut=eq.fermee').catch(() => []),
     sbGet('caisses_fret', 'building_destination=eq.' + encodeURIComponent(BUILDING_ID_PORT) + '&statut=eq.arrivee').catch(() => [])
   ]);
-  const controles = await chargerControlesCaissesFret();
-  const ciblables = [...(sortantes || []), ...(arrivees || [])].filter(c => !controles[c.id]);
+  const ciblables = [...(sortantes || []), ...(arrivees || [])].filter(c => !c.controle_chef);
 
   let html = '<div style="padding:1rem;max-height:70vh;overflow-y:auto">';
-  html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.7rem;font-style:italic">Le manifeste ne révèle jamais le contenu réel d\'une caisse — uniquement sa déclaration. Le contrôle est exécuté par le service ; son issue dépend de l\'effectif et de la difficulté de dissimulation de la caisse.</div>';
+  html += '<div class="cpj-note" style="margin-bottom:.7rem;font-style:italic">Le manifeste ne révèle jamais le contenu réel d\'une caisse — uniquement sa déclaration. Le contrôle est exécuté par le service ; son issue dépend de l\'effectif et de la difficulté de dissimulation de la caisse.</div>';
   if (ciblables.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060">Aucune caisse contrôlable pour l\'instant.</div>';
+    html += '<div class="cpj-note">Aucune caisse contrôlable pour l\'instant.</div>';
   } else {
     ciblables.forEach(c => {
-      const sens = c.building_origine === BUILDING_ID_PORT ? 'Sortante' : 'Entrante';
-      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.5rem">';
-      html += '<div style="font-size:.8rem;color:#c0b090">' + sens + ' — Expéditeur : ' + (c.leader || '—') + ' — Destinataire : ' + (c.destinataire || 'non déclaré') + '</div>';
-      html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.4rem">Déclaration : ' + (c.declaration_douaniere || 'non déclarée') + '</div>';
-      html += '<button onclick="confirmerControleCaisseFret(\'' + c.id + '\',' + pa + ')" style="width:100%;font-size:.72rem;padding:.4rem;border:1px solid #8a3a2a;background:transparent;color:#cc4444;cursor:pointer">Ordonner le contrôle</button>';
+      const sens = c.building_origine === BUILDING_ID_PORT && c.statut === 'fermee' ? 'Sortante' : 'Entrante';
+      html += '<div style="padding:.6rem .7rem;margin-bottom:.5rem;border:1px solid #a98d56">';
+      html += '<div>' + sens + ' — Expéditeur : ' + escapeHtmlText(c.leader || '—') + ' — Destinataire : ' + escapeHtmlText(c.destinataire || 'non déclaré') + '</div>';
+      html += '<div class="cpj-note" style="margin-bottom:.4rem">Déclaration : ' + escapeHtmlText(c.declaration_douaniere || 'non déclarée') + '</div>';
+      html += '<button class="cpj-touche" onclick="confirmerControleCaisseFret(\'' + c.id + '\',' + pa + ')" style="width:100%">Ordonner le contrôle</button>';
       html += '</div>';
     });
   }
@@ -9943,212 +9943,61 @@ async function ouvrirControlerCaisseDouane(pa, cost) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// Contrôle tiré au serveur (douane_caisse_controler, #433) : formule du 25/08 inchangée,
+// saisie, convocations, courriers et amende de fausse déclaration dans la même transaction.
 async function confirmerControleCaisseFret(caisseId, pa) {
   const check = chefDouanesValide();
   if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
-
-  const controlesAvant = await chargerControlesCaissesFret();
-  if (controlesAvant[caisseId]) { showToast('Déjà contrôlée', 'Cette caisse a déjà fait l\'objet d\'un contrôle.', false); return; }
-
-  const rows = await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []);
-  const caisse = rows && rows[0];
-  const cibleValide = caisse && (
-    (caisse.building_origine === BUILDING_ID_PORT && caisse.statut === 'fermee') ||
-    (caisse.building_destination === BUILDING_ID_PORT && caisse.statut === 'arrivee')
-  );
-  if (!cibleValide) { showToast('Cible invalide', 'Cette caisse n\'est plus contrôlable (déjà expédiée, retirée, ou introuvable).', false); return; }
-
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const pays = state.country || 'republic';
-  const effectifs = await chargerEffectifsDouane(pays);
-  const nbDouaniers = effectifs.douaniers.length;
-  const aUneUniteCynophile = effectifs.douaniers.some(d => d.type === 'cynophile');
-  const disCaisse = (await chargerDissimulationCaissesFret())[caisseId] ?? 13; // 13 = calculerDisEffective() a DIS neutre (50), repli si anomalie de persistance
-
-  const lignes = await chargerContenuCaisseFret(caisseId);
-  const lignesIllegales = lignes.filter(l => CAISSE_FRET_TYPES_ILLEGAUX_CONTROLES.includes(l.objet?.type) && l.objet?.legal === false && (l.quantite || 0) > 0);
-  const contientStupefiants = lignesIllegales.some(l => l.objet?.type === 'poison');
-
-  let perService = getStatEffective('PER') + nbDouaniers;
-  if (aUneUniteCynophile && contientStupefiants) perService += 3;
-
-  const chance = Math.max(10, Math.min(90, 50 + 5 * (perService - disCaisse)));
-  const tirage = Math.floor(Math.random() * 100) + 1;
-  const succes = tirage <= chance;
-
-  await marquerCaisseControleeFret(caisseId, succes ? 'positif' : 'negatif');
-
+  const cle = 'hg-controle-caisse:' + caisseId;
+  let requete;
+  try { requete = localStorage.getItem(cle); if (!requete) { requete = crypto.randomUUID(); localStorage.setItem(cle, requete); } }
+  catch (_) { showToast('Contrôle non envoyé', 'Le reçu ne peut pas être conservé.', false); return; }
+  const v = await sbRpcVerdict('douane_caisse_controler', { p_caisse: caisseId, p_requete: requete }).catch(() => null);
+  if (!v || v.transport) { showToast('Contrôle non confirmé', 'La réponse est incertaine. Le même reçu évitera un second contrôle.', false); return; }
+  try { localStorage.removeItem(cle); } catch (_) {}
+  if (v.ok !== true) {
+    const motifs = { deja_controlee: 'Cette caisse a déjà fait l\'objet d\'un contrôle.', caisse_non_controlable: 'Cette caisse n\'est plus contrôlable.' };
+    showToast('Contrôle refusé', motifs[v.raison] || ('Le serveur refuse : ' + (v.raison || 'état indisponible') + '.'), false);
+    return;
+  }
   document.getElementById('modal-postes').classList.remove('open');
-
-  if (!succes) {
+  await relirePaiementFret();
+  if (v.decouverte !== true) {
     showToast('Contrôle infructueux', 'Rien de suspect n\'a été relevé sur cette caisse.', false, true);
     addJournalEntry('Contrôle douanier d\'une caisse de fret : rien trouvé.', 'event-info');
     return;
   }
-
-  if (lignesIllegales.length === 0) {
-    showToast('Contrôle terminé', 'La caisse a été ouverte : aucun contenu illicite reconnu à l\'intérieur.', true, true);
+  const saisis = Number(v.saisis || 0), amende = Number(v.amende || 0);
+  if (saisis === 0 && amende === 0) {
+    showToast('Contrôle terminé', 'La caisse a été ouverte : rien d\'illicite ni de non déclaré.', true, true);
     addJournalEntry('Contrôle douanier d\'une caisse de fret : ouverte, rien d\'illicite trouvé.', 'event-info');
     return;
   }
-
-  const parDeposant = {};
-  const convocationsRatees = [];
-  lignesIllegales.forEach(l => { (parDeposant[l.deposant] = parDeposant[l.deposant] || []).push(l); });
-
-  for (const [deposant, ses] of Object.entries(parDeposant)) {
-    for (const l of ses) {
-      await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(l.id) + '&quantite=eq.' + l.quantite, { quantite: 0 }).catch(() => {});
-    }
-    const noms = ses.map(l => l.objet?.name || l.objet?.type).join(', ');
-    const nouvelleConvocation = {
-      // id stable, lu par le trigger personnages_preserver_judiciaire (chantier Assemblee). Ce site
-      // ecrit chez un TIERS (le deposant du fret) par lecture-modification-ecriture depuis le client :
-      // preexistant, non modifie ici. Le trigger le rend desormais sur -- si le deposant a sauvegarde
-      // entre la lecture et l'ecriture, ses propres convocations sont reinjectees au lieu d'etre perdues.
-      id: 'conv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-      motif: 'possession_illegale_douane',
-      jourEmission: state.day || 1,
-      heureEmission: state.hour || 8,
-      jourLimite: (state.day || 1) + 1,
-      heureLimite: state.hour || 8,
-      traitee: false
-    };
-
-    // Ecriture DIRECTE en base UNIQUEMENT pour un tiers (deposant potentiellement hors ligne) --
-    // pour le Chef lui-meme (deposant === moi), state.convocations est deja la source de verite
-    // vivante de CETTE session et sera persistee par le cycle de sauvegarde habituel
-    // (sbSavePersonnage) comme n'importe quelle autre mutation de state ; ecrire aussi en base ici
-    // l'exposerait a etre silencieusement ecrasee par le prochain sbSavePersonnage (qui reecrit
-    // convocations en entier depuis state, sans le connaitre).
-    // CONVOCATION SERVEUR-AUTORITAIRE (17 septembre 2026, suite de l'audit des frontieres
-    // d'autorite). Le bloc precedent lisait puis reecrivait la fiche du deposant : refuse en
-    // silence depuis la fermeture RLS (sbUpdate rend null sans lever). Le deposant recevait donc
-    // le mail « presentez-vous sous 24h, faute de quoi vous serez arrete(e) » sans qu'aucune
-    // convocation n'existe sur sa fiche. La RPC l'ecrit reellement, sous verrou, et n'accepte que
-    // le Chef des Douanes en exercice -- l'autorite que data.js declarait deja sur cet ordre.
-    let convocationEmise = true;
-    if (deposant === (state.char?.name || '')) {
-      state.convocations = state.convocations || [];
-      state.convocations.push(nouvelleConvocation);
-    } else {
-      const rc = (typeof sbConvocationDouaneEmettre === 'function')
-        ? await sbConvocationDouaneEmettre(deposant, nouvelleConvocation) : null;
-      convocationEmise = !!(rc && rc.ok === true);
-      if (!convocationEmise) {
-        console.error('[douane] convocation non emise pour ' + deposant, rc);
-      }
-    }
-    // Le mail n'affirme la convocation que si elle a reellement ete inscrite.
-    if (convocationEmise && typeof sbSendMail === 'function') {
-      await sbSendMail('Chef des Douanes', deposant, 'Convocation officielle',
-        'Un contrôle douanier a détecté et confisqué du contenu prohibé dans une caisse de fret que vous avez approvisionnée (' + noms + '). Présentez-vous au commissariat sous 24h pour vous justifier, faute de quoi vous serez arrêté(e).',
-        typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-    } else if (!convocationEmise) {
-      convocationsRatees.push(deposant);
-    }
-  }
-
-  // Le toast dit la verite : si une convocation n'a pas pu etre inscrite, on ne pretend pas
-  // qu'elle l'a ete. La confiscation, elle, a bien eu lieu dans tous les cas.
-  if (convocationsRatees.length === 0) {
-    showToast('Contrôle positif !', 'Contenu prohibé découvert et confisqué. Le ou les responsables ont été convoqués.', true, true);
-    addJournalEntry('Contrôle douanier positif sur une caisse de fret : contenu illicite confisqué, convocation(s) émise(s).', 'event-good');
-  } else {
-    showToast('Contrôle positif — convocation incomplète',
-      'Contenu prohibé confisqué, mais la convocation de ' + convocationsRatees.join(', ') + ' n\'a pas pu être enregistrée.', false, true);
-    addJournalEntry('Contrôle douanier positif : contenu illicite confisqué. Convocation non enregistrée pour ' + convocationsRatees.join(', ') + '.', 'event-bad');
-  }
-  updateUI();
+  const details = (saisis ? saisis + ' lot(s) prohibé(s) saisi(s), responsables convoqués. ' : '')
+    + (amende ? 'Marchandises non déclarées : amende de ' + amende + ' FR au Trésor.' : '');
+  showToast('Contrôle positif !', details, true, true);
+  addJournalEntry('Contrôle douanier positif sur une caisse de fret. ' + details, 'event-good');
 }
 
 async function confirmerFermetureCaisseFret(caisseId) {
-  const moi = state.char?.name || '';
-  // Identite/statut reverifies cote handler (pas seulement via l'affichage conditionnel du
-  // formulaire) -- meme principe que partout ailleurs dans ce lot : le filtre supplementaire
-  // sur le PATCH lui-meme (leader=eq./statut=eq.) empeche aussi une double-fermeture concurrente.
-  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = rows && rows[0];
-  if (!caisse || caisse.leader !== moi || caisse.statut !== 'ouverte') { showToast('Action impossible', '', false); return; }
-
   const destNom = document.getElementById('fret-fermeture-dest')?.value;
   const declaration = document.getElementById('fret-fermeture-declaration')?.value?.trim() || '';
   const valeur = Math.max(0, parseFloat(document.getElementById('fret-fermeture-valeur')?.value || '0'));
-  const destJoueur = (window._fretJoueursFermeture || []).find(j => j.name === destNom);
-  if (!destJoueur) { showToast('Destinataire invalide', '', false); return; }
-  const portDest = PORTS_FRET[destJoueur.country];
-  if (!portDest) { showToast('Port indisponible', 'Aucun port de fret n\'est encore opérationnel dans l\'empire de ce destinataire.', false); return; }
-
-  const maj = typeof sbUpdate === 'function' ? await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId) + '&leader=eq.' + encodeURIComponent(moi) + '&statut=eq.ouverte', {
-    statut: 'fermee',
-    destinataire: destJoueur.name,
-    pays_destination: destJoueur.country,
-    ville_destination: portDest.ville,
-    building_destination: portDest.buildingId,
-    declaration_douaniere: declaration,
-    valeur_declaree: valeur,
-    date_fermeture: new Date().toISOString()
-  }).catch(() => null) : null;
-  if (!maj || maj.length === 0) { showToast('Action impossible', 'La caisse a peut-être déjà été fermée.', false); return; }
-
-  await sauvegarderDissimulationCaisseFret(caisseId, calculerDisEffective());
-
+  // Lots non cochés = non déclarés (amende en cas d'inspection, règle de Fred du 04/11).
+  const nonDeclares = Array.from(document.querySelectorAll('.fret-lot-declare')).filter(x => !x.checked).map(x => x.value);
+  const v = await commanderFretServeur('fermer', caisseId, { nom: destNom, declaration, valeur, non_declares: nonDeclares });
+  if (!v) return;
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Caisse fermée', 'Vous pouvez maintenant l\'expédier.', true, true);
-  addJournalEntry('Caisse de fret fermée, destinée à ' + destJoueur.name + '.', 'event-info');
+  addJournalEntry('Caisse de fret fermée, destinée à ' + v.destinataire + '.', 'event-info');
 }
 
 async function expedierCaisseFret(caisseId) {
-  const moi = state.char?.name || '';
-  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = rows && rows[0];
-  if (!caisse || caisse.leader !== moi || caisse.statut !== 'fermee' || !caisse.destinataire || !caisse.pays_destination) {
-    showToast('Expédition impossible', '', false);
-    return;
-  }
-  const lignes = await chargerContenuCaisseFret(caisseId);
-  const total = totalContenuFret(lignes);
-  if (total <= 0) { showToast('Caisse vide', '', false); return; }
-
-  const maintenant = new Date();
-  const dateArriveePrevue = new Date(maintenant.getTime() + DUREE_TRANSPORT_FRET_JOURS * 86400000);
-
-  // CORRECTIF (19 septembre 2026). Trois defauts de cette fonction, tous
-  // independants du fait qu'elle n'etait appelee nulle part :
-  //
-  //  1. Le PATCH n'avait AUCUN compare-and-swap (`id=eq.` seul), alors que ses
-  //     deux soeurs en ont un. Le controle de statut n'etait qu'un read-check :
-  //     deux clics rapides passaient tous deux la lecture, et le second PATCH
-  //     REPOUSSAIT date_arrivee_prevue d'un jour. Le filtre porte desormais
-  //     `&leader=eq.&statut=eq.fermee` -- le second PATCH ne trouve plus rien.
-  //  2. Le resultat etait jete (`.catch(() => {})`) et le toast de succes
-  //     inconditionnel : un echec reseau annoncait « Caisse expediee ! » sur
-  //     une caisse restee fermee. On teste desormais le retour.
-  //  3. Le mail partait a l'EXPEDITEUR : addMailNotification envoie toujours a
-  //     state.char.name (voir son propre commentaire, plateau-communication.js).
-  //     Le DESTINATAIRE n'etait jamais prevenu. On passe par sbSendMail.
-  if (typeof sbUpdate !== 'function') { showToast('Expédition impossible', '', false); return; }
-  const maj = await sbUpdate('caisses_fret',
-    'id=eq.' + encodeURIComponent(caisseId) + '&leader=eq.' + encodeURIComponent(moi) + '&statut=eq.fermee', {
-      statut: 'en_transit',
-      date_depart: maintenant.toISOString(),
-      date_arrivee_prevue: dateArriveePrevue.toISOString()
-    }).catch(() => null);
-  if (!maj || maj.length === 0) {
-    showToast('Expédition impossible', 'La caisse a déjà quitté le port ou son état a changé.', false);
-    return;
-  }
-
+  // Le serveur tire l'inspection d'une caisse sur trois et prévient le destinataire.
+  const v = await commanderFretServeur('expedier', caisseId, {});
+  if (!v) return;
   showToast('Caisse expédiée !', 'Arrivée sous ' + DUREE_TRANSPORT_FRET_JOURS + ' jour à destination.', true, true);
-  addJournalEntry('Caisse de fret expédiée vers ' + caisse.destinataire + '.', 'event-info');
-  if (typeof sbSendMail === 'function') {
-    sbSendMail('Administration Portuaire', caisse.destinataire, 'Caisse de fret en route',
-      'Une caisse de fret vous a été expédiée par ' + escapeHtmlText(moi)
-      + '. Elle sera à retirer au port sous ' + DUREE_TRANSPORT_FRET_JOURS + ' jour.',
-      typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-  }
+  addJournalEntry('Caisse de fret expédiée.', 'event-info');
 }
 
 // ---- RECEPTION (cote destinataire, port de destination) ----
@@ -10204,8 +10053,10 @@ async function afficherCaisseArriveeFret(caisseId, pa) {
   if (!caisse.dedouanee) {
     const douane = calculerDroitsDouaneCaisseFret(caisse);
     const gardiennage = calculerGardiennageCaisseFret(caisse, Date.now());
-    const total = douane + gardiennage;
-    html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.4rem">Caisse non dédouanée. Droits de douane : ' + douane + ' FR' + (gardiennage > 0 ? ' · Gardiennage : ' + gardiennage + ' FR' : '') + ' · <strong>Total : ' + total + ' FR</strong>.</div>';
+    // Amende de fausse déclaration encore due sur la caisse (montant enregistré par le serveur).
+    const amende = caisse.amende_payee ? 0 : Math.max(0, Number(caisse.amende_due || 0));
+    const total = douane + gardiennage + amende;
+    html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.4rem">Caisse non dédouanée. Droits de douane : ' + douane + ' FR' + (gardiennage > 0 ? ' · Gardiennage : ' + gardiennage + ' FR' : '') + (amende > 0 ? ' · Amende de fausse déclaration (au Trésor) : ' + amende + ' FR' : '') + ' · <strong>Total : ' + total + ' FR</strong>.</div>';
     if (estDestinataire) {
       html += '<button onclick="dedouanerCaisseFret(\'' + caisseId + '\',' + pa + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Payer et dédouaner</button>';
     } else {
@@ -10281,8 +10132,10 @@ async function dedouanerCaisseFret(caisseId, pa) {
   if (typeof rDed.liquide === 'number') state.liquide = rDed.liquide;
 
   updateUI();
-  showToast('Caisse dédouanée', total + ' FR versés à la caisse du port. Retraits libres.', true, true);
-  addJournalEntry('Caisse de fret dédouanée (' + total + ' FR versés à la caisse du port).', 'event-good');
+  const amendePayee = Number(rDed.amende || 0);
+  const detail = amendePayee > 0 ? ' (dont ' + amendePayee + ' FR d\'amende au Trésor)' : '';
+  showToast('Caisse dédouanée', total + ' FR payés' + detail + '. Retraits libres.', true, true);
+  addJournalEntry('Caisse de fret dédouanée : ' + total + ' FR payés' + detail + '.', 'event-good');
   await afficherCaisseArriveeFret(caisseId, pa);
 }
 
@@ -10297,21 +10150,11 @@ async function retirerDeCaisseFret(caisseId, contenuId, pa) {
 async function ajouterReceptionnaireFret(caisseId) {
   const nom = document.getElementById('fret-nouveau-receptionnaire')?.value?.trim();
   if (!nom) return;
-  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = rows && rows[0];
-  if (!caisse || caisse.destinataire !== (state.char?.name || '')) return;
-  const liste = Array.from(new Set([...(caisse.receptionnaires_autorises || []), nom]));
-  if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { receptionnaires_autorises: liste }).catch(() => {});
-  await afficherCaisseArriveeFret(caisseId, 1);
+  if (await commanderFretServeur('receptionnaire_ajouter', caisseId, { nom })) await afficherCaisseArriveeFret(caisseId, 1);
 }
 
 async function retirerReceptionnaireFret(caisseId, nom) {
-  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = rows && rows[0];
-  if (!caisse || caisse.destinataire !== (state.char?.name || '')) return;
-  const liste = (caisse.receptionnaires_autorises || []).filter(n => n !== nom);
-  if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { receptionnaires_autorises: liste }).catch(() => {});
-  await afficherCaisseArriveeFret(caisseId, 1);
+  if (await commanderFretServeur('receptionnaire_retirer', caisseId, { nom })) await afficherCaisseArriveeFret(caisseId, 1);
 }
 
 // ---- LIQUIDATION J15 (room Entrepots du port) ----
@@ -10423,10 +10266,6 @@ async function confisquerObjets(objetsConnus) {
 // Normalisation de la Discretion (ressource 0-100, pas une caracteristique sur l'echelle
 // habituelle) : DIS_effective = 8 + (state.dis/10). Arbitrage valide, verifie sur les 3 exemples
 // de controle fournis (DIS 0/50/100 -> 8/13/18).
-function calculerDisEffective() {
-  return 8 + (state.dis || 0) / 10;
-}
-
 // ---- HOOKS SECURITE/SOCIAL/POP EN ATTENTE (aucune valeur arretee, ne pas inventer) ----
 // Deux effets prevus par le cahier des charges restent volontairement NON cables faute de
 // chiffres valides (les 3 autres -- SOCIAL/POP lies au controle direct du commissaire -- sont
@@ -12736,6 +12575,27 @@ async function confirmerPrelevementCaisseBNE() {
   showToast('Virement effectué', Number(v.montant).toLocaleString('fr-FR') + ' FR versés à la caisse du ministère.', true);
   addJournalEntry('Virement de ' + Number(v.montant).toLocaleString('fr-FR') + ' FR de la caisse du Bureau de l\'Emploi vers le ministère des Finances.', 'event-info');
   ouvrirCaisseBNE();
+}
+
+// Guichets nationaux et locaux : un seul ordre d'accueil, aucun debit a l'ouverture.
+// Les formulaires existants et les RPC serveur restent les seules voies de paiement.
+function ouvrirChoixVirements() {
+  if (!['banque-nationale', 'banque-locale'].includes(state.currentBuilding)) {
+    showToast('Accès réservé', 'Présentez-vous au guichet de la Banque Nationale.', false);
+    return;
+  }
+  const titre = document.getElementById('postes-modal-title');
+  const corps = document.getElementById('postes-body');
+  const modal = document.getElementById('modal-postes');
+  if (!titre || !corps || !modal) return;
+  titre.textContent = 'Virements — Banque Nationale';
+  corps.innerHTML = '<div class="cpj-dialogue">'
+    + '<p class="cpj-note" style="margin:0 0 .8rem">Choisissez le type de virement. Aucun PA n’est dépensé à cette étape.</p>'
+    + '<button type="button" class="cpj-touche cpj-primaire" style="display:block;width:100%;margin-bottom:.65rem" onclick="ouvrirVirementJoueur(false)">Virement unique</button>'
+    + '<button type="button" class="cpj-touche" style="display:block;width:100%" onclick="ouvrirVirementJoueur(true)">Virement récurrent</button>'
+    + '<p class="cpj-note" style="margin:.8rem 0 0">Chaque virement coûte 1 PA à sa confirmation. Le virement récurrent peut être quotidien ou hebdomadaire.</p>'
+    + '</div>';
+  modal.classList.add('open');
 }
 
 async function ouvrirVirementJoueur(automatique) {

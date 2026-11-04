@@ -57,3 +57,17 @@ Ces deux déploiements sont **des situations particulières raccordées au socle
 ### Arbitrage définitif — détection des personnes au port industriel (28/10/2026)
 
 Fred valide un **malus de 30 % au jet de détection** des personnes recherchées par les douaniers **affectés au port industriel** par rapport au taux normal du socle. Application : `taux_effectif = taux_de_detection_normal × 0,70` (réduction relative de 30 %, et non soustraction de 30 points). Par exemple, un taux normal de 60 % devient 42 %. Ce malus concerne exclusivement la détection des personnes recherchées au port ; il ne modifie ni le tirage d'inspection d'une caisse sur trois, ni la détection douanière en aéroport, ni les combats. **Ne pas créer un nouveau moteur de détection** : appliquer ce coefficient au résultat du calcul commun, lorsque le raccordement existant est identifié et testé. Ce document enregistre la décision ; aucune modification de production n'en résulte pour l'instant.
+
+## Décisions de Fred du 04/11/2026 (issue #433)
+
+- **Aéroport de Luthécia : un poste de douane**, soit un groupe de 3 douaniers (seul aéroport doté d'un hall des douanes).
+- **Fausse déclaration au port industriel** : quand l'inspection trouve des marchandises non déclarées, **amende au Trésor** égale au **double des frais de douane** (10 %) sur ce qui n'a pas été déclaré, soit 2 × 10 % × valeur.
+- **Qui paie l'amende** (Fred, 04/11, précisé) : l'expéditeur, souvent étranger, échappe à la loi républienne et peut ignorer l'injonction. L'amende reste donc **due sur la caisse** : l'expéditeur peut la régler ; sinon le destinataire qui veut récupérer sa commande la paie (avec le dédouanement) et se débrouille ensuite avec le vendeur (non codé) ; si personne ne paie, la caisse est **saisie et vendue pour le compte du Trésor** (vente des caisses non réclamées à J15, produit versé au Trésor). Migration `20261104123000_fret_amende_caisse`.
+- **Valeur des marchandises non déclarées** : prix de référence du jeu — prix de base des matières (`ressources_economie`), prix fixe des produits de commerce ; un objet sans prix connu ne compte pas.
+
+## Mise en œuvre (04/11/2026, Claude)
+
+- Déclaration structurée : à la fermeture, l'expéditeur coche les lots déclarés (`contenu_caisses_fret.declaree`) ; la nature (texte) et la valeur déclarée restent la base des droits de douane.
+- Inspection d'une caisse sur trois **tirée à l'expédition**, une seule fois par caisse : saisie des objets prohibés (mêmes critères que le contrôle des personnes : `legal:false` ou interdits par une loi en vigueur), convocation du déposant, amende de fausse déclaration. Le résultat n'est pas annoncé à l'écran : l'expéditeur l'apprend par courrier.
+- Contrôle ciblé du Chef des Douanes : formule du 25/08 inchangée, désormais tirée au serveur ; un contrôle positif ouvre la caisse et applique la même inspection (saisie + amende).
+- Migrations `20261104105114_fret_caisses_serveur` et `20261104110500_fret_contenu_source_portes` ; l'écran n'écrit plus `caisses_fret` ni `contenu_caisses_fret`.

@@ -9,7 +9,7 @@
 - Prix de vente dans un commerce PNJ : **60 FR / serrure** dans Républia.
 - Commercialisation : armureries et armureries-quincailleries de Républia, dont Montrouge ; pas de marché noir, pas de registre de vente d'armes.
 - Objet physique destiné à l'inventaire, avec capacité future d'installation sur armoire à souvenirs, appartement, local loué ou suite d'hôtel louée dans la durée.
-- **La pose et le contrôle d'accès ne sont pas dans cette livraison.** Pas d'effet fictif de fermeture ; aucune mécanique de crochetage pour l'instant.
+- Pose et contrôle d'accès : livrés le 04/11/2026 (voir « Ce que fait une serrure posée » et « Statut »). Aucune mécanique de crochetage pour l'instant.
 
 ## Règles d'installation confirmées (01/11/2026)
 
@@ -39,7 +39,9 @@
 - Depuis l'inventaire, cliquer sur une clé vierge ouvre une **pop-up de duplication dédiée**. Le PJ y choisit la clé/serrure à reproduire parmi celles pour lesquelles il dispose d'une clé valide ; aucune serrure arbitraire ne doit être proposée.
 - Une duplication réussie transforme transactionnellement **une clé vierge** en **un double de clé** lié à l'identifiant unique de la serrure. Pas de clonage d'objets ni de double débit en cas de rejeu/double clic.
 - Un double ne confère aucun droit supérieur à la clé source. Toute clé d'une serrure désactivée demeure inutilisable pour l'accès, malgré sa présence éventuelle en inventaire.
-- Le nombre maximal de doubles, la transmissibilité de clés et un coût éventuel de duplication au-delà de la clé vierge ne sont pas encore spécifiés ; ne pas inventer de restriction ou de frais.
+- **Nombre de doubles illimité** pour une même serrure (décision de Fred du 04/11/2026).
+- **La clé est un objet transmissible** (décision de Fred du 04/11/2026) : elle peut être donnée, vendue ou échangée comme tout objet d'inventaire, et le PJ qui la détient peut s'en servir. Le droit d'ouvrir vient de la clé détenue (et de la validité de l'installation), pas de l'identité de l'acheteur.
+- Un coût éventuel de duplication au-delà de la clé vierge n'est pas spécifié ; ne pas inventer de frais.
 
 ## Contraintes techniques constatées
 
@@ -54,6 +56,40 @@ Le socle doit inclure :
 
 **Ne pas livrer une vitrine proposant un bouton qui ne serait pas branché à la RPC serveur.**
 
-## Statut
+## Ce que fait une serrure posée (décision de Fred du 04/11/2026)
 
-Règles de fabrication, vente, installation et duplication documentées ; fabrication, achat et visibilité **non encore implémentés**. Aucune donnée en production modifiée.
+- « Une serrure permet de fermer à clé. Sa pose ne suffit donc pas. Une clé permet ensuite de fermer ou d'ouvrir. Chaque serrure est vendue avec 1 clé. »
+- Mise en œuvre (lecture naturelle de cette règle, sans mécanique ajoutée) : une serrure posée est **ouverte** ou **fermée à clé**. Fermée, elle interdit d'**entrer** dans le lieu (ou d'ouvrir / désinstaller l'armoire) à qui ne détient pas une de ses clés ; on **sort** toujours. Le détenteur d'une clé entre, et la porte reste fermée derrière lui. Fermer ou ouvrir exige une clé et d'être sur place : dans le bâtiment pour une porte, dans la pièce de l'armoire (ou en la portant) pour une armoire.
+- En groupe, chaque membre doit pouvoir entrer : un membre sans clé arrête le groupe devant une porte fermée.
+
+## Affichage d'un lieu fermé à clé (décision de Fred du 04/11/2026, 14 h 07)
+
+- « Si c'est tout un bâtiment qui est fermé à clé, l'infobulle lorsque l'on passe la souris sur le bâtiment indique qu'il est fermé à clé. Seul un PJ possédant une clé peut cliquer pour entrer dans le bâtiment. Une fois dans le bâtiment, il peut décider de l'ouvrir au public ou non. Si c'est un local dans un bâtiment : même principe. »
+- **Local (livré le 04/11)** : l'onglet du local porte un cadenas et l'infobulle « Fermé à clé » ; il ne s'ouvre pas pour qui n'a pas de clé (fenêtre pop-up ; le serveur refuse de toute façon) ; le détenteur d'une clé lit « Fermé à clé — vous en avez la clé » et entre ; dans le local, il choisit « Ouvrir au public » ou « Fermer à clé ». Lecture serveur `serrures_portes_lire`.
+- **Bâtiment entier (décision du 04/11, 14 h 27)** : « Seule une personne qui a l'intégralité de la jouissance d'un bâtiment peut fermer un bâtiment entier. » Mise en œuvre : propriétaire ou copropriétaire du bâtiment construit (ou membre de l'organisation propriétaire), sans aucun lot loué à quelqu'un d'autre. La serrure se pose sur l'entrée ; elle est détruite dès que cette intégralité se perd (vente, lot loué à un tiers). Dans la rue, l'infobulle du bâtiment indique « Fermé à clé » ; seul un détenteur de clé entre ; dedans, il ouvre au public ou referme.
+- **Cadenas dessiné (décision du 04/11, 14 h 27)** : à côté du nom du local (onglet) ou du bâtiment (plan de la ville, infobulle de la rue), un cadenas **ouvert** ou **fermé** selon l'état de la serrure.
+- **Clic sur un local ou un bâtiment fermé sans clé (décision du 04/11, 14 h 27)** : une fenêtre pop-up indique qu'on ne peut pas entrer car le lieu est fermé à clé (au lieu d'un simple message).
+
+## Prix (décision de Fred du 04/11/2026)
+
+- « La règle de fixation des prix existe, on ne va pas la réinventer. » Commerce PNJ : la serrure à **60 FR** (décision du 01/11) ; la clé vierge à **14 FR**, par la règle PNJ des commerces (2 × le coût de revient : (1 métal à 20 FR + 1 PA à 50 FR) / 10 = 7 FR). Un propriétaire PJ d'armurerie fixe ses prix et plafonds de quincaillerie comme pour ses armes (pas de fourchette en armurerie).
+- Plafonds de stock par défaut d'une armurerie PNJ : 10 serrures, 50 clés vierges (5 lots), réglables par un propriétaire PJ.
+
+## Statut (04/11/2026, issue #434)
+
+**Implémenté et appliqué en production** (six migrations `20261104124000` à `20261104124400`, banc annulé `outils/bancs/banc-serrures.sql` vert) :
+- fabrication en armurerie de Républia (main-d'œuvre au tarif commun, 50 FR/PA) et vente au comptoir de la vitrine, rayon « Quincaillerie » distinct des armes, une serrure par achat, 1 à 50 clés vierges ; ni marché noir, ni registre des armes ;
+- pose depuis l'inventaire (bloc → Installer), sur place : le local où l'on se trouve si l'on en a la jouissance (bail à son nom ou à celui de son organisation), ou une armoire à souvenirs installée qui nous appartient ; chambres d'hôtel et de clinique exclues ; une serrure par lieu et par armoire ; le bloc est consommé ;
+- fermer / ouvrir avec une clé détenue ; porte fermée refusée par le serveur ; doubles illimités (clé vierge + clé détenue, sans autre frais) ; clés empilées par serrure, transmissibles par les ordres ordinaires (donner, déposer) ;
+- armoire à souvenirs installable comme l'ordinateur (encombrement 3, plusieurs par pièce possibles, 48 h pour désinstaller après la perte du bail) ; fermée à clé, elle ne se désinstalle pas ;
+- fin de bail : la serrure du lieu est détruite pour tout le monde (avec un courrier au poseur), dès qu'on la touche et dans la passe de nuit ; ses clés n'ouvrent plus rien et ne se dupliquent plus.
+
+**Non couvert, faute de décision** : le crochetage ; la suite d'hôtel louée dans la durée (aucune location longue de suite n'existe aujourd'hui : la cible sera ouverte quand elle existera) ; le contenu de l'armoire (remplissage hors périmètre depuis août) ; une illustration dessinée du bloc serrure (icône en attendant).
+
+## Armoire à souvenirs : installation et droit de poser une serrure (décision du 04/11/2026)
+
+- **Même mécanique que l'ordinateur et la box** (matériels par combinaison) : l'armoire s'**installe** dans un lieu dont le PJ a la jouissance légale (appartement ou local, en propriété ou par bail valide). Le PJ peut la désinstaller.
+- Le droit de poser une serrure sur l'armoire vient de la **jouissance du lieu où elle est installée**, vérifiée par le serveur au moment de l'acte ; il n'y a **pas de titre de propriété attaché à l'objet**.
+- Une armoire **non installée** est un objet ordinaire (donnée, vendue, volée…) : on ne peut pas y poser de serrure.
+- **Perte de jouissance** du lieu (bail non valide) : comme pour l'ordinateur, le PJ dispose de **48 h pour désinstaller** l'armoire, faute de quoi elle devient la propriété du propriétaire foncier.
+- La facture d'achat avec « référence secrète » prévue en août (ancien code navigateur, non enregistrée par le serveur) n'est **pas** la source du droit.

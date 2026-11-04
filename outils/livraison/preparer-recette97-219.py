@@ -36,11 +36,20 @@ def preparer(paquet=None):
  if hors_coupe_manufactures!=[{'fn':'consulter_catalogue_manufactures','pa':0,'cost':0}]:
   raise ValueError('Catalogue manufacturé absent ou tarif inattendu')
  source_historique=[x for x in source if x['fn'] not in ajouts_ssm+ajouts_manufactures]
+ # Les deux virements bancaires sont désormais un sous-menu graphique (04/11) :
+ # leurs anciens triplets sont maintenus dans la photographie d'origine,
+ # et le menu gratuit 'virements' n'appartenait pas au plan 97.
+ menu_virements=('virements',)
+ if [x for x in source if x['fn'] in menu_virements]!=[{'fn':'virements','pa':0,'cost':0}]:
+  raise ValueError('Menu Virements absent ou facture : un choix ne coute aucun PA')
+ source_historique=[x for x in source_historique if x['fn'] not in menu_virements]
  # Ordres retirés depuis la coupe historique : restauration UNIQUEMENT pour
  # vérifier son empreinte d'origine, jamais dans le catalogue de jeu courant.
  retires=[{'fn':'assigner_mission','pa':1,'cost':0},
           {'fn':'fabriquer_armoire_souvenirs','pa':3,'cost':0},
-          {'fn':'acheter_armoire_souvenirs','pa':0,'cost':0}]
+          {'fn':'acheter_armoire_souvenirs','pa':0,'cost':0},
+          {'fn':'virement_joueur','pa':1,'cost':0},
+          {'fn':'virement_automatique','pa':1,'cost':0}]
  if any(x['fn'] in {r['fn'] for r in retires} for x in source):
   raise ValueError('Un ordre retiré ne doit plus figurer au catalogue actuel')
  source_historique=source_historique+retires

@@ -371,8 +371,9 @@ ARMOIRE À SOUVENIRS
 • Plusieurs Armoires complètes réunies dans la même pièce ne cumulent pas cet avantage.
 • L'Armoire est transportable, mais doit être entièrement vidée de son contenu avant tout déplacement.
 • Tant qu'elle n'est pas verrouillée, un visiteur peut en retirer les souvenirs.
-• L'Armoire est vendue sans clé.
-• Sa facture comporte une référence confidentielle qui permettra au propriétaire de faire fabriquer ultérieurement une clé adaptée à cette Armoire.`
+• L'Armoire est vendue sans clé. Elle s'installe, comme un ordinateur, dans un local dont vous avez la jouissance (bail à votre nom ou à celui de votre organisation).
+• Une Armoire installée peut recevoir une serrure à clé (vendue en armurerie, avec sa clé). Fermée à clé, elle ne s'ouvre et ne se désinstalle qu'avec une de ses clés.
+• Si vous perdez la jouissance du local, vous avez 48 h pour désinstaller l'Armoire ; passé ce délai, elle revient au propriétaire des lieux.`
   }
 };
 
@@ -3414,6 +3415,14 @@ async function ouvrirDetailObjetInventaire(idx) {
     }
   }
 
+  // Serrures (04/11/2026, issue #434) : poser le bloc, utiliser la cle, tailler une cle vierge.
+  // Les boutons Donner / Jeter ci-dessous restent : une cle est un objet transmissible.
+  if (['serrure_cle', 'cle_serrure', 'cle_vierge'].includes(item.type) && typeof ouvrirSerrureObjet === 'function') {
+    html += '<button class="cpj-touche cpj-primaire" onclick="ouvrirSerrureObjet(' + idx + ')"><i class="ti ' +
+      (item.type === 'serrure_cle' ? 'ti-lock' : 'ti-key') + '"></i> ' +
+      ({ serrure_cle: 'Installer', cle_serrure: 'Fermer ou ouvrir', cle_vierge: 'Faire un double' })[item.type] + '</button>';
+  }
+
   const protege = typeof colisSecretProtege === 'function' && colisSecretProtege(item);
   if (protege) {
     html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic"><i class="ti ti-lock"></i> Indispensable à une mission en cours — ne peut être ni donné à un autre joueur, ni abandonné, ni détruit.</div>';
@@ -3604,13 +3613,10 @@ function ouvrirPopupArmoireSouvenirs(idx, tab) {
     html += 'Date d\'achat : ' + (item.dateAchat ? new Date(item.dateAchat).toLocaleDateString('fr-FR') : '—') + '<br>';
     html += 'N° d\'Armoire : ' + (item.id || '—') + '<br>';
     html += '</div>';
-    if (estProprietaire) {
-      html += '<div style="margin-top:.6rem;padding:.6rem;border:1px solid #4a3a10;background:#161206">';
-      html += '<div style="font-size:.8rem;color:#E8C97A;word-break:break-all">Référence confidentielle : ' + (item.referenceSecrete || '—') + '</div>';
-      html += '<div style="font-size:.72rem;color:#8a7a50;font-style:italic;margin-top:.35rem">Conservez précieusement cette référence : elle seule permettra de faire fabriquer une clé pour cette Armoire.</div>';
-      html += '</div>';
-    } else {
-      html += '<div style="font-size:.76rem;color:#6a5a30;font-style:italic;margin-top:.4rem">La référence confidentielle de propriété n\'est visible que par le propriétaire.</div>';
+    {
+      // Decision de Fred du 04/11/2026 (GAME-DESIGN-SERRURES.md) : la facture n'est PAS la source du
+      // droit de fermer l'armoire ; ce droit vient de la jouissance du lieu ou elle est installee.
+      html += '<div class="cpj-note" style="margin-top:.6rem">Pour la fermer à clé : installez-la dans un local dont vous avez la jouissance, puis posez-y une serrure (vendue en armurerie).</div>';
     }
   } else {
     const total = liste ? liste.souvenirs.length : 12;
@@ -3622,6 +3628,11 @@ function ouvrirPopupArmoireSouvenirs(idx, tab) {
       html += '<div style="font-size:.82rem;color:' + (present ? '#e0d8c0' : '#5a5040') + '"><i class="ti ' + (present ? 'ti-square-check' : 'ti-square') + '" style="margin-right:.5rem"></i>' + s.ville + ' — ' + s.nom + '</div>';
     });
     html += '</div>';
+  }
+  // Installation (04/11/2026) : comme l'ordinateur, dans un local dont on a la jouissance ; le
+  // serveur decide (equipement_installer), cet ecran ne fait que demander.
+  if (typeof equipementInstaller === 'function') {
+    html += '<button class="cpj-touche cpj-primaire" style="width:100%;margin-top:.8rem" onclick="equipementInstaller(\'armoire_souvenirs\')"><i class="ti ti-home"></i> Installer ici</button>';
   }
   html += '</div>';
 

@@ -712,7 +712,19 @@ function blocQueteAccueil(contexte) {
     + " sans inventer une autre consigne ni une autre destination.";
 }
 
-function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale) {
+// La scène est résolue côté API depuis rue_position_lire(), jamais reçue du client.
+function blocLocalisation(profil, scene) {
+  const normaliser = n => String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  if (!scene) return "LOCALISATION ACTUELLE NON CONFIRMÉE : ton lieu de travail n'est pas la preuve de ta présence actuelle. N'invente ni cour, ni bâtiment, ni pièce, ni porte ou trajet. Si le lieu exact n'est pas confirmé, dis que tu ne peux pas le préciser.";
+  const ici = scene.personnes.some(n => normaliser(n) === normaliser(profil.nom));
+  return "SCÈNE VÉRIFIÉE CÔTÉ SERVEUR : le visiteur se trouve dans le pays « " + scene.pays
+    + " », ville « " + scene.ville + " », bâtiment « " + scene.batiment + " », pièce « " + scene.piece + " ». "
+    + (ici ? "Ton identité figure parmi les PNJ de cette pièce : vous conversez à cet endroit précis. "
+      : "Ta présence dans cette pièce n'est pas confirmée ; ne prétends pas y être ni confondre ce lieu avec ton lieu de travail. ")
+    + "Cette localisation prévaut sur toute ancienne réplique ou affirmation du visiteur. N'invente aucun autre emplacement, cour, porte, couleur de porte ni itinéraire. À une question sur le lieu, utilise seulement ces noms vérifiés et ton lieu de travail explicitement connu. Le dialogue ne déplace personne et n'exécute aucun ordre.";
+}
+
+function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, scene) {
   const p = TOUS_PROFILS[profilId];
   if (!p) return null;
   const rel = blocRelation(relation);
@@ -724,6 +736,8 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
   const vis = blocQueteAccueil(visite);
   return [
     fonctionMunicipale?.identite || p.identite,
+    '',
+    blocLocalisation(p, scene),
     '',
     'CARACTERE : ' + p.caractere,
     '',
