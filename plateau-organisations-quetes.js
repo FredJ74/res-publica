@@ -6989,7 +6989,11 @@ async function chargerPortraitsMatch(matchKey, live) {
     ...(live.compositionFigee?.home?.titulaires || []).map(t => t.nom),
     ...(live.compositionFigee?.away?.titulaires || []).map(t => t.nom)
   ];
-  if (typeof sbGet === 'function' && noms.length) {
+  if (typeof sbPortraitsPour === 'function' && noms.length) {
+    // Cache des portraits (04/11/2026, #55/#60) : seuls les portraits nouveaux ou changes redescendent.
+    const portraits = await sbPortraitsPour(noms).catch(() => ({}));
+    noms.forEach(n => { cache[n] = portraits[n] || null; });
+  } else if (typeof sbGet === 'function' && noms.length) {
     // Correctif du 28 aout 2026 : cible desormais UNIQUEMENT les ~22 titulaires de CE match (OR de
     // name.eq., chaque valeur encodee individuellement -- meme patron que name=eq.${encodeURIComponent(...)}
     // deja utilise partout ailleurs dans ce fichier, jamais un in.() quote a la main), au lieu de
