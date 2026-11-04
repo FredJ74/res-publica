@@ -23,8 +23,12 @@ class Plan(unittest.TestCase):
             {'fn': 'ssm_besoin_aide', 'pa': 0, 'cost': 0},
             {'fn': 'ssm_demander_rendezvous', 'pa': 0, 'cost': 0}
         ])
-        # 463 moins « assigner_mission », retire le 03/11/2026.
-        self.assertEqual(result['tarifs_actuels']['lignes'], 462)
+        # Deux ordres scierie retires, un catalogue gratuit ajoute le 04/11.
+        # 462 entrees au 03/11, soit -2 +1 = 461 aujourd'hui.
+        self.assertEqual(result['tarifs_ajoutes_manufactures'], [
+            {'fn': 'consulter_catalogue_manufactures', 'pa': 0, 'cost': 0}
+        ])
+        self.assertEqual(result['tarifs_actuels']['lignes'], 461)
         self.assertEqual(len(result['tarifs_actuels']['md5']), 32)
         self.assertFalse(result['execution_autorisee'])
         self.assertTrue(result['ancien_plan_tarifaire_conforme_source'])

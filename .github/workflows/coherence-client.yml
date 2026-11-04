@@ -54,6 +54,8 @@ jobs:
           python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261103222000_forums_territoires_et_adhesions.sql').read_text()); print('SQL forums : syntaxe PostgreSQL valide')"
       - name: Commerces, usines et armureries — vente de matières et stocks visibles
         run: node outils/bancs/banc-commerces-stock-unique-20261104.cjs
+      - name: Catalogue manufacturé commun — produire et acheter depuis la même carte
+        run: node --test outils/bancs/banc-catalogue-manufactures-20261104.cjs
       - name: Football — entraînement sans blessure navigateur, indisponibilité 3 jours maximum
         run: |
           node --test outils/bancs/banc-football-blessures-entrainement-3j.cjs
