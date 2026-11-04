@@ -94,7 +94,7 @@ async function pnjSocialEntreeZone(buildingId, roomId) {
   // Le joueur a pu quitter la piece pendant l'aller-retour reseau.
   if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
 
-  socialAfficherJalon(r.jalon);
+  socialAfficherJalon(r.jalon, buildingId, roomId);
 }
 
 // ---------------------------------------------------------------------------
@@ -102,32 +102,22 @@ async function pnjSocialEntreeZone(buildingId, roomId) {
 // ---------------------------------------------------------------------------
 // Reutilise la modale commune du jeu (#modal-postes), comme la quete d'accueil et
 // les ecrans de commerce. Aucun composant nouveau, aucune refonte graphique.
-function socialAfficherJalon(jalon) {
+// L'interpellation est la premiere phrase de la conversation ordinaire :
+// le joueur repond immediatement avec le textarea PNJ et le moteur serveur existant.
+// Le serveur social choisit le jalon ; la definition du personnage est lue dans la
+// piece actuelle, pas reconstruite a partir d'un nom ou d'un portrait.
+function socialAfficherJalon(jalon, buildingId, roomId) {
   const j = RP_SOCIAL_JALONS[jalon];
-  if (!j) return;
-  const nom = (state.char && state.char.name) || '';
-  const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(String(t == null ? '' : t)) : String(t == null ? '' : t);
+  if (!j || typeof openPnjModal !== 'function' || typeof encodePnjSafe !== 'function') return;
+  if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
+  const ctx = (typeof getBuildingContext === 'function') ? getBuildingContext(buildingId) : null;
+  const salle = ctx?.roomsExtra?.[roomId] || BUILDINGS?.[buildingId]?.rooms?.[roomId];
+  const pnj = (salle?.persons || []).find(p =>
+    String(p.name || '').replace(/\\s*\\(PNJ\\)\\s*$/i, '').trim() === j.pnj);
+  if (!pnj) return; // Aucun dialogue si ce PNJ n'est plus reellement dans la piece.
 
-  let html = '<div style="padding:1.1rem">';
-  html += '<div style="display:flex;gap:.9rem;align-items:flex-start">';
-  html += '<div style="width:88px;height:88px;flex-shrink:0;border:1px solid #3a2a10;overflow:hidden;background:#0d0b05">' +
-    '<img src="' + j.portrait + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 15%"/></div>';
-  html += '<div style="flex:1;min-width:0">';
-  html += '<div style="font-family:Playfair Display,serif;color:#E8C97A;margin-bottom:.45rem">' + ech(j.pnj) + '</div>';
-  html += '<div style="font-size:.9rem;color:#c0b090;line-height:1.65;font-family:Crimson Pro,serif;font-style:italic">« ' +
-    ech(j.texte(nom)) + ' »</div>';
-  html += '</div></div>';
-  html += '<div style="margin-top:1rem;font-size:.78rem;color:#6a6050">' +
-    ech('Vous pouvez lui répondre en cliquant sur lui dans la liste des personnes présentes.') + '</div>';
-  html += '</div>';
-
-  const titre = document.getElementById('postes-modal-title');
-  const corps = document.getElementById('postes-body');
-  const modale = document.getElementById('modal-postes');
-  if (!titre || !corps || !modale) return;
-  titre.textContent = j.pnj;
-  corps.innerHTML = html;
-  modale.classList.add('open');
+  const texte = j.texte((state.char && state.char.name) || '');
+  openPnjModal(encodePnjSafe(pnj), {initialSpeech: texte});
 
   if (typeof addJournalEntry === 'function') {
     addJournalEntry(j.pnj + ' vous adresse la parole.', 'event-info');
