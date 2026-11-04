@@ -39,7 +39,8 @@
 - Depuis l'inventaire, cliquer sur une clé vierge ouvre une **pop-up de duplication dédiée**. Le PJ y choisit la clé/serrure à reproduire parmi celles pour lesquelles il dispose d'une clé valide ; aucune serrure arbitraire ne doit être proposée.
 - Une duplication réussie transforme transactionnellement **une clé vierge** en **un double de clé** lié à l'identifiant unique de la serrure. Pas de clonage d'objets ni de double débit en cas de rejeu/double clic.
 - Un double ne confère aucun droit supérieur à la clé source. Toute clé d'une serrure désactivée demeure inutilisable pour l'accès, malgré sa présence éventuelle en inventaire.
-- Le nombre maximal de doubles, la transmissibilité de clés et un coût éventuel de duplication au-delà de la clé vierge ne sont pas encore spécifiés ; ne pas inventer de restriction ou de frais.
+- **Nombre de doubles illimité** pour une même serrure (décision de Fred du 04/11/2026).
+- La transmissibilité des clés et un coût éventuel de duplication au-delà de la clé vierge ne sont pas encore spécifiés ; ne pas inventer de restriction ou de frais.
 
 ## Contraintes techniques constatées
 
