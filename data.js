@@ -6546,7 +6546,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#181410,#221c15)",
-        imageUrl: "images/entrepot-pole-tabac-psm.webp",
+        imageUrl: "images/psm-pole-alcool-tabac-salle-ventes.webp",
         desc: "L'accueil et la salle de vente directe, alcools et tabac confondus.",
         persons: [],
         orders: [{fn:'vente_directe_usine', label:'Vente directe', pa:0, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'}]
@@ -6554,7 +6554,7 @@ const BUILDINGS = {
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "images/psm-pole-alcool-tabac-bureau-direction.webp",
         desc: "Le bureau du directeur du pôle. Accès sur rendez-vous.",
         persons: [{name:'Fernand Cendrier (PNJ)', role:'Directeur du Pôle Tabac & Alcools', rel:'neutral', job:'directeur_tabac_alcools'}],
         orders: [
@@ -6566,7 +6566,7 @@ const BUILDINGS = {
       distillerie: {
         name: "Distillerie",
         imageBg: "linear-gradient(135deg,#0a0d10,#12161a)",
-        imageUrl: "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=1200&q=80",
+        imageUrl: "images/psm-pole-alcool-tabac-distillerie.webp",
         desc: "Les alambics. Céréales et fruits livrés y sont distillés en alcool.",
         persons: [],
         orders: [
@@ -6579,7 +6579,7 @@ const BUILDINGS = {
       manufacture_tabac: {
         name: "Manufacture de Tabac",
         imageBg: "linear-gradient(135deg,#100d0a,#1a1512)",
-        imageUrl: "https://images.unsplash.com/photo-1519669417670-68775a50919f?w=1200&q=80",
+        imageUrl: "images/psm-pole-alcool-tabac-manufacture-tabac.webp",
         desc: "Les lignes de manufacture. Les plantes livrées y sont transformées en tabac.",
         persons: [],
         orders: [
@@ -6603,7 +6603,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#141210,#1c1815)",
-        imageUrl: "images/entrepot-pole-tabac-psm.webp",
+        imageUrl: "images/psm-entrepot-logistique-salle-ventes.webp",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
         orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
@@ -6611,7 +6611,7 @@ const BUILDINGS = {
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "images/psm-entrepot-logistique-bureau-direction.webp",
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Yvon Paletier (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [
