@@ -33,8 +33,8 @@
 
 ## Clés vierges et duplication (décision du 01/11)
 
-- Fabrication en armurerie/quincaillerie : **1 unité de métal + 1 PA = 5 clés vierges** (lot de cinq).
-- Vente PNJ des clés vierges : **prix cible d'environ 10 FR/unité**, à confirmer comme tarif définitif avant codage tarifaire.
+- Fabrication en armurerie/quincaillerie : **1 unité de métal + 1 PA = 10 clés vierges** (lot de dix ; décision de Fred du 04/11/2026, remplace le lot de cinq).
+- Prix de vente des clés vierges : **entre 10 et 20 FR l'unité** (décision de Fred du 04/11/2026).
 - La clé vierge est un objet d'inventaire non lié à une serrure. L'achat précède toute duplication.
 - Depuis l'inventaire, cliquer sur une clé vierge ouvre une **pop-up de duplication dédiée**. Le PJ y choisit la clé/serrure à reproduire parmi celles pour lesquelles il dispose d'une clé valide ; aucune serrure arbitraire ne doit être proposée.
 - Une duplication réussie transforme transactionnellement **une clé vierge** en **un double de clé** lié à l'identifiant unique de la serrure. Pas de clonage d'objets ni de double débit en cas de rejeu/double clic.

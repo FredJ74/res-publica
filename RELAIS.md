@@ -146,6 +146,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 ## Derniers chantiers
 
+- 04/11/2026 — **Serrures (Fred)** : clés vierges, 1 métal + 1 PA = 10 clés, vendues entre 10 et 20 FR l'unité (`GAME-DESIGN-SERRURES.md`, issue #434).
 - 04/11/2026 — **Tri des PR ouvertes (Claude, branche `claude/tri-pr-rumeur-20261104`, demande de Fred : « ne rien laisser derrière »)**. Restent ouvertes : #422 (forums, Codex), #377 (i18n, en attente : la feuille de route place l'internationalisation après Républia). Fermées, avec leur reste repris :
   - **Terminées ici** : #308 → migration `20261104110000` **appliquée** (registre `rumeur_organisation_alerte_chef_20261104110000`) : rumeur réussie et publiée contre une organisation = courrier neutre « Une rumeur vise votre organisation » au chef, sans nom d'auteur ; un échec d'envoi n'annule pas la rumeur ; patch en place du corps de production (l'ancienne migration retapait un corps périmé). Banc annulé `banc-rumeur-alerte-chef.sql` vert. #76 → migration `20261104111000` **appliquée** (registre `archives_tribune_index_security_invoker_20261104111000`) : vue des archives en `security_invoker` ; source en lecture publique, anon voit 52 éditions avant et après.
   - **Reprises en issue avec leurs décisions versionnées** : #215 → issue #433 + `GAME-DESIGN-DOUANES.md` (le contrôle douanier tire encore son jet dans le navigateur) ; #326 → issue #434 + `GAME-DESIGN-SERRURES.md` ; #262 → issue #435 + `outils/audits/AUDIT-BASELINE-PRODUCTION-20261030.md` ; #103 → issue #95 ; #56 → issue #55/#60.
