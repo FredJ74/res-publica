@@ -804,13 +804,20 @@ const RUE_CENTRALE_NOEUDS = {
   // ===========================================================
   soviet: {
 
-    // KRASNOV — première scène extérieure de la ville (gare).
-    // Aucune flèche de déplacement pour l'instant : graphe à définir par le game designer.
+    // KRASNOV — la gare donne vers la rue de l'entrepôt par une seule flèche BAS.
+    // Les autres directions restent non définies, conformément à l'arbitrage du game designer.
     'krasnov-rue-gare': {
       image: 'images/Sovarka/Krasnov/Krasnov rue gare.webp',
       zones: [
         { xPct: [0, 48], yPct: [8, 76], nom: 'Gare de Krasnov', type: 'batiment', buildingId: 'centre-multinodal-montrouge' }
       ],
+      liens: { arriere: 'krasnov-rue-entrepot' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
+    },
+
+    'krasnov-rue-entrepot': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue entrepôt.webp',
+      zones: [],
       liens: {}
     },
 
