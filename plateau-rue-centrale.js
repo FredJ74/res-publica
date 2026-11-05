@@ -1,7 +1,7 @@
 // Point d'entree par ville — sert a savoir si cette ville utilise la nouvelle navigation par scenes
 const RUE_CENTRALE_DEPART = {
   republic: { capitale: 'luthecia-palais-presidentiel', ville_a: 'psm-centre-multimodal', ville_b: 'montrouge-vue-3', caserne: 'caserne-exterieur', qhs: 'qhs-exterieur' },
-  soviet:   { capitale: 'novomirsk-vue-1', ville_b: 'krasnov-rue-gare' }
+  soviet:   { capitale: 'novomirsk-vue-1', ville_a: 'starovka-rue-gare', ville_b: 'krasnov-rue-gare' }
   // Autres villes/empires a ajouter au fur et a mesure des images produites
 };
 
@@ -803,6 +803,28 @@ const RUE_CENTRALE_NOEUDS = {
   // par banc_novomirsk.py.
   // ===========================================================
   soviet: {
+
+    // STAROVKA — ouverture de la navigation par la gare de fret.
+    // La sortie basse sera raccordée à la prochaine illustration : flèche visible,
+    // non cliquable pour ne pas inventer une destination côté serveur.
+    'starovka-rue-gare': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_gare.webp',
+      zones: [],
+      liens: { toutDroit: 'starovka-rue-port-industriel' },
+      liensEnAttente: { arriere: true },
+      flechesStyle: {
+        toutDroit: RC_FLECHE_HAUT,
+        arriere: RC_FLECHE_BAS
+      }
+    },
+
+    // PORT INDUSTRIEL — terminaison de la carte, retour unique vers la gare.
+    'starovka-rue-port-industriel': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_port industriel.webp',
+      zones: [],
+      liens: { arriere: 'starovka-rue-gare' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
+    },
 
     // KRASNOV — la gare donne vers la rue de l'entrepôt par une seule flèche BAS.
     // Les autres directions restent non définies, conformément à l'arbitrage du game designer.
