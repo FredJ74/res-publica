@@ -829,6 +829,17 @@ const RUE_CENTRALE_NOEUDS = {
     'krasnov-rue-maison': {
       image: 'images/Sovarka/Krasnov/Krasnov rue maison.webp',
       zones: [],
+      liens: { gauche: 'krasnov-rue-entrepot', droite: 'krasnov-rue-terrains' },
+      flechesStyle: {
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);',
+        droite: 'top:50%; right:10px; transform:translateY(-50%);'
+      }
+    },
+
+    // Vue des terrains : directions à définir par le game designer.
+    'krasnov-rue-terrains': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue terrains.webp',
+      zones: [],
       liens: {}
     },
 
