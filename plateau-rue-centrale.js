@@ -861,6 +861,37 @@ const RUE_CENTRALE_NOEUDS = {
     'krasnov-centre-artisanal': {
       image: 'images/Sovarka/Krasnov/Krasnov centre artisanal.webp',
       zones: [],
+      liens: { gauche: 'krasnov-rue-marche-ferme', toutDroit: 'krasnov-rue-stade-commissariat' },
+      flechesStyle: {
+        gauche: 'top:66.6667%; left:10px; transform:translateY(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    'krasnov-rue-stade-commissariat': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue stade commissariat.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-centre-artisanal', toutDroit: 'krasnov-rue-ecole-foret' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    'krasnov-rue-ecole-foret': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue école foret.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-stade-commissariat', toutDroit: 'krasnov-rue-distillerie-radar' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Dernière image de cette séquence : aucune nouvelle flèche non validée.
+    'krasnov-rue-distillerie-radar': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue distillerie centre radar.webp',
+      zones: [],
       liens: {}
     },
 
