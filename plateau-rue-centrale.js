@@ -846,25 +846,28 @@ const RUE_CENTRALE_NOEUDS = {
     // V4 — Grand Hotel (entree principale) et Galeries.
     // Le Grand Hotel a DEUX entrees exterieures (V4 et V5) ; sa sortie canonique ramene
     // toujours ici, d'ou le sortieNoeudId pose sur les deux zones.
-    // Une fleche BAS avait ete prevue mais sa destination n'a jamais ete definie : absente.
+    // La liaison en face vers V3 assure le retour vers la rue du notaire.
     'novomirsk-vue-4': {
       image: 'images/rue-hotel-galeries-novomirsk.webp',
       zones: [
         { xPct: [0, 23],   yPct: [8, 74], nom: 'Grand Hôtel de Sovarka', type: 'batiment', buildingId: 'hotel-republica', sortieNoeudId: 'novomirsk-vue-4' },
         { xPct: [79, 100], yPct: [2, 70], nom: 'Galeries de Novomirsk', type: 'batiment', buildingId: 'centre-commercial' }
       ],
-      liens: { gauche: 'novomirsk-vue-5', droite: 'novomirsk-vue-15' }
+      liens: { toutDroit: 'novomirsk-vue-3', gauche: 'novomirsk-vue-5', droite: 'novomirsk-vue-15' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT }
     },
 
     // V5 — Seconde entree du Grand Hotel, et centre d'affaires.
-    // Une fleche BAS avait ete prevue mais sa destination n'a jamais ete definie : absente.
+    // La liaison haute conduit a V3 ; la sortie laterale vers V6 conserve les ambassades.
     'novomirsk-vue-5': {
       image: 'images/rue-hotel-centre-affaires-novomirsk.webp',
       zones: [
         { xPct: [0, 25],   yPct: [8, 74], nom: 'Centre d\'affaires de Novomirsk', type: 'batiment', buildingId: 'centre-affaires' },
         { xPct: [75, 100], yPct: [0, 74], nom: 'Grand Hôtel de Sovarka', type: 'batiment', buildingId: 'hotel-republica', sortieNoeudId: 'novomirsk-vue-4' }
       ],
-      liens: { droite: 'novomirsk-vue-4', toutDroit: 'novomirsk-vue-6' },
+      // Carrefour : en face, la rue du notaire/commissariat (V3).
+      // Les ambassades (V6) restent accessibles par la gauche, l'hotel (V4) par la droite.
+      liens: { toutDroit: 'novomirsk-vue-3', gauche: 'novomirsk-vue-6', droite: 'novomirsk-vue-4' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT }
     },
 
