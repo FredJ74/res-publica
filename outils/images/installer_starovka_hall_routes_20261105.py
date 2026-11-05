@@ -97,6 +97,53 @@ new="""    // Starovka : la gare utilise le transport et les pièces du socle pa
       flechesStyle: { toutDroit: RC_FLECHE_HAUT }
     },"""
 change('plateau-rue-centrale.js',old,new)
+# A buildingId is shared across Sovarka cities. Resolve only within the CURRENT
+# city's connected component instead of scanning every street in the empire.
+before="""function noeudRueDuBatiment(pays, buildingId) {
+  if (!pays || !buildingId) return null;
+  const noeuds = (typeof RUE_CENTRALE_NOEUDS !== 'undefined') ? RUE_CENTRALE_NOEUDS[pays] : null;
+  if (!noeuds) return null;
+  const trouves = [];
+  for (const noeudId in noeuds) {
+    const zones = noeuds[noeudId]?.zones;
+    if (!Array.isArray(zones)) continue;
+    if (zones.some(z => z && z.buildingId === buildingId)) trouves.push(noeudId);
+    // Variantes par provenance : un meme noeud peut proposer d'autres batiments selon l'arrivee.
+    const parArrivee = noeuds[noeudId]?.zonesParArrivee;
+    if (parArrivee && typeof parArrivee === 'object') {
+      for (const depuis in parArrivee) {
+        const zs = parArrivee[depuis];
+        if (Array.isArray(zs) && zs.some(z => z && z.buildingId === buildingId)
+            && !trouves.includes(noeudId)) trouves.push(noeudId);
+      }
+    }
+  }
+  return trouves.length === 1 ? trouves[0] : null;
+}"""
+after="""function noeudRueDuBatiment(pays, buildingId, ville) {
+  if (!pays || !buildingId) return null;
+  const noeuds = (typeof RUE_CENTRALE_NOEUDS !== 'undefined') ? RUE_CENTRALE_NOEUDS[pays] : null;
+  const villeActive = ville || (typeof state !== 'undefined' && state.currentCity);
+  const depart = RUE_CENTRALE_DEPART[pays]?.[villeActive];
+  if (!noeuds || !depart || !noeuds[depart]) return null;
+  const file = [depart], visites = new Set(), trouves = [];
+  // Navigation graph is authoritative for a city's accessible street component.
+  while (file.length) {
+    const noeudId = file.shift();
+    if (visites.has(noeudId) || !noeuds[noeudId]) continue;
+    visites.add(noeudId);
+    const n = noeuds[noeudId];
+    const ensembles = [n.zones, ...Object.values(n.zonesParArrivee || {})];
+    if (ensembles.some(zs => Array.isArray(zs) && zs.some(z => z?.buildingId === buildingId)))
+      trouves.push(noeudId);
+    for (const dst of Object.values(n.liens || {})) {
+      if (dst && noeuds[dst] && !visites.has(dst)) file.push(dst);
+    }
+  }
+  return trouves.length === 1 ? trouves[0] : null;
+}"""
+change('plateau-rue-centrale.js',before,after)
+
 old="""      buildingContext: {
         'hotel-republica': {
           name: "Baraquement Sibirsk-9","""
