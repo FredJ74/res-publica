@@ -839,8 +839,23 @@ const RUE_CENTRALE_NOEUDS = {
     'starovka-rue-petrole-ferme': {
       image: 'images/Sovarka/Starovka/Starovka_rue_pétrole_ferme.webp',
       zones: [],
-      liens: { toutDroit: 'starovka-maisons-ferme' },
-      flechesStyle: { toutDroit: RC_FLECHE_HAUT }
+      liens: { toutDroit: 'starovka-maisons-ferme', droite: 'starovka-rue-terrains' },
+      // La destination basse n'est pas encore illustrée : flèche visible, non cliquable.
+      liensEnAttente: { arriere: true },
+      flechesStyle: {
+        toutDroit: RC_FLECHE_HAUT,
+        arriere: RC_FLECHE_BAS,
+        droite: 'top:50%; right:10px; transform:translateY(-50%);'
+      }
+    },
+
+    'starovka-rue-terrains': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_terrains.webp',
+      zones: [],
+      liens: { gauche: 'starovka-rue-petrole-ferme' },
+      flechesStyle: {
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);'
+      }
     },
 
     // KRASNOV — la gare donne vers la rue de l'entrepôt par une seule flèche BAS.
