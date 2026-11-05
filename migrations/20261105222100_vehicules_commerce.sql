@@ -1,3 +1,4 @@
+-- APPLIQUEE le 05/11/2026 par Claude (registre vehicules_commerce_20261105222100), puis banc annule outils/bancs/banc-vehicules.sql joue en production : vert.
 -- 5 novembre 2026 -- VEHICULES PERSONNELS, etape 2 : moteurs et actes de commerce (GAME-DESIGN-VEHICULES.md).
 --
 -- Moteurs sans autorite (EXECUTE pour personne) : unites de chargement, consommation d'un trajet,

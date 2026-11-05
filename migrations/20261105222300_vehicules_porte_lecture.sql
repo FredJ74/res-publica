@@ -1,3 +1,4 @@
+-- APPLIQUEE le 05/11/2026 par Claude (registre vehicules_porte_lecture_20261105222300), puis banc annule outils/bancs/banc-vehicules.sql joue en production : vert.
 -- 5 novembre 2026 -- VEHICULES PERSONNELS, etape 4 : la porte d'autorite vehicule_acte et la lecture vehicules_lire.
 
 -- La porte : idempotence par cle de requete (meme registre que les achats), refus jamais memorise.

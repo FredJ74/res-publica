@@ -540,6 +540,9 @@ function switchSelfTab(tab, el) {
     html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
     html += '<button onclick="doOrder(\'se_cacher\',1,0,\'Se cacher\',\'Vous vous dissimulez dans la piece.\',70);closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #2a3a20;background:#0a0d08;color:#8a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
     html += '<span><i class="ti ti-eye-off" style="font-size:.85rem"></i> Se cacher</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a6a3a">70% · 1 PA</span></button>';
+    // Vehicules personnels (05/11/2026) : on conduit depuis n'importe quel endroit de la ville.
+    html += '<button onclick="closeSelfView();ouvrirMesVehicules()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #2a3440;background:#0a0d10;color:#8aa0b4;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
+    html += '<span><i class="ti ti-car" style="font-size:.85rem"></i> Mes véhicules</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a5a6a">plein · cargaison · conduire</span></button>';
 
     // 1 PA, PAS 3. Le bouton a toujours affiche « 1 PA » (ligne suivante) et le routeur commente
     // « Blocus : 1 PA quoi qu'il arrive ». Le 3 passe ici etait preleve par executerOrdreGenerique,

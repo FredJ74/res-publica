@@ -1,3 +1,4 @@
+-- APPLIQUEE le 05/11/2026 par Claude (registre vehicules_depannage_revision_20261105222250), puis banc annule outils/bancs/banc-vehicules.sql joue en production : vert.
 -- 5 novembre 2026 -- VEHICULES PERSONNELS, etape 3 bis : depannage et revision (GAME-DESIGN-VEHICULES.md).
 -- Moteurs sans autorite : appeles par la porte vehicule_acte (etape 4).
 

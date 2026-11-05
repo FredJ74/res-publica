@@ -78,3 +78,32 @@ qui ouvriront les autres (même logique que l'agence Grobras pour la sécurité 
   (`plateau-camion-militaire.js`) — objet serveur avec position, occupants qui suivent
   le conducteur par le socle des groupes ; le trajet passe par le moteur de transport
   existant. Toute consommation, tout tirage de panne et tout débit sont serveur.
+
+## Implémentation (Claude, 5 novembre 2026)
+
+- **Serveur** (migrations `20261105222000` à `20261105222300`, appliquées, banc annulé
+  `outils/bancs/banc-vehicules.sql` vert) : `vehicules_modeles`, `routes_vehicules` (réseau déclaré
+  par empire, aucun repli), `vehicules` (bien localisé, carburant, cargaison, trajets depuis la
+  révision, panne) ; la clé est une serrure de cible `vehicule` (doubles par `cle_dupliquer`).
+  Une seule porte : `vehicule_acte(requete, action, paramètres)` — `acheter`, `carburant`, `plein`,
+  `charger`, `decharger`, `trajet`, `depanner`, `reviser` — et la lecture `vehicules_lire()`.
+  Le trajet reprend les gardes du moteur de transport (chef de groupe, groupe complet et réuni,
+  disponibilité, surcharge à 100 unités par PJ) et le socle des groupes pour les PNJ.
+- **Panne** : PA et carburant du trajet sont dépensés, personne n'arrive ; le véhicule reste
+  « en panne » tant que le conducteur n'a pas appelé un dépanneur. Le dépannage ramène le véhicule
+  et le groupe présent avec le conducteur au garage choisi (devant le centre multimodal si ce garage
+  n'est pas un lieu déclaré) et laisse le véhicule « à réviser » (il ne démarre plus avant la révision).
+- **Révision** : consomme 10 dérivés pétrochimiques du stock du garage ; le garage les rachète aux
+  joueurs (« Vendre des matières au garage »). Garage PNJ : 500.
+- **Bidons** : un bidon est une unité de la pile `carburant` de l'inventaire (la même matière que celle
+  de la raffinerie). La station rachète le carburant et le conditionne par dix (0 PA).
+- **Stock de départ** du garage de Novomirsk : 3 voitures, 3 deux-roues, 2 utilitaires, 100 dérivés ;
+  station de Krasnov : 200 bidons.
+- **Écran** : `plateau-vehicules.js` ; ordres `garage_vehicules`, `garage_reviser`, `station_carburant`,
+  `mes_vehicules` (aussi depuis la fiche du personnage, « Mes véhicules »).
+
+## Question ouverte pour Fred
+
+- **Fabrication des véhicules** : la règle des commerces donne 190 PA pour une voiture (95 pour un
+  deux-roues, 255 pour un utilitaire), plus qu'un PJ n'en a dans une journée. En attendant, le garage
+  vend son stock de départ ; il n'en fabrique pas d'autres.

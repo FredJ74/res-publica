@@ -1,3 +1,4 @@
+-- APPLIQUEE le 05/11/2026 par Claude (registre vehicules_plein_cargaison_20261105222150), puis banc annule outils/bancs/banc-vehicules.sql joue en production : vert.
 -- 5 novembre 2026 -- VEHICULES PERSONNELS, etape 2 bis : faire le plein, charger, decharger (GAME-DESIGN-VEHICULES.md).
 -- Moteurs sans autorite : appeles par la porte vehicule_acte (etape 3).
 

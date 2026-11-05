@@ -5390,6 +5390,15 @@ export const SCENES_PNJ = {
       "Soldat Sacha Gamelline"
     ]
   },
+  "[\"soviet\",\"capitale\",\"garage-novomirsk\",\"atelier_garage\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Garage de Novomirsk",
+    "piece": "Atelier",
+    "personnes": [
+      "Sergueï Zaptchastov"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
@@ -6037,6 +6046,15 @@ export const SCENES_PNJ = {
     "piece": "Bureau de Direction",
     "personnes": [
       "Fiodor Kolkhozov"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"station-service-krasnov\",\"boutique_station\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Station-service de Krasnov",
+    "piece": "Boutique",
+    "personnes": [
+      "Lioudmila Zapravkina"
     ]
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"corps_garde\"]": {

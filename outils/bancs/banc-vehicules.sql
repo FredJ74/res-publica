@@ -1,5 +1,5 @@
--- BANC ANNULE -- vehicules personnels (GAME-DESIGN-VEHICULES.md). A jouer APRES le corps des trois
--- migrations 20261105222000 .. 20261105222200, dans la MEME transaction, qui finit par une exception :
+-- BANC ANNULE -- vehicules personnels (GAME-DESIGN-VEHICULES.md). A jouer APRES les six
+-- migrations 20261105222000 .. 20261105222300 (ou contre la production ou elles sont appliquees), dans une transaction, qui finit par une exception :
 -- rien ne reste. Parcours complet de Jean Jaaj en Sovarka, comme le navigateur : achat d'une voiture au
 -- garage de Novomirsk, rejeu, reservoir vide, plein en bidons, route absente vers Starovka, trajet vers
 -- Krasnov, bidons a la station, chargement / dechargement, revision exigee, panne, depannage, revision.

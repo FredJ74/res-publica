@@ -1,3 +1,4 @@
+-- APPLIQUEE le 05/11/2026 par Claude (registre vehicules_socle_20261105222000), puis banc annule outils/bancs/banc-vehicules.sql joue en production : vert.
 -- 5 novembre 2026 -- VEHICULES PERSONNELS, etape 1 : le socle (GAME-DESIGN-VEHICULES.md, decisions de Fred).
 --
 -- Socle commun a tous les empires ; seuls le garage de Novomirsk et la station-service de Krasnov

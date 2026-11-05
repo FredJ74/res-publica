@@ -974,7 +974,10 @@ const RUE_CENTRALE_NOEUDS = {
     // Musée : retour tabac/bar et progression vers les bureaux.
     'krasnov-rue-station-musee': {
       image: 'images/Sovarka/Krasnov/Krasnov rue station musée.webp',
-      zones: [],
+      // Station-service de Krasnov (vehicules personnels, 05/11/2026) ; le musee reste a raccorder.
+      zones: [
+        { xPct: [66, 100], yPct: [33, 68], nom: 'Station-service de Krasnov', type: 'batiment', buildingId: 'station-service-krasnov' }
+      ],
       liens: { arriere: 'krasnov-rue-tabac-bar', toutDroit: 'krasnov-rue-bureaux' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
@@ -1154,7 +1157,7 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/rue-caserne-garage-novomirsk.webp',
       zones: [
         { xPct: [8, 52],   yPct: [6, 74],  nom: 'Caserne centrale de Novomirsk', type: 'batiment', buildingId: 'caserne-militaire', sortieNoeudId: 'novomirsk-vue-12' },
-        { xPct: [85, 100], yPct: [38, 88], nom: 'Garage de Novomirsk', type: 'a-venir' }
+        { xPct: [85, 100], yPct: [38, 88], nom: 'Garage de Novomirsk', type: 'batiment', buildingId: 'garage-novomirsk' }
       ],
       liens: { arriere: 'novomirsk-vue-1', toutDroit: 'novomirsk-vue-12' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }

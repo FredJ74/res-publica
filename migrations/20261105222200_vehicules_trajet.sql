@@ -1,3 +1,4 @@
+-- APPLIQUEE le 05/11/2026 par Claude (registre vehicules_trajet_20261105222200), puis banc annule outils/bancs/banc-vehicules.sql joue en production : vert.
 -- 5 novembre 2026 -- VEHICULES PERSONNELS, etape 3 : conduire, panne, depannage, revision, lecture.
 -- Decisions de Fred (GAME-DESIGN-VEHICULES.md) :
 --   * trajet entre deux villes reliees par la route d'un meme pays, depuis n'importe quel endroit de
