@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
-test('Starovka : gare en entrée, port terminus et flèche basse en attente', () => {
+test('Starovka : gare en entrée, port terminus et hôtel raccordé', () => {
   const ctx = vm.createContext({console, state:{country:'soviet',currentCity:'ville_a'}});
   vm.runInContext(fs.readFileSync(path.join(root, 'data.js'), 'utf8'), ctx);
   vm.runInContext(fs.readFileSync(path.join(root, 'plateau-rue-centrale.js'), 'utf8'), ctx);
@@ -24,9 +24,9 @@ test('Starovka : gare en entrée, port terminus et flèche basse en attente', ()
   assert.equal(result.serveur, true);
   assert.equal(result.gare.image, 'images/Sovarka/Starovka/Starovka_rue_gare.webp');
   assert.equal(result.port.image, 'images/Sovarka/Starovka/Starovka_rue_port industriel.webp');
-  assert.deepEqual(Object.keys(result.gare.liens), ['toutDroit']);
+  assert.deepEqual(Object.keys(result.gare.liens), ['toutDroit','arriere']);
   assert.equal(result.gare.liens.toutDroit, 'starovka-rue-port-industriel');
-  assert.equal(result.gare.liensEnAttente.arriere, true);
+  assert.equal(result.gare.liens.arriere,'starovka-rue-hotel');
   assert.equal(result.gare.flechesStyle.toutDroit, result.haut);
   assert.equal(result.gare.flechesStyle.arriere, result.bas);
   assert.deepEqual(Object.keys(result.port.liens), ['arriere']);
