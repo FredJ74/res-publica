@@ -836,18 +836,32 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
-    // Krasnov : deux destinations actives, et une troisième préparée mais non
-    // franchissable avant la publication du visuel de la rue du marché fermé.
+    // Krasnov : l'image du marché fermé est disponible, son accès est actif.
     'krasnov-rue-terrains': {
       image: 'images/Sovarka/Krasnov/Krasnov rue terrains.webp',
       zones: [],
-      liens: { gauche: 'krasnov-rue-maison', toutDroit: 'krasnov-rue-eglise' },
-      liensEnAttente: { droite: 'krasnov-rue-marche-ferme' },
+      liens: { gauche: 'krasnov-rue-maison', toutDroit: 'krasnov-rue-eglise', droite: 'krasnov-rue-marche-ferme' },
       flechesStyle: {
         gauche: 'top:50%; left:10px; transform:translateY(-50%);',
         toutDroit: 'top:10px; left:50%; transform:translateX(-50%);',
         droite: 'top:66.6667%; right:10px; transform:translateY(-50%);'
       }
+    },
+
+    'krasnov-rue-marche-ferme': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue marché ferme.webp',
+      zones: [],
+      liens: { gauche: 'krasnov-rue-terrains', droite: 'krasnov-centre-artisanal' },
+      flechesStyle: {
+        gauche: 'top:66.6667%; left:10px; transform:translateY(-50%);',
+        droite: 'top:66.6667%; right:10px; transform:translateY(-50%);'
+      }
+    },
+
+    'krasnov-centre-artisanal': {
+      image: 'images/Sovarka/Krasnov/Krasnov centre artisanal.webp',
+      zones: [],
+      liens: {}
     },
 
     // Krasnov, église : retour aux terrains en bas un peu à gauche.
