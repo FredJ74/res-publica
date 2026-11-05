@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 
-test('Krasnov : rues jusqu’à l’église, marché fermé visible mais non franchissable',()=>{
+test('Krasnov : marché fermé actif avec deux directions et centre artisanal affichable',()=>{
   const ctx=vm.createContext({console, state:{country:'soviet',currentCity:'ville_b'}});
   vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8'),ctx);
   vm.runInContext(fs.readFileSync(path.join(root,'plateau-rue-centrale.js'),'utf8'),ctx);
@@ -18,6 +18,7 @@ test('Krasnov : rues jusqu’à l’église, marché fermé visible mais non fra
     terrains:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-terrains'],
     eglise:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-eglise'],
     marche:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-marche-ferme'],
+    artisanal:RUE_CENTRALE_NOEUDS.soviet['krasnov-centre-artisanal'],
     bas:RC_FLECHE_BAS,
     contexte:WORLD.soviet.ville_b.buildingContext['centre-multinodal-montrouge'],
     hallPSM:BUILDINGS['centre-multinodal-montrouge'].rooms.hall_gare_montrouge.imageUrl,
@@ -42,14 +43,22 @@ test('Krasnov : rues jusqu’à l’église, marché fermé visible mais non fra
   assert.equal(got.maison.flechesStyle.gauche,'top:50%; left:10px; transform:translateY(-50%);');
   assert.equal(got.maison.flechesStyle.droite,'top:50%; right:10px; transform:translateY(-50%);');
   assert.equal(got.terrains.image,'images/Sovarka/Krasnov/Krasnov rue terrains.webp');
-  assert.deepEqual(Object.keys(got.terrains.liens).sort(),['gauche','toutDroit']);
+  assert.deepEqual(Object.keys(got.terrains.liens).sort(),['droite','gauche','toutDroit']);
   assert.equal(got.terrains.liens.gauche,'krasnov-rue-maison');
   assert.equal(got.terrains.liens.toutDroit,'krasnov-rue-eglise');
+  assert.equal(got.terrains.liens.droite,'krasnov-rue-marche-ferme');
   assert.equal(got.terrains.flechesStyle.gauche,'top:50%; left:10px; transform:translateY(-50%);');
   assert.equal(got.terrains.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
-  assert.equal(got.terrains.liensEnAttente.droite,'krasnov-rue-marche-ferme');
+  assert.equal(got.terrains.liensEnAttente,undefined);
   assert.equal(got.terrains.flechesStyle.droite,'top:66.6667%; right:10px; transform:translateY(-50%);');
-  assert.equal(got.marche,undefined);
+  assert.equal(got.marche.image,'images/Sovarka/Krasnov/Krasnov rue marché ferme.webp');
+  assert.deepEqual(Object.keys(got.marche.liens).sort(),['droite','gauche']);
+  assert.equal(got.marche.liens.gauche,'krasnov-rue-terrains');
+  assert.equal(got.marche.liens.droite,'krasnov-centre-artisanal');
+  assert.equal(got.marche.flechesStyle.gauche,'top:66.6667%; left:10px; transform:translateY(-50%);');
+  assert.equal(got.marche.flechesStyle.droite,'top:66.6667%; right:10px; transform:translateY(-50%);');
+  assert.equal(got.artisanal.image,'images/Sovarka/Krasnov/Krasnov centre artisanal.webp');
+  assert.equal(Object.keys(got.artisanal.liens).length,0);
   assert.equal(got.eglise.image,'images/Sovarka/Krasnov/Krasnov rue église.webp');
   assert.deepEqual(Object.keys(got.eglise.liens),['arriere']);
   assert.equal(got.eglise.liens.arriere,'krasnov-rue-terrains');
@@ -64,7 +73,7 @@ test('Krasnov : rues jusqu’à l’église, marché fermé visible mais non fra
   assert.equal(got.contexte.roomOverrides.hall_gare_montrouge.imageUrl,'images/Sovarka/Krasnov/Krasnov_gare_hall.webp');
   assert.equal(got.contexte.roomOverrides.hall_gare_montrouge.personsVides,true);
   assert.notEqual(got.hallPSM,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl);
-  for (const f of [got.noeud.image,got.entrepot.image,got.maison.image,got.terrains.image,got.eglise.image,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl]){
+  for (const f of [got.noeud.image,got.entrepot.image,got.maison.image,got.terrains.image,got.eglise.image,got.marche.image,got.artisanal.image,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl]){
     assert.ok(fs.statSync(path.join(root,f)).size>0,f);
   }
 });
