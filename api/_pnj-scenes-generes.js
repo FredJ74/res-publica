@@ -5777,12 +5777,9 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"centre-multinodal-montrouge\",\"hall_gare_montrouge\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre Multinodal de Montrouge",
-    "piece": "Hall de la Gare",
-    "personnes": [
-      "Chef de Gare Syndiqué",
-      "Délégué Syndical"
-    ]
+    "batiment": "Gare de Krasnov",
+    "piece": "Hall de la gare de Krasnov",
+    "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"centre-commercial\",\"hall\"]": {
     "pays": "Sovarka",
@@ -5961,6 +5958,22 @@ export const SCENES_PNJ = {
     "batiment": "Zone de Production",
     "piece": "Zone de Récolte",
     "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"entrepot-logistique-krasnov\",\"salle_ventes\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Entrepôt Logistique de Krasnov",
+    "piece": "Salle des Ventes",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"entrepot-logistique-krasnov\",\"bureau_direction\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Entrepôt Logistique de Krasnov",
+    "piece": "Bureau de Direction",
+    "personnes": [
+      "Fiodor Kolkhozov"
+    ]
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"corps_garde\"]": {
     "pays": "Sovarka",

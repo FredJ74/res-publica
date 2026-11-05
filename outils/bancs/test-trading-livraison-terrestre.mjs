@@ -14,7 +14,10 @@ test("l'achat de trading envoie l'entrepôt de livraison et ne parle plus du por
   const src = lire('plateau-equipements.js');
   const achat = src.slice(src.indexOf('async function tradingAcheter('), src.indexOf('async function ouvrirTradingTraders('));
   assert.match(achat, /p_livraison: livraison/);
-  assert.doesNotMatch(achat, /Port-Sainte-Marie|port industriel/);
+  // Le nom du port n'est jamais écrit en dur ; seul l'achat international (05/11/2026) parle du port industriel.
+  assert.doesNotMatch(achat, /Port-Sainte-Marie/);
+  const national = achat.slice(achat.indexOf("const ou = r.international"));
+  assert.match(national, /r\.international\s*\?\s*'le port industriel de '/);
   assert.match(src, /id="trading-livraison"/);
 });
 

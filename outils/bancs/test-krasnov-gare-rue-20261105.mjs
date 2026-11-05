@@ -91,7 +91,9 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.eglise.flechesStyle.droite,'top:33.3333%; right:10px; transform:translateY(-50%);');
   assert.equal(got.terrains.zones.length,0);
   assert.equal(got.maison.zones.length,0);
-  assert.equal(got.entrepot.zones.length,0);
+  // L'entrepôt de Krasnov est raccordé (05/11/2026, migration 20261105030000).
+  assert.equal(got.entrepot.zones.length,1);
+  assert.equal(got.entrepot.zones[0].buildingId,'entrepot-logistique-krasnov');
   assert.equal(got.noeud.zones.length,1);
   assert.equal(got.noeud.zones[0].buildingId,'centre-multinodal-montrouge');
   assert.equal(got.contexte.roomOverrides.hall_gare_montrouge.imageUrl,'images/Sovarka/Krasnov/Krasnov_gare_hall.webp');
