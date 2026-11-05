@@ -63,6 +63,16 @@
 - Le paiement réel se branchera dans `equipement_option_premium_activer` (commentaire en place).
 - Migration `20261103090000_trading_option_premium_emplacements` (appliquée le 03/11), banc annulé `outils/bancs/banc-trading-option-premium.sql`.
 
+## Trading international et entrepôt de Krasnov (5 novembre 2026)
+
+20. Entrepôt Logistique de **Krasnov** (Sovarka), copie de celui de Montrouge, directeur PNJ **Fiodor Kolkhozov** (nom validé par Fred) ; stock de départ **agricole, façon kolkhoze** (céréales 800, viande 300, laitages 300, fruits et légumes 400, plantes 200, alcool 150, tabac 100, bois 300 ; caisse 10 000), choix de Fred. Pas d'approvisionnement de nuit tant que l'économie de Sovarka n'est pas décidée.
+21. Le **port de Sovarka sera à Starovka** (décision de Fred) : déclaré comme port de départ (`port-starovka`), bâtiment à raccorder.
+22. Achat dans l'entrepôt d'un autre pays (application de la décision 5) : la caisse part par le port du pays vendeur et arrive au **port industriel du pays de l'acheteur**, où il la **dédouane** (frais de douane du socle, 10 % de la valeur déclarée) puis la retire. Délai : livraison terrestre jusqu'au port (tranches de 4 h) puis 1 jour de mer, constat d'arrivée à minuit. Une caisse sur trois inspectée au départ, comme au port. **Fret international du socle (0,40 par unité)** payé avec l'achat par la caisse de l'organisation.
+23. Un pays dont le port n'est pas en service ne peut pas encore recevoir d'achat international (refus nommé « port indisponible ») : c'est le cas de Sovarka tant que Starovka n'est pas raccordée.
+
+Implémentation : migration `20261105030000_entrepot_krasnov_trading_international` (appliquée le 05/11) ; achat international et achat national rejoués sur Jean Jaaj dans une transaction annulée.
+
 ## Reste à faire
 
-- Cours des autres empires et achats internationaux : avec les autres empires.
+- Port de Starovka à raccorder (Sovarka pourra alors recevoir des achats internationaux).
+- Approvisionnement des entrepôts de Sovarka (économie de Sovarka).

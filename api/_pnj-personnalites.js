@@ -604,6 +604,7 @@ TU ES RUGUEUX ET PRAGMATIQUE : tu veux du concret pour le port, des emplois et d
   // Ambassadeur d'El Estado à Novomirsk (nom choisi par Fred, 04/11/2026 ; ambassades « Bientôt disponible »).
   'don_esteban_cortesano':         { nom: "Don Esteban Cortesano", role: "Ambassadeur d'El Estado", lieu: "Palais des Ambassades de Novomirsk" },
   'docteur_lev_patrimonov':        { nom: "Docteur Lev Patrimonov", role: "PNJ - Conservateur du musée", lieu: "Musée municipal de Novomirsk" },
+  'fiodor_kolkhozov':              { nom: "Fiodor Kolkhozov", role: "Directeur de l'Entrepôt Logistique", lieu: "Entrepôt Logistique de Krasnov" },
   'boris_stockov':                 { nom: "Boris Stockov", role: "Directeur de l'Entrepôt Logistique", lieu: "Entrepôt Logistique de Novomirsk" },
   // Planton de la Direction du Renseignement de Sovarka (nom et ton choisis par Fred, 05/11/2026 :
   // « le sergent Viktor Muetov vous accueille froidement »). Fiche écrite par Claude, à relire par Fred.

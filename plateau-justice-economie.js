@@ -5744,6 +5744,9 @@ const ENTREPOT_PAR_PAYS_VILLE = {
     capitale: 'entrepot-logistique-luthecia',
     ville_a:  'entrepot-logistique-psm',
     ville_b:  'entrepot-logistique-montrouge'
+  },
+  soviet: {
+    ville_b:  'entrepot-logistique-krasnov'
   }
 };
 function entrepotDeLaVille(pays, ville) {

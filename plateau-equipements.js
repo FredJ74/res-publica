@@ -19,6 +19,10 @@
 
 const EQUIPEMENTS_LIBELLES = { 'ordinateur-complet': 'Ordinateur', 'box-internet': 'Box internet', 'armoire_souvenirs': 'Armoire à souvenirs' };
 const TRADING_VILLES = { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' };
+// Nom d'une ville d'entrepôt, quel que soit son pays (trading international, 05/11/2026).
+function tradingNomVille(pays, ville) {
+  return (typeof WORLD !== 'undefined' && WORLD?.[pays || 'republic']?.[ville]?.name) || TRADING_VILLES[ville] || ville;
+}
 const EQUIPEMENTS_REFUS = {
   acteur_non_authentifie: 'Votre personnage n\'est pas identifié.',
   pas_dans_un_local: 'Il faut être dans un local.',
@@ -36,6 +40,7 @@ const EQUIPEMENTS_REFUS = {
   pas_trader: 'Vous n\'êtes ni chef ni trader autorisé de cette organisation.',
   pa_insuffisants: 'Il vous faut 1 PA.',
   quantite_invalide: 'Quantité invalide.',
+  port_indisponible: 'Aucun port industriel ne relie ces deux pays pour l\'instant.',
   stock_insuffisant: 'L\'entrepôt n\'a pas autant en stock.',
   caisse_organisation_insuffisante: 'La caisse de l\'organisation ne suffit pas.',
   entrepot_inconnu: 'Entrepôt inconnu.',
@@ -179,14 +184,22 @@ async function ouvrirTrading() {
   if (r.organisations.length && r.entrepots.length) {
     const villeIci = state.currentCity || 'capitale';
     h += ' <label class="cpj-note" for="trading-livraison">Livrer à</label> ' +
-      '<select id="trading-livraison" class="cpj-champ">' + r.entrepots.map(function (e) {
+      '<select id="trading-livraison" class="cpj-champ">' + r.entrepots.filter(function (e) { return !e.international; }).map(function (e) {
         return '<option value="' + equipementsEchapper(e.id) + '"' + (e.ville === villeIci ? ' selected' : '') + '>Entrepôt de ' +
-          equipementsEchapper(TRADING_VILLES[e.ville] || e.ville) + '</option>';
+          equipementsEchapper(tradingNomVille(e.pays, e.ville)) + '</option>';
       }).join('') + '</select>';
   }
 
   r.entrepots.forEach(function (e) {
-    h += '<div class="cpj-titre">Entrepôt — ' + equipementsEchapper(TRADING_VILLES[e.ville] || e.ville) + '</div>';
+    const empire = e.international && typeof COUNTRIES !== 'undefined' ? (COUNTRIES[e.pays]?.n || e.pays) : '';
+    h += '<div class="cpj-titre">Entrepôt — ' + equipementsEchapper(tradingNomVille(e.pays, e.ville)) +
+      (empire ? ' (' + equipementsEchapper(empire) + ', international)' : '') + '</div>';
+    if (e.international) {
+      h += '<p class="cpj-note">Achat international : la caisse part par le port de ' + equipementsEchapper(tradingNomVille(e.pays, e.port_depart_ville)) +
+        ' et arrive au port industriel de ' + equipementsEchapper(tradingNomVille(state.country, e.port_arrivee_ville)) +
+        ', où vous la dédouanez (10 % de sa valeur) avant de la retirer. Fret international : ' + equipementsEchapper(e.fret_unitaire) +
+        ' ' + equipementsEchapper(cur) + ' par unité, payé avec l\'achat par la caisse de l\'organisation.</p>';
+    }
     h += '<table style="width:100%;border-collapse:collapse;font-size:.85rem"><tr class="cpj-note">' +
       '<th style="text-align:left">Matière</th><th>Prix</th><th>Disponible</th><th></th></tr>';
     e.cours.forEach(function (c) {
@@ -221,12 +234,15 @@ async function tradingAcheter(entrepot, ressource) {
   if (!r || r.ok !== true) { showToast('Refusé', equipementsRefus(r), false); return; }
   if (typeof r.pa === 'number' && typeof state !== 'undefined') { state.pa = r.pa; if (typeof updateUI === 'function') updateUI(); }
   const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
-  const ou = 'l\'Entrepôt Logistique de ' + (TRADING_VILLES[r.ville_livraison] || r.ville_livraison || '?');
+  const ou = r.international
+    ? 'le port industriel de ' + tradingNomVille(r.pays_livraison, r.ville_livraison) + ' (dédouanement puis retrait au port)'
+    : 'l\'Entrepôt Logistique de ' + tradingNomVille(r.pays_livraison, r.ville_livraison) + ' (Salle des ventes, « Réceptionner une caisse »)';
   showToast('Commande passée', r.quantite + ' × ' + r.ressource + ' pour ' + r.montant + ' ' + cur +
-    ' (' + r.organisation + '). Caisse en route vers ' + ou + ' : retrait à la Salle des ventes, détails par courrier.', true, true);
+    (r.fret ? ' + ' + r.fret + ' ' + cur + ' de fret' : '') +
+    ' (' + r.organisation + '). Caisse en route vers ' + ou + ', détails par courrier.', true, true);
   if (typeof addJournalEntry === 'function') {
     addJournalEntry('Trading : ' + r.quantite + ' ' + r.ressource + ' achetés ' + r.montant + ' ' + cur +
-      ' pour ' + r.organisation + '. Caisse en route vers ' + ou + ' (Salle des ventes, « Réceptionner une caisse »).', 'event-good');
+      ' pour ' + r.organisation + '. Caisse en route vers ' + ou + '.', 'event-good');
   }
   ouvrirTrading();
 }

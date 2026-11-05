@@ -5713,7 +5713,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"commissariat-local\",\"accueil_loc\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Commissariat Local",
+    "batiment": "Commissariat de Krasnov",
     "piece": "Accueil",
     "personnes": [
       "Brigadier Local"
@@ -5722,14 +5722,14 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"commissariat-local\",\"geoles\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Commissariat Local",
+    "batiment": "Commissariat de Krasnov",
     "piece": "Geôles",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"commissariat-local\",\"bureau_commissaire\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Commissariat Local",
+    "batiment": "Commissariat de Krasnov",
     "piece": "Bureau du Commissaire",
     "personnes": []
   },
@@ -5777,12 +5777,9 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"centre-multinodal-montrouge\",\"hall_gare_montrouge\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre Multinodal de Montrouge",
-    "piece": "Hall de la Gare",
-    "personnes": [
-      "Chef de Gare Syndiqué",
-      "Délégué Syndical"
-    ]
+    "batiment": "Gare de Krasnov",
+    "piece": "Hall de la gare de Krasnov",
+    "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"centre-commercial\",\"hall\"]": {
     "pays": "Sovarka",
@@ -5905,7 +5902,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"stade\",\"terrain\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Stade Municipal",
+    "batiment": "Stade Étoile Rouge de Krasnov",
     "piece": "Terrain",
     "personnes": [
       "Entraineur Local",
@@ -5915,7 +5912,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"stade\",\"vestiaires\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Stade Municipal",
+    "batiment": "Stade Étoile Rouge de Krasnov",
     "piece": "Vestiaires",
     "personnes": [
       "Entraineur Local"
@@ -5924,7 +5921,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"stade\",\"buvette\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Stade Municipal",
+    "batiment": "Stade Étoile Rouge de Krasnov",
     "piece": "Buvette",
     "personnes": [
       "Tenancier de Buvette"
@@ -5933,7 +5930,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"stade\",\"guichet_paris\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Stade Municipal",
+    "batiment": "Stade Étoile Rouge de Krasnov",
     "piece": "Guichet de Paris",
     "personnes": [
       "Bookmaker Officiel"
@@ -5942,7 +5939,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"stade\",\"siege_supporters\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Stade Municipal",
+    "batiment": "Stade Étoile Rouge de Krasnov",
     "piece": "Siege des Supporters",
     "personnes": [
       "Meneur des Supporters"
@@ -5951,7 +5948,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"stade\",\"bureau_president\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Stade Municipal",
+    "batiment": "Stade Étoile Rouge de Krasnov",
     "piece": "Bureau du Président",
     "personnes": []
   },
@@ -5961,6 +5958,22 @@ export const SCENES_PNJ = {
     "batiment": "Zone de Production",
     "piece": "Zone de Récolte",
     "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"entrepot-logistique-krasnov\",\"salle_ventes\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Entrepôt Logistique de Krasnov",
+    "piece": "Salle des Ventes",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"entrepot-logistique-krasnov\",\"bureau_direction\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Entrepôt Logistique de Krasnov",
+    "piece": "Bureau de Direction",
+    "personnes": [
+      "Fiodor Kolkhozov"
+    ]
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"corps_garde\"]": {
     "pays": "Sovarka",

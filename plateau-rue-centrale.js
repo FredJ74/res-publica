@@ -817,7 +817,9 @@ const RUE_CENTRALE_NOEUDS = {
 
     'krasnov-rue-entrepot': {
       image: 'images/Sovarka/Krasnov/Krasnov rue entrepôt.webp',
-      zones: [],
+      zones: [
+        { xPct: [0, 64], yPct: [2, 60], nom: 'Entrepôt Logistique de Krasnov', type: 'batiment', buildingId: 'entrepot-logistique-krasnov' }
+      ],
       liens: { toutDroit: 'krasnov-rue-gare', droite: 'krasnov-rue-maison' },
       flechesStyle: {
         toutDroit: 'top:10px; left:66.6667%; transform:translateX(-50%);',
