@@ -850,10 +850,18 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
+    // Krasnov, église : retour aux terrains en bas un peu à gauche.
+    // La direction droite est dessinée mais verrouillée jusqu'à la création
+    // de son illustration et à la validation de sa destination.
     'krasnov-rue-eglise': {
       image: 'images/Sovarka/Krasnov/Krasnov rue église.webp',
       zones: [],
-      liens: {}
+      liens: { arriere: 'krasnov-rue-terrains' },
+      liensEnAttente: { droite: true },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:43%; transform:translateX(-50%);',
+        droite: 'top:33.3333%; right:10px; transform:translateY(-50%);'
+      }
     },
 
     // V1 — Place du Peuple. Point de depart de la ville.
