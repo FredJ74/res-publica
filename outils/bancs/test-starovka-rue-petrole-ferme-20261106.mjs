@@ -17,7 +17,7 @@ test('Starovka : descendre de maisons-ferme à pétrole-ferme et remonter',()=>{
  assert.equal(n.petrole.flechesStyle.toutDroit,n.haut);
  assert.equal(n.petrole.image,'images/Sovarka/Starovka/Starovka_rue_pétrole_ferme.webp');
  assert.ok(fs.statSync(path.join(root,n.petrole.image)).size>100);
- assert.equal(fs.existsSync(path.join(root,n.petrole.image.replace(/\\.webp$/,'.png'))),false);
+ assert.equal(fs.existsSync(path.join(root,'images/Sovarka/Starovka/Starovka_rue_pétrole_ferme.png')),false);
 });
 test('Starovka : migration serveur conserve le parcours de retour',()=>{
  const s=fs.readFileSync(path.join(root,'migrations/20261106003500_starovka_rue_petrole_ferme.sql'),'utf8');
