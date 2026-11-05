@@ -30,9 +30,12 @@ fond, sans emprunter les images de la ville d'origine.
 
 Monnaie (décision de Fred, 04/11/2026) : le **para sovarkien, sigle PSK** (le para était le centime du dinar yougoslave), à la place de l'ancien sigle « RP ». Pas de taux de change : mêmes chiffres que les FR. Les libellés de loyer de Novomirsk affichent « PSK ». La monnaie d'El Estado (« PS ») n'est pas encore validée.
 
-Limites du siège du renseignement (05/11/2026) : aucune des deux fonctions serveur ne vérifie le pays
-du bâtiment ; un ministre de la Défense d'un autre empire de passage pourrait y passer ces ordres pour
-son propre pays (sans effet tant que le voyage entre empires n'existe pas). Les quatre agents de
+Pays du poste (05/11/2026, Fred : « on ne continue pas si ce n'est pas réglé ») : **réglé** par la migration
+`20261105013000_pays_du_poste_et_lieu_des_ordres`. Le serveur prenait pour pays d'un poste le pays où se
+trouvait son titulaire (Arnie, ministre de la Défense de Républia, était ainsi traité en ministre de Sovarka
+à Novomirsk, pour les 27 fonctions d'autorité). Désormais le pays vient du registre des postes ; un ordre de
+poste se passe dans le pays du poste ; « Renseignement militaire » se lance dans son pays, au siège du
+renseignement si l'empire en a un, sinon au Palais du Gouvernement. Les quatre agents de
 renseignement (`renseignement_identites_reelles`) et leurs portraits sont encore ceux de Républia : un
 vivier propre à Sovarka sera à nommer par Fred avant d'ouvrir le renseignement de cet empire.
 
