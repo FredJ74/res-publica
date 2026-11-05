@@ -895,9 +895,20 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
-    // Dernière image de cette séquence : aucune nouvelle flèche non validée.
+    // Krasnov : retour vers l'école / forêt, puis route vers les immeubles.
     'krasnov-rue-distillerie-radar': {
       image: 'images/Sovarka/Krasnov/Krasnov rue distillerie centre radar.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-ecole-foret', toutDroit: 'krasnov-rue-immeubles-centre-commercial' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Rue des immeubles : pas de nouvelle direction avant arbitrage.
+    'krasnov-rue-immeubles-centre-commercial': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue immeubles centre commercial.webp',
       zones: [],
       liens: {}
     },
