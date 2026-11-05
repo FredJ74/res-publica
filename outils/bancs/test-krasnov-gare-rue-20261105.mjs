@@ -67,6 +67,9 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.artisanal.flechesStyle.gauche,'top:66.6667%; left:10px; transform:translateY(-50%);');
   assert.equal(got.artisanal.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.stade.image,'images/Sovarka/Krasnov/Krasnov rue stade commissariat.webp');
+  assert.deepEqual(got.stade.zones.map(z=>z.buildingId), ['commissariat-local','stade']);
+  assert.deepEqual(got.stade.zones.map(z=>z.xPct.join('-')), ['0-42','57-100']);
+  assert.ok(got.stade.zones.every(z=>z.type==='batiment'));
   assert.deepEqual(Object.keys(got.stade.liens).sort(),['arriere','toutDroit']);
   assert.equal(got.stade.liens.arriere,'krasnov-centre-artisanal');
   assert.equal(got.stade.liens.toutDroit,'krasnov-rue-ecole-foret');
@@ -97,4 +100,31 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   for (const f of [got.noeud.image,got.entrepot.image,got.maison.image,got.terrains.image,got.eglise.image,got.marche.image,got.artisanal.image,got.stade.image,got.ecole.image,got.distillerie.image,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl]){
     assert.ok(fs.statSync(path.join(root,f)).size>0,f);
   }
+});
+
+test('Krasnov : commissariat et stade héritent des pièces et ordres du socle commun',()=>{
+  const ctx=vm.createContext({console,state:{country:'soviet',currentCity:'ville_b'}});
+  vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8'),ctx);
+  const got=vm.runInContext(`({
+    city:WORLD.soviet.ville_b,
+    commissariat:BUILDINGS['commissariat-local'],
+    stade:BUILDINGS.stade
+  })`,ctx);
+  assert.ok(got.city.buildings.includes('commissariat-local'));
+  assert.ok(got.city.buildings.includes('stade'));
+  assert.equal(got.city.buildingContext['commissariat-local'].name,'Commissariat de Krasnov');
+  assert.equal(got.city.buildingContext.stade.name,'Stade Étoile Rouge de Krasnov');
+  assert.deepEqual(Object.keys(got.commissariat.rooms).sort(),['accueil_loc','bureau_commissaire','geoles']);
+  assert.deepEqual(Object.keys(got.stade.rooms).sort(),['bureau_president','buvette','guichet_paris','siege_supporters','terrain','vestiaires']);
+  for(const [building,rooms] of [[got.commissariat,got.commissariat.rooms],[got.stade,got.stade.rooms]]){
+    assert.ok(building);
+    for(const [id,room] of Object.entries(rooms)){
+      assert.ok(Array.isArray(room.orders), id+' : ordres hérités du socle');
+      assert.ok(room.orders.length>0, id+' : ordres absents');
+      assert.ok(room.orders.every(o=>typeof o.fn==='string'&&o.fn.length>0),id+' : handler manquant');
+    }
+  }
+  assert.ok(got.commissariat.rooms.accueil_loc.orders.some(o=>o.fn==='plainte_police'));
+  assert.ok(got.stade.rooms.terrain.orders.some(o=>o.fn==='observer_match'));
+  assert.ok(got.stade.rooms.vestiaires.orders.some(o=>o.fn==='prendre_licence_sportive'));
 });
