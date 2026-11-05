@@ -818,6 +818,17 @@ const RUE_CENTRALE_NOEUDS = {
     'krasnov-rue-entrepot': {
       image: 'images/Sovarka/Krasnov/Krasnov rue entrepôt.webp',
       zones: [],
+      liens: { toutDroit: 'krasnov-rue-gare', droite: 'krasnov-rue-maison' },
+      flechesStyle: {
+        toutDroit: 'top:10px; left:66.6667%; transform:translateX(-50%);',
+        droite: 'bottom:10px; right:10px;'
+      }
+    },
+
+    // Rue des maisons : aucune direction supplémentaire tant que non définie.
+    'krasnov-rue-maison': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue maison.webp',
+      zones: [],
       liens: {}
     },
 
