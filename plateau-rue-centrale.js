@@ -836,9 +836,22 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
-    // Vue des terrains : directions à définir par le game designer.
+    // Krasnov : deux destinations actives, et une troisième préparée mais non
+    // franchissable avant la publication du visuel de la rue du marché fermé.
     'krasnov-rue-terrains': {
       image: 'images/Sovarka/Krasnov/Krasnov rue terrains.webp',
+      zones: [],
+      liens: { gauche: 'krasnov-rue-maison', toutDroit: 'krasnov-rue-eglise' },
+      liensEnAttente: { droite: 'krasnov-rue-marche-ferme' },
+      flechesStyle: {
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);',
+        droite: 'top:66.6667%; right:10px; transform:translateY(-50%);'
+      }
+    },
+
+    'krasnov-rue-eglise': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue église.webp',
       zones: [],
       liens: {}
     },
@@ -1316,6 +1329,12 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   fleches.forEach(f => {
     if (liensActuels[f.dir]) {
       html += '<div class="rc-fleche" style="' + f.style + '" onclick="deplacerRueCentrale(\'' + pays + '\',\'' + f.dir + '\')">' +
+        '<i class="ti ' + f.icon + '"></i></div>';
+    } else if (noeud.liensEnAttente?.[f.dir]) {
+      // La destination est définie mais son image n'est pas encore livrée.
+      // Montrer la future direction sans envoyer le joueur sur une image 404
+      // ni tenter de déplacement serveur. Aucun onclick sur la flèche bloquée.
+      html += '<div class="rc-fleche" aria-label="À venir : image non disponible" title="À venir : image non disponible" style="' + f.style + ';opacity:.38;cursor:not-allowed;pointer-events:auto;">' +
         '<i class="ti ' + f.icon + '"></i></div>';
     }
   });
