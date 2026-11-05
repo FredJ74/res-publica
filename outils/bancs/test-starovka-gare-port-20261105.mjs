@@ -48,5 +48,5 @@ test('Starovka : SQL serveur interdit une destination non définie depuis la gar
   assert.match(sql,/starovka-rue-port-industriel/);
   assert.match(sql,/"toutDroit":"starovka-rue-port-industriel"/);
   assert.match(sql,/"arriere":"starovka-rue-gare"/);
-  assert.doesNotMatch(sql,/"arriere":"starovka-rue-[^"]+"/);
+  assert.match(sql,/\'{"liens":{"toutDroit":"starovka-rue-port-industriel"},"parArrivee":{}}\'::jsonb/);
 });
