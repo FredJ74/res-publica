@@ -1,0 +1,65 @@
+name: Convertir et raccorder musée Volga Novomirsk
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'outils/images/finaliser_visuels_novomirsk_20261105.py'
+      - '.github/workflows/finaliser-visuels-novomirsk-20261105.yml'
+permissions:
+  contents: write
+jobs:
+  produire-et-publier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Convertir cinq PNG, créer quatre portraits et raccorder le jeu
+        run: python outils/images/finaliser_visuels_novomirsk_20261105.py
+      - name: Contrôler intégrité et absence de PNG
+        run: |
+          node --check data.js
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          folder=Path("images/Sovarka/Novomirsk")
+          assert not list(folder.glob("*.png"))
+          assets=[
+              "Novo_restaurant_Volga.webp","Novo_musee_municipal_hall.webp",
+              "Novo_palais_hall.webp","Novo_librairie_accueil.webp",
+              "Novo_librairie_atelier.webp",
+              "Novo_tatiana_bortchova_portrait.webp",
+              "Novo_irina_guichetova_portrait.webp",
+              "Novo_lev_patrimonov_portrait.webp",
+              "Novo_ilia_medailine_portrait.webp"
+          ]
+          for name in assets:
+              with Image.open(folder/name) as image:
+                  assert image.format=="WEBP", name
+                  image.verify()
+          s=Path("data.js").read_text()
+          for name in assets:
+              assert ("images/Sovarka/Novomirsk/"+name) in s, name
+          assert "images/Sovarka/Novomirsk/Novo_palais_hall.png" not in s
+          for name in ["Irina Guichetova","Docteur Lev Patrimonov","Vétéran Ilia Médailline","Tatiana Bortchova"]:
+              assert name in s
+          print("9 WebP vérifiés ; 0 PNG résiduel ; références présentes")
+          PY
+          git diff --check
+      - name: Publier conversion et suppressions sur main
+        run: |
+          git add -A -- data.js images/Sovarka/Novomirsk
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "Aucun changement"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "feat(novomirsk): musée, Mère Volga, portraits et WebP sans PNG"
+          git push origin HEAD:main
