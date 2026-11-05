@@ -804,26 +804,36 @@ const RUE_CENTRALE_NOEUDS = {
   // ===========================================================
   soviet: {
 
-    // STAROVKA — ouverture de la navigation par la gare de fret.
-    // La sortie basse sera raccordée à la prochaine illustration : flèche visible,
-    // non cliquable pour ne pas inventer une destination côté serveur.
+    // Starovka : la gare utilise le transport et les pièces du socle partagé.
     'starovka-rue-gare': {
       image: 'images/Sovarka/Starovka/Starovka_rue_gare.webp',
-      zones: [],
-      liens: { toutDroit: 'starovka-rue-port-industriel' },
-      liensEnAttente: { arriere: true },
-      flechesStyle: {
-        toutDroit: RC_FLECHE_HAUT,
-        arriere: RC_FLECHE_BAS
-      }
+      zones: [
+        { xPct: [0, 43], yPct: [6, 77], nom: 'Gare de Starovka', type: 'batiment', buildingId: 'centre-multinodal-montrouge' }
+      ],
+      liens: { toutDroit: 'starovka-rue-port-industriel', arriere: 'starovka-rue-hotel' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
     },
 
-    // PORT INDUSTRIEL — terminaison de la carte, retour unique vers la gare.
+    // Port industriel : seul retour vers la gare.
     'starovka-rue-port-industriel': {
       image: 'images/Sovarka/Starovka/Starovka_rue_port industriel.webp',
       zones: [],
       liens: { arriere: 'starovka-rue-gare' },
       flechesStyle: { arriere: RC_FLECHE_BAS }
+    },
+
+    'starovka-rue-hotel': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_hotel.webp',
+      zones: [],
+      liens: { toutDroit: 'starovka-rue-gare', arriere: 'starovka-maisons-ferme' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    'starovka-maisons-ferme': {
+      image: 'images/Sovarka/Starovka/Starovka_maisons_ferme.webp',
+      zones: [],
+      liens: { toutDroit: 'starovka-rue-hotel' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT }
     },
 
     // KRASNOV — la gare donne vers la rue de l'entrepôt par une seule flèche BAS.
@@ -1282,23 +1292,24 @@ let rueCentraleDerniersNoeuds = {};
 // Prudence sur l'ambiguite : quelques buildingId sont partages entre plusieurs villes d'un meme
 // empire (hotel-mineur, par exemple). Si plusieurs noeuds referencent le batiment, on ne devine
 // pas -- on rend null et l'appelant retombe sur le noeud memorise, comportement d'avant.
-function noeudRueDuBatiment(pays, buildingId) {
+function noeudRueDuBatiment(pays, buildingId, ville) {
   if (!pays || !buildingId) return null;
   const noeuds = (typeof RUE_CENTRALE_NOEUDS !== 'undefined') ? RUE_CENTRALE_NOEUDS[pays] : null;
-  if (!noeuds) return null;
-  const trouves = [];
-  for (const noeudId in noeuds) {
-    const zones = noeuds[noeudId]?.zones;
-    if (!Array.isArray(zones)) continue;
-    if (zones.some(z => z && z.buildingId === buildingId)) trouves.push(noeudId);
-    // Variantes par provenance : un meme noeud peut proposer d'autres batiments selon l'arrivee.
-    const parArrivee = noeuds[noeudId]?.zonesParArrivee;
-    if (parArrivee && typeof parArrivee === 'object') {
-      for (const depuis in parArrivee) {
-        const zs = parArrivee[depuis];
-        if (Array.isArray(zs) && zs.some(z => z && z.buildingId === buildingId)
-            && !trouves.includes(noeudId)) trouves.push(noeudId);
-      }
+  const villeActive = ville || (typeof state !== 'undefined' && state.currentCity);
+  const depart = RUE_CENTRALE_DEPART[pays]?.[villeActive];
+  if (!noeuds || !depart || !noeuds[depart]) return null;
+  const file = [depart], visites = new Set(), trouves = [];
+  // Navigation graph is authoritative for a city's accessible street component.
+  while (file.length) {
+    const noeudId = file.shift();
+    if (visites.has(noeudId) || !noeuds[noeudId]) continue;
+    visites.add(noeudId);
+    const n = noeuds[noeudId];
+    const ensembles = [n.zones, ...Object.values(n.zonesParArrivee || {})];
+    if (ensembles.some(zs => Array.isArray(zs) && zs.some(z => z?.buildingId === buildingId)))
+      trouves.push(noeudId);
+    for (const dst of Object.values(n.liens || {})) {
+      if (dst && noeuds[dst] && !visites.has(dst)) file.push(dst);
     }
   }
   return trouves.length === 1 ? trouves[0] : null;

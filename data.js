@@ -1974,6 +1974,18 @@ const WORLD = {
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production'],
       buildingContext: {
+        'centre-multinodal-montrouge': {
+          name: "Gare de Starovka",
+          desc: "Gare ferroviaire de la ville portuaire de Starovka.",
+          roomOverrides: {
+            hall_gare_montrouge: {
+              name: "Hall de la gare de Starovka",
+              desc: "Un hall chauffé par un poêle, avec son guichet et ses voyageurs.",
+              imageUrl: "images/Sovarka/Starovka/Starovka_gare_hall.webp",
+              personsVides: true
+            }
+          }
+        },
         'hotel-republica': {
           name: "Baraquement Sibirsk-9",
           desc: "Le poele central chauffe a peine la piece la plus proche.",
