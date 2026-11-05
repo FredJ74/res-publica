@@ -898,7 +898,8 @@ async function executerOrdreGenerique(fn, pa, cost, label, desc, successRate) {
   if (!v || v.ok !== true) {
     const motifs = { ordre_indisponible: 'Cet ordre n\'est pas disponible.',
                      pas_sur_place: 'Il faut être sur place pour cela.',
-                     poste_requis: 'Cet ordre est réservé à un poste.' };
+                     poste_requis: 'Cet ordre est réservé à un poste.',
+                     hors_de_son_pays: 'Un ordre de votre poste se passe dans votre propre pays.' };
     if (v && motifs[v.raison]) showToast('Ordre impossible', motifs[v.raison], false);
     else if (typeof signalerRefusCout === 'function') signalerRefusCout(v || {});
     return;

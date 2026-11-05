@@ -8628,7 +8628,9 @@ const CELLULE_REFUS = {
   identites_reelles_incompletes: 'Les agents ne sont pas encore tous recrutés.',
   pool_couvertures_insuffisant:  'Pas assez d\'identités de couverture disponibles dans cet empire.',
   pa_insuffisants:               'PA insuffisants.',
-  caisse_insuffisante:           'La caisse du Ministère ne couvre pas l\'opération.'
+  caisse_insuffisante:           'La caisse du Ministère ne couvre pas l\'opération.',
+  hors_de_son_pays:              'Une opération se lance depuis votre propre pays.',
+  pas_sur_place:                 'Une opération se lance depuis le siège du renseignement, ou à défaut le Palais du Gouvernement.'
 };
 
 async function confirmerCelluleRenseignement(empireCible) {

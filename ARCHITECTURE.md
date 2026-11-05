@@ -174,7 +174,7 @@ ligne trouvée fausse se corrige ici.
 
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
-| Renseignement | Informateurs (loge, hôtel, bar ; tenus par le serveur depuis le 27/10, interroger coûte 1 PA), cellules de renseignement à l'étranger, renseignement militaire. Bâtiment du socle `siege-renseignement` (05/11, décision de Fred) : accueil, salle des écoutes (« Renseignement militaire »), salle d'interrogatoire ; listé par les empires qui l'utilisent (Sovarka), pas par la Républia. | Mixte | Services du pays. |
+| Renseignement | Informateurs (loge, hôtel, bar ; tenus par le serveur depuis le 27/10, interroger coûte 1 PA), cellules de renseignement à l'étranger, renseignement militaire. Bâtiment du socle `siege-renseignement` (05/11, décision de Fred) : accueil, salle des écoutes (« Renseignement militaire »), salle d'interrogatoire ; listé par les empires qui l'utilisent (Sovarka), pas par la Républia. Règle du socle (05/11) : le pays d'un poste est celui du registre `postes_attribues` (grades militaires : leur compagnie), jamais la position du titulaire (`acteur_poste_courant`) ; un ordre de poste se passe dans le pays du poste. | Mixte | Services du pays. |
 | Vie sociale | Dîners d'affaires, tournées offertes, escortes, dons d'objets, contacts, débauchage d'employés PNJ. | Mixte | Agences et PNJ. |
 
 ### Entre empires
