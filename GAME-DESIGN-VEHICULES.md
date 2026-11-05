@@ -102,8 +102,20 @@ qui ouvriront les autres (même logique que l'agence Grobras pour la sécurité 
 - **Écran** : `plateau-vehicules.js` ; ordres `garage_vehicules`, `garage_reviser`, `station_carburant`,
   `mes_vehicules` (aussi depuis la fiche du personnage, « Mes véhicules »).
 
-## Question ouverte pour Fred
+## Fabrication au garage — décision de Fred (6 novembre 2026)
 
-- **Fabrication des véhicules** : la règle des commerces donne 190 PA pour une voiture (95 pour un
-  deux-roues, 255 pour un utilitaire), plus qu'un PJ n'en a dans une journée. En attendant, le garage
-  vend son stock de départ ; il n'en fabrique pas d'autres.
+- **Durées** : voiture **10 jours**, utilitaire **15 jours**, deux-roues **5 jours**.
+- **Même principe que les bâtiments et les bateaux** : un PJ peut fournir la main-d'œuvre de la
+  journée, sinon ce sont les PNJ qui s'en occupent.
+
+Mise en œuvre (choix de l'agent, migrations `20261105233000` et `20261105233100`, appliquées ; banc
+annulé `outils/bancs/banc-vehicules-fabrication.sql` vert) :
+- Tout PJ présent lance une fabrication (règle de production du 01/11 : place sous le plafond de stock
+  fixé par le propriétaire) ; **un véhicule à la fois** par garage.
+- La main-d'œuvre totale est le PA de la recette (95 / 190 / 255), répartie jour par jour, de même que
+  les matières (aucune unité perdue).
+- « Travailler » : le PJ présent donne des PA de la journée en cours, payés **50 par PA** par la caisse
+  du garage, sans dépasser le besoin du jour.
+- À minuit, si les matières du jour sont au stock du garage et que sa caisse paie le reste de la journée
+  aux ouvriers PNJ (50 par PA), la journée avance ; sinon la fabrication attend, sans jour perdu, et le
+  travail déjà fourni par les PJ reste acquis. Le dernier jour, le véhicule entre en vitrine.

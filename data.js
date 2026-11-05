@@ -6771,7 +6771,7 @@ const BUILDINGS = {
         desc: "Le comptoir, l'atelier et la cour où attendent les véhicules neufs.",
         persons: [{name:'Sergueï Zaptchastov (PNJ)', role:'Garagiste', rel:'neutral', job:'garagiste'}],
         orders: [
-          {fn:'garage_vehicules', label:'Acheter un véhicule', pa:0, cost:0, type:'legal', icon:'ti-car', successRate:100, desc:"Voiture, deux-roues ou utilitaire, vendus avec leur clé. On y vend aussi au garage les matières de ses véhicules."},
+          {fn:'garage_vehicules', label:'Véhicules : vitrine et atelier', pa:0, cost:0, type:'legal', icon:'ti-car', successRate:100, desc:"Acheter un véhicule vendu avec sa clé, lancer une fabrication ou y travailler (payé par le garage), vendre au garage les matières de ses véhicules."},
           {fn:'garage_reviser', label:'Faire réviser un véhicule', pa:0, cost:0, type:'legal', icon:'ti-tool', successRate:100, desc:"Une révision tous les 10 trajets ; au-delà, le risque de panne grimpe."},
           {fn:'mes_vehicules', label:'Mes véhicules', pa:0, cost:0, type:'legal', icon:'ti-steering-wheel', successRate:100, desc:"Faire le plein, charger, décharger, prendre la route."}
         ]

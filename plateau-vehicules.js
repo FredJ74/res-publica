@@ -125,12 +125,70 @@ async function ouvrirGarageVehicules() {
       '<div class="cpj-note">En stock : ' + vehNombre(stock) + (prix != null ? ' · ' + vehNombre(prix) + ' ' + cur : '') + '</div>' +
       (stock > 0 && prix != null ? vehBouton('Acheter — ' + vehNombre(prix) + ' ' + cur, "vehAcheter('" + id + "')", true) : ''));
   }
+  html += vehSectionAtelier(ici);
   html += vehSection('Vendre des matières au garage',
     '<div class="cpj-note">Le garage rachète les matières de ses véhicules et les pièces de ses révisions.</div>' +
     Object.entries(VEH_GARAGE_MATIERES).map(([k, lab]) =>
       '<div style="margin-top:.4rem">' + lab + ' : ' + vehChamp('veh-mat-' + k, 10) +
       vehBouton('Vendre', "vehVendreMatiere('" + ici.id + "','" + k + "')") + '</div>').join(''));
   vehModal('Garage — véhicules', html);
+}
+
+// Atelier : un vehicule a la fois (5, 10 ou 15 jours). Tout PJ present lance une fabrication et
+// fournit la main-d'oeuvre de la journee (payee par la caisse du garage) ; a minuit les PNJ font le reste.
+const VEH_MATIERES_LIB = Object.freeze({ metal: 'métal', textile: 'textile', derives_petrochimiques: 'dérivés pétrochimiques' });
+const vehListeMatieres = o => Object.entries(o || {}).map(([k, q]) => vehNombre(q) + ' ' + (VEH_MATIERES_LIB[k] || k)).join(', ');
+function vehSectionAtelier(ici) {
+  const f = ici.fabrication, cur = vehMonnaie();
+  if (f) {
+    const reste = Math.max(0, Number(f.besoin_jour || 0) - Number(f.pa_pj || 0));
+    const etat = f.etat === 'attente_matieres' ? ' · <b>en attente de matières</b>'
+      : f.etat === 'attente_caisse' ? ' · <b>en attente : caisse du garage vide</b>' : '';
+    return vehSection('Atelier — ' + vehEchappe(VEH_MODELES[f.modele]?.label || f.modele) + ' en fabrication',
+      '<div>Jour ' + (Number(f.jours_faits) + 1) + ' / ' + f.jours_total + etat + '</div>' +
+      '<div class="cpj-note">Matières du jour : ' + vehListeMatieres(f.matieres_jour) + ' · stock du garage : ' + vehListeMatieres(ici.matieres) + '</div>' +
+      '<div>Main-d’œuvre du jour : ' + f.besoin_jour + ' PA, dont ' + f.pa_pj + ' déjà fournis par des joueurs. ' +
+      'Ce que les joueurs ne fournissent pas, les ouvriers PNJ le font à minuit.</div>' +
+      (reste > 0 ? '<div style="margin-top:.4rem">Travailler (payé 50 ' + cur + ' par PA) : ' + vehChamp('veh-travail', Math.min(reste, Number(state.pa) || 1), reste) +
+        vehBouton('Travailler', "vehTravailler('" + ici.id + "')", true) + '</div>' : '<div class="cpj-note">La main-d’œuvre du jour est complète.</div>'));
+  }
+  let corps = '<div class="cpj-note">Un véhicule à la fois. Chaque jour, l’atelier prend sa part de matières dans le stock du garage ; ' +
+    'les joueurs présents peuvent fournir la main-d’œuvre, payée par la caisse du garage, sinon les ouvriers PNJ s’en chargent à minuit. ' +
+    'Stock du garage : ' + (vehListeMatieres(ici.matieres) || 'vide') + '.</div>';
+  for (const [id, m] of Object.entries(VEH_MODELES)) {
+    const spec = ici.modeles?.[id]; if (!spec) continue;
+    const plein = ici.stock_max?.[id] != null && Number(ici.stock?.[id] || 0) >= Number(ici.stock_max[id]);
+    corps += '<div style="margin-top:.5rem"><b>' + m.label + '</b> : ' + spec.jours + ' jours, ' + spec.pa + ' PA, ' + vehListeMatieres(spec.materiaux) +
+      (plein ? ' <span class="cpj-note">(vitrine pleine)</span>' : '<br>' + vehBouton('Lancer la fabrication', "vehFabriquer('" + ici.id + "','" + id + "')")) + '</div>';
+  }
+  return vehSection('Atelier — fabrication', corps);
+}
+
+async function vehFabriquer(entreprise, modele) {
+  const v = await vehActe('fabriquer', { entreprise, modele }, entreprise + '-' + modele);
+  if (!v || v.ok !== true) {
+    const m = { fabrication_en_cours: 'Un véhicule est déjà en fabrication dans ce garage.', stock_plein: 'La vitrine est déjà pleine pour ce modèle.' };
+    showToast('Fabrication refusée', m[v?.raison] || vehMotif(v), false); return;
+  }
+  showToast('Fabrication lancée', VEH_MODELES[modele].label + ' : ' + v.jours + ' jours de travail.', true);
+  await ouvrirGarageVehicules();
+}
+
+async function vehTravailler(entreprise) {
+  const q = vehLireChamp('veh-travail'); if (q < 1) return;
+  if (typeof avertirZeroPa === 'function' && Number(state.pa) === q && state._zeroPaConfirme !== 'travailler_garage') {
+    avertirZeroPa(() => { state._zeroPaConfirme = 'travailler_garage'; vehTravailler(entreprise); }, 'Travailler à l’atelier');
+    return;
+  }
+  state._zeroPaConfirme = null;
+  const v = await vehActe('travailler', { entreprise, pa: q }, entreprise + '-' + (state.pa || 0) + '-' + q);
+  if (!v || v.ok !== true) {
+    const m = { journee_complete: 'La main-d’œuvre du jour est déjà complète.', caisse_insuffisante: 'La caisse du garage ne peut pas vous payer.',
+      aucune_fabrication: 'Aucun véhicule en fabrication.' };
+    showToast('Travail refusé', m[v?.raison] || vehMotif(v), false); return;
+  }
+  showToast('Travail fait', v.pa_donnes + ' PA à l’atelier, ' + vehNombre(v.salaire) + ' ' + vehMonnaie() + ' de salaire.', true);
+  await ouvrirGarageVehicules();
 }
 
 async function vehAcheter(modele) {
