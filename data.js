@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -2023,7 +2023,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
       desc:'Le kolkhoze collectif numéro 7. Production agricole pour la gloire du Parti.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','stade','zone-production','entrepot-logistique-krasnov'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','stade','zone-production','entrepot-logistique-krasnov','station-service-krasnov'],
       buildingContext: {
         // Krasnov conserve les ordres de transport du socle, mais possède son propre hall.
         'centre-multinodal-montrouge': {
@@ -6752,6 +6752,52 @@ const BUILDINGS = {
       }
     }
   },
+  // GARAGE DE NOVOMIRSK (vue 11) et STATION-SERVICE DE KRASNOV : vehicules personnels (decisions de
+  // Fred du 05/11/2026, GAME-DESIGN-VEHICULES.md). Seuls commerces PNJ de ce type : ils servent
+  // d'exemple, les PJ ouvriront les autres. Commerces serveur garage-soviet-capitale et
+  // station-soviet-ville_b (migration 20261105222000) ; tout se decide par vehicule_acte.
+  // PNJ valides par Fred : Sergueï Zaptchastov (garagiste), Lioudmila Zapravkina (station). Images a venir.
+  'garage-novomirsk': {
+    name: "Garage de Novomirsk",
+    shortName: "Garage",
+    cat: "Économie",
+    icon: "ti-car-garage",
+    bgColor: "#12161a",
+    desc: "Le garage d'État de Novomirsk : un pont élévateur, des bidons d'huile empilés et un calendrier du Plan de l'an dernier. On y vend des véhicules, on les révise, on vient vous chercher quand ils vous lâchent.",
+    rooms: {
+      atelier_garage: {
+        name: "Atelier",
+        imageBg: "linear-gradient(135deg,#12161a,#1a2026)",
+        desc: "Le comptoir, l'atelier et la cour où attendent les véhicules neufs.",
+        persons: [{name:'Sergueï Zaptchastov (PNJ)', role:'Garagiste', rel:'neutral', job:'garagiste'}],
+        orders: [
+          {fn:'garage_vehicules', label:'Acheter un véhicule', pa:0, cost:0, type:'legal', icon:'ti-car', successRate:100, desc:"Voiture, deux-roues ou utilitaire, vendus avec leur clé. On y vend aussi au garage les matières de ses véhicules."},
+          {fn:'garage_reviser', label:'Faire réviser un véhicule', pa:0, cost:0, type:'legal', icon:'ti-tool', successRate:100, desc:"Une révision tous les 10 trajets ; au-delà, le risque de panne grimpe."},
+          {fn:'mes_vehicules', label:'Mes véhicules', pa:0, cost:0, type:'legal', icon:'ti-steering-wheel', successRate:100, desc:"Faire le plein, charger, décharger, prendre la route."}
+        ]
+      }
+    }
+  },
+  'station-service-krasnov': {
+    name: "Station-service de Krasnov",
+    shortName: "Station-service",
+    cat: "Économie",
+    icon: "ti-gas-station",
+    bgColor: "#16120e",
+    desc: "La station du kolkhoze, au bord de la route de Novomirsk. Deux pompes, une boutique, et des bidons alignés comme pour un défilé.",
+    rooms: {
+      boutique_station: {
+        name: "Boutique",
+        imageBg: "linear-gradient(135deg,#16120e,#201a14)",
+        desc: "Le comptoir de la station : bidons de carburant, huile et cartes routières du Parti.",
+        persons: [{name:'Lioudmila Zapravkina (PNJ)', role:'Gérante de la station-service', rel:'neutral', job:'pompiste'}],
+        orders: [
+          {fn:'station_carburant', label:'Acheter des bidons de carburant', pa:0, cost:0, type:'legal', icon:'ti-gas-station', successRate:100, desc:"1 bidon = 1 unité de carburant. On peut aussi vendre du carburant à la station."},
+          {fn:'mes_vehicules', label:'Mes véhicules', pa:0, cost:0, type:'legal', icon:'ti-steering-wheel', successRate:100, desc:"Faire le plein, charger, décharger, prendre la route."}
+        ]
+      }
+    }
+  },
   // Entrepot Logistique de Novomirsk (vue 8) : interface copiee de Luthecia, ordres « Bientot
   // disponible » (decision de Fred, 04/11/2026). Le socle connait desormais le pays de chaque
   // entrepot (migration 20261104230000) ; reste l'approvisionnement propre a Sovarka. Directeur
@@ -9027,6 +9073,29 @@ const GREVE_CORPS_METIER_OPTIONS = [
 const CHARBON_PRIX_BASE = 7;
 const CHARBON_PRIX_ACHAT_FOURNISSEUR = 3.5;
 const CHARBON_PLAFOND = 400;
+
+// VEHICULES PERSONNELS (05/11/2026 -- GAME-DESIGN-VEHICULES.md, decisions de Fred). Miroir serveur :
+// recettes_commerce, sources 'garage' et 'station' (outils/generateurs/generer_miroirs_entreprises.py).
+// PA deduits par la regle des commerces PNJ (prix = 2 x cout de revient, 1 PA = 50 FR, matieres au
+// prix de reference) ; le plastique de la voiture est compte en derives petrochimiques. Le vehicule
+// achete n'est pas un objet d'inventaire : c'est un bien localise (table vehicules), vendu avec sa cle.
+const VEHICULES_PRODUITS = {
+  'voiture': { label: 'Voiture', pa: 190, portions: 1, materiaux: { metal: 300, textile: 200, derives_petrochimiques: 300 },
+    categorie: 'vehicule', typesAutorises: ['garage'], icon: 'ti-car', prixPnj: 42000,
+    desc: '4 places, 150 unités de chargement, réservoir de 18. Vendue avec sa clé.' },
+  'deux-roues': { label: 'Deux-roues', pa: 95, portions: 1, materiaux: { metal: 150, textile: 100, derives_petrochimiques: 150 },
+    categorie: 'vehicule', typesAutorises: ['garage'], icon: 'ti-motorbike', prixPnj: 21000,
+    desc: '2 places, 50 unités de chargement, réservoir de 12. Vendu avec sa clé.' },
+  'vehicule-utilitaire': { label: 'Utilitaire', pa: 255, portions: 1, materiaux: { metal: 450, textile: 100, derives_petrochimiques: 250 },
+    categorie: 'vehicule', typesAutorises: ['garage'], icon: 'ti-truck', prixPnj: 50000,
+    desc: '3 places, 500 unités de chargement, réservoir de 25. Vendu avec sa clé.' }
+};
+// 1 bidon = 1 unite de carburant (pile 'carburant' de l'inventaire) ; dix unites font dix bidons.
+const STATION_PRODUITS = {
+  bidon_carburant: { label: 'Bidon de carburant', pa: 0, portions: 10, materiaux: { carburant: 10 },
+    categorie: 'carburant', stackKey: 'carburant', typesAutorises: ['station-service'], icon: 'ti-gas-station', prixPnj: 20,
+    desc: '1 bidon = 1 unité de carburant. Se verse dans le réservoir d\'un véhicule.' }
+};
 
 const RESSOURCES_ECONOMIE = {
   // --- Matieres premieres (livrees) ---

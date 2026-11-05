@@ -51,12 +51,16 @@ def preparer(destination=None):
  # Siège du renseignement militaire (05/11) : contrôle explicite et exclusion de la capture historique.
  if [r for r in gen if r['fn']=='interroger_renseignement']!=[{'fn':'interroger_renseignement','pa':2,'cost':0}]:
   raise ValueError('Interrogatoire du renseignement absent ou altéré')
+ # Vehicules personnels (05/11) : quatre ordres d'ecran gratuits, exclus de la capture historique.
+ vehicules=('garage_reviser','garage_vehicules','mes_vehicules','station_carburant')
+ if sorted([r for r in gen if r['fn'] in vehicules],key=lambda r:r['fn'])!=[{'fn':f,'pa':0,'cost':0} for f in vehicules]:
+  raise ValueError('Ordres des vehicules absents ou alteres')
  # La sous-famille petro-chimique est posterieure a la coupe historique 95.
  # Controle strict de son unique cout sans reecrire l'empreinte ancienne.
  petro=[r for r in gen if r['fn']=='produire_derives_petrochimiques']
  if petro != [{'fn':'produire_derives_petrochimiques','pa':1,'cost':0}]:
   raise ValueError('Ordre petro-chimique absent ou altere')
- t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements','produire_derives_petrochimiques','consulter_devis_chantier_naval','interroger_renseignement') and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
+ t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements','produire_derives_petrochimiques','consulter_devis_chantier_naval','interroger_renseignement')+vehicules and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
  md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
  if md5!=cm['apres']['md5'] or len(t)!=cm['apres']['lignes']:raise ValueError('Sources de tarifs changées : réexaminer le plan')
  entrees=om['migrations']+gm['prerequis']+gm['migrations']+[{'version':cm['version'],'fichier':cm['migration'],'sha256':cm['sha256']}]

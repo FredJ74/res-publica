@@ -20,7 +20,7 @@ Sorties :
   python3 outils/generateurs/generer_miroirs_entreprises.py --json      -> JSON brut
   python3 outils/generateurs/generer_miroirs_entreprises.py --empreinte -> empreinte stable
 
-REJOUER apres toute modification de RECETTES_PRODUCTION, RECETTES_ALIMENTAIRES, QUINCAILLERIE_PRODUITS,
+REJOUER apres toute modification de RECETTES_PRODUCTION, RECETTES_ALIMENTAIRES, QUINCAILLERIE_PRODUITS, VEHICULES_PRODUITS, STATION_PRODUITS,
 DOTATIONS_COMMERCE_PILOTE ou BUILDING_COMMERCE_TYPE : sinon le serveur refusera un
 commerce legitime (miroir fail-closed).
 """
@@ -60,6 +60,8 @@ var g = (new Function(src + "\n; return {"
   + " RP: typeof RECETTES_PRODUCTION!=='undefined'?RECETTES_PRODUCTION:null,"
   + " RA: typeof RECETTES_ALIMENTAIRES!=='undefined'?RECETTES_ALIMENTAIRES:null,"
   + " QP: typeof QUINCAILLERIE_PRODUITS!=='undefined'?QUINCAILLERIE_PRODUITS:null,"
+  + " VP: typeof VEHICULES_PRODUITS!=='undefined'?VEHICULES_PRODUITS:null,"
+  + " SP: typeof STATION_PRODUITS!=='undefined'?STATION_PRODUITS:null,"
   + " PM: typeof PRODUITS_MARCHE!=='undefined'?PRODUITS_MARCHE:null,"
   + " BCT: typeof BUILDING_COMMERCE_TYPE!=='undefined'?BUILDING_COMMERCE_TYPE:null,"
   + " DOT: typeof DOTATIONS_COMMERCE_PILOTE!=='undefined'?DOTATIONS_COMMERCE_PILOTE:null,"
@@ -122,6 +124,9 @@ Object.keys(g.PM || {}).sort().forEach(function (id) {
 // Quincaillerie des armureries (serrures, 04/11/2026) : produits non-armes, vendus et fabriques
 // par les armureries ; jamais dans RECETTES_PRODUCTION (circuit des armes).
 Object.keys(g.QP || {}).sort().forEach(function (id) { pousserRecette(id, g.QP[id], 'quincaillerie'); });
+// Vehicules personnels (05/11/2026) : vehicules du garage, bidons de la station-service.
+Object.keys(g.VP || {}).sort().forEach(function (id) { pousserRecette(id, g.VP[id], 'garage'); });
+Object.keys(g.SP || {}).sort().forEach(function (id) { pousserRecette(id, g.SP[id], 'station'); });
 
 Object.keys(g.BCT || {}).sort().forEach(function (cle) {
   out.types_commerce.push({ cle: cle, type: g.BCT[cle] });
