@@ -1,0 +1,47 @@
+name: Convertir bureau direction entrepot Krasnov
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'outils/images/convertir_krasnov_entrepot_bureau_20261105.py'
+      - '.github/workflows/convertir-krasnov-entrepot-bureau-20261105.yml'
+permissions:
+  contents: write
+jobs:
+  conversion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Convertir vérifier puis supprimer le PNG
+        run: python outils/images/convertir_krasnov_entrepot_bureau_20261105.py
+      - name: Vérifier WebP et absence de PNG
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          d=Path('images/Sovarka/Krasnov')
+          assert not list(d.glob('*.png')), 'PNG restant'
+          p=d/'Krasnov_entrepot_bureau.webp'
+          assert p.stat().st_size>100
+          with Image.open(p) as im:
+              assert im.format=='WEBP'
+              im.verify()
+          print('Bureau direction WebP valide, 0 PNG')
+          PY
+          git diff --check
+      - name: Publier image sans autre changement
+        run: |
+          git add -A -- images/Sovarka/Krasnov
+          git diff --cached --check
+          git diff --cached --quiet && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(krasnov): bureau entrepot WebP et PNG supprimé'
+          git push origin HEAD:main
