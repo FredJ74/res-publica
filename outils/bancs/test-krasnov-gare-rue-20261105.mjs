@@ -177,3 +177,20 @@ test('Krasnov : commissariat et stade héritent des pièces et ordres du socle c
   assert.ok(got.stade.rooms.terrain.orders.some(o=>o.fn==='observer_match'));
   assert.ok(got.stade.rooms.vestiaires.orders.some(o=>o.fn==='prendre_licence_sportive'));
 });
+
+test('Krasnov : visuel WebP de la salle des ventes et ordres logistiques inchangés',()=>{
+  const ctx=vm.createContext({console,state:{country:'soviet',currentCity:'ville_b'}});
+  vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8'),ctx);
+  const got=vm.runInContext(`({
+    city:WORLD.soviet.ville_b,
+    salle:BUILDINGS['entrepot-logistique-krasnov'].rooms.salle_ventes,
+    bureau:BUILDINGS['entrepot-logistique-krasnov'].rooms.bureau_direction
+  })`,ctx);
+  assert.ok(got.city.buildings.includes('entrepot-logistique-krasnov'));
+  assert.equal(got.salle.imageUrl,'images/Sovarka/Krasnov/Krasnov_entrepot_salle ventes.webp');
+  assert.ok(fs.statSync(path.join(root,got.salle.imageUrl)).size>100);
+  assert.deepEqual(Array.from(got.salle.orders,o=>o.fn),
+    ['receptionner_commande','acheter_ressources_entrepot']);
+  assert.ok(got.bureau.orders.some(o=>o.fn==='tableau_bord_entrepot'));
+  assert.ok(got.bureau.orders.some(o=>o.fn==='fixer_prix_achat_entrepot'));
+});
