@@ -1,0 +1,49 @@
+name: Krasnov convertir rue entrepôt en WebP
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'outils/images/convertir_krasnov_entrepot_20261105.py'
+      - '.github/workflows/convertir-krasnov-entrepot-20261105.yml'
+permissions:
+  contents: write
+jobs:
+  conversion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Convertir, vérifier puis supprimer PNG
+        run: python outils/images/convertir_krasnov_entrepot_20261105.py
+      - name: Vérifier résultat
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          p=Path('images/Sovarka/Krasnov')
+          target=p/'Krasnov rue entrepôt.webp'
+          assert not (p/'Krasnov rue entrepôt.png').exists()
+          with Image.open(target) as image:
+              assert image.format=='WEBP'
+              image.verify()
+          print('Krasnov rue entrepôt : WebP valide, PNG absent')
+          PY
+          git diff --check
+      - name: Publier
+        run: |
+          git add -A -- images/Sovarka/Krasnov
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'Rien à publier'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(krasnov): convertir rue entrepôt en WebP et supprimer PNG'
+          git push origin HEAD:main
