@@ -906,9 +906,31 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
-    // Rue des immeubles : pas de nouvelle direction avant arbitrage.
+    // Rue des immeubles et du centre commercial : retour distillerie, puis mairie.
     'krasnov-rue-immeubles-centre-commercial': {
       image: 'images/Sovarka/Krasnov/Krasnov rue immeubles centre commercial.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-distillerie-radar', toutDroit: 'krasnov-rue-mairie-place' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Place de la mairie : retour centre commercial et suite vers la rue tabac-bar.
+    'krasnov-rue-mairie-place': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue mairie place.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Rue tabac/bar : sa navigation sera fixée séparément.
+    'krasnov-rue-tabac-bar': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue tabac bar.webp',
       zones: [],
       liens: {}
     },
