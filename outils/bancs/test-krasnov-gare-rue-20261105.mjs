@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 
-test('Krasnov : marché fermé actif avec deux directions et centre artisanal affichable',()=>{
+test('Krasnov : continuité de la gare au radar, toutes les flèches validées',()=>{
   const ctx=vm.createContext({console, state:{country:'soviet',currentCity:'ville_b'}});
   vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8'),ctx);
   vm.runInContext(fs.readFileSync(path.join(root,'plateau-rue-centrale.js'),'utf8'),ctx);
@@ -19,6 +19,9 @@ test('Krasnov : marché fermé actif avec deux directions et centre artisanal af
     eglise:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-eglise'],
     marche:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-marche-ferme'],
     artisanal:RUE_CENTRALE_NOEUDS.soviet['krasnov-centre-artisanal'],
+    stade:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-stade-commissariat'],
+    ecole:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-ecole-foret'],
+    distillerie:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-distillerie-radar'],
     bas:RC_FLECHE_BAS,
     contexte:WORLD.soviet.ville_b.buildingContext['centre-multinodal-montrouge'],
     hallPSM:BUILDINGS['centre-multinodal-montrouge'].rooms.hall_gare_montrouge.imageUrl,
@@ -58,7 +61,25 @@ test('Krasnov : marché fermé actif avec deux directions et centre artisanal af
   assert.equal(got.marche.flechesStyle.gauche,'top:66.6667%; left:10px; transform:translateY(-50%);');
   assert.equal(got.marche.flechesStyle.droite,'top:66.6667%; right:10px; transform:translateY(-50%);');
   assert.equal(got.artisanal.image,'images/Sovarka/Krasnov/Krasnov centre artisanal.webp');
-  assert.equal(Object.keys(got.artisanal.liens).length,0);
+  assert.deepEqual(Object.keys(got.artisanal.liens).sort(),['gauche','toutDroit']);
+  assert.equal(got.artisanal.liens.gauche,'krasnov-rue-marche-ferme');
+  assert.equal(got.artisanal.liens.toutDroit,'krasnov-rue-stade-commissariat');
+  assert.equal(got.artisanal.flechesStyle.gauche,'top:66.6667%; left:10px; transform:translateY(-50%);');
+  assert.equal(got.artisanal.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
+  assert.equal(got.stade.image,'images/Sovarka/Krasnov/Krasnov rue stade commissariat.webp');
+  assert.deepEqual(Object.keys(got.stade.liens).sort(),['arriere','toutDroit']);
+  assert.equal(got.stade.liens.arriere,'krasnov-centre-artisanal');
+  assert.equal(got.stade.liens.toutDroit,'krasnov-rue-ecole-foret');
+  assert.equal(got.stade.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
+  assert.equal(got.stade.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
+  assert.equal(got.ecole.image,'images/Sovarka/Krasnov/Krasnov rue école foret.webp');
+  assert.deepEqual(Object.keys(got.ecole.liens).sort(),['arriere','toutDroit']);
+  assert.equal(got.ecole.liens.arriere,'krasnov-rue-stade-commissariat');
+  assert.equal(got.ecole.liens.toutDroit,'krasnov-rue-distillerie-radar');
+  assert.equal(got.ecole.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
+  assert.equal(got.ecole.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
+  assert.equal(got.distillerie.image,'images/Sovarka/Krasnov/Krasnov rue distillerie centre radar.webp');
+  assert.equal(Object.keys(got.distillerie.liens).length,0);
   assert.equal(got.eglise.image,'images/Sovarka/Krasnov/Krasnov rue église.webp');
   assert.deepEqual(Object.keys(got.eglise.liens),['arriere']);
   assert.equal(got.eglise.liens.arriere,'krasnov-rue-terrains');
@@ -73,7 +94,7 @@ test('Krasnov : marché fermé actif avec deux directions et centre artisanal af
   assert.equal(got.contexte.roomOverrides.hall_gare_montrouge.imageUrl,'images/Sovarka/Krasnov/Krasnov_gare_hall.webp');
   assert.equal(got.contexte.roomOverrides.hall_gare_montrouge.personsVides,true);
   assert.notEqual(got.hallPSM,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl);
-  for (const f of [got.noeud.image,got.entrepot.image,got.maison.image,got.terrains.image,got.eglise.image,got.marche.image,got.artisanal.image,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl]){
+  for (const f of [got.noeud.image,got.entrepot.image,got.maison.image,got.terrains.image,got.eglise.image,got.marche.image,got.artisanal.image,got.stade.image,got.ecole.image,got.distillerie.image,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl]){
     assert.ok(fs.statSync(path.join(root,f)).size>0,f);
   }
 });
