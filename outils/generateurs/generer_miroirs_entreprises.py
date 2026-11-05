@@ -216,7 +216,11 @@ def sql(d):
     L.append(",\n".join("  (%s, %s)" % (litteral(r["cle"]), litteral(r["type"]))
              for r in d["types_commerce"]) + ";")
 
-    L.append("\nDELETE FROM public.commerces_dotations;")
+    # Les dotations propres a une ville (cle '<cle>@<ville>', ex. 'marche@ville_b') n'existent pas
+    # dans data.js : elles sont posees par des migrations (20261101030000) et lues avant la cle
+    # generale par entreprise_assurer_existence. Le miroir ne remplace donc que les cles generales ;
+    # l'ancien DELETE integral les aurait effacees (marche de Montrouge revenu au catalogue de Luthecia).
+    L.append("\nDELETE FROM public.commerces_dotations WHERE position('@' in cle) = 0;")
     L.append("INSERT INTO public.commerces_dotations (cle, type, caisse, stock_matieres, cout_moyen_matieres, carte, parametres) VALUES")
     L.append(",\n".join("  (%s, %s, %s, %s, %s, %s, %s)" % (litteral(r["cle"]), litteral(r["type"]),
              litteral(r["caisse"]), litteral(r["stock_matieres"]), litteral(r["cout_moyen_matieres"]),
