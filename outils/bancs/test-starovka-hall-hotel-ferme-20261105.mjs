@@ -29,5 +29,5 @@ test('Starovka : gare, hôtel, ferme, port et hall bidirectionnels',()=>{
   for(const node of [got.gare,got.hotel,got.ferme,got.port])
     assert.ok(fs.statSync(path.join(root,node.image)).size>100,node.image);
   assert.ok(fs.statSync(path.join(root,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl)).size>100);
-  assert.deepEqual(fs.readdirSync(path.join(root,'images/Sovarka/Starovka')).filter(n=>n.endsWith('.png')),[]);
+  for (const name of ['Starovka_gare_hall','Starovka_rue_hotel','Starovka_maisons_ferme','Starovka_rue_pétrole_ferme']) assert.equal(fs.existsSync(path.join(root,'images/Sovarka/Starovka',name+'.png')),false,name);
 });

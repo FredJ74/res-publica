@@ -832,7 +832,14 @@ const RUE_CENTRALE_NOEUDS = {
     'starovka-maisons-ferme': {
       image: 'images/Sovarka/Starovka/Starovka_maisons_ferme.webp',
       zones: [],
-      liens: { toutDroit: 'starovka-rue-hotel' },
+      liens: { toutDroit: 'starovka-rue-hotel', arriere: 'starovka-rue-petrole-ferme' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    'starovka-rue-petrole-ferme': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_pétrole_ferme.webp',
+      zones: [],
+      liens: { toutDroit: 'starovka-maisons-ferme' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT }
     },
 
