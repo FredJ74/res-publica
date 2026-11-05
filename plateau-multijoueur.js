@@ -1358,50 +1358,32 @@ async function confirmerDebauchage() {
   if (!montant || montant < 100) { showToast('Montant insuffisant', 'Minimum 100 ' + cur + '.', false); return; }
   if (getFondsDisponiblesOrdinaires() < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
 
+  // PAIEMENT, JET ET RETRAIT AU SERVEUR (05/11/2026) : pnj_debaucher verifie que le PNJ est encore
+  // chez son employeur, preleve la somme, tire le de et, en cas de reussite seulement, retire le PNJ
+  // a l'ancien employeur. L'ecran ne fait plus que recopier le verdict.
   const loyaute = PNJ_STATS_PAR_JOB[p.job]?.loyaute ?? 40;
-  const dup = getStatEffective('DUP');
-  const bonusMontant = Math.min(30, Math.floor(montant / 100));
-  let taux = Math.round((100 - loyaute) / 2 + dup + bonusMontant);
-  taux = Math.max(5, Math.min(85, taux));
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  const debit = await debiterFondsOrdinaires(montant);
-  if (!debit.ok) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
-
-  if (roll > taux) {
+  const brutDeb = (typeof sbRpc === 'function')
+    ? await sbRpc('pnj_debaucher', { p_ancien_proprietaire: p.proprietaire || '', p_pnj_nom: p.nom, p_job: p.job || 'default',
+                                     p_montant: montant, p_loyaute: loyaute }).catch(() => null)
+    : null;
+  const deb = Array.isArray(brutDeb) ? brutDeb[0] : brutDeb;
+  if (!deb || deb.ok !== true) {
+    if (deb?.raison === 'fonds_insuffisants') showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false);
+    else showToast('Débauchage impossible', 'Le débauchage n\'a pas pu être enregistré.', false);
+    document.getElementById('modal-pnj')?.classList.remove('open');
+    return;
+  }
+  if (deb.deja_parti) {
+    showToast('Trop tard', p.nom + ' ne travaille déjà plus pour ' + (p.proprietaire || 'cet employeur') + '.', false);
+    document.getElementById('modal-pnj')?.classList.remove('open');
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: deb.pa, liquide: deb.liquide, arg: deb.arg });
+  const taux = deb.taux;
+  if (!deb.reussi) {
     updateUI();
     addJournalEntry('Tentative de débauchage de ' + p.nom + ' ratée (' + taux + '% de chances). -' + montant + ' ' + cur + '.', 'event-bad');
     showToast('Débauchage échoué', p.nom + ' est resté(e) fidèle à ' + (p.proprietaire || 'son employeur') + '.', false);
-    document.getElementById('modal-pnj')?.classList.remove('open');
-    return;
-  }
-
-  // DUPLICATION DE PNJ CORRIGEE (17 septembre 2026, audit des frontieres d'autorite).
-  // Avant : un sbGet puis un sbUpdate DIRECTS sur la fiche de l'ancien employeur, dans un
-  // try/catch et un .catch(() => {}) decoratifs. Depuis la fermeture RLS, un joueur ne peut plus
-  // ecrire la fiche d'un autre et sbUpdate rend null sans lever : le retrait echouait TOUJOURS,
-  // pendant que l'ajout chez le debaucheur (sa propre fiche) reussissait. Le PNJ restait donc
-  // employe des DEUX joueurs, et le toast annoncait quand meme la reussite.
-  // Desormais : le retrait est fait par le serveur, sous verrou. Tant qu'il n'est pas confirme,
-  // le PNJ n'est PAS ajoute ici -- pas de second exemplaire, jamais.
-  const retrait = (typeof sbPnjEmployeDebaucher === 'function')
-    ? await sbPnjEmployeDebaucher(p.proprietaire, p.nom, p.job) : null;
-  if (!retrait || retrait.ok !== true) {
-    // Remboursement ATTESTE : on designe le debit, le serveur rend ce qu'il a preleve (§6.1).
-    if (typeof rembourserFondsOrdinaires === 'function') {
-      await rembourserFondsOrdinaires(debit.debitId, 'remboursement_debauchage', montant);
-    } else if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montant);
-    updateUI();
-    showToast('Débauchage impossible', 'Le transfert n\'a pas pu être enregistré. Votre argent vous est rendu.', false);
-    document.getElementById('modal-pnj')?.classList.remove('open');
-    return;
-  }
-  if (retrait.deja_parti) {
-    if (typeof rembourserFondsOrdinaires === 'function') {
-      await rembourserFondsOrdinaires(debit.debitId, 'remboursement_debauchage', montant);
-    } else if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montant);
-    updateUI();
-    showToast('Trop tard', p.nom + ' ne travaille déjà plus pour ' + (p.proprietaire || 'cet employeur') + '.', false);
     document.getElementById('modal-pnj')?.classList.remove('open');
     return;
   }

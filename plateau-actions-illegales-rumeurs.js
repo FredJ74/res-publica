@@ -2126,7 +2126,8 @@ async function confirmerEmpoisonnement(cibleNom) {
   const v = Array.isArray(brut) ? brut[0] : brut;
   if (!v || v.ok !== true) {
     const raison = v?.raison;
-    if (raison === 'poison_manquant') showToast('Objet manquant', 'Vous n\'avez pas d\'objet poison dans votre inventaire.', false);
+    if (raison === 'pas_cache') { state.estCache = false; showToast('Prérequis manquant', 'Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.', false); }
+    else if (raison === 'poison_manquant') showToast('Objet manquant', 'Vous n\'avez pas d\'objet poison dans votre inventaire.', false);
     else if (raison === 'pas_au_meme_endroit') showToast('Cible absente', cibleNom + ' n\'est plus dans la pièce.', false);
     else showToast('Impossible', 'L\'empoisonnement n\'a pas pu avoir lieu.', false);
     return;
@@ -2348,13 +2349,21 @@ function congediерInformateur(idx) {
 }
 
 
-function doSeCacher() {
-  // DIS fantome corrige (bêta) : le premier terme (stats.DIS) n'a jamais existe, state.dis
-  // (la vraie ressource) etait deja present en repli -- ne garder que lui.
-  const dis = state.dis || 50;
-  const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN() + 15); // +15 zone transport
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= taux) {
+// SE CACHER PAR LE SERVEUR (05/11/2026) : se_cacher preleve 1 PA, tire le de et enregistre la
+// cachette pour la piece courante ; crime_empoisonner l'exige et la consomme. state.estCache n'est
+// plus qu'un rappel d'affichage.
+async function doSeCacher() {
+  const brut = (typeof sbRpc === 'function') ? await sbRpc('se_cacher', {}).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v?.raison === 'hors_batiment') showToast('Impossible', 'Il faut être dans une pièce pour s\'y cacher.', false);
+    else if (v && typeof signalerRefusCout === 'function') signalerRefusCout(v);
+    else showToast('Impossible', 'L\'ordre n\'a pas pu être passé.', false);
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+  if (typeof updateUI === 'function') updateUI();
+  if (v.cache) {
     state.estCache = true;
     showToast('Vous êtes caché(e)', 'Personne ne vous voit. Vous pouvez maintenant passer l\'ordre Assassiner ou Empoisonner.', true, true);
     addJournalEntry('Ordre Se cacher réussi. Prêt(e) pour action discrète.', 'event-info');

@@ -838,31 +838,8 @@ function depenseBudget(institution, montant) {
 // si bien que deux joueurs voyaient des populations differentes. La population est celle de
 // data.js, la meme pour tous, jusqu'a ce qu'une regle serveur la fasse evoluer.
 
-async function checkDetection(fn, resultType) {
-  const acte = ACTES_ILLEGAUX[fn];
-  if (!acte) return;
-  if (resultType === 'fail' || resultType === 'crit-fail') return; // Pas d'acte = pas de detection
-
-  // Immunite selon poste
-  const posteId = state.poste?.id;
-  if (posteId === 'president') return; // Immunite totale
-  if (['pm','min_int','min_fin','min_just','min_def','min_info','min_ae'].includes(posteId)) {
-    if (acte.type === 'delit_mineur') return; // Immunite partielle ministres
-  }
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const tauxDetect = Math.max(5, acte.detectRate - Math.floor(state.dis / 10));
-
-  if (roll <= tauxDetect) {
-    // L'INSCRIPTION EST UNE PORTE (chaine 14) : un `||` atomique cote serveur, et l'etat local
-    // recopie le verdict. Deux motifs inscrits dans la meme session survivent desormais tous
-    // les deux -- avant, le dernier `sbSavePersonnage` en effacait un.
-    await inscrireRecherche({ acte: fn, type: acte.type, jour: state.day });
-    addExternalEvent('ALERTE : Votre activite illegale (' + fn.replace(/_/g,' ') + ') a ete detectee. Vous etes recherche(e).');
-    state.dis = Math.max(0, state.dis - 10);
-    updateUI();
-  }
-}
+// checkDetection RETIREE (05/11/2026, chantier « jets de l'ecran ») : plus aucun appelant ; la detection
+// est tiree par crime_detecter_interne dans la fonction serveur de chaque acte.
 
 // DETECTION RENDUE PAR LE SERVEUR (27 octobre 2026). Les actes qui passent par une fonction
 // serveur (ordres generiques, corruptions, contrebande, falsification, crimes) tirent leur
@@ -892,32 +869,9 @@ async function appelerCrimeServeur(nom, params) {
   return Array.isArray(brut) ? brut[0] : brut;
 }
 
-// Republia : l'interception exige un policier physiquement present.
-// Les controles aleatoires historiques ne peuvent plus creer une arrestation.
-// Les autres empires conservent provisoirement leur comportement existant.
-function checkArrestationAuDeplacement() {
-  if (state.country === 'republic') return;
-  if (!state.recherche || state.recherche.length === 0) return;
-  const pire = state.recherche.reduce((max, r) => {
-    const pMax = getPeineParActe(max.acte, false);
-    const pR = getPeineParActe(r.acte, false);
-    return pR.jours > pMax.jours ? r : max;
-  }, state.recherche[0]);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const tauxInter = Math.max(5, 30 - Math.floor(state.dis / 5));
-  if (roll <= tauxInter) ouvrirModalArrestation(pire.acte);
-}
-
-function checkArrestationAuReveil() {
-  if (state.country === 'republic') return;
-  if (!state.recherche || state.recherche.length === 0) return;
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 10) {
-    const acteMax = state.recherche[state.recherche.length - 1]?.acte || 'delit_mineur';
-    addExternalEvent('La police a retrouve votre trace. Vous avez ete arrete(e) dans la nuit.');
-    procederArrestation(acteMax, false, false);
-  }
-}
+// checkArrestationAuDeplacement / checkArrestationAuReveil RETIREES (05/11/2026) : en Republia elles ne
+// faisaient deja plus rien (l'interception exige un policier present, decide par le serveur) ; ailleurs
+// elles tiraient au navigateur une arrestation. Socle commun : la regle de Republia vaut pour tous les empires.
 
 // =====================
 // SE JUSTIFIER (suite a convocation — ex: achat d'arme illegal echoue)
@@ -10949,15 +10903,6 @@ async function confirmerMenerEnquete(pa, cost) {
     return;
   }
 
-  const perCommissaire = getStatEffective('PER');
-  const infCommissaire = state.inf || 0;
-  const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
-  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
-
-  let taux = 35 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isn - 45) / 5;
-  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
-  taux = Math.max(10, Math.min(90, Math.round(taux)));
-
   const toutes = typeof sbGetActionsTracables === 'function' ? await sbGetActionsTracables(pays, ville, state.day || 1).catch(() => []) : [];
   const candidats = (toutes || []).filter(a => a.auteur === cible && !a.decouvert);
 
@@ -10967,8 +10912,14 @@ async function confirmerMenerEnquete(pa, cost) {
     return;
   }
 
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll > taux) {
+  // JET AU SERVEUR (05/11/2026) : commissaire_enquete_mener tire le de, puis seulement en cas de
+  // reussite instruit l'enquete (commissaire_enqueter n'est plus appelable directement).
+  const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+  const rGav = (typeof sbRpc === 'function')
+    ? await sbRpc('commissaire_enquete_mener', { p_cible: cible, p_benediction: benediction }).catch(() => null) : null;
+  const gav = Array.isArray(rGav) ? rGav[0] : rGav;
+  const taux = gav?.taux;
+  if (gav && gav.ok === true && gav.abouti === false) {
     addJournalEntry('Enquete menee contre ' + cible + ' : indices insuffisants pour aboutir. -250 FR.', 'event-info');
     showToast('Enquete infructueuse', 'Le dossier n a pas abouti cette fois (' + taux + '% de chances).', false);
     return;
@@ -10982,9 +10933,6 @@ async function confirmerMenerEnquete(pa, cost) {
   // l'enquete « reussie » ne placait personne en garde a vue. On ne marque donc plus rien ici :
   // c'est le serveur qui choisit l'acte et le demasque, sinon il ne trouverait plus rien a
   // instruire.
-  const rGav = (typeof sbRpc === 'function')
-    ? await sbRpc('commissaire_enqueter', { p_cible: cible }).catch(() => null) : null;
-  const gav = Array.isArray(rGav) ? rGav[0] : rGav;
   // BRANCHE CONTRE-ESPIONNAGE (21 septembre 2026). plainte_instruire_interne peut rendre une
   // TROISIEME decision : 'contre_espionnage', quand l'auteur de la trace fouillee est la
   // COUVERTURE d'un agent etranger. contre_espionnage_resoudre a alors deja tourne cote serveur
@@ -11094,33 +11042,22 @@ async function confirmerOrganiserFilature(pa, cost) {
     return;
   }
 
-  // Doctrine V2, formule validee : P = Base(50) + 2*(PER_groupe-13) - (PER_cible-13)
-  // + (Securite_ville-50)/5 + (INF_commissaire-INF_cible)*0.3
-  const perCommissaire = getStatEffective('PER');
-  const infCommissaire = state.inf || 0;
-  const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
-  const isnVille = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : 30;
-
-  let taux = 50 + 2 * (perCommissaire - 13) - (cibleInfos.per - 13) + (isnVille - 50) / 5 + (infCommissaire - cibleInfos.inf) * 0.3;
-  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
-  taux = Math.max(10, Math.min(90, Math.round(taux)));
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll > taux) {
+  // JET AU SERVEUR (05/11/2026) : filature_mener tire le de (formule doctrine V2 :
+  // 50 + 2*(PER-13) - (PER_cible-13) + (ISN-50)/5 + (INF-INF_cible)*0.3) puis, en cas de reussite
+  // seulement, rend le registre des deplacements (filature_deplacements n'est plus appelable seule).
+  const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+  const rFil = (typeof sbRpc === 'function')
+    ? await sbRpc('filature_mener', { p_cible: cible, p_benediction: benediction })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (rFil && rFil.ok === true && rFil.abouti === false) {
     addJournalEntry('Filature de ' + cible + ' : la cible a seme la filature. -150 FR.', 'event-info');
-    showToast('Filature echouee', 'Vous avez perdu la trace de ' + cible + ' (' + taux + '% de chances).', false);
+    showToast('Filature echouee', 'Vous avez perdu la trace de ' + cible + ' (' + rFil.taux + '% de chances).', false);
     return;
   }
-
-  const jourMin = Math.max(1, (state.day || 1) - 1);
-  // sbGetHistoriqueDeplacements rend null quand elle n'a pas pu lire ou que l'autorite a ete
-  // refusee, et [] seulement quand la cible ne s'est reellement pas deplacee (chantier 5).
-  // La distinction compte ici plus qu'ailleurs : la filature a DEJA ete payee 150 FR, et
-  // annoncer « aucun deplacement » sur une panne ferait croire au commissaire que sa cible
-  // n'a pas bouge.
-  const historique = typeof sbGetHistoriqueDeplacements === 'function'
-    ? await sbGetHistoriqueDeplacements(cible, jourMin).catch(() => null) : null;
+  // null quand la lecture a echoue ou que l'autorite a ete refusee, [] seulement quand la cible ne
+  // s'est reellement pas deplacee (chantier 5) : la filature a DEJA ete payee.
+  const historique = (rFil && rFil.ok === true && Array.isArray(rFil.deplacements)) ? rFil.deplacements : null;
 
   document.getElementById('postes-modal-title').textContent = 'Rapport de filature — ' + cible;
   let html = '<div style="padding:1rem">';
@@ -11168,7 +11105,7 @@ function doOrganiserChasseHomme(pa, cost) {
 // une condamnation exactement de la meme maniere : meme filtrage country (fait par l'appelant
 // avant d'invoquer cette fonction), meme recuperation des motifs, meme calcul de reliquat apres
 // evasion, meme propagation de detention_precedente_id, meme consommation ciblee de l'entree.
-async function executerCondamnationRecherchee(nom, entree, rechercheActuelle, ville) {
+async function executerCondamnationRecherchee(nom, entree, rechercheActuelle, ville, rExServeur) {
   let motif, motifsDetention, joursTotal, extra;
   if (entree.type === 'condamnation') {
     motifsDetention = entree.motifs || [];
@@ -11225,10 +11162,8 @@ async function executerCondamnationRecherchee(nom, entree, rechercheActuelle, vi
     // (03/11/2026). Seule une condamnation s'exécute ici ; le reste relève de l'acte serveur.
     return { motif, joursTotal: 0, detentionId: null, echec: true };
   }
-  const rEx = (typeof sbRpc === 'function' && entree && entree.id)
-    ? await sbRpc('justice_executer_condamnation', { p_jugement_id: entree.id, p_ville: ville })
-        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-    : null;
+  // L'execution a deja eu lieu dans chasse_homme_mener (jet puis justice_executer_condamnation).
+  const rEx = rExServeur || null;
   if (!rEx || rEx.ok !== true) return { motif, joursTotal: 0, detentionId: null, echec: true };
   return { motif, joursTotal: Number(rEx.jours || joursTotal), detentionId: rEx.detention_id || null };
 }
@@ -11285,18 +11220,17 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
     return;
   }
 
-  const perCommissaire = getStatEffective('PER');
-  const infCommissaire = state.inf || 0;
-  const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
-  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
+  // JET AU SERVEUR (05/11/2026) : chasse_homme_mener tire le de puis, en cas de reussite, execute la
+  // condamnation (justice_executer_condamnation n'est plus appelable directement).
+  const entreeChasse = eligibles[0];
+  const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+  const rJet = (typeof sbRpc === 'function' && entreeChasse && entreeChasse.id)
+    ? await sbRpc('chasse_homme_mener', { p_cible: cible, p_jugement_id: entreeChasse.id, p_ville: ville, p_benediction: benediction })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  const taux = rJet?.taux;
 
-  let taux = 45 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isn - 45) / 5;
-  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
-  taux = Math.max(10, Math.min(90, Math.round(taux)));
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll > taux) {
+  if (rJet && rJet.ok === true && rJet.abouti === false) {
     addJournalEntry('Chasse a l homme contre ' + cible + ' : localisation echouee (' + taux + '% de chances). -300 FR.', 'event-info');
     showToast('Chasse infructueuse', cible + ' reste introuvable pour l instant.', false);
     return;
@@ -11307,8 +11241,8 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
   // jamais dans celle ou la condamnation a ete prononcee -- c'est precisement l'arrestation
   // reelle qui cree l'incarceration (registre carcerale, 26 aout 2026). Execution factorisee
   // (executerCondamnationRecherchee) avec verifierArrestationRecherchePolice, meme logique.
-  const entree = eligibles[0];
-  const { joursTotal, echec } = await executerCondamnationRecherchee(cible, entree, rechercheActuelle, ville);
+  const entree = entreeChasse;
+  const { joursTotal, echec } = await executerCondamnationRecherchee(cible, entree, rechercheActuelle, ville, rJet);
   if (echec) {
     // Le serveur a refuse -- cible deja detenue, condamnation deja executee, autorite absente.
     // On n'annonce ni arrestation, ni mail, ni evenement public : rien n'a eu lieu.

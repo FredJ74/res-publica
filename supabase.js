@@ -2101,8 +2101,10 @@ async function sbUpdatePresence(name, country, city, buildingId, roomId, groupeP
 // le poste en base et refuse qui n'est pas commissaire), et une cible qui ne s'est reellement
 // pas deplacee. Le commissaire payait sa filature et lisait « aucun deplacement » dans les trois
 // cas. `[]` ne signifie plus que le dernier.
+// filature_deplacements n'est plus appelable par un joueur (05/11/2026) : la filature passe par
+// filature_mener (plateau-justice-economie.js), qui tire le de avant de lire le registre.
 async function sbGetHistoriqueDeplacements(name, depuisJour) {
-  const rows = await sbRpc('filature_deplacements', { p_cible: name });
+  const rows = await sbRpc('filature_mener', { p_cible: name, p_benediction: false });
   const r = Array.isArray(rows) ? rows[0] : rows;
   if (!r || r.ok !== true) return null;
   return Array.isArray(r.deplacements) ? r.deplacements : [];
@@ -2648,12 +2650,8 @@ async function sbEvictionIndemniser(country, buildingId, lotId) {
 // Debauchage d'un PNJ employe : retire le PNJ de la liste de son ANCIEN employeur, sous verrou,
 // cote serveur. Une ecriture cliente sur la fiche d'autrui echouait toujours en silence et
 // laissait le PNJ employe des deux joueurs a la fois. Renvoie {ok, retire, deja_parti...}.
-async function sbPnjEmployeDebaucher(ancienProprietaire, pnjNom, job) {
-  const rows = await sbRpc('pnj_employe_debaucher', {
-    p_ancien_proprietaire: ancienProprietaire || '', p_pnj_nom: pnjNom, p_job: job || 'default'
-  });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
+// sbPnjEmployeDebaucher RETIREE (05/11/2026) : pnj_employe_debaucher n'est plus appelable par un joueur ;
+// le debauchage passe par pnj_debaucher (paiement, jet et retrait dans une transaction).
 
 // Don d'argent entre joueurs. L'expediteur n'est PAS un parametre : le serveur prend le
 // personnage du compte connecte. p_requete rend l'operation idempotente (double-clic, retry).
