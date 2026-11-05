@@ -67,8 +67,8 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.artisanal.flechesStyle.gauche,'top:66.6667%; left:10px; transform:translateY(-50%);');
   assert.equal(got.artisanal.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.stade.image,'images/Sovarka/Krasnov/Krasnov rue stade commissariat.webp');
-  assert.deepEqual(got.stade.zones.map(z=>z.buildingId), ['commissariat-local','stade']);
-  assert.deepEqual(got.stade.zones.map(z=>z.xPct.join('-')), ['0-42','57-100']);
+  assert.deepEqual(Array.from(got.stade.zones, z=>z.buildingId), ['commissariat-local','stade']);
+  assert.deepEqual(Array.from(got.stade.zones, z=>z.xPct.join('-')), ['0-42','57-100']);
   assert.ok(got.stade.zones.every(z=>z.type==='batiment'));
   assert.deepEqual(Object.keys(got.stade.liens).sort(),['arriere','toutDroit']);
   assert.equal(got.stade.liens.arriere,'krasnov-centre-artisanal');
