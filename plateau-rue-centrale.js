@@ -1116,10 +1116,12 @@ const RUE_CENTRALE_NOEUDS = {
 
     // V11 — Premiere entree de la Caserne centrale, et garage.
     // La Caserne a DEUX entrees (V11 et V12) ; sa sortie canonique ramene toujours a V12.
+    // Caserne du socle (BUILDINGS['caserne-militaire']) : en Sovarka elle est EN VILLE, pas dans
+    // une zone hors ville comme en Republia (decision de Fred, 05/11/2026).
     'novomirsk-vue-11': {
       image: 'images/rue-caserne-garage-novomirsk.webp',
       zones: [
-        { xPct: [8, 52],   yPct: [6, 74],  nom: 'Caserne centrale de Novomirsk', type: 'a-venir', sortieNoeudId: 'novomirsk-vue-12' },
+        { xPct: [8, 52],   yPct: [6, 74],  nom: 'Caserne centrale de Novomirsk', type: 'batiment', buildingId: 'caserne-militaire', sortieNoeudId: 'novomirsk-vue-12' },
         { xPct: [85, 100], yPct: [38, 88], nom: 'Garage de Novomirsk', type: 'a-venir' }
       ],
       liens: { arriere: 'novomirsk-vue-1', toutDroit: 'novomirsk-vue-12' },
@@ -1130,7 +1132,7 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-12': {
       image: 'images/rue-salon-coiffure-novomirsk.webp',
       zones: [
-        { xPct: [0, 34],   yPct: [0, 74],  nom: 'Caserne centrale de Novomirsk', type: 'a-venir', sortieNoeudId: 'novomirsk-vue-12' },
+        { xPct: [0, 34],   yPct: [0, 74],  nom: 'Caserne centrale de Novomirsk', type: 'batiment', buildingId: 'caserne-militaire', sortieNoeudId: 'novomirsk-vue-12' },
         { xPct: [78, 100], yPct: [16, 88], nom: 'Salon de coiffure de Novomirsk', type: 'a-venir' }
       ],
       liens: { arriere: 'novomirsk-vue-11', droite: 'novomirsk-vue-13' },

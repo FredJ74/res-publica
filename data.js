@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -1843,6 +1843,8 @@ const WORLD = {
           name: "Hall Principal",
           desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Camarade Horaire veille. Les trains arrivent à l\\'heure, c\\'est obligatoire.",
           persons: [{"name": "Camarade Horaire (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}, {"name": "Agente Nadejda (PNJ)", "role": "Agente de contrôle", "rel": "neutral", "job": "securite"}],
+          // La caserne de Sovarka est en ville (vues 11 et 12) : pas de taxi vers une caserne hors ville.
+          roomOverrides: { hall_gare: { excludeOrders: ['taxi_caserne'] } },
           rooms: {
           'hall_gare': {
             name: "Hall Principal — Gare Centrale du Peuple",
@@ -1940,6 +1942,28 @@ const WORLD = {
           imagesAVenir: true,
           desc: "Un bloc de béton sans enseigne, aux fenêtres opaques. Chacun à Novomirsk sait ce qu'il abrite ; personne n'en parle à voix haute.",
           persons: [{name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'}]
+        },
+        // Caserne centrale de Novomirsk (vues 11 et 12) : la caserne du socle (BUILDINGS['caserne-militaire']),
+        // memes pieces, memes ordres et memes fonctions serveur qu'en Republia, mais EN VILLE : en Sovarka la
+        // caserne n'est pas une zone hors ville (decision de Fred, 05/11/2026 ; migration 20261105200000).
+        // PNJ propres a Novomirsk, noms valides par Fred le 05/11 (regle « pas de connexion entre les villes ») ;
+        // l'armurier et l'archiviste restent anonymes. Images a venir.
+        'caserne-militaire': {
+          name: "Caserne centrale de Novomirsk",
+          imagesAVenir: true,
+          desc: "La caserne centrale de l'Armée populaire de Sovarka, en plein cœur de Novomirsk. Deux portails, des sentinelles qui ne cillent pas, et l'étoile rouge repeinte chaque printemps.",
+          roomOverrides: {
+            corps_garde: { persons: [{name: 'Adjudant Piotr Galonov (PNJ)', role: 'PNJ - Aide de camp', rel: 'friendly', job: 'aide_de_camp'}] },
+            infirmerie: { persons: [{name: 'Infirmière Olga Pansementova (PNJ)', role: 'PNJ - Infirmière militaire', rel: 'neutral', job: 'infirmier_mil'}] },
+            salle_commandement: { persons: [{name: 'Commandant Igor Bataillov', role: 'PNJ - Commandant de la Caserne', rel: 'neutral',
+              job: 'commandant', resteApresPourvoi: true,
+              roleSiPnjTitulaire: 'PNJ - Commandant de la Caserne',
+              roleSiPjTitulaire:  'PNJ - Commandant adjoint'}] },
+            refectoire: { persons: [{name: 'Caporal Vassili Kachaev', role: 'Cuisinier de compagnie', rel: 'friendly', job: 'cuistot_mil'}] },
+            quartier_troupes: { persons: [
+              {name: 'Caporal Dimitri Corvéev (PNJ)', role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'},
+              {name: 'Soldat Sacha Gamelline (PNJ)',  role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'}] }
+          }
         }
       }
     },
@@ -2040,6 +2064,10 @@ const WORLD = {
         }
       }
     },
+    // ZONE HISTORIQUE, PLUS DESSERVIE. En Sovarka la caserne est a Novomirsk (vues 11 et 12, decision de
+    // Fred du 05/11/2026) : le serveur n'y declare plus de caserne (migration 20261105200000) et le taxi
+    // vers la caserne est retire du Centre multimodal de Novomirsk. L'entree reste ici parce que la
+    // reference historique de navigation (outils/generateurs/navigation-lieux.cjs) en garde les octets.
     caserne: {
       name:'Garnison du Peuple',
       imageUrl:'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=1200&q=80',

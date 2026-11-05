@@ -30,7 +30,7 @@ import { profilsPersonnalites, RICHES } from './_pnj-personnalites.js';
 // fichier : un temperament, une facon de parler, un humour, des tics, une maniere
 // d'aider et des limites. Le corpus d'un domaine -- la bible militaire, par exemple --
 // n'est PAS une personnalite : il reste ici, et on le passe a l'assemblage.
-import { REFERENTS, profilReferent, blocPedagogie } from './_pnj-referents.js';
+import { REFERENTS, profilReferent, blocPedagogie, CASERNE_SOVARKA, versSovarka } from './_pnj-referents.js';
 // LA BIBLE DE LA PRESIDENCE (11 octobre 2026). Meme architecture que la bible militaire : des
 // blocs de connaissance REELLE, releves dans data.js et dans la base, assembles ici par referent.
 import {
@@ -300,6 +300,9 @@ const CORPUS_REFERENT = {
   pat_hounette:     corpusRiche('pat_hounette'),
   laurent_barre:    corpusRiche('laurent_barre')
 };
+
+// Caserne centrale de Novomirsk : le savoir des referents de Luthecia, aux noms de Novomirsk.
+for (const [source, id] of CASERNE_SOVARKA) CORPUS_REFERENT[id] = versSovarka(CORPUS_REFERENT[source]);
 
 const PROFILS_REFERENTS = {};
 for (const [id, p] of Object.entries(REFERENTS)) {

@@ -5326,6 +5326,70 @@ export const SCENES_PNJ = {
     "piece": "Grand Appartement impérial — Local à louer",
     "personnes": []
   },
+  "[\"soviet\",\"capitale\",\"caserne-militaire\",\"corps_garde\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Caserne centrale de Novomirsk",
+    "piece": "Corps de Garde",
+    "personnes": [
+      "Adjudant Piotr Galonov"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"caserne-militaire\",\"infirmerie\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Caserne centrale de Novomirsk",
+    "piece": "Infirmerie",
+    "personnes": [
+      "Infirmière Olga Pansementova"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"caserne-militaire\",\"salle_commandement\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Caserne centrale de Novomirsk",
+    "piece": "Salle de Commandement",
+    "personnes": [
+      "Commandant Igor Bataillov"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"caserne-militaire\",\"armurerie_militaire\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Caserne centrale de Novomirsk",
+    "piece": "Armurerie Militaire",
+    "personnes": [
+      "Armurier Militaire"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"caserne-militaire\",\"refectoire\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Caserne centrale de Novomirsk",
+    "piece": "Réfectoire",
+    "personnes": [
+      "Caporal Vassili Kachaev"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"caserne-militaire\",\"salle_faits_armes\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Caserne centrale de Novomirsk",
+    "piece": "Salle des Faits d'Armes",
+    "personnes": [
+      "Archiviste Militaire"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"caserne-militaire\",\"quartier_troupes\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Caserne centrale de Novomirsk",
+    "piece": "Quartier des Troupes",
+    "personnes": [
+      "Caporal Dimitri Corvéev",
+      "Soldat Sacha Gamelline"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
