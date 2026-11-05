@@ -1945,7 +1945,7 @@ const WORLD = {
         },
         // Caserne centrale de Novomirsk (vues 11 et 12) : la caserne du socle (BUILDINGS['caserne-militaire']),
         // memes pieces, memes ordres et memes fonctions serveur qu'en Republia, mais EN VILLE : en Sovarka la
-        // caserne n'est pas une zone hors ville (decision de Fred, 05/11/2026 ; migration 20261105200000).
+        // caserne n'est pas une zone hors ville (decision de Fred, 05/11/2026 ; migration 20261105200100).
         // PNJ propres a Novomirsk, noms valides par Fred le 05/11 (regle « pas de connexion entre les villes ») ;
         // l'armurier et l'archiviste restent anonymes. Images a venir.
         'caserne-militaire': {
@@ -2065,7 +2065,7 @@ const WORLD = {
       }
     },
     // ZONE HISTORIQUE, PLUS DESSERVIE. En Sovarka la caserne est a Novomirsk (vues 11 et 12, decision de
-    // Fred du 05/11/2026) : le serveur n'y declare plus de caserne (migration 20261105200000) et le taxi
+    // Fred du 05/11/2026) : le serveur n'y declare plus de caserne (migration 20261105200100) et le taxi
     // vers la caserne est retire du Centre multimodal de Novomirsk. L'entree reste ici parce que la
     // reference historique de navigation (outils/generateurs/navigation-lieux.cjs) en garde les octets.
     caserne: {

@@ -1,4 +1,4 @@
--- Banc annulé de la migration 20261105200000 (caserne de Novomirsk en ville). Attendu : erreur 'banc_ok'.
+-- Banc annulé de la migration 20261105200100 (caserne de Novomirsk en ville). Attendu : erreur 'banc_ok'.
 BEGIN;
 -- Caserne centrale de Novomirsk : la caserne du socle, EN VILLE (Claude, 05/11/2026, décision de Fred).
 -- En Républia (et chez les autres empires), la caserne est une zone spéciale hors des villes
