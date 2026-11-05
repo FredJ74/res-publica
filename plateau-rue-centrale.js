@@ -1,7 +1,7 @@
 // Point d'entree par ville — sert a savoir si cette ville utilise la nouvelle navigation par scenes
 const RUE_CENTRALE_DEPART = {
   republic: { capitale: 'luthecia-palais-presidentiel', ville_a: 'psm-centre-multimodal', ville_b: 'montrouge-vue-3', caserne: 'caserne-exterieur', qhs: 'qhs-exterieur' },
-  soviet:   { capitale: 'novomirsk-vue-1' }
+  soviet:   { capitale: 'novomirsk-vue-1', ville_b: 'krasnov-rue-gare' }
   // Autres villes/empires a ajouter au fur et a mesure des images produites
 };
 
@@ -803,6 +803,16 @@ const RUE_CENTRALE_NOEUDS = {
   // par banc_novomirsk.py.
   // ===========================================================
   soviet: {
+
+    // KRASNOV — première scène extérieure de la ville (gare).
+    // Aucune flèche de déplacement pour l'instant : graphe à définir par le game designer.
+    'krasnov-rue-gare': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue gare.webp',
+      zones: [
+        { xPct: [0, 48], yPct: [8, 76], nom: 'Gare de Krasnov', type: 'batiment', buildingId: 'centre-multinodal-montrouge' }
+      ],
+      liens: {}
+    },
 
     // V1 — Place du Peuple. Point de depart de la ville.
     'novomirsk-vue-1': {
