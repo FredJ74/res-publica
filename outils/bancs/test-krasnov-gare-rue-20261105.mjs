@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 
-test('Krasnov : gare, entrepôt et maisons avec directions exactement validées',()=>{
+test('Krasnov : gare, entrepôt, maisons et terrains avec directions exactement validées',()=>{
   const ctx=vm.createContext({console, state:{country:'soviet',currentCity:'ville_b'}});
   vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8'),ctx);
   vm.runInContext(fs.readFileSync(path.join(root,'plateau-rue-centrale.js'),'utf8'),ctx);
@@ -15,6 +15,7 @@ test('Krasnov : gare, entrepôt et maisons avec directions exactement validées'
     noeud:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-gare'],
     entrepot:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-entrepot'],
     maison:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-maison'],
+    terrains:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-terrains'],
     bas:RC_FLECHE_BAS,
     contexte:WORLD.soviet.ville_b.buildingContext['centre-multinodal-montrouge'],
     hallPSM:BUILDINGS['centre-multinodal-montrouge'].rooms.hall_gare_montrouge.imageUrl,
@@ -33,7 +34,14 @@ test('Krasnov : gare, entrepôt et maisons avec directions exactement validées'
   assert.equal(got.entrepot.flechesStyle.toutDroit,'top:10px; left:66.6667%; transform:translateX(-50%);');
   assert.equal(got.entrepot.flechesStyle.droite,'bottom:10px; right:10px;');
   assert.equal(got.maison.image,'images/Sovarka/Krasnov/Krasnov rue maison.webp');
-  assert.equal(Object.keys(got.maison.liens).length,0);
+  assert.deepEqual(Object.keys(got.maison.liens).sort(),['droite','gauche']);
+  assert.equal(got.maison.liens.gauche,'krasnov-rue-entrepot');
+  assert.equal(got.maison.liens.droite,'krasnov-rue-terrains');
+  assert.equal(got.maison.flechesStyle.gauche,'top:50%; left:10px; transform:translateY(-50%);');
+  assert.equal(got.maison.flechesStyle.droite,'top:50%; right:10px; transform:translateY(-50%);');
+  assert.equal(got.terrains.image,'images/Sovarka/Krasnov/Krasnov rue terrains.webp');
+  assert.equal(Object.keys(got.terrains.liens).length,0);
+  assert.equal(got.terrains.zones.length,0);
   assert.equal(got.maison.zones.length,0);
   assert.equal(got.entrepot.zones.length,0);
   assert.equal(got.noeud.zones.length,1);
@@ -41,7 +49,7 @@ test('Krasnov : gare, entrepôt et maisons avec directions exactement validées'
   assert.equal(got.contexte.roomOverrides.hall_gare_montrouge.imageUrl,'images/Sovarka/Krasnov/Krasnov_gare_hall.webp');
   assert.equal(got.contexte.roomOverrides.hall_gare_montrouge.personsVides,true);
   assert.notEqual(got.hallPSM,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl);
-  for (const f of [got.noeud.image,got.entrepot.image,got.maison.image,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl]){
+  for (const f of [got.noeud.image,got.entrepot.image,got.maison.image,got.terrains.image,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl]){
     assert.ok(fs.statSync(path.join(root,f)).size>0,f);
   }
 });
