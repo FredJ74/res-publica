@@ -1924,10 +1924,17 @@ function applyCharToState(char) {
     : `${ar?.name||'?'} · ${ca?.name||'?'}`;
   const fullnameEl = document.getElementById('char-fullname-left');
   if (fullnameEl) fullnameEl.textContent = char.name || 'Mon Personnage';
-  const co = COUNTRIES[char.country];
+  // Sous le nom : le poste, puis la domiciliation (pays - ville), ou que le PJ se trouve
+  // (decision de Fred, 05/11/2026). Ni l'archetype (donnee technique) ni le pays de la position.
+  const co = COUNTRIES[char.country]; // encore lu plus bas (devise affichee)
   const archEl = document.getElementById('char-arch-left');
-  const posteStr = state.poste?.name ? `${state.poste.name} · ` : '';
-  if (archEl) archEl.textContent = `${posteStr}${ar?.name||'?'} · ${co?.n||'?'}`;
+  if (archEl) {
+    const dom = state.domicile;
+    const domPays = dom?.country ? (COUNTRIES[dom.country]?.n || '') : '';
+    const domVille = dom?.country && dom?.city ? (WORLD?.[dom.country]?.[dom.city]?.name || '') : '';
+    const domStr = [domPays, domVille].filter(Boolean).join(' - ');
+    archEl.textContent = [state.poste?.name, domStr].filter(Boolean).join(' · ');
+  }
 
   // Photo
   try {
