@@ -939,21 +939,44 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
-    // Station et musée : destinations suivantes en attente de définition.
+    // Musée : retour tabac/bar et progression vers les bureaux.
     'krasnov-rue-station-musee': {
       image: 'images/Sovarka/Krasnov/Krasnov rue station musée.webp',
       zones: [],
-      liens: {}
+      liens: { arriere: 'krasnov-rue-tabac-bar', toutDroit: 'krasnov-rue-bureaux' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
     },
 
-    // Krasnov, église : retour aux terrains en bas un peu à gauche.
-    // La direction droite est dessinée mais verrouillée jusqu'à la création
-    // de son illustration et à la validation de sa destination.
+    // Bureaux : la sortie haute est légèrement décalée vers la gauche.
+    'krasnov-rue-bureaux': {
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_bureaux.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-station-musee', toutDroit: 'krasnov-rue-descendante' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:43%; transform:translateX(-50%);'
+      }
+    },
+
+    // Rue descendante : raccordement de la boucle jusqu'à l'église.
+    'krasnov-rue-descendante': {
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_descendante.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-bureaux', toutDroit: 'krasnov-rue-eglise' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Église : l'ancienne flèche droite en attente boucle vers la rue descendante.
     'krasnov-rue-eglise': {
       image: 'images/Sovarka/Krasnov/Krasnov rue église.webp',
       zones: [],
-      liens: { arriere: 'krasnov-rue-terrains' },
-      liensEnAttente: { droite: true },
+      liens: { arriere: 'krasnov-rue-terrains', droite: 'krasnov-rue-descendante' },
       flechesStyle: {
         arriere: 'bottom:10px; left:43%; transform:translateX(-50%);',
         droite: 'top:33.3333%; right:10px; transform:translateY(-50%);'
