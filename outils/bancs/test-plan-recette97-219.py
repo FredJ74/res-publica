@@ -34,7 +34,9 @@ class Plan(unittest.TestCase):
         ])
         self.assertEqual(result['tarifs_ajoutes_naval'], [{'fn': 'consulter_devis_chantier_naval', 'pa': 0, 'cost': 0}])
         self.assertEqual(result['tarifs_ajoutes_renseignement'], [{'fn': 'interroger_renseignement', 'pa': 2, 'cost': 0}])
-        self.assertEqual(result['tarifs_actuels']['lignes'], 467)
+        self.assertEqual(result['tarifs_ajoutes_vehicules'], [{'fn': f, 'pa': 0, 'cost': 0} for f in
+                         ('garage_reviser', 'garage_vehicules', 'mes_vehicules', 'station_carburant')])
+        self.assertEqual(result['tarifs_actuels']['lignes'], 471)
         self.assertEqual(len(result['tarifs_actuels']['md5']), 32)
         self.assertFalse(result['execution_autorisee'])
         self.assertTrue(result['ancien_plan_tarifaire_conforme_source'])
