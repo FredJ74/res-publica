@@ -2101,8 +2101,10 @@ async function sbUpdatePresence(name, country, city, buildingId, roomId, groupeP
 // le poste en base et refuse qui n'est pas commissaire), et une cible qui ne s'est reellement
 // pas deplacee. Le commissaire payait sa filature et lisait « aucun deplacement » dans les trois
 // cas. `[]` ne signifie plus que le dernier.
+// filature_deplacements n'est plus appelable par un joueur (05/11/2026) : la filature passe par
+// filature_mener (plateau-justice-economie.js), qui tire le de avant de lire le registre.
 async function sbGetHistoriqueDeplacements(name, depuisJour) {
-  const rows = await sbRpc('filature_deplacements', { p_cible: name });
+  const rows = await sbRpc('filature_mener', { p_cible: name, p_benediction: false });
   const r = Array.isArray(rows) ? rows[0] : rows;
   if (!r || r.ok !== true) return null;
   return Array.isArray(r.deplacements) ? r.deplacements : [];
