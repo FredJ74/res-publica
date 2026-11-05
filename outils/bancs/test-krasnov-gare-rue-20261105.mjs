@@ -51,7 +51,11 @@ test('Krasnov : rues jusqu’à l’église, marché fermé visible mais non fra
   assert.equal(got.terrains.flechesStyle.droite,'top:66.6667%; right:10px; transform:translateY(-50%);');
   assert.equal(got.marche,undefined);
   assert.equal(got.eglise.image,'images/Sovarka/Krasnov/Krasnov rue église.webp');
-  assert.equal(Object.keys(got.eglise.liens).length,0);
+  assert.deepEqual(Object.keys(got.eglise.liens),['arriere']);
+  assert.equal(got.eglise.liens.arriere,'krasnov-rue-terrains');
+  assert.equal(got.eglise.flechesStyle.arriere,'bottom:10px; left:43%; transform:translateX(-50%);');
+  assert.equal(got.eglise.liensEnAttente.droite,true);
+  assert.equal(got.eglise.flechesStyle.droite,'top:33.3333%; right:10px; transform:translateY(-50%);');
   assert.equal(got.terrains.zones.length,0);
   assert.equal(got.maison.zones.length,0);
   assert.equal(got.entrepot.zones.length,0);
