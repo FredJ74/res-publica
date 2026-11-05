@@ -928,9 +928,20 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
-    // Rue tabac/bar : sa navigation sera fixée séparément.
+    // Rue du tabac/bar : retour à la mairie et progression vers station/musée.
     'krasnov-rue-tabac-bar': {
       image: 'images/Sovarka/Krasnov/Krasnov rue tabac bar.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-mairie-place', toutDroit: 'krasnov-rue-station-musee' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Station et musée : destinations suivantes en attente de définition.
+    'krasnov-rue-station-musee': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue station musée.webp',
       zones: [],
       liens: {}
     },
