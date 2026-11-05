@@ -6525,6 +6525,15 @@ export default async function handler(req, res) {
       return r || {ok:false,raison:'rpc_indisponible'};
     });
 
+    // Fabrication des vehicules dans les garages (decision de Fred, 06/11/2026) : meme principe
+    // que les chantiers. Une journee avance si les matieres du jour sont au stock du garage et si
+    // sa caisse paie aux PNJ le travail que les PJ n'ont pas fourni ; sinon elle attend, sans jour
+    // perdu. Idempotente par jour de Paris.
+    const fabricationsVehicules = await tacheQuotidienne('fabrications_vehicules', async function () {
+      const r = await sbRpc('garage_fabrications_avancer_jour', {});
+      return r || { ok: false, raison: 'rpc_indisponible' };
+    });
+
     // 11 quater. CELLULES DE RENSEIGNEMENT.
     //
     // Deux balayages serveur, tous deux idempotents (ils ne voient que ce qui est
