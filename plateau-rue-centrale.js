@@ -870,7 +870,12 @@ const RUE_CENTRALE_NOEUDS = {
 
     'krasnov-rue-stade-commissariat': {
       image: 'images/Sovarka/Krasnov/Krasnov rue stade commissariat.webp',
-      zones: [],
+      zones: [
+        // Façades identifiées sur l'image : police à gauche, stade à droite.
+        // Les pièces et les ordres sont hérités des gabarits partagés, non dupliqués.
+        { xPct: [0, 42], yPct: [9, 77], nom: 'Commissariat de Krasnov', type: 'batiment', buildingId: 'commissariat-local' },
+        { xPct: [57, 100], yPct: [8, 77], nom: 'Stade Étoile Rouge de Krasnov', type: 'batiment', buildingId: 'stade' }
+      ],
       liens: { arriere: 'krasnov-centre-artisanal', toutDroit: 'krasnov-rue-ecole-foret' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
