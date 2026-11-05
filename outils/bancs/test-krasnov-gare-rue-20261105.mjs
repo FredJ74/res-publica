@@ -191,6 +191,8 @@ test('Krasnov : visuel WebP de la salle des ventes et ordres logistiques inchang
   assert.ok(fs.statSync(path.join(root,got.salle.imageUrl)).size>100);
   assert.deepEqual(Array.from(got.salle.orders,o=>o.fn),
     ['receptionner_commande','acheter_ressources_entrepot']);
+  assert.equal(got.bureau.imageUrl,'images/Sovarka/Krasnov/Krasnov_entrepot_bureau.webp');
+  assert.ok(fs.statSync(path.join(root,got.bureau.imageUrl)).size>100);
   assert.ok(got.bureau.orders.some(o=>o.fn==='tableau_bord_entrepot'));
   assert.ok(got.bureau.orders.some(o=>o.fn==='fixer_prix_achat_entrepot'));
 });
