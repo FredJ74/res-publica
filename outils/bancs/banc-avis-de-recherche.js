@@ -91,8 +91,9 @@ att('le cron a son propre appel, avec sa cible nommee',
 // (terrain_occupation_action -> recherche_inscrire), plus par l'ecran.
 // 3 novembre 2026 : la rebellion reussie face aux agents inscrit l'avis au serveur
 // (arrestation_flagrant_choisir -> recherche_inscrire).
+// 5 novembre 2026 : checkDetection (morte, sans appelant) est retiree avec son appel au helper.
 att('les inscriptions restantes passent par le helper',
-    partout(/inscrireRecherche\(/g) >= 4, partout(/inscrireRecherche\(/g) + ' appel(s)');
+    partout(/inscrireRecherche\(/g) >= 3, partout(/inscrireRecherche\(/g) + ' appel(s)');
 // 27 octobre 2026 : le retrait apres justification a quitte l'ecran (convocation_se_justifier).
 // 3 novembre 2026 : le retrait du motif juge apres une arrestation se fait au serveur
 // (arrestation_flagrant_interne), dans la transaction qui ouvre la peine.
@@ -130,8 +131,9 @@ att("le reflet du mandat calomnieux recopie le verdict au lieu de pousser",
 
 print('');
 print('5. LES TROIS FONCTIONS QUI ONT DU PASSER EN ASYNC L ONT FAIT');
-att('checkDetection est async',
-    SRC['plateau-justice-economie.js'].indexOf('async function checkDetection(') >= 0);
+// 5 novembre 2026 : checkDetection a disparu (detection tiree par crime_detecter_interne au serveur).
+att("checkDetection n'existe plus a l'ecran",
+    SRC['plateau-justice-economie.js'].indexOf('function checkDetection(') < 0);
 att('procederArrestation est async',
     SRC['plateau-justice-economie.js'].indexOf('async function procederArrestation(') >= 0);
 // 3 novembre 2026 : resistance et arrestation sont tranchees par le serveur

@@ -1,4 +1,4 @@
--- A jouer APRES le corps de la migration 20261105110000, dans la meme transaction annulee.
+-- A jouer APRES le corps de la migration 20261105110100, dans la meme transaction annulee.
 -- BANC (annulé) : un PJ réel fait commissaire de Luthécia le temps de la transaction.
 DO $$
 DECLARE a text; ua uuid; b text; r jsonb; i integer; vu_ok boolean := false; vu_ko boolean := false; refuse boolean := false;
