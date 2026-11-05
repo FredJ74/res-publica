@@ -1926,6 +1926,7 @@ function applyCharToState(char) {
   if (fullnameEl) fullnameEl.textContent = char.name || 'Mon Personnage';
   // Sous le nom : le poste, puis la domiciliation (pays - ville), ou que le PJ se trouve
   // (decision de Fred, 05/11/2026). Ni l'archetype (donnee technique) ni le pays de la position.
+  const co = COUNTRIES[char.country]; // encore lu plus bas (devise affichee)
   const archEl = document.getElementById('char-arch-left');
   if (archEl) {
     const dom = state.domicile;
