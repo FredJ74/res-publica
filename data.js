@@ -1989,6 +1989,19 @@ const WORLD = {
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','stade','zone-production'],
       buildingContext: {
+        // Krasnov conserve les ordres de transport du socle, mais possède son propre hall.
+        'centre-multinodal-montrouge': {
+          name: "Gare de Krasnov",
+          desc: "La gare du kolkhoze, avec sa salle d'attente et sa billetterie.",
+          roomOverrides: {
+            hall_gare_montrouge: {
+              name: "Hall de la gare de Krasnov",
+              desc: "Une gare soviétique modeste : guichet, bancs de bois, horaires et accès aux quais.",
+              imageUrl: "images/Sovarka/Krasnov/Krasnov_gare_hall.webp",
+              personsVides: true
+            }
+          }
+        },
         'hotel-republica': {
           name: "Baraquement Collectif N°7",
           desc: "Le logement collectif du kolkhoze. Confort spartiate garanti.",
