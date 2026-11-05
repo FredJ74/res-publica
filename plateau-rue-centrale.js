@@ -905,7 +905,7 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/rue-entrepot-renseignement-novomirsk.webp',
       zones: [
         { xPct: [0, 29],   yPct: [20, 74], nom: 'Entrepôt Logistique de Novomirsk', type: 'batiment', buildingId: 'entrepot-logistique-novomirsk' },
-        { xPct: [83, 100], yPct: [8, 80],  nom: 'Direction du Renseignement de Sovarka', type: 'a-venir' }
+        { xPct: [83, 100], yPct: [8, 80],  nom: 'Direction du Renseignement de Sovarka', type: 'batiment', buildingId: 'siege-renseignement' }
       ],
       liens: { droite: 'novomirsk-vue-7', toutDroit: 'novomirsk-vue-9' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT }

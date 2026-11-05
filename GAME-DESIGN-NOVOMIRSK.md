@@ -21,6 +21,7 @@ Grand Hôtel ayant deux entrées), 17 marquées « à venir ».
 | 04/11/2026 | V4/V5 | Grand Hôtel de Sovarka | **Plus de suites** (elles sont au Pavillon) : pièces `suite_privee` et `suite_presidentielle` exclues, ordre « Louer une suite » retiré. Lecture retenue de « n'aura que des chambres, pas de suites » : seules les suites sont retirées ; restaurant et bar de l'hôtel restent en place, à confirmer par Fred. |
 | 04/11/2026 | V7 | Résidence impériale | Logements de prestige louables comme les suites du Pavillon (nouveau bâtiment `residence-imperiale-novomirsk`) : **quatre appartements à 500/jour (+4 POP +4 INF +4 DIS)** et **un grand appartement à 1 200/jour (+15 POP +15 INF +5 DIS)**. Gardien anonyme. |
 | 04-05/11/2026 | V8 | Entrepôt Logistique | Interface copiée de Luthécia (nouveau bâtiment `entrepot-logistique-novomirsk` : Salle des Ventes, Bureau de Direction), **tous les ordres « Bientôt disponible »** jusqu'à l'économie de Sovarka (décision de Fred du 04/11). Directeur PNJ : **Boris Stockov** (nom choisi par Fred le 05/11). Pas encore de ligne `entrepots_par_ville` ni d'état serveur : à ajouter quand l'approvisionnement de Sovarka sera décidé. |
+| 05/11/2026 | V8 | Direction du Renseignement de Sovarka | **Siège du renseignement militaire, bâtiment du socle** (`siege-renseignement`) : il fait partie de l'architecture commune même si un empire ne l'utilise pas ; la Républia ne le liste pas (son ministre de la Défense garde l'ordre au Palais), Sovarka si, et d'autres empires plus tard. Trois pièces : **Accueil**, où le **Sergent Viktor Muetov** (nom de Fred) vous accueille froidement ; **Salle des Écoutes**, avec l'ordre existant « Renseignement militaire » (ministre de la Défense ; à Novomirsk l'ordre vit là, pas au Palais) ; **Salle d'Interrogatoire**, copie de « Interroger un détenu » du QHS (2 PA, 75 %, +5 INF), réservée au ministre de la Défense. Migration `20261105004500_siege_renseignement_militaire` appliquée. |
 
 **Méthode (Fred, 04/11/2026)** : d'abord l'interface intérieure de chaque bâtiment, avec ses
 différentes pièces ; Fred générera ensuite les images avec ChatGPT. En attendant, un bâtiment
@@ -28,6 +29,12 @@ copié porte `imagesAVenir: true` dans son `buildingContext` : ses pièces s'aff
 fond, sans emprunter les images de la ville d'origine.
 
 Monnaie (décision de Fred, 04/11/2026) : le **para sovarkien, sigle PSK** (le para était le centime du dinar yougoslave), à la place de l'ancien sigle « RP ». Pas de taux de change : mêmes chiffres que les FR. Les libellés de loyer de Novomirsk affichent « PSK ». La monnaie d'El Estado (« PS ») n'est pas encore validée.
+
+Limites du siège du renseignement (05/11/2026) : aucune des deux fonctions serveur ne vérifie le pays
+du bâtiment ; un ministre de la Défense d'un autre empire de passage pourrait y passer ces ordres pour
+son propre pays (sans effet tant que le voyage entre empires n'existe pas). Les quatre agents de
+renseignement (`renseignement_identites_reelles`) et leurs portraits sont encore ceux de Républia : un
+vivier propre à Sovarka sera à nommer par Fred avant d'ouvrir le renseignement de cet empire.
 
 ## Couches à dupliquer pour un bâtiment existant du gabarit
 

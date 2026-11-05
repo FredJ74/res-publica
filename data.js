@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -1931,6 +1931,15 @@ const WORLD = {
             }
           },
           persons: [{name: 'Tatiana Bortchova (PNJ)', role: 'Serveuse', rel: 'neutral', job: 'serveur'}]
+        },
+        // Direction du Renseignement de Sovarka (vue 8) : le Siege du renseignement militaire du
+        // socle (BUILDINGS['siege-renseignement'], decision de Fred du 05/11/2026), habille pour
+        // Novomirsk. Planton nomme par Fred : le Sergent Viktor Muetov, qui accueille froidement.
+        'siege-renseignement': {
+          name: "Direction du Renseignement de Sovarka",
+          imagesAVenir: true,
+          desc: "Un bloc de béton sans enseigne, aux fenêtres opaques. Chacun à Novomirsk sait ce qu'il abrite ; personne n'en parle à voix haute.",
+          persons: [{name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'}]
         }
       }
     },
@@ -6711,6 +6720,53 @@ const BUILDINGS = {
         orders: [
           {fn:'tableau_bord_entrepot', label:'Tableau de bord logistique', pa:0, cost:0, type:'legal', icon:'ti-layout-dashboard', successRate:100, requiresPost:'directeur_entrepot', desc:"Trésorerie, stocks et capacité, stocks cibles, marché des fournisseurs, commandes et registre de l'établissement.", bientot:'Bientôt disponible : l\'entrepôt de Novomirsk ouvrira avec l\'économie de Sovarka.'},
           {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix de vente", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue par l'entrepôt. Laissez vide pour revenir au prix automatique.", bientot:'Bientôt disponible : l\'entrepôt de Novomirsk ouvrira avec l\'économie de Sovarka.'}
+        ]
+      }
+    }
+  },
+  // SIEGE DU RENSEIGNEMENT MILITAIRE (socle, decision de Fred du 05/11/2026). Batiment commun a
+  // tous les empires, liste seulement par ceux qui l'utilisent : Sovarka (Novomirsk) l'a, la
+  // Republia non (son ministre de la Defense passe « Renseignement militaire » depuis son bureau
+  // du Palais du Gouvernement). Chaque ville l'habille par son buildingContext (nom, planton).
+  // Ordres : ceux du socle, sans mecanique nouvelle.
+  //  - Salle des ecoutes : « Renseignement militaire » (cellule_renseignement_creer, RPC seule
+  //    payeuse : 3 PA et 500 sur la caisse <pays>_gouvernement-min_def), reserve au ministre de la Defense.
+  //  - Salle d'interrogatoire : copie de « Interroger un detenu » du QHS (2 PA, 75 %, +5 INF),
+  //    reservee au ministre de la Defense ; ordre generique tenu par ordre_generique_executer
+  //    (ligne interroger_renseignement de ordres_generiques, migration 20261105004500).
+  'siege-renseignement': {
+    name: "Siège du Renseignement militaire",
+    shortName: "Renseignement",
+    cat: "Pouvoir",
+    icon: "ti-spy",
+    bgColor: "#0e1114",
+    desc: "Le siège des services de renseignement militaire. On y entre sur convocation, on en sort quand on vous le dit.",
+    rooms: {
+      accueil_renseignement: {
+        name: "Accueil",
+        imageBg: "linear-gradient(135deg,#0e1114,#151a1f)",
+        desc: "Un comptoir vitré, un registre, une caméra au plafond. Le planton vous dévisage avant même que vous ayez parlé.",
+        persons: [{name:'Planton (PNJ)', role:'Planton du Renseignement', rel:'neutral', job:'planton_renseignement'}],
+        orders: []
+      },
+      salle_ecoutes: {
+        name: "Salle des Écoutes",
+        imageBg: "linear-gradient(135deg,#0b1012,#121a1c)",
+        desc: "Casques, bandes magnétiques et rangées de voyants. Ici, on écoute ce que le reste du monde croit dire en privé.",
+        persons: [],
+        orders: [
+          // 0 PA / 0 FR ici, comme au bureau du ministre : cellule_renseignement_creer est seule
+          // payeuse (voir le commentaire du regroupement du 22 septembre au Palais du Gouvernement).
+          {fn:'renseignement_militaire', label:'Renseignement militaire', pa:0, cost:0, type:'grey', icon:'ti-spy', successRate:100, requiresPost:'min_def', desc:'Convoquer une equipe sous couverture, ou suivre une operation en cours.'}
+        ]
+      },
+      salle_interrogatoire_renseignement: {
+        name: "Salle d'Interrogatoire",
+        imageBg: "linear-gradient(135deg,#050808,#0a1010)",
+        desc: "Lumière crue, table métallique, miroir sans tain. Les questions y sont courtes, les réponses le sont rarement.",
+        persons: [],
+        orders: [
+          {fn:'interroger_renseignement', label:'Interroger un detenu', pa:2, cost:0, type:'legal', icon:'ti-message-circle', successRate:75, requiresPost:'min_def', desc:'Obtenir des informations. +INF si succes.'}
         ]
       }
     }

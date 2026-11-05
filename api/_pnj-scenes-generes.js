@@ -5213,6 +5213,29 @@ export const SCENES_PNJ = {
       "Boris Stockov"
     ]
   },
+  "[\"soviet\",\"capitale\",\"siege-renseignement\",\"accueil_renseignement\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Direction du Renseignement de Sovarka",
+    "piece": "Accueil",
+    "personnes": [
+      "Sergent Viktor Muetov"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"siege-renseignement\",\"salle_ecoutes\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Direction du Renseignement de Sovarka",
+    "piece": "Salle des Écoutes",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"siege-renseignement\",\"salle_interrogatoire_renseignement\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Direction du Renseignement de Sovarka",
+    "piece": "Salle d'Interrogatoire",
+    "personnes": []
+  },
   "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"hall_pavillon\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
