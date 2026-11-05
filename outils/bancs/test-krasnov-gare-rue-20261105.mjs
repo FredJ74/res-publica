@@ -26,6 +26,8 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
     mairie:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-mairie-place'],
     tabac:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-tabac-bar'],
     station:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-station-musee'],
+    bureaux:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-bureaux'],
+    descendante:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-descendante'],
     bas:RC_FLECHE_BAS,
     contexte:WORLD.soviet.ville_b.buildingContext['centre-multinodal-montrouge'],
     hallPSM:BUILDINGS['centre-multinodal-montrouge'].rooms.hall_gare_montrouge.imageUrl,
@@ -110,12 +112,29 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.tabac.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.tabac.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.station.image,'images/Sovarka/Krasnov/Krasnov rue station musée.webp');
-  assert.equal(Object.keys(got.station.liens).length,0);
+  assert.deepEqual(Object.keys(got.station.liens).sort(),['arriere','toutDroit']);
+  assert.equal(got.station.liens.arriere,'krasnov-rue-tabac-bar');
+  assert.equal(got.station.liens.toutDroit,'krasnov-rue-bureaux');
+  assert.equal(got.station.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
+  assert.equal(got.station.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
+  assert.equal(got.bureaux.image,'images/Sovarka/Krasnov/Krasnov_rue_bureaux.webp');
+  assert.deepEqual(Object.keys(got.bureaux.liens).sort(),['arriere','toutDroit']);
+  assert.equal(got.bureaux.liens.arriere,'krasnov-rue-station-musee');
+  assert.equal(got.bureaux.liens.toutDroit,'krasnov-rue-descendante');
+  assert.equal(got.bureaux.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
+  assert.equal(got.bureaux.flechesStyle.toutDroit,'top:10px; left:43%; transform:translateX(-50%);');
+  assert.equal(got.descendante.image,'images/Sovarka/Krasnov/Krasnov_rue_descendante.webp');
+  assert.deepEqual(Object.keys(got.descendante.liens).sort(),['arriere','toutDroit']);
+  assert.equal(got.descendante.liens.arriere,'krasnov-rue-bureaux');
+  assert.equal(got.descendante.liens.toutDroit,'krasnov-rue-eglise');
+  assert.equal(got.descendante.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
+  assert.equal(got.descendante.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.eglise.image,'images/Sovarka/Krasnov/Krasnov rue église.webp');
-  assert.deepEqual(Object.keys(got.eglise.liens),['arriere']);
+  assert.deepEqual(Object.keys(got.eglise.liens).sort(),['arriere','droite']);
+  assert.equal(got.eglise.liens.droite,'krasnov-rue-descendante');
   assert.equal(got.eglise.liens.arriere,'krasnov-rue-terrains');
   assert.equal(got.eglise.flechesStyle.arriere,'bottom:10px; left:43%; transform:translateX(-50%);');
-  assert.equal(got.eglise.liensEnAttente.droite,true);
+  assert.equal(got.eglise.liensEnAttente,undefined);
   assert.equal(got.eglise.flechesStyle.droite,'top:33.3333%; right:10px; transform:translateY(-50%);');
   assert.equal(got.terrains.zones.length,0);
   assert.equal(got.maison.zones.length,0);
@@ -127,7 +146,7 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.contexte.roomOverrides.hall_gare_montrouge.imageUrl,'images/Sovarka/Krasnov/Krasnov_gare_hall.webp');
   assert.equal(got.contexte.roomOverrides.hall_gare_montrouge.personsVides,true);
   assert.notEqual(got.hallPSM,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl);
-  for (const f of [got.noeud.image,got.entrepot.image,got.maison.image,got.terrains.image,got.eglise.image,got.marche.image,got.artisanal.image,got.stade.image,got.ecole.image,got.distillerie.image,got.immeubles.image,got.mairie.image,got.tabac.image,got.station.image,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl]){
+  for (const f of [got.noeud.image,got.entrepot.image,got.maison.image,got.terrains.image,got.eglise.image,got.marche.image,got.artisanal.image,got.stade.image,got.ecole.image,got.distillerie.image,got.immeubles.image,got.mairie.image,got.tabac.image,got.station.image,got.bureaux.image,got.descendante.image,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl]){
     assert.ok(fs.statSync(path.join(root,f)).size>0,f);
   }
 });
