@@ -1,0 +1,56 @@
+name: Convertir nouveaux PNG Krasnov en WebP
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'outils/images/convertir_krasnov_lot_20261105.py'
+      - '.github/workflows/convertir-krasnov-lot-20261105.yml'
+permissions:
+  contents: write
+jobs:
+  conversion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Installer Pillow
+        run: python -m pip install pillow==11.3.0
+      - name: Convertir puis supprimer uniquement les 7 PNG validés
+        run: python outils/images/convertir_krasnov_lot_20261105.py
+      - name: Vérifier la conversion
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          p = Path('images/Sovarka/Krasnov')
+          assert not list(p.glob('*.png')), 'PNG résiduel'
+          expected = [
+            'Krasnov centre artisanal.webp',
+            'Krasnov rue distillerie centre radar.webp',
+            'Krasnov rue école foret.webp',
+            'Krasnov rue immeubles centre commercial.webp',
+            'Krasnov rue marché ferme.webp',
+            'Krasnov rue stade commissariat.webp',
+            'Krasnov rue tabac bar.webp',
+          ]
+          for name in expected:
+              with Image.open(p / name) as image:
+                  assert image.format == 'WEBP', name
+                  image.verify()
+          print('7/7 WebP valides, aucun PNG restant')
+          PY
+          git diff --check
+      - name: Publier images converties
+        run: |
+          git add -A -- images/Sovarka/Krasnov
+          git diff --cached --check
+          git diff --cached --quiet && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(krasnov): convertir sept nouveaux PNG en WebP et retirer les originaux'
+          git push origin HEAD:main
