@@ -22,6 +22,7 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
     stade:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-stade-commissariat'],
     ecole:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-ecole-foret'],
     distillerie:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-distillerie-radar'],
+    immeubles:RUE_CENTRALE_NOEUDS.soviet['krasnov-rue-immeubles-centre-commercial'],
     bas:RC_FLECHE_BAS,
     contexte:WORLD.soviet.ville_b.buildingContext['centre-multinodal-montrouge'],
     hallPSM:BUILDINGS['centre-multinodal-montrouge'].rooms.hall_gare_montrouge.imageUrl,
@@ -82,7 +83,13 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.ecole.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.ecole.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.distillerie.image,'images/Sovarka/Krasnov/Krasnov rue distillerie centre radar.webp');
-  assert.equal(Object.keys(got.distillerie.liens).length,0);
+  assert.deepEqual(Object.keys(got.distillerie.liens).sort(),['arriere','toutDroit']);
+  assert.equal(got.distillerie.liens.arriere,'krasnov-rue-ecole-foret');
+  assert.equal(got.distillerie.liens.toutDroit,'krasnov-rue-immeubles-centre-commercial');
+  assert.equal(got.distillerie.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
+  assert.equal(got.distillerie.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
+  assert.equal(got.immeubles.image,'images/Sovarka/Krasnov/Krasnov rue immeubles centre commercial.webp');
+  assert.equal(Object.keys(got.immeubles.liens).length,0);
   assert.equal(got.eglise.image,'images/Sovarka/Krasnov/Krasnov rue église.webp');
   assert.deepEqual(Object.keys(got.eglise.liens),['arriere']);
   assert.equal(got.eglise.liens.arriere,'krasnov-rue-terrains');
@@ -99,7 +106,7 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.contexte.roomOverrides.hall_gare_montrouge.imageUrl,'images/Sovarka/Krasnov/Krasnov_gare_hall.webp');
   assert.equal(got.contexte.roomOverrides.hall_gare_montrouge.personsVides,true);
   assert.notEqual(got.hallPSM,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl);
-  for (const f of [got.noeud.image,got.entrepot.image,got.maison.image,got.terrains.image,got.eglise.image,got.marche.image,got.artisanal.image,got.stade.image,got.ecole.image,got.distillerie.image,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl]){
+  for (const f of [got.noeud.image,got.entrepot.image,got.maison.image,got.terrains.image,got.eglise.image,got.marche.image,got.artisanal.image,got.stade.image,got.ecole.image,got.distillerie.image,got.immeubles.image,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl]){
     assert.ok(fs.statSync(path.join(root,f)).size>0,f);
   }
 });
