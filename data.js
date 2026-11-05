@@ -2007,10 +2007,16 @@ const WORLD = {
           desc: "Le logement collectif du kolkhoze. Confort spartiate garanti.",
           persons: [{"name": "Responsable Logement (PNJ)", "role": "Responsable", "rel": "neutral", "job": "serveur"}]
         },
-        'commissariat': {
-          name: "Surveillance du Kolkhoze",
-          desc: "Il note tout dans son carnet.",
-          persons: [{"name": "Agent Surveillance (PNJ)", "role": "Agent", "rel": "neutral", "job": "commissaire"}]
+        // Le commissariat de Krasnov hérite intégralement des pièces et ordres
+        // du commissariat-local commun à Montrouge et Port-Sainte-Marie.
+        'commissariat-local': {
+          name: "Commissariat de Krasnov",
+          desc: "La police locale de Krasnov, installée face au stade."
+        },
+        // Mêmes six pièces et tous les ordres sportifs du gabarit stade partagé.
+        'stade': {
+          name: "Stade Étoile Rouge de Krasnov",
+          desc: "Le stade de football de Krasnov, face au commissariat."
         },
         'banque-nationale': {
           name: "Caisse Kolkhozienne",
