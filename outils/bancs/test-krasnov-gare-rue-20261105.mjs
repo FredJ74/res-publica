@@ -1,9 +1,10 @@
-const test=require('node:test');
-const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const path=require('node:path');
-const vm=require('node:vm');
-const root=path.resolve(__dirname,'../..');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+import {fileURLToPath} from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 
 test('Krasnov : hall distinct de Montrouge et rue de gare sans flèche inventée',()=>{
   const ctx=vm.createContext({console, state:{country:'soviet',currentCity:'ville_b'}});
