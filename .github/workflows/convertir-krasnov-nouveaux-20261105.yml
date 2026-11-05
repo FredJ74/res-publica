@@ -1,0 +1,46 @@
+name: Convertir trois PNG Krasnov sans écrasement
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'outils/images/convertir_krasnov_nouveaux_20261105.py'
+      - '.github/workflows/convertir-krasnov-nouveaux-20261105.yml'
+permissions:
+  contents: write
+jobs:
+  conversion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Convertir et valider tous les fichiers avant suppression
+        run: python outils/images/convertir_krasnov_nouveaux_20261105.py
+      - name: Vérifier dossier Krasnov
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          p=Path('images/Sovarka/Krasnov')
+          assert not list(p.glob('*.png'))
+          for name in ('Krasnov rue mairie place.webp','Krasnov rue station musée.webp','Krasnov rue tabac bar.webp'):
+              with Image.open(p/name) as image:
+                  assert image.format=='WEBP', name
+                  image.verify()
+          print('3 WebP valides, zéro PNG')
+          PY
+          git diff --check
+      - name: Publier seulement les images de Krasnov
+        run: |
+          git add -A -- images/Sovarka/Krasnov
+          git diff --cached --check
+          git diff --cached --quiet && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(krasnov): deux nouveaux WebP et suppression de trois PNG'
+          git push origin HEAD:main
