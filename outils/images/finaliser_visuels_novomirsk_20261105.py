@@ -78,7 +78,7 @@ for name, photo in [
     ("Docteur Lev Patrimonov (PNJ)","Novo_lev_patrimonov_portrait.webp"),
     ("Vétéran Ilia Médailline (PNJ)","Novo_ilia_medailine_portrait.webp"),
 ]:
-    pattern = r"(\\{name:'" + re.escape(name) + r"', role:'[^']+', rel:'neutral', job:'[^']+')\\}"
+    pattern = r"(\{name:'" + re.escape(name) + r"', role:'[^']+', rel:'neutral', job:'[^']+')\}"
     hits = len(re.findall(pattern,museum))
     if hits < 1: raise RuntimeError("PNJ sans occurrence : "+name)
     museum = re.sub(pattern, lambda m: m.group(1)+", photoUrl:'images/Sovarka/Novomirsk/"+photo+"'}",museum)
