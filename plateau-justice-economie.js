@@ -838,31 +838,8 @@ function depenseBudget(institution, montant) {
 // si bien que deux joueurs voyaient des populations differentes. La population est celle de
 // data.js, la meme pour tous, jusqu'a ce qu'une regle serveur la fasse evoluer.
 
-async function checkDetection(fn, resultType) {
-  const acte = ACTES_ILLEGAUX[fn];
-  if (!acte) return;
-  if (resultType === 'fail' || resultType === 'crit-fail') return; // Pas d'acte = pas de detection
-
-  // Immunite selon poste
-  const posteId = state.poste?.id;
-  if (posteId === 'president') return; // Immunite totale
-  if (['pm','min_int','min_fin','min_just','min_def','min_info','min_ae'].includes(posteId)) {
-    if (acte.type === 'delit_mineur') return; // Immunite partielle ministres
-  }
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const tauxDetect = Math.max(5, acte.detectRate - Math.floor(state.dis / 10));
-
-  if (roll <= tauxDetect) {
-    // L'INSCRIPTION EST UNE PORTE (chaine 14) : un `||` atomique cote serveur, et l'etat local
-    // recopie le verdict. Deux motifs inscrits dans la meme session survivent desormais tous
-    // les deux -- avant, le dernier `sbSavePersonnage` en effacait un.
-    await inscrireRecherche({ acte: fn, type: acte.type, jour: state.day });
-    addExternalEvent('ALERTE : Votre activite illegale (' + fn.replace(/_/g,' ') + ') a ete detectee. Vous etes recherche(e).');
-    state.dis = Math.max(0, state.dis - 10);
-    updateUI();
-  }
-}
+// checkDetection RETIREE (05/11/2026, chantier « jets de l'ecran ») : plus aucun appelant ; la detection
+// est tiree par crime_detecter_interne dans la fonction serveur de chaque acte.
 
 // DETECTION RENDUE PAR LE SERVEUR (27 octobre 2026). Les actes qui passent par une fonction
 // serveur (ordres generiques, corruptions, contrebande, falsification, crimes) tirent leur
@@ -892,32 +869,9 @@ async function appelerCrimeServeur(nom, params) {
   return Array.isArray(brut) ? brut[0] : brut;
 }
 
-// Republia : l'interception exige un policier physiquement present.
-// Les controles aleatoires historiques ne peuvent plus creer une arrestation.
-// Les autres empires conservent provisoirement leur comportement existant.
-function checkArrestationAuDeplacement() {
-  if (state.country === 'republic') return;
-  if (!state.recherche || state.recherche.length === 0) return;
-  const pire = state.recherche.reduce((max, r) => {
-    const pMax = getPeineParActe(max.acte, false);
-    const pR = getPeineParActe(r.acte, false);
-    return pR.jours > pMax.jours ? r : max;
-  }, state.recherche[0]);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const tauxInter = Math.max(5, 30 - Math.floor(state.dis / 5));
-  if (roll <= tauxInter) ouvrirModalArrestation(pire.acte);
-}
-
-function checkArrestationAuReveil() {
-  if (state.country === 'republic') return;
-  if (!state.recherche || state.recherche.length === 0) return;
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 10) {
-    const acteMax = state.recherche[state.recherche.length - 1]?.acte || 'delit_mineur';
-    addExternalEvent('La police a retrouve votre trace. Vous avez ete arrete(e) dans la nuit.');
-    procederArrestation(acteMax, false, false);
-  }
-}
+// checkArrestationAuDeplacement / checkArrestationAuReveil RETIREES (05/11/2026) : en Republia elles ne
+// faisaient deja plus rien (l'interception exige un policier present, decide par le serveur) ; ailleurs
+// elles tiraient au navigateur une arrestation. Socle commun : la regle de Republia vaut pour tous les empires.
 
 // =====================
 // SE JUSTIFIER (suite a convocation — ex: achat d'arme illegal echoue)

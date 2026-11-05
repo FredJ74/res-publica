@@ -2269,7 +2269,6 @@ async function doDormir() {
     // (detention_clore_purgee), et checkArrestationAuReveil lit state.estEmprisonne juste apres.
     await verifierLiberationPrisonniers();
     if (!retourActif()) return false;
-    checkArrestationAuReveil();
     verifierProgressionHospitalisation();
     if (typeof verifierEffetsManifestationsEcoulees === 'function') verifierEffetsManifestationsEcoulees(state.country);
     // verifierSalairePolitique() retiree ici le 20 septembre 2026 (§6.1) : le salaire des 13
@@ -2685,26 +2684,21 @@ async function doCentreAntiPoison(pa) {
     showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false);
     return;
   }
-  const today = dateCivileParisMedicale();
-  if (!state.centreAntiPoisonToday || state.centreAntiPoisonToday.jour !== today) {
-    state.centreAntiPoisonToday = { jour: today, tentatives: 0 };
-  }
-  if (state.centreAntiPoisonToday.tentatives >= 2) {
-    showToast('Limite atteinte', 'Deux tentatives maximum par jour.', false);
+  // JET AU SERVEUR (05/11/2026) : centre_anti_poison_traiter preleve le cout, tient la limite de deux
+  // tentatives par jour et tire le de ; l'ecran recopie le verdict. Avant, le navigateur decidait seul.
+  const brut = (typeof sbRpc === 'function') ? await sbRpc('centre_anti_poison_traiter', {}).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    const raison = v?.raison;
+    if (raison === 'limite_journaliere') showToast('Limite atteinte', 'Deux tentatives maximum par jour.', false);
+    else if (raison === 'pas_empoisonne') { state.empoisonnement = null; updateUI(); showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false); }
+    else if (raison === 'pas_sur_place') showToast('Pas ici', 'Ce traitement se fait au dispensaire ou a la clinique.', false);
+    else if (typeof signalerRefusCout === 'function' && v) signalerRefusCout(v);
+    else showToast('Impossible', 'Le traitement n\'a pas pu avoir lieu.', false);
     return;
   }
-
-  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-  const ordre = room?.orders?.find(o => o.fn === 'centre_anti_poison');
-  const cout = ordre?.cost || 0;
-  const successRate = ordre?.successRate || 70;
-  const r = await deduireCoutOrdre({ pa, cost: cout });
-  if (!r.ok) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
-
-  state.centreAntiPoisonToday.tentatives++;
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= successRate) {
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+  if (v.gueri) {
     state.empoisonnement = null;
     if (state.statsAffaiblies) state.statsAffaiblies = null;
     updateUI();
