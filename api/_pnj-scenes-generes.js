@@ -5532,12 +5532,9 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"centre-multinodal-montrouge\",\"hall_gare_montrouge\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Centre Multinodal de Montrouge",
-    "piece": "Hall de la Gare",
-    "personnes": [
-      "Chef de Gare Syndiqué",
-      "Délégué Syndical"
-    ]
+    "batiment": "Gare de Starovka",
+    "piece": "Hall de la gare de Starovka",
+    "personnes": []
   },
   "[\"soviet\",\"ville_a\",\"centre-commercial\",\"hall\"]": {
     "pays": "Sovarka",
