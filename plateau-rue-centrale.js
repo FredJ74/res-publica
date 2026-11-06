@@ -906,8 +906,21 @@ const RUE_CENTRALE_NOEUDS = {
     'starovka-rue-bureaux-caserne': {
       image: 'images/Sovarka/Starovka/Starovka_rue_bureaux_caserne.webp',
       zones: [],
-      liens: { droite: 'starovka-rue-lycee-commissariat' },
-      flechesStyle: { droite: 'top:50%; right:10px; transform:translateY(-50%);' }
+      liens: {
+        droite: 'starovka-rue-lycee-commissariat',
+        toutDroit: 'starovka-rue-magasin-chasse'
+      },
+      flechesStyle: {
+        droite: 'top:50%; right:10px; transform:translateY(-50%);',
+        toutDroit: 'top:10px; left:43%; transform:translateX(-50%);'
+      }
+    },
+
+    'starovka-rue-magasin-chasse': {
+      image: 'images/Sovarka/Starovka/Starkova_rue_magasin chasse.webp',
+      zones: [],
+      liens: { arriere: 'starovka-rue-bureaux-caserne' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
     },
 
     // KRASNOV — la gare donne vers la rue de l'entrepôt par une seule flèche BAS.
