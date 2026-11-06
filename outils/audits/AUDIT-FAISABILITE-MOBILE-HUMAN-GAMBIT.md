@@ -321,3 +321,24 @@ sur la base de ces mesures. Aucune PR ne doit être fusionnée par cette mission
 **Conclusion de faisabilité : favorable, avec un chantier d'interface substantiel.
 Le moteur unique peut être conservé ; le jeu actuel n'est pas certifié jouable sur
 smartphone. L'implémentation reste à autoriser.**
+
+### Publication et vérifications documentaires
+
+Premier commit publié : `2d950afff5bd552f8dc0bf55919d89ed5c5e83dc`.
+Branche : `codex/audit-mobile-20261106`. L'API GraphQL GitHub refuse la création de
+PR (`Forbidden`) ; aucune PR créée ou fusionnée n'est annoncée.
+L'ouverture d'une PR reste une opération d'intégration documentaire, pas un préalable
+à la consultation du rapport déjà poussé.
+
+Vérifications exécutées : deux campagnes complètes de 120 états (la seconde depuis
+les instruments à leur emplacement documentaire définitif), contre-épreuve tactile,
+syntaxe Node des instruments, résolution des liens locaux, décodage exact de l'archive,
+CRC ZIP et SHA-256 de ses 28 fichiers, `git diff --check`. Le filtre Vercel existant
+retourne **IGNORER** pour le diff de ce lot depuis `304633e0` ; aucun paramètre distant
+n'est modifié. Aucun banc métier n'a été modifié ou désactivé, aucune réussite CI
+distante n'est prétendue. Une première tentative de mesure a rencontré un mauvais
+identifiant dans le seul instrument d'audit ; corrigé avant les campagnes complètes,
+sans toucher au jeu.
+
+**Audit technique et ergonomique terminé et publié ; PR bloquée par l'accès API.
+Version mobile non implémentée, recette authentifiée et appareils physiques non réalisés.**

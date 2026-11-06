@@ -344,3 +344,9 @@ Supabase ou déploiement. Aucun Safari iOS réel ni parcours métier authentifi�
 Proposition : web responsive commun, PWA optionnelle ; première version 18–30 jours-personne,
 couverture complète 36–61, à affiner sur vrais appareils. Implémentation non autorisée
 par cet audit ; ne pas fusionner cette branche sans validation de Fred. Sovarka intacte.
+
+Audit mobile publié : premier commit `2d950aff`. Deux campagnes complètes locales,
+archive ZIP vérifiée (28 fichiers + manifeste), liens et filtre Vercel documentaire
+validés. Création de PR refusée : GraphQL `Forbidden` ; rapport consultable sur la
+branche poussée, aucune PR fusionnée ni commande de déploiement. L'audit est terminé ;
+le développement mobile n'a pas commencé et attend une mission distincte.
