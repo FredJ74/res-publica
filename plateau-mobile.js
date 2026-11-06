@@ -100,5 +100,63 @@
   if (rue) new MutationObserver(preparerScene).observe(rue,{childList:true,subtree:true});
   petit.addEventListener('change',preparerScene);
   preparerScene();
+  // L3 : focus et hauteur visible uniquement ; fermeture par le bouton existant.
+  let fenetreActive = null;
+  const retoursFenetre = new WeakMap();
+  const visibles = p => [...p.querySelectorAll('button,a[href],input,textarea,select,[tabindex="0"]')]
+    .filter(e => !e.disabled && e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden');
+  function fenetre() {
+    return [...document.querySelectorAll('.modal-overlay.open')]
+      .sort((a,b) => (Number(getComputedStyle(a).zIndex)||0) - (Number(getComputedStyle(b).zIndex)||0)).at(-1) || null;
+  }
+  function suivreFenetre() {
+    if (!petit.matches) { fenetreActive = null; return; }
+    const courante = fenetre();
+    if (courante === fenetreActive) return;
+    const ancienne = fenetreActive;
+    fenetreActive = courante;
+    if (courante) {
+      fermer(false);
+      if (!courante.contains(document.activeElement)) retoursFenetre.set(courante, document.activeElement);
+      const boite = courante.querySelector('.modal-box');
+      if (boite) {
+        boite.setAttribute('role','dialog'); boite.setAttribute('aria-modal','true');
+        boite.setAttribute('aria-label',courante.querySelector('.modal-title')?.textContent || 'Fenêtre');
+        boite.tabIndex = -1;
+        (visibles(boite)[0] || boite).focus({preventScroll:true});
+      }
+    } else if (ancienne) {
+      const retour = retoursFenetre.get(ancienne);
+      (retour?.isConnected && retour.getClientRects().length ? retour : boutons[2]).focus({preventScroll:true});
+    }
+  }
+  const fenetres = new MutationObserver(suivreFenetre);
+  document.querySelectorAll('.modal-overlay').forEach(e => fenetres.observe(e,{attributes:true,attributeFilter:['class']}));
+  document.addEventListener('keydown', e => {
+    if (!petit.matches || !fenetreActive) return;
+    if (e.key === 'Escape') {
+      const fermerExistant = visibles(fenetreActive).find(x => x.matches('.modal-close,.tribune-fronton-close'));
+      if (fermerExistant) { e.preventDefault(); fermerExistant.click(); }
+    }
+    if (e.key !== 'Tab') return;
+    const elements = visibles(fenetreActive), premier = elements[0], dernier = elements.at(-1);
+    if (!premier) { e.preventDefault(); return; }
+    if (e.shiftKey && (document.activeElement === premier || !elements.includes(document.activeElement))) { e.preventDefault(); dernier.focus(); }
+    else if (!e.shiftKey && (document.activeElement === dernier || !elements.includes(document.activeElement))) { e.preventDefault(); premier.focus(); }
+  });
+  function hauteurVisible() {
+    if (!petit.matches) return;
+    const v = window.visualViewport;
+    document.documentElement.style.setProperty('--hg-visible', (v?.height || window.innerHeight) + 'px');
+    document.documentElement.style.setProperty('--hg-decalage', (v?.offsetTop || 0) + 'px');
+    const e = document.activeElement;
+    if (fenetreActive?.contains(e) && e.matches('input,textarea,select'))
+      requestAnimationFrame(() => { if (e.isConnected) e.scrollIntoView({block:'nearest'}); });
+  }
+  window.visualViewport?.addEventListener('resize',hauteurVisible);
+  window.visualViewport?.addEventListener('scroll',hauteurVisible);
+  window.addEventListener('resize',hauteurVisible);
+  petit.addEventListener('change',() => { hauteurVisible(); suivreFenetre(); });
+  hauteurVisible(); suivreFenetre();
   dimensionner();
 })();

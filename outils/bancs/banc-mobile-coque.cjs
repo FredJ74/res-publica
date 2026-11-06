@@ -41,3 +41,18 @@ test('L2 : pièces et actions accessibles en paysage',async()=>avecJeu(async(b,o
  await p.locator('.piece-tab').last().scrollIntoViewIfNeeded();await p.locator('.piece-tab').last().click();assert.ok(await p.locator('#piece-image').evaluate(e=>e.getBoundingClientRect().width)>800);
  await p.locator('#vue-batiment .sortir-btn').scrollIntoViewIfNeeded();assert.ok(await p.locator('#vue-batiment .sortir-btn').isVisible());
 }));
+test('L3 : longue modale, focus, fermeture existante et retour sans action métier',async()=>avecJeu(async(b,o)=>{
+ const p=await page(b,o,375,667);
+ await p.locator('[data-hg-panneau=menu]').focus();
+ await p.evaluate(()=>{const m=document.getElementById('modal-postes');m.querySelector('.modal-close').onclick=()=>m.classList.remove('open');document.getElementById('postes-body').innerHTML='<div class="cpj-dialogue">'+('<p>Lecture</p>'.repeat(40))+'<input id="audit-saisie"><button id="audit-fin">Fin</button></div>';m.classList.add('open');});
+ await p.waitForTimeout(100);assert.ok(await p.locator('#modal-postes .modal-box').getAttribute('aria-modal'));
+ await p.locator('#audit-saisie').focus();await p.setViewportSize({width:375,height:350});await p.waitForTimeout(150);assert.ok(await p.locator('#modal-postes .modal-box').evaluate(e=>e.getBoundingClientRect().bottom<=innerHeight));
+ assert.equal(await p.locator('#audit-saisie').evaluate(e=>getComputedStyle(e).fontSize),'16px');
+ await p.locator('#audit-fin').focus();await p.keyboard.press('Tab');assert.ok(await p.locator('#modal-postes .modal-close').evaluate(e=>e===document.activeElement));
+ await p.keyboard.press('Escape');assert.equal(await p.locator('#modal-postes').evaluate(e=>e.classList.contains('open')),false);
+ assert.ok(await p.locator('[data-hg-panneau=menu]').evaluate(e=>e===document.activeElement));
+}));
+test('L3 : chat paysage contenu dans l’écran, fenêtres au-dessus des flèches',async()=>avecJeu(async(b,o)=>{
+ const p=await page(b,o,852,393);await p.evaluate(()=>{document.getElementById('chat-piece-panel').style.display='flex';});
+ assert.ok(await p.locator('#chat-piece-panel').evaluate(e=>e.getBoundingClientRect().top>=0));
+}));

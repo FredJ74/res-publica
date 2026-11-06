@@ -38,3 +38,12 @@ La liste utilise les zones déjà résolues par le moteur, donc respecte les vue
 contextuelles (dont PSM) sans recopier les destinations. Données des quatre vues,
 coordonnées et gestionnaires métier non modifiés. CSS mobile conserve le ratio de
 l'image et isole les flèches des fenêtres superposées. Bureau 1440 pixel identique.
+
+## L3 — fenêtres et clavier
+
+10/10 tests locaux cumulatifs. La hauteur réduite à 350 px conserve une modale
+scrollable, les champs à 16 px, le focus et le retour au déclencheur après fermeture
+par le bouton existant. Le chat est contenu en paysage. Aucun Escape générique
+ne supprime une modale : il active uniquement sa fermeture prévue.
+Test réel Safari/clavier et reprise authentifiée non exécuté ; ne pas le confondre
+avec le test visualViewport de Chromium. Bureau 1440 pixel identique.

@@ -379,9 +379,16 @@ réutilisent leur clic existant. Onglets/actions défilants. Banc coque 8/8, don
 bureau 1440 identique. Création de PR L0 tentée : GraphQL Forbidden ; mêmes accès
 pour les autres lots, branches distinctes poussées pour intégration sans bloc global.
 
+Mobile L3 : `codex/mobile-l3-fenetres-20261106`, dépend de L2. Hauteur visualViewport,
+focus dans les fenêtres, fermeture par leur bouton existant, champs >=16 px et chat
+contenu en paysage. 10/10 tests de coque ; bureau 1440 toujours pixel identique.
+Pas de test sur vrai clavier iOS ni compte authentifié. L6 démarre séparément.
+
 Mobile L1 : conserver le préfixe historique de version CSS et ajouter le suffixe mobile ;
 le banc de lisibilité exige ce préfixe. Cache effectivement majoré, test conservé. Témoin bureau embarqué et vérifié SHA-256
 pour les clones CI superficiels (aucun fetch ni historique complet nécessaire).
 
 Mobile L2 : fixture DOM des rues complétée avec setAttribute/getAttribute ; assertions
 de destinations, quatre vues PSM et positions conservées sans assouplissement.
+
+Mobile L3 : correctifs des bancs L1/L2 intégrés ; aucun test de navigation supprimé.

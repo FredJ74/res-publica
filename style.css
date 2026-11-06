@@ -2300,3 +2300,20 @@ body.plateau-body .top-right {
   .hg-lieux-tactiles button{display:block;width:100%;min-height:44px;padding:10px;text-align:left;background:#344354;color:#e5c477;border:1px solid #a98d56;border-radius:5px;font:inherit;margin-top:6px}
   :is(.rc-zone,.rc-fleche,.minimap-building):focus-visible{outline:3px solid #e5c477;outline-offset:-3px}
 }
+
+/* MOBILE L3 — mêmes fenêtres, hauteur visible et saisie tactile. */
+@media(max-width:1023px){
+  .modal-overlay{top:var(--hg-decalage,0px);bottom:auto;height:var(--hg-visible,100dvh);padding:8px max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));overflow:hidden}
+  .modal-box{max-height:calc(var(--hg-visible,100dvh) - 16px);max-width:100%;width:100%;overflow-y:auto;scroll-padding:64px 8px 20px}
+  .modal-box.modal-fullscreen{height:calc(var(--hg-visible,100dvh) - 16px)}
+  .modal-header{padding:.6rem;gap:8px}
+  .modal-title{min-width:0;overflow-wrap:anywhere}
+  .modal-close{min-width:44px;min-height:44px;flex-shrink:0}
+  :is(#modal-postes,#modal-pnj,.modal-overlay) .modal-box :is(input,textarea,select){font-size:max(16px,1rem)!important;scroll-margin-block:64px 20px}
+  .modal-box :is(button,input,select){min-height:44px}
+  .modal-box .modal-body{padding:.7rem}
+  #modal-postes .modal-box.journal-mode{position:relative!important;top:auto!important;left:auto!important;transform:none!important}
+  #journal-store{height:var(--hg-visible,100dvh)!important;max-width:calc(100vw - 16px);top:var(--hg-decalage,0px)!important;z-index:80!important}
+  #chat-piece-panel{max-width:calc(100vw - 16px);max-height:calc(var(--hg-visible,100dvh) - 100px);left:8px!important;z-index:85!important}
+  #hg-chat-toggle,#journal-open-btn{z-index:60!important}
+}
