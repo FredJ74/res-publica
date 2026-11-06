@@ -4225,8 +4225,8 @@ export const SCENES_PNJ = {
     "batiment": "Palais du Parti",
     "piece": "Hall d'honneur",
     "personnes": [
-      "Gérard Tamponneau",
-      "Garde Republicain"
+      "Anatoli Protokolov",
+      "Garde du Peuple"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-presidentiel\",\"bureau_president\"]": {
@@ -4236,7 +4236,7 @@ export const SCENES_PNJ = {
     "piece": "Bureau du President",
     "personnes": [
       "Le Président",
-      "Huguette Papier"
+      "Nadejda Paperassova"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-presidentiel\",\"salle_presse_elysee\"]": {
@@ -4254,7 +4254,7 @@ export const SCENES_PNJ = {
     "batiment": "Palais du Parti",
     "piece": "Salle de Reception",
     "personnes": [
-      "Gérard Tamponneau"
+      "Anatoli Protokolov"
     ]
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"accueil\"]": {
@@ -4274,11 +4274,11 @@ export const SCENES_PNJ = {
     "batiment": "Hôtel Kollektiv",
     "piece": "Salle du Restaurant",
     "personnes": [
-      "Gaston Sauceblanche",
-      "Régis Gondasse",
-      "Yvette Gratinée",
-      "Jean Dupont",
-      "Marie Leblanc"
+      "Grigori Smetanine",
+      "Vsevolod Vodkaïev",
+      "Svetlana Blinova",
+      "Innokenti Partiïev",
+      "Macha Scoopova"
     ]
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"bar\"]": {
@@ -4287,10 +4287,10 @@ export const SCENES_PNJ = {
     "batiment": "Hôtel Kollektiv",
     "piece": "Bar",
     "personnes": [
-      "Marco (Barman)",
+      "Kostia (Barman)",
       "Natacha",
       "Julien",
-      "Marc Hantile"
+      "Leonid Combinov"
     ]
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"chambres\"]": {
@@ -4320,8 +4320,8 @@ export const SCENES_PNJ = {
     "batiment": "Siège du Comité Central",
     "piece": "Hall d'entree",
     "personnes": [
-      "Garde Republicain",
-      "Secretaire Dupuis"
+      "Garde du Peuple",
+      "Secrétaire Tamara Dossierova"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureaux\"]": {
@@ -4330,7 +4330,7 @@ export const SCENES_PNJ = {
     "batiment": "Siège du Comité Central",
     "piece": "Bureau du Premier Ministre",
     "personnes": [
-      "Éric Stricted"
+      "Oleg Strictov"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"salle_conseil\"]": {
@@ -4346,7 +4346,7 @@ export const SCENES_PNJ = {
     "batiment": "Siège du Comité Central",
     "piece": "Salle de Presse",
     "personnes": [
-      "Corinne Tite-Déclaz",
+      "Raïssa Communiqueva",
       "Journalistes accrédités"
     ]
   },
@@ -4356,7 +4356,7 @@ export const SCENES_PNJ = {
     "batiment": "Siège du Comité Central",
     "piece": "Archives Gouvernementales",
     "personnes": [
-      "Archiviste Legrand"
+      "Archiviste Foma Classeurov"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_int\"]": {
@@ -4365,7 +4365,7 @@ export const SCENES_PNJ = {
     "batiment": "Siège du Comité Central",
     "piece": "Bureau - Ministre de l'Interieur",
     "personnes": [
-      "Yvan Danltat"
+      "Gleb Kontrolov"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_fin\"]": {
@@ -4374,7 +4374,7 @@ export const SCENES_PNJ = {
     "batiment": "Siège du Comité Central",
     "piece": "Bureau - Ministre des Finances",
     "personnes": [
-      "Alain Théret"
+      "Stanislav Roublov"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_just\"]": {
@@ -4383,7 +4383,7 @@ export const SCENES_PNJ = {
     "batiment": "Siège du Comité Central",
     "piece": "Bureau - Ministre de la Justice",
     "personnes": [
-      "Mathilde Garde"
+      "Galina Verdiktova"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_def\"]": {
@@ -4392,7 +4392,7 @@ export const SCENES_PNJ = {
     "batiment": "Siège du Comité Central",
     "piece": "Bureau - Ministre de la Defense",
     "personnes": [
-      "Martial Bouterin"
+      "Rodion Tankov"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_info\"]": {
@@ -4401,7 +4401,7 @@ export const SCENES_PNJ = {
     "batiment": "Siège du Comité Central",
     "piece": "Bureau - Ministre de l'Information",
     "personnes": [
-      "Marie-Eve Beaulieu"
+      "Zinaïda Propagandova"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_ae\"]": {
@@ -4410,7 +4410,7 @@ export const SCENES_PNJ = {
     "batiment": "Siège du Comité Central",
     "piece": "Bureau - Ministre des Affaires Etrangeres",
     "personnes": [
-      "Jean-Jacques Carlin"
+      "Evgueni Diplomatov"
     ]
   },
   "[\"soviet\",\"capitale\",\"assemblee\",\"accueil_assemblee\"]": {
@@ -4419,9 +4419,9 @@ export const SCENES_PNJ = {
     "batiment": "Soviet Suprême",
     "piece": "Accueil",
     "personnes": [
-      "Garde Republicain",
+      "Garde du Peuple",
       "Hotesse Accueil",
-      "Renée Toitout"
+      "Babouchka Serpillova"
     ]
   },
   "[\"soviet\",\"capitale\",\"assemblee\",\"hemicycle\"]": {
@@ -4437,8 +4437,8 @@ export const SCENES_PNJ = {
     "batiment": "Soviet Suprême",
     "piece": "Couloirs",
     "personnes": [
-      "Lobbyiste Perrin",
-      "Journaliste Blanc"
+      "Lobbyiste Pavel Pistonov",
+      "Journaliste Iouri Blankov"
     ]
   },
   "[\"soviet\",\"capitale\",\"assemblee\",\"salle_archives_assemblee\"]": {
@@ -4473,7 +4473,7 @@ export const SCENES_PNJ = {
     "batiment": "Tribunal Populaire",
     "piece": "Greffe",
     "personnes": [
-      "Greffier Petit"
+      "Greffier Semion Paraphov"
     ]
   },
   "[\"soviet\",\"capitale\",\"banque-nationale\",\"accueil_banque\"]": {
@@ -4595,9 +4595,9 @@ export const SCENES_PNJ = {
     "batiment": "Poste Médical Collectif",
     "piece": "EHPAD — Résidence Les Tilleuls",
     "personnes": [
-      "Jeanine Dubois",
-      "Louis Chevillard",
-      "Noël Chauchay"
+      "Antonina Doubrova",
+      "Matveï Matraquine",
+      "Nikolaï Tracteurov"
     ]
   },
   "[\"soviet\",\"capitale\",\"commissariat\",\"accueil_police\"]": {
@@ -4615,8 +4615,8 @@ export const SCENES_PNJ = {
     "batiment": "Milice de Stalinova",
     "piece": "Cellules de garde a vue",
     "personnes": [
-      "Gardien Dubois",
-      "Tristan Cabane"
+      "Gardien Stepan Verrouïev",
+      "Timofeï Cachotov"
     ]
   },
   "[\"soviet\",\"capitale\",\"commissariat\",\"bureau_commissaire\"]": {
@@ -4625,8 +4625,8 @@ export const SCENES_PNJ = {
     "batiment": "Milice de Stalinova",
     "piece": "Bureau du Commissaire",
     "personnes": [
-      "Raoul Toufaud",
-      "Brigitte Menottes"
+      "Radomir Faussepistov",
+      "Bronislava Menottova"
     ]
   },
   "[\"soviet\",\"capitale\",\"la-tribune\",\"accueil_tribune\"]": {
@@ -4644,8 +4644,8 @@ export const SCENES_PNJ = {
     "batiment": "Bulletin du Parti Local",
     "piece": "Redaction",
     "personnes": [
-      "Romain Castel",
-      "Marie Leblanc"
+      "Rostislav Censurov",
+      "Macha Scoopova"
     ]
   },
   "[\"soviet\",\"capitale\",\"loge-maconnique\",\"portail\"]": {
@@ -4672,7 +4672,7 @@ export const SCENES_PNJ = {
     "batiment": "Cercle des Camarades",
     "piece": "Bureau du Venerable Maitre",
     "personnes": [
-      "Venerable Maitre Duval"
+      "Vénérable Maître Dimitri Compassov"
     ]
   },
   "[\"soviet\",\"capitale\",\"loge-maconnique\",\"salle_reunion_loge\"]": {
@@ -4723,7 +4723,7 @@ export const SCENES_PNJ = {
     "batiment": "Soviet Municipal",
     "piece": "Hall d'accueil",
     "personnes": [
-      "Secretaire Municipal Petit",
+      "Secrétaire municipal Arseni Formoulov",
       "Le Maire",
       "Hotesse Objets Trouves"
     ]
@@ -4734,7 +4734,7 @@ export const SCENES_PNJ = {
     "batiment": "Soviet Municipal",
     "piece": "Bureau du Maire",
     "personnes": [
-      "Le Maire de Luthecia"
+      "Le Maire de Novomirsk"
     ]
   },
   "[\"soviet\",\"capitale\",\"mairie-capitale\",\"bureau_maire_adjoint\"]": {
@@ -4750,7 +4750,7 @@ export const SCENES_PNJ = {
     "batiment": "Soviet Municipal",
     "piece": "Salle des Elections",
     "personnes": [
-      "Jean Registre"
+      "Ivan Registrov"
     ]
   },
   "[\"soviet\",\"capitale\",\"mairie-capitale\",\"salle_archives\"]": {
@@ -4759,7 +4759,7 @@ export const SCENES_PNJ = {
     "batiment": "Soviet Municipal",
     "piece": "Salle des Archives",
     "personnes": [
-      "Christophe Bouquin"
+      "Kirill Bouquinov"
     ]
   },
   "[\"soviet\",\"capitale\",\"kolkhoze-spirituel\",\"grange_sainte\"]": {
@@ -4788,7 +4788,7 @@ export const SCENES_PNJ = {
     "batiment": "Hall Principal",
     "piece": "Hall des Douanes",
     "personnes": [
-      "Inspecteur Prosper Tampon"
+      "Inspecteur Prokhor Tamponov"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-multinodal-luthecia\",\"zone_embarquement\"]": {
@@ -4804,8 +4804,8 @@ export const SCENES_PNJ = {
     "batiment": "Centre Commercial",
     "piece": "Hall d'Entrée",
     "personnes": [
-      "Francisca Brel",
-      "Edgar Simore"
+      "Ksenia Fauchova",
+      "Arkhip Abracadabrov"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"vitrine_principale\"]": {
@@ -4842,9 +4842,9 @@ export const SCENES_PNJ = {
     "batiment": "Centre Artisanal",
     "piece": "Travées",
     "personnes": [
-      "Sabri Coledur",
-      "Céd' Labone",
-      "Henrico Stot"
+      "Sava Boulonov",
+      "Kolia Brumov",
+      "Genrikh Stoïkov"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-artisanal\",\"echoppe_facade\"]": {
@@ -4874,9 +4874,9 @@ export const SCENES_PNJ = {
     "batiment": "Centre d'Affaires",
     "piece": "Hall d'Entrée",
     "personnes": [
-      "Gretta Délieu",
-      "Moshe Maychan",
-      "Harry Cover"
+      "Inna Rendezvousova",
+      "Moïsseï Mechantov",
+      "Garri Kouverov"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-affaires\",\"bureau_prestige\"]": {
@@ -4950,8 +4950,8 @@ export const SCENES_PNJ = {
     "batiment": "Office Notarial",
     "piece": "Accueil",
     "personnes": [
-      "Alain Dex",
-      "Claire Delhune"
+      "Alexeï Indexov",
+      "Klara Delounova"
     ]
   },
   "[\"soviet\",\"capitale\",\"office-notarial\",\"bureau_successions\"]": {
@@ -4960,7 +4960,7 @@ export const SCENES_PNJ = {
     "batiment": "Office Notarial",
     "piece": "Bureau des Successions",
     "personnes": [
-      "Claire Delhune"
+      "Klara Delounova"
     ]
   },
   "[\"soviet\",\"capitale\",\"office-notarial\",\"bureau_contrats\"]": {
@@ -4969,7 +4969,7 @@ export const SCENES_PNJ = {
     "batiment": "Office Notarial",
     "piece": "Bureau des Contrats",
     "personnes": [
-      "Notaire Fontenelle"
+      "Camarade Bâtissov"
     ]
   },
   "[\"soviet\",\"capitale\",\"office-notarial\",\"archives_notariales\"]": {
@@ -5598,7 +5598,7 @@ export const SCENES_PNJ = {
     "batiment": "Siege Syndical",
     "piece": "Bureau syndical",
     "personnes": [
-      "Delegue Morel"
+      "Délégué Batbayar Grevov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"usine-principale\",\"direction_usine\"]": {
@@ -5607,7 +5607,7 @@ export const SCENES_PNJ = {
     "batiment": "Usine Principale",
     "piece": "Direction",
     "personnes": [
-      "Directeur Fabre"
+      "Directeur Tsyren Quotaïev"
     ]
   },
   "[\"soviet\",\"ville_a\",\"centre-multinodal-montrouge\",\"hall_gare_montrouge\"]": {
@@ -5623,8 +5623,8 @@ export const SCENES_PNJ = {
     "batiment": "Centre Commercial",
     "piece": "Hall d'Entrée",
     "personnes": [
-      "Francisca Brel",
-      "Edgar Simore"
+      "Tuya Chaparova",
+      "Altan Tourdemagov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"centre-commercial\",\"vitrine_principale\"]": {
@@ -5661,9 +5661,9 @@ export const SCENES_PNJ = {
     "batiment": "Centre Artisanal",
     "piece": "Travées",
     "personnes": [
-      "Sabri Coledur",
-      "Céd' Labone",
-      "Henrico Stot"
+      "Bayar Clédouzov",
+      "Ganbold Brumaïev",
+      "Temür Costaudov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"centre-artisanal\",\"echoppe_facade\"]": {
@@ -5693,9 +5693,9 @@ export const SCENES_PNJ = {
     "batiment": "Centre d'Affaires",
     "piece": "Hall d'Entrée",
     "personnes": [
-      "Gretta Délieu",
-      "Moshe Maychan",
-      "Harry Cover"
+      "Oyuuna Accueilova",
+      "Khasar Mechantaïev",
+      "Dorji Filatov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"centre-affaires\",\"bureau_prestige\"]": {
@@ -5913,7 +5913,7 @@ export const SCENES_PNJ = {
     "batiment": "Siege Syndical",
     "piece": "Bureau syndical",
     "personnes": [
-      "Delegue Morel"
+      "Délégué Prokofi Grevine"
     ]
   },
   "[\"soviet\",\"ville_b\",\"usine-principale\",\"direction_usine\"]": {
@@ -5922,7 +5922,7 @@ export const SCENES_PNJ = {
     "batiment": "Usine Principale",
     "piece": "Direction",
     "personnes": [
-      "Directeur Fabre"
+      "Directeur Platon Quotov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"centre-multinodal-montrouge\",\"hall_gare_montrouge\"]": {
@@ -5938,8 +5938,8 @@ export const SCENES_PNJ = {
     "batiment": "Centre Commercial",
     "piece": "Hall d'Entrée",
     "personnes": [
-      "Francisca Brel",
-      "Edgar Simore"
+      "Varvara Chipova",
+      "Efim Tourdepassov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"centre-commercial\",\"vitrine_principale\"]": {
@@ -5976,9 +5976,9 @@ export const SCENES_PNJ = {
     "batiment": "Centre Artisanal",
     "piece": "Travées",
     "personnes": [
-      "Sabri Coledur",
-      "Céd' Labone",
-      "Henrico Stot"
+      "Stas Tournevissov",
+      "Tolia Herbov",
+      "Gavriil Gourdinov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"centre-artisanal\",\"echoppe_facade\"]": {
@@ -6008,9 +6008,9 @@ export const SCENES_PNJ = {
     "batiment": "Centre d'Affaires",
     "piece": "Hall d'Entrée",
     "personnes": [
-      "Gretta Délieu",
-      "Moshe Maychan",
-      "Harry Cover"
+      "Darina Bienvenouchka",
+      "Makar Sicarov",
+      "Afanassi Loupine"
     ]
   },
   "[\"soviet\",\"ville_b\",\"centre-affaires\",\"bureau_prestige\"]": {
@@ -6141,7 +6141,7 @@ export const SCENES_PNJ = {
     "batiment": "Caserne Militaire de Republia",
     "piece": "Corps de Garde",
     "personnes": [
-      "Adjudant Gaspard Ferrière"
+      "Adjudant Piotr Galonov"
     ]
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"infirmerie\"]": {
@@ -6150,7 +6150,7 @@ export const SCENES_PNJ = {
     "batiment": "Caserne Militaire de Republia",
     "piece": "Infirmerie",
     "personnes": [
-      "Ève Toahémarch"
+      "Infirmière Olga Pansementova"
     ]
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"salle_commandement\"]": {
@@ -6159,7 +6159,7 @@ export const SCENES_PNJ = {
     "batiment": "Caserne Militaire de Republia",
     "piece": "Salle de Commandement",
     "personnes": [
-      "Commandant Tom Hawak"
+      "Commandant Igor Bataillov"
     ]
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"armurerie_militaire\"]": {
@@ -6177,7 +6177,7 @@ export const SCENES_PNJ = {
     "batiment": "Caserne Militaire de Republia",
     "piece": "Réfectoire",
     "personnes": [
-      "Caporal Alouche"
+      "Caporal Vassili Kachaev"
     ]
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"salle_faits_armes\"]": {
@@ -6195,8 +6195,8 @@ export const SCENES_PNJ = {
     "batiment": "Caserne Militaire de Republia",
     "piece": "Quartier des Troupes",
     "personnes": [
-      "Caporal Lefebvre",
-      "Soldat Nguyen"
+      "Caporal Dimitri Corvéev",
+      "Soldat Sacha Gamelline"
     ]
   },
   "[\"soviet\",\"qhs\",\"qhs-prison\",\"entree_qhs\"]": {
@@ -6205,8 +6205,8 @@ export const SCENES_PNJ = {
     "batiment": "Quartier Haute Securite",
     "piece": "Entree Securisee",
     "personnes": [
-      "Dominique Cruel",
-      "Philippe Cognedur"
+      "Directeur Kazimir Sévérov",
+      "Gardien-chef Filipp Tapedurov"
     ]
   },
   "[\"soviet\",\"qhs\",\"qhs-prison\",\"cellules_qhs\"]": {
@@ -6215,8 +6215,8 @@ export const SCENES_PNJ = {
     "batiment": "Quartier Haute Securite",
     "piece": "Cellules",
     "personnes": [
-      "Jean Terre",
-      "Patrick Coule"
+      "Zakhar Zemlianov",
+      "Pavel Coulov"
     ]
   },
   "[\"soviet\",\"qhs\",\"qhs-prison\",\"salle_interrogatoire\"]": {

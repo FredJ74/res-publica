@@ -30,6 +30,7 @@ import { profilsPersonnalites, RICHES } from './_pnj-personnalites.js';
 // fichier : un temperament, une facon de parler, un humour, des tics, une maniere
 // d'aider et des limites. Le corpus d'un domaine -- la bible militaire, par exemple --
 // n'est PAS une personnalite : il reste ici, et on le passe a l'assemblage.
+import { deriverProfilsSovarka } from './_pnj-sovarka.js';
 import { REFERENTS, profilReferent, blocPedagogie, CASERNE_SOVARKA, versSovarka } from './_pnj-referents.js';
 // LA BIBLE DE LA PRESIDENCE (11 octobre 2026). Meme architecture que la bible militaire : des
 // blocs de connaissance REELLE, releves dans data.js et dans la base, assembles ici par referent.
@@ -389,6 +390,9 @@ const PROFILS_SQUATTEURS = {
 };
 
 const TOUS_PROFILS = Object.assign({}, profilsPersonnalites(), PROFILS_REFERENTS, PROFILS, PROFILS_SQUATTEURS);
+// PNJ renommes en Sovarka (06/11/2026) : fiches derivees de celles de Republia, voir _pnj-sovarka.js.
+// Garde typeof : plusieurs bancs chargent ce fichier en texte, imports retires.
+if (typeof deriverProfilsSovarka === "function") Object.assign(TOUS_PROFILS, deriverProfilsSovarka(TOUS_PROFILS));
 
 // Le prompt systeme est assemble ICI. Le client n'en fournit aucune partie -- il ne transmet
 // qu'un identifiant de profil, qui est valide contre cette table.

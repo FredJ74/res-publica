@@ -1953,13 +1953,13 @@ const WORLD = {
           imagesAVenir: true,
           desc: "La caserne centrale de l'Armée populaire de Sovarka, en plein cœur de Novomirsk. Deux portails, des sentinelles qui ne cillent pas, et l'étoile rouge repeinte chaque printemps.",
           roomOverrides: {
-            corps_garde: { persons: [{name: 'Adjudant Piotr Galonov (PNJ)', role: 'PNJ - Aide de camp', rel: 'friendly', job: 'aide_de_camp'}] },
-            infirmerie: { persons: [{name: 'Infirmière Olga Pansementova (PNJ)', role: 'PNJ - Infirmière militaire', rel: 'neutral', job: 'infirmier_mil'}] },
+            corps_garde: { persons: [{name: 'Adjudant Piotr Galonov (PNJ)', role: 'PNJ - Aide de camp', rel: 'friendly', job: 'aide_de_camp', profilId: 'piotr_galonov'}] },
+            infirmerie: { persons: [{name: 'Infirmière Olga Pansementova (PNJ)', role: 'PNJ - Infirmière militaire', rel: 'neutral', job: 'infirmier_mil', profilId: 'olga_pansementova'}] },
             salle_commandement: { persons: [{name: 'Commandant Igor Bataillov', role: 'PNJ - Commandant de la Caserne', rel: 'neutral',
               job: 'commandant', resteApresPourvoi: true,
               roleSiPnjTitulaire: 'PNJ - Commandant de la Caserne',
               roleSiPjTitulaire:  'PNJ - Commandant adjoint'}] },
-            refectoire: { persons: [{name: 'Caporal Vassili Kachaev', role: 'Cuisinier de compagnie', rel: 'friendly', job: 'cuistot_mil'}] },
+            refectoire: { persons: [{name: 'Caporal Vassili Kachaev', role: 'Cuisinier de compagnie', rel: 'friendly', job: 'cuistot_mil', profilId: 'vassili_kachaev'}] },
             quartier_troupes: { persons: [
               {name: 'Caporal Dimitri Corvéev (PNJ)', role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'},
               {name: 'Soldat Sacha Gamelline (PNJ)',  role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'}] }
@@ -9768,5 +9768,165 @@ const OBJETS_SPECIAUX = [
     const achat = piece && (piece.orders || []).find(o => o.fn === 'acheter_terrain');
     if (!achat) continue;
     piece.orders = modele.map(o => ({...o, ...(o.fn === 'acheter_terrain' ? achat : {})}));
+  }
+}
+
+// PNJ DE SOVARKA : NOMS PROPRES, SANS PORTRAIT DE REPUBLIA (06/11/2026, demande de Fred).
+// Les batiments du gabarit commun arrivaient en Sovarka avec leurs PNJ de Republia (Palais du
+// Gouvernement, Palais presidentiel, Grand Hotel, Assemblee, commissariat, mairies, centres...).
+// Regle « pas de connexion entre les villes » : chaque ville de Sovarka recoit ses propres noms
+// (noms proposes par Claude sur mandat de Fred, a sa relecture ; Starovka : type mongol / bouriate).
+// Le portrait de Republia est retire (Fred les remplacera). Une valeur null garde le nom generique
+// (« Guichetier », « Garde du Peuple »...) et retire seulement le portrait.
+// Valeur : 'Nouveau nom' ou ['Nouveau nom', 'nouveau role' | null, 'identifiant de profil' | absent].
+// Seul WORLD.soviet est touche, par des roomOverrides : BUILDINGS et la Republia ne changent pas.
+// Les fiches de dialogue sont derivees cote serveur (api/_pnj-sovarka.js, depuis
+// api/_pnj-sovarka-genere.js : node outils/generateurs/generer-pnj-sovarka.cjs).
+const PNJ_SOVARKA_GENERIQUES = {
+  'Garde Republicain (PNJ)': ['Garde du Peuple (PNJ)'],
+  'Agent de Sécurité (PNJ)': null, 'Archiviste Militaire (PNJ)': null, 'Archiviste Notarial (PNJ)': null,
+  'Archiviste Parlementaire (PNJ)': null, 'Armurier Militaire (PNJ)': null, 'Bookmaker Officiel (PNJ)': null,
+  'Brigadier Local (PNJ)': null, 'Correspondant Local (PNJ)': null, 'Frere Gardien': null, 'Guichetier (PNJ)': null,
+  'Hotesse Accueil (PNJ)': null, 'Hôtesse d\'Accueil (PNJ)': null, 'Hotesse Objets Trouves (PNJ)': null,
+  'Journalistes accrédités (PNJ)': null, 'Ouvrier typographe (PNJ)': null, 'Porte-parole presidentiel (PNJ)': null,
+  'Secretaire Municipal': null, 'Tenancier de Buvette (PNJ)': null, 'Le Maire (PNJ)': null,
+  'Le Président (PNJ)': ['Le Président (PNJ)', 'PNJ - Président de Sovarka']
+};
+const PNJ_SOVARKA = {
+  capitale: Object.assign({}, PNJ_SOVARKA_GENERIQUES, {
+    'Gérard Tamponneau (PNJ)': 'Anatoli Protokolov (PNJ)',
+    'Huguette Papier (PNJ)': 'Nadejda Paperassova (PNJ)',
+    'Gaston Sauceblanche (PNJ)': 'Grigori Smetanine (PNJ)',
+    'Régis Gondasse (PNJ)': 'Vsevolod Vodkaïev (PNJ)',
+    'Yvette Gratinée (PNJ)': 'Svetlana Blinova (PNJ)',
+    'Jean Dupont (PNJ)': ['Innokenti Partiïev (PNJ)', 'Délégué du Parti'],
+    'Marie Leblanc (PNJ)': ['Macha Scoopova (PNJ)', 'Journaliste - La Pravdovka'],
+    'Marie Leblanc': ['Macha Scoopova', 'Journaliste d\'investigation'],
+    'Marco (Barman)': 'Kostia (Barman)',
+    'Marc Hantile': 'Leonid Combinov',
+    'Secretaire Dupuis': 'Secrétaire Tamara Dossierova',
+    'Éric Stricted (PNJ)': 'Oleg Strictov (PNJ)',
+    'Corinne Tite-Déclaz (PNJ)': 'Raïssa Communiqueva (PNJ)',
+    'Archiviste Legrand (PNJ)': 'Archiviste Foma Classeurov (PNJ)',
+    'Yvan Danltat (PNJ)': 'Gleb Kontrolov (PNJ)',
+    'Alain Théret (PNJ)': 'Stanislav Roublov (PNJ)',
+    'Mathilde Garde (PNJ)': 'Galina Verdiktova (PNJ)',
+    'Martial Bouterin (PNJ)': 'Rodion Tankov (PNJ)',
+    'Marie-Eve Beaulieu (PNJ)': 'Zinaïda Propagandova (PNJ)',
+    'Jean-Jacques Carlin (PNJ)': 'Evgueni Diplomatov (PNJ)',
+    'Renée Toitout (PNJ)': 'Babouchka Serpillova (PNJ)',
+    'Lobbyiste Perrin': 'Lobbyiste Pavel Pistonov',
+    'Journaliste Blanc': 'Journaliste Iouri Blankov',
+    'Greffier Petit': 'Greffier Semion Paraphov',
+    'Jeanine Dubois (PNJ)': 'Antonina Doubrova (PNJ)',
+    'Louis Chevillard (PNJ)': 'Matveï Matraquine (PNJ)',
+    'Noël Chauchay (PNJ)': 'Nikolaï Tracteurov (PNJ)',
+    'Gardien Dubois': 'Gardien Stepan Verrouïev',
+    'Tristan Cabane (PNJ)': 'Timofeï Cachotov (PNJ)',
+    'Raoul Toufaud (PNJ)': 'Radomir Faussepistov (PNJ)',
+    'Brigitte Menottes (PNJ)': 'Bronislava Menottova (PNJ)',
+    'Romain Castel': 'Rostislav Censurov',
+    'Venerable Maitre Duval': 'Vénérable Maître Dimitri Compassov',
+    'Secretaire Municipal Petit': 'Secrétaire municipal Arseni Formoulov',
+    'Le Maire (PNJ)': ['Le Maire (PNJ)', 'Maire de Novomirsk'],
+    'Le Maire de Luthecia (PNJ)': 'Le Maire de Novomirsk (PNJ)',
+    'Jean Registre (PNJ)': ['Ivan Registrov (PNJ)', 'Responsable électoral de Novomirsk'],
+    'Christophe Bouquin (PNJ)': 'Kirill Bouquinov (PNJ)',
+    'Inspecteur Prosper Tampon (PNJ)': 'Inspecteur Prokhor Tamponov (PNJ)',
+    'Francisca Brel': 'Ksenia Fauchova',
+    'Edgar Simore': 'Arkhip Abracadabrov',
+    'Sabri Coledur': 'Sava Boulonov',
+    'Céd\' Labone': 'Kolia Brumov',
+    'Henrico Stot': 'Genrikh Stoïkov',
+    'Gretta Délieu (PNJ)': 'Inna Rendezvousova (PNJ)',
+    'Moshe Maychan': 'Moïsseï Mechantov',
+    'Harry Cover': 'Garri Kouverov',
+    'Alain Dex (PNJ)': 'Alexeï Indexov (PNJ)',
+    'Claire Delhune (PNJ)': 'Klara Delounova (PNJ)',
+    'Notaire Fontenelle (PNJ)': 'Camarade Bâtissov (PNJ)'
+  }),
+  ville_a: Object.assign({}, PNJ_SOVARKA_GENERIQUES, { // Starovka
+    'Delegue Morel (PNJ)': 'Délégué Batbayar Grevov (PNJ)',
+    'Directeur Fabre (PNJ)': 'Directeur Tsyren Quotaïev (PNJ)',
+    'Francisca Brel': 'Tuya Chaparova',
+    'Edgar Simore': 'Altan Tourdemagov',
+    'Sabri Coledur': 'Bayar Clédouzov',
+    'Céd\' Labone': 'Ganbold Brumaïev',
+    'Henrico Stot': 'Temür Costaudov',
+    'Gretta Délieu (PNJ)': 'Oyuuna Accueilova (PNJ)',
+    'Moshe Maychan': 'Khasar Mechantaïev',
+    'Harry Cover': 'Dorji Filatov'
+  }),
+  ville_b: Object.assign({}, PNJ_SOVARKA_GENERIQUES, { // Krasnov
+    'Delegue Morel (PNJ)': 'Délégué Prokofi Grevine (PNJ)',
+    'Directeur Fabre (PNJ)': 'Directeur Platon Quotov (PNJ)',
+    'Francisca Brel': 'Varvara Chipova',
+    'Edgar Simore': 'Efim Tourdepassov',
+    'Sabri Coledur': 'Stas Tournevissov',
+    'Céd\' Labone': 'Tolia Herbov',
+    'Henrico Stot': 'Gavriil Gourdinov',
+    'Gretta Délieu (PNJ)': 'Darina Bienvenouchka (PNJ)',
+    'Moshe Maychan': 'Makar Sicarov',
+    'Harry Cover': 'Afanassi Loupine'
+  }),
+  // Ancienne zone de caserne hors ville : memes noms que la caserne centrale de Novomirsk (05/11).
+  caserne: Object.assign({}, PNJ_SOVARKA_GENERIQUES, {
+    'Adjudant Gaspard Ferrière (PNJ)': ['Adjudant Piotr Galonov (PNJ)', null, 'piotr_galonov'],
+    'Ève Toahémarch (PNJ)': ['Infirmière Olga Pansementova (PNJ)', null, 'olga_pansementova'],
+    'Commandant Tom Hawak': ['Commandant Igor Bataillov', null, 'commandant_igor_bataillov'],
+    'Caporal Alouche': ['Caporal Vassili Kachaev', null, 'vassili_kachaev'],
+    'Caporal Lefebvre (PNJ)': 'Caporal Dimitri Corvéev (PNJ)',
+    'Soldat Nguyen (PNJ)': 'Soldat Sacha Gamelline (PNJ)'
+  }),
+  qhs: Object.assign({}, PNJ_SOVARKA_GENERIQUES, {
+    'Dominique Cruel (PNJ)': 'Directeur Kazimir Sévérov (PNJ)',
+    'Philippe Cognedur (PNJ)': 'Gardien-chef Filipp Tapedurov (PNJ)',
+    'Jean Terre (PNJ)': 'Zakhar Zemlianov (PNJ)',
+    'Patrick Coule (PNJ)': 'Pavel Coulov (PNJ)'
+  })
+};
+function slugPnjSovarka(nom) {
+  return String(nom || '').replace(' (PNJ)', '').trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+// Meme resolution que personnesNormalesDeLaPiece (plateau-multijoueur.js) : surcharge de ville,
+// puis contexte de la premiere piece, puis PNJ du gabarit. Le resultat est pose en surcharge.
+{
+  const a = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+  for (const ville of Object.keys(PNJ_SOVARKA)) {
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    if (!cite || !Array.isArray(cite.buildings)) continue;
+    const table = PNJ_SOVARKA[ville];
+    for (const id of cite.buildings) {
+      const b = BUILDINGS[id]; if (!b) continue;
+      const ctx0 = (cite.buildingContext || {})[id] || null;
+      const pieces = Object.assign({}, b.rooms || {}, (ctx0 && ctx0.roomsExtra) || {});
+      const premiere = Object.keys(b.rooms || {})[0];
+      for (const piece of Object.keys(pieces)) {
+        const ro = ctx0 && ctx0.roomOverrides && ctx0.roomOverrides[piece];
+        if (ro && ro.personsVides === true) continue;
+        const source = (ro && ro.persons && ro.persons.length) ? ro.persons
+          : (piece === premiere && ctx0 && ctx0.persons && ctx0.persons.length) ? ctx0.persons
+          : (pieces[piece].persons || []);
+        if (!source.some(p => p && a(table, p.name))) continue;
+        const persons = source.map(p => {
+          if (!p || !a(table, p.name)) return p;
+          const q = Object.assign({}, p);
+          delete q.photoUrl; delete q.photoPos; delete q.photo;
+          const v = table[p.name];
+          if (v) {
+            const [nom, role, profil] = Array.isArray(v) ? v : [v];
+            if (role) q.role = role;
+            if (nom !== p.name || profil) { q.name = nom; q.profilId = profil || ('sovarka_' + slugPnjSovarka(nom)); }
+          }
+          return q;
+        });
+        cite.buildingContext = cite.buildingContext || {};
+        const ctx = cite.buildingContext[id] = cite.buildingContext[id] || {};
+        ctx.roomOverrides = ctx.roomOverrides || {};
+        ctx.roomOverrides[piece] = Object.assign({}, ctx.roomOverrides[piece] || {}, { persons });
+      }
+    }
   }
 }
