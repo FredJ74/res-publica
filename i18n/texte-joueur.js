@@ -25,7 +25,11 @@
  }
  function renderText(element,record,locale,showOriginal=false) {
   if(!element || !('textContent' in element)) return false;
-  element.textContent=view(record,locale,showOriginal).text;
+  const result=view(record,locale,showOriginal);
+  element.textContent=result.text;
+  // La direction ne concerne que le contenu du joueur : les boutons et la
+  // disposition du plateau restent inchangés. L'original rétablit son sens.
+  element.setAttribute?.('dir',result.shownLanguage==='ar'?'rtl':'auto');
   return true;
  }
  function attachToggle(element,button,record,locale,labels) {
@@ -35,6 +39,7 @@
   function render() {
    const result=view(record,locale,showOriginal);
    element.textContent=result.text;
+   element.setAttribute?.('dir',result.shownLanguage==='ar'?'rtl':'auto');
    button.hidden=!result.showOriginalAvailable;
    button.textContent=showOriginal?(names.showTranslation||'Voir la traduction'):(names.showOriginal||"Voir l'original");
    button.setAttribute?.('aria-pressed',showOriginal?'true':'false');
