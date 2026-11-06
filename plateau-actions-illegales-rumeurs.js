@@ -3387,6 +3387,36 @@ const RECETTES_ALIMENTAIRES = {
     // controle "!recette.prixFixe" ajoute a ce recalcul, plus bas dans ce fichier.
     prixFixe: 125
   },
+  // Grand Hotel de Sovarka, Novomirsk (decision de Fred, 06/11/2026) : trois menus russes, memes
+  // reglages que les menus de La Republica ; 40 PSK (125 FR a l'echelle de Sovarka, PA a 15 PSK).
+  // Serveur : recettes_commerce, migration 20261106213500_grand_hotel_sovarka_carte.
+  menu_sovarka_imperial: {
+    id: 'menu_sovarka_imperial',
+    label: 'Menu Impérial — Caviar Beluga sur blinis et crème fraîche, Esturgeon braisé au champagne, Charlotte russe',
+    categorie: 'menu', image: null,
+    materiaux: { poisson: 2, cereales: 1 }, pa: 3, portions: 5,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['hotel-republica'],
+    prixFixe: 40
+  },
+  menu_sovarka_tsars: {
+    id: 'menu_sovarka_tsars',
+    label: 'Menu des Tsars — Bortsch impérial et ses pirojki, Bœuf Stroganoff, Pavlova aux fruits rouges',
+    categorie: 'menu', image: null,
+    materiaux: { viande: 1, fruits_legumes: 1, cereales: 1 }, pa: 3, portions: 5,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['hotel-republica'],
+    prixFixe: 40
+  },
+  menu_sovarka_plan: {
+    id: 'menu_sovarka_plan',
+    label: 'Menu du Plan — Salade Olivier des banquets officiels, Pelmenis fabriqués selon les quotas, Paskha au fromage blanc',
+    categorie: 'menu', image: null,
+    materiaux: { viande: 1, cereales: 1, fruits_legumes: 1 }, pa: 3, portions: 5,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['hotel-republica'],
+    prixFixe: 40
+  },
 
   // Menus gastronomiques du Capitaine Sauvage (Port-Sainte-Marie, 23 aout 2026) -- carte propre a
   // PSM, deliberement DISTINCTE des 3 menus ci-dessus (jamais prixFixe : moteur normal
