@@ -658,6 +658,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_administration_port') { ouvrirConsulterPort(); return; }
   if (fn === 'gerer_logistique_port') { ouvrirModifierRepartitionPort(); return; }
   if (fn === 'acheter_criee') { ouvrirAcheterCriee(pa, cost); return; }
+  // Marchande de poissons de Novomirsk (06/11/2026) : plateau-poissonniere.js, tout par le serveur.
+  if (fn === 'poissonniere_poisson') { ouvrirPoissonniere('poisson'); return; }
+  if (fn === 'contrebande_poissonniere') { ouvrirPoissonniere('contrebande'); return; }
   if (fn === 'consulter_effectifs_douane') { ouvrirConsulterEffectifsDouane(); return; }
   if (fn === 'recruter_douanier') { doRecruterDouanier(pa, cost); return; }
   if (fn === 'recruter_douanier_cynophile') { doRecruterDouanierCynophile(pa, cost); return; }
