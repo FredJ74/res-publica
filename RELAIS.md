@@ -165,6 +165,8 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 ## Derniers chantiers
 
+- **Mobile L0, L1, L2, L3 et L6 en bêta (Codex, intégration Claude, 06/11)** — PR #532 à #536 créées par Claude par l'API REST (GraphQL refusé à Codex), fusionnées une par une dans main par commit de fusion (pas d'écrasement, pour garder l'empilement). Conflits de L2 et L3 : seulement la version de `plateau-rue-centrale.js` dans `plateau.html` (version de main gardée, étiquette du lot ajoutée). Contrôles : seul échec, le rangement SQL hérité de main (`outils/corrections/RATTRAPAGE-SALAIRE-MINISTRE-STAROVKA-20261106.sql`, à ranger) ; Vercel READY. **Suite pour Codex** : L5, L8, puis L4, L7, L9, L10, une branche par lot depuis main. **À constater** : sur téléphone, plateau replié en tiroirs, rues et pièces au doigt, fenêtres et clavier, forum.
+
 - **Novomirsk, vue 18 : Musée de la République de Sovarka (Claude, 06/11, décision de Fred : copier le Musée national, les différences ensuite)** — branche `claude/novomirsk-musee-national-20261106`. Bâtiment du socle `musee-national-republia` listé à Novomirsk (nom, description, salles des Présidents et des Grandes Villes « de Sovarka »). `imagesAVenir` ; nouveau drapeau de contexte `audiosAVenir` (pas d'audioguide emprunté, `renderRoomActions`) ; figures du musée national masquées hors Républia (`personnalitesMuseeCourantes`). Migration `20261106194500_novomirsk_musee_national` **appliquée** (registre `novomirsk_musee_national_20261106194500`) : 12 pièces, sortie vers `novomirsk-vue-18` ; banc annulé `banc-novomirsk-musee-national.sql` vert avant. **Reste (avec Fred)** : différences propres à Sovarka (figures, salles, audioguides, images). **À constater en jeu** : à Novomirsk vue 18, entrer au musée, parcourir les 12 salles.
 
 - **Novomirsk, vue 18 : Usine pharmaceutique Pharmanov (Claude, 06/11, décision de Fred : « rien de spécial »)** — branche `claude/novomirsk-pharmanov-20261106`. Usine du socle `usine-pharmaceutique-luthecia` listée à Novomirsk (contexte : nom, directeur PNJ **Boris Tabletkine**, nom à valider par Fred ; sels d'ammoniaque exclus, propres à l'Assemblée de Républia ; images à venir). Fonctions serveur déjà par pays (production, vente directe, virement au ministère, poste `directeur_pharma` de portée pays, nommé par `min_fin` = ministre de l'Économie collective). Migration `20261106173500_usine_pharmanov_novomirsk` **appliquée** (registre `usine_pharmanov_novomirsk_20261106173500`) : pièces, sortie vers `novomirsk-vue-18`, état propre (caisse 200, stocks vides). Banc annulé : sans plantes refus `matiere_insuffisante`, avec plantes 10 médicaments produits. Salaire de production ramené à l'échelle de Sovarka (Fred : 15 à 20 PSK) : médicaments 18, désinfectant 15, table `salaires_production_pays` (migration `20261106184000_salaires_production_par_pays` **appliquée**, `produire_en_usine` patchée en place ; banc annulé : salaire 18 en Sovarka), écran aligné (branche `claude/sovarka-salaires-usine-20261106`). Reste signalé : la production de nuit des usines (cron) ne concerne que la Républia. **À constater en jeu** : à Novomirsk vue 18, entrer dans l'usine (3 pièces, Boris au bureau).
@@ -384,6 +386,12 @@ focus dans les fenêtres, fermeture par leur bouton existant, champs >=16 px et 
 contenu en paysage. 10/10 tests de coque ; bureau 1440 toujours pixel identique.
 Pas de test sur vrai clavier iOS ni compte authentifié. L6 démarre séparément.
 
+Mobile L6 : branche `codex/mobile-l6-forum-20261106`, dépend de L3. Contrôleur de
+composition existant étendu aux Pointer Events ; mêmes calculs, format des posts et
+permissions. 14/14 cas mobiles locaux, souris et annulation incluses ; forum et
+plateau bureau 1440 identiques. Les corrections des fixtures L1/L2 sont propagées
+avant le contrôle final. Aucun compte ni message réel publié.
+
 Mobile L1 : conserver le préfixe historique de version CSS et ajouter le suffixe mobile ;
 le banc de lisibilité exige ce préfixe. Cache effectivement majoré, test conservé. Témoin bureau embarqué et vérifié SHA-256
 pour les clones CI superficiels (aucun fetch ni historique complet nécessaire).
@@ -457,3 +465,19 @@ règles ou migrations. Les tests et la certification distante restent distincts.
 
 `codex/mobile-l4-creation-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
 aucune commande automatique rejouée, validations locales en cours.
+
+Bilan mobile local : `outils/audits/MOBILE-LIVRAISON-20261106.md`. Branches L1/L2/L3
+certifiées séparément : 30/30, 32/32, 34/34 (cas mobiles + historiques). Avec L6 :
+38/38 ciblés. Contrôleur complet **195/196** : seul le rangement SQL déjà rouge de
+main reste en échec ; globaux **8/12**, même résultat sur le témoin. Aucun rouge masqué.
+Captures bureau plateau/forum : empreintes avant/après strictement identiques.
+`outils/livraison/MOBILE-PR-PAR-LOT-20261106.md` prépare cinq PR dépendantes ; API
+GraphQL refuse leur création. Aucune fusion, aucun déploiement ou test authentifié.
+Recette réelle appareils/compte isolé et CI distante restent nécessaires. L4/L5 non faits.
+Dernier main `bba6dec9` intégré (confirmation de la répartition #524), Sovarka intacte.
+Les journaux bruts restent locaux après rejet de leur publication par le contrôle
+automatique ; résultats structurés et captures de fixtures inspectées sont publiés.
+
+codex/mobile-l8-reprise-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
+
+codex/mobile-l4-creation-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.

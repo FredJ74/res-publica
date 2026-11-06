@@ -215,6 +215,16 @@ function rpCanvasFixRenderedHeights(root) {
 // plusieurs surfaces indépendantes peuvent coexister si besoin.
 function rpCanvasCreateController(container) {
   let zCounter = 10;
+  const tactile = typeof PointerEvent === 'function';
+  const debutGeste = tactile ? 'pointerdown' : 'mousedown';
+  const mouvementGeste = tactile ? 'pointermove' : 'mousemove';
+  const finGeste = tactile ? 'pointerup' : 'mouseup';
+  let terminerGeste = null;
+  function autoriserGeste(e) {
+    if ((e.button != null && e.button !== 0) || e.isPrimary === false) return false;
+    if (terminerGeste) terminerGeste();
+    return true;
+  }
 
   // Sélection = passage au premier plan par défaut (comportement validé dans le prototype).
   // `state` est optionnel pour compatibilité, mais tous les appelants internes le passent
@@ -235,7 +245,7 @@ function rpCanvasCreateController(container) {
     container.querySelectorAll('.rp-canvas-el.selected').forEach(o => o.classList.remove('selected'));
   }
 
-  container.addEventListener('mousedown', (e) => {
+  container.addEventListener(debutGeste, (e) => {
     if (e.target === container) deselectAll();
   });
 
@@ -301,7 +311,7 @@ function rpCanvasCreateController(container) {
     frontBtn.type = 'button';
     frontBtn.textContent = '⬆';
     frontBtn.title = 'Amener au premier plan';
-    frontBtn.addEventListener('mousedown', (e) => {
+    frontBtn.addEventListener(debutGeste, (e) => {
       e.preventDefault();
       e.stopPropagation();
       bringToFront(state, el);
@@ -311,7 +321,7 @@ function rpCanvasCreateController(container) {
     backBtn.type = 'button';
     backBtn.textContent = '⬇';
     backBtn.title = "Envoyer à l'arrière-plan";
-    backBtn.addEventListener('mousedown', (e) => {
+    backBtn.addEventListener(debutGeste, (e) => {
       e.preventDefault();
       e.stopPropagation();
       sendToBack(state, el);
@@ -327,24 +337,38 @@ function rpCanvasCreateController(container) {
   // entier selon l'objet), `el` est l'élément réellement déplacé. `state` est un objet
   // { x, y, ... } tenu à jour par l'appelant.
   function attachDrag(handleEl, state, el, onChange) {
-    handleEl.addEventListener('mousedown', (e) => {
+    handleEl.classList.add('rp-poignee-tactile');
+    handleEl.addEventListener(debutGeste, (e) => {
+      // Les champs et boutons gardent leurs événements natifs (sélection de texte,
+      // menus, duplication/suppression) : une poignée ne les transforme pas en drag.
+      if (e.target !== handleEl && e.target?.closest?.('button,input,textarea,select,a,[contenteditable="true"]')) return;
+      if (!autoriserGeste(e)) return;
       e.preventDefault();
       selectElement(el, state);
       const startX = e.clientX, startY = e.clientY;
       const startLeft = state.x, startTop = state.y;
       function onMove(ev) {
+        if (tactile && ev.pointerId !== e.pointerId) return;
+        if (el.isConnected === false) { onUp(); return; }
         state.x = startLeft + (ev.clientX - startX);
         state.y = startTop + (ev.clientY - startY);
         el.style.left = state.x + 'px';
         el.style.top = state.y + 'px';
         if (onChange) onChange();
       }
-      function onUp() {
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
+      function onUp(ev) {
+        if (tactile && ev?.pointerId != null && ev.pointerId !== e.pointerId) return;
+        document.removeEventListener('pointercancel', onUp);
+        window.removeEventListener('blur', onUp);
+        terminerGeste = null;
+        document.removeEventListener(mouvementGeste, onMove);
+        document.removeEventListener(finGeste, onUp);
       }
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+      terminerGeste = onUp;
+      document.addEventListener('pointercancel', onUp);
+      window.addEventListener('blur', onUp);
+      document.addEventListener(mouvementGeste, onMove);
+      document.addEventListener(finGeste, onUp);
     });
   }
 
@@ -353,7 +377,12 @@ function rpCanvasCreateController(container) {
   // par le contenu).
   function attachEdgeResize(handleEl, side, state, el, opts) {
     const minWidth = (opts && opts.minWidth) || RP_CANVAS_MIN_WIDTH;
-    handleEl.addEventListener('mousedown', (e) => {
+    handleEl.classList.add('rp-poignee-tactile');
+    handleEl.addEventListener(debutGeste, (e) => {
+      // Les champs et boutons gardent leurs événements natifs (sélection de texte,
+      // menus, duplication/suppression) : une poignée ne les transforme pas en drag.
+      if (e.target !== handleEl && e.target?.closest?.('button,input,textarea,select,a,[contenteditable="true"]')) return;
+      if (!autoriserGeste(e)) return;
       e.preventDefault();
       e.stopPropagation();
       selectElement(el, state);
@@ -362,6 +391,8 @@ function rpCanvasCreateController(container) {
       const originalLeft = state.x;
       const originalRight = state.x + state.width;
       function onMove(ev) {
+        if (tactile && ev.pointerId !== e.pointerId) return;
+        if (el.isConnected === false) { onUp(); return; }
         const dx = ev.clientX - startX;
         let newWidth;
         if (side === 'right') { newWidth = Math.max(minWidth, startWidth + dx); state.x = originalLeft; }
@@ -370,12 +401,19 @@ function rpCanvasCreateController(container) {
         el.style.left = state.x + 'px';
         el.style.width = newWidth + 'px';
       }
-      function onUp() {
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
+      function onUp(ev) {
+        if (tactile && ev?.pointerId != null && ev.pointerId !== e.pointerId) return;
+        document.removeEventListener('pointercancel', onUp);
+        window.removeEventListener('blur', onUp);
+        terminerGeste = null;
+        document.removeEventListener(mouvementGeste, onMove);
+        document.removeEventListener(finGeste, onUp);
       }
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+      terminerGeste = onUp;
+      document.addEventListener('pointercancel', onUp);
+      window.addEventListener('blur', onUp);
+      document.addEventListener(mouvementGeste, onMove);
+      document.addEventListener(finGeste, onUp);
     });
   }
 
@@ -386,13 +424,20 @@ function rpCanvasCreateController(container) {
   // c'est ce qui garantit qu'aucun texte n'est jamais tronqué et qu'aucun défilement interne
   // n'apparaît, et que la poignée s'arrête pile où le contenu s'arrête (sans "zone morte").
   function attachBottomResize(handleEl, state, el, getRequiredHeight, onChange) {
-    handleEl.addEventListener('mousedown', (e) => {
+    handleEl.classList.add('rp-poignee-tactile');
+    handleEl.addEventListener(debutGeste, (e) => {
+      // Les champs et boutons gardent leurs événements natifs (sélection de texte,
+      // menus, duplication/suppression) : une poignée ne les transforme pas en drag.
+      if (e.target !== handleEl && e.target?.closest?.('button,input,textarea,select,a,[contenteditable="true"]')) return;
+      if (!autoriserGeste(e)) return;
       e.preventDefault();
       e.stopPropagation();
       selectElement(el, state);
       const startY = e.clientY;
       const startMinHeight = state.minHeight;
       function onMove(ev) {
+        if (tactile && ev.pointerId !== e.pointerId) return;
+        if (el.isConnected === false) { onUp(); return; }
         const dy = ev.clientY - startY;
         const requiredHeight = getRequiredHeight();
         const candidate = startMinHeight + dy;
@@ -401,12 +446,19 @@ function rpCanvasCreateController(container) {
         el.style.minHeight = newMinHeight + 'px';
         if (onChange) onChange();
       }
-      function onUp() {
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
+      function onUp(ev) {
+        if (tactile && ev?.pointerId != null && ev.pointerId !== e.pointerId) return;
+        document.removeEventListener('pointercancel', onUp);
+        window.removeEventListener('blur', onUp);
+        terminerGeste = null;
+        document.removeEventListener(mouvementGeste, onMove);
+        document.removeEventListener(finGeste, onUp);
       }
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+      terminerGeste = onUp;
+      document.addEventListener('pointercancel', onUp);
+      window.addEventListener('blur', onUp);
+      document.addEventListener(mouvementGeste, onMove);
+      document.addEventListener(finGeste, onUp);
     });
   }
 
@@ -414,7 +466,12 @@ function rpCanvasCreateController(container) {
   // (ex. une image), jamais utilisé pour une zone de texte.
   function attachCornerResize(handleEl, corner, state, el, opts, onChange) {
     const minWidth = (opts && opts.minWidth) || RP_CANVAS_MIN_WIDTH;
-    handleEl.addEventListener('mousedown', (e) => {
+    handleEl.classList.add('rp-poignee-tactile');
+    handleEl.addEventListener(debutGeste, (e) => {
+      // Les champs et boutons gardent leurs événements natifs (sélection de texte,
+      // menus, duplication/suppression) : une poignée ne les transforme pas en drag.
+      if (e.target !== handleEl && e.target?.closest?.('button,input,textarea,select,a,[contenteditable="true"]')) return;
+      if (!autoriserGeste(e)) return;
       e.preventDefault();
       e.stopPropagation(); // sinon le mousedown remonterait aussi au drag de l'objet entier
       selectElement(el, state);
@@ -426,6 +483,8 @@ function rpCanvasCreateController(container) {
       const originalBottom = state.y + state.height;
       const growRight = corner === 'ne' || corner === 'se';
       function onMove(ev) {
+        if (tactile && ev.pointerId !== e.pointerId) return;
+        if (el.isConnected === false) { onUp(); return; }
         const dx = (ev.clientX - startX) * (growRight ? 1 : -1);
         const newWidth = Math.max(minWidth, startWidth + dx);
         const newHeight = newWidth * aspect;
@@ -440,12 +499,19 @@ function rpCanvasCreateController(container) {
         el.style.height = newHeight + 'px';
         if (onChange) onChange();
       }
-      function onUp() {
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
+      function onUp(ev) {
+        if (tactile && ev?.pointerId != null && ev.pointerId !== e.pointerId) return;
+        document.removeEventListener('pointercancel', onUp);
+        window.removeEventListener('blur', onUp);
+        terminerGeste = null;
+        document.removeEventListener(mouvementGeste, onMove);
+        document.removeEventListener(finGeste, onUp);
       }
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+      terminerGeste = onUp;
+      document.addEventListener('pointercancel', onUp);
+      window.addEventListener('blur', onUp);
+      document.addEventListener(mouvementGeste, onMove);
+      document.addEventListener(finGeste, onUp);
     });
   }
 
