@@ -3677,8 +3677,13 @@ function presseOuvrirEditionArchive(k) {
 // afficherJournalDuJour(true) -- sans ce parametre, un clic apres la premiere ouverture
 // automatique de la journee resterait sans effet (return silencieux).
 async function afficherJournalDuJour(force) {
-  const today = state.day || 1;
-  const sessionKey = 'journal_dujour_day_' + today;
+  // UNE FOIS PAR DATE D'EDITION REELLE (06/11/2026). La cle suivait state.day, compteur propre
+  // au PJ qui n'avance qu'avec Dormir : tant qu'il ne bougeait pas, la cle deja posee dans
+  // sessionStorage (qui survit au rechargement de l'onglet) bloquait la pop-up du matin pendant
+  // des jours, alors que les numeros paraissaient bien chaque nuit. Horloge commune : on suit la
+  // meme date que le kiosque (bascule a minuit, Europe/Paris).
+  const today = dateEditionAujourdhui(state.country);
+  const sessionKey = 'journal_dujour_' + today;
   if (!force && sessionStorage.getItem(sessionKey)) return;
   sessionStorage.setItem(sessionKey, '1');
 
