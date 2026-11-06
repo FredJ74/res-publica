@@ -441,3 +441,16 @@ sans changer conditions, ordres, permissions ou RPC. Le vrai rendu combat est te
 sur réponses serveur fixtures : non-chef/chef/groupe replié, aucune action exécutée.
 Bancs ciblés15/15 (inclut le banc historique commissariats), création six langues
 et bureau1440 préservés. Dernier main récupéré76f8653e ; L3 pas encore fusionné.
+
+### Mobile L9 — Codex, 06/11/2026
+
+Branche `codex/mobile-l9-chargement-20261106`, main76f8653e réconcilié sans perdre
+les WebP du Grand Hôtel de Sovarka (#537). Changements ciblés : attributs natifs
+loading=lazy/decoding=async dans renderPersonsList (`plateau-multijoueur.js`) et les
+miniatures d'inventaire (`plateau-personnage.js`). Aucun portrait/illustration remplacé.
+Test vrai renderer local :20 portraits, zéro requête panneau fermé, requêtes à son
+ouverture. Scènes de navigation jamais différées. Pas de nouveau chargeur de scripts
+ou cache hors ligne : dépendances globales non certifiées pour découpage aveugle.
+Mesure locale :65 scripts au plateau,7 316 011 octets bruts ; gzip local indicatif
+2 072 103 octets, pas trafic Vercel facturé. Recette croisée L10 suit. Pour tester :
+ouvrir Présents, puis une longue liste d'objets ; mêmes portraits, cadrages et ordres.
