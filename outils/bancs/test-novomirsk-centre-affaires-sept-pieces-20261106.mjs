@@ -45,14 +45,18 @@ test('cinq WebP distincts, fichiers PNG supprimés',()=>{
  ];
  for(const f of originals)assert.equal(fs.existsSync(path.join(root,dir,f)),false,f);
 });
-test('deux bureaux permanents préservent les ordres et le tarif prestige existant',()=>{
- const a=base.rooms.bureau_prestige,b=sov.roomsExtra.bureau_prestige_b;
- assert.equal(a.locationData.prix,b.locationData.prix);
- assert.equal(a.locationData.bonusINF,b.locationData.bonusINF);
- assert.equal(a.locationData.bonusDIS,b.locationData.bonusDIS);
+test('deux bureaux attribués par la mairie (Fred, 07/11) : demande de location, 150 PSK, sans guichet',()=>{
+ const a=sov.roomOverrides.bureau_prestige,b=sov.roomsExtra.bureau_prestige_b;
+ for(const r of [a,b]){
+  const fns=Array.from(r.orders.map(o=>o.fn));
+  assert.equal(fns[0],'sovarka_demande_location');
+  assert.equal(fns.includes('louer_local'),false);
+  assert.equal(fns.includes('gerer_local'),true);
+  assert.equal(r.locationData.prix,150);
+ }
  assert.equal(b.isLocationRoom,true);
- assert.deepEqual(Array.from(b.orders.map(o=>o.fn)),Array.from(a.orders.map(o=>o.fn)));
- assert.equal(sov.roomOverrides.bureau_prestige.name.includes('prestige'),true);
+ assert.equal(a.name.includes('prestige'),true);
+ assert.equal(base.rooms.bureau_prestige.locationData.prix,1000); // socle de Républia intact
 });
 test('les salles à la journée ne débitent jamais le client hors de la transaction serveur',()=>{
  for(const id of ['reunion_grande_a','reunion_grande_b','reunion_moyenne_a','reunion_moyenne_b']){

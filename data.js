@@ -1795,10 +1795,13 @@ const WORLD = {
               name: "Accueil du centre d'affaires",
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_hall.webp',
               persons: [
-                {name:'Réceptionniste du centre (PNJ)',role:"Réceptionniste",rel:'neutral',job:'hotesse'},
-                {name:'Agent de sécurité du centre (PNJ)',role:'Agent de sécurité',rel:'neutral',job:'agent_securite'}
+                // Noms donnés par Fred (07/11/2026).
+                {name:'Valery Burov (PNJ)',role:"Réceptionniste",rel:'neutral',job:'hotesse'},
+                {name:'Pietr Kastanov (PNJ)',role:'Agent de sécurité',rel:'neutral',job:'agent_securite'}
               ]
             },
+            // Bureaux attribués par la mairie, comme les locaux des Galeries (décision de Fred,
+            // 07/11/2026) : ordres posés par definirSallesCentreAffairesNovomirsk ci-dessous.
             bureau_prestige: {
               name: "Bureau prestige A — Local à louer",
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_bureau_prestige.webp'
@@ -10301,14 +10304,28 @@ function slugPnjSovarka(nom) {
       desc:'Location exclusive pour la journée civile, jusqu’à minuit (heure de Paris).'
     }]
   });
+  // BUREAUX : « Demande de location » à la mairie au lieu du guichet (décision de Fred, 07/11/2026),
+  // même cheminement que les Galeries ; loyer 150 PSK/jour fixé par le serveur (sovarka_locaux).
+  // On garde « Gérer mon local » et les équipements : siège d'association, matériel.
+  const ordresBureau = () => [
+    {fn:'sovarka_demande_location', label:'Demande de location', pa:1, cost:0, type:'legal', icon:'ti-mail', successRate:100,
+     desc:"Écrire à la mairie pour demander ce bureau (150 PSK/jour). Votre lettre rejoint les dossiers du maire, qui attribue les locaux ; l'attribution se signe ensuite chez le notaire."},
+    ...modele.orders.filter(o => o.fn !== 'louer_local').map(o => ({...o}))
+  ];
+  const descBureau = "Bureau prestige avec vue, mobilier luxueux. Attribué par la mairie sur demande, 150 PSK par jour. On peut y installer le siège d'une association et du matériel.";
+  const bureauA = contexte.roomOverrides.bureau_prestige;
+  bureauA.desc = descBureau;
+  bureauA.orders = ordresBureau();
+  bureauA.locationData = { ...modele.locationData, prix: 150, label: 'Bureau prestige A' };
   contexte.roomsExtra = {
     bureau_prestige_b: {
       ...modele,
       name: "Bureau prestige B — Local à louer",
+      desc: descBureau,
       imageUrl: prefixe+'bureau_prestige_2.webp',
-      locationData: { ...modele.locationData, label:'Bureau prestige B' },
+      locationData: { ...modele.locationData, prix: 150, label:'Bureau prestige B' },
       persons: [],
-      orders: modele.orders.map(o=>({...o}))
+      orders: ordresBureau()
     },
     reunion_grande_a: salle("Grande salle de réunion A", 'grande_reunion.webp',
       "Salle de réception professionnelle avec grand écran, minibar et espace salon. Location : 150 PSK/jour.",150),

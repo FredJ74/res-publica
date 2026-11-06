@@ -134,3 +134,10 @@ de PSM), un port de Sovarka, le directeur PNJ de l'entrepôt dans la cascade des
 - « L'option premium est gratuite pendant la bêta, ça permet de voir si elle fonctionne bien. Quand elle sera payante, on ne pourra pas souffrir de bugs. »
 - Dans l'écran de gestion de son commerce, le propriétaire active « Commerce Premium » gratuitement : 3 types d'activité et 10 articles au lieu de 2 et 4 (règle des commerces du 06/11), attaché au fonds (transmis à la vente, perdu à la résiliation du bail). La génération d'image et les codes promotionnels restent « bientôt ».
 - Les commerces déjà au-delà du gratuit (plus de 2 types ou de 4 articles) sont passés premium d'office, sans rien perdre. Migration `20261106234500_commerce_premium_beta`, appliquée (constantes, `fonds_premium_activer`, plafonds lus sur le fonds). Le jour du paiement : `commerce_premium_gratuit_beta` à 0 et un opérateur de paiement à raccorder.
+
+## Centre d'affaires de Novomirsk (07/11/2026, décisions de Fred)
+
+- Accueil : **Valery Burov** (réceptionniste) et **Pietr Kastanov** (agent de sécurité).
+- **Bureaux prestige A et B** : attribués selon le schéma des locaux commerciaux de Sovarka, même cheminement que les Galeries (« Demande de location » depuis le bureau, dossiers du maire, signature chez le notaire). Loyer **150 PSK/jour** (plafond 150). On peut y installer le siège d'une association et du matériel. Guichet « Louer ce local » fermé.
+- **Salles de réunion** (deux grandes à 150 PSK, deux moyennes à 100 PSK) : location à la journée, **sans approbation du maire** (location courte durée). À enrichir : on pourra y créer des événements (assemblées générales, conseils d'administration…), à concevoir avec Fred.
+
