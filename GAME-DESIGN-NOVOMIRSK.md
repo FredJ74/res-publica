@@ -33,6 +33,13 @@ différentes pièces ; Fred générera ensuite les images avec ChatGPT. En atten
 copié porte `imagesAVenir: true` dans son `buildingContext` : ses pièces s'affichent sur leur
 fond, sans emprunter les images de la ville d'origine.
 
+**Direction artistique de Starovka (Fred, 06/11/2026)** : les rues sont presque vides, et c'est voulu,
+puisqu'il y fait un froid polaire. On trouve les gens à l'intérieur des bâtiments. Les habitants y sont
+**accueillants**, avec un **type mongol / bouriate** (peuples de Sibérie et des steppes), pas un type
+slave par défaut. Référence de style : le hall de la gare de Starovka (`images/Sovarka/Starovka/Starovka_gare_hall.webp`),
+soit une lumière chaude dedans et le froid visible dehors. Cela vaut pour les images des intérieurs et pour les portraits de
+PNJ de Starovka. Krasnov garde son ambiance de province slave en automne.
+
 Monnaie (décision de Fred, 04/11/2026) : le **para sovarkien, sigle PSK** (le para était le centime du dinar yougoslave), à la place de l'ancien sigle « RP ». Pas de taux de change : mêmes chiffres que les FR. Les libellés de loyer de Novomirsk affichent « PSK ». La monnaie d'El Estado (« PS ») n'est pas encore validée.
 
 Pays du poste (05/11/2026, Fred : « on ne continue pas si ce n'est pas réglé ») : **réglé** par la migration
