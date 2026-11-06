@@ -13,7 +13,10 @@ test('Starovka mairie vers lycee commissariat',()=>{
  assert.equal(n.mairie.liens.gauche,'starovka-rue-lycee-commissariat');
  assert.match(n.mairie.flechesStyle.gauche,/bottom:10px/);
  assert.match(n.mairie.flechesStyle.gauche,/left:10px/);
- assert.equal(n.lycee.liens.droite,'starovka-rue-mairie-marche');
+ assert.equal(n.lycee.liens.gauche,'starovka-rue-mairie-marche');
+ assert.equal(n.lycee.liens.droite,undefined);
+ assert.match(n.lycee.flechesStyle.gauche,/top:50%/);
+ assert.match(n.lycee.flechesStyle.gauche,/left:10px/);
  assert.equal(n.lycee.image,'images/Sovarka/Starovka/Starovka_rue_lycée_commissariat.webp');
  assert.ok(fs.statSync(path.join(root,n.lycee.image)).size>100);
  assert.equal(fs.existsSync(path.join(root,'images/Sovarka/Starovka/Starovka_rue_lycée_commissariat.png')),false);
