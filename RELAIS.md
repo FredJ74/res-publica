@@ -471,6 +471,21 @@ Mesure locale :65 scripts au plateau,7 316 011 octets bruts ; gzip local indicat
 2 072 103 octets, pas trafic Vercel facturé. Recette croisée L10 suit. Pour tester :
 ouvrir Présents, puis une longue liste d'objets ; mêmes portraits, cadrages et ordres.
 
+### Mobile L10 — Codex, 06/11/2026, recette en cours
+
+Branche `codex/mobile-l10-recette-20261106`, suite L5→L8→L4→L7→L9. L3 vient d'être
+fusionné par Claude (#535, mainb2e357bf), réconciliation des nouvelles branches en cours.
+70/70 cas locaux ciblés : coque1440, création1440 + six langues, inventaire/tableaux,
+reprise offline/retour visible, combat sur verdicts fixtures, portraits différés,
+finance/navigation et trois cas Helvetia. Aucun compte réel ni migration.
+Anomalie de recette corrigée : callbacks Helvetia protégés par commercePjTransaction
+et contexte, sans deuxième moteur ni calcul financier ajouté. Les PA locaux historiques
+et le rejeu serveur après réponse perdue restent à vérifier hors du lot visuel.
+Le test historique de fiche exige désormais la garde tardive (obligatoire), avec sa
+nouvelle mutation de suppression :23 contrôles +9 contre-épreuves verts. Aucune assertion
+supprimée ou garde optionnelle. Création REST toujours bloquée : même curl public sans
+authentification renvoie403 Envoy. Donc ni PR créée ni fusion annoncée depuis cette session.
+
 Réconciliation de `codex/mobile-l9-chargement-20261106` avec main `b2e357bf` après fusion #535 ;
 aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
 préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
@@ -507,6 +522,9 @@ règles ou migrations. Les tests et la certification distante restent distincts.
 `codex/mobile-l9-chargement-20261106` : correctifs des lots précédents propagés ; aucun changement des
 règles ou migrations. Les tests et la certification distante restent distincts.
 
+`codex/mobile-l10-recette-20261106` : correctifs des lots précédents propagés ; aucun changement des
+règles ou migrations. Les tests et la certification distante restent distincts.
+
 `codex/mobile-l4-creation-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
 aucune commande automatique rejouée, validations locales en cours.
 
@@ -514,6 +532,9 @@ aucune commande automatique rejouée, validations locales en cours.
 aucune commande automatique rejouée, validations locales en cours.
 
 `codex/mobile-l9-chargement-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
+aucune commande automatique rejouée, validations locales en cours.
+
+`codex/mobile-l10-recette-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
 aucune commande automatique rejouée, validations locales en cours.
 
 Bilan mobile local : `outils/audits/MOBILE-LIVRAISON-20261106.md`. Branches L1/L2/L3
@@ -536,6 +557,36 @@ codex/mobile-l7-institutions-20261106 : main b41d387e et forum L6 reçus ; branc
 
 codex/mobile-l9-chargement-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
 
+codex/mobile-l10-recette-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
+
+### Suite mobile — relais final de Codex, 6 novembre
+
+L5/L8/L4/L7/L9/L10 codés et sauvegardés sur six branches dédiées. Main `b41d387e`
+reçu, dont L6 livré par Claude ; aucune des cinq branches initiales modifiée.
+Rapport : `outils/audits/MOBILE-SUITE-L5-L8-L4-L7-L9-L10-20261106.md` ; résultats
+structurés et empreintes : `MOBILE-SUITE-RESULTATS-20261106.json` dans le même dossier.
+77 tests ciblés passent ; contrôleur complet 197/198, seul Workflow échoue aussi
+sur main. Globaux 8/12 sur branche ET main, quatre échecs hérités documentés.
+Plateau, création et forum 1440 : chaque paire PNG est strictement identique.
+
+Ordre d'intégration L5 → L8 → L4 → L7 → L9 → L10. Corps REST prêts dans
+`outils/livraison/MOBILE-SUITE-PR-20261106.json`. GET/POST REST refusés ici (403/Envoy),
+push Git fonctionnel ; aucune PR de ces six lots créée depuis cette session,
+aucune fusion ni CI distante ni livraison vérifiée. L'intégrateur peut reprendre
+ces branches sans demander à Fred de manipulations techniques.
+
+Test téléphone à la livraison : fiche/inventaire/tableaux sans paiement ; connexion
+et choix de création dans six langues en conservant « En jeu » ; consultation des
+organisations et rapports ; verrouillage puis retour réseau, premier clic suspendu
+pendant la relecture, jamais rejoué. Deux appareils, Safari et vraie authentification
+restent à tester sur compte isolé autorisé. Pas de compte réel utilisé.
+
+Réserve explicite Helvetia : verrou commun et contexte corrigés, trois tests passent ;
+calcul historique de PA local et absence d'idempotence serveur non certifiés par ce
+lot visuel. Aucune migration mobile préparée/appliquée. Aucune décision de design requise.
+Le poids des scripts n'est pas une mesure de consommation facturée. L10 réel n'est
+pas clos tant que la recette sur appareils et la livraison ne sont pas réalisées.
+
 codex/mobile-l5-transactions-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
 
 codex/mobile-l8-reprise-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
@@ -545,3 +596,15 @@ codex/mobile-l4-creation-20261106 : main e31044cf reçu (#540/#541 Sovarka), res
 codex/mobile-l7-institutions-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
 
 codex/mobile-l9-chargement-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+codex/mobile-l10-recette-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+Validation finale sur main `e31044cf` intégré : 80 tests ciblés + 1 test refus/délai
+authentification passent ; contrôleur complet **196/198**, dont coque mobile **21/21**.
+Workflow hérité inchangé. Nouveau défaut hérité de #541 reproduit sur main intact :
+`banc-pnj-localisation-psm.mjs` 15/16 ; les scènes générées nomment encore « Centre
+Commercial » / « Hall d’Entrée » et les anciens locaux, alors que data.js déclare
+« Galeries de Novomirsk » / « Entrée des galeries » et les quatre nouveaux libellés.
+À Claude : régénérer les scènes avec le générateur existant dans son lot Sovarka ;
+Codex n'a pas modifié ces fichiers. Contrôles globaux toujours 8/12 sur main et branche.
+Fichiers REST mis à jour ; recette authentifiée et livraison restent non certifiées.
