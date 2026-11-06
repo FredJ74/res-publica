@@ -864,11 +864,23 @@ const RUE_CENTRALE_NOEUDS = {
     'starovka-rue-logements-collectifs': {
       image: 'images/Sovarka/Starovka/Starovka_rue_logements collectifs.webp',
       zones: [],
-      liens: { gauche: 'starovka-rue-terrains', arriere: 'starovka-rue-restaurant-boutique' },
+      liens: {
+        gauche: 'starovka-rue-terrains',
+        arriere: 'starovka-rue-restaurant-boutique',
+        droite: 'starovka-rue-stade'
+      },
       flechesStyle: {
         gauche: 'top:50%; left:10px; transform:translateY(-50%);',
-        arriere: RC_FLECHE_BAS
+        arriere: RC_FLECHE_BAS,
+        droite: 'top:50%; right:10px; transform:translateY(-50%);'
       }
+    },
+
+    'starovka-rue-stade': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_stade.webp',
+      zones: [],
+      liens: { gauche: 'starovka-rue-logements-collectifs' },
+      flechesStyle: { gauche: 'top:50%; left:10px; transform:translateY(-50%);' }
     },
 
     'starovka-rue-restaurant-boutique': {
