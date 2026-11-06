@@ -68,3 +68,13 @@ test('cache invalidé lorsque le contenu change sans changement de version',asyn
  await traduireContenu(input,deps);
  assert.notEqual(keys[0],keys[1]);
 });
+
+
+test('caractères de contrôle : rejet après lecture RLS, avant cache et quota',async()=>{
+ const {calls,deps}=fixtures();
+ deps.readUnderRls=async()=>{calls.push('rls');return {text:'Bonjour\\u0000',language:'fr',version:'r1'}};
+ const r=await traduireContenu(input,deps);
+ assert.equal(r.ok,false);
+ assert.equal(r.raison,'texte_invalide');
+ assert.deepEqual(calls,['auth','rls']);
+});
