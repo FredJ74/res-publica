@@ -1,0 +1,56 @@
+name: Starovka — WebP logements collectifs et navigation
+on:
+  push:
+    branches: [feature/starovka-terrains-logements-20261106]
+    paths:
+      - '.github/workflows/starovka-terrains-logements-20261106.yml'
+      - 'outils/bancs/test-starovka-terrains-logements-20261106.mjs'
+permissions:
+  contents: write
+jobs:
+  conversion-navigation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Convertir logements collectifs en WebP et retirer le PNG vérifié
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageOps
+          p=Path('images/Sovarka/Starovka/Starovka_rue_logements collectifs.png')
+          w=p.with_suffix('.webp')
+          assert p.is_file(), 'PNG logements collectifs absent'
+          assert not w.exists(), 'WebP déjà présent : ne pas écraser'
+          with Image.open(p) as im:
+              rgb=ImageOps.exif_transpose(im).convert('RGB')
+              dims=rgb.size
+              rgb.save(w,'WEBP',quality=85,method=6)
+          with Image.open(w) as im:
+              assert im.format=='WEBP' and im.size==dims
+              im.verify()
+          assert w.stat().st_size>100
+          p.unlink()
+          assert not p.exists()
+          print('WEBP vérifié',w.name,dims,w.stat().st_size)
+          PY
+      - name: Vérifications syntaxiques et tests Starovka
+        run: |
+          node --check plateau-rue-centrale.js
+          node --test outils/bancs/test-starovka-terrains-logements-20261106.mjs outils/bancs/test-starovka-petrole-terrains-20261106.mjs outils/bancs/test-starovka-rue-petrole-ferme-20261106.mjs
+          git diff --check
+      - name: Publier uniquement les images converties sur la branche
+        run: |
+          git add -A -- 'images/Sovarka/Starovka/Starovka_rue_logements collectifs.png' 'images/Sovarka/Starovka/Starovka_rue_logements collectifs.webp'
+          git diff --cached --check
+          git diff --cached --quiet && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(starovka): WebP logements collectifs et retrait PNG'
+          git push origin HEAD:feature/starovka-terrains-logements-20261106
