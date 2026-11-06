@@ -879,7 +879,14 @@ const RUE_CENTRALE_NOEUDS = {
     'starovka-rue-blizzard': {
       image: 'images/Sovarka/Starovka/Starovka_rue_blizzard.webp',
       zones: [],
-      liens: { toutDroit: 'starovka-rue-restaurant-boutique' },
+      liens: { toutDroit: 'starovka-rue-restaurant-boutique', arriere: 'starovka-rue-mairie-marche' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    'starovka-rue-mairie-marche': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_mairie_marché.webp',
+      zones: [],
+      liens: { toutDroit: 'starovka-rue-blizzard' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT }
     },
 
