@@ -8,6 +8,7 @@ const SOV_MOTIFS = {
   pas_a_la_mairie: 'Présentez-vous à la mairie.',
   pas_chez_le_notaire: 'Présentez-vous chez le notaire de Novomirsk.',
   pas_au_tribunal: 'Présentez-vous au tribunal de la ville.',
+  pas_dans_le_local: 'Rendez-vous dans le local que vous demandez.',
   demande_deja_en_cours: 'Vous avez déjà une demande en cours dans cette ville.',
   projet_invalide: 'Décrivez votre projet en quelques mots (3 à 200 caractères).',
   reserve_autorite_municipale: 'Réservé au maire, à défaut à son adjoint, à défaut au ministre de l’Économie collective.',
@@ -163,6 +164,66 @@ function sovarkaDemandeAnnuler(id) {
   sovActe('sovarka_demande_annuler', { p_demande: id }, 'Demande retirée', 'Votre dossier est clos.', ouvrirSovarkaDemanderLocal);
 }
 
+// Demande de location depuis le local (décision de Fred, 06/11/2026) : une lettre à la mairie
+// décrit le bien ; à l'envoi, le serveur range le dossier dans la liste du maire, au nom du PJ.
+function sovPieceCourante() {
+  const b = state.currentBuilding, r = state.currentRoom;
+  const ctx = WORLD?.[state.country]?.[state.currentCity]?.buildingContext?.[b];
+  const base = (typeof BUILDINGS !== 'undefined' && BUILDINGS[b]?.rooms?.[r]) || {};
+  const sur = ctx?.roomOverrides?.[r] || {};
+  return {
+    batiment: b, piece: r,
+    nomBatiment: ctx?.name || BUILDINGS?.[b]?.name || b,
+    nomPiece: String(sur.name || base.name || r).replace(/\s*—\s*Local à louer\s*$/i, ''),
+    desc: String(sur.desc || base.desc || '').replace(/^📋\s*À LOUER\s*—\s*/i, '')
+  };
+}
+
+async function ouvrirSovarkaDemandeLocation() {
+  const l = await sovLire();
+  if (!l) { showToast('Demande de location', 'Lecture impossible auprès du serveur.', false); return; }
+  const p = sovPieceCourante();
+  const loc = l.locaux.find(x => x.ville === l.ville && x.batiment === p.batiment && x.piece === p.piece);
+  const titre = 'Demande de location';
+  if (!loc) { vehModal(titre, '<p>' + SOV_MOTIFS.local_introuvable + '</p>'); return; }
+  const mienne = l.demandes.find(d => d.demandeur === l.moi && d.ville === l.ville);
+  if (mienne) {
+    vehModal(titre, '<p>Vous avez déjà une demande en cours à la mairie de ' + sovEsc(sovVille(l.ville)) + ' : « ' + sovEsc(mienne.projet) +
+      ' » — ' + (SOV_STATUTS[mienne.statut] || mienne.statut) + '.</p><p class="cpj-note">Une seule demande à la fois par ville. ' +
+      'Vous pouvez la retirer à l’accueil de la mairie.</p>');
+    return;
+  }
+  if (!sovLibre(loc)) {
+    vehModal(titre, '<p>' + (loc.exploitant ? 'Ce local est exploité par ' + sovEsc(loc.exploitant) + '.' : 'Ce local est déjà attribué, en attente de signature chez le notaire.') + '</p>');
+    return;
+  }
+  const ville = sovVille(l.ville);
+  const rue = WORLD?.soviet?.[l.ville]?.streetName;
+  const lettre =
+    '<div style="background:#1b2531;border:1px solid #a98d56;border-radius:6px;padding:1rem;line-height:1.5">' +
+    '<p style="margin:0">' + sovEsc(l.moi) + '<br>' + sovEsc(ville) + '</p>' +
+    '<p style="text-align:right;margin:.6rem 0">À l’attention du Maire<br>Mairie de ' + sovEsc(ville) + '</p>' +
+    '<p><strong>Objet : demande de location d’un local commercial</strong></p>' +
+    '<p>Camarade Maire,</p>' +
+    '<p>J’ai l’honneur de solliciter l’attribution du local suivant :</p>' +
+    '<ul style="margin:.3rem 0 .6rem 1.2rem"><li><strong>' + sovEsc(p.nomPiece) + '</strong></li>' +
+    '<li>Emplacement : ' + sovEsc(p.nomBatiment) + (rue ? ', ' + sovEsc(rue) : '') + ', ' + sovEsc(ville) + '</li>' +
+    (p.desc ? '<li>Description : ' + sovEsc(p.desc) + '</li>' : '') + '</ul>' +
+    '<p style="margin-bottom:.3rem">Activité envisagée (facultatif) :</p>' +
+    '<input class="cpj-champ" id="sov-activite" maxlength="200" placeholder="Ex. : une librairie" style="width:100%">' +
+    '<p style="margin-top:.6rem">Dans l’attente de votre décision, je vous prie d’agréer, Camarade Maire, l’expression de mon dévouement au bien commun.</p>' +
+    '<p style="text-align:right;font-style:italic">' + sovEsc(l.moi) + '</p></div>' +
+    '<p class="cpj-note">Loyer actuellement fixé par la mairie : ' + sovLoyer(loc) + '. Si le maire accepte, vous recevrez un courrier, ' +
+    'puis vous signerez l’attribution chez le notaire.</p>' +
+    sovBouton('Envoyer (1 PA)', "sovarkaDemandeLocationEnvoyer('" + sovJs(p.batiment) + "','" + sovJs(p.piece) + "')", true);
+  vehModal(titre, lettre);
+}
+function sovarkaDemandeLocationEnvoyer(batiment, piece) {
+  const activite = (document.getElementById('sov-activite')?.value || '').trim();
+  sovActe('sovarka_demande_location', { p_batiment: batiment, p_piece: piece, p_activite: activite || null }, 'Lettre envoyée',
+    v => 'Votre demande pour « ' + v.local + ' » est entre les mains du maire.', () => document.getElementById('modal-postes')?.classList.remove('open'));
+}
+
 async function ouvrirSovarkaDossiers() {
   const l = await sovLire();
   if (!l) { showToast('Dossiers', 'Lecture impossible auprès du serveur.', false); return; }
@@ -176,9 +237,19 @@ async function ouvrirSovarkaDossiers() {
     'Un immeuble collectif coûte ' + l.parametres.coutLocal + ' PSK par local et se construit en ' + l.parametres.delaiJours +
     ' jours ; il est lancé le 1er et le 15 pour les dossiers acceptés qui attendent.</p>';
   const dossiers = l.demandes.filter(d => d.ville === ville && (d.statut === 'en_attente' || d.statut === 'acceptee'));
+  // Demande de location (06/11/2026) : le local souhaité est indiqué et présélectionné s'il est encore libre.
+  const optionsPour = d => {
+    const cle = d.local_souhaite_batiment ? d.local_souhaite_batiment + '|' + d.local_souhaite_piece : '';
+    return cle ? options.replace('value="' + sovEsc(cle) + '"', 'value="' + sovEsc(cle) + '" selected') : options;
+  };
+  const souhait = d => {
+    if (!d.local_souhaite_batiment) return '';
+    const x = locaux.find(y => y.batiment === d.local_souhaite_batiment && y.piece === d.local_souhaite_piece);
+    return '<br>Local demandé : <strong>' + sovEsc(x?.label || d.local_souhaite_piece) + '</strong>' + (x && !sovLibre(x) ? ' (plus libre)' : '');
+  };
   html += sovSection('Demandes', dossiers.length ? dossiers.map((d, i) =>
-    '<div style="margin:.5rem 0"><strong>' + sovEsc(d.demandeur) + '</strong> — « ' + sovEsc(d.projet) + ' » (' + (SOV_STATUTS[d.statut] || d.statut) + ')<br>' +
-    '<select class="cpj-champ" id="sov-local-' + i + '">' + options + '</select>' +
+    '<div style="margin:.5rem 0"><strong>' + sovEsc(d.demandeur) + '</strong> — « ' + sovEsc(d.projet) + ' » (' + (SOV_STATUTS[d.statut] || d.statut) + ')' + souhait(d) + '<br>' +
+    '<select class="cpj-champ" id="sov-local-' + i + '">' + optionsPour(d) + '</select>' +
     sovBouton('Accepter', "sovarkaAccepter('" + sovJs(d.id) + "'," + i + ")", true) + '</div>').join('')
     : '<p class="cpj-note">Aucune demande en attente.</p>');
   const attribuees = l.demandes.filter(d => d.ville === ville && d.statut === 'attribuee');

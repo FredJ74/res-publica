@@ -1755,7 +1755,12 @@ const WORLD = {
           roomOverrides: {
             hall: {
               name: 'Entrée des galeries',
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_entree.webp'
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_entree.webp',
+              // Un seul PNJ à l'entrée, le portier visible sur l'image (décision de Fred, 06/11/2026 ;
+              // nom proposé par Claude, à valider). La voleuse et le magicien de Luthécia sont retirés.
+              persons: [
+                {name: 'Ignat Battantov (PNJ)', role: 'Portier des galeries', rel: 'neutral', job: 'portier'}
+              ]
             },
             vitrine_principale: {
               name: 'Grand local A — Local à louer',
@@ -10125,7 +10130,8 @@ function slugPnjSovarka(nom) {
     ['hotel-republica', 'bar', 'Arkadi Shakerov (PNJ)', 'Novo_arkadi_shakerov_portrait.webp'],
     ['hotel-republica', 'bar', 'Gleb Tchoutchotov (PNJ)', 'Novo_gleb_tchoutchotov_portrait.webp'],
     ['hotel-republica', 'bar', 'Anouchka Velourova (PNJ)', 'Novo_anouchka_velourova_portrait.webp'],
-    ['hotel-republica', 'restaurant', 'Pavel Plateaukine (PNJ)', 'Novo_pavel_plateaukine_portrait.webp']
+    ['hotel-republica', 'restaurant', 'Pavel Plateaukine (PNJ)', 'Novo_pavel_plateaukine_portrait.webp'],
+    ['centre-commercial', 'hall', 'Ignat Battantov (PNJ)', 'Novo_ignat_battantov_portrait.webp']
   ];
   for (const [batiment, piece, nom, fichier] of photos) {
     const personnes = salles[batiment]?.roomOverrides?.[piece]?.persons || [];
@@ -10230,9 +10236,11 @@ function slugPnjSovarka(nom) {
                      'centre-artisanal': ['echoppe_facade', 'atelier_milieu', 'reserve_arriere'] };
     for (const [batiment, pieces] of Object.entries(locaux)) {
       for (const piece of pieces) {
+        // « Demande de location » (décision de Fred, 06/11/2026) : une lettre à la mairie qui décrit
+        // le local ; elle rejoint les dossiers commerciaux du maire, avec le nom du demandeur.
         ajouter(surcharge(ville, batiment, piece), [
-          ordre('sovarka_commerces_libres', 'Attribution par la mairie', 0, 'ti-list-details',
-            'En Sovarka, un local ne se loue pas : il s\'obtient par une demande à la mairie, puis se signe chez le notaire.')
+          ordre('sovarka_demande_location', 'Demande de location', 1, 'ti-mail',
+            'Écrire à la mairie pour demander ce local. Votre lettre rejoint les dossiers du maire, qui attribue les locaux ; l\'attribution se signe ensuite chez le notaire.')
         ], ['louer_local']);
       }
     }

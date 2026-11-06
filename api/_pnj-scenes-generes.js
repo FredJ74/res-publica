@@ -4797,8 +4797,7 @@ export const SCENES_PNJ = {
     "batiment": "Galeries de Novomirsk",
     "piece": "Entrée des galeries",
     "personnes": [
-      "Ksenia Fauchova",
-      "Arkhip Abracadabrov"
+      "Ignat Battantov"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"vitrine_principale\"]": {
