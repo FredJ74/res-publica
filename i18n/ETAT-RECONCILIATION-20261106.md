@@ -67,3 +67,10 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - Script en lecture seule `outils/audits/etat-i18n-ordres.cjs` : réutilise l'inventaire d'ordres du dépôt, compare les labels exacts aux ressources, distingue identifiants stables couverts, identifiants ambigus partiellement couverts, libellés stables non encore traduits et références de catalogue obsolètes. Il ne prétend pas mesurer les labels générés à l'exécution.
 - Test `outils/bancs/banc-i18n-etat-ordres.cjs` : vérifie les **157 entrées françaises ancrées dans le code source** et la parité en neuf langues, sans autoriser à déclarer le jeu intégralement traduit. La CI conserve un artefact `i18n-ordres-restants` pour préparer les prochains lots.
 - Les scripts ne se connectent pas à Supabase, ne touchent ni aux personnages ni aux prix, et ne modifient aucun ordre. La CI réelle du dernier commit est toujours à certifier.
+
+
+### 07/11 — finition du formulaire de courrier
+
+- Les trois placeholders « Destinataire », « Objet du message » et « Votre message » disposent désormais de clés dans chacune des neuf langues. La valeur des champs n'est jamais traduite ou remplacée.
+- Les tests du guide et du courrier couvrent les trois emplacements, les neuf langues et les gestionnaires historiques. Le rendu de l'inventaire vide protège aussi les environnements sans objet global `window` (bancs hors navigateur).
+- Tests CI ajoutés mais exécution distante sur le SHA courant non disponible ; ne pas présenter cette livraison comme validée sur vrais téléphones ou dans une partie authentifiée.
