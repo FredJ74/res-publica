@@ -23,6 +23,18 @@
       if(locale==='ar') element.setAttribute('dir','rtl');
       else element.removeAttribute?.('dir');
     }
+    // Les info-bulles de la barre supérieure doivent être traduites sans
+    // remplacer le contenu des boutons (icônes, badges, compteurs).
+    const titleNodes=Array.from(elementRoot.querySelectorAll?.('[data-i18n-title]')||[]);
+    if(elementRoot.getAttribute?.('data-i18n-title')) titleNodes.unshift(elementRoot);
+    for(const element of titleNodes) {
+      const key=element.getAttribute('data-i18n-title');
+      if(!key) continue;
+      const translated=engine.t(key);
+      if(typeof translated==='string' && translated.trim() && translated!==key) {
+        element.setAttribute('title',translated);
+      }
+    }
   }
   global.RPI18nPlateau=Object.freeze({apply,locale:()=>locale});
   engine.init({
