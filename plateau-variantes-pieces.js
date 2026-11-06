@@ -560,6 +560,37 @@ PIECE_VARIANTES.republic.ville_a = {
   }]))
 };
 
+/* Les Galeries de Novomirsk réutilisent le moteur de location, son état
+   serveur et le rendu du nom d'enseigne. Quatre baux existants, deux grands
+   locaux et deux moyens ; aucun nouveau système ou identifiant de location.
+   Les images ont un fronton vierge : le locataire pourra y afficher son nom.
+   Aucune illustration occupée distincte n'a été demandée : le visuel reste
+   identique, seule l'enseigne s'actualise selon l'état réel du bail. */
+PIECE_VARIANTES.soviet = {
+  capitale: {
+    'centre-commercial': Object.fromEntries([
+      ['vitrine_principale', 'grand', 'Commerce installé dans le premier grand local des galeries.'],
+      ['boutique_milieu', 'grand', 'Commerce installé dans le second grand local des galeries.'],
+      ['arriere_boutique', 'moyen', 'Commerce installé dans le premier local moyen des galeries.'],
+      ['cave_reserve', 'moyen', 'Commerce installé dans le second local moyen des galeries.']
+    ].map(function ([piece, taille, description]) {
+      const url = WORLD.soviet.capitale.buildingContext['centre-commercial'].roomOverrides[piece].imageUrl;
+      return [piece, {
+        famille: 'location',
+        ancrage: 'haut',
+        nom: NOM_LOCAL_LOUABLE,
+        desc: { occupee: description },
+        images: { libre: url, occupee: url },
+        enseigne: Object.assign({}, ENSEIGNE_FRONTON_LUTHECIA, {
+          zone: taille === 'grand'
+            ? { x: 0.145, y: 0.169, w: 0.710, h: 0.116 }
+            : { x: 0.160, y: 0.068, w: 0.680, h: 0.116 }
+        })
+      }];
+    }))
+  }
+};
+
 /* ---------------------------------------------------------------------------
    3. LE MOTEUR
    --------------------------------------------------------------------------- */
