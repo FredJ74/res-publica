@@ -90,5 +90,14 @@ if(renderer.includes(old)){
 }else{
   assert.ok(renderer.includes(replacement),'blocked button lost during merge');
 }
+// Le main récent a également changé le bouton normal : l'algorithme de
+// merge donne priorité au serveur et peut y restaurer le libellé français.
+const normalOriginal=` + o.label + ' <span class="pa-cost">'`;
+const normalTranslated=` + libelleAffiche + ' <span class="pa-cost">'`;
+if(renderer.includes(normalOriginal)){
+  assert.ok(renderer.includes('const libelleAffiche ='),'renderer i18n absent');
+  renderer=renderer.replace(normalOriginal,normalTranslated);
+  fs.writeFileSync(politics,renderer);
+}
 assert.equal(renderer.split(' + libelleAffiche + ').length-1,2);
 console.log('Reconciliation validée : 24 traductions, bouton bloqué et normal, aucun contrat métier modifié.');
