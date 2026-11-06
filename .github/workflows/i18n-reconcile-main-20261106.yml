@@ -4,6 +4,7 @@ on:
     branches: [chatgpt/accueil-9-langues-20261102]
     paths:
       - .github/workflows/i18n-reconcile-main-20261106.yml
+      - outils/audits/reconcilier-i18n-main-20261106.cjs
 permissions:
   contents: write
 jobs:
