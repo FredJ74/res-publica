@@ -4378,7 +4378,10 @@ function renderRoomActions(room, buildingId, roomId) {
 
   // Bouton generique "Ecouter l'audioguide" : apparait pour toute salle ayant un audioUrl,
   // sans passer par room.orders/doOrder (pas un ordre codable, juste un lecteur audio).
-  if (room.audioUrl) {
+  // Batiment copie dont les audioguides ne sont pas encore enregistres (audiosAVenir) : pas
+  // d'audioguide emprunte a la ville d'origine (musee de Sovarka, 06/11/2026).
+  const audiosAVenir = typeof getBuildingContext === 'function' && getBuildingContext(buildingId)?.audiosAVenir === true;
+  if (room.audioUrl && !audiosAVenir) {
     const safeNom = room.name.replace(/'/g, ' ');
     buttons.push('<button class="action-btn legal" onclick="ouvrirAudioguide(\'' + room.audioUrl + '\',\'' + safeNom + '\')" title="Ecouter l\'audioguide de cette salle"><i class="ti ti-headphones" style="font-size:.82rem"></i> Écouter l\'audioguide <span class="pa-cost">gratuit · 0 PA</span></button>');
   }
