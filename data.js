@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk','poissonniere-novomirsk'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk','poissonniere-novomirsk','usine-pharmaceutique-luthecia'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -2009,6 +2009,21 @@ const WORLD = {
             quartier_troupes: { persons: [
               {name: 'Caporal Dimitri Corvéev (PNJ)', role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'},
               {name: 'Soldat Sacha Gamelline (PNJ)',  role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'}] }
+          }
+        },
+        // Usine pharmaceutique Pharmanov (vue 18), decision de Fred du 06/11/2026 : l'usine
+        // pharmaceutique du pays, rien de special. Usine du socle (BUILDINGS['usine-pharmaceutique-luthecia']) :
+        // memes pieces, ordres et fonctions serveur ; directeur nomme par le ministre de l'Economie
+        // collective (poste directeur_pharma, portee pays). Etat propre a Sovarka (migration 20261106173500).
+        // Les sels d'ammoniaque restent propres a l'Assemblee de Republia. Images a venir (Fred).
+        'usine-pharmaceutique-luthecia': {
+          name: "Usine pharmaceutique Pharmanov",
+          shortName: "Pharmanov",
+          imagesAVenir: true,
+          desc: "L'usine pharmaceutique d'État de Sovarka. Des cheminées propres, des blouses blanches et un slogan au fronton : « La santé du peuple est un devoir du Plan ».",
+          roomOverrides: {
+            salle_ventes: { excludeOrders: ['acheter_sels_ammoniaque'] },
+            bureau_direction: { persons: [{name: 'Boris Tabletkine (PNJ)', role: "Directeur de l'usine Pharmanov", rel: 'neutral', job: 'directeur_pharma'}] }
           }
         }
       }
