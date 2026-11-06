@@ -14,7 +14,7 @@ function run(locale){
   RP_I18N_LANGUAGES:{fr:{},ar:{},en:{}},RP_I18N_RESOURCES:{fr:{},ar:{},en:{}},
   i18next:{init(opts,done){this.options=opts;done(null)},t(key){return key==='plateau.messages'?(locale==='ar'?'الرسائل':'Messages'):key}}};
  vm.runInNewContext(script,{window,console});
- return {el,document,opts:window.i18next.options,api:window.RPI18nPlateau};
+ return {el,document,opts:window.i18next.options,api:window.RPI18nPlateau,engine:window.i18next};
 }
 test('arabe : seuls les textes localisés passent en RTL',()=>{
  const {el,document,opts}=run('ar');
@@ -56,4 +56,21 @@ test('clé absente : garder le libellé français déjà présent dans le DOM',(
  api.apply({querySelectorAll(){return [el]}});
  assert.equal(el.textContent,'Texte français de secours');
  assert.equal(el.attrs.dir,undefined);
+});
+
+
+test('placeholder mail traduit sans altérer la saisie ni la mise en page',()=>{
+ const {api,engine}=run('de');
+ const attrs={'data-i18n-placeholder':'plateau.recipientPlaceholder',placeholder:'Destinataire...'};
+ const input={value:'Jean Jaaj',attrs,
+  getAttribute(k){return this.attrs[k]},setAttribute(k,v){this.attrs[k]=v},
+  hasAttribute(k){return Object.hasOwn(this.attrs,k)}};
+ engine.t=key=>key==='plateau.recipientPlaceholder'?'Empfänger...':key;
+ api.apply({querySelectorAll(selector){return selector==='[data-i18n-placeholder]'?[input]:[]}});
+ assert.equal(input.value,'Jean Jaaj');
+ assert.equal(attrs.placeholder,'Empfänger...');
+ assert.equal(attrs.dir,undefined);
+ input.attrs['data-i18n-placeholder']='plateau.absent';
+ api.apply({querySelectorAll(selector){return selector==='[data-i18n-placeholder]'?[input]:[]}});
+ assert.equal(attrs.placeholder,'Empfänger...');
 });
