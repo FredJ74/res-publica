@@ -204,7 +204,7 @@ test('20 ordres sport et justice : présence réelle, traductions et droits inta
 
 test('20 ordres juridiques et économiques : parité source, neuf langues, aucune mutation',()=>{
  const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
- const ids=["officialiser_transaction","commerces_fonds_murs","racheter_entreprise","transfert_compromis","acte_officiel_notaire","demander_non_renouvellement_licence","annuler_non_renouvellement_licence","recolter_matiere","defense","temoins_mes_convocations","acte_officiel_juge","archives","avocat_dossiers","greffe_affaires","garde_republicaine","renseignement_militaire","diplomatie_bilaterale","proposer_grace","gerer_budget_justice","gestion_industrielle_portuaire"];
+ const ids=["officialiser_transaction","commerces_fonds_murs","racheter_entreprise","transfert_compromis","acte_officiel_notaire","demander_non_renouvellement_licence","annuler_non_renouvellement_licence","recolter_matiere","defense","temoins_mes_convocations","acte_officiel_juge","archives","avocat_dossiers","greffe_affaires","garde_republicaine","renseignement_militaire","diplomatie_bilaterale","proposer_grace","gerer_budget_justice","deposer_demande_permis"];
  const words=win.RP_I18N_RESOURCES.fr.translation.orders;
  for(const fn of ids){
    const label=words[fn];
