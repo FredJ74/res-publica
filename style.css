@@ -2342,3 +2342,20 @@ body.plateau-body .top-right {
   #hg-reprise:not([hidden]){display:flex;position:fixed;inset:auto 8px max(8px,env(safe-area-inset-bottom));z-index:1200;gap:8px;align-items:center;padding:12px;border:1px solid #a98d56;border-radius:6px;background:#202a36;color:#e2e9f1}
   #hg-reprise button{min-height:44px;background:#344354;color:#e5c477;border:1px solid #a98d56;padding:8px}
 }
+
+/* L4 : mêmes choix et explications dans les six langues. */
+@media(max-width:600px){
+  :is(#s1,#s2,#s3,#s4,#s5,#s7,#s8) :is(.grid2,.grid3,.grid4,.resgrid){grid-template-columns:minmax(0,1fr)}
+  #s6 .srow{grid-template-columns:minmax(0,1fr) 56px 118px;gap:6px;padding:.8rem 0}
+  #s6 .sadj{gap:2px;justify-content:flex-end}
+  #s6 .sbtn{width:44px;height:44px;flex-shrink:0}
+  #s6 .sval{min-width:26px}
+  #s6 .scarriere{white-space:normal;display:block;margin-left:0}
+  :is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) :is(.nav,.iform,.sh){max-width:100%;min-width:0}
+  :is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) :is(input,select,textarea){font-size:16px}
+  :is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) .nbtn{min-height:44px;white-space:normal}
+  .nav{gap:6px;flex-wrap:wrap}
+  #lang-switcher button{min-width:44px;min-height:44px}
+  #lang-switcher{position:relative;inset:auto;justify-content:center;flex-wrap:wrap;margin:0;padding:4px}
+  #intro{min-height:calc(100dvh - 52px)}
+}

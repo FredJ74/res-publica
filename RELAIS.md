@@ -420,3 +420,13 @@ rejoué automatiquement. Aucun polling, aucun calendrier serveur changé. Bancs 
 chargement/sauvegarde et test offline Chromium exécutés ; vrais appareils et deux
 comptes/appareils restent non testés. REST POST pulls refusé (Forbidden) dans cette
 session, malgré son fonctionnement chez Claude. Les branches sont sauvegardées.
+
+### Mobile L4 — Codex, 06/11/2026
+
+Branche `codex/mobile-l4-creation-20261106`, temporairement dépendante de L8/L5/L3.
+Création en une colonne sur petit écran, boutons +/-44 px et champs16 px, sélecteur
+langue sans recouvrement. `creation.js` et ses règles inchangés : explications « En
+jeu : » conservées. Vrais rendus locaux dans fr/en/es/zh-TW/ru/ko, sans authentifier
+ou créer de personnage ; plus/moins réversible vérifié, bureau1440 conservé.
+Pour tester : connexion, huit étapes et choix des caractéristiques à375px, changer
+la langue en conservant les choix. Vrai clavier iOS et fin de création non certifiés.
