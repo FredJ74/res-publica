@@ -407,6 +407,31 @@ de destinations, quatre vues PSM et positions conservées sans assouplissement.
 
 Mobile L3 : correctifs des bancs L1/L2 intégrés ; aucun test de navigation supprimé.
 
+### Suite mobile L5 — Codex, 06/11/2026, EN COURS
+
+Branche `codex/mobile-l5-transactions-20261106`, partie de L3 `9f8e8912` (pas encore
+fusionnée dans le main récupéré), réconciliée avec `d57e77e0`. PR #532–536 et leurs
+cinq branches restent à Claude. REST tenté : GET pulls/535 également Forbidden dans
+cette session ; le push Git fonctionne. L5 : fiche/inventaire/tableaux, seul changement
+ciblé de `plateau-personnage.js` = classes de présentation, aucune valeur ou ordre changé.
+Ancien Helvetia : PA locaux et absence de clé dans le wrapper constatés ; pas de
+refonte ni migration dans le lot visuel, protection financière complète non certifiée.
+Pour tester : ouvrir fiche/inventaire long, banque et tableaux à 375 px ; mêmes valeurs
+et actions qu'au bureau. Tests en cours, ne pas fusionner avant leurs résultats.
+
+L5 : bancs ciblés réussis (voir journal local hg-suite-l5), comparaison bureau 1440
+conservée ; aucun calcul ni action financière changé. PR REST ouverte au premier
+push si l'accès l'autorise. Le lot L8 suit sur une branche propre, sans modifier
+les cinq branches que Claude intègre.
+
+Réconciliation de `codex/mobile-l5-transactions-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
+L5 : correction de recette réintégrée dans son lot : verrou commun Helvetia et
+contexte avant/après relecture, trois tests dédiés. Les PA historiques ne deviennent
+pas une nouvelle autorité mobile ; certification serveur Helvetia toujours réservée.
+
 Bilan mobile local : `outils/audits/MOBILE-LIVRAISON-20261106.md`. Branches L1/L2/L3
 certifiées séparément : 30/30, 32/32, 34/34 (cas mobiles + historiques). Avec L6 :
 38/38 ciblés. Contrôleur complet **195/196** : seul le rangement SQL déjà rouge de
@@ -418,3 +443,5 @@ Recette réelle appareils/compte isolé et CI distante restent nécessaires. L4/
 Dernier main `bba6dec9` intégré (confirmation de la répartition #524), Sovarka intacte.
 Les journaux bruts restent locaux après rejet de leur publication par le contrôle
 automatique ; résultats structurés et captures de fixtures inspectées sont publiés.
+
+codex/mobile-l5-transactions-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
