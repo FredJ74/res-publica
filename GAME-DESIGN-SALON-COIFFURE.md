@@ -13,7 +13,10 @@ Nouveauté du tour de Novomirsk (vue 12). Le principe n'avait été consigné nu
 | Accessoires | **Définis par le PJ coiffeur**, avec la **mécanique générale du commerce** : familles du catalogue (« Coiffure & esthétique »…) et nombre de références selon l'option gratuite ou premium. Rien de spécifique au salon. |
 | Relooking | Prestation **premium** : l'IA génère une **image temporaire** du personnage, durée fonction du prix (à définir), **aucun bonus**, purement cosmétique. Session premium à venir : non codé. |
 | Salon de Novomirsk | **Tenu par un PNJ**, **Ludmila Permanentova** (nom validé), **le local pourra être racheté par un PJ**. |
-| Prix | **Aucun pour l'instant** : la logique de prix de Sovarka sera très différente et reste à décider (coupe et prix de rachat). |
+| Coût de la coupe pour le coiffeur | **1 PA** dépensé par le coiffeur (PJ) pour chaque coupe. |
+| Prix en Républia | Coupe **70 FR** au client (main-d'œuvre au tarif commun de la Républia). |
+| Prix en Sovarka | Le PA y a moins de valeur : **prix moyen d'un PA 15 PSK** ; coiffeur **payé 20 PSK** par coupe ; coupe **20 PSK** au client (salon de Novomirsk). |
+| Prix de rachat du local | À décider. |
 
 ## Implémentation (Claude, 06/11/2026)
 
@@ -31,9 +34,9 @@ Nouveauté du tour de Novomirsk (vue 12). Le principe n'avait été consigné nu
 
 ## Reste à faire
 
-- **Prix de Sovarka** (coupe, rachat du local) : à décider par Fred, puis poser `prestations.coupe.prixVente`,
-  retirer `bientot` de l'ordre, ajouter le prix de rachat (`entreprises_prix_rachat` et
-  `PRIX_RACHAT_COMMERCE`).
+- **Coupe de Novomirsk ouverte à 20 PSK** (migration `20261106002000_salon_coiffure_prix_sovarka`, appliquée le 06/11).
+- **Prix de rachat du local** : à décider par Fred, puis `entreprises_prix_rachat` et `PRIX_RACHAT_COMMERCE`.
+- **1 PA et salaire du coiffeur PJ** : s'appliquent au salon d'un PJ (ci-dessous) ; au salon PNJ, la coiffeuse est un PNJ.
 - **Salon d'un PJ** : vendre la coupe depuis un fonds de commerce de PJ (déclarer la prestation sur son
   fonds) reste à raccorder ; les accessoires passent déjà par la mécanique générale des fonds.
 - **Relooking premium** : backlog, issue #491, avec la session premium.
