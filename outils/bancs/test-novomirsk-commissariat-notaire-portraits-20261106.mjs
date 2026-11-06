@@ -47,7 +47,9 @@ test('Klara, Matrakov et Vassili : noms, profils et vrais portraits découpés',
   assert.ok(fs.statSync(path.join(root,npc.photoUrl)).size>100);
  }
  assert.equal(nov['commissariat'].roomOverrides.accueil_police.persons.length,1);
- assert.ok(nov['commissariat'].roomOverrides.bureau_commissaire.persons.some(p=>p.name==='Bronislava Menottova (PNJ)'));
+ // Décision de Fred (06/11) : le commissaire seul dans son bureau, plus d'inspectrice.
+ assert.equal(nov['commissariat'].roomOverrides.bureau_commissaire.persons.length,1);
+ assert.ok(!nov['commissariat'].roomOverrides.bureau_commissaire.persons.some(p=>/Menott/.test(p.name)));
  assert.ok(nov['office-notarial'].roomOverrides.accueil_notaire.persons.some(p=>p.name==='Alexeï Indexov (PNJ)'));
 });
 
