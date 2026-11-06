@@ -12,12 +12,12 @@ permissions:
   contents: write
 jobs:
   convert-and-test:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: chatgpt/novomirsk-notaire-images-20261106
           persist-credentials: true
       - name: Installer le convertisseur WebP
         run: python -m pip install --user Pillow==11.3.0
