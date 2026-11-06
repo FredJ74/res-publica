@@ -5471,6 +5471,15 @@ export const SCENES_PNJ = {
     "piece": "Grand appartement n°4",
     "personnes": []
   },
+  "[\"soviet\",\"capitale\",\"pharmacie-officielle-novomirsk\",\"comptoir_pharmacie\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Pharmacie officielle de Novomirsk",
+    "piece": "Comptoir",
+    "personnes": [
+      "Valentina Pilioulkina"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
