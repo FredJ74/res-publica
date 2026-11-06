@@ -1797,11 +1797,22 @@ const WORLD = {
                 {name: 'Ivan Valisov (PNJ)', role: 'Bagagiste', rel: 'neutral', job: 'bagagiste'}
               ]
             },
+            // Bar et restaurant gardes : la capitale doit etre opulente (Fred, 06/11/2026). Bar : un
+            // barman, un espion assis au comptoir, une escort a la broche ; restaurant : un serveur
+            // seulement. Portraits tires des images (noms et fiches proposes par Claude).
             bar: {
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_bar.webp'
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_bar.webp',
+              persons: [
+                {name: 'Arkadi Shakerov (PNJ)', role: 'Barman', rel: 'neutral', job: 'barman'},
+                {name: 'Gleb Tchoutchotov (PNJ)', role: 'Habitué du bar', rel: 'neutral', job: 'espion'},
+                {name: 'Anouchka Velourova (PNJ)', role: 'Escort', rel: 'neutral', job: 'escort', genre: 'F'}
+              ]
             },
             restaurant: {
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_restaurant.webp'
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_restaurant.webp',
+              persons: [
+                {name: 'Pavel Plateaukine (PNJ)', role: 'Serveur', rel: 'neutral', job: 'serveur'}
+              ]
             },
             chambres: {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_chambre.webp'
@@ -10110,7 +10121,11 @@ function slugPnjSovarka(nom) {
     ['commissariat', 'bureau_commissaire', 'Vassili Ordonov (PNJ)', 'Novo_vassili_ordonov_portrait.webp'],
     ['office-notarial', 'accueil_notaire', 'Klara Delounova (PNJ)', 'Novo_klara_delounova_portrait.webp'],
     ['hotel-republica', 'accueil', 'Vera Clefova (PNJ)', 'Novo_vera_clefova_portrait.webp'],
-    ['hotel-republica', 'accueil', 'Ivan Valisov (PNJ)', 'Novo_ivan_valisov_portrait.webp']
+    ['hotel-republica', 'accueil', 'Ivan Valisov (PNJ)', 'Novo_ivan_valisov_portrait.webp'],
+    ['hotel-republica', 'bar', 'Arkadi Shakerov (PNJ)', 'Novo_arkadi_shakerov_portrait.webp'],
+    ['hotel-republica', 'bar', 'Gleb Tchoutchotov (PNJ)', 'Novo_gleb_tchoutchotov_portrait.webp'],
+    ['hotel-republica', 'bar', 'Anouchka Velourova (PNJ)', 'Novo_anouchka_velourova_portrait.webp'],
+    ['hotel-republica', 'restaurant', 'Pavel Plateaukine (PNJ)', 'Novo_pavel_plateaukine_portrait.webp']
   ];
   for (const [batiment, piece, nom, fichier] of photos) {
     const personnes = salles[batiment]?.roomOverrides?.[piece]?.persons || [];

@@ -66,7 +66,7 @@ test('les enseignes des quatre boutiques reçoivent le nom du locataire par le s
   for(const [piece,{file}] of Object.entries(mapping)){
     const v=declarations[piece];
     assert.equal(v.famille,'location');
-    assert.equal(v.ancrage,'haut');
+    assert.equal(v.ancrage,mapping[piece].type==='grand'?'bas-grand':'haut');
     assert.equal(v.images.libre,imageRoot+file);
     assert.equal(v.images.occupee,imageRoot+file);
     assert.ok(v.enseigne.etats.includes('occupee'));
@@ -76,4 +76,31 @@ test('les enseignes des quatre boutiques reçoivent le nom du locataire par le s
   }
   assert.equal(ctx.variantes.republic.capitale['centre-commercial'].vitrine_principale.images.libre,'images/luthecia-centre-commercial-grand-local-vide.webp');
   assert.equal(ctx.world.republic.capitale.buildingContext['centre-commercial'].roomOverrides.hall.imageUrl,'images/centre-commercial-republic.webp');
+});
+
+test('ancrage bas des grandes vitrines et enseignes : CSS, décor Premium, géométrie concordants',()=>{
+ const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
+ const engine=fs.readFileSync(path.join(root,'plateau-variantes-pieces.js'),'utf8');
+ assert.ok(css.includes('.piece-image[data-ancrage="bas"]{background-position:center bottom!important}'));
+ assert.ok(css.includes('.piece-image[data-ancrage="bas-grand"]{background-position:center 72%!important}'));
+ assert.ok(css.includes('.piece-image[data-commerce-decor="1"][data-ancrage="bas"]{background-position:center center!important}'));
+ assert.ok(css.includes('.piece-image[data-commerce-decor="1"][data-ancrage="bas-grand"]{background-position:center center!important}'));
+ const pieces=ctx.variantes.soviet.capitale['centre-commercial'];
+ assert.equal(pieces.vitrine_principale.ancrage,'bas-grand');
+ assert.equal(pieces.boutique_milieu.ancrage,'bas-grand');
+ assert.equal(pieces.arriere_boutique.ancrage,'haut');
+ assert.equal(pieces.cave_reserve.ancrage,'haut');
+ vm.runInContext(';this.zone=varianteZoneEnPixels;',ctx);
+ const geom=ctx;
+ const cadre={clientWidth:1200,clientHeight:300};
+ const taille={l:1536,h:1024},zone={x:0,y:0,w:1,h:1};
+ const top=geom.zone(zone,cadre,taille,'haut');
+ const center=geom.zone(zone,cadre,taille,'centre');
+ const bottom=geom.zone(zone,cadre,taille,'bas');
+ assert.equal(top.haut,0);
+ assert.ok(bottom.haut<center.haut);
+ const softened=geom.zone(zone,cadre,taille,'bas-grand');
+ assert.ok(softened.haut>bottom.haut && softened.haut<center.haut);
+ assert.ok(Math.abs(softened.haut-(cadre.clientHeight-bottom.hauteur)*0.72)<0.001);
+ assert.equal(bottom.haut+bottom.hauteur,cadre.clientHeight);
 });
