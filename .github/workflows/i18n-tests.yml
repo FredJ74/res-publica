@@ -54,7 +54,7 @@ jobs:
         run: node --test outils/bancs/banc-i18n-texte-joueur.cjs
       - name: Moteur de traduction interne (fournisseur simulé)
         run: node --test outils/bancs/banc-traduction-i18n.mjs
-      - name: Sélecteur des neuf langues : simulation interactive
+      - name: "Sélecteur des neuf langues : simulation interactive"
         run: node --test outils/bancs/banc-i18n-selecteur-interactif.cjs
       - name: Inventaire des identifiants d'ordres, sans modifier les mécanismes
         run: |
@@ -66,11 +66,11 @@ jobs:
           name: i18n-ordres-inventaire
           path: /tmp/i18n-ordres.json
           retention-days: 7
-      - name: Libellés d'ordres : contexte et autorité préservés
+      - name: "Libellés d’ordres : contexte et autorité préservés"
         run: node --test outils/bancs/banc-i18n-ordres.cjs
-      - name: Quinze ordres canoniques traduits et droits préservés
+      - name: Vingt-neuf ordres canoniques traduits et droits préservés
         run: node --test outils/bancs/banc-i18n-catalogue-ordres.cjs
-      - name: Sources privées : seules les colonnes de contenu autorisées
+      - name: "Sources privées : seules les colonnes de contenu autorisées"
         run: node --test outils/bancs/banc-i18n-traduction-sources.mjs
       - name: Sécurité de lecture, cache et quota des traductions
         run: node --test outils/bancs/banc-i18n-contenu-securise.mjs
