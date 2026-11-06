@@ -17,7 +17,11 @@
     if(elementRoot.getAttribute?.('data-i18n')) nodes.unshift(elementRoot);
     for(const element of nodes) {
       const key=element.getAttribute('data-i18n');
-      const translated=engine.t(key);
+      // Une clé encore absente du catalogue ne doit jamais devenir un libellé
+      // technique affiché au joueur : conserver le français existant.
+      if(!key) continue;
+      const translated=engine.t(key,{defaultValue:null});
+      if(typeof translated!=='string' || !translated.trim() || translated===key) continue;
       element.textContent=element.hasAttribute('data-i18n-uppercase')
         ? translated.toLocaleUpperCase(locale) : translated;
       if(locale==='ar') element.setAttribute('dir','rtl');
