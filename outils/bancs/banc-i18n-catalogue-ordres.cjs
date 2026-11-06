@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('77 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('97 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,77);
+ assert.equal(ref.length,97);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -129,5 +129,50 @@ test('20 ordres civiques complémentaires ont des libellés stables en neuf lang
    assert.equal(original.pa,7);
    assert.equal(original.cost,431);
    assert.equal(original.requiresPost,'poste_test');
+ }
+});
+
+
+test('20 ordres gouvernement, presse et économie : labels source exacts et contrats intacts',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const ids=[
+  "article",
+  "etouffer",
+  "recruter_informateur_pnj",
+  "escort_piege",
+  "gestion_premier_ministre",
+  "postes_par_decret",
+  "pouvoirs_exceptionnels",
+  "adresse_a_la_nation",
+  "gracier",
+  "effort_national",
+  "reception_etat",
+  "banquet_diplo",
+  "nommer_ministre_pm",
+  "revoquer_ministre_pm",
+  "declencher_vote_confiance",
+  "consulter_dossiers_gouv",
+  "fuite_info",
+  "subvention",
+  "gestion_industrielle_portuaire",
+  "preempter_entreprise"
+];
+ const originalLabels=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const fn of ids){
+   const label=originalLabels[fn];
+   assert.equal(typeof label,'string',fn);
+   // Correspondance littérale avec les déclarations, sans dépendre du coût ou du poste.
+   assert.ok(source.includes("fn:'"+fn+"', label:'"+label+"'") ||
+     source.includes("fn:'"+fn+"',        label:'"+label+"'") ||
+     new RegExp("fn\\s*:\\s*['\\\"]"+fn+"['\\\"]\\s*,\\s*label\\s*:\\s*['\\\"]"+label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+"['\\\"]").test(source),
+     'libellé français absent de data.js pour '+fn);
+   const order=Object.freeze({fn,label,pa:3,cost:175,requiresPost:'president'});
+   for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
+     const expected=win.RP_I18N_RESOURCES[lang].translation.orders[fn];
+     assert.ok(typeof expected==='string' && expected.trim(),lang+'/'+fn);
+     assert.equal(win.RPOrderI18n.label(order,engine,lang),expected,lang+'/'+fn);
+   }
+   assert.equal(order.label,label);assert.equal(order.pa,3);assert.equal(order.cost,175);
+   assert.equal(order.requiresPost,'president');
  }
 });
