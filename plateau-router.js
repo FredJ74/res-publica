@@ -170,6 +170,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'sovarka_signer_attribution')  { ouvrirSovarkaSignerAttribution(); return; }
   if (fn === 'sovarka_cession')             { ouvrirSovarkaCession(); return; }
   if (fn === 'sovarka_demander_local')      { ouvrirSovarkaDemanderLocal(); return; }
+  if (fn === 'sovarka_demande_location')    { ouvrirSovarkaDemandeLocation(); return; }
   if (fn === 'sovarka_dossiers_commerciaux'){ ouvrirSovarkaDossiers(); return; }
   if (fn === 'sovarka_retirer_droit')       { ouvrirSovarkaRetirerDroit(); return; }
   if (fn === 'sovarka_terrain_municipal')   { ouvrirSovarkaTerrain(); return; }
