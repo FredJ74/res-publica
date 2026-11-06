@@ -1,0 +1,29 @@
+name: i18n brouillon - recette isolée 20261106
+on:
+  pull_request:
+    paths:
+      - .github/workflows/i18n-test-navbar-20261106.yml
+permissions:
+  contents: read
+jobs:
+  i18n-draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/accueil-9-langues-20261102
+      - name: Tester le code de la PR i18n sans fusion ni activation
+        run: |
+          node --check i18n/resources.js
+          node --check i18n/orders-resources.js
+          node --check i18n/plateau-resources.js
+          node --check i18n/plateau-init.js
+          node --check plateau-politique.js
+          node --test outils/bancs/banc-i18n-catalogue-ordres.cjs
+          node --test outils/bancs/banc-i18n-ordres.cjs
+          node --test outils/bancs/banc-i18n-render-ordres.cjs
+          node --test outils/bancs/banc-i18n-plateau-ressources.cjs
+          node --test outils/bancs/banc-i18n-plateau-wiring.cjs
+          node --test outils/bancs/banc-i18n-plateau-init.cjs
+          node --test outils/bancs/banc-i18n-navbar-20261106.cjs
