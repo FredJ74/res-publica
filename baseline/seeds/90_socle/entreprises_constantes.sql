@@ -56,6 +56,7 @@ INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('acompte_comprom
 INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('bois_par_lot_tracts', '1');
 INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('chantier_taux_horaire', '70');
 INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('coef_prix_max_pj_republic', '4');
+INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('coef_prix_max_pj_soviet', '4');
 INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('cout_main_oeuvre_pa_alimentaire', '50');
 INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('cycle_metal', '3');
 INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('pa_par_lot_tracts', '1');

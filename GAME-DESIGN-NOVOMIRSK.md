@@ -121,3 +121,9 @@ de PSM), un port de Sovarka, le directeur PNJ de l'entrepôt dans la cascade des
 - **Locaux** : deux grands (Grand local A, Grand local B) et deux moyens (Local moyen A, Local moyen B), images de Fred.
 - **« Demande de location »** (remplace « Attribution par la mairie » dans tous les locaux des centres de Sovarka) : une lettre adressée à la mairie décrit le bien (nom du local, emplacement, description) ; le nom du PJ demandeur y figure ; une ligne facultative « activité envisagée ». À l'envoi (1 PA, même coût que la demande déposée à la mairie), la demande rejoint les **Dossiers commerciaux** du maire, avec le nom du demandeur et le **local demandé**, présélectionné s'il est encore libre. Une seule demande active par PJ et par ville (règle existante) ; plusieurs PJ peuvent demander le même local, le maire choisit. Il faut être dans le local pour écrire la lettre ; un local exploité ou déjà attribué la refuse.
 - Fonction serveur `sovarka_demande_location` (migration `20261106230000_sovarka_demande_location`, appliquée) ; banc annulé `outils/bancs/banc-sovarka-demande-location.sql`.
+
+## Marges des commerces en Sovarka (06/11/2026, décision de Fred)
+
+- Mêmes ratios qu'en Républia, sans exception pour Novomirsk : un PNJ vend à **2 fois** son coût de revient, un PJ peut monter jusqu'à **4 fois**. Le coût de la main-d'œuvre, bien plus bas en Sovarka, suffit à faire la différence. « On reste là-dessus, sans complexifier. »
+- Le coefficient serveur de Sovarka manquait (un commerçant PJ ne pouvait pas fixer ses prix) : migration `20261106232000_coef_prix_max_pj_sovarka`, appliquée.
+- Novomirsk reste l'exception opulente de Sovarka (« plus la Russie des Tsars que l'URSS ») : loyers des Galeries un peu plus chers, montants à fixer avec Fred.
