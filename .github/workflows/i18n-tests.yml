@@ -23,6 +23,8 @@ on:
       - 'outils/audits/inventaire-i18n-ordres.cjs'
       - 'outils/bancs/banc-i18n-ordres.cjs'
       - 'outils/bancs/banc-i18n-catalogue-ordres.cjs'
+      - 'outils/bancs/banc-i18n-render-ordres.cjs'
+      - 'plateau-politique.js'
       - 'outils/bancs/banc-i18n-traduction-sources.mjs'
       - 'api/_traduction-sources.js'
       - 'api/_traduction-contenu.js'
@@ -73,6 +75,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-ordres.cjs
       - name: Vingt-neuf ordres canoniques traduits et droits préservés
         run: node --test outils/bancs/banc-i18n-catalogue-ordres.cjs
+      - name: Rendu des ordres, échappement HTML et autorité inchangée
+        run: node --test outils/bancs/banc-i18n-render-ordres.cjs
       - name: "Sources privées : seules les colonnes de contenu autorisées"
         run: node --test outils/bancs/banc-i18n-traduction-sources.mjs
       - name: Sécurité de lecture, cache et quota des traductions
