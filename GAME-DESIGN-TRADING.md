@@ -87,7 +87,7 @@ Implémentation : migration `20261105030000_entrepot_krasnov_trading_internation
   - Sovarka reçoit les achats internationaux (dédouanement à Starovka) et les caisses expédiées depuis l'étranger ;
   - un PJ de Sovarka expédie des caisses depuis Starovka ;
   - les achats faits en Sovarka par l'étranger partent de Starovka.
-- Migration `20261106040000_sovarka_entrepots_port_starovka` (appliquée le 06/11). Trois parcours rejoués dans des transactions annulées : achat international Républia → Starovka (arrivée PSM), Sovarka → Luthécia (arrivée Starovka), achat national à Novomirsk (livraison terrestre).
+- Migration `20261106040500_sovarka_entrepots_port_starovka` (appliquée le 06/11 sous le nom de registre `sovarka_entrepots_port_starovka_20261106040000` ; fichier renommé de 040000 pour ne pas doubler un horodatage). Trois parcours rejoués dans des transactions annulées : achat international Républia → Starovka (arrivée PSM), Sovarka → Luthécia (arrivée Starovka), achat national à Novomirsk (livraison terrestre).
 
 ## Reste à faire
 

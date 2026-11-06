@@ -818,7 +818,7 @@ const RUE_CENTRALE_NOEUDS = {
     'starovka-rue-port-industriel': {
       image: 'images/Sovarka/Starovka/Starovka_rue_port industriel.webp',
       // 06/11/2026 : l'entrepot (hangar a l'enseigne de Starovka, a gauche) et le port (grue et
-      // brise-glace, a droite) ; sorties declarees dans rue_sorties_batiments (migration 20261106040000).
+      // brise-glace, a droite) ; sorties declarees dans rue_sorties_batiments (migration 20261106040500).
       zones: [
         { xPct: [0, 32],   yPct: [5, 72],  nom: 'Entrepôt Logistique de Starovka', type: 'batiment', buildingId: 'entrepot-logistique-starovka' },
         { xPct: [50, 100], yPct: [8, 78],  nom: 'Port Industriel de Starovka',     type: 'batiment', buildingId: 'port-starovka' }

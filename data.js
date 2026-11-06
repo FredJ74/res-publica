@@ -6957,7 +6957,7 @@ const BUILDINGS = {
   },
   // Entrepot Logistique de Novomirsk (vue 8) : interface copiee de Luthecia. Ordres « Bientot
   // disponible » du 04/11 leves le 06/11 (demande de Fred : trading des trois villes de Sovarka,
-  // migration 20261106040000). Le socle connait desormais le pays de chaque
+  // migration 20261106040500). Le socle connait desormais le pays de chaque
   // entrepot (migration 20261104230000) ; reste l'approvisionnement propre a Sovarka. Directeur
   // PNJ nomme par Fred le 05/11/2026 : Boris Stockov.
   'entrepot-logistique-novomirsk': {
@@ -9933,7 +9933,7 @@ function slugPnjSovarka(nom) {
 }
 
 // STAROVKA : ENTREPOT LOGISTIQUE ET PORT INDUSTRIEL (06/11/2026, demande de Fred : les trois villes
-// de Sovarka au trading de matieres premieres, port industriel en service ; migration 20261106040000).
+// de Sovarka au trading de matieres premieres, port industriel en service ; migration 20261106040500).
 // Les deux batiments s'ouvrent depuis la rue du port industriel. Gabarits du socle, sans copie a tenir :
 //  - l'entrepot reprend celui de Krasnov (memes pieces, memes ordres), directeur PNJ propre ;
 //  - le port reprend les pieces de fret du Port industriel de PSM : quai, entrepots de fret (expedier,
