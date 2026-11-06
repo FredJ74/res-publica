@@ -414,7 +414,9 @@ les cinq branches que Claude intègre.
 
 Branche `codex/mobile-l8-reprise-20261106`, dépend provisoirement de L5/L3, pas de
 modification des branches #532–536. Réutilise loadCharacter ; expose sa promesse,
-garde génération/UID contre les réponses tardives. En mobile, retour visible/réseau
+garde génération/UID contre les réponses tardives. Reprise sans repeindre le cache
+ni fermer une vue si la position est inchangée ; rendu différé protégé contre
+un autre personnage ou déplacement (banc dédié). En mobile, retour visible/réseau
 et signal d'un autre onglet demandent une lecture ; premier ordre suspendu, jamais
 rejoué automatiquement. Aucun polling, aucun calendrier serveur changé. Bancs de
 chargement/sauvegarde et test offline Chromium exécutés ; vrais appareils et deux
@@ -452,3 +454,6 @@ aucun test relâché ; correctif L5 reçu. Les branches L0–L3/L6 de Claude res
 
 `codex/mobile-l4-creation-20261106` : correctifs des lots précédents propagés ; aucun changement des
 règles ou migrations. Les tests et la certification distante restent distincts.
+
+`codex/mobile-l4-creation-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
+aucune commande automatique rejouée, validations locales en cours.
