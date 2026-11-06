@@ -447,6 +447,21 @@ ou créer de personnage ; plus/moins réversible vérifié, bureau1440 conservé
 Pour tester : connexion, huit étapes et choix des caractéristiques à375px, changer
 la langue en conservant les choix. Vrai clavier iOS et fin de création non certifiés.
 
+### Mobile L7 — Codex, 06/11/2026
+
+Branche `codex/mobile-l7-institutions-20261106`, dans la suite temporaire L3/L5/L8/L4.
+Les grilles militaires se replient aussi jusqu'à1023px, cases à cocher tactiles et
+rapports lisibles. Ajout ciblé de classes de présentation dans ouvrirPanneauCombat
+(`plateau-politique.js`) et ouvrirTableauOrganisations (`plateau-organisations-quetes.js`),
+sans changer conditions, ordres, permissions ou RPC. Le vrai rendu combat est testé
+sur réponses serveur fixtures : non-chef/chef/groupe replié, aucune action exécutée.
+Bancs ciblés15/15 (inclut le banc historique commissariats), création six langues
+et bureau1440 préservés. Dernier main récupéré76f8653e ; L3 pas encore fusionné.
+
+Réconciliation de `codex/mobile-l7-institutions-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
 Réconciliation de `codex/mobile-l4-creation-20261106` avec main `b2e357bf` après fusion #535 ;
 aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
 préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
@@ -469,7 +484,13 @@ aucun test relâché ; correctif L5 reçu. Les branches L0–L3/L6 de Claude res
 `codex/mobile-l4-creation-20261106` : correctifs des lots précédents propagés ; aucun changement des
 règles ou migrations. Les tests et la certification distante restent distincts.
 
+`codex/mobile-l7-institutions-20261106` : correctifs des lots précédents propagés ; aucun changement des
+règles ou migrations. Les tests et la certification distante restent distincts.
+
 `codex/mobile-l4-creation-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
+aucune commande automatique rejouée, validations locales en cours.
+
+`codex/mobile-l7-institutions-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
 aucune commande automatique rejouée, validations locales en cours.
 
 Bilan mobile local : `outils/audits/MOBILE-LIVRAISON-20261106.md`. Branches L1/L2/L3
@@ -488,8 +509,12 @@ codex/mobile-l8-reprise-20261106 : main b41d387e et forum L6 reçus ; branches i
 
 codex/mobile-l4-creation-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
 
+codex/mobile-l7-institutions-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
+
 codex/mobile-l5-transactions-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
 
 codex/mobile-l8-reprise-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
 
 codex/mobile-l4-creation-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+codex/mobile-l7-institutions-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.

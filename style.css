@@ -2366,6 +2366,24 @@ body.plateau-body .top-right {
   #intro{min-height:calc(100dvh - 52px)}
 }
 
+/* L7 : mêmes effectifs, autorisations et rapports, présentation repliée. */
+@media(max-width:1023px){
+  .mil-grille{display:flex;flex-wrap:wrap;gap:8px;padding:10px 0}
+  .mil-grille.mil-entetes{display:none}
+  .mil-ordres,.mil-inv{flex:1 1 100%}
+  .mil-panneau{grid-template-columns:minmax(0,1fr);flex:1 1 100%}
+  .mil-case{min-height:44px;white-space:normal;padding:4px}
+  .mil-case input{min-height:0!important;width:20px;height:20px;flex-shrink:0}
+  .mil-qte{min-width:64px;min-height:44px}
+  .mil-obj{white-space:normal;overflow-wrap:anywhere}
+  .hg-organisations,.hg-rapport-combat{min-width:0;overflow-wrap:anywhere}
+  .hg-rapport-combat div[style*="font-size"]{font-size:1rem!important;line-height:1.6}
+  .hg-organisations button{white-space:normal;min-height:44px;max-width:100%}
+}
+@media(min-width:861px) and (max-width:1023px){
+  .mil-pos::before,.mil-pa::before,.mil-arme::before,.mil-inv::before{content:attr(data-l) " ";font-size:.8rem}
+}
+
 
 /* L6 : un seul contrôleur de composition, ses poignées captent le geste tactile. */
 .rp-poignee-tactile{touch-action:none}

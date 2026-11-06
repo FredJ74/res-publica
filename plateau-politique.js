@@ -11829,7 +11829,7 @@ async function ouvrirPanneauCombat(batailleId) {
   const b = e.bataille;
 
   document.getElementById('postes-modal-title').textContent = b ? (b.statut==='en_cours' ? 'Combat en cours' : 'Rapport de combat') : 'Engagement';
-  let html = '<div style="padding:1rem">';
+  let html = '<div class="hg-rapport-combat" style="padding:1rem">';
 
   if (!b) {
     html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Vous n\'êtes engagé(e) dans aucun combat. Si une force ennemie occupe cette zone et que vos deux pays sont en guerre, vous pouvez l\'attaquer.</div>';
