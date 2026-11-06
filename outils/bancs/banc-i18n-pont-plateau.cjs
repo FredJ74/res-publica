@@ -5,8 +5,9 @@ const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
 const src=fs.readFileSync(path.join(__dirname,'../../i18n/plateau-bridge.js'),'utf8');
+const languages={fr:{},en:{},es:{},'zh-TW':{},ru:{},ko:{},ar:{},'pt-BR':{},de:{}};
 function load(lang) {
- const win={localStorage:{getItem:()=>lang},i18next:{t:(key,o)=>o.lng+':'+key}};
+ const win={RP_I18N_LANGUAGES:languages,localStorage:{getItem:()=>lang},i18next:{t:(key,o)=>o.lng+':'+key}};
  vm.runInNewContext(src,{window:win,Intl,Number,Object,String});
  return win.RPPlateauI18n;
 }
@@ -36,21 +37,21 @@ test('le navigateur choisit une langue en absence de préférence explicite',()=
   ['pt-BR','pt-BR'],['zh-Hant-TW','zh-TW'],['zh-Hans-CN','fr'],
   ['pt-PT','fr'],['zh','fr']
  ]) {
-  const window={navigator:{language:locale},localStorage:{getItem:()=>null}};
+  const window={RP_I18N_LANGUAGES:languages,navigator:{language:locale},localStorage:{getItem:()=>null}};
   vm.runInNewContext(source,{window,Intl,Number,Object,String});
   assert.equal(window.RPPlateauI18n.language(),expected,locale);
  }
 });
 test('la préférence de jeu prime sur le navigateur et le stockage bloqué ne casse rien',()=>{
- const window={navigator:{language:'es-MX'},localStorage:{getItem:()=>'ar'}};
+ const window={RP_I18N_LANGUAGES:languages,navigator:{language:'es-MX'},localStorage:{getItem:()=>'ar'}};
  vm.runInNewContext(src,{window,Intl,Number,Object,String});
  assert.equal(window.RPPlateauI18n.language(),'ar');
- const blocked={navigator:{language:'de-DE'},localStorage:{getItem(){throw Error('blocked')}}};
+ const blocked={RP_I18N_LANGUAGES:languages,navigator:{language:'de-DE'},localStorage:{getItem(){throw Error('blocked')}}};
  vm.runInNewContext(src,{window:blocked,Intl,Number,Object,String});
  assert.equal(blocked.RPPlateauI18n.language(),'de');
 });
 test('le plateau ne choisit pas une autre langue navigateur que l accueil',()=>{
- const window={navigator:{languages:['zh-CN','es-ES'],language:'zh-CN'},
+ const window={RP_I18N_LANGUAGES:languages,navigator:{languages:['zh-CN','es-ES'],language:'zh-CN'},
   localStorage:{getItem:()=>null}};
  vm.runInNewContext(src,{window,Intl,Number,Object,String});
  assert.equal(window.RPPlateauI18n.language(),'fr');
