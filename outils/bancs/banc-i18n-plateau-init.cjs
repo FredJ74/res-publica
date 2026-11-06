@@ -74,3 +74,28 @@ test('placeholder mail traduit sans altérer la saisie ni la mise en page',()=>{
  api.apply({querySelectorAll(selector){return selector==='[data-i18n-placeholder]'?[input]:[]}});
  assert.equal(attrs.placeholder,'Empfänger...');
 });
+
+
+test('plateau et pont partagent la langue détectée au premier chargement',()=>{
+ const bridge=fs.readFileSync(path.join(__dirname,'../../i18n/plateau-bridge.js'),'utf8');
+ for(const [navigatorLanguage,stored,wanted] of [
+  ['es-MX',null,'es'],['ru-RU','ar','ar'],['zh-Hant-TW',null,'zh-TW'],
+  ['zh-CN',null,'fr']
+ ]) {
+  const element={textContent:'Messages',attrs:{'data-i18n':'plateau.messages'},
+   getAttribute(k){return this.attrs[k]},hasAttribute(k){return Object.hasOwn(this.attrs,k)},
+   setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+  const document={documentElement:{lang:'fr'},querySelectorAll(selector){
+   return selector==='[data-i18n]'?[element]:[];
+  }};
+  const languages={fr:{},en:{},es:{},'zh-TW':{},ru:{},ko:{},ar:{},'pt-BR':{},de:{}};
+  const window={document,navigator:{language:navigatorLanguage},localStorage:{getItem:()=>stored},
+   RP_I18N_LANGUAGES:languages,RP_I18N_RESOURCES:{},
+   i18next:{init(options,done){this.options=options;done(null)},t:()=> 'Messages'}};
+  vm.runInNewContext(bridge,{window,console,Intl,Number,Object,String});
+  vm.runInNewContext(script,{window,console});
+  assert.equal(window.i18next.options.lng,wanted,navigatorLanguage);
+  assert.equal(window.RPPlateauI18n.language(),wanted,navigatorLanguage);
+  assert.equal(document.documentElement.lang,wanted,navigatorLanguage);
+ }
+});
