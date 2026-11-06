@@ -5,6 +5,9 @@ on:
       - chatgpt/galeries-novomirsk-4-locaux-20261106
     paths:
       - .github/workflows/galeries-novomirsk-webp-20261106.yml
+  pull_request:
+    paths:
+      - .github/workflows/galeries-novomirsk-webp-20261106.yml
 permissions:
   contents: write
 jobs:
