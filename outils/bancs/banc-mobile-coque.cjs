@@ -1,10 +1,14 @@
 // HTML/CSS et présentation réels ; aucun serveur de jeu, identité ou ordre.
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
-const {execFileSync}=require('node:child_process');
+const zlib=require('node:zlib'),crypto=require('node:crypto');
 const {chromium}=require('../e2e/node_modules/playwright');
-const R=path.resolve(__dirname,'../..'),base='728010c8';
+const R=path.resolve(__dirname,'../..');
+const reference=fs.readFileSync(path.join(__dirname,'fixtures/mobile-temoin-728010c8.json.gz'));
+assert.equal(crypto.createHash('sha256').update(reference).digest('hex'),'7d79fac32ee8d3059505c494b18ccc958199698478b9702fc7d7017717f52d3c');
+const temoin=JSON.parse(zlib.gunzipSync(reference));
+assert.equal(temoin.commit,'728010c844597087e7c4063f72fabbcb2a746723');
+const lecture=(f,ancien)=>ancien?Buffer.from(temoin.fichiers[f]):fs.readFileSync(path.join(R,f));
 function preuve(nom,b){const d=process.env.HG_MOBILE_PREUVES;if(d){fs.mkdirSync(d,{recursive:true});fs.writeFileSync(path.join(d,nom),b);}}
-const lecture=(f,ancien)=>ancien?execFileSync('git',['show',base+':'+f],{cwd:R}):fs.readFileSync(path.join(R,f));
 async function avecJeu(f){
  const serveur=http.createServer((q,r)=>{let u=new URL(q.url,'http://localhost');let nom=u.pathname.slice(1),ancien=u.searchParams.has('ancien');
  try{let b=lecture(nom,ancien);if(nom==='plateau.html')b=Buffer.from(b.toString().replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,''));r.setHeader('Content-Type',nom.endsWith('.css')?'text/css':nom.endsWith('.js')?'text/javascript':'text/html');r.end(b);}catch{r.writeHead(404);r.end();}});

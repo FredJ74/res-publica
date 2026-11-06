@@ -383,3 +383,12 @@ composition existant étendu aux Pointer Events ; mêmes calculs, format des pos
 permissions. 14/14 cas mobiles locaux, souris et annulation incluses ; forum et
 plateau bureau 1440 identiques. Les corrections des fixtures L1/L2 sont propagées
 avant le contrôle final. Aucun compte ni message réel publié.
+
+Mobile L1 : conserver le préfixe historique de version CSS et ajouter le suffixe mobile ;
+le banc de lisibilité exige ce préfixe. Cache effectivement majoré, test conservé. Témoin bureau embarqué et vérifié SHA-256
+pour les clones CI superficiels (aucun fetch ni historique complet nécessaire).
+
+Mobile L2 : fixture DOM des rues complétée avec setAttribute/getAttribute ; assertions
+de destinations, quatre vues PSM et positions conservées sans assouplissement.
+
+Mobile L3 : correctifs des bancs L1/L2 intégrés ; aucun test de navigation supprimé.
