@@ -91,7 +91,17 @@ Implémentation : migration `20261105030000_entrepot_krasnov_trading_internation
 
 25. **Exportations de Républia vers Sovarka** (Fred, 06/11/2026) : des médicaments, et un peu d'alcool. Ils s'ajoutent aux contrats nocturnes de `EXPORTATIONS_PORT` (céréales et viande vers Al-Khalija). Volumes proposés par Claude, selon la même règle de villes équivalentes : médicaments 1 ville (100 par jour), alcool 0,5 ville (50 par jour). Ils sont prélevés sur le stock réel des trois entrepôts de Républia, et la recette va à chaque entrepôt fournisseur. Les deux flux sont aussi ajoutés aux flux couverts par l'embargo (écran du gouvernement).
 
-## Reste à faire
+26. **Exportations livrées en Sovarka** (règle de Fred, 06/11/2026) :
+- l'**entrepôt de Starovka paie** la cargaison à la Républia, au prix qu'elle encaisse ;
+- il la **répartit aussitôt en trois** et envoie une part à **Novomirsk** et une à **Krasnov** ;
+- ces deux entrepôts municipaux **paient leur part à Starovka**, au même prix.
+
+Choix techniques de Claude :
+- parts égales au tiers près, le reste d'abord à Novomirsk puis à Krasnov (50 → 17 / 17 / 16) ;
+- Starovka ne reçoit que ce que sa caisse peut payer, et le reste ne quitte pas la Républia ;
+- une part qu'un entrepôt municipal ne peut pas payer reste à Starovka.
+
+Fonction `exportation_sovarka_recevoir` (une seule transaction, une seule réception par jour et par matière, table `exportations_recues`), appelée par la passe de minuit avant le prélèvement en Républia. Migration `20261106100000` appliquée le 06/11. Al-Khalija n'a toujours ni entrepôt ni caisse : ses exportations disparaissent comme avant.
 
 - Approvisionnement des entrepôts de Sovarka (économie de Sovarka).
 - Exportations de Sovarka (ses propres contrats nocturnes) : à décider par Fred.
