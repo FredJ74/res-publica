@@ -8,6 +8,7 @@ on:
   pull_request:
     paths:
       - .github/workflows/galeries-novomirsk-webp-20261106.yml
+# Conversion après vérification du test canonique corrigé
 permissions:
   contents: write
 jobs:
