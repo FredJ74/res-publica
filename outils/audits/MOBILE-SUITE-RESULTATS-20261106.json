@@ -1,18 +1,24 @@
 {
   "date": "2026-11-06",
-  "base_main": "b41d387e",
+  "base_main": "e31044cf",
   "environnement": "Chromium Linux local, sans compte ni données de production",
   "clients": {
     "total": 198,
-    "reussis": 197,
+    "reussis": 196,
     "echecs": [
+      "banc-pnj-localisation-psm.mjs",
       "banc-workflow-rangement.cjs"
     ]
   },
   "recette_ciblee": {
-    "tests": 77,
-    "reussis": 77,
-    "ignores": 0
+    "tests": 80,
+    "reussis": 80,
+    "ignores": 0,
+    "plus_test_authentification_delai": {
+      "tests": 1,
+      "reussis": 1,
+      "horloge": "Chromium contrôlée"
+    }
   },
   "globaux": {
     "branche": 8,
@@ -38,14 +44,20 @@
     "plateau-1440-avant.png": "78162d765b6d26a2d5a3b13c31e3a0e84d9deeffa61bbf025d34633a35811384"
   },
   "branches": {
-    "codex/mobile-l5-transactions-20261106": "ae466cff7a8bd04ae21c0579280dd5b78b747f6e",
-    "codex/mobile-l8-reprise-20261106": "48a3addf53642d1b78414e48c6e73e156951650c",
-    "codex/mobile-l4-creation-20261106": "5d29a9336570a2da06312af52a8ebd8ed834690d",
-    "codex/mobile-l7-institutions-20261106": "cc4477cbd4b874839a7df78085eb13bdcdd0eb54",
-    "codex/mobile-l9-chargement-20261106": "e4896bf0c39e59591abe488de520a9980057f354"
+    "codex/mobile-l5-transactions-20261106": "63a841e4e490ff7a32215c874e26e371fc48fda2",
+    "codex/mobile-l8-reprise-20261106": "5fd6722cbfde75e560950bad30d939ab74b50b2f",
+    "codex/mobile-l4-creation-20261106": "c6bef32b338abb035e9054aceef84a81430e407c",
+    "codex/mobile-l7-institutions-20261106": "65d64305603156ea85233e625bd2630145588f82",
+    "codex/mobile-l9-chargement-20261106": "2d54c94f59e908d7b187d70bec3b6470b66ee74f"
   },
   "pr_creees": false,
   "fusion": false,
   "deploiement": false,
-  "recette_authentifiee": false
+  "recette_authentifiee": false,
+  "controle_client_reference_precedente": "197/198 sur b41d387e ; 196/198 sur e31044cf : nouveau défaut scènes PNJ Sovarka reproduit sur main intact",
+  "client_mobile_coque": {
+    "tests": 21,
+    "reussis": 21,
+    "ignores": 0
+  }
 }

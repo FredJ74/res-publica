@@ -119,3 +119,13 @@ test('L9 : portraits réels différés dans le panneau fermé puis demandés à 
 test('L10 : téléphone masqué ne lit rien, retour visible attend la confirmation',async()=>avecJeu(async(b,o)=>{
  const p=await page(b,o,393,852);await p.evaluate(()=>{window.lecturesVerrou=0;window.loadCharacter=async()=>{lecturesVerrou++;return true;};Object.defineProperty(document,'hidden',{value:true,configurable:true});document.dispatchEvent(new Event('visibilitychange'));});await p.waitForTimeout(60);assert.equal(await p.evaluate(()=>lecturesVerrou),0);await p.evaluate(()=>{Object.defineProperty(document,'hidden',{value:false,configurable:true});document.dispatchEvent(new Event('visibilitychange'));});await p.waitForTimeout(80);assert.equal(await p.evaluate(()=>lecturesVerrou),1);assert.equal(await p.locator('#hg-reprise').isVisible(),false);
 }));
+
+test('L8 : session refusée et authentification hors délai ne déclenchent aucun ordre ni chargement tardif',async()=>avecJeu(async(b,o)=>{
+ const p=await page(b,o,375,667);await p.clock.install();
+ await p.evaluate(()=>{window.ordres=0;window.lectures=0;window.loadCharacter=async()=>{lectures++;return true;};window.rpAuthAssurerSession=async()=>{throw Error('session refusée');};const b=document.createElement('button');b.id='ordre-auth-fixture';b.textContent='Ordre';b.onclick=()=>ordres++;document.body.append(b);window.dispatchEvent(new StorageEvent('storage',{key:'respublica_char_Fixture'}));b.click();});
+ await p.clock.runFor(20);assert.equal(await p.evaluate(()=>lectures),0);assert.equal(await p.evaluate(()=>ordres),0);assert.match(await p.locator('#hg-reprise').innerText(),/État non confirmé/);
+ await p.evaluate(()=>{window.rpAuthAssurerSession=()=>new Promise(r=>window.finAuth=r);document.querySelector('#hg-reprise button').click();});await p.clock.runFor(15001);
+ assert.equal(await p.evaluate(()=>loadCharacter.generation),1);assert.match(await p.locator('#hg-reprise').innerText(),/État non confirmé/);
+ await p.evaluate(()=>finAuth());await p.clock.runFor(20);assert.equal(await p.evaluate(()=>lectures),0,'authentification tardive abandonnée avant le chargeur');assert.equal(await p.evaluate(()=>ordres),0);
+ await p.evaluate(()=>{window.rpAuthAssurerSession=async()=>true;document.querySelector('#hg-reprise button').click();});await p.clock.runFor(20);assert.equal(await p.evaluate(()=>lectures),1);assert.equal(await p.locator('#hg-reprise').isVisible(),false);assert.equal(await p.evaluate(()=>ordres),0,'le clic initial reste non rejoué');
+}));

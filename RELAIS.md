@@ -594,3 +594,13 @@ codex/mobile-l7-institutions-20261106 : main e31044cf reçu (#540/#541 Sovarka),
 codex/mobile-l9-chargement-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
 
 codex/mobile-l10-recette-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+Validation finale sur main `e31044cf` intégré : 80 tests ciblés + 1 test refus/délai
+authentification passent ; contrôleur complet **196/198**, dont coque mobile **21/21**.
+Workflow hérité inchangé. Nouveau défaut hérité de #541 reproduit sur main intact :
+`banc-pnj-localisation-psm.mjs` 15/16 ; les scènes générées nomment encore « Centre
+Commercial » / « Hall d’Entrée » et les anciens locaux, alors que data.js déclare
+« Galeries de Novomirsk » / « Entrée des galeries » et les quatre nouveaux libellés.
+À Claude : régénérer les scènes avec le générateur existant dans son lot Sovarka ;
+Codex n'a pas modifié ces fichiers. Contrôles globaux toujours 8/12 sur main et branche.
+Fichiers REST mis à jour ; recette authentifiée et livraison restent non certifiées.

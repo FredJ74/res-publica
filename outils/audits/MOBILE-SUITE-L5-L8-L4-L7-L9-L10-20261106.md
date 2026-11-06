@@ -1,6 +1,6 @@
 # Suite mobile du 6 novembre — code local, recette distante à réaliser
 
-Base réconciliée : main `b41d387e`, incluant L0–L3 et L6 intégrés par Claude.
+Base réconciliée : main `e31044cf` (#540/#541 Sovarka conservés), incluant L0–L3 et L6 intégrés par Claude.
 Aucune des cinq branches initiales n'a été modifiée. Sovarka, ses images, ses
 migrations et ses versions de scripts ont été conservés. Aucune migration mobile,
 connexion de joueur, écriture Supabase, fusion ou commande Vercel effectuée.
@@ -24,7 +24,9 @@ Ils sont en brouillon pour ne pas confondre préparation et livraison.
 
 ## Preuves exécutées
 
-- Recette ciblée consolidée : **77 tests réussis, 0 échec, 0 ignoré**.
+- Recette ciblée consolidée : **80 tests réussis, 0 échec, 0 ignoré**, puis un test
+  supplémentaire réussi : session refusée, délai de 15 s et authentification tardive
+  abandonnée avant le chargeur (horloge Chromium contrôlée).
 - Bureau 1440×900 : PNG strictement identiques avant/après pour plateau, création et
   forum ; comparaison avec le témoin embarqué `728010c8` vérifié par SHA-256.
 - Formats Chromium : 375×667, 393×852, 412×915, 852×393 et 768×1024.
@@ -33,9 +35,10 @@ Ils sont en brouillon pour ne pas confondre préparation et livraison.
 - Garde fiche serveur : 23 contrôles et 9 mutations détectées. Le détecteur exige
   la nouvelle garde ; aucune assertion supprimée ni rendue optionnelle.
 - Restauration différée et position F5 : 8 tests réussis.
-- Contrôleur client complet : résultat final dans `MOBILE-SUITE-RESULTATS-20261106.json`.
+- Contrôleur client complet : **196/198** sur `e31044cf` (197/198 avant
+  #540/#541), tous les 21 cas du banc de coque passent. Résultat final dans `MOBILE-SUITE-RESULTATS-20261106.json`.
 - Contrôle global : **8/12**, même verdict et mêmes quatre familles en échec sur
-  le main détaché `b41d387e`, avec les mêmes dépendances locales.
+  le main détaché `e31044cf`, avec les mêmes dépendances locales.
 
 Empreintes des PNG 1440 (chaque paire avant/après a la même empreinte) :
 
@@ -60,6 +63,13 @@ des fixtures, sans données privées ni requêtes vers la production.
    une signature inconnue `trading_acheter(text,text,text,integer,text)`.
 4. Referential : artefact `RESSOURCES_ECONOMIE_SERVEUR` illisible ; diagnostic
    du contrôleur conservé, aucun référentiel réécrit dans le chantier mobile.
+
+Le second échec client, `banc-pnj-localisation-psm.mjs`, est reproduit sur le
+main intact `e31044cf` : 15/16 assertions passent, le rendu exact des scènes diverge.
+Le générateur utilise « Galeries de Novomirsk » / « Entrée des galeries » et les
+nouveaux noms des quatre locaux ; `api/_pnj-scenes-generes.js` contient encore
+« Centre Commercial » / « Hall d'Entrée » et les anciens noms. Fichiers de Claude
+conservés, aucun test neutralisé ; régénération à coordonner avec son chantier.
 
 Une première comparaison main sans Acorn local avait aussi échoué sur Fonctions.
 Après installation des mêmes liens de dépendances, Fonctions passe : cette erreur
