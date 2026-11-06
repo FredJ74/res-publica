@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -6774,6 +6774,30 @@ const BUILDINGS = {
           {fn:'garage_vehicules', label:'Véhicules : vitrine et atelier', pa:0, cost:0, type:'legal', icon:'ti-car', successRate:100, desc:"Acheter un véhicule vendu avec sa clé, lancer une fabrication ou y travailler (payé par le garage), vendre au garage les matières de ses véhicules."},
           {fn:'garage_reviser', label:'Faire réviser un véhicule', pa:0, cost:0, type:'legal', icon:'ti-tool', successRate:100, desc:"Une révision tous les 10 trajets ; au-delà, le risque de panne grimpe."},
           {fn:'mes_vehicules', label:'Mes véhicules', pa:0, cost:0, type:'legal', icon:'ti-steering-wheel', successRate:100, desc:"Faire le plein, charger, décharger, prendre la route."}
+        ]
+      }
+    }
+  },
+  // SALON DE COIFFURE DE NOVOMIRSK (vue 12), decisions de Fred du 06/11/2026
+  // (GAME-DESIGN-SALON-COIFFURE.md) : commerce de services ; la coupe donne +5 POP et CHA +1
+  // jusqu'a minuit sans cumul, une coupe tous les 3 jours (serveur : salon_coupe, migration
+  // 20261106001000). Tenu par un PNJ (Ludmila Permanentova, nom valide par Fred), local
+  // rachetable par un PJ. Prix de Sovarka a decider : coupe « Bientot disponible ».
+  'salon-coiffure-novomirsk': {
+    name: "Salon de coiffure de Novomirsk",
+    shortName: "Salon de coiffure",
+    cat: "Économie",
+    icon: "ti-scissors",
+    bgColor: "#161219",
+    desc: "Un salon d'État aux fauteuils de skaï rouge. Au mur, les coupes réglementaires du Plan, numérotées de 1 à 4. On peut demander la 5, mais à ses risques.",
+    rooms: {
+      salon_coiffure: {
+        name: "Salon",
+        imageBg: "linear-gradient(135deg,#161219,#201a24)",
+        desc: "Trois fauteuils, un grand miroir piqué et l'odeur de la laque. La radio diffuse le bulletin du Parti entre deux valses.",
+        persons: [{name:'Ludmila Permanentova (PNJ)', role:'Coiffeuse', rel:'neutral', job:'coiffeuse'}],
+        orders: [
+          {fn:'salon_coupe', label:'Se faire couper les cheveux', pa:0, cost:0, type:'legal', icon:'ti-scissors', successRate:100, desc:"+5 popularité et +1 charisme jusqu'à minuit. Une coupe tous les 3 jours.", bientot:"Bientôt disponible : le salon fixera ses prix avec l'économie de Sovarka."}
         ]
       }
     }

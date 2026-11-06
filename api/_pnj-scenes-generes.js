@@ -5399,6 +5399,15 @@ export const SCENES_PNJ = {
       "Sergueï Zaptchastov"
     ]
   },
+  "[\"soviet\",\"capitale\",\"salon-coiffure-novomirsk\",\"salon_coiffure\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Salon de coiffure de Novomirsk",
+    "piece": "Salon",
+    "personnes": [
+      "Ludmila Permanentova"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",

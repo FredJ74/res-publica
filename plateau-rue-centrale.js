@@ -1208,7 +1208,7 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/rue-salon-coiffure-novomirsk.webp',
       zones: [
         { xPct: [0, 34],   yPct: [0, 74],  nom: 'Caserne centrale de Novomirsk', type: 'batiment', buildingId: 'caserne-militaire', sortieNoeudId: 'novomirsk-vue-12' },
-        { xPct: [78, 100], yPct: [16, 88], nom: 'Salon de coiffure de Novomirsk', type: 'a-venir' }
+        { xPct: [78, 100], yPct: [16, 88], nom: 'Salon de coiffure de Novomirsk', type: 'batiment', buildingId: 'salon-coiffure-novomirsk' }
       ],
       liens: { arriere: 'novomirsk-vue-11', droite: 'novomirsk-vue-13' },
       flechesStyle: { arriere: RC_FLECHE_BAS }
