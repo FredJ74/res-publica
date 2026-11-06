@@ -200,15 +200,15 @@
         const operation = (async () => {
           if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession();
           if (annule) throw Error('reprise abandonnée');
-          return loadCharacter();
+          return loadCharacter({reprise:true});
         })();
         const resultat = await Promise.race([operation,new Promise((_,refus) => {
           delai = setTimeout(() => { annule = true; loadCharacter.generation = (loadCharacter.generation || 0) + 1; refus(Error('délai dépassé')); },15000);
         })]);
         if (resultat !== true) throw Error('lecture non confirmée');
         aRelire = false; message.hidden = true;
-        if (typeof verifierNouveauxMails === 'function') verifierNouveauxMails();
-        if (typeof verifierActiviteForumNonVue === 'function') verifierActiviteForumNonVue();
+        // Le listener commun de visibilité conserve déjà les actualisations mail/forum.
+        // Pas de seconde paire de lectures ajoutée à chaque retour.
       } catch (_) { texte.textContent = 'État non confirmé. Aucun ordre exécuté. Rétablissez la connexion puis réessayez.'; }
       finally { clearTimeout(delai); reessayer.disabled = false; reprise = null; }
     });
