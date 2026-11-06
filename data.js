@@ -413,27 +413,6 @@ const WORLD = {
             bureau_president: { name: "Bureau du Président — Olympique de Luthécia", imageUrl: "images/bureau-president-luthecia.webp" }
           }
         },
-        // Centre d'affaires de Novomirsk : deux bureaux privés et quatre salles
-        // de réunion. Le gabarit commun reste inchangé dans les autres villes.
-        'centre-affaires': {
-          name: "Centre d'affaires de Novomirsk",
-          desc: "Adresse prestigieuse pour les réunions d'affaires et les bureaux privés de Sovarka.",
-          roomsExclues: ['bureau_standard', 'open_space', 'tribune_republia'],
-          roomOverrides: {
-            hall: {
-              name: "Accueil du centre d'affaires",
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_hall.webp',
-              persons: [
-                {name:'Réceptionniste du centre (PNJ)',role:"Réceptionniste",rel:'neutral',job:'hotesse'},
-                {name:'Agent de sécurité du centre (PNJ)',role:'Agent de sécurité',rel:'neutral',job:'agent_securite'}
-              ]
-            },
-            bureau_prestige: {
-              name: "Bureau prestige A — Local à louer",
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_bureau_prestige.webp'
-            }
-          }
-        },
         'hotel-republica': {
           name: "Hôtel-Restaurant La Républia",
           desc: "Le grand hôtel de Luthecia. Gaston Sauceblanche règne sur la salle avec un mépris souverain.",
@@ -1802,6 +1781,27 @@ const WORLD = {
               name: 'Local moyen B — Local à louer',
               desc: '📋 À LOUER — Seconde boutique de taille moyenne, accessible depuis les galeries.',
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_moyen_local.webp'
+            }
+          }
+        },
+        // Centre d'affaires de Novomirsk : deux bureaux privés et quatre salles
+        // de réunion. Le gabarit commun reste inchangé dans les autres villes.
+        'centre-affaires': {
+          name: "Centre d'affaires de Novomirsk",
+          desc: "Adresse prestigieuse pour les réunions d'affaires et les bureaux privés de Sovarka.",
+          roomsExclues: ['bureau_standard', 'open_space', 'tribune_republia'],
+          roomOverrides: {
+            hall: {
+              name: "Accueil du centre d'affaires",
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_hall.webp',
+              persons: [
+                {name:'Réceptionniste du centre (PNJ)',role:"Réceptionniste",rel:'neutral',job:'hotesse'},
+                {name:'Agent de sécurité du centre (PNJ)',role:'Agent de sécurité',rel:'neutral',job:'agent_securite'}
+              ]
+            },
+            bureau_prestige: {
+              name: "Bureau prestige A — Local à louer",
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_bureau_prestige.webp'
             }
           }
         },
