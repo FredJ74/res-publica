@@ -1746,6 +1746,39 @@ const WORLD = {
       empireName: 'Sovarka',
       buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk','poissonniere-novomirsk','usine-pharmaceutique-luthecia','musee-national-republia'],
       buildingContext: {
+        // Galeries de Novomirsk : les 4 locaux du socle commercial restent
+        // exactement les memes baux / identifiants serveur. Ici, seuls l'apparence,
+        // les noms et les descriptions de la capitale sovarkienne sont specialises.
+        'centre-commercial': {
+          name: 'Galeries de Novomirsk',
+          desc: 'Galeries commerçantes couvertes de Novomirsk, sous une verrière monumentale.',
+          roomOverrides: {
+            hall: {
+              name: 'Entrée des galeries',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_entree.webp'
+            },
+            vitrine_principale: {
+              name: 'Grand local A — Local à louer',
+              desc: '📋 À LOUER — Grande boutique en façade de la galerie, vitrine prestigieuse.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_grand_local.webp'
+            },
+            boutique_milieu: {
+              name: 'Grand local B — Local à louer',
+              desc: '📋 À LOUER — Seconde grande boutique de la galerie, avec vaste surface de vente.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_grand_local.webp'
+            },
+            arriere_boutique: {
+              name: 'Local moyen A — Local à louer',
+              desc: '📋 À LOUER — Boutique de taille moyenne dans les galeries de Novomirsk.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_moyen_local.webp'
+            },
+            cave_reserve: {
+              name: 'Local moyen B — Local à louer',
+              desc: '📋 À LOUER — Seconde boutique de taille moyenne, accessible depuis les galeries.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_moyen_local.webp'
+            }
+          }
+        },
         'hotel-republica': {
           name: "Hôtel Kollektiv",
           desc: "Toutes les chambres sont identiques. Olga Soupe gère la cantine avec efficacité soviétique.",
