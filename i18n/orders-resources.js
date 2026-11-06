@@ -53,7 +53,17 @@
     "ouvrir_enquete": "Ouvrir une enquete",
     "gestion_caserne": "Gestion de la caserne",
     "emprunter_prive": "Emprunter (sans verification)",
-    "avocat_barreau": "Mon inscription au barreau"
+    "avocat_barreau": "Mon inscription au barreau",
+    "contester_resultats": "Contester des resultats",
+    "falsifier_listes_electorales": "Falsifier les listes electorales",
+    "bourrer_urnes": "Bourrer les urnes",
+    "truquer_depouillement": "Truquer le depouillement",
+    "consulter_mandats_maires": "Consulter les résumés de mandats",
+    "observer_debats": "Observer les débats",
+    "voter_loi": "Voter une loi",
+    "projet_loi": "Déposer un projet de loi",
+    "amender_projet": "Amender mon projet",
+    "marchander_vote": "Marchander un vote"
   },
   "en": {
     "installer_equipements": "Install equipment",
@@ -102,7 +112,17 @@
     "ouvrir_enquete": "Open an investigation",
     "gestion_caserne": "Manage the barracks",
     "emprunter_prive": "Take out a loan (no verification)",
-    "avocat_barreau": "My bar association registration"
+    "avocat_barreau": "My bar association registration",
+    "contester_resultats": "Challenge election results",
+    "falsifier_listes_electorales": "Falsify electoral rolls",
+    "bourrer_urnes": "Stuff ballot boxes",
+    "truquer_depouillement": "Rig the vote count",
+    "consulter_mandats_maires": "View term-of-office summaries",
+    "observer_debats": "Watch debates",
+    "voter_loi": "Vote on a law",
+    "projet_loi": "Submit a bill",
+    "amender_projet": "Amend my bill",
+    "marchander_vote": "Bargain for a vote"
   },
   "es": {
     "installer_equipements": "Instalar equipos",
@@ -151,7 +171,17 @@
     "ouvrir_enquete": "Abrir una investigación",
     "gestion_caserne": "Administrar el cuartel",
     "emprunter_prive": "Solicitar préstamo (sin verificación)",
-    "avocat_barreau": "Mi inscripción en el colegio de abogados"
+    "avocat_barreau": "Mi inscripción en el colegio de abogados",
+    "contester_resultats": "Impugnar los resultados",
+    "falsifier_listes_electorales": "Falsificar el censo electoral",
+    "bourrer_urnes": "Rellenar las urnas con votos falsos",
+    "truquer_depouillement": "Manipular el escrutinio",
+    "consulter_mandats_maires": "Consultar resúmenes de mandatos",
+    "observer_debats": "Observar los debates",
+    "voter_loi": "Votar una ley",
+    "projet_loi": "Presentar un proyecto de ley",
+    "amender_projet": "Enmendar mi proyecto",
+    "marchander_vote": "Negociar un voto"
   },
   "zh-TW": {
     "installer_equipements": "安裝設備",
@@ -200,7 +230,17 @@
     "ouvrir_enquete": "展開調查",
     "gestion_caserne": "管理軍營",
     "emprunter_prive": "申請貸款（免審核）",
-    "avocat_barreau": "我的律師公會登記"
+    "avocat_barreau": "我的律師公會登記",
+    "contester_resultats": "質疑選舉結果",
+    "falsifier_listes_electorales": "偽造選民名冊",
+    "bourrer_urnes": "向票箱塞入假選票",
+    "truquer_depouillement": "操縱開票結果",
+    "consulter_mandats_maires": "查看任期摘要",
+    "observer_debats": "旁聽辯論",
+    "voter_loi": "表決法律",
+    "projet_loi": "提交法案",
+    "amender_projet": "修訂我的法案",
+    "marchander_vote": "交易選票"
   },
   "ru": {
     "installer_equipements": "Установить оборудование",
@@ -249,7 +289,17 @@
     "ouvrir_enquete": "Начать расследование",
     "gestion_caserne": "Управление казармой",
     "emprunter_prive": "Взять кредит (без проверки)",
-    "avocat_barreau": "Моя регистрация в коллегии адвокатов"
+    "avocat_barreau": "Моя регистрация в коллегии адвокатов",
+    "contester_resultats": "Оспорить результаты выборов",
+    "falsifier_listes_electorales": "Подделать списки избирателей",
+    "bourrer_urnes": "Вбросить бюллетени",
+    "truquer_depouillement": "Подтасовать подсчёт голосов",
+    "consulter_mandats_maires": "Просмотреть итоги сроков полномочий",
+    "observer_debats": "Наблюдать за дебатами",
+    "voter_loi": "Проголосовать за закон",
+    "projet_loi": "Внести законопроект",
+    "amender_projet": "Внести поправки в свой проект",
+    "marchander_vote": "Торговаться за голос"
   },
   "ko": {
     "installer_equipements": "장비 설치",
@@ -298,7 +348,17 @@
     "ouvrir_enquete": "수사 개시",
     "gestion_caserne": "병영 관리",
     "emprunter_prive": "대출받기 (심사 없음)",
-    "avocat_barreau": "변호사회 등록 현황"
+    "avocat_barreau": "변호사회 등록 현황",
+    "contester_resultats": "선거 결과에 이의 제기",
+    "falsifier_listes_electorales": "선거인 명부 조작",
+    "bourrer_urnes": "투표함에 가짜 투표지 넣기",
+    "truquer_depouillement": "개표 결과 조작",
+    "consulter_mandats_maires": "임기 활동 요약 보기",
+    "observer_debats": "토론 참관",
+    "voter_loi": "법률안 표결",
+    "projet_loi": "법률안 제출",
+    "amender_projet": "내 법안 수정",
+    "marchander_vote": "표 거래 협상"
   },
   "ar": {
     "installer_equipements": "تركيب المعدات",
@@ -347,7 +407,17 @@
     "ouvrir_enquete": "فتح تحقيق",
     "gestion_caserne": "إدارة الثكنة",
     "emprunter_prive": "الحصول على قرض (دون تحقق)",
-    "avocat_barreau": "تسجيلي في نقابة المحامين"
+    "avocat_barreau": "تسجيلي في نقابة المحامين",
+    "contester_resultats": "الطعن في نتائج الانتخابات",
+    "falsifier_listes_electorales": "تزوير قوائم الناخبين",
+    "bourrer_urnes": "حشو صناديق الاقتراع",
+    "truquer_depouillement": "التلاعب بفرز الأصوات",
+    "consulter_mandats_maires": "عرض ملخصات فترات الولاية",
+    "observer_debats": "متابعة المناقشات",
+    "voter_loi": "التصويت على قانون",
+    "projet_loi": "تقديم مشروع قانون",
+    "amender_projet": "تعديل مشروع القانون الخاص بي",
+    "marchander_vote": "المساومة على صوت"
   },
   "pt-BR": {
     "installer_equipements": "Instalar equipamentos",
@@ -396,7 +466,17 @@
     "ouvrir_enquete": "Abrir uma investigação",
     "gestion_caserne": "Gerenciar o quartel",
     "emprunter_prive": "Pedir empréstimo (sem verificação)",
-    "avocat_barreau": "Minha inscrição na OAB"
+    "avocat_barreau": "Minha inscrição na OAB",
+    "contester_resultats": "Contestar os resultados eleitorais",
+    "falsifier_listes_electorales": "Falsificar as listas eleitorais",
+    "bourrer_urnes": "Fraudar as urnas com votos falsos",
+    "truquer_depouillement": "Manipular a apuração",
+    "consulter_mandats_maires": "Consultar resumos dos mandatos",
+    "observer_debats": "Acompanhar os debates",
+    "voter_loi": "Votar uma lei",
+    "projet_loi": "Apresentar um projeto de lei",
+    "amender_projet": "Emendar meu projeto",
+    "marchander_vote": "Negociar um voto"
   },
   "de": {
     "installer_equipements": "Ausrüstung installieren",
@@ -445,7 +525,17 @@
     "ouvrir_enquete": "Ermittlungen einleiten",
     "gestion_caserne": "Kaserne verwalten",
     "emprunter_prive": "Kredit aufnehmen (ohne Prüfung)",
-    "avocat_barreau": "Meine Zulassung zur Anwaltskammer"
+    "avocat_barreau": "Meine Zulassung zur Anwaltskammer",
+    "contester_resultats": "Wahlergebnisse anfechten",
+    "falsifier_listes_electorales": "Wählerverzeichnisse fälschen",
+    "bourrer_urnes": "Wahlurnen mit Stimmzetteln füllen",
+    "truquer_depouillement": "Stimmauszählung manipulieren",
+    "consulter_mandats_maires": "Zusammenfassungen der Amtszeiten ansehen",
+    "observer_debats": "Debatten verfolgen",
+    "voter_loi": "Über ein Gesetz abstimmen",
+    "projet_loi": "Gesetzentwurf einbringen",
+    "amender_projet": "Meinen Gesetzentwurf ändern",
+    "marchander_vote": "Um eine Stimme feilschen"
   }
 };
   for(const [locale,labels] of Object.entries(words)) {
