@@ -39,7 +39,8 @@ async function traduireContenu({type,id,field,langueCible},deps) {
  let cached;
  try { cached=await deps.readCache(key); } catch { cached=null; }
  const sameTokens=(left,right)=>JSON.stringify(placeholders(left))===JSON.stringify(placeholders(right));
- if(typeof cached==='string' && cached && sameTokens(original,cached))
+ if(typeof cached==='string' && cached.trim() && cached.length<=4000 &&
+    !/[\u0000-\u0008\u000E-\u001F]/.test(cached) && sameTokens(original,cached))
   return Object.freeze({ok:true,original,traduit:cached,fromCache:true});
  // Quota persistant et atomique vérifié avant tout appel payant.
  let permit;
