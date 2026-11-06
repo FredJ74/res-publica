@@ -5,7 +5,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-test('Starovka : haut, droite et bas futur depuis le carrefour pétrole-ferme',()=>{
+test('Starovka : trois flèches actives depuis le carrefour pétrole-ferme',()=>{
  const ctx=vm.createContext({console,state:{country:'soviet',currentCity:'ville_a'}});
  vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8'),ctx);
  vm.runInContext(fs.readFileSync(path.join(root,'plateau-rue-centrale.js'),'utf8'),ctx);
@@ -17,8 +17,8 @@ test('Starovka : haut, droite et bas futur depuis le carrefour pétrole-ferme',(
  })`,ctx);
  assert.equal(x.petrole.liens.toutDroit,'starovka-maisons-ferme');
  assert.equal(x.petrole.liens.droite,'starovka-rue-terrains');
- assert.equal(x.petrole.liens.arriere,undefined);
- assert.equal(x.petrole.liensEnAttente.arriere,true);
+ assert.equal(x.petrole.liens.arriere,'starovka-rue-locaux-a-louer');
+ assert.equal(x.petrole.liensEnAttente?.arriere,undefined);
  assert.equal(x.petrole.flechesStyle.arriere,x.bas);
  assert.match(x.petrole.flechesStyle.droite,/right:10px/);
  assert.equal(x.terrains.liens.gauche,'starovka-rue-petrole-ferme');
