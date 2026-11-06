@@ -9,6 +9,8 @@ on:
       - outils/bancs/banc-i18n-ordres.cjs
       - .github/workflows/i18n-ordres-29-20261106.yml
       - .github/workflows/i18n-tests.yml
+      - outils/bancs/banc-i18n-render-ordres.cjs
+      - plateau-politique.js
 permissions:
   contents: read
 jobs:
@@ -24,5 +26,6 @@ jobs:
         run: |
           node --check i18n/orders-resources.js
           node --check i18n/ordres.js
-          node --test outils/bancs/banc-accueil-neuf-langues.cjs outils/bancs/banc-i18n-couverture.cjs outils/bancs/banc-i18n-pont-plateau.cjs outils/bancs/banc-i18n-plateau-ressources.cjs outils/bancs/banc-i18n-plateau-wiring.cjs outils/bancs/banc-i18n-plateau-init.cjs outils/bancs/banc-i18n-texte-joueur.cjs outils/bancs/banc-traduction-i18n.mjs outils/bancs/banc-i18n-selecteur-interactif.cjs outils/bancs/banc-i18n-ordres.cjs outils/bancs/banc-i18n-catalogue-ordres.cjs outils/bancs/banc-i18n-traduction-sources.mjs outils/bancs/banc-i18n-contenu-securise.mjs
+          node --test outils/bancs/banc-accueil-neuf-langues.cjs outils/bancs/banc-i18n-couverture.cjs outils/bancs/banc-i18n-pont-plateau.cjs outils/bancs/banc-i18n-plateau-ressources.cjs outils/bancs/banc-i18n-plateau-wiring.cjs outils/bancs/banc-i18n-plateau-init.cjs outils/bancs/banc-i18n-texte-joueur.cjs outils/bancs/banc-traduction-i18n.mjs outils/bancs/banc-i18n-selecteur-interactif.cjs outils/bancs/banc-i18n-ordres.cjs outils/bancs/banc-i18n-catalogue-ordres.cjs outils/bancs/banc-i18n-traduction-sources.mjs outils/bancs/banc-i18n-contenu-securise.mjs outils/bancs/banc-i18n-render-ordres.cjs
+          node --check plateau-politique.js
           git diff --check
