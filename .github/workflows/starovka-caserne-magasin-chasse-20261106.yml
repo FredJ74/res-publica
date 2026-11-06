@@ -1,0 +1,23 @@
+name: Starovka — raccorder caserne et magasin de chasse
+on:
+  push:
+    branches: [feature/starovka-caserne-magasin-chasse-20261106]
+    paths:
+      - '.github/workflows/starovka-caserne-magasin-chasse-20261106.yml'
+      - 'outils/bancs/test-starovka-caserne-magasin-chasse-20261106.mjs'
+permissions:
+  contents: read
+jobs:
+  navigation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Vérifier la syntaxe et les trajets Starovka
+        run: |
+          node --check plateau-rue-centrale.js
+          node --test outils/bancs/test-starovka-caserne-magasin-chasse-20261106.mjs outils/bancs/test-starovka-lycee-bureaux-caserne-20261106.mjs
+          git diff --check
