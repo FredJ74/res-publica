@@ -29,3 +29,12 @@ panneaux repliés, fond de fermeture et retour du focus ; le menu historique res
 Banc `banc-mobile-coque.cjs` : 6/6, cinq formats + comparaison PNG stricte 1440 px
 avec `728010c8`. Une erreur de stacking du menu sous le fond a été détectée par
 un vrai clic et corrigée (pas de clic forcé). Aucun RPC ni compte dans ces tests.
+
+## L2 — navigation et pièces
+
+Banc coque 8/8 : accès tactile/clavier appelle une fois le gestionnaire de zone,
+une zone retirée ne navigue pas ; onglets et sortie accessibles en paysage.
+La liste utilise les zones déjà résolues par le moteur, donc respecte les vues
+contextuelles (dont PSM) sans recopier les destinations. Données des quatre vues,
+coordonnées et gestionnaires métier non modifiés. CSS mobile conserve le ratio de
+l'image et isole les flèches des fenêtres superposées. Bureau 1440 pixel identique.

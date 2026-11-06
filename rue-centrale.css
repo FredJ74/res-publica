@@ -110,3 +110,14 @@
   box-shadow: 0 4px 14px rgba(0,0,0,.5);
 }
 .rc-tooltip.visible { opacity: 1; }
+
+/* Mobile : le ratio de l'image reste celui des coordonnées des zones.
+   Le conteneur de scène défile plutôt que d'écraser la hauteur de l'image. */
+@media(max-width:1023px){
+  .rc-image{max-height:none}
+  .rc-scene{isolation:isolate}
+  .rc-fleche{touch-action:manipulation}
+}
+@media(max-width:1023px) and (prefers-reduced-motion:reduce){
+  .rc-image,.rc-overlay,.rc-texte{transition:none}
+}

@@ -29,3 +29,15 @@ for(const [w,h] of [[375,667],[393,852],[412,915],[852,393],[768,1024]])test(`L1
  assert.equal(await p.locator('#left').count(),1);assert.equal(await p.evaluate(()=>appels),0);
  await p.locator('[data-hg-panneau=menu]').click();await p.locator('#hg-menu-existant .forum-btn').first().evaluate(e=>e.removeAttribute('onclick'));await p.locator('#hg-menu-existant .forum-btn').first().click();assert.equal(await p.locator('body').getAttribute('data-mobile-panel'),null);
 }));
+test('L2 : lieux tactiles et clavier réutilisent le clic existant, une seule fois',async()=>avecJeu(async(b,o)=>{
+ const p=await page(b,o,375,667);
+ await p.evaluate(()=>{window.entrees=0;const scene=document.createElement('div');scene.id='rc-scene';const zone=document.createElement('div');zone.className='rc-zone';zone.setAttribute('aria-label','Lieu de test');zone.tabIndex=0;zone.onclick=()=>entrees++;scene.append(zone);document.getElementById('rue-image').append(scene);});
+ await p.locator('.hg-lieux-tactiles summary').click();await p.locator('.hg-lieux-tactiles button').click();assert.equal(await p.evaluate(()=>entrees),1);
+ await p.locator('.rc-zone').focus();await p.keyboard.press('Enter');assert.equal(await p.evaluate(()=>entrees),2);
+ await p.evaluate(()=>{document.getElementById('rc-scene').remove();});await p.locator('.hg-lieux-tactiles button').click();assert.equal(await p.evaluate(()=>entrees),2,'une scène périmée ne déplace personne');
+}));
+test('L2 : pièces et actions accessibles en paysage',async()=>avecJeu(async(b,o)=>{
+ const p=await page(b,o,852,393);await p.evaluate(()=>{document.getElementById('vue-rue').classList.remove('active');document.getElementById('vue-batiment').classList.add('active');document.getElementById('pieces-tabs').innerHTML=Array.from({length:8},(_,i)=>'<button class="piece-tab">Pièce '+i+'</button>').join('');});
+ await p.locator('.piece-tab').last().scrollIntoViewIfNeeded();await p.locator('.piece-tab').last().click();assert.ok(await p.locator('#piece-image').evaluate(e=>e.getBoundingClientRect().width)>800);
+ await p.locator('#vue-batiment .sortir-btn').scrollIntoViewIfNeeded();assert.ok(await p.locator('#vue-batiment .sortir-btn').isVisible());
+}));

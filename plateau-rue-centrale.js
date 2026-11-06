@@ -1684,6 +1684,9 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   zonesAffichees.forEach((z, i) => {
     const div = document.createElement('div');
     div.className = 'rc-zone';
+    div.setAttribute('aria-label', z.nom);
+    div.setAttribute('role', 'button');
+    div.tabIndex = 0;
     div.style.left = z.xPct[0] + '%';
     div.style.width = (z.xPct[1] - z.xPct[0]) + '%';
     if (z.yPct) {

@@ -2280,3 +2280,23 @@ body.plateau-body .top-right {
   body[data-mobile-panel=personnes] .vue.active .minimap:not([style*="display: none"]){display:flex!important;position:fixed;inset:calc(var(--hg-entete,56px) + 8px) 8px max(8px,env(safe-area-inset-bottom));z-index:71;flex-direction:column;overflow:auto;background:#202a36;border:1px solid #a98d56;border-radius:8px}
   body[data-mobile-panel=personnes] #vue-rue .persons-sidebar[style*="display: none"]{display:none!important}
 }
+
+/* MOBILE L2 — pièces et actions, sans modifier les destinations. */
+.hg-lieux-tactiles{display:none}
+@media(max-width:1023px){
+  .vue.active{overflow-y:auto;overscroll-behavior:contain}
+  .rue-container,.piece-container{flex:1 0 180px;min-height:180px}
+  .rue-image,.piece-image{min-height:180px}
+  #rue-centrale-conteneur{overflow:auto}
+  .batiment-header{flex-wrap:wrap;gap:.4rem}
+  .batiment-header-info{min-width:0}
+  .pieces-tabs{flex:1 0 100%;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+  .piece-tab{flex-shrink:0;min-height:44px;font-size:1rem}
+  .city-header{flex-wrap:wrap}
+  .city-tabs{flex-wrap:wrap}
+  .sortir-btn,.action-btn{min-height:44px;font-size:1rem;white-space:normal}
+  .hg-lieux-tactiles{display:block;padding:8px;background:#202a36;color:#e2e9f1;line-height:1.5}
+  .hg-lieux-tactiles summary{min-height:44px;cursor:pointer;padding:10px}
+  .hg-lieux-tactiles button{display:block;width:100%;min-height:44px;padding:10px;text-align:left;background:#344354;color:#e5c477;border:1px solid #a98d56;border-radius:5px;font:inherit;margin-top:6px}
+  :is(.rc-zone,.rc-fleche,.minimap-building):focus-visible{outline:3px solid #e5c477;outline-offset:-3px}
+}
