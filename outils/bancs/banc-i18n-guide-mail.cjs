@@ -12,7 +12,7 @@ for(const file of ['resources.js','plateau-resources.js']) {
 }
 const keys=['rulesIntro','rulesTutorial','rulesCharacter','rulesBoard',
  'rulesPolitics','rulesInteractions','rulesEconomy','rulesFootball',
- 'rulesReligion','recipient','recipientPlaceholder'];
+ 'rulesReligion','recipient','recipientPlaceholder','subjectPlaceholder','messagePlaceholder'];
 
 test('les neuf langues possèdent les titres du guide et les champs mail',()=>{
  const codes=Object.keys(window.RP_I18N_LANGUAGES);
@@ -41,6 +41,8 @@ test('inventaire, rue et courriel ajoutent seulement une clé texte',()=>{
  for(const key of ['noItems','streetHint','planTitle','recipient'])
   assert.ok(markup.includes('data-i18n="plateau.'+key+'"'),key);
  assert.match(markup,/<input\b[^>]*id="compose-mail-to"[^>]*data-i18n-placeholder="plateau\.recipientPlaceholder"/);
+ assert.match(markup,/<input\b[^>]*id="compose-mail-subject"[^>]*data-i18n-placeholder="plateau\.subjectPlaceholder"/);
+ assert.match(markup,/<textarea\b[^>]*id="compose-mail-body"[^>]*data-i18n-placeholder="plateau\.messagePlaceholder"/);
  assert.ok(markup.includes('onclick="fermerComposeMail()"'));
 });
 
