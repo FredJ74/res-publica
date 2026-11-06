@@ -1752,7 +1752,21 @@ const WORLD = {
           // Pas de suites a Novomirsk (decision de Fred, 04/11/2026) : elles sont au Pavillon des
           // Ambassadeurs (vue 7), qui en a trois.
           roomsExclues: ['suite_privee', 'suite_presidentielle'],
-          roomOverrides: { accueil: { excludeOrders: ['choisir_suite'] } },
+          roomOverrides: {
+            accueil: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_reception.webp',
+              excludeOrders: ['choisir_suite']
+            },
+            bar: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_bar.webp'
+            },
+            restaurant: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_restaurant.webp'
+            },
+            chambres: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_chambre.webp'
+            }
+          },
           persons: [{"name": "Olga Soupe (PNJ)", "role": "Cantinière", "rel": "neutral", "job": "serveur"}, {"name": "Boris Betterave (PNJ)", "role": "Cuisinier", "rel": "neutral", "job": "serveur"}, {"name": "Natasha Privilege (PNJ)", "role": "Réservée aux cadres du Parti", "rel": "neutral", "job": "escort"}]
         },
         'commissariat': {
