@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('117 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('137 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,117);
+ assert.equal(ref.length,137);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -198,5 +198,26 @@ test('20 ordres sport et justice : présence réelle, traductions et droits inta
    assert.equal(original.fn,fn);assert.equal(original.label,label);
    assert.equal(original.pa,4);assert.equal(original.cost,210);
    assert.equal(original.requiresPost,'test_role');
+ }
+});
+
+
+test('20 ordres juridiques et économiques : parité source, neuf langues, aucune mutation',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const ids=["officialiser_transaction","commerces_fonds_murs","racheter_entreprise","transfert_compromis","acte_officiel_notaire","demander_non_renouvellement_licence","annuler_non_renouvellement_licence","recolter_matiere","defense","temoins_mes_convocations","acte_officiel_juge","archives","avocat_dossiers","greffe_affaires","garde_republicaine","renseignement_militaire","diplomatie_bilaterale","proposer_grace","gerer_budget_justice","gestion_industrielle_portuaire"];
+ const words=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const fn of ids){
+   const label=words[fn];
+   assert.equal(typeof label,'string',fn);
+   const matches=[...source.matchAll(/\\bfn\\s*:\\s*(['\"])([^'\"\\n]+)\\1\\s*,\\s*label\\s*:\\s*(['\"])([^'\"\\n]+)\\3/g)];
+   assert.ok(matches.some(m=>m[2]===fn && m[4]===label),'libellé source non conforme '+fn);
+   const original=Object.freeze({fn,label,pa:3,cost:82,requiresPost:'poste_test'});
+   for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
+     const translated=win.RP_I18N_RESOURCES[lang].translation.orders[fn];
+     assert.ok(typeof translated==='string' && translated.trim(),lang+'/'+fn);
+     assert.equal(win.RPOrderI18n.label(original,engine,lang),translated,lang+'/'+fn);
+   }
+   assert.equal(original.fn,fn);assert.equal(original.pa,3);assert.equal(original.cost,82);
+   assert.equal(original.requiresPost,'poste_test');assert.equal(original.label,label);
  }
 });
