@@ -28,7 +28,8 @@ async function traduireContenu({type,id,field,langueCible},deps) {
   return refuse(); // aucune distinction entre absent et interdit
  const original=record.text;
  // La dépense ne doit pas être engagée sur du texte vide, illisible ou déjà localisé.
- if(!original.trim() || original.length>1800)return refuse('texte_invalide');
+ if(!original.trim() || original.length>1800 || /[\u0000-\u0008\u000E-\u001F]/.test(original))
+  return refuse('texte_invalide');
  if(typeof record.version!=='string' || !record.version || record.version.length>128)return refuse('version_absente');
  if(!langueAdmise(record.language))return refuse('langue_source_invalide');
  if(record.language===langueCible) return Object.freeze({ok:true,original,traduit:original,fromCache:true});
