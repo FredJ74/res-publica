@@ -17,6 +17,7 @@ on:
       - 'outils/bancs/banc-i18n-plateau-wiring.cjs'
       - 'outils/bancs/banc-i18n-plateau-init.cjs'
       - 'outils/bancs/banc-i18n-navbar-20261106.cjs'
+      - 'outils/bancs/banc-i18n-guide-mail.cjs'
       - 'outils/bancs/banc-i18n-texte-joueur.cjs'
       - 'api/_traduction.js'
       - 'outils/bancs/banc-traduction-i18n.mjs'
@@ -56,6 +57,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-plateau-wiring.cjs
       - name: Initialisation du plateau et RTL
         run: node --test outils/bancs/banc-i18n-plateau-init.cjs
+      - name: Guide du jeu et champs mail localisés sans toucher aux handlers
+        run: node --test outils/bancs/banc-i18n-guide-mail.cjs
       - name: Barre supérieure localisée, icônes et gestionnaires préservés
         run: node --test outils/bancs/banc-i18n-navbar-20261106.cjs
       - name: Texte joueur et original préservés
