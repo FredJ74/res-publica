@@ -81,8 +81,8 @@ test('les enseignes des quatre boutiques reçoivent le nom du locataire par le s
 test('ancrage bas des grandes vitrines et enseignes : CSS, décor Premium, géométrie concordants',()=>{
  const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
  const engine=fs.readFileSync(path.join(root,'plateau-variantes-pieces.js'),'utf8');
- assert.match(css,/\\.piece-image\\[data-ancrage="bas"\\]\\{background-position:center bottom!important\\}/);
- assert.match(css,/\\.piece-image\\[data-commerce-decor="1"\\]\\[data-ancrage="bas"\\]\\{background-position:center center!important\\}/);
+ assert.ok(css.includes('.piece-image[data-ancrage="bas"]{background-position:center bottom!important}'));
+ assert.ok(css.includes('.piece-image[data-commerce-decor="1"][data-ancrage="bas"]{background-position:center center!important}'));
  const pieces=ctx.variantes.soviet.capitale['centre-commercial'];
  assert.equal(pieces.vitrine_principale.ancrage,'bas');
  assert.equal(pieces.boutique_milieu.ancrage,'bas');
