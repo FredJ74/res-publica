@@ -1,10 +1,8 @@
-/* Pont de localisation du plateau, non encore chargé. Le moteur reste i18next. */
+/* Pont de localisation du plateau (catalogue central). Le moteur reste i18next. */
 (function (global) {
   'use strict';
   // Les neuf langues viennent du même catalogue que l'accueil.
-  const LANGS = Object.freeze(Object.keys(global.RP_I18N_LANGUAGES || {
-    fr:1,en:1,es:1,'zh-TW':1,ru:1,ko:1,ar:1,'pt-BR':1,de:1
-  }));
+  const LANGS = Object.freeze(Object.keys(global.RP_I18N_LANGUAGES || {fr:1}));
   function resolve(code) {
     if(typeof code!=='string' || !code.trim())return null;
     const parts=code.toLowerCase().replace(/_/g,'-').split('-');
