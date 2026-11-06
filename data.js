@@ -1892,11 +1892,9 @@ const WORLD = {
             persons: []
           }
           }
-        },        'commissariat': {
-          name: "Milice de Stalinova",
-          desc: "Très attentive aux comportements déviants.",
-          persons: [{"name": "Milicien Vigilant (PNJ)", "role": "Chef de milice", "rel": "neutral", "job": "commissaire"}]
         },
+        // L'ancien doublon « Milice de Stalinova » écrasait le Commissariat
+        // du Peuple de Novomirsk : supprimé pour garder la définition canonique.
         'banque-nationale': {
           name: "Caisse d'État de Stalinova",
           desc: "Transactions enregistrées en quadruple.",
