@@ -35,7 +35,7 @@ test('les 14 nouveaux libellés sont ancrés dans les ordres réellement déclar
   'plainte_police','se_justifier','organiser_filature','recruter_policier',
   'consulter_dossier_notarial','gerer_testament','reclamer_heritage',
   'consulter_archives_notariales','consulter_offres_emploi','observer_match',
-  'regarder_live','prendre_licence_sportive','emprunter','virement_joueur'
+  'regarder_live','prendre_licence_sportive','emprunter','se_rebeller'
  ];
  const words=win.RP_I18N_RESOURCES.fr.translation.orders;
  for(const fn of ids){
