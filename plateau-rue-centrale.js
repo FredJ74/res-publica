@@ -1338,7 +1338,7 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-16': {
       image: 'images/rue-marche-novomirsk.webp',
       zones: [
-        { xPct: [20, 45],  yPct: [52, 95], nom: 'Marchande de poissons', type: 'a-venir' },
+        { xPct: [20, 45],  yPct: [52, 95], nom: 'Marchande de poissons', type: 'batiment', buildingId: 'poissonniere-novomirsk' },
         { xPct: [60, 98],  yPct: [32, 74], nom: 'Marché de Novomirsk', type: 'batiment', buildingId: 'marche' }
       ],
       liens: { arriere: 'novomirsk-vue-14', toutDroit: 'novomirsk-vue-17' },

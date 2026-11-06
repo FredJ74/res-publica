@@ -5478,6 +5478,15 @@ export const SCENES_PNJ = {
       "Valentina Pilioulkina"
     ]
   },
+  "[\"soviet\",\"capitale\",\"poissonniere-novomirsk\",\"etal_poissonniere\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Marchande de poissons",
+    "piece": "Étal",
+    "personnes": [
+      "Galina Karpova"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
