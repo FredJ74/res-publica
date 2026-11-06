@@ -78,3 +78,16 @@ test('caractères de contrôle : rejet après lecture RLS, avant cache et quota'
  assert.equal(r.raison,'texte_invalide');
  assert.deepEqual(calls,['auth','rls']);
 });
+
+
+test('cache trop long ou avec contrôle : jamais servi, fournisseur sécurisé réinterrogé',async()=>{
+ for(const corrupt of ['X'.repeat(4001),'Hello {{name}}\\u0001']){
+  const {calls,deps}=fixtures();
+  deps.readCache=async()=>{calls.push('cache');return corrupt};
+  const r=await traduireContenu(input,deps);
+  assert.equal(r.ok,true);
+  assert.equal(r.traduit,'Hello {{name}}');
+  assert.equal(r.fromCache,false);
+  assert.deepEqual(calls,['auth','rls','cache','quota','provider','write']);
+ }
+});
