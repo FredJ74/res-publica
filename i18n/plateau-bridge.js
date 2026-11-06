@@ -1,10 +1,38 @@
 /* Pont de localisation du plateau, non encore chargé. Le moteur reste i18next. */
 (function (global) {
   'use strict';
-  const LANGS = Object.freeze(['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de']);
+  // Les neuf langues viennent du même catalogue que l'accueil.
+  const LANGS = Object.freeze(Object.keys(global.RP_I18N_LANGUAGES || {
+    fr:1,en:1,es:1,'zh-TW':1,ru:1,ko:1,ar:1,'pt-BR':1,de:1
+  }));
+  function resolve(code) {
+    if(typeof code!=='string' || !code.trim())return null;
+    const parts=code.toLowerCase().replace(/_/g,'-').split('-');
+    const exact=LANGS.find(lang=>lang.toLowerCase()===parts.join('-'));
+    if(exact)return exact;
+    return LANGS.find(lang=>{
+      const wanted=lang.toLowerCase().split('-');
+      if(wanted[0]!==parts[0])return false;
+      // Les langues simples acceptent leur région (es-MX, pt-PT ? non :
+      // pt-BR est une langue régionale et exige explicitement BR).
+      if(wanted.length===1)return true;
+      return parts.length>1 && wanted[wanted.length-1]===parts[parts.length-1];
+    }) || null;
+  }
   function language() {
-    try { const value=global.localStorage?.getItem('respublica_language'); return LANGS.includes(value) ? value : 'fr'; }
-    catch (_) { return 'fr'; }
+    try {
+      const saved=global.localStorage?.getItem('respublica_language');
+      // Comme sur l'accueil, une préférence persistée doit être exacte.
+      if(LANGS.includes(saved))return saved;
+    } catch (_) { /* stockage indisponible */ }
+    const navigator=global.navigator || {};
+    const candidates=Array.isArray(navigator.languages) && navigator.languages.length
+      ? navigator.languages : [navigator.language || navigator.userLanguage];
+    for(const candidate of candidates) {
+      const match=resolve(candidate);
+      if(match)return match;
+    }
+    return 'fr';
   }
   function translate(key, vars={}) {
     if(typeof key!=='string' || !/^[\w.-]+$/.test(key)) return '';
@@ -16,5 +44,5 @@
     return Object.freeze({ original:originalText, displayed:usable?translated:originalText, isTranslated:usable });
   }
   function number(value) { return Number.isFinite(value)?new Intl.NumberFormat(language(),{maximumFractionDigits:0}).format(value):''; }
-  global.RPPlateauI18n=Object.freeze({LANGS,language,translate,message,number});
+  global.RPPlateauI18n=Object.freeze({LANGS,resolve,language,translate,message,number});
 })(window);
