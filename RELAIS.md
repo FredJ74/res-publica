@@ -379,7 +379,8 @@ contenu en paysage. 10/10 tests de coque ; bureau 1440 toujours pixel identique.
 Pas de test sur vrai clavier iOS ni compte authentifié. L6 démarre séparément.
 
 Mobile L1 : conserver le préfixe historique de version CSS et ajouter le suffixe mobile ;
-le banc de lisibilité exige ce préfixe. Cache effectivement majoré, test conservé.
+le banc de lisibilité exige ce préfixe. Cache effectivement majoré, test conservé. Témoin bureau embarqué et vérifié SHA-256
+pour les clones CI superficiels (aucun fetch ni historique complet nécessaire).
 
 Mobile L2 : fixture DOM des rues complétée avec setAttribute/getAttribute ; assertions
 de destinations, quatre vues PSM et positions conservées sans assouplissement.
