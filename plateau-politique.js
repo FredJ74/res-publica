@@ -3973,9 +3973,15 @@ function renderRoomActions(room, buildingId, roomId) {
   })();
 
   const buttons = ordresTerrainLuthecia.map(o => {
+    // Le libellé d'affichage seul est traduit. L'ordre d'origine (fn, PA,
+    // prix, permissions et o.label passé à doOrder) est strictement conservé.
+    const libelleAffiche = (window.RPOrderI18n && window.RPPlateauI18n &&
+      typeof window.RPOrderI18n.labelHtml === 'function')
+      ? window.RPOrderI18n.labelHtml(o,window.i18next,window.RPPlateauI18n.language())
+      : o.label;
     if (achatTerrainBloqueParIntrus && ['acheter_terrain','signer_compromis'].includes(o.fn)) {
       return '<button type="button" class="action-btn legal blocked" disabled aria-disabled="true" title="' +
-        messageAchatTerrainIntrus + '"><i class="ti ' + o.icon + '"></i> ' + o.label + '</button>';
+        messageAchatTerrainIntrus + '"><i class="ti ' + o.icon + '"></i> ' + libelleAffiche + '</button>';
     }
     // Verifier requiresPost : doit avoir le bon poste specifique
     let needsPost = false;
@@ -4293,7 +4299,7 @@ function renderRoomActions(room, buildingId, roomId) {
     const blockedCls = (needsBientot || needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsPoliceIndisponible || needsLicenceIndisponible || needsSuiteIndisponible || needsElectionIndisponible || needsPatientChambre || needsRoleLocal) ? ' blocked' : '';
     const coutJoint = [costDisplay, paDisplay].filter(Boolean).join(' · ');
     const tooltipFinal = needsBientot ? bientotTooltip.replace(/"/g, '&quot;') : (needsPoliceIndisponible ? policeTooltip.replace(/"/g, '&quot;') : (needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : (needsElectionIndisponible ? electionTooltip.replace(/"/g, '&quot;') : (needsPatientChambre ? patientChambreTooltip.replace(/"/g, '&quot;') : (needsRoleLocal ? roleLocalTooltip.replace(/"/g, '&quot;') : tooltip))))));
-    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
+    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + libelleAffiche + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 
   // #57 — groupes de commandes des cinq terrains, sans fabriquer de nouveaux handlers.
