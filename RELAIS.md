@@ -354,3 +354,11 @@ archive ZIP vérifiée (28 fichiers + manifeste), liens et filtre Vercel documen
 validés. Création de PR refusée : GraphQL `Forbidden` ; rapport consultable sur la
 branche poussée, aucune PR fusionnée ni commande de déploiement. L'audit est terminé ;
 le développement mobile n'a pas commencé et attend une mission distincte.
+
+### Mobile L0–L3 puis L6 — Codex, 06/11/2026, EN COURS
+
+Fred autorise le développement, une PR par lot puis forum L6. Codex seul propriétaire
+de `style.css`, `rue-centrale.css`, coque `plateau.html` ; Claude continue Sovarka.
+Branche L0 `codex/mobile-l0-l3-20261106`, base `728010c8`.
+Contrat : `outils/audits/MOBILE-LOTS-L0-L3-RECETTE.md`. Pas de mécanique bis,
+pas de compte ou transaction réelle ; bureau 1440 px à comparer à chaque lot.
