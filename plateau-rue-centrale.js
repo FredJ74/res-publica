@@ -1254,7 +1254,7 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-14': {
       image: 'images/rue-pharmacie-logements-novomirsk.webp',
       zones: [
-        { xPct: [52, 71],  yPct: [8, 66],  nom: 'Logements', type: 'a-venir' },
+        { xPct: [52, 71],  yPct: [8, 66],  nom: 'Logements', type: 'batiment', buildingId: 'logements-novomirsk' },
         { xPct: [71, 100], yPct: [18, 86], nom: 'Pharmacie officielle de Novomirsk', type: 'a-venir' }
       ],
       liens: { arriere: 'novomirsk-vue-13', droite: 'novomirsk-vue-15', toutDroit: 'novomirsk-vue-16' },

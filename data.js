@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -6798,6 +6798,115 @@ const BUILDINGS = {
         persons: [{name:'Ludmila Permanentova (PNJ)', role:'Coiffeuse', rel:'neutral', job:'coiffeuse'}],
         orders: [
           {fn:'salon_coupe', label:'Se faire couper les cheveux', pa:0, cost:0, type:'legal', icon:'ti-scissors', successRate:100, desc:"+5 popularité et +1 charisme jusqu'à minuit. Une coupe tous les 3 jours."}
+        ]
+      }
+    }
+  },
+  // LOGEMENTS DE NOVOMIRSK (vue 14), decisions de Fred du 06/11/2026 : en Sovarka, tous les
+  // logements hors suites sont sociaux, mecanique de Montrouge (demande a la mairie, attribution
+  // par l'adjoint au maire, loyer a la commune). 4 petits a 10 PSK et 4 grands a 20 PSK ; serveur :
+  // logements_sociaux_historiques (migration 20261106003000). Images a venir.
+  'logements-novomirsk': {
+    name: "Logements collectifs de Novomirsk",
+    shortName: "Logements",
+    cat: "Habitat",
+    icon: "ti-building-community",
+    bgColor: "#121418",
+    desc: "Une barre de béton du Plan quinquennal. Chaque appartement est attribué par la ville ; on n'y choisit ni son étage ni ses voisins.",
+    rooms: {
+      salle: {
+        name: "Hall d'immeuble",
+        desc: "Boîtes aux lettres numérotées, escalier en béton, tableau d'affichage du comité d'immeuble.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        persons: [],
+        orders: []
+      },
+      petit_appartement_1: {
+        name: "Petit appartement n°1",
+        desc: "Une pièce et un coin cuisine au quatrième sans ascenseur, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Petit appartement n°1', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      petit_appartement_2: {
+        name: "Petit appartement n°2",
+        desc: "Une pièce et un coin cuisine au quatrième sans ascenseur, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Petit appartement n°2', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      petit_appartement_3: {
+        name: "Petit appartement n°3",
+        desc: "Une pièce et un coin cuisine au quatrième sans ascenseur, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Petit appartement n°3', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      petit_appartement_4: {
+        name: "Petit appartement n°4",
+        desc: "Une pièce et un coin cuisine au quatrième sans ascenseur, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Petit appartement n°4', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_1: {
+        name: "Grand appartement n°1",
+        desc: "Deux chambres, un poêle et un balcon sur la cour, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Grand appartement n°1', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_2: {
+        name: "Grand appartement n°2",
+        desc: "Deux chambres, un poêle et un balcon sur la cour, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Grand appartement n°2', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_3: {
+        name: "Grand appartement n°3",
+        desc: "Deux chambres, un poêle et un balcon sur la cour, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Grand appartement n°3', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_4: {
+        name: "Grand appartement n°4",
+        desc: "Deux chambres, un poêle et un balcon sur la cour, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Grand appartement n°4', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
         ]
       }
     }

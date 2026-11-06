@@ -5408,6 +5408,69 @@ export const SCENES_PNJ = {
       "Ludmila Permanentova"
     ]
   },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"salle\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Hall d'immeuble",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"petit_appartement_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Petit appartement n°1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"petit_appartement_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Petit appartement n°2",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"petit_appartement_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Petit appartement n°3",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"petit_appartement_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Petit appartement n°4",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"grand_appartement_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Grand appartement n°1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"grand_appartement_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Grand appartement n°2",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"grand_appartement_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Grand appartement n°3",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"grand_appartement_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Grand appartement n°4",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
