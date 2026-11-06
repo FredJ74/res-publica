@@ -607,6 +607,128 @@
 };
   for(const [locale,labels] of Object.entries(navigationLabels)) Object.assign(translations[locale],labels);
 
+  // Onglets du guide et champ destinataire : libellés seulement.
+  // Les fonctions de clic et les champs de saisie restent ceux du jeu.
+  const rulesAndMail = {
+    "fr": {
+      "rulesIntro": "Le Grand Jeu",
+      "rulesTutorial": "🎓 Tutoriel",
+      "rulesCharacter": "Personnage",
+      "rulesBoard": "Plateau",
+      "rulesPolitics": "Politique",
+      "rulesInteractions": "Interactions",
+      "rulesEconomy": "Économie",
+      "rulesFootball": "⚽ Football",
+      "rulesReligion": "Religions",
+      "recipient": "À",
+      "recipientPlaceholder": "Destinataire..."
+    },
+    "en": {
+      "rulesIntro": "The Grand Game",
+      "rulesTutorial": "🎓 Tutorial",
+      "rulesCharacter": "Character",
+      "rulesBoard": "Game board",
+      "rulesPolitics": "Politics",
+      "rulesInteractions": "Interactions",
+      "rulesEconomy": "Economy",
+      "rulesFootball": "⚽ Football",
+      "rulesReligion": "Religions",
+      "recipient": "To",
+      "recipientPlaceholder": "Recipient..."
+    },
+    "es": {
+      "rulesIntro": "El Gran Juego",
+      "rulesTutorial": "🎓 Tutorial",
+      "rulesCharacter": "Personaje",
+      "rulesBoard": "Tablero",
+      "rulesPolitics": "Política",
+      "rulesInteractions": "Interacciones",
+      "rulesEconomy": "Economía",
+      "rulesFootball": "⚽ Fútbol",
+      "rulesReligion": "Religiones",
+      "recipient": "Para",
+      "recipientPlaceholder": "Destinatario..."
+    },
+    "zh-TW": {
+      "rulesIntro": "權力大遊戲",
+      "rulesTutorial": "🎓 教學",
+      "rulesCharacter": "角色",
+      "rulesBoard": "遊戲地圖",
+      "rulesPolitics": "政治",
+      "rulesInteractions": "互動",
+      "rulesEconomy": "經濟",
+      "rulesFootball": "⚽ 足球",
+      "rulesReligion": "宗教",
+      "recipient": "收件人",
+      "recipientPlaceholder": "收件人..."
+    },
+    "ru": {
+      "rulesIntro": "Большая игра",
+      "rulesTutorial": "🎓 Обучение",
+      "rulesCharacter": "Персонаж",
+      "rulesBoard": "Игровое поле",
+      "rulesPolitics": "Политика",
+      "rulesInteractions": "Взаимодействия",
+      "rulesEconomy": "Экономика",
+      "rulesFootball": "⚽ Футбол",
+      "rulesReligion": "Религии",
+      "recipient": "Кому",
+      "recipientPlaceholder": "Получатель..."
+    },
+    "ko": {
+      "rulesIntro": "권력의 대결",
+      "rulesTutorial": "🎓 튜토리얼",
+      "rulesCharacter": "캐릭터",
+      "rulesBoard": "게임판",
+      "rulesPolitics": "정치",
+      "rulesInteractions": "상호작용",
+      "rulesEconomy": "경제",
+      "rulesFootball": "⚽ 축구",
+      "rulesReligion": "종교",
+      "recipient": "받는 사람",
+      "recipientPlaceholder": "수신자..."
+    },
+    "ar": {
+      "rulesIntro": "اللعبة الكبرى",
+      "rulesTutorial": "🎓 دليل المبتدئين",
+      "rulesCharacter": "الشخصية",
+      "rulesBoard": "لوحة اللعبة",
+      "rulesPolitics": "السياسة",
+      "rulesInteractions": "التفاعلات",
+      "rulesEconomy": "الاقتصاد",
+      "rulesFootball": "⚽ كرة القدم",
+      "rulesReligion": "الأديان",
+      "recipient": "إلى",
+      "recipientPlaceholder": "المستلم..."
+    },
+    "pt-BR": {
+      "rulesIntro": "O Grande Jogo",
+      "rulesTutorial": "🎓 Tutorial",
+      "rulesCharacter": "Personagem",
+      "rulesBoard": "Tabuleiro",
+      "rulesPolitics": "Política",
+      "rulesInteractions": "Interações",
+      "rulesEconomy": "Economia",
+      "rulesFootball": "⚽ Futebol",
+      "rulesReligion": "Religiões",
+      "recipient": "Para",
+      "recipientPlaceholder": "Destinatário..."
+    },
+    "de": {
+      "rulesIntro": "Das große Spiel",
+      "rulesTutorial": "🎓 Tutorial",
+      "rulesCharacter": "Charakter",
+      "rulesBoard": "Spielbrett",
+      "rulesPolitics": "Politik",
+      "rulesInteractions": "Interaktionen",
+      "rulesEconomy": "Wirtschaft",
+      "rulesFootball": "⚽ Fußball",
+      "rulesReligion": "Religionen",
+      "recipient": "An",
+      "recipientPlaceholder": "Empfänger..."
+    }
+  };
+  for(const [locale,labels] of Object.entries(rulesAndMail)) Object.assign(translations[locale],labels);
   for(const [locale,labels] of Object.entries(translations)) {
     if(resources[locale]?.translation) resources[locale].translation.plateau={...labels};
   }
