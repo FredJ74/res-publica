@@ -577,7 +577,7 @@ PIECE_VARIANTES.soviet = {
       const url = WORLD.soviet.capitale.buildingContext['centre-commercial'].roomOverrides[piece].imageUrl;
       return [piece, {
         famille: 'location',
-        ancrage: 'haut',
+        ancrage: taille === 'grand' ? 'bas-grand' : 'moyen-novomirsk',
         nom: NOM_LOCAL_LOUABLE,
         desc: { occupee: description },
         images: { libre: url, occupee: url },
@@ -715,7 +715,8 @@ function varianteZoneEnPixels(zone, cadre, taille, ancrage) {
   const origineX = (cl - dessinL) / 2;
   // Doit refleter EXACTEMENT le background-position applique par le CSS, sans
   // quoi le texte se decalerait du fronton : 'haut' => 0, 'centre' => centre.
-  const origineY = (ancrage === 'haut') ? 0 : (ch - dessinH) / 2;
+  const coefficientY = ancrage === 'haut' ? 0 : ancrage === 'bas' ? 1 : ancrage === 'bas-grand' ? 0.72 : ancrage === 'moyen-novomirsk' ? 0.30 : 0.5;
+  const origineY = (ch - dessinH) * coefficientY;
 
   return {
     gauche: origineX + zone.x * dessinL,
