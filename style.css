@@ -2317,3 +2317,22 @@ body.plateau-body .top-right {
   #chat-piece-panel{max-width:calc(100vw - 16px);max-height:calc(var(--hg-visible,100dvh) - 100px);left:8px!important;z-index:85!important}
   #hg-chat-toggle,#journal-open-btn{z-index:60!important}
 }
+
+/* L5 : tableaux, fiche et inventaire ; aucune valeur financière créée ici. */
+@media(max-width:1023px){
+  .char-sheet-grid{grid-template-columns:minmax(0,1fr);padding:.6rem}
+  .cs-section,.cs-stat-row{min-width:0;overflow-wrap:anywhere}
+  #vue-self .batiment-header{flex-wrap:wrap}
+  #vue-self .pieces-tabs{max-width:100%}
+  .hg-finances-grille{grid-template-columns:minmax(0,1fr)!important}
+  .hg-inventaire-ligne{flex-wrap:wrap;gap:8px!important}
+  .hg-inventaire-ligne>div:nth-child(2){flex:1 1 calc(100% - 60px)!important}
+  .hg-inventaire-nom{white-space:normal!important;overflow-wrap:anywhere}
+  .hg-inventaire-ligne>button{min-height:44px;flex:1 1 auto}
+  .hg-table-defilante{max-width:100%;overflow:auto;overscroll-behavior-x:contain}
+  .hg-table-defilante:focus-visible{outline:2px solid #e5c477;outline-offset:-2px}
+  .hg-table-defilante table{min-width:max-content}
+  .cpj-cell{flex-wrap:wrap}
+  .cpj-champ,.cpj-mini{min-width:64px;min-height:44px}
+  .cpj-nom-t,.cpj-sous{white-space:normal;overflow-wrap:anywhere}
+}

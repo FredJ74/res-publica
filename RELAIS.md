@@ -392,3 +392,20 @@ Mobile L2 : fixture DOM des rues complétée avec setAttribute/getAttribute ; as
 de destinations, quatre vues PSM et positions conservées sans assouplissement.
 
 Mobile L3 : correctifs des bancs L1/L2 intégrés ; aucun test de navigation supprimé.
+
+### Suite mobile L5 — Codex, 06/11/2026, EN COURS
+
+Branche `codex/mobile-l5-transactions-20261106`, partie de L3 `9f8e8912` (pas encore
+fusionnée dans le main récupéré), réconciliée avec `d57e77e0`. PR #532–536 et leurs
+cinq branches restent à Claude. REST tenté : GET pulls/535 également Forbidden dans
+cette session ; le push Git fonctionne. L5 : fiche/inventaire/tableaux, seul changement
+ciblé de `plateau-personnage.js` = classes de présentation, aucune valeur ou ordre changé.
+Ancien Helvetia : PA locaux et absence de clé dans le wrapper constatés ; pas de
+refonte ni migration dans le lot visuel, protection financière complète non certifiée.
+Pour tester : ouvrir fiche/inventaire long, banque et tableaux à 375 px ; mêmes valeurs
+et actions qu'au bureau. Tests en cours, ne pas fusionner avant leurs résultats.
+
+L5 : bancs ciblés réussis (voir journal local hg-suite-l5), comparaison bureau 1440
+conservée ; aucun calcul ni action financière changé. PR REST ouverte au premier
+push si l'accès l'autorise. Le lot L8 suit sur une branche propre, sans modifier
+les cinq branches que Claude intègre.

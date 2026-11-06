@@ -158,5 +158,27 @@
   window.addEventListener('resize',hauteurVisible);
   petit.addEventListener('change',() => { hauteurVisible(); suivreFenetre(); });
   hauteurVisible(); suivreFenetre();
+  // L5 : isoler le défilement des tableaux, sans toucher aux cellules ou commandes.
+  function adapterTables() {
+    const racines = document.querySelectorAll('.modal-overlay,#self-content');
+    if (!petit.matches) {
+      document.querySelectorAll('.hg-table-defilante').forEach(c => { c.replaceWith(...c.childNodes); });
+      return;
+    }
+    racines.forEach(r => r.querySelectorAll('table').forEach(t => {
+      if (t.closest('.hg-table-defilante')) return;
+      const c = document.createElement('div'); c.className = 'hg-table-defilante';
+      c.tabIndex = 0; c.setAttribute('role','region'); c.setAttribute('aria-label','Tableau défilant');
+      t.before(c); c.append(t);
+    }));
+  }
+  let tablesPlanifiees = false;
+  const tables = new MutationObserver(() => {
+    if (tablesPlanifiees) return;
+    tablesPlanifiees = true;
+    requestAnimationFrame(() => { tablesPlanifiees = false; adapterTables(); });
+  });
+  document.querySelectorAll('.modal-overlay,#self-content').forEach(e => tables.observe(e,{childList:true,subtree:true}));
+  petit.addEventListener('change',adapterTables); adapterTables();
   dimensionner();
 })();
