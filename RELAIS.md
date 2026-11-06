@@ -377,3 +377,9 @@ Mobile L3 : `codex/mobile-l3-fenetres-20261106`, dépend de L2. Hauteur visualVi
 focus dans les fenêtres, fermeture par leur bouton existant, champs >=16 px et chat
 contenu en paysage. 10/10 tests de coque ; bureau 1440 toujours pixel identique.
 Pas de test sur vrai clavier iOS ni compte authentifié. L6 démarre séparément.
+
+Mobile L6 : branche `codex/mobile-l6-forum-20261106`, dépend de L3. Contrôleur de
+composition existant étendu aux Pointer Events ; mêmes calculs, format des posts et
+permissions. 14/14 cas mobiles locaux, souris et annulation incluses ; forum et
+plateau bureau 1440 identiques. Les corrections des fixtures L1/L2 sont propagées
+avant le contrôle final. Aucun compte ni message réel publié.
