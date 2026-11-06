@@ -1,0 +1,72 @@
+name: Novomirsk — quatre intérieurs et trois portraits
+on:
+  push:
+    branches: [feature/novomirsk-commissariat-notaire-portraits-20261106]
+    paths:
+      - '.github/workflows/novomirsk-commissariat-notaire-portraits-20261106.yml'
+      - 'outils/bancs/test-novomirsk-commissariat-notaire-portraits-20261106.mjs'
+      - 'data.js'
+permissions:
+  contents: write
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Extraire les portraits depuis les scènes officielles
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image,ImageOps
+          folder=Path('images/Sovarka/Novomirsk')
+          # Coordonnées normalisées, centrées sur les vrais personnages des scènes.
+          scenes=[
+            ('Novomirsk_notaire_accueil.webp','Novo_klara_delounova_portrait.webp',(.596,.34,.769,.660)),
+            ('Novomirsk_Commissariat_acceuil.webp','Novo_sergent_matrakov_portrait.webp',(.265,.378,.411,.688)),
+            ('Novomirsk_commissariat-bureau.webp','Novo_vassili_ordonov_portrait.webp',(.452,.326,.691,.713)),
+          ]
+          for source,nom,coords in scenes:
+              src=folder/source; target=folder/nom
+              assert src.is_file() and not target.exists(),f'source ou destination inattendue {src}'
+              with Image.open(src) as f:
+                  im=ImageOps.exif_transpose(f).convert('RGB')
+              box=tuple(round(v*(im.width if i%2==0 else im.height)) for i,v in enumerate(coords))
+              assert box[0]<box[2] and box[1]<box[3]
+              crop=im.crop(box)
+              ImageOps.fit(crop,(480,480),Image.Resampling.LANCZOS).save(target,'WEBP',quality=88,method=6)
+              with Image.open(target) as check:
+                  assert check.format=='WEBP' and check.size==(480,480)
+                  check.verify()
+              assert target.stat().st_size>5000
+              print(nom,'extrait de',source,'taille',target.stat().st_size)
+          PY
+      - name: Régénérer les référentiels PNJ serveur existants
+        run: |
+          node outils/generateurs/generer-pnj-sovarka.cjs > api/_pnj-sovarka-genere.js
+          node outils/generateurs/generer-pnj-lieux-metiers.cjs --scenes-js > api/_pnj-scenes-generes.js
+      - name: Tester identité, images, profils, socles et non-régression
+        run: |
+          node --check data.js
+          node --check api/_pnj-sovarka-genere.js
+          node --check api/_pnj-scenes-generes.js
+          node --test outils/bancs/test-novomirsk-commissariat-notaire-portraits-20261106.mjs outils/bancs/test-pnj-sovarka-20261106.mjs
+          git diff --check
+      - name: Publier les trois portraits et les référentiels serveur
+        run: |
+          git add -- images/Sovarka/Novomirsk/Novo_klara_delounova_portrait.webp images/Sovarka/Novomirsk/Novo_sergent_matrakov_portrait.webp images/Sovarka/Novomirsk/Novo_vassili_ordonov_portrait.webp api/_pnj-sovarka-genere.js api/_pnj-scenes-generes.js
+          git diff --cached --check
+          git diff --cached --quiet && exit 1
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(novomirsk): portraits PNJ et scènes serveur actualisées'
+          git push origin HEAD:feature/novomirsk-commissariat-notaire-portraits-20261106
