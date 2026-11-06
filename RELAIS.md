@@ -424,3 +424,14 @@ session, malgré son fonctionnement chez Claude. Les branches sont sauvegardées
 Réconciliation de `codex/mobile-l8-reprise-20261106` avec main `b2e357bf` après fusion #535 ;
 aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
 préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
+Réconciliation de `codex/mobile-l5-transactions-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
+L5 : correction de recette réintégrée dans son lot : verrou commun Helvetia et
+contexte avant/après relecture, trois tests dédiés. Les PA historiques ne deviennent
+pas une nouvelle autorité mobile ; certification serveur Helvetia toujours réservée.
+
+L8 : le détecteur de fiche exige la nouvelle garde tardive, neuf mutations détectées,
+aucun test relâché ; correctif L5 reçu. Les branches L0–L3/L6 de Claude restent intactes.
