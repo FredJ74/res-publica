@@ -409,3 +409,7 @@ L5 : bancs ciblés réussis (voir journal local hg-suite-l5), comparaison bureau
 conservée ; aucun calcul ni action financière changé. PR REST ouverte au premier
 push si l'accès l'autorise. Le lot L8 suit sur une branche propre, sans modifier
 les cinq branches que Claude intègre.
+
+Réconciliation de `codex/mobile-l5-transactions-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
