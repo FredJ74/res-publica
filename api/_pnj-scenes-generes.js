@@ -4794,8 +4794,8 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"hall\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Commercial",
-    "piece": "Hall d'Entrée",
+    "batiment": "Galeries de Novomirsk",
+    "piece": "Entrée des galeries",
     "personnes": [
       "Ksenia Fauchova",
       "Arkhip Abracadabrov"
@@ -4804,29 +4804,29 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"vitrine_principale\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Commercial",
-    "piece": "Vitrine Principale — Local à louer",
+    "batiment": "Galeries de Novomirsk",
+    "piece": "Grand local A — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"boutique_milieu\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Commercial",
-    "piece": "Boutique Milieu — Local à louer",
+    "batiment": "Galeries de Novomirsk",
+    "piece": "Grand local B — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"arriere_boutique\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Commercial",
-    "piece": "Arrière-Boutique — Local à louer",
+    "batiment": "Galeries de Novomirsk",
+    "piece": "Local moyen A — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"cave_reserve\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Commercial",
-    "piece": "Cave / Réserve — Local à louer",
+    "batiment": "Galeries de Novomirsk",
+    "piece": "Local moyen B — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-artisanal\",\"travees\"]": {
