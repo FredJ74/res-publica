@@ -1,0 +1,20 @@
+name: Novomirsk notaire - inventaire temporaire
+on:
+  push:
+    branches:
+      - chatgpt/novomirsk-notaire-images-20261106
+  pull_request:
+    paths:
+      - .github/workflows/novomirsk-notaire-inventaire-temp-20261106.yml
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Liste des assets de Novomirsk disponibles dans GitHub
+        run: |
+          find images/Sovarka/Novomirsk -maxdepth 1 -type f -printf '%f\n' | sort
+          echo '--- Correspondances notariales ---'
+          find images -type f \( -iname '*success*' -o -iname '*cession*' -o -iname '*notair*' -o -iname '*heritag*' \) | sort | tail -100
