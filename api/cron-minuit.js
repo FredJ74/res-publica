@@ -3440,7 +3440,20 @@ async function traiterExportationsPortQuotidien() {
         stockTotal += s;
       }
 
-      const aExporter = Math.min(contrat, stockTotal);
+      let aExporter = Math.min(contrat, stockTotal);
+      // LIVRAISON REELLE EN SOVARKA (06/11/2026, regle de Fred). Al-Khalija n'a ni entrepot ni caisse :
+      // la marchandise y disparait. Sovarka en a : l'entrepot de Starovka paie la cargaison, la repartit
+      // en trois et Novomirsk et Krasnov lui paient leur part (exportation_sovarka_recevoir, une seule
+      // transaction, une seule reception par jour et par matiere). On ne preleve en Republia que la
+      // quantite acceptee ; reception impossible a confirmer -> rien ne part ce jour (fail-closed).
+      let receptionSovarka = null;
+      if (cfg.destination === 'soviet' && aExporter > 0) {
+        receptionSovarka = await sbRpc('exportation_sovarka_recevoir', {
+          p_jour: jourParisISO(new Date()), p_cle: cle, p_quantite: aExporter,
+          p_prix: RESSOURCES_ECONOMIE_SERVEUR[cle].prixBase
+        }, HEADERS_SERVICE).catch(() => null);
+        aExporter = (receptionSovarka && receptionSovarka.ok) ? Math.max(0, Math.min(aExporter, Number(receptionSovarka.acceptee) || 0)) : 0;
+      }
       // Repartition proportionnelle au stock REEL de chaque ville (pas aux pourcentages du
       // Commandant, qui pilotent les imports, pas les exports) -- arrondi Hamilton, jamais plus
       // preleve que ce qui existe reellement dans un entrepot donne.
@@ -3492,7 +3505,8 @@ async function traiterExportationsPortQuotidien() {
 
       const satisfactionPct = contrat > 0 ? Math.round((aExporter / contrat) * 10000) / 100 : 100;
       exportations[cle] = { destination: cfg.destination, contrat, envoye: aExporter, satisfactionPct,
-        prixUnitaire: prixExport, recette: recetteTotale, jour: new Date().toISOString() };
+        prixUnitaire: prixExport, recette: recetteTotale, jour: new Date().toISOString(),
+        ...(receptionSovarka ? { reception: receptionSovarka } : {}) };
       resultats.exportations[cle] = { contrat, envoye: aExporter, satisfactionPct,
         prixUnitaire: prixExport, recette: recetteTotale };
     }
