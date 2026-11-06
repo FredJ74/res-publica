@@ -49,8 +49,9 @@ test('la préférence de jeu prime sur le navigateur et le stockage bloqué ne c
  vm.runInNewContext(src,{window:blocked,Intl,Number,Object,String});
  assert.equal(blocked.RPPlateauI18n.language(),'de');
 });
-test('un ordre de priorité navigateur parcourt les langues proposées',()=>{
- const window={navigator:{languages:['zh-CN','es-ES'],language:'fr'},localStorage:{getItem:()=>null}};
+test('le plateau ne choisit pas une autre langue navigateur que l accueil',()=>{
+ const window={navigator:{languages:['zh-CN','es-ES'],language:'zh-CN'},
+  localStorage:{getItem:()=>null}};
  vm.runInNewContext(src,{window,Intl,Number,Object,String});
- assert.equal(window.RPPlateauI18n.language(),'es');
+ assert.equal(window.RPPlateauI18n.language(),'fr');
 });
