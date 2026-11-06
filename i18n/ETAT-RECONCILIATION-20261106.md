@@ -46,7 +46,7 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 
 ## Avancée du 7 novembre — non activée
 
-- **157 identifiants d'ordres** localisés dans chacune des neuf langues : aux 77 initiaux s'ajoutent 20 ordres de présidence/gouvernement, presse et économie, 20 ordres sportifs et judiciaires, 20 ordres notariaux/juridiques/économiques, puis 20 ordres transports, syndicats et vie sociale. Le catalogue français du nouveau lot reprend volontairement les libellés exacts de `data.js`, y compris leur graphie historique. Ce chiffre ne représente PAS tous les ordres et variantes du jeu.
+- **177 identifiants d'ordres** localisés dans chacune des neuf langues : aux 77 initiaux s'ajoutent cinq lots de 20 ordres : gouvernement/presse/économie, sport/justice, notariat/immobilier, transports/syndicats/vie sociale, puis immobilier/services sociaux/manifestations. Le catalogue français du nouveau lot reprend volontairement les libellés exacts de `data.js`, y compris leur graphie historique. Ce chiffre ne représente PAS tous les ordres et variantes du jeu.
 - Les tests de catalogue contrôlent la stricte parité des neuf langues, la présence des nouvelles commandes dans `data.js` et l'absence de mutation des paramètres métier (`fn`, `label`, `pa`, `cost`, `requiresPost`). Les variantes non cataloguées conservent le français original.
 - Le plateau n'affiche plus une clé technique si une traduction statique manque : le texte français déjà présent dans le DOM est conservé. Test dédié ajouté.
 - Le traducteur de contenu refuse désormais les caractères de contrôle avant réservation du quota ; le cache doit respecter les contraintes de taille et de caractères de contrôle avant d'être servi, après lecture RLS. Contre-épreuves ajoutées. **Il reste interne**, sans endpoint public, ni cache/quota persistants opérationnels.
@@ -65,7 +65,7 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 ### 07/11 — mesure de couverture et backlog non masqué
 
 - Script en lecture seule `outils/audits/etat-i18n-ordres.cjs` : réutilise l'inventaire d'ordres du dépôt, compare les labels exacts aux ressources, distingue identifiants stables couverts, identifiants ambigus partiellement couverts, libellés stables non encore traduits et références de catalogue obsolètes. Il ne prétend pas mesurer les labels générés à l'exécution.
-- Test `outils/bancs/banc-i18n-etat-ordres.cjs` : vérifie les **157 entrées françaises ancrées dans le code source** et la parité en neuf langues, sans autoriser à déclarer le jeu intégralement traduit. La CI conserve un artefact `i18n-ordres-restants` pour préparer les prochains lots.
+- Test `outils/bancs/banc-i18n-etat-ordres.cjs` : vérifie les **177 entrées françaises ancrées dans le code source** et la parité en neuf langues, sans autoriser à déclarer le jeu intégralement traduit. La CI conserve un artefact `i18n-ordres-restants` pour préparer les prochains lots.
 - Les scripts ne se connectent pas à Supabase, ne touchent ni aux personnages ni aux prix, et ne modifient aucun ordre. La CI réelle du dernier commit est toujours à certifier.
 
 
