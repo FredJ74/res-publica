@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/starovka-boucle-chasse-locaux-petrole-20261106.yml'
       - 'outils/bancs/test-starovka-boucle-chasse-locaux-petrole-20261106.mjs'
+      - 'outils/bancs/test-starovka-petrole-terrains-20261106.mjs'
 permissions:
   contents: read
 jobs:
