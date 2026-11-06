@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - .github/workflows/galeries-ancrage-bas-controle-20261106.yml
+      - outils/bancs/test-galeries-novomirsk-20261106.mjs
 permissions:
   contents: read
 jobs:
