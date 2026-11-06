@@ -4208,6 +4208,7 @@ async function confirmerOuvertureHelvetia(pa, cost) {
 }
 
 async function confirmerDepotHelvetia(pa, cost) {
+  return commercePjTransaction('helvetia-mouvement', async tx => {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('helvetia-amount-input')?.value || 0);
   const source = document.getElementById('helvetia-source-dest')?.value || 'liquide';
@@ -4217,17 +4218,21 @@ async function confirmerDepotHelvetia(pa, cost) {
   const resultat = (typeof sbDeposerHelvetia === 'function')
     ? await sbDeposerHelvetia(state.char.name, montant, source).catch(() => null)
     : null;
-  if (!resultat) { showToast('Dépôt refusé', 'Fonds insuffisants sur la source choisie.', false); return; }
+  if (!commercePjTransactionActive(tx)) return;
+  if (!resultat) { showToast('Dépôt non confirmé', 'Consultez le compte avant toute nouvelle tentative.', false); return; }
   if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
 
   await rafraichirRuntimeHelvetia();
+  if (!commercePjTransactionActive(tx)) return;
   showToast('Dépôt effectué', montant.toLocaleString('fr-FR') + ' ' + cur + ' déposés chez Helvetia (' + (source === 'liquide' ? 'liquide' : 'Cpte National') + ').', true, true);
   addJournalEntry('Dépôt Helvetia : ' + montant.toLocaleString('fr-FR') + ' ' + cur + '.', '');
   updateUI();
   ouvrirGestionHelvetia(pa, cost);
+  });
 }
 
 async function confirmerRetraitHelvetia(pa, cost) {
+  return commercePjTransaction('helvetia-mouvement', async tx => {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('helvetia-amount-input')?.value || 0);
   const destination = document.getElementById('helvetia-source-dest')?.value || 'liquide';
@@ -4243,14 +4248,17 @@ async function confirmerRetraitHelvetia(pa, cost) {
   const resultat = (typeof sbRetirerHelvetia === 'function')
     ? await sbRetirerHelvetia(state.char.name, montant, destination).catch(() => null)
     : null;
-  if (!resultat) { showToast('Retrait refusé', 'Le compte Helvetia doit conserver au moins 10 000 ' + cur + '.', false); return; }
+  if (!commercePjTransactionActive(tx)) return;
+  if (!resultat) { showToast('Retrait non confirmé', 'Consultez le compte avant toute nouvelle tentative.', false); return; }
   if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
 
   await rafraichirRuntimeHelvetia();
+  if (!commercePjTransactionActive(tx)) return;
   showToast('Retrait effectué', montant.toLocaleString('fr-FR') + ' ' + cur + ' retirés (' + (destination === 'liquide' ? 'en liquide' : 'sur le Cpte National') + ').', true, true);
   addJournalEntry('Retrait Helvetia : ' + montant.toLocaleString('fr-FR') + ' ' + cur + '.', '');
   updateUI();
   ouvrirGestionHelvetia(pa, cost);
+  });
 }
 
 async function confirmerFermerCompteHelvetia(pa, cost) {

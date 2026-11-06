@@ -454,3 +454,18 @@ ou cache hors ligne : dépendances globales non certifiées pour découpage aveu
 Mesure locale :65 scripts au plateau,7 316 011 octets bruts ; gzip local indicatif
 2 072 103 octets, pas trafic Vercel facturé. Recette croisée L10 suit. Pour tester :
 ouvrir Présents, puis une longue liste d'objets ; mêmes portraits, cadrages et ordres.
+
+### Mobile L10 — Codex, 06/11/2026, recette en cours
+
+Branche `codex/mobile-l10-recette-20261106`, suite L5→L8→L4→L7→L9. L3 vient d'être
+fusionné par Claude (#535, mainb2e357bf), réconciliation des nouvelles branches en cours.
+70/70 cas locaux ciblés : coque1440, création1440 + six langues, inventaire/tableaux,
+reprise offline/retour visible, combat sur verdicts fixtures, portraits différés,
+finance/navigation et trois cas Helvetia. Aucun compte réel ni migration.
+Anomalie de recette corrigée : callbacks Helvetia protégés par commercePjTransaction
+et contexte, sans deuxième moteur ni calcul financier ajouté. Les PA locaux historiques
+et le rejeu serveur après réponse perdue restent à vérifier hors du lot visuel.
+Le test historique de fiche exige désormais la garde tardive (obligatoire), avec sa
+nouvelle mutation de suppression :23 contrôles +9 contre-épreuves verts. Aucune assertion
+supprimée ou garde optionnelle. Création REST toujours bloquée : même curl public sans
+authentification renvoie403 Envoy. Donc ni PR créée ni fusion annoncée depuis cette session.
