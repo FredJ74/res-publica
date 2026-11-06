@@ -1758,7 +1758,37 @@ const WORLD = {
         'commissariat': {
           name: "Commissariat du Peuple",
           desc: "Nadejda Formulaire remplit des rapports en triple exemplaire pour chaque incident.",
-          persons: [{"name": "Camarade Borodine (PNJ)", "role": "Commissaire du Peuple", "rel": "neutral", "job": "commissaire"}, {"name": "Nadejda Formulaire (PNJ)", "role": "Secrétaire", "rel": "neutral", "job": "inspecteur"}]
+          // Les pièces partagent les ordres et la logique du commissariat de Luthécia.
+          // Seules leurs images et leurs personnes présentes sont propres à Novomirsk.
+          roomOverrides: {
+            accueil_police: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Commissariat_acceuil.webp',
+              persons: [
+                {name:'Gardien de la Paix (PNJ)', role:'Sergent d’accueil', rel:'neutral', job:'gardien_paix'}
+              ]
+            },
+            prison: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_commissariat_geoles.webp'
+            },
+            bureau_commissaire: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_commissariat-bureau.webp',
+              persons: [
+                {name:'Raoul Toufaud (PNJ)', role:'Commissaire de Novomirsk', rel:'neutral', job:'commissaire'},
+                {name:'Brigitte Menottes (PNJ)', role:'Inspectrice', rel:'neutral', job:'inspecteur'}
+              ]
+            }
+          }
+        },
+        'office-notarial': {
+          roomOverrides: {
+            accueil_notaire: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_accueil.webp',
+              persons: [
+                {name:'Alain Dex (PNJ)', role:'Secrétaire', rel:'neutral', job:'secretaire_notaire'},
+                {name:'Claire Delhune (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
+              ]
+            }
+          }
         },
         'tribunal': {
           name: 'Tribunal Populaire',
@@ -9824,7 +9854,8 @@ const PNJ_SOVARKA = {
     'Noël Chauchay (PNJ)': 'Nikolaï Tracteurov (PNJ)',
     'Gardien Dubois': 'Gardien Stepan Verrouïev',
     'Tristan Cabane (PNJ)': 'Timofeï Cachotov (PNJ)',
-    'Raoul Toufaud (PNJ)': 'Radomir Faussepistov (PNJ)',
+    'Raoul Toufaud (PNJ)': 'Vassili Ordonov (PNJ)',
+    'Gardien de la Paix (PNJ)': 'Sergent Matrakov (PNJ)',
     'Brigitte Menottes (PNJ)': 'Bronislava Menottova (PNJ)',
     'Romain Castel': 'Rostislav Censurov',
     'Venerable Maitre Duval': 'Vénérable Maître Dimitri Compassov',
@@ -9929,6 +9960,26 @@ function slugPnjSovarka(nom) {
         ctx.roomOverrides[piece] = Object.assign({}, ctx.roomOverrides[piece] || {}, { persons });
       }
     }
+  }
+}
+
+
+// Portraits locaux de Novomirsk, extraits des scènes d'accueil et du bureau.
+// La surcharge est appliquée APRÈS le renommage sovarkien : la mécanique du socle
+// efface volontairement les portraits hérités de Républia lors du renommage.
+{
+  const salles = WORLD.soviet.capitale.buildingContext;
+  const photos = [
+    ['commissariat', 'accueil_police', 'Sergent Matrakov (PNJ)', 'Novo_sergent_matrakov_portrait.webp'],
+    ['commissariat', 'bureau_commissaire', 'Vassili Ordonov (PNJ)', 'Novo_vassili_ordonov_portrait.webp'],
+    ['office-notarial', 'accueil_notaire', 'Klara Delounova (PNJ)', 'Novo_klara_delounova_portrait.webp']
+  ];
+  for (const [batiment, piece, nom, fichier] of photos) {
+    const personnes = salles[batiment]?.roomOverrides?.[piece]?.persons || [];
+    const personnage = personnes.find(p => p.name === nom);
+    if (!personnage) throw new Error('Portrait Novomirsk : PNJ introuvable ' + nom);
+    personnage.photoUrl = 'images/Sovarka/Novomirsk/' + fichier;
+    personnage.photoPos = '50% 25%';
   }
 }
 
