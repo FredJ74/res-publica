@@ -43,3 +43,14 @@ test('inventaire, rue et courriel ajoutent seulement une clé texte',()=>{
  assert.match(markup,/<input\b[^>]*id="compose-mail-to"[^>]*data-i18n-placeholder="plateau\.recipientPlaceholder"/);
  assert.ok(markup.includes('onclick="fermerComposeMail()"'));
 });
+
+
+test('inventaire vide : le rendu dynamique réapplique la traduction sans toucher aux objets',()=>{
+ const source=fs.readFileSync(path.join(root,'plateau-divers.js'),'utf8');
+ const start=source.indexOf('function renderInventory() {');
+ assert.ok(start>=0);
+ const block=source.slice(start,start+700);
+ assert.match(block,/data-i18n="plateau\.noItems"/);
+ assert.match(block,/RPI18nPlateau\.apply\(el\)/);
+ assert.match(block,/state\.inventory\.length === 0/);
+});
