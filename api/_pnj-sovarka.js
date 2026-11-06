@@ -11,7 +11,7 @@
 // Un profil deja declare sous le meme identifiant (referents de la caserne) n'est jamais ecrase.
 import { PNJ_SOVARKA_RENOMMES } from './_pnj-sovarka-genere.js';
 
-const sansAccents = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '');
+const sansAccents = (s) => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
 // Tous les noms renommes de la meme ville : une fiche cite souvent ses collegues (« le protocole :
 // Gerard Tamponneau »). Les plus longs d'abord, pour qu'un nom ne soit pas coupe par un autre.

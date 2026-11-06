@@ -391,7 +391,8 @@ const PROFILS_SQUATTEURS = {
 
 const TOUS_PROFILS = Object.assign({}, profilsPersonnalites(), PROFILS_REFERENTS, PROFILS, PROFILS_SQUATTEURS);
 // PNJ renommes en Sovarka (06/11/2026) : fiches derivees de celles de Republia, voir _pnj-sovarka.js.
-Object.assign(TOUS_PROFILS, deriverProfilsSovarka(TOUS_PROFILS));
+// Garde typeof : plusieurs bancs chargent ce fichier en texte, imports retires.
+if (typeof deriverProfilsSovarka === "function") Object.assign(TOUS_PROFILS, deriverProfilsSovarka(TOUS_PROFILS));
 
 // Le prompt systeme est assemble ICI. Le client n'en fournit aucune partie -- il ne transmet
 // qu'un identifiant de profil, qui est valide contre cette table.

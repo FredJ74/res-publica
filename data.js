@@ -9887,7 +9887,7 @@ const PNJ_SOVARKA = {
 };
 function slugPnjSovarka(nom) {
   return String(nom || '').replace(' (PNJ)', '').trim()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 }
 // Meme resolution que personnesNormalesDeLaPiece (plateau-multijoueur.js) : surcharge de ville,
