@@ -25,14 +25,10 @@
       // Comme sur l'accueil, une préférence persistée doit être exacte.
       if(LANGS.includes(saved))return saved;
     } catch (_) { /* stockage indisponible */ }
+    // Une seule préférence navigateur, comme i18n-init.js sur l'accueil :
+    // les deux pages doivent choisir la même langue au premier accès.
     const navigator=global.navigator || {};
-    const candidates=Array.isArray(navigator.languages) && navigator.languages.length
-      ? navigator.languages : [navigator.language || navigator.userLanguage];
-    for(const candidate of candidates) {
-      const match=resolve(candidate);
-      if(match)return match;
-    }
-    return 'fr';
+    return resolve(navigator.language || navigator.userLanguage || '') || 'fr';
   }
   function translate(key, vars={}) {
     if(typeof key!=='string' || !/^[\w.-]+$/.test(key)) return '';
