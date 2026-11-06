@@ -27,6 +27,8 @@ jobs:
           echo "DRAFT=$(git rev-parse HEAD)"
           git merge --no-commit --no-ff -X theirs origin/main
           test -z "$(git ls-files -u)"
+          node outils/audits/reconcilier-i18n-main-20261106.cjs
+          git add -- i18n/resources.js plateau-politique.js
           # Ne pas bloquer la fusion sur les espaces déjà présents dans les migrations
           # et les journaux historiques importés de main ; contrôler seulement notre périmètre.
           git diff --cached --check -- i18n/ index.html plateau.html plateau-politique.js style.css outils/bancs/banc-i18n-*
