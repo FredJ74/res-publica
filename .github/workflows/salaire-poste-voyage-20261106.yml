@@ -1,0 +1,23 @@
+name: Régression salaire de poste en voyage
+on:
+  push:
+    branches: [fix/salaire-ministre-deplacement-etranger-20261106]
+    paths:
+      - '.github/workflows/salaire-poste-voyage-20261106.yml'
+      - 'outils/bancs/test-salaire-poste-voyage-20261106.mjs'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Contrôles salaire et syntaxe
+        run: |
+          node --test outils/bancs/test-salaire-poste-voyage-20261106.mjs
+          node --check plateau-personnage.js
+          git diff --check
