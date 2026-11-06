@@ -1783,9 +1783,27 @@ const WORLD = {
           roomOverrides: {
             accueil_notaire: {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_accueil.webp',
+              // Décision de Fred (06/11/2026) : à l'accueil, la secrétaire seule, sous le nom de l'ancienne
+              // clerc (Claire Delhune -> Klara Delounova par PNJ_SOVARKA) ; plus de clerc de notaire.
               persons: [
-                {name:'Alain Dex (PNJ)', role:'Secrétaire', rel:'neutral', job:'secretaire_notaire'},
-                {name:'Claire Delhune (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
+                {name:'Claire Delhune (PNJ)', role:'Secrétaire', rel:'neutral', job:'secretaire_notaire'}
+              ]
+            },
+            // Sovarka : la propriété privée n'existe pas (décisions de Fred, 06/11/2026, GAME-DESIGN-NOVOMIRSK.md).
+            // Plus de vente de terrain, de murs, de rachat ni de préemption : le notaire enregistre les
+            // attributions de droits d'exploiter décidées par le maire et les cessions entre PJ.
+            bureau_successions: {
+              persons: [
+                {name:'Claire Delhune (PNJ)', role:'Secrétaire', rel:'neutral', job:'secretaire_notaire'}
+              ]
+            },
+            bureau_contrats: {
+              excludeOrders: ['officialiser_transaction', 'commerces_fonds_murs', 'racheter_entreprise',
+                'acte_rachat_entreprise_preemption', 'transfert_compromis'],
+              orders: [
+                {fn:'sovarka_commerces_libres', label:'Commerces non attribués', pa:0, cost:0, type:'legal', icon:'ti-list-details', successRate:100, desc:'La liste des commerces et locaux que la mairie peut encore attribuer, dans les trois villes de Sovarka.'},
+                {fn:'sovarka_signer_attribution', label:'Signer une attribution', pa:1, cost:0, type:'legal', icon:'ti-signature', successRate:100, desc:'Signer le droit d\'exploiter que le maire vous a attribué. Pas de droit au bail : seul le loyer fixé par le maire est dû.'},
+                {fn:'sovarka_cession', label:'Céder ou reprendre un droit d\'exploiter', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, desc:'Le notaire enregistre la cession d\'un droit d\'exploiter d\'un PJ à un autre. Aucun prix officiel : l\'État possède tout, les arrangements se font entre vous.'}
               ]
             }
           }
@@ -10033,4 +10051,61 @@ function slugPnjSovarka(nom) {
       }
     }
   };
+}
+
+
+// SOVARKA : DROITS D'EXPLOITER (décisions de Fred du 06/11/2026, GAME-DESIGN-NOVOMIRSK.md).
+// La propriété privée n'existe pas : un PJ demande un commerce à la mairie, le maire (à défaut
+// l'adjoint, à défaut le ministre de l'Économie collective) accepte, le PJ signe chez le notaire.
+// Les terrains à bâtir appartiennent à la mairie, qui y construit des immeubles collectifs. Les locaux
+// des centres ne se louent plus au guichet. Tout est décidé par les fonctions serveur sovarka_*.
+{
+  const ordre = (fn, label, pa, icon, desc) => ({ fn, label, pa, cost: 0, type: 'legal', icon, successRate: 100, desc });
+  const surcharge = (ville, batiment, piece) => {
+    const cite = WORLD.soviet[ville];
+    cite.buildingContext = cite.buildingContext || {};
+    const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+    ctx.roomOverrides = ctx.roomOverrides || {};
+    return ctx.roomOverrides[piece] = ctx.roomOverrides[piece] || {};
+  };
+  const ajouter = (o, ordres, exclus) => {
+    if (ordres) o.orders = (o.orders || []).concat(ordres);
+    if (exclus) o.excludeOrders = Array.from(new Set((o.excludeOrders || []).concat(exclus)));
+  };
+  const ordresTerrain = (BUILDINGS['terrain-a-batir-1'].rooms.terrain.orders || []).map(o => o.fn)
+    .filter(fn => !['appeler_police_terrain', 'faire_disparaitre_cadavre'].includes(fn));
+  for (const ville of ['capitale', 'ville_a', 'ville_b']) {
+    const capitale = ville === 'capitale';
+    const mairie = capitale ? 'mairie-capitale' : 'mairie';
+    ajouter(surcharge(ville, mairie, capitale ? 'hall_mairie' : 'accueil_mairie'), [
+      ordre('sovarka_demander_local', 'Demander un commerce', 1, 'ti-building-store',
+        'Déposer une demande d\'ouverture de commerce. Le maire examine les dossiers ; s\'il accepte, il vous attribue un local, ou vous attendrez le prochain immeuble collectif.')
+    ]);
+    ajouter(surcharge(ville, mairie, capitale ? 'bureau_maire' : 'bureau_maire_local'), [
+      ordre('sovarka_dossiers_commerciaux', 'Dossiers commerciaux', 0, 'ti-folders',
+        'Réservé au maire (à défaut l\'adjoint, à défaut le ministre de l\'Économie collective) : accepter les demandes, attribuer les locaux, fixer les loyers (0 à 100 PSK) et le type des immeubles collectifs.')
+    ]);
+    ajouter(surcharge(ville, capitale ? 'tribunal' : 'tribunal-local', 'bureau_magistrats'), [
+      ordre('sovarka_retirer_droit', 'Retirer un droit d\'exploiter', 1, 'ti-gavel',
+        'Réservé au juge : retirer à un PJ son droit d\'exploiter. Le commerce revient à l\'État, sans indemnité.')
+    ]);
+    const locaux = { 'centre-commercial': ['vitrine_principale', 'boutique_milieu', 'arriere_boutique', 'cave_reserve'],
+                     'centre-artisanal': ['echoppe_facade', 'atelier_milieu', 'reserve_arriere'] };
+    for (const [batiment, pieces] of Object.entries(locaux)) {
+      for (const piece of pieces) {
+        ajouter(surcharge(ville, batiment, piece), [
+          ordre('sovarka_commerces_libres', 'Attribution par la mairie', 0, 'ti-list-details',
+            'En Sovarka, un local ne se loue pas : il s\'obtient par une demande à la mairie, puis se signe chez le notaire.')
+        ], ['louer_local']);
+      }
+    }
+  }
+  for (const [ville, terrains] of Object.entries({ capitale: [1, 4, 5, 6, 7], ville_a: [3], ville_b: [2] })) {
+    for (const n of terrains) {
+      const o = surcharge(ville, 'terrain-a-batir-' + n, 'terrain');
+      o.desc = 'Terrain de la commune. La mairie y fait construire, à ses frais, un immeuble collectif quand des dossiers de commerce attendent un local.';
+      ajouter(o, [ordre('sovarka_terrain_municipal', 'Terrain municipal', 0, 'ti-building-community',
+        'Voir l\'état du terrain : libre, immeuble en chantier ou immeuble livré.')], ordresTerrain);
+    }
+  }
 }

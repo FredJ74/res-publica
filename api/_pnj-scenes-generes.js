@@ -4949,7 +4949,6 @@ export const SCENES_PNJ = {
     "batiment": "Office Notarial",
     "piece": "Accueil",
     "personnes": [
-      "Alexeï Indexov",
       "Klara Delounova"
     ]
   },

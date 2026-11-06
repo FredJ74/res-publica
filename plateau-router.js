@@ -165,6 +165,14 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'garage_vehicules')  { ouvrirGarageVehicules(); return; }
   if (fn === 'garage_reviser')    { ouvrirGarageRevision(); return; }
   if (fn === 'salon_coupe')       { ouvrirSalonCoupe(); return; }
+  // Sovarka, droits d'exploiter (06/11/2026, GAME-DESIGN-NOVOMIRSK.md) : plateau-sovarka-droits.js.
+  if (fn === 'sovarka_commerces_libres')    { ouvrirSovarkaCommercesLibres(); return; }
+  if (fn === 'sovarka_signer_attribution')  { ouvrirSovarkaSignerAttribution(); return; }
+  if (fn === 'sovarka_cession')             { ouvrirSovarkaCession(); return; }
+  if (fn === 'sovarka_demander_local')      { ouvrirSovarkaDemanderLocal(); return; }
+  if (fn === 'sovarka_dossiers_commerciaux'){ ouvrirSovarkaDossiers(); return; }
+  if (fn === 'sovarka_retirer_droit')       { ouvrirSovarkaRetirerDroit(); return; }
+  if (fn === 'sovarka_terrain_municipal')   { ouvrirSovarkaTerrain(); return; }
   if (fn === 'station_carburant') { ouvrirStationCarburant(); return; }
   if (fn === 'mes_vehicules')     { ouvrirMesVehicules(); return; }
   if (fn === 'produire_arme') { doProduireArme(); return; }
