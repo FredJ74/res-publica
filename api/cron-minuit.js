@@ -2683,6 +2683,13 @@ async function traiterExportationsSovarkaQuotidien() {
   return { contrats, exportations: v.exportations };
 }
 
+async function traiterUrbanismeSovarkaQuotidien() {
+  const r = await sbRpc('sovarka_urbanisme_passe', { p_jour: jourParisISO(new Date()) }, HEADERS_SERVICE).catch(() => null);
+  const v = Array.isArray(r) ? r[0] : r;
+  if (!v || v.ok !== true) throw new Error('urbanisme_sovarka:' + ((v && v.raison) || 'verdict_absent'));
+  return v;
+}
+
 // Arrivage de peche quotidien propre a la Criee de PSM (arbitrage valide le 25 aout 2026, §3-5
 // du lot Criee/poisson) : totalement independant de l'approvisionnement en poisson des 3
 // entrepots (livrerEntrepotsQuotidien, inchange), n'a PAS d'origine etrangere -- ne touche jamais
@@ -6717,6 +6724,10 @@ export default async function handler(req, res) {
     // Apres celles de Republia : la part livree a la Republia passe par PSM, dont la passe ci-dessus
     // a deja ecrit les stocks (aucune ecriture concurrente d'un etat d'entrepot).
     const exportationsSovarka = await tacheQuotidienne('exportations_sovarka', traiterExportationsSovarkaQuotidien);
+    // Urbanisme de Sovarka (06/11/2026, decisions de Fred) : livraison des immeubles collectifs, chantiers
+    // en attente des fonds de la mairie, et le 1er et le 15, lancement d'un immeuble par ville pour les
+    // dossiers de commerce acceptes qui attendent un local. Tout est decide par sovarka_urbanisme_passe.
+    const urbanismeSovarka = await tacheQuotidienne('urbanisme_sovarka', traiterUrbanismeSovarkaQuotidien);
 
     // 12c. Arrivage quotidien de poisson propre a la Criee de PSM (arbitrage du 25 aout 2026) :
     // independant de livrerEntrepotsQuotidien ci-dessus, ne touche aucun entrepot.
@@ -6799,7 +6810,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, exportationsSovarka, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, exportationsSovarka, urbanismeSovarka, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

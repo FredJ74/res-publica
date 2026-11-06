@@ -50,7 +50,8 @@ test('Klara, Matrakov et Vassili : noms, profils et vrais portraits découpés',
  // Décision de Fred (06/11) : le commissaire seul dans son bureau, plus d'inspectrice.
  assert.equal(nov['commissariat'].roomOverrides.bureau_commissaire.persons.length,1);
  assert.ok(!nov['commissariat'].roomOverrides.bureau_commissaire.persons.some(p=>/Menott/.test(p.name)));
- assert.ok(nov['office-notarial'].roomOverrides.accueil_notaire.persons.some(p=>p.name==='Alexeï Indexov (PNJ)'));
+ // Décision de Fred (06/11) : la secrétaire seule à l'accueil, sous le nom de l'ancienne clerc.
+ assert.equal(JSON.stringify(nov['office-notarial'].roomOverrides.accueil_notaire.persons.map(p=>p.name+' — '+p.role)),JSON.stringify(['Klara Delounova (PNJ) — Secrétaire']));
 });
 
 test('Socles partagé et autres villes non modifiés',()=>{

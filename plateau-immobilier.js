@@ -24,6 +24,7 @@ const PIECE_LOT_PREFIXE = 'lot_dyn_';
 // Registre des pieces reellement injectees, par batiment -- seule base de la purge. On ne devine
 // jamais quelles rooms retirer en relisant BUILDINGS : on retire exactement ce qu'on a ajoute.
 const _piecesLotsInjectees = {};
+let _sovarkaDernierPrecharge = null;
 
 function estPieceDynamiqueLot(roomId) {
   return typeof roomId === 'string' && roomId.slice(0, PIECE_LOT_PREFIXE.length) === PIECE_LOT_PREFIXE;
@@ -119,9 +120,22 @@ function hydraterPiecesDynamiques(buildingId) {
   const b = BUILDINGS[buildingId];
   if (!b) return 0;
   const lots = lotsDuTerrain(buildingId);
-  if (lots.length === 0) return 0;
+  // Sovarka (06/11/2026) : locaux et logements des immeubles collectifs batis par la mairie sur ses
+  // terrains, lus par sovarka_droits_lire (plateau-sovarka-droits.js). Meme registre de purge.
+  const piecesSovarka = (typeof sovarkaPiecesImmeuble === 'function') ? sovarkaPiecesImmeuble(buildingId) : [];
+  // Une seule lecture par entree dans un batiment (la reconstruction qui suit ne relance rien).
+  if (typeof sovarkaPrechargerTerrain === 'function' && _sovarkaDernierPrecharge !== buildingId) {
+    _sovarkaDernierPrecharge = buildingId;
+    sovarkaPrechargerTerrain(buildingId);
+  }
+  if (lots.length === 0 && piecesSovarka.length === 0) return 0;
   if (!b.rooms) b.rooms = {};
   const injectees = [];
+  piecesSovarka.forEach(function (p) {
+    if (Object.prototype.hasOwnProperty.call(b.rooms, p[0])) return;
+    b.rooms[p[0]] = p[1];
+    injectees.push(p[0]);
+  });
   lots.forEach(function (lot) {
     const roomId = roomIdDepuisLot(lot.id);
     // Ne jamais ecraser une room statique portant par accident le meme identifiant.
