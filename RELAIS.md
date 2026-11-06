@@ -510,3 +510,15 @@ règles ou migrations. Les tests et la certification distante restent distincts.
 
 `codex/mobile-l10-recette-20261106` : correctifs des lots précédents propagés ; aucun changement des
 règles ou migrations. Les tests et la certification distante restent distincts.
+
+`codex/mobile-l4-creation-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
+aucune commande automatique rejouée, validations locales en cours.
+
+`codex/mobile-l7-institutions-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
+aucune commande automatique rejouée, validations locales en cours.
+
+`codex/mobile-l9-chargement-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
+aucune commande automatique rejouée, validations locales en cours.
+
+`codex/mobile-l10-recette-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
+aucune commande automatique rejouée, validations locales en cours.
