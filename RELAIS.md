@@ -384,6 +384,12 @@ focus dans les fenêtres, fermeture par leur bouton existant, champs >=16 px et 
 contenu en paysage. 10/10 tests de coque ; bureau 1440 toujours pixel identique.
 Pas de test sur vrai clavier iOS ni compte authentifié. L6 démarre séparément.
 
+Mobile L6 : branche `codex/mobile-l6-forum-20261106`, dépend de L3. Contrôleur de
+composition existant étendu aux Pointer Events ; mêmes calculs, format des posts et
+permissions. 14/14 cas mobiles locaux, souris et annulation incluses ; forum et
+plateau bureau 1440 identiques. Les corrections des fixtures L1/L2 sont propagées
+avant le contrôle final. Aucun compte ni message réel publié.
+
 Mobile L1 : conserver le préfixe historique de version CSS et ajouter le suffixe mobile ;
 le banc de lisibilité exige ce préfixe. Cache effectivement majoré, test conservé. Témoin bureau embarqué et vérifié SHA-256
 pour les clones CI superficiels (aucun fetch ni historique complet nécessaire).
@@ -392,3 +398,15 @@ Mobile L2 : fixture DOM des rues complétée avec setAttribute/getAttribute ; as
 de destinations, quatre vues PSM et positions conservées sans assouplissement.
 
 Mobile L3 : correctifs des bancs L1/L2 intégrés ; aucun test de navigation supprimé.
+
+Bilan mobile local : `outils/audits/MOBILE-LIVRAISON-20261106.md`. Branches L1/L2/L3
+certifiées séparément : 30/30, 32/32, 34/34 (cas mobiles + historiques). Avec L6 :
+38/38 ciblés. Contrôleur complet **195/196** : seul le rangement SQL déjà rouge de
+main reste en échec ; globaux **8/12**, même résultat sur le témoin. Aucun rouge masqué.
+Captures bureau plateau/forum : empreintes avant/après strictement identiques.
+`outils/livraison/MOBILE-PR-PAR-LOT-20261106.md` prépare cinq PR dépendantes ; API
+GraphQL refuse leur création. Aucune fusion, aucun déploiement ou test authentifié.
+Recette réelle appareils/compte isolé et CI distante restent nécessaires. L4/L5 non faits.
+Dernier main `bba6dec9` intégré (confirmation de la répartition #524), Sovarka intacte.
+Les journaux bruts restent locaux après rejet de leur publication par le contrôle
+automatique ; résultats structurés et captures de fixtures inspectées sont publiés.
