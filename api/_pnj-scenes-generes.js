@@ -4866,8 +4866,8 @@ export const SCENES_PNJ = {
     "batiment": "Centre d'affaires de Novomirsk",
     "piece": "Accueil du centre d'affaires",
     "personnes": [
-      "Réceptionniste du centre",
-      "Agent de sécurité du centre"
+      "Valery Burov",
+      "Pietr Kastanov"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-affaires\",\"bureau_prestige\"]": {
