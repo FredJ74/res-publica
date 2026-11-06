@@ -454,3 +454,7 @@ ou cache hors ligne : dépendances globales non certifiées pour découpage aveu
 Mesure locale :65 scripts au plateau,7 316 011 octets bruts ; gzip local indicatif
 2 072 103 octets, pas trafic Vercel facturé. Recette croisée L10 suit. Pour tester :
 ouvrir Présents, puis une longue liste d'objets ; mêmes portraits, cadrages et ordres.
+
+Réconciliation de `codex/mobile-l9-chargement-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
