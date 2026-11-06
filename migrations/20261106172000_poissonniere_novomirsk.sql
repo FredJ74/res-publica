@@ -7,7 +7,7 @@
 -- * son mari fait passer en douce par la riviere ce que la Sovarka importe officiellement de la
 --   Republia : alcool et medicaments, moins chers que le circuit d'Etat, achat illegal (detection,
 --   trace, bareme du delit mineur existant).
--- Valeurs provisoires (a valider par Fred) : poisson a 75 % du prix de reference de l'entrepot,
+-- Valeurs proposees par Claude, validees par Fred le 06/11 : poisson a 75 % du prix de reference de l'entrepot,
 -- contrebande a 80 %, arrivage de contrebande limite a 10 unites par jour.
 -- Independante de l'ecran : fonctions nouvelles, aucun ecran actuel ne les appelle.
 BEGIN;
