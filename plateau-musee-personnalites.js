@@ -234,5 +234,8 @@ const MUSEE_PROVINCE_PERSONNALITES = {
 function personnalitesMuseeCourantes() {
   const province = MUSEE_PROVINCE_PERSONNALITES[state.currentBuilding];
   if (province) return province[state.currentRoom] || [];
+  // Le musee national est un batiment du socle (Sovarka l'a copie le 06/11/2026) : ses figures
+  // sont celles de la Republia, jamais montrees ailleurs tant que le pays n'a pas les siennes.
+  if (state.country !== 'republic') return [];
   return MUSEE_NATIONAL_PERSONNALITES[state.currentRoom] || [];
 }
