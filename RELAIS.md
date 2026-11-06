@@ -420,3 +420,7 @@ rejoué automatiquement. Aucun polling, aucun calendrier serveur changé. Bancs 
 chargement/sauvegarde et test offline Chromium exécutés ; vrais appareils et deux
 comptes/appareils restent non testés. REST POST pulls refusé (Forbidden) dans cette
 session, malgré son fonctionnement chez Claude. Les branches sont sauvegardées.
+
+Réconciliation de `codex/mobile-l8-reprise-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
