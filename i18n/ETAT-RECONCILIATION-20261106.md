@@ -42,3 +42,12 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - L'arabe applique `dir=rtl` aux seuls textes traduits, pas à la mise en page ni aux éléments interactifs du bandeau.
 - Contrôle isolé via [PR de test #564](https://github.com/FredJ74/res-publica/pull/564), **29/29 tests verts** (8 catalogue, 4 moteur, 4 rendu, 2 ressources, 5 câblage, 3 initialisation, 3 navigation) exécutés directement sur la branche de la PR #377. Syntaxe JS également vérifiée.
 - La PR #377 demeure en brouillon, non activée : tests visuels Chrome, Firefox, Safari, mobile et relecture linguistique toujours requis avant toute publication.
+
+
+## Avancée du 7 novembre — non activée
+
+- **117 identifiants d'ordres** localisés dans chacune des neuf langues : aux 77 initiaux s'ajoutent 20 ordres de présidence/gouvernement, presse et économie, puis 20 ordres sportifs et judiciaires. Le catalogue français du nouveau lot reprend volontairement les libellés exacts de `data.js`, y compris leur graphie historique. Ce chiffre ne représente PAS tous les ordres et variantes du jeu.
+- Les tests de catalogue contrôlent la stricte parité des neuf langues, la présence des nouvelles commandes dans `data.js` et l'absence de mutation des paramètres métier (`fn`, `label`, `pa`, `cost`, `requiresPost`). Les variantes non cataloguées conservent le français original.
+- Le plateau n'affiche plus une clé technique si une traduction statique manque : le texte français déjà présent dans le DOM est conservé. Test dédié ajouté.
+- Le traducteur de contenu refuse désormais les caractères de contrôle avant réservation du quota ; le cache doit respecter les contraintes de taille et de caractères de contrôle avant d'être servi, après lecture RLS. Contre-épreuves ajoutées. **Il reste interne**, sans endpoint public, ni cache/quota persistants opérationnels.
+- **Statut de validation** : commits poussés dans la branche brouillon, test CI au dernier SHA non encore attesté depuis le connecteur. Aucun test authentifié ni vraie revue linguistique, aucune activation ni fusion de #377. `main` a continué d'évoluer et exige un rapprochement prudent.
