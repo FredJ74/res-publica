@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('vingt-neuf ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('quarante-sept ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,29);
+ assert.equal(ref.length,47);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -64,5 +64,29 @@ test('tous les libellés pilotes français correspondent exactement aux vrais or
  for(const [fn,reference] of Object.entries(canonical)){
   assert.ok(actual.get(fn)?.has(reference),
    'libellé non canonique : '+fn+' → '+JSON.stringify(reference));
+ }
+});
+
+test('18 ordres complémentaires des parcours essentiels conservent leurs identifiants et les neuf traductions',()=>{
+ const ids=[
+  'dormir_chambre','consulter_archives_presse','choisir_suite','gerer_commerce',
+  'solliciter_audience_president','temoin_deposition','rejoindre_club_supporters',
+  'lancer_rumeur_cible','offrir_tournee','registre_assemblee','dossiers_plaintes',
+  'gerer_juges','parquet','postuler','ouvrir_enquete','gestion_caserne',
+  'emprunter_prive','avocat_barreau'
+ ];
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const words=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const fn of ids) {
+  assert.ok(Object.hasOwn(words,fn),'ordre absent des ressources : '+fn);
+  assert.ok(source.includes("fn:'"+fn+"'") || source.includes('fn:"'+fn+'"'),
+   'ordre absent du socle : '+fn);
+  const original=Object.freeze({fn,label:words[fn],pa:3,cost:127,requiresPost:'min_def'});
+  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
+   const expected=win.RP_I18N_RESOURCES[lang].translation.orders[fn];
+   assert.ok(typeof expected==='string' && expected.trim(),'traduction '+lang+'/'+fn);
+   assert.equal(win.RPOrderI18n.label(original,engine,lang),expected);
+  }
+  assert.equal(original.pa,3);assert.equal(original.cost,127);assert.equal(original.requiresPost,'min_def');
  }
 });
