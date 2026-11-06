@@ -66,7 +66,10 @@ window.RP_I18N_LANGUAGES = {
   es: { nativeName: 'Español' },
   'zh-TW': { nativeName: '繁體中文（台灣）' },
   ru: { nativeName: 'Русский' },
-  ko: { nativeName: '한국어' }
+  ko: { nativeName: '한국어' },
+  ar: { nativeName: 'العربية' },
+  'pt-BR': { nativeName: 'Português (Brasil)' },
+  de: { nativeName: 'Deutsch' }
 };
 
 window.RP_I18N_RESOURCES = {
@@ -781,6 +784,12 @@ window.RP_I18N_RESOURCES = {
           DUP: { name: "Duplicidad", description: "Mentir, disimular, corromper: la especialidad de todos los que viven al margen de la ley.", examples: "Evasión, contrabando, sobornar a un aduanero, captar a un PNJ, escapar del flagrante delito." },
           ENT: { name: "Contactos", description: "Construir y mantener una red de contactos: poco vistoso en el momento, decisivo a largo plazo.", examples: "Regateo en la Asamblea, invitar a una ronda en el bar, red de contactos." }
         }
+      },
+      auth: {
+        title: "Antes de crear tu personaje",
+        intro: "Introduce tu correo electrónico y una contraseña para recuperar tu personaje desde cualquier dispositivo.",
+        submit: "Crear mi cuenta y continuar",
+        reconnectTitle: "Vuelve a iniciar sesión"
       }
     }
   },
@@ -1002,6 +1011,12 @@ window.RP_I18N_RESOURCES = {
           DUP: { name: "詭詐", description: "說謊、隱瞞、收買人心：所有遊走法律邊緣者的看家本領。", examples: "越獄、走私、收買海關人員、挖角NPC、逃過現行犯逮捕。" },
           ENT: { name: "人脈手腕", description: "建立並維繫人脈網絡：當下不起眼，長遠卻是決定性的關鍵。", examples: "議會討價還價、在酒吧請一輪酒、人脈網絡。" }
         }
+      },
+      auth: {
+        title: "建立角色之前",
+        intro: "輸入電子郵件地址及密碼，便能在不同裝置上找回角色。",
+        submit: "建立帳號並繼續",
+        reconnectTitle: "請重新登入"
       }
     }
   },
@@ -1235,6 +1250,12 @@ window.RP_I18N_RESOURCES = {
           DUP: { name: "Двуличие", description: "Лгать, скрывать, подкупать: специализация всех, кто живёт вне закона.", examples: "Побег, контрабанда, подкуп таможенника, переманивание NPC, уход от задержания с поличным." },
           ENT: { name: "Связи", description: "Строить и поддерживать сеть контактов: незаметно в моменте, но решающе в долгосрочной перспективе.", examples: "Торг в Собрании, угостить всех в баре, сеть связей." }
         }
+      },
+      auth: {
+        title: "Перед созданием персонажа",
+        intro: "Укажите электронную почту и пароль, чтобы восстановить персонажа с любого устройства.",
+        submit: "Создать учётную запись и продолжить",
+        reconnectTitle: "Войдите снова"
       }
     }
   },
@@ -1463,7 +1484,369 @@ window.RP_I18N_RESOURCES = {
           DUP: { name: "이중성", description: "거짓말하고 숨기고 매수하는 능력: 불법의 세계에서 살아가는 이들의 전문 분야입니다.", examples: "탈옥, 밀수, 세관원 매수, NPC 빼오기, 현행범 체포 피하기." },
           ENT: { name: "인맥", description: "인맥을 쌓고 유지하는 능력: 당장은 눈에 띄지 않지만, 장기적으로는 결정적입니다.", examples: "의회 흥정, 바에서 한 잔 돌리기, 인맥 네트워크." }
         }
+      },
+      auth: {
+        title: "캐릭터를 만들기 전에",
+        intro: "이메일과 비밀번호를 입력하면 어느 기기에서든 캐릭터를 찾을 수 있습니다.",
+        submit: "계정을 만들고 계속하기",
+        reconnectTitle: "다시 로그인하세요"
       }
+    }
+  },
+  // Nouveaux choix sur l'accueil uniquement ; le parcours restant utilise le fallback FR.
+  'ar': { translation: { home: {
+    brand: "Human Gambit",
+    subtitle: "اللعبة الكبرى للسلطة",
+    tagline: "محاكاة سياسية ساخرة متعددة اللاعبين · أربع إمبراطوريات · بلا ضمير",
+    findCharacterEnterName: "أدخل اسم شخصيتك.",
+    findCharacterSearching: "جارٍ البحث...",
+    findCharacterUnavailable: "اتصال Supabase غير متاح.",
+    findCharacterNotFound: "لم يتم العثور على الشخصية. تحقق من الاسم.",
+    findCharacterFound: "تم العثور على الشخصية «{{name}}»! جارٍ التوجيه...",
+    findCharacterConnectionError: "خطأ في الاتصال. حاول مجددًا.",
+    descriptor: "لعبة استراتيجية اجتماعية",
+    signature: "لا أحد ينجح بمفرده.",
+    createCharacter: "إنشاء شخصيتي",
+    findCharacter: "العثور على شخصيتي",
+    findCharacterPlaceholder: "اسم شخصيتك...",
+    loadCharacter: "تحميل هذه الشخصية",
+    beta: { title: "تفتح Human Gambit نسختها التجريبية.", body: "تفتح ريبوبليا أبوابها أولًا: ثلاث مدن ومجلس ومحاكم وبطولة وشخصيات لا تخلو من الشبهات. لا تزال أنظمة أخرى قيد التطوير، والإمبراطوريات المجاورة تنتظر دورها. ما تفعله هنا وما تشاركه معنا سيؤثر في مستقبل اللعبة." }
+  }, auth: {
+      title: "قبل إنشاء شخصيتك",
+      intro: "أدخل عنوان بريد إلكتروني واختر كلمة مرور. ستساعدك هذه البيانات على استعادة شخصيتك وتسجيل الدخول من أي جهاز.",
+      promise: "شخصيتك ترافقك أينما ذهبت.",
+      emailPlaceholder: "عنوان بريدك الإلكتروني...",
+      emailHint: "يُستخدم هذا العنوان لحماية حسابك واستعادته فقط.",
+      passwordPlaceholder: "اختر كلمة مرور...",
+      passwordHint: "ثمانية أحرف على الأقل.",
+      submit: "إنشاء حسابي والمتابعة",
+      working: "جارٍ إنشاء الحساب...",
+      alreadyHaveAccount: "لدي حساب بالفعل — العودة إلى الصفحة الرئيسية",
+      errEmail: "يرجى التحقق من عنوان البريد الإلكتروني.",
+      errPassword: "اختر كلمة مرور من ثمانية أحرف على الأقل.",
+      errEmailTaken: "هذا البريد مستخدم بالفعل. ارجع إلى الصفحة الرئيسية وسجّل الدخول.",
+      errSession: "تعذّر بدء الجلسة. تحقق من اتصالك وحاول مجددًا.",
+      errUnavailable: "إنشاء الحساب غير متاح مؤقتًا.",
+      errGeneric: "تعذّر إنشاء حسابك. حاول مجددًا.",
+      reconnectTitle: "سجّل الدخول مجددًا",
+      reconnectBody: "انتهت جلستك. سجّل الدخول لاستعادة شخصيتك.",
+      reconnectButton: "إعادة تسجيل الدخول"
+    },
+    creation: {
+      nav: { back: "رجوع", next: "التالي", seeSheet: "عرض بطاقتي", edit: "تعديل", validate: "تأكيد والدخول إلى اللعبة", enter: "الدخول إلى اللعبة" },
+      steps: {
+        country: { step: "الخطوة 1 من 7", title: "اختر إمبراطوريتك", subtitle: "لكل إمبراطورية قوانينها وأساليبها الخاصة في الفساد." },
+        origin: { step: "الخطوة 2 من 7", title: "الخلفية الاجتماعية", subtitle: "تؤثر خلفيتك الاجتماعية في مواردك الأولية." },
+        school: { step: "الخطوة 3 من 7", title: "التعليم", subtitle: "يفتح التعليم بعض الفرص ويغلق فرصًا أخرى.", info: "بعض المهن تتطلب شهادات. وبعضها غير متاح لمن درس أكثر من اللازم." },
+        archetype: { step: "الخطوة 4 من 7", title: "الطبيعة الحقيقية", subtitle: "من أنت حقًا بعيدًا عن ماضيك؟", info: "يحدد النمط شخصيتك الأساسية، لا مهنتك." },
+      career: { step: "الخطوة 5 من 7", title: "المهنة", subtitle: "مسارك المهني قبل دخول اللعبة الكبرى." },
+        stats: { step: "الخطوة 6 من 7", title: "السمات", subtitle: "وزّع نقاطك الحرة. أُضيفت المكافآت المكتسبة بالفعل.", pointsLabel: "النقاط المتاحة للتوزيع", info: "بعد 12، تكلف كل نقطة نقطتين. الحد الأقصى عند إنشاء الشخصية هو 16، والمستويات 17–20 تُفتح داخل اللعبة.", warning_one: "تبقّت {{count}} نقطة غير موزعة. يمكنك توزيعها لاحقًا من بطاقة شخصيتك.", warning_other: "تبقّت {{count}} نقاط غير موزعة. يمكنك توزيعها لاحقًا من بطاقة شخصيتك." },
+        identity: { step: "الخطوة 7 من 7", title: "هوية الشخصية", subtitle: "امنح شخصيتك وجهًا واسمًا وقصة.", genderLabel: "جنس الشخصية", genderOtherPlaceholder: "كيف تعرّف شخصيتك نفسها؟", photoLabel: "صورة الملف الشخصي", photoHint: "ارفع صورة لشخصيتك", nameLabel: "اسم الشخصية", namePlaceholder: "مثال: أرنولد، جان دوبون...", bioLabel: "السيرة الذاتية", bioPlaceholder: "قصة شخصيتك وماضيها ودوافعها...", mottoLabel: "الشعار الشخصي", mottoOptional: "(اختياري)", mottoPlaceholder: "مثال: لا تُمنح السلطة مجانًا..." },
+        review: {"step":"الملخص","title":"بطاقة شخصيتك"}
+      },
+      common: { capitalLabel: "رأس المال", traitLabel: "الصفة", bonusSuffix: "مكافأة", malusSuffix: "عقوبة" },
+      city: {"modalTitle":"اختر مدينة إقامتك","capitalBadge":"(العاصمة)"},
+      review: {"lifePath":"مسار الحياة","characteristics":"السمات","startingResources":"الموارد الأولية","biography":"السيرة الذاتية","money":"المال","influence":"النفوذ","popularity":"الشعبية","discretion":"التكتم","tier":"المستوى {{tier}}","maxInGame":"الحد الأقصى 100","wealthTier1":"1 - معدم","wealthTier2":"2 - متواضع","wealthTier3":"3 - ميسور","wealthTier4":"4 - غني","wealthTier5":"5 - ثري جدًا"},
+      success: {"title":"مرحبًا بك في اللعبة الكبرى","ready":"شخصيتك جاهزة.","text":"يدخل {{name}} ساحة {{country}}. تبدأ اللعبة الكبرى: تحالفات وخيانات وفساد وأسرار.","fallbackCountry":"هذا العالم"},
+      genders: {"male":"رجل","female":"امرأة","nonbinary":"غير ثنائي","other":"أخرى"},
+      career: {"info":"المهن المتاحة بحسب مستوى تعليمك ({{school}}).","locked":"غير متاح بمستوى تعليمك","consequence":"تحدد مهنتك الاختصاصات المتاحة لشخصيتك. يمكنك اكتساب مهنة إضافية واحدة فقط خلال حياتها."},
+      conseiller: { title: "أي شخصية ترغب في تجسيدها؟", intro: "صف بحرية من تريد أن تصبح أو ما تريد تحقيقه أو الشخصية التي تتخيلها. إذا كنت لا تعرف بعد، فهذا جواب مقبول أيضًا.", placeholder: "مثلاً: أريد الدفاع عن الناس في المحكمة، أو إنشاء مشروع، أو ما زلت أكتشف اللعبة...", ask: "اقترح مساري", skip: "أفضل الاختيار بنفسي", pending: "لحظة من فضلك...", unavailable: "المستشار غير متاح حاليًا. يمكنك متابعة إنشاء الشخصية بشكل طبيعي.", libre: "هذا مجرد اقتراح، والقرار لك في كل مرحلة.", hint: "المسار المقترح" },
+      origins: { poor: { name: "بيئة محرومة", trait: "صمود قوي ولا شيء لخسارته" }, worker: { name: "الطبقة العاملة", trait: "روح جماعية وعمل شاق وصدق يصعب إخفاؤه" }, bourgeois: { name: "الطبقة الوسطى", trait: "مكانة اجتماعية وطموح محدود وعلاقات لم تكتمل بعد" }, elite: { name: "الطبقة الراقية", trait: "شبكة علاقات موروثة دون معرفة حقيقية بالمشقة" } },
+      schools: { none: { name: "من دون تعليم", blockLabel: "مغلق: القضاء والأعمال والمهن الفكرية" }, basic: { name: "تعليم أساسي", blockLabel: "مغلق: القضاء والأعمال" }, higher: { name: "تعليم عالٍ", blockLabel: "مغلق: بعض المهن الفكرية المخصصة للنخبة" }, elite: { name: "مدارس النخبة", blockLabel: "كل المهن متاحة مع مكافأة العلاقات" } },
+      archetypes: { politician: { name: "طموح", description: "الإقناع والمبادرة والسعي إلى المناصب؛ تجذبه السلطة والنجاح." }, authoritarian: { name: "سلطوي", description: "الانضباط والتحمل وتوازن القوى؛ يؤمن بالنظام والسلطة." }, oligarch: { name: "حسابي", description: "تفكير بارد ومصلحة وتخطيط ومناورة." }, informer: { name: "فضولي", description: "الملاحظة والفهم والبحث عن المعلومات." }, legalist: { name: "قانوني", description: "القواعد والنصوص والإجراءات والدقة ومعرفة حدودها." }, believer: { name: "مثالي", description: "القناعات والتعبئة والالتزام." }, shadow: { name: "متلاعب", description: "الإخفاء والتأثير غير المباشر والتسلل واللعب على الجانبين." }, anticapitalist: { name: "متضامن", description: "الولاء الجماعي والالتزام والمقاومة والتعاون." }, criminal: { name: "متمرّد", description: "حب المخاطرة ورفض القواعد والعزيمة." } },
+      careers: { officer: { name: "الجيش — ضابط كبير / مرتزق", comp: "قيادة، ترهيب" }, business: { name: "الأعمال — رجل أعمال / جماعة ضغط", comp: "ضغط سياسي، غسل أموال، تفاوض" }, magistrat: { name: "القضاء — قاضٍ / محامٍ", comp: "قانون، إجراءات قضائية، تفاوض" }, press: { name: "الإعلام — صحفي بارز / مؤثر", comp: "معلومات محرجة، دعاية، شبكات اجتماعية" }, clergy: { name: "الدين — زعيم ديني", comp: "خطابة، تعبئة" }, doctor: { name: "المهن الفكرية — طبيب / أكاديمي", comp: "علاقات مدنية، تكتم، خطابة" }, worker: { name: "العمال — عامل / نقابي", comp: "قوة، تضامن، تعبئة" }, intel: { name: "الاستخبارات — عميل", comp: "مراقبة، تسلل" }, criminal_c: { name: "الجريمة المنظمة — عضو عصابة", comp: "ميليشيات، غسل أموال" }, escort: { name: "الدعارة — عامل في الجنس", comp: "إغواء، معلومات محرجة" } },
+      stats: { INT: { name: "الذكاء", description: "الفهم والتحليل والتوقع: مفيد للتحقيق والمال وتجنّب الفخاخ." }, CHA: { name: "الكاريزما", description: "الإقناع والجاذبية وتهدئة الآخرين في التفاوض والمرافعات." }, VOL: { name: "الإرادة", description: "مقاومة الضغط والاعتقال والتهديد والقتال عند الضرورة." }, PER: { name: "الإدراك", description: "ملاحظة التفاصيل وكشف الأكاذيب وتعقب الأهداف." }, DUP: { name: "المراوغة", description: "الكذب والإخفاء والرشوة في عالم الأنشطة غير القانونية." }, ENT: { name: "العلاقات", description: "بناء شبكة علاقات والحفاظ عليها لتحقيق نتائج طويلة الأمد." } },
+      countries: { republic: { description: "ديمقراطية مرهقة ونخب مغلقة وفضائح إعلامية تُعامل كرياضة وطنية.", tags: ["ديمقراطية", "ساخر"] }, narco: { description: "ديمقراطية شكلية وكارتلات وانتخابات تُشترى. العنف لغة السياسة.", tags: ["عنيف", "فساد"] }, soviet: { description: "حزب واحد تعصف به الصراعات بين الإصلاحيين والمحافظين.", tags: ["حزب واحد", "فصائل"] }, khalija: { description: "ملكية مطلقة وعائلة حاكمة ممتدة. العفو الملكي عملة لا تُقدّر بثمن.", tags: ["ملكية", "حكم ديني"] } },
+      cities: { republic: { capitale: { description: "عاصمة ريبوبليا ومركز السلطة السياسية والقضائية والإعلامية." }, ville_a: { description: "مدينة ساحلية غربية للتجارة والتهريب والسياسة المحلية." }, ville_b: { description: "مدينة صناعية شمالية بنقابات قوية ومصانع وصراعات اجتماعية." } }, narco: { capitale: { description: "عاصمة إل إستادو؛ حر خانق وفساد في كل مكان ويحكم الجنرال غوردِيتو دون منازع." }, ville_a: { description: "معبر حدودي جبلي؛ تهريب وجمارك قابلة للرشوة ومسارات سرية." }, ville_b: { description: "مدينة غابات استوائية تمتد فيها المختبرات بلا نهاية." } }, soviet: { capitale: { description: "عاصمة سوفاركا؛ فولاذ رمادي ومبانٍ سوفيتية ومراقبة دائمة. الحزب يرى كل شيء." }, ville_a: { description: "مدينة تعدين متجمدة عند أطراف الإمبراطورية؛ البرد قاسٍ والفحم متوفر." }, ville_b: { description: "المزرعة الجماعية رقم 7؛ إنتاج زراعي لمجد الحزب." } }, khalija: { capitale: { description: "عاصمة الخليجية؛ الذهب والفيروز والرمال والقصر الملكي يهيمن على المشهد." }, ville_a: { description: "واحة للقوافل في قلب الصحراء تستقبل التجار والأسرار منذ قرون." }, ville_b: { description: "ميناء نفطي تتقاطع فيه الناقلات والسفن التقليدية." } } }
+    }
+  } },
+  'pt-BR': { translation: { home: {
+    brand: "Human Gambit",
+    subtitle: "O Grande Jogo do Poder",
+    tagline: "Sátira política multijogador · 4 impérios · Sem escrúpulos",
+    findCharacterEnterName: "Digite o nome do seu personagem.",
+    findCharacterSearching: "Buscando...",
+    findCharacterUnavailable: "Conexão com Supabase indisponível.",
+    findCharacterNotFound: "Personagem não encontrado. Verifique a grafia.",
+    findCharacterFound: "Personagem «{{name}}» encontrado! Redirecionando...",
+    findCharacterConnectionError: "Erro de conexão. Tente novamente.",
+    descriptor: "UM JOGO DE ESTRATÉGIA SOCIAL",
+    signature: "NINGUÉM VENCE SOZINHO.",
+    createCharacter: "Criar meu personagem",
+    findCharacter: "Encontrar meu personagem",
+    findCharacterPlaceholder: "Nome do personagem...",
+    loadCharacter: "Carregar este personagem",
+    beta: { title: "Human Gambit abre sua versão beta.", body: "Républia é o primeiro império a abrir suas portas: três cidades, uma Assembleia, tribunais, um campeonato e algumas figuras pouco recomendáveis. Outros sistemas ainda estão em desenvolvimento, e os impérios vizinhos aguardam sua vez. Suas ações e seus comentários ajudarão a moldar o futuro do jogo." }
+  }, auth: {
+      title: "Antes de criar seu personagem",
+      intro: "Informe seu e-mail e escolha uma senha. Assim você poderá recuperar seu personagem e entrar em Res Publica de qualquer dispositivo.",
+      promise: "Seu personagem vai com você a qualquer lugar.",
+      emailPlaceholder: "Seu endereço de e-mail...",
+      emailHint: "Este endereço protege sua conta e permite recuperá-la. Não será usado para outra finalidade.",
+      passwordPlaceholder: "Escolha uma senha...",
+      passwordHint: "No mínimo oito caracteres.",
+      submit: "Criar minha conta e continuar",
+      working: "Criando sua conta...",
+      alreadyHaveAccount: "Já tenho uma conta — voltar ao início",
+      errEmail: "Verifique seu endereço de e-mail.",
+      errPassword: "Escolha uma senha com pelo menos oito caracteres.",
+      errEmailTaken: "Este e-mail já está em uso. Volte ao início e entre na sua conta.",
+      errSession: "Não foi possível iniciar a sessão. Verifique sua conexão e tente novamente.",
+      errUnavailable: "A criação de contas está temporariamente indisponível.",
+      errGeneric: "Não foi possível criar sua conta. Tente novamente.",
+      reconnectTitle: "Entre novamente",
+      reconnectBody: "Sua sessão expirou. Entre com seu e-mail e senha para recuperar seu personagem.",
+      reconnectButton: "Entrar novamente"
+    },
+    creation: {
+      nav: { back: "Voltar", next: "Próximo", seeSheet: "Ver minha ficha", edit: "Editar", validate: "Confirmar e entrar no jogo", enter: "Entrar no jogo" },
+      steps: {
+        country: { step: "Etapa 1 de 7", title: "Escolha seu império", subtitle: "Cada império tem suas regras, seus códigos e seu próprio jeito de ser corrupto." },
+        origin: { step: "Etapa 2 de 7", title: "Origem social", subtitle: "Sua origem social determina seus recursos iniciais." },
+        school: { step: "Etapa 3 de 7", title: "Educação", subtitle: "A educação molda suas habilidades e abre ou fecha oportunidades.", info: "Algumas carreiras exigem formação. Outras não estão disponíveis para quem estudou demais." },
+        archetype: { step: "Etapa 4 de 7", title: "Natureza profunda", subtitle: "Quem é você de verdade, independentemente do seu passado?", info: "O arquétipo define sua personalidade fundamental, não sua profissão." },
+      career: { step: "Etapa 5 de 7", title: "Carreira", subtitle: "Sua trajetória profissional antes de entrar no grande jogo." },
+        stats: { step: "Etapa 6 de 7", title: "Atributos", subtitle: "Distribua seus pontos livres. Os bônus adquiridos já foram incluídos.", pointsLabel: "Pontos para distribuir", info: "Acima de 12, cada ponto custa 2. Limite de 16 na criação; níveis 17 a 20 são liberados durante o jogo.", warning_one: "Resta {{count}} ponto não distribuído. Você poderá distribuí-lo depois na ficha do personagem.", warning_other: "Restam {{count}} pontos não distribuídos. Você poderá distribuí-los depois na ficha do personagem." },
+        identity: { step: "Etapa 7 de 7", title: "Identidade do personagem", subtitle: "Dê ao seu alter ego um rosto, um nome e uma história.", genderLabel: "Gênero do personagem", genderOtherPlaceholder: "Como seu personagem se identifica...", photoLabel: "Foto do perfil", photoHint: "Envie uma imagem do seu personagem", nameLabel: "Nome do personagem", namePlaceholder: "Ex.: Arnold, João da Silva...", bioLabel: "Biografia", bioPlaceholder: "História, passado e motivações do personagem...", mottoLabel: "Lema pessoal", mottoOptional: "(opcional)", mottoPlaceholder: "Ex.: O poder não se ganha de graça..." },
+        review: {"step":"Resumo","title":"Sua ficha de personagem"}
+      },
+      common: { capitalLabel: "Capital", traitLabel: "Traço", bonusSuffix: "bônus", malusSuffix: "penalidade" },
+      city: {"modalTitle":"Escolha sua cidade de residência","capitalBadge":"(Capital)"},
+      review: {"lifePath":"Trajetória de vida","characteristics":"Atributos","startingResources":"Recursos iniciais","biography":"Biografia","money":"Dinheiro","influence":"Influência","popularity":"Popularidade","discretion":"Discrição","tier":"Faixa {{tier}}","maxInGame":"Máximo 100 no jogo","wealthTier1":"1 - Miséria","wealthTier2":"2 - Modesto","wealthTier3":"3 - Confortável","wealthTier4":"4 - Rico","wealthTier5":"5 - Oligarca"},
+      success: {"title":"Bem-vindo ao Grande Jogo","ready":"Seu personagem está pronto.","text":"{{name}} entra na arena de {{country}}. Começa o Grande Jogo: alianças, traições e corrupção.","fallbackCountry":"este mundo"},
+      genders: {"male":"Homem","female":"Mulher","nonbinary":"Não binário","other":"Outro"},
+      career: {"info":"Carreiras disponíveis conforme sua escolaridade ({{school}}).","locked":"Indisponível com sua escolaridade","consequence":"Sua carreira determina as profissões especializadas às quais seu personagem pode ter acesso. Você poderá adquirir apenas uma outra carreira durante sua vida."},
+      conseiller: { title: "Que personagem você gostaria de interpretar?", intro: "Descreva livremente quem gostaria de se tornar, o que pretende conquistar ou que tipo de personagem imagina. Se ainda não sabe, tudo bem.", placeholder: "Por exemplo: quero defender pessoas no tribunal, abrir um negócio ou ainda estou conhecendo o jogo...", ask: "Sugerir meu percurso", skip: "Prefiro escolher sozinho", pending: "Só um momento...", unavailable: "O conselheiro está indisponível no momento. Você pode continuar a criação normalmente.", libre: "É apenas uma sugestão: você decide em cada etapa.", hint: "Percurso sugerido" },
+      origins: { poor: { name: "Origem desfavorecida", trait: "Resiliência bruta, nada a perder" }, worker: { name: "Classe trabalhadora", trait: "Espírito coletivo, mãos calejadas, honesto demais para mentir bem" }, bourgeois: { name: "Pequena burguesia", trait: "Aparência social, ambições moderadas, contatos ainda insuficientes" }, elite: { name: "Alta sociedade", trait: "Rede de contatos herdada, mas nenhuma experiência real de dificuldades" } },
+      schools: { none: { name: "Sem escolaridade", blockLabel: "Bloqueado: justiça, negócios e profissões intelectuais" }, basic: { name: "Ensino básico", blockLabel: "Bloqueado: justiça e negócios" }, higher: { name: "Ensino superior", blockLabel: "Bloqueado: profissões reservadas às grandes escolas" }, elite: { name: "Escolas de elite", blockLabel: "Todas as carreiras disponíveis e bônus de contatos" } },
+      archetypes: { politician: { name: "Ambicioso", description: "Persuadir, empreender e conquistar posições. O poder e o sucesso o atraem." }, authoritarian: { name: "Autoritário", description: "Disciplina, resistência e relações de força. Acredita na ordem e na autoridade." }, oligarch: { name: "Calculista", description: "Raciocínio frio, interesse próprio, antecipação e manobras." }, informer: { name: "Curioso", description: "Observar, compreender e buscar informações." }, legalist: { name: "Legalista", description: "Regras, textos, procedimentos e rigor — conhecendo também seus limites." }, believer: { name: "Idealista", description: "Convicções, mobilização e engajamento." }, shadow: { name: "Manipulador", description: "Dissimulação, influência indireta, infiltração e jogo duplo." }, anticapitalist: { name: "Solidário", description: "Lealdade coletiva, compromisso, resistência e ajuda mútua." }, criminal: { name: "Transgressor", description: "Gosto pelo risco, rejeição das regras e determinação." } },
+      careers: { officer: { name: "Exército — Oficial superior / Mercenário", comp: "Comando, Intimidação" }, business: { name: "Negócios — Empresário / Lobista", comp: "Lobby, Lavagem de dinheiro, Negociação" }, magistrat: { name: "Justiça — Magistrado / Advogado", comp: "Direito, Processo judicial, Negociação" }, press: { name: "Mídia — Jornalista de destaque / Influenciador", comp: "Chantagem, Propaganda, Redes sociais" }, clergy: { name: "Religião — Líder religioso", comp: "Retórica, Mobilização" }, doctor: { name: "Profissões intelectuais — Médico / Acadêmico", comp: "Rede civil, Discrição, Retórica" }, worker: { name: "Mundo operário — Trabalhador / Sindicalista", comp: "Força, Solidariedade, Mobilização" }, intel: { name: "Inteligência — Agente secreto", comp: "Vigilância, Infiltração" }, criminal_c: { name: "Crime organizado — Criminoso", comp: "Milícias, Lavagem de dinheiro" }, escort: { name: "Prostituição — Profissional do sexo", comp: "Sedução, Chantagem" } },
+      stats: { INT: { name: "Inteligência", description: "Compreender, analisar e antecipar: útil em investigações, finanças e para evitar armadilhas." }, CHA: { name: "Carisma", description: "Convencer, seduzir e tranquilizar: essencial em negociações, defesas e discursos." }, VOL: { name: "Vontade", description: "Resistir à pressão, à prisão e à intimidação, e lutar quando necessário." }, PER: { name: "Percepção", description: "Notar detalhes, detectar mentiras, seguir alvos e evitar surpresas." }, DUP: { name: "Duplicidade", description: "Mentir, dissimular e corromper: habilidades do mundo ilegal." }, ENT: { name: "Rede de contatos", description: "Criar e manter relações que fazem diferença a longo prazo." } },
+      countries: { republic: { description: "Democracia cansada, elites fechadas e escândalos na mídia como esporte nacional.", tags: ["Democracia", "Satírico"] }, narco: { description: "Democracia de fachada, cartéis e eleições compradas. A violência é uma linguagem política.", tags: ["Violento", "Corrupção"] }, soviet: { description: "Partido único em tensão interna: reformistas contra conservadores.", tags: ["Partido único", "Facções"] }, khalija: { description: "Monarquia absoluta com uma família real imensa. O perdão real é a moeda mais valiosa.", tags: ["Monarquia", "Teocracia"] } },
+      cities: { republic: { capitale: { description: "Capital de Républia, centro do poder político, judicial e da imprensa." }, ville_a: { description: "Cidade portuária no oeste: comércio, contrabando e política local." }, ville_b: { description: "Cidade industrial do norte, com sindicatos fortes, fábricas e tensões sociais." } }, narco: { capitale: { description: "Capital de El Estado: calor sufocante, corrupção por toda parte e domínio absoluto do Generalissimo Gordito." }, ville_a: { description: "Posto fronteiriço nas montanhas, com contrabando, aduaneiros corruptíveis e trilhas secretas." }, ville_b: { description: "Cidade na selva, onde os laboratórios se estendem até perder de vista." } }, soviet: { capitale: { description: "Capital de Sovarka: aço cinzento, blocos soviéticos e vigilância constante. O Partido vê tudo." }, ville_a: { description: "Cidade mineradora gelada nos confins do império. O frio castiga, mas há carvão." }, ville_b: { description: "Fazenda coletiva número 7. Produção agrícola para a glória do Partido." } }, khalija: { capitale: { description: "Capital de Al-Khalija: ouro, turquesa e areia. O Palácio Real domina a paisagem." }, ville_a: { description: "Oásis de caravanas no coração do deserto, frequentado há séculos por mercadores e segredos." }, ville_b: { description: "Porto petrolífero de Al-Khalija, onde petroleiros cruzam embarcações tradicionais." } } }
+    }
+  } },
+  'de': { translation: { home: {
+    brand: "Human Gambit",
+    subtitle: "Das Große Spiel um die Macht",
+    tagline: "Politische Mehrspieler-Satire · 4 Imperien · Keine Skrupel",
+    findCharacterEnterName: "Gib den Namen deines Charakters ein.",
+    findCharacterSearching: "Suche läuft...",
+    findCharacterUnavailable: "Supabase-Verbindung nicht verfügbar.",
+    findCharacterNotFound: "Charakter nicht gefunden. Prüfe die Schreibweise.",
+    findCharacterFound: "Charakter „{{name}}“ gefunden! Weiterleitung...",
+    findCharacterConnectionError: "Verbindungsfehler. Bitte erneut versuchen.",
+    descriptor: "EIN SOZIALES STRATEGIESPIEL",
+    signature: "NIEMAND SCHAFFT ES ALLEIN.",
+    createCharacter: "Charakter erstellen",
+    findCharacter: "Charakter wiederfinden",
+    findCharacterPlaceholder: "Name deines Charakters...",
+    loadCharacter: "Diesen Charakter laden",
+    beta: { title: "Human Gambit startet die Beta.", body: "Républia öffnet als erstes Imperium seine Tore: drei Städte, eine Versammlung, Gerichte, eine Meisterschaft und einige fragwürdige Gestalten. Weitere Systeme werden noch entwickelt, und die benachbarten Imperien warten auf ihren Einsatz. Was du hier tust und uns berichtest, gestaltet die Zukunft des Spiels." }
+  }, auth: {
+      title: "Bevor du deinen Charakter erstellst",
+      intro: "Gib deine E-Mail-Adresse ein und wähle ein Passwort. Damit kannst du deinen Charakter wiederfinden und dich von jedem Gerät bei Res Publica anmelden.",
+      promise: "Dein Charakter begleitet dich überallhin.",
+      emailPlaceholder: "Deine E-Mail-Adresse...",
+      emailHint: "Diese Adresse schützt dein Konto und hilft bei der Wiederherstellung. Sie wird für nichts anderes verwendet.",
+      passwordPlaceholder: "Wähle ein Passwort...",
+      passwordHint: "Mindestens acht Zeichen.",
+      submit: "Konto erstellen und fortfahren",
+      working: "Konto wird erstellt...",
+      alreadyHaveAccount: "Ich habe bereits ein Konto — zurück zum Start",
+      errEmail: "Bitte überprüfe deine E-Mail-Adresse.",
+      errPassword: "Wähle ein Passwort mit mindestens acht Zeichen.",
+      errEmailTaken: "Diese Adresse wird bereits verwendet. Kehre zum Start zurück und melde dich an.",
+      errSession: "Die Sitzung konnte nicht gestartet werden. Prüfe deine Verbindung und versuche es erneut.",
+      errUnavailable: "Die Kontoerstellung ist vorübergehend nicht verfügbar.",
+      errGeneric: "Dein Konto konnte nicht erstellt werden. Versuche es erneut.",
+      reconnectTitle: "Erneut anmelden",
+      reconnectBody: "Deine Sitzung ist abgelaufen. Melde dich mit E-Mail und Passwort an, um deinen Charakter wiederzufinden.",
+      reconnectButton: "Erneut anmelden"
+    },
+    creation: {
+      nav: { back: "Zurück", next: "Weiter", seeSheet: "Charakterbogen ansehen", edit: "Bearbeiten", validate: "Bestätigen und Spiel betreten", enter: "Spiel betreten" },
+      steps: {
+        country: { step: "Schritt 1 von 7", title: "Wähle dein Imperium", subtitle: "Jedes Imperium hat seine eigenen Regeln, Gewohnheiten und Methoden der Korruption." },
+        origin: { step: "Schritt 2 von 7", title: "Soziale Herkunft", subtitle: "Deine Herkunft bestimmt deine anfänglichen Mittel." },
+        school: { step: "Schritt 3 von 7", title: "Bildung", subtitle: "Bildung prägt deine Fähigkeiten und eröffnet oder verschließt Wege.", info: "Manche Berufe setzen einen Abschluss voraus. Andere stehen überqualifizierten Figuren nicht offen." },
+        archetype: { step: "Schritt 4 von 7", title: "Wahres Wesen", subtitle: "Wer bist du wirklich, unabhängig von deiner Vergangenheit?", info: "Der Archetyp bestimmt deine grundlegende Persönlichkeit, nicht deinen Beruf." },
+      career: { step: "Schritt 5 von 7", title: "Laufbahn", subtitle: "Dein beruflicher Werdegang vor dem großen Spiel." },
+        stats: { step: "Schritt 6 von 7", title: "Eigenschaften", subtitle: "Verteile deine freien Punkte. Bereits erhaltene Boni sind eingerechnet.", pointsLabel: "Punkte zum Verteilen", info: "Ab 12 kostet jeder weitere Punkt 2. Bei der Erstellung gilt die Grenze 16; Stufen 17–20 werden im Spiel freigeschaltet.", warning_one: "Noch {{count}} Punkt ist nicht verteilt. Du kannst ihn später auf dem Charakterbogen verteilen.", warning_other: "Noch {{count}} Punkte sind nicht verteilt. Du kannst sie später auf dem Charakterbogen verteilen." },
+        identity: { step: "Schritt 7 von 7", title: "Charakteridentität", subtitle: "Gib deinem Alter Ego ein Gesicht, einen Namen und eine Geschichte.", genderLabel: "Geschlecht des Charakters", genderOtherPlaceholder: "Wie beschreibt sich dein Charakter?", photoLabel: "Profilfoto", photoHint: "Lade ein Bild für deinen Charakter hoch", nameLabel: "Charaktername", namePlaceholder: "Zum Beispiel Arnold, Hans Müller...", bioLabel: "Biografie", bioPlaceholder: "Geschichte, Vergangenheit und Ziele deines Charakters...", mottoLabel: "Persönliches Motto", mottoOptional: "(optional)", mottoPlaceholder: "Zum Beispiel: Macht bekommt man nicht geschenkt..." },
+        review: {"step":"Zusammenfassung","title":"Dein Charakterbogen"}
+      },
+      common: { capitalLabel: "Kapital", traitLabel: "Merkmal", bonusSuffix: "Bonus", malusSuffix: "Malus" },
+      city: {"modalTitle":"Wähle deine Heimatstadt","capitalBadge":"(Hauptstadt)"},
+      review: {"lifePath":"Lebensweg","characteristics":"Eigenschaften","startingResources":"Startressourcen","biography":"Biografie","money":"Geld","influence":"Einfluss","popularity":"Beliebtheit","discretion":"Diskretion","tier":"Stufe {{tier}}","maxInGame":"Maximal 100 im Spiel","wealthTier1":"1 - Mittellos","wealthTier2":"2 - Bescheiden","wealthTier3":"3 - Wohlhabend","wealthTier4":"4 - Reich","wealthTier5":"5 - Oligarch"},
+      success: {"title":"Willkommen im Großen Spiel","ready":"Dein Charakter ist bereit.","text":"{{name}} betritt die Arena von {{country}}. Das Große Spiel beginnt mit Bündnissen, Verrat und Korruption.","fallbackCountry":"diese Welt"},
+      genders: {"male":"Mann","female":"Frau","nonbinary":"Nichtbinär","other":"Andere"},
+      career: {"info":"Verfügbare Laufbahnen mit deiner Ausbildung ({{school}}).","locked":"Mit deiner Ausbildung nicht verfügbar","consequence":"Deine Laufbahn bestimmt, welche Fachberufe dein Charakter ausüben kann. Im weiteren Leben kannst du nur eine zusätzliche Laufbahn erwerben."},
+      conseiller: { title: "Welche Figur möchtest du spielen?", intro: "Beschreibe frei, wer du werden möchtest, was du erreichen willst oder welche Figur du dir vorstellst. Wenn du es noch nicht weißt, ist das ebenfalls eine Antwort.", placeholder: "Zum Beispiel: Ich möchte Menschen vor Gericht verteidigen, ein Geschäft aufbauen oder das Spiel erst kennenlernen...", ask: "Laufbahn vorschlagen", skip: "Ich entscheide lieber selbst", pending: "Einen Augenblick...", unavailable: "Der Berater ist derzeit nicht erreichbar. Du kannst deinen Charakter normal weiter erstellen.", libre: "Das ist nur ein Vorschlag. Du entscheidest selbst in jedem Schritt.", hint: "Empfohlener Weg" },
+      origins: { poor: { name: "Benachteiligte Herkunft", trait: "Rohe Widerstandskraft, nichts zu verlieren" }, worker: { name: "Arbeiterklasse", trait: "Gemeinschaftssinn, harte Arbeit, zu ehrlich für geschickte Lügen" }, bourgeois: { name: "Kleinbürgertum", trait: "Gesellschaftlicher Anstrich, bescheidene Ziele, noch keine guten Kontakte" }, elite: { name: "Oberschicht", trait: "Ererbte Kontakte, aber kaum Erfahrung mit echten Entbehrungen" } },
+      schools: { none: { name: "Keine Schulbildung", blockLabel: "Gesperrt: Justiz, Wirtschaft und akademische Berufe" }, basic: { name: "Grundbildung", blockLabel: "Gesperrt: Justiz und Wirtschaft" }, higher: { name: "Hochschulbildung", blockLabel: "Gesperrt: Berufe der Eliteschulen" }, elite: { name: "Eliteschulen", blockLabel: "Alle Laufbahnen verfügbar und Netzwerkbonus" } },
+      archetypes: { politician: { name: "Ehrgeizig", description: "Überzeugen, unternehmen und Positionen erobern. Macht und Erfolg ziehen ihn an." }, authoritarian: { name: "Autoritär", description: "Disziplin, Ausdauer und Machtverhältnisse. Glaubt an Ordnung und Autorität." }, oligarch: { name: "Berechnend", description: "Kühles Denken, Eigeninteresse, Voraussicht und Taktik." }, informer: { name: "Neugierig", description: "Beobachten, verstehen und Informationen suchen." }, legalist: { name: "Gesetzestreu", description: "Regeln, Gesetze, Verfahren und Genauigkeit — samt ihren Grenzen." }, believer: { name: "Idealistisch", description: "Überzeugungen, Mobilisierung und Engagement." }, shadow: { name: "Manipulativ", description: "Täuschung, indirekter Einfluss, Infiltration und Doppelspiel." }, anticapitalist: { name: "Solidarisch", description: "Gemeinschaftstreue, Einsatz, Widerstand und gegenseitige Hilfe." }, criminal: { name: "Regelbrecherisch", description: "Risikofreude, Ablehnung von Regeln und Entschlossenheit." } },
+      careers: { officer: { name: "Armee — Höherer Offizier / Söldner", comp: "Führung, Einschüchterung" }, business: { name: "Wirtschaft — Unternehmer / Lobbyist", comp: "Lobbyarbeit, Geldwäsche, Verhandlung" }, magistrat: { name: "Justiz — Richter / Anwalt", comp: "Recht, Gerichtsverfahren, Verhandlung" }, press: { name: "Medien — Leitender Journalist / Influencer", comp: "Kompromat, Propaganda, Soziale Netzwerke" }, clergy: { name: "Religion — Glaubensführer", comp: "Rhetorik, Mobilisierung" }, doctor: { name: "Akademische Berufe — Arzt / Wissenschaftler", comp: "Zivile Kontakte, Diskretion, Rhetorik" }, worker: { name: "Arbeiterwelt — Arbeiter / Gewerkschafter", comp: "Kraft, Solidarität, Mobilisierung" }, intel: { name: "Geheimdienst — Agent", comp: "Überwachung, Infiltration" }, criminal_c: { name: "Organisierte Kriminalität — Krimineller", comp: "Milizen, Geldwäsche" }, escort: { name: "Prostitution — Sexarbeiter", comp: "Verführung, Kompromat" } },
+      stats: { INT: { name: "Intelligenz", description: "Verstehen, analysieren und vorausdenken: nützlich für Ermittlungen, Finanzen und Fallen." }, CHA: { name: "Charisma", description: "Überzeugen, begeistern und beruhigen: entscheidend bei Verhandlungen und Reden." }, VOL: { name: "Willenskraft", description: "Druck, Verhaftung und Einschüchterung widerstehen und notfalls kämpfen." }, PER: { name: "Wahrnehmung", description: "Details erkennen, Lügen aufdecken, Ziele verfolgen und Überraschungen vermeiden." }, DUP: { name: "Doppelzüngigkeit", description: "Lügen, verbergen und bestechen: Fähigkeiten für die illegale Welt." }, ENT: { name: "Beziehungen", description: "Ein Netzwerk aufbauen und pflegen, das langfristig entscheidend wird." } },
+      countries: { republic: { description: "Müde Demokratie, abgeschottete Eliten und Medienskandale als Nationalsport.", tags: ["Demokratie", "Satirisch"] }, narco: { description: "Scheindemokratie, Kartelle und gekaufte Wahlen. Gewalt ist die Sprache der Politik.", tags: ["Gewalttätig", "Korruption"] }, soviet: { description: "Eine Einheitspartei im inneren Konflikt: Reformer gegen Konservative.", tags: ["Einheitspartei", "Fraktionen"] }, khalija: { description: "Absolute Monarchie mit weitverzweigter Königsfamilie. Die königliche Gnade ist die wichtigste Währung.", tags: ["Monarchie", "Theokratie"] } },
+      cities: { republic: { capitale: { description: "Hauptstadt von Républia und Zentrum von Politik, Justiz und Medien." }, ville_a: { description: "Westliche Hafenstadt mit Handel, Schmuggel und Kommunalpolitik." }, ville_b: { description: "Nördliche Industriestadt mit starken Gewerkschaften, Fabriken und sozialen Konflikten." } }, narco: { capitale: { description: "Hauptstadt von El Estado: drückende Hitze, allgegenwärtige Korruption und die Alleinherrschaft von Generalissimo Gordito." }, ville_a: { description: "Grenzposten im Gebirge mit Schmuggel, bestechlichen Zöllnern und geheimen Pfaden." }, ville_b: { description: "Dschungelstadt mit scheinbar endlosen Laboranlagen." } }, soviet: { capitale: { description: "Hauptstadt von Sovarka: grauer Stahl, sowjetische Wohnblöcke und ständige Überwachung. Die Partei sieht alles." }, ville_a: { description: "Eisige Bergbaustadt am Rand des Imperiums. Die Kälte beißt, Kohle gibt es reichlich." }, ville_b: { description: "Kollektivwirtschaft Nummer 7: Landwirtschaft zum Ruhm der Partei." } }, khalija: { capitale: { description: "Hauptstadt von Al-Khalija: Gold, Türkis und Sand. Der Königspalast überragt die Stadt." }, ville_a: { description: "Karawanenoase mitten in der Wüste, seit Jahrhunderten ein Treffpunkt für Händler und Geheimnisse." }, ville_b: { description: "Ölhafen von Al-Khalija, wo Tanker und traditionelle Boote einander begegnen." } } }
+    }
+  } }
+};
+
+// Compléments des six langues initiales : mêmes clés i18next que les trois extensions.
+{
+ const tr=window.RP_I18N_RESOURCES["es"].translation;
+ tr.home.beta={title:"Human Gambit abre su beta.",body:"Républia es el primer imperio en abrir sus puertas: tres ciudades, una Asamblea, tribunales, un campeonato y personajes poco recomendables. Otros sistemas siguen en desarrollo y los imperios vecinos esperan su turno. Lo que hagas aquí y lo que nos cuentes dará forma al futuro del juego."};
+ Object.assign(tr.auth,{"promise":"Tu personaje te acompañará a todas partes.","emailPlaceholder":"Tu correo electrónico...","emailHint":"Esta dirección protege tu cuenta y permite recuperarla. No se usa para nada más.","passwordPlaceholder":"Elige una contraseña...","passwordHint":"Ocho caracteres como mínimo.","working":"Creando tu cuenta...","alreadyHaveAccount":"Ya tengo cuenta — volver al inicio","errEmail":"Esta dirección de correo no parece válida. Compruébala.","errPassword":"Elige una contraseña de al menos ocho caracteres.","errEmailTaken":"Esta dirección ya está en uso. Vuelve al inicio y elige iniciar sesión.","errSession":"No se pudo abrir la sesión. Comprueba tu conexión e inténtalo de nuevo.","errUnavailable":"La creación de cuentas no está disponible temporalmente. Inténtalo después.","errGeneric":"No se pudo crear tu cuenta. Inténtalo de nuevo.","reconnectBody":"Tu sesión ha caducado. Inicia sesión con tu correo electrónico y contraseña para recuperar a tu personaje.","reconnectButton":"Volver a iniciar sesión"});
+ Object.assign(tr.creation.steps.identity,{"genderLabel":"Género del personaje","genderOtherPlaceholder":"Cómo se define tu personaje..."});
+ tr.creation.genders={"male":"Hombre","female":"Mujer","nonbinary":"No binario","other":"Otro"};
+ 
+}
+{
+ const tr=window.RP_I18N_RESOURCES["zh-TW"].translation;
+ tr.home.beta={title:"Human Gambit 公開測試正式開始。",body:"Républia 是首個開放的帝國：三座城市、議會、法院、聯賽，以及形形色色的人物。其他系統仍在開發，鄰近的帝國也等待開放。你在這裡的行動和意見，都將影響遊戲的未來。"};
+ Object.assign(tr.auth,{"promise":"你的角色會一直陪伴你。","emailPlaceholder":"你的電子郵件地址…","emailHint":"此地址僅用於保護及恢復帳號。","passwordPlaceholder":"設定密碼…","passwordHint":"至少八個字元。","working":"正在建立帳號…","alreadyHaveAccount":"我已有帳號 — 返回首頁","errEmail":"電子郵件地址似乎無效，請確認。","errPassword":"密碼至少需要八個字元。","errEmailTaken":"此地址已被使用。請返回首頁登入。","errSession":"目前無法建立登入工作階段，請檢查連線後重試。","errUnavailable":"暫時無法建立帳號，請稍後再試。","errGeneric":"帳號建立失敗，請稍後再試。","reconnectBody":"工作階段已過期。請使用電子郵件與密碼重新登入，以取回你的角色。","reconnectButton":"重新登入"});
+ Object.assign(tr.creation.steps.identity,{"genderLabel":"角色性別","genderOtherPlaceholder":"你的角色如何定義自己…"});
+ tr.creation.genders={"male":"男性","female":"女性","nonbinary":"非二元","other":"其他"};
+ tr.creation.steps.stats.warning_one="還有 {{count}} 點未分配。之後可在角色資料中分配。";
+}
+{
+ const tr=window.RP_I18N_RESOURCES["ru"].translation;
+ tr.home.beta={title:"Human Gambit открывает бета-версию.",body:"Републия — первая открытая империя: три города, Ассамблея, суды, чемпионат и несколько сомнительных персонажей. Другие системы ещё разрабатываются, соседние империи ждут своей очереди. Ваши действия и отзывы помогут определить будущее игры."};
+ Object.assign(tr.auth,{"promise":"Ваш персонаж будет с вами повсюду.","emailPlaceholder":"Ваш адрес электронной почты...","emailHint":"Адрес нужен для защиты и восстановления учётной записи и не используется для других целей.","passwordPlaceholder":"Придумайте пароль...","passwordHint":"Не менее восьми символов.","working":"Создание учётной записи...","alreadyHaveAccount":"У меня уже есть учётная запись — на главную","errEmail":"Проверьте адрес электронной почты.","errPassword":"Пароль должен содержать не менее восьми символов.","errEmailTaken":"Этот адрес уже используется. Вернитесь на главную и войдите.","errSession":"Не удалось открыть сеанс. Проверьте соединение и повторите попытку.","errUnavailable":"Создание учётных записей временно недоступно.","errGeneric":"Не удалось создать учётную запись. Повторите попытку.","reconnectBody":"Ваш сеанс завершился. Войдите с помощью электронной почты и пароля, чтобы вернуть персонажа.","reconnectButton":"Войти снова"});
+ Object.assign(tr.creation.steps.identity,{"genderLabel":"Пол персонажа","genderOtherPlaceholder":"Как ваш персонаж определяет себя..."});
+ tr.creation.genders={"male":"Мужчина","female":"Женщина","nonbinary":"Небинарный","other":"Другое"};
+ 
+}
+{
+ const tr=window.RP_I18N_RESOURCES["ko"].translation;
+ tr.home.beta={title:"Human Gambit 베타가 시작됩니다.",body:"Républia가 첫 번째로 문을 엽니다. 세 도시와 의회, 법원, 챔피언십, 그리고 수상한 인물들이 기다립니다. 다른 시스템은 개발 중이며 주변 제국도 차례를 기다리고 있습니다. 여러분의 행동과 의견이 게임의 미래를 만듭니다."};
+ Object.assign(tr.auth,{"promise":"어디에서든 캐릭터와 함께할 수 있습니다.","emailPlaceholder":"이메일 주소...","emailHint":"이 주소는 계정 보호와 복구에만 사용됩니다.","passwordPlaceholder":"비밀번호 설정...","passwordHint":"8자 이상 입력하세요.","working":"계정 생성 중...","alreadyHaveAccount":"이미 계정이 있습니다 — 홈으로","errEmail":"유효한 이메일 주소인지 확인하세요.","errPassword":"비밀번호는 8자 이상이어야 합니다.","errEmailTaken":"이미 사용 중인 이메일 주소입니다. 홈으로 돌아가 로그인하세요.","errSession":"세션을 시작할 수 없습니다. 연결을 확인하고 다시 시도하세요.","errUnavailable":"현재 계정을 만들 수 없습니다. 나중에 다시 시도하세요.","errGeneric":"계정을 만들 수 없었습니다. 다시 시도하세요.","reconnectBody":"세션이 만료되었습니다. 이메일과 비밀번호로 다시 로그인해 캐릭터를 찾으세요.","reconnectButton":"다시 로그인"});
+ Object.assign(tr.creation.steps.identity,{"genderLabel":"캐릭터 성별","genderOtherPlaceholder":"캐릭터가 스스로를 정의하는 방식..."});
+ tr.creation.genders={"male":"남성","female":"여성","nonbinary":"논바이너리","other":"기타"};
+ tr.creation.steps.stats.warning_one="배분하지 않은 포인트가 {{count}}점 남았습니다. 나중에 캐릭터 정보에서 배분할 수 있습니다.";
+}
+
+// Champs de connexion sur la page d'accueil, anciennement codés en français dans le HTML.
+for (const [locale,labels] of Object.entries({
+  "fr": {
+    "signIn": "Me connecter à mon compte",
+    "signInEmailPlaceholder": "Votre adresse e-mail...",
+    "signInPasswordPlaceholder": "Votre mot de passe...",
+    "signInSubmit": "Se connecter",
+    "cancel": "Annuler"
+  },
+  "en": {
+    "signIn": "Sign in to my account",
+    "signInEmailPlaceholder": "Your email address...",
+    "signInPasswordPlaceholder": "Your password...",
+    "signInSubmit": "Sign in",
+    "cancel": "Cancel"
+  },
+  "es": {
+    "signIn": "Iniciar sesión en mi cuenta",
+    "signInEmailPlaceholder": "Tu correo electrónico...",
+    "signInPasswordPlaceholder": "Tu contraseña...",
+    "signInSubmit": "Iniciar sesión",
+    "cancel": "Cancelar"
+  },
+  "zh-TW": {
+    "signIn": "登入我的帳號",
+    "signInEmailPlaceholder": "你的電子郵件地址…",
+    "signInPasswordPlaceholder": "你的密碼…",
+    "signInSubmit": "登入",
+    "cancel": "取消"
+  },
+  "ru": {
+    "signIn": "Войти в учётную запись",
+    "signInEmailPlaceholder": "Ваш адрес электронной почты...",
+    "signInPasswordPlaceholder": "Ваш пароль...",
+    "signInSubmit": "Войти",
+    "cancel": "Отмена"
+  },
+  "ko": {
+    "signIn": "내 계정에 로그인",
+    "signInEmailPlaceholder": "이메일 주소...",
+    "signInPasswordPlaceholder": "비밀번호...",
+    "signInSubmit": "로그인",
+    "cancel": "취소"
+  },
+  "ar": {
+    "signIn": "تسجيل الدخول إلى حسابي",
+    "signInEmailPlaceholder": "عنوان بريدك الإلكتروني...",
+    "signInPasswordPlaceholder": "كلمة المرور...",
+    "signInSubmit": "تسجيل الدخول",
+    "cancel": "إلغاء"
+  },
+  "pt-BR": {
+    "signIn": "Entrar na minha conta",
+    "signInEmailPlaceholder": "Seu endereço de e-mail...",
+    "signInPasswordPlaceholder": "Sua senha...",
+    "signInSubmit": "Entrar",
+    "cancel": "Cancelar"
+  },
+  "de": {
+    "signIn": "Bei meinem Konto anmelden",
+    "signInEmailPlaceholder": "Deine E-Mail-Adresse...",
+    "signInPasswordPlaceholder": "Dein Passwort...",
+    "signInSubmit": "Anmelden",
+    "cancel": "Abbrechen"
+  }
+})) {
+  Object.assign(window.RP_I18N_RESOURCES[locale].translation.auth,labels);
+}
+
+
+// Reconciliation i18n du socle ajoute par main, sans remplacement des anciennes traductions.
+;(function(global){
+  const patches={
+  "ar": {
+    "common": {
+      "careerUseful": "مفيد لمسارك المهني",
+      "examplesLabel": "في اللعبة"
+    },
+    "examples": {
+      "INT": "الاستثمارات المالية، السرقة، التسميم، والتأثير في مؤشرات المدينة.",
+      "CHA": "المنشورات الانتخابية، المساومة في المجلس، رشوة الصحافة، التفاوض على الأراضي، وتبرير الموقف عند الاستدعاء.",
+      "VOL": "القتال، الهرب من الشرطة أو مقاومتها، التمرد أثناء الاحتجاز، قمع المظاهرات، والمعارك العسكرية.",
+      "PER": "القتال، مكافحة التجسس، تفتيش الشحنات لدى الجمارك، كشف الأعمال غير القانونية، والسرقة.",
+      "DUP": "الهروب من السجن، التهريب، رشوة موظف الجمارك، استمالة شخصية غير لاعبة، وتجنب القبض أثناء التلبس.",
+      "ENT": "المساومة في المجلس، تقديم جولة مشروبات في الحانة، وبناء شبكة علاقات."
+    }
+  },
+  "pt-BR": {
+    "common": {
+      "careerUseful": "Útil para sua carreira",
+      "examplesLabel": "No jogo"
+    },
+    "examples": {
+      "INT": "Investimentos financeiros, furtos, envenenamentos e ações sobre os indicadores da cidade.",
+      "CHA": "Panfletos eleitorais, negociações na Assembleia, suborno da imprensa, negociação de terrenos e explicações após uma intimação.",
+      "VOL": "Combates, fuga ou resistência à polícia, rebelião durante a detenção, repressão de protestos e batalhas militares.",
+      "PER": "Combates, contraespionagem, fiscalização de cargas na alfândega, detecção de ações ilegais e furtos.",
+      "DUP": "Fuga da prisão, contrabando, suborno de um agente alfandegário, aliciamento de PNJs e evasão de flagrante.",
+      "ENT": "Negociação na Assembleia, pagar uma rodada no bar e construir uma rede de contatos."
+    }
+  },
+  "de": {
+    "common": {
+      "careerUseful": "Nützlich für deine Laufbahn",
+      "examplesLabel": "Im Spiel"
+    },
+    "examples": {
+      "INT": "Geldanlagen, Diebstahl, Vergiftungen und Aktionen, die Stadtindikatoren beeinflussen.",
+      "CHA": "Wahlflugblätter, Verhandlungen in der Versammlung, Bestechung der Presse, Grundstücksverhandlungen und Rechtfertigung bei Vorladungen.",
+      "VOL": "Kämpfe, Flucht oder Widerstand gegen die Polizei, Auflehnung in Haft, Niederschlagung von Demonstrationen und militärische Gefechte.",
+      "PER": "Kämpfe, Spionageabwehr, Zollkontrollen von Fracht, Erkennen illegaler Handlungen und Diebstahl.",
+      "DUP": "Gefängnisausbruch, Schmuggel, Bestechung von Zollbeamten, Abwerbung von NSC und Entkommen bei einer Festnahme auf frischer Tat.",
+      "ENT": "Verhandlungen in der Versammlung, eine Runde Getränke in der Bar ausgeben und ein Kontaktnetz aufbauen."
     }
   }
 };
+  for(const [locale,patch] of Object.entries(patches)){
+    const creation=global.RP_I18N_RESOURCES[locale].translation.creation;
+    for(const [key,value] of Object.entries(patch.common)) creation.common[key]=value;
+    for(const [name,value] of Object.entries(patch.examples)) creation.stats[name].examples=value;
+  }
+})(window);
