@@ -165,6 +165,8 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 ## Derniers chantiers
 
+- **Grand Hôtel de Sovarka (Novomirsk), accueil (Claude, 06/11, décision de Fred)** — branche `claude/grand-hotel-pnj-20261106`. Images de Fred déjà posées (accueil, restaurant, bar, chambres). Nom « Grand Hôtel de Sovarka » (enseigne de l'image), description neuve. Accueil : **Vera Clefova** (réceptionniste) et **Ivan Valisov** (bagagiste), noms et fiches de dialogue (`api/_pnj-personnalites.js`) proposés par Claude, à valider ; portraits `Novo_vera_clefova_portrait.webp` et `Novo_ivan_valisov_portrait.webp` découpés dans l'image de la réception. Les trois PNJ du contexte (Olga Soupe, Boris Betterave, Natasha Privilege) retirés : ils s'affichaient à l'accueil. Scènes PNJ régénérées. **Suite avec Fred** : restaurant, bar, chambres. **À constater en jeu** : à l'accueil du Grand Hôtel de Novomirsk, les deux PNJ avec leur portrait, et leur dialogue.
+
 - **Mobile L0, L1, L2, L3 et L6 en bêta (Codex, intégration Claude, 06/11)** — PR #532 à #536 créées par Claude par l'API REST (GraphQL refusé à Codex), fusionnées une par une dans main par commit de fusion (pas d'écrasement, pour garder l'empilement). Conflits de L2 et L3 : seulement la version de `plateau-rue-centrale.js` dans `plateau.html` (version de main gardée, étiquette du lot ajoutée). Contrôles : seul échec, le rangement SQL hérité de main (`outils/corrections/RATTRAPAGE-SALAIRE-MINISTRE-STAROVKA-20261106.sql`, à ranger) ; Vercel READY. **Suite pour Codex** : L5, L8, puis L4, L7, L9, L10, une branche par lot depuis main. **À constater** : sur téléphone, plateau replié en tiroirs, rues et pièces au doigt, fenêtres et clavier, forum.
 
 - **Novomirsk, vue 18 : Musée de la République de Sovarka (Claude, 06/11, décision de Fred : copier le Musée national, les différences ensuite)** — branche `claude/novomirsk-musee-national-20261106`. Bâtiment du socle `musee-national-republia` listé à Novomirsk (nom, description, salles des Présidents et des Grandes Villes « de Sovarka »). `imagesAVenir` ; nouveau drapeau de contexte `audiosAVenir` (pas d'audioguide emprunté, `renderRoomActions`) ; figures du musée national masquées hors Républia (`personnalitesMuseeCourantes`). Migration `20261106194500_novomirsk_musee_national` **appliquée** (registre `novomirsk_musee_national_20261106194500`) : 12 pièces, sortie vers `novomirsk-vue-18` ; banc annulé `banc-novomirsk-musee-national.sql` vert avant. **Reste (avec Fred)** : différences propres à Sovarka (figures, salles, audioguides, images). **À constater en jeu** : à Novomirsk vue 18, entrer au musée, parcourir les 12 salles.
@@ -481,3 +483,9 @@ automatique ; résultats structurés et captures de fixtures inspectées sont pu
 codex/mobile-l8-reprise-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
 
 codex/mobile-l4-creation-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
+
+codex/mobile-l5-transactions-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+codex/mobile-l8-reprise-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+codex/mobile-l4-creation-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
