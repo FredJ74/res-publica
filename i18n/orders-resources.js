@@ -35,7 +35,7 @@
     "regarder_live": "Suivre le foot",
     "prendre_licence_sportive": "Prendre sa licence sportive",
     "emprunter": "Emprunter",
-    "virement_joueur": "Faire un virement"
+    "se_rebeller": "Se rebeller"
   },
   "en": {
     "installer_equipements": "Install equipment",
@@ -66,7 +66,7 @@
     "regarder_live": "Follow football",
     "prendre_licence_sportive": "Get a sports licence",
     "emprunter": "Take out a loan",
-    "virement_joueur": "Make a bank transfer"
+    "se_rebeller": "Rebel"
   },
   "es": {
     "installer_equipements": "Instalar equipos",
@@ -97,7 +97,7 @@
     "regarder_live": "Seguir el fútbol",
     "prendre_licence_sportive": "Obtener una licencia deportiva",
     "emprunter": "Solicitar un préstamo",
-    "virement_joueur": "Hacer una transferencia"
+    "se_rebeller": "Rebelarse"
   },
   "zh-TW": {
     "installer_equipements": "安裝設備",
@@ -128,7 +128,7 @@
     "regarder_live": "關注足球賽事",
     "prendre_licence_sportive": "申辦運動員資格",
     "emprunter": "申請貸款",
-    "virement_joueur": "銀行轉帳"
+    "se_rebeller": "反抗"
   },
   "ru": {
     "installer_equipements": "Установить оборудование",
@@ -159,7 +159,7 @@
     "regarder_live": "Следить за футболом",
     "prendre_licence_sportive": "Оформить спортивную лицензию",
     "emprunter": "Взять кредит",
-    "virement_joueur": "Сделать перевод"
+    "se_rebeller": "Восстать"
   },
   "ko": {
     "installer_equipements": "장비 설치",
@@ -190,7 +190,7 @@
     "regarder_live": "축구 경기 관전하기",
     "prendre_licence_sportive": "선수 등록하기",
     "emprunter": "대출받기",
-    "virement_joueur": "계좌 이체하기"
+    "se_rebeller": "반항하기"
   },
   "ar": {
     "installer_equipements": "تركيب المعدات",
@@ -221,7 +221,7 @@
     "regarder_live": "متابعة كرة القدم",
     "prendre_licence_sportive": "الحصول على رخصة رياضية",
     "emprunter": "الحصول على قرض",
-    "virement_joueur": "إجراء تحويل مصرفي"
+    "se_rebeller": "التمرد"
   },
   "pt-BR": {
     "installer_equipements": "Instalar equipamentos",
@@ -252,7 +252,7 @@
     "regarder_live": "Acompanhar o futebol",
     "prendre_licence_sportive": "Obter licença esportiva",
     "emprunter": "Solicitar empréstimo",
-    "virement_joueur": "Fazer transferência"
+    "se_rebeller": "Rebelar-se"
   },
   "de": {
     "installer_equipements": "Ausrüstung installieren",
@@ -283,7 +283,7 @@
     "regarder_live": "Fußball verfolgen",
     "prendre_licence_sportive": "Sportlizenz beantragen",
     "emprunter": "Kredit aufnehmen",
-    "virement_joueur": "Überweisung tätigen"
+    "se_rebeller": "Sich auflehnen"
   }
 };
   for(const [locale,labels] of Object.entries(words)) {
