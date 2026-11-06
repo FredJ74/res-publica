@@ -1784,6 +1784,27 @@ const WORLD = {
             }
           }
         },
+        // Centre d'affaires de Novomirsk : deux bureaux privés et quatre salles
+        // de réunion. Le gabarit commun reste inchangé dans les autres villes.
+        'centre-affaires': {
+          name: "Centre d'affaires de Novomirsk",
+          desc: "Adresse prestigieuse pour les réunions d'affaires et les bureaux privés de Sovarka.",
+          roomsExclues: ['bureau_standard', 'open_space', 'tribune_republia'],
+          roomOverrides: {
+            hall: {
+              name: "Accueil du centre d'affaires",
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_hall.webp',
+              persons: [
+                {name:'Réceptionniste du centre (PNJ)',role:"Réceptionniste",rel:'neutral',job:'hotesse'},
+                {name:'Agent de sécurité du centre (PNJ)',role:'Agent de sécurité',rel:'neutral',job:'agent_securite'}
+              ]
+            },
+            bureau_prestige: {
+              name: "Bureau prestige A — Local à louer",
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_bureau_prestige.webp'
+            }
+          }
+        },
         'hotel-republica': {
           name: "Grand Hôtel de Sovarka",
           shortName: "Grand Hôtel",
@@ -10254,3 +10275,40 @@ function slugPnjSovarka(nom) {
     }
   }
 }
+
+// Bureaux et salles spécifiques à Novomirsk. Héritage de l'objet bureau_prestige
+// pour conserver les ordres, tarifs, capacités et garanties métier du socle.
+// Les réservations des salles de réunion nécessitent un paiement journalier côté
+// serveur : elles ne présentent pas de faux ordre de location tant que ce
+// mécanisme et son tarif ne sont pas approuvés.
+(function definirSallesCentreAffairesNovomirsk(){
+  const contexte = WORLD.soviet.capitale.buildingContext['centre-affaires'];
+  const modele = BUILDINGS['centre-affaires'].rooms.bureau_prestige;
+  const prefixe = 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_';
+  const salle = (nom,image,description) => ({
+    name: nom,
+    imageBg: "linear-gradient(135deg,#080a10,#171218)",
+    imageUrl: prefixe+image,
+    desc: description,
+    persons: [],
+    orders: []
+  });
+  contexte.roomsExtra = {
+    bureau_prestige_b: {
+      ...modele,
+      name: "Bureau prestige B — Local à louer",
+      imageUrl: prefixe+'bureau_prestige_2.webp',
+      locationData: { ...modele.locationData, label:'Bureau prestige B' },
+      persons: [],
+      orders: modele.orders.map(o=>({...o}))
+    },
+    reunion_grande_a: salle("Grande salle de réunion A", 'grande_reunion.webp',
+      "Salle de réception professionnelle avec grand écran, minibar et espace salon. Location à la journée : réservation en préparation."),
+    reunion_grande_b: salle("Grande salle de réunion B", 'grande_reunion.webp',
+      "Seconde grande salle de réunion avec grand écran, minibar et espace salon. Location à la journée : réservation en préparation."),
+    reunion_moyenne_a: salle("Salle de réunion moyenne A", 'moyenne_reunion.webp',
+      "Salle de réunion plus intimiste, aquarium marin et grand écran. Location à la journée : réservation en préparation."),
+    reunion_moyenne_b: salle("Salle de réunion moyenne B", 'moyenne_reunion.webp',
+      "Seconde salle de réunion avec aquarium marin. Location à la journée : réservation en préparation.")
+  };
+})();
