@@ -368,4 +368,5 @@ Mobile L1 : branche `codex/mobile-l1-coque-20261106`, dépend de L0. Coque respo
 métier ou Supabase. L2/L3 puis L6 suivent dans des branches distinctes.
 
 Mobile L1 : conserver le préfixe historique de version CSS et ajouter le suffixe mobile ;
-le banc de lisibilité exige ce préfixe. Cache effectivement majoré, test conservé.
+le banc de lisibilité exige ce préfixe. Cache effectivement majoré, test conservé. Témoin bureau embarqué et vérifié SHA-256
+pour les clones CI superficiels (aucun fetch ni historique complet nécessaire).
