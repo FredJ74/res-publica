@@ -1166,6 +1166,8 @@ async function rpIdentiteChangementDeCompte(ancienUid, nouvelUid) {
 }
 
 function loadCharacter() {
+  const reprise = arguments[0]?.reprise === true;
+  const positionAvant = JSON.stringify([state.country,state.currentCity,state.currentBuilding,state.currentRoom]);
   const generation = loadCharacter.generation = (loadCharacter.generation || 0) + 1;
   const uidLecture = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
   const lectureCourante = () => generation === loadCharacter.generation
@@ -1227,7 +1229,7 @@ function loadCharacter() {
     if (char) {
       // Instrumentation : le nom REELLEMENT passe au detecteur plus bas, pas celui de state.
       rpDiagId('nomLocal', char && char.name);
-      applyCharToState(char);
+      if (!reprise) applyCharToState(char);
       console.log('Personnage charge (local):', char.name, '| Pays:', state.country);
       // Precharge le cache des indices de ville de Republia (chantier "refonte des ordres") --
       // fire-and-forget, les lecteurs (getIndiceVille etc.) ont deja des valeurs par defaut
@@ -1269,7 +1271,7 @@ function loadCharacter() {
       // replace. C'est preferable a etre teleporte dans un ancien batiment -- et conforme a la
       // regle : on retrouve la position du dernier deplacement REELLEMENT VALIDE.
       // Reinjecter le journal personnel persiste (rapide, depuis le cache local)
-      restaurerJournal(char);
+      if (!reprise) restaurerJournal(char);
       // Synchroniser depuis Supabase en arrière-plan
       if (char.name && typeof sbLoadPersonnage === 'function') {
         // Lot 2 (hydratation financiere) : comptes_bancaires/placements_bancaires du personnage
@@ -1441,7 +1443,8 @@ function loadCharacter() {
             // Supabase : une actualisation ne doit pas téléporter le PJ.
             applyCharToState(state.char);
             updateUI();
-            restaurerPositionApresChargement(state.char);
+            if (!reprise || positionAvant !== JSON.stringify([state.country,state.currentCity,state.currentBuilding,state.currentRoom]))
+              restaurerPositionApresChargement(state.char);
             // Reconcilie avec la version Supabase (potentiellement plus a jour, ex. joueur
             // actif sur un autre appareil) -- vide et repeuple #journal en consequence.
             restaurerJournal(state.char);
@@ -1824,7 +1827,12 @@ function restaurerPositionApresChargement(char) {
     return;
   }
   const buildingCible = char.currentBuilding, roomCible = char.currentRoom;
+  const acteurPosition = state.char;
+  const uidPosition = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const positionObservee = JSON.stringify([state.country,state.currentCity,state.currentBuilding,state.currentRoom]);
   setTimeout(() => {
+    if (state.char !== acteurPosition || positionObservee !== JSON.stringify([state.country,state.currentCity,state.currentBuilding,state.currentRoom])
+        || (typeof rpAuthUid === 'function' && rpAuthUid() !== uidPosition)) return;
     try {
       // Drapeau de RESTAURATION (audit quete d'accueil, 14 septembre 2026). Le chargement de
       // page rejoue enterBuilding/enterRoom a l'identique d'un vrai deplacement : tout hook de

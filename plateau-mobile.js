@@ -200,7 +200,7 @@
         const operation = (async () => {
           if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession();
           if (annule) throw Error('reprise abandonnée');
-          return loadCharacter();
+          return loadCharacter({reprise:true});
         })();
         const resultat = await Promise.race([operation,new Promise((_,refus) => {
           delai = setTimeout(() => { annule = true; loadCharacter.generation = (loadCharacter.generation || 0) + 1; refus(Error('délai dépassé')); },15000);
