@@ -6,9 +6,18 @@
   const engine=global.i18next, config=global.RP_I18N_RESOURCES;
   if(!engine || !config) return;
   const supported=Object.keys(global.RP_I18N_LANGUAGES||{fr:{}});
+  // Point d'entrée commun avec le pont du plateau : préférence persistée,
+  // sinon langue du navigateur, sinon français. L'accueil emploie cette priorité.
   let locale='fr';
-  try { const saved=global.localStorage?.getItem('respublica_language'); if(supported.includes(saved))locale=saved; }
-  catch (_) { /* navigateur sans localStorage */ }
+  if(typeof global.RPPlateauI18n?.language==='function') {
+    const detected=global.RPPlateauI18n.language();
+    if(supported.includes(detected))locale=detected;
+  } else {
+    try {
+      const saved=global.localStorage?.getItem('respublica_language');
+      if(supported.includes(saved))locale=saved;
+    } catch (_) { /* navigateur sans localStorage */ }
+  }
   // Point d'entrée générique pour les futures interfaces créées par JavaScript.
   // Le rendu initial s'en sert aussi : les écrans n'instancient pas un 2e moteur.
   function apply(root) {
