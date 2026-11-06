@@ -5,7 +5,7 @@
   const LANGS = Object.freeze(Object.keys(global.RP_I18N_LANGUAGES || {fr:1}));
   function resolve(code) {
     if(typeof code!=='string' || !code.trim())return null;
-    const parts=code.toLowerCase().replace(/_/g,'-').split('-');
+    const parts=code.toLowerCase().split('-');
     const exact=LANGS.find(lang=>lang.toLowerCase()===parts.join('-'));
     if(exact)return exact;
     return LANGS.find(lang=>{
