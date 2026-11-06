@@ -4260,18 +4260,17 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"accueil\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Hôtel Kollektiv",
+    "batiment": "Grand Hôtel de Sovarka",
     "piece": "Accueil",
     "personnes": [
-      "Olga Soupe",
-      "Boris Betterave",
-      "Natasha Privilege"
+      "Vera Clefova",
+      "Ivan Valisov"
     ]
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"restaurant\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Hôtel Kollektiv",
+    "batiment": "Grand Hôtel de Sovarka",
     "piece": "Salle du Restaurant",
     "personnes": [
       "Grigori Smetanine",
@@ -4284,7 +4283,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"bar\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Hôtel Kollektiv",
+    "batiment": "Grand Hôtel de Sovarka",
     "piece": "Bar",
     "personnes": [
       "Kostia (Barman)",
@@ -4296,21 +4295,21 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"chambres\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Hôtel Kollektiv",
+    "batiment": "Grand Hôtel de Sovarka",
     "piece": "Chambres",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"suite_privee\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Hôtel Kollektiv",
+    "batiment": "Grand Hôtel de Sovarka",
     "piece": "Suite Privée — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"suite_presidentielle\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Hôtel Kollektiv",
+    "batiment": "Grand Hôtel de Sovarka",
     "piece": "Suite Présidentielle — Local à louer",
     "personnes": []
   },
