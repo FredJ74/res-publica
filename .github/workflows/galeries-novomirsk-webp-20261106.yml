@@ -1,0 +1,73 @@
+name: Novomirsk - convertir les trois images des galeries
+on:
+  push:
+    branches:
+      - chatgpt/galeries-novomirsk-4-locaux-20261106
+    paths:
+      - .github/workflows/galeries-novomirsk-webp-20261106.yml
+permissions:
+  contents: write
+jobs:
+  convertir-et-verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/galeries-novomirsk-4-locaux-20261106
+          persist-credentials: true
+      - name: Installer Pillow
+        run: python -m pip install Pillow==11.3.0
+      - name: Convertir les trois PNG existants en WebP puis effacer les originaux
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import unicodedata, hashlib
+          root=Path('images/Sovarka/Novomirsk')
+          sources=list(root.glob('Novomirsk_galeries_*.png'))
+          expected={
+              'entree':'Novomirsk_galeries_entree.webp',
+              'grand':'Novomirsk_galeries_grand_local.webp',
+              'moyen':'Novomirsk_galeries_moyen_local.webp'
+          }
+          if len(sources)!=3:
+              raise SystemExit('Trois PNG exactement attendus, trouves: '+str([p.name for p in sources]))
+          found={}
+          for src in sources:
+              name=unicodedata.normalize('NFKD',src.stem).encode('ascii','ignore').decode('ascii').lower()
+              kind='entree' if 'entr' in name else 'grand' if 'grand' in name else 'moyen' if 'moyen' in name else None
+              if not kind or kind in found: raise SystemExit('Nom PNG inattendu: '+src.name)
+              found[kind]=src
+          if set(found)!=set(expected): raise SystemExit('Types de pieces incomplets')
+          for kind,outName in expected.items():
+              src=found[kind]
+              dst=root/outName
+              if dst.exists(): raise SystemExit('WebP deja present: '+str(dst))
+              with Image.open(src) as im:
+                  if im.format!='PNG' or im.width<900 or im.height<600:
+                      raise SystemExit('PNG invalide: '+str(src))
+                  size=im.size
+                  im.convert('RGB').save(dst,'WEBP',quality=85,method=6)
+              with Image.open(dst) as im:
+                  if im.format!='WEBP' or im.size!=size:
+                      raise SystemExit('Erreur de conversion: '+str(dst))
+                  im.verify()
+              if dst.stat().st_size<100000: raise SystemExit('Image trop petite: '+str(dst))
+              print(src.name,'->',dst.name,'bytes:',dst.stat().st_size,'sha256:',hashlib.sha256(dst.read_bytes()).hexdigest())
+              src.unlink()
+          PY
+      - name: Vérifier toutes les pièces et les variantes
+        run: |
+          node --check data.js
+          node --check plateau-variantes-pieces.js
+          node --test outils/bancs/test-galeries-novomirsk-20261106.mjs
+          git diff --check
+      - name: Publier les trois WebP et les suppressions PNG sur la PR
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A images/Sovarka/Novomirsk
+          git diff --cached --stat
+          git commit -m "assets(novomirsk): galeries trois WebP, PNG originaux supprimes"
+          git push origin HEAD:refs/heads/chatgpt/galeries-novomirsk-4-locaux-20261106
