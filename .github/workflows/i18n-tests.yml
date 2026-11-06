@@ -1,5 +1,8 @@
 name: Internationalisation — catalogues et accueil
 on:
+  # Contrôle temporaire du brouillon : aucun déploiement ni activation publique.
+  push:
+    branches: [chatgpt/accueil-9-langues-20261102]
   pull_request:
     branches: [main]
     paths:
