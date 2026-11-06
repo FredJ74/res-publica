@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('137 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('157 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,137);
+ assert.equal(ref.length,157);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -219,5 +219,28 @@ test('20 ordres juridiques et économiques : parité source, neuf langues, aucun
    }
    assert.equal(original.fn,fn);assert.equal(original.pa,3);assert.equal(original.cost,82);
    assert.equal(original.requiresPost,'poste_test');assert.equal(original.label,label);
+ }
+});
+
+
+test('20 ordres transports et vie sociale : libellés sources et neuf langues',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const ids=["prendre_train","prendre_bus_taxi","prendre_bateau","travailler_jardins","laisser_legumes_jardins","prendre_legumes_jardins","acheter_ressources_entrepot","acheter_criee","marchandises_non_reclamees","inspecter_cargaisons","se_syndiquer","greve_lancer","greve_terminer","greve_generale_appeler","greve_generale_retirer","orga_petition","orga_meeting","demander_autorisation_manifester","orga_collecte","organiser_manifestation_syndicat"];
+ const words=win.RP_I18N_RESOURCES.fr.translation.orders;
+ const sourceLabels=new Map();
+ for(const match of source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)){
+  if(!sourceLabels.has(match[2]))sourceLabels.set(match[2],new Set());
+  sourceLabels.get(match[2]).add(match[4]);
+ }
+ for(const fn of ids){
+  const label=words[fn];
+  assert.ok(sourceLabels.get(fn)?.has(label),'label source absent '+fn);
+  const order=Object.freeze({fn,label,cost:99,pa:2,requiresPost:'agent'});
+  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
+   const value=win.RP_I18N_RESOURCES[lang].translation.orders[fn];
+   assert.ok(value?.trim(),lang+'/'+fn);
+   assert.equal(win.RPOrderI18n.label(order,engine,lang),value);
+  }
+  assert.equal(order.cost,99);assert.equal(order.pa,2);assert.equal(order.requiresPost,'agent');
  }
 });
