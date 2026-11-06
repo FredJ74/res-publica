@@ -209,7 +209,7 @@ test('20 ordres juridiques et économiques : parité source, neuf langues, aucun
  for(const fn of ids){
    const label=words[fn];
    assert.equal(typeof label,'string',fn);
-   const matches=[...source.matchAll(/\\bfn\\s*:\\s*(['\"])([^'\"\\n]+)\\1\\s*,\\s*label\\s*:\\s*(['\"])([^'\"\\n]+)\\3/g)];
+   const matches=[...source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)];
    assert.ok(matches.some(m=>m[2]===fn && m[4]===label),'libellé source non conforme '+fn);
    const original=Object.freeze({fn,label,pa:3,cost:82,requiresPost:'poste_test'});
    for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
