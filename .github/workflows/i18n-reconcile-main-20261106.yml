@@ -1,0 +1,47 @@
+name: I18n brouillon — réconcilier main sans publication
+on:
+  push:
+    branches: [chatgpt/accueil-9-langues-20261102]
+    paths:
+      - .github/workflows/i18n-reconcile-main-20261106.yml
+permissions:
+  contents: write
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fusion prudente du main courant sur la seule branche brouillon
+        run: |
+          git fetch origin main
+          echo "MAIN=$(git rev-parse origin/main)"
+          echo "DRAFT=$(git rev-parse HEAD)"
+          git merge --no-commit --no-ff -X theirs origin/main
+          test -z "$(git ls-files -u)"
+          git diff --cached --check
+          echo '=== Ressources et fichiers potentiellement en conflit ==='
+          git diff --name-status origin/main -- index.html plateau.html plateau-politique.js style.css i18n/ outils/bancs/banc-i18n-*
+          echo '=== Vérifier que les neuf catalogues sont toujours présents ==='
+          node --check i18n/resources.js
+          node --check i18n/orders-resources.js
+          node --check i18n/plateau-init.js
+          node --check i18n/ordres.js
+          node --check i18n/texte-joueur.js
+          node --check plateau-politique.js
+      - name: Banc complet i18n, sécurité et traductions sans mutation métier
+        run: |
+          node --test outils/bancs/banc-accueil-neuf-langues.cjs outils/bancs/banc-i18n-couverture.cjs outils/bancs/banc-i18n-pont-plateau.cjs outils/bancs/banc-i18n-plateau-ressources.cjs outils/bancs/banc-i18n-plateau-wiring.cjs outils/bancs/banc-i18n-plateau-init.cjs outils/bancs/banc-i18n-texte-joueur.cjs outils/bancs/banc-traduction-i18n.mjs outils/bancs/banc-i18n-selecteur-interactif.cjs outils/bancs/banc-i18n-ordres.cjs outils/bancs/banc-i18n-catalogue-ordres.cjs outils/bancs/banc-i18n-traduction-sources.mjs outils/bancs/banc-i18n-contenu-securise.mjs outils/bancs/banc-i18n-render-ordres.cjs
+      - name: Commit de réconciliation et publication EXCLUSIVEMENT sur la branche brouillon
+        run: |
+          test -z "$(git ls-files -u)"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "chore(i18n): réconcilier le dernier main sans activation publique"
+          git push origin HEAD:chatgpt/accueil-9-langues-20261102
