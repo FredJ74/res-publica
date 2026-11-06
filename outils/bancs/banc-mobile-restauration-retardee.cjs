@@ -1,0 +1,6 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),acorn=require('../vercel/node_modules/acorn');
+const s=fs.readFileSync(path.resolve(__dirname,'../../plateau-core.js'),'utf8'),f=acorn.parse(s,{ecmaVersion:'latest'}).body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='restaurerPositionApresChargement');
+function bac(){const t=[],r=[];const c=vm.createContext({state:{char:{name:'Fixture'},country:'republic',currentCity:'capitale',currentBuilding:'a',currentRoom:'r'},BUILDINGS:{a:{rooms:{r:{}}}},window:{},console,rpAuthUid:()=> 'uid-fixture',setTimeout:fn=>t.push(fn),representerPositionServeur:(...p)=>r.push(p)});vm.runInContext(s.slice(f.start,f.end),c);c.restaurerPositionApresChargement({currentBuilding:'a',currentRoom:'r'});return{c,t,r};}
+test('restauration inchangée : représentation unique sans commande',()=>{const b=bac();b.t[0]();assert.equal(b.r.length,1);assert.deepEqual(b.r[0],['a','r']);});
+test('restauration différée : aucun rendu pour un autre personnage',()=>{const b=bac();b.c.state.char={name:'Autre'};b.t[0]();assert.equal(b.r.length,0);});
+test('restauration différée : aucun retour en arrière après nouveau déplacement',()=>{const b=bac();b.c.state.currentRoom='autre-piece';b.t[0]();assert.equal(b.r.length,0);});
