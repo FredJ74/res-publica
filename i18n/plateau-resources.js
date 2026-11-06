@@ -621,7 +621,9 @@
       "rulesFootball": "⚽ Football",
       "rulesReligion": "Religions",
       "recipient": "À",
-      "recipientPlaceholder": "Destinataire..."
+      "recipientPlaceholder": "Destinataire...",
+      "subjectPlaceholder": "Objet du message...",
+      "messagePlaceholder": "Votre message..."
     },
     "en": {
       "rulesIntro": "The Grand Game",
@@ -634,7 +636,9 @@
       "rulesFootball": "⚽ Football",
       "rulesReligion": "Religions",
       "recipient": "To",
-      "recipientPlaceholder": "Recipient..."
+      "recipientPlaceholder": "Recipient...",
+      "subjectPlaceholder": "Message subject...",
+      "messagePlaceholder": "Your message..."
     },
     "es": {
       "rulesIntro": "El Gran Juego",
@@ -647,7 +651,9 @@
       "rulesFootball": "⚽ Fútbol",
       "rulesReligion": "Religiones",
       "recipient": "Para",
-      "recipientPlaceholder": "Destinatario..."
+      "recipientPlaceholder": "Destinatario...",
+      "subjectPlaceholder": "Asunto del mensaje...",
+      "messagePlaceholder": "Tu mensaje..."
     },
     "zh-TW": {
       "rulesIntro": "權力大遊戲",
@@ -660,7 +666,9 @@
       "rulesFootball": "⚽ 足球",
       "rulesReligion": "宗教",
       "recipient": "收件人",
-      "recipientPlaceholder": "收件人..."
+      "recipientPlaceholder": "收件人...",
+      "subjectPlaceholder": "訊息主旨...",
+      "messagePlaceholder": "您的訊息..."
     },
     "ru": {
       "rulesIntro": "Большая игра",
@@ -673,7 +681,9 @@
       "rulesFootball": "⚽ Футбол",
       "rulesReligion": "Религии",
       "recipient": "Кому",
-      "recipientPlaceholder": "Получатель..."
+      "recipientPlaceholder": "Получатель...",
+      "subjectPlaceholder": "Тема сообщения...",
+      "messagePlaceholder": "Ваше сообщение..."
     },
     "ko": {
       "rulesIntro": "권력의 대결",
@@ -686,7 +696,9 @@
       "rulesFootball": "⚽ 축구",
       "rulesReligion": "종교",
       "recipient": "받는 사람",
-      "recipientPlaceholder": "수신자..."
+      "recipientPlaceholder": "수신자...",
+      "subjectPlaceholder": "메시지 제목...",
+      "messagePlaceholder": "메시지를 입력하세요..."
     },
     "ar": {
       "rulesIntro": "اللعبة الكبرى",
@@ -699,7 +711,9 @@
       "rulesFootball": "⚽ كرة القدم",
       "rulesReligion": "الأديان",
       "recipient": "إلى",
-      "recipientPlaceholder": "المستلم..."
+      "recipientPlaceholder": "المستلم...",
+      "subjectPlaceholder": "موضوع الرسالة...",
+      "messagePlaceholder": "رسالتك..."
     },
     "pt-BR": {
       "rulesIntro": "O Grande Jogo",
@@ -712,7 +726,9 @@
       "rulesFootball": "⚽ Futebol",
       "rulesReligion": "Religiões",
       "recipient": "Para",
-      "recipientPlaceholder": "Destinatário..."
+      "recipientPlaceholder": "Destinatário...",
+      "subjectPlaceholder": "Assunto da mensagem...",
+      "messagePlaceholder": "Sua mensagem..."
     },
     "de": {
       "rulesIntro": "Das große Spiel",
@@ -725,7 +741,9 @@
       "rulesFootball": "⚽ Fußball",
       "rulesReligion": "Religionen",
       "recipient": "An",
-      "recipientPlaceholder": "Empfänger..."
+      "recipientPlaceholder": "Empfänger...",
+      "subjectPlaceholder": "Betreff der Nachricht...",
+      "messagePlaceholder": "Ihre Nachricht..."
     }
   };
   for(const [locale,labels] of Object.entries(rulesAndMail)) Object.assign(translations[locale],labels);
