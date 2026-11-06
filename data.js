@@ -1793,11 +1793,13 @@ const WORLD = {
             // Plus de vente de terrain, de murs, de rachat ni de préemption : le notaire enregistre les
             // attributions de droits d'exploiter décidées par le maire et les cessions entre PJ.
             bureau_successions: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_successions.webp',
               persons: [
                 {name:'Claire Delhune (PNJ)', role:'Secrétaire', rel:'neutral', job:'secretaire_notaire'}
               ]
             },
             bureau_contrats: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_cessions_entreprises.webp',
               excludeOrders: ['officialiser_transaction', 'commerces_fonds_murs', 'racheter_entreprise',
                 'acte_rachat_entreprise_preemption', 'transfert_compromis'],
               orders: [
