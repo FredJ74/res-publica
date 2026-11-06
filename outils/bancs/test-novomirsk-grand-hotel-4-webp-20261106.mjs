@@ -40,6 +40,6 @@ test('les ordres et exclusions hôtel restent canoniques, les autres villes rest
   assert.ok(ctx.buildings['hotel-republica'].rooms.bar.orders.some(o=>o.fn==='offrir_tournee'));
   assert.ok(ctx.buildings['hotel-republica'].rooms.restaurant.orders.some(o=>o.fn==='diner_affaires'));
   assert.ok(ctx.buildings['hotel-republica'].rooms.chambres.orders.some(o=>o.fn==='dormir_chambre'));
-  assert.ok(ctx.world.republic.capitale.buildingContext['hotel-republica'].roomOverrides.accueil.imageUrl !== hotel.roomOverrides.accueil.imageUrl);
+  assert.ok(ctx.buildings['hotel-republica'].rooms.accueil.imageUrl !== hotel.roomOverrides.accueil.imageUrl);
   assert.ok(ctx.world.soviet.ville_a.buildingContext['hotel-republica']?.roomOverrides?.accueil?.imageUrl !== hotel.roomOverrides.accueil.imageUrl);
 });
