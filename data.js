@@ -9977,7 +9977,7 @@ function slugPnjSovarka(nom) {
   for (const [batiment, piece, nom, fichier] of photos) {
     const personnes = salles[batiment]?.roomOverrides?.[piece]?.persons || [];
     const personnage = personnes.find(p => p.name === nom);
-    if (!personnage) throw new Error('Portrait Novomirsk : PNJ introuvable ' + nom);
+    if (!personnage) throw new Error('Portrait Novomirsk : PNJ introuvable ' + nom + ' parmi ' + personnes.map(p => p.name).join(', '));
     personnage.photoUrl = 'images/Sovarka/Novomirsk/' + fichier;
     personnage.photoPos = '50% 25%';
   }
