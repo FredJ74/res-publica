@@ -1,0 +1,62 @@
+name: Novomirsk centre affaires - conversion cinq PNG
+on:
+  pull_request:
+    paths:
+      - .github/workflows/novomirsk-centre-affaires-conversion-temp.yml
+permissions:
+  contents: write
+jobs:
+  convertir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/novomirsk-centre-affaires-7-pieces-20261106
+          persist-credentials: true
+      - name: Convertir, vérifier et supprimer les originaux
+        run: |
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import hashlib
+          base=Path('images/Sovarka/Novomirsk')
+          pairs={
+             'Novomirsk_centre affaires_hall.png':'Novomirsk_centre_affaires_hall.webp',
+             'Novomirsk_centre affaires_grand bureau.png':'Novomirsk_centre_affaires_grande_reunion.webp',
+             'Novomirsk_centre affaires_moyen bureau.png':'Novomirsk_centre_affaires_moyenne_reunion.webp',
+             'Novomirsk_centre affaires_bureau prestige.png':'Novomirsk_centre_affaires_bureau_prestige.webp',
+             'Novomirsk_centre affaires_bureau prestige 2.png':'Novomirsk_centre_affaires_bureau_prestige_2.webp'
+          }
+          for srcName,dstName in pairs.items():
+            src=base/srcName
+            dst=base/dstName
+            if not src.is_file() and not dst.is_file():raise SystemExit('Image absente: '+srcName)
+            if src.is_file():
+              with Image.open(src) as im:
+                if im.format!='PNG' or im.width<900 or im.height<600:raise SystemExit('PNG invalide: '+str(src))
+                size=im.size
+                im.convert('RGB').save(dst,'WEBP',quality=85,method=6)
+              src.unlink()
+            with Image.open(dst) as im:
+              if im.format!='WEBP':raise SystemExit('Format invalide: '+str(dst))
+              im.verify()
+            if dst.stat().st_size<100000:raise SystemExit('Image trop petite: '+str(dst))
+            print(dstName,dst.stat().st_size,hashlib.sha256(dst.read_bytes()).hexdigest())
+          PY
+      - name: Tests du jeu et des visuels
+        run: |
+          node --check data.js
+          node --test outils/bancs/test-novomirsk-centre-affaires-sept-pieces-20261106.mjs
+          git diff --check
+      - name: Enregistrer les WebP sur la branche sans écraser les commits récents
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A images/Sovarka/Novomirsk
+          git diff --cached --stat
+          git commit -m "assets(novomirsk): cinq images WebP du centre affaires, PNG supprimés"
+          git fetch origin chatgpt/novomirsk-centre-affaires-7-pieces-20261106
+          git rebase FETCH_HEAD
+          git push origin HEAD:refs/heads/chatgpt/novomirsk-centre-affaires-7-pieces-20261106
