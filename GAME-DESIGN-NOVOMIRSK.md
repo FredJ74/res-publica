@@ -129,8 +129,9 @@ de PSM), un port de Sovarka, le directeur PNJ de l'entrepôt dans la cascade des
 - Novomirsk reste l'exception opulente de Sovarka (« plus la Russie des Tsars que l'URSS ») : plafonds de loyer des Galeries à **150 PSK/jour pour chaque grand local et 75 PSK pour chaque moyen** (validé par Fred le 06/11 ; ailleurs en Sovarka, 100 PSK pour le plus grand local). Migration `20261106233000_galeries_novomirsk_plafonds_loyer`, appliquée.
 - **À faire quand Novomirsk sera terminée** (Fred, 06/11) : relever les bâtiments qui n'ont pas de loyer.
 
-## Commerce Premium gratuit pendant la bêta (06/11/2026, décision de Fred, socle commun)
+## Locaux commerciaux : freemium et premium (rappel de Fred, 06/11/2026, 23 h 53)
 
-- « L'option premium est gratuite pendant la bêta, ça permet de voir si elle fonctionne bien. Quand elle sera payante, on ne pourra pas souffrir de bugs. »
-- Dans l'écran de gestion de son commerce, le propriétaire active « Commerce Premium » gratuitement : 3 types d'activité et 10 articles au lieu de 2 et 4 (règle des commerces du 06/11), attaché au fonds (transmis à la vente, perdu à la résiliation du bail). La génération d'image et les codes promotionnels restent « bientôt ».
-- Les commerces déjà au-delà du gratuit (plus de 2 types ou de 4 articles) sont passés premium d'office, sans rien perdre. Migration `20261106234500_commerce_premium_beta`, appliquée (constantes, `fonds_premium_activer`, plafonds lus sur le fonds). Le jour du paiement : `commerce_premium_gratuit_beta` à 0 et un opérateur de paiement à raccorder.
+- **Freemium** : 2 familles et 4 articles ; illustration générique du local, avec le nom du commerce sur le fronton.
+- **Premium** : 3 familles et 10 articles, et personnalisation complète du local par IA (atelier « Option Commerce — Personnaliser mon local »).
+- Pendant la bêta, le premium est offert à tous (plafonds 3 / 10 pour chacun, atelier gratuit). Le système fonctionne à Luthécia et se reprend tel quel ailleurs : les Galeries de Novomirsk l'ont déjà (fronton vierge pour le nom, atelier ouvert au titulaire dès que son commerce est créé).
+- Une tentative du 06/11 (migration `20261106234500`, bouton d'activation par commerce) reposait sur un malentendu : annulée par `20261106235500_annuler_commerce_premium_beta`, appliquée ; état d'avant rétabli.
