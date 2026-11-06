@@ -1,0 +1,70 @@
+name: Starovka — convertir les deux nouvelles images WebP
+on:
+  push:
+    branches: [chore/starovka-deux-images-webp-20261106]
+    paths:
+      - '.github/workflows/starovka-deux-images-webp-20261106.yml'
+permissions:
+  contents: write
+jobs:
+  conversion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Conversion vérifiée de deux PNG du dépôt
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageOps
+          root=Path('images/Sovarka/Starovka')
+          names=['Starkova_rue_magasin chasse.png','Starovka_rue_locaux a louer.png']
+          for name in names:
+              src=root/name
+              dest=src.with_suffix('.webp')
+              assert src.is_file(),f'PNG absent: {src}'
+              assert not dest.exists(),f'WebP existe deja: {dest}'
+              with Image.open(src) as im:
+                  rgb=ImageOps.exif_transpose(im).convert('RGB')
+                  dimensions=rgb.size
+                  rgb.save(dest,format='WEBP',quality=85,method=6)
+              with Image.open(dest) as im:
+                  assert im.format=='WEBP' and im.size==dimensions
+                  im.verify()
+              assert dest.stat().st_size>100
+              src.unlink()
+              assert not src.exists()
+              print(name,'=>',dest.name,'dimensions=',dimensions,'bytes=',dest.stat().st_size)
+          assert len(list(root.glob('*.png')))==0,'Des PNG inattendus subsistent dans Starovka'
+          PY
+      - name: Vérifier diff et intégrité
+        run: |
+          git status --short
+          git diff --check
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          root=Path('images/Sovarka/Starovka')
+          for n in ['Starkova_rue_magasin chasse.webp','Starovka_rue_locaux a louer.webp']:
+              f=root/n
+              assert f.is_file()
+              with Image.open(f) as img:
+                  assert img.format=='WEBP'
+                  img.load()
+          print('2/2 WebP contrôlés')
+          PY
+      - name: Commit conversion et suppression des PNG
+        run: |
+          git add -A -- 'images/Sovarka/Starovka/Starkova_rue_magasin chasse.png' 'images/Sovarka/Starovka/Starkova_rue_magasin chasse.webp' 'images/Sovarka/Starovka/Starovka_rue_locaux a louer.png' 'images/Sovarka/Starovka/Starovka_rue_locaux a louer.webp'
+          git diff --cached --check
+          git diff --cached --quiet && exit 1
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(starovka): convertir chasse et locaux en WebP'
+          git push origin HEAD:chore/starovka-deux-images-webp-20261106
