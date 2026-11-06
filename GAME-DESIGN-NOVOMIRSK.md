@@ -140,4 +140,4 @@ de PSM), un port de Sovarka, le directeur PNJ de l'entrepôt dans la cascade des
 - Accueil : **Valery Burov** (réceptionniste) et **Pietr Kastanov** (agent de sécurité).
 - **Bureaux prestige A et B** : attribués selon le schéma des locaux commerciaux de Sovarka, même cheminement que les Galeries (« Demande de location » depuis le bureau, dossiers du maire, signature chez le notaire). Loyer **150 PSK/jour** (plafond 150). On peut y installer le siège d'une association et du matériel. Guichet « Louer ce local » fermé.
 - **Salles de réunion** (deux grandes à 150 PSK, deux moyennes à 100 PSK) : location à la journée, **sans approbation du maire** (location courte durée). À enrichir : on pourra y créer des événements (assemblées générales, conseils d'administration…), à concevoir avec Fred.
-
+- **Événements en salle de réunion** (Fred, 07/11 : idées 5 et 6 de Claude) : conférence de presse, soirée de réseautage, séminaire de formation, buffet du Grand Hôtel ; réservés à celui qui a loué la salle, pour les PJ présents. Valeurs proposées par Claude, à valider : voir `RELAIS.md` (07/11).
