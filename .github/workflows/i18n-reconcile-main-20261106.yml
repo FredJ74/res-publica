@@ -20,6 +20,8 @@ jobs:
           node-version: '22'
       - name: Fusion prudente du main courant sur la seule branche brouillon
         run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git fetch origin main
           echo "MAIN=$(git rev-parse origin/main)"
           echo "DRAFT=$(git rev-parse HEAD)"
