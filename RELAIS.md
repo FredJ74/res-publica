@@ -372,3 +372,8 @@ et tables de destinations inchangées ; liste tactile des zones actives et clavi
 réutilisent leur clic existant. Onglets/actions défilants. Banc coque 8/8, dont
 bureau 1440 identique. Création de PR L0 tentée : GraphQL Forbidden ; mêmes accès
 pour les autres lots, branches distinctes poussées pour intégration sans bloc global.
+
+Mobile L3 : `codex/mobile-l3-fenetres-20261106`, dépend de L2. Hauteur visualViewport,
+focus dans les fenêtres, fermeture par leur bouton existant, champs >=16 px et chat
+contenu en paysage. 10/10 tests de coque ; bureau 1440 toujours pixel identique.
+Pas de test sur vrai clavier iOS ni compte authentifié. L6 démarre séparément.
