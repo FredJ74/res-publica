@@ -46,7 +46,7 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 
 ## Avancée du 7 novembre — non activée
 
-- **177 identifiants d'ordres** localisés dans chacune des neuf langues : aux 77 initiaux s'ajoutent cinq lots de 20 ordres : gouvernement/presse/économie, sport/justice, notariat/immobilier, transports/syndicats/vie sociale, puis immobilier/services sociaux/manifestations. Le catalogue français du nouveau lot reprend volontairement les libellés exacts de `data.js`, y compris leur graphie historique. Ce chiffre ne représente PAS tous les ordres et variantes du jeu.
+- **197 identifiants d'ordres** localisés dans chacune des neuf langues : aux 77 initiaux s'ajoutent cinq lots de 20 ordres : gouvernement/presse/économie, sport/justice, notariat/immobilier, transports/syndicats/vie sociale, puis immobilier/services sociaux/manifestations, et enfin 20 ordres organisations, presse associative, religions et diplomatie. Le catalogue français du nouveau lot reprend volontairement les libellés exacts de `data.js`, y compris leur graphie historique. Ce chiffre ne représente PAS tous les ordres et variantes du jeu.
 - Les tests de catalogue contrôlent la stricte parité des neuf langues, la présence des nouvelles commandes dans `data.js` et l'absence de mutation des paramètres métier (`fn`, `label`, `pa`, `cost`, `requiresPost`). Les variantes non cataloguées conservent le français original.
 - Le plateau n'affiche plus une clé technique si une traduction statique manque : le texte français déjà présent dans le DOM est conservé. Test dédié ajouté.
 - Le traducteur de contenu refuse désormais les caractères de contrôle avant réservation du quota ; le cache doit respecter les contraintes de taille et de caractères de contrôle avant d'être servi, après lecture RLS. Contre-épreuves ajoutées. **Il reste interne**, sans endpoint public, ni cache/quota persistants opérationnels.
@@ -65,7 +65,7 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 ### 07/11 — mesure de couverture et backlog non masqué
 
 - Script en lecture seule `outils/audits/etat-i18n-ordres.cjs` : réutilise l'inventaire d'ordres du dépôt, compare les labels exacts aux ressources, distingue identifiants stables couverts, identifiants ambigus partiellement couverts, libellés stables non encore traduits et références de catalogue obsolètes. Il ne prétend pas mesurer les labels générés à l'exécution.
-- Test `outils/bancs/banc-i18n-etat-ordres.cjs` : vérifie les **177 entrées françaises ancrées dans le code source** et la parité en neuf langues, sans autoriser à déclarer le jeu intégralement traduit. La CI conserve un artefact `i18n-ordres-restants` pour préparer les prochains lots.
+- Test `outils/bancs/banc-i18n-etat-ordres.cjs` : vérifie les **197 entrées françaises ancrées dans le code source** et la parité en neuf langues, sans autoriser à déclarer le jeu intégralement traduit. La CI conserve un artefact `i18n-ordres-restants` pour préparer les prochains lots.
 - Les scripts ne se connectent pas à Supabase, ne touchent ni aux personnages ni aux prix, et ne modifient aucun ordre. La CI réelle du dernier commit est toujours à certifier.
 
 
@@ -74,3 +74,11 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - Les trois placeholders « Destinataire », « Objet du message » et « Votre message » disposent désormais de clés dans chacune des neuf langues. La valeur des champs n'est jamais traduite ou remplacée.
 - Les tests du guide et du courrier couvrent les trois emplacements, les neuf langues et les gestionnaires historiques. Le rendu de l'inventaire vide protège aussi les environnements sans objet global `window` (bancs hors navigateur).
 - Tests CI ajoutés mais exécution distante sur le SHA courant non disponible ; ne pas présenter cette livraison comme validée sur vrais téléphones ou dans une partie authentifiée.
+
+
+### 07/11 — continuité multilingue et couverture sociale
+
+- **20 nouveaux ordres sociaux et d'organisation** localisés dans les neuf langues : presse, vie syndicale/associative, religion, relations diplomatiques, manifestations de pouvoir et réseaux. Le catalogue passe à **197 libellés canoniques** par langue. Les ordres hors catalogue restent en français pour éviter les ambiguïtés de prix et de contexte ; les identifiants et les mécaniques restent inchangés.
+- Le pont du plateau tire désormais les langues du même `RP_I18N_LANGUAGES` que l'accueil, et la préférence suit le même principe : `localStorage` explicite, sinon langue du navigateur (correspondance régionale prudente), sinon français. Par exemple es-MX → es, zh-Hant-TW → zh-TW, zh-CN reste fr. Aucun nouveau moteur ni sélection automatique selon empire/adresse.
+- Exécution directe de cinq modules navigateurs dans un contexte JavaScript isolé : **177 libellés** (lot précédent) correspondants au code source, aucune clé manquante dans les neuf langues, maintien des montants, commandes et fallback. Six simulations de démarrage sur des locales régionales : **6/6 conformes**, placeholder conservant la saisie et direction arabe locale. Le nouveau lot de vingt est soumis aux mêmes tests CI mais non certifié à distance.
+- Les vérifications de code ne remplacent ni une recette authentifiée ni une relecture linguistique. La PR demeure en brouillon et aucune activation publique n'est autorisée.
