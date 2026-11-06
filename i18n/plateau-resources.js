@@ -747,6 +747,64 @@
     }
   };
   for(const [locale,labels] of Object.entries(rulesAndMail)) Object.assign(translations[locale],labels);
+  // Boutons de navigation : traduire seulement leur span texte, conserver l'icône.
+  const commonButtons = {
+    "fr": {
+      "closeButton": "Fermer",
+      "exitButton": "Sortir",
+      "sendButton": "Envoyer",
+      "backHomeTitle": "Retour accueil"
+    },
+    "en": {
+      "closeButton": "Close",
+      "exitButton": "Exit",
+      "sendButton": "Send",
+      "backHomeTitle": "Back to home"
+    },
+    "es": {
+      "closeButton": "Cerrar",
+      "exitButton": "Salir",
+      "sendButton": "Enviar",
+      "backHomeTitle": "Volver al inicio"
+    },
+    "zh-TW": {
+      "closeButton": "關閉",
+      "exitButton": "離開",
+      "sendButton": "傳送",
+      "backHomeTitle": "返回首頁"
+    },
+    "ru": {
+      "closeButton": "Закрыть",
+      "exitButton": "Выйти",
+      "sendButton": "Отправить",
+      "backHomeTitle": "На главную"
+    },
+    "ko": {
+      "closeButton": "닫기",
+      "exitButton": "나가기",
+      "sendButton": "보내기",
+      "backHomeTitle": "홈으로 돌아가기"
+    },
+    "ar": {
+      "closeButton": "إغلاق",
+      "exitButton": "خروج",
+      "sendButton": "إرسال",
+      "backHomeTitle": "العودة إلى الصفحة الرئيسية"
+    },
+    "pt-BR": {
+      "closeButton": "Fechar",
+      "exitButton": "Sair",
+      "sendButton": "Enviar",
+      "backHomeTitle": "Voltar ao início"
+    },
+    "de": {
+      "closeButton": "Schließen",
+      "exitButton": "Verlassen",
+      "sendButton": "Senden",
+      "backHomeTitle": "Zur Startseite"
+    }
+  };
+  for(const [locale,labels] of Object.entries(commonButtons)) Object.assign(translations[locale],labels);
   for(const [locale,labels] of Object.entries(translations)) {
     if(resources[locale]?.translation) resources[locale].translation.plateau={...labels};
   }
