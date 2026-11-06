@@ -44,3 +44,16 @@ test('une interface créée plus tard peut être localisée sans réinitialiser 
  assert.equal(el.attrs.dir,'rtl');
  assert.equal(api.locale(),'ar');
 });
+
+
+test('clé absente : garder le libellé français déjà présent dans le DOM',()=>{
+ const {api}=run('en');
+ const el={textContent:'Texte français de secours',attrs:{'data-i18n':'plateau.cle_inconnue'},
+  getAttribute(k){return this.attrs[k]},
+  hasAttribute(k){return Object.hasOwn(this.attrs,k)},
+  setAttribute(k,v){this.attrs[k]=v},
+  removeAttribute(k){delete this.attrs[k]}};
+ api.apply({querySelectorAll(){return [el]}});
+ assert.equal(el.textContent,'Texte français de secours');
+ assert.equal(el.attrs.dir,undefined);
+});
