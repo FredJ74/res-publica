@@ -34,3 +34,11 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - La correspondance du **libellé français source** a été confrontée à `data.js` sur la version de `main` du jour. Les 9 traductions restent soumises à relecture éditoriale.
 - Régression exécutée sur une branche de test fondée sur `main`, **PR #563 non destinée à être fusionnée** : **12/12 tests ciblés verts** (8 catalogues, 4 invariance du moteur), sur 77 identifiants, sans changer coûts, PA, permissions, identifiants d'ordre ni données des PJ.
 - La PR #377 reste séparée, non fusionnée et sans activation publique ; sa divergence avec `main` impose une réconciliation globale avant déploiement.
+
+## Navigation supérieure du plateau — 6 novembre, lot suivant
+
+- Huit boutons du bandeau `plateau.html` reçoivent une traduction visible en neuf langues : indices impériaux, règles, messages/forums, joueurs, organisations, élections, carte et plan.
+- Huit infobulles associées sont traduites par l'attribut `data-i18n-title` ; le moteur existant `plateau-init.js` ne remplace **jamais** le contenu entier du bouton (icônes, notifications, compteurs et fonctions `onclick` restent intacts).
+- L'arabe applique `dir=rtl` aux seuls textes traduits, pas à la mise en page ni aux éléments interactifs du bandeau.
+- Contrôle isolé via [PR de test #564](https://github.com/FredJ74/res-publica/pull/564), **29/29 tests verts** (8 catalogue, 4 moteur, 4 rendu, 2 ressources, 5 câblage, 3 initialisation, 3 navigation) exécutés directement sur la branche de la PR #377. Syntaxe JS également vérifiée.
+- La PR #377 demeure en brouillon, non activée : tests visuels Chrome, Firefox, Safari, mobile et relecture linguistique toujours requis avant toute publication.
