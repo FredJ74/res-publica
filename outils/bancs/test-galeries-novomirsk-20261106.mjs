@@ -88,9 +88,8 @@ test('ancrage bas des grandes vitrines et enseignes : CSS, décor Premium, géom
  assert.equal(pieces.boutique_milieu.ancrage,'bas');
  assert.equal(pieces.arriere_boutique.ancrage,'haut');
  assert.equal(pieces.cave_reserve.ancrage,'haut');
- const script=engine+';this.zone=varianteZoneEnPixels';
- const geom=vm.createContext({console});
- vm.runInContext(script,geom);
+ vm.runInContext(';this.zone=varianteZoneEnPixels;',ctx);
+ const geom=ctx;
  const cadre={clientWidth:1200,clientHeight:300};
  const taille={l:1536,h:1024},zone={x:0,y:0,w:1,h:1};
  const top=geom.zone(zone,cadre,taille,'haut');
