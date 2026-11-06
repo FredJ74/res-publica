@@ -126,4 +126,5 @@ de PSM), un port de Sovarka, le directeur PNJ de l'entrepôt dans la cascade des
 
 - Mêmes ratios qu'en Républia, sans exception pour Novomirsk : un PNJ vend à **2 fois** son coût de revient, un PJ peut monter jusqu'à **4 fois**. Le coût de la main-d'œuvre, bien plus bas en Sovarka, suffit à faire la différence. « On reste là-dessus, sans complexifier. »
 - Le coefficient serveur de Sovarka manquait (un commerçant PJ ne pouvait pas fixer ses prix) : migration `20261106232000_coef_prix_max_pj_sovarka`, appliquée.
-- Novomirsk reste l'exception opulente de Sovarka (« plus la Russie des Tsars que l'URSS ») : loyers des Galeries un peu plus chers, montants à fixer avec Fred.
+- Novomirsk reste l'exception opulente de Sovarka (« plus la Russie des Tsars que l'URSS ») : plafonds de loyer des Galeries à **150 PSK/jour pour chaque grand local et 75 PSK pour chaque moyen** (validé par Fred le 06/11 ; ailleurs en Sovarka, 100 PSK pour le plus grand local). Migration `20261106233000_galeries_novomirsk_plafonds_loyer`, appliquée.
+- **À faire quand Novomirsk sera terminée** (Fred, 06/11) : relever les bâtiments qui n'ont pas de loyer.
