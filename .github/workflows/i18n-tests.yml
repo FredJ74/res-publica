@@ -27,6 +27,7 @@ on:
       - 'outils/bancs/banc-i18n-catalogue-ordres.cjs'
       - 'outils/bancs/banc-i18n-render-ordres.cjs'
       - 'plateau-politique.js'
+      - 'plateau-divers.js'
       - 'outils/bancs/banc-i18n-traduction-sources.mjs'
       - 'api/_traduction-sources.js'
       - 'api/_traduction-contenu.js'
