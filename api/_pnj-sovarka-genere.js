@@ -243,10 +243,18 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Raoul Toufaud",
-  "nouveau": "Radomir Faussepistov",
+  "nouveau": "Vassili Ordonov",
   "role": null,
-  "id": "sovarka_radomir_faussepistov",
+  "id": "sovarka_vassili_ordonov",
   "source": "raoul_toufaud"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Gardien de la Paix",
+  "nouveau": "Sergent Matrakov",
+  "role": null,
+  "id": "sovarka_sergent_matrakov",
+  "source": "gardien_de_la_paix"
  },
  {
   "ville": "Novomirsk",

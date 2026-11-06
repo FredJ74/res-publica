@@ -4603,16 +4603,16 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"commissariat\",\"accueil_police\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Milice de Stalinova",
+    "batiment": "Commissariat du Peuple",
     "piece": "Accueil",
     "personnes": [
-      "Milicien Vigilant"
+      "Sergent Matrakov"
     ]
   },
   "[\"soviet\",\"capitale\",\"commissariat\",\"prison\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Milice de Stalinova",
+    "batiment": "Commissariat du Peuple",
     "piece": "Cellules de garde a vue",
     "personnes": [
       "Gardien Stepan Verrouïev",
@@ -4622,10 +4622,10 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"commissariat\",\"bureau_commissaire\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Milice de Stalinova",
+    "batiment": "Commissariat du Peuple",
     "piece": "Bureau du Commissaire",
     "personnes": [
-      "Radomir Faussepistov",
+      "Vassili Ordonov",
       "Bronislava Menottova"
     ]
   },
