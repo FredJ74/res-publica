@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('177 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('197 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,177);
+ assert.equal(ref.length,197);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -262,5 +262,28 @@ test('20 ordres immobilier et services sociaux : labels source et contrats incha
   assert.equal(original.cost,95);
   assert.equal(original.pa,2);
   assert.equal(original.requiresPost,'owner');
+ }
+});
+
+
+test('20 ordres organisations et relations sociales : parité source et opérations immuables',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const ids=["orga_pelerinage","orga_excommunier","orga_blocus","orga_dividendes","orga_audit","orga_intimidation","orga_cooptation","orga_reseau","orga_campagne_presse","orga_fake_news","orga_scoop","orga_silence","orga_motion_supporters","orga_hooliganisme","blocus_portuaire","contrebande_port","se_confesser","pelerin","financer_oeuvre_culturelle","relations_bilaterales"];
+ const seen=new Map();
+ for(const item of source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)){
+  if(!seen.has(item[2]))seen.set(item[2],new Set());
+  seen.get(item[2]).add(item[4]);
+ }
+ const fr=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const fn of ids){
+  const order=Object.freeze({fn,label:fr[fn],pa:4,cost:210,requiresPost:'chef_org'});
+  assert.ok(seen.get(fn)?.has(order.label),'non canonique '+fn);
+  for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+   const translated=win.RP_I18N_RESOURCES[lng].translation.orders[fn];
+   assert.ok(translated?.trim(),lng+'/'+fn);
+   assert.equal(win.RPOrderI18n.label(order,engine,lng),translated,lng+'/'+fn);
+  }
+  assert.equal(order.label,fr[fn]);assert.equal(order.pa,4);assert.equal(order.cost,210);
+  assert.equal(order.requiresPost,'chef_org');
  }
 });
