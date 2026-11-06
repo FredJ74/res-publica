@@ -1166,6 +1166,10 @@ async function rpIdentiteChangementDeCompte(ancienUid, nouvelUid) {
 }
 
 function loadCharacter() {
+  const generation = loadCharacter.generation = (loadCharacter.generation || 0) + 1;
+  const uidLecture = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const lectureCourante = () => generation === loadCharacter.generation
+    && (!uidLecture || (typeof rpAuthUid === 'function' && rpAuthUid() === uidLecture));
   try {
     // Lire le dernier personnage actif, puis sa clé propre
     const lastName = localStorage.getItem('respublica_last_char');
@@ -1275,11 +1279,12 @@ function loadCharacter() {
         // son propre .catch(()=>null) : une panne ne vaut pas une liste vide et ne doit
         // jamais faire echouer le chargement du personnage lui-meme (deja protege par le
         // .catch() global de la chaine plus bas).
-        Promise.all([
+        return Promise.all([
           sbLoadPersonnage(char.name),
           (typeof sbGetComptesBancaires === 'function' ? sbGetComptesBancaires(char.name).catch(() => null) : Promise.resolve(null)),
           (typeof sbGetPlacementsBancaires === 'function' ? sbGetPlacementsBancaires(char.name).catch(() => null) : Promise.resolve(null))
         ]).then(([sbState, comptesRows, placementsRows]) => {
+          if (!lectureCourante() || state.char?.name !== char.name) return false;
           // Instrumentation : prouve que le .then a bien ete atteint (un rejet de
           // sbLoadPersonnage -- seul des trois a n'avoir pas son propre .catch -- le sauterait).
           rpDiagId('reconciliation', 'entree');
@@ -1353,7 +1358,7 @@ function loadCharacter() {
             // state reste donc exactement tel que le cache local l'a pose : aucun montant
             // etranger, aucun 4250 invente, aucun 0, et aucune reecriture de localStorage.
             state.personnageChargeDepuisServeur = false; // fiche serveur masquée : cache non autoritaire
-            return diagnostiquerIdentite(char.name);
+            return Promise.resolve(diagnostiquerIdentite(char.name)).then(() => lectureCourante() && state.personnageChargeDepuisServeur === true);
           }
 
           // Applique quel que soit l'issue de sbState (rare, sbState absent) : ne jamais perdre
@@ -1499,6 +1504,7 @@ function loadCharacter() {
           // Ce .catch etait muet : c'est lui qui masquait un rejet de sbLoadPersonnage ou une
           // exception du corps ci-dessus. Il nomme desormais la panne (instrumentation).
         }).catch(e => {
+          if (!lectureCourante()) return false;
           rpDiagId('reconciliation', 'EXCEPTION : ' + (e && e.message));
           // Une lecture serveur échouée ne vaut PAS une réconciliation : le cache local n'a aucune
           // autorité, aucune sauvegarde générique tant qu'une vraie lecture n'a pas réussi.

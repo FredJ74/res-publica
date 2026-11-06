@@ -180,5 +180,55 @@
   });
   document.querySelectorAll('.modal-overlay,#self-content').forEach(e => tables.observe(e,{childList:true,subtree:true}));
   petit.addEventListener('change',adapterTables); adapterTables();
+  // L8 : reprendre par le chargeur existant, jamais par une copie de ses champs.
+  let aRelire = false, reprise = null;
+  const message = document.createElement('div'); message.id = 'hg-reprise'; message.hidden = true;
+  message.setAttribute('role','status');
+  const texte = document.createElement('span');
+  const reessayer = document.createElement('button'); reessayer.type = 'button'; reessayer.textContent = 'Réessayer';
+  message.append(texte,reessayer); document.body.append(message);
+  async function reprendre() {
+    if (!petit.matches || document.hidden || !aRelire || reprise) return;
+    message.hidden = false;
+    if (navigator.onLine === false) { texte.textContent = 'Connexion perdue. Les ordres attendent le retour du serveur.'; return; }
+    texte.textContent = 'Vérification de votre personnage auprès du serveur…';
+    reessayer.disabled = true;
+    reprise = Promise.resolve().then(async () => {
+      let delai, annule = false;
+      try {
+        if (typeof loadCharacter !== 'function') throw Error('chargeur indisponible');
+        const operation = (async () => {
+          if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession();
+          if (annule) throw Error('reprise abandonnée');
+          return loadCharacter();
+        })();
+        const resultat = await Promise.race([operation,new Promise((_,refus) => {
+          delai = setTimeout(() => { annule = true; loadCharacter.generation = (loadCharacter.generation || 0) + 1; refus(Error('délai dépassé')); },15000);
+        })]);
+        if (resultat !== true) throw Error('lecture non confirmée');
+        aRelire = false; message.hidden = true;
+        if (typeof verifierNouveauxMails === 'function') verifierNouveauxMails();
+        if (typeof verifierActiviteForumNonVue === 'function') verifierActiviteForumNonVue();
+      } catch (_) { texte.textContent = 'État non confirmé. Aucun ordre exécuté. Rétablissez la connexion puis réessayez.'; }
+      finally { clearTimeout(delai); reessayer.disabled = false; reprise = null; }
+    });
+    await reprise;
+  }
+  function suspendre() { if (petit.matches) aRelire = true; }
+  document.addEventListener('visibilitychange',() => { if (document.hidden) suspendre(); else reprendre(); });
+  window.addEventListener('pagehide',suspendre);
+  window.addEventListener('pageshow',e => { if (e.persisted) { suspendre(); reprendre(); } });
+  window.addEventListener('offline',() => { suspendre(); reprendre(); });
+  window.addEventListener('online',reprendre);
+  window.addEventListener('storage',e => { if (e.key?.startsWith('respublica_')) suspendre(); });
+  reessayer.addEventListener('click',reprendre);
+  function garderOrdre(e) {
+    if (!petit.matches || !aRelire || e.target.closest('#hg-reprise')) return;
+    if (e.type === 'click' && !e.target.closest('button,[onclick],a')) return;
+    e.preventDefault(); e.stopImmediatePropagation(); reprendre();
+    // Aucune répétition automatique du clic après réconciliation.
+  }
+  document.addEventListener('click',garderOrdre,true);
+  document.addEventListener('submit',garderOrdre,true);
   dimensionner();
 })();

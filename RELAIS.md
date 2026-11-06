@@ -409,3 +409,14 @@ L5 : bancs ciblés réussis (voir journal local hg-suite-l5), comparaison bureau
 conservée ; aucun calcul ni action financière changé. PR REST ouverte au premier
 push si l'accès l'autorise. Le lot L8 suit sur une branche propre, sans modifier
 les cinq branches que Claude intègre.
+
+### Mobile L8 — Codex, 06/11/2026
+
+Branche `codex/mobile-l8-reprise-20261106`, dépend provisoirement de L5/L3, pas de
+modification des branches #532–536. Réutilise loadCharacter ; expose sa promesse,
+garde génération/UID contre les réponses tardives. En mobile, retour visible/réseau
+et signal d'un autre onglet demandent une lecture ; premier ordre suspendu, jamais
+rejoué automatiquement. Aucun polling, aucun calendrier serveur changé. Bancs de
+chargement/sauvegarde et test offline Chromium exécutés ; vrais appareils et deux
+comptes/appareils restent non testés. REST POST pulls refusé (Forbidden) dans cette
+session, malgré son fonctionnement chez Claude. Les branches sont sauvegardées.
