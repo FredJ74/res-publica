@@ -1,0 +1,56 @@
+name: Starovka — WebP mairie-marche et navigation
+on:
+  push:
+    branches: [feature/starovka-blizzard-mairie-marche-20261106]
+    paths:
+      - '.github/workflows/starovka-blizzard-mairie-marche-20261106.yml'
+      - 'outils/bancs/test-starovka-blizzard-mairie-marche-20261106.mjs'
+permissions:
+  contents: write
+jobs:
+  conversion-navigation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Convertir mairie et marche en WebP puis supprimer PNG
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image,ImageOps
+          p=Path('images/Sovarka/Starovka/Starovka_rue_mairie_marché.png')
+          w=p.with_suffix('.webp')
+          assert p.is_file(), 'PNG source mairie marche absent'
+          assert not w.exists(), 'WebP deja present : ne pas ecraser'
+          with Image.open(p) as im:
+              rgb=ImageOps.exif_transpose(im).convert('RGB')
+              dims=rgb.size
+              rgb.save(w,'WEBP',quality=85,method=6)
+          with Image.open(w) as im:
+              assert im.format=='WEBP' and im.size==dims
+              im.verify()
+          assert w.stat().st_size>100
+          p.unlink()
+          assert not p.exists()
+          print('WEBP mairie marche valide',w.name,dims,w.stat().st_size)
+          PY
+      - name: Tests JS de navigation et regressions
+        run: |
+          node --check plateau-rue-centrale.js
+          node --test outils/bancs/test-starovka-blizzard-mairie-marche-20261106.mjs outils/bancs/test-starovka-restaurant-blizzard-20261106.mjs outils/bancs/test-starovka-logements-restaurant-20261106.mjs
+          git diff --check
+      - name: Publier le WebP converti et supprimer PNG du depot
+        run: |
+          git add -A -- 'images/Sovarka/Starovka/Starovka_rue_mairie_marché.png' 'images/Sovarka/Starovka/Starovka_rue_mairie_marché.webp'
+          git diff --cached --check
+          git diff --cached --quiet && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(starovka): convertir rue mairie marche en WebP'
+          git push origin HEAD:feature/starovka-blizzard-mairie-marche-20261106
