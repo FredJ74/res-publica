@@ -441,3 +441,7 @@ sans changer conditions, ordres, permissions ou RPC. Le vrai rendu combat est te
 sur réponses serveur fixtures : non-chef/chef/groupe replié, aucune action exécutée.
 Bancs ciblés15/15 (inclut le banc historique commissariats), création six langues
 et bureau1440 préservés. Dernier main récupéré76f8653e ; L3 pas encore fusionné.
+
+Réconciliation de `codex/mobile-l7-institutions-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
