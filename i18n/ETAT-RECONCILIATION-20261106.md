@@ -60,3 +60,10 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - `i18n/plateau-init.js` gère désormais `data-i18n-placeholder` avec repli sur l'attribut d'origine quand la clé manque, sans toucher aux icônes, badges ni valeurs de formulaire.
 - L'inventaire **vide après un rendu dynamique** réutilise `plateau.noItems` et le moteur du plateau. Aucun calcul de quantité, effet sur l'inventaire ou action serveur modifié.
 - Nouveau banc `outils/bancs/banc-i18n-guide-mail.cjs` et contrôle d'initialisation du placeholder, branchés dans la CI de #377. Audit statique des neuf catalogues et de leur câblage réalisé, sans erreurs détectées. **CI GitHub et essai navigateur authentifié du dernier SHA toujours non certifiés.**
+
+
+### 07/11 — mesure de couverture et backlog non masqué
+
+- Script en lecture seule `outils/audits/etat-i18n-ordres.cjs` : réutilise l'inventaire d'ordres du dépôt, compare les labels exacts aux ressources, distingue identifiants stables couverts, identifiants ambigus partiellement couverts, libellés stables non encore traduits et références de catalogue obsolètes. Il ne prétend pas mesurer les labels générés à l'exécution.
+- Test `outils/bancs/banc-i18n-etat-ordres.cjs` : vérifie les **157 entrées françaises ancrées dans le code source** et la parité en neuf langues, sans autoriser à déclarer le jeu intégralement traduit. La CI conserve un artefact `i18n-ordres-restants` pour préparer les prochains lots.
+- Les scripts ne se connectent pas à Supabase, ne touchent ni aux personnages ni aux prix, et ne modifient aucun ordre. La CI réelle du dernier commit est toujours à certifier.
