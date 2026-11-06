@@ -366,3 +366,9 @@ pas de compte ou transaction réelle ; bureau 1440 px à comparer à chaque lot.
 Mobile L1 : branche `codex/mobile-l1-coque-20261106`, dépend de L0. Coque responsive,
 6/6 tests Chromium dont bureau 1440 pixel identique à `728010c8`. Pas de changement
 métier ou Supabase. L2/L3 puis L6 suivent dans des branches distinctes.
+
+Mobile L2 : `codex/mobile-l2-navigation-20261106`, dépend de L1. Géométrie des rues
+et tables de destinations inchangées ; liste tactile des zones actives et clavier
+réutilisent leur clic existant. Onglets/actions défilants. Banc coque 8/8, dont
+bureau 1440 identique. Création de PR L0 tentée : GraphQL Forbidden ; mêmes accès
+pour les autres lots, branches distinctes poussées pour intégration sans bloc global.

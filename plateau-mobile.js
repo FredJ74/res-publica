@@ -64,5 +64,41 @@
   };
   petit.addEventListener('change', dimensionner);
   window.addEventListener('resize', dimensionner);
+  // Les zones gardent leurs gestionnaires : la liste tactile les active, elle ne
+  // reconstruit ni les destinations ni les contrôles du moteur de déplacement.
+  const scenesPreparees = new WeakSet();
+  function preparerScene() {
+    document.querySelectorAll('.rc-fleche[onclick],.minimap-building[onclick]').forEach(e => {
+      e.setAttribute('role','button'); e.tabIndex = 0;
+      if (!e.getAttribute('aria-label')) {
+        const icone = e.querySelector('i')?.className || '';
+        e.setAttribute('aria-label', e.classList.contains('minimap-building') ? e.textContent.trim()
+          : /arrow-down/.test(icone) ? 'Retour' : /chevron-left/.test(icone) ? 'À gauche'
+          : /chevron-right/.test(icone) ? 'À droite' : 'Tout droit');
+      }
+    });
+    const scene = document.getElementById('rc-scene');
+    if (!petit.matches || !scene || scenesPreparees.has(scene)) return;
+    const zones = [...scene.querySelectorAll('.rc-zone')];
+    if (!zones.length) return;
+    scenesPreparees.add(scene);
+    const details = document.createElement('details'); details.className = 'hg-lieux-tactiles';
+    const titre = document.createElement('summary'); titre.textContent = 'Lieux visibles'; details.append(titre);
+    zones.forEach(zone => {
+      const b = document.createElement('button'); b.type = 'button';
+      b.textContent = zone.getAttribute('aria-label') || 'Consulter ce lieu';
+      b.addEventListener('click', () => { if (zone.isConnected) zone.click(); });
+      details.append(b);
+    });
+    scene.after(details);
+  }
+  document.addEventListener('keydown', e => {
+    if (!e.target.matches('.rc-zone,.rc-fleche[onclick],.minimap-building[onclick]')) return;
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!e.repeat) e.target.click(); }
+  });
+  const rue = document.getElementById('vue-rue');
+  if (rue) new MutationObserver(preparerScene).observe(rue,{childList:true,subtree:true});
+  petit.addEventListener('change',preparerScene);
+  preparerScene();
   dimensionner();
 })();
