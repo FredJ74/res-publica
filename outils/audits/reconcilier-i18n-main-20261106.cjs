@@ -62,12 +62,13 @@ for(const [locale,patch] of Object.entries(patches)){
     if(typeof original.stats[name]?.examples!=='string') (add[locale]??={common:{},examples:{}}).examples[name]=patch.examples[name];
   }
 }
-assert.equal(Object.keys(add).length,3,'The merge should add 8 keys in each of three locales');
+const marker='// Reconciliation i18n du socle ajoute par main, sans remplacement des anciennes traductions.';
+if(Object.keys(add).length){
+assert.equal(Object.keys(add).length,3,'8 clés doivent être présentes dans chacune des trois langues');
 for(const [locale,value] of Object.entries(add)){
   assert.equal(Object.keys(value.common).length,2);
   assert.equal(Object.keys(value.examples).length,6);
 }
-const marker='// Reconciliation i18n du socle ajoute par main, sans remplacement des anciennes traductions.';
 assert.ok(!existing.includes(marker),'reconciliation already applied');
 const source=existing+'\n\n'+marker+'\n'+
   ';(function(global){\n'+
@@ -79,6 +80,10 @@ const source=existing+'\n\n'+marker+'\n'+
   '  }\n'+
   '})(window);\n';
 fs.writeFileSync(resourcePath,source);
+}else{
+  // Une seconde fusion de main n'ajoute pas les 24 traductions une deuxième fois.
+  assert.ok(existing.includes(marker),'l’ancienne réconciliation doit être conservée');
+}
 const politics=path.join(root,'plateau-politique.js');
 let renderer=fs.readFileSync(politics,'utf8');
 const old=`messageAchatTerrainIntrus + '"><i class="ti ' + o.icon + '"></i> ' + o.label + '</button>';`;
@@ -100,4 +105,4 @@ if(renderer.includes(normalOriginal)){
   fs.writeFileSync(politics,renderer);
 }
 assert.equal(renderer.split(' + libelleAffiche + ').length-1,2);
-console.log('Reconciliation validée : 24 traductions, bouton bloqué et normal, aucun contrat métier modifié.');
+console.log('Réconciliation vérifiée : dictionnaires complets, deux variantes de boutons, aucune mutation métier.');
