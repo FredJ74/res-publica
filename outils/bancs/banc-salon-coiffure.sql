@@ -15,6 +15,8 @@ BEGIN
          resources = jsonb_set(coalesce(resources, '{}'::jsonb), '{pop}', '50'),
          effets_actifs = '[]'::jsonb WHERE name = j;
   DELETE FROM public.salon_coupes WHERE acteur = j;
+  -- Le prix reel (20 PSK, migration 20261106002000) est retire le temps du banc pour eprouver le refus.
+  UPDATE public.entreprises SET data = jsonb_set(data, '{prestations,coupe,prixVente}', 'null') WHERE id = 'salon-soviet-capitale';
   PERFORM set_config('request.jwt.claims', json_build_object('sub', uj, 'role', 'authenticated')::text, true);
 
   -- 1. Sans prix : refus nomme, rien debite.

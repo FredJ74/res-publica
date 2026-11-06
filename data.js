@@ -6782,7 +6782,7 @@ const BUILDINGS = {
   // (GAME-DESIGN-SALON-COIFFURE.md) : commerce de services ; la coupe donne +5 POP et CHA +1
   // jusqu'a minuit sans cumul, une coupe tous les 3 jours (serveur : salon_coupe, migration
   // 20261106001000). Tenu par un PNJ (Ludmila Permanentova, nom valide par Fred), local
-  // rachetable par un PJ. Prix de Sovarka a decider : coupe « Bientot disponible ».
+  // rachetable par un PJ. Coupe a 20 PSK (Fred, 06/11, migration 20261106002000).
   'salon-coiffure-novomirsk': {
     name: "Salon de coiffure de Novomirsk",
     shortName: "Salon de coiffure",
@@ -6797,7 +6797,7 @@ const BUILDINGS = {
         desc: "Trois fauteuils, un grand miroir piqué et l'odeur de la laque. La radio diffuse le bulletin du Parti entre deux valses.",
         persons: [{name:'Ludmila Permanentova (PNJ)', role:'Coiffeuse', rel:'neutral', job:'coiffeuse'}],
         orders: [
-          {fn:'salon_coupe', label:'Se faire couper les cheveux', pa:0, cost:0, type:'legal', icon:'ti-scissors', successRate:100, desc:"+5 popularité et +1 charisme jusqu'à minuit. Une coupe tous les 3 jours.", bientot:"Bientôt disponible : le salon fixera ses prix avec l'économie de Sovarka."}
+          {fn:'salon_coupe', label:'Se faire couper les cheveux', pa:0, cost:0, type:'legal', icon:'ti-scissors', successRate:100, desc:"+5 popularité et +1 charisme jusqu'à minuit. Une coupe tous les 3 jours."}
         ]
       }
     }
