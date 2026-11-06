@@ -27,6 +27,16 @@
       if(locale==='ar') element.setAttribute('dir','rtl');
       else element.removeAttribute?.('dir');
     }
+    // Les placeholders sont localisés sans jamais réécrire la valeur saisie.
+    const placeholderNodes=Array.from(elementRoot.querySelectorAll?.('[data-i18n-placeholder]')||[]);
+    if(elementRoot.getAttribute?.('data-i18n-placeholder')) placeholderNodes.unshift(elementRoot);
+    for(const element of placeholderNodes) {
+      const key=element.getAttribute('data-i18n-placeholder');
+      if(!key)continue;
+      const translated=engine.t(key,{defaultValue:null});
+      if(typeof translated==='string' && translated.trim() && translated!==key)
+        element.setAttribute('placeholder',translated);
+    }
     // Les info-bulles de la barre supérieure doivent être traduites sans
     // remplacer le contenu des boutons (icônes, badges, compteurs).
     const titleNodes=Array.from(elementRoot.querySelectorAll?.('[data-i18n-title]')||[]);
