@@ -1,4 +1,4 @@
-name: Novomirsk centre affaires - conversion cinq PNG
+name: Novomirsk centre affaires - conversion cinq PNG corrigée
 on:
   pull_request:
     paths:
