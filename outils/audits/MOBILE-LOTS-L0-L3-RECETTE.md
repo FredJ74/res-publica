@@ -47,3 +47,14 @@ par le bouton existant. Le chat est contenu en paysage. Aucun Escape générique
 ne supprime une modale : il active uniquement sa fermeture prévue.
 Test réel Safari/clavier et reprise authentifiée non exécuté ; ne pas le confondre
 avec le test visualViewport de Chromium. Bureau 1440 pixel identique.
+
+## L6 — forum
+
+Le même contrôleur traite souris et toucher, sans changer sérialisation ou publication.
+Protection contre un autre pointeur, annulation et perte de focus ; les champs et
+boutons d'une poignée conservent leurs gestes natifs. Les rubriques et listes se
+replient sur mobile. Les mises en page historiques gardent leurs coordonnées et un
+scroll horizontal local, sans transformation destructive des publications.
+14/14 tests ciblés, dont contre-épreuve ancienne et comparaisons strictes bureau du
+plateau et du forum. Aucun accès forum serveur, RLS, cache territorial ou notification
+modifié. Tests sur vrais appareils/Safari et recette authentifiée restent nécessaires.
