@@ -10,7 +10,7 @@ const module = lire('plateau-poissonniere.js'), page = lire('plateau.html');
 const migration = lire('migrations/20261106172000_poissonniere_novomirsk.sql');
 
 test('le bâtiment est listé à Novomirsk et raccordé à la vue 16', () => {
-  assert.match(data, /'pharmacie-officielle-novomirsk','poissonniere-novomirsk'\]/);
+  assert.match(data, /'pharmacie-officielle-novomirsk','poissonniere-novomirsk'[,\]]/);
   assert.match(data, /'poissonniere-novomirsk': \{/);
   assert.match(rue, /nom: 'Marchande de poissons', type: 'batiment', buildingId: 'poissonniere-novomirsk'/);
   assert.match(migration, /'novomirsk-vue-16', 'poissonniere-novomirsk'/);

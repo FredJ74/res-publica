@@ -5487,6 +5487,29 @@ export const SCENES_PNJ = {
       "Galina Karpova"
     ]
   },
+  "[\"soviet\",\"capitale\",\"usine-pharmaceutique-luthecia\",\"salle_ventes\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Usine pharmaceutique Pharmanov",
+    "piece": "Salle des Ventes",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"usine-pharmaceutique-luthecia\",\"bureau_direction\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Usine pharmaceutique Pharmanov",
+    "piece": "Bureau de Direction",
+    "personnes": [
+      "Boris Tabletkine"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"usine-pharmaceutique-luthecia\",\"salle_production\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Usine pharmaceutique Pharmanov",
+    "piece": "Salle de Production",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
