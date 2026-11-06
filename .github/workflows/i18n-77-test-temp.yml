@@ -1,0 +1,20 @@
+name: i18n catalogue 77 - banc isolé
+on:
+  pull_request:
+    paths:
+      - .github/workflows/i18n-77-test-temp.yml
+permissions:
+  contents: read
+jobs:
+  catalogue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          node --check i18n/resources.js
+          node --check i18n/orders-resources.js
+          node --check i18n/ordres.js
+          node --test outils/bancs/banc-i18n-catalogue-ordres.cjs
+          node --test outils/bancs/banc-i18n-ordres.cjs
+          git diff --check
