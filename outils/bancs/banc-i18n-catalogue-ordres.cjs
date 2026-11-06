@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('97 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('117 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,97);
+ assert.equal(ref.length,117);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -174,5 +174,29 @@ test('20 ordres gouvernement, presse et économie : labels source exacts et cont
    }
    assert.equal(order.label,label);assert.equal(order.pa,3);assert.equal(order.cost,175);
    assert.equal(order.requiresPost,'president');
+ }
+});
+
+
+test('20 ordres sport et justice : présence réelle, traductions et droits intacts',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const ids=["tenue_match","consommer_buvette","choisir_accessoire_club","acheter_accessoire_personnalise","parier_match","consulter_classement_joueurs_club","consulter_palmares","declencher_election_club","organiser_manifestation","organiser_boycott","postuler_president_club","consulter_bureau_president","proposer_transfert","gerer_offres_transfert","sponsoriser_club","consulter_budget_club","gerer_salaires_club","rendre_sentence","falsifier_document","demander_juge_instruction"];
+ const words=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const fn of ids){
+   const label=words[fn];
+   assert.equal(typeof label,'string',fn);
+   const at=source.search(new RegExp('fn\\s*:\\s*\\x27'+fn+'\\x27'));
+   assert.ok(at>=0,'fonction absente du jeu '+fn);
+   assert.ok(source.slice(at,at+180).includes("label:'"+label+"'"),
+     'libellé de référence différent '+fn);
+   const original=Object.freeze({fn,label,pa:4,cost:210,requiresPost:'test_role'});
+   for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
+     const translated=win.RP_I18N_RESOURCES[lang].translation.orders[fn];
+     assert.ok(typeof translated==='string' && translated.trim(),lang+'/'+fn);
+     assert.equal(win.RPOrderI18n.label(original,engine,lang),translated,lang+'/'+fn);
+   }
+   assert.equal(original.fn,fn);assert.equal(original.label,label);
+   assert.equal(original.pa,4);assert.equal(original.cost,210);
+   assert.equal(original.requiresPost,'test_role');
  }
 });
