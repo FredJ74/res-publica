@@ -2640,9 +2640,16 @@ const NB_ARRIVAGES_CONSERVES = 10; // historique court pour le Commandant/Marcel
 // la seule notion de "capacite d'une ville" deja presente dans l'architecture actuelle
 // (identique pour les 3 villes). cereales.plafond=150 -> 1.5 ville = 225 ; viande.plafond=125 ->
 // 1 ville = 125. Destination fixe (Al-Khalija) pour ce lot uniquement.
+// 06/11/2026 (Fred) : la Republia exporte aussi des medicaments vers Sovarka, et un peu d'alcool.
+// Volumes proposes par Claude, meme regle de « villes equivalentes » : medicaments 1 ville
+// (plafond 100 -> 100/jour), alcool 0.5 ville (plafond 100 -> 50/jour). Meme moteur : preleve sur
+// le stock reel des 3 entrepots, recette au prix_base pour chaque entrepot fournisseur, matiere
+// interdite jamais exportee. Sovarka n'est represente par aucune caisse ici, comme Al-Khalija.
 const EXPORTATIONS_PORT = {
-  cereales: { equivalentVilles: 1.5, destination: 'khalija' },
-  viande:   { equivalentVilles: 1,   destination: 'khalija' }
+  cereales:    { equivalentVilles: 1.5, destination: 'khalija' },
+  viande:      { equivalentVilles: 1,   destination: 'khalija' },
+  medicaments: { equivalentVilles: 1,   destination: 'soviet' },
+  alcool:      { equivalentVilles: 0.5, destination: 'soviet' }
 };
 
 // Arrivage de peche quotidien propre a la Criee de PSM (arbitrage valide le 25 aout 2026, §3-5
