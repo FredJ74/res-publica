@@ -47,3 +47,41 @@ test('bouton Voir original : bascule sans perdre la traduction ni injecter de HT
  assert.equal(element.textContent,'<script>Hallo</script>');
  ctrl.detach();assert.equal(handlers.click,undefined);
 });
+
+test('le texte arabe est RTL et le retour à l original rétablit la direction propre au message',()=>{
+ const mod=api();
+ const handlers={};
+ const attrs={};
+ const element={textContent:'',setAttribute(k,v){attrs[k]=v}};
+ const button={hidden:true,textContent:'',attrs:{},
+  addEventListener(k,cb){handlers[k]=cb},removeEventListener(k){delete handlers[k]},
+  setAttribute(k,v){this.attrs[k]=v}};
+ const record=Object.freeze({
+  original:'Bonjour le monde',originalLanguage:'fr',
+  translation:'مرحبًا بالعالم',translationLanguage:'ar'
+ });
+ assert.equal(mod.renderText(element,record,'ar'),true);
+ assert.equal(element.textContent,'مرحبًا بالعالم');
+ assert.equal(attrs.dir,'rtl');
+ const control=mod.attachToggle(element,button,record,'ar');
+ assert.equal(element.textContent,'مرحبًا بالعالم');
+ assert.equal(attrs.dir,'rtl');
+ handlers.click();
+ assert.equal(element.textContent,'Bonjour le monde');
+ assert.equal(attrs.dir,'auto');
+ assert.equal(button.attrs['aria-pressed'],'true');
+ handlers.click();
+ assert.equal(element.textContent,'مرحبًا بالعالم');
+ assert.equal(attrs.dir,'rtl');
+ assert.equal(record.original,'Bonjour le monde');
+ control.detach();
+});
+test('un original arabe conserve RTL après restitution depuis une traduction',()=>{
+ const mod=api();const attrs={};
+ const element={textContent:'',setAttribute(k,v){attrs[k]=v}};
+ const source=Object.freeze({original:'مرحبا',originalLanguage:'ar',translation:'Hello',translationLanguage:'en'});
+ mod.renderText(element,source,'en');
+ assert.equal(element.textContent,'Hello');assert.equal(attrs.dir,'auto');
+ mod.renderText(element,source,'en',true);
+ assert.equal(element.textContent,'مرحبا');assert.equal(attrs.dir,'rtl');
+});
