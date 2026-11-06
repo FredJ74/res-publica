@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk','poissonniere-novomirsk','usine-pharmaceutique-luthecia','musee-national-republia'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -1793,11 +1793,13 @@ const WORLD = {
             // Plus de vente de terrain, de murs, de rachat ni de préemption : le notaire enregistre les
             // attributions de droits d'exploiter décidées par le maire et les cessions entre PJ.
             bureau_successions: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_successions.webp',
               persons: [
                 {name:'Claire Delhune (PNJ)', role:'Secrétaire', rel:'neutral', job:'secretaire_notaire'}
               ]
             },
             bureau_contrats: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_cessions_entreprises.webp',
               excludeOrders: ['officialiser_transaction', 'commerces_fonds_murs', 'racheter_entreprise',
                 'acte_rachat_entreprise_preemption', 'transfert_compromis'],
               orders: [
@@ -2009,6 +2011,44 @@ const WORLD = {
             quartier_troupes: { persons: [
               {name: 'Caporal Dimitri Corvéev (PNJ)', role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'},
               {name: 'Soldat Sacha Gamelline (PNJ)',  role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'}] }
+          }
+        },
+        // Usine pharmaceutique Pharmanov (vue 18), decision de Fred du 06/11/2026 : l'usine
+        // pharmaceutique du pays, rien de special. Usine du socle (BUILDINGS['usine-pharmaceutique-luthecia']) :
+        // memes pieces, ordres et fonctions serveur ; directeur nomme par le ministre de l'Economie
+        // collective (poste directeur_pharma, portee pays). Etat propre a Sovarka (migration 20261106173500).
+        // Les sels d'ammoniaque restent propres a l'Assemblee de Republia. Images a venir (Fred).
+        'usine-pharmaceutique-luthecia': {
+          name: "Usine pharmaceutique Pharmanov",
+          shortName: "Pharmanov",
+          imagesAVenir: true,
+          desc: "L'usine pharmaceutique d'État de Sovarka. Des cheminées propres, des blouses blanches et un slogan au fronton : « La santé du peuple est un devoir du Plan ».",
+          roomOverrides: {
+            salle_ventes: { excludeOrders: ['acheter_sels_ammoniaque'] },
+            // Salaire de production a l'echelle de Sovarka (Fred, 06/11/2026 : entre 15 et 20 PSK ;
+            // serveur : salaires_production_pays, migration 20261106184000).
+            salle_production: { excludeOrders: ['produire_medicaments', 'produire_desinfectant'], orders: [
+              {fn:'produire_medicaments', label:'Produire des médicaments', pa:1, cost:0, type:'legal', icon:'ti-vaccine', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 18 PSK. Consomme 5 plantes du stock de matières de l\'usine, produit 10 médicaments.'},
+              {fn:'produire_desinfectant', label:'Produire du désinfectant', pa:1, cost:0, type:'legal', icon:'ti-droplet', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 alcool du stock de matières de l\'usine, produit 10 désinfectants.'}
+            ] },
+            bureau_direction: { persons: [{name: 'Boris Tabletkine (PNJ)', role: "Directeur de l'usine Pharmanov", rel: 'neutral', job: 'directeur_pharma'}] }
+          }
+        },
+        // Musee de la Republique de Sovarka (vue 18), decision de Fred du 06/11/2026 : copie du
+        // Musee National de Republia (BUILDINGS['musee-national-republia'] : memes salles et ordres),
+        // les differences propres a Sovarka seront codees ensuite. En attendant : images a venir,
+        // pas d'audioguide (ceux de Republia parlent de la Republia), figures des salles vides
+        // (plateau-musee-personnalites.js : pas de personnalites de Republia hors de Republia).
+        // Serveur : migration 20261106194500_novomirsk_musee_national.
+        'musee-national-republia': {
+          name: "Musée de la République de Sovarka",
+          shortName: "Musée de la République",
+          imagesAVenir: true,
+          audiosAVenir: true,
+          desc: "Le grand musée national de Sovarka, où le peuple vient contempler la mémoire officielle de la nation.",
+          roomOverrides: {
+            salle_presidents: { name: "Salle des Présidents de Sovarka", desc: "L'histoire présidentielle de la nation, ses meilleurs et ses pires chefs d'État. Classement à venir." },
+            salle_grandes_villes: { name: "Salle des Grandes Villes de Sovarka" }
           }
         }
       }
@@ -6977,6 +7017,33 @@ const BUILDINGS = {
         persons: [{name:'Valentina Pilioulkina (PNJ)', role:'Pharmacienne', rel:'neutral', job:'pharmacienne'}],
         orders: [
           {fn:'pharmacie_medicaments', label:'Acheter des médicaments', pa:0, cost:0, type:'legal', icon:'ti-pill', successRate:100, desc:"Médicaments vendus au comptoir.", bientot:"Bientôt disponible : les médicaments de la pharmacie seront définis prochainement."}
+        ]
+      }
+    }
+  },
+  // MARCHANDE DE POISSONS DE NOVOMIRSK (vue 16), decisions de Fred du 06/11/2026 : commercante
+  // tenue par une PNJ ; poisson de riviere un peu moins cher qu'a l'entrepot, 12 par jour au plus
+  // (toute la ville) ; elle connait et colporte les rumeurs (ordres existants) ; son mari fait passer
+  // par la riviere alcool et medicaments de Republia (achat illegal). Tout est decide par le serveur
+  // (migration 20261106172000, plateau-poissonniere.js). Images a venir.
+  'poissonniere-novomirsk': {
+    name: "Marchande de poissons",
+    shortName: "Poissons",
+    cat: "Économie",
+    icon: "ti-fish",
+    bgColor: "#0e1418",
+    desc: "Un étal sur le quai du marché : des caisses de glace, des poissons de rivière alignés comme des soldats et une balance qui a connu trois régimes.",
+    rooms: {
+      etal_poissonniere: {
+        name: "Étal",
+        imageBg: "linear-gradient(135deg,#0e1418,#16202a)",
+        desc: "Une bâche tendue contre le vent, des caisses de poisson sur la glace et, derrière, une marchande qui voit passer toute la ville.",
+        persons: [{name:'Galina Karpova (PNJ)', role:'Marchande de poissons', rel:'neutral', job:'commercant'}],
+        orders: [
+          {fn:'poissonniere_poisson', label:'Acheter du poisson de rivière', pa:0, cost:0, type:'legal', icon:'ti-fish', successRate:100, desc:"Pêché par son mari. Un peu moins cher qu'à l'entrepôt, mais la pêche du jour ne fait que 12 poissons."},
+          {fn:'ecouter_rumeurs', label:'Tendre l\'oreille', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:95, desc:'Galina sait tout ce qui se dit en ville. Révèle une rumeur vraie (action récente tracée) ou, à défaut, une information générée selon le contexte.'},
+          {fn:'lancer_rumeur_cible', label:'Lui glisser une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Galina la répétera à toute la ville. Succès (75%) : effet selon la cible. Échec : retour de bâton limité + risque de détection.'},
+          {fn:'contrebande_poissonniere', label:'Du poisson « de l\'autre rive »', pa:1, cost:0, type:'illegal', icon:'ti-package-off', successRate:100, desc:"Son mari fait passer par la rivière de l'alcool et des médicaments de Républia, moins chers qu'au circuit d'État. Achat illégal : on peut être repéré."}
         ]
       }
     }
