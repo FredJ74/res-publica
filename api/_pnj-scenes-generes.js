@@ -5478,6 +5478,122 @@ export const SCENES_PNJ = {
       "Valentina Pilioulkina"
     ]
   },
+  "[\"soviet\",\"capitale\",\"poissonniere-novomirsk\",\"etal_poissonniere\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Marchande de poissons",
+    "piece": "Étal",
+    "personnes": [
+      "Galina Karpova"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"usine-pharmaceutique-luthecia\",\"salle_ventes\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Usine pharmaceutique Pharmanov",
+    "piece": "Salle des Ventes",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"usine-pharmaceutique-luthecia\",\"bureau_direction\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Usine pharmaceutique Pharmanov",
+    "piece": "Bureau de Direction",
+    "personnes": [
+      "Boris Tabletkine"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"usine-pharmaceutique-luthecia\",\"salle_production\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Usine pharmaceutique Pharmanov",
+    "piece": "Salle de Production",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"hall\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Hall d'accueil",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_presidents\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Présidents de Sovarka",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"expositions_temporaires\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Expositions Temporaires",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_honneur_militaire_nationale\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle d'Honneur Militaire Nationale",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_politiques\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Personnalités Politiques",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_civils_intellectuels\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Personnalités Civiles et Intellectuelles",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_organisations\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Responsables d'Organisations Syndicales ou Religieuses",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_artistes_sportifs\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Artistes et Sportifs",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_tresor_national\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle du Trésor National",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_reussites_economiques\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Grandes Réussites Économiques",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_grandes_villes\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Grandes Villes de Sovarka",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_criminels_pays\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Plus Grands Criminels du Pays",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
