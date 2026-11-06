@@ -23,6 +23,8 @@ on:
       - 'outils/bancs/banc-traduction-i18n.mjs'
       - 'outils/bancs/banc-i18n-selecteur-interactif.cjs'
       - 'outils/audits/inventaire-i18n-ordres.cjs'
+      - 'outils/audits/etat-i18n-ordres.cjs'
+      - 'outils/bancs/banc-i18n-etat-ordres.cjs'
       - 'outils/bancs/banc-i18n-ordres.cjs'
       - 'outils/bancs/banc-i18n-catalogue-ordres.cjs'
       - 'outils/bancs/banc-i18n-render-ordres.cjs'
@@ -72,6 +74,16 @@ jobs:
         run: |
           node outils/audits/inventaire-i18n-ordres.cjs > /tmp/i18n-ordres.json
           node -e "const a=require('/tmp/i18n-ordres.json');console.log('Ordres identifiés:',a.uniqueIds,'ambiguïtés:',a.ambiguousIds);console.log(a.entries.slice(0,30).map(x=>x.fn+': '+x.labels.join(' / ')).join('\\n'))"
+      - name: Couverture réelle des ordres et backlog mesurable
+        run: |
+          node --test outils/bancs/banc-i18n-etat-ordres.cjs
+          node outils/audits/etat-i18n-ordres.cjs > /tmp/i18n-etat-ordres.json
+      - name: Sauvegarder les ordres non encore couverts
+        uses: actions/upload-artifact@v4
+        with:
+          name: i18n-ordres-restants
+          path: /tmp/i18n-etat-ordres.json
+          retention-days: 7
       - name: Conserver l'inventaire des ordres pour traduction
         uses: actions/upload-artifact@v4
         with:
