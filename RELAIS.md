@@ -372,3 +372,9 @@ et tables de destinations inchangées ; liste tactile des zones actives et clavi
 réutilisent leur clic existant. Onglets/actions défilants. Banc coque 8/8, dont
 bureau 1440 identique. Création de PR L0 tentée : GraphQL Forbidden ; mêmes accès
 pour les autres lots, branches distinctes poussées pour intégration sans bloc global.
+
+Mobile L1 : conserver le préfixe historique de version CSS et ajouter le suffixe mobile ;
+le banc de lisibilité exige ce préfixe. Cache effectivement majoré, test conservé.
+
+Mobile L2 : fixture DOM des rues complétée avec setAttribute/getAttribute ; assertions
+de destinations, quatre vues PSM et positions conservées sans assouplissement.
