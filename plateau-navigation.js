@@ -1841,7 +1841,7 @@ const PLAN_ICONS = {
   'entrepot-logistique-luthecia': '📦',
   'terrain-a-batir-1': '🚧', 'terrain-a-batir-2': '🚧', 'terrain-a-batir-3': '🚧',
   'terrain-a-batir-4': '🚧', 'terrain-a-batir-5': '🚧',
-  'port-sainte-marie': '⚓', 'port-novomirsk': '⚓',
+  'port-sainte-marie': '⚓', 'port-novomirsk': '⚓', 'port-starovka': '⚓',
   'port-ciudad-roja': '⚓', 'port-al-madina': '⚓',
   'bar-des-pecheurs': '🐟', 'caserne-militaire': '🎖',
   'qhs-prison': '🔒',

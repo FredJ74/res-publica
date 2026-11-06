@@ -33,7 +33,8 @@ test('Starovka : gare en entrée, port terminus et hôtel raccordé', () => {
   assert.equal(result.port.liens.arriere, 'starovka-rue-gare');
   assert.equal(result.port.flechesStyle.arriere, result.bas);
   assert.equal(result.port.liensEnAttente, undefined);
-  assert.deepEqual(Object.keys(result.port.zones), []);
+  // 06/11/2026 : entrepot logistique et port industriel de Starovka ouverts depuis cette rue.
+  assert.deepEqual([...result.port.zones].map(z => String(z.buildingId)), ['entrepot-logistique-starovka', 'port-starovka']);
   for (const image of [result.gare.image, result.port.image]) {
     const filename=path.join(root,image);
     assert.ok(fs.statSync(filename).size>100, image);
