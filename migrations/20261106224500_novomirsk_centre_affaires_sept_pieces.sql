@@ -3,7 +3,11 @@
 -- sessions en cours ; le client n'expose plus open_space, bureau_standard et tribune.
 -- Le second bureau reprend strictement le tarif du Bureau Prestige canonique.
 UPDATE public.navigation_lieux_regles
-   SET pieces = pieces || '["bureau_prestige_b","reunion_grande_a","reunion_grande_b","reunion_moyenne_a","reunion_moyenne_b"]'::jsonb
+   SET pieces = pieces || coalesce((
+         SELECT jsonb_agg(nom)
+           FROM jsonb_array_elements_text('["bureau_prestige_b","reunion_grande_a","reunion_grande_b","reunion_moyenne_a","reunion_moyenne_b"]'::jsonb) p(nom)
+          WHERE NOT pieces ? nom
+       ), '[]'::jsonb)
  WHERE pays='soviet' AND ville='capitale' AND batiment='centre-affaires';
 
 INSERT INTO public.locaux_loyers_referentiel
