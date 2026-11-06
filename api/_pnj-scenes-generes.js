@@ -4273,11 +4273,7 @@ export const SCENES_PNJ = {
     "batiment": "Grand Hôtel de Sovarka",
     "piece": "Salle du Restaurant",
     "personnes": [
-      "Grigori Smetanine",
-      "Vsevolod Vodkaïev",
-      "Svetlana Blinova",
-      "Innokenti Partiïev",
-      "Macha Scoopova"
+      "Pavel Plateaukine"
     ]
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"bar\"]": {
@@ -4286,10 +4282,9 @@ export const SCENES_PNJ = {
     "batiment": "Grand Hôtel de Sovarka",
     "piece": "Bar",
     "personnes": [
-      "Kostia (Barman)",
-      "Natacha",
-      "Julien",
-      "Leonid Combinov"
+      "Arkadi Shakerov",
+      "Gleb Tchoutchotov",
+      "Anouchka Velourova"
     ]
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"chambres\"]": {
