@@ -27,7 +27,9 @@ jobs:
           echo "DRAFT=$(git rev-parse HEAD)"
           git merge --no-commit --no-ff -X theirs origin/main
           test -z "$(git ls-files -u)"
-          git diff --cached --check
+          # Ne pas bloquer la fusion sur les espaces déjà présents dans les migrations
+          # et les journaux historiques importés de main ; contrôler seulement notre périmètre.
+          git diff --cached --check -- i18n/ index.html plateau.html plateau-politique.js style.css outils/bancs/banc-i18n-*
           echo '=== Ressources et fichiers potentiellement en conflit ==='
           git diff --name-status origin/main -- index.html plateau.html plateau-politique.js style.css i18n/ outils/bancs/banc-i18n-*
           echo '=== Vérifier que les neuf catalogues sont toujours présents ==='
