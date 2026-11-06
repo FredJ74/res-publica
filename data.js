@@ -1773,8 +1773,8 @@ const WORLD = {
             bureau_commissaire: {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_commissariat-bureau.webp',
               persons: [
-                {name:'Raoul Toufaud (PNJ)', role:'Commissaire de Novomirsk', rel:'neutral', job:'commissaire'},
-                {name:'Brigitte Menottes (PNJ)', role:'Inspectrice', rel:'neutral', job:'inspecteur'}
+                // Décision de Fred (06/11) : le commissaire seul, plus d'inspectrice.
+                {name:'Raoul Toufaud (PNJ)', role:'Commissaire de Novomirsk', rel:'neutral', job:'commissaire'}
               ]
             }
           }

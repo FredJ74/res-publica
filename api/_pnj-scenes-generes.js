@@ -4625,8 +4625,7 @@ export const SCENES_PNJ = {
     "batiment": "Commissariat du Peuple",
     "piece": "Bureau du Commissaire",
     "personnes": [
-      "Vassili Ordonov",
-      "Bronislava Menottova"
+      "Vassili Ordonov"
     ]
   },
   "[\"soviet\",\"capitale\",\"la-tribune\",\"accueil_tribune\"]": {
