@@ -132,7 +132,7 @@ function controlesStatiques(core, rue, mig) {
   const t = (nom, ok) => { if (!ok) echecs.push(nom); };
   const debut = core.indexOf('function loadCharacter()');
   const load = core.slice(debut, core.indexOf('\nfunction ', debut + 25));
-  t('lecture echouee : aucune autorite locale', /\.catch\(e => \{\s*rpDiagId\('reconciliation'[\s\S]{0,400}?personnageChargeDepuisServeur = false/.test(load));
+  t('lecture echouee : aucune autorite locale', /\.catch\(e => \{\s*if \(!lectureCourante\(\)\) return false;\s*rpDiagId\('reconciliation'[\s\S]{0,400}?personnageChargeDepuisServeur = false/.test(load));
   t('seule une fiche recue autorise', /state\.personnageChargeDepuisServeur = !!sbState;/.test(load));
   t('aucun repli autoritaire', !/personnageChargeDepuisServeur = true/.test(load));
   t('base de fusion posee au chargement', /state\._ficheBase = sbState && typeof sbFicheChampsFusion/.test(load));
@@ -144,6 +144,7 @@ function controlesStatiques(core, rue, mig) {
 }
 
 const MUTATIONS = [
+  ['echec tardif sans garde', 'core', s => s.replace('if (!lectureCourante()) return false;', '')],
   ['repli autoritaire apres panne', 'core', s => s.replace("state.personnageChargeDepuisServeur = false; // réponse serveur perdue", "state.personnageChargeDepuisServeur = true; // réponse serveur perdue")],
   ['base jamais envoyee', 'sb', s => s.replace('data.fiche_base = charState._ficheBase;', '')],
   ['recalage absent', 'sb', s => s.replace('    sbFicheRecaler(charState, data, ligne);\n', '')],
