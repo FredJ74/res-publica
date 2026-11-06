@@ -362,3 +362,7 @@ de `style.css`, `rue-centrale.css`, coque `plateau.html` ; Claude continue Sovar
 Branche L0 `codex/mobile-l0-l3-20261106`, base `728010c8`.
 Contrat : `outils/audits/MOBILE-LOTS-L0-L3-RECETTE.md`. Pas de mécanique bis,
 pas de compte ou transaction réelle ; bureau 1440 px à comparer à chaque lot.
+
+Mobile L1 : branche `codex/mobile-l1-coque-20261106`, dépend de L0. Coque responsive,
+6/6 tests Chromium dont bureau 1440 pixel identique à `728010c8`. Pas de changement
+métier ou Supabase. L2/L3 puis L6 suivent dans des branches distinctes.

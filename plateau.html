@@ -6,7 +6,7 @@
 <title>Res Publica — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=lisibilite-pnj-20261031-caracs">
+<link rel="stylesheet" href="style.css?v=mobile-l1-20261106">
 <style>
 /* Tooltip minimap */
 .has-tooltip { position: relative; }
@@ -195,7 +195,10 @@
     <div style="display:none"><div id="b-hp" style="width:92%"></div></div>
     <div style="display:none"><div id="b-moral" style="width:78%"></div></div>
   </div>
-  <div class="top-right">
+  <button type="button" class="hg-mobile-acces" data-hg-panneau="personnage" aria-expanded="false" aria-controls="left">Personnage</button>
+  <button type="button" class="hg-mobile-acces" data-hg-panneau="personnes" aria-expanded="false">Présents</button>
+  <button type="button" class="hg-mobile-acces" data-hg-panneau="menu" aria-expanded="false" aria-controls="hg-menu-existant">Menu</button>
+  <div class="top-right" id="hg-menu-existant">
     <button class="forum-btn" onclick="ouvrirIndicesImperiaux()" title="Indices des 4 empires" style="white-space:nowrap;font-size:.65rem;letter-spacing:.08em">
       <i class="ti ti-chart-bar" style="font-size:.75rem;vertical-align:-1px"></i> INDICES IMPERIAUX
     </button>
@@ -227,6 +230,7 @@
   </div>
 </div>
 
+<button type="button" id="hg-mobile-fond" aria-label="Fermer le panneau" hidden></button>
 <!-- MAIN LAYOUT -->
 <div id="main">
 
@@ -899,6 +903,7 @@ function signalerEvenementJournal() {
   to   { transform: translateX(0);    opacity: 1; }
 }
 </style>
+<script src="plateau-mobile.js?v=l1-20261106" defer></script>
 </body>
 </html>
 

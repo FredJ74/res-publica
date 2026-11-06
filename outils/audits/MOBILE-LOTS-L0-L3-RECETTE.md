@@ -21,3 +21,11 @@ Claude poursuit Sovarka. Base initiale : main 728010c8 (audit #523 intégré).
 Branches/PR séparées et dépendantes ; jamais fusionner un lot si ses contrôles requis
 ne passent pas. Aucun changement économique ou Supabase prévu. Les limites d'accès
 à GitHub/Vercel doivent rester explicites. Les preuves de test seront ajoutées par lot.
+
+## L1 — coque
+
+Même DOM et mêmes gestionnaires d'ordres. Sous 1024 px : accès Personnage/Présents/Menu,
+panneaux repliés, fond de fermeture et retour du focus ; le menu historique reste unique.
+Banc `banc-mobile-coque.cjs` : 6/6, cinq formats + comparaison PNG stricte 1440 px
+avec `728010c8`. Une erreur de stacking du menu sous le fond a été détectée par
+un vrai clic et corrigée (pas de clic forcé). Aucun RPC ni compte dans ces tests.
