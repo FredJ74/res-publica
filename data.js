@@ -10247,7 +10247,7 @@ function slugPnjSovarka(nom) {
     ]);
     ajouter(surcharge(ville, mairie, capitale ? 'bureau_maire' : 'bureau_maire_local'), [
       ordre('sovarka_dossiers_commerciaux', 'Dossiers commerciaux', 0, 'ti-folders',
-        'Réservé au maire (à défaut l\'adjoint, à défaut le ministre de l\'Économie collective) : accepter les demandes, attribuer les locaux, fixer les loyers (0 à 100 PSK) et le type des immeubles collectifs.')
+        'Réservé au maire (à défaut l\'adjoint, à défaut le ministre de l\'Économie collective) : accepter les demandes, attribuer les locaux, fixer les loyers (dans le plafond de chaque local) et le type des immeubles collectifs.')
     ]);
     ajouter(surcharge(ville, capitale ? 'tribunal' : 'tribunal-local', 'bureau_magistrats'), [
       ordre('sovarka_retirer_droit', 'Retirer un droit d\'exploiter', 1, 'ti-gavel',
