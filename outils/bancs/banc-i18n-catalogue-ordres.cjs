@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('157 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('177 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,157);
+ assert.equal(ref.length,177);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -242,5 +242,25 @@ test('20 ordres transports et vie sociale : libellés sources et neuf langues',(
    assert.equal(win.RPOrderI18n.label(order,engine,lang),value);
   }
   assert.equal(order.cost,99);assert.equal(order.pa,2);assert.equal(order.requiresPost,'agent');
+ }
+});
+
+test('20 ordres immobilier et services sociaux : labels source et contrats inchangés',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const ids=["ssm_besoin_aide","ssm_demander_rendezvous","financer_communal","consulter_personnalites_musee","appeler_police_terrain","negocier_squatteurs","signer_compromis","construire_sur_terrain","payer_versement_chantier","travailler_chantier","vendre_materiaux_chantier","diviser_construction","louer_lot_ici","gerer_lot_loue","gerer_fonds_commerce","emprunter_construction","racheter_terrain","organiser_manifestation_spontanee","consulter_devis_chantier_naval","modifier_plan_chantier"];
+ const occurrences=[...source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)];
+ const words=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const fn of ids){
+  const original=Object.freeze({fn,label:words[fn],pa:2,cost:95,requiresPost:'owner'});
+  assert.ok(occurrences.some(m=>m[2]===fn&&m[4]===original.label),fn);
+  for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+    const wanted=win.RP_I18N_RESOURCES[lng].translation.orders[fn];
+    assert.ok(typeof wanted==='string'&&wanted.trim(),lng+'/'+fn);
+    assert.equal(win.RPOrderI18n.label(original,engine,lng),wanted);
+  }
+  assert.equal(original.fn,fn);
+  assert.equal(original.cost,95);
+  assert.equal(original.pa,2);
+  assert.equal(original.requiresPost,'owner');
  }
 });
