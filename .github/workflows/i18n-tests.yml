@@ -16,6 +16,7 @@ on:
       - 'outils/bancs/banc-i18n-plateau-ressources.cjs'
       - 'outils/bancs/banc-i18n-plateau-wiring.cjs'
       - 'outils/bancs/banc-i18n-plateau-init.cjs'
+      - 'outils/bancs/banc-i18n-navbar-20261106.cjs'
       - 'outils/bancs/banc-i18n-texte-joueur.cjs'
       - 'api/_traduction.js'
       - 'outils/bancs/banc-traduction-i18n.mjs'
@@ -55,6 +56,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-plateau-wiring.cjs
       - name: Initialisation du plateau et RTL
         run: node --test outils/bancs/banc-i18n-plateau-init.cjs
+      - name: Barre supérieure localisée, icônes et gestionnaires préservés
+        run: node --test outils/bancs/banc-i18n-navbar-20261106.cjs
       - name: Texte joueur et original préservés
         run: node --test outils/bancs/banc-i18n-texte-joueur.cjs
       - name: Moteur de traduction interne (fournisseur simulé)
@@ -73,7 +76,7 @@ jobs:
           retention-days: 7
       - name: "Libellés d’ordres : contexte et autorité préservés"
         run: node --test outils/bancs/banc-i18n-ordres.cjs
-      - name: Quarante-sept ordres canoniques traduits et droits préservés
+      - name: Soixante-dix-sept ordres canoniques traduits et droits préservés
         run: node --test outils/bancs/banc-i18n-catalogue-ordres.cjs
       - name: Rendu des ordres, échappement HTML et autorité inchangée
         run: node --test outils/bancs/banc-i18n-render-ordres.cjs
