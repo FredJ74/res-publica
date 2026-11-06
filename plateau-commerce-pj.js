@@ -865,20 +865,6 @@ async function commercePjRecettesDesReferences(refs) {
 // existaient, aux memes arguments : le serveur reste seul juge du prix maximal,
 // du plafond de stock, des PA, de la caisse et de l'identite. Cet ecran ne
 // calcule rien qui fasse autorite -- il affiche, il recueille, il envoie.
-// Commerce Premium, gratuit pendant la beta : le serveur verifie le proprietaire et pose l'option.
-async function commercePjActiverPremium() {
-  const ctx = await commercePjContexte();
-  if (!ctx || !ctx.fondsId) { showToast('Commerce Premium', commercePjRefus({ raison: 'fonds_absent' }), false); return; }
-  const v = await sbRpcVerdict('fonds_premium_activer', { p_fonds_id: ctx.fondsId }).catch(() => null);
-  if (!v || v.ok !== true) {
-    showToast('Commerce Premium', v?.raison === 'reserve_proprietaire_fonds' ? 'Réservé au propriétaire du commerce.'
-      : v?.raison === 'paiement_non_active' ? 'Le paiement n’est pas encore ouvert.' : 'Refusé par le serveur.', false);
-    return;
-  }
-  showToast('Commerce Premium', 'Option active : ' + v.typesMax + ' types d’activité et ' + v.referencesMax + ' articles.', true);
-  commercePjEcranGestion();
-}
-
 async function commercePjEcranGestion(ctx) {
   // LA MACHINE NE CLIGNOTE PAS. commercePjChargement peint la modale ORDINAIRE,
   // donc il retire la coque : acceptable a la premiere ouverture, insupportable
@@ -1096,19 +1082,18 @@ async function commercePjEcranGestion(ctx) {
       commercePjEchapper(tCommercePJ('commercepj.matiere.maxAide', { plafond: plafondMat })) + '</div>';
   }
 
-  // --- COMMERCE PREMIUM (gratuit pendant la beta, decision de Fred du 06/11/2026) ---
-  // L'option est posee par le serveur sur le fonds (fonds_premium_activer) : 3 types
-  // et 10 articles au lieu de 2 et 4. La generation d'image et les codes restent a venir.
+  // --- COMMERCE PREMIUM : VITRINE DE PAIEMENT, NON ACTIVEE -----------------
+  // Aucune API de paiement, aucun droit premium ni generation d'image ne sont
+  // declenches par ce bloc. Les boutons restent volontairement desactives.
   h += '<section class="cpj-premium" aria-label="Commerce Premium" ' +
     'style="margin:18px 0;padding:16px;border:1px solid var(--border-color, #8b7961);border-radius:10px">' +
-    '<div class="cpj-titre">Commerce Premium' + (f.premium ? ' <span style="font-size:.75em;font-weight:normal">— actif</span>' : '') + '</div>' +
+    '<div class="cpj-titre">Commerce Premium <span style="font-size:.75em;font-weight:normal">— prochainement</span></div>' +
     '<p>Améliorez ce commerce : <strong>3 types d’activités</strong> au lieu de 2, ' +
     '<strong>10 articles</strong> au lieu de 4 et <strong>une personnalisation visuelle incluse</strong>.</p>' +
-    (f.premium
-      ? '<p><strong>Option active pour ce commerce.</strong> Transmise lors de la vente du commerce ; perdue en cas de résiliation du bail.</p>'
-      : '<p><strong>Gratuit pendant la bêta</strong> (4,99 € ensuite) · Achat lié au fonds de commerce. ' +
-        'Transmis lors de la vente du commerce ; perdu en cas de résiliation du bail.</p>' +
-        '<button type="button" class="cpj-touche cpj-primaire" onclick="commercePjActiverPremium()">Activer Commerce Premium — gratuit pendant la bêta</button>') +
+    '<p><strong>4,99 €</strong> · Achat lié au fonds de commerce. ' +
+    'Transmis lors de la vente du commerce ; perdu en cas de résiliation du bail.</p>' +
+    '<button type="button" disabled aria-disabled="true" title="Paiement non activé" ' +
+    'style="opacity:.55;cursor:not-allowed">Activer Commerce Premium — 4,99 € (bientôt)</button>' +
     '<p style="margin-top:12px">Nouvelle génération d’image : <strong>0,99 €</strong> par image.</p>' +
     '<button type="button" disabled aria-disabled="true" title="Paiement non activé" ' +
     'style="opacity:.55;cursor:not-allowed">Commander une nouvelle image — 0,99 € (bientôt)</button>' +
