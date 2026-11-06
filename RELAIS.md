@@ -437,6 +437,20 @@ chargement/sauvegarde et test offline Chromium exécutés ; vrais appareils et d
 comptes/appareils restent non testés. REST POST pulls refusé (Forbidden) dans cette
 session, malgré son fonctionnement chez Claude. Les branches sont sauvegardées.
 
+### Mobile L4 — Codex, 06/11/2026
+
+Branche `codex/mobile-l4-creation-20261106`, temporairement dépendante de L8/L5/L3.
+Création en une colonne sur petit écran, boutons +/-44 px et champs16 px, sélecteur
+langue sans recouvrement. `creation.js` et ses règles inchangés : explications « En
+jeu : » conservées. Vrais rendus locaux dans fr/en/es/zh-TW/ru/ko, sans authentifier
+ou créer de personnage ; plus/moins réversible vérifié, bureau1440 conservé.
+Pour tester : connexion, huit étapes et choix des caractéristiques à375px, changer
+la langue en conservant les choix. Vrai clavier iOS et fin de création non certifiés.
+
+Réconciliation de `codex/mobile-l4-creation-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
 Réconciliation de `codex/mobile-l8-reprise-20261106` avec main `b2e357bf` après fusion #535 ;
 aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
 préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
@@ -452,6 +466,12 @@ pas une nouvelle autorité mobile ; certification serveur Helvetia toujours rés
 L8 : le détecteur de fiche exige la nouvelle garde tardive, neuf mutations détectées,
 aucun test relâché ; correctif L5 reçu. Les branches L0–L3/L6 de Claude restent intactes.
 
+`codex/mobile-l4-creation-20261106` : correctifs des lots précédents propagés ; aucun changement des
+règles ou migrations. Les tests et la certification distante restent distincts.
+
+`codex/mobile-l4-creation-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
+aucune commande automatique rejouée, validations locales en cours.
+
 Bilan mobile local : `outils/audits/MOBILE-LIVRAISON-20261106.md`. Branches L1/L2/L3
 certifiées séparément : 30/30, 32/32, 34/34 (cas mobiles + historiques). Avec L6 :
 38/38 ciblés. Contrôleur complet **195/196** : seul le rangement SQL déjà rouge de
@@ -466,6 +486,10 @@ automatique ; résultats structurés et captures de fixtures inspectées sont pu
 
 codex/mobile-l8-reprise-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
 
+codex/mobile-l4-creation-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
+
 codex/mobile-l5-transactions-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
 
 codex/mobile-l8-reprise-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+codex/mobile-l4-creation-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
