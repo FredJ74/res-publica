@@ -1,0 +1,27 @@
+name: I18n — 29 ordres et neuf langues (branche brouillon)
+on:
+  push:
+    branches:
+      - chatgpt/accueil-9-langues-20261102
+    paths:
+      - i18n/orders-resources.js
+      - outils/bancs/banc-i18n-catalogue-ordres.cjs
+      - outils/bancs/banc-i18n-ordres.cjs
+      - .github/workflows/i18n-ordres-29-20261106.yml
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe, catalogue, identifiants et repli français
+        run: |
+          node --check i18n/orders-resources.js
+          node --check i18n/ordres.js
+          node --test outils/bancs/banc-i18n-catalogue-ordres.cjs outils/bancs/banc-i18n-ordres.cjs outils/bancs/banc-i18n-couverture.cjs
+          git diff --check
