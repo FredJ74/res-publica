@@ -5,6 +5,9 @@ on:
       - chatgpt/novomirsk-notaire-images-20261106
     paths:
       - .github/workflows/novomirsk-notaire-convert-20261106.yml
+  pull_request:
+    paths:
+      - .github/workflows/novomirsk-notaire-convert-20261106.yml
 permissions:
   contents: write
 jobs:
