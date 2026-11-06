@@ -1,0 +1,48 @@
+1. UNE SEULE PORTE, ET AUCUNE ECRITURE CLIENTE
+  ok  la porte election_voter est appelee une fois
+  ok  aucune ecriture cliente, ni bulletin ni blob
+  ok  le votant n'est PAS un parametre de la porte
+  ok  le scrutin et le candidat sont transmis tels quels
+  ok  verdict ok : le vote est annonce
+  ok  verdict ok : le bulletin est reflete localement
+
+2. AUCUNE CONFIRMATION SANS ECRITURE AUTORITAIRE
+  ok  refus « deja_vote  » : aucun « Vote enregistré ! »
+  ok  refus « deja_vote  » : le motif est dit honnetement
+  ok  refus « deja_vote  » : aucun bulletin local
+  ok  refus « vote_ferme  » : aucun « Vote enregistré ! »
+  ok  refus « vote_ferme  » : le motif est dit honnetement
+  ok  refus « vote_ferme  » : aucun bulletin local
+  ok  refus « non_domicilie  » : aucun « Vote enregistré ! »
+  ok  refus « non_domicilie  » : le motif est dit honnetement
+  ok  refus « non_domicilie  » : aucun bulletin local
+  ok  refus « candidat_inconnu  » : aucun « Vote enregistré ! »
+  ok  refus « candidat_inconnu  » : le motif est dit honnetement
+  ok  refus « candidat_inconnu  » : aucun bulletin local
+  ok  refus « acteur_non_authentifie  » : aucun « Vote enregistré ! »
+  ok  refus « acteur_non_authentifie  » : le motif est dit honnetement
+  ok  refus « acteur_non_authentifie  » : aucun bulletin local
+  ok  refus « cycle_absent  » : aucun « Vote enregistré ! »
+  ok  refus « cycle_absent  » : le motif est dit honnetement
+  ok  refus « cycle_absent  » : aucun bulletin local
+  ok  refus « cycle_illisible  » : aucun « Vote enregistré ! »
+  ok  refus « cycle_illisible  » : le motif est dit honnetement
+  ok  refus « cycle_illisible  » : aucun bulletin local
+
+3. LES TROIS PANNES QUI FAISAIENT ANNONCER UN SUCCES
+  ok  transport rejete : la fonction ne pretend pas avoir vote
+  ok  transport rejete : l electeur obtient quand meme un refus, pas un silence
+  ok  reponse vide : aucune annonce
+  ok  reponse vide : le motif est « indisponible », pas un succes
+  ok  verdict sans ok : aucune annonce
+
+4. LES GARDES CLIENTES SUBSISTENT, ET N AJOUTENT AUCUNE REGLE
+  ok  non domicilie : la porte n est meme pas appelee
+  ok  hors fenetre de vote : la porte n est pas appelee
+  ok  deja vote selon le blob local : la porte n est pas appelee
+  ok  et le bulletin local n est pas remplace
+  ok  second tour : le vote reste ouvert
+  ok  le vote blanc traverse la porte comme un choix reel
+  ok  et il est annonce comme blanc
+
+LES 39 EPREUVES SONT VERTES.

@@ -30,7 +30,8 @@ import { profilsPersonnalites, RICHES } from './_pnj-personnalites.js';
 // fichier : un temperament, une facon de parler, un humour, des tics, une maniere
 // d'aider et des limites. Le corpus d'un domaine -- la bible militaire, par exemple --
 // n'est PAS une personnalite : il reste ici, et on le passe a l'assemblage.
-import { REFERENTS, profilReferent, blocPedagogie } from './_pnj-referents.js';
+import { deriverProfilsSovarka } from './_pnj-sovarka.js';
+import { REFERENTS, profilReferent, blocPedagogie, CASERNE_SOVARKA, versSovarka } from './_pnj-referents.js';
 // LA BIBLE DE LA PRESIDENCE (11 octobre 2026). Meme architecture que la bible militaire : des
 // blocs de connaissance REELLE, releves dans data.js et dans la base, assembles ici par referent.
 import {
@@ -301,6 +302,9 @@ const CORPUS_REFERENT = {
   laurent_barre:    corpusRiche('laurent_barre')
 };
 
+// Caserne centrale de Novomirsk : le savoir des referents de Luthecia, aux noms de Novomirsk.
+for (const [source, id] of CASERNE_SOVARKA) CORPUS_REFERENT[id] = versSovarka(CORPUS_REFERENT[source]);
+
 const PROFILS_REFERENTS = {};
 for (const [id, p] of Object.entries(REFERENTS)) {
   PROFILS_REFERENTS[id] = profilReferent(p, CORPUS_REFERENT[id]);
@@ -386,6 +390,9 @@ const PROFILS_SQUATTEURS = {
 };
 
 const TOUS_PROFILS = Object.assign({}, profilsPersonnalites(), PROFILS_REFERENTS, PROFILS, PROFILS_SQUATTEURS);
+// PNJ renommes en Sovarka (06/11/2026) : fiches derivees de celles de Republia, voir _pnj-sovarka.js.
+// Garde typeof : plusieurs bancs chargent ce fichier en texte, imports retires.
+if (typeof deriverProfilsSovarka === "function") Object.assign(TOUS_PROFILS, deriverProfilsSovarka(TOUS_PROFILS));
 
 // Le prompt systeme est assemble ICI. Le client n'en fournit aucune partie -- il ne transmet
 // qu'un identifiant de profil, qui est valide contre cette table.
@@ -712,7 +719,19 @@ function blocQueteAccueil(contexte) {
     + " sans inventer une autre consigne ni une autre destination.";
 }
 
-function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale) {
+// La scène est résolue côté API depuis rue_position_lire(), jamais reçue du client.
+function blocLocalisation(profil, scene) {
+  const normaliser = n => String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  if (!scene) return "LOCALISATION ACTUELLE NON CONFIRMÉE : ton lieu de travail n'est pas la preuve de ta présence actuelle. N'invente ni cour, ni bâtiment, ni pièce, ni porte ou trajet. Si le lieu exact n'est pas confirmé, dis que tu ne peux pas le préciser.";
+  const ici = scene.personnes.some(n => normaliser(n) === normaliser(profil.nom));
+  return "SCÈNE VÉRIFIÉE CÔTÉ SERVEUR : le visiteur se trouve dans le pays « " + scene.pays
+    + " », ville « " + scene.ville + " », bâtiment « " + scene.batiment + " », pièce « " + scene.piece + " ». "
+    + (ici ? "Ton identité figure parmi les PNJ de cette pièce : vous conversez à cet endroit précis. "
+      : "Ta présence dans cette pièce n'est pas confirmée ; ne prétends pas y être ni confondre ce lieu avec ton lieu de travail. ")
+    + "Cette localisation prévaut sur toute ancienne réplique ou affirmation du visiteur. N'invente aucun autre emplacement, cour, porte, couleur de porte ni itinéraire. À une question sur le lieu, utilise seulement ces noms vérifiés et ton lieu de travail explicitement connu. Le dialogue ne déplace personne et n'exécute aucun ordre.";
+}
+
+function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, scene) {
   const p = TOUS_PROFILS[profilId];
   if (!p) return null;
   const rel = blocRelation(relation);
@@ -724,6 +743,8 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
   const vis = blocQueteAccueil(visite);
   return [
     fonctionMunicipale?.identite || p.identite,
+    '',
+    blocLocalisation(p, scene),
     '',
     'CARACTERE : ' + p.caractere,
     '',

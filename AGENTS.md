@@ -112,8 +112,14 @@ leur numéro (#57, #135…).
 
 ## Charte graphique
 
-- Toute fenêtre pop-up suit la **charte ardoise et or** de `style.css` :
-  conteneur `cpj-dialogue`, texte secondaire `cpj-note`, boutons
-  `cpj-touche` (`cpj-primaire` pour l'action principale), champs
-  `cpj-champ`. Pas de couleurs en dur : l'ancienne palette brune
-  (`#0f0d05`, `#8a8060`, `#2a2010`…) ne doit plus être recopiée.
+- **Habillage retenu : fond bleu-gris** (décision de Fred, 03/11/2026 ; l'ancienne charte
+  « ardoise et or » est abandonnée, issue #143 fermée). La source unique est `style.css` :
+  fenêtres `.modal-box` en `#202a36` bordées d'or doux `#a98d56`, texte `#e2e9f1`, champs
+  `#1b2531`, boutons `#344354` à texte or `#e5c477`.
+- Toute fenêtre pop-up utilise les classes communes : conteneur `cpj-dialogue`, texte
+  secondaire `cpj-note`, boutons `cpj-touche` (`cpj-primaire` pour l'action principale),
+  champs `cpj-champ` (déjà déclinées en bleu-gris). Pas de couleurs en dur dans le JavaScript :
+  si une classe manque, l'ajouter dans `style.css`. L'ancienne palette brune (`#0f0d05`,
+  `#8a8060`, `#2a2010`…) ne doit plus être recopiée.
+- Pas de campagne de reprise des anciennes fenêtres : `style.css` les habille déjà en
+  bleu-gris ; on corrige une fenêtre seulement quand on y travaille ou si elle s'affiche mal.

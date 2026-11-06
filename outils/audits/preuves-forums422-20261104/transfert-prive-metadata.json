@@ -1,0 +1,42 @@
+{
+  "recherche": "Métadonnées et SHA256 seulement ; aucun contenu imprimé",
+  "fichiers_taille_attendue": [],
+  "supabase_tool": false,
+  "vercel_tool": false,
+  "vercel_cli": false,
+  "variables_auth_disponibles": false,
+  "cle_privee_pgp_disponible": false,
+  "snapshot_annonce": "snap_VVIJobjaBuB1JmUk0KnbWfkzXRFQ",
+  "reception_effectuee": false,
+  "configuration_auth_existante": [
+    {
+      "fichier": "/home/agent/.local/share/com.vercel.cli/auth.json",
+      "present": false
+    },
+    {
+      "fichier": "/home/agent/.config/vercel/auth.json",
+      "present": false
+    },
+    {
+      "fichier": "/home/agent/.vercel/auth.json",
+      "present": false
+    },
+    {
+      "fichier": "/workspace/.vercel/auth.json",
+      "present": false
+    },
+    {
+      "fichier": "/tmp/.vercel/auth.json",
+      "present": false
+    },
+    {
+      "fichier": "/home/agent/.supabase/access-token",
+      "present": false
+    },
+    {
+      "fichier": "/home/agent/.config/supabase/access-token",
+      "present": false
+    }
+  ],
+  "cles_et_archives_422_trouvees": 0
+}

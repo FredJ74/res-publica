@@ -149,17 +149,8 @@ function closeCharSheet() {
 // =====================
 // WORLD MAP
 // =====================
-function openWorldMap() {
-  const body = document.getElementById('world-map-body');
-  body.innerHTML = renderWorldMapSVG();
-  body.style.display = 'flex';
-  body.style.flexDirection = 'column';
-  body.style.height = '520px';
-  document.getElementById('modal-world').classList.add('open');
-}
-function closeWorldMap() {
-  document.getElementById('modal-world').classList.remove('open');
-}
+
+
 
 // =====================
 // REGLES DU JEU
@@ -380,8 +371,9 @@ ARMOIRE À SOUVENIRS
 • Plusieurs Armoires complètes réunies dans la même pièce ne cumulent pas cet avantage.
 • L'Armoire est transportable, mais doit être entièrement vidée de son contenu avant tout déplacement.
 • Tant qu'elle n'est pas verrouillée, un visiteur peut en retirer les souvenirs.
-• L'Armoire est vendue sans clé.
-• Sa facture comporte une référence confidentielle qui permettra au propriétaire de faire fabriquer ultérieurement une clé adaptée à cette Armoire.`
+• L'Armoire est vendue sans clé. Elle s'installe, comme un ordinateur, dans un local dont vous avez la jouissance (bail à votre nom ou à celui de votre organisation).
+• Une Armoire installée peut recevoir une serrure à clé (vendue en armurerie, avec sa clé). Fermée à clé, elle ne s'ouvre et ne se désinstalle qu'avec une de ses clés.
+• Si vous perdez la jouissance du local, vous avez 48 h pour désinstaller l'Armoire ; passé ce délai, elle revient au propriétaire des lieux.`
   }
 };
 
@@ -548,6 +540,9 @@ function switchSelfTab(tab, el) {
     html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
     html += '<button onclick="doOrder(\'se_cacher\',1,0,\'Se cacher\',\'Vous vous dissimulez dans la piece.\',70);closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #2a3a20;background:#0a0d08;color:#8a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
     html += '<span><i class="ti ti-eye-off" style="font-size:.85rem"></i> Se cacher</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a6a3a">70% · 1 PA</span></button>';
+    // Vehicules personnels (05/11/2026) : on conduit depuis n'importe quel endroit de la ville.
+    html += '<button onclick="closeSelfView();ouvrirMesVehicules()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #2a3440;background:#0a0d10;color:#8aa0b4;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
+    html += '<span><i class="ti ti-car" style="font-size:.85rem"></i> Mes véhicules</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a5a6a">plein · cargaison · conduire</span></button>';
 
     // 1 PA, PAS 3. Le bouton a toujours affiche « 1 PA » (ligne suivante) et le routeur commente
     // « Blocus : 1 PA quoi qu'il arrive ». Le 3 passe ici etait preleve par executerOrdreGenerique,
@@ -1122,8 +1117,9 @@ function handlePhotoFileChange(event) {
   const f = event.target.files[0];
   if (!f) return;
   const r = new FileReader();
-  r.onload = e => {
-    _photoTemp = e.target.result;
+  r.onload = async e => {
+    // Portrait reduit avant tout envoi (04/11/2026, #55/#60) : ~30 Ko au lieu de plusieurs Mo.
+    _photoTemp = (typeof rpReduirePortrait === 'function') ? await rpReduirePortrait(e.target.result) : e.target.result;
     document.getElementById('photo-preview-zone').innerHTML = '<img src="' + _photoTemp + '" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #8a6a20">';
   };
   r.readAsDataURL(f);
@@ -1142,6 +1138,7 @@ async function confirmerChangementPhoto() {
   if (typeof sbUpdatePhotoBio === 'function') {
     await sbUpdatePhotoBio(state.char.name, photoFinal, undefined).catch(() => {});
   }
+  if (typeof sbOublierAnnuaire === 'function') sbOublierAnnuaire();
 
   // Forcer la mise a jour du cache partage immediatement (sinon il faut attendre jusqu'a 60s)
   if (window._cachePhotosJoueurs && state.char.name) {
@@ -1187,9 +1184,9 @@ function ouvrirModalDetruirePersonnage() {
 // (voir rapport d'implementation pour le detail des risques residuels).
 // =====================
 
-const TAUX_DROITS_SUCCESSION = 0.33;
-const PART_ETAT_DROITS_SUCCESSION = 0.90; // part notaire = droits - part Etat, jamais de FR perdu a l'arrondi
-const DELAI_CONVOCATION_MS = 10 * 24 * 60 * 60 * 1000; // 10 jours reels, toutes les convocations (principal/remplacant/conjoint legal)
+// LES REGLES FISCALES ET LES CHAINES DE CONVOCATION SONT AU SERVEUR (03/11/2026) : droits 33 %
+// (90 % Etat, reste notaire), delai de 10 jours reels -- voir succession_ouvrir / succession_repondre
+// (migration 20261103110000) et le miroir de la passe de nuit (api/cron-minuit.js).
 
 // Verifie qu'un nom correspond reellement a un personnage existant -- utilise a la fois pour
 // valider les dispositions d'un testament au moment de sa redaction ET pour REVALIDER chaque
@@ -1199,56 +1196,6 @@ async function personnageExisteReellement(nom) {
   if (!nom || typeof sbGet !== 'function') return false;
   const rows = await sbGet('personnages', 'name=eq.' + encodeURIComponent(nom) + '&select=name').catch(() => null);
   return !!(rows && rows.length > 0);
-}
-
-// Determine la toute premiere etape de la chaine de convocation d'UNE disposition (bien ou part
-// d'argent), en cascadant principal -> remplacant -> conjoint legal -> aucune (chaine vide,
-// resolue directement par le cron a son prochain passage, sans attente artificielle -- section 8,
-// resolution anticipee). Un principal/remplacant designe par testament mais INEXISTANT au moment
-// de l'ouverture (section 5) est traite exactement comme s'il avait renonce : on cascade au
-// palier suivant, jamais de transmission a un nom qui ne correspond plus a personne.
-async function determinerChaineInitiale(dispositionTestament, conjointNom) {
-  const maintenant = Date.now();
-  const expiresAt = new Date(maintenant + DELAI_CONVOCATION_MS).toISOString();
-  const convoqueLe = new Date(maintenant).toISOString();
-
-  const principal = dispositionTestament?.beneficiaire || null;
-  if (principal && await personnageExisteReellement(principal)) {
-    return [{ role: 'principal', beneficiaire: principal, convoque_le: convoqueLe, expires_at: expiresAt, reponse: null, repondu_le: null }];
-  }
-  const remplacant = dispositionTestament?.remplacant || null;
-  if (remplacant && await personnageExisteReellement(remplacant)) {
-    return [{ role: 'remplacant', beneficiaire: remplacant, convoque_le: convoqueLe, expires_at: expiresAt, reponse: null, repondu_le: null }];
-  }
-  if (conjointNom) {
-    return [{ role: 'legal_conjoint', beneficiaire: conjointNom, convoque_le: convoqueLe, expires_at: expiresAt, reponse: null, repondu_le: null }];
-  }
-  return [];
-}
-
-// Determine l'etape SUIVANTE de la chaine d'une disposition, une fois que son etape courante
-// (roleActuel) vient de se solder par une renonciation -- explicite (doRepondreHeritage) ou
-// tacite (cron, silence a l'echeance). Meme cascade que determinerChaineInitiale, mais amorcee a
-// partir du role qui vient de renoncer plutot que depuis le testament brut, et jamais reconvoque
-// un role deja present dans la chaine (une disposition ne revient jamais en arriere). Reutilisee
-// telle quelle cote client (reponse explicite) ; le cron (resoudreSuccessionsExpirees) en
-// implemente une copie fonctionnellement identique dans son propre idiome raw-fetch (aucun code
-// partage possible entre les deux runtimes, cf. doctrine du gel).
-async function determinerEtapeSuivante(disposition, roleActuel, conjointNom) {
-  const maintenant = Date.now();
-  const expiresAt = new Date(maintenant + DELAI_CONVOCATION_MS).toISOString();
-  const convoqueLe = new Date(maintenant).toISOString();
-  const dejaConvoques = new Set((disposition.chaine || []).map(e => e.role));
-
-  if (roleActuel === 'principal' && disposition.remplacant_prevu && !dejaConvoques.has('remplacant')) {
-    if (await personnageExisteReellement(disposition.remplacant_prevu)) {
-      return { role: 'remplacant', beneficiaire: disposition.remplacant_prevu, convoque_le: convoqueLe, expires_at: expiresAt, reponse: null, repondu_le: null };
-    }
-  }
-  if (roleActuel !== 'legal_conjoint' && conjointNom && !dejaConvoques.has('legal_conjoint')) {
-    return { role: 'legal_conjoint', beneficiaire: conjointNom, convoque_le: convoqueLe, expires_at: expiresAt, reponse: null, repondu_le: null };
-  }
-  return null;
 }
 
 // Ouvre une succession complete : photographie le patrimoine, calcule la fiscalite globale une
@@ -1275,156 +1222,21 @@ async function determinerEtapeSuivante(disposition, roleActuel, conjointNom) {
 // garde-fou client venait a manquer.
 async function ouvrirSuccession(defunt, country) {
   if (!defunt) return { ok: false, raison: 'defunt_manquant' };
-
-  let successionExistante = null;
-  if (typeof sbGetSuccessionsEnAttente === 'function') {
-    const enAttente = await sbGetSuccessionsEnAttente(country).catch(() => undefined);
-    if (enAttente === undefined) return { ok: false, raison: 'lecture_successions_impossible' };
-    successionExistante = (enAttente || []).find(s => s.defunt === defunt) || null;
-  }
-
-  // Conjoint -- toujours relu (lecture seule, cout negligeable), y compris en reprise : sert
-  // uniquement a la dissolution best-effort du mariage par l'appelant, n'affecte jamais
-  // successions.conjoint qui reste fige des la creation initiale de la ligne.
-  let mariageId = null;
-  if (typeof sbGetMariageActif === 'function') {
-    const mariage = await sbGetMariageActif(defunt).catch(() => undefined);
-    if (mariage === undefined) return { ok: false, raison: 'lecture_mariage_impossible' };
-    if (mariage) mariageId = mariage.id;
-  }
-
-  let successionId, dispositions, testamentId, conjointNom = null;
-
-  if (successionExistante) {
-    // Reprise stricte : aucune relecture de testament/terrains/entreprises, aucun recalcul
-    // fiscal -- la ligne deja creee est l'unique source de verite pour cette succession.
-    successionId = successionExistante.id;
-    dispositions = successionExistante.dispositions || [];
-    testamentId = successionExistante.testament_id || null;
-    conjointNom = successionExistante.conjoint || null;
-  } else {
-    // 1. Testament actif eventuel
-    let testament = null;
-    if (typeof sbGetTestamentActif === 'function') {
-      testament = await sbGetTestamentActif(defunt).catch(() => undefined);
-      if (testament === undefined) return { ok: false, raison: 'lecture_testament_impossible' };
-    }
-
-    // 2. Conjoint -- revalide reellement son existence (section 9 de l'audit). Simple snapshot
-    // informatif (successions.conjoint) : ne porte JAMAIS d'echeance propre -- distinct des
-    // eventuelles etapes 'legal_conjoint' des chaines de dispositions individuelles (section 1
-    // de l'architecture v4). Assigne a la variable de portee EXTERIEURE (declaree juste avant le
-    // if/else) -- pas de redeclaration locale, le mail de convocation (etape 13) et le retour de
-    // la fonction en dependent tous les deux, que l'ouverture vienne d'etre creee ou reprise.
-    if (mariageId && typeof sbGetMariageActif === 'function') {
-      const mariage = await sbGetMariageActif(defunt).catch(() => undefined);
-      if (mariage) {
-        const nomConjoint = mariage.conjoint1 === defunt ? mariage.conjoint2 : mariage.conjoint1;
-        conjointNom = (await personnageExisteReellement(nomConjoint)) ? nomConjoint : null;
-      }
-    }
-
-    // 3. Terrains/batiments/locaux possedes -- vraie primitive (sbGetTousLesBiensDe corrigee :
-    // elle n'a jamais existe nulle part).
-    let terrains = [];
-    if (typeof sbGetTerrainsPossedesPar === 'function') {
-      const r = await sbGetTerrainsPossedesPar(country, defunt).catch(() => undefined);
-      if (r === undefined) return { ok: false, raison: 'lecture_terrains_impossible' };
-      terrains = r || [];
-    }
-
-    // 4. Entreprises possedees (liste fixe et petite, meme scan que rechercherDossierNotarial)
-    let entreprises = [];
-    if (typeof getEntreprisesRachetables === 'function') {
-      for (const def of getEntreprisesRachetables()) {
-        const data = await def.charger().catch(() => undefined);
-        if (data === undefined) return { ok: false, raison: 'lecture_entreprises_impossible' };
-        if (data && data.proprietaire === defunt) entreprises.push({ id: def.id, label: def.label });
-      }
-    }
-
-    // 5. Fiscalite globale (section 1/9 des arbitrages) : calculee UNE SEULE FOIS sur la masse
-    // totale, jamais recalculee par disposition. argentBrutTotal = solde bancaire du defunt au
-    // moment de l'ouverture (l'argent liquide et l'inventaire restent hors perimetre, point 9).
-    // Lot 2 (chantier fiscalite/Helvetia) : source remplacee par l'agregat reel des comptes
-    // bancaires (state.banque, l'ancien champ plat, n'est plus jamais mis a jour) -- meme
-    // perimetre exact qu'avant (solde bancaire uniquement, placements non inclus, decision
-    // separee a prendre plus tard si les placements doivent aussi entrer dans l'assiette
-    // successorale).
-    const argentBrutTotal = (typeof totalComptesBancaires === 'function' ? totalComptesBancaires() : (state.banque || 0));
-    const droitsTotal = Math.floor(argentBrutTotal * TAUX_DROITS_SUCCESSION);
-    const partEtat = Math.floor(droitsTotal * PART_ETAT_DROITS_SUCCESSION);
-    const partNotaire = droitsTotal - partEtat;
-    const argentNetTotal = argentBrutTotal - droitsTotal;
-
-    // 6. Construction des dispositions -- une par terrain/entreprise possede, plus une par part
-    // d'argent testamentaire (ou une seule pour la totalite si aucun testament exploitable).
-    // regle:false des la creation -- marqueur de reglement (transfert/credit reellement execute
-    // par le cron), distinct de resultat (decision successorale tranchee) : voir reglerSuccession,
-    // api/cron-minuit.js.
-    const contenu = testament?.contenu || {};
-    const biensTestament = {};
-    (contenu.biens || []).forEach(b => { if (b?.id) biensTestament[b.id] = b; });
-
-    dispositions = [];
-    for (const t of terrains) {
-      const dt = biensTestament[t.buildingId];
-      const chaine = await determinerChaineInitiale(dt, conjointNom);
-      dispositions.push({
-        id: t.buildingId, type: 'terrain',
-        libelle: BUILDINGS[t.buildingId]?.shortName || BUILDINGS[t.buildingId]?.name || t.buildingId,
-        remplacant_prevu: dt?.remplacant || null,
-        chaine, etat: 'en_attente', resultat: null, regle: false
-      });
-    }
-    for (const e of entreprises) {
-      const dt = biensTestament[e.id];
-      const chaine = await determinerChaineInitiale(dt, conjointNom);
-      dispositions.push({ id: e.id, type: 'entreprise', libelle: e.label, remplacant_prevu: dt?.remplacant || null, chaine, etat: 'en_attente', resultat: null, regle: false });
-    }
-
-    if (argentNetTotal > 0) {
-      const partsArgentTestament = (contenu.argent || []).filter(p => p?.beneficiaire && p?.pourcentage);
-      if (partsArgentTestament.length > 0) {
-        // Reliquat d'arrondi affecte a la PREMIERE part dans l'ordre du testament (deterministe,
-        // section 1) -- montant fixe des l'ouverture, independant de qui l'acceptera au final.
-        let distribue = 0;
-        const montants = partsArgentTestament.map((p, i) => {
-          if (i === 0) return null; // calcule apres coup, reçoit le reliquat
-          const m = Math.floor(argentNetTotal * (p.pourcentage / 100));
-          distribue += m;
-          return m;
-        });
-        montants[0] = argentNetTotal - distribue;
-        for (let i = 0; i < partsArgentTestament.length; i++) {
-          const p = partsArgentTestament[i];
-          const chaine = await determinerChaineInitiale({ beneficiaire: p.beneficiaire, remplacant: p.remplacant }, conjointNom);
-          dispositions.push({ id: 'argent-' + (i + 1), type: 'argent', part_nette: montants[i], remplacant_prevu: p.remplacant || null, chaine, etat: 'en_attente', resultat: null, regle: false });
-        }
-      } else {
-        // Aucun testament exploitable pour l'argent : une seule disposition pour la totalite
-        // nette, cascade directement sur le conjoint legal (pas de "principal" testamentaire ici).
-        const chaine = await determinerChaineInitiale(null, conjointNom);
-        dispositions.push({ id: 'argent-1', type: 'argent', part_nette: argentNetTotal, remplacant_prevu: null, chaine, etat: 'en_attente', resultat: null, regle: false });
-      }
-    }
-
-    // 7. Creer la ligne successions (avant tout gel, section 4 des arbitrages) -- photographie
-    // fiscale globale + dispositions completes, statut 'en_attente'. Protegee cote base par un
-    // index unique partiel sur (defunt) WHERE statut='en_attente' : une creation concurrente pour
-    // le meme defunt (ex. double-clic) echoue proprement ici (rCreation falsy), sans jamais
-    // produire deux lignes 'en_attente'.
-    successionId = 'succession-' + Date.now();
-    testamentId = testament?.id || null;
-    if (typeof sbCreerSuccession !== 'function') return { ok: false, raison: 'primitive_succession_indisponible' };
-    const rCreation = await sbCreerSuccession({
-      id: successionId, defunt, country, testament_id: testamentId,
-      statut: 'en_attente', conjoint: conjointNom,
-      argent_brut_total: argentBrutTotal, droits_total: droitsTotal, part_etat: partEtat, part_notaire: partNotaire, argent_net_total: argentNetTotal,
-      dispositions
-    });
-    if (!rCreation) return { ok: false, raison: 'echec_creation_succession' };
-  }
+  // ETAPES 1 A 7 AU SERVEUR (03/11/2026). La table `successions` etait ecrivable par tout joueur :
+  // n'importe qui pouvait inventer la succession d'un vivant, geler ses biens ou s'attribuer une
+  // part d'argent. succession_ouvrir() prend TOUJOURS l'appelant pour defunt, reprend telle quelle
+  // une succession deja en attente, sinon photographie testament, conjoint, terrains, entreprises
+  // et comptes bancaires reels, calcule les droits et cree la ligne. Les etapes suivantes (gel,
+  // nettoyage, convocations) passent deja par leurs propres portes et restent rejouables.
+  const v = (typeof sbRpc === 'function')
+    ? await sbRpc('succession_ouvrir', {}).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!v || v.ok !== true) return { ok: false, raison: v?.raison || 'echec_creation_succession' };
+  const successionId = v.succession_id;
+  const dispositions = Array.isArray(v.dispositions) ? v.dispositions : [];
+  const testamentId = v.testament_id || null;
+  const conjointNom = v.conjoint || null;
+  const mariageId = v.mariage_id || null;
 
   // 8. Gel de tous les terrains/entreprises concernes -- derive des DISPOSITIONS elles-memes
   // (frozen des la creation de la ligne), jamais d'un nouveau scan d'ownership : coherent aussi
@@ -1558,6 +1370,11 @@ async function ouvrirSuccession(defunt, country) {
 
 function libelleDispositionSuccession(d) {
   if (d.type === 'argent') return (d.part_nette || 0).toLocaleString('fr-FR') + ' FR';
+  if (d.type === 'terrain' && typeof BUILDINGS !== 'undefined' && BUILDINGS[d.id]) return BUILDINGS[d.id].shortName || BUILDINGS[d.id].name || d.id;
+  if (d.type === 'entreprise' && typeof getEntrepriseRachetable === 'function') {
+    const e = getEntrepriseRachetable(d.id);
+    if (e?.label) return e.label;
+  }
   return d.libelle || d.id;
 }
 
@@ -1644,45 +1461,29 @@ function renderSuccessionPourHeritier(s, estConjoint, dispositionsActives, nom) 
 // ou conjoint legal) plutot que d'attendre artificiellement l'echeance -- meme doctrine de
 // resolution anticipee que le cron applique de son cote pour le silence.
 async function doRepondreHeritage(successionId, dispositionId, reponse) {
-  const nom = state.char?.name;
-  const succession = (typeof sbGetSuccession === 'function') ? await sbGetSuccession(successionId).catch(() => null) : null;
-  if (!succession) { showToast('Erreur', "Ce dossier n'existe plus.", false); doReclamerHeritage(); return; }
-  if (succession.statut !== 'en_attente') { showToast('Trop tard', 'Cette succession a déjà été réglée.', false); doReclamerHeritage(); return; }
-
-  const dispositions = succession.dispositions || [];
-  const disposition = dispositions.find(d => d.id === dispositionId);
-  if (!disposition) { showToast('Erreur', "Cette disposition n'existe plus.", false); doReclamerHeritage(); return; }
-
-  const chaine = disposition.chaine || [];
-  const etape = chaine[chaine.length - 1];
-  if (!etape || etape.beneficiaire !== nom || etape.reponse !== null) {
-    showToast('Action impossible', "Cette disposition ne vous concerne plus.", false);
+  // LA REPONSE EST ENREGISTREE PAR LE SERVEUR (03/11/2026) : seul le beneficiaire de l'etape
+  // courante, avant l'echeance ; une renonciation convoque l'etape suivante (remplacant, puis
+  // conjoint legal). Aucun transfert ici : le reglement reste celui de la passe de nuit.
+  const v = (typeof sbRpc === 'function')
+    ? await sbRpc('succession_repondre', { p_succession: successionId, p_disposition: dispositionId, p_reponse: reponse })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!v || v.ok !== true) {
+    const refus = {
+      succession_introuvable: "Ce dossier n'existe plus.",
+      succession_reglee: 'Cette succession a déjà été réglée.',
+      disposition_introuvable: "Cette disposition n'existe plus.",
+      pas_concerne: 'Cette disposition ne vous concerne plus.',
+      delai_expire: 'Le délai de réponse est écoulé pour cette disposition.'
+    };
+    showToast('Action impossible', refus[v?.raison] || "Votre réponse n'a pas pu être enregistrée. Réessayez.", false);
     doReclamerHeritage();
     return;
   }
-  if (Date.now() > new Date(etape.expires_at).getTime()) {
-    showToast('Délai expiré', 'Le délai de réponse est écoulé pour cette disposition.', false);
-    doReclamerHeritage();
-    return;
+  if (v.nouveau_convoque && typeof sbSendMail === 'function') {
+    await sbSendMail('Office Notarial', v.nouveau_convoque, 'Succession — ' + v.defunt,
+      'Vous êtes convoqué(e) au sujet de la succession de ' + v.defunt + '. Rendez-vous au Bureau des Successions de l\'Office Notarial de Luthécia, rubrique « Réclamer un héritage ».', '').catch(() => {});
   }
-
-  etape.reponse = reponse;
-  etape.repondu_le = new Date().toISOString();
-
-  let nouveauConvoque = null;
-  if (reponse === 'renonce') {
-    const suivante = await determinerEtapeSuivante(disposition, etape.role, succession.conjoint);
-    if (suivante) { disposition.chaine.push(suivante); nouveauConvoque = suivante.beneficiaire; }
-  }
-
-  const r = await sbUpdateSuccession(successionId, { dispositions });
-  if (!r) { showToast('Erreur', "Votre réponse n'a pas pu être enregistrée. Réessayez.", false); return; }
-
-  if (nouveauConvoque && typeof sbSendMail === 'function') {
-    await sbSendMail('Office Notarial', nouveauConvoque, 'Succession — ' + succession.defunt,
-      'Vous êtes convoqué(e) au sujet de la succession de ' + succession.defunt + '. Rendez-vous au Bureau des Successions de l\'Office Notarial de Luthécia, rubrique « Réclamer un héritage ».', '').catch(() => {});
-  }
-
   showToast(reponse === 'accepte' ? 'Héritage accepté' : 'Renonciation enregistrée',
     reponse === 'accepte' ? 'Le règlement définitif interviendra lors du traitement notarial.' : 'Votre renonciation a été enregistrée.', true);
   doReclamerHeritage();
@@ -2471,8 +2272,6 @@ async function doDormir() {
     // (detention_clore_purgee), et checkArrestationAuReveil lit state.estEmprisonne juste apres.
     await verifierLiberationPrisonniers();
     if (!retourActif()) return false;
-    verifierDecouverteCrimesPasses();
-    checkArrestationAuReveil();
     verifierProgressionHospitalisation();
     if (typeof verifierEffetsManifestationsEcoulees === 'function') verifierEffetsManifestationsEcoulees(state.country);
     // verifierSalairePolitique() retiree ici le 20 septembre 2026 (§6.1) : le salaire des 13
@@ -2888,26 +2687,21 @@ async function doCentreAntiPoison(pa) {
     showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false);
     return;
   }
-  const today = dateCivileParisMedicale();
-  if (!state.centreAntiPoisonToday || state.centreAntiPoisonToday.jour !== today) {
-    state.centreAntiPoisonToday = { jour: today, tentatives: 0 };
-  }
-  if (state.centreAntiPoisonToday.tentatives >= 2) {
-    showToast('Limite atteinte', 'Deux tentatives maximum par jour.', false);
+  // JET AU SERVEUR (05/11/2026) : centre_anti_poison_traiter preleve le cout, tient la limite de deux
+  // tentatives par jour et tire le de ; l'ecran recopie le verdict. Avant, le navigateur decidait seul.
+  const brut = (typeof sbRpc === 'function') ? await sbRpc('centre_anti_poison_traiter', {}).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    const raison = v?.raison;
+    if (raison === 'limite_journaliere') showToast('Limite atteinte', 'Deux tentatives maximum par jour.', false);
+    else if (raison === 'pas_empoisonne') { state.empoisonnement = null; updateUI(); showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false); }
+    else if (raison === 'pas_sur_place') showToast('Pas ici', 'Ce traitement se fait au dispensaire ou a la clinique.', false);
+    else if (typeof signalerRefusCout === 'function' && v) signalerRefusCout(v);
+    else showToast('Impossible', 'Le traitement n\'a pas pu avoir lieu.', false);
     return;
   }
-
-  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-  const ordre = room?.orders?.find(o => o.fn === 'centre_anti_poison');
-  const cout = ordre?.cost || 0;
-  const successRate = ordre?.successRate || 70;
-  const r = await deduireCoutOrdre({ pa, cost: cout });
-  if (!r.ok) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
-
-  state.centreAntiPoisonToday.tentatives++;
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= successRate) {
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+  if (v.gueri) {
     state.empoisonnement = null;
     if (state.statsAffaiblies) state.statsAffaiblies = null;
     updateUI();
@@ -3237,6 +3031,8 @@ async function confirmerVendreRessourceMedicaleUI(buildingId, ressource) {
 // client envoie un lieu qui n'est pas celui ou le serveur croit le joueur. Nommer le motif rendra
 // donc aussi visible la divergence de position, si c'est elle qui a frappe.
 const MOTIFS_REFUS_CHAMBRE = {
+  tarif_local_introuvable: ['Tarif indisponible', 'Le prix de la chambre n\'a pas ete retrouve pour cette piece. Rechargez la page ; aucun paiement n\'a ete tente.'],
+  paiement_indisponible: ['Paiement indisponible', 'Le service de paiement n\'a pas confirme la transaction. Aucun achat n\'est confirme ; verifiez vos reservations avant de reessayer.'],
   pa_insuffisants: ['PA insuffisants', 'Vous n\'avez pas assez de points d\'action.'],
   fonds_insuffisants: ['Fonds insuffisants', 'Le montant requis dépasse vos fonds disponibles.'],
   introuvable: ['Hôtel indisponible', 'Le commerce de cet établissement est introuvable côté serveur.'],
@@ -3288,7 +3084,13 @@ async function doReserverChambreHotel(pa) {
   const bonus = confortMap[state.currentBuilding] || { moral: 2, paBonus: 1 };
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const ordre = room?.orders?.find(o => o.fn === 'reserver_chambre_hotel');
-  const cout = ordre?.cost || 60;
+  // Le prix doit etre celui de l'ordre affiche, jamais un repli arbitraire (60 FR).
+  // En cas de decalage de piece/chargement, refuser avant tout paiement.
+  if (!ordre || !Number.isFinite(Number(ordre.cost)) || Number(ordre.cost) <= 0) {
+    signalerRefusReservationChambre({ raison: 'tarif_local_introuvable' }, 0);
+    return;
+  }
+  const cout = Number(ordre.cost);
   // CHANTIER C / PHASE 3. Le Republica encaisse dans SA caisse d'entreprise : prelevement et
   // credit doivent alors se faire dans la MEME transaction serveur, sinon l'un peut aboutir
   // sans l'autre. Les autres hotels versent dans une caisse institutionnelle et gardent le
@@ -3392,9 +3194,13 @@ async function doServiceEtage(pa) {
   }
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const ordre = room?.orders?.find(o => o.fn === 'service_etage');
-  const cout = ordre?.cost || 150;
-  const r = await deduireCoutOrdre({ pa, cost: cout });
-  if (!r.ok) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
+  if (!ordre || Number(ordre.cost) !== 150) {
+    showToast('Service indisponible', 'Le tarif du service d’étage n’est pas reconnu dans cette chambre.', false);
+    return;
+  }
+  const cout = Number(ordre.cost);
+  const r = await deduireCoutOrdre({ fn: 'service_etage', pa, cost: cout });
+  if (!r.ok) { showToast('Service d’étage refusé', 'Le serveur a refusé le paiement : ' + (r.raison || 'indisponible') + '. Aucun service accordé.', false); return; }
   state.hp = Math.min(100, (state.hp || 0) + 10);
   state.moral = Math.min(100, (state.moral || 0) + 1);
   // Bonus differe atteste : le serveur tient le compteur et connait le montant de la source.
@@ -3586,6 +3392,10 @@ async function ouvrirDetailObjetInventaire(idx) {
   // de la protection "objet de quete" (manger son propre repas n'est jamais un transfert).
   // AUCUN indice de fraicheur/age ici (peremption volontairement invisible avant consommation,
   // regle de design validee) -- le libelle reste neutre, identique quel que soit l'etat reel.
+  // Brume et Estadine (2 novembre 2026) : consommer est legal ; seuls l'achat et le transport ne le sont pas.
+  if (item.type === 'drogue') {
+    html += '<button onclick="consommerDrogue(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ' + (item.drogue === 'estadine' ? 'ti-snowflake' : 'ti-cloud') + '"></i> ' + (item.drogue === 'estadine' ? 'Consommer' : 'Fumer') + '</button>';
+  }
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> Consommer</button>';
   }
@@ -3600,6 +3410,14 @@ async function ouvrirDetailObjetInventaire(idx) {
     } else if (item.etatCarte === 'ecrite') {
       html += '<button onclick="lireCartePostale(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-mail-opened"></i> Lire</button>';
     }
+  }
+
+  // Serrures (04/11/2026, issue #434) : poser le bloc, utiliser la cle, tailler une cle vierge.
+  // Les boutons Donner / Jeter ci-dessous restent : une cle est un objet transmissible.
+  if (['serrure_cle', 'cle_serrure', 'cle_vierge'].includes(item.type) && typeof ouvrirSerrureObjet === 'function') {
+    html += '<button class="cpj-touche cpj-primaire" onclick="ouvrirSerrureObjet(' + idx + ')"><i class="ti ' +
+      (item.type === 'serrure_cle' ? 'ti-lock' : 'ti-key') + '"></i> ' +
+      ({ serrure_cle: 'Installer', cle_serrure: 'Fermer ou ouvrir', cle_vierge: 'Faire un double' })[item.type] + '</button>';
   }
 
   const protege = typeof colisSecretProtege === 'function' && colisSecretProtege(item);
@@ -3689,6 +3507,49 @@ async function consommerAliment(idx) {
   }
 }
 
+// CONSOMMER BRUME OU ESTADINE (2 novembre 2026, decisions de Fred). Tout est tranche par le serveur
+// (inventaire_consommer) : moral +10, ENT +2 jusqu'a minuit sans cumul, PA -1, sante -5, et une
+// trace consommation_drogue pour les rumeurs et enquetes. L'ecran n'affiche que ce qu'il recoit.
+let consommationDrogueEnCours = false;
+async function consommerDrogue(idx) {
+  if (consommationDrogueEnCours) return;
+  const item = state.inventory[idx];
+  if (!item || item.type !== 'drogue') return;
+  consommationDrogueEnCours = true;
+  try {
+    document.getElementById('modal-postes')?.classList.remove('open');
+    const r = await removeFromInventory(idx, 'consommer');
+    if (!r.ok) {
+      showToast('Impossible de fumer', messageRefusSortieInventaire(r.raison), false);
+      return;
+    }
+    if (!r.drogue) {
+      showToast('Consommation enregistrée', 'Effets non confirmés par le serveur.', true);
+      addJournalEntry('Vous avez fumé "' + item.name + '". Effets non confirmés.', 'event-info');
+    } else {
+      if (typeof r.pa === 'number') state.pa = r.pa;
+      if (typeof r.hp === 'number') state.hp = r.hp;
+      if (typeof r.moral === 'number') state.moral = r.moral;
+      if (r.effets_actifs) state.effetsActifs = r.effets_actifs;
+      if (r.produit === 'estadine') {
+        const cha = r.montee_nouvelle ? 'CHA +2 pendant 6 h' : 'montée déjà en cours';
+        showToast('La montée', 'PA +3, moral +15, ' + cha + '. Descente dans 6 h : moral −25, santé −10, −3 PA. INT −0,1 pour 15 jours.', true);
+        addJournalEntry('Vous avez consommé "' + item.name + '" : PA +3, moral +15, ' + cha + '. Descente attendue dans 6 h.', 'event-info');
+        updateUI();
+        if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
+        return;
+      }
+      const ent = r.bonus_ent ? 'ENT +2 jusqu\'à minuit' : 'ENT déjà au maximum de l\'effet';
+      showToast('La Brume', 'Moral +10, ' + ent + '. −1 PA, santé −5.', true);
+      addJournalEntry('Vous avez fumé "' + item.name + '" : moral +10, ' + ent + ', −1 PA, santé −5.', 'event-info');
+    }
+    updateUI();
+    if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
+  } finally {
+    consommationDrogueEnCours = false;
+  }
+}
+
 // =====================
 // ARMOIRE A SOUVENIRS — popup dediee (lot du 25 aout 2026)
 // =====================
@@ -3749,13 +3610,10 @@ function ouvrirPopupArmoireSouvenirs(idx, tab) {
     html += 'Date d\'achat : ' + (item.dateAchat ? new Date(item.dateAchat).toLocaleDateString('fr-FR') : '—') + '<br>';
     html += 'N° d\'Armoire : ' + (item.id || '—') + '<br>';
     html += '</div>';
-    if (estProprietaire) {
-      html += '<div style="margin-top:.6rem;padding:.6rem;border:1px solid #4a3a10;background:#161206">';
-      html += '<div style="font-size:.8rem;color:#E8C97A;word-break:break-all">Référence confidentielle : ' + (item.referenceSecrete || '—') + '</div>';
-      html += '<div style="font-size:.72rem;color:#8a7a50;font-style:italic;margin-top:.35rem">Conservez précieusement cette référence : elle seule permettra de faire fabriquer une clé pour cette Armoire.</div>';
-      html += '</div>';
-    } else {
-      html += '<div style="font-size:.76rem;color:#6a5a30;font-style:italic;margin-top:.4rem">La référence confidentielle de propriété n\'est visible que par le propriétaire.</div>';
+    {
+      // Decision de Fred du 04/11/2026 (GAME-DESIGN-SERRURES.md) : la facture n'est PAS la source du
+      // droit de fermer l'armoire ; ce droit vient de la jouissance du lieu ou elle est installee.
+      html += '<div class="cpj-note" style="margin-top:.6rem">Pour la fermer à clé : installez-la dans un local dont vous avez la jouissance, puis posez-y une serrure (vendue en armurerie).</div>';
     }
   } else {
     const total = liste ? liste.souvenirs.length : 12;
@@ -3767,6 +3625,11 @@ function ouvrirPopupArmoireSouvenirs(idx, tab) {
       html += '<div style="font-size:.82rem;color:' + (present ? '#e0d8c0' : '#5a5040') + '"><i class="ti ' + (present ? 'ti-square-check' : 'ti-square') + '" style="margin-right:.5rem"></i>' + s.ville + ' — ' + s.nom + '</div>';
     });
     html += '</div>';
+  }
+  // Installation (04/11/2026) : comme l'ordinateur, dans un local dont on a la jouissance ; le
+  // serveur decide (equipement_installer), cet ecran ne fait que demander.
+  if (typeof equipementInstaller === 'function') {
+    html += '<button class="cpj-touche cpj-primaire" style="width:100%;margin-top:.8rem" onclick="equipementInstaller(\'armoire_souvenirs\')"><i class="ti ti-home"></i> Installer ici</button>';
   }
   html += '</div>';
 
@@ -4190,6 +4053,9 @@ function ouvrirDetailObjet(idx) {
   if (item.usageUnique) html += ' · Usage unique';
   html += '</div>';
   html += '<div style="display:flex;gap:.5rem">';
+  if (item.type === 'drogue') {
+    html += '<button onclick="consommerDrogue(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">' + (item.drogue === 'estadine' ? 'Consommer' : 'Fumer') + '</button>';
+  }
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Consommer</button>';
   }

@@ -241,8 +241,8 @@ async function organisationEssayerCommande(orgaId, action, parametres) {
 
 // Charge toutes les organisations depuis Supabase au demarrage (remplace l'ancien state.orgasEmpire local perdu au rafraichissement)
 let RP_ORGANISATIONS_LECTURE = 0;
-async function chargerOrganisations() {
-  if (typeof sbLoadOrganisations !== 'function') return;
+async function chargerOrganisations(options = {}) {
+  if (typeof sbLoadOrganisations !== 'function') return false;
   const version = ++RP_ORGANISATIONS_LECTURE, personnage = state.char;
   const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
   const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
@@ -250,16 +250,19 @@ async function chargerOrganisations() {
     const orgas = await sbLoadOrganisations();
     if (version !== RP_ORGANISATIONS_LECTURE || state.char !== personnage
         || (typeof rpAuthUid === 'function' && rpAuthUid() !== uid)
-        || (typeof rpAuthJeton === 'function' && rpAuthJeton() !== jeton)) return;
+        || (typeof rpAuthJeton === 'function' && rpAuthJeton() !== jeton)) return false;
     if (!Array.isArray(orgas)) throw new Error('organisations_lecture_indisponible');
     state.organisations = orgas;
+    if (!options.lectureSeule) {
     if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations();
     // Rafraichir l'affichage si la fiche est ouverte sur l'onglet organisations
     const tab = document.querySelector('#vue-self .piece-tab.active');
     if (tab && document.getElementById('vue-self')?.classList.contains('active')) {
       switchSelfTab('orgas', null);
     }
-  } catch(e) { console.warn('chargerOrganisations error', e); }
+    }
+    return true;
+  } catch(e) { console.warn('chargerOrganisations error', e);return false; }
 }
 
 // Trouve le responsable de la loge maçonnique (chef d'organisation type 'loge')
@@ -555,7 +558,7 @@ function renderOngletOrgas() {
             ? '<button onclick="seProsenterCandidat(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">Se présenter</button>'
             : '') +
           (orga.election.phase === 'vote'
-            ? orga.election.candidats.map(c => '<button onclick="voterElection(\'' + orga.id + '\',\'' + c.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;border:1px solid ' + (orga.election.votes[state.char?.name] === c.nom ? '#C9A84C' : '#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer">' + c.nom + '</button>').join('')
+            ? orga.election.candidats.map(c => '<button onclick="voterElectionOrganisation(\'' + orga.id + '\',\'' + c.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;border:1px solid ' + (orga.election.votes[state.char?.name] === c.nom ? '#C9A84C' : '#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer">' + c.nom + '</button>').join('')
             : '') +
           '</div>'
         ) : (
@@ -921,6 +924,70 @@ async function executerOrdreOrgaFinancier(orga, fn, ordre) {
   updateUI();
 }
 
+// Même commande et même reçu que les autres actes de vie de l'organisation.
+async function executerOrdreOrgaJauges(orgaId, fn, ordre, parametres = {}) {
+  const contexte=contexteGroupePj();
+  if(!contexte.nom||!contexte.uid||typeof sbOrganisationVie!=='function')return;
+  const v=await sbOrganisationVie(orgaId,'ordre_jauges',{...parametres,fn});
+  if(!contexteGroupePjValide(contexte))return;
+  if(!v||v.ok!==true){signalerRefusCout(v||{raison:'commande_non_confirmee'});return;}
+  if(v.contrat_jauges!==1||v.acteur!==contexte.nom||v.organisation!==orgaId||v.ordre!==fn
+      ||(fn==='orga_anatheme'&&(v.effets_cible?.nom!==parametres.cible||!['pop','moral'].every(k=>typeof v.effets_cible[k]==='number'&&Number.isFinite(v.effets_cible[k]))))
+      ||!['pop','inf','pa','hp','moral','gain_pop','gain_inf','gain_moral'].every(k=>typeof v[k]==='number'&&Number.isFinite(v[k]))) {
+    showToast('Action non confirmée','La réponse reçue ne permet pas de confirmer cet ordre.',false);return;
+  }
+  appliquerPaiementServeur(v);
+  adopterJaugeServeur('pop',v.pop);adopterJaugeServeur('inf',v.inf);
+  state.moral=v.moral;state.hp=v.hp;
+  if(typeof sbFicheBaseAdopter==='function')sbFicheBaseAdopter(v);
+  updateUI();
+  if(!v.rejeu){
+    const gains=[['POP',v.gain_pop],['INF',v.gain_inf],['Moral',v.gain_moral]].filter(([,n])=>n!==0).map(([k,n])=>(n>0?'+':'')+n+' '+k).join(', ');
+    const effetCible=v.effets_cible? v.effets_cible.nom+' : '+v.effets_cible.moral+' Moral, '+v.effets_cible.pop+' POP':null;
+    showToast(ordre.label||'Ordre exécuté',effetCible||gains||'Action confirmée par le serveur.',true);
+    addJournalEntry((ordre.label||fn)+' : '+(effetCible||gains)+'.',v.effets_cible?'event-bad':'event-good');
+    // Conserver les annonces historiques : les rituels/réseaux/cooptations de
+    // loge ne publiaient aucun événement et ne doivent pas révéler une loge.
+    const nom=v.organisation_nom||'l’organisation';
+    const annonces={
+      orga_petition:'📋 "'+nom+'" lance une pétition publique.',
+      orga_meeting:'📢 "'+nom+'" organise un meeting.',
+      orga_benediction:'✨ "'+nom+'" organise une cérémonie de bénédiction.',
+      orga_anatheme:'⛧ "'+nom+'" prononce un anathème public.',
+      orga_pelerinage:'🕊 "'+nom+'" organise un grand pèlerinage.',
+      orga_campagne_presse:'📰 "'+nom+'" publie une campagne de presse favorable.',
+      orga_scoop:'🔥 "'+nom+'" publie un scoop explosif !'
+    };
+    if(annonces[fn])addExternalEvent(annonces[fn]);
+  }
+}
+
+async function executerHooliganismeServeur(orga, ordre) {
+  const brut = typeof sbRpc === 'function'
+    ? await sbRpc('organisation_hooliganisme', { p_orga: orga.id }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
+  if (!r || r.ok !== true) {
+    const motifs = {
+      grade_insuffisant: 'Réservé aux Meneurs.',
+      pas_membre: "Vous n'êtes pas membre de cette organisation.",
+      ordre_hors_type: "Cet ordre n'existe pas pour ce type d'organisation.",
+      pa_insuffisants: ordre.pa + ' PA requis.'
+    };
+    showToast('Opération refusée', motifs[r?.raison] || "Le serveur n'a pas enregistré l'opération (" + (r?.raison || 'sans réponse') + ').', false);
+    return;
+  }
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+  if (r.pays === 'republic' && r.indices && typeof INDICES_VILLES_CACHE !== 'undefined') {
+    INDICES_VILLES_CACHE['republic_' + r.ville] = Object.assign({}, INDICE_VILLE_DEFAUT, r.indices);
+  }
+  if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('hooliganisme', null);
+  showToast('Échauffourées !', 'Les supporters sèment le chaos après le match. -5 Sécurité, -5 Social dans la ville.', true, true);
+  addJournalEntry('Échauffourées organisées par "' + orga.nom + '". Impact sur la sécurité et le climat social de la ville.', 'event-bad');
+  addExternalEvent('⚠️ Des échauffourées éclatent en marge d\'un match, attribuées aux supporters de "' + orga.nom + '".');
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+}
+
 async function executerOrdreOrga(orgaId, fn) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
@@ -938,6 +1005,14 @@ async function executerOrdreOrga(orgaId, fn) {
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const ordre = (def.ordres || []).find(o => o.fn === fn);
   if (!ordre) return;
+  if(fn==='orga_anatheme'){
+    await ouvrirCiblageFiscal(fn,ordre.label||'Cérémonie d’anathème',
+      cible=>executerOrdreOrgaJauges(orgaId,fn,ordre,{cible}));
+    return;
+  }
+  if (["orga_petition", "orga_meeting", "orga_benediction", "orga_pelerinage", "orga_campagne_presse", "orga_scoop", "orga_rituel", "orga_reseau", "orga_cooptation"].includes(fn)) {
+    await executerOrdreOrgaJauges(orgaId,fn,ordre);return;
+  }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   // GARDE D'AUTORITE SUR LES ORDRES FINANCIERS — CENTRALISEE ICI (Lot 4.3).
@@ -962,6 +1037,14 @@ async function executerOrdreOrga(orgaId, fn) {
     return;
   }
 
+  // ECHAUFFOUREES DECIDEES PAR LE SERVEUR (03/11/2026) : grade de Meneur, paiement, -5 Securite et
+  // -5 Social a la ville du PJ et trace penale (decouverte de minuit) dans organisation_hooliganisme.
+  // L'ecran posait la trace lui-meme (donc pouvait l'effacer) et ne baissait qu'une copie locale.
+  if (fn === 'orga_hooliganisme') {
+    await executerHooliganismeServeur(orga, ordre);
+    return;
+  }
+
   // Vérif coût financier (garde metier/financiere conservee). La disponibilite des PA est
   // desormais tranchee uniquement par deduireCoutOrdre() ci-dessous (Lot 1, correctif suite a
   // revue) -- plus de garde manuelle state.pa<..., qui bloquait a tort meme sous
@@ -972,30 +1055,8 @@ async function executerOrdreOrga(orgaId, fn) {
   // disponibilite des PA. Appelee avant tout effet de bord (bloc "effets" plus bas) :
   // fail-closed.
   const effets = {
-    orga_petition:       () => { const gain = Math.floor(Math.random()*8)+3; state.pop = Math.min(100,(state.pop||0)+gain); showToast('Pétition lancée !','+'+gain+' POP.',true); addJournalEntry('Pétition de "'+orga.nom+'". +'+gain+' POP.','event-good'); addExternalEvent('📋 "'+orga.nom+'" lance une pétition publique.'); },
-    orga_meeting:        () => { state.pop=Math.min(100,(state.pop||0)+5); state.inf=Math.min(100,(state.inf||0)+3); showToast('Meeting !','+5 POP +3 INF.',true,true); addJournalEntry('Meeting de "'+orga.nom+'".','event-good'); addExternalEvent('📢 "'+orga.nom+'" organise un meeting.'); },
     // orga_collecte / orga_dividendes : executerOrdreOrgaFinancier (serveur), plus d'effet local.
-    orga_benediction:    () => { state.moral=Math.min(100,(state.moral||50)+10); state.pop=Math.min(100,(state.pop||0)+5); showToast('Bénédiction !','Cérémonie en votre honneur. +10 Moral +5 POP.',true,true); addJournalEntry('Bénédiction de "'+orga.nom+'".','event-good'); addExternalEvent('✨ "'+orga.nom+'" organise une cérémonie de bénédiction.'); },
-    orga_anatheme:       () => { state.moral=Math.max(0,(state.moral||50)-15); state.pop=Math.max(0,(state.pop||0)-10); showToast('Anathème !','Cérémonie contre un PJ. -15 Moral -10 POP à la cible.',false); addJournalEntry('Anathème prononcé par "'+orga.nom+'".','event-bad'); addExternalEvent('⛧ "'+orga.nom+'" prononce un anathème public.'); },
-    orga_pelerinage:     () => { state.pop=Math.min(100,(state.pop||0)+8); showToast('Pèlerinage !','+8 POP. Grand rassemblement.',true,true); addExternalEvent('🕊 "'+orga.nom+'" organise un grand pèlerinage.'); },
-    orga_campagne_presse:() => { state.pop=Math.min(100,(state.pop||0)+6); state.inf=Math.min(100,(state.inf||0)+5); showToast('Article favorable !','+6 POP +5 INF.',true,true); addExternalEvent('📰 "'+orga.nom+'" publie une campagne de presse favorable.'); },
-    orga_scoop:          () => { state.inf=Math.min(100,(state.inf||0)+10); showToast('Scoop publié !','+10 INF. Scandale public.',true,true); addExternalEvent('🔥 "'+orga.nom+'" publie un scoop explosif !'); },
-    orga_rituel:         () => { state.inf=Math.min(100,(state.inf||0)+6); showToast('Rituel accompli.','+6 INF. Nouveau membre initié.',true); },
-    orga_reseau:         () => { state.inf=Math.min(100,(state.inf||0)+8); showToast('Réseau activé.','+8 INF. Information exclusive obtenue.',true,true); addJournalEntry('Réseau de la Loge activé. +8 INF.','event-good'); },
-    orga_cooptation:     () => { state.inf=Math.min(100,(state.inf||0)+5); showToast('Cooptation discrète.','Un poste peut être attribué sans élection.',true); },
-    orga_hooliganisme:   () => {
-      const pays = state.country || 'republic';
-      if (INDICES_NATIONAUX[pays]) {
-        INDICES_NATIONAUX[pays].ISN = Math.max(0, INDICES_NATIONAUX[pays].ISN - 5);
-        INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - 5);
-      }
-      if (!state.historiqueCrimes) state.historiqueCrimes = [];
-      state.historiqueCrimes.push({ acte: 'hooliganisme', cible: null, jour: state.day, expireJour: (state.day||1) + 8 });
-      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('hooliganisme', null);
-      showToast('Échauffourées !', 'Les supporters sèment le chaos après le match. -5 Sécurité Nationale, -5 Social.', true, true);
-      addJournalEntry('Échauffourées organisées par "' + orga.nom + '". Impact sur la sécurité nationale et le climat social.', 'event-bad');
-      addExternalEvent('⚠️ Des échauffourées éclatent en marge d\'un match, attribuées aux supporters de "' + orga.nom + '".');
-    },
+    // orga_hooliganisme : executerHooliganismeServeur, sans effet local.
   };
 
   // ---------------------------------------------------------------------------
@@ -3124,7 +3185,9 @@ function getStatEffective(stat) {
   // state.char.stats.CHA (la caracteristique de base), disparait des la levee (excommunie remis
   // a null) sans aucune trace residuelle.
   const malusExcommunication = (stat === 'CHA' && state.char?.excommunie) ? -2 : 0;
-  const valeurNormale = base + bonusLocal + malusExcommunication;
+  // Effets temporaires poses par le serveur (Brume : ENT +2 jusqu a minuit ; Estadine : CHA +2 et INT -0,1, 2 novembre 2026).
+  const bonusTemp = (typeof bonusTemporaire === 'function') ? bonusTemporaire(state.effetsActifs, stat, Date.now()) : 0;
+  const valeurNormale = base + bonusLocal + malusExcommunication + bonusTemp;
   if (state.statsAffaiblies && state.statsAffaiblies[stat] !== undefined) {
     const fraction = Math.max(0, Math.min(1, (state.hp || 0) / 100));
     return Math.max(1, Math.round(valeurNormale * fraction));
@@ -3725,7 +3788,10 @@ async function confirmerEntrainement(stat, pa, cost) {
   if (typeof sbFootballEntrainementConsommer !== 'function') {
     showToast('Indisponible', "L'entraînement n'est pas disponible pour le moment.", false); return;
   }
+  const identiteAuDepart = state.char?.name + '|' + state.country + '|' + state.currentCity;
   const r = await sbFootballEntrainementConsommer(stat);
+  // Ne jamais appliquer à un autre PJ une réponse différée de son prédécesseur.
+  if (identiteAuDepart !== state.char?.name + '|' + state.country + '|' + state.currentCity) return;
   if (!r || r.ok !== true) {
     const motif = r && r.raison;
     if (motif === 'limite_quotidienne_atteinte') {
@@ -3743,25 +3809,32 @@ async function confirmerEntrainement(stat, pa, cost) {
   if (typeof r.pa === 'number') state.pa = r.pa;
   state.char.entrainementsJour = { jour: r.jour, nb: Number(r.nb) || 0 };
 
-  const blesse = Math.random() < 0.05;
-  if (blesse) {
-    const grave = Math.random() < 0.3;
-    const duree = grave ? (7 + Math.floor(Math.random()*4)) : (2 + Math.floor(Math.random()*2));
-    const degatsPV = grave ? 30 : 15;
-    state.char.blessureSportive = { jusquauJour: (state.day||1) + duree, gravite: grave ? 'grave' : 'legere' };
-    state.hp = Math.max(1, (state.hp||100) - degatsPV);
-    // Ecriture explicite via sbAppliquerBlessureSportive (correctif audit football, 31 aout 2026) :
-    // cette fonction est desormais la SEULE autorite d'ecriture de blessure_sportive (voir
-    // sbSavePersonnage, supabase.js, qui ne l'ecrit plus du tout) -- sauvegarderPersonnageImmediat()
-    // juste apres reste necessaire pour entrainementsJour/hp/etc., mais ne persiste plus la
-    // blessure elle-meme. Aucun changement de probabilite/gravite/duree/degats.
-    if (typeof sbAppliquerBlessureSportive === 'function') {
-      await sbAppliquerBlessureSportive(state.char.name, state.char.blessureSportive, degatsPV).catch(() => {});
+  // #309 : résultat intégralement arrêté par football_entrainement_consommer.
+  // Pas de tirage, d'écriture de blessure ou de décrément PV par le navigateur.
+  if (r.blesse === true) {
+    const duree = Number(r.duree);
+    const degatsPV = Number(r.degatsPV);
+    const grave = r.blessure?.gravite === 'grave';
+    if (!Number.isInteger(duree) || duree < 1 || duree > 3 ||
+        !Number.isInteger(degatsPV) || ![15, 30].includes(degatsPV) ||
+        !Number.isFinite(Number(r.hp)) || !r.blessure) {
+      showToast('Résultat indisponible',
+        "L'entraînement a été enregistré, mais la blessure n'a pas pu être affichée. Actualisez votre fiche.", false);
+      return;
     }
-    sauvegarderPersonnageImmediat();
+    state.char.blessureSportive = r.blessure;
+    state.hp = Number(r.hp);
     document.getElementById('modal-postes')?.classList.remove('open');
     updateUI();
-    showToast('Blessure à l\'entraînement !', (grave?'Grave':'Légère') + '. Indisponible ' + duree + ' jour(s). -' + degatsPV + ' PV.', false);
+    showToast('Blessure à l\'entraînement !',
+      (grave ? 'Grave' : 'Légère') + '. Indisponible ' + duree + ' jour(s). -' + degatsPV + ' PV.', false);
+    return;
+  }
+  // Contrat serveur strict : une réponse ancienne sans champ blesse ne signifie
+  // PAS « réussite sans blessure », sinon le navigateur masquerait une décision.
+  if (r.blesse !== false) {
+    showToast('Résultat indisponible',
+      "L'entraînement a été enregistré mais le résultat du serveur est incomplet. Actualisez votre fiche.", false);
     return;
   }
 
@@ -6919,7 +6992,11 @@ async function chargerPortraitsMatch(matchKey, live) {
     ...(live.compositionFigee?.home?.titulaires || []).map(t => t.nom),
     ...(live.compositionFigee?.away?.titulaires || []).map(t => t.nom)
   ];
-  if (typeof sbGet === 'function' && noms.length) {
+  if (typeof sbPortraitsPour === 'function' && noms.length) {
+    // Cache des portraits (04/11/2026, #55/#60) : seuls les portraits nouveaux ou changes redescendent.
+    const portraits = await sbPortraitsPour(noms).catch(() => ({}));
+    noms.forEach(n => { cache[n] = portraits[n] || null; });
+  } else if (typeof sbGet === 'function' && noms.length) {
     // Correctif du 28 aout 2026 : cible desormais UNIQUEMENT les ~22 titulaires de CE match (OR de
     // name.eq., chaque valeur encodee individuellement -- meme patron que name=eq.${encodeURIComponent(...)}
     // deja utilise partout ailleurs dans ce fichier, jamais un in.() quote a la main), au lieu de
@@ -7706,7 +7783,7 @@ async function seProsenterCandidat(orgaId) {
   if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
 }
 
-async function voterElection(orgaId, candidatNom) {
+async function voterElectionOrganisation(orgaId, candidatNom) {
   const orga = getOrgaById(orgaId);
   if (!orga?.election?.enCours || orga.election.phase !== 'vote') { showToast('Indisponible', 'Le vote n\'est pas ouvert.', false); return; }
   const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
@@ -9302,36 +9379,8 @@ async function confirmerTerminerGreve(orgaId) {
 // migration_greves.sql -- coordonne PLUSIEURS organisations, ne peut pas vivre dans le jsonb
 // d'une seule d'entre elles, meme besoin structurel que demandes_manifestation en son temps).
 // =====================
-const GREVE_GENERALE_ACTIVITE_MAX_JOURS = 30;
-
-// §4 du cahier des charges : source fiable de "derniere activite reelle du chef" -- personnages.
-// updated_at, retouchee au minimum toutes les 30s de connexion active (filet de securite
-// periodique, voir sbVerifierEtSauvegarderPersonnage/supabase.js) ainsi qu'a chaque action de
-// jeu -- deja utilisee dans ce but exact ailleurs dans ce projet.
-async function chefActifRecemment(nomChef) {
-  if (!nomChef || typeof sbGet !== 'function') return false;
-  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomChef)}&select=updated_at`).catch(() => null);
-  const updatedAt = rows?.[0]?.updated_at;
-  if (!updatedAt) return false;
-  const ecouleMs = Date.now() - new Date(updatedAt).getTime();
-  return ecouleMs <= GREVE_GENERALE_ACTIVITE_MAX_JOURS * 24 * 60 * 60 * 1000;
-}
-
-// Liste FIGEE au moment ou elle est appelee (au lancement de la consultation, jamais recalculee
-// apres coup -- §4 : "au lancement de la consultation, etablir la liste des syndicats actifs
-// eligibles"). Un syndicat qui ne remplit pas ces conditions ne compte pas dans le denominateur
-// et n'a aucun pouvoir de blocage.
-async function syndicatsEligiblesGreveGenerale(pays) {
-  const toutes = (typeof sbLoadOrganisations === 'function') ? await sbLoadOrganisations().catch(() => []) : [];
-  const syndicats = (toutes || []).filter(o =>
-    o.type === 'syndicale' && o.country_origine === pays && o.chef && (o.membres?.length || 0) >= GREVE_MEMBRES_MIN
-  );
-  const resultats = [];
-  for (const s of syndicats) {
-    if (await chefActifRecemment(s.chef)) resultats.push(s);
-  }
-  return resultats;
-}
+// Liste des syndicats eligibles (au moins 5 membres, chef actif depuis 30 jours au plus) : figee par
+// le serveur au lancement de la consultation (greve_generale_lancer, 03/11/2026).
 
 function compterAdherentsUniques(orgasListe) {
   const noms = new Set();
@@ -9388,33 +9437,23 @@ async function confirmerAppelGreveGenerale(orgaId) {
   if (nbMembres < GREVE_MEMBRES_MIN) { showToast('Syndicat trop petit', '', false); return; }
   if (orga.greveGeneraleEnCoursId) { showToast('Déjà engagé', '', false); return; }
 
-  const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
+  // CONSULTATION OUVERTE PAR LE SERVEUR (03/11/2026) : greve_generale_lancer verifie le chef, la
+  // taille du syndicat, paie 1 PA, fige la liste des eligibles et cree la ligne. L'ecran envoie
+  // ensuite les courriers et le sujet du forum.
+  const brut = typeof sbRpc === 'function'
+    ? await sbRpc('greve_generale_lancer', { p_orga: orga.id, p_revendications: revendications }).catch(() => null) : null;
+  const rl = Array.isArray(brut) ? brut[0] : brut;
+  if (!rl || rl.ok !== true) {
+    const motifs = { reserve_au_chef: 'Réservé au chef du syndicat.', syndicat_trop_petit: 'Au moins ' + GREVE_MEMBRES_MIN + ' membres sont nécessaires.',
+      deja_engage: 'Ce syndicat participe déjà à une consultation ou une grève générale en cours.',
+      revendications_requises: 'Rédigez vos revendications avant de lancer la consultation.', pa_insuffisants: '1 PA requis.' };
+    showToast('Consultation refusée', motifs[rl?.raison] || "La consultation n'a pas pu être lancée (" + (rl?.raison || 'sans réponse') + ').', false);
+    return;
+  }
+  if (rl.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(rl.paiement);
   const pays = orga.country_origine || state.country;
-  const eligibles = await syndicatsEligiblesGreveGenerale(pays);
-  // L'initiateur est toujours reput eligible (c'est son chef qui agit a l'instant meme).
-  if (!eligibles.some(s => s.id === orga.id)) eligibles.push(orga);
-
-  const ggId = 'greve_generale_' + Date.now();
-  const participants = eligibles.map(s => ({
-    orgaId: s.id,
-    orgaNom: s.nom,
-    chef: s.chef,
-    statut: s.id === orga.id ? 'accepte' : 'en_discussion'
-  }));
-
-  const inserted = (typeof sbInsert === 'function') ? await sbInsert('greves_generales', {
-    id: ggId, country: pays, statut: 'consultation',
-    initiateur: orga.chef, syndicat_initiateur_id: orga.id,
-    revendications, participants,
-    date_lancement: new Date().toISOString(), jours_actifs: 0
-  }).catch(() => null) : null;
-  if (!inserted) { showToast('Erreur', "La consultation n'a pas pu être lancée.", false); return; }
-
-  // L'initiateur soutient d'office son propre appel : rattachement recopie par le serveur depuis la
-  // ligne greves_generales (etape B, 02/11/2026), jamais ecrit par l'ecran.
-  if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
+  const ggId = rl.id;
+  const eligibles = (rl.participants || []).map(p => ({ id: p.orgaId, nom: p.orgaNom, chef: p.chef }));
   if (typeof chargerOrganisations === 'function') chargerOrganisations();
 
   // Mail a chaque chef eligible SAUF l'initiateur (deja acquis) -- boutons Accepter/Refuser en
@@ -9438,7 +9477,7 @@ async function confirmerAppelGreveGenerale(orgaId) {
     if (topicId) {
       const corpsTopic = orga.chef + ', chef du syndicat « ' + orga.nom + ' », appelle à une grève générale.<br><br><i>Revendications :</i><br>' + escapeHtmlText(revendications);
       await sbCreatePost(topicId, orga.chef, corpsTopic, time, true, false, [], null, orga.chef, orga.id, orga.avatar || null).catch(() => {});
-      await sbUpdate('greves_generales', `id=eq.${encodeURIComponent(ggId)}`, { forum_topic_id: topicId }).catch(() => {});
+      if (typeof sbRpc === 'function') await sbRpc('greve_generale_lier_sujet', { p_gg: ggId, p_topic: String(topicId) }).catch(() => {});
     }
   }
 
@@ -9459,77 +9498,30 @@ async function repondreAppelGreveGenerale(ggId, orgaId, reponse) {
   if (!orga) { showToast('Syndicat introuvable', '', false); return; }
   if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef de ce syndicat.', false); return; }
 
-  let ggFinal = null;
-  for (let tentative = 0; tentative < 5 && !ggFinal; tentative++) {
-    const rows = await sbGet('greves_generales', `id=eq.${encodeURIComponent(ggId)}`).catch(() => null);
-    const gg = rows?.[0];
-    if (!gg) { showToast('Consultation introuvable', 'Cette grève générale n\'existe plus.', false); return; }
-    if (gg.statut !== 'consultation') { showToast('Trop tard', 'Cette consultation est déjà close.', false); return; }
-    const participants = gg.participants || [];
-    const idx = participants.findIndex(p => p.orgaId === orgaId);
-    if (idx === -1) { showToast('Non concerné', 'Votre syndicat ne fait pas partie de cette consultation.', false); return; }
-    if (participants[idx].statut !== 'en_discussion') { showToast('Déjà répondu', 'Votre syndicat a déjà répondu à cet appel.', false); return; }
-
-    const nouveauxParticipants = participants.map((p, i) => i === idx ? { ...p, statut: reponse } : p);
-    const filtreCAS = `id=eq.${encodeURIComponent(ggId)}&participants=eq.${encodeURIComponent(JSON.stringify(gg.participants))}`;
-    const res = await sbUpdate('greves_generales', filtreCAS, { participants: nouveauxParticipants }).catch(() => null);
-    if (res && res.length > 0) ggFinal = res[0];
+  // REPONSE ET ADOPTION PAR LE SERVEUR (03/11/2026) : greve_generale_repondre enregistre la reponse
+  // et adopte la greve (2/3 des eligibles, 100 adherents uniques, palier) dans la meme transaction.
+  const brut = typeof sbRpc === 'function'
+    ? await sbRpc('greve_generale_repondre', { p_gg: ggId, p_orga: orgaId, p_reponse: reponse }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
+  if (!r || r.ok !== true) {
+    const motifs = { consultation_introuvable: 'Cette grève générale n\'existe plus.', consultation_close: 'Cette consultation est déjà close.',
+      non_concerne: 'Votre syndicat ne fait pas partie de cette consultation.', deja_repondu: 'Votre syndicat a déjà répondu à cet appel.',
+      reserve_au_chef: 'Réservé au chef de ce syndicat.' };
+    showToast('Réponse non enregistrée', motifs[r?.raison] || 'Le serveur a refusé la réponse (' + (r?.raison || 'sans réponse') + ').', false);
+    return;
   }
-  if (!ggFinal) { showToast('Réponse non enregistrée', 'Une autre réponse a été traitée au même moment, réessayez.', false); return; }
-
-  // Reponse recopiee sur le syndicat par le serveur (etape B, 02/11/2026).
-  if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
-
+  if (typeof chargerOrganisations === 'function') chargerOrganisations();
   showToast(reponse === 'accepte' ? 'Grève générale acceptée' : 'Grève générale refusée', 'Votre syndicat "' + orga.nom + '" a répondu.', true);
   addJournalEntry('"' + orga.nom + '" a ' + (reponse === 'accepte' ? 'accepté' : 'refusé') + ' l\'appel à la grève générale.', 'event-info');
-
-  await verifierAdoptionGreveGenerale(ggId);
+  if (r.adoptee) {
+    showToast('Grève générale adoptée !', 'Niveau ' + r.niveau + ' — ' + r.adherents + ' adhérents mobilisés.', true, true);
+    addJournalEntry('La grève générale est entrée en vigueur (niveau ' + r.niveau + ').', 'event-info');
+    addExternalEvent('🔥 La grève générale entre en vigueur ! ' + r.adherents + ' adhérents mobilisés à travers le pays.');
+  }
   updateUI();
 }
 
-// §5 du cahier des charges : adoption des que >= 2/3 des syndicats eligibles (arrondi superieur)
-// ont accepte ET que les syndicats ayant accepte representent ensemble >= 100 adherents uniques.
-// Verifiee apres CHAQUE reponse (jamais une seule fois par un cron) -- une reponse peut a tout
-// moment faire basculer le seuil.
-async function verifierAdoptionGreveGenerale(ggId) {
-  const rows = await sbGet('greves_generales', `id=eq.${encodeURIComponent(ggId)}`).catch(() => null);
-  const gg = rows?.[0];
-  if (!gg || gg.statut !== 'consultation') return;
-  const participants = gg.participants || [];
-  const eligibles = participants.length;
-  if (eligibles === 0) return;
-  const acceptes = participants.filter(p => p.statut === 'accepte');
-  const seuil = Math.ceil(eligibles * 2 / 3);
-  if (acceptes.length < seuil) return;
-
-  const toutesOrgas = (typeof sbLoadOrganisations === 'function') ? await sbLoadOrganisations().catch(() => []) : [];
-  const orgasAcceptees = acceptes.map(p => toutesOrgas.find(o => o.id === p.orgaId)).filter(Boolean);
-  const adherentsUniques = compterAdherentsUniques(orgasAcceptees);
-  if (adherentsUniques < GREVE_GENERALE_ADHERENTS_MIN) return; // pas encore assez d'adherents mobilises, la consultation reste ouverte
-
-  const palier = palierGreveGenerale(adherentsUniques);
-  const filtreCAS = `id=eq.${encodeURIComponent(ggId)}&statut=eq.consultation`;
-  const res = await sbUpdate('greves_generales', filtreCAS, {
-    statut: 'active',
-    date_entree_vigueur: new Date().toISOString(),
-    puissance_niveau: palier ? palier.niveau : 1
-  }).catch(() => null);
-  if (!res || res.length === 0) return; // deja adoptee entretemps par une autre reponse concurrente
-
-  // Syndicats non-acceptants : "ne sont associes a rien" (§5) -- detaches de la consultation.
-  // Syndicats acceptants : passent en participation active (visibleSi de greve_generale_retirer).
-  // Recopie par le serveur (etape B, 02/11/2026) : l'ecran d'un chef ne reecrit plus les
-  // syndicats des autres. Les acceptants sont aussi rattaches, et peuvent donc se retirer.
-  if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
-  if (typeof chargerOrganisations === 'function') chargerOrganisations();
-
-  showToast('Grève générale adoptée !', 'Niveau ' + (palier ? palier.niveau : 1) + ' — ' + adherentsUniques + ' adhérents mobilisés.', true, true);
-  addJournalEntry('La grève générale est entrée en vigueur (niveau ' + (palier ? palier.niveau : 1) + ').', 'event-info');
-  addExternalEvent('🔥 La grève générale entre en vigueur ! ' + adherentsUniques + ' adhérents mobilisés à travers le pays.');
-}
-
-// §8 du cahier des charges : pas de second vote collectif, chaque chef retire son syndicat
-// individuellement, definitivement, sans attendre le lendemain (recalcul immediat).
+// RETRAIT D'UN SYNDICAT (greve_generale_retirer, serveur).
 async function confirmerRetraitGreveGenerale(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
@@ -9538,84 +9530,26 @@ async function confirmerRetraitGreveGenerale(orgaId) {
     showToast('Non concerné', 'Ce syndicat ne participe à aucune grève générale active.', false);
     return;
   }
-  const ggId = orga.greveGeneraleEnCoursId;
-
-  let retireOk = false;
-  for (let tentative = 0; tentative < 5 && !retireOk; tentative++) {
-    const rows = await sbGet('greves_generales', `id=eq.${encodeURIComponent(ggId)}`).catch(() => null);
-    const gg = rows?.[0];
-    if (!gg || gg.statut !== 'active') {
-      if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
-      if (typeof chargerOrganisations === 'function') chargerOrganisations();
-      showToast('Grève générale déjà terminée', '', false);
-      return;
-    }
-    const participants = gg.participants || [];
-    const idx = participants.findIndex(p => p.orgaId === orgaId);
-    if (idx === -1 || participants[idx].statut !== 'accepte') { showToast('Non concerné', '', false); return; }
-    const nouveauxParticipants = participants.map((p, i) => i === idx ? { ...p, statut: 'retire' } : p);
-    const filtreCAS = `id=eq.${encodeURIComponent(ggId)}&participants=eq.${encodeURIComponent(JSON.stringify(gg.participants))}`;
-    const res = await sbUpdate('greves_generales', filtreCAS, { participants: nouveauxParticipants }).catch(() => null);
-    if (res && res.length > 0) retireOk = true;
-  }
-  if (!retireOk) { showToast('Retrait non enregistré', 'Réessayez.', false); return; }
-
-  if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
+  // RETRAIT ET RECALCUL PAR LE SERVEUR (03/11/2026) : greve_generale_retirer retire le syndicat,
+  // puis clot la greve sous 100 adherents uniques ou recalcule son palier.
+  const brut = typeof sbRpc === 'function' ? await sbRpc('greve_generale_retirer', { p_orga: orgaId }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
   if (typeof chargerOrganisations === 'function') chargerOrganisations();
-
+  if (!r || r.ok !== true) {
+    showToast(r?.raison === 'pas_de_greve_active' ? 'Grève générale déjà terminée' : 'Retrait non enregistré',
+      r?.raison === 'non_concerne' ? 'Ce syndicat ne participe pas à cette grève générale.' : (r?.raison === 'pas_de_greve_active' ? '' : 'Réessayez.'), false);
+    return;
+  }
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Syndicat retiré', '"' + orga.nom + '" ne participe plus à la grève générale.', true);
   addJournalEntry('"' + orga.nom + '" se retire de la grève générale.', 'event-info');
   addExternalEvent('🚪 "' + orga.nom + '" se retire de la grève générale.');
-
-  await recalculerPuissanceApresRetraitGreveGenerale(ggId);
-  updateUI();
-}
-
-// Recalcul IMMEDIAT (jamais differe au cron du lendemain) sur les adherents uniques des
-// syndicats ENCORE participants -- exemple du cahier des charges §8 (500 -> niveau 5, retrait de
-// 130 -> 370 restants -> niveau 3). En-dessous de 100 adherents uniques restants : fin
-// automatique de la grève générale.
-async function recalculerPuissanceApresRetraitGreveGenerale(ggId) {
-  const rows = await sbGet('greves_generales', `id=eq.${encodeURIComponent(ggId)}`).catch(() => null);
-  const gg = rows?.[0];
-  if (!gg || gg.statut !== 'active') return;
-  const participants = gg.participants || [];
-  const restants = participants.filter(p => p.statut === 'accepte');
-
-  const toutesOrgas = (typeof sbLoadOrganisations === 'function') ? await sbLoadOrganisations().catch(() => []) : [];
-  const orgasRestantes = restants.map(p => toutesOrgas.find(o => o.id === p.orgaId)).filter(Boolean);
-  const adherentsUniques = compterAdherentsUniques(orgasRestantes);
-
-  if (adherentsUniques < GREVE_GENERALE_ADHERENTS_MIN) {
-    await sbUpdate('greves_generales', `id=eq.${encodeURIComponent(ggId)}`, { statut: 'terminee' }).catch(() => {});
-    if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
-    if (typeof chargerOrganisations === 'function') chargerOrganisations();
+  if (r.terminee) {
     addExternalEvent('🏳 La grève générale s\'effondre : moins de ' + GREVE_GENERALE_ADHERENTS_MIN + ' adhérents mobilisés.');
     addJournalEntry('La grève générale a pris fin (effondrement de la mobilisation).', 'event-info');
-    return;
   }
-
-  const palier = palierGreveGenerale(adherentsUniques);
-  await sbUpdate('greves_generales', `id=eq.${encodeURIComponent(ggId)}`, { puissance_niveau: palier ? palier.niveau : 1 }).catch(() => {});
+  updateUI();
 }
-
-// ===========================================================================================
-// LES SYNDICATS ETUDIANTS DE LA SALLE DE REUNION (13 octobre 2026)
-// ===========================================================================================
-//
-// DEUX ECRANS, ET ILS NE DECIDENT RIEN. `syndicat_etudiant_domicilier` verifie la PRESENCE dans
-// la salle, paie 150 FR de frais de greffe a la caisse du Tribunal par `payer_ordre`, ecrit le
-// syndicat et DELIVRE l'extrait de domiciliation -- le tout dans une seule transaction. Le
-// navigateur envoie un nom et affiche un verdict.
-//
-// AUCUNE EXCLUSIVITE. La porte ne verifie PAS si le local est deja occupe : plusieurs syndicats
-// sont domicilies ici en meme temps, et c'est la nature nouvelle de la piece. C'est l'inverse
-// exact de `confirmerCreationOrga`, le chemin des locaux loues, qui refuse sur `localId` -- et
-// ce chemin-la n'est plus atteignable ici, la salle n'etant plus louable.
-//
-// AUCUNE PREROGATIVE NOUVELLE. Un syndicat etudiant est un syndicat : les ecrans de membres,
-// d'adhesion et d'ordres sont CEUX QUI EXISTENT, reutilises tels quels.
 
 const SYNDICAT_ETUDIANT_LOCAL = 'universite:salle_reunion';
 

@@ -1,0 +1,122 @@
+[
+  {
+    "id": "41508724042",
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/41508724042",
+    "workflow": "Parcours immobilier cinq terrains - PostgreSQL jetable",
+    "etat": {
+      "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+      "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+    },
+    "sha": "a52e1a009b74c88de55a289732b2c945554f02b9"
+  },
+  {
+    "id": "41508724071",
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/41508724071",
+    "workflow": "Cohérence client et transactions locales",
+    "etat": {
+      "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+      "conclusion": "WORKFLOW_RUN_CONCLUSION_FAILURE"
+    },
+    "sha": "a52e1a009b74c88de55a289732b2c945554f02b9"
+  },
+  {
+    "id": "41508724177",
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/41508724177",
+    "workflow": "Placement national transactionnel",
+    "etat": {
+      "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+      "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+    },
+    "sha": "a52e1a009b74c88de55a289732b2c945554f02b9"
+  },
+  {
+    "id": "41508724029",
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/41508724029",
+    "workflow": "Garde du payload Vercel",
+    "etat": {
+      "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+      "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+    },
+    "sha": "a52e1a009b74c88de55a289732b2c945554f02b9"
+  },
+  {
+    "id": "41504707816",
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/41504707816",
+    "workflow": "Cohérence client et transactions locales",
+    "etat": {
+      "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+      "conclusion": "WORKFLOW_RUN_CONCLUSION_FAILURE"
+    },
+    "sha": "2c60bb3f5b1af0a424e0d50154c60821d644b785"
+  },
+  {
+    "id": "41504707797",
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/41504707797",
+    "workflow": "Parcours immobilier cinq terrains - PostgreSQL jetable",
+    "etat": {
+      "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+      "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+    },
+    "sha": "2c60bb3f5b1af0a424e0d50154c60821d644b785"
+  },
+  {
+    "id": "41504707813",
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/41504707813",
+    "workflow": "Garde du payload Vercel",
+    "etat": {
+      "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+      "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+    },
+    "sha": "2c60bb3f5b1af0a424e0d50154c60821d644b785"
+  },
+  {
+    "id": "41504707894",
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/41504707894",
+    "workflow": "Placement national transactionnel",
+    "etat": {
+      "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+      "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+    },
+    "sha": "2c60bb3f5b1af0a424e0d50154c60821d644b785"
+  },
+  {
+    "id": "41502841118",
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/41502841118",
+    "workflow": "Placement national transactionnel",
+    "etat": {
+      "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+      "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+    },
+    "sha": "fee714a05c8e19e977f06154161bdbadaa58580e"
+  },
+  {
+    "id": "41502841121",
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/41502841121",
+    "workflow": "Parcours immobilier cinq terrains - PostgreSQL jetable",
+    "etat": {
+      "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+      "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+    },
+    "sha": "fee714a05c8e19e977f06154161bdbadaa58580e"
+  },
+  {
+    "id": "41502841063",
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/41502841063",
+    "workflow": "Garde du payload Vercel",
+    "etat": {
+      "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+      "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+    },
+    "sha": "fee714a05c8e19e977f06154161bdbadaa58580e"
+  },
+  {
+    "id": "41502841154",
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/41502841154",
+    "workflow": "Cohérence client et transactions locales",
+    "etat": {
+      "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+      "conclusion": "WORKFLOW_RUN_CONCLUSION_FAILURE"
+    },
+    "sha": "fee714a05c8e19e977f06154161bdbadaa58580e"
+  }
+]

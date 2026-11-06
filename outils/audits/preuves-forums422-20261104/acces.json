@@ -1,0 +1,8 @@
+{
+  "github": {
+    "erreur": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  "vercel": {
+    "erreur": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  }
+}

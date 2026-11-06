@@ -10,7 +10,7 @@ test('quatre occupations a 25 pour cent dans les quatre pays, police hors tirage
  }
 });
 test('ancien point entree : aucun tirage client ni profil supprime',()=>{
- const a=p.indexOf('function genererPnjTerrain('),b=p.indexOf('async function interagirPnjTerrain',a);
+ const a=p.indexOf('function genererPnjTerrain('),b=p.indexOf('// interagirPnjTerrain SUPPRIMEE',a);
  for(const pays of Object.keys(catalogue.profils))for(const occupation of [null,'vide','agent','promoteur','gardien','inspecteur','cadavre','squatter_cool','squatter_agr']){
   const ctx={state:{country:pays},getTerrainState:()=>({pnj:occupation}),TERRAIN_PNJ_PROFILES:catalogue.profils,Math:{random(){throw Error('tirage client interdit')}}};
   const c=p.indexOf('function profilOccupationTerrain('),d=p.indexOf('function terrainOrdreDisponible',c);

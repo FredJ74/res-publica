@@ -1,0 +1,605 @@
+{
+  "headSha": "332e64cfe006971ef991cf87a0e35553b08cd107",
+  "baseSha": "4779cee75ca31f120525aeaf7277c477f5c1e3cf",
+  "state": "DRAFT",
+  "jobs": [
+    "/actions/runs/41732430950/job/126253223833",
+    "/actions/runs/41732431022/job/126253202456",
+    "/actions/runs/41732431050/job/126252934958",
+    "/actions/runs/41732431053/job/126253205833",
+    "/actions/runs/41732431120/job/126252936914"
+  ],
+  "source": "page publique GitHub",
+  "resultats": [
+    {
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41732430950/job/126253223833",
+      "etapes": [
+        {
+          "data-name": "Set up job",
+          "data-number": "1",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run actions/checkout@v4",
+          "data-number": "2",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run actions/setup-python@v5",
+          "data-number": "3",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run python3 -m pip install -r outils/bancs/requirements-postgres-local.txt",
+          "data-number": "4",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run actions/setup-node@v4",
+          "data-number": "5",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run npm ci --prefix outils/vercel --no-audit --no-fund",
+          "data-number": "6",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Acheter, financer, autoriser, construire et receptionner les cinq terrains",
+          "data-number": "7",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Post Run actions/setup-node@v4",
+          "data-number": "12",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Post Run actions/setup-python@v5",
+          "data-number": "13",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Post Run actions/checkout@v4",
+          "data-number": "14",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Complete job",
+          "data-number": "15",
+          "data-conclusion": "success"
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41732431022/job/126253202456",
+      "etapes": [
+        {
+          "data-name": "Set up job",
+          "data-number": "1",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run actions/checkout@v4",
+          "data-number": "2",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run actions/setup-node@v4",
+          "data-number": "3",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run actions/setup-python@v5",
+          "data-number": "4",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Dépendances du PostgreSQL jetable",
+          "data-number": "5",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Syntaxe des fonctions API, sans appel distant",
+          "data-number": "6",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Portraits Jodie dans le journal quotidien",
+          "data-number": "7",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Portrait Jodie — autorisation, contenu signé, anti-doublons",
+          "data-number": "8",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Calendrier sur main (PR couvertes par les controles dedies)",
+          "data-number": "9",
+          "data-conclusion": "skipped"
+        },
+        {
+          "data-name": "Constructeur Vercel épinglé pour la régression de chargement",
+          "data-number": "10",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Installer les dépendances du pilote navigateur avant les bancs client",
+          "data-number": "11",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Services sociaux Montrouge — rendez-vous, courrier et logements (hors production)",
+          "data-number": "12",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Forums — pays, villes et adhésions, aucune requête production",
+          "data-number": "13",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Commerce Premium PSM après lecture des baux",
+          "data-number": "14",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Boutiques PSM — mêmes ordres et variantes que Luthécia",
+          "data-number": "15",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Garde du pays et de la ville serveur après F5",
+          "data-number": "16",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Rumeurs contre organisations secrètes — confidentialité",
+          "data-number": "17",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Bancs JavaScript, transports simulés",
+          "data-number": "18",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Destinations du centre multimodal",
+          "data-number": "19",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Signature chez le notaire, solde encaissé par le serveur seul",
+          "data-number": "20",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Squatteurs et cadavres, police et dissimulation décidées par le serveur",
+          "data-number": "21",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Caisses communales à l'accueil, ordre de l'Hôtel de Ville retiré",
+          "data-number": "22",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Publications forum institutionnelles acceptées par la base (sondage, affaire, retrait)",
+          "data-number": "23",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Avis personnels signés d'expéditeurs déclarés",
+          "data-number": "24",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Purge certifiée et manifeste 95 migrations avant livraison",
+          "data-number": "25",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Caisses des clubs et organisations tenues par le serveur (écran,",
+          "data-number": "26",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Caisses entières, dialogues lisibles et genre non supposé",
+          "data-number": "27",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Fiche PJ jamais autoritaire (fusion à trois voies, double clic, réponse perdue)",
+          "data-number": "28",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Création de personnage après réponse réseau perdue",
+          "data-number": "29",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Genre du personnage dans les dialogues PNJ (handler réel, IA simulée)",
+          "data-number": "30",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Régression de sortie de bâtiment avec réponse perdue",
+          "data-number": "31",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Refus serveur des ajouts d'inventaire et reprise client sans écrasement",
+          "data-number": "32",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Pilote joueur, fixtures locales sans compte ni Supabase",
+          "data-number": "33",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Collecte SQL Editor identique et plan 95 puis 318 et 324",
+          "data-number": "34",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Exports canoniques complets et reconstruction des séquences, PostgreSQL jetable",
+          "data-number": "35",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Manifeste de collecte privé, SELECT et contre-épreuves",
+          "data-number": "36",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Cinq commandes organisations, paiements protégés et rollback indivisible",
+          "data-number": "37",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Réconciliation des tarifs et refus du couple gilet 0 PA/600 FR",
+          "data-number": "38",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Relais canonique exact, snapshot et exclusion des fichiers privés",
+          "data-number": "39",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Caisses collectives sur PostgreSQL jetable, contre-épreuve et fermeture (#295)",
+          "data-number": "40",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Verrou final inventaire sur PostgreSQL jetable, données fictives",
+          "data-number": "41",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Audit Arnie sur PostgreSQL jetable, aucune identite reelle",
+          "data-number": "42",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Groupes et batailles mixtes sur PostgreSQL jetable",
+          "data-number": "43",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Contrôles policiers ordinaires et sanctions atomiques sur PostgreSQL jetable",
+          "data-number": "44",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Cinq rounds, commandement et fuites directionnelles sur PostgreSQL jetable",
+          "data-number": "45",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Replis, calendrier et anciens camions sur les corps SQL communiqués",
+          "data-number": "46",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Combats civils et squatteurs dans les mêmes rounds, PostgreSQL jetable",
+          "data-number": "47",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Audit securite privee et groupes sur PostgreSQL jetable",
+          "data-number": "48",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Achat sur PostgreSQL local, sans identifiant Supabase",
+          "data-number": "49",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Restaurant gastronomique sur PostgreSQL local, sans identifiant Supabase",
+          "data-number": "50",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Reservation Republica, accueil et persistance atomique hors production",
+          "data-number": "51",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Catalogue et tournée sur PostgreSQL local, sans identifiant Supabase",
+          "data-number": "52",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Réception atomique sur PostgreSQL local, sans identifiant Supabase",
+          "data-number": "53",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Receptions inventaire au role authenticated, PostgreSQL jetable",
+          "data-number": "54",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Assemblage electronique sur PostgreSQL local",
+          "data-number": "55",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Publications Jodie sur PostgreSQL local",
+          "data-number": "56",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Commandes administratives organisations sur PostgreSQL local",
+          "data-number": "57",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Adhesions et grades organisations sur PostgreSQL local",
+          "data-number": "58",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Invitations et elections avec paiement reel sur PostgreSQL local",
+          "data-number": "59",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Coherence rues et sorties sur PostgreSQL local",
+          "data-number": "60",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Equipements collectifs sur PostgreSQL local",
+          "data-number": "61",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Fontaine de chocolat, garde serveur sur PostgreSQL jetable",
+          "data-number": "62",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Placements nationaux atomiques et idempotents sur PostgreSQL local",
+          "data-number": "63",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Journal des ventes prive, PostgreSQL jetable",
+          "data-number": "64",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Depot de permis indivisible sur PostgreSQL local",
+          "data-number": "65",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Negociation des squatteurs atomique sur PostgreSQL local",
+          "data-number": "66",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Achat Ced atomique et quota football au jour commun sur PostgreSQL local",
+          "data-number": "67",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Occupation persistante des terrains sur PostgreSQL local",
+          "data-number": "68",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Construction et materiaux atomiques sur PostgreSQL local",
+          "data-number": "69",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Chaîne immobilière complète sur PostgreSQL jetable, cinq terrains",
+          "data-number": "70",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Prime de signature adoptée du serveur (écran, double clic, réponse perdue)",
+          "data-number": "71",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Prime de signature sur PostgreSQL jetable, contre-épreuve (20261031220000)",
+          "data-number": "72",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Organisations, étape A préparée sur PostgreSQL jetable (20261031230000, non appliquée)",
+          "data-number": "73",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Conserver les résultats des bancs",
+          "data-number": "74",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Post Run actions/setup-python@v5",
+          "data-number": "146",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Post Run actions/setup-node@v4",
+          "data-number": "147",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Post Run actions/checkout@v4",
+          "data-number": "148",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Complete job",
+          "data-number": "149",
+          "data-conclusion": "success"
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41732431050/job/126252934958",
+      "etapes": [
+        {
+          "data-name": "Set up job",
+          "data-number": "1",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run actions/checkout@v4",
+          "data-number": "2",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run actions/setup-python@v5",
+          "data-number": "3",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run actions/setup-node@v4",
+          "data-number": "4",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run python3 -m pip install -r outils/bancs/requirements-postgres-local.txt",
+          "data-number": "5",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run node --test outils/bancs/test-placement-national-securise.mjs",
+          "data-number": "6",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run python3 outils/bancs/banc-placement-national-local.py",
+          "data-number": "7",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Post Run actions/setup-node@v4",
+          "data-number": "12",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Post Run actions/setup-python@v5",
+          "data-number": "13",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Post Run actions/checkout@v4",
+          "data-number": "14",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Complete job",
+          "data-number": "15",
+          "data-conclusion": "success"
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41732431053/job/126253205833",
+      "etapes": [
+        {
+          "data-name": "Set up job",
+          "data-number": "1",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run actions/checkout@v4",
+          "data-number": "2",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Mesurer le payload et le comparer au plafond déclaré",
+          "data-number": "3",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Rapport détaillé (toujours, y compris après un échec)",
+          "data-number": "4",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Post Run actions/checkout@v4",
+          "data-number": "8",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Complete job",
+          "data-number": "9",
+          "data-conclusion": "success"
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41732431120/job/126252936914",
+      "etapes": [
+        {
+          "data-name": "Set up job",
+          "data-number": "1",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run actions/checkout@v4",
+          "data-number": "2",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run actions/setup-node@v4",
+          "data-number": "3",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Run node --test outils/bancs/test-fermetures-jours-civils.mjs",
+          "data-number": "4",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Post Run actions/setup-node@v4",
+          "data-number": "7",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Post Run actions/checkout@v4",
+          "data-number": "8",
+          "data-conclusion": "success"
+        },
+        {
+          "data-name": "Complete job",
+          "data-number": "9",
+          "data-conclusion": "success"
+        }
+      ]
+    }
+  ]
+}

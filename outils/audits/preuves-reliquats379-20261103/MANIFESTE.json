@@ -1,0 +1,205 @@
+{
+  "releve_utc": "2026-11-02T23:53:19.276147+00:00",
+  "branche": "codex/audit-transversal-cloture-135-20261102",
+  "main_integre": "6256929cbdb4906732f698671558d391e17641c8",
+  "integration_source": "4034751e6e6cfbe4524ae9fc97d1786d990d4ce5",
+  "production_modifiee": false,
+  "migration_appliquee_production": false,
+  "recette_authentifiee_production": false,
+  "vercel_sha_servi_verifie": false,
+  "fusion_main": false,
+  "resultats": {
+    "clients": {
+      "prevus": 171,
+      "reussis": 171
+    },
+    "pilote_chromium_local": {
+      "prevus": 118,
+      "reussis": 118
+    },
+    "transversaux": {
+      "prevus": 53,
+      "reussis": 53
+    },
+    "postgresql_regressions_integrees": {
+      "prevus": 380,
+      "reussis": 380
+    },
+    "postgresql17_contrats": {
+      "prevus": 26,
+      "reussis": 26
+    },
+    "postgresql16_contrats": {
+      "prevus": 26,
+      "reussis": 26
+    },
+    "vols_codetenu": {
+      "prevus": 10,
+      "reussis": 10
+    },
+    "subtilisation_impacts_client": {
+      "prevus": 31,
+      "reussis": 31
+    },
+    "globaux_hors_ligne": {
+      "prevus": 12,
+      "reussis": 12,
+      "clone_vivant": false
+    },
+    "diagnostic_ancien_cache": {
+      "prevus": 27,
+      "reussis": 26,
+      "echoues": 1,
+      "code_sortie": 1,
+      "bloquant": true,
+      "attendu": 15,
+      "observe": 20
+    },
+    "contre_epreuves": {
+      "vols_codetenu": {
+        "prevus": 10,
+        "echoues": 9
+      },
+      "subtilisation_impacts_client": {
+        "prevus": 31,
+        "echoues": 28,
+        "annules": 0
+      },
+      "sql": {
+        "prevus": 26,
+        "echoues": 18
+      }
+    }
+  },
+  "ci_observee": {
+    "sha": "4034751e6e6cfbe4524ae9fc97d1786d990d4ce5",
+    "conclusion_publique": "success",
+    "jobs": 6,
+    "preuve": "ci-4034751e-public.json",
+    "ne_certifie_pas_un_sha_ulterieur": true
+  },
+  "limites": [
+    "Aucun accès Supabase exposé à cette session ; prévol réel communiqué par intégrateur, corps non comparés ici.",
+    "Pas un clone complet du catalogue vivant.",
+    "Géographie hospitalière simulée dans le banc dédié.",
+    "Ancien cache : défaut réel dans la vraie vue et les déclencheurs du baseline, protections additionnelles vivantes à comparer.",
+    "La première passe clients après fusion utilisait un Python enfant sans pglast : deux bancs rouges ; correction de l’environnement puis 171/171.",
+    "Les nombres des suites se recouvrent : ne pas additionner."
+  ],
+  "sources_sha256": {
+    "migrations/20261102202046_subtilisation_reponse_serveur_versionnee.sql": "25979852396f84dbfa3cce7a2fc6e8bbebd7956d5569c9f30192d27338843ad9",
+    "migrations/20261102202047_impacts_consommation_serveur_atomique.sql": "c937bbb339a9c3efecfc7502d92ac6f1e943ee3510133010717ae1e3e42baab5",
+    "outils/bancs/PREFLIGHT-379-CONTRATS-LECTURE-SEULE.sql": "18ad8dd93075a271df7f043327f75de5fb39e4a747033f354cd2b8a03f2ef2ae",
+    "outils/bancs/banc-reliquats-379-local.py": "b2cf1c958fa20bbd26acd7467201a119be134b72d2730b1e6f886f431a3cd364",
+    "plateau-communication.js": "dc74374e181427fa5a64bfb6610cd45e7568ef174b04ec3f07004bb8263096a0",
+    "plateau-actions-illegales-rumeurs.js": "078f12437e5a6af43cc07db79932e098c6f361dff9fc473f0940ad82322cb562",
+    "plateau-multijoueur.js": "d8f4f926b34d7330fea6c6998461a45a0558cf49d478cbe3bf19c6862c7e40cf",
+    "supabase.js": "8e15591ea59da70f488213976819c3fe32282c47919384a71b6507d4251e667d",
+    "plateau.html": "90c096e78f6ea54e3ce1dd37e812c7701ae99550ed5261094f4e95e05999bcbc"
+  },
+  "preuves": {
+    "chromium.log": {
+      "octets": 8908,
+      "sha256": "f93a85d48b7d6f57c4c33666802b0c73dcfb53d4facb2723fac0a9df346ceb60"
+    },
+    "ci-4034751e-public.json": {
+      "octets": 25740,
+      "sha256": "856e7724d89b458324981c059e2ed6e8249f1eff982199c3ca211317bc22c4b5"
+    },
+    "clients-execution.json": {
+      "octets": 88,
+      "sha256": "fedddb059cc269f3e7b269ef8f776719b973af3ef1e69d90bdb7b98fa02203dc"
+    },
+    "clients-main385-final-execution.json": {
+      "octets": 88,
+      "sha256": "fedddb059cc269f3e7b269ef8f776719b973af3ef1e69d90bdb7b98fa02203dc"
+    },
+    "clients-main385-final.json": {
+      "octets": 20896,
+      "sha256": "3861fbbc406164e3878321cec9a991927b243ae1acffa8044db4a5188c580131"
+    },
+    "clients-main385-final.log": {
+      "octets": 6006,
+      "sha256": "48927d7e882dde5740114e36f57dfaaecf5159bbbc8b3c72069147648ae5d74b"
+    },
+    "clients-premiere-passe-environnement-incomplet.log": {
+      "octets": 13872,
+      "sha256": "7d076fb2f9a576d1bf0431bc1708b883a8cc49ed0912b3385c73d17f3a2075ed"
+    },
+    "clients.json": {
+      "octets": 20894,
+      "sha256": "1dba3c4970e8dfcc4dd82fb806d12193c1082f4514e20fbfaa13e74a83ca2b77"
+    },
+    "clients.log": {
+      "octets": 6006,
+      "sha256": "48927d7e882dde5740114e36f57dfaaecf5159bbbc8b3c72069147648ae5d74b"
+    },
+    "contre-postgresql17.json": {
+      "octets": 14706,
+      "sha256": "65d55f7a8b934777dc85e36bd74da1b066ad2a7f51c77594c1b35eb87e6646aa"
+    },
+    "contre-subtilisation-impacts-client.log": {
+      "octets": 33249,
+      "sha256": "257625a3c61426c6a5e254d419feb01c75b434d838f16afe7dd9fdb2574cb5ea"
+    },
+    "contre-vols-codetenu.log": {
+      "octets": 11152,
+      "sha256": "9c4b27ba0b892a2083161c58102fb16bd040db0dde41ead87fd8cbfd585c7dae"
+    },
+    "diagnostic-ancien-cache-ROUGE.json": {
+      "octets": 3654,
+      "sha256": "966fb3854aa138f35d87ced8b70a43db9c75a130f65cc817bf6d77f7fcc5e4c7"
+    },
+    "globaux-main385.log": {
+      "octets": 1345,
+      "sha256": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb"
+    },
+    "globaux.log": {
+      "octets": 1345,
+      "sha256": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb"
+    },
+    "postgresql16-contrats.json": {
+      "octets": 2803,
+      "sha256": "9f3e7538da408f35bbbf7fcb69b86e27c50526cd4d7cf4975ee66067c3ab478f"
+    },
+    "postgresql17-contrats.json": {
+      "octets": 2833,
+      "sha256": "10b85e405c9302f5cd9994f88e2538144bf3b43a9db40713e31dc09aa3864701"
+    },
+    "postgresql17-regressions-integrees.json": {
+      "octets": 41286,
+      "sha256": "2bc2b1892bcbc27ff23c49a0cb0a081e310aba305bf49c5074ef6e39bb34595a"
+    },
+    "reconciliation-main385.log": {
+      "octets": 3822,
+      "sha256": "f5a955c8c76dd78b395d2fad3ab1bab016f68446270d6dc46b9e406cbc43d0f6"
+    },
+    "subtilisation-impacts-client.log": {
+      "octets": 2908,
+      "sha256": "82fd16b60b2bb8daf8660970c7dd3ec77997440a5a0c6a03a380e81e43d1ef39"
+    },
+    "transversaux.log": {
+      "octets": 4726,
+      "sha256": "bd362b902c1e4b9840f63450c400de6c903b80c854493b9747863c499a8d59a4"
+    },
+    "vols-codetenu.log": {
+      "octets": 1095,
+      "sha256": "fd0d4f32f3a467b8a4dca9e6c87b2d106bdb71c548503eb93c69d9b45b518138"
+    },
+    "vote-main385.log": {
+      "octets": 2509,
+      "sha256": "6d298a486d918a1d7e4ee27ae05e45f183b94d80f7c8228cd3750082a67bf992"
+    }
+  },
+  "reconciliation_ulterieure": {
+    "main": "e37290666c2591dde2728fe2fc8027fcacf9041f",
+    "fusion": "7a821d6784340dc1c91240100eaf5774485058a6",
+    "difference": "#382–#385 : élections, cron et dissuasion, trois migrations reprises de main ; sauvegarde ancienne inchangée.",
+    "tests": "Bancs ciblés vote, chemins historiques, commandes organisation, catalogue public ; 12 contrôles globaux. Les suites complètes précédentes ont été exécutées sur main 6256929c ; CI finale à vérifier séparément.",
+    "clients_complets_sur_tete_finale": {
+      "sha": "1bae28f326172def865526854e5ef41b0408114b",
+      "reussis": 171,
+      "prevus": 171
+    }
+  }
+}

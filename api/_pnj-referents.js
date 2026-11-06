@@ -1213,4 +1213,39 @@ function blocPedagogie(pedagogie) {
        + " fois. Elle connait deja les bases de ton domaine : va a l'essentiel, entre dans le detail, et ne lui refais pas le cours d'introduction." + rappel;
 }
 
-export { REFERENTS, profilReferent, blocPedagogie, SOCLE_REFERENT };
+// CASERNE CENTRALE DE NOVOMIRSK (05/11/2026, decision de Fred). La caserne du socle est en ville en
+// Sovarka ; ses quatre referents sont les memes fonctions que ceux de la caserne de Luthecia (memes
+// regles, meme savoir militaire), sous des noms propres a Novomirsk valides par Fred le 05/11 -- regle
+// « pas de connexion entre les villes ». Generes depuis les fiches de Republia : une regle changee la
+// bas change ici, sans seconde copie a tenir.
+const CASERNE_SOVARKA = [
+  ['commandant_tom_hawak', 'commandant_igor_bataillov', 'Commandant Igor Bataillov'],
+  ['gaspard_ferriere',     'piotr_galonov',             'Adjudant Piotr Galonov'],
+  ['caporal_alouche',      'vassili_kachaev',           'Caporal Vassili Kachaev'],
+  ['eve_toahemarch',       'olga_pansementova',         'Infirmière Olga Pansementova']
+];
+const SOVARKA_REMPLACEMENTS = [
+  ['Commandant Tom Hawak', 'Commandant Igor Bataillov'], ['Tom Hawak', 'Igor Bataillov'], ['Hawak', 'Bataillov'],
+  ['Adjudant Gaspard Ferrière', 'Adjudant Piotr Galonov'], ['Gaspard Ferrière', 'Piotr Galonov'],
+  ['Gaspard Ferriere', 'Piotr Galonov'], ['Ferrière', 'Galonov'], ['Ferriere', 'Galonov'],
+  ['Caporal Alouche', 'Caporal Vassili Kachaev'], ['Alouche', 'Kachaev'],
+  ['Ève Toahémarch', 'Olga Pansementova'], ['Eve Toahemarch', 'Olga Pansementova'],
+  ['Martial Bouterin, aide de camp du ministre', "l'aide de camp du ministre de la Defense"],
+  ['Martial Bouterin', "l'aide de camp du ministre de la Defense"],
+  ['CASERNE DE LUTHECIA', 'CASERNE CENTRALE DE NOVOMIRSK'], ['caserne de Luthecia', 'caserne centrale de Novomirsk'],
+  ['caserne de Republia', 'caserne centrale de Novomirsk'],
+  ['Républia', 'Sovarka'], ['Republia', 'Sovarka'], ['Luthécia', 'Novomirsk'], ['Luthecia', 'Novomirsk']
+];
+function versSovarka(texte) {
+  if (typeof texte !== 'string') return texte;
+  let t = texte;
+  for (const [a, b] of SOVARKA_REMPLACEMENTS) t = t.split(a).join(b);
+  // Monnaie de Sovarka : le para sovarkien (PSK), memes chiffres que les FR (decision du 04/11).
+  return t.replace(/(\d) FR\b/g, '$1 PSK');
+}
+for (const [source, id, nom] of CASERNE_SOVARKA) {
+  REFERENTS[id] = Object.assign(JSON.parse(JSON.stringify(REFERENTS[source]), (k, v) => versSovarka(v)),
+    { pays: 'soviet', nom });
+}
+
+export { REFERENTS, profilReferent, blocPedagogie, SOCLE_REFERENT, CASERNE_SOVARKA, versSovarka };

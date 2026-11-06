@@ -107,3 +107,21 @@ assert f('CREATE POLICY "nom""cite" ON public."MaTable" FOR SELECT USING(true);'
   const proc = spawnSync('python3', ['-c', script], {cwd:path.resolve(__dirname,'../..'),encoding:'utf8'});
   assert.equal(proc.status,0,proc.stderr||proc.stdout);
 });
+
+test('Authority : dépendances SQL exactes, sans inventer les surcharges ni les fonctions citées',()=>{
+ const script=String.raw`
+import runpy
+m=runpy.run_path('outils/baseline/verifier-autorite.py',run_name='controle_importe')
+f=m['signatures_immediates_migration']
+s="CREATE FUNCTION public.porte(p text, OUT resultat integer) LANGUAGE sql AS $$SELECT 1$$; CREATE FUNCTION public.sans_argument()RETURNS int LANGUAGE sql AS $$SELECT 1$$;"
+assert f(s)=={'porte(text)','sans_argument()'},f(s)
+assert 'porte(integer)' not in f(s)
+assert not f('-- CREATE FUNCTION public.fausse() RETURNS int;')
+assert not f("DO $$BEGIN PERFORM 'CREATE FUNCTION public.fausse() RETURNS int';END$$;")
+assert not f('CREATE FUNCTION autre.porte()RETURNS int LANGUAGE sql AS $$SELECT 1$$;')
+assert 'couvre_feu_patrouille()' in f(open('migrations/20261103140000_arrestations_flagrant_delit_serveur.sql').read())
+assert 'couvre_feu_patrouille()' not in f(open('migrations/20261103153000_controles_entree_zone_serveur.sql').read())
+`;
+ const p=spawnSync('python3',['-c',script],{cwd:path.resolve(__dirname,'../..'),encoding:'utf8'});
+ assert.equal(p.status,0,p.stdout+p.stderr);
+});

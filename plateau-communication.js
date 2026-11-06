@@ -314,7 +314,15 @@ function capaciteImpressionTracts(stockBois) {
   const fonds = (typeof getFondsDisponiblesOrdinaires === 'function')
     ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
   const parFonds = enTest ? parBois : Math.floor(fonds / prixLot);
-  return { lots: Math.max(0, Math.min(parBois, parPa, parFonds)), parBois, parPa, parFonds, fonds, prixLot };
+  // Les piles de tracts ont "quantite" et non "qty" : chaque tract occupe une place.
+  const charge = typeof getTotalInventaire === 'function' ? getTotalInventaire()
+    : (state.inventory || []).reduce((total, o) => total +
+      ((o?.type === 'tract' || o?.type === 'tract_calomnieux')
+        ? (Number(o.quantite) || 1) : Number(o?.qty || o?.encombrement || 1)), 0);
+  const libres = Math.max(0, 100 - charge);
+  const parPlace = Math.floor(libres / TRACTS_PAR_LOT);
+  return { lots: Math.max(0, Math.min(parBois, parPa, parFonds, parPlace)),
+           parBois, parPa, parFonds, parPlace, charge, libres, fonds, prixLot };
 }
 
 // Production d'un ou plusieurs lots, commune aux tracts electoraux et calomnieux. Chaque lot de 10 :
@@ -342,6 +350,8 @@ async function imprimerTractsServeur(nbLots, cible, sens, calomnieux) {
       showToast('PA insuffisants', 'Il faut ' + (r.requis || nbLots) + ' PA pour produire ' + (nbLots * 10) + ' tracts (1 PA par lot de 10).', false);
     } else if (raison === 'fonds_insuffisants') {
       showToast('Fonds insuffisants', 'Il vous faut ' + (r.cout || '') + ' ' + cur, false);
+    } else if (raison === 'inventaire_plein') {
+      showToast('Inventaire plein', 'Chaque tract occupe une unité. Libérez assez de place pour produire sans dépasser 100 unités.', false);
     } else if (raison === 'atelier_introuvable') {
       showToast('Atelier introuvable', 'Ces tracts ne s\'impriment que dans un atelier d\'imprimerie.', false);
     } else {
@@ -428,16 +438,31 @@ async function ouvrirModalImprimerTractsElectoraux(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cap = capaciteImpressionTracts(stockBois);
   const prixLot = cap.prixLot;
+  // Les tracts finis vont a l'inventaire du PJ et comptent chacun dans son
+  // plafond universel de 100 unites, sans stock de tracts distinct a l'imprimerie.
+  const tractsDejaPossedes = (state.inventory || [])
+    .filter(o => o && o.type === 'tract' && o.origineQuete !== 'jean_lou')
+    .reduce((total, o) => total + Math.max(0, Number(o.quantite) || 0), 0);
+  window._tractsCapaciteAffichee = cap.lots;
+  window._tractsAtelierAffiche = JSON.stringify(atelierImprimerieCourant());
   const imprimeur = (typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || null;
   const empireNoms = { republic: 'Républia', narco: 'El Estado', soviet: 'Sovarka', khalija: 'Al-Khalija' };
   const moi = (state.char && state.char.name) || '';
   document.getElementById('postes-modal-title').textContent = 'Imprimer des tracts électoraux';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Par lot de ' + TRACTS_PAR_LOT + ' tracts : ' + prixLot + ' ' + cur + ', ' + BOIS_PAR_LOT_TRACTS + ' bois du stock de l\'imprimerie et 1 PA de travail, rémunéré ' + SALAIRE_LOT_TRACTS + ' ' + cur + '.</div>';
-  html += '<div style="font-size:.76rem;color:' + (cap.parBois >= 1 ? '#8a8060' : '#cc5540') + ';margin-bottom:.4rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock ' + (imprimeur ? 'de ' + echapperTexteTract(imprimeur) : 'de l\'imprimerie') + ' : ' + stockBois + ' (soit ' + (cap.parBois * TRACTS_PAR_LOT) + ' tracts imprimables)</div>';
-  html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.8rem">Vos PA : ' + (state.pa || 0) + ' — vos fonds ordinaires : ' + cap.fonds.toLocaleString('fr-FR') + ' ' + cur + '</div>';
+  html += '<section style="padding:.8rem;border:1px solid #554525;border-radius:6px;background:#17130b;margin-bottom:.8rem" aria-label="Stocks et capacité de production">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;color:#C9A84C;font-size:.84rem;letter-spacing:.1em;margin-bottom:.5rem">STOCKS ET PRODUCTION</div>';
+  html += '<div style="font-size:.81rem;color:' + (cap.parBois >= 1 ? '#ddd2b8' : '#cc5540') + ';margin-bottom:.35rem"><i class="ti ti-trees"></i> Matière première — bois de ' + (imprimeur ? echapperTexteTract(imprimeur) : 'l\'imprimerie') + ' : <strong>' + stockBois + ' / ' + STOCK_BOIS_MAX_IMPRIMERIE_PNJ + '</strong></div>';
+  html += '<div style="font-size:.8rem;color:#c7bda8;margin-bottom:.35rem">Tracts électoraux déjà dans votre inventaire : <strong>' + tractsDejaPossedes + '</strong>.</div>';
+  html += '<div style="font-size:.82rem;color:' + (cap.parPlace > 0 ? '#c7bda8' : '#cc5540') + ';margin-bottom:.35rem">Inventaire personnel : <strong>' + cap.charge + ' / 100 unités</strong> · ' + cap.libres + ' place(s) libre(s) (1 tract = 1 unité).</div>';
+  html += '<div style="font-size:.8rem;color:#c7bda8;margin-bottom:.35rem">Vos PA : <strong>' + (state.pa || 0) + '</strong> · Fonds : <strong>' + cap.fonds.toLocaleString('fr-FR') + ' ' + cur + '</strong></div>';
+  html += '<div style="font-size:.84rem;color:' + (cap.lots ? '#9ec38c' : '#cc5540') + '">Production possible maintenant : <strong>' + (cap.lots * TRACTS_PAR_LOT) + ' tracts</strong> (' + cap.lots + ' lot' + (cap.lots > 1 ? 's' : '') + ' de 10).</div>';
+  html += '</section>';
   if (cibles.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060">Aucun personnage à viser n\'est accessible pour l\'instant.</div>';
+  } else if (cap.parPlace < 1) {
+    html += '<div style="font-size:.85rem;color:#cc5540">Inventaire plein ou moins de 10 places libres : libérez de la place pour recevoir un lot de tracts.</div>';
   } else if (cap.parBois < 1) {
     html += '<div style="font-size:.85rem;color:#cc5540">L\'imprimerie n\'a plus de bois. Vendez-lui des matières premières avant de commander.</div>';
   } else if (cap.parPa < 1) {
@@ -462,16 +487,12 @@ async function ouvrirModalImprimerTractsElectoraux(pa, cost) {
     });
     html += '</select>';
     html += '<div style="font-size:.72rem;color:#7a7050;font-style:italic;margin-bottom:.8rem">Un tract se distribue le dimanche d\'un scrutin où la personne visée est candidate.</div>';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">NOMBRE DE LOTS</div>';
-    html += '<select id="tract-electoral-lots" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.4rem">';
-    // Aucune quantite pre-remplie au maximum : la liste commence a 1 lot, qui reste selectionne
-    // par defaut. Le plafond est la plus contraignante des trois bornes (bois, PA, fonds).
-    for (let n = 1; n <= cap.lots; n++) {
-      html += '<option value="' + n + '">' + n + ' lot' + (n > 1 ? 's' : '') + ' — ' + (n * TRACTS_PAR_LOT) + ' tracts, ' + (n * prixLot) + ' ' + cur + ', ' + (n * BOIS_PAR_LOT_TRACTS) + ' bois, ' + n + ' PA (salaire ' + (n * SALAIRE_LOT_TRACTS) + ' ' + cur + ')</option>';
-    }
-    html += '</select>';
+    html += '<label for="tract-electoral-lots" style="display:block;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">QUANTITÉ À PRODUIRE (LOTS DE 10)</label>';
+    html += '<input type="number" id="tract-electoral-lots" min="1" max="' + cap.lots + '" step="1" value="1" inputmode="numeric" oninput="actualiserApercuTractsElectoraux()" style="width:100%;box-sizing:border-box;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.4rem">';
+    html += '<div id="tract-electoral-apercu" style="font-size:.76rem;color:#b8a67f;margin-bottom:.65rem" aria-live="polite">1 lot : 10 tracts · ' + prixLot + ' ' + cur + ' · 1 bois · 1 PA.</div>';
     let limite = 'le stock de bois de l\'imprimerie';
-    if (cap.parPa <= cap.parBois && cap.parPa <= cap.parFonds) limite = 'vos PA';
+    if (cap.parPlace <= Math.min(cap.parBois, cap.parPa, cap.parFonds)) limite = 'les places libres de votre inventaire';
+    else if (cap.parPa <= cap.parBois && cap.parPa <= cap.parFonds) limite = 'vos PA';
     else if (cap.parFonds <= cap.parBois) limite = 'vos fonds';
     html += '<div style="font-size:.72rem;color:#7a7050;font-style:italic;margin-bottom:.8rem">Maximum ici : ' + cap.lots + ' lot' + (cap.lots > 1 ? 's' : '') + ', limité par ' + limite + '.</div>';
     html += '<button onclick="confirmerImprimerTractsElectoraux(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Commander</button>';
@@ -482,11 +503,43 @@ async function ouvrirModalImprimerTractsElectoraux(pa, cost) {
   window._tractType = 'pour';
 }
 
+function actualiserApercuTractsElectoraux() {
+  const valeur = Number(document.getElementById('tract-electoral-lots')?.value);
+  const element = document.getElementById('tract-electoral-apercu');
+  if (!element) return;
+  const max = Number(window._tractsCapaciteAffichee || 0);
+  if (!Number.isSafeInteger(valeur) || valeur < 1 || valeur > max) {
+    element.textContent = 'Quantité invalide : choisissez entre 1 et ' + max + ' lots.';
+    element.style.color = '#cc5540';
+    return;
+  }
+  const cout = valeur * prixLotTractsAtelier();
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  element.textContent = valeur + ' lot' + (valeur > 1 ? 's' : '') + ' : ' + (valeur * TRACTS_PAR_LOT) +
+    ' tracts · ' + cout + ' ' + cur + ' · ' + valeur + ' bois · ' + valeur + ' PA.';
+  element.style.color = '#b8a67f';
+}
+
 async function confirmerImprimerTractsElectoraux(pa, cost) {
   const cible = document.getElementById('tract-electoral-cible')?.value;
   if (!cible) { showToast('Aucune cible', 'Choisissez la personne visée par les tracts.', false); return; }
   const sens = window._tractType === 'contre' ? 'contre' : 'pour';
-  const nbLots = Math.max(1, parseInt(document.getElementById('tract-electoral-lots')?.value || '1', 10) || 1);
+  const saisi = document.getElementById('tract-electoral-lots')?.value;
+  const nbLots = Number(saisi);
+  const limiteAffichee = Number(window._tractsCapaciteAffichee || 0);
+  // Aucun champ quantite quand les MP, les PA ou les fonds ne permettent pas de produire.
+  // Une valeur manipulee ou une pop-up perimee ne doit jamais contourner cette limite UI.
+  if (!Number.isSafeInteger(nbLots) || nbLots < 1 || nbLots > limiteAffichee ||
+      window._tractsAtelierAffiche !== JSON.stringify(atelierImprimerieCourant())) {
+    showToast('Quantité non disponible', 'Rouvrez la production pour vérifier le stock et les quantités possibles.', false);
+    return;
+  }
+  // Le stock peut avoir change depuis l'ouverture : relire avant la commande.
+  const capActuelle = capaciteImpressionTracts(await stockBoisAtelier());
+  if (nbLots > capActuelle.lots) {
+    showToast('Stock ou fonds modifiés', 'La quantité demandée n’est plus disponible. Rouvrez la production.', false);
+    return;
+  }
   const quantite = nbLots * TRACTS_PAR_LOT;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
@@ -556,6 +609,8 @@ async function ouvrirModalImprimerTractsCalomnieux(pa, cost) {
   html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock ' + (imprimeur ? 'de ' + imprimeur : 'de l\'imprimerie') + ' : ' + stockBois + '</div>';
   if (cibles.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060">Aucun autre joueur enregistré à viser pour l\'instant.</div>';
+  } else if (capaciteImpressionTracts(stockBois).parPlace < 1) {
+    html += '<div style="font-size:.85rem;color:#cc5540">Inventaire plein : il vous faut 10 places libres pour recevoir les tracts.</div>';
   } else if (stockBois < BOIS_PAR_LOT_TRACTS) {
     html += '<div style="font-size:.85rem;color:#cc5540">L\'imprimerie n\'a plus de bois. Vendez-lui des matières premières avant de commander.</div>';
   } else {
@@ -1051,28 +1106,15 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
       // via PEINES.delit_mineur (pas 1) et ouvrirait un choix corruption/fuite/resistance non
       // souhaite ici (flagrant delit, sanction immediate et non negociable).
       // Tous les tracts calomnieux ont ete detruits par le serveur (inventaire deja adopte).
-      if (state.immuniteMilitaireActuelle) {
+      // L'ARRESTATION EST FAITE PAR LE SERVEUR (03/11/2026) : calomnie_distribuer_consommer
+      // ecroue le joueur (1 jour) dans la transaction du flagrant delit, immunite militaire
+      // comprise. L'ecran adopte la peine et la position decidees.
+      if (res.arrestation && res.arrestation.raison === 'immunite_militaire') {
         showToast('Immunité militaire', 'Flagrant délit, mais votre immunité militaire vous protège de toute poursuite.', true);
         addJournalEntry('Distribution de tract calomnieux — flagrant délit, immunité militaire invoquée.', 'event-info');
       } else {
-        // Registre carcerale (26 aout 2026) : toute incarcération réelle doit apparaître au
-        // registre du commissariat -- ce flux positionnait state.estEmprisonne directement,
-        // contournant enregistrerDetention (donc la ligne detentions correspondante n'était
-        // jamais créée). On garde l'assignation synchrone immediate (navigation/UI ne doivent
-        // pas attendre l'aller-retour reseau pour refleter la contrainte), enregistrerDetention
-        // vient ensuite fusionner le detentionId et persister est_emprisonne cote serveur.
         const motifsTracts = [{ type: 'Distribution de tracts calomnieux', jour_fait: state.day, city: state.currentCity, jours: 1, source: 'flagrant_delit' }];
-        state.estEmprisonne = { jours: 1, jourFin: (state.day || 1) + 1, raison: 'Distribution de tracts calomnieux' };
-        if (typeof enregistrerDetention === 'function') {
-          // L'assignation synchrone ci-dessus est un PARI : si le serveur n'ouvre pas la peine,
-          // il est defait (9 octobre 2026). Sans cela le joueur restait enferme par la navigation
-          // alors qu'aucune detention n'existait en base -- et aucune liberation ne viendrait
-          // jamais, le filet nocturne n'ayant aucune ligne a liberer.
-          enregistrerDetention(state.char?.name, 'Distribution de tracts calomnieux', (state.day || 1) + 1, undefined, state.currentCity, {
-            country: state.country,
-            motifs: motifsTracts
-          }).then(id => { if (!id) state.estEmprisonne = null; }).catch(() => { state.estEmprisonne = null; });
-        }
+        if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(res.arrestation);
         showToast('Flagrant délit !', pnjName + ' alerte immédiatement la police. Tous vos tracts calomnieux sont détruits. 1 jour de détention.', false, true);
         addJournalEntry('Distribution de tract calomnieux à ' + pnjName + ' — échec critique. Tracts calomnieux détruits, 1 jour de détention.', 'event-bad');
 
@@ -1154,159 +1196,32 @@ async function validerNomination() {
 }
 
 function openCandidatureModal() {
-  // Verifier que les elections sont en phase candidatures
-  const elections = state.electionsEnCours || [];
-  const electionsOuvertes = elections.filter(e => e.phase === 'candidatures');
-  if (elections.length > 0 && electionsOuvertes.length === 0) {
-    showToast('Candidatures fermees', 'La periode de candidature est terminee. Les campagnes sont en cours.', false);
-    return;
-  }
-  document.getElementById('postes-modal-title').textContent = 'Deposer une candidature';
-  document.getElementById('postes-body').innerHTML = `
-    <div style="padding:1rem">
-      ${elections.length === 0
-        ? `<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune election n'est actuellement en cours. Revenez lorsqu'une election sera declaree.</div>`
-        : elections.map(e => `
-            <div style="padding:.7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem">
-              <div style="font-family:'Playfair Display',serif;font-size:.9rem;color:#E8C97A;margin-bottom:.2rem">${e.nom}</div>
-              <div style="font-size:.72rem;color:#6a5a30">Date : ${e.date} · Candidats : ${e.candidats?.length || 0}</div>
-              <button onclick="confirmerCandidature('${e.id}')" style="margin-top:.5rem;font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">
-                Me declarer candidat
-              </button>
-            </div>`).join('')}
-      <div style="margin-top:.8rem;font-size:.72rem;color:#9a8a68;font-style:italic">
-        Pour lancer une election, contactez le Maire ou le Responsable electoral.
-      </div>
-    </div>`;
-  document.getElementById('modal-postes').classList.add('open');
+  // Compatibilité d'une ancienne entrée : le scrutin reste celui du serveur.
+  return ouvrirTableauElectoral();
 }
 
-function confirmerCandidatureLegacy_MORT(electionId) {
-  document.getElementById('modal-postes').classList.remove('open');
-  if (!state.electionsEnCours) return;
-  const election = state.electionsEnCours.find(e => e.id === electionId);
-  if (!election) return;
-  if (!election.candidats) election.candidats = [];
-  const nom = state.char?.name || 'Anonyme';
-  if (election.candidats.find(c => c.nom === nom)) {
-    showToast('Deja candidat', 'Vous etes deja candidat a cette election.', false);
-    return;
-  }
-  election.candidats.push({ nom, voix: 0, isPJ: true });
-  showToast('Candidature enregistree !', 'Vous etes officiellement candidat a ' + election.nom, true, true);
-  addJournalEntry('Candidature deposee pour : ' + election.nom, 'event-good');
-  addMailNotification('Commission Electorale', 'Confirmation de candidature', 'Votre candidature pour le poste de ' + election.nom + ' a bien ete enregistree. La campagne electorale debute dans ' + (election.joursAvantCampagne || 0) + ' jour(s).');
-}
+
 
 function openElectionsModal() {
-  document.getElementById('postes-modal-title').textContent = 'Elections en cours';
-
-  // Initialiser des elections de demo si aucune
-  if (!state.electionsEnCours || state.electionsEnCours.length === 0) {
-    state.electionsEnCours = [
-      {
-        id: 'election-president-1',
-        nom: 'President de la Republique',
-        type: 'president',
-        phase: 'campagne', // candidatures | campagne | depouillement | termine
-        jourDebut: 1,
-        jourCampagne: 4,
-        jourResultat: 7,
-        joursAvantCampagne: 0,
-        candidats: [
-          { nom: 'Bertrand (PNJ)', voix: 0, isPJ: false },
-          { nom: 'Leroux (PNJ)', voix: 0, isPJ: false }
-        ],
-        tour: 1,
-        resultat: null
-      }
-    ];
-  }
-
-  const elections = state.electionsEnCours;
-  let html = '<div style="padding:1rem">';
-
-  elections.forEach(e => {
-    const phaseLabel = { candidatures: 'Depot des candidatures', campagne: 'Campagne electorale', depouillement: 'Depouillement', termine: 'Termine' }[e.phase] || e.phase;
-    const phaseColor = { candidatures: '#6a9a5a', campagne: '#C9A84C', depouillement: '#aa6a4a', termine: '#4a4030' }[e.phase] || '#8a8060';
-
-    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.8rem">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">';
-    html += '<div style="font-family:Playfair Display,serif;font-size:.9rem;color:#E8C97A">' + e.nom + '</div>';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:' + phaseColor + ';border:1px solid;padding:.1rem .4rem">' + phaseLabel + '</div>';
-    html += '</div>';
-    html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.5rem">Tour ' + (e.tour||1) + ' · Resultats a venir</div>';
-
-    // Candidats et voix
-    if (e.candidats && e.candidats.length > 0) {
-      const totalVoix = e.candidats.reduce((s, c) => s + (c.voix||0), 0) || 1;
-      html += '<div style="margin-bottom:.5rem">';
-      e.candidats.forEach(c => {
-        const pct = Math.round((c.voix||0) / totalVoix * 100);
-        const isMoi = c.nom === (state.char?.name);
-        html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem">';
-        html += '<div style="font-size:.75rem;color:' + (isMoi ? '#C9A84C' : '#c0b090') + ';width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + c.nom + (isMoi ? ' (Vous)' : '') + '</div>';
-        html += '<div style="flex:1;height:6px;background:#1a1810;border-radius:3px"><div style="height:100%;background:' + (isMoi ? '#C9A84C' : '#4a6a4a') + ';width:' + pct + '%;border-radius:3px"></div></div>';
-        html += '<div style="font-size:.7rem;color:#6a5a30;width:30px;text-align:right">' + pct + '%</div>';
-        html += '</div>';
-      });
-      html += '</div>';
-    }
-
-    // Boutons selon phase
-    const dejaCandidatObj = e.candidats && e.candidats.find(c => c.nom === (state.char?.name));
-    if (e.phase === 'candidatures' && !dejaCandidatObj) {
-      html += '<button onclick="confirmerCandidature(\'' + e.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;margin-right:.4rem">Me declarer candidat</button>';
-    }
-    if (e.phase === 'campagne') {
-      html += '<button onclick="voterElection(\'' + e.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6a9a6a;cursor:pointer;margin-right:.4rem">' + (state.aVote?.[e.id] ? 'Vote deja exprime' : 'Voter') + '</button>';
-    }
-    html += '</div>';
-  });
-
-  html += '<div style="font-size:.72rem;color:#9a8a68;font-style:italic;margin-top:.5rem">Calendrier : candidatures semaine 1-3 · campagne semaine 4-5 · resultats dimanche soir.</div>';
-  html += '</div>';
-
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  return ouvrirTableauElectoral();
 }
 
-function voterElection(electionId) {
-  if (state.aVote?.[electionId]) {
-    showToast('Vote deja exprime', 'Vous avez deja vote pour cette election.', false);
-    return;
+function voterElection(identifiant, candidatNom) {
+  // Anciennes cartes : deux arguments = organisation ; un = ancien tableau national.
+  // Aucun vote n'est décidé ici, et aucun ID historique n'est converti en bulletin.
+  if (arguments.length > 1) {
+    if (typeof voterElectionOrganisation !== 'function') {
+      showToast('Vote indisponible', 'Rechargez la page avant de voter.', false);
+      return false;
+    }
+    return voterElectionOrganisation(identifiant, candidatNom);
   }
-  const election = (state.electionsEnCours||[]).find(e => e.id === electionId);
-  if (!election || !election.candidats || election.candidats.length === 0) return;
-
-  // Afficher la liste des candidats pour voter
-  document.getElementById('modal-postes').classList.remove('open');
-  document.getElementById('postes-modal-title').textContent = 'Voter — ' + election.nom;
-  let html = '<div style="padding:1rem"><div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Vous ne pouvez voter qu\'une seule fois.</div>';
-  election.candidats.forEach((c, i) => {
-    html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer;transition:background .2s" onclick="confirmerVote(\'' + electionId + '\',' + i + ')" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
-    html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#c0b090">' + c.nom + '</div>';
-    html += '<div style="font-size:.7rem;color:#5a5040">' + (c.isPJ ? 'Joueur' : 'PNJ') + '</div>';
-    html += '</div>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  return ouvrirTableauElectoral();
 }
 
-function confirmerVote(electionId, candidatIdx) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const election = (state.electionsEnCours||[]).find(e => e.id === electionId);
-  if (!election) return;
-  if (!state.aVote) state.aVote = {};
-  state.aVote[electionId] = true;
-  election.candidats[candidatIdx].voix = (election.candidats[candidatIdx].voix||0) + 1;
-  // Ajouter voix aleatoires PNJ pour simulation
-  election.candidats.forEach((c, i) => {
-    if (i !== candidatIdx) c.voix = (c.voix||0) + Math.floor(Math.random() * 5);
-  });
-  showToast('Vote enregistre !', 'Vous avez vote pour ' + election.candidats[candidatIdx].nom, true, true);
-  addJournalEntry('Vote exprime pour ' + election.candidats[candidatIdx].nom + ' (' + election.nom + ')', 'event-info');
+function confirmerVote() {
+  // Un ancien bulletin ne confirme rien : ouvrir la sélection officielle à renouveler.
+  return ouvrirTableauElectoral();
 }
 
 // calculerResultatElection SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).
@@ -1467,256 +1382,56 @@ async function recupererDonsEnAttente() {
   } catch(e) { console.warn('recupererDonsEnAttente error', e); }
 }
 
-// Recupere et applique les vols subis (et les credits differes, ex. succession) par le joueur
-// depuis sa derniere connexion. Correctif du 20 aout 2026 (chantier testament/succession) :
-// vols_en_attente sert aussi a crediter (montant negatif, ex. heritage via traiterSuccession/
-// executerSuccession, plateau-personnage.js) -- avant ce correctif, seul totalPerdu (somme des
-// montants positifs) declenchait une notification, donc un credit pur (total toujours <=0)
-// n'affichait jamais rien au joueur alors que state.arg etait bien crediee en silence. Un seul
-// consommateur de recupererVolsEnAttente() existe dans tout le jeu (plateau-core.js, appel unique
-// au demarrage de session) : verifie avant modification, comportement des vols (totalPerdu)
-// entierement inchange, seul un second cas (totalRecu) est ajoute.
-// Objets/matieres (correctif ordre Voler, 22 aout 2026, revise pour eliminer tout risque de
-// duplication) : la mutation reelle (retrait chez la victime) est TOUJOURS appliquee ici, quel
-// que soit le palier de connaissance decide au moment du vol (confirmerVol,
-// plateau-actions-illegales-rumeurs.js).
-//
-// Visibilite (correctif bloquant, revue du 22 aout 2026) : vols_en_attente n'a PAS de colonne
-// revele (verifie en direct : "column vols_en_attente.revele does not exist") -- ce champ,
-// introduit a un tour precedent, faisait echouer silencieusement CHAQUE INSERT de vol.js (voir
-// confirmerVol, desormais corrige pour ne plus l'envoyer). La visibilite de la victime est
-// entierement geree AU MOMENT DU VOL (mail immediat identifie/anonyme/absent selon le palier,
-// confirmerVol) -- ce traitement differe n'a donc plus besoin de savoir quoi que ce soit sur le
-// palier : il applique simplement la perte reelle, sans jamais reafficher de toast/journal a ce
-// sujet (le palier >=75 resterait sinon revele indirectement par un toast generique ici).
-//
-// Anti-duplication (objet/matiere UNIQUEMENT -- l'argent reste credite immediatement au voleur
-// dans confirmerVol, fongible, aucun risque de duplication d'un objet unique) : le voleur n'a
-// RIEN recu au moment du vol. C'est CE traitement, ici, sur l'etat reellement a jour de LA
-// VICTIME ELLE-MEME, qui retire l'objet SEULEMENT s'il est encore reellement present, ET
-// seulement dans ce cas, le met en file pour le voleur via objets_recus (sbDonnerObjetJoueur,
-// mecanisme deja existant et deja sur pour les dons entre joueurs, recupere par le voleur via
-// verifierObjetsRecus() -- aucune seconde architecture de transfert). Si la victime a deja
-// vendu/donne/consomme l'objet avant sa propre reconnexion, rien n'est retire ET rien n'est
-// jamais credite au voleur : aucune duplication possible dans aucun des deux cas.
-//
-// Atomicite retrait/sauvegarde/marquage (revue du 22 aout 2026) : un simple reordonnancement
-// (transfert avant mutation) ne suffisait PAS -- entre la mutation de state.inventory et sa
-// sauvegarde reelle, sbMarquerVolTraite() pouvait reussir alors que la sauvegarde personnage
-// echouait ou n'avait pas encore eu lieu (le debounce 3s d'updateUI()/sbAutoSave() ne garantit
-// aucun ordre avec une ecriture immediate et attendue). En cas de crash/fermeture avant que ce
-// debounce ne parte, le retrait etait perdu au prochain chargement (rechargement de
-// personnages.inventory encore intact) alors que objets_recus, LUI, avait deja durablement recu
-// le butin -- duplication definitive. Correctif : sbSavePersonnage() est desormais attendue
-// EXPLICITEMENT ici (jamais via le debounce) avant tout marquage.
-//
-// Confirmation du don (revue du 22 aout 2026, correctif du marqueur) : verifier objets_recus pour
-// detecter un don deja confirme lors d'un retry (via un ancien marqueur __volId) s'est revele
-// PEU FIABLE -- verifierObjetsRecus() SUPPRIME la ligne objets_recus des que le voleur l'a
-// effectivement recuperee (sbSupprimerObjetRecu). Si le voleur recupere son butin (jusqu'a 2 min
-// apres, ou au demarrage de sa session) AVANT que la victime ne retente le meme vol.id, la ligne
-// n'existe plus -- le retry ne verrait plus aucune trace du don deja effectue et rappellerait
-// sbDonnerObjetJoueur(), doublant le butin. Corrige en marquant la confirmation du don
-// DIRECTEMENT sur la ligne vols_en_attente elle-meme (jamais supprimee par un tiers) : la colonne
-// EXISTANTE type_butin (deja une colonne texte libre, aucune migration) prend la valeur
-// 'matiere_confirmee'/'objet_confirme' juste apres le succes de sbDonnerObjetJoueur, AVANT toute
-// mutation locale. Un retry reconnait cette valeur et ne rappelle plus jamais
-// sbDonnerObjetJoueur() pour ce vol.id, meme si objets_recus a deja ete vide entre-temps -- seuls
-// le retrait et la sauvegarde restent a retenter. Risque residuel assume et documente : si cette
-// ecriture de confirmation echoue elle-meme juste apres le succes de sbDonnerObjetJoueur (deux
-// echecs reseau consecutifs sur le meme vol), le retry ne verrait pas la confirmation et
-// pourrait redonner une copie -- fenetre desormais bornee a un echec propre a nos deux ecritures,
-// independante du delai de recuperation du voleur.
-async function recupererVolsEnAttente() {
-  if (typeof sbRecupererVolsEnAttente !== 'function') return;
-  const moi = state.char?.name;
-  if (!moi) return;
-  try {
-    const vols = await sbRecupererVolsEnAttente(moi);
-    if (!vols || vols.length === 0) return;
-    const cur = COUNTRIES[state.country]?.cur || 'FR';
-    let totalRecu = 0;
-    let mutationAppliquee = false;
-    let inventaireModifie = false;
-    const volsAMarquer = [];
+// recupererVolsEnAttente SUPPRIMEE (03/11/2026) : depuis crime_voler (27/10/2026), le serveur
+// retire le butin chez la victime et le depose chez le voleur dans la meme transaction ; la ligne
+// de vols_en_attente est inseree deja traitee (trace seulement). Plus rien a appliquer a l'ecran.
 
-    for (const vol of vols) {
-      let resoluCeVol = true; // false uniquement si un transfert objet/matiere reste a confirmer
-      if (vol.type_butin === 'argent') {
-        const montant = vol.montant || 0;
-        if (montant !== 0) mutationAppliquee = true;
-        if (montant < 0) totalRecu += -montant; // credit pur : toujours notifie (jamais issu du vol, cas hors perimetre de ce lot)
-        state.arg = Math.max(0, (state.arg || 0) - montant);
-      } else if ((vol.type_butin === 'matiere' || vol.type_butin === 'matiere_confirmee') && vol.objet_id) {
-        const stack = (state.inventory || []).find(i => i.stackable && i.stackKey === vol.objet_id);
-        if (stack) {
-          const perte = Math.min(vol.montant || 0, stack.qty || 0);
-          if (perte > 0) {
-            let transfereOk = vol.type_butin === 'matiere_confirmee';
-            if (!transfereOk) {
-              // DEPOT ATTESTE (17 septembre 2026, fermeture du P0 objets_recus). Le serveur relit
-              // la ligne de vol, exige que l'acteur en soit la victime et le destinataire le
-              // voleur, puis depose le butin ET bascule type_butin dans la MEME transaction --
-              // le marquage etait auparavant une seconde requete qui pouvait rester en arriere.
-              // On lit desormais r.ok : l'ancien `.then(() => true)` comptait comme un succes un
-              // sbInsert qui avait renvoye null, et la victime perdait alors son bien pour rien.
-              const rDepot = vol.voleur && typeof sbObjetSasDeposer === 'function'
-                ? await sbObjetSasDeposer('butin_vol', vol.voleur,
-                    { name: stack.name, icon: stack.icon, stackable: true, stackKey: vol.objet_id, qty: perte },
-                    vol.id).catch(() => null)
-                : null;
-              transfereOk = !!(rDepot && rDepot.ok === true);
-            }
-            if (transfereOk) {
-              stack.qty = (stack.qty || 0) - perte;
-              if (stack.qty <= 0) state.inventory = state.inventory.filter(i => i !== stack);
-              mutationAppliquee = true;
-              inventaireModifie = true;
-            } else {
-              resoluCeVol = false; // transfert non confirme : le bien reste chez la victime, rien perdu
-            }
-          }
-        }
-      } else if ((vol.type_butin === 'objet' || vol.type_butin === 'objet_confirme') && vol.objet_id) {
-        const idx = (state.inventory || []).findIndex(i => i.id === vol.objet_id);
-        if (idx !== -1) {
-          let transfereOk = vol.type_butin === 'objet_confirme';
-          if (!transfereOk) {
-            // Meme depot atteste que pour la matiere ci-dessus : la ligne de vol fait foi, et le
-            // marquage objet_confirme se fait dans la meme transaction que le depot.
-            const rDepotObjet = vol.voleur && typeof sbObjetSasDeposer === 'function'
-              ? await sbObjetSasDeposer('butin_vol', vol.voleur,
-                  { ...state.inventory[idx] }, vol.id).catch(() => null)
-              : null;
-            transfereOk = !!(rDepotObjet && rDepotObjet.ok === true);
-          }
-          if (transfereOk) {
-            state.inventory.splice(idx, 1);
-            mutationAppliquee = true;
-            inventaireModifie = true;
-          } else {
-            resoluCeVol = false; // transfert non confirme : l'objet reste chez la victime, rien perdu
-          }
-        }
-      }
-      if (resoluCeVol) volsAMarquer.push(vol.id);
-    }
-
-    // Sauvegarde durable AVANT tout marquage (correctif atomicite ci-dessus) : une seule fois
-    // pour toute la serie, explicitement attendue -- jamais le debounce de sbAutoSave().
-    let sauvegardeOk = true;
-    if (mutationAppliquee) {
-      sauvegardeOk = typeof sbSavePersonnage === 'function'
-        ? await sbSavePersonnage(state).then(() => true).catch(() => false)
-        : false;
-    }
-
-    if (!sauvegardeOk) return; // rien de marque, rien de notifie -- tout sera retente au prochain passage
-
-    for (const id of volsAMarquer) {
-      if (typeof sbMarquerVolTraite === 'function') await sbMarquerVolTraite(id).catch(() => {});
-    }
-    if (mutationAppliquee) {
-      updateUI();
-      if (inventaireModifie && typeof renderInventory === 'function') renderInventory();
-    }
-    // Aucun toast/journal ici pour une perte issue d'un vol (correctif visibilite ci-dessus) : la
-    // victime a deja ete informee au moment du vol si son palier le prevoyait (mail immediat,
-    // confirmerVol) ; reafficher quoi que ce soit ici reviendrait a reveler indirectement les
-    // vols du palier >=75, qui ne doivent jamais etre notifies.
-    if (totalRecu > 0) {
-      addJournalEntry('💰 Une somme de ' + totalRecu + ' ' + cur + ' a été créditée sur votre compte.', 'event-good');
-      showToast('Somme créditée', '+' + totalRecu + ' ' + cur + ' crédité(s) sur votre compte.', true, true);
-    }
-  } catch(e) { console.warn('recupererVolsEnAttente error', e); }
-}
-
-// Recupere et applique les impacts d'indices en attente (ex: consequence d'une fausse rumeur)
+// Les effets et l'acquittement des impacts sont un seul acte serveur versionné.
+let RP_IMPACTS_RECEPTION = null;
 async function recupererImpactsEnAttente() {
-  if (typeof sbRecupererImpactsEnAttente !== 'function') return;
-  const moi = state.char?.name;
-  if (!moi) return;
+  const c = contexteGroupePj();
+  if (!c.nom || (RP_IMPACTS_RECEPTION && contexteGroupePjValide(RP_IMPACTS_RECEPTION))) return false;
+  RP_IMPACTS_RECEPTION = c;
   try {
-    const impacts = await sbRecupererImpactsEnAttente(moi);
-    if (!impacts || impacts.length === 0) return;
-    let resume = [];
+    if (typeof sbRecupererImpactsEnAttente !== 'function' || typeof sbMarquerImpactTraite !== 'function' ||
+        typeof sbLoadPersonnage !== 'function') return false;
+    const impacts = await sbRecupererImpactsEnAttente(c.nom).catch(() => null);
+    if (!contexteGroupePjValide(c) || !Array.isArray(impacts)) return false;
+    if (!impacts.length) return true;
+    const confirmes = [];
+    let complet = true, relire = false;
     for (const imp of impacts) {
-      if (imp.indice === 'pop') { state.pop = Math.max(0, Math.min(100, (state.pop || 0) + imp.delta)); resume.push(imp.delta + ' POP'); }
-      if (imp.indice === 'inf') { state.inf = Math.max(0, Math.min(100, (state.inf || 0) + imp.delta)); resume.push(imp.delta + ' INF'); }
-      if (imp.indice === 'dis') { state.dis = Math.max(0, Math.min(100, (state.dis || 50) + imp.delta)); resume.push(imp.delta + ' DIS'); }
-      // Bonus Moral expediteur d'une carte postale lue pour la premiere fois (Lot 4, 23 aout
-      // 2026) : mecanisme deja generique reutilise tel quel (aucune deuxieme file d'attente).
-      // Plafond quotidien EXPEDITEUR (regle definitive de Fred) : au plus une seule occurrence de
-      // ce bonus par jour reel (Europe/Paris), tous destinataires/cartes confondus, meme si
-      // plusieurs cartes ont ete lues le meme jour -- verifie ICI, au moment ou l'expediteur
-      // recupere effectivement le credit (jamais au moment de la lecture par le destinataire, qui
-      // ignore tout de l'etat/l'horloge de l'expediteur, potentiellement hors-ligne). Une carte
-      // au-dela du plafond du jour est simplement consommee sans credit -- jamais retentee, la
-      // ligne est marquee traitee comme les autres ci-dessous.
-      if (imp.indice === 'moral_carte_postale') {
-        // cartePostaleMoralJour : colonne PERSISTEE (personnages.carte_postale_moral_jour,
-        // supabase.js), jamais un state.* suppose sauvegarde implicitement -- meme champ partage
-        // avec le plafond LECTEUR (lireCartePostale, plateau-personnage.js), sous-cles distinctes.
-        const jourDuJour = typeof dateReelleParisStr === 'function' ? dateReelleParisStr() : null;
-        if (!state.cartePostaleMoralJour) state.cartePostaleMoralJour = { lecteur: null, expediteur: null };
-        if (jourDuJour && state.cartePostaleMoralJour.expediteur !== jourDuJour) {
-          state.moral = Math.min(100, Math.max(0, (state.moral || 0) + imp.delta));
-          state.cartePostaleMoralJour.expediteur = jourDuJour;
-          resume.push(imp.delta + ' Moral (carte postale)');
-        }
-        // Que le plafond du jour soit deja atteint ou non, sbMarquerImpactTraite(imp.id) est
-        // TOUJOURS appele plus bas (hors de ce bloc, comme pour tous les indices) : une carte
-        // au-dela du plafond est consommee definitivement, jamais retentee un jour suivant.
-      }
-      if (imp.indice === 'hp_set') {
-        state.hp = Math.max(0, imp.delta);
-        state.regenJour = state.day;
-        resume.push('⚔️ Agression ! PV tombés à ' + imp.delta);
-
-        if (!state.statsAffaiblies) state.statsAffaiblies = {};
-        const STATS_POSSIBLES = ['INT','CHA','VOL','PER','DUP','ENT'];
-        const statsTouchees = STATS_POSSIBLES.slice().sort(() => Math.random() - 0.5).slice(0, 2);
-        statsTouchees.forEach(s => { state.statsAffaiblies[s] = true; });
-
-        if (typeof declencherHospitalisation === 'function') declencherHospitalisation(imp.palier);
-        // §19 : declencherHospitalisation sauvegarde deja, mais hp/statsAffaiblies/regenJour sont
-        // poses juste au-dessus, AVANT son appel -- ce filet garantit qu'ils partent en base meme
-        // si la fonction venait a manquer.
-        else if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-      }
-      if (imp.indice === 'poison_start') {
-        // Depose par crime_empoisonner (27/10/2026) : type de poison et statistiques touchees dans details.
-        const det = imp.details || {};
-        state.empoisonnement = { actif: true, palier: imp.palier, poisonType: det.poisonType || null };
-        if (!state.statsAffaiblies) state.statsAffaiblies = {};
-        (det.statsTouchees || []).forEach(s => { state.statsAffaiblies[s] = true; });
-        if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-        resume.push('☠️ Empoisonnement en cours...');
-      }
-      if (typeof sbMarquerImpactTraite === 'function') await sbMarquerImpactTraite(imp.id).catch(() => {});
+      if (!contexteGroupePjValide(c)) return false;
+      // Le contrat explicite est obligatoire : un ancien serveur refuse AVANT
+      // tout marquage, plutôt que de perdre un effet que l'écran n'applique plus.
+      const r = await sbMarquerImpactTraite(imp.id).catch(() => null);
+      if (!contexteGroupePjValide(c)) return false;
+      if (r?.ok !== true || r.contrat !== 1) { complet = false; if (!r) relire = true; continue; }
+      relire = true;
+      if (r.marques === 1 && r.applique === true) confirmes.push(r.indice);
     }
-    if (resume.length > 0) {
-      updateUI();
-      const agrappe = resume.some(r => r.includes('Agression'));
-      const empoisonne = resume.some(r => r.includes('Empoisonnement'));
-      if (agrappe) {
-        showToast('Agression !', 'Vous avez été attaqué(e). PV : ' + state.hp + '. Récupération : +10/jour.', false, true);
-        addJournalEntry('Vous avez été victime d\'une agression. Vos PV sont tombés à ' + state.hp + '.', 'event-bad');
-      } else if (empoisonne) {
-        showToast('Malaise suspect', 'Vous ne vous sentez pas bien... quelque chose ne va pas. Soignez-vous avant votre prochain sommeil.', false, true);
-        addJournalEntry('Un malaise suspect vous gagne. Vous pourriez avoir été empoisonné(e).', 'event-bad');
-      } else if (resume.some(r => r.includes('carte postale'))) {
-        // Branche dediee (Lot 4, 23 aout 2026) : une correspondance recue par un autre joueur,
-        // jamais un evenement negatif -- evite le libelle generique "affecte vos indices"/le
-        // toast "bad" ci-dessous, inadapte a un gain de Moral.
-        showToast('Correspondance lue', 'Une carte postale que vous avez envoyée a été lue. +10 Moral.', true, true);
-        addJournalEntry('Une carte postale que vous avez envoyée a été lue. +10 Moral.', 'event-good');
-      } else {
-        addJournalEntry('Des événements ont affecté vos indices : ' + resume.join(', ') + '.', 'event-bad');
-        showToast('Indices modifiés', resume.join(', '), false, true);
+    if (!relire) return false;
+    const frais = await sbLoadPersonnage(c.nom).catch(() => null);
+    if (!contexteGroupePjValide(c) || !frais || (c.uid && frais.userId !== c.uid)) return false;
+    for (const cle of ['pop','inf']) if (typeof frais[cle] === 'number') adopterJaugeServeur(cle, frais[cle]);
+    const base = {};
+    for (const [cle,colonne] of [['pa','pa'],['hp','hp'],['moral','moral'],['dis',null],
+      ['statsAffaiblies','stats_affaiblies'],['empoisonnement','poison_actif'],['regenJour','regen_jour'],
+      ['cartePostaleMoralJour','carte_postale_moral_jour'],['hospitalisation','hospitalisation']]) {
+      if (Object.prototype.hasOwnProperty.call(frais,cle)) {
+        state[cle] = frais[cle]; if (colonne) base[colonne] = frais[cle];
       }
     }
-  } catch(e) { console.warn('recupererImpactsEnAttente error', e); }
+    if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter(base);
+    updateUI();
+    if (confirmes.length) {
+      const physique = confirmes.some(x => ['hp_set','poison_start'].includes(x));
+      showToast('Événements confirmés', 'Votre état a été relu sur le serveur. Consultez votre journal.', !physique, true);
+      const libelles = {pop:'popularité',inf:'influence',dis:'discrétion',moral_carte_postale:'correspondance lue',hp_set:'agression',poison_start:'malaise suspect'};
+      addJournalEntry('Événements confirmés par le serveur : ' + confirmes.map(x => libelles[x] || 'état personnel').join(', ') + '.', physique ? 'event-bad' : 'event-info');
+    }
+    return complet;
+  } finally { if (RP_IMPACTS_RECEPTION === c) RP_IMPACTS_RECEPTION = null; }
 }
 
 // Regeneration naturelle des PV (+10/jour) apres une agression — appelee a minuit dans runMidnightUpdate

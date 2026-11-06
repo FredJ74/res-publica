@@ -1,0 +1,20 @@
+{
+  "nature": "Diagnostic sur réponses fictives, aucun accès production",
+  "vols_en_attente": {
+    "condition": "Une ligne ancienne argent en attente est fournie par le lecteur de fixture",
+    "argent_avant": 100,
+    "argent_apres": 75,
+    "liquide": 100,
+    "sauvegarde_resultat": null,
+    "marques": 1
+  },
+  "subtilisation": {
+    "condition": "Réponse métier de fixture sans PA, ancien affichage 100 PA ; hypothèse de réalité serveur 10 moins 2 PA",
+    "pa_interface_apres": 98,
+    "pa_serveur_fixture": 8
+  },
+  "anomalies": [
+    "vol_marque_apres_sauvegarde_null",
+    "miroir_PA_perime"
+  ]
+}

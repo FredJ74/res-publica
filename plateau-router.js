@@ -78,6 +78,15 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
     return;
   }
 
+  // Avertissement avant de tomber à 0 PA (décision de Fred, 04/11/2026) : tomber à 0 PA envoie
+  // à l'hôpital (GAME-DESIGN-HOSPITALISATION.md). Toujours affiché, non désactivable, et
+  // seulement si le coût annoncé laisse exactement 0 PA. Aide d'écran : le serveur décide seul.
+  if (!TEST_MODE && pa > 0 && state.pa - pa === 0 && state._zeroPaConfirme !== fn) {
+    avertirZeroPa(() => { state._zeroPaConfirme = fn; doOrder(fn, pa, cost, label, desc, successRate); }, label);
+    return;
+  }
+  if (typeof state !== 'undefined') state._zeroPaConfirme = null;
+
   // Argent check — ignore pour les ordres finances par le budget d'une institution (pas le portefeuille personnel)
   // Lot 3 (chantier fiscalite/Helvetia) : verifie desormais les fonds ORDINAIRES (liquide +
   // Banque nationale), jamais arg seul -- garde amont partagee par la quasi-totalite des
@@ -132,7 +141,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'pouls_populaire') { doPoulsPopulaire(); return; }
   if (fn === 'lancer_rumeur_cible') { ouvrirModalLancerRumeur(pa, cost, successRate); return; }
   if (fn === 'diner_affaires') { ouvrirModalInvitationSociale('diner_affaires', pa, cost, successRate); return; }
-  if (fn === 'boire_verre') { ouvrirModalInvitationSociale('boire_verre', pa, cost, successRate); return; }
   if (fn === 'recruter_informateur_pnj') { doRecruterInformateurPNJ(pa); return; }
   // Comptoir d'embauche d'une agence (5 octobre 2026). Le routeur ne transmet
   // NI pa NI cost : agenceEmploiOuvrir relit l'ordre dans la piece pour y lire
@@ -153,6 +161,20 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'imprimer_tracts_electoraux') { ouvrirModalImprimerTractsElectoraux(pa, cost); return; }
   if (fn === 'imprimer_tracts_calomnieux') { ouvrirModalImprimerTractsCalomnieux(pa, cost); return; }
   if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }
+  // Vehicules personnels (05/11/2026, GAME-DESIGN-VEHICULES.md) : plateau-vehicules.js.
+  if (fn === 'garage_vehicules')  { ouvrirGarageVehicules(); return; }
+  if (fn === 'garage_reviser')    { ouvrirGarageRevision(); return; }
+  if (fn === 'salon_coupe')       { ouvrirSalonCoupe(); return; }
+  // Sovarka, droits d'exploiter (06/11/2026, GAME-DESIGN-NOVOMIRSK.md) : plateau-sovarka-droits.js.
+  if (fn === 'sovarka_commerces_libres')    { ouvrirSovarkaCommercesLibres(); return; }
+  if (fn === 'sovarka_signer_attribution')  { ouvrirSovarkaSignerAttribution(); return; }
+  if (fn === 'sovarka_cession')             { ouvrirSovarkaCession(); return; }
+  if (fn === 'sovarka_demander_local')      { ouvrirSovarkaDemanderLocal(); return; }
+  if (fn === 'sovarka_dossiers_commerciaux'){ ouvrirSovarkaDossiers(); return; }
+  if (fn === 'sovarka_retirer_droit')       { ouvrirSovarkaRetirerDroit(); return; }
+  if (fn === 'sovarka_terrain_municipal')   { ouvrirSovarkaTerrain(); return; }
+  if (fn === 'station_carburant') { ouvrirStationCarburant(); return; }
+  if (fn === 'mes_vehicules')     { ouvrirMesVehicules(); return; }
   if (fn === 'produire_arme') { doProduireArme(); return; }
   if (fn === 'racheter_entreprise') { doRachatEntreprise(); return; }
   if (fn === 'recolter_matiere') { doRecolterMatiere(pa, cost); return; }
@@ -167,6 +189,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Ordre présent dans les trois mairies (décision de Fred, 29/10/2026) ; seule Montrouge a des
   // logements sociaux aujourd'hui. Aucun coût n'est prélevé avant ce message.
   // Socle (29/10/2026) : le serveur dit s'il existe des logements sociaux dans la ville, avant tout coût.
+  if (fn === 'ssm_besoin_aide') { ouvrirAidePascaleSsm(); return; }
+  if (fn === 'ssm_demander_rendezvous') { demanderRendezVousSsm(); return; }
   if (fn === 'demander_logement_social') { demanderLogementSocialCommun(pa, cost); return; }
   if (fn === 'gerer_logement_social') { gererLogementSocial(); return; }
   if (fn === 'traiter_demandes_logement_social') { ouvrirTableauLogementsSociaux(); return; }
@@ -279,15 +303,17 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'vente_directe_usine') { doOuvrirVenteDirecteUsine(pa, cost); return; }
   if (fn === 'acheter_sels_ammoniaque') { doAcheterSelsAmmoniaque(pa, cost); return; }
   if (fn === 'vendre_matiere_usine') { doVendreMatierePremiereUsineGenerique(pa, cost); return; }
-  if (fn === 'consulter_caisse_usine') { doConsulterCaisseUsine(); return; }
-  if (fn === 'consulter_stock_usine') { doConsulterStockUsine(); return; }
+  // Ordres publics caisse/stock des usines supprimés : le catalogue de vente affiche seulement les stocks/limites/tarifs.
+  if (fn === 'consulter_catalogue_manufactures') { doConsulterCatalogueManufactures(); return; }
   if (fn === 'fabriquer_armoire_souvenirs') { doFabriquerArmoireSouvenirs(); return; }
   if (fn === 'acheter_armoire_souvenirs') { doAcheterArmoireSouvenirs(); return; }
   if (fn === 'produire_medicaments') { doProduireUsine('medicaments'); return; }
   if (fn === 'produire_desinfectant') { doProduireUsine('desinfectant'); return; }
   if (fn === 'produire_alcool') { doProduireUsine('alcool'); return; }
   if (fn === 'produire_tabac') { doProduireUsine('tabac'); return; }
+  if (fn === 'consulter_devis_chantier_naval') { ouvrirDevisChantierNaval(); return; }
   if (fn === 'produire_carburant') { doProduireUsine('carburant'); return; }
+  if (fn === 'produire_derives_petrochimiques') { doProduireUsine('derives_petrochimiques'); return; }
   if (fn === 'nommer_directeur_pharma') { ouvrirModalNommerDirecteurPharma(); return; }
   if (fn === 'nommer_directeur_tabac_alcools') { ouvrirModalNommerDirecteurTabacAlcools(); return; }
   if (fn === 'nommer_directeur_raffinerie') { ouvrirModalNommerDirecteurRaffinerie(); return; }
@@ -443,7 +469,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'prendre_avion')          { ouvrirModalTransport('avion'); return; }
   if (fn === 'aller_douanes_aeroport') { doAllerDouanesAeroport(); return; }
   if (fn === 'prendre_bateau')         { ouvrirModalTransport('bateau'); return; }
-  if (fn === 'controle_douanes')       { doControlDouanes(); return; }
   if (fn === 'corrompre_douanier')     { doCorrompreDoanier(pa, cost); return; }
   if (fn === 'expedier_colis')         { ouvrirExpedierColis(pa, cost); return; }
   if (fn === 'receptionner_commande')  { ouvrirReceptionnerCommande(pa, cost); return; }
@@ -566,8 +591,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demander_benediction') { doDemanderBenediction(pa, cost); return; }
   if (fn === 'pelerin')              { doPelerin(pa, cost); return; }
   if (fn === 'excommunier')          { ouvrirModalCibleRepertoire('excommunier', 'Excommunier'); return; }
-  if (fn === 'benediction_etat')     { doBenedictionEtat(pa, cost); return; }
-  if (fn === 'consulter_confessions'){ doConsulterConfessions(pa, cost); return; }
   if (fn === 'acheter_relique')      { doAcheterRelique(pa, cost); return; }
   // Route 'scanner_aleatoire' supprimee (27/10/2026) : aucun ordre de ce nom dans data.js.
   if (fn === 'accord_diplomatique')  { ouvrirModalNegociationDiplomatique(pa, cost); return; }
@@ -688,7 +711,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_capitaine') { ouvrirNommerCapitaine(pa, cost); return; }
   if (fn === 'nommer_lieutenant') { ouvrirNommerLieutenant(pa, cost); return; }
   if (fn === 'gerer_detachement') { doGererDetachement(); return; }
-  if (fn === 'assigner_mission') { doAssignerMission(pa, cost); return; }
   // GRAND TERMINAL DEPUIS LE LOT T. doVoirMaSection rendait une liste en lecture
   // seule sans inventaire et lisait le blob complet des compagnies par REST ;
   // ouvrirTerminalSection passe par militaire_terminal_section(), qui ne rend que
@@ -792,11 +814,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acte_officiel_juge') { ouvrirActeOfficielJuge(pa, cost); return; }
   if (fn === 'acte_officiel_notaire') { ouvrirActeOfficielNotaire(pa, cost); return; }
 
-  if (fn === 'interdire_manif_cible')   { ouvrirModalTexteLibre('interdire_manif', 'Interdire une manifestation', 'Preciser le nom ou sujet de la manifestation a interdire...'); return; }
-  if (fn === 'reprimer_manif_cible')    { ouvrirModalTexteLibre('reprimer_manif', 'Ordonner la repression', 'Preciser la manifestation ou le rassemblement cible...'); return; }
   if (fn === 'redressement_cible')      { ouvrirModalCibleRepertoire('redressement_fiscal', 'Redressement fiscal'); return; }
   if (fn === 'subvention_cible')        { ouvrirModalCibleRepertoire('subvention', 'Accorder une subvention'); return; }
-  if (fn === 'allegemement_secteur')    { ouvrirModalSecteur(); return; }
   if (fn === 'allegement_fiscal')       { doAllegementFiscalIndisponible(); return; }
   if (fn === 'preempter_entreprise')    { ouvrirPreemptionEntreprise(); return; }
   if (fn === 'stage_caserne')           { doStageCaserne(pa, cost); return; }
@@ -827,6 +846,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Bureau National de l'Emploi (9 aout 2026)
   if (fn === 'consulter_offres_emploi')    { ouvrirOffresEmploiBNE(); return; }
   if (fn === 'bne_passer_annonce')         { ouvrirFormulaireAnnonceBNE(); return; }
+  if (fn === 'virements')                  { ouvrirChoixVirements(); return; }
   if (fn === 'virement_joueur')            { ouvrirVirementJoueur(false); return; }
   if (fn === 'virement_automatique')       { ouvrirVirementJoueur(true); return; }
 
@@ -839,6 +859,41 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'repas_gastronomique') { doRepasGastronomiqueGenerique(pa, cost, label, desc, successRate); return; }
 
   executerOrdreGenerique(fn, pa, cost, label, desc, successRate);
+}
+
+// Fenêtre de confirmation avant un ordre qui laisserait 0 PA (décision de Fred, 04/11/2026).
+// Fermer la fenêtre ou « Annuler » n'engage rien : l'ordre n'est jamais envoyé.
+function avertirZeroPa(confirmer, label) {
+  const modal = document.getElementById('modal-postes');
+  const titre = document.getElementById('postes-modal-title');
+  const corps = document.getElementById('postes-body');
+  if (!modal || !titre || !corps) {
+    showToast('Ordre suspendu', 'Cet ordre vous laisserait à 0 PA : la confirmation n\'a pas pu s\'afficher.', false);
+    return;
+  }
+  titre.textContent = 'Attention : 0 PA';
+  const boite = document.createElement('div');
+  boite.className = 'cpj-dialogue';
+  boite.style.padding = '1rem';
+  const texte = document.createElement('p');
+  texte.className = 'cpj-note';
+  texte.textContent = (label ? '« ' + label + ' » vous laissera' : 'Cet ordre vous laissera') +
+    ' à 0 PA : vous serez transféré(e) à l\'hôpital. Continuer ?';
+  const actions = document.createElement('div');
+  actions.className = 'cpj-actions';
+  const oui = document.createElement('button');
+  oui.className = 'cpj-touche cpj-primaire';
+  oui.textContent = 'Confirmer';
+  const non = document.createElement('button');
+  non.className = 'cpj-touche';
+  non.textContent = 'Annuler';
+  let fait = false;
+  oui.onclick = () => { if (fait) return; fait = true; modal.classList.remove('open'); confirmer(); };
+  non.onclick = () => { fait = true; modal.classList.remove('open'); };
+  actions.append(oui, non);
+  boite.append(texte, actions);
+  corps.replaceChildren(boite);
+  modal.classList.add('open');
 }
 
 // Extrait de doOrder() (lot Le Republica, 21 aout 2026) -- comportement generique (PA/argent,
@@ -857,7 +912,8 @@ async function executerOrdreGenerique(fn, pa, cost, label, desc, successRate) {
   if (!v || v.ok !== true) {
     const motifs = { ordre_indisponible: 'Cet ordre n\'est pas disponible.',
                      pas_sur_place: 'Il faut être sur place pour cela.',
-                     poste_requis: 'Cet ordre est réservé à un poste.' };
+                     poste_requis: 'Cet ordre est réservé à un poste.',
+                     hors_de_son_pays: 'Un ordre de votre poste se passe dans votre propre pays.' };
     if (v && motifs[v.raison]) showToast('Ordre impossible', motifs[v.raison], false);
     else if (typeof signalerRefusCout === 'function') signalerRefusCout(v || {});
     return;

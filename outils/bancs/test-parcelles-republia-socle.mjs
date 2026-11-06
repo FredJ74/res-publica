@@ -35,14 +35,17 @@ function charger() {
   })()`, ctx);
 }
 
-test('les quinze parcelles de Républia : surface connue, prix à 12 FR/m², même parcours', () => {
+test('les dix-sept parcelles de Républia : surface connue, prix à 12 FR/m², même parcours', () => {
   const parcelles = charger();
-  assert.equal(parcelles.length, 15);
+  // 15 au 01/11, 17 depuis les six parcelles de PSM (décision de Fred, 04/11, GAME-DESIGN-TERRAINS.md).
+  assert.equal(parcelles.length, 17);
   const reference = parcelles.find(p => p.id === 'terrain-a-batir-1').ordres;
   for (const p of parcelles) {
     assert.ok(Number.isInteger(p.surface) && p.surface > 0, 'surface absente : ' + p.id);
     assert.equal(p.achat.cost, p.surface * p.prixM2, 'prix hors règle des 12 FR/m² : ' + p.id);
-    assert.match(p.achat.label, new RegExp(String(p.surface) + ' m²'), 'surface non annoncée : ' + p.id);
+    // Surface annoncée, avec ou sans séparateur de milliers (« 1 650 m² » depuis les lots de PSM du 04/11).
+    const surfaceMotif = String(p.surface).replace(/\B(?=(\d{3})+(?!\d))/g, '[\\s\\u00a0\\u202f]?');
+    assert.match(p.achat.label, new RegExp(surfaceMotif + ' m²'), 'surface non annoncée : ' + p.id);
     assert.deepEqual(p.ordres, reference, 'parcours divergent de Luthécia : ' + p.id);
   }
   assert.ok(!reference.includes('corrompre_chantier'), 'aucun raccourcissement payant de chantier');

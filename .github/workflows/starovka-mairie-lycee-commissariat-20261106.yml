@@ -1,0 +1,56 @@
+name: Starovka — WebP lycee commissariat et navigation
+on:
+  push:
+    branches: [feature/starovka-mairie-lycee-commissariat-20261106]
+    paths:
+      - '.github/workflows/starovka-mairie-lycee-commissariat-20261106.yml'
+      - 'outils/bancs/test-starovka-mairie-lycee-commissariat-20261106.mjs'
+permissions:
+  contents: write
+jobs:
+  conversion-navigation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Convertir le lycee-commissariat en WebP et supprimer son PNG
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageOps
+          p=Path('images/Sovarka/Starovka/Starovka_rue_lycée_commissariat.png')
+          w=p.with_suffix('.webp')
+          assert p.is_file(), 'PNG source absent'
+          assert not w.exists(), 'WebP cible deja present : refus remplacement'
+          with Image.open(p) as im:
+              rgb=ImageOps.exif_transpose(im).convert('RGB')
+              dimensions=rgb.size
+              rgb.save(w,'WEBP',quality=85,method=6)
+          with Image.open(w) as im:
+              assert im.format=='WEBP' and im.size==dimensions
+              im.verify()
+          assert w.stat().st_size>100
+          p.unlink()
+          assert not p.exists()
+          print('WEBP valide',w.name,dimensions,w.stat().st_size)
+          PY
+      - name: Tester routes et syntaxe
+        run: |
+          node --check plateau-rue-centrale.js
+          node --test outils/bancs/test-starovka-mairie-lycee-commissariat-20261106.mjs outils/bancs/test-starovka-blizzard-mairie-marche-20261106.mjs outils/bancs/test-starovka-restaurant-blizzard-20261106.mjs
+          git diff --check
+      - name: Publier conversion et suppression PNG
+        run: |
+          git add -A -- 'images/Sovarka/Starovka/Starovka_rue_lycée_commissariat.png' 'images/Sovarka/Starovka/Starovka_rue_lycée_commissariat.webp'
+          git diff --cached --check
+          git diff --cached --quiet && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(starovka): convertir lycee commissariat en WebP'
+          git push origin HEAD:feature/starovka-mairie-lycee-commissariat-20261106

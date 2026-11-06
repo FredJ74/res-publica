@@ -1,0 +1,203 @@
+✖ ancienne file argent : aucun débit, don, sauvegarde ni marquage local (58.186247ms)
+✖ ancienne file credit : aucun débit, don, sauvegarde ni marquage local (21.010656ms)
+✖ ancienne file objet : aucun débit, don, sauvegarde ni marquage local (22.210594ms)
+✖ ancienne file matiere : aucun débit, don, sauvegarde ni marquage local (16.825632ms)
+✖ codétenu : commande existante, prix/profil jamais imposés null (19.831734ms)
+✖ codétenu : commande existante, prix/profil jamais imposés {"ok":false,"raison":"metier_non_recrutable"} (14.321172ms)
+✖ codétenu : commande existante, prix/profil jamais imposés {"ok":false,"raison":"paiement_refuse"} (14.464087ms)
+✖ codétenu : commande existante, prix/profil jamais imposés {"ok":true,"pnj_id":"serveur"} (19.336773ms)
+✖ codétenu : double clic et réponse tardive d’une autre session (16.180939ms)
+✔ catalogue canonique : codétenu reste non actif, aucune identité du décor transformée (3.961594ms)
+ℹ Error: Test "codétenu : double clic et réponse tardive d’une autre session" at outils/bancs/banc-reliquats-vols-codetenu-379.cjs:21:1 generated asynchronous activity after the test ended. This activity created the error "AssertionError [ERR_ASSERTION]: aucun profil aléatoire local" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ tests 10
+ℹ suites 0
+ℹ pass 1
+ℹ fail 9
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 217.975658
+
+✖ failing tests:
+
+test at outils/bancs/banc-reliquats-vols-codetenu-379.cjs:6:57
+✖ ancienne file argent : aucun débit, don, sauvegarde ni marquage local (58.186247ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '{"char":{"name":"Fixture"},"country":"republic","arg":99,"liquide":100,"inventory":[{"id":"objet","qty":5,"stackKey":"bois","stackable":true}]}'
+  - '{"char":{"name":"Fixture"},"country":"republic","arg":100,"liquide":100,"inventory":[{"id":"objet","qty":5,"stackKey":"bois","stackable":true}]}'
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:10:156)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '{"char":{"name":"Fixture"},"country":"republic","arg":99,"liquide":100,"inventory":[{"id":"objet","qty":5,"stackKey":"bois","stackable":true}]}',
+    expected: '{"char":{"name":"Fixture"},"country":"republic","arg":100,"liquide":100,"inventory":[{"id":"objet","qty":5,"stackKey":"bois","stackable":true}]}',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-vols-codetenu-379.cjs:6:57
+✖ ancienne file credit : aucun débit, don, sauvegarde ni marquage local (21.010656ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '{"char":{"name":"Fixture"},"country":"republic","arg":125,"liquide":100,"inventory":[{"id":"objet","qty":5,"stackKey":"bois","stackable":true}]}'
+  - '{"char":{"name":"Fixture"},"country":"republic","arg":100,"liquide":100,"inventory":[{"id":"objet","qty":5,"stackKey":"bois","stackable":true}]}'
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:10:156)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '{"char":{"name":"Fixture"},"country":"republic","arg":125,"liquide":100,"inventory":[{"id":"objet","qty":5,"stackKey":"bois","stackable":true}]}',
+    expected: '{"char":{"name":"Fixture"},"country":"republic","arg":100,"liquide":100,"inventory":[{"id":"objet","qty":5,"stackKey":"bois","stackable":true}]}',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-vols-codetenu-379.cjs:6:57
+✖ ancienne file objet : aucun débit, don, sauvegarde ni marquage local (22.210594ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'lecture-ancienne-file',
+  +   'sbObjetSasDeposer'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:10:200)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-vols-codetenu-379.cjs:6:57
+✖ ancienne file matiere : aucun débit, don, sauvegarde ni marquage local (16.825632ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'lecture-ancienne-file',
+  +   'sbObjetSasDeposer'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:10:200)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-vols-codetenu-379.cjs:18:134
+✖ codétenu : commande existante, prix/profil jamais imposés null (19.831734ms)
+  AssertionError [ERR_ASSERTION]: aucun profil aléatoire local
+      at Math.random (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:13:293)
+      at Object.confirmerRecrutementCodetenu (evalmachine.<anonymous>:20:26)
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:19:78)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-vols-codetenu-379.cjs:18:134
+✖ codétenu : commande existante, prix/profil jamais imposés {"ok":false,"raison":"metier_non_recrutable"} (14.321172ms)
+  AssertionError [ERR_ASSERTION]: aucun profil aléatoire local
+      at Math.random (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:13:293)
+      at Object.confirmerRecrutementCodetenu (evalmachine.<anonymous>:20:26)
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:19:78)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-vols-codetenu-379.cjs:18:134
+✖ codétenu : commande existante, prix/profil jamais imposés {"ok":false,"raison":"paiement_refuse"} (14.464087ms)
+  AssertionError [ERR_ASSERTION]: aucun profil aléatoire local
+      at Math.random (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:13:293)
+      at Object.confirmerRecrutementCodetenu (evalmachine.<anonymous>:20:26)
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:19:78)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-vols-codetenu-379.cjs:18:134
+✖ codétenu : commande existante, prix/profil jamais imposés {"ok":true,"pnj_id":"serveur"} (19.336773ms)
+  AssertionError [ERR_ASSERTION]: aucun profil aléatoire local
+      at Math.random (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:13:293)
+      at Object.confirmerRecrutementCodetenu (evalmachine.<anonymous>:20:26)
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:19:78)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reliquats-vols-codetenu-379.cjs:21:1
+✖ codétenu : double clic et réponse tardive d’une autre session (16.180939ms)
+  AssertionError [ERR_ASSERTION]: aucun profil aléatoire local
+      at Math.random (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:13:293)
+      at Object.confirmerRecrutementCodetenu (evalmachine.<anonymous>:20:26)
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reliquats-vols-codetenu-379.cjs:23:67)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }

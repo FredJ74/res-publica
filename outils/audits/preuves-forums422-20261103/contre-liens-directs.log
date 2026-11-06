@@ -1,0 +1,82 @@
+✖ lien direct non préchargé : autorise (9.946005ms)
+✖ lien direct non préchargé : hors-ville (7.687369ms)
+✖ lien direct non préchargé : tardive (3.48979ms)
+✖ lien direct non préchargé : absent (2.663055ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 104.707091
+
+✖ failing tests:
+
+test at outils/bancs/banc-forums-contextes-422.cjs:64:69
+✖ lien direct non préchargé : autorise (9.946005ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:70:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:64:69
+✖ lien direct non préchargé : hors-ville (7.687369ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:70:58)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:64:69
+✖ lien direct non préchargé : tardive (3.48979ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:70:58)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-forums-contextes-422.cjs:64:69
+✖ lien direct non préchargé : absent (2.663055ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (/workspace/res-publica-forums422/outils/bancs/banc-forums-contextes-422.cjs:70:58)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

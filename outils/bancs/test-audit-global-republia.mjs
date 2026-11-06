@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { profilExiste, construirePromptSysteme } from '../../api/_pnj-profils.js';
-const require=createRequire(import.meta.url),{analyser,verifierImage}=require('../audits/auditer-republia-complet.cjs');
+const require=createRequire(import.meta.url),{analyser,charger,verifierImage}=require('../audits/auditer-republia-complet.cjs');
 const root=new URL('../../',import.meta.url),lire=f=>fs.readFileSync(new URL(f,root),'utf8');
 test('le catalogue réel des trois villes est examiné sans chemin cassé',()=>{
  const a=analyser();assert.equal(a.compteurs.villes,3);assert.ok(a.compteurs.batiments>=102);assert.ok(a.compteurs.pieces>=305);
@@ -33,9 +33,9 @@ test('PSM : quatre images locales libres, sans mutation des variantes Luthécia 
   assert.equal(vm.runInContext("varianteImagePiece('centre-commercial',piece,'ville_a')",c),vm.runInContext("varianteImagePiece('centre-commercial',piece,'capitale')",c));
  }
 });
-test('les avocats volontairement non implantés ne reçoivent aucune personnalité inventée',()=>{
- assert.equal(profilExiste('maitre_ali_bihanbeton'),false);
- assert.equal(profilExiste('maitre_henri_nossant'),false);
+test('les avocats de PSM et Montrouge ont une fiche de dialogue (raccordés le 02/11, demande de Fred)',()=>{
+ assert.equal(profilExiste('maitre_ali_bihanbeton'),true);
+ assert.equal(profilExiste('maitre_henri_nossant'),true);
  assert.match(lire('outils/bancs/banc-dialogue-pnj-republia.js'),/var MUETS_DECLARES/);
 });
 test('raccordements : profils de dialogue, routes et liens déclaratifs',async()=>{
@@ -76,4 +76,22 @@ test('étape B #350 : aucune ancienne exemption de copie pour la sauvegarde orga
  assert.match(lire('api/cron-minuit.js'),/async function sbSaveOrganisationServeur\(/,'le traitement serveur autonome est conservé');
  const config=JSON.parse(lire('outils/baseline/fonctions.json'));
  assert.ok(!config.hors_perimetre.some(([f,n])=>f==='api/cron-minuit.js'&&n==='sbSaveOrganisationServeur'),'plus de copie navigateur à exempter');
+});
+
+test('inventaire des producteurs : le chargeur réutilisé couvre les quatre empires sans mélanger les images',()=>{
+ const pays=['republic','narco','soviet','khalija'];
+ for(const p of pays){const a=charger(p);assert.ok(a.villes.length>0,p);assert.ok(a.villes.every(v=>v.batiments.length>0),p);assert.ok(pays.every(n=>a.pays_disponibles.includes(n)));}
+ assert.deepEqual(charger().villes,charger('republic').villes,'le comportement Républia reste la valeur par défaut');
+});
+
+// Une déclaration tarifaire masquée n'est pas un ordre exécutable sans route.
+test('audit : seules les exclusions inconditionnelles du rendu sont reconnues',()=>{
+ const {exclusionsRendu}=require('../audits/auditer-raccordements-republia.cjs');
+ const rendu="const allOrders=ordresDeclares.filter(o=>!['retire'].includes(o.fn));";
+ assert.deepEqual([...exclusionsRendu(rendu)],['retire']);
+ assert.equal(exclusionsRendu(rendu.replace('!','')).size,0);
+ assert.equal(exclusionsRendu(rendu.replace("!['retire'].includes(o.fn)","autorise && !['retire'].includes(o.fn)")).size,0);
+ assert.equal(exclusionsRendu(rendu.replace('allOrders','autreListe')).size,0);
+ assert.equal(exclusionsRendu("// "+rendu).size,0);
+ assert.ok(exclusionsRendu(lire('plateau-politique.js')).has('consulter_caisse_usine'));
 });

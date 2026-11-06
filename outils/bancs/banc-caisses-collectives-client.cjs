@@ -115,7 +115,8 @@ function contexte(reponses) {
   await cas('subvention à un club ou une organisation : une seule porte serveur', async () => {
     const f = extraire(POL, 'confirmerSubventionMontant');
     assert.match(f, /sbCaisseCollective\('subvention_collective_verser'/);
-    assert.match(extraire(POL, 'ajusterSoldeCibleFiscale'), /typeCible === 'club_sportif' \|\| typeCible === 'organisation'\) \{[\s\S]*?return null;/);
+    // ajusterSoldeCibleFiscale retirée le 04/11/2026 : plus aucun ajustement de solde par l'écran.
+    assert.equal(/function ajusterSoldeCibleFiscale\b/.test(POL), false);
   });
 
   console.log(echecs ? echecs + ' échec(s)' : 'Tous les cas passent.');

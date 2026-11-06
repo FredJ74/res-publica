@@ -1,0 +1,38 @@
+name: Installer Starovka hall, hotel et ferme
+on:
+  push:
+    branches: [feature/starovka-routes-hall-20261105]
+    paths:
+      - 'outils/images/installer_starovka_hall_routes_20261105.py'
+      - '.github/workflows/installer-starovka-routes-20261105.yml'
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Convert images and wire canonical navigation
+        run: python outils/images/installer_starovka_hall_routes_20261105.py
+      - name: Check source and run Starovka tests
+        run: |
+          node --check data.js
+          node --check plateau-rue-centrale.js
+          node --test outils/bancs/test-starovka-gare-port-20261105.mjs outils/bancs/test-starovka-hall-hotel-ferme-20261105.mjs
+          git diff --check
+      - name: Publish assets and navigation to feature branch
+        run: |
+          git add -A -- images/Sovarka/Starovka plateau-rue-centrale.js data.js migrations/20261105234500_starovka_gare_hotel_ferme.sql outils/bancs/test-starovka-gare-port-20261105.mjs outils/bancs/test-starovka-hall-hotel-ferme-20261105.mjs
+          git diff --cached --check
+          git diff --cached --quiet && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(starovka): raccordement gare hall hotel ferme et WebP'
+          git push origin HEAD:feature/starovka-routes-hall-20261105

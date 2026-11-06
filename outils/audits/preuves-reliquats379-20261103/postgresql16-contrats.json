@@ -1,0 +1,121 @@
+{
+  "production": false,
+  "moteur": "160002",
+  "icu": null,
+  "role": "authenticated, request.path /rpc/<fonction>, JWT fictifs",
+  "tests": [
+    {
+      "cas": "installation_rollback_rejeu_idempotence",
+      "ok": true
+    },
+    {
+      "cas": "impact_pop_serveur_une_fois",
+      "ok": true
+    },
+    {
+      "cas": "impact_inf_serveur_une_fois",
+      "ok": true
+    },
+    {
+      "cas": "impact_dis_serveur_une_fois",
+      "ok": true
+    },
+    {
+      "cas": "carte_plafond_expediteur_Paris_et_deux_acquittements",
+      "ok": true
+    },
+    {
+      "cas": "hp_set_PA0_et_declencheur_hospitalisation_existant",
+      "ok": true
+    },
+    {
+      "cas": "poison_details_conserves_sans_tirage_client",
+      "ok": true
+    },
+    {
+      "cas": "impact_invalide_inconnu5",
+      "ok": true
+    },
+    {
+      "cas": "impact_invalide_poison_start0",
+      "ok": true
+    },
+    {
+      "cas": "impact_invalide_hp_set101",
+      "ok": true
+    },
+    {
+      "cas": "impact_invalide_moral_carte_postale999",
+      "ok": true
+    },
+    {
+      "cas": "autre_identite_ne_consomme_pas",
+      "ok": true
+    },
+    {
+      "cas": "ancien_contrat_refuse_sans_effet_ni_marque",
+      "ok": true
+    },
+    {
+      "cas": "codetenu_refuse_par_commande_canonique_sans_paiement",
+      "ok": true
+    },
+    {
+      "cas": "subtilisation_succes_refus_jet_et_detection_PA_officiels",
+      "ok": true
+    },
+    {
+      "cas": "subtilisation_stock_vide_cout_tentative_preserve",
+      "ok": true
+    },
+    {
+      "cas": "subtilisation_hors_caserne_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "subtilisation_PA_insuffisants_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "panne_acquittement_annule_effet_impact",
+      "ok": true
+    },
+    {
+      "cas": "prevol_refuse_definition_serveur_inconnue",
+      "ok": true
+    },
+    {
+      "cas": "droits_nouveaux_contrats_authentifies_seulement",
+      "ok": true
+    },
+    {
+      "cas": "panne_depot_annule_PA_et_stock_dans_meme_transaction",
+      "ok": true
+    },
+    {
+      "cas": "impact_conserve_fraction_indice_historique",
+      "ok": true
+    },
+    {
+      "cas": "version_refusee_avant_mutation_impact_marquer_traite",
+      "ok": true
+    },
+    {
+      "cas": "version_refusee_avant_mutation_militaire_subtiliser_tenter",
+      "ok": true
+    },
+    {
+      "cas": "acquittements_concurrents_reponse_perdue_un_effet",
+      "ok": true
+    }
+  ],
+  "limites": [
+    "Géographie hospitalière simulée, déclencheur pa0 réel.",
+    "Pas un clone du catalogue vivant.",
+    "Un acquittement fictif committé pour la concurrence ; cluster détruit."
+  ],
+  "migrations": [
+    "20261102202046_subtilisation_reponse_serveur_versionnee.sql",
+    "20261102202047_impacts_consommation_serveur_atomique.sql"
+  ]
+}

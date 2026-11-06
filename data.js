@@ -16,7 +16,7 @@ const COUNTRIES = {
     bases:{INT:6,CHA:7,VOL:8,PER:8,DUP:8,ENT:5}
   },
   soviet: {
-    n:'Sovarka', col:'#cc4444', cur:'RP', icon:'ti-hammer',
+    n:'Sovarka', col:'#cc4444', cur:'PSK', icon:'ti-hammer',
     desc:'Parti unique en tension interne. Reformistes contre conservateurs.',
     tags:['Parti unique','Factions'],
     bases:{INT:8,CHA:6,VOL:9,PER:8,DUP:7,ENT:6}
@@ -315,7 +315,7 @@ const ORDRE_EQUIPEMENTS = {
   fn: 'installer_equipements',
   label: 'Installer des équipements',
   pa: 0, cost: 0, type: 'legal', icon: 'ti-tools', successRate: 100,
-  desc: 'Fonctionnalité en cours de développement.'
+  desc: 'Installer un ordinateur et une box internet dans ce bureau ; une fois connecté, trader des matières premières.'
 };
 
 /* Les quatre postes de l'Open Space du Centre d'Affaires de Luthecia.
@@ -734,7 +734,7 @@ const WORLD = {
       imageUrl:'images/port-sainte-marie.webp',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','phare-psm','marche-psm','musee-port-sainte-marie','pole-tabac-alcools-psm','entrepot-logistique-psm'],
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','terrain-a-batir-psm-12','terrain-a-batir-psm-13','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','phare-psm','marche-psm','musee-port-sainte-marie','pole-tabac-alcools-psm','entrepot-logistique-psm'],
       buildingContext: {
         // Rattrapage fonctionnel de la mairie de PSM (audit dedie, meme jour) : modele
         // structurel identique a celui deja utilise pour Montrouge (roomOverrides +
@@ -848,8 +848,7 @@ const WORLD = {
                 {fn:'consulter_caisse_usine', label:'Consulter la caisse', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, desc:'Voir le solde actuel de la caisse de la Scierie.'},
                 {fn:'consulter_stock_usine', label:'Consulter le stock', pa:0, cost:0, type:'legal', icon:'ti-boxes', successRate:100, desc:'Voir les matières premières et les produits finis actuellement détenus par la Scierie.'},
                 {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à la Scierie, depuis votre inventaire, le bois ou le minerai que vous avez achetés à l\'Entrepôt Logistique.'},
-                {fn:'fabriquer_armoire_souvenirs', label:'Fabriquer une Armoire à souvenirs', pa:3, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Consomme 2 bois + 2 minerai du stock de la Scierie. +1 Armoire disponible à la vente.'},
-                {fn:'acheter_armoire_souvenirs', label:'Acheter une Armoire à souvenirs', pa:0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'390 FR. Fabriquée par la Scierie Guy Tarembois. Encombrement : 3.'}
+                {fn:'consulter_catalogue_manufactures', label:'Catalogue des produits', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:'Consulter les articles de la Scierie, leurs stocks et tarifs ; choisir Produire ou Acheter pour chaque article.'}
               ]
             }
           }
@@ -970,10 +969,15 @@ const WORLD = {
         // Images propres a PSM pour le VRAI buildingId navigable 'commissariat-local' (template
         // partage avec Montrouge, BUILDINGS['commissariat-local']) -- roomOverrides uniquement
         // sur imageUrl, meme pattern que Montrouge (armurerie/centre-commercial ci-dessus) :
-        // ne touche jamais persons/orders de la base partagee, aucun impact sur Montrouge.
+        // Portrait d’accueil surchargé à PSM uniquement ; identité, métier et ordres conservés.
+        // La base partagée et les PNJ de Montrouge restent inchangés.
         'commissariat-local': {
           roomOverrides: {
-            accueil_loc: { imageUrl: "images/port-sainte-marie-commissariat-accueil.webp" },
+            accueil_loc: {
+              imageUrl: "images/port-sainte-marie-commissariat-accueil.webp",
+              persons: [{name:'Brigadier Local (PNJ)', role:'Officier de garde', rel:'neutral', job:'policier',
+                photoUrl:'images/port-sainte-marie-commissariat-brigadier-accueil.webp', photoPos:'50% 35%'}]
+            },
             // Loic Karamel (PNJ), lot du 24 aout 2026 : detenu decoratif, meme precedent exact
             // que Tristan Cabane (BUILDINGS['commissariat'].prison, Luthecia) -- job:'detenu'
             // deja utilise la, aucun nouveau job cree. Purement narratif, ne remplace pas les
@@ -1383,8 +1387,9 @@ const WORLD = {
         },
         // Images d'interieur (18 aout 2026, suite du chantier images Montrouge) : roomOverrides
         // couvre les rooms deja existantes (image seule, jamais persons/orders/mecanique).
-        // banque-locale recoit en plus une room roomsExtra "bureau_directeur" -- purement
-        // spatiale/visuelle (aucun ordre, aucun PNJ, aucune mecanique bancaire), meme principe
+        // banque-locale recoit en plus une room roomsExtra "bureau_directeur" : Robert Pelisson
+        // y tient le meme role de directeur que Marie Le Roux a PSM, sans ordre metier en plus.
+        // Seuls le casting et le dialogue changent, aucune mecanique bancaire, meme principe
         // deja etabli que 'imprimerie' (la-tribune) ou 'salle_elections'/'salle_archives'
         // (mairie) ci-dessus. L'override mort 'banque-nationale' (ligne 355, jamais atteignable
         // car absent de la liste "buildings" de Montrouge) est laisse tel quel, hors perimetre.
@@ -1399,7 +1404,9 @@ const WORLD = {
               imageBg: "linear-gradient(135deg,#0d0d08,#181808)",
               desc: "Le bureau du directeur de l'agence. Porte capitonnee, silence feutre.",
               imageUrl: "images/montrouge/montrouge-banque-bureau-directeur.jpg",
-              persons: [],
+              persons: [
+                {name:'Robert Pelisson (PNJ)', role:'Directeur de la Banque Cheminote de Montrouge', rel:'neutral', job:'directeur'}
+              ],
               orders: []
             }
           }
@@ -1737,17 +1744,69 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
           desc: "Toutes les chambres sont identiques. Olga Soupe gère la cantine avec efficacité soviétique.",
+          // Pas de suites a Novomirsk (decision de Fred, 04/11/2026) : elles sont au Pavillon des
+          // Ambassadeurs (vue 7), qui en a trois.
+          roomsExclues: ['suite_privee', 'suite_presidentielle'],
+          roomOverrides: { accueil: { excludeOrders: ['choisir_suite'] } },
           persons: [{"name": "Olga Soupe (PNJ)", "role": "Cantinière", "rel": "neutral", "job": "serveur"}, {"name": "Boris Betterave (PNJ)", "role": "Cuisinier", "rel": "neutral", "job": "serveur"}, {"name": "Natasha Privilege (PNJ)", "role": "Réservée aux cadres du Parti", "rel": "neutral", "job": "escort"}]
         },
         'commissariat': {
           name: "Commissariat du Peuple",
           desc: "Nadejda Formulaire remplit des rapports en triple exemplaire pour chaque incident.",
-          persons: [{"name": "Camarade Borodine (PNJ)", "role": "Commissaire du Peuple", "rel": "neutral", "job": "commissaire"}, {"name": "Nadejda Formulaire (PNJ)", "role": "Secrétaire", "rel": "neutral", "job": "inspecteur"}]
+          // Les pièces partagent les ordres et la logique du commissariat de Luthécia.
+          // Seules leurs images et leurs personnes présentes sont propres à Novomirsk.
+          roomOverrides: {
+            accueil_police: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Commissariat_acceuil.webp',
+              persons: [
+                {name:'Gardien de la Paix (PNJ)', role:'Sergent d’accueil', rel:'neutral', job:'gardien_paix'}
+              ]
+            },
+            prison: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_commissariat_geoles.webp'
+            },
+            bureau_commissaire: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_commissariat-bureau.webp',
+              persons: [
+                // Décision de Fred (06/11) : le commissaire seul, plus d'inspectrice.
+                {name:'Raoul Toufaud (PNJ)', role:'Commissaire de Novomirsk', rel:'neutral', job:'commissaire'}
+              ]
+            }
+          }
+        },
+        'office-notarial': {
+          roomOverrides: {
+            accueil_notaire: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_accueil.webp',
+              // Décision de Fred (06/11/2026) : à l'accueil, la secrétaire seule, sous le nom de l'ancienne
+              // clerc (Claire Delhune -> Klara Delounova par PNJ_SOVARKA) ; plus de clerc de notaire.
+              persons: [
+                {name:'Claire Delhune (PNJ)', role:'Secrétaire', rel:'neutral', job:'secretaire_notaire'}
+              ]
+            },
+            // Sovarka : la propriété privée n'existe pas (décisions de Fred, 06/11/2026, GAME-DESIGN-NOVOMIRSK.md).
+            // Plus de vente de terrain, de murs, de rachat ni de préemption : le notaire enregistre les
+            // attributions de droits d'exploiter décidées par le maire et les cessions entre PJ.
+            bureau_successions: {
+              persons: [
+                {name:'Claire Delhune (PNJ)', role:'Secrétaire', rel:'neutral', job:'secretaire_notaire'}
+              ]
+            },
+            bureau_contrats: {
+              excludeOrders: ['officialiser_transaction', 'commerces_fonds_murs', 'racheter_entreprise',
+                'acte_rachat_entreprise_preemption', 'transfert_compromis'],
+              orders: [
+                {fn:'sovarka_commerces_libres', label:'Commerces non attribués', pa:0, cost:0, type:'legal', icon:'ti-list-details', successRate:100, desc:'La liste des commerces et locaux que la mairie peut encore attribuer, dans les trois villes de Sovarka.'},
+                {fn:'sovarka_signer_attribution', label:'Signer une attribution', pa:1, cost:0, type:'legal', icon:'ti-signature', successRate:100, desc:'Signer le droit d\'exploiter que le maire vous a attribué. Pas de droit au bail : seul le loyer fixé par le maire est dû.'},
+                {fn:'sovarka_cession', label:'Céder ou reprendre un droit d\'exploiter', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, desc:'Le notaire enregistre la cession d\'un droit d\'exploiter d\'un PJ à un autre. Aucun prix officiel : l\'État possède tout, les arrangements se font entre vous.'}
+              ]
+            }
+          }
         },
         'tribunal': {
           name: 'Tribunal Populaire',
@@ -1811,6 +1870,11 @@ const WORLD = {
         'palais-gouvernement': {
           name: 'Siège du Comité Central',
           desc: 'Le vrai pouvoir de Sovarka. Chaque décision est votée à l\'unanimité — le Parti ne connaît pas le désaccord.',
+          roomOverrides: {
+            hall: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novo_palais_hall.webp'
+            }
+          },
           persons: []
         },
         'assemblee': {
@@ -1827,6 +1891,8 @@ const WORLD = {
           name: "Hall Principal",
           desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Camarade Horaire veille. Les trains arrivent à l\\'heure, c\\'est obligatoire.",
           persons: [{"name": "Camarade Horaire (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}, {"name": "Agente Nadejda (PNJ)", "role": "Agente de contrôle", "rel": "neutral", "job": "securite"}],
+          // La caserne de Sovarka est en ville (vues 11 et 12) : pas de taxi vers une caserne hors ville.
+          roomOverrides: { hall_gare: { excludeOrders: ['taxi_caserne'] } },
           rooms: {
           'hall_gare': {
             name: "Hall Principal — Gare Centrale du Peuple",
@@ -1844,11 +1910,9 @@ const WORLD = {
             persons: []
           }
           }
-        },        'commissariat': {
-          name: "Milice de Stalinova",
-          desc: "Très attentive aux comportements déviants.",
-          persons: [{"name": "Milicien Vigilant (PNJ)", "role": "Chef de milice", "rel": "neutral", "job": "commissaire"}]
         },
+        // L'ancien doublon « Milice de Stalinova » écrasait le Commissariat
+        // du Peuple de Novomirsk : supprimé pour garder la définition canonique.
         'banque-nationale': {
           name: "Caisse d'État de Stalinova",
           desc: "Transactions enregistrées en quadruple.",
@@ -1876,6 +1940,76 @@ const WORLD = {
           name: "Distribution Collective",
           desc: "Files organisées par ordre alphabétique.",
           persons: [{"name": "Distributeur Équitable (PNJ)", "role": "Distributeur", "rel": "neutral", "job": "commercant"}]
+        },
+        // Librairie du Peuple (vue 1, Place du Peuple) : copie de l'Imprimerie-Librairie Gutenberg
+        // de Port-Sainte-Marie (decision de Fred, 04/11/2026) -- memes pieces, memes ordres, meme
+        // caisse d'atelier dans batiments_etat (soviet_capitale_imprimerie-librairie). Libraire
+        // propre a Novomirsk, nom choisi par Fred (regle « pas de connexion entre les villes »).
+        // Images : aucune pour l'instant (imagesAVenir) ; Fred les generera une fois l'interface
+        // de chaque batiment en place. Les images de PSM ne sont pas empruntees.
+        'imprimerie-librairie': {
+          name: "Librairie du Peuple",
+          imagesAVenir: true,
+          desc: "La librairie du Parti, sur la Place du Peuple. On y imprime livres, brochures et tracts, sous l'oeil bienveillant du Comite.",
+          roomOverrides: {
+            accueil_imprimerie: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novo_librairie_accueil.webp',
+              persons: [{name: 'Ludmila Pamphletova (PNJ)', role: 'PNJ - Libraire-imprimeuse du Parti', rel: 'neutral', job: 'imprimeur', photoUrl: 'images/Sovarka/Novomirsk/Novo_ludmila_pamphletova_portrait.webp'}]
+            },
+            atelier: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novo_librairie_atelier.webp',
+              persons: [{name: 'Ouvrier typographe (PNJ)', role: 'PNJ - Typographe', rel: 'neutral', job: 'typographe', photoUrl: 'images/Sovarka/Novomirsk/Novo_typographe_portrait.webp'}]
+            }
+          },
+          persons: [{name: 'Ludmila Pamphletova (PNJ)', role: 'PNJ - Libraire-imprimeuse du Parti', rel: 'neutral', job: 'imprimeur'}]
+        },
+        // Restaurant La Mere Volga (vue 2) : copie du Capitaine Sauvage de PSM (decision de Fred,
+        // 04/11/2026 ; la carte sera retravaillee plus tard). Meme commerce du socle
+        // (commerces_types/commerces_dotations « capitaine-sauvage|salle_principale », entreprise
+        // brasserie-soviet-capitale-capitaine-sauvage-salle_principale creee par le serveur au
+        // premier acces). Serveuse propre a Novomirsk, nom choisi par Fred.
+        'capitaine-sauvage': {
+          name: "Restaurant La Mère Volga",
+          imagesAVenir: true,
+          desc: "La cantine de quartier du Prospekt du Peuple : nappes à carreaux, samovar fumant et portions réglementaires. La Mère Volga nourrit le prolétariat depuis trois plans quinquennaux.",
+          roomOverrides: {
+            salle_principale: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novo_restaurant_Volga.webp',
+              persons: [{name: 'Tatiana Bortchova (PNJ)', role: 'Responsable de salle', rel: 'neutral', job: 'serveur', photoUrl: 'images/Sovarka/Novomirsk/Novo_tatiana_bortchova_portrait.webp'}]
+            }
+          },
+          persons: [{name: 'Tatiana Bortchova (PNJ)', role: 'Serveuse', rel: 'neutral', job: 'serveur'}]
+        },
+        // Direction du Renseignement de Sovarka (vue 8) : le Siege du renseignement militaire du
+        // socle (BUILDINGS['siege-renseignement'], decision de Fred du 05/11/2026), habille pour
+        // Novomirsk. Planton nomme par Fred : le Sergent Viktor Muetov, qui accueille froidement.
+        'siege-renseignement': {
+          name: "Direction du Renseignement de Sovarka",
+          imagesAVenir: true,
+          desc: "Un bloc de béton sans enseigne, aux fenêtres opaques. Chacun à Novomirsk sait ce qu'il abrite ; personne n'en parle à voix haute.",
+          persons: [{name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'}]
+        },
+        // Caserne centrale de Novomirsk (vues 11 et 12) : la caserne du socle (BUILDINGS['caserne-militaire']),
+        // memes pieces, memes ordres et memes fonctions serveur qu'en Republia, mais EN VILLE : en Sovarka la
+        // caserne n'est pas une zone hors ville (decision de Fred, 05/11/2026 ; migration 20261105200100).
+        // PNJ propres a Novomirsk, noms valides par Fred le 05/11 (regle « pas de connexion entre les villes ») ;
+        // l'armurier et l'archiviste restent anonymes. Images a venir.
+        'caserne-militaire': {
+          name: "Caserne centrale de Novomirsk",
+          imagesAVenir: true,
+          desc: "La caserne centrale de l'Armée populaire de Sovarka, en plein cœur de Novomirsk. Deux portails, des sentinelles qui ne cillent pas, et l'étoile rouge repeinte chaque printemps.",
+          roomOverrides: {
+            corps_garde: { persons: [{name: 'Adjudant Piotr Galonov (PNJ)', role: 'PNJ - Aide de camp', rel: 'friendly', job: 'aide_de_camp', profilId: 'piotr_galonov'}] },
+            infirmerie: { persons: [{name: 'Infirmière Olga Pansementova (PNJ)', role: 'PNJ - Infirmière militaire', rel: 'neutral', job: 'infirmier_mil', profilId: 'olga_pansementova'}] },
+            salle_commandement: { persons: [{name: 'Commandant Igor Bataillov', role: 'PNJ - Commandant de la Caserne', rel: 'neutral',
+              job: 'commandant', resteApresPourvoi: true,
+              roleSiPnjTitulaire: 'PNJ - Commandant de la Caserne',
+              roleSiPjTitulaire:  'PNJ - Commandant adjoint'}] },
+            refectoire: { persons: [{name: 'Caporal Vassili Kachaev', role: 'Cuisinier de compagnie', rel: 'friendly', job: 'cuistot_mil', profilId: 'vassili_kachaev'}] },
+            quartier_troupes: { persons: [
+              {name: 'Caporal Dimitri Corvéev (PNJ)', role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'},
+              {name: 'Soldat Sacha Gamelline (PNJ)',  role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'}] }
+          }
         }
       }
     },
@@ -1884,8 +2018,20 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1483664852095-d6cc6870702d?w=1200&q=80',
       desc:'Ville miniere glaciale aux confins de l\'empire. Le froid mord, le charbon manque rarement.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production','entrepot-logistique-starovka','port-starovka'],
       buildingContext: {
+        'centre-multinodal-montrouge': {
+          name: "Gare de Starovka",
+          desc: "Gare ferroviaire de la ville portuaire de Starovka.",
+          roomOverrides: {
+            hall_gare_montrouge: {
+              name: "Hall de la gare de Starovka",
+              desc: "Un hall chauffé par un poêle, avec son guichet et ses voyageurs.",
+              imageUrl: "images/Sovarka/Starovka/Starovka_gare_hall.webp",
+              personsVides: true
+            }
+          }
+        },
         'hotel-republica': {
           name: "Baraquement Sibirsk-9",
           desc: "Le poele central chauffe a peine la piece la plus proche.",
@@ -1923,17 +2069,36 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
       desc:'Le kolkhoze collectif numéro 7. Production agricole pour la gloire du Parti.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','stade','zone-production'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','stade','zone-production','entrepot-logistique-krasnov','station-service-krasnov'],
       buildingContext: {
+        // Krasnov conserve les ordres de transport du socle, mais possède son propre hall.
+        'centre-multinodal-montrouge': {
+          name: "Gare de Krasnov",
+          desc: "La gare du kolkhoze, avec sa salle d'attente et sa billetterie.",
+          roomOverrides: {
+            hall_gare_montrouge: {
+              name: "Hall de la gare de Krasnov",
+              desc: "Une gare soviétique modeste : guichet, bancs de bois, horaires et accès aux quais.",
+              imageUrl: "images/Sovarka/Krasnov/Krasnov_gare_hall.webp",
+              personsVides: true
+            }
+          }
+        },
         'hotel-republica': {
           name: "Baraquement Collectif N°7",
           desc: "Le logement collectif du kolkhoze. Confort spartiate garanti.",
           persons: [{"name": "Responsable Logement (PNJ)", "role": "Responsable", "rel": "neutral", "job": "serveur"}]
         },
-        'commissariat': {
-          name: "Surveillance du Kolkhoze",
-          desc: "Il note tout dans son carnet.",
-          persons: [{"name": "Agent Surveillance (PNJ)", "role": "Agent", "rel": "neutral", "job": "commissaire"}]
+        // Le commissariat de Krasnov hérite intégralement des pièces et ordres
+        // du commissariat-local commun à Montrouge et Port-Sainte-Marie.
+        'commissariat-local': {
+          name: "Commissariat de Krasnov",
+          desc: "La police locale de Krasnov, installée face au stade."
+        },
+        // Mêmes six pièces et tous les ordres sportifs du gabarit stade partagé.
+        'stade': {
+          name: "Stade Étoile Rouge de Krasnov",
+          desc: "Le stade de football de Krasnov, face au commissariat."
         },
         'banque-nationale': {
           name: "Caisse Kolkhozienne",
@@ -1957,6 +2122,10 @@ const WORLD = {
         }
       }
     },
+    // ZONE HISTORIQUE, PLUS DESSERVIE. En Sovarka la caserne est a Novomirsk (vues 11 et 12, decision de
+    // Fred du 05/11/2026) : le serveur n'y declare plus de caserne (migration 20261105200100) et le taxi
+    // vers la caserne est retire du Centre multimodal de Novomirsk. L'entree reste ici parce que la
+    // reference historique de navigation (outils/generateurs/navigation-lieux.cjs) en garde les octets.
     caserne: {
       name:'Garnison du Peuple',
       imageUrl:'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=1200&q=80',
@@ -3344,8 +3513,8 @@ const BUILDINGS = {
         orders: [
           {fn:'gerer_finances', label:'Gérer mon compte / mes placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},
           {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
-          {fn:'virement_joueur', label:'Faire un virement', pa:1, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:"Virer de l'argent de votre compte vers celui d'un autre joueur, en une fois."},
-          {fn:'virement_automatique', label:'Mettre en place un virement automatique', pa:1, cost:0, type:'legal', icon:'ti-repeat', successRate:100, desc:"Verser chaque jour ou chaque semaine une somme à un autre joueur (un salaire, par exemple). Il s'arrête à tout moment depuis votre fiche."},
+          // Sous-menu de navigation gratuit ; chacune des deux operations conserve son debit serveur de 1 PA.
+          {fn:'virements', label:'Virements', pa:0, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:'Choisir un virement unique ou un virement récurrent (1 PA lors de sa confirmation).'},
           {fn:'presenter_autorisation_coffre', label:'Présenter une autorisation judiciaire', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Accéder à un coffre grâce à une autorisation du juge.'}
         ]
       },
@@ -4149,6 +4318,112 @@ const BUILDINGS = {
       }
     }
   },
+  // Musee municipal de Novomirsk (vue 2) : copie du musee de Port-Sainte-Marie (decision de Fred,
+  // 04/11/2026) -- pantheon de la ville, memes salles et meme ordre generique ; figures historiques
+  // ecrites par Claude a la relecture de Fred (MUSEE_PROVINCE_PERSONNALITES, plateau-musee-
+  // personnalites.js), Salle des Plumes laissee aux joueurs. PNJ propres a Novomirsk, noms choisis
+  // par Fred. Aucune image ni audioguide pour l'instant : Fred generera les images ensuite.
+  'musee-novomirsk': {
+    name: "Musée municipal de Novomirsk",
+    shortName: "Musée",
+    cat: "Culture",
+    icon: "ti-building-monument",
+    bgColor: "#1c160c",
+    desc: "Le musée de l'histoire de Novomirsk et de ses grandes figures. Chaque salle immortalise une catégorie de Novomirskois célèbres, pour le meilleur et pour le pire, selon la version en vigueur.",
+    rooms: {
+      hall: {
+        name: "Hall d'accueil",
+        imageUrl: "images/Sovarka/Novomirsk/Novo_musee_municipal_hall.webp",
+        imageBg: "linear-gradient(135deg,#1c160c,#241c10)",
+        desc: "Le hall d'accueil du musée. Sol en granit du Parti, maquette du premier tracteur de la ville, registre des visiteurs à remplir en trois exemplaires. Irina Guichetova tient l'accueil ; le Docteur Lev Patrimonov, conservateur, veille sur les collections.",
+        persons: [
+          {name:'Irina Guichetova (PNJ)', role:'PNJ - Accueil du musée', rel:'neutral', job:'hotesse', photoUrl:'images/Sovarka/Novomirsk/Novo_irina_guichetova_portrait.webp'},
+          {name:'Docteur Lev Patrimonov (PNJ)', role:'PNJ - Conservateur du musée', rel:'neutral', job:'conservateur', photoUrl:'images/Sovarka/Novomirsk/Novo_lev_patrimonov_portrait.webp'},
+          {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'}
+        ],
+        orders: []
+      },
+      salle_criminels: {
+        name: "Salle des Grands Criminels Novomirskois",
+        imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
+        desc: "Portraits et dossiers des ennemis du peuple les plus tristement célèbres de Novomirsk. Les dossiers sont complets ; les aveux aussi.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_maires: {
+        name: "Salle des Présidents du Soviet municipal",
+        imageBg: "linear-gradient(135deg,#14120c,#1e1a10)",
+        desc: "Les maires de Novomirsk, que l'on appelle ici présidents du Soviet municipal. Certains portraits ont été repeints, d'autres retirés puis raccrochés.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_personnalites: {
+        name: "Salle des Héros du Peuple",
+        imageBg: "linear-gradient(135deg,#10141a,#161c24)",
+        desc: "Les figures les plus aimées de la ville, toutes générations confondues — du moins celles dont l'amour a été officiellement constaté.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_entrepreneurs: {
+        name: "Salle des Grands Bâtisseurs de la Production",
+        imageBg: "linear-gradient(135deg,#121410,#1a1e16)",
+        desc: "Directeurs de kombinat, stakhanovistes et inventeurs : ceux qui ont dépassé le Plan, ou l'ont fait croire.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_organisations: {
+        name: "Salle des Organisations Novomirskoises",
+        imageBg: "linear-gradient(135deg,#140c14,#1e141e)",
+        desc: "Le Parti, les syndicats, les cultes et les clubs de la ville, à travers leurs plus grands représentants.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_plumes: {
+        name: "Salle des Plumes Novomirskoises",
+        imageBg: "linear-gradient(135deg,#181018,#221824)",
+        desc: "Les plus belles diatribes, lettres ouvertes et autocritiques qui ont marqué la vie forumiale de Novomirsk. Contenu à venir.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        orders: []
+      },
+      salle_honneur_militaire: {
+        name: "Salle d'Honneur Militaire",
+        imageBg: "linear-gradient(135deg,#141410,#201f18)",
+        desc: "Les faits d'armes et les soldats les plus décorés originaires de Novomirsk. Il y a beaucoup de médailles, et presque autant de soldats.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_unions: {
+        name: "Salle des Unions Célèbres",
+        imageBg: "linear-gradient(135deg,#1c1414,#281c1c)",
+        desc: "Les mariages et alliances les plus marquants de l'histoire de la ville, certains autorisés par le Comité.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      },
+      salle_scandales: {
+        name: "Salle des Scandales et Affaires",
+        imageBg: "linear-gradient(135deg,#100c10,#181018)",
+        desc: "Les grandes crises politiques et affaires qui ont secoué Novomirsk. La plupart n'ont officiellement jamais eu lieu.",
+        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
+      }
+    }
+  },
 
   // =====================
   // V28A — CENTRES COMMERCIAUX / ARTISANAUX / AFFAIRES
@@ -4677,14 +4952,46 @@ const BUILDINGS = {
   'services-sociaux-montrouge': {
     name: 'Services Sociaux de Montrouge', shortName: 'S.S.M.', cat: 'Administration',
     icon: 'ti-building-community', bgColor: '#16191c',
-    desc: 'Le service social municipal de Montrouge.',
-    rooms: { accueil: { name: 'Accueil', desc: 'Le hall des Services Sociaux de Montrouge. Les services seront détaillés ultérieurement.', imageBg: 'linear-gradient(135deg,#16191c,#25292e)', persons: [], orders: [] } }
+    desc: 'Le service social municipal de Montrouge. Accueil, écoute et accompagnement des habitants.',
+    rooms: {
+      accueil: {
+        name: 'Accueil',
+        desc: 'Un hall accueillant, avec une banque de réception, des brochures et une salle d’attente. Pascale oriente les visiteurs vers les services sociaux.',
+        imageUrl: 'images/montrouge/montrouge-ssm-accueil.png',
+        imageBg: 'linear-gradient(135deg,#403026,#8b6547)',
+        persons: [{name:'Pascale (PNJ)', role:'Agente d’accueil des services sociaux', rel:'neutral', job:'citoyen', photoUrl:'images/personnages/pascale-ssm-portrait.webp'}],
+        orders: [
+          {fn:'ssm_besoin_aide', label:'Besoin d’aide ?', pa:0, cost:0, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Pascale vous oriente gratuitement vers les services existants, sans rendez-vous.'},
+          {fn:'ssm_demander_rendezvous', label:'Prendre rendez-vous avec Edwige Jacquard', pa:0, cost:0, type:'legal', icon:'ti-calendar-event', successRate:100, desc:'Pascale vous fixe un rendez-vous pour le lendemain et vous envoie immédiatement un courrier. Le bureau est accessible toute la journée prévue.'}
+        ]
+      },
+      bureau_assistante_sociale: {
+        name: 'Bureau de l’assistante sociale',
+        desc: 'Un bureau simple, entouré de dossiers et de plantes. Edwige Jacquard reçoit les habitants avec discrétion et bienveillance.',
+        imageUrl: 'images/montrouge/montrouge-ssm-bureau.png',
+        imageBg: 'linear-gradient(135deg,#403026,#8b6547)',
+        persons: [{name:'Edwige Jacquard (PNJ)', role:'Assistante sociale', rel:'neutral', job:'citoyen'}],
+        orders: [
+          {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Même demande que chez l’adjoint au maire : réservée aux résidents officiels de Montrouge. L’adjoint décide de l’attribution ; Edwige accompagne le dépôt pendant votre rendez-vous."}
+        ]
+      }
+    }
   },
   'parking-tribunal-montrouge': {
     name: 'Parking du tribunal', shortName: 'Parking', cat: 'Services',
     icon: 'ti-parking', bgColor: '#181b20',
     desc: 'Le parking couvert à droite du tribunal.',
-    rooms: { accueil: { name: 'Parking couvert', desc: 'Le parking du tribunal de Montrouge. Aucun service supplémentaire pour le moment.', imageBg: 'linear-gradient(135deg,#181b20,#30343a)', persons: [], orders: [] } }
+    rooms: { accueil: {
+      name: 'Parking couvert',
+      desc: 'Un parking couvert à plusieurs niveaux, sous les poutrelles métalliques, près du tribunal de Montrouge.',
+      imageUrl: 'images/montrouge/montrouge-parking.webp',
+      imageBg: 'linear-gradient(135deg,#181b20,#30343a)',
+      persons: [
+        {name:'Jean Tarte', role:'Agent de sécurité', rel:'neutral', job:'agent_securite', photoUrl:'images/personnages/jean-tarte.webp'},
+        {name:'Basile Decoq', role:'Dealer', rel:'neutral', job:'criminel', photoUrl:'images/personnages/basile-decoq.webp'}
+      ],
+      orders: []
+    } }
   },
 
   'siege-syndical': {
@@ -4800,8 +5107,8 @@ const BUILDINGS = {
         orders: [
           {fn:'gerer_finances', label:'Gérer mon compte / mes placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},
           {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
-          {fn:'virement_joueur', label:'Faire un virement', pa:1, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:"Virer de l'argent de votre compte vers celui d'un autre joueur, en une fois."},
-          {fn:'virement_automatique', label:'Mettre en place un virement automatique', pa:1, cost:0, type:'legal', icon:'ti-repeat', successRate:100, desc:"Verser chaque jour ou chaque semaine une somme à un autre joueur (un salaire, par exemple). Il s'arrête à tout moment depuis votre fiche."}
+          // Sous-menu de navigation gratuit ; chacune des deux operations conserve son debit serveur de 1 PA.
+          {fn:'virements', label:'Virements', pa:0, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:'Choisir un virement unique ou un virement récurrent (1 PA lors de sa confirmation).'}
         ]
       }
     }
@@ -5272,7 +5579,9 @@ const BUILDINGS = {
         desc: "L'entree du chantier naval de Port-Sainte-Marie, entre coques en reparation et bateaux en cale.",
         imageUrl: "images/hall-chantier-naval-psm.webp",
         persons: [],
-        orders: []
+        orders: [
+          {fn:'consulter_devis_chantier_naval', label:'Consulter les devis des bateaux', pa:0, cost:0, type:'legal', icon:'ti-ship', successRate:100, desc:'Deux modèles et stocks réels de bois, métal et dérivés pétrochimiques. Consultation gratuite.'}
+        ]
       },
       bureau: {
         name: "Bureau",
@@ -5282,7 +5591,9 @@ const BUILDINGS = {
         persons: [
           {name:'Pierrick Le Roux (PNJ)', role:'PNJ - Chef d\'entreprise du Chantier Naval', rel:'neutral', job:'chef_entreprise', photoUrl:'images/bureau-chantier-naval-psm.webp', photoPos:'62% 22%'}
         ],
-        orders: []
+        orders: [
+          {fn:'consulter_devis_chantier_naval', label:'Consulter les devis des bateaux', pa:0, cost:0, type:'legal', icon:'ti-ship', successRate:100, desc:'Deux modèles et stocks réels de bois, métal et dérivés pétrochimiques. Consultation gratuite.'}
+        ]
       }
     }
   },
@@ -5429,11 +5740,11 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        desc: "Terrain de 1 650 m² a Port-Sainte-Marie.",
         imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (1 650 m² — 19 800 FR)', pa:2, cost:19800, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
@@ -5452,11 +5763,11 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        desc: "Terrain de 2 200 m² a Port-Sainte-Marie.",
         imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (2 200 m² — 26 400 FR)', pa:2, cost:26400, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
@@ -5475,11 +5786,60 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        desc: "Terrain de 3 100 m² a Port-Sainte-Marie.",
         imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (3 100 m² — 37 200 FR)', pa:2, cost:37200, type:'legal', icon:'ti-home-plus', successRate:100},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
+        ]
+      }
+    }
+  },
+  // Lots 12 et 13 de Port-Sainte-Marie (decision de Fred, 04/11/2026 : six parcelles, 1500, 1650,
+  // 2200, 3100, 4200 et 5500 m², 12 FR/m²). Id scopes 'terrain-a-batir-psm-N' pour eviter toute
+  // collision avec les id generiques deja pris par d'autres villes (meme choix qu'a Montrouge).
+  'terrain-a-batir-psm-12': {
+    name: "Terrain a batir - Lot 12",
+    shortName: "Terrain Lot 12",
+    cat: "Immobilier",
+    icon: "ti-fence",
+    bgColor: "#0a0a05",
+    desc: "Terrain a Port-Sainte-Marie.",
+    rooms: {
+      terrain: {
+        name: "Terrain",
+        image: "\ud83c\udfd7\ufe0f",
+        imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
+        desc: "Terrain de 4 200 m² a Port-Sainte-Marie.",
+        imageUrl: "images/terrain-a-vendre-republic.webp",
+        persons: [],
+        orders: [
+          {fn:'acheter_terrain', label:'Acheter ce terrain (4 200 m² — 50 400 FR)', pa:2, cost:50400, type:'legal', icon:'ti-home-plus', successRate:100},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
+        ]
+      }
+    }
+  },
+  'terrain-a-batir-psm-13': {
+    name: "Terrain a batir - Lot 13",
+    shortName: "Terrain Lot 13",
+    cat: "Immobilier",
+    icon: "ti-fence",
+    bgColor: "#0a0a05",
+    desc: "Terrain a Port-Sainte-Marie.",
+    rooms: {
+      terrain: {
+        name: "Terrain",
+        image: "\ud83c\udfd7\ufe0f",
+        imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
+        desc: "Terrain de 5 500 m² a Port-Sainte-Marie.",
+        imageUrl: "images/terrain-a-vendre-republic.webp",
+        persons: [],
+        orders: [
+          {fn:'acheter_terrain', label:'Acheter ce terrain (5 500 m² — 66 000 FR)', pa:2, cost:66000, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
@@ -5700,7 +6060,6 @@ const BUILDINGS = {
           // Aucune mecanique de recompletement n'est recreee ici. Sa ligne du miroir des couts
           // ('recruter_section',2,0) est retiree dans la meme passe : plus aucun appelant.
           {fn:'gerer_detachement',   label:'Gérer mon détachement',      pa:0, cost:0,    type:'legal',   icon:'ti-users',         successRate:100, requiresPost:'lieutenant', desc:'Deposer ou recuperer des soldats dans cette piece.'},
-          {fn:'assigner_mission',    label:'Attribuer une mission',      pa:1, cost:0,    type:'legal',   icon:'ti-target',        successRate:100, requiresPost:'lieutenant', desc:'Donner une consigne au detachement present dans cette piece.'},
           {fn:'voir_ma_section',     label:'Voir ma section',            pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, requiresPost:'lieutenant', desc:'Fiche individuelle de vos 24 soldats (matricule, formation, equipement).'},
           {fn:'entrainer_section',   label:'Entrainer la section',       pa:0, cost:0,    type:'legal',   icon:'ti-barbell',       successRate:100, requiresPost:'lieutenant', desc:'Combat rapproche, Tir, Reconnaissance ou Secourisme. 12 soldats max par seance. 6 PA pour vous et 6 PA par soldat, preleves par le serveur.'},
           // REPOS QUOTIDIEN (23 septembre 2026). Place juste apres l'entrainement, parce que c'est
@@ -6198,6 +6557,529 @@ const BUILDINGS = {
     }
   },
 
+  // Palais des Ambassades de Novomirsk (vue 6) : copie du Quartier des Ambassades de Luthecia
+  // (decision de Fred, 04/11/2026), batiment distinct pour ne pas heriter des portes et des
+  // controles d'acces de Luthecia, qui raisonnent sur les ambassades ouvertes EN REPUBLIA.
+  // Les ambassades relevent des liens entre empires : tous les ordres sont « Bientot disponible »
+  // (grises, aucun appel) jusqu'au voyage entre empires. Bureaux de Republia, d'Al-Khalija et
+  // d'El Estado ; ambassadeurs nommes par Fred. Images a venir.
+  'palais-ambassades-novomirsk': {
+    name: "Palais des Ambassades",
+    shortName: "Ambassades",
+    cat: "Diplomatie",
+    icon: "ti-flag",
+    bgColor: "#12100a",
+    desc: "Le quartier diplomatique de Novomirsk. Trois bureaux réservés aux ambassadeurs étrangers, sous la surveillance discrète mais constante du Parti.",
+    rooms: {
+      accueil_ambassades_novomirsk: {
+        name: "Accueil du Palais des Ambassades",
+        imageBg: "linear-gradient(135deg,#12100a,#1a1610)",
+        desc: "Le hall d'accueil du palais diplomatique. Trois bureaux d'ambassadeurs, un portrait officiel par mur, et un employé du Parti qui note les allées et venues.",
+        persons: [
+          {name:'Hôtesse d\'Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse'},
+          {name:'Agent de Sécurité (PNJ)', role:'PNJ - Sécurité', rel:'neutral', job:'agent_securite'}
+        ],
+        orders: [
+          {fn:'demander_audience_ambassadeur', label:'Demander audience à l\'ambassadeur', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:100, desc:'Solliciter une audience. La réponse arrive par courrier ; une audience accordée ouvre le bureau de l\'ambassadeur pendant 48 heures.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'demander_asile_politique', label:'Demander l\'asile politique', pa:2, cost:0, type:'legal', icon:'ti-shield-check', successRate:100, desc:'Déposer une demande d\'asile auprès d\'une ambassade. Réponse par courrier ; un réfugié ne peut pas être arrêté tant qu\'il reste au Palais des Ambassades.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'reserver_salle_reception', label:'Réserver la Salle de Réception', pa:1, cost:0, type:'legal', icon:'ti-calendar-event', successRate:100, desc:'Réserver la salle pour aujourd\'hui (réservé aux ambassadeurs en poste ici).', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+        ]
+      },
+      salle_reception: {
+        name: "Salle de Réception",
+        imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
+        desc: "Une salle commune aux trois ambassades, réservée aux réceptions diplomatiques organisées par les ambassadeurs.",
+        persons: [],
+        orders: []
+      },
+      bureau_republia_novomirsk: {
+        name: "Ambassade de Républia",
+        imageBg: "linear-gradient(135deg,#10141c,#161c26)",
+        desc: "Le bureau de l'ambassadeur de Républia. On n'y est reçu que sur audience, demandée à l'accueil.",
+        persons: [{name:'Hubert de La Courtoisie (PNJ)', role:"Ambassadeur de Républia", rel:'neutral', job:'ambassadeur'}],
+        orders: [
+          {fn:'relations_bilaterales', label:'Consulter les relations bilatérales', pa:0, cost:0, type:'legal', icon:'ti-file-analytics', successRate:100, desc:'État des relations avec Républia.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, desc:'Réserver la Salle de Réception commune.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'financer_oeuvre_culturelle', label:'Financer une œuvre culturelle', pa:1, cost:600, type:'legal', icon:'ti-palette', successRate:100, desc:'Soft power local.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'demander_transfert_detenu', label:'Demander le transfert d\'un détenu', pa:1, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+        ]
+      },
+      bureau_khalija_novomirsk: {
+        name: "Ambassade d'Al-Khalija",
+        imageBg: "linear-gradient(135deg,#1a160c,#241e10)",
+        desc: "Le bureau de l'ambassadeur d'Al-Khalija. On n'y est reçu que sur audience, demandée à l'accueil.",
+        persons: [{name:'Cheikh Rachid Al-Diplomi (PNJ)', role:"Ambassadeur d'Al-Khalija", rel:'neutral', job:'ambassadeur'}],
+        orders: [
+          {fn:'relations_bilaterales', label:'Consulter les relations bilatérales', pa:0, cost:0, type:'legal', icon:'ti-file-analytics', successRate:100, desc:'État des relations avec Al-Khalija.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, desc:'Réserver la Salle de Réception commune.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'financer_oeuvre_culturelle', label:'Financer une œuvre culturelle', pa:1, cost:600, type:'legal', icon:'ti-palette', successRate:100, desc:'Soft power local.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'demander_transfert_detenu', label:'Demander le transfert d\'un détenu', pa:1, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+        ]
+      },
+      bureau_estado_novomirsk: {
+        name: "Ambassade d'El Estado",
+        imageBg: "linear-gradient(135deg,#1a0e0c,#241410)",
+        desc: "Le bureau de l'ambassadeur d'El Estado. On n'y est reçu que sur audience, demandée à l'accueil.",
+        persons: [{name:'Don Esteban Cortesano (PNJ)', role:"Ambassadeur d'El Estado", rel:'neutral', job:'ambassadeur'}],
+        orders: [
+          {fn:'relations_bilaterales', label:'Consulter les relations bilatérales', pa:0, cost:0, type:'legal', icon:'ti-file-analytics', successRate:100, desc:'État des relations avec El Estado.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, desc:'Réserver la Salle de Réception commune.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'financer_oeuvre_culturelle', label:'Financer une œuvre culturelle', pa:1, cost:600, type:'legal', icon:'ti-palette', successRate:100, desc:'Soft power local.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'demander_transfert_detenu', label:'Demander le transfert d\'un détenu', pa:1, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+        ]
+      }
+    }
+  },
+  // Pavillon des Ambassadeurs de Novomirsk (vue 7) : appartements de luxe, pas specialement reserves
+  // aux ambassadeurs -- l'equivalent des suites de l'hotel Republica a Luthecia (decisions de Fred,
+  // 04/11/2026). Trois suites louables (Suite Privee et Suite Presidentielle reprises a l'identique,
+  // Suite du Parti +10 POP +6 INF +2 DIS), une grande salle de reception (copie de celle des
+  // ambassadeurs, sans ordre) et un bar (copie du Bar du Republica, commerce 'bar' propre au
+  // Pavillon). Maitre d'hotel et serveuse facon traiteur nommes par Fred. Images a venir.
+  // « Organiser une rencontre piege » n'est pas repris : aucune agence d'escorts a Novomirsk.
+  'pavillon-ambassadeurs-novomirsk': {
+    name: "Pavillon des Ambassadeurs",
+    shortName: "Pavillon",
+    cat: "Hôtellerie",
+    icon: "ti-crown",
+    bgColor: "#1a0d10",
+    desc: "Les appartements de luxe de la Place de la Grande Église. On y loge les ambassadeurs, les cadres du Parti et tous ceux qui peuvent payer pour en avoir l'air.",
+    rooms: {
+      hall_pavillon: {
+        name: "Hall du Pavillon",
+        imageBg: "linear-gradient(135deg,#1a0d10,#241218)",
+        desc: "Marbre rouge, lustres de cristal et tapis épais. Arkadi Discretov, le maître d'hôtel, accueille les résidents et ne retient jamais un visage — officiellement.",
+        persons: [
+          {name:'Arkadi Discretov (PNJ)', role:'Maître d\'hôtel', rel:'neutral', job:'hotesse'}
+        ],
+        orders: []
+      },
+      salle_reception: {
+        name: "Grande Salle de Réception",
+        imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
+        desc: "Une grande salle de réception sous verrière, où l'on donne les dîners officiels et les réceptions qui le sont moins.",
+        persons: [],
+        orders: []
+      },
+      bar: {
+        name: "Bar",
+        imageBg: "linear-gradient(135deg,#120d05,#1e1508)",
+        desc: "Le bar du Pavillon. Petits fours, vodka glacée et conversations à voix basse : Lena Glaçonova sert comme un traiteur de réception, et entend tout.",
+        persons: [
+          {name:'Lena Glaçonova (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur'}
+        ],
+        orders: [
+          {fn:'ecouter_rumeurs', label:'Écouter la serveuse', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:90, desc:'La serveuse entend tout. Révèle une rumeur vraie ou générée selon le contexte.', sourceOverride:'Lena'},
+          {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'},
+          {fn:'produire_commerce', label:'Préparer les consommations', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
+          {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 FR par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'},
+          {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
+        ]
+      },
+      suite_privee: {
+        name: "Suite Privée — Local à louer",
+        imageBg: "linear-gradient(135deg,#1a0d10,#250f18)",
+        desc: "📋 À LOUER — Suite luxueuse et très discrète. On y reçoit une clientèle triée sur le volet. Informations exclusives garanties.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 0, bonusINF: 8, bonusDIS: 10, label: 'Suite Privée', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite luxueuse et très discrète. +8 INF +10 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      suite_presidentielle: {
+        name: "Suite Présidentielle — Local à louer",
+        imageBg: "linear-gradient(135deg,#181008,#20140a)",
+        desc: "📋 À LOUER — Suite d'apparat, vue sur la Grande Église du Tractorisme. Le nec plus ultra pour recevoir en grande pompe.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 8, bonusINF: 8, bonusDIS: 2, label: 'Suite Présidentielle', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat. +8 POP +8 INF +2 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      suite_parti: {
+        name: "Suite du Parti — Local à louer",
+        imageBg: "linear-gradient(135deg,#200a0a,#2a1010)",
+        desc: "📋 À LOUER — Suite d'apparat aux tentures rouges, où l'on se montre. Le portrait du Secrétaire général veille sur chaque réception.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 10, bonusINF: 6, bonusDIS: 2, label: 'Suite du Parti', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat où l\'on se montre. +10 POP +6 INF +2 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      }
+    }
+  },
+  // Residence imperiale de Novomirsk (vue 7) : logements de prestige louables comme les suites du
+  // Pavillon (decisions de Fred, 04/11/2026) -- quatre appartements a 500/jour (+4 POP +4 INF +4 DIS)
+  // et un grand appartement a 1 200/jour (+15 POP +15 INF +5 DIS). Images a venir.
+  'residence-imperiale-novomirsk': {
+    name: "Résidence impériale",
+    shortName: "Résidence",
+    cat: "Logement",
+    icon: "ti-building-castle",
+    bgColor: "#16120c",
+    desc: "L'ancienne résidence de la cour impériale, nationalisée puis découpée en appartements de prestige. Le Parti y loge ceux qu'il veut récompenser, et ceux qui peuvent payer.",
+    rooms: {
+      hall_residence: {
+        name: "Hall de la Résidence",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "Un escalier d'honneur à double révolution, des aigles impériaux martelés et repeints en étoiles rouges. Le gardien note chaque visiteur dans un registre.",
+        persons: [
+          {name:'Gardien de la Résidence (PNJ)', role:'PNJ - Gardien', rel:'neutral', job:'gardien'}
+        ],
+        orders: []
+      },
+      appartement_1: {
+        name: "Appartement n°1 — Local à louer",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°1', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      appartement_2: {
+        name: "Appartement n°2 — Local à louer",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°2', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      appartement_3: {
+        name: "Appartement n°3 — Local à louer",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°3', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      appartement_4: {
+        name: "Appartement n°4 — Local à louer",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°4', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      grand_appartement: {
+        name: "Grand Appartement impérial — Local à louer",
+        imageBg: "linear-gradient(135deg,#1e1608,#2a1e0a)",
+        desc: "📋 À LOUER — Les anciens appartements de l'impératrice : enfilade de salons, dorures d'origine, balcon sur la Place de la Grande Église. Un seul locataire, très convoité.",
+        isLocationRoom: true,
+        locationData: { prix: 1200, bonusPOP: 15, bonusINF: 15, bonusDIS: 5, label: 'Grand Appartement impérial', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet appartement (1200 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Les anciens appartements de l\'impératrice. +15 POP +15 INF +5 DIS à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      }
+    }
+  },
+  // GARAGE DE NOVOMIRSK (vue 11) et STATION-SERVICE DE KRASNOV : vehicules personnels (decisions de
+  // Fred du 05/11/2026, GAME-DESIGN-VEHICULES.md). Seuls commerces PNJ de ce type : ils servent
+  // d'exemple, les PJ ouvriront les autres. Commerces serveur garage-soviet-capitale et
+  // station-soviet-ville_b (migration 20261105222000) ; tout se decide par vehicule_acte.
+  // PNJ valides par Fred : Sergueï Zaptchastov (garagiste), Lioudmila Zapravkina (station). Images a venir.
+  'garage-novomirsk': {
+    name: "Garage de Novomirsk",
+    shortName: "Garage",
+    cat: "Économie",
+    icon: "ti-car-garage",
+    bgColor: "#12161a",
+    desc: "Le garage d'État de Novomirsk : un pont élévateur, des bidons d'huile empilés et un calendrier du Plan de l'an dernier. On y vend des véhicules, on les révise, on vient vous chercher quand ils vous lâchent.",
+    rooms: {
+      atelier_garage: {
+        name: "Atelier",
+        imageBg: "linear-gradient(135deg,#12161a,#1a2026)",
+        desc: "Le comptoir, l'atelier et la cour où attendent les véhicules neufs.",
+        persons: [{name:'Sergueï Zaptchastov (PNJ)', role:'Garagiste', rel:'neutral', job:'garagiste'}],
+        orders: [
+          {fn:'garage_vehicules', label:'Véhicules : vitrine et atelier', pa:0, cost:0, type:'legal', icon:'ti-car', successRate:100, desc:"Acheter un véhicule vendu avec sa clé, lancer une fabrication ou y travailler (payé par le garage), vendre au garage les matières de ses véhicules."},
+          {fn:'garage_reviser', label:'Faire réviser un véhicule', pa:0, cost:0, type:'legal', icon:'ti-tool', successRate:100, desc:"Une révision tous les 10 trajets ; au-delà, le risque de panne grimpe."},
+          {fn:'mes_vehicules', label:'Mes véhicules', pa:0, cost:0, type:'legal', icon:'ti-steering-wheel', successRate:100, desc:"Faire le plein, charger, décharger, prendre la route."}
+        ]
+      }
+    }
+  },
+  // SALON DE COIFFURE DE NOVOMIRSK (vue 12), decisions de Fred du 06/11/2026
+  // (GAME-DESIGN-SALON-COIFFURE.md) : commerce de services ; la coupe donne +5 POP et CHA +1
+  // jusqu'a minuit sans cumul, une coupe tous les 3 jours (serveur : salon_coupe, migration
+  // 20261106001000). Tenu par un PNJ (Ludmila Permanentova, nom valide par Fred), local
+  // rachetable par un PJ. Coupe a 20 PSK (Fred, 06/11, migration 20261106002000).
+  'salon-coiffure-novomirsk': {
+    name: "Salon de coiffure de Novomirsk",
+    shortName: "Salon de coiffure",
+    cat: "Économie",
+    icon: "ti-scissors",
+    bgColor: "#161219",
+    desc: "Un salon d'État aux fauteuils de skaï rouge. Au mur, les coupes réglementaires du Plan, numérotées de 1 à 4. On peut demander la 5, mais à ses risques.",
+    rooms: {
+      salon_coiffure: {
+        name: "Salon",
+        imageBg: "linear-gradient(135deg,#161219,#201a24)",
+        desc: "Trois fauteuils, un grand miroir piqué et l'odeur de la laque. La radio diffuse le bulletin du Parti entre deux valses.",
+        persons: [{name:'Ludmila Permanentova (PNJ)', role:'Coiffeuse', rel:'neutral', job:'coiffeuse'}],
+        orders: [
+          {fn:'salon_coupe', label:'Se faire couper les cheveux', pa:0, cost:0, type:'legal', icon:'ti-scissors', successRate:100, desc:"+5 popularité et +1 charisme jusqu'à minuit. Une coupe tous les 3 jours."}
+        ]
+      }
+    }
+  },
+  // LOGEMENTS DE NOVOMIRSK (vue 14), decisions de Fred du 06/11/2026 : en Sovarka, tous les
+  // logements hors suites sont sociaux, mecanique de Montrouge (demande a la mairie, attribution
+  // par l'adjoint au maire, loyer a la commune). 4 petits a 10 PSK et 4 grands a 20 PSK ; serveur :
+  // logements_sociaux_historiques (migration 20261106003000). Images a venir.
+  'logements-novomirsk': {
+    name: "Logements collectifs de Novomirsk",
+    shortName: "Logements",
+    cat: "Habitat",
+    icon: "ti-building-community",
+    bgColor: "#121418",
+    desc: "Une barre de béton du Plan quinquennal. Chaque appartement est attribué par la ville ; on n'y choisit ni son étage ni ses voisins.",
+    rooms: {
+      salle: {
+        name: "Hall d'immeuble",
+        desc: "Boîtes aux lettres numérotées, escalier en béton, tableau d'affichage du comité d'immeuble.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        persons: [],
+        orders: []
+      },
+      petit_appartement_1: {
+        name: "Petit appartement n°1",
+        desc: "Une pièce et un coin cuisine au quatrième sans ascenseur, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Petit appartement n°1', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      petit_appartement_2: {
+        name: "Petit appartement n°2",
+        desc: "Une pièce et un coin cuisine au quatrième sans ascenseur, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Petit appartement n°2', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      petit_appartement_3: {
+        name: "Petit appartement n°3",
+        desc: "Une pièce et un coin cuisine au quatrième sans ascenseur, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Petit appartement n°3', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      petit_appartement_4: {
+        name: "Petit appartement n°4",
+        desc: "Une pièce et un coin cuisine au quatrième sans ascenseur, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Petit appartement n°4', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_1: {
+        name: "Grand appartement n°1",
+        desc: "Deux chambres, un poêle et un balcon sur la cour, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Grand appartement n°1', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_2: {
+        name: "Grand appartement n°2",
+        desc: "Deux chambres, un poêle et un balcon sur la cour, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Grand appartement n°2', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_3: {
+        name: "Grand appartement n°3",
+        desc: "Deux chambres, un poêle et un balcon sur la cour, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Grand appartement n°3', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_4: {
+        name: "Grand appartement n°4",
+        desc: "Deux chambres, un poêle et un balcon sur la cour, propriété de la ville.",
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Grand appartement n°4', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      }
+    }
+  },
+  // PHARMACIE OFFICIELLE DE NOVOMIRSK (vue 14), decisions de Fred du 06/11/2026 : commerce comme
+  // tous les commerces (2 familles / 4 articles en gratuit, 3 / 10 en premium), vend des
+  // medicaments (types et effets a definir : vente « Bientot disponible »). Tenue par la PNJ
+  // Valentina Pilioulkina (nom valide par Fred), commerce rachetable par un PJ. Commerce serveur
+  // pharmacie-soviet-capitale (migration 20261106004000). Images a venir.
+  'pharmacie-officielle-novomirsk': {
+    name: "Pharmacie officielle de Novomirsk",
+    shortName: "Pharmacie",
+    cat: "Santé",
+    icon: "ti-pill",
+    bgColor: "#10161a",
+    desc: "La pharmacie d'État : une croix verte au néon dont une branche clignote, des bocaux numérotés et une file d'attente disciplinée.",
+    rooms: {
+      comptoir_pharmacie: {
+        name: "Comptoir",
+        imageBg: "linear-gradient(135deg,#10161a,#172026)",
+        desc: "Un long comptoir de bois verni, une balance de précision et un registre où chaque boîte vendue est consignée.",
+        persons: [{name:'Valentina Pilioulkina (PNJ)', role:'Pharmacienne', rel:'neutral', job:'pharmacienne'}],
+        orders: [
+          {fn:'pharmacie_medicaments', label:'Acheter des médicaments', pa:0, cost:0, type:'legal', icon:'ti-pill', successRate:100, desc:"Médicaments vendus au comptoir.", bientot:"Bientôt disponible : les médicaments de la pharmacie seront définis prochainement."}
+        ]
+      }
+    }
+  },
+  'station-service-krasnov': {
+    name: "Station-service de Krasnov",
+    shortName: "Station-service",
+    cat: "Économie",
+    icon: "ti-gas-station",
+    bgColor: "#16120e",
+    desc: "La station du kolkhoze, au bord de la route de Novomirsk. Deux pompes, une boutique, et des bidons alignés comme pour un défilé.",
+    rooms: {
+      boutique_station: {
+        name: "Boutique",
+        imageBg: "linear-gradient(135deg,#16120e,#201a14)",
+        desc: "Le comptoir de la station : bidons de carburant, huile et cartes routières du Parti.",
+        persons: [{name:'Lioudmila Zapravkina (PNJ)', role:'Gérante de la station-service', rel:'neutral', job:'pompiste'}],
+        orders: [
+          {fn:'station_carburant', label:'Acheter des bidons de carburant', pa:0, cost:0, type:'legal', icon:'ti-gas-station', successRate:100, desc:"1 bidon = 1 unité de carburant. On peut aussi vendre du carburant à la station."},
+          {fn:'mes_vehicules', label:'Mes véhicules', pa:0, cost:0, type:'legal', icon:'ti-steering-wheel', successRate:100, desc:"Faire le plein, charger, décharger, prendre la route."}
+        ]
+      }
+    }
+  },
+  // Entrepot Logistique de Novomirsk (vue 8) : interface copiee de Luthecia. Ordres « Bientot
+  // disponible » du 04/11 leves le 06/11 (demande de Fred : trading des trois villes de Sovarka,
+  // migration 20261106040500). Le socle connait desormais le pays de chaque
+  // entrepot (migration 20261104230000) ; reste l'approvisionnement propre a Sovarka. Directeur
+  // PNJ nomme par Fred le 05/11/2026 : Boris Stockov.
+  'entrepot-logistique-novomirsk': {
+    name: "Entrepôt Logistique de Novomirsk",
+    shortName: "Entrepôt Logistique",
+    cat: "Économie",
+    icon: "ti-building-warehouse",
+    bgColor: "#141210",
+    desc: "L'entrepôt d'État de Novomirsk. Les matières premières y arrivent selon le Plan, et en repartent selon le Plan. Le reste est une affaire de formulaires.",
+    rooms: {
+      salle_ventes: {
+        name: "Salle des Ventes",
+        imageBg: "linear-gradient(135deg,#141210,#1c1815)",
+        desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
+        persons: [],
+        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
+      },
+      bureau_direction: {
+        name: "Bureau de Direction",
+        imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
+        desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
+        persons: [{name:'Boris Stockov (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
+        orders: [
+          {fn:'tableau_bord_entrepot', label:'Tableau de bord logistique', pa:0, cost:0, type:'legal', icon:'ti-layout-dashboard', successRate:100, requiresPost:'directeur_entrepot', desc:"Trésorerie, stocks et capacité, stocks cibles, marché des fournisseurs, commandes et registre de l'établissement."},
+          {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix de vente", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue par l'entrepôt. Laissez vide pour revenir au prix automatique."}
+        ]
+      }
+    }
+  },
+  // SIEGE DU RENSEIGNEMENT MILITAIRE (socle, decision de Fred du 05/11/2026). Batiment commun a
+  // tous les empires, liste seulement par ceux qui l'utilisent : Sovarka (Novomirsk) l'a, la
+  // Republia non (son ministre de la Defense passe « Renseignement militaire » depuis son bureau
+  // du Palais du Gouvernement). Chaque ville l'habille par son buildingContext (nom, planton).
+  // Ordres : ceux du socle, sans mecanique nouvelle.
+  //  - Salle des ecoutes : « Renseignement militaire » (cellule_renseignement_creer, RPC seule
+  //    payeuse : 3 PA et 500 sur la caisse <pays>_gouvernement-min_def), reserve au ministre de la Defense.
+  //  - Salle d'interrogatoire : copie de « Interroger un detenu » du QHS (2 PA, 75 %, +5 INF),
+  //    reservee au ministre de la Defense ; ordre generique tenu par ordre_generique_executer
+  //    (ligne interroger_renseignement de ordres_generiques, migration 20261105004500).
+  'siege-renseignement': {
+    name: "Siège du Renseignement militaire",
+    shortName: "Renseignement",
+    cat: "Pouvoir",
+    icon: "ti-spy",
+    bgColor: "#0e1114",
+    desc: "Le siège des services de renseignement militaire. On y entre sur convocation, on en sort quand on vous le dit.",
+    rooms: {
+      accueil_renseignement: {
+        name: "Accueil",
+        imageBg: "linear-gradient(135deg,#0e1114,#151a1f)",
+        desc: "Un comptoir vitré, un registre, une caméra au plafond. Le planton vous dévisage avant même que vous ayez parlé.",
+        persons: [{name:'Planton (PNJ)', role:'Planton du Renseignement', rel:'neutral', job:'planton_renseignement'}],
+        orders: []
+      },
+      salle_ecoutes: {
+        name: "Salle des Écoutes",
+        imageBg: "linear-gradient(135deg,#0b1012,#121a1c)",
+        desc: "Casques, bandes magnétiques et rangées de voyants. Ici, on écoute ce que le reste du monde croit dire en privé.",
+        persons: [],
+        orders: [
+          // 0 PA / 0 FR ici, comme au bureau du ministre : cellule_renseignement_creer est seule
+          // payeuse (voir le commentaire du regroupement du 22 septembre au Palais du Gouvernement).
+          {fn:'renseignement_militaire', label:'Renseignement militaire', pa:0, cost:0, type:'grey', icon:'ti-spy', successRate:100, requiresPost:'min_def', desc:'Convoquer une equipe sous couverture, ou suivre une operation en cours.'}
+        ]
+      },
+      salle_interrogatoire_renseignement: {
+        name: "Salle d'Interrogatoire",
+        imageBg: "linear-gradient(135deg,#050808,#0a1010)",
+        desc: "Lumière crue, table métallique, miroir sans tain. Les questions y sont courtes, les réponses le sont rarement.",
+        persons: [],
+        orders: [
+          {fn:'interroger_renseignement', label:'Interroger un detenu', pa:2, cost:0, type:'legal', icon:'ti-message-circle', successRate:75, requiresPost:'min_def', desc:'Obtenir des informations. +INF si succes.'}
+        ]
+      }
+    }
+  },
   'qhs-prison': {
     name: "Quartier Haute Securite",
     shortName: "QHS",
@@ -6418,7 +7300,7 @@ const BUILDINGS = {
         imageUrl: "images/montrouge/montrouge-entrepot-halle-logistique.jpg",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
-        orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
+        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -6426,6 +7308,38 @@ const BUILDINGS = {
         imageUrl: "images/montrouge/montrouge-entrepot-bureau-direction.jpg",
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Norbert Charton (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
+        orders: [
+          {fn:'tableau_bord_entrepot', label:'Tableau de bord logistique', pa:0, cost:0, type:'legal', icon:'ti-layout-dashboard', successRate:100, requiresPost:'directeur_entrepot', desc:"Trésorerie, stocks et capacité, stocks cibles, marché des fournisseurs, commandes et registre de l'établissement."},
+          {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix de vente", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue par l'entrepôt. Laissez vide pour revenir au prix automatique."}
+        ]
+      }
+    }
+  },
+  // Entrepot Logistique de Krasnov (Sovarka) : copie de celui de Montrouge, sans image (Fred les fera),
+  // directeur PNJ nomme par Fred le 05/11/2026. Raccorde au trading national et international
+  // (migration 20261105030000) ; stock de depart agricole, facon kolkhoze (decision de Fred).
+  'entrepot-logistique-krasnov': {
+    name: "Entrepôt Logistique de Krasnov",
+    shortName: "Entrepôt Logistique",
+    cat: "Économie",
+    icon: "ti-building-warehouse",
+    bgColor: "#141210",
+    desc: "Krasnov Logistika, l'entrepôt du kolkhoze numéro 7. La récolte collective y attend preneur, en Sovarka comme à l'étranger.",
+    rooms: {
+      salle_ventes: {
+        name: "Salle des Ventes",
+        imageBg: "linear-gradient(135deg,#141210,#1c1815)",
+        imageUrl: "images/Sovarka/Krasnov/Krasnov_entrepot_salle ventes.webp",
+        desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
+        persons: [],
+        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
+      },
+      bureau_direction: {
+        name: "Bureau de Direction",
+        imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
+        imageUrl: "images/Sovarka/Krasnov/Krasnov_entrepot_bureau.webp",
+        desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
+        persons: [{name:'Fiodor Kolkhozov (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [
           {fn:'tableau_bord_entrepot', label:'Tableau de bord logistique', pa:0, cost:0, type:'legal', icon:'ti-layout-dashboard', successRate:100, requiresPost:'directeur_entrepot', desc:"Trésorerie, stocks et capacité, stocks cibles, marché des fournisseurs, commandes et registre de l'établissement."},
           {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix de vente", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue par l'entrepôt. Laissez vide pour revenir au prix automatique."}
@@ -6466,10 +7380,11 @@ const BUILDINGS = {
         name: "Salle de Production",
         imageBg: "linear-gradient(135deg,#0a0d10,#12161a)",
         imageUrl: "images/montrouge/montrouge-raffinerie-usine-production.jpg",
-        desc: "Les installations de raffinage. Le pétrole brut livré y est transformé en carburant.",
+        desc: "Les installations de raffinage. Le pétrole brut livré y est transformé en carburant ou en dérivés pétrochimiques. Ces derniers servent à fabriquer vernis, goudron, résines, diluants et revêtements selon les besoins des industries.",
         persons: [],
         orders: [
           {fn:'produire_carburant', label:'Produire du carburant', pa:1, cost:0, type:'legal', icon:'ti-gas-station', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 70 FR. Consomme 5 pétrole du stock de matières de l\'usine, produit 10 carburants.'},
+          {fn:'produire_derives_petrochimiques', label:'Produire des dérivés pétrochimiques', pa:1, cost:0, type:'legal', icon:'ti-flask', successRate:100, desc:'1 PA, 70 FR de main-d’œuvre, 5 pétrole pour 10 unités de dérivés pétrochimiques (résines, vernis, diluants, goudrons selon l’usage).'},
           // Audit PSM/Montrouge (01/11/2026) : sans cet ordre, aucune matiere ne pouvait entrer
           // dans cette usine (vendre_matiere_a_usine accepte deja ses chaines cote serveur).
           {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.'}
@@ -6516,7 +7431,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#181410,#221c15)",
-        imageUrl: "images/entrepot-pole-tabac-psm.webp",
+        imageUrl: "images/psm-pole-alcool-tabac-salle-ventes.webp",
         desc: "L'accueil et la salle de vente directe, alcools et tabac confondus.",
         persons: [],
         orders: [{fn:'vente_directe_usine', label:'Vente directe', pa:0, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'}]
@@ -6524,7 +7439,7 @@ const BUILDINGS = {
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "images/psm-pole-alcool-tabac-bureau-direction.webp",
         desc: "Le bureau du directeur du pôle. Accès sur rendez-vous.",
         persons: [{name:'Fernand Cendrier (PNJ)', role:'Directeur du Pôle Tabac & Alcools', rel:'neutral', job:'directeur_tabac_alcools'}],
         orders: [
@@ -6536,7 +7451,7 @@ const BUILDINGS = {
       distillerie: {
         name: "Distillerie",
         imageBg: "linear-gradient(135deg,#0a0d10,#12161a)",
-        imageUrl: "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=1200&q=80",
+        imageUrl: "images/psm-pole-alcool-tabac-distillerie.webp",
         desc: "Les alambics. Céréales et fruits livrés y sont distillés en alcool.",
         persons: [],
         orders: [
@@ -6549,7 +7464,7 @@ const BUILDINGS = {
       manufacture_tabac: {
         name: "Manufacture de Tabac",
         imageBg: "linear-gradient(135deg,#100d0a,#1a1512)",
-        imageUrl: "https://images.unsplash.com/photo-1519669417670-68775a50919f?w=1200&q=80",
+        imageUrl: "images/psm-pole-alcool-tabac-manufacture-tabac.webp",
         desc: "Les lignes de manufacture. Les plantes livrées y sont transformées en tabac.",
         persons: [],
         orders: [
@@ -6573,15 +7488,15 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#141210,#1c1815)",
-        imageUrl: "images/entrepot-pole-tabac-psm.webp",
+        imageUrl: "images/psm-entrepot-logistique-salle-ventes.webp",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
-        orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
+        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "images/psm-entrepot-logistique-bureau-direction.webp",
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Yvon Paletier (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [
@@ -6606,7 +7521,7 @@ const BUILDINGS = {
         imageUrl: "images/salle-ventes-entrepot-luthecia.webp",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
-        orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
+        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -8363,6 +9278,29 @@ const CHARBON_PRIX_BASE = 7;
 const CHARBON_PRIX_ACHAT_FOURNISSEUR = 3.5;
 const CHARBON_PLAFOND = 400;
 
+// VEHICULES PERSONNELS (05/11/2026 -- GAME-DESIGN-VEHICULES.md, decisions de Fred). Miroir serveur :
+// recettes_commerce, sources 'garage' et 'station' (outils/generateurs/generer_miroirs_entreprises.py).
+// PA deduits par la regle des commerces PNJ (prix = 2 x cout de revient, 1 PA = 50 FR, matieres au
+// prix de reference) ; le plastique de la voiture est compte en derives petrochimiques. Le vehicule
+// achete n'est pas un objet d'inventaire : c'est un bien localise (table vehicules), vendu avec sa cle.
+const VEHICULES_PRODUITS = {
+  'voiture': { label: 'Voiture', pa: 190, portions: 1, materiaux: { metal: 300, textile: 200, derives_petrochimiques: 300 },
+    categorie: 'vehicule', typesAutorises: ['garage'], icon: 'ti-car', prixPnj: 42000,
+    desc: '4 places, 150 unités de chargement, réservoir de 18. Vendue avec sa clé.' },
+  'deux-roues': { label: 'Deux-roues', pa: 95, portions: 1, materiaux: { metal: 150, textile: 100, derives_petrochimiques: 150 },
+    categorie: 'vehicule', typesAutorises: ['garage'], icon: 'ti-motorbike', prixPnj: 21000,
+    desc: '2 places, 50 unités de chargement, réservoir de 12. Vendu avec sa clé.' },
+  'vehicule-utilitaire': { label: 'Utilitaire', pa: 255, portions: 1, materiaux: { metal: 450, textile: 100, derives_petrochimiques: 250 },
+    categorie: 'vehicule', typesAutorises: ['garage'], icon: 'ti-truck', prixPnj: 50000,
+    desc: '3 places, 500 unités de chargement, réservoir de 25. Vendu avec sa clé.' }
+};
+// 1 bidon = 1 unite de carburant (pile 'carburant' de l'inventaire) ; dix unites font dix bidons.
+const STATION_PRODUITS = {
+  bidon_carburant: { label: 'Bidon de carburant', pa: 0, portions: 10, materiaux: { carburant: 10 },
+    categorie: 'carburant', stackKey: 'carburant', typesAutorises: ['station-service'], icon: 'ti-gas-station', prixPnj: 20,
+    desc: '1 bidon = 1 unité de carburant. Se verse dans le réservoir d\'un véhicule.' }
+};
+
 const RESSOURCES_ECONOMIE = {
   // --- Matieres premieres (livrees) ---
   cereales:     { label: 'Céréales & légumes', icon: 'ti-wheat',  prixBase: 3,  prixAchatFournisseur: 1.5, plafond: 150, source: 'livraison' },
@@ -8395,6 +9333,7 @@ const RESSOURCES_ECONOMIE = {
   alcool:       { label: 'Alcool',       icon: 'ti-glass-full',  prixBase: 14, prixAchatFournisseur: 7,   plafond: 100, source: 'transformation' },
   tabac:        { label: 'Tabac',        icon: 'ti-cigarette',   prixBase: 18, prixAchatFournisseur: 9,   plafond: 100, source: 'transformation' },
   carburant:    { label: 'Carburant',    icon: 'ti-gas-station', prixBase: 20, prixAchatFournisseur: 10,  plafond: 100, source: 'transformation' },
+  derives_petrochimiques: { label: 'Dérivés pétrochimiques', icon: 'ti-flask', prixBase: 20, prixAchatFournisseur: 10, plafond: 100, source: 'transformation' },
   // Filiere alcool->desinfectant (20 aout 2026) : valeurs validees par Fred. Aucun debouche
   // medical/effet de soin ajoute pour l'instant -- une ressource transformee comme les autres.
   desinfectant: { label: 'Désinfectant', icon: 'ti-droplet',     prixBase: 18, prixAchatFournisseur: 9,   plafond: 100, source: 'transformation' }
@@ -8876,5 +9815,297 @@ const OBJETS_SPECIAUX = [
     const achat = piece && (piece.orders || []).find(o => o.fn === 'acheter_terrain');
     if (!achat) continue;
     piece.orders = modele.map(o => ({...o, ...(o.fn === 'acheter_terrain' ? achat : {})}));
+  }
+}
+
+// PNJ DE SOVARKA : NOMS PROPRES, SANS PORTRAIT DE REPUBLIA (06/11/2026, demande de Fred).
+// Les batiments du gabarit commun arrivaient en Sovarka avec leurs PNJ de Republia (Palais du
+// Gouvernement, Palais presidentiel, Grand Hotel, Assemblee, commissariat, mairies, centres...).
+// Regle « pas de connexion entre les villes » : chaque ville de Sovarka recoit ses propres noms
+// (noms proposes par Claude sur mandat de Fred, a sa relecture ; Starovka : type mongol / bouriate).
+// Le portrait de Republia est retire (Fred les remplacera). Une valeur null garde le nom generique
+// (« Guichetier », « Garde du Peuple »...) et retire seulement le portrait.
+// Valeur : 'Nouveau nom' ou ['Nouveau nom', 'nouveau role' | null, 'identifiant de profil' | absent].
+// Seul WORLD.soviet est touche, par des roomOverrides : BUILDINGS et la Republia ne changent pas.
+// Les fiches de dialogue sont derivees cote serveur (api/_pnj-sovarka.js, depuis
+// api/_pnj-sovarka-genere.js : node outils/generateurs/generer-pnj-sovarka.cjs).
+const PNJ_SOVARKA_GENERIQUES = {
+  'Garde Republicain (PNJ)': ['Garde du Peuple (PNJ)'],
+  'Agent de Sécurité (PNJ)': null, 'Archiviste Militaire (PNJ)': null, 'Archiviste Notarial (PNJ)': null,
+  'Archiviste Parlementaire (PNJ)': null, 'Armurier Militaire (PNJ)': null, 'Bookmaker Officiel (PNJ)': null,
+  'Brigadier Local (PNJ)': null, 'Correspondant Local (PNJ)': null, 'Frere Gardien': null, 'Guichetier (PNJ)': null,
+  'Hotesse Accueil (PNJ)': null, 'Hôtesse d\'Accueil (PNJ)': null, 'Hotesse Objets Trouves (PNJ)': null,
+  'Journalistes accrédités (PNJ)': null, 'Ouvrier typographe (PNJ)': null, 'Porte-parole presidentiel (PNJ)': null,
+  'Secretaire Municipal': null, 'Tenancier de Buvette (PNJ)': null, 'Le Maire (PNJ)': null,
+  'Le Président (PNJ)': ['Le Président (PNJ)', 'PNJ - Président de Sovarka']
+};
+const PNJ_SOVARKA = {
+  capitale: Object.assign({}, PNJ_SOVARKA_GENERIQUES, {
+    'Gérard Tamponneau (PNJ)': 'Anatoli Protokolov (PNJ)',
+    'Huguette Papier (PNJ)': 'Nadejda Paperassova (PNJ)',
+    'Gaston Sauceblanche (PNJ)': 'Grigori Smetanine (PNJ)',
+    'Régis Gondasse (PNJ)': 'Vsevolod Vodkaïev (PNJ)',
+    'Yvette Gratinée (PNJ)': 'Svetlana Blinova (PNJ)',
+    'Jean Dupont (PNJ)': ['Innokenti Partiïev (PNJ)', 'Délégué du Parti'],
+    'Marie Leblanc (PNJ)': ['Macha Scoopova (PNJ)', 'Journaliste - La Pravdovka'],
+    'Marie Leblanc': ['Macha Scoopova', 'Journaliste d\'investigation'],
+    'Marco (Barman)': 'Kostia (Barman)',
+    'Marc Hantile': 'Leonid Combinov',
+    'Secretaire Dupuis': 'Secrétaire Tamara Dossierova',
+    'Éric Stricted (PNJ)': 'Oleg Strictov (PNJ)',
+    'Corinne Tite-Déclaz (PNJ)': 'Raïssa Communiqueva (PNJ)',
+    'Archiviste Legrand (PNJ)': 'Archiviste Foma Classeurov (PNJ)',
+    'Yvan Danltat (PNJ)': 'Gleb Kontrolov (PNJ)',
+    'Alain Théret (PNJ)': 'Stanislav Roublov (PNJ)',
+    'Mathilde Garde (PNJ)': 'Galina Verdiktova (PNJ)',
+    'Martial Bouterin (PNJ)': 'Rodion Tankov (PNJ)',
+    'Marie-Eve Beaulieu (PNJ)': 'Zinaïda Propagandova (PNJ)',
+    'Jean-Jacques Carlin (PNJ)': 'Evgueni Diplomatov (PNJ)',
+    'Renée Toitout (PNJ)': 'Babouchka Serpillova (PNJ)',
+    'Lobbyiste Perrin': 'Lobbyiste Pavel Pistonov',
+    'Journaliste Blanc': 'Journaliste Iouri Blankov',
+    'Greffier Petit': 'Greffier Semion Paraphov',
+    'Jeanine Dubois (PNJ)': 'Antonina Doubrova (PNJ)',
+    'Louis Chevillard (PNJ)': 'Matveï Matraquine (PNJ)',
+    'Noël Chauchay (PNJ)': 'Nikolaï Tracteurov (PNJ)',
+    'Gardien Dubois': 'Gardien Stepan Verrouïev',
+    'Tristan Cabane (PNJ)': 'Timofeï Cachotov (PNJ)',
+    'Raoul Toufaud (PNJ)': 'Vassili Ordonov (PNJ)',
+    'Gardien de la Paix (PNJ)': 'Sergent Matrakov (PNJ)',
+    'Brigitte Menottes (PNJ)': 'Bronislava Menottova (PNJ)',
+    'Romain Castel': 'Rostislav Censurov',
+    'Venerable Maitre Duval': 'Vénérable Maître Dimitri Compassov',
+    'Secretaire Municipal Petit': 'Secrétaire municipal Arseni Formoulov',
+    'Le Maire (PNJ)': ['Le Maire (PNJ)', 'Maire de Novomirsk'],
+    'Le Maire de Luthecia (PNJ)': 'Le Maire de Novomirsk (PNJ)',
+    'Jean Registre (PNJ)': ['Ivan Registrov (PNJ)', 'Responsable électoral de Novomirsk'],
+    'Christophe Bouquin (PNJ)': 'Kirill Bouquinov (PNJ)',
+    'Inspecteur Prosper Tampon (PNJ)': 'Inspecteur Prokhor Tamponov (PNJ)',
+    'Francisca Brel': 'Ksenia Fauchova',
+    'Edgar Simore': 'Arkhip Abracadabrov',
+    'Sabri Coledur': 'Sava Boulonov',
+    'Céd\' Labone': 'Kolia Brumov',
+    'Henrico Stot': 'Genrikh Stoïkov',
+    'Gretta Délieu (PNJ)': 'Inna Rendezvousova (PNJ)',
+    'Moshe Maychan': 'Moïsseï Mechantov',
+    'Harry Cover': 'Garri Kouverov',
+    'Alain Dex (PNJ)': 'Alexeï Indexov (PNJ)',
+    'Claire Delhune (PNJ)': 'Klara Delounova (PNJ)',
+    'Notaire Fontenelle (PNJ)': 'Camarade Bâtissov (PNJ)'
+  }),
+  ville_a: Object.assign({}, PNJ_SOVARKA_GENERIQUES, { // Starovka
+    'Delegue Morel (PNJ)': 'Délégué Batbayar Grevov (PNJ)',
+    'Directeur Fabre (PNJ)': 'Directeur Tsyren Quotaïev (PNJ)',
+    'Francisca Brel': 'Tuya Chaparova',
+    'Edgar Simore': 'Altan Tourdemagov',
+    'Sabri Coledur': 'Bayar Clédouzov',
+    'Céd\' Labone': 'Ganbold Brumaïev',
+    'Henrico Stot': 'Temür Costaudov',
+    'Gretta Délieu (PNJ)': 'Oyuuna Accueilova (PNJ)',
+    'Moshe Maychan': 'Khasar Mechantaïev',
+    'Harry Cover': 'Dorji Filatov'
+  }),
+  ville_b: Object.assign({}, PNJ_SOVARKA_GENERIQUES, { // Krasnov
+    'Delegue Morel (PNJ)': 'Délégué Prokofi Grevine (PNJ)',
+    'Directeur Fabre (PNJ)': 'Directeur Platon Quotov (PNJ)',
+    'Francisca Brel': 'Varvara Chipova',
+    'Edgar Simore': 'Efim Tourdepassov',
+    'Sabri Coledur': 'Stas Tournevissov',
+    'Céd\' Labone': 'Tolia Herbov',
+    'Henrico Stot': 'Gavriil Gourdinov',
+    'Gretta Délieu (PNJ)': 'Darina Bienvenouchka (PNJ)',
+    'Moshe Maychan': 'Makar Sicarov',
+    'Harry Cover': 'Afanassi Loupine'
+  }),
+  // Ancienne zone de caserne hors ville : memes noms que la caserne centrale de Novomirsk (05/11).
+  caserne: Object.assign({}, PNJ_SOVARKA_GENERIQUES, {
+    'Adjudant Gaspard Ferrière (PNJ)': ['Adjudant Piotr Galonov (PNJ)', null, 'piotr_galonov'],
+    'Ève Toahémarch (PNJ)': ['Infirmière Olga Pansementova (PNJ)', null, 'olga_pansementova'],
+    'Commandant Tom Hawak': ['Commandant Igor Bataillov', null, 'commandant_igor_bataillov'],
+    'Caporal Alouche': ['Caporal Vassili Kachaev', null, 'vassili_kachaev'],
+    'Caporal Lefebvre (PNJ)': 'Caporal Dimitri Corvéev (PNJ)',
+    'Soldat Nguyen (PNJ)': 'Soldat Sacha Gamelline (PNJ)'
+  }),
+  qhs: Object.assign({}, PNJ_SOVARKA_GENERIQUES, {
+    'Dominique Cruel (PNJ)': 'Directeur Kazimir Sévérov (PNJ)',
+    'Philippe Cognedur (PNJ)': 'Gardien-chef Filipp Tapedurov (PNJ)',
+    'Jean Terre (PNJ)': 'Zakhar Zemlianov (PNJ)',
+    'Patrick Coule (PNJ)': 'Pavel Coulov (PNJ)'
+  })
+};
+function slugPnjSovarka(nom) {
+  return String(nom || '').replace(' (PNJ)', '').trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+// Meme resolution que personnesNormalesDeLaPiece (plateau-multijoueur.js) : surcharge de ville,
+// puis contexte de la premiere piece, puis PNJ du gabarit. Le resultat est pose en surcharge.
+{
+  const a = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+  for (const ville of Object.keys(PNJ_SOVARKA)) {
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    if (!cite || !Array.isArray(cite.buildings)) continue;
+    const table = PNJ_SOVARKA[ville];
+    for (const id of cite.buildings) {
+      const b = BUILDINGS[id]; if (!b) continue;
+      const ctx0 = (cite.buildingContext || {})[id] || null;
+      const pieces = Object.assign({}, b.rooms || {}, (ctx0 && ctx0.roomsExtra) || {});
+      const premiere = Object.keys(b.rooms || {})[0];
+      for (const piece of Object.keys(pieces)) {
+        const ro = ctx0 && ctx0.roomOverrides && ctx0.roomOverrides[piece];
+        if (ro && ro.personsVides === true) continue;
+        const source = (ro && ro.persons && ro.persons.length) ? ro.persons
+          : (piece === premiere && ctx0 && ctx0.persons && ctx0.persons.length) ? ctx0.persons
+          : (pieces[piece].persons || []);
+        if (!source.some(p => p && a(table, p.name))) continue;
+        const persons = source.map(p => {
+          if (!p || !a(table, p.name)) return p;
+          const q = Object.assign({}, p);
+          delete q.photoUrl; delete q.photoPos; delete q.photo;
+          const v = table[p.name];
+          if (v) {
+            const [nom, role, profil] = Array.isArray(v) ? v : [v];
+            if (role) q.role = role;
+            if (nom !== p.name || profil) { q.name = nom; q.profilId = profil || ('sovarka_' + slugPnjSovarka(nom)); }
+          }
+          return q;
+        });
+        cite.buildingContext = cite.buildingContext || {};
+        const ctx = cite.buildingContext[id] = cite.buildingContext[id] || {};
+        ctx.roomOverrides = ctx.roomOverrides || {};
+        ctx.roomOverrides[piece] = Object.assign({}, ctx.roomOverrides[piece] || {}, { persons });
+      }
+    }
+  }
+}
+
+
+// Portraits locaux de Novomirsk, extraits des scènes d'accueil et du bureau.
+// La surcharge est appliquée APRÈS le renommage sovarkien : la mécanique du socle
+// efface volontairement les portraits hérités de Républia lors du renommage.
+{
+  const salles = WORLD.soviet.capitale.buildingContext;
+  const photos = [
+    ['commissariat', 'accueil_police', 'Sergent Matrakov (PNJ)', 'Novo_sergent_matrakov_portrait.webp'],
+    ['commissariat', 'bureau_commissaire', 'Vassili Ordonov (PNJ)', 'Novo_vassili_ordonov_portrait.webp'],
+    ['office-notarial', 'accueil_notaire', 'Klara Delounova (PNJ)', 'Novo_klara_delounova_portrait.webp']
+  ];
+  for (const [batiment, piece, nom, fichier] of photos) {
+    const personnes = salles[batiment]?.roomOverrides?.[piece]?.persons || [];
+    const personnage = personnes.find(p => p.name === nom);
+    if (!personnage) throw new Error('Portrait Novomirsk : PNJ introuvable ' + nom + ' parmi ' + personnes.map(p => p.name).join(', '));
+    personnage.photoUrl = 'images/Sovarka/Novomirsk/' + fichier;
+    personnage.photoPos = '50% 25%';
+  }
+}
+
+// STAROVKA : ENTREPOT LOGISTIQUE ET PORT INDUSTRIEL (06/11/2026, demande de Fred : les trois villes
+// de Sovarka au trading de matieres premieres, port industriel en service ; migration 20261106040500).
+// Les deux batiments s'ouvrent depuis la rue du port industriel. Gabarits du socle, sans copie a tenir :
+//  - l'entrepot reprend celui de Krasnov (memes pieces, memes ordres), directeur PNJ propre ;
+//  - le port reprend les pieces de fret du Port industriel de PSM : quai, entrepots de fret (expedier,
+//    receptionner, marchandises non reclamees -- memes ordres que PSM, PORTS_FRET.soviet a l'ecran) et
+//    douanes. Pas de criee, de box, de syndicat des dockers ni d'administration portuaire : ces services
+//    sont propres a PSM (etat serveur sous cle de PSM). Le recrutement de douaniers reste republicain.
+// Noms des PNJ proposes par Claude (type mongol / bouriate, direction artistique de Starovka), a relire par
+// Fred ; images a venir.
+{
+  const copie = (o) => JSON.parse(JSON.stringify(o));
+  const krasnov = BUILDINGS['entrepot-logistique-krasnov'];
+  const entrepot = copie(krasnov);
+  entrepot.name = "Entrepôt Logistique de Starovka";
+  entrepot.desc = "Starovka Logistika, au bout du quai. Pétrole, charbon et bois du Grand Nord y attendent le train ou le brise-glace.";
+  for (const piece of Object.values(entrepot.rooms)) delete piece.imageUrl;
+  entrepot.rooms.bureau_direction.persons = [{name:'Batzorig Palettov (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}];
+  BUILDINGS['entrepot-logistique-starovka'] = entrepot;
+
+  const psm = BUILDINGS['port-sainte-marie'].rooms;
+  BUILDINGS['port-starovka'] = {
+    name: "Port Industriel de Starovka",
+    shortName: "Port Industriel",
+    cat: "Port",
+    icon: "ti-anchor",
+    bgColor: "#0b1218",
+    desc: "Le seul port de Sovarka. Un brise-glace ouvre le chenal, les grues ne dorment jamais, et chaque caisse passe sous l'œil du Parti.",
+    rooms: {
+      quai_principal: {
+        name: "Quai Principal",
+        imageBg: "linear-gradient(135deg,#0b1218,#13202b)",
+        desc: "Le quai battu par le vent polaire. Les grues chargent le pétrole et le bois du Grand Nord vers l'étranger.",
+        persons: [{name:'Chef de quai Ganbaatar Amarrov (PNJ)', role:'Chef de quai', rel:'neutral', job:'agent_portuaire'}],
+        orders: []
+      },
+      entrepot: {
+        name: psm.entrepot.name,
+        imageBg: "linear-gradient(135deg,#10161c,#1a232c)",
+        desc: "Les hangars de fret, chauffés juste assez pour que les caisses ne gèlent pas. On y expédie, on y retire, on y signe beaucoup.",
+        persons: [],
+        orders: copie(psm.entrepot.orders)
+      },
+      douanes: {
+        name: psm.douanes.name,
+        imageBg: "linear-gradient(135deg,#120f12,#1c171c)",
+        desc: "Le poste de douane du port. Le tampon est lourd, le formulaire en trois exemplaires.",
+        persons: [{name:'Douanier Sükhbaatar Tamponaïev (PNJ)', role:'Douanier du port', rel:'neutral', job:'agent_portuaire'}],
+        orders: []
+      }
+    }
+  };
+}
+
+
+// SOVARKA : DROITS D'EXPLOITER (décisions de Fred du 06/11/2026, GAME-DESIGN-NOVOMIRSK.md).
+// La propriété privée n'existe pas : un PJ demande un commerce à la mairie, le maire (à défaut
+// l'adjoint, à défaut le ministre de l'Économie collective) accepte, le PJ signe chez le notaire.
+// Les terrains à bâtir appartiennent à la mairie, qui y construit des immeubles collectifs. Les locaux
+// des centres ne se louent plus au guichet. Tout est décidé par les fonctions serveur sovarka_*.
+{
+  const ordre = (fn, label, pa, icon, desc) => ({ fn, label, pa, cost: 0, type: 'legal', icon, successRate: 100, desc });
+  const surcharge = (ville, batiment, piece) => {
+    const cite = WORLD.soviet[ville];
+    cite.buildingContext = cite.buildingContext || {};
+    const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+    ctx.roomOverrides = ctx.roomOverrides || {};
+    return ctx.roomOverrides[piece] = ctx.roomOverrides[piece] || {};
+  };
+  const ajouter = (o, ordres, exclus) => {
+    if (ordres) o.orders = (o.orders || []).concat(ordres);
+    if (exclus) o.excludeOrders = Array.from(new Set((o.excludeOrders || []).concat(exclus)));
+  };
+  const ordresTerrain = (BUILDINGS['terrain-a-batir-1'].rooms.terrain.orders || []).map(o => o.fn)
+    .filter(fn => !['appeler_police_terrain', 'faire_disparaitre_cadavre'].includes(fn));
+  for (const ville of ['capitale', 'ville_a', 'ville_b']) {
+    const capitale = ville === 'capitale';
+    const mairie = capitale ? 'mairie-capitale' : 'mairie';
+    ajouter(surcharge(ville, mairie, capitale ? 'hall_mairie' : 'accueil_mairie'), [
+      ordre('sovarka_demander_local', 'Demander un commerce', 1, 'ti-building-store',
+        'Déposer une demande d\'ouverture de commerce. Le maire examine les dossiers ; s\'il accepte, il vous attribue un local, ou vous attendrez le prochain immeuble collectif.')
+    ]);
+    ajouter(surcharge(ville, mairie, capitale ? 'bureau_maire' : 'bureau_maire_local'), [
+      ordre('sovarka_dossiers_commerciaux', 'Dossiers commerciaux', 0, 'ti-folders',
+        'Réservé au maire (à défaut l\'adjoint, à défaut le ministre de l\'Économie collective) : accepter les demandes, attribuer les locaux, fixer les loyers (0 à 100 PSK) et le type des immeubles collectifs.')
+    ]);
+    ajouter(surcharge(ville, capitale ? 'tribunal' : 'tribunal-local', 'bureau_magistrats'), [
+      ordre('sovarka_retirer_droit', 'Retirer un droit d\'exploiter', 1, 'ti-gavel',
+        'Réservé au juge : retirer à un PJ son droit d\'exploiter. Le commerce revient à l\'État, sans indemnité.')
+    ]);
+    const locaux = { 'centre-commercial': ['vitrine_principale', 'boutique_milieu', 'arriere_boutique', 'cave_reserve'],
+                     'centre-artisanal': ['echoppe_facade', 'atelier_milieu', 'reserve_arriere'] };
+    for (const [batiment, pieces] of Object.entries(locaux)) {
+      for (const piece of pieces) {
+        ajouter(surcharge(ville, batiment, piece), [
+          ordre('sovarka_commerces_libres', 'Attribution par la mairie', 0, 'ti-list-details',
+            'En Sovarka, un local ne se loue pas : il s\'obtient par une demande à la mairie, puis se signe chez le notaire.')
+        ], ['louer_local']);
+      }
+    }
+  }
+  for (const [ville, terrains] of Object.entries({ capitale: [1, 4, 5, 6, 7], ville_a: [3], ville_b: [2] })) {
+    for (const n of terrains) {
+      const o = surcharge(ville, 'terrain-a-batir-' + n, 'terrain');
+      o.desc = 'Terrain de la commune. La mairie y fait construire, à ses frais, un immeuble collectif quand des dossiers de commerce attendent un local.';
+      ajouter(o, [ordre('sovarka_terrain_municipal', 'Terrain municipal', 0, 'ti-building-community',
+        'Voir l\'état du terrain : libre, immeuble en chantier ou immeuble livré.')], ordresTerrain);
+    }
   }
 }

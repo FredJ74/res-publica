@@ -1,0 +1,39 @@
+{
+  "base_main": "fbed5ced",
+  "production_modifiee": false,
+  "limite": "Preuves locales, pas de prévol Supabase actuel ni de recette authentifiée de production. Contrôles globaux 8/12 et transversaux99/100 : mêmes échecs sur main.",
+  "sources_sha256": {
+    "forum.js": "632a390b12b4405b11cb3685a960e9b7a94fd5dc78c8d8dfd9cd6ada97b8fc07",
+    "supabase.js": "bf4870554e81caba3dfa283a63e2c3aa31d73050e45c86f379890837f5704423",
+    "plateau-organisations-quetes.js": "d71fcea58fc5c3c81029225af84d51d5a19d1ee87e4811504d1a06e3b9f247e1",
+    "migrations/20261103222000_forums_territoires_et_adhesions.sql": "bbeb887e971e0bb7e4e3a9ea4e9dd898ef74d768e541d83d2d7e252a86e8201a",
+    "plateau.html": "e31451495e5659c49530007df9eb5ce272f3078b4d093e13f2323c7874b9de43",
+    "index.html": "d5a3a00119c2e1711c3dee9f20fc7e72aaccf3531f2e8696d5d6e0034e55de73",
+    "outils/bancs/banc-forums-territoires-local.py": "aed2fee2da1e1a64db519004f0b1a51ab703de266641fc06187bfc45936884cd",
+    "outils/bancs/banc-forums-contextes-422.cjs": "8e76b235f67dfb7e1ca906a28089235198a733dec6bb2928078b6ef140e7142d"
+  },
+  "fichiers_sha256": {
+    "chromium.log": "fb41357da336d4efdc2c319ebde0fc74eac7e2c7b19978e94796ef9f646588b4",
+    "ci-initiale.json": "991fe2966c2e5788ac4dd0d99559b3952a048a678c0d2e5ef506b72b753307e2",
+    "clients.json": "46288c532acf56049803e4db9ecb6adb2fa7e49db7f5a154ca6d3a6247c18414",
+    "contextes-client.log": "ad6539e7213b607fc00a91167a9a4573eadb728fa5e534ef7157519626f5c8b2",
+    "contre-contextes.log": "7700be0e0655a7a053c54668779f3cc069e1a147aa950fa7a7b35ba4e8202575",
+    "contre-liens-directs.log": "00b145591f7ae87297aac7c10ecf4e21c70d21f3d11433c039ee604c2ec17bc1",
+    "contre-politiques.json": "6a845794b9b317bd5c52cd0ccfe1f58b2a51149723c3ecab93d2569f0b8ae91c",
+    "contre-publication.json": "8392a2cec23b0beaab9bd548530e8f6498e5105dd1518ad6f0612a5ed4477edd",
+    "globaux-apres-main423.log": "ac6730dbc15a29155088bde31b9b3d04bbd085983a58623686f1b91439a7bdc5",
+    "globaux-branche.log": "ac6730dbc15a29155088bde31b9b3d04bbd085983a58623686f1b91439a7bdc5",
+    "globaux-main410.log": "db032c65d26de9a84e7746830f600d1495bd03a942ca0f7ab4f911f0ec3c2d68",
+    "montrouge-apres-main423.log": "4c555d243dfdda0ed077ddbd6609eddace9c5552f7649e1cbfb0cbcb188651aa",
+    "postgresql16.json": "b566d5f931acd0a38c5c01418a2eab64fec01bfbb29415c1925b13a2b0e0d80b",
+    "postgresql17.json": "3eabcba6ac2735f15283c5fa2776b57b618b191244663e5cc339fdb4697b5d08",
+    "territoires-client.log": "5a831ea8a471ae6a4c39a1b7cd36d102ebc4954a05f50c9ee69bf938589d2233",
+    "transversaux-branche.log": "117656c6a844ab73f06138f20450756c10adf52a978fbf6e10acb42b77c729b3",
+    "transversaux-main410.log": "f649217f52f690c313884705ba98695eeec3d8f654ad9e9908beade6adf617e3",
+    "vercel-public.json": "4b4bc31746e7778be7a8a9f284660b1f707f827353a4795a09d455bbce102622"
+  },
+  "tete_code_avant_correctif_liens": "0c03d2f66cbc60b2a95dd3fdabdc4c27bc98d5e2",
+  "correctif_suivant": "Résolution des liens directs non préchargés, lecture seule et chargeur existant ; code identifié par SHA256 ci-dessous.",
+  "base_main_precedente": "4c657b5307d7a681a7e9c5496f3185d4934740fc",
+  "fusion_testee": "5ef8dd5ab8d20b2c767c73b2ed85ef5692ce13e0"
+}

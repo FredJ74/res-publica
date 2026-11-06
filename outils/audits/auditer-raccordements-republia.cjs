@@ -4,6 +4,24 @@ const {pathToFileURL}=require('node:url');
 const acorn=require('../vercel/node_modules/acorn'),{analyser}=require('./auditer-republia-complet.cjs');
 const ROOT=path.resolve(__dirname,'../..'),lire=f=>fs.readFileSync(path.join(ROOT,f),'utf8');
 function parcourir(n,f){if(!n||typeof n!=='object')return;f(n);for(const [k,v]of Object.entries(n))if(k!=='start'&&k!=='end'){if(Array.isArray(v))v.forEach(x=>parcourir(x,f));else if(v&&typeof v==='object')parcourir(v,f);}}
+// Seulement les exclusions inconditionnelles du rendu réel, pas une liste manuelle.
+function exclusionsRendu(source){
+ const ast=acorn.parse(source,{ecmaVersion:'latest'}),res=new Set();
+ parcourir(ast,n=>{
+  if(n.type!=='VariableDeclarator'||n.id.name!=='allOrders')return;
+  let appel=n.init;
+  while(appel?.type==='CallExpression'&&appel.callee.type==='MemberExpression'){
+   const f=appel.arguments[0],b=f?.body;
+   if(appel.callee.property.name==='filter'&&f?.type==='ArrowFunctionExpression'&&f.params.length===1&&f.params[0].type==='Identifier'&&b?.type==='UnaryExpression'&&b.operator==='!'&&b.argument.type==='CallExpression'){
+    const c=b.argument,prop=c.arguments[0];
+    if(c.callee.type==='MemberExpression'&&c.callee.property.name==='includes'&&c.callee.object.type==='ArrayExpression'&&c.arguments.length===1&&prop?.type==='MemberExpression'&&!prop.computed&&prop.object.name===f.params[0].name&&prop.property.name==='fn'&&c.callee.object.elements.every(e=>e?.type==='Literal'&&typeof e.value==='string')){
+     for(const e of c.callee.object.elements)res.add(e.value);
+    }
+   }
+   appel=appel.callee.object;
+  }
+ });return res;
+}
 async function analyserRaccordements(){
  const a=analyser(),{profilExiste}=await import(pathToFileURL(path.join(ROOT,'api/_pnj-profils.js')));
  const s=lire('plateau-pnj.js'),ast=acorn.parse(s,{ecmaVersion:'latest'});
@@ -25,7 +43,8 @@ async function analyserRaccordements(){
  parcourir(routeAst,n=>{if(n.type==='BinaryExpression'&&['===','=='].includes(n.operator)&&n.left.type==='Identifier'&&n.left.name==='fn'&&typeof n.right.value==='string')litteraux.add(n.right.value);
   if(n.type==='CallExpression'&&n.callee.type==='MemberExpression'&&n.callee.property.name==='test'&&n.callee.object.regex&&n.arguments[0]?.name==='fn')expressions.push(new RegExp(n.callee.object.regex.pattern,n.callee.object.regex.flags));});
  const generiques=new Set([...lire('baseline/seeds/90_socle/ordres_generiques.sql').matchAll(/VALUES \('([^']+)'/g)].map(x=>x[1]));
- const routes=[...new Set(a.ordres.map(o=>o.fn))].sort().map(fn=>({fn,chemin:litteraux.has(fn)?'routeur_litteral':expressions.some(r=>r.test(fn))?'routeur_expression_reguliere':fn==='postuler'?'rendu_direct_ouvrirEcranPostes':generiques.has(fn)?'generique_seed_a_confirmer_vivant':a.ordres.filter(o=>o.fn===fn).every(o=>o.bientot)?'volontairement_grise':'non_identifie'}));
+ const exclus=exclusionsRendu(lire('plateau-politique.js'));
+ const routes=[...new Set(a.ordres.map(o=>o.fn))].sort().map(fn=>({fn,chemin:exclus.has(fn)?'exclu_du_rendu_reel':litteraux.has(fn)?'routeur_litteral':expressions.some(r=>r.test(fn))?'routeur_expression_reguliere':fn==='postuler'?'rendu_direct_ouvrirEcranPostes':generiques.has(fn)?'generique_seed_a_confirmer_vivant':a.ordres.filter(o=>o.fn===fn).every(o=>o.bientot)?'volontairement_grise':'non_identifie'}));
  const declares=new Set(),appels=new Set(),erreursAnalyse=[];
  const fichiers=[...new Set([...lire('plateau.html').matchAll(/<script[^>]+src="([^"?]+)/g)].map(x=>x[1]).filter(x=>!/^https?:/.test(x)))];
  for(const f of fichiers){if(!fs.existsSync(path.join(ROOT,f))){erreursAnalyse.push({fichier:f,erreur:'script_absent'});continue;}
@@ -38,4 +57,4 @@ async function analyserRaccordements(){
  return {limite:'Analyse de déclarations et code chargé, pas une preuve de droits/RLS ni d’exécution métier en production.',profils,graphe:{noeuds:Object.keys(rues).length,liensInvalides,sansZone,carrefourPSM:rues['psm-carrefour-musee']},routes,routeur:{appelsDistincts:appels.size,appelsSansDeclaration,erreursAnalyse}};
 }
 if(require.main===module)analyserRaccordements().then(v=>{if(process.argv[2])fs.writeFileSync(process.argv[2],JSON.stringify(v,null,2)+'\n');console.log(JSON.stringify({profilsManquants:v.profils.filter(p=>!p.existe&&!p.agence&&!p.silenceDeclare),graphe:v.graphe.sansZone,routesManquantes:v.routes.filter(r=>r.chemin==='non_identifie'),routeur:v.routeur},null,2));}).catch(e=>{console.error(e);process.exitCode=1;});
-module.exports={analyserRaccordements};
+module.exports={analyserRaccordements,exclusionsRendu};

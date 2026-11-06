@@ -1,0 +1,47 @@
+✔ ordre : adoption serveur sans delta envoyé (106.978068ms)
+✔ reponse_perdue : même intention au prochain essai (41.24866ms)
+✔ timeout : même intention au prochain essai (36.354735ms)
+✔ double clic, réponse tardive / personnage (46.976763ms)
+✔ double clic, réponse tardive / uid (32.087862ms)
+✔ double clic, réponse tardive / session (30.832318ms)
+✔ rechargement : reprise de la requête persistée (62.16175ms)
+✔ contrat invalide contrat_jauges : aucun état adopté (33.410254ms)
+✔ contrat invalide acteur : aucun état adopté (25.471012ms)
+✔ contrat invalide requete : aucun état adopté (25.084132ms)
+✔ contrat invalide ordre : aucun état adopté (25.280212ms)
+✔ contrat invalide pop : aucun état adopté (23.688412ms)
+✔ contrat invalide inf : aucun état adopté (24.089112ms)
+✔ contrat invalide pa : aucun état adopté (24.133989ms)
+✔ contrat invalide hp : aucun état adopté (28.216075ms)
+✔ stockage indisponible : aucune émission (25.659101ms)
+✔ doConsommerBuvette : commande complète, aucun gain POP/INF local (24.554199ms)
+✔ observerDebats : commande complète, aucun gain POP/INF local (6.521037ms)
+✔ doGreveFaim : commande complète, aucun gain POP/INF local (60.132819ms)
+✔ doConsulterDossiersGouv : commande complète, aucun gain POP/INF local (55.047176ms)
+✔ confirmerInspectionTroupes : commande complète, aucun gain POP/INF local (52.544477ms)
+✔ buvette : réponse absente, aucun effet ni message de succès (45.481865ms)
+✔ buvette : réponse confirmée affichée, aucun second encaissement (45.71496ms)
+✔ assemblee_cache : changement avant paiement / personnage (34.562404ms)
+✔ assemblee_cache : changement avant paiement / uid (31.249805ms)
+✔ assemblee_cache : changement avant paiement / session (35.801585ms)
+✔ assemblee_sessions : changement avant paiement / personnage (30.480909ms)
+✔ assemblee_sessions : changement avant paiement / uid (27.597683ms)
+✔ assemblee_sessions : changement avant paiement / session (26.467725ms)
+✔ inspection : changement avant paiement / personnage (65.106347ms)
+✔ inspection : changement avant paiement / uid (81.143573ms)
+✔ inspection : changement avant paiement / session (61.244686ms)
+✔ inspection : le périmètre confirmé par la commande remplace la lecture préalable (67.563274ms)
+✔ inspection : réponse sans périmètre ne consomme pas la clé de reprise (24.555501ms)
+✔ campagne municipale : aucune caisse fictive ni argent personnel modifié par l’écran (67.023878ms)
+✔ campagne municipale : réponse perdue sans indice ou dépense fabriqués (59.524918ms)
+✔ sondage : succes, contrat commun et aucune jauge locale (65.848813ms)
+✔ sondage : absente, contrat commun et aucune jauge locale (68.40363ms)
+✔ sondage : session, contrat commun et aucune jauge locale (59.044187ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1783.909281

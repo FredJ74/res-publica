@@ -97,6 +97,12 @@ def cibles_fonction(objets):
     return sortie
 
 
+def declarations_derivees(stmt):
+    spec = importlib.util.spec_from_file_location('declarations_dynamiques', os.path.join(ICI, 'declarations_dynamiques.py'))
+    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+    return module.derives(stmt)
+
+
 def appliquer(f, chemin):
     texte = open(chemin, encoding='utf-8').read()
     try:
@@ -115,6 +121,16 @@ def appliquer(f, chemin):
             # reçoit les droits par défaut nommés de Supabase.
             f[cle] = {'noms': noms, 'obligatoires': len(noms) - defauts,
                       'auth': ancien['auth'] if ancien else True, 'source': base}
+        elif genre == 'DoStmt':
+            for source, cible in declarations_derivees(st):
+                types_source, _, _ = types_ast(source.parameters)
+                if (source.funcname[-1].sval, tuple(types_source)) not in f:
+                    continue  # Une copie d'une fonction absente ne peut rien créer.
+                types, noms, defauts = types_ast(cible.parameters)
+                cle = (cible.funcname[-1].sval, tuple(types))
+                ancien = f.get(cle)
+                f[cle] = {'noms': noms, 'obligatoires': len(noms) - defauts,
+                          'auth': ancien['auth'] if ancien else True, 'source': base}
         elif genre == 'DropStmt' and getattr(st.removeType, 'name', '') in ('OBJECT_FUNCTION', 'OBJECT_ROUTINE'):
             for objet in st.objects:
                 for nom, types in cibles_fonction([objet]):

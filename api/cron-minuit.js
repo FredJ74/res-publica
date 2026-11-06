@@ -507,6 +507,7 @@ function ouvrirSuccessionSurCycle(cycle, debutMandat, semaines) {
   delete cycle.relancePossibleApres;   // la relance n'existe plus : le scrutin suivant est deja pose
   delete cycle.egalite3eSiege;
   delete cycle.realigneDimancheTs;
+  delete cycle.debutTour;              // premier tour : il commence avec les candidatures
   return cycle;
 }
 
@@ -641,10 +642,14 @@ function appliquerEffetsTracts(scores, cycle) {
   });
 }
 
-async function chargerFraudesActivesServer(country, posteId, city, cycleDebut) {
+// UNE FRAUDE NE VAUT QUE POUR LE TOUR OU ELLE A ETE COMMISE (decision de Fred, 02/11/2026).
+// `cycle_debut` identifie le scrutin, pas le tour : au second tour, on ne garde que les fraudes
+// posees depuis `debutTour` (instant du resultat du premier tour, pose par la passe de nuit).
+async function chargerFraudesActivesServer(country, posteId, city, cycleDebut, debutTour) {
   const filtreCity = city ? `&city=eq.${encodeURIComponent(city)}` : '&city=is.null';
+  const filtreTour = Number(debutTour) > 0 ? `&created_at=gte.${encodeURIComponent(new Date(Number(debutTour)).toISOString())}` : '';
   const rows = await sbGet('fraudes_electorales',
-    `country=eq.${encodeURIComponent(country)}&poste_id=eq.${encodeURIComponent(posteId)}${filtreCity}&cycle_debut=eq.${cycleDebut}&etat=eq.non_revelee`
+    `country=eq.${encodeURIComponent(country)}&poste_id=eq.${encodeURIComponent(posteId)}${filtreCity}&cycle_debut=eq.${cycleDebut}&etat=eq.non_revelee${filtreTour}`
   ).catch(() => []);
   return rows || [];
 }
@@ -961,8 +966,8 @@ async function resoudreCompromisEntreprisesExpires() {
 // stockes, mutation, ecriture -- pas un second moteur temporel. Table 'successions' stocke
 // dispositions en jsonb natif (comme 'entreprises', pas de JSON.parse/stringify contrairement a
 // terrains_etat). Toute la logique de cascade/reglement est dupliquee ici dans l'idiome raw-fetch
-// du cron -- le code client (plateau-personnage.js, determinerEtapeSuivante/doRepondreHeritage)
-// tourne dans un runtime navigateur totalement isole, aucun partage de code possible.
+// du cron. Depuis le 03/11/2026, l'ouverture et la reponse explicite d'un heritier sont des
+// fonctions SQL (succession_ouvrir, succession_repondre, migration 20261103110000) : meme cascade.
 // =====================
 
 const DELAI_CONVOCATION_MS_SUCCESSION = 10 * 24 * 60 * 60 * 1000; // 10 jours reels
@@ -975,7 +980,7 @@ async function personnageExisteReellementServeur(nom) {
 
 // Cascade principal -> remplacant -> legal_conjoint, amorcee a partir du role qui vient de
 // renoncer (explicitement ou tacitement) -- jamais de retour en arriere (dejaConvoques), jamais
-// de transmission automatique. Miroir exact de determinerEtapeSuivante() cote client.
+// de transmission automatique. Miroir exact de la cascade de succession_repondre (SQL).
 async function determinerEtapeSuivanteServeur(disposition, roleActuel, conjointNom) {
   const maintenant = Date.now();
   const expiresAt = new Date(maintenant + DELAI_CONVOCATION_MS_SUCCESSION).toISOString();
@@ -2036,19 +2041,20 @@ async function preleverPretsBancairesServeur() {
       const aPayer = Math.min(pret.mensualite, pret.montant_restant);
 
       if ((emprunteur.arg || 0) >= aPayer) {
-        const nouveauRestant = pret.montant_restant - aPayer;
         // arg ET liquide. arg est le capital affiche, liquide la part reellement depensable
         // (debiterFondsOrdinaires, plateau-core.js, ne sait puiser que dans liquide + compte
         // national). Debiter arg seul laissait liquide > arg : le joueur remboursait a l'ecran
         // sans jamais perdre un centime de pouvoir d'achat.
-        await sbUpdate('personnages', `name=eq.${encodeURIComponent(pret.emprunteur)}`, {
-          arg: emprunteur.arg - aPayer,
-          liquide: Math.max(0, (emprunteur.liquide || 0) - aPayer)
-        });
+        // 04/11/2026 : le serveur preleve liquide puis compte national (arg est un total calcule,
+        // 20261104013000_argent_arg_derive) ; seul ce qui a ete reellement pris rembourse.
+        const deb = await sbRpc('argent_mouvement_serveur',
+          { p_nom: pret.emprunteur, p_montant: aPayer, p_sens: 'debit' }, HEADERS_SERVICE);
+        if (!deb || !deb.ok) { resultats.echecs_prelevement = (resultats.echecs_prelevement || 0) + 1; continue; }
+        const nouveauRestantReel = pret.montant_restant - (Number(deb.applique) || 0);
         await sbUpdatePret(pret.id, {
-          montant_restant: nouveauRestant,
+          montant_restant: nouveauRestantReel,
           jours_impayes: 0,
-          statut: nouveauRestant <= 0 ? 'remboursé' : 'en_cours'
+          statut: nouveauRestantReel <= 0 ? 'remboursé' : 'en_cours'
         });
         resultats.preleves++;
       } else {
@@ -2099,9 +2105,9 @@ async function preleverPretsBancairesServeur() {
         } else {
           if (nouveauxJoursImpayes >= 1 && nouveauxJoursImpayes <= 3) {
             const fraisRappel = Math.round(pret.mensualite * 0.15);
+            await sbRpc('argent_mouvement_serveur',
+              { p_nom: pret.emprunteur, p_montant: fraisRappel, p_sens: 'debit' }, HEADERS_SERVICE);
             await sbUpdate('personnages', `name=eq.${encodeURIComponent(pret.emprunteur)}`, {
-              arg: Math.max(0, (emprunteur.arg || 0) - fraisRappel),
-              liquide: Math.max(0, (emprunteur.liquide || 0) - fraisRappel),
               moral: Math.max(0, (emprunteur.moral || 75) - 10)
             });
             await sbUpdatePret(pret.id, { montant_restant: pret.montant_restant + fraisRappel });
@@ -2525,6 +2531,11 @@ function getPrixRessourceServeur(cle, quantiteEnStock) {
   return Math.round(res.prixBase * (1 + variation) * 100) / 100;
 }
 
+// ENTREPOTS DE REPUBLIA SEULEMENT (04/11/2026) : cette passe est l'economie de Republia (usines
+// locales, port de PSM). Un entrepot d'un autre pays n'est PAS ajoute ici, il serait approvisionne
+// par les usines de Republia. Le pays est desormais dans la cle serveur (`entrepots_par_ville.pays`) ;
+// l'approvisionnement des entrepots des autres empires viendra avec leur propre economie.
+const PAYS_ENTREPOTS_VILLES = 'republic';
 const ENTREPOTS_VILLES = [
   { buildingId: 'entrepot-logistique-luthecia', city: 'capitale' },
   { buildingId: 'entrepot-logistique-psm',      city: 'ville_a' },
@@ -2629,10 +2640,55 @@ const NB_ARRIVAGES_CONSERVES = 10; // historique court pour le Commandant/Marcel
 // la seule notion de "capacite d'une ville" deja presente dans l'architecture actuelle
 // (identique pour les 3 villes). cereales.plafond=150 -> 1.5 ville = 225 ; viande.plafond=125 ->
 // 1 ville = 125. Destination fixe (Al-Khalija) pour ce lot uniquement.
+// 06/11/2026 (Fred) : la Republia exporte aussi des medicaments vers Sovarka, et un peu d'alcool.
+// Volumes proposes par Claude, meme regle de « villes equivalentes » : medicaments 1 ville
+// (plafond 100 -> 100/jour), alcool 0.5 ville (plafond 100 -> 50/jour). Meme moteur : preleve sur
+// le stock reel des 3 entrepots, recette au prix_base pour chaque entrepot fournisseur, matiere
+// interdite jamais exportee. Sovarka n'est represente par aucune caisse ici, comme Al-Khalija.
 const EXPORTATIONS_PORT = {
-  cereales: { equivalentVilles: 1.5, destination: 'khalija' },
-  viande:   { equivalentVilles: 1,   destination: 'khalija' }
+  cereales:    { equivalentVilles: 1.5, destination: 'khalija' },
+  viande:      { equivalentVilles: 1,   destination: 'khalija' },
+  medicaments: { equivalentVilles: 1,   destination: 'soviet' },
+  alcool:      { equivalentVilles: 0.5, destination: 'soviet' }
 };
+
+// EXPORTATIONS DE SOVARKA (06/11/2026, decision de Fred) : minerai et metal vers tous les pays, petrole
+// vers la Republia, viande et cereales vers Al-Khalija. Volumes proposes par Claude (meme regle de
+// « villes equivalentes », plafond de la ressource) ; « tous les pays » = parts egales entre les trois
+// autres empires. Execution au serveur (exportations_sovarka_executer) : stock reel des trois entrepots
+// de Sovarka, payes au prix de base ; la part de la Republia est livree (PSM paie et repartit en trois),
+// celles d'Al-Khalija et d'El Estado disparaissent (aucun entrepot, aucune caisse en face).
+const EXPORTATIONS_SOVARKA = {
+  minerai:  { equivalentVilles: 0.5, destinations: ['republic', 'khalija', 'narco'] },
+  metal:    { equivalentVilles: 0.5, destinations: ['republic', 'khalija', 'narco'] },
+  petrole:  { equivalentVilles: 1,   destinations: ['republic'] },
+  viande:   { equivalentVilles: 0.5, destinations: ['khalija'] },
+  cereales: { equivalentVilles: 0.5, destinations: ['khalija'] }
+};
+
+async function traiterExportationsSovarkaQuotidien() {
+  const contrats = {};
+  for (const [cle, cfg] of Object.entries(EXPORTATIONS_SOVARKA)) {
+    const res = RESSOURCES_ECONOMIE_SERVEUR[cle];
+    if (!res) continue;
+    const total = Math.round(res.plafond * cfg.equivalentVilles);
+    const n = cfg.destinations.length, base = Math.floor(total / n);
+    contrats[cle] = {};
+    cfg.destinations.forEach((pays, i) => { contrats[cle][pays] = base + (i < total - base * n ? 1 : 0); });
+  }
+  const r = await sbRpc('exportations_sovarka_executer',
+    { p_jour: jourParisISO(new Date()), p_contrats: contrats }, HEADERS_SERVICE).catch(() => null);
+  const v = Array.isArray(r) ? r[0] : r;
+  if (!v || v.ok !== true) throw new Error('exportations_sovarka:' + ((v && v.raison) || 'verdict_absent'));
+  return { contrats, exportations: v.exportations };
+}
+
+async function traiterUrbanismeSovarkaQuotidien() {
+  const r = await sbRpc('sovarka_urbanisme_passe', { p_jour: jourParisISO(new Date()) }, HEADERS_SERVICE).catch(() => null);
+  const v = Array.isArray(r) ? r[0] : r;
+  if (!v || v.ok !== true) throw new Error('urbanisme_sovarka:' + ((v && v.raison) || 'verdict_absent'));
+  return v;
+}
 
 // Arrivage de peche quotidien propre a la Criee de PSM (arbitrage valide le 25 aout 2026, §3-5
 // du lot Criee/poisson) : totalement independant de l'approvisionnement en poisson des 3
@@ -2982,8 +3038,9 @@ async function livrerEntrepotsQuotidien() {
     // elle sert a savoir si les desideratas poses par un PJ sont encore les siens.
     const directeursEnPoste = {};
     try {
-      const dirs = await sbGet('personnages', 'select=name,poste&poste->>id=eq.directeur_entrepot');
-      (dirs || []).forEach(d => { if (d.poste && d.poste.city) directeursEnPoste[d.poste.city] = d.name; });
+      // Le pays compte : un directeur d'entrepot de Novomirsk (soviet, capitale) n'est pas celui de Luthecia.
+      const dirs = await sbGet('personnages', 'select=name,poste,country&poste->>id=eq.directeur_entrepot&country=eq.' + PAYS_ENTREPOTS_VILLES);
+      (dirs || []).forEach(d => { if (d.poste && d.poste.city && d.country === PAYS_ENTREPOTS_VILLES) directeursEnPoste[d.poste.city] = d.name; });
     } catch (e) { /* aucun directeur PJ lisible : les valeurs PNJ s'appliqueront */ }
 
     // LA LECTURE DES CAISSES MUNICIPALES A DISPARU (8 octobre 2026). Elle ne servait qu'au
@@ -3398,6 +3455,8 @@ async function traiterExportationsPortQuotidien() {
       stocksEntrepots[e.city] = { etat: etatE };
     }
 
+    const recettesParVille = {};
+
     // Exportation = vente institutionnelle : une matiere interdite n'est plus exportee (le stock reste
     // en entrepot, §34). Verification impossible -> aucune exportation ce jour (fail-closed).
     const interdites = await matieresInterditesRepublia();
@@ -3421,7 +3480,20 @@ async function traiterExportationsPortQuotidien() {
         stockTotal += s;
       }
 
-      const aExporter = Math.min(contrat, stockTotal);
+      let aExporter = Math.min(contrat, stockTotal);
+      // LIVRAISON REELLE EN SOVARKA (06/11/2026, regle de Fred). Al-Khalija n'a ni entrepot ni caisse :
+      // la marchandise y disparait. Sovarka en a : l'entrepot de Starovka paie la cargaison, la repartit
+      // en trois et Novomirsk et Krasnov lui paient leur part (exportation_sovarka_recevoir, une seule
+      // transaction, une seule reception par jour et par matiere). On ne preleve en Republia que la
+      // quantite acceptee ; reception impossible a confirmer -> rien ne part ce jour (fail-closed).
+      let receptionSovarka = null;
+      if (cfg.destination === 'soviet' && aExporter > 0) {
+        receptionSovarka = await sbRpc('exportation_sovarka_recevoir', {
+          p_jour: jourParisISO(new Date()), p_cle: cle, p_quantite: aExporter,
+          p_prix: RESSOURCES_ECONOMIE_SERVEUR[cle].prixBase
+        }, HEADERS_SERVICE).catch(() => null);
+        aExporter = (receptionSovarka && receptionSovarka.ok) ? Math.max(0, Math.min(aExporter, Number(receptionSovarka.acceptee) || 0)) : 0;
+      }
       // Repartition proportionnelle au stock REEL de chaque ville (pas aux pourcentages du
       // Commandant, qui pilotent les imports, pas les exports) -- arrondi Hamilton, jamais plus
       // preleve que ce qui existe reellement dans un entrepot donne.
@@ -3465,15 +3537,19 @@ async function traiterExportationsPortQuotidien() {
         stockCible[cle] = Math.max(0, (stockCible[cle] || 0) - qte);
         const recette = Math.round(qte * prixExport * 100) / 100;
         recetteTotale += recette;
-        // La caisse est relue sur cible.etat, qui porte deja les credits de la ressource
-        // precedente de cette meme passe : les deux exportations du jour s'additionnent.
-        cible.etat = { ...cible.etat, entrepot: { ...entrepotCible, stock: stockCible,
-          caisse: Math.round(((entrepotCible.caisse || 0) + recette) * 100) / 100 } };
+        // RECETTE A LA CAISSE CANONIQUE (06/11/2026). Elle etait ajoutee a `etat.entrepot.caisse`,
+        // champ que plus rien ne lit depuis le passage des entrepots a caisses_batiments (voir
+        // livrerEntrepotsQuotidien et plateau-entrepots.js) : la recette des exportations se perdait
+        // chaque nuit. Elle est cumulee ici et versee apres l'ecriture des stocks, par la meme porte
+        // serveur verrouillee et journalisee que les livraisons (entrepot_caisse_mouvement).
+        recettesParVille[e.city] = Math.round(((recettesParVille[e.city] || 0) + recette) * 100) / 100;
+        cible.etat = { ...cible.etat, entrepot: { ...entrepotCible, stock: stockCible } };
       }
 
       const satisfactionPct = contrat > 0 ? Math.round((aExporter / contrat) * 10000) / 100 : 100;
       exportations[cle] = { destination: cfg.destination, contrat, envoye: aExporter, satisfactionPct,
-        prixUnitaire: prixExport, recette: recetteTotale, jour: new Date().toISOString() };
+        prixUnitaire: prixExport, recette: recetteTotale, jour: new Date().toISOString(),
+        ...(receptionSovarka ? { reception: receptionSovarka } : {}) };
       resultats.exportations[cle] = { contrat, envoye: aExporter, satisfactionPct,
         prixUnitaire: prixExport, recette: recetteTotale };
     }
@@ -3481,6 +3557,13 @@ async function traiterExportationsPortQuotidien() {
     for (const e of ENTREPOTS_VILLES) {
       const cible = stocksEntrepots[e.city];
       if (cible.etat) await sbSetBatimentEtat('republic', e.city, e.buildingId, cible.etat).catch(() => {});
+      const recette = recettesParVille[e.city] || 0;
+      if (recette > 0) {
+        const repMvt = await sbRpc('entrepot_caisse_mouvement',
+          { p_entrepot_id: 'republic_' + e.city + '_' + e.buildingId, p_delta: recette }, HEADERS_SERVICE).catch(() => null);
+        const rMvt = Array.isArray(repMvt) ? repMvt[0] : repMvt;
+        if (!rMvt || rMvt.ok !== true) signalerEchec('exportations:caisse_entrepot:' + e.city, (rMvt && rMvt.raison) || 'verdict_absent');
+      }
     }
     await sbSetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM, { ...(etatPort || {}), port: { ...port, exportations } }).catch(() => {});
   } catch(e) { console.error('traiterExportationsPortQuotidien error', e); }
@@ -4795,8 +4878,11 @@ async function traiterLicencesSportivesSaison() {
         resultats.nonRenouvellements++;
       } else {
         const club = CLUBS_SPORTIFS_SERVEUR.find(c => c.id === lic.clubId);
-        if ((perso.arg || 0) >= LICENCE_SPORTIVE_MONTANT) {
-          patch.arg = (perso.arg || 0) - LICENCE_SPORTIVE_MONTANT;
+        const debLicence = (perso.arg || 0) >= LICENCE_SPORTIVE_MONTANT
+          ? await sbRpc('argent_mouvement_serveur',
+              { p_nom: perso.name, p_montant: LICENCE_SPORTIVE_MONTANT, p_sens: 'debit' }, HEADERS_SERVICE)
+          : null;
+        if (debLicence && debLicence.ok && Number(debLicence.applique) >= LICENCE_SPORTIVE_MONTANT) {
           patch.licence_sportive = { ...lic, statut: 'active', derniereSaisonTraitee: saisonActuelle.numero };
           journalTexte = 'Votre licence sportive au ' + (club?.nom || 'club') + ' a été renouvelée pour la nouvelle saison. ' + LICENCE_SPORTIVE_MONTANT + ' FR ont été prélevés.';
           resultats.renouvellements++;
@@ -5282,7 +5368,15 @@ async function verifierPostesVacantsEtAutoPourvoir() {
       const debutSecours = lundiMinuitParisApresSemaines(now, 0);
       cycle.dateDebutMandatTs = debutSecours;
       delete cycle.dissolutionUtilisee;
-      ouvrirSuccessionSurCycle(cycle, debutSecours, MANDAT_SEMAINES);
+      // LE SECOURS N'EFFACE PAS UN SCRUTIN EN COURS (audit E6, 02/11/2026). Rouvrir la succession
+      // vidait candidats et bulletins : un poste devenu vacant avec des candidats declares les
+      // perdait au premier lundi. Le PNJ assure alors l'interim jusqu'au resultat de ce scrutin,
+      // qui garde ses dates ; la succession n'est ouverte que si aucun scrutin n'est engage.
+      const scrutinEngage = (Array.isArray(cycle.candidats) && cycle.candidats.length > 0)
+        || Object.keys(cycle.votes || {}).length > 0;
+      if (!scrutinEngage || !(Number(cycle.dateResultats) > now.getTime())) {
+        ouvrirSuccessionSurCycle(cycle, debutSecours, MANDAT_SEMAINES);
+      }
       // Archives des mandats (chantier "Hotel de Ville / elections", 4 septembre 2026) : un
       // mandat de maire PNJ de secours suit desormais la meme tracabilite dateDebutMandatTs/
       // indicateursDebutMandat qu'un mandat PJ, pour que la proclamation future (boucle
@@ -5377,7 +5471,10 @@ async function resoudreInvestissementsExpires() {
     const demRows = await sbGet('personnages', `name=eq.${encodeURIComponent(inv.joueur)}`);
     const demandeur = demRows && demRows[0];
     if (demandeur) {
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(inv.joueur)}`, { arg: (demandeur.arg || 0) + montantFinal });
+      // 04/11/2026 : verse sur le compte national (arg seul n'etait depensable nulle part).
+      const cred = await sbRpc('argent_mouvement_serveur',
+        { p_nom: inv.joueur, p_montant: montantFinal, p_sens: 'credit' }, HEADERS_SERVICE);
+      if (!cred || !cred.ok) continue;  // investissement laisse en cours, repris la nuit suivante
     }
     await sbUpdate('investissements', `id=eq.${encodeURIComponent(inv.id)}`, {
       statut: 'resolu',
@@ -5511,6 +5608,10 @@ async function reglerCreancesHelvetiaServeur() {
 // administrative restante lors d'une eventuelle liquidation J15.
 async function traiterArriveesCaissesFret() {
   const resultats = { arrivees: 0 };
+  // Caisses terrestres (entrepôts logistiques, 04/11/2026) : constatées d'abord par la fonction
+  // serveur, qui envoie le courrier d'arrivée ; la boucle ci-dessous ne voit plus que le reste.
+  const terrestres = await sbRpc('fret_arrivees_constater', {}).catch(() => null);
+  if (typeof terrestres === 'number') resultats.arrivees += terrestres;
   const caisses = await sbGet('caisses_fret', 'statut=eq.en_transit');
   if (!caisses) return resultats;
 
@@ -5885,6 +5986,9 @@ export default async function handler(req, res) {
       const country = row.country;
       const ville = row.city || null;
       const posteNom = POSTE_NOMS[posteId] || posteId;
+      // NOM AFFICHE DE LA VILLE (audit E7, 02/11/2026) : les annonces montraient la cle technique
+      // (« Maire (capitale) »). VILLES_SERVEUR est la copie generee de VILLES (data.js).
+      const villeNom = ville ? (((VILLES_SERVEUR[country] || {})[ville] || {}).nom || ville) : null;
       const scope = POSTE_SCOPE[posteId] || 'national';
 
       // LES DEUX BLOCS QUI VIVAIENT ICI SONT SUPPRIMES (correctif du 11 octobre 2026), ET C'EST
@@ -5925,7 +6029,7 @@ export default async function handler(req, res) {
       // remplacement, et la variable n'avait plus d'affectation.
       let evenementAPoser = null, chroniqueAPoser = null;
       const cycleDebutCle = cycle.dateDebutCandidatures || row.id;
-      const fraudesActives = await chargerFraudesActivesServer(country, posteId, ville, cycleDebutCle);
+      const fraudesActives = await chargerFraudesActivesServer(country, posteId, ville, cycleDebutCle, cycle.debutTour);
       await attacherEffetsTractsServer(row.id, cycle);
 
       // LE TITULAIRE EN EXERCICE, AVANT TOUT DEPOUILLEMENT. C'est lui qui reste atteste tant
@@ -5944,7 +6048,19 @@ export default async function handler(req, res) {
       // y lit les candidats, les bulletins, le tour des tracts et la cle des fraudes.
       cycle.dernierScrutin = JSON.parse(JSON.stringify({
         debut: cycleDebutCle, dateVote: cycle.dateVote || null,
-        candidats: cycle.candidats || [], votes: cycle.votes || {}, votesPNJ: cycle.votesPNJ || {}
+        // Bornes du TOUR proclame (02/11/2026) : la contestation ne recompte et ne revele que
+        // les fraudes de ce tour-la, jamais celles du tour suivant ni du precedent.
+        debutTour: cycle.debutTour || null, finTour: dateResultats,
+        candidats: cycle.candidats || [], votes: cycle.votes || {}, votesPNJ: cycle.votesPNJ || {},
+        // LE MANDAT EN COURS AVANT LA PROCLAMATION (audit E4/E5, 02/11/2026). Si la contestation
+        // annule l'election proclamee (le recompte renvoie au second tour ou a la prolongation),
+        // election_contestation_appliquer rend le poste a ce titulaire, avec son debut de mandat.
+        titulaireAvant: cycle.eluId || null,
+        elusAvant: Array.isArray(cycle.elus) ? cycle.elus : [],
+        debutMandatAvant: cycle.dateDebutMandatTs || null,
+        indicateursAvant: cycle.indicateursDebutMandat || null,
+        // Noms affiches, pour l'annonce d'un resultat corrige par contestation (E5/E7).
+        posteNom, villeNom
       }));
 
       const sortantSimple = cycle.eluId || null;
@@ -5999,12 +6115,12 @@ export default async function handler(req, res) {
             // AUCUN BULLETIN. Les neuf sortants restent deputes, et le scrutin est rejoue.
             prolonger(PROLONGATION_SEMAINES, 'aucun_bulletin');
             evenementAPoser = { country, city: ville,
-              texte: `🗳️ Aucun bulletin aux législatives de ${ville} : les député(e)s en fonction le restent, un nouveau scrutin est ouvert.` };
+              texte: `🗳️ Aucun bulletin aux législatives de ${villeNom} : les député(e)s en fonction le restent, un nouveau scrutin est ouvert.` };
           } else if (resultatDepute.blancMajoritaire) {
             // VOTE BLANC MAJORITAIRE. Meme principe : le scrutin est invalide, pas le mandat.
             prolonger(PROLONGATION_SEMAINES, 'vote_blanc_majoritaire');
             evenementAPoser = { country, city: ville,
-              texte: `🗳️ VOTE BLANC MAJORITAIRE : les élections législatives de ${ville} sont invalidées. Les député(e)s en fonction le restent jusqu'au nouveau scrutin.` };
+              texte: `🗳️ VOTE BLANC MAJORITAIRE : les élections législatives de ${villeNom} sont invalidées. Les député(e)s en fonction le restent jusqu'au nouveau scrutin.` };
             results.push({ poste: 'depute', country, city: ville, statut: 'invalide_vote_blanc' });
           } else {
             // LES NEUF CHANGENT EN UNE SEULE ECRITURE. `cycle.elus` est le tableau que
@@ -6017,12 +6133,12 @@ export default async function handler(req, res) {
             }
             cycle.elus = elusFinaux2;
             prendreFonctions();
-            evenementAPoser = { country, city: ville, texte: `🗳️ RÉSULTATS : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s de ${ville} (3 sièges).` };
+            evenementAPoser = { country, city: ville, texte: `🗳️ RÉSULTATS : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s de ${villeNom} (3 sièges).` };
             chroniqueAPoser = {
               id: `election-${row.id}-${dateResultats}`,
               country, city: ville, type: 'election_resultat',
               personnages: elusFinaux2,
-              libelle: `Assemblée de ${ville} : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s (3 sièges).`,
+              libelle: `Assemblée de ${villeNom} : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s (3 sièges).`,
               data: { poste_id: 'depute', elus: elusFinaux2, cycle_row_id: row.id }, source_ref: row.id
             };
             results.push({ poste: 'depute', country, city: ville, statut: 'elu', elus: elusFinaux2 });
@@ -6034,11 +6150,11 @@ export default async function handler(req, res) {
         if (!resultatSimple || resultatSimple.totalExprimes === 0) {
           prolonger(PROLONGATION_SEMAINES, 'aucun_bulletin');
           evenementAPoser = { country, city: scope === 'local' ? ville : null,
-            texte: `🗳️ Aucun bulletin à l'élection de ${posteNom}${ville ? ` (${ville})` : ''} : le titulaire en fonction le reste, un nouveau scrutin est ouvert.` };
+            texte: `🗳️ Aucun bulletin à l'élection de ${posteNom}${ville ? ` (${villeNom})` : ''} : le titulaire en fonction le reste, un nouveau scrutin est ouvert.` };
         } else if (resultatSimple.blancMajoritaire) {
           prolonger(PROLONGATION_SEMAINES, 'vote_blanc_majoritaire');
           evenementAPoser = { country, city: scope === 'local' ? ville : null,
-            texte: `🗳️ VOTE BLANC MAJORITAIRE : l'élection de ${posteNom} est invalidée. Le titulaire en fonction le reste jusqu'au nouveau scrutin.` };
+            texte: `🗳️ VOTE BLANC MAJORITAIRE : l'élection de ${posteNom}${villeNom ? ` (${villeNom})` : ''} est invalidée. Le titulaire en fonction le reste jusqu'au nouveau scrutin.` };
           results.push({ poste: posteId, country, city: ville, statut: 'invalide_vote_blanc' });
         } else if (resultatSimple.elu) {
           // ARCHIVE DU MANDAT DE MAIRE QUI S'ACHEVE. Elle etait posee par le bloc de
@@ -6054,7 +6170,7 @@ export default async function handler(req, res) {
           if (posteId === 'maire') {
             cycle.indicateursDebutMandat = await capturerIndicateursMunicipaux(country, ville).catch(() => null);
           }
-          const villeLabel = ville ? ` (${ville})` : '';
+          const villeLabel = ville ? ` (${villeNom})` : '';
           const pourcentageVoix = Math.round((resultatSimple.scores[resultatSimple.elu] / resultatSimple.totalExprimes) * 100);
           evenementAPoser = { country, city: scope === 'local' ? ville : null,
             texte: `🗳️ RÉSULTATS : ${resultatSimple.elu} est élu(e) ${posteNom}${villeLabel} avec ${pourcentageVoix}% des voix.` };
@@ -6079,7 +6195,8 @@ export default async function handler(req, res) {
           const candidatsExistantsSimple = cycle.candidats || [];
           const calST = calendrierTourSuivant(cycle.dateVote);
           cycle.tour = 2;
-          cycle.candidats = resultatSimple.secondTour.map(nom => ({ nom, voix: 0, programme: (candidatsExistantsSimple.find(c => c.nom === nom) || {}).programme || '' }));
+          cycle.debutTour = dateResultats;   // les fraudes du premier tour ne comptent pas ici
+          cycle.candidats =resultatSimple.secondTour.map(nom => ({ nom, voix: 0, programme: (candidatsExistantsSimple.find(c => c.nom === nom) || {}).programme || '' }));
           cycle.votes = {};
           cycle.votesPNJ = {};
           cycle.dateDebutCampagne = calST.dateDebutCampagne;
@@ -6088,7 +6205,7 @@ export default async function handler(req, res) {
           cycle.dateFinMandat = calST.dateResultats;   // le mandat finit quand le second tour tranche
           cycle.phase = 'second_tour';
           cycle.resultatsTraites = false;
-          const villeLabel2 = ville ? ` (${ville})` : '';
+          const villeLabel2 = ville ? ` (${villeNom})` : '';
           evenementAPoser = { country, city: scope === 'local' ? ville : null,
             texte: `🗳️ SECOND TOUR : Aucune majorité absolue pour ${posteNom}${villeLabel2}. Second tour entre ${resultatSimple.secondTour.join(' et ')}. Le titulaire en fonction le reste jusqu'au résultat.` };
           results.push({ poste: posteId, country, city: ville, statut: 'second_tour', candidats: resultatSimple.secondTour,
@@ -6100,7 +6217,7 @@ export default async function handler(req, res) {
           // prolongation muette serait invisible pour les joueurs.
           prolonger(PROLONGATION_SEMAINES, 'aucun_verdict');
           evenementAPoser = { country, city: scope === 'local' ? ville : null,
-            texte: `🗳️ Aucun résultat définitif à l'élection de ${posteNom}${ville ? ` (${ville})` : ''} : le titulaire en fonction le reste, un nouveau scrutin est ouvert.` };
+            texte: `🗳️ Aucun résultat définitif à l'élection de ${posteNom}${ville ? ` (${villeNom})` : ''} : le titulaire en fonction le reste, un nouveau scrutin est ouvert.` };
         }
       }
 
@@ -6299,6 +6416,37 @@ export default async function handler(req, res) {
       loyersMursOk ? null : (loyersMurs ? (loyersMurs.erreurs || []).length + ' titre(s) en erreur' : 'RPC murs_loyers_nuit indisponible'),
       resumeContexte(loyersMurs ? loyersMurs.verdicts || {} : {}), Date.now() - debutLoyersMurs);
 
+    // 5 c. Offres d'achat du trading echues (3 novembre 2026) : la part non servie revient a la
+    //    caisse qui l'avait bloquee ; rejouable sans double effet (une offre close n'est plus touchee).
+    const debutOffres = Date.now();
+    const offresRows = SUPABASE_SERVICE_ROLE ? await sbRpc('offres_achat_expirer_nuit', {}, HEADERS_SERVICE) : null;
+    const offres = Array.isArray(offresRows) ? offresRows[0] : offresRows;
+    const offresOk = !!(offres && offres.ok === true && !(offres.erreurs || []).length);
+    await journaliserCron('offres_achat_expirees', jourParisISO(), offresOk ? 'ok' : 'echec',
+      offresOk ? null : (offres ? (offres.erreurs || []).length + ' offre(s) en erreur' : 'RPC offres_achat_expirer_nuit indisponible'),
+      resumeContexte({ expirees: offres ? offres.expirees : 0, rembourse: offres ? offres.rembourse : 0 }), Date.now() - debutOffres);
+
+    // 5 d. Equipements dont le local n'est plus en jouissance legale (3 novembre 2026) : courrier
+    //    « 48 h pour desinstaller » la premiere nuit, puis transfert au proprietaire foncier ;
+    //    rejouable sans double effet (le delai est date dans la ligne).
+    const debutEquip = Date.now();
+    const equipRows = SUPABASE_SERVICE_ROLE ? await sbRpc('equipements_jouissance_nuit', {}, HEADERS_SERVICE) : null;
+    const equip = Array.isArray(equipRows) ? equipRows[0] : equipRows;
+    const equipOk = !!(equip && equip.ok === true && !(equip.erreurs || []).length);
+    await journaliserCron('equipements_jouissance', jourParisISO(), equipOk ? 'ok' : 'echec',
+      equipOk ? null : (equip ? (equip.erreurs || []).length + ' equipement(s) en erreur' : 'RPC equipements_jouissance_nuit indisponible'),
+      resumeContexte({ avertis: equip ? equip.avertis : 0, transferes: equip ? equip.transferes : 0, saisis: equip ? equip.saisis : 0 }), Date.now() - debutEquip);
+
+    // 5 b. Descentes d'Estadine echues (2 novembre 2026) : appliquees par le serveur pour les
+    //    joueurs hors ligne ; rejouable sans double effet (chaque descente est marquee).
+    const debutDescentes = Date.now();
+    const descentesRows = SUPABASE_SERVICE_ROLE ? await sbRpc('drogues_descentes_nuit', {}, HEADERS_SERVICE) : null;
+    const descentes = Array.isArray(descentesRows) ? descentesRows[0] : descentesRows;
+    const descentesOk = !!(descentes && descentes.ok === true && !(descentes.erreurs || []).length);
+    await journaliserCron('drogues_descentes', jourParisISO(), descentesOk ? 'ok' : 'echec',
+      descentesOk ? null : (descentes ? (descentes.erreurs || []).length + ' personnage(s) en erreur' : 'RPC drogues_descentes_nuit indisponible'),
+      resumeContexte({ appliquees: descentes ? descentes.appliquees : 0 }), Date.now() - debutDescentes);
+
     // 5 bis. TRAITEMENTS NATIONAUX QUOTIDIENS (Lot 4.3) : redistribution fiscale, virement vers la
     //    caserne, solde des soldats. Ils ne tournaient que si un joueur passait minuit connecte --
     //    sans quoi aucune institution n'etait financee et aucun soldat paye. Idempotence partagee
@@ -6439,6 +6587,24 @@ export default async function handler(req, res) {
       return r || { ok: false, raison: 'rpc_indisponible' };
     });
 
+    // Chantiers navals : après arrivée des marchandises aux entrepôts, avant le
+    // reste des travaux quotidiens. Une journée n'avance que si chaque matière
+    // nécessaire est réellement disponible ; le serveur verrouille et paye.
+    // Toute absence bloque sans perte de jour ni débit ; pas de rattrapage.
+    const chantiersNavals = await tacheQuotidienne('chantiers_navals', async function () {
+      const r = await sbRpc('chantier_naval_avancer_jour', {});
+      return r || {ok:false,raison:'rpc_indisponible'};
+    });
+
+    // Fabrication des vehicules dans les garages (decision de Fred, 06/11/2026) : meme principe
+    // que les chantiers. Une journee avance si les matieres du jour sont au stock du garage et si
+    // sa caisse paie aux PNJ le travail que les PJ n'ont pas fourni ; sinon elle attend, sans jour
+    // perdu. Idempotente par jour de Paris.
+    const fabricationsVehicules = await tacheQuotidienne('fabrications_vehicules', async function () {
+      const r = await sbRpc('garage_fabrications_avancer_jour', {});
+      return r || { ok: false, raison: 'rpc_indisponible' };
+    });
+
     // 11 quater. CELLULES DE RENSEIGNEMENT.
     //
     // Deux balayages serveur, tous deux idempotents (ils ne voient que ce qui est
@@ -6522,6 +6688,13 @@ export default async function handler(req, res) {
       return { ok: true, parPays };
     });
 
+    // RELEVE DU POSTE DE DOUANE DE L'AEROPORT (#433, Fred 28/10 et 04/11) : un groupe de
+    // 3 douaniers au hall des douanes de Luthécia, sans coût pour l'État ; ceux qui sont hors
+    // de combat sont remplacés à minuit. La RPC est idempotente (elle complète à 3).
+    const releveDouaneAeroport = await tacheQuotidienne('releve_douane_aeroport', async function () {
+      return (await sbRpc('douane_aeroport_relever', {})) || { ok: false, raison: 'rpc_indisponible' };
+    });
+
     // 11 ter. ENTRETIEN QUOTIDIEN DES POLICIERS PNJ (27 septembre 2026, lot 3).
     // Deplacee ici depuis doDormir pour la meme raison que la douane -- un traitement
     // institutionnel ne peut pas dependre du sommeil d'un joueur -- plus une fuite propre a la
@@ -6548,6 +6721,13 @@ export default async function handler(req, res) {
     // 2026) : prelevement reel sur le stock des 3 entrepots, apres que les imports du jour ont
     // ete distribues ci-dessus.
     const exportationsPort = await tacheQuotidienne('exportations_port', traiterExportationsPortQuotidien);
+    // Apres celles de Republia : la part livree a la Republia passe par PSM, dont la passe ci-dessus
+    // a deja ecrit les stocks (aucune ecriture concurrente d'un etat d'entrepot).
+    const exportationsSovarka = await tacheQuotidienne('exportations_sovarka', traiterExportationsSovarkaQuotidien);
+    // Urbanisme de Sovarka (06/11/2026, decisions de Fred) : livraison des immeubles collectifs, chantiers
+    // en attente des fonds de la mairie, et le 1er et le 15, lancement d'un immeuble par ville pour les
+    // dossiers de commerce acceptes qui attendent un local. Tout est decide par sovarka_urbanisme_passe.
+    const urbanismeSovarka = await tacheQuotidienne('urbanisme_sovarka', traiterUrbanismeSovarkaQuotidien);
 
     // 12c. Arrivage quotidien de poisson propre a la Criee de PSM (arbitrage du 25 aout 2026) :
     // independant de livrerEntrepotsQuotidien ci-dessus, ne touche aucun entrepot.
@@ -6630,7 +6810,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, exportationsSovarka, urbanismeSovarka, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

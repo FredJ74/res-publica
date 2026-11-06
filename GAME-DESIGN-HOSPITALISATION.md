@@ -70,3 +70,13 @@ Correctif serveur : `migrations/20261101171000_hospitalisation_pa0.sql`
   (porte `hospitalisation_lieu_rejoindre`, PR #318 vers #219), jamais une navigation de l'écran.
 - L'immobilisation J0/J1 est une interdiction serveur (la navigation commune de #219 refuse déjà
   un PJ hospitalisé ; la fin d'immobilisation doit coïncider avec le Dormir de J2).
+
+## Avertissement avant de tomber à 0 PA (décision de Fred, 04/11/2026)
+
+- Avant tout ordre dont le coût annoncé laisserait **exactement 0 PA**, une fenêtre demande
+  confirmation : « … vous laissera à 0 PA : vous serez transféré(e) à l'hôpital. Continuer ? »
+  (Confirmer / Annuler).
+- **Toujours affiché**, aucune option pour le désactiver.
+- Ne concerne que les ordres au coût connu d'avance : un combat perdu reste un risque assumé.
+- Aide d'écran seulement (`avertirZeroPa`, `plateau-router.js`) : la règle d'hospitalisation
+  reste décidée par le serveur.

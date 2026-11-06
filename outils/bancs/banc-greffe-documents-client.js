@@ -107,9 +107,12 @@ HANDLERS.forEach(function (h) {
   att('  ' + h + ' relit l inventaire au serveur',
       corps.indexOf('rafraichirInventaireDepuisServeur') >= 0);
 });
-att('la relecture de l inventaire interroge bien la base',
-    codeSeul(bloc(justice, 'async function rafraichirInventaireDepuisServeur', '\n}\n'))
-      .indexOf("sbGet('personnages'") >= 0);
+var relectureInventaire = codeSeul(bloc(justice, 'async function rafraichirInventaireDepuisServeur', '\n}\n'));
+att('la relecture de l inventaire utilise le lecteur serveur avec revision et provenance',
+    relectureInventaire.indexOf('sbInventaireReceptionEtat(state.char.name)') >= 0 &&
+    relectureInventaire.indexOf('Number.isSafeInteger(v.revision)') >= 0 &&
+    relectureInventaire.indexOf('sbAdopterInventaireServeur(v)') >= 0 &&
+    relectureInventaire.indexOf("sbGet('personnages'") < 0);
 // LA MISE EN PAGE D'UN DOCUMENT NE REVELE PAS SON AUTHENTICITE, et pour une raison structurelle :
 // l'objet ne la porte pas. Un faux extrait s'affiche donc exactement comme un vrai.
 var rendu = codeSeul(bloc(justice, 'function documentOfficielHtml', '\n}\n'));

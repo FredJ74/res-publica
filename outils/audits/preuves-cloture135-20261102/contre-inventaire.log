@@ -1,0 +1,91 @@
+✖ greffe et services : inventaire et révision adoptés ensemble, objet original conservé (168.272095ms)
+✔ lecture incomplète refusée : null (87.897626ms)
+✔ lecture incomplète refusée : {"ok":false} (64.000509ms)
+✖ lecture incomplète refusée : {"ok":true,"inventory":[]} (75.884162ms)
+✔ lecture incomplète refusée : {"ok":true,"revision":8} (88.195487ms)
+✖ lecture incomplète refusée : {"ok":true,"inventory":[],"revision":8.5} (89.833709ms)
+✔ réponse tardive / personnage (103.50597ms)
+✔ réponse tardive / session (75.704582ms)
+✔ réponse tardive / generation (58.157723ms)
+✖ lecteur canonique absent : aucun repli vers un GET sans révision (67.701498ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 6
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 900.982794
+
+✖ failing tests:
+
+test at outils/bancs/banc-inventaire-relecture-services.cjs:18:1
+✖ greffe et services : inventaire et révision adoptés ensemble, objet original conservé (168.272095ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  null !== 8
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-inventaire-relecture-services.cjs:20:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-inventaire-relecture-services.cjs:23:120
+✖ lecture incomplète refusée : {"ok":true,"inventory":[]} (75.884162ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-inventaire-relecture-services.cjs:24:123)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-inventaire-relecture-services.cjs:23:120
+✖ lecture incomplète refusée : {"ok":true,"inventory":[],"revision":8.5} (89.833709ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-inventaire-relecture-services.cjs:24:123)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-inventaire-relecture-services.cjs:33:1
+✖ lecteur canonique absent : aucun repli vers un GET sans révision (67.701498ms)
+  AssertionError [ERR_ASSERTION]: GET historique interdit
+      at c.sbGet (/workspace/res-publica-cloture-technique135/outils/bancs/banc-inventaire-relecture-services.cjs:34:73)
+      at Object.rafraichirInventaireDepuisServeur (evalmachine.<anonymous>:3:22)
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-inventaire-relecture-services.cjs:34:126)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }

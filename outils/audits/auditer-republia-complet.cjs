@@ -4,18 +4,18 @@ const acorn=require('../vercel/node_modules/acorn');
 const ROOT=path.resolve(__dirname,'../..');
 const lire=f=>fs.readFileSync(path.join(ROOT,f),'utf8');
 function fonctions(f,noms){const s=lire(f);return acorn.parse(s,{ecmaVersion:'latest',sourceType:'script'}).body.filter(n=>n.type==='FunctionDeclaration'&&noms.includes(n.id.name)).map(n=>s.slice(n.start,n.end)).join('\n');}
-function charger(){
- const c=vm.createContext({console,state:{country:'republic',currentCity:'capitale'}});
+function charger(pays='republic'){
+ const c=vm.createContext({console,state:{country:pays,currentCity:'capitale'}});
  for(const f of ['data.js','plateau-variantes-pieces.js','plateau-rue-centrale.js'])vm.runInContext(lire(f),c,{timeout:5000});
  vm.runInContext(fonctions('plateau-navigation.js',['getBuildingContext'])+'\n'+fonctions('plateau-multijoueur.js',['personnesNormalesDeLaPiece']),c);
- return JSON.parse(vm.runInContext(`JSON.stringify((()=>{const out={villes:[],rues:RUE_CENTRALE_NOEUDS.republic};
- for(const ville of ['capitale','ville_a','ville_b']){state.currentCity=ville;const cite=WORLD.republic[ville],v={id:ville,nom:cite.name,image:cite.imageUrl,batiments:[]};
+ return JSON.parse(vm.runInContext(`JSON.stringify((()=>{const pays=state.country;const out={villes:[],rues:RUE_CENTRALE_NOEUDS[pays]||{},pays_disponibles:Object.keys(WORLD)};
+ for(const ville of ['capitale','ville_a','ville_b'].filter(k=>Array.isArray(WORLD[pays]?.[k]?.buildings))){state.currentCity=ville;const cite=WORLD[pays][ville],v={id:ville,nom:cite.name,image:cite.imageUrl,batiments:[]};
  for(const id of cite.buildings){const b=BUILDINGS[id],ctx=getBuildingContext(id)||{},bat={id,nom:ctx.name||b?.name,context:ctx,pieces:[]};
  if(!b){bat.absent=true;v.batiments.push(bat);continue;}
  for(const [rid,r] of Object.entries({...b.rooms,...ctx.roomsExtra})){if(ctx.roomsExclues?.includes(rid))continue;const o=ctx.roomOverrides?.[rid]||{};
- const variante=PIECE_VARIANTES.republic?.[ville]?.[id]?.[rid];
- bat.pieces.push({id:rid,nom:o.name||r.name,desc:o.desc||ctx.desc||r.desc,image:o.imageUrl||ROOM_IMAGES_EMPIRE.republic?.[id]?.[rid]||r.imageUrl||null,
- imagesDeclarees:{gabarit:r.imageUrl||null,empire:ROOM_IMAGES_EMPIRE.republic?.[id]?.[rid]||null,locale:o.imageUrl||null},variantes:variante?.images||{},cachee:ctx.roomsMasquees?.includes(rid)||false,
+ const variante=PIECE_VARIANTES[pays]?.[ville]?.[id]?.[rid];
+ bat.pieces.push({id:rid,nom:o.name||r.name,desc:o.desc||ctx.desc||r.desc,image:o.imageUrl||ROOM_IMAGES_EMPIRE[pays]?.[id]?.[rid]||r.imageUrl||null,
+ imagesDeclarees:{gabarit:r.imageUrl||null,empire:ROOM_IMAGES_EMPIRE[pays]?.[id]?.[rid]||null,locale:o.imageUrl||null},variantes:variante?.images||{},cachee:ctx.roomsMasquees?.includes(rid)||false,
  personnes:personnesNormalesDeLaPiece(id,rid),ordres:ordresDeclaresDeLaPiece(r,ctx,rid)});}
  v.batiments.push(bat);}out.villes.push(v);}return out;})())`,c));
 }

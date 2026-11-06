@@ -550,7 +550,8 @@
    "mecanisme": "epinglee",
    "empreinte_serveur": "c5127b8e5cfcc3c2",
    "empreinte_canon": "edd84a342cfe3edc",
-   "_pourquoi": "LIT LA BASE (par personnageExisteReellement). Determine qui est convoque apres un refus de succession : le delai de 10 jours est ecrit des deux cotes sous deux noms (DELAI_CONVOCATION_MS et DELAI_CONVOCATION_MS_SUCCESSION), mesures egaux. Epinglee parce qu'elle ne peut pas s'executer hors base."
+   "_pourquoi": "PR #401 (main 26dc2fc2) a retiré determinerEtapeSuivante du navigateur : succession_repondre juge maintenant les réponses en SQL. Le cron conserve determinerEtapeSuivanteServeur et son empreinte originale pour les échéances autonomes. Comme pour les expulsions, le contrôle exige l’absence AST du mécanisme client et garde les deux anciennes empreintes, sans restaurer le doublon.",
+   "canon_absent": true
   },
   {
    "cle": "economie/prix-ressource",
@@ -632,8 +633,8 @@
    "symbole_canon": "modifierIndiceVille",
    "mecanisme": "epinglee",
    "empreinte_serveur": "fd4e1d3324798569",
-   "empreinte_canon": "1f3ac5a10ab76592",
-   "_pourquoi": "ECRIT EN BASE. Deux differences voulues : la copie serveur accepte un PLANCHER en argument, et elle REFUSE explicitement tout empire autre que Republia la ou le canon mute INDICES_NATIONAUX en memoire -- les trois autres empires n'ont aucune persistance d'indices (constat du chantier 4G, non referme). Le blob par defaut du serveur est le meme objet que INDICE_VILLE_DEFAUT, verifie valeur par valeur. Epinglee parce qu'elle ecrit."
+   "empreinte_canon": "2567100a57fcb16a",
+   "_pourquoi": "Écriture CRON épinglée inchangée. Depuis main #404 (conservé par #410), le client Republia est volontairement sans effet : indice_ville_ajuster_interne est la porte serveur des actes. Le client legacy des autres empires est conservé ; le cron les refuse toujours. Empreinte client revue après lecture et tests exécutables (banc-indices-autorite-422.cjs), dont contre-épreuve ancien écrivain. Aucune formule POP/INF modifiée."
   },
   {
    "cle": "militaire/pa-travail",

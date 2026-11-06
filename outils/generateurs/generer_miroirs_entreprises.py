@@ -20,7 +20,7 @@ Sorties :
   python3 outils/generateurs/generer_miroirs_entreprises.py --json      -> JSON brut
   python3 outils/generateurs/generer_miroirs_entreprises.py --empreinte -> empreinte stable
 
-REJOUER apres toute modification de RECETTES_PRODUCTION, RECETTES_ALIMENTAIRES,
+REJOUER apres toute modification de RECETTES_PRODUCTION, RECETTES_ALIMENTAIRES, QUINCAILLERIE_PRODUITS, VEHICULES_PRODUITS, STATION_PRODUITS,
 DOTATIONS_COMMERCE_PILOTE ou BUILDING_COMMERCE_TYPE : sinon le serveur refusera un
 commerce legitime (miroir fail-closed).
 """
@@ -59,6 +59,9 @@ var src = readFile('data.js') + "\n" + readFile('plateau-actions-illegales-rumeu
 var g = (new Function(src + "\n; return {"
   + " RP: typeof RECETTES_PRODUCTION!=='undefined'?RECETTES_PRODUCTION:null,"
   + " RA: typeof RECETTES_ALIMENTAIRES!=='undefined'?RECETTES_ALIMENTAIRES:null,"
+  + " QP: typeof QUINCAILLERIE_PRODUITS!=='undefined'?QUINCAILLERIE_PRODUITS:null,"
+  + " VP: typeof VEHICULES_PRODUITS!=='undefined'?VEHICULES_PRODUITS:null,"
+  + " SP: typeof STATION_PRODUITS!=='undefined'?STATION_PRODUITS:null,"
   + " PM: typeof PRODUITS_MARCHE!=='undefined'?PRODUITS_MARCHE:null,"
   + " BCT: typeof BUILDING_COMMERCE_TYPE!=='undefined'?BUILDING_COMMERCE_TYPE:null,"
   + " DOT: typeof DOTATIONS_COMMERCE_PILOTE!=='undefined'?DOTATIONS_COMMERCE_PILOTE:null,"
@@ -118,6 +121,12 @@ Object.keys(g.PM || {}).sort().forEach(function (id) {
   if (g.RA && g.RA[id]) { return; }  // RECETTES_ALIMENTAIRES gagne, comme resoudreProduitCommerce
   pousserRecette(id, g.PM[id], 'marche');
 });
+// Quincaillerie des armureries (serrures, 04/11/2026) : produits non-armes, vendus et fabriques
+// par les armureries ; jamais dans RECETTES_PRODUCTION (circuit des armes).
+Object.keys(g.QP || {}).sort().forEach(function (id) { pousserRecette(id, g.QP[id], 'quincaillerie'); });
+// Vehicules personnels (05/11/2026) : vehicules du garage, bidons de la station-service.
+Object.keys(g.VP || {}).sort().forEach(function (id) { pousserRecette(id, g.VP[id], 'garage'); });
+Object.keys(g.SP || {}).sort().forEach(function (id) { pousserRecette(id, g.SP[id], 'station'); });
 
 Object.keys(g.BCT || {}).sort().forEach(function (cle) {
   out.types_commerce.push({ cle: cle, type: g.BCT[cle] });
@@ -212,7 +221,11 @@ def sql(d):
     L.append(",\n".join("  (%s, %s)" % (litteral(r["cle"]), litteral(r["type"]))
              for r in d["types_commerce"]) + ";")
 
-    L.append("\nDELETE FROM public.commerces_dotations;")
+    # Les dotations propres a une ville (cle '<cle>@<ville>', ex. 'marche@ville_b') n'existent pas
+    # dans data.js : elles sont posees par des migrations (20261101030000) et lues avant la cle
+    # generale par entreprise_assurer_existence. Le miroir ne remplace donc que les cles generales ;
+    # l'ancien DELETE integral les aurait effacees (marche de Montrouge revenu au catalogue de Luthecia).
+    L.append("\nDELETE FROM public.commerces_dotations WHERE position('@' in cle) = 0;")
     L.append("INSERT INTO public.commerces_dotations (cle, type, caisse, stock_matieres, cout_moyen_matieres, carte, parametres) VALUES")
     L.append(",\n".join("  (%s, %s, %s, %s, %s, %s, %s)" % (litteral(r["cle"]), litteral(r["type"]),
              litteral(r["caisse"]), litteral(r["stock_matieres"]), litteral(r["cout_moyen_matieres"]),

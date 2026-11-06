@@ -16,7 +16,52 @@ def preparer(destination=None):
  org=charger('org219','outils/livraison/preparer-organisations-219.py');grp=charger('grp219','outils/livraison/preparer-groupes-219.py')
  om=json.loads(org.MAN.read_text());gm=json.loads(grp.MAN.read_text());cm=json.loads((R/'outils/audits/LIVRAISON-COUTS-219-20261031.json').read_text());p=R/cm['migration'];cout=p.read_text()
  if hashlib.sha256(p.read_bytes()).hexdigest()!=cm['sha256']:raise ValueError('Migration de tarifs modifiée')
- gen=json.loads(subprocess.check_output([sys.executable,str(R/'outils/generateurs/generer_ordres_couts.py'),'--json'],cwd=R,text=True));t=sorted((r['fn'],r['pa'],r['cost']) for r in gen);md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
+ gen=json.loads(subprocess.check_output([sys.executable,str(R/'outils/generateurs/generer_ordres_couts.py'),'--json'],cwd=R,text=True))
+ # Le paquet 95 est une photographie historique. Les deux ordres SSM
+ # gratuits ont ete ajoutes plus tard, hors de ce paquet historique.
+ ajouts_ssm=('ssm_besoin_aide','ssm_demander_rendezvous')
+ ssm=sorted((r for r in gen if r['fn'] in ajouts_ssm),key=lambda r:r['fn'])
+ if ssm != [{'fn':'ssm_besoin_aide','pa':0,'cost':0},
+            {'fn':'ssm_demander_rendezvous','pa':0,'cost':0}]:
+  raise ValueError('Tarifs SSM non examines ou absents')
+ # Le catalogue manufacturé du 04/11 remplace deux boutons de la scierie.
+ # Ils appartiennent à cette photographie historique, pas au jeu actuel.
+ nouveau='consulter_catalogue_manufactures'
+ if [r for r in gen if r['fn']==nouveau]!=[{'fn':nouveau,'pa':0,'cost':0}]:
+  raise ValueError('Ordre catalogue manufacture absent ou incorrect')
+ # Sous-menu de virement ajoute apres la photographie 95 : il est gratuit,
+ # et les deux voies de paiement originelles restent dans le catalogue historique.
+ if [r for r in gen if r['fn']=='virements']!=[{'fn':'virements','pa':0,'cost':0}]:
+  raise ValueError('Menu Virements absent ou tarif non conforme')
+ retires=[('assigner_mission',1,0),
+          ('fabriquer_armoire_souvenirs',3,0),
+          ('acheter_armoire_souvenirs',0,0),
+          ('virement_joueur',1,0),
+          ('virement_automatique',1,0)]
+ if any(r['fn'] in {t[0] for t in retires} for r in gen):
+  raise ValueError('Ordre retiré réintroduit dans les commandes actuelles')
+ # Prix d'achat des nouvelles parcelles de PSM (decision de Fred, 04/11/2026), posterieurs a la photographie.
+ ajouts_terrains_psm={('acheter_terrain',2,c) for c in (19800,37200,50400,66000)}
+ if not ajouts_terrains_psm<= {(r['fn'],r['pa'],r['cost']) for r in gen}:
+  raise ValueError('Prix des terrains de PSM absents du catalogue actuel')
+ # Devis du chantier naval : contrôle explicite et exclusion de la capture historique.
+ naval=[r for r in gen if r['fn']=='consulter_devis_chantier_naval']
+ if naval!=[{'fn':'consulter_devis_chantier_naval','pa':0,'cost':0}]:
+  raise ValueError('Ordre devis naval absent ou altéré')
+ # Siège du renseignement militaire (05/11) : contrôle explicite et exclusion de la capture historique.
+ if [r for r in gen if r['fn']=='interroger_renseignement']!=[{'fn':'interroger_renseignement','pa':2,'cost':0}]:
+  raise ValueError('Interrogatoire du renseignement absent ou altéré')
+ # Vehicules personnels (05/11) : quatre ordres d'ecran gratuits, exclus de la capture historique.
+ vehicules=('garage_reviser','garage_vehicules','mes_vehicules','station_carburant')
+ if sorted([r for r in gen if r['fn'] in vehicules],key=lambda r:r['fn'])!=[{'fn':f,'pa':0,'cost':0} for f in vehicules]:
+  raise ValueError('Ordres des vehicules absents ou alteres')
+ # La sous-famille petro-chimique est posterieure a la coupe historique 95.
+ # Controle strict de son unique cout sans reecrire l'empreinte ancienne.
+ petro=[r for r in gen if r['fn']=='produire_derives_petrochimiques']
+ if petro != [{'fn':'produire_derives_petrochimiques','pa':1,'cost':0}]:
+  raise ValueError('Ordre petro-chimique absent ou altere')
+ t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements','produire_derives_petrochimiques','consulter_devis_chantier_naval','interroger_renseignement')+vehicules and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
+ md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
  if md5!=cm['apres']['md5'] or len(t)!=cm['apres']['lignes']:raise ValueError('Sources de tarifs changées : réexaminer le plan')
  entrees=om['migrations']+gm['prerequis']+gm['migrations']+[{'version':cm['version'],'fichier':cm['migration'],'sha256':cm['sha256']}]
  versions=[e['version'] for e in entrees]

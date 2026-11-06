@@ -1,0 +1,13 @@
+✔ la scierie propose un seul catalogue, fabrication et achat y sont reunis (16.363736ms)
+✔ stock nul : achat refuse dans la carte ; production toujours possible (0.92734ms)
+✔ matieres insuffisantes : production inactive, achat possible (0.98149ms)
+✔ un autre territoire ne lit pas le catalogue de PSM (0.709838ms)
+✔ lecture serveur absente : refus sans afficher un ancien stock (0.743218ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 102.295378

@@ -34,13 +34,44 @@ jobs:
         run: node outils/bancs/banc-jodie-portraits-journal.cjs
       - name: "Portrait Jodie — autorisation, contenu signé, anti-doublons"
         run: node outils/bancs/banc-jodie-portrait-api.cjs
-      - name: Calendrier sur main (PR couvertes par les controles dedies)
-        if: github.event_name == 'push'
-        run: node --test outils/bancs/test-*.mjs
       - name: Constructeur Vercel épinglé pour la régression de chargement
         run: npm ci --prefix outils/vercel --no-audit --no-fund
       - name: Installer les dépendances du pilote navigateur avant les bancs client
         run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Calendrier sur main (PR couvertes par les controles dedies)
+        if: github.event_name == 'push'
+        run: node --test outils/bancs/test-*.mjs
+
+      - name: Tracts — plafond commun de 100 unités avant toute impression
+        run: |
+          node --check plateau-divers.js
+          node --check plateau-communication.js
+          node --test outils/bancs/test-tracts-plafond-inventaire-100.cjs outils/bancs/test-imprimerie-stocks-tracts-20261104.cjs
+          python3 -c "from pathlib import Path; from pglast import parse_sql; sql=Path('migrations/20261104164500_tracts_imprimer_plafond_inventaire.sql').read_text(); assert len(parse_sql(sql))==1; print('Migration plafond tracts : syntaxe PostgreSQL valide')"
+
+      - name: Services sociaux Montrouge — rendez-vous, courrier et logements (hors production)
+        run: |
+          node --test outils/bancs/test-montrouge-ssm-rendezvous.cjs outils/bancs/test-montrouge-ssm-pnj.cjs
+          python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261103023000_ssm_rendezvous_logements.sql').read_text()); print('SQL SSM : syntaxe PostgreSQL valide')"
+      - name: Publication forum PSM — session, territoire et panne réseau
+        run: node --test outils/bancs/test-forum-publication-psm-20261104.cjs
+
+      - name: Forums — pays, villes et adhésions, aucune requête production
+        run: |
+          node outils/bancs/banc-forums-territoires-adhesions-20261103.cjs
+          python3 outils/bancs/banc-forums-territoires-local.py
+          python3 outils/bancs/test-collecte-forums422.py
+          python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261103222000_forums_territoires_et_adhesions.sql').read_text()); print('SQL forums : syntaxe PostgreSQL valide')"
+      - name: Commerces, usines et armureries — vente de matières et stocks visibles
+        run: node outils/bancs/banc-commerces-stock-unique-20261104.cjs
+      - name: Catalogue manufacturé commun — produire et acheter depuis la même carte
+        run: node --test outils/bancs/banc-catalogue-manufactures-20261104.cjs
+      - name: Football — entraînement sans blessure navigateur, indisponibilité 3 jours maximum
+        run: |
+          node --test outils/bancs/banc-football-blessures-entrainement-3j.cjs
+          python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261103232759_football_entrainement_blessure_serveur_3j.sql').read_text()); print('Football SQL syntaxe OK')"
+      - name: Trois correctifs prêts — tarifs hôtels, service d'étage et contacts ambassade
+        run: node --test outils/bancs/banc-livraison-hotels-ambassade-20261104.cjs
       - name: Commerce Premium PSM après lecture des baux
         run: node outils/bancs/banc-psm-premium-bail.cjs
       - name: Boutiques PSM — mêmes ordres et variantes que Luthécia
@@ -49,6 +80,10 @@ jobs:
         run: node outils/bancs/banc-position-ville-serveur-f5.cjs
       - name: Rumeurs contre organisations secrètes — confidentialité
         run: node outils/bancs/banc-rumeur-organisations-secretes.cjs
+      - name: Chantier naval PSM — moteur transactionnel sur PostgreSQL jetable
+        run: python3 outils/bancs/banc-chantier-naval-local.py
+      - name: Chantier naval PSM — deux devis et garde serveur
+        run: node --test outils/bancs/test-chantier-naval.mjs
       - name: Bancs JavaScript, transports simulés
         run: python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs
       - name: Destinations du centre multimodal
@@ -141,6 +176,10 @@ jobs:
         run: python3 outils/bancs/banc-assemblage-electronique-local.py
       - name: Publications Jodie sur PostgreSQL local
         run: python3 outils/bancs/banc-jodie-publications-local.py
+      - name: "Reliquats #379, effets atomiques et contrats versionnes sur PostgreSQL jetable"
+        run: python3 outils/bancs/banc-reliquats-379-local.py
+      - name: Jauges, forum, objectifs et organisations transactionnels, PostgreSQL jetable
+        run: python3 outils/bancs/banc-jauges-ordres-379-local.py
       - name: Commandes administratives organisations sur PostgreSQL local
         run: python3 outils/bancs/banc-organisations-commandes-local.py
       - name: Adhesions et grades organisations sur PostgreSQL local

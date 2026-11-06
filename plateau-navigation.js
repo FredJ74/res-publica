@@ -45,10 +45,6 @@ function forceRenderCity(cityId) {
   showVueRue();
   renderMinimap(cityId);
   updateLocationDisplay();
-  // Verifier interception si recherche
-  if (state.recherche && state.recherche.length > 0) {
-    setTimeout(() => checkArrestationAuDeplacement(), 500);
-  }
   // Rafraichissement inconditionnel (correctif audit du 20 aout 2026) : cette ligne dependait a
   // tort de TEST_MODE, hors de son perimetre documente (qui ne doit gouverner que la
   // disponibilite/deduction des PA, voir plateau-core.js) -- l'UI (dont la barre PA) doit se
@@ -104,7 +100,9 @@ function minimapCard(id) {
 
   const locked = b.locked ? '<span style="font-size:.8rem;color:#5a3020">· Accès restreint</span>' : '';
 
+  const serrureBat = (typeof serrureBatimentEtat === 'function') ? serrureBatimentEtat(id) : null;
   const tooltipData = JSON.stringify({
+    batiment: id,
     name: localName,
     desc: localDesc.substring(0,140) + (localDesc.length > 140 ? '...' : ''),
     pnj: pnjList.slice(0, 4).map(p => (p.name||'').replace(' (PNJ)','')),
@@ -114,7 +112,7 @@ function minimapCard(id) {
   return '<div class="minimap-building ' + (b.capitaleOnly ? 'capital-only' : '') + '" onclick="enterBuilding(\'' + id + '\')" onmouseenter="showBuildingTooltip(' + tooltipData + ')" onmouseleave="hideBuildingTooltip()">' +
     '<div class="minimap-bld-icon"><i class="ti ' + b.icon + '" style="font-size:.8rem"></i></div>' +
     '<div class="minimap-bld-info">' +
-      '<div class="minimap-bld-name">' + localName + '</div>' +
+      '<div class="minimap-bld-name">' + localName + (serrureBat ? ' <i class="ti ' + (serrureBat.fermee ? 'ti-lock' : 'ti-lock-open') + '"></i>' : '') + '</div>' +
       '<div class="minimap-bld-cat">' + b.cat + ' ' + locked + '</div>' +
       (personCount > 0 ? '<div class="minimap-persons">' + personCount + ' personne' + (personCount > 1 ? 's' : '') + '</div>' : '') +
     '</div>' +
@@ -125,6 +123,9 @@ function showBuildingTooltip(data) {
   const el = document.getElementById('building-hover-tooltip');
   if (!el) return;
   let html = '<div class="mtt-title">' + data.name + '</div>';
+  const serrureBat = (data.batiment && typeof serrureBatimentEtat === 'function') ? serrureBatimentEtat(data.batiment) : null;
+  if (serrureBat) html += '<div class="mtt-desc"><i class="ti ' + (serrureBat.fermee ? 'ti-lock' : 'ti-lock-open') + '"></i> '
+    + (serrureBat.fermee ? (serrureBat.a_cle ? 'Fermé à clé — vous en avez la clé' : 'Fermé à clé') : 'Ouvert au public') + '</div>';
   if (data.desc) html += '<div class="mtt-desc">' + data.desc + '</div>';
   if (data.pnj && data.pnj.length) {
     html += '<div class="mtt-pnj">' + data.pnj.map(n => '<div style="font-size:.72rem;color:#8a8060">· ' + n + '</div>').join('') + '</div>';
@@ -149,6 +150,7 @@ function hideBuildingTooltip() {
 // carte le trottoir correspondant, au lieu de dependre d'une memoire locale (voir plus bas).
 function showVueRue(batimentQuitte, positionConfirmee = null) {
   hideBuildingTooltip();
+  if (typeof serruresBatimentsCharger === 'function') serruresBatimentsCharger();
   document.getElementById('vue-rue').classList.add('active');
   document.getElementById('vue-batiment').classList.remove('active');
   state.currentBuilding = null;
@@ -312,8 +314,9 @@ async function commanderNavigationInterieure(buildingId,roomId) {
         membre_loge_requis:'Tous les membres du groupe doivent être admis dans la loge.',
         visite_refusee:'Les visites sont interdites à un membre de ce groupe.',
         acces_collectif_a_raccorder:'Cet accès particulier n’est pas encore disponible pour un groupe.',
-        batiment_ferme:'Ce bâtiment est fermé.',blocus_syndical:'Un blocus syndical interdit d’aller plus loin que la première pièce.',destination_inconnue:'Cette destination n’est pas référencée.',
+        batiment_ferme:'Ce bâtiment est fermé.',porte_fermee_a_cle:'Cette porte est fermée à clé.',blocus_syndical:'Un blocus syndical interdit d’aller plus loin que la première pièce.',rendezvous_ssm_requis:'Le bureau d’Edwige Jacquard est accessible uniquement le jour de votre rendez-vous. Demandez un rendez-vous à Pascale, à l’accueil.',destination_inconnue:'Cette destination n’est pas référencée.',
         entree_non_accessible:'Ce bâtiment n’est pas accessible depuis votre position.',groupe_disperse:'Les membres du groupe ne sont plus réunis.'};
+      if(r?.raison==='porte_fermee_a_cle'&&typeof serrurePopupFermee==='function'){serrurePopupFermee(r.batiment?'batiment':'local');return false;}
       const incident=r||v;
       const perdu=['non_authentifie','acteur_non_authentifie','session_perdue'].includes(incident?.raison)||incident?.transport?.etat==='session_perdue';
       if(typeof showToast==='function')showToast(perdu?'Session expirée':'Déplacement non confirmé',
@@ -336,6 +339,15 @@ async function commanderNavigationInterieure(buildingId,roomId) {
       return false;
     }
     if(moi?.updated_at)state._dernierUpdatedAtConnu=moi.updated_at;
+    // CONTROLES D'ENTREE TIRES PAR LE SERVEUR (03/11/2026) : patrouille du couvre-feu et detachement
+    // en mission « arreter » sont joues dans la transaction du deplacement. Interpelle, le joueur
+    // est conduit en cellule par la fiche relue ; on n'entre pas dans la piece demandee.
+    if(r.arrestation&&r.arrestation.ok===true&&typeof adopterArrestationServeur==='function'){
+      if(typeof showToast==='function')showToast(r.arrestation.controle==='couvre_feu'?'Interpellé(e) !':'Arrêté(e) !',
+        r.arrestation.controle==='couvre_feu'?'Violation du couvre-feu.':'Le détachement militaire vous a intercepté.',false);
+      await adopterArrestationServeur(r.arrestation);
+      return true;
+    }
     if (buildingId === null && roomId === null) {
       const ancien = state.currentBuilding;
       if (state.char) { state.char.currentBuilding = null; state.char.currentRoom = null; }
@@ -352,6 +364,12 @@ async function commanderNavigationInterieure(buildingId,roomId) {
 }
 
 function enterBuilding(buildingId, skipAutoRoom) {
+  // Batiment ferme a cle (decision de Fred du 04/11) : seul un detenteur de cle entre ; le serveur
+  // refuse de toute facon (navigation_interieure : porte_fermee_a_cle).
+  if (state.currentBuilding !== buildingId && typeof serrureBatimentEtat === 'function') {
+    const eb = serrureBatimentEtat(buildingId);
+    if (eb && eb.fermee && !eb.a_cle) { serrurePopupFermee('batiment'); return; }
+  }
   if(state._navigationServeur===true&&state.currentBuilding!==buildingId
       &&navigationInterieureRendu?.buildingId!==buildingId){
     const b=BUILDINGS[buildingId],ctx=getBuildingContext(buildingId);
@@ -455,62 +473,43 @@ function enterBuilding(buildingId, skipAutoRoom) {
   document.getElementById('bat-nom').textContent = displayName;
   document.getElementById('bat-cat').textContent = displayCat;
 
-  // Affichage de la caisse — entrepots/usines/armurerie, visible de tous des l'entree
-  // (decision Fred 8 aout 2026 : transparence totale sur ces caisses economiques,
-  // contrairement aux caisses institutionnelles qui restent cachees sauf ordre dedie).
+  // Pas de transparence sur la caisse des commerces privés ni des usines.
+  // Seuls les entrepôts PUBLICS conservent ici leur bandeau institutionnel.
   const BATIMENTS_CAISSE_VISIBLE = {
-    'entrepot-logistique-luthecia': 'entrepot', 'entrepot-logistique-psm': 'entrepot', 'entrepot-logistique-montrouge': 'entrepot',
-    'usine-pharmaceutique-luthecia': 'usine', 'pole-tabac-alcools-psm': 'usine', 'raffinerie-montrouge': 'usine'
+    'entrepot-logistique-luthecia': 'entrepot',
+    'entrepot-logistique-psm': 'entrepot',
+    'entrepot-logistique-montrouge': 'entrepot'
   };
   const cleCaisse = BATIMENTS_CAISSE_VISIBLE[buildingId];
   const elCaisse = document.getElementById('bat-caisse');
   const elStock = document.getElementById('bat-stock');
+  if (elCaisse) { elCaisse.style.display = 'none'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; elCaisse.title = ''; }
+  if (elStock) { elStock.style.display = 'none'; elStock.onclick = null; elStock.style.cursor = 'default'; elStock.title = ''; }
 
   if (buildingId === 'armurerie') {
-    // Armurerie ajoutee le 9 aout 2026 (retour de test en jeu, main d'oeuvre de production) :
-    // stock/caisse existent depuis longtemps mais sur un systeme different des entrepots/usines
-    // (table 'entreprises' via chargerArmurerieLocale/sbGetEntreprise, pas 'batiments_etat'/
-    // sbGetBatimentEtat) - ne peut donc pas juste rejoindre BATIMENTS_CAISSE_VISIBLE tel quel.
-    // Stock de matieres affiche en plus de la caisse : c'est la seule des 3 ressources limitant
-    // produire_arme (PA/matiere/caisse) qui n'etait visible nulle part avant de cliquer produire.
-    if (elCaisse) { elCaisse.style.display = 'block'; elCaisse.textContent = 'Caisse : ...'; }
-    if (elStock) { elStock.style.display = 'block'; elStock.textContent = 'Stock matières : ...'; }
+    // Le propriétaire conserve l'accès à la gestion, sans révéler la caisse.
     if (typeof chargerArmurerieLocale === 'function') {
+      const paysRequete = state.country, villeRequete = state.currentCity;
       chargerArmurerieLocale().then(data => {
-        if (state.currentBuilding !== buildingId) return; // le joueur a change de batiment entre temps
-        const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
-        // Gerer mon armurerie / vendre des matieres premieres ne sont plus des ordres
-        // visibles dans la liste (peaufinage Armurerie, 9 aout 2026) : on y acceed desormais
-        // en cliquant sur la caisse/le stock affiches en en-tete, comme un raccourci "sur place".
+        if (state.currentBuilding !== buildingId || state.country !== paysRequete ||
+            state.currentCity !== villeRequete) return;
         const estProprietaire = !!data && data.proprietaire === state.char?.name;
-        if (elCaisse) {
-          elCaisse.textContent = 'Caisse : ' + (data?.caisse ?? 0).toLocaleString('fr-FR') + ' ' + cur;
-          elCaisse.style.cursor = estProprietaire ? 'pointer' : 'default';
-          elCaisse.title = estProprietaire ? 'Gérer mon armurerie' : '';
-          elCaisse.onclick = estProprietaire && typeof doGererArmurerie === 'function' ? doGererArmurerie : null;
-        }
-        if (elStock) {
-          const matieres = Object.entries(data?.stockMatieres || {});
-          elStock.textContent = 'Stock matières : ' + (matieres.length ? matieres.map(([m, q]) => q + ' ' + m).join(', ') : 'aucune');
-          elStock.style.cursor = 'pointer';
-          elStock.title = 'Vendre des matières premières';
-          elStock.onclick = typeof doVendreMatiereArmurerie === 'function' ? doVendreMatiereArmurerie : null;
-        }
-      }).catch(() => {
-        if (elCaisse) { elCaisse.textContent = 'Caisse : indisponible'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; }
-        if (elStock) { elStock.textContent = 'Stock matières : indisponible'; elStock.onclick = null; elStock.style.cursor = 'default'; }
-      });
+        if (!elCaisse || !estProprietaire) return;
+        elCaisse.textContent = 'Gérer mon armurerie';
+        elCaisse.style.display = 'block';
+        elCaisse.style.cursor = 'pointer';
+        elCaisse.title = 'Accéder à la gestion de mon commerce';
+        elCaisse.onclick = typeof doGererArmurerie === 'function' ? doGererArmurerie : null;
+      }).catch(() => {});
     }
   } else if (cleCaisse && elCaisse) {
     elCaisse.style.display = 'block';
     elCaisse.textContent = 'Caisse : ...';
-    elCaisse.onclick = null;
-    elCaisse.style.cursor = 'default';
-    elCaisse.title = '';
-    if (elStock) elStock.style.display = 'none';
     if (typeof sbGetBatimentEtat === 'function') {
-      sbGetBatimentEtat(state.country || 'republic', state.currentCity, buildingId).then(etat => {
-        if (state.currentBuilding !== buildingId) return; // le joueur a change de batiment entre temps
+      const paysRequete = state.country, villeRequete = state.currentCity;
+      sbGetBatimentEtat(paysRequete, villeRequete, buildingId).then(etat => {
+        if (state.currentBuilding !== buildingId || state.country !== paysRequete ||
+            state.currentCity !== villeRequete) return;
         const solde = etat?.[cleCaisse]?.caisse ?? 0;
         const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
         elCaisse.textContent = 'Caisse : ' + solde.toLocaleString('fr-FR') + ' ' + cur;
@@ -581,6 +580,9 @@ function enterBuilding(buildingId, skipAutoRoom) {
   if (typeof hydraterPiecesDynamiques === 'function') hydraterPiecesDynamiques(buildingId);
 
   const rooms = renderOngletsPieces(buildingId);
+  // Serrures (04/11/2026, #434) : les portes fermees a cle de ce batiment, lues au serveur ;
+  // les onglets sont redessines a l'arrivee de la reponse (cadenas, infobulle, clic reserve).
+  if (typeof serruresPortesCharger === 'function') serruresPortesCharger(buildingId);
 
   // Entrer dans la premiere piece — sauf si on s'apprete a restaurer une position precise juste apres
   // (sinon cette navigation automatique ecrase la bonne piece dans localStorage avant qu'on ait pu la restaurer)
@@ -632,8 +634,18 @@ function renderOngletsPieces(buildingId, roomActifId) {
     conteneur.innerHTML = rooms.map(([roomId, room], i) => {
       const isZoneEmb = roomId === 'zone_embarquement';
       const locked = isZoneEmb && state._navigationServeur!==true && !state.douanePassee;
-      const style = locked ? 'opacity:.4;pointer-events:none;cursor:not-allowed' : '';
-      const icon = locked ? '🔒 ' : '';
+      // Porte fermee a cle (serrures, decision de Fred du 04/11/2026) : l'infobulle le dit ; seul
+      // un PJ qui detient une cle peut cliquer pour entrer. Le serveur refuse de toute facon
+      // (navigation_interieure : porte_fermee_a_cle) : l'onglet ne fait qu'annoncer sa reponse.
+      // Decision du 04/11 (14 h 27) : un cadenas dessine a cote du nom, ouvert ou ferme selon l'etat ;
+      // clic sur un local ferme sans cle : une fenetre le dit.
+      const porte = (typeof serrurePorteEtat === 'function') ? serrurePorteEtat(buildingId, roomId) : null;
+      const porteInterdite = !!(porte && porte.fermee && !porte.a_cle && roomId !== state.currentRoom);
+      const style = locked ? 'opacity:.4;pointer-events:none;cursor:not-allowed' : (porteInterdite ? 'cursor:not-allowed' : '');
+      const icon = locked ? '🔒 ' : (porte ? '<i class="ti ' + (porte.fermee ? 'ti-lock' : 'ti-lock-open') + '"></i> ' : '');
+      const titre = porte ? (porte.fermee ? (porte.a_cle ? 'Fermé à clé — vous en avez la clé' : 'Fermé à clé') : 'Ouvert au public') : '';
+      const clic = porteInterdite ? "serrurePopupFermee('local')"
+        : "enterRoom('" + buildingId + "','" + roomId + "',this)";
       // Meme regle de nom que le titre de la piece (plateau-variantes-pieces.js) :
       // un local occupe ne doit pas rester annonce « a louer » dans son onglet
       // alors que son titre ne l'annonce plus. Rend null pour toute piece non
@@ -642,7 +654,7 @@ function renderOngletsPieces(buildingId, roomActifId) {
       const tabName = ((typeof varianteNomPiece === 'function')
         ? varianteNomPiece(buildingId, roomId, state.currentCity, tabNameBase) : null) || tabNameBase;
       const actif = roomActifId ? (roomId === roomActifId) : (i === 0);
-      return `<div class="piece-tab ${actif ? 'active' : ''}" data-piece="${roomId}" onclick="enterRoom('${buildingId}','${roomId}',this)" style="${style}">
+      return `<div class="piece-tab ${actif ? 'active' : ''}" data-piece="${roomId}" onclick="${clic}" style="${style}"${titre ? ` title="${titre}"` : ''}>
         ${icon}${tabName}
       </div>`;
     }).join('')
@@ -975,7 +987,12 @@ function enterRoom(buildingId, roomId, tabEl) {
     pieceImg.removeAttribute('data-ancrage');
   }
 
-  const imgUrl = enigme1Img || chantierImg || varianteImg || roomOverride?.imageUrl || empireRoomImg || room.imageUrl;
+  // Batiment copie d'une autre ville dont les images ne sont pas encore faites (Novomirsk,
+  // 04/11/2026, decision de Fred : l'interface d'abord, les images ensuite) : pas d'image
+  // empruntee a la ville d'origine, seulement le fond de la piece, tant qu'aucune image
+  // propre n'est declaree dans roomOverrides.
+  const imageEmpruntee = ctx?.imagesAVenir === true && !roomOverride?.imageUrl;
+  const imgUrl = imageEmpruntee ? null : (enigme1Img || chantierImg || varianteImg || roomOverride?.imageUrl || empireRoomImg || room.imageUrl);
   if (imgUrl) {
     pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {
@@ -1465,96 +1482,7 @@ function doAllerDouanesAeroport() {
 
 // Devient async (chantier C, 14 septembre 2026) : la confiscation passe par le guichet serveur.
 async function doPasserDouanesAeroport() {
-  if(state._navigationServeur===true)return commanderDouanesServeur();
-  const pays = state.country || 'republic';
-  const msgs = {
-    republic: "L'inspecteur Prosper Tampon examine vos papiers, tamponne trois formulaires et vous laisse passer.",
-    narco:    "Juanita Soborno vous sourit. Vous glissez un billet. Elle regarde ailleurs. Bonne route.",
-    soviet:   "Nadejda Contrôle fouille votre bagage méthodiquement. Tout est en ordre, Camarade.",
-    khalija:  "Le Chambellan Al-Transit incline la tête. Vos papiers sont en règle. Bienvenue."
-  };
-
-  // VALISE DIPLOMATIQUE (Fred, 25/10/2026) : pas de passage en douane pour un ambassadeur en
-  // poste. Le statut est lu sur le serveur (ambassade_mon_statut).
-  const statutDiplo = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_mon_statut', {}).catch(() => null) : null;
-  if (statutDiplo && statutDiplo.ok === true && statutDiplo.ambassadeur === true) {
-    showToast('Valise diplomatique', 'Votre passeport diplomatique vous dispense du contrôle douanier.', true);
-    addJournalEntry('Passage en douane : dispense diplomatique.', 'event-info');
-    state.douanePassee = true;
-    if (typeof updateUI === 'function') updateUI();
-    return;
-  }
-
-  // Si Recherché : jet de détection
-  if (state.recherche?.length > 0) {
-    // DIS fantome corrige (bêta) : state.dis est la vraie ressource Discretion (0-100),
-    // deja utilisee correctement partout ailleurs -- stats.DIS n'a jamais existe.
-    const dis = state.dis || 50;
-    const roll = Math.floor(Math.random() * 100) + 1;
-    const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
-    if (roll > taux) {
-      showToast('Intercepté !', 'Votre statut de Recherché a été détecté. Vous êtes arrêté(e).', false);
-      addJournalEntry('Interception aux douanes. Arrestation.', 'event-bad');
-      return;
-    }
-  }
-
-  // Inspection douaniere des objets prohibes (9 aout 2026) : controle physique deterministe -
-  // trouve systematiquement ce qu'il y a a trouver (pas de jet de chance, contrairement au
-  // controle Recherche ci-dessus). Armes et poisons illegaux confisques, convocation au
-  // commissariat sous 24h - meme mecanisme que l'achat d'arme illegal rate (state.convocations/
-  // se_justifier/traiterConvocations), le joueur reste libre de circuler, pas d'arrestation
-  // immediate. "Drogue" volontairement hors perimetre : aucun type d'objet drogue n'existe
-  // encore dans le jeu (voir chantier note au journal).
-  // tract_calomnieux ajoute (24 aout 2026, lot tracts electoraux/calomnieux PSM) : reutilise ce
-  // seul point de controle/fouille reel du jeu (aucun autre trouve inspectant l'inventaire) --
-  // memes consequences que les autres objets prohibes ici (confiscation + convocation), jamais
-  // la detention 1 jour prevue pour l'echec critique de distribution (ce controle n'a jamais ete
-  // branche sur procederArrestation/state.estEmprisonne, seulement sur les convocations).
-  // BRIQUE COMMUNE (13 septembre 2026). Ce filtre etait jusqu'ici code en dur ici, et divergeait
-  // de la fouille policiere sur deux points : il exigeait `legal === false` EN PLUS du type, et
-  // il ignorait totalement les interdictions votees par l'Assemblee (§39) -- une marchandise
-  // devenue illegale par une loi passait donc la douane, alors qu'elle etait saisie dans la rue.
-  // Les trois circuits (douane, fouille policiere, arrestation) lisent desormais objetsSaisissables.
-  const saisissables = (typeof objetsSaisissables === 'function')
-    ? objetsSaisissables(state.inventory) : null;
-  // Repli local SUPPRIME (chantier C, 14 septembre 2026) : sans la brique commune, ce controle
-  // retombait sur son propre filtre et reecrivait l'inventaire depuis le navigateur. La saisie
-  // passe desormais par le guichet serveur, qui recalcule lui-meme le perimetre.
-  const objetsProhibes = Array.isArray(saisissables) ? saisissables : [];
-  // Le serveur recalcule le perimetre et fait foi : s'il ne saisit rien, il n'y a ni
-  // confiscation ni convocation -- jamais une peine pour une saisie qui n'a pas eu lieu.
-  const nomsConfisques = objetsProhibes.length > 0 ? await confisquerObjets(objetsProhibes) : '';
-  if (nomsConfisques) {
-    if (!state.convocations) state.convocations = [];
-    state.convocations.push({
-      // id stable, lu par le trigger personnages_preserver_judiciaire (chantier Assemblee).
-      id: 'conv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-      motif: 'possession_illegale_douane',
-      jourEmission: state.day || 1,
-      heureEmission: state.hour || 8,
-      jourLimite: (state.day || 1) + 1,
-      heureLimite: state.hour || 8,
-      traitee: false
-    });
-
-    const commissairePays = { republic:'Raoul Toufaud', narco:'El Capitan Gordo', soviet:'Camarade Borodine', khalija:'Chambellan Ibn Protocole' }[pays] || 'Le Commissariat';
-    addMailNotification(commissairePays, 'Convocation officielle', 'Le contrôle douanier a détecté des objets prohibés dans vos bagages (' + nomsConfisques + '), désormais confisqués. Présentez-vous au commissariat sous 24h pour vous justifier, faute de quoi vous serez arrêté(e).');
-
-    showToast('Objets confisqués', nomsConfisques + ' confisqué(s) par la douane. Convocation au commissariat sous 24h.', false, true);
-    addJournalEntry('Contrôle douanier : objets prohibés confisqués (' + nomsConfisques + '). Convocation reçue.', 'event-bad');
-    updateUI();
-  }
-
-  state.douanePassee = true;
-  const msg = msgs[pays] || msgs['republic'];
-  showToast('Douanes passées', msg, true);
-  addJournalEntry('Contrôle douanier passé. Accès zone embarquement autorisé.', 'event-info');
-
-  // Redirige automatiquement vers la zone d'embarquement (9 aout 2026, retour de test en jeu) :
-  // plus besoin de re-cliquer un onglet apres avoir passe la douane avec succes. Remplace
-  // l'ancien bricolage qui se contentait de deverrouiller visuellement l'onglet sans y entrer.
-  if (typeof enterRoom === 'function') enterRoom(state.currentBuilding, 'zone_embarquement', null);
+  return commanderDouanesServeur();
 }
 
 function checkZoneEmbarquementAcces(buildingId, roomId) {
@@ -1699,10 +1627,11 @@ async function sortirBatiment() {
     }
   }
 
-  const retourVersTerrainsMontrouge = typeof TERRAINS_PAR_VILLE !== 'undefined' && TERRAINS_PAR_VILLE.ville_b.includes(batimentQuitte);
+  const retourVersTerrainsVille = typeof villeTerrainsSousLieu === 'function' ? villeTerrainsSousLieu(batimentQuitte) : null;
 
   // Le meme contrat pour tous les batiments : sortie declaree puis ordre serveur.
-  if(state.country==='republic'){
+  // Toute ville qui a des rues (rueCentraleServeur, plateau-rue-centrale.js), plus seulement Republia.
+  if(typeof rueCentraleServeur==='function'?rueCentraleServeur(state.country,state.currentCity):state.country==='republic'){
     const resultat=await confirmerSortieBatimentServeur(contexteSortie);
     if(resultat?.obsolete)return;
     if(!contexteNavigationRueValide(contexteSortie)&&!(resultat?.verdict?.transport?.etat==='session_perdue'&&sortieBatimentSessionPerdueVisible(contexteSortie)))return;
@@ -1733,7 +1662,7 @@ async function sortirBatiment() {
     }
   }
   showVueRue(batimentQuitte,positionSortieConfirmee);
-  if (retourVersTerrainsMontrouge && typeof ouvrirTerrainsMontrouge === 'function') ouvrirTerrainsMontrouge();
+  if (retourVersTerrainsVille && typeof ouvrirTerrainsVille === 'function') ouvrirTerrainsVille(retourVersTerrainsVille);
   addJournalEntry(`Vous sortez du batiment.`, '');
   }finally{if(sortieBatimentEnCours===contexteSortie)sortieBatimentEnCours=null;}
 }
@@ -1912,7 +1841,7 @@ const PLAN_ICONS = {
   'entrepot-logistique-luthecia': '📦',
   'terrain-a-batir-1': '🚧', 'terrain-a-batir-2': '🚧', 'terrain-a-batir-3': '🚧',
   'terrain-a-batir-4': '🚧', 'terrain-a-batir-5': '🚧',
-  'port-sainte-marie': '⚓', 'port-novomirsk': '⚓',
+  'port-sainte-marie': '⚓', 'port-novomirsk': '⚓', 'port-starovka': '⚓',
   'port-ciudad-roja': '⚓', 'port-al-madina': '⚓',
   'bar-des-pecheurs': '🐟', 'caserne-militaire': '🎖',
   'qhs-prison': '🔒',
@@ -2627,7 +2556,7 @@ const TRANSPORT_CONFIG = {
 const EMPIRES_CONFIG = {
   republic: { name:'Républia', cur:'FR' },
   narco:    { name:'El Estado', cur:'PS' },
-  soviet:   { name:'Sovarka',   cur:'RP' },
+  soviet:   { name:'Sovarka',   cur:'PSK' },
   khalija:  { name:'Al-Khalija',cur:'DR' }
 };
 
@@ -2723,6 +2652,12 @@ async function commanderDouanesServeur() {
   if(Array.isArray(v.inventory)&&typeof sbAdopterInventaireServeur==='function'&&!sbAdopterInventaireServeur(v))return false;
   try{localStorage.removeItem(cle);}catch(_){}
   if(v.ok!==true){
+   // #433 : à l'aéroport, un recherché détecté par les douaniers entre dans l'interception
+   // commune (combat, fuite, reddition) au lieu d'une arrestation décidée d'office.
+   if(v.interception===true&&typeof reprendreInterceptionJudiciaireServeur==='function'){
+    showToast('Contrôle douanier','Les douaniers vous ont reconnu(e).',false);
+    await reprendreInterceptionJudiciaireServeur();return false;
+   }
    if(v.arrestation){
     const frais=await sbLoadPersonnage(c.nom).catch(()=>null);
     if(!contexteNavigationRueValide(c))return false;
@@ -2786,78 +2721,8 @@ async function commanderTransportServeur(mode,pays,ville) {
 }
 
 async function executerVoyage(mode, empireId, villeId) {
-  if(state._navigationServeur===true)return commanderTransportServeur(mode,empireId,villeId);
-  const config = TRANSPORT_CONFIG[mode];
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  // Surcharge (Lot 1.5.4) : dernier verrou avant le debit et le deplacement reel. confirmerTransport
-  // a deja refuse en amont, mais cette fonction est appelable directement depuis le bouton de
-  // confirmation des douanes -- la garde d'ecran ne suffirait pas.
-  if (typeof refuserSiSurcharge === 'function' && refuserSiSurcharge('Prendre un transport')) return;
-  // Debit atomique unique (PA + FR revalides ici, au point reel du debit -- correctif du
-  // 24 aout 2026 : auparavant seuls les PA etaient revalides ici, les FR n'etaient verifies
-  // qu'en amont dans confirmerTransport puis debites sans nouvelle verification, un ecart de
-  // temps theorique entre les deux). Un seul appel : jamais de double debit, jamais de solde
-  // negatif (deduireCoutOrdre refuse et ne touche a rien si l'un des deux manque).
-  // `fn` explicite : ce site facture apres une modale, donc hors du passage de doOrder qui pose
-  // state._ordreEnCours. Sans lui, le bouton taxi de la Caserne/du QHS payait sous le nom de
-  // l'ordre precedent -- voir le commentaire de TRANSPORT_CONFIG.
-  const rVoyage = await deduireCoutOrdre({ pa: config.pa, cost: config.cost, fn: config.ordre });
-  if (!rVoyage.ok) {
-    // CORRECTIF DU 14 septembre 2026 : ce site annoncait "Fonds insuffisants" pour TOUTE raison
-    // autre qu'un manque de PA -- y compris 'personnage_introuvable', qui n'a rien a voir avec
-    // l'argent. Un joueur disposant de ses fonds se voyait donc refuser son billet pour un
-    // "budget insuffisant". signalerRefusCout dit desormais la vraie raison.
-    signalerRefusCout({ ...rVoyage, cost: config.cost, pa: config.pa });
-    return;
-  }
-  const ancienEmpire = state.country;
-  state.country = empireId;
-  state.currentCity = villeId;
-  state.currentBuilding = null;
-  state.currentRoom = null;
-  if (state.char) {
-    state.char.country = empireId;
-    state.char.currentCity = villeId;
-  }
-  applyEmpireTheme(empireId);
-  buildCityTabs();
-  updateUI();
-  const buildingArriveeVoyage = typeof getBuildingIdCentreMultimodal === 'function' ? getBuildingIdCentreMultimodal(villeId, empireId) : null;
-  // Repositionne le souvenir de rue centrale sur la scene du Centre Multimodal d'arrivee,
-  // sinon en sortant du batiment on retombe sur la derniere scene visitee dans cette ville —
-  // parfois perimee de plusieurs jours (bug remonte le 8 aout 2026).
-  if (buildingArriveeVoyage && typeof memoriserNoeudRueCentrale === 'function' && typeof trouverNoeudRueCentralePourBatiment === 'function') {
-    const noeudArriveeVoyage = trouverNoeudRueCentralePourBatiment(empireId, buildingArriveeVoyage);
-    if (noeudArriveeVoyage) memoriserNoeudRueCentrale(empireId, villeId, noeudArriveeVoyage);
-  }
-  if (buildingArriveeVoyage && typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingArriveeVoyage] && typeof enterBuilding === 'function') {
-    enterBuilding(buildingArriveeVoyage);
-  } else {
-    forceRenderCity(villeId);
-  }
-  // Le paiement ne prouve pas que la nouvelle position est en base.
-  // Entrer dans la salle déclenche déjà une sauvegarde asynchrone ; attendre
-  // explicitement la file commune avant d'annoncer l'arrivée comme acquise.
-  // Aucun nouveau débit, aucune nouvelle RPC de déplacement.
-  let positionConfirmee = false;
-  if (typeof sbSavePersonnage === 'function' && state?.char?.name &&
-      state.personnageChargeDepuisServeur !== false) {
-    try {
-      positionConfirmee = !!(await sbSavePersonnage(state));
-    } catch (erreurPosition) {
-      console.warn('Persistance de la position après transport impossible', erreurPosition);
-    }
-  }
-  if (!positionConfirmee) {
-    showToast('Position non confirmée',
-      'Le trajet a été payé, mais la position serveur n’a pas été confirmée. N’actualisez pas la page : une reconnexion pourrait vous replacer dans l’ancienne ville.', false);
-    return;
-  }
-  const villeName = villeNom(empireId, villeId) || villeId;
-  const empireName = EMPIRES_CONFIG[empireId]?.name || empireId;
-  showToast('Bienvenue à ' + villeName + ' !', empireName + ' · -' + config.cost + ' ' + cur, true, true);
-  addJournalEntry('Voyage en ' + config.label + ' → ' + villeName + ' (' + empireName + ')', 'event-info');
-  addExternalEvent((state.char?.name||'Anonyme') + ' est arrivé(e) à ' + villeName + ' (' + empireName + ').');
+  // Même acte atomique pour tous : le drapeau du navigateur ne choisit pas une autre caisse.
+  return commanderTransportServeur(mode, empireId, villeId);
 }
 
 // Dialogue scripte de Mireille Guichet (lot du 24 aout 2026) -- texte fixe, pas de chat IA
@@ -2878,161 +2743,7 @@ function ouvrirRenseignementMireilleGuichet() {
 }
 
 async function confirmerTransport(mode, empireId, villeId) {
-  if(state._navigationServeur===true)return commanderTransportServeur(mode,empireId,villeId);
-  document.getElementById('modal-postes').classList.remove('open');
-  const config = TRANSPORT_CONFIG[mode];
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  // Surcharge (Lot 1.5.4) : refus AVANT les douanes et tout debit, pour que le joueur sache
-  // immediatement pourquoi. executerVoyage porte le meme verrou en dernier ressort.
-  if (typeof refuserSiSurcharge === 'function' && refuserSiSurcharge('Prendre un transport')) return;
-
-  if (getFondsDisponiblesOrdinaires() < config.cost) {
-    showToast('Fonds insuffisants', 'Il vous faut ' + config.cost + ' ' + cur, false);
-    return;
-  }
-
-  // Controle douanes obligatoire pour avion et bateau
-  if (mode === 'avion' || mode === 'bateau') {
-    const msgs = {
-      republic: "L'inspecteur Prosper Tampon examine vos papiers, tamponne trois formulaires et vous laisse passer.",
-      narco:    "Juanita Soborno vous sourit. Vous glissez un billet. Elle regarde ailleurs. Bonne route.",
-      soviet:   "Nadejda Contrôle fouille votre bagage méthodiquement. Tout est en ordre, Camarade.",
-      khalija:  "Le Chambellan Al-Transit incline la tête. Vos papiers sont en règle. Bienvenue."
-    };
-
-    // Si recherche : jet de detection
-    if (state.recherche?.length > 0) {
-      // DIS fantome corrige (bêta) : voir plateau-navigation.js:703 pour le detail.
-      const dis = state.dis || 50;
-      const roll = Math.floor(Math.random() * 100) + 1;
-      const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
-      if (roll > taux) {
-        showToast('Intercepté aux douanes !', 'Votre statut de Recherché a été détecté. Vous êtes arrêté(e).', false);
-        addJournalEntry('Interception aux douanes. Arrestation.', 'event-bad');
-        addExternalEvent((state.char?.name||'Anonyme') + ' a été intercepté(e) aux douanes.');
-        return;
-      }
-    }
-
-    // Afficher modal douanes avant de voyager
-    const msg = msgs[state.country] || msgs['republic'];
-    document.getElementById('postes-modal-title').textContent = '🛂 Contrôle douanier';
-    document.getElementById('postes-body').innerHTML =
-      '<div style="padding:1.2rem">' +
-      '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">' + msg + '</div>' +
-      '<div style="margin-top:1rem;text-align:right">' +
-      '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');executerVoyage(\'' + mode + '\',\'' + empireId + '\',\'' + villeId + '\')" ' +
-      'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Embarquer →</button>' +
-      '</div></div>';
-    document.getElementById('modal-postes').classList.add('open');
-    addJournalEntry('Passage aux douanes.', 'event-info');
-    return; // On attend la confirmation
-  }
-
-  // CORRECTIF DU 14 septembre 2026 — TRANSPORTS INTRA-EMPIRE (train, bus).
-  //
-  // Ce chemin avait deux defauts, tous deux visibles en production :
-  //   1. il annoncait au serveur un cout de 0 FR (`cost: 0`) alors que l'ordre prendre_train /
-  //      prendre_bus declare son prix dans data.js. Depuis que payer_ordre valide le couple
-  //      (pa, cost) contre le miroir, ce couple n'existe pas : l'ordre etait refuse en
-  //      'cout_non_declare' -- et le message affiche disait "PA insuffisants", ce qui n'avait
-  //      aucun rapport ;
-  //   2. le prix etait ensuite preleve par le NAVIGATEUR (debiterFondsOrdinaires), hors de
-  //      toute validation serveur.
-  // Un seul appel couvre desormais les deux composantes, exactement comme le fait deja
-  // executerVoyage pour l'avion et le bateau. Memes PA, meme prix : aucune regle ne change.
-  // `fn` explicite, meme raison qu'en executerVoyage : facturation differee par une modale.
-  const rTransport = await deduireCoutOrdre({ pa: config.pa, cost: config.cost, fn: config.ordre });
-  if (!rTransport.ok) { signalerRefusCout({ ...rTransport, cost: config.cost, pa: config.pa }); return; }
-
-  // Changer d'empire et de ville
-  const ancienEmpire = state.country;
-  state.country = empireId;
-  state.currentCity = villeId;
-  state.currentBuilding = null;
-  state.currentRoom = null;
-
-  // Sauvegarder dans localStorage
-  if (state.char) {
-    state.char.country = empireId;
-    state.char.currentCity = villeId;
-    state.char.currentBuilding = null;
-    state.char.currentRoom = null;
-    try {
-      localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
-    } catch (e) {
-      console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
-    }
-  }
-
-  // Reconstruire l'interface pour le nouvel empire
-  buildCityTabs();
-  updateUI();
-  updateLocationDisplay();
-  renderMinimap(villeId);
-
-  // Forcer le rechargement de la vue rue dans le nouvel empire
-  const world = WORLD[empireId];
-  const city = world?.[villeId];
-  if (city) {
-    document.getElementById('city-name-display').textContent = city.name + ', ' + (COUNTRIES[empireId]?.n || empireId);
-    document.querySelectorAll('.city-tab').forEach(t => {
-      t.classList.toggle('active', t.textContent === city.name);
-    });
-    // Mettre a jour le titre et la description de la rue
-    const rueTitle = document.getElementById('rue-title');
-    const rueDesc = document.getElementById('rue-desc');
-    if (rueTitle) rueTitle.textContent = city.isCapitale ? 'Avenue Principale' : 'Rue principale de ' + city.name;
-    if (rueDesc) rueDesc.textContent = city.desc || '';
-    // Mettre a jour l'image de la rue
-    const rueImage = document.getElementById('rue-image');
-    if (rueImage && city.imageUrl) {
-      rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%), url('${city.imageUrl}') center/cover no-repeat`;
-      rueImage.style.backgroundSize = 'cover';
-    }
-    // Afficher la vue rue
-    document.getElementById('vue-rue').classList.add('active');
-    document.getElementById('vue-batiment').classList.remove('active');
-    // Mettre a jour les personnes presentes
-    renderPersonsList(city.persons || []);
-  }
-
-  const villeName = villeNom(empireId, villeId) || city?.name || villeId;
-  const empireName = EMPIRES_CONFIG[empireId]?.name || empireId;
-  showToast('Bienvenue à ' + villeName + ' !', empireName + ' · -' + config.cost + ' ' + cur, true, true);
-  addJournalEntry('Voyage en ' + config.label + ' → ' + villeName + ' (' + empireName + ')', 'event-info');
-  addExternalEvent((state.char?.name||'Anonyme') + ' est arrivé(e) à ' + villeName + ' (' + empireName + ').');
-
-  const buildingArriveeTransport = typeof getBuildingIdCentreMultimodal === 'function' ? getBuildingIdCentreMultimodal(villeId, empireId) : null;
-  // Repositionne le souvenir de rue centrale sur la scene du Centre Multimodal d'arrivee —
-  // voir le meme correctif dans executerVoyage ci-dessus.
-  if (buildingArriveeTransport && typeof memoriserNoeudRueCentrale === 'function' && typeof trouverNoeudRueCentralePourBatiment === 'function') {
-    const noeudArriveeTransport = trouverNoeudRueCentralePourBatiment(empireId, buildingArriveeTransport);
-    if (noeudArriveeTransport) memoriserNoeudRueCentrale(empireId, villeId, noeudArriveeTransport);
-  }
-  if (buildingArriveeTransport && typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingArriveeTransport] && typeof enterBuilding === 'function') {
-    enterBuilding(buildingArriveeTransport);
-  } else {
-    forceRenderCity(villeId);
-  }
-}
-
-function doControlDouanes() {
-  if (!state.recherche?.length) {
-    showToast('Contrôle', 'Contrôle routinier. Tout est en ordre. Bonne route.', true);
-    return;
-  }
-  // DIS fantome corrige (bêta) : voir plateau-navigation.js:703 pour le detail.
-  const dis = state.dis || 50;
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
-  if (roll <= taux) {
-    showToast('Contrôle passé', 'L\'agent a regardé vos papiers sans trop y prêter attention. Ouf.', true);
-  } else {
-    showToast('Interception !', 'L\'agent a reconnu votre signalement. Vous êtes arrêté(e).', false);
-    addJournalEntry('Interception aux douanes.', 'event-bad');
-  }
+  return commanderTransportServeur(mode, empireId, villeId);
 }
 
 // Correctif du 24 aout 2026 (audit dedie) : la fonction n'acceptait auparavant aucun parametre
@@ -3046,23 +2757,7 @@ function doControlDouanes() {
 // pot-de-vin fonctionne ou non -- l'ancien comportement "gratuit en cas d'echec" etait
 // l'anomalie, pas l'inverse).
 async function doCorrompreDoanier(pa, cost) {
-  if(state._navigationServeur===true)return commanderCorruptionDouanesServeur(pa,cost);
-  // PAR LE SERVEUR (27 octobre 2026) : crime_corrompre_douanier (PA et prix a la tentative, jet
-  // 55 + DUP/10 + INF/10 + 20, discretion, detection). Le passage debloque reste tenu ici.
-  const v = await appelerCrimeServeur('crime_corrompre_douanier', { p_pa: pa, p_cost: cost });
-  if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
-  adopterEtatCrimeServeur(v);
-  if (v.reussi) {
-    state.douanePassee = true;
-    showToast('Agent corrompu', 'L\'agent regarde ailleurs. -' + cost + ' FR -5 DIS. Accès à l\'embarquement autorisé.', true);
-    addJournalEntry('Corruption douanière réussie.', 'event-bad');
-    adopterDetectionServeur(v, 'corrompre_douanier');
-    updateUI();
-    if (typeof enterRoom === 'function') enterRoom(state.currentBuilding, 'zone_embarquement', null);
-  } else {
-    showToast('Refus !', 'L\'agent n\'a pas mordu. Tentative notée.', false);
-    updateUI();
-  }
+  return commanderCorruptionDouanesServeur(pa, cost);
 }
 
 let corruptionDouanesServeurEnCours=null;
@@ -3124,91 +2819,39 @@ async function doContrebandePort(pa, cost) {
 }
 
 async function doBlocusPortuaire(pa, cost) {
-  // LE BLOCUS PORTUAIRE EST UNE ACTION SYNDICALE (decision de game design du 17 septembre 2026).
-  //
-  // Correctif du 25 aout 2026 (bug remonte en production v69 : n'importe quel PJ pouvait
-  // declencher un blocus depuis le quai principal) : le blocus est reserve au chef du syndicat
-  // des dockers et revalide ici INDEPENDAMMENT de l'affichage -- un appel direct au handler par un
-  // non-chef echoue avant tout cout ou effet de bord.
-  //
-  // Ce qui change aujourd'hui : ce controle etait encadre par `if (state.country === 'republic')`,
-  // ce qui revenait a traiter l'ABSENCE de syndicat comme une autorite valable. A El Estado, ou
-  // data.js declare aussi blocus_portuaire mais sans syndicat constitue, n'importe quel PJ pouvait
-  // donc paralyser le port. L'autorite est desormais cherchee GENERIQUEMENT pour le territoire ou
-  // l'on se trouve (syndicatDockersDuTerritoire) : plus de test sur le nom du pays.
-  //
-  // Si aucun syndicat de dockers n'existe sur ce territoire, l'ordre est REFUSE avec un message
-  // explicite -- il n'est pas supprime en silence, et l'absence de structure ne vaut pas
-  // permission. ARBITRAGE/CONTENU GD EN ATTENTE : quelle organisation portera cette autorite a El
-  // Estado (nom, siege, chef par defaut) releve du chantier de contenu de cet empire ; rien n'est
-  // invente ici.
-  const ville = state.currentCity;
-  let syndicat = (typeof syndicatDockersDuTerritoire === 'function')
-    ? syndicatDockersDuTerritoire(state.country, ville) : null;
-  // Republia : le syndicat est cree paresseusement a la premiere visite de sa salle. On le
-  // materialise ici aussi, pour ne rien changer au parcours existant.
-  if (!syndicat && state.country === 'republic' && ville === 'ville_a'
-      && typeof chargerOuCreerSyndicatDockersPSM === 'function') {
-    syndicat = await chargerOuCreerSyndicatDockersPSM();
-  }
-  if (!syndicat) {
-    showToast('Aucun syndicat compétent',
-      "Le blocus portuaire est une action syndicale : aucun syndicat des dockers n'est constitué ici.", false);
+  // GAME-DESIGN-BLOCUS.md, Fred 02/11 : même blocus, mêmes participants,
+  // mêmes 2 PA par PJ et même tentative quotidienne. L'ancien jet local
+  // portuaire ne créait aucun blocus serveur et fabriquait un malus POP.
+  // Le formulaire existant prépare la commande canonique, sans prélèvement ici.
+  if (typeof doOrganiserBlocusSyndical !== 'function') {
+    showToast('Blocus indisponible', 'Le formulaire syndical n’est pas disponible.', false);
     return;
   }
-  if (syndicat.chef !== (state.char?.name || '')) {
-    showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut déclencher un blocus portuaire.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const vol = getStatEffective('VOL');
-  const ent = getStatEffective('ENT');
-  const taux = Math.max(5, 60 + Math.floor(vol/10) + Math.floor(ent/10) - getMalusISN());
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const pays = state.country || 'republic';
-
-  if (roll <= taux) {
-    if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IE = Math.max(0, INDICES_NATIONAUX[pays].IE - 5);
-    updateUI();
-    // Etait affiche en ECHEC (3e argument false) alors que cette branche est celle du SUCCES du
-    // jet (if (roll <= taux) juste au-dessus) : le blocus a bien ete declenche. Corrige en succes
-    // (lot ergonomique 1, 5 septembre 2026). Aucun effet de jeu modifie, uniquement la couleur et
-    // le cadre du toast.
-    showToast('Blocus déclenché !', 'Le port est paralysé pour 24h. -5 IE.', true);
-    addExternalEvent('GRÈVE : Blocus portuaire déclenché ! Importations/exportations suspendues 24h. -5 IE.');
-    addJournalEntry('Blocus portuaire initié.', 'event-info');
-  } else {
-    state.pop = Math.max(0, state.pop - 8);
-    updateUI();
-    showToast('Échec du blocus', 'Le mouvement n\'a pas pris. -8 POP.', false);
-    // checkDetection('blocus_portuaire', 'fail') retire (27/10/2026) : un echec n'est jamais detecte, l'appel ne faisait rien.
-  }
+  return doOrganiserBlocusSyndical();
 }
 
 async function doInspecterCargaisons(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const int_ = getStatEffective('INT');
-  const pays = state.country || 'republic';
-  const isBonus = pays === 'soviet';
-  const taux = Math.max(5, 80 + Math.floor(int_/10) + (isBonus ? 15 : 0));
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    state.inf = Math.min(100, state.inf + 5);
-    updateUI();
-    const trouve = Math.random() < 0.4;
-    if (trouve) {
-      showToast('Contrebande détectée !', 'Une cargaison suspecte a été repérée. +5 INF. Ouvrir une enquête ?', true, true);
-      addExternalEvent('INSPECTION : Contrebande détectée au port par ' + (state.char?.name||'Anonyme') + '. Enquête en cours.');
+  // #379 : 2 PA, jet INT et +/- INF sont validés et appliqués ensemble
+  // par la commande serveur. Un navigateur ancien ne peut plus choisir le tirage.
+  const v = await executerOrdreJaugesServeur('inspecter_cargaisons', {});
+  if (!v) return;
+  updateUI();
+  if (v.rejeu === true) {
+    showToast('Inspection déjà traitée',
+      'Le serveur a déjà enregistré cette inspection. Aucun nouveau coût ni gain.', true);
+    return;
+  }
+  if (v.inspection_reussie === true) {
+    if (v.contrebande_detectee === true) {
+      showToast('Contrebande détectée !',
+        'Une cargaison suspecte a été repérée. +5 INF. Ouvrir une enquête ?', true, true);
+      addExternalEvent('INSPECTION : Contrebande détectée au port par ' +
+        (state.char?.name || 'Anonyme') + '. Enquête en cours.');
     } else {
-      showToast('Inspection terminée', 'Rien d\'anormal. +5 INF.', true);
+      showToast('Inspection terminée', 'Rien d’anormal. +5 INF.', true);
     }
   } else {
     showToast('Inspection sans résultat', 'Rien à signaler. -3 INF.', false);
-    state.inf = Math.max(0, state.inf - 3);
-    updateUI();
   }
 }
 

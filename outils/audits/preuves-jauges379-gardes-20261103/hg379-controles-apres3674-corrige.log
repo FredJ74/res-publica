@@ -1,0 +1,19 @@
+CONTROLE D'ENSEMBLE DU BASELINE -- 12 controles
+========================================================================
+  le processus tient                     verifier-workflow.py           OK 
+  la classification est entiere          verifier-classification.py     OK 
+  le baseline est fidele au catalogue    verifier-baseline.py           OK 
+  l'autorite tient                       verifier-autorite.py           OK 
+  les referentiels concordent            verifier-referentiels.py       OK 
+  les faits publics atteignent le Journal verifier-faits-publics.py      OK 
+  les fonctions concordent               verifier-fonctions.py          OK 
+  le monde neuf est propre               verifier-monde-neuf.py         OK 
+  l'assemblage se tient                  assembler.py                   OK 
+  la reconstruction passe                reconstruire.py                OK 
+  non-regression du pilote 2B            verifier.py                    OK 
+  non-regression de l'archive 2D         verifier-archive-registre.py   OK 
+========================================================================
+LES 12 CONTROLES SONT VERTS.
+Le processus tient, le baseline est fidele, l'autorite est declaree,
+les referentiels ET les fonctions concordent, le monde neuf est propre,
+et le script de reconstruction passe la grammaire de PostgreSQL 17.

@@ -390,6 +390,8 @@ async function neutraliserDeputePnj(cible, mode, taux, siege) {
 // =====================
 // Formulations evasives par type d'action tracee (jamais de detail precis : montant, raison, etc.)
 const FORMULATIONS_RUMEUR_VRAIE = {
+  consommation_estadine: (a, c) => 'On murmure que ' + a + ' renifle beaucoup ces derniers temps, et passe de l\'euphorie à l\'abattement en quelques heures.',
+  consommation_drogue: (a, c) => 'Il paraît que ' + a + ' a les yeux bien rouges ces temps-ci, et une drôle d\'odeur sur ses vêtements.',
   achat_drogue: (a, c) => 'On aurait vu ' + a + ' échanger quelques billets contre un petit paquet auprès de ' + c + '.',
   don:        (a, c) => 'On a vu ' + a + ' donner quelque chose discrètement à ' + c + '.',
   don_objet:  (a, c) => 'On raconte que ' + a + ' a remis un objet en mains propres à ' + c + ', loin des regards.',
@@ -438,58 +440,21 @@ const FORMULATIONS_RUMEUR_VRAIE = {
 };
 
 async function ecouterRumeurs(successRate, pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
-  const char = state.char;
-  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-  const ordreEcoute = room?.orders?.find(o => o.fn === 'ecouter_rumeurs');
-  const pnjPresents = ordreEcoute?.sourceOverride ? [ordreEcoute.sourceOverride] : ['Le Commissaire', 'Un député', 'Un journaliste', 'Un commerçant', 'Un inconnu'];
-  const source = pnjPresents[Math.floor(Math.random() * pnjPresents.length)];
-
-  showToast('Vous tendez l\'oreille...', 'En attente d\'une information.', false);
-
-  const roll = Math.random() * 100;
-  const succes = roll < (successRate ?? 70);
-
-  // Rumeurs VRAIES uniquement, basees sur une action reellement tracee.
-  // Aucun repli IA/invente : si le jet echoue ou qu'il n'y a rien a reveler,
-  // le joueur repart simplement bredouille.
-  let actionsDisponibles = [];
-  if (succes && typeof sbGetActionsTracables === 'function') {
-    try {
-      actionsDisponibles = await sbGetActionsTracables(state.country, state.currentCity, state.day || 1);
-      // Ne jamais reveler sa propre action a soi-meme
-      actionsDisponibles = actionsDisponibles.filter(a => a.auteur !== char?.name);
-    } catch(e) {}
-  }
-
-  if (succes && actionsDisponibles.length > 0) {
-    const action = actionsDisponibles[Math.floor(Math.random() * actionsDisponibles.length)];
-    const formulateur = FORMULATIONS_RUMEUR_VRAIE[action.type_action];
-    if (formulateur) {
-      const texte = formulateur(action.auteur, action.cible || 'quelqu\'un');
-      document.getElementById('postes-modal-title').textContent = source + ' vous glisse à l\'oreille...';
-      document.getElementById('postes-body').innerHTML =
-        '<div style="padding:1.2rem">' +
-        '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">"' + texte + '"</div>' +
-        '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">Source : ' + source + ' · Information vérifiée</div>' +
-        '</div>';
-      document.getElementById('modal-postes').classList.add('open');
-      state.inf = Math.min(100, state.inf + 1);
-      updateUI();
-      addJournalEntry('Rumeur entendue à ' + ville, 'event-info');
-      return;
-    }
-  }
-
-  // Echec du jet ou aucune rumeur vraie disponible
-  document.getElementById('postes-modal-title').textContent = source + '...';
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1.2rem">' +
-    '<div style="font-size:.85rem;color:#8a8060;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">Rien de croustillant à se mettre sous la dent aujourd\'hui.</div>' +
-    '</div>';
+  const contexte=contexteGroupePj();
+  const v=await executerOrdreJaugesServeur('ecouter_rumeurs');
+  if(!v||!contexteGroupePjValide(contexte))return;
+  const action=v.rumeur;
+  const formulateur=action&&FORMULATIONS_RUMEUR_VRAIE[action.type_action];
+  const source=v.source_rumeur||'Une voix';
+  document.getElementById('postes-modal-title').textContent=source+(formulateur?' vous glisse à l’oreille...':'...');
+  document.getElementById('postes-body').innerHTML='<div class="cpj-dialogue" style="padding:1.2rem"><div id="rumeur-vraie-texte" class="cpj-note"></div></div>';
+  // Les noms et la cible restent du texte : aucune trace ne devient du HTML.
+  document.getElementById('rumeur-vraie-texte').textContent=formulateur
+    ?formulateur(action.auteur,action.cible||'quelqu’un')
+    :"Rien de croustillant à se mettre sous la dent aujourd'hui.";
   document.getElementById('modal-postes').classList.add('open');
+  updateUI();
+  if(formulateur&&!v.rejeu)addJournalEntry('Rumeur entendue à '+(WORLD[state.country]?.[state.currentCity]?.name||'la ville'),'event-info');
 }
 
 async function solliciterAudiencePresident() {
@@ -1239,11 +1204,77 @@ async function ouvrirModalAcheterArme() {
   });
 
   html += '</div>';
+  html += htmlQuincaillerieVitrine(data, pays, cur);
   html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="margin-top:.8rem;width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;padding:.4rem;border:1px solid #2a2010;background:transparent;color:#9a8a68;cursor:pointer">Renoncer à l\'achat</button>';
   html += '</div>';
 
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// QUINCAILLERIE (serrures, 04/11/2026, issue #434) : rayon distinct des armes, dans la meme
+// vitrine. Achat legal au comptoir seulement (ni marche noir, ni registre des armes). Prix et
+// stock lus dans l'armurerie ; l'achat, le paiement et l'objet sont decides par le serveur
+// (quincaillerie_acheter, cle d'unicite : un clic rejoue, il ne repaie pas).
+function htmlQuincaillerieVitrine(data, pays, cur) {
+  const produits = getQuincailleriePays(pays);
+  const ids = Object.keys(produits);
+  if (!ids.length) return '';
+  const esc = (t) => (typeof escapeHtmlText === 'function' ? escapeHtmlText(String(t)) : String(t));
+  let h = '<div class="cpj-titre" style="margin-top:1rem">Quincaillerie</div>';
+  h += '<p class="cpj-note">Serrures et clés : articles de quincaillerie, vendus au comptoir. Chaque serrure est vendue avec sa clé.</p>';
+  ids.forEach((id) => {
+    const p = produits[id];
+    const stock = data.stockProduits?.[id] || 0;
+    const prix = data.parametres?.prixVente?.[id];
+    const rupture = stock <= 0 || prix == null;
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin:.4rem 0;padding:.5rem;border:1px solid #2f3b4a">';
+    h += '<div><div><i class="ti ' + p.icon + '"></i> <strong>' + esc(p.label) + '</strong>'
+      + (prix != null ? ' — ' + Number(prix).toLocaleString('fr-FR') + ' ' + cur + (id === 'cle_vierge' ? ' l\'unité' : '') : '') + '</div>'
+      + '<div class="cpj-note">' + esc(p.desc) + '</div>'
+      + '<div class="cpj-note">' + (stock > 0 ? 'En stock : ' + stock : 'Rupture de stock') + '</div></div>';
+    h += '<div style="display:flex;flex-direction:column;gap:.3rem;min-width:9rem">';
+    if (!rupture) {
+      if (id === 'cle_vierge') {
+        h += '<input id="quinc-qte-' + id + '" class="cpj-champ" type="number" min="1" max="' + Math.min(50, stock) + '" value="1" style="width:100%">';
+      }
+      h += '<button class="cpj-touche cpj-primaire" onclick="confirmerAchatQuincaillerie(\'' + id + '\')">Acheter</button>';
+    }
+    h += '<button class="cpj-touche" ' + (commercePeutProduire(data) ? 'onclick="confirmerProduction(\'' + id + '\')"' : 'disabled') + '>Produire</button>';
+    h += '</div></div>';
+  });
+  return h;
+}
+
+async function confirmerAchatQuincaillerie(produitId) {
+  const pays = state.country || 'republic';
+  const p = getQuincailleriePays(pays)[produitId];
+  const data = await chargerArmurerieLocale();
+  if (!p || !data) { showToast('Indisponible', '', false); return; }
+  const qte = produitId === 'cle_vierge'
+    ? Math.max(1, Math.min(50, parseInt(document.getElementById('quinc-qte-' + produitId)?.value || '1', 10) || 1)) : 1;
+  const motifs = {
+    stock_insuffisant: 'L\'armurerie n\'en a plus autant en stock.',
+    fonds_insuffisants: 'Vous n\'avez pas assez d\'argent.',
+    pa_insuffisants: 'Il vous faut 1 PA.',
+    quantite_invalide: 'Quantité invalide (une serrure à la fois, 1 à 50 clés vierges).',
+    produit_non_propose: 'Cet article n\'est pas vendu ici.',
+    prix_non_defini: 'Cet article n\'a pas de prix fixé.',
+    inventaire_plein: 'Votre inventaire est plein.',
+    pas_sur_place: 'Il faut être dans l\'armurerie.'
+  };
+  let refus = null;
+  const v = await executerReceptionInventaire('quincaillerie_acheter',
+    { p_entreprise: data.id, p_produit: produitId, p_qte: qte },
+    { surRefus: (x) => { refus = x; showToast('Achat refusé', motifs[x.raison] || ('Refus du serveur (' + (x.raison || '?') + ').'), false); return true; } });
+  if (!v) return;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof updateUI === 'function') updateUI();
+  const total = Number(v.total || 0).toLocaleString('fr-FR') + ' ' + (COUNTRIES[pays]?.cur || 'FR');
+  showToast('Achat effectué', produitId === 'serrure_cle'
+    ? 'Serrure n° ' + (v.serrure?.numero || '?') + ' et sa clé — ' + total
+    : qte + ' clé(s) vierge(s) — ' + total, true);
+  addJournalEntry('Achat à l\'armurerie : ' + (produitId === 'serrure_cle' ? 'une serrure à clé' : qte + ' clé(s) vierge(s)') + ' (' + total + ').', 'event-info');
 }
 
 async function ouvrirFicheArmeCommerce(id) {
@@ -1341,7 +1372,7 @@ async function confirmerAchatArme(armeId) {
   // Registre local par armurerie (A2, 16 aout 2026) : city = ville reelle de l'armurerie ou la
   // vente a lieu (achat toujours effectue physiquement sur place, meme raisonnement que
   // chargerArmurerieLocale).
-  if (typeof sbEnregistrerVenteArme === 'function') {
+  {
     // Premier producteur de la memoire des renseignements (Phase 1, 22 aout 2026) : l'acheteur
     // se souvient de sa propre action (mode_acquisition 'action_personnelle', source = lui-meme
     // -- regle de design validee, Arnie qui achete son revolver). Ecriture BEST-EFFORT, apres
@@ -1366,18 +1397,9 @@ async function confirmerAchatArme(armeId) {
         if (!resultat) console.error('Renseignement (achat arme) non enregistre -- achat non affecte.');
       }).catch(() => console.error('Renseignement (achat arme) non enregistre -- achat non affecte.'));
     };
-    sbEnregistrerVenteArme({
-      joueur: state.char?.name || 'Anonyme',
-      arme: arme.name,
-      prix: prixApplique,
-      pays: pays,
-      city: state.currentCity || 'capitale',
-      jour: state.day || 1,
-      heure: state.hour || 8
-    }).then(rows => {
-      const registreId = Array.isArray(rows) && rows[0] && rows[0].id != null ? rows[0].id : null;
-      enregistrerRenseignementAchatArme(registreId);
-    }).catch(() => enregistrerRenseignementAchatArme(null));
+    // La vente est inscrite au registre par arme_acheter, dans la meme transaction (03/11/2026) :
+    // l'ecran ne fait plus que relier le renseignement a la ligne rendue.
+    enregistrerRenseignementAchatArme(r.registre_id != null ? r.registre_id : null);
   }
 
   updateUI();
@@ -1502,20 +1524,17 @@ async function confirmerCorruptionRegistre() {
   const cout = 100;
   if (state.arg < cout) { showToast('Fonds insuffisants', cout.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
 
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 30) {
-    state.arg -= cout;
-    state.inf = Math.min(100, (state.inf || 0) + 5);
-    state.pop = Math.min(100, (state.pop || 0) + 5);
-    updateUI();
+  // Jet (30 %), 100 FR seulement si réussite, POP et INF : tout par le serveur (#379).
+  const v = await executerOrdreJaugesServeur('corrompre_armurier');
+  if (!v) return;
+  updateUI();
+  if (v.rejeu) return;
+  if (v.corruption_reussie === true) {
     showToast('Corruption réussie', 'L\'armurier accepte. +5 INF, +5 POP.', true);
     addJournalEntry('Registre consulté après corruption de l\'armurier. -' + cout.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-info');
     // Corruption locale : ne donne acces qu'au registre de l'armurerie ou elle est tentee.
     await afficherRegistreArmes(state.country || 'republic', state.currentCity || 'capitale', true);
   } else {
-    state.inf = Math.max(0, (state.inf || 0) - 5);
-    state.pop = Math.max(0, (state.pop || 0) - 5);
-    updateUI();
     showToast('Refusé !', 'L\'armurier refuse et le fait savoir. -5 INF, -5 POP.', false);
     addJournalEntry('Tentative de corruption de l\'armurier échouée. -5 INF, -5 POP.', 'event-bad');
   }
@@ -1726,7 +1745,8 @@ async function confirmerSubtilisationExplosif() {
     // Ne passe PAS par procederArrestation : celui-ci telporte au commissariat de la ville et
     // applique un bareme de peine, alors qu'il s'agit ici d'une sanction militaire propre.
     // Les autres motifs de recherche et de detention sont integralement preserves.
-    await placerAuQHS(pays, JOURS_QHS_SUBTILISATION, 'Vol de matériel militaire', CASERNE_CITY);
+    // Peine QHS ouverte par le serveur dans la transaction du vol (03/11/2026).
+    await placerAuQHS(verdict.arrestation);
     showToast('Pris sur le fait', 'La garde vous a surpris. Quartier Haute Sécurité, '
       + JOURS_QHS_SUBTILISATION + ' jours.', false, true);
     addJournalEntry('Subtilisation d\'explosifs : pris sur le fait. ' + JOURS_QHS_SUBTILISATION
@@ -2106,7 +2126,8 @@ async function confirmerEmpoisonnement(cibleNom) {
   const v = Array.isArray(brut) ? brut[0] : brut;
   if (!v || v.ok !== true) {
     const raison = v?.raison;
-    if (raison === 'poison_manquant') showToast('Objet manquant', 'Vous n\'avez pas d\'objet poison dans votre inventaire.', false);
+    if (raison === 'pas_cache') { state.estCache = false; showToast('Prérequis manquant', 'Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.', false); }
+    else if (raison === 'poison_manquant') showToast('Objet manquant', 'Vous n\'avez pas d\'objet poison dans votre inventaire.', false);
     else if (raison === 'pas_au_meme_endroit') showToast('Cible absente', cibleNom + ' n\'est plus dans la pièce.', false);
     else showToast('Impossible', 'L\'empoisonnement n\'a pas pu avoir lieu.', false);
     return;
@@ -2328,13 +2349,21 @@ function congediерInformateur(idx) {
 }
 
 
-function doSeCacher() {
-  // DIS fantome corrige (bêta) : le premier terme (stats.DIS) n'a jamais existe, state.dis
-  // (la vraie ressource) etait deja present en repli -- ne garder que lui.
-  const dis = state.dis || 50;
-  const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN() + 15); // +15 zone transport
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= taux) {
+// SE CACHER PAR LE SERVEUR (05/11/2026) : se_cacher preleve 1 PA, tire le de et enregistre la
+// cachette pour la piece courante ; crime_empoisonner l'exige et la consomme. state.estCache n'est
+// plus qu'un rappel d'affichage.
+async function doSeCacher() {
+  const brut = (typeof sbRpc === 'function') ? await sbRpc('se_cacher', {}).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v?.raison === 'hors_batiment') showToast('Impossible', 'Il faut être dans une pièce pour s\'y cacher.', false);
+    else if (v && typeof signalerRefusCout === 'function') signalerRefusCout(v);
+    else showToast('Impossible', 'L\'ordre n\'a pas pu être passé.', false);
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+  if (typeof updateUI === 'function') updateUI();
+  if (v.cache) {
     state.estCache = true;
     showToast('Vous êtes caché(e)', 'Personne ne vous voit. Vous pouvez maintenant passer l\'ordre Assassiner ou Empoisonner.', true, true);
     addJournalEntry('Ordre Se cacher réussi. Prêt(e) pour action discrète.', 'event-info');
@@ -2748,23 +2777,7 @@ const BONUS_CARRIERE_VOL = {
 //
 // La suppression retablit l'original, qui applique bien PEINES_ACTES.
 
-// DOUBLON de doSesoigner (plateau-personnage.js:2544), corps identique. Les deux fichiers
-// etant charges a la suite, c'est CETTE definition qui l'emporte a l'execution. Migre vers
-// l'entonnoir serveur comme l'autre (chantier C, 14 septembre 2026) : tant que le doublon
-// existe, laisser l'une des deux ecrire en direct suffirait a rouvrir le contournement.
-// Le doublon lui-meme n'est pas supprime ici -- ce serait une modification de structure sans
-// rapport avec la securisation, a faire dans une passe dediee.
-async function doSesoigner() {
-  const medocs = (state.inventory || []).filter(i => i.type === 'medicament');
-  if (medocs.length === 0) { showToast('Aucun medicament', '', false); return; }
-  const idx = state.inventory.indexOf(medocs[0]);
-  const r = await removeFromInventory(idx, 'consommer');
-  if (!r.ok) { showToast('Soins impossibles', messageRefusSortieInventaire(r.raison), false); return; }
-  state.hp = Math.min(100, state.hp + 20);
-  updateUI();
-  showToast('Soins', '+20 Sante. ' + (state.inventory.filter(i=>i.type==='medicament').length) + ' medicament(s) restant(s).', true);
-  switchSelfTab('inventaire', null);
-}
+// Le soin unique est défini dans plateau-personnage.js ; les boutons gardent ce même nom.
 
 // =====================
 // MOTEUR D'ENTREPRISE PRIVEE (fondations)
@@ -2797,6 +2810,35 @@ const RECETTES_PRODUCTION = {
 
 function getRecettesPays(pays) {
   return Object.fromEntries(Object.entries(RECETTES_PRODUCTION).filter(([, r]) => r.pays === pays));
+}
+
+// QUINCAILLERIE DES ARMURERIES (serrures, 04/11/2026 -- GAME-DESIGN-SERRURES.md, issue #434).
+// Articles de quincaillerie, PAS des armes : jamais dans ARMES_CATALOGUE ni RECETTES_PRODUCTION
+// (ni marche noir, ni registre de vente d'armes). Miroir serveur : recettes_commerce, source
+// 'quincaillerie' (outils/generateurs/generer_miroirs_entreprises.py).
+// Decisions de Fred : 2 metal + 1 PA = 2 serrures, 60 FR la serrure en commerce PNJ ;
+// 1 metal + 1 PA = 10 cles vierges. Prix PNJ de la cle vierge : regle PNJ existante (2 x le cout
+// de revient : (1 metal a 20 FR + 1 PA a 50 FR) / 10 = 7 FR -> 14 FR). Un proprietaire PJ fixe ses
+// prix comme pour le reste de son armurerie.
+const QUINCAILLERIE_PRODUITS = {
+  serrure_cle: { label: 'Serrure à clé', pa: 1, portions: 2, materiaux: { metal: 2 },
+    categorie: 'quincaillerie', typesAutorises: ['armurerie'], paysAutorises: ['republic'],
+    icon: 'ti-lock', prixPnj: 60, stockMaxPnj: 10,
+    desc: 'Un bloc serrure vendu avec sa clé. Se pose sur une armoire à souvenirs installée, ou sur un local ou un appartement dont vous avez la jouissance.' },
+  cle_vierge: { label: 'Clé vierge', pa: 1, portions: 10, materiaux: { metal: 1 },
+    categorie: 'quincaillerie', typesAutorises: ['armurerie'], paysAutorises: ['republic'],
+    icon: 'ti-key', prixPnj: 14, stockMaxPnj: 50,
+    desc: 'Une clé brute. Taillée sur une clé que vous détenez, elle devient un double.' }
+};
+
+function getQuincailleriePays(pays) {
+  return Object.fromEntries(Object.entries(QUINCAILLERIE_PRODUITS)
+    .filter(([, r]) => !r.paysAutorises || r.paysAutorises.includes(pays)));
+}
+
+// Tout ce que fabrique et vend une armurerie de ce pays : armes puis quincaillerie.
+function produitsArmureriePays(pays) {
+  return Object.assign({}, getRecettesPays(pays), getQuincailleriePays(pays));
 }
 
 const PRIX_RACHAT_ARMURERIE = 130000;
@@ -2930,6 +2972,10 @@ function defautArmurerie(pays, ville) {
   Object.entries(recettes).forEach(([id, r]) => {
     prixVente[id] = prixVenteDefaut[r.ut] || 500;
     stockMax[id] = r.ut === 1 ? 10 : (r.ut === 2 ? 5 : 5);
+  });
+  Object.entries(getQuincailleriePays(pays || 'republic')).forEach(([id, r]) => {
+    prixVente[id] = r.prixPnj;
+    stockMax[id] = r.stockMaxPnj;
   });
 
   return {
@@ -3713,7 +3759,11 @@ const BUILDING_COMMERCE_TYPE = {
   // buildingId seule (commerce mono-piece, une seule room 'salle', meme convention que
   // cafe-gare-montrouge ci-dessus). getCommerceId() integre deja buildingId : ce commerce est
   // entierement distinct du Cafe de la Gare (stock/caisse propres) des sa premiere creation.
-  'cafe-tabac-cheminots-montrouge': 'cafe'
+  'cafe-tabac-cheminots-montrouge': 'cafe',
+  // Bar du Pavillon des Ambassadeurs (Novomirsk, 04/11/2026, decision de Fred : copie du Bar du
+  // Republica) : type 'bar', meme moteur que le Bar des Pecheurs, caisse autonome. Cle
+  // room-scopee (le Pavillon a aussi des suites et une salle de reception sans commerce).
+  'pavillon-ambassadeurs-novomirsk|bar': 'bar'
 };
 
 // Types de commerce sans caisse autonome (paiement client/salaire de production routes vers la
@@ -3869,49 +3919,53 @@ function doVendreMatiereCommerceGenerique(pa, cost) {
   doVendreMatiereCommerce(c.type, c.buildingId, c.roomId, pa, cost);
 }
 
+// Une seule fenêtre de stock/prix/vente pour le commerce. La liste provient
+// toujours de la carte serveur, et non des seuls objets du PJ.
 async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cost) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
+  const personnage = state.char?.name;
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
-  // chargerCommerce passe par entreprise_assurer_existence : un `null` ici n'est
-  // pas « le commerce n'existe pas », c'est « le serveur n'a pas repondu ».
-  if (!data) { showToast('Commerce injoignable',
-    "Les informations de ce commerce n'ont pas pu être chargées. Réessayez dans un instant.", false); return; }
-
-  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  if (state.country !== pays || state.currentCity !== ville ||
+      state.currentBuilding !== buildingId || state.char?.name !== personnage ||
+      (roomId && state.currentRoom !== roomId)) return;
+  if (!data) {
+    showToast('Commerce injoignable', "Les informations de ce commerce n'ont pas pu être chargées. Réessayez dans un instant.", false);
+    return;
+  }
+  const cur = COUNTRIES[pays]?.cur || 'FR';
   const matieres = matieresAccepteesParCommerce(data);
-  const disponibles = matieres.filter(m => (state.inventory || []).some(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0));
-
   document.getElementById('postes-modal-title').textContent = 'Vendre des matières au commerce';
   let html = '<div style="padding:1rem">';
-  if (disponibles.length === 0) {
-    html += '<div style="font-size:.9rem;color:#8a8060">Vous ne possédez aucune matière que ce commerce accepte' + (matieres.length ? ' (' + matieres.map(m => (RESSOURCES_ECONOMIE[m]?.label || m)).join(', ') + ')' : '') + '.</div>';
-  } else {
-    html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat fixés par le commerce.</div>';
-  }
-  disponibles.forEach(m => {
-    const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0);
-    const qteDispo = lot?.qty || 0;
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Stock et prix d\'achat pratiqués par ce commerce. Vous pouvez consulter ces informations sans posséder de matières premières.</div>';
+  if (!matieres.length) html += '<div style="font-size:.9rem;color:#8a8060">Aucune matière première achetée actuellement.</div>';
+  matieres.forEach(m => {
+    const qteDispo = (state.inventory || []).filter(i => i.stackKey === m && (i.qty || 0) > 0)
+      .reduce((total,i) => total + Number(i.qty || 0), 0);
     const prixUnitaire = prixAchatMatiereCommerce(data, m);
     const stockMax = plafondEffectifCommerce(data, m);
-    const stockActuel = data.stockMatieres[m] || 0;
+    const stockActuel = Number(data.stockMatieres?.[m] || 0);
     const placeRestante = Math.max(0, stockMax - stockActuel);
     const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].label : m;
-    const qteInitiale = Math.max(1, Math.min(qteDispo, placeRestante));
-    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
-    html += '<span style="flex:1;font-size:.88rem;color:#c0b090">' + label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + ', capacité restante ' + placeRestante + '</span>';
-    html += '<input type="number" id="vendre-commerce-qte-' + m + '" min="1" max="' + Math.min(qteDispo, placeRestante) + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
-    // VENDRE ET DONNER, COTE A COTE (30 septembre 2026). Le don ne demande rien a
-    // la caisse : il reste donc propose meme quand le commerce n'a pas de quoi
-    // acheter. Seule la place restante les desactive tous les deux -- un commerce
-    // plein ne peut pas plus recevoir un cadeau qu'un achat.
-    const plein = (placeRestante === 0);
-    const styleInactif = 'padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.82rem';
-    html += '<button ' + (plein ? 'disabled style="' + styleInactif + '"'
-      : 'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\',\'vente\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
-    html += '<button ' + (plein ? 'disabled style="' + styleInactif + '"'
-      : 'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\',\'don\')" style="padding:.3rem .6rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.82rem"')
-      + ' title="Céder cette quantité sans contrepartie. Possible même si la caisse du commerce est vide.">Donner</button>';
+    const vendable = Math.min(qteDispo, placeRestante);
+    html += '<div style="padding:.65rem;border:1px solid #455365;margin-bottom:.65rem">';
+    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + label + ' : ' + stockActuel + '/' + stockMax + '</div>';
+    html += '<div style="font-size:.84rem;color:#a9b7c9;margin:.3rem 0">Prix d\'achat : ' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + ' / unité — Vous en possédez : ' + qteDispo + '</div>';
+    html += '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">';
+    html += '<label for="vendre-commerce-qte-' + m + '" style="font-size:.83rem;color:#c0b090">Quantité à céder</label>';
+    html += '<input type="number" id="vendre-commerce-qte-' + m + '" min="1" max="' + vendable + '" ' +
+      (vendable <= 0 ? 'disabled value="" placeholder="—"' : 'value="' + vendable + '"') +
+      ' style="width:76px;background:#202b39;border:1px solid #455365;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
+    const inactif = 'padding:.3rem .6rem;border:1px solid #455365;background:transparent;color:#667080;cursor:default;font-size:.82rem';
+    html += '<button ' + (vendable <= 0 ? 'disabled style="' + inactif + '"' :
+      'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\',\'vente\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
+    // Le don existant reste disponible, sans solliciter la caisse.
+    html += '<button ' + (vendable <= 0 ? 'disabled style="' + inactif + '"' :
+      'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\',\'don\')" style="padding:.3rem .6rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.82rem"') +
+      ' title="Céder sans contrepartie. Ne prélève rien dans la caisse.">Donner</button>';
+    html += '</div>';
+    if (!qteDispo) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Vous ne possédez pas cette matière.</div>';
+    else if (!placeRestante) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Le commerce a atteint sa limite d\'achat.</div>';
     html += '</div>';
   });
   html += '</div>';
@@ -4128,6 +4182,23 @@ const DOTATIONS_COMMERCE_PILOTE = {
   // typesAutorises:['bar'] (biere_pression/vin/cafe_boisson/boisson_sans_alcool/snack_buvette),
   // aucune recette modifiee. Specialite locale PSM PAS encore ajoutee : proposee au rapport de ce
   // lot, en attente du choix de Fred avant tout ajout a cette carte.
+  // Bar du Pavillon des Ambassadeurs (Novomirsk, 04/11/2026) : carte des boissons et snacks du
+  // Bar du Republica (vin, cafe, biere, snack ; les menus gastronomiques restent verrouilles au
+  // Republica). Caisse, stocks et couts de depart repris du Bar des Pecheurs, seul autre commerce
+  // de type 'bar' : aucun chiffre invente.
+  'pavillon-ambassadeurs-novomirsk|bar': function(data) {
+    data.caisse = 2000;
+    data.stockMatieres = { cereales: 10, fruits_legumes: 10, produits_exotiques: 10 };
+    data.coutMoyenMatieres = { cereales: 3, fruits_legumes: 4, produits_exotiques: 6 };
+    data.carte = ['vin', 'cafe_boisson', 'biere_pression', 'snack_buvette'];
+    data.parametres.stockMax = { vin: 20, cafe_boisson: 20, biere_pression: 20, snack_buvette: 20 };
+    data.parametres.prixVente = {
+      vin: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.vin)),
+      cafe_boisson: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.cafe_boisson)),
+      biere_pression: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.biere_pression)),
+      snack_buvette: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.snack_buvette))
+    };
+  },
   'bar-des-pecheurs|salle_bar': function(data) {
     data.caisse = 2000;
     data.stockMatieres = { cereales: 10, fruits_legumes: 10, produits_exotiques: 10 };
@@ -4550,7 +4621,7 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
   } else {
     if (effets.hp) state.hp = Math.min(100, Math.max(0, (state.hp || 0) + effets.hp));
     if (effets.moral) state.moral = Math.min(100, Math.max(0, (state.moral || 0) + effets.moral));
-    if (effets.pop) state.pop = Math.min(100, Math.max(0, (state.pop || 0) + effets.pop));
+    // effets.pop retiré (#379) : aucune recette ne le porte ; une jauge ne s'écrit plus à l'écran.
     // Bonus differe atteste : le serveur lit le montant de la recette dans son miroir, le
     // client ne fait que nommer la source (16 septembre 2026).
     if (effets.paDiffere && typeof sbRpc === 'function' && state.char?.name) {
@@ -4612,7 +4683,9 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
     const composition = Object.entries(recette.materiaux).map(([m, q]) => q + ' ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m] ? RESSOURCES_ECONOMIE[m].label : m)).join(', ');
     const effetsTxt = Object.entries(recette.effets || {}).map(([k, v]) => (v > 0 ? '+' : '') + v + ' ' + k.toUpperCase()).join(', ');
     const enRupture = stock <= 0;
-    html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #394656;background:#252D38;border-radius:9px;margin-bottom:.5rem;align-items:center;' + (enRupture ? 'opacity:.5' : '') + '">';
+    // La rupture ne bloque que l'achat : ne pas rendre « Produire » visuellement inactif.
+    // Ce bouton garde son propre contrôle d'habilitation, sans modifier la transaction.
+    html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #394656;background:#252D38;border-radius:9px;margin-bottom:.5rem;align-items:center">';
     if (recette.image) html += '<img src="' + recette.image + '" style="width:56px;height:56px;object-fit:cover;border-radius:4px;flex-shrink:0" />';
     html += '<div style="flex:1">';
     html += '<b style="font-size:.93rem;color:#E5C477">' + recette.label + '</b><br>';
@@ -5362,7 +5435,8 @@ async function confirmerProduction(produitId) {
   const data = await chargerArmurerieLocale();
   if (!data) { showToast('Indisponible', '', false); return; }
   if(!commercePeutProduire(data)){showToast('Production non autorisée','Vous n’êtes pas habilité à produire ici.',false);return;}
-  const recette = getRecettesPays(state.country || 'republic')[produitId];
+  const recette = getRecettesPays(state.country || 'republic')[produitId]
+    || getQuincailleriePays(state.country || 'republic')[produitId];
 
   const r = await commerceProduire(data.id, produitId, 'produire_arme');
   if (!r.ok) {
@@ -5389,42 +5463,58 @@ async function confirmerProduction(produitId) {
 // des ventes d'armes -- contournement legal reel confirme par audit. Leur logique economique
 // (stock reel, prixVente, caisse, historique, taxes) est desormais fusionnee dans
 // confirmerAchatArme/confirmerAchatArmeIllegal ci-dessus, qui restent l'UNIQUE porte d'achat
-// et alimentent systematiquement sbEnregistrerVenteArme() cote legal.
+// et alimentent systematiquement inscription au registre par arme_acheter cote legal.
 
 // Fix 9 aout 2026 (confirme par test en jeu) : ne reconnaissait que la forme d'inventoire de
 // la recolte (type:'matiere_premiere'), jamais la forme empilable produite par un achat a
 // l'entrepot (stackable/stackKey) - or l'Armurerie n'existe qu'a Luthecia, qui n'a aucune
 // ressource recoltable localement (MATIERES_PREMIERES_VILLE n'a pas d'entree pour 'capitale').
 // L'ordre etait donc inutilisable en pratique. Meme correctif que vendre_bois_imprimerie.
+// Armurerie : la même information commerciale (stock, plafond, prix) doit être
+// consultable par tout visiteur, même sans matière dans son inventaire.
 async function doVendreMatiereArmurerie() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const nom = state.char?.name;
   const data = await chargerArmurerieLocale();
-  if (!data) { showToast('Armurerie injoignable',
-    "Les informations de cette armurerie n'ont pas pu être chargées. Réessayez dans un instant.", false); return; }
-
-  document.getElementById('postes-modal-title').textContent = 'Vendre des matières premières';
+  if (state.country !== pays || state.currentCity !== ville ||
+      state.currentBuilding !== 'armurerie' || state.char?.name !== nom) return;
+  if (!data) {
+    showToast('Armurerie injoignable', "Les informations de cette armurerie n'ont pas pu être chargées.", false);
+    return;
+  }
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = 'Vendre des matières à l\'armurerie';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat fixés par le propriétaire de l\'armurerie.</div>';
-  Object.entries(data.parametres.prixAchatMatiere).forEach(([m, prix]) => {
-    const lot = (state.inventory || []).find(i => i.stackKey === m && (i.qty || 0) > 0);
-    const qteDispo = lot?.qty || 0;
-    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
-    const nomM = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m])
-      ? RESSOURCES_ECONOMIE[m].label : m;
-    html += '<span style="flex:1;font-size:.78rem;color:#c0b090">' + nomM + ' (' + prix + ' FR/unité) — vous en avez ' + qteDispo + '</span>';
-    html += '<input type="number" id="vendre-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + (qteDispo > 0 ? qteDispo : 1) + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.78rem;outline:none"/>';
-    // L'armurerie garde son propre ecran, mais pas son propre vocabulaire : VENDRE
-    // et DONNER y sont proposes comme dans l'interface commune, sur la meme
-    // primitive serveur. Le don ne sollicite pas la caisse et reste donc offert
-    // meme a une armurerie sans le sou.
-    const inactifArm = 'padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.72rem';
-    html += '<button ' + (qteDispo <= 0 ? 'disabled style="' + inactifArm + '"'
-      : 'onclick="confirmerVenteMatiere(\'' + m + '\',\'vente\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem"') + '>Vendre</button>';
-    html += '<button ' + (qteDispo <= 0 ? 'disabled style="' + inactifArm + '"'
-      : 'onclick="confirmerVenteMatiere(\'' + m + '\',\'don\')" style="padding:.3rem .6rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.72rem"')
-      + ' title="Céder cette quantité sans contrepartie. Possible même si la caisse est vide.">Donner</button>';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">Stock de matières premières et prix d\'achat pratiqués par l\'armurerie.</div>';
+  const prix = data.parametres?.prixAchatMatiere || {};
+  Object.entries(prix).forEach(([m, prixUnitaire]) => {
+    const res = typeof RESSOURCES_ECONOMIE !== 'undefined' ? RESSOURCES_ECONOMIE[m] : null;
+    const qteDispo = (state.inventory || []).filter(i => i.stackKey === m && (i.qty || 0) > 0)
+      .reduce((n,i) => n + Number(i.qty || 0),0);
+    const stockActuel = Number(data.stockMatieres?.[m] || 0);
+    // Le serveur ne fixe AUCUN plafond aux matières de l'armurerie.
+    // Ne pas inventer ici une limite de 20 valable seulement pour les commerces alimentaires.
+    const stockMax = null;
+    const vendable = qteDispo;
+    html += '<div style="padding:.65rem;border:1px solid #455365;margin-bottom:.65rem">';
+    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + (res?.label || m) + ' : ' + stockActuel + ' / sans plafond</div>';
+    html += '<div style="font-size:.84rem;color:#a9b7c9;margin:.3rem 0">Prix d\'achat : ' + Number(prixUnitaire).toLocaleString('fr-FR') + ' ' + cur + ' / unité — Vous en possédez : ' + qteDispo + '</div>';
+    html += '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">';
+    html += '<label for="vendre-qte-' + m + '" style="font-size:.82rem;color:#c0b090">Quantité à céder</label>';
+    html += '<input type="number" id="vendre-qte-' + m + '" min="1" max="' + vendable + '" ' +
+      (vendable <= 0 ? 'disabled value="" placeholder="—"' : 'value="' + vendable + '"') +
+      ' style="width:76px;background:#202b39;border:1px solid #455365;color:#f0ead6;padding:.3rem;font-size:.85rem;outline:none"/>';
+    const inactif = 'padding:.3rem .6rem;border:1px solid #455365;background:transparent;color:#667080;cursor:default;font-size:.82rem';
+    html += '<button ' + (vendable <= 0 ? 'disabled style="' + inactif + '"' :
+      'onclick="confirmerVenteMatiere(\'' + m + '\',\'vente\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
+    html += '<button ' + (vendable <= 0 ? 'disabled style="' + inactif + '"' :
+      'onclick="confirmerVenteMatiere(\'' + m + '\',\'don\')" style="padding:.3rem .6rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.82rem"') + '>Donner</button>';
+    html += '</div>';
+    if (!qteDispo) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Vous ne possédez pas cette matière.</div>';
     html += '</div>';
   });
-  html += '<div style="font-size:.7rem;color:#5a5040;font-style:italic;margin-top:.6rem">Nécessite d\'avoir ces matières dans votre inventaire (achetées à l\'Entrepôt Logistique).</div>';
+  if (!Object.keys(prix).length) html += '<div style="font-size:.85rem;color:#8a8060">Aucune matière achetée actuellement.</div>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -6374,7 +6464,7 @@ async function doGererArmurerie() {
   let html = '<div style="padding:1rem">';
   html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.8rem">Caisse : ' + data.caisse.toLocaleString('fr-FR') + ' FR</div>';
 
-  html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.6rem">Salaire de production fixe : 100 FR par arme (2 PA), non réglable.</div>';
+  html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.6rem">Salaire de production fixe : 100 FR par arme (2 PA), 50 FR par lot de quincaillerie (1 PA), non réglable.</div>';
 
   html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.3rem">Prix d\'achat des matières (FR/unité)</div>';
   Object.keys(data.parametres.prixAchatMatiere).forEach(m => {
@@ -6382,9 +6472,10 @@ async function doGererArmurerie() {
   });
 
   html += '<div style="font-size:.72rem;color:#8a8060;margin:.5rem 0 .3rem">Prix de vente et stock maximum</div>';
-  Object.keys(getRecettesPays(state.country || 'republic')).forEach(id => {
+  const catalogueGestion = produitsArmureriePays(state.country || 'republic');
+  Object.keys(catalogueGestion).forEach(id => {
     html += '<div style="display:flex;gap:.4rem;margin-bottom:.3rem;align-items:center">';
-    html += '<span style="flex:1;font-size:.75rem;color:#c0b090">' + RECETTES_PRODUCTION[id].label + '</span>';
+    html += '<span style="flex:1;font-size:.75rem;color:#c0b090">' + catalogueGestion[id].label + '</span>';
     html += '<input id="gere-prix-' + id + '" type="number" value="' + (data.parametres.prixVente[id]||0) + '" placeholder="Prix" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.72rem;outline:none"/>';
     html += '<input id="gere-max-' + id + '" type="number" value="' + (data.parametres.stockMax[id]||0) + '" placeholder="Stock max" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.72rem;outline:none"/>';
     html += '</div>';
@@ -6404,7 +6495,7 @@ async function confirmerGestionArmurerie(entrepriseId) {
   Object.keys(data.parametres.prixAchatMatiere || {}).forEach(m => {
     prixAchatMatiere[m] = Math.max(0, parseInt(document.getElementById('gere-mat-' + m)?.value || '0'));
   });
-  Object.keys(getRecettesPays(state.country || 'republic')).forEach(id => {
+  Object.keys(produitsArmureriePays(state.country || 'republic')).forEach(id => {
     prixVente[id] = Math.max(0, parseInt(document.getElementById('gere-prix-' + id)?.value || '0'));
     stockMax[id] = Math.max(0, parseInt(document.getElementById('gere-max-' + id)?.value || '0'));
   });
@@ -6510,43 +6601,12 @@ async function confirmerRecolte(matiere, pa, cost) {
 }
 
 async function doConsommerBuvette(pa, cost) {
-  const cout = 50;
-  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
-
-  // Doctrine (A3, lot finition financiere locale, 17 aout 2026) : la buvette n'a pas de caisse
-  // financiere autonome -- tout argent genere dans l'enceinte du stade appartient a la caisse du
-  // stade de cette ville. La ligne legacy 'stade-buvette' (88 FR, origine non demontrable avec
-  // certitude) reste intacte et ne recoit plus aucune nouvelle recette.
-  const pays = state.country || 'republic';
-  const idCaisseStade = typeof getCaisseLocaleId === 'function'
-    ? getCaisseLocaleId('stade', state.currentCity) : 'stade';
-
-  // Lot « ventes a une structure » (17 septembre 2026) : prelevement, taxe locale+nationale et
-  // recette du stade sont desormais UNE seule transaction serveur. Avant, la taxe etait un appel
-  // client distinct du prelevement -- donc contournable par un client modifie -- et le credit de
-  // la caisse un tir-et-oublie dont le retour n'etait jamais lu : un verre pouvait etre paye sans
-  // que le stade encaisse quoi que ce soit. Memes taux, meme caisse, meme montant declare.
-  let recetteEncaissee = false;
-  let r;
-  if (typeof encaisserVenteStructure === 'function') {
-    r = await encaisserVenteStructure('consommer_buvette', pa, cost,
-                                      pays + '_' + idCaisseStade, state.currentCity);
-    recetteEncaissee = r.ok;
-  } else {
-    // PLUS DE REPLI CLIENT (8 octobre 2026). Cette branche debitait le joueur par
-    // deduireCoutOrdre, puis un bloc plus bas recalculait la taxe et creditait le stade --
-    // c'est-a-dire le triple appel que le lot « ventes a une structure » avait precisement
-    // remplace. Ce repli ne s'activait que si `encaisserVenteStructure` manquait de la page, un
-    // defaut de deploiement et non une panne reseau ; mais il ecrivait
-    // `budgets_municipaux.data.caisse`, une cle supprimee par le chantier municipal, et il
-    // l'aurait donc RECREEE avec de l'argent dedans. On refuse au lieu de prelever : un joueur
-    // qui ne consomme pas est preferable a une taxe qui n'arrive nulle part.
-    r = { ok: false, raison: 'encaissement_indisponible' };
-  }
-  if (!r.ok) { signalerRefusCout(r); return; }
-  state.pop = Math.min(100, (state.pop || 0) + 2);
-
+  const contexte=contexteGroupePj();
+  const v=await executerOrdreJaugesServeur('consommer_buvette');
+  if(!v||!contexteGroupePjValide(contexte))return;
   updateUI();
-  showToast('Un verre entre supporters', '+2 POP.', true, true);
-  addJournalEntry('Un verre pris à la buvette (-' + cout + ' FR).', 'event-good');
+  if(!v.rejeu){
+    showToast('Un verre entre supporters','+'+v.gain_pop+' POP.',true,true);
+    addJournalEntry('Un verre pris à la buvette (-'+v.montant_preleve+' FR).','event-good');
+  }
 }

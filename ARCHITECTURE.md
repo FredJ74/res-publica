@@ -85,8 +85,12 @@ ligne trouvée fausse se corrige ici.
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
 | Entreprises et commerces | Commerces de joueurs, prix, stocks, ventes. | Serveur | Entreprises et commerces du pays. |
+| Droits d'exploiter (Sovarka) | (06/11) Pas de propriété privée : demande à la mairie (`sovarka_demande_deposer`), acceptation par l'autorité municipale (maire, sinon adjoint, sinon `min_fin`), signature chez le notaire (bail `locations_actives` marqué `droitExploiter`, ou `entreprises.proprietaire` pour un commerce PNJ), cession enregistrée par le notaire, retour à l'État au décès (`succession_ouvrir`) ou par le juge ; immeubles collectifs bâtis par la mairie sur ses terrains (`sovarka_urbanisme_passe`, tâche de minuit). Tables `sovarka_*`. | Serveur | Locaux, terrains et régime de propriété du pays. |
 | Usines et chaînes | Production, matières, directeurs, ventes directes. | Serveur | Usines et chaînes du pays. |
-| Entrepôts et ressources | Stocks régionaux, prix, matières premières. | Serveur | Ressources disponibles, prix. |
+| Entrepôts et ressources | Stocks régionaux, prix, matières premières. Trading (03/11) : ordinateur + box installés dans un bureau (`equipements_installes`), cours et achat à distance pour une organisation économique, livraison en caisse de fret au port de PSM (`GAME-DESIGN-TRADING.md`). Clé pays + ville depuis le 04/11 (`entrepots_par_ville.pays`) : un entrepôt d'un autre pays ne se confond plus avec celui de Républia ; commande entre entrepôts du même pays seulement. | Serveur | Une ligne `entrepots_par_ville` (pays, ville, bâtiment) et `ENTREPOT_PAR_PAYS_VILLE` à l'écran. Reste à faire : approvisionnement nocturne propre au pays (la passe de minuit `ENTREPOTS_VILLES` ne nourrit que Républia), son port, son directeur PNJ dans la cascade. |
+| Serrures et clés | Quincaillerie des armureries (04/11, #434) : serrure à clé (2 métal + 1 PA = 2, 60 FR en PNJ) et clé vierge (1 métal + 1 PA = 10) dans `recettes_commerce` source `quincaillerie`, hors circuit des armes. Table `serrures` : pose sur un local dont on a la jouissance, sur l'entrée d'un bâtiment dont on a l'intégralité de la jouissance (`batiment_jouissance_integrale_interne`) ou sur une armoire à souvenirs installée (`equipements_installes`), fermer/ouvrir avec une clé détenue, porte fermée refusée par `navigation_interieure_personnage_interne` à qui n'a pas de clé, doubles illimités (`cle_dupliquer`), destruction au départ du locataire (`serrures_fin_bail_interne`, à l'accès et dans la passe de nuit). | Serveur | Prix et pays autorisés des recettes de quincaillerie. |
+| Véhicules personnels | (05/11) Voiture, deux-roues, utilitaire : biens localisés (`vehicules`), vendus avec une clé (serrure de cible `vehicule`), trajet entre villes reliées d'un même pays (`routes_vehicules`) pour le groupe du conducteur, 1 PA par occupant, carburant en bidons (pile `carburant`), cargaison, révision tous les 10 trajets, panne tirée par le serveur et dépannage vers un garage. Porte unique `vehicule_acte`, lecture `vehicules_lire`. Fabrication au garage (06/11) : 5, 10 ou 15 jours, un véhicule à la fois, main-d'œuvre du jour par les PJ (payée par la caisse du garage) sinon par les PNJ à minuit (`garage_fabrications_avancer_jour`). Garage PNJ de Novomirsk et station PNJ de Krasnov (exemples). Règles : `GAME-DESIGN-VEHICULES.md`. | Serveur | Ses routes dans `routes_vehicules` ; garages et stations ouverts par les PJ. |
+| Salon de coiffure | (06/11) Prestation « coupe » de toute entreprise qui déclare `prestations.coupe` : `salon_coupe` (+5 POP, CHA +1 jusqu'à minuit par effet actif `coupe_cha`, une coupe tous les 3 jours de jeu, table `salon_coupes`), encaissement commun des prestations. Salon PNJ de Novomirsk ; prix de Sovarka à décider. `GAME-DESIGN-SALON-COIFFURE.md`. | Serveur | Salons du pays. |
 | Port et fret | Bateau, colis, box, douane, criée, marchandises non réclamées (achat d'un lot encore décidé par l'écran). | Mixte | Ports et routes. |
 | Bureau de l'Emploi | Postes à pourvoir, annonces, référentes. | Serveur | Agences et référentes. |
 | Chantiers | Travail à l'heure, taux du propriétaire, ouvriers PNJ. | Serveur | Rien : commun. |
@@ -130,7 +134,7 @@ ligne trouvée fausse se corrige ici.
 
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
-| Actes illégaux | Vol, neutralisation, empoisonnement, incendie, explosifs, falsification, contrebande (jet, effets, détection et découverte de nuit par le serveur depuis le 27/10 ; restent à l'écran « Se cacher », la neutralisation d'un député, tracts calomnieux et fausse rumeur). Achat de poisons et contrebande : seulement dans les ports des autres empires. | Mixte | Objets et lieux du marché noir. |
+| Actes illégaux | Vol, neutralisation, empoisonnement, incendie, explosifs, falsification, contrebande (jet, effets, détection et découverte de nuit par le serveur depuis le 27/10 ; « Se cacher » au serveur depuis le 05/11, cachette exigée par l'empoisonnement ; restent à l'écran la neutralisation d'un député, tracts calomnieux et fausse rumeur). Achat de poisons et contrebande : seulement dans les ports des autres empires. Dissuasion (03/11, #135) : hommes armés présents (agents privés hors ceux de l'auteur, soldats en mission `securiser`, Garde républicaine) → malus min(40, 10 + hommes) au jet de réussite et au taux de détection, par `securite_malus_lieu_interne`. Agence de sécurité d'un PJ (03/11) : commerce servant de guichet au socle d'embauche des agences, vivier par ville (`pnj_employeurs.vivier`), frais à la caisse du commerce. | Mixte | Objets et lieux du marché noir. |
 | Corruption | Douaniers, fonctionnaires, presse, greffe (douanier et fonctionnaires par le serveur depuis le 27/10). | Mixte | Rien : commun. |
 | Organisations criminelles | Mise en relation, recrutement. | Serveur | Organisations du pays. |
 
@@ -139,7 +143,7 @@ ligne trouvée fausse se corrige ici.
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
 | Carrière militaire | Grades, unités, engagement, solde, désertion. | Serveur | Grades et unités. |
-| Opérations | Missions, combats, armurerie, ravitaillement, effort de guerre. | Serveur | Matériel et casernes. |
+| Opérations | Soldats postés = renforts policiers en paix, sans mission choisie (GAME-DESIGN-ARMEE.md, 03/11), combats, armurerie, ravitaillement, effort de guerre. | Serveur | Matériel et casernes. |
 
 ### Presse et opinion
 
@@ -173,7 +177,7 @@ ligne trouvée fausse se corrige ici.
 
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
-| Renseignement | Informateurs (loge, hôtel, bar ; tenus par le serveur depuis le 27/10, interroger coûte 1 PA), cellules de renseignement à l'étranger, renseignement militaire. | Mixte | Services du pays. |
+| Renseignement | Informateurs (loge, hôtel, bar ; tenus par le serveur depuis le 27/10, interroger coûte 1 PA), cellules de renseignement à l'étranger, renseignement militaire. Bâtiment du socle `siege-renseignement` (05/11, décision de Fred) : accueil, salle des écoutes (« Renseignement militaire »), salle d'interrogatoire ; listé par les empires qui l'utilisent (Sovarka), pas par la Républia. Règle du socle (05/11) : le pays d'un poste est celui du registre `postes_attribues` (grades militaires : leur compagnie), jamais la position du titulaire (`acteur_poste_courant`) ; un ordre de poste se passe dans le pays du poste. | Mixte | Services du pays. |
 | Vie sociale | Dîners d'affaires, tournées offertes, escortes, dons d'objets, contacts, débauchage d'employés PNJ. | Mixte | Agences et PNJ. |
 
 ### Entre empires

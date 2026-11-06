@@ -34,9 +34,10 @@ test('le cache local ne fournit jamais bâtiment ni pièce',()=>{
  assert.doesNotMatch(l,/positionLocale|currentBuilding\s*=\s*char\.|currentRoom\s*=\s*char\./,'aucune réimposition locale');
 });
 
-test('rue de Républia : position relue au serveur, le cache ne sert qu à l orientation',()=>{
+test('rue (Républia et toute ville à rues) : position relue au serveur, le cache ne sert qu à l orientation',()=>{
  const f=fonction(rue,'async function initialiserRueCentrale(');
- const branche=f.slice(f.indexOf("if (pays === 'republic')"));
+ assert.ok(f.indexOf("if ((typeof rueCentraleServeur === 'function' ? rueCentraleServeur(pays, state.currentCity) : pays === 'republic'))")>=0,'branche serveur commune à toute ville à rues');
+ const branche=f.slice(f.indexOf("if ((typeof rueCentraleServeur === 'function' ? rueCentraleServeur(pays, state.currentCity) : pays === 'republic'))"));
  assert.match(branche,/sbRpc\('rue_position_lire'/,'lecture serveur de la rue');
  assert.ok(branche.indexOf('rue_position_lire')<(branche.indexOf('obtenirNoeudRueCentraleMemorise')>>>0),'lecture serveur avant tout souvenir local');
  assert.match(branche,/position\.city !== state\.currentCity/,'refus nommé si la ville ne correspond pas');
@@ -48,11 +49,11 @@ test('sauvegarde générique : position en fusion à trois voies (une copie anci
  assert.match(supa,/state\.personnageChargeDepuisServeur !== false/,'aucune position écrite avant la lecture serveur');
 });
 
-// Dépendance extérieure : l'autorité serveur sur toute écriture de position (garde
+// Dépendance livrée et désormais éprouvée : l'autorité serveur sur toute écriture de position (garde
 // navigation_positions_garder) et la restauration sans commande de navigation après F5
-// (representerPositionServeur, #318) arrivent avec #219 + #318. Ce test passera seul quand
-// elles seront dans main ; il ne duplique pas leur correction.
-test('dépendance #219/#318 : garde serveur des positions et restauration sans renavigation',{todo:'livré par #219 et #318 (non fusionnés)'},()=>{
+// (representerPositionServeur, #318) sont livrées avec #219 + #318. Le test actif
+// vérifie ces dépendances sans dupliquer leur correction.
+test('dépendance #219/#318 : garde serveur des positions et restauration sans renavigation',()=>{
  const migrations=fs.readdirSync(path.join(root,'migrations')).filter(f=>f.endsWith('.sql')).map(f=>fs.readFileSync(path.join(root,'migrations',f),'utf8')).join('\n');
  assert.match(migrations,/navigation_positions_garder/);
  assert.match(core,/representerPositionServeur/);

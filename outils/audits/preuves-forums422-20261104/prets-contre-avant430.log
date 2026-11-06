@@ -1,0 +1,49 @@
+
+BANC DE preleverPretsBancairesServeur — aucun debit sans sa garde
+============================================================================
+  OK  une revendication PATCH sur prets est emise
+  OK  le filtre cible le pret par son id
+  OK  le filtre EXIGE que la journee ne soit pas deja prise (compare-and-swap)
+  OK  le filtre accepte le pret dont la colonne est vide (is.null -- neq exclut les NULL)
+  OK  le corps pose le jour courant
+  OK  la revendication est la PREMIERE ecriture de la passe
+  OK  une mensualite est prelevee
+  OK  un seul debit emis sur l emprunteur
+  NON le debit utilise le moteur financier et son montant exact
+        obtenu  : {"arg":9500,"liquide":9500}
+        attendu : {"p_nom":"Emprunteur","p_montant":500,"p_sens":"debit"}
+  NON aucun ancien PATCH financier sur la fiche
+  OK  la dette baisse du montant confirme
+  OK  le debit suit la revendication, jamais avant
+  OK  journee deja prise : aucune mensualite prelevee
+  OK  journee deja prise : comptee comme deja revendiquee
+  OK  journee deja prise : AUCUN debit emis
+  OK  journee deja prise : AUCUNE requete apres la revendication
+  OK  panne de transport : aucune mensualite prelevee
+  OK  panne de transport : le marqueur est declare non pose
+  OK  panne de transport : AUCUN debit emis
+  OK  panne de transport : AUCUNE requete apres la revendication
+  NON debit refuse ou reseau perdu : aucun remboursement annonce
+        obtenu  : 1
+        attendu : 0
+  NON debit refuse ou reseau perdu : echec explicite
+        obtenu  : undefined
+        attendu : 1
+  NON debit refuse ou reseau perdu : aucune baisse de dette
+  NON debit refuse ou reseau perdu : aucun remboursement annonce
+        obtenu  : 1
+        attendu : 0
+  NON debit refuse ou reseau perdu : echec explicite
+        obtenu  : undefined
+        attendu : 1
+  NON debit refuse ou reseau perdu : aucune baisse de dette
+  NON seul le montant reellement confirme reduit la dette
+  OK  deja preleve aujourd hui : rien n est prelevé
+  OK  deja preleve aujourd hui : aucune revendication n est meme tentee
+  OK  deja preleve aujourd hui : aucun debit
+  OK  pret gele pour arbitrage : signale, jamais touche
+  OK  pret gele pour arbitrage : aucun debit
+  OK  pret gele pour arbitrage : aucune revendication
+
+============================================================================
+ECHEC : 9 epreuve(s) sur 33

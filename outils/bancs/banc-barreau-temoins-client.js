@@ -46,7 +46,7 @@ att('la piece est declaree DEUX fois -- un gabarit par type de tribunal, et pas 
 att('et les deux portent le MEME asset',
     compte(dataJs, /images\/tribunal-bureau-magistrats\.webp/g) === 2);
 att('le gabarit local a gagne un greffe -- sans lui, deux affaires sur trois sont illisibles',
-    bloc(dataJs, "  'tribunal-local': {", "  'imprimerie-librairie': {").indexOf('greffe: {') >= 0);
+    bloc(dataJs, "\n  'tribunal-local': {", "\n  'imprimerie-librairie': {").indexOf('greffe: {') >= 0);
 att('les prerogatives des magistrats ont quitte la salle d audience',
     bloc(dataJs, '      salle_audience: {', '      bureau_magistrats: {').indexOf("fn:'parquet'") < 0
     && bloc(dataJs, '      salle_audience_locale: {', '      bureau_magistrats: {').indexOf("fn:'rendre_sentence'") < 0);

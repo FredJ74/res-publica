@@ -1,0 +1,143 @@
+✔ capitale : cache périmé / ok (24.586878ms)
+✔ capitale : cache périmé / panne (6.639493ms)
+✔ capitale : cache périmé / etranger (6.465486ms)
+✔ ville_a : cache périmé / ok (9.346584ms)
+✔ ville_a : cache périmé / panne (12.17832ms)
+✔ ville_a : cache périmé / etranger (8.342459ms)
+✔ ville_b : cache périmé / ok (8.497069ms)
+✔ ville_b : cache périmé / panne (7.941477ms)
+✔ ville_b : cache périmé / etranger (7.176616ms)
+✖ rue #366 / capitale / groupes false (13.398422ms)
+✖ rue #366 / capitale / groupes true (7.914557ms)
+✖ rue #366 / ville_a / groupes false (7.049129ms)
+✖ rue #366 / ville_a / groupes true (6.565023ms)
+✖ rue #366 / ville_b / groupes false (9.666356ms)
+✖ rue #366 / ville_b / groupes true (10.243029ms)
+✔ rue #366 : session ne restaure pas de position inventée (6.80038ms)
+✔ rue #366 : personnage ne restaure pas de position inventée (8.908998ms)
+✔ rue #366 : refus ne restaure pas de position inventée (10.83927ms)
+✔ rue #366 : rue-inconnue ne restaure pas de position inventée (9.517516ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 13
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 193.80757
+
+✖ failing tests:
+
+test at outils/bancs/banc-reconnexion-trois-villes.cjs:55:87
+✖ rue #366 / capitale / groupes false (13.398422ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'ville_a'
+  - 'capitale'
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reconnexion-trois-villes.cjs:58:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'ville_a',
+    expected: 'capitale',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reconnexion-trois-villes.cjs:55:87
+✖ rue #366 / capitale / groupes true (7.914557ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'ville_a'
+  - 'capitale'
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reconnexion-trois-villes.cjs:58:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'ville_a',
+    expected: 'capitale',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reconnexion-trois-villes.cjs:55:87
+✖ rue #366 / ville_a / groupes false (7.049129ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'capitale'
+  - 'ville_a'
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reconnexion-trois-villes.cjs:58:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'capitale',
+    expected: 'ville_a',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reconnexion-trois-villes.cjs:55:87
+✖ rue #366 / ville_a / groupes true (6.565023ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'capitale'
+  - 'ville_a'
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reconnexion-trois-villes.cjs:58:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'capitale',
+    expected: 'ville_a',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reconnexion-trois-villes.cjs:55:87
+✖ rue #366 / ville_b / groupes false (9.666356ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'capitale'
+  - 'ville_b'
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reconnexion-trois-villes.cjs:58:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'capitale',
+    expected: 'ville_b',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-reconnexion-trois-villes.cjs:55:87
+✖ rue #366 / ville_b / groupes true (10.243029ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'capitale'
+  - 'ville_b'
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/bancs/banc-reconnexion-trois-villes.cjs:58:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'capitale',
+    expected: 'ville_b',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

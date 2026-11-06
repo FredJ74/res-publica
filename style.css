@@ -527,6 +527,10 @@ body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:colum
 .srow:hover{background:var(--bg2)}
 .sname{font-family:'Playfair Display',serif;font-weight:700;font-size:.95rem;color:#e0d0b0}
 .sdesc{font-size:.82rem;color:var(--text3);margin-top:.15rem}
+.sex{font-size:.76rem;color:var(--text3);margin-top:.2rem;opacity:.9}
+.sex strong{color:var(--text2);font-weight:600}
+.scarriere{font-size:.7rem;font-weight:600;color:var(--gold,#c9a227);margin-left:.4rem;white-space:nowrap}
+.srow.sutile{box-shadow:inset 3px 0 0 var(--gold,#c9a227)}
 .sbar{height:5px;background:#1a1a1a;border-radius:3px;overflow:hidden;margin-top:.3rem;width:100%;max-width:200px}
 .sbarfill{height:100%;background:#6a5a20;border-radius:3px;transition:width .3s}
 .sbonus{font-size:.7rem;color:#607040;text-align:right;line-height:1.4}

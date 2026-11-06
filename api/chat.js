@@ -24,6 +24,7 @@
 import { construirePromptSysteme, profilExiste, maxTokensProfil, filtrerReponseSquatteur } from './_pnj-profils.js';
 import { appelDeepSeek, joueurAuthentifie, classerEchecFournisseur } from './_deepseek.js';
 import { sbTransport } from './_supabase.js';
+import { sceneDialogue } from './_pnj-localisation.js';
 import { PROFILS_MUNICIPAUX_LUTHECIA, lireTitulaireMunicipal, contexteMunicipal } from '../continuite-municipale.js';
 
 const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
@@ -85,6 +86,7 @@ const CORPS_RPC = {
   pnj_social_contexte:          (profilId) => ({ p_pnj_id: profilId }),
   referent_pedagogie_contexte:  (profilId) => ({ p_referent_id: profilId }),
   pnj_contexte_public:          () => ({}),
+  rue_position_lire:           () => ({}),
   // La memoire des mandats ne prend AUCUN pays : la porte le relit en base. Lui passer un pays
   // laisserait un joueur lire la memoire presidentielle d'un empire voisin.
   presidence_memoire_mon_pays:  () => ({}),
@@ -233,24 +235,25 @@ export default async function handler(req, res) {
   });
   if (!utilisateur) return res.status(401).json({ error: 'Authentification requise.' });
 
-  // LES SIX lectures partent ENSEMBLE : elles sont independantes, et les enchainer ajouterait
+  // Les lectures de contexte et de position partent ENSEMBLE : elles sont independantes, et les enchainer ajouterait
   // quatre allers-retours reseau a chaque replique. Un PNJ n'a jamais les deux memoires -- un
   // social n'est pas referent, un referent ne se lie pas --, le contexte public les concerne
   // tous, et les deux derniers n'en concernent QU'UN CHACUN : la memoire des mandats pour
   // Huguette Papier, les regards de l'Assemblee pour Renee Toitout. Pour tous les autres profils,
   // ces trois appels ne sont pas emis du tout -- le troisieme etant l'etape de la
   // visite d'accueil, qui n'appartient qu'a Jeremy.
-  const [relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale] = await Promise.all([
+  const [relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, position] = await Promise.all([
     relationSociale(req.body.profil, utilisateur.jeton),
     memoirePedagogique(req.body.profil, utilisateur.jeton),
     contextePublicJoueur(utilisateur.jeton),
     memoireDesMandats(req.body.profil, utilisateur.jeton),
     regardsAssemblee(req.body.profil, utilisateur.jeton),
     etapeDeLaVisite(req.body.profil, utilisateur.jeton),
-    lireFonctionMunicipale(req.body.profil, utilisateur.jeton)
+    lireFonctionMunicipale(req.body.profil, utilisateur.jeton),
+    lireMemoire('rue_position_lire', null, utilisateur.jeton)
   ]);
   const systeme = construirePromptSysteme(
-    req.body.profil, req.body.lang, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale);
+    req.body.profil, req.body.lang, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, sceneDialogue(position));
   if (!systeme) return res.status(400).json({ error: 'Profil inconnu.' });
 
   const messages = [];

@@ -546,3 +546,36 @@ tirés au hasard et les effets purement visuels sont exclus.
   encore écrits par l'écran ; voix « conférence » passée au serveur (`conference_soutenir`,
   `20261028226000`).
 - Après la livraison de la PR #213 : `20261028210000`, `210500`, `210600`, `210700`, `210800`, `210900`.
+
+## Relevé du 05/11/2026 — tirages restants à l'écran (Claude, branche `claude/jets-serveur-20261105`, PR #482)
+
+Relevé complet des 90 `Math.random` des fichiers `plateau-*.js` du 05/11 : environ 60 sont des
+identifiants, des textes d'ambiance tirés au hasard (décret, dossier, prénom de chercheur, phrases de
+PNJ, nom d'un militant recruté) ou des effets visuels. Les tirages qui **décident d'une issue** :
+
+**Passés au serveur dans ce chantier**
+- Centre anti-poison (`centre_anti_poison_traiter`, limite de 2 par jour tenue en base).
+- Se cacher (`se_cacher`, cachette liée à la pièce) ; `crime_empoisonner` exige et consomme la cachette.
+- Enquête, filature, chasse à l'homme du commissaire (`commissaire_enquete_mener`, `filature_mener`,
+  `chasse_homme_mener`) ; `commissaire_enqueter`, `filature_deplacements` et
+  `justice_executer_condamnation` ne sont plus appelables par un joueur.
+- Débauchage d'un PNJ (`pnj_debaucher` : paiement, jet et retrait) ; `pnj_employe_debaucher`, qui
+  retirait gratuitement un PNJ à n'importe quel joueur, n'est plus appelable par un joueur.
+- Retirées : `checkArrestationAuDeplacement` / `checkArrestationAuReveil` (arrestation tirée par
+  l'écran hors Républia, devenue active avec Sovarka) et `checkDetection` (morte).
+
+**Restent à l'écran (lots suivants)**
+- Lobbying presse, placer / étouffer un article (`validerLobbyingPresse`, plateau-pnj.js) : jet,
+  paiement, recette de la rédaction et événement public enchaînés par l'écran.
+- Dons aux personnalités (`jetDis`, plateau-justice-economie.js) : perte de DIS tirée à l'écran.
+- Bénédiction (`doDemanderBenediction`, `doDemanderBenedictionContact`) : jet et bonus tenus par
+  l'écran, bonus non persisté ; les jets serveur reçoivent encore la bénédiction déclarée par
+  l'écran (`p_benediction`, convention de `crime_voler`).
+- Portail de la loge (5 % d'échec), quête du promoteur (réponse 50/50), lieu de Maxence :
+  faible enjeu, tirés à l'écran.
+- **Match de football en direct** (`progresserMatchLive`, plateau-organisations-quetes.js) : buts,
+  blessures et événements tirés par le navigateur du premier joueur connecté, puis enregistrés par
+  CAS ; salaires, primes et blessures réelles en découlent. Chantier lourd (moteur de match à
+  porter côté serveur).
+- Limite connue des ordres du commissaire : le coût est toujours prélevé à part par l'écran
+  (`deduireCoutOrdre`, caisse du commissariat), comme avant.

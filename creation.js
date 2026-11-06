@@ -706,12 +706,18 @@ function getBonus(k){
 }
 
 function renderStatsUI(){
+  // Retour d'un testeur (06/11/2026) : au premier personnage, on repartissait sans savoir a quoi
+  // sert chaque caracteristique. Exemples d'ordres reels (tires des jets serveur) et repere de la
+  // caracteristique de la carriere choisie ; le sous-titre de l'etape dit que le choix pese durablement.
+  const carriere=CAREERS.find(x=>x.id===G.career);
   document.getElementById('stats-wrap').innerHTML=STAT_DEFS.map(({k,i})=>{
     const base=getBase(k), free=G.freeStats[k]||0, eff=Math.min(20,base+free), bonus=getBonus(k);
-    return`<div class="srow">
+    const utile=carriere&&carriere.statKey===k;
+    return`<div class="srow${utile?' sutile':''}">
       <div>
-        <div class="sname"><i class="ti ${i}" style="font-size:.9rem;vertical-align:-1px;margin-right:.3rem"></i>${t('creation.stats.'+k+'.name')}</div>
+        <div class="sname"><i class="ti ${i}" style="font-size:.9rem;vertical-align:-1px;margin-right:.3rem"></i>${t('creation.stats.'+k+'.name')}${utile?` <span class="scarriere"><i class="ti ti-star"></i> ${t('creation.common.careerUseful')}</span>`:''}</div>
         <div class="sdesc">${t('creation.stats.'+k+'.description')}</div>
+        <div class="sex"><strong>${t('creation.common.examplesLabel')} :</strong> ${t('creation.stats.'+k+'.examples')}</div>
         <div class="sbar"><div class="sbarfill" style="width:${(eff/20)*100}%"></div></div>
       </div>
       <div class="sbonus">${bonus>0?`+${bonus} ${t('creation.common.bonusSuffix')}`:bonus<0?`${bonus} ${t('creation.common.malusSuffix')}`:''}</div>
@@ -754,8 +760,9 @@ function adjStat(k,dir){
 function handlePhoto(inp){
   const f=inp.files[0]; if(!f) return;
   const r=new FileReader();
-  r.onload=e=>{
-    G.photoUrl=e.target.result;
+  r.onload=async e=>{
+    // Portrait reduit avant tout envoi (04/11/2026, #55/#60) : ~30 Ko au lieu de plusieurs Mo.
+    G.photoUrl=(typeof rpReduirePortrait==='function')?await rpReduirePortrait(e.target.result):e.target.result;
     document.getElementById('pprev').innerHTML=`<img src="${G.photoUrl}" class="pphoto" alt="Photo de profil"/>`;
   };
   r.readAsDataURL(f);

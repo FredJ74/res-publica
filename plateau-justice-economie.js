@@ -44,128 +44,74 @@ function doDonnerArgentPnj(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// DON D'ARGENT AUX SQUATTEURS : LE SERVEUR DECIDE (04/11/2026, reste hors #379).
+// Le refus selon l'ISN, le jet de depart, le prelevement, les -10 DIS / -10 PV et le depart des
+// squatteurs sont tires et ecrits par terrain_squatteurs_don, dans une transaction ; l'ecran
+// n'adopte que la reponse. Une demande perdue se reprend avec la meme requete (aucun second jet).
+// Le seul autre occupant possible d'un terrain est un cadavre : le serveur refuse de lui donner.
+// Les anciennes branches inspecteur / gardien / promoteur etaient inatteignables (l'occupation
+// d'un terrain ne peut etre que squatteurs ou cadavre, profilOccupationTerrain) : supprimees.
+let donSquatteursEnCours = false;
 async function confirmerDonArgent(pa, cost) {
-  const id = state.currentBuilding;
-  const ts = getTerrainState(id);
-  const pnj = ts.pnjData;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const montant = parseInt(document.getElementById('don-montant')?.value || 0);
-  const indices = INDICES_NATIONAUX?.[state.country] || { ISN:30, IE:50, IS:45 };
-  const isn = indices.ISN || 30;
-
+  const montant = parseInt(document.getElementById('don-montant')?.value || 0, 10);
   if (!montant || montant <= 0) { showToast('Montant invalide', 'Entrez un montant.', false); return; }
-  if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
-  const rDon = await deduireCoutOrdre({ pa, cost });
-  if (!rDon.ok) { signalerRefusCout(rDon); return; }
-
-  const dup = getStatEffective('DUP');
-  const dis = state.dis || 50;
-
-  // Jet de refus selon ISN
-  const tauxRefus = Math.max(0, isn - 50) / 2;
-  const rollRefus = Math.floor(Math.random() * 100) + 1;
-
-  document.getElementById('modal-postes').classList.remove('open');
-
-  if (rollRefus <= tauxRefus) {
-    // Refus — pénalité DIS
-    state.dis = Math.max(0, (state.dis || 50) - 10);
-    updateUI();
-    addJournalEntry('Don refusé par ' + (pnj?.name || 'le PNJ') + '. -10 DIS. (Refus ' + rollRefus + '/' + Math.round(tauxRefus) + '%)', 'event-bad');
-    showToast('Refus !', (pnj?.name || 'Le PNJ') + ' a refusé avec indignation. -10 DIS.', false);
-    return;
+  if (donSquatteursEnCours || typeof sbRpcVerdict !== 'function') return;
+  const c = contexteNegociationSquatteurs();
+  const cle = 'squatteurs-don:' + JSON.stringify([c.uid, c.personnage?.name, c.pays, c.ville, c.terrain, montant]);
+  let intention = null;
+  try { intention = JSON.parse(sessionStorage.getItem(cle) || 'null'); } catch (_) { intention = null; }
+  if (!intention) {
+    const plan = await occupationPreparer('police');
+    if (!plan || !memeContexteNegociation(c)) return;
+    intention = { requete: crypto.randomUUID(), occupation: plan.occupation };
+    try { sessionStorage.setItem(cle, JSON.stringify(intention)); }
+    catch (_) { showToast('Don non lancé', 'La reprise sûre ne peut pas être conservée.', false); return; }
   }
-
-  // Don accepté — effets selon type de PNJ
-  state.arg -= montant;
-
-  const effets = {
-    inspecteur: () => {
-      // Corruption inspecteur — ferme les yeux sur les manquements
-      const taux = Math.min(85, Math.floor(dup * 3 + montant / 50));
-      const roll = Math.floor(Math.random() * 100) + 1;
-      if (roll <= taux) {
-        setTerrainState(id, { inspecteurCorrompu: true, permisImplicite: true });
-        state.dis = Math.max(0, (state.dis || 50) - 5);
-        updateUI();
-        addJournalEntry('Inspecteur corrompu pour ' + montant + ' ' + cur + '. Manquements ignorés. -5 DIS.', 'event-good');
-        showToast('Arrangement conclu !', 'L\'inspecteur regarde ailleurs. -5 DIS.', true);
-        // Retirer le PNJ
-        setTerrainState(id, { pnj: null, pnjData: null });
-        sessionStorage.removeItem('terrain_pnj_' + id);
-        if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
-      } else {
-        state.dis = Math.max(0, (state.dis || 50) - 15);
-        updateUI();
-        addJournalEntry('Tentative de corruption échouée. -' + montant + ' ' + cur + ' · -15 DIS.', 'event-bad');
-        showToast('Refus indigné !', 'L\'inspecteur menace de faire un rapport. -15 DIS.', false);
-      }
-    },
-    gardien: () => {
-      setTerrainState(id, { pnj: null, pnjData: null });
-      sessionStorage.removeItem('terrain_pnj_' + id);
-      state.dis = Math.min(100, (state.dis || 50) + 3);
-      updateUI();
-      addJournalEntry('Gardien soudoyé pour ' + montant + ' ' + cur + '. +3 DIS.', 'event-good');
-      showToast('Gardien convaincu !', 'Il regarde ailleurs. +3 DIS.', true);
-      if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
-    },
-    squatter_cool: () => {
-      const bonus = Math.min(40, Math.floor(montant / 100));
-      const cha = getStatEffective('CHA');
-      const taux = Math.min(85, cha * 3 + bonus);
-      const roll = Math.floor(Math.random() * 100) + 1;
-      if (roll <= taux) {
-        setTerrainState(id, { pnj: null, pnjData: null });
-        sessionStorage.removeItem('terrain_pnj_' + id);
-        updateUI();
-        addJournalEntry('Squatteurs partis pour ' + montant + ' ' + cur + '. Jet ' + roll + '/' + taux + '%.', 'event-good');
-        showToast('Ils s\'en vont !', '"Ok on se casse. Ciao." -' + montant + ' ' + cur, true);
-        if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
-      } else {
-        updateUI();
-        showToast('Ils prennent l\'argent mais restent...', '-' + montant + ' ' + cur, false);
-        addJournalEntry('Squatteurs ont pris ' + montant + ' ' + cur + ' mais refusent de partir. Jet ' + roll + '/' + taux + '%.', 'event-bad');
-      }
-    },
-    squatter_agr: () => {
-      if (montant < 500) {
-        state.arg += montant; // Rembourser
-        showToast('Insulté !', 'Ils ont jeté vos billets. Minimum 500 ' + cur + '.', false);
-        return;
-      }
-      const bonus = Math.min(40, Math.floor(montant / 100));
-      const taux = Math.min(70, 15 + bonus);
-      const roll = Math.floor(Math.random() * 100) + 1;
-      if (roll <= taux) {
-        setTerrainState(id, { pnj: null, pnjData: null });
-        sessionStorage.removeItem('terrain_pnj_' + id);
-        updateUI();
-        addJournalEntry('Squatteurs agressifs partis pour ' + montant + ' ' + cur + '. Jet ' + roll + '/' + taux + '%.', 'event-good');
-        showToast('Ils partent !', '"On se casse. Cette fois." -' + montant + ' ' + cur, true);
-        if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
-      } else {
-        state.hp = Math.max(0, (state.hp || 100) - 10);
-        updateUI();
-        addJournalEntry('Squatteurs ont pris ' + montant + ' ' + cur + ' et vous ont frappé. -10 HP.', 'event-bad');
-        showToast('Volés et tabassés !', '-' + montant + ' ' + cur + ' · -10 HP.', false);
-      }
-    },
-    promoteur: () => {
-      // Le promoteur révèle des infos
-      state.inf = Math.min(100, (state.inf || 0) + 5);
-      updateUI();
-      addJournalEntry('Gérard Spéculos vous donne des infos sur le marché pour ' + montant + ' ' + cur + '. +5 INF.', 'event-good');
-      showToast('Info obtenue !', '+5 INF. Il sait des choses sur ce quartier.', true);
-    },
-    default: () => {
-      updateUI();
-      addJournalEntry('Don de ' + montant + ' ' + cur + ' accepté.', 'event-info');
-      showToast('Don accepté', (pnj?.name || 'Le PNJ') + ' apprécie le geste.', true);
+  donSquatteursEnCours = true;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  try {
+    let r;
+    try {
+      r = await sbRpcVerdict('terrain_squatteurs_don', { p_terrain: c.terrain, p_montant: montant,
+        p_occupation: intention.occupation, p_requete: intention.requete });
+    } catch (_) { r = null; }
+    if (!memeContexteNegociation(c)) return;
+    if (!r?.ok) {
+      if (r && !r.transport) sessionStorage.removeItem(cle);
+      const motifs = { fonds_insuffisants: 'Fonds insuffisants : ' + montant + ' ' + cur + ' requis.',
+        aucun_squatteur: 'Il n\'y a personne à qui donner de l\'argent ici.',
+        occupation_modifiee: 'La situation du terrain a changé. Rouvrez le terrain.',
+        intervention_en_cours: 'La police est déjà en route.' };
+      if (!r || r.transport) showToast('Don non confirmé', 'Réponse incertaine. Refaites le même don pour vérifier son résultat.', false);
+      else if (motifs[r.raison]) showToast('Don impossible', motifs[r.raison], false);
+      else signalerRefusCout(r);
+      return;
     }
-  };
-
-  (effets[pnj?.id] || effets.default)();
+    sessionStorage.removeItem(cle);
+    appliquerPaiementServeur(r);
+    if (typeof r.hp === 'number') state.hp = r.hp;
+    if (typeof r.dis === 'number') state.dis = r.dis;
+    if (r.etat && typeof remplacerTerrainState === 'function') remplacerTerrainState(c.terrain, r.etat);
+    if (r.issue === 'depart') {
+      setTerrainState(c.terrain, { pnj: null, pnjData: null });
+      sessionStorage.removeItem('terrain_pnj_' + c.terrain);
+    }
+    updateUI();
+    const jet = r.jet == null ? '' : ' Jet ' + r.jet + '/' + r.taux + ' %.';
+    const textes = {
+      refus: ['Refus !', 'Ils ont refusé avec indignation. -10 DIS.', false, 'Don refusé par les squatteurs. -10 DIS.'],
+      insulte: ['Insultés !', 'Ils ont jeté vos billets. Minimum 500 ' + cur + '.', false, 'Squatteurs insultés : billets jetés (minimum 500 ' + cur + ').'],
+      depart: ['Ils s\'en vont !', '"Ok on se casse." -' + montant + ' ' + cur, true, 'Squatteurs partis pour ' + montant + ' ' + cur + '.' + jet],
+      restent: r.occupation === 'squatter_agr'
+        ? ['Volés et tabassés !', '-' + montant + ' ' + cur + ' · -10 PV.', false, 'Squatteurs ont pris ' + montant + ' ' + cur + ' et vous ont frappé. -10 PV.' + jet]
+        : ['Ils prennent l\'argent mais restent...', '-' + montant + ' ' + cur, false, 'Squatteurs ont pris ' + montant + ' ' + cur + ' mais refusent de partir.' + jet]
+    };
+    const t = textes[r.issue] || ['Don enregistré', '', true, 'Don enregistré.'];
+    showToast(t[0], t[1], t[2]);
+    addJournalEntry(t[3] + (r.rejeu ? ' (résultat déjà enregistré)' : ''), t[2] ? 'event-good' : 'event-bad');
+    if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
+  } finally { donSquatteursEnCours = false; }
 }
 
 function doExpulsionLegale(){ return occupationExecuterPolice("police"); }
@@ -892,31 +838,8 @@ function depenseBudget(institution, montant) {
 // si bien que deux joueurs voyaient des populations differentes. La population est celle de
 // data.js, la meme pour tous, jusqu'a ce qu'une regle serveur la fasse evoluer.
 
-async function checkDetection(fn, resultType) {
-  const acte = ACTES_ILLEGAUX[fn];
-  if (!acte) return;
-  if (resultType === 'fail' || resultType === 'crit-fail') return; // Pas d'acte = pas de detection
-
-  // Immunite selon poste
-  const posteId = state.poste?.id;
-  if (posteId === 'president') return; // Immunite totale
-  if (['pm','min_int','min_fin','min_just','min_def','min_info','min_ae'].includes(posteId)) {
-    if (acte.type === 'delit_mineur') return; // Immunite partielle ministres
-  }
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const tauxDetect = Math.max(5, acte.detectRate - Math.floor(state.dis / 10));
-
-  if (roll <= tauxDetect) {
-    // L'INSCRIPTION EST UNE PORTE (chaine 14) : un `||` atomique cote serveur, et l'etat local
-    // recopie le verdict. Deux motifs inscrits dans la meme session survivent desormais tous
-    // les deux -- avant, le dernier `sbSavePersonnage` en effacait un.
-    await inscrireRecherche({ acte: fn, type: acte.type, jour: state.day });
-    addExternalEvent('ALERTE : Votre activite illegale (' + fn.replace(/_/g,' ') + ') a ete detectee. Vous etes recherche(e).');
-    state.dis = Math.max(0, state.dis - 10);
-    updateUI();
-  }
-}
+// checkDetection RETIREE (05/11/2026, chantier « jets de l'ecran ») : plus aucun appelant ; la detection
+// est tiree par crime_detecter_interne dans la fonction serveur de chaque acte.
 
 // DETECTION RENDUE PAR LE SERVEUR (27 octobre 2026). Les actes qui passent par une fonction
 // serveur (ordres generiques, corruptions, contrebande, falsification, crimes) tirent leur
@@ -946,32 +869,9 @@ async function appelerCrimeServeur(nom, params) {
   return Array.isArray(brut) ? brut[0] : brut;
 }
 
-// Republia : l'interception exige un policier physiquement present.
-// Les controles aleatoires historiques ne peuvent plus creer une arrestation.
-// Les autres empires conservent provisoirement leur comportement existant.
-function checkArrestationAuDeplacement() {
-  if (state.country === 'republic') return;
-  if (!state.recherche || state.recherche.length === 0) return;
-  const pire = state.recherche.reduce((max, r) => {
-    const pMax = getPeineParActe(max.acte, false);
-    const pR = getPeineParActe(r.acte, false);
-    return pR.jours > pMax.jours ? r : max;
-  }, state.recherche[0]);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const tauxInter = Math.max(5, 30 - Math.floor(state.dis / 5));
-  if (roll <= tauxInter) ouvrirModalArrestation(pire.acte);
-}
-
-function checkArrestationAuReveil() {
-  if (state.country === 'republic') return;
-  if (!state.recherche || state.recherche.length === 0) return;
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 10) {
-    const acteMax = state.recherche[state.recherche.length - 1]?.acte || 'delit_mineur';
-    addExternalEvent('La police a retrouve votre trace. Vous avez ete arrete(e) dans la nuit.');
-    procederArrestation(acteMax, false, false);
-  }
-}
+// checkArrestationAuDeplacement / checkArrestationAuReveil RETIREES (05/11/2026) : en Republia elles ne
+// faisaient deja plus rien (l'interception exige un policier present, decide par le serveur) ; ailleurs
+// elles tiraient au navigateur une arrestation. Socle commun : la regle de Republia vaut pour tous les empires.
 
 // =====================
 // SE JUSTIFIER (suite a convocation — ex: achat d'arme illegal echoue)
@@ -1119,99 +1019,108 @@ function ouvrirModalArrestation(acte) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function tenterCorruptionArrestation(peineType, cout, taux) {
-  const country = state.country || 'republic';
-  const cur = (window.COUNTRIES?.[country]?.cur) || 'FR';
-
-  if (state.arg < cout) {
-    showToast('Fonds insuffisants', `Il vous faut ${cout} ${cur} pour corrompre l'gent.`, false);
-    return;
-  }
-
-  state.arg -= cout;
-  const dup = getStatEffective('DUP');
-  const bonus = Math.floor(dup / 10) * 5;
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const tauxFinal = Math.min(85, taux + bonus);
-
-  // Répliques succès/échec par empire
-  const succesRepliques = {
+// PRIS SUR LE FAIT : LE CHOIX EST TRANCHE PAR LE SERVEUR (03/11/2026). La fenetre d'arrestation
+// n'existe que si une fonction serveur a pose un flagrant delit en attente (neutralisation d'un
+// depute ratee, empoisonnement rate). arrestation_flagrant_choisir tire le jet avec les formules
+// d'origine (corruption, fuite, resistance), applique DIS et PV, et ecroue le joueur avec le
+// bareme du serveur. L'ecran ne fait plus que raconter le verdict.
+const REPLIQUES_CORRUPTION_ARRESTATION = {
+  succes: {
     republic: "Très bien. Je n'ai rien vu. Je ne vois d'ailleurs jamais rien le mercredi.",
     narco:    "¡Excelente! El Don dit que la générosité est une vertu. Bonne journée, señor.",
     soviet:   "Le formulaire d'arrestation se sera... égaré. Ça arrive. Bonne journée, Camarade.",
     khalija:  "Que le Loukoum Divin bénisse votre générosité. Le Chambellan n'a rien remarqué."
-  };
-  const echecRepliques = {
+  },
+  echec: {
     republic: "Comment osez-vous ? Ajoutez 'tentative de corruption' au dossier. Et doublez la mise.",
     narco:    "¡Dios mío! Vous croyez que je suis corruptible ? Doublez et on en reparle.",
     soviet:   "Trahison contre-révolutionnaire ! Formulaire de corruption en quadruple. Plus deux ans.",
     khalija:  "Ô impudent ! Ceci est une insulte au protocole royal. Et le montant était insuffisant."
-  };
-
-  document.getElementById('modal-postes').classList.remove('open');
-
-  if (roll <= tauxFinal) {
-    state.dis = Math.max(0, state.dis - 10);
-    updateUI();
-    const rep = succesRepliques[country] || succesRepliques.republic;
-    showToast('Corruption réussie !', `"${rep}"`, true, true);
-    addJournalEntry(`Corruption réussie. -${cout} ${cur} · -10 DIS. Vous êtes libre.`, 'event-good');
-    // Effacer une infraction
-    if (state.recherche?.length > 0) state.recherche.pop();
-  } else {
-    state.dis = Math.max(0, state.dis - 15);
-    updateUI();
-    const rep = echecRepliques[country] || echecRepliques.republic;
-    showToast('Corruption ratée !', `"${rep}"`, false);
-    addJournalEntry(`Tentative de corruption échouée. -${cout} ${cur} · -15 DIS. Arrestation aggravée.`, 'event-bad');
-    procederArrestation(peineType, true, false);
   }
+};
+
+async function choisirFlagrantDelit(choix) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof sbRpc !== 'function') return false;
+  const v = await sbRpc('arrestation_flagrant_choisir', { p_choix: choix })
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  if (!v || v.ok !== true) {
+    const motifs = { fonds_insuffisants: 'Il vous faut 500 FR pour corrompre l’agent.',
+      aucun_flagrant: 'Les agents sont repartis : plus rien à négocier.' };
+    showToast('Action impossible', (v && motifs[v.raison]) || 'Le serveur n’a pas répondu. Rechargez le jeu.', false);
+    return false;
+  }
+  if (typeof v.dis === 'number') state.dis = v.dis;
+  if (typeof v.hp === 'number') state.hp = v.hp;
+  if (Array.isArray(v.recherche)) state.recherche = v.recherche;
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ liquide: v.liquide, arg: v.arg });
+  const pays = state.country || 'republic';
+  if (v.reussi) {
+    if (choix === 'corruption') {
+      showToast('Corruption réussie !', '"' + (REPLIQUES_CORRUPTION_ARRESTATION.succes[pays] || REPLIQUES_CORRUPTION_ARRESTATION.succes.republic) + '"', true, true);
+      addJournalEntry('Corruption réussie. −500 FR · −10 DIS. Vous êtes libre.', 'event-good');
+    } else if (choix === 'fuite') {
+      showToast('Fuite réussie !', 'Vous échappez aux policiers. −20 Discrétion.', true, true);
+      addJournalEntry('Vous avez pris la fuite face aux policiers. Votre discrétion chute.', 'event-bad');
+    } else {
+      showToast('Résistance réussie !', 'Vous vous échappez malgré tout. −30 DIS −15 PV.', true);
+      addJournalEntry('Vous avez résisté violemment aux forces de l\'ordre. Fortement recherché(e).', 'event-bad');
+    }
+    updateUI();
+    return true;
+  }
+  if (choix === 'corruption') {
+    showToast('Corruption ratée !', '"' + (REPLIQUES_CORRUPTION_ARRESTATION.echec[pays] || REPLIQUES_CORRUPTION_ARRESTATION.echec.republic) + '"', false);
+    addJournalEntry('Tentative de corruption échouée. −500 FR · −15 DIS. Arrestation aggravée.', 'event-bad');
+  } else if (choix === 'fuite') {
+    addExternalEvent('Tentative de fuite échouée. Arrestation avec circonstance aggravante.');
+  } else if (choix === 'resistance') {
+    addExternalEvent('Résistance aux forces de l\'ordre. Arrestation avec chef de rébellion.');
+  }
+  return adopterArrestationServeur(v.arrestation);
 }
 
-let arrestationHistoriqueEnCours = null;
-async function procederArrestation(acte, resistanceAggravante, demasque) {
-  // La porte historique décide toujours de la détention. Aucun état anticipé,
-  // débit local, perte de poste ou téléportation en cas de refus/réponse perdue.
-  const contexte = contexteInterceptionJudiciaire();
-  if (!contexte.nom || arrestationHistoriqueEnCours) return false;
-  arrestationHistoriqueEnCours = contexte;
-  try {
-    if (state.immuniteMilitaireActuelle) {
-      showToast('Immunité militaire', 'Vérifiez la situation militaire avant toute poursuite.', false);
-      return false;
+function tenterCorruptionArrestation() { return choisirFlagrantDelit('corruption'); }
+
+// « Se rendre » dans la fenetre d'arrestation. Le nom est garde pour les appelants historiques
+// (autres empires) : sans flagrant delit pose par le serveur, il n'y a plus d'arrestation.
+async function procederArrestation() { return choisirFlagrantDelit('reddition'); }
+
+// UNE ARRESTATION OUVERTE PAR LE SERVEUR (03/11/2026) : l'ecran relit la fiche, recopie la peine
+// et la position que le serveur a decidees, et ne pose rien lui-meme.
+let arrestationAdoptionEnCours = false;
+async function adopterArrestationServeur(arr) {
+  if (!arr || arr.ok !== true) {
+    if (arr && arr.raison === 'immunite_militaire') {
+      showToast('Immunité militaire', 'Votre statut militaire vous protège de l’arrestation.', false);
+    } else if (arr && arr.raison !== 'deja_detenu') {
+      showToast('Arrestation non confirmée', 'Le serveur n’a pas ouvert de détention.', false);
     }
-    const peine = getPeineParActe(acte, demasque);
-    const jours = peine.jours + (resistanceAggravante ? 2 : 0);
-    const motifs = [{type:peine.label, jour_fait:state.day, city:state.currentCity,
-      jours:peine.jours, source:'flagrant_delit', date_evenement:new Date().toISOString()}];
-    if (resistanceAggravante) motifs.push({type:'Résistance à l’arrestation',
-      jour_fait:state.day, city:state.currentCity, jours:2, source:'flagrant_delit'});
-    const id = await enregistrerDetention(contexte.nom, peine.label, state.day + jours,
-      undefined, state.currentCity, {country:state.country, motifs}).catch(() => null);
-    if (!contexteInterceptionJudiciaireValide(contexte)) return false;
-    // Même en cas de réponse perdue, la relecture peut retrouver une détention
-    // commise. Elle ne rejoue jamais l'ordre et n'invente aucune conséquence.
-    const frais = typeof sbLoadPersonnage === 'function'
-      ? await sbLoadPersonnage(contexte.nom).catch(() => null) : null;
-    if (!contexteInterceptionJudiciaireValide(contexte)) return false;
-    if (!frais || (contexte.uid && frais.userId !== contexte.uid) || !frais.estEmprisonne ||
-        (id && frais.estEmprisonne.detentionId !== id)) {
+    return false;
+  }
+  if (arrestationAdoptionEnCours || !state.char?.name || typeof sbLoadPersonnage !== 'function') return false;
+  arrestationAdoptionEnCours = true;
+  try {
+    const frais = await sbLoadPersonnage(state.char.name).catch(() => null);
+    if (!frais || !frais.estEmprisonne) {
       showToast('Arrestation non confirmée',
-        'La détention n’a pas pu être confirmée. Resynchronisez le jeu avant de poursuivre.', false);
+        'La détention n’a pas pu être relue. Resynchronisez le jeu avant de poursuivre.', false);
       return false;
     }
     state.estEmprisonne = frais.estEmprisonne;
+    if (frais.estEmprisonne.qhs === true) state.detentionQHS = { enQHS: true, paLimite1Jour: false };
     state.pa = frais.pa;
-    state.group = frais.group;
-    state._groupeConfirme = frais._groupeConfirme;
-    // Le serveur a déjà déplacé le PJ par le circuit carcéral commun.
+    state.recherche = frais.recherche || state.recherche;
+    if (frais.group !== undefined) state.group = frais.group;
+    if (frais._groupeConfirme !== undefined) state._groupeConfirme = frais._groupeConfirme;
+    // Le serveur a deja deplace le PJ par le circuit carceral commun.
     if (typeof afficherPositionNavigationConfirmee === 'function') afficherPositionNavigationConfirmee(frais);
+    else if (typeof teleporterVersCellule === 'function') teleporterVersCellule(state.estEmprisonne);
     if (typeof updateUI === 'function') updateUI();
-    addJournalEntry('Détention confirmée : ' + frais.estEmprisonne.raison + '.', 'event-bad');
-    if (id) await retirerRecherche([acte]);
+    addJournalEntry('Détention confirmée : ' + (arr.raison_peine || frais.estEmprisonne.raison) + ' (' + (arr.jours || frais.estEmprisonne.jours) + ' jour(s)).', 'event-bad');
     return true;
   } finally {
-    if (arrestationHistoriqueEnCours === contexte) arrestationHistoriqueEnCours = null;
+    arrestationAdoptionEnCours = false;
   }
 }
 
@@ -1266,45 +1175,15 @@ function teleporterVersCellule(detention) {
 //      de la sentence QHS du tribunal), jamais remplacee : les autres peines se purgent.
 //   3. La ville de retour est memorisee sur la detention, pour que la liberation ramene le
 //      joueur la ou il a ete pris, et non dans une ville quelconque.
-async function placerAuQHS(pays, jours, raison, villeRetour) {
-  const j = Math.max(1, Math.floor(Number(jours) || 1));
-  const nom = state.char?.name;
-  const maintenant = new Date().toISOString();
-  const motif = { type: raison, jour_fait: state.day, city: state.currentCity,
-                  jours: j, source: 'flagrant_delit', date_evenement: maintenant };
-
-  // LE PLACEMENT AU QHS EST UNE TRANSACTION SERVEUR (9 octobre 2026). La ligne du registre du
-  // QHS et le drapeau de la fiche etaient deux ecritures clientes avalees, posees APRES coup et
-  // dans les DEUX branches -- et le drapeau partait en JSON.stringify sur une colonne jsonb, donc
-  // sous une forme que pa_repos_nocturne ne sait pas lire : le plafond de PA du quartier ne
-  // s'appliquait jamais aux QHS poses par le navigateur. Les deux portes serveur les posent
-  // desormais elles-memes, dans la transaction de la peine : detention_prolonger_soi quand la
-  // sanction s'AJOUTE a une peine en cours, detention_ouvrir_soi quand elle en ouvre une.
-  // Aucune des deux regles ne change : la bascule reste additive sur un detenu, une peine neuve
-  // de j jours sur une personne libre.
-  let ok = false;
-  if (state.estEmprisonne && state.estEmprisonne.detentionId && typeof prolongerDetentionActive === 'function') {
-    ok = await prolongerDetentionActive(nom, [motif], true);
-    if (ok) {
-      state.estEmprisonne.qhs = true;
-      if (!state.estEmprisonne.retourVille) state.estEmprisonne.retourVille = villeRetour || null;
-    }
-  } else if (typeof enregistrerDetention === 'function') {
-    const jourFin = (state.day || 1) + j;
-    ok = !!(await enregistrerDetention(nom, raison, jourFin, true, 'qhs',
-      { country: pays, motifs: [motif], retourVille: villeRetour || null }));
-  }
-  // VERDICT CONSOMME : sans peine en base, personne n'est teleporte au quartier de haute
-  // securite -- un joueur enferme dans une zone speciale sans peine n'aurait aucune sortie.
-  if (!ok) {
-    showToast('Transfert impossible', 'Le quartier de haute securite n\'a pas enregistre votre arrivee. Aucune peine n\'a ete ouverte.', false);
-    return;
-  }
+// Le serveur (militaire_subtiliser_tenter) a deja ouvert la peine au QHS ou l'a prolongee, et
+// memorise la caserne comme ville de retour (03/11/2026). L'ecran adopte et conduit en cellule.
+async function placerAuQHS(arrestation) {
+  const ok = await adopterArrestationServeur(arrestation);
+  if (!ok) return false;
   state.detentionQHS = { enQHS: true, paLimite1Jour: false };
-
   teleporterVersCellule(state.estEmprisonne);
   updateUI();
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+  return true;
 }
 
 // LA FIN D'UNE PEINE EST UNE TRANSACTION SERVEUR (9 octobre 2026). Cette fonction ecrivait
@@ -1381,46 +1260,9 @@ async function verifierLiberationPrisonniers() {
   }
 }
 
-function tenterFuite() {
-  document.getElementById('modal-postes').classList.remove('open');
-  const vol = getStatEffective('VOL');
-  const bonus = Math.floor(state.dis / 10) + Math.floor(vol / 2);
-  const taux = Math.min(70, 30 + bonus);
-  const roll = Math.floor(Math.random() * 100) + 1;
+function tenterFuite() { return choisirFlagrantDelit('fuite'); }
 
-  if (roll <= taux) {
-    state.dis = Math.max(0, state.dis - 20);
-    updateUI();
-    showToast('Fuite reussie !', 'Vous echappez aux policiers. -20 Discretion.', true, true);
-    addJournalEntry('Vous avez pris la fuite face aux policiers. Votre discretion chute.', 'event-bad');
-  } else {
-    addExternalEvent('Tentative de fuite echouee. Arrestation avec circonstance aggravante.');
-    const peineType = state.recherche?.[0]?.acte || 'delit_mineur';
-    procederArrestation(peineType, true, false);
-  }
-}
-
-async function tenterResistance(peineType) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const vol = getStatEffective('VOL');
-  const taux = Math.min(30, vol * 2);
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    state.dis = Math.max(0, state.dis - 30);
-    state.hp = Math.max(1, state.hp - 15);
-    updateUI();
-    showToast('Resistance reussie !', 'Vous vous echappez malgre tout. -30 DIS -15 HP.', true);
-    addJournalEntry('Vous avez resiste violemment aux forces de l\'ordre. Fortement recherche(e).', 'event-bad');
-    // Aggravation du statut
-    await inscrireRecherche({ acte: 'rebellion', type: 'delit_grave', jour: state.day });
-  } else {
-    addExternalEvent('Resistance aux forces de l\'ordre. Arrestation avec chef de rebellion.');
-    procederArrestation(peineType, true, false);
-    state.hp = Math.max(1, state.hp - 20);
-    updateUI();
-  }
-}
+function tenterResistance() { return choisirFlagrantDelit('resistance'); }
 
 // Resout la provenance d'un jugement vers son nom de ville affichable, en reutilisant
 // exclusivement les donnees WORLD deja existantes (aucune table de correspondance codee en dur).
@@ -2206,160 +2048,80 @@ function doSeReposer(fn) {
 // meme fichier : `ouvrirAvocatsDisponibles`, la demande de defense, le dossier de l'avocat,
 // l'audience. Un avocat peut y plaider ; c'est le JUGE qui decide, et il est humain.
 
-function doGreveFaim() {
-  state.hp = Math.max(1, state.hp - 5);
-  state.pop = Math.min(100, state.pop + 3);
+async function doGreveFaim() {
+  const contexte=contexteGroupePj();
+  const v = await executerOrdreJaugesServeur('greve_faim');
+  if (!v||!contexteGroupePjValide(contexte)) return;
   updateUI();
+  if(v.rejeu)return;
   showToast('Greve de la faim', '-5 HP +3 POP. Pression politique sur l\'administration.', false);
   addExternalEvent((state.char?.name||'Un detenu') + ' entame une greve de la faim. Pression politique.');
 }
 
-// Actes pouvant faire l'objet d'une decouverte differee (succes non sanctionne sur le moment).
-// Vol est volontairement exclu : ses echecs sont deja sanctionnes immediatement (verbalisation/amende sur le champ),
-// et ses succes ne sont pas inscrits a l'historique — pas de risque de double sanction.
-const ACTES_DECOUVRABLES = ['assassinat', 'empoisonnement', 'achat_arme_illegal', 'acheter_bombe_illegale', 'incendier', 'utiliser_explosifs', 'hooliganisme', 'corruption_fonctionnaire'];
+// DECOUVERTE DIFFEREE DES CRIMES : SERVEUR SEUL (03/11/2026). verifierDecouverteCrimesPasses tirait
+// au navigateur (Math.random) la decouverte des traces posees par l'ecran, puis arretait le joueur.
+// Toutes les traces decouvrables sont desormais posees par le serveur (crime_tracer_interne ; la
+// derniere, le hooliganisme, depuis organisation_hooliganisme) et examinees chaque nuit par
+// minuit_decouverte_crimes (cron), qui arrete, inflige l'amende et envoie le courrier.
 
-function verifierDecouverteCrimesPasses() {
-  if (!state.historiqueCrimes || state.historiqueCrimes.length === 0) return;
-  // Les traces d'origine SERVEUR sont exclues de la decouverte differee (chantier Assemblee,
-  // 10 septembre 2026). Elles ne sont d'ailleurs pas decouvrables aujourd'hui -- leur seul acte,
-  // 'transaction_interdite', ne figure pas dans ACTES_DECOUVRABLES, son circuit etant la
-  // convocation. Mais l'invariant doit rester vrai si la liste s'etend un jour : le trigger
-  // personnages_preserver_judiciaire REINJECTE toute trace serveur non expiree absente d'une
-  // sauvegarde. Si ce code en retirait une par decouverte, elle reviendrait a la sauvegarde
-  // suivante et serait redecouverte chaque nuit -- arrestation perpetuelle.
-  const candidats = state.historiqueCrimes.filter(c =>
-    c.origine !== 'serveur' && ACTES_DECOUVRABLES.includes(c.acte) && c.expireJour > state.day
-  );
-  if (candidats.length === 0) return;
-
-  for (const c of candidats) {
-    const tauxDecouverte = ACTES_ILLEGAUX[c.acte]?.detectRate || 25;
-    const roll = Math.floor(Math.random() * 100) + 1;
-    if (roll <= tauxDecouverte) {
-      // Retirer l'entree decouverte de l'historique
-      state.historiqueCrimes = state.historiqueCrimes.filter(x => x !== c);
-      // Meme correctif de canal que traiterPlaintes/traiterEnquetes : state.mails n'est jamais
-      // rendu, le joueur etait arrete sans jamais pouvoir lire pourquoi.
-      const motifArrestation = 'Une enquête a permis de vous identifier comme responsable de : ' + (getPeineParActe(c.acte, true).label) + '. Vous êtes arrêté(e).';
-      if (state.char?.name && typeof sbSendMail === 'function') {
-        sbSendMail('Brigade Criminelle', state.char.name, 'Affaire résolue', motifArrestation,
-          typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-      }
-      procederArrestation(c.acte, false, true); // demasque = true -> peine doublee
-      break; // Une seule arrestation a la fois, le reste sera reexamine au prochain cycle
-    }
-  }
+// EVASION ET REBELLION TIREES PAR LE SERVEUR (03/11/2026). Le navigateur tirait les jets, tenait la
+// tentative du jour dans `state`, retirait l'amende de `state.arg` sans la verser, et pouvait appeler
+// directement la cloture d'evasion. Deux portes font desormais tout : detention_tenter_evasion et
+// detention_se_rebeller (formules d'origine, migration 20261103100000). L'ecran n'envoie que
+// l'intention et affiche le verdict.
+function libelleRefusDetention(r) {
+  const raisons = {
+    non_detenu: 'Vous devez être emprisonné(e).',
+    une_tentative_par_jour: 'Une seule tentative d\'évasion par jour.',
+    pa_insuffisants: 'Points d\'action insuffisants.',
+    fonds_insuffisants: 'Fonds insuffisants.'
+  };
+  return raisons[r?.raison] || 'Le serveur a refusé l\'ordre (' + (r?.raison || 'sans réponse') + ').';
 }
 
-// Une tentative d'evasion par jour maximum (bug de spam remonte le 4 aout 2026 : les PA
-// illimites de la phase de test permettaient de retenter indefiniment). Taux de base 10%,
-// modifie par DUP et l'indice de securite du pays — meme formule que le vol/cambriolage.
+function adopterPeineServeur(r) {
+  if (r?.paiement) appliquerPaiementServeur(r.paiement);
+  if (typeof r?.pa === 'number' || typeof r?.arg === 'number') appliquerPaiementServeur(r);
+  if (r?.est_emprisonne && typeof r.est_emprisonne === 'object' && state.estEmprisonne) {
+    state.estEmprisonne = Object.assign({}, state.estEmprisonne, r.est_emprisonne);
+  }
+  if (typeof r?.hp === 'number') state.hp = r.hp;
+  if (typeof r?.dis === 'number') state.dis = r.dis;
+}
+
 async function doTentativeEvasion(pa, cost) {
   if (!state.estEmprisonne) {
     showToast('Non emprisonne', 'Vous devez etre emprisonne pour tenter de vous evader.', false);
     return;
   }
-
-  const jourActuel = jourPartageISO();
-  if (state.estEmprisonne.dernierJourEvasion === jourActuel) {
-    showToast('Trop tôt', 'Une seule tentative d\'évasion par jour.', false);
+  // La benediction reste consommee a l'ecran, comme pour le vol (crime_voler) : le serveur
+  // ajoute ses +5 points.
+  const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc('detention_tenter_evasion', { p_pa: pa, p_cost: cost, p_benediction: benediction })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!r || r.ok !== true) {
+    showToast('Evasion impossible', libelleRefusDetention(r), false);
+    updateUI();
     return;
   }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  state.estEmprisonne.dernierJourEvasion = jourActuel;
-
-  const pays = state.country;
-  const dup = getStatEffective('DUP');
-  const ville = state.currentCity || 'capitale';
-  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
-  let taux = 10 + (dup - 10) * 2 - (isn - 45) / 3;
-  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
-  taux = Math.max(2, Math.min(40, Math.round(taux)));
-  // BONUS DU DESERTEUR (arbitrage du conflit technique, 13 septembre 2026) : on calcule
-  // normalement, on applique le plafond ordinaire de 40 %, PUIS on ajoute le bonus -- dans cet
-  // ordre precis. L'equilibrage de l'evasion ordinaire reste donc rigoureusement inchange pour
-  // tout detenu non deserteur, et le maximum absolu est 90 %.
-  if (typeof bonusEvasionDeserteur === 'function') {
-    const bonusDeserteur = bonusEvasionDeserteur();
-    if (bonusDeserteur > 0) taux = Math.min(90, taux + bonusDeserteur);
-  }
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= taux) {
-    // Evasion reussie != liberation (regle validee, 26 aout 2026) : la peine n'est pas purgee.
-    // On cloture la detention interrompue avec mode_fin='evasion' (jour_fin n'est JAMAIS
-    // reecrit : la peine d'origine reste identifiable telle quelle), on calcule le reliquat
-    // reellement restant (simple soustraction, rien d'invente), et on fait rebasculer la
-    // personne en recherche avec : les motifs d'origine conserves comme historique + un motif
-    // "Evasion" distinct de 2 jours + le reliquat calcule -- jamais reparti dans les anciens
-    // motifs. La continuite avec la detention interrompue est portee par detention_precedente_id.
-    // LA CLOTURE PAR EVASION EST UNE TRANSACTION SERVEUR (chantier 5, 9 octobre 2026). Ce bloc
-    // lisait les motifs, patchait `detentions` en avalant l'echec, puis se contentait de
-    // `state.estEmprisonne = null` EN MEMOIRE : un evade qui fermait son onglet restait detenu en
-    // base -- alors que l'evasion est precisement le moment ou la fiche doit cesser de dire
-    // « detenu ». Meme defaut que la chaine 11, dans un endroit que l'inventaire n'avait pas vu.
-    //
-    // detention_clore_evasion fait les trois ecritures ensemble et RECALCULE elle-meme ce que ce
-    // bloc deduisait : le reliquat, les motifs d'origine et le pays. jour_fin n'est JAMAIS
-    // reecrit -- la peine d'origine reste identifiable telle quelle.
-    // date_fin_effective (lot « dates reelles », 26 aout 2026) est capturee par la porte, a
-    // l'instant de l'evasion, jamais deduite de jour_fin_effective.
-    const vEvasion = (typeof sbRpc === 'function')
-      ? await sbRpc('detention_clore_evasion', {})
-          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-      : null;
-    if (!vEvasion || vEvasion.ok !== true) {
-      // VERDICT CONSOMME : la detention n'est pas close, donc l'evasion n'a pas eu lieu. Le jeu ne
-      // libere pas un detenu que la base tient toujours -- il resterait enferme par la navigation
-      // sans aucun avis de recherche pour le rattraper.
-      showToast('Evasion manquee', 'Les geoles n\'ont pas enregistre votre sortie. Vous etes toujours detenu(e).', false);
-      updateUI();
-      return;
-    }
-    const detentionId = vEvasion.detention_id || null;
-    const reliquat = Number(vEvasion.reliquat_jours || 0);
-    const motifsOrigine = Array.isArray(vEvasion.motifs) ? vEvasion.motifs : [];
-    const countryOrigine = vEvasion.country || state.country;
-    const dateEvasion = new Date().toISOString();
-
-    const motifsRecherche = motifsOrigine.concat([
-      { type: 'Évasion', jour_fait: state.day, city: state.currentCity, jours: 2, source: 'evasion', date_evenement: dateEvasion }
-    ]);
-    if (typeof ajouterCondamnationRecherche === 'function') {
-      await ajouterCondamnationRecherche(state.char?.name, {
-        id: 'rech-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-        type: 'condamnation',
-        country: countryOrigine,
-        motifs: motifsRecherche,
-        detention_precedente_id: detentionId,
-        reliquat_jours: reliquat,
-        jour_condamnation: state.day
-      });
-    }
-
+  adopterPeineServeur(r);
+  if (r.reussi) {
+    // Evasion reussie != liberation : la peine n'est pas purgee. Le serveur a clos la detention
+    // (mode_fin = 'evasion') et inscrit l'avis de recherche (motifs d'origine + « Évasion » + reliquat).
+    if (Array.isArray(r.recherche)) state.recherche = r.recherche;
     state.estEmprisonne = null;
-    // LE `state.recherche = []` QUI SE TROUVAIT ICI A ETE SUPPRIME (13 septembre 2026). Il etait
-    // doublement destructeur : il effacait les autres motifs de poursuite, et surtout il ecrasait
-    // l'entree « Evasion + reliquat » que ajouterCondamnationRecherche venait d'ecrire EN BASE
-    // quelques lignes plus haut -- celle-ci ne passe que par sbUpdate sans toucher state, si bien
-    // que la prochaine sbSavePersonnage (declenchee par le moindre changement de piece) republiait
-    // un tableau vide par-dessus. Une evasion pouvait donc s'auto-amnistier.
-    // Rien n'est efface : l'evasion AJOUTE un motif, elle n'en eteint aucun.
+    const reliquat = Number(r.reliquat_jours || 0);
     showToast('Evasion reussie !', 'Vous etes libre ! Restez discret.', true, true);
     addJournalEntry('Evasion reussie ! Peine non purgee : reliquat de ' + reliquat + ' jour(s) + 2 jours pour evasion, exigibles a une prochaine arrestation.', 'event-good');
   } else {
     const cur = COUNTRIES[state.country]?.cur || 'FR';
-    if (state.estEmprisonne) {
-      state.estEmprisonne.jours += 1;
-      state.estEmprisonne.jourFin += 1;
-    }
-    state.arg = Math.max(0, (state.arg || 0) - 500);
-    updateUI();
-    showToast('Evasion echouee', 'Tentative echouee. +1 jour de detention, -500 ' + cur + '.', false);
-    addJournalEntry('Tentative d\'evasion echouee. Peine aggravee de 1 jour, amende de 500 ' + cur + '.', 'event-bad');
+    const amende = Number(r.amende || 0);
+    showToast('Evasion echouee', 'Tentative echouee. +1 jour de detention, -' + amende + ' ' + cur + '.', false);
+    addJournalEntry('Tentative d\'evasion echouee. Peine aggravee de 1 jour, amende de ' + amende + ' ' + cur + '.', 'event-bad');
   }
+  updateUI();
 }
 
 async function doSeRebeller(pa, cost) {
@@ -2367,84 +2129,33 @@ async function doSeRebeller(pa, cost) {
     showToast('Non emprisonne', 'Vous devez etre emprisonne pour vous rebeller.', false);
     return;
   }
-  const rDeduc = await deduireCoutOrdre({ pa, cost });
-  if (!rDeduc.ok) { signalerRefusCout(rDeduc); return; }
-
-  const pays = state.country;
-  const ville = state.currentCity;
-  const cur = COUNTRIES[pays]?.cur || 'FR';
-
-  // FOR fantome corrige (bêta) : le joueur n'a jamais eu de caracteristique FOR (toujours
-  // undefined, repli fixe a 8) -- VOL est deja la caracteristique de confrontation physique du
-  // joueur ailleurs dans le code (tenterResistance, assassinat mains nues). codetenu.stats.FOR
-  // reste inchange : un PNJ employe, avec sa propre FOR reelle (PNJ_STATS_PAR_JOB, data.js).
-  const volBase = getStatEffective('VOL');
-  const codetenu = (state.employes || []).find(e => e.job === 'codetenu');
-  const bonusCodetenu = codetenu?.stats?.FOR ? Math.floor(codetenu.stats.FOR / 2) : 0;
-  const taux = Math.min(60, volBase * 3 + bonusCodetenu);
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  const degats = Math.floor(Math.random() * 7) + 4;
-  if (typeof endommagerGrillePrison === 'function') await endommagerGrillePrison(pays, ville, degats).catch(() => {});
-
-  if (roll <= taux) {
-    state.dis = Math.min(100, (state.dis || 0) + 6);
-    if (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
-      INDICES_NATIONAUX[pays].POP = Math.max(0, (INDICES_NATIONAUX[pays].POP || 50) - 2);
-    }
-    state.hp = Math.max(1, (state.hp || 100) - 10);
-    if (state.estEmprisonne) {
-      state.estEmprisonne.jours += 1;
-      state.estEmprisonne.jourFin += 1;
-    }
+  const ville = state.estEmprisonne.city || state.currentCity;
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc('detention_se_rebeller', { p_pa: pa, p_cost: cost })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!r || r.ok !== true) {
+    showToast('Rebellion impossible', libelleRefusDetention(r), false);
+    updateUI();
+    return;
+  }
+  adopterPeineServeur(r);
+  const degats = Number(r.grilles?.degats || 0);
+  if (r.reussi) {
     updateUI();
     showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -10 PV.', true, true);
     addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +1 jour de peine, -10 PV.', 'event-info');
     if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('rebellion_cellule', ville);
-    // Registre carcerale : le jour supplementaire devient un motif propre sur la detention en
-    // cours, pas seulement une mutation locale de state.estEmprisonne perdue au premier reload.
-    if (typeof prolongerDetentionActive === 'function') {
-      await prolongerDetentionActive(state.char?.name, [{ type: 'Rébellion en cellule', jour_fait: state.day, city: ville, jours: 1, source: 'evenement_detention', date_evenement: new Date().toISOString() }]);
-    }
   } else {
-    state.hp = Math.max(1, (state.hp || 100) - 25);
-    state.dis = Math.max(0, (state.dis || 0) - 15);
-    // Registre carcerale : la rebellion matee remplace entierement la detention en cours par un
-    // transfert QHS (comportement d'origine, jour_fin non prolonge mais reinitialise a +30) --
-    // traite donc comme une nouvelle incarceration liee a la precedente via
-    // detention_precedente_id, plutot qu'une simple prolongation qui suppose une continuite de
-    // duree qui n'existe pas ici. L'ancienne ligne DOIT etre cloturee explicitement (mode_fin =
-    // 'transfert_qhs') -- la laisser a NULL la ferait apparaitre comme encore en cours dans le
-    // registre, ce qui est faux : elle est bien terminee, juste pas par une liberation.
-    // LE TRANSFERT EST UNE TRANSACTION SERVEUR (9 octobre 2026). Cette bascule tenait en QUATRE
-    // ecritures independantes, dont trois avalees : cloture de l'ancienne ligne, inscription au
-    // registre du QHS, drapeau sur la fiche, puis ouverture de la nouvelle peine. Le detenu
-    // pouvait donc se retrouver sans peine en cours, avec deux, ou au QHS sans peine -- et le
-    // drapeau partait en JSON.stringify sur une colonne jsonb, donc sous une forme que
-    // pa_repos_nocturne ne sait pas lire : le plafond de PA du QHS ne s'appliquait pas.
-    const vQhs = (typeof sbRpc === 'function')
-      ? await sbRpc('detention_transferer_qhs', {
-          p_raison: 'Rebellion en cellule matee - transfert QHS',
-          p_jours: 30,
-          p_city: ville,
-          p_motifs: [{ type: 'Rébellion en cellule matée — transfert QHS', jour_fait: state.day, city: ville, jours: 30, source: 'evenement_detention', date_evenement: new Date().toISOString() }]
-        }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-      : null;
-    if (!vQhs || vQhs.ok !== true) {
-      // VERDICT CONSOMME : sans transfert en base, la peine en cours reste celle qui vaut et le
-      // jeu n'annonce pas un QHS qui n'existe pas. Les points de vie et la discretion perdus plus
-      // haut sont deja des consequences locales de la rebellion elle-meme, qui a bien eu lieu.
-      updateUI();
-      showToast('Rebellion matee', 'Les gardiens vous ont maitrise. -25 PV, -15 DIS.', false);
-      addJournalEntry('Rebellion en cellule matee par les gardiens. Grilles endommagees (-' + degats + ').', 'event-bad');
-      return;
-    }
-    state.estEmprisonne = { jours: 30, jourFin: vQhs.jour_fin, raison: 'Rebellion en cellule matee - transfert QHS',
-                            detentionId: vQhs.detention_id, qhs: true, city: ville, country: pays };
+    state.estEmprisonne = { jours: 30, jourFin: r.jour_fin, raison: 'Rebellion en cellule matee - transfert QHS',
+                            detentionId: r.detention_id, qhs: true, city: ville, country: state.country };
     state.detentionQHS = { enQHS: true, paLimite1Jour: false };
     updateUI();
     showToast('Rebellion matee', 'Transfere au QHS. -25 PV, -15 DIS.', false);
     addJournalEntry('Rebellion en cellule matee par les gardiens. Transfert au QHS. Grilles endommagees (-' + degats + ').', 'event-bad');
+  }
+  if (r.grilles && typeof verifierSeuilsGrillePrison === 'function') {
+    await verifierSeuilsGrillePrison(state.country, ville, Number(r.grilles.niveau)).catch(() => {});
   }
 }
 
@@ -2541,30 +2252,20 @@ function verifierBudgetInstitution(inst) {
 // regle de jeu ne disparait avec elle, puisqu'elle n'en appliquait aucune.
 
 async function doCampagneSecurite() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 500;
-  // Arbitrage de conception (correctif Lot 2C) : payeur exclusif = budget institutionnel de la
-  // mairie (state.budgets.mairie via getBudgetInstitution), jamais l'argent personnel du joueur.
-  // Debit du cout REEL de cet ordre (500 FR) -- pas le cout generique de
-  // verifierBudgetInstitution (b.coutOrdre = 250 FR pour la mairie) : les deux ne se cumulent
-  // plus, un seul debit de 500 FR sur le budget mairie. Verification AVANT toute deduction PA :
-  // si le budget est insuffisant, ni PA ni FR ne sont debites.
-  const budgetMairie = getBudgetInstitution('mairie');
-  if (budgetMairie.solde < cost) {
-    showToast('Budget insuffisant', 'Le budget de la mairie (' + cost + ' ' + cur + ' requis) est insuffisant. Le Ministre des Finances doit revoir la répartition budgétaire.', false);
-    return;
+  const contexte=contexteGroupePj();
+  const v=await executerOrdreJaugesServeur('campagne_securite');
+  if(!v||!contexteGroupePjValide(contexte))return;
+  if(typeof INDICES_VILLES_CACHE!=='undefined'){
+    const key=v.pays+'_'+v.ville;
+    INDICES_VILLES_CACHE[key]={...(INDICES_VILLES_CACHE[key]||INDICE_VILLE_DEFAUT),isn:v.isn_ville};
   }
-  // Deduction PA centralisee (Lot 2C) -- apres verification du budget mairie, avant toute mutation.
-  const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
-  budgetMairie.solde -= cost;
-  const pays = state.country || 'republic';
-  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 10);
-  state.pop = Math.max(0, state.pop - 3);
   updateUI();
-  showToast('Campagne de sécurité', '+10 ISN local. -3 POP. ' + cost + ' ' + cur + ' prélevés sur le budget de la mairie.', false);
-  addExternalEvent('MAIRIE : Campagne de sécurité lancée par le Maire. +10 ISN.');
+  if(v.rejeu)return;
+  const cur=COUNTRIES[v.pays]?.cur||'FR';
+  showToast('Campagne de sécurité','+'+v.isn_delta+' ISN local. '+v.gain_pop+' POP. '+v.montant_preleve+' '+cur+' prélevés sur la caisse de la mairie.',false);
+  addExternalEvent('MAIRIE : Campagne de sécurité lancée par le Maire. +'+v.isn_delta+' ISN local.');
 }
+
 
 // =====================
 // ACTES OFFICIELS ("Demander un acte officiel" + délivrance professionnelle, refonte du
@@ -2733,37 +2434,8 @@ async function soumettreConte(idx, pa, cost) {
 // nulle part dans le depot et faisaient planter systematiquement doTaxiSpecial des le premier
 // appel, pour taxi_caserne ET taxi_qhs (bug preexistant, sans rapport avec la migration Phase K).
 async function doTaxiSpecial(destination, pa, cost) {
-  if (state._navigationServeur && typeof commanderTransportServeur === 'function') {
-    if (!['caserne','qhs'].includes(destination)) return false;
-    return commanderTransportServeur('taxi_' + destination, state.country, destination);
-  }
-  // Surcharge (Lot 1.5.4) : le taxi vers la Caserne/le QHS est un vrai changement de ville.
-  if (typeof refuserSiSurcharge === 'function' && refuserSiSurcharge('Prendre un taxi')) return;
-  const label = destination === 'caserne' ? 'la Caserne' : 'le QHS';
-  const cityKey = destination === 'caserne' ? 'caserne' : 'qhs';
-
-  // Voyage OK
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  state.currentCity = cityKey;
-  state.currentBuilding = null;
-  state.currentRoom = null;
-  if (state.char) {
-    state.char.currentCity = cityKey;
-    state.char.currentBuilding = null;
-    state.char.currentRoom = null;
-    try {
-      localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
-    } catch (e) {
-      console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
-    }
-  }
-  buildCityTabs();
-  updateUI();
-  forceRenderCity(cityKey);
-  showToast('En route !', 'Vous arrivez à ' + label + '. -' + cost + ' ' + cur, true);
-  addJournalEntry('Taxi vers ' + label, 'event-info');
+  if (!['caserne','qhs'].includes(destination)) return false;
+  return commanderTransportServeur('taxi_' + destination, state.country, destination);
 }
 
 function ouvrirFalsifierDocument(pa, cost) {
@@ -3755,20 +3427,12 @@ function payerLocations() {
 function appliquerBonusLocation(loc) {
   const orga = getOrgaById(loc.orgaId);
   if (!orga) return;
-
-  // Stocker les bonus dans l'orga
-  if (!orga.bonusLocaux) orga.bonusLocaux = { pop: 0, inf: 0, dis: 0 };
-  orga.bonusLocaux.pop = (orga.bonusLocaux.pop || 0) + (loc.bonusPOP || 0);
-  orga.bonusLocaux.inf = (orga.bonusLocaux.inf || 0) + (loc.bonusINF || 0);
-  orga.bonusLocaux.dis = (orga.bonusLocaux.dis || 0) + (loc.bonusDIS || 0);
-
-  // Appliquer au joueur (fraction des bonus)
+  // #379 (03/11/2026) : les 30 % de POP et d'INF du chef sont versés par le serveur au moment où
+  // le loyer est réellement payé (prelever_loyer_bail, migration 20261103234000). L'ancien cumul
+  // orga.bonusLocaux n'était lu nulle part et l'organisation n'est plus écrite par l'écran.
   const mult = 0.3; // 30% des bonus de l'orga profitent directement au chef
-  const estChef = orga.chef === state.char?.name;
-  if (estChef) {
-    if (loc.bonusPOP > 0) state.pop = Math.min(100, (state.pop || 0) + Math.floor(loc.bonusPOP * mult));
-    if (loc.bonusINF > 0) state.inf = Math.min(100, (state.inf || 0) + Math.floor(loc.bonusINF * mult));
-    if (loc.bonusDIS > 0) state.dis = Math.min(100, (state.dis || 50) + Math.floor(loc.bonusDIS * mult));
+  if (orga.chef === state.char?.name && loc.bonusDIS > 0) {
+    state.dis = Math.min(100, (state.dis || 50) + Math.floor(loc.bonusDIS * mult));
   }
 }
 
@@ -4097,46 +3761,51 @@ async function confirmerDonPnj(encodedPnj) {
     return;
   }
 
-  // Don a un PNJ : aucune ligne de personnage en face, l'argent est detruit. Le debit local reste
-  // donc le mecanisme (inchange), applique seulement une fois la branche PJ ecartee.
-  state.arg -= montant;
-  updateUI();
-  const dup = getStatEffective('DUP');
+  // DON A UN PNJ AU SERVEUR (#379, 03/11/2026). Le navigateur se debitait lui-meme (debit fictif :
+  // l'argent est protege en base) et s'ajoutait POP, INF, moral et sante. La commande don_argent_pnj
+  // verifie la presence du PNJ, tire le refus des metiers a risque, debite et applique les jauges
+  // dans une transaction, formules d'origine. Restent a l'ecran : les jets de DIS des metiers qui
+  // n'agissent que sur la DIS (commissaire, policier, inspecteur, juge, banquier).
   const nomCourt = pnj.name.replace(' (PNJ)','');
-  const jobsRisques = ['commissaire','policier','inspecteur','juge'];
-  const tauxRefus = jobsRisques.includes(job) ? Math.max(0, isn - 30) / 2 : 0;
-  const rollRefus = Math.floor(Math.random() * 100) + 1;
-  if (tauxRefus > 0 && rollRefus <= tauxRefus) {
-    state.arg += montant;
+  const v = await executerOrdreJaugesServeur('don_argent_pnj', { nom: nomCourt, montant });
+  if (!v) return;
+  if (typeof v.moral === 'number') state.moral = v.moral;
+  if (v.refuse) {
     state.dis = Math.max(0, (state.dis||50) - 15);
     updateUI();
     addJournalEntry('Don refuse par ' + nomCourt + '. -15 DIS.', 'event-bad');
     showToast('Refus indigne !', nomCourt + ' a refuse. -15 DIS.', false);
     return;
   }
-  const effets = {
-    serveur:     () => { state.moral=Math.min(100,(state.moral||50)+5); state.inf=Math.min(100,(state.inf||0)+2); showToast('Pourboire verse !','+5 Moral +2 INF.',true); addJournalEntry('Pourboire a '+nomCourt+'. +5 Moral +2 INF.','event-good'); },
-    barman:      () => { state.inf=Math.min(100,(state.inf||0)+5); showToast('Le barman apprecie !','+5 INF.',true,true); addJournalEntry('Don barman. +5 INF.','event-good'); },
-    commissaire: () => { const t=Math.min(70,30+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-5);showToast('Arrangement discret','-5 DIS.',true);addJournalEntry('Corruption commissaire. -5 DIS.','event-bad');}else{state.dis=Math.max(0,(state.dis||50)-20);showToast('Refus !','-20 DIS.',false);} },
-    policier:    () => { const t=Math.min(65,25+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-3);showToast('Il regarde ailleurs.','-3 DIS.',true);}else{state.dis=Math.max(0,(state.dis||50)-15);showToast('Refus !','-15 DIS.',false);} },
-    inspecteur:  () => { const t=Math.min(70,35+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-5);showToast('Inspecteur convaincu !','-5 DIS.',true);}else{state.dis=Math.max(0,(state.dis||50)-15);showToast('Refus !','-15 DIS.',false);} },
-    journaliste: () => { state.inf=Math.min(100,(state.inf||0)+8); state.pop=Math.min(100,(state.pop||0)+5); showToast('Article favorable !','+8 INF +5 POP.',true,true); addExternalEvent((state.char?.name||'Anonyme')+' beneficie d\'une couverture favorable.'); },
-    banquier:    () => { state.dis=Math.min(100,(state.dis||50)+5); showToast('Service discret.','+5 DIS.',true); },
-    medecin:     () => { const s=Math.min(25,Math.floor(montant/10)); state.hp=Math.min(100,(state.hp||100)+s); showToast('Soins off-record !','+'+s+' HP.',true); },
-    commercant:  () => { state.pop=Math.min(100,(state.pop||0)+4); state.inf=Math.min(100,(state.inf||0)+2); showToast('Reputation locale !','+4 POP +2 INF.',true); },
-    juge:        () => { const t=Math.min(55,20+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-8);showToast('Le juge est comprehensif.','-8 DIS.',true,true);}else{state.dis=Math.max(0,(state.dis||50)-25);showToast('SCANDALE !','-25 DIS.',false);} },
-    avocat:      () => { state.inf=Math.min(100,(state.inf||0)+5); showToast('L\'avocat note votre generosite.','+5 INF.',true); },
-    loge:        () => { state.inf=Math.min(100,(state.inf||0)+8); showToast('Don a la Loge.','+8 INF.',true,true); },
-    grand_pretre:() => { state.pop=Math.min(100,(state.pop||0)+5); state.moral=Math.min(100,(state.moral||50)+5); showToast('Don beni !','+5 POP +5 Moral.',true,true); },
-    escort:      () => { state.inf=Math.min(100,(state.inf||0)+6); showToast('Information exclusive !','+6 INF.',true,true); },
+  const dup = getStatEffective('DUP');
+  const jetDis = (base, plafond, gain, perte, okTxt, koTxt) => {
+    const t = Math.min(plafond, base + Math.floor(dup*2)); const r = Math.floor(Math.random()*100)+1;
+    if (r <= t) { state.dis = Math.max(0,(state.dis||50)-gain); showToast(okTxt, '-' + gain + ' DIS.', true); }
+    else { state.dis = Math.max(0,(state.dis||50)-perte); showToast(koTxt, '-' + perte + ' DIS.', false); }
   };
-  const effet = effets[job];
-  if (effet) { effet(); }
+  const gains = [];
+  if (v.gain_pop) gains.push('+' + v.gain_pop + ' POP');
+  if (v.gain_inf) gains.push('+' + v.gain_inf + ' INF');
+  if (v.gain_moral) gains.push('+' + v.gain_moral + ' Moral');
+  if (v.gain_hp) gains.push('+' + v.gain_hp + ' HP');
+  const txt = gains.join(' ');
+  const messages = {
+    serveur: ['Pourboire verse !', 'Pourboire a ' + nomCourt + '.'], barman: ['Le barman apprecie !', 'Don barman.'],
+    journaliste: ['Article favorable !', 'Don a ' + nomCourt + '.'], medecin: ['Soins off-record !', 'Don a ' + nomCourt + '.'],
+    commercant: ['Reputation locale !', 'Don a ' + nomCourt + '.'], avocat: ['L\'avocat note votre generosite.', 'Don a ' + nomCourt + '.'],
+    loge: ['Don a la Loge.', 'Don a la Loge.'], grand_pretre: ['Don beni !', 'Don a ' + nomCourt + '.'],
+    escort: ['Information exclusive !', 'Don a ' + nomCourt + '.']
+  };
+  if (v.job === 'commissaire') jetDis(30, 70, 5, 20, 'Arrangement discret', 'Refus !');
+  else if (v.job === 'policier') jetDis(25, 65, 3, 15, 'Il regarde ailleurs.', 'Refus !');
+  else if (v.job === 'inspecteur') jetDis(35, 70, 5, 15, 'Inspecteur convaincu !', 'Refus !');
+  else if (v.job === 'juge') jetDis(20, 55, 8, 25, 'Le juge est comprehensif.', 'SCANDALE !');
+  else if (v.job === 'banquier') { state.dis = Math.min(100,(state.dis||50)+5); showToast('Service discret.','+5 DIS.',true); }
   else {
-    const moralBonus = Math.min(8, Math.floor(montant / 50));
-    state.moral = Math.min(100,(state.moral||50)+moralBonus);
-    showToast('Don accepte.', nomCourt+' apprecie. +'+moralBonus+' Moral.', true);
-    addJournalEntry('Don a '+nomCourt+'.','event-good');
+    const m = messages[v.job] || ['Don accepte.', 'Don a ' + nomCourt + '.'];
+    showToast(m[0], (v.job in messages ? '' : nomCourt + ' apprecie. ') + txt, true, v.job === 'journaliste' || v.job === 'loge' || v.job === 'grand_pretre' || v.job === 'escort');
+    addJournalEntry(m[1] + (txt ? ' ' + txt + '.' : ''), 'event-good');
+    if (v.job === 'journaliste') addExternalEvent((state.char?.name||'Anonyme')+' beneficie d\'une couverture favorable.');
   }
   updateUI();
 }
@@ -4168,7 +3837,7 @@ async function confirmerDonObjetPnj(objIdx, encodedPnj) {
   const job = pnj.job || 'default';
   const nomCourt = pnj.name.replace(' (PNJ)','');
   document.getElementById('modal-postes').classList.remove('open');
-  let msg = '', bon = true;
+
   if (obj.type === 'colis_secret_pat') {
     // Quete Pat Hounette/Brigitte Menottes : ce colis n'est destine qu'a elle -- a tout autre
     // PNJ, transfert refuse plutot que de le laisser se perdre hors de la chaine de la quete
@@ -4193,33 +3862,33 @@ async function confirmerDonObjetPnj(objIdx, encodedPnj) {
     return;
   }
 
-  // Le retrait passe par le guichet serveur (chantier C, 14 septembre 2026) et precede tout
-  // effet : un refus laisse l'inventaire ET les ressources exactement en l'etat, jamais un gain
-  // d'INF/POP obtenu pour un objet qui serait reste en poche.
-  const rDon = await removeFromInventory(objIdx, 'remettre', { destinataire: nomCourt });
-  if (!rDon.ok) {
-    showToast('Impossible', messageRefusSortieInventaire(rDon.raison), false);
-    return;
-  }
-
-  if (obj.type === 'kompromat') {
-    if (['journaliste','redacteur'].includes(job)) {
-      state.inf=Math.min(100,(state.inf||0)+8); state.pop=Math.min(100,(state.pop||0)+5);
-      const cible=obj.cible||'une personnalite';
-      addExternalEvent('SCANDALE : Un kompromat sur '+cible+' a ete divulgue !');
-      msg='Le journaliste s\'empare du dossier. +8 INF +5 POP.';
-    } else {
-      state.inf=Math.min(100,(state.inf||0)+3);
-      msg=nomCourt+' prend le document. +3 INF.';
-    }
+  // DON D'OBJET A UN PNJ AU SERVEUR (#379, 03/11/2026). Le retrait de l'objet et les jauges sont
+  // une seule transaction (don_objet_pnj) : presence du PNJ verifiee, objet lu en base, formules
+  // d'origine (kompromat a un journaliste +8 INF +5 POP, a un autre +3 INF ; autre objet +3 Moral
+  // +2 INF). Un refus laisse l'inventaire et les jauges exactement en l'etat.
+  const signature = typeof signatureObjetInventaire === 'function' ? signatureObjetInventaire(obj) : null;
+  if (!signature) return;
+  const v = await executerOrdreJaugesServeur('don_objet_pnj', { nom: nomCourt, index: objIdx, signature });
+  if (!v) return;
+  if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
+  if (typeof renderInventory === 'function') renderInventory();
+  if (typeof v.moral === 'number') state.moral = v.moral;
+  const gains = [];
+  if (v.gain_pop) gains.push('+' + v.gain_pop + ' POP');
+  if (v.gain_inf) gains.push('+' + v.gain_inf + ' INF');
+  if (v.gain_moral) gains.push('+' + v.gain_moral + ' Moral');
+  let msg;
+  if (obj.type === 'kompromat' && v.scandale) {
+    addExternalEvent('SCANDALE : Un kompromat sur ' + (obj.cible || 'une personnalite') + ' a ete divulgue !');
+    msg = 'Le journaliste s\'empare du dossier. ' + gains.join(' ') + '.';
+  } else if (obj.type === 'kompromat') {
+    msg = nomCourt + ' prend le document. ' + gains.join(' ') + '.';
   } else {
-    state.moral=Math.min(100,(state.moral||50)+3); state.inf=Math.min(100,(state.inf||0)+2);
-    msg=nomCourt+' accepte le cadeau. +3 Moral +2 INF.';
-    addJournalEntry('Objet offert a '+nomCourt+'.','event-good');
+    msg = nomCourt + ' accepte le cadeau. ' + gains.join(' ') + '.';
+    addJournalEntry('Objet offert a ' + nomCourt + '.', 'event-good');
   }
   updateUI();
-  showToast(bon?'Don effectue !':'Action risquee.', msg, bon);
-  if (pnj.isPJ) tracerActionPourRumeur('don_objet', nomCourt);
+  showToast('Don effectue !', msg, true);
 }
 
 // doAcheterEntreprise : ancien ajout local sans appelant retire (chantier inventaire, 27/10).
@@ -5041,7 +4710,7 @@ const TERRAINS_LUTHECIA = ['terrain-a-batir-1', 'terrain-a-batir-2', 'terrain-a-
 // (plateau-navigation.js) -- ne jamais dupliquer cette liste ailleurs.
 const TERRAINS_PAR_VILLE = {
   capitale: TERRAINS_LUTHECIA,
-  ville_a:  ['terrain-a-batir-8', 'terrain-a-batir-9', 'terrain-a-batir-10', 'terrain-a-batir-11'],
+  ville_a:  ['terrain-a-batir-8', 'terrain-a-batir-9', 'terrain-a-batir-10', 'terrain-a-batir-11', 'terrain-a-batir-psm-12', 'terrain-a-batir-psm-13'],
   ville_b:  ['terrain-a-batir-6', 'terrain-a-batir-montrouge-3', 'terrain-a-batir-montrouge-7', 'terrain-a-batir-montrouge-8', 'terrain-a-batir-montrouge-9', 'terrain-a-batir-montrouge-12']
 };
 
@@ -5905,7 +5574,7 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
 function imprimerieCouranteVente() {
   const ville = state.currentCity || 'capitale';
   const building = state.currentBuilding || 'la-tribune';
-  const entrepot = (typeof ENTREPOT_PAR_VILLE === 'object' && ENTREPOT_PAR_VILLE[ville]) || 'entrepot-logistique-luthecia';
+  const entrepot = entrepotDeLaVille(state.country, ville);
   return { ville, building, entrepot };
 }
 
@@ -6021,15 +5690,29 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
 // et dans les trois descriptions d'ordre etait obsolete : aucune borne de ce genre n'a jamais
 // existe cote serveur pour l'entrepot.
 // =====================
-const ENTREPOT_PAR_VILLE = {
-  capitale: 'entrepot-logistique-luthecia',
-  ville_a:  'entrepot-logistique-psm',
-  ville_b:  'entrepot-logistique-montrouge'
+// Par pays PUIS par ville (04/11/2026) : 'capitale' existe dans chaque pays, et Novomirsk
+// (soviet, capitale) ne doit jamais retomber sur l'entrepot de Luthecia. Miroir ecran de la table
+// serveur `entrepots_par_ville` (cle pays + ville), qui seule fait autorite.
+const ENTREPOT_PAR_PAYS_VILLE = {
+  republic: {
+    capitale: 'entrepot-logistique-luthecia',
+    ville_a:  'entrepot-logistique-psm',
+    ville_b:  'entrepot-logistique-montrouge'
+  },
+  soviet: {
+    capitale: 'entrepot-logistique-novomirsk',
+    ville_a:  'entrepot-logistique-starovka',
+    ville_b:  'entrepot-logistique-krasnov'
+  }
 };
+function entrepotDeLaVille(pays, ville) {
+  const parVille = ENTREPOT_PAR_PAYS_VILLE[pays || 'republic'] || {};
+  return (ville && parVille[ville]) || null;
+}
 
 function getBuildingIdDirecteurEntrepot() {
   const ville = state.poste?.city;
-  return ville ? ENTREPOT_PAR_VILLE[ville] : null;
+  return entrepotDeLaVille(state.country, ville);
 }
 
 async function doOuvrirFixerPrixAchatEntrepot(pa, cost) {
@@ -6262,6 +5945,7 @@ const CHAINES_PRODUCTION_USINE = {
   alcool:       { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'cereales', salairePA: 55 },
   tabac:        { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'plantes',  salairePA: 66 },
   carburant:    { buildingId: 'raffinerie-montrouge',          city: 'ville_b',  matiere: 'petrole',  salairePA: 70 },
+  derives_petrochimiques: { buildingId: 'raffinerie-montrouge', city: 'ville_b', matiere: 'petrole', salairePA: 70 },
   // Filiere alcool->desinfectant (20 aout 2026, valeurs validees par Fred) : meme usine que
   // medicaments, seconde chaine independante -- aucun changement sur la chaine plantes/medicaments
   // existante. Approvisionnement en alcool volontairement NON automatique (aucune redirection
@@ -6602,37 +6286,57 @@ function doVendreMatierePremiereUsineGenerique(pa, cost) {
   doOuvrirVendreMatierePremiereUsine(buildingId, pa, cost);
 }
 
+// Catalogue d'achat public du bâtiment : la lecture n'exige pas d'inventaire.
+// La commande seule vérifie quantité, fonds et plafond dans vendre_matiere_a_usine (RPC).
 async function doOuvrirVendreMatierePremiereUsine(buildingId, pa, cost) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
-  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
-  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const contexte = state.char?.name + '|' + pays + '|' + ville + '|' + buildingId;
+  const etat = (typeof sbGetBatimentEtat === 'function')
+    ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
+  if (contexte !== state.char?.name + '|' + state.country + '|' + state.currentCity + '|' + state.currentBuilding) return;
   const usine = etat?.usine || defautUsine(buildingId, pays, ville);
   const matieres = matieresAccepteesParUsine(buildingId, pays, ville);
-  const disponibles = matieres.filter(m => (state.inventory || []).some(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0));
-  const prixDetail = usineRachatePrixDetail(buildingId, pays, ville);
-
+  const produits = produitsManufacturesUsine(buildingId, pays, ville);
   document.getElementById('postes-modal-title').textContent = "Vendre des matières à l'usine";
   let html = '<div style="padding:1rem">';
-  if (disponibles.length === 0) {
-    html += '<div style="font-size:.9rem;color:#8a8060">Vous ne possédez aucune matière utilisée par cette usine' + (matieres.length ? ' (' + matieres.map(m => (RESSOURCES_ECONOMIE[m]?.label || m)).join(', ') + ')' : '') + '.</div>';
-  } else {
-    html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat au ' + (prixDetail ? 'tarif détail' : 'tarif fournisseur') + ' en vigueur.</div>';
-  }
-  disponibles.forEach(m => {
-    const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0);
-    const qteDispo = lot?.qty || 0;
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">Stocks et prix d\'achat de cet établissement. La vente est possible uniquement pour les matières présentes dans votre inventaire et tant qu\'il reste de la place.</div>';
+  if (!matieres.length) html += '<div style="font-size:.85rem;color:#8a8060">Aucune matière première acceptée actuellement.</div>';
+  matieres.forEach(m => {
     const res = RESSOURCES_ECONOMIE[m];
+    if (!res) return;
+    const qteDispo = (state.inventory || []).filter(i => i.stackKey === m && (i.qty || 0) > 0)
+      .reduce((total, i) => total + Number(i.qty || 0), 0);
     const prixUnitaire = prixRachatMatierePremiereUsine(buildingId, pays, ville, res);
-    const stockActuel = usine.stockMatieres[m] || 0;
-    const placeRestante = Math.max(0, res.plafond - stockActuel);
-    const qteInitiale = Math.max(1, Math.min(qteDispo, placeRestante));
-    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
-    html += '<span style="flex:1;font-size:.88rem;color:#c0b090">' + res.label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + ', capacité restante ' + placeRestante + '</span>';
-    html += '<input type="number" id="vendre-usine-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
-    html += '<button ' + (placeRestante === 0 ? 'disabled style="padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.82rem"' : 'onclick="confirmerVendreMatierePremiereUsineUI(\'' + buildingId + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
+    const stockActuel = Number(usine.stockMatieres?.[m] || 0);
+    const plafond = Number(res.plafond || 0);
+    const placeRestante = Math.max(0, plafond - stockActuel);
+    const vendable = Math.min(qteDispo, placeRestante);
+    html += '<div style="padding:.65rem;border:1px solid #455365;margin-bottom:.65rem">';
+    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + res.label + ' : ' + stockActuel + '/' + plafond + '</div>';
+    html += '<div style="font-size:.84rem;color:#a9b7c9;margin:.3rem 0">Prix d\'achat : ' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + ' / unité — Vous en possédez : ' + qteDispo + '</div>';
+    html += '<div style="display:flex;align-items:center;gap:.5rem">';
+    html += '<label for="vendre-usine-qte-' + m + '" style="font-size:.83rem;color:#c0b090">Quantité à vendre</label>';
+    html += '<input type="number" id="vendre-usine-qte-' + m + '" min="1" max="' + vendable + '" ' +
+      (vendable <= 0 ? 'disabled value="" placeholder="—"' : 'value="' + vendable + '"') +
+      ' style="width:76px;background:#202b39;border:1px solid #455365;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
+    html += '<button ' + (vendable <= 0 ? 'disabled' :
+      'onclick="confirmerVendreMatierePremiereUsineUI(\'' + buildingId + '\',\'' + m + '\')"') +
+      ' style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:' +
+      (vendable <= 0 ? '#667080;cursor:default' : '#6ab858;cursor:pointer') + ';font-size:.82rem">Vendre</button>';
+    html += '</div>';
+    if (!qteDispo) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Vous ne possédez pas cette matière.</div>';
+    else if (!placeRestante) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Stock complet : aucun achat supplémentaire possible.</div>';
     html += '</div>';
   });
+  if (produits.length) {
+    html += '<div style="font-size:.84rem;color:#c0b090;margin:.8rem 0 .4rem">Produits finis disponibles</div>';
+    produits.forEach(id => {
+      const p = PRODUITS_MANUFACTURES_USINE[id];
+      if (p) html += '<div style="font-size:.84rem;color:#a9b7c9;margin-bottom:.3rem">' + p.label + ' : ' + Number(usine.stockProduits?.[id] || 0) + '</div>';
+    });
+  }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -6745,6 +6449,69 @@ async function doConsulterStockUsine() {
 // sbGetBatimentEtat/sbSetBatimentEtat -- aucun nouveau mecanisme de persistance.
 // =====================
 
+// Catalogue commun des produits manufacturés : la navigation sépare les actions,
+// les RPC de fabrication/achat existantes restent les seules autorités économiques.
+// La liste est filtrée par pays, ville et bâtiment : aucune fuite entre usines.
+async function doConsulterCatalogueManufactures() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const batiment = state.currentBuilding;
+  const ids = produitsManufacturesUsine(batiment, pays, ville);
+  if (!ids.length) {
+    showToast('Aucun article', 'Ce commerce ne propose aucun produit manufacturé.', false);
+    return;
+  }
+  const etat = typeof sbGetBatimentEtat === 'function'
+    ? await sbGetBatimentEtat(pays, ville, batiment).catch(() => null) : null;
+  if (!etat || !etat.usine) {
+    showToast('Catalogue indisponible', 'Impossible de confirmer le stock auprès du serveur.', false);
+    return;
+  }
+  const usine = etat.usine;
+  const devise = COUNTRIES[pays]?.cur || 'FR';
+  // Les actions sont les contrôleurs métier déjà employés à la Scierie.
+  // Toute extension du registre nécessite un contrôleur existant et audité.
+  const actions = {
+    armoire_souvenirs: ['doFabriquerArmoireSouvenirs()', 'doAcheterArmoireSouvenirs()']
+  };
+  const echapper = (valeur) => String(valeur ?? '').replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+  let html = '<div style="padding:1rem;background:#151A21;color:#e0e6ed">';
+  for (const id of ids) {
+    const p = PRODUITS_MANUFACTURES_USINE[id];
+    const stock = Math.max(0, Number(usine.stockProduits?.[p.type]) || 0);
+    const materiaux = Object.entries(p.recette?.materiaux || {});
+    const details = materiaux.map(([m,q]) =>
+      echapper(q) + ' ' + echapper(RESSOURCES_ECONOMIE[m]?.label || m) +
+      ' (stock : ' + echapper(usine.stockMatieres?.[m] || 0) + ')').join(' · ');
+    const possible = materiaux.every(([m,q]) => (Number(usine.stockMatieres?.[m]) || 0) >= q);
+    const boutons = actions[id];
+    html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #394656;background:#252D38;border-radius:9px;margin-bottom:.5rem;align-items:center;flex-wrap:wrap">';
+    html += '<div style="font-size:.93rem;color:#E5C477;font-weight:bold">' + echapper(p.label) + '</div>';
+    html += '<div style="font-size:.82rem;color:#c2bdaf;margin:.5rem 0">Prix : ' +
+      Number(p.prixVente).toLocaleString('fr-FR') + ' ' + echapper(devise) +
+      ' · Stock disponible : ' + stock + ' · Encombrement : ' + echapper(p.encombrement) + '</div>';
+    html += '<div style="font-size:.8rem;color:#c2bdaf">Fabrication : ' +
+      echapper(p.recette?.pa || 0) + ' PA · ' + details + '</div>';
+    html += '<div style="display:flex;gap:.5rem;margin-top:.75rem">';
+    if (boutons) {
+      const bouton = (action, titre, autorise) =>
+        '<button ' + (autorise ? 'onclick="' + action + '"' : 'disabled') +
+        ' style="padding:.45rem .7rem;border:1px solid #526176;border-radius:5px;background:#394656;color:#f2f4f6;' +
+        (autorise ? 'cursor:pointer' : 'opacity:.5;cursor:not-allowed') + '">' + titre + '</button>';
+      html += bouton(boutons[0], 'Produire', possible) +
+        bouton(boutons[1], 'Acheter', stock > 0);
+    } else {
+      html += '<span style="color:#cc5540">Opérations indisponibles pour cet article</span>';
+    }
+    html += '</div></div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Catalogue des produits';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
 async function doFabriquerArmoireSouvenirs() {
   const p = PRODUITS_MANUFACTURES_USINE.armoire_souvenirs;
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(p.pays, p.ville, p.buildingId).catch(() => null) : null;
@@ -6792,7 +6559,7 @@ async function confirmerFabriquerArmoireSouvenirs() {
   updateUI();
   showToast('Fabrication réussie', '+1 ' + p.label + ' disponible à la vente.', true, true);
   addJournalEntry('Fabrication d\'une ' + p.label + ' à la Scierie Guy Tarembois.', 'event-good');
-  doFabriquerArmoireSouvenirs();
+  doConsulterCatalogueManufactures();
 }
 
 
@@ -8799,7 +8566,8 @@ async function doCorrompreFonctionnairePermis(pa, cost) {
   if (v.decouvert) {
     showToast('Corruption découverte !', 'Le fonctionnaire vous dénonce.', false);
     addJournalEntry('Tentative de corruption d\'un fonctionnaire découverte (-' + cost + ' FR).', 'event-bad');
-    if (typeof procederArrestation === 'function') procederArrestation('corruption_fonctionnaire', false, false);
+    // Le serveur a ecroue le joueur dans la meme transaction (terrain_permis_corrompre, 03/11/2026).
+    if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
     return;
   }
   showToast('Dossier accéléré', 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', true, true);
@@ -9664,45 +9432,72 @@ async function doConsulterManifeste() {
 
   const port = await getEtatPort();
 
+  // Lisibilité (demande de Fred, 04/11/2026) : vrais noms de villes et de pays, statuts en
+  // clair, tableaux, arrivages regroupés par jour. Classes communes cpj-*, pas de couleur en dur.
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  const lieu = (pays, ville) => {
+    const v = (typeof VILLES !== 'undefined' && VILLES[pays]?.[ville]?.nom) || null;
+    const p = (typeof COUNTRIES !== 'undefined' && COUNTRIES[pays]?.n) || pays || '—';
+    return v ? (pays === (state.country || 'republic') ? v : v + ' (' + p + ')') : p;
+  };
+  const STATUTS = { ouverte: 'En chargement', fermee: 'Fermée, en attente de départ', en_transit: 'En mer',
+    arrivee: 'Arrivée, à retirer', a_vendre: 'Non réclamée, en vente', vendue: 'Vendue', videe: 'Retirée' };
+  const jour = d => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '—';
+  const tableau = (entetes, lignes) => '<table style="width:100%;border-collapse:collapse;font-size:.8rem;margin-bottom:.6rem">' +
+    '<tr class="cpj-note">' + entetes.map((h, i) => '<th style="text-align:' + (i ? 'center' : 'left') + ';padding:.2rem .3rem">' + h + '</th>').join('') + '</tr>' +
+    lignes.map(l => '<tr>' + l.map((c, i) => '<td style="text-align:' + (i ? 'center' : 'left') + ';padding:.25rem .3rem;border-top:1px solid rgba(255,255,255,.08)">' + c + '</td>').join('') + '</tr>').join('') +
+    '</table>';
+
   document.getElementById('postes-modal-title').textContent = 'Manifeste du Port';
-  let html = '<div style="padding:1rem;max-height:70vh;overflow-y:auto">';
+  let html = '<div class="cpj-dialogue" style="padding:1rem;max-height:70vh;overflow-y:auto">';
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">FRET PRIVÉ DÉCLARÉ</div>';
+  html += '<div class="cpj-titre">Fret privé déclaré</div>';
   if (caisses.length === 0) {
-    html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.7rem">Aucune caisse enregistrée pour l\'instant.</div>';
+    html += '<p class="cpj-note">Aucune caisse enregistrée pour l\'instant.</p>';
   } else {
-    caisses.forEach(c => {
-      const dep = c.date_depart ? new Date(c.date_depart).toLocaleDateString('fr-FR') : 'non partie';
-      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .6rem;margin-bottom:.4rem;font-size:.76rem;color:#8a8060">';
-      html += '<div style="color:#c0b090">Expéditeur : ' + (c.leader || '—') + ' — Destinataire : ' + (c.destinataire || 'non déclaré') + '</div>';
-      html += '<div>Origine : ' + (c.ville_origine || '—') + ' — Destination : ' + (c.pays_destination || '—') + '</div>';
-      html += '<div>Déclaration douanière : ' + (c.declaration_douaniere || 'non déclarée') + ' — Valeur déclarée : ' + (c.valeur_declaree != null ? Math.round(c.valeur_declaree) + ' FR' : '—') + '</div>';
-      html += '<div>Statut : ' + (c.statut || '—') + ' — Départ : ' + dep + '</div>';
-      html += '</div>';
-    });
+    html += '<p class="cpj-note">Déclarations des expéditeurs ; le contenu réel des caisses n\'est jamais affiché.</p>';
+    html += tableau(['Caisse', 'Trajet', 'Valeur', 'État'], caisses.map(c => [
+      '<strong>' + esc(c.declaration_douaniere || 'Sans déclaration') + '</strong><br><span class="cpj-note">' +
+        esc(c.leader || '—') + ' → ' + esc(c.destinataire || 'destinataire non déclaré') + '</span>',
+      esc(lieu(c.pays_origine, c.ville_origine)) + ' → ' + esc(lieu(c.pays_destination, c.ville_destination)) +
+        '<br><span class="cpj-note">départ ' + esc(jour(c.date_depart)) + (c.statut === 'en_transit' && c.date_arrivee_prevue ? ', arrivée ' + esc(jour(c.date_arrivee_prevue)) : '') + '</span>',
+      c.valeur_declaree != null ? '<span style="white-space:nowrap">' + esc(Math.round(c.valeur_declaree)) + ' FR</span>' : '—',
+      esc(STATUTS[c.statut] || c.statut || '—')
+    ]));
   }
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.8rem 0 .4rem">FLUX INSTITUTIONNELS</div>';
-  const arrivages = (port.arrivages || []).slice(0, 10);
-  if (arrivages.length === 0) {
-    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.5rem">Aucun arrivage institutionnel enregistré pour l\'instant.</div>';
+  html += '<div class="cpj-titre">Arrivages institutionnels</div>';
+  const parJour = {};
+  (port.arrivages || []).forEach(a => {
+    const j = new Date(a.jour).toISOString().slice(0, 10);
+    const lib = RESSOURCES_ECONOMIE[a.resource]?.label || a.resource;
+    parJour[j] = parJour[j] || {};
+    parJour[j][lib] = (parJour[j][lib] || 0) + Math.round(a.qte || 0);
+  });
+  const jours = Object.keys(parJour).sort().reverse().slice(0, 7);
+  if (jours.length === 0) {
+    html += '<p class="cpj-note">Aucun arrivage institutionnel enregistré pour l\'instant.</p>';
   } else {
-    arrivages.forEach(a => {
-      const res = RESSOURCES_ECONOMIE[a.resource];
-      const date = new Date(a.jour);
-      html += '<div style="font-size:.76rem;color:#8a8060">' + date.toLocaleDateString('fr-FR') + ' — arrivage ' + (res?.label || a.resource) + ' : +' + Math.round(a.qte) + '</div>';
-    });
+    html += tableau(['Jour', 'Marchandises reçues'], jours.map(j => [
+      esc(new Date(j + 'T12:00:00Z').toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit' })),
+      Object.entries(parJour[j]).map(([lib, q]) => esc(lib) + ' +' + esc(q)).join(' · ')
+    ]));
   }
-  RESSOURCES_PORT_IMPORTEES.forEach(cle => {
-    const res = RESSOURCES_ECONOMIE[cle];
+
+  html += '<div class="cpj-titre">Répartition des importations entre les villes</div>';
+  html += tableau(['Marchandise', 'Luthécia', 'Port-Sainte-Marie', 'Montrouge'], RESSOURCES_PORT_IMPORTEES.map(cle => {
     const rep = port.repartition?.[cle] || REPARTITION_PORT_DEFAUT;
-    html += '<div style="font-size:.76rem;color:#8a8060;margin-top:.2rem">Répartition ' + (res?.label || cle) + ' — Luthécia ' + arrondiPct(rep.capitale) + '% / Port-Sainte-Marie ' + arrondiPct(rep.ville_a) + '% / Montrouge ' + arrondiPct(rep.ville_b) + '%</div>';
-  });
-  Object.entries(EXPORTATIONS_PORT_INFOS).forEach(([cle, infos]) => {
-    const exp = port.exportations?.[cle];
-    if (!exp) return;
-    html += '<div style="font-size:.76rem;color:#8a8060;margin-top:.2rem">Exportation ' + infos.label + ' vers ' + infos.destination + ' : ' + Math.round(exp.envoye) + '/' + exp.contrat + ' (' + exp.satisfactionPct + '%)</div>';
-  });
+    return [esc(RESSOURCES_ECONOMIE[cle]?.label || cle), Math.round(rep.capitale) + ' %', Math.round(rep.ville_a) + ' %', Math.round(rep.ville_b) + ' %'];
+  }));
+
+  const exports = Object.entries(EXPORTATIONS_PORT_INFOS).filter(([cle]) => port.exportations?.[cle]);
+  if (exports.length) {
+    html += '<div class="cpj-titre">Contrats d\'exportation</div>';
+    html += tableau(['Marchandise', 'Destination', 'Envoyé / contrat', 'Rempli'], exports.map(([cle, infos]) => {
+      const exp = port.exportations[cle];
+      return [esc(infos.label), esc(infos.destination), esc(Math.round(exp.envoye)) + ' / ' + esc(exp.contrat), esc(Math.round(exp.satisfactionPct)) + ' %'];
+    }));
+  }
 
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -9727,7 +9522,9 @@ async function doConsulterManifeste() {
 // Modele generique (portee internationale) : PORTS_FRET liste tous les ports capables de
 // RECEVOIR du fret, un seul est peuple pour l'instant (Republia/PSM).
 const PORTS_FRET = {
-  republic: { ville: 'ville_a', buildingId: 'port-sainte-marie' }
+  republic: { ville: 'ville_a', buildingId: 'port-sainte-marie' },
+  // Port industriel de Starovka en service le 06/11/2026 (miroir de fret_port_interne, serveur).
+  soviet:   { ville: 'ville_a', buildingId: 'port-starovka' }
 };
 // Deplacee de 'quai_principal' vers 'entrepot' (lot du 25 aout 2026, §6) en meme temps que les
 // orders expedier_colis/receptionner_commande (data.js, room port-sainte-marie) -- garde de
@@ -9770,10 +9567,13 @@ function estObjetInterditFret(item) {
 }
 
 // ---- HELPERS ----
-async function jeSuisPresentDansRoomFret(pays, ville, buildingId) {
+function roomRetraitCaisseFret(buildingId) {
+  return String(buildingId || '').startsWith('entrepot-logistique-') ? 'salle_ventes' : ROOM_CHARGEMENT_FRET;
+}
+async function jeSuisPresentDansRoomFret(pays, ville, buildingId, roomId) {
   if (typeof sbGetPresencesInRoom !== 'function') return true; // repli permissif si le service est indisponible
   const moi = state.char?.name || '';
-  const presents = await sbGetPresencesInRoom(pays, ville, buildingId, ROOM_CHARGEMENT_FRET).catch(() => []);
+  const presents = await sbGetPresencesInRoom(pays, ville, buildingId, roomId || ROOM_CHARGEMENT_FRET).catch(() => []);
   return (presents || []).some(p => p.name === moi);
 }
 
@@ -9830,6 +9630,26 @@ async function ouvrirExpedierColis(pa, cost) {
     return;
   }
 
+  // Amendes de fausse déclaration dues sur mes caisses expédiées (règle de Fred du 04/11) :
+  // l'expéditeur peut les régler ici ; sinon le destinataire paiera, ou la caisse sera vendue.
+  if (!window._fretAmendesVues) {
+    const amendes = typeof sbGet === 'function'
+      ? await sbGet('caisses_fret', 'leader=eq.' + encodeURIComponent(moi) + '&amende_due=gt.0&amende_payee=is.false&statut=in.(fermee,en_transit,arrivee)').catch(() => [])
+      : [];
+    if (amendes && amendes.length > 0) {
+      let h = '<div style="padding:1rem"><div class="cpj-note" style="margin-bottom:.8rem">Injonction des douanes : amende de fausse déclaration due sur vos caisses. Si vous ne payez pas, le destinataire devra la régler pour retirer la caisse ; sinon elle sera saisie et vendue au profit du Trésor.</div>';
+      amendes.forEach(c => {
+        h += '<div style="padding:.6rem .8rem;margin-bottom:.4rem;border:1px solid #a98d56">Caisse vers ' + escapeHtmlText(c.destinataire || '?')
+          + ' — amende : ' + Number(c.amende_due) + ' FR'
+          + '<button class="cpj-touche cpj-primaire" style="width:100%;margin-top:.4rem" onclick="payerAmendeCaisseFret(\'' + c.id + '\',' + pa + ',' + cost + ')">Payer l\'amende</button></div>';
+      });
+      h += '<button class="cpj-touche" style="width:100%" onclick="window._fretAmendesVues=true;ouvrirExpedierColis(' + pa + ',' + cost + ')">Continuer vers l\'expédition</button></div>';
+      document.getElementById('postes-body').innerHTML = h;
+      return;
+    }
+  }
+  window._fretAmendesVues = false;
+
   const caisses = typeof sbGet === 'function'
     ? await sbGet('caisses_fret', 'leader=eq.' + encodeURIComponent(moi) + '&building_origine=eq.' + encodeURIComponent(buildingId) + '&statut=eq.ouverte').catch(() => [])
     : [];
@@ -9874,25 +9694,52 @@ async function ouvrirExpedierColis(pa, cost) {
   await afficherGestionCaisseOuverteFret(caisses[0].id);
 }
 
+// FRET AU SERVEUR (#433, 04/11/2026) : toute écriture d'une caisse passe par
+// fret_caisse_commande ; l'écran n'écrit plus caisses_fret ni contenu_caisses_fret.
+// Le reçu est conservé le temps de la requête : une réponse perdue ne repaie pas.
+async function commanderFretServeur(action, caisseId, params) {
+  const cle = 'hg-fret:' + JSON.stringify([state.char?.name || '', action, caisseId || null, params || {}]);
+  let requete;
+  try { requete = localStorage.getItem(cle); if (!requete) { requete = crypto.randomUUID(); localStorage.setItem(cle, requete); } }
+  catch (_) { showToast('Action non envoyée', 'Le reçu ne peut pas être conservé.', false); return null; }
+  const v = await sbRpcVerdict('fret_caisse_commande', { p_action: action, p_caisse: caisseId || null, p_params: params || {}, p_requete: requete }).catch(() => null);
+  if (!v || v.transport) { showToast('Action non confirmée', 'La réponse est incertaine. Le même reçu évitera un double effet.', false); return null; }
+  try { localStorage.removeItem(cle); } catch (_) {}
+  if (v.ok !== true) {
+    const motifs = { pas_au_port: 'Vous devez être au port.', pas_responsable: 'Seul le responsable de la caisse peut faire cela.',
+      pas_destinataire: 'Seul le destinataire peut faire cela.', caisse_fermee: 'La caisse est déjà fermée.', caisse_vide: 'La caisse est vide.',
+      destinataire_invalide: 'Destinataire invalide.', port_indisponible: 'Aucun port de fret n\'est ouvert dans l\'empire de ce destinataire.',
+      caisse_non_fermee: 'La caisse doit d\'abord être fermée.', fonds_insuffisants: 'Fonds insuffisants.', aucune_amende: 'Aucune amende due.', caisse_saisie: 'La caisse a été saisie.', personnage_introuvable: 'Personnage introuvable.' };
+    showToast('Action refusée', motifs[v.raison] || ('Le serveur refuse : ' + (v.raison || 'état indisponible') + '.'), false);
+    return null;
+  }
+  return v;
+}
+
+async function payerAmendeCaisseFret(caisseId, pa, cost) {
+  const v = await commanderFretServeur('amende_payer', caisseId, {});
+  if (!v) return;
+  await relirePaiementFret();
+  showToast('Amende payée', v.amende + ' FR versés au Trésor.', true, true);
+  addJournalEntry('Amende de fausse déclaration payée (' + v.amende + ' FR).', 'event-info');
+  await ouvrirExpedierColis(pa, cost);
+}
+
+async function relirePaiementFret() {
+  const nom = state.char?.name || '';
+  const [frais, comptes] = await Promise.all([sbLoadPersonnage(nom).catch(() => null), sbGetComptesBancaires(nom).catch(() => null)]);
+  if (frais && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ ok: true, pa: frais.pa, liquide: frais.liquide, arg: frais.arg });
+  if (Array.isArray(comptes) && typeof construireMapComptesBancaires === 'function') state.comptesBancaires = construireMapComptesBancaires(comptes);
+  if (typeof updateUI === 'function') updateUI();
+}
+
 async function confirmerReservationCaisseFret(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
-  const caisse = {
-    leader: state.char?.name || 'Inconnu',
-    pays_origine: window._fretPaysOrigine || state.country || 'republic',
-    ville_origine: window._fretVilleOrigine || state.currentCity,
-    building_origine: window._fretBuildingOrigine || state.currentBuilding,
-    statut: 'ouverte',
-    chargeurs_autorises: [],
-    receptionnaires_autorises: [],
-    dedouanee: false
-  };
-  const rows = typeof sbInsert === 'function' ? await sbInsert('caisses_fret', caisse).catch(() => null) : null;
-  const nouvelle = rows && rows[0];
-  if (!nouvelle) { showToast('Erreur', 'Impossible de réserver la caisse.', false); return; }
+  const v = await commanderFretServeur('reserver', null, {});
+  if (!v) return;
+  await relirePaiementFret();
   showToast('Caisse réservée', 'Vous pouvez maintenant y déposer des marchandises.', true, true);
   addJournalEntry('Caisse de fret réservée au port.', 'event-info');
-  await afficherGestionCaisseOuverteFret(nouvelle.id);
+  await afficherGestionCaisseOuverteFret(v.caisse);
 }
 
 async function afficherGestionCaisseOuverteFret(caisseId) {
@@ -9980,21 +9827,11 @@ async function reprendreDeCaisseFret(caisseId, contenuId) {
 async function ajouterChargeurFret(caisseId) {
   const nom = document.getElementById('fret-nouveau-chargeur')?.value?.trim();
   if (!nom) return;
-  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = rows && rows[0];
-  if (!caisse || caisse.leader !== (state.char?.name || '')) return;
-  const liste = Array.from(new Set([...(caisse.chargeurs_autorises || []), nom]));
-  if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { chargeurs_autorises: liste }).catch(() => {});
-  await afficherGestionCaisseOuverteFret(caisseId);
+  if (await commanderFretServeur('chargeur_ajouter', caisseId, { nom })) await afficherGestionCaisseOuverteFret(caisseId);
 }
 
 async function retirerChargeurFret(caisseId, nom) {
-  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = rows && rows[0];
-  if (!caisse || caisse.leader !== (state.char?.name || '')) return;
-  const liste = (caisse.chargeurs_autorises || []).filter(n => n !== nom);
-  if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { chargeurs_autorises: liste }).catch(() => {});
-  await afficherGestionCaisseOuverteFret(caisseId);
+  if (await commanderFretServeur('chargeur_retirer', caisseId, { nom })) await afficherGestionCaisseOuverteFret(caisseId);
 }
 
 // ---- FERMETURE + DECLARATION (leader uniquement) ----
@@ -10033,58 +9870,24 @@ async function ouvrirFermerCaisseFret(caisseId) {
   html += '<input type="text" id="fret-fermeture-declaration" placeholder="Ex. denrées diverses" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">VALEUR DÉCLARÉE (FR)</div>';
   html += '<input type="number" id="fret-fermeture-valeur" value="0" min="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-  html += '<button onclick="confirmerFermetureCaisseFret(\'' + caisseId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Fermer la caisse</button>';
+  // Déclaration par lot (règle de Fred du 04/11) : un lot décoché n'est pas déclaré ; s'il est
+  // découvert à l'inspection, l'amende vaut le double des droits de douane sur sa valeur.
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">LOTS DÉCLARÉS</div>';
+  lignes.filter(l => (l.quantite || 0) > 0).forEach(l => {
+    html += '<label class="cpj-note" style="display:block;margin-bottom:.25rem"><input type="checkbox" class="fret-lot-declare" value="' + l.id + '" checked> '
+      + escapeHtmlText(l.objet?.name || l.objet?.type || '?') + ' × ' + l.quantite + '</label>';
+  });
+  html += '<div class="cpj-note" style="margin:.3rem 0 .8rem">Un lot non déclaré découvert par la douane entraîne une amende : le double des droits de douane sur sa valeur.</div>';
+  html += '<button onclick="confirmerFermetureCaisseFret(\'' + caisseId + '\')"style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Fermer la caisse</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   window._fretJoueursFermeture = joueurs;
 }
 
-// ---- DISSIMULATION DES CAISSES DE FRET (lot du 25 aout 2026, §4-5) ----
-// Audit prealable (§4) : caisses_fret/contenu_caisses_fret sont de VRAIES tables Postgres a
-// schema fixe (migration executee manuellement, voir git show 2542984) -- aucune colonne de
-// dissimulation n'existe aujourd'hui et en ajouter une exigerait une nouvelle migration SQL.
-// Pour eviter ce blocage (§17), la difficulte de dissimulation est persistee a cote, dans le
-// meme store generique flexible batiments_etat deja reutilise pour le BNE/les prets/le blocus
-// (sbGetBatimentEtat/sbSetBatimentEtat, voir supabase.js) -- une entree globale unique et
-// partagee (meme convention que sbGetEtatBNE/sbSetEtatBNE), car une caisse peut relier deux pays
-// differents (pays_origine != pays_destination) et son id est deja une cle globalement unique
-// (uuid Postgres reel) : aucune partition par pays/ville necessaire.
-// Valeur persistee UNE SEULE FOIS, au moment de la fermeture+declaration
-// (confirmerFermetureCaisseFret, juste apres -- seul point ou le contenu est fige et ou le leader
-// agit encore en son nom propre) : la DIS EFFECTIVE du leader a cet instant
-// (calculerDisEffective(), meme normalisation 8-18 deja utilisee partout ailleurs pour comparer
-// une DIS a un PER via calculerChancePJ -- pas le state.dis brut 0-100, qui n'est pas sur la
-// meme echelle que PER_SERVICE_DOUANES). Jamais recalculee ni relue depuis le personnage au
-// moment du controle (§5 : la difficulte reste attachee a la caisse, independante de la DIS
-// courante de son auteur au moment ou le Chef controle).
-async function chargerDissimulationCaissesFret() {
-  const etat = await sbGetBatimentEtat('global', 'national', 'dissimulation-fret').catch(() => ({}));
-  return etat?.parCaisse || {};
-}
-
-async function sauvegarderDissimulationCaisseFret(caisseId, valeur) {
-  const parCaisse = await chargerDissimulationCaissesFret();
-  parCaisse[caisseId] = valeur;
-  if (typeof sbSetBatimentEtat === 'function') {
-    await sbSetBatimentEtat('global', 'national', 'dissimulation-fret', { parCaisse }).catch(() => {});
-  }
-}
-
-// Meme bucket global partage (cle 'controles', voisine de 'parCaisse' ci-dessus, fusion
-// superficielle deja geree par sbSetBatimentEtat) : une caisse ne peut etre ciblee qu'une seule
-// fois par le Chef des Douanes (evite le grinding d'une meme caisse jusqu'a un jet favorable).
-async function chargerControlesCaissesFret() {
-  const etat = await sbGetBatimentEtat('global', 'national', 'dissimulation-fret').catch(() => ({}));
-  return etat?.controles || {};
-}
-
-async function marquerCaisseControleeFret(caisseId, resultat) {
-  const controles = await chargerControlesCaissesFret();
-  controles[caisseId] = { resultat, controleeLe: Date.now() };
-  if (typeof sbSetBatimentEtat === 'function') {
-    await sbSetBatimentEtat('global', 'national', 'dissimulation-fret', { controles }).catch(() => {});
-  }
-}
+// ---- DISSIMULATION DES CAISSES DE FRET ----
+// Depuis le 04/11/2026 (#433), la difficulté de dissimulation est posée par le serveur à la
+// fermeture (8 + DIS/10 du responsable, colonne caisses_fret.dissimulation) et le contrôle du
+// Chef est marqué sur la caisse (controle_chef) : plus aucun blob écrit par l'écran.
 
 // ---- CONTROLE DOUANIER D'UNE CAISSE (lot du 25 aout 2026, §2-3-5-6-10) ----
 // Philosophie validee (§1) : aucun PJ douanier, seul le Chef des Douanes decide. Il consulte le
@@ -10109,8 +9912,6 @@ async function marquerCaisseControleeFret(caisseId, resultat) {
 // deja presente dans ce fichier). Chaque objet illegal garde son deposant exact par ligne
 // (contenu_caisses_fret.deposant), donc l'attribution n'est jamais ambigue meme si plusieurs
 // personnes ont deposé dans la meme caisse.
-const CAISSE_FRET_TYPES_ILLEGAUX_CONTROLES = ['arme', 'poison', 'tract_calomnieux'];
-
 async function ouvrirControlerCaisseDouane(pa, cost) {
   const check = chefDouanesValide();
   if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
@@ -10123,20 +9924,19 @@ async function ouvrirControlerCaisseDouane(pa, cost) {
     sbGet('caisses_fret', 'building_origine=eq.' + encodeURIComponent(BUILDING_ID_PORT) + '&statut=eq.fermee').catch(() => []),
     sbGet('caisses_fret', 'building_destination=eq.' + encodeURIComponent(BUILDING_ID_PORT) + '&statut=eq.arrivee').catch(() => [])
   ]);
-  const controles = await chargerControlesCaissesFret();
-  const ciblables = [...(sortantes || []), ...(arrivees || [])].filter(c => !controles[c.id]);
+  const ciblables = [...(sortantes || []), ...(arrivees || [])].filter(c => !c.controle_chef);
 
   let html = '<div style="padding:1rem;max-height:70vh;overflow-y:auto">';
-  html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.7rem;font-style:italic">Le manifeste ne révèle jamais le contenu réel d\'une caisse — uniquement sa déclaration. Le contrôle est exécuté par le service ; son issue dépend de l\'effectif et de la difficulté de dissimulation de la caisse.</div>';
+  html += '<div class="cpj-note" style="margin-bottom:.7rem;font-style:italic">Le manifeste ne révèle jamais le contenu réel d\'une caisse — uniquement sa déclaration. Le contrôle est exécuté par le service ; son issue dépend de l\'effectif et de la difficulté de dissimulation de la caisse.</div>';
   if (ciblables.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060">Aucune caisse contrôlable pour l\'instant.</div>';
+    html += '<div class="cpj-note">Aucune caisse contrôlable pour l\'instant.</div>';
   } else {
     ciblables.forEach(c => {
-      const sens = c.building_origine === BUILDING_ID_PORT ? 'Sortante' : 'Entrante';
-      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.5rem">';
-      html += '<div style="font-size:.8rem;color:#c0b090">' + sens + ' — Expéditeur : ' + (c.leader || '—') + ' — Destinataire : ' + (c.destinataire || 'non déclaré') + '</div>';
-      html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.4rem">Déclaration : ' + (c.declaration_douaniere || 'non déclarée') + '</div>';
-      html += '<button onclick="confirmerControleCaisseFret(\'' + c.id + '\',' + pa + ')" style="width:100%;font-size:.72rem;padding:.4rem;border:1px solid #8a3a2a;background:transparent;color:#cc4444;cursor:pointer">Ordonner le contrôle</button>';
+      const sens = c.building_origine === BUILDING_ID_PORT && c.statut === 'fermee' ? 'Sortante' : 'Entrante';
+      html += '<div style="padding:.6rem .7rem;margin-bottom:.5rem;border:1px solid #a98d56">';
+      html += '<div>' + sens + ' — Expéditeur : ' + escapeHtmlText(c.leader || '—') + ' — Destinataire : ' + escapeHtmlText(c.destinataire || 'non déclaré') + '</div>';
+      html += '<div class="cpj-note" style="margin-bottom:.4rem">Déclaration : ' + escapeHtmlText(c.declaration_douaniere || 'non déclarée') + '</div>';
+      html += '<button class="cpj-touche" onclick="confirmerControleCaisseFret(\'' + c.id + '\',' + pa + ')" style="width:100%">Ordonner le contrôle</button>';
       html += '</div>';
     });
   }
@@ -10144,233 +9944,87 @@ async function ouvrirControlerCaisseDouane(pa, cost) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// Contrôle tiré au serveur (douane_caisse_controler, #433) : formule du 25/08 inchangée,
+// saisie, convocations, courriers et amende de fausse déclaration dans la même transaction.
 async function confirmerControleCaisseFret(caisseId, pa) {
   const check = chefDouanesValide();
   if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
-
-  const controlesAvant = await chargerControlesCaissesFret();
-  if (controlesAvant[caisseId]) { showToast('Déjà contrôlée', 'Cette caisse a déjà fait l\'objet d\'un contrôle.', false); return; }
-
-  const rows = await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []);
-  const caisse = rows && rows[0];
-  const cibleValide = caisse && (
-    (caisse.building_origine === BUILDING_ID_PORT && caisse.statut === 'fermee') ||
-    (caisse.building_destination === BUILDING_ID_PORT && caisse.statut === 'arrivee')
-  );
-  if (!cibleValide) { showToast('Cible invalide', 'Cette caisse n\'est plus contrôlable (déjà expédiée, retirée, ou introuvable).', false); return; }
-
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const pays = state.country || 'republic';
-  const effectifs = await chargerEffectifsDouane(pays);
-  const nbDouaniers = effectifs.douaniers.length;
-  const aUneUniteCynophile = effectifs.douaniers.some(d => d.type === 'cynophile');
-  const disCaisse = (await chargerDissimulationCaissesFret())[caisseId] ?? 13; // 13 = calculerDisEffective() a DIS neutre (50), repli si anomalie de persistance
-
-  const lignes = await chargerContenuCaisseFret(caisseId);
-  const lignesIllegales = lignes.filter(l => CAISSE_FRET_TYPES_ILLEGAUX_CONTROLES.includes(l.objet?.type) && l.objet?.legal === false && (l.quantite || 0) > 0);
-  const contientStupefiants = lignesIllegales.some(l => l.objet?.type === 'poison');
-
-  let perService = getStatEffective('PER') + nbDouaniers;
-  if (aUneUniteCynophile && contientStupefiants) perService += 3;
-
-  const chance = Math.max(10, Math.min(90, 50 + 5 * (perService - disCaisse)));
-  const tirage = Math.floor(Math.random() * 100) + 1;
-  const succes = tirage <= chance;
-
-  await marquerCaisseControleeFret(caisseId, succes ? 'positif' : 'negatif');
-
+  const cle = 'hg-controle-caisse:' + caisseId;
+  let requete;
+  try { requete = localStorage.getItem(cle); if (!requete) { requete = crypto.randomUUID(); localStorage.setItem(cle, requete); } }
+  catch (_) { showToast('Contrôle non envoyé', 'Le reçu ne peut pas être conservé.', false); return; }
+  const v = await sbRpcVerdict('douane_caisse_controler', { p_caisse: caisseId, p_requete: requete }).catch(() => null);
+  if (!v || v.transport) { showToast('Contrôle non confirmé', 'La réponse est incertaine. Le même reçu évitera un second contrôle.', false); return; }
+  try { localStorage.removeItem(cle); } catch (_) {}
+  if (v.ok !== true) {
+    const motifs = { deja_controlee: 'Cette caisse a déjà fait l\'objet d\'un contrôle.', caisse_non_controlable: 'Cette caisse n\'est plus contrôlable.' };
+    showToast('Contrôle refusé', motifs[v.raison] || ('Le serveur refuse : ' + (v.raison || 'état indisponible') + '.'), false);
+    return;
+  }
   document.getElementById('modal-postes').classList.remove('open');
-
-  if (!succes) {
+  await relirePaiementFret();
+  if (v.decouverte !== true) {
     showToast('Contrôle infructueux', 'Rien de suspect n\'a été relevé sur cette caisse.', false, true);
     addJournalEntry('Contrôle douanier d\'une caisse de fret : rien trouvé.', 'event-info');
     return;
   }
-
-  if (lignesIllegales.length === 0) {
-    showToast('Contrôle terminé', 'La caisse a été ouverte : aucun contenu illicite reconnu à l\'intérieur.', true, true);
+  const saisis = Number(v.saisis || 0), amende = Number(v.amende || 0);
+  if (saisis === 0 && amende === 0) {
+    showToast('Contrôle terminé', 'La caisse a été ouverte : rien d\'illicite ni de non déclaré.', true, true);
     addJournalEntry('Contrôle douanier d\'une caisse de fret : ouverte, rien d\'illicite trouvé.', 'event-info');
     return;
   }
-
-  const parDeposant = {};
-  const convocationsRatees = [];
-  lignesIllegales.forEach(l => { (parDeposant[l.deposant] = parDeposant[l.deposant] || []).push(l); });
-
-  for (const [deposant, ses] of Object.entries(parDeposant)) {
-    for (const l of ses) {
-      await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(l.id) + '&quantite=eq.' + l.quantite, { quantite: 0 }).catch(() => {});
-    }
-    const noms = ses.map(l => l.objet?.name || l.objet?.type).join(', ');
-    const nouvelleConvocation = {
-      // id stable, lu par le trigger personnages_preserver_judiciaire (chantier Assemblee). Ce site
-      // ecrit chez un TIERS (le deposant du fret) par lecture-modification-ecriture depuis le client :
-      // preexistant, non modifie ici. Le trigger le rend desormais sur -- si le deposant a sauvegarde
-      // entre la lecture et l'ecriture, ses propres convocations sont reinjectees au lieu d'etre perdues.
-      id: 'conv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-      motif: 'possession_illegale_douane',
-      jourEmission: state.day || 1,
-      heureEmission: state.hour || 8,
-      jourLimite: (state.day || 1) + 1,
-      heureLimite: state.hour || 8,
-      traitee: false
-    };
-
-    // Ecriture DIRECTE en base UNIQUEMENT pour un tiers (deposant potentiellement hors ligne) --
-    // pour le Chef lui-meme (deposant === moi), state.convocations est deja la source de verite
-    // vivante de CETTE session et sera persistee par le cycle de sauvegarde habituel
-    // (sbSavePersonnage) comme n'importe quelle autre mutation de state ; ecrire aussi en base ici
-    // l'exposerait a etre silencieusement ecrasee par le prochain sbSavePersonnage (qui reecrit
-    // convocations en entier depuis state, sans le connaitre).
-    // CONVOCATION SERVEUR-AUTORITAIRE (17 septembre 2026, suite de l'audit des frontieres
-    // d'autorite). Le bloc precedent lisait puis reecrivait la fiche du deposant : refuse en
-    // silence depuis la fermeture RLS (sbUpdate rend null sans lever). Le deposant recevait donc
-    // le mail « presentez-vous sous 24h, faute de quoi vous serez arrete(e) » sans qu'aucune
-    // convocation n'existe sur sa fiche. La RPC l'ecrit reellement, sous verrou, et n'accepte que
-    // le Chef des Douanes en exercice -- l'autorite que data.js declarait deja sur cet ordre.
-    let convocationEmise = true;
-    if (deposant === (state.char?.name || '')) {
-      state.convocations = state.convocations || [];
-      state.convocations.push(nouvelleConvocation);
-    } else {
-      const rc = (typeof sbConvocationDouaneEmettre === 'function')
-        ? await sbConvocationDouaneEmettre(deposant, nouvelleConvocation) : null;
-      convocationEmise = !!(rc && rc.ok === true);
-      if (!convocationEmise) {
-        console.error('[douane] convocation non emise pour ' + deposant, rc);
-      }
-    }
-    // Le mail n'affirme la convocation que si elle a reellement ete inscrite.
-    if (convocationEmise && typeof sbSendMail === 'function') {
-      await sbSendMail('Chef des Douanes', deposant, 'Convocation officielle',
-        'Un contrôle douanier a détecté et confisqué du contenu prohibé dans une caisse de fret que vous avez approvisionnée (' + noms + '). Présentez-vous au commissariat sous 24h pour vous justifier, faute de quoi vous serez arrêté(e).',
-        typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-    } else if (!convocationEmise) {
-      convocationsRatees.push(deposant);
-    }
-  }
-
-  // Le toast dit la verite : si une convocation n'a pas pu etre inscrite, on ne pretend pas
-  // qu'elle l'a ete. La confiscation, elle, a bien eu lieu dans tous les cas.
-  if (convocationsRatees.length === 0) {
-    showToast('Contrôle positif !', 'Contenu prohibé découvert et confisqué. Le ou les responsables ont été convoqués.', true, true);
-    addJournalEntry('Contrôle douanier positif sur une caisse de fret : contenu illicite confisqué, convocation(s) émise(s).', 'event-good');
-  } else {
-    showToast('Contrôle positif — convocation incomplète',
-      'Contenu prohibé confisqué, mais la convocation de ' + convocationsRatees.join(', ') + ' n\'a pas pu être enregistrée.', false, true);
-    addJournalEntry('Contrôle douanier positif : contenu illicite confisqué. Convocation non enregistrée pour ' + convocationsRatees.join(', ') + '.', 'event-bad');
-  }
-  updateUI();
+  const details = (saisis ? saisis + ' lot(s) prohibé(s) saisi(s), responsables convoqués. ' : '')
+    + (amende ? 'Marchandises non déclarées : amende de ' + amende + ' FR au Trésor.' : '');
+  showToast('Contrôle positif !', details, true, true);
+  addJournalEntry('Contrôle douanier positif sur une caisse de fret. ' + details, 'event-good');
 }
 
 async function confirmerFermetureCaisseFret(caisseId) {
-  const moi = state.char?.name || '';
-  // Identite/statut reverifies cote handler (pas seulement via l'affichage conditionnel du
-  // formulaire) -- meme principe que partout ailleurs dans ce lot : le filtre supplementaire
-  // sur le PATCH lui-meme (leader=eq./statut=eq.) empeche aussi une double-fermeture concurrente.
-  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = rows && rows[0];
-  if (!caisse || caisse.leader !== moi || caisse.statut !== 'ouverte') { showToast('Action impossible', '', false); return; }
-
   const destNom = document.getElementById('fret-fermeture-dest')?.value;
   const declaration = document.getElementById('fret-fermeture-declaration')?.value?.trim() || '';
   const valeur = Math.max(0, parseFloat(document.getElementById('fret-fermeture-valeur')?.value || '0'));
-  const destJoueur = (window._fretJoueursFermeture || []).find(j => j.name === destNom);
-  if (!destJoueur) { showToast('Destinataire invalide', '', false); return; }
-  const portDest = PORTS_FRET[destJoueur.country];
-  if (!portDest) { showToast('Port indisponible', 'Aucun port de fret n\'est encore opérationnel dans l\'empire de ce destinataire.', false); return; }
-
-  const maj = typeof sbUpdate === 'function' ? await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId) + '&leader=eq.' + encodeURIComponent(moi) + '&statut=eq.ouverte', {
-    statut: 'fermee',
-    destinataire: destJoueur.name,
-    pays_destination: destJoueur.country,
-    ville_destination: portDest.ville,
-    building_destination: portDest.buildingId,
-    declaration_douaniere: declaration,
-    valeur_declaree: valeur,
-    date_fermeture: new Date().toISOString()
-  }).catch(() => null) : null;
-  if (!maj || maj.length === 0) { showToast('Action impossible', 'La caisse a peut-être déjà été fermée.', false); return; }
-
-  await sauvegarderDissimulationCaisseFret(caisseId, calculerDisEffective());
-
+  // Lots non cochés = non déclarés (amende en cas d'inspection, règle de Fred du 04/11).
+  const nonDeclares = Array.from(document.querySelectorAll('.fret-lot-declare')).filter(x => !x.checked).map(x => x.value);
+  const v = await commanderFretServeur('fermer', caisseId, { nom: destNom, declaration, valeur, non_declares: nonDeclares });
+  if (!v) return;
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Caisse fermée', 'Vous pouvez maintenant l\'expédier.', true, true);
-  addJournalEntry('Caisse de fret fermée, destinée à ' + destJoueur.name + '.', 'event-info');
+  addJournalEntry('Caisse de fret fermée, destinée à ' + v.destinataire + '.', 'event-info');
 }
 
 async function expedierCaisseFret(caisseId) {
-  const moi = state.char?.name || '';
-  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = rows && rows[0];
-  if (!caisse || caisse.leader !== moi || caisse.statut !== 'fermee' || !caisse.destinataire || !caisse.pays_destination) {
-    showToast('Expédition impossible', '', false);
-    return;
-  }
-  const lignes = await chargerContenuCaisseFret(caisseId);
-  const total = totalContenuFret(lignes);
-  if (total <= 0) { showToast('Caisse vide', '', false); return; }
-
-  const maintenant = new Date();
-  const dateArriveePrevue = new Date(maintenant.getTime() + DUREE_TRANSPORT_FRET_JOURS * 86400000);
-
-  // CORRECTIF (19 septembre 2026). Trois defauts de cette fonction, tous
-  // independants du fait qu'elle n'etait appelee nulle part :
-  //
-  //  1. Le PATCH n'avait AUCUN compare-and-swap (`id=eq.` seul), alors que ses
-  //     deux soeurs en ont un. Le controle de statut n'etait qu'un read-check :
-  //     deux clics rapides passaient tous deux la lecture, et le second PATCH
-  //     REPOUSSAIT date_arrivee_prevue d'un jour. Le filtre porte desormais
-  //     `&leader=eq.&statut=eq.fermee` -- le second PATCH ne trouve plus rien.
-  //  2. Le resultat etait jete (`.catch(() => {})`) et le toast de succes
-  //     inconditionnel : un echec reseau annoncait « Caisse expediee ! » sur
-  //     une caisse restee fermee. On teste desormais le retour.
-  //  3. Le mail partait a l'EXPEDITEUR : addMailNotification envoie toujours a
-  //     state.char.name (voir son propre commentaire, plateau-communication.js).
-  //     Le DESTINATAIRE n'etait jamais prevenu. On passe par sbSendMail.
-  if (typeof sbUpdate !== 'function') { showToast('Expédition impossible', '', false); return; }
-  const maj = await sbUpdate('caisses_fret',
-    'id=eq.' + encodeURIComponent(caisseId) + '&leader=eq.' + encodeURIComponent(moi) + '&statut=eq.fermee', {
-      statut: 'en_transit',
-      date_depart: maintenant.toISOString(),
-      date_arrivee_prevue: dateArriveePrevue.toISOString()
-    }).catch(() => null);
-  if (!maj || maj.length === 0) {
-    showToast('Expédition impossible', 'La caisse a déjà quitté le port ou son état a changé.', false);
-    return;
-  }
-
+  // Le serveur tire l'inspection d'une caisse sur trois et prévient le destinataire.
+  const v = await commanderFretServeur('expedier', caisseId, {});
+  if (!v) return;
   showToast('Caisse expédiée !', 'Arrivée sous ' + DUREE_TRANSPORT_FRET_JOURS + ' jour à destination.', true, true);
-  addJournalEntry('Caisse de fret expédiée vers ' + caisse.destinataire + '.', 'event-info');
-  if (typeof sbSendMail === 'function') {
-    sbSendMail('Administration Portuaire', caisse.destinataire, 'Caisse de fret en route',
-      'Une caisse de fret vous a été expédiée par ' + escapeHtmlText(moi)
-      + '. Elle sera à retirer au port sous ' + DUREE_TRANSPORT_FRET_JOURS + ' jour.',
-      typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-  }
+  addJournalEntry('Caisse de fret expédiée.', 'event-info');
 }
 
 // ---- RECEPTION (cote destinataire, port de destination) ----
 async function ouvrirReceptionnerCommande(pa, cost) {
   const pays = state.country || 'republic';
   const moi = state.char?.name || '';
-  document.getElementById('postes-modal-title').textContent = 'Fret maritime — Réception';
+  document.getElementById('postes-modal-title').textContent = 'Réception de caisses';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
   let caisses = [];
+  // Livraison terrestre par tranches de 4 h (04/11/2026) : le serveur constate d'abord les
+  // caisses arrivées à échéance (la tâche de minuit ne passe qu'une fois par jour).
+  if (typeof sbRpc === 'function') await sbRpc('fret_arrivees_constater', {}).catch(() => null);
   if (typeof sbGet === 'function') {
-    const commeDestinataire = await sbGet('caisses_fret', 'destinataire=eq.' + encodeURIComponent(moi) + '&pays_destination=eq.' + encodeURIComponent(pays) + '&statut=eq.arrivee').catch(() => []) || [];
-    const commeReceptionnaire = await sbGet('caisses_fret', 'pays_destination=eq.' + encodeURIComponent(pays) + '&statut=eq.arrivee&receptionnaires_autorises=cs.{' + encodeURIComponent(moi) + '}').catch(() => []) || [];
+    // Seulement les caisses livrées dans CE bâtiment (port ou entrepôt logistique, 04/11/2026).
+    const ici = '&building_destination=eq.' + encodeURIComponent(state.currentBuilding || '');
+    const commeDestinataire = await sbGet('caisses_fret', 'destinataire=eq.' + encodeURIComponent(moi) + '&pays_destination=eq.' + encodeURIComponent(pays) + '&statut=eq.arrivee' + ici).catch(() => []) || [];
+    const commeReceptionnaire = await sbGet('caisses_fret', 'pays_destination=eq.' + encodeURIComponent(pays) + '&statut=eq.arrivee&receptionnaires_autorises=cs.{' + encodeURIComponent(moi) + '}' + ici).catch(() => []) || [];
     const parId = {};
     [...commeDestinataire, ...commeReceptionnaire].forEach(c => { parId[c.id] = c; });
     caisses = Object.values(parId);
   }
 
   if (caisses.length === 0) {
-    document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Aucune caisse en attente pour vous à ce port.</div>';
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Aucune caisse arrivée pour vous ici. Une caisse en route apparaît à l\'heure de livraison annoncée par courrier.</div>';
     return;
   }
   if (caisses.length === 1) { await afficherCaisseArriveeFret(caisses[0].id, pa); return; }
@@ -10397,16 +10051,21 @@ async function afficherCaisseArriveeFret(caisseId, pa) {
   const estDestinataire = caisse.destinataire === moi;
   const estReceptionnaire = (caisse.receptionnaires_autorises || []).includes(moi);
   if (!estDestinataire && !estReceptionnaire) { showToast('Accès refusé', '', false); return; }
-  const presentIci = await jeSuisPresentDansRoomFret(caisse.pays_destination, caisse.ville_destination, caisse.building_destination);
-  if (!presentIci) { showToast('Absent du port', 'Vous devez être physiquement présent au port pour agir sur cette caisse.', false); return; }
+  // Livraison terrestre nationale (04/11/2026) : à l'entrepôt logistique, la caisse se retire à la
+  // Salle des ventes ; au port, dans la pièce de chargement (même règle que fret_objet_agir).
+  const presentIci = await jeSuisPresentDansRoomFret(caisse.pays_destination, caisse.ville_destination, caisse.building_destination,
+    roomRetraitCaisseFret(caisse.building_destination));
+  if (!presentIci) { showToast('Pas sur place', 'Vous devez être présent là où la caisse a été livrée pour agir sur elle.', false); return; }
 
   let html = '<div style="padding:1rem">';
 
   if (!caisse.dedouanee) {
     const douane = calculerDroitsDouaneCaisseFret(caisse);
     const gardiennage = calculerGardiennageCaisseFret(caisse, Date.now());
-    const total = douane + gardiennage;
-    html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.4rem">Caisse non dédouanée. Droits de douane : ' + douane + ' FR' + (gardiennage > 0 ? ' · Gardiennage : ' + gardiennage + ' FR' : '') + ' · <strong>Total : ' + total + ' FR</strong>.</div>';
+    // Amende de fausse déclaration encore due sur la caisse (montant enregistré par le serveur).
+    const amende = caisse.amende_payee ? 0 : Math.max(0, Number(caisse.amende_due || 0));
+    const total = douane + gardiennage + amende;
+    html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.4rem">Caisse non dédouanée. Droits de douane : ' + douane + ' FR' + (gardiennage > 0 ? ' · Gardiennage : ' + gardiennage + ' FR' : '') + (amende > 0 ? ' · Amende de fausse déclaration (au Trésor) : ' + amende + ' FR' : '') + ' · <strong>Total : ' + total + ' FR</strong>.</div>';
     if (estDestinataire) {
       html += '<button onclick="dedouanerCaisseFret(\'' + caisseId + '\',' + pa + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Payer et dédouaner</button>';
     } else {
@@ -10482,8 +10141,10 @@ async function dedouanerCaisseFret(caisseId, pa) {
   if (typeof rDed.liquide === 'number') state.liquide = rDed.liquide;
 
   updateUI();
-  showToast('Caisse dédouanée', total + ' FR versés à la caisse du port. Retraits libres.', true, true);
-  addJournalEntry('Caisse de fret dédouanée (' + total + ' FR versés à la caisse du port).', 'event-good');
+  const amendePayee = Number(rDed.amende || 0);
+  const detail = amendePayee > 0 ? ' (dont ' + amendePayee + ' FR d\'amende au Trésor)' : '';
+  showToast('Caisse dédouanée', total + ' FR payés' + detail + '. Retraits libres.', true, true);
+  addJournalEntry('Caisse de fret dédouanée : ' + total + ' FR payés' + detail + '.', 'event-good');
   await afficherCaisseArriveeFret(caisseId, pa);
 }
 
@@ -10498,21 +10159,11 @@ async function retirerDeCaisseFret(caisseId, contenuId, pa) {
 async function ajouterReceptionnaireFret(caisseId) {
   const nom = document.getElementById('fret-nouveau-receptionnaire')?.value?.trim();
   if (!nom) return;
-  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = rows && rows[0];
-  if (!caisse || caisse.destinataire !== (state.char?.name || '')) return;
-  const liste = Array.from(new Set([...(caisse.receptionnaires_autorises || []), nom]));
-  if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { receptionnaires_autorises: liste }).catch(() => {});
-  await afficherCaisseArriveeFret(caisseId, 1);
+  if (await commanderFretServeur('receptionnaire_ajouter', caisseId, { nom })) await afficherCaisseArriveeFret(caisseId, 1);
 }
 
 async function retirerReceptionnaireFret(caisseId, nom) {
-  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = rows && rows[0];
-  if (!caisse || caisse.destinataire !== (state.char?.name || '')) return;
-  const liste = (caisse.receptionnaires_autorises || []).filter(n => n !== nom);
-  if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { receptionnaires_autorises: liste }).catch(() => {});
-  await afficherCaisseArriveeFret(caisseId, 1);
+  if (await commanderFretServeur('receptionnaire_retirer', caisseId, { nom })) await afficherCaisseArriveeFret(caisseId, 1);
 }
 
 // ---- LIQUIDATION J15 (room Entrepots du port) ----
@@ -10624,10 +10275,6 @@ async function confisquerObjets(objetsConnus) {
 // Normalisation de la Discretion (ressource 0-100, pas une caracteristique sur l'echelle
 // habituelle) : DIS_effective = 8 + (state.dis/10). Arbitrage valide, verifie sur les 3 exemples
 // de controle fournis (DIS 0/50/100 -> 8/13/18).
-function calculerDisEffective() {
-  return 8 + (state.dis || 0) / 10;
-}
-
 // ---- HOOKS SECURITE/SOCIAL/POP EN ATTENTE (aucune valeur arretee, ne pas inventer) ----
 // Deux effets prevus par le cahier des charges restent volontairement NON cables faute de
 // chiffres valides (les 3 autres -- SOCIAL/POP lies au controle direct du commissaire -- sont
@@ -11030,100 +10677,13 @@ async function confirmerSubventionMinInt(pa, cost) {
 // du fait d'origine (dont on ne connait, au mieux, qu'un jour de jeu sans ancrage calendaire
 // fiable -- voir jour_fait, jamais affiche). L'affichage (ouvrirDetailDetention) choisit le
 // libelle honnete selon `source`, jamais "date des faits" pour un motif dont ce n'est pas le cas.
-async function enregistrerDetention(nom, raison, jourFin, qhs, city, opts) {
-  const contexte = contexteInterceptionJudiciaire();
-  if (nom !== contexte.nom) return null;
-  opts = opts || {};
-  const jourDebut = state.day || 1;
-  const country = opts.country || state.country || 'republic';
-  const villeReelle = city || state.currentCity || 'capitale';
-  const motifs = (opts.motifs && opts.motifs.length) ? opts.motifs : [{
-    type: raison,
-    jour_fait: jourDebut,
-    city: villeReelle,
-    jours: (jourFin !== undefined && jourFin !== null) ? (jourFin - jourDebut) : null,
-    source: opts.source || 'legacy',
-    date_evenement: new Date().toISOString()
-  }];
-
-  // UNE INCARCERATION EST UNE TRANSACTION SERVEUR (9 octobre 2026). Cette fonction enchainait
-  // deux ecritures independantes -- `detentions` (dont le retour etait lu mais jamais teste) puis
-  // `personnages.est_emprisonne` (avalee). Un detenu pouvait donc exister dans une table et pas
-  // dans l'autre, et quand c'etait l'insertion qui echouait, `detentionId: null` partait quand
-  // meme sur la fiche : la peine devenait introuvable pour toute prolongation ou liberation.
-  //
-  // detention_ouvrir_soi fait les deux dans la meme transaction. Sa cible est TOUJOURS le joueur
-  // courant -- c'est deja le cas de tous les appelants de cette fonction, l'incarceration d'un
-  // tiers passant par justice_executer_condamnation depuis le 16 septembre 2026 -- et le serveur
-  // la lit par mon_personnage() plutot que de la recevoir.
-  //
-  // Ce qui est desormais construit PAR LE SERVEUR et non plus ici :
-  // - city/country sur est_emprisonne (lot "salle des geoles", 26 aout 2026), qui permettent a la
-  //   salle des geoles de savoir QUELLE prison heberge reellement chaque detenu, independamment
-  //   de la ville de condamnation ;
-  // - debutTs, l'ANCRE TEMPS REEL (chantier A / P0-3, 14 septembre 2026) : jourFin s'exprime en
-  //   state.day, compteur PRIVE de chaque personnage, dont le serveur ne peut rien deduire. Sans
-  //   cette ancre, une peine n'expirait que si son detenu revenait se connecter. Le filet de
-  //   securite nocturne (libererDetentionsEchuesServeur) libere a debutTs + jours x 24 h ;
-  // - jour_debut, pris sur la colonne `day` de la fiche plutot que sur state.day, dont elle est
-  //   le miroir : le jour de la peine n'est plus a la main du navigateur.
-  // `jourFin == null` AVANT isFinite : Number(null) vaut 0, qui est fini -- une peine sans terme
-  // aurait donc traverse la garde et ouvert une peine de zero jour, purgeable le jour meme.
-  // Defaut trouve par banc-detention-plateau, 9 octobre 2026.
-  if (jourFin === null || jourFin === undefined || !Number.isFinite(Number(jourFin))) {
-    // Aucun appelant ne fait cela aujourd'hui, et une peine sans terme n'expirerait jamais
-    // (state.day >= null est faux) : on refuse plutot que d'inventer une duree.
-    console.warn('enregistrerDetention : jourFin absent, aucune peine ouverte', nom, raison);
-    return null;
-  }
-  if (typeof sbRpc !== 'function') return null;
-  const vOuv = await sbRpc('detention_ouvrir_soi', {
-    p_raison: raison,
-    p_jours: Math.max(0, Number(jourFin) - jourDebut),
-    p_city: villeReelle,
-    p_motifs: motifs,
-    p_qhs: !!qhs,
-    p_extras: {
-      jour_affaire: (opts.jourAffaire !== undefined) ? opts.jourAffaire : null,
-      issue_judiciaire: opts.issueJudiciaire || null,
-      autorite: opts.autorite || null,
-      ville_condamnation: opts.villeCondamnation || null,
-      detention_precedente_id: opts.detentionPrecedenteId || null,
-      reliquat_jours: (opts.reliquatJours !== undefined) ? opts.reliquatJours : null,
-      retour_ville: opts.retourVille || null
-    }
-  }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
-
-  // VERDICT CONSOMME : sans peine en base, rien n'est pose localement. Le cas « cible_deja_detenue »
-  // n'est pas un echec de transport mais la garde de rejeu de la primitive : la peine en cours
-  // reste celle qui vaut.
-  if (!contexteInterceptionJudiciaireValide(contexte) || !vOuv || vOuv.ok !== true || !vOuv.detention_id) return null;
-
-  const detentionId = vOuv.detention_id || null;
-  const jourFinReel = (vOuv.jour_fin != null) ? vOuv.jour_fin : Number(jourFin);
-  const joursReels = jourFinReel - ((vOuv.jour_debut != null) ? vOuv.jour_debut : jourDebut);
-
-  if (!state.prisonniers) state.prisonniers = [];
-  const entree = { nom, depuis: 'Jour ' + ((vOuv.jour_debut != null) ? vOuv.jour_debut : jourDebut), raison, jourFin: jourFinReel };
-  if (qhs) entree.qhs = true;
-  state.prisonniers.push(entree);
-
-  if (nom === state.char?.name) {
-    // Fusion, jamais ecrasement : si l'appelant (ex. procederArrestation) a deja positionne
-    // state.estEmprisonne de facon synchrone pour que l'UI/la navigation reagisse
-    // immediatement (avant meme que cette fonction async ait fini), on ne fait qu'y ajouter
-    // detentionId plutot que de remplacer l'objet.
-    if (!state.estEmprisonne) state.estEmprisonne = { raison };
-    state.estEmprisonne.jours = joursReels;
-    state.estEmprisonne.jourFin = jourFinReel;
-    state.estEmprisonne.detentionId = detentionId;
-    state.estEmprisonne.city = villeReelle;
-    state.estEmprisonne.country = country;
-    if (opts.retourVille && !state.estEmprisonne.retourVille) state.estEmprisonne.retourVille = opts.retourVille;
-    if (qhs) state.estEmprisonne.qhs = true;
-  }
-
-  return detentionId;
+// OUVERTURE D'UNE PEINE « SUR SOI » : FERMEE (03/11/2026). La duree etait choisie par l'ecran et
+// la porte detention_ouvrir_soi pouvait ne jamais etre appelee. Toute peine est desormais ouverte
+// par la fonction serveur de l'acte (arrestation_flagrant_interne, justice_executer_condamnation…).
+// Le nom reste pour les appelants historiques : il n'ouvre plus rien et le dit.
+async function enregistrerDetention() {
+  console.warn('enregistrerDetention : voie fermée, aucune peine ouverte par l’écran');
+  return null;
 }
 
 // Construit le HTML du resultat mecanique REEL d'une arrestation (motifs + duree totale + ville +
@@ -11187,13 +10747,11 @@ async function prolongerDetentionActive(nom, motifsSupplementaires, forcerQhs) {
   // reecrire : un echec de lecture ECRASAIT tous les motifs deja enregistres. Le moteur les relit
   // sous verrou, dans la transaction qui les concatene.
   if (typeof sbRpc !== 'function') return false;
-  const rows = (nom && nom !== state.char?.name)
-    ? await sbRpc('justice_prolonger_peine', {
+  // detention_prolonger_soi est fermee (03/11/2026) : une sanction s'ajoute a une peine par la
+  // porte du juge, ou par la fonction serveur de l'acte qui la provoque.
+  if (!nom) return false;
+  const rows = await sbRpc('justice_prolonger_peine', {
         p_cible: nom,
-        p_motifs: motifsSupplementaires || [],
-        p_forcer_qhs: !!forcerQhs
-      })
-    : await sbRpc('detention_prolonger_soi', {
         p_motifs: motifsSupplementaires || [],
         p_forcer_qhs: !!forcerQhs
       });
@@ -11349,15 +10907,6 @@ async function confirmerMenerEnquete(pa, cost) {
     return;
   }
 
-  const perCommissaire = getStatEffective('PER');
-  const infCommissaire = state.inf || 0;
-  const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
-  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
-
-  let taux = 35 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isn - 45) / 5;
-  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
-  taux = Math.max(10, Math.min(90, Math.round(taux)));
-
   const toutes = typeof sbGetActionsTracables === 'function' ? await sbGetActionsTracables(pays, ville, state.day || 1).catch(() => []) : [];
   const candidats = (toutes || []).filter(a => a.auteur === cible && !a.decouvert);
 
@@ -11367,8 +10916,14 @@ async function confirmerMenerEnquete(pa, cost) {
     return;
   }
 
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll > taux) {
+  // JET AU SERVEUR (05/11/2026) : commissaire_enquete_mener tire le de, puis seulement en cas de
+  // reussite instruit l'enquete (commissaire_enqueter n'est plus appelable directement).
+  const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+  const rGav = (typeof sbRpc === 'function')
+    ? await sbRpc('commissaire_enquete_mener', { p_cible: cible, p_benediction: benediction }).catch(() => null) : null;
+  const gav = Array.isArray(rGav) ? rGav[0] : rGav;
+  const taux = gav?.taux;
+  if (gav && gav.ok === true && gav.abouti === false) {
     addJournalEntry('Enquete menee contre ' + cible + ' : indices insuffisants pour aboutir. -250 FR.', 'event-info');
     showToast('Enquete infructueuse', 'Le dossier n a pas abouti cette fois (' + taux + '% de chances).', false);
     return;
@@ -11382,9 +10937,6 @@ async function confirmerMenerEnquete(pa, cost) {
   // l'enquete « reussie » ne placait personne en garde a vue. On ne marque donc plus rien ici :
   // c'est le serveur qui choisit l'acte et le demasque, sinon il ne trouverait plus rien a
   // instruire.
-  const rGav = (typeof sbRpc === 'function')
-    ? await sbRpc('commissaire_enqueter', { p_cible: cible }).catch(() => null) : null;
-  const gav = Array.isArray(rGav) ? rGav[0] : rGav;
   // BRANCHE CONTRE-ESPIONNAGE (21 septembre 2026). plainte_instruire_interne peut rendre une
   // TROISIEME decision : 'contre_espionnage', quand l'auteur de la trace fouillee est la
   // COUVERTURE d'un agent etranger. contre_espionnage_resoudre a alors deja tourne cote serveur
@@ -11494,33 +11046,22 @@ async function confirmerOrganiserFilature(pa, cost) {
     return;
   }
 
-  // Doctrine V2, formule validee : P = Base(50) + 2*(PER_groupe-13) - (PER_cible-13)
-  // + (Securite_ville-50)/5 + (INF_commissaire-INF_cible)*0.3
-  const perCommissaire = getStatEffective('PER');
-  const infCommissaire = state.inf || 0;
-  const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
-  const isnVille = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : 30;
-
-  let taux = 50 + 2 * (perCommissaire - 13) - (cibleInfos.per - 13) + (isnVille - 50) / 5 + (infCommissaire - cibleInfos.inf) * 0.3;
-  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
-  taux = Math.max(10, Math.min(90, Math.round(taux)));
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll > taux) {
+  // JET AU SERVEUR (05/11/2026) : filature_mener tire le de (formule doctrine V2 :
+  // 50 + 2*(PER-13) - (PER_cible-13) + (ISN-50)/5 + (INF-INF_cible)*0.3) puis, en cas de reussite
+  // seulement, rend le registre des deplacements (filature_deplacements n'est plus appelable seule).
+  const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+  const rFil = (typeof sbRpc === 'function')
+    ? await sbRpc('filature_mener', { p_cible: cible, p_benediction: benediction })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (rFil && rFil.ok === true && rFil.abouti === false) {
     addJournalEntry('Filature de ' + cible + ' : la cible a seme la filature. -150 FR.', 'event-info');
-    showToast('Filature echouee', 'Vous avez perdu la trace de ' + cible + ' (' + taux + '% de chances).', false);
+    showToast('Filature echouee', 'Vous avez perdu la trace de ' + cible + ' (' + rFil.taux + '% de chances).', false);
     return;
   }
-
-  const jourMin = Math.max(1, (state.day || 1) - 1);
-  // sbGetHistoriqueDeplacements rend null quand elle n'a pas pu lire ou que l'autorite a ete
-  // refusee, et [] seulement quand la cible ne s'est reellement pas deplacee (chantier 5).
-  // La distinction compte ici plus qu'ailleurs : la filature a DEJA ete payee 150 FR, et
-  // annoncer « aucun deplacement » sur une panne ferait croire au commissaire que sa cible
-  // n'a pas bouge.
-  const historique = typeof sbGetHistoriqueDeplacements === 'function'
-    ? await sbGetHistoriqueDeplacements(cible, jourMin).catch(() => null) : null;
+  // null quand la lecture a echoue ou que l'autorite a ete refusee, [] seulement quand la cible ne
+  // s'est reellement pas deplacee (chantier 5) : la filature a DEJA ete payee.
+  const historique = (rFil && rFil.ok === true && Array.isArray(rFil.deplacements)) ? rFil.deplacements : null;
 
   document.getElementById('postes-modal-title').textContent = 'Rapport de filature — ' + cible;
   let html = '<div style="padding:1rem">';
@@ -11568,7 +11109,7 @@ function doOrganiserChasseHomme(pa, cost) {
 // une condamnation exactement de la meme maniere : meme filtrage country (fait par l'appelant
 // avant d'invoquer cette fonction), meme recuperation des motifs, meme calcul de reliquat apres
 // evasion, meme propagation de detention_precedente_id, meme consommation ciblee de l'entree.
-async function executerCondamnationRecherchee(nom, entree, rechercheActuelle, ville) {
+async function executerCondamnationRecherchee(nom, entree, rechercheActuelle, ville, rExServeur) {
   let motif, motifsDetention, joursTotal, extra;
   if (entree.type === 'condamnation') {
     motifsDetention = entree.motifs || [];
@@ -11621,15 +11162,12 @@ async function executerCondamnationRecherchee(nom, entree, rechercheActuelle, vi
       };
       return { motif: verdict.motif || motif, joursTotal, detentionId: verdict.detention_id };
     }
-    // Flagrant délit distinct d'un jugement : conserver le chemin existant.
-    const detentionId = (typeof enregistrerDetention === 'function')
-      ? await enregistrerDetention(nom, motif, (state.day || 1) + joursTotal, undefined, ville, extra) : null;
-    return { motif, joursTotal, detentionId };
+    // Flagrant délit distinct d'un jugement : l'écran ne peut plus ouvrir de peine sur soi
+    // (03/11/2026). Seule une condamnation s'exécute ici ; le reste relève de l'acte serveur.
+    return { motif, joursTotal: 0, detentionId: null, echec: true };
   }
-  const rEx = (typeof sbRpc === 'function' && entree && entree.id)
-    ? await sbRpc('justice_executer_condamnation', { p_jugement_id: entree.id, p_ville: ville })
-        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-    : null;
+  // L'execution a deja eu lieu dans chasse_homme_mener (jet puis justice_executer_condamnation).
+  const rEx = rExServeur || null;
   if (!rEx || rEx.ok !== true) return { motif, joursTotal: 0, detentionId: null, echec: true };
   return { motif, joursTotal: Number(rEx.jours || joursTotal), detentionId: rEx.detention_id || null };
 }
@@ -11686,18 +11224,17 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
     return;
   }
 
-  const perCommissaire = getStatEffective('PER');
-  const infCommissaire = state.inf || 0;
-  const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
-  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
+  // JET AU SERVEUR (05/11/2026) : chasse_homme_mener tire le de puis, en cas de reussite, execute la
+  // condamnation (justice_executer_condamnation n'est plus appelable directement).
+  const entreeChasse = eligibles[0];
+  const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+  const rJet = (typeof sbRpc === 'function' && entreeChasse && entreeChasse.id)
+    ? await sbRpc('chasse_homme_mener', { p_cible: cible, p_jugement_id: entreeChasse.id, p_ville: ville, p_benediction: benediction })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  const taux = rJet?.taux;
 
-  let taux = 45 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isn - 45) / 5;
-  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
-  taux = Math.max(10, Math.min(90, Math.round(taux)));
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll > taux) {
+  if (rJet && rJet.ok === true && rJet.abouti === false) {
     addJournalEntry('Chasse a l homme contre ' + cible + ' : localisation echouee (' + taux + '% de chances). -300 FR.', 'event-info');
     showToast('Chasse infructueuse', cible + ' reste introuvable pour l instant.', false);
     return;
@@ -11708,8 +11245,8 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
   // jamais dans celle ou la condamnation a ete prononcee -- c'est precisement l'arrestation
   // reelle qui cree l'incarceration (registre carcerale, 26 aout 2026). Execution factorisee
   // (executerCondamnationRecherchee) avec verifierArrestationRecherchePolice, meme logique.
-  const entree = eligibles[0];
-  const { joursTotal, echec } = await executerCondamnationRecherchee(cible, entree, rechercheActuelle, ville);
+  const entree = entreeChasse;
+  const { joursTotal, echec } = await executerCondamnationRecherchee(cible, entree, rechercheActuelle, ville, rJet);
   if (echec) {
     // Le serveur a refuse -- cible deja detenue, condamnation deja executee, autorite absente.
     // On n'annonce ni arrestation, ni mail, ni evenement public : rien n'a eu lieu.
@@ -12209,37 +11746,14 @@ async function verifierArrestationRecherchePolice(options = {}) {
   return true;
 }
 
-async function chargerNiveauPrison(pays, ville) {
-  const key = pays + '_' + ville;
-  if (typeof sbGetNiveauPrison !== 'function') return { key, niveau: 100 };
-  let data = await sbGetNiveauPrison(key).catch(() => null);
-  if (!data) {
-    data = { niveau: 100 };
-    await sbSaveNiveauPrison(key, data).catch(() => {});
-  }
-  return { key, niveau: 100, ...data };
-}
-
-async function endommagerGrillePrison(pays, ville, degats) {
-  const n = await chargerNiveauPrison(pays, ville);
-  n.niveau = Math.max(0, n.niveau - degats);
-  if (typeof sbSaveNiveauPrison === 'function') await sbSaveNiveauPrison(n.key, { niveau: n.niveau }).catch(() => {});
-  await verifierSeuilsGrillePrison(pays, ville, n.niveau);
-  return n.niveau;
-}
-
+// Les grilles des cellules sont endommagees par le serveur (detention_se_rebeller, 03/11/2026) :
+// l'ecran ne les ecrit plus, il affiche seulement les seuils que le verdict lui rend.
 async function verifierSeuilsGrillePrison(pays, ville, niveau) {
   const nomVille = (typeof WORLD !== 'undefined' && WORLD[pays]?.[ville]?.name) || ville;
   if (niveau <= 0) {
     if (typeof addExternalEvent === 'function') {
       addExternalEvent('INSURRECTION : les grilles des cellules de ' + nomVille + ' cedent sous la pression des detenus. Evasion collective en cours.', 'local');
     }
-    if (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
-      INDICES_NATIONAUX[pays].POP = Math.max(0, (INDICES_NATIONAUX[pays].POP || 50) - 10);
-      INDICES_NATIONAUX[pays].INF = Math.min(100, (INDICES_NATIONAUX[pays].INF || 0) + 10);
-    }
-    const key = pays + '_' + ville;
-    if (typeof sbSaveNiveauPrison === 'function') await sbSaveNiveauPrison(key, { niveau: 100 }).catch(() => {});
   } else if (niveau <= 25) {
     if (typeof addExternalEvent === 'function') {
       addExternalEvent('Tensions carcerales a ' + nomVille + ' : les grilles des cellules menacent de ceder.', 'local');
@@ -13052,6 +12566,27 @@ async function confirmerPrelevementCaisseBNE() {
   ouvrirCaisseBNE();
 }
 
+// Guichets nationaux et locaux : un seul ordre d'accueil, aucun debit a l'ouverture.
+// Les formulaires existants et les RPC serveur restent les seules voies de paiement.
+function ouvrirChoixVirements() {
+  if (!['banque-nationale', 'banque-locale'].includes(state.currentBuilding)) {
+    showToast('Accès réservé', 'Présentez-vous au guichet de la Banque Nationale.', false);
+    return;
+  }
+  const titre = document.getElementById('postes-modal-title');
+  const corps = document.getElementById('postes-body');
+  const modal = document.getElementById('modal-postes');
+  if (!titre || !corps || !modal) return;
+  titre.textContent = 'Virements — Banque Nationale';
+  corps.innerHTML = '<div class="cpj-dialogue">'
+    + '<p class="cpj-note" style="margin:0 0 .8rem">Choisissez le type de virement. Aucun PA n’est dépensé à cette étape.</p>'
+    + '<button type="button" class="cpj-touche cpj-primaire" style="display:block;width:100%;margin-bottom:.65rem" onclick="ouvrirVirementJoueur(false)">Virement unique</button>'
+    + '<button type="button" class="cpj-touche" style="display:block;width:100%" onclick="ouvrirVirementJoueur(true)">Virement récurrent</button>'
+    + '<p class="cpj-note" style="margin:.8rem 0 0">Chaque virement coûte 1 PA à sa confirmation. Le virement récurrent peut être quotidien ou hebdomadaire.</p>'
+    + '</div>';
+  modal.classList.add('open');
+}
+
 async function ouvrirVirementJoueur(automatique) {
   VIREMENT_DESTINATAIRE = null;
   const titre = automatique ? 'Virement automatique — Banque Nationale' : 'Faire un virement — Banque Nationale';
@@ -13123,7 +12658,7 @@ async function confirmerVirementJoueur(automatique) {
     const m = v && REFUS_VIREMENT[v.raison];
     if (m) { showToast(m[0], m[1], false); return; }
     if (v && v.raison && !v.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(v); return; }
-    showToast('Virement non effectué', "L'opération n'a pas abouti : rien n'a été prélevé ni versé.", false);
+    showToast('Confirmation indisponible', "La réponse du serveur n'a pas pu être confirmée. Consultez votre compte avant de renouveler la demande.", false);
     return;
   }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, arg: v.arg, solde_national: v.solde_national });
@@ -14622,15 +14157,13 @@ function greffeRefus(v, defaut) {
 // Une lecture qui echoue ne casse rien : l'objet EST en base, et le prochain chargement de la
 // fiche le montrera. On ne simule jamais un objet qu'on n'a pas lu.
 async function rafraichirInventaireDepuisServeur() {
-  if (typeof sbGet !== 'function' || !state.char?.name) return false;
-  const rows = await sbGet('personnages',
-    'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
-  const inv = (Array.isArray(rows) && rows[0] && Array.isArray(rows[0].inventory))
-    ? rows[0].inventory : null;
-  if (!inv) return false;
-  if (typeof sbAdopterInventaireServeur === 'function') {
-    if (!sbAdopterInventaireServeur(rows[0])) return false;
-  } else state.inventory = inv;
+  if (typeof sbInventaireReceptionEtat !== 'function' ||
+      typeof sbAdopterInventaireServeur !== 'function' || !state.char?.name) return false;
+  // Même lecteur que les réceptions : la révision et la provenance accompagnent
+  // l'inventaire jusqu'à l'adoption. Un GET inventory seul effaçait sa révision.
+  const v = await sbInventaireReceptionEtat(state.char.name).catch(() => null);
+  if (!v || v.ok !== true || !Number.isSafeInteger(v.revision) ||
+      !Array.isArray(v.inventory) || !sbAdopterInventaireServeur(v)) return false;
   if (typeof renderInventory === 'function') renderInventory();
   return true;
 }

@@ -158,7 +158,7 @@ window.RP_I18N_RESOURCES = {
           stats: {
             step: "Etape 6 / 7",
             title: "Caracteristiques",
-            subtitle: "Distribuez vos points libres. Les bonus acquis sont deja integres.",
+            subtitle: "Distribuez vos points libres. Les bonus acquis sont deja integres. Ce choix pèse durablement : en cours de partie, les gains sont rares et le plus souvent temporaires.",
             pointsLabel: "Points a distribuer",
             info: "Au-dela de 12, chaque point coute 2. Plafond : 16 a la creation. Les niveaux 17-20 se debloquent en jeu.",
             warning_one: "Il vous reste {{count}} point non distribue. Vous pourrez le repartir plus tard depuis votre fiche de personnage.",
@@ -201,6 +201,8 @@ window.RP_I18N_RESOURCES = {
           capitalLabel: "Capital",
           traitLabel: "Trait",
           bonusSuffix: "bonus",
+          careerUseful: "Utile pour votre carrière",
+          examplesLabel: "En jeu",
           malusSuffix: "malus"
         },
         career: {
@@ -315,12 +317,12 @@ window.RP_I18N_RESOURCES = {
           escort: { name: "Prostitution — Prostitue(e)", comp: "Seduction, Kompromat" }
         },
         stats: {
-          INT: { name: "Intelligence", description: "Comprendre, analyser, anticiper : utile pour l'enquete, la finance, et dejouer les pieges les plus subtils." },
-          CHA: { name: "Charisme", description: "Convaincre, seduire, apaiser : la cle de toute negociation, plaidoirie ou discours." },
-          VOL: { name: "Volonte", description: "Tenir bon : resister a la pression, a l'arrestation, a la torture -- et se battre quand il n'y a plus le choix." },
-          PER: { name: "Perception", description: "Reperer ce qui vous echappe : detecter un mensonge, filer une cible, ne jamais etre surpris." },
-          DUP: { name: "Duplicite", description: "Mentir, dissimuler, corrompre : la specialite de tous ceux qui vivent dans l'illegalite." },
-          ENT: { name: "Entregent", description: "Construire et entretenir un reseau : peu spectaculaire dans l'instant, decisif sur la duree." }
+          INT: { name: "Intelligence", description: "Comprendre, analyser, anticiper : utile pour l'enquete, la finance, et dejouer les pieges les plus subtils.", examples: "Placements financiers, vol, empoisonnement, actions sur les indices de la ville." },
+          CHA: { name: "Charisme", description: "Convaincre, seduire, apaiser : la cle de toute negociation, plaidoirie ou discours.", examples: "Tracts électoraux, marchandage à l'Assemblée, corruption de la presse, négociation d'un terrain, se justifier devant une convocation." },
+          VOL: { name: "Volonte", description: "Tenir bon : resister a la pression, a l'arrestation, a la torture -- et se battre quand il n'y a plus le choix.", examples: "Combats, fuir ou résister face à la police, se rebeller en détention, réprimer une manifestation, batailles militaires." },
+          PER: { name: "Perception", description: "Reperer ce qui vous echappe : detecter un mensonge, filer une cible, ne jamais etre surpris.", examples: "Combats, contre-espionnage, contrôle des caisses en douane, repérer une action illégale, vol." },
+          DUP: { name: "Duplicite", description: "Mentir, dissimuler, corrompre : la specialite de tous ceux qui vivent dans l'illegalite.", examples: "Évasion, contrebande, corrompre un douanier, débaucher un PNJ, échapper au flagrant délit." },
+          ENT: { name: "Entregent", description: "Construire et entretenir un reseau : peu spectaculaire dans l'instant, decisif sur la duree.", examples: "Marchandage à l'Assemblée, offrir une tournée au bar, réseau de contacts." }
         }
       }
     }
@@ -407,7 +409,7 @@ window.RP_I18N_RESOURCES = {
           stats: {
             step: "Step 6 / 7",
             title: "Attributes",
-            subtitle: "Distribute your free points. Acquired bonuses are already factored in.",
+            subtitle: "Distribute your free points. Acquired bonuses are already factored in. This choice is long-lasting: during play, gains are rare and usually temporary.",
             pointsLabel: "Points to distribute",
             info: "Past 12, each point costs 2. Cap: 16 at creation. Levels 17-20 unlock in-game.",
             warning_one: "You have {{count}} point left to distribute. You can allocate it later from your character sheet.",
@@ -450,6 +452,8 @@ window.RP_I18N_RESOURCES = {
           capitalLabel: "Capital",
           traitLabel: "Trait",
           bonusSuffix: "bonus",
+          careerUseful: "Useful for your career",
+          examplesLabel: "In game",
           malusSuffix: "penalty"
         },
         career: {
@@ -561,12 +565,12 @@ window.RP_I18N_RESOURCES = {
           escort: { name: "Sex Work — Escort", comp: "Seduction, Kompromat" }
         },
         stats: {
-          INT: { name: "Intelligence", description: "Understand, analyze, anticipate: useful for investigation, finance, and outsmarting the subtlest traps." },
-          CHA: { name: "Charisma", description: "Convince, charm, soothe: the key to any negotiation, plea, or speech." },
-          VOL: { name: "Willpower", description: "Hold your ground: resist pressure, arrest, torture — and fight when there's no other choice left." },
-          PER: { name: "Perception", description: "Notice what escapes others: spot a lie, tail a target, never be caught off guard." },
-          DUP: { name: "Duplicity", description: "Lie, conceal, corrupt: the specialty of everyone living outside the law." },
-          ENT: { name: "Connections", description: "Build and maintain a network: unspectacular in the moment, decisive over time." }
+          INT: { name: "Intelligence", description: "Understand, analyze, anticipate: useful for investigation, finance, and outsmarting the subtlest traps.", examples: "Financial investments, theft, poisoning, actions on city indices." },
+          CHA: { name: "Charisma", description: "Convince, charm, soothe: the key to any negotiation, plea, or speech.", examples: "Election leaflets, bargaining at the Assembly, bribing the press, negotiating a plot of land, justifying yourself when summoned." },
+          VOL: { name: "Willpower", description: "Hold your ground: resist pressure, arrest, torture — and fight when there's no other choice left.", examples: "Combat, fleeing or resisting the police, rebelling in detention, repressing a demonstration, military battles." },
+          PER: { name: "Perception", description: "Notice what escapes others: spot a lie, tail a target, never be caught off guard.", examples: "Combat, counter-espionage, customs checks on crates, spotting illegal acts, theft." },
+          DUP: { name: "Duplicity", description: "Lie, conceal, corrupt: the specialty of everyone living outside the law.", examples: "Escape, smuggling, bribing a customs officer, poaching an NPC, avoiding being caught red-handed." },
+          ENT: { name: "Connections", description: "Build and maintain a network: unspectacular in the moment, decisive over time.", examples: "Bargaining at the Assembly, buying a round at the bar, network of contacts." }
         }
       }
     }
@@ -625,7 +629,7 @@ window.RP_I18N_RESOURCES = {
           stats: {
             step: "Paso 6 / 7",
             title: "Atributos",
-            subtitle: "Reparte tus puntos libres. Las bonificaciones ya obtenidas están incluidas.",
+            subtitle: "Reparte tus puntos libres. Las bonificaciones ya obtenidas están incluidas. Esta elección es duradera: durante la partida, las mejoras son escasas y casi siempre temporales.",
             pointsLabel: "Puntos por repartir",
             info: "A partir de 12, cada punto cuesta 2. Límite: 16 en la creación. Los niveles 17-20 se desbloquean durante la partida.",
             warning_one: "Te queda {{count}} punto sin repartir. Podrás asignarlo más adelante desde tu ficha de personaje.",
@@ -666,6 +670,8 @@ window.RP_I18N_RESOURCES = {
           capitalLabel: "Capital",
           traitLabel: "Rasgo",
           bonusSuffix: "bono",
+          careerUseful: "Útil para tu carrera",
+          examplesLabel: "En el juego",
           malusSuffix: "penalización"
         },
         career: {
@@ -771,12 +777,12 @@ window.RP_I18N_RESOURCES = {
           escort: { name: "Trabajo sexual — Trabajador(a) sexual", comp: "Seducción, Kompromat" }
         },
         stats: {
-          INT: { name: "Inteligencia", description: "Comprender, analizar, anticipar: útil para la investigación, las finanzas y desbaratar las trampas más sutiles." },
-          CHA: { name: "Carisma", description: "Convencer, seducir, apaciguar: la clave de toda negociación, alegato o discurso." },
-          VOL: { name: "Voluntad", description: "Aguantar: resistir la presión, la detención, la tortura, y luchar cuando ya no queda otra opción." },
-          PER: { name: "Percepción", description: "Detectar lo que se te escapa: descubrir una mentira, seguir a un objetivo, no dejarte sorprender nunca." },
-          DUP: { name: "Duplicidad", description: "Mentir, disimular, corromper: la especialidad de todos los que viven al margen de la ley." },
-          ENT: { name: "Contactos", description: "Construir y mantener una red de contactos: poco vistoso en el momento, decisivo a largo plazo." }
+          INT: { name: "Inteligencia", description: "Comprender, analizar, anticipar: útil para la investigación, las finanzas y desbaratar las trampas más sutiles.", examples: "Inversiones financieras, robo, envenenamiento, acciones sobre los índices de la ciudad." },
+          CHA: { name: "Carisma", description: "Convencer, seducir, apaciguar: la clave de toda negociación, alegato o discurso.", examples: "Folletos electorales, regateo en la Asamblea, sobornar a la prensa, negociar un terreno, justificarse ante una citación." },
+          VOL: { name: "Voluntad", description: "Aguantar: resistir la presión, la detención, la tortura, y luchar cuando ya no queda otra opción.", examples: "Combates, huir o resistir a la policía, rebelarse en detención, reprimir una manifestación, batallas militares." },
+          PER: { name: "Percepción", description: "Detectar lo que se te escapa: descubrir una mentira, seguir a un objetivo, no dejarte sorprender nunca.", examples: "Combates, contraespionaje, control de cajas en aduana, detectar un acto ilegal, robo." },
+          DUP: { name: "Duplicidad", description: "Mentir, disimular, corromper: la especialidad de todos los que viven al margen de la ley.", examples: "Evasión, contrabando, sobornar a un aduanero, captar a un PNJ, escapar del flagrante delito." },
+          ENT: { name: "Contactos", description: "Construir y mantener una red de contactos: poco vistoso en el momento, decisivo a largo plazo.", examples: "Regateo en la Asamblea, invitar a una ronda en el bar, red de contactos." }
         }
       },
       auth: {
@@ -849,7 +855,7 @@ window.RP_I18N_RESOURCES = {
           stats: {
             step: "第 6 / 7 步",
             title: "能力值",
-            subtitle: "分配你的自由點數，已獲得的加成已經計入其中。",
+            subtitle: "分配你的自由點數，已獲得的加成已經計入其中。 這個選擇影響深遠：遊戲中的提升很少，而且大多是暫時的。",
             pointsLabel: "可分配點數",
             info: "超過 12 點後，每點需消耗 2 點數。創角上限為 16 點，17-20 級將在遊戲中解鎖。",
             // 中文的基數詞在 CLDR 中只有 "other" 一種分類 -- 不需要（也不應該）為了模仿法文/英文
@@ -891,6 +897,8 @@ window.RP_I18N_RESOURCES = {
           capitalLabel: "資金",
           traitLabel: "特質",
           bonusSuffix: "加成",
+          careerUseful: "對你的職業有用",
+          examplesLabel: "遊戲中",
           malusSuffix: "減益"
         },
         career: {
@@ -996,12 +1004,12 @@ window.RP_I18N_RESOURCES = {
           escort: { name: "性產業 — 陪侍人員", comp: "魅惑、把柄操作" }
         },
         stats: {
-          INT: { name: "智力", description: "理解、分析、預判：有助於調查、理財，並識破最精密的陷阱。" },
-          CHA: { name: "魅力", description: "說服、吸引、安撫：任何談判、辯護或演說的關鍵。" },
-          VOL: { name: "意志力", description: "咬牙撐住：抵抗壓力、逮捕與拷問，並在別無選擇時挺身而戰。" },
-          PER: { name: "洞察力", description: "察覺常人忽略之處：識破謊言、跟蹤目標，永遠不被出其不意。" },
-          DUP: { name: "詭詐", description: "說謊、隱瞞、收買人心：所有遊走法律邊緣者的看家本領。" },
-          ENT: { name: "人脈手腕", description: "建立並維繫人脈網絡：當下不起眼，長遠卻是決定性的關鍵。" }
+          INT: { name: "智力", description: "理解、分析、預判：有助於調查、理財，並識破最精密的陷阱。", examples: "理財投資、竊盜、下毒、影響城市指數的行動。" },
+          CHA: { name: "魅力", description: "說服、吸引、安撫：任何談判、辯護或演說的關鍵。", examples: "競選傳單、議會討價還價、收買媒體、土地談判、應傳喚時為自己辯護。" },
+          VOL: { name: "意志力", description: "咬牙撐住：抵抗壓力、逮捕與拷問，並在別無選擇時挺身而戰。", examples: "戰鬥、逃離或抵抗警察、在拘留中反抗、鎮壓示威、軍事戰役。" },
+          PER: { name: "洞察力", description: "察覺常人忽略之處：識破謊言、跟蹤目標，永遠不被出其不意。", examples: "戰鬥、反間諜、海關貨箱檢查、察覺非法行為、竊盜。" },
+          DUP: { name: "詭詐", description: "說謊、隱瞞、收買人心：所有遊走法律邊緣者的看家本領。", examples: "越獄、走私、收買海關人員、挖角NPC、逃過現行犯逮捕。" },
+          ENT: { name: "人脈手腕", description: "建立並維繫人脈網絡：當下不起眼，長遠卻是決定性的關鍵。", examples: "議會討價還價、在酒吧請一輪酒、人脈網絡。" }
         }
       },
       auth: {
@@ -1079,7 +1087,7 @@ window.RP_I18N_RESOURCES = {
           stats: {
             step: "Шаг 6 из 7",
             title: "Характеристики",
-            subtitle: "Распределите свободные очки. Полученные бонусы уже учтены.",
+            subtitle: "Распределите свободные очки. Полученные бонусы уже учтены. Этот выбор надолго: в ходе игры прибавки редки и чаще всего временны.",
             pointsLabel: "Очки для распределения",
             info: "После 12 каждое очко стоит 2. Максимум при создании персонажа — 16. Уровни 17-20 открываются в игре.",
             // Pluriel russe reel : 4 categories CLDR (one/few/many/other), confirmees par
@@ -1128,6 +1136,8 @@ window.RP_I18N_RESOURCES = {
           capitalLabel: "Капитал",
           traitLabel: "Черта",
           bonusSuffix: "бонус",
+          careerUseful: "Полезно для вашей карьеры",
+          examplesLabel: "В игре",
           malusSuffix: "штраф"
         },
         career: {
@@ -1233,12 +1243,12 @@ window.RP_I18N_RESOURCES = {
           escort: { name: "Секс-индустрия — Работник(ца) эскорта", comp: "Обольщение, Компромат" }
         },
         stats: {
-          INT: { name: "Интеллект", description: "Понимать, анализировать, предвидеть: полезно для расследований, финансов и разоблачения самых хитрых ловушек." },
-          CHA: { name: "Харизма", description: "Убеждать, очаровывать, успокаивать: ключ к любым переговорам, защитной речи или выступлению." },
-          VOL: { name: "Воля", description: "Держаться до конца: выдерживать давление, аресты, пытки — и сражаться, когда выбора больше не остаётся." },
-          PER: { name: "Восприятие", description: "Замечать то, что ускользает от других: распознавать ложь, вести слежку за целью, никогда не быть застигнутым врасплох." },
-          DUP: { name: "Двуличие", description: "Лгать, скрывать, подкупать: специализация всех, кто живёт вне закона." },
-          ENT: { name: "Связи", description: "Строить и поддерживать сеть контактов: незаметно в моменте, но решающе в долгосрочной перспективе." }
+          INT: { name: "Интеллект", description: "Понимать, анализировать, предвидеть: полезно для расследований, финансов и разоблачения самых хитрых ловушек.", examples: "Финансовые вложения, кража, отравление, действия, влияющие на показатели города." },
+          CHA: { name: "Харизма", description: "Убеждать, очаровывать, успокаивать: ключ к любым переговорам, защитной речи или выступлению.", examples: "Предвыборные листовки, торг в Собрании, подкуп прессы, переговоры об участке, оправдание по вызову." },
+          VOL: { name: "Воля", description: "Держаться до конца: выдерживать давление, аресты, пытки — и сражаться, когда выбора больше не остаётся.", examples: "Бои, бегство или сопротивление полиции, бунт под арестом, разгон демонстрации, военные сражения." },
+          PER: { name: "Восприятие", description: "Замечать то, что ускользает от других: распознавать ложь, вести слежку за целью, никогда не быть застигнутым врасплох.", examples: "Бои, контрразведка, таможенный досмотр ящиков, обнаружение незаконных действий, кража." },
+          DUP: { name: "Двуличие", description: "Лгать, скрывать, подкупать: специализация всех, кто живёт вне закона.", examples: "Побег, контрабанда, подкуп таможенника, переманивание NPC, уход от задержания с поличным." },
+          ENT: { name: "Связи", description: "Строить и поддерживать сеть контактов: незаметно в моменте, но решающе в долгосрочной перспективе.", examples: "Торг в Собрании, угостить всех в баре, сеть связей." }
         }
       },
       auth: {
@@ -1317,7 +1327,7 @@ window.RP_I18N_RESOURCES = {
           stats: {
             step: "6 / 7 단계",
             title: "능력치",
-            subtitle: "자유 포인트를 분배하세요. 이미 획득한 보너스는 반영되어 있습니다.",
+            subtitle: "자유 포인트를 분배하세요. 이미 획득한 보너스는 반영되어 있습니다. 이 선택은 오래 영향을 미칩니다. 게임 중 향상은 드물고 대부분 일시적입니다.",
             pointsLabel: "분배할 포인트",
             info: "12를 넘으면 포인트당 2씩 소모됩니다. 캐릭터 생성 시 상한은 16이며, 17~20 레벨은 게임 중에 해금됩니다.",
             // 한국어는 CLDR상 "other" 한 가지 범주만 사용합니다 (중국어와 동일, Intl.PluralRules('ko')
@@ -1360,6 +1370,8 @@ window.RP_I18N_RESOURCES = {
           capitalLabel: "자본",
           traitLabel: "특성",
           bonusSuffix: "보너스",
+          careerUseful: "당신의 경력에 유용",
+          examplesLabel: "게임에서",
           malusSuffix: "패널티"
         },
         career: {
@@ -1465,12 +1477,12 @@ window.RP_I18N_RESOURCES = {
           escort: { name: "성매매 — 에스코트", comp: "유혹, 콤프로마트" }
         },
         stats: {
-          INT: { name: "지능", description: "이해하고 분석하고 예측하는 능력: 수사, 금융, 그리고 가장 교묘한 함정을 피하는 데 유용합니다." },
-          CHA: { name: "카리스마", description: "설득하고 매혹하고 진정시키는 능력: 모든 협상, 변론, 연설의 핵심입니다." },
-          VOL: { name: "의지", description: "굳건히 버티는 힘: 압박과 체포, 고문을 견디고, 더 이상 선택의 여지가 없을 때 맞서 싸우는 능력입니다." },
-          PER: { name: "지각력", description: "놓치기 쉬운 것을 알아채는 능력: 거짓말을 간파하고, 목표를 미행하며, 결코 허를 찔리지 않습니다." },
-          DUP: { name: "이중성", description: "거짓말하고 숨기고 매수하는 능력: 불법의 세계에서 살아가는 이들의 전문 분야입니다." },
-          ENT: { name: "인맥", description: "인맥을 쌓고 유지하는 능력: 당장은 눈에 띄지 않지만, 장기적으로는 결정적입니다." }
+          INT: { name: "지능", description: "이해하고 분석하고 예측하는 능력: 수사, 금융, 그리고 가장 교묘한 함정을 피하는 데 유용합니다.", examples: "금융 투자, 절도, 독살, 도시 지수에 영향을 주는 행동." },
+          CHA: { name: "카리스마", description: "설득하고 매혹하고 진정시키는 능력: 모든 협상, 변론, 연설의 핵심입니다.", examples: "선거 전단, 의회 흥정, 언론 매수, 토지 협상, 소환 시 해명." },
+          VOL: { name: "의지", description: "굳건히 버티는 힘: 압박과 체포, 고문을 견디고, 더 이상 선택의 여지가 없을 때 맞서 싸우는 능력입니다.", examples: "전투, 경찰로부터 도주 또는 저항, 구금 중 반항, 시위 진압, 군사 전투." },
+          PER: { name: "지각력", description: "놓치기 쉬운 것을 알아채는 능력: 거짓말을 간파하고, 목표를 미행하며, 결코 허를 찔리지 않습니다.", examples: "전투, 방첩, 세관 화물 검사, 불법 행위 포착, 절도." },
+          DUP: { name: "이중성", description: "거짓말하고 숨기고 매수하는 능력: 불법의 세계에서 살아가는 이들의 전문 분야입니다.", examples: "탈옥, 밀수, 세관원 매수, NPC 빼오기, 현행범 체포 피하기." },
+          ENT: { name: "인맥", description: "인맥을 쌓고 유지하는 능력: 당장은 눈에 띄지 않지만, 장기적으로는 결정적입니다.", examples: "의회 흥정, 바에서 한 잔 돌리기, 인맥 네트워크." }
         }
       },
       auth: {
@@ -1784,3 +1796,57 @@ for (const [locale,labels] of Object.entries({
 })) {
   Object.assign(window.RP_I18N_RESOURCES[locale].translation.auth,labels);
 }
+
+
+// Reconciliation i18n du socle ajoute par main, sans remplacement des anciennes traductions.
+;(function(global){
+  const patches={
+  "ar": {
+    "common": {
+      "careerUseful": "مفيد لمسارك المهني",
+      "examplesLabel": "في اللعبة"
+    },
+    "examples": {
+      "INT": "الاستثمارات المالية، السرقة، التسميم، والتأثير في مؤشرات المدينة.",
+      "CHA": "المنشورات الانتخابية، المساومة في المجلس، رشوة الصحافة، التفاوض على الأراضي، وتبرير الموقف عند الاستدعاء.",
+      "VOL": "القتال، الهرب من الشرطة أو مقاومتها، التمرد أثناء الاحتجاز، قمع المظاهرات، والمعارك العسكرية.",
+      "PER": "القتال، مكافحة التجسس، تفتيش الشحنات لدى الجمارك، كشف الأعمال غير القانونية، والسرقة.",
+      "DUP": "الهروب من السجن، التهريب، رشوة موظف الجمارك، استمالة شخصية غير لاعبة، وتجنب القبض أثناء التلبس.",
+      "ENT": "المساومة في المجلس، تقديم جولة مشروبات في الحانة، وبناء شبكة علاقات."
+    }
+  },
+  "pt-BR": {
+    "common": {
+      "careerUseful": "Útil para sua carreira",
+      "examplesLabel": "No jogo"
+    },
+    "examples": {
+      "INT": "Investimentos financeiros, furtos, envenenamentos e ações sobre os indicadores da cidade.",
+      "CHA": "Panfletos eleitorais, negociações na Assembleia, suborno da imprensa, negociação de terrenos e explicações após uma intimação.",
+      "VOL": "Combates, fuga ou resistência à polícia, rebelião durante a detenção, repressão de protestos e batalhas militares.",
+      "PER": "Combates, contraespionagem, fiscalização de cargas na alfândega, detecção de ações ilegais e furtos.",
+      "DUP": "Fuga da prisão, contrabando, suborno de um agente alfandegário, aliciamento de PNJs e evasão de flagrante.",
+      "ENT": "Negociação na Assembleia, pagar uma rodada no bar e construir uma rede de contatos."
+    }
+  },
+  "de": {
+    "common": {
+      "careerUseful": "Nützlich für deine Laufbahn",
+      "examplesLabel": "Im Spiel"
+    },
+    "examples": {
+      "INT": "Geldanlagen, Diebstahl, Vergiftungen und Aktionen, die Stadtindikatoren beeinflussen.",
+      "CHA": "Wahlflugblätter, Verhandlungen in der Versammlung, Bestechung der Presse, Grundstücksverhandlungen und Rechtfertigung bei Vorladungen.",
+      "VOL": "Kämpfe, Flucht oder Widerstand gegen die Polizei, Auflehnung in Haft, Niederschlagung von Demonstrationen und militärische Gefechte.",
+      "PER": "Kämpfe, Spionageabwehr, Zollkontrollen von Fracht, Erkennen illegaler Handlungen und Diebstahl.",
+      "DUP": "Gefängnisausbruch, Schmuggel, Bestechung von Zollbeamten, Abwerbung von NSC und Entkommen bei einer Festnahme auf frischer Tat.",
+      "ENT": "Verhandlungen in der Versammlung, eine Runde Getränke in der Bar ausgeben und ein Kontaktnetz aufbauen."
+    }
+  }
+};
+  for(const [locale,patch] of Object.entries(patches)){
+    const creation=global.RP_I18N_RESOURCES[locale].translation.creation;
+    for(const [key,value] of Object.entries(patch.common)) creation.common[key]=value;
+    for(const [name,value] of Object.entries(patch.examples)) creation.stats[name].examples=value;
+  }
+})(window);

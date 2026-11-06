@@ -63,7 +63,9 @@ function enterBuilding() {}
 function teleporterVersCellule(e) { TRACES.push('teleporte'); }
 function incrementerDetentionDeserteur() {}
 function tracerActionPourRumeur() {}
-function endommagerGrillePrison() { return Promise.resolve(true); }
+function verifierSeuilsGrillePrison() { return Promise.resolve(true); }
+var PAIEMENTS = [];
+function appliquerPaiementServeur(r) { PAIEMENTS.push(r); return true; }
 function sbSavePersonnage() { return Promise.resolve(true); }
 function formatDateHeureJeu() { return 'Jour 1'; }
 // L'horloge universelle est fournie par plateau-core.js en production.
@@ -96,8 +98,14 @@ eval(bloc('contexteInterceptionJudiciaire'));
 eval(bloc('contexteInterceptionJudiciaireValide'));
 eval(bloc('enregistrerDetention'));
 eval(bloc('verifierLiberationPrisonniers'));
+eval(bloc('libelleRefusDetention'));
+eval(bloc('adopterPeineServeur'));
 eval(bloc('doSeRebeller'));
+var arrestationAdoptionEnCours = false;
+eval(bloc('adopterArrestationServeur'));
 eval(bloc('placerAuQHS'));
+var FICHE_RELUE = null;
+function sbLoadPersonnage() { return Promise.resolve(FICHE_RELUE); }
 eval(bloc('appliquerSentence'));
 eval(bloc('doTentativeEvasion'));
 // prolongerDetentionActive est extraite SOUS UN AUTRE NOM pour les deux premiers chapitres, parce
@@ -107,6 +115,10 @@ eval(reelleProlonger);
 var PROLONGER_OK = true;
 function prolongerDetentionActive(nom, motifs, qhs) { TRACES.push('prolonge'); return Promise.resolve(PROLONGER_OK); }
 
+function codeSeul(t) {
+  var sansBlocs = t.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/<!--[\s\S]*?-->/g, ' ');
+  return sansBlocs.split('\n').filter(function (l) { return !/^\s*\/\//.test(l); }).join('\n');
+}
 var ko = 0, attendus = 0;
 function att(n, c) { attendus++; if (c) print('  ok  ' + n); else { print('  *** ' + n); ko++; } }
 function sync(p) {
@@ -118,7 +130,7 @@ function sync(p) {
 }
 function neuf(etat) {
   RPC = []; ECRITURES = []; TOASTS = []; JOURNAL = []; EVENEMENTS = []; MAILS = []; TRACES = [];
-  REPONSES = {}; POP_APPELEE = false; TRACE_APPELEE = false; RECHERCHES = []; BONUS_DESERTEUR = 0;
+  REPONSES = {}; PAIEMENTS = []; POP_APPELEE = false; TRACE_APPELEE = false; RECHERCHES = []; BONUS_DESERTEUR = 0;
   state = { char: { name: 'Ben', photoUrl: 'photo' }, country: 'republic', currentCity: 'capitale',
             day: 1, hour: 8, hp: 100, dis: 50, estEmprisonne: null, prisonniers: [], employes: [] };
   for (var k in (etat || {})) state[k] = etat[k];
@@ -126,55 +138,20 @@ function neuf(etat) {
 function ecrituresSur(table) { return ECRITURES.filter(function (e) { return e.table === table; }); }
 function rpcDe(nom) { return RPC.filter(function (r) { return r.nom === nom; }); }
 
-print('1. OUVRIR UNE DETENTION : UNE SEULE PORTE, ET SON VERDICT');
+print('1. OUVRIR UNE DETENTION : PLUS AUCUNE PORTE A L ECRAN (03/11/2026)');
 neuf();
-REPONSES['detention_ouvrir_soi'] = [{ ok: true, detention_id: 'det-1', jour_debut: 1, jour_fin: 7 }];
 var id = sync(enregistrerDetention('Ben', 'Vol', 10, undefined, 'capitale', { country: 'republic', motifs: [{ type: 'Vol', jours: 9 }] }));
-att('la porte detention_ouvrir_soi est appelee une fois', rpcDe('detention_ouvrir_soi').length === 1);
-att('aucune ecriture cliente dans detentions', ecrituresSur('detentions').length === 0);
-att('aucune ecriture cliente dans personnages', ecrituresSur('personnages').length === 0);
-att("l'identifiant rendu est celui du serveur", id === 'det-1');
-att('le jour de fin retenu est CELUI DU SERVEUR, pas celui passe par le client',
-    state.estEmprisonne.jourFin === 7 && state.estEmprisonne.jours === 6);
-att('la duree envoyee au serveur est une DUREE, pas une date', rpcDe('detention_ouvrir_soi')[0].args.p_jours === 9);
-
-neuf();
-REPONSES['detention_ouvrir_soi'] = [{ ok: true, detention_id: 'det-2', jour_debut: 3, jour_fin: 8 }];
-sync(enregistrerDetention('Ben', 'Sentence', 9, true, 'qhs', {
-  country: 'republic', motifs: [{ type: 'S', jours: 6 }], jourAffaire: 4, issueJudiciaire: 'prison',
-  autorite: 'juge', villeCondamnation: 'ville_a', detentionPrecedenteId: 'det-0', reliquatJours: 2,
-  retourVille: 'ville_a' }));
-var ex = rpcDe('detention_ouvrir_soi')[0].args.p_extras;
-att('les six metadonnees judiciaires traversent la porte',
-    ex.jour_affaire === 4 && ex.issue_judiciaire === 'prison' && ex.autorite === 'juge'
-    && ex.ville_condamnation === 'ville_a' && ex.detention_precedente_id === 'det-0'
-    && ex.reliquat_jours === 2 && ex.retour_ville === 'ville_a');
-att('le caractere QHS est demande a la porte, pas ecrit par le client',
-    rpcDe('detention_ouvrir_soi')[0].args.p_qhs === true && ecrituresSur('prisonniers_qhs').length === 0);
-
-neuf();
-REPONSES['detention_ouvrir_soi'] = [{ ok: false, raison: 'cible_deja_detenue' }];
-id = sync(enregistrerDetention('Ben', 'Vol', 5, undefined, 'capitale', {}));
-att('verdict refuse : aucun identifiant rendu', id === null);
-att('verdict refuse : aucun etat de detention pose', state.estEmprisonne === null);
-att('verdict refuse : aucun prisonnier ajoute a la liste locale', state.prisonniers.length === 0);
-
-neuf();
-id = sync(enregistrerDetention('Ben', 'Vol', null, undefined, 'capitale', {}));
-att('une peine sans terme est refusee, pas inventee', id === null && rpcDe('detention_ouvrir_soi').length === 0);
+att('enregistrerDetention n ouvre plus rien', id === null && RPC.length === 0);
+att('aucune ecriture cliente', ECRITURES.length === 0);
+att('aucun etat de detention pose', state.estEmprisonne === null);
 
 print('');
 print('2. PROLONGER : UN MOTEUR, DEUX PORTES');
 neuf({ estEmprisonne: { detentionId: 'det-1', jours: 3, jourFin: 4 } });
-REPONSES['detention_prolonger_soi'] = [{ ok: true, jours_ajoutes: 1, jour_fin: 5, detention_id: 'det-1' }];
+REPONSES['justice_prolonger_peine'] = [{ ok: false, raison: 'reserve_au_juge' }];
 var r = sync(prolongerReelle('Ben', [{ type: 'Rebellion', jours: 1 }]));
-att('sur soi-meme : la porte detention_prolonger_soi', rpcDe('detention_prolonger_soi').length === 1);
-att('et jamais celle du juge', rpcDe('justice_prolonger_peine').length === 0);
-att('la cible n est PAS un parametre de la porte du detenu',
-    rpcDe('detention_prolonger_soi')[0].args.p_nom === undefined && rpcDe('detention_prolonger_soi')[0].args.p_cible === undefined);
-att('aucune relecture cliente des motifs de la detention', ecrituresSur('detentions').length === 0);
-att('aucune ecriture cliente sur la fiche', ecrituresSur('personnages').length === 0);
-att('le jour de fin vient du serveur', r === true && state.estEmprisonne.jourFin === 5 && state.estEmprisonne.jours === 4);
+att('sur soi-meme : plus de porte du detenu, seule celle du juge', rpcDe('detention_prolonger_soi').length === 0 && rpcDe('justice_prolonger_peine').length === 1);
+att('refus nomme par le serveur : peine inchangee', r === false && state.estEmprisonne.jourFin === 4);
 
 neuf({ estEmprisonne: { detentionId: 'det-1', jours: 3, jourFin: 4 } });
 REPONSES['justice_prolonger_peine'] = [{ ok: true, jours_ajoutes: 3, jour_fin: 7 }];
@@ -182,12 +159,6 @@ r = sync(prolongerReelle('Marsault', [{ type: 'Jugement', jours: 3 }]));
 att('sur un tiers : la porte du juge', rpcDe('justice_prolonger_peine').length === 1 && r === true);
 att('et jamais celle du detenu', rpcDe('detention_prolonger_soi').length === 0);
 att('la peine du joueur courant n est pas touchee par celle d un tiers', state.estEmprisonne.jourFin === 4);
-
-neuf({ estEmprisonne: { detentionId: 'det-1', jours: 3, jourFin: 4 } });
-REPONSES['detention_prolonger_soi'] = [{ ok: false, raison: 'cible_non_detenue' }];
-r = sync(prolongerReelle('Ben', [{ type: 'Rebellion', jours: 1 }]));
-att('verdict refuse : false rendu et peine inchangee',
-    r === false && state.estEmprisonne.jourFin === 4 && state.estEmprisonne.jours === 3);
 
 print('');
 print('3. FIN DE PEINE : AUCUNE LIBERATION SANS VERDICT');
@@ -210,44 +181,45 @@ att('aucune ecriture cliente sur detentions ni personnages',
     ecrituresSur('detentions').length === 0 && ecrituresSur('personnages').length === 0);
 
 print('');
-print('4. TRANSFERT AU QHS : QUATRE ECRITURES DEVENUES UNE');
-VOL = 0;  // taux de reussite nul : la rebellion est matee a coup sur
+print('4. REBELLION : UNE SEULE PORTE SERVEUR, QUI TIRE ET TRANSFERE (03/11/2026)');
 neuf({ estEmprisonne: { detentionId: 'det-1', jourFin: 4 } });
-REPONSES['detention_transferer_qhs'] = [{ ok: true, detention_id: 'det-9', jour_fin: 31, qhs: true, detention_precedente: 'det-1' }];
-sync(doSeRebeller(1, 0));
-att('la porte detention_transferer_qhs est appelee', rpcDe('detention_transferer_qhs').length === 1);
-att('aucune cloture cliente de l ancienne ligne', ecrituresSur('detentions').length === 0);
-att('aucune inscription cliente au registre du QHS', ecrituresSur('prisonniers_qhs').length === 0);
-att('aucun drapeau QHS ecrit par le client', ecrituresSur('personnages').length === 0);
+REPONSES['detention_se_rebeller'] = [{ ok: true, reussi: false, qhs: true, detention_id: 'det-9', jour_fin: 31,
+  hp: 75, dis: 35, grilles: { niveau: 80, degats: 6 }, paiement: { ok: true, pa: 8 } }];
+sync(doSeRebeller(2, 0));
+att('la porte detention_se_rebeller est appelee', rpcDe('detention_se_rebeller').length === 1);
+att('l ecran n appelle plus le transfert QHS lui-meme', rpcDe('detention_transferer_qhs').length === 0);
+att('aucune ecriture cliente (detentions, QHS, fiche, grilles)', ECRITURES.length === 0);
 att('la nouvelle peine est celle du serveur',
     state.estEmprisonne.detentionId === 'det-9' && state.estEmprisonne.jourFin === 31 && state.estEmprisonne.qhs === true);
 att('le drapeau local est un OBJET, jamais une chaine',
     typeof state.detentionQHS === 'object' && state.detentionQHS.enQHS === true);
+att('PV et DIS sont ceux du serveur', state.hp === 75 && state.dis === 35);
+att('le paiement rendu par le serveur est adopte', PAIEMENTS.length === 1);
 att('le transfert est annonce', TOASTS.join(' | ').indexOf('Transfere au QHS') >= 0);
 
 neuf({ estEmprisonne: { detentionId: 'det-1', jourFin: 4 } });
-REPONSES['detention_transferer_qhs'] = [{ ok: false, raison: 'non_detenu' }];
-sync(doSeRebeller(1, 0));
+REPONSES['detention_se_rebeller'] = [{ ok: false, raison: 'pa_insuffisants' }];
+sync(doSeRebeller(2, 0));
 att('verdict refuse : aucun QHS annonce', TOASTS.join(' | ').indexOf('Transfere au QHS') < 0);
 att('verdict refuse : la peine en cours reste celle qui vaut', state.estEmprisonne.detentionId === 'det-1');
-att('verdict refuse : la rebellion elle-meme est quand meme racontee', TOASTS.length === 1);
+att('verdict refuse : le refus est nomme', TOASTS.length === 1 && TOASTS[0].indexOf('Points d') >= 0);
+att('verdict refuse : PV et DIS intacts', state.hp === 100 && state.dis === 50);
+att('aucun tirage dans le navigateur', codeSeul(bloc('doSeRebeller')).indexOf('Math.random') < 0);
 
-print('');
-print('5. PLACEMENT AU QHS : PAS DE TELEPORTATION SANS PEINE');
+print('5. PLACEMENT AU QHS : LA PEINE EST OUVERTE PAR LE SERVEUR (03/11/2026)');
 neuf();
-PROLONGER_OK = false;
-REPONSES['detention_ouvrir_soi'] = [{ ok: false, raison: 'cible_deja_detenue' }];
-sync(placerAuQHS('republic', 5, 'Vol a la caserne', 'ville_a'));
+FICHE_RELUE = null;
+sync(placerAuQHS({ ok: false, raison: 'deja_detenu' }));
 att('aucune peine ouverte : personne n est teleporte', TRACES.indexOf('teleporte') < 0);
-att('et le refus est dit', TOASTS.join(' | ').indexOf('Transfert impossible') >= 0);
+att('aucun appel pour ouvrir une peine', rpcDe('detention_ouvrir_soi').length === 0);
 
 neuf();
-REPONSES['detention_ouvrir_soi'] = [{ ok: true, detention_id: 'det-4', jour_debut: 1, jour_fin: 6 }];
-sync(placerAuQHS('republic', 5, 'Vol a la caserne', 'ville_a'));
-att('peine ouverte : teleportation en cellule', TRACES.indexOf('teleporte') >= 0);
-att('la ville de retour traverse la porte', rpcDe('detention_ouvrir_soi')[0].args.p_extras.retour_ville === 'ville_a');
+FICHE_RELUE = { pa: 4, recherche: [], estEmprisonne: { detentionId: 'det-4', jours: 3, jourFin: 4, qhs: true, retourVille: 'caserne', raison: 'Vol de matériel militaire' } };
+sync(placerAuQHS({ ok: true, detention_id: 'det-4', jours: 3, qhs: true, raison_peine: 'Vol de matériel militaire' }));
+att('peine ouverte par le serveur : teleportation en cellule', TRACES.indexOf('teleporte') >= 0);
+att('la peine adoptee est celle relue en base', state.estEmprisonne.detentionId === 'det-4' && state.estEmprisonne.retourVille === 'caserne');
 att('aucune inscription cliente au registre du QHS', ecrituresSur('prisonniers_qhs').length === 0);
-PROLONGER_OK = true;
+FICHE_RELUE = null;
 
 print('');
 print('6. SENTENCE : RIEN N EST ANNONCE QUI NE SOIT ECRIT');
@@ -334,36 +306,36 @@ att('torture refusee : la condamnation n est pas comptee au cumul', TRACE_APPELE
 PROLONGER_OK = true;
 
 print('');
-print('7. L EVASION : UNE CHAINE QUE L INVENTAIRE AVAIT MANQUEE');
-// LE TIRAGE EST MAITRISE, sinon ces epreuves seraient aleatoires : Math.random est remplace.
-var TIRAGE = 0;
-Math.random = function () { return TIRAGE; };
-
+print('7. L EVASION : TIREE ET CLOSE PAR LE SERVEUR (03/11/2026)');
 neuf({ estEmprisonne: { detentionId: 'det-1', jourFin: 9, jours: 8 } });
-VOL = 30; TIRAGE = 0; BONUS_DESERTEUR = 90;
-REPONSES['detention_clore_evasion'] = [{ ok: true, detention_id: 'det-1', reliquat_jours: 8,
-  motifs: [{ type: 'Vol', jours: 8 }], country: 'republic', jour: 1 }];
-sync(doTentativeEvasion(1, 0));
-att('la porte detention_clore_evasion est appelee', rpcDe('detention_clore_evasion').length === 1);
-att('aucune lecture ni ecriture cliente de detentions', ecrituresSur('detentions').length === 0);
+REPONSES['detention_tenter_evasion'] = [{ ok: true, reussi: true, detention_id: 'det-1', reliquat_jours: 8,
+  recherche: [{ type: 'condamnation', motifs: [{ type: 'Vol' }, { type: 'Évasion' }], reliquat_jours: 8 }],
+  paiement: { ok: true, pa: 7 } }];
+sync(doTentativeEvasion(3, 0));
+att('la porte detention_tenter_evasion est appelee', rpcDe('detention_tenter_evasion').length === 1);
+att('l ecran n appelle plus la cloture d evasion', rpcDe('detention_clore_evasion').length === 0);
+att('aucune lecture ni ecriture cliente de detentions', ECRITURES.length === 0);
 att('le detenu est libre localement', state.estEmprisonne === null);
+att('l avis de recherche est celui du serveur', state.recherche && state.recherche[0].reliquat_jours === 8);
+att('l ecran n inscrit plus l avis lui-meme', RECHERCHES.length === 0);
 att('l evasion est annoncee', TOASTS.join(' | ').indexOf('Evasion reussie !') >= 0);
-att('l avis de recherche conserve les motifs d origine rendus par la porte',
-    RECHERCHES.length === 1 && RECHERCHES[0].motifs.length === 2
-    && RECHERCHES[0].motifs[0].type === 'Vol' && RECHERCHES[0].motifs[1].type === 'Évasion');
-att('et le reliquat vient du serveur', RECHERCHES.length === 1 && RECHERCHES[0].reliquat_jours === 8);
-att('la detention precedente est citee', RECHERCHES.length === 1 && RECHERCHES[0].detention_precedente_id === 'det-1');
 
 neuf({ estEmprisonne: { detentionId: 'det-1', jourFin: 9, jours: 8 } });
-VOL = 30; TIRAGE = 0; BONUS_DESERTEUR = 90;
-REPONSES['detention_clore_evasion'] = [{ ok: false, raison: 'non_detenu' }];
-sync(doTentativeEvasion(1, 0));
+REPONSES['detention_tenter_evasion'] = [{ ok: true, reussi: false, amende: 500, jour_fin: 10,
+  est_emprisonne: { detentionId: 'det-1', jourFin: 10, jours: 9 }, pa: 6, arg: 1500, liquide: 1500 }];
+sync(doTentativeEvasion(3, 0));
+att('echec : le detenu reste detenu, peine du serveur', state.estEmprisonne && state.estEmprisonne.jourFin === 10);
+att('echec : l amende annoncee est celle du serveur', TOASTS.join(' | ').indexOf('-500 FR') >= 0);
+att('echec : la fiche rendue est adoptee', PAIEMENTS.length === 1 && PAIEMENTS[0].arg === 1500);
+
+neuf({ estEmprisonne: { detentionId: 'det-1', jourFin: 9, jours: 8 } });
+REPONSES['detention_tenter_evasion'] = [{ ok: false, raison: 'une_tentative_par_jour' }];
+sync(doTentativeEvasion(3, 0));
 att('verdict refuse : aucune evasion annoncee', TOASTS.join(' | ').indexOf('Evasion reussie') < 0);
 att('verdict refuse : le detenu reste detenu', state.estEmprisonne !== null);
-att('verdict refuse : aucun avis de recherche emis', RECHERCHES.length === 0);
-att('verdict refuse : le refus est dit', TOASTS.join(' | ').indexOf('Evasion manquee') >= 0);
+att('verdict refuse : le refus est dit', TOASTS.join(' | ').indexOf('Une seule tentative') >= 0);
+att('aucun tirage dans le navigateur', codeSeul(bloc('doTentativeEvasion')).indexOf('Math.random') < 0);
 
-print('');
 print('8. NON-REGRESSION : LA REQUETE D AVOCAT TIREE AU HASARD NE DOIT PAS RENAITRE');
 // Chapitre ajoute le 13 octobre 2026, le jour ou la mecanique a ete supprimee. Son role n'est pas
 // d'eprouver un comportement : c'est un VERROU. La requete reduisait la peine sur un d100 contre
@@ -371,10 +343,6 @@ print('8. NON-REGRESSION : LA REQUETE D AVOCAT TIREE AU HASARD NE DOIT PAS RENAI
 // l'ordre, la route, le handler ou la porte serveur revenaient par un copier-coller, ce chapitre
 // rougit. La mesure porte sur le CODE : `codeSeul` retire les commentaires, sinon ce sont les
 // commentaires qui expliquent la suppression qui feraient echouer les epreuves.
-function codeSeul(t) {
-  var sansBlocs = t.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/<!--[\s\S]*?-->/g, ' ');
-  return sansBlocs.split('\n').filter(function (l) { return !/^\s*\/\//.test(l); }).join('\n');
-}
 var RACINE = '/Users/fredericjasseron/ResPublica/';
 var jsData    = codeSeul(readFile(RACINE + 'data.js'));
 var jsRouter  = codeSeul(readFile(RACINE + 'plateau-router.js'));

@@ -2,6 +2,11 @@
 function restaurantLutheciaIci() {
   return state.country==='republic'&&state.currentCity==='capitale'&&state.currentBuilding==='hotel-republica'&&state.currentRoom==='restaurant';
 }
+// #379 (03/11/2026) : le diner d'affaires du Capitaine Sauvage (PSM) passe par les MEMES portes
+// serveur (contrat commerce_v1, migration 20261103235800). Seuls changent la carte et le prix.
+function restaurantDinerContratIci() {
+  return restaurantLutheciaIci()||(state.country==='republic'&&state.currentCity==='ville_a'&&state.currentBuilding==='capitaine-sauvage'&&state.currentRoom==='salle_principale');
+}
 function restaurantLutheciaCarte(data,pays,ville,batiment,piece) {
   if(!data||pays!=='republic'||ville!=='capitale'||batiment!=='hotel-republica') return data;
   if(state.country!==pays||state.currentCity!==ville||state.currentBuilding!==batiment) return data;
@@ -39,7 +44,7 @@ async function restaurantLutheciaInviter(nomInvite,estPJ) {
     try{sessionStorage.removeItem(stockage);}catch(_){}RP_RESTAURANT_REQUETES.delete(signature);
     document.getElementById('modal-postes')?.classList.remove('open');
     state._restaurantLutheciaSuivi=true;
-    showToast(v.statut==='refusee'?'Invitation refusée':'Invitation enregistrée',v.statut==='refusee'?'Aucun paiement effectué.':'Deux repas et deux champagnes seront servis uniquement après acceptation et confirmation serveur.',v.statut!=='refusee');
+    showToast(v.statut==='refusee'?'Invitation refusée':'Invitation enregistrée',v.statut==='refusee'?'Aucun paiement effectué.':'Le dîner sera servi et facturé uniquement après acceptation et confirmation serveur.',v.statut!=='refusee');
     await restaurantLutheciaSuivre(true);
   });
 }
@@ -58,7 +63,7 @@ async function restaurantLutheciaRepondre(id,accepte) {
   });
 }
 async function restaurantLutheciaSuivre(force=false) {
-  if(!force&&!state._restaurantLutheciaSuivi&&!restaurantLutheciaIci())return;
+  if(!force&&!state._restaurantLutheciaSuivi&&!restaurantDinerContratIci())return;
   return restaurantLutheciaActe('suivre',async(c,valide)=>{
     const liste=await sbRpcVerdict('restaurant_diner_suivre',{}, {encoreValide:valide});
     if(!valide()||liste?.ok!==true||!Array.isArray(liste.invitations))return;
@@ -77,7 +82,7 @@ async function restaurantLutheciaSuivre(force=false) {
       const acquit=await sbRpcVerdict('restaurant_diner_acquitter',{p_invitation:invitation.id},{encoreValide:valide});
       if(!valide())return;
       if(acquit?.ok!==true||acquit.rejeu)continue;
-      showToast(resultat.ok?'Dîner servi':'Dîner non servi',resultat.ok?'Deux repas et deux champagnes servis ; 300 FR facturés une seule fois à l’organisateur.':'Le serveur a refusé le service : aucun débit ni consommation partielle.',!!resultat.ok);
+      showToast(resultat.ok?'Dîner servi':'Dîner non servi',resultat.ok?('Deux repas et '+(resultat.champagnes?'deux champagnes':'une bouteille de vin')+' servis ; '+resultat.total+' FR facturés une seule fois à l’organisateur.'):'Le serveur a refusé le service : aucun débit ni consommation partielle.',!!resultat.ok);
       if(resultat.ok&&typeof tracerActionPourRumeur==='function')tracerActionPourRumeur('diner_affaires_accepte',invitation.invite);
       if(resultat.ok&&invitation.inviteur===c.nom&&typeof advanceTime==='function')advanceTime(2);
     }

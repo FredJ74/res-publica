@@ -1,0 +1,18 @@
+✔ ancienne file argent : aucun débit, don, sauvegarde ni marquage local (61.404615ms)
+✔ ancienne file credit : aucun débit, don, sauvegarde ni marquage local (21.517411ms)
+✔ ancienne file objet : aucun débit, don, sauvegarde ni marquage local (27.50684ms)
+✔ ancienne file matiere : aucun débit, don, sauvegarde ni marquage local (19.583347ms)
+✔ codétenu : commande existante, prix/profil jamais imposés null (23.086921ms)
+✔ codétenu : commande existante, prix/profil jamais imposés {"ok":false,"raison":"metier_non_recrutable"} (13.474778ms)
+✔ codétenu : commande existante, prix/profil jamais imposés {"ok":false,"raison":"paiement_refuse"} (13.61215ms)
+✔ codétenu : commande existante, prix/profil jamais imposés {"ok":true,"pnj_id":"serveur"} (13.725593ms)
+✔ codétenu : double clic et réponse tardive d’une autre session (14.652528ms)
+✔ catalogue canonique : codétenu reste non actif, aucune identité du décor transformée (5.409827ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 226.782363

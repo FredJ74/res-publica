@@ -1,9 +1,19 @@
 // Point d'entree par ville — sert a savoir si cette ville utilise la nouvelle navigation par scenes
 const RUE_CENTRALE_DEPART = {
   republic: { capitale: 'luthecia-palais-presidentiel', ville_a: 'psm-centre-multimodal', ville_b: 'montrouge-vue-3', caserne: 'caserne-exterieur', qhs: 'qhs-exterieur' },
-  soviet:   { capitale: 'novomirsk-vue-1' }
+  soviet:   { capitale: 'novomirsk-vue-1', ville_a: 'starovka-rue-gare', ville_b: 'krasnov-rue-gare' }
   // Autres villes/empires a ajouter au fur et a mesure des images produites
 };
+
+// NAVIGATION DE RUE TENUE PAR LE SERVEUR, POUR TOUTE VILLE QUI A DES RUES (4 novembre 2026).
+// Le deplacement de rue, la sortie d'un batiment et la reprise apres rechargement etaient
+// confirmes par le serveur pour la seule Republia (« si le pays est Republia ») : a Novomirsk, la
+// sortie n'etait jamais enregistree, le serveur gardait le PJ dans le batiment quitte, et un
+// rechargement le ramenait au Centre multimodal (constat de Fred). Les fonctions serveur sont
+// communes a tous les empires ; seule la presence de rues dans la ville decide.
+function rueCentraleServeur(pays, ville) {
+  return !!(RUE_CENTRALE_DEPART[pays] && RUE_CENTRALE_DEPART[pays][ville]);
+}
 
 // =====================================================================
 // LES PREMIERS PAS D'UN PERSONNAGE NEUF (2 octobre 2026)
@@ -534,11 +544,12 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'psm-terrains-vente': {
-      // 'psm-terrains-lots' est un PLACEHOLDER (sous-scene des 5 lots, pas encore codee,
-      // sur le modele de 'luthecia-terrains-lots').
+      // Terrains a batir de PSM : sous-lieu a onglets (une parcelle par onglet), comme Montrouge
+      // (decision de Fred, 04/11/2026 : plus de selection sur l'image, dont les infobulles ne
+      // correspondaient pas aux parcelles). Les entrees serveur des terrains sont sur ce noeud.
       image: 'images/rue-terrains-vente-psm.webp',
       zones: [
-        { xPct: [55, 95], nom: 'Terrains à Bâtir', type: 'noeud', noeudId: 'psm-terrains-lots' }
+        { xPct: [55, 95], nom: 'Terrains à bâtir de Port-Sainte-Marie', type: 'sous-lieu' }
       ],
       liens: { droite: 'psm-pole-tabac-entrepot', arriere: 'psm-chantier-naval' },
       flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
@@ -564,23 +575,15 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'psm-terrains-lots': {
+      // Ancienne sous-scene des lots (selection sur l'image), retiree le 04/11/2026 : les terrains
+      // s'ouvrent par onglets depuis psm-terrains-vente. Le noeud reste declare pour qu'un PJ qui
+      // s'y trouvait encore puisse revenir en arriere. Correctif du 04/11 (signale par Fred) : un PJ
+      // reste positionne ici voyait l'image sans aucune zone ni onglet ; toute l'image ramene
+      // desormais au point de vue des Terrains a batir (seul noeud ou le serveur accepte l'entree
+      // dans un terrain), d'ou s'ouvre l'ecran a onglets.
       image: 'images/rue-terrains-lots-detail-psm.webp',
       zones: [
-        // Correctif du 5 septembre 2026 (arbitrage valide) : Port-Sainte-Marie a QUATRE terrains,
-        // ceux reellement declares dans WORLD.republic.ville_a (-8 a -11). Une 5e zone ouvrait
-        // 'terrain-a-batir-2', qui est le lot 2 de la Chataigneraie, terrain de LUTHECIA (et deja
-        // possede par un joueur) : incoherence ancienne, la zone est supprimee. Aucun 5e terrain
-        // n'est cree, aucun identifiant n'est renumerote.
-        //
-        // Les surfaces annoncees ici (1650 / 2200 / 3100 / 4200 / 5500 m²) ne correspondaient a
-        // AUCUNE donnee : les quatre terrains de PSM sont declares a 1500 m² chacun dans data.js.
-        // Les libelles sont donc alignes sur la donnee canonique, et nommes d'apres le terrain
-        // qu'ils ouvrent reellement. Les xPct des 4 zones conservees sont INCHANGEES (aucune
-        // modification de zone cliquable dans ce lot).
-        { xPct: [30, 45], nom: 'Lot 8 (1500 m²)',  type: 'batiment', buildingId: 'terrain-a-batir-8' },
-        { xPct: [58, 68], nom: 'Lot 9 (1500 m²)',  type: 'batiment', buildingId: 'terrain-a-batir-9' },
-        { xPct: [48, 58], nom: 'Lot 10 (1500 m²)', type: 'batiment', buildingId: 'terrain-a-batir-10' },
-        { xPct: [78, 92], nom: 'Lot 11 (1500 m²)', type: 'batiment', buildingId: 'terrain-a-batir-11' }
+        { xPct: [0, 100], nom: 'Terrains à bâtir de Port-Sainte-Marie', type: 'noeud', noeudId: 'psm-terrains-vente' }
       ],
       liens: { arriere: 'psm-terrains-vente' },
       flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
@@ -794,18 +797,358 @@ const RUE_CENTRALE_NOEUDS = {
   // salle vide ou de ne rien faire du tout. Le jour ou le batiment est developpe, il suffit de
   // remplacer { type: 'a-venir' } par { type: 'batiment', buildingId: '...' }.
   //
-  // Compte exact a la livraison : 34 hotspots, dont 17 raccordes (16 batiments distincts, le
+  // Compte exact a la livraison (15/09) : 34 hotspots, dont 17 raccordes (16 batiments distincts, le
   // Grand Hotel comptant deux entrees) et 17 encore fermes. Le message du commit ef4bcc9
   // annoncait par erreur 13 raccordes / 21 fermes ; les chiffres exacts sont ceux-ci, verifies
   // par banc_novomirsk.py.
   // ===========================================================
   soviet: {
 
+    // Starovka : la gare utilise le transport et les pièces du socle partagé.
+    'starovka-rue-gare': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_gare.webp',
+      zones: [
+        { xPct: [0, 43], yPct: [6, 77], nom: 'Gare de Starovka', type: 'batiment', buildingId: 'centre-multinodal-montrouge' }
+      ],
+      liens: { toutDroit: 'starovka-rue-port-industriel', arriere: 'starovka-rue-hotel' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    // Port industriel : seul retour vers la gare.
+    'starovka-rue-port-industriel': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_port industriel.webp',
+      // 06/11/2026 : l'entrepot (hangar a l'enseigne de Starovka, a gauche) et le port (grue et
+      // brise-glace, a droite) ; sorties declarees dans rue_sorties_batiments (migration 20261106040500).
+      zones: [
+        { xPct: [0, 32],   yPct: [5, 72],  nom: 'Entrepôt Logistique de Starovka', type: 'batiment', buildingId: 'entrepot-logistique-starovka' },
+        { xPct: [50, 100], yPct: [8, 78],  nom: 'Port Industriel de Starovka',     type: 'batiment', buildingId: 'port-starovka' }
+      ],
+      liens: { arriere: 'starovka-rue-gare' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
+    },
+
+    'starovka-rue-hotel': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_hotel.webp',
+      zones: [],
+      liens: { toutDroit: 'starovka-rue-gare', arriere: 'starovka-maisons-ferme' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    'starovka-maisons-ferme': {
+      image: 'images/Sovarka/Starovka/Starovka_maisons_ferme.webp',
+      zones: [],
+      liens: { toutDroit: 'starovka-rue-hotel', arriere: 'starovka-rue-petrole-ferme' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    'starovka-rue-petrole-ferme': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_pétrole_ferme.webp',
+      zones: [],
+      liens: {
+        toutDroit: 'starovka-maisons-ferme',
+        droite: 'starovka-rue-terrains',
+        arriere: 'starovka-rue-locaux-a-louer'
+      },
+      flechesStyle: {
+        toutDroit: RC_FLECHE_HAUT,
+        arriere: RC_FLECHE_BAS,
+        droite: 'top:50%; right:10px; transform:translateY(-50%);'
+      }
+    },
+
+    'starovka-rue-terrains': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_terrains.webp',
+      zones: [],
+      liens: { gauche: 'starovka-rue-petrole-ferme', droite: 'starovka-rue-logements-collectifs' },
+      flechesStyle: {
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);',
+        droite: 'top:50%; right:10px; transform:translateY(-50%);'
+      }
+    },
+
+    'starovka-rue-logements-collectifs': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_logements collectifs.webp',
+      zones: [],
+      liens: {
+        gauche: 'starovka-rue-terrains',
+        arriere: 'starovka-rue-restaurant-boutique',
+        droite: 'starovka-rue-stade'
+      },
+      flechesStyle: {
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);',
+        arriere: RC_FLECHE_BAS,
+        droite: 'top:50%; right:10px; transform:translateY(-50%);'
+      }
+    },
+
+    'starovka-rue-stade': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_stade.webp',
+      zones: [],
+      liens: { gauche: 'starovka-rue-logements-collectifs' },
+      flechesStyle: { gauche: 'top:50%; left:10px; transform:translateY(-50%);' }
+    },
+
+    'starovka-rue-restaurant-boutique': {
+      image: 'images/Sovarka/Starovka/Starovka_Rue_restaurant-boutique.webp',
+      zones: [],
+      liens: { toutDroit: 'starovka-rue-logements-collectifs', arriere: 'starovka-rue-blizzard' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    'starovka-rue-blizzard': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_blizzard.webp',
+      zones: [],
+      liens: { toutDroit: 'starovka-rue-restaurant-boutique', arriere: 'starovka-rue-mairie-marche' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    'starovka-rue-mairie-marche': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_mairie_marché.webp',
+      zones: [],
+      liens: { toutDroit: 'starovka-rue-blizzard', gauche: 'starovka-rue-lycee-commissariat' },
+      flechesStyle: {
+        toutDroit: RC_FLECHE_HAUT,
+        gauche: 'bottom:10px; left:10px;'
+      }
+    },
+
+    'starovka-rue-lycee-commissariat': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_lycée_commissariat.webp',
+      zones: [],
+      liens: { droite: 'starovka-rue-mairie-marche', gauche: 'starovka-rue-bureaux-caserne' },
+      flechesStyle: {
+        droite: 'top:50%; right:10px; transform:translateY(-50%);',
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);'
+      }
+    },
+
+    'starovka-rue-bureaux-caserne': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_bureaux_caserne.webp',
+      zones: [],
+      liens: {
+        droite: 'starovka-rue-lycee-commissariat',
+        toutDroit: 'starovka-rue-magasin-chasse'
+      },
+      flechesStyle: {
+        droite: 'top:50%; right:10px; transform:translateY(-50%);',
+        toutDroit: 'top:10px; left:43%; transform:translateX(-50%);'
+      }
+    },
+
+    'starovka-rue-magasin-chasse': {
+      image: 'images/Sovarka/Starovka/Starkova_rue_magasin chasse.webp',
+      zones: [],
+      liens: {
+        arriere: 'starovka-rue-bureaux-caserne',
+        toutDroit: 'starovka-rue-locaux-a-louer'
+      },
+      flechesStyle: {
+        arriere: RC_FLECHE_BAS,
+        toutDroit: 'top:10px; left:43%; transform:translateX(-50%);'
+      }
+    },
+
+    'starovka-rue-locaux-a-louer': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_locaux a louer.webp',
+      zones: [],
+      liens: {
+        arriere: 'starovka-rue-magasin-chasse',
+        toutDroit: 'starovka-rue-petrole-ferme'
+      },
+      flechesStyle: {
+        arriere: RC_FLECHE_BAS,
+        toutDroit: RC_FLECHE_HAUT
+      }
+    },
+
+    // KRASNOV — la gare donne vers la rue de l'entrepôt par une seule flèche BAS.
+    // Les autres directions restent non définies, conformément à l'arbitrage du game designer.
+    'krasnov-rue-gare': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue gare.webp',
+      zones: [
+        { xPct: [0, 48], yPct: [8, 76], nom: 'Gare de Krasnov', type: 'batiment', buildingId: 'centre-multinodal-montrouge' }
+      ],
+      liens: { arriere: 'krasnov-rue-entrepot' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
+    },
+
+    'krasnov-rue-entrepot': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue entrepôt.webp',
+      zones: [
+        { xPct: [0, 64], yPct: [2, 60], nom: 'Entrepôt Logistique de Krasnov', type: 'batiment', buildingId: 'entrepot-logistique-krasnov' }
+      ],
+      liens: { toutDroit: 'krasnov-rue-gare', droite: 'krasnov-rue-maison' },
+      flechesStyle: {
+        toutDroit: 'top:10px; left:66.6667%; transform:translateX(-50%);',
+        droite: 'bottom:10px; right:10px;'
+      }
+    },
+
+    // Rue des maisons : aucune direction supplémentaire tant que non définie.
+    'krasnov-rue-maison': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue maison.webp',
+      zones: [],
+      liens: { gauche: 'krasnov-rue-entrepot', droite: 'krasnov-rue-terrains' },
+      flechesStyle: {
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);',
+        droite: 'top:50%; right:10px; transform:translateY(-50%);'
+      }
+    },
+
+    // Krasnov : l'image du marché fermé est disponible, son accès est actif.
+    'krasnov-rue-terrains': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue terrains.webp',
+      zones: [],
+      liens: { gauche: 'krasnov-rue-maison', toutDroit: 'krasnov-rue-eglise', droite: 'krasnov-rue-marche-ferme' },
+      flechesStyle: {
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);',
+        droite: 'top:66.6667%; right:10px; transform:translateY(-50%);'
+      }
+    },
+
+    'krasnov-rue-marche-ferme': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue marché ferme.webp',
+      zones: [],
+      liens: { gauche: 'krasnov-rue-terrains', droite: 'krasnov-centre-artisanal' },
+      flechesStyle: {
+        gauche: 'top:66.6667%; left:10px; transform:translateY(-50%);',
+        droite: 'top:66.6667%; right:10px; transform:translateY(-50%);'
+      }
+    },
+
+    'krasnov-centre-artisanal': {
+      image: 'images/Sovarka/Krasnov/Krasnov centre artisanal.webp',
+      zones: [],
+      liens: { gauche: 'krasnov-rue-marche-ferme', toutDroit: 'krasnov-rue-stade-commissariat' },
+      flechesStyle: {
+        gauche: 'top:66.6667%; left:10px; transform:translateY(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    'krasnov-rue-stade-commissariat': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue stade commissariat.webp',
+      zones: [
+        // Façades identifiées sur l'image : police à gauche, stade à droite.
+        // Les pièces et les ordres sont hérités des gabarits partagés, non dupliqués.
+        { xPct: [0, 42], yPct: [9, 77], nom: 'Commissariat de Krasnov', type: 'batiment', buildingId: 'commissariat-local' },
+        { xPct: [57, 100], yPct: [8, 77], nom: 'Stade Étoile Rouge de Krasnov', type: 'batiment', buildingId: 'stade' }
+      ],
+      liens: { arriere: 'krasnov-centre-artisanal', toutDroit: 'krasnov-rue-ecole-foret' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    'krasnov-rue-ecole-foret': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue école foret.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-stade-commissariat', toutDroit: 'krasnov-rue-distillerie-radar' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Krasnov : retour vers l'école / forêt, puis route vers les immeubles.
+    'krasnov-rue-distillerie-radar': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue distillerie centre radar.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-ecole-foret', toutDroit: 'krasnov-rue-immeubles-centre-commercial' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Rue des immeubles et du centre commercial : retour distillerie, puis mairie.
+    'krasnov-rue-immeubles-centre-commercial': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue immeubles centre commercial.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-distillerie-radar', toutDroit: 'krasnov-rue-mairie-place' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Place de la mairie : retour centre commercial et suite vers la rue tabac-bar.
+    'krasnov-rue-mairie-place': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue mairie place.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Rue du tabac/bar : retour à la mairie et progression vers station/musée.
+    'krasnov-rue-tabac-bar': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue tabac bar.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-mairie-place', toutDroit: 'krasnov-rue-station-musee' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Musée : retour tabac/bar et progression vers les bureaux.
+    'krasnov-rue-station-musee': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue station musée.webp',
+      // Station-service de Krasnov (vehicules personnels, 05/11/2026) ; le musee reste a raccorder.
+      zones: [
+        { xPct: [66, 100], yPct: [33, 68], nom: 'Station-service de Krasnov', type: 'batiment', buildingId: 'station-service-krasnov' }
+      ],
+      liens: { arriere: 'krasnov-rue-tabac-bar', toutDroit: 'krasnov-rue-bureaux' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Bureaux : la sortie haute est légèrement décalée vers la gauche.
+    'krasnov-rue-bureaux': {
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_bureaux.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-station-musee', toutDroit: 'krasnov-rue-descendante' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:43%; transform:translateX(-50%);'
+      }
+    },
+
+    // Rue descendante : raccordement de la boucle jusqu'à l'église.
+    'krasnov-rue-descendante': {
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_descendante.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-bureaux', toutDroit: 'krasnov-rue-eglise' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Église : l'ancienne flèche droite en attente boucle vers la rue descendante.
+    'krasnov-rue-eglise': {
+      image: 'images/Sovarka/Krasnov/Krasnov rue église.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-terrains', droite: 'krasnov-rue-descendante' },
+      flechesStyle: {
+        arriere: 'bottom:10px; left:43%; transform:translateX(-50%);',
+        droite: 'top:33.3333%; right:10px; transform:translateY(-50%);'
+      }
+    },
+
     // V1 — Place du Peuple. Point de depart de la ville.
     'novomirsk-vue-1': {
       image: 'images/rue-palais-gouvernement-place-novomirsk.webp',
       zones: [
-        { xPct: [0, 17],  yPct: [36, 90], nom: 'Librairie du Peuple', type: 'a-venir' },
+        // Raccordee le 04/11/2026 (decision de Fred) : copie de l'Imprimerie-Librairie de PSM.
+        { xPct: [0, 17],  yPct: [36, 90], nom: 'Librairie du Peuple', type: 'batiment', buildingId: 'imprimerie-librairie' },
         // Le grand palais abritera plus tard la Presidence ET le Gouvernement ; son nom
         // fonctionnel est desormais "Palais du Gouvernement de Sovarka", quel que soit
         // l'ancien nom du fichier image.
@@ -819,8 +1162,10 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-2': {
       image: 'images/rue-musee-restaurant-novomirsk.webp',
       zones: [
-        { xPct: [0, 23],   yPct: [22, 70], nom: 'Restaurant La Mère Volga', type: 'a-venir' },
-        { xPct: [76, 100], yPct: [0, 74],  nom: 'Musée municipal de Novomirsk', type: 'a-venir' }
+        // Raccorde le 04/11/2026 (decision de Fred) : copie du Capitaine Sauvage de PSM.
+        { xPct: [0, 23],   yPct: [22, 70], nom: 'Restaurant La Mère Volga', type: 'batiment', buildingId: 'capitaine-sauvage' },
+        // Raccorde le 04/11/2026 (decision de Fred) : copie du musee de PSM (pantheon de la ville).
+        { xPct: [76, 100], yPct: [0, 74],  nom: 'Musée municipal de Novomirsk', type: 'batiment', buildingId: 'musee-novomirsk' }
       ],
       liens: { toutDroit: 'novomirsk-vue-1', arriere: 'novomirsk-vue-3' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
@@ -840,25 +1185,28 @@ const RUE_CENTRALE_NOEUDS = {
     // V4 — Grand Hotel (entree principale) et Galeries.
     // Le Grand Hotel a DEUX entrees exterieures (V4 et V5) ; sa sortie canonique ramene
     // toujours ici, d'ou le sortieNoeudId pose sur les deux zones.
-    // Une fleche BAS avait ete prevue mais sa destination n'a jamais ete definie : absente.
+    // La liaison en face vers V3 assure le retour vers la rue du notaire.
     'novomirsk-vue-4': {
       image: 'images/rue-hotel-galeries-novomirsk.webp',
       zones: [
         { xPct: [0, 23],   yPct: [8, 74], nom: 'Grand Hôtel de Sovarka', type: 'batiment', buildingId: 'hotel-republica', sortieNoeudId: 'novomirsk-vue-4' },
         { xPct: [79, 100], yPct: [2, 70], nom: 'Galeries de Novomirsk', type: 'batiment', buildingId: 'centre-commercial' }
       ],
-      liens: { gauche: 'novomirsk-vue-5', droite: 'novomirsk-vue-15' }
+      liens: { toutDroit: 'novomirsk-vue-3', gauche: 'novomirsk-vue-5', droite: 'novomirsk-vue-15' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT }
     },
 
     // V5 — Seconde entree du Grand Hotel, et centre d'affaires.
-    // Une fleche BAS avait ete prevue mais sa destination n'a jamais ete definie : absente.
+    // La liaison haute conduit a V3 ; la sortie laterale vers V6 conserve les ambassades.
     'novomirsk-vue-5': {
       image: 'images/rue-hotel-centre-affaires-novomirsk.webp',
       zones: [
         { xPct: [0, 25],   yPct: [8, 74], nom: 'Centre d\'affaires de Novomirsk', type: 'batiment', buildingId: 'centre-affaires' },
         { xPct: [75, 100], yPct: [0, 74], nom: 'Grand Hôtel de Sovarka', type: 'batiment', buildingId: 'hotel-republica', sortieNoeudId: 'novomirsk-vue-4' }
       ],
-      liens: { droite: 'novomirsk-vue-4', toutDroit: 'novomirsk-vue-6' },
+      // Carrefour : en face, la rue du notaire/commissariat (V3).
+      // Les ambassades (V6) restent accessibles par la gauche, l'hotel (V4) par la droite.
+      liens: { toutDroit: 'novomirsk-vue-3', gauche: 'novomirsk-vue-6', droite: 'novomirsk-vue-4' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT }
     },
 
@@ -866,7 +1214,9 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-6': {
       image: 'images/rue-ambassades-armurerie-novomirsk.webp',
       zones: [
-        { xPct: [0, 30],   yPct: [0, 72],  nom: 'Palais des Ambassades', type: 'a-venir' },
+        // Raccorde le 04/11/2026 (decision de Fred) : copie du Quartier des Ambassades de Luthecia,
+        // ordres « Bientot disponible » jusqu'au voyage entre empires.
+        { xPct: [0, 30],   yPct: [0, 72],  nom: 'Palais des Ambassades', type: 'batiment', buildingId: 'palais-ambassades-novomirsk' },
         { xPct: [79, 100], yPct: [14, 78], nom: 'Armurerie de Novomirsk', type: 'batiment', buildingId: 'armurerie' }
       ],
       liens: { arriere: 'novomirsk-vue-5', toutDroit: 'novomirsk-vue-7' },
@@ -877,9 +1227,11 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-7': {
       image: 'images/rue-residences-eglise-novomirsk.webp',
       zones: [
-        { xPct: [0, 16],   yPct: [18, 74], nom: 'Pavillon des Ambassadeurs', type: 'a-venir' },
+        // Raccorde le 04/11/2026 (decisions de Fred) : appartements de luxe, trois suites, salle de reception, bar.
+        { xPct: [0, 16],   yPct: [18, 74], nom: 'Pavillon des Ambassadeurs', type: 'batiment', buildingId: 'pavillon-ambassadeurs-novomirsk' },
         { xPct: [33, 70],  yPct: [2, 74],  nom: 'Grande Église du Tractorisme', type: 'batiment', buildingId: 'kolkhoze-spirituel' },
-        { xPct: [85, 100], yPct: [18, 74], nom: 'Résidence impériale', type: 'a-venir' }
+        // Raccordee le 04/11/2026 (decisions de Fred) : logements de prestige louables.
+        { xPct: [85, 100], yPct: [18, 74], nom: 'Résidence impériale', type: 'batiment', buildingId: 'residence-imperiale-novomirsk' }
       ],
       liens: { arriere: 'novomirsk-vue-6', gauche: 'novomirsk-vue-18', droite: 'novomirsk-vue-8' },
       flechesStyle: { arriere: RC_FLECHE_BAS }
@@ -891,8 +1243,8 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-8': {
       image: 'images/rue-entrepot-renseignement-novomirsk.webp',
       zones: [
-        { xPct: [0, 29],   yPct: [20, 74], nom: 'Entrepôt logistique de Novomirsk', type: 'a-venir' },
-        { xPct: [83, 100], yPct: [8, 80],  nom: 'Direction du Renseignement de Sovarka', type: 'a-venir' }
+        { xPct: [0, 29],   yPct: [20, 74], nom: 'Entrepôt Logistique de Novomirsk', type: 'batiment', buildingId: 'entrepot-logistique-novomirsk' },
+        { xPct: [83, 100], yPct: [8, 80],  nom: 'Direction du Renseignement de Sovarka', type: 'batiment', buildingId: 'siege-renseignement' }
       ],
       liens: { droite: 'novomirsk-vue-7', toutDroit: 'novomirsk-vue-9' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT }
@@ -924,11 +1276,13 @@ const RUE_CENTRALE_NOEUDS = {
 
     // V11 — Premiere entree de la Caserne centrale, et garage.
     // La Caserne a DEUX entrees (V11 et V12) ; sa sortie canonique ramene toujours a V12.
+    // Caserne du socle (BUILDINGS['caserne-militaire']) : en Sovarka elle est EN VILLE, pas dans
+    // une zone hors ville comme en Republia (decision de Fred, 05/11/2026).
     'novomirsk-vue-11': {
       image: 'images/rue-caserne-garage-novomirsk.webp',
       zones: [
-        { xPct: [8, 52],   yPct: [6, 74],  nom: 'Caserne centrale de Novomirsk', type: 'a-venir', sortieNoeudId: 'novomirsk-vue-12' },
-        { xPct: [85, 100], yPct: [38, 88], nom: 'Garage de Novomirsk', type: 'a-venir' }
+        { xPct: [8, 52],   yPct: [6, 74],  nom: 'Caserne centrale de Novomirsk', type: 'batiment', buildingId: 'caserne-militaire', sortieNoeudId: 'novomirsk-vue-12' },
+        { xPct: [85, 100], yPct: [38, 88], nom: 'Garage de Novomirsk', type: 'batiment', buildingId: 'garage-novomirsk' }
       ],
       liens: { arriere: 'novomirsk-vue-1', toutDroit: 'novomirsk-vue-12' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
@@ -938,8 +1292,8 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-12': {
       image: 'images/rue-salon-coiffure-novomirsk.webp',
       zones: [
-        { xPct: [0, 34],   yPct: [0, 74],  nom: 'Caserne centrale de Novomirsk', type: 'a-venir', sortieNoeudId: 'novomirsk-vue-12' },
-        { xPct: [78, 100], yPct: [16, 88], nom: 'Salon de coiffure de Novomirsk', type: 'a-venir' }
+        { xPct: [0, 34],   yPct: [0, 74],  nom: 'Caserne centrale de Novomirsk', type: 'batiment', buildingId: 'caserne-militaire', sortieNoeudId: 'novomirsk-vue-12' },
+        { xPct: [78, 100], yPct: [16, 88], nom: 'Salon de coiffure de Novomirsk', type: 'batiment', buildingId: 'salon-coiffure-novomirsk' }
       ],
       liens: { arriere: 'novomirsk-vue-11', droite: 'novomirsk-vue-13' },
       flechesStyle: { arriere: RC_FLECHE_BAS }
@@ -961,8 +1315,8 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-14': {
       image: 'images/rue-pharmacie-logements-novomirsk.webp',
       zones: [
-        { xPct: [52, 71],  yPct: [8, 66],  nom: 'Logements', type: 'a-venir' },
-        { xPct: [71, 100], yPct: [18, 86], nom: 'Pharmacie officielle de Novomirsk', type: 'a-venir' }
+        { xPct: [52, 71],  yPct: [8, 66],  nom: 'Logements', type: 'batiment', buildingId: 'logements-novomirsk' },
+        { xPct: [71, 100], yPct: [18, 86], nom: 'Pharmacie officielle de Novomirsk', type: 'batiment', buildingId: 'pharmacie-officielle-novomirsk' }
       ],
       liens: { arriere: 'novomirsk-vue-13', droite: 'novomirsk-vue-15', toutDroit: 'novomirsk-vue-16' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
@@ -1066,23 +1420,24 @@ let rueCentraleDerniersNoeuds = {};
 // Prudence sur l'ambiguite : quelques buildingId sont partages entre plusieurs villes d'un meme
 // empire (hotel-mineur, par exemple). Si plusieurs noeuds referencent le batiment, on ne devine
 // pas -- on rend null et l'appelant retombe sur le noeud memorise, comportement d'avant.
-function noeudRueDuBatiment(pays, buildingId) {
+function noeudRueDuBatiment(pays, buildingId, ville) {
   if (!pays || !buildingId) return null;
   const noeuds = (typeof RUE_CENTRALE_NOEUDS !== 'undefined') ? RUE_CENTRALE_NOEUDS[pays] : null;
-  if (!noeuds) return null;
-  const trouves = [];
-  for (const noeudId in noeuds) {
-    const zones = noeuds[noeudId]?.zones;
-    if (!Array.isArray(zones)) continue;
-    if (zones.some(z => z && z.buildingId === buildingId)) trouves.push(noeudId);
-    // Variantes par provenance : un meme noeud peut proposer d'autres batiments selon l'arrivee.
-    const parArrivee = noeuds[noeudId]?.zonesParArrivee;
-    if (parArrivee && typeof parArrivee === 'object') {
-      for (const depuis in parArrivee) {
-        const zs = parArrivee[depuis];
-        if (Array.isArray(zs) && zs.some(z => z && z.buildingId === buildingId)
-            && !trouves.includes(noeudId)) trouves.push(noeudId);
-      }
+  const villeActive = ville || (typeof state !== 'undefined' && state.currentCity);
+  const depart = RUE_CENTRALE_DEPART[pays]?.[villeActive];
+  if (!noeuds || !depart || !noeuds[depart]) return null;
+  const file = [depart], visites = new Set(), trouves = [];
+  // Navigation graph is authoritative for a city's accessible street component.
+  while (file.length) {
+    const noeudId = file.shift();
+    if (visites.has(noeudId) || !noeuds[noeudId]) continue;
+    visites.add(noeudId);
+    const n = noeuds[noeudId];
+    const ensembles = [n.zones, ...Object.values(n.zonesParArrivee || {})];
+    if (ensembles.some(zs => Array.isArray(zs) && zs.some(z => z?.buildingId === buildingId)))
+      trouves.push(noeudId);
+    for (const dst of Object.values(n.liens || {})) {
+      if (dst && noeuds[dst] && !visites.has(dst)) file.push(dst);
     }
   }
   return trouves.length === 1 ? trouves[0] : null;
@@ -1134,7 +1489,7 @@ function trouverNoeudRueCentralePourBatiment(pays, buildingId) {
 
 async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
   const contexte=contexteNavigationRue(),lecture=++rueCentraleLecturePosition;
-  if (pays === 'republic') {
+  if ((typeof rueCentraleServeur === 'function' ? rueCentraleServeur(pays, state.currentCity) : pays === 'republic')) {
     // Une reconnexion ne reprend jamais une position provenant du localStorage.
     // Le cache ne sert qu'a choisir l'orientation de la scene, pas le lieu.
     if (typeof sbRpc !== 'function') return;
@@ -1184,7 +1539,7 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
         capitale: 'luthecia-palais-presidentiel',
         ville_a: 'psm-centre-multimodal',
         ville_b: 'montrouge-vue-3'
-      }[state.currentCity];
+      }[state.currentCity] || RUE_CENTRALE_DEPART[pays]?.[state.currentCity];
       if (departOfficiel && RUE_CENTRALE_NOEUDS[pays]?.[departOfficiel]) {
         await afficherNoeudRue(pays, departOfficiel, null);
         return;
@@ -1202,7 +1557,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   if (!positionDejaConfirmee && typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[noeudId];
   if (!noeud) return;
-  if (pays === 'republic' && !positionDejaConfirmee) {
+  if ((typeof rueCentraleServeur === 'function' ? rueCentraleServeur(pays, state.currentCity) : pays === 'republic') && !positionDejaConfirmee) {
     if (typeof sbRpc !== 'function') return;
     if(rueCentraleDeplacementEnCours&&contexteNavigationRueValide(rueCentraleDeplacementEnCours))return;
     rueCentraleDeplacementEnCours=contexte;
@@ -1264,6 +1619,12 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   fleches.forEach(f => {
     if (liensActuels[f.dir]) {
       html += '<div class="rc-fleche" style="' + f.style + '" onclick="deplacerRueCentrale(\'' + pays + '\',\'' + f.dir + '\')">' +
+        '<i class="ti ' + f.icon + '"></i></div>';
+    } else if (noeud.liensEnAttente?.[f.dir]) {
+      // La destination est définie mais son image n'est pas encore livrée.
+      // Montrer la future direction sans envoyer le joueur sur une image 404
+      // ni tenter de déplacement serveur. Aucun onclick sur la flèche bloquée.
+      html += '<div class="rc-fleche" aria-label="À venir : image non disponible" title="À venir : image non disponible" style="' + f.style + ';opacity:.38;cursor:not-allowed;pointer-events:auto;">' +
         '<i class="ti ' + f.icon + '"></i></div>';
     }
   });
@@ -1329,7 +1690,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
       div.style.top = z.yPct[0] + '%';
       div.style.height = (z.yPct[1] - z.yPct[0]) + '%';
     }
-    div.addEventListener('mousemove', (e) => afficherTooltipRue(e, z.nom, z.type));
+    div.addEventListener('mousemove', (e) => afficherTooltipRue(e, z.nom, z.type, z.buildingId));
     div.addEventListener('mouseleave', masquerTooltipRue);
     // Zoom leger sur toute l'image, mais avec le point d'origine du zoom place au centre
     // horizontal du batiment survole, ce qui accentue visuellement ce batiment.
@@ -1349,7 +1710,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
     });
     div.addEventListener('click', () => {
       if (z.type === 'noeud') naviguerVersNoeudRue(pays, z.noeudId, z.nom);
-      else if (z.type === 'sous-lieu') ouvrirTerrainsMontrouge();
+      else if (z.type === 'sous-lieu') ouvrirTerrainsVille(state.currentCity);
       else if (z.type === 'a-venir') {
         // Batiment dessine sur l'image mais dont l'interieur/la mecanique n'existe pas encore.
         // Refus explicite et discret : ni faux interieur, ni clic mort. Avant ce type, une zone
@@ -1364,6 +1725,8 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
         // V4 et V5). sortieNoeudId fixe alors la scene ou le joueur ressortira, quelle que soit
         // celle par laquelle il est entre : sans cela, la sortie le rend a la derniere scene
         // memorisee, donc a l'entree de service au lieu de l'entree principale.
+        const serrureBat = (typeof serrureBatimentEtat === 'function') ? serrureBatimentEtat(z.buildingId) : null;
+        if (serrureBat && serrureBat.fermee && !serrureBat.a_cle) { serrurePopupFermee('batiment'); return; }
         if (z.sortieNoeudId && typeof state !== 'undefined' && state.currentCity) {
           memoriserNoeudRueCentrale(pays, state.currentCity, z.sortieNoeudId, null);
         }
@@ -1374,7 +1737,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   });
 }
 
-function afficherTooltipRue(e, nom, type) {
+function afficherTooltipRue(e, nom, type, buildingId) {
   // Un mousemove deja en file ne doit pas ressusciter la bulle apres entree.
   if (document.getElementById('vue-batiment')?.classList.contains('active')) {
     masquerTooltipRue();
@@ -1402,6 +1765,15 @@ function afficherTooltipRue(e, nom, type) {
     surveillance.observe(document.body, {childList:true,subtree:true,attributes:true,attributeFilter:['class']});
   }
   tip.textContent = (type === 'a-venir' ? 'Fermé : ' : 'Entrer dans : ') + nom;
+  // Batiment ferme a cle (04/11/2026) : cadenas et etat dans l'infobulle.
+  const serrureBat = (buildingId && typeof serrureBatimentEtat === 'function') ? serrureBatimentEtat(buildingId) : null;
+  if (serrureBat) {
+    const ic = document.createElement('i');
+    ic.className = 'ti ' + (serrureBat.fermee ? 'ti-lock' : 'ti-lock-open');
+    tip.appendChild(document.createTextNode(' — '));
+    tip.appendChild(ic);
+    tip.appendChild(document.createTextNode(' ' + (serrureBat.fermee ? (serrureBat.a_cle ? 'Fermé à clé (vous avez la clé)' : 'Fermé à clé') : 'Ouvert au public')));
+  }
   tip.style.left = (e.pageX + 16) + 'px';
   tip.style.top = (e.pageY - 10) + 'px';
   tip.classList.add('visible');
@@ -1503,15 +1875,28 @@ function entrerDansBatimentRue(buildingId, nom) {
 // SURFACE_TERRAINS (plateau-justice-economie.js / plateau-pnj.js), sources uniques de verite,
 // jamais dupliquees ici. Le lot 6 a recu sa superficie le 01/11/2026 (2100 m², decision de Fred) ;
 // un terrain sans entree dans SURFACE_TERRAINS afficherait juste "Lot N", sans "m²" invente.
-function ouvrirTerrainsMontrouge() {
-  const ids = (typeof TERRAINS_PAR_VILLE !== 'undefined') ? TERRAINS_PAR_VILLE.ville_b : [];
+// Generalise le 04/11/2026 a Port-Sainte-Marie (decision de Fred). Une ville a sous-lieu de
+// terrains se declare ici ; la liste des terrains reste TERRAINS_PAR_VILLE[ville].
+const TERRAINS_SOUS_LIEUX = {
+  ville_a: { nom: 'Terrains à bâtir de Port-Sainte-Marie', ville: 'Port-Sainte-Marie', image: 'images/rue-terrains-lots-detail-psm.webp' },
+  ville_b: { nom: 'Terrains à bâtir de Montrouge', ville: 'Montrouge', image: 'images/montrouge/montrouge-terrains-vue-ensemble.jpg' }
+};
+function villeTerrainsSousLieu(buildingId) {
+  if (typeof TERRAINS_PAR_VILLE === 'undefined' || state.country !== 'republic') return null;
+  return Object.keys(TERRAINS_SOUS_LIEUX).find(v => (TERRAINS_PAR_VILLE[v] || []).includes(buildingId)) || null;
+}
+function ouvrirTerrainsMontrouge() { ouvrirTerrainsVille('ville_b'); }
+function ouvrirTerrainsVille(ville) {
+  const conf = TERRAINS_SOUS_LIEUX[ville];
+  if (!conf) return;
+  const ids = (typeof TERRAINS_PAR_VILLE !== 'undefined') ? (TERRAINS_PAR_VILLE[ville] || []) : [];
 
   document.getElementById('vue-rue').classList.remove('active');
   document.getElementById('vue-batiment').classList.add('active');
   const ancienConteneurRue = document.getElementById('rue-centrale-conteneur');
   if (ancienConteneurRue) ancienConteneurRue.remove();
 
-  document.getElementById('bat-nom').textContent = 'Terrains à bâtir de Montrouge';
+  document.getElementById('bat-nom').textContent = conf.nom;
   document.getElementById('bat-cat').textContent = 'Immobilier';
   const elCaisse = document.getElementById('bat-caisse');
   const elStock = document.getElementById('bat-stock');
@@ -1522,20 +1907,20 @@ function ouvrirTerrainsMontrouge() {
 
   document.getElementById('pieces-tabs').innerHTML = ids.map(id => {
     const numero = id.split('-').pop();
-    const surface = (typeof SURFACE_TERRAINS !== 'undefined') ? (SURFACE_TERRAINS['republic|ville_b|' + id] ?? SURFACE_TERRAINS[id]) : null;
+    const surface = (typeof SURFACE_TERRAINS !== 'undefined') ? (SURFACE_TERRAINS['republic|' + ville + '|' + id] ?? SURFACE_TERRAINS[id]) : null;
     const label = 'Lot ' + numero + (surface ? ' — ' + surface.toLocaleString('fr-FR') + ' m²' : '');
     return '<div class="piece-tab" onclick="enterBuilding(\'' + id + '\')">' + label + '</div>';
   }).join('');
 
   const pieceImg = document.getElementById('piece-image');
-  pieceImg.style.background = "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('images/montrouge/montrouge-terrains-vue-ensemble.jpg') center/cover no-repeat";
-  document.getElementById('piece-nom').textContent = 'Terrains à bâtir de Montrouge';
-  document.getElementById('piece-desc').textContent = 'Six parcelles disponibles autour de la ville. Choisissez un lot ci-dessus pour vous y rendre.';
+  pieceImg.style.background = "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('" + conf.image + "') center/cover no-repeat";
+  document.getElementById('piece-nom').textContent = conf.nom;
+  document.getElementById('piece-desc').textContent = ids.length + ' parcelles. Choisissez un lot ci-dessus pour vous y rendre.';
 
   renderPersonsList([]);
-  document.getElementById('action-context-bat').textContent = 'TERRAINS À BÂTIR DE MONTROUGE — CHOISISSEZ UNE PARCELLE';
+  document.getElementById('action-context-bat').textContent = conf.nom.toUpperCase() + ' — CHOISISSEZ UNE PARCELLE';
   document.getElementById('actions-row-bat').innerHTML = '';
 
-  document.getElementById('loc-name').textContent = 'Montrouge';
-  document.getElementById('loc-sub').textContent = 'Terrains à bâtir de Montrouge';
+  document.getElementById('loc-name').textContent = conf.ville;
+  document.getElementById('loc-sub').textContent = conf.nom;
 }

@@ -5,6 +5,7 @@
 
 // Constantes partagees (utilisees par plateau-divers.js, plateau-politique.js, plateau-pnj.js)
 const PNJ_PERSONALITIES = {
+  'Robert Pelisson': { trait: "55 ans, Montrougeois de naissance. Directeur de la Banque Cheminote, il aime faciliter le développement de sa ville. Passionné de football, fervent supporter de l'USM.", style: "accueillant, concret et fier de Montrouge, passionné par l'USM" },
   // Accueil de L'Autruche Entravée : fonctions distinctes, sans confusion avec la rédaction.
   'Gustave Encre': { trait: "Imprimeur de L'Autruche Entravée. Explique comment imprimer et utiliser les tracts, ainsi que la nécessité de disposer de bois comme matière première : sans stock de bois disponible, la production ne peut pas démarrer. Explique aussi la périodicité de parution des journaux et l'existence des agences dans les deux autres villes. Pour le contenu des journaux et les ordres de la rédaction, renvoie vers Jodie Moitout. N'est pas journaliste.", style: "pragmatique, pédagogue, parle volontiers d'encre, de papier et de délais d'impression" },
   'Rosalie Caractère': { trait: "Libraire à l'accueil de L'Autruche Entravée. Oriente les visiteurs vers Gustave Encre pour les tracts et l'impression, ou vers Jodie Moitout pour la presse, les articles et la rédaction. Ne propose actuellement aucune publication de romans ou de nouvelles.", style: "accueillante, concise, sens pratique, pose une question pour orienter vers la bonne personne" },
@@ -213,7 +214,7 @@ const PNJ_PROFILS = {
   // n'existe -- seul le solde instantane est un fait reellement connu.
   'Marcel Ancre': {
     traits: ['bourru', 'fier de son port', 'pédagogue', 'jamais amer d\'avoir été supplanté'],
-    savoirs: "Sait que le port reçoit des matières venues de l'étranger : du bois (moitié de Républia, moitié de Sovarka), du pétrole brut (deux tiers d'Al-Khalija, un tiers de Sovarka — le pétrole brut part ensuite à la raffinerie de Montrouge pour devenir du carburant, jamais directement utilisable), et des produits exotiques (entièrement d'El Estado). Sait que le Commandant du Port décide comment répartir ce qui arrive entre Luthécia, Port-Sainte-Marie et Montrouge, matière par matière. Sait que le port exporte aussi des céréales et de la viande vers Al-Khalija, prélevées sur les stocks réels des trois entrepôts — jamais plus que ce qui existe vraiment, avec un taux de satisfaction du contrat qui peut être inférieur à 100% si les stocks manquent. Sait que la Criée est une criée aux poissons, alimentée chaque jour par un arrivage de pêche propre, totalement indépendant des matières étrangères — le Commandant ne l'alimente pas, il n'en a que la casquette pédagogique. Sait que le poste de Commandant du Port est nommé par le Ministre des Finances, et que n'importe qui peut consulter l'administration du port, mais que seul le Commandant peut modifier la répartition.",
+    savoirs: "Sait que le port reçoit des matières venues de l'étranger : du bois (moitié de Républia, moitié de Sovarka), du pétrole brut (deux tiers d'Al-Khalija, un tiers de Sovarka — le pétrole brut part ensuite à la raffinerie de Montrouge pour devenir du carburant ou des dérivés pétrochimiques (résines, vernis, goudron, diluant), jamais directement utilisable), et des produits exotiques (entièrement d'El Estado). Sait que le Commandant du Port décide comment répartir ce qui arrive entre Luthécia, Port-Sainte-Marie et Montrouge, matière par matière. Sait que le port exporte aussi des céréales et de la viande vers Al-Khalija, prélevées sur les stocks réels des trois entrepôts — jamais plus que ce qui existe vraiment, avec un taux de satisfaction du contrat qui peut être inférieur à 100% si les stocks manquent. Sait que la Criée est une criée aux poissons, alimentée chaque jour par un arrivage de pêche propre, totalement indépendant des matières étrangères — le Commandant ne l'alimente pas, il n'en a que la casquette pédagogique. Sait que le poste de Commandant du Port est nommé par le Ministre des Finances, et que n'importe qui peut consulter l'administration du port, mais que seul le Commandant peut modifier la répartition.",
     fonctionPedagogique: "Si on l'interroge sur son rôle ou celui du Commandant, explique en substance : le Commandant du Port pilote l'arrivée des matières étrangères, décide de leur répartition entre les trois villes, et gère les exportations — le tout depuis l'Administration Portuaire. La Criée, elle, vit de son propre arrivage quotidien de poisson, sans lien avec les flux internationaux qu'il pilote. Si on lui demande la situation du port, s'appuie STRICTEMENT sur les faits réels et actuels qui lui sont fournis (stock, caisse, arrivages, exportations) sans jamais en inventer d'autres. Ne dit JAMAIS que le port est \"déficitaire\", \"équilibré\" ou \"excédentaire\" — aucun suivi fiable des recettes et dépenses n'existe encore pour se prononcer, il le reconnaît honnêtement si on le lui demande. Ne dit jamais \"PA\" ni \"points d'action\" : parle du port en termes concrets (marchandises, stocks, caisse, bateaux).",
     objectifs: "Voir le port prospérer, quel que soit qui en porte le titre — transmettre ce qu'il sait plutôt que défendre sa place.",
     notes: "Ajouté le 25 aout 2026 — référent du poste de Commandant du Port, reste visible même une fois le poste pourvu par un PJ (contrairement à Pascal Paguevite/chef_douanes)."
@@ -488,7 +489,7 @@ const BUDGET_DEFAULT = {
 const EMPIRE_STYLES = {
   republic: { tone: "bureaucratique français épuisé, cynique poli", religion: "le Papyrusisme", currency: "FR", leader: "le Président" },
   narco:    { tone: "jovial menaçant, corruption assumée, espagnol de bazar", religion: "le Laboratoire de Prière", currency: "PS", leader: "El Don" },
-  soviet:   { tone: "idéologique soviétique, formulaires sacrés, Camarade partout", religion: "le Kolkhoze Spirituel", currency: "RP", leader: "le Parti" },
+  soviet:   { tone: "idéologique soviétique, formulaires sacrés, Camarade partout", religion: "le Kolkhoze Spirituel", currency: "PSK (para sovarkien)", leader: "le Parti" },
   khalija:  { tone: "protocole royal excessif, Loukoum Divin omniprésent, bénédictions imbriquées", religion: "la Pâtisserie Sacrée", currency: "DR", leader: "le Sheikh" }
 };
 
@@ -844,8 +845,14 @@ window.addEventListener('DOMContentLoaded', () => {
     Promise.resolve().then(fn).catch(e => console.warn('[Fond] ' + nom, e))
       .finally(() => lecturesFondEnCours.delete(nom));
   }
-  lancerLectureFond('mails', verifierNouveauxMails);
-  setInterval(() => lancerLectureFond('mails', verifierNouveauxMails), 60000);
+  // Avant la lecture du courrier : le serveur constate les caisses terrestres arrivées à échéance
+  // et prévient leurs destinataires (livraisons par tranches de 4 h, 04/11/2026).
+  async function constaterArriveesPuisMails() {
+    if (typeof sbRpc === 'function') await sbRpc('fret_arrivees_constater', {}).catch(() => null);
+    return verifierNouveauxMails();
+  }
+  lancerLectureFond('mails', constaterArriveesPuisMails);
+  setInterval(() => lancerLectureFond('mails', constaterArriveesPuisMails), 60000);
 
   // Voyant d'activité forum (17 août 2026) — même cadence que la vérification des mails, même
   // raison de réduction
@@ -937,12 +944,10 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => appliquerNaturalisationAcceptee(), 2100);
   setTimeout(() => { if (typeof appliquerVictoireElectorale === 'function') appliquerVictoireElectorale(); }, 2350);
   setTimeout(() => recupererDonsEnAttente(), 2000);
-  setTimeout(() => recupererVolsEnAttente(), 2200);
   setTimeout(() => recupererImpactsEnAttente(), 2400);
   setTimeout(() => verifierLancementQuete(), 2600);
   setInterval(() => lancerLectureFond('evenements', chargerEvenementsPartages), 90000);
   setInterval(recupererDonsEnAttente, 90000);
-  setInterval(recupererVolsEnAttente, 90000);
   setInterval(recupererImpactsEnAttente, 90000);
 
   // Présence en pièce — re-publier + rafraîchir les joueurs visibles toutes les 30 secondes
@@ -1561,11 +1566,51 @@ function afficherBandeauReconnexion() {
     "Votre session a expiré. Reconnectez-vous avec votre adresse e-mail et votre mot de passe "
     + "pour retrouver votre personnage : il est intact.") + (adresse ? ' (' + adresse + ')' : '');
 
+  // L'encart d'identité remplace le grand rectangle qui ressemblait à un bouton.
+  // N'utiliser que la fiche déjà affichée et son cache nominatif : jamais la photo
+  // globale d'un autre PJ ni une requête non authentifiée.
+  const identitePJ = (typeof state !== 'undefined' && state.char) ? state.char : null;
+  const nomPJ = typeof identitePJ?.name === 'string' ? identitePJ.name : '';
+  let sourcePhoto = typeof identitePJ?.photoUrl === 'string' ? identitePJ.photoUrl : '';
+  if (nomPJ) {
+    try {
+      const cachePhoto = localStorage.getItem('respublica_photo_' + nomPJ);
+      if (cachePhoto) sourcePhoto = cachePhoto;
+    } catch (_) {}
+  }
+  const presentation = document.createElement('div');
+  presentation.style.cssText = 'display:flex;align-items:flex-start;gap:1rem;margin-top:1.3rem;flex-wrap:wrap';
+  const portrait = document.createElement('div');
+  portrait.style.cssText = 'width:108px;height:136px;flex:none;border:1px solid #6a5a20;'
+    + 'background:#211d15;display:flex;align-items:center;justify-content:center;'
+    + 'border-radius:3px;overflow:hidden;cursor:default;pointer-events:none';
+  portrait.setAttribute('aria-label', nomPJ ? 'Portrait de ' + nomPJ : 'Portrait indisponible');
+  const silhouette = document.createElement('span');
+  silhouette.textContent = '♟';
+  silhouette.style.cssText = 'font-size:3rem;color:#8a7851';
+  portrait.appendChild(silhouette);
+  if (sourcePhoto && (/^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(sourcePhoto)
+      || /^https:\/\//i.test(sourcePhoto) || /^images\/[\w./-]+$/i.test(sourcePhoto))) {
+    const image = document.createElement('img');
+    image.alt = nomPJ ? 'Portrait de ' + nomPJ : 'Portrait du personnage';
+    image.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
+    image.onerror = () => { image.remove(); silhouette.style.display = ''; };
+    image.onload = () => { silhouette.style.display = 'none'; };
+    image.src = sourcePhoto;
+    portrait.appendChild(image);
+  }
   const actions = document.createElement('div');
-  actions.style.cssText = 'margin-top:1.3rem;display:flex;gap:.6rem;flex-wrap:wrap';
+  actions.style.cssText = 'display:flex;flex:1;min-width:220px;flex-direction:column;'
+    + 'gap:.7rem;align-items:flex-start';
+  const identiteTexte = document.createElement('div');
+  identiteTexte.textContent = nomPJ || 'Votre personnage';
+  identiteTexte.style.cssText = 'font-family:Crimson Pro,serif;font-size:.9rem;color:#C9A84C';
+  actions.appendChild(identiteTexte);
   const bouton = document.createElement('button');
+  bouton.type = 'button';
   bouton.style.cssText = 'font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;'
-    + 'padding:.55rem 1.3rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer';
+    + 'padding:.55rem 1.3rem;border:1px solid #8a6a20;background:transparent;'
+    + 'color:#C9A84C;cursor:pointer;align-self:flex-start;flex:none';
   bouton.textContent = trad('auth.reconnectButton', 'Me reconnecter');
   bouton.addEventListener('click', () => {
     // Conserver le plateau et le personnage tant que l'authentification n'est pas confirmée.
@@ -1622,7 +1667,9 @@ function afficherBandeauReconnexion() {
   });
   actions.appendChild(bouton);
 
-  boite.appendChild(titre); boite.appendChild(corps); boite.appendChild(actions);
+  presentation.appendChild(portrait);
+  presentation.appendChild(actions);
+  boite.appendChild(titre); boite.appendChild(corps); boite.appendChild(presentation);
   div.appendChild(boite);
   document.body.appendChild(div);
 }
@@ -1877,10 +1924,17 @@ function applyCharToState(char) {
     : `${ar?.name||'?'} · ${ca?.name||'?'}`;
   const fullnameEl = document.getElementById('char-fullname-left');
   if (fullnameEl) fullnameEl.textContent = char.name || 'Mon Personnage';
-  const co = COUNTRIES[char.country];
+  // Sous le nom : le poste, puis la domiciliation (pays - ville), ou que le PJ se trouve
+  // (decision de Fred, 05/11/2026). Ni l'archetype (donnee technique) ni le pays de la position.
+  const co = COUNTRIES[char.country]; // encore lu plus bas (devise affichee)
   const archEl = document.getElementById('char-arch-left');
-  const posteStr = state.poste?.name ? `${state.poste.name} · ` : '';
-  if (archEl) archEl.textContent = `${posteStr}${ar?.name||'?'} · ${co?.n||'?'}`;
+  if (archEl) {
+    const dom = state.domicile;
+    const domPays = dom?.country ? (COUNTRIES[dom.country]?.n || '') : '';
+    const domVille = dom?.country && dom?.city ? (WORLD?.[dom.country]?.[dom.city]?.name || '') : '';
+    const domStr = [domPays, domVille].filter(Boolean).join(' - ');
+    archEl.textContent = [state.poste?.name, domStr].filter(Boolean).join(' · ');
+  }
 
   // Photo
   try {
@@ -1905,8 +1959,10 @@ function applyCharToState(char) {
     // actif -- bonusEntIntegrationLocale() est un calcul independant, purement personnel.
     if (statGrid) statGrid.innerHTML = STAT_DEFS.map(({k}) => {
       const brut = char.stats[k] || 8;
-      const suffixeEnt = (k === 'ENT' && typeof bonusEntIntegrationLocale === 'function' && bonusEntIntegrationLocale())
-        ? ' <span style="color:#6ab858">(+1)</span>' : '';
+      const bonusAffiche = (k === 'ENT' && typeof bonusEntIntegrationLocale === 'function' ? bonusEntIntegrationLocale() : 0)
+        + (typeof bonusTemporaire === 'function' ? bonusTemporaire(state.effetsActifs, k, Date.now()) : 0);
+      const arrondi = Math.round(bonusAffiche * 10) / 10;
+      const suffixeEnt = arrondi ? ' <span style="color:' + (arrondi > 0 ? '#6ab858' : '#c8604a') + '">(' + (arrondi > 0 ? '+' : '−') + String(Math.abs(arrondi)).replace('.', ',') + ')</span>' : '';
       return `
       <div class="stat-mini">
         <div class="stat-mini-name">${k}</div>
@@ -2410,6 +2466,58 @@ function adopterJaugeServeur(cle, valeur) {
   if (envoye !== null) state[champBase] = valeur;
 }
 
+// Jauges rendues par une commande serveur existante (#379) : l'écran adopte, il ne calcule rien.
+function adopterJaugesReponse(j) {
+  if (!j || typeof j !== 'object') return false;
+  adopterJaugeServeur('pop', j.pop);
+  adopterJaugeServeur('inf', j.inf);
+  if (typeof j.moral === 'number' && Number.isFinite(j.moral)) state.moral = j.moral;
+  if (typeof updateUI === 'function') updateUI();
+  return true;
+}
+
+// Adaptation d'ordres historiques : le coût ET les jauges sont décidés ensemble.
+// La clé demeure après réponse perdue, y compris après rechargement ; aucun retry
+// automatique et aucune valeur mécanique proposée par l'écran.
+const RP_JAUGES_EN_COURS = new Set();
+async function executerOrdreJaugesServeur(ordre, contexte = {}) {
+  const c = contexteGroupePj();
+  if (!c.nom || !c.uid || typeof sbRpcVerdict !== 'function') return null;
+  const params = JSON.parse(JSON.stringify(contexte));
+  const intention = JSON.stringify([c.uid, c.nom, ordre, params]);
+  const cle = 'rp_jauges:' + intention;
+  if (RP_JAUGES_EN_COURS.has(cle)) return null;
+  RP_JAUGES_EN_COURS.add(cle);
+  try {
+    const empreinte = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(intention));
+    const stockage = 'rp_jauges:' + Array.from(new Uint8Array(empreinte), x => x.toString(16).padStart(2,'0')).join('');
+    const requete = localStorage.getItem(stockage) || crypto.randomUUID();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requete)) return null;
+    localStorage.setItem(stockage, requete);
+    const v = await sbRpcVerdict('jauges_ordre_executer', {p_ordre: ordre, p_requete: requete, p_contexte: params});
+    if (!contexteGroupePjValide(c)) return null;
+    if (v?.ok !== true) {
+      if (v?.raison && !v.transport) localStorage.removeItem(stockage);
+      signalerRefusCout(v || {raison:'reponse_absente'});
+      return null;
+    }
+    if (v.contrat_jauges !== 1 || v.acteur !== c.nom || v.requete !== requete || v.ordre !== ordre
+        || (ordre==='inspecter_troupes'&&v.perimetre?.ok!==true)
+        || (ordre==='campagne_securite'&&(typeof v.pays!=='string'||typeof v.ville!=='string'||!['isn_ville','isn_delta','montant_preleve','solde_caisse'].every(k=>typeof v[k]==='number'&&Number.isFinite(v[k]))))
+        || ![v.pop,v.inf,v.pa,v.hp].every(x => typeof x === 'number' && Number.isFinite(x))) return null;
+    localStorage.removeItem(stockage);
+    appliquerPaiementServeur(v);
+    adopterJaugeServeur('pop', v.pop);
+    adopterJaugeServeur('inf', v.inf);
+    state.hp = v.hp;
+    if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({pa:v.pa,hp:v.hp});
+    return v;
+  } catch (_) {
+    if (contexteGroupePjValide(c)) showToast('Action non confirmée', 'Consultez votre état avant de renouveler la demande.', false);
+    return null;
+  } finally { RP_JAUGES_EN_COURS.delete(cle); }
+}
+
 async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur', fn = null } = {}) {
   // ===========================================================================
   // CHANTIER C / PHASE 1 — LE PRELEVEMENT PASSE PAR LE SERVEUR (13 septembre 2026)
@@ -2562,7 +2670,6 @@ async function runMidnightUpdate() {
   // Attendue depuis le 9 octobre 2026 : la liberation est desormais prononcee par le serveur
   // (detention_clore_purgee), et la suite de la passe de minuit lit state.estEmprisonne.
   await verifierLiberationPrisonniers();
-  verifierDecouverteCrimesPasses();
   // DEUX APPELS ONT ETE RETIRES ICI (chantier 4F, 7 octobre 2026), et les deux etaient des
   // distributeurs de recettes nationales concurrents de la cascade serveur.
   //
@@ -2991,6 +3098,46 @@ function signalerRefusCout(resultat) {
       "Le serveur n'a pas pu enregistrer cette action : rien ne vous a été prélevé. "
       + 'Réessayez dans un instant ; si cela persiste, rechargez la page.', false, true);
     console.warn('[cout] appel au serveur non abouti — action refusee, aucun prelevement.');
+    return;
+  }
+  // Refus de session ou panne PostgREST : ces deux causes peuvent apparaitre
+  // comme « Action impossible » lors de la publication des forums, alors que
+  // la commande n'est jamais partie ou que sa reponse a expire.
+  // Aucun repli client vers un INSERT direct : la publication reste transactionnelle.
+  if (r.raison === 'session_perdue' || r.transport?.etat === 'session_perdue') {
+    showToast('Session expirée',
+      'Votre connexion de joueur doit être rétablie avant de publier. Votre brouillon reste ouvert. Reconnectez-vous puis réessayez.',
+      false, true);
+    return;
+  }
+  if (r.transport && (r.transport.etat === 'reseau' || Number(r.transport.http) >= 500)) {
+    showToast('Serveur temporairement indisponible',
+      'La publication n’est pas confirmée. Conservez votre brouillon et réessayez lorsque le serveur répond. La même demande est protégée contre les doublons.',
+      false, true);
+    return;
+  }
+  if (r.raison === 'forum_inaccessible' || r.raison === 'territoire_invalide') {
+    showToast('Forum local non accessible',
+      'Le serveur ne vous situe pas dans la ville de ce forum. Vérifiez votre position et rouvrez le forum local.',
+      false);
+    return;
+  }
+  if (r.raison === 'forum_inconnu') {
+    showToast('Forum introuvable',
+      'Cette rubrique ne correspond plus à votre ville actuelle. Rouvrez le forum local de votre ville.',
+      false);
+    return;
+  }
+  if (r.raison === 'publication_vide' || r.raison === 'titre_vide') {
+    showToast('Publication incomplète',
+      'Le serveur n’a pas reçu de titre ou de texte exploitable. Vérifiez le contenu de votre brouillon avant de réessayer.',
+      false);
+    return;
+  }
+  if (r.raison === 'publication_refusee') {
+    showToast('Publication refusée',
+      'Le serveur a refusé l’enregistrement du sujet. Aucune publication n’est confirmée ; conservez votre brouillon.',
+      false);
     return;
   }
   // Raison absente/inconnue : on ne fabrique aucun chiffre.

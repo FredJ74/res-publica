@@ -1,0 +1,56 @@
+name: Starovka — WebP restaurant-boutique et navigation
+on:
+  push:
+    branches: [feature/starovka-logements-restaurant-20261106]
+    paths:
+      - '.github/workflows/starovka-logements-restaurant-20261106.yml'
+      - 'outils/bancs/test-starovka-logements-restaurant-20261106.mjs'
+permissions:
+  contents: write
+jobs:
+  conversion-navigation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Convertir le PNG du dépôt et le supprimer après contrôle
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image,ImageOps
+          p=Path('images/Sovarka/Starovka/Starovka_Rue_restaurant-boutique.png')
+          w=p.with_suffix('.webp')
+          assert p.is_file(), 'PNG source absent'
+          assert not w.exists(), 'WebP existe déjà, refus écrasement'
+          with Image.open(p) as im:
+              rgb=ImageOps.exif_transpose(im).convert('RGB')
+              dims=rgb.size
+              rgb.save(w,'WEBP',quality=85,method=6)
+          with Image.open(w) as im:
+              assert im.format=='WEBP' and im.size==dims
+              im.verify()
+          assert w.stat().st_size>100
+          p.unlink()
+          assert not p.exists()
+          print('WebP valide',w.name,dims,w.stat().st_size)
+          PY
+      - name: Tests client et vérification statique
+        run: |
+          node --check plateau-rue-centrale.js
+          node --test outils/bancs/test-starovka-logements-restaurant-20261106.mjs outils/bancs/test-starovka-terrains-logements-20261106.mjs outils/bancs/test-starovka-petrole-terrains-20261106.mjs
+          git diff --check
+      - name: Publier uniquement la conversion
+        run: |
+          git add -A -- 'images/Sovarka/Starovka/Starovka_Rue_restaurant-boutique.png' 'images/Sovarka/Starovka/Starovka_Rue_restaurant-boutique.webp'
+          git diff --cached --check
+          git diff --cached --quiet && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(starovka): restaurant-boutique WebP et retrait PNG'
+          git push origin HEAD:feature/starovka-logements-restaurant-20261106

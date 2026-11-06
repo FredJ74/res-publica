@@ -67,10 +67,20 @@ test('data.js : examen des naturalisations grisé pour le ministre de l\'Intéri
 });
 
 test('data.js : transfert d\'un détenu visible et grisé dans les trois bureaux d\'ambassadeur', () => {
-  const lignes = data.split('\n').filter(l => l.includes("fn:'demander_transfert_detenu'"));
+  // Les trois bureaux de Luthecia ; ceux du Palais des Ambassades de Novomirsk sont controles a part.
+  const lignes = data.split('\n').filter(l => l.includes("fn:'demander_transfert_detenu'") && !l.includes('ambassades de Novomirsk'));
   assert.strictEqual(lignes.length, 3);
   for (const l of lignes) {
     assert.ok(/bientot:'Bientôt disponible/.test(l));
     assert.ok(l.includes("requiresPost:'ambassadeur_local'"));
   }
+});
+
+test('data.js : Palais des Ambassades de Novomirsk, tous les ordres grisés « Bientôt disponible »', () => {
+  const i = data.indexOf("\n  'palais-ambassades-novomirsk': {");
+  assert.ok(i >= 0);
+  const bloc = data.slice(i, data.indexOf("\n  'pavillon-ambassadeurs-novomirsk': {", i));
+  const ordres = bloc.split('\n').filter(l => l.includes('{fn:'));
+  assert.strictEqual(ordres.length, 15);
+  for (const l of ordres) assert.ok(/bientot:'Bientôt disponible : les ambassades de Novomirsk/.test(l), l);
 });

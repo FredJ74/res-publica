@@ -1,0 +1,188 @@
+▶ greffes et commissariats : clics réels dans les trois villes, deux largeurs
+  ✔ capitale / 1280 / greffe (4228.185307ms)
+  ✖ capitale / 1280 / commissariat (2596.795229ms)
+  ✔ capitale / 390 / greffe (3391.918578ms)
+  ✖ capitale / 390 / commissariat (1409.865194ms)
+  ✔ ville_a / 1280 / greffe (2783.585875ms)
+  ✖ ville_a / 1280 / commissariat (1238.050239ms)
+  ✔ ville_a / 390 / greffe (2697.010737ms)
+  ✖ ville_a / 390 / commissariat (1533.878655ms)
+  ✔ ville_b / 1280 / greffe (2952.530287ms)
+  ✖ ville_b / 1280 / commissariat (1535.978385ms)
+  ✔ ville_b / 390 / greffe (2903.303141ms)
+  ✖ ville_b / 390 / commissariat (1353.571394ms)
+✖ greffes et commissariats : clics réels dans les trois villes, deux largeurs (29994.485843ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 6
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31489.795671
+
+✖ failing tests:
+
+test at outils/e2e/test-rendu-services-republia.cjs:27:12
+✖ capitale / 1280 / commissariat (2596.795229ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + []
+  - [
+  -   'refus-poste'
+  - ]
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/e2e/test-rendu-services-republia.cjs:73:84)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/e2e/test-rendu-services-republia.cjs:27:4)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ 'refus-poste' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at outils/e2e/test-rendu-services-republia.cjs:27:12
+✖ capitale / 390 / commissariat (1409.865194ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + []
+  - [
+  -   'refus-poste'
+  - ]
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/e2e/test-rendu-services-republia.cjs:73:84)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/e2e/test-rendu-services-republia.cjs:27:4)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ 'refus-poste' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at outils/e2e/test-rendu-services-republia.cjs:27:12
+✖ ville_a / 1280 / commissariat (1238.050239ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + []
+  - [
+  -   'refus-poste'
+  - ]
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/e2e/test-rendu-services-republia.cjs:73:84)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/e2e/test-rendu-services-republia.cjs:27:4)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ 'refus-poste' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at outils/e2e/test-rendu-services-republia.cjs:27:12
+✖ ville_a / 390 / commissariat (1533.878655ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + []
+  - [
+  -   'refus-poste'
+  - ]
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/e2e/test-rendu-services-republia.cjs:73:84)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/e2e/test-rendu-services-republia.cjs:27:4)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ 'refus-poste' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at outils/e2e/test-rendu-services-republia.cjs:27:12
+✖ ville_b / 1280 / commissariat (1535.978385ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + []
+  - [
+  -   'refus-poste'
+  - ]
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/e2e/test-rendu-services-republia.cjs:73:84)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/e2e/test-rendu-services-republia.cjs:27:4)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ 'refus-poste' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at outils/e2e/test-rendu-services-republia.cjs:27:12
+✖ ville_b / 390 / commissariat (1353.571394ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + []
+  - [
+  -   'refus-poste'
+  - ]
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/e2e/test-rendu-services-republia.cjs:73:84)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/e2e/test-rendu-services-republia.cjs:27:4)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ 'refus-poste' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at outils/e2e/test-rendu-services-republia.cjs:13:1
+✖ greffes et commissariats : clics réels dans les trois villes, deux largeurs (29994.485843ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + [
+  +   "Failed to execute 'click' on 'HTMLElement': Unexpected end of input",
+  +   "Failed to execute 'click' on 'HTMLElement': Unexpected end of input",
+  +   "Failed to execute 'click' on 'HTMLElement': Unexpected end of input",
+  +   "Failed to execute 'click' on 'HTMLElement': Unexpected end of input",
+  +   "Failed to execute 'click' on 'HTMLElement': Unexpected end of input",
+  +   "Failed to execute 'click' on 'HTMLElement': Unexpected end of input"
+  + ]
+  - []
+
+      at TestContext.<anonymous> (/workspace/res-publica-cloture-technique135/outils/e2e/test-rendu-services-republia.cjs:84:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ "Failed to execute 'click' on 'HTMLElement': Unexpected end of input", "Failed to execute 'click' on 'HTMLElement': Unexpected end of input", "Failed to execute 'click' on 'HTMLElement': Unexpected end of input", "Failed to execute 'click' on 'HTMLElement': Unexpected end of input", "Failed to execute 'click' on 'HTMLElement': Unexpected end of input", "Failed to execute 'click' on 'HTMLElement': Unexpected end of input" ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

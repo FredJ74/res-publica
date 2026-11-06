@@ -29,3 +29,21 @@ test('creation sans stockage navigateur : cle conservee en memoire apres panne',
 test('resolution : reponse perdue reconciliee depuis le recu serveur, sans seconde vente',async()=>{const c=jeu();let n=0,lectures=0;c.sbRpcVerdict=async()=>{n++;return {ok:false,transport:{etat:'reseau'}};};c.sbGetTournee=async()=>({contrat:'boire_v1',offreur:'Alice',resultat:{ok:true,seul:true,total:25,verres:1}});c.commercePjActualiserPersonnage=async()=>{lectures++;return true;};await c.resoudreTourneeBoire({id:'t'});assert.equal(n,1);assert.equal(lectures,1);assert.equal(c.toasts[0][0],'Boissons servies');});
 for(const actif of [true,false])test(`salarie enregistre/${actif} : production sans droit de gestion`,async()=>{const c=jeu();c.data.proprietaire='Bob';c.data.salaries=[{ref:'pj:Alice',actif,role:'Employé'}];await c.doConsulterCarteCommerce('bar','commerce','salle',0,0);assert.equal(/onclick="doProduireRecetteCommerceUI/.test(c.html()),actif);assert.equal(c.commerceEstProprietaire(c.data),false);assert.equal(c.commercePeutProduire({...c.data,salaries:[{ref:'pj:Claire',actif:true}]}),false);});
 test('present dans le commerce : production sans etre proprietaire ni salarie',()=>{const c=jeu();const d={proprietaire:'Bob',country:'republic',city:'capitale',buildingId:'commerce',roomId:'salle'};assert.equal(c.commercePeutProduire(d),true);assert.equal(c.commercePeutProduire({...d,buildingId:'ailleurs'}),false);assert.equal(c.commercePeutProduire({proprietaire:'Bob'}),false);assert.equal(c.commercePeutProduire({proprietaire:'Alice'}),true);});
+
+for(const type of ['bar','cafe','restaurant','brasserie','marche']) {
+  test('rupture au '+type+' : seul achat grisé, production et fiche actives',async()=>{
+    const c=jeu();
+    c.data.proprietaire='Alice';
+    c.data.stockProduits.biere=0;
+    await c.doConsulterCarteCommerce(type,'commerce','salle',0,0);
+    const html=c.html();
+    assert.doesNotMatch(html,/align-items:center;opacity:\.5/);
+    assert.match(html,/<button disabled[^>]*>(Commander|Acheter)<\/button>/);
+    assert.match(html,/<button onclick="doProduireRecetteCommerceUI[^>]+>Produire<\/button>/);
+    assert.match(html,/<button onclick="ouvrirFicheProduitCommerce[^>]+>Fiche produit<\/button>/);
+    const d=jeu();d.data.proprietaire='Bob';
+    await d.doConsulterCarteCommerce(type,'commerce','salle',0,0);
+    assert.doesNotMatch(d.html(),/<button onclick="doProduireRecetteCommerceUI/);
+    assert.match(d.html(),/<button disabled[^>]*>Produire<\/button>/);
+  });
+}

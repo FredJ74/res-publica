@@ -1,0 +1,393 @@
+{
+  "production": false,
+  "contre_rejeu_organisation": true,
+  "moteur": "170006",
+  "tests": [
+    {
+      "cas": "installation_rollback_double_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "organisation_patch_garde_rollback_double_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "observer_paiement_et_gain_sans_autre_mutation",
+      "ok": true
+    },
+    {
+      "cas": "deux_gains_legitimes_deux_requetes",
+      "ok": true
+    },
+    {
+      "cas": "reponse_perdue_rejeu_et_recu_ancien_ne_retablit_pas_snapshot",
+      "ok": true
+    },
+    {
+      "cas": "delta_falsifie_refuse_sans_paiement",
+      "ok": true
+    },
+    {
+      "cas": "fonds_PA_refus_sans_effet",
+      "ok": true
+    },
+    {
+      "cas": "presence_serveur",
+      "ok": true
+    },
+    {
+      "cas": "non_journaliste_observe_sans_bonus",
+      "ok": true
+    },
+    {
+      "cas": "plafond_et_fraction_historique",
+      "ok": true
+    },
+    {
+      "cas": "inspection_meme_perimetre_revue_et_detaillee",
+      "ok": true
+    },
+    {
+      "cas": "inspection_citoyen_refuse",
+      "ok": true
+    },
+    {
+      "cas": "faim_detention_HP_plancher_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "dossier_poste_serveur",
+      "ok": true
+    },
+    {
+      "cas": "ordres_piece_effective_requise_pas_seulement_batiment",
+      "ok": true
+    },
+    {
+      "cas": "requete_liee_a_intention",
+      "ok": true
+    },
+    {
+      "cas": "panne_recu_annule_PA_et_gain",
+      "ok": true
+    },
+    {
+      "cas": "recu_non_fabricable_par_client",
+      "ok": true
+    },
+    {
+      "cas": "jauges_refus_table_manquante_pas_de_recreation_historique",
+      "ok": true
+    },
+    {
+      "cas": "jauges_refus_fonction_manquante_pas_de_restauration_aveugle",
+      "ok": true
+    },
+    {
+      "cas": "jauges_refus_corps_inconnu",
+      "ok": true
+    },
+    {
+      "cas": "jauges_refus_politique_non_examinee",
+      "ok": true
+    },
+    {
+      "cas": "objectifs_refus_memoire_manquante",
+      "ok": true
+    },
+    {
+      "cas": "objectifs_refus_marque_bascule_absente",
+      "ok": true
+    },
+    {
+      "cas": "objectifs_refus_politique_non_examinee",
+      "ok": true
+    },
+    {
+      "cas": "recu_RLS_protege_meme_avec_privileges_DML_de_defaut",
+      "ok": true
+    },
+    {
+      "cas": "forum_sujet_reponse_rejeu_meme_transaction",
+      "ok": true
+    },
+    {
+      "cas": "forum_deux_publications_legitimes_distinctes",
+      "ok": true
+    },
+    {
+      "cas": "forum_delta_et_requete_recyclee_refuses",
+      "ok": true
+    },
+    {
+      "cas": "forum_presse_presidence_reponses_publiques_gouvernement_prive",
+      "ok": true
+    },
+    {
+      "cas": "forum_restrictions_territoriales_et_sujet_absent",
+      "ok": true
+    },
+    {
+      "cas": "forum_identite_organisation_et_membre_attestes",
+      "ok": true
+    },
+    {
+      "cas": "forum_refus_post_annule_sujet_POP_et_recu",
+      "ok": true
+    },
+    {
+      "cas": "forum_declencheur_hospitalisation_j0_preserve",
+      "ok": true
+    },
+    {
+      "cas": "forum_composition_et_images_preservees",
+      "ok": true
+    },
+    {
+      "cas": "objectifs_eligibles_avant_bascule_aucun_recredit",
+      "ok": true
+    },
+    {
+      "cas": "objectifs_2_INF_par_lot_une_fois_meme_en_redevenant_eligible",
+      "ok": true
+    },
+    {
+      "cas": "objectifs_rejouer_migration_ne_mange_pas_nouvelle_eligibilite",
+      "ok": true
+    },
+    {
+      "cas": "objectifs_criteres_client_non_acceptes",
+      "ok": true
+    },
+    {
+      "cas": "objectifs_plafond_100_lot_acquis_sans_recompense_retardee",
+      "ok": true
+    },
+    {
+      "cas": "objectifs_reponse_perdue_rejeu_ne_recopie_pas_ancienne_jauge",
+      "ok": true
+    },
+    {
+      "cas": "objectifs_suivi_et_helpers_inaccessibles_au_navigateur",
+      "ok": true
+    },
+    {
+      "cas": "objectifs_panne_annule_gain_suivi_et_recu",
+      "ok": true
+    },
+    {
+      "cas": "buvette_capitale_un_debit_taxes_caisse_POP_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "buvette_ville_a_un_debit_taxes_caisse_POP_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "buvette_ville_b_un_debit_taxes_caisse_POP_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "buvette_rue_et_fonds_insuffisants_aucune_mutation",
+      "ok": true
+    },
+    {
+      "cas": "buvette_panne_recu_annule_debit_taxes_caisse_et_gain",
+      "ok": true
+    },
+    {
+      "cas": "campagne_capitale_mairie_PA_indice_POP_un_seul_debit",
+      "ok": true
+    },
+    {
+      "cas": "campagne_ville_a_mairie_PA_indice_POP_un_seul_debit",
+      "ok": true
+    },
+    {
+      "cas": "campagne_ville_b_mairie_PA_indice_POP_un_seul_debit",
+      "ok": true
+    },
+    {
+      "cas": "campagne_refus_avant_mutation_pas_de_repli_argent_personnel",
+      "ok": true
+    },
+    {
+      "cas": "campagne_blocus_commun_refuse_sans_PA_debit_ni_gain",
+      "ok": true
+    },
+    {
+      "cas": "campagne_caisse_et_indice_ville_du_mandat_pas_ecran",
+      "ok": true
+    },
+    {
+      "cas": "campagne_plafond_et_rejeu_reconcilient_valeurs_courantes",
+      "ok": true
+    },
+    {
+      "cas": "campagne_panne_annule_caisse_PA_POP_et_indice",
+      "ok": true
+    },
+    {
+      "cas": "campagne_pas_de_facturation_pour_indice_non_persistant",
+      "ok": true
+    },
+    {
+      "cas": "rumeurs_trace_vraie_gain_une_fois_et_deux_ecoutes_legitimes",
+      "ok": true
+    },
+    {
+      "cas": "rumeurs_jet_rate_paie_mais_aucun_gain_ni_rumeur_inventee",
+      "ok": true
+    },
+    {
+      "cas": "rumeurs_pas_de_gain_sur_trace_propre",
+      "ok": true
+    },
+    {
+      "cas": "rumeurs_pas_de_gain_sur_trace_expiree",
+      "ok": true
+    },
+    {
+      "cas": "rumeurs_pas_de_gain_sur_trace_autre_pays",
+      "ok": true
+    },
+    {
+      "cas": "rumeurs_pas_de_gain_sur_trace_autre_ville",
+      "ok": true
+    },
+    {
+      "cas": "rumeurs_pas_de_gain_sur_trace_type_sans_formulation",
+      "ok": true
+    },
+    {
+      "cas": "rumeurs_agent_seule_identite_de_couverture_existante",
+      "ok": true
+    },
+    {
+      "cas": "rumeurs_quatorze_lieux_effectifs_tarifs_conserves",
+      "ok": true
+    },
+    {
+      "cas": "rumeurs_lieu_et_tirage_pas_decides_par_ecran",
+      "ok": true
+    },
+    {
+      "cas": "organisation_orga_petition_paiement_effets_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "organisation_orga_meeting_paiement_effets_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "organisation_orga_benediction_paiement_effets_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "organisation_orga_pelerinage_paiement_effets_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "organisation_orga_cooptation_paiement_effets_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "organisation_orga_rituel_paiement_effets_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "organisation_orga_reseau_paiement_effets_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "organisation_orga_campagne_presse_paiement_effets_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "organisation_orga_scoop_paiement_effets_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "anatheme_autre_PJ_seul_touche_paiement_et_rejeu_atomiques",
+      "ok": true
+    },
+    {
+      "cas": "anatheme_cible_obligatoire_pas_soi_pas_PNJ_ni_cible_inventee",
+      "ok": true
+    },
+    {
+      "cas": "anatheme_planchers_cible_pas_de_perte_negative",
+      "ok": true
+    },
+    {
+      "cas": "anatheme_perimetre_commun_citoyen_domicilie_ou_present",
+      "ok": true
+    },
+    {
+      "cas": "anatheme_recu_ne_peut_pas_changer_de_cible",
+      "ok": true
+    },
+    {
+      "cas": "anatheme_panne_annule_cible_auteur_debit_et_recu",
+      "ok": true
+    },
+    {
+      "cas": "organisation_autorite_fraiche_avant_tout_debit",
+      "ok": true
+    },
+    {
+      "cas": "organisation_recu_lie_a_org_et_parametres",
+      "ok": true
+    },
+    {
+      "cas": "organisation_deux_gains_legitimes_deux_requetes",
+      "ok": true
+    },
+    {
+      "cas": "organisation_fonds_insuffisants_aucune_mutation",
+      "ok": true
+    },
+    {
+      "cas": "organisation_rejeu_retourne_fiche_courante_pas_snapshot_ancien",
+      "ok": false,
+      "erreur": "",
+      "trace": "Traceback (most recent call last):\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-jauges-ordres-379-local.py\", line 92, in case\n    try:fn();cas.append({'cas':n,'ok':True})\n        ^^^^\n  File \"/workspace/res-publica-cloture-technique135/outils/bancs/banc-jauges-ordres-379-local.py\", line 482, in orgretard\n    v=orga();assert v['rejeu']and v['inf']==40 and v['pa']==7 and v['paiement']['pa']==7\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "cas": "organisation_panne_recu_annule_paiement_et_jauges",
+      "ok": true
+    },
+    {
+      "cas": "organisation_corps_inconnu_refuse_pas_ecrase",
+      "ok": true
+    },
+    {
+      "cas": "deux_connexions_un_gain_un_paiement",
+      "ok": true
+    },
+    {
+      "cas": "objectifs_deux_connexions_requetes_distinctes_un_seul_lot",
+      "ok": true
+    },
+    {
+      "cas": "organisation_deux_connexions_un_recu_un_paiement",
+      "ok": true
+    },
+    {
+      "cas": "anatheme_deux_connexions_un_debit_une_consequence_cible",
+      "ok": true
+    },
+    {
+      "cas": "campagne_concurrence_meme_recu_un_debit",
+      "ok": true
+    },
+    {
+      "cas": "campagne_concurrence_deux_requetes_budget_pour_une",
+      "ok": true
+    }
+  ],
+  "limites": [
+    "Payer_ordre/inspection et primitives de caisse réels du baseline ; garde de blocus de la campagne réelle. Ce n’est pas un clone du catalogue vivant ni du wrapper actuel de payer_ordre.",
+    "Concurrence committée seulement dans le cluster détruit."
+  ]
+}

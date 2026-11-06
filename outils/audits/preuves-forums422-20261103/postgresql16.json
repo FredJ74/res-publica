@@ -1,0 +1,109 @@
+{
+  "production": false,
+  "moteur": "160002",
+  "contre": false,
+  "contre_publication": false,
+  "tests": [
+    {
+      "cas": "migration_annulation_et_double_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "publication_ecritures_et_recompense_existantes_inchangees",
+      "ok": true
+    },
+    {
+      "cas": "sujets_et_reponses_identite_1",
+      "ok": true
+    },
+    {
+      "cas": "sujets_et_reponses_identite_2",
+      "ok": true
+    },
+    {
+      "cas": "sujets_et_reponses_identite_3",
+      "ok": true
+    },
+    {
+      "cas": "sujets_et_reponses_identite_4",
+      "ok": true
+    },
+    {
+      "cas": "aller_retour_local_et_national_permanent",
+      "ok": true
+    },
+    {
+      "cas": "pays_homonyme_et_acces_direct_isoles",
+      "ok": true
+    },
+    {
+      "cas": "perte_adhesion_chef_et_nouvelle_adhesion",
+      "ok": true
+    },
+    {
+      "cas": "organisation_invalide_aucune_fuite_ni_panne_globale",
+      "ok": true
+    },
+    {
+      "cas": "anonyme_territoriaux_prives_fermes_institutions_inchangees",
+      "ok": true
+    },
+    {
+      "cas": "refus_sujet_pays_etranger",
+      "ok": true
+    },
+    {
+      "cas": "refus_sujet_ville_absente",
+      "ok": true
+    },
+    {
+      "cas": "refus_reponse_sujet_etranger",
+      "ok": true
+    },
+    {
+      "cas": "refus_reponse_usurpation",
+      "ok": true
+    },
+    {
+      "cas": "refus_deplacer_sujet",
+      "ok": true
+    },
+    {
+      "cas": "publication_institutionnelle_author_real_conservee",
+      "ok": true
+    },
+    {
+      "cas": "ancien_auteur_non_adherent_ne_modifie_ni_supprime",
+      "ok": true
+    },
+    {
+      "cas": "publication_transactionnelle_chef_et_membre_etranger",
+      "ok": true
+    },
+    {
+      "cas": "publication_transactionnelle_tiers_refuse_sujet_et_reponse",
+      "ok": true
+    },
+    {
+      "cas": "publication_transactionnelle_hors_ville_et_pays_refusee",
+      "ok": true
+    },
+    {
+      "cas": "politique_permissive_concurrente_refusee",
+      "ok": true
+    },
+    {
+      "cas": "RLS_inactive_refusee",
+      "ok": true
+    },
+    {
+      "cas": "fonction_inconnue_pas_ecrasee",
+      "ok": true
+    },
+    {
+      "cas": "publication_inconnue_pas_ecrasee",
+      "ok": true
+    }
+  ],
+  "limite": "Tables, vue personnages et mon_personnage du baseline ; auth.uid de fixture. Pas un clone du catalogue vivant, aucun HTTP production."
+}

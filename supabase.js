@@ -543,7 +543,14 @@ async function sbSavePersonnage(charState) {
 // l'emplacement du bloc bouge.
 function sbPayloadPersonnage(charState) {
   const photoKey = 'respublica_photo_' + (charState.char?.name || 'default');
-  const savedPhoto = (typeof localStorage !== 'undefined') ? localStorage.getItem(photoKey) : null;
+  let savedPhoto = (typeof localStorage !== 'undefined') ? localStorage.getItem(photoKey) : null;
+  // 04/11/2026 (#55/#60) : un ancien portrait brut de plusieurs Mo garde dans ce navigateur
+  // n'est plus renvoye a chaque sauvegarde (le serveur le refuserait de toute facon) : on
+  // l'oublie et l'on garde le portrait de la fiche.
+  if (savedPhoto && savedPhoto.length > 120000) {
+    try { localStorage.removeItem(photoKey); } catch (_) {}
+    savedPhoto = null;
+  }
   const data = {
     name:             charState.char?.name,
     country:          charState.country,
@@ -1071,20 +1078,132 @@ async function sbLoadPersonnage(name) {
     // defaut couvrent aussi bien un personnage jamais agresse qu'une colonne encore absente.
     hospitalisation: r.hospitalisation || null,
     statsAffaiblies: r.stats_affaiblies || {},
+    // Effets temporaires (boulette...) : poses par le serveur, lus ici, jamais sauvegardes.
+    effetsActifs:    Array.isArray(r.effets_actifs) ? r.effets_actifs : [],
     regenJour:       (typeof r.regen_jour === 'number') ? r.regen_jour : null
   };
 }
 
+// ANNUAIRE MUTUALISE (04/11/2026, #55/#60). Une quarantaine d'ecrans appellent cet annuaire,
+// et il porte les portraits : chaque appel redescendait tout le repertoire. Les appels
+// rapproches partagent desormais une seule lecture (30 s, requete en vol reutilisee) ; chaque
+// appelant recoit ses propres copies d'objets, pour qu'aucune modification locale ne fuie.
+let _sbAnnuaireCache = null, _sbAnnuaireInstant = 0, _sbAnnuaireEnVol = null;
 async function sbListPersonnages() {
   // archetype (vocation) volontairement exclu - reste secret pour les autres joueurs
-  return sbGet('personnages', 'select=name,country,current_city,poste,photo_url,domicile&order=created_at.asc');
+  const copier = rows => Array.isArray(rows) ? rows.map(r => ({ ...r })) : rows;
+  if (_sbAnnuaireCache && Date.now() - _sbAnnuaireInstant < 30000) return copier(_sbAnnuaireCache);
+  if (!_sbAnnuaireEnVol) {
+    // Portraits hors de la requete (04/11/2026, #55/#60) : ils viennent du cache des portraits,
+    // qui ne relit que ceux dont l'empreinte serveur a change. Meme forme de reponse qu'avant.
+    _sbAnnuaireEnVol = sbGet('personnages', 'select=name,country,current_city,poste,domicile&order=created_at.asc')
+      .then(async rows => {
+        if (!Array.isArray(rows)) return rows;
+        const portraits = await sbPortraitsPour(rows.map(r => r.name)).catch(() => ({}));
+        rows.forEach(r => { r.photo_url = portraits[r.name] ?? null; });
+        _sbAnnuaireCache = rows; _sbAnnuaireInstant = Date.now();
+        return rows;
+      })
+      .finally(() => { _sbAnnuaireEnVol = null; });
+  }
+  return copier(await _sbAnnuaireEnVol);
+}
+function sbOublierAnnuaire() { _sbAnnuaireCache = null; _sbEmpreintesInstant = 0; }
+
+// CACHE DES PORTRAITS (04/11/2026, #55/#60). Un portrait ne redescend du serveur que s'il est
+// nouveau ou si son empreinte (md5, RPC portraits_empreintes) a change. Cache en memoire, recopie
+// dans localStorage quand le navigateur le permet (sinon memoire seule). Le serveur reste la
+// seule source : une empreinte absente cote serveur efface le portrait du cache.
+const SB_PORTRAITS_CLE = 'rp_portraits_v1';
+let _sbPortraits = null, _sbEmpreintes = null, _sbEmpreintesInstant = 0, _sbEmpreintesEnVol = null;
+function sbPortraitsCharger() {
+  if (_sbPortraits) return _sbPortraits;
+  try { _sbPortraits = JSON.parse(localStorage.getItem(SB_PORTRAITS_CLE) || '{}') || {}; }
+  catch (_) { _sbPortraits = {}; }
+  return _sbPortraits;
+}
+function sbPortraitsSauver() {
+  try { localStorage.setItem(SB_PORTRAITS_CLE, JSON.stringify(_sbPortraits || {})); } catch (_) {}
+}
+async function sbPortraitsEmpreintes() {
+  if (_sbEmpreintes && Date.now() - _sbEmpreintesInstant < 30000) return _sbEmpreintes;
+  if (!_sbEmpreintesEnVol) {
+    _sbEmpreintesEnVol = sbRpc('portraits_empreintes', {}).then(rows => {
+      if (!Array.isArray(rows)) throw new Error('empreintes_indisponibles');
+      const carte = {};
+      rows.forEach(r => { if (r && r.name) carte[r.name] = r.empreinte; });
+      _sbEmpreintes = carte; _sbEmpreintesInstant = Date.now();
+      return carte;
+    }).finally(() => { _sbEmpreintesEnVol = null; });
+  }
+  return _sbEmpreintesEnVol;
+}
+// { nom: portrait | null } pour les noms demandes.
+async function sbPortraitsPour(noms) {
+  const cache = sbPortraitsCharger();
+  let empreintes;
+  try { empreintes = await sbPortraitsEmpreintes(); }
+  catch (_) {
+    // Repli : lecture directe des portraits demandes (comportement d'avant le cache).
+    const rows = await sbGet('personnages', 'name=in.(' + noms.map(n => '"' + String(n).replace(/"/g, '\\"') + '"').map(encodeURIComponent).join(',') + ')&select=name,photo_url').catch(() => []);
+    const r = {}; (rows || []).forEach(x => { r[x.name] = x.photo_url || null; }); return r;
+  }
+  const manquants = noms.filter(n => empreintes[n] && cache[n]?.e !== empreintes[n]);
+  let modifie = false;
+  for (let i = 0; i < manquants.length; i += 20) {
+    const lot = manquants.slice(i, i + 20);
+    const rows = await sbGet('personnages', 'name=in.(' + lot.map(n => '"' + String(n).replace(/"/g, '\\"') + '"').map(encodeURIComponent).join(',') + ')&select=name,photo_url').catch(() => null);
+    (rows || []).forEach(x => { if (x.photo_url) { cache[x.name] = { e: empreintes[x.name], u: x.photo_url }; modifie = true; } });
+  }
+  noms.forEach(n => { if (!empreintes[n] && cache[n]) { delete cache[n]; modifie = true; } });
+  if (modifie) sbPortraitsSauver();
+  const r = {};
+  noms.forEach(n => { r[n] = empreintes[n] && cache[n]?.e === empreintes[n] ? cache[n].u : null; });
+  return r;
+}
+
+// PORTRAITS REDUITS (04/11/2026, #55/#60). Un portrait choisi par le joueur est ramene a
+// 320 px de cote au plus, en JPEG qualite 0,8 sur fond blanc (~30 Ko au lieu de plusieurs Mo),
+// AVANT tout envoi. Le serveur refuse de toute facon un portrait en data URL de plus de
+// 120 000 caracteres (trg_personnages_portrait_borner). Une URL http(s) est rendue telle quelle.
+function rpReduirePortrait(source, cote = 320, qualite = 0.8) {
+  return new Promise(resolve => {
+    if (typeof source !== 'string' || !source.startsWith('data:image')) { resolve(source); return; }
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const echelle = Math.min(1, cote / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+        const l = Math.max(1, Math.round(img.naturalWidth * echelle));
+        const h = Math.max(1, Math.round(img.naturalHeight * echelle));
+        const toile = document.createElement('canvas');
+        toile.width = l; toile.height = h;
+        const ctx = toile.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, l, h);
+        ctx.drawImage(img, 0, 0, l, h);
+        const reduit = toile.toDataURL('image/jpeg', qualite);
+        resolve(reduit.length < source.length ? reduit : source);
+      } catch (_) { resolve(source); }
+    };
+    img.onerror = () => resolve(source);
+    img.src = source;
+  });
 }
 
 // =====================
 // FORUM
 // =====================
+// Les identifiants nationaux et locaux sont historiques et communs aux pays.
+// Le pays réel de chaque sujet est la colonne country, pas son auteur affiché.
+function sbForumEstTerritorial(forumId) {
+  return forumId === 'national' || (typeof forumId === 'string' && forumId.startsWith('local_'));
+}
+function sbForumSujetDansPays(forumId, paysSujet, paysCourant) {
+  return !sbForumEstTerritorial(forumId) || (paysSujet === paysCourant);
+}
 async function sbLoadForumTopics(forumId) {
-  return sbGet('forum_topics', `forum_id=eq.${forumId}&order=created_at.desc`);
+  const filtrePays = sbForumEstTerritorial(forumId) ? '&country=eq.' + encodeURIComponent(state.country) : '';
+  return sbGet('forum_topics', 'forum_id=eq.' + encodeURIComponent(forumId) + filtrePays + '&order=created_at.desc');
 }
 
 // LA MEME LECTURE, QUI DISTINGUE « AUCUN SUJET » DE « JE N'AI PAS PU LIRE » (chantier 5,
@@ -1092,17 +1211,48 @@ async function sbLoadForumTopics(forumId) {
 // une indisponibilite de Supabase : la liste etait vide parce que la LECTURE avait echoue, et
 // rien dans la chaine ne permettait de le savoir -- `if (!rows || rows.length === 0) return;`
 // repondait la meme chose aux deux situations.
+// Lecture groupée des seuls nombres de sujets visibles (droits PostgREST/RLS
+// inchangés). Aucun sujet n'est marqué lu et aucun contenu privé n'est renvoyé
+// par ce banc de compteurs. La pagination évite qu'un forum très actif coupe
+// silencieusement les autres compteurs.
+async function sbCompterSujetsForums(idsForums) {
+  const ids = [...new Set((idsForums || []).filter(id => typeof id === 'string' && id.length))];
+  const compteurs = Object.fromEntries(ids.map(id => [id, 0]));
+  if (!ids.length) return compteurs;
+  const filtre = ids.map(encodeURIComponent).join(',');
+  const paysLecture = state.country;
+  const taillePage = 200;
+  let debut = 0;
+  while (true) {
+    const rows = await sbGet('forum_topics',
+      'select=forum_id,country&forum_id=in.(' + filtre + ')&order=created_at.asc' +
+      '&limit=' + taillePage + '&offset=' + debut);
+    if (!Array.isArray(rows)) throw new Error('forum_compteurs_lecture_indisponible');
+    rows.forEach(row => {
+      if (Object.prototype.hasOwnProperty.call(compteurs, row.forum_id) &&
+          sbForumSujetDansPays(row.forum_id, row.country, paysLecture))
+        compteurs[row.forum_id]++;
+    });
+    if (rows.length < taillePage) return compteurs;
+    debut += taillePage;
+  }
+}
+
 async function sbLoadForumTopicsVerdict(forumId) {
   // Lecture seule : borne indépendante du transport générique, sans toucher aux écritures.
   // AbortController arrête effectivement la requête, contrairement à Promise.race.
   const controller = new AbortController();
+  const paysLecture = state.country;
   const timer = setTimeout(() => controller.abort(), 8000);
   try {
     const url = SUPABASE_URL + '/rest/v1/forum_topics?forum_id=eq.' +
-      encodeURIComponent(forumId) + '&order=created_at.desc';
+      encodeURIComponent(forumId) +
+      (sbForumEstTerritorial(forumId) ? '&country=eq.' + encodeURIComponent(paysLecture) : '') +
+      '&order=created_at.desc';
     const response = await fetch(url, { method: 'GET', headers: sbEnTetes(), signal: controller.signal });
     if (!response.ok) return { ok: false, raison: 'http_' + response.status };
     const rows = await response.json();
+    if (paysLecture !== state.country) return { ok: false, raison: 'territoire_change' };
     return { ok: true, donnees: Array.isArray(rows) ? rows : [] };
   } catch (e) {
     return { ok: false, raison: controller.signal.aborted ? 'delai_depasse' : 'reseau_indisponible' };
@@ -1186,6 +1336,7 @@ async function sbActiviteForumCibles(idsForums, pageSize) {
   const cibles = new Set(idsForums || []);
   if (cibles.size === 0) return {};
   const idsFiltre = Array.from(cibles).map(encodeURIComponent).join(',');
+  const paysLecture = state.country;
 
   async function dernierParForum(table, select, filtre, extraireForumId) {
     const resultats = {};
@@ -1205,7 +1356,8 @@ async function sbActiviteForumCibles(idsForums, pageSize) {
       if (lignes.length === 0) break; // flux (scope) epuise (succes, page vide), rien de plus a trouver
       lignes.forEach(l => {
         const fid = extraireForumId(l);
-        if (fid && restants.has(fid) && !(fid in resultats)) {
+        if (fid && restants.has(fid) && !(fid in resultats) &&
+            sbForumSujetDansPays(fid, l.country ?? l.forum_topics?.country, paysLecture)) {
           resultats[fid] = l.created_at; // 1ere occurrence rencontree = la plus recente (ordre desc)
           restants.delete(fid);
         }
@@ -1217,8 +1369,8 @@ async function sbActiviteForumCibles(idsForums, pageSize) {
   }
 
   const [topics, posts] = await Promise.all([
-    dernierParForum('forum_topics', 'forum_id,created_at', `forum_id=in.(${idsFiltre})`, l => l.forum_id),
-    dernierParForum('forum_posts', 'created_at,forum_topics!inner(forum_id)', `forum_topics.forum_id=in.(${idsFiltre})`, l => l.forum_topics?.forum_id)
+    dernierParForum('forum_topics', 'forum_id,country,created_at', `forum_id=in.(${idsFiltre})`, l => l.forum_id),
+    dernierParForum('forum_posts', 'created_at,forum_topics!inner(forum_id,country)', `forum_topics.forum_id=in.(${idsFiltre})`, l => l.forum_topics?.forum_id)
   ]);
 
   const parForum = {};
@@ -1239,6 +1391,7 @@ async function sbActiviteForumDepuis(idsAccessibles, curseurTopics, curseurPosts
   const ids = new Set(idsAccessibles || []);
   if (ids.size === 0) return { parForum: {}, curseurTopics, curseurPosts };
   const idsFiltre = Array.from(ids).map(encodeURIComponent).join(',');
+  const paysLecture = state.country;
 
   async function depuis(table, select, filtreScope, extraireForumId, curseur) {
     const parForum = {};
@@ -1258,7 +1411,9 @@ async function sbActiviteForumDepuis(idsAccessibles, curseurTopics, curseurPosts
       if (lignes.length === 0) break;
       lignes.forEach(l => {
         const fid = extraireForumId(l);
-        if (fid) { if (!parForum[fid] || l.created_at > parForum[fid]) parForum[fid] = l.created_at; }
+        if (fid && sbForumSujetDansPays(fid, l.country ?? l.forum_topics?.country, paysLecture)) {
+          if (!parForum[fid] || l.created_at > parForum[fid]) parForum[fid] = l.created_at;
+        }
         if (!dernier || l.created_at > dernier) dernier = l.created_at;
       });
       if (lignes.length < pageSize) break;
@@ -1268,8 +1423,8 @@ async function sbActiviteForumDepuis(idsAccessibles, curseurTopics, curseurPosts
   }
 
   const [t, p] = await Promise.all([
-    depuis('forum_topics', 'forum_id,created_at', `forum_id=in.(${idsFiltre})`, l => l.forum_id, curseurTopics),
-    depuis('forum_posts', 'created_at,forum_topics!inner(forum_id)', `forum_topics.forum_id=in.(${idsFiltre})`, l => l.forum_topics?.forum_id, curseurPosts)
+    depuis('forum_topics', 'forum_id,country,created_at', `forum_id=in.(${idsFiltre})`, l => l.forum_id, curseurTopics),
+    depuis('forum_posts', 'created_at,forum_topics!inner(forum_id,country)', `forum_topics.forum_id=in.(${idsFiltre})`, l => l.forum_topics?.forum_id, curseurPosts)
   ]);
 
   const parForum = {};
@@ -1371,9 +1526,7 @@ async function sbIncrementViews(topicId) {
 // =====================
 // REGISTRE DE VENTE D'ARMES
 // =====================
-async function sbEnregistrerVenteArme(vente) {
-  return sbInsert('registre_ventes_armes', vente);
-}
+// sbEnregistrerVenteArme supprimee le 03/11/2026 : arme_acheter inscrit la vente au registre.
 
 // A2 (16 aout 2026) : registre local par armurerie -- city obligatoire pour toute consultation
 // en jeu (le registre national agrege n'existe plus, cf. afficherRegistreArmes). Parametre
@@ -1478,42 +1631,8 @@ async function sbGetParisJourneeNonResolus(journeeNumero, saisonNumero) {
   return rows.filter(r => r.data?.journeeNumero === journeeNumero && r.data?.saisonNumero === saisonNumero).map(r => ({ id: r.id, ...r.data }));
 }
 
-// LE DRAPEAU ANTI-REJEU DOIT ETRE PROUVE AVANT DE PAYER (chantier 5, 9 octobre 2026).
-//
-// Deux defauts tenaient dans ces six lignes. D'abord `resolu: true` n'etait pas verifie : un
-// echec de cette ecriture laissait le pari NON resolu et le gain etait credite quand meme --
-// donc recredite au prochain passage. Ensuite le credit portait le motif
-// `rows?.[0]?.arg ?? 0`, qui REMPLACE le solde du gagnant par son seul gain quand la lecture
-// echoue (voir sbEcrireSoldePersonnage).
-//
-// AUCUN APPELANT AUJOURD'HUI -- le championnat ne passe plus par ici. Corrigee tout de meme :
-// une fonction qui porte ce motif est une fonction que le prochain appelant heritera cassee.
-async function sbResoudrePari(id, joueurNom, gain) {
-  const marque = await sbUpdateVerdict('paris_sportifs', `id=eq.${encodeURIComponent(id)}&resolu=is.false`,
-                                       { resolu: true })
-    .catch(() => ({ ok: false, raison: 'reseau_indisponible' }));
-  if (!marque.ok) return { ok: false, raison: marque.raison };
-  // Zero ligne : le pari etait DEJA resolu, ou n'existe pas. Dans les deux cas on ne paie pas.
-  if (!Array.isArray(marque.donnees) || marque.donnees.length !== 1) {
-    return { ok: false, raison: 'pari_deja_resolu_ou_absent' };
-  }
-  if (gain <= 0) return { ok: true, gain: 0 };
-  const v = await sbGetVerdict('personnages', `name=eq.${encodeURIComponent(joueurNom)}&select=arg`)
-    .catch(() => ({ ok: false, raison: 'reseau_indisponible' }));
-  if (!v.ok || !Array.isArray(v.donnees) || v.donnees.length === 0) {
-    console.error('sbResoudrePari : pari ' + id + ' marque resolu mais le gain de ' + gain
-                  + ' n\'a pas pu etre credite a ' + joueurNom);
-    return { ok: false, raison: 'gain_non_credite' };
-  }
-  const argActuel = v.donnees[0].arg ?? 0;
-  const w = await sbEcrireSoldePersonnage(joueurNom, argActuel, argActuel + gain);
-  if (!w.ok) {
-    console.error('sbResoudrePari : pari ' + id + ' marque resolu mais le gain de ' + gain
-                  + ' n\'a pas pu etre credite a ' + joueurNom, w.raison);
-    return { ok: false, raison: 'gain_non_credite' };
-  }
-  return { ok: true, gain };
-}
+// sbResoudrePari RETIREE (04/11/2026) : aucun appelant, et elle creditait le gain en ecrivant `arg`
+// depuis le navigateur. Les paris sont resolus par le serveur (gains par argent_crediter_interne).
 
 async function sbAppliquerBlessureSportive(nomJoueur, blessure, degatsPV) {
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=hp`);
@@ -1615,90 +1734,14 @@ async function sbSaveEntreprise(id) {
   return null;
 }
 
-// ECRIRE LE SOLDE D'UN AUTRE PERSONNAGE, SANS JAMAIS LE DEVINER NI L'ECRASER
-// (chantier 5, 9 octobre 2026).
-//
-// LE MOTIF QU'ELLE REMPLACE, PRESENT A CINQ ENDROITS, ET CE QU'IL DETRUISAIT :
-//
-//     const rows = await sbGet('personnages', `name=eq.${nom}&select=arg`);
-//     const argActuel = rows?.[0]?.arg ?? 0;
-//     await sbUpdate('personnages', `name=eq.${nom}`, { arg: argActuel + montant });
-//
-// DEUX DEFAUTS DISTINCTS, et le premier est le plus grave de ceux trouves cette nuit.
-//
-//   1. `?? 0` SUR UNE LECTURE QUI A ECHOUE REMPLACE LE SOLDE. sbGet rend `null` sur toute
-//      erreur HTTP -- 500, 401, un 42501 de la RLS. `argActuel` vaut alors 0, et l'ecriture
-//      pose `arg = 0 + montant`. Un joueur qui avait 50 000 FR et recoit un salaire de 200 FR
-//      se retrouve a 200 FR. Ce n'est pas un credit manque : c'est une DESTRUCTION de solde,
-//      silencieuse, proportionnelle a la fortune de la victime.
-//   2. L'ECRITURE ETAIT AVALEE, et le montant rendu quand meme. L'appelant reversait alors au
-//      Tresor un prelevement qui n'avait pas eu lieu -- de l'argent CREE a partir de rien.
-//
-// CE QU'ELLE FAIT A LA PLACE : une ECRITURE CONDITIONNELLE. Le filtre porte le solde ATTENDU
-// (`arg=eq.<lu>`), donc PostgREST n'ecrit que si la ligne vaut encore ce qu'on a lu. Cela ferme
-// les deux defauts d'un coup, et un troisieme par la meme occasion :
-//
-//   . une lecture ratee ne peut plus servir de base, puisque l'appelant doit fournir le solde
-//     qu'il a REELLEMENT lu et que la fonction refuse `null` ou `undefined` ;
-//   . un echec de transport est rendu, jamais avale ;
-//   . et si un autre joueur -- ou le cron -- a modifie ce solde entre la lecture et l'ecriture,
-//     ZERO ligne est touchee : la course est detectee au lieu d'etre perdue en silence.
-//
-// `arg` EST `integer` NULLABLE DE DEFAUT 0 (verifie en base le 9 octobre 2026). Un solde a NULL
-// ne serait donc pas trouve par `arg=eq.0` : quand le solde attendu est zero, le filtre accepte
-// explicitement les deux ecritures possibles de « rien ».
-//
-// ELLE REND UN VERDICT, jamais un montant : c'est a l'appelant de decider ce qu'il fait d'un
-// echec, et il ne peut plus l'ignorer sans le voir.
-async function sbEcrireSoldePersonnage(nom, soldeAttendu, nouveauSolde) {
-  if (typeof soldeAttendu !== 'number' || !Number.isFinite(soldeAttendu)) {
-    // On REFUSE d'ecrire sur un solde qu'on n'a pas lu. C'est le defaut n'1, ferme a la porte.
-    console.error('sbEcrireSoldePersonnage : solde attendu illisible pour ' + nom, soldeAttendu);
-    return { ok: false, raison: 'solde_attendu_illisible' };
-  }
-  if (typeof nouveauSolde !== 'number' || !Number.isFinite(nouveauSolde)) {
-    console.error('sbEcrireSoldePersonnage : nouveau solde invalide pour ' + nom, nouveauSolde);
-    return { ok: false, raison: 'nouveau_solde_invalide' };
-  }
-  const cible = `name=eq.${encodeURIComponent(nom)}`;
-  const garde = soldeAttendu === 0
-    ? `&or=(arg.eq.0,arg.is.null)`
-    : `&arg=eq.${encodeURIComponent(String(soldeAttendu))}`;
-  const v = await sbUpdateVerdict('personnages', cible + garde, { arg: Math.round(nouveauSolde) })
-    .catch(e => ({ ok: false, raison: 'reseau_indisponible',
-                   transport: { message: (e && e.message) || null } }));
-  if (!v.ok) {
-    console.error('sbEcrireSoldePersonnage : ecriture refusee pour ' + nom, v.raison, v.transport);
-    return { ok: false, raison: v.raison, transport: v.transport };
-  }
-  // 2xx, mais PostgREST rend les lignes REELLEMENT touchees. Zero ligne = le solde a change
-  // entre la lecture et l'ecriture, ou le personnage n'existe pas. Dans les deux cas rien n'a
-  // ete ecrit, et c'est exactement ce qu'il faut dire a l'appelant.
-  const touchees = Array.isArray(v.donnees) ? v.donnees.length : 0;
-  if (touchees !== 1) {
-    return { ok: false, raison: 'solde_modifie_entre_temps', touchees };
-  }
-  return { ok: true, solde: Math.round(nouveauSolde) };
-}
-
-// LE SALAIRE N'ECRASE PLUS LE SOLDE DE CELUI QU'IL PAIE (chantier 5, 9 octobre 2026).
-// Voir sbEcrireSoldePersonnage ci-dessus pour le defaut exact. Elle rend desormais un verdict :
-// son appelant (plateau-politique.js, subvention ministerielle) ne peut plus annoncer
-// « Subvention accordee » apres avoir debite une caisse sans que personne n'ait rien recu.
-async function sbAppliquerSalaire(nomJoueur, montant) {
-  const v = await sbGetVerdict('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=arg`)
-    .catch(e => ({ ok: false, raison: 'reseau_indisponible' }));
-  if (!v.ok) {
-    console.error('sbAppliquerSalaire : solde de ' + nomJoueur + ' illisible (' + v.raison + ')');
-    return { ok: false, raison: v.raison };
-  }
-  const rows = v.donnees;
-  if (!Array.isArray(rows) || rows.length === 0) {
-    return { ok: false, raison: 'personnage_absent' };
-  }
-  const argActuel = rows[0].arg ?? 0;   // vide REEL : la colonne vaut NULL, zero est juste
-  return sbEcrireSoldePersonnage(nomJoueur, argActuel, argActuel + montant);
-}
+// PLUS AUCUN MOUVEMENT D'ARGENT D'UN AUTRE PERSONNAGE PAR LE NAVIGATEUR (04/11/2026).
+// sbEcrireSoldePersonnage, sbAppliquerSalaire, sbAppliquerRachatEntreprise et sbResoudrePari
+// ecrivaient `arg` d'un tiers par la vue `personnages`. Depuis 20261104013000, `arg` est un total
+// calcule (liquide + Banque nationale) : ces ecritures etaient neutralisees en silence, et leurs
+// appelants annoncaient des versements qui n'avaient pas eu lieu. Tout credit ou debit d'un
+// personnage passe par la fonction serveur de l'acte (argent_crediter_interne /
+// argent_debiter_interne) ; la subvention a un citoyen par subvention_citoyen_verser.
+// Garde : outils/bancs/test-argent-navigateur-ferme.mjs.
 
 // Ajuste a distance la popularite d'UN AUTRE personnage (chantier "football live", 28 aout 2026) --
 // meme principe de lecture/ecriture directe que sbAppliquerSalaire/sbAppliquerBlessureSportive
@@ -1721,27 +1764,6 @@ async function sbAjusterPopularite(nomJoueur, delta, cause) {
   return await sbRpc('personnage_ajuster_pop_inf',
     { p_acteur: state?.char?.name || null, p_cible: nomJoueur, p_pop: delta,
       p_inf: null, p_cause: cause || null });
-}
-
-// MEME MOTIF, MEME CORRECTION, ET LE DEBIT EST ENCORE PLUS SENSIBLE QUE LE CREDIT
-// (chantier 5, 9 octobre 2026). `rows?.[0]?.arg ?? 0` sur une lecture ratee faisait ecrire
-// `arg = 0 - montant`, c'est-a-dire un solde NEGATIF pour un joueur qui pouvait etre riche --
-// le jeu n'autorise nulle part une dette implicite de cette forme.
-//
-// AUCUN APPELANT AUJOURD'HUI. Corrigee comme sbResoudrePari, et pour la meme raison.
-async function sbAppliquerRachatEntreprise(nomAcheteur, montant) {
-  const v = await sbGetVerdict('personnages', `name=eq.${encodeURIComponent(nomAcheteur)}&select=arg`)
-    .catch(() => ({ ok: false, raison: 'reseau_indisponible' }));
-  if (!v.ok) {
-    console.error('sbAppliquerRachatEntreprise : solde de ' + nomAcheteur + ' illisible');
-    return { ok: false, raison: v.raison };
-  }
-  if (!Array.isArray(v.donnees) || v.donnees.length === 0) {
-    return { ok: false, raison: 'personnage_absent' };
-  }
-  const argActuel = v.donnees[0].arg ?? 0;
-  if (argActuel < montant) return { ok: false, raison: 'fonds_insuffisants', solde: argActuel };
-  return sbEcrireSoldePersonnage(nomAcheteur, argActuel, argActuel - montant);
 }
 
 async function sbGetJoueurClub(nomJoueur) {
@@ -1817,10 +1839,6 @@ async function sbGetNiveauPrison(key) {
   return rows[0].data;
 }
 
-async function sbSaveNiveauPrison(key, data) {
-  return sbUpsert('niveaux_prison', { id: key, data, updated_at: new Date().toISOString() });
-}
-
 async function sbGetBudgetNational(pays) {
   const rows = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(pays)}`);
   if (!rows || rows.length === 0) return null;
@@ -1880,9 +1898,7 @@ async function sbGetIndicesVille(key) {
   return rows[0].data;
 }
 
-async function sbSaveIndicesVille(key, data) {
-  return sbUpsert('indices_villes', { id: key, data, updated_at: new Date().toISOString() });
-}
+// sbSaveIndicesVille supprimee le 03/11/2026 : indices_villes n'est plus ecrivable par l'ecran.
 
 // LEDGER DES CONTRIBUTIONS DE PIETE : ecrit et lu par le serveur seul depuis le 27 octobre 2026
 // (religion_agir, piete_villes_actualiser). Les anciens acces directs sont supprimes.
@@ -2085,8 +2101,10 @@ async function sbUpdatePresence(name, country, city, buildingId, roomId, groupeP
 // le poste en base et refuse qui n'est pas commissaire), et une cible qui ne s'est reellement
 // pas deplacee. Le commissaire payait sa filature et lisait « aucun deplacement » dans les trois
 // cas. `[]` ne signifie plus que le dernier.
+// filature_deplacements n'est plus appelable par un joueur (05/11/2026) : la filature passe par
+// filature_mener (plateau-justice-economie.js), qui tire le de avant de lire le registre.
 async function sbGetHistoriqueDeplacements(name, depuisJour) {
-  const rows = await sbRpc('filature_deplacements', { p_cible: name });
+  const rows = await sbRpc('filature_mener', { p_cible: name, p_benediction: false });
   const r = Array.isArray(rows) ? rows[0] : rows;
   if (!r || r.ok !== true) return null;
   return Array.isArray(r.deplacements) ? r.deplacements : [];
@@ -2632,12 +2650,8 @@ async function sbEvictionIndemniser(country, buildingId, lotId) {
 // Debauchage d'un PNJ employe : retire le PNJ de la liste de son ANCIEN employeur, sous verrou,
 // cote serveur. Une ecriture cliente sur la fiche d'autrui echouait toujours en silence et
 // laissait le PNJ employe des deux joueurs a la fois. Renvoie {ok, retire, deja_parti...}.
-async function sbPnjEmployeDebaucher(ancienProprietaire, pnjNom, job) {
-  const rows = await sbRpc('pnj_employe_debaucher', {
-    p_ancien_proprietaire: ancienProprietaire || '', p_pnj_nom: pnjNom, p_job: job || 'default'
-  });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
+// sbPnjEmployeDebaucher RETIREE (05/11/2026) : pnj_employe_debaucher n'est plus appelable par un joueur ;
+// le debauchage passe par pnj_debaucher (paiement, jet et retrait dans une transaction).
 
 // Don d'argent entre joueurs. L'expediteur n'est PAS un parametre : le serveur prend le
 // personnage du compte connecte. p_requete rend l'operation idempotente (double-clic, retry).
@@ -2764,6 +2778,13 @@ async function sbOrganisationVie(orgaId, action, parametres) {
     localStorage.setItem(cle, requete);
     const r = await sbRpcVerdict('organisation_vie_commande',
       { p_requete: requete, p_organisation: orgaId || null, p_action: action, p_parametres: params });
+    // Une réponse tronquée n'atteste pas un ordre à effets : conserver le reçu à rejouer.
+    if(action==='ordre_jauges'&&r?.ok===true&&(r.contrat_jauges!==1||r.acteur!==nom
+        ||r.organisation!==orgaId||r.ordre!==params.fn
+        ||(params.fn==='orga_anatheme'&&(r.effets_cible?.nom!==params.cible||!['pop','moral'].every(k=>typeof r.effets_cible[k]==='number'&&Number.isFinite(r.effets_cible[k]))))
+        ||!['pop','inf','pa','hp','moral','gain_pop','gain_inf','gain_moral'].every(k=>typeof r[k]==='number'&&Number.isFinite(r[k])))) {
+      return {ok:false,raison:'contrat_invalide',transport:{etat:'confirmation_incertaine'}};
+    }
     // Un refus metier est definitif pour ce geste ; seul un transport incertain garde la cle.
     if (r && (r.ok === true || (r.raison && !r.transport))) { try { localStorage.removeItem(cle); } catch (_) {} }
     return r || { ok: false, raison: 'reponse_absente' };
@@ -2903,8 +2924,6 @@ async function sbGetObjetsAbandonnesDansPiece(country, city, buildingId, roomId)
 // et depose dans la meme transaction. Ne subsistent ici que les depots SANS source d'inventaire,
 // pour lesquels il n'y a rien a retirer et donc rien a rendre atomique :
 //   - delivrerDocumentUrbanisme (plateau-immobilier.js) : le document est cree pour l'occasion ;
-//   - recupererVolsEnAttente (plateau-communication.js) : butin de vol, famille non encore
-//     migree -- elle a son propre protocole de confirmation en deux temps (type_butin).
 // FERME LE 17 SEPTEMBRE 2026 (P0). Cette fonction faisait un sbInsert CLIENT dans objets_recus,
 // une table qui avait la RLS desactivee, zero policy et tous les droits DML accordes a anon.
 // N'importe qui, meme non authentifie, pouvait donc fabriquer un objet arbitraire au profit de
@@ -3406,14 +3425,8 @@ async function sbTraiterDemandeNaturalisation(id, statut) {
 // =====================
 // Le depot d'un vol est fait par le serveur (crime_voler, 27/10/2026) : sbDeposerVol supprimee.
 
-async function sbRecupererVolsEnAttente(victime) {
-  const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false`;
-  return sbGet('vols_en_attente', filtre) || [];
-}
-
-async function sbMarquerVolTraite(volId) {
-  return sbUpdate('vols_en_attente', `id=eq.${encodeURIComponent(volId)}`, { traite: true });
-}
+// sbRecupererVolsEnAttente et sbMarquerVolTraite SUPPRIMEES (03/11/2026) : les vols sont appliques
+// immediatement par crime_voler, la ligne est inseree deja traitee (branche morte).
 
 // =====================
 // ACTIONS TRACABLES (pour le systeme de rumeurs vraies)
@@ -3482,13 +3495,7 @@ async function sbGetEtatUrgence(country) {
   return (rows && rows[0]) || null;
 }
 
-async function sbSetEtatUrgence(country, actif, activePar, jour) {
-  const existant = await sbGetEtatUrgence(country).catch(() => null);
-  if (existant) {
-    return sbUpdate('etats_urgence', `country=eq.${encodeURIComponent(country)}`, { actif, active_par: activePar, jour_debut: jour });
-  }
-  return sbInsert('etats_urgence', { country, actif, active_par: activePar, jour_debut: jour });
-}
+// sbSetEtatUrgence supprimee le 03/11/2026 : etat_urgence_decider (serveur).
 
 // sbCreerDetention A ETE SUPPRIMEE LE 9 OCTOBRE 2026. C'etait le dernier INSERT direct du
 // navigateur dans `detentions` : il ouvrait une peine sans poser est_emprisonne, les deux
@@ -3658,18 +3665,10 @@ async function sbMarquerTestamentStatut(id, statut) {
 // simple droit d'information globale du conjoint des l'ouverture, jamais une convocation avec
 // decision/echeance -- ne pas les confondre (voir rapport d'architecture).
 // =====================
-async function sbCreerSuccession(succession) {
-  return sbInsert('successions', succession);
-}
-
 async function sbGetSuccession(id) {
   if (!id) return null;
   const rows = await sbGet('successions', `id=eq.${encodeURIComponent(id)}`).catch(() => []);
   return (rows && rows.length > 0) ? rows[0] : null;
-}
-
-async function sbUpdateSuccession(id, patch) {
-  return sbUpdate('successions', `id=eq.${encodeURIComponent(id)}`, patch);
 }
 
 // Successions en_attente d'un pays -- le filtrage par beneficiaire/conjoint se fait cote client
@@ -5001,7 +5000,7 @@ async function sbRecupererImpactsEnAttente(victime) {
 
 // Reserve a la VICTIME : la RPC ne marque que ses propres lignes. Un tiers obtient marques:0.
 async function sbMarquerImpactTraite(impactId) {
-  const rows = await sbRpc('impact_marquer_traite', { p_id: impactId });
+  const rows = await sbRpc('impact_marquer_traite', { p_id: impactId, p_contrat: 1 });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
@@ -6396,11 +6395,7 @@ async function sbMilitaireRecupererSoldats(compagnieId, sectionId, nb) {
     { p_compagnie_id: compagnieId, p_section_id: sectionId, p_nb: nb });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
-async function sbMilitaireAssignerMission(compagnieId, sectionId, mission, cible) {
-  const rows = await sbRpc('militaire_assigner_mission',
-    { p_compagnie_id: compagnieId, p_section_id: sectionId, p_mission: mission, p_cible: cible || null });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
+// sbMilitaireAssignerMission retiree (03/11/2026) : plus de mission choisie, voir GAME-DESIGN-ARMEE.md.
 async function sbMilitaireEntrainerSection(compagnieId, sectionId, stat) {
   const rows = await sbRpc('militaire_entrainer_section',
     { p_compagnie_id: compagnieId, p_section_id: sectionId, p_stat: stat });
@@ -6558,6 +6553,21 @@ async function sbEmployeurCandidats(employeurId) {
 
 async function sbEmployeurEmbaucher(candidatId) {
   return await sbRpc('employeur_embaucher', { p_candidat_id: candidatId });
+}
+
+// Agence de securite privee d'un PJ (#135, 03/11/2026) : meme socle, l'agence est nommee
+// explicitement ; le serveur verifie presence, vivier, tarif et credite la caisse du commerce.
+async function sbEmployeurEmbaucherAgence(employeurId, candidatId) {
+  return await sbRpc('employeur_embaucher_agence', { p_employeur_id: employeurId, p_candidat_id: candidatId });
+}
+async function sbAgenceSecuriteLire(fondsId) {
+  return await sbRpc('agence_securite_lire', { p_fonds_id: fondsId });
+}
+async function sbAgenceSecuriteOuvrir(fondsId) {
+  return await sbRpc('agence_securite_ouvrir', { p_fonds_id: fondsId });
+}
+async function sbAgenceSecuriteFermer(fondsId) {
+  return await sbRpc('agence_securite_fermer', { p_fonds_id: fondsId });
 }
 
 // Depart d'un employe : licenciement, renvoi, ou impaye. JAMAIS une suppression -- la garde de

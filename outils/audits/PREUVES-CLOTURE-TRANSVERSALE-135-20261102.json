@@ -1,0 +1,196 @@
+{
+  "mission": "https://github.com/FredJ74/res-publica/issues/135#issuecomment-6585083787",
+  "source_code": "d7654c7536e2e4ab46fe3c118e44bd183ab98aa3",
+  "main_integre": "a52e1a009b74c88de55a289732b2c945554f02b9",
+  "branche": "codex/audit-transversal-cloture-135-20261102",
+  "production_modifiee": false,
+  "migration_production_appliquee": false,
+  "fusion_dans_main": false,
+  "recette_authentifiee_production": false,
+  "resultats": {
+    "bancs_clients": {
+      "prevus": 169,
+      "reussis": 169,
+      "echoues": 0
+    },
+    "pilote_chromium_local": {
+      "prevus": 118,
+      "reussis": 118
+    },
+    "transversaux": {
+      "prevus": 53,
+      "reussis": 53
+    },
+    "globaux_hors_ligne": {
+      "prevus": 12,
+      "reussis": 12,
+      "catalogue_vivant_certifie": false,
+      "reconstruction": "assemblage et grammaire PostgreSQL17, pas un nouveau clone vivant"
+    },
+    "postgresql_natif_local": {
+      "prevus": 379,
+      "reussis": 379,
+      "sous_ensemble_transports": 141,
+      "version": {
+        "server_version_num": "170006",
+        "icu_en_US_stockee_et_actuelle": [
+          "153.121",
+          "153.121"
+        ],
+        "binaires_explicites": true
+      },
+      "fixture_authenticated": true,
+      "clone_production": false
+    },
+    "contre_epreuves": {
+      "historiques": {
+        "cas": 14,
+        "echecs": 10
+      },
+      "replis_transports": {
+        "cas": 16,
+        "echecs": 11
+      },
+      "rendu_chromium": {
+        "cas_incluant_parent": 13,
+        "echecs": 7
+      },
+      "rue_avant_366": {
+        "cas": 19,
+        "echecs": 6
+      },
+      "inventaire_relecture": {
+        "cas": 10,
+        "echecs": 4
+      },
+      "tarif_collectif": {
+        "cas": 141,
+        "echecs": 5
+      }
+    },
+    "observations_legacy": {
+      "statut": "anomalies client observées sur données fictives, portée production non établie",
+      "code_sortie": 2
+    }
+  },
+  "blocages": {
+    "creation_PR": "POST api.github.com/graphql : Forbidden",
+    "CI_sha_branche": "Non déclenchée/observée : la CI complète part sur PR ou main, pas simple push de branche",
+    "Supabase": "Aucun outil du connecteur exposé dans cette session ; prévol lecture seule prêt, non exécuté",
+    "Vercel": "Lecture statique refusée par le proxy, Tunnel connection failed:403 Forbidden ; SHA servi non observé",
+    "PJ_reel": "Aucun compte connecté pour cette recette, aucune autorisation étendue"
+  },
+  "preuves": {
+    "ci-main-avec-dependances.log": {
+      "octets": 4714,
+      "sha256": "49a4a79bc3f8786ce2757323d13c4d5d454f93e13d5b6cb9eb0d086c7f778019",
+      "sha256_capture_brute": "49a4a79bc3f8786ce2757323d13c4d5d454f93e13d5b6cb9eb0d086c7f778019",
+      "presentation": "Espaces de fin de ligne supprimés ; résultats et messages inchangés"
+    },
+    "ci-main-public.json": {
+      "octets": 4176,
+      "sha256": "86228935874540ea4d71c168c00ab63ec017f96bb9fcc90329114fe1e1b775ca"
+    },
+    "ci-main-sans-dependances.log": {
+      "octets": 5320,
+      "sha256": "d73e23c2beee036d7a67007fadfcda4e361258c4b2477c5c66adbe564569af53",
+      "sha256_capture_brute": "d73e23c2beee036d7a67007fadfcda4e361258c4b2477c5c66adbe564569af53",
+      "presentation": "Espaces de fin de ligne supprimés ; résultats et messages inchangés"
+    },
+    "clients.json": {
+      "octets": 20636,
+      "sha256": "7cbed972b2923133305de688fb51782fdc60ae88f7614403ef37a322d6e2e9f3"
+    },
+    "contre-inventaire.log": {
+      "octets": 3959,
+      "sha256": "12ab290112d93d37b6decf4132c3b893e3ba688dd64d864120015d4f4a4a436a",
+      "sha256_capture_brute": "601ee4080cefbab4bd3eac9b1e2aaa980e707231cfd21a9a18190b0f911bc483",
+      "presentation": "Espaces de fin de ligne supprimés ; résultats et messages inchangés"
+    },
+    "contre-rendu.log": {
+      "octets": 7805,
+      "sha256": "0cba6239d1b610deb2a7184618e6a631a51fa48f4b47dc52403f2e657b639fbc",
+      "sha256_capture_brute": "5f9066b88db0e1dc9cd10994f72d1ee11abdbc868b81282d2a834b23bfec4d07",
+      "presentation": "Espaces de fin de ligne supprimés ; résultats et messages inchangés"
+    },
+    "contre-rue366.log": {
+      "octets": 5249,
+      "sha256": "98f18cd8c204a3110f09a4ebbe1af2f6b2a409e20f7f40179e84fb0fc54e43cb",
+      "sha256_capture_brute": "ca63ddc3a1f28587b7a3ab1fce0a18f497e7ab2ddb58429e27777eee825cf8f4",
+      "presentation": "Espaces de fin de ligne supprimés ; résultats et messages inchangés"
+    },
+    "contre-tarif-collectif.json": {
+      "octets": 13128,
+      "sha256": "1d58cbf4c87a7c53524ed7e4805592f49c635f79f5f037804392b3dc785f26a7"
+    },
+    "globaux.log": {
+      "octets": 1333,
+      "sha256": "0729ca11a36985869af728e2ef4b83f5b155ce62edc1b70b5b5562c8c9fb6dde",
+      "sha256_capture_brute": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb",
+      "presentation": "Espaces de fin de ligne supprimés ; résultats et messages inchangés"
+    },
+    "observations-legacy-fixtures.json": {
+      "octets": 617,
+      "sha256": "5674b462ccd04dfdd05ab9c822450efc3e86166a036c99174850bba6e1671250"
+    },
+    "pilote-chromium-local.log": {
+      "octets": 8915,
+      "sha256": "e19b54d59adebe5e194ba226fede46dbe7e1d6cdcf66202a692aa5bdee0fda30",
+      "sha256_capture_brute": "e19b54d59adebe5e194ba226fede46dbe7e1d6cdcf66202a692aa5bdee0fda30",
+      "presentation": "Espaces de fin de ligne supprimés ; résultats et messages inchangés"
+    },
+    "postgresql17.json": {
+      "octets": 41202,
+      "sha256": "1c2e12ed94a8c031b407df0bb34f85b5ab2d1c44c5cc39e797752d7d7ea5fbc9"
+    },
+    "transversaux.log": {
+      "octets": 4724,
+      "sha256": "b9a042445580cf4244cd36b33d004e8a03935b97d4627e076b63173feb87c870",
+      "sha256_capture_brute": "b9a042445580cf4244cd36b33d004e8a03935b97d4627e076b63173feb87c870",
+      "presentation": "Espaces de fin de ligne supprimés ; résultats et messages inchangés"
+    }
+  },
+  "inventaire_sha256": "6e10c9a42cd9e44bad67ad2583ef793ef07beb71b6be2692d76f5e32450671ef",
+  "CI_publique_derniere_main": [
+    {
+      "id": "41508724042",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41508724042",
+      "workflow": "Parcours immobilier cinq terrains - PostgreSQL jetable",
+      "etat": {
+        "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+        "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+      },
+      "sha": "a52e1a009b74c88de55a289732b2c945554f02b9"
+    },
+    {
+      "id": "41508724071",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41508724071",
+      "workflow": "Cohérence client et transactions locales",
+      "etat": {
+        "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+        "conclusion": "WORKFLOW_RUN_CONCLUSION_FAILURE"
+      },
+      "sha": "a52e1a009b74c88de55a289732b2c945554f02b9"
+    },
+    {
+      "id": "41508724177",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41508724177",
+      "workflow": "Placement national transactionnel",
+      "etat": {
+        "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+        "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+      },
+      "sha": "a52e1a009b74c88de55a289732b2c945554f02b9"
+    },
+    {
+      "id": "41508724029",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41508724029",
+      "workflow": "Garde du payload Vercel",
+      "etat": {
+        "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+        "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+      },
+      "sha": "a52e1a009b74c88de55a289732b2c945554f02b9"
+    }
+  ]
+}

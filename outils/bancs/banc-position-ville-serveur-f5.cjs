@@ -13,11 +13,15 @@ assert.doesNotMatch(f,/state\.currentCity\s*=\s*positionLocale/,'ville locale ja
 console.log('OK - ville et pays issus de la fiche serveur après actualisation');
 
 const nav=fs.readFileSync(path.join(__dirname,'../../plateau-navigation.js'),'utf8');
-const a=nav.indexOf('async function executerVoyage(');
-const b=nav.indexOf('\n// Dialogue scripte de Mireille',a);
-assert.ok(a>=0&&b>a,'moteur transport existant');
-const voyage=nav.slice(a,b);
-assert.match(voyage,/await sbSavePersonnage\(state\)/,'voyage attend la persistance');
-assert.match(voyage,/if \(!positionConfirmee\) \{[^]*?return;/,'échec interdit annonce de succès');
-assert.ok(voyage.indexOf('await sbSavePersonnage(state)')<voyage.indexOf("showToast('Bienvenue"),'confirmation avant message arrivée');
-console.log('OK - voyage n’annonce pas arrivée sans réponse de sauvegarde');
+// Depuis #219/#318, la transaction transport_effectuer remplace le couple
+// payer_ordre puis sauvegarde de position. Un test d'un ancien texte n'est pas
+// une garantie : les entrées effectives doivent déléguer au même acte serveur.
+for(const nom of ['executerVoyage','confirmerTransport']) {
+ const acorn=require('../vercel/node_modules/acorn');
+ const n=acorn.parse(nav,{ecmaVersion:'latest'}).body.find(n=>n.type==='FunctionDeclaration'&&n.id.name===nom);
+ assert.ok(n,nom);
+ const texte=nav.slice(n.start,n.end);
+ assert.match(texte,/return commanderTransportServeur\(mode, empireId, villeId\)/);
+ assert.doesNotMatch(texte,/deduireCoutOrdre|sbSavePersonnage|state\.currentCity\s*=/);
+}
+console.log('OK - les transports utilisent le paiement et la position atomiques du serveur');

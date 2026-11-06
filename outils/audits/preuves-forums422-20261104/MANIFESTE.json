@@ -1,0 +1,114 @@
+{
+  "main_integre": "d2617483",
+  "production_modifiee": false,
+  "limite": "Contrôles hors ligne et fixtures locales, pas une extraction du catalogue vivant. Prévol transmis par ChatGPT distinct des opérations exécutées ici.",
+  "fichiers_sha256": {
+    "acces.json": "366cdf9679c6184f0cc724e0b61a761bbcf428d779aa98980465b4c4835fdf09",
+    "chromium.log": "2beed3eeded4d48b48330263f455c17846a671b90520b6d0fafe35048c4e3564",
+    "clients.json": "75d994dc11c842517ab0ac662b2395531cf43a3af591d27889ac37b1e4c12895",
+    "contre-publication.json": "8392a2cec23b0beaab9bd548530e8f6498e5105dd1518ad6f0612a5ed4477edd",
+    "contre-rls.json": "6a845794b9b317bd5c52cd0ccfe1f58b2a51149723c3ecab93d2569f0b8ae91c",
+    "globaux.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb",
+    "indices.log": "70686bb4f0974797d046c42d75233af2aa21050807206ac7d9000f4bf08f17ff",
+    "sql16.json": "b566d5f931acd0a38c5c01418a2eab64fec01bfbb29415c1925b13a2b0e0d80b",
+    "sql17.json": "3eabcba6ac2735f15283c5fa2776b57b618b191244663e5cc339fdb4697b5d08",
+    "transversaux.log": "a3ecd64aee716e1f844b918cf15b1552c1bf71894e3a95c755a6ae8b4fdaee63"
+  },
+  "sources_sha256": {
+    "forum.js": "632a390b12b4405b11cb3685a960e9b7a94fd5dc78c8d8dfd9cd6ada97b8fc07",
+    "supabase.js": "6f751b173f162bc149c79214fdb68817eb32bef6e2d6831a59935315a6bed6b2",
+    "plateau-organisations-quetes.js": "c0a909632847984a55401bc0429c051eb91fd07be58142931848254cae333fc7",
+    "migrations/20261103222000_forums_territoires_et_adhesions.sql": "bbeb887e971e0bb7e4e3a9ea4e9dd898ef74d768e541d83d2d7e252a86e8201a",
+    "outils/baseline/verifier-autorite.py": "292eb0beebd47cc5cbd69a3fe36fe7befaca10d5e7809f7d3b851d90ffe6cb43",
+    "outils/baseline/fonctions.json": "216dd7bfca5d70dc1af57b9886ef641b49d09b42a7eca7fa635a46ca080f182f",
+    "outils/baseline/referentiels.json": "79ccc8b6531bfd40f6a819f1d60f99a0068ba58f6ec3127afb70d81e8a1d86aa",
+    "baseline/seeds/95_a-regenerer/ordres_couts.sql": "2bd1420dac818dd2a40fa411053a715a57f7a85f12570249a54362a6014a7a03",
+    "outils/bancs/banc-indices-autorite-422.cjs": "6900a9a720bb8a9d49d04825d086483b3d93bf04180d863d93c90b2e9ccc800c",
+    "outils/bancs/fixtures/indices-client-avant-404.txt": "16a3526c9edda9e1d2905a6b98f1cef0219460c743b3f456f63464b42a75e879"
+  },
+  "reprise_collecte": {
+    "main_integre": "943df3fb",
+    "migration": "Appliquée par intégrateur : 20261104001711, preuve commentaire6618966376 ; aucune application depuis Codex.",
+    "exports_actuels_recus": false,
+    "baseline_reextrait": false,
+    "sources_sha256": {
+      "outils/livraison/relais-canonique-219.py": "ce7bf8c3327a57281cb5278662abee90911001c3066b881185f3017cec89577b",
+      "outils/bancs/test-collecte-forums422.py": "6b3bd7f2e04b46106aa46d7525e3a42b0af8584e0ca66ee63dfbc756fff4195a",
+      "outils/bancs/collecte-forums422/MANIFESTE.json": "a434186e6fc64fc361aee9bdb6ac9eea5d3c5ca3287cef923ae0ca4fc6fcb505"
+    },
+    "preuves_sha256": {
+      "collecte-postgresql16.log": "3b3535db43e8c11f8293faac7b3ec4461df4b251524f4d92f3909a02853ee593",
+      "collecte-postgresql17.log": "76a233df9f3c561c87f21a6084482539a3878fe44df3b8462e258b18acd3a4d8",
+      "globaux-apres-main430.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb"
+    }
+  },
+  "contrat_prets_430": {
+    "production_modifiee": false,
+    "tests": 33,
+    "contre_epreuve_echecs": 9,
+    "fichiers_sha256": {
+      "prets-contrat430.log": "4d6388af6bcadfa5f8427e4930b7aa72e9baa893fafa83c4963f12a5d578faf0",
+      "prets-contre-avant430.log": "2405f5e51a08fa4748d32e2de72563e249e571cb0d8f318606eaa3ca040efa28",
+      "clients-apres-main430.json": "c5571808211a9aff9a6b3f2effef201724d26afc170ef786c37956e60cd909d4"
+    }
+  },
+  "integration_main428": {
+    "base": "bcdbe141",
+    "fonctions_jeu_modifiees_par_ce_lot": false,
+    "catalogue_tests": 5,
+    "collecte_tests": 24,
+    "globaux": 12,
+    "exports_actuels_recus": false,
+    "fichiers_sha256": {
+      "globaux-apres-main428.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb",
+      "catalogue-main428.log": "1a721796d4757eca7b4488099dc97c96034c62045768c0d9662a558282b43730"
+    }
+  },
+  "reprise_capture_privee": {
+    "main": "ea199d56",
+    "capture_annoncee_recuperee": false,
+    "cle_privee_disponible": false,
+    "donnees_production_modifiees": false,
+    "baseline_reconstruit_depuis_nouvelle_capture": false,
+    "fichiers_sha256": {
+      "globaux-main437.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb",
+      "clients-main437.json": "1faaa5c6eab458a0596f2d5e67e2880f85ffdc5227a9e0078933dd7a8b304444",
+      "chromium-main437.log": "47a6224b4f2fdb66ebd0c66becc97ea824b051998f4a78dc3c607f5c7dbef268",
+      "transversaux-main437.log": "b79bdcd8d0e6d51dbd82bccde975c19aa0743010f8dd641365b023c6fb9c8288",
+      "transfert-prive-metadata.json": "edef1839fc30567d21758cc1a98d1de1d550845574e31fc521866a905d887920",
+      "sql17-main437.json": "3eabcba6ac2735f15283c5fa2776b57b618b191244663e5cc339fdb4697b5d08",
+      "contre-rls-main437.json": "6a845794b9b317bd5c52cd0ccfe1f58b2a51149723c3ecab93d2569f0b8ae91c",
+      "contre-publication-main437.json": "8392a2cec23b0beaab9bd548530e8f6498e5105dd1518ad6f0612a5ed4477edd"
+    },
+    "sources_sha256": {
+      "forum.js": "632a390b12b4405b11cb3685a960e9b7a94fd5dc78c8d8dfd9cd6ada97b8fc07",
+      "supabase.js": "4e0bbe02bc36912dc71b1537eb29f21f07aa28151fd30f956903302bb1acc1b7",
+      "index.html": "3d46850fd5fdad193ace7476126cfcb6a9dd318cab5a4e395338432d32c1c813",
+      "plateau.html": "cc7bbfe621b87c14a52d4caa148864e025353c950a0dcd36ac77802be63e4e08",
+      "outils/bancs/collecte-forums422/MANIFESTE.json": "e03d9d3399c67233ad789337387cb8190d9e0df64638176dc4293afd3a130638",
+      "outils/bancs/banc-prets-bancaires.js": "5a0af03652007924cdd5f9be1cbbf281f77910d4740a1b8a306720da169cda31"
+    }
+  },
+  "integration_main438": {
+    "main": "30773320",
+    "fusion": "02246626",
+    "capture_recuperee": false,
+    "baseline_vivant_reconstruit": false,
+    "ci_precedente_tete42839714": "Aucun contrôle affiché sur la page publique ; API GraphQL Forbidden. Pas de 5/5 inféré.",
+    "preuve_transfert_externe": "https://github.com/FredJ74/res-publica/pull/422#issuecomment-6627701834",
+    "fichiers_sha256": {
+      "globaux-main438.log": "70d19477c40039dec11b227c04b776346b2963644785d775971753867c4606eb",
+      "clients-main438.json": "0a9fa75d797949a78fd904579775374834f7877ff006ab66ec7ac3805271569b",
+      "transversaux-main438.log": "7731c2b4a3ae48f31ec24e7b2801795a4bc3a78e8aeb12e4713f961c3b802e9c",
+      "portraits-contextes-main438.log": "e073ba764fcbb3309f6921ee4e5e7107d51b10402644eaddb574dd132dcd2650",
+      "vercel-main438.json": "ebb15079092b3adcf13daa39c794824138d0b6eb2a728c1e72bcfdd1e7bbbf2c"
+    },
+    "sources_sha256": {
+      "forum.js": "632a390b12b4405b11cb3685a960e9b7a94fd5dc78c8d8dfd9cd6ada97b8fc07",
+      "supabase.js": "cd957c61273211624f7db2d3a0771ad1daa344723231cfbc764d554df80e8ec1",
+      "plateau-organisations-quetes.js": "3295e912ba8a8bd0d96eb6d67eafc77e1a2290ac1ec7fc7ded67c5858e82f33f",
+      "index.html": "75af25c5f7ae8c0f12f1423d181e05550a6ede1a384975f81eec8d96a6919d6b",
+      "plateau.html": "8b2fe87cc05cd05ec2af334ed49a4b57dbfd897f0020f54c89c7e2a3691dfa9f"
+    }
+  }
+}

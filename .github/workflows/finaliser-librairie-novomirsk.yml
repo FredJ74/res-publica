@@ -1,0 +1,53 @@
+name: Finaliser images librairie Novomirsk
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'outils/images/preparer_librairie_novomirsk.py'
+      - '.github/workflows/finaliser-librairie-novomirsk.yml'
+permissions:
+  contents: write
+jobs:
+  produire-webp-et-raccorder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Convertir les images et raccorder les portraits
+        run: python outils/images/preparer_librairie_novomirsk.py
+      - name: Vérifier les visuels et la syntaxe
+        run: |
+          node --check data.js
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          d=Path('images/Sovarka/Novomirsk')
+          files=['Novo_librairie_accueil.webp','Novo_librairie_atelier.webp','Novo_ludmila_pamphletova_portrait.webp','Novo_typographe_portrait.webp']
+          for name in files:
+              with Image.open(d/name) as im:
+                  assert im.format=='WEBP'
+                  im.verify()
+          data=Path('data.js').read_text()
+          assert data.count("images/Sovarka/Novomirsk/Novo_librairie_atelier.webp")==1
+          assert data.count("images/Sovarka/Novomirsk/Novo_librairie_accueil.webp")==1
+          print('4 WebP valides, 2 pièces et 2 portraits raccordés')
+          PY
+          git diff --check
+      - name: Publier les visuels et raccordements
+        run: |
+          git add -- data.js images/Sovarka/Novomirsk/Novo_librairie_accueil.webp images/Sovarka/Novomirsk/Novo_librairie_atelier.webp images/Sovarka/Novomirsk/Novo_ludmila_pamphletova_portrait.webp images/Sovarka/Novomirsk/Novo_typographe_portrait.webp
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'Rien à publier'
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "feat(novomirsk): WebP librairie, atelier et portraits des PNJ"
+          git push origin HEAD:main
