@@ -634,7 +634,7 @@ function switchSelfTab(tab, el) {
         // Miniature ou icone
         if (hasImage) {
           html += '<div style="width:44px;height:44px;flex-shrink:0;overflow:hidden;border:1px solid #2a2010;background:#0a0805">';
-          html += '<img src="' + item.imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.85"/>';
+          html += '<img loading="lazy" decoding="async" src="' + item.imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.85"/>';
           html += '</div>';
         } else {
           html += '<div style="width:44px;height:44px;flex-shrink:0;background:#0a0805;border:1px solid #2a2010;display:flex;align-items:center;justify-content:center">';

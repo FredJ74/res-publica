@@ -251,7 +251,7 @@ function renderPersonsList(persons, targetId) {
   const savedPhoto = localStorage.getItem('respublica_photo_' + (state.char?.name || 'default')) || localStorage.getItem('respublica_photo');
   const photoUrl = savedPhoto || char?.photoUrl;
   const photoHtml = photoUrl
-    ? '<img src="' + photoUrl + '" alt="Vous" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'
+    ? '<img loading="lazy" decoding="async" src="' + photoUrl + '" alt="Vous" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'
     : '<i class="ti ti-user" style="font-size:.75rem;color:#C9A84C"></i>';
 
   const selfCard = char ? '<div class="person-card" style="border-left:2px solid #C9A84C;cursor:pointer" onclick="openSelfView()" title="Cliquer pour dormir, inventaire, fiche">' +
@@ -279,7 +279,7 @@ function renderPersonsList(persons, targetId) {
     const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
     const avatarHtml = p.photoUrl
       ? '<div class="person-avatar" style="overflow:hidden;border-color:' + (av.color || empireCol) + '">' +
-        '<img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover;object-position:' + (p.photoPos || '50% 15%') + ';transform:scale(' + (p.photoZoom || 1) + ');transform-origin:' + (p.photoPos || '50% 50%') + '"/>' +
+        '<img loading="lazy" decoding="async" src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover;object-position:' + (p.photoPos || '50% 15%') + ';transform:scale(' + (p.photoZoom || 1) + ');transform-origin:' + (p.photoPos || '50% 50%') + '"/>' +
         '</div>'
       : '<div class="person-avatar"><i class="ti ' + av.icon + '" style="font-size:.75rem;color:' + (av.color || '#8a8060') + '"></i></div>';
 

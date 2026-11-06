@@ -458,6 +458,23 @@ sur réponses serveur fixtures : non-chef/chef/groupe replié, aucune action ex�
 Bancs ciblés15/15 (inclut le banc historique commissariats), création six langues
 et bureau1440 préservés. Dernier main récupéré76f8653e ; L3 pas encore fusionné.
 
+### Mobile L9 — Codex, 06/11/2026
+
+Branche `codex/mobile-l9-chargement-20261106`, main76f8653e réconcilié sans perdre
+les WebP du Grand Hôtel de Sovarka (#537). Changements ciblés : attributs natifs
+loading=lazy/decoding=async dans renderPersonsList (`plateau-multijoueur.js`) et les
+miniatures d'inventaire (`plateau-personnage.js`). Aucun portrait/illustration remplacé.
+Test vrai renderer local :20 portraits, zéro requête panneau fermé, requêtes à son
+ouverture. Scènes de navigation jamais différées. Pas de nouveau chargeur de scripts
+ou cache hors ligne : dépendances globales non certifiées pour découpage aveugle.
+Mesure locale :65 scripts au plateau,7 316 011 octets bruts ; gzip local indicatif
+2 072 103 octets, pas trafic Vercel facturé. Recette croisée L10 suit. Pour tester :
+ouvrir Présents, puis une longue liste d'objets ; mêmes portraits, cadrages et ordres.
+
+Réconciliation de `codex/mobile-l9-chargement-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
 Réconciliation de `codex/mobile-l7-institutions-20261106` avec main `b2e357bf` après fusion #535 ;
 aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
 préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
@@ -487,10 +504,16 @@ règles ou migrations. Les tests et la certification distante restent distincts.
 `codex/mobile-l7-institutions-20261106` : correctifs des lots précédents propagés ; aucun changement des
 règles ou migrations. Les tests et la certification distante restent distincts.
 
+`codex/mobile-l9-chargement-20261106` : correctifs des lots précédents propagés ; aucun changement des
+règles ou migrations. Les tests et la certification distante restent distincts.
+
 `codex/mobile-l4-creation-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
 aucune commande automatique rejouée, validations locales en cours.
 
 `codex/mobile-l7-institutions-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
+aucune commande automatique rejouée, validations locales en cours.
+
+`codex/mobile-l9-chargement-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
 aucune commande automatique rejouée, validations locales en cours.
 
 Bilan mobile local : `outils/audits/MOBILE-LIVRAISON-20261106.md`. Branches L1/L2/L3
@@ -511,6 +534,8 @@ codex/mobile-l4-creation-20261106 : main b41d387e et forum L6 reçus ; branches 
 
 codex/mobile-l7-institutions-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
 
+codex/mobile-l9-chargement-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
+
 codex/mobile-l5-transactions-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
 
 codex/mobile-l8-reprise-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
@@ -518,3 +543,5 @@ codex/mobile-l8-reprise-20261106 : main e31044cf reçu (#540/#541 Sovarka), ress
 codex/mobile-l4-creation-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
 
 codex/mobile-l7-institutions-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+codex/mobile-l9-chargement-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
