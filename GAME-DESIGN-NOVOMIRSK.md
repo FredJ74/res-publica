@@ -128,3 +128,9 @@ de PSM), un port de Sovarka, le directeur PNJ de l'entrepôt dans la cascade des
 - Le coefficient serveur de Sovarka manquait (un commerçant PJ ne pouvait pas fixer ses prix) : migration `20261106232000_coef_prix_max_pj_sovarka`, appliquée.
 - Novomirsk reste l'exception opulente de Sovarka (« plus la Russie des Tsars que l'URSS ») : plafonds de loyer des Galeries à **150 PSK/jour pour chaque grand local et 75 PSK pour chaque moyen** (validé par Fred le 06/11 ; ailleurs en Sovarka, 100 PSK pour le plus grand local). Migration `20261106233000_galeries_novomirsk_plafonds_loyer`, appliquée.
 - **À faire quand Novomirsk sera terminée** (Fred, 06/11) : relever les bâtiments qui n'ont pas de loyer.
+
+## Commerce Premium gratuit pendant la bêta (06/11/2026, décision de Fred, socle commun)
+
+- « L'option premium est gratuite pendant la bêta, ça permet de voir si elle fonctionne bien. Quand elle sera payante, on ne pourra pas souffrir de bugs. »
+- Dans l'écran de gestion de son commerce, le propriétaire active « Commerce Premium » gratuitement : 3 types d'activité et 10 articles au lieu de 2 et 4 (règle des commerces du 06/11), attaché au fonds (transmis à la vente, perdu à la résiliation du bail). La génération d'image et les codes promotionnels restent « bientôt ».
+- Les commerces déjà au-delà du gratuit (plus de 2 types ou de 4 articles) sont passés premium d'office, sans rien perdre. Migration `20261106234500_commerce_premium_beta`, appliquée (constantes, `fonds_premium_activer`, plafonds lus sur le fonds). Le jour du paiement : `commerce_premium_gratuit_beta` à 0 et un opérateur de paiement à raccorder.
