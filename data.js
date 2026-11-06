@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -6907,6 +6907,30 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      }
+    }
+  },
+  // PHARMACIE OFFICIELLE DE NOVOMIRSK (vue 14), decisions de Fred du 06/11/2026 : commerce comme
+  // tous les commerces (2 familles / 4 articles en gratuit, 3 / 10 en premium), vend des
+  // medicaments (types et effets a definir : vente « Bientot disponible »). Tenue par la PNJ
+  // Valentina Pilioulkina (nom valide par Fred), commerce rachetable par un PJ. Commerce serveur
+  // pharmacie-soviet-capitale (migration 20261106004000). Images a venir.
+  'pharmacie-officielle-novomirsk': {
+    name: "Pharmacie officielle de Novomirsk",
+    shortName: "Pharmacie",
+    cat: "Santé",
+    icon: "ti-pill",
+    bgColor: "#10161a",
+    desc: "La pharmacie d'État : une croix verte au néon dont une branche clignote, des bocaux numérotés et une file d'attente disciplinée.",
+    rooms: {
+      comptoir_pharmacie: {
+        name: "Comptoir",
+        imageBg: "linear-gradient(135deg,#10161a,#172026)",
+        desc: "Un long comptoir de bois verni, une balance de précision et un registre où chaque boîte vendue est consignée.",
+        persons: [{name:'Valentina Pilioulkina (PNJ)', role:'Pharmacienne', rel:'neutral', job:'pharmacienne'}],
+        orders: [
+          {fn:'pharmacie_medicaments', label:'Acheter des médicaments', pa:0, cost:0, type:'legal', icon:'ti-pill', successRate:100, desc:"Médicaments vendus au comptoir.", bientot:"Bientôt disponible : les médicaments de la pharmacie seront définis prochainement."}
         ]
       }
     }

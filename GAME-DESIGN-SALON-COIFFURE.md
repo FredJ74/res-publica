@@ -11,6 +11,7 @@ Nouveauté du tour de Novomirsk (vue 12). Le principe n'avait été consigné nu
 | La coupe de cheveux | **+5 POP** et **CHA +1 jusqu'à minuit**, **sans cumul**. |
 | Fréquence | **Une coupe tous les 3 jours** (jours de jeu) ; avant ce délai, la coupe est refusée (« Vos cheveux n'ont pas encore repoussé »). |
 | Accessoires | **Définis par le PJ coiffeur**, avec la **mécanique générale du commerce** : familles du catalogue (« Coiffure & esthétique »…) et nombre de références selon l'option gratuite ou premium. Rien de spécifique au salon. |
+| Règle des commerces | Le salon suit **les mêmes règles que tous les commerces** (Fred, 06/11) : **2 familles et 4 articles en freemium, 3 familles et 10 articles en premium** (#500). |
 | Relooking | Prestation **premium** : l'IA génère une **image temporaire** du personnage, durée fonction du prix (à définir), **aucun bonus**, purement cosmétique. Session premium à venir : non codé. |
 | Salon de Novomirsk | **Tenu par un PNJ**, **Ludmila Permanentova** (nom validé), **le local pourra être racheté par un PJ**. |
 | Coût de la coupe pour le coiffeur | **1 PA** dépensé par le coiffeur (PJ) pour chaque coupe. |
