@@ -392,3 +392,15 @@ Mobile L2 : fixture DOM des rues complétée avec setAttribute/getAttribute ; as
 de destinations, quatre vues PSM et positions conservées sans assouplissement.
 
 Mobile L3 : correctifs des bancs L1/L2 intégrés ; aucun test de navigation supprimé.
+
+Bilan mobile local : `outils/audits/MOBILE-LIVRAISON-20261106.md`. Branches L1/L2/L3
+certifiées séparément : 30/30, 32/32, 34/34 (cas mobiles + historiques). Avec L6 :
+38/38 ciblés. Contrôleur complet **195/196** : seul le rangement SQL déjà rouge de
+main reste en échec ; globaux **8/12**, même résultat sur le témoin. Aucun rouge masqué.
+Captures bureau plateau/forum : empreintes avant/après strictement identiques.
+`outils/livraison/MOBILE-PR-PAR-LOT-20261106.md` prépare cinq PR dépendantes ; API
+GraphQL refuse leur création. Aucune fusion, aucun déploiement ou test authentifié.
+Recette réelle appareils/compte isolé et CI distante restent nécessaires. L4/L5 non faits.
+Dernier main `bba6dec9` intégré (confirmation de la répartition #524), Sovarka intacte.
+Les journaux bruts restent locaux après rejet de leur publication par le contrôle
+automatique ; résultats structurés et captures de fixtures inspectées sont publiés.
