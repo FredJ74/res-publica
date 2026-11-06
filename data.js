@@ -1746,16 +1746,56 @@ const WORLD = {
       empireName: 'Sovarka',
       buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk','poissonniere-novomirsk','usine-pharmaceutique-luthecia','musee-national-republia'],
       buildingContext: {
+        // Galeries de Novomirsk : les 4 locaux du socle commercial restent
+        // exactement les memes baux / identifiants serveur. Ici, seuls l'apparence,
+        // les noms et les descriptions de la capitale sovarkienne sont specialises.
+        'centre-commercial': {
+          name: 'Galeries de Novomirsk',
+          desc: 'Galeries commerçantes couvertes de Novomirsk, sous une verrière monumentale.',
+          roomOverrides: {
+            hall: {
+              name: 'Entrée des galeries',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_entree.webp'
+            },
+            vitrine_principale: {
+              name: 'Grand local A — Local à louer',
+              desc: '📋 À LOUER — Grande boutique en façade de la galerie, vitrine prestigieuse.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_grand_local.webp'
+            },
+            boutique_milieu: {
+              name: 'Grand local B — Local à louer',
+              desc: '📋 À LOUER — Seconde grande boutique de la galerie, avec vaste surface de vente.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_grand_local.webp'
+            },
+            arriere_boutique: {
+              name: 'Local moyen A — Local à louer',
+              desc: '📋 À LOUER — Boutique de taille moyenne dans les galeries de Novomirsk.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_moyen_local.webp'
+            },
+            cave_reserve: {
+              name: 'Local moyen B — Local à louer',
+              desc: '📋 À LOUER — Seconde boutique de taille moyenne, accessible depuis les galeries.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_moyen_local.webp'
+            }
+          }
+        },
         'hotel-republica': {
-          name: "Hôtel Kollektiv",
-          desc: "Toutes les chambres sont identiques. Olga Soupe gère la cantine avec efficacité soviétique.",
+          name: "Grand Hôtel de Sovarka",
+          shortName: "Grand Hôtel",
+          desc: "Le palace de la capitale : marbre, lustres et velours rouge. On y loge les délégations étrangères et les cadres du Parti en déplacement.",
           // Pas de suites a Novomirsk (decision de Fred, 04/11/2026) : elles sont au Pavillon des
           // Ambassadeurs (vue 7), qui en a trois.
           roomsExclues: ['suite_privee', 'suite_presidentielle'],
           roomOverrides: {
+            // Accueil (decision de Fred, 06/11/2026) : deux PNJ seulement, la receptionniste et le
+            // bagagiste, portraits tires de l'image de la reception (noms proposes par Claude).
             accueil: {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_reception.webp',
-              excludeOrders: ['choisir_suite']
+              excludeOrders: ['choisir_suite'],
+              persons: [
+                {name: 'Vera Clefova (PNJ)', role: 'Réceptionniste', rel: 'neutral', job: 'hotelier'},
+                {name: 'Ivan Valisov (PNJ)', role: 'Bagagiste', rel: 'neutral', job: 'bagagiste'}
+              ]
             },
             bar: {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_bar.webp'
@@ -1767,7 +1807,6 @@ const WORLD = {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_chambre.webp'
             }
           },
-          persons: [{"name": "Olga Soupe (PNJ)", "role": "Cantinière", "rel": "neutral", "job": "serveur"}, {"name": "Boris Betterave (PNJ)", "role": "Cuisinier", "rel": "neutral", "job": "serveur"}, {"name": "Natasha Privilege (PNJ)", "role": "Réservée aux cadres du Parti", "rel": "neutral", "job": "escort"}]
         },
         'commissariat': {
           name: "Commissariat du Peuple",
@@ -10069,7 +10108,9 @@ function slugPnjSovarka(nom) {
   const photos = [
     ['commissariat', 'accueil_police', 'Sergent Matrakov (PNJ)', 'Novo_sergent_matrakov_portrait.webp'],
     ['commissariat', 'bureau_commissaire', 'Vassili Ordonov (PNJ)', 'Novo_vassili_ordonov_portrait.webp'],
-    ['office-notarial', 'accueil_notaire', 'Klara Delounova (PNJ)', 'Novo_klara_delounova_portrait.webp']
+    ['office-notarial', 'accueil_notaire', 'Klara Delounova (PNJ)', 'Novo_klara_delounova_portrait.webp'],
+    ['hotel-republica', 'accueil', 'Vera Clefova (PNJ)', 'Novo_vera_clefova_portrait.webp'],
+    ['hotel-republica', 'accueil', 'Ivan Valisov (PNJ)', 'Novo_ivan_valisov_portrait.webp']
   ];
   for (const [batiment, piece, nom, fichier] of photos) {
     const personnes = salles[batiment]?.roomOverrides?.[piece]?.persons || [];
