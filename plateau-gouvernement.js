@@ -1979,7 +1979,8 @@ function leverSanction(etat, empireCible, mesure, auteur, maintenantMs) {
 // ON NE SIMULE PAS DES ORIGINES QUE LE MOTEUR NE CONNAIT PAS. L'audit a etabli que le pays partenaire
 // n'est disponible qu'a DEUX endroits du flux reel :
 //
-//   EXPORTATIONS  EXPORTATIONS_PORT[cle].destination -- cereales et viande vers Al-Khalija.
+//   EXPORTATIONS  EXPORTATIONS_PORT[cle].destination -- cereales et viande vers Al-Khalija,
+//                 medicaments et alcool vers Sovarka (06/11/2026).
 //                 C'est le SEUL point ou le pays partenaire figure dans le code.
 //   IMPORT BOIS   BOIS_SOVARKA_JOUR, 150 unites/jour explicitement attribuees a Sovarka.
 //
@@ -1989,6 +1990,8 @@ function leverSanction(etat, empireCible, mesure, auteur, maintenantMs) {
 const EMBARGO_FLUX_CONNUS = {
   export_cereales: { sens: 'export', ressource: 'cereales', partenaire: 'khalija' },
   export_viande:   { sens: 'export', ressource: 'viande',   partenaire: 'khalija' },
+  export_medicaments: { sens: 'export', ressource: 'medicaments', partenaire: 'soviet' },
+  export_alcool:      { sens: 'export', ressource: 'alcool',      partenaire: 'soviet' },
   import_bois:     { sens: 'import', ressource: 'bois',     partenaire: 'soviet', quantiteJour: 150 }
 };
 

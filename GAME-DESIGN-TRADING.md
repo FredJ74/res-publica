@@ -89,9 +89,11 @@ Implémentation : migration `20261105030000_entrepot_krasnov_trading_internation
   - les achats faits en Sovarka par l'étranger partent de Starovka.
 - Migration `20261106040500_sovarka_entrepots_port_starovka` (appliquée le 06/11 sous le nom de registre `sovarka_entrepots_port_starovka_20261106040000` ; fichier renommé de 040000 pour ne pas doubler un horodatage). Trois parcours rejoués dans des transactions annulées : achat international Républia → Starovka (arrivée PSM), Sovarka → Luthécia (arrivée Starovka), achat national à Novomirsk (livraison terrestre).
 
+25. **Exportations de Républia vers Sovarka** (Fred, 06/11/2026) : des médicaments, et un peu d'alcool. Ils s'ajoutent aux contrats nocturnes de `EXPORTATIONS_PORT` (céréales et viande vers Al-Khalija). Volumes proposés par Claude, selon la même règle de villes équivalentes : médicaments 1 ville (100 par jour), alcool 0,5 ville (50 par jour). Ils sont prélevés sur le stock réel des trois entrepôts de Républia, et la recette va à chaque entrepôt fournisseur. Les deux flux sont aussi ajoutés aux flux couverts par l'embargo (écran du gouvernement).
+
 ## Reste à faire
 
 - Approvisionnement des entrepôts de Sovarka (économie de Sovarka).
-- Contrats d'exportation institutionnels de Sovarka : la Républia exporte chaque nuit céréales et viande vers Al-Khalija (`EXPORTATIONS_PORT`, passe de minuit). Rien d'équivalent pour Sovarka : quelles matières, quels volumes, vers qui ? À décider par Fred.
+- Exportations de Sovarka (ses propres contrats nocturnes) : à décider par Fred.
 - Douane de Starovka : le recrutement et la paie des douaniers restent propres à PSM.
 - Images de l'entrepôt et du port de Starovka.
