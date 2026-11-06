@@ -256,10 +256,9 @@ function verdictVenteMatiereAuCommerce(fonds, matiere, quantite, stockVendeur) {
 // appartient a un arbitrage de game design a venir.
 const COUT_HORAIRE_TRAVAIL = 50;                 // 1 PA = 1 heure = 50 FR, reference existante
 const COEF_PRIX_PNJ = 2;                         // prix PNJ = cout de revient x2, existant
-// Plafond du prix libre d'un PJ. HYPOTHESE DE GAME DESIGN PROVISOIRE, centralisee ici et nulle
-// part ailleurs : elle n'apparait dans aucune RPC (le serveur relit le prix deja fixe dans le
-// catalogue, il ne le replafonne pas) ni dans aucune migration. La rendre globale, dependante de
-// la famille ou nulle se fera en changeant cette constante et la seule fonction qui la lit.
+// Plafond du prix libre d'un PJ : cout de revient x4, PNJ x2 (decision de Fred du 06/11/2026,
+// identique en Republia et en Sovarka, sans exception de ville). Cote serveur, le meme
+// coefficient est lu par pays dans entreprises_constantes (coef_prix_max_pj_<pays>).
 const COEF_PRIX_MAX_PJ = 4;
 
 // VALEUR COMPTABLE du travail contenu dans une recette. Convention de calcul, jamais un
