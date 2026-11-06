@@ -10302,6 +10302,14 @@ function slugPnjSovarka(nom) {
       pa:0, cost:0, type:'legal', icon:'ti-calendar-event',
       successRate:100,
       desc:'Location exclusive pour la journée civile, jusqu’à minuit (heure de Paris).'
+    }, {
+      // Événements (décision de Fred, 07/11/2026) : conférence de presse, réseautage, séminaire,
+      // buffet du Grand Hôtel ; réservés à celui qui a loué la salle pour la journée.
+      fn:'sovarka_reunion_evenement',
+      label:'Organiser un événement',
+      pa:1, cost:0, type:'legal', icon:'ti-confetti',
+      successRate:100,
+      desc:'Conférence de presse, soirée de réseautage, séminaire de formation ou buffet du Grand Hôtel, pour les personnes présentes.'
     }]
   });
   // BUREAUX : « Demande de location » à la mairie au lieu du guichet (décision de Fred, 07/11/2026),
