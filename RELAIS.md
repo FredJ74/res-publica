@@ -430,3 +430,14 @@ jeu : » conservées. Vrais rendus locaux dans fr/en/es/zh-TW/ru/ko, sans authen
 ou créer de personnage ; plus/moins réversible vérifié, bureau1440 conservé.
 Pour tester : connexion, huit étapes et choix des caractéristiques à375px, changer
 la langue en conservant les choix. Vrai clavier iOS et fin de création non certifiés.
+
+### Mobile L7 — Codex, 06/11/2026
+
+Branche `codex/mobile-l7-institutions-20261106`, dans la suite temporaire L3/L5/L8/L4.
+Les grilles militaires se replient aussi jusqu'à1023px, cases à cocher tactiles et
+rapports lisibles. Ajout ciblé de classes de présentation dans ouvrirPanneauCombat
+(`plateau-politique.js`) et ouvrirTableauOrganisations (`plateau-organisations-quetes.js`),
+sans changer conditions, ordres, permissions ou RPC. Le vrai rendu combat est testé
+sur réponses serveur fixtures : non-chef/chef/groupe replié, aucune action exécutée.
+Bancs ciblés15/15 (inclut le banc historique commissariats), création six langues
+et bureau1440 préservés. Dernier main récupéré76f8653e ; L3 pas encore fusionné.

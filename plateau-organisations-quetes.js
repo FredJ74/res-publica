@@ -149,7 +149,7 @@ function ouvrirTableauOrganisations() {
   });
 
   document.getElementById('postes-modal-title').textContent = 'Tableau des organisations';
-  let html = '<div style="padding:1rem">';
+  let html = '<div class="hg-organisations" style="padding:1rem">';
 
   const empireIds = Object.keys(parEmpire);
   if (empireIds.length === 0) {
