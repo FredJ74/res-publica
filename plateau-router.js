@@ -164,6 +164,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Vehicules personnels (05/11/2026, GAME-DESIGN-VEHICULES.md) : plateau-vehicules.js.
   if (fn === 'garage_vehicules')  { ouvrirGarageVehicules(); return; }
   if (fn === 'garage_reviser')    { ouvrirGarageRevision(); return; }
+  if (fn === 'salon_coupe')       { ouvrirSalonCoupe(); return; }
   if (fn === 'station_carburant') { ouvrirStationCarburant(); return; }
   if (fn === 'mes_vehicules')     { ouvrirMesVehicules(); return; }
   if (fn === 'produire_arme') { doProduireArme(); return; }
