@@ -52,3 +52,17 @@ test('les 14 nouveaux libellés sont ancrés dans les ordres réellement déclar
   assert.equal(order.label,words[fn]); assert.equal(order.pa,2); assert.equal(order.cost,345);
  }
 });
+
+test('tous les libellés pilotes français correspondent exactement aux vrais ordres du socle',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const actual=new Map();
+ for(const m of source.matchAll(/\\bfn\\s*:\\s*(['"])([^'"\\n]+)\\1\\s*,\\s*label\\s*:\\s*(['"])([^'"\\n]+)\\3/g)){
+  if(!actual.has(m[2]))actual.set(m[2],new Set());
+  actual.get(m[2]).add(m[4]);
+ }
+ const canonical=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const [fn,reference] of Object.entries(canonical)){
+  assert.ok(actual.get(fn)?.has(reference),
+   'libellé non canonique : '+fn+' → '+JSON.stringify(reference));
+ }
+});
