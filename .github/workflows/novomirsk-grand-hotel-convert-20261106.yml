@@ -66,4 +66,6 @@ jobs:
           git add -A images/Sovarka/Novomirsk
           git diff --cached --stat
           git commit -m "assets(novomirsk): Grand Hotel quatre WebP, PNG supprimes"
+          git fetch origin chatgpt/novomirsk-grand-hotel-4-webp-20261106
+          git rebase FETCH_HEAD
           git push origin HEAD:refs/heads/chatgpt/novomirsk-grand-hotel-4-webp-20261106
