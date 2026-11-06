@@ -1,0 +1,19 @@
+name: Novomirsk - banc réservation journalière
+on:
+  pull_request:
+    paths:
+      - .github/workflows/novomirsk-reservations-ci-temp.yml
+permissions:
+  contents: read
+jobs:
+  targeted:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          node --check data.js
+          node --check plateau-router.js
+          node --test outils/bancs/test-novomirsk-salles-reservation-20261106.mjs
+          node --test outils/bancs/test-novomirsk-centre-affaires-sept-pieces-20261106.mjs
+          git diff --check
