@@ -27,3 +27,30 @@ test('un texte joueur reste toujours disponible en original',()=>{
  assert.equal(fallback.displayed,'Texte original');
  assert.equal(fallback.isTranslated,false);
 });
+
+
+test('le navigateur choisit une langue en absence de préférence explicite',()=>{
+ const source=fs.readFileSync(path.join(__dirname,'../../i18n/plateau-bridge.js'),'utf8');
+ for(const [locale,expected] of [
+  ['es-MX','es'],['ru-RU','ru'],['ko-KR','ko'],['en-GB','en'],
+  ['pt-BR','pt-BR'],['zh-Hant-TW','zh-TW'],['zh-Hans-CN','fr'],
+  ['pt-PT','fr'],['zh','fr']
+ ]) {
+  const window={navigator:{language:locale},localStorage:{getItem:()=>null}};
+  vm.runInNewContext(source,{window,Intl,Number,Object,String});
+  assert.equal(window.RPPlateauI18n.language(),expected,locale);
+ }
+});
+test('la préférence de jeu prime sur le navigateur et le stockage bloqué ne casse rien',()=>{
+ const window={navigator:{language:'es-MX'},localStorage:{getItem:()=>'ar'}};
+ vm.runInNewContext(src,{window,Intl,Number,Object,String});
+ assert.equal(window.RPPlateauI18n.language(),'ar');
+ const blocked={navigator:{language:'de-DE'},localStorage:{getItem(){throw Error('blocked')}}};
+ vm.runInNewContext(src,{window:blocked,Intl,Number,Object,String});
+ assert.equal(blocked.RPPlateauI18n.language(),'de');
+});
+test('un ordre de priorité navigateur parcourt les langues proposées',()=>{
+ const window={navigator:{languages:['zh-CN','es-ES'],language:'fr'},localStorage:{getItem:()=>null}};
+ vm.runInNewContext(src,{window,Intl,Number,Object,String});
+ assert.equal(window.RPPlateauI18n.language(),'es');
+});
