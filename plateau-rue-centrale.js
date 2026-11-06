@@ -862,8 +862,18 @@ const RUE_CENTRALE_NOEUDS = {
     'starovka-rue-logements-collectifs': {
       image: 'images/Sovarka/Starovka/Starovka_rue_logements collectifs.webp',
       zones: [],
-      liens: { gauche: 'starovka-rue-terrains' },
-      flechesStyle: { gauche: 'top:50%; left:10px; transform:translateY(-50%);' }
+      liens: { gauche: 'starovka-rue-terrains', arriere: 'starovka-rue-restaurant-boutique' },
+      flechesStyle: {
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);',
+        arriere: RC_FLECHE_BAS
+      }
+    },
+
+    'starovka-rue-restaurant-boutique': {
+      image: 'images/Sovarka/Starovka/Starovka_Rue_restaurant-boutique.webp',
+      zones: [],
+      liens: { toutDroit: 'starovka-rue-logements-collectifs' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT }
     },
 
     // KRASNOV — la gare donne vers la rue de l'entrepôt par une seule flèche BAS.
