@@ -1361,7 +1361,7 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/rue-usine-pharma-musee-novomirsk.webp',
       zones: [
         { xPct: [0, 41],   yPct: [6, 74], nom: 'Usine pharmaceutique Pharmanov', type: 'batiment', buildingId: 'usine-pharmaceutique-luthecia' },
-        { xPct: [64, 97],  yPct: [0, 72], nom: 'Musée de la République de Sovarka', type: 'a-venir' }
+        { xPct: [64, 97],  yPct: [0, 72], nom: 'Musée de la République de Sovarka', type: 'batiment', buildingId: 'musee-national-republia' }
       ],
       liens: { arriere: 'novomirsk-vue-17', toutDroit: 'novomirsk-vue-7' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }

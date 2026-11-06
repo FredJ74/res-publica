@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk','poissonniere-novomirsk','usine-pharmaceutique-luthecia'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk','poissonniere-novomirsk','usine-pharmaceutique-luthecia','musee-national-republia'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -2032,6 +2032,23 @@ const WORLD = {
               {fn:'produire_desinfectant', label:'Produire du désinfectant', pa:1, cost:0, type:'legal', icon:'ti-droplet', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 alcool du stock de matières de l\'usine, produit 10 désinfectants.'}
             ] },
             bureau_direction: { persons: [{name: 'Boris Tabletkine (PNJ)', role: "Directeur de l'usine Pharmanov", rel: 'neutral', job: 'directeur_pharma'}] }
+          }
+        },
+        // Musee de la Republique de Sovarka (vue 18), decision de Fred du 06/11/2026 : copie du
+        // Musee National de Republia (BUILDINGS['musee-national-republia'] : memes salles et ordres),
+        // les differences propres a Sovarka seront codees ensuite. En attendant : images a venir,
+        // pas d'audioguide (ceux de Republia parlent de la Republia), figures des salles vides
+        // (plateau-musee-personnalites.js : pas de personnalites de Republia hors de Republia).
+        // Serveur : migration 20261106194500_novomirsk_musee_national.
+        'musee-national-republia': {
+          name: "Musée de la République de Sovarka",
+          shortName: "Musée de la République",
+          imagesAVenir: true,
+          audiosAVenir: true,
+          desc: "Le grand musée national de Sovarka, où le peuple vient contempler la mémoire officielle de la nation.",
+          roomOverrides: {
+            salle_presidents: { name: "Salle des Présidents de Sovarka", desc: "L'histoire présidentielle de la nation, ses meilleurs et ses pires chefs d'État. Classement à venir." },
+            salle_grandes_villes: { name: "Salle des Grandes Villes de Sovarka" }
           }
         }
       }
