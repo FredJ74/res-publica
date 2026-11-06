@@ -10285,13 +10285,21 @@ function slugPnjSovarka(nom) {
   const contexte = WORLD.soviet.capitale.buildingContext['centre-affaires'];
   const modele = BUILDINGS['centre-affaires'].rooms.bureau_prestige;
   const prefixe = 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_';
-  const salle = (nom,image,description) => ({
+  const salle = (nom,image,description,tarif) => ({
     name: nom,
     imageBg: "linear-gradient(135deg,#080a10,#171218)",
     imageUrl: prefixe+image,
     desc: description,
     persons: [],
-    orders: []
+    // Le tarif affiche n'est jamais l'autorité : le RPC valide la salle,
+    // le montant 150/100 PSK, le jour et l'état de location.
+    orders: [{
+      fn:'sovarka_reunion_reserver',
+      label:'Réserver pour aujourd’hui — '+tarif+' PSK',
+      pa:0, cost:0, type:'legal', icon:'ti-calendar-event',
+      successRate:100,
+      desc:'Location exclusive pour la journée civile, jusqu’à minuit (heure de Paris).'
+    }]
   });
   contexte.roomsExtra = {
     bureau_prestige_b: {
@@ -10303,12 +10311,12 @@ function slugPnjSovarka(nom) {
       orders: modele.orders.map(o=>({...o}))
     },
     reunion_grande_a: salle("Grande salle de réunion A", 'grande_reunion.webp',
-      "Salle de réception professionnelle avec grand écran, minibar et espace salon. Location à la journée : réservation en préparation."),
+      "Salle de réception professionnelle avec grand écran, minibar et espace salon. Location : 150 PSK/jour.",150),
     reunion_grande_b: salle("Grande salle de réunion B", 'grande_reunion.webp',
-      "Seconde grande salle de réunion avec grand écran, minibar et espace salon. Location à la journée : réservation en préparation."),
+      "Seconde grande salle de réunion avec grand écran, minibar et espace salon. Location : 150 PSK/jour.",150),
     reunion_moyenne_a: salle("Salle de réunion moyenne A", 'moyenne_reunion.webp',
-      "Salle de réunion plus intimiste, aquarium marin et grand écran. Location à la journée : réservation en préparation."),
+      "Salle de réunion plus intimiste, aquarium marin et grand écran. Location : 100 PSK/jour.",100),
     reunion_moyenne_b: salle("Salle de réunion moyenne B", 'moyenne_reunion.webp',
-      "Seconde salle de réunion avec aquarium marin. Location à la journée : réservation en préparation.")
+      "Seconde salle de réunion avec aquarium marin. Location : 100 PSK/jour.",100)
   };
 })();

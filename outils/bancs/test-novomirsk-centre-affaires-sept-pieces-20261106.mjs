@@ -54,12 +54,15 @@ test('deux bureaux permanents préservent les ordres et le tarif prestige exista
  assert.deepEqual(Array.from(b.orders.map(o=>o.fn)),Array.from(a.orders.map(o=>o.fn)));
  assert.equal(sov.roomOverrides.bureau_prestige.name.includes('prestige'),true);
 });
-test('les salles à la journée ne proposent aucun paiement client non autorisé',()=>{
+test('les salles à la journée ne débitent jamais le client hors de la transaction serveur',()=>{
  for(const id of ['reunion_grande_a','reunion_grande_b','reunion_moyenne_a','reunion_moyenne_b']){
   const room=sov.roomsExtra[id];
   assert.ok(room && !room.isLocationRoom);
-  assert.deepEqual(Array.from(room.orders),[]);
-  assert.match(room.desc,/réservation en préparation/);
+  assert.equal(room.orders.length,1);
+  assert.equal(room.orders[0].fn,'sovarka_reunion_reserver');
+  assert.equal(room.orders[0].cost,0);
+  assert.equal(room.orders[0].pa,0);
+  assert.match(room.desc,/(100|150) PSK\/jour/);
  }
  assert.equal(ctx.world.republic.capitale.buildingContext['centre-affaires'].roomsExclues?.includes('open_space')||false,false);
 });
