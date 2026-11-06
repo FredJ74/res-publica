@@ -51,3 +51,12 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - Le plateau n'affiche plus une clé technique si une traduction statique manque : le texte français déjà présent dans le DOM est conservé. Test dédié ajouté.
 - Le traducteur de contenu refuse désormais les caractères de contrôle avant réservation du quota ; le cache doit respecter les contraintes de taille et de caractères de contrôle avant d'être servi, après lecture RLS. Contre-épreuves ajoutées. **Il reste interne**, sans endpoint public, ni cache/quota persistants opérationnels.
 - **Statut de validation** : commits poussés dans la branche brouillon, test CI au dernier SHA non encore attesté depuis le connecteur. Aucun test authentifié ni vraie revue linguistique, aucune activation ni fusion de #377. `main` a continué d'évoluer et exige un rapprochement prudent.
+
+
+### 07/11 — interface du plateau : guide, courrier et inventaire
+
+- Neuf onglets du guide des règles localisés en neuf langues (y compris les emojis du tutoriel et du football), **sans toucher aux `data-section` ni aux handlers `renderRulesContent`**. Le corps du guide demeure à traduire : l'onglet seul ne signifie pas couverture complète.
+- Libellés statiques d'inventaire vide, consigne de rue et titre de plan câblés aux clés déjà présentes ; le formulaire courrier localise « À » et l'indication de destinataire sans altérer la valeur saisie.
+- `i18n/plateau-init.js` gère désormais `data-i18n-placeholder` avec repli sur l'attribut d'origine quand la clé manque, sans toucher aux icônes, badges ni valeurs de formulaire.
+- L'inventaire **vide après un rendu dynamique** réutilise `plateau.noItems` et le moteur du plateau. Aucun calcul de quantité, effet sur l'inventaire ou action serveur modifié.
+- Nouveau banc `outils/bancs/banc-i18n-guide-mail.cjs` et contrôle d'initialisation du placeholder, branchés dans la CI de #377. Audit statique des neuf catalogues et de leur câblage réalisé, sans erreurs détectées. **CI GitHub et essai navigateur authentifié du dernier SHA toujours non certifiés.**
