@@ -2652,6 +2652,37 @@ const EXPORTATIONS_PORT = {
   alcool:      { equivalentVilles: 0.5, destination: 'soviet' }
 };
 
+// EXPORTATIONS DE SOVARKA (06/11/2026, decision de Fred) : minerai et metal vers tous les pays, petrole
+// vers la Republia, viande et cereales vers Al-Khalija. Volumes proposes par Claude (meme regle de
+// « villes equivalentes », plafond de la ressource) ; « tous les pays » = parts egales entre les trois
+// autres empires. Execution au serveur (exportations_sovarka_executer) : stock reel des trois entrepots
+// de Sovarka, payes au prix de base ; la part de la Republia est livree (PSM paie et repartit en trois),
+// celles d'Al-Khalija et d'El Estado disparaissent (aucun entrepot, aucune caisse en face).
+const EXPORTATIONS_SOVARKA = {
+  minerai:  { equivalentVilles: 0.5, destinations: ['republic', 'khalija', 'narco'] },
+  metal:    { equivalentVilles: 0.5, destinations: ['republic', 'khalija', 'narco'] },
+  petrole:  { equivalentVilles: 1,   destinations: ['republic'] },
+  viande:   { equivalentVilles: 0.5, destinations: ['khalija'] },
+  cereales: { equivalentVilles: 0.5, destinations: ['khalija'] }
+};
+
+async function traiterExportationsSovarkaQuotidien() {
+  const contrats = {};
+  for (const [cle, cfg] of Object.entries(EXPORTATIONS_SOVARKA)) {
+    const res = RESSOURCES_ECONOMIE_SERVEUR[cle];
+    if (!res) continue;
+    const total = Math.round(res.plafond * cfg.equivalentVilles);
+    const n = cfg.destinations.length, base = Math.floor(total / n);
+    contrats[cle] = {};
+    cfg.destinations.forEach((pays, i) => { contrats[cle][pays] = base + (i < total - base * n ? 1 : 0); });
+  }
+  const r = await sbRpc('exportations_sovarka_executer',
+    { p_jour: jourParisISO(new Date()), p_contrats: contrats }, HEADERS_SERVICE).catch(() => null);
+  const v = Array.isArray(r) ? r[0] : r;
+  if (!v || v.ok !== true) throw new Error('exportations_sovarka:' + ((v && v.raison) || 'verdict_absent'));
+  return { contrats, exportations: v.exportations };
+}
+
 // Arrivage de peche quotidien propre a la Criee de PSM (arbitrage valide le 25 aout 2026, §3-5
 // du lot Criee/poisson) : totalement independant de l'approvisionnement en poisson des 3
 // entrepots (livrerEntrepotsQuotidien, inchange), n'a PAS d'origine etrangere -- ne touche jamais
@@ -3417,6 +3448,8 @@ async function traiterExportationsPortQuotidien() {
       stocksEntrepots[e.city] = { etat: etatE };
     }
 
+    const recettesParVille = {};
+
     // Exportation = vente institutionnelle : une matiere interdite n'est plus exportee (le stock reste
     // en entrepot, §34). Verification impossible -> aucune exportation ce jour (fail-closed).
     const interdites = await matieresInterditesRepublia();
@@ -3497,10 +3530,13 @@ async function traiterExportationsPortQuotidien() {
         stockCible[cle] = Math.max(0, (stockCible[cle] || 0) - qte);
         const recette = Math.round(qte * prixExport * 100) / 100;
         recetteTotale += recette;
-        // La caisse est relue sur cible.etat, qui porte deja les credits de la ressource
-        // precedente de cette meme passe : les deux exportations du jour s'additionnent.
-        cible.etat = { ...cible.etat, entrepot: { ...entrepotCible, stock: stockCible,
-          caisse: Math.round(((entrepotCible.caisse || 0) + recette) * 100) / 100 } };
+        // RECETTE A LA CAISSE CANONIQUE (06/11/2026). Elle etait ajoutee a `etat.entrepot.caisse`,
+        // champ que plus rien ne lit depuis le passage des entrepots a caisses_batiments (voir
+        // livrerEntrepotsQuotidien et plateau-entrepots.js) : la recette des exportations se perdait
+        // chaque nuit. Elle est cumulee ici et versee apres l'ecriture des stocks, par la meme porte
+        // serveur verrouillee et journalisee que les livraisons (entrepot_caisse_mouvement).
+        recettesParVille[e.city] = Math.round(((recettesParVille[e.city] || 0) + recette) * 100) / 100;
+        cible.etat = { ...cible.etat, entrepot: { ...entrepotCible, stock: stockCible } };
       }
 
       const satisfactionPct = contrat > 0 ? Math.round((aExporter / contrat) * 10000) / 100 : 100;
@@ -3514,6 +3550,13 @@ async function traiterExportationsPortQuotidien() {
     for (const e of ENTREPOTS_VILLES) {
       const cible = stocksEntrepots[e.city];
       if (cible.etat) await sbSetBatimentEtat('republic', e.city, e.buildingId, cible.etat).catch(() => {});
+      const recette = recettesParVille[e.city] || 0;
+      if (recette > 0) {
+        const repMvt = await sbRpc('entrepot_caisse_mouvement',
+          { p_entrepot_id: 'republic_' + e.city + '_' + e.buildingId, p_delta: recette }, HEADERS_SERVICE).catch(() => null);
+        const rMvt = Array.isArray(repMvt) ? repMvt[0] : repMvt;
+        if (!rMvt || rMvt.ok !== true) signalerEchec('exportations:caisse_entrepot:' + e.city, (rMvt && rMvt.raison) || 'verdict_absent');
+      }
     }
     await sbSetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM, { ...(etatPort || {}), port: { ...port, exportations } }).catch(() => {});
   } catch(e) { console.error('traiterExportationsPortQuotidien error', e); }
@@ -6671,6 +6714,9 @@ export default async function handler(req, res) {
     // 2026) : prelevement reel sur le stock des 3 entrepots, apres que les imports du jour ont
     // ete distribues ci-dessus.
     const exportationsPort = await tacheQuotidienne('exportations_port', traiterExportationsPortQuotidien);
+    // Apres celles de Republia : la part livree a la Republia passe par PSM, dont la passe ci-dessus
+    // a deja ecrit les stocks (aucune ecriture concurrente d'un etat d'entrepot).
+    const exportationsSovarka = await tacheQuotidienne('exportations_sovarka', traiterExportationsSovarkaQuotidien);
 
     // 12c. Arrivage quotidien de poisson propre a la Criee de PSM (arbitrage du 25 aout 2026) :
     // independant de livrerEntrepotsQuotidien ci-dessus, ne touche aucun entrepot.
@@ -6753,7 +6799,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, exportationsSovarka, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

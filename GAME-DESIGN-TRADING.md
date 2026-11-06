@@ -104,6 +104,5 @@ Choix techniques de Claude :
 Fonction `exportation_sovarka_recevoir` (une seule transaction, une seule réception par jour et par matière, table `exportations_recues`), appelée par la passe de minuit avant le prélèvement en Républia. Migration `20261106100000` appliquée le 06/11. Al-Khalija n'a toujours ni entrepôt ni caisse : ses exportations disparaissent comme avant.
 
 - Approvisionnement des entrepôts de Sovarka (économie de Sovarka).
-- Exportations de Sovarka (ses propres contrats nocturnes) : à décider par Fred.
 - Douane de Starovka : le recrutement et la paie des douaniers restent propres à PSM.
 - Images de l'entrepôt et du port de Starovka.
