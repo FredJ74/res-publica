@@ -552,3 +552,31 @@ codex/mobile-l7-institutions-20261106 : main b41d387e et forum L6 reçus ; branc
 codex/mobile-l9-chargement-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
 
 codex/mobile-l10-recette-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
+
+### Suite mobile — relais final de Codex, 6 novembre
+
+L5/L8/L4/L7/L9/L10 codés et sauvegardés sur six branches dédiées. Main `b41d387e`
+reçu, dont L6 livré par Claude ; aucune des cinq branches initiales modifiée.
+Rapport : `outils/audits/MOBILE-SUITE-L5-L8-L4-L7-L9-L10-20261106.md` ; résultats
+structurés et empreintes : `MOBILE-SUITE-RESULTATS-20261106.json` dans le même dossier.
+77 tests ciblés passent ; contrôleur complet 197/198, seul Workflow échoue aussi
+sur main. Globaux 8/12 sur branche ET main, quatre échecs hérités documentés.
+Plateau, création et forum 1440 : chaque paire PNG est strictement identique.
+
+Ordre d'intégration L5 → L8 → L4 → L7 → L9 → L10. Corps REST prêts dans
+`outils/livraison/MOBILE-SUITE-PR-20261106.json`. GET/POST REST refusés ici (403/Envoy),
+push Git fonctionnel ; aucune PR de ces six lots créée depuis cette session,
+aucune fusion ni CI distante ni livraison vérifiée. L'intégrateur peut reprendre
+ces branches sans demander à Fred de manipulations techniques.
+
+Test téléphone à la livraison : fiche/inventaire/tableaux sans paiement ; connexion
+et choix de création dans six langues en conservant « En jeu » ; consultation des
+organisations et rapports ; verrouillage puis retour réseau, premier clic suspendu
+pendant la relecture, jamais rejoué. Deux appareils, Safari et vraie authentification
+restent à tester sur compte isolé autorisé. Pas de compte réel utilisé.
+
+Réserve explicite Helvetia : verrou commun et contexte corrigés, trois tests passent ;
+calcul historique de PA local et absence d'idempotence serveur non certifiés par ce
+lot visuel. Aucune migration mobile préparée/appliquée. Aucune décision de design requise.
+Le poids des scripts n'est pas une mesure de consommation facturée. L10 réel n'est
+pas clos tant que la recette sur appareils et la livraison ne sont pas réalisées.

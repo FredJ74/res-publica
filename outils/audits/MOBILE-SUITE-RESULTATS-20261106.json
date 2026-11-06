@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-06",
+  "base_main": "b41d387e",
+  "environnement": "Chromium Linux local, sans compte ni données de production",
+  "clients": {
+    "total": 198,
+    "reussis": 197,
+    "echecs": [
+      "banc-workflow-rangement.cjs"
+    ]
+  },
+  "recette_ciblee": {
+    "tests": 77,
+    "reussis": 77,
+    "ignores": 0
+  },
+  "globaux": {
+    "branche": 8,
+    "main": 8,
+    "total": 12,
+    "echecs": [
+      "Workflow",
+      "Baseline",
+      "Authority",
+      "Referential"
+    ]
+  },
+  "garde_fiche": {
+    "controles": 23,
+    "contre_epreuves": 9
+  },
+  "png_1440_sha256": {
+    "forum-1440-apres.png": "0d7f587b0fd0431fd012100265b8e8a479040dbb9099ccf573061d47113a7dc0",
+    "forum-1440-avant.png": "0d7f587b0fd0431fd012100265b8e8a479040dbb9099ccf573061d47113a7dc0",
+    "creation-1440-apres.png": "cb2620ccb6da7ef219d6431c03c08a7fccee320e45b78d467c68c044ede6307b",
+    "creation-1440-avant.png": "cb2620ccb6da7ef219d6431c03c08a7fccee320e45b78d467c68c044ede6307b",
+    "plateau-1440-apres.png": "78162d765b6d26a2d5a3b13c31e3a0e84d9deeffa61bbf025d34633a35811384",
+    "plateau-1440-avant.png": "78162d765b6d26a2d5a3b13c31e3a0e84d9deeffa61bbf025d34633a35811384"
+  },
+  "branches": {
+    "codex/mobile-l5-transactions-20261106": "ae466cff7a8bd04ae21c0579280dd5b78b747f6e",
+    "codex/mobile-l8-reprise-20261106": "48a3addf53642d1b78414e48c6e73e156951650c",
+    "codex/mobile-l4-creation-20261106": "5d29a9336570a2da06312af52a8ebd8ed834690d",
+    "codex/mobile-l7-institutions-20261106": "cc4477cbd4b874839a7df78085eb13bdcdd0eb54",
+    "codex/mobile-l9-chargement-20261106": "e4896bf0c39e59591abe488de520a9980057f354"
+  },
+  "pr_creees": false,
+  "fusion": false,
+  "deploiement": false,
+  "recette_authentifiee": false
+}

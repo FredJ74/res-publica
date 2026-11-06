@@ -3,7 +3,6 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const zlib=require('node:zlib'),crypto=require('node:crypto');
 const {chromium}=require('../e2e/node_modules/playwright');
 const R=path.resolve(__dirname,'../..');
-function preuve(nom,b){if(process.env.HG_MOBILE_PREUVES){fs.mkdirSync(process.env.HG_MOBILE_PREUVES,{recursive:true});fs.writeFileSync(path.join(process.env.HG_MOBILE_PREUVES,nom),b);}}
 const reference=fs.readFileSync(path.join(__dirname,'fixtures/mobile-temoin-728010c8.json.gz'));
 assert.equal(crypto.createHash('sha256').update(reference).digest('hex'),'7d79fac32ee8d3059505c494b18ccc958199698478b9702fc7d7017717f52d3c');
 const temoin=JSON.parse(zlib.gunzipSync(reference));

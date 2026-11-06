@@ -1,0 +1,44 @@
+[
+  {
+    "title": "Mobile L5 — Inventaire, fiche et tableaux transactionnels",
+    "head": "codex/mobile-l5-transactions-20261106",
+    "base": "main",
+    "draft": true,
+    "body": "Lot mobile du 6 novembre. Dépendances à intégrer dans l’ordre L5 → L8 → L4 → L7 → L9 → L10 ; branches réconciliées avec main b41d387e, L0–L3 et L6 livrés par Claude préservés. Aucun changement de règles ni migration. Voir outils/audits/MOBILE-SUITE-L5-L8-L4-L7-L9-L10-20261106.md sur la branche L10 pour les preuves et réserves. Tests locaux distincts de la recette authentifiée. Conserver en brouillon jusqu’à CI et recette requises."
+  },
+  {
+    "title": "Mobile L8 — Reprise de session et réponses tardives",
+    "head": "codex/mobile-l8-reprise-20261106",
+    "base": "main",
+    "draft": true,
+    "body": "Lot mobile du 6 novembre. Dépendances à intégrer dans l’ordre L5 → L8 → L4 → L7 → L9 → L10 ; branches réconciliées avec main b41d387e, L0–L3 et L6 livrés par Claude préservés. Aucun changement de règles ni migration. Voir outils/audits/MOBILE-SUITE-L5-L8-L4-L7-L9-L10-20261106.md sur la branche L10 pour les preuves et réserves. Tests locaux distincts de la recette authentifiée. Conserver en brouillon jusqu’à CI et recette requises."
+  },
+  {
+    "title": "Mobile L4 — Connexion et création dans six langues",
+    "head": "codex/mobile-l4-creation-20261106",
+    "base": "main",
+    "draft": true,
+    "body": "Lot mobile du 6 novembre. Dépendances à intégrer dans l’ordre L5 → L8 → L4 → L7 → L9 → L10 ; branches réconciliées avec main b41d387e, L0–L3 et L6 livrés par Claude préservés. Aucun changement de règles ni migration. Voir outils/audits/MOBILE-SUITE-L5-L8-L4-L7-L9-L10-20261106.md sur la branche L10 pour les preuves et réserves. Tests locaux distincts de la recette authentifiée. Conserver en brouillon jusqu’à CI et recette requises."
+  },
+  {
+    "title": "Mobile L7 — Organisations, institutions et combat",
+    "head": "codex/mobile-l7-institutions-20261106",
+    "base": "main",
+    "draft": true,
+    "body": "Lot mobile du 6 novembre. Dépendances à intégrer dans l’ordre L5 → L8 → L4 → L7 → L9 → L10 ; branches réconciliées avec main b41d387e, L0–L3 et L6 livrés par Claude préservés. Aucun changement de règles ni migration. Voir outils/audits/MOBILE-SUITE-L5-L8-L4-L7-L9-L10-20261106.md sur la branche L10 pour les preuves et réserves. Tests locaux distincts de la recette authentifiée. Conserver en brouillon jusqu’à CI et recette requises."
+  },
+  {
+    "title": "Mobile L9 — Chargement différé des miniatures",
+    "head": "codex/mobile-l9-chargement-20261106",
+    "base": "main",
+    "draft": true,
+    "body": "Lot mobile du 6 novembre. Dépendances à intégrer dans l’ordre L5 → L8 → L4 → L7 → L9 → L10 ; branches réconciliées avec main b41d387e, L0–L3 et L6 livrés par Claude préservés. Aucun changement de règles ni migration. Voir outils/audits/MOBILE-SUITE-L5-L8-L4-L7-L9-L10-20261106.md sur la branche L10 pour les preuves et réserves. Tests locaux distincts de la recette authentifiée. Conserver en brouillon jusqu’à CI et recette requises."
+  },
+  {
+    "title": "Mobile L10 — Recette croisée et preuves mobiles",
+    "head": "codex/mobile-l10-recette-20261106",
+    "base": "main",
+    "draft": true,
+    "body": "Lot mobile du 6 novembre. Dépendances à intégrer dans l’ordre L5 → L8 → L4 → L7 → L9 → L10 ; branches réconciliées avec main b41d387e, L0–L3 et L6 livrés par Claude préservés. Aucun changement de règles ni migration. Voir outils/audits/MOBILE-SUITE-L5-L8-L4-L7-L9-L10-20261106.md sur la branche L10 pour les preuves et réserves. Tests locaux distincts de la recette authentifiée. Conserver en brouillon jusqu’à CI et recette requises."
+  }
+]
