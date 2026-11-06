@@ -430,3 +430,7 @@ jeu : » conservées. Vrais rendus locaux dans fr/en/es/zh-TW/ru/ko, sans authen
 ou créer de personnage ; plus/moins réversible vérifié, bureau1440 conservé.
 Pour tester : connexion, huit étapes et choix des caractéristiques à375px, changer
 la langue en conservant les choix. Vrai clavier iOS et fin de création non certifiés.
+
+Réconciliation de `codex/mobile-l4-creation-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
