@@ -1,0 +1,62 @@
+name: Novomirsk - conversion notariale unique
+on:
+  push:
+    branches:
+      - chatgpt/novomirsk-notaire-images-20261106
+    paths:
+      - .github/workflows/novomirsk-notaire-convert-20261106.yml
+permissions:
+  contents: write
+jobs:
+  convert-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/novomirsk-notaire-images-20261106
+          persist-credentials: true
+      - name: Installer le convertisseur WebP
+        run: python -m pip install --user Pillow==11.3.0
+      - name: Convertir les images originales et supprimer les PNG
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import hashlib
+          root=Path('images/Sovarka/Novomirsk')
+          mapping={
+            'Novomirsk_notaire_bureau succession.png':'Novomirsk_notaire_successions.webp',
+            'Novomirsk_notaire_bureau.png':'Novomirsk_notaire_cessions_entreprises.webp'
+          }
+          for source,target in mapping.items():
+              inp=root/source
+              out=root/target
+              if not inp.is_file():
+                  raise SystemExit('Image déjà déposée introuvable: '+str(inp))
+              with Image.open(inp) as im:
+                  if im.size != (1536,1024):
+                      raise SystemExit('Dimensions inattendues: '+source+' '+str(im.size))
+                  im.convert('RGB').save(out,'WEBP',quality=85,method=6)
+              with Image.open(out) as im:
+                  if im.format != 'WEBP' or im.size != (1536,1024):
+                      raise SystemExit('WebP illisible: '+target)
+              if out.stat().st_size < 100000:
+                  raise SystemExit('WebP trop petit: '+target)
+              print(source, 'sha256', hashlib.sha256(inp.read_bytes()).hexdigest())
+              print(target, 'sha256', hashlib.sha256(out.read_bytes()).hexdigest(), 'bytes', out.stat().st_size)
+              inp.unlink()
+          PY
+      - name: Contrôler les deux pièces et les ordres du notaire
+        run: |
+          node --test outils/bancs/test-novomirsk-notaire-deux-bureaux-20261106.mjs
+          node --test outils/bancs/test-novomirsk-commissariat-notaire-portraits-20261106.mjs
+          git diff --check
+      - name: Enregistrer les WebP sur la branche de la PR 529
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A images/Sovarka/Novomirsk
+          git diff --cached --stat
+          git commit -m "assets(novomirsk): deux bureaux notariaux WebP, PNG supprimés"
+          git push origin HEAD:refs/heads/chatgpt/novomirsk-notaire-images-20261106
