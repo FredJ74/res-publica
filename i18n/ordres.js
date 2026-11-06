@@ -33,5 +33,16 @@
   const value=engine.t(key,{lng:locale,defaultValue:original});
   return typeof value==='string'&&value.length?value:original;
  }
- global.RPOrderI18n=Object.freeze({label,ambiguous:(fn)=>ambiguities.has(fn)});
+ // Appelé uniquement pour les contenus des boutons en HTML. Les actions, les coûts
+ // et les libellés originaux transmis aux handlers conservent la valeur de o.label.
+ // L'échappement s'applique exclusivement aux traductions injectées dans innerHTML.
+ function labelHtml(order,engine,locale) {
+  const original=typeof order?.label==='string'?order.label:'';
+  const translated=label(order,engine,locale);
+  if(translated===original)return original;
+  return translated.replace(/[&<>"']/g,char=>({
+   '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[char]);
+ }
+ global.RPOrderI18n=Object.freeze({label,labelHtml,ambiguous:(fn)=>ambiguities.has(fn)});
 })(window);
