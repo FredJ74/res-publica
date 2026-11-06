@@ -1,0 +1,79 @@
+name: Novomirsk — conversion des quatre intérieurs en WebP
+on:
+  push:
+    branches: [chore/novomirsk-quatre-interieurs-webp-20261106]
+    paths:
+      - '.github/workflows/novomirsk-quatre-interieurs-webp-20261106.yml'
+permissions:
+  contents: write
+jobs:
+  conversion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Convertir exactement les quatre PNG et supprimer seulement après vérification
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageOps
+          root=Path('images/Sovarka/Novomirsk')
+          names=[
+            'Novomirsk_Commissariat_acceuil.png',
+            'Novomirsk_commissariat-bureau.png',
+            'Novomirsk_commissariat_geoles.png',
+            'Novomirsk_notaire_accueil.png',
+          ]
+          assert len(names)==4 and len(set(names))==4
+          for name in names:
+              src=root/name
+              dest=src.with_suffix('.webp')
+              assert src.is_file(),f'PNG source absent: {src}'
+              assert not dest.exists(),f'WebP deja present: {dest}'
+              with Image.open(src) as im:
+                  rgb=ImageOps.exif_transpose(im).convert('RGB')
+                  dimensions=rgb.size
+                  rgb.save(dest,format='WEBP',quality=85,method=6)
+              with Image.open(dest) as im:
+                  assert im.format=='WEBP' and im.size==dimensions
+                  im.verify()
+              with Image.open(dest) as im:
+                  im.load()
+              assert dest.stat().st_size>100
+              src.unlink()
+              assert not src.exists()
+              print(f'{name} -> {dest.name}: {dimensions}, {dest.stat().st_size} bytes')
+          assert not list(root.glob('*.png')), 'PNG residuel inattendu dans Novomirsk'
+          PY
+      - name: Vérifier les quatre WebP après conversion
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          root=Path('images/Sovarka/Novomirsk')
+          names=['Novomirsk_Commissariat_acceuil','Novomirsk_commissariat-bureau','Novomirsk_commissariat_geoles','Novomirsk_notaire_accueil']
+          for name in names:
+              f=root/(name+'.webp')
+              assert f.is_file()
+              assert not (root/(name+'.png')).exists()
+              with Image.open(f) as img:
+                  assert img.format=='WEBP'
+                  img.load()
+          print('4/4 WEBP confirmes, aucun PNG original restant')
+          PY
+          git diff --check
+      - name: Publier les WebP et la suppression des PNG
+        run: |
+          git add -A -- images/Sovarka/Novomirsk/
+          git diff --cached --check
+          git diff --cached --quiet && exit 1
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(novomirsk): convertir quatre interieurs en WebP'
+          git push origin HEAD:chore/novomirsk-quatre-interieurs-webp-20261106
