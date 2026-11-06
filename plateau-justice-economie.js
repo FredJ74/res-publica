@@ -5700,6 +5700,8 @@ const ENTREPOT_PAR_PAYS_VILLE = {
     ville_b:  'entrepot-logistique-montrouge'
   },
   soviet: {
+    capitale: 'entrepot-logistique-novomirsk',
+    ville_a:  'entrepot-logistique-starovka',
     ville_b:  'entrepot-logistique-krasnov'
   }
 };
@@ -9520,7 +9522,9 @@ async function doConsulterManifeste() {
 // Modele generique (portee internationale) : PORTS_FRET liste tous les ports capables de
 // RECEVOIR du fret, un seul est peuple pour l'instant (Republia/PSM).
 const PORTS_FRET = {
-  republic: { ville: 'ville_a', buildingId: 'port-sainte-marie' }
+  republic: { ville: 'ville_a', buildingId: 'port-sainte-marie' },
+  // Port industriel de Starovka en service le 06/11/2026 (miroir de fret_port_interne, serveur).
+  soviet:   { ville: 'ville_a', buildingId: 'port-starovka' }
 };
 // Deplacee de 'quai_principal' vers 'entrepot' (lot du 25 aout 2026, §6) en meme temps que les
 // orders expedier_colis/receptionner_commande (data.js, room port-sainte-marie) -- garde de

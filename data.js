@@ -1972,7 +1972,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1483664852095-d6cc6870702d?w=1200&q=80',
       desc:'Ville miniere glaciale aux confins de l\'empire. Le froid mord, le charbon manque rarement.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production','entrepot-logistique-starovka','port-starovka'],
       buildingContext: {
         'centre-multinodal-montrouge': {
           name: "Gare de Starovka",
@@ -6955,8 +6955,9 @@ const BUILDINGS = {
       }
     }
   },
-  // Entrepot Logistique de Novomirsk (vue 8) : interface copiee de Luthecia, ordres « Bientot
-  // disponible » (decision de Fred, 04/11/2026). Le socle connait desormais le pays de chaque
+  // Entrepot Logistique de Novomirsk (vue 8) : interface copiee de Luthecia. Ordres « Bientot
+  // disponible » du 04/11 leves le 06/11 (demande de Fred : trading des trois villes de Sovarka,
+  // migration 20261106040500). Le socle connait desormais le pays de chaque
   // entrepot (migration 20261104230000) ; reste l'approvisionnement propre a Sovarka. Directeur
   // PNJ nomme par Fred le 05/11/2026 : Boris Stockov.
   'entrepot-logistique-novomirsk': {
@@ -6972,7 +6973,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#141210,#1c1815)",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
-        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).', bientot:'Bientôt disponible : l\'entrepôt de Novomirsk ouvrira avec l\'économie de Sovarka.'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.', bientot:'Bientôt disponible : l\'entrepôt de Novomirsk ouvrira avec l\'économie de Sovarka.'}]
+        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -6980,8 +6981,8 @@ const BUILDINGS = {
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Boris Stockov (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [
-          {fn:'tableau_bord_entrepot', label:'Tableau de bord logistique', pa:0, cost:0, type:'legal', icon:'ti-layout-dashboard', successRate:100, requiresPost:'directeur_entrepot', desc:"Trésorerie, stocks et capacité, stocks cibles, marché des fournisseurs, commandes et registre de l'établissement.", bientot:'Bientôt disponible : l\'entrepôt de Novomirsk ouvrira avec l\'économie de Sovarka.'},
-          {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix de vente", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue par l'entrepôt. Laissez vide pour revenir au prix automatique.", bientot:'Bientôt disponible : l\'entrepôt de Novomirsk ouvrira avec l\'économie de Sovarka.'}
+          {fn:'tableau_bord_entrepot', label:'Tableau de bord logistique', pa:0, cost:0, type:'legal', icon:'ti-layout-dashboard', successRate:100, requiresPost:'directeur_entrepot', desc:"Trésorerie, stocks et capacité, stocks cibles, marché des fournisseurs, commandes et registre de l'établissement."},
+          {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix de vente", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue par l'entrepôt. Laissez vide pour revenir au prix automatique."}
         ]
       }
     }
@@ -9929,4 +9930,58 @@ function slugPnjSovarka(nom) {
       }
     }
   }
+}
+
+// STAROVKA : ENTREPOT LOGISTIQUE ET PORT INDUSTRIEL (06/11/2026, demande de Fred : les trois villes
+// de Sovarka au trading de matieres premieres, port industriel en service ; migration 20261106040500).
+// Les deux batiments s'ouvrent depuis la rue du port industriel. Gabarits du socle, sans copie a tenir :
+//  - l'entrepot reprend celui de Krasnov (memes pieces, memes ordres), directeur PNJ propre ;
+//  - le port reprend les pieces de fret du Port industriel de PSM : quai, entrepots de fret (expedier,
+//    receptionner, marchandises non reclamees -- memes ordres que PSM, PORTS_FRET.soviet a l'ecran) et
+//    douanes. Pas de criee, de box, de syndicat des dockers ni d'administration portuaire : ces services
+//    sont propres a PSM (etat serveur sous cle de PSM). Le recrutement de douaniers reste republicain.
+// Noms des PNJ proposes par Claude (type mongol / bouriate, direction artistique de Starovka), a relire par
+// Fred ; images a venir.
+{
+  const copie = (o) => JSON.parse(JSON.stringify(o));
+  const krasnov = BUILDINGS['entrepot-logistique-krasnov'];
+  const entrepot = copie(krasnov);
+  entrepot.name = "Entrepôt Logistique de Starovka";
+  entrepot.desc = "Starovka Logistika, au bout du quai. Pétrole, charbon et bois du Grand Nord y attendent le train ou le brise-glace.";
+  for (const piece of Object.values(entrepot.rooms)) delete piece.imageUrl;
+  entrepot.rooms.bureau_direction.persons = [{name:'Batzorig Palettov (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}];
+  BUILDINGS['entrepot-logistique-starovka'] = entrepot;
+
+  const psm = BUILDINGS['port-sainte-marie'].rooms;
+  BUILDINGS['port-starovka'] = {
+    name: "Port Industriel de Starovka",
+    shortName: "Port Industriel",
+    cat: "Port",
+    icon: "ti-anchor",
+    bgColor: "#0b1218",
+    desc: "Le seul port de Sovarka. Un brise-glace ouvre le chenal, les grues ne dorment jamais, et chaque caisse passe sous l'œil du Parti.",
+    rooms: {
+      quai_principal: {
+        name: "Quai Principal",
+        imageBg: "linear-gradient(135deg,#0b1218,#13202b)",
+        desc: "Le quai battu par le vent polaire. Les grues chargent le pétrole et le bois du Grand Nord vers l'étranger.",
+        persons: [{name:'Chef de quai Ganbaatar Amarrov (PNJ)', role:'Chef de quai', rel:'neutral', job:'agent_portuaire'}],
+        orders: []
+      },
+      entrepot: {
+        name: psm.entrepot.name,
+        imageBg: "linear-gradient(135deg,#10161c,#1a232c)",
+        desc: "Les hangars de fret, chauffés juste assez pour que les caisses ne gèlent pas. On y expédie, on y retire, on y signe beaucoup.",
+        persons: [],
+        orders: copie(psm.entrepot.orders)
+      },
+      douanes: {
+        name: psm.douanes.name,
+        imageBg: "linear-gradient(135deg,#120f12,#1c171c)",
+        desc: "Le poste de douane du port. Le tampon est lourd, le formulaire en trois exemplaires.",
+        persons: [{name:'Douanier Sükhbaatar Tamponaïev (PNJ)', role:'Douanier du port', rel:'neutral', job:'agent_portuaire'}],
+        orders: []
+      }
+    }
+  };
 }

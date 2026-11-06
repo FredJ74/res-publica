@@ -5795,6 +5795,47 @@ export const SCENES_PNJ = {
     "piece": "Zone de Récolte",
     "personnes": []
   },
+  "[\"soviet\",\"ville_a\",\"entrepot-logistique-starovka\",\"salle_ventes\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Entrepôt Logistique de Starovka",
+    "piece": "Salle des Ventes",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"entrepot-logistique-starovka\",\"bureau_direction\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Entrepôt Logistique de Starovka",
+    "piece": "Bureau de Direction",
+    "personnes": [
+      "Batzorig Palettov"
+    ]
+  },
+  "[\"soviet\",\"ville_a\",\"port-starovka\",\"quai_principal\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Port Industriel de Starovka",
+    "piece": "Quai Principal",
+    "personnes": [
+      "Chef de quai Ganbaatar Amarrov"
+    ]
+  },
+  "[\"soviet\",\"ville_a\",\"port-starovka\",\"entrepot\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Port Industriel de Starovka",
+    "piece": "Entrepôts",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"port-starovka\",\"douanes\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Port Industriel de Starovka",
+    "piece": "Douanes",
+    "personnes": [
+      "Douanier Sükhbaatar Tamponaïev"
+    ]
+  },
   "[\"soviet\",\"ville_b\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
