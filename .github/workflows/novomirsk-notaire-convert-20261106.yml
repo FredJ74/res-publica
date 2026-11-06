@@ -35,20 +35,23 @@ jobs:
           for source,target in mapping.items():
               inp=root/source
               out=root/target
-              if not inp.is_file():
-                  raise SystemExit('Image déjà déposée introuvable: '+str(inp))
-              with Image.open(inp) as im:
-                  if im.size != (1536,1024):
-                      raise SystemExit('Dimensions inattendues: '+source+' '+str(im.size))
-                  im.convert('RGB').save(out,'WEBP',quality=85,method=6)
+              if inp.is_file():
+                  with Image.open(inp) as im:
+                      if im.size != (1536,1024):
+                          raise SystemExit('Dimensions inattendues: '+source+' '+str(im.size))
+                      im.convert('RGB').save(out,'WEBP',quality=85,method=6)
+                  print(source, 'sha256', hashlib.sha256(inp.read_bytes()).hexdigest())
+                  inp.unlink()
+              elif not out.is_file():
+                  raise SystemExit('Ni PNG ni WebP présent : '+source)
+              else:
+                  print('Conversion déjà effectuée :',target)
               with Image.open(out) as im:
                   if im.format != 'WEBP' or im.size != (1536,1024):
                       raise SystemExit('WebP illisible: '+target)
               if out.stat().st_size < 100000:
                   raise SystemExit('WebP trop petit: '+target)
-              print(source, 'sha256', hashlib.sha256(inp.read_bytes()).hexdigest())
               print(target, 'sha256', hashlib.sha256(out.read_bytes()).hexdigest(), 'bytes', out.stat().st_size)
-              inp.unlink()
           PY
       - name: Contrôler les deux pièces et les ordres du notaire
         run: |
@@ -61,5 +64,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A images/Sovarka/Novomirsk
           git diff --cached --stat
-          git commit -m "assets(novomirsk): deux bureaux notariaux WebP, PNG supprimés"
+          if ! git diff --cached --quiet; then
+            git commit -m "assets(novomirsk): deux bureaux notariaux WebP, PNG supprimés"
+          fi
           git push origin HEAD:refs/heads/chatgpt/novomirsk-notaire-images-20261106
