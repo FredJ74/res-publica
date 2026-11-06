@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('cinquante-sept ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('77 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,57);
+ assert.equal(ref.length,77);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -107,5 +107,27 @@ test('dix ordres de démocratie, élections et parlement sont traduits sans modi
   }
   assert.equal(order.label,words[fn]);
   assert.equal(order.pa,2);assert.equal(order.cost,70);assert.equal(order.requiresPost,'depute');
+ }
+});
+
+test('20 ordres civiques complémentaires ont des libellés stables en neuf langues',()=>{
+ const ids=['consulter_catalogue_manufactures','bne_passer_annonce','gestion_manifestations',
+  'demandes_naturalisation','gerer_couvre_feu','gerer_chef_douanes','subvention_min_int',
+  'pilotage_fiscal_budgetaire','gestion_qhs','mobilisation_nationale','activer_cessez_le_feu',
+  'censurer_media','commanditer_sondage','proposer_treve','calendrier_elections',
+  'seance_parlementaire','reveiller_depute','consulter_lobbyiste','demander_divorce','gerer_ambassades'];
+ const canonical=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for (const id of ids) {
+   const original=Object.freeze({fn:id,label:canonical[id],pa:7,cost:431,requiresPost:'poste_test'});
+   for (const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
+     const translated=win.RPOrderI18n.label(original,engine,lang);
+     assert.equal(translated,win.RP_I18N_RESOURCES[lang].translation.orders[id],lang+':'+id);
+     assert.ok(translated.trim());
+   }
+   assert.equal(original.fn,id);
+   assert.equal(original.label,canonical[id]);
+   assert.equal(original.pa,7);
+   assert.equal(original.cost,431);
+   assert.equal(original.requiresPost,'poste_test');
  }
 });
