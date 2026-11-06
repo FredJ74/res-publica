@@ -289,7 +289,7 @@
         <div class="inv-val" id="inv-banque">3 750 FR</div>
       </div>
       <div class="inv-items" id="inv-items">
-        <div class="inv-item-empty">Aucun objet</div>
+        <div class="inv-item-empty" data-i18n="plateau.noItems">Aucun objet</div>
       </div>
     </div>
 
@@ -334,7 +334,7 @@
 
       <!-- Barre d'actions de rue -->
       <div id="actionbar">
-        <div class="action-context">DANS LA RUE &mdash; Cliquez sur un batiment pour entrer</div>
+        <div class="action-context" data-i18n="plateau.streetHint">DANS LA RUE &mdash; Cliquez sur un batiment pour entrer</div>
         <div class="actions-row" id="rue-actions-row">
 
         </div>
@@ -373,15 +373,15 @@
           <div class="batiment-cat" data-i18n="plateau.gameGuide">Res Publica — Guide du joueur</div>
         </div>
         <div class="pieces-tabs">
-          <div class="rules-tab piece-tab active" data-section="intro" onclick="renderRulesContent('intro');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Le Grand Jeu</div>
-          <div class="rules-tab piece-tab" data-section="tuto" onclick="renderRulesContent('tuto');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">🎓 Tutoriel</div>
-          <div class="rules-tab piece-tab" data-section="personnage" onclick="renderRulesContent('personnage');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Personnage</div>
-          <div class="rules-tab piece-tab" data-section="plateau" onclick="renderRulesContent('plateau');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Plateau</div>
-          <div class="rules-tab piece-tab" data-section="politique" onclick="renderRulesContent('politique');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Politique</div>
-          <div class="rules-tab piece-tab" data-section="interactions" onclick="renderRulesContent('interactions');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Interactions</div>
-          <div class="rules-tab piece-tab" data-section="economie" onclick="renderRulesContent('economie');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Économie</div>
-          <div class="rules-tab piece-tab" data-section="sport" onclick="renderRulesContent('sport');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">⚽ Football</div>
-          <div class="rules-tab piece-tab" data-section="religion" onclick="renderRulesContent('religion');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Religions</div>
+          <div class="rules-tab piece-tab active" data-section="intro" data-i18n="plateau.rulesIntro" onclick="renderRulesContent('intro');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Le Grand Jeu</div>
+          <div class="rules-tab piece-tab" data-section="tuto" data-i18n="plateau.rulesTutorial" onclick="renderRulesContent('tuto');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">🎓 Tutoriel</div>
+          <div class="rules-tab piece-tab" data-section="personnage" data-i18n="plateau.rulesCharacter" onclick="renderRulesContent('personnage');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Personnage</div>
+          <div class="rules-tab piece-tab" data-section="plateau" data-i18n="plateau.rulesBoard" onclick="renderRulesContent('plateau');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Plateau</div>
+          <div class="rules-tab piece-tab" data-section="politique" data-i18n="plateau.rulesPolitics" onclick="renderRulesContent('politique');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Politique</div>
+          <div class="rules-tab piece-tab" data-section="interactions" data-i18n="plateau.rulesInteractions" onclick="renderRulesContent('interactions');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Interactions</div>
+          <div class="rules-tab piece-tab" data-section="economie" data-i18n="plateau.rulesEconomy" onclick="renderRulesContent('economie');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Économie</div>
+          <div class="rules-tab piece-tab" data-section="sport" data-i18n="plateau.rulesFootball" onclick="renderRulesContent('sport');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">⚽ Football</div>
+          <div class="rules-tab piece-tab" data-section="religion" data-i18n="plateau.rulesReligion" onclick="renderRulesContent('religion');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Religions</div>
         </div>
       </div>
       <div id="rules-content" style="flex:1;overflow-y:auto;background:#0a0805"></div>
@@ -601,7 +601,7 @@
 <div id="modal-minimap-ville" class="modal-overlay">
   <div class="modal-box modal-large" style="max-width:700px;max-height:85vh;overflow-y:auto">
     <div class="modal-header">
-      <div class="modal-title" id="minimap-ville-title">Plan de la ville</div>
+      <div class="modal-title" id="minimap-ville-title" data-i18n="plateau.planTitle">Plan de la ville</div>
       <button class="modal-close" onclick="document.getElementById('modal-minimap-ville').classList.remove('open')"><i class="ti ti-x"></i></button>
     </div>
     <div id="minimap-ville-body" style="padding:.5rem"></div>
@@ -617,8 +617,8 @@
     </div>
     <div style="padding:.8rem 1rem;display:flex;flex-direction:column;gap:.6rem">
       <div>
-        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem">À</label>
-        <input id="compose-mail-to" type="text" placeholder="Destinataire..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box"/>
+        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem" data-i18n="plateau.recipient">À</label>
+        <input id="compose-mail-to" type="text" placeholder="Destinataire..." data-i18n-placeholder="plateau.recipientPlaceholder" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box"/>
       </div>
       <div>
         <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem" data-i18n="plateau.subject">Sujet</label>
