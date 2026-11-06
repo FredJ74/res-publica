@@ -2023,6 +2023,12 @@ const WORLD = {
           desc: "L'usine pharmaceutique d'État de Sovarka. Des cheminées propres, des blouses blanches et un slogan au fronton : « La santé du peuple est un devoir du Plan ».",
           roomOverrides: {
             salle_ventes: { excludeOrders: ['acheter_sels_ammoniaque'] },
+            // Salaire de production a l'echelle de Sovarka (Fred, 06/11/2026 : entre 15 et 20 PSK ;
+            // serveur : salaires_production_pays, migration 20261106184000).
+            salle_production: { excludeOrders: ['produire_medicaments', 'produire_desinfectant'], orders: [
+              {fn:'produire_medicaments', label:'Produire des médicaments', pa:1, cost:0, type:'legal', icon:'ti-vaccine', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 18 PSK. Consomme 5 plantes du stock de matières de l\'usine, produit 10 médicaments.'},
+              {fn:'produire_desinfectant', label:'Produire du désinfectant', pa:1, cost:0, type:'legal', icon:'ti-droplet', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 alcool du stock de matières de l\'usine, produit 10 désinfectants.'}
+            ] },
             bureau_direction: { persons: [{name: 'Boris Tabletkine (PNJ)', role: "Directeur de l'usine Pharmanov", rel: 'neutral', job: 'directeur_pharma'}] }
           }
         }
