@@ -1168,7 +1168,7 @@
       "diplomatie_bilaterale": "Diplomatie bilaterale",
       "proposer_grace": "Proposer une grace",
       "gerer_budget_justice": "Gérer le budget de la Justice",
-      "gestion_industrielle_portuaire": "Gestion industrielle et portuaire"
+      "deposer_demande_permis": "Déposer une demande de permis"
     },
     "en": {
       "officialiser_transaction": "Formalise a transaction",
@@ -1190,7 +1190,7 @@
       "diplomatie_bilaterale": "Bilateral diplomacy",
       "proposer_grace": "Propose a pardon",
       "gerer_budget_justice": "Manage the Justice budget",
-      "gestion_industrielle_portuaire": "Industrial and port management"
+      "deposer_demande_permis": "Submit a building permit application"
     },
     "es": {
       "officialiser_transaction": "Formalizar una transacción",
@@ -1212,7 +1212,7 @@
       "diplomatie_bilaterale": "Diplomacia bilateral",
       "proposer_grace": "Proponer un indulto",
       "gerer_budget_justice": "Gestionar el presupuesto de Justicia",
-      "gestion_industrielle_portuaire": "Gestión industrial y portuaria"
+      "deposer_demande_permis": "Presentar una solicitud de licencia de obras"
     },
     "zh-TW": {
       "officialiser_transaction": "正式確認交易",
@@ -1234,7 +1234,7 @@
       "diplomatie_bilaterale": "雙邊外交",
       "proposer_grace": "提出赦免建議",
       "gerer_budget_justice": "管理司法預算",
-      "gestion_industrielle_portuaire": "工業與港口管理"
+      "deposer_demande_permis": "提交建築許可申請"
     },
     "ru": {
       "officialiser_transaction": "Официально оформить сделку",
@@ -1256,7 +1256,7 @@
       "diplomatie_bilaterale": "Двусторонняя дипломатия",
       "proposer_grace": "Предложить помилование",
       "gerer_budget_justice": "Управлять бюджетом юстиции",
-      "gestion_industrielle_portuaire": "Управление промышленностью и портами"
+      "deposer_demande_permis": "Подать заявление на разрешение на строительство"
     },
     "ko": {
       "officialiser_transaction": "거래 공식 승인",
@@ -1278,7 +1278,7 @@
       "diplomatie_bilaterale": "양자 외교",
       "proposer_grace": "사면 제안",
       "gerer_budget_justice": "법무 예산 관리",
-      "gestion_industrielle_portuaire": "산업 및 항만 관리"
+      "deposer_demande_permis": "건축 허가 신청서 제출"
     },
     "ar": {
       "officialiser_transaction": "إضفاء الطابع الرسمي على صفقة",
@@ -1300,7 +1300,7 @@
       "diplomatie_bilaterale": "الدبلوماسية الثنائية",
       "proposer_grace": "اقتراح عفو",
       "gerer_budget_justice": "إدارة ميزانية العدل",
-      "gestion_industrielle_portuaire": "إدارة الصناعة والموانئ"
+      "deposer_demande_permis": "تقديم طلب تصريح بناء"
     },
     "pt-BR": {
       "officialiser_transaction": "Oficializar uma transação",
@@ -1322,7 +1322,7 @@
       "diplomatie_bilaterale": "Diplomacia bilateral",
       "proposer_grace": "Propor um perdão",
       "gerer_budget_justice": "Gerenciar o orçamento da Justiça",
-      "gestion_industrielle_portuaire": "Gestão industrial e portuária"
+      "deposer_demande_permis": "Solicitar licença para construir"
     },
     "de": {
       "officialiser_transaction": "Eine Transaktion beurkunden",
@@ -1344,7 +1344,7 @@
       "diplomatie_bilaterale": "Bilaterale Diplomatie",
       "proposer_grace": "Eine Begnadigung vorschlagen",
       "gerer_budget_justice": "Justizhaushalt verwalten",
-      "gestion_industrielle_portuaire": "Industrie- und Hafenverwaltung"
+      "deposer_demande_permis": "Einen Bauantrag stellen"
     }
   };
   for (const [locale, labels] of Object.entries(justiceCommerce)) Object.assign(words[locale], labels);
