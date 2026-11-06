@@ -886,8 +886,18 @@ const RUE_CENTRALE_NOEUDS = {
     'starovka-rue-mairie-marche': {
       image: 'images/Sovarka/Starovka/Starovka_rue_mairie_marché.webp',
       zones: [],
-      liens: { toutDroit: 'starovka-rue-blizzard' },
-      flechesStyle: { toutDroit: RC_FLECHE_HAUT }
+      liens: { toutDroit: 'starovka-rue-blizzard', gauche: 'starovka-rue-lycee-commissariat' },
+      flechesStyle: {
+        toutDroit: RC_FLECHE_HAUT,
+        gauche: 'bottom:10px; left:10px;'
+      }
+    },
+
+    'starovka-rue-lycee-commissariat': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_lycée_commissariat.webp',
+      zones: [],
+      liens: { droite: 'starovka-rue-mairie-marche' },
+      flechesStyle: { droite: 'bottom:10px; right:10px;' }
     },
 
     // KRASNOV — la gare donne vers la rue de l'entrepôt par une seule flèche BAS.
