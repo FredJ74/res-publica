@@ -11,7 +11,7 @@
     "imprimer_tracts_choix": "Imprimer des tracts",
     "imprimer_tracts_calomnieux": "Imprimer des tracts calomnieux",
     "deposer_petite_annonce": "Déposer une petite annonce",
-    "marche_noir": "Marché noir",
+    "marche_noir": "Marché Noir",
     "faire_achats_marche": "Faire des achats",
     "embaucher_agent_securite": "Embaucher un agent de sécurité",
     "embaucher_maitre_chien": "Embaucher un maître-chien",
