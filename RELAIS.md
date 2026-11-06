@@ -469,3 +469,42 @@ Le test historique de fiche exige désormais la garde tardive (obligatoire), ave
 nouvelle mutation de suppression :23 contrôles +9 contre-épreuves verts. Aucune assertion
 supprimée ou garde optionnelle. Création REST toujours bloquée : même curl public sans
 authentification renvoie403 Envoy. Donc ni PR créée ni fusion annoncée depuis cette session.
+
+Réconciliation de `codex/mobile-l9-chargement-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
+Réconciliation de `codex/mobile-l7-institutions-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
+Réconciliation de `codex/mobile-l4-creation-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
+Réconciliation de `codex/mobile-l8-reprise-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
+Réconciliation de `codex/mobile-l5-transactions-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
+L5 : correction de recette réintégrée dans son lot : verrou commun Helvetia et
+contexte avant/après relecture, trois tests dédiés. Les PA historiques ne deviennent
+pas une nouvelle autorité mobile ; certification serveur Helvetia toujours réservée.
+
+L8 : le détecteur de fiche exige la nouvelle garde tardive, neuf mutations détectées,
+aucun test relâché ; correctif L5 reçu. Les branches L0–L3/L6 de Claude restent intactes.
+
+`codex/mobile-l4-creation-20261106` : correctifs des lots précédents propagés ; aucun changement des
+règles ou migrations. Les tests et la certification distante restent distincts.
+
+`codex/mobile-l7-institutions-20261106` : correctifs des lots précédents propagés ; aucun changement des
+règles ou migrations. Les tests et la certification distante restent distincts.
+
+`codex/mobile-l9-chargement-20261106` : correctifs des lots précédents propagés ; aucun changement des
+règles ou migrations. Les tests et la certification distante restent distincts.
+
+`codex/mobile-l10-recette-20261106` : correctifs des lots précédents propagés ; aucun changement des
+règles ou migrations. Les tests et la certification distante restent distincts.
