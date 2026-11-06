@@ -2340,6 +2340,13 @@ body.plateau-body .top-right {
   .cpj-champ,.cpj-mini{min-width:64px;min-height:44px}
   .cpj-nom-t,.cpj-sous{white-space:normal;overflow-wrap:anywhere}
 }
+/* L8 : état de connexion, jamais une valeur de remplacement. */
+#hg-reprise{display:none}
+@media(max-width:1023px){
+  #hg-reprise:not([hidden]){display:flex;position:fixed;inset:auto 8px max(8px,env(safe-area-inset-bottom));z-index:1200;gap:8px;align-items:center;padding:12px;border:1px solid #a98d56;border-radius:6px;background:#202a36;color:#e2e9f1}
+  #hg-reprise button{min-height:44px;background:#344354;color:#e5c477;border:1px solid #a98d56;padding:8px}
+}
+
 
 /* L6 : un seul contrôleur de composition, ses poignées captent le geste tactile. */
 .rp-poignee-tactile{touch-action:none}

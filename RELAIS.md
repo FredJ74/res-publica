@@ -424,6 +424,23 @@ conservée ; aucun calcul ni action financière changé. PR REST ouverte au prem
 push si l'accès l'autorise. Le lot L8 suit sur une branche propre, sans modifier
 les cinq branches que Claude intègre.
 
+### Mobile L8 — Codex, 06/11/2026
+
+Branche `codex/mobile-l8-reprise-20261106`, dépend provisoirement de L5/L3, pas de
+modification des branches #532–536. Réutilise loadCharacter ; expose sa promesse,
+garde génération/UID contre les réponses tardives. Reprise sans repeindre le cache
+ni fermer une vue si la position est inchangée ; rendu différé protégé contre
+un autre personnage ou déplacement (banc dédié). En mobile, retour visible/réseau
+et signal d'un autre onglet demandent une lecture ; premier ordre suspendu, jamais
+rejoué automatiquement. Aucun polling, aucun calendrier serveur changé. Bancs de
+chargement/sauvegarde et test offline Chromium exécutés ; vrais appareils et deux
+comptes/appareils restent non testés. REST POST pulls refusé (Forbidden) dans cette
+session, malgré son fonctionnement chez Claude. Les branches sont sauvegardées.
+
+Réconciliation de `codex/mobile-l8-reprise-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
 Réconciliation de `codex/mobile-l5-transactions-20261106` avec main `b2e357bf` après fusion #535 ;
 aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
 préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
@@ -431,6 +448,9 @@ préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette r
 L5 : correction de recette réintégrée dans son lot : verrou commun Helvetia et
 contexte avant/après relecture, trois tests dédiés. Les PA historiques ne deviennent
 pas une nouvelle autorité mobile ; certification serveur Helvetia toujours réservée.
+
+L8 : le détecteur de fiche exige la nouvelle garde tardive, neuf mutations détectées,
+aucun test relâché ; correctif L5 reçu. Les branches L0–L3/L6 de Claude restent intactes.
 
 Bilan mobile local : `outils/audits/MOBILE-LIVRAISON-20261106.md`. Branches L1/L2/L3
 certifiées séparément : 30/30, 32/32, 34/34 (cas mobiles + historiques). Avec L6 :
@@ -444,4 +464,8 @@ Dernier main `bba6dec9` intégré (confirmation de la répartition #524), Sovark
 Les journaux bruts restent locaux après rejet de leur publication par le contrôle
 automatique ; résultats structurés et captures de fixtures inspectées sont publiés.
 
+codex/mobile-l8-reprise-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
+
 codex/mobile-l5-transactions-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+codex/mobile-l8-reprise-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
