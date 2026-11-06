@@ -56,7 +56,7 @@ test('les 14 nouveaux libellés sont ancrés dans les ordres réellement déclar
 test('tous les libellés pilotes français correspondent exactement aux vrais ordres du socle',()=>{
  const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
  const actual=new Map();
- for(const m of source.matchAll(/\\bfn\\s*:\\s*(['"])([^'"\\n]+)\\1\\s*,\\s*label\\s*:\\s*(['"])([^'"\\n]+)\\3/g)){
+ for(const m of source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)){
   if(!actual.has(m[2]))actual.set(m[2],new Set());
   actual.get(m[2]).add(m[4]);
  }
