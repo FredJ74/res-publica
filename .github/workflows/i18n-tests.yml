@@ -92,7 +92,7 @@ jobs:
           retention-days: 7
       - name: "Libellés d’ordres : contexte et autorité préservés"
         run: node --test outils/bancs/banc-i18n-ordres.cjs
-      - name: Cent cinquante-sept ordres canoniques traduits et droits préservés
+      - name: Cent soixante-dix-sept ordres canoniques traduits et droits préservés
         run: node --test outils/bancs/banc-i18n-catalogue-ordres.cjs
       - name: Rendu des ordres, échappement HTML et autorité inchangée
         run: node --test outils/bancs/banc-i18n-render-ordres.cjs
