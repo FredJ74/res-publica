@@ -333,3 +333,14 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - PR #249 : branche dédiée, issue du `main` 27198955, sans importer les groupes inachevés #219. Les raccordements d'inventaire de #213 sont réconciliés avec le code récent des écrans. Aucun déploiement, aucune migration de fermeture à cette étape.
 - Dix migrations métier déjà installées en base ; six fermetures différées au déploiement d'un client compatible : `20261028210000`, `20261028210500`, `20261028210600`, `20261028210700`, `20261028210800`, `20261028210900`. Ne pas activer le verrou final sans observation et accord du game designer.
 - CI au SHA de la PR #249 et validation des chemins d'inventaire impératives avant fusion. La garde fret `hg_fret_contenu_source` demeure désactivée en attendant le nouveau client.
+
+### Audit de faisabilité mobile — Codex, 06/11/2026 (documentaire, non fusionné)
+
+Branche `codex/audit-mobile-20261106`, source examinée `main` `304633e0`.
+Rapport : `outils/audits/AUDIT-FAISABILITE-MOBILE-HUMAN-GAMBIT.md`.
+120 états d'affichage sur six formats, 22 captures locales et contre-épreuve tactile
+sur le contrôleur réel du forum. Aucun compte, ordre, paiement, changement applicatif,
+Supabase ou déploiement. Aucun Safari iOS réel ni parcours métier authentifié certifié.
+Proposition : web responsive commun, PWA optionnelle ; première version 18–30 jours-personne,
+couverture complète 36–61, à affiner sur vrais appareils. Implémentation non autorisée
+par cet audit ; ne pas fusionner cette branche sans validation de Fred. Sovarka intacte.
