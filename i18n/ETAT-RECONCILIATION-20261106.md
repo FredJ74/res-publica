@@ -149,3 +149,10 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - Le guide français des interactions ne mentionne plus un forum régional générique inexistant ; ses catégories décrivent la localisation par ville et pays, l'adhésion aux organisations, les forums institutionnels et la presse conformément au design déjà validé.
 - **Sécurité contre l'obsolescence des traductions** : `i18n/guide-integrity.js` vérifie une empreinte déterministe du titre et du contenu français avant toute traduction. Si une règle française est modifiée, l'écran retombe sur le texte français plutôt que montrer des règles périmées. `banc-i18n-guide-integrite.cjs` empêche une dérive silencieuse des neuf rubriques.
 - Les bancs spécifiques aux guides sont intégrés à la CI de #377 ; `main` et les données des PJ n'ont pas été modifiés. Dernier SHA à certifier par GitHub Actions, tests de navigation authentifiée et relecture linguistique non exécutés. Rien n'est publié.
+
+
+## 7 novembre — contrôle réel Supabase des sources de traduction
+
+- Vérification **en lecture seule** sur le projet `res-publica` après livraison des forums territoriaux #422 : les politiques de lecture de `forum_topics`, `forum_posts` et `messages_chat` sont actives et conformes (**3/3** avec le prévol actualisé). Contrairement à l'ancien relevé du 3 novembre, les forums ne sont **pas** accessibles publiquement sans restriction : sujets filtrés via `forum_lecture_autorisee(forum_id,country)`, réponses visibles à travers le sujet et RLS, chat réservé aux participants.
+- `api/_traduction-sources.js` ne déclare donc plus les forums comme `rls_select_public`. Test de prévention ajouté et contrat de sécurité corrigé dans `i18n/SECURITE-TEXTES-JOUEURS.md`.
+- **Aucun message privé ni contenu PJ consulté**, aucune migration, aucune activation. Les essais JWT multi-comptes et la réalisation du quota/cache persistant restent indispensables avant tout endpoint public.
