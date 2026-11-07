@@ -647,8 +647,7 @@ de cron à 8 500 FR retirés (seulement api/cron-minuit.js, aucun stock modifié
 28 contrôles PostgreSQL 17.6 et 28 sous 16.2 : achats avec le patch de Claude et
 vrais reçus ; rôle authenticated refusé pour l'action nocturne, service_role pour
 son exécution ; identités/lois/PA de fixture explicites. Tout annulé, aucun PJ réel.
-199/199 bancs clients passent. Workflow conforme ; globaux 9/12, comparaison main
-en cours à confirmer. Aucun baseline modifié pour masquer les trois écarts.
+199/199 bancs clients passent. Workflow conforme ; globaux 9/12, même verdict sur le main intact. Aucun baseline modifié pour masquer les trois écarts.
 
 PR : création REST à tenter au push ; si refus, titre « Entrepôts : caisse unique
 pour le ravitaillement militaire et suppression des dotations fantômes ». Description
@@ -662,3 +661,14 @@ Aucun outil Supabase exposé ici ; pas de fausse confirmation de production.
 Fred peut tester après livraison : acheter normalement à l'entrepôt et consulter
 le solde du directeur ; ne pas demander un achat à un PJ réel pour cette recette.
 Le complément nocturne se vérifie par fixtures, puis journal de la passe autorisée.
+
+Caisses, contrôle final du 07/11 : main 42a7f84d / #572 intégré sans toucher aux
+fichiers de Claude. 199/199 bancs clients sur la coupe précédente, puis 49/49
+transversaux sur l'intégration ; globaux 9/12 aussi sur main intact, Workflow conforme.
+28/28 contrôles SQL sur PostgreSQL 17.6 et 16.2, tous annulés. Preuves structurées :
+`outils/audits/CAISSES-ENTREPOTS-RESULTATS-20261107.json`. REST POST /pulls répond
+encore Forbidden : branche poussée, titre/description/contrôles prêts ci-dessus pour
+Claude. Aucune PR créée, fusion ou application Supabase par Codex. Migration militaire
+restant à confronter au catalogue vivant (pas d'outil Supabase exposé ici), puis à
+livrer via registre si nécessaire. Aucune décision de montant inventée ; le faux
+double solde est signalé comme caduc, dotation déjà livrée par Claude préservée.

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Corps réels + patch sur PostgreSQL jetable ; transaction annulée, appels authenticated.
+"""Corps réels + patch sur PostgreSQL jetable ; transaction annulée.
+Achats authenticated ; ravitaillement service_role, accès client refusé.
 Décor minimal explicite : identité, paiement PA et lois simulés ; aucune donnée réelle.
 Primitives de caisse, lecture, achat et reçus chargés depuis le baseline, non réécrits.
 """

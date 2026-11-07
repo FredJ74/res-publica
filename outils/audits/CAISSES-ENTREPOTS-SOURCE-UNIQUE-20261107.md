@@ -1,6 +1,6 @@
 # Caisses d'entrepôts — reprise du 7 novembre
 
-Base intégrée : main 747153e4. Aucun compte ou solde de production consulté/modifié
+Base intégrée : main 42a7f84d (#572 conservée). Aucun compte ou solde de production consulté/modifié
 par Codex. Aucun outil Supabase n'est exposé dans cette session. Les constats distants
 ci-dessous sont attribués au relais de Claude, pas présentés comme nos propres relevés.
 
@@ -78,7 +78,11 @@ un banc supplémentaire, pas une pipeline redondante.
 - Six tests ciblés Node (dont garde des écritures fiche) réussis ; détecteur AST du
   cron avec contre-épreuves de dotation et lecture d'ancien solde.
 - Vérificateur Workflow : conforme après enveloppe BEGIN / SET TRANSACTION / ROLLBACK
-  du prévol. Contrôleur client complet et globaux : résultats finaux à la fin du relais.
+  du prévol. Contrôleur complet : **199/199** sur la coupe 747153e4 ; après intégration de
+  #572, **49/49 tests transversaux** (entrepôts, banques, commerce, restaurant).
+  Globaux : **9/12** sur la branche ET le main intact 42a7f84d, trois échecs
+  hérités Baseline/Authority/Referential, Workflow conforme. Résumé structuré :
+  `CAISSES-ENTREPOTS-RESULTATS-20261107.json`.
 
 Limites : les fixtures ne certifient ni le catalogue vivant, ni tous les triggers de
 production, ni l'exécution concurrente réelle du calendrier. Le patch n'ajoute aucun

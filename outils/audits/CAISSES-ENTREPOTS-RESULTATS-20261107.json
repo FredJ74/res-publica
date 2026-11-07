@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-07",
+  "main_integre": "42a7f84d",
+  "pg17": {
+    "version": "17.6",
+    "controles": 28,
+    "reussis": 28,
+    "transaction": "annulée"
+  },
+  "pg_ci": {
+    "version": "16.2",
+    "controles": 28,
+    "reussis": 28,
+    "transaction": "annulée"
+  },
+  "clients_complets": {
+    "base_main": "747153e4",
+    "bancs": 199,
+    "reussis": 199,
+    "sql_execute": false
+  },
+  "transversaux_apres_572": {
+    "base_main": "42a7f84d",
+    "tests": 49,
+    "reussis": 49,
+    "ignores": 0
+  },
+  "globaux": {
+    "branche": 9,
+    "main_intact": 9,
+    "total": 12,
+    "echecs_herites": [
+      "Baseline",
+      "Authority",
+      "Referential"
+    ],
+    "workflow": "conforme"
+  },
+  "migration_preparee": {
+    "nom": "effort_ravitaillement_caisse_canonique",
+    "version": "20261107081631",
+    "sha256": "6778d3e9a4190205e4ba0fc3b54047599fa76d284a8de8c9afa780d8e71aff12"
+  },
+  "migration_appliquee_par_codex": false,
+  "donnee_production_modifiee_par_codex": false,
+  "lecture_supabase_reelle_par_codex": false,
+  "creation_pr_rest": "403 Forbidden",
+  "fusion": false,
+  "vercel_verifie": false,
+  "fixtures": "identité, lois et paiement PA simulés ; caisses, reçus, achat et ravitaillement : vrais corps SQL"
+}
