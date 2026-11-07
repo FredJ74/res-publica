@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('197 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('217 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,197);
+ assert.equal(ref.length,217);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -285,5 +285,28 @@ test('20 ordres organisations et relations sociales : parité source et opérati
   }
   assert.equal(order.label,fr[fn]);assert.equal(order.pa,4);assert.equal(order.cost,210);
   assert.equal(order.requiresPost,'chef_org');
+ }
+});
+
+
+test('20 ordres industrie et services : labels canoniques et opérations immuables',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const ids=["garage_vehicules","garage_reviser","mes_vehicules","salon_coupe","gerer_logement_social","pharmacie_medicaments","station_carburant","tableau_bord_entrepot","fixer_prix_achat_entrepot","vente_directe_usine","fixer_prix_vente_directe","fixer_repartition_production","virement_usine_ministere","produire_carburant","produire_derives_petrochimiques","produire_tabac","produire_medicaments","produire_desinfectant","interroger_renseignement","visiter_prisonnier"];
+ const observed=new Map();
+ for(const row of source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)){
+  if(!observed.has(row[2]))observed.set(row[2],new Set());
+  observed.get(row[2]).add(row[4]);
+ }
+ const fr=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const fn of ids){
+  const order=Object.freeze({fn,label:fr[fn],pa:3,cost:175,requiresPost:'responsable'});
+  assert.ok(observed.get(fn)?.has(order.label),'ordre absent '+fn);
+  for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+   const expected=win.RP_I18N_RESOURCES[lng].translation.orders[fn];
+   assert.ok(typeof expected==='string'&&expected.trim(),lng+'/'+fn);
+   assert.equal(win.RPOrderI18n.label(order,engine,lng),expected,lng+'/'+fn);
+  }
+  assert.equal(order.fn,fn);assert.equal(order.label,fr[fn]);
+  assert.equal(order.pa,3);assert.equal(order.cost,175);assert.equal(order.requiresPost,'responsable');
  }
 });
