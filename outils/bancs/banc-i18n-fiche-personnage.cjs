@@ -88,3 +88,45 @@ test('nom PJ non traduit et tout HTML injecté dans un libellé est échappé',(
  assert.ok(!encoded.includes('<img'));
  win.i18next.t=t;
 });
+
+
+test('rendu complet de la fiche PJ en neuf langues sur des valeurs identiques et sans Supabase',async()=>{
+ const start=source.indexOf('function rpCharSheetLabel(key,source) {');
+ const end=source.indexOf('function switchCharSheetTab(',start);
+ assert.ok(start>=0&&end>start);
+ const code=source.slice(start,end);
+ const values=[];
+ for(const locale of Object.keys(win.RP_I18N_LANGUAGES)){
+  lang=locale;
+  let rendered='';
+  const node={classList:{add:()=>{}},set innerHTML(value){rendered=value;},get innerHTML(){return rendered;}};
+  const person={name:'Testeur',country:'republic',stats:{},bio:'',motto:'',signatureHtml:''};
+  const fixture={
+   window:win,
+   state:{char:person,poste:null,placementsBancaires:[],inventory:[],liquide:150,
+     inf:10,pop:20,dis:30,hp:40,moral:50},
+   COUNTRIES:{republic:{cur:'FR',n:'Republia'}},
+   ARCHETYPES:[],CAREERS:[],ORIGINS:[],SCHOOLS:[],STAT_DEFS:[],
+   TYPES_PRET:{},
+   document:{getElementById:()=>node},
+   resumeFortune:()=>({comptes:123}),
+   totalComptesBancaires:()=>123,
+   genererStatsHtml:()=>'<span>STATISTIC_TABLE</span>'
+  };
+  const sandbox=vm.createContext(fixture);
+  vm.runInContext(code,sandbox,{filename:'openCharSheet'});
+  await vm.runInContext('openCharSheet()',sandbox);
+  const labels=win.RP_I18N_RESOURCES[locale].translation.characterSheet;
+  for(const key of ['identity','statistics','resources','cash','bank','hotelReservations','noReservedNights','noItems']){
+   const translated=win.RPCharacterSheetI18n.label(key,win.RP_I18N_RESOURCES.fr.translation.characterSheet[key]);
+   assert.ok(rendered.includes(translated),locale+': visible '+key);
+  }
+  assert.ok(rendered.includes('Testeur'),locale+': identité PJ non traduite');
+  assert.ok(rendered.includes('150')&&rendered.includes('123'),locale+': valeurs liquidités et banque identiques');
+  assert.ok(rendered.includes("switchCharSheetTab('identite')"),locale+': bouton identité');
+  assert.ok(rendered.includes("switchCharSheetTab('stats')"),locale+': bouton statistiques');
+  assert.ok(rendered.includes('STATISTIC_TABLE'),locale+': moteur statistique conservé');
+  values.push({liquide:150,comptes:123,locale});
+ }
+ assert.equal(values.length,9);
+});
