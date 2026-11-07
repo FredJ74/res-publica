@@ -675,8 +675,8 @@ function queteAccueilProposerPresentationForum() {
     texte: rpQueteTexte('localForumInvite', "Vous commencez à connaître Luthécia... mais Luthécia ne vous connaît pas encore.<br><br>Le forum local est le lieu où les citoyens débattent, annoncent leurs projets et commencent parfois leurs premières querelles.<br><br>Souhaitez-vous vous présenter aux autres habitants ?"),
     suivant: null,
     actionsHtml:
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilLancerPresentationForum();">Me présenter</button> ' +
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilIgnorerPresentationForum();">Plus tard</button>'
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilLancerPresentationForum();">' + rpQueteTexte('introduceMyself','Me présenter') + '</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilIgnorerPresentationForum();">' + rpQueteTexte('later','Plus tard') + '</button>'
   });
 }
 
@@ -693,7 +693,7 @@ function queteAccueilLancerPresentationForum() {
   if (typeof showComposeCanvasForm === 'function') showComposeCanvasForm();
   if (typeof onboardingArmerComposeCanvas === 'function') onboardingArmerComposeCanvas();
   const titleEl = document.getElementById('compose-canvas-title');
-  if (titleEl) titleEl.value = 'Présentation de ' + (state.char?.name || '');
+  if (titleEl) titleEl.value = rpQueteTexte('forumTitlePrefix','Présentation de ') + (state.char?.name || '');
 }
 
 // "Plus tard" : choix valide, terminal -- aucune relance automatique, aucun minuteur, aucune
@@ -759,9 +759,9 @@ async function queteAccueilGenererReponseMailJeremy(subjectRecu, bodyRecu) {
 
   const prompt = "Tu es Jeremy, jeune stagiaire un peu maladroit mais serviable de l'Hotel de Ville de Luthecia, dans le jeu Res Publica. Tu vouvoies toujours le joueur.\n" +
     "Le joueur, que tu as guide dans la ville il y a quelque temps, vient de t'envoyer un mail. Sujet : \"" + subjectRecu.replace(/"/g, "'") + "\". Message : \"" + bodyRecu.replace(/"/g, "'") + "\".\n" +
-    "Reponds en 2 a 3 phrases, dans ton personnage, de facon coherente avec sa demande. Termine TOUJOURS ta reponse en indiquant que tu te trouves actuellement sur la Place du Marche Central de Luthecia, et que le joueur peut venir t'y retrouver puis cliquer sur \"Rejoindre le groupe\" pour que tu l'accompagnes de nouveau. Reponds UNIQUEMENT avec ta replique, sans guillemets ni introduction.";
+    "Reponds en 2 a 3 phrases, dans ton personnage, de facon coherente avec sa demande. Termine TOUJOURS ta reponse en indiquant que tu te trouves actuellement sur la Place du Marche Central de Luthecia, et que le joueur peut venir t'y retrouver puis cliquer sur \"Rejoindre le groupe\" pour que tu l'accompagnes de nouveau. Reponds UNIQUEMENT avec ta replique, sans guillemets ni introduction." + "\\n" + rpQueteTexte('replyLanguageInstruction','Réponds EXCLUSIVEMENT en français.');
 
-  let reply = "Oh, vous avez besoin de moi ? Je suis sur la Place du Marché, venez me chercher !";
+  let reply = rpQueteTexte('jeremyMailFallback',"Oh, vous avez besoin de moi ? Je suis sur la Place du Marché, venez me chercher !");
   try {
     // Modele corrige le 21 aout 2026 : 'claude-sonnet-4-20250514' (mai 2025) est desormais
     // retire par Anthropic (confirme en production, HTTP 404 not_found_error) -- remplace par
@@ -780,7 +780,7 @@ async function queteAccueilGenererReponseMailJeremy(subjectRecu, bodyRecu) {
   if (typeof sbSendMail === 'function') {
     sbSendMail('Jérémy', state.char.name, sujetReponse, reply, heure).catch(function() {});
   }
-  if (typeof showToast === 'function') showToast('Nouveau mail', 'Jérémy vous a répondu !', true);
+  if (typeof showToast === 'function') showToast(rpQueteTexte('newMailTitle','Nouveau mail'), rpQueteTexte('jeremyReplied','Jérémy vous a répondu !'), true);
 }
 
 // Explique au joueur comment se separer d'un employe recupere (Jeremy ou n'importe quel
