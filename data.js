@@ -1991,8 +1991,10 @@ const WORLD = {
             hall: {
               imageUrl: 'images/Sovarka/Novomirsk/Novo_palais_hall.webp'
             },
-            bureaux:        { name: 'Bureau du Président du Conseil du Peuple' },
-            salle_conseil:  { name: 'Salle du Conseil du Peuple' },
+            bureaux:        { name: 'Bureau du Président du Conseil du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_bureau_president.webp' },
+            salle_conseil:  { name: 'Salle du Conseil du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_conseil.webp' },
+            salle_presse:   { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_presse.webp' },
+            archives_gouv:  { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_archives.webp' },
             bureau_min_int: { name: 'Bureau - Ministre de la Sécurité du Peuple' },
             bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective" },
             bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne' },
@@ -8520,8 +8522,10 @@ const ROOM_IMAGES_EMPIRE = {
     },
     'palais-gouvernement': {
       'hall':              'images/hall-parti-sovarka.webp',
-      'bureaux':           'images/bureau-gouv-sovarka.png',
-      'salle_conseil':     'images/conseil-ministres-sovarka.webp',
+      'bureaux':           'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_bureau_president.webp',
+      'salle_conseil':     'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_conseil.webp',
+      'salle_presse':      'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_presse.webp',
+      'archives_gouv':     'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_archives.webp',
       'bureau_min_fin':    'images/meco-sovarka.webp',
       'bureau_min_def':    'images/mdef-sovarka.webp'
     },
