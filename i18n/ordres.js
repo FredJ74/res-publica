@@ -34,7 +34,7 @@
     vars={area:match[1],price:match[2]};
    }
   }else return original;
-  if(!key)return structuredLabel(code,original,engine,locale);
+  if(!key)return original;
   const translated=engine.t('orderTemplates.'+key,{lng:locale,defaultValue:original,...vars});
   // Si un moteur simulé ou un catalogue absent laisse les marqueurs bruts,
   // ne pas afficher de prix incomplet : repli exact sur le texte français.
@@ -55,7 +55,7 @@
     : 'orders.'+order.i18nKey;
   }
   else if(validKey.test(code) && !ambiguities.has(code))key='orders.'+code;
-  if(!key)return original;
+  if(!key)return structuredLabel(code,original,engine,locale);
   // Un même fn peut changer de sens ou de prix selon la pièce / le fournisseur.
   // Pour une traduction par ID implicite, accepter uniquement le libellé
   // de référence réellement catalogué en français. Un i18nKey explicite
