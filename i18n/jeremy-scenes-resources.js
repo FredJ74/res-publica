@@ -217,6 +217,72 @@
   }
 };
  for(const [lang,texts] of Object.entries(guidance)) Object.assign(labels[lang],texts);
+ const social={
+  "fr": {
+    "partWays": "Je vais vous laisser découvrir la ville seul(e). Nos chemins se séparent ici. Pour le moment, bien sûr !<br><br>Si vous avez besoin de moi, cliquez sur ma fiche pour m'ajouter à vos contacts, et utilisez ensuite le bouton Messages/Forums pour m'envoyer un mail.",
+    "careerChoice": "Bon, une dernière chose... Vous commencez à connaître Luthécia. Mais visiter une ville, c'est une chose. S'y faire une place, c'en est une autre. Vous avez une idée de ce que vous aimeriez devenir ?",
+    "contactsTip": "Au fait, tant que j'y pense : dès que vous croisez quelqu'un d'intéressant, cliquez sur sa fiche et ajoutez-le à votre répertoire — ça vous servira pour porter plainte, lancer une rumeur ciblée, ou lui envoyer un mail plus tard.",
+    "contactJeremy": "Et si jamais vous avez encore besoin de moi après ça : ajoutez-moi au répertoire tant qu'on est encore ensemble, et envoyez-moi un mail via Messages/Forums quand vous voulez. Je vous répondrai où que je sois.",
+    "localForumInvite": "Vous commencez à connaître Luthécia... mais Luthécia ne vous connaît pas encore.<br><br>Le forum local est le lieu où les citoyens débattent, annoncent leurs projets et commencent parfois leurs premières querelles.<br><br>Souhaitez-vous vous présenter aux autres habitants ?"
+  },
+  "en": {
+    "partWays": "I'll let you explore the city on your own now. This is where we part ways — for the moment, of course!<br><br>If you need me, click on my profile to add me to your contacts, then use Messages/Forums to send me a letter.",
+    "careerChoice": "One last thing... You're starting to get to know Luthécia. But visiting a city and finding your place in it are two different things. Have you thought about what you'd like to become?",
+    "contactsTip": "Oh, and while I remember: whenever you meet someone interesting, click on their profile and add them to your contacts. You'll need that later to file a complaint, start a targeted rumour or send them a message.",
+    "contactJeremy": "And if you need me again after this, add me to your contacts while we're still together and write to me through Messages/Forums whenever you like. I'll answer wherever I am.",
+    "localForumInvite": "You're starting to know Luthécia... but Luthécia doesn't know you yet.<br><br>The local forum is where citizens debate, announce their plans and sometimes start their first arguments.<br><br>Would you like to introduce yourself to the other residents?"
+  },
+  "es": {
+    "partWays": "Ahora le dejaré descubrir la ciudad por su cuenta. Nuestros caminos se separan aquí... ¡por el momento, claro!<br><br>Si me necesita, haga clic en mi ficha para añadirme a sus contactos y después utilice Mensajes/Foros para enviarme un correo.",
+    "careerChoice": "Una última cosa... Está empezando a conocer Luthécia. Pero visitar una ciudad no es lo mismo que hacerse un sitio en ella. ¿Tiene alguna idea de lo que le gustaría llegar a ser?",
+    "contactsTip": "Ah, casi se me olvida: cada vez que conozca a alguien interesante, haga clic en su ficha y añádalo a sus contactos. Más adelante le servirá para presentar una denuncia, lanzar un rumor dirigido o enviarle un correo.",
+    "contactJeremy": "Y si después vuelve a necesitarme, añádame a sus contactos mientras seguimos juntos y escríbame mediante Mensajes/Foros cuando quiera. Le responderé esté donde esté.",
+    "localForumInvite": "Está empezando a conocer Luthécia... pero Luthécia todavía no le conoce.<br><br>El foro local es donde los ciudadanos debaten, anuncian sus proyectos y a veces inician sus primeras disputas.<br><br>¿Quiere presentarse a los demás habitantes?"
+  },
+  "zh-TW": {
+    "partWays": "現在讓你自己去探索這座城市吧。我們就先在這裡分開，當然，只是暫時的！<br><br>如果需要我，點選我的個人資料將我加入聯絡人，再使用「訊息／論壇」寄信給我。",
+    "careerChoice": "還有最後一件事……你已經開始認識盧特西亞了。不過，參觀一座城市和在城裡找到自己的位置是兩回事。你想過將來想成為什麼樣的人嗎？",
+    "contactsTip": "對了，差點忘了說：遇到有趣的人時，點選他的個人資料，把他加入聯絡人。之後要提起申訴、散播針對性的謠言，或寫信給他，都會用得上。",
+    "contactJeremy": "以後如果還需要我的幫忙，趁我們還在一起時把我加入聯絡人，隨時透過「訊息／論壇」寄信給我。不論我身在何處都會回覆。",
+    "localForumInvite": "你開始認識盧特西亞了……但盧特西亞還不認識你。<br><br>在地方論壇裡，市民討論政治、宣布計畫，有時也會展開第一場爭執。<br><br>你願意向其他居民介紹自己嗎？"
+  },
+  "ru": {
+    "partWays": "Теперь оставлю вас исследовать город самостоятельно. Здесь наши пути расходятся — пока что, конечно!<br><br>Если понадоблюсь, нажмите на мою карточку, добавьте меня в контакты и отправьте письмо через «Сообщения/Форумы».",
+    "careerChoice": "И ещё кое-что... Вы уже начинаете узнавать Лютецию. Но одно дело — осмотреть город, и совсем другое — найти в нём своё место. Вы думали, кем хотели бы стать?",
+    "contactsTip": "Кстати, пока не забыл: встретив интересного человека, откройте его карточку и добавьте в контакты. Это пригодится, чтобы подать жалобу, пустить адресный слух или позже написать ему письмо.",
+    "contactJeremy": "И если понадоблюсь потом, добавьте меня в контакты, пока мы рядом, и пишите через «Сообщения/Форумы» когда угодно. Я отвечу, где бы ни находился.",
+    "localForumInvite": "Вы начинаете знакомиться с Лютецией... но Лютеция пока не знакома с вами.<br><br>На местном форуме жители спорят, объявляют о планах, а порой устраивают свои первые ссоры.<br><br>Хотите представиться остальным горожанам?"
+  },
+  "ko": {
+    "partWays": "이제 혼자 도시를 둘러보세요. 여기서 잠시 헤어질게요. 물론 당분간만요!<br><br>제가 필요하면 제 프로필을 눌러 연락처에 추가하고, 메시지/포럼 메뉴로 편지를 보내 주세요.",
+    "careerChoice": "마지막으로 한 가지만 더요… 이제 루테시아를 조금 알게 되셨죠. 하지만 도시를 구경하는 것과 그 안에서 자기 자리를 찾는 것은 다르답니다. 어떤 사람이 되고 싶은지 생각해 보셨나요?",
+    "contactsTip": "참, 잊기 전에 말씀드릴게요. 흥미로운 사람을 만나면 프로필을 눌러 연락처에 추가하세요. 나중에 고소를 하거나 특정인을 겨냥한 소문을 퍼뜨리거나 편지를 보낼 때 필요해요.",
+    "contactJeremy": "나중에라도 제가 필요하면 아직 같이 있을 때 연락처에 추가해 두세요. 언제든 메시지/포럼에서 편지를 보내 주시면 어디에 있든 답장할게요.",
+    "localForumInvite": "이제 루테시아를 조금 알게 되셨지만… 루테시아는 아직 당신을 모르죠.<br><br>지역 포럼에서는 시민들이 토론하고 계획을 알리고 때로는 첫 다툼을 시작하기도 해요.<br><br>다른 주민들에게 자기소개를 해보시겠어요?"
+  },
+  "ar": {
+    "partWays": "سأتركك الآن تكتشف المدينة وحدك. هنا نفترق، مؤقتًا بالطبع!<br><br>إذا احتجت إليّ، انقر على ملفي لإضافتي إلى جهات اتصالك، ثم استخدم الرسائل/المنتديات لإرسال رسالة إليّ.",
+    "careerChoice": "شيء أخير... لقد بدأت تتعرف إلى لوتيسيا. لكن زيارة المدينة شيء، وإيجاد مكان لك فيها شيء آخر. هل فكرت في الشخص الذي تريد أن تصبحه؟",
+    "contactsTip": "بالمناسبة، قبل أن أنسى: عندما تقابل شخصًا مثيرًا للاهتمام، انقر على ملفه وأضفه إلى جهات اتصالك. ستحتاج ذلك لاحقًا لتقديم شكوى أو نشر شائعة تستهدفه أو مراسلته.",
+    "contactJeremy": "وإذا احتجت إليّ مرة أخرى بعد ذلك، فأضفني إلى جهات اتصالك ونحن ما زلنا معًا، واكتب إليّ عبر الرسائل/المنتديات متى شئت. سأجيبك أينما كنت.",
+    "localForumInvite": "بدأت تتعرف إلى لوتيسيا... لكن لوتيسيا لم تتعرف إليك بعد.<br><br>المنتدى المحلي هو المكان الذي يناقش فيه المواطنون القضايا ويعلنون مشاريعهم، وقد يبدأون فيه خلافاتهم الأولى أيضًا.<br><br>هل تريد أن تقدّم نفسك إلى بقية السكان؟"
+  },
+  "pt-BR": {
+    "partWays": "Agora vou deixar você descobrir a cidade por conta própria. Nossos caminhos se separam aqui — por enquanto, é claro!<br><br>Se precisar de mim, clique na minha ficha para me adicionar aos contatos e depois use Mensagens/Fóruns para me mandar um e-mail.",
+    "careerChoice": "Mais uma coisa... Você está começando a conhecer Luthécia. Mas visitar uma cidade é diferente de conquistar seu espaço nela. Já pensou no que gostaria de se tornar?",
+    "contactsTip": "Ah, antes que eu esqueça: sempre que encontrar alguém interessante, clique na ficha dessa pessoa e adicione aos seus contatos. Isso vai servir depois para fazer uma denúncia, espalhar um boato direcionado ou enviar uma mensagem.",
+    "contactJeremy": "E se precisar de mim depois disso, adicione-me aos contatos enquanto ainda estamos juntos e escreva pelo menu Mensagens/Fóruns sempre que quiser. Vou responder de onde estiver.",
+    "localForumInvite": "Você está começando a conhecer Luthécia... mas Luthécia ainda não conhece você.<br><br>O fórum local é onde os cidadãos debatem, anunciam seus projetos e às vezes começam suas primeiras brigas.<br><br>Quer se apresentar aos outros moradores?"
+  },
+  "de": {
+    "partWays": "Jetzt lasse ich Sie die Stadt allein erkunden. Hier trennen sich unsere Wege — vorerst natürlich!<br><br>Falls Sie mich brauchen, klicken Sie auf meine Karte, fügen Sie mich Ihren Kontakten hinzu und schreiben Sie mir über Nachrichten/Foren.",
+    "careerChoice": "Noch eine Sache... Sie lernen Luthécia langsam kennen. Aber eine Stadt zu besichtigen und dort seinen Platz zu finden, sind zwei verschiedene Dinge. Haben Sie eine Idee, was Sie werden möchten?",
+    "contactsTip": "Ach, bevor ich es vergesse: Wenn Sie jemand Interessanten treffen, klicken Sie auf dessen Karte und nehmen Sie die Person in Ihre Kontakte auf. Das hilft Ihnen später bei Beschwerden, gezielten Gerüchten oder Briefen.",
+    "contactJeremy": "Und falls Sie mich danach noch brauchen: Nehmen Sie mich in Ihre Kontakte auf, solange wir noch zusammen sind, und schreiben Sie mir jederzeit über Nachrichten/Foren. Ich antworte, wo immer ich bin.",
+    "localForumInvite": "Sie lernen Luthécia langsam kennen... aber Luthécia kennt Sie noch nicht.<br><br>Im lokalen Forum diskutieren die Bürger, kündigen ihre Vorhaben an und beginnen manchmal ihre ersten Streitigkeiten.<br><br>Möchten Sie sich den anderen Bewohnern vorstellen?"
+  }
+};
+ for(const [lang,texts] of Object.entries(social)) Object.assign(labels[lang],texts);
  for(const [lang,strings] of Object.entries(labels))
   if(resources[lang]?.translation)resources[lang].translation.jeremyScenes={...strings};
  function label(key,original){

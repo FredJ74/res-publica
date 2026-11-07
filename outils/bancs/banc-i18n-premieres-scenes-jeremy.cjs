@@ -14,8 +14,8 @@ win.i18next={t:(key,{lng,defaultValue}={})=>key.split('.').reduce((x,k)=>x?.[k],
 const sandbox=vm.createContext({window:win});
 for(const file of ['resources.js','jeremy-scenes-resources.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),sandbox,{filename:file});
-const keys=['welcomeJeremy','hotelInstructions','sleepInstructions','hotelRoom','barIntroduction','clinic','electionRoom','stadium','turnLeft','keepDirection','selectBuilding','routeStadium','exploreStadium','bedroomSleepOrder'];
-test('quatorze scènes réelles traduites en neuf langues avec exactement la ponctuation de guidage',()=>{
+const keys=['welcomeJeremy','hotelInstructions','sleepInstructions','hotelRoom','barIntroduction','clinic','electionRoom','stadium','turnLeft','keepDirection','selectBuilding','routeStadium','exploreStadium','bedroomSleepOrder','partWays','careerChoice','contactsTip','contactJeremy','localForumInvite'];
+test('dix-neuf scènes réelles traduites en neuf langues avec exactement la ponctuation de guidage',()=>{
  assert.equal(Object.keys(win.RP_I18N_LANGUAGES).length,9);
  for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
   locale=lng;
@@ -34,6 +34,8 @@ test('quatorze scènes réelles traduites en neuf langues avec exactement la pon
   assert.equal((dict.electionRoom.match(/<br><br>/g)||[]).length,3,lng+': élections en quatre paragraphes');
   assert.equal((dict.stadium.match(/<br><br>/g)||[]).length,5,lng+': stade en six paragraphes');
   assert.equal((dict.routeStadium.match(/<br><br>/g)||[]).length,2,lng+': itinéraire en trois paragraphes');
+  assert.equal((dict.partWays.match(/<br><br>/g)||[]).length,1,lng+': séparation avec Jérémy en deux paragraphes');
+  assert.equal((dict.localForumInvite.match(/<br><br>/g)||[]).length,2,lng+': invitation forum en trois paragraphes');
  }
 });
 test('les transitions et ordres ne dépendent pas des traductions',()=>{
