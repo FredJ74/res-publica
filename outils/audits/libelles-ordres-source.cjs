@@ -3,7 +3,6 @@
  * les apostrophes échappées ne doivent pas tronquer le catalogue d'audit.
  * Aucun eval, aucune logique de jeu exécutée.
  */
-const stringLiteral=String.raw`(['"])((?:\\.|(?!\\1)[^\\\n])*)\\1`;
 function decode(raw){
  return raw.replace(/\\u([0-9a-fA-F]{4})/g,(_,hex)=>String.fromCharCode(parseInt(hex,16)))
   .replace(/\\x([0-9a-fA-F]{2})/g,(_,hex)=>String.fromCharCode(parseInt(hex,16)))
