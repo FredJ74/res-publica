@@ -44,10 +44,10 @@ Branche `claude/sovarka-pouvoir-20261107`. **Toutes les décisions de design son
 6. Avantages du président : repas gratuit par jour dans ses appartements, invité nourri, statut de dignitaire (invitations des ambassades et des autres chefs de gouvernement).
 7. Siège du Comité Central (Palais du Gouvernement de Novomirsk) : bureaux aux nouveaux intitulés, PNJ, images à venir.
 
-**Avancement (07/11, reprise)** — étape 1 en cours :
-- Écran fait : `INTITULES_POSTES_PAR_PAYS` + `intitulePoste()` dans `data.js` ; les libellés `POSTES_NOMMES_EXCLUSIFS[...].label` et `POSTES_ELECTIFS[...].name` suivent le pays du PJ connecté (Républia inchangée) ; nom du poste recalculé au chargement ; organigramme et messages « poste requis ».
-- Serveur : migration `20261107094000_sovarka_salaires_pouvoir` **écrite, NON appliquée**. Préalable indispensable : depuis `20261106060000`, une seconde ligne de barème (soviet) pour pm/min_*/president rendait la clé ambiguë et bloquait le salaire de tous (`pays_employeur_ambigu`) ; le pays employeur vient désormais de `postes_attribues`, puis de `cycles_electoraux` (eluId, colonne `data` en texte), puis de l'ancien barème unique. Banc annulé `outils/bancs/banc-sovarka-salaires-pouvoir.sql` : attendu Arnie 2800 caisse `republic_gouvernement-min_def`, Jean (pm soviet simulé) 700 `soviet_gouvernement-pm`, Angie (présidente soviet simulée) 800 `soviet_palais-presidentiel`. **Le premier passage attend la confirmation de Fred dans Supabase.**
-- Reste de l'étape 1 : journal du matin / courriers (intitulés serveur, `api/_journal-collecte.js`).
+**Avancement (07/11, reprise)** — étapes 1 à 5 et 7 **faites et appliquées** (détail : `GAME-DESIGN-NOVOMIRSK.md`, « Pouvoir en Sovarka : ce qui est codé »). Migrations appliquées : `20261107094000_sovarka_salaires_pouvoir`, `20261107120000_sovarka_partis_candidatures`, `20261107121500_sovarka_gloire_des_partis`, `20261107123000_sovarka_deputes_designes` (registre : nom puis horodatage). Bancs annulés verts : `banc-sovarka-salaires-pouvoir.sql`, `banc-sovarka-partis-candidatures.sql`, `banc-sovarka-gloire-des-partis.sql`, `banc-sovarka-deputes-designes.sql`. Écran : `plateau-sovarka-pouvoir.js` (Soviet Suprême), tracts « Semaine à la gloire des partis », refus nommés. Passe de minuit : branche `gloire_partis` (avant la présidentielle) et tâche `sovarka_gloire_sync`.
+**Reste** : étape 6 (avantages du président) — **question de design posée à Fred** : effet du repas présidentiel. Ensuite fusion.
+**Points à soumettre à Fred plus tard (un à la fois)** : sort des ministres d'un autre parti quand le pm change (aujourd'hui ils restent en place) ; chef du parti vainqueur déjà président ou maire (aujourd'hui : pas de pm d'office).
+**Premier scrutin** : présidentielle, mairies et gloire de Sovarka au même calendrier qu'El Estado (vote le dimanche 15/11, résultats le lundi 16/11).
 
 ### Commissariat PSM : contexte PNJ et portrait — Codex, 04/11/2026
 

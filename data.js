@@ -1971,10 +1971,20 @@ const WORLD = {
         'palais-gouvernement': {
           name: 'Siège du Comité Central',
           desc: 'Le vrai pouvoir de Sovarka. Chaque décision est votée à l\'unanimité — le Parti ne connaît pas le désaccord.',
+          // Intitulés de Sovarka (Fred, 07/11/2026, « Organisation du pouvoir en Sovarka ») ;
+          // images des bureaux à venir (imagesAVenir), seul le hall a la sienne.
           roomOverrides: {
             hall: {
               imageUrl: 'images/Sovarka/Novomirsk/Novo_palais_hall.webp'
-            }
+            },
+            bureaux:        { name: 'Bureau du Président du Conseil du Peuple' },
+            salle_conseil:  { name: 'Salle du Conseil du Peuple' },
+            bureau_min_int: { name: 'Bureau - Ministre de la Sécurité du Peuple' },
+            bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective" },
+            bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne' },
+            bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie' },
+            bureau_min_info:{ name: 'Bureau - Ministre de la Vérité officielle' },
+            bureau_min_ae:  { name: "Bureau - Ministre de l'Amitié entre les Peuples" }
           },
           persons: []
         },
@@ -10070,15 +10080,15 @@ const PNJ_SOVARKA = {
     'Marco (Barman)': 'Kostia (Barman)',
     'Marc Hantile': 'Leonid Combinov',
     'Secretaire Dupuis': 'Secrétaire Tamara Dossierova',
-    'Éric Stricted (PNJ)': 'Oleg Strictov (PNJ)',
-    'Corinne Tite-Déclaz (PNJ)': 'Raïssa Communiqueva (PNJ)',
+    'Éric Stricted (PNJ)': ['Oleg Strictov (PNJ)', 'PNJ - Chef de cabinet du Président du Conseil du Peuple'],
+    'Corinne Tite-Déclaz (PNJ)': ['Raïssa Communiqueva (PNJ)', 'PNJ - Porte-parole du Conseil du Peuple'],
     'Archiviste Legrand (PNJ)': 'Archiviste Foma Classeurov (PNJ)',
-    'Yvan Danltat (PNJ)': 'Gleb Kontrolov (PNJ)',
-    'Alain Théret (PNJ)': 'Stanislav Roublov (PNJ)',
-    'Mathilde Garde (PNJ)': 'Galina Verdiktova (PNJ)',
-    'Martial Bouterin (PNJ)': 'Rodion Tankov (PNJ)',
-    'Marie-Eve Beaulieu (PNJ)': 'Zinaïda Propagandova (PNJ)',
-    'Jean-Jacques Carlin (PNJ)': 'Evgueni Diplomatov (PNJ)',
+    'Yvan Danltat (PNJ)': ['Gleb Kontrolov (PNJ)', 'PNJ - Ministre de la Sécurité du Peuple'],
+    'Alain Théret (PNJ)': ['Stanislav Roublov (PNJ)', "PNJ - Ministre de l'Économie collective"],
+    'Mathilde Garde (PNJ)': ['Galina Verdiktova (PNJ)', 'PNJ - Ministre de la Justice prolétarienne'],
+    'Martial Bouterin (PNJ)': ['Rodion Tankov (PNJ)', 'PNJ - Ministre de la Défense de la Patrie'],
+    'Marie-Eve Beaulieu (PNJ)': ['Zinaïda Propagandova (PNJ)', 'PNJ - Ministre de la Vérité officielle'],
+    'Jean-Jacques Carlin (PNJ)': ['Evgueni Diplomatov (PNJ)', "PNJ - Ministre de l'Amitié entre les Peuples"],
     'Renée Toitout (PNJ)': 'Babouchka Serpillova (PNJ)',
     'Lobbyiste Perrin': 'Lobbyiste Pavel Pistonov',
     'Journaliste Blanc': 'Journaliste Iouri Blankov',
@@ -10183,7 +10193,7 @@ function slugPnjSovarka(nom) {
           const v = table[p.name];
           if (v) {
             const [nom, role, profil] = Array.isArray(v) ? v : [v];
-            if (role) q.role = role;
+            if (role) { q.role = role; if (q.roleSiPnjTitulaire) q.roleSiPnjTitulaire = role; }
             if (nom !== p.name || profil) { q.name = nom; q.profilId = profil || ('sovarka_' + slugPnjSovarka(nom)); }
           }
           return q;
