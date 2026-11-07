@@ -85,3 +85,18 @@ test('un original arabe conserve RTL après restitution depuis une traduction',(
  mod.renderText(element,source,'en',true);
  assert.equal(element.textContent,'مرحبا');assert.equal(attrs.dir,'rtl');
 });
+
+
+test('traduction vide ou blanche : toujours afficher le texte original',()=>{
+ const mod=api();
+ for(const translation of ['', '   ', '\n\t']){
+  const record={original:'Message important',originalLanguage:'fr',translation,translationLanguage:'ar'};
+  const shown=mod.view(record,'ar');
+  assert.equal(shown.text,'Message important');
+  assert.equal(shown.showOriginalAvailable,false);
+  assert.equal(shown.translated,false);
+  const el={textContent:'',attrs:{},setAttribute(k,v){this.attrs[k]=v}};
+  assert.equal(mod.renderText(el,record,'ar'),true);
+  assert.equal(el.textContent,'Message important');
+ }
+});
