@@ -54,7 +54,8 @@ async function run(){
    await page.route('**/*',route=>{
     const url=new URL(route.request().url());
     if(url.origin!==ORIGIN)return route.abort();
-    if(url.pathname.endsWith('.js') && !url.pathname.startsWith('/i18n/') && url.pathname!=='/forum.js')return route.abort();
+    if(url.pathname.endsWith('.js') && !url.pathname.startsWith('/i18n/') &&
+       !['/forum.js','/plateau-quete-accueil.js'].includes(url.pathname))return route.abort();
     return route.continue();
    });
    await page.goto(ORIGIN+'/plateau.html',{waitUntil:'domcontentloaded'});
@@ -179,6 +180,43 @@ async function run(){
    }
    assert.equal(social.changedGuard,'Message différent',language+': texte dynamique préservé');
    assert.notEqual(social.htmlDir,'rtl',language+': aucun RTL global');
+   checks++;
+   // Exécuter les VRAIES popups scénarisées, sans déclencher leurs clics.
+   // L'état est un leurre sans session ; les writes sont absents et bloqués.
+   await page.evaluate(()=>{
+     window.state={char:{name:'Testeur',queteAccueil:{etape:'attente_depart_jeremy'}},
+       currentCity:'capitale',country:'republic',employes:[]};
+   });
+   await page.addScriptTag({url:ORIGIN+'/plateau-quete-accueil.js'});
+   const scenes=await page.evaluate(()=>{
+     queteAccueilProposerCarriere();
+     const career=[...document.querySelectorAll('#quete-accueil-actions button')].map(x=>({
+       text:x.textContent.trim(),handler:x.getAttribute('onclick')
+     }));
+     const careerIntro=document.getElementById('quete-accueil-texte').textContent;
+     queteAccueilProposerPresentationForum();
+     const forum=[...document.querySelectorAll('#quete-accueil-actions button')].map(x=>({
+       text:x.textContent.trim(),handler:x.getAttribute('onclick')
+     }));
+     const forumIntro=document.getElementById('quete-accueil-texte').textContent;
+     const data=window.RP_I18N_RESOURCES[window.i18next.language].translation.jeremyScenes;
+     return {career,careerIntro,forum,forumIntro,
+       names:['criminalChoice','politicalChoice','entrepreneurialChoice','undecidedChoice'].map(k=>data[k]),
+       invite:data.localForumInvite,introduce:data.introduceMyself,later:data.later,
+       careerExpected:data.careerChoice,stage:window.state.char.queteAccueil.etape};
+   });
+   assert.equal(scenes.career.length,4,language+': quatre choix de carrière rendus');
+   assert.deepEqual(scenes.career.map(x=>x.text),scenes.names,language+': quatre textes de choix visibles');
+   assert.equal(scenes.careerIntro,scenes.careerExpected,language+': question de carrière visible');
+   for(const [i,id] of ['criminel','politique','entrepreneurial','indecis'].entries())
+     assert.ok(scenes.career[i].handler.includes("queteAccueilChoisirAmbition('"+id+"')"),
+       language+': destination originale '+id);
+   assert.equal(scenes.forum.length,2,language+': deux choix de forum');
+   assert.deepEqual(scenes.forum.map(x=>x.text),[scenes.introduce,scenes.later]);
+   assert.ok(scenes.forum[0].handler.includes('queteAccueilLancerPresentationForum()'));
+   assert.ok(scenes.forum[1].handler.includes('queteAccueilIgnorerPresentationForum()'));
+   assert.equal(scenes.forumIntro,scenes.invite,language+': présentation locale visible');
+   assert.equal(scenes.stage,'presentation_en_cours',language+': pas de publication client');
    checks++;
    // Vérifier cette fois les vraies fonctions de rendu du forum, avec state
    // de test local. Aucun moteur métier, identifiant ou appel réseau externe.
