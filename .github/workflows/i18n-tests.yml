@@ -24,6 +24,8 @@ on:
       - 'i18n/guide-politique-resources.js'
       - 'i18n/guide-sport-resources.js'
       - 'i18n/guide-economie-resources.js'
+      - 'i18n/guide-religion-resources.js'
+      - 'outils/bancs/banc-i18n-guide-complet.cjs'
       - 'outils/bancs/banc-i18n-guide-economie.cjs'
       - 'outils/bancs/banc-i18n-guide-sport.cjs'
       - 'outils/bancs/banc-i18n-guide-politique.cjs'
@@ -94,6 +96,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-guide-sport.cjs
       - name: Guide économique et salaires sans conversion
         run: node --test outils/bancs/banc-i18n-guide-economie.cjs
+      - name: Guide complet, neuf sections et religion dans neuf langues
+        run: node --test outils/bancs/banc-i18n-guide-complet.cjs
       - name: Barre supérieure localisée, icônes et gestionnaires préservés
         run: node --test outils/bancs/banc-i18n-navbar-20261106.cjs
       - name: Texte joueur et original préservés
@@ -159,3 +163,4 @@ jobs:
           node --check i18n/guide-politique-resources.js
           node --check i18n/guide-sport-resources.js
           node --check i18n/guide-economie-resources.js
+          node --check i18n/guide-religion-resources.js
