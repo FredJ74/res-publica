@@ -7,15 +7,19 @@ const {extract}=require('../audits/libelles-ordres-source.cjs');
 const root=path.resolve(__dirname,'../..');
 
 test('les apostrophes échappées dans les deux ordres de champs ne tronquent pas les labels',()=>{
- const sample=String.raw`[{fn:'diner_affaires',label:'Diner d\\'affaires'},
+ const sample=String.raw`[{fn:'diner_affaires',label:'Diner d\'affaires'},
  {label:"Entrée d'un bâtiment",fn:'entree'},
- {fn:"essai",label:"Consulter l\\\"archive"}]`;
+ {fn:"essai",label:"Consulter l\"archive"}]`;
  const all=extract(sample);
- assert.deepEqual(all.map(x=>x.label),
-  ["Diner d'affaires",'Entrée d\'un bâtiment','Consulter l"archive']);
+ const byFn=Object.fromEntries(all.map(x=>[x.fn,x.label]));
+ assert.deepEqual(byFn,{
+  diner_affaires:"Diner d'affaires",
+  entree:"Entrée d'un bâtiment",
+  essai:'Consulter l"archive'
+ });
 });
 test('les séquences unicode littérales sont décodées sans évaluer la source',()=>{
- const found=extract(String.raw`{fn:'essai',label:'Produire les mati\\u00e8res'}`);
+ const found=extract(String.raw`{fn:'essai',label:'Produire les mati\u00e8res'}`);
  assert.deepEqual(found,[{fn:'essai',label:'Produire les matières'}]);
 });
 test('les sources réelles gardent les ordres à apostrophes et ne créent aucun ordre',()=>{
