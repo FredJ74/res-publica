@@ -820,6 +820,8 @@ function messageRefusCandidature(r) {
   if (raison === 'non_domicilie') return 'Vous devez etre domicilie dans cet empire pour vous y presenter.';
   if (raison === 'cumul_interdit') return 'Ce poste est incompatible avec celui que vous occupez deja.';
   if (raison === 'deja_depute') return 'Vous etes deja depute.';
+  if (raison === 'parti_requis') return 'En Sovarka, tout candidat doit d\'abord adhérer à un parti. Rien n\'a été débité.';
+  if (raison === 'depute_designe_par_parti') return 'En Sovarka, les députés du Soviet Suprême sont désignés par les chefs de parti, pas élus.';
   if (raison === 'pa_insuffisants') return 'Il vous faut 2 PA pour deposer une candidature.';
   if (raison === 'poste_inconnu' || raison === 'cycle_introuvable') return 'Ce scrutin n\'existe pas.';
   if (raison === 'deja_candidat') return 'Vous etes deja candidat a ce scrutin. Rien n\'a ete debite.';
