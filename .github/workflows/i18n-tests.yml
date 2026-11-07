@@ -60,6 +60,9 @@ on:
       - 'outils/bancs/banc-i18n-traduction-sources.mjs'
       - 'api/_traduction-sources.js'
       - 'api/_traduction-lecture-rls.js'
+      - 'api/_traduction-stockage.js'
+      - 'outils/bancs/banc-i18n-stockage.mjs'
+      - 'outils/livraison/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql'
       - 'outils/bancs/banc-i18n-lecture-rls.mjs'
       - 'outils/audits/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql'
       - 'outils/bancs/banc-i18n-prevol-rls.cjs'
@@ -165,6 +168,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-traduction-sources.mjs
       - name: Prévol de confidentialité forum et chat, lecture seule
         run: node --test outils/bancs/banc-i18n-prevol-rls.cjs
+      - name: Quota atomique et cache serveur (simulation, SQL non appliqué)
+        run: node --test outils/bancs/banc-i18n-stockage.mjs
       - name: Lecteur social JWT/RLS strict et données minimales
         run: node --test outils/bancs/banc-i18n-lecture-rls.mjs
       - name: Sécurité de lecture, cache et quota des traductions
