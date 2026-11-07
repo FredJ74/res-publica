@@ -1108,8 +1108,8 @@ function renderForumContent() {
 function renderForumAccueil() {
   return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#6a5a30;gap:.6rem">
     <i class="ti ti-message-2-cog" style="font-size:2.2rem;opacity:.5"></i>
-    <div style="font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:.05em;color:#8a7040">Choisissez une categorie a gauche</div>
-    <div style="font-size:.78rem;max-width:260px;text-align:center">Forums nationaux, internationaux ou prives -- deroulez une categorie pour voir ses forums.</div>
+    <div style="font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:.05em;color:#8a7040">${rpForumLibelle('chooseCategory','Choisissez une categorie a gauche')}</div>
+    <div style="font-size:.78rem;max-width:260px;text-align:center">${rpForumLibelle('categoryHelp','Forums nationaux, internationaux ou prives -- deroulez une categorie pour voir ses forums.')}</div>
   </div>`;
 }
 
@@ -1132,17 +1132,17 @@ function renderTopicList() {
     </div>
     ${topics.length === 0
       ? (FORUM_LECTURE_EN_COURS[currentForumId] || !FORUM_LECTURE_TERMINEE[currentForumId]
-          ? `<div class="forum-empty">Chargement des sujets depuis le serveur…</div>`
+          ? `<div class="forum-empty">${rpForumLibelle('loadingTopics','Chargement des sujets depuis le serveur…')}</div>`
           : FORUM_LECTURE_ECHOUEE[currentForumId]
           // PANNE, PAS VIDE. Dire « aucun sujet » ici serait une affirmation fausse sur le
           // contenu du forum -- et c'est exactement ce qui s'est produit en production.
-          ? `<div class="forum-empty">Les sujets de cette rubrique n'ont pas pu être chargés.
-             Ce n'est pas qu'elle est vide : la lecture du serveur a échoué ou a dépassé 12 secondes.
+          ? `<div class="forum-empty">${rpForumLibelle('failedTopics',"Les sujets de cette rubrique n'ont pas pu être chargés.")}
+             ${rpForumLibelle('failedTopicsDetail',"Ce n'est pas qu'elle est vide : la lecture du serveur a échoué ou a dépassé 12 secondes.")}
              <button class="forum-new-btn" onclick="rechargerForumActuel()">${rpForumLibelle('retry','Réessayer')}</button></div>`
-          : `<div class="forum-empty">Aucun sujet. ${peutCreerSujet ? 'Soyez le premier à en créer un !' : "Seul le Président peut s'exprimer ici."}</div>`)
+          : `<div class="forum-empty">${rpForumLibelle('noTopics','Aucun sujet.')} ${peutCreerSujet ? rpForumLibelle('firstTopic','Soyez le premier à en créer un !') : rpForumLibelle('presidentOnly',"Seul le Président peut s'exprimer ici.")}</div>`)
       : `<div class="forum-topics-list">
           <div class="forum-topics-header">
-            <span>Sujet</span><span>Auteur</span><span>Dernier post</span><span>Vues</span><span>Rép.</span>
+            <span>${rpForumLibelle('topicColumn','Sujet')}</span><span>${rpForumLibelle('authorColumn','Auteur')}</span><span>${rpForumLibelle('lastPostColumn','Dernier post')}</span><span>${rpForumLibelle('viewsColumn','Vues')}</span><span>${rpForumLibelle('repliesColumn','Rép.')}</span>
           </div>
           ${topics.map(t => `
             <div class="forum-topic-row" onclick="openTopic('${t.id}')">
