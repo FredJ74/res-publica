@@ -16,6 +16,10 @@
     "intro": {
       "titre": "The Grand Game",
       "contenu": "Panem et circenses — bread and circuses. That kept Rome turning centuries ago, and the world still runs on much the same thing today, in new clothes.\n\nRes Publica is a satirical political role-playing game where several worlds coexist, overlap and influence one another. Some wage a ruthless struggle for power — rigged elections, discreet coups and alliances of convenience. Others build fortunes, plot by plot and business by business, preferring ledgers to Assembly speeches. Others seek glory on the football pitch, where supporters may turn you into an idol or burn your effigy. Some choose the shadows: theft, corruption, murder and the delicate art of never getting caught.\n\nLike a citizen of ancient Rome, you never have to be just one thing: a politician can fall from grace and return as an entrepreneur, a criminal can launder a fortune through sport, and an industrial magnate can quietly finance the election that determines their own future. Nothing is isolated. Everything is connected.\n\nChoose who you want to be. But in Res Publica, as in Rome, power is never simply given — it is seized, negotiated or bought."
+    },
+    "personnage": {
+      "titre": "Create your character",
+      "contenu": "Your character is defined by four essential choices:\n\nSOCIAL BACKGROUND — Determines starting capital and attributes.\n• Disadvantaged background: 300 units, +2 VOL, +2 DUP, −1 CHA\n• Working class: 600 units, +1 VOL, +1 PER, −1 DUP\n• Lower middle class: 1,000 units, +1 INT, +1 CHA, −1 ENT\n• High society: 2,200 units, +2 ENT, −2 VOL\nStarting capital is denominated in your empire's currency.\n\nEDUCATION — Determines which careers you may choose and modifies your attributes.\n• No schooling: several careers are unavailable\n• Higher education: some specialist careers still require elite schools\n• Elite schools: every core career family is available\n\nARCHETYPE — Your underlying disposition. Modifies your attributes and shapes your play style.\n\nCAREER — Your main occupation. Provides contacts, skills and a daily wage."
     }
   },
   "es": {
@@ -26,6 +30,10 @@
     "intro": {
       "titre": "El Gran Juego",
       "contenu": "Panem et circenses: pan y circo. Eso ya movía a Roma hace siglos y sigue moviendo el mundo actual, aunque ahora lleve otros ropajes.\n\nRes Publica es un juego de rol político y satírico donde conviven varios mundos que se entrelazan y se influyen mutuamente. Algunos libran una lucha despiadada por el poder: elecciones amañadas, golpes de Estado discretos y alianzas de conveniencia. Otros construyen fortunas, terreno a terreno, empresa a empresa, y prefieren los libros de cuentas a los discursos de la Asamblea. Otros buscan la gloria en el campo de fútbol, con aficionados capaces de convertirlos en ídolos o de quemar sus efigies. Y algunos eligen las sombras: robo, corrupción, asesinato y el delicado arte de evitar que los atrapen.\n\nComo los ciudadanos de la antigua Roma, nunca serás una sola cosa: un político puede caer en desgracia y reinventarse como empresario; un delincuente puede blanquear su fortuna en el deporte; un magnate industrial puede financiar en secreto las elecciones que decidirán su futuro. Nada está aislado. Todo se relaciona.\n\nElige quién quieres ser. Pero recuerda que en Res Publica, como en Roma, el poder nunca se regala: se toma, se negocia o se compra."
+    },
+    "personnage": {
+      "titre": "Crear tu personaje",
+      "contenu": "Tu personaje se define mediante cuatro decisiones fundamentales:\n\nORIGEN SOCIAL — Determina tu capital inicial y tus atributos.\n• Entorno desfavorecido: 300 unidades, +2 VOL, +2 DUP, −1 CHA\n• Clase obrera: 600 unidades, +1 VOL, +1 PER, −1 DUP\n• Pequeña burguesía: 1.000 unidades, +1 INT, +1 CHA, −1 ENT\n• Alta sociedad: 2.200 unidades, +2 ENT, −2 VOL\nEl capital está expresado en la moneda de tu imperio.\n\nEDUCACIÓN — Determina las carreras disponibles y modifica tus atributos.\n• Sin estudios: varias carreras están bloqueadas\n• Estudios superiores: algunas carreras especializadas requieren las Grandes Escuelas\n• Grandes Escuelas: todas las familias de carreras del juego están disponibles\n\nARQUETIPO — Tu naturaleza profunda. Modifica tus atributos y tu estilo de juego.\n\nCARRERA — Tu actividad principal. Aporta contactos, habilidades y un salario diario."
     }
   },
   "zh-TW": {
@@ -36,6 +44,10 @@
     "intro": {
       "titre": "權力大遊戲",
       "contenu": "Panem et circenses——麵包與馬戲。幾個世紀前，這就是羅馬運轉的方式；如今世界換了衣裳，背後的道理卻相差不大。\n\nRes Publica 是一款政治諷刺角色扮演遊戲，多個世界在此共存、交錯，互相影響。有些人為權力不擇手段：操縱選舉、暗中政變、建立權宜聯盟。另一些人逐塊買地、逐家公司累積財富，比起議會講壇更愛帳本。也有人在足球場上追求榮耀；球迷今天能把你捧成偶像，明天也可能焚燒你的肖像。還有人選擇陰影：偷竊、貪腐、謀殺，以及不留下把柄的藝術。\n\n就像古羅馬的公民，你不必只有一種身分。失勢的政客可以改當企業家，罪犯可以透過體育洗白財富，工業巨頭可以暗中出資，左右決定自己命運的選舉。沒有什麼是孤立的；一切都互相牽動。\n\n選擇你想成為的人。但請記住：在 Res Publica，如同在羅馬，權力不會白白送到手上——你得奪取、談判，或者花錢買下它。"
+    },
+    "personnage": {
+      "titre": "建立角色",
+      "contenu": "你的角色由四項重要選擇決定：\n\n社會出身——決定起始資本與能力值。\n• 弱勢背景：300 單位，+2 VOL、+2 DUP、−1 CHA\n• 勞工階級：600 單位，+1 VOL、+1 PER、−1 DUP\n• 小資產階級：1,000 單位，+1 INT、+1 CHA、−1 ENT\n• 上流社會：2,200 單位，+2 ENT、−2 VOL\n起始資本以所選帝國的貨幣計價。\n\n教育背景——決定可選職業並改變能力值。\n• 未受教育：部分職業無法選擇\n• 高等教育：某些專業職業仍須就讀精英學院\n• 精英學院：可選擇所有核心職業類別\n\n角色類型——你的深層性格，影響能力值和遊玩風格。\n\n職業——主要工作，提供人脈、技能和每日薪水。"
     }
   },
   "ru": {
@@ -46,6 +58,10 @@
     "intro": {
       "titre": "Большая игра",
       "contenu": "Panem et circenses — хлеба и зрелищ. Так жила ещё Древняя Римская империя, и сегодня мир вращается вокруг примерно того же, лишь сменив одежду.\n\nRes Publica — сатирическая политическая ролевая игра, где несколько миров сосуществуют, переплетаются и влияют друг на друга. Одни ведут беспощадную борьбу за власть: подтасовка выборов, тихие перевороты, временные союзы. Другие строят состояния, покупая участок за участком и предприятие за предприятием, предпочитая бухгалтерские книги трибуне Ассамблеи. Третьи ищут славу на футбольном поле, где болельщики готовы сегодня боготворить вас, а завтра сжечь ваше чучело. А кто-то выбирает тень — кражи, коррупцию, убийства и искусство никогда не попадаться.\n\nКак и гражданин Древнего Рима, вы не обязаны оставаться кем-то одним: политик может впасть в немилость и вернуться предпринимателем; преступник — отмыть состояние через спорт; промышленный магнат — тайно профинансировать выборы, определяющие его будущее. Здесь всё взаимосвязано.\n\nРешайте, кем хотите стать. Но помните: в Res Publica, как и в Риме, власть не дарят — её захватывают, выторговывают или выкупают."
+    },
+    "personnage": {
+      "titre": "Создание персонажа",
+      "contenu": "Персонаж определяется четырьмя основными решениями:\n\nСОЦИАЛЬНОЕ ПРОИСХОЖДЕНИЕ — Определяет начальный капитал и характеристики.\n• Неблагополучная среда: 300 единиц, +2 VOL, +2 DUP, −1 CHA\n• Рабочий класс: 600 единиц, +1 VOL, +1 PER, −1 DUP\n• Мелкая буржуазия: 1 000 единиц, +1 INT, +1 CHA, −1 ENT\n• Высшее общество: 2 200 единиц, +2 ENT, −2 VOL\nНачальный капитал выражен в валюте вашей империи.\n\nОБРАЗОВАНИЕ — Определяет доступные карьеры и влияет на характеристики.\n• Без образования: несколько карьер недоступны\n• Высшее образование: некоторые специальности требуют элитных школ\n• Элитные школы: доступны все основные карьерные направления\n\nАРХЕТИП — Глубинная сущность персонажа. Изменяет характеристики и стиль игры.\n\nКАРЬЕРА — Основное занятие. Даёт знакомства, навыки и ежедневную зарплату."
     }
   },
   "ko": {
@@ -56,6 +72,10 @@
     "intro": {
       "titre": "권력의 대결",
       "contenu": "Panem et circenses, 빵과 서커스. 수백 년 전 로마를 움직이던 원리입니다. 오늘날의 세계도 겉모습만 바뀌었을 뿐 크게 다르지 않습니다.\n\nRes Publica는 여러 세계가 공존하고 얽히며 서로 영향을 주는 정치 풍자 롤플레잉 게임입니다. 어떤 이들은 조작 선거, 은밀한 쿠데타, 편의적 동맹으로 권력을 차지하려 치열하게 다툽니다. 또 어떤 이들은 땅을 하나씩 사고 기업을 키우며 부를 쌓고, 의회의 연설대보다 회계 장부를 좋아합니다. 축구장에서 영광을 좇는 이들도 있습니다. 팬들은 당신을 우상으로 추켜세우다가도 다음 날엔 당신의 인형을 불태울지 모릅니다. 그리고 도둑질과 부패, 살인, 결코 붙잡히지 않는 기술을 택하는 이들도 있습니다.\n\n고대 로마의 시민처럼 당신도 하나의 역할에 갇힐 필요는 없습니다. 몰락한 정치인이 사업가로 다시 일어설 수 있고, 범죄자가 스포츠를 통해 재산을 세탁할 수도 있으며, 재벌은 자신의 미래를 결정할 선거에 은밀히 자금을 댈 수도 있습니다. 모든 일은 서로 이어져 있습니다.\n\n어떤 사람이 될지는 당신의 선택입니다. 하지만 Res Publica에서 권력은 로마에서와 마찬가지로 선물받는 것이 아닙니다. 빼앗거나, 협상하거나, 돈으로 사야 합니다."
+    },
+    "personnage": {
+      "titre": "캐릭터 만들기",
+      "contenu": "캐릭터는 네 가지 중요한 선택으로 정해집니다.\n\n사회적 배경 — 시작 자금과 능력치를 결정합니다.\n• 취약 계층: 300 단위, +2 VOL, +2 DUP, −1 CHA\n• 노동 계층: 600 단위, +1 VOL, +1 PER, −1 DUP\n• 소시민 계층: 1,000 단위, +1 INT, +1 CHA, −1 ENT\n• 상류 사회: 2,200 단위, +2 ENT, −2 VOL\n시작 자금은 선택한 제국의 통화로 표시됩니다.\n\n교육 — 선택 가능한 직업을 결정하고 능력치를 변경합니다.\n• 학교에 다니지 않음: 일부 직업 선택 불가\n• 고등교육: 일부 전문 직업은 명문 학교 출신만 가능\n• 명문 학교: 기본 직업 계열 전체 이용 가능\n\n원형 — 캐릭터의 본성으로, 능력치와 플레이 스타일에 영향을 줍니다.\n\n직업 — 주된 활동으로, 인맥과 기술, 일일 급여를 제공합니다."
     }
   },
   "ar": {
@@ -66,6 +86,10 @@
     "intro": {
       "titre": "اللعبة الكبرى",
       "contenu": "Panem et circenses — الخبز والسيرك. منذ قرون، كانت تلك إحدى وسائل استمرار روما، وما زال العالم اليوم يدور حول أشياء شبيهة، وإن تبدلت الأزياء.\n\nRes Publica لعبة تقمص أدوار سياسية ساخرة تتعايش فيها عوالم عدة وتتداخل ويؤثر بعضها في بعض. يخوض البعض صراعًا شرسًا على السلطة: انتخابات مزورة، انقلابات هادئة، وتحالفات مصلحة. ويبني آخرون ثرواتهم قطعة أرض بعد أخرى وشركة بعد أخرى، مفضلين دفاتر الحسابات على خطب الجمعية. ويسعى غيرهم إلى المجد في ملاعب كرة القدم، وسط مشجعين قد يرفعونهم إلى مرتبة الأبطال ثم يحرقون صورهم في اليوم التالي. ويختار آخرون الظل: السرقة والفساد والقتل وفن الإفلات من القبض.\n\nمثل المواطن الروماني القديم، لن تكون شيئًا واحدًا فقط: قد يسقط السياسي ثم يعود رجل أعمال، وقد يغسل المجرم ثروته عبر الرياضة، وقد يمول رجل الصناعة من وراء الستار الانتخابات التي ستحدد مستقبله. لا شيء منفصل عن الآخر؛ كل شيء مترابط.\n\nاختر من تريد أن تكون. لكن تذكر أن السلطة في Res Publica، كما في روما، لا تُمنح مجانًا: بل تُنتزع أو تُفاوض عليها أو تُشترى."
+    },
+    "personnage": {
+      "titre": "إنشاء شخصيتك",
+      "contenu": "تتحدد شخصيتك بأربعة خيارات أساسية:\n\nالأصل الاجتماعي — يحدد رأس مال البداية والخصائص.\n• بيئة محرومة: 300 وحدة، +2 VOL، +2 DUP، −1 CHA\n• طبقة عاملة: 600 وحدة، +1 VOL، +1 PER، −1 DUP\n• بورجوازية صغيرة: 1,000 وحدة، +1 INT، +1 CHA، −1 ENT\n• مجتمع راقٍ: 2,200 وحدة، +2 ENT، −2 VOL\nيُعبّر عن رأس مال البداية بعملة إمبراطوريتك.\n\nالتعليم — يحدد المهن المتاحة ويغير الخصائص.\n• دون تعليم: بعض المهن غير متاحة\n• تعليم عالٍ: بعض المهن المتخصصة تتطلب المدارس المرموقة\n• المدارس المرموقة: جميع عائلات المهن الأساسية متاحة\n\nالنمط الشخصي — طبيعتك العميقة، ويؤثر في خصائصك وأسلوب اللعب.\n\nالمهنة — نشاطك الأساسي، وتوفر علاقات ومهارات وراتبًا يوميًا."
     }
   },
   "pt-BR": {
@@ -76,6 +100,10 @@
     "intro": {
       "titre": "O Grande Jogo",
       "contenu": "Panem et circenses — pão e circo. Era isso, com alguns séculos de diferença, que já fazia Roma girar. Hoje o mundo continua movido pelas mesmas coisas, apenas com roupas novas.\n\nRes Publica é um RPG político satírico em que vários mundos convivem, se cruzam e se influenciam. Alguns travam uma luta implacável pelo poder: eleições fraudadas, golpes discretos e alianças de conveniência. Outros constroem fortunas terreno por terreno, empresa por empresa, preferindo os livros de contabilidade às tribunas da Assembleia. Há quem busque glória no futebol, apoiado por torcedores capazes tanto de transformar alguém em ídolo quanto de queimar sua imagem. E há quem escolha as sombras: roubo, corrupção, assassinato e a delicada arte de nunca ser pego.\n\nComo um cidadão da Roma antiga, você não precisa ser uma coisa só: um político pode cair em desgraça e voltar como empresário; um criminoso pode lavar sua fortuna por meio do esporte; um magnata industrial pode financiar nos bastidores a eleição que decidirá seu próprio futuro. Nada é isolado. Tudo se conecta.\n\nEscolha quem quer ser. Mas saiba que, em Res Publica, como em Roma, o poder nunca é entregue de presente: ele é tomado, negociado ou comprado."
+    },
+    "personnage": {
+      "titre": "Criar seu personagem",
+      "contenu": "Seu personagem é definido por quatro escolhas fundamentais:\n\nORIGEM SOCIAL — Determina o capital inicial e seus atributos.\n• Origem desfavorecida: 300 unidades, +2 VOL, +2 DUP, −1 CHA\n• Classe trabalhadora: 600 unidades, +1 VOL, +1 PER, −1 DUP\n• Pequena burguesia: 1.000 unidades, +1 INT, +1 CHA, −1 ENT\n• Alta sociedade: 2.200 unidades, +2 ENT, −2 VOL\nO capital inicial usa a moeda do seu império.\n\nESCOLARIDADE — Determina as carreiras disponíveis e modifica seus atributos.\n• Sem escolaridade: várias carreiras ficam indisponíveis\n• Ensino superior: algumas carreiras especializadas ainda exigem escolas de elite\n• Escolas de elite: todas as famílias de carreiras básicas estão disponíveis\n\nARQUÉTIPO — Sua natureza profunda. Modifica atributos e influencia o estilo de jogo.\n\nCARREIRA — Sua principal ocupação. Oferece contatos, habilidades e salário diário."
     }
   },
   "de": {
@@ -86,6 +114,10 @@
     "intro": {
       "titre": "Das große Spiel",
       "contenu": "Panem et circenses — Brot und Spiele. Schon im alten Rom hielt das die Welt in Bewegung. Heute ist es kaum anders, nur die Gewänder haben sich geändert.\n\nRes Publica ist ein satirisches politisches Rollenspiel, in dem mehrere Welten nebeneinander bestehen, ineinandergreifen und sich gegenseitig beeinflussen. Manche führen einen erbarmungslosen Machtkampf: manipulierte Wahlen, leise Staatsstreiche, Zweckbündnisse. Andere häufen Vermögen an, Grundstück für Grundstück und Unternehmen für Unternehmen, und ziehen ihre Bücher den Rednerpulten der Versammlung vor. Wieder andere suchen Ruhm auf dem Fußballplatz, getragen von Fans, die sie heute vergöttern und morgen ihre Abbilder verbrennen könnten. Manche schließlich wählen den Schatten: Diebstahl, Korruption, Mord und die feine Kunst, niemals erwischt zu werden.\n\nWie ein Bürger des alten Roms wirst du nie nur eines sein müssen: Ein Politiker kann in Ungnade fallen und als Unternehmer zurückkehren; ein Krimineller kann sein Vermögen im Sport waschen; ein Industriemagnat kann heimlich die Wahl finanzieren, die über seine eigene Zukunft entscheidet. Nichts ist abgeschottet. Alles hängt zusammen.\n\nEntscheide, wer du sein willst. Aber vergiss nicht: In Res Publica wird Macht, wie einst in Rom, niemals verschenkt — sie wird ergriffen, ausgehandelt oder gekauft."
+    },
+    "personnage": {
+      "titre": "Charakter erstellen",
+      "contenu": "Deinen Charakter bestimmen vier grundlegende Entscheidungen:\n\nSOZIALE HERKUNFT — Bestimmt Startkapital und Eigenschaften.\n• Benachteiligtes Umfeld: 300 Einheiten, +2 VOL, +2 DUP, −1 CHA\n• Arbeiterklasse: 600 Einheiten, +1 VOL, +1 PER, −1 DUP\n• Kleinbürgertum: 1.000 Einheiten, +1 INT, +1 CHA, −1 ENT\n• Oberschicht: 2.200 Einheiten, +2 ENT, −2 VOL\nDas Startkapital wird in der Währung deines Imperiums angegeben.\n\nSCHULBILDUNG — Bestimmt die möglichen Karrieren und beeinflusst Eigenschaften.\n• Keine Schule: mehrere Karrieren sind gesperrt\n• Höhere Bildung: einige Fachkarrieren erfordern weiterhin Eliteschulen\n• Eliteschulen: alle grundlegenden Karrierefamilien sind verfügbar\n\nARCHETYP — Dein Wesen. Beeinflusst deine Eigenschaften und den Spielstil.\n\nKARRIERE — Deine Hauptbeschäftigung. Bietet Kontakte, Fertigkeiten und ein tägliches Gehalt."
     }
   }
 };
