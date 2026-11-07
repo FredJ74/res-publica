@@ -60,7 +60,16 @@ def preparer(destination=None):
  petro=[r for r in gen if r['fn']=='produire_derives_petrochimiques']
  if petro != [{'fn':'produire_derives_petrochimiques','pa':1,'cost':0}]:
   raise ValueError('Ordre petro-chimique absent ou altere')
- t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements','produire_derives_petrochimiques','consulter_devis_chantier_naval','interroger_renseignement')+vehicules and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
+ # Sovarka (05-07/11) : ordres postérieurs à la coupe 95, chacun contrôlé (présent, unique, tarif exact).
+ # Mêmes listes que preparer-recette97-219.py ; la variante de dîner à 100 n'exclut pas les autres dîners.
+ sovarka=[('contrebande_poissonniere',1,0),('pharmacie_medicaments',0,0),('poissonniere_poisson',0,0),('salon_coupe',0,0),('sovarka_cession',1,0),('sovarka_commerces_libres',0,0),('sovarka_demander_local',1,0),('sovarka_dossiers_commerciaux',0,0),('sovarka_retirer_droit',1,0),('sovarka_signer_attribution',1,0),('sovarka_terrain_municipal',0,0),('sovarka_demande_location',1,0),('sovarka_reunion_evenement',1,0),('sovarka_reunion_reserver',0,0),('sovarka_repas_presidentiel',0,0),('sovarka_soviet_deputes',0,0)]
+ fns_sovarka={f for f,_,_ in sovarka}
+ if sorted((r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] in fns_sovarka)!=sorted(sovarka):
+  raise ValueError('Ordres Sovarka absents, dupliqués ou mal tarifés')
+ diner_sovarka=('diner_affaires',2,100)
+ if sum((r['fn'],r['pa'],r['cost'])==diner_sovarka for r in gen)!=1:
+  raise ValueError('Dîner Sovarka absent, dupliqué ou mal tarifé')
+ t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements','produire_derives_petrochimiques','consulter_devis_chantier_naval','interroger_renseignement')+vehicules and r['fn'] not in fns_sovarka and (r['fn'],r['pa'],r['cost'])!=diner_sovarka and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
  md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
  if md5!=cm['apres']['md5'] or len(t)!=cm['apres']['lignes']:raise ValueError('Sources de tarifs changées : réexaminer le plan')
  entrees=om['migrations']+gm['prerequis']+gm['migrations']+[{'version':cm['version'],'fichier':cm['migration'],'sha256':cm['sha256']}]
