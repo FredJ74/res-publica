@@ -16,6 +16,10 @@ function rpQueteGuardTexte(key,source) {
   return (typeof window!=='undefined' && window.RPGuardWelcomeI18n?.label?.(key,source)) || source;
 }
 
+function rpQueteModele(key,variables,source) {
+  return (typeof window!=='undefined' && window.RPJeremyScenesI18n?.format?.(key,variables,source)) || source;
+}
+
 function rpQueteTexte(key,source) {
   return (typeof window!=='undefined' && window.RPJeremyScenesI18n?.label?.(key,source)) || source;
 }
@@ -367,7 +371,7 @@ function afficherGuidageUnBatiment(noeudId, buildingIdCible, texteAccroche) {
   afficherPopupQueteAccueil({
     guidageHtml: guidageHtml,
     titre: 'Jérémy',
-    texte: texteAccroche || 'Entrons ici !',
+    texte: rpQueteTexte('enterHere',texteAccroche || 'Entrons ici !'),
     suivant: null
   });
 }
@@ -556,10 +560,10 @@ function queteAccueilProposerCarriere() {
     texte: rpQueteTexte('careerChoice', "Bon, une dernière chose... Vous commencez à connaître Luthécia. Mais visiter une ville, c'est une chose. S'y faire une place, c'en est une autre. Vous avez une idée de ce que vous aimeriez devenir ?"),
     suivant: null,
     actionsHtml:
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'criminel\');">Plutôt du côté criminel</button> ' +
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'politique\');">Plutôt la politique</button> ' +
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'entrepreneurial\');">Plutôt entreprendre</button> ' +
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'indecis\');">Je ne sais pas encore</button>'
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'criminel\');">' + rpQueteTexte('criminalChoice','Plutôt du côté criminel') + '</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'politique\');">' + rpQueteTexte('politicalChoice','Plutôt la politique') + '</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'entrepreneurial\');">' + rpQueteTexte('entrepreneurialChoice','Plutôt entreprendre') + '</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'indecis\');">' + rpQueteTexte('undecidedChoice','Je ne sais pas encore') + '</button>'
   });
 }
 
@@ -574,8 +578,9 @@ function queteAccueilChoisirAmbition(ambition) {
 
   const ref = QUETE_CARRIERE_REFERENTS[ambition];
   let texte = ref
-    ? "Alors allez donc voir " + ref.nom + ". Vous le trouverez à " + ref.lieu + ". Dites-lui que c'est moi qui vous envoie."
-    : "Je comprends, ce n'est pas facile de se déterminer. Continuez à arpenter la ville et rencontrer les habitants, ça vous aidera à vous faire une idée.";
+    ? rpQueteModele('orientationRef',{name:ref.nom,place:ref.lieu},
+        "Alors allez donc voir " + ref.nom + ". Vous le trouverez à " + ref.lieu + ". Dites-lui que c'est moi qui vous envoie.")
+    : rpQueteTexte('orientationUndecided',"Je comprends, ce n'est pas facile de se déterminer. Continuez à arpenter la ville et rencontrer les habitants, ça vous aidera à vous faire une idée.");
 
   // Branche criminelle (lot Pat Hounette) : le tronc commun s'arrete ici, sans repasser par la
   // sequence de cloture generique (repertoire/recontact/conclusion — deja redondante avec ce
@@ -583,7 +588,7 @@ function queteAccueilChoisirAmbition(ambition) {
   // de l'ancienne conclusion est fusionnee directement dans cette meme fenetre plutot que d'en
   // ouvrir une nouvelle. Politique/entrepreneurial gardent la sequence complete, inchangee.
   if (ambition === 'criminel') {
-    texte += " Mais sachez que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.";
+    texte += ' ' + rpQueteTexte('criminalWarning',"Mais sachez que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.");
   }
 
   afficherPopupQueteAccueil({
@@ -624,8 +629,9 @@ function queteAccueilCarriereConclusion() {
   const ambition = state.char?.queteCarriere?.ambition;
   const ref = QUETE_CARRIERE_REFERENTS[ambition];
   const texte = ref
-    ? ref.nom + " saura vous aider, mais sachez que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous."
-    : "Sachez en tout cas que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.";
+    ? rpQueteModele('conclusionRef',{name:ref.nom},
+        ref.nom + " saura vous aider, mais sachez que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.")
+    : rpQueteTexte('conclusionUnknown',"Sachez en tout cas que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.");
 
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
