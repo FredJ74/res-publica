@@ -757,3 +757,19 @@ du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de mig
 Test téléphone après intégration : ouvrir Personnes présentes puis inventaire, vérifier le chargement des portraits.
 Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
 à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
+
+### Reprise mobile L10 — Codex, 07/11/2026
+Branche `codex/mobile-l10-recette-20261106`, main `a5e32332` intégré dans l'ordre des lots.
+SHA testé avant ajout du compte rendu : `0fbf015e3a0f9fc0147df2ca2ff52cafac47d999`. Résultats : UI
+21/21, clients 37/37 ; aucun échec.
+Titre PR vers main : **Mobile L10 — Recette mobile consolidée après main du 7 novembre**.
+Description prête : coque, forum, création, reprise, garderBatiment et témoins 1440.
+Anciens lots déjà en bêta conservés : cette reprise synchronise et teste, sans
+réécrire l'application. Seul ajout technique L8 : régression de #579 sur les vrais
+rendus, option `garderBatiment` conservée ; contre-épreuve sans l'option.
+Contrôles attendus : bancs-hors-production, gardes habituelles et tests ciblés
+MOBILE-REPRISE-L10-20261107.json. Reste à Claude : création PR, CI et intégration
+du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de migration.
+Test téléphone après intégration : parcourir les fenêtres en portrait et paysage puis vérifier le bureau à 1440 px.
+Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
+à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
