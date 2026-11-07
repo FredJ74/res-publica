@@ -54,7 +54,7 @@ async function run(){
    await page.route('**/*',route=>{
     const url=new URL(route.request().url());
     if(url.origin!==ORIGIN)return route.abort();
-    if(url.pathname.endsWith('.js') && !url.pathname.startsWith('/i18n/'))return route.abort();
+    if(url.pathname.endsWith('.js') && !url.pathname.startsWith('/i18n/') && url.pathname!=='/forum.js')return route.abort();
     return route.continue();
    });
    await page.goto(ORIGIN+'/plateau.html',{waitUntil:'domcontentloaded'});
@@ -144,6 +144,25 @@ async function run(){
    assert.equal(social.otherRoom,'Salle du Conseil du Peuple',language+': autre bâtiment inchangé');
    assert.equal(social.otherForum,'Nom privé conservé',language+': forum privé inchangé');
    assert.notEqual(social.htmlDir,'rtl',language+': aucun RTL global');
+   checks++;
+   // Vérifier cette fois les vraies fonctions de rendu du forum, avec state
+   // de test local. Aucun moteur métier, identifiant ou appel réseau externe.
+   await page.evaluate(()=>{window.state={char:{name:'Testeur'},currentCity:'novomirsk',poste:null,contacts:[]};});
+   await page.addScriptTag({url:ORIGIN+'/forum.js'});
+   const rendered=await page.evaluate(()=>{
+     const name=renderForumNavItem('national',FORUMS_BASE.national);
+     const unread=renderMailCompose('Destinataire PJ','Sujet PJ');
+     const locale=window.i18next.language;
+     return {name,unread,locale,
+       national:window.RP_I18N_RESOURCES[locale].translation.forumNames.national,
+       mail:window.RP_I18N_RESOURCES[locale].translation.forumUI.newMail};
+   });
+   assert.ok(rendered.name.includes(rendered.national),language+': nom dans le HTML généré');
+   assert.ok(rendered.name.includes('switchForum(&#39;national&#39;)') ||
+     rendered.name.includes("switchForum('national')"),language+': identifiant du forum inchangé');
+   assert.ok(rendered.unread.includes('Destinataire PJ'),language+': destinataire saisi préservé');
+   assert.ok(rendered.unread.includes('Sujet PJ'),language+': sujet saisi préservé');
+   assert.ok(rendered.unread.includes('onclick="submitMail()"'),language+': action courrier inchangée');
    checks++;
    await page.close();
   }
