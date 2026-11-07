@@ -59,9 +59,19 @@ import {
   CE_QUI_N_EXISTE_PAS_ASSEMBLEE
 } from './_bible-assemblee.js';
 
+// Consignes de présentation : mêmes connaissances, droits et personnalité PNJ
+// pour toutes les locales. zh désigne UNIQUEMENT zh-TW, pt désigne pt-BR.
+// Les clés historiques fr/en restent inchangées pour les anciens clients.
 const LANGUES = {
   fr: { nom: 'francais', consigne: 'Reponds EXCLUSIVEMENT en francais.' },
-  en: { nom: 'anglais',  consigne: 'Reply EXCLUSIVELY in English.' }
+  en: { nom: 'anglais',  consigne: 'Reply EXCLUSIVELY in English.' },
+  es: { nom: 'espagnol', consigne: 'Responde EXCLUSIVAMENTE en español.' },
+  zh: { nom: 'chinois traditionnel', consigne: '請只使用繁體中文（臺灣）回答，不要使用簡體中文。' },
+  ru: { nom: 'russe', consigne: 'Отвечай ИСКЛЮЧИТЕЛЬНО на русском языке.' },
+  ko: { nom: 'coréen', consigne: '반드시 한국어로만 답변하세요.' },
+  ar: { nom: 'arabe', consigne: 'أجب باللغة العربية فقط دون استخدام لغة أخرى.' },
+  pt: { nom: 'portugais brésilien', consigne: 'Responda EXCLUSIVAMENTE em português brasileiro.' },
+  de: { nom: 'allemand', consigne: 'Antworte AUSSCHLIESSLICH auf Deutsch.' }
 };
 const LANGUE_DEFAUT = 'en';   // repli impose : jamais de langue devinee
 
@@ -789,6 +799,20 @@ function filtrerReponseSquatteur(profilId, texte, lang = 'fr') {
   if (String(lang).toLowerCase().startsWith('en')) return agressif
     ? "What are you doing here? We don't like nosy strangers."
     : "What brings you to our patch of land?";
+  // Un remplacement anti-HRP doit rester immersif DANS la langue du lecteur,
+  // même quand DeepSeek a envoyé du texte hors personnage.
+  // FR et EN conservent mot pour mot leurs répliques historiques.
+  const repliLocalise = {
+    es: ["¿Qué haces aquí? No nos gustan los entrometidos.", "¿Qué te trae a nuestro terreno?"],
+    zh: ["你來這裡做什麼？我們不歡迎愛管閒事的人。", "你來我們這塊地做什麼？"],
+    ru: ["Что тебе здесь нужно? Мы не любим любопытных чужаков.", "Зачем ты пришёл на нашу землю?"],
+    ko: ["여기서 뭐 하는 거야? 참견하는 외지인은 싫어.", "우리 구역에는 무슨 일로 왔어?"],
+    ar: ["ماذا تفعل هنا؟ لا نحب المتطفلين.", "ما الذي جاء بك إلى أرضنا؟"],
+    pt: ["O que você está fazendo aqui? Não gostamos de intrometidos.", "O que traz você ao nosso terreno?"],
+    de: ["Was willst du hier? Neugierige Fremde mögen wir nicht.", "Was führt dich auf unser Gelände?"]
+  };
+  const choix = repliLocalise[String(lang || '').toLowerCase().slice(0, 2)];
+  if (choix) return choix[agressif ? 0 : 1];
   return agressif
     ? "Tu cherches quoi, baltringue ? T'as intérêt à pas te foutre de nous."
     : "Qu'est-ce qui t'amène sur notre bout de terrain ?";
