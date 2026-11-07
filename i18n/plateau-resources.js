@@ -805,6 +805,64 @@
     }
   };
   for(const [locale,labels] of Object.entries(commonButtons)) Object.assign(translations[locale],labels);
+  // Menu tactile Codex : textes uniquement, DOM/handlers/styles préservés.
+  const mobileAccess = {
+    "fr": {
+      "mobileCharacter": "Personnage",
+      "mobilePresent": "Présents",
+      "mobileMenu": "Menu",
+      "mobileClosePanel": "Fermer le panneau"
+    },
+    "en": {
+      "mobileCharacter": "Character",
+      "mobilePresent": "Present",
+      "mobileMenu": "Menu",
+      "mobileClosePanel": "Close panel"
+    },
+    "es": {
+      "mobileCharacter": "Personaje",
+      "mobilePresent": "Presentes",
+      "mobileMenu": "Menú",
+      "mobileClosePanel": "Cerrar panel"
+    },
+    "zh-TW": {
+      "mobileCharacter": "角色",
+      "mobilePresent": "在場",
+      "mobileMenu": "選單",
+      "mobileClosePanel": "關閉面板"
+    },
+    "ru": {
+      "mobileCharacter": "Персонаж",
+      "mobilePresent": "Присутствующие",
+      "mobileMenu": "Меню",
+      "mobileClosePanel": "Закрыть панель"
+    },
+    "ko": {
+      "mobileCharacter": "캐릭터",
+      "mobilePresent": "현장 인물",
+      "mobileMenu": "메뉴",
+      "mobileClosePanel": "패널 닫기"
+    },
+    "ar": {
+      "mobileCharacter": "الشخصية",
+      "mobilePresent": "الحاضرون",
+      "mobileMenu": "القائمة",
+      "mobileClosePanel": "إغلاق اللوحة"
+    },
+    "pt-BR": {
+      "mobileCharacter": "Personagem",
+      "mobilePresent": "Presentes",
+      "mobileMenu": "Menu",
+      "mobileClosePanel": "Fechar painel"
+    },
+    "de": {
+      "mobileCharacter": "Figur",
+      "mobilePresent": "Anwesende",
+      "mobileMenu": "Menü",
+      "mobileClosePanel": "Bereich schließen"
+    }
+  };
+  for(const [locale,labels] of Object.entries(mobileAccess)) Object.assign(translations[locale],labels);
   for(const [locale,labels] of Object.entries(translations)) {
     if(resources[locale]?.translation) resources[locale].translation.plateau={...labels};
   }
