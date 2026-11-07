@@ -73,6 +73,30 @@ async function run(){
    assert.equal(state.placeholder,state.expectedPlaceholder,language+': composition de mail');
    assert.equal(state.dir,language==='ar'?'rtl':null,language+': direction limitée au texte');
    checks++;
+   // Le navigateur réel résout aussi les nouveaux catalogues du Conseil
+   // et des forums, avec les handlers métier explicitement bloqués.
+   const social=await page.evaluate(()=>{
+     const locale=window.i18next.language;
+     const resources=window.RP_I18N_RESOURCES[locale].translation;
+     return {
+       room:window.RPRoomI18n?.label('palais-gouvernement','salle_conseil','Salle du Conseil du Peuple'),
+       expectedRoom:resources.rooms.salle_conseil,
+       forum:window.RPForumUI?.forumNameHtml('national','Forum National'),
+       expectedForum:resources.forumNames.national,
+       title:window.RPForumUI?.labelHtml('newTopic','Nouveau sujet'),
+       expectedTitle:resources.forumUI.newTopic,
+       otherRoom:window.RPRoomI18n?.label('palais-presidentiel','salle_conseil','Salle du Conseil du Peuple'),
+       otherForum:window.RPForumUI?.forumNameHtml('private-org-81','Nom privé conservé'),
+       htmlDir:document.documentElement.getAttribute('dir')
+     };
+   });
+   assert.equal(social.room,social.expectedRoom,language+': Conseil du peuple');
+   assert.equal(social.forum,social.expectedForum,language+': forum national');
+   assert.equal(social.title,social.expectedTitle,language+': bouton sujet');
+   assert.equal(social.otherRoom,'Salle du Conseil du Peuple',language+': autre bâtiment inchangé');
+   assert.equal(social.otherForum,'Nom privé conservé',language+': forum privé inchangé');
+   assert.notEqual(social.htmlDir,'rtl',language+': aucun RTL global');
+   checks++;
    await page.close();
   }
 
