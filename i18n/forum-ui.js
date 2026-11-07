@@ -110,5 +110,189 @@
   if(typeof translation!=='string'||!translation.trim()||translation===original)return original;
   return translation.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  }
- global.RPForumUI=Object.freeze({labelHtml});
+ // Forums canoniques : seul l'affichage est traduit, jamais l'identifiant
+ // ni les forums de joueurs, locaux ou d'organisations.
+ const names={
+  "fr": {
+    "national": "Forum National",
+    "presidence": "La Présidence à la Nation",
+    "assemblee": "L'Assemblée nationale",
+    "gouvernement": "Le Gouvernement à la Nation",
+    "presse": "Presse & Médias",
+    "international": "Forum International",
+    "sport": "Championnat Sportif"
+  },
+  "en": {
+    "national": "National Forum",
+    "presidence": "Presidency to the Nation",
+    "assemblee": "National Assembly",
+    "gouvernement": "Government to the Nation",
+    "presse": "Press & Media",
+    "international": "International Forum",
+    "sport": "Sports Championship"
+  },
+  "es": {
+    "national": "Foro nacional",
+    "presidence": "La Presidencia a la Nación",
+    "assemblee": "Asamblea Nacional",
+    "gouvernement": "El Gobierno a la Nación",
+    "presse": "Prensa y medios",
+    "international": "Foro internacional",
+    "sport": "Campeonato deportivo"
+  },
+  "zh-TW": {
+    "national": "全國論壇",
+    "presidence": "總統府向全國發言",
+    "assemblee": "國民議會",
+    "gouvernement": "政府向全國發言",
+    "presse": "新聞與媒體",
+    "international": "國際論壇",
+    "sport": "體育錦標賽"
+  },
+  "ru": {
+    "national": "Национальный форум",
+    "presidence": "Обращения президентской власти к народу",
+    "assemblee": "Национальное собрание",
+    "gouvernement": "Обращения правительства к народу",
+    "presse": "Пресса и СМИ",
+    "international": "Международный форум",
+    "sport": "Спортивный чемпионат"
+  },
+  "ko": {
+    "national": "국가 포럼",
+    "presidence": "대통령의 대국민 발표",
+    "assemblee": "국민의회",
+    "gouvernement": "정부의 대국민 발표",
+    "presse": "언론 및 미디어",
+    "international": "국제 포럼",
+    "sport": "스포츠 챔피언십"
+  },
+  "ar": {
+    "national": "المنتدى الوطني",
+    "presidence": "الرئاسة تخاطب الأمة",
+    "assemblee": "الجمعية الوطنية",
+    "gouvernement": "الحكومة تخاطب الأمة",
+    "presse": "الصحافة والإعلام",
+    "international": "المنتدى الدولي",
+    "sport": "البطولة الرياضية"
+  },
+  "pt-BR": {
+    "national": "Fórum Nacional",
+    "presidence": "Presidência à Nação",
+    "assemblee": "Assembleia Nacional",
+    "gouvernement": "Governo à Nação",
+    "presse": "Imprensa e mídia",
+    "international": "Fórum Internacional",
+    "sport": "Campeonato Esportivo"
+  },
+  "de": {
+    "national": "Nationales Forum",
+    "presidence": "Das Präsidialamt an die Nation",
+    "assemblee": "Nationalversammlung",
+    "gouvernement": "Die Regierung an die Nation",
+    "presse": "Presse und Medien",
+    "international": "Internationales Forum",
+    "sport": "Sportmeisterschaft"
+  }
+};
+ const descriptions={
+  "fr": {
+    "national": "Débats politiques nationaux",
+    "presidence": "Discours et annonces officielles depuis la Présidence",
+    "assemblee": "Projets de loi, débats parlementaires et résultats des scrutins",
+    "gouvernement": "Réservé au gouvernement",
+    "presse": "Réservé aux journalistes",
+    "international": "Relations entre empires",
+    "sport": "Résultats, classements et débats de supporters"
+  },
+  "en": {
+    "national": "National political debates",
+    "presidence": "Official speeches and announcements from the Presidency",
+    "assemblee": "Bills, parliamentary debates and voting results",
+    "gouvernement": "Reserved for government officials",
+    "presse": "Reserved for journalists",
+    "international": "Relations between empires",
+    "sport": "Results, standings and supporters' debates"
+  },
+  "es": {
+    "national": "Debates políticos nacionales",
+    "presidence": "Discursos y comunicados oficiales de la Presidencia",
+    "assemblee": "Proyectos de ley, debates parlamentarios y resultados de votaciones",
+    "gouvernement": "Reservado al Gobierno",
+    "presse": "Reservado a periodistas",
+    "international": "Relaciones entre imperios",
+    "sport": "Resultados, clasificaciones y debates de aficionados"
+  },
+  "zh-TW": {
+    "national": "全國政治討論",
+    "presidence": "總統府的官方演說與公告",
+    "assemblee": "法案、議會辯論及表決結果",
+    "gouvernement": "僅限政府成員",
+    "presse": "僅限記者",
+    "international": "帝國間的關係",
+    "sport": "比賽結果、排名及球迷討論"
+  },
+  "ru": {
+    "national": "Общенациональные политические дискуссии",
+    "presidence": "Официальные выступления и объявления президента",
+    "assemblee": "Законопроекты, парламентские дебаты и результаты голосований",
+    "gouvernement": "Только для членов правительства",
+    "presse": "Только для журналистов",
+    "international": "Отношения между империями",
+    "sport": "Результаты, турнирные таблицы и обсуждения болельщиков"
+  },
+  "ko": {
+    "national": "국가 정치 토론",
+    "presidence": "대통령의 공식 연설과 발표",
+    "assemblee": "법안, 의회 토론 및 표결 결과",
+    "gouvernement": "정부 관계자 전용",
+    "presse": "언론인 전용",
+    "international": "제국 간 관계",
+    "sport": "경기 결과, 순위 및 팬 토론"
+  },
+  "ar": {
+    "national": "نقاشات سياسية وطنية",
+    "presidence": "خطابات الرئاسة وإعلاناتها الرسمية",
+    "assemblee": "مشاريع القوانين والنقاشات البرلمانية ونتائج التصويت",
+    "gouvernement": "مخصص لأعضاء الحكومة",
+    "presse": "مخصص للصحفيين",
+    "international": "العلاقات بين الإمبراطوريات",
+    "sport": "النتائج والترتيب ونقاشات المشجعين"
+  },
+  "pt-BR": {
+    "national": "Debates políticos nacionais",
+    "presidence": "Discursos e comunicados oficiais da Presidência",
+    "assemblee": "Projetos de lei, debates parlamentares e resultados das votações",
+    "gouvernement": "Reservado ao governo",
+    "presse": "Reservado aos jornalistas",
+    "international": "Relações entre impérios",
+    "sport": "Resultados, classificações e debates dos torcedores"
+  },
+  "de": {
+    "national": "Nationale politische Debatten",
+    "presidence": "Offizielle Reden und Bekanntmachungen des Präsidialamts",
+    "assemblee": "Gesetzesentwürfe, Parlamentsdebatten und Abstimmungsergebnisse",
+    "gouvernement": "Nur für Regierungsmitglieder",
+    "presse": "Nur für Journalisten",
+    "international": "Beziehungen zwischen den Imperien",
+    "sport": "Ergebnisse, Tabellen und Debatten der Fans"
+  }
+};
+ for(const locale of Object.keys(names)){
+  if(resources[locale]?.translation){
+   resources[locale].translation.forumNames={...names[locale]};
+   resources[locale].translation.forumDescriptions={...descriptions[locale]};
+  }
+ }
+ function forumText(kind,id,original){
+  const fr=kind==='forumNames'?names.fr:descriptions.fr;
+  if(typeof original!=='string'||fr[id]!==original)return original;
+  const locale=global.RPPlateauI18n?.language?.()||'fr';
+  const translation=global.i18next?.t?.(kind+'.'+id,{lng:locale,defaultValue:original});
+  if(typeof translation!=='string'||!translation.trim()||translation===original)return original;
+  return translation.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ }
+ function forumNameHtml(id,original){return forumText('forumNames',id,original);}
+ function forumDescriptionHtml(id,original){return forumText('forumDescriptions',id,original);}
+ global.RPForumUI=Object.freeze({labelHtml,forumNameHtml,forumDescriptionHtml});
 })(window);
