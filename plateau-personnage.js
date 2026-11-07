@@ -207,17 +207,19 @@ Choisissez qui vous voulez être. Mais sachez que dans Res Publica, comme à Rom
     titre: 'Créer son personnage',
     contenu: `Votre personnage est défini par 4 choix fondamentaux :
 
-ORIGINE SOCIALE — Détermine votre capital de départ et vos bonus de stats.
-• Milieu défavorisé : 200 FR, +VOL +DUP
-• Classe ouvrière : 500 FR, +VOL +ENT
-• Petite bourgeoisie : 1200 FR, +INT +CHA
-• Haute société : 3000 FR, +ENT +CHA
+ORIGINE SOCIALE — Détermine votre capital de départ et vos caractéristiques.
+• Milieu défavorisé : 300 unités, +2 VOL, +2 DUP, −1 CHA
+• Classe ouvrière : 600 unités, +1 VOL, +1 PER, −1 DUP
+• Petite bourgeoisie : 1 000 unités, +1 INT, +1 CHA, −1 ENT
+• Haute société : 2 200 unités, +2 ENT, −2 VOL
+Le capital est exprimé dans la monnaie de votre empire.
 
-PARCOURS SCOLAIRE — Détermine les carrières accessibles et vos points de compétence.
-• Pas d'école : bloque plusieurs carrières
-• Études supérieures et Hautes écoles : toutes les carrières accessibles
+PARCOURS SCOLAIRE — Détermine notamment les carrières accessibles et modifie vos caractéristiques.
+• Pas d'école : plusieurs carrières sont interdites
+• Études supérieures : certaines carrières spécialisées restent réservées aux Hautes écoles
+• Hautes écoles : toutes les familles de carrières du socle sont accessibles
 
-ARCHÉTYPE — Votre nature profonde. Définit vos bonus de ressources et votre style de jeu.
+ARCHÉTYPE — Votre nature profonde. Modifie vos caractéristiques, et influence votre style de jeu.
 
 CARRIÈRE — Votre activité principale. Donne des contacts, des compétences et un salaire journalier.`
   },
