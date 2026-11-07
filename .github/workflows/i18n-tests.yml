@@ -56,6 +56,8 @@ on:
       - 'plateau-divers.js'
       - 'outils/bancs/banc-i18n-traduction-sources.mjs'
       - 'api/_traduction-sources.js'
+      - 'outils/audits/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql'
+      - 'outils/bancs/banc-i18n-prevol-rls.cjs'
       - 'api/_traduction-contenu.js'
       - 'outils/bancs/banc-i18n-contenu-securise.mjs'
 concurrency:
@@ -144,6 +146,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-render-ordres.cjs
       - name: "Sources privées : seules les colonnes de contenu autorisées"
         run: node --test outils/bancs/banc-i18n-traduction-sources.mjs
+      - name: Prévol de confidentialité forum et chat, lecture seule
+        run: node --test outils/bancs/banc-i18n-prevol-rls.cjs
       - name: Sécurité de lecture, cache et quota des traductions
         run: node --test outils/bancs/banc-i18n-contenu-securise.mjs
       - name: Syntaxe du moteur et des ressources
