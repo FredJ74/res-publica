@@ -10,6 +10,12 @@
 //   attente_entree_mairie -> guidage termine, joueur libre d'entrer dans le bon batiment
 //   (suite a coder : detection du Secretaire Petit, Jeremy, etc.)
 
+// Ne localise que les textes fixes connus. Les événements de visite et les
+// étapes de quête restent ceux du moteur existant.
+function rpQueteTexte(key,source) {
+  return (typeof window!=='undefined' && window.RPJeremyScenesI18n?.label?.(key,source)) || source;
+}
+
 const QUETE_ACCUEIL_IMAGES = {
   gardeMenacant: 'images/garde-menacant-luthecia.webp',
   gardeBienveillant: 'images/garde-bienveillant-luthecia.webp',
@@ -26,7 +32,7 @@ function queteAccueilAccepterJeremy() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Bonjour, je suis Jérémy, le stagiaire à tout faire de ce maudit Hôtel de Ville. Je suis bien content de pouvoir vous guider, le secrétaire n'arrête pas de me demander de lui faire du café et des photocopies. On va commencer par aller dans un endroit plus calme. On va aller dans la salle des élections.",
+    texte: rpQueteTexte('welcomeJeremy', "Bonjour, je suis Jérémy, le stagiaire à tout faire de ce maudit Hôtel de Ville. Je suis bien content de pouvoir vous guider, le secrétaire n'arrête pas de me demander de lui faire du café et des photocopies. On va commencer par aller dans un endroit plus calme. On va aller dans la salle des élections."),
     suivant: function() {
       state.char.queteAccueil = { etape: 'guide_salle_elections' };
       if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
@@ -73,7 +79,7 @@ function queteAccueilApresFichePersonnage() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Donc une bonne chambre, c'est primordial, mais un bon repas aussi. Il y a tout ça à l'hôtel-restaurant. On y va ?<br><br>C'est le deuxième bâtiment après l'Hôtel de Ville. Vous vous souvenez où c'est ? On en vient. Il faut sortir du bâtiment et aller à droite.",
+    texte: rpQueteTexte('hotelInstructions', "Donc une bonne chambre, c'est primordial, mais un bon repas aussi. Il y a tout ça à l'hôtel-restaurant. On y va ?<br><br>C'est le deuxième bâtiment après l'Hôtel de Ville. Vous vous souvenez où c'est ? On en vient. Il faut sortir du bâtiment et aller à droite."),
     suivant: null
   });
 }
