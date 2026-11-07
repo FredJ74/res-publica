@@ -3,13 +3,13 @@
  * doit identifier le lecteur connecté, appliquer RLS / visibilité et lire
  * lui-même l'original depuis la base avant tout appel au fournisseur.
  *
- * Schéma confirmé en lecture seule sur Supabase au 02/11/2026.
+ * RLS reconfirmée en lecture seule le 07/11/2026, après forums #422.
  * Ne jamais exposer des clés privées, auteurs secrets ou journaux par
  * un endpoint de traduction non authentifié.
  */
 const SOURCES = Object.freeze({
-  forum_post: Object.freeze({table:'forum_posts',id:'id',fields:Object.freeze(['content']),privacy:'rls_select_public'}),
-  forum_topic: Object.freeze({table:'forum_topics',id:'id',fields:Object.freeze(['title']),privacy:'rls_select_public'}),
+  forum_post: Object.freeze({table:'forum_posts',id:'id',fields:Object.freeze(['content']),privacy:'rls_via_forum_topic'}),
+  forum_topic: Object.freeze({table:'forum_topics',id:'id',fields:Object.freeze(['title']),privacy:'rls_forum_lecture_autorisee'}),
   chat_message: Object.freeze({table:'messages_chat',id:'id',fields:Object.freeze(['message']),privacy:'rls_chat_participe'}),
   // Audience et articles en attente : aucune politique SELECT RLS ordinaire
   // démontrée le 03/11/2026. Ne pas rendre traduisibles avant une porte
