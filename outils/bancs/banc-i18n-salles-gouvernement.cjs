@@ -25,9 +25,12 @@ const source={
  bureau_min_just:'Bureau - Ministre de la Justice prolétarienne',
  bureau_min_def:'Bureau - Ministre de la Défense de la Patrie',
  bureau_min_info:'Bureau - Ministre de la Vérité officielle',
- bureau_min_ae:"Bureau - Ministre de l'Amitié entre les Peuples"
+ bureau_min_ae:"Bureau - Ministre de l'Amitié entre les Peuples",
+ accueil_mairie:'Accueil',
+ bureau_maire_local:'Bureau du Maire',
+ bureau_maire_adjoint:'Bureau du Maire Adjoint'
 };
-test('neuf traductions de dix salles, avec repli français explicite',()=>{
+test('neuf traductions de treize salles, avec repli français explicite',()=>{
  assert.equal(Object.keys(win.RP_I18N_LANGUAGES).length,9);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
   locale=lang;
@@ -36,7 +39,7 @@ test('neuf traductions de dix salles, avec repli français explicite',()=>{
   for(const [room,original] of Object.entries(source)){
    assert.equal(typeof rooms[room],'string');
    assert.ok(rooms[room].trim(),lang+': '+room);
-   assert.equal(win.RPRoomI18n.label('palais-gouvernement',room,original),rooms[room]);
+   assert.equal(win.RPRoomI18n.label(room.includes('maire')||room==='accueil_mairie'?'mairie':'palais-gouvernement',room,original),rooms[room]);
   }
  }
 });
@@ -67,6 +70,7 @@ test('texte des onglets échappé, texte de titre non HTML, handlers et IDs pré
  assert.ok(nav.includes("RPRoomI18n.label(buildingId, roomId, nomPieceAffiche)"));
  assert.ok(nav.includes('onclick="${clic}"'));
  assert.ok(nav.includes('const clic = porteInterdite'));
+ assert.equal(win.RPRoomI18n.label('mairie','bureau_maire_local','Bureau du Conseil local'),'Bureau du Conseil local');
  const bridge=html.indexOf('src="i18n/plateau-bridge.js');
  const translations=html.indexOf('src="i18n/room-resources.js');
  const init=html.indexOf('src="i18n/plateau-init.js');
