@@ -8,15 +8,13 @@ const path=require('node:path');
 const root=path.join(__dirname,'../..');
 const files=fs.readdirSync(root).filter(n=>n==='data.js'||/^plateau-.*\.js$/.test(n));
 const result=new Map();
+const {extract}=require('./libelles-ordres-source.cjs');
 for(const name of files) {
  const text=fs.readFileSync(path.join(root,name),'utf8');
- for(const match of text.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)) {
-  const fn=match[2],label=match[4];
-  const map=result.get(fn)||new Map();map.set(label,(map.get(label)||0)+1);result.set(fn,map);
- }
- for(const match of text.matchAll(/\blabel\s*:\s*(['"])([^'"\n]+)\1\s*,\s*fn\s*:\s*(['"])([^'"\n]+)\3/g)) {
-  const label=match[2],fn=match[4];const map=result.get(fn)||new Map();
-  map.set(label,(map.get(label)||0)+1);result.set(fn,map);
+ for(const {fn,label} of extract(text)) {
+  const map=result.get(fn)||new Map();
+  map.set(label,(map.get(label)||0)+1);
+  result.set(fn,map);
  }
 }
 const entries=[...result.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([fn,labels])=>({
