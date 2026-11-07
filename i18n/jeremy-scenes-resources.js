@@ -403,6 +403,117 @@
   }
 };
  for(const [lang,texts] of Object.entries(reminders)) Object.assign(labels[lang],texts);
+ const career={
+  "fr": {
+    "criminalChoice": "Plutôt du côté criminel",
+    "politicalChoice": "Plutôt la politique",
+    "entrepreneurialChoice": "Plutôt entreprendre",
+    "undecidedChoice": "Je ne sais pas encore",
+    "orientationRef": "Alors allez donc voir {{name}}. Vous le trouverez à {{place}}. Dites-lui que c'est moi qui vous envoie.",
+    "orientationUndecided": "Je comprends, ce n'est pas facile de se déterminer. Continuez à arpenter la ville et rencontrer les habitants, ça vous aidera à vous faire une idée.",
+    "criminalWarning": "Mais sachez que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.",
+    "conclusionRef": "{{name}} saura vous aider, mais sachez que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.",
+    "conclusionUnknown": "Sachez en tout cas que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.",
+    "enterHere": "Entrons ici !"
+  },
+  "en": {
+    "criminalChoice": "The criminal side",
+    "politicalChoice": "Politics",
+    "entrepreneurialChoice": "Starting a business",
+    "undecidedChoice": "I don't know yet",
+    "orientationRef": "Then go and see {{name}}. You'll find them at {{place}}. Tell them I sent you.",
+    "orientationUndecided": "I understand. Choosing isn't easy. Keep exploring the city and meeting its residents; it'll help you find your path.",
+    "criminalWarning": "But remember that every action has consequences for society as a whole, not just for you.",
+    "conclusionRef": "{{name}} will be able to help you, but remember that every action has consequences for society as a whole, not just for you.",
+    "conclusionUnknown": "In any case, remember that every action has consequences for society as a whole, not just for you.",
+    "enterHere": "Let's go in!"
+  },
+  "es": {
+    "criminalChoice": "El mundo criminal",
+    "politicalChoice": "La política",
+    "entrepreneurialChoice": "Crear una empresa",
+    "undecidedChoice": "Aún no lo sé",
+    "orientationRef": "Entonces vaya a ver a {{name}}. Lo encontrará en {{place}}. Dígale que le envío yo.",
+    "orientationUndecided": "Lo entiendo, no es fácil decidirse. Siga recorriendo la ciudad y conociendo a sus habitantes; eso le ayudará a aclararse.",
+    "criminalWarning": "Pero recuerde que cualquier acto tiene consecuencias para toda la sociedad, no solo para usted.",
+    "conclusionRef": "{{name}} podrá ayudarle, pero recuerde que cualquier acto tiene consecuencias para toda la sociedad, no solo para usted.",
+    "conclusionUnknown": "En cualquier caso, recuerde que cualquier acto tiene consecuencias para toda la sociedad, no solo para usted.",
+    "enterHere": "¡Entremos aquí!"
+  },
+  "zh-TW": {
+    "criminalChoice": "走上犯罪道路",
+    "politicalChoice": "投身政治",
+    "entrepreneurialChoice": "創業",
+    "undecidedChoice": "我還沒想好",
+    "orientationRef": "那就去找 {{name}} 吧。你可以在 {{place}} 找到他。記得告訴他是我介紹你來的。",
+    "orientationUndecided": "我明白，這不容易決定。繼續逛逛城市、多認識居民，慢慢就會知道自己想走哪條路。",
+    "criminalWarning": "但請記住，每個行動都會對整個社會產生影響，不只是影響你自己。",
+    "conclusionRef": "{{name}} 應該能幫上忙。不過要記住，每個行動都會對整個社會產生影響，不只是影響你自己。",
+    "conclusionUnknown": "無論如何，請記住，每個行動都會對整個社會產生影響，不只是影響你自己。",
+    "enterHere": "進去吧！"
+  },
+  "ru": {
+    "criminalChoice": "Криминальный путь",
+    "politicalChoice": "Политика",
+    "entrepreneurialChoice": "Предпринимательство",
+    "undecidedChoice": "Пока не знаю",
+    "orientationRef": "Тогда сходите к {{name}}. Его можно найти в {{place}}. Скажите, что это я вас направил.",
+    "orientationUndecided": "Понимаю, определиться непросто. Продолжайте гулять по городу и знакомиться с его жителями — так вам будет легче выбрать свой путь.",
+    "criminalWarning": "Но помните: любой поступок имеет последствия для всего общества, а не только для вас.",
+    "conclusionRef": "{{name}} сможет вам помочь. Но помните: любой поступок имеет последствия для всего общества, а не только для вас.",
+    "conclusionUnknown": "В любом случае помните: любой поступок имеет последствия для всего общества, а не только для вас.",
+    "enterHere": "Давайте зайдём!"
+  },
+  "ko": {
+    "criminalChoice": "범죄자의 길",
+    "politicalChoice": "정치",
+    "entrepreneurialChoice": "사업 시작",
+    "undecidedChoice": "아직 모르겠어요",
+    "orientationRef": "그렇다면 {{name}}을(를) 찾아가세요. {{place}}에 있을 거예요. 제가 보냈다고 전해주세요.",
+    "orientationUndecided": "이해해요. 결정하기 쉽지 않죠. 도시를 돌아다니며 주민들을 만나보세요. 그러다 보면 마음을 정하는 데 도움이 될 거예요.",
+    "criminalWarning": "하지만 모든 행동은 자신뿐 아니라 사회 전체에 영향을 준다는 것을 기억하세요.",
+    "conclusionRef": "{{name}}이(가) 도와줄 거예요. 하지만 모든 행동은 자신뿐 아니라 사회 전체에 영향을 준다는 것을 기억하세요.",
+    "conclusionUnknown": "어쨌든 모든 행동은 자신뿐 아니라 사회 전체에 영향을 준다는 걸 기억하세요.",
+    "enterHere": "들어가요!"
+  },
+  "ar": {
+    "criminalChoice": "طريق الجريمة",
+    "politicalChoice": "السياسة",
+    "entrepreneurialChoice": "ريادة الأعمال",
+    "undecidedChoice": "لم أقرر بعد",
+    "orientationRef": "إذًا اذهب للقاء {{name}}. ستجده في {{place}}. أخبره أنني أرسلتك.",
+    "orientationUndecided": "أتفهم ذلك، فالاختيار ليس سهلًا. واصل التجول في المدينة والتعرف إلى سكانها؛ سيساعدك ذلك على تحديد طريقك.",
+    "criminalWarning": "لكن تذكر أن لكل فعل تبعات على المجتمع بأسره، وليس عليك وحدك.",
+    "conclusionRef": "سيستطيع {{name}} مساعدتك، لكن تذكر أن لكل فعل تبعات على المجتمع بأسره، وليس عليك وحدك.",
+    "conclusionUnknown": "تذكر على أي حال أن لكل فعل تبعات على المجتمع بأسره، وليس عليك وحدك.",
+    "enterHere": "هيا ندخل!"
+  },
+  "pt-BR": {
+    "criminalChoice": "O caminho do crime",
+    "politicalChoice": "A política",
+    "entrepreneurialChoice": "Empreender",
+    "undecidedChoice": "Ainda não sei",
+    "orientationRef": "Então vá falar com {{name}}. Você encontrará essa pessoa em {{place}}. Diga que fui eu quem mandou você.",
+    "orientationUndecided": "Entendo, não é fácil decidir. Continue andando pela cidade e conhecendo seus moradores; isso ajudará você a encontrar seu caminho.",
+    "criminalWarning": "Mas lembre-se de que toda ação tem consequências para a sociedade inteira, não apenas para você.",
+    "conclusionRef": "{{name}} poderá ajudar você, mas lembre-se de que toda ação tem consequências para a sociedade inteira, não apenas para você.",
+    "conclusionUnknown": "De qualquer forma, lembre-se de que toda ação tem consequências para a sociedade inteira, não apenas para você.",
+    "enterHere": "Vamos entrar!"
+  },
+  "de": {
+    "criminalChoice": "Der kriminelle Weg",
+    "politicalChoice": "Die Politik",
+    "entrepreneurialChoice": "Ein Unternehmen gründen",
+    "undecidedChoice": "Ich weiß es noch nicht",
+    "orientationRef": "Dann gehen Sie zu {{name}}. Sie finden diese Person in {{place}}. Sagen Sie, dass ich Sie geschickt habe.",
+    "orientationUndecided": "Das verstehe ich. Die Entscheidung ist nicht leicht. Erkunden Sie weiter die Stadt und lernen Sie die Bewohner kennen. Das wird Ihnen bei Ihrer Wahl helfen.",
+    "criminalWarning": "Denken Sie aber daran, dass jede Handlung Folgen für die gesamte Gesellschaft hat, nicht nur für Sie.",
+    "conclusionRef": "{{name}} kann Ihnen helfen. Denken Sie aber daran, dass jede Handlung Folgen für die gesamte Gesellschaft hat, nicht nur für Sie.",
+    "conclusionUnknown": "Denken Sie auf jeden Fall daran, dass jede Handlung Folgen für die gesamte Gesellschaft hat, nicht nur für Sie.",
+    "enterHere": "Gehen wir hinein!"
+  }
+};
+ for(const [lang,texts] of Object.entries(career)) Object.assign(labels[lang],texts);
  for(const [lang,strings] of Object.entries(labels))
   if(resources[lang]?.translation)resources[lang].translation.jeremyScenes={...strings};
  function label(key,original){
@@ -413,5 +524,20 @@
   if(/<(?!br\s*\/?\s*>)/i.test(value))return original;
   return value;
  }
- global.RPJeremyScenesI18n=Object.freeze({label});
+ // Recomposition des phrases d'orientation à partir des seuls référents
+ // définis dans le jeu. Les noms et lieux ne sont jamais traduits par une IA.
+ const models=new Set(['orientationRef','conclusionRef']);
+ function format(key,variables,fallback) {
+  if(!models.has(key)||typeof fallback!=='string')return fallback;
+  const lng=global.RPPlateauI18n?.language?.()||'fr';
+  let template=global.i18next?.t?.('jeremyScenes.'+key,{lng,defaultValue:labels.fr[key]});
+  if(typeof template!=='string'||!template.trim()||/<|>/.test(template))return fallback;
+  const name=String(variables?.name||'');
+  const place=String(variables?.place||'');
+  // Le HTML d'affichage des popups ne doit jamais interpréter les noms.
+  const escape=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  template=template.replace(/\\{\\{(name|place)\\}\\}/g,(_,item)=>escape(item==='name'?name:place));
+  return /\\{\\{|\\}\\}/.test(template)?fallback:template;
+ }
+ global.RPJeremyScenesI18n=Object.freeze({label,format});
 })(window);
