@@ -23,6 +23,8 @@ on:
       - 'outils/bancs/banc-traduction-i18n.mjs'
       - 'outils/bancs/banc-i18n-selecteur-interactif.cjs'
       - 'outils/audits/inventaire-i18n-ordres.cjs'
+      - 'outils/audits/libelles-ordres-source.cjs'
+      - 'outils/bancs/banc-i18n-inventaire-escaped.cjs'
       - 'outils/audits/etat-i18n-ordres.cjs'
       - 'outils/bancs/banc-i18n-etat-ordres.cjs'
       - 'outils/bancs/banc-i18n-ordres.cjs'
@@ -74,6 +76,8 @@ jobs:
         run: |
           node outils/audits/inventaire-i18n-ordres.cjs > /tmp/i18n-ordres.json
           node -e "const a=require('/tmp/i18n-ordres.json');console.log('Ordres identifiés:',a.uniqueIds,'ambiguïtés:',a.ambiguousIds);console.log(a.entries.slice(0,30).map(x=>x.fn+': '+x.labels.join(' / ')).join('\\n'))"
+      - name: Libellés échappés et apostrophes de la source
+        run: node --test outils/bancs/banc-i18n-inventaire-escaped.cjs
       - name: Couverture réelle des ordres et backlog mesurable
         run: |
           node --test outils/bancs/banc-i18n-etat-ordres.cjs
