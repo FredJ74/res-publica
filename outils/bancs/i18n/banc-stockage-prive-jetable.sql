@@ -3,7 +3,7 @@
 \set ON_ERROR_STOP on
 CREATE ROLE anon NOLOGIN;
 CREATE ROLE authenticated NOLOGIN;
-CREATE ROLE service_role NOLOGIN;
+CREATE ROLE service_role NOLOGIN BYPASSRLS; -- Simule le rôle serveur Supabase.
 
 \ir ../../livraison/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql
 
