@@ -118,7 +118,7 @@ def derives(stmt):
     return resultat
 
 
-def extensions_parametres(texte, signatures_connues, noms_connus=None):
+def extensions_parametres(texte, signatures_connues, noms_connus=None, entetes_connus=None):
     """Inventorie l'ajout constant de paramètres à une définition connue, exécuté par DO.
 
     Aucun PL/pgSQL exécuté : on exige copie constante, replace à littéraux, même
@@ -180,6 +180,7 @@ def extensions_parametres(texte, signatures_connues, noms_connus=None):
                             if canon(a)!=canon(entete('public.x',','.join('.'.join(z.sval for z in p.argType.names) for p in source.parameters[-1:]))):raise ValueError('type_ancre_incompatible')
                             if b.parameters[0].name!=a.parameters[0].name:raise ValueError('nom_ancre_modifie')
                             if not (noms_connus and noms_connus.get(canon(source))):raise ValueError('noms_source_inconnus')
+                            if not entetes_connus or ancien not in entetes_connus.get(canon(source),''):raise ValueError('ancre_absente_entete_source')
                             if a.parameters[0].name!=noms_connus[canon(source)][-1]:raise ValueError('nom_source_incompatible')
                             if canon(entete('public.x',ancien[:-1]))!=canon(entete('public.x',nouveau[:-1].split(',',1)[0])):raise ValueError('type_source_modifie')
                             rest=','.join('.'.join(z.sval for z in p.argType.names) for p in source.parameters[:-1])

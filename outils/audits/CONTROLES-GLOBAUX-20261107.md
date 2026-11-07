@@ -47,7 +47,8 @@ pas été actualisées depuis une déduction locale. Aucun contrôle ou seuil re
 ### Authority : reconnaître une extension réellement exécutée
 
 Analyse statique stricte dans declarations_dynamiques.py, raccordée au vérificateur.
-Exige signature source connue ET nom réel du dernier paramètre, ancien/nouvel en-tête
+Exige signature source connue ET nom réel du dernier paramètre ET ancre présente dans l’en-tête canonique
+(pas un alias de type ni un paramètre à valeur par défaut incompatible), ancien/nouvel en-tête
 parsés PostgreSQL, remplacements à littéraux, même variable exécutée hors branche
 conditionnelle, pas de retour ni réaffectation opaque/SELECT INTO. Ce n'est pas une
 liste blanche de trading_acheter et ce n'est pas une preuve de déploiement.

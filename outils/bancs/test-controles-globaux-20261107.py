@@ -17,14 +17,16 @@ BEGIN
  EXECUTE v_new;
 END $$;"""
   noms={'source(text,integer)':['p_acteur','p_n']}
+  entetes={'source(text,integer)':'CREATE FUNCTION public.source(p_acteur text, p_n integer)'}
   connus={'source(text,integer)'};attendu={'source(text,integer,text)'}
-  self.assertEqual(m.extensions_parametres(texte,connus,noms),attendu)
-  variantes={'source_absente':(texte,set()),'nom_ancre_faux':(texte.replace('p_n integer','p_faux integer'),connus),'sans_execute':(texte.replace(' EXECUTE v_new;',''),connus),'mauvaise_variable':(texte.replace(' EXECUTE v_new;',' EXECUTE v_def;'),connus),'execute_commente':(texte.replace(' EXECUTE v_new;',' -- EXECUTE v_new;'),connus),'source_conditionnelle':(texte.replace(' v_def :=',' IF false THEN\n v_def :=').replace(' v_new := replace(v_def',' END IF;\n v_new := replace(v_def'),connus),'execute_conditionnel':(texte.replace(' EXECUTE v_new;',' IF false THEN EXECUTE v_new; END IF;'),connus),'opaque':(texte.replace(' EXECUTE v_new;'," v_new := 'SELECT 1';\n EXECUTE v_new;"),connus),'select_into':(texte.replace(' EXECUTE v_new;'," SELECT 'SELECT 1' INTO v_new;\n EXECUTE v_new;"),connus),'retour':(texte.replace(' EXECUTE v_new;',' RETURN;\n EXECUTE v_new;'),connus),'type_source_faux':(texte.replace("'p_n integer)'","'p_n text)'"),connus),'fonction_non_executee':(texte.replace('DO $$','CREATE FUNCTION public.inactive() RETURNS void LANGUAGE plpgsql AS $$'),connus),'autre_langage':(texte.replace('END $$;','END $$ LANGUAGE plpython3u;'),connus),'commentaire':('/*'+texte+'*/',connus)}
+  self.assertEqual(m.extensions_parametres(texte,connus,noms,entetes),attendu)
+  variantes={'source_absente':(texte,set()),'nom_ancre_faux':(texte.replace('p_n integer','p_faux integer'),connus),'alias_absent_du_rendu':(texte.replace('p_n integer','p_n int4'),connus),'sans_execute':(texte.replace(' EXECUTE v_new;',''),connus),'mauvaise_variable':(texte.replace(' EXECUTE v_new;',' EXECUTE v_def;'),connus),'execute_commente':(texte.replace(' EXECUTE v_new;',' -- EXECUTE v_new;'),connus),'source_conditionnelle':(texte.replace(' v_def :=',' IF false THEN\n v_def :=').replace(' v_new := replace(v_def',' END IF;\n v_new := replace(v_def'),connus),'execute_conditionnel':(texte.replace(' EXECUTE v_new;',' IF false THEN EXECUTE v_new; END IF;'),connus),'opaque':(texte.replace(' EXECUTE v_new;'," v_new := 'SELECT 1';\n EXECUTE v_new;"),connus),'select_into':(texte.replace(' EXECUTE v_new;'," SELECT 'SELECT 1' INTO v_new;\n EXECUTE v_new;"),connus),'retour':(texte.replace(' EXECUTE v_new;',' RETURN;\n EXECUTE v_new;'),connus),'type_source_faux':(texte.replace("'p_n integer)'","'p_n text)'"),connus),'fonction_non_executee':(texte.replace('DO $$','CREATE FUNCTION public.inactive() RETURNS void LANGUAGE plpgsql AS $$'),connus),'autre_langage':(texte.replace('END $$;','END $$ LANGUAGE plpython3u;'),connus),'commentaire':('/*'+texte+'*/',connus)}
   for nom,(t,c) in variantes.items():
-   with self.subTest(nom=nom):self.assertFalse(m.extensions_parametres(t,c,noms))
+   with self.subTest(nom=nom):self.assertFalse(m.extensions_parametres(t,c,noms,entetes))
   reel=(R/'migrations/20261104173000_trading_livraison_terrestre.sql').read_text()
-  self.assertEqual(m.extensions_parametres(reel,{'trading_acheter(text,text,text,integer)'},{'trading_acheter(text,text,text,integer)':['a','b','c','p_quantite']}),{'trading_acheter(text,text,text,integer,text)'})
-  self.assertNotIn('trading_acheter(text,text,text,integer,text,text)',m.extensions_parametres(reel,{'trading_acheter(text,text,text,integer)'},{'trading_acheter(text,text,text,integer)':['a','b','c','p_quantite']}))
+  self.assertEqual(m.extensions_parametres(reel,{'trading_acheter(text,text,text,integer)'},{'trading_acheter(text,text,text,integer)':['a','b','c','p_quantite']},{'trading_acheter(text,text,text,integer)':'CREATE FUNCTION public.trading_acheter(a text,b text,c text,p_quantite integer)'}),{'trading_acheter(text,text,text,integer,text)'})
+  self.assertFalse(m.extensions_parametres(texte,connus,noms,{'source(text,integer)':'CREATE FUNCTION public.source(p_acteur text,p_n integer DEFAULT 1)'}))
+  self.assertNotIn('trading_acheter(text,text,text,integer,text,text)',m.extensions_parametres(reel,{'trading_acheter(text,text,text,integer)'},{'trading_acheter(text,text,text,integer)':['a','b','c','p_quantite']},{'trading_acheter(text,text,text,integer)':'CREATE FUNCTION public.trading_acheter(a text,b text,c text,p_quantite integer)'}))
  def test_detecteur_identique_sous_python_optimise(self):
   texte="""DO $$ DECLARE v_def text; v_new text;
 BEGIN
@@ -32,8 +34,10 @@ BEGIN
  v_new := replace(v_def, 'p_faux integer)', 'p_faux integer, p_lieu text DEFAULT NULL::text)');
  EXECUTE v_new;
 END $$;"""
-  script="import importlib.util,json; s=importlib.util.spec_from_file_location('ext','outils/baseline/declarations_dynamiques.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);print(json.dumps(sorted(m.extensions_parametres("+repr(texte)+",{'source(text,integer)'},{'source(text,integer)':['p_acteur','p_n']}))))"
-  r=subprocess.check_output([sys.executable,'-O','-c',script],cwd=R,text=True);self.assertEqual(json.loads(r),[])
+  appel="m.extensions_parametres(T,{'source(text,integer)'},{'source(text,integer)':['p_acteur','p_n']},{'source(text,integer)':'CREATE FUNCTION public.source(p_acteur text,p_n integer)'})"
+  script="import importlib.util,json;s=importlib.util.spec_from_file_location('ext','outils/baseline/declarations_dynamiques.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);T="+repr(texte)+";neg=sorted("+appel+");T=T.replace('p_faux integer','p_n integer');pos=sorted("+appel+");print(json.dumps([neg,pos]))"
+  r=subprocess.check_output([sys.executable,'-O','-c',script],cwd=R,text=True);self.assertEqual(json.loads(r),[[],['source(text,integer,text)']])
+
  def test_ressources_ordre_exhaustif_et_copie_alteree(self):
   g=module('gen','outils/generateurs/generer_referentiels_serveur.py');v=module('verif','outils/baseline/verifier-referentiels.py')
   r=next(r for r in json.loads(Path(g.DECLARATION).read_text())['referentiels'] if r['serveur']=='RESSOURCES_ECONOMIE_SERVEUR')

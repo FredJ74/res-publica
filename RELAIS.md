@@ -832,3 +832,9 @@ Workflow conforme, bureau1440 inchangé. Globaux 10/12 rejoués ; Baseline/Refer
 restent rouges exactement pour les captures détaillées dans le rapport.
 REST POST /pulls tenté, réponse Forbidden : Claude ouvrira la PR à partir du titre
 et de la description ci-dessus. Aucune écriture ou migration en production.
+
+Dernière contre-épreuve Authority : l'ancre doit figurer dans l'en-tête canonique
+de la fonction source, pas seulement avoir un type comparable. Paramètre avec
+défaut et alias absent du rendu refusés ; positif et négatif testés aussi sous
+Python -O. Huit bancs ciblés passent, Authority reste conforme ; dernier contrôleur
+complet lancé sur ce code stabilisé. Aucune exception nominative à trading_acheter.
