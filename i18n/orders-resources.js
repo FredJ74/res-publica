@@ -4207,6 +4207,47 @@
   };
   for (const [locale, labels] of Object.entries(dailyServices)) Object.assign(words[locale], labels);
   for (const [locale, labels] of Object.entries(civic)) Object.assign(words[locale], labels);
+  // Ordres nouveaux de Sovarka : reprendre exactement les libellés de data.js,
+  // uniquement pour leur rendu, sans toucher aux règles du Soviet.
+  const sovarkaOrders = {
+    "fr": {
+      "sovarka_repas_presidentiel": "Repas du Président",
+      "sovarka_soviet_deputes": "Sièges et députés du Soviet Suprême"
+    },
+    "en": {
+      "sovarka_repas_presidentiel": "President's meal",
+      "sovarka_soviet_deputes": "Seats and deputies of the Supreme Soviet"
+    },
+    "es": {
+      "sovarka_repas_presidentiel": "Comida del Presidente",
+      "sovarka_soviet_deputes": "Escaños y diputados del Sóviet Supremo"
+    },
+    "zh-TW": {
+      "sovarka_repas_presidentiel": "主席餐宴",
+      "sovarka_soviet_deputes": "最高蘇維埃席位與代表"
+    },
+    "ru": {
+      "sovarka_repas_presidentiel": "Обед председателя",
+      "sovarka_soviet_deputes": "Места и депутаты Верховного Совета"
+    },
+    "ko": {
+      "sovarka_repas_presidentiel": "의장 식사",
+      "sovarka_soviet_deputes": "최고 소비에트 의석과 의원"
+    },
+    "ar": {
+      "sovarka_repas_presidentiel": "وجبة الرئيس",
+      "sovarka_soviet_deputes": "مقاعد ونواب السوفييت الأعلى"
+    },
+    "pt-BR": {
+      "sovarka_repas_presidentiel": "Refeição do Presidente",
+      "sovarka_soviet_deputes": "Cadeiras e deputados do Soviete Supremo"
+    },
+    "de": {
+      "sovarka_repas_presidentiel": "Mahlzeit des Vorsitzenden",
+      "sovarka_soviet_deputes": "Sitze und Abgeordnete des Obersten Sowjets"
+    }
+  };
+  for(const [locale,labels] of Object.entries(sovarkaOrders)) Object.assign(words[locale],labels);
   for(const [locale,labels] of Object.entries(words)) {
     if(resources[locale]?.translation) resources[locale].translation.orders={...labels};
   }
