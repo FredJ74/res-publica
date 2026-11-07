@@ -16,7 +16,7 @@ test('réservation simple et standard : 9 traductions contextuelles, identifiant
  assert.equal(languages.length,9);
  for(const lng of languages) {
   const vars=w.RP_I18N_RESOURCES[lng].translation.orderVariants;
-  assert.equal(Object.keys(vars).length,2);
+  assert.equal(Object.keys(vars).length,9);
   for(const value of Object.values(vars))assert.ok(value.trim());
  }
  for(const [key,original,cost] of [
@@ -48,4 +48,26 @@ test('un ordre ambigu sans i18nKey ne reçoit aucune traduction par défaut',()=
  const order={fn:'reserver_chambre_hotel',label:'Réserver une chambre spéciale',pa:0,cost:0};
  assert.equal(w.RPOrderI18n.ambiguous(order.fn),true);
  assert.equal(w.RPOrderI18n.label(order,engine,'en'),order.label);
+});
+
+
+test('sept rumeurs et deux conférences disposent de variantes sûres',()=>{
+ const data=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const rumours=[...data.matchAll(/fn:'ecouter_rumeurs',\s*label:'((?:\\.|[^'])*)',\s*i18nKey:'variant\.(rumours_[a-z]+)'/g)];
+ const press=[...data.matchAll(/fn:'conference_presse',\s*label:'((?:\\.|[^'])*)',\s*i18nKey:'variant\.press_conference'/g)];
+ assert.equal(rumours.length,7);
+ assert.equal(press.length,2);
+ const expected=['rumours_tables','rumours_barman','rumours_general','rumours_owner','rumours_waitress','rumours_listen'];
+ for(const key of expected)assert.ok(rumours.some(match=>match[2]===key),key);
+ for(const lng of Object.keys(w.RP_I18N_LANGUAGES)){
+  const words=w.RP_I18N_RESOURCES[lng].translation.orderVariants;
+  for(const key of [...expected,'press_conference']){
+   assert.ok(words[key]?.trim(),lng+'/'+key);
+   const original=key==='press_conference'?'Conférence de presse':key;
+   const order=Object.freeze({fn:key==='press_conference'?'conference_presse':'ecouter_rumeurs',
+    label:original,i18nKey:'variant.'+key,pa:2,cost:31,requiresPost:'test'});
+   assert.equal(w.RPOrderI18n.label(order,engine,lng),words[key]);
+   assert.equal(order.cost,31);assert.equal(order.pa,2);assert.equal(order.requiresPost,'test');
+  }
+ }
 });
