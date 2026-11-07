@@ -3,6 +3,13 @@
 function rpForumLibelle(key,source) {
   return (typeof window!=='undefined' && window.RPForumUI?.labelHtml?.(key,source)) || source;
 }
+// Réutiliser les traductions de champs de l'interface centrale (pas de doublon).
+function rpForumPlateauLibelle(key,source) {
+  if(typeof window==='undefined' || window.RPPlateauI18n?.language?.()==='fr')return source;
+  const translation=window.RPPlateauI18n?.translate?.('plateau.'+key);
+  if(typeof translation!=='string'||!translation.trim()||translation==='plateau.'+key)return source;
+  return translation.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 function rpForumNom(id,source) {
   return (typeof window!=='undefined' && window.RPForumUI?.forumNameHtml?.(id,source)) || source;
 }
@@ -3001,31 +3008,31 @@ function renderMailCompose(defaultTo = '', defaultSubject = '', defaultOrgaId = 
   return `
     <div class="forum-header-bar">
       <button class="forum-back-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">
-        <i class="ti ti-arrow-left"></i> Retour
+        <i class="ti ti-arrow-left"></i> ${rpForumLibelle('back','Retour')}
       </button>
-      <div class="forum-title-main">Nouveau message</div>
+      <div class="forum-title-main">${rpForumPlateauLibelle('newMessage','Nouveau message')}</div>
     </div>
     <div class="forum-compose-form">
       <div class="forum-field">
-        <label class="forum-field-label">Destinataire</label>
+        <label class="forum-field-label">${rpForumPlateauLibelle('recipient','Destinataire')}</label>
         <input class="forum-field-input" id="mail-to" type="text" value="${escapeHtmlText(defaultTo)}"
-          placeholder="Nom du destinataire..." list="contacts-list"/>
+          placeholder="${rpForumPlateauLibelle('recipientPlaceholder','Nom du destinataire...')}" list="contacts-list"/>
         <datalist id="contacts-list">
           ${contacts.map(c => `<option value="${escapeHtmlText(c.name)}">`).join('')}
         </datalist>
       </div>
       ${renderEnvoyerMailEnTantQue('compose-mail-auteur', defaultOrgaId)}
       <div class="forum-field">
-        <label class="forum-field-label">Sujet</label>
+        <label class="forum-field-label">${rpForumPlateauLibelle('subject','Sujet')}</label>
         <input class="forum-field-input" id="mail-subject" type="text" value="${escapeHtmlText(defaultSubject)}"
-          placeholder="Objet du message..."/>
+          placeholder="${rpForumPlateauLibelle('subjectPlaceholder','Objet du message...')}"/>
       </div>
       <div class="forum-field">
-        <label class="forum-field-label">Message</label>
+        <label class="forum-field-label">${rpForumPlateauLibelle('messageLabel','Message')}</label>
         ${renderRichEditor('compose-body')}
       </div>
       <button class="forum-submit-btn" onclick="submitMail()">
-        <i class="ti ti-send"></i> Envoyer
+        <i class="ti ti-send"></i> ${rpForumPlateauLibelle('sendButton','Envoyer')}
       </button>
     </div>
   `;
