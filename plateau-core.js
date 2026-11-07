@@ -1043,7 +1043,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Forcer le rendu complet au chargement
   setTimeout(() => {
-    forceRenderCity(state.currentCity || 'capitale');
+    forceRenderCity(state.currentCity || 'capitale', { garderBatiment: true });
   }, 300);
 });
 
