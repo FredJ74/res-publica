@@ -91,6 +91,45 @@
   }
 };
  for(const [lang,strings] of Object.entries(next)) Object.assign(labels[lang],strings);
+ const cityTour={
+  "fr": {
+    "clinic": "Ici c'est le dispensaire. On peut se faire soigner gratuitement, ou à moindre frais. Bien sûr, si vous êtes riche, vous pouvez aller en hôpital privé pour de meilleurs soins.<br><br>Il y a aussi nos anciens, ici, à l'EHPAD. Ils sont un peu la mémoire de la ville, vous savez.<br><br>N'hésitez pas à venir leur parler.",
+    "electionRoom": "Ici on est au cœur du système électoral car c'est ici qu'on vote.<br><br>On peut aussi voir qui est candidat aux élections par exemple.<br><br>Chaque pièce est dédiée à un usage.<br><br>À présent, on va aller en ville. On va déjà sortir de l'Hôtel de Ville."
+  },
+  "en": {
+    "clinic": "This is the health clinic. You can receive treatment here for free or at low cost. If you're wealthy, of course, you can go to a private hospital for better care.<br><br>Our elderly residents are here too, in the care home. They're part of the town's memory, you know.<br><br>Don't hesitate to talk to them.",
+    "electionRoom": "This is the heart of the electoral system: it's where we vote.<br><br>You can also see who's standing in the elections, for example.<br><br>Each room serves a different purpose.<br><br>Now let's head into town. First we need to leave Town Hall."
+  },
+  "es": {
+    "clinic": "Este es el dispensario. Aquí puede recibir atención gratuita o a bajo precio. Si tiene dinero, claro, puede ir a un hospital privado para obtener mejores cuidados.<br><br>También están aquí nuestros mayores, en la residencia. Son un poco la memoria de la ciudad.<br><br>No dude en hablar con ellos.",
+    "electionRoom": "Este es el corazón del sistema electoral, porque aquí se vota.<br><br>También puede ver quién se presenta a las elecciones, por ejemplo.<br><br>Cada sala tiene una función distinta.<br><br>Ahora iremos a la ciudad. Primero hay que salir del Ayuntamiento."
+  },
+  "zh-TW": {
+    "clinic": "這裡是醫療站。你可以免費接受治療，或只付少量費用。當然，如果你很有錢，也能去私人醫院接受更好的照護。<br><br>我們的長者也住在這裡的養老院。他們就像是這座城市的活歷史。<br><br>有空不妨跟他們聊聊。",
+    "electionRoom": "這裡是選舉制度的核心，因為大家就在這裡投票。<br><br>你也能查詢有哪些人參加選舉。<br><br>每個房間都有不同的用途。<br><br>現在我們要去城裡了。先離開市政廳吧。"
+  },
+  "ru": {
+    "clinic": "Это медпункт. Здесь можно лечиться бесплатно или за небольшую плату. Если вы богаты, разумеется, можете обратиться в частную больницу за лучшим уходом.<br><br>Здесь же, в доме престарелых, живут наши старики. Они, можно сказать, сама память города.<br><br>Не стесняйтесь с ними разговаривать.",
+    "electionRoom": "Здесь — сердце избирательной системы: именно тут проходят голосования.<br><br>Можно, например, посмотреть, кто баллотируется на выборах.<br><br>У каждой комнаты своё назначение.<br><br>А теперь отправимся в город. Сначала выйдем из мэрии."
+  },
+  "ko": {
+    "clinic": "여기는 진료소예요. 무료나 저렴한 비용으로 치료받을 수 있죠. 물론 돈이 많다면 더 나은 치료를 위해 사립 병원에 갈 수도 있어요.<br><br>여기 요양원에는 어르신들도 계세요. 도시의 기억을 간직한 분들이죠.<br><br>기회가 있으면 이야기를 나눠 보세요.",
+    "electionRoom": "이곳은 선거 제도의 중심이에요. 바로 여기서 투표하거든요.<br><br>선거에 누가 출마했는지도 확인할 수 있죠.<br><br>방마다 용도가 달라요.<br><br>이제 도시로 나가 볼까요? 먼저 시청을 나가야 해요."
+  },
+  "ar": {
+    "clinic": "هذا هو المستوصف. يمكنك تلقي العلاج مجانًا أو بتكلفة بسيطة. وإذا كنت ثريًا، فبإمكانك الذهاب إلى مستشفى خاص للحصول على رعاية أفضل.<br><br>ويعيش كبار السن هنا أيضًا في دار المسنين. إنهم ذاكرة المدينة، كما تعلم.<br><br>لا تتردد في التحدث إليهم.",
+    "electionRoom": "نحن هنا في قلب النظام الانتخابي؛ ففي هذا المكان يجري التصويت.<br><br>ويمكنك أيضًا معرفة المرشحين للانتخابات، على سبيل المثال.<br><br>لكل غرفة وظيفة محددة.<br><br>والآن سنخرج إلى المدينة. أولًا علينا مغادرة مبنى البلدية."
+  },
+  "pt-BR": {
+    "clinic": "Aqui é o posto de saúde. Você pode receber atendimento gratuito ou pagando pouco. Se for rico, claro, pode procurar um hospital particular para um atendimento melhor.<br><br>Nossos idosos também estão aqui, no lar de repouso. Eles são um pouco a memória da cidade, sabe?<br><br>Não deixe de conversar com eles.",
+    "electionRoom": "Aqui estamos no coração do sistema eleitoral: é onde as pessoas votam.<br><br>Também dá para consultar quem está concorrendo às eleições, por exemplo.<br><br>Cada sala tem uma função diferente.<br><br>Agora vamos conhecer a cidade. Primeiro, vamos sair da Prefeitura."
+  },
+  "de": {
+    "clinic": "Das hier ist die Krankenstation. Hier kann man sich kostenlos oder für wenig Geld behandeln lassen. Wer reich ist, kann natürlich für eine bessere Versorgung in ein Privatkrankenhaus gehen.<br><br>Auch unsere älteren Mitbürger wohnen hier im Pflegeheim. Sie sind gewissermaßen das Gedächtnis der Stadt.<br><br>Sprechen Sie ruhig mit ihnen.",
+    "electionRoom": "Hier sind wir im Herzen des Wahlsystems, denn hier wird gewählt.<br><br>Man kann zum Beispiel auch sehen, wer bei den Wahlen kandidiert.<br><br>Jeder Raum hat seine eigene Aufgabe.<br><br>Jetzt gehen wir in die Stadt. Zuerst verlassen wir das Rathaus."
+  }
+};
+ for(const [lang,strings] of Object.entries(cityTour)) Object.assign(labels[lang],strings);
  for(const [lang,strings] of Object.entries(labels))
   if(resources[lang]?.translation)resources[lang].translation.jeremyScenes={...strings};
  function label(key,original){
