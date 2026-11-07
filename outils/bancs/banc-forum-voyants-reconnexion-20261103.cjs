@@ -14,6 +14,7 @@ function between(src,first,last){
  return src.slice(start,end);
 }
 const forumFunctions=[
+ between(forum,'function rpForumLibelle(', '/* ==========================='),
  between(forum,'function estMembreOrganisationForum(', 'function getForums('),
  between(forum,'function _cleDernierPassageForum(', 'function renderForumCategorieItems('),
  between(forum,'function renderForumCategorieItems(', 'function toggleSousGroupeForum('),
