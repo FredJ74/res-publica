@@ -11,17 +11,17 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Gérard Tamponneau",
-  "nouveau": "Anatoli Protokolov",
+  "nouveau": "Anatoli Sokolov",
   "role": null,
-  "id": "sovarka_anatoli_protokolov",
+  "id": "sovarka_anatoli_sokolov",
   "source": "gerard_tamponneau"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Huguette Papier",
-  "nouveau": "Nadejda Paperassova",
+  "nouveau": "Nadejda Lebedeva",
   "role": null,
-  "id": "sovarka_nadejda_paperassova",
+  "id": "sovarka_nadejda_lebedeva",
   "source": "huguette_papier"
  },
  {
@@ -83,25 +83,25 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Marc Hantile",
-  "nouveau": "Leonid Combinov",
+  "nouveau": "Leonid Orlov",
   "role": null,
-  "id": "sovarka_leonid_combinov",
+  "id": "sovarka_leonid_orlov",
   "source": "marc_hantile"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Secretaire Dupuis",
-  "nouveau": "Secrétaire Tamara Dossierova",
+  "nouveau": "Secrétaire Tamara Volkova",
   "role": null,
-  "id": "sovarka_secretaire_tamara_dossierova",
+  "id": "sovarka_secretaire_tamara_volkova",
   "source": "secretaire_dupuis"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Éric Stricted",
-  "nouveau": "Oleg Strictov",
+  "nouveau": "Oleg Morozov",
   "role": "PNJ - Chef de cabinet du Président du Conseil du Peuple",
-  "id": "sovarka_oleg_strictov",
+  "id": "sovarka_oleg_morozov",
   "source": "eric_stricted"
  },
  {
@@ -115,17 +115,17 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Archiviste Legrand",
-  "nouveau": "Archiviste Foma Classeurov",
+  "nouveau": "Archiviste Foma Beliaïev",
   "role": null,
-  "id": "sovarka_archiviste_foma_classeurov",
+  "id": "sovarka_archiviste_foma_beliaiev",
   "source": "archiviste_legrand"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Yvan Danltat",
-  "nouveau": "Gleb Kontrolov",
+  "nouveau": "Gleb Nikitine",
   "role": "PNJ - Ministre de la Sécurité du Peuple",
-  "id": "sovarka_gleb_kontrolov",
+  "id": "sovarka_gleb_nikitine",
   "source": "yvan_danltat"
  },
  {
@@ -139,9 +139,9 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Mathilde Garde",
-  "nouveau": "Galina Verdiktova",
+  "nouveau": "Galina Sergueïeva",
   "role": "PNJ - Ministre de la Justice prolétarienne",
-  "id": "sovarka_galina_verdiktova",
+  "id": "sovarka_galina_sergueieva",
   "source": "mathilde_garde"
  },
  {
@@ -163,17 +163,17 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Jean-Jacques Carlin",
-  "nouveau": "Evgueni Diplomatov",
+  "nouveau": "Evgueni Gromov",
   "role": "PNJ - Ministre de l'Amitié entre les Peuples",
-  "id": "sovarka_evgueni_diplomatov",
+  "id": "sovarka_evgueni_gromov",
   "source": "jean_jacques_carlin"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Renée Toitout",
-  "nouveau": "Babouchka Serpillova",
+  "nouveau": "Babouchka Kouzmina",
   "role": null,
-  "id": "sovarka_babouchka_serpillova",
+  "id": "sovarka_babouchka_kouzmina",
   "source": "renee_toitout"
  },
  {
@@ -187,17 +187,17 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Journaliste Blanc",
-  "nouveau": "Journaliste Iouri Blankov",
+  "nouveau": "Journaliste Iouri Sorokine",
   "role": null,
-  "id": "sovarka_journaliste_iouri_blankov",
+  "id": "sovarka_journaliste_iouri_sorokine",
   "source": "journaliste_blanc"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Greffier Petit",
-  "nouveau": "Greffier Semion Paraphov",
+  "nouveau": "Greffier Semion Golovine",
   "role": null,
-  "id": "sovarka_greffier_semion_paraphov",
+  "id": "sovarka_greffier_semion_golovine",
   "source": "greffier_petit"
  },
  {
@@ -211,57 +211,57 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Louis Chevillard",
-  "nouveau": "Matveï Matraquine",
+  "nouveau": "Matveï Tcherkassov",
   "role": null,
-  "id": "sovarka_matvei_matraquine",
+  "id": "sovarka_matvei_tcherkassov",
   "source": "louis_chevillard"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Noël Chauchay",
-  "nouveau": "Nikolaï Tracteurov",
+  "nouveau": "Nikolaï Zakharov",
   "role": null,
-  "id": "sovarka_nikolai_tracteurov",
+  "id": "sovarka_nikolai_zakharov",
   "source": "noel_chauchay"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Gardien Dubois",
-  "nouveau": "Gardien Stepan Verrouïev",
+  "nouveau": "Gardien Stepan Kalinine",
   "role": null,
-  "id": "sovarka_gardien_stepan_verrouiev",
+  "id": "sovarka_gardien_stepan_kalinine",
   "source": "gardien_dubois"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Tristan Cabane",
-  "nouveau": "Timofeï Cachotov",
+  "nouveau": "Timofeï Fomine",
   "role": null,
-  "id": "sovarka_timofei_cachotov",
+  "id": "sovarka_timofei_fomine",
   "source": "tristan_cabane"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Raoul Toufaud",
-  "nouveau": "Vassili Ordonov",
+  "nouveau": "Vassili Ostrovski",
   "role": null,
-  "id": "sovarka_vassili_ordonov",
+  "id": "sovarka_vassili_ostrovski",
   "source": "raoul_toufaud"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Gardien de la Paix",
-  "nouveau": "Sergent Matrakov",
+  "nouveau": "Sergent Doubinine",
   "role": null,
-  "id": "sovarka_sergent_matrakov",
+  "id": "sovarka_sergent_doubinine",
   "source": "gardien_de_la_paix"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Brigitte Menottes",
-  "nouveau": "Bronislava Menottova",
+  "nouveau": "Bronislava Jarova",
   "role": null,
-  "id": "sovarka_bronislava_menottova",
+  "id": "sovarka_bronislava_jarova",
   "source": "brigitte_menottes"
  },
  {
@@ -283,9 +283,9 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Secretaire Municipal Petit",
-  "nouveau": "Secrétaire municipal Arseni Formoulov",
+  "nouveau": "Secrétaire municipal Arseni Krylov",
   "role": null,
-  "id": "sovarka_secretaire_municipal_arseni_formoulov",
+  "id": "sovarka_secretaire_municipal_arseni_krylov",
   "source": "secretaire_municipal_petit"
  },
  {
@@ -299,97 +299,97 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Jean Registre",
-  "nouveau": "Ivan Registrov",
+  "nouveau": "Ivan Tarassov",
   "role": "Responsable électoral de Novomirsk",
-  "id": "sovarka_ivan_registrov",
+  "id": "sovarka_ivan_tarassov",
   "source": "jean_registre"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Christophe Bouquin",
-  "nouveau": "Kirill Bouquinov",
+  "nouveau": "Kirill Poliakov",
   "role": null,
-  "id": "sovarka_kirill_bouquinov",
+  "id": "sovarka_kirill_poliakov",
   "source": "christophe_bouquin"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Inspecteur Prosper Tampon",
-  "nouveau": "Inspecteur Prokhor Tamponov",
+  "nouveau": "Inspecteur Prokhor Rybakov",
   "role": null,
-  "id": "sovarka_inspecteur_prokhor_tamponov",
+  "id": "sovarka_inspecteur_prokhor_rybakov",
   "source": "inspecteur_prosper_tampon"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Francisca Brel",
-  "nouveau": "Ksenia Fauchova",
+  "nouveau": "Ksenia Makarova",
   "role": null,
-  "id": "sovarka_ksenia_fauchova",
+  "id": "sovarka_ksenia_makarova",
   "source": "francisca_brel"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Edgar Simore",
-  "nouveau": "Arkhip Abracadabrov",
+  "nouveau": "Arkhip Voronine",
   "role": null,
-  "id": "sovarka_arkhip_abracadabrov",
+  "id": "sovarka_arkhip_voronine",
   "source": "edgar_simore"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Sabri Coledur",
-  "nouveau": "Sava Boulonov",
+  "nouveau": "Sava Goussev",
   "role": null,
-  "id": "sovarka_sava_boulonov",
+  "id": "sovarka_sava_goussev",
   "source": "sabri_coledur"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Céd' Labone",
-  "nouveau": "Kolia Brumov",
+  "nouveau": "Kolia Titov",
   "role": null,
-  "id": "sovarka_kolia_brumov",
+  "id": "sovarka_kolia_titov",
   "source": "ced_labone"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Henrico Stot",
-  "nouveau": "Genrikh Stoïkov",
+  "nouveau": "Genrikh Vlassov",
   "role": null,
-  "id": "sovarka_genrikh_stoikov",
+  "id": "sovarka_genrikh_vlassov",
   "source": "henrico_stot"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Gretta Délieu",
-  "nouveau": "Inna Rendezvousova",
+  "nouveau": "Inna Zaïtseva",
   "role": null,
-  "id": "sovarka_inna_rendezvousova",
+  "id": "sovarka_inna_zaitseva",
   "source": "gretta_delieu"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Moshe Maychan",
-  "nouveau": "Moïsseï Mechantov",
+  "nouveau": "Moïsseï Kisseliov",
   "role": null,
-  "id": "sovarka_moissei_mechantov",
+  "id": "sovarka_moissei_kisseliov",
   "source": "moshe_maychan"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Harry Cover",
-  "nouveau": "Garri Kouverov",
+  "nouveau": "Garri Medvedev",
   "role": null,
-  "id": "sovarka_garri_kouverov",
+  "id": "sovarka_garri_medvedev",
   "source": "harry_cover"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Alain Dex",
-  "nouveau": "Alexeï Indexov",
+  "nouveau": "Alexeï Bogdanov",
   "role": null,
-  "id": "sovarka_alexei_indexov",
+  "id": "sovarka_alexei_bogdanov",
   "source": "alain_dex"
  },
  {
@@ -419,73 +419,73 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Starovka",
   "ancien": "Delegue Morel",
-  "nouveau": "Délégué Batbayar Grevov",
+  "nouveau": "Délégué Batbayar Dachiev",
   "role": null,
-  "id": "sovarka_delegue_batbayar_grevov",
+  "id": "sovarka_delegue_batbayar_dachiev",
   "source": "delegue_morel"
  },
  {
   "ville": "Starovka",
   "ancien": "Directeur Fabre",
-  "nouveau": "Directeur Tsyren Quotaïev",
+  "nouveau": "Directeur Tsyren Badmaïev",
   "role": null,
-  "id": "sovarka_directeur_tsyren_quotaiev",
+  "id": "sovarka_directeur_tsyren_badmaiev",
   "source": "directeur_fabre"
  },
  {
   "ville": "Starovka",
   "ancien": "Francisca Brel",
-  "nouveau": "Tuya Chaparova",
+  "nouveau": "Tuya Sanjieva",
   "role": null,
-  "id": "sovarka_tuya_chaparova",
+  "id": "sovarka_tuya_sanjieva",
   "source": "francisca_brel"
  },
  {
   "ville": "Starovka",
   "ancien": "Edgar Simore",
-  "nouveau": "Altan Tourdemagov",
+  "nouveau": "Altan Namsaraïev",
   "role": null,
-  "id": "sovarka_altan_tourdemagov",
+  "id": "sovarka_altan_namsaraiev",
   "source": "edgar_simore"
  },
  {
   "ville": "Starovka",
   "ancien": "Sabri Coledur",
-  "nouveau": "Bayar Clédouzov",
+  "nouveau": "Bayar Otchirov",
   "role": null,
-  "id": "sovarka_bayar_cledouzov",
+  "id": "sovarka_bayar_otchirov",
   "source": "sabri_coledur"
  },
  {
   "ville": "Starovka",
   "ancien": "Céd' Labone",
-  "nouveau": "Ganbold Brumaïev",
+  "nouveau": "Ganbold Garmaïev",
   "role": null,
-  "id": "sovarka_ganbold_brumaiev",
+  "id": "sovarka_ganbold_garmaiev",
   "source": "ced_labone"
  },
  {
   "ville": "Starovka",
   "ancien": "Henrico Stot",
-  "nouveau": "Temür Costaudov",
+  "nouveau": "Temür Dougarov",
   "role": null,
-  "id": "sovarka_temur_costaudov",
+  "id": "sovarka_temur_dougarov",
   "source": "henrico_stot"
  },
  {
   "ville": "Starovka",
   "ancien": "Gretta Délieu",
-  "nouveau": "Oyuuna Accueilova",
+  "nouveau": "Oyuuna Tsydenova",
   "role": null,
-  "id": "sovarka_oyuuna_accueilova",
+  "id": "sovarka_oyuuna_tsydenova",
   "source": "gretta_delieu"
  },
  {
   "ville": "Starovka",
   "ancien": "Moshe Maychan",
-  "nouveau": "Khasar Mechantaïev",
+  "nouveau": "Khasar Baljirov",
   "role": null,
-  "id": "sovarka_khasar_mechantaiev",
+  "id": "sovarka_khasar_baljirov",
   "source": "moshe_maychan"
  },
  {
@@ -507,81 +507,81 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Krasnov",
   "ancien": "Delegue Morel",
-  "nouveau": "Délégué Prokofi Grevine",
+  "nouveau": "Délégué Prokofi Panov",
   "role": null,
-  "id": "sovarka_delegue_prokofi_grevine",
+  "id": "sovarka_delegue_prokofi_panov",
   "source": "delegue_morel"
  },
  {
   "ville": "Krasnov",
   "ancien": "Directeur Fabre",
-  "nouveau": "Directeur Platon Quotov",
+  "nouveau": "Directeur Platon Iermakov",
   "role": null,
-  "id": "sovarka_directeur_platon_quotov",
+  "id": "sovarka_directeur_platon_iermakov",
   "source": "directeur_fabre"
  },
  {
   "ville": "Krasnov",
   "ancien": "Francisca Brel",
-  "nouveau": "Varvara Chipova",
+  "nouveau": "Varvara Kozlova",
   "role": null,
-  "id": "sovarka_varvara_chipova",
+  "id": "sovarka_varvara_kozlova",
   "source": "francisca_brel"
  },
  {
   "ville": "Krasnov",
   "ancien": "Edgar Simore",
-  "nouveau": "Efim Tourdepassov",
+  "nouveau": "Efim Iakovlev",
   "role": null,
-  "id": "sovarka_efim_tourdepassov",
+  "id": "sovarka_efim_iakovlev",
   "source": "edgar_simore"
  },
  {
   "ville": "Krasnov",
   "ancien": "Sabri Coledur",
-  "nouveau": "Stas Tournevissov",
+  "nouveau": "Stas Mironov",
   "role": null,
-  "id": "sovarka_stas_tournevissov",
+  "id": "sovarka_stas_mironov",
   "source": "sabri_coledur"
  },
  {
   "ville": "Krasnov",
   "ancien": "Céd' Labone",
-  "nouveau": "Tolia Herbov",
+  "nouveau": "Tolia Souvorov",
   "role": null,
-  "id": "sovarka_tolia_herbov",
+  "id": "sovarka_tolia_souvorov",
   "source": "ced_labone"
  },
  {
   "ville": "Krasnov",
   "ancien": "Henrico Stot",
-  "nouveau": "Gavriil Gourdinov",
+  "nouveau": "Gavriil Lavrov",
   "role": null,
-  "id": "sovarka_gavriil_gourdinov",
+  "id": "sovarka_gavriil_lavrov",
   "source": "henrico_stot"
  },
  {
   "ville": "Krasnov",
   "ancien": "Gretta Délieu",
-  "nouveau": "Darina Bienvenouchka",
+  "nouveau": "Darina Korneva",
   "role": null,
-  "id": "sovarka_darina_bienvenouchka",
+  "id": "sovarka_darina_korneva",
   "source": "gretta_delieu"
  },
  {
   "ville": "Krasnov",
   "ancien": "Moshe Maychan",
-  "nouveau": "Makar Sicarov",
+  "nouveau": "Makar Tchernov",
   "role": null,
-  "id": "sovarka_makar_sicarov",
+  "id": "sovarka_makar_tchernov",
   "source": "moshe_maychan"
  },
  {
   "ville": "Krasnov",
   "ancien": "Harry Cover",
-  "nouveau": "Afanassi Loupine",
+  "nouveau": "Afanassi Rogov",
   "role": null,
-  "id": "sovarka_afanassi_loupine",
+  "id": "sovarka_afanassi_rogov",
   "source": "harry_cover"
  },
  {
@@ -595,25 +595,25 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Adjudant Gaspard Ferrière",
-  "nouveau": "Adjudant Piotr Galonov",
+  "nouveau": "Adjudant Piotr Antipov",
   "role": null,
-  "id": "piotr_galonov",
+  "id": "piotr_antipov",
   "source": "adjudant_gaspard_ferriere"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Ève Toahémarch",
-  "nouveau": "Infirmière Olga Pansementova",
+  "nouveau": "Infirmière Olga Komarova",
   "role": null,
-  "id": "olga_pansementova",
+  "id": "olga_komarova",
   "source": "eve_toahemarch"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Commandant Tom Hawak",
-  "nouveau": "Commandant Igor Bataillov",
+  "nouveau": "Commandant Igor Saveliev",
   "role": null,
-  "id": "commandant_igor_bataillov",
+  "id": "commandant_igor_saveliev",
   "source": "commandant_tom_hawak"
  },
  {
@@ -627,17 +627,17 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Caporal Lefebvre",
-  "nouveau": "Caporal Dimitri Corvéev",
+  "nouveau": "Caporal Dimitri Loguinov",
   "role": null,
-  "id": "sovarka_caporal_dimitri_corveev",
+  "id": "sovarka_caporal_dimitri_loguinov",
   "source": "caporal_lefebvre"
  },
  {
   "ville": "Novomirsk",
   "ancien": "Soldat Nguyen",
-  "nouveau": "Soldat Sacha Gamelline",
+  "nouveau": "Soldat Sacha Iline",
   "role": null,
-  "id": "sovarka_soldat_sacha_gamelline",
+  "id": "sovarka_soldat_sacha_iline",
   "source": "soldat_nguyen"
  },
  {
@@ -659,9 +659,9 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Sovarka",
   "ancien": "Philippe Cognedur",
-  "nouveau": "Gardien-chef Filipp Tapedurov",
+  "nouveau": "Gardien-chef Filipp Grichine",
   "role": null,
-  "id": "sovarka_gardien_chef_filipp_tapedurov",
+  "id": "sovarka_gardien_chef_filipp_grichine",
   "source": "philippe_cognedur"
  },
  {
@@ -675,9 +675,9 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Sovarka",
   "ancien": "Patrick Coule",
-  "nouveau": "Pavel Coulov",
+  "nouveau": "Pavel Kotov",
   "role": null,
-  "id": "sovarka_pavel_coulov",
+  "id": "sovarka_pavel_kotov",
   "source": "patrick_coule"
  }
 ];

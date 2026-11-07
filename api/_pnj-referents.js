@@ -1219,17 +1219,17 @@ function blocPedagogie(pedagogie) {
 // « pas de connexion entre les villes ». Generes depuis les fiches de Republia : une regle changee la
 // bas change ici, sans seconde copie a tenir.
 const CASERNE_SOVARKA = [
-  ['commandant_tom_hawak', 'commandant_igor_bataillov', 'Commandant Igor Bataillov'],
-  ['gaspard_ferriere',     'piotr_galonov',             'Adjudant Piotr Galonov'],
+  ['commandant_tom_hawak', 'commandant_igor_saveliev', 'Commandant Igor Saveliev'],
+  ['gaspard_ferriere',     'piotr_antipov',             'Adjudant Piotr Antipov'],
   ['caporal_alouche',      'vassili_kachaev',           'Caporal Vassili Kachaev'],
-  ['eve_toahemarch',       'olga_pansementova',         'Infirmière Olga Pansementova']
+  ['eve_toahemarch',       'olga_komarova',         'Infirmière Olga Komarova']
 ];
 const SOVARKA_REMPLACEMENTS = [
-  ['Commandant Tom Hawak', 'Commandant Igor Bataillov'], ['Tom Hawak', 'Igor Bataillov'], ['Hawak', 'Bataillov'],
-  ['Adjudant Gaspard Ferrière', 'Adjudant Piotr Galonov'], ['Gaspard Ferrière', 'Piotr Galonov'],
-  ['Gaspard Ferriere', 'Piotr Galonov'], ['Ferrière', 'Galonov'], ['Ferriere', 'Galonov'],
+  ['Commandant Tom Hawak', 'Commandant Igor Saveliev'], ['Tom Hawak', 'Igor Saveliev'], ['Hawak', 'Saveliev'],
+  ['Adjudant Gaspard Ferrière', 'Adjudant Piotr Antipov'], ['Gaspard Ferrière', 'Piotr Antipov'],
+  ['Gaspard Ferriere', 'Piotr Antipov'], ['Ferrière', 'Antipov'], ['Ferriere', 'Antipov'],
   ['Caporal Alouche', 'Caporal Vassili Kachaev'], ['Alouche', 'Kachaev'],
-  ['Ève Toahémarch', 'Olga Pansementova'], ['Eve Toahemarch', 'Olga Pansementova'],
+  ['Ève Toahémarch', 'Olga Komarova'], ['Eve Toahemarch', 'Olga Komarova'],
   ['Martial Bouterin, aide de camp du ministre', "l'aide de camp du ministre de la Defense"],
   ['Martial Bouterin', "l'aide de camp du ministre de la Defense"],
   ['CASERNE DE LUTHECIA', 'CASERNE CENTRALE DE NOVOMIRSK'], ['caserne de Luthecia', 'caserne centrale de Novomirsk'],

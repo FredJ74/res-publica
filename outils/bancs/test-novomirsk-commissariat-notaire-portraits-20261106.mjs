@@ -34,8 +34,8 @@ test('Quatre pièces Novomirsk utilisent exactement les quatre nouvelles images'
 test('Klara, Matrakov et Vassili : noms, profils et vrais portraits découpés',()=>{
  const expected=[
   ['office-notarial','accueil_notaire','Klara Delounova (PNJ)','Novo_klara_delounova_portrait.webp'],
-  ['commissariat','accueil_police','Sergent Matrakov (PNJ)','Novo_sergent_matrakov_portrait.webp'],
-  ['commissariat','bureau_commissaire','Vassili Ordonov (PNJ)','Novo_vassili_ordonov_portrait.webp']
+  ['commissariat','accueil_police','Sergent Doubinine (PNJ)','Novo_sergent_matrakov_portrait.webp'],
+  ['commissariat','bureau_commissaire','Vassili Ostrovski (PNJ)','Novo_vassili_ordonov_portrait.webp']
  ];
  for(const [b,r,name,file] of expected){
   const people=nov[b].roomOverrides[r].persons;
