@@ -138,14 +138,68 @@
   }
 };
  for(const [lang,labels] of Object.entries(ministries)) Object.assign(localized[lang],labels);
+ // Mairies provinciales : uniquement les trois intitulés canoniques des gabarits.
+ const mairie={
+  "fr": {
+    "accueil_mairie": "Accueil",
+    "bureau_maire_local": "Bureau du Maire",
+    "bureau_maire_adjoint": "Bureau du Maire Adjoint"
+  },
+  "en": {
+    "accueil_mairie": "Reception",
+    "bureau_maire_local": "Mayor's Office",
+    "bureau_maire_adjoint": "Deputy Mayor's Office"
+  },
+  "es": {
+    "accueil_mairie": "Recepción",
+    "bureau_maire_local": "Despacho del alcalde",
+    "bureau_maire_adjoint": "Despacho del teniente de alcalde"
+  },
+  "zh-TW": {
+    "accueil_mairie": "接待處",
+    "bureau_maire_local": "市長辦公室",
+    "bureau_maire_adjoint": "副市長辦公室"
+  },
+  "ru": {
+    "accueil_mairie": "Приёмная",
+    "bureau_maire_local": "Кабинет мэра",
+    "bureau_maire_adjoint": "Кабинет заместителя мэра"
+  },
+  "ko": {
+    "accueil_mairie": "안내실",
+    "bureau_maire_local": "시장실",
+    "bureau_maire_adjoint": "부시장실"
+  },
+  "ar": {
+    "accueil_mairie": "الاستقبال",
+    "bureau_maire_local": "مكتب رئيس البلدية",
+    "bureau_maire_adjoint": "مكتب نائب رئيس البلدية"
+  },
+  "pt-BR": {
+    "accueil_mairie": "Recepção",
+    "bureau_maire_local": "Gabinete do prefeito",
+    "bureau_maire_adjoint": "Gabinete do vice-prefeito"
+  },
+  "de": {
+    "accueil_mairie": "Empfang",
+    "bureau_maire_local": "Büro des Bürgermeisters",
+    "bureau_maire_adjoint": "Büro des stellvertretenden Bürgermeisters"
+  }
+};
+ for(const [locale,labels] of Object.entries(mairie)) Object.assign(localized[locale],labels);
  const expected=localized.fr;
  for(const [locale,labels] of Object.entries(localized)){
   if(resources[locale]?.translation)
    resources[locale].translation.rooms={...labels};
  }
  function label(buildingId,roomId,original){
-  if(buildingId!=='palais-gouvernement'||typeof original!=='string')return original;
-  if(!Object.hasOwn(expected,roomId)||original!==expected[roomId])return original;
+  if(typeof original!=='string')return original;
+  // Les autres édifices et les variantes politiques conservent leurs noms.
+  if(buildingId==='mairie') {
+   if(!Object.hasOwn(mairie.fr,roomId)||original!==mairie.fr[roomId])return original;
+  } else if(buildingId==='palais-gouvernement') {
+   if(!Object.hasOwn(expected,roomId)||original!==expected[roomId])return original;
+  } else return original;
   const locale=global.RPPlateauI18n?.language?.()||'fr';
   const translated=global.i18next?.t?.('rooms.'+roomId,{lng:locale,defaultValue:original});
   return typeof translated==='string'&&translated.trim() ? translated : original;
