@@ -142,6 +142,81 @@
   "de": "Das ist das Stadion der Mannschaft von Luthécia! Wir hängen alle sehr daran.<br><br>Zwölf Vereine treten gegeneinander an, um den besten zu ermitteln. Die Tabelle zeigt Ihnen die Platzierungen.<br><br>Wenn Sie ins Team möchten, holen Sie sich in der Umkleide eine Spielerlizenz und trainieren Sie, bis Sie zu den 15 besten Spielern des Vereins gehören. Der Co-Trainer hilft Ihnen gern dabei.<br><br>Sie können etwas trinken, Vereinsartikel kaufen, auf Spiele wetten oder dem Fanclub beitreten.<br><br>Aber glauben Sie nicht, dass hier nur Sport stattfindet. Sie werden sehen: Manche Bürgermeister haben ihr Amt verloren, andere wurden wiedergewählt — je nach Stimmung der Fans...<br><br>Also los, sehen Sie sich um und probieren Sie etwas aus!"
 };
  for(const [lang,scene] of Object.entries(stadium)) labels[lang].stadium=scene;
+ const guidance={
+  "fr": {
+    "turnLeft": "Allons sur la gauche, j'ai quelque chose à vous montrer.",
+    "keepDirection": "Continuez dans cette direction.",
+    "selectBuilding": "Cliquez sur le bon batiment.",
+    "routeStadium": "On va aller dans un super endroit : le stade de foot !<br><br>Pour ça il faut sortir puis aller sur la gauche, et ensuite, prendre la route perpendiculaire, puis tourner à droite.<br><br>Au pire, si vous êtes perdu, vous pouvez consulter le plan, en haut à droite.",
+    "exploreStadium": "Je vous laisse découvrir le stade. Si vous avez des questions pendant la visite, n'hésitez pas à me les poser.",
+    "bedroomSleepOrder": "Parfait ! Maintenant, dès que vous passerez l'ordre Dormir dans cette chambre réservée, vous vous requinquerez bien mieux. Bon, en attendant, allons faire un tour au bar, juste à côté."
+  },
+  "en": {
+    "turnLeft": "Let's go left. I've got something to show you.",
+    "keepDirection": "Keep going in this direction.",
+    "selectBuilding": "Click on the correct building.",
+    "routeStadium": "We're going somewhere great: the football stadium!<br><br>To get there, go outside and turn left. Take the road crossing your path, then turn right.<br><br>If you get lost, you can check the map in the top-right corner.",
+    "exploreStadium": "I'll let you explore the stadium. If you have questions during the visit, just ask me.",
+    "bedroomSleepOrder": "Perfect! When you use the order Sleep in this reserved room, you'll recover much better. But for now, let's visit the bar just next door."
+  },
+  "es": {
+    "turnLeft": "Vamos a la izquierda, quiero enseñarle algo.",
+    "keepDirection": "Continúe en esta dirección.",
+    "selectBuilding": "Haga clic en el edificio correcto.",
+    "routeStadium": "¡Vamos a un sitio estupendo: el estadio de fútbol!<br><br>Para llegar, salga y vaya a la izquierda. Después tome la calle perpendicular y gire a la derecha.<br><br>Si se pierde, puede consultar el mapa arriba a la derecha.",
+    "exploreStadium": "Le dejaré explorar el estadio. Si tiene alguna pregunta durante la visita, no dude en hacérmela.",
+    "bedroomSleepOrder": "¡Perfecto! Cuando utilice la orden Dormir en esta habitación reservada, recuperará mucha más energía. Pero antes vamos al bar de al lado."
+  },
+  "zh-TW": {
+    "turnLeft": "往左走吧，我有東西要給你看。",
+    "keepDirection": "沿著這個方向繼續走。",
+    "selectBuilding": "點選正確的建築。",
+    "routeStadium": "我們要去一個很棒的地方：足球場！<br><br>先離開建築並向左走，再走上交叉的道路，接著右轉。<br><br>如果迷路了，可以查看右上角的地圖。",
+    "exploreStadium": "你先自己逛逛體育場。有問題隨時問我。",
+    "bedroomSleepOrder": "太好了！只要使用「在這間已預訂的房間睡覺」指令，就能恢復更多體力。不過現在先去隔壁的酒吧看看吧。"
+  },
+  "ru": {
+    "turnLeft": "Пойдёмте налево, я хочу вам кое-что показать.",
+    "keepDirection": "Продолжайте идти в этом направлении.",
+    "selectBuilding": "Нажмите на нужное здание.",
+    "routeStadium": "Мы идём в замечательное место — на футбольный стадион!<br><br>Выйдите из здания и поверните налево, затем сверните на поперечную улицу и направо.<br><br>Если заблудитесь, посмотрите на карту в правом верхнем углу.",
+    "exploreStadium": "Осмотритесь на стадионе. Если во время прогулки появятся вопросы, смело спрашивайте.",
+    "bedroomSleepOrder": "Отлично! Когда вы выполните действие «Спать в забронированной комнате», сил восстановится гораздо больше. А пока заглянем в бар по соседству."
+  },
+  "ko": {
+    "turnLeft": "왼쪽으로 가요. 보여 드릴 게 있어요.",
+    "keepDirection": "이 방향으로 계속 가세요.",
+    "selectBuilding": "올바른 건물을 선택하세요.",
+    "routeStadium": "멋진 곳으로 가볼게요. 바로 축구 경기장이에요!<br><br>밖으로 나가 왼쪽으로 간 뒤, 가로지르는 길로 들어서서 오른쪽으로 도세요.<br><br>길을 잃으면 오른쪽 위에 있는 지도를 확인하세요.",
+    "exploreStadium": "경기장을 자유롭게 둘러보세요. 구경 중 궁금한 게 있으면 언제든 물어보세요.",
+    "bedroomSleepOrder": "좋아요! 예약한 방에서 잠자기 행동을 사용하면 회복 효과가 훨씬 좋아져요. 하지만 지금은 바로 옆에 있는 술집에 가보죠."
+  },
+  "ar": {
+    "turnLeft": "هيا نتجه يسارًا، لدي شيء أريد أن أريك إياه.",
+    "keepDirection": "واصل السير في هذا الاتجاه.",
+    "selectBuilding": "انقر على المبنى الصحيح.",
+    "routeStadium": "سنذهب إلى مكان رائع: ملعب كرة القدم!<br><br>اخرج أولًا ثم اتجه يسارًا، وبعد ذلك اسلك الطريق المتقاطع وانعطف يمينًا.<br><br>إذا ضللت الطريق، فيمكنك مراجعة الخريطة في الزاوية العلوية اليمنى.",
+    "exploreStadium": "سأتركك تستكشف الملعب. إن كانت لديك أسئلة أثناء الزيارة، فلا تتردد في طرحها عليّ.",
+    "bedroomSleepOrder": "ممتاز! عندما تستخدم أمر النوم في هذه الغرفة المحجوزة، ستستعيد طاقة أكبر بكثير. أما الآن فلنذهب إلى الحانة المجاورة."
+  },
+  "pt-BR": {
+    "turnLeft": "Vamos para a esquerda, tenho algo para mostrar.",
+    "keepDirection": "Continue nessa direção.",
+    "selectBuilding": "Clique no prédio certo.",
+    "routeStadium": "Vamos a um lugar incrível: o estádio de futebol!<br><br>Para chegar lá, saia e vire à esquerda. Depois pegue a rua transversal e vire à direita.<br><br>Se ficar perdido, consulte o mapa no canto superior direito.",
+    "exploreStadium": "Vou deixar você explorar o estádio. Se tiver alguma pergunta durante a visita, é só me chamar.",
+    "bedroomSleepOrder": "Perfeito! Quando você usar a ordem Dormir neste quarto reservado, vai recuperar muito mais energia. Mas antes vamos dar uma olhada no bar ao lado."
+  },
+  "de": {
+    "turnLeft": "Gehen wir nach links. Ich möchte Ihnen etwas zeigen.",
+    "keepDirection": "Gehen Sie weiter in diese Richtung.",
+    "selectBuilding": "Klicken Sie auf das richtige Gebäude.",
+    "routeStadium": "Wir gehen an einen tollen Ort: ins Fußballstadion!<br><br>Gehen Sie nach draußen und nach links, nehmen Sie dann die Querstraße und biegen Sie rechts ab.<br><br>Falls Sie sich verlaufen, finden Sie oben rechts die Karte.",
+    "exploreStadium": "Ich lasse Sie das Stadion erkunden. Wenn Sie während des Besuchs Fragen haben, fragen Sie mich einfach.",
+    "bedroomSleepOrder": "Perfekt! Sobald Sie den Befehl In diesem reservierten Zimmer schlafen ausführen, erholen Sie sich viel besser. Aber zuerst sehen wir uns die Bar nebenan an."
+  }
+};
+ for(const [lang,texts] of Object.entries(guidance)) Object.assign(labels[lang],texts);
  for(const [lang,strings] of Object.entries(labels))
   if(resources[lang]?.translation)resources[lang].translation.jeremyScenes={...strings};
  function label(key,original){
