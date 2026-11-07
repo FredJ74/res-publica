@@ -609,6 +609,100 @@
   }
 };
  for(const [lang,labels] of Object.entries(mailbox)) Object.assign(words[lang],labels);
+ // Lecture et éditeur classiques : badges, commandes et a11y (sans identité modifiée).
+ const postControls={
+  "fr": {
+    "topicAuthor": "Auteur du sujet",
+    "secret": "secrète",
+    "edit": "Modifier",
+    "quote": "Citer",
+    "bold": "Gras",
+    "italic": "Italique",
+    "underline": "Souligné",
+    "editorPlaceholder": "Écrivez votre message..."
+  },
+  "en": {
+    "topicAuthor": "Topic author",
+    "secret": "secret",
+    "edit": "Edit",
+    "quote": "Quote",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "editorPlaceholder": "Write your message..."
+  },
+  "es": {
+    "topicAuthor": "Autor del tema",
+    "secret": "secreta",
+    "edit": "Editar",
+    "quote": "Citar",
+    "bold": "Negrita",
+    "italic": "Cursiva",
+    "underline": "Subrayado",
+    "editorPlaceholder": "Escribe tu mensaje..."
+  },
+  "zh-TW": {
+    "topicAuthor": "主題作者",
+    "secret": "秘密",
+    "edit": "編輯",
+    "quote": "引用",
+    "bold": "粗體",
+    "italic": "斜體",
+    "underline": "底線",
+    "editorPlaceholder": "請輸入訊息…"
+  },
+  "ru": {
+    "topicAuthor": "Автор темы",
+    "secret": "секретная",
+    "edit": "Изменить",
+    "quote": "Цитировать",
+    "bold": "Полужирный",
+    "italic": "Курсив",
+    "underline": "Подчёркивание",
+    "editorPlaceholder": "Напишите сообщение..."
+  },
+  "ko": {
+    "topicAuthor": "주제 작성자",
+    "secret": "비밀",
+    "edit": "수정",
+    "quote": "인용",
+    "bold": "굵게",
+    "italic": "기울임",
+    "underline": "밑줄",
+    "editorPlaceholder": "메시지를 작성하세요..."
+  },
+  "ar": {
+    "topicAuthor": "كاتب الموضوع",
+    "secret": "سرية",
+    "edit": "تعديل",
+    "quote": "اقتباس",
+    "bold": "غامق",
+    "italic": "مائل",
+    "underline": "تسطير",
+    "editorPlaceholder": "اكتب رسالتك..."
+  },
+  "pt-BR": {
+    "topicAuthor": "Autor do tópico",
+    "secret": "secreta",
+    "edit": "Editar",
+    "quote": "Citar",
+    "bold": "Negrito",
+    "italic": "Itálico",
+    "underline": "Sublinhado",
+    "editorPlaceholder": "Escreva sua mensagem..."
+  },
+  "de": {
+    "topicAuthor": "Themenautor",
+    "secret": "geheim",
+    "edit": "Bearbeiten",
+    "quote": "Zitieren",
+    "bold": "Fett",
+    "italic": "Kursiv",
+    "underline": "Unterstrichen",
+    "editorPlaceholder": "Schreibe deine Nachricht..."
+  }
+};
+ for(const [lang,labels] of Object.entries(postControls)) Object.assign(words[lang],labels);
  const keys=new Set(Object.keys(words.fr));
  for(const [lang,labels] of Object.entries(words)){
   if(resources[lang]?.translation)
