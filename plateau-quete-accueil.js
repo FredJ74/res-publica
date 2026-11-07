@@ -878,7 +878,10 @@ function queteAccueilPhraseDeNouvelArrivant(texte) {
   if (!t) return false;
   if (QUETE_ACCUEIL_PHRASES_ARRIVEE.some(function (m) { return m.test(t); }))return true;
   const langue = (typeof window!=='undefined' && window.RPPlateauI18n?.language?.()) || 'fr';
-  return (QUETE_ACCUEIL_PHRASES_ARRIVEE_I18N[langue] || []).some(function (m) { return m.test(t); });
+  // Les hamzas arabes se décomposent sous NFD ; les neutraliser ici uniquement.
+  // Ne pas modifier le normaliseur français ni les reconnaissances métier.
+  const comparaison = langue==='ar' ? t.replace(/[\u064b-\u065f]/g,'') : t;
+  return (QUETE_ACCUEIL_PHRASES_ARRIVEE_I18N[langue] || []).some(function (m) { return m.test(comparaison); });
 }
 
 function queteAccueilPhraseDeJoueurPerdu(texte) {
