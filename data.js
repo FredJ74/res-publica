@@ -343,7 +343,7 @@ function bureauxOpenSpaceCentreAffaires() {
       persons: [],
       orders: [
         {fn:'louer_local', label:'Louer ce local (200 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+3 INF +2 POP +1 DIS.'},
-        {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
+        {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
         ORDRE_EQUIPEMENTS
       ]
     };
@@ -620,9 +620,9 @@ const WORLD = {
               // generalise ("Préparer des sandwiches" -> "Produire les articles du marché"),
               // desormais partage a l'identique par les 3 marches (Luthecia/Montrouge/PSM).
               orders: [
-                {fn:'produire_commerce', label:'Produire les articles du marché', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Produire les articles en vente au marché (consomme les matières en stock, rémunéré en FR).'},
+                {fn:'produire_commerce', label:'Produire les articles du marché', i18nKey:'variant.commerce_produce_market', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Produire les articles en vente au marché (consomme les matières en stock, rémunéré en FR).'},
                 {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:'Nourriture à emporter, souvenir local, cartes postales.'},
-                {fn:'vendre_matiere_commerce', label:'Vendre des matières au marché', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce marché.'}
+                {fn:'vendre_matiere_commerce', label:'Vendre des matières au marché', i18nKey:'variant.commerce_sell_market', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce marché.'}
               ]
             }
           }
@@ -1198,9 +1198,9 @@ const WORLD = {
               // vendre_matiere_commerce ajoutes a l'identique.
               excludeOrders: ['se_nourrir'],
               orders: [
-                {fn:'produire_commerce', label:'Produire les articles du marché', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Produire les articles en vente au marché (consomme les matières en stock, rémunéré en FR).'},
+                {fn:'produire_commerce', label:'Produire les articles du marché', i18nKey:'variant.commerce_produce_market', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Produire les articles en vente au marché (consomme les matières en stock, rémunéré en FR).'},
                 {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:'Nourriture à emporter, souvenir local, cartes postales.'},
-                {fn:'vendre_matiere_commerce', label:'Vendre des matières au marché', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce marché.'}
+                {fn:'vendre_matiere_commerce', label:'Vendre des matières au marché', i18nKey:'variant.commerce_sell_market', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce marché.'}
               ]
             }
           }
@@ -2698,7 +2698,7 @@ const BUILDINGS = {
           {name:'Isidore Trébien (PNJ)', role:'Bagagiste', rel:'neutral', job:'bagagiste'}
         ],
         orders: [
-          {fn:'reserver_chambre_hotel', label:'Reserver une chambre', pa:0, cost:80,  type:'legal',   icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'},
+          {fn:'reserver_chambre_hotel', label:'Reserver une chambre', i18nKey:'variant.hotel_basic', pa:0, cost:80,  type:'legal',   icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'},
           {fn:'choisir_suite', label:'Louer une suite', pa:1, cost:0, type:'legal', icon:'ti-crown', successRate:100, desc:'Choisir parmi les suites disponibles de l\'hotel.'}
         ]
       },
@@ -2717,12 +2717,12 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:300, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 vin du restaurant. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si le restaurant n\'a pas de quoi servir.'},
-          {fn:'ecouter_rumeurs', label:'Ecouter les tables',  pa:0, cost:0,   type:'grey',   icon:'ti-ear',      successRate:95,  desc:'Revele une rumeur vraie (action recente tracee) ou, a defaut, une information generee selon le contexte.'},
+          {fn:'ecouter_rumeurs', label:'Ecouter les tables', i18nKey:'variant.rumours_tables',  pa:0, cost:0,   type:'grey',   icon:'ti-ear',      successRate:95,  desc:'Revele une rumeur vraie (action recente tracee) ou, a defaut, une information generee selon le contexte.'},
           {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'},
-          {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
-          {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
+          {fn:'produire_commerce', label:'Cuisiner', i18nKey:'variant.commerce_cook', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
-          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
         ]
       },
       bar: {
@@ -2738,14 +2738,14 @@ const BUILDINGS = {
           {name:'Marc Hantile', role:'Lobbyiste — Conseil en affaires et économie', rel:'neutral', job:'lobbyiste', photoUrl:'images/luthecia-pnj-marc-hantile.jpg', photoPos:'55% 15%'}
         ],
         orders: [
-          {fn:'ecouter_rumeurs', label:'Ecouter le barman',     pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:90,  desc:'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Marco'},
+          {fn:'ecouter_rumeurs', label:'Ecouter le barman', i18nKey:'variant.rumours_barman',     pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:90,  desc:'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Marco'},
           {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'},
           {fn:'escort_piege',    label:'Organiser une rencontre piège', pa:3, cost:800, type:'illegal', icon:'ti-spy', successRate:55, desc:'Piéger un adversaire politique. Risque de scandale.'},
-          {fn:'produire_commerce', label:'Préparer les consommations', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
-          {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
+          {fn:'produire_commerce', label:'Préparer les consommations', i18nKey:'variant.commerce_prepare_drinks', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
           {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 FR par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
-          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
         ]
       },
       chambres: {
@@ -2770,7 +2770,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer cette suite (500 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite luxueuse et très discrète. +8 INF +10 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
       suite_presidentielle: {
@@ -2783,7 +2783,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer cette suite (500 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat au décor XIXe. +8 POP +8 INF +2 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }
     }
@@ -2861,7 +2861,7 @@ const BUILDINGS = {
           {name:'Porte-parole presidentiel (PNJ)', role:'PNJ - Porte-parole de la presidence', rel:'neutral', job:'porteparole', photoUrl:'images/porte-parole-presidentiel.webp', photoPos:'50% 15%'}
         ],
         orders: [
-          {fn:'conference_presse',  label:'Conference de presse',  pa:2, cost:0,   type:'legal', icon:'ti-microphone',   successRate:100, requiresPost:'president', desc:'Annonce presidentielle. Fort impact POP et INF.'},
+          {fn:'conference_presse',  label:'Conference de presse', i18nKey:'variant.press_conference',  pa:2, cost:0,   type:'legal', icon:'ti-microphone',   successRate:100, requiresPost:'president', desc:'Annonce presidentielle. Fort impact POP et INF.'},
           {fn:'propagande_etat',    label:'Propagande d\'Etat',    pa:3, cost:500, type:'grey',  icon:'ti-broadcast',    successRate:75,  requiresPost:'president', desc:'Campagne de communication massive. +POP important.'},
           {fn:'dementi',            label:'Dementi officiel',       pa:2, cost:0,   type:'legal', icon:'ti-x',            successRate:80,  requiresPost:'president', desc:'Selectionner une rumeur active visant le president ou le gouvernement pour la dementir. Succes : rumeur effacee, POP retablie. Echec : perte de POP doublee.'}
         ]
@@ -2969,7 +2969,7 @@ const BUILDINGS = {
            photoUrl:'images/luthecia-palais-gouvernement-journalistes-accredites.webp', photoPos:'50% 20%'}
         ],
         orders: [
-          {fn:'conference_presse', label:'Conférence de presse',  pa:2, cost:0,    type:'legal',   icon:'ti-microphone',   successRate:100, requiresPost:true, desc:'Annonce officielle au pays entier. Fort impact POP et INF.'},
+          {fn:'conference_presse', label:'Conférence de presse', i18nKey:'variant.press_conference',  pa:2, cost:0,    type:'legal',   icon:'ti-microphone',   successRate:100, requiresPost:true, desc:'Annonce officielle au pays entier. Fort impact POP et INF.'},
           {fn:'propagande_etat',   label:'Campagne de propagande', pa:3, cost:500,  type:'grey',    icon:'ti-broadcast',    successRate:75,  requiresPost:true, desc:'Influence massive de l\'opinion publique. +POP important.'},
           {fn:'dementi',           label:'Démenti officiel',       pa:2, cost:0,    type:'legal',   icon:'ti-x',            successRate:80,  requiresPost:true, desc:'Selectionner une rumeur active visant le president ou le gouvernement pour la dementir. Succes : rumeur effacee, POP retablie. Echec : perte de POP doublee.'}
         ]
@@ -3341,7 +3341,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'consulter_lobbyiste', label:'Consulter le Lobbyiste', pa:1, cost:150, type:'grey', icon:'ti-handshake', successRate:100, desc:'+20 points de réussite sur votre prochaine tentative de marchandage de vote. Le bonus est conservé jusqu\'à ce que vous l\'utilisiez.'},
-          {fn:'ecouter_rumeurs', label:'Ecouter les rumeurs', pa:1, cost:0, type:'grey', icon:'ti-ear', successRate:70, desc:'Revele une information aléatoire sur un PJ ou PNJ de la ville. Generee par IA selon le contexte politique. Tres utile pour journalistes et espions.'}
+          {fn:'ecouter_rumeurs', label:'Ecouter les rumeurs', i18nKey:'variant.rumours_general', pa:1, cost:0, type:'grey', icon:'ti-ear', successRate:70, desc:'Revele une information aléatoire sur un PJ ou PNJ de la ville. Generee par IA selon le contexte politique. Tres utile pour journalistes et espions.'}
         ]
       },
       salle_archives_assemblee: {
@@ -3485,9 +3485,9 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'consommer_buvette', label:'Prendre un verre', pa:1, cost:50, type:'legal', icon:'ti-beer', successRate:100, desc:'Un moment convivial entre supporters. Leger gain de popularite.'},
-          {fn:'produire_commerce', label:'Servir', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Preparer bieres, boissons et snacks pour le service (consomme le stock, remunere en FR).'},
-          {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au comptoir et commander.'},
-          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
+          {fn:'produire_commerce', label:'Servir', i18nKey:'variant.commerce_serve', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Preparer bieres, boissons et snacks pour le service (consomme le stock, remunere en FR).'},
+          {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au comptoir et commander.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
           {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa: 0, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Echarpe, casquette ou maillot du club — a choisir.'},
           {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-lock', successRate:100, desc:'Personnalisation (nom, numero) — reserve aux comptes premium. Bientot disponible.'}
         ]
@@ -3683,7 +3683,7 @@ const BUILDINGS = {
           {name:'Laurent Barre', role:"PNJ - Directeur d'agence", rel:'neutral', job:'directeur', photoUrl:'images/laurent-barre.webp', photoPos:'65% 30%'}
         ],
         orders: [
-          {fn:'gerer_finances', label:'Gérer mon compte / mes placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},
+          {fn:'gerer_finances', label:'Gérer mon compte / mes placements', i18nKey:'variant.finance_account_placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},
           {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
           // Sous-menu de navigation gratuit ; chacune des deux operations conserve son debit serveur de 1 PA.
           {fn:'virements', label:'Virements', pa:0, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:'Choisir un virement unique ou un virement récurrent (1 PA lors de sa confirmation).'},
@@ -3700,7 +3700,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer ce coffre (600 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+12 DIS +4 INF. Vos secrets en sécurité absolue.'},
-          {fn:'gerer_local', label:'Gérer mon coffre', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon coffre', i18nKey:'variant.local_safe', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }
     }
@@ -3725,7 +3725,7 @@ const BUILDINGS = {
           {name:'M. Fischer', role:'PNJ - Gestionnaire de patrimoine', rel:'neutral', job:'banquier'}
         ],
         orders: [
-          {fn:'gerer_finances',    label:'Ouvrir / gérer mon compte', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Ouverture : versement de 10 000 FR conservé sur le compte ; solde minimum 10 000 FR. Dépôts, retraits et placements.'},
+          {fn:'gerer_finances',    label:'Ouvrir / gérer mon compte', i18nKey:'variant.finance_open_account', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Ouverture : versement de 10 000 FR conservé sur le compte ; solde minimum 10 000 FR. Dépôts, retraits et placements.'},
           {fn:'compte_offshore',   label:'Placements et optimisation fiscale', pa:0, cost:0, type:'legal', icon:'ti-world', successRate:100, desc:'Placements declares et offshore avec Ursula Offshore.'},
           {fn:'emprunter_prive',   label:'Emprunter (sans verification)', pa:1, cost:0, type:'grey', icon:'ti-credit-card', successRate:100, desc:'Aucune verification. Taux eleve. Methode de recouvrement... directe en cas d\'impaye.'},
           {fn:'blanchiment',       label:'Blanchir des fonds',     pa:0, cost:0,    type:'illegal', icon:'ti-refresh',      successRate:100, desc:'Service a l\'etude. Pas encore disponible.'},
@@ -4214,7 +4214,7 @@ const BUILDINGS = {
             desc:'Acces libre : Commissaire, Juge. Sinon : soudoyer l\'armurier (30%, 100 FR, +/-5 INF et POP). Ventes des 6 derniers mois.'
           },
           {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'},
-          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'armurerie, depuis votre inventaire, les matières de sa production d\'armes, au prix d\'achat fixé par le propriétaire.'}
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'armurerie, depuis votre inventaire, les matières de sa production d\'armes, au prix d\'achat fixé par le propriétaire.'}
         ]
       }
     }
@@ -4634,7 +4634,7 @@ const BUILDINGS = {
         orders: [
           {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (800 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Emplacement premium. +10 POP +5 INF à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Gérer votre location.'}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Gérer votre location.'}
         ]
       },
       boutique_milieu: {
@@ -4648,7 +4648,7 @@ const BUILDINGS = {
         orders: [
           {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (400 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+5 POP +3 INF à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
       arriere_boutique: {
@@ -4662,7 +4662,7 @@ const BUILDINGS = {
         orders: [
           {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (150 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+2 POP +1 INF à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
       cave_reserve: {
@@ -4676,7 +4676,7 @@ const BUILDINGS = {
         orders: [
           {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (80 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+5 DIS à votre organisation. Très discret.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }
     }
@@ -4720,7 +4720,7 @@ const BUILDINGS = {
         orders: [
           {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (600 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+12 POP +2 INF. Fort ancrage populaire.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
       atelier_milieu: {
@@ -4734,7 +4734,7 @@ const BUILDINGS = {
         orders: [
           {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (300 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+6 POP +2 INF.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
       reserve_arriere: {
@@ -4748,7 +4748,7 @@ const BUILDINGS = {
         orders: [
           {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (100 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+2 POP +1 INF +2 DIS.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }
     }
@@ -4790,7 +4790,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer ce local (1000 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+12 INF +8 DIS +3 POP. Le bureau qui impressionne.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
           ORDRE_EQUIPEMENTS
         ]
       },
@@ -4804,7 +4804,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer ce local (500 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+6 INF +5 DIS +1 POP.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
           ORDRE_EQUIPEMENTS
         ]
       },
@@ -4818,7 +4818,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer ce local (200 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+3 INF +2 POP +1 DIS.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
           ORDRE_EQUIPEMENTS
         ]
       },
@@ -5034,11 +5034,11 @@ const BUILDINGS = {
         // rumeurs.js). reserver_chambre_hotel inchange (PA/cout/desc), moteur reservation/
         // sommeil non touche.
         orders: [
-          {fn:'produire_commerce', label:'Préparer le petit-déjeuner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Pas de restaurant ici — juste une petite offre de petit-déjeuner (consomme les matières en stock, rémunéré en FR).'},
-          {fn:'consulter_carte_commerce', label:'Petit-déjeuner', pa:1, cost:0, type:'legal', icon:'ti-coffee', successRate:100, desc:'Voir l\'offre de petit-déjeuner et commander.'},
+          {fn:'produire_commerce', label:'Préparer le petit-déjeuner', i18nKey:'variant.commerce_breakfast_prep', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Pas de restaurant ici — juste une petite offre de petit-déjeuner (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'consulter_carte_commerce', label:'Petit-déjeuner', i18nKey:'variant.commerce_breakfast_menu', pa:1, cost:0, type:'legal', icon:'ti-coffee', successRate:100, desc:'Voir l\'offre de petit-déjeuner et commander.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
-          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
-          {fn:'reserver_chambre_hotel', label:'Réserver une chambre d\'hôtel', pa:0, cost:60, type:'legal', icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
+          {fn:'reserver_chambre_hotel', label:'Réserver une chambre d\'hôtel', i18nKey:'variant.hotel_standard', pa:0, cost:60, type:'legal', icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'},
           // Decision de Fred (02/11/2026) : pas de restaurant ni de bar ici, donc ni rumeurs, ni informateur, ni tournee (reserves aux restaurants et a La Republia).
         ]
       },
@@ -5100,12 +5100,12 @@ const BUILDINGS = {
         // PNJ compagnon) conserve. René Seigne reste un figurant narratif, non raccorde a
         // recruter_informateur_pnj dans ce lot.
         orders: [
-          {fn:'produire_commerce', label:'Préparer les consommations', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
-          {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
+          {fn:'produire_commerce', label:'Préparer les consommations', i18nKey:'variant.commerce_prepare_drinks', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
           {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 FR par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
-          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
-          {fn:'ecouter_rumeurs', label:'Ecouter le patron', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:85, desc:'Marin Dulac entend tout ce qui se dit au bar. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Marin Dulac'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
+          {fn:'ecouter_rumeurs', label:'Ecouter le patron', i18nKey:'variant.rumours_owner', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:85, desc:'Marin Dulac entend tout ce qui se dit au bar. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Marin Dulac'},
           // Repris a l'identique du template BUILDINGS['marche'].rooms.marche_ext (meme
           // pa/cost/successRate/desc) -- meme principe que marche-psm : un nouveau point d'acces
           // au meme ordre, aucune variante specifique au bar (audit dedie, 30 aout 2026).
@@ -5231,11 +5231,11 @@ const BUILDINGS = {
         imageUrl: "images/montrouge/montrouge-hotel-victoire-hall.jpg",
         persons: [{name:'Receptionniste (PNJ)', role:'Accueil', rel:'neutral', job:'hotelier'}],
         orders: [
-          {fn:'produire_commerce', label:'Préparer le petit-déjeuner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Pas de restaurant ici — juste une petite offre de petit-déjeuner (consomme les matières en stock, rémunéré en FR).'},
-          {fn:'consulter_carte_commerce', label:'Petit-déjeuner', pa:1, cost:0, type:'legal', icon:'ti-coffee', successRate:100, desc:'Voir l\'offre de petit-déjeuner et commander.'},
+          {fn:'produire_commerce', label:'Préparer le petit-déjeuner', i18nKey:'variant.commerce_breakfast_prep', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Pas de restaurant ici — juste une petite offre de petit-déjeuner (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'consulter_carte_commerce', label:'Petit-déjeuner', i18nKey:'variant.commerce_breakfast_menu', pa:1, cost:0, type:'legal', icon:'ti-coffee', successRate:100, desc:'Voir l\'offre de petit-déjeuner et commander.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
-          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
-          {fn:'reserver_chambre_hotel', label:'Réserver une chambre d\'hôtel', pa:0, cost:60, type:'legal', icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
+          {fn:'reserver_chambre_hotel', label:'Réserver une chambre d\'hôtel', i18nKey:'variant.hotel_standard', pa:0, cost:60, type:'legal', icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'},
           // Decision de Fred (02/11/2026) : pas de restaurant ni de bar ici, donc ni rumeurs, ni informateur, ni tournee (reserves aux restaurants et a La Republia).
         ]
       },
@@ -5277,7 +5277,7 @@ const BUILDINGS = {
         // Banque Nationale, memes procedures (compte, placements, pret, virements) ; seule la Banque
         // privee Helvetia garde un fonctionnement unique. Le coffre privatif reste a Luthecia.
         orders: [
-          {fn:'gerer_finances', label:'Gérer mon compte / mes placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},
+          {fn:'gerer_finances', label:'Gérer mon compte / mes placements', i18nKey:'variant.finance_account_placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},
           {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
           // Sous-menu de navigation gratuit ; chacune des deux operations conserve son debit serveur de 1 PA.
           {fn:'virements', label:'Virements', pa:0, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:'Choisir un virement unique ou un virement récurrent (1 PA lors de sa confirmation).'}
@@ -5576,11 +5576,11 @@ const BUILDINGS = {
         // repris a l'identique du template BUILDINGS['marche'] (memes pa/cost/successRate/desc)
         // pour rester coh\u00e9rents avec Luthecia/Montrouge.
         orders: [
-          {fn:'produire_commerce', label:'Produire les articles du march\u00e9', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Produire les articles en vente au march\u00e9 (consomme les mati\u00e8res en stock, r\u00e9mun\u00e9r\u00e9 en FR).'},
+          {fn:'produire_commerce', label:'Produire les articles du march\u00e9', i18nKey:'variant.commerce_produce_market', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Produire les articles en vente au march\u00e9 (consomme les mati\u00e8res en stock, r\u00e9mun\u00e9r\u00e9 en FR).'},
           {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:'Nourriture \u00e0 emporter, souvenir local, cartes postales.'},
           // Pouls populaire (01/11/2026) : ordre du socle commun, deja present a Luthecia et Montrouge.
           {fn:'pouls_populaire', label:'Prendre le pouls', pa:0, cost:0, type:'legal', icon:'ti-ear', successRate:100, desc:'Sondage sur l\'election locale en cours dans cette ville (maire/depute), a partir des votes reellement enregistres.'},
-          {fn:'vendre_matiere_commerce', label:'Vendre des mati\u00e8res au march\u00e9', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les mati\u00e8res premi\u00e8res de votre inventaire \u00e0 ce march\u00e9.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des mati\u00e8res au march\u00e9', i18nKey:'variant.commerce_sell_market', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les mati\u00e8res premi\u00e8res de votre inventaire \u00e0 ce march\u00e9.'},
           // distribuer_tract retire (11 septembre 2026) : les tracts ordinaires ne changent plus la POP et
           // ne votent qu'aupres d'un PNJ electeur identifie (dialogue PNJ, distribuerTractElectoralPNJ).
           {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'}
@@ -5618,12 +5618,12 @@ const BUILDINGS = {
         // inchange.
         orders: [
           {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:150, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 vin du restaurant. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si le restaurant n\'a pas de quoi servir.'},
-          {fn:'ecouter_rumeurs', label:'Ecouter les tables',  pa:0, cost:0,   type:'grey',   icon:'ti-ear',      successRate:95,  desc:'Revele une rumeur vraie (action recente tracee) ou, a defaut, une information generee selon le contexte.'},
+          {fn:'ecouter_rumeurs', label:'Ecouter les tables', i18nKey:'variant.rumours_tables',  pa:0, cost:0,   type:'grey',   icon:'ti-ear',      successRate:95,  desc:'Revele une rumeur vraie (action recente tracee) ou, a defaut, une information generee selon le contexte.'},
           {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'},
-          {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
-          {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
+          {fn:'produire_commerce', label:'Cuisiner', i18nKey:'variant.commerce_cook', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
-          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
         ]
       }
     }
@@ -5674,7 +5674,7 @@ const BUILDINGS = {
             desc:'Acces libre : Commissaire, Juge. Sinon : soudoyer l\'armurier (30%, 100 FR, +/-5 INF et POP). Ventes des 6 derniers mois.'
           },
           {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'},
-          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'armurerie, depuis votre inventaire, les matières de sa production d\'armes, au prix d\'achat fixé par le propriétaire.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'armurerie, depuis votre inventaire, les matières de sa production d\'armes, au prix d\'achat fixé par le propriétaire.'},
           {fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local de Victor Legall, entre deux boîtes d\'appâts. Rien de tout cela n\'est enregistré.'}
         ]
       }
@@ -6841,13 +6841,13 @@ const BUILDINGS = {
           {name:'Lena Glaçonova (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur'}
         ],
         orders: [
-          {fn:'ecouter_rumeurs', label:'Écouter la serveuse', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:90, desc:'La serveuse entend tout. Révèle une rumeur vraie ou générée selon le contexte.', sourceOverride:'Lena'},
+          {fn:'ecouter_rumeurs', label:'Écouter la serveuse', i18nKey:'variant.rumours_waitress', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:90, desc:'La serveuse entend tout. Révèle une rumeur vraie ou générée selon le contexte.', sourceOverride:'Lena'},
           {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'},
-          {fn:'produire_commerce', label:'Préparer les consommations', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
-          {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
+          {fn:'produire_commerce', label:'Préparer les consommations', i18nKey:'variant.commerce_prepare_drinks', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
           {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 FR par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
-          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
         ]
       },
       suite_privee: {
@@ -6859,7 +6859,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite luxueuse et très discrète. +8 INF +10 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
       suite_presidentielle: {
@@ -6871,7 +6871,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat. +8 POP +8 INF +2 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
       suite_parti: {
@@ -6883,7 +6883,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat où l\'on se montre. +10 POP +6 INF +2 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }
     }
@@ -6917,7 +6917,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
       appartement_2: {
@@ -6929,7 +6929,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
       appartement_3: {
@@ -6941,7 +6941,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
       appartement_4: {
@@ -6953,7 +6953,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
       grand_appartement: {
@@ -6965,7 +6965,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer cet appartement (1200 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Les anciens appartements de l\'impératrice. +15 POP +15 INF +5 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }
     }
@@ -7173,7 +7173,7 @@ const BUILDINGS = {
         persons: [{name:'Galina Karpova (PNJ)', role:'Marchande de poissons', rel:'neutral', job:'commercant'}],
         orders: [
           {fn:'poissonniere_poisson', label:'Acheter du poisson de rivière', pa:0, cost:0, type:'legal', icon:'ti-fish', successRate:100, desc:"Pêché par son mari. Un peu moins cher qu'à l'entrepôt, mais la pêche du jour ne fait que 12 poissons."},
-          {fn:'ecouter_rumeurs', label:'Tendre l\'oreille', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:95, desc:'Galina sait tout ce qui se dit en ville. Révèle une rumeur vraie (action récente tracée) ou, à défaut, une information générée selon le contexte.'},
+          {fn:'ecouter_rumeurs', label:'Tendre l\'oreille', i18nKey:'variant.rumours_listen', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:95, desc:'Galina sait tout ce qui se dit en ville. Révèle une rumeur vraie (action récente tracée) ou, à défaut, une information générée selon le contexte.'},
           {fn:'lancer_rumeur_cible', label:'Lui glisser une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Galina la répétera à toute la ville. Succès (75%) : effet selon la cible. Échec : retour de bâton limité + risque de détection.'},
           {fn:'contrebande_poissonniere', label:'Du poisson « de l\'autre rive »', pa:1, cost:0, type:'illegal', icon:'ti-package-off', successRate:100, desc:"Son mari fait passer par la rivière de l'alcool et des médicaments de Républia, moins chers qu'au circuit d'État. Achat illégal : on peut être repéré."}
         ]
@@ -7900,15 +7900,15 @@ const BUILDINGS = {
     bgColor: "#100c08",
     desc: "Un café en face de la gare de Montrouge.",
     rooms: { salle: { name: "Salle", desc: "Quelques tables, l'odeur du café.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-cafe-gare-interieur.jpg", persons: [], orders: [
-      {fn:'produire_commerce', label:'Produire', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Choisir un plat ou une boisson de la carte a preparer pour le service (consomme les matieres en stock, remunere en FR).'},
-      {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats et boissons disponibles et commander.'},
+      {fn:'produire_commerce', label:'Produire', i18nKey:'variant.commerce_produce', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Choisir un plat ou une boisson de la carte a preparer pour le service (consomme les matieres en stock, remunere en FR).'},
+      {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats et boissons disponibles et commander.'},
       // 'consommer_boisson' retire (30 aout 2026, audit dedie) : redondant avec 'Consulter la
       // carte', qui liste deja toutes les boissons avec un bouton Commander (meme mecanisme,
       // commanderProduitCommerce). doConsommerBoisson/confirmerConsommerBoissonUI laisses en
       // place (partages/inoffensifs), simplement plus exposes ici.
       {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 FR par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'},
       {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
-      {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
+      {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
       // Repris a l'identique du template BUILDINGS['marche'].rooms.marche_ext (audit dedie, 30
       // aout 2026 -- duplication du marche vers les bars de Republia).
       {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'}
@@ -7922,10 +7922,10 @@ const BUILDINGS = {
     bgColor: "#100c08",
     desc: "Une brasserie pres de la gare de Montrouge.",
     rooms: { salle: { name: "Salle", desc: "Comptoir et banquettes.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-brasserie-voyageurs.jpg", persons: [], orders: [
-      {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
-      {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
+      {fn:'produire_commerce', label:'Cuisiner', i18nKey:'variant.commerce_cook', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
+      {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
       {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
-      {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
+      {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
       // Repris a l'identique du template BUILDINGS['marche'].rooms.marche_ext (audit dedie, 30
       // aout 2026 -- duplication du marche vers les bars de Republia).
       {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'}
@@ -8118,13 +8118,13 @@ const BUILDINGS = {
     // DOTATIONS_COMMERCE_PILOTE, plateau-actions-illegales-rumeurs.js), stock et caisse
     // independants du Cafe de la Gare car scopes par ce buildingId distinct (getCommerceId()).
     rooms: { salle: { name: "Salle", desc: "Comptoir, tabac, quelques tables.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-bar-tabac-interieur.jpg", persons: [], orders: [
-      {fn:'produire_commerce', label:'Produire', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Choisir un plat ou une boisson de la carte a preparer pour le service (consomme les matieres en stock, remunere en FR).'},
-      {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats et boissons disponibles et commander.'},
+      {fn:'produire_commerce', label:'Produire', i18nKey:'variant.commerce_produce', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Choisir un plat ou une boisson de la carte a preparer pour le service (consomme les matieres en stock, remunere en FR).'},
+      {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats et boissons disponibles et commander.'},
       // 'consommer_boisson' retire (30 aout 2026, meme audit que le Cafe de la Gare) : redondant
       // avec 'Consulter la carte'.
       {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 FR par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'},
       {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
-      {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
+      {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
       {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'}
     ] } }
   },

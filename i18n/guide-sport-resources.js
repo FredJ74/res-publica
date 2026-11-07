@@ -1,0 +1,44 @@
+/* Football en direct : version informative. Les calculs de match restent canoniques. */
+(function(global){
+ 'use strict';
+ const resources=global.RP_I18N_RESOURCES;
+ if(!resources)return;
+ const entries={
+  "en": {
+    "titre": "⚽ Football — Live matches",
+    "contenu": "The championship is played in real time.\n\nMATCH LENGTH\n• Warm-up: 5 real minutes before kick-off.\n• First half: 10 minutes (0'–45').\n• Half-time: 5 minutes with no match events.\n• Second half: 10 minutes (45'–90').\nA starting player takes part automatically from warm-up, whether connected or not, and cannot perform other activities during the match.\n\nFOLLOW THE MATCH\n• “Follow football” at the stadium opens the live match or the last match summary. No AP cost.\n• Joining late displays the current phase, score and earlier events. Closing the window does not cancel your support.\n\nCHOOSE A SIDE\n• Select home, away or neutral on your first visit. This choice lasts for this match only and cannot be changed afterward.\n\nSUPPORTERS MATTER\n• Only supporters physically present in the stadium stands contribute. Leaving stops your support; returning restores it immediately.\n• More active supporters provide a limited advantage, never a guaranteed victory; player quality remains decisive.\n• Both stands show numbers and names of supporters. Players on the pitch do not also count as supporters.\n\nAsk the Supporters' Leader at the stadium for more details."
+  },
+  "es": {
+    "titre": "⚽ Fútbol — Partidos en directo",
+    "contenu": "El campeonato se disputa en tiempo real.\n\nDURACIÓN\n• Calentamiento: 5 minutos reales antes del inicio.\n• Primera parte: 10 minutos (0'–45').\n• Descanso: 5 minutos sin acciones deportivas.\n• Segunda parte: 10 minutos (45'–90').\nLos titulares participan automáticamente desde el calentamiento, estén conectados o no, y no pueden realizar otras actividades mientras dura el partido.\n\nSEGUIR EL PARTIDO\n• «Seguir el fútbol», en el estadio, abre el directo o el resumen del último partido. No consume PA.\n• Si llegas tarde, ves la fase, el resultado y los eventos anteriores. Cerrar la ventana no cancela tu apoyo.\n\nELEGIR EQUIPO\n• En tu primera visita elige local, visitante o neutral. La elección solo sirve para ese partido y no puede cambiarse.\n\nLA AFICIÓN INFLUYE\n• Solo cuentan los aficionados realmente presentes en las gradas. Al irte dejas de apoyar; si vuelves, tu apoyo cuenta de inmediato.\n• La ventaja de una grada más numerosa es limitada y nunca garantiza ganar; la calidad de los jugadores es decisiva.\n• Se muestran los nombres y las cantidades de ambas gradas. Un futbolista en el campo no cuenta también como aficionado.\n\nConsulta al líder de los aficionados en el estadio."
+  },
+  "zh-TW": {
+    "titre": "⚽ 足球 — 即時比賽",
+    "contenu": "聯賽依真實時間進行。\n\n比賽時間\n• 熱身：開賽前 5 分鐘。\n• 上半場：10 分鐘（0'–45'）。\n• 中場休息：5 分鐘，不發生比賽事件。\n• 下半場：10 分鐘（45'–90'）。\n先發球員從熱身開始即自動參賽，不論是否在線；比賽期間無法進行其他行動。\n\n觀看比賽\n• 在球場選擇「關注足球」可觀看現場或上一場摘要，不消耗 PA。\n• 中途加入會直接顯示目前階段、比分與過往事件；關閉視窗不會取消支持。\n\n選擇支持隊伍\n• 首次觀看時選擇主隊、客隊或中立。只對本場有效，一經選定便不可更改。\n\n球迷影響比賽\n• 只有實際在球場看台上的球迷才計入支持。離開即暫停計算，返回後立即恢復。\n• 球迷較多能提供有限優勢，但不保證勝利；球員實力仍是主要因素。\n• 即時畫面顯示雙方看台人數及姓名。場上球員不會同時計為球迷。\n\n詳情可向球場的球迷領袖詢問。"
+  },
+  "ru": {
+    "titre": "⚽ Футбол — Матчи в прямом эфире",
+    "contenu": "Чемпионат проходит в реальном времени.\n\nПРОДОЛЖИТЕЛЬНОСТЬ\n• Разминка: 5 реальных минут до начала.\n• Первый тайм: 10 минут (0'–45').\n• Перерыв: 5 минут без игровых событий.\n• Второй тайм: 10 минут (45'–90').\nИгрок стартового состава участвует автоматически с разминки, даже если он не в сети. Во время матча другие действия ему недоступны.\n\nСЛЕДИТЬ ЗА МАТЧЕМ\n• «Следить за футболом» на стадионе открывает прямой эфир или отчёт о последнем матче. PA не требуется.\n• При позднем входе сразу показываются текущая стадия, счёт и предыдущие события. Закрытие окна не отменяет поддержку.\n\nВЫБРАТЬ СТОРОНУ\n• При первом входе выберите хозяев, гостей или нейтралитет. Выбор действует только на этот матч и не меняется.\n\nБОЛЕЛЬЩИКИ ВЛИЯЮТ\n• Учитываются лишь те, кто физически находится на трибунах. Уход прекращает поддержку, возвращение сразу восстанавливает её.\n• Преимущество от численности ограничено и не гарантирует победу; качество игроков важнее.\n• Показаны имена и количество болельщиков обеих сторон. Игрок на поле не считается болельщиком одновременно.\n\nПодробнее расскажет лидер болельщиков на стадионе."
+  },
+  "ko": {
+    "titre": "⚽ 축구 — 실시간 경기",
+    "contenu": "축구 리그는 실제 시간에 따라 진행됩니다.\n\n경기 시간\n• 준비 운동: 시작 5분 전.\n• 전반전: 10분(0'–45').\n• 하프타임: 5분, 경기 이벤트 없음.\n• 후반전: 10분(45'–90').\n선발 선수는 접속 여부와 관계없이 준비 운동부터 자동 참가하며, 경기 중에는 다른 행동을 할 수 없습니다.\n\n경기 보기\n• 경기장에서 「축구 경기 관전」을 선택하면 실시간 경기 또는 이전 경기 요약이 열립니다. PA는 소비되지 않습니다.\n• 늦게 들어와도 현재 단계, 점수와 이전 사건을 바로 볼 수 있습니다. 창을 닫아도 응원은 유지됩니다.\n\n응원 팀 선택\n• 처음 입장할 때 홈팀, 원정팀 또는 중립을 선택합니다. 선택은 해당 경기에만 적용되며 바꿀 수 없습니다.\n\n관중의 영향\n• 실제 경기장 관중석에 있는 응원단만 집계됩니다. 떠나면 응원이 중단되고 돌아오면 즉시 다시 반영됩니다.\n• 응원단이 많으면 제한된 이점을 얻지만 승리를 보장하지 않습니다. 선수 실력이 더 중요합니다.\n• 양쪽 관중석의 인원과 이름이 표시됩니다. 경기 중인 선수는 관중으로 중복 집계되지 않습니다.\n\n자세한 내용은 경기장 응원단 대표에게 문의하세요."
+  },
+  "ar": {
+    "titre": "⚽ كرة القدم — مباريات مباشرة",
+    "contenu": "تُقام البطولة وفق الوقت الحقيقي.\n\nمدة المباراة\n• الإحماء: 5 دقائق حقيقية قبل البداية.\n• الشوط الأول: 10 دقائق (0'–45').\n• الاستراحة: 5 دقائق بلا أحداث رياضية.\n• الشوط الثاني: 10 دقائق (45'–90').\nيشارك اللاعب الأساسي تلقائيًا منذ الإحماء سواء كان متصلًا أم لا، ولا يستطيع تنفيذ أنشطة أخرى أثناء المباراة.\n\nمتابعة المباراة\n• يفتح أمر «متابعة كرة القدم» في الملعب البث المباشر أو ملخص آخر مباراة، دون تكلفة PA.\n• إذا وصلت متأخرًا ترى المرحلة الحالية والنتيجة والأحداث السابقة مباشرة. إغلاق النافذة لا يلغي دعمك.\n\nاختيار الفريق\n• عند الزيارة الأولى اختر المضيف أو الضيف أو الحياد. يبقى الخيار لهذه المباراة وحدها ولا يمكن تغييره.\n\nتأثير المشجعين\n• لا يُحسب إلا المشجعون الموجودون فعليًا في المدرجات. المغادرة توقف دعمك والعودة تعيده فورًا.\n• زيادة المشجعين تمنح أفضلية محدودة لا تضمن الفوز؛ مهارة اللاعبين هي الأهم.\n• تظهر أعداد وأسماء المشجعين في المدرجين. اللاعب الموجود في الملعب لا يُحسب مشجعًا أيضًا.\n\nاسأل قائد المشجعين في الملعب عن التفاصيل."
+  },
+  "pt-BR": {
+    "titre": "⚽ Futebol — Partidas ao vivo",
+    "contenu": "O campeonato acontece em tempo real.\n\nDURAÇÃO DA PARTIDA\n• Aquecimento: 5 minutos reais antes do início.\n• Primeiro tempo: 10 minutos (0'–45').\n• Intervalo: 5 minutos sem eventos esportivos.\n• Segundo tempo: 10 minutos (45'–90').\nUm titular participa automaticamente desde o aquecimento, conectado ou não, e não pode fazer outras ações durante a partida.\n\nACOMPANHAR\n• «Acompanhar futebol», no estádio, abre a transmissão ao vivo ou o resumo da última partida, sem gastar PA.\n• Quem chega depois vê imediatamente a fase atual, o placar e eventos anteriores. Fechar a janela não cancela o apoio.\n\nESCOLHER UM LADO\n• Na primeira entrada, escolha mandante, visitante ou neutro. Vale apenas para esta partida e não pode ser alterado.\n\nA TORCIDA INFLUENCIA\n• Só contam torcedores presentes fisicamente nas arquibancadas. Sair interrompe o apoio; voltar o restaura de imediato.\n• Mais torcedores dão uma vantagem limitada, nunca vitória garantida; a qualidade dos atletas predomina.\n• São mostrados nomes e números das duas torcidas. Jogadores em campo não contam também como torcedores.\n\nO líder da torcida, no estádio, pode explicar mais."
+  },
+  "de": {
+    "titre": "⚽ Fußball — Live-Spiele",
+    "contenu": "Die Meisterschaft läuft in Echtzeit.\n\nSPIELDAUER\n• Aufwärmen: 5 echte Minuten vor Anpfiff.\n• Erste Halbzeit: 10 Minuten (0'–45').\n• Halbzeitpause: 5 Minuten ohne Spielereignisse.\n• Zweite Halbzeit: 10 Minuten (45'–90').\nEin Spieler der Startelf nimmt ab dem Aufwärmen automatisch teil, auch offline, und kann während des Spiels nichts anderes unternehmen.\n\nSPIEL VERFOLGEN\n• „Fußball verfolgen“ im Stadion öffnet das Live-Spiel oder die Zusammenfassung der letzten Partie. Kostet keine PA.\n• Späte Zuschauer sehen sofort die aktuelle Phase, den Spielstand und frühere Ereignisse. Das Schließen des Fensters beendet die Unterstützung nicht.\n\nSEITE WÄHLEN\n• Beim ersten Öffnen Heimteam, Auswärtsteam oder neutral wählen. Diese Entscheidung gilt nur für dieses Spiel und ist danach unveränderlich.\n\nFANS BEEINFLUSSEN DAS SPIEL\n• Nur Fans, die tatsächlich auf der Stadiontribüne stehen, zählen. Beim Verlassen endet der Beitrag, bei Rückkehr zählt er sofort erneut.\n• Eine größere Fangruppe bringt einen begrenzten Vorteil, aber keinen garantierten Sieg; die Qualität der Spieler entscheidet stärker.\n• Namen und Zahlen beider Tribünen sind sichtbar. Spieler auf dem Feld zählen nicht zugleich als Fans.\n\nDer Anführer des Fanclubs im Stadion kann mehr erzählen."
+  }
+};
+ for(const [locale,section] of Object.entries(entries)){
+  const guide=resources[locale]?.translation?.guide;
+  if(guide&&!Object.hasOwn(guide,'sport'))guide.sport=section;
+ }
+})(window);

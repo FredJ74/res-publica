@@ -183,7 +183,7 @@ Chaque pièce propose des ordres (boutons en bas). Certains coûtent des PA (Poi
 ━━━━━━━━━━━━━━━━━━━━━━━━
 ÉTAPE 5 — Dormir pour progresser
 ━━━━━━━━━━━━━━━━━━━━━━━━
-Dormez une fois par jour dans un hôtel ou via votre fiche personnage. Cela vous verse votre salaire, restaure vos PA et fait avancer le temps. Sans sommeil, pas de revenus !
+Dormez une fois par jour dans un hôtel ou via votre fiche personnage. Cela vous verse votre salaire et restaure vos PA. Le temps du jeu suit l'heure réelle, et les jours sans sommeil ne sont pas rattrapés. Sans sommeil, pas de revenus !
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
 CONSEILS
@@ -207,17 +207,19 @@ Choisissez qui vous voulez être. Mais sachez que dans Res Publica, comme à Rom
     titre: 'Créer son personnage',
     contenu: `Votre personnage est défini par 4 choix fondamentaux :
 
-ORIGINE SOCIALE — Détermine votre capital de départ et vos bonus de stats.
-• Milieu défavorisé : 200 FR, +VOL +DUP
-• Classe ouvrière : 500 FR, +VOL +ENT
-• Petite bourgeoisie : 1200 FR, +INT +CHA
-• Haute société : 3000 FR, +ENT +CHA
+ORIGINE SOCIALE — Détermine votre capital de départ et vos caractéristiques.
+• Milieu défavorisé : 300 unités, +2 VOL, +2 DUP, −1 CHA
+• Classe ouvrière : 600 unités, +1 VOL, +1 PER, −1 DUP
+• Petite bourgeoisie : 1 000 unités, +1 INT, +1 CHA, −1 ENT
+• Haute société : 2 200 unités, +2 ENT, −2 VOL
+Le capital est exprimé dans la monnaie de votre empire.
 
-PARCOURS SCOLAIRE — Détermine les carrières accessibles et vos points de compétence.
-• Pas d'école : bloque plusieurs carrières
-• Études supérieures et Hautes écoles : toutes les carrières accessibles
+PARCOURS SCOLAIRE — Détermine notamment les carrières accessibles et modifie vos caractéristiques.
+• Pas d'école : plusieurs carrières sont interdites
+• Études supérieures : certaines carrières spécialisées restent réservées aux Hautes écoles
+• Hautes écoles : toutes les familles de carrières du socle sont accessibles
 
-ARCHÉTYPE — Votre nature profonde. Définit vos bonus de ressources et votre style de jeu.
+ARCHÉTYPE — Votre nature profonde. Modifie vos caractéristiques, et influence votre style de jeu.
 
 CARRIÈRE — Votre activité principale. Donne des contacts, des compétences et un salaire journalier.`
   },
@@ -263,14 +265,15 @@ BOÎTE MAIL — Accessible depuis le bouton "Mail" en haut. Contient vos message
 
 AJOUTER UN CONTACT — Cliquez sur un PJ puis "Ajouter au répertoire". Indispensable pour porter plainte, lancer une rumeur ciblée, ou envoyer un mail.
 
-LE FORUM — Accessible depuis le bouton "Forum" en haut. C'est l'espace de communication publique et privée du jeu. Il comporte plusieurs forums :
-• Forum Local — Discussions de votre ville
-• Forum Régional — Discussions régionales
-• Forum National — Débats politiques nationaux
-• Forum International — Relations entre empires
-• Forum Gouvernemental — Réservé au gouvernement (Président + ministres)
-• Forum Syndical — Réservé aux syndicalistes
-Pour créer un sujet : bouton "Nouveau sujet". Pour répondre : bouton "Répondre" dans le sujet. L'éditeur permet la mise en forme (gras, souligné, centrage) et l'insertion d'images. Les sujets créés sont visibles de tous les membres du forum concerné.`
+LE FORUM — Accessible depuis « Messages/Forums », en haut du plateau, il rassemble les échanges publics et privés.
+• Forum local — Celui de la ville où vous vous trouvez, qui change lorsque vous voyagez.
+• Forum national — Celui de votre pays actuel, accessible depuis ses différentes villes.
+• Forum international — Relations entre les empires.
+• Forum sportif — Championnat, résultats et supporters.
+• Forums institutionnels — Selon les droits de votre poste ; les annonces publiques restent accessibles selon les règles de chaque rubrique.
+• Forums des organisations — Privés : vous ne voyez que ceux des organisations auxquelles vous appartenez ou que vous dirigez.
+• Presse et médias — Lecture publique ; création des sujets réservée aux journalistes.
+Pour créer un sujet : bouton "Nouveau sujet". Pour répondre : bouton "Répondre" dans le sujet. L'éditeur permet la mise en forme (gras, souligné, centrage) et l'insertion d'images. Chaque sujet reste soumis aux droits de lecture de sa rubrique.`
   },
   sport: {
     titre: '⚽ Football — Matchs en direct',
@@ -4118,6 +4121,20 @@ function closeRulesView() {
 function renderRulesContent(section) {
   const regle = REGLES[section];
   if (!regle) return;
+  // Le texte français de REGLES reste source et repli. Le moteur i18next déjà
+  // chargé fournit uniquement des versions d'affichage, jamais de logique.
+  const langueGuide = window.RPPlateauI18n?.language?.() || 'fr';
+  // Si REGLES a changé depuis la relecture des traductions, conserver la
+  // nouvelle règle française plutôt que publier une explication périmée.
+  const guideTraductionValide = window.RPGuideIntegrity?.valid?.(section,regle) === true;
+  const lireGuide = (champ) => {
+    const original=regle[champ];
+    if(langueGuide==='fr' || !guideTraductionValide || typeof window.i18next?.t!=='function')return original;
+    const key='guide.'+section+'.'+champ;
+    const value=window.i18next.t(key,{lng:langueGuide,defaultValue:original});
+    return typeof value==='string' && value.trim() && value!==key ? value : original;
+  };
+  const titreGuide=lireGuide('titre'), contenuGuide=lireGuide('contenu');
 
   document.querySelectorAll('.rules-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.rules-tab').forEach(t => {
@@ -4126,11 +4143,20 @@ function renderRulesContent(section) {
 
   const el = document.getElementById('rules-content');
   if (!el) return;
+  // RTL limité au corps du guide ; aucun déplacement des onglets ou des boutons.
+  if(langueGuide==='ar')el.setAttribute?.('dir','rtl');
+  else el.removeAttribute?.('dir');
+
+  // Le guide peut recevoir d'autres catalogues : aucune balise issue d'une
+  // traduction ne doit être interprétée comme du HTML.
+  const escapeRules = value=>String(value).replace(/[&<>"']/g,ch=>({
+   '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[ch]);
 
   // Transformer le contenu texte en HTML riche
   function parseRulesContent(texte) {
     let html = '';
-    const lignes = texte.split('\n');
+    const lignes = escapeRules(texte).split('\n');
     let inBlock = false;
 
     for (let i = 0; i < lignes.length; i++) {
@@ -4184,8 +4210,8 @@ function renderRulesContent(section) {
   el.innerHTML =
     '<div style="padding:1.5rem;max-width:700px;margin:0 auto">' +
     '<div style="font-family:Playfair Display,serif;font-size:1.4rem;font-style:italic;color:#E8C97A;margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:2px solid #2a2010">' +
-    regle.titre + '</div>' +
-    parseRulesContent(regle.contenu) +
+    escapeRules(titreGuide) + '</div>' +
+    parseRulesContent(contenuGuide) +
     '</div>';
 }
 

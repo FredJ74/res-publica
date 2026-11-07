@@ -1,0 +1,203 @@
+name: Internationalisation — catalogues et accueil
+on:
+  # Contrôle temporaire du brouillon : aucun déploiement ni activation publique.
+  push:
+    branches: [chatgpt/accueil-9-langues-20261102]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'i18n/**'
+      - '.github/workflows/i18n-tests.yml'
+      - 'index.html'
+      - 'plateau.html'
+      - 'outils/bancs/banc-accueil-neuf-langues.cjs'
+      - 'outils/bancs/banc-i18n-couverture.cjs'
+      - 'outils/bancs/banc-i18n-pont-plateau.cjs'
+      - 'outils/bancs/banc-i18n-plateau-ressources.cjs'
+      - 'outils/bancs/banc-i18n-plateau-wiring.cjs'
+      - 'outils/bancs/banc-i18n-plateau-init.cjs'
+      - 'outils/bancs/banc-i18n-navbar-20261106.cjs'
+      - 'outils/bancs/banc-i18n-guide-mail.cjs'
+      - 'i18n/guide-resources.js'
+      - 'i18n/guide-plateau-resources.js'
+      - 'i18n/guide-interactions-resources.js'
+      - 'i18n/guide-politique-resources.js'
+      - 'i18n/guide-sport-resources.js'
+      - 'i18n/guide-economie-resources.js'
+      - 'i18n/guide-religion-resources.js'
+      - 'i18n/guide-integrity.js'
+      - 'outils/bancs/banc-i18n-guide-integrite.cjs'
+      - 'outils/bancs/banc-i18n-guide-complet.cjs'
+      - 'outils/bancs/banc-i18n-guide-economie.cjs'
+      - 'outils/bancs/banc-i18n-guide-sport.cjs'
+      - 'outils/bancs/banc-i18n-guide-politique.cjs'
+      - 'outils/bancs/banc-i18n-guide-interactions.cjs'
+      - 'outils/bancs/banc-i18n-guide-plateau.cjs'
+      - 'plateau-personnage.js'
+      - 'outils/bancs/banc-i18n-tutoriel.cjs'
+      - 'outils/bancs/banc-i18n-texte-joueur.cjs'
+      - 'outils/bancs/banc-i18n-social-par-langue.cjs'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'outils/bancs/banc-i18n-editorial.cjs'
+      - 'api/_traduction.js'
+      - 'outils/bancs/banc-traduction-i18n.mjs'
+      - 'outils/bancs/banc-i18n-selecteur-interactif.cjs'
+      - 'outils/audits/inventaire-i18n-ordres.cjs'
+      - 'outils/audits/libelles-ordres-source.cjs'
+      - 'outils/bancs/banc-i18n-inventaire-escaped.cjs'
+      - 'outils/audits/etat-i18n-ordres.cjs'
+      - 'outils/bancs/banc-i18n-etat-ordres.cjs'
+      - 'outils/bancs/banc-i18n-ordres.cjs'
+      - 'outils/bancs/banc-i18n-catalogue-ordres.cjs'
+      - 'i18n/order-variants-resources.js'
+      - 'i18n/order-templates-resources.js'
+      - 'outils/bancs/banc-i18n-tarifs-variables.cjs'
+      - 'outils/bancs/banc-i18n-variantes-hotel.cjs'
+      - 'data.js'
+      - 'outils/bancs/banc-i18n-render-ordres.cjs'
+      - 'plateau-politique.js'
+      - 'plateau-divers.js'
+      - 'outils/bancs/banc-i18n-traduction-sources.mjs'
+      - 'api/_traduction-sources.js'
+      - 'api/_traduction-lecture-rls.js'
+      - 'api/_traduction-stockage.js'
+      - 'api/_traduction-dependances.js'
+      - 'outils/bancs/banc-i18n-dependances.mjs'
+      - 'outils/bancs/banc-i18n-stockage.mjs'
+      - 'outils/livraison/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql'
+      - 'outils/bancs/banc-i18n-lecture-rls.mjs'
+      - 'outils/audits/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql'
+      - 'outils/bancs/banc-i18n-prevol-rls.cjs'
+      - 'api/_traduction-contenu.js'
+      - 'outils/bancs/banc-i18n-contenu-securise.mjs'
+concurrency:
+  group: i18n-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  coherence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Neuf langues et repli français
+        run: node --test outils/bancs/banc-accueil-neuf-langues.cjs
+      - name: Couverture réelle des ressources et variables
+        run: node --test outils/bancs/banc-i18n-couverture.cjs
+      - name: Pont passif du plateau
+        run: node --test outils/bancs/banc-i18n-pont-plateau.cjs
+      - name: Ressources multilingues du plateau
+        run: node --test outils/bancs/banc-i18n-plateau-ressources.cjs
+      - name: Raccordement des libellés du plateau
+        run: node --test outils/bancs/banc-i18n-plateau-wiring.cjs
+      - name: Initialisation du plateau et RTL
+        run: node --test outils/bancs/banc-i18n-plateau-init.cjs
+      - name: Tutoriel neuf langues, français d'origine et HTML sécurisé
+        run: node --test outils/bancs/banc-i18n-tutoriel.cjs
+      - name: Guide du jeu et champs mail localisés sans toucher aux handlers
+        run: node --test outils/bancs/banc-i18n-guide-mail.cjs
+      - name: Guide plateau traduit et règles canoniques conservées
+        run: node --test outils/bancs/banc-i18n-guide-plateau.cjs
+      - name: Guide social et droits des forums territoriaux
+        run: node --test outils/bancs/banc-i18n-guide-interactions.cjs
+      - name: Guide politique, mandats et seuils électoraux
+        run: node --test outils/bancs/banc-i18n-guide-politique.cjs
+      - name: Guide football, durée et phases en huit langues
+        run: node --test outils/bancs/banc-i18n-guide-sport.cjs
+      - name: Guide économique et salaires sans conversion
+        run: node --test outils/bancs/banc-i18n-guide-economie.cjs
+      - name: Guide complet, neuf sections et religion dans neuf langues
+        run: node --test outils/bancs/banc-i18n-guide-complet.cjs
+      - name: Intégrité du guide face aux mises à jour des règles
+        run: node --test outils/bancs/banc-i18n-guide-integrite.cjs
+      - name: Barre supérieure localisée, icônes et gestionnaires préservés
+        run: node --test outils/bancs/banc-i18n-navbar-20261106.cjs
+      - name: Texte joueur et original préservés
+        run: node --test outils/bancs/banc-i18n-texte-joueur.cjs
+      - name: Messages sociaux originaux et traduits — 9 locales
+        run: node --test outils/bancs/banc-i18n-social-par-langue.cjs
+      - name: Audit de parité des variables et langues — 12 catalogues
+        run: |
+          node --test outils/bancs/banc-i18n-editorial.cjs
+          node outils/audits/audit-i18n-editorial.cjs > /tmp/audit-i18n-editorial.json
+      - name: Inventaire des points à relire linguistiquement
+        uses: actions/upload-artifact@v4
+        with:
+          name: i18n-audit-editorial
+          path: /tmp/audit-i18n-editorial.json
+          retention-days: 14
+      - name: Moteur de traduction interne (fournisseur simulé)
+        run: node --test outils/bancs/banc-traduction-i18n.mjs
+      - name: "Sélecteur des neuf langues : simulation interactive"
+        run: node --test outils/bancs/banc-i18n-selecteur-interactif.cjs
+      - name: Inventaire des identifiants d'ordres, sans modifier les mécanismes
+        run: |
+          node outils/audits/inventaire-i18n-ordres.cjs > /tmp/i18n-ordres.json
+          node -e "const a=require('/tmp/i18n-ordres.json');console.log('Ordres identifiés:',a.uniqueIds,'ambiguïtés:',a.ambiguousIds);console.log(a.entries.slice(0,30).map(x=>x.fn+': '+x.labels.join(' / ')).join('\\n'))"
+      - name: Libellés échappés et apostrophes de la source
+        run: node --test outils/bancs/banc-i18n-inventaire-escaped.cjs
+      - name: Couverture réelle des ordres et backlog mesurable
+        run: |
+          node --test outils/bancs/banc-i18n-etat-ordres.cjs
+          node outils/audits/etat-i18n-ordres.cjs > /tmp/i18n-etat-ordres.json
+      - name: Sauvegarder les ordres non encore couverts
+        uses: actions/upload-artifact@v4
+        with:
+          name: i18n-ordres-restants
+          path: /tmp/i18n-etat-ordres.json
+          retention-days: 7
+      - name: Conserver l'inventaire des ordres pour traduction
+        uses: actions/upload-artifact@v4
+        with:
+          name: i18n-ordres-inventaire
+          path: /tmp/i18n-ordres.json
+          retention-days: 7
+      - name: "Libellés d’ordres : contexte et autorité préservés"
+        run: node --test outils/bancs/banc-i18n-ordres.cjs
+      - name: Trois cent quatre-vingts ordres canoniques traduits et droits préservés
+        run: node --test outils/bancs/banc-i18n-catalogue-ordres.cjs
+      - name: Loyers et terrains à tarifs variables, sans conversion ni mutation
+        run: node --test outils/bancs/banc-i18n-tarifs-variables.cjs
+      - name: Réservations hôtel contextuelles, tarifs et handlers préservés
+        run: node --test outils/bancs/banc-i18n-variantes-hotel.cjs
+      - name: Rendu des ordres, échappement HTML et autorité inchangée
+        run: node --test outils/bancs/banc-i18n-render-ordres.cjs
+      - name: "Sources privées : seules les colonnes de contenu autorisées"
+        run: node --test outils/bancs/banc-i18n-traduction-sources.mjs
+      - name: Prévol de confidentialité forum et chat, lecture seule
+        run: node --test outils/bancs/banc-i18n-prevol-rls.cjs
+      - name: Chaîne Auth, RLS, cache, quota, fournisseur (fournisseur simulé)
+        run: node --test outils/bancs/banc-i18n-dependances.mjs
+      - name: Quota atomique et cache serveur (simulation, SQL non appliqué)
+        run: node --test outils/bancs/banc-i18n-stockage.mjs
+      - name: Lecteur social JWT/RLS strict et données minimales
+        run: node --test outils/bancs/banc-i18n-lecture-rls.mjs
+      - name: Sécurité de lecture, cache et quota des traductions
+        run: node --test outils/bancs/banc-i18n-contenu-securise.mjs
+      - name: Syntaxe du moteur et des ressources
+        run: |
+          node --check i18n/resources.js
+          node --check i18n/i18n-init.js
+          node --check i18n/plateau-bridge.js
+          node --check i18n/plateau-resources.js
+          node --check i18n/plateau-init.js
+          node --check i18n/texte-joueur.js
+          node --check api/_traduction.js
+          node --check api/_traduction-sources.js
+          node --check api/_traduction-contenu.js
+          node --check i18n/ordres.js
+          node --check i18n/orders-resources.js
+          node --check i18n/order-variants-resources.js
+          node --check i18n/order-templates-resources.js
+          node --check i18n/guide-resources.js
+          node --check i18n/guide-plateau-resources.js
+          node --check i18n/guide-interactions-resources.js
+          node --check i18n/guide-politique-resources.js
+          node --check i18n/guide-sport-resources.js
+          node --check i18n/guide-economie-resources.js
+          node --check i18n/guide-religion-resources.js
+          node --check i18n/guide-integrity.js

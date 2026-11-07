@@ -1,0 +1,58 @@
+name: I18N — stockage prive PostgreSQL jetable
+on:
+  push:
+    branches: [chatgpt/accueil-9-langues-20261102]
+    paths:
+      - 'outils/livraison/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql'
+      - 'outils/bancs/i18n/banc-stockage-prive-jetable.sql'
+      - 'outils/bancs/i18n/banc-concurrence-jetable.sh'
+      - '.github/workflows/i18n-stockage-jetable.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'outils/livraison/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql'
+      - 'outils/bancs/i18n/banc-stockage-prive-jetable.sql'
+      - 'outils/bancs/i18n/banc-concurrence-jetable.sh'
+      - '.github/workflows/i18n-stockage-jetable.yml'
+permissions:
+  contents: read
+jobs:
+  validation-sql:
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: ['16', '17']
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:${{ matrix.postgres }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-only
+          POSTGRES_DB: i18n_jetable
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d i18n_jetable"
+          --health-interval 5s --health-timeout 3s --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installer le client PostgreSQL
+        run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client
+      - name: Valider ACL, RLS, cache et quota sur base jetable (jamais production)
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: local-only
+          PGDATABASE: i18n_jetable
+        run: psql -X -v ON_ERROR_STOP=1 -f outils/bancs/i18n/banc-stockage-prive-jetable.sql
+      - name: Contre-épreuve de deux réservations SQL simultanées
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: local-only
+          PGDATABASE: i18n_jetable
+        run: bash outils/bancs/i18n/banc-concurrence-jetable.sh
