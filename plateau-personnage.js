@@ -183,7 +183,7 @@ Chaque pièce propose des ordres (boutons en bas). Certains coûtent des PA (Poi
 ━━━━━━━━━━━━━━━━━━━━━━━━
 ÉTAPE 5 — Dormir pour progresser
 ━━━━━━━━━━━━━━━━━━━━━━━━
-Dormez une fois par jour dans un hôtel ou via votre fiche personnage. Cela vous verse votre salaire, restaure vos PA et fait avancer le temps. Sans sommeil, pas de revenus !
+Dormez une fois par jour dans un hôtel ou via votre fiche personnage. Cela vous verse votre salaire et restaure vos PA. Le temps du jeu suit l'heure réelle, et les jours sans sommeil ne sont pas rattrapés. Sans sommeil, pas de revenus !
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
 CONSEILS
