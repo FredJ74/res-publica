@@ -14,7 +14,10 @@ window.i18next={t:(key,{lng,player,defaultValue}={})=>{
  const value=key.split('.').reduce((v,k)=>v?.[k],window.RP_I18N_RESOURCES?.[lng]?.translation);
  return (value||defaultValue).replace('{{player}}',()=>player||'{{player}}');
 }};
-const vmctx=vm.createContext({window});
+// Le fichier de quête possède une IIFE de style graphique ; le test de langage
+// n'a besoin d'aucun DOM. Le style est déclaré présent dans ce faux document.
+const document={getElementById:id=>id==='quete-accueil-style'?{}:null};
+const vmctx=vm.createContext({window,document});
 for(const file of ['resources.js','petit-accueil-resources.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),vmctx);
 vm.runInContext(quest,vmctx);
