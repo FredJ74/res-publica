@@ -29,7 +29,7 @@ test('tutoriel initial disponible pour huit langues + repli FR',()=>{
  assert.ok(html.indexOf('i18n/guide-resources.js')<html.indexOf('i18n/plateau-init.js'));
 });
 
-function render(lang,unsafe=false){
+function render(lang,unsafe=false,section='tuto'){
  const el={innerHTML:''};
  const window={
   RPPlateauI18n:{language:()=>lang},
@@ -43,7 +43,7 @@ function render(lang,unsafe=false){
   querySelectorAll:()=>[],
   getElementById:(id)=>id==='rules-content'?el:null
  };
- vm.runInNewContext(fn+';renderRulesContent("tuto")',{window,document,REGLES:{tuto:{titre:'FR TITRE',contenu:'FR TEXTE'}}});
+ vm.runInNewContext(fn+';renderRulesContent('+JSON.stringify(section)+')',{window,document,REGLES:{tuto:{titre:'FR TITRE',contenu:'FR TEXTE'},intro:{titre:'FR INTRO',contenu:'FR TEXTE INTRO'}}});
  return el.innerHTML;
 }
 test('le guide rend l’anglais et l’arabe dans le moteur existant, sans nouveau handler',()=>{
@@ -61,4 +61,19 @@ test('les balises dans des traductions ne deviennent jamais du HTML actif',()=>{
  assert.ok(html.includes('&lt;img'));
  assert.ok(!html.includes('<img'));
  assert.ok(html.includes('&amp;'));
+});
+
+
+test('introduction du jeu disponible et rendue dans les huit langues',()=>{
+ const languages=Object.keys(win.RP_I18N_LANGUAGES).filter(x=>x!=='fr');
+ for(const lang of languages){
+  const intro=win.RP_I18N_RESOURCES[lang].translation.guide.intro;
+  assert.ok(intro?.titre?.trim(),lang+' titre');
+  assert.ok(intro?.contenu?.includes('Panem et circenses'),lang+' texte');
+  assert.ok(intro.contenu.length>400,lang+' incomplet');
+  const html=render(lang,false,'intro');
+  assert.ok(html.includes('Panem et circenses'));
+  assert.ok(!html.includes('FR TEXTE INTRO'));
+ }
+ assert.ok(render('fr',false,'intro').includes('FR TEXTE INTRO'));
 });
