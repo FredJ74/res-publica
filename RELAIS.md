@@ -132,6 +132,8 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 ### Points ouverts transmis (non bloquants)
 
+- **CI `bancs-hors-production` (relevé Claude, 07/11)** : `main` est rouge depuis au moins #572 (étape `test-*.mjs`). Sur la branche du pouvoir de Sovarka, `test-*.mjs` et les 198 bancs clients passent ; reste `test-plan-recette97-219.py` : la photographie des 461 tarifs historiques compte 478 triplets, soit 17 ordres ajoutés depuis le plan 97 (ordres de Sovarka des 05-07/11, dont `sovarka_soviet_deputes` et `sovarka_repas_presidentiel`, gratuits) à déclarer hors coupe dans `outils/livraison/preparer-recette97-219.py`, comme les véhicules. L'extracteur exige `outils/e2e/node_modules` (`npm ci --prefix outils/e2e`), indisponible dans la session de Claude.
+
 - **Codex (signalé par Claude, 31/10)** : `militaire_entree_zone` a répondu 404 une fois à 17 h 24 (fonction présente en base : probable cache de schéma pendant une migration ; à surveiller). ~~`sbMarquerVolTraite`~~ retirée le 03/11 (voir Derniers chantiers).
 
 - **Refinancement BNR en trop d'Helvetia (#267)** : annulé par `20261031150000_helvetia_bnr_excedent_regulariser` (PR #288, appliquée) ; Fred a laissé le choix à Claude, qui garde l'annulation (la première note « remboursement normal » est caduque). Voir `GAME-DESIGN-BANQUES.md`.
