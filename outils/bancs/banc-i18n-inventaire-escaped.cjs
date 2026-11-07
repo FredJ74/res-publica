@@ -12,11 +12,9 @@ test('les apostrophes échappées dans les deux ordres de champs ne tronquent pa
  {fn:"essai",label:"Consulter l\"archive"}]`;
  const all=extract(sample);
  const byFn=Object.fromEntries(all.map(x=>[x.fn,x.label]));
- assert.deepEqual(byFn,{
-  diner_affaires:"Diner d'affaires",
-  entree:"Entrée d'un bâtiment",
-  essai:'Consulter l"archive'
- });
+ assert.equal(byFn.diner_affaires,"Diner d'affaires");
+ assert.equal(byFn.entree,"Entrée d'un bâtiment");
+ assert.equal(byFn.essai,'Consulter l"archive');
 });
 test('les séquences unicode littérales sont décodées sans évaluer la source',()=>{
  const found=extract(String.raw`{fn:'essai',label:'Produire les mati\u00e8res'}`);
