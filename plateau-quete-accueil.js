@@ -12,6 +12,10 @@
 
 // Ne localise que les textes fixes connus. Les événements de visite et les
 // étapes de quête restent ceux du moteur existant.
+function rpQueteGuardTexte(key,source) {
+  return (typeof window!=='undefined' && window.RPGuardWelcomeI18n?.label?.(key,source)) || source;
+}
+
 function rpQueteTexte(key,source) {
   return (typeof window!=='undefined' && window.RPJeremyScenesI18n?.label?.(key,source)) || source;
 }
@@ -258,8 +262,8 @@ function demarrerQueteAccueil() {
 
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.gardeMenacant,
-    titre: 'Un garde presidentiel',
-    texte: "Hey, vous !<br><br>Vous n'êtes pas autorisé à rester ici ! Le Président va bientôt sortir !<br><br>Et puis vous êtes nouveau, on ne vous a jamais vu, je me trompe ? Allez vous présenter à l'Hôtel de Ville sinon c'est au commissariat que vous finirez.",
+    titre: rpQueteGuardTexte('hostileTitle','Un garde presidentiel'),
+    texte: rpQueteGuardTexte('guardWarning', "Hey, vous !<br><br>Vous n'êtes pas autorisé à rester ici ! Le Président va bientôt sortir !<br><br>Et puis vous êtes nouveau, on ne vous a jamais vu, je me trompe ? Allez vous présenter à l'Hôtel de Ville sinon c'est au commissariat que vous finirez."),
     suivant: afficherPopupQueteAccueilEtape2
   });
 }
@@ -267,8 +271,8 @@ function demarrerQueteAccueil() {
 function afficherPopupQueteAccueilEtape2() {
   afficherPopupQueteAccueil({
     image: (state.char && state.char.photoUrl) || null,
-    titre: (state.char && state.char.name) || 'Vous',
-    texte: "Je veux bien, mais ou est l'Hotel de Ville ?",
+    titre: (state.char && state.char.name) || rpQueteGuardTexte('you','Vous'),
+    texte: rpQueteGuardTexte('playerAsks', "Je veux bien, mais ou est l'Hotel de Ville ?"),
     suivant: afficherPopupQueteAccueilEtape3
   });
 }
@@ -276,8 +280,8 @@ function afficherPopupQueteAccueilEtape2() {
 function afficherPopupQueteAccueilEtape3() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.gardeBienveillant,
-    titre: 'Le garde presidentiel',
-    texte: "Continuez sur cette rue, ensuite il y aura un croisement.<br><br>Continuez encore une fois sur la même rue, et vous trouverez l'Hôtel de Ville.<br><br>Adressez-vous au secrétaire municipal <strong>Petit</strong>.<br><br>Il vous parlera sûrement des impôts, mais répondez-lui simplement que <strong>vous êtes nouveau</strong>, cela devrait l'adoucir.",
+    titre: rpQueteGuardTexte('friendlyTitle','Le garde presidentiel'),
+    texte: rpQueteGuardTexte('guardDirections', "Continuez sur cette rue, ensuite il y aura un croisement.<br><br>Continuez encore une fois sur la même rue, et vous trouverez l'Hôtel de Ville.<br><br>Adressez-vous au secrétaire municipal <strong>Petit</strong>.<br><br>Il vous parlera sûrement des impôts, mais répondez-lui simplement que <strong>vous êtes nouveau</strong>, cela devrait l'adoucir."),
     suivant: afficherPopupQueteAccueilEtape4
   });
 }
@@ -285,8 +289,8 @@ function afficherPopupQueteAccueilEtape3() {
 function afficherPopupQueteAccueilEtape4() {
   afficherPopupQueteAccueil({
     image: (state.char && state.char.photoUrl) || null,
-    titre: (state.char && state.char.name) || 'Vous',
-    texte: "D'accord... merci... je lui dirai que je suis nouveau...",
+    titre: (state.char && state.char.name) || rpQueteGuardTexte('you','Vous'),
+    texte: rpQueteGuardTexte('playerThanks', "D'accord... merci... je lui dirai que je suis nouveau..."),
     suivant: terminerEtapeGardeQueteAccueil
   });
 }
