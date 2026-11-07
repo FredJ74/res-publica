@@ -508,14 +508,14 @@ function switchSelfTab(tab, el) {
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem;margin-bottom:.8rem">';
     html += '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">';
     html += '<i class="ti ti-moon" style="font-size:1.2rem;color:#6a8aaa"></i>';
-    html += '<div><div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">Dormir</div>';
+    html += '<div><div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">' + rpCharSheetLabel('sleep','Dormir') + '</div>';
     html += '<div style="font-size:.72rem;color:#6a5a30"><i class="ti ' + confort.icon + '" style="font-size:.7rem"></i> ' + confort.label + '</div></div>';
     html += '</div>';
     html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem;line-height:1.5">';
-    html += (dejaDormi ? '<span style="color:#9a8a68">Vous avez deja dormi aujourd\'hui.</span>' : texteVersementDormir()) + '<br>';
+    html += (dejaDormi ? '<span style="color:#9a8a68">' + rpCharSheetLabel('alreadySlept',"Vous avez deja dormi aujourd'hui.") + '</span>' : texteVersementDormir()) + '<br>';
     html += '+' + confort.moral + ' Moral · ';
-    html += (confort.paBonus > 0 ? '+' + confort.paBonus + ' PA bonus demain' : 'Pas de bonus PA') + '</div>';
-    html += '<button onclick="doDormir()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid ' + (dejaDormi ? '#2a2010' : '#4a6a8a') + ';background:transparent;color:' + (dejaDormi ? '#4a4030' : '#6a8aaa') + ';cursor:' + (dejaDormi ? 'not-allowed' : 'pointer') + '"' + (dejaDormi ? ' disabled' : '') + '>Dormir maintenant</button>';
+    html += (confort.paBonus > 0 ? '+' + confort.paBonus + ' ' + rpCharSheetLabel('paBonusTomorrow','PA bonus demain')  : rpCharSheetLabel('noPaBonus','Pas de bonus PA')) + '</div>';
+    html += '<button onclick="doDormir()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid ' + (dejaDormi ? '#2a2010' : '#4a6a8a') + ';background:transparent;color:' + (dejaDormi ? '#4a4030' : '#6a8aaa') + ';cursor:' + (dejaDormi ? 'not-allowed' : 'pointer') + '"' + (dejaDormi ? ' disabled' : '') + '>' + rpCharSheetLabel('sleepNow','Dormir maintenant') + '</button>';
     html += '</div>';
 
     // Se soigner
@@ -523,23 +523,23 @@ function switchSelfTab(tab, el) {
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem;margin-bottom:.8rem">';
     html += '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">';
     html += '<i class="ti ti-first-aid-kit" style="font-size:1.2rem;color:#6a9a6a"></i>';
-    html += '<div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">Se soigner</div></div>';
-    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">' + (medocs.length > 0 ? medocs.length + ' medicament(s) en inventaire. +20 HP par utilisation.' : 'Aucun medicament en inventaire.') + '</div>';
-    html += '<button onclick="doSesoigner()" ' + (medocs.length === 0 ? 'disabled style="opacity:.4;cursor:not-allowed"' : '') + ' style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid #2a4a20;background:transparent;color:#4a8a4a;cursor:pointer">Utiliser un medicament</button>';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">' + rpCharSheetLabel('heal','Se soigner') + '</div></div>';
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">' + (medocs.length > 0 ? medocs.length + ' medicament(s) en inventaire. +20 HP par utilisation.' : rpCharSheetLabel('noMedicine','Aucun medicament en inventaire.')) + '</div>';
+    html += '<button onclick="doSesoigner()" ' + (medocs.length === 0 ? 'disabled style="opacity:.4;cursor:not-allowed"' : '') + ' style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid #2a4a20;background:transparent;color:#4a8a4a;cursor:pointer">' + rpCharSheetLabel('useMedicine','Utiliser un medicament') + '</button>';
     html += '</div>';
 
     // Mediter
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem">';
     html += '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">';
     html += '<i class="ti ti-brain" style="font-size:1.2rem;color:#8a6aaa"></i>';
-    html += '<div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">Mediter</div></div>';
-    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Se recentrer. +3 Moral. 1 PA.</div>';
-    html += '<button onclick="doOrder(\'se_reposer\',1,0,\'Mediter\',\'Vous prenez le temps de vous recentrer.\',100);closeSelfView()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid #3a2a5a;background:transparent;color:#8a6aaa;cursor:pointer">Mediter</button>';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">' + rpCharSheetLabel('meditate','Mediter') + '</div></div>';
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">' + rpCharSheetLabel('meditateHint','Se recentrer. +3 Moral. 1 PA.') + '</div>';
+    html += '<button onclick="doOrder(\'se_reposer\',1,0,\'Mediter\',\'Vous prenez le temps de vous recentrer.\',100);closeSelfView()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid #3a2a5a;background:transparent;color:#8a6aaa;cursor:pointer">' + rpCharSheetLabel('meditate','Mediter') + '</button>';
     html += '</div>';
 
     // Ordres tactiques
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem;margin-bottom:.8rem">';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.6rem">ACTIONS TACTIQUES</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.6rem">' + rpCharSheetLabel('tacticalActions','ACTIONS TACTIQUES') + '</div>';
 
     const malusISN = getMalusISN();
     const groupSize = getGroupSize ? getGroupSize() : 1;
@@ -547,10 +547,10 @@ function switchSelfTab(tab, el) {
 
     html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
     html += '<button onclick="doOrder(\'se_cacher\',1,0,\'Se cacher\',\'Vous vous dissimulez dans la piece.\',70);closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #2a3a20;background:#0a0d08;color:#8a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
-    html += '<span><i class="ti ti-eye-off" style="font-size:.85rem"></i> Se cacher</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a6a3a">70% · 1 PA</span></button>';
+    html += '<span><i class="ti ti-eye-off" style="font-size:.85rem"></i> ' + rpCharSheetLabel('hide','Se cacher') + '</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a6a3a">70% · 1 PA</span></button>';
     // Vehicules personnels (05/11/2026) : on conduit depuis n'importe quel endroit de la ville.
     html += '<button onclick="closeSelfView();ouvrirMesVehicules()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #2a3440;background:#0a0d10;color:#8aa0b4;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
-    html += '<span><i class="ti ti-car" style="font-size:.85rem"></i> Mes véhicules</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a5a6a">plein · cargaison · conduire</span></button>';
+    html += '<span><i class="ti ti-car" style="font-size:.85rem"></i> ' + rpCharSheetLabel('myVehicles','Mes véhicules') + '</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a5a6a">plein · cargaison · conduire</span></button>';
 
     // 1 PA, PAS 3. Le bouton a toujours affiche « 1 PA » (ligne suivante) et le routeur commente
     // « Blocus : 1 PA quoi qu'il arrive ». Le 3 passe ici etait preleve par executerOrdreGenerique,
@@ -559,7 +559,7 @@ function switchSelfTab(tab, el) {
     // le montant unique passe ici correspond a l'affichage -- il gouverne aussi la garde de
     // suffisance (doOrder l.74), qu'un 0 aurait desactivee.
     html += '<button onclick="doOrder(\'organiser_blocus\',1,0,\'Organiser un blocus\',\'Le groupe bloque l\\\'acces.\','+tauxBlocus+');closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a1a1a;background:#0d0808;color:#9a6a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
-    html += '<span><i class="ti ti-ban" style="font-size:.85rem"></i> Organiser un blocus</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#6a3a20">' + tauxBlocus + '% · 1 PA · groupe:' + groupSize + '</span></button>';
+    html += '<span><i class="ti ti-ban" style="font-size:.85rem"></i> ' + rpCharSheetLabel('organizeBlockade','Organiser un blocus') + '</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#6a3a20">' + tauxBlocus + '% · 1 PA · groupe:' + groupSize + '</span></button>';
 
     // Blocus syndical reel — reserve au Secretaire General / Adjoint (decision de Fred,
     // 02/11/2026 ; le serveur revalide). Organiser : dans le batiment ou l'on se trouve.
@@ -568,9 +568,9 @@ function switchSelfTab(tab, el) {
       const infosSyndicat = getMonSyndicatEtGrade();
       if (infosSyndicat && infosSyndicat.dirigeant) {
         html += '<button onclick="closeSelfView();doOrganiserBlocusSyndical()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a2a1a;background:#0d0a08;color:#C9A84C;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
-        html += '<span><i class="ti ti-flag" style="font-size:.85rem"></i> Organiser un blocus syndical (ici)</span></button>';
+        html += '<span><i class="ti ti-flag" style="font-size:.85rem"></i> ' + rpCharSheetLabel('unionBlockadeHere','Organiser un blocus syndical (ici)') + '</span></button>';
         html += '<button onclick="closeSelfView();doRenouvelerBlocusSyndical()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a2a1a;background:#0d0a08;color:#C9A84C;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
-        html += '<span><i class="ti ti-refresh" style="font-size:.85rem"></i> Renouveler un blocus syndical</span></button>';
+        html += '<span><i class="ti ti-refresh" style="font-size:.85rem"></i> ' + rpCharSheetLabel('renewUnionBlockade','Renouveler un blocus syndical') + '</span></button>';
       }
     }
     // Commissaire : intervention sur les blocus de sa ville depuis sa propre interface (decision de
