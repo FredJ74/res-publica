@@ -207,7 +207,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Ici c'est le dispensaire. On peut se faire soigner gratuitement, ou à moindre frais. Bien sûr, si vous êtes riche, vous pouvez aller en hôpital privé pour de meilleurs soins.<br><br>Il y a aussi nos anciens, ici, à l'EHPAD. Ils sont un peu la mémoire de la ville, vous savez.<br><br>N'hésitez pas à venir leur parler.",
+      texte: rpQueteTexte('clinic', "Ici c'est le dispensaire. On peut se faire soigner gratuitement, ou à moindre frais. Bien sûr, si vous êtes riche, vous pouvez aller en hôpital privé pour de meilleurs soins.<br><br>Il y a aussi nos anciens, ici, à l'EHPAD. Ils sont un peu la mémoire de la ville, vous savez.<br><br>N'hésitez pas à venir leur parler."),
       suivant: afficherPopupQueteAccueilSommeil
     });
     return;
@@ -220,7 +220,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Ici on est au cœur du système électoral car c'est ici qu'on vote.<br><br>On peut aussi voir qui est candidat aux élections par exemple.<br><br>Chaque pièce est dédiée à un usage.<br><br>À présent, on va aller en ville. On va déjà sortir de l'Hôtel de Ville.",
+      texte: rpQueteTexte('electionRoom', "Ici on est au cœur du système électoral car c'est ici qu'on vote.<br><br>On peut aussi voir qui est candidat aux élections par exemple.<br><br>Chaque pièce est dédiée à un usage.<br><br>À présent, on va aller en ville. On va déjà sortir de l'Hôtel de Ville."),
       suivant: function() {
         // Les deux boutons reels concernes sont mis en surbrillance en meme temps :
         // "Voir les candidats" (bouton d'ordre de la piece) et "Sortir" (bouton de batiment).
