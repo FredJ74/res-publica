@@ -14,7 +14,10 @@
   const locale=normalizeLanguage(readerLocale)||'fr';
   const translated=typeof record?.translation==='string'?record.translation:null;
   const target=normalizeLanguage(record?.translationLanguage);
-  const hasTranslation=translated!==null && target===locale && locale!==sourceLanguage;
+  // Une réponse vide ou uniquement composée d'espaces ne peut jamais masquer
+  // l'original : conserver le contenu du joueur comme repli permanent.
+  const hasTranslation=translated!==null && translated.trim().length>0 &&
+   target===locale && locale!==sourceLanguage;
   return Object.freeze({
    text:showOriginal||!hasTranslation?original:translated,
    original,
