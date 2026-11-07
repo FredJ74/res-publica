@@ -20,6 +20,8 @@ on:
       - 'outils/bancs/banc-i18n-guide-mail.cjs'
       - 'i18n/guide-resources.js'
       - 'i18n/guide-plateau-resources.js'
+      - 'i18n/guide-interactions-resources.js'
+      - 'outils/bancs/banc-i18n-guide-interactions.cjs'
       - 'outils/bancs/banc-i18n-guide-plateau.cjs'
       - 'plateau-personnage.js'
       - 'outils/bancs/banc-i18n-tutoriel.cjs'
@@ -78,6 +80,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-guide-mail.cjs
       - name: Guide plateau traduit et règles canoniques conservées
         run: node --test outils/bancs/banc-i18n-guide-plateau.cjs
+      - name: Guide social et droits des forums territoriaux
+        run: node --test outils/bancs/banc-i18n-guide-interactions.cjs
       - name: Barre supérieure localisée, icônes et gestionnaires préservés
         run: node --test outils/bancs/banc-i18n-navbar-20261106.cjs
       - name: Texte joueur et original préservés
@@ -139,3 +143,4 @@ jobs:
           node --check i18n/order-templates-resources.js
           node --check i18n/guide-resources.js
           node --check i18n/guide-plateau-resources.js
+          node --check i18n/guide-interactions-resources.js
