@@ -16,7 +16,7 @@
   const target=normalizeLanguage(record?.translationLanguage);
   // Une réponse vide ou uniquement composée d'espaces ne peut jamais masquer
   // l'original : conserver le contenu du joueur comme repli permanent.
-  const hasTranslation=translated!==null && translated.trim().length>0 &&
+  const hasTranslation=original.trim().length>0 && translated!==null && translated.trim().length>0 &&
    target===locale && locale!==sourceLanguage;
   return Object.freeze({
    text:showOriginal||!hasTranslation?original:translated,
