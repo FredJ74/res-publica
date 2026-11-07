@@ -23,6 +23,8 @@ on:
       - 'i18n/guide-interactions-resources.js'
       - 'i18n/guide-politique-resources.js'
       - 'i18n/guide-sport-resources.js'
+      - 'i18n/guide-economie-resources.js'
+      - 'outils/bancs/banc-i18n-guide-economie.cjs'
       - 'outils/bancs/banc-i18n-guide-sport.cjs'
       - 'outils/bancs/banc-i18n-guide-politique.cjs'
       - 'outils/bancs/banc-i18n-guide-interactions.cjs'
@@ -90,6 +92,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-guide-politique.cjs
       - name: Guide football, durée et phases en huit langues
         run: node --test outils/bancs/banc-i18n-guide-sport.cjs
+      - name: Guide économique et salaires sans conversion
+        run: node --test outils/bancs/banc-i18n-guide-economie.cjs
       - name: Barre supérieure localisée, icônes et gestionnaires préservés
         run: node --test outils/bancs/banc-i18n-navbar-20261106.cjs
       - name: Texte joueur et original préservés
@@ -154,3 +158,4 @@ jobs:
           node --check i18n/guide-interactions-resources.js
           node --check i18n/guide-politique-resources.js
           node --check i18n/guide-sport-resources.js
+          node --check i18n/guide-economie-resources.js
