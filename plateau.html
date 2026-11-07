@@ -180,7 +180,7 @@
 
 <!-- TOP BAR -->
 <div id="topbar">
-  <div class="logo bebas" onclick="window.location.href='index.html'" style="cursor:pointer" title="Retour accueil">Res Publica</div>
+  <div class="logo bebas" onclick="window.location.href='index.html'" style="cursor:pointer" title="Retour accueil" data-i18n-title="plateau.backHomeTitle">Res Publica</div>
   <div class="res-bar">
 
     <!-- Stats cachées — mises à jour par JS, lues par updateUI -->
@@ -345,7 +345,7 @@
     <div id="vue-self" class="vue">
       <div class="batiment-header">
         <button class="sortir-btn" onclick="closeSelfView()">
-          <i class="ti ti-x"></i> Fermer
+          <i class="ti ti-x"></i> <span data-i18n="plateau.closeButton">Fermer</span>
         </button>
         <div class="batiment-header-info">
           <div class="batiment-nom" id="self-view-name">Mon Personnage</div>
@@ -366,7 +366,7 @@
     <div id="vue-rules" class="vue">
       <div class="batiment-header">
         <button class="sortir-btn" onclick="closeRulesView()">
-          <i class="ti ti-x"></i> Fermer
+          <i class="ti ti-x"></i> <span data-i18n="plateau.closeButton">Fermer</span>
         </button>
         <div class="batiment-header-info">
           <div class="batiment-nom" data-i18n="plateau.rules">Règles du jeu</div>
@@ -391,7 +391,7 @@
     <div id="vue-forum" class="vue">
       <div class="batiment-header">
         <button class="sortir-btn" onclick="closeForumView()">
-          <i class="ti ti-x"></i> Fermer
+          <i class="ti ti-x"></i> <span data-i18n="plateau.closeButton">Fermer</span>
         </button>
         <div class="batiment-header-info">
           <div class="batiment-nom" data-i18n="plateau.forum">Forum</div>
@@ -406,7 +406,7 @@
     <div id="vue-mail" class="vue">
       <div class="batiment-header">
         <button class="sortir-btn" onclick="closeMailView()">
-          <i class="ti ti-x"></i> Fermer
+          <i class="ti ti-x"></i> <span data-i18n="plateau.closeButton">Fermer</span>
         </button>
         <div class="batiment-header-info">
           <div class="batiment-nom" data-i18n="plateau.mailbox">Boite Mail</div>
@@ -421,7 +421,7 @@
     <div id="vue-batiment" class="vue">
       <div class="batiment-header">
         <button class="sortir-btn" onclick="sortirBatiment()">
-          <i class="ti ti-arrow-left"></i> Sortir
+          <i class="ti ti-arrow-left"></i> <span data-i18n="plateau.exitButton">Sortir</span>
         </button>
         <div class="batiment-header-info">
           <div class="batiment-nom" id="bat-nom">Batiment</div>
@@ -463,7 +463,7 @@
 
 <!-- JOURNAL FLOTTANT (store) -->
 <!-- Bouton d'ouverture flottant -->
-<button id="journal-open-btn" onclick="toggleJournalStore()" title="Journal des événements"
+<button id="journal-open-btn" onclick="toggleJournalStore()" title="Journal des événements" data-i18n-title="plateau.eventJournal"
   style="position:fixed;bottom:80px;left:20px;z-index:997;width:44px;height:44px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;transition:all .2s">
   <i class="ti ti-news" style="font-size:1rem"></i>
   <span id="journal-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:#cc2020;border-radius:50%;animation:blink 1.2s ease infinite"></span>
@@ -629,7 +629,7 @@
         <textarea id="compose-mail-body" rows="6" placeholder="Votre message..." data-i18n-placeholder="plateau.messagePlaceholder" style="width:100%;padding:.5rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;resize:vertical"></textarea>
       </div>
       <button onclick="envoyerComposeMail()" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.12em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;align-self:flex-end">
-        <i class="ti ti-send" style="font-size:.8rem"></i> Envoyer
+        <i class="ti ti-send" style="font-size:.8rem"></i> <span data-i18n="plateau.sendButton">Envoyer</span>
       </button>
     </div>
   </div>
