@@ -15,7 +15,10 @@ const scripts=[
  'guide-economie-resources.js','guide-religion-resources.js',
  'orders-resources.js','order-variants-resources.js',
  'order-templates-resources.js',
- 'room-resources.js','forum-ui.js'
+ 'room-resources.js','forum-ui.js',
+ 'guard-welcome-resources.js','jeremy-scenes-resources.js',
+ 'petit-accueil-resources.js','pnj-status-resources.js',
+ 'toast-resources.js','character-sheet-resources.js'
 ];
 const global={};
 const context=vm.createContext({window:global});
