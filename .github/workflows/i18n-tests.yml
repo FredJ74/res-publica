@@ -36,6 +36,7 @@ on:
       - 'plateau-personnage.js'
       - 'outils/bancs/banc-i18n-tutoriel.cjs'
       - 'outils/bancs/banc-i18n-texte-joueur.cjs'
+      - 'outils/bancs/banc-i18n-social-par-langue.cjs'
       - 'api/_traduction.js'
       - 'outils/bancs/banc-traduction-i18n.mjs'
       - 'outils/bancs/banc-i18n-selecteur-interactif.cjs'
@@ -108,6 +109,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-navbar-20261106.cjs
       - name: Texte joueur et original préservés
         run: node --test outils/bancs/banc-i18n-texte-joueur.cjs
+      - name: Messages sociaux originaux et traduits — 9 locales
+        run: node --test outils/bancs/banc-i18n-social-par-langue.cjs
       - name: Moteur de traduction interne (fournisseur simulé)
         run: node --test outils/bancs/banc-traduction-i18n.mjs
       - name: "Sélecteur des neuf langues : simulation interactive"
