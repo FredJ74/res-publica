@@ -33,7 +33,7 @@ test('toutes les clés câblées au HTML du plateau existent dans les neuf langu
 
 test('les infobulles et les champs dynamiques sont entièrement couverts dans les neuf langues',()=>{
  const html=fs.readFileSync(path.join(root,'plateau.html'),'utf8');
- const attributes=['data-i18n','data-i18n-title','data-i18n-placeholder'];
+ const attributes=['data-i18n','data-i18n-title','data-i18n-placeholder','data-i18n-aria-label'];
  for(const attribute of attributes){
   const regex=new RegExp(attribute+'="plateau\\.([a-zA-Z][a-zA-Z0-9]*)"','g');
   const keys=[...html.matchAll(regex)].map(m=>m[1]);
