@@ -141,6 +141,24 @@ async function run(){
        expectedTitle:resources.forumUI.newTopic,
        otherRoom:window.RPRoomI18n?.label('palais-presidentiel','salle_conseil','Salle du Conseil du Peuple'),
        otherForum:window.RPForumUI?.forumNameHtml('private-org-81','Nom privé conservé'),
+       // Les premières minutes de jeu : les vrais modules i18n sont chargés
+       // par la page réelle, sans lancer de quête ou écrire en base.
+       guard:window.RPGuardWelcomeI18n?.label('guardWarning',
+         window.RP_I18N_RESOURCES.fr.translation.guardWelcome.guardWarning),
+       expectedGuard:resources.guardWelcome?.guardWarning,
+       guardDirections:window.RPGuardWelcomeI18n?.label('guardDirections',
+         window.RP_I18N_RESOURCES.fr.translation.guardWelcome.guardDirections),
+       expectedGuardDirections:resources.guardWelcome?.guardDirections,
+       jeremy:window.RPJeremyScenesI18n?.label('welcomeJeremy',
+         window.RP_I18N_RESOURCES.fr.translation.jeremyScenes.welcomeJeremy),
+       expectedJeremy:resources.jeremyScenes?.welcomeJeremy,
+       bedroom:window.RPJeremyScenesI18n?.label('hotelInstructions',
+         window.RP_I18N_RESOURCES.fr.translation.jeremyScenes.hotelInstructions),
+       expectedBedroom:resources.jeremyScenes?.hotelInstructions,
+       bar:window.RPJeremyScenesI18n?.label('barIntroduction',
+         window.RP_I18N_RESOURCES.fr.translation.jeremyScenes.barIntroduction),
+       expectedBar:resources.jeremyScenes?.barIntroduction,
+       changedGuard:window.RPGuardWelcomeI18n?.label('guardWarning','Message différent'),
        htmlDir:document.documentElement.getAttribute('dir')
      };
    });
@@ -149,6 +167,17 @@ async function run(){
    assert.equal(social.title,social.expectedTitle,language+': bouton sujet');
    assert.equal(social.otherRoom,'Salle du Conseil du Peuple',language+': autre bâtiment inchangé');
    assert.equal(social.otherForum,'Nom privé conservé',language+': forum privé inchangé');
+   for(const [actual,expected,label] of [
+     [social.guard,social.expectedGuard,'garde'],
+     [social.guardDirections,social.expectedGuardDirections,'instructions mairie'],
+     [social.jeremy,social.expectedJeremy,'Jérémy'],
+     [social.bedroom,social.expectedBedroom,'hôtel'],
+     [social.bar,social.expectedBar,'bar']
+   ]){
+     assert.ok(expected?.trim(),language+': ressource absente '+label);
+     assert.equal(actual,expected,language+': scène non traduite '+label);
+   }
+   assert.equal(social.changedGuard,'Message différent',language+': texte dynamique préservé');
    assert.notEqual(social.htmlDir,'rtl',language+': aucun RTL global');
    checks++;
    // Vérifier cette fois les vraies fonctions de rendu du forum, avec state
