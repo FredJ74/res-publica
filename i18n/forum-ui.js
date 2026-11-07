@@ -470,6 +470,145 @@
   }
 };
  for(const [lang,labels] of Object.entries(composer)) Object.assign(words[lang],labels);
+ // Listes et lecture des messages : libellés uniquement, conservation et ACL identiques.
+ const mailbox={
+  "fr": {
+    "sentMessagesTitle": "Messages envoyés",
+    "noSentMail": "Aucun message envoyé.",
+    "toLabel": "À :",
+    "archivesTitle": "Archives",
+    "noArchivedMail": "Aucun message archivé.",
+    "fromLabel": "De :",
+    "receivedMessagesTitle": "Messages reçus",
+    "noReceivedMail": "Aucun message reçu.",
+    "unarchive": "Désarchiver",
+    "archiveKeep": "Archiver (conserver indéfiniment)",
+    "delete": "Supprimer",
+    "orgReplyUnavailable": "La réponse directe à une organisation n'est pas encore disponible — aucune boîte de messagerie propre aux organisations n'existe à ce jour.",
+    "autoDeleteNotice": "Ce message sera supprimé automatiquement 14 jours après réception, sauf archivage."
+  },
+  "en": {
+    "sentMessagesTitle": "Sent messages",
+    "noSentMail": "No sent messages.",
+    "toLabel": "To:",
+    "archivesTitle": "Archives",
+    "noArchivedMail": "No archived messages.",
+    "fromLabel": "From:",
+    "receivedMessagesTitle": "Received messages",
+    "noReceivedMail": "No received messages.",
+    "unarchive": "Unarchive",
+    "archiveKeep": "Archive (keep indefinitely)",
+    "delete": "Delete",
+    "orgReplyUnavailable": "Direct replies to organizations are not available yet — organizations do not currently have their own mailboxes.",
+    "autoDeleteNotice": "This message will be deleted automatically 14 days after receipt unless archived."
+  },
+  "es": {
+    "sentMessagesTitle": "Mensajes enviados",
+    "noSentMail": "No hay mensajes enviados.",
+    "toLabel": "Para:",
+    "archivesTitle": "Archivos",
+    "noArchivedMail": "No hay mensajes archivados.",
+    "fromLabel": "De:",
+    "receivedMessagesTitle": "Mensajes recibidos",
+    "noReceivedMail": "No hay mensajes recibidos.",
+    "unarchive": "Desarchivar",
+    "archiveKeep": "Archivar (conservar indefinidamente)",
+    "delete": "Eliminar",
+    "orgReplyUnavailable": "Todavía no se puede responder directamente a una organización: las organizaciones aún no tienen buzón propio.",
+    "autoDeleteNotice": "Este mensaje se eliminará automáticamente 14 días después de recibirlo, salvo que se archive."
+  },
+  "zh-TW": {
+    "sentMessagesTitle": "已寄送訊息",
+    "noSentMail": "沒有已寄送訊息。",
+    "toLabel": "收件者：",
+    "archivesTitle": "封存",
+    "noArchivedMail": "沒有封存訊息。",
+    "fromLabel": "寄件者：",
+    "receivedMessagesTitle": "收到的訊息",
+    "noReceivedMail": "沒有收到的訊息。",
+    "unarchive": "取消封存",
+    "archiveKeep": "封存（永久保留）",
+    "delete": "刪除",
+    "orgReplyUnavailable": "目前尚無法直接回覆組織：組織還沒有專屬信箱。",
+    "autoDeleteNotice": "除非封存，否則此訊息將在收到 14 天後自動刪除。"
+  },
+  "ru": {
+    "sentMessagesTitle": "Отправленные сообщения",
+    "noSentMail": "Отправленных сообщений нет.",
+    "toLabel": "Кому:",
+    "archivesTitle": "Архив",
+    "noArchivedMail": "Архивных сообщений нет.",
+    "fromLabel": "От:",
+    "receivedMessagesTitle": "Полученные сообщения",
+    "noReceivedMail": "Полученных сообщений нет.",
+    "unarchive": "Разархивировать",
+    "archiveKeep": "Архивировать (хранить бессрочно)",
+    "delete": "Удалить",
+    "orgReplyUnavailable": "Прямой ответ организации пока недоступен — у организаций ещё нет собственных почтовых ящиков.",
+    "autoDeleteNotice": "Сообщение автоматически удалится через 14 дней после получения, если его не архивировать."
+  },
+  "ko": {
+    "sentMessagesTitle": "보낸 메시지",
+    "noSentMail": "보낸 메시지가 없습니다.",
+    "toLabel": "받는 사람:",
+    "archivesTitle": "보관함",
+    "noArchivedMail": "보관된 메시지가 없습니다.",
+    "fromLabel": "보낸 사람:",
+    "receivedMessagesTitle": "받은 메시지",
+    "noReceivedMail": "받은 메시지가 없습니다.",
+    "unarchive": "보관 해제",
+    "archiveKeep": "보관(무기한 유지)",
+    "delete": "삭제",
+    "orgReplyUnavailable": "조직에 직접 답장하는 기능은 아직 없습니다. 조직에는 별도 우편함이 없습니다.",
+    "autoDeleteNotice": "보관하지 않으면 이 메시지는 받은 날부터 14일 후 자동 삭제됩니다."
+  },
+  "ar": {
+    "sentMessagesTitle": "الرسائل المرسلة",
+    "noSentMail": "لا توجد رسائل مرسلة.",
+    "toLabel": "إلى:",
+    "archivesTitle": "الأرشيف",
+    "noArchivedMail": "لا توجد رسائل مؤرشفة.",
+    "fromLabel": "من:",
+    "receivedMessagesTitle": "الرسائل الواردة",
+    "noReceivedMail": "لا توجد رسائل واردة.",
+    "unarchive": "إلغاء الأرشفة",
+    "archiveKeep": "أرشفة (احتفاظ دائم)",
+    "delete": "حذف",
+    "orgReplyUnavailable": "الرد المباشر على منظمة غير متاح بعد — لا تمتلك المنظمات صناديق بريد خاصة بها حاليًا.",
+    "autoDeleteNotice": "ستُحذف هذه الرسالة تلقائيًا بعد 14 يومًا من استلامها ما لم تُؤرشف."
+  },
+  "pt-BR": {
+    "sentMessagesTitle": "Mensagens enviadas",
+    "noSentMail": "Nenhuma mensagem enviada.",
+    "toLabel": "Para:",
+    "archivesTitle": "Arquivo",
+    "noArchivedMail": "Nenhuma mensagem arquivada.",
+    "fromLabel": "De:",
+    "receivedMessagesTitle": "Mensagens recebidas",
+    "noReceivedMail": "Nenhuma mensagem recebida.",
+    "unarchive": "Desarquivar",
+    "archiveKeep": "Arquivar (guardar indefinidamente)",
+    "delete": "Excluir",
+    "orgReplyUnavailable": "Ainda não é possível responder diretamente a uma organização — as organizações não possuem caixas de correio próprias.",
+    "autoDeleteNotice": "Esta mensagem será excluída automaticamente 14 dias após o recebimento, a menos que seja arquivada."
+  },
+  "de": {
+    "sentMessagesTitle": "Gesendete Nachrichten",
+    "noSentMail": "Keine gesendeten Nachrichten.",
+    "toLabel": "An:",
+    "archivesTitle": "Archiv",
+    "noArchivedMail": "Keine archivierten Nachrichten.",
+    "fromLabel": "Von:",
+    "receivedMessagesTitle": "Empfangene Nachrichten",
+    "noReceivedMail": "Keine empfangenen Nachrichten.",
+    "unarchive": "Archivierung aufheben",
+    "archiveKeep": "Archivieren (dauerhaft behalten)",
+    "delete": "Löschen",
+    "orgReplyUnavailable": "Direkte Antworten an Organisationen sind noch nicht möglich — Organisationen haben derzeit keine eigenen Postfächer.",
+    "autoDeleteNotice": "Diese Nachricht wird 14 Tage nach Empfang automatisch gelöscht, sofern sie nicht archiviert wird."
+  }
+};
+ for(const [lang,labels] of Object.entries(mailbox)) Object.assign(words[lang],labels);
  const keys=new Set(Object.keys(words.fr));
  for(const [lang,labels] of Object.entries(words)){
   if(resources[lang]?.translation)
