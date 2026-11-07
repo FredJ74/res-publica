@@ -515,7 +515,7 @@ function queteAccueilRepriseNon() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Je vais vous laisser découvrir la ville seul(e). Nos chemins se séparent ici. Pour le moment, bien sûr !<br><br>Si vous avez besoin de moi, cliquez sur ma fiche pour m'ajouter à vos contacts, et utilisez ensuite le bouton Messages/Forums pour m'envoyer un mail.",
+    texte: rpQueteTexte('partWays', "Je vais vous laisser découvrir la ville seul(e). Nos chemins se séparent ici. Pour le moment, bien sûr !<br><br>Si vous avez besoin de moi, cliquez sur ma fiche pour m'ajouter à vos contacts, et utilisez ensuite le bouton Messages/Forums pour m'envoyer un mail."),
     suivant: function() {
       // La derniere question d'orientation n'est plus enchainee immediatement ici : le joueur
       // n'aurait pas le temps materiel de cliquer sur la fiche de Jeremy avant qu'elle
@@ -553,7 +553,7 @@ function queteAccueilProposerCarriere() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Bon, une dernière chose... Vous commencez à connaître Luthécia. Mais visiter une ville, c'est une chose. S'y faire une place, c'en est une autre. Vous avez une idée de ce que vous aimeriez devenir ?",
+    texte: rpQueteTexte('careerChoice', "Bon, une dernière chose... Vous commencez à connaître Luthécia. Mais visiter une ville, c'est une chose. S'y faire une place, c'en est une autre. Vous avez une idée de ce que vous aimeriez devenir ?"),
     suivant: null,
     actionsHtml:
       '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'criminel\');">Plutôt du côté criminel</button> ' +
@@ -600,7 +600,7 @@ function queteAccueilCarriereRepertoire() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Au fait, tant que j'y pense : dès que vous croisez quelqu'un d'intéressant, cliquez sur sa fiche et ajoutez-le à votre répertoire — ça vous servira pour porter plainte, lancer une rumeur ciblée, ou lui envoyer un mail plus tard.",
+    texte: rpQueteTexte('contactsTip', "Au fait, tant que j'y pense : dès que vous croisez quelqu'un d'intéressant, cliquez sur sa fiche et ajoutez-le à votre répertoire — ça vous servira pour porter plainte, lancer une rumeur ciblée, ou lui envoyer un mail plus tard."),
     suivant: queteAccueilCarriereRecontact
   });
 }
@@ -611,7 +611,7 @@ function queteAccueilCarriereRecontact() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Et si jamais vous avez encore besoin de moi après ça : ajoutez-moi au répertoire tant qu'on est encore ensemble, et envoyez-moi un mail via Messages/Forums quand vous voulez. Je vous répondrai où que je sois.",
+    texte: rpQueteTexte('contactJeremy', "Et si jamais vous avez encore besoin de moi après ça : ajoutez-moi au répertoire tant qu'on est encore ensemble, et envoyez-moi un mail via Messages/Forums quand vous voulez. Je vous répondrai où que je sois."),
     suivant: queteAccueilCarriereConclusion
   });
   queteAccueilSurbrillance(".person-card[onclick*=\"openPnjModal('\"]", 15000);
@@ -666,7 +666,7 @@ function queteAccueilProposerPresentationForum() {
   afficherPopupQueteAccueil({
     image: null,
     titre: 'Luthécia',
-    texte: "Vous commencez à connaître Luthécia... mais Luthécia ne vous connaît pas encore.<br><br>Le forum local est le lieu où les citoyens débattent, annoncent leurs projets et commencent parfois leurs premières querelles.<br><br>Souhaitez-vous vous présenter aux autres habitants ?",
+    texte: rpQueteTexte('localForumInvite', "Vous commencez à connaître Luthécia... mais Luthécia ne vous connaît pas encore.<br><br>Le forum local est le lieu où les citoyens débattent, annoncent leurs projets et commencent parfois leurs premières querelles.<br><br>Souhaitez-vous vous présenter aux autres habitants ?"),
     suivant: null,
     actionsHtml:
       '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilLancerPresentationForum();">Me présenter</button> ' +
