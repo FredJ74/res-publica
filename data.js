@@ -2026,7 +2026,8 @@ const WORLD = {
             bureau_maire:         { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_bureau_maire.webp' },
             bureau_maire_adjoint: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_bureau_adjoint.webp' },
             salle_elections:      { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_salle_elections.webp' },
-            salle_archives:       { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_archives.webp' }
+            salle_archives:       { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_archives.webp' },
+            salle_partis:         { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_salle_partis_politiques.webp' }
           },
           persons: []
         },
@@ -10441,7 +10442,7 @@ function slugPnjSovarka(nom) {
 
 // SALLE DES PARTIS DES TROIS MAIRIES DE SOVARKA (Fred, 07/11/2026, GAME-DESIGN-NOVOMIRSK.md « Partis
 // de Sovarka »). Les partis y sont domiciliés : création libre (2 PA, 15 PSK), siège dans la ville de
-// création. Navigation serveur : migration 20261107184000. Image à venir.
+// création. Navigation serveur : migration 20261107184000. Image : Novomirsk (roomOverrides), Krasnov et Starovka à venir.
 (function () {
   const salle = () => ({
     name: 'Salle des partis',
