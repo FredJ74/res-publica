@@ -34,7 +34,10 @@ async function traduireContenu({type,id,field,langueCible},deps) {
  if(!langueAdmise(record.language))return refuse('langue_source_invalide');
  if(record.language===langueCible) return Object.freeze({ok:true,original,traduit:original,fromCache:true});
  const fingerprint=createHash('sha256').update(original,'utf8').digest('hex');
- const key=JSON.stringify([auth.userId,type,source.id,field,record.version,fingerprint,record.language,langueCible]);
+ // Cache partagé entre lecteurs AUTORISÉS : le droit de lecture RLS est
+ // recontrôlé avant CHAQUE accès au cache. L'UID reste attaché à la réservation
+ // de quota, pas à la traduction réutilisable d'un même contenu.
+ const key=JSON.stringify([type,source.id,field,record.version,fingerprint,record.language,langueCible]);
  // Même un résultat déjà en cache a été précédé de la lecture autorisée sous RLS.
  let cached;
  try { cached=await deps.readCache(key); } catch { cached=null; }
