@@ -16,7 +16,7 @@ test('réservation simple et standard : 9 traductions contextuelles, identifiant
  assert.equal(languages.length,9);
  for(const lng of languages) {
   const vars=w.RP_I18N_RESOURCES[lng].translation.orderVariants;
-  assert.equal(Object.keys(vars).length,9);
+  assert.equal(Object.keys(vars).length,23);
   for(const value of Object.values(vars))assert.ok(value.trim());
  }
  for(const [key,original,cost] of [
@@ -68,6 +68,36 @@ test('sept rumeurs et deux conférences disposent de variantes sûres',()=>{
     label:original,i18nKey:'variant.'+key,pa:2,cost:31,requiresPost:'test'});
    assert.equal(w.RPOrderI18n.label(order,engine,lng),words[key]);
    assert.equal(order.cost,31);assert.equal(order.pa,2);assert.equal(order.requiresPost,'test');
+  }
+ }
+});
+
+
+test('66 ordres de commerces et banque localisés par contexte, sans altérer leur coût',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const expected={produire_commerce:14,consulter_carte_commerce:11,vendre_matiere_commerce:16,gerer_finances:3,gerer_local:22};
+ const keys={
+  produire_commerce:['commerce_produce_market','commerce_cook','commerce_prepare_drinks','commerce_serve','commerce_breakfast_prep','commerce_produce'],
+  consulter_carte_commerce:['commerce_menu','commerce_breakfast_menu'],
+  vendre_matiere_commerce:['commerce_sell_market','commerce_sell_business'],
+  gerer_finances:['finance_account_placements','finance_open_account'],
+  gerer_local:['local_manage','local_safe']
+ };
+ for(const [fn,count] of Object.entries(expected)){
+  const regex=new RegExp("fn:'"+fn+"',\\s*label:'((?:\\\\.|[^'])*)',\\s*i18nKey:'variant\\.([a-z_]+)',\\s*pa:(\\d+),\\s*cost:(\\d+)",'g');
+  const matches=[...source.matchAll(regex)];
+  assert.equal(matches.length,count,fn);
+  for(const m of matches){
+   const key=m[2];assert.ok(keys[fn].includes(key),fn+'/'+key);
+   const sourceLabel=m[1].replace(/\\u([0-9a-fA-F]{4})/g,(_,hex)=>String.fromCharCode(parseInt(hex,16))).replace(/\\(['"\\])/g,'$1');
+   const order=Object.freeze({fn,label:sourceLabel,i18nKey:'variant.'+key,pa:Number(m[3]),cost:Number(m[4])});
+   for(const lng of Object.keys(w.RP_I18N_LANGUAGES)){
+    const translation=w.RP_I18N_RESOURCES[lng].translation.orderVariants[key];
+    assert.ok(translation?.trim(),lng+'/'+key);
+    assert.equal(w.RPOrderI18n.label(order,engine,lng),translation);
+   }
+   assert.equal(order.fn,fn);assert.equal(order.pa,Number(m[3]));assert.equal(order.cost,Number(m[4]));
+   assert.equal(order.label,sourceLabel);
   }
  }
 });
