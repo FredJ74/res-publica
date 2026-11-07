@@ -61,6 +61,9 @@ on:
       - 'outils/bancs/banc-i18n-petit-accueil.cjs'
       - 'i18n/jeremy-scenes-resources.js'
       - 'outils/bancs/banc-i18n-premieres-scenes-jeremy.cjs'
+      - 'i18n/character-sheet-resources.js'
+      - 'plateau-personnage.js'
+      - 'outils/bancs/banc-i18n-fiche-personnage.cjs'
       - 'outils/bancs/banc-i18n-stade-et-guidage.cjs'
       - 'outils/bancs/banc-i18n-quete-carriere.cjs'
       - 'outils/bancs/banc-i18n-presentation-forum-jeremy.cjs'
@@ -171,6 +174,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-petit-accueil.cjs
       - name: Deux premières scènes Jérémy localisées, transitions préservées
         run: node --test outils/bancs/banc-i18n-premieres-scenes-jeremy.cjs
+      - name: Fiche PJ — 22 libellés et valeurs souveraines préservées
+        run: node --test outils/bancs/banc-i18n-fiche-personnage.cjs
       - name: Visite du stade et titres de guidage en neuf langues
         run: node --test outils/bancs/banc-i18n-stade-et-guidage.cjs
       - name: Choix métier et orientation — neuf langues, référents préservés
@@ -247,6 +252,8 @@ jobs:
           node --check i18n/pnj-status-resources.js
           node --check i18n/petit-accueil-resources.js
           node --check i18n/jeremy-scenes-resources.js
+          node --check i18n/character-sheet-resources.js
+          node --check plateau-personnage.js
           node --check i18n/guard-welcome-resources.js
           node --check plateau-quete-accueil.js
           node --check plateau-pnj.js
