@@ -1,0 +1,23 @@
+{
+  "lot": "L4",
+  "branche": "codex/mobile-l4-creation-20261106",
+  "main_integre": "a5e32332",
+  "sha_teste_avant_compte_rendu": "1340808d8cd6dd218ee88dba3ebf319ab9e22436",
+  "tests": {
+    "ui": {
+      "reussis": 2,
+      "echecs": 0
+    },
+    "clients": {
+      "reussis": 7,
+      "echecs": 0
+    }
+  },
+  "garderBatiment_preserve": true,
+  "code_applicatif_modifie": false,
+  "migration_executee": false,
+  "production_authentifiee": false,
+  "titre_pr": "Mobile L4 — Revalidation connexion et création dans les six langues",
+  "description_pr": "six langues, explications En jeu conservées, choix réversibles, affichage 1440 identique",
+  "base_pr": "main"
+}

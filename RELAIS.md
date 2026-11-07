@@ -681,3 +681,119 @@ double solde est signalé comme caduc, dotation déjà livrée par Claude prése
 
 ### Contrôle plan 97 — Codex, 06-07/11 : livré par #576 (Claude, 07/11)
 Ordres de Sovarka des 05-07/11 déclarés un à un hors des photographies historiques (plan 97, livraison complète, réconciliation des coûts, référence de navigation) ; empreintes inchangées ; `bancs-hors-production` de nouveau vert.
+
+### Reprise mobile L5 — Codex, 07/11/2026
+Branche `codex/mobile-l5-transactions-20261106` ; main `a5e32332` intégré.
+SHA testé avant ajout de ce compte rendu : `a5e32332a88717a7b59ac1a4fee3e63e64a6c39e`. UI 2/2 (bureau
+1440 identique, inventaire/tableau), clients 31/31 (double tap Helvetia, commerce,
+banque). Aucun code applicatif modifié, ancien lot déjà en bêta conservé.
+PR à préparer par Claude : **Mobile L5 — revalidation après intégration du main du 7 novembre**.
+Description : synchronisation du lot déjà livré, tests ciblés et témoin desktop,
+aucune mécanique ni montant changé ; preuve MOBILE-REPRISE-L5-20261107.json.
+Contrôles attendus : bancs-hors-production et gardes usuelles de main ; pas de
+migration. Reste CI sur SHA poussé et essais téléphone réel ; ces tests sont locaux.
+Recette téléphone : consulter inventaire long, fiche, banque et commerce sans payer.
+
+### Reprise mobile L8 — Codex, 07/11/2026
+Branche `codex/mobile-l8-reprise-20261106`, main `a5e32332` intégré dans l'ordre des lots.
+SHA testé avant ajout du compte rendu : `ee4ec1fd61408a127dc0d91169b750c324eb7a7a`. Résultats : UI
+4/4, clients 19/19 ; aucun échec.
+Titre PR vers main : **Mobile L8 — Revalidation de la reprise réseau et protection garderBatiment**.
+Description prête : minuterie commune #579, réponses tardives, identité, perte réseau et retour visible.
+Anciens lots déjà en bêta conservés : cette reprise synchronise et teste, sans
+réécrire l'application. Seul ajout technique L8 : régression de #579 sur les vrais
+rendus, option `garderBatiment` conservée ; contre-épreuve sans l'option.
+Contrôles attendus : bancs-hors-production, gardes habituelles et tests ciblés
+MOBILE-REPRISE-L8-20261107.json. Reste à Claude : création PR, CI et intégration
+du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de migration.
+Test téléphone après intégration : verrouiller puis revenir, couper/rétablir le réseau, conserver bâtiment et pièce, aucun ordre initial rejoué.
+Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
+à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
+
+### Reprise mobile L4 — Codex, 07/11/2026
+Branche `codex/mobile-l4-creation-20261106`, main `a5e32332` intégré dans l'ordre des lots.
+SHA testé avant ajout du compte rendu : `1340808d8cd6dd218ee88dba3ebf319ab9e22436`. Résultats : UI
+2/2, clients 7/7 ; aucun échec.
+Titre PR vers main : **Mobile L4 — Revalidation connexion et création dans les six langues**.
+Description prête : six langues, explications En jeu conservées, choix réversibles, affichage 1440 identique.
+Anciens lots déjà en bêta conservés : cette reprise synchronise et teste, sans
+réécrire l'application. Seul ajout technique L8 : régression de #579 sur les vrais
+rendus, option `garderBatiment` conservée ; contre-épreuve sans l'option.
+Contrôles attendus : bancs-hors-production, gardes habituelles et tests ciblés
+MOBILE-REPRISE-L4-20261107.json. Reste à Claude : création PR, CI et intégration
+du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de migration.
+Test téléphone après intégration : ouvrir connexion/création dans les six langues sans valider un nouveau compte.
+Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
+à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
+
+### Reprise mobile L7 — Codex, 07/11/2026
+Branche `codex/mobile-l7-institutions-20261106`, main `a5e32332` intégré dans l'ordre des lots.
+SHA testé avant ajout du compte rendu : `3f4805997720809f43ef33da94a9f632f6f9de42`. Résultats : UI
+2/2, clients 17/17 ; aucun échec.
+Titre PR vers main : **Mobile L7 — Revalidation des écrans institutions et combat**.
+Description prête : présentation, permissions de rapport fournies par fixtures, ordres policiers conservés.
+Anciens lots déjà en bêta conservés : cette reprise synchronise et teste, sans
+réécrire l'application. Seul ajout technique L8 : régression de #579 sur les vrais
+rendus, option `garderBatiment` conservée ; contre-épreuve sans l'option.
+Contrôles attendus : bancs-hors-production, gardes habituelles et tests ciblés
+MOBILE-REPRISE-L7-20261107.json. Reste à Claude : création PR, CI et intégration
+du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de migration.
+Test téléphone après intégration : consulter organisations et rapports sans ordre à effets.
+Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
+à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
+
+### Reprise mobile L9 — Codex, 07/11/2026
+Branche `codex/mobile-l9-chargement-20261106`, main `a5e32332` intégré dans l'ordre des lots.
+SHA testé avant ajout du compte rendu : `c3c1f7b3ea4b68a467e4287239b2726ad68fb7f2`. Résultats : UI
+2/2, clients 8/8 ; aucun échec.
+Titre PR vers main : **Mobile L9 — Revalidation du chargement des miniatures**.
+Description prête : portraits et inventaire en chargement natif différé, scènes conservées.
+Anciens lots déjà en bêta conservés : cette reprise synchronise et teste, sans
+réécrire l'application. Seul ajout technique L8 : régression de #579 sur les vrais
+rendus, option `garderBatiment` conservée ; contre-épreuve sans l'option.
+Contrôles attendus : bancs-hors-production, gardes habituelles et tests ciblés
+MOBILE-REPRISE-L9-20261107.json. Reste à Claude : création PR, CI et intégration
+du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de migration.
+Test téléphone après intégration : ouvrir Personnes présentes puis inventaire, vérifier le chargement des portraits.
+Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
+à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
+
+### Reprise mobile L10 — Codex, 07/11/2026
+Branche `codex/mobile-l10-recette-20261106`, main `a5e32332` intégré dans l'ordre des lots.
+SHA testé avant ajout du compte rendu : `0fbf015e3a0f9fc0147df2ca2ff52cafac47d999`. Résultats : UI
+21/21, clients 37/37 ; aucun échec.
+Titre PR vers main : **Mobile L10 — Recette mobile consolidée après main du 7 novembre**.
+Description prête : coque, forum, création, reprise, garderBatiment et témoins 1440.
+Anciens lots déjà en bêta conservés : cette reprise synchronise et teste, sans
+réécrire l'application. Seul ajout technique L8 : régression de #579 sur les vrais
+rendus, option `garderBatiment` conservée ; contre-épreuve sans l'option.
+Contrôles attendus : bancs-hors-production, gardes habituelles et tests ciblés
+MOBILE-REPRISE-L10-20261107.json. Reste à Claude : création PR, CI et intégration
+du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de migration.
+Test téléphone après intégration : parcourir les fenêtres en portrait et paysage puis vérifier le bureau à 1440 px.
+Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
+à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
+
+### Reprise mobile — synthèse finale Codex du 07/11
+Les six branches L5 → L8 → L4 → L7 → L9 → L10 ont reçu main a5e32332 ; chaque
+lot est testé séparément puis sauvegardé avec sa rubrique, son SHA testé avant
+compte rendu, son titre/description PR et les contrôles attendus. Aucun ancien
+code réintroduit. Code applicatif des six branches identique à main ; seul ajout
+technique : trois régressions du chargement #579 dans le banc L8, propagées ensuite.
+L'option garderBatiment et ses appels sont intacts, aucune migration exécutée.
+
+Contrôleur final **199/199**, Workflow conforme, diff sans erreur. L10 : 21 tests UI
+et 37 clients ; bureau plateau/création/forum 1440 strictement identique au témoin.
+Rapport : `outils/audits/MOBILE-REPRISE-20261107.md`. Preuves par lot et empreintes
+PNG à côté. Les journaux bruts restent locaux. Corps de PR prêts, vers main, dans
+`outils/livraison/MOBILE-REPRISE-PR-20261107.json`. Claude assure création des PR,
+CI puis intégration, dans l'ordre ; vérifier le diff après chaque fusion puisque
+les fonctionnalités initiales sont déjà en bêta. Pas de tentative REST répétée
+ni de déclaration de CI distante verte par Codex dans cette reprise.
+
+Reste : vrais appareils Safari/Android, clavier/veille OS, deux appareils et compte
+isolé autorisé. Aucune recette authentifiée réelle effectuée ici. Fred/testeurs
+peuvent consulter inventaire, fiche, commerce et banque, parcourir la création sans
+la valider, consulter les rapports et tester retour réseau/rotation sans effectuer
+d'ordre à effets sur un joueur réel. Aucun montant, texte RP, ordre de Sovarka,
+fichier de game design ou donnée de joueur modifié ; aucun arbitrage nécessaire.

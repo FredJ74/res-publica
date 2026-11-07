@@ -1,0 +1,17 @@
+{
+  "lot": "L5",
+  "branche": "codex/mobile-l5-transactions-20261106",
+  "main_integre": "a5e32332",
+  "sha_teste_avant_compte_rendu": "a5e32332a88717a7b59ac1a4fee3e63e64a6c39e",
+  "tests_ui": {
+    "reussis": 2,
+    "echecs": 0,
+    "bureau1440": "PNG identiques au témoin"
+  },
+  "tests_clients": {
+    "reussis": 31,
+    "echecs": 0
+  },
+  "code_applicatif_modifie": false,
+  "production_authentifiee": false
+}
