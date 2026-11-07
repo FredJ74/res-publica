@@ -46,7 +46,37 @@ async function run(){
    checks++;
    await page.close();
   }
-  console.log('I18N CHROMIUM : '+checks+' parcours accueil/rechargement, neuf langues, mobile/bureau, sans réseau externe');
+  // Plateau hors session : seules les ressources i18n sont autorisées.
+  // Cela teste le HTML réel sans ouvrir de compte ni exécuter les moteurs métier.
+  for(const language of LANGS){
+   const page=await browser.newPage({viewport:{width:393,height:852}});
+   await page.addInitScript(lang=>localStorage.setItem('respublica_language',lang),language);
+   await page.route('**/*',route=>{
+    const url=new URL(route.request().url());
+    if(url.origin!==ORIGIN)return route.abort();
+    if(url.pathname.endsWith('.js') && !url.pathname.startsWith('/i18n/'))return route.abort();
+    return route.continue();
+   });
+   await page.goto(ORIGIN+'/plateau.html',{waitUntil:'domcontentloaded'});
+   await page.waitForFunction(lang=>window.i18next?.isInitialized===true &&
+     document.documentElement.lang===lang,language);
+   const state=await page.evaluate(()=>{
+    const language=window.i18next.language;
+    const node=document.querySelector('[data-i18n="plateau.rulesIntro"]');
+    const expected=window.RP_I18N_RESOURCES?.[language]?.translation?.plateau?.rulesIntro;
+    const mail=document.querySelector('#compose-mail-subject');
+    return {language,label:node?.textContent?.trim(),expected,dir:node?.getAttribute('dir'),
+      placeholder:mail?.getAttribute('placeholder'),
+      expectedPlaceholder:window.RP_I18N_RESOURCES?.[language]?.translation?.plateau?.subjectPlaceholder};
+   });
+   assert.equal(state.label,state.expected,language+': guide sur le plateau réel');
+   assert.equal(state.placeholder,state.expectedPlaceholder,language+': composition de mail');
+   assert.equal(state.dir,language==='ar'?'rtl':null,language+': direction limitée au texte');
+   checks++;
+   await page.close();
+  }
+
+  console.log('I18N CHROMIUM : '+checks+' vérifications accueil/rechargement/plateau, neuf langues, mobile/bureau, sans réseau externe');
  }finally {await browser.close();}
 }
 run().catch(error=>{console.error(error);process.exitCode=1});
