@@ -314,7 +314,7 @@ async function postulerPosteAutoritePnj(posteId, posteName, villeCourante) {
   if (typeof v.pa === 'number' && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa });
 
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId] || { label: posteName || posteId };
-  state.poste = { id: posteId, name: regle.label, city: villeCourante || null, nommeLe: Date.now() };
+  state.poste = { id: posteId, name: intitulePoste(posteId, state.country, regle.label), city: villeCourante || null, nommeLe: Date.now() };
   if (state.char) state.char.poste = state.poste;
   state.salaireTouche = false;
   updateUI();
@@ -4254,6 +4254,7 @@ function renderRoomActions(room, buildingId, roomId) {
         ambassadeur_local: "l'ambassadeur nommé pour ce bureau",
         commandant: 'Commandant de la Caserne'
       };
+      Object.keys(postesNoms).forEach(k => { postesNoms[k] = intitulePoste(k, state.country, postesNoms[k]); });
       const posteRequisNom = o.requiresPost === true ? 'un poste institutionnel'
         : Array.isArray(o.requiresPost) ? o.requiresPost.map(p => postesNoms[p] || p).join(' ou ')
         : (postesNoms[o.requiresPost] || o.requiresPost);
@@ -4816,14 +4817,14 @@ async function ouvrirOrganigramme() {
 
   const sections = [
     { title: 'Exécutif', postes: [
-      { id:'president', name:'Président de la République', type:'elu' },
-      { id:'pm', name:'Premier Ministre', type:'nomme' },
-      { id:'min_int', name:"Ministre de l'Intérieur", type:'nomme' },
-      { id:'min_fin', name:'Ministre des Finances', type:'nomme' },
-      { id:'min_just', name:'Ministre de la Justice', type:'nomme' },
-      { id:'min_def', name:'Ministre de la Défense', type:'nomme' },
-      { id:'min_info', name:"Ministre de l'Information", type:'nomme' },
-      { id:'min_ae', name:'Ministre des Affaires Étrangères', type:'nomme' },
+      { id:'president', name:intitulePoste('president', state.country, 'Président de la République'), type:'elu' },
+      { id:'pm', name:intitulePoste('pm', state.country, 'Premier Ministre'), type:'nomme' },
+      { id:'min_int', name:intitulePoste('min_int', state.country, "Ministre de l'Intérieur"), type:'nomme' },
+      { id:'min_fin', name:intitulePoste('min_fin', state.country, 'Ministre des Finances'), type:'nomme' },
+      { id:'min_just', name:intitulePoste('min_just', state.country, 'Ministre de la Justice'), type:'nomme' },
+      { id:'min_def', name:intitulePoste('min_def', state.country, 'Ministre de la Défense'), type:'nomme' },
+      { id:'min_info', name:intitulePoste('min_info', state.country, "Ministre de l'Information"), type:'nomme' },
+      { id:'min_ae', name:intitulePoste('min_ae', state.country, 'Ministre des Affaires Étrangères'), type:'nomme' },
       { id:'commandant', name:'Commandant de la Caserne', type:'nomme' },
       { id:'chef_syndicat', name:'Chef Syndical', type:'elu' }
     ]},
@@ -6399,7 +6400,7 @@ async function accepterNominationPosteNomme(idNomination) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId] || { label: posteId };
 
   // Le serveur a deja ecrit la fiche : on recopie localement ce qu'il a arrete, jamais l'inverse.
-  state.poste = { id: posteId, name: regle.label, city: city, nommeLe: Date.now() };
+  state.poste = { id: posteId, name: intitulePoste(posteId, country, regle.label), city: city, nommeLe: Date.now() };
   if (state.char) state.char.poste = state.poste;
   state.salaireTouche = false;
   // Le dossier de candidature du poste est solde par le serveur (poste_attribuer_interne).

@@ -44,6 +44,11 @@ Branche `claude/sovarka-pouvoir-20261107`. **Toutes les décisions de design son
 6. Avantages du président : repas gratuit par jour dans ses appartements, invité nourri, statut de dignitaire (invitations des ambassades et des autres chefs de gouvernement).
 7. Siège du Comité Central (Palais du Gouvernement de Novomirsk) : bureaux aux nouveaux intitulés, PNJ, images à venir.
 
+**Avancement (07/11, reprise)** — étape 1 en cours :
+- Écran fait : `INTITULES_POSTES_PAR_PAYS` + `intitulePoste()` dans `data.js` ; les libellés `POSTES_NOMMES_EXCLUSIFS[...].label` et `POSTES_ELECTIFS[...].name` suivent le pays du PJ connecté (Républia inchangée) ; nom du poste recalculé au chargement ; organigramme et messages « poste requis ».
+- Serveur : migration `20261107094000_sovarka_salaires_pouvoir` **écrite, NON appliquée**. Préalable indispensable : depuis `20261106060000`, une seconde ligne de barème (soviet) pour pm/min_*/president rendait la clé ambiguë et bloquait le salaire de tous (`pays_employeur_ambigu`) ; le pays employeur vient désormais de `postes_attribues`, puis de `cycles_electoraux` (eluId, colonne `data` en texte), puis de l'ancien barème unique. Banc annulé `outils/bancs/banc-sovarka-salaires-pouvoir.sql` : attendu Arnie 2800 caisse `republic_gouvernement-min_def`, Jean (pm soviet simulé) 700 `soviet_gouvernement-pm`, Angie (présidente soviet simulée) 800 `soviet_palais-presidentiel`. **Le premier passage attend la confirmation de Fred dans Supabase.**
+- Reste de l'étape 1 : journal du matin / courriers (intitulés serveur, `api/_journal-collecte.js`).
+
 ### Commissariat PSM : contexte PNJ et portrait — Codex, 04/11/2026
 
 **Livré : PR #450 fusionnée le 04/11 à 14 h 37 (head `b39cfd61`, branche entièrement contenue dans main ; vérifié par Claude le 04/11 à 19 h 15).** La mention « PR non créée » ci-dessous est périmée. **À constater en jeu** : parler à Martial Morvan, qui situe correctement son bureau ; portrait du brigadier d'accueil de PSM.

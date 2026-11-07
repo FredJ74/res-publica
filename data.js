@@ -9788,6 +9788,49 @@ const POSTES_NOMMES_EXCLUSIFS = {
   capitaine_port:          { label: 'Commandant du Port',                 nommePar: 'min_fin',       scope: 'pays',  compatibles: ['depute'] }
 };
 
+// INTITULES DES POSTES PROPRES A UN EMPIRE (Fred, 07/11/2026, GAME-DESIGN-NOVOMIRSK.md,
+// « Organisation du pouvoir en Sovarka »). Les identifiants techniques ne changent pas (pm,
+// min_fin... restent les cles en base, dans les ordres et les RPC) : seul le NOM affiche
+// change. Un pays absent de cette table garde les libelles de la Republia.
+const INTITULES_POSTES_PAR_PAYS = {
+  soviet: {
+    president: 'Président de la République de Sovarka',
+    pm:        'Président du Conseil du Peuple',
+    min_int:   'Ministre de la Sécurité du Peuple',
+    min_fin:   "Ministre de l'Économie collective",
+    min_just:  'Ministre de la Justice prolétarienne',
+    min_def:   'Ministre de la Défense de la Patrie',
+    min_info:  'Ministre de la Vérité officielle',
+    min_ae:    "Ministre de l'Amitié entre les Peuples",
+    depute:    'Député du Soviet Suprême'
+  }
+};
+
+// Nom affiche d'un poste dans un pays ; `defaut` sert quand le pays n'a pas d'intitule propre.
+function intitulePoste(posteId, pays, defaut) {
+  const propre = INTITULES_POSTES_PAR_PAYS[pays] && INTITULES_POSTES_PAR_PAYS[pays][posteId];
+  if (propre) return propre;
+  if (defaut) return defaut;
+  return (POSTES_NOMMES_EXCLUSIFS[posteId] && POSTES_NOMMES_EXCLUSIFS[posteId].label) || posteId;
+}
+
+// Les ecrans lisent `POSTES_NOMMES_EXCLUSIFS[id].label` et `POSTES_ELECTIFS[...].name` en
+// des dizaines d'endroits : plutot que de les reprendre un a un, le libelle suit le pays du
+// personnage connecte (state.country). Hors navigateur (scripts, generateurs), pas de `state` :
+// libelle de la Republia, inchange.
+(function brancherIntitulesParPays() {
+  const paysCourant = () => (typeof state !== 'undefined' && state && state.country) || null;
+  const brancher = (obj, champ, id) => {
+    const base = obj[champ];
+    Object.defineProperty(obj, champ, {
+      enumerable: true, configurable: true,
+      get() { const t = INTITULES_POSTES_PAR_PAYS[paysCourant()]; return (t && t[id]) || base; }
+    });
+  };
+  Object.keys(POSTES_NOMMES_EXCLUSIFS).forEach(id => brancher(POSTES_NOMMES_EXCLUSIFS[id], 'label', id));
+  Object.values(POSTES_ELECTIFS).forEach(liste => liste.forEach(p => brancher(p, 'name', p.id)));
+})();
+
 // Priorite PJ sur postes nommes (lot du 25 aout 2026, apres audit dedie) : "le PNJ a priorite
 // sur le vide, le PJ a priorite sur le PNJ, l'autorite politique choisit entre les PJ". Delai
 // laisse a une autorite PJ pour choisir entre les candidats avant traitement automatique
