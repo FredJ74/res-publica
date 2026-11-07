@@ -3,6 +3,12 @@
 function rpForumLibelle(key,source) {
   return (typeof window!=='undefined' && window.RPForumUI?.labelHtml?.(key,source)) || source;
 }
+function rpForumNom(id,source) {
+  return (typeof window!=='undefined' && window.RPForumUI?.forumNameHtml?.(id,source)) || source;
+}
+function rpForumDescription(id,source) {
+  return (typeof window!=='undefined' && window.RPForumUI?.forumDescriptionHtml?.(id,source)) || source;
+}
 /* ===========================
    RES PUBLICA — FORUM.JS v3
    Éditeur riche, mails, emojis
@@ -835,7 +841,7 @@ function renderForumNavItem(id, f) {
     onclick="${accessible ? `switchForum('${id}')` : `showToast('Accès restreint','Ce forum est réservé aux membres autorisés.',false)`}">
     <i class="ti ${f.icon}" style="font-size:.85rem"></i>
     <div>
-      <div class="forum-nav-name">${f.name}${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
+      <div class="forum-nav-name">${rpForumNom(id,f.name)}${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
       <div class="forum-nav-count">${nombreSujetsForum(id)}</div>
     </div>
     ${f.private ? `<i class="ti ti-lock" style="font-size:.65rem;color:#4a4030;margin-left:auto"></i>` : ''}
@@ -1116,8 +1122,8 @@ function renderTopicList() {
   return `
     <div class="forum-header-bar">
       <div>
-        <div class="forum-title-main"><i class="ti ${f.icon}"></i> ${f.name}</div>
-        <div class="forum-subtitle">${f.desc}</div>
+        <div class="forum-title-main"><i class="ti ${f.icon}"></i> ${rpForumNom(currentForumId,f.name)}</div>
+        <div class="forum-subtitle">${rpForumDescription(currentForumId,f.desc)}</div>
       </div>
       ${peutCreerSujet ? `
       <button class="forum-new-btn" onclick="showComposeCanvasForm()">
