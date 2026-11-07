@@ -327,7 +327,7 @@ function queteAccueilVerifierGuidage(pays, noeudId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Allons sur la gauche, j'ai quelque chose à vous montrer.",
+      texte: rpQueteTexte('turnLeft', "Allons sur la gauche, j'ai quelque chose à vous montrer."),
       suivant: null
     });
     return;
@@ -392,7 +392,7 @@ function afficherGuidageFleche(noeudId, direction) {
   afficherPopupQueteAccueil({
     guidageHtml: guidageHtml,
     titre: 'Suivez la route',
-    texte: "Continuez dans cette direction.",
+    texte: rpQueteTexte('keepDirection', "Continuez dans cette direction."),
     suivant: null
   });
 }
@@ -417,7 +417,7 @@ function afficherGuidageBatiments(noeudId) {
   afficherPopupQueteAccueil({
     guidageHtml: guidageHtml,
     titre: "Vous voici rue de l'Hotel de Ville",
-    texte: "Cliquez sur le bon batiment.",
+    texte: rpQueteTexte('selectBuilding', "Cliquez sur le bon batiment."),
     suivant: null
   });
 }
@@ -434,7 +434,7 @@ function queteAccueilNotifierOrdre(fn) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "On va aller dans un super endroit : le stade de foot !<br><br>Pour ça il faut sortir puis aller sur la gauche, et ensuite, prendre la route perpendiculaire, puis tourner à droite.<br><br>Au pire, si vous êtes perdu, vous pouvez consulter le plan, en haut à droite.",
+      texte: rpQueteTexte('routeStadium', "On va aller dans un super endroit : le stade de foot !<br><br>Pour ça il faut sortir puis aller sur la gauche, et ensuite, prendre la route perpendiculaire, puis tourner à droite.<br><br>Au pire, si vous êtes perdu, vous pouvez consulter le plan, en haut à droite."),
       suivant: function() {
         queteAccueilSurbrillance('button[onclick*="ouvrirPlanVille"]', 12000);
       }
@@ -470,7 +470,7 @@ function afficherDecouverteStade() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Je vous laisse découvrir le stade. Si vous avez des questions pendant la visite, n'hésitez pas à me les poser.",
+    texte: rpQueteTexte('exploreStadium', "Je vous laisse découvrir le stade. Si vous avez des questions pendant la visite, n'hésitez pas à me les poser."),
     suivant: queteAccueilArmerMinuteurStade
   });
 }
@@ -486,7 +486,7 @@ function queteAccueilApresReservationChambre() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Parfait ! Maintenant, dès que vous passerez l'ordre Dormir dans cette chambre réservée, vous vous requinquerez bien mieux. Bon, en attendant, allons faire un tour au bar, juste à côté.",
+    texte: rpQueteTexte('bedroomSleepOrder', "Parfait ! Maintenant, dès que vous passerez l'ordre Dormir dans cette chambre réservée, vous vous requinquerez bien mieux. Bon, en attendant, allons faire un tour au bar, juste à côté."),
     suivant: function() {
       queteAccueilSurbrillance(".piece-tab[onclick*=\",'bar',\"]", 15000);
     }
