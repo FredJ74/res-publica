@@ -33,6 +33,9 @@ function render(lang,unsafe=false,section='tuto'){
  const el={innerHTML:'',attrs:{},setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
  const window={
   RPPlateauI18n:{language:()=>lang},
+  // Dans ce banc de rendu les REGLES sont des fixtures, le garde réel est
+  // testé séparément par banc-i18n-guide-integrite.cjs.
+  RPGuideIntegrity:{valid:()=>true},
   i18next:{t(key,opts){
    if(unsafe)return '<img src=x onerror="evil()"> & test';
    return key.split('.').reduce((value,part)=>value?.[part],
@@ -88,7 +91,7 @@ test('l’arabe applique le RTL au seul corps du guide sans déplacer les comman
  const code=src.slice(start,end+2);
  for(const [locale,direction] of [['ar','rtl'],['en',undefined],['fr',undefined]]){
   const el={innerHTML:'',attrs:{},setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
-  const window={RPPlateauI18n:{language:()=>locale},i18next:{t:(k,opt)=>k.split('.').reduce((v,p)=>v?.[p],win.RP_I18N_RESOURCES[locale]?.translation)??opt.defaultValue}};
+  const window={RPPlateauI18n:{language:()=>locale},RPGuideIntegrity:{valid:()=>true},i18next:{t:(k,opt)=>k.split('.').reduce((v,p)=>v?.[p],win.RP_I18N_RESOURCES[locale]?.translation)??opt.defaultValue}};
   const document={querySelectorAll:()=>[],getElementById:()=>el};
   vm.runInNewContext(code+';renderRulesContent("intro")',{window,document,REGLES:{intro:{titre:'FR',contenu:'Texte français'}}});
   assert.equal(el.attrs.dir,direction,locale);
