@@ -56,3 +56,20 @@ test('inventaire vide : le rendu dynamique réapplique la traduction sans touche
  assert.match(block,/RPI18nPlateau\.apply\(el\)/);
  assert.match(block,/state\.inventory\.length === 0/);
 });
+
+
+test('les boutons communs restent cliquables, localisés et conservent leurs icônes',()=>{
+ const codes=Object.keys(window.RP_I18N_LANGUAGES);
+ const labels=['closeButton','exitButton','sendButton','backHomeTitle'];
+ for(const code of codes){
+  const words=window.RP_I18N_RESOURCES[code].translation.plateau;
+  for(const key of labels)assert.ok(words[key]?.trim(),code+'/'+key);
+ }
+ for(const handler of ['closeSelfView','closeRulesView','closeForumView','closeMailView']){
+  const rx=new RegExp('<button[^>]*onclick="'+handler+'\\(\\)"[^>]*>\\s*<i[^>]+><\\/i>\\s*<span data-i18n="plateau\\.closeButton">Fermer<\\/span>');
+  assert.match(markup,rx,handler);
+ }
+ assert.match(markup,/onclick="sortirBatiment\(\)"[^>]*>\s*<i[^>]+><\/i>\s*<span data-i18n="plateau\.exitButton">Sortir<\/span>/);
+ assert.match(markup,/onclick="envoyerComposeMail\(\)"[^>]*>[\s\S]{0,180}<span data-i18n="plateau\.sendButton">Envoyer<\/span>/);
+ assert.match(markup,/data-i18n-title="plateau\.backHomeTitle"/);
+});
