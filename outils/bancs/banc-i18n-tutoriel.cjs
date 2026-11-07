@@ -96,3 +96,33 @@ test('l’arabe applique le RTL au seul corps du guide sans déplacer les comman
  }
  assert.match(code,/langueGuide==='ar'/);
 });
+
+
+test('guide personnage : les montants et attributs respectent les origines du serveur',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const server=fs.readFileSync(path.join(root,'api/_referentiels-generes.js'),'utf8');
+ const orig=source.slice(source.indexOf('const ORIGINS = ['),source.indexOf('\n];',source.indexOf('const ORIGINS = ['))+3);
+ const expect=[['poor',300,'+2 VOL, +2 DUP, −1 CHA'],
+  ['worker',600,'+1 VOL, +1 PER, −1 DUP'],
+  ['bourgeois',1000,'+1 INT, +1 CHA, −1 ENT'],
+  ['elite',2200,'+2 ENT, −2 VOL']];
+ const guide=original.slice(original.indexOf('  personnage: {'),original.indexOf('  plateau: {'));
+ for(const [id,amount,stats] of expect){
+  assert.match(orig,new RegExp("id:'"+id+"'[^\\n]*arg:"+amount+"\\b"));
+  assert.ok(server.includes('"id": "'+id+'"'));
+  assert.ok(server.includes('"arg": '+amount));
+  assert.ok(guide.includes(stats),'stats FR : '+id);
+  assert.ok(guide.includes(amount.toLocaleString('fr-FR').replace(/\u202f/g,' ')) ||
+    guide.includes(amount.toLocaleString('fr-FR').replace(/\u00a0/g,' ')),
+    'capital FR '+id);
+ }
+ for(const locale of Object.keys(win.RP_I18N_LANGUAGES).filter(x=>x!=='fr')){
+  const local=win.RP_I18N_RESOURCES[locale].translation.guide.personnage;
+  assert.ok(local?.titre?.trim(),locale);
+  for(const [,amount] of expect){
+   assert.ok(new RegExp(amount.toLocaleString('en-US').replace(/,/g,'[,. ]?')).test(local.contenu),
+    locale+' amount '+amount);
+  }
+  assert.ok(render(locale,false,'personnage').length>200,locale);
+ }
+});
