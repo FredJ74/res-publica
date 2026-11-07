@@ -2021,6 +2021,13 @@ const WORLD = {
         'mairie-capitale': {
           name: 'Soviet Municipal',
           desc: 'L\'administration locale du Parti. Formulaires en quadruple exemplaire.',
+          roomOverrides: {
+            hall_mairie:          { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_hall.webp' },
+            bureau_maire:         { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_bureau_maire.webp' },
+            bureau_maire_adjoint: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_bureau_adjoint.webp' },
+            salle_elections:      { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_salle_elections.webp' },
+            salle_archives:       { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_archives.webp' }
+          },
           persons: []
         },
                 'centre-multinodal-luthecia': {
