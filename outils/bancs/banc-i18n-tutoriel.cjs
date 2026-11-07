@@ -70,7 +70,9 @@ test('introduction du jeu disponible et rendue dans les huit langues',()=>{
   const intro=win.RP_I18N_RESOURCES[lang].translation.guide.intro;
   assert.ok(intro?.titre?.trim(),lang+' titre');
   assert.ok(intro?.contenu?.includes('Panem et circenses'),lang+' texte');
-  assert.ok(intro.contenu.length>400,lang+' incomplet');
+  // Les écritures idéographiques expriment le même contenu en moins de caractères.
+  assert.ok(intro.contenu.length>250,lang+' trop court');
+  assert.equal(intro.contenu.split('\n\n').length,4,lang+' quatre paragraphes');
   const html=render(lang,false,'intro');
   assert.ok(html.includes('Panem et circenses'));
   assert.ok(!html.includes('FR TEXTE INTRO'));
