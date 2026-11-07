@@ -129,10 +129,16 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 ### Décisions attendues de Fred
 
 - Aucune en cours.
+- Caisses d'entrepôts, reprise Codex 07/11 : la question initiale « PSM 10 231 FR
+  dans le blob contre 2 FR canoniques : lequel garder ? » est **caduque selon le
+  relevé de Claude**, voir #565 : aucune clé historique en production. Ne pas
+  additionner ces montants ni préparer de restitution sur cette base erronée.
+  #566 a déjà porté PSM et Montrouge de 2 à 10 000 FR (+9 998 chacune), décision
+  rapportée de Fred ; ne pas rejouer. Aucun nouvel arbitrage de solde demandé
+  sans relevé vivant contradictoire. Codex n'a appliqué aucune régularisation.
+
 
 ### Points ouverts transmis (non bloquants)
-
-- **CI `bancs-hors-production` (relevé Claude, 07/11)** : `main` est rouge depuis au moins #572 (étape `test-*.mjs`). Sur la branche du pouvoir de Sovarka, `test-*.mjs` et les 198 bancs clients passent ; reste `test-plan-recette97-219.py` : la photographie des 461 tarifs historiques compte 478 triplets, soit 17 ordres ajoutés depuis le plan 97 (ordres de Sovarka des 05-07/11, dont `sovarka_soviet_deputes` et `sovarka_repas_presidentiel`, gratuits) à déclarer hors coupe dans `outils/livraison/preparer-recette97-219.py`, comme les véhicules. L'extracteur exige `outils/e2e/node_modules` (`npm ci --prefix outils/e2e`), indisponible dans la session de Claude.
 
 - **Codex (signalé par Claude, 31/10)** : `militaire_entree_zone` a répondu 404 une fois à 17 h 24 (fonction présente en base : probable cache de schéma pendant une migration ; à surveiller). ~~`sbMarquerVolTraite`~~ retirée le 03/11 (voir Derniers chantiers).
 
@@ -166,6 +172,10 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - Louer un local dans les centres de Montrouge et de PSM ; acheter un terrain pour la commune en tant que maire ; attribuer un logement social en tant qu'adjoint.
 
 ## Derniers chantiers
+
+- **Urgence : rue vide au rechargement (Claude, 07/11)** — PR #579. Au chargement, `forceRenderCity` (minuterie de 300 ms) remettait le bâtiment à vide pendant la restauration de la position serveur, qui abandonnait : PJ dans une rue sans image ni action (Arnie au Siège du Comité Central). Le rendu garde désormais le bâtiment restauré (`garderBatiment`). Reproduit avec les réponses serveur réelles, corrigé 3/3 ; constaté par Fred.
+
+- **Lots de Codex intégrés par Claude (07/11)** — #576 : ordres de Sovarka déclarés hors des photographies historiques dans les quatre outils qui en tiennent une (plan 97, livraison complète, réconciliation des coûts, référence de navigation), deux tests alignés sur des décisions livrées, table des PNJ de Sovarka régénérée ; **`bancs-hors-production` de nouveau vert**. #577 : `effort_ravitailler` crédite la caisse canonique de l'entrepôt (migration `20261107081631` **appliquée**, registre `effort_ravitaillement_caisse_canonique_20261107081631`, banc à blanc conforme sur la production), trois replis fictifs à 8 500 FR retirés de la passe de minuit. Aucun solde régularisé.
 
 - **Pouvoir en Sovarka : semaine à la gloire des partis (Claude, 07/11, décisions de Fred)** — branche `claude/sovarka-pouvoir-20261107`, PR #575. Intitulés de Sovarka (écran, journal, bureaux et PNJ du Comité Central) ; salaires 800/700/560 PSK avec pays employeur lu au registre ; partis = organisations politiques, candidature présidentielle et municipale réservée aux membres d'un parti ; cycles de Sovarka créés (présidentielle, 3 mairies, `gloire_partis`) ; tracts pour les partis, décompte à minuit (adhérents PJ + partisans PNJ), 9 sièges du Soviet Suprême, chef du parti vainqueur nommé d'office Président du Conseil du Peuple, ministres du parti du pm ; députés désignés par les chefs de parti à l'hémicycle ; repas présidentiel quotidien avec invité. Migrations **appliquées** : `20261107094000`, `20261107120000`, `20261107121500`, `20261107123000`, `20261107124500`, `20261107130000` (registre : nom puis horodatage). Bancs annulés verts : `banc-sovarka-salaires-pouvoir.sql`, `banc-sovarka-partis-candidatures.sql`, `banc-sovarka-gloire-des-partis.sql`, `banc-sovarka-deputes-designes.sql`, `banc-sovarka-repas-presidentiel.sql`. Détail : `GAME-DESIGN-NOVOMIRSK.md`, « Pouvoir en Sovarka : ce qui est codé ». **Premier scrutin** : dimanche 15/11 (résultats lundi 16/11, comme El Estado). **À constater en jeu** : créer un parti (organisation politique) en Sovarka ; se porter candidat sans parti (refus nommé) ; imprimer des tracts pour un parti et les distribuer le dimanche ; après le 16/11, organigramme et Soviet Suprême (sièges, désignation des députés) ; repas aux appartements présidentiels. **Points à soumettre à Fred** : ministres d'un autre parti quand le pm change (aujourd'hui ils restent) ; chef du parti vainqueur déjà président ou maire (aujourd'hui pas de pm d'office) ; statut de dignitaire à raccorder avec les ambassades.
 
@@ -628,28 +638,46 @@ Commercial » / « Hall d’Entrée » et les anciens locaux, alors que data.js 
 Codex n'a pas modifié ces fichiers. Contrôles globaux toujours 8/12 sur main et branche.
 Fichiers REST mis à jour ; recette authentifiée et livraison restent non certifiées.
 
-### Contrôle plan 97 — Codex, 06/11, prêt pour CI
-Branche `codex/controle-tarifs-plan97-20261106`, base b061fe2c. Les 11 nouveaux
-triplets Sovarka sont identifiés avec sources et commits dans
-`outils/audits/TARIFS-PLAN97-SOVARKA-20261106.md`. Photographie 461 et MD5 inchangés,
-catalogue actuel 482 ; ajouts déclarés explicitement, 44 mutations refusées.
-Aucun fichier métier/Sovarka, montant ni migration modifié. REST GET refusé (403).
-PR à créer si POST refusé : titre « Plan 97 : déclarer les onze ajouts tarifaires
-Sovarka sans changer la photographie historique » ; description : provenance de
-chaque ajout documentée, assertions historiques conservées, trois tests Python dont
-44 contre-épreuves ; contrôles attendus : bancs-hors-production et cinq CI usuelles.
-Reste : création PR, CI distante et fusion. Aucun test téléphone nécessaire (outillage).
+### Caisses d'entrepôts — complément Codex, 07/11, APPLIQUÉ par Claude le 07/11 (registre `effort_ravitaillement_caisse_canonique_20261107081631`, banc à blanc sur la production conforme)
 
-Plan 97, reprise du 07/11 : main 747153e4 réconcilié, trois ajouts intervenus depuis
-hier déclarés séparément (demande de location, réservation et événement de réunion).
-Catalogue 485 ; photographie historique 461 et MD5 intacts. Trois tests réussis,
-56 mutations tarifaires refusées. REST POST a également répondu Forbidden : pas de
-PR créée ici. Branche/titre/description ci-dessus restent prêts pour Claude ; aucune
-modification des fichiers métier Sovarka. Reste CI distante et intégration.
+Branche `codex/caisses-entrepots-uniques-20261106`, base réconciliée main 747153e4.
+Relecture AGENTS/RELAIS/WORKFLOW et revue des lecteurs/écrivains : voir
+`outils/audits/CAISSES-ENTREPOTS-SOURCE-UNIQUE-20261107.md`. Le défaut d'achat PJ
+a déjà été livré par Claude (#565), notre préparation concurrente a été supprimée.
+Sa dotation #566 n'est ni recalculée ni rejouée. Aucun fichier Sovarka ou écran touché.
 
-Plan 97, contrôle final : #572 reçu (main 42a7f84d). Nouveau triplet dîner 2 PA/100 PSK
-contrôlé et exclu **par triplet exact**, pas par nom : les dîners historiques restent
-vérifiés. Catalogue 486, photographie 461 et empreinte inchangée. Quatre tests Python
-passent, 60 contre-épreuves tarifaires et trois mutations de manifeste. Toujours
-aucune création de PR REST possible ici ; branche prête avec titre et description
-ci-dessus. Aucun fichier Sovarka ou de game design modifié.
+Défaut supplémentaire reproduit : `effort_ravitailler` crédite encore le blob dans
+le baseline. Patch **en place**, préparé sous version 20261107081631, jamais appliqué ;
+primitive commune de caisse, exception si refus pour rollback intégral. Trois replis
+de cron à 8 500 FR retirés (seulement api/cron-minuit.js, aucun stock modifié).
+28 contrôles PostgreSQL 17.6 et 28 sous 16.2 : achats avec le patch de Claude et
+vrais reçus ; rôle authenticated refusé pour l'action nocturne, service_role pour
+son exécution ; identités/lois/PA de fixture explicites. Tout annulé, aucun PJ réel.
+199/199 bancs clients passent. Workflow conforme ; globaux 9/12, même verdict sur le main intact. Aucun baseline modifié pour masquer les trois écarts.
+
+PR : création REST à tenter au push ; si refus, titre « Entrepôts : caisse unique
+pour le ravitaillement militaire et suppression des dotations fantômes ». Description
+prête : complément indépendant de #565/#566, audit des lecteurs/écrivains, patch
+militaire sous gardes, prévol par noms de registre, bancs PostgreSQL annulés et
+contre-épreuves, aucun rattrapage d'argent ni changement de règles. Contrôles attendus :
+CI habituelles, banc-caisses-entrepots-local.py et tous les bancs clients.
+Reste : lecture vivante du prévol, vérification du corps/ACL et application seulement
+si nécessaire via registre par l'intégrateur, réextraction du baseline, puis livraison.
+Aucun outil Supabase exposé ici ; pas de fausse confirmation de production.
+Fred peut tester après livraison : acheter normalement à l'entrepôt et consulter
+le solde du directeur ; ne pas demander un achat à un PJ réel pour cette recette.
+Le complément nocturne se vérifie par fixtures, puis journal de la passe autorisée.
+
+Caisses, contrôle final du 07/11 : main 42a7f84d / #572 intégré sans toucher aux
+fichiers de Claude. 199/199 bancs clients sur la coupe précédente, puis 49/49
+transversaux sur l'intégration ; globaux 9/12 aussi sur main intact, Workflow conforme.
+28/28 contrôles SQL sur PostgreSQL 17.6 et 16.2, tous annulés. Preuves structurées :
+`outils/audits/CAISSES-ENTREPOTS-RESULTATS-20261107.json`. REST POST /pulls répond
+encore Forbidden : branche poussée, titre/description/contrôles prêts ci-dessus pour
+Claude. Aucune PR créée, fusion ou application Supabase par Codex. Migration militaire
+restant à confronter au catalogue vivant (pas d'outil Supabase exposé ici), puis à
+livrer via registre si nécessaire. Aucune décision de montant inventée ; le faux
+double solde est signalé comme caduc, dotation déjà livrée par Claude préservée.
+
+### Contrôle plan 97 — Codex, 06-07/11 : livré par #576 (Claude, 07/11)
+Ordres de Sovarka des 05-07/11 déclarés un à un hors des photographies historiques (plan 97, livraison complète, réconciliation des coûts, référence de navigation) ; empreintes inchangées ; `bancs-hors-production` de nouveau vert.
