@@ -55,6 +55,9 @@ on:
       - 'i18n/pnj-status-resources.js'
       - 'plateau-pnj.js'
       - 'outils/bancs/banc-i18n-statut-pnj.cjs'
+      - 'i18n/petit-accueil-resources.js'
+      - 'plateau-quete-accueil.js'
+      - 'outils/bancs/banc-i18n-petit-accueil.cjs'
       - 'outils/audits/audit-i18n-editorial.cjs'
       - 'outils/bancs/banc-i18n-editorial.cjs'
       - 'api/_traduction.js'
@@ -154,6 +157,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-dialogues-pnj.mjs
       - name: PNJ — messages d'erreur localisés sans altérer la conversation
         run: node --test outils/bancs/banc-i18n-statut-pnj.cjs
+      - name: Quête d'accueil — arrivée et choix de Jérémy en neuf langues
+        run: node --test outils/bancs/banc-i18n-petit-accueil.cjs
       - name: Audit de parité des variables et langues — 12 catalogues
         run: |
           node --test outils/bancs/banc-i18n-editorial.cjs
@@ -220,6 +225,8 @@ jobs:
           node --check i18n/room-resources.js
           node --check i18n/forum-ui.js
           node --check i18n/pnj-status-resources.js
+          node --check i18n/petit-accueil-resources.js
+          node --check plateau-quete-accueil.js
           node --check plateau-pnj.js
           node --check i18n/toast-resources.js
           node --check forum.js
