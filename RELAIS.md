@@ -709,3 +709,19 @@ du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de mig
 Test téléphone après intégration : verrouiller puis revenir, couper/rétablir le réseau, conserver bâtiment et pièce, aucun ordre initial rejoué.
 Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
 à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
+
+### Reprise mobile L4 — Codex, 07/11/2026
+Branche `codex/mobile-l4-creation-20261106`, main `a5e32332` intégré dans l'ordre des lots.
+SHA testé avant ajout du compte rendu : `1340808d8cd6dd218ee88dba3ebf319ab9e22436`. Résultats : UI
+2/2, clients 7/7 ; aucun échec.
+Titre PR vers main : **Mobile L4 — Revalidation connexion et création dans les six langues**.
+Description prête : six langues, explications En jeu conservées, choix réversibles, affichage 1440 identique.
+Anciens lots déjà en bêta conservés : cette reprise synchronise et teste, sans
+réécrire l'application. Seul ajout technique L8 : régression de #579 sur les vrais
+rendus, option `garderBatiment` conservée ; contre-épreuve sans l'option.
+Contrôles attendus : bancs-hors-production, gardes habituelles et tests ciblés
+MOBILE-REPRISE-L4-20261107.json. Reste à Claude : création PR, CI et intégration
+du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de migration.
+Test téléphone après intégration : ouvrir connexion/création dans les six langues sans valider un nouveau compte.
+Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
+à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
