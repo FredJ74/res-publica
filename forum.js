@@ -13,6 +13,9 @@ function rpForumPlateauLibelle(key,source) {
 function rpActionMailLabel(key,original) {
   return (typeof window!=='undefined' && window.RPForumUI?.mailActionLabel?.(key,original)) || original;
 }
+function rpForumCompte(kind,number,source) {
+  return (typeof window!=='undefined' && window.RPForumUI?.count?.(kind,number,source)) || source;
+}
 function rpForumNom(id,source) {
   return (typeof window!=='undefined' && window.RPForumUI?.forumNameHtml?.(id,source)) || source;
 }
@@ -174,11 +177,15 @@ let forumCompteursDernierChargement = 0;
 let forumCompteursChargement = null;
 let forumCompteursIdentite = '';
 function nombreSujetsForum(id) {
-  if (Object.prototype.hasOwnProperty.call(forumCompteursServeur, id))
-    return forumCompteursServeur[id] + ' sujet(s)';
-  if (FORUM_LECTURE_TERMINEE[id] && !FORUM_LECTURE_ECHOUEE[id])
-    return (FORUM_TOPICS[id] || []).length + ' sujet(s)';
-  return '… sujet(s)';
+  if (Object.prototype.hasOwnProperty.call(forumCompteursServeur, id)) {
+    const n=forumCompteursServeur[id];
+    return rpForumCompte('subjects',n,n+' sujet(s)');
+  }
+  if (FORUM_LECTURE_TERMINEE[id] && !FORUM_LECTURE_ECHOUEE[id]) {
+    const n=(FORUM_TOPICS[id] || []).length;
+    return rpForumCompte('subjects',n,n+' sujet(s)');
+  }
+  return rpForumCompte('subjects',null,'… sujet(s)');
 }
 async function rafraichirCompteursForums() {
   if (typeof sbCompterSujetsForums !== 'function') return;
@@ -951,7 +958,7 @@ function renderForumSidebar() {
       <i class="ti ti-mail" style="font-size:.85rem"></i>
       <div>
         <div class="forum-nav-name">${rpForumLibelle('mailbox','Boîte Mail')}${unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}</div>
-        <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${unreadCount} non lu(s)</span>` : rpForumLibelle('noMessages','Aucun message')}</div>
+        <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${rpForumCompte('unread',unreadCount,unreadCount+' non lu(s)')}</span>` : rpForumLibelle('noMessages','Aucun message')}</div>
       </div>
     </div>
     ${forumView === 'mail' ? `

@@ -1075,5 +1075,33 @@
   const translated=global.i18next?.t?.('mailActions.'+key,{lng:locale,defaultValue:original});
   return typeof translated==='string'&&translated.trim() ? translated : original;
  }
- global.RPForumUI=Object.freeze({labelHtml,forumNameHtml,forumDescriptionHtml,mailActionLabel});
+
+ // Compteurs de présentation uniquement. Les compteurs viennent toujours du serveur ;
+ // null signifie absence de confirmation, jamais zéro.
+ const counters=Object.freeze({
+  en:{subjects:{one:'topic',other:'topics'},unread:{one:'unread',other:'unread'}},
+  es:{subjects:{one:'tema',other:'temas'},unread:{one:'sin leer',other:'sin leer'}},
+  'zh-TW':{subjects:{other:'個主題'},unread:{other:'封未讀'}},
+  ru:{subjects:{one:'тема',few:'темы',many:'тем',other:'темы'},
+      unread:{one:'непрочитанное',few:'непрочитанных',many:'непрочитанных',other:'непрочитанных'}},
+  ko:{subjects:{other:'개 주제'},unread:{other:'개 미확인'}},
+  ar:{subjects:{zero:'مواضيع',one:'موضوع',two:'موضوعان',few:'مواضيع',many:'موضوعًا',other:'موضوع'},
+      unread:{zero:'غير مقروءة',one:'غير مقروءة',two:'غير مقروءتين',few:'غير مقروءة',many:'غير مقروءة',other:'غير مقروءة'}},
+  'pt-BR':{subjects:{one:'tópico',other:'tópicos'},unread:{one:'não lida',other:'não lidas'}},
+  de:{subjects:{one:'Thema',other:'Themen'},unread:{one:'ungelesen',other:'ungelesen'}}
+ });
+ function count(kind,quantity,original){
+  if(!['subjects','unread'].includes(kind)||typeof original!=='string')return original;
+  const lng=global.RPPlateauI18n?.language?.()||'fr';
+  const forms=counters[lng]?.[kind];
+  // Le français conserve les libellés historiques et leur rendu pixel-identique.
+  if(!forms)return original;
+  if(quantity!==null&&(!Number.isSafeInteger(quantity)||quantity<0))return original;
+  const form=quantity===null?'other':new Intl.PluralRules(lng).select(quantity);
+  const suffix=forms[form]||forms.other;
+  if(typeof suffix!=='string'||!suffix.trim())return original;
+  const safeSuffix=suffix.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return (quantity===null?'…':String(quantity))+' '+safeSuffix;
+ }
+ global.RPForumUI=Object.freeze({labelHtml,forumNameHtml,forumDescriptionHtml,mailActionLabel,count});
 })(window);
