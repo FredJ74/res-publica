@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('257 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('277 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,257);
+ assert.equal(ref.length,277);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -351,5 +351,25 @@ test('20 ordres essentiels de santé et de vie quotidienne : parité et autorit�
   }
   assert.equal(order.fn,fn);assert.equal(order.pa,1);assert.equal(order.cost,120);
   assert.equal(order.requiresPost,'aucun');
+ }
+});
+
+
+test('20 ordres services publics et justice : noms canoniques et invariants métier',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const ids=["recruter_policier_cynophile","recruter_info_4","gerer_effectifs_police","vendre_bois_imprimerie","produire_fuite","donner_conf","suivre_formation","choisir_arme","acheter_gilet","consulter_registre_armes","produire_arme","fixer_impots_locaux","subvention_proposer","campagne_securite","nominations_municipales","traiter_demandes_permis","traiter_demandes_logement_social","acte_officiel_mairie","greve_faim","corrompre_gardien"];
+ const actual=new Map();for(const m of source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)){
+  if(!actual.has(m[2]))actual.set(m[2],new Set());actual.get(m[2]).add(m[4]);
+ }
+ const fr=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const fn of ids){
+  const order=Object.freeze({fn,label:fr[fn],pa:2,cost:75,requiresPost:'service'});
+  assert.ok(actual.get(fn)?.has(order.label),fn);
+  for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+   const translated=win.RP_I18N_RESOURCES[lng].translation.orders[fn];
+   assert.ok(typeof translated==='string'&&translated.trim(),lng+'/'+fn);
+   assert.equal(win.RPOrderI18n.label(order,engine,lng),translated);
+  }
+  assert.equal(order.fn,fn);assert.equal(order.pa,2);assert.equal(order.cost,75);assert.equal(order.requiresPost,'service');
  }
 });
