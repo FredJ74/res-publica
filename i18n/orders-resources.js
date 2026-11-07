@@ -3719,6 +3719,110 @@
     }
   };
   for (const [locale, labels] of Object.entries(civicAndDiplomatic)) Object.assign(words[locale], labels);
+  // Derniers identifiants stables recensés ; les commandes contextuelles
+  // restent volontaires en français tant que leur variante n'est pas spécifiée.
+  const lastStable = {
+    "fr": {
+      "recherche_militaire": "Lancer une recherche sur l'armement",
+      "equiper_section": "Gerer l'equipement de ma section",
+      "retirer_equipement_militaire": "Retirer de l'équipement",
+      "contrebande_poissonniere": "Du poisson « de l'autre rive »",
+      "aller_douanes_aeroport": "Prendre l'avion",
+      "consulter_organigramme_syndicat": "Consulter l'organigramme",
+      "orga_anatheme": "Ceremonie d'anatheme",
+      "orga_rituel": "Rituel d'initiation",
+      "orga_rehabilitation": "Rehabilitation d'image"
+    },
+    "en": {
+      "recherche_militaire": "Start weapons research",
+      "equiper_section": "Manage my unit's equipment",
+      "retirer_equipement_militaire": "Withdraw equipment",
+      "contrebande_poissonniere": "Fish from the other shore",
+      "aller_douanes_aeroport": "Take a flight",
+      "consulter_organigramme_syndicat": "View the union organisation chart",
+      "orga_anatheme": "Anathema ceremony",
+      "orga_rituel": "Initiation ritual",
+      "orga_rehabilitation": "Restore public image"
+    },
+    "es": {
+      "recherche_militaire": "Iniciar una investigación sobre armamento",
+      "equiper_section": "Gestionar el equipo de mi sección",
+      "retirer_equipement_militaire": "Retirar equipo",
+      "contrebande_poissonniere": "Pescado «de la otra orilla»",
+      "aller_douanes_aeroport": "Tomar el avión",
+      "consulter_organigramme_syndicat": "Consultar el organigrama del sindicato",
+      "orga_anatheme": "Ceremonia de anatema",
+      "orga_rituel": "Ritual de iniciación",
+      "orga_rehabilitation": "Rehabilitación de imagen"
+    },
+    "zh-TW": {
+      "recherche_militaire": "啟動武器研究",
+      "equiper_section": "管理我部隊的裝備",
+      "retirer_equipement_militaire": "領取裝備",
+      "contrebande_poissonniere": "來自「對岸」的魚",
+      "aller_douanes_aeroport": "搭飛機",
+      "consulter_organigramme_syndicat": "查看工會組織架構",
+      "orga_anatheme": "詛咒儀式",
+      "orga_rituel": "入會儀式",
+      "orga_rehabilitation": "恢復形象"
+    },
+    "ru": {
+      "recherche_militaire": "Начать исследования вооружения",
+      "equiper_section": "Управлять снаряжением своего отделения",
+      "retirer_equipement_militaire": "Получить снаряжение",
+      "contrebande_poissonniere": "Рыба «с другого берега»",
+      "aller_douanes_aeroport": "Сесть на самолёт",
+      "consulter_organigramme_syndicat": "Посмотреть структуру профсоюза",
+      "orga_anatheme": "Церемония анафемы",
+      "orga_rituel": "Обряд посвящения",
+      "orga_rehabilitation": "Восстановление репутации"
+    },
+    "ko": {
+      "recherche_militaire": "무기 연구 시작",
+      "equiper_section": "내 부대 장비 관리",
+      "retirer_equipement_militaire": "장비 수령",
+      "contrebande_poissonniere": "「강 건너편」 생선",
+      "aller_douanes_aeroport": "비행기 타기",
+      "consulter_organigramme_syndicat": "노동조합 조직도 확인",
+      "orga_anatheme": "파문 선고 의식",
+      "orga_rituel": "입회 의식",
+      "orga_rehabilitation": "이미지 회복"
+    },
+    "ar": {
+      "recherche_militaire": "بدء بحث عن الأسلحة",
+      "equiper_section": "إدارة تجهيزات وحدتي",
+      "retirer_equipement_militaire": "استلام معدات",
+      "contrebande_poissonniere": "سمك «من الضفة الأخرى»",
+      "aller_douanes_aeroport": "ركوب الطائرة",
+      "consulter_organigramme_syndicat": "عرض الهيكل التنظيمي للنقابة",
+      "orga_anatheme": "مراسم الحرمان",
+      "orga_rituel": "طقس الانضمام",
+      "orga_rehabilitation": "استعادة الصورة العامة"
+    },
+    "pt-BR": {
+      "recherche_militaire": "Iniciar pesquisa sobre armamentos",
+      "equiper_section": "Gerenciar o equipamento da minha unidade",
+      "retirer_equipement_militaire": "Retirar equipamentos",
+      "contrebande_poissonniere": "Peixe «da outra margem»",
+      "aller_douanes_aeroport": "Pegar o avião",
+      "consulter_organigramme_syndicat": "Consultar o organograma do sindicato",
+      "orga_anatheme": "Cerimônia de anátema",
+      "orga_rituel": "Ritual de iniciação",
+      "orga_rehabilitation": "Recuperação de imagem"
+    },
+    "de": {
+      "recherche_militaire": "Waffenforschung starten",
+      "equiper_section": "Ausrüstung meiner Einheit verwalten",
+      "retirer_equipement_militaire": "Ausrüstung abholen",
+      "contrebande_poissonniere": "Fisch «vom anderen Ufer»",
+      "aller_douanes_aeroport": "Ein Flugzeug nehmen",
+      "consulter_organigramme_syndicat": "Organigramm der Gewerkschaft einsehen",
+      "orga_anatheme": "Anathema-Zeremonie",
+      "orga_rituel": "Aufnahmeritual",
+      "orga_rehabilitation": "Image wiederherstellen"
+    }
+  };
+  for (const [locale, labels] of Object.entries(lastStable)) Object.assign(words[locale], labels);
   for (const [locale, labels] of Object.entries(civic)) Object.assign(words[locale], labels);
   for(const [locale,labels] of Object.entries(words)) {
     if(resources[locale]?.translation) resources[locale].translation.orders={...labels};
