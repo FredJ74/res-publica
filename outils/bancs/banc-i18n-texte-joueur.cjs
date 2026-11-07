@@ -100,3 +100,54 @@ test('traduction vide ou blanche : toujours afficher le texte original',()=>{
   assert.equal(el.textContent,'Message important');
  }
 });
+
+
+test('accessibilité multilingue : lang correspond au texte affiché, jamais au lecteur',()=>{
+ const apiModule=api();
+ const attrs={};
+ const element={
+  textContent:'',
+  setAttribute(k,v){attrs[k]=v},
+  removeAttribute(k){delete attrs[k]}
+ };
+ const message=Object.freeze({
+  original:'Bonjour à tous',
+  originalLanguage:'fr',
+  translation:'مرحباً بالجميع',
+  translationLanguage:'ar'
+ });
+ apiModule.renderText(element,message,'ar');
+ assert.equal(element.textContent,'مرحباً بالجميع');
+ assert.equal(attrs.dir,'rtl');
+ assert.equal(attrs.lang,'ar');
+ apiModule.renderText(element,message,'ar',true);
+ assert.equal(element.textContent,'Bonjour à tous');
+ assert.equal(attrs.dir,'auto');
+ assert.equal(attrs.lang,'fr');
+ const unknown=Object.freeze({
+  original:'Texte dont la langue est inconnue',
+  translation:null,
+  translationLanguage:null,
+  originalLanguage:'xx'
+ });
+ apiModule.renderText(element,unknown,'de');
+ assert.equal(element.textContent,unknown.original);
+ assert.equal(attrs.dir,'auto');
+ assert.equal(attrs.lang,undefined);
+});
+test('bascule Voir original : lang change avec le contenu et les commandes ne changent pas',()=>{
+ const apiModule=api(),handlers={},attrs={};
+ const element={textContent:'',setAttribute(k,v){attrs[k]=v},removeAttribute(k){delete attrs[k]}};
+ const button={hidden:false,textContent:'',setAttribute(){},addEventListener(k,cb){handlers[k]=cb},removeEventListener(k){delete handlers[k]}};
+ const record=Object.freeze({original:'Hola',originalLanguage:'es',translation:'Hello',translationLanguage:'en'});
+ const control=apiModule.attachToggle(element,button,record,'en');
+ assert.equal(attrs.lang,'en');
+ assert.equal(element.textContent,'Hello');
+ handlers.click();
+ assert.equal(attrs.lang,'es');
+ assert.equal(element.textContent,'Hola');
+ handlers.click();
+ assert.equal(attrs.lang,'en');
+ assert.equal(element.textContent,'Hello');
+ control.detach();
+});
