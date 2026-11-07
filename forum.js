@@ -1229,20 +1229,20 @@ function renderTopicView() {
             <div class="forum-post-avatar" ${(!p.authorIsOrg && !(typeof PNJ_PERSONALITIES !== 'undefined' && PNJ_PERSONALITIES[p.author])) ? `style="cursor:pointer" data-author="${escapeHtmlText(p.author)}" onclick="ouvrirFichePublique(this.dataset.author)"` : ''}>${getAvatarHtmlPost(p.authorIsOrg, p.authorOrgIcon, p.author, 40)}</div>
             ${p.authorCountry && COUNTRIES?.[p.authorCountry] ? '<div style="width:100%;height:6px;background:' + COUNTRIES[p.authorCountry].col + ';margin:.3rem 0 .1rem"></div>' : ''}
             <div class="forum-post-author">${escapeHtmlText(p.author)}${p.authorIsOrg ? ' <i class="ti ti-shield" style="font-size:.7rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
-            ${p.authorSecret ? '<span class="forum-post-badge" style="border-color:#8a2020;color:#cc4444">secrète</span>' : ''}
+            ${p.authorSecret ? '<span class="forum-post-badge" style="border-color:#8a2020;color:#cc4444">' + rpForumLibelle('secret','secrète') + '</span>' : ''}
             <div class="forum-post-time">${formatDateAffichage(p.time)}</div>
-            ${i === 0 ? `<span class="forum-post-badge">Auteur du sujet</span>` : ''}
+            ${i === 0 ? `<span class="forum-post-badge">${rpForumLibelle('topicAuthor','Auteur du sujet')}</span>` : ''}
           </div>
           <div class="forum-post-main">
             <div class="forum-post-toolbar">
               ${(p.authorReal || p.author) === myName ? `
-                <button onclick="editPost('${topic.id}','${p.id || i}')" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="Modifier">
+                <button onclick="editPost('${topic.id}','${p.id || i}')" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="${rpForumLibelle('edit','Modifier')}">
                   <i class="ti ti-edit"></i>
                 </button>
-                <button onclick="confirmerSuppressionPost('${topic.id}','${p.id || i}')" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="Supprimer">
+                <button onclick="confirmerSuppressionPost('${topic.id}','${p.id || i}')" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="${rpForumLibelle('delete','Supprimer')}">
                   <i class="ti ti-trash"></i>
                 </button>` : ''}
-              <button onclick="quotePost(${i})" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="Citer">
+              <button onclick="quotePost(${i})" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="${rpForumLibelle('quote','Citer')}">
                 <i class="ti ti-quote"></i>
               </button>
             </div>
@@ -1265,9 +1265,9 @@ function renderRichEditor(id, initialContent = '') {
   return `
     <div class="rich-editor">
       <div class="rich-toolbar">
-        <button class="rich-btn" onclick="richFmt('bold')" title="Gras"><b>G</b></button>
-        <button class="rich-btn" onclick="richFmt('italic')" title="Italique"><i>I</i></button>
-        <button class="rich-btn" onclick="richFmt('underline')" title="Souligné"><u>S</u></button>
+        <button class="rich-btn" onclick="richFmt('bold')" title="${rpForumLibelle('bold','Gras')}"><b>G</b></button>
+        <button class="rich-btn" onclick="richFmt('italic')" title="${rpForumLibelle('italic','Italique')}"><i>I</i></button>
+        <button class="rich-btn" onclick="richFmt('underline')" title="${rpForumLibelle('underline','Souligné')}"><u>S</u></button>
         <div class="rich-sep"></div>
         <button class="rich-btn" onclick="richHeading(2)" title="Titre H2">H2</button>
         <button class="rich-btn" onclick="richHeading(3)" title="Titre H3">H3</button>
@@ -1313,7 +1313,7 @@ function renderRichEditor(id, initialContent = '') {
 
       <div class="rich-content" id="${id}" contenteditable="true" onfocus="window._lastRichEditorId=this.id" onkeydown="handleRichEditorEnter(event)"
         style="min-height:150px;padding:.8rem;outline:none;font-family:Crimson Pro,Georgia,serif;font-size:.9rem;line-height:1.7;color:#f0ead6"
-        placeholder="Écrivez votre message...">${initialContent}</div>
+        placeholder="${rpForumLibelle('editorPlaceholder','Écrivez votre message...')}">${initialContent}</div>
     </div>
   `;
 }
