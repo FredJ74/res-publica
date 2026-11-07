@@ -170,3 +170,20 @@ test('courriers : treize libellés, lecture, archivage et suppression inchangés
  assert.ok(source.includes("mailRubrique === 'archives'"));
  assert.ok(source.includes("mailRubrique === 'envoyes'"));
 });
+
+
+test('lecture des sujets : huit chaînes localisées, permissions et contenu joueurs intacts',()=>{
+ const controls=['topicAuthor','secret','edit','quote','bold','italic','underline','editorPlaceholder'];
+ for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+  lang=lng;
+  for(const key of controls)assert.ok(win.RP_I18N_RESOURCES[lng].translation.forumUI[key]?.trim(),lng+': '+key);
+ }
+ for(const key of controls)assert.ok(source.includes("rpForumLibelle('"+key+"'"),key);
+ const view=source.slice(source.indexOf('function renderTopicView()'),source.indexOf('function richFmt('));
+ for(const saved of ['escapeHtmlText(topic.title)','escapeHtmlText(p.author)',
+                     'p.authorSecret','renderComposedPost(p.content_layout)',
+                     'sanitizeRichHtml(p.content)','confirmerSuppressionPost(',
+                     'editPost(', 'quotePost(']){
+  assert.ok(view.includes(saved),saved);
+ }
+});
