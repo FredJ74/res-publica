@@ -107,3 +107,10 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - **237 identifiants d'ordres × neuf langues = 2 133 libellés**, dont vingt nouveaux ordres militaires (nomination d'officiers, affectations, caserne, armement, unités, mutinerie, renseignement). Ces traductions ne changent ni la hiérarchie ni les règles de combat et n'ajoutent aucune autorité cliente.
 - Vérification directe V8 des ressources du dépôt après le nouveau lot : **237/237 libellés français retrouvés exactement dans `data.js`**, neuf catalogues de 237 entrées, **aucune clé manquante** ; l'affichage des variantes contextuelles reste en français, par sécurité.
 - Recette GitHub : les workflows du dernier SHA doivent être terminés avant déclaration de validation ; les résultats V8 ne remplacent ni la CI, ni les tests navigateur avec session réelle. PR #377 toujours brouillon, sans fusion dans `main`.
+
+
+### 07/11 — services essentiels et prévention des régressions
+
+- Ajout de **20 ordres prioritaires** dans les neuf langues : soins (clinique, hôpital, urgences, antipoison), banque et virements, tribunal, presse, nourriture, état civil, logement social et perception des opinions. **Total : 257 ordres canoniques dans chaque langue, soit 2 313 libellés.** La version française correspond aux labels de `data.js` ; les variantes à prix ou texte changeant restent en français.
+- Contrôles de parité, garde des identifiants, coûts, PA et permissions intégrés au banc i18n. L'ajout de libellés n'implique aucune activation publique et aucun mécanisme métier n'a été modifié.
+- La certification CI au dernier SHA doit être vérifiée avant toute fusion ; les tests interactifs authentifiés et la révision linguistique restent ouverts.
