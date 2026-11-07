@@ -4,8 +4,9 @@
  * et les échappements Unicode ; ne lance jamais le code du jeu.
  */
 const literal=String.raw`(['"])((?:\\.|(?!\1)[^\\\r\n])*)\1`;
-const fnThenLabel=new RegExp(String.raw`\bfn\s*:\s*`+literal+String.raw`\s*,\s*label\s*:\s*`+literal,'g');
-const labelThenFn=new RegExp(String.raw`\blabel\s*:\s*`+literal+String.raw`\s*,\s*fn\s*:\s*`+literal,'g');
+const literalSecond=literal.replace(/\\1/g,'\\3');
+const fnThenLabel=new RegExp(String.raw`\bfn\s*:\s*`+literal+String.raw`\s*,\s*label\s*:\s*`+literalSecond,'g');
+const labelThenFn=new RegExp(String.raw`\blabel\s*:\s*`+literal+String.raw`\s*,\s*fn\s*:\s*`+literalSecond,'g');
 function decode(value){
  return value.replace(/\\(?:u\{([0-9a-fA-F]{1,6})\}|u([0-9a-fA-F]{4})|x([0-9a-fA-F]{2})|([\\'"nrtbfv0]))/g,(_,long,short,hex,simple)=>{
   if(long) { const cp=Number.parseInt(long,16);return cp<=0x10ffff?String.fromCodePoint(cp):'�'; }
