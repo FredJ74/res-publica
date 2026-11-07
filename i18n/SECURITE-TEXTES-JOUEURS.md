@@ -11,7 +11,7 @@ Le client ne fournit **jamais** le texte à traduire comme preuve d'accès. Il e
 - Chat : `messages_chat.message`, politique SELECT RLS `chat_participe(conversation_id, salon)` ; uniquement les participants autorisés.
 - Audience et presse en attente : **non autorisés** par le contrat de traduction tant que leurs portes de lecture serveur n'ont pas été auditées.
 
-Le prévol corrigé `outils/audits/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql` exige une unique politique de lecture attendue par source, RLS active et le prédicat correspondant. **Exécuté en lecture seule sur le projet Supabase `res-publica` le 07/11/2026 : 3/3 conformes**. Il ne démontre pas encore l'absence de faille dans le futur endpoint : celui-ci demeure inexistant et désactivé.
+Le prévol corrigé `historique/i18n/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql` exige une unique politique de lecture attendue par source, RLS active et le prédicat correspondant. **Exécuté en lecture seule sur le projet Supabase `res-publica` le 07/11/2026 : 3/3 conformes**. Il ne démontre pas encore l'absence de faille dans le futur endpoint : celui-ci demeure inexistant et désactivé.
 
 ## Protection contre les coûts et abus, indispensable avant mise en service
 1. Compteur de requêtes par UID vérifié, fenêtre glissante persistante côté serveur et limitation simultanée. Ni la mémoire d'une fonction serverless ni le seul navigateur ne sont fiables.
