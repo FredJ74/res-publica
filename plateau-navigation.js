@@ -27,7 +27,7 @@ function travelToCity(cityId) {
   showToast('Transport requis', 'Pour voyager entre les villes, rendez-vous au Centre Multinodal.', false);
 }
 
-function forceRenderCity(cityId) {
+function forceRenderCity(cityId, options) {
   const world = WORLD[state.country];
   if (!world) return;
   const city = world[cityId];
@@ -41,8 +41,10 @@ function forceRenderCity(cityId) {
 
   document.getElementById('city-name-display').textContent = `${city.name}, ${city.isCapitale ? 'Capitale de ' : ''}${COUNTRIES[state.country]?.n || ''}`;
 
-  // Vue rue
-  showVueRue();
+  // Vue rue. Au chargement (07/11/2026), ce rendu ne doit jamais effacer le batiment que le
+  // serveur vient de restaurer : il remettait currentBuilding a null pendant les 300 ms de la
+  // restauration, qui abandonnait alors (position changee) et laissait le PJ dans une rue vide.
+  if (!(options && options.garderBatiment && state.currentBuilding)) showVueRue();
   renderMinimap(cityId);
   updateLocationDisplay();
   // Rafraichissement inconditionnel (correctif audit du 20 aout 2026) : cette ligne dependait a
