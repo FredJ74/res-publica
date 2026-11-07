@@ -80,6 +80,10 @@ async function run(){
       expectedReply:window.RP_I18N_RESOURCES?.[language]?.translation?.forumUI?.reply,
       toastTitle:window.RPToastI18n?.label('Action impossible'),
       expectedToast:window.RP_I18N_RESOURCES?.[language]?.translation?.toastTitles?.actionImpossible,
+      unavailablePnj:window.RPPnjStatusI18n?.label('temporaryUnavailable','Discussion impossible momentanément. Veuillez réessayer dans quelques instants.'),
+      expectedPnj:window.RP_I18N_RESOURCES?.[language]?.translation?.pnjStatus?.temporaryUnavailable,
+      disabledPnj:window.RPPnjStatusI18n?.label('noConversation',"Ce personnage n'engage pas de conversation."),
+      expectedDisabledPnj:window.RP_I18N_RESOURCES?.[language]?.translation?.pnjStatus?.noConversation,
       // Panneau personnel du vrai HTML, pas seulement le dictionnaire.
       panelLabels:Object.fromEntries(['myStats','myGoals','myEmployees','inventory'].map(key=>{
         const el=document.querySelector('[data-i18n="plateau.'+key+'"]');
@@ -106,6 +110,8 @@ async function run(){
    assert.equal(state.privateForum,'Forum local — Novomirsk',language+': nom privé/local inchangé');
    assert.equal(state.replyControl,state.expectedReply,language+': bouton répondre localisé');
    assert.equal(state.toastTitle,state.expectedToast,language+': notification localisée sans changer raison serveur');
+   assert.equal(state.unavailablePnj,state.expectedPnj,language+': PNJ en panne localisé');
+   assert.equal(state.disabledPnj,state.expectedDisabledPnj,language+': PNJ sans profil localisé');
    for(const [key,entry] of Object.entries(state.panelLabels)){
      assert.ok(entry.expected,language+': absent du catalogue du panneau '+key);
      assert.equal(entry.visible,key==='myEmployees'||key==='inventory'
