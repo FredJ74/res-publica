@@ -260,10 +260,10 @@
 
     <!-- BOUTON STATS -->
     <button onclick="openSelfView('stats')" style="width:100%;margin:.3rem 0 .2rem;font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.35rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem">
-      <i class="ti ti-chart-bar" style="font-size:.75rem"></i> Mes Statistiques
+      <i class="ti ti-chart-bar" style="font-size:.75rem"></i> <span data-i18n="plateau.myStats">Mes Statistiques</span>
     </button>
     <button onclick="afficherObjectifsSecrets()" style="width:100%;margin:.2rem 0 .4rem;font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.35rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem">
-      <i class="ti ti-target" style="font-size:.75rem"></i> Mes Objectifs 🎯
+      <i class="ti ti-target" style="font-size:.75rem"></i> <span data-i18n="plateau.myGoals">Mes Objectifs 🎯</span>
     </button>
 
     <!-- LOCATION — masqué, IDs conservés pour le JS -->
@@ -273,7 +273,7 @@
 
     <!-- EMPLOYÉS -->
     <div class="panel-title" style="cursor:pointer" onclick="toggleSection('employes-panel','emp-chevron')">
-      MES EMPLOYÉS <i class="ti ti-chevron-right" id="emp-chevron" style="font-size:.7rem;float:right;margin-top:.1rem"></i>
+      <span data-i18n="plateau.myEmployees" data-i18n-uppercase>MES EMPLOYÉS</span> <i class="ti ti-chevron-right" id="emp-chevron" style="font-size:.7rem;float:right;margin-top:.1rem"></i>
     </div>
     <div id="employes-panel" style="display:none;padding:.3rem 0">
       <div id="employes-list"></div>
@@ -281,7 +281,7 @@
 
     <!-- INVENTAIRE (fermé par défaut) -->
     <div class="panel-title" style="cursor:pointer" onclick="toggleInventaire()">
-      INVENTAIRE <i class="ti ti-chevron-right" id="inv-chevron" style="font-size:.7rem;float:right;margin-top:.1rem"></i>
+      <span data-i18n="plateau.inventory" data-i18n-uppercase>INVENTAIRE</span> <i class="ti ti-chevron-right" id="inv-chevron" style="font-size:.7rem;float:right;margin-top:.1rem"></i>
     </div>
     <div id="inventaire-panel" style="display:none">
       <div class="inv-section">
