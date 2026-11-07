@@ -139,6 +139,8 @@ async function ouvrirSovarkaMonParti() {
       ? m.demandes.map((x, i) => '<div>' + partiE(x.nom) + ' ' + vehBouton('Accepter', 'partiRepondre(' + i + ',true)', true) + ' ' +
           vehBouton('Refuser (−2 POP au parti)', 'partiRepondre(' + i + ',false)', false) + '</div>').join('')
       : '<p class="cpj-note">Aucune demande en attente.</p>');
+    html += vehSection('Soviet Suprême', '<p class="cpj-note">Sièges obtenus à la semaine à la gloire ; désignez les députés de votre parti.</p>' +
+      vehBouton('Sièges et députés', 'ouvrirSovietSupreme()', false));
     html += vehSection('Droit d’entrée', '<input id="parti-prix" class="cpj-champ" type="number" min="0" step="1" value="' + m.prix + '"> PSK ' +
       vehBouton('Fixer', 'partiFixerPrix()', false));
   }

@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk','poissonniere-novomirsk','usine-pharmaceutique-luthecia','musee-national-republia'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk','poissonniere-novomirsk','usine-pharmaceutique-luthecia','musee-national-republia'],
       buildingContext: {
         // Galeries de Novomirsk : les 4 locaux du socle commercial restent
         // exactement les memes baux / identifiants serveur. Ici, seuls l'apparence,
@@ -1986,7 +1986,7 @@ const WORLD = {
           name: 'Palais du Gouvernement de Sovarka',
           desc: 'Le vrai pouvoir de Sovarka. Chaque décision est votée à l\'unanimité — le Parti ne connaît pas le désaccord.',
           // Intitulés de Sovarka (Fred, 07/11/2026, « Organisation du pouvoir en Sovarka ») ;
-          // images des bureaux à venir (imagesAVenir), seul le hall a la sienne.
+          // toutes les pièces illustrées par Fred (08/11/2026).
           roomOverrides: {
             hall: {
               imageUrl: 'images/Sovarka/Novomirsk/Novo_palais_hall.webp'
@@ -2004,20 +2004,8 @@ const WORLD = {
           },
           persons: []
         },
-        'assemblee': {
-          name: 'Soviet Suprême',
-          desc: 'L\'assemblée du Peuple. Tous les votes sont unanimes. Camarade Président parle, les délégués approuvent.',
-          persons: [],
-          // Sièges répartis à la semaine à la gloire des partis, députés désignés par les chefs de
-          // parti (Fred, 07/11/2026) : sovarka_soviet_etat / sovarka_depute_designer.
-          roomOverrides: {
-            hemicycle: {
-              orders: [{ fn: 'sovarka_soviet_deputes', label: 'Sièges et députés du Soviet Suprême',
-                pa: 0, cost: 0, type: 'legal', icon: 'ti-users-group', successRate: 100,
-                desc: 'Consulter la répartition des sièges ; un chef de parti y désigne les députés de son parti.' }]
-            }
-          }
-        },
+        // Soviet Suprême retiré de Novomirsk (Fred, 08/11/2026) : pas de chambre des députés ; ils sont
+        // convoqués le jeudi au Palais du Gouvernement. Les chefs désignent leurs députés depuis « Mon parti ».
         'mairie-capitale': {
           name: 'Mairie de Novomirsk',
           desc: 'L\'administration locale du Parti. Formulaires en quadruple exemplaire.',
@@ -2139,10 +2127,9 @@ const WORLD = {
         // memes pieces, memes ordres et memes fonctions serveur qu'en Republia, mais EN VILLE : en Sovarka la
         // caserne n'est pas une zone hors ville (decision de Fred, 05/11/2026 ; migration 20261105200100).
         // PNJ propres a Novomirsk, noms valides par Fred le 05/11 (regle « pas de connexion entre les villes ») ;
-        // l'armurier et l'archiviste restent anonymes. Images a venir.
+        // l'armurier et l'archiviste restent anonymes. Sept pieces illustrees par Fred (08/11).
         'caserne-militaire': {
           name: "Caserne centrale de Novomirsk",
-          imagesAVenir: true,
           desc: "La caserne centrale de l'Armée populaire de Sovarka, en plein cœur de Novomirsk. Deux portails, des sentinelles qui ne cillent pas, et l'étoile rouge repeinte chaque printemps.",
           roomOverrides: {
             armurerie_militaire: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_armurerie.webp' },
