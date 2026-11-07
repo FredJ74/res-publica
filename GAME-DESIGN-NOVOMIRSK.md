@@ -153,3 +153,6 @@ Sovarka n'a pas le circuit de la Républia (président → Premier ministre → 
 - **Élection présidentielle comme en Républia** (même vote, mêmes tracts) ; pendant la semaine, les tracts servent donc aux partis et aux candidats, le joueur choisit sa cible.
 - **Salaires** : président 800 PSK, Président du Conseil du Peuple 700 PSK, ministre 560 PSK.
 - **Intitulés** (proposés par Claude, validés par Fred) : Président de la République de Sovarka ; Président du Conseil du Peuple (chef du gouvernement) ; ministre de la Sécurité du Peuple (Intérieur) ; ministre de l'Économie collective (Finances) ; ministre de la Justice prolétarienne ; ministre de la Défense de la Patrie ; ministre de la Vérité officielle (Information) ; ministre de l'Amitié entre les Peuples (Affaires étrangères).
+- **Soviet Suprême** : les sièges de députés sont **répartis entre les partis à la proportionnelle des partisans** de la semaine à la gloire ; chaque chef de parti désigne ses députés.
+- **Maires** : élus comme en Républia, mais **tout candidat doit d'abord adhérer à un parti**. **Même règle pour la présidentielle** : tout candidat à un poste électif de Sovarka est membre d'un parti.
+- **Cas limites** (proposés par Claude, validés) : égalité entre partis → le plus d'adhérents PJ, puis le plus ancien ; aucun parti en Sovarka → le président nomme librement le chef du gouvernement.
