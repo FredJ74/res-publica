@@ -109,6 +109,7 @@ test('rendu complet de la fiche PJ en neuf langues sur des valeurs identiques et
    ARCHETYPES:[],CAREERS:[],ORIGINS:[],SCHOOLS:[],STAT_DEFS:[],
    TYPES_PRET:{},
    document:{getElementById:()=>node},
+   sbRpc:async()=>[], // lecture serveur simulée : vide véritable, non panne
    resumeFortune:()=>({comptes:123}),
    totalComptesBancaires:()=>123,
    genererStatsHtml:()=>'<span>STATISTIC_TABLE</span>'
@@ -126,6 +127,16 @@ test('rendu complet de la fiche PJ en neuf langues sur des valeurs identiques et
   assert.ok(rendered.includes("switchCharSheetTab('identite')"),locale+': bouton identité');
   assert.ok(rendered.includes("switchCharSheetTab('stats')"),locale+': bouton statistiques');
   assert.ok(rendered.includes('STATISTIC_TABLE'),locale+': moteur statistique conservé');
+  // Contre-épreuve : serveur indisponible, ne jamais présenter ce résultat
+  // comme une liste de réservations vide ou effacer un droit déjà payé.
+  fixture.sbRpc=async()=>null;
+  await vm.runInContext('openCharSheet()',sandbox);
+  assert.ok(rendered.includes(win.RPCharacterSheetI18n.label('readUnavailable',
+    win.RP_I18N_RESOURCES.fr.translation.characterSheet.readUnavailable)),
+    locale+': échec de lecture distinct de zéro réservation');
+  assert.ok(!rendered.includes(win.RPCharacterSheetI18n.label('noReservedNights',
+    win.RP_I18N_RESOURCES.fr.translation.characterSheet.noReservedNights)),
+    locale+': jamais de faux vide en panne');
   values.push({liquide:150,comptes:123,locale});
  }
  assert.equal(values.length,9);
