@@ -37,6 +37,8 @@ on:
       - 'outils/bancs/banc-i18n-tutoriel.cjs'
       - 'outils/bancs/banc-i18n-texte-joueur.cjs'
       - 'outils/bancs/banc-i18n-social-par-langue.cjs'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'outils/bancs/banc-i18n-editorial.cjs'
       - 'api/_traduction.js'
       - 'outils/bancs/banc-traduction-i18n.mjs'
       - 'outils/bancs/banc-i18n-selecteur-interactif.cjs'
@@ -111,6 +113,16 @@ jobs:
         run: node --test outils/bancs/banc-i18n-texte-joueur.cjs
       - name: Messages sociaux originaux et traduits — 9 locales
         run: node --test outils/bancs/banc-i18n-social-par-langue.cjs
+      - name: Audit de parité des variables et langues — 12 catalogues
+        run: |
+          node --test outils/bancs/banc-i18n-editorial.cjs
+          node outils/audits/audit-i18n-editorial.cjs > /tmp/audit-i18n-editorial.json
+      - name: Inventaire des points à relire linguistiquement
+        uses: actions/upload-artifact@v4
+        with:
+          name: i18n-audit-editorial
+          path: /tmp/audit-i18n-editorial.json
+          retention-days: 14
       - name: Moteur de traduction interne (fournisseur simulé)
         run: node --test outils/bancs/banc-traduction-i18n.mjs
       - name: "Sélecteur des neuf langues : simulation interactive"
