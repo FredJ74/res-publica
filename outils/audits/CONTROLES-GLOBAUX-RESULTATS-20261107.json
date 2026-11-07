@@ -1,0 +1,102 @@
+{
+  "date": "2026-11-07",
+  "main_depart": "efeee90a",
+  "main_integration": "947caad78e83b5a07d5c1a78dc4386da97846747",
+  "sha_teste_avant_compte_rendu_final": "db1496d6f9ca25db4181864b8eb6e57240687464",
+  "globaux": {
+    "avant": 9,
+    "apres": 10,
+    "total": 12,
+    "details": [
+      {
+        "controle": "le processus tient",
+        "commande": "python outils/baseline/verifier-workflow.py",
+        "avant": "OK",
+        "apres": "OK"
+      },
+      {
+        "controle": "la classification est entiere",
+        "commande": "python outils/baseline/verifier-classification.py",
+        "avant": "OK",
+        "apres": "OK"
+      },
+      {
+        "controle": "le baseline est fidele au catalogue",
+        "commande": "python outils/baseline/verifier-baseline.py",
+        "avant": "ECHEC",
+        "apres": "ECHEC"
+      },
+      {
+        "controle": "l'autorite tient",
+        "commande": "python outils/baseline/verifier-autorite.py",
+        "avant": "ECHEC",
+        "apres": "OK"
+      },
+      {
+        "controle": "les referentiels concordent",
+        "commande": "python outils/baseline/verifier-referentiels.py",
+        "avant": "ECHEC",
+        "apres": "ECHEC"
+      },
+      {
+        "controle": "les faits publics atteignent le Journal",
+        "commande": "python outils/baseline/verifier-faits-publics.py",
+        "avant": "OK",
+        "apres": "OK"
+      },
+      {
+        "controle": "les fonctions concordent",
+        "commande": "python outils/baseline/verifier-fonctions.py",
+        "avant": "OK",
+        "apres": "OK"
+      },
+      {
+        "controle": "le monde neuf est propre",
+        "commande": "python outils/baseline/verifier-monde-neuf.py",
+        "avant": "OK",
+        "apres": "OK"
+      },
+      {
+        "controle": "l'assemblage se tient",
+        "commande": "python outils/baseline/assembler.py",
+        "avant": "OK",
+        "apres": "OK"
+      },
+      {
+        "controle": "la reconstruction passe",
+        "commande": "python outils/baseline/reconstruire.py",
+        "avant": "OK",
+        "apres": "OK"
+      },
+      {
+        "controle": "non-regression du pilote 2B",
+        "commande": "python outils/baseline/verifier.py communication",
+        "avant": "OK",
+        "apres": "OK"
+      },
+      {
+        "controle": "non-regression de l'archive 2D",
+        "commande": "python outils/verifier-archive-registre.py",
+        "avant": "OK",
+        "apres": "OK"
+      }
+    ]
+  },
+  "clients": {
+    "reussis": 200,
+    "total": 200,
+    "echecs": 0,
+    "sql_execute": false
+  },
+  "tests_python_cibles": 6,
+  "bancs_node_cibles_reussis": 8,
+  "bureau1440": "PNG strictement identiques, application inchangée",
+  "workflow": "conforme",
+  "diff_check": "conforme",
+  "observations_production_modifiees": false,
+  "empreintes_archive_registre_modifiees": false,
+  "migration_preparee_ou_appliquee": false,
+  "production_modifiee": false,
+  "pr_rest": "POST tenté : Forbidden",
+  "limite": "Baseline et Referential exigent des exports et observations actuels. Protocole de collecte fourni, aucune donnée vivante reçue."
+}

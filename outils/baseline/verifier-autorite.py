@@ -705,11 +705,37 @@ def main():
     tables_connues = set(relations) | tables_rendues
     signatures_connues = {re.sub(r"\s+", "", k) for k in fonc_droits}
     noms_policies = {(p["table"], p["nom"]) for p in policies}
+    import importlib.util as iu
+    sp=iu.spec_from_file_location('extensions_autorite',os.path.join(os.path.dirname(__file__),'declarations_dynamiques.py'))
+    extensions=iu.module_from_spec(sp);sp.loader.exec_module(extensions)
+    textes_migrations=[open(p,encoding='utf-8').read() for p in sorted(glob.glob(os.path.join(MIGRATIONS,'*.sql')))]
+    sp_formes=iu.spec_from_file_location('formes_extensions',os.path.join(ICI,'simuler-rpc-apres-lot.py'))
+    formes=iu.module_from_spec(sp_formes);sp_formes.loader.exec_module(formes)
+    noms_connus={nom+'('+','.join(types)+')':v['noms'] for (nom,types),v in formes.formes_baseline().items()}
+    from pglast import parse_sql
+    from pglast.stream import RawStream
+    entetes_connus={}
+    textes_sources=[open(p,encoding='utf-8').read() for p in sorted(glob.glob(os.path.join(DOMAINES,'*','20_fonctions*.sql')))]+textes_migrations
+    for texte_prepare in textes_sources:
+        signatures_connues.update(signatures_immediates_migration(texte_prepare))
+        for raw in parse_sql(texte_prepare):
+            st=raw.stmt
+            if type(st).__name__=='CreateFunctionStmt' and st.funcname[0].sval=='public':
+                types,noms,_=formes.types_ast(st.parameters)
+                signature=st.funcname[-1].sval+'('+','.join(types)+')'
+                noms_connus[signature]=noms
+                entetes_connus[signature]=re.split(r'\bRETURNS\b',RawStream()(st),maxsplit=1,flags=re.I)[0]
+    for _ in range(len(textes_migrations)+1):
+        avant=len(signatures_connues)
+        for texte_prepare in textes_migrations:
+            signatures_connues.update(extensions.extensions_parametres(texte_prepare,signatures_connues,noms_connus,entetes_connus))
+        if len(signatures_connues)==avant:break
     for chemin in sorted(glob.glob(os.path.join(MIGRATIONS, "*.sql"))):
         court = os.path.basename(chemin)
         texte = open(chemin, encoding="utf-8").read()
         # Les migrations précédentes sont des dépendances, sans devenir le baseline.
         signatures_connues.update(signatures_immediates_migration(texte))
+
         # les tables declarees dans le tableau `surface` de la migration 2
         for m in re.finditer(r"\['([a-z_0-9]+)','[IUD]{1,3}'\]", texte):
             if m.group(1) not in tables_connues and m.group(1) not in set(re.findall(
