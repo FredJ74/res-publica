@@ -20,7 +20,7 @@ permissions:
   contents: read
 jobs:
   parcours-statique:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -30,8 +30,7 @@ jobs:
       - name: Installer Chromium et son pilote dans un répertoire jetable
         run: |
           npm install --prefix /tmp/hg-i18n-browser --no-package-lock --no-audit --no-fund playwright@1.56.1
-          # Runner Ubuntu 26.04 : --with-deps n'est pas pris en charge par Playwright 1.56.
-          /tmp/hg-i18n-browser/node_modules/.bin/playwright install chromium
+          /tmp/hg-i18n-browser/node_modules/.bin/playwright install --with-deps chromium
       - name: Démarrer le site statique (aucun serveur de jeu)
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/hg-i18n-static.log 2>&1 &
