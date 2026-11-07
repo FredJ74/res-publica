@@ -1981,7 +1981,16 @@ const WORLD = {
         'assemblee': {
           name: 'Soviet Suprême',
           desc: 'L\'assemblée du Peuple. Tous les votes sont unanimes. Camarade Président parle, les délégués approuvent.',
-          persons: []
+          persons: [],
+          // Sièges répartis à la semaine à la gloire des partis, députés désignés par les chefs de
+          // parti (Fred, 07/11/2026) : sovarka_soviet_etat / sovarka_depute_designer.
+          roomOverrides: {
+            hemicycle: {
+              orders: [{ fn: 'sovarka_soviet_deputes', label: 'Sièges et députés du Soviet Suprême',
+                pa: 0, cost: 0, type: 'legal', icon: 'ti-users-group', successRate: 100,
+                desc: 'Consulter la répartition des sièges ; un chef de parti y désigne les députés de son parti.' }]
+            }
+          }
         },
         'mairie-capitale': {
           name: 'Soviet Municipal',
