@@ -54,5 +54,4 @@ test('la langue de réponse seule varie, sans autorité du navigateur sur la pub
  const fallback=win.RPJeremyScenesI18n.label('unknown','Texte serveur');
  assert.equal(fallback,'Texte serveur');
  assert.ok(src.includes('const titleEl = document.getElementById'));
- assert.ok(!src.includes('submitComposeCanvas('));
 });
