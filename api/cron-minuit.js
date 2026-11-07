@@ -353,6 +353,7 @@ const POSTE_NOMS = {
   chef_syndicat: 'Chef Syndical',
   maire: 'Maire',
   depute: 'Député',
+  gloire_partis: 'Semaine à la gloire des partis',
 };
 
 const POSTE_SCOPE = {
@@ -360,6 +361,7 @@ const POSTE_SCOPE = {
   chef_syndicat: 'national', // visible empire entier
   maire: 'local',            // visible ville uniquement
   depute: 'local',
+  gloire_partis: 'national',
 };
 
 // Duree de mandat — commune aux 4 postes electifs aujourd'hui (voir POSTES_ELECTIFS,
@@ -5978,6 +5980,9 @@ export default async function handler(req, res) {
     // Le bloc electoral est desormais ce que l'architecture prevoit : une etape ISOLABLE. Son
     // echec est nomme, remonte dans le statut final, et n'empeche plus aucune autre tache.
     const cycles = await sbGet('cycles_electoraux', 'select=*');
+    // Sovarka (07/11/2026) : la semaine à la gloire des partis est dépouillée AVANT la
+    // présidentielle de la même nuit (le chef du parti vainqueur devient chef du gouvernement).
+    (cycles || []).sort((a, b) => (a.poste_id === 'gloire_partis' ? 0 : 1) - (b.poste_id === 'gloire_partis' ? 0 : 1));
     for (const row of (cycles || [])) {
       let cycle;
       try { cycle = JSON.parse(row.data); } catch(e) { continue; }
@@ -6092,7 +6097,40 @@ export default async function handler(req, res) {
         ouvrirSuccessionSurCycle(cycle, dateResultats, MANDAT_SEMAINES);
       };
 
-      if (posteId === 'depute') {
+      if (posteId === 'gloire_partis') {
+        // ============ SOVARKA : SEMAINE A LA GLOIRE DES PARTIS (Fred, 07/11/2026) ============
+        // Décompte serveur (adhérents PJ + partisans PNJ recrutés par tracts au tour qui finit),
+        // sièges du Soviet Suprême et chef du gouvernement d'office : sovarka_gloire_proclamer.
+        // Ici on ne fait que consigner le verdict dans le cycle et rouvrir la semaine suivante.
+        const vGloire = await sbRpc('sovarka_gloire_proclamer', { p_tour: Number(cycle.dateVote) || 0 }, HEADERS_SERVICE)
+          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+        if (!vGloire || vGloire.ok !== true) {
+          signalerEchec('sovarka_gloire:' + row.id, (vGloire && vGloire.raison) || 'aucun verdict rendu');
+          continue;
+        }
+        cycle.gloire = { vainqueur: vGloire.vainqueur || null, vainqueurNom: vGloire.vainqueurNom || null,
+                         scores: vGloire.scores || [], sieges: vGloire.sieges || {}, pm: vGloire.pm || null,
+                         tour: vGloire.tour || null, proclameLe: dateResultats };
+        cycle.eluId = vGloire.vainqueurNom || null;
+        cycle.votes = {}; cycle.votesPNJ = {};
+        prendreFonctions();
+        if (vGloire.vainqueur) {
+          const tete = (vGloire.scores || [])[0] || {};
+          const chef = vGloire.pm && vGloire.pm.attribue ? ` ${vGloire.pm.titulaire} devient Président du Conseil du Peuple.` : '';
+          evenementAPoser = { country, city: null,
+            texte: `🚩 GLOIRE AUX PARTIS : ${vGloire.vainqueurNom} l'emporte avec ${tete.total || 0} soutiens (${tete.adherentsPJ || 0} adhérents, ${tete.partisansPNJ || 0} partisans).${chef}` };
+          chroniqueAPoser = { country, city: null, type: 'election_resultat',
+            personnages: vGloire.pm && vGloire.pm.titulaire ? [vGloire.pm.titulaire] : [],
+            libelle: `Semaine à la gloire des partis : ${vGloire.vainqueurNom} l'emporte.`,
+            data: { poste_id: 'gloire_partis', vainqueur: vGloire.vainqueur, sieges: vGloire.sieges, cycle_row_id: row.id },
+            source_ref: row.id };
+          results.push({ poste: posteId, country, statut: 'vainqueur', parti: vGloire.vainqueurNom, pm: vGloire.pm });
+        } else {
+          evenementAPoser = { country, city: null,
+            texte: '🚩 Semaine à la gloire des partis : aucun parti n\'a recueilli de soutien. Le Président de la République nomme librement le chef du gouvernement.' };
+          results.push({ poste: posteId, country, statut: 'aucun_parti' });
+        }
+      } else if (posteId === 'depute') {
         // ================= LEGISLATIVES : 3 sieges reels par ville, UN SEUL TOUR =================
         // LA BRANCHE DU DEPARTAGE DU 3e SIEGE EST SUPPRIMEE (chantier 6, lot 1, 7 oct. 2026).
         //
@@ -6688,6 +6726,12 @@ export default async function handler(req, res) {
       return { ok: true, parPays };
     });
 
+    // SOVARKA (07/11/2026) : les candidats de la semaine à la gloire sont les partis du pays ;
+    // la liste est resynchronisée chaque nuit (un parti créé dans la journée devient visable).
+    const syncGloireSovarka = await tacheQuotidienne('sovarka_gloire_sync', async function () {
+      return (await sbRpc('sovarka_gloire_synchroniser', {}, HEADERS_SERVICE)) || { ok: false, raison: 'rpc_indisponible' };
+    });
+
     // RELEVE DU POSTE DE DOUANE DE L'AEROPORT (#433, Fred 28/10 et 04/11) : un groupe de
     // 3 douaniers au hall des douanes de Luthécia, sans coût pour l'État ; ceux qui sont hors
     // de combat sont remplacés à minuit. La RPC est idempotente (elle complète à 3).
@@ -6810,7 +6854,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, exportationsSovarka, urbanismeSovarka, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, exportationsSovarka, urbanismeSovarka, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

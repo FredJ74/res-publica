@@ -304,6 +304,8 @@ async function postulerPosteAutoritePnj(posteId, posteName, villeCourante) {
       autorite_joueur_doit_decider: 'L\'autorite de nomination est desormais tenue par un joueur : votre candidature doit passer par elle.',
       poste_inconnu: 'Ce poste ne figure pas parmi les postes nommes.',
       acteur_non_authentifie: 'Votre identite n\'a pas pu etre etablie.',
+      pm_impose_par_le_parti: 'En Sovarka, ce poste revient d\'office au chef du parti vainqueur de la semaine à la gloire.',
+      ministre_hors_parti: 'En Sovarka, seuls les membres du parti du Président du Conseil du Peuple peuvent devenir ministres.',
       carriere_requise: 'Votre carriere ne vous ouvre pas ce poste' + (v && Array.isArray(v.carrieres_qui_ouvrent) && v.carrieres_qui_ouvrent.length ? ' (carriere requise : ' + v.carrieres_qui_ouvrent.join(', ') + ').' : '.')
     };
     // Refus de paiement (1 PA par candidature, Fred 25/10/2026) : message commun des couts.
@@ -314,7 +316,7 @@ async function postulerPosteAutoritePnj(posteId, posteName, villeCourante) {
   if (typeof v.pa === 'number' && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa });
 
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId] || { label: posteName || posteId };
-  state.poste = { id: posteId, name: regle.label, city: villeCourante || null, nommeLe: Date.now() };
+  state.poste = { id: posteId, name: intitulePoste(posteId, state.country, regle.label), city: villeCourante || null, nommeLe: Date.now() };
   if (state.char) state.char.poste = state.poste;
   state.salaireTouche = false;
   updateUI();
@@ -820,6 +822,8 @@ function messageRefusCandidature(r) {
   if (raison === 'non_domicilie') return 'Vous devez etre domicilie dans cet empire pour vous y presenter.';
   if (raison === 'cumul_interdit') return 'Ce poste est incompatible avec celui que vous occupez deja.';
   if (raison === 'deja_depute') return 'Vous etes deja depute.';
+  if (raison === 'parti_requis') return 'En Sovarka, tout candidat doit d\'abord adhérer à un parti. Rien n\'a été débité.';
+  if (raison === 'depute_designe_par_parti') return 'En Sovarka, les députés du Soviet Suprême sont désignés par les chefs de parti, pas élus.';
   if (raison === 'pa_insuffisants') return 'Il vous faut 2 PA pour deposer une candidature.';
   if (raison === 'poste_inconnu' || raison === 'cycle_introuvable') return 'Ce scrutin n\'existe pas.';
   if (raison === 'deja_candidat') return 'Vous etes deja candidat a ce scrutin. Rien n\'a ete debite.';
@@ -1879,7 +1883,8 @@ async function voterPour(candidatNom, posteId, country, city) {
 // depouillement) les lisent, mais JSON.stringify (sbSaveCycleElectoral) ne les ecrit jamais dans le
 // blob. Architecture prevue pour de futures participations synthetiques (ex. action groupee du
 // president des supporters : une ligne par electeur synthetique, meme table, meme decompte).
-const POSTES_TRACTS_ELECTORAUX = ['president', 'maire', 'depute'];
+// gloire_partis : semaine à la gloire des partis de Sovarka (07/11/2026), la cible est un parti.
+const POSTES_TRACTS_ELECTORAUX = ['president', 'maire', 'depute', 'gloire_partis'];
 const LIEUX_PRESIDENTIELLE = ['capitale', 'ville_a', 'ville_b', 'caserne', 'qhs'];
 
 function attacherEffetsTracts(cycle, effets) {
@@ -1930,6 +1935,7 @@ function estDimancheParis(date) {
 function libelleScrutinTract(country, posteId, city) {
   const ville = city ? (WORLD[country]?.[city]?.name || city) : null;
   if (posteId === 'president') return 'Présidentielle';
+  if (posteId === 'gloire_partis') return 'Semaine à la gloire des partis';
   if (posteId === 'maire') return 'Municipales — ' + ville;
   return 'Législatives — ' + ville;
 }
@@ -4254,6 +4260,7 @@ function renderRoomActions(room, buildingId, roomId) {
         ambassadeur_local: "l'ambassadeur nommé pour ce bureau",
         commandant: 'Commandant de la Caserne'
       };
+      Object.keys(postesNoms).forEach(k => { postesNoms[k] = intitulePoste(k, state.country, postesNoms[k]); });
       const posteRequisNom = o.requiresPost === true ? 'un poste institutionnel'
         : Array.isArray(o.requiresPost) ? o.requiresPost.map(p => postesNoms[p] || p).join(' ou ')
         : (postesNoms[o.requiresPost] || o.requiresPost);
@@ -4816,14 +4823,14 @@ async function ouvrirOrganigramme() {
 
   const sections = [
     { title: 'Exécutif', postes: [
-      { id:'president', name:'Président de la République', type:'elu' },
-      { id:'pm', name:'Premier Ministre', type:'nomme' },
-      { id:'min_int', name:"Ministre de l'Intérieur", type:'nomme' },
-      { id:'min_fin', name:'Ministre des Finances', type:'nomme' },
-      { id:'min_just', name:'Ministre de la Justice', type:'nomme' },
-      { id:'min_def', name:'Ministre de la Défense', type:'nomme' },
-      { id:'min_info', name:"Ministre de l'Information", type:'nomme' },
-      { id:'min_ae', name:'Ministre des Affaires Étrangères', type:'nomme' },
+      { id:'president', name:intitulePoste('president', state.country, 'Président de la République'), type:'elu' },
+      { id:'pm', name:intitulePoste('pm', state.country, 'Premier Ministre'), type:'nomme' },
+      { id:'min_int', name:intitulePoste('min_int', state.country, "Ministre de l'Intérieur"), type:'nomme' },
+      { id:'min_fin', name:intitulePoste('min_fin', state.country, 'Ministre des Finances'), type:'nomme' },
+      { id:'min_just', name:intitulePoste('min_just', state.country, 'Ministre de la Justice'), type:'nomme' },
+      { id:'min_def', name:intitulePoste('min_def', state.country, 'Ministre de la Défense'), type:'nomme' },
+      { id:'min_info', name:intitulePoste('min_info', state.country, "Ministre de l'Information"), type:'nomme' },
+      { id:'min_ae', name:intitulePoste('min_ae', state.country, 'Ministre des Affaires Étrangères'), type:'nomme' },
       { id:'commandant', name:'Commandant de la Caserne', type:'nomme' },
       { id:'chef_syndicat', name:'Chef Syndical', type:'elu' }
     ]},
@@ -6370,6 +6377,8 @@ function messageRefusNomination(verdict) {
     titulaire_protege: 'Le titulaire actuel beneficie encore de sa periode de protection.',
     poste_inconnu: 'Ce poste ne figure pas parmi les postes nommes.',
     destinataire_absent: 'Aucun destinataire indique.',
+    pm_impose_par_le_parti: 'En Sovarka, le chef du parti vainqueur de la semaine à la gloire est d\'office Président du Conseil du Peuple.',
+    ministre_hors_parti: 'En Sovarka, les ministres sont choisis uniquement parmi les membres du parti du Président du Conseil du Peuple.',
     nomination_introuvable: 'Cette proposition n\'existe plus ou a deja ete traitee.',
     nomination_pas_pour_vous: 'Cette proposition ne vous est pas adressee.',
     acteur_non_authentifie: "Votre identite n'a pas pu etre etablie."
@@ -6399,7 +6408,7 @@ async function accepterNominationPosteNomme(idNomination) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId] || { label: posteId };
 
   // Le serveur a deja ecrit la fiche : on recopie localement ce qu'il a arrete, jamais l'inverse.
-  state.poste = { id: posteId, name: regle.label, city: city, nommeLe: Date.now() };
+  state.poste = { id: posteId, name: intitulePoste(posteId, country, regle.label), city: city, nommeLe: Date.now() };
   if (state.char) state.char.poste = state.poste;
   state.salaireTouche = false;
   // Le dossier de candidature du poste est solde par le serveur (poste_attribuer_interne).
@@ -6668,7 +6677,7 @@ async function reconcilierPosteElu(posteId, city) {
     ? Array.isArray(cycleReconciliation?.elus) && cycleReconciliation.elus.includes(moi)
     : cycleReconciliation?.eluId === moi;
   const jOccupeCePoste = posteActuel?.id === posteId && (posteActuel?.city || null) === (city || null);
-  const nomPoste = NOMS_POSTES_ELUS[posteId] || posteId;
+  const nomPoste = intitulePoste(posteId, state.country, NOMS_POSTES_ELUS[posteId] || posteId);
   const villeNom = city ? (WORLD[state.country]?.[city]?.name || city) : null;
 
   if (jeSuisElu && !jOccupeCePoste) {

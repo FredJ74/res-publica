@@ -409,6 +409,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_organigramme_mairie') { ouvrirOrganigrammeMairie(); return; }
   if (fn === 'sovarka_reunion_reserver') { reserverSalleAffairesNovomirsk(); return; }
   if (fn === 'sovarka_reunion_evenement') { ouvrirReunionEvenement(); return; }
+  if (fn === 'sovarka_soviet_deputes') { ouvrirSovietSupreme(); return; }
+  if (fn === 'sovarka_repas_presidentiel') { ouvrirRepasPresidentiel(); return; }
   if (fn === 'louer_local')              { ouvrirModalLouerLocal(pa, cost); return; }
   if (fn === 'gerer_local')              { ouvrirModalGererLocal(); return; }
   // Point d'entree UNIQUE de la verticale commerce PJ (C5) : l'ecran decide
