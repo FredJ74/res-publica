@@ -56,7 +56,7 @@ test('actions personnelles : 16 boutons et états visibles en neuf langues, comm
  // Les ordres de l'ancien menu restent identiques : coût, cible, échec et réputation ne sont pas traduits.
  for(const invariant of ["onclick=\"doDormir()\"","onclick=\"doSesoigner()\"",
   "doOrder(\\'se_reposer\\',1,0,\\'Mediter\\'","doOrder(\\'se_cacher\\',1,0,\\'Se cacher\\'",
-  "doOrder(\\'organiser_blocus\\',1,0,\\'Organiser un blocus\\'","'70% · 1 PA'",
+  "doOrder(\\'organiser_blocus\\',1,0,\\'Organiser un blocus\\'",">70% · 1 PA</span>",
   "Math.min(90, 25 + (groupSize - 1))","doOrganiserBlocusSyndical()","doRenouvelerBlocusSyndical()"]){
   assert.ok(personal.includes(invariant),invariant);
  }
