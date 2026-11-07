@@ -1,5 +1,5 @@
 /* Adaptateur INTERNE du stockage de traduction, sans route HTTP.
- * PRÉREQUIS NON APPLIQUÉ : outils/livraison/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql
+ * PRÉREQUIS NON APPLIQUÉ : historique/i18n/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql
  * Aucune dépense possible avant activation explicite du budget SQL.
  */
 import { createHash } from 'node:crypto';
