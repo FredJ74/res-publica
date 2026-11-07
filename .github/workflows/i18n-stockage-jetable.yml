@@ -5,12 +5,14 @@ on:
     paths:
       - 'outils/livraison/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql'
       - 'outils/bancs/i18n/banc-stockage-prive-jetable.sql'
+      - 'outils/bancs/i18n/banc-concurrence-jetable.sh'
       - '.github/workflows/i18n-stockage-jetable.yml'
   pull_request:
     branches: [main]
     paths:
       - 'outils/livraison/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql'
       - 'outils/bancs/i18n/banc-stockage-prive-jetable.sql'
+      - 'outils/bancs/i18n/banc-concurrence-jetable.sh'
       - '.github/workflows/i18n-stockage-jetable.yml'
 permissions:
   contents: read
@@ -46,3 +48,11 @@ jobs:
           PGPASSWORD: local-only
           PGDATABASE: i18n_jetable
         run: psql -X -v ON_ERROR_STOP=1 -f outils/bancs/i18n/banc-stockage-prive-jetable.sql
+      - name: Contre-épreuve de deux réservations SQL simultanées
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: local-only
+          PGDATABASE: i18n_jetable
+        run: bash outils/bancs/i18n/banc-concurrence-jetable.sh
