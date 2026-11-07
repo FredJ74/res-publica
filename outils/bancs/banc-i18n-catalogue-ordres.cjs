@@ -508,3 +508,19 @@ test('neuf commandes stables restantes : parité avec sources et invariants mét
   assert.equal(original.cost,241);assert.equal(original.pa,1);assert.equal(original.requiresPost,'simule');
  }
 });
+
+
+test('deux ordres de Sovarka restent traduits sans changer l’autorité du serveur',()=>{
+ const original=[
+  {fn:'sovarka_repas_presidentiel',label:'Repas du Président',pa:0,cost:0,requiresPost:'president'},
+  {fn:'sovarka_soviet_deputes',label:'Sièges et députés du Soviet Suprême',pa:0,cost:0,requiresPost:null}
+ ];
+ const frozen=JSON.stringify(original);
+ for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
+  for(const order of original){
+   const translated=win.RP_I18N_RESOURCES[lang].translation.orders[order.fn];
+   assert.ok(typeof translated==='string'&&translated.length>0,lang+': '+order.fn);
+  }
+ }
+ assert.equal(JSON.stringify(original),frozen);
+});
