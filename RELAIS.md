@@ -682,6 +682,9 @@ double solde est signalé comme caduc, dotation déjà livrée par Claude prése
 ### Contrôle plan 97 — Codex, 06-07/11 : livré par #576 (Claude, 07/11)
 Ordres de Sovarka des 05-07/11 déclarés un à un hors des photographies historiques (plan 97, livraison complète, réconciliation des coûts, référence de navigation) ; empreintes inchangées ; `bancs-hors-production` de nouveau vert.
 
+### Reprise mobile L5 à L10 : LIVRÉE par #585 (Claude, 07/11)
+Une seule PR depuis le sommet de la pile L10 (les six commits de reprise), fusionnée par commit de fusion (`6f75bd26`) ; CI verte (bancs-hors-production, parcours-immobilier, payload) ; banc de restauration différée 6/6 rejoué par Claude. Les « Reste à Claude : création PR, CI et intégration » ci-dessous sont faits. Restent les essais sur vrais téléphones et deux appareils authentifiés.
+
 ### Reprise mobile L5 — Codex, 07/11/2026
 Branche `codex/mobile-l5-transactions-20261106` ; main `a5e32332` intégré.
 SHA testé avant ajout de ce compte rendu : `a5e32332a88717a7b59ac1a4fee3e63e64a6c39e`. UI 2/2 (bureau
