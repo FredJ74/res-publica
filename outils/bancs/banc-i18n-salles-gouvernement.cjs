@@ -19,9 +19,15 @@ const source={
  bureaux:'Bureau du Président du Conseil du Peuple',
  salle_conseil:'Salle du Conseil du Peuple',
  salle_presse:'Salle de Presse',
- archives_gouv:'Archives Gouvernementales'
+ archives_gouv:'Archives Gouvernementales',
+ bureau_min_int:'Bureau - Ministre de la Sécurité du Peuple',
+ bureau_min_fin:"Bureau - Ministre de l'Économie collective",
+ bureau_min_just:'Bureau - Ministre de la Justice prolétarienne',
+ bureau_min_def:'Bureau - Ministre de la Défense de la Patrie',
+ bureau_min_info:'Bureau - Ministre de la Vérité officielle',
+ bureau_min_ae:"Bureau - Ministre de l'Amitié entre les Peuples"
 };
-test('neuf traductions de quatre salles, avec repli français explicite',()=>{
+test('neuf traductions de dix salles, avec repli français explicite',()=>{
  assert.equal(Object.keys(win.RP_I18N_LANGUAGES).length,9);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
   locale=lang;
