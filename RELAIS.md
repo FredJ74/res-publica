@@ -633,3 +633,10 @@ Sovarka sans changer la photographie historique » ; description : provenance de
 chaque ajout documentée, assertions historiques conservées, trois tests Python dont
 44 contre-épreuves ; contrôles attendus : bancs-hors-production et cinq CI usuelles.
 Reste : création PR, CI distante et fusion. Aucun test téléphone nécessaire (outillage).
+
+Plan 97, reprise du 07/11 : main 747153e4 réconcilié, trois ajouts intervenus depuis
+hier déclarés séparément (demande de location, réservation et événement de réunion).
+Catalogue 485 ; photographie historique 461 et MD5 intacts. Trois tests réussis,
+56 mutations tarifaires refusées. REST POST a également répondu Forbidden : pas de
+PR créée ici. Branche/titre/description ci-dessus restent prêts pour Claude ; aucune
+modification des fichiers métier Sovarka. Reste CI distante et intégration.

@@ -21,3 +21,13 @@ Résultat : 461 lignes et MD5 `0ffc6e1caad1f58114eeba150d3d5f48` conservés ;
 catalogue courant 482. Trois tests Python passent : ordre/empreintes, mutations
 migrations, et 44 contre-épreuves tarifaires (11 ordres × absence/prix/PA/doublon).
 Aucun résultat CI distant observé. REST GET est refusé dans cette session.
+
+## Réconciliation du 7 novembre, main 747153e4
+
+Trois ajouts supplémentaires, aucun retrait : `sovarka_demande_location` 1/0
+(data.js, commit 1cef9f57, #555), `sovarka_reunion_reserver` 0/0 (3cc952ee, #560)
+et `sovarka_reunion_evenement` 1/0 (f0a33dae, #568). Ils sont déclarés séparément,
+avec mêmes contrôles d'absence/doublon/prix/PA. Catalogue courant **485** ; photographie
+historique toujours **461**, même MD5. Trois tests passent, **56 contre-épreuves**
+tarifaires (14 × 4), plus les trois mutations du manifeste des migrations.
+Les sources Sovarka n'ont pas été modifiées. Intégration du nouveau main sans perte.

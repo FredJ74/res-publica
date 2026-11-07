@@ -40,7 +40,8 @@ class Plan(unittest.TestCase):
         self.assertEqual(result['tarifs_ajoutes_vehicules'], [{'fn': f, 'pa': 0, 'cost': 0} for f in
                          ('garage_reviser', 'garage_vehicules', 'mes_vehicules', 'station_carburant')])
         self.assertEqual(result['tarifs_ajoutes_sovarka'], [{'fn': 'contrebande_poissonniere', 'pa': 1, 'cost': 0}, {'fn': 'pharmacie_medicaments', 'pa': 0, 'cost': 0}, {'fn': 'poissonniere_poisson', 'pa': 0, 'cost': 0}, {'fn': 'salon_coupe', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_cession', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_commerces_libres', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_demander_local', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_dossiers_commerciaux', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_retirer_droit', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_signer_attribution', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_terrain_municipal', 'pa': 0, 'cost': 0}])
-        self.assertEqual(result['tarifs_actuels']['lignes'], 482)
+        self.assertEqual(result['tarifs_ajoutes_sovarka_reunions'], [{'fn': 'sovarka_demande_location', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_reunion_evenement', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_reunion_reserver', 'pa': 0, 'cost': 0}])
+        self.assertEqual(result['tarifs_actuels']['lignes'], 485)
         self.assertEqual(len(result['tarifs_actuels']['md5']), 32)
         self.assertFalse(result['execution_autorisee'])
         self.assertTrue(result['ancien_plan_tarifaire_conforme_source'])
@@ -53,7 +54,8 @@ class Plan(unittest.TestCase):
         source = json.loads(subprocess.check_output([
             module.sys.executable, str(R / 'outils/generateurs/generer_ordres_couts.py'), '--json'
         ], cwd=R, text=True))
-        ajouts = module.preparer()['tarifs_ajoutes_sovarka']
+        result = module.preparer()
+        ajouts = result['tarifs_ajoutes_sovarka'] + result['tarifs_ajoutes_sovarka_reunions']
         for ajout in ajouts:
             for mutation in ('absence', 'prix', 'pa', 'doublon'):
                 alteree = copy.deepcopy(source)
@@ -66,7 +68,7 @@ class Plan(unittest.TestCase):
                     cible['cost' if mutation == 'prix' else 'pa'] += 1
                 with self.subTest(ordre=ajout['fn'], mutation=mutation), \
                      patch.object(module.subprocess, 'check_output', return_value=json.dumps(alteree)), \
-                     self.assertRaisesRegex(ValueError, 'Ordres Sovarka'):
+                     self.assertRaisesRegex(ValueError, 'Ordres (réunions )?Sovarka'):
                     module.preparer()
 
     def test_omission_inversion_et_source_alteree_refusees(self):
