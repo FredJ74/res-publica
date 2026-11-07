@@ -70,6 +70,8 @@ async function run(){
       expectedPlaceholder:window.RP_I18N_RESOURCES?.[language]?.translation?.plateau?.subjectPlaceholder,
       councilRoom:window.RPRoomI18n?.label('palais-gouvernement','salle_conseil','Salle du Conseil du Peuple'),
       expectedCouncil:window.RP_I18N_RESOURCES?.[language]?.translation?.rooms?.salle_conseil,
+      townHall:window.RPRoomI18n?.label('mairie','bureau_maire_local','Bureau du Maire'),
+      expectedTownHall:window.RP_I18N_RESOURCES?.[language]?.translation?.rooms?.bureau_maire_local,
       unknownRoom:window.RPRoomI18n?.label('palais-presidentiel','salle_conseil','Salle du Conseil du Peuple'),
       forumName:window.RPForumUI?.forumNameHtml('national','Forum National'),
       expectedForum:window.RP_I18N_RESOURCES?.[language]?.translation?.forumNames?.national,
@@ -81,6 +83,7 @@ async function run(){
    assert.equal(state.placeholder,state.expectedPlaceholder,language+': composition de mail');
    assert.equal(state.dir,language==='ar'?'rtl':null,language+': direction limitée au texte');
    assert.equal(state.councilRoom,state.expectedCouncil,language+': salle du Conseil localisée');
+   assert.equal(state.townHall,state.expectedTownHall,language+': bureau municipal localisé');
    assert.equal(state.unknownRoom,'Salle du Conseil du Peuple',language+': autre palais inchangé');
    assert.equal(state.forumName,state.expectedForum,language+': forum national localisé');
    assert.equal(state.privateForum,'Forum local — Novomirsk',language+': nom privé/local inchangé');
