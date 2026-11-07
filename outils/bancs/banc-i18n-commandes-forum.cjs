@@ -111,3 +111,20 @@ test('dix libellés de sidebar ne changent pas les identifiants de catégories e
  assert.ok(source.includes("rpForumLibelle('mailbox','Boîte Mail')"));
  assert.ok(source.includes("rpForumLibelle('noOrganizations'"));
 });
+
+
+test('états des sujets : panne distincte du vide, cinq colonnes préservées',()=>{
+ const keys=['chooseCategory','categoryHelp','loadingTopics','failedTopics','failedTopicsDetail',
+  'noTopics','firstTopic','presidentOnly','topicColumn','authorColumn','lastPostColumn',
+  'viewsColumn','repliesColumn'];
+ for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+  lang=lng;
+  for(const key of keys)assert.ok(win.RP_I18N_RESOURCES[lng].translation.forumUI[key]?.trim(),lng+': '+key);
+ }
+ for(const key of keys)assert.ok(source.includes("rpForumLibelle('"+key+"'"),key);
+ assert.ok(source.includes('FORUM_LECTURE_ECHOUEE[currentForumId]'));
+ assert.ok(source.includes('FORUM_LECTURE_EN_COURS[currentForumId]'));
+ assert.ok(source.includes('FORUM_LECTURE_TERMINEE[currentForumId]'));
+ assert.ok(source.includes('peutCreerSujet ?'));
+ assert.ok(source.includes('escapeHtmlText(t.title)'));
+});
