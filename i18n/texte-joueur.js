@@ -50,7 +50,18 @@
    if(result.shownLanguage) element.setAttribute?.('lang',result.shownLanguage);
    else element.removeAttribute?.('lang');
    button.hidden=!result.showOriginalAvailable;
-   button.textContent=showOriginal?(names.showTranslation||'Voir la traduction'):(names.showOriginal||"Voir l'original");
+   // Utiliser les ressources du plateau si le consommateur n'a pas fourni
+   // ses propres intitulés : le bouton Original/Traduction reste localisé.
+   function labelFor(name,explicit,fallback) {
+    if(typeof explicit==='string' && explicit.trim())return explicit;
+    const key='plateau.'+name;
+    const translated=global.RPPlateauI18n?.translate?.(key);
+    return typeof translated==='string' && translated.trim() && translated!==key
+     ? translated:fallback;
+   }
+   button.textContent=showOriginal
+    ? labelFor('showTranslation',names.showTranslation,'Voir la traduction')
+    : labelFor('showOriginal',names.showOriginal,"Voir l'original");
    button.setAttribute?.('aria-pressed',showOriginal?'true':'false');
    return result;
   }
