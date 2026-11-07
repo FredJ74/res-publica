@@ -22,6 +22,9 @@ on:
       - 'i18n/forum-ui.js'
       - 'forum.js'
       - 'outils/bancs/banc-i18n-commandes-forum.cjs'
+      - 'i18n/toast-resources.js'
+      - 'outils/bancs/banc-i18n-notifications.cjs'
+      - 'plateau-core.js'
       - 'forum-canvas.js'
       - 'outils/bancs/banc-i18n-compositeur-forum.cjs'
       - 'outils/bancs/banc-i18n-salles-gouvernement.cjs'
@@ -131,6 +134,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-salles-gouvernement.cjs
       - name: Actions des forums et du courrier en neuf langues
         run: node --test outils/bancs/banc-i18n-commandes-forum.cjs
+      - name: Notifications traduites, incidents et textes serveur intacts
+        run: node --test outils/bancs/banc-i18n-notifications.cjs
       - name: Compositeur riche de forum, contrôles localisés sans mutation
         run: node --test outils/bancs/banc-i18n-compositeur-forum.cjs
       - name: Texte joueur et original préservés
@@ -202,6 +207,7 @@ jobs:
           node --check i18n/plateau-bridge.js
           node --check i18n/room-resources.js
           node --check i18n/forum-ui.js
+          node --check i18n/toast-resources.js
           node --check forum.js
           node --check forum-canvas.js
           node --check i18n/plateau-resources.js
