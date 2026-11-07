@@ -10,6 +10,9 @@ function rpForumPlateauLibelle(key,source) {
   if(typeof translation!=='string'||!translation.trim()||translation==='plateau.'+key)return source;
   return translation.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+function rpActionMailLabel(key,original) {
+  return (typeof window!=='undefined' && window.RPForumUI?.mailActionLabel?.(key,original)) || original;
+}
 function rpForumNom(id,source) {
   return (typeof window!=='undefined' && window.RPForumUI?.forumNameHtml?.(id,source)) || source;
 }
@@ -2908,7 +2911,7 @@ function boutonsActionMail(actions) {
     html += '<button onclick="' + def.fn + '(' + args.join(',') + ')" '
          + 'style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em;'
          + 'padding:.45rem 1rem;border:1px solid ' + bord + ';background:transparent;color:'
-         + couleur + ';cursor:pointer">' + escapeHtmlText(def.label) + '</button>';
+         + couleur + ';cursor:pointer">' + escapeHtmlText(rpActionMailLabel(a.cle,def.label)) + '</button>';
   }
   return html + '</div>';
 }
