@@ -1900,6 +1900,12 @@ function applyCharToState(char) {
   // que pour un champ absent, jamais pour une ressource epuisee.
   state.arg = char.arg ?? 4250;
   if (char.poste) state.poste = char.poste;
+  // Intitule propre a l'empire (Sovarka, 07/11/2026) : le nom enregistre peut dater d'avant ;
+  // l'identifiant fait foi, le nom affiche est recalcule.
+  if (state.poste && state.poste.id && INTITULES_POSTES_PAR_PAYS[state.country]
+      && INTITULES_POSTES_PAR_PAYS[state.country][state.poste.id]) {
+    state.poste.name = intitulePoste(state.poste.id, state.country);
+  }
   if (char.posteDepute) state.posteDepute = char.posteDepute;
   // Lot 2 (hydratation financiere, chantier fiscalite/Helvetia) : le recalcul 15%/85% de
   // liquide/banque a partir de arg, execute ici a CHAQUE hydratation depuis des mois, est
