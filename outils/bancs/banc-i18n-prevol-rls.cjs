@@ -3,7 +3,7 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const sql=fs.readFileSync(path.resolve(__dirname,'../audits/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql'),'utf8');
+const sql=fs.readFileSync(path.resolve(__dirname,'../../historique/i18n/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql'),'utf8');
 test('le prévol de la traduction contrôle les trois véritables portes de lecture après #422',()=>{
  for(const predicate of [
   'forum_lecture_autorisee(forum_id,country)',
