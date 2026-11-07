@@ -1844,7 +1844,8 @@ function verifierSuccesMaxence(cle) {
     // deja ecrit pour cette etape.
     const estJeremy = (pnj.name || '').replace(' (PNJ)', '').trim() === 'Jérémy';
     if (estJeremy && typeof queteAccueilRappel === 'function' && queteAccueilRappel()) {
-      speech.textContent = 'Je vous remontre où nous en sommes.';
+      speech.textContent = (typeof window!=='undefined' && window.RPPnjStatusI18n?.label?.('questRecap','Je vous remontre où nous en sommes.'))
+        || 'Je vous remontre où nous en sommes.';
       return;
     }
     // LA PANNE SE DIT, ET ELLE NE SE DEGUISE PAS EN PNJ (29 septembre 2026).
@@ -1858,9 +1859,11 @@ function verifierSuccesMaxence(cle) {
     // Aucun des deux ne nomme un detail technique : ni fournisseur, ni HTTP, ni quota, ni profil.
     // Aucun des deux n'est une replique de PNJ non plus -- une panne ne se deguise pas en
     // personnage (29 septembre 2026), et une absence de dialogue ne se deguise pas en panne.
+    const statusTraduit = (key, source) =>
+      (typeof window!=='undefined' && window.RPPnjStatusI18n?.label?.(key,source)) || source;
     speech.textContent = (e && e.definitif === true)
-      ? 'Ce personnage n\'engage pas de conversation.'
-      : 'Discussion impossible momentanément. Veuillez réessayer dans quelques instants.';
+      ? statusTraduit('noConversation',"Ce personnage n'engage pas de conversation.")
+      : statusTraduit('temporaryUnavailable','Discussion impossible momentanément. Veuillez réessayer dans quelques instants.');
     // ET L'INTERFACE CESSE D'INVITER A ECRIRE (13 octobre 2026). C'est la regle de l'arbitrage :
     // « un joueur ne doit pas etre invite a lancer une conversation libre vers un PNJ qui ne peut
     // materiellement jamais repondre ». Un refus DEFINITIF -- ce PNJ n'a pas de profil de
@@ -1877,8 +1880,11 @@ function verifierSuccesMaxence(cle) {
     // place, parce que la question aura un sens dans trente secondes.
     if (e && e.definitif === true) {
       const zoneQ = document.getElementById('pnj-zone-question');
-      if (zoneQ) zoneQ.innerHTML = '<div style="font-size:.72rem;color:#6a5a30;font-style:italic">'
-        + 'Cette personne ne tient pas de conversation. Les autres actions restent disponibles.</div>';
+      if (zoneQ) {
+        zoneQ.innerHTML = '<div style="font-size:.72rem;color:#6a5a30;font-style:italic"></div>';
+        zoneQ.firstElementChild.textContent =
+          statusTraduit('noConversationHint','Cette personne ne tient pas de conversation. Les autres actions restent disponibles.');
+      }
     }
   }
 }
