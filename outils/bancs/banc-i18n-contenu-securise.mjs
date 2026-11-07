@@ -51,7 +51,7 @@ test('langue cible non prise en charge : ni lecture privée ni appel payant',asy
 });
 test('source sans colonne version : hash de contenu calculé APRÈS la lecture RLS',async()=>{
  const {calls,deps}=fixtures();const keys=[];
- deps.readUnderRls=async()=>{calls.push('rls');return {text:'Bonjour',language:'fr'}};
+ deps.readUnderRls=async()=>{calls.push('rls');return {text:'Salut {{name}}',language:'fr'}};
  deps.readCache=async key=>{calls.push('cache');keys.push(key);return null};
  const r=await traduireContenu(input,deps);
  assert.equal(r.ok,true);assert.deepEqual(calls,['auth','rls','cache','quota','provider','write']);
