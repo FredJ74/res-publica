@@ -9851,12 +9851,20 @@ const INTITULES_POSTES_PAR_PAYS = {
   }
 };
 
-// Nom affiche d'un poste dans un pays ; `defaut` sert quand le pays n'a pas d'intitule propre.
+// Conserver le libelle canonique avant de brancher les getters qui suivent : la lecture
+// d'un poste de Republia depuis Sovarka ne doit jamais heriter du titre sovarkien.
+const INTITULES_POSTES_CANONIQUES = Object.fromEntries(
+  Object.entries(POSTES_NOMMES_EXCLUSIFS).map(([id, poste]) => [id, poste.label])
+);
+Object.values(POSTES_ELECTIFS).forEach(liste =>
+  liste.forEach(poste => { if (!(poste.id in INTITULES_POSTES_CANONIQUES)) INTITULES_POSTES_CANONIQUES[poste.id] = poste.name; })
+);
+
+// Nom affiche d'un poste dans son pays de mandat, pas le pays de deplacement du PJ.
 function intitulePoste(posteId, pays, defaut) {
   const propre = INTITULES_POSTES_PAR_PAYS[pays] && INTITULES_POSTES_PAR_PAYS[pays][posteId];
   if (propre) return propre;
-  if (defaut) return defaut;
-  return (POSTES_NOMMES_EXCLUSIFS[posteId] && POSTES_NOMMES_EXCLUSIFS[posteId].label) || posteId;
+  return INTITULES_POSTES_CANONIQUES[posteId] || defaut || posteId;
 }
 
 // Les ecrans lisent `POSTES_NOMMES_EXCLUSIFS[id].label` et `POSTES_ELECTIFS[...].name` en
