@@ -46,6 +46,17 @@
       if(typeof translated==='string' && translated.trim() && translated!==key)
         element.setAttribute('placeholder',translated);
     }
+    // Accessibilité : traduire l'intitulé vocal des contrôles tactiles sans
+    // injecter de texte dans les boutons ni changer leur surface de clic.
+    const ariaNodes=Array.from(elementRoot.querySelectorAll?.('[data-i18n-aria-label]')||[]);
+    if(elementRoot.getAttribute?.('data-i18n-aria-label')) ariaNodes.unshift(elementRoot);
+    for(const element of ariaNodes) {
+      const key=element.getAttribute('data-i18n-aria-label');
+      if(!key)continue;
+      const translated=engine.t(key,{defaultValue:null});
+      if(typeof translated==='string' && translated.trim() && translated!==key)
+        element.setAttribute('aria-label',translated);
+    }
     // Les info-bulles de la barre supérieure doivent être traduites sans
     // remplacer le contenu des boutons (icônes, badges, compteurs).
     const titleNodes=Array.from(elementRoot.querySelectorAll?.('[data-i18n-title]')||[]);
