@@ -29,6 +29,9 @@ on:
       - 'outils/bancs/banc-i18n-etat-ordres.cjs'
       - 'outils/bancs/banc-i18n-ordres.cjs'
       - 'outils/bancs/banc-i18n-catalogue-ordres.cjs'
+      - 'i18n/order-variants-resources.js'
+      - 'outils/bancs/banc-i18n-variantes-hotel.cjs'
+      - 'data.js'
       - 'outils/bancs/banc-i18n-render-ordres.cjs'
       - 'plateau-politique.js'
       - 'plateau-divers.js'
@@ -98,6 +101,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-ordres.cjs
       - name: Trois cent quatre-vingts ordres canoniques traduits et droits préservés
         run: node --test outils/bancs/banc-i18n-catalogue-ordres.cjs
+      - name: Réservations hôtel contextuelles, tarifs et handlers préservés
+        run: node --test outils/bancs/banc-i18n-variantes-hotel.cjs
       - name: Rendu des ordres, échappement HTML et autorité inchangée
         run: node --test outils/bancs/banc-i18n-render-ordres.cjs
       - name: "Sources privées : seules les colonnes de contenu autorisées"
@@ -117,3 +122,4 @@ jobs:
           node --check api/_traduction-contenu.js
           node --check i18n/ordres.js
           node --check i18n/orders-resources.js
+          node --check i18n/order-variants-resources.js
