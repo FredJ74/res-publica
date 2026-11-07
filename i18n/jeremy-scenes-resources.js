@@ -283,6 +283,126 @@
   }
 };
  for(const [lang,texts] of Object.entries(social)) Object.assign(labels[lang],texts);
+ const reminders={
+  "fr": {
+    "returnEmployees": "Me revoilà ! Au fait, si un jour vous voulez vous séparer de moi (ou de n'importe quel autre employé), il suffit de cliquer sur la petite croix à côté de sa carte, dans le panneau \"Mes Employés\", à gauche.",
+    "rememberElections": "On va dans la salle des élections, vous vous souvenez ?",
+    "goElections": "On va dans la salle des élections.",
+    "leaveTownHall": "On sort de l'Hôtel de Ville, vous vous souvenez ?",
+    "openCharacterSheet": "Allez donc consulter votre fiche personnage, je vous montrerai la suite après.",
+    "returnHotel": "On va à l'hôtel-restaurant, vous vous souvenez ? C'est le deuxième bâtiment après l'Hôtel de Ville, sur la droite en sortant.",
+    "toBar": "Allons faire un tour au bar, juste à côté.",
+    "askDrink": "Vous pouvez m'offrir un verre ? J'ai très soif à force de parler.",
+    "returnStadium": "On va au stade de foot ! Sortez, allez à gauche, puis prenez la route perpendiculaire et tournez à droite. Le plan peut vous aider, en haut à droite.",
+    "tryStadium": "Allez-y, jetez un œil, essayez quelque chose au stade !",
+    "sayGoodbyeAgain": "Nos chemins se séparent ici, vous vous souvenez ? Si besoin, cliquez sur ma fiche pour m'ajouter à vos contacts, puis utilisez le bouton Messages/Forums."
+  },
+  "en": {
+    "returnEmployees": "I'm back! By the way, if you ever want to dismiss me (or any other employee), just click the small cross next to that employee's card in My Employees on the left.",
+    "rememberElections": "We're going to the elections room, remember?",
+    "goElections": "Let's go to the elections room.",
+    "leaveTownHall": "Let's leave Town Hall, remember?",
+    "openCharacterSheet": "Go and look at your character sheet. I'll show you what comes next afterward.",
+    "returnHotel": "We're going to the hotel-restaurant, remember? It's the second building after Town Hall, on the right as you leave.",
+    "toBar": "Let's visit the bar right next door.",
+    "askDrink": "Could you buy me a drink? All this talking has made me thirsty.",
+    "returnStadium": "We're off to the football stadium! Go outside, turn left, take the road crossing your path, then turn right. The map in the top-right corner can help.",
+    "tryStadium": "Go on, take a look and try something at the stadium!",
+    "sayGoodbyeAgain": "This is where we part ways, remember? If you need me, click my profile to add me to your contacts, then use Messages/Forums."
+  },
+  "es": {
+    "returnEmployees": "¡He vuelto! Por cierto, si algún día quiere despedirme (o despedir a cualquier empleado), haga clic en la pequeña cruz junto a su ficha, en el panel Mis empleados, a la izquierda.",
+    "rememberElections": "Vamos a la sala de elecciones, ¿recuerda?",
+    "goElections": "Vamos a la sala de elecciones.",
+    "leaveTownHall": "Salimos del Ayuntamiento, ¿recuerda?",
+    "openCharacterSheet": "Consulte su ficha de personaje. Después le enseñaré el siguiente paso.",
+    "returnHotel": "Vamos al hotel-restaurante, ¿recuerda? Es el segundo edificio después del Ayuntamiento, a la derecha al salir.",
+    "toBar": "Vamos al bar de al lado.",
+    "askDrink": "¿Me invita a una bebida? Tengo mucha sed de tanto hablar.",
+    "returnStadium": "¡Vamos al estadio de fútbol! Salga, gire a la izquierda, tome la calle perpendicular y luego gire a la derecha. El mapa de arriba a la derecha puede ayudarle.",
+    "tryStadium": "¡Vaya, eche un vistazo y pruebe algo en el estadio!",
+    "sayGoodbyeAgain": "Aquí nos separamos, ¿recuerda? Si me necesita, haga clic en mi ficha para añadirme a sus contactos y luego utilice Mensajes/Foros."
+  },
+  "zh-TW": {
+    "returnEmployees": "我回來了！對了，如果有一天你想讓我（或任何其他員工）離開，只要在左側「我的員工」面板中，點選該員工卡片旁的小叉號即可。",
+    "rememberElections": "我們要去選舉室，還記得嗎？",
+    "goElections": "我們去選舉室吧。",
+    "leaveTownHall": "先離開市政廳，還記得嗎？",
+    "openCharacterSheet": "先查看你的角色資料卡，接下來我會告訴你怎麼做。",
+    "returnHotel": "我們要去旅館餐廳，還記得嗎？從市政廳出去往右走，它是第二棟建築。",
+    "toBar": "去隔壁的酒吧看看吧。",
+    "askDrink": "可以請我喝一杯嗎？講了這麼多話，口都渴了。",
+    "returnStadium": "我們要去足球場！先出去，往左走，再轉進交叉的道路，然後右轉。右上角的地圖可以幫你。",
+    "tryStadium": "去吧，逛逛體育場，試著做點什麼！",
+    "sayGoodbyeAgain": "我們要在這裡分開了，還記得嗎？需要我的話，點選我的資料卡把我加入聯絡人，再使用「訊息／論壇」。"
+  },
+  "ru": {
+    "returnEmployees": "Я вернулся! Кстати, если захотите расстаться со мной (или с любым другим работником), нажмите на маленький крестик возле его карточки в панели «Мои сотрудники» слева.",
+    "rememberElections": "Пойдёмте в избирательный зал, помните?",
+    "goElections": "Пойдёмте в избирательный зал.",
+    "leaveTownHall": "Выйдем из мэрии, помните?",
+    "openCharacterSheet": "Откройте карточку персонажа. Потом я покажу, что делать дальше.",
+    "returnHotel": "Мы идём в гостиницу-ресторан, помните? Это второе здание после мэрии, справа от выхода.",
+    "toBar": "Заглянем в бар по соседству.",
+    "askDrink": "Не угостите меня напитком? От разговоров ужасно хочется пить.",
+    "returnStadium": "Пойдёмте на футбольный стадион! Выйдите, поверните налево, затем на поперечную улицу и направо. Поможет карта в правом верхнем углу.",
+    "tryStadium": "Ну же, осмотритесь на стадионе и попробуйте что-нибудь!",
+    "sayGoodbyeAgain": "Здесь наши пути расходятся, помните? Если понадоблюсь, нажмите на мою карточку, добавьте меня в контакты и используйте «Сообщения/Форумы»."
+  },
+  "ko": {
+    "returnEmployees": "다시 왔어요! 참, 언젠가 저나 다른 직원을 내보내고 싶다면 왼쪽 '내 직원' 패널에서 그 직원 카드 옆의 작은 X를 누르면 돼요.",
+    "rememberElections": "선거실로 가기로 했죠, 기억나세요?",
+    "goElections": "선거실로 가요.",
+    "leaveTownHall": "시청을 나가기로 했죠, 기억나세요?",
+    "openCharacterSheet": "캐릭터 정보를 확인하세요. 그다음 단계를 알려 드릴게요.",
+    "returnHotel": "호텔 겸 식당으로 가기로 했죠? 시청에서 나가 오른쪽 두 번째 건물이에요.",
+    "toBar": "바로 옆에 있는 술집에 가봐요.",
+    "askDrink": "마실 것 하나 사주실래요? 계속 얘기했더니 목이 너무 말라요.",
+    "returnStadium": "축구 경기장으로 가요! 밖으로 나가 왼쪽으로 간 다음, 가로지르는 길로 들어서서 오른쪽으로 도세요. 오른쪽 위 지도가 도움이 될 거예요.",
+    "tryStadium": "자, 경기장을 둘러보고 뭔가 해보세요!",
+    "sayGoodbyeAgain": "여기서 헤어지기로 했죠? 제가 필요하면 제 프로필을 눌러 연락처에 추가한 뒤 메시지/포럼을 이용하세요."
+  },
+  "ar": {
+    "returnEmployees": "ها أنا عدت! بالمناسبة، إذا أردت يومًا الاستغناء عني (أو عن أي موظف آخر)، فما عليك إلا النقر على علامة × الصغيرة بجوار بطاقته في لوحة «موظفوي» إلى اليسار.",
+    "rememberElections": "سنذهب إلى قاعة الانتخابات، أتذكر؟",
+    "goElections": "هيا إلى قاعة الانتخابات.",
+    "leaveTownHall": "لنخرج من مبنى البلدية، أتذكر؟",
+    "openCharacterSheet": "اذهب واطلع على بطاقة شخصيتك، وسأريك الخطوة التالية بعد ذلك.",
+    "returnHotel": "سنذهب إلى الفندق والمطعم، أتذكر؟ إنه المبنى الثاني بعد البلدية، على اليمين عند الخروج.",
+    "toBar": "لنذهب إلى الحانة المجاورة.",
+    "askDrink": "هل تشتري لي مشروبًا؟ لقد عطشت من كثرة الكلام.",
+    "returnStadium": "سنذهب إلى ملعب كرة القدم! اخرج واتجه يسارًا، ثم اسلك الطريق المتقاطع وانعطف يمينًا. يمكن للخريطة أعلى اليمين مساعدتك.",
+    "tryStadium": "هيا، ألق نظرة وجرّب شيئًا في الملعب!",
+    "sayGoodbyeAgain": "هنا نفترق، أتذكر؟ إذا احتجت إليّ، انقر على ملفي لإضافتي إلى جهات اتصالك ثم استخدم الرسائل/المنتديات."
+  },
+  "pt-BR": {
+    "returnEmployees": "Voltei! Aliás, se um dia quiser me dispensar (ou dispensar qualquer outro funcionário), basta clicar no pequeno X ao lado da ficha dele, no painel Meus funcionários à esquerda.",
+    "rememberElections": "Vamos à sala das eleições, lembra?",
+    "goElections": "Vamos à sala das eleições.",
+    "leaveTownHall": "Vamos sair da Prefeitura, lembra?",
+    "openCharacterSheet": "Vá consultar a ficha do seu personagem. Depois mostro o que vem a seguir.",
+    "returnHotel": "Vamos ao hotel-restaurante, lembra? É o segundo prédio depois da Prefeitura, à direita quando você sai.",
+    "toBar": "Vamos ao bar bem ao lado.",
+    "askDrink": "Você pode me pagar uma bebida? Estou morrendo de sede de tanto falar.",
+    "returnStadium": "Vamos ao estádio de futebol! Saia, vire à esquerda, pegue a rua transversal e vire à direita. O mapa no canto superior direito pode ajudar.",
+    "tryStadium": "Vá, dê uma olhada e experimente alguma coisa no estádio!",
+    "sayGoodbyeAgain": "Aqui nossos caminhos se separam, lembra? Se precisar de mim, clique na minha ficha, adicione-me aos contatos e use Mensagens/Fóruns."
+  },
+  "de": {
+    "returnEmployees": "Da bin ich wieder! Falls Sie mich (oder einen anderen Mitarbeiter) eines Tages entlassen möchten, klicken Sie links im Bereich „Meine Mitarbeiter“ auf das kleine Kreuz neben der entsprechenden Karte.",
+    "rememberElections": "Wir gehen in den Wahlraum, erinnern Sie sich?",
+    "goElections": "Gehen wir in den Wahlraum.",
+    "leaveTownHall": "Wir verlassen das Rathaus, erinnern Sie sich?",
+    "openCharacterSheet": "Sehen Sie sich Ihren Charakterbogen an. Danach zeige ich Ihnen den nächsten Schritt.",
+    "returnHotel": "Wir gehen ins Hotel-Restaurant, erinnern Sie sich? Es ist das zweite Gebäude nach dem Rathaus, rechts vom Ausgang.",
+    "toBar": "Sehen wir uns die Bar nebenan an.",
+    "askDrink": "Könnten Sie mir ein Getränk ausgeben? Vom vielen Reden habe ich großen Durst.",
+    "returnStadium": "Auf zum Fußballstadion! Gehen Sie hinaus, nach links, dann in die Querstraße und rechts herum. Die Karte oben rechts hilft Ihnen.",
+    "tryStadium": "Sehen Sie sich auf dem Stadion um und probieren Sie etwas aus!",
+    "sayGoodbyeAgain": "Hier trennen sich unsere Wege, erinnern Sie sich? Falls Sie mich brauchen, klicken Sie auf meine Karte, nehmen Sie mich in Ihre Kontakte auf und nutzen Sie Nachrichten/Foren."
+  }
+};
+ for(const [lang,texts] of Object.entries(reminders)) Object.assign(labels[lang],texts);
  for(const [lang,strings] of Object.entries(labels))
   if(resources[lang]?.translation)resources[lang].translation.jeremyScenes={...strings};
  function label(key,original){
