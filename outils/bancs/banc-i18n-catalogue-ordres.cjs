@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('237 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('257 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,237);
+ assert.equal(ref.length,257);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -330,5 +330,26 @@ test('20 ordres militaires : labels sources, neuf langues et invariants métier'
    assert.equal(win.RPOrderI18n.label(order,engine,lng),value);
   }
   assert.equal(order.cost,199);assert.equal(order.pa,2);assert.equal(order.requiresPost,'militaire');
+ }
+});
+
+
+test('20 ordres essentiels de santé et de vie quotidienne : parité et autorité préservées',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const ids=["greffe_archives","casier_mon_extrait","virements","blanchiment","ouvrir_chambres_clinique","gerer_visites_chambre","soins","soins_urgence","soins_discrets","centre_anti_poison","repas_clinique","soin_public","transfert_clinique_privee","se_renseigner","imprimer_tracts_electoraux","interview","se_nourrir","pouls_populaire","etat_civil","demander_logement_social"];
+ const actual=new Map();for(const m of source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)){
+  if(!actual.has(m[2]))actual.set(m[2],new Set());actual.get(m[2]).add(m[4]);
+ }
+ const fr=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const fn of ids){
+  const order=Object.freeze({fn,label:fr[fn],pa:1,cost:120,requiresPost:'aucun'});
+  assert.ok(actual.get(fn)?.has(order.label),fn);
+  for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+   const translated=win.RP_I18N_RESOURCES[lng].translation.orders[fn];
+   assert.ok(typeof translated==='string' && translated.trim(),lng+'/'+fn);
+   assert.equal(win.RPOrderI18n.label(order,engine,lng),translated);
+  }
+  assert.equal(order.fn,fn);assert.equal(order.pa,1);assert.equal(order.cost,120);
+  assert.equal(order.requiresPost,'aucun');
  }
 });
