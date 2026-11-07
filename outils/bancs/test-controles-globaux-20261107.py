@@ -25,6 +25,15 @@ END $$;"""
   reel=(R/'migrations/20261104173000_trading_livraison_terrestre.sql').read_text()
   self.assertEqual(m.extensions_parametres(reel,{'trading_acheter(text,text,text,integer)'},{'trading_acheter(text,text,text,integer)':['a','b','c','p_quantite']}),{'trading_acheter(text,text,text,integer,text)'})
   self.assertNotIn('trading_acheter(text,text,text,integer,text,text)',m.extensions_parametres(reel,{'trading_acheter(text,text,text,integer)'},{'trading_acheter(text,text,text,integer)':['a','b','c','p_quantite']}))
+ def test_detecteur_identique_sous_python_optimise(self):
+  texte="""DO $$ DECLARE v_def text; v_new text;
+BEGIN
+ v_def := pg_get_functiondef('public.source(text,integer)'::regprocedure);
+ v_new := replace(v_def, 'p_faux integer)', 'p_faux integer, p_lieu text DEFAULT NULL::text)');
+ EXECUTE v_new;
+END $$;"""
+  script="import importlib.util,json; s=importlib.util.spec_from_file_location('ext','outils/baseline/declarations_dynamiques.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);print(json.dumps(sorted(m.extensions_parametres("+repr(texte)+",{'source(text,integer)'},{'source(text,integer)':['p_acteur','p_n']}))))"
+  r=subprocess.check_output([sys.executable,'-O','-c',script],cwd=R,text=True);self.assertEqual(json.loads(r),[])
  def test_ressources_ordre_exhaustif_et_copie_alteree(self):
   g=module('gen','outils/generateurs/generer_referentiels_serveur.py');v=module('verif','outils/baseline/verifier-referentiels.py')
   r=next(r for r in json.loads(Path(g.DECLARATION).read_text())['referentiels'] if r['serveur']=='RESSOURCES_ECONOMIE_SERVEUR')

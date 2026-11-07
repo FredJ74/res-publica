@@ -823,3 +823,12 @@ contre-épreuves, variantes de dotation par ville, rendu strict des seeds miroir
 aucune migration ou donnée de production modifiée. Contrôles attendus : CI usuelles,
 banc-controles-globaux-20261107.cjs et tous les bancs clients ; globaux 10/12 tant que
 les observations vivantes ne sont pas renouvelées. Ne pas annoncer 12/12.
+
+Contrôles globaux, réconciliation #588 : main 947caad7 intégré sans modifier les
+fichiers Sovarka. Deux campagnes complètes à 200/200 ; détecteurs ciblés 8/8, six
+tests Python incluant le refus sous Python -O. Gardes exprimées en conditions
+explicites, jamais en assert supprimable par optimisation. Authority conforme,
+Workflow conforme, bureau1440 inchangé. Globaux 10/12 rejoués ; Baseline/Referential
+restent rouges exactement pour les captures détaillées dans le rapport.
+REST POST /pulls tenté, réponse Forbidden : Claude ouvrira la PR à partir du titre
+et de la description ci-dessus. Aucune écriture ou migration en production.

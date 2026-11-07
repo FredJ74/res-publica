@@ -1,6 +1,7 @@
 # Contrôles globaux — 7 novembre 2026
 
-Base : main `efeee90a` (#585/#586, ancêtre `6f75bd26`). Branche
+Base de départ : main `efeee90a` (#585/#586, ancêtre `6f75bd26`).
+Intégration finale : main `947caad7` (#588) conservé sans conflit. Branche
 `codex/controles-globaux-verts-20261107`. Lecture AGENTS.md, WORKFLOW-SUPABASE.md et
 RELAIS.md. Aucune écriture/connexion Supabase, aucun PJ utilisé, aucune migration
 appliquée ou préparée. Fichiers de Claude exclus inchangés.
@@ -106,11 +107,13 @@ filtre supplémentaire. La capture actuelle des seeds reste à refaire, pas à s
 
 ## Tests et limites
 
-Cinq tests Python nouveaux, raccordés au contrôleur client par un banc Node, plus
+Six tests Python nouveaux, raccordés au contrôleur client par un banc Node, plus
 les détecteurs existants : huit tests Node ciblés passent. Le témoin Chromium 1440
 reste strictement identique. Vérificateur Workflow conforme et diff sans erreur.
-Les résultats du contrôleur complet et de l'intégration finale sont ajoutés à la
-clôture ; jamais remplacés par une projection.
+Les deux campagnes complètes avant et après intégration de #588 passent à 200/200.
+La contre-épreuve Python -O confirme qu’un mauvais nom de paramètre reste refusé
+même avec l’optimisation de l’interpréteur ; aucune garde du vérificateur ne repose
+sur une instruction assert. Dernier rejeu complet consigné dans les résultats finaux.
 
 ## Pourquoi les deux rouges ne sont pas maquillés
 

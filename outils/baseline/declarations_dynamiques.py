@@ -176,12 +176,12 @@ def extensions_parametres(texte, signatures_connues, noms_connus=None):
                         if not ancien.endswith(')') or not nouveau.endswith(')'):variables.pop(mot,None);precedent=maj;continue
                         try:
                             a=entete('public.x',ancien[:-1]);b=entete('public.x',nouveau[:-1])
-                            assert len(a.parameters)==1 and len(b.parameters)>1
-                            assert canon(a)==canon(entete('public.x',','.join('.'.join(z.sval for z in p.argType.names) for p in source.parameters[-1:])))
-                            assert b.parameters[0].name==a.parameters[0].name
-                            assert noms_connus and noms_connus.get(canon(source))
-                            assert a.parameters[0].name==noms_connus[canon(source)][-1]
-                            assert canon(entete('public.x',ancien[:-1]))==canon(entete('public.x',nouveau[:-1].split(',',1)[0]))
+                            if not (len(a.parameters)==1 and len(b.parameters)>1):raise ValueError('extension_non_prouvee')
+                            if canon(a)!=canon(entete('public.x',','.join('.'.join(z.sval for z in p.argType.names) for p in source.parameters[-1:]))):raise ValueError('type_ancre_incompatible')
+                            if b.parameters[0].name!=a.parameters[0].name:raise ValueError('nom_ancre_modifie')
+                            if not (noms_connus and noms_connus.get(canon(source))):raise ValueError('noms_source_inconnus')
+                            if a.parameters[0].name!=noms_connus[canon(source)][-1]:raise ValueError('nom_source_incompatible')
+                            if canon(entete('public.x',ancien[:-1]))!=canon(entete('public.x',nouveau[:-1].split(',',1)[0])):raise ValueError('type_source_modifie')
                             rest=','.join('.'.join(z.sval for z in p.argType.names) for p in source.parameters[:-1])
                             cible=entete('public.'+source.funcname[-1].sval,(rest+',' if rest else '')+nouveau[:-1]);noms=tuple(p.name for p in b.parameters)
                         except Exception:variables.pop(mot,None);precedent=maj;continue
