@@ -2019,7 +2019,7 @@ const WORLD = {
           }
         },
         'mairie-capitale': {
-          name: 'Soviet Municipal',
+          name: 'Mairie de Novomirsk',
           desc: 'L\'administration locale du Parti. Formulaires en quadruple exemplaire.',
           roomOverrides: {
             hall_mairie:          { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_hall.webp' },
