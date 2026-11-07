@@ -176,7 +176,7 @@ Sovarka n'a pas le circuit de la Républia (président → Premier ministre → 
 - **Création libre** à chacun, dans la **salle des partis** d'une des trois mairies (Novomirsk, Starovka, Krasnov) : **2 PA et 15 PSK** de droits d'enregistrement. Le parti est **national**, son **siège** est dans la ville de création.
 - **Un seul parti à la fois** ; pour en rejoindre un autre, quitter d'abord le sien.
 - **Adhésion sur demande** (2 PA), acceptée ou refusée par le chef ; **un refus coûte 2 POP au parti**, sans plafond (« les joueurs abuseront des mécaniques, c'est assumé »). Le **droit d'entrée** est fixé par le chef, **payé à l'acceptation**, versé à la **caisse du parti** ; si le candidat ne peut plus payer, l'acceptation est refusée et la demande reste en attente.
-- **Quitter coûte 1 PA**. Le chef doit d'abord **désigner un successeur** ; s'il est le dernier membre, le parti est **dissous**.
+- **Quitter coûte 1 PA**. Le chef doit d'abord **désigner un successeur** ; s'il est le dernier membre, le parti est **dissous**. **Quitter ne fait perdre aucune POP** (décision de Fred, 07/11), ni au membre ni au parti ; c'est déjà le cas dans le code.
 - **Popularité du parti** : jauge propre au parti (les organisations n'en avaient pas), **50 au départ**, bornée 0-100 (valeur de départ provisoire, choisie par Claude, à valider par Fred). Elle ne sert encore à rien d'autre que d'afficher les refus.
 - Code : migration `20261107184000_sovarka_partis_salle` (`sovarka_partis_liste`, `sovarka_parti_commande`, `sovarka_nomination_refus` ; portes génériques des organisations fermées aux partis de Sovarka), `plateau-sovarka-partis.js`, salle `salle_partis` ajoutée par `roomsExtra` à la fin de `data.js`.
 
