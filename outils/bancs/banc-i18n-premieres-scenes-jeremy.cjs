@@ -14,8 +14,8 @@ win.i18next={t:(key,{lng,defaultValue}={})=>key.split('.').reduce((x,k)=>x?.[k],
 const sandbox=vm.createContext({window:win});
 for(const file of ['resources.js','jeremy-scenes-resources.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),sandbox,{filename:file});
-const keys=['welcomeJeremy','hotelInstructions'];
-test('deux scènes réelles traduites en neuf langues avec exactement la ponctuation de guidage',()=>{
+const keys=['welcomeJeremy','hotelInstructions','sleepInstructions','hotelRoom','barIntroduction'];
+test('cinq scènes réelles traduites en neuf langues avec exactement la ponctuation de guidage',()=>{
  assert.equal(Object.keys(win.RP_I18N_LANGUAGES).length,9);
  for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
   locale=lng;
@@ -28,6 +28,8 @@ test('deux scènes réelles traduites en neuf langues avec exactement la ponctua
    assert.ok(!/<(?!br\s*\/?\s*>)/i.test(dict[key]),lng+': interdiction du HTML tiers');
   }
   assert.equal((dict.hotelInstructions.match(/<br><br>/g)||[]).length,1,lng+': séparation des deux paragraphes');
+  assert.equal((dict.sleepInstructions.match(/<br><br>/g)||[]).length,1,lng+': sommeil en deux paragraphes');
+  assert.equal((dict.barIntroduction.match(/<br><br>/g)||[]).length,2,lng+': bar en trois paragraphes');
  }
 });
 test('les transitions et ordres ne dépendent pas des traductions',()=>{
