@@ -1755,7 +1755,12 @@ const WORLD = {
           roomOverrides: {
             hall: {
               name: 'Entrée des galeries',
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_entree.webp'
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_entree.webp',
+              // Un seul PNJ à l'entrée, le portier visible sur l'image (décision de Fred, 06/11/2026 ;
+              // nom proposé par Claude, à valider). La voleuse et le magicien de Luthécia sont retirés.
+              persons: [
+                {name: 'Ignat Battantov (PNJ)', role: 'Portier des galeries', rel: 'neutral', job: 'portier'}
+              ]
             },
             vitrine_principale: {
               name: 'Grand local A — Local à louer',
@@ -1776,6 +1781,30 @@ const WORLD = {
               name: 'Local moyen B — Local à louer',
               desc: '📋 À LOUER — Seconde boutique de taille moyenne, accessible depuis les galeries.',
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_moyen_local.webp'
+            }
+          }
+        },
+        // Centre d'affaires de Novomirsk : deux bureaux privés et quatre salles
+        // de réunion. Le gabarit commun reste inchangé dans les autres villes.
+        'centre-affaires': {
+          name: "Centre d'affaires de Novomirsk",
+          desc: "Adresse prestigieuse pour les réunions d'affaires et les bureaux privés de Sovarka.",
+          roomsExclues: ['bureau_standard', 'open_space', 'tribune_republia'],
+          roomOverrides: {
+            hall: {
+              name: "Accueil du centre d'affaires",
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_hall.webp',
+              persons: [
+                // Noms donnés par Fred (07/11/2026).
+                {name:'Valery Burov (PNJ)',role:"Réceptionniste",rel:'neutral',job:'hotesse'},
+                {name:'Pietr Kastanov (PNJ)',role:'Agent de sécurité',rel:'neutral',job:'agent_securite'}
+              ]
+            },
+            // Bureaux attribués par la mairie, comme les locaux des Galeries (décision de Fred,
+            // 07/11/2026) : ordres posés par definirSallesCentreAffairesNovomirsk ci-dessous.
+            bureau_prestige: {
+              name: "Bureau prestige A — Local à louer",
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_bureau_prestige.webp'
             }
           }
         },
@@ -10125,7 +10154,8 @@ function slugPnjSovarka(nom) {
     ['hotel-republica', 'bar', 'Arkadi Shakerov (PNJ)', 'Novo_arkadi_shakerov_portrait.webp'],
     ['hotel-republica', 'bar', 'Gleb Tchoutchotov (PNJ)', 'Novo_gleb_tchoutchotov_portrait.webp'],
     ['hotel-republica', 'bar', 'Anouchka Velourova (PNJ)', 'Novo_anouchka_velourova_portrait.webp'],
-    ['hotel-republica', 'restaurant', 'Pavel Plateaukine (PNJ)', 'Novo_pavel_plateaukine_portrait.webp']
+    ['hotel-republica', 'restaurant', 'Pavel Plateaukine (PNJ)', 'Novo_pavel_plateaukine_portrait.webp'],
+    ['centre-commercial', 'hall', 'Ignat Battantov (PNJ)', 'Novo_ignat_battantov_portrait.webp']
   ];
   for (const [batiment, piece, nom, fichier] of photos) {
     const personnes = salles[batiment]?.roomOverrides?.[piece]?.persons || [];
@@ -10220,7 +10250,7 @@ function slugPnjSovarka(nom) {
     ]);
     ajouter(surcharge(ville, mairie, capitale ? 'bureau_maire' : 'bureau_maire_local'), [
       ordre('sovarka_dossiers_commerciaux', 'Dossiers commerciaux', 0, 'ti-folders',
-        'Réservé au maire (à défaut l\'adjoint, à défaut le ministre de l\'Économie collective) : accepter les demandes, attribuer les locaux, fixer les loyers (0 à 100 PSK) et le type des immeubles collectifs.')
+        'Réservé au maire (à défaut l\'adjoint, à défaut le ministre de l\'Économie collective) : accepter les demandes, attribuer les locaux, fixer les loyers (dans le plafond de chaque local) et le type des immeubles collectifs.')
     ]);
     ajouter(surcharge(ville, capitale ? 'tribunal' : 'tribunal-local', 'bureau_magistrats'), [
       ordre('sovarka_retirer_droit', 'Retirer un droit d\'exploiter', 1, 'ti-gavel',
@@ -10230,9 +10260,11 @@ function slugPnjSovarka(nom) {
                      'centre-artisanal': ['echoppe_facade', 'atelier_milieu', 'reserve_arriere'] };
     for (const [batiment, pieces] of Object.entries(locaux)) {
       for (const piece of pieces) {
+        // « Demande de location » (décision de Fred, 06/11/2026) : une lettre à la mairie qui décrit
+        // le local ; elle rejoint les dossiers commerciaux du maire, avec le nom du demandeur.
         ajouter(surcharge(ville, batiment, piece), [
-          ordre('sovarka_commerces_libres', 'Attribution par la mairie', 0, 'ti-list-details',
-            'En Sovarka, un local ne se loue pas : il s\'obtient par une demande à la mairie, puis se signe chez le notaire.')
+          ordre('sovarka_demande_location', 'Demande de location', 1, 'ti-mail',
+            'Écrire à la mairie pour demander ce local. Votre lettre rejoint les dossiers du maire, qui attribue les locaux ; l\'attribution se signe ensuite chez le notaire.')
         ], ['louer_local']);
       }
     }
@@ -10246,3 +10278,70 @@ function slugPnjSovarka(nom) {
     }
   }
 }
+
+// Bureaux et salles spécifiques à Novomirsk. Héritage de l'objet bureau_prestige
+// pour conserver les ordres, tarifs, capacités et garanties métier du socle.
+// Les réservations des salles de réunion nécessitent un paiement journalier côté
+// serveur : elles ne présentent pas de faux ordre de location tant que ce
+// mécanisme et son tarif ne sont pas approuvés.
+(function definirSallesCentreAffairesNovomirsk(){
+  const contexte = WORLD.soviet.capitale.buildingContext['centre-affaires'];
+  const modele = BUILDINGS['centre-affaires'].rooms.bureau_prestige;
+  const prefixe = 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_';
+  const salle = (nom,image,description,tarif) => ({
+    name: nom,
+    imageBg: "linear-gradient(135deg,#080a10,#171218)",
+    imageUrl: prefixe+image,
+    desc: description,
+    persons: [],
+    // Le tarif affiche n'est jamais l'autorité : le RPC valide la salle,
+    // le montant 150/100 PSK, le jour et l'état de location.
+    orders: [{
+      fn:'sovarka_reunion_reserver',
+      label:'Réserver pour aujourd’hui — '+tarif+' PSK',
+      pa:0, cost:0, type:'legal', icon:'ti-calendar-event',
+      successRate:100,
+      desc:'Location exclusive pour la journée civile, jusqu’à minuit (heure de Paris).'
+    }, {
+      // Événements (décision de Fred, 07/11/2026) : conférence de presse, réseautage, séminaire,
+      // buffet du Grand Hôtel ; réservés à celui qui a loué la salle pour la journée.
+      fn:'sovarka_reunion_evenement',
+      label:'Organiser un événement',
+      pa:1, cost:0, type:'legal', icon:'ti-confetti',
+      successRate:100,
+      desc:'Conférence de presse, soirée de réseautage, séminaire de formation ou buffet du Grand Hôtel, pour les personnes présentes.'
+    }]
+  });
+  // BUREAUX : « Demande de location » à la mairie au lieu du guichet (décision de Fred, 07/11/2026),
+  // même cheminement que les Galeries ; loyer 150 PSK/jour fixé par le serveur (sovarka_locaux).
+  // On garde « Gérer mon local » et les équipements : siège d'association, matériel.
+  const ordresBureau = () => [
+    {fn:'sovarka_demande_location', label:'Demande de location', pa:1, cost:0, type:'legal', icon:'ti-mail', successRate:100,
+     desc:"Écrire à la mairie pour demander ce bureau (150 PSK/jour). Votre lettre rejoint les dossiers du maire, qui attribue les locaux ; l'attribution se signe ensuite chez le notaire."},
+    ...modele.orders.filter(o => o.fn !== 'louer_local').map(o => ({...o}))
+  ];
+  const descBureau = "Bureau prestige avec vue, mobilier luxueux. Attribué par la mairie sur demande, 150 PSK par jour. On peut y installer le siège d'une association et du matériel.";
+  const bureauA = contexte.roomOverrides.bureau_prestige;
+  bureauA.desc = descBureau;
+  bureauA.orders = ordresBureau();
+  bureauA.locationData = { ...modele.locationData, prix: 150, label: 'Bureau prestige A' };
+  contexte.roomsExtra = {
+    bureau_prestige_b: {
+      ...modele,
+      name: "Bureau prestige B — Local à louer",
+      desc: descBureau,
+      imageUrl: prefixe+'bureau_prestige_2.webp',
+      locationData: { ...modele.locationData, prix: 150, label:'Bureau prestige B' },
+      persons: [],
+      orders: ordresBureau()
+    },
+    reunion_grande_a: salle("Grande salle de réunion A", 'grande_reunion.webp',
+      "Salle de réception professionnelle avec grand écran, minibar et espace salon. Location : 150 PSK/jour.",150),
+    reunion_grande_b: salle("Grande salle de réunion B", 'grande_reunion.webp',
+      "Seconde grande salle de réunion avec grand écran, minibar et espace salon. Location : 150 PSK/jour.",150),
+    reunion_moyenne_a: salle("Salle de réunion moyenne A", 'moyenne_reunion.webp',
+      "Salle de réunion plus intimiste, aquarium marin et grand écran. Location : 100 PSK/jour.",100),
+    reunion_moyenne_b: salle("Salle de réunion moyenne B", 'moyenne_reunion.webp',
+      "Seconde salle de réunion avec aquarium marin. Location : 100 PSK/jour.",100)
+  };
+})();

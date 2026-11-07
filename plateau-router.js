@@ -170,6 +170,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'sovarka_signer_attribution')  { ouvrirSovarkaSignerAttribution(); return; }
   if (fn === 'sovarka_cession')             { ouvrirSovarkaCession(); return; }
   if (fn === 'sovarka_demander_local')      { ouvrirSovarkaDemanderLocal(); return; }
+  if (fn === 'sovarka_demande_location')    { ouvrirSovarkaDemandeLocation(); return; }
   if (fn === 'sovarka_dossiers_commerciaux'){ ouvrirSovarkaDossiers(); return; }
   if (fn === 'sovarka_retirer_droit')       { ouvrirSovarkaRetirerDroit(); return; }
   if (fn === 'sovarka_terrain_municipal')   { ouvrirSovarkaTerrain(); return; }
@@ -406,6 +407,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne', pa, cost); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
   if (fn === 'consulter_organigramme_mairie') { ouvrirOrganigrammeMairie(); return; }
+  if (fn === 'sovarka_reunion_reserver') { reserverSalleAffairesNovomirsk(); return; }
+  if (fn === 'sovarka_reunion_evenement') { ouvrirReunionEvenement(); return; }
   if (fn === 'louer_local')              { ouvrirModalLouerLocal(pa, cost); return; }
   if (fn === 'gerer_local')              { ouvrirModalGererLocal(); return; }
   // Point d'entree UNIQUE de la verticale commerce PJ (C5) : l'ecran decide
@@ -968,3 +971,53 @@ function buildResultMsg(fn, type, desc, label) {
 }
 
 // =====================
+
+let reservationReunionNovomirskEnCours = false;
+async function reserverSalleAffairesNovomirsk() {
+  if (reservationReunionNovomirskEnCours) return;
+  const salle = state.currentRoom;
+  const prix = salle === 'reunion_grande_a' || salle === 'reunion_grande_b' ? 150
+             : salle === 'reunion_moyenne_a' || salle === 'reunion_moyenne_b' ? 100 : null;
+  if (prix === null || state.currentBuilding !== 'centre-affaires'
+      || (state.country || state.char?.country) !== 'soviet'
+      || state.currentCity !== 'capitale') {
+    showToast('Réservation impossible', 'Cette commande est réservée aux salles de Novomirsk.', false);
+    return;
+  }
+  if (!window.confirm('Réserver cette salle pour aujourd’hui, jusqu’à minuit (heure de Paris), pour '+prix+' PSK ?')) return;
+  reservationReunionNovomirskEnCours = true;
+  try {
+    // Aucun débit local, aucun paiement optimiste : le serveur vérifie et
+    // effectue la réservation et le crédit municipal en une transaction.
+    const v = typeof sbRpcVerdict === 'function'
+      ? await sbRpcVerdict('sovarka_reunion_reserver', {p_salle:salle}).catch(()=>null) : null;
+    if (!v) {
+      showToast('Réponse non confirmée', 'Vérifiez la réservation avant toute nouvelle tentative. Aucun nouveau débit automatique.', false);
+      return;
+    }
+    if (v.ok !== true) {
+      const messages = {
+        salle_deja_reservee:'Cette salle est déjà réservée pour aujourd’hui.',
+        fonds_insuffisants:'Vous ne disposez pas de suffisamment de PSK.',
+        pas_sur_place:'Vous devez vous trouver dans la salle pour la réserver.',
+        salle_inconnue:'Cette salle n’est pas réservable.',
+        caisse_absente:'Le paiement municipal est momentanément indisponible.',
+        non_authentifie:'Votre session doit être rétablie.'
+      };
+      showToast('Réservation refusée',messages[v.raison]||'La réservation n’a pas été confirmée.',false);
+      return;
+    }
+    if (v.deja_reservee !== true && typeof appliquerPaiementServeur === 'function') {
+      appliquerPaiementServeur(v);
+    }
+    if (typeof updateUI === 'function') updateUI();
+    showToast(v.deja_reservee ? 'Déjà réservée' : 'Réservation confirmée',
+      v.deja_reservee ? 'Votre réservation du jour est déjà enregistrée. Aucun nouveau débit.'
+        : 'Salle réservée pour aujourd’hui : '+v.montant+' PSK. Fin à minuit, heure de Paris.', true);
+    if (!v.deja_reservee && typeof addJournalEntry === 'function') {
+      addJournalEntry('Salle de réunion de Novomirsk réservée : '+v.montant+' PSK.', 'event-info');
+    }
+  } finally {
+    reservationReunionNovomirskEnCours = false;
+  }
+}

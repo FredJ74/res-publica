@@ -114,3 +114,30 @@ de PSM), un port de Sovarka, le directeur PNJ de l'entrepôt dans la cascade des
 - **Immeubles collectifs** : la passe de minuit (`urbanisme_sovarka`) lance, le 1er et le 15, un immeuble par ville sur un terrain à bâtir libre, dimensionné aux dossiers acceptés qui attendent ; il est payé par la caisse de la mairie, ou attend les fonds ; à la livraison, les locaux vont aux dossiers dans l'ordre d'acceptation (mail), et les logements d'un immeuble mixte rejoignent les logements sociaux de la ville (attribués par l'adjoint comme les autres). Les terrains de Sovarka n'ont plus d'ordres d'achat ou de chantier privé.
 - **Valeurs provisoires proposées par Claude, à valider par Fred** : 1 000 PSK de construction par local (commerce ou logement), chantier de 7 jours, logements d'immeuble au loyer des petits logements (10 PSK), autant de logements que de commerces dans un immeuble mixte ; plafond de loyer des locaux d'immeuble 50 PSK, et des locaux des centres proportionnel à leur loyer de Républia (vitrine 100, boutique 50, arrière-boutique 19, cave 10 ; échoppe 75, atelier 38, réserve 13) ; loyer de départ 0 tant que le maire ne l'a pas fixé ; les commerces PNJ attribués n'ont pas de loyer.
 - **Limites** : un seul immeuble par terrain (5 à Novomirsk, 1 à Starovka, 1 à Krasnov) : au-delà, les dossiers attendent ; la fiche de dialogue de Klara Delounova reste celle de la clerc dont elle hérite.
+
+## Galeries de Novomirsk (06/11/2026, décisions de Fred)
+
+- **Entrée** : les deux PNJ hérités de Luthécia (voleuse et magicien) sont retirés ; un seul PNJ, le **portier** visible sur l'image, **Ignat Battantov** (nom proposé par Claude, à valider), portrait tiré de l'image, fiche de dialogue à relire.
+- **Locaux** : deux grands (Grand local A, Grand local B) et deux moyens (Local moyen A, Local moyen B), images de Fred.
+- **« Demande de location »** (remplace « Attribution par la mairie » dans tous les locaux des centres de Sovarka) : une lettre adressée à la mairie décrit le bien (nom du local, emplacement, description) ; le nom du PJ demandeur y figure ; une ligne facultative « activité envisagée ». À l'envoi (1 PA, même coût que la demande déposée à la mairie), la demande rejoint les **Dossiers commerciaux** du maire, avec le nom du demandeur et le **local demandé**, présélectionné s'il est encore libre. Une seule demande active par PJ et par ville (règle existante) ; plusieurs PJ peuvent demander le même local, le maire choisit. Il faut être dans le local pour écrire la lettre ; un local exploité ou déjà attribué la refuse.
+- Fonction serveur `sovarka_demande_location` (migration `20261106230000_sovarka_demande_location`, appliquée) ; banc annulé `outils/bancs/banc-sovarka-demande-location.sql`.
+
+## Marges des commerces en Sovarka (06/11/2026, décision de Fred)
+
+- Mêmes ratios qu'en Républia, sans exception pour Novomirsk : un PNJ vend à **2 fois** son coût de revient, un PJ peut monter jusqu'à **4 fois**. Le coût de la main-d'œuvre, bien plus bas en Sovarka, suffit à faire la différence. « On reste là-dessus, sans complexifier. »
+- Le coefficient serveur de Sovarka manquait (un commerçant PJ ne pouvait pas fixer ses prix) : migration `20261106232000_coef_prix_max_pj_sovarka`, appliquée.
+- Novomirsk reste l'exception opulente de Sovarka (« plus la Russie des Tsars que l'URSS ») : plafonds de loyer des Galeries à **150 PSK/jour pour chaque grand local et 75 PSK pour chaque moyen** (validé par Fred le 06/11 ; ailleurs en Sovarka, 100 PSK pour le plus grand local). Migration `20261106233000_galeries_novomirsk_plafonds_loyer`, appliquée.
+- **À faire quand Novomirsk sera terminée** (Fred, 06/11) : relever les bâtiments qui n'ont pas de loyer.
+
+## Commerce Premium gratuit pendant la bêta (06/11/2026, décision de Fred, socle commun)
+
+- « L'option premium est gratuite pendant la bêta, ça permet de voir si elle fonctionne bien. Quand elle sera payante, on ne pourra pas souffrir de bugs. »
+- Dans l'écran de gestion de son commerce, le propriétaire active « Commerce Premium » gratuitement : 3 types d'activité et 10 articles au lieu de 2 et 4 (règle des commerces du 06/11), attaché au fonds (transmis à la vente, perdu à la résiliation du bail). La génération d'image et les codes promotionnels restent « bientôt ».
+- Les commerces déjà au-delà du gratuit (plus de 2 types ou de 4 articles) sont passés premium d'office, sans rien perdre. Migration `20261106234500_commerce_premium_beta`, appliquée (constantes, `fonds_premium_activer`, plafonds lus sur le fonds). Le jour du paiement : `commerce_premium_gratuit_beta` à 0 et un opérateur de paiement à raccorder.
+
+## Centre d'affaires de Novomirsk (07/11/2026, décisions de Fred)
+
+- Accueil : **Valery Burov** (réceptionniste) et **Pietr Kastanov** (agent de sécurité).
+- **Bureaux prestige A et B** : attribués selon le schéma des locaux commerciaux de Sovarka, même cheminement que les Galeries (« Demande de location » depuis le bureau, dossiers du maire, signature chez le notaire). Loyer **150 PSK/jour** (plafond 150). On peut y installer le siège d'une association et du matériel. Guichet « Louer ce local » fermé.
+- **Salles de réunion** (deux grandes à 150 PSK, deux moyennes à 100 PSK) : location à la journée, **sans approbation du maire** (location courte durée). À enrichir : on pourra y créer des événements (assemblées générales, conseils d'administration…), à concevoir avec Fred.
+- **Événements en salle de réunion** (Fred, 07/11 : idées 5 et 6 de Claude) : conférence de presse, soirée de réseautage, séminaire de formation, buffet du Grand Hôtel ; réservés à celui qui a loué la salle, pour les PJ présents. Valeurs proposées par Claude, **validées par Fred le 07/11** : conférence de presse +3 POP +1 par présent (max +10) ; réseautage +2 INF à chaque présent, +1 INF par participant à l'organisateur (max +8) ; séminaire +1 à la caractéristique choisie jusqu'à minuit, sans cumul ; buffet 40 PSK par présent au restaurant du Grand Hôtel, +2 PA chacun.

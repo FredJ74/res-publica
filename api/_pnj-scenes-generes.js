@@ -4797,8 +4797,7 @@ export const SCENES_PNJ = {
     "batiment": "Galeries de Novomirsk",
     "piece": "Entrée des galeries",
     "personnes": [
-      "Ksenia Fauchova",
-      "Arkhip Abracadabrov"
+      "Ignat Battantov"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"vitrine_principale\"]": {
@@ -4864,43 +4863,77 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"centre-affaires\",\"hall\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre d'Affaires",
-    "piece": "Hall d'Entrée",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Accueil du centre d'affaires",
     "personnes": [
-      "Inna Rendezvousova",
-      "Moïsseï Mechantov",
-      "Garri Kouverov"
+      "Valery Burov",
+      "Pietr Kastanov"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-affaires\",\"bureau_prestige\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre d'Affaires",
-    "piece": "Bureau Prestige — Local à louer",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Bureau prestige A — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-affaires\",\"bureau_standard\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre d'Affaires",
+    "batiment": "Centre d'affaires de Novomirsk",
     "piece": "Bureau Standard — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-affaires\",\"open_space\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre d'Affaires",
+    "batiment": "Centre d'affaires de Novomirsk",
     "piece": "Open Space — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-affaires\",\"tribune_republia\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre d'Affaires",
+    "batiment": "Centre d'affaires de Novomirsk",
     "piece": "La Tribune de Republia — Antenne Locale",
     "personnes": [
       "Correspondant Local"
     ]
+  },
+  "[\"soviet\",\"capitale\",\"centre-affaires\",\"bureau_prestige_b\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Bureau prestige B — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"centre-affaires\",\"reunion_grande_a\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Grande salle de réunion A",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"centre-affaires\",\"reunion_grande_b\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Grande salle de réunion B",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"centre-affaires\",\"reunion_moyenne_a\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Salle de réunion moyenne A",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"centre-affaires\",\"reunion_moyenne_b\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Salle de réunion moyenne B",
+    "personnes": []
   },
   "[\"soviet\",\"capitale\",\"terrain-a-batir-1\",\"terrain\"]": {
     "pays": "Sovarka",
