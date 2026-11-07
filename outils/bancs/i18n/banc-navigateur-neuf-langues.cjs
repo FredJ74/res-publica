@@ -77,7 +77,9 @@ async function run(){
       expectedForum:window.RP_I18N_RESOURCES?.[language]?.translation?.forumNames?.national,
       privateForum:window.RPForumUI?.forumNameHtml('local_novomirsk','Forum local — Novomirsk'),
       replyControl:window.RPForumUI?.labelHtml('reply','Répondre'),
-      expectedReply:window.RP_I18N_RESOURCES?.[language]?.translation?.forumUI?.reply};
+      expectedReply:window.RP_I18N_RESOURCES?.[language]?.translation?.forumUI?.reply,
+      toastTitle:window.RPToastI18n?.label('Action impossible'),
+      expectedToast:window.RP_I18N_RESOURCES?.[language]?.translation?.toastTitles?.actionImpossible};
    });
    assert.equal(state.label,state.expected,language+': guide sur le plateau réel');
    assert.equal(state.placeholder,state.expectedPlaceholder,language+': composition de mail');
@@ -88,6 +90,7 @@ async function run(){
    assert.equal(state.forumName,state.expectedForum,language+': forum national localisé');
    assert.equal(state.privateForum,'Forum local — Novomirsk',language+': nom privé/local inchangé');
    assert.equal(state.replyControl,state.expectedReply,language+': bouton répondre localisé');
+   assert.equal(state.toastTitle,state.expectedToast,language+': notification localisée sans changer raison serveur');
    checks++;
    // Le navigateur réel résout aussi les nouveaux catalogues du Conseil
    // et des forums, avec les handlers métier explicitement bloqués.
