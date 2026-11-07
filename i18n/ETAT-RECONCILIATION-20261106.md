@@ -156,3 +156,10 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - Vérification **en lecture seule** sur le projet `res-publica` après livraison des forums territoriaux #422 : les politiques de lecture de `forum_topics`, `forum_posts` et `messages_chat` sont actives et conformes (**3/3** avec le prévol actualisé). Contrairement à l'ancien relevé du 3 novembre, les forums ne sont **pas** accessibles publiquement sans restriction : sujets filtrés via `forum_lecture_autorisee(forum_id,country)`, réponses visibles à travers le sujet et RLS, chat réservé aux participants.
 - `api/_traduction-sources.js` ne déclare donc plus les forums comme `rls_select_public`. Test de prévention ajouté et contrat de sécurité corrigé dans `i18n/SECURITE-TEXTES-JOUEURS.md`.
 - **Aucun message privé ni contenu PJ consulté**, aucune migration, aucune activation. Les essais JWT multi-comptes et la réalisation du quota/cache persistant restent indispensables avant tout endpoint public.
+
+
+## 7 novembre — lisibilité et accessibilité des messages multilingues
+
+- `i18n/texte-joueur.js` pose désormais l'attribut HTML `lang` du **contenu réellement affiché** : la traduction allemande reçoit `lang=de`, puis le retour à l'original français rétablit `lang=fr`; langue source inconnue -> attribut retiré. Le sens RTL arabe reste limité au message, sans modifier les autres contrôles du jeu.
+- Le bouton « Voir l'original / Voir la traduction » utilise le catalogue `plateau` déjà existant lorsque le consommateur ne transmet pas explicitement ses libellés. Repli français si une clé manque. Aucun message PJ, coût, droit ou ordre n'est modifié.
+- Deux jeux de tests nouveaux (langue du texte / étiquettes du bouton) ; trois scénarios exécutés directement sur le module réel en V8 isolé, dont l'alternance allemand/français et arabe/français : conformes. CI distante et affichage authentifié **non certifiés** par ce contrôle.
