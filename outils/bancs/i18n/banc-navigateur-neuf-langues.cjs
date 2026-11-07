@@ -164,6 +164,29 @@ async function run(){
    assert.ok(rendered.unread.includes('Sujet PJ'),language+': sujet saisi préservé');
    assert.ok(rendered.unread.includes('onclick="submitMail()"'),language+': action courrier inchangée');
    checks++;
+   // Trois états réels du même composant (chargement, liste vide, lecture
+   // échouée) : un incident serveur ne doit jamais être présenté comme vide.
+   const topics=await page.evaluate(()=>{
+     currentForumId='national';
+     FORUM_TOPICS.national=[];
+     delete FORUM_LECTURE_TERMINEE.national;
+     delete FORUM_LECTURE_ECHOUEE.national;
+     const loading=renderTopicList();
+     FORUM_LECTURE_TERMINEE.national=true;
+     const empty=renderTopicList();
+     FORUM_LECTURE_ECHOUEE.national='transport_indisponible';
+     const failed=renderTopicList();
+     const labels=window.RP_I18N_RESOURCES[window.i18next.language].translation.forumUI;
+     return {loading,empty,failed,labels};
+   });
+   assert.ok(topics.loading.includes(topics.labels.loadingTopics),language+': chargement réel');
+   assert.ok(!topics.loading.includes(topics.labels.noTopics),language+': pas de faux vide pendant chargement');
+   assert.ok(topics.empty.includes(topics.labels.noTopics),language+': vrai vide affiché');
+   assert.ok(topics.failed.includes(topics.labels.failedTopics),language+': panne affichée');
+   assert.ok(topics.failed.includes(topics.labels.failedTopicsDetail),language+': détail de la panne affiché');
+   assert.ok(!topics.failed.includes(topics.labels.noTopics),language+': aucun faux vide pendant panne');
+   assert.ok(topics.failed.includes('onclick="rechargerForumActuel()"'),language+': réessai conservé');
+   checks++;
    await page.close();
   }
 
