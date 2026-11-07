@@ -14,8 +14,8 @@ win.i18next={t:(key,{lng,defaultValue}={})=>key.split('.').reduce((x,k)=>x?.[k],
 const sandbox=vm.createContext({window:win});
 for(const file of ['resources.js','jeremy-scenes-resources.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),sandbox,{filename:file});
-const keys=['welcomeJeremy','hotelInstructions','sleepInstructions','hotelRoom','barIntroduction','clinic','electionRoom','stadium','turnLeft','keepDirection','selectBuilding','routeStadium','exploreStadium','bedroomSleepOrder','partWays','careerChoice','contactsTip','contactJeremy','localForumInvite'];
-test('dix-neuf scènes réelles traduites en neuf langues avec exactement la ponctuation de guidage',()=>{
+const keys=['welcomeJeremy','hotelInstructions','sleepInstructions','hotelRoom','barIntroduction','clinic','electionRoom','stadium','turnLeft','keepDirection','selectBuilding','routeStadium','exploreStadium','bedroomSleepOrder','partWays','careerChoice','contactsTip','contactJeremy','localForumInvite','returnEmployees','rememberElections','goElections','leaveTownHall','openCharacterSheet','returnHotel','toBar','askDrink','returnStadium','tryStadium','sayGoodbyeAgain'];
+test('trente scènes réelles traduites en neuf langues avec exactement la ponctuation de guidage',()=>{
  assert.equal(Object.keys(win.RP_I18N_LANGUAGES).length,9);
  for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
   locale=lng;
@@ -40,6 +40,9 @@ test('dix-neuf scènes réelles traduites en neuf langues avec exactement la pon
 });
 test('les transitions et ordres ne dépendent pas des traductions',()=>{
  for(const key of keys)assert.ok(quest.includes("rpQueteTexte('"+key+"'"),key);
+ assert.equal((quest.match(/rpQueteTexte\('toBar'/g)||[]).length,2,'deux rappels bar partagent le même libellé');
+ assert.ok((quest.match(/rpQueteTexte\('turnLeft'/g)||[]).length>=2,'guidage gauche réutilisé');
+ assert.ok((quest.match(/rpQueteTexte\('exploreStadium'/g)||[]).length>=2,'guidage stade réutilisé');
  assert.ok(quest.includes("state.char.queteAccueil = { etape: 'jeremy_groupe' }"));
  assert.ok(quest.includes("state.char.queteAccueil = { etape: 'attente_hotel' }"));
  assert.ok(quest.includes("queteAccueilSurbrillance('.piece-tab[onclick*=\"salle_elections\"]'"));
