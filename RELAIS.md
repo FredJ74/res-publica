@@ -693,3 +693,19 @@ aucune mécanique ni montant changé ; preuve MOBILE-REPRISE-L5-20261107.json.
 Contrôles attendus : bancs-hors-production et gardes usuelles de main ; pas de
 migration. Reste CI sur SHA poussé et essais téléphone réel ; ces tests sont locaux.
 Recette téléphone : consulter inventaire long, fiche, banque et commerce sans payer.
+
+### Reprise mobile L8 — Codex, 07/11/2026
+Branche `codex/mobile-l8-reprise-20261106`, main `a5e32332` intégré dans l'ordre des lots.
+SHA testé avant ajout du compte rendu : `ee4ec1fd61408a127dc0d91169b750c324eb7a7a`. Résultats : UI
+4/4, clients 19/19 ; aucun échec.
+Titre PR vers main : **Mobile L8 — Revalidation de la reprise réseau et protection garderBatiment**.
+Description prête : minuterie commune #579, réponses tardives, identité, perte réseau et retour visible.
+Anciens lots déjà en bêta conservés : cette reprise synchronise et teste, sans
+réécrire l'application. Seul ajout technique L8 : régression de #579 sur les vrais
+rendus, option `garderBatiment` conservée ; contre-épreuve sans l'option.
+Contrôles attendus : bancs-hors-production, gardes habituelles et tests ciblés
+MOBILE-REPRISE-L8-20261107.json. Reste à Claude : création PR, CI et intégration
+du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de migration.
+Test téléphone après intégration : verrouiller puis revenir, couper/rétablir le réseau, conserver bâtiment et pièce, aucun ordre initial rejoué.
+Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
+à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
