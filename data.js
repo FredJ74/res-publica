@@ -1983,7 +1983,7 @@ const WORLD = {
           }
         },
         'palais-gouvernement': {
-          name: 'Siège du Comité Central',
+          name: 'Palais du Gouvernement de Sovarka',
           desc: 'Le vrai pouvoir de Sovarka. Chaque décision est votée à l\'unanimité — le Parti ne connaît pas le désaccord.',
           // Intitulés de Sovarka (Fred, 07/11/2026, « Organisation du pouvoir en Sovarka ») ;
           // images des bureaux à venir (imagesAVenir), seul le hall a la sienne.
