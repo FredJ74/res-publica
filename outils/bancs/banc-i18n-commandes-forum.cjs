@@ -13,7 +13,7 @@ let lang='fr';
 win.RPPlateauI18n={language:()=>lang};
 win.i18next={t:(key,{lng,defaultValue}={})=>key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue};
 const ctx=vm.createContext({window:win});
-for(const file of ['resources.js','forum-ui.js'])
+for(const file of ['resources.js','plateau-resources.js','forum-ui.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const labels={newTopic:'Nouveau sujet',reply:'Répondre',retry:'Réessayer',
  newMail:'Nouveau mail',back:'Retour',backToTopic:'Retour au sujet',
@@ -127,4 +127,23 @@ test('états des sujets : panne distincte du vide, cinq colonnes préservées',(
  assert.ok(source.includes('FORUM_LECTURE_TERMINEE[currentForumId]'));
  assert.ok(source.includes('peutCreerSujet ?'));
  assert.ok(source.includes('escapeHtmlText(t.title)'));
+});
+
+
+test('formulaire de mail : réutilisation des clés de l’accueil, sans toucher aux données saisies',()=>{
+ const keys=['newMessage','recipient','recipientPlaceholder','subject','subjectPlaceholder',
+             'messageLabel','sendButton'];
+ for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+  const resource=win.RP_I18N_RESOURCES[lng].translation.plateau;
+  for(const key of keys)assert.ok(resource[key]?.trim(),lng+': '+key);
+ }
+ const section=source.slice(source.indexOf('function renderMailCompose('),
+   source.indexOf('let _mailEnvoiEnCours'));
+ for(const key of keys)assert.ok(section.includes("rpForumPlateauLibelle('"+key+"'"),key);
+ assert.ok(section.includes('${escapeHtmlText(defaultTo)}'));
+ assert.ok(section.includes('${escapeHtmlText(defaultSubject)}'));
+ for(const marker of ['id="mail-to"','id="mail-subject"',"renderRichEditor('compose-body')",
+                       'onclick="submitMail()"',"renderEnvoyerMailEnTantQue('compose-mail-auteur'"]){
+  assert.ok(section.includes(marker),marker);
+ }
 });
