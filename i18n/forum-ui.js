@@ -349,6 +349,127 @@
   }
 };
  for(const [lang,labels] of Object.entries(listing)) Object.assign(words[lang],labels);
+ // Compositeur riche partagé : traduction purement visuelle des contrôles.
+ const composer={
+  "fr": {
+    "topicTitle": "Titre du sujet",
+    "topicPlaceholder": "Intitulé du sujet...",
+    "addTextZone": "Ajouter une zone de texte",
+    "addImage": "Ajouter une image",
+    "preview": "Prévisualiser",
+    "backToEditing": "Revenir à l'édition",
+    "publishTopic": "Publier le sujet",
+    "publishReply": "Publier la réponse",
+    "saveChanges": "Enregistrer les modifications",
+    "cancel": "Annuler",
+    "editMessage": "Modifier le message"
+  },
+  "en": {
+    "topicTitle": "Topic title",
+    "topicPlaceholder": "Topic title...",
+    "addTextZone": "Add a text area",
+    "addImage": "Add an image",
+    "preview": "Preview",
+    "backToEditing": "Back to editing",
+    "publishTopic": "Publish topic",
+    "publishReply": "Publish reply",
+    "saveChanges": "Save changes",
+    "cancel": "Cancel",
+    "editMessage": "Edit message"
+  },
+  "es": {
+    "topicTitle": "Título del tema",
+    "topicPlaceholder": "Título del tema...",
+    "addTextZone": "Añadir zona de texto",
+    "addImage": "Añadir imagen",
+    "preview": "Vista previa",
+    "backToEditing": "Volver a editar",
+    "publishTopic": "Publicar tema",
+    "publishReply": "Publicar respuesta",
+    "saveChanges": "Guardar cambios",
+    "cancel": "Cancelar",
+    "editMessage": "Editar mensaje"
+  },
+  "zh-TW": {
+    "topicTitle": "主題標題",
+    "topicPlaceholder": "主題標題…",
+    "addTextZone": "新增文字區塊",
+    "addImage": "新增圖片",
+    "preview": "預覽",
+    "backToEditing": "返回編輯",
+    "publishTopic": "發布主題",
+    "publishReply": "發布回覆",
+    "saveChanges": "儲存修改",
+    "cancel": "取消",
+    "editMessage": "編輯訊息"
+  },
+  "ru": {
+    "topicTitle": "Название темы",
+    "topicPlaceholder": "Название темы...",
+    "addTextZone": "Добавить текстовый блок",
+    "addImage": "Добавить изображение",
+    "preview": "Предпросмотр",
+    "backToEditing": "Вернуться к редактированию",
+    "publishTopic": "Опубликовать тему",
+    "publishReply": "Опубликовать ответ",
+    "saveChanges": "Сохранить изменения",
+    "cancel": "Отмена",
+    "editMessage": "Изменить сообщение"
+  },
+  "ko": {
+    "topicTitle": "주제 제목",
+    "topicPlaceholder": "주제 제목...",
+    "addTextZone": "텍스트 영역 추가",
+    "addImage": "이미지 추가",
+    "preview": "미리 보기",
+    "backToEditing": "편집으로 돌아가기",
+    "publishTopic": "주제 게시",
+    "publishReply": "답글 게시",
+    "saveChanges": "변경 사항 저장",
+    "cancel": "취소",
+    "editMessage": "메시지 수정"
+  },
+  "ar": {
+    "topicTitle": "عنوان الموضوع",
+    "topicPlaceholder": "عنوان الموضوع...",
+    "addTextZone": "إضافة مساحة نصية",
+    "addImage": "إضافة صورة",
+    "preview": "معاينة",
+    "backToEditing": "العودة إلى التحرير",
+    "publishTopic": "نشر الموضوع",
+    "publishReply": "نشر الرد",
+    "saveChanges": "حفظ التغييرات",
+    "cancel": "إلغاء",
+    "editMessage": "تعديل الرسالة"
+  },
+  "pt-BR": {
+    "topicTitle": "Título do tópico",
+    "topicPlaceholder": "Título do tópico...",
+    "addTextZone": "Adicionar área de texto",
+    "addImage": "Adicionar imagem",
+    "preview": "Pré-visualizar",
+    "backToEditing": "Voltar à edição",
+    "publishTopic": "Publicar tópico",
+    "publishReply": "Publicar resposta",
+    "saveChanges": "Salvar alterações",
+    "cancel": "Cancelar",
+    "editMessage": "Editar mensagem"
+  },
+  "de": {
+    "topicTitle": "Thementitel",
+    "topicPlaceholder": "Thementitel...",
+    "addTextZone": "Textbereich hinzufügen",
+    "addImage": "Bild hinzufügen",
+    "preview": "Vorschau",
+    "backToEditing": "Zurück zur Bearbeitung",
+    "publishTopic": "Thema veröffentlichen",
+    "publishReply": "Antwort veröffentlichen",
+    "saveChanges": "Änderungen speichern",
+    "cancel": "Abbrechen",
+    "editMessage": "Nachricht bearbeiten"
+  }
+};
+ for(const [lang,labels] of Object.entries(composer)) Object.assign(words[lang],labels);
  const keys=new Set(Object.keys(words.fr));
  for(const [lang,labels] of Object.entries(words)){
   if(resources[lang]?.translation)
