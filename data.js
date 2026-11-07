@@ -1966,7 +1966,21 @@ const WORLD = {
         'palais-presidentiel': {
           name: 'Palais du Parti',
           desc: 'Le cœur du pouvoir de Sovarka. Camarade Borodine reçoit sur rendez-vous uniquement, après vérification de votre dossier de loyauté.',
-          persons: []
+          persons: [],
+          // Le président de Sovarka n'a aucun pouvoir mais des avantages (Fred, 07/11/2026) :
+          // un repas gratuit par jour dans ses appartements, avec un invité (effets du dîner
+          // d'affaires). Image à venir.
+          roomsExtra: {
+            appartements_president: {
+              name: 'Appartements présidentiels',
+              imageBg: 'linear-gradient(135deg,#140a0a,#22100e)',
+              desc: 'Les appartements privés du Président de la République de Sovarka : boiseries, samovar d\'argent et une table toujours dressée. Le pouvoir est ailleurs, mais on y mange bien.',
+              persons: [],
+              orders: [{ fn: 'sovarka_repas_presidentiel', label: 'Repas du Président', pa: 0, cost: 0,
+                type: 'legal', icon: 'ti-tools-kitchen-2', successRate: 100, requiresPost: 'president',
+                desc: 'Un repas offert par jour, seul ou avec un invité présent : +10 Santé, +2 Moral, +5 INF, +3 PA au prochain Dormir.' }]
+            }
+          }
         },
         'palais-gouvernement': {
           name: 'Siège du Comité Central',

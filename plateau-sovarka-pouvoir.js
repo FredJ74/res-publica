@@ -74,3 +74,53 @@ async function designerDeputeSoviet(nom, retirer) {
     await ouvrirSovietSupreme();
   } finally { sovietDesignationEnCours = false; }
 }
+
+// REPAS PRESIDENTIEL (étape 6, Fred 07/11/2026) : un repas gratuit par jour dans les appartements
+// du Palais du Parti, avec un invité présent s'il le souhaite ; effets du dîner d'affaires. Le
+// serveur (sovarka_repas_presidentiel) vérifie le président, le lieu, l'invité et le jour.
+const REPAS_PRES_MOTIFS = {
+  reserve_president: 'Réservé au Président de la République de Sovarka.',
+  pas_sur_place: 'Le repas se prend dans les appartements présidentiels.',
+  deja_pris_aujourdhui: 'Le repas présidentiel a déjà été servi aujourd’hui.',
+  invite_absent: 'Votre invité doit se trouver avec vous dans les appartements.',
+  invite_invalide: 'Choisissez un autre invité.',
+  acteur_non_authentifie: 'Votre session doit être rétablie.'
+};
+let repasPresidentielEnCours = false;
+
+async function ouvrirRepasPresidentiel() {
+  const presents = (typeof sbGetPresencesInRoom === 'function')
+    ? await sbGetPresencesInRoom(state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => [])
+    : [];
+  const moi = state.char?.name || '';
+  const noms = Array.from(new Set((presents || []).map(p => p.name || p.nom).filter(n => n && n !== moi)));
+  let corps = '<p>Un repas offert par jour : +10 Santé, +2 Moral, +5 INF et +3 PA au prochain Dormir, ' +
+    'pour vous et pour votre invité.</p><select id="repas-pres-invite" class="cpj-champ"><option value="">Seul</option>' +
+    noms.map(n => '<option value="' + sovEchapper(n) + '">' + sovEchapper(n) + '</option>').join('') + '</select><br>' +
+    vehBouton('Faire servir le repas', 'servirRepasPresidentiel()', true);
+  vehModal('Appartements présidentiels', vehSection('Repas du Président', corps));
+}
+
+async function servirRepasPresidentiel() {
+  if (repasPresidentielEnCours) return;
+  repasPresidentielEnCours = true;
+  const invite = document.getElementById('repas-pres-invite')?.value || null;
+  const cle = 'hg-repas-pres:' + (state.char?.name || '') + ':' + new Date().toISOString().slice(0, 10);
+  try {
+    let requete = sessionStorage.getItem(cle);
+    if (!requete) { requete = crypto.randomUUID(); sessionStorage.setItem(cle, requete); }
+    const v = await sbRpcVerdict('sovarka_repas_presidentiel', { p_requete: requete, p_invite: invite }).catch(() => null);
+    if (v && !v.transport && v.ok !== true) sessionStorage.removeItem(cle);
+    if (!v || v.ok !== true) {
+      showToast('Repas présidentiel', REPAS_PRES_MOTIFS[v?.raison] || 'Le serveur n’a pas confirmé le repas.', false);
+      return;
+    }
+    if (typeof v.hp === 'number') state.hp = v.hp;
+    if (typeof v.moral === 'number') state.moral = v.moral;
+    if (v.inf != null && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('inf', v.inf);
+    if (typeof updateHeader === 'function') updateHeader();
+    if (typeof updateUI === 'function') updateUI();
+    document.getElementById('modal-postes')?.classList.remove('open');
+    showToast('Repas présidentiel', v.invite ? 'Servi pour vous et ' + v.invite + '.' : 'Servi.', true);
+  } finally { repasPresidentielEnCours = false; }
+}

@@ -6677,7 +6677,7 @@ async function reconcilierPosteElu(posteId, city) {
     ? Array.isArray(cycleReconciliation?.elus) && cycleReconciliation.elus.includes(moi)
     : cycleReconciliation?.eluId === moi;
   const jOccupeCePoste = posteActuel?.id === posteId && (posteActuel?.city || null) === (city || null);
-  const nomPoste = NOMS_POSTES_ELUS[posteId] || posteId;
+  const nomPoste = intitulePoste(posteId, state.country, NOMS_POSTES_ELUS[posteId] || posteId);
   const villeNom = city ? (WORLD[state.country]?.[city]?.name || city) : null;
 
   if (jeSuisElu && !jOccupeCePoste) {
