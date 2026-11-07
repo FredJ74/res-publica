@@ -61,6 +61,8 @@ on:
       - 'outils/bancs/banc-i18n-petit-accueil.cjs'
       - 'i18n/jeremy-scenes-resources.js'
       - 'outils/bancs/banc-i18n-premieres-scenes-jeremy.cjs'
+      - 'i18n/guard-welcome-resources.js'
+      - 'outils/bancs/banc-i18n-garde-accueil.cjs'
       - 'outils/audits/audit-i18n-editorial.cjs'
       - 'outils/bancs/banc-i18n-editorial.cjs'
       - 'api/_traduction.js'
@@ -166,6 +168,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-petit-accueil.cjs
       - name: Deux premières scènes Jérémy localisées, transitions préservées
         run: node --test outils/bancs/banc-i18n-premieres-scenes-jeremy.cjs
+      - name: Garde présidentiel — premier dialogue de la quête en neuf langues
+        run: node --test outils/bancs/banc-i18n-garde-accueil.cjs
       - name: Audit de parité des variables et langues — 12 catalogues
         run: |
           node --test outils/bancs/banc-i18n-editorial.cjs
@@ -234,6 +238,7 @@ jobs:
           node --check i18n/pnj-status-resources.js
           node --check i18n/petit-accueil-resources.js
           node --check i18n/jeremy-scenes-resources.js
+          node --check i18n/guard-welcome-resources.js
           node --check plateau-quete-accueil.js
           node --check plateau-pnj.js
           node --check i18n/toast-resources.js
