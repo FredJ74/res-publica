@@ -30,7 +30,7 @@ test('tutoriel initial disponible pour huit langues + repli FR',()=>{
 });
 
 function render(lang,unsafe=false,section='tuto'){
- const el={innerHTML:''};
+ const el={innerHTML:'',attrs:{},setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
  const window={
   RPPlateauI18n:{language:()=>lang},
   i18next:{t(key,opts){
@@ -78,4 +78,21 @@ test('introduction du jeu disponible et rendue dans les huit langues',()=>{
   assert.ok(!html.includes('FR TEXTE INTRO'));
  }
  assert.ok(render('fr',false,'intro').includes('FR TEXTE INTRO'));
+});
+
+
+test('l’arabe applique le RTL au seul corps du guide sans déplacer les commandes',()=>{
+ const src=fs.readFileSync(path.join(root,'plateau-personnage.js'),'utf8');
+ const start=src.indexOf('function renderRulesContent(section) {');
+ const end=src.indexOf('\n}\n',start);
+ const code=src.slice(start,end+2);
+ for(const [locale,direction] of [['ar','rtl'],['en',undefined],['fr',undefined]]){
+  const el={innerHTML:'',attrs:{},setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+  const window={RPPlateauI18n:{language:()=>locale},i18next:{t:(k,opt)=>k.split('.').reduce((v,p)=>v?.[p],win.RP_I18N_RESOURCES[locale]?.translation)??opt.defaultValue}};
+  const document={querySelectorAll:()=>[],getElementById:()=>el};
+  vm.runInNewContext(code+';renderRulesContent("intro")',{window,document,REGLES:{intro:{titre:'FR',contenu:'Texte français'}}});
+  assert.equal(el.attrs.dir,direction,locale);
+  assert.ok(el.innerHTML.length>10);
+ }
+ assert.match(code,/langueGuide==='ar'/);
 });
