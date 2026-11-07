@@ -1759,7 +1759,7 @@ const WORLD = {
               // Un seul PNJ à l'entrée, le portier visible sur l'image (décision de Fred, 06/11/2026 ;
               // nom proposé par Claude, à valider). La voleuse et le magicien de Luthécia sont retirés.
               persons: [
-                {name: 'Ignat Battantov (PNJ)', role: 'Portier des galeries', rel: 'neutral', job: 'portier'}
+                {name: 'Ignat Frolov (PNJ)', role: 'Portier des galeries', rel: 'neutral', job: 'portier'}
               ]
             },
             vitrine_principale: {
@@ -1822,8 +1822,8 @@ const WORLD = {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_reception.webp',
               excludeOrders: ['choisir_suite'],
               persons: [
-                {name: 'Vera Clefova (PNJ)', role: 'Réceptionniste', rel: 'neutral', job: 'hotelier'},
-                {name: 'Ivan Valisov (PNJ)', role: 'Bagagiste', rel: 'neutral', job: 'bagagiste'}
+                {name: 'Vera Pavlova (PNJ)', role: 'Réceptionniste', rel: 'neutral', job: 'hotelier'},
+                {name: 'Ivan Semionov (PNJ)', role: 'Bagagiste', rel: 'neutral', job: 'bagagiste'}
               ]
             },
             // Bar et restaurant gardes : la capitale doit etre opulente (Fred, 06/11/2026). Bar : un
@@ -1832,9 +1832,9 @@ const WORLD = {
             bar: {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_bar.webp',
               persons: [
-                {name: 'Arkadi Shakerov (PNJ)', role: 'Barman', rel: 'neutral', job: 'barman'},
-                {name: 'Gleb Tchoutchotov (PNJ)', role: 'Habitué du bar', rel: 'neutral', job: 'espion'},
-                {name: 'Anouchka Velourova (PNJ)', role: 'Escort', rel: 'neutral', job: 'escort', genre: 'F'}
+                {name: 'Arkadi Melnikov (PNJ)', role: 'Barman', rel: 'neutral', job: 'barman'},
+                {name: 'Gleb Lazarev (PNJ)', role: 'Habitué du bar', rel: 'neutral', job: 'espion'},
+                {name: 'Anouchka Rodionova (PNJ)', role: 'Escort', rel: 'neutral', job: 'escort', genre: 'F'}
               ]
             },
             restaurant: {
@@ -1846,7 +1846,7 @@ const WORLD = {
                 {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:100, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 vin du restaurant. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si le restaurant n\'a pas de quoi servir.'}
               ],
               persons: [
-                {name: 'Pavel Plateaukine (PNJ)', role: 'Serveur', rel: 'neutral', job: 'serveur'}
+                {name: 'Pavel Denissov (PNJ)', role: 'Serveur', rel: 'neutral', job: 'serveur'}
               ]
             },
             chambres: {
@@ -2135,16 +2135,16 @@ const WORLD = {
           imagesAVenir: true,
           desc: "La caserne centrale de l'Armée populaire de Sovarka, en plein cœur de Novomirsk. Deux portails, des sentinelles qui ne cillent pas, et l'étoile rouge repeinte chaque printemps.",
           roomOverrides: {
-            corps_garde: { persons: [{name: 'Adjudant Piotr Galonov (PNJ)', role: 'PNJ - Aide de camp', rel: 'friendly', job: 'aide_de_camp', profilId: 'piotr_galonov'}] },
-            infirmerie: { persons: [{name: 'Infirmière Olga Pansementova (PNJ)', role: 'PNJ - Infirmière militaire', rel: 'neutral', job: 'infirmier_mil', profilId: 'olga_pansementova'}] },
-            salle_commandement: { persons: [{name: 'Commandant Igor Bataillov', role: 'PNJ - Commandant de la Caserne', rel: 'neutral',
+            corps_garde: { persons: [{name: 'Adjudant Piotr Antipov (PNJ)', role: 'PNJ - Aide de camp', rel: 'friendly', job: 'aide_de_camp', profilId: 'piotr_antipov'}] },
+            infirmerie: { persons: [{name: 'Infirmière Olga Komarova (PNJ)', role: 'PNJ - Infirmière militaire', rel: 'neutral', job: 'infirmier_mil', profilId: 'olga_komarova'}] },
+            salle_commandement: { persons: [{name: 'Commandant Igor Saveliev', role: 'PNJ - Commandant de la Caserne', rel: 'neutral',
               job: 'commandant', resteApresPourvoi: true,
               roleSiPnjTitulaire: 'PNJ - Commandant de la Caserne',
               roleSiPjTitulaire:  'PNJ - Commandant adjoint'}] },
             refectoire: { persons: [{name: 'Caporal Vassili Kachaev', role: 'Cuisinier de compagnie', rel: 'friendly', job: 'cuistot_mil', profilId: 'vassili_kachaev'}] },
             quartier_troupes: { persons: [
-              {name: 'Caporal Dimitri Corvéev (PNJ)', role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'},
-              {name: 'Soldat Sacha Gamelline (PNJ)',  role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'}] }
+              {name: 'Caporal Dimitri Loguinov (PNJ)', role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'},
+              {name: 'Soldat Sacha Iline (PNJ)',  role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'}] }
           }
         },
         // Usine pharmaceutique Pharmanov (vue 18), decision de Fred du 06/11/2026 : l'usine
@@ -2165,7 +2165,7 @@ const WORLD = {
               {fn:'produire_medicaments', label:'Produire des médicaments', pa:1, cost:0, type:'legal', icon:'ti-vaccine', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 18 PSK. Consomme 5 plantes du stock de matières de l\'usine, produit 10 médicaments.'},
               {fn:'produire_desinfectant', label:'Produire du désinfectant', pa:1, cost:0, type:'legal', icon:'ti-droplet', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 alcool du stock de matières de l\'usine, produit 10 désinfectants.'}
             ] },
-            bureau_direction: { persons: [{name: 'Boris Tabletkine (PNJ)', role: "Directeur de l'usine Pharmanov", rel: 'neutral', job: 'directeur_pharma'}] }
+            bureau_direction: { persons: [{name: 'Boris Kovaliov (PNJ)', role: "Directeur de l'usine Pharmanov", rel: 'neutral', job: 'directeur_pharma'}] }
           }
         },
         // Musee de la Republique de Sovarka (vue 18), decision de Fred du 06/11/2026 : copie du
@@ -4509,11 +4509,11 @@ const BUILDINGS = {
         name: "Hall d'accueil",
         imageUrl: "images/Sovarka/Novomirsk/Novo_musee_municipal_hall.webp",
         imageBg: "linear-gradient(135deg,#1c160c,#241c10)",
-        desc: "Le hall d'accueil du musée. Sol en granit du Parti, maquette du premier tracteur de la ville, registre des visiteurs à remplir en trois exemplaires. Irina Guichetova tient l'accueil ; le Docteur Lev Patrimonov, conservateur, veille sur les collections.",
+        desc: "Le hall d'accueil du musée. Sol en granit du Parti, maquette du premier tracteur de la ville, registre des visiteurs à remplir en trois exemplaires. Irina Filippova tient l'accueil ; le Docteur Lev Vinogradov, conservateur, veille sur les collections.",
         persons: [
-          {name:'Irina Guichetova (PNJ)', role:'PNJ - Accueil du musée', rel:'neutral', job:'hotesse', photoUrl:'images/Sovarka/Novomirsk/Novo_irina_guichetova_portrait.webp'},
-          {name:'Docteur Lev Patrimonov (PNJ)', role:'PNJ - Conservateur du musée', rel:'neutral', job:'conservateur', photoUrl:'images/Sovarka/Novomirsk/Novo_lev_patrimonov_portrait.webp'},
-          {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'}
+          {name:'Irina Filippova (PNJ)', role:'PNJ - Accueil du musée', rel:'neutral', job:'hotesse', photoUrl:'images/Sovarka/Novomirsk/Novo_irina_guichetova_portrait.webp'},
+          {name:'Docteur Lev Vinogradov (PNJ)', role:'PNJ - Conservateur du musée', rel:'neutral', job:'conservateur', photoUrl:'images/Sovarka/Novomirsk/Novo_lev_patrimonov_portrait.webp'},
+          {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'}
         ],
         orders: []
       },
@@ -4521,7 +4521,7 @@ const BUILDINGS = {
         name: "Salle des Grands Criminels Novomirskois",
         imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
         desc: "Portraits et dossiers des ennemis du peuple les plus tristement célèbres de Novomirsk. Les dossiers sont complets ; les aveux aussi.",
-        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
         ]
@@ -4530,7 +4530,7 @@ const BUILDINGS = {
         name: "Salle des Présidents du Soviet municipal",
         imageBg: "linear-gradient(135deg,#14120c,#1e1a10)",
         desc: "Les maires de Novomirsk, que l'on appelle ici présidents du Soviet municipal. Certains portraits ont été repeints, d'autres retirés puis raccrochés.",
-        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
         ]
@@ -4539,7 +4539,7 @@ const BUILDINGS = {
         name: "Salle des Héros du Peuple",
         imageBg: "linear-gradient(135deg,#10141a,#161c24)",
         desc: "Les figures les plus aimées de la ville, toutes générations confondues — du moins celles dont l'amour a été officiellement constaté.",
-        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
         ]
@@ -4548,7 +4548,7 @@ const BUILDINGS = {
         name: "Salle des Grands Bâtisseurs de la Production",
         imageBg: "linear-gradient(135deg,#121410,#1a1e16)",
         desc: "Directeurs de kombinat, stakhanovistes et inventeurs : ceux qui ont dépassé le Plan, ou l'ont fait croire.",
-        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
         ]
@@ -4557,7 +4557,7 @@ const BUILDINGS = {
         name: "Salle des Organisations Novomirskoises",
         imageBg: "linear-gradient(135deg,#140c14,#1e141e)",
         desc: "Le Parti, les syndicats, les cultes et les clubs de la ville, à travers leurs plus grands représentants.",
-        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
         ]
@@ -4566,14 +4566,14 @@ const BUILDINGS = {
         name: "Salle des Plumes Novomirskoises",
         imageBg: "linear-gradient(135deg,#181018,#221824)",
         desc: "Les plus belles diatribes, lettres ouvertes et autocritiques qui ont marqué la vie forumiale de Novomirsk. Contenu à venir.",
-        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
         orders: []
       },
       salle_honneur_militaire: {
         name: "Salle d'Honneur Militaire",
         imageBg: "linear-gradient(135deg,#141410,#201f18)",
         desc: "Les faits d'armes et les soldats les plus décorés originaires de Novomirsk. Il y a beaucoup de médailles, et presque autant de soldats.",
-        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
         ]
@@ -4582,7 +4582,7 @@ const BUILDINGS = {
         name: "Salle des Unions Célèbres",
         imageBg: "linear-gradient(135deg,#1c1414,#281c1c)",
         desc: "Les mariages et alliances les plus marquants de l'histoire de la ville, certains autorisés par le Comité.",
-        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
         ]
@@ -4591,7 +4591,7 @@ const BUILDINGS = {
         name: "Salle des Scandales et Affaires",
         imageBg: "linear-gradient(135deg,#100c10,#181018)",
         desc: "Les grandes crises politiques et affaires qui ont secoué Novomirsk. La plupart n'ont officiellement jamais eu lieu.",
-        persons: [ {name:'Vétéran Ilia Médailline (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
         ]
@@ -6822,9 +6822,9 @@ const BUILDINGS = {
       hall_pavillon: {
         name: "Hall du Pavillon",
         imageBg: "linear-gradient(135deg,#1a0d10,#241218)",
-        desc: "Marbre rouge, lustres de cristal et tapis épais. Arkadi Discretov, le maître d'hôtel, accueille les résidents et ne retient jamais un visage — officiellement.",
+        desc: "Marbre rouge, lustres de cristal et tapis épais. Arkadi Belov, le maître d'hôtel, accueille les résidents et ne retient jamais un visage — officiellement.",
         persons: [
-          {name:'Arkadi Discretov (PNJ)', role:'Maître d\'hôtel', rel:'neutral', job:'hotesse'}
+          {name:'Arkadi Belov (PNJ)', role:'Maître d\'hôtel', rel:'neutral', job:'hotesse'}
         ],
         orders: []
       },
@@ -6838,9 +6838,9 @@ const BUILDINGS = {
       bar: {
         name: "Bar",
         imageBg: "linear-gradient(135deg,#120d05,#1e1508)",
-        desc: "Le bar du Pavillon. Petits fours, vodka glacée et conversations à voix basse : Lena Glaçonova sert comme un traiteur de réception, et entend tout.",
+        desc: "Le bar du Pavillon. Petits fours, vodka glacée et conversations à voix basse : Lena Abramova sert comme un traiteur de réception, et entend tout.",
         persons: [
-          {name:'Lena Glaçonova (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur'}
+          {name:'Lena Abramova (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur'}
         ],
         orders: [
           {fn:'ecouter_rumeurs', label:'Écouter la serveuse', i18nKey:'variant.rumours_waitress', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:90, desc:'La serveuse entend tout. Révèle une rumeur vraie ou générée selon le contexte.', sourceOverride:'Lena'},
@@ -7001,7 +7001,7 @@ const BUILDINGS = {
   // SALON DE COIFFURE DE NOVOMIRSK (vue 12), decisions de Fred du 06/11/2026
   // (GAME-DESIGN-SALON-COIFFURE.md) : commerce de services ; la coupe donne +5 POP et CHA +1
   // jusqu'a minuit sans cumul, une coupe tous les 3 jours (serveur : salon_coupe, migration
-  // 20261106001000). Tenu par un PNJ (Ludmila Permanentova, nom valide par Fred), local
+  // 20261106001000). Tenu par un PNJ (Ludmila Egorova, nom valide par Fred), local
   // rachetable par un PJ. Coupe a 20 PSK (Fred, 06/11, migration 20261106002000).
   'salon-coiffure-novomirsk': {
     name: "Salon de coiffure de Novomirsk",
@@ -7015,7 +7015,7 @@ const BUILDINGS = {
         name: "Salon",
         imageBg: "linear-gradient(135deg,#161219,#201a24)",
         desc: "Trois fauteuils, un grand miroir piqué et l'odeur de la laque. La radio diffuse le bulletin du Parti entre deux valses.",
-        persons: [{name:'Ludmila Permanentova (PNJ)', role:'Coiffeuse', rel:'neutral', job:'coiffeuse'}],
+        persons: [{name:'Ludmila Egorova (PNJ)', role:'Coiffeuse', rel:'neutral', job:'coiffeuse'}],
         orders: [
           {fn:'salon_coupe', label:'Se faire couper les cheveux', pa:0, cost:0, type:'legal', icon:'ti-scissors', successRate:100, desc:"+5 popularité et +1 charisme jusqu'à minuit. Une coupe tous les 3 jours."}
         ]
@@ -10087,8 +10087,8 @@ const PNJ_SOVARKA_GENERIQUES = {
 };
 const PNJ_SOVARKA = {
   capitale: Object.assign({}, PNJ_SOVARKA_GENERIQUES, {
-    'Gérard Tamponneau (PNJ)': 'Anatoli Protokolov (PNJ)',
-    'Huguette Papier (PNJ)': 'Nadejda Paperassova (PNJ)',
+    'Gérard Tamponneau (PNJ)': 'Anatoli Sokolov (PNJ)',
+    'Huguette Papier (PNJ)': 'Nadejda Lebedeva (PNJ)',
     'Gaston Sauceblanche (PNJ)': 'Grigori Smetanine (PNJ)',
     'Régis Gondasse (PNJ)': 'Vsevolod Vodkaïev (PNJ)',
     'Yvette Gratinée (PNJ)': 'Svetlana Blinova (PNJ)',
@@ -10096,87 +10096,87 @@ const PNJ_SOVARKA = {
     'Marie Leblanc (PNJ)': ['Macha Scoopova (PNJ)', 'Journaliste - La Pravdovka'],
     'Marie Leblanc': ['Macha Scoopova', 'Journaliste d\'investigation'],
     'Marco (Barman)': 'Kostia (Barman)',
-    'Marc Hantile': 'Leonid Combinov',
-    'Secretaire Dupuis': 'Secrétaire Tamara Dossierova',
-    'Éric Stricted (PNJ)': ['Oleg Strictov (PNJ)', 'PNJ - Chef de cabinet du Président du Conseil du Peuple'],
+    'Marc Hantile': 'Leonid Orlov',
+    'Secretaire Dupuis': 'Secrétaire Tamara Volkova',
+    'Éric Stricted (PNJ)': ['Oleg Morozov (PNJ)', 'PNJ - Chef de cabinet du Président du Conseil du Peuple'],
     'Corinne Tite-Déclaz (PNJ)': ['Raïssa Communiqueva (PNJ)', 'PNJ - Porte-parole du Conseil du Peuple'],
-    'Archiviste Legrand (PNJ)': 'Archiviste Foma Classeurov (PNJ)',
-    'Yvan Danltat (PNJ)': ['Gleb Kontrolov (PNJ)', 'PNJ - Ministre de la Sécurité du Peuple'],
+    'Archiviste Legrand (PNJ)': 'Archiviste Foma Beliaïev (PNJ)',
+    'Yvan Danltat (PNJ)': ['Gleb Nikitine (PNJ)', 'PNJ - Ministre de la Sécurité du Peuple'],
     'Alain Théret (PNJ)': ['Stanislav Roublov (PNJ)', "PNJ - Ministre de l'Économie collective"],
-    'Mathilde Garde (PNJ)': ['Galina Verdiktova (PNJ)', 'PNJ - Ministre de la Justice prolétarienne'],
+    'Mathilde Garde (PNJ)': ['Galina Sergueïeva (PNJ)', 'PNJ - Ministre de la Justice prolétarienne'],
     'Martial Bouterin (PNJ)': ['Rodion Tankov (PNJ)', 'PNJ - Ministre de la Défense de la Patrie'],
     'Marie-Eve Beaulieu (PNJ)': ['Zinaïda Propagandova (PNJ)', 'PNJ - Ministre de la Vérité officielle'],
-    'Jean-Jacques Carlin (PNJ)': ['Evgueni Diplomatov (PNJ)', "PNJ - Ministre de l'Amitié entre les Peuples"],
-    'Renée Toitout (PNJ)': 'Babouchka Serpillova (PNJ)',
+    'Jean-Jacques Carlin (PNJ)': ['Evgueni Gromov (PNJ)', "PNJ - Ministre de l'Amitié entre les Peuples"],
+    'Renée Toitout (PNJ)': 'Babouchka Kouzmina (PNJ)',
     'Lobbyiste Perrin': 'Lobbyiste Pavel Pistonov',
-    'Journaliste Blanc': 'Journaliste Iouri Blankov',
-    'Greffier Petit': 'Greffier Semion Paraphov',
+    'Journaliste Blanc': 'Journaliste Iouri Sorokine',
+    'Greffier Petit': 'Greffier Semion Golovine',
     'Jeanine Dubois (PNJ)': 'Antonina Doubrova (PNJ)',
-    'Louis Chevillard (PNJ)': 'Matveï Matraquine (PNJ)',
-    'Noël Chauchay (PNJ)': 'Nikolaï Tracteurov (PNJ)',
-    'Gardien Dubois': 'Gardien Stepan Verrouïev',
-    'Tristan Cabane (PNJ)': 'Timofeï Cachotov (PNJ)',
-    'Raoul Toufaud (PNJ)': 'Vassili Ordonov (PNJ)',
-    'Gardien de la Paix (PNJ)': 'Sergent Matrakov (PNJ)',
-    'Brigitte Menottes (PNJ)': 'Bronislava Menottova (PNJ)',
+    'Louis Chevillard (PNJ)': 'Matveï Tcherkassov (PNJ)',
+    'Noël Chauchay (PNJ)': 'Nikolaï Zakharov (PNJ)',
+    'Gardien Dubois': 'Gardien Stepan Kalinine',
+    'Tristan Cabane (PNJ)': 'Timofeï Fomine (PNJ)',
+    'Raoul Toufaud (PNJ)': 'Vassili Ostrovski (PNJ)',
+    'Gardien de la Paix (PNJ)': 'Sergent Doubinine (PNJ)',
+    'Brigitte Menottes (PNJ)': 'Bronislava Jarova (PNJ)',
     'Romain Castel': 'Rostislav Censurov',
     'Venerable Maitre Duval': 'Vénérable Maître Dimitri Compassov',
-    'Secretaire Municipal Petit': 'Secrétaire municipal Arseni Formoulov',
+    'Secretaire Municipal Petit': 'Secrétaire municipal Arseni Krylov',
     'Le Maire (PNJ)': ['Le Maire (PNJ)', 'Maire de Novomirsk'],
     'Le Maire de Luthecia (PNJ)': 'Le Maire de Novomirsk (PNJ)',
-    'Jean Registre (PNJ)': ['Ivan Registrov (PNJ)', 'Responsable électoral de Novomirsk'],
-    'Christophe Bouquin (PNJ)': 'Kirill Bouquinov (PNJ)',
-    'Inspecteur Prosper Tampon (PNJ)': 'Inspecteur Prokhor Tamponov (PNJ)',
-    'Francisca Brel': 'Ksenia Fauchova',
-    'Edgar Simore': 'Arkhip Abracadabrov',
-    'Sabri Coledur': 'Sava Boulonov',
-    'Céd\' Labone': 'Kolia Brumov',
-    'Henrico Stot': 'Genrikh Stoïkov',
-    'Gretta Délieu (PNJ)': 'Inna Rendezvousova (PNJ)',
-    'Moshe Maychan': 'Moïsseï Mechantov',
-    'Harry Cover': 'Garri Kouverov',
-    'Alain Dex (PNJ)': 'Alexeï Indexov (PNJ)',
+    'Jean Registre (PNJ)': ['Ivan Tarassov (PNJ)', 'Responsable électoral de Novomirsk'],
+    'Christophe Bouquin (PNJ)': 'Kirill Poliakov (PNJ)',
+    'Inspecteur Prosper Tampon (PNJ)': 'Inspecteur Prokhor Rybakov (PNJ)',
+    'Francisca Brel': 'Ksenia Makarova',
+    'Edgar Simore': 'Arkhip Voronine',
+    'Sabri Coledur': 'Sava Goussev',
+    'Céd\' Labone': 'Kolia Titov',
+    'Henrico Stot': 'Genrikh Vlassov',
+    'Gretta Délieu (PNJ)': 'Inna Zaïtseva (PNJ)',
+    'Moshe Maychan': 'Moïsseï Kisseliov',
+    'Harry Cover': 'Garri Medvedev',
+    'Alain Dex (PNJ)': 'Alexeï Bogdanov (PNJ)',
     'Claire Delhune (PNJ)': 'Klara Delounova (PNJ)',
     'Notaire Fontenelle (PNJ)': 'Camarade Bâtissov (PNJ)'
   }),
   ville_a: Object.assign({}, PNJ_SOVARKA_GENERIQUES, { // Starovka
-    'Delegue Morel (PNJ)': 'Délégué Batbayar Grevov (PNJ)',
-    'Directeur Fabre (PNJ)': 'Directeur Tsyren Quotaïev (PNJ)',
-    'Francisca Brel': 'Tuya Chaparova',
-    'Edgar Simore': 'Altan Tourdemagov',
-    'Sabri Coledur': 'Bayar Clédouzov',
-    'Céd\' Labone': 'Ganbold Brumaïev',
-    'Henrico Stot': 'Temür Costaudov',
-    'Gretta Délieu (PNJ)': 'Oyuuna Accueilova (PNJ)',
-    'Moshe Maychan': 'Khasar Mechantaïev',
+    'Delegue Morel (PNJ)': 'Délégué Batbayar Dachiev (PNJ)',
+    'Directeur Fabre (PNJ)': 'Directeur Tsyren Badmaïev (PNJ)',
+    'Francisca Brel': 'Tuya Sanjieva',
+    'Edgar Simore': 'Altan Namsaraïev',
+    'Sabri Coledur': 'Bayar Otchirov',
+    'Céd\' Labone': 'Ganbold Garmaïev',
+    'Henrico Stot': 'Temür Dougarov',
+    'Gretta Délieu (PNJ)': 'Oyuuna Tsydenova (PNJ)',
+    'Moshe Maychan': 'Khasar Baljirov',
     'Harry Cover': 'Dorji Filatov'
   }),
   ville_b: Object.assign({}, PNJ_SOVARKA_GENERIQUES, { // Krasnov
-    'Delegue Morel (PNJ)': 'Délégué Prokofi Grevine (PNJ)',
-    'Directeur Fabre (PNJ)': 'Directeur Platon Quotov (PNJ)',
-    'Francisca Brel': 'Varvara Chipova',
-    'Edgar Simore': 'Efim Tourdepassov',
-    'Sabri Coledur': 'Stas Tournevissov',
-    'Céd\' Labone': 'Tolia Herbov',
-    'Henrico Stot': 'Gavriil Gourdinov',
-    'Gretta Délieu (PNJ)': 'Darina Bienvenouchka (PNJ)',
-    'Moshe Maychan': 'Makar Sicarov',
-    'Harry Cover': 'Afanassi Loupine'
+    'Delegue Morel (PNJ)': 'Délégué Prokofi Panov (PNJ)',
+    'Directeur Fabre (PNJ)': 'Directeur Platon Iermakov (PNJ)',
+    'Francisca Brel': 'Varvara Kozlova',
+    'Edgar Simore': 'Efim Iakovlev',
+    'Sabri Coledur': 'Stas Mironov',
+    'Céd\' Labone': 'Tolia Souvorov',
+    'Henrico Stot': 'Gavriil Lavrov',
+    'Gretta Délieu (PNJ)': 'Darina Korneva (PNJ)',
+    'Moshe Maychan': 'Makar Tchernov',
+    'Harry Cover': 'Afanassi Rogov'
   }),
   // Ancienne zone de caserne hors ville : memes noms que la caserne centrale de Novomirsk (05/11).
   caserne: Object.assign({}, PNJ_SOVARKA_GENERIQUES, {
-    'Adjudant Gaspard Ferrière (PNJ)': ['Adjudant Piotr Galonov (PNJ)', null, 'piotr_galonov'],
-    'Ève Toahémarch (PNJ)': ['Infirmière Olga Pansementova (PNJ)', null, 'olga_pansementova'],
-    'Commandant Tom Hawak': ['Commandant Igor Bataillov', null, 'commandant_igor_bataillov'],
+    'Adjudant Gaspard Ferrière (PNJ)': ['Adjudant Piotr Antipov (PNJ)', null, 'piotr_antipov'],
+    'Ève Toahémarch (PNJ)': ['Infirmière Olga Komarova (PNJ)', null, 'olga_komarova'],
+    'Commandant Tom Hawak': ['Commandant Igor Saveliev', null, 'commandant_igor_saveliev'],
     'Caporal Alouche': ['Caporal Vassili Kachaev', null, 'vassili_kachaev'],
-    'Caporal Lefebvre (PNJ)': 'Caporal Dimitri Corvéev (PNJ)',
-    'Soldat Nguyen (PNJ)': 'Soldat Sacha Gamelline (PNJ)'
+    'Caporal Lefebvre (PNJ)': 'Caporal Dimitri Loguinov (PNJ)',
+    'Soldat Nguyen (PNJ)': 'Soldat Sacha Iline (PNJ)'
   }),
   qhs: Object.assign({}, PNJ_SOVARKA_GENERIQUES, {
     'Dominique Cruel (PNJ)': 'Directeur Kazimir Sévérov (PNJ)',
-    'Philippe Cognedur (PNJ)': 'Gardien-chef Filipp Tapedurov (PNJ)',
+    'Philippe Cognedur (PNJ)': 'Gardien-chef Filipp Grichine (PNJ)',
     'Jean Terre (PNJ)': 'Zakhar Zemlianov (PNJ)',
-    'Patrick Coule (PNJ)': 'Pavel Coulov (PNJ)'
+    'Patrick Coule (PNJ)': 'Pavel Kotov (PNJ)'
   })
 };
 function slugPnjSovarka(nom) {
@@ -10232,16 +10232,16 @@ function slugPnjSovarka(nom) {
 {
   const salles = WORLD.soviet.capitale.buildingContext;
   const photos = [
-    ['commissariat', 'accueil_police', 'Sergent Matrakov (PNJ)', 'Novo_sergent_matrakov_portrait.webp'],
-    ['commissariat', 'bureau_commissaire', 'Vassili Ordonov (PNJ)', 'Novo_vassili_ordonov_portrait.webp'],
+    ['commissariat', 'accueil_police', 'Sergent Doubinine (PNJ)', 'Novo_sergent_matrakov_portrait.webp'],
+    ['commissariat', 'bureau_commissaire', 'Vassili Ostrovski (PNJ)', 'Novo_vassili_ordonov_portrait.webp'],
     ['office-notarial', 'accueil_notaire', 'Klara Delounova (PNJ)', 'Novo_klara_delounova_portrait.webp'],
-    ['hotel-republica', 'accueil', 'Vera Clefova (PNJ)', 'Novo_vera_clefova_portrait.webp'],
-    ['hotel-republica', 'accueil', 'Ivan Valisov (PNJ)', 'Novo_ivan_valisov_portrait.webp'],
-    ['hotel-republica', 'bar', 'Arkadi Shakerov (PNJ)', 'Novo_arkadi_shakerov_portrait.webp'],
-    ['hotel-republica', 'bar', 'Gleb Tchoutchotov (PNJ)', 'Novo_gleb_tchoutchotov_portrait.webp'],
-    ['hotel-republica', 'bar', 'Anouchka Velourova (PNJ)', 'Novo_anouchka_velourova_portrait.webp'],
-    ['hotel-republica', 'restaurant', 'Pavel Plateaukine (PNJ)', 'Novo_pavel_plateaukine_portrait.webp'],
-    ['centre-commercial', 'hall', 'Ignat Battantov (PNJ)', 'Novo_ignat_battantov_portrait.webp']
+    ['hotel-republica', 'accueil', 'Vera Pavlova (PNJ)', 'Novo_vera_clefova_portrait.webp'],
+    ['hotel-republica', 'accueil', 'Ivan Semionov (PNJ)', 'Novo_ivan_valisov_portrait.webp'],
+    ['hotel-republica', 'bar', 'Arkadi Melnikov (PNJ)', 'Novo_arkadi_shakerov_portrait.webp'],
+    ['hotel-republica', 'bar', 'Gleb Lazarev (PNJ)', 'Novo_gleb_tchoutchotov_portrait.webp'],
+    ['hotel-republica', 'bar', 'Anouchka Rodionova (PNJ)', 'Novo_anouchka_velourova_portrait.webp'],
+    ['hotel-republica', 'restaurant', 'Pavel Denissov (PNJ)', 'Novo_pavel_plateaukine_portrait.webp'],
+    ['centre-commercial', 'hall', 'Ignat Frolov (PNJ)', 'Novo_ignat_battantov_portrait.webp']
   ];
   for (const [batiment, piece, nom, fichier] of photos) {
     const personnes = salles[batiment]?.roomOverrides?.[piece]?.persons || [];
@@ -10269,7 +10269,7 @@ function slugPnjSovarka(nom) {
   entrepot.name = "Entrepôt Logistique de Starovka";
   entrepot.desc = "Starovka Logistika, au bout du quai. Pétrole, charbon et bois du Grand Nord y attendent le train ou le brise-glace.";
   for (const piece of Object.values(entrepot.rooms)) delete piece.imageUrl;
-  entrepot.rooms.bureau_direction.persons = [{name:'Batzorig Palettov (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}];
+  entrepot.rooms.bureau_direction.persons = [{name:'Batzorig Dorjiev (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}];
   BUILDINGS['entrepot-logistique-starovka'] = entrepot;
 
   const psm = BUILDINGS['port-sainte-marie'].rooms;
@@ -10285,7 +10285,7 @@ function slugPnjSovarka(nom) {
         name: "Quai Principal",
         imageBg: "linear-gradient(135deg,#0b1218,#13202b)",
         desc: "Le quai battu par le vent polaire. Les grues chargent le pétrole et le bois du Grand Nord vers l'étranger.",
-        persons: [{name:'Chef de quai Ganbaatar Amarrov (PNJ)', role:'Chef de quai', rel:'neutral', job:'agent_portuaire'}],
+        persons: [{name:'Chef de quai Ganbaatar Tsybikov (PNJ)', role:'Chef de quai', rel:'neutral', job:'agent_portuaire'}],
         orders: []
       },
       entrepot: {
@@ -10299,7 +10299,7 @@ function slugPnjSovarka(nom) {
         name: psm.douanes.name,
         imageBg: "linear-gradient(135deg,#120f12,#1c171c)",
         desc: "Le poste de douane du port. Le tampon est lourd, le formulaire en trois exemplaires.",
-        persons: [{name:'Douanier Sükhbaatar Tamponaïev (PNJ)', role:'Douanier du port', rel:'neutral', job:'agent_portuaire'}],
+        persons: [{name:'Douanier Sükhbaatar Baïartouïev (PNJ)', role:'Douanier du port', rel:'neutral', job:'agent_portuaire'}],
         orders: []
       }
     }

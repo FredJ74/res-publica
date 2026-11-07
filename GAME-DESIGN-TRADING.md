@@ -76,13 +76,13 @@ Implémentation : migration `20261105030000_entrepot_krasnov_trading_internation
 
 24. Demande de Fred : **les trois villes de Sovarka au trading** de matières premières, et **le port industriel en service** pour exporter.
 - **Novomirsk** : l'Entrepôt Logistique (vue 8, directeur Boris Stockov) quitte le « Bientôt disponible ».
-- **Starovka** : nouvel Entrepôt Logistique, copie de Krasnov, directeur PNJ **Batzorig Palettov**. On y entre depuis la rue du port industriel.
+- **Starovka** : nouvel Entrepôt Logistique, copie de Krasnov, directeur PNJ **Batzorig Dorjiev**. On y entre depuis la rue du port industriel.
 - **Stocks de départ proposés par Claude, à relire par Fred** : Novomirsk industriel (métal 300, minerai 400, charbon 400, textile 250, bois 200) ; Starovka Grand Nord (pétrole 600, charbon 300, bois 500, poisson 300, viande 200). Caisse de 10 000 chacun, comme Krasnov.
 - **Port industriel de Starovka** (`port-starovka`) en service, entrée depuis la rue du port industriel. Pièces :
   - Quai principal ;
   - Entrepôts de fret, avec les mêmes ordres qu'à PSM (expédier une caisse, réceptionner, marchandises non réclamées) ;
   - Douanes.
-  Pas de criée, de box, de syndicat des dockers ni d'administration portuaire : ces services sont propres à PSM. PNJ : Chef de quai Ganbaatar Amarrov, Douanier Sükhbaatar Tamponaïev (noms à relire).
+  Pas de criée, de box, de syndicat des dockers ni d'administration portuaire : ces services sont propres à PSM. PNJ : Chef de quai Ganbaatar Tsybikov, Douanier Sükhbaatar Baïartouïev (noms à relire).
 - Ce qui marche désormais :
   - Sovarka reçoit les achats internationaux (dédouanement à Starovka) et les caisses expédiées depuis l'étranger ;
   - un PJ de Sovarka expédie des caisses depuis Starovka ;

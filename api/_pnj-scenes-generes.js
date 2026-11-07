@@ -4225,7 +4225,7 @@ export const SCENES_PNJ = {
     "batiment": "Palais du Parti",
     "piece": "Hall d'honneur",
     "personnes": [
-      "Anatoli Protokolov",
+      "Anatoli Sokolov",
       "Garde du Peuple"
     ]
   },
@@ -4236,7 +4236,7 @@ export const SCENES_PNJ = {
     "piece": "Bureau du President",
     "personnes": [
       "Le Président",
-      "Nadejda Paperassova"
+      "Nadejda Lebedeva"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-presidentiel\",\"salle_presse_elysee\"]": {
@@ -4254,7 +4254,7 @@ export const SCENES_PNJ = {
     "batiment": "Palais du Parti",
     "piece": "Salle de Reception",
     "personnes": [
-      "Anatoli Protokolov"
+      "Anatoli Sokolov"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-presidentiel\",\"appartements_president\"]": {
@@ -4270,8 +4270,8 @@ export const SCENES_PNJ = {
     "batiment": "Grand Hôtel de Sovarka",
     "piece": "Accueil",
     "personnes": [
-      "Vera Clefova",
-      "Ivan Valisov"
+      "Vera Pavlova",
+      "Ivan Semionov"
     ]
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"restaurant\"]": {
@@ -4280,7 +4280,7 @@ export const SCENES_PNJ = {
     "batiment": "Grand Hôtel de Sovarka",
     "piece": "Salle du Restaurant",
     "personnes": [
-      "Pavel Plateaukine"
+      "Pavel Denissov"
     ]
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"bar\"]": {
@@ -4289,9 +4289,9 @@ export const SCENES_PNJ = {
     "batiment": "Grand Hôtel de Sovarka",
     "piece": "Bar",
     "personnes": [
-      "Arkadi Shakerov",
-      "Gleb Tchoutchotov",
-      "Anouchka Velourova"
+      "Arkadi Melnikov",
+      "Gleb Lazarev",
+      "Anouchka Rodionova"
     ]
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"chambres\"]": {
@@ -4322,7 +4322,7 @@ export const SCENES_PNJ = {
     "piece": "Hall d'entree",
     "personnes": [
       "Garde du Peuple",
-      "Secrétaire Tamara Dossierova"
+      "Secrétaire Tamara Volkova"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureaux\"]": {
@@ -4331,7 +4331,7 @@ export const SCENES_PNJ = {
     "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Bureau du Président du Conseil du Peuple",
     "personnes": [
-      "Oleg Strictov"
+      "Oleg Morozov"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"salle_conseil\"]": {
@@ -4357,7 +4357,7 @@ export const SCENES_PNJ = {
     "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Archives Gouvernementales",
     "personnes": [
-      "Archiviste Foma Classeurov"
+      "Archiviste Foma Beliaïev"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_int\"]": {
@@ -4366,7 +4366,7 @@ export const SCENES_PNJ = {
     "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Bureau - Ministre de la Sécurité du Peuple",
     "personnes": [
-      "Gleb Kontrolov"
+      "Gleb Nikitine"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_fin\"]": {
@@ -4384,7 +4384,7 @@ export const SCENES_PNJ = {
     "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Bureau - Ministre de la Justice prolétarienne",
     "personnes": [
-      "Galina Verdiktova"
+      "Galina Sergueïeva"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_def\"]": {
@@ -4411,7 +4411,7 @@ export const SCENES_PNJ = {
     "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Bureau - Ministre de l'Amitié entre les Peuples",
     "personnes": [
-      "Evgueni Diplomatov"
+      "Evgueni Gromov"
     ]
   },
   "[\"soviet\",\"capitale\",\"assemblee\",\"accueil_assemblee\"]": {
@@ -4422,7 +4422,7 @@ export const SCENES_PNJ = {
     "personnes": [
       "Garde du Peuple",
       "Hotesse Accueil",
-      "Babouchka Serpillova"
+      "Babouchka Kouzmina"
     ]
   },
   "[\"soviet\",\"capitale\",\"assemblee\",\"hemicycle\"]": {
@@ -4439,7 +4439,7 @@ export const SCENES_PNJ = {
     "piece": "Couloirs",
     "personnes": [
       "Lobbyiste Pavel Pistonov",
-      "Journaliste Iouri Blankov"
+      "Journaliste Iouri Sorokine"
     ]
   },
   "[\"soviet\",\"capitale\",\"assemblee\",\"salle_archives_assemblee\"]": {
@@ -4474,7 +4474,7 @@ export const SCENES_PNJ = {
     "batiment": "Tribunal Populaire",
     "piece": "Greffe",
     "personnes": [
-      "Greffier Semion Paraphov"
+      "Greffier Semion Golovine"
     ]
   },
   "[\"soviet\",\"capitale\",\"banque-nationale\",\"accueil_banque\"]": {
@@ -4597,8 +4597,8 @@ export const SCENES_PNJ = {
     "piece": "EHPAD — Résidence Les Tilleuls",
     "personnes": [
       "Antonina Doubrova",
-      "Matveï Matraquine",
-      "Nikolaï Tracteurov"
+      "Matveï Tcherkassov",
+      "Nikolaï Zakharov"
     ]
   },
   "[\"soviet\",\"capitale\",\"commissariat\",\"accueil_police\"]": {
@@ -4607,7 +4607,7 @@ export const SCENES_PNJ = {
     "batiment": "Commissariat du Peuple",
     "piece": "Accueil",
     "personnes": [
-      "Sergent Matrakov"
+      "Sergent Doubinine"
     ]
   },
   "[\"soviet\",\"capitale\",\"commissariat\",\"prison\"]": {
@@ -4616,8 +4616,8 @@ export const SCENES_PNJ = {
     "batiment": "Commissariat du Peuple",
     "piece": "Cellules de garde a vue",
     "personnes": [
-      "Gardien Stepan Verrouïev",
-      "Timofeï Cachotov"
+      "Gardien Stepan Kalinine",
+      "Timofeï Fomine"
     ]
   },
   "[\"soviet\",\"capitale\",\"commissariat\",\"bureau_commissaire\"]": {
@@ -4626,7 +4626,7 @@ export const SCENES_PNJ = {
     "batiment": "Commissariat du Peuple",
     "piece": "Bureau du Commissaire",
     "personnes": [
-      "Vassili Ordonov"
+      "Vassili Ostrovski"
     ]
   },
   "[\"soviet\",\"capitale\",\"la-tribune\",\"accueil_tribune\"]": {
@@ -4723,7 +4723,7 @@ export const SCENES_PNJ = {
     "batiment": "Soviet Municipal",
     "piece": "Hall d'accueil",
     "personnes": [
-      "Secrétaire municipal Arseni Formoulov",
+      "Secrétaire municipal Arseni Krylov",
       "Le Maire",
       "Hotesse Objets Trouves"
     ]
@@ -4750,7 +4750,7 @@ export const SCENES_PNJ = {
     "batiment": "Soviet Municipal",
     "piece": "Salle des Elections",
     "personnes": [
-      "Ivan Registrov"
+      "Ivan Tarassov"
     ]
   },
   "[\"soviet\",\"capitale\",\"mairie-capitale\",\"salle_archives\"]": {
@@ -4759,7 +4759,7 @@ export const SCENES_PNJ = {
     "batiment": "Soviet Municipal",
     "piece": "Salle des Archives",
     "personnes": [
-      "Kirill Bouquinov"
+      "Kirill Poliakov"
     ]
   },
   "[\"soviet\",\"capitale\",\"kolkhoze-spirituel\",\"grange_sainte\"]": {
@@ -4788,7 +4788,7 @@ export const SCENES_PNJ = {
     "batiment": "Hall Principal",
     "piece": "Hall des Douanes",
     "personnes": [
-      "Inspecteur Prokhor Tamponov"
+      "Inspecteur Prokhor Rybakov"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-multinodal-luthecia\",\"zone_embarquement\"]": {
@@ -4804,7 +4804,7 @@ export const SCENES_PNJ = {
     "batiment": "Galeries de Novomirsk",
     "piece": "Entrée des galeries",
     "personnes": [
-      "Ignat Battantov"
+      "Ignat Frolov"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"vitrine_principale\"]": {
@@ -4841,9 +4841,9 @@ export const SCENES_PNJ = {
     "batiment": "Centre Artisanal",
     "piece": "Travées",
     "personnes": [
-      "Sava Boulonov",
-      "Kolia Brumov",
-      "Genrikh Stoïkov"
+      "Sava Goussev",
+      "Kolia Titov",
+      "Genrikh Vlassov"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-artisanal\",\"echoppe_facade\"]": {
@@ -5099,9 +5099,9 @@ export const SCENES_PNJ = {
     "batiment": "Musée municipal de Novomirsk",
     "piece": "Hall d'accueil",
     "personnes": [
-      "Irina Guichetova",
-      "Docteur Lev Patrimonov",
-      "Vétéran Ilia Médailline"
+      "Irina Filippova",
+      "Docteur Lev Vinogradov",
+      "Vétéran Ilia Krioukov"
     ]
   },
   "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_criminels\"]": {
@@ -5110,7 +5110,7 @@ export const SCENES_PNJ = {
     "batiment": "Musée municipal de Novomirsk",
     "piece": "Salle des Grands Criminels Novomirskois",
     "personnes": [
-      "Vétéran Ilia Médailline"
+      "Vétéran Ilia Krioukov"
     ]
   },
   "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_maires\"]": {
@@ -5119,7 +5119,7 @@ export const SCENES_PNJ = {
     "batiment": "Musée municipal de Novomirsk",
     "piece": "Salle des Présidents du Soviet municipal",
     "personnes": [
-      "Vétéran Ilia Médailline"
+      "Vétéran Ilia Krioukov"
     ]
   },
   "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_personnalites\"]": {
@@ -5128,7 +5128,7 @@ export const SCENES_PNJ = {
     "batiment": "Musée municipal de Novomirsk",
     "piece": "Salle des Héros du Peuple",
     "personnes": [
-      "Vétéran Ilia Médailline"
+      "Vétéran Ilia Krioukov"
     ]
   },
   "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_entrepreneurs\"]": {
@@ -5137,7 +5137,7 @@ export const SCENES_PNJ = {
     "batiment": "Musée municipal de Novomirsk",
     "piece": "Salle des Grands Bâtisseurs de la Production",
     "personnes": [
-      "Vétéran Ilia Médailline"
+      "Vétéran Ilia Krioukov"
     ]
   },
   "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_organisations\"]": {
@@ -5146,7 +5146,7 @@ export const SCENES_PNJ = {
     "batiment": "Musée municipal de Novomirsk",
     "piece": "Salle des Organisations Novomirskoises",
     "personnes": [
-      "Vétéran Ilia Médailline"
+      "Vétéran Ilia Krioukov"
     ]
   },
   "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_plumes\"]": {
@@ -5155,7 +5155,7 @@ export const SCENES_PNJ = {
     "batiment": "Musée municipal de Novomirsk",
     "piece": "Salle des Plumes Novomirskoises",
     "personnes": [
-      "Vétéran Ilia Médailline"
+      "Vétéran Ilia Krioukov"
     ]
   },
   "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_honneur_militaire\"]": {
@@ -5164,7 +5164,7 @@ export const SCENES_PNJ = {
     "batiment": "Musée municipal de Novomirsk",
     "piece": "Salle d'Honneur Militaire",
     "personnes": [
-      "Vétéran Ilia Médailline"
+      "Vétéran Ilia Krioukov"
     ]
   },
   "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_unions\"]": {
@@ -5173,7 +5173,7 @@ export const SCENES_PNJ = {
     "batiment": "Musée municipal de Novomirsk",
     "piece": "Salle des Unions Célèbres",
     "personnes": [
-      "Vétéran Ilia Médailline"
+      "Vétéran Ilia Krioukov"
     ]
   },
   "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_scandales\"]": {
@@ -5182,7 +5182,7 @@ export const SCENES_PNJ = {
     "batiment": "Musée municipal de Novomirsk",
     "piece": "Salle des Scandales et Affaires",
     "personnes": [
-      "Vétéran Ilia Médailline"
+      "Vétéran Ilia Krioukov"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"accueil_ambassades_novomirsk\"]": {
@@ -5274,7 +5274,7 @@ export const SCENES_PNJ = {
     "batiment": "Pavillon des Ambassadeurs",
     "piece": "Hall du Pavillon",
     "personnes": [
-      "Arkadi Discretov"
+      "Arkadi Belov"
     ]
   },
   "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"salle_reception\"]": {
@@ -5290,7 +5290,7 @@ export const SCENES_PNJ = {
     "batiment": "Pavillon des Ambassadeurs",
     "piece": "Bar",
     "personnes": [
-      "Lena Glaçonova"
+      "Lena Abramova"
     ]
   },
   "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"suite_privee\"]": {
@@ -5364,7 +5364,7 @@ export const SCENES_PNJ = {
     "batiment": "Caserne centrale de Novomirsk",
     "piece": "Corps de Garde",
     "personnes": [
-      "Adjudant Piotr Galonov"
+      "Adjudant Piotr Antipov"
     ]
   },
   "[\"soviet\",\"capitale\",\"caserne-militaire\",\"infirmerie\"]": {
@@ -5373,7 +5373,7 @@ export const SCENES_PNJ = {
     "batiment": "Caserne centrale de Novomirsk",
     "piece": "Infirmerie",
     "personnes": [
-      "Infirmière Olga Pansementova"
+      "Infirmière Olga Komarova"
     ]
   },
   "[\"soviet\",\"capitale\",\"caserne-militaire\",\"salle_commandement\"]": {
@@ -5382,7 +5382,7 @@ export const SCENES_PNJ = {
     "batiment": "Caserne centrale de Novomirsk",
     "piece": "Salle de Commandement",
     "personnes": [
-      "Commandant Igor Bataillov"
+      "Commandant Igor Saveliev"
     ]
   },
   "[\"soviet\",\"capitale\",\"caserne-militaire\",\"armurerie_militaire\"]": {
@@ -5418,8 +5418,8 @@ export const SCENES_PNJ = {
     "batiment": "Caserne centrale de Novomirsk",
     "piece": "Quartier des Troupes",
     "personnes": [
-      "Caporal Dimitri Corvéev",
-      "Soldat Sacha Gamelline"
+      "Caporal Dimitri Loguinov",
+      "Soldat Sacha Iline"
     ]
   },
   "[\"soviet\",\"capitale\",\"garage-novomirsk\",\"atelier_garage\"]": {
@@ -5437,7 +5437,7 @@ export const SCENES_PNJ = {
     "batiment": "Salon de coiffure de Novomirsk",
     "piece": "Salon",
     "personnes": [
-      "Ludmila Permanentova"
+      "Ludmila Egorova"
     ]
   },
   "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"salle\"]": {
@@ -5534,7 +5534,7 @@ export const SCENES_PNJ = {
     "batiment": "Usine pharmaceutique Pharmanov",
     "piece": "Bureau de Direction",
     "personnes": [
-      "Boris Tabletkine"
+      "Boris Kovaliov"
     ]
   },
   "[\"soviet\",\"capitale\",\"usine-pharmaceutique-luthecia\",\"salle_production\"]": {
@@ -5746,7 +5746,7 @@ export const SCENES_PNJ = {
     "batiment": "Siege Syndical",
     "piece": "Bureau syndical",
     "personnes": [
-      "Délégué Batbayar Grevov"
+      "Délégué Batbayar Dachiev"
     ]
   },
   "[\"soviet\",\"ville_a\",\"usine-principale\",\"direction_usine\"]": {
@@ -5755,7 +5755,7 @@ export const SCENES_PNJ = {
     "batiment": "Usine Principale",
     "piece": "Direction",
     "personnes": [
-      "Directeur Tsyren Quotaïev"
+      "Directeur Tsyren Badmaïev"
     ]
   },
   "[\"soviet\",\"ville_a\",\"centre-multinodal-montrouge\",\"hall_gare_montrouge\"]": {
@@ -5771,8 +5771,8 @@ export const SCENES_PNJ = {
     "batiment": "Centre Commercial",
     "piece": "Hall d'Entrée",
     "personnes": [
-      "Tuya Chaparova",
-      "Altan Tourdemagov"
+      "Tuya Sanjieva",
+      "Altan Namsaraïev"
     ]
   },
   "[\"soviet\",\"ville_a\",\"centre-commercial\",\"vitrine_principale\"]": {
@@ -5809,9 +5809,9 @@ export const SCENES_PNJ = {
     "batiment": "Centre Artisanal",
     "piece": "Travées",
     "personnes": [
-      "Bayar Clédouzov",
-      "Ganbold Brumaïev",
-      "Temür Costaudov"
+      "Bayar Otchirov",
+      "Ganbold Garmaïev",
+      "Temür Dougarov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"centre-artisanal\",\"echoppe_facade\"]": {
@@ -5841,8 +5841,8 @@ export const SCENES_PNJ = {
     "batiment": "Centre d'Affaires",
     "piece": "Hall d'Entrée",
     "personnes": [
-      "Oyuuna Accueilova",
-      "Khasar Mechantaïev",
+      "Oyuuna Tsydenova",
+      "Khasar Baljirov",
       "Dorji Filatov"
     ]
   },
@@ -5956,7 +5956,7 @@ export const SCENES_PNJ = {
     "batiment": "Entrepôt Logistique de Starovka",
     "piece": "Bureau de Direction",
     "personnes": [
-      "Batzorig Palettov"
+      "Batzorig Dorjiev"
     ]
   },
   "[\"soviet\",\"ville_a\",\"port-starovka\",\"quai_principal\"]": {
@@ -5965,7 +5965,7 @@ export const SCENES_PNJ = {
     "batiment": "Port Industriel de Starovka",
     "piece": "Quai Principal",
     "personnes": [
-      "Chef de quai Ganbaatar Amarrov"
+      "Chef de quai Ganbaatar Tsybikov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"port-starovka\",\"entrepot\"]": {
@@ -5981,7 +5981,7 @@ export const SCENES_PNJ = {
     "batiment": "Port Industriel de Starovka",
     "piece": "Douanes",
     "personnes": [
-      "Douanier Sükhbaatar Tamponaïev"
+      "Douanier Sükhbaatar Baïartouïev"
     ]
   },
   "[\"soviet\",\"ville_b\",\"hotel-mineur\",\"hall_mineur\"]": {
@@ -6102,7 +6102,7 @@ export const SCENES_PNJ = {
     "batiment": "Siege Syndical",
     "piece": "Bureau syndical",
     "personnes": [
-      "Délégué Prokofi Grevine"
+      "Délégué Prokofi Panov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"usine-principale\",\"direction_usine\"]": {
@@ -6111,7 +6111,7 @@ export const SCENES_PNJ = {
     "batiment": "Usine Principale",
     "piece": "Direction",
     "personnes": [
-      "Directeur Platon Quotov"
+      "Directeur Platon Iermakov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"centre-multinodal-montrouge\",\"hall_gare_montrouge\"]": {
@@ -6127,8 +6127,8 @@ export const SCENES_PNJ = {
     "batiment": "Centre Commercial",
     "piece": "Hall d'Entrée",
     "personnes": [
-      "Varvara Chipova",
-      "Efim Tourdepassov"
+      "Varvara Kozlova",
+      "Efim Iakovlev"
     ]
   },
   "[\"soviet\",\"ville_b\",\"centre-commercial\",\"vitrine_principale\"]": {
@@ -6165,9 +6165,9 @@ export const SCENES_PNJ = {
     "batiment": "Centre Artisanal",
     "piece": "Travées",
     "personnes": [
-      "Stas Tournevissov",
-      "Tolia Herbov",
-      "Gavriil Gourdinov"
+      "Stas Mironov",
+      "Tolia Souvorov",
+      "Gavriil Lavrov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"centre-artisanal\",\"echoppe_facade\"]": {
@@ -6197,9 +6197,9 @@ export const SCENES_PNJ = {
     "batiment": "Centre d'Affaires",
     "piece": "Hall d'Entrée",
     "personnes": [
-      "Darina Bienvenouchka",
-      "Makar Sicarov",
-      "Afanassi Loupine"
+      "Darina Korneva",
+      "Makar Tchernov",
+      "Afanassi Rogov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"centre-affaires\",\"bureau_prestige\"]": {
@@ -6330,7 +6330,7 @@ export const SCENES_PNJ = {
     "batiment": "Caserne Militaire de Republia",
     "piece": "Corps de Garde",
     "personnes": [
-      "Adjudant Piotr Galonov"
+      "Adjudant Piotr Antipov"
     ]
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"infirmerie\"]": {
@@ -6339,7 +6339,7 @@ export const SCENES_PNJ = {
     "batiment": "Caserne Militaire de Republia",
     "piece": "Infirmerie",
     "personnes": [
-      "Infirmière Olga Pansementova"
+      "Infirmière Olga Komarova"
     ]
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"salle_commandement\"]": {
@@ -6348,7 +6348,7 @@ export const SCENES_PNJ = {
     "batiment": "Caserne Militaire de Republia",
     "piece": "Salle de Commandement",
     "personnes": [
-      "Commandant Igor Bataillov"
+      "Commandant Igor Saveliev"
     ]
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"armurerie_militaire\"]": {
@@ -6384,8 +6384,8 @@ export const SCENES_PNJ = {
     "batiment": "Caserne Militaire de Republia",
     "piece": "Quartier des Troupes",
     "personnes": [
-      "Caporal Dimitri Corvéev",
-      "Soldat Sacha Gamelline"
+      "Caporal Dimitri Loguinov",
+      "Soldat Sacha Iline"
     ]
   },
   "[\"soviet\",\"qhs\",\"qhs-prison\",\"entree_qhs\"]": {
@@ -6395,7 +6395,7 @@ export const SCENES_PNJ = {
     "piece": "Entree Securisee",
     "personnes": [
       "Directeur Kazimir Sévérov",
-      "Gardien-chef Filipp Tapedurov"
+      "Gardien-chef Filipp Grichine"
     ]
   },
   "[\"soviet\",\"qhs\",\"qhs-prison\",\"cellules_qhs\"]": {
@@ -6405,7 +6405,7 @@ export const SCENES_PNJ = {
     "piece": "Cellules",
     "personnes": [
       "Zakhar Zemlianov",
-      "Pavel Coulov"
+      "Pavel Kotov"
     ]
   },
   "[\"soviet\",\"qhs\",\"qhs-prison\",\"salle_interrogatoire\"]": {
