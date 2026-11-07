@@ -1900,11 +1900,14 @@ function applyCharToState(char) {
   // que pour un champ absent, jamais pour une ressource epuisee.
   state.arg = char.arg ?? 4250;
   if (char.poste) state.poste = char.poste;
-  // Intitule propre a l'empire (Sovarka, 07/11/2026) : le nom enregistre peut dater d'avant ;
-  // l'identifiant fait foi, le nom affiche est recalcule.
-  if (state.poste && state.poste.id && INTITULES_POSTES_PAR_PAYS[state.country]
-      && INTITULES_POSTES_PAR_PAYS[state.country][state.poste.id]) {
-    state.poste.name = intitulePoste(state.poste.id, state.country);
+  // Le pays courant est un lieu de voyage : il ne determine PAS le pays du mandat.
+  // Le mandat peut provenir de Republia alors que le PJ visite Novomirsk. Le poste
+  // garde son id serveur ; la domiciliation est le repli disponible sur la fiche.
+  // Un pays de mandat explicite sur le poste prime sur ce repli lorsqu'il est fourni.
+  if (state.poste && state.poste.id) {
+    const paysMandat = state.poste.country || state.poste.pays
+      || char.domicile?.country || state.domicile?.country || state.country;
+    state.poste.name = intitulePoste(state.poste.id, paysMandat, state.poste.name);
   }
   if (char.posteDepute) state.posteDepute = char.posteDepute;
   // Lot 2 (hydratation financiere, chantier fiscalite/Helvetia) : le recalcul 15%/85% de
