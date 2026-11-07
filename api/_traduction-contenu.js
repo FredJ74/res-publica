@@ -46,14 +46,16 @@ async function traduireContenu({type,id,field,langueCible},deps) {
  const key=JSON.stringify([type,source.id,field,version,fingerprint,record.language,langueCible]);
  // Même un résultat déjà en cache a été précédé de la lecture autorisée sous RLS.
  let cached;
- try { cached=await deps.readCache(key); } catch { cached=null; }
+ // Une panne de cache n'est PAS une absence de traduction : ne pas engager
+ // de nouvelles dépenses fournisseur dans un état serveur incertain.
+ try { cached=await deps.readCache(key); } catch { return refuse('cache_indisponible'); }
  const sameTokens=(left,right)=>JSON.stringify(placeholders(left))===JSON.stringify(placeholders(right));
  if(typeof cached==='string' && cached.trim() && cached.length<=4000 &&
     !/[\u0000-\u0008\u000E-\u001F]/.test(cached) && sameTokens(original,cached))
   return Object.freeze({ok:true,original,traduit:cached,fromCache:true});
  // Quota persistant et atomique vérifié avant tout appel payant.
  let permit;
- try { permit=await deps.reserveBudget(auth.userId,key); } catch { return refuse('quota_indisponible'); }
+ try { permit=await deps.reserveBudget(auth.userId,key,original.length); } catch { return refuse('quota_indisponible'); }
  if(permit!==true)return refuse('quota_atteint');
  const response=await traduireTexte({texte:original,langueOriginale:record.language,langueCible},deps.provider);
  if(!response.ok)return Object.freeze({...response,fromCache:false});
