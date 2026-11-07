@@ -92,3 +92,11 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - Trois boutons ajoutés par Codex au menu tactile (personnage, présents, menu) sont localisés par `data-i18n` ; `aria-label` du fond est localisé par `data-i18n-aria-label`. Contrôleurs, styles, clics et mécanismes mobiles préservés, sans modification de `plateau-mobile.js`.
 - Tests JavaScript isolés exécutés à partir des fichiers GitHub : **14 tests catalogue**, **19 tests moteur/pont/plateau**, **16 tests accueil/création** et **16 tests ressources/guide/mobile**, tous réussis avec un adaptateur V8 (pas une exécution native Node CI). Six simulations de langues navigateur ont également réussi.
 - **Reste ouvert** : autres ordres contextuels, messages serveur, forums, presse et dialogues PNJ ; traduction authentifiée avec lecture RLS, quota/cache persistants et maîtrise des coûts ; recette visuelle mobile/RTL et audit linguistique. Aucune migration SQL de traduction, aucun appel DeepSeek payant et aucune publication.
+
+
+### 07/11 — industrie, santé et simplification de la CI (dernier lot)
+
+- **217 ordres canoniques × neuf langues = 1 953 libellés** dans le catalogue pilote. Le lot supplémentaire de vingt ordres concerne véhicules, logement, pharmacie, carburant, stocks, production industrielle et visite/interrogatoire de détenus. Contrôles de parité et ancrage au `data.js` ajoutés. Cette couverture ne comprend pas l'intégralité des textes dynamiques ou messages serveur.
+- **Nettoyage CI** : retrait des trois workflows ponctuels `.github/workflows/i18n-reconcile-main-20261106.yml`, `i18n-ordres-29-20261106.yml` et `i18n-lot-civique-temp.yml`. Le workflow unique `i18n-tests.yml` conserve les contrôles de sécurité, du catalogue et des ressources ; le workflow temporaire de fusion automatique (droit `contents: write`) n'est plus susceptible d'écraser le brouillon.
+- **Menu mobile** : seuls les trois libellés tactiles et le nom accessible du fond ont été localisés (neuf langues). Aucun changement de la logique `plateau-mobile.js` de Codex. Tests d'invariance et clés d'accessibilité ajoutés.
+- **Intégration dans main : toujours interdite** avant activation explicitement autorisée, relecture linguistique et recette utilisateur. Aucun appel fournisseur payant, aucune migration de traduction, aucune fusion de la PR #377.
