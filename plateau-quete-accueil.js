@@ -873,22 +873,45 @@ const QUETE_ACCUEIL_PHRASES_ARRIVEE_I18N = {
   'zh-TW': [/我是新來的|剛到這裡|第一次來|警衛叫我來/]
 };
 
+// Comparaison spécifique aux systèmes d'écriture. Le normaliseur historique
+// français reste intact : NFD détruit les syllabes coréennes et la lettre й,
+// tandis que les hamzas arabes exigent une neutralisation locale.
+function queteAccueilComparerI18n(texte,normalise,langue) {
+  if (langue==='ar')return normalise.replace(/[\u064b-\u065f]/g,'');
+  if (langue==='ko'||langue==='ru')return String(texte==null?'':texte).toLowerCase().normalize('NFC').trim();
+  return normalise;
+}
+
 function queteAccueilPhraseDeNouvelArrivant(texte) {
   const t = queteAccueilNormaliserPhrase(texte);
   if (!t) return false;
   if (QUETE_ACCUEIL_PHRASES_ARRIVEE.some(function (m) { return m.test(t); }))return true;
   const langue = (typeof window!=='undefined' && window.RPPlateauI18n?.language?.()) || 'fr';
-  // NFD décompose les syllabes coréennes en jamos et le й russe en и + diacritique.
-  // Comparer ces deux langues à leur texte NFC natif, sans toucher au canon FR.
-  // Pour l'arabe uniquement, supprimer les diacritiques afin de reconnaître أنا/انا.
-  const comparaison = langue==='ar' ? t.replace(/[\u064b-\u065f]/g,'')
-    : (langue==='ko'||langue==='ru' ? String(texte==null?'':texte).toLowerCase().normalize('NFC').trim() : t);
-  return (QUETE_ACCUEIL_PHRASES_ARRIVEE_I18N[langue] || []).some(function (m) { return m.test(comparaison); });
+  return (QUETE_ACCUEIL_PHRASES_ARRIVEE_I18N[langue] || []).some(function (m) {
+    return m.test(queteAccueilComparerI18n(texte,t,langue));
+  });
 }
+
+// Rappel de Jérémy : reconnaître une demande de guidage dans la langue choisie.
+// Ces motifs ne modifient ni l'étape ni les actions de la quête.
+const QUETE_ACCUEIL_PHRASES_PERDU_I18N = {
+  en: [/\b(?:i(?:'m| am) lost|where are we|remind me|what should i do|what next)\b/],
+  es: [/\b(?:estoy perdid[oa]|donde estamos|recuerdame|que tengo que hacer|que sigue)\b/],
+  'pt-BR': [/\b(?:estou perdid[oa]|onde paramos|me lembre|o que devo fazer|proximo passo)\b/],
+  de: [/\b(?:ich habe mich verlaufen|wo waren wir|erinnere mich|was soll ich tun|wie geht es weiter)\b/],
+  ru: [/я заблудил(?:ся|ась)|что мне делать|напомни|где мы остановились|я потерял(?:ся|ась)/],
+  ko: [/길을 잃었|어떻게 해야|다음에는 뭘|다시 알려|어디까지 왔/],
+  ar: [/انا تائه|انا تائهة|ماذا علي ان افعل|ما التالي|ذكرني|اين وصلنا/],
+  'zh-TW': [/我迷路了|接下來怎麼辦|我們到哪一步了|提醒我|下一步/]
+};
 
 function queteAccueilPhraseDeJoueurPerdu(texte) {
   const t = queteAccueilNormaliserPhrase(texte);
-  return !!t && QUETE_ACCUEIL_PHRASES_PERDU.some(function (m) { return m.test(t); });
+  if (!t) return false;
+  if (QUETE_ACCUEIL_PHRASES_PERDU.some(function (m) { return m.test(t); }))return true;
+  const langue = (typeof window!=='undefined' && window.RPPlateauI18n?.language?.()) || 'fr';
+  const comparable = queteAccueilComparerI18n(texte,t,langue);
+  return (QUETE_ACCUEIL_PHRASES_PERDU_I18N[langue] || []).some(function (m) { return m.test(comparable); });
 }
 
 // =====================
