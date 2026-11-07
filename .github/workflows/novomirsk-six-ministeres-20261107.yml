@@ -1,0 +1,72 @@
+name: Novomirsk — six ministeres en WebP
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/novomirsk-six-ministeres-20261107.yml'
+permissions:
+  contents: write
+jobs:
+  convertir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Convertir les six PNG en WebP et supprimer les sources
+        run: |
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          dossier = Path('images/Sovarka/Novomirsk')
+          images = {
+              'Novomirsk_palais_bureau MINT.png': 'Novomirsk_palais_min_securite.webp',
+              'Novomirsk_palais gouv_MECO.png': 'Novomirsk_palais_min_economie.webp',
+              'Novomirsk_palais gouv_MJ.png': 'Novomirsk_palais_min_justice.webp',
+              'Novomirsk_palais gouv_MG.png': 'Novomirsk_palais_min_defense.webp',
+              'Novomirsk_Palais gouv_MINFO.png': 'Novomirsk_palais_min_information.webp',
+              'Novomirsk_Palais gouv_MAE.png': 'Novomirsk_palais_min_diplomatie.webp',
+          }
+          code = Path('data.js').read_text(encoding='utf-8')
+          # Verification prealable des six sources et des six liaisons, avant toute suppression.
+          for source, cible in images.items():
+              src = dossier / source
+              dest = dossier / cible
+              assert src.exists(), f'PNG introuvable : {src}'
+              assert code.count(str(dest)) == 1, f'Lien unique manquant dans data.js : {dest}'
+          for source, cible in images.items():
+              src, dest = dossier / source, dossier / cible
+              with Image.open(src) as picture:
+                  assert picture.width >= 1200 and picture.height >= 650, f'Dimensions suspectes : {src}'
+                  picture.convert('RGB').save(dest, 'WEBP', quality=93, method=6)
+              with Image.open(dest) as result:
+                  assert result.format == 'WEBP'
+                  assert result.width >= 1200 and result.height >= 650
+                  print(f'{dest}: {result.width}x{result.height}, {dest.stat().st_size} octets')
+              src.unlink()
+          assert all((dossier / f).exists() for f in images.values())
+          assert all(not (dossier / f).exists() for f in images)
+          PY
+      - name: Verifications des references et syntaxe
+        run: |
+          node --check data.js
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('data.js').read_text(encoding='utf-8')
+          debut = source.index("        'palais-gouvernement': {", source.index("'Palais du Gouvernement de Sovarka'") - 1300)
+          fin = source.index("        'assemblee': {", debut)
+          bloc = source[debut:fin]
+          for piece in ('bureau_min_int', 'bureau_min_fin', 'bureau_min_just', 'bureau_min_def', 'bureau_min_info', 'bureau_min_ae'):
+              assert piece in bloc
+          assert bloc.count("imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_") == 6
+          PY
+      - name: Commit des images converties et nettoyage
+        run: |
+          git add -A images/Sovarka/Novomirsk
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Novomirsk : six ministeres WebP, PNG originaux supprimes'
+            git push
+          fi
