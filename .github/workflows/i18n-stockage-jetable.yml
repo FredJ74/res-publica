@@ -3,15 +3,15 @@ on:
   push:
     branches: [chatgpt/accueil-9-langues-20261102]
     paths:
-      - 'outils/livraison/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql'
-      - 'outils/bancs/i18n/banc-stockage-prive-jetable.sql'
+      - 'historique/i18n/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql'
+      - 'historique/i18n/banc-stockage-prive-jetable.sql'
       - 'outils/bancs/i18n/banc-concurrence-jetable.sh'
       - '.github/workflows/i18n-stockage-jetable.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'outils/livraison/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql'
-      - 'outils/bancs/i18n/banc-stockage-prive-jetable.sql'
+      - 'historique/i18n/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql'
+      - 'historique/i18n/banc-stockage-prive-jetable.sql'
       - 'outils/bancs/i18n/banc-concurrence-jetable.sh'
       - '.github/workflows/i18n-stockage-jetable.yml'
 permissions:
@@ -47,7 +47,7 @@ jobs:
           PGUSER: postgres
           PGPASSWORD: local-only
           PGDATABASE: i18n_jetable
-        run: psql -X -v ON_ERROR_STOP=1 -f outils/bancs/i18n/banc-stockage-prive-jetable.sql
+        run: psql -X -v ON_ERROR_STOP=1 -f historique/i18n/banc-stockage-prive-jetable.sql
       - name: Contre-épreuve de deux réservations SQL simultanées
         env:
           PGHOST: localhost
