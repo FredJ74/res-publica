@@ -17,6 +17,7 @@ on:
       - 'outils/bancs/banc-i18n-plateau-wiring.cjs'
       - 'outils/bancs/banc-i18n-plateau-init.cjs'
       - 'outils/bancs/banc-i18n-navbar-20261106.cjs'
+      - 'outils/bancs/banc-i18n-panneau-personnel.cjs'
       - 'outils/bancs/banc-i18n-guide-mail.cjs'
       - 'i18n/guide-resources.js'
       - 'i18n/guide-plateau-resources.js'
@@ -116,6 +117,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-guide-integrite.cjs
       - name: Barre supérieure localisée, icônes et gestionnaires préservés
         run: node --test outils/bancs/banc-i18n-navbar-20261106.cjs
+      - name: Panneau personnel localisé, commandes préservées
+        run: node --test outils/bancs/banc-i18n-panneau-personnel.cjs
       - name: Texte joueur et original préservés
         run: node --test outils/bancs/banc-i18n-texte-joueur.cjs
       - name: Messages sociaux originaux et traduits — 9 locales
