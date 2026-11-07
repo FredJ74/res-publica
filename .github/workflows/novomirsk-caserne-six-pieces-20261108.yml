@@ -1,0 +1,75 @@
+name: Novomirsk — six pieces de caserne en WebP
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/novomirsk-caserne-six-pieces-20261108.yml'
+permissions:
+  contents: write
+jobs:
+  convertir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Conversion WebP, controle des six images et suppression PNG
+        run: |
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          dossier = Path('images/Sovarka/Novomirsk')
+          fichiers = {
+            'Novomirsk_caserne_infirmerie.png': 'Novomirsk_caserne_infirmerie.webp',
+            'Novomirsk_caserne_refectoire.png': 'Novomirsk_caserne_refectoire.webp',
+            'Novomirsk_caserne_armurerie.png': 'Novomirsk_caserne_armurerie.webp',
+            'Novomirsk_caserne_dortoir.png': 'Novomirsk_caserne_dortoir.webp',
+            'Novomirsk_caserne_salle commandement.png': 'Novomirsk_caserne_salle_commandement.webp',
+            'Novomirsk_caserne_salle honneur.png': 'Novomirsk_caserne_salle_honneur.webp',
+          }
+          data = Path('data.js').read_text(encoding='utf-8')
+          debut = data.index("'caserne-militaire': {", 125000)
+          fin = data.index("'usine-pharmaceutique-luthecia': {", debut)
+          bloc = data[debut:fin]
+          liens = {
+            'infirmerie': 'Novomirsk_caserne_infirmerie.webp',
+            'refectoire': 'Novomirsk_caserne_refectoire.webp',
+            'armurerie_militaire': 'Novomirsk_caserne_armurerie.webp',
+            'quartier_troupes': 'Novomirsk_caserne_dortoir.webp',
+            'salle_commandement': 'Novomirsk_caserne_salle_commandement.webp',
+            'salle_faits_armes': 'Novomirsk_caserne_salle_honneur.webp',
+          }
+          for piece, image in liens.items():
+              assert bloc.count(piece + ': {') == 1, f'Piece absente: {piece}'
+              assert bloc.count(str(dossier / image)) == 1, f'Raccordement absent/duplique : {image}'
+          for source, cible in fichiers.items():
+              src, dst = dossier / source, dossier / cible
+              assert src.is_file(), f'PNG absent : {src}'
+              assert not dst.exists(), f'WebP deja present : {dst}'
+          for source, cible in fichiers.items():
+              src, dst = dossier / source, dossier / cible
+              with Image.open(src) as im:
+                  assert im.width >= 1200 and im.height >= 650, f'Dimensions inattendues : {src}'
+                  im.convert('RGB').save(dst, format='WEBP', quality=93, method=6)
+              with Image.open(dst) as check:
+                  assert check.format == 'WEBP'
+                  assert check.width >= 1200 and check.height >= 650
+                  print(f'{dst} : {check.width}x{check.height} {dst.stat().st_size} octets')
+              src.unlink()
+          assert all((dossier / name).is_file() for name in fichiers.values())
+          assert not any((dossier / name).exists() for name in fichiers)
+          PY
+      - name: Verifier syntaxe et modifications
+        run: |
+          node --check data.js
+          git diff --check
+      - name: Publier six WebP et supprimer six PNG
+        run: |
+          git add -A images/Sovarka/Novomirsk
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Novomirsk : six nouveaux decors de caserne WebP, PNG supprimes'
+            git push
+          fi
