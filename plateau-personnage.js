@@ -6,6 +6,11 @@
 // =====================
 // CHAR SHEET
 // =====================
+// Traductions d'affichage du profil, sans effet sur les comptes ni la fiche PJ.
+function rpCharSheetLabel(key,source) {
+  return (typeof window!=='undefined' && window.RPCharacterSheetI18n?.label?.(key,source)) || source;
+}
+
 async function openCharSheet() {
   const char = state.char;
   if (!char) return;
@@ -53,13 +58,13 @@ async function openCharSheet() {
       </div>
     </div>
     <div style="display:flex;gap:.4rem;padding:.6rem 1rem;border-bottom:1px solid #1a1810">
-      <button id="cs-tab-btn-identite" onclick="switchCharSheetTab('identite')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #8a6a20;background:#1a1408;color:#C9A84C;cursor:pointer">Identité</button>
-      <button id="cs-tab-btn-stats" onclick="switchCharSheetTab('stats')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #4a3a20;background:#12100a;color:#c0a060;cursor:pointer">Statistiques</button>
+      <button id="cs-tab-btn-identite" onclick="switchCharSheetTab('identite')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #8a6a20;background:#1a1408;color:#C9A84C;cursor:pointer">${rpCharSheetLabel('identity','Identité')}</button>
+      <button id="cs-tab-btn-stats" onclick="switchCharSheetTab('stats')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #4a3a20;background:#12100a;color:#c0a060;cursor:pointer">${rpCharSheetLabel('statistics','Statistiques')}</button>
     </div>
     <div id="cs-tab-identite">
     <div class="char-sheet-grid">
       <div class="cs-section">
-        <div class="cs-title">Caracteristiques</div>
+        <div class="cs-title">${rpCharSheetLabel('characteristics','Caracteristiques')}</div>
         ${STAT_DEFS.map(({k,n,i}) => `
           <div class="cs-stat-row">
             <span class="cs-stat-name"><i class="ti ${i}" style="font-size:.75rem;vertical-align:-1px"></i> ${n}</span>
@@ -67,17 +72,17 @@ async function openCharSheet() {
           </div>`).join('')}
       </div>
       <div class="cs-section">
-        <div class="cs-title">Ressources</div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Argent total</span><span class="cs-stat-val">${((Number(state.liquide)||0) + (typeof resumeFortune === 'function' ? Number(resumeFortune().comptes)||0 : Number(totalComptesBancaires())||0)).toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Liquide</span><span class="cs-stat-val">${state.liquide.toLocaleString('fr-FR')}</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">En banque</span><span class="cs-stat-val">${(typeof resumeFortune === 'function' ? resumeFortune().comptes : totalComptesBancaires()).toLocaleString('fr-FR')}</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Placements</span><span class="cs-stat-val">${totalPlacements.toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Emprunts en cours</span><span class="cs-stat-val">${pretsEnCours.length === 0 ? 'Aucun' : totalRestantPrets.toLocaleString('fr-FR') + ' ' + (co?.cur||'FR') + ' restant (' + pretsEnCours.length + ')'}</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Influence</span><span class="cs-stat-val">${state.inf}/100</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Popularite</span><span class="cs-stat-val">${state.pop}/100</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Discretion</span><span class="cs-stat-val">${state.dis}/100</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Sante</span><span class="cs-stat-val">${state.hp}/100</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Moral</span><span class="cs-stat-val">${state.moral}/100</span></div>
+        <div class="cs-title">${rpCharSheetLabel('resources','Ressources')}</div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('totalMoney','Argent total')}</span><span class="cs-stat-val">${((Number(state.liquide)||0) + (typeof resumeFortune === 'function' ? Number(resumeFortune().comptes)||0 : Number(totalComptesBancaires())||0)).toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('cash','Liquide')}</span><span class="cs-stat-val">${state.liquide.toLocaleString('fr-FR')}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('bank','En banque')}</span><span class="cs-stat-val">${(typeof resumeFortune === 'function' ? resumeFortune().comptes : totalComptesBancaires()).toLocaleString('fr-FR')}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('investments','Placements')}</span><span class="cs-stat-val">${totalPlacements.toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('outstandingLoans','Emprunts en cours')}</span><span class="cs-stat-val">${pretsEnCours.length === 0 ? 'Aucun' : totalRestantPrets.toLocaleString('fr-FR') + ' ' + (co?.cur||'FR') + ' restant (' + pretsEnCours.length + ')'}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('influence','Influence')}</span><span class="cs-stat-val">${state.inf}/100</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('popularity','Popularite')}</span><span class="cs-stat-val">${state.pop}/100</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('discretion','Discretion')}</span><span class="cs-stat-val">${state.dis}/100</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('health','Sante')}</span><span class="cs-stat-val">${state.hp}/100</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('morale','Moral')}</span><span class="cs-stat-val">${state.moral}/100</span></div>
         ${pretsEnCours.length > 0 ? pretsEnCours.map(p => `
           <div style="font-size:.72rem;color:#8a8060;padding:.15rem 0 .15rem .5rem;border-left:2px solid #3a2a10;margin-top:.3rem">
             ${(TYPES_PRET?.[p.type_pret]?.label || p.type_pret || 'Prêt')} (${p.type_banque === 'privee' ? 'Helvetia' : 'Nationale'}) — ${(p.montant_restant||0).toLocaleString('fr-FR')} ${co?.cur||'FR'} restant, ${(p.mensualite||0).toLocaleString('fr-FR')} ${co?.cur||'FR'}/jour
@@ -85,7 +90,7 @@ async function openCharSheet() {
       </div>
     </div>
     <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">
-      <div class="cs-title" style="margin-bottom:.4rem">Parcours</div>
+      <div class="cs-title" style="margin-bottom:.4rem">${rpCharSheetLabel('journey','Parcours')}</div>
       <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.6rem">
         ${[or,sc,ar,ca].filter(Boolean).map(x => `
           <div style="font-size:.72rem;padding:.2rem .6rem;border:1px solid #2a2010;color:#8a8060;background:#0f0d05;display:flex;align-items:center;gap:.3rem">
@@ -96,8 +101,8 @@ async function openCharSheet() {
     </div>
     <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">
       <div class="cs-title" style="margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">
-        <span>Signature (forum)</span>
-        <button onclick="ouvrirEditeurSignature()" style="font-family:'Bebas Neue',sans-serif;font-size:.68rem;letter-spacing:.06em;padding:.25rem .6rem;border:1px solid #4a3a20;background:transparent;color:#8a6a20;cursor:pointer">Modifier</button>
+        <span>${rpCharSheetLabel('forumSignature','Signature (forum)')}</span>
+        <button onclick="ouvrirEditeurSignature()" style="font-family:'Bebas Neue',sans-serif;font-size:.68rem;letter-spacing:.06em;padding:.25rem .6rem;border:1px solid #4a3a20;background:transparent;color:#8a6a20;cursor:pointer">${rpCharSheetLabel('edit','Modifier')}</button>
       </div>
       ${char.signatureHtml
         ? `<div style="font-size:.78rem;color:#8a8060;padding:.5rem;background:#0f0d05;border:1px solid #1a1810">${typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(char.signatureHtml) : char.signatureHtml}</div>`
@@ -106,19 +111,19 @@ async function openCharSheet() {
           : `<div style="font-size:.75rem;color:#9a8a68;font-style:italic">Aucune signature. Elle apparaîtra automatiquement en bas de tes posts sur le forum.</div>`)}
     </div>
     <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">
-      <div class="cs-title" style="margin-bottom:.4rem">Réservations d'hôtel</div>
+      <div class="cs-title" style="margin-bottom:.4rem">${rpCharSheetLabel('hotelReservations',"Réservations d'hôtel")}</div>
       ${listeHotelBrute === null
-        ? '<div style="font-size:.75rem;color:#c0a060">Lecture des réservations indisponible. Aucun droit n’est effacé.</div>'
+        ? '<div style="font-size:.75rem;color:#c0a060">' + rpCharSheetLabel('readUnavailable','Lecture des réservations indisponible. Aucun droit n’est effacé.') + '</div>'
         : groupesHotel.length === 0
-          ? '<div style="font-size:.75rem;color:#9a8a68">Aucune nuit réservée.</div>'
+          ? '<div style="font-size:.75rem;color:#9a8a68">' + rpCharSheetLabel('noReservedNights','Aucune nuit réservée.') + '</div>'
           : groupesHotel.map(g => `
             <div class="cs-stat-row"><span class="cs-stat-name">${sansBalisesHotel(BUILDINGS[g.batiment]?.shortName || g.batiment)} — ${sansBalisesHotel(g.ville)}</span>
             <span class="cs-stat-val">${g.nuits} nuit${g.nuits>1?'s':''} (+${g.bonus.paBonus||0} PA, +${g.bonus.moral||0} Moral/nuit)</span></div>`).join('')}
     </div>
     <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">
-      <div class="cs-title" style="margin-bottom:.4rem">Inventaire</div>
+      <div class="cs-title" style="margin-bottom:.4rem">${rpCharSheetLabel('inventory','Inventaire')}</div>
       ${state.inventory.length === 0
-        ? '<div style="font-size:.75rem;color:#9a8a68;font-style:italic">Aucun objet</div>'
+        ? '<div style="font-size:.75rem;color:#9a8a68;font-style:italic">' + rpCharSheetLabel('noItems','Aucun objet') + '</div>'
         : state.inventory.map(item => `
             <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:#c0b090;padding:.2rem 0">
               <i class="ti ${item.icon}" style="font-size:.8rem;color:#8a6a20"></i> ${item.name}
