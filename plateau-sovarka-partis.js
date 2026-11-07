@@ -3,6 +3,9 @@
 // unique, droit d'entrée, refus à -2 POP, successeur, dissolution. L'écran n'affiche que ses réponses.
 
 const PARTI_MOTIFS = {
+  parti_non_vainqueur: 'Seul le chef du parti vainqueur de la semaine à la gloire désigne le Président du Conseil.',
+  chef_pm_d_office: 'Vous n’êtes ni président ni maire : le Président du Conseil, c’est vous, d’office.',
+  cible_deja_elue: 'Ce membre est déjà président ou maire.',
   salle_des_partis_requise: 'On crée un parti dans la salle des partis d’une mairie de Sovarka.',
   deja_dans_un_parti: 'Vous êtes déjà membre d’un parti : quittez-le d’abord.',
   demande_en_cours: 'Vous avez déjà une demande d’adhésion en attente.',
@@ -127,7 +130,10 @@ async function ouvrirSovarkaMonParti() {
   let html = '<p><b>' + partiE(m.nom) + '</b> — chef : ' + partiE(m.chef) + ' · siège : ' + partiE(PARTI_VILLES[m.siege] || m.siege) +
     ' · popularité ' + m.pop + ' · droit d’entrée ' + m.prix + ' PSK' + (m.est_chef ? ' · caisse ' + m.caisse + ' PSK' : '') + '</p>';
   html += vehSection('Membres', m.membres.map((x, i) => '<div>' + partiE(x.nom) + ' — ' + partiE(x.grade) +
-    (m.est_chef && x.nom !== m.chef ? ' ' + vehBouton('Désigner comme successeur', 'partiSuccesseur(' + i + ')', false) : '') + '</div>').join(''));
+    (m.est_chef && x.nom !== m.chef ? ' ' + vehBouton('Désigner comme successeur', 'partiSuccesseur(' + i + ')', false) : '') +
+    (m.peut_designer_pm && x.nom !== m.chef ? ' ' + vehBouton('Désigner Président du Conseil', 'partiDesignerPm(' + i + ')', true) : '') + '</div>').join(''));
+  if (m.peut_designer_pm) html += '<p class="cpj-note">Votre parti a remporté la semaine à la gloire et vous êtes déjà élu : '
+    + 'désignez le Président du Conseil du Peuple parmi les membres du parti.</p>';
   if (m.est_chef) {
     html += vehSection('Demandes d’adhésion', m.demandes.length
       ? m.demandes.map((x, i) => '<div>' + partiE(x.nom) + ' ' + vehBouton('Accepter', 'partiRepondre(' + i + ',true)', true) + ' ' +
@@ -166,6 +172,13 @@ async function partiSuccesseur(i) {
   if (!x) return;
   const v = await partiCommande('successeur', m.id, { nom: x.nom }, x.nom);
   if (v) { showToast('Successeur désigné', x.nom + ' dirige désormais le parti.', true); ouvrirSovarkaMonParti(); }
+}
+
+async function partiDesignerPm(i) {
+  const m = partiDonnees?.mon_parti, x = m?.membres?.[i];
+  if (!x) return;
+  const v = await partiCommande('designer_pm', m.id, { nom: x.nom }, x.nom);
+  if (v) { showToast('Président du Conseil', v.nom + ' est désormais Président du Conseil du Peuple.', true); ouvrirSovarkaMonParti(); }
 }
 
 async function partiQuitter() {
