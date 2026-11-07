@@ -1,17 +1,17 @@
 # Livraison des traductions de textes joueurs — verrou de sécurité
 
-État 03/11/2026 : **interne seulement**. Aucun endpoint de traduction ouvert.
+État 07/11/2026 : **interne seulement**. Aucun endpoint de traduction ouvert.
 
 ## Source de vérité
 Le client ne fournit **jamais** le texte à traduire comme preuve d'accès. Il envoie uniquement l'identifiant et la catégorie. Le serveur vérifie un JWT Supabase Auth réel, puis **lit le contenu sous ce même JWT**, avec la clé publique anon (jamais `service_role`). Pour le chat, la politique RLS déjà en production invoque `chat_participe(conversation_id, salon)`. Toute absence de ligne retourne le même refus, sans distinguer ID inexistant et message privé.
 
-## État des sources vérifiées sur Supabase
-- Forum sujets : `forum_topics.title`, SELECT RLS `true`.
-- Forum réponses : `forum_posts.content`, SELECT RLS `true`.
-- Chat : `messages_chat.message`, SELECT RLS `chat_participe(conversation_id, salon)`.
+## État des sources vérifiées sur Supabase — contrôle direct du 07/11/2026
+- Sujet de forum : `forum_topics.title`, politique SELECT RLS `forum_lecture_autorisee(forum_id, country)`. L'accès dépend du pays, de la ville et de l'adhésion aux organisations : **ce contenu n'est pas public par défaut**.
+- Réponse de forum : `forum_posts.content`, politique SELECT RLS imposant l'existence du sujet correspondant dans `forum_topics` ; **la visibilité de ce sujet est contrôlée par sa propre RLS**.
+- Chat : `messages_chat.message`, politique SELECT RLS `chat_participe(conversation_id, salon)` ; uniquement les participants autorisés.
 - Audience et presse en attente : **non autorisés** par le contrat de traduction tant que leurs portes de lecture serveur n'ont pas été auditées.
 
-Contrôle reproductible : `outils/audits/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql` (3/3 conformes le 03/11).
+Le prévol corrigé `outils/audits/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql` exige une unique politique de lecture attendue par source, RLS active et le prédicat correspondant. **Exécuté en lecture seule sur le projet Supabase `res-publica` le 07/11/2026 : 3/3 conformes**. Il ne démontre pas encore l'absence de faille dans le futur endpoint : celui-ci demeure inexistant et désactivé.
 
 ## Protection contre les coûts et abus, indispensable avant mise en service
 1. Compteur de requêtes par UID vérifié, fenêtre glissante persistante côté serveur et limitation simultanée. Ni la mémoire d'une fonction serverless ni le seul navigateur ne sont fiables.
