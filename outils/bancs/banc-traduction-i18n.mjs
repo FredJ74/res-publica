@@ -37,7 +37,7 @@ test('repli d origine sans appel fournisseur sur même langue, défaut et répon
 test('langue source indéterminée : traduction automatique sans supposer le français',async()=>{
  let invoked=0;
  const result=await traduireTexte({texte:'Hola {{name}}',langueOriginale:'und',langueCible:'de'},
-  async req=>{invoked++;assert.match(req.systeme,/German/);
+  async req=>{invoked++;assert.match(req.systeme,/German/);assert.match(req.systeme,/never assume it is French/);
    assert.equal(req.messages[0].content,'Hola {{name}}');
    return {ok:true,texte:'Hallo {{name}}',tronque:false};});
  assert.equal(invoked,1);
