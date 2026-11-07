@@ -2145,14 +2145,16 @@ const WORLD = {
           imagesAVenir: true,
           desc: "La caserne centrale de l'Armée populaire de Sovarka, en plein cœur de Novomirsk. Deux portails, des sentinelles qui ne cillent pas, et l'étoile rouge repeinte chaque printemps.",
           roomOverrides: {
+            armurerie_militaire: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_armurerie.webp' },
+            salle_faits_armes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_salle_honneur.webp' },
             corps_garde: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_hall.webp', persons: [{name: 'Adjudant Piotr Antipov (PNJ)', role: 'PNJ - Aide de camp', rel: 'friendly', job: 'aide_de_camp', profilId: 'piotr_antipov'}] },
-            infirmerie: { persons: [{name: 'Infirmière Olga Komarova (PNJ)', role: 'PNJ - Infirmière militaire', rel: 'neutral', job: 'infirmier_mil', profilId: 'olga_komarova'}] },
-            salle_commandement: { persons: [{name: 'Commandant Igor Saveliev', role: 'PNJ - Commandant de la Caserne', rel: 'neutral',
+            infirmerie: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_infirmerie.webp', persons: [{name: 'Infirmière Olga Komarova (PNJ)', role: 'PNJ - Infirmière militaire', rel: 'neutral', job: 'infirmier_mil', profilId: 'olga_komarova'}] },
+            salle_commandement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_salle_commandement.webp', persons: [{name: 'Commandant Igor Saveliev', role: 'PNJ - Commandant de la Caserne', rel: 'neutral',
               job: 'commandant', resteApresPourvoi: true,
               roleSiPnjTitulaire: 'PNJ - Commandant de la Caserne',
               roleSiPjTitulaire:  'PNJ - Commandant adjoint'}] },
-            refectoire: { persons: [{name: 'Caporal Vassili Kachaev', role: 'Cuisinier de compagnie', rel: 'friendly', job: 'cuistot_mil', profilId: 'vassili_kachaev'}] },
-            quartier_troupes: { persons: [
+            refectoire: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_refectoire.webp', persons: [{name: 'Caporal Vassili Kachaev', role: 'Cuisinier de compagnie', rel: 'friendly', job: 'cuistot_mil', profilId: 'vassili_kachaev'}] },
+            quartier_troupes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_dortoir.webp', persons: [
               {name: 'Caporal Dimitri Loguinov (PNJ)', role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'},
               {name: 'Soldat Sacha Iline (PNJ)',  role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'}] }
           }
