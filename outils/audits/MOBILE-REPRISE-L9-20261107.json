@@ -1,0 +1,23 @@
+{
+  "lot": "L9",
+  "branche": "codex/mobile-l9-chargement-20261106",
+  "main_integre": "a5e32332",
+  "sha_teste_avant_compte_rendu": "c3c1f7b3ea4b68a467e4287239b2726ad68fb7f2",
+  "tests": {
+    "ui": {
+      "reussis": 2,
+      "echecs": 0
+    },
+    "clients": {
+      "reussis": 8,
+      "echecs": 0
+    }
+  },
+  "garderBatiment_preserve": true,
+  "code_applicatif_modifie": false,
+  "migration_executee": false,
+  "production_authentifiee": false,
+  "titre_pr": "Mobile L9 — Revalidation du chargement des miniatures",
+  "description_pr": "portraits et inventaire en chargement natif différé, scènes conservées",
+  "base_pr": "main"
+}

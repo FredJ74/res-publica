@@ -741,3 +741,19 @@ du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de mig
 Test téléphone après intégration : consulter organisations et rapports sans ordre à effets.
 Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
 à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
+
+### Reprise mobile L9 — Codex, 07/11/2026
+Branche `codex/mobile-l9-chargement-20261106`, main `a5e32332` intégré dans l'ordre des lots.
+SHA testé avant ajout du compte rendu : `c3c1f7b3ea4b68a467e4287239b2726ad68fb7f2`. Résultats : UI
+2/2, clients 8/8 ; aucun échec.
+Titre PR vers main : **Mobile L9 — Revalidation du chargement des miniatures**.
+Description prête : portraits et inventaire en chargement natif différé, scènes conservées.
+Anciens lots déjà en bêta conservés : cette reprise synchronise et teste, sans
+réécrire l'application. Seul ajout technique L8 : régression de #579 sur les vrais
+rendus, option `garderBatiment` conservée ; contre-épreuve sans l'option.
+Contrôles attendus : bancs-hors-production, gardes habituelles et tests ciblés
+MOBILE-REPRISE-L9-20261107.json. Reste à Claude : création PR, CI et intégration
+du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de migration.
+Test téléphone après intégration : ouvrir Personnes présentes puis inventaire, vérifier le chargement des portraits.
+Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
+à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
