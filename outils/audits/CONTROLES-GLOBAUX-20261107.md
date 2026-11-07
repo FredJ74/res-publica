@@ -136,3 +136,18 @@ en lecture seule et transaction cohérente par l'intégrateur. Aucun script à l
 Fred. Si une vraie dérive est constatée, banc annulé puis migration séparée à préparer,
 application uniquement par Claude après contrôle du NOM de registre. Ce chantier ne
 prépare pas de migration spéculative et n'a besoin d'aucun arbitrage de game design.
+
+## Rejeu final et livraison de la branche
+
+Main 947caad7 intégré et resté inchangé pendant la validation. SHA de code testé :
+`db1496d6f9ca25db4181864b8eb6e57240687464`. **200/200 bancs clients**, six tests Python, huit bancs Node
+ciblés, Workflow et diff conformes ; bureau 1440 strictement inchangé. Les douze
+contrôles ont tous été réexécutés sur cette intégration : **10/12**, seuls
+Baseline et Referential restent rouges. Résultats structurés :
+`CONTROLES-GLOBAUX-RESULTATS-20261107.json`.
+
+POST REST de création PR tenté : `Forbidden`. Aucune PR créée/fusionnée depuis
+cette session. Titre et description prêts dans RELAIS.md ; Claude peut ouvrir
+la PR de la branche poussée. Aucune nouvelle migration, aucun déploiement.
+Le chantier **n'est pas clos à 12/12** : les deux restes exigent le relevé
+canonique décrit, puis un rendu/rejeu réel, pas une décision de montant de Fred.

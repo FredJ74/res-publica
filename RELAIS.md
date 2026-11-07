@@ -838,3 +838,29 @@ de la fonction source, pas seulement avoir un type comparable. Paramètre avec
 défaut et alias absent du rendu refusés ; positif et négatif testés aussi sous
 Python -O. Huit bancs ciblés passent, Authority reste conforme ; dernier contrôleur
 complet lancé sur ce code stabilisé. Aucune exception nominative à trading_acheter.
+
+### Contrôles globaux — validation finale, Codex 07/11
+Branche `codex/controles-globaux-verts-20261107`, dernier main 947caad7 (#588) intégré.
+SHA de code testé avant ce compte rendu : `db1496d6f9ca25db4181864b8eb6e57240687464`.
+**200/200 bancs clients**, 6 tests Python, 8 bancs ciblés Node ; Workflow conforme,
+rendu 1440 identique, diff conforme. Tous les globaux rejoués : **10/12**.
+Rapport et tableau avant/après : outils/audits/CONTROLES-GLOBAUX-20261107.md ;
+preuves chiffrées et bisect dans le même dossier. Pas de tolérance ni exception
+nominative ajoutée, aucun relevé/sentinelle de production réécrit.
+
+Restes exacts : Baseline, deux seeds socle modifiés hors rendu et comptages de
+capture anciens (chaînes 6/5, constantes 23/22, leurs hashes) ; Referential,
+anciennes déclarations ordres/coûts, bonus et miroirs d'entreprises. Pas de
+connecteur Supabase exposé ici : collecte actuelle nécessaire, dispositif dans
+outils/livraison/COLLECTE-CONTROLES-GLOBAUX-20261107.json, pour Claude/intégrateur
+uniquement. Aucun SQL à faire exécuter par Fred, aucun arbitrage de design requis.
+
+PR REST tentée : Forbidden. Titre prêt : **Contrôles globaux : Authority fiable,
+générateurs reproductibles et reliquats de capture explicités**. Description :
+origine datée et bisect réel, analyse stricte des extensions SQL avec preuve de
+l'ancre et résistance à Python -O, dotations @ville, références générées depuis
+les sources livrées, contre-épreuves ; 9/12 → 10/12, aucune fausse promesse 12/12.
+Contrôles attendus : CI habituelles, 200 bancs clients, six tests Python ciblés et
+les douze globaux (deux rouges bloqués documentés). Ne pas fusionner comme une
+clôture 12/12 avant collecte/rendu conformes. Aucune migration ni écriture en
+production, aucun fichier Sovarka de Claude modifié par cette branche.
