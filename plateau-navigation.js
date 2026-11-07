@@ -655,9 +655,12 @@ function renderOngletsPieces(buildingId, roomActifId) {
       const tabNameBase = ctxForTabs?.roomOverrides?.[roomId]?.name || room.name;
       const tabName = ((typeof varianteNomPiece === 'function')
         ? varianteNomPiece(buildingId, roomId, state.currentCity, tabNameBase) : null) || tabNameBase;
+      // Traduction de présentation uniquement : le clic conserve les mêmes IDs.
+      const tabNameDisplay = (typeof RPRoomI18n !== 'undefined')
+        ? RPRoomI18n.labelHtml(buildingId, roomId, tabName) : tabName;
       const actif = roomActifId ? (roomId === roomActifId) : (i === 0);
       return `<div class="piece-tab ${actif ? 'active' : ''}" data-piece="${roomId}" onclick="${clic}" style="${style}"${titre ? ` title="${titre}"` : ''}>
-        ${icon}${tabName}
+        ${icon}${tabNameDisplay}
       </div>`;
     }).join('')
     // Onglet visible "Chambre" (finalisation chambres clinique, 31 aout 2026) : materialise la
@@ -1060,9 +1063,11 @@ function enterRoom(buildingId, roomId, tabEl) {
   // d'afficher « — Local à louer ». Meme appel que pour les onglets, juste
   // au-dessus, pour que le titre et l'onglet ne divergent jamais.
   const nomBasePiece = roomOverride?.name || room.name;
+  const nomPieceAffiche = ((typeof varianteNomPiece === 'function')
+    ? varianteNomPiece(buildingId, roomId, state.currentCity, nomBasePiece) : null) || nomBasePiece;
   document.getElementById('piece-nom').textContent =
-    ((typeof varianteNomPiece === 'function')
-      ? varianteNomPiece(buildingId, roomId, state.currentCity, nomBasePiece) : null) || nomBasePiece;
+    (typeof RPRoomI18n !== 'undefined')
+      ? RPRoomI18n.label(buildingId, roomId, nomPieceAffiche) : nomPieceAffiche;
   // roomOverride.desc a priorite sur ctx.desc (batiment, 1ere room seulement) et sur room.desc
   // (base partagee) -- meme priorite que roomOverride.imageUrl ci-dessus, generique, sans aucun
   // cas particulier de ville/batiment/room.
