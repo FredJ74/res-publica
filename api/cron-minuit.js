@@ -2823,7 +2823,7 @@ async function produireUneChaine(transfo, chaine, usine, stockMatieres, venteDir
   for (const cible of ENTREPOTS_VILLES) {
     const etatCible = await sbGetBatimentEtat('republic', cible.city, cible.buildingId).catch(() => null);
     if (!etatCible) continue;
-    const entrepotCible = etatCible.entrepot || { stock: {}, caisse: 8500 };
+    const entrepotCible = etatCible.entrepot || { stock: {} };
     const stockCible = entrepotCible.stock || {};
     const plafondProduit = RESSOURCES_ECONOMIE_SERVEUR[chaine.produit].plafond;
     const placeRestante = Math.max(0, plafondProduit - (stockCible[chaine.produit] || 0));
@@ -3375,7 +3375,7 @@ async function livrerEntrepotsQuotidien() {
           if (vise <= 0) continue;
           const cible = stocksEntrepots[ville];
           if (!cible || !cible.etat) continue; // batiment pas encore accessible dans cette ville
-          const entrepotCible = cible.etat.entrepot || { stock: {}, caisse: 8500 };
+          const entrepotCible = cible.etat.entrepot || { stock: {} };
           const stockCible = entrepotCible.stock || {};
           const plafondRes = RESSOURCES_ECONOMIE_SERVEUR[cle].plafond;
           const placeRestante = Math.max(0, plafondRes - (stockCible[cle] || 0));
@@ -3532,7 +3532,7 @@ async function traiterExportationsPortQuotidien() {
         if (qte <= 0) continue;
         const cible = stocksEntrepots[e.city];
         if (!cible.etat) continue;
-        const entrepotCible = cible.etat.entrepot || { stock: {}, caisse: 8500 };
+        const entrepotCible = cible.etat.entrepot || { stock: {} };
         const stockCible = entrepotCible.stock || {};
         stockCible[cle] = Math.max(0, (stockCible[cle] || 0) - qte);
         const recette = Math.round(qte * prixExport * 100) / 100;

@@ -129,6 +129,14 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 ### Décisions attendues de Fred
 
 - Aucune en cours.
+- Caisses d'entrepôts, reprise Codex 07/11 : la question initiale « PSM 10 231 FR
+  dans le blob contre 2 FR canoniques : lequel garder ? » est **caduque selon le
+  relevé de Claude**, voir #565 : aucune clé historique en production. Ne pas
+  additionner ces montants ni préparer de restitution sur cette base erronée.
+  #566 a déjà porté PSM et Montrouge de 2 à 10 000 FR (+9 998 chacune), décision
+  rapportée de Fred ; ne pas rejouer. Aucun nouvel arbitrage de solde demandé
+  sans relevé vivant contradictoire. Codex n'a appliqué aucune régularisation.
+
 
 ### Points ouverts transmis (non bloquants)
 
@@ -621,3 +629,34 @@ Commercial » / « Hall d’Entrée » et les anciens locaux, alors que data.js 
 À Claude : régénérer les scènes avec le générateur existant dans son lot Sovarka ;
 Codex n'a pas modifié ces fichiers. Contrôles globaux toujours 8/12 sur main et branche.
 Fichiers REST mis à jour ; recette authentifiée et livraison restent non certifiées.
+
+### Caisses d'entrepôts — complément Codex, 07/11, NON APPLIQUÉ
+
+Branche `codex/caisses-entrepots-uniques-20261106`, base réconciliée main 747153e4.
+Relecture AGENTS/RELAIS/WORKFLOW et revue des lecteurs/écrivains : voir
+`outils/audits/CAISSES-ENTREPOTS-SOURCE-UNIQUE-20261107.md`. Le défaut d'achat PJ
+a déjà été livré par Claude (#565), notre préparation concurrente a été supprimée.
+Sa dotation #566 n'est ni recalculée ni rejouée. Aucun fichier Sovarka ou écran touché.
+
+Défaut supplémentaire reproduit : `effort_ravitailler` crédite encore le blob dans
+le baseline. Patch **en place**, préparé sous version 20261107081631, jamais appliqué ;
+primitive commune de caisse, exception si refus pour rollback intégral. Trois replis
+de cron à 8 500 FR retirés (seulement api/cron-minuit.js, aucun stock modifié).
+28 contrôles PostgreSQL 17.6 et 28 sous 16.2 : achats avec le patch de Claude et
+vrais reçus ; rôle authenticated refusé pour l'action nocturne, service_role pour
+son exécution ; identités/lois/PA de fixture explicites. Tout annulé, aucun PJ réel.
+199/199 bancs clients passent. Workflow conforme ; globaux 9/12, comparaison main
+en cours à confirmer. Aucun baseline modifié pour masquer les trois écarts.
+
+PR : création REST à tenter au push ; si refus, titre « Entrepôts : caisse unique
+pour le ravitaillement militaire et suppression des dotations fantômes ». Description
+prête : complément indépendant de #565/#566, audit des lecteurs/écrivains, patch
+militaire sous gardes, prévol par noms de registre, bancs PostgreSQL annulés et
+contre-épreuves, aucun rattrapage d'argent ni changement de règles. Contrôles attendus :
+CI habituelles, banc-caisses-entrepots-local.py et tous les bancs clients.
+Reste : lecture vivante du prévol, vérification du corps/ACL et application seulement
+si nécessaire via registre par l'intégrateur, réextraction du baseline, puis livraison.
+Aucun outil Supabase exposé ici ; pas de fausse confirmation de production.
+Fred peut tester après livraison : acheter normalement à l'entrepôt et consulter
+le solde du directeur ; ne pas demander un achat à un PJ réel pour cette recette.
+Le complément nocturne se vérifie par fixtures, puis journal de la passe autorisée.
