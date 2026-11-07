@@ -765,9 +765,15 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
    Ne touche QUE les pieces qui declarent un ancrage : aucune autre piece du jeu
    ne porte cet attribut, donc aucun autre fond n'est deplace d'un pixel. */
 .piece-image[data-ancrage="haut"]{background-position:center top!important}
+.piece-image[data-ancrage="bas"]{background-position:center bottom!important}
+.piece-image[data-ancrage="bas-grand"]{background-position:center 72%!important}
+.piece-image[data-ancrage="moyen-novomirsk"]{background-position:center 30%!important}
 /* Une decoration Premium remplace le fond de devanture : elle doit retrouver son
    centrage horizontal ET vertical, meme si la devanture d'origine est ancree en haut. */
 .piece-image[data-commerce-decor="1"][data-ancrage="haut"]{background-position:center center!important}
+.piece-image[data-commerce-decor="1"][data-ancrage="bas"]{background-position:center center!important}
+.piece-image[data-commerce-decor="1"][data-ancrage="bas-grand"]{background-position:center center!important}
+.piece-image[data-commerce-decor="1"][data-ancrage="moyen-novomirsk"]{background-position:center center!important}
 .piece-ambiance{position:relative;z-index:1;padding:1.2rem;width:100%}
 .piece-nom{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--gold-light);margin-bottom:.2rem}
 .piece-desc{font-size:.82rem;color:#c0b090;font-style:italic;line-height:1.5}
@@ -2255,3 +2261,152 @@ body.plateau-body .top-right {
 .pnj-terrain-photo{display:block;width:100%;height:clamp(160px,27vh,250px);padding:0;overflow:hidden;border:1px solid var(--accent,#C9A84C);border-radius:6px;background:#171a1e;cursor:zoom-in}
 .pnj-terrain-photo img{display:block;width:100%;height:100%;object-fit:cover}
 .pnj-terrain-photo:focus-visible{outline:2px solid #C9A84C;outline-offset:3px}
+
+/* MOBILE L1 — les mêmes panneaux, repliés ; bureau >=1024 inchangé. */
+.hg-mobile-acces,#hg-mobile-fond{display:none}
+@media(max-width:1023px){
+  body.plateau-body{height:100vh;height:100dvh;min-height:0}
+  #topbar{z-index:72;display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:4px;padding:4px max(6px,env(safe-area-inset-right)) 4px max(6px,env(safe-area-inset-left))}
+  #topbar .logo{font-size:.9rem;white-space:normal;letter-spacing:.05em}
+  #topbar>.res-bar{display:none}
+  .hg-mobile-acces{display:block;min-height:44px;padding:6px;font:inherit;font-size:.88rem;border:1px solid #a98d56;border-radius:5px;background:#344354;color:#e5c477}
+  .hg-mobile-acces[aria-expanded=true]{outline:2px solid #e5c477;outline-offset:-3px}
+  #main{grid-template-columns:minmax(0,1fr);min-height:0}
+  #center,.vue{min-width:0;min-height:0}
+  .rue-container,.piece-container{grid-template-columns:minmax(0,1fr);min-width:0}
+  #left,.persons-sidebar,.minimap,#hg-menu-existant{display:none!important}
+  #hg-mobile-fond:not([hidden]){display:block;position:fixed;inset:var(--hg-entete,56px) 0 0;z-index:70;border:0;background:rgba(0,0,0,.6)}
+  body[data-mobile-panel=personnage] #left,
+  body[data-mobile-panel=personnes] .vue.active .persons-sidebar,
+  body[data-mobile-panel=menu] #hg-menu-existant{
+    display:flex!important;position:fixed;top:calc(var(--hg-entete,56px) + 8px);bottom:max(8px,env(safe-area-inset-bottom));right:8px;
+    width:min(360px,calc(100vw - 16px));max-width:calc(100vw - 16px);z-index:71;
+    flex-direction:column;overflow:auto;overscroll-behavior:contain;padding:12px;
+    background:#202a36;color:#e2e9f1;border:1px solid #a98d56;border-radius:8px;margin:0;gap:8px;
+  }
+  #hg-menu-existant button{width:100%;min-height:44px;white-space:normal}
+  #left :is(button,[onclick]),.persons-sidebar :is(button,[onclick]){min-height:44px}
+}
+@media(max-width:1023px){
+  body[data-mobile-panel=personnes] .vue.active .minimap:not([style*="display: none"]){display:flex!important;position:fixed;inset:calc(var(--hg-entete,56px) + 8px) 8px max(8px,env(safe-area-inset-bottom));z-index:71;flex-direction:column;overflow:auto;background:#202a36;border:1px solid #a98d56;border-radius:8px}
+  body[data-mobile-panel=personnes] #vue-rue .persons-sidebar[style*="display: none"]{display:none!important}
+}
+
+/* MOBILE L2 — pièces et actions, sans modifier les destinations. */
+.hg-lieux-tactiles{display:none}
+@media(max-width:1023px){
+  .vue.active{overflow-y:auto;overscroll-behavior:contain}
+  .rue-container,.piece-container{flex:1 0 180px;min-height:180px}
+  .rue-image,.piece-image{min-height:180px}
+  #rue-centrale-conteneur{overflow:auto}
+  .batiment-header{flex-wrap:wrap;gap:.4rem}
+  .batiment-header-info{min-width:0}
+  .pieces-tabs{flex:1 0 100%;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+  .piece-tab{flex-shrink:0;min-height:44px;font-size:1rem}
+  .city-header{flex-wrap:wrap}
+  .city-tabs{flex-wrap:wrap}
+  .sortir-btn,.action-btn{min-height:44px;font-size:1rem;white-space:normal}
+  .hg-lieux-tactiles{display:block;padding:8px;background:#202a36;color:#e2e9f1;line-height:1.5}
+  .hg-lieux-tactiles summary{min-height:44px;cursor:pointer;padding:10px}
+  .hg-lieux-tactiles button{display:block;width:100%;min-height:44px;padding:10px;text-align:left;background:#344354;color:#e5c477;border:1px solid #a98d56;border-radius:5px;font:inherit;margin-top:6px}
+  :is(.rc-zone,.rc-fleche,.minimap-building):focus-visible{outline:3px solid #e5c477;outline-offset:-3px}
+}
+
+/* MOBILE L3 — mêmes fenêtres, hauteur visible et saisie tactile. */
+@media(max-width:1023px){
+  .modal-overlay{top:var(--hg-decalage,0px);bottom:auto;height:var(--hg-visible,100dvh);padding:8px max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));overflow:hidden}
+  .modal-box{max-height:calc(var(--hg-visible,100dvh) - 16px);max-width:100%;width:100%;overflow-y:auto;scroll-padding:64px 8px 20px}
+  .modal-box.modal-fullscreen{height:calc(var(--hg-visible,100dvh) - 16px)}
+  .modal-header{padding:.6rem;gap:8px}
+  .modal-title{min-width:0;overflow-wrap:anywhere}
+  .modal-close{min-width:44px;min-height:44px;flex-shrink:0}
+  :is(#modal-postes,#modal-pnj,.modal-overlay) .modal-box :is(input,textarea,select){font-size:max(16px,1rem)!important;scroll-margin-block:64px 20px}
+  .modal-box :is(button,input,select){min-height:44px}
+  .modal-box .modal-body{padding:.7rem}
+  #modal-postes .modal-box.journal-mode{position:relative!important;top:auto!important;left:auto!important;transform:none!important}
+  #journal-store{height:var(--hg-visible,100dvh)!important;max-width:calc(100vw - 16px);top:var(--hg-decalage,0px)!important;z-index:80!important}
+  #chat-piece-panel{max-width:calc(100vw - 16px);max-height:calc(var(--hg-visible,100dvh) - 100px);left:8px!important;z-index:85!important}
+  #hg-chat-toggle,#journal-open-btn{z-index:60!important}
+}
+
+/* L5 : tableaux, fiche et inventaire ; aucune valeur financière créée ici. */
+@media(max-width:1023px){
+  .char-sheet-grid{grid-template-columns:minmax(0,1fr);padding:.6rem}
+  .cs-section,.cs-stat-row{min-width:0;overflow-wrap:anywhere}
+  #vue-self .batiment-header{flex-wrap:wrap}
+  #vue-self .pieces-tabs{max-width:100%}
+  .hg-finances-grille{grid-template-columns:minmax(0,1fr)!important}
+  .hg-inventaire-ligne{flex-wrap:wrap;gap:8px!important}
+  .hg-inventaire-ligne>div:nth-child(2){flex:1 1 calc(100% - 60px)!important}
+  .hg-inventaire-nom{white-space:normal!important;overflow-wrap:anywhere}
+  .hg-inventaire-ligne>button{min-height:44px;flex:1 1 auto}
+  .hg-table-defilante{max-width:100%;overflow:auto;overscroll-behavior-x:contain}
+  .hg-table-defilante:focus-visible{outline:2px solid #e5c477;outline-offset:-2px}
+  .hg-table-defilante table{min-width:max-content}
+  .cpj-cell{flex-wrap:wrap}
+  .cpj-champ,.cpj-mini{min-width:64px;min-height:44px}
+  .cpj-nom-t,.cpj-sous{white-space:normal;overflow-wrap:anywhere}
+}
+/* L8 : état de connexion, jamais une valeur de remplacement. */
+#hg-reprise{display:none}
+@media(max-width:1023px){
+  #hg-reprise:not([hidden]){display:flex;position:fixed;inset:auto 8px max(8px,env(safe-area-inset-bottom));z-index:1200;gap:8px;align-items:center;padding:12px;border:1px solid #a98d56;border-radius:6px;background:#202a36;color:#e2e9f1}
+  #hg-reprise button{min-height:44px;background:#344354;color:#e5c477;border:1px solid #a98d56;padding:8px}
+}
+
+/* L4 : mêmes choix et explications dans les six langues. */
+@media(max-width:600px){
+  :is(#s1,#s2,#s3,#s4,#s5,#s7,#s8) :is(.grid2,.grid3,.grid4,.resgrid){grid-template-columns:minmax(0,1fr)}
+  #s6 .srow{grid-template-columns:minmax(0,1fr) 56px 118px;gap:6px;padding:.8rem 0}
+  #s6 .sadj{gap:2px;justify-content:flex-end}
+  #s6 .sbtn{width:44px;height:44px;flex-shrink:0}
+  #s6 .sval{min-width:26px}
+  #s6 .scarriere{white-space:normal;display:block;margin-left:0}
+  :is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) :is(.nav,.iform,.sh){max-width:100%;min-width:0}
+  :is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) :is(input,select,textarea){font-size:16px}
+  :is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) .nbtn{min-height:44px;white-space:normal}
+  .nav{gap:6px;flex-wrap:wrap}
+  #lang-switcher button{min-width:44px;min-height:44px}
+  #lang-switcher{position:relative;inset:auto;justify-content:center;flex-wrap:wrap;margin:0;padding:4px}
+  #intro{min-height:calc(100dvh - 52px)}
+}
+
+/* L7 : mêmes effectifs, autorisations et rapports, présentation repliée. */
+@media(max-width:1023px){
+  .mil-grille{display:flex;flex-wrap:wrap;gap:8px;padding:10px 0}
+  .mil-grille.mil-entetes{display:none}
+  .mil-ordres,.mil-inv{flex:1 1 100%}
+  .mil-panneau{grid-template-columns:minmax(0,1fr);flex:1 1 100%}
+  .mil-case{min-height:44px;white-space:normal;padding:4px}
+  .mil-case input{min-height:0!important;width:20px;height:20px;flex-shrink:0}
+  .mil-qte{min-width:64px;min-height:44px}
+  .mil-obj{white-space:normal;overflow-wrap:anywhere}
+  .hg-organisations,.hg-rapport-combat{min-width:0;overflow-wrap:anywhere}
+  .hg-rapport-combat div[style*="font-size"]{font-size:1rem!important;line-height:1.6}
+  .hg-organisations button{white-space:normal;min-height:44px;max-width:100%}
+}
+@media(min-width:861px) and (max-width:1023px){
+  .mil-pos::before,.mil-pa::before,.mil-arme::before,.mil-inv::before{content:attr(data-l) " ";font-size:.8rem}
+}
+
+
+/* L6 : un seul contrôleur de composition, ses poignées captent le geste tactile. */
+.rp-poignee-tactile{touch-action:none}
+@media(max-width:1023px){
+  #modal-forum .forum-layout{display:flex;flex-direction:column;min-width:0;min-height:0}
+  #modal-forum .forum-sidebar{width:100%;max-height:25vh;max-height:25dvh;flex:0 0 auto;border-right:0;border-bottom:1px solid var(--border);overflow-y:auto}
+  #modal-forum .forum-main{flex:1;min-width:0;min-height:0;overflow:auto}
+  #modal-forum .forum-topic-row,#modal-forum .forum-topics-header{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;padding:10px}
+  #modal-forum .forum-topic-row>:first-child,#modal-forum .forum-topics-header>:first-child{grid-column:1/-1}
+  #modal-forum .forum-topic-row>*{min-width:0;overflow-wrap:anywhere;text-align:left}
+  #modal-forum .forum-post{grid-template-columns:minmax(0,1fr)}
+  #modal-forum .forum-post-side{flex-direction:row;flex-wrap:wrap;justify-content:flex-start;border-right:0;border-bottom:1px solid var(--border)}
+  #modal-forum .forum-post-content{min-width:0}
+  #modal-forum .forum-sidebar :is(button,[onclick]),#modal-forum .forum-topic-row{min-height:44px}
+  #modal-forum .rp-compose-toolbar{display:flex;flex-wrap:wrap;gap:8px}
+  #modal-forum .rp-zone-toolbar{flex-wrap:wrap;max-width:100%}
+  #modal-forum .rp-zone-toolbar button{min-width:32px;min-height:44px}
+  #modal-forum .rp-composed-wrap{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+  /* Le compositeur garde son défilement extérieur prévu par forum-compose-grow. */
+  #modal-forum.forum-compose-grow .forum-main{overflow:visible}
+}
