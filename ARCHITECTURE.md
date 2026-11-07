@@ -420,3 +420,13 @@ Les miniatures seules utilisent le chargement différé natif ; les scènes et s
 restent ceux du jeu. Les preuves locales et limites (Safari, appareils réels,
 Helvetia historique, CI et livraison bloquées par l'API REST) sont consignées dans
 `outils/audits/MOBILE-SUITE-L5-L8-L4-L7-L9-L10-20261106.md`.
+
+### Caisses d’entrepôts — complément préparé le 7 novembre 2026
+
+L’autorité reste `caisses_batiments`, via `caisse_institution_mouvement` et
+`entrepot_caisse_id`. L’achat PJ a été corrigé par Claude (#565). Le ravitaillement
+militaire conserve dans le baseline un crédit vers l’ancienne clé du blob : un
+patch en place est préparé, non appliqué, testé sous PostgreSQL 17.6 et 16.2.
+Le détail des lecteurs/écrivains et des limites se trouve dans
+`outils/audits/CAISSES-ENTREPOTS-SOURCE-UNIQUE-20261107.md`. Aucune régularisation
+ni nouvelle règle de financement n’est décidée par ce complément.
