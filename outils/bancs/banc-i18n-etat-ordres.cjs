@@ -3,13 +3,13 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const report=require('../audits/etat-i18n-ordres.cjs');
 
-test('couverture des 257 identifiants sans faux positifs de source',()=>{
+test('couverture des 277 identifiants sans faux positifs de source',()=>{
  assert.equal(report.locales.length,9);
- assert.equal(report.catalogueFrenchKeys,257);
- assert.equal(report.canonicalMatches,257);
+ assert.equal(report.catalogueFrenchKeys,277);
+ assert.equal(report.canonicalMatches,277);
  assert.equal(report.obsoleteCanonical.length,0);
  for(const [locale,data] of Object.entries(report.perLocale)){
-  assert.equal(data.keys,257,locale);
+  assert.equal(data.keys,277,locale);
   assert.deepEqual(data.missing,[],locale);
   assert.deepEqual(data.extra,[],locale);
  }
