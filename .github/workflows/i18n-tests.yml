@@ -22,6 +22,7 @@ on:
       - 'i18n/forum-ui.js'
       - 'forum.js'
       - 'outils/bancs/banc-i18n-commandes-forum.cjs'
+      - 'outils/bancs/banc-i18n-pluriels-forum.cjs'
       - 'outils/bancs/banc-i18n-actions-courrier.cjs'
       - 'i18n/toast-resources.js'
       - 'outils/bancs/banc-i18n-notifications.cjs'
@@ -82,9 +83,9 @@ on:
       - 'api/_traduction-dependances.js'
       - 'outils/bancs/banc-i18n-dependances.mjs'
       - 'outils/bancs/banc-i18n-stockage.mjs'
-      - 'outils/livraison/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql'
+      - 'historique/i18n/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql'
       - 'outils/bancs/banc-i18n-lecture-rls.mjs'
-      - 'outils/audits/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql'
+      - 'historique/i18n/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql'
       - 'outils/bancs/banc-i18n-prevol-rls.cjs'
       - 'api/_traduction-contenu.js'
       - 'outils/bancs/banc-i18n-contenu-securise.mjs'
@@ -140,6 +141,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-salles-gouvernement.cjs
       - name: Actions des forums et du courrier en neuf langues
         run: node --test outils/bancs/banc-i18n-commandes-forum.cjs
+      - name: Pluriels des sujets et des courriers sans faux zéros
+        run: node --test outils/bancs/banc-i18n-pluriels-forum.cjs
       - name: Libellés d'action reçue sans changer les actions ni paramètres
         run: node --test outils/bancs/banc-i18n-actions-courrier.cjs
       - name: Notifications traduites, incidents et textes serveur intacts
