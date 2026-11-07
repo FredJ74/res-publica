@@ -31,7 +31,9 @@ async function traduireContenu({type,id,field,langueCible},deps) {
  if(!original.trim() || original.length>1800 || /[\u0000-\u0008\u000E-\u001F]/.test(original))
   return refuse('texte_invalide');
  if(typeof record.version!=='string' || !record.version || record.version.length>128)return refuse('version_absente');
- if(!langueAdmise(record.language))return refuse('langue_source_invalide');
+ // 'und' signifie source inconnue : les messages PJ n'ont actuellement
+ // aucune colonne langue en base. Ne pas présumer du français.
+ if(!langueAdmise(record.language) && record.language!=='und')return refuse('langue_source_invalide');
  if(record.language===langueCible) return Object.freeze({ok:true,original,traduit:original,fromCache:true});
  const fingerprint=createHash('sha256').update(original,'utf8').digest('hex');
  // Cache partagé entre lecteurs AUTORISÉS : le droit de lecture RLS est
