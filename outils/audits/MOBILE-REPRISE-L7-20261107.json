@@ -1,0 +1,23 @@
+{
+  "lot": "L7",
+  "branche": "codex/mobile-l7-institutions-20261106",
+  "main_integre": "a5e32332",
+  "sha_teste_avant_compte_rendu": "3f4805997720809f43ef33da94a9f632f6f9de42",
+  "tests": {
+    "ui": {
+      "reussis": 2,
+      "echecs": 0
+    },
+    "clients": {
+      "reussis": 17,
+      "echecs": 0
+    }
+  },
+  "garderBatiment_preserve": true,
+  "code_applicatif_modifie": false,
+  "migration_executee": false,
+  "production_authentifiee": false,
+  "titre_pr": "Mobile L7 — Revalidation des écrans institutions et combat",
+  "description_pr": "présentation, permissions de rapport fournies par fixtures, ordres policiers conservés",
+  "base_pr": "main"
+}

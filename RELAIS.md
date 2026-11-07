@@ -725,3 +725,19 @@ du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de mig
 Test téléphone après intégration : ouvrir connexion/création dans les six langues sans valider un nouveau compte.
 Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
 à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
+
+### Reprise mobile L7 — Codex, 07/11/2026
+Branche `codex/mobile-l7-institutions-20261106`, main `a5e32332` intégré dans l'ordre des lots.
+SHA testé avant ajout du compte rendu : `3f4805997720809f43ef33da94a9f632f6f9de42`. Résultats : UI
+2/2, clients 17/17 ; aucun échec.
+Titre PR vers main : **Mobile L7 — Revalidation des écrans institutions et combat**.
+Description prête : présentation, permissions de rapport fournies par fixtures, ordres policiers conservés.
+Anciens lots déjà en bêta conservés : cette reprise synchronise et teste, sans
+réécrire l'application. Seul ajout technique L8 : régression de #579 sur les vrais
+rendus, option `garderBatiment` conservée ; contre-épreuve sans l'option.
+Contrôles attendus : bancs-hors-production, gardes habituelles et tests ciblés
+MOBILE-REPRISE-L7-20261107.json. Reste à Claude : création PR, CI et intégration
+du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de migration.
+Test téléphone après intégration : consulter organisations et rapports sans ordre à effets.
+Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
+à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
