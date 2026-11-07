@@ -43,7 +43,7 @@ function render(lang,unsafe=false,section='tuto'){
   querySelectorAll:()=>[],
   getElementById:(id)=>id==='rules-content'?el:null
  };
- vm.runInNewContext(fn+';renderRulesContent('+JSON.stringify(section)+')',{window,document,REGLES:{tuto:{titre:'FR TITRE',contenu:'FR TEXTE'},intro:{titre:'FR INTRO',contenu:'FR TEXTE INTRO'}}});
+ vm.runInNewContext(fn+';renderRulesContent('+JSON.stringify(section)+')',{window,document,REGLES:{tuto:{titre:'FR TITRE',contenu:'FR TEXTE'},intro:{titre:'FR INTRO',contenu:'FR TEXTE INTRO'},personnage:{titre:'FR PERSONNAGE',contenu:'FR PERSONNAGE TEXTE'}}});
  return el.innerHTML;
 }
 test('le guide rend l’anglais et l’arabe dans le moteur existant, sans nouveau handler',()=>{
