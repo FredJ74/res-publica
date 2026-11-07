@@ -18,8 +18,13 @@
   if(!order || !engine || typeof engine.t!=='function')return original;
   const code=typeof order.fn==='string'?order.fn:'';
   let key=null;
-  if(typeof order.i18nKey==='string' && validKey.test(order.i18nKey))
-   key='orders.'+order.i18nKey;
+  if(typeof order.i18nKey==='string' && validKey.test(order.i18nKey)) {
+   // Variantes avec un même fn : clé explicite et catalogue séparé pour
+   // ne jamais compter une variante comme une commande serveur différente.
+   key=order.i18nKey.startsWith('variant.')
+    ? 'orderVariants.'+order.i18nKey.slice('variant.'.length)
+    : 'orders.'+order.i18nKey;
+  }
   else if(validKey.test(code) && !ambiguities.has(code))key='orders.'+code;
   if(!key)return original;
   // Un même fn peut changer de sens ou de prix selon la pièce / le fournisseur.
