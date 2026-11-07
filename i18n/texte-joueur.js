@@ -33,6 +33,9 @@
   // La direction ne concerne que le contenu du joueur : les boutons et la
   // disposition du plateau restent inchangés. L'original rétablit son sens.
   element.setAttribute?.('dir',result.shownLanguage==='ar'?'rtl':'auto');
+   // Attribut lang réservé au texte réellement affiché (traduction ou original).
+   if(result.shownLanguage) element.setAttribute?.('lang',result.shownLanguage);
+   else element.removeAttribute?.('lang');
   return true;
  }
  function attachToggle(element,button,record,locale,labels) {
@@ -43,6 +46,9 @@
    const result=view(record,locale,showOriginal);
    element.textContent=result.text;
    element.setAttribute?.('dir',result.shownLanguage==='ar'?'rtl':'auto');
+   // Attribut lang réservé au texte réellement affiché (traduction ou original).
+   if(result.shownLanguage) element.setAttribute?.('lang',result.shownLanguage);
+   else element.removeAttribute?.('lang');
    button.hidden=!result.showOriginalAvailable;
    button.textContent=showOriginal?(names.showTranslation||'Voir la traduction'):(names.showOriginal||"Voir l'original");
    button.setAttribute?.('aria-pressed',showOriginal?'true':'false');
