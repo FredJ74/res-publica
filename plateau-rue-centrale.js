@@ -1274,14 +1274,14 @@ const RUE_CENTRALE_NOEUDS = {
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
     },
 
-    // V11 — Premiere entree de la Caserne centrale, et garage.
-    // La Caserne a DEUX entrees (V11 et V12) ; sa sortie canonique ramene toujours a V12.
+    // V11 — Entree unique de la Caserne centrale, et garage.
+    // La Caserne a une seule entree (V11) ; V12 dessert la mairie.
     // Caserne du socle (BUILDINGS['caserne-militaire']) : en Sovarka elle est EN VILLE, pas dans
     // une zone hors ville comme en Republia (decision de Fred, 05/11/2026).
     'novomirsk-vue-11': {
       image: 'images/rue-caserne-garage-novomirsk.webp',
       zones: [
-        { xPct: [8, 52],   yPct: [6, 74],  nom: 'Caserne centrale de Novomirsk', type: 'batiment', buildingId: 'caserne-militaire', sortieNoeudId: 'novomirsk-vue-12' },
+        { xPct: [8, 52],   yPct: [6, 74],  nom: 'Caserne centrale de Novomirsk', type: 'batiment', buildingId: 'caserne-militaire', sortieNoeudId: 'novomirsk-vue-11' },
         { xPct: [85, 100], yPct: [38, 88], nom: 'Garage de Novomirsk', type: 'batiment', buildingId: 'garage-novomirsk' }
       ],
       liens: { arriere: 'novomirsk-vue-1', toutDroit: 'novomirsk-vue-12' },
