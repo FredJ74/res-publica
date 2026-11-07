@@ -16,8 +16,8 @@ test('quatre salles et prix: deux grandes 150 PSK, deux moyennes 100 PSK',()=>{
  for(const [index,id] of ids.entries()){
    const r=salles[id];assert.ok(r,id);
    assert.match(r.desc,index<2?/150 PSK\/jour/:/100 PSK\/jour/);
-   assert.equal(r.orders.length,1);
-   assert.equal(r.orders[0].fn,'sovarka_reunion_reserver');
+   // Réservation puis « Organiser un événement » (#568, 07/11).
+   assert.equal(r.orders.map(o=>o.fn).join(','),'sovarka_reunion_reserver,sovarka_reunion_evenement');
    assert.equal(r.orders[0].pa,0);
    assert.equal(r.orders[0].cost,0,'aucun paiement non atomique via le routeur');
    assert.ok(r.orders[0].label.includes((index<2?150:100)+' PSK'));

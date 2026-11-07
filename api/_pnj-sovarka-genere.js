@@ -100,7 +100,7 @@ export const PNJ_SOVARKA_RENOMMES = [
   "ville": "Novomirsk",
   "ancien": "Éric Stricted",
   "nouveau": "Oleg Strictov",
-  "role": null,
+  "role": "PNJ - Chef de cabinet du Président du Conseil du Peuple",
   "id": "sovarka_oleg_strictov",
   "source": "eric_stricted"
  },
@@ -108,7 +108,7 @@ export const PNJ_SOVARKA_RENOMMES = [
   "ville": "Novomirsk",
   "ancien": "Corinne Tite-Déclaz",
   "nouveau": "Raïssa Communiqueva",
-  "role": null,
+  "role": "PNJ - Porte-parole du Conseil du Peuple",
   "id": "sovarka_raissa_communiqueva",
   "source": "corinne_tite_declaz"
  },
@@ -124,7 +124,7 @@ export const PNJ_SOVARKA_RENOMMES = [
   "ville": "Novomirsk",
   "ancien": "Yvan Danltat",
   "nouveau": "Gleb Kontrolov",
-  "role": null,
+  "role": "PNJ - Ministre de la Sécurité du Peuple",
   "id": "sovarka_gleb_kontrolov",
   "source": "yvan_danltat"
  },
@@ -132,7 +132,7 @@ export const PNJ_SOVARKA_RENOMMES = [
   "ville": "Novomirsk",
   "ancien": "Alain Théret",
   "nouveau": "Stanislav Roublov",
-  "role": null,
+  "role": "PNJ - Ministre de l'Économie collective",
   "id": "sovarka_stanislav_roublov",
   "source": "alain_theret"
  },
@@ -140,7 +140,7 @@ export const PNJ_SOVARKA_RENOMMES = [
   "ville": "Novomirsk",
   "ancien": "Mathilde Garde",
   "nouveau": "Galina Verdiktova",
-  "role": null,
+  "role": "PNJ - Ministre de la Justice prolétarienne",
   "id": "sovarka_galina_verdiktova",
   "source": "mathilde_garde"
  },
@@ -148,7 +148,7 @@ export const PNJ_SOVARKA_RENOMMES = [
   "ville": "Novomirsk",
   "ancien": "Martial Bouterin",
   "nouveau": "Rodion Tankov",
-  "role": null,
+  "role": "PNJ - Ministre de la Défense de la Patrie",
   "id": "sovarka_rodion_tankov",
   "source": "martial_bouterin"
  },
@@ -156,7 +156,7 @@ export const PNJ_SOVARKA_RENOMMES = [
   "ville": "Novomirsk",
   "ancien": "Marie-Eve Beaulieu",
   "nouveau": "Zinaïda Propagandova",
-  "role": null,
+  "role": "PNJ - Ministre de la Vérité officielle",
   "id": "sovarka_zinaida_propagandova",
   "source": "marie_eve_beaulieu"
  },
@@ -164,7 +164,7 @@ export const PNJ_SOVARKA_RENOMMES = [
   "ville": "Novomirsk",
   "ancien": "Jean-Jacques Carlin",
   "nouveau": "Evgueni Diplomatov",
-  "role": null,
+  "role": "PNJ - Ministre de l'Amitié entre les Peuples",
   "id": "sovarka_evgueni_diplomatov",
   "source": "jean_jacques_carlin"
  },
