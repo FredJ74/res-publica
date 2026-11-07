@@ -265,14 +265,15 @@ BOÎTE MAIL — Accessible depuis le bouton "Mail" en haut. Contient vos message
 
 AJOUTER UN CONTACT — Cliquez sur un PJ puis "Ajouter au répertoire". Indispensable pour porter plainte, lancer une rumeur ciblée, ou envoyer un mail.
 
-LE FORUM — Accessible depuis le bouton "Forum" en haut. C'est l'espace de communication publique et privée du jeu. Il comporte plusieurs forums :
-• Forum Local — Discussions de votre ville
-• Forum Régional — Discussions régionales
-• Forum National — Débats politiques nationaux
-• Forum International — Relations entre empires
-• Forum Gouvernemental — Réservé au gouvernement (Président + ministres)
-• Forum Syndical — Réservé aux syndicalistes
-Pour créer un sujet : bouton "Nouveau sujet". Pour répondre : bouton "Répondre" dans le sujet. L'éditeur permet la mise en forme (gras, souligné, centrage) et l'insertion d'images. Les sujets créés sont visibles de tous les membres du forum concerné.`
+LE FORUM — Accessible depuis « Messages/Forums », en haut du plateau, il rassemble les échanges publics et privés.
+• Forum local — Celui de la ville où vous vous trouvez, qui change lorsque vous voyagez.
+• Forum national — Celui de votre pays actuel, accessible depuis ses différentes villes.
+• Forum international — Relations entre les empires.
+• Forum sportif — Championnat, résultats et supporters.
+• Forums institutionnels — Selon les droits de votre poste ; les annonces publiques restent accessibles selon les règles de chaque rubrique.
+• Forums des organisations — Privés : vous ne voyez que ceux des organisations auxquelles vous appartenez ou que vous dirigez.
+• Presse et médias — Lecture publique ; création des sujets réservée aux journalistes.
+Pour créer un sujet : bouton "Nouveau sujet". Pour répondre : bouton "Répondre" dans le sujet. L'éditeur permet la mise en forme (gras, souligné, centrage) et l'insertion d'images. Chaque sujet reste soumis aux droits de lecture de sa rubrique.`
   },
   sport: {
     titre: '⚽ Football — Matchs en direct',
