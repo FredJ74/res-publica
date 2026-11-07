@@ -100,3 +100,10 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - **Nettoyage CI** : retrait des trois workflows ponctuels `.github/workflows/i18n-reconcile-main-20261106.yml`, `i18n-ordres-29-20261106.yml` et `i18n-lot-civique-temp.yml`. Le workflow unique `i18n-tests.yml` conserve les contrôles de sécurité, du catalogue et des ressources ; le workflow temporaire de fusion automatique (droit `contents: write`) n'est plus susceptible d'écraser le brouillon.
 - **Menu mobile** : seuls les trois libellés tactiles et le nom accessible du fond ont été localisés (neuf langues). Aucun changement de la logique `plateau-mobile.js` de Codex. Tests d'invariance et clés d'accessibilité ajoutés.
 - **Intégration dans main : toujours interdite** avant activation explicitement autorisée, relecture linguistique et recette utilisateur. Aucun appel fournisseur payant, aucune migration de traduction, aucune fusion de la PR #377.
+
+
+### 07/11 — ordres militaires et synthèse de couverture
+
+- **237 identifiants d'ordres × neuf langues = 2 133 libellés**, dont vingt nouveaux ordres militaires (nomination d'officiers, affectations, caserne, armement, unités, mutinerie, renseignement). Ces traductions ne changent ni la hiérarchie ni les règles de combat et n'ajoutent aucune autorité cliente.
+- Vérification directe V8 des ressources du dépôt après le nouveau lot : **237/237 libellés français retrouvés exactement dans `data.js`**, neuf catalogues de 237 entrées, **aucune clé manquante** ; l'affichage des variantes contextuelles reste en français, par sécurité.
+- Recette GitHub : les workflows du dernier SHA doivent être terminés avant déclaration de validation ; les résultats V8 ne remplacent ni la CI, ni les tests navigateur avec session réelle. PR #377 toujours brouillon, sans fusion dans `main`.
