@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('297 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('317 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,297);
+ assert.equal(ref.length,317);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -391,5 +391,25 @@ test('20 ordres finances et enquêtes : correspondance aux labels français et d
    assert.equal(win.RPOrderI18n.label(order,engine,lng),translated);
   }
   assert.equal(order.fn,fn);assert.equal(order.pa,3);assert.equal(order.cost,125);assert.equal(order.requiresPost,'test');
+ }
+});
+
+
+test('20 ordres supplémentaires douanes et transports : sources et invariants',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const ids=["sovarka_commerces_libres","sovarka_signer_attribution","commerce_pj","mobiliser","tableau_effort_guerre","retirer_armes_militaires","retirer_explosifs_militaires","acheter_bombe_illegale","retirer_rations","reserver_salle_reception","organiser_reception_diplomatique","poissonniere_poisson","interroger","acheter_relique","taxi_caserne","taxi_qhs","passer_douanes_aeroport","louer_box","gerer_box","consulter_effectifs_douane"];
+ const observed=new Map();for(const match of source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)){
+  if(!observed.has(match[2]))observed.set(match[2],new Set());observed.get(match[2]).add(match[4]);
+ }
+ const fr=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const fn of ids){
+  const order=Object.freeze({fn,label:fr[fn],pa:1,cost:45,requiresPost:'test'});
+  assert.ok(observed.get(fn)?.has(order.label),fn);
+  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
+   const value=win.RP_I18N_RESOURCES[lang].translation.orders[fn];
+   assert.ok(typeof value==='string'&&value.trim(),lang+'/'+fn);
+   assert.equal(win.RPOrderI18n.label(order,engine,lang),value);
+  }
+  assert.equal(order.fn,fn);assert.equal(order.pa,1);assert.equal(order.cost,45);assert.equal(order.requiresPost,'test');
  }
 });
