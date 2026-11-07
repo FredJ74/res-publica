@@ -681,3 +681,15 @@ double solde est signalé comme caduc, dotation déjà livrée par Claude prése
 
 ### Contrôle plan 97 — Codex, 06-07/11 : livré par #576 (Claude, 07/11)
 Ordres de Sovarka des 05-07/11 déclarés un à un hors des photographies historiques (plan 97, livraison complète, réconciliation des coûts, référence de navigation) ; empreintes inchangées ; `bancs-hors-production` de nouveau vert.
+
+### Reprise mobile L5 — Codex, 07/11/2026
+Branche `codex/mobile-l5-transactions-20261106` ; main `a5e32332` intégré.
+SHA testé avant ajout de ce compte rendu : `a5e32332a88717a7b59ac1a4fee3e63e64a6c39e`. UI 2/2 (bureau
+1440 identique, inventaire/tableau), clients 31/31 (double tap Helvetia, commerce,
+banque). Aucun code applicatif modifié, ancien lot déjà en bêta conservé.
+PR à préparer par Claude : **Mobile L5 — revalidation après intégration du main du 7 novembre**.
+Description : synchronisation du lot déjà livré, tests ciblés et témoin desktop,
+aucune mécanique ni montant changé ; preuve MOBILE-REPRISE-L5-20261107.json.
+Contrôles attendus : bancs-hors-production et gardes usuelles de main ; pas de
+migration. Reste CI sur SHA poussé et essais téléphone réel ; ces tests sont locaux.
+Recette téléphone : consulter inventaire long, fiche, banque et commerce sans payer.
