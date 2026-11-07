@@ -147,3 +147,26 @@ test('formulaire de mail : réutilisation des clés de l’accueil, sans toucher
   assert.ok(section.includes(marker),marker);
  }
 });
+
+
+test('courriers : treize libellés, lecture, archivage et suppression inchangés',()=>{
+ const keys=['sentMessagesTitle','noSentMail','toLabel','archivesTitle','noArchivedMail','fromLabel',
+  'receivedMessagesTitle','noReceivedMail','unarchive','archiveKeep','delete','orgReplyUnavailable','autoDeleteNotice'];
+ for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+  lang=lng;
+  for(const key of keys)assert.ok(win.RP_I18N_RESOURCES[lng].translation.forumUI[key]?.trim(),lng+': '+key);
+ }
+ const inbox=source.slice(source.indexOf('function renderMailInbox()'),source.indexOf('let currentMailId = null'));
+ const read=source.slice(source.indexOf('function renderMailRead()'),source.indexOf('function replyToMail('));
+ for(const key of keys)assert.ok((inbox+read).includes("rpForumLibelle('"+key+"'"),key);
+ for(const handler of ["readMail('", "toggleArchiveMail('", "deleteMail('",
+                       "replyToMail(this.dataset.mailFrom, this.dataset.mailSubject)"]){
+  assert.ok((inbox+read).includes(handler),handler);
+ }
+ for(const userData of ['escapeHtmlText(mail.subject)','escapeHtmlText(mail.from)',
+                        'escapeHtmlText(mail.to)','sanitizeRichHtml(_actionsMail.corps)']){
+  assert.ok(read.includes(userData),userData);
+ }
+ assert.ok(source.includes("mailRubrique === 'archives'"));
+ assert.ok(source.includes("mailRubrique === 'envoyes'"));
+});
