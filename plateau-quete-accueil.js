@@ -867,7 +867,7 @@ const QUETE_ACCUEIL_PHRASES_ARRIVEE_I18N = {
   es: [/\b(?:soy nuev[oa]|acabo de llegar|primera vez|el guardia me envio)\b/],
   'pt-BR': [/\b(?:sou nov[oa]|acabei de chegar|primeira vez|o guarda me mandou)\b/],
   de: [/\b(?:ich bin neu|gerade angekommen|zum ersten mal|die wache hat mich geschickt)\b/],
-  ru: [/я новеньк(?:ий|ая)|только что приехал|впервые здесь|меня прислал охранник/],
+  ru: [/я новеньк(?:ии|ая)|только что приехал|впервые здесь|меня прислал охранник/],
   ko: [/새로 왔|처음 왔|막 도착했|경비가 보냈/],
   ar: [/انا جديد|انا جديدة|وصلت للتو|هذه اول مرة|الحارس ارسلني|أنا جديد|أنا جديدة|هذه أول مرة|الحارس أرسلني/],
   'zh-TW': [/我是新來的|剛到這裡|第一次來|警衛叫我來/]
