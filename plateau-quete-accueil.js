@@ -91,7 +91,7 @@ function afficherPopupQueteAccueilSommeil() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Chaque jour, on se fatigue au travail. Il est important de se reposer en dormant. Une fois par jour seulement.<br><br>Idéalement, il vaut mieux dormir dans une chambre, on récupère mieux que si on dort n'importe où. Je vous montrerai juste après.",
+    texte: rpQueteTexte('sleepInstructions', "Chaque jour, on se fatigue au travail. Il est important de se reposer en dormant. Une fois par jour seulement.<br><br>Idéalement, il vaut mieux dormir dans une chambre, on récupère mieux que si on dort n'importe où. Je vous montrerai juste après."),
     suivant: function() {
       queteAccueilSurbrillance('[onclick*="openSelfView"]', 15000);
     }
@@ -126,7 +126,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Ici vous pouvez réserver une chambre, ou si vous avez les moyens, louer une suite. Une bonne nuit ici, c'est plus d'énergie pour le lendemain.",
+      texte: rpQueteTexte('hotelRoom', "Ici vous pouvez réserver une chambre, ou si vous avez les moyens, louer une suite. Une bonne nuit ici, c'est plus d'énergie pour le lendemain."),
       suivant: function() {
         queteAccueilSurbrillance('.action-btn[onclick*="reserver_chambre_hotel"]', 12000);
       }
@@ -141,7 +141,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Ici c'est un lieu un peu spécial, pas toujours bien fréquenté...<br><br>Enfin, c'est ce qu'on m'a dit, je n'ai pas le droit de venir seul ici, seulement avec des adultes.<br><br>Vous pouvez m'offrir un verre ? J'ai très soif à force de parler.",
+      texte: rpQueteTexte('barIntroduction', "Ici c'est un lieu un peu spécial, pas toujours bien fréquenté...<br><br>Enfin, c'est ce qu'on m'a dit, je n'ai pas le droit de venir seul ici, seulement avec des adultes.<br><br>Vous pouvez m'offrir un verre ? J'ai très soif à force de parler."),
       suivant: function() {
         queteAccueilSurbrillance('.action-btn[onclick*="boire_verre"]', 12000);
       }
