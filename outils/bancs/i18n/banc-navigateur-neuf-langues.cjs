@@ -67,11 +67,24 @@ async function run(){
     const mail=document.querySelector('#compose-mail-subject');
     return {language,label:node?.textContent?.trim(),expected,dir:node?.getAttribute('dir'),
       placeholder:mail?.getAttribute('placeholder'),
-      expectedPlaceholder:window.RP_I18N_RESOURCES?.[language]?.translation?.plateau?.subjectPlaceholder};
+      expectedPlaceholder:window.RP_I18N_RESOURCES?.[language]?.translation?.plateau?.subjectPlaceholder,
+      councilRoom:window.RPRoomI18n?.label('palais-gouvernement','salle_conseil','Salle du Conseil du Peuple'),
+      expectedCouncil:window.RP_I18N_RESOURCES?.[language]?.translation?.rooms?.salle_conseil,
+      unknownRoom:window.RPRoomI18n?.label('palais-presidentiel','salle_conseil','Salle du Conseil du Peuple'),
+      forumName:window.RPForumUI?.forumNameHtml('national','Forum National'),
+      expectedForum:window.RP_I18N_RESOURCES?.[language]?.translation?.forumNames?.national,
+      privateForum:window.RPForumUI?.forumNameHtml('local_novomirsk','Forum local — Novomirsk'),
+      replyControl:window.RPForumUI?.labelHtml('reply','Répondre'),
+      expectedReply:window.RP_I18N_RESOURCES?.[language]?.translation?.forumUI?.reply};
    });
    assert.equal(state.label,state.expected,language+': guide sur le plateau réel');
    assert.equal(state.placeholder,state.expectedPlaceholder,language+': composition de mail');
    assert.equal(state.dir,language==='ar'?'rtl':null,language+': direction limitée au texte');
+   assert.equal(state.councilRoom,state.expectedCouncil,language+': salle du Conseil localisée');
+   assert.equal(state.unknownRoom,'Salle du Conseil du Peuple',language+': autre palais inchangé');
+   assert.equal(state.forumName,state.expectedForum,language+': forum national localisé');
+   assert.equal(state.privateForum,'Forum local — Novomirsk',language+': nom privé/local inchangé');
+   assert.equal(state.replyControl,state.expectedReply,language+': bouton répondre localisé');
    checks++;
    // Le navigateur réel résout aussi les nouveaux catalogues du Conseil
    // et des forums, avec les handlers métier explicitement bloqués.
