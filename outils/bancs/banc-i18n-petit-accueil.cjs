@@ -64,3 +64,32 @@ test('script de Petit et les deux choix visibles dans neuf langues sans modifica
  assert.ok(quest.includes("state.char.queteAccueil = { etape: 'jeremy_groupe' }"));
  assert.ok(html.includes('i18n/petit-accueil-resources.js'));
 });
+
+
+test('Jérémy comprend une demande de rappel dans neuf langues sans progression inventée',()=>{
+ const demandes={
+  fr:['je suis perdu','je vais bien'],
+  en:["I'm lost",'I like coffee'],
+  es:['Estoy perdido','Me gusta el café'],
+  'zh-TW':['我迷路了','我想喝咖啡'],
+  ru:['Я заблудился','Я люблю кофе'],
+  ko:['길을 잃었어요','커피를 마셔요'],
+  ar:['أنا تائه','أحب القهوة'],
+  'pt-BR':['Estou perdido','Gosto de café'],
+  de:['Ich habe mich verlaufen','Ich mag Kaffee']
+ };
+ for(const [lang,[yes,no]] of Object.entries(demandes)){
+  locale=lang;
+  const phrase='queteAccueilPhraseDeJoueurPerdu(';
+  assert.equal(vm.runInContext(phrase+JSON.stringify(yes)+')',vmctx),true,lang+': rappel');
+  assert.equal(vm.runInContext(phrase+JSON.stringify(no)+')',vmctx),false,lang+': aucune demande');
+  assert.equal(vm.runInContext(phrase+JSON.stringify('je suis perdu')+')',vmctx),true,lang+': canon français');
+ }
+ locale='fr';
+ assert.equal(vm.runInContext("queteAccueilPhraseDeJoueurPerdu(\"I'm lost\")",vmctx),false,
+  'une formule anglaise ne déclenche pas l’action quand la locale reste française');
+ assert.ok(quest.includes('QUETE_ACCUEIL_PHRASES_PERDU_I18N'));
+ assert.ok(quest.includes('QUETE_ACCUEIL_PHRASES_PERDU.some'));
+ assert.ok(pnj.includes('queteAccueilPhraseDeJoueurPerdu(action)'));
+ assert.ok(pnj.includes('queteAccueilRappel()'));
+});
