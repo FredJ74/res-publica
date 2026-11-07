@@ -59,7 +59,7 @@ test('texte des onglets échappé, texte de titre non HTML, handlers et IDs pré
  win.i18next.t=real;
  assert.ok(nav.includes("RPRoomI18n.labelHtml(buildingId, roomId, tabName)"));
  assert.ok(nav.includes("RPRoomI18n.label(buildingId, roomId, nomPieceAffiche)"));
- assert.ok(nav.includes("enterRoom('")===false || nav.includes("enterRoom('"));
+ assert.ok(nav.includes('onclick="${clic}"'));
  assert.ok(nav.includes('const clic = porteInterdite'));
  const bridge=html.indexOf('src="i18n/plateau-bridge.js');
  const translations=html.indexOf('src="i18n/room-resources.js');
