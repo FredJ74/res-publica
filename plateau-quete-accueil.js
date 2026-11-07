@@ -395,7 +395,7 @@ function afficherGuidageFleche(noeudId, direction) {
 
   afficherPopupQueteAccueil({
     guidageHtml: guidageHtml,
-    titre: 'Suivez la route',
+    titre: rpQueteTexte('followRoadTitle','Suivez la route'),
     texte: rpQueteTexte('keepDirection', "Continuez dans cette direction."),
     suivant: null
   });
@@ -420,7 +420,7 @@ function afficherGuidageBatiments(noeudId) {
 
   afficherPopupQueteAccueil({
     guidageHtml: guidageHtml,
-    titre: "Vous voici rue de l'Hotel de Ville",
+    titre: rpQueteTexte('townHallStreetTitle',"Vous voici rue de l'Hotel de Ville"),
     texte: rpQueteTexte('selectBuilding', "Cliquez sur le bon batiment."),
     suivant: null
   });

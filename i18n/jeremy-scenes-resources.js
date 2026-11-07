@@ -598,6 +598,55 @@
   }
 };
  for(const [lang,values] of Object.entries(socialControls)) Object.assign(labels[lang],values);
+ // Scène du stade et deux titres de guidage ; mêmes 12 clubs, seuil de 15 joueurs et ordres.
+ const visitTitles={
+  "fr": {
+    "stadium": "Ça c'est le stade de notre équipe de Luthécia ! On y est tous très attaché.<br><br>Il y a 12 clubs qui s'affrontent pour savoir qui sera le meilleur. Pour connaître le classement, il suffit de le consulter.<br><br>Si vous voulez intégrer l'équipe, il faut prendre sa licence dans le vestiaire et vous entraîner jusqu'à faire partie des 15 meilleurs joueurs du club. Demandez conseil à l'entraîneur adjoint, il est là pour ça.<br><br>On peut boire un coup, acheter des accessoires du club, parier sur les matchs, ou encore rejoindre le club des supporters.<br><br>Attention, il ne faut pas croire mais c'est bien plus qu'un endroit où l'on fait du sport. Vous verrez à l'usage, mais ici des maires ont perdu leur poste ou à l'inverse ont été réélus selon l'humeur des supporters...<br><br>Allez-y, jetez un œil, essayez quelque chose !",
+    "followRoadTitle": "Suivez la route",
+    "townHallStreetTitle": "Vous voici rue de l'Hotel de Ville"
+  },
+  "en": {
+    "stadium": "This is the stadium of our Luthécia team! We're all very attached to it.<br><br>Twelve clubs compete to be the best. You can check the standings to see how they're doing.<br><br>If you want to join the team, get your licence in the changing room and train until you rank among the club's 15 best players. Ask the assistant coach for advice; that's what they're here for.<br><br>You can have a drink, buy club merchandise, bet on matches or join the supporters' club.<br><br>Don't be fooled: this is much more than a place to play sports. You'll see for yourself; mayors have lost office, or been re-elected, depending on the supporters' mood...<br><br>Go on, look around and try something!",
+    "followRoadTitle": "Follow the road",
+    "townHallStreetTitle": "You are now on Town Hall Street"
+  },
+  "es": {
+    "stadium": "¡Este es el estadio del equipo de Luthécia! Aquí le tenemos mucho cariño.<br><br>Doce clubes compiten para ser los mejores. Puedes consultar la clasificación para ver cómo van.<br><br>Si quieres entrar en el equipo, debes obtener una licencia en el vestuario y entrenarte hasta estar entre los 15 mejores jugadores del club. Pide consejo al entrenador adjunto: para eso está.<br><br>También puedes tomar algo, comprar artículos del club, apostar en los partidos o unirte a la peña de aficionados.<br><br>Pero no te confundas: esto es mucho más que un recinto deportivo. Ya verás que algunos alcaldes han perdido el cargo y otros han sido reelegidos según el humor de los aficionados...<br><br>¡Adelante, echa un vistazo y prueba algo!",
+    "followRoadTitle": "Sigue la calle",
+    "townHallStreetTitle": "Has llegado a la calle del Ayuntamiento"
+  },
+  "zh-TW": {
+    "stadium": "這裡就是盧泰西亞隊的球場！我們都對它很有感情。<br><br>十二家俱樂部相互競爭，爭奪第一。你可以查看排行榜，了解目前的成績。<br><br>想加入球隊，就先到更衣室辦理球員資格，再透過訓練躋身俱樂部前 15 名球員。可以向助理教練請教，他就是來幫忙的。<br><br>這裡還能喝一杯、購買俱樂部商品、投注比賽，或加入球迷會。<br><br>別以為這裡只是運動場所。你慢慢就會發現，球迷的情緒甚至曾讓市長下台，或幫助他們連任……<br><br>去逛逛吧，試著參加點活動！",
+    "followRoadTitle": "沿路前進",
+    "townHallStreetTitle": "你已來到市政廳街"
+  },
+  "ru": {
+    "stadium": "Это стадион нашей команды из Лютеции! Мы все очень им дорожим.<br><br>Двенадцать клубов борются за звание лучшего. Их положение можно посмотреть в турнирной таблице.<br><br>Если хотите попасть в команду, оформите лицензию в раздевалке и тренируйтесь, пока не войдёте в число 15 лучших игроков клуба. За советом обращайтесь к помощнику тренера.<br><br>Здесь можно выпить, купить клубную атрибутику, сделать ставки на матчи или вступить в клуб болельщиков.<br><br>Но стадион — не просто спортивное сооружение. Вы сами увидите: настроение болельщиков помогало одним мэрам переизбраться, а других лишало должности...<br><br>Осмотритесь и попробуйте что-нибудь!",
+    "followRoadTitle": "Следуйте по дороге",
+    "townHallStreetTitle": "Вы на улице мэрии"
+  },
+  "ko": {
+    "stadium": "여기는 루테시아 팀의 경기장이에요! 모두가 애정을 갖고 있는 곳이죠.<br><br>12개 클럽이 최고 자리를 놓고 경쟁해요. 순위표를 확인하면 현재 순위를 알 수 있어요.<br><br>팀에 들어가려면 탈의실에서 선수 등록을 하고 훈련을 통해 클럽 상위 15명의 선수 안에 들어야 해요. 부코치에게 조언을 구해 보세요.<br><br>음료를 마시거나 클럽 상품을 사고, 경기에 베팅하거나 서포터즈에 가입할 수도 있어요.<br><br>하지만 이곳은 단순한 스포츠 시설이 아니에요. 팬들의 분위기에 따라 시장이 자리를 잃기도 하고 재선되기도 했으니까요…<br><br>둘러보고 뭔가 체험해 보세요!",
+    "followRoadTitle": "길을 따라가세요",
+    "townHallStreetTitle": "시청 거리로 왔습니다"
+  },
+  "ar": {
+    "stadium": "هذا ملعب فريقنا في لوتيسيا! كلنا نعتز به كثيرًا.<br><br>يتنافس اثنا عشر ناديًا على لقب الأفضل، ويمكنك الاطلاع على جدول الترتيب لمعرفة مراكزها.<br><br>إذا أردت الانضمام إلى الفريق، فاستخرج رخصة لاعب من غرفة تبديل الملابس، وتدرّب حتى تصبح بين أفضل 15 لاعبًا في النادي. يمكنك طلب المشورة من مساعد المدرب.<br><br>يمكنك أيضًا تناول مشروب، أو شراء مستلزمات النادي، أو المراهنة على المباريات، أو الانضمام إلى نادي المشجعين.<br><br>لكن هذا أكثر من مجرد مكان للرياضة؛ فمزاج المشجعين ساعد بعض رؤساء البلديات على إعادة انتخابهم وتسبب في خسارة آخرين لمناصبهم...<br><br>تجول في المكان وجرب شيئًا!",
+    "followRoadTitle": "اتبع الطريق",
+    "townHallStreetTitle": "أنت الآن في شارع دار البلدية"
+  },
+  "pt-BR": {
+    "stadium": "Este é o estádio do nosso time de Luthécia! Todos nós temos muito carinho por ele.<br><br>Doze clubes disputam o título de melhor equipe. Você pode consultar a classificação para ver a posição de cada um.<br><br>Se quiser entrar para o time, tire sua licença no vestiário e treine até ficar entre os 15 melhores jogadores do clube. Peça conselhos ao auxiliar técnico — ele está aqui para isso.<br><br>Também dá para tomar uma bebida, comprar produtos do clube, apostar nas partidas ou participar da torcida organizada.<br><br>Mas este lugar é muito mais do que um estádio. Você verá que prefeitos já perderam o cargo ou foram reeleitos conforme o humor da torcida...<br><br>Vá explorar e experimente alguma atividade!",
+    "followRoadTitle": "Siga pela rua",
+    "townHallStreetTitle": "Você chegou à Rua da Prefeitura"
+  },
+  "de": {
+    "stadium": "Das ist das Stadion unseres Teams aus Luthécia! Es liegt uns allen sehr am Herzen.<br><br>Zwölf Vereine kämpfen darum, der beste zu sein. Die aktuelle Rangliste kannst du jederzeit einsehen.<br><br>Wenn du ins Team willst, hol dir deine Spielerlizenz in der Umkleide und trainiere, bis du zu den 15 besten Spielern des Vereins gehörst. Der Co-Trainer kann dir dabei helfen.<br><br>Hier kannst du etwas trinken, Fanartikel kaufen, auf Spiele wetten oder dem Fanclub beitreten.<br><br>Aber dieses Stadion ist viel mehr als nur eine Sportstätte. Manche Bürgermeister haben wegen der Stimmung der Fans ihr Amt verloren, andere wurden gerade deshalb wiedergewählt...<br><br>Schau dich um und probiere etwas aus!",
+    "followRoadTitle": "Folge der Straße",
+    "townHallStreetTitle": "Du bist jetzt in der Rathausstraße"
+  }
+};
+ for(const [lang,translations] of Object.entries(visitTitles)) Object.assign(labels[lang],translations);
  for(const [lang,strings] of Object.entries(labels))
   if(resources[lang]?.translation)resources[lang].translation.jeremyScenes={...strings};
  function label(key,original){
