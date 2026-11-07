@@ -1,0 +1,23 @@
+{
+  "lot": "L8",
+  "branche": "codex/mobile-l8-reprise-20261106",
+  "main_integre": "a5e32332",
+  "sha_teste_avant_compte_rendu": "ee4ec1fd61408a127dc0d91169b750c324eb7a7a",
+  "tests": {
+    "ui": {
+      "reussis": 4,
+      "echecs": 0
+    },
+    "clients": {
+      "reussis": 19,
+      "echecs": 0
+    }
+  },
+  "garderBatiment_preserve": true,
+  "code_applicatif_modifie": false,
+  "migration_executee": false,
+  "production_authentifiee": false,
+  "titre_pr": "Mobile L8 — Revalidation de la reprise réseau et protection garderBatiment",
+  "description_pr": "minuterie commune #579, réponses tardives, identité, perte réseau et retour visible",
+  "base_pr": "main"
+}

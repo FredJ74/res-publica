@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-07",
+  "main_integre": "a5e32332a88717a7b59ac1a4fee3e63e64a6c39e",
+  "controleur_client": {
+    "etat": "terminee",
+    "prevus": 199,
+    "reussis": 199,
+    "echecs": 0,
+    "sql_execute": false
+  },
+  "workflow": "conforme",
+  "diff_check": "conforme",
+  "code_applicatif_identique_a_main_sur_les_six_branches": true,
+  "nouveaux_tests": {
+    "fichier": "outils/bancs/banc-mobile-restauration-retardee.cjs",
+    "nombre_ajoute": 3,
+    "objet": "garderBatiment #579"
+  },
+  "authentification_reelle_testee": false,
+  "safari_ou_android_reel_testes": false,
+  "deux_appareils_authentifies_testes": false,
+  "migration_executee": false,
+  "pr_creee_ou_fusionnee_dans_cette_session": false,
+  "preuves_ciblees": [
+    "MOBILE-REPRISE-L5-20261107.json",
+    "MOBILE-REPRISE-L8-20261107.json",
+    "MOBILE-REPRISE-L4-20261107.json",
+    "MOBILE-REPRISE-L7-20261107.json",
+    "MOBILE-REPRISE-L9-20261107.json",
+    "MOBILE-REPRISE-L10-20261107.json"
+  ]
+}

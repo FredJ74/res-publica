@@ -1,0 +1,21 @@
+{
+  "main": "a5e32332",
+  "comparaison": "fixtures locales, pas un compte authentifié",
+  "png_1440": {
+    "plateau": {
+      "identiques": true,
+      "sha256": "78162d765b6d26a2d5a3b13c31e3a0e84d9deeffa61bbf025d34633a35811384",
+      "largeur": 1440
+    },
+    "creation": {
+      "identiques": true,
+      "sha256": "cb2620ccb6da7ef219d6431c03c08a7fccee320e45b78d467c68c044ede6307b",
+      "largeur": 1440
+    },
+    "forum": {
+      "identiques": true,
+      "sha256": "0d7f587b0fd0431fd012100265b8e8a479040dbb9099ccf573061d47113a7dc0",
+      "largeur": 1440
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "lot": "L10",
+  "branche": "codex/mobile-l10-recette-20261106",
+  "main_integre": "a5e32332",
+  "sha_teste_avant_compte_rendu": "0fbf015e3a0f9fc0147df2ca2ff52cafac47d999",
+  "tests": {
+    "ui": {
+      "reussis": 21,
+      "echecs": 0
+    },
+    "clients": {
+      "reussis": 37,
+      "echecs": 0
+    }
+  },
+  "garderBatiment_preserve": true,
+  "code_applicatif_modifie": false,
+  "migration_executee": false,
+  "production_authentifiee": false,
+  "titre_pr": "Mobile L10 — Recette mobile consolidée après main du 7 novembre",
+  "description_pr": "coque, forum, création, reprise, garderBatiment et témoins 1440",
+  "base_pr": "main"
+}
