@@ -17,6 +17,9 @@ for(const file of ['resources.js','character-sheet-resources.js']){
 const keys=['identity','statistics','characteristics','resources','totalMoney','cash','bank',
  'investments','outstandingLoans','influence','popularity','discretion','health','morale','journey',
  'forumSignature','edit','hotelReservations','inventory','noItems','noReservedNights','readUnavailable'];
+const actionKeys=['sleep','sleepNow','heal','useMedicine','meditate','tacticalActions','hide',
+ 'myVehicles','organizeBlockade','unionBlockadeHere','renewUnionBlockade','noPaBonus',
+ 'paBonusTomorrow','alreadySlept','noMedicine','meditateHint'];
 const section=source.slice(source.indexOf('async function openCharSheet()'),
  source.indexOf('function switchCharSheetTab('));
 test('fiche personnage : 22 titres traduits dans neuf langues',()=>{
@@ -25,7 +28,7 @@ test('fiche personnage : 22 titres traduits dans neuf langues',()=>{
  for(const locale of Object.keys(win.RP_I18N_LANGUAGES)){
   lang=locale;
   const labels=win.RP_I18N_RESOURCES[locale].translation.characterSheet;
-  assert.deepEqual(Object.keys(labels).sort(),keys.slice().sort(),locale+': ensemble des clés');
+  assert.deepEqual(Object.keys(labels).sort(),keys.concat(actionKeys).sort(),locale+': ensemble des clés');
   for(const key of keys){
    assert.ok(labels[key]?.trim(),locale+': '+key);
    const origin=win.RP_I18N_RESOURCES.fr.translation.characterSheet[key];
@@ -33,6 +36,29 @@ test('fiche personnage : 22 titres traduits dans neuf langues',()=>{
      .replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),locale+': texte');
    assert.ok(section.includes("rpCharSheetLabel('"+key+"'"),locale+': intégration '+key);
   }
+ }
+});
+test('actions personnelles : 16 boutons et états visibles en neuf langues, commandes inchangées',()=>{
+ assert.equal(actionKeys.length,16);
+ const personal=source.slice(source.indexOf('function switchSelfTab('),
+  source.indexOf('// =====================\n// ',source.indexOf('function switchSelfTab(')+100));
+ for(const locale of Object.keys(win.RP_I18N_LANGUAGES)){
+  lang=locale;
+  const texts=win.RP_I18N_RESOURCES[locale].translation.characterSheet;
+  for(const key of actionKeys){
+   assert.ok(texts[key]?.trim(),locale+': '+key);
+   const origin=win.RP_I18N_RESOURCES.fr.translation.characterSheet[key];
+   assert.equal(win.RPCharacterSheetI18n.label(key,origin),texts[key]
+    .replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
+   assert.ok(personal.includes("rpCharSheetLabel('"+key+"'"),key+': liaison au DOM');
+  }
+ }
+ // Les ordres de l'ancien menu restent identiques : coût, cible, échec et réputation ne sont pas traduits.
+ for(const invariant of ["onclick=\"doDormir()\"","onclick=\"doSesoigner()\"",
+  "doOrder(\\'se_reposer\\',1,0,\\'Mediter\\'","doOrder(\\'se_cacher\\',1,0,\\'Se cacher\\'",
+  "doOrder(\\'organiser_blocus\\',1,0,\\'Organiser un blocus\\'","'70% · 1 PA'",
+  "Math.min(90, 25 + (groupSize - 1))","doOrganiserBlocusSyndical()","doRenouvelerBlocusSyndical()"]){
+  assert.ok(personal.includes(invariant),invariant);
  }
 });
 test('la fiche garde ses onglets, calculs, droits et erreurs de lecture distincts',()=>{
