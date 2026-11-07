@@ -49,11 +49,28 @@ test('langue cible non prise en charge : ni lecture privée ni appel payant',asy
  const r=await traduireContenu({...input,langueCible:'xx'},deps);
  assert.equal(r.ok,false);assert.deepEqual(calls,[]);
 });
-test('source sans version : aucun cache partagé, aucun appel payant',async()=>{
- const {calls,deps}=fixtures();deps.readUnderRls=async()=>{calls.push('rls');return {text:'Bonjour',language:'fr'}};
+test('source sans colonne version : hash de contenu calculé APRÈS la lecture RLS',async()=>{
+ const {calls,deps}=fixtures();const keys=[];
+ deps.readUnderRls=async()=>{calls.push('rls');return {text:'Bonjour',language:'fr'}};
+ deps.readCache=async key=>{calls.push('cache');keys.push(key);return null};
  const r=await traduireContenu(input,deps);
- assert.equal(r.raison,'version_absente');assert.deepEqual(calls,['auth','rls']);
+ assert.equal(r.ok,true);assert.deepEqual(calls,['auth','rls','cache','quota','provider','write']);
+ assert.match(keys[0],/sha256:/);
 });
+test('version explicite invalide : refus avant cache et quota',async()=>{
+ const {calls,deps}=fixtures();
+ deps.readUnderRls=async()=>{calls.push('rls');return {text:'Bonjour',language:'fr',version:'x'.repeat(129)}};
+ const r=await traduireContenu(input,deps);
+ assert.equal(r.raison,'version_invalide');assert.deepEqual(calls,['auth','rls']);
+});
+test('origine linguistique inconnue : traduction sans inventer une langue française',async()=>{
+ const {calls,deps}=fixtures();
+ deps.readUnderRls=async()=>{calls.push('rls');return {text:'Hola {{name}}',language:'und'}};
+ const r=await traduireContenu(input,deps);
+ assert.equal(r.ok,true);assert.equal(r.langueOriginale,'und');
+ assert.deepEqual(calls,['auth','rls','cache','quota','provider','write']);
+});
+
 
 test('un cache corrompu avec des variables changées ne peut pas être servi',async()=>{
  const {calls,deps}=fixtures();deps.readCache=async()=>{calls.push('cache');return 'Hello {{wrong}}'};
