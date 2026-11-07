@@ -85,6 +85,11 @@ async function run(){
       expectedPnj:window.RP_I18N_RESOURCES?.[language]?.translation?.pnjStatus?.temporaryUnavailable,
       disabledPnj:window.RPPnjStatusI18n?.label('noConversation',"Ce personnage n'engage pas de conversation."),
       expectedDisabledPnj:window.RP_I18N_RESOURCES?.[language]?.translation?.pnjStatus?.noConversation,
+      sheetTitle:window.RPCharacterSheetI18n?.label('identity','Identité'),
+      expectedSheetTitle:window.RP_I18N_RESOURCES?.[language]?.translation?.characterSheet?.identity,
+      sleepButton:window.RPCharacterSheetI18n?.label('sleepNow','Dormir maintenant'),
+      expectedSleepButton:window.RP_I18N_RESOURCES?.[language]?.translation?.characterSheet?.sleepNow,
+      sheetUnknown:window.RPCharacterSheetI18n?.label('unknown','Nom personnel inchangé'),
       // Panneau personnel du vrai HTML, pas seulement le dictionnaire.
       panelLabels:Object.fromEntries(['myStats','myGoals','myEmployees','inventory'].map(key=>{
         const el=document.querySelector('[data-i18n="plateau.'+key+'"]');
@@ -113,6 +118,9 @@ async function run(){
    assert.equal(state.toastTitle,state.expectedToast,language+': notification localisée sans changer raison serveur');
    assert.equal(state.unavailablePnj,state.expectedPnj,language+': PNJ en panne localisé');
    assert.equal(state.disabledPnj,state.expectedDisabledPnj,language+': PNJ sans profil localisé');
+   assert.equal(state.sheetTitle,state.expectedSheetTitle,language+': onglet de fiche PJ');
+   assert.equal(state.sleepButton,state.expectedSleepButton,language+': action de sommeil localisée');
+   assert.equal(state.sheetUnknown,'Nom personnel inchangé',language+': aucun contenu PJ retraduit');
    for(const [key,entry] of Object.entries(state.panelLabels)){
      assert.ok(entry.expected,language+': absent du catalogue du panneau '+key);
      assert.equal(entry.visible,key==='myEmployees'||key==='inventory'
