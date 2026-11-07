@@ -126,3 +126,26 @@ test('guide personnage : les montants et attributs respectent les origines du se
   assert.ok(render(locale,false,'personnage').length>200,locale);
  }
 });
+
+
+test('tutoriel : sommeil et salaire ne déclenchent pas le temps, aucun rattrapage',()=>{
+ const source=fs.readFileSync(path.join(root,'plateau-personnage.js'),'utf8');
+ const ref=source.slice(source.indexOf('  tuto: {'),source.indexOf('  intro: {'));
+ assert.ok(ref.includes("Le temps du jeu suit l'heure réelle"));
+ assert.ok(ref.includes("jours sans sommeil ne sont pas rattrapés"));
+ assert.ok(!ref.includes('fait avancer le temps'));
+ const phrases={
+  en:'missed sleep days cannot be reclaimed',
+  es:'días sin dormir no se recuperan',
+  'zh-TW':'錯過的睡眠日不能補領',
+  ru:'пропущенные дни сна не компенсируются',
+  ko:'잠을 건너뛴 날은 나중에 보충할 수 없습니다',
+  ar:'لا يمكن تعويض أيام النوم الفائتة',
+  'pt-BR':'dias sem dormir não podem ser recuperados',
+  de:'verpasste Schlaftage lassen sich nicht nachholen'
+ };
+ for(const [lng,phrase] of Object.entries(phrases)){
+  const tuto=win.RP_I18N_RESOURCES[lng].translation.guide.tuto.contenu;
+  assert.ok(tuto.includes(phrase),lng+' missing real clock semantics');
+ }
+});
