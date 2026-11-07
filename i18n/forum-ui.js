@@ -98,6 +98,118 @@
     "sendAs": "Senden als"
   }
 };
+ // Menus du forum : le texte seulement, pas les catégories, compteurs ni accès.
+ const sidebar={
+  "fr": {
+    "institutions": "Institutionnels",
+    "mailbox": "Boîte Mail",
+    "receivedMails": "Mails reçus",
+    "sentMails": "Mails envoyés",
+    "archivedMails": "Mails archivés",
+    "nationalForums": "Forums nationaux",
+    "internationalForums": "Forums internationaux",
+    "privateForums": "Forums privés",
+    "noMessages": "Aucun message",
+    "noOrganizations": "Aucune organisation trouvée. Rejoignez ou fondez une organisation pour accéder à son forum privé."
+  },
+  "en": {
+    "institutions": "Institutions",
+    "mailbox": "Mailbox",
+    "receivedMails": "Received mail",
+    "sentMails": "Sent mail",
+    "archivedMails": "Archived mail",
+    "nationalForums": "National forums",
+    "internationalForums": "International forums",
+    "privateForums": "Private forums",
+    "noMessages": "No messages",
+    "noOrganizations": "No organizations found. Join or create an organization to access its private forum."
+  },
+  "es": {
+    "institutions": "Instituciones",
+    "mailbox": "Buzón",
+    "receivedMails": "Correo recibido",
+    "sentMails": "Correo enviado",
+    "archivedMails": "Correo archivado",
+    "nationalForums": "Foros nacionales",
+    "internationalForums": "Foros internacionales",
+    "privateForums": "Foros privados",
+    "noMessages": "Sin mensajes",
+    "noOrganizations": "No se encontraron organizaciones. Únete o crea una organización para acceder a su foro privado."
+  },
+  "zh-TW": {
+    "institutions": "官方機構",
+    "mailbox": "信箱",
+    "receivedMails": "收到的郵件",
+    "sentMails": "寄出的郵件",
+    "archivedMails": "封存的郵件",
+    "nationalForums": "全國論壇",
+    "internationalForums": "國際論壇",
+    "privateForums": "私人論壇",
+    "noMessages": "沒有訊息",
+    "noOrganizations": "找不到組織。加入或建立組織，即可進入其私人論壇。"
+  },
+  "ru": {
+    "institutions": "Учреждения",
+    "mailbox": "Почта",
+    "receivedMails": "Входящие письма",
+    "sentMails": "Отправленные письма",
+    "archivedMails": "Архив писем",
+    "nationalForums": "Национальные форумы",
+    "internationalForums": "Международные форумы",
+    "privateForums": "Закрытые форумы",
+    "noMessages": "Нет сообщений",
+    "noOrganizations": "Организации не найдены. Вступите в организацию или создайте свою, чтобы открыть её закрытый форум."
+  },
+  "ko": {
+    "institutions": "기관",
+    "mailbox": "우편함",
+    "receivedMails": "받은 편지",
+    "sentMails": "보낸 편지",
+    "archivedMails": "보관된 편지",
+    "nationalForums": "국가 포럼",
+    "internationalForums": "국제 포럼",
+    "privateForums": "비공개 포럼",
+    "noMessages": "메시지 없음",
+    "noOrganizations": "조직이 없습니다. 비공개 포럼에 접근하려면 조직에 가입하거나 새로 만드세요."
+  },
+  "ar": {
+    "institutions": "المؤسسات",
+    "mailbox": "صندوق البريد",
+    "receivedMails": "البريد الوارد",
+    "sentMails": "البريد المرسل",
+    "archivedMails": "البريد المؤرشف",
+    "nationalForums": "المنتديات الوطنية",
+    "internationalForums": "المنتديات الدولية",
+    "privateForums": "المنتديات الخاصة",
+    "noMessages": "لا توجد رسائل",
+    "noOrganizations": "لم يُعثر على منظمات. انضم إلى منظمة أو أنشئ واحدة للوصول إلى منتداها الخاص."
+  },
+  "pt-BR": {
+    "institutions": "Instituições",
+    "mailbox": "Caixa de correio",
+    "receivedMails": "E-mails recebidos",
+    "sentMails": "E-mails enviados",
+    "archivedMails": "E-mails arquivados",
+    "nationalForums": "Fóruns nacionais",
+    "internationalForums": "Fóruns internacionais",
+    "privateForums": "Fóruns privados",
+    "noMessages": "Nenhuma mensagem",
+    "noOrganizations": "Nenhuma organização encontrada. Entre em uma organização ou crie uma para acessar seu fórum privado."
+  },
+  "de": {
+    "institutions": "Institutionen",
+    "mailbox": "Postfach",
+    "receivedMails": "Empfangene Nachrichten",
+    "sentMails": "Gesendete Nachrichten",
+    "archivedMails": "Archivierte Nachrichten",
+    "nationalForums": "Nationale Foren",
+    "internationalForums": "Internationale Foren",
+    "privateForums": "Private Foren",
+    "noMessages": "Keine Nachrichten",
+    "noOrganizations": "Keine Organisation gefunden. Treten Sie einer Organisation bei oder gründen Sie eine, um auf ihr privates Forum zuzugreifen."
+  }
+};
+ for(const [lang,labels] of Object.entries(sidebar)) Object.assign(words[lang],labels);
  const keys=new Set(Object.keys(words.fr));
  for(const [lang,labels] of Object.entries(words)){
   if(resources[lang]?.translation)
