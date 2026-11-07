@@ -73,3 +73,21 @@ test('les boutons communs restent cliquables, localisés et conservent leurs ic�
  assert.match(markup,/onclick="envoyerComposeMail\(\)"[^>]*>[\s\S]{0,180}<span data-i18n="plateau\.sendButton">Envoyer<\/span>/);
  assert.match(markup,/data-i18n-title="plateau\.backHomeTitle"/);
 });
+
+
+test('menu mobile : 3 commandes historiques et libellé vocal en neuf langues',()=>{
+ const names={personnage:'mobileCharacter',personnes:'mobilePresent',menu:'mobileMenu'};
+ for(const code of Object.keys(window.RP_I18N_LANGUAGES)){
+  const dict=window.RP_I18N_RESOURCES[code].translation.plateau;
+  for(const key of [...Object.values(names),'mobileClosePanel'])
+   assert.ok(dict[key]?.trim(),code+'/'+key);
+ }
+ for(const [panel,key] of Object.entries(names)){
+  const line=markup.split('\n').find(l=>l.includes('data-hg-panneau="'+panel+'"'));
+  assert.ok(line,'missing mobile panel '+panel);
+  assert.ok(line.includes('data-i18n="plateau.'+key+'"'),'not localised '+panel);
+  assert.ok(line.includes('aria-expanded="false"'),'ARIA missing '+panel);
+ }
+ assert.match(markup,/id="hg-mobile-fond"[^>]*aria-label="Fermer le panneau"[^>]*data-i18n-aria-label="plateau\.mobileClosePanel"/);
+ assert.match(markup,/src="plateau-mobile\.js[^"]*" defer/);
+});
