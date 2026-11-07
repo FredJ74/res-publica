@@ -536,8 +536,8 @@
   const place=String(variables?.place||'');
   // Le HTML d'affichage des popups ne doit jamais interpréter les noms.
   const escape=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  template=template.replace(/\\{\\{(name|place)\\}\\}/g,(_,item)=>escape(item==='name'?name:place));
-  return /\\{\\{|\\}\\}/.test(template)?fallback:template;
+  template=template.replaceAll('{{name}}',escape(name)).replaceAll('{{place}}',escape(place));
+  return template.includes('{{')||template.includes('}}')?fallback:template;
  }
  global.RPJeremyScenesI18n=Object.freeze({label,format});
 })(window);
