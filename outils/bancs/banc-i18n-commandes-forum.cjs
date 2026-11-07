@@ -58,3 +58,35 @@ test('aucun HTML arbitraire ne traverse les traductions des boutons',()=>{
  win.i18next.t=original;
  assert.equal(win.RPForumUI.labelHtml('noSuchKey','Texte original'),'Texte original');
 });
+
+
+test('sept forums canoniques : titres et descriptions sans élargir les accès',()=>{
+ const french={
+  national:['Forum National','Débats politiques nationaux'],
+  presidence:['La Présidence à la Nation','Discours et annonces officielles depuis la Présidence'],
+  assemblee:["L'Assemblée nationale",'Projets de loi, débats parlementaires et résultats des scrutins'],
+  gouvernement:['Le Gouvernement à la Nation','Réservé au gouvernement'],
+  presse:['Presse & Médias','Réservé aux journalistes'],
+  international:['Forum International','Relations entre empires'],
+  sport:['Championnat Sportif','Résultats, classements et débats de supporters']
+ };
+ for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+  lang=lng;
+  for(const [id,[name,desc]] of Object.entries(french)){
+   const data=win.RP_I18N_RESOURCES[lng].translation;
+   assert.ok(data.forumNames[id]?.length,lng+': name '+id);
+   assert.ok(data.forumDescriptions[id]?.length,lng+': desc '+id);
+   assert.ok(win.RPForumUI.forumNameHtml(id,name)?.length);
+   assert.ok(win.RPForumUI.forumDescriptionHtml(id,desc)?.length);
+  }
+ }
+ lang='ru';
+ // L'intitulé d'un forum local, privé ou renommé reste strictement inchangé.
+ for(const [id,value] of [['local_novomirsk','Forum local — Novomirsk'],['gouvernement','Conseil Central'],['organisation_7','Organisation privée']]){
+  assert.equal(win.RPForumUI.forumNameHtml(id,value),value);
+ }
+ assert.ok(source.includes('rpForumNom(id,f.name)'));
+ assert.ok(source.includes('rpForumNom(currentForumId,f.name)'));
+ assert.ok(source.includes('rpForumDescription(currentForumId,f.desc)'));
+ assert.ok(source.includes('canAccessForum(id)'));
+});
