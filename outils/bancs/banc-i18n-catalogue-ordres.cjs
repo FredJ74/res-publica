@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('371 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('380 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,371);
+ assert.equal(ref.length,380);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -479,5 +479,29 @@ test('20 autres ordres citoyens, diplomatiques et juridiques : sources et contra
    assert.equal(win.RPOrderI18n.label(original,engine,lang),translation,lang+'/'+fn);
   }
   assert.equal(original.cost,120);assert.equal(original.pa,2);assert.equal(original.requiresPost,'test');
+ }
+});
+
+
+test('neuf commandes stables restantes : parité avec sources et invariants métier',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const {extract}=require('../audits/libelles-ordres-source.cjs');
+ const declared=new Map();
+ for(const {fn,label} of extract(source)){
+  if(!declared.has(fn))declared.set(fn,new Set());
+  declared.get(fn).add(label);
+ }
+ const ids=["recherche_militaire","equiper_section","retirer_equipement_militaire","contrebande_poissonniere","aller_douanes_aeroport","consulter_organigramme_syndicat","orga_anatheme","orga_rituel","orga_rehabilitation"];
+ const fr=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const fn of ids){
+  assert.ok(declared.get(fn)?.has(fr[fn]),'libellé source '+fn);
+  const original=Object.freeze({fn,label:fr[fn],cost:241,pa:1,requiresPost:'simule'});
+  for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+   const expected=win.RP_I18N_RESOURCES[lng].translation.orders[fn];
+   assert.ok(expected?.trim(),lng+'/'+fn);
+   assert.equal(win.RPOrderI18n.label(original,engine,lng),expected,lng+'/'+fn);
+  }
+  assert.equal(original.fn,fn);assert.equal(original.label,fr[fn]);
+  assert.equal(original.cost,241);assert.equal(original.pa,1);assert.equal(original.requiresPost,'simule');
  }
 });
