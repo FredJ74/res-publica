@@ -62,6 +62,7 @@ on:
       - 'i18n/jeremy-scenes-resources.js'
       - 'outils/bancs/banc-i18n-premieres-scenes-jeremy.cjs'
       - 'outils/bancs/banc-i18n-quete-carriere.cjs'
+      - 'outils/bancs/banc-i18n-presentation-forum-jeremy.cjs'
       - 'i18n/guard-welcome-resources.js'
       - 'outils/bancs/banc-i18n-garde-accueil.cjs'
       - 'outils/audits/audit-i18n-editorial.cjs'
@@ -171,6 +172,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-premieres-scenes-jeremy.cjs
       - name: Choix métier et orientation — neuf langues, référents préservés
         run: node --test outils/bancs/banc-i18n-quete-carriere.cjs
+      - name: Présentation forum et courrier Jérémy — neuf langues sans publication client
+        run: node --test outils/bancs/banc-i18n-presentation-forum-jeremy.cjs
       - name: Garde présidentiel — premier dialogue de la quête en neuf langues
         run: node --test outils/bancs/banc-i18n-garde-accueil.cjs
       - name: Audit de parité des variables et langues — 12 catalogues
