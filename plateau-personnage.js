@@ -4124,9 +4124,12 @@ function renderRulesContent(section) {
   // Le texte français de REGLES reste source et repli. Le moteur i18next déjà
   // chargé fournit uniquement des versions d'affichage, jamais de logique.
   const langueGuide = window.RPPlateauI18n?.language?.() || 'fr';
+  // Si REGLES a changé depuis la relecture des traductions, conserver la
+  // nouvelle règle française plutôt que publier une explication périmée.
+  const guideTraductionValide = window.RPGuideIntegrity?.valid?.(section,regle) === true;
   const lireGuide = (champ) => {
     const original=regle[champ];
-    if(langueGuide==='fr' || typeof window.i18next?.t!=='function')return original;
+    if(langueGuide==='fr' || !guideTraductionValide || typeof window.i18next?.t!=='function')return original;
     const key='guide.'+section+'.'+champ;
     const value=window.i18next.t(key,{lng:langueGuide,defaultValue:original});
     return typeof value==='string' && value.trim() && value!==key ? value : original;
