@@ -30,16 +30,20 @@ async function traduireContenu({type,id,field,langueCible},deps) {
  // La dépense ne doit pas être engagée sur du texte vide, illisible ou déjà localisé.
  if(!original.trim() || original.length>1800 || /[\u0000-\u0008\u000E-\u001F]/.test(original))
   return refuse('texte_invalide');
- if(typeof record.version!=='string' || !record.version || record.version.length>128)return refuse('version_absente');
+ // Les trois tables sociales en production n'ont pas de colonne « version ».
+ // Un hash de l'original LU SOUS RLS suffit à invalider le cache sur édition.
+ // Toute version explicite fournie par une source de confiance reste acceptée.
+ const fingerprint=createHash('sha256').update(original,'utf8').digest('hex');
+ const version=record.version==null?'sha256:'+fingerprint:record.version;
+ if(typeof version!=='string'||!version||version.length>128)return refuse('version_invalide');
  // 'und' signifie source inconnue : les messages PJ n'ont actuellement
  // aucune colonne langue en base. Ne pas présumer du français.
  if(!langueAdmise(record.language) && record.language!=='und')return refuse('langue_source_invalide');
  if(record.language===langueCible) return Object.freeze({ok:true,original,traduit:original,fromCache:true});
- const fingerprint=createHash('sha256').update(original,'utf8').digest('hex');
  // Cache partagé entre lecteurs AUTORISÉS : le droit de lecture RLS est
  // recontrôlé avant CHAQUE accès au cache. L'UID reste attaché à la réservation
  // de quota, pas à la traduction réutilisable d'un même contenu.
- const key=JSON.stringify([type,source.id,field,record.version,fingerprint,record.language,langueCible]);
+ const key=JSON.stringify([type,source.id,field,version,fingerprint,record.language,langueCible]);
  // Même un résultat déjà en cache a été précédé de la lecture autorisée sous RLS.
  let cached;
  try { cached=await deps.readCache(key); } catch { cached=null; }
