@@ -1,0 +1,38 @@
+[
+  {
+    "title": "Mobile L5 — Revalidation inventaire et tableaux après main du 7 novembre",
+    "head": "codex/mobile-l5-transactions-20261106",
+    "base": "main",
+    "body": "Revalidation du lot L5 déjà en bêta ; main a5e32332 conservé. SHA testé avant compte rendu : a5e32332a88717a7b59ac1a4fee3e63e64a6c39e. Lot déjà en bêta, synchronisé avec main ; inventaire/tableaux et gardes financières existantes testés, aucune modification applicative. Tests locaux : {\"ui\": {\"reussis\": 2, \"echecs\": 0, \"bureau1440\": \"PNG identiques au témoin\"}, \"clients\": {\"reussis\": 31, \"echecs\": 0}}. gardes garderBatiment conservées ; nouvel ajout uniquement de régression dans le lot L8. Aucun ordre, montant, texte RP ou migration modifié. Contrôles attendus : bancs-hors-production et les gardes habituelles sur le SHA de PR. Les appareils réels et comptes authentifiés ne sont pas certifiés ici. Intégration dans l'ordre L5 → L8 → L4 → L7 → L9 → L10, rediff après chaque fusion pour éviter les doublons déjà livrés."
+  },
+  {
+    "title": "Mobile L8 — Revalidation de la reprise réseau et protection garderBatiment",
+    "head": "codex/mobile-l8-reprise-20261106",
+    "base": "main",
+    "body": "Revalidation du lot L8 déjà en bêta ; main a5e32332 conservé. SHA testé avant compte rendu : ee4ec1fd61408a127dc0d91169b750c324eb7a7a. minuterie commune #579, réponses tardives, identité, perte réseau et retour visible Tests locaux : {\"ui\": {\"reussis\": 4, \"echecs\": 0}, \"clients\": {\"reussis\": 19, \"echecs\": 0}}. gardes garderBatiment conservées ; nouvel ajout uniquement de régression dans le lot L8. Aucun ordre, montant, texte RP ou migration modifié. Contrôles attendus : bancs-hors-production et les gardes habituelles sur le SHA de PR. Les appareils réels et comptes authentifiés ne sont pas certifiés ici. Intégration dans l'ordre L5 → L8 → L4 → L7 → L9 → L10, rediff après chaque fusion pour éviter les doublons déjà livrés."
+  },
+  {
+    "title": "Mobile L4 — Revalidation connexion et création dans les six langues",
+    "head": "codex/mobile-l4-creation-20261106",
+    "base": "main",
+    "body": "Revalidation du lot L4 déjà en bêta ; main a5e32332 conservé. SHA testé avant compte rendu : 1340808d8cd6dd218ee88dba3ebf319ab9e22436. six langues, explications En jeu conservées, choix réversibles, affichage 1440 identique Tests locaux : {\"ui\": {\"reussis\": 2, \"echecs\": 0}, \"clients\": {\"reussis\": 7, \"echecs\": 0}}. gardes garderBatiment conservées ; nouvel ajout uniquement de régression dans le lot L8. Aucun ordre, montant, texte RP ou migration modifié. Contrôles attendus : bancs-hors-production et les gardes habituelles sur le SHA de PR. Les appareils réels et comptes authentifiés ne sont pas certifiés ici. Intégration dans l'ordre L5 → L8 → L4 → L7 → L9 → L10, rediff après chaque fusion pour éviter les doublons déjà livrés."
+  },
+  {
+    "title": "Mobile L7 — Revalidation des écrans institutions et combat",
+    "head": "codex/mobile-l7-institutions-20261106",
+    "base": "main",
+    "body": "Revalidation du lot L7 déjà en bêta ; main a5e32332 conservé. SHA testé avant compte rendu : 3f4805997720809f43ef33da94a9f632f6f9de42. présentation, permissions de rapport fournies par fixtures, ordres policiers conservés Tests locaux : {\"ui\": {\"reussis\": 2, \"echecs\": 0}, \"clients\": {\"reussis\": 17, \"echecs\": 0}}. gardes garderBatiment conservées ; nouvel ajout uniquement de régression dans le lot L8. Aucun ordre, montant, texte RP ou migration modifié. Contrôles attendus : bancs-hors-production et les gardes habituelles sur le SHA de PR. Les appareils réels et comptes authentifiés ne sont pas certifiés ici. Intégration dans l'ordre L5 → L8 → L4 → L7 → L9 → L10, rediff après chaque fusion pour éviter les doublons déjà livrés."
+  },
+  {
+    "title": "Mobile L9 — Revalidation du chargement des miniatures",
+    "head": "codex/mobile-l9-chargement-20261106",
+    "base": "main",
+    "body": "Revalidation du lot L9 déjà en bêta ; main a5e32332 conservé. SHA testé avant compte rendu : c3c1f7b3ea4b68a467e4287239b2726ad68fb7f2. portraits et inventaire en chargement natif différé, scènes conservées Tests locaux : {\"ui\": {\"reussis\": 2, \"echecs\": 0}, \"clients\": {\"reussis\": 8, \"echecs\": 0}}. gardes garderBatiment conservées ; nouvel ajout uniquement de régression dans le lot L8. Aucun ordre, montant, texte RP ou migration modifié. Contrôles attendus : bancs-hors-production et les gardes habituelles sur le SHA de PR. Les appareils réels et comptes authentifiés ne sont pas certifiés ici. Intégration dans l'ordre L5 → L8 → L4 → L7 → L9 → L10, rediff après chaque fusion pour éviter les doublons déjà livrés."
+  },
+  {
+    "title": "Mobile L10 — Recette mobile consolidée après main du 7 novembre",
+    "head": "codex/mobile-l10-recette-20261106",
+    "base": "main",
+    "body": "Revalidation du lot L10 déjà en bêta ; main a5e32332 conservé. SHA testé avant compte rendu : 0fbf015e3a0f9fc0147df2ca2ff52cafac47d999. coque, forum, création, reprise, garderBatiment et témoins 1440 Tests locaux : {\"ui\": {\"reussis\": 21, \"echecs\": 0}, \"clients\": {\"reussis\": 37, \"echecs\": 0}}. gardes garderBatiment conservées ; nouvel ajout uniquement de régression dans le lot L8. Aucun ordre, montant, texte RP ou migration modifié. Contrôles attendus : bancs-hors-production et les gardes habituelles sur le SHA de PR. Les appareils réels et comptes authentifiés ne sont pas certifiés ici. Intégration dans l'ordre L5 → L8 → L4 → L7 → L9 → L10, rediff après chaque fusion pour éviter les doublons déjà livrés."
+  }
+]

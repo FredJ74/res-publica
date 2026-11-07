@@ -773,3 +773,27 @@ du SHA poussé ; aucune tentative REST répétée dans cette session. Pas de mig
 Test téléphone après intégration : parcourir les fenêtres en portrait et paysage puis vérifier le bureau à 1440 px.
 Ces preuves sont locales sur fixtures ; Safari et deux appareils authentifiés restent
 à tester. Aucun ordre, montant, règle, fichier Sovarka ou donnée réelle modifié.
+
+### Reprise mobile — synthèse finale Codex du 07/11
+Les six branches L5 → L8 → L4 → L7 → L9 → L10 ont reçu main a5e32332 ; chaque
+lot est testé séparément puis sauvegardé avec sa rubrique, son SHA testé avant
+compte rendu, son titre/description PR et les contrôles attendus. Aucun ancien
+code réintroduit. Code applicatif des six branches identique à main ; seul ajout
+technique : trois régressions du chargement #579 dans le banc L8, propagées ensuite.
+L'option garderBatiment et ses appels sont intacts, aucune migration exécutée.
+
+Contrôleur final **199/199**, Workflow conforme, diff sans erreur. L10 : 21 tests UI
+et 37 clients ; bureau plateau/création/forum 1440 strictement identique au témoin.
+Rapport : `outils/audits/MOBILE-REPRISE-20261107.md`. Preuves par lot et empreintes
+PNG à côté. Les journaux bruts restent locaux. Corps de PR prêts, vers main, dans
+`outils/livraison/MOBILE-REPRISE-PR-20261107.json`. Claude assure création des PR,
+CI puis intégration, dans l'ordre ; vérifier le diff après chaque fusion puisque
+les fonctionnalités initiales sont déjà en bêta. Pas de tentative REST répétée
+ni de déclaration de CI distante verte par Codex dans cette reprise.
+
+Reste : vrais appareils Safari/Android, clavier/veille OS, deux appareils et compte
+isolé autorisé. Aucune recette authentifiée réelle effectuée ici. Fred/testeurs
+peuvent consulter inventaire, fiche, commerce et banque, parcourir la création sans
+la valider, consulter les rapports et tester retour réseau/rotation sans effectuer
+d'ordre à effets sur un joueur réel. Aucun montant, texte RP, ordre de Sovarka,
+fichier de game design ou donnée de joueur modifié ; aucun arbitrage nécessaire.
