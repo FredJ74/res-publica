@@ -141,3 +141,15 @@ de PSM), un port de Sovarka, le directeur PNJ de l'entrepôt dans la cascade des
 - **Bureaux prestige A et B** : attribués selon le schéma des locaux commerciaux de Sovarka, même cheminement que les Galeries (« Demande de location » depuis le bureau, dossiers du maire, signature chez le notaire). Loyer **150 PSK/jour** (plafond 150). On peut y installer le siège d'une association et du matériel. Guichet « Louer ce local » fermé.
 - **Salles de réunion** (deux grandes à 150 PSK, deux moyennes à 100 PSK) : location à la journée, **sans approbation du maire** (location courte durée). À enrichir : on pourra y créer des événements (assemblées générales, conseils d'administration…), à concevoir avec Fred.
 - **Événements en salle de réunion** (Fred, 07/11 : idées 5 et 6 de Claude) : conférence de presse, soirée de réseautage, séminaire de formation, buffet du Grand Hôtel ; réservés à celui qui a loué la salle, pour les PJ présents. Valeurs proposées par Claude, **validées par Fred le 07/11** : conférence de presse +3 POP +1 par présent (max +10) ; réseautage +2 INF à chaque présent, +1 INF par participant à l'organisateur (max +8) ; séminaire +1 à la caractéristique choisie jusqu'à minuit, sans cumul ; buffet 40 PSK par présent au restaurant du Grand Hôtel, +2 PA chacun.
+
+## Organisation du pouvoir en Sovarka (Fred, 07/11/2026)
+
+Sovarka n'a pas le circuit de la Républia (président → Premier ministre → ministres) : organisation propre, volontairement parodique.
+
+- **Semaine à la gloire des partis** : elle remplace la semaine électorale. Les partis recrutent des partisans par les **tracts, avec la mécanique du vote de Républia** (tracts distribués aux PNJ présents en jeu ; le « candidat » est un parti). En fin de semaine, compte des **adhérents PJ (volontaires) + partisans PNJ (recrutés par tractage)** : le parti qui en a le plus l'emporte.
+- **Élection présidentielle conservée, la même semaine.** Le président élu est **obligé de nommer chef du gouvernement le chef du parti vainqueur**.
+- **Chef du gouvernement** : nomme les ministres, **uniquement parmi les membres de son parti**.
+- **Président** : aucun pouvoir (il nomme une personne qui lui est imposée), mais des avantages : un repas gratuit par jour dans ses appartements ; il peut y recevoir un invité et lui offrir à manger ; un salaire ; il compte comme **dignitaire** et peut à ce titre être invité par un autre chef de gouvernement ou par des ambassadeurs.
+- **Élection présidentielle comme en Républia** (même vote, mêmes tracts) ; pendant la semaine, les tracts servent donc aux partis et aux candidats, le joueur choisit sa cible.
+- **Salaires** : président 800 PSK, Président du Conseil du Peuple 700 PSK, ministre 560 PSK.
+- **Intitulés** (proposés par Claude, validés par Fred) : Président de la République de Sovarka ; Président du Conseil du Peuple (chef du gouvernement) ; ministre de la Sécurité du Peuple (Intérieur) ; ministre de l'Économie collective (Finances) ; ministre de la Justice prolétarienne ; ministre de la Défense de la Patrie ; ministre de la Vérité officielle (Information) ; ministre de l'Amitié entre les Peuples (Affaires étrangères).
