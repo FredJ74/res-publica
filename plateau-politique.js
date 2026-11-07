@@ -304,6 +304,8 @@ async function postulerPosteAutoritePnj(posteId, posteName, villeCourante) {
       autorite_joueur_doit_decider: 'L\'autorite de nomination est desormais tenue par un joueur : votre candidature doit passer par elle.',
       poste_inconnu: 'Ce poste ne figure pas parmi les postes nommes.',
       acteur_non_authentifie: 'Votre identite n\'a pas pu etre etablie.',
+      pm_impose_par_le_parti: 'En Sovarka, ce poste revient d\'office au chef du parti vainqueur de la semaine à la gloire.',
+      ministre_hors_parti: 'En Sovarka, seuls les membres du parti du Président du Conseil du Peuple peuvent devenir ministres.',
       carriere_requise: 'Votre carriere ne vous ouvre pas ce poste' + (v && Array.isArray(v.carrieres_qui_ouvrent) && v.carrieres_qui_ouvrent.length ? ' (carriere requise : ' + v.carrieres_qui_ouvrent.join(', ') + ').' : '.')
     };
     // Refus de paiement (1 PA par candidature, Fred 25/10/2026) : message commun des couts.
@@ -1881,7 +1883,8 @@ async function voterPour(candidatNom, posteId, country, city) {
 // depouillement) les lisent, mais JSON.stringify (sbSaveCycleElectoral) ne les ecrit jamais dans le
 // blob. Architecture prevue pour de futures participations synthetiques (ex. action groupee du
 // president des supporters : une ligne par electeur synthetique, meme table, meme decompte).
-const POSTES_TRACTS_ELECTORAUX = ['president', 'maire', 'depute'];
+// gloire_partis : semaine à la gloire des partis de Sovarka (07/11/2026), la cible est un parti.
+const POSTES_TRACTS_ELECTORAUX = ['president', 'maire', 'depute', 'gloire_partis'];
 const LIEUX_PRESIDENTIELLE = ['capitale', 'ville_a', 'ville_b', 'caserne', 'qhs'];
 
 function attacherEffetsTracts(cycle, effets) {
@@ -1932,6 +1935,7 @@ function estDimancheParis(date) {
 function libelleScrutinTract(country, posteId, city) {
   const ville = city ? (WORLD[country]?.[city]?.name || city) : null;
   if (posteId === 'president') return 'Présidentielle';
+  if (posteId === 'gloire_partis') return 'Semaine à la gloire des partis';
   if (posteId === 'maire') return 'Municipales — ' + ville;
   return 'Législatives — ' + ville;
 }
@@ -6373,6 +6377,8 @@ function messageRefusNomination(verdict) {
     titulaire_protege: 'Le titulaire actuel beneficie encore de sa periode de protection.',
     poste_inconnu: 'Ce poste ne figure pas parmi les postes nommes.',
     destinataire_absent: 'Aucun destinataire indique.',
+    pm_impose_par_le_parti: 'En Sovarka, le chef du parti vainqueur de la semaine à la gloire est d\'office Président du Conseil du Peuple.',
+    ministre_hors_parti: 'En Sovarka, les ministres sont choisis uniquement parmi les membres du parti du Président du Conseil du Peuple.',
     nomination_introuvable: 'Cette proposition n\'existe plus ou a deja ete traitee.',
     nomination_pas_pour_vous: 'Cette proposition ne vous est pas adressee.',
     acteur_non_authentifie: "Votre identite n'a pas pu etre etablie."
