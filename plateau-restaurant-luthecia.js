@@ -5,7 +5,9 @@ function restaurantLutheciaIci() {
 // #379 (03/11/2026) : le diner d'affaires du Capitaine Sauvage (PSM) passe par les MEMES portes
 // serveur (contrat commerce_v1, migration 20261103235800). Seuls changent la carte et le prix.
 function restaurantDinerContratIci() {
-  return restaurantLutheciaIci()||(state.country==='republic'&&state.currentCity==='ville_a'&&state.currentBuilding==='capitaine-sauvage'&&state.currentRoom==='salle_principale');
+  return restaurantLutheciaIci()||(state.country==='republic'&&state.currentCity==='ville_a'&&state.currentBuilding==='capitaine-sauvage'&&state.currentRoom==='salle_principale')
+    // Grand Hotel de Sovarka (Novomirsk), 100 PSK (07/11/2026).
+    ||(state.country==='soviet'&&state.currentCity==='capitale'&&state.currentBuilding==='hotel-republica'&&state.currentRoom==='restaurant');
 }
 function restaurantLutheciaCarte(data,pays,ville,batiment,piece) {
   if(!data||pays!=='republic'||ville!=='capitale'||batiment!=='hotel-republica') return data;
