@@ -4137,6 +4137,9 @@ function renderRulesContent(section) {
 
   const el = document.getElementById('rules-content');
   if (!el) return;
+  // RTL limité au corps du guide ; aucun déplacement des onglets ou des boutons.
+  if(langueGuide==='ar')el.setAttribute?.('dir','rtl');
+  else el.removeAttribute?.('dir');
 
   // Le guide peut recevoir d'autres catalogues : aucune balise issue d'une
   // traduction ne doit être interprétée comme du HTML.
