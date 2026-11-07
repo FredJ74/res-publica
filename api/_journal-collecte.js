@@ -1313,7 +1313,18 @@ const JOURS_AVANT_VOTE_PUBLIABLE = 6;
 // résumé réécrit (aucune reformulation, donc aucune dérive possible).
 const EXTRAIT_PROPOSITION_MAX = 600;
 
-function libellePoste(posteId) {
+// Intitulés propres à Sovarka (Fred, 07/11/2026), même table que INTITULES_POSTES_PAR_PAYS
+// de data.js, en minuscule de presse.
+const LIBELLES_POSTES_PAR_PAYS = {
+  soviet: {
+    president: 'président de la République de Sovarka', pm: 'président du Conseil du Peuple',
+    premier_ministre: 'président du Conseil du Peuple', depute: 'député du Soviet Suprême'
+  }
+};
+
+function libellePoste(posteId, pays) {
+  const propre = LIBELLES_POSTES_PAR_PAYS[pays] && LIBELLES_POSTES_PAR_PAYS[pays][posteId];
+  if (propre) return propre;
   return LIBELLES_POSTES[posteId] || String(posteId || 'poste').replace(/_/g, ' ');
 }
 
@@ -1351,7 +1362,7 @@ async function collecterEcheancesElectorales(pays, personnagesConnus) {
     const nb = miennes.length;
     const estPJ = miennes.some(x => identifierActeur(x.nom, personnagesConnus).estPJ);
     const nomVille = c.city ? resoudreNomVille(pays, c.city) : null;
-    const intitule = `Élection du ${libellePoste(c.poste_id)}` + (nomVille ? ` de ${nomVille}` : '');
+    const intitule = `Élection du ${libellePoste(c.poste_id, pays)}` + (nomVille ? ` de ${nomVille}` : '');
     const etatCandidatures = nb === 0
       ? 'aucune candidature enregistrée à ce jour'
       : (nb === 1 ? 'une candidature enregistrée' : `${nb} candidatures enregistrées`);

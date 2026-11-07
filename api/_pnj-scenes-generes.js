@@ -4257,6 +4257,13 @@ export const SCENES_PNJ = {
       "Anatoli Protokolov"
     ]
   },
+  "[\"soviet\",\"capitale\",\"palais-presidentiel\",\"appartements_president\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Palais du Parti",
+    "piece": "Appartements présidentiels",
+    "personnes": []
+  },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"accueil\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
@@ -4322,7 +4329,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Siège du Comité Central",
-    "piece": "Bureau du Premier Ministre",
+    "piece": "Bureau du Président du Conseil du Peuple",
     "personnes": [
       "Oleg Strictov"
     ]
@@ -4331,7 +4338,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Siège du Comité Central",
-    "piece": "Salle du Conseil",
+    "piece": "Salle du Conseil du Peuple",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"salle_presse\"]": {
@@ -4357,7 +4364,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Siège du Comité Central",
-    "piece": "Bureau - Ministre de l'Interieur",
+    "piece": "Bureau - Ministre de la Sécurité du Peuple",
     "personnes": [
       "Gleb Kontrolov"
     ]
@@ -4366,7 +4373,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Siège du Comité Central",
-    "piece": "Bureau - Ministre des Finances",
+    "piece": "Bureau - Ministre de l'Économie collective",
     "personnes": [
       "Stanislav Roublov"
     ]
@@ -4375,7 +4382,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Siège du Comité Central",
-    "piece": "Bureau - Ministre de la Justice",
+    "piece": "Bureau - Ministre de la Justice prolétarienne",
     "personnes": [
       "Galina Verdiktova"
     ]
@@ -4384,7 +4391,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Siège du Comité Central",
-    "piece": "Bureau - Ministre de la Defense",
+    "piece": "Bureau - Ministre de la Défense de la Patrie",
     "personnes": [
       "Rodion Tankov"
     ]
@@ -4393,7 +4400,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Siège du Comité Central",
-    "piece": "Bureau - Ministre de l'Information",
+    "piece": "Bureau - Ministre de la Vérité officielle",
     "personnes": [
       "Zinaïda Propagandova"
     ]
@@ -4402,7 +4409,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Siège du Comité Central",
-    "piece": "Bureau - Ministre des Affaires Etrangeres",
+    "piece": "Bureau - Ministre de l'Amitié entre les Peuples",
     "personnes": [
       "Evgueni Diplomatov"
     ]
