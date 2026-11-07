@@ -151,3 +151,40 @@ test('bascule Voir original : lang change avec le contenu et les commandes ne ch
  assert.equal(element.textContent,'Hello');
  control.detach();
 });
+
+
+test('sans libellés explicites le bouton Original/Traduction utilise les ressources i18n du plateau',()=>{
+ const win={RP_I18N_LANGUAGES:{fr:{},en:{},de:{}},
+  RPPlateauI18n:{translate(key){return ({
+   'plateau.showOriginal':'Original anzeigen',
+   'plateau.showTranslation':'Übersetzung anzeigen'
+  })[key]||key}}};
+ vm.runInNewContext(src,{window:win,String,Object});
+ const mod=win.RPPlayerText,events={};
+ const content={textContent:'',setAttribute(){},removeAttribute(){}};
+ const button={hidden:false,textContent:'',setAttribute(){},
+  addEventListener(k,f){events[k]=f},
+  removeEventListener(k){delete events[k]}};
+ const source=Object.freeze({original:'Salut',originalLanguage:'fr',
+  translation:'Hallo',translationLanguage:'de'});
+ const control=mod.attachToggle(content,button,source,'de');
+ assert.equal(content.textContent,'Hallo');
+ assert.equal(button.textContent,'Original anzeigen');
+ events.click();
+ assert.equal(content.textContent,'Salut');
+ assert.equal(button.textContent,'Übersetzung anzeigen');
+ control.detach();
+});
+test('une traduction de libellé manquante ne devient jamais une clé visible',()=>{
+ const win={RP_I18N_LANGUAGES:{fr:{},en:{}},
+  RPPlateauI18n:{translate(key){return key}}};
+ vm.runInNewContext(src,{window:win,String,Object});
+ const mod=win.RPPlayerText,events={};
+ const content={textContent:'',setAttribute(){}};
+ const button={hidden:false,textContent:'',setAttribute(){},
+  addEventListener(k,f){events[k]=f},removeEventListener(k){}};
+ mod.attachToggle(content,button,{original:'Bonjour',originalLanguage:'fr',
+  translation:'Hello',translationLanguage:'en'},'en');
+ assert.equal(button.textContent,"Voir l'original");
+ events.click();assert.equal(button.textContent,'Voir la traduction');
+});
