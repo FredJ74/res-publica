@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('217 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('237 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,217);
+ assert.equal(ref.length,237);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -308,5 +308,27 @@ test('20 ordres industrie et services : labels canoniques et opérations immuabl
   }
   assert.equal(order.fn,fn);assert.equal(order.label,fr[fn]);
   assert.equal(order.pa,3);assert.equal(order.cost,175);assert.equal(order.requiresPost,'responsable');
+ }
+});
+
+
+test('20 ordres militaires : labels sources, neuf langues et invariants métier',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const ids=["nommer_lieutenant","decouvrir_affectation","calepin_campagne","decorer_militaire","demettre_lieutenant","se_presenter_affectation","stage_caserne","retirer_trousse","nommer_capitaine","caisse_caserne","repartir_armement","recruter_compagnie","gerer_detachement","voir_ma_section","entrainer_section","reposer_section","declencher_mutinerie","remonter_renseignement","inspecter_troupes","gerer_budget_caserne"];
+ const found=new Map();
+ for(const row of source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)){
+  if(!found.has(row[2]))found.set(row[2],new Set());
+  found.get(row[2]).add(row[4]);
+ }
+ const fr=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const fn of ids){
+  const order=Object.freeze({fn,label:fr[fn],cost:199,pa:2,requiresPost:'militaire'});
+  assert.ok(found.get(fn)?.has(order.label),fn);
+  for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+   const value=win.RP_I18N_RESOURCES[lng].translation.orders[fn];
+   assert.ok(typeof value==='string'&&value.trim(),lng+'/'+fn);
+   assert.equal(win.RPOrderI18n.label(order,engine,lng),value);
+  }
+  assert.equal(order.cost,199);assert.equal(order.pa,2);assert.equal(order.requiresPost,'militaire');
  }
 });
