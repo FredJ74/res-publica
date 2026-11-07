@@ -59,6 +59,8 @@ on:
       - 'plateau-divers.js'
       - 'outils/bancs/banc-i18n-traduction-sources.mjs'
       - 'api/_traduction-sources.js'
+      - 'api/_traduction-lecture-rls.js'
+      - 'outils/bancs/banc-i18n-lecture-rls.mjs'
       - 'outils/audits/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql'
       - 'outils/bancs/banc-i18n-prevol-rls.cjs'
       - 'api/_traduction-contenu.js'
@@ -163,6 +165,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-traduction-sources.mjs
       - name: Prévol de confidentialité forum et chat, lecture seule
         run: node --test outils/bancs/banc-i18n-prevol-rls.cjs
+      - name: Lecteur social JWT/RLS strict et données minimales
+        run: node --test outils/bancs/banc-i18n-lecture-rls.mjs
       - name: Sécurité de lecture, cache et quota des traductions
         run: node --test outils/bancs/banc-i18n-contenu-securise.mjs
       - name: Syntaxe du moteur et des ressources
