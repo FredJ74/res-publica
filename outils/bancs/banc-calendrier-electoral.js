@@ -97,14 +97,16 @@ att('le blob consigne est le cycle lui-meme, sans alternative',
 att('aucune branche ne reconstruit un cycle -- cela effacerait le titulaire',
     compte(bloc, /construireNouveauCycleElectoral/g) === 0,
     compte(bloc, /construireNouveauCycleElectoral/g) + ' occurrence(s)');
-att('les deux proclamations deposent leur chronique',
-    compte(bloc, /chroniqueAPoser = \{/g) === 2,
+// TROIS depuis le 07/11/2026 : la semaine a la gloire des partis de Sovarka depose aussi la sienne.
+att('les trois proclamations deposent leur chronique',
+    compte(bloc, /chroniqueAPoser = \{/g) === 3,
     compte(bloc, /chroniqueAPoser = \{/g) + ' chronique(s)');
 // HUIT, ET CHACUNE EST UN ETAT REEL : trois pour les legislatives (aucun bulletin, vote blanc,
 // resultat) et cinq pour un siege unique (aucun bulletin, vote blanc, resultat, second tour,
-// scrutin exprime sans verdict). AUCUNE PROLONGATION N'EST MUETTE.
-att('les huit annonces publiques sont deposees',
-    compte(bloc, /evenementAPoser = \{/g) === 8,
+// scrutin exprime sans verdict). AUCUNE PROLONGATION N'EST MUETTE. Plus DEUX depuis le
+// 07/11/2026 : semaine a la gloire des partis de Sovarka (parti vainqueur, aucun parti).
+att('les dix annonces publiques sont deposees',
+    compte(bloc, /evenementAPoser = \{/g) === 10,
     compte(bloc, /evenementAPoser = \{/g) + ' annonce(s)');
 att("plus aucun `continue` ne saute la consignation",
     compte(bloc, /statut: 'invalide_vote_blanc' \}\);\s*\n\s*continue;/g) === 0);
