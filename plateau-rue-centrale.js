@@ -1288,11 +1288,11 @@ const RUE_CENTRALE_NOEUDS = {
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
     },
 
-    // V12 — Seconde entree de la Caserne (sortie canonique), et salon de coiffure.
+    // V12 — Mairie de Novomirsk et salon de coiffure. L'entree de la caserne reste en V11.
     'novomirsk-vue-12': {
       image: 'images/rue-salon-coiffure-novomirsk.webp',
       zones: [
-        { xPct: [0, 34],   yPct: [0, 74],  nom: 'Caserne centrale de Novomirsk', type: 'batiment', buildingId: 'caserne-militaire', sortieNoeudId: 'novomirsk-vue-12' },
+        { xPct: [0, 34],   yPct: [0, 74],  nom: 'Mairie de Novomirsk', type: 'batiment', buildingId: 'mairie-capitale', sortieNoeudId: 'novomirsk-vue-12' },
         { xPct: [78, 100], yPct: [16, 88], nom: 'Salon de coiffure de Novomirsk', type: 'batiment', buildingId: 'salon-coiffure-novomirsk' }
       ],
       liens: { arriere: 'novomirsk-vue-11', droite: 'novomirsk-vue-13' },
