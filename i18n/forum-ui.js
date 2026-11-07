@@ -805,5 +805,181 @@
  }
  function forumNameHtml(id,original){return forumText('forumNames',id,original);}
  function forumDescriptionHtml(id,original){return forumText('forumDescriptions',id,original);}
- global.RPForumUI=Object.freeze({labelHtml,forumNameHtml,forumDescriptionHtml});
+
+ // Les marqueurs [[act:...]] et handlers viennent du socle serveur :
+ // seules leurs étiquettes visibles sont localisées, jamais l'action ni ses paramètres.
+ const mailActions={
+  "fr": {
+    "audience_accorder": "✓ Accorder l'audience",
+    "asile_accorder": "✓ Accorder l'asile",
+    "asile_refuser": "✗ Refuser l'asile",
+    "poste": "✓ Accepter le poste",
+    "capitaine": "✓ Accepter le poste",
+    "lieutenant": "✓ Accepter le poste",
+    "candidature": "✓ Accepter la candidature",
+    "mariage_oui": "💍 Accepter",
+    "mariage_non": "Refuser",
+    "confiance_pour": "✓ Confiance",
+    "confiance_contre": "✗ Censure",
+    "orga_oui": "✓ Accepter l'invitation",
+    "orga_non": "✕ Refuser l'invitation",
+    "greve_oui": "✓ Accepter",
+    "greve_non": "✗ Refuser",
+    "ecrire_a": "✉ Écrire à cette personne"
+  },
+  "en": {
+    "audience_accorder": "✓ Grant the audience",
+    "asile_accorder": "✓ Grant asylum",
+    "asile_refuser": "✗ Deny asylum",
+    "poste": "✓ Accept the appointment",
+    "capitaine": "✓ Accept the appointment",
+    "lieutenant": "✓ Accept the appointment",
+    "candidature": "✓ Accept the application",
+    "mariage_oui": "💍 Accept",
+    "mariage_non": "Decline",
+    "confiance_pour": "✓ Confidence",
+    "confiance_contre": "✗ No confidence",
+    "orga_oui": "✓ Accept the invitation",
+    "orga_non": "✕ Decline the invitation",
+    "greve_oui": "✓ Accept",
+    "greve_non": "✗ Decline",
+    "ecrire_a": "✉ Write to this person"
+  },
+  "es": {
+    "audience_accorder": "✓ Conceder la audiencia",
+    "asile_accorder": "✓ Conceder asilo",
+    "asile_refuser": "✗ Denegar asilo",
+    "poste": "✓ Aceptar el cargo",
+    "capitaine": "✓ Aceptar el cargo",
+    "lieutenant": "✓ Aceptar el cargo",
+    "candidature": "✓ Aceptar la candidatura",
+    "mariage_oui": "💍 Aceptar",
+    "mariage_non": "Rechazar",
+    "confiance_pour": "✓ Confianza",
+    "confiance_contre": "✗ Censura",
+    "orga_oui": "✓ Aceptar la invitación",
+    "orga_non": "✕ Rechazar la invitación",
+    "greve_oui": "✓ Aceptar",
+    "greve_non": "✗ Rechazar",
+    "ecrire_a": "✉ Escribir a esta persona"
+  },
+  "zh-TW": {
+    "audience_accorder": "✓ 批准接見",
+    "asile_accorder": "✓ 核准庇護",
+    "asile_refuser": "✗ 拒絕庇護",
+    "poste": "✓ 接受任命",
+    "capitaine": "✓ 接受任命",
+    "lieutenant": "✓ 接受任命",
+    "candidature": "✓ 接受申請",
+    "mariage_oui": "💍 接受",
+    "mariage_non": "拒絕",
+    "confiance_pour": "✓ 信任",
+    "confiance_contre": "✗ 不信任",
+    "orga_oui": "✓ 接受邀請",
+    "orga_non": "✕ 拒絕邀請",
+    "greve_oui": "✓ 接受",
+    "greve_non": "✗ 拒絕",
+    "ecrire_a": "✉ 寫信給此人"
+  },
+  "ru": {
+    "audience_accorder": "✓ Назначить аудиенцию",
+    "asile_accorder": "✓ Предоставить убежище",
+    "asile_refuser": "✗ Отказать в убежище",
+    "poste": "✓ Принять должность",
+    "capitaine": "✓ Принять должность",
+    "lieutenant": "✓ Принять должность",
+    "candidature": "✓ Одобрить кандидатуру",
+    "mariage_oui": "💍 Принять",
+    "mariage_non": "Отказать",
+    "confiance_pour": "✓ Доверие",
+    "confiance_contre": "✗ Вотум недоверия",
+    "orga_oui": "✓ Принять приглашение",
+    "orga_non": "✕ Отклонить приглашение",
+    "greve_oui": "✓ Принять",
+    "greve_non": "✗ Отказать",
+    "ecrire_a": "✉ Написать этому человеку"
+  },
+  "ko": {
+    "audience_accorder": "✓ 면담 승인",
+    "asile_accorder": "✓ 망명 허가",
+    "asile_refuser": "✗ 망명 거부",
+    "poste": "✓ 직책 수락",
+    "capitaine": "✓ 직책 수락",
+    "lieutenant": "✓ 직책 수락",
+    "candidature": "✓ 지원 승인",
+    "mariage_oui": "💍 수락",
+    "mariage_non": "거절",
+    "confiance_pour": "✓ 신임",
+    "confiance_contre": "✗ 불신임",
+    "orga_oui": "✓ 초대 수락",
+    "orga_non": "✕ 초대 거절",
+    "greve_oui": "✓ 수락",
+    "greve_non": "✗ 거절",
+    "ecrire_a": "✉ 이 사람에게 편지 쓰기"
+  },
+  "ar": {
+    "audience_accorder": "✓ الموافقة على المقابلة",
+    "asile_accorder": "✓ منح اللجوء",
+    "asile_refuser": "✗ رفض اللجوء",
+    "poste": "✓ قبول المنصب",
+    "capitaine": "✓ قبول المنصب",
+    "lieutenant": "✓ قبول المنصب",
+    "candidature": "✓ قبول الترشيح",
+    "mariage_oui": "💍 قبول",
+    "mariage_non": "رفض",
+    "confiance_pour": "✓ الثقة",
+    "confiance_contre": "✗ حجب الثقة",
+    "orga_oui": "✓ قبول الدعوة",
+    "orga_non": "✕ رفض الدعوة",
+    "greve_oui": "✓ قبول",
+    "greve_non": "✗ رفض",
+    "ecrire_a": "✉ مراسلة هذا الشخص"
+  },
+  "pt-BR": {
+    "audience_accorder": "✓ Conceder a audiência",
+    "asile_accorder": "✓ Conceder asilo",
+    "asile_refuser": "✗ Negar asilo",
+    "poste": "✓ Aceitar o cargo",
+    "capitaine": "✓ Aceitar o cargo",
+    "lieutenant": "✓ Aceitar o cargo",
+    "candidature": "✓ Aceitar a candidatura",
+    "mariage_oui": "💍 Aceitar",
+    "mariage_non": "Recusar",
+    "confiance_pour": "✓ Confiança",
+    "confiance_contre": "✗ Moção de censura",
+    "orga_oui": "✓ Aceitar o convite",
+    "orga_non": "✕ Recusar o convite",
+    "greve_oui": "✓ Aceitar",
+    "greve_non": "✗ Recusar",
+    "ecrire_a": "✉ Escrever para esta pessoa"
+  },
+  "de": {
+    "audience_accorder": "✓ Audienz gewähren",
+    "asile_accorder": "✓ Asyl gewähren",
+    "asile_refuser": "✗ Asyl ablehnen",
+    "poste": "✓ Amt annehmen",
+    "capitaine": "✓ Amt annehmen",
+    "lieutenant": "✓ Amt annehmen",
+    "candidature": "✓ Bewerbung annehmen",
+    "mariage_oui": "💍 Annehmen",
+    "mariage_non": "Ablehnen",
+    "confiance_pour": "✓ Vertrauen",
+    "confiance_contre": "✗ Misstrauen",
+    "orga_oui": "✓ Einladung annehmen",
+    "orga_non": "✕ Einladung ablehnen",
+    "greve_oui": "✓ Annehmen",
+    "greve_non": "✗ Ablehnen",
+    "ecrire_a": "✉ Dieser Person schreiben"
+  }
+};
+ for(const [locale,labels] of Object.entries(mailActions)){
+  if(resources[locale]?.translation)resources[locale].translation.mailActions={...labels};
+ }
+ function mailActionLabel(key,original){
+  if(typeof original!=='string'||!Object.hasOwn(mailActions.fr,key)||mailActions.fr[key]!==original)return original;
+  const locale=global.RPPlateauI18n?.language?.()||'fr';
+  const translated=global.i18next?.t?.('mailActions.'+key,{lng:locale,defaultValue:original});
+  return typeof translated==='string'&&translated.trim() ? translated : original;
+ }
+ global.RPForumUI=Object.freeze({labelHtml,forumNameHtml,forumDescriptionHtml,mailActionLabel});
 })(window);
