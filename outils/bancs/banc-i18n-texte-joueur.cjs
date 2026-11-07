@@ -188,3 +188,16 @@ test('une traduction de libellé manquante ne devient jamais une clé visible',(
  assert.equal(button.textContent,"Voir l'original");
  events.click();assert.equal(button.textContent,'Voir la traduction');
 });
+
+
+test('un original vide ne peut pas être remplacé par une traduction fabriquée',()=>{
+ const mod=api();
+ for(const original of ['',' ','\n\t']){
+  const record=Object.freeze({original,originalLanguage:'fr',
+    translation:'Fake translated content',translationLanguage:'en'});
+  const rendered=mod.view(record,'en');
+  assert.equal(rendered.text,original);
+  assert.equal(rendered.showOriginalAvailable,false);
+  assert.equal(rendered.translated,false);
+ }
+});
