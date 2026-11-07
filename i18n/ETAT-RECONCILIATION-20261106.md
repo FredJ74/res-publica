@@ -114,3 +114,11 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - Ajout de **20 ordres prioritaires** dans les neuf langues : soins (clinique, hôpital, urgences, antipoison), banque et virements, tribunal, presse, nourriture, état civil, logement social et perception des opinions. **Total : 257 ordres canoniques dans chaque langue, soit 2 313 libellés.** La version française correspond aux labels de `data.js` ; les variantes à prix ou texte changeant restent en français.
 - Contrôles de parité, garde des identifiants, coûts, PA et permissions intégrés au banc i18n. L'ajout de libellés n'implique aucune activation publique et aucun mécanisme métier n'a été modifié.
 - La certification CI au dernier SHA doit être vérifiée avant toute fusion ; les tests interactifs authentifiés et la révision linguistique restent ouverts.
+
+
+### 07/11 — approfondissement des parcours essentiels et variantes contextuelles
+
+- **380 identifiants canoniques** en neuf langues, soit **3 420 libellés**, après quarante-neuf ordres stables supplémentaires : services essentiels, hôpital, justice, police, diplomatie, métiers, syndicats, armée et transports. Le contrôle statique a confronté les labels français aux littéraux de `data.js` avec prise en charge des apostrophes échappées : 380 correspondances, aucune entrée manquante ni duplication dans les neuf langues.
+- **Le même `fn` n'impose plus une traduction approximative** : catalogage indépendant `orderVariants` et clé explicite `i18nKey: 'variant.*'`. Les trois ordres de réservation de chambre conservent leurs montants 80/60 FR et leurs handlers ; sept ordres de rumeurs et deux de conférence de presse conservent leur coût, leur PA, leurs droits et leurs sources PNJ. Toutes leurs variantes sont localisées dans neuf langues sans devenir de nouveaux `fn`.
+- L'ensemble reste **sur la PR brouillon** et ne doit pas être fusionné ni activé avant la recette authentifiée, la relecture linguistique et l'autorisation du game designer. Les variantes à montant variable (locaux, parcelles), celles dont les coûts changent ou qui nécessitent un contexte non certifié continuent de s'afficher en français.
+- Les bancs ciblés nouveaux et les workflows sont ajoutés ; leur succès CI au dernier SHA reste à confirmer séparément.
