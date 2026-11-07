@@ -55,10 +55,13 @@ test('les 14 nouveaux libellés sont ancrés dans les ordres réellement déclar
 
 test('tous les libellés pilotes français correspondent exactement aux vrais ordres du socle',()=>{
  const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ // Le parseur du référentiel reconnaît les apostrophes échappées (l'état-civil,
+ // l'armée, l'aéroport), contrairement à l'ancienne expression régulière.
+ const {extract}=require('../audits/libelles-ordres-source.cjs');
  const actual=new Map();
- for(const m of source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)){
-  if(!actual.has(m[2]))actual.set(m[2],new Set());
-  actual.get(m[2]).add(m[4]);
+ for(const {fn,label} of extract(source)){
+  if(!actual.has(fn))actual.set(fn,new Set());
+  actual.get(fn).add(label);
  }
  const canonical=win.RP_I18N_RESOURCES.fr.translation.orders;
  for(const [fn,reference] of Object.entries(canonical)){
