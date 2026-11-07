@@ -198,7 +198,7 @@ async function run(){
      const forum=[...document.querySelectorAll('#quete-accueil-actions button')].map(x=>({
        text:x.textContent.trim(),handler:x.getAttribute('onclick')
      }));
-     const forumIntro=document.getElementById('quete-accueil-texte').textContent;
+     const forumIntro=document.getElementById('quete-accueil-texte').innerHTML;
      const data=window.RP_I18N_RESOURCES[window.i18next.language].translation.jeremyScenes;
      return {career,careerIntro,forum,forumIntro,
        names:['criminalChoice','politicalChoice','entrepreneurialChoice','undecidedChoice'].map(k=>data[k]),
