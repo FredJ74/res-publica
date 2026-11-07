@@ -50,6 +50,8 @@ on:
       - 'outils/bancs/banc-i18n-tutoriel.cjs'
       - 'outils/bancs/banc-i18n-texte-joueur.cjs'
       - 'outils/bancs/banc-i18n-social-par-langue.cjs'
+      - 'api/_pnj-profils.js'
+      - 'outils/bancs/banc-i18n-dialogues-pnj.mjs'
       - 'outils/audits/audit-i18n-editorial.cjs'
       - 'outils/bancs/banc-i18n-editorial.cjs'
       - 'api/_traduction.js'
@@ -145,6 +147,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-texte-joueur.cjs
       - name: Messages sociaux originaux et traduits — 9 locales
         run: node --test outils/bancs/banc-i18n-social-par-langue.cjs
+      - name: PNJ — neuf langues, profils et garde hors personnage
+        run: node --test outils/bancs/banc-i18n-dialogues-pnj.mjs
       - name: Audit de parité des variables et langues — 12 catalogues
         run: |
           node --test outils/bancs/banc-i18n-editorial.cjs
