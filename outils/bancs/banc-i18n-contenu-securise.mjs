@@ -139,3 +139,21 @@ test('cache partagé entre lecteurs autorisés, jamais servi à un lecteur sans 
  assert.equal(calls.filter(x=>x==='cache').length,readsBefore,'pas de cache avant RLS');
  assert.equal(calls.filter(x=>x==='provider').length,1);
 });
+
+
+test('panne de cache : refus sans réservation de quota ni nouvelle dépense DeepSeek',async()=>{
+ const {calls,deps}=fixtures();
+ deps.readCache=async()=>{calls.push('cache');throw new Error('cache down')};
+ const result=await traduireContenu(input,deps);
+ assert.equal(result.ok,false);
+ assert.equal(result.raison,'cache_indisponible');
+ assert.deepEqual(calls,['auth','rls','cache']);
+});
+test('quota réservé avec la longueur de la source canonique lue sous RLS',async()=>{
+ const {deps}=fixtures();
+ let argumentsQuota=null;
+ deps.reserveBudget=async(...args)=>{argumentsQuota=args;return true};
+ const result=await traduireContenu(input,deps);
+ assert.equal(result.ok,true);
+ assert.equal(argumentsQuota[2],'Salut {{name}}'.length);
+});
