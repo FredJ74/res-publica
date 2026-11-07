@@ -4138,10 +4138,16 @@ function renderRulesContent(section) {
   const el = document.getElementById('rules-content');
   if (!el) return;
 
+  // Le guide peut recevoir d'autres catalogues : aucune balise issue d'une
+  // traduction ne doit être interprétée comme du HTML.
+  const escapeRules = value=>String(value).replace(/[&<>"']/g,ch=>({
+   '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[ch]);
+
   // Transformer le contenu texte en HTML riche
   function parseRulesContent(texte) {
     let html = '';
-    const lignes = texte.split('\n');
+    const lignes = escapeRules(texte).split('\n');
     let inBlock = false;
 
     for (let i = 0; i < lignes.length; i++) {
@@ -4195,7 +4201,7 @@ function renderRulesContent(section) {
   el.innerHTML =
     '<div style="padding:1.5rem;max-width:700px;margin:0 auto">' +
     '<div style="font-family:Playfair Display,serif;font-size:1.4rem;font-style:italic;color:#E8C97A;margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:2px solid #2a2010">' +
-    titreGuide + '</div>' +
+    escapeRules(titreGuide) + '</div>' +
     parseRulesContent(contenuGuide) +
     '</div>';
 }
