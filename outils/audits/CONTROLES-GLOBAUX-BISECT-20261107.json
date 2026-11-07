@@ -1,0 +1,59 @@
+{
+  "methode": "bisect born\u00e9 sur premi\u00e8re-parent\u00e9, verdict r\u00e9el, bornes adjacentes rejou\u00e9es",
+  "depart": "27b9bf56",
+  "fin": "efeee90a",
+  "dernier_vert": "a6d6fb71bc7c527cdc0451c1ba480a61d24813f2",
+  "premier_rouge_borne": "1b51fee114c6410ee775e836f1079e234274d869",
+  "executions": [
+    {
+      "index": 178,
+      "sha": "537df5a1a546acbb6be3530a97b5fc02ee64d5f9",
+      "code": 1
+    },
+    {
+      "index": 89,
+      "sha": "3dcdfbd9d0136cc0d8bb63579a7480acd23d94e2",
+      "code": 1
+    },
+    {
+      "index": 44,
+      "sha": "e37290666c2591dde2728fe2fc8027fcacf9041f",
+      "code": 0
+    },
+    {
+      "index": 66,
+      "sha": "5c96fb7271cd9497144997f36745a3c00e7a9c8b",
+      "code": 1
+    },
+    {
+      "index": 55,
+      "sha": "ad2288255347316159685ba6b7875e947ab4b622",
+      "code": 1
+    },
+    {
+      "index": 49,
+      "sha": "f06e812d03fb1342ba1de52f56dd38cacdb58b2f",
+      "code": 0
+    },
+    {
+      "index": 52,
+      "sha": "a6d6fb71bc7c527cdc0451c1ba480a61d24813f2",
+      "code": 0
+    },
+    {
+      "index": 53,
+      "sha": "1b51fee114c6410ee775e836f1079e234274d869",
+      "code": 1
+    },
+    {
+      "index": 52,
+      "sha": "a6d6fb71bc7c527cdc0451c1ba480a61d24813f2",
+      "code": 0
+    },
+    {
+      "index": 53,
+      "sha": "1b51fee114c6410ee775e836f1079e234274d869",
+      "code": 1
+    }
+  ]
+}

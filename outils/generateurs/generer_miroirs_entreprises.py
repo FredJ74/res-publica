@@ -64,6 +64,7 @@ var g = (new Function(src + "\n; return {"
   + " SP: typeof STATION_PRODUITS!=='undefined'?STATION_PRODUITS:null,"
   + " PM: typeof PRODUITS_MARCHE!=='undefined'?PRODUITS_MARCHE:null,"
   + " BCT: typeof BUILDING_COMMERCE_TYPE!=='undefined'?BUILDING_COMMERCE_TYPE:null,"
+  + " V: typeof VILLES!=='undefined'?VILLES:null,"
   + " DOT: typeof DOTATIONS_COMMERCE_PILOTE!=='undefined'?DOTATIONS_COMMERCE_PILOTE:null,"
   + " defC: typeof defautCommerce!=='undefined'?defautCommerce:null,"
   + " defA: typeof defautArmurerie!=='undefined'?defautArmurerie:null,"
@@ -139,13 +140,23 @@ Object.keys(g.DOT || {}).sort().forEach(function (cle) {
   var parts = cle.split('|');
   var batiment = parts[0], room = (parts.length > 1) ? parts[1] : null;
   var type = g.BCT[cle] || g.BCT[batiment] || 'cafe';
-  var d = g.defC(type, 'republic', 'capitale', batiment, room);
-  g.DOT[cle](d);
-  out.dotations.push({ cle: cle, type: type, caisse: d.caisse || 0,
-                       stock_matieres: d.stockMatieres || {},
-                       cout_moyen_matieres: d.coutMoyenMatieres || {},
-                       carte: d.carte || [],
-                       parametres: d.parametres || {} });
+  function capturer(ville, identifiant) {
+    var d = g.defC(type, 'republic', ville, batiment, room);
+    g.DOT[cle](d);
+    return { cle: identifiant, type: type, caisse: d.caisse || 0,
+             stock_matieres: d.stockMatieres || {}, cout_moyen_matieres: d.coutMoyenMatieres || {},
+             carte: d.carte || [], parametres: d.parametres || {} };
+  }
+  var generale = capturer('capitale', cle);
+  out.dotations.push(generale);
+  if (!g.V || !g.V.republic) throw new Error('Referentiel des villes absent');
+  Object.keys(g.V.republic).sort().forEach(function(ville) {
+    var locale = capturer(ville, cle);
+    if (JSON.stringify(locale) !== JSON.stringify(generale)) {
+      locale.cle = cle + '@' + ville;
+      out.dotations.push(locale);
+    }
+  });
 });
 
 // Armurerie : le defaut depend du pays (getRecettesPays). On capture les trois.
@@ -221,16 +232,14 @@ def sql(d):
     L.append(",\n".join("  (%s, %s)" % (litteral(r["cle"]), litteral(r["type"]))
              for r in d["types_commerce"]) + ";")
 
-    # Les dotations propres a une ville (cle '<cle>@<ville>', ex. 'marche@ville_b') n'existent pas
-    # dans data.js : elles sont posees par des migrations (20261101030000) et lues avant la cle
-    # generale par entreprise_assurer_existence. Le miroir ne remplace donc que les cles generales ;
-    # l'ancien DELETE integral les aurait effacees (marche de Montrouge revenu au catalogue de Luthecia).
+    # Les variantes @ville sont exécutées depuis les mêmes fonctions canoniques.
+    # Préserver les autres variantes posées par migration ; upsert seulement les clés rendues.
     L.append("\nDELETE FROM public.commerces_dotations WHERE position('@' in cle) = 0;")
     L.append("INSERT INTO public.commerces_dotations (cle, type, caisse, stock_matieres, cout_moyen_matieres, carte, parametres) VALUES")
     L.append(",\n".join("  (%s, %s, %s, %s, %s, %s, %s)" % (litteral(r["cle"]), litteral(r["type"]),
              litteral(r["caisse"]), litteral(r["stock_matieres"]), litteral(r["cout_moyen_matieres"]),
              litteral(r["carte"]), litteral(r["parametres"]))
-             for r in d["dotations"]) + ";")
+             for r in d["dotations"]) + "\nON CONFLICT (cle) DO UPDATE SET type=EXCLUDED.type, caisse=EXCLUDED.caisse, stock_matieres=EXCLUDED.stock_matieres, cout_moyen_matieres=EXCLUDED.cout_moyen_matieres, carte=EXCLUDED.carte, parametres=EXCLUDED.parametres;")
 
     L.append("\nDELETE FROM public.armureries_dotations;")
     L.append("INSERT INTO public.armureries_dotations (pays, caisse, stock_matieres, parametres) VALUES")

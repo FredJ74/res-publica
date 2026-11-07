@@ -104,9 +104,11 @@
         "alcool",
         "tabac",
         "carburant",
+        "derives_petrochimiques",
         "desinfectant"
       ],
-      "_ordre": "Ordre de la copie serveur actuelle, et NON celui de data.js : seul `textile` differe de place. Il est declare pour que l'equivalence soit litterale plutot que raisonnee -- cette constante sert d'espace d'indices dans un aller-retour avec la base (cron-minuit.js:2811). Si data.js gagne ou perd une ressource, la generation s'arrete et demande une decision."
+      "_ordre": "Ordre de la copie serveur actuelle, et NON celui de data.js : seul `textile` differe de place. Il est declare pour que l'equivalence soit litterale plutot que raisonnee -- cette constante sert d'espace d'indices dans un aller-retour avec la base (cron-minuit.js:2811). Si data.js gagne ou perd une ressource, la generation s'arrete et demande une decision.",
+      "_ajout_20261107": "Dérivés pétrochimiques livrés (GAME-DESIGN-CHANTIER-NAVAL.md §1, commits f698a6dc/532deca0 du 04/11). Ordre identique à la copie serveur déjà livrée ; aucune valeur modifiée."
     },
     {
       "serveur": "CLUBS_SPORTIFS_SERVEUR",

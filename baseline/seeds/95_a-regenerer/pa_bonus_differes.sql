@@ -8,6 +8,9 @@ INSERT INTO public.pa_bonus_differes (source,montant) VALUES
   ('menu_psm_1', 3),
   ('menu_psm_2', 3),
   ('menu_psm_3', 3),
+  ('menu_sovarka_imperial', 3),
+  ('menu_sovarka_plan', 3),
+  ('menu_sovarka_tsars', 3),
   ('repas_gastronomique', 1),
   ('sandwich', 1),
   ('service_etage_hotel', 1)
