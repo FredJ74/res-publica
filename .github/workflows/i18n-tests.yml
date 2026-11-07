@@ -52,6 +52,9 @@ on:
       - 'outils/bancs/banc-i18n-social-par-langue.cjs'
       - 'api/_pnj-profils.js'
       - 'outils/bancs/banc-i18n-dialogues-pnj.mjs'
+      - 'i18n/pnj-status-resources.js'
+      - 'plateau-pnj.js'
+      - 'outils/bancs/banc-i18n-statut-pnj.cjs'
       - 'outils/audits/audit-i18n-editorial.cjs'
       - 'outils/bancs/banc-i18n-editorial.cjs'
       - 'api/_traduction.js'
@@ -149,6 +152,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-social-par-langue.cjs
       - name: PNJ — neuf langues, profils et garde hors personnage
         run: node --test outils/bancs/banc-i18n-dialogues-pnj.mjs
+      - name: PNJ — messages d'erreur localisés sans altérer la conversation
+        run: node --test outils/bancs/banc-i18n-statut-pnj.cjs
       - name: Audit de parité des variables et langues — 12 catalogues
         run: |
           node --test outils/bancs/banc-i18n-editorial.cjs
@@ -214,6 +219,8 @@ jobs:
           node --check i18n/plateau-bridge.js
           node --check i18n/room-resources.js
           node --check i18n/forum-ui.js
+          node --check i18n/pnj-status-resources.js
+          node --check plateau-pnj.js
           node --check i18n/toast-resources.js
           node --check forum.js
           node --check forum-canvas.js
