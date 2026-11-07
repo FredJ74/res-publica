@@ -14,7 +14,8 @@ const scripts=[
  'guide-politique-resources.js','guide-sport-resources.js',
  'guide-economie-resources.js','guide-religion-resources.js',
  'orders-resources.js','order-variants-resources.js',
- 'order-templates-resources.js'
+ 'order-templates-resources.js',
+ 'room-resources.js','forum-ui.js'
 ];
 const global={};
 const context=vm.createContext({window:global});
