@@ -166,6 +166,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'garage_reviser')    { ouvrirGarageRevision(); return; }
   if (fn === 'salon_coupe')       { ouvrirSalonCoupe(); return; }
   // Sovarka, droits d'exploiter (06/11/2026, GAME-DESIGN-NOVOMIRSK.md) : plateau-sovarka-droits.js.
+  // Partis de Sovarka (07/11/2026, GAME-DESIGN-NOVOMIRSK.md) : plateau-sovarka-partis.js.
+  if (fn === 'sovarka_partis')            { ouvrirSovarkaPartis(); return; }
+  if (fn === 'sovarka_parti_fonder')      { partiFormulaireCreation(); return; }
+  if (fn === 'sovarka_mon_parti')         { ouvrirSovarkaMonParti(); return; }
   if (fn === 'sovarka_commerces_libres')    { ouvrirSovarkaCommercesLibres(); return; }
   if (fn === 'sovarka_signer_attribution')  { ouvrirSovarkaSignerAttribution(); return; }
   if (fn === 'sovarka_cession')             { ouvrirSovarkaCession(); return; }

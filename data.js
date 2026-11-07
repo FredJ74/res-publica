@@ -10431,3 +10431,30 @@ function slugPnjSovarka(nom) {
       "Seconde salle de réunion avec aquarium marin. Location : 100 PSK/jour.",100)
   };
 })();
+
+// SALLE DES PARTIS DES TROIS MAIRIES DE SOVARKA (Fred, 07/11/2026, GAME-DESIGN-NOVOMIRSK.md « Partis
+// de Sovarka »). Les partis y sont domiciliés : création libre (2 PA, 15 PSK), siège dans la ville de
+// création. Navigation serveur : migration 20261107184000. Image à venir.
+(function () {
+  const salle = () => ({
+    name: 'Salle des partis',
+    imageBg: 'linear-gradient(135deg,#1a0c0c,#2a1414)',
+    desc: "Une longue salle aux murs couverts d'affiches. Chaque parti de Sovarka y a son casier, son tampon et sa bannière ; on s'y inscrit, on y adhère, on y règle ses comptes entre camarades.",
+    persons: [],
+    orders: [
+      {fn:'sovarka_partis', label:'Partis constitués', pa:0, cost:0, type:'legal', icon:'ti-flag', successRate:100,
+       desc:"La liste des partis de Sovarka, leur chef, leur siège et leur droit d'entrée. Demander à adhérer coûte 2 PA ; le chef accepte ou refuse."},
+      {fn:'sovarka_parti_fonder', label:'Créer un parti', pa:2, cost:15, type:'legal', icon:'ti-flag-plus', successRate:100,
+       desc:"Fonder un parti national, dont le siège sera dans cette ville : 2 PA et 15 PSK de droits d'enregistrement. On ne peut appartenir qu'à un parti."},
+      {fn:'sovarka_mon_parti', label:'Mon parti', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100,
+       desc:"Membres, demandes d'adhésion, droit d'entrée, successeur ; quitter le parti coûte 1 PA."}
+    ]
+  });
+  for (const [ville, batiment] of [['capitale', 'mairie-capitale'], ['ville_a', 'mairie'], ['ville_b', 'mairie']]) {
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    if (!cite) continue;
+    cite.buildingContext = cite.buildingContext || {};
+    const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+    ctx.roomsExtra = Object.assign({}, ctx.roomsExtra || {}, { salle_partis: salle() });
+  }
+})();

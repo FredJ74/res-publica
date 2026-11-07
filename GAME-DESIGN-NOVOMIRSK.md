@@ -168,6 +168,18 @@ Sovarka n'a pas le circuit de la Républia (président → Premier ministre → 
 - **Repas du président** (`20261107124500`, effets choisis par Fred le 07/11 : ceux du dîner d'affaires) : pièce « Appartements présidentiels » au Palais du Parti (`20261107130000` pour la navigation serveur) ; un repas par jour, seul ou avec un invité présent : +10 Santé, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Image à venir.
 - **Reste** : statut de dignitaire à raccorder quand les invitations des ambassades et entre gouvernements existeront (voyage inter-empires).
 
+## Partis de Sovarka (décisions de Fred, 07/11/2026)
+
+- **« Postuler à un poste »** (hall du Palais du Gouvernement) : sans parti, message « Vous ne pouvez pas obtenir un poste si vous n'adhérez pas à un parti », avec la liste des partis constitués (demande d'adhésion) et l'accès à la création. Le serveur refuse aussi toute candidature ou nomination à un poste nommé sans parti (`parti_requis`).
+- **Condition suivante** : la règle de Républia. Si l'autorité qui nomme est un PJ, elle accepte ou refuse ; si c'est un PNJ, la candidature est acceptée d'office, pour peu que le candidat adhère à un parti.
+- **Ministres** : choisis dans le parti du Président du Conseil, **sauf si aucun membre du parti n'est libre** (tous occupent déjà un poste du gouvernement) : le Président du Conseil peut alors prendre un ministre hors de son parti.
+- **Création libre** à chacun, dans la **salle des partis** d'une des trois mairies (Novomirsk, Starovka, Krasnov) : **2 PA et 15 PSK** de droits d'enregistrement. Le parti est **national**, son **siège** est dans la ville de création.
+- **Un seul parti à la fois** ; pour en rejoindre un autre, quitter d'abord le sien.
+- **Adhésion sur demande** (2 PA), acceptée ou refusée par le chef ; **un refus coûte 2 POP au parti**, sans plafond (« les joueurs abuseront des mécaniques, c'est assumé »). Le **droit d'entrée** est fixé par le chef, **payé à l'acceptation**, versé à la **caisse du parti** ; si le candidat ne peut plus payer, l'acceptation est refusée et la demande reste en attente.
+- **Quitter coûte 1 PA**. Le chef doit d'abord **désigner un successeur** ; s'il est le dernier membre, le parti est **dissous**.
+- **Popularité du parti** : jauge propre au parti (les organisations n'en avaient pas), **50 au départ**, bornée 0-100 (valeur de départ provisoire, choisie par Claude, à valider par Fred). Elle ne sert encore à rien d'autre que d'afficher les refus.
+- Code : migration `20261107184000_sovarka_partis_salle` (`sovarka_partis_liste`, `sovarka_parti_commande`, `sovarka_nomination_refus` ; portes génériques des organisations fermées aux partis de Sovarka), `plateau-sovarka-partis.js`, salle `salle_partis` ajoutée par `roomsExtra` à la fin de `data.js`.
+
 ## Règle des noms de PNJ de Sovarka (Fred, 07/11/2026)
 
 Noms russes authentiques (bouriates à Starovka), sans jeu de mots français. Exceptions : sept figures satiriques (Innokenti Partiïev, Zinaïda Propagandova, Rostislav Censurov, Raïssa Communiqueva, Macha Scoopova, Pavel Pistonov, Dimitri Compassov) ; les noms choisis par Fred ; les noms bâtis sur un mot russe (Smetanine, Blinova, Vodkaïev, Sévérov…). Tout nouveau PNJ de Sovarka suit cette règle. Le renommage du 07/11 a appliqué le tableau validé par Fred (75 noms, voir l'historique Git).
