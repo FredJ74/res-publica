@@ -61,6 +61,7 @@ on:
       - 'outils/bancs/banc-i18n-petit-accueil.cjs'
       - 'i18n/jeremy-scenes-resources.js'
       - 'outils/bancs/banc-i18n-premieres-scenes-jeremy.cjs'
+      - 'outils/bancs/banc-i18n-stade-et-guidage.cjs'
       - 'outils/bancs/banc-i18n-quete-carriere.cjs'
       - 'outils/bancs/banc-i18n-presentation-forum-jeremy.cjs'
       - 'i18n/guard-welcome-resources.js'
@@ -170,6 +171,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-petit-accueil.cjs
       - name: Deux premières scènes Jérémy localisées, transitions préservées
         run: node --test outils/bancs/banc-i18n-premieres-scenes-jeremy.cjs
+      - name: Visite du stade et titres de guidage en neuf langues
+        run: node --test outils/bancs/banc-i18n-stade-et-guidage.cjs
       - name: Choix métier et orientation — neuf langues, référents préservés
         run: node --test outils/bancs/banc-i18n-quete-carriere.cjs
       - name: Présentation forum et courrier Jérémy — neuf langues sans publication client
