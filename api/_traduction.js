@@ -27,7 +27,10 @@ function retour(original,source,cible,traduit=null,raison=null) {
 }
 async function traduireTexte({texte,langueOriginale,langueCible},provider=appelDeepSeek) {
  const original=typeof texte==='string'?texte:'';
- const source=langueAdmise(langueOriginale)?langueOriginale:null;
+ // Les textes de forum/chat existants n'ont pas de colonne langue :
+ // 'und' (indéterminée) demande au fournisseur d'identifier la langue du texte.
+ // Ne jamais les déclarer français par défaut.
+ const source=langueAdmise(langueOriginale)||langueOriginale==='und'?langueOriginale:null;
  const target=langueAdmise(langueCible)?langueCible:null;
  if(!source || !target || !original.trim() || original.length>1800 || /[\u0000-\u0008\u000E-\u001F]/.test(original))
   return retour(original,source,target,null,'entree_invalide');
