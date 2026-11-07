@@ -11,7 +11,7 @@ const context=vm.createContext({window:win});
 for(const file of ['resources.js','forum-ui.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),context);
 const original=win.RP_I18N_RESOURCES.fr.translation.mailActions;
-test('16 boutons d'action de courriers localisés dans neuf langues',()=>{
+test("16 boutons d’action de courriers localisés dans neuf langues",()=>{
  assert.equal(Object.keys(original).length,16);
  assert.equal(Object.keys(win.RP_I18N_LANGUAGES).length,9);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
