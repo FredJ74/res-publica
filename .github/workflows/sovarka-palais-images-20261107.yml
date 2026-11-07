@@ -1,0 +1,42 @@
+name: Sovarka — installer quatre visuels palais WebP (branche dédiée)
+on:
+  push:
+    branches: [chatgpt/sovarka-palais-4-webp-20261107]
+permissions:
+  contents: write
+jobs:
+  conversion:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Installer Pillow
+        run: python -m pip install "Pillow>=11,<13"
+      - name: Convertir, contrôler et raccorder quatre images
+        run: python outils/images/installer_palais_sovarka_4_webp_20261107.py
+      - name: Vérifier le JS et les quatre références
+        run: |
+          node --check data.js
+          python - <<'PY'
+          from pathlib import Path
+          d=Path('images/Sovarka/Novomirsk')
+          paths=list(d.glob('Novomirsk_palais_gouvernement_*.webp'))
+          assert len(paths)==4, paths
+          assert all(p.stat().st_size > 100000 for p in paths)
+          assert not (d/'Novomirsk_Palais gouvernement_salle conseil.png').exists()
+          print('4 WebP présents, PNG supprimés, data.js valide')
+          PY
+      - name: Commit atomique des images et du raccordement
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- data.js images/Sovarka/Novomirsk
+          git diff --cached --check
+          git commit -m "Sovarka : quatre salles du palais en WebP, PNG retirés [skip ci]"
+          git push origin HEAD:chatgpt/sovarka-palais-4-webp-20261107
