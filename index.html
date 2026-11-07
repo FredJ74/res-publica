@@ -85,16 +85,16 @@
          ouvrirConnexionCompte() bascule dessus. -->
     <button class="hg-btn hg-btn-secondaire" onclick="ouvrirConnexionCompte()">
       <i class="ti ti-login" aria-hidden="true"></i>
-      <span>Me connecter à mon compte</span>
+      <span data-i18n="auth.signIn">Me connecter à mon compte</span>
     </button>
     <div id="connexion-panel" style="display:none">
       <input id="connexion-email" type="email" autocomplete="email"
-             placeholder="Votre adresse e-mail..." class="hg-champ"/>
+             placeholder="Votre adresse e-mail..." data-i18n-placeholder="auth.signInEmailPlaceholder" class="hg-champ"/>
       <input id="connexion-mdp" type="password" autocomplete="current-password"
-             placeholder="Votre mot de passe..." class="hg-champ"/>
+             placeholder="Votre mot de passe..." data-i18n-placeholder="auth.signInPasswordPlaceholder" class="hg-champ"/>
       <button id="connexion-valider" onclick="connecterAvecMotDePasse()"
-              class="hg-btn hg-btn-charger">Se connecter</button>
-      <button onclick="ouvrirConnexionCompte()" class="hg-btn hg-btn-secondaire">Annuler</button>
+              class="hg-btn hg-btn-charger" data-i18n="auth.signInSubmit">Se connecter</button>
+      <button onclick="ouvrirConnexionCompte()" class="hg-btn hg-btn-secondaire" data-i18n="auth.cancel">Annuler</button>
       <div id="connexion-msg"></div>
     </div>
 

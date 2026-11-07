@@ -1137,7 +1137,10 @@ function renderInventory() {
   const el = document.getElementById('inv-items');
   if (!el) return;
   if (state.inventory.length === 0) {
-    el.innerHTML = '<div class="inv-item-empty">Aucun objet</div>';
+    el.innerHTML = '<div class="inv-item-empty" data-i18n="plateau.noItems">Aucun objet</div>';
+    // Même ressource que le HTML initial ; repli français si l'i18n n'est pas initialisé.
+    if (typeof window !== 'undefined' && typeof window.RPI18nPlateau?.apply === 'function')
+      window.RPI18nPlateau.apply(el);
     return;
   }
   el.innerHTML = state.inventory.map((item, idx) => {
