@@ -867,7 +867,7 @@ const QUETE_ACCUEIL_PHRASES_ARRIVEE_I18N = {
   es: [/\b(?:soy nuev[oa]|acabo de llegar|primera vez|el guardia me envio)\b/],
   'pt-BR': [/\b(?:sou nov[oa]|acabei de chegar|primeira vez|o guarda me mandou)\b/],
   de: [/\b(?:ich bin neu|gerade angekommen|zum ersten mal|die wache hat mich geschickt)\b/],
-  ru: [/я новеньк(?:ии|ая)|только что приехал|впервые здесь|меня прислал охранник/],
+  ru: [/я новеньк(?:ий|ая)|только что приехал|впервые здесь|меня прислал охранник/],
   ko: [/새로 왔|처음 왔|막 도착했|경비가 보냈/],
   ar: [/انا جديد|انا جديدة|وصلت للتو|هذه اول مرة|الحارس ارسلني|أنا جديد|أنا جديدة|هذه أول مرة|الحارس أرسلني/],
   'zh-TW': [/我是新來的|剛到這裡|第一次來|警衛叫我來/]
@@ -878,9 +878,11 @@ function queteAccueilPhraseDeNouvelArrivant(texte) {
   if (!t) return false;
   if (QUETE_ACCUEIL_PHRASES_ARRIVEE.some(function (m) { return m.test(t); }))return true;
   const langue = (typeof window!=='undefined' && window.RPPlateauI18n?.language?.()) || 'fr';
-  // Les hamzas arabes se décomposent sous NFD ; les neutraliser ici uniquement.
-  // Ne pas modifier le normaliseur français ni les reconnaissances métier.
-  const comparaison = langue==='ar' ? t.replace(/[\u064b-\u065f]/g,'') : t;
+  // NFD décompose les syllabes coréennes en jamos et le й russe en и + diacritique.
+  // Comparer ces deux langues à leur texte NFC natif, sans toucher au canon FR.
+  // Pour l'arabe uniquement, supprimer les diacritiques afin de reconnaître أنا/انا.
+  const comparaison = langue==='ar' ? t.replace(/[\u064b-\u065f]/g,'')
+    : (langue==='ko'||langue==='ru' ? String(texte==null?'':texte).toLowerCase().normalize('NFC').trim() : t);
   return (QUETE_ACCUEIL_PHRASES_ARRIVEE_I18N[langue] || []).some(function (m) { return m.test(comparaison); });
 }
 
