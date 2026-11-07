@@ -54,7 +54,7 @@ async function run(){
    await page.route('**/*',route=>{
     const url=new URL(route.request().url());
     if(url.origin!==ORIGIN)return route.abort();
-    if(url.pathname.endsWith('.js') && !url.pathname.startsWith('/i18n/'))return route.abort();
+    if(url.pathname.endsWith('.js') && !url.pathname.startsWith('/i18n/') && url.pathname!=='/forum.js')return route.abort();
     return route.continue();
    });
    await page.goto(ORIGIN+'/plateau.html',{waitUntil:'domcontentloaded'});
@@ -79,7 +79,22 @@ async function run(){
       replyControl:window.RPForumUI?.labelHtml('reply','Répondre'),
       expectedReply:window.RP_I18N_RESOURCES?.[language]?.translation?.forumUI?.reply,
       toastTitle:window.RPToastI18n?.label('Action impossible'),
-      expectedToast:window.RP_I18N_RESOURCES?.[language]?.translation?.toastTitles?.actionImpossible};
+      expectedToast:window.RP_I18N_RESOURCES?.[language]?.translation?.toastTitles?.actionImpossible,
+      // Panneau personnel du vrai HTML, pas seulement le dictionnaire.
+      panelLabels:Object.fromEntries(['myStats','myGoals','myEmployees','inventory'].map(key=>{
+        const el=document.querySelector('[data-i18n="plateau.'+key+'"]');
+        const expected=window.RP_I18N_RESOURCES?.[language]?.translation?.plateau?.[key];
+        return [key,{visible:el?.textContent?.trim(),expected,
+          icon:el?.closest('button')?.querySelector('i')?.className||null,
+          dir:el?.getAttribute('dir')||null}];
+      })),
+      panelHandlers:{
+        stats:document.querySelector('[data-i18n="plateau.myStats"]')?.closest('button')?.getAttribute('onclick'),
+        goals:document.querySelector('[data-i18n="plateau.myGoals"]')?.closest('button')?.getAttribute('onclick'),
+        employees:document.querySelector('[data-i18n="plateau.myEmployees"]')?.parentElement?.getAttribute('onclick'),
+        inventory:document.querySelector('.panel-title [data-i18n="plateau.inventory"]')?.parentElement?.getAttribute('onclick')
+      },
+      toolbarDir:document.querySelector('.top-right')?.getAttribute('dir')||null};
    });
    assert.equal(state.label,state.expected,language+': guide sur le plateau réel');
    assert.equal(state.placeholder,state.expectedPlaceholder,language+': composition de mail');
@@ -91,6 +106,20 @@ async function run(){
    assert.equal(state.privateForum,'Forum local — Novomirsk',language+': nom privé/local inchangé');
    assert.equal(state.replyControl,state.expectedReply,language+': bouton répondre localisé');
    assert.equal(state.toastTitle,state.expectedToast,language+': notification localisée sans changer raison serveur');
+   for(const [key,entry] of Object.entries(state.panelLabels)){
+     assert.ok(entry.expected,language+': absent du catalogue du panneau '+key);
+     assert.equal(entry.visible,key==='myEmployees'||key==='inventory'
+       ? entry.expected.toLocaleUpperCase(language) : entry.expected,
+       language+': texte vraiment affiché dans le panneau '+key);
+     assert.equal(entry.dir,language==='ar'?'rtl':null,language+': direction localisée '+key);
+   }
+   assert.ok(state.panelLabels.myStats.icon?.includes('ti-chart-bar'));
+   assert.ok(state.panelLabels.myGoals.icon?.includes('ti-target'));
+   assert.equal(state.panelHandlers.stats,"openSelfView('stats')");
+   assert.equal(state.panelHandlers.goals,'afficherObjectifsSecrets()');
+   assert.equal(state.panelHandlers.employees,"toggleSection('employes-panel','emp-chevron')");
+   assert.equal(state.panelHandlers.inventory,'toggleInventaire()');
+   assert.equal(state.toolbarDir,null,language+': barre globale non inversée');
    checks++;
    // Le navigateur réel résout aussi les nouveaux catalogues du Conseil
    // et des forums, avec les handlers métier explicitement bloqués.
@@ -115,6 +144,25 @@ async function run(){
    assert.equal(social.otherRoom,'Salle du Conseil du Peuple',language+': autre bâtiment inchangé');
    assert.equal(social.otherForum,'Nom privé conservé',language+': forum privé inchangé');
    assert.notEqual(social.htmlDir,'rtl',language+': aucun RTL global');
+   checks++;
+   // Vérifier cette fois les vraies fonctions de rendu du forum, avec state
+   // de test local. Aucun moteur métier, identifiant ou appel réseau externe.
+   await page.evaluate(()=>{window.state={char:{name:'Testeur'},currentCity:'novomirsk',poste:null,contacts:[]};});
+   await page.addScriptTag({url:ORIGIN+'/forum.js'});
+   const rendered=await page.evaluate(()=>{
+     const name=renderForumNavItem('national',FORUMS_BASE.national);
+     const unread=renderMailCompose('Destinataire PJ','Sujet PJ');
+     const locale=window.i18next.language;
+     return {name,unread,locale,
+       national:window.RP_I18N_RESOURCES[locale].translation.forumNames.national,
+       mail:window.RP_I18N_RESOURCES[locale].translation.forumUI.newMail};
+   });
+   assert.ok(rendered.name.includes(rendered.national),language+': nom dans le HTML généré');
+   assert.ok(rendered.name.includes('switchForum(&#39;national&#39;)') ||
+     rendered.name.includes("switchForum('national')"),language+': identifiant du forum inchangé');
+   assert.ok(rendered.unread.includes('Destinataire PJ'),language+': destinataire saisi préservé');
+   assert.ok(rendered.unread.includes('Sujet PJ'),language+': sujet saisi préservé');
+   assert.ok(rendered.unread.includes('onclick="submitMail()"'),language+': action courrier inchangée');
    checks++;
    await page.close();
   }
