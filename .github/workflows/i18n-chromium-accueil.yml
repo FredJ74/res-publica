@@ -1,0 +1,44 @@
+name: I18N — Chromium accueil neuf langues sans compte
+on:
+  push:
+    branches: [chatgpt/accueil-9-langues-20261102]
+    paths:
+      - 'i18n/**'
+      - 'index.html'
+      - 'creation.js'
+      - 'outils/bancs/i18n/banc-navigateur-neuf-langues.cjs'
+      - '.github/workflows/i18n-chromium-accueil.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'i18n/**'
+      - 'index.html'
+      - 'creation.js'
+      - 'outils/bancs/i18n/banc-navigateur-neuf-langues.cjs'
+      - '.github/workflows/i18n-chromium-accueil.yml'
+permissions:
+  contents: read
+jobs:
+  parcours-statique:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Installer Chromium et son pilote dans un répertoire jetable
+        run: |
+          npm install --prefix /tmp/hg-i18n-browser --no-package-lock --no-audit --no-fund playwright@1.56.1
+          /tmp/hg-i18n-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Démarrer le site statique (aucun serveur de jeu)
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/hg-i18n-static.log 2>&1 &
+          for n in $(seq 1 20); do curl -fsS http://127.0.0.1:8765/index.html >/dev/null && exit 0; sleep 1; done
+          cat /tmp/hg-i18n-static.log
+          exit 1
+      - name: Vérifier sélection, préférences, langues, RTL et rechargement
+        env:
+          NODE_PATH: /tmp/hg-i18n-browser/node_modules
+          I18N_STATIC_ORIGIN: http://127.0.0.1:8765
+        run: node outils/bancs/i18n/banc-navigateur-neuf-langues.cjs
