@@ -62,6 +62,82 @@
     "archives_gouv": "Regierungsarchiv"
   }
 };
+ // Intitulés propres aux six ministères de Sovarka (autres empires inchangés).
+ const ministries={
+  "fr": {
+    "bureau_min_int": "Bureau - Ministre de la Sécurité du Peuple",
+    "bureau_min_fin": "Bureau - Ministre de l'Économie collective",
+    "bureau_min_just": "Bureau - Ministre de la Justice prolétarienne",
+    "bureau_min_def": "Bureau - Ministre de la Défense de la Patrie",
+    "bureau_min_info": "Bureau - Ministre de la Vérité officielle",
+    "bureau_min_ae": "Bureau - Ministre de l'Amitié entre les Peuples"
+  },
+  "en": {
+    "bureau_min_int": "Office — Minister of People's Security",
+    "bureau_min_fin": "Office — Minister of the Collective Economy",
+    "bureau_min_just": "Office — Minister of Proletarian Justice",
+    "bureau_min_def": "Office — Minister of Homeland Defence",
+    "bureau_min_info": "Office — Minister of Official Truth",
+    "bureau_min_ae": "Office — Minister of Friendship among Peoples"
+  },
+  "es": {
+    "bureau_min_int": "Despacho — Ministro de Seguridad del Pueblo",
+    "bureau_min_fin": "Despacho — Ministro de Economía Colectiva",
+    "bureau_min_just": "Despacho — Ministro de Justicia Proletaria",
+    "bureau_min_def": "Despacho — Ministro de Defensa de la Patria",
+    "bureau_min_info": "Despacho — Ministro de la Verdad Oficial",
+    "bureau_min_ae": "Despacho — Ministro de Amistad entre los Pueblos"
+  },
+  "zh-TW": {
+    "bureau_min_int": "人民安全部長辦公室",
+    "bureau_min_fin": "集體經濟部長辦公室",
+    "bureau_min_just": "無產階級司法部長辦公室",
+    "bureau_min_def": "祖國國防部長辦公室",
+    "bureau_min_info": "官方真相部長辦公室",
+    "bureau_min_ae": "民族友誼部長辦公室"
+  },
+  "ru": {
+    "bureau_min_int": "Кабинет министра народной безопасности",
+    "bureau_min_fin": "Кабинет министра коллективной экономики",
+    "bureau_min_just": "Кабинет министра пролетарской юстиции",
+    "bureau_min_def": "Кабинет министра обороны Родины",
+    "bureau_min_info": "Кабинет министра официальной правды",
+    "bureau_min_ae": "Кабинет министра дружбы народов"
+  },
+  "ko": {
+    "bureau_min_int": "인민안전부 장관실",
+    "bureau_min_fin": "집단경제부 장관실",
+    "bureau_min_just": "프롤레타리아 사법부 장관실",
+    "bureau_min_def": "조국방위부 장관실",
+    "bureau_min_info": "공식 진실부 장관실",
+    "bureau_min_ae": "민족 간 우호부 장관실"
+  },
+  "ar": {
+    "bureau_min_int": "مكتب وزير أمن الشعب",
+    "bureau_min_fin": "مكتب وزير الاقتصاد الجماعي",
+    "bureau_min_just": "مكتب وزير العدالة البروليتارية",
+    "bureau_min_def": "مكتب وزير الدفاع عن الوطن",
+    "bureau_min_info": "مكتب وزير الحقيقة الرسمية",
+    "bureau_min_ae": "مكتب وزير الصداقة بين الشعوب"
+  },
+  "pt-BR": {
+    "bureau_min_int": "Gabinete — Ministro da Segurança do Povo",
+    "bureau_min_fin": "Gabinete — Ministro da Economia Coletiva",
+    "bureau_min_just": "Gabinete — Ministro da Justiça Proletária",
+    "bureau_min_def": "Gabinete — Ministro da Defesa da Pátria",
+    "bureau_min_info": "Gabinete — Ministro da Verdade Oficial",
+    "bureau_min_ae": "Gabinete — Ministro da Amizade entre os Povos"
+  },
+  "de": {
+    "bureau_min_int": "Büro — Minister für Volkssicherheit",
+    "bureau_min_fin": "Büro — Minister für Kollektivwirtschaft",
+    "bureau_min_just": "Büro — Minister für proletarische Justiz",
+    "bureau_min_def": "Büro — Minister für Landesverteidigung",
+    "bureau_min_info": "Büro — Minister für offizielle Wahrheit",
+    "bureau_min_ae": "Büro — Minister für Völkerfreundschaft"
+  }
+};
+ for(const [lang,labels] of Object.entries(ministries)) Object.assign(localized[lang],labels);
  const expected=localized.fr;
  for(const [locale,labels] of Object.entries(localized)){
   if(resources[locale]?.translation)
