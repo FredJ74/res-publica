@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('351 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('371 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,351);
+ assert.equal(ref.length,371);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -456,5 +456,28 @@ test('20 services essentiels : libellés, neuf langues et valeurs métier inchan
   }
   assert.equal(order.fn,fn);assert.equal(order.label,fr[fn]);
   assert.equal(order.pa,3);assert.equal(order.cost,125);assert.equal(order.requiresPost,'testeur');
+ }
+});
+
+
+test('20 autres ordres citoyens, diplomatiques et juridiques : sources et contrats préservés',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const {extract}=require('../audits/libelles-ordres-source.cjs');
+ const records=new Map();
+ for(const {fn,label} of extract(source)){
+  if(!records.has(fn))records.set(fn,new Set());
+  records.get(fn).add(label);
+ }
+ const ids=["sovarka_cession","gerer_budget_interieur","acte_rachat_entreprise_preemption","orga_extrait_duplicata","greffe_corrompre_dossier","demander_parler_loge","consulter_organigramme_mairie","donner_argent_pnj","acheter_entreprise","s_engager_armee","traiter_candidatures","quitter_armee","consulter_faits_armes","demander_audience_ambassadeur","demander_asile_politique","demander_transfert_detenu","se_reposer","produire_alcool","acheter_sels_ammoniaque","corrompre_douanier"];
+ const reference=win.RP_I18N_RESOURCES.fr.translation.orders;
+ for(const fn of ids){
+  const original=Object.freeze({fn,label:reference[fn],cost:120,pa:2,requiresPost:'test'});
+  assert.ok(records.get(fn)?.has(original.label),'libellé original différent '+fn);
+  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
+   const translation=win.RP_I18N_RESOURCES[lang].translation.orders[fn];
+   assert.ok(translation?.trim(),lang+'/'+fn);
+   assert.equal(win.RPOrderI18n.label(original,engine,lang),translation,lang+'/'+fn);
+  }
+  assert.equal(original.cost,120);assert.equal(original.pa,2);assert.equal(original.requiresPost,'test');
  }
 });
