@@ -49,7 +49,7 @@ for (const [id, [base, soviet]] of Object.entries(offices)) {
     j.applyCharToState({name:'PJ',country:'soviet',poste:{id,name:base}});
     assert.equal(j.state.poste.name,soviet);
   });
-  test(id + ': autre empire n'hérite pas du titre sovarkien', () => {
+  test(id + ": autre empire n'hérite pas du titre sovarkien", () => {
     const j = jeu();
     j.state.domicile = {country:'khalija',city:'capitale'};
     j.applyCharToState({name:'PJ',country:'soviet',poste:{id,name:soviet}});
