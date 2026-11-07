@@ -99,3 +99,19 @@ test('plateau et pont partagent la langue détectée au premier chargement',()=>
   assert.equal(document.documentElement.lang,wanted,navigatorLanguage);
  }
 });
+
+
+test('aria-label localisé sans ajouter de texte ni déplacer un contrôle tactile',()=>{
+ const {api,engine}=run('ar');
+ const element={textContent:'',attrs:{'data-i18n-aria-label':'plateau.mobileClosePanel','aria-label':'Fermer le panneau'},
+  getAttribute(k){return this.attrs[k]},hasAttribute(k){return Object.hasOwn(this.attrs,k)},
+  setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+ engine.t=key=>key==='plateau.mobileClosePanel'?'إغلاق اللوحة':key;
+ const root={querySelectorAll(selector){return selector==='[data-i18n-aria-label]'?[element]:[]}};
+ api.apply(root);
+ assert.equal(element.attrs['aria-label'],'إغلاق اللوحة');
+ assert.equal(element.textContent,'');
+ element.attrs['data-i18n-aria-label']='plateau.missingKey';
+ api.apply(root);
+ assert.equal(element.attrs['aria-label'],'إغلاق اللوحة');
+});
