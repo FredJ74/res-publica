@@ -25,6 +25,20 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mobile Sovarka — Codex, 07/11/2026
+
+Branche `codex/mobile-sovarka-20261107`, base main `6e157d09`. Correction uniquement
+CSS commun : sélecteurs de locaux/caractéristiques lisibles et champs contenus
+sur téléphone, cache CSS majoré. Aucun JS métier, SQL, montant ou ordre modifié.
+Rapport : `outils/audits/MOBILE-SOVARKA-20261107.md`. Banc Chromium dédié : rendus
+réels avec lectures isolées, 360/390/768 et pixels bureau 1440 contre témoin main.
+Validation élargie en cours ; contrôles complets une seule fois en fin de lot.
+Pour tester sur téléphone après intégration : ouvrir les dossiers commerciaux,
+une demande de location, la création de parti, garage et événements de réunion ;
+les sélecteurs utilisent la largeur disponible, aucun paiement requis.
+PR à préparer après tests ; ne pas confondre ces fixtures avec une recette connectée.
+
+
 ### Novomirsk : raccordement vue par vue — Claude, 04/11/2026 (à reprendre)
 
 Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêta : V1 Librairie du Peuple, V2 La Mère Volga et Musée municipal, V6 Palais des Ambassades (ordres « Bientôt disponible »), V7 Pavillon des Ambassadeurs et Résidence impériale ; Grand Hôtel sans suites ; monnaie PSK ; navigation de rue serveur dans toute ville à rues (PR #474).
