@@ -1,3 +1,8 @@
+// L'interface peut encore fonctionner sans son catalogue non activé :
+ // seule la présentation change ; les valeurs publiées restent strictement d'origine.
+function rpForumLibelle(key,source) {
+  return (typeof window!=='undefined' && window.RPForumUI?.labelHtml?.(key,source)) || source;
+}
 /* ===========================
    RES PUBLICA — FORUM.JS v3
    Éditeur riche, mails, emojis
@@ -1116,7 +1121,7 @@ function renderTopicList() {
       </div>
       ${peutCreerSujet ? `
       <button class="forum-new-btn" onclick="showComposeCanvasForm()">
-        <i class="ti ti-pencil-plus"></i> Nouveau sujet
+        <i class="ti ti-pencil-plus"></i> ${rpForumLibelle('newTopic','Nouveau sujet')}
       </button>` : ''}
     </div>
     ${topics.length === 0
@@ -1127,7 +1132,7 @@ function renderTopicList() {
           // contenu du forum -- et c'est exactement ce qui s'est produit en production.
           ? `<div class="forum-empty">Les sujets de cette rubrique n'ont pas pu être chargés.
              Ce n'est pas qu'elle est vide : la lecture du serveur a échoué ou a dépassé 12 secondes.
-             <button class="forum-new-btn" onclick="rechargerForumActuel()">Réessayer</button></div>`
+             <button class="forum-new-btn" onclick="rechargerForumActuel()">${rpForumLibelle('retry','Réessayer')}</button></div>`
           : `<div class="forum-empty">Aucun sujet. ${peutCreerSujet ? 'Soyez le premier à en créer un !' : "Seul le Président peut s'exprimer ici."}</div>`)
       : `<div class="forum-topics-list">
           <div class="forum-topics-header">
@@ -1231,7 +1236,7 @@ function renderTopicView() {
     </div>
     <div class="forum-reply-bar">
       <button class="forum-new-btn" onclick="showComposeCanvasReply()">
-        <i class="ti ti-corner-down-right"></i> Répondre
+        <i class="ti ti-corner-down-right"></i> ${rpForumLibelle('reply','Répondre')}
       </button>
     </div>
   `;
@@ -1686,7 +1691,7 @@ function getMesOrganisations() {
 function renderPosterEnTantQue(fieldId) {
   const mesOrgas = getMesOrganisations();
   if (mesOrgas.length === 0) return '';
-  let html = '<div class="forum-field"><label class="forum-field-label">Publier en tant que</label>';
+  let html = '<div class="forum-field"><label class="forum-field-label">' + rpForumLibelle('postAs','Publier en tant que') + '</label>';
   html += '<select id="' + fieldId + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
   html += '<option value="">' + escapeHtmlText(state.char?.name || 'Moi-même') + '</option>';
   mesOrgas.forEach(o => {
@@ -1771,7 +1776,7 @@ function getSignatureHtml() {
 function renderNewTopicForm() {
   return `
     <div class="forum-header-bar">
-      <button class="forum-back-btn" onclick="backToList()"><i class="ti ti-arrow-left"></i> Retour</button>
+      <button class="forum-back-btn" onclick="backToList()"><i class="ti ti-arrow-left"></i> ${rpForumLibelle('back','Retour')}</button>
       <div class="forum-title-main">Nouveau sujet</div>
     </div>
     <div class="forum-compose-form">
@@ -1796,7 +1801,7 @@ function renderReplyForm() {
   const topic = (FORUM_TOPICS[currentForumId]||[]).find(t => t.id === currentTopicId);
   return `
     <div class="forum-header-bar">
-      <button class="forum-back-btn" onclick="backToTopic()"><i class="ti ti-arrow-left"></i> Retour au sujet</button>
+      <button class="forum-back-btn" onclick="backToTopic()"><i class="ti ti-arrow-left"></i> ${rpForumLibelle('backToTopic','Retour au sujet')}</button>
       <div class="forum-title-main">Répondre : ${escapeHtmlText(topic?.title||'')}</div>
     </div>
     <div class="forum-compose-form">
@@ -2544,7 +2549,7 @@ function renderMailInbox() {
     <div class="forum-header-bar">
       <div class="forum-title-main"><i class="ti ti-mail"></i> Boîte Mail</div>
       <button class="forum-new-btn" onclick="mailView='compose';document.getElementById('forum-main').innerHTML=renderForumContent()">
-        <i class="ti ti-pencil-plus"></i> Nouveau mail
+        <i class="ti ti-pencil-plus"></i> ${rpForumLibelle('newMail','Nouveau mail')}
       </button>
     </div>
     <div class="forum-topics-list">
@@ -2974,7 +2979,7 @@ function replyToMail(to, subject) {
 function renderEnvoyerMailEnTantQue(fieldId, selectedOrgaId) {
   const mesOrgas = typeof getMesOrganisations === 'function' ? getMesOrganisations() : [];
   if (mesOrgas.length === 0) return '';
-  let html = '<div class="forum-field"><label class="forum-field-label">Envoyer en tant que</label>';
+  let html = '<div class="forum-field"><label class="forum-field-label">' + rpForumLibelle('sendAs','Envoyer en tant que') + '</label>';
   html += '<select id="' + fieldId + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
   html += '<option value="">' + escapeHtmlText(state.char?.name || 'Moi-même') + '</option>';
   mesOrgas.forEach(o => {
