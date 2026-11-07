@@ -1,0 +1,32 @@
+{
+  "objet": "Lever les deux contrôles restant bloqués par la photographie de production, sans écriture",
+  "projet": "jxpwoosmmhohoihxpbuc",
+  "execution_dans_cette_session": false,
+  "executeur": "Claude ou intégrateur disposant du connecteur Supabase ; aucune commande à faire exécuter à Fred",
+  "protocole": [
+    "Transaction REPEATABLE READ READ ONLY unique, terminée par ROLLBACK ; garder snapshot, horodatage UTC, registre et SHA-256 des octets originaux.",
+    "Rejouer les quatre exports canoniques EXISTANTS de outils/baseline/requetes.py (--exports puis --export <nom>), sans réécrire leurs requêtes.",
+    "Relever le contrôle global par requetes.py --controle-global et le registre par NOM des migrations déjà appliquées, sans les rejouer.",
+    "Réutiliser l'ensemble referentiels du manifeste outils/livraison/manifeste-collecte-certification-219.py pour les cinq mesures de contenu et sentinelles. La coupe_annoncee_non_certifiee de ce vieux manifeste n'est PAS la coupe courante : conserver le registre réellement retourné.",
+    "Relever les seeds par seeds.py --sql <exports-validés>, sur la même coupe. Vérifier notamment chaines_production_usine, entreprises_constantes et commerces_dotations (clé marche@ville_b).",
+    "Conserver les sorties privées hors Git ; aucune table de PJ ni auth.users à extraire pour ce chantier.",
+    "Comparer les mesures à la source par diagnostiquer-mesures-referentiels.py, avec provenance canonique vérifiée. Si le contenu ou une sentinelle diverge réellement, ne pas aligner la référence : préparer correction et banc annulé séparés.",
+    "Rendre schéma et seeds avec rendre.py/seeds.py depuis ces seuls exports, actualiser les attentes avec actualiser-attentes-catalogue.py ; jamais depuis les SQL déjà rendus. Rejouer regenerer-seeds-miroirs.py pour les huit miroirs de sources.",
+    "Comparer tous les diffs aux décisions livrées, conserver la trace de capture, puis relancer les douze contrôles. Aucun résultat à annoncer conforme avant exécution. Aucune migration automatiquement autorisée par ce manifeste."
+  ],
+  "restes_baseline": [
+    "chaines_production_usine : seed six lignes, mesure cinq, ajout dérivés pétrochimiques livré par #470 ; empreinte du seed modifiée hors rendu",
+    "entreprises_constantes : seed vingt-trois lignes, mesure vingt-deux, coef_prix_max_pj_soviet livré par #557 ; empreinte du seed modifiée hors rendu"
+  ],
+  "restes_referential": [
+    "ordres_couts : source actuelle et mesure historique divergentes",
+    "pa_bonus_differes : trois menus Sovarka ajoutés après la mesure",
+    "miroirs_entreprises : source et déclaration historique divergentes, y compris variante ville désormais capturée"
+  ],
+  "interdits": [
+    "Aucune valeur de production inventée à partir des sources ou du SQL local",
+    "Aucune addition de tolérance ou exemption pour faire passer les contrôles",
+    "Aucune modification des mesures posee/reelle sans capture réelle",
+    "Aucune écriture en production ni migration appliquée"
+  ]
+}

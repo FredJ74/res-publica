@@ -116,3 +116,82 @@ def derives(stmt):
                 continue
             resultat.append((src, cible))
     return resultat
+
+
+def extensions_parametres(texte, signatures_connues, noms_connus=None):
+    """Inventorie l'ajout constant de paramètres à une définition connue, exécuté par DO.
+
+    Aucun PL/pgSQL exécuté : on exige copie constante, replace à littéraux, même
+    variable EXECUTE au premier niveau et aucun retour/réaffectation opaque.
+    Ne reconnaît pas un corps, un commentaire ou un GRANT comme une création.
+    """
+    from pglast import ast
+    resultat = set()
+    def canon(st):
+        noms=[]
+        for p in st.parameters or ():
+            t='.'.join(x.sval for x in p.argType.names).removeprefix('pg_catalog.')
+            noms.append({'int4':'integer','int8':'bigint','bool':'boolean'}.get(t,t)+('[]' if p.argType.arrayBounds else ''))
+        return st.funcname[-1].sval+'('+','.join(noms)+')'
+    def constante(x):
+        return x.val.sval if isinstance(x,ast.A_Const) and isinstance(x.val,ast.String) else None
+    def colonne(x):
+        return x.fields[0].sval if isinstance(x,ast.ColumnRef) and len(x.fields)==1 else None
+    def entete(nom,args):
+        return parse_sql('CREATE FUNCTION '+nom+'('+args+") RETURNS jsonb LANGUAGE sql AS ''; ")[0].stmt
+    for raw in parse_sql(texte):
+        st=raw.stmt
+        if type(st).__name__!='DoStmt':continue
+        if any(a.defname=='language' and a.arg.sval.lower()!='plpgsql' for a in st.args):continue
+        corps=next(a.arg.sval for a in st.args if a.defname=='as')
+        ts=[t for t in scan(corps) if t.name not in ('SQL_COMMENT','C_COMMENT')]
+        sans_chaines=list(corps)
+        for tok in ts:
+            if tok.name=='SCONST':sans_chaines[tok.start:tok.end+1]=' '*(tok.end-tok.start+1)
+        code=''.join(sans_chaines)
+        variables={};profondeur=0;precedent='';invalide=False;retour=False
+        for i,t in enumerate(ts):
+            mot=corps[t.start:t.end+1];maj=mot.upper()
+            if t.name=='SCONST':continue
+            if maj in ('IF','LOOP','CASE'):
+                profondeur+=-1 if precedent=='END' else 1
+            if maj=='RETURN':retour=True
+            if i+1<len(ts) and corps[ts[i+1].start:ts[i+1].end+1]==':=':
+                # Les affectations conditionnelles ne peuvent attester une déclaration.
+                fin=next((z for z in ts[i+2:] if z.name!='SCONST' and corps[z.start:z.end+1]==';'),None)
+                if fin is None:invalide=True;break
+                try:e=parse_sql('SELECT '+corps[ts[i+2].start:fin.start])[0].stmt.targetList[0].val
+                except Exception:invalide=True;break
+                if profondeur or not isinstance(e,ast.FuncCall):variables.pop(mot,None);precedent=maj;continue
+                fn=e.funcname[-1].sval;args=e.args or ()
+                if fn=='pg_get_functiondef' and len(args)==1 and isinstance(args[0],ast.TypeCast):
+                    identite=constante(args[0].arg)
+                    if identite and re.fullmatch(r'public\.[a-z_0-9]+\([^;]*\)',identite,re.I):
+                        nom,params=identite[:-1].split('(',1);source=entete(nom,params)
+                        if canon(source) in signatures_connues:variables[mot]=(source,None,())
+                elif fn=='replace' and len(args)==3 and colonne(args[0]) in variables:
+                    source,cible,noms=variables[colonne(args[0])];ancien=constante(args[1]);nouveau=constante(args[2])
+                    if ancien is None or nouveau is None:variables.pop(mot,None);precedent=maj;continue
+                    if cible is None:
+                        if not ancien.endswith(')') or not nouveau.endswith(')'):variables.pop(mot,None);precedent=maj;continue
+                        try:
+                            a=entete('public.x',ancien[:-1]);b=entete('public.x',nouveau[:-1])
+                            assert len(a.parameters)==1 and len(b.parameters)>1
+                            assert canon(a)==canon(entete('public.x',','.join('.'.join(z.sval for z in p.argType.names) for p in source.parameters[-1:])))
+                            assert b.parameters[0].name==a.parameters[0].name
+                            assert noms_connus and noms_connus.get(canon(source))
+                            assert a.parameters[0].name==noms_connus[canon(source)][-1]
+                            assert canon(entete('public.x',ancien[:-1]))==canon(entete('public.x',nouveau[:-1].split(',',1)[0]))
+                            rest=','.join('.'.join(z.sval for z in p.argType.names) for p in source.parameters[:-1])
+                            cible=entete('public.'+source.funcname[-1].sval,(rest+',' if rest else '')+nouveau[:-1]);noms=tuple(p.name for p in b.parameters)
+                        except Exception:variables.pop(mot,None);precedent=maj;continue
+                    elif re.search(r'\b(?:CREATE|FUNCTION|'+source.funcname[-1].sval+r')\s*\(',ancien,re.I) or any(re.search(r'\b'+re.escape(n)+r'\s+(?:text|integer|numeric|jsonb)\b',ancien) for n in noms if n):
+                        variables.pop(mot,None);precedent=maj;continue
+                    variables[mot]=(source,cible,noms)
+                else:variables.pop(mot,None)
+            if maj=='EXECUTE' and i+2<len(ts):
+                v=corps[ts[i+1].start:ts[i+1].end+1]
+                if profondeur==0 and not retour and not invalide and corps[ts[i+2].start:ts[i+2].end+1]==';' and v in variables and variables[v][1] is not None and not re.search(r'\bINTO\s+'+re.escape(v)+r'\b|(?m:^\s*'+re.escape(v)+r'\s*=)',code,re.I):
+                    resultat.add(canon(variables[v][1]))
+            precedent=maj
+    return resultat

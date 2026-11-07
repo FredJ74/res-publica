@@ -800,3 +800,24 @@ peuvent consulter inventaire, fiche, commerce et banque, parcourir la création 
 la valider, consulter les rapports et tester retour réseau/rotation sans effectuer
 d'ordre à effets sur un joueur réel. Aucun montant, texte RP, ordre de Sovarka,
 fichier de game design ou donnée de joueur modifié ; aucun arbitrage nécessaire.
+
+### Contrôles globaux — Codex, 07/11, EN COURS
+Branche `codex/controles-globaux-verts-20261107`, base main efeee90a (#585/#586).
+Rapport : `outils/audits/CONTROLES-GLOBAUX-20261107.md`. Avant 9/12, après 10/12 :
+Authority reconnu par analyse stricte de l'extension de signature réellement exécutée,
+19 ressources déjà livrées à nouveau reproductibles, huit seeds miroirs régénérés
+par leur vrai outil, variantes @ville capturées sans toucher aux fonctions du jeu.
+Cinq tests Python et contre-épreuves, huit tests ciblés Node passent ; bureau 1440
+identique et Workflow conforme. Contrôleur complet et intégration finale en cours.
+Aucun fichier Sovarka, montant, ordre, règle ou observation de production modifié.
+Restent Baseline (deux seeds socle hors rendu, captures attendues anciennes) et
+Referential (trois déclarations anciennes). Ne pas ajuster hashes/comptes observés
+pour les faire passer. Aucun connecteur Supabase exposé ici. Collecte technique en
+lecture seule préparée pour Claude dans COLLECTE-CONTROLES-GLOBAUX-20261107.json,
+réutilisant les outils canoniques ; aucune manipulation demandée à Fred.
+Titre PR prêt : « Contrôles globaux : Authority fiable, générateurs reproductibles et
+reliquats de capture explicités ». Description : causes datées par Git/bisect,
+contre-épreuves, variantes de dotation par ville, rendu strict des seeds miroirs,
+aucune migration ou donnée de production modifiée. Contrôles attendus : CI usuelles,
+banc-controles-globaux-20261107.cjs et tous les bancs clients ; globaux 10/12 tant que
+les observations vivantes ne sont pas renouvelées. Ne pas annoncer 12/12.
