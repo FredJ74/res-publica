@@ -863,6 +863,55 @@
     }
   };
   for(const [locale,labels] of Object.entries(mobileAccess)) Object.assign(translations[locale],labels);
+  // Barre personnelle : localiser seulement le texte, préserver boutons, chiffres et chevrons.
+  const personalNavigation = {
+    "fr": {
+      "myStats": "Mes statistiques",
+      "myGoals": "Mes objectifs 🎯",
+      "myEmployees": "Mes employés"
+    },
+    "en": {
+      "myStats": "My statistics",
+      "myGoals": "My goals 🎯",
+      "myEmployees": "My employees"
+    },
+    "es": {
+      "myStats": "Mis estadísticas",
+      "myGoals": "Mis objetivos 🎯",
+      "myEmployees": "Mis empleados"
+    },
+    "zh-TW": {
+      "myStats": "我的統計資料",
+      "myGoals": "我的目標 🎯",
+      "myEmployees": "我的員工"
+    },
+    "ru": {
+      "myStats": "Моя статистика",
+      "myGoals": "Мои цели 🎯",
+      "myEmployees": "Мои сотрудники"
+    },
+    "ko": {
+      "myStats": "내 통계",
+      "myGoals": "내 목표 🎯",
+      "myEmployees": "내 직원"
+    },
+    "ar": {
+      "myStats": "إحصاءاتي",
+      "myGoals": "أهدافي 🎯",
+      "myEmployees": "موظفوني"
+    },
+    "pt-BR": {
+      "myStats": "Minhas estatísticas",
+      "myGoals": "Meus objetivos 🎯",
+      "myEmployees": "Meus funcionários"
+    },
+    "de": {
+      "myStats": "Meine Statistiken",
+      "myGoals": "Meine Ziele 🎯",
+      "myEmployees": "Meine Angestellten"
+    }
+  };
+  for(const [locale,labels] of Object.entries(personalNavigation)) Object.assign(translations[locale],labels);
   for(const [locale,labels] of Object.entries(translations)) {
     if(resources[locale]?.translation) resources[locale].translation.plateau={...labels};
   }
