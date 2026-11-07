@@ -210,6 +210,145 @@
   }
 };
  for(const [lang,labels] of Object.entries(sidebar)) Object.assign(words[lang],labels);
+ // Messages statiques de lecture des forums : distinguer panne et vraie liste vide.
+ const listing={
+  "fr": {
+    "chooseCategory": "Choisissez une catégorie à gauche",
+    "categoryHelp": "Forums nationaux, internationaux ou privés — déroulez une catégorie pour voir ses forums.",
+    "loadingTopics": "Chargement des sujets depuis le serveur…",
+    "failedTopics": "Les sujets de cette rubrique n'ont pas pu être chargés.",
+    "failedTopicsDetail": "Ce n'est pas qu'elle est vide : la lecture du serveur a échoué ou a dépassé 12 secondes.",
+    "noTopics": "Aucun sujet.",
+    "firstTopic": "Soyez le premier à en créer un !",
+    "presidentOnly": "Seul le Président peut s'exprimer ici.",
+    "topicColumn": "Sujet",
+    "authorColumn": "Auteur",
+    "lastPostColumn": "Dernier post",
+    "viewsColumn": "Vues",
+    "repliesColumn": "Rép."
+  },
+  "en": {
+    "chooseCategory": "Choose a category on the left",
+    "categoryHelp": "National, international or private forums — expand a category to see its forums.",
+    "loadingTopics": "Loading topics from the server…",
+    "failedTopics": "The topics in this section could not be loaded.",
+    "failedTopicsDetail": "This does not mean the section is empty: the server read failed or exceeded 12 seconds.",
+    "noTopics": "No topics.",
+    "firstTopic": "Be the first to create one!",
+    "presidentOnly": "Only the President may speak here.",
+    "topicColumn": "Topic",
+    "authorColumn": "Author",
+    "lastPostColumn": "Latest post",
+    "viewsColumn": "Views",
+    "repliesColumn": "Replies"
+  },
+  "es": {
+    "chooseCategory": "Elige una categoría a la izquierda",
+    "categoryHelp": "Foros nacionales, internacionales o privados: despliega una categoría para ver sus foros.",
+    "loadingTopics": "Cargando temas desde el servidor…",
+    "failedTopics": "No se pudieron cargar los temas de esta sección.",
+    "failedTopicsDetail": "Esto no significa que esté vacía: la lectura del servidor falló o tardó más de 12 segundos.",
+    "noTopics": "No hay temas.",
+    "firstTopic": "¡Sé el primero en crear uno!",
+    "presidentOnly": "Solo el Presidente puede hablar aquí.",
+    "topicColumn": "Tema",
+    "authorColumn": "Autor",
+    "lastPostColumn": "Última publicación",
+    "viewsColumn": "Vistas",
+    "repliesColumn": "Resp."
+  },
+  "zh-TW": {
+    "chooseCategory": "請從左側選擇分類",
+    "categoryHelp": "全國、國際或私人論壇：展開分類即可查看所屬論壇。",
+    "loadingTopics": "正在從伺服器載入主題…",
+    "failedTopics": "無法載入此分類中的主題。",
+    "failedTopicsDetail": "這不代表分類是空的：伺服器讀取失敗或超過 12 秒。",
+    "noTopics": "沒有主題。",
+    "firstTopic": "成為第一位發表主題的人！",
+    "presidentOnly": "只有總統可以在此發言。",
+    "topicColumn": "主題",
+    "authorColumn": "作者",
+    "lastPostColumn": "最新貼文",
+    "viewsColumn": "瀏覽",
+    "repliesColumn": "回覆"
+  },
+  "ru": {
+    "chooseCategory": "Выберите категорию слева",
+    "categoryHelp": "Национальные, международные и закрытые форумы — раскройте категорию, чтобы увидеть её форумы.",
+    "loadingTopics": "Загрузка тем с сервера…",
+    "failedTopics": "Не удалось загрузить темы этого раздела.",
+    "failedTopicsDetail": "Это не значит, что раздел пуст: ошибка чтения с сервера или превышено 12 секунд.",
+    "noTopics": "Тем пока нет.",
+    "firstTopic": "Создайте первую тему!",
+    "presidentOnly": "Здесь может выступать только президент.",
+    "topicColumn": "Тема",
+    "authorColumn": "Автор",
+    "lastPostColumn": "Последнее сообщение",
+    "viewsColumn": "Просмотры",
+    "repliesColumn": "Ответы"
+  },
+  "ko": {
+    "chooseCategory": "왼쪽에서 분류를 선택하세요",
+    "categoryHelp": "국가, 국제 또는 비공개 포럼: 분류를 펼쳐 포럼을 확인하세요.",
+    "loadingTopics": "서버에서 주제를 불러오는 중…",
+    "failedTopics": "이 분류의 주제를 불러오지 못했습니다.",
+    "failedTopicsDetail": "비어 있다는 뜻이 아닙니다. 서버 읽기가 실패했거나 12초를 초과했습니다.",
+    "noTopics": "주제가 없습니다.",
+    "firstTopic": "첫 주제를 작성해 보세요!",
+    "presidentOnly": "대통령만 이곳에 글을 쓸 수 있습니다.",
+    "topicColumn": "주제",
+    "authorColumn": "작성자",
+    "lastPostColumn": "최근 게시물",
+    "viewsColumn": "조회",
+    "repliesColumn": "답글"
+  },
+  "ar": {
+    "chooseCategory": "اختر فئة من اليسار",
+    "categoryHelp": "منتديات وطنية أو دولية أو خاصة — افتح فئة لعرض منتدياتها.",
+    "loadingTopics": "جارٍ تحميل المواضيع من الخادم…",
+    "failedTopics": "تعذّر تحميل مواضيع هذا القسم.",
+    "failedTopicsDetail": "هذا لا يعني أن القسم فارغ: فشلت قراءة الخادم أو تجاوزت 12 ثانية.",
+    "noTopics": "لا توجد مواضيع.",
+    "firstTopic": "كن أول من ينشئ موضوعًا!",
+    "presidentOnly": "الرئيس وحده يستطيع النشر هنا.",
+    "topicColumn": "الموضوع",
+    "authorColumn": "الكاتب",
+    "lastPostColumn": "آخر مشاركة",
+    "viewsColumn": "المشاهدات",
+    "repliesColumn": "الردود"
+  },
+  "pt-BR": {
+    "chooseCategory": "Escolha uma categoria à esquerda",
+    "categoryHelp": "Fóruns nacionais, internacionais ou privados — expanda uma categoria para ver seus fóruns.",
+    "loadingTopics": "Carregando tópicos do servidor…",
+    "failedTopics": "Não foi possível carregar os tópicos desta seção.",
+    "failedTopicsDetail": "Isso não significa que esteja vazia: a leitura do servidor falhou ou ultrapassou 12 segundos.",
+    "noTopics": "Nenhum tópico.",
+    "firstTopic": "Seja o primeiro a criar um!",
+    "presidentOnly": "Somente o Presidente pode se manifestar aqui.",
+    "topicColumn": "Tópico",
+    "authorColumn": "Autor",
+    "lastPostColumn": "Última publicação",
+    "viewsColumn": "Visualizações",
+    "repliesColumn": "Resp."
+  },
+  "de": {
+    "chooseCategory": "Wähle links eine Kategorie",
+    "categoryHelp": "Nationale, internationale oder private Foren — klappe eine Kategorie auf, um ihre Foren zu sehen.",
+    "loadingTopics": "Themen werden vom Server geladen…",
+    "failedTopics": "Die Themen dieses Bereichs konnten nicht geladen werden.",
+    "failedTopicsDetail": "Der Bereich ist nicht unbedingt leer: Der Serverzugriff schlug fehl oder dauerte länger als 12 Sekunden.",
+    "noTopics": "Keine Themen.",
+    "firstTopic": "Erstelle das erste Thema!",
+    "presidentOnly": "Hier darf nur der Präsident Beiträge verfassen.",
+    "topicColumn": "Thema",
+    "authorColumn": "Autor",
+    "lastPostColumn": "Letzter Beitrag",
+    "viewsColumn": "Aufrufe",
+    "repliesColumn": "Antw."
+  }
+};
+ for(const [lang,labels] of Object.entries(listing)) Object.assign(words[lang],labels);
  const keys=new Set(Object.keys(words.fr));
  for(const [lang,labels] of Object.entries(words)){
   if(resources[lang]?.translation)
