@@ -23,7 +23,7 @@ test('huit commandes x neuf locales, repli et conservation de la langue du lecte
  for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
   lang=lng;
   const dictionary=win.RP_I18N_RESOURCES[lng].translation.forumUI;
-  assert.deepEqual(Object.keys(dictionary).sort(),Object.keys(labels).sort());
+  for(const key of Object.keys(labels)) assert.ok(Object.hasOwn(dictionary,key),lng+': '+key);
   for(const [key,original] of Object.entries(labels)){
    assert.ok(dictionary[key].trim(),lng+' : '+key);
    const got=win.RPForumUI.labelHtml(key,original);
@@ -89,4 +89,25 @@ test('sept forums canoniques : titres et descriptions sans élargir les accès',
  assert.ok(source.includes('rpForumNom(currentForumId,f.name)'));
  assert.ok(source.includes('rpForumDescription(currentForumId,f.desc)'));
  assert.ok(source.includes('canAccessForum(id)'));
+});
+
+test('dix libellés de sidebar ne changent pas les identifiants de catégories et de mails',()=>{
+ const ui=['institutions','mailbox','receivedMails','sentMails','archivedMails','nationalForums',
+  'internationalForums','privateForums','noMessages','noOrganizations'];
+ for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+  lang=lng;
+  for(const key of ui){
+   assert.ok(win.RP_I18N_RESOURCES[lng].translation.forumUI[key]?.trim(),lng+': '+key);
+  }
+ }
+ for(const fn of ['toggleCategorieForum','selectionnerRubriqueMail','renderForumSidebar',
+                  'mailsRecusVisibles','nombreSujetsForum']){
+  assert.ok(source.includes(fn),fn);
+ }
+ for(const id of ['intra','inter','prive','recus','envoyes','archives']){
+  assert.ok(source.includes("'"+id+"'"),id);
+ }
+ assert.ok(source.includes("rpForumLibelle('institutions','Institutionnels')"));
+ assert.ok(source.includes("rpForumLibelle('mailbox','Boîte Mail')"));
+ assert.ok(source.includes("rpForumLibelle('noOrganizations'"));
 });
