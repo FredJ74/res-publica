@@ -2,6 +2,9 @@
 import copy
 import importlib.util
 import unittest
+from unittest.mock import patch
+import json
+import subprocess
 from pathlib import Path
 
 R = Path(__file__).resolve().parents[2]
@@ -36,7 +39,11 @@ class Plan(unittest.TestCase):
         self.assertEqual(result['tarifs_ajoutes_renseignement'], [{'fn': 'interroger_renseignement', 'pa': 2, 'cost': 0}])
         self.assertEqual(result['tarifs_ajoutes_vehicules'], [{'fn': f, 'pa': 0, 'cost': 0} for f in
                          ('garage_reviser', 'garage_vehicules', 'mes_vehicules', 'station_carburant')])
-        self.assertEqual(result['tarifs_actuels']['lignes'], 471)
+        self.assertEqual(result['tarifs_ajoutes_sovarka'], [{'fn': 'contrebande_poissonniere', 'pa': 1, 'cost': 0}, {'fn': 'pharmacie_medicaments', 'pa': 0, 'cost': 0}, {'fn': 'poissonniere_poisson', 'pa': 0, 'cost': 0}, {'fn': 'salon_coupe', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_cession', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_commerces_libres', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_demander_local', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_dossiers_commerciaux', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_retirer_droit', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_signer_attribution', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_terrain_municipal', 'pa': 0, 'cost': 0}])
+        self.assertEqual(result['tarifs_ajoutes_sovarka_reunions'], [{'fn': 'sovarka_demande_location', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_reunion_evenement', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_reunion_reserver', 'pa': 0, 'cost': 0}])
+        self.assertEqual(result['tarifs_ajoutes_diner_sovarka'], [{'fn':'diner_affaires','pa':2,'cost':100}])
+        self.assertEqual(result['tarifs_ajoutes_sovarka_pouvoir'], [{'fn': 'sovarka_repas_presidentiel', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_soviet_deputes', 'pa': 0, 'cost': 0}])
+        self.assertEqual(result['tarifs_actuels']['lignes'], 488)
         self.assertEqual(len(result['tarifs_actuels']['md5']), 32)
         self.assertFalse(result['execution_autorisee'])
         self.assertTrue(result['ancien_plan_tarifaire_conforme_source'])
@@ -44,6 +51,45 @@ class Plan(unittest.TestCase):
             [item['version'] for item in result['migrations'][-2:]],
             ['20261101170000', '20261101171000']
         )
+
+    def test_ajouts_sovarka_non_conformes_refuses(self):
+        source = json.loads(subprocess.check_output([
+            module.sys.executable, str(R / 'outils/generateurs/generer_ordres_couts.py'), '--json'
+        ], cwd=R, text=True))
+        result = module.preparer()
+        ajouts = result['tarifs_ajoutes_sovarka'] + result['tarifs_ajoutes_sovarka_reunions'] + result['tarifs_ajoutes_sovarka_pouvoir']
+        for ajout in ajouts:
+            for mutation in ('absence', 'prix', 'pa', 'doublon'):
+                alteree = copy.deepcopy(source)
+                cible = next(x for x in alteree if x['fn'] == ajout['fn'])
+                if mutation == 'absence':
+                    alteree.remove(cible)
+                elif mutation == 'doublon':
+                    alteree.append(copy.deepcopy(cible))
+                else:
+                    cible['cost' if mutation == 'prix' else 'pa'] += 1
+                with self.subTest(ordre=ajout['fn'], mutation=mutation), \
+                     patch.object(module.subprocess, 'check_output', return_value=json.dumps(alteree)), \
+                     self.assertRaisesRegex(ValueError, 'Ordres (réunions |pouvoir )?Sovarka'):
+                    module.preparer()
+
+    def test_variante_diner_sans_exclure_les_tarifs_historiques(self):
+        source = json.loads(subprocess.check_output([
+            module.sys.executable, str(R / 'outils/generateurs/generer_ordres_couts.py'), '--json'
+        ], cwd=R, text=True))
+        for mutation in ('absence', 'prix', 'pa', 'doublon'):
+            alteree = copy.deepcopy(source)
+            cible = next(x for x in alteree if x == {'fn':'diner_affaires','pa':2,'cost':100})
+            if mutation == 'absence':
+                alteree.remove(cible)
+            elif mutation == 'doublon':
+                alteree.append(copy.deepcopy(cible))
+            else:
+                cible['cost' if mutation == 'prix' else 'pa'] += 1
+            with self.subTest(mutation=mutation), \
+                 patch.object(module.subprocess, 'check_output', return_value=json.dumps(alteree)), \
+                 self.assertRaisesRegex(ValueError, 'Dîner Sovarka'):
+                module.preparer()
 
     def test_omission_inversion_et_source_alteree_refusees(self):
         entries = module.preparer()['migrations']

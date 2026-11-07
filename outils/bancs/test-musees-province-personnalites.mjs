@@ -24,6 +24,7 @@ test('ordre présent exactement dans les salles de province pourvues de figures'
 
 test('même identifiant de salle : chaque musée lit ses propres figures', () => {
   c.state.currentRoom = 'salle_organisations';
+  c.state.country = 'republic'; // figures nationales réservées à la Républia (06/11)
   c.state.currentBuilding = 'musee-port-sainte-marie';
   const psm = c.personnalitesMuseeCourantes();
   c.state.currentBuilding = 'musee-national';

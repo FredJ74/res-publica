@@ -627,3 +627,29 @@ Commercial » / « Hall d’Entrée » et les anciens locaux, alors que data.js 
 À Claude : régénérer les scènes avec le générateur existant dans son lot Sovarka ;
 Codex n'a pas modifié ces fichiers. Contrôles globaux toujours 8/12 sur main et branche.
 Fichiers REST mis à jour ; recette authentifiée et livraison restent non certifiées.
+
+### Contrôle plan 97 — Codex, 06/11, prêt pour CI
+Branche `codex/controle-tarifs-plan97-20261106`, base b061fe2c. Les 11 nouveaux
+triplets Sovarka sont identifiés avec sources et commits dans
+`outils/audits/TARIFS-PLAN97-SOVARKA-20261106.md`. Photographie 461 et MD5 inchangés,
+catalogue actuel 482 ; ajouts déclarés explicitement, 44 mutations refusées.
+Aucun fichier métier/Sovarka, montant ni migration modifié. REST GET refusé (403).
+PR à créer si POST refusé : titre « Plan 97 : déclarer les onze ajouts tarifaires
+Sovarka sans changer la photographie historique » ; description : provenance de
+chaque ajout documentée, assertions historiques conservées, trois tests Python dont
+44 contre-épreuves ; contrôles attendus : bancs-hors-production et cinq CI usuelles.
+Reste : création PR, CI distante et fusion. Aucun test téléphone nécessaire (outillage).
+
+Plan 97, reprise du 07/11 : main 747153e4 réconcilié, trois ajouts intervenus depuis
+hier déclarés séparément (demande de location, réservation et événement de réunion).
+Catalogue 485 ; photographie historique 461 et MD5 intacts. Trois tests réussis,
+56 mutations tarifaires refusées. REST POST a également répondu Forbidden : pas de
+PR créée ici. Branche/titre/description ci-dessus restent prêts pour Claude ; aucune
+modification des fichiers métier Sovarka. Reste CI distante et intégration.
+
+Plan 97, contrôle final : #572 reçu (main 42a7f84d). Nouveau triplet dîner 2 PA/100 PSK
+contrôlé et exclu **par triplet exact**, pas par nom : les dîners historiques restent
+vérifiés. Catalogue 486, photographie 461 et empreinte inchangée. Quatre tests Python
+passent, 60 contre-épreuves tarifaires et trois mutations de manifeste. Toujours
+aucune création de PR REST possible ici ; branche prête avec titre et description
+ci-dessus. Aucun fichier Sovarka ou de game design modifié.
