@@ -4318,7 +4318,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"hall\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Siège du Comité Central",
+    "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Hall d'entree",
     "personnes": [
       "Garde du Peuple",
@@ -4328,7 +4328,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureaux\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Siège du Comité Central",
+    "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Bureau du Président du Conseil du Peuple",
     "personnes": [
       "Oleg Strictov"
@@ -4337,14 +4337,14 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"salle_conseil\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Siège du Comité Central",
+    "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Salle du Conseil du Peuple",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"salle_presse\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Siège du Comité Central",
+    "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Salle de Presse",
     "personnes": [
       "Raïssa Communiqueva",
@@ -4354,7 +4354,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"archives_gouv\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Siège du Comité Central",
+    "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Archives Gouvernementales",
     "personnes": [
       "Archiviste Foma Classeurov"
@@ -4363,7 +4363,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_int\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Siège du Comité Central",
+    "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Bureau - Ministre de la Sécurité du Peuple",
     "personnes": [
       "Gleb Kontrolov"
@@ -4372,7 +4372,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_fin\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Siège du Comité Central",
+    "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Bureau - Ministre de l'Économie collective",
     "personnes": [
       "Stanislav Roublov"
@@ -4381,7 +4381,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_just\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Siège du Comité Central",
+    "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Bureau - Ministre de la Justice prolétarienne",
     "personnes": [
       "Galina Verdiktova"
@@ -4390,7 +4390,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_def\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Siège du Comité Central",
+    "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Bureau - Ministre de la Défense de la Patrie",
     "personnes": [
       "Rodion Tankov"
@@ -4399,7 +4399,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_info\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Siège du Comité Central",
+    "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Bureau - Ministre de la Vérité officielle",
     "personnes": [
       "Zinaïda Propagandova"
@@ -4408,7 +4408,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-gouvernement\",\"bureau_min_ae\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Siège du Comité Central",
+    "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Bureau - Ministre de l'Amitié entre les Peuples",
     "personnes": [
       "Evgueni Diplomatov"

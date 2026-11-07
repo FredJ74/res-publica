@@ -173,6 +173,8 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 ## Derniers chantiers
 
+- **Palais du Gouvernement de Sovarka : nom unique (Claude, 07/11, décision de Fred)** — branche `claude/palais-gouvernement-nom-20261107`. Le bâtiment s'appelait « Siège du Comité Central » à l'intérieur et « Palais du Gouvernement de Sovarka » sur la place : un seul nom désormais. Scènes PNJ régénérées, version de `data.js` majorée. Suite du raccordement du Palais avec Fred, une question à la fois. **À constater en jeu** : entrer au Palais depuis la Place du Peuple, le nom ne change plus.
+
 - **Urgence : rue vide au rechargement (Claude, 07/11)** — PR #579. Au chargement, `forceRenderCity` (minuterie de 300 ms) remettait le bâtiment à vide pendant la restauration de la position serveur, qui abandonnait : PJ dans une rue sans image ni action (Arnie au Siège du Comité Central). Le rendu garde désormais le bâtiment restauré (`garderBatiment`). Reproduit avec les réponses serveur réelles, corrigé 3/3 ; constaté par Fred.
 
 - **Lots de Codex intégrés par Claude (07/11)** — #576 : ordres de Sovarka déclarés hors des photographies historiques dans les quatre outils qui en tiennent une (plan 97, livraison complète, réconciliation des coûts, référence de navigation), deux tests alignés sur des décisions livrées, table des PNJ de Sovarka régénérée ; **`bancs-hors-production` de nouveau vert**. #577 : `effort_ravitailler` crédite la caisse canonique de l'entrepôt (migration `20261107081631` **appliquée**, registre `effort_ravitaillement_caisse_canonique_20261107081631`, banc à blanc conforme sur la production), trois replis fictifs à 8 500 FR retirés de la passe de minuit. Aucun solde régularisé.
