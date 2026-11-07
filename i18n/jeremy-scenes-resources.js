@@ -514,6 +514,90 @@
   }
 };
  for(const [lang,texts] of Object.entries(career)) Object.assign(labels[lang],texts);
+ const socialControls={
+  "fr": {
+    "introduceMyself": "Me présenter",
+    "later": "Plus tard",
+    "forumTitlePrefix": "Présentation de ",
+    "jeremyMailFallback": "Oh, vous avez besoin de moi ? Je suis sur la Place du Marché, venez me chercher !",
+    "newMailTitle": "Nouveau mail",
+    "jeremyReplied": "Jérémy vous a répondu !",
+    "replyLanguageInstruction": "Réponds EXCLUSIVEMENT en français."
+  },
+  "en": {
+    "introduceMyself": "Introduce myself",
+    "later": "Later",
+    "forumTitlePrefix": "Introduction by ",
+    "jeremyMailFallback": "Oh, you need me? I'm at the Market Square. Come and find me!",
+    "newMailTitle": "New mail",
+    "jeremyReplied": "Jérémy has replied!",
+    "replyLanguageInstruction": "Reply EXCLUSIVELY in English."
+  },
+  "es": {
+    "introduceMyself": "Presentarme",
+    "later": "Más tarde",
+    "forumTitlePrefix": "Presentación de ",
+    "jeremyMailFallback": "¡Ah, me necesita! Estoy en la Plaza del Mercado, ¡venga a buscarme!",
+    "newMailTitle": "Correo nuevo",
+    "jeremyReplied": "¡Jérémy le ha respondido!",
+    "replyLanguageInstruction": "Responde EXCLUSIVAMENTE en español."
+  },
+  "zh-TW": {
+    "introduceMyself": "自我介紹",
+    "later": "稍後再說",
+    "forumTitlePrefix": "自我介紹：",
+    "jeremyMailFallback": "哦，你需要我嗎？我在市場廣場，來找我吧！",
+    "newMailTitle": "新郵件",
+    "jeremyReplied": "Jérémy 已回覆！",
+    "replyLanguageInstruction": "請只使用繁體中文（臺灣）回覆。"
+  },
+  "ru": {
+    "introduceMyself": "Представиться",
+    "later": "Позже",
+    "forumTitlePrefix": "Представление: ",
+    "jeremyMailFallback": "О, я вам нужен? Я на Рыночной площади, приходите за мной!",
+    "newMailTitle": "Новое письмо",
+    "jeremyReplied": "Jérémy ответил вам!",
+    "replyLanguageInstruction": "Отвечай ИСКЛЮЧИТЕЛЬНО на русском языке."
+  },
+  "ko": {
+    "introduceMyself": "자기소개하기",
+    "later": "나중에",
+    "forumTitlePrefix": "자기소개: ",
+    "jeremyMailFallback": "아, 저를 찾으세요? 저는 시장 광장에 있어요. 여기로 와 주세요!",
+    "newMailTitle": "새 편지",
+    "jeremyReplied": "Jérémy가 답장했어요!",
+    "replyLanguageInstruction": "반드시 한국어로만 답변하세요."
+  },
+  "ar": {
+    "introduceMyself": "التعريف بنفسي",
+    "later": "لاحقًا",
+    "forumTitlePrefix": "تقديم: ",
+    "jeremyMailFallback": "آه، هل تحتاج إليّ؟ أنا في ساحة السوق، تعال وابحث عني!",
+    "newMailTitle": "رسالة جديدة",
+    "jeremyReplied": "ردّ Jérémy على رسالتك!",
+    "replyLanguageInstruction": "أجب باللغة العربية فقط."
+  },
+  "pt-BR": {
+    "introduceMyself": "Me apresentar",
+    "later": "Mais tarde",
+    "forumTitlePrefix": "Apresentação de ",
+    "jeremyMailFallback": "Ah, você precisa de mim? Estou na Praça do Mercado, venha me buscar!",
+    "newMailTitle": "Novo e-mail",
+    "jeremyReplied": "Jérémy respondeu!",
+    "replyLanguageInstruction": "Responda EXCLUSIVAMENTE em português brasileiro."
+  },
+  "de": {
+    "introduceMyself": "Mich vorstellen",
+    "later": "Später",
+    "forumTitlePrefix": "Vorstellung von ",
+    "jeremyMailFallback": "Oh, brauchen Sie mich? Ich bin auf dem Marktplatz. Kommen Sie und holen Sie mich ab!",
+    "newMailTitle": "Neue Nachricht",
+    "jeremyReplied": "Jérémy hat geantwortet!",
+    "replyLanguageInstruction": "Antworte AUSSCHLIESSLICH auf Deutsch."
+  }
+};
+ for(const [lang,values] of Object.entries(socialControls)) Object.assign(labels[lang],values);
  for(const [lang,strings] of Object.entries(labels))
   if(resources[lang]?.translation)resources[lang].translation.jeremyScenes={...strings};
  function label(key,original){
