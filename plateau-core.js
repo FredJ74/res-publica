@@ -2898,7 +2898,8 @@ function showToast(result, msg, success, isCrit) {
   if (success === false) noterIncidentSession('notification', result);
   const t = document.getElementById('result-toast');
   t.className = isCrit ? 'toast-crit' : success ? 'toast-success' : 'toast-fail';
-  document.getElementById('toast-result').textContent = result;
+  // Titre traduit uniquement à l'écran : le signalement d'incident conserve `result` original.
+  document.getElementById('toast-result').textContent = (typeof RPToastI18n !== 'undefined') ? RPToastI18n.label(result) : result;
   document.getElementById('toast-sub').textContent = msg;
   t.style.display = 'block';
   clearTimeout(window._toastTimer);
