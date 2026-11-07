@@ -19,6 +19,9 @@ on:
       - 'outils/bancs/banc-i18n-navbar-20261106.cjs'
       - 'outils/bancs/banc-i18n-panneau-personnel.cjs'
       - 'i18n/room-resources.js'
+      - 'i18n/forum-ui.js'
+      - 'forum.js'
+      - 'outils/bancs/banc-i18n-commandes-forum.cjs'
       - 'outils/bancs/banc-i18n-salles-gouvernement.cjs'
       - 'plateau-navigation.js'
       - 'outils/bancs/banc-i18n-guide-mail.cjs'
@@ -124,6 +127,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-panneau-personnel.cjs
       - name: Pièces du Conseil traduites sans altérer les entrées
         run: node --test outils/bancs/banc-i18n-salles-gouvernement.cjs
+      - name: Actions des forums et du courrier en neuf langues
+        run: node --test outils/bancs/banc-i18n-commandes-forum.cjs
       - name: Texte joueur et original préservés
         run: node --test outils/bancs/banc-i18n-texte-joueur.cjs
       - name: Messages sociaux originaux et traduits — 9 locales
@@ -192,6 +197,8 @@ jobs:
           node --check i18n/i18n-init.js
           node --check i18n/plateau-bridge.js
           node --check i18n/room-resources.js
+          node --check i18n/forum-ui.js
+          node --check forum.js
           node --check i18n/plateau-resources.js
           node --check i18n/plateau-init.js
           node --check i18n/texte-joueur.js
