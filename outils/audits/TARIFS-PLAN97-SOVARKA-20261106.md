@@ -31,3 +31,9 @@ avec mêmes contrôles d'absence/doublon/prix/PA. Catalogue courant **485** ; ph
 historique toujours **461**, même MD5. Trois tests passent, **56 contre-épreuves**
 tarifaires (14 × 4), plus les trois mutations du manifeste des migrations.
 Les sources Sovarka n'ont pas été modifiées. Intégration du nouveau main sans perte.
+
+#572 intégré pendant la validation : un seul nouveau triplet `diner_affaires` 2/100,
+introduit dans data.js par 22b37c79. Exclusion par triplet exact, surtout pas par nom
+(les autres prix de dîner appartiennent au plan historique). Catalogue **486**,
+photographie **461**, MD5 inchangé. Quatre tests passent, **60 contre-épreuves**
+tarifaires, trois mutations du manifeste. Main réconcilié : 42a7f84d.

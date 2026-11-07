@@ -642,3 +642,10 @@ Catalogue 485 ; photographie historique 461 et MD5 intacts. Trois tests réussis
 56 mutations tarifaires refusées. REST POST a également répondu Forbidden : pas de
 PR créée ici. Branche/titre/description ci-dessus restent prêts pour Claude ; aucune
 modification des fichiers métier Sovarka. Reste CI distante et intégration.
+
+Plan 97, contrôle final : #572 reçu (main 42a7f84d). Nouveau triplet dîner 2 PA/100 PSK
+contrôlé et exclu **par triplet exact**, pas par nom : les dîners historiques restent
+vérifiés. Catalogue 486, photographie 461 et empreinte inchangée. Quatre tests Python
+passent, 60 contre-épreuves tarifaires et trois mutations de manifeste. Toujours
+aucune création de PR REST possible ici ; branche prête avec titre et description
+ci-dessus. Aucun fichier Sovarka ou de game design modifié.
