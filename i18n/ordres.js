@@ -13,6 +13,35 @@
   'expedier_colis','receptionner_commande'
  ]);
  const validKey=/^[a-zA-Z0-9_.-]+$/;
+ // Les libellés à prix variables n'utilisent pas une traduction par fn.
+ // Seules des formes françaises exactes et des montants déjà présents dans
+ // l'ordre sont interpolés, sans aucun calcul ni conversion monétaire.
+ function structuredLabel(code,original,engine,locale){
+  let key=null,vars={};
+  if(code==='louer_local'){
+   const match=/^Louer (ce local|cette suite|ce coffre|cet appartement) \((\d[\d ]*) (FR|PSK)\/jour\)$/.exec(original);
+   if(!match)return original;
+   const types={'ce local':'rental_local','cette suite':'rental_suite',
+    'ce coffre':'rental_safe','cet appartement':'rental_apartment'};
+   key=types[match[1]];
+   vars={price:match[2],currency:match[3]};
+  }else if(code==='acheter_terrain'){
+   if(original==='Acheter ce terrain')key='buy_plot_plain';
+   else{
+    const match=/^Acheter ce terrain \((\d[\d ]*) m² — (\d[\d ]*) FR\)$/.exec(original);
+    if(!match)return original;
+    key='buy_plot';
+    vars={area:match[1],price:match[2]};
+   }
+  }else return original;
+  if(!key)return structuredLabel(code,original,engine,locale);
+  const translated=engine.t('orderTemplates.'+key,{lng:locale,defaultValue:original,...vars});
+  // Si un moteur simulé ou un catalogue absent laisse les marqueurs bruts,
+  // ne pas afficher de prix incomplet : repli exact sur le texte français.
+  return typeof translated==='string' && translated.trim() &&
+   !/\{\{[^}]+\}\}/.test(translated)?translated:original;
+ }
+
  function label(order,engine,locale) {
   const original=typeof order?.label==='string'?order.label:'';
   if(!order || !engine || typeof engine.t!=='function')return original;
