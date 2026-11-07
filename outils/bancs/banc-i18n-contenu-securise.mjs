@@ -91,3 +91,34 @@ test('cache trop long ou avec contrôle : jamais servi, fournisseur sécurisé r
   assert.deepEqual(calls,['auth','rls','cache','quota','provider','write']);
  }
 });
+
+
+test('cache partagé entre lecteurs autorisés, jamais servi à un lecteur sans RLS',async()=>{
+ const cache=new Map(),calls=[];
+ let userId='lecteur-A',allowed=true;
+ const deps={
+  authenticate:async()=>({userId,readerToken:'jeton-'+userId}),
+  readUnderRls:async(source,token)=>{
+   calls.push('rls:'+token);
+   return allowed?{text:'Salut {{name}}',language:'fr',version:'revision-1'}:null;
+  },
+  readCache:async(key)=>{calls.push('cache');return cache.get(key)||null},
+  writeCache:async(key,value)=>{cache.set(key,value)},
+  reserveBudget:async(id)=>{calls.push('quota:'+id);return true},
+  provider:async()=>{calls.push('provider');return {ok:true,texte:'Hello {{name}}',tronque:false}}
+ };
+ const first=await traduireContenu(input,deps);
+ assert.equal(first.ok,true);assert.equal(first.fromCache,false);
+ userId='lecteur-B';
+ const second=await traduireContenu(input,deps);
+ assert.equal(second.ok,true);assert.equal(second.fromCache,true);
+ assert.equal(second.traduit,'Hello {{name}}');
+ assert.equal(calls.filter(x=>x==='provider').length,1);
+ assert.deepEqual(calls.filter(x=>x.startsWith('quota:')),['quota:lecteur-A']);
+ const readsBefore=calls.filter(x=>x==='cache').length;
+ allowed=false;userId='lecteur-C';
+ const refused=await traduireContenu(input,deps);
+ assert.equal(refused.ok,false);assert.equal(refused.original,null);
+ assert.equal(calls.filter(x=>x==='cache').length,readsBefore,'pas de cache avant RLS');
+ assert.equal(calls.filter(x=>x==='provider').length,1);
+});
