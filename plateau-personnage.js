@@ -4118,6 +4118,17 @@ function closeRulesView() {
 function renderRulesContent(section) {
   const regle = REGLES[section];
   if (!regle) return;
+  // Le texte français de REGLES reste source et repli. Le moteur i18next déjà
+  // chargé fournit uniquement des versions d'affichage, jamais de logique.
+  const langueGuide = window.RPPlateauI18n?.language?.() || 'fr';
+  const lireGuide = (champ) => {
+    const original=regle[champ];
+    if(langueGuide==='fr' || typeof window.i18next?.t!=='function')return original;
+    const key='guide.'+section+'.'+champ;
+    const value=window.i18next.t(key,{lng:langueGuide,defaultValue:original});
+    return typeof value==='string' && value.trim() && value!==key ? value : original;
+  };
+  const titreGuide=lireGuide('titre'), contenuGuide=lireGuide('contenu');
 
   document.querySelectorAll('.rules-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.rules-tab').forEach(t => {
@@ -4184,8 +4195,8 @@ function renderRulesContent(section) {
   el.innerHTML =
     '<div style="padding:1.5rem;max-width:700px;margin:0 auto">' +
     '<div style="font-family:Playfair Display,serif;font-size:1.4rem;font-style:italic;color:#E8C97A;margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:2px solid #2a2010">' +
-    regle.titre + '</div>' +
-    parseRulesContent(regle.contenu) +
+    titreGuide + '</div>' +
+    parseRulesContent(contenuGuide) +
     '</div>';
 }
 
