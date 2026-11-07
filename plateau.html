@@ -6,7 +6,7 @@
 <title>Res Publica — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=lisibilite-pnj-20261031-caracs">
+<link rel="stylesheet" href="style.css?v=lisibilite-pnj-20261031-caracs-mobile-l7-20261106">
 <style>
 /* Tooltip minimap */
 .has-tooltip { position: relative; }
@@ -174,7 +174,7 @@
   .live-mini-terrain-score .live-score { font-size: 1.1rem; }
 }
 </style>
-  <link rel="stylesheet" href="rue-centrale.css?v=126">
+  <link rel="stylesheet" href="rue-centrale.css?v=mobile-l3-20261106">
 </head>
 <body class="plateau-body">
 
@@ -195,7 +195,10 @@
     <div style="display:none"><div id="b-hp" style="width:92%"></div></div>
     <div style="display:none"><div id="b-moral" style="width:78%"></div></div>
   </div>
-  <div class="top-right">
+  <button type="button" class="hg-mobile-acces" data-hg-panneau="personnage" aria-expanded="false" aria-controls="left">Personnage</button>
+  <button type="button" class="hg-mobile-acces" data-hg-panneau="personnes" aria-expanded="false">Présents</button>
+  <button type="button" class="hg-mobile-acces" data-hg-panneau="menu" aria-expanded="false" aria-controls="hg-menu-existant">Menu</button>
+  <div class="top-right" id="hg-menu-existant">
     <button class="forum-btn" onclick="ouvrirIndicesImperiaux()" data-i18n-title="plateau.indicesTitle" title="Indices des 4 empires" style="white-space:nowrap;font-size:.65rem;letter-spacing:.08em">
       <i class="ti ti-chart-bar" style="font-size:.75rem;vertical-align:-1px"></i> <span data-i18n="plateau.imperialIndices" data-i18n-uppercase>INDICES IMPERIAUX</span>
     </button>
@@ -227,6 +230,7 @@
   </div>
 </div>
 
+<button type="button" id="hg-mobile-fond" aria-label="Fermer le panneau" hidden></button>
 <!-- MAIN LAYOUT -->
 <div id="main">
 
@@ -653,7 +657,7 @@
   <div class="toast-sub" id="toast-sub"></div>
 </div>
 
-<script src="data.js?v=stocks-prix-commerces-20261104-psm-pnj-20261104-livraison-terrestre-psm-terrains-onglets-novomirsk-librairie-petrochimie-20261104-novomirsk-v7-naval-20261104-novomirsk-entrepot-renseignement-krasnov-entrepot-caserne-novomirsk-vehicules-fabrication-salon-coiffure-prix-logements-novomirsk-pharmacie-pnj-sovarka-starovka-port-novomirsk-commissaire-seul-20261106-sovarka-droits-20261106"></script>
+<script src="data.js?v=stocks-prix-commerces-20261104-psm-pnj-20261104-livraison-terrestre-psm-terrains-onglets-novomirsk-librairie-petrochimie-20261104-novomirsk-v7-naval-20261104-novomirsk-entrepot-renseignement-krasnov-entrepot-caserne-novomirsk-vehicules-fabrication-salon-coiffure-prix-logements-novomirsk-pharmacie-pnj-sovarka-starovka-port-novomirsk-commissaire-seul-20261106-sovarka-droits-20261106-poissonniere-pharmanov-salaires-sovarka-musee-national-sovarka-grand-hotel-accueil-bar-restaurant-galeries-novomirsk-20261106-loyers-galeries-20261106-centre-affaires-novomirsk-20261107-evenements"></script>
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
@@ -758,26 +762,26 @@
   });
   window.RP_TIPTAP_FONT_SIZE = FontSize;
 </script>
-<script src="forum-canvas.js?v=36"></script>
+<script src="forum-canvas.js?v=mobile-l6-20261106"></script>
 <script src="forum.js?v=local-visibilite-20261103-jauges379l3-forums422-r3-psm-pub-20261104"></script>
-<script src="plateau-core.js?v=reconnexion-portrait-20261103-popinf379l3-forum-refus-20261104-arrivees-derives-petro-20261104-novomirsk-v7-entrepots-par-pays-fiche-domicile"></script>
+<script src="plateau-core.js?v=mobile-l10-20261106-reconnexion-portrait-20261103-popinf379l3-forum-refus-20261104-arrivees-derives-petro-20261104-novomirsk-v7-entrepots-par-pays-fiche-domicile"></script>
 <script src="plateau-immobilier.js?v=inventaire-213-integration-20261029-sovarka-droits-20261106"></script>
 <script src="plateau-chantiers.js?v=integration-logements-20261029"></script>
 <script src="plateau-fonds.js?v=1"></script>
 <script src="plateau-objets.js?v=2"></script>
-<script src="plateau-commerce.js?v=1"></script>
+<script src="plateau-commerce.js?v=1-coef-sovarka-20261106"></script>
 <!-- Interface de la verticale commerce PJ (C5). Apres plateau-objets.js dont il
      reutilise la fiche officielle, et apres plateau-fonds.js pour nouvelIdFonds. -->
-<script src="plateau-commerce-pj.js?v=22-contrats219-r2-jauges379-lot2"></script>
+<script src="plateau-commerce-pj.js?v=22-contrats219-r2-jauges379-lot2-premium-beta-20261106"></script>
 <script src="plateau-journal-ventes.js?v=20261022-96"></script>
 <script src="plateau-resolution.js?v=3"></script>
-<script src="plateau-rue-centrale.js?v=groupes-fiche-achats-20261030-5-montrouge-tribunal-webp-20261102-position-reprise-angie-restore-city-psm-terrains-onglets-novomirsk-librairie-v6-rue-serveur-novomirsk-entrepot-renseignement-krasnov-entrepot-caserne-novomirsk-vehicules-starovka-port"></script>
+<script src="plateau-rue-centrale.js?v=mobile-l3-20261106-mobile-l2-20261106-groupes-fiche-achats-20261030-5-montrouge-tribunal-webp-20261102-position-reprise-angie-restore-city-psm-terrains-onglets-novomirsk-librairie-v6-rue-serveur-novomirsk-entrepot-renseignement-krasnov-entrepot-caserne-novomirsk-vehicules-starovka-port-poissonniere-pharmanov-musee-national"></script>
 <script src="plateau-quete-accueil.js?v=32"></script>
 <script src="plateau-enigme-portrait.js?v=integration-logements-20261029"></script>
 <script src="plateau-logements-montrouge.js?v=3"></script>
 <script src="plateau-logements-sociaux.js?v=ssm-rdv-20261103-aide-pascale"></script>
 <script src="plateau-etat-civil.js?v=inventaire-213-integration-20261029"></script>
-<script src="plateau-musee-personnalites.js?v=2-novomirsk"></script>
+<script src="plateau-musee-personnalites.js?v=3-musee-national-sovarka"></script>
 <script src="plateau-maxence.js?v=3"></script>
 <!-- Variantes graphiques des pieces (4 octobre 2026). AVANT plateau-navigation.js, dont
      enterRoom appelle varianteImagePiece() et varianteAppliquerEnseigne(). Ne depend d'aucun
@@ -792,24 +796,24 @@
      routeur, qui resout ouvrirModalEquipements(). -->
 <script src="plateau-equipements.js?v=livraison-tranches-20261104-krasnov-entrepot"></script>
 <script src="plateau-navigation.js?v=jets-serveur-20261105-starovka-port"></script>
-<script src="plateau-personnage.js?v=jets-serveur-20261105-vehicules"></script>
+<script src="plateau-personnage.js?v=mobile-l9-20261106-jets-serveur-20261105-vehicules"></script>
 <script src="plateau-pnj.js?v=social-reponse-directe-20261104-psm-terrains-onglets-novomirsk-librairie-v6"></script>
 <script src="plateau-ced.js?v=brume-estadine-20261102"></script>
-<script src="plateau-multijoueur.js?v=jets-serveur-20261105"></script>
+<script src="plateau-multijoueur.js?v=mobile-l9-20261106-jets-serveur-20261105"></script>
 <script src="plateau-communication.js?v=autorite219-20261101-cloture135-20261102-r2-reliquats379"></script>
-<script src="plateau-politique.js?v=journal-date-reelle-20261106"></script>
+<script src="plateau-politique.js?v=mobile-l7-20261106-journal-date-reelle-20261106-audios-a-venir"></script>
 <script src="plateau-gouvernement.js?v=6"></script>
 <script src="plateau-effort-guerre.js?v=inventaire-213-integration-20261029"></script>
-<script src="plateau-justice-economie.js?v=jets-serveur-20261105-starovka-port"></script>
+<script src="plateau-justice-economie.js?v=mobile-l10-20261106-jets-serveur-20261105-starovka-port-salaires-sovarka"></script>
 <script src="plateau-terrain-banque.js?v=groupes-main274-20261030"></script>
 <script src="plateau-construction-commandes.js?v=2"></script>
 <script src="plateau-occupation-commandes.js?v=reliquats-immobilier-20261031"></script>
 <script src="plateau-entrepots.js?v=entrepots-par-pays"></script>
-<script src="plateau-actions-illegales-rumeurs.js?v=jets-serveur-20261105"></script>
+<script src="plateau-actions-illegales-rumeurs.js?v=jets-serveur-20261105-carte-sovarka"></script>
 <script src="plateau-restaurant-luthecia.js?v=1-379l3"></script>
 <script src="plateau-football-realisateur-ia.js?v=1"></script>
 <script src="plateau-equipements-collectifs.js?v=1-contrats219-r2"></script>
-<script src="plateau-organisations-quetes.js?v=football-blessures-serveur-3j-20261104-forums422-r4"></script>
+<script src="plateau-organisations-quetes.js?v=mobile-l7-20261106-football-blessures-serveur-3j-20261104-forums422-r4"></script>
 <script src="plateau-divers.js?v=brume-estadine-20261102-reliquats379-p2-popinf379p"></script>
 <!-- Assemblee nationale (chantier du 10 septembre 2026). Charge APRES plateau-politique.js et
      plateau-actions-illegales-rumeurs.js, dont il complete les mecaniques, et AVANT le routeur,
@@ -844,9 +848,11 @@
 <script src="plateau-publicite-premium.js?v=6"></script>
 <script src="plateau-naval.js?v=contrats-navals-20261104"></script>
 <script src="plateau-vehicules.js?v=vehicules-fabrication-20261106"></script>
+<script src="plateau-poissonniere.js?v=poissonniere-20261106"></script>
 <script src="plateau-salon.js?v=salon-coiffure-20261106"></script>
-<script src="plateau-sovarka-droits.js?v=sovarka-droits-20261106"></script>
-<script src="plateau-router.js?v=stocks-prix-commerces-20261104-zero-pa-petrochimie-20261104-naval-20261104-pays-du-poste-vehicules-sovarka-droits-20261106"></script>
+<script src="plateau-reunions-evenements.js?v=reunions-evenements-20261107"></script>
+<script src="plateau-sovarka-droits.js?v=sovarka-droits-20261106-galeries-novomirsk-20261106"></script>
+<script src="plateau-router.js?v=stocks-prix-commerces-20261104-zero-pa-petrochimie-20261104-naval-20261104-pays-du-poste-vehicules-sovarka-droits-20261106-poissonniere-galeries-novomirsk-20261106-reunions-evenements-20261107"></script>
 <div style="display:none">
   <div id="char-avatar-top"></div>
   <div id="char-name-display"></div>
@@ -854,7 +860,7 @@
 </div>
 
 <!-- CHAT EN PIECE — fenetre flottante persistante -->
-<button onclick="toggleChatPiece()" style="position:fixed;bottom:20px;left:20px;z-index:998;width:48px;height:48px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.5)">
+<button id="hg-chat-toggle" onclick="toggleChatPiece()" style="position:fixed;bottom:20px;left:20px;z-index:998;width:48px;height:48px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.5)">
   <i class="ti ti-message-circle"></i>
   <span id="chat-notif-badge" style="display:none;position:absolute;top:-3px;right:-3px;width:11px;height:11px;background:#cc2020;border-radius:50%;animation:blink 1.2s ease infinite;border:2px solid #1a1408"></span>
 </button>
@@ -908,6 +914,7 @@ function signalerEvenementJournal() {
 <script src="i18n/ordres.js?v=1"></script>
 <script src="i18n/texte-joueur.js?v=1"></script>
 <script src="i18n/plateau-init.js?v=1"></script>
+<script src="plateau-mobile.js?v=l10-r2-20261106" defer></script>
 </body>
 </html>
 
