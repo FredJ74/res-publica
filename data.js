@@ -2145,7 +2145,7 @@ const WORLD = {
           imagesAVenir: true,
           desc: "La caserne centrale de l'Armée populaire de Sovarka, en plein cœur de Novomirsk. Deux portails, des sentinelles qui ne cillent pas, et l'étoile rouge repeinte chaque printemps.",
           roomOverrides: {
-            corps_garde: { persons: [{name: 'Adjudant Piotr Antipov (PNJ)', role: 'PNJ - Aide de camp', rel: 'friendly', job: 'aide_de_camp', profilId: 'piotr_antipov'}] },
+            corps_garde: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_hall.webp', persons: [{name: 'Adjudant Piotr Antipov (PNJ)', role: 'PNJ - Aide de camp', rel: 'friendly', job: 'aide_de_camp', profilId: 'piotr_antipov'}] },
             infirmerie: { persons: [{name: 'Infirmière Olga Komarova (PNJ)', role: 'PNJ - Infirmière militaire', rel: 'neutral', job: 'infirmier_mil', profilId: 'olga_komarova'}] },
             salle_commandement: { persons: [{name: 'Commandant Igor Saveliev', role: 'PNJ - Commandant de la Caserne', rel: 'neutral',
               job: 'commandant', resteApresPourvoi: true,
@@ -6997,6 +6997,7 @@ const BUILDINGS = {
     rooms: {
       atelier_garage: {
         name: "Atelier",
+        imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_garage.webp',
         imageBg: "linear-gradient(135deg,#12161a,#1a2026)",
         desc: "Le comptoir, l'atelier et la cour où attendent les véhicules neufs.",
         persons: [{name:'Sergueï Zaptchastov (PNJ)', role:'Garagiste', rel:'neutral', job:'garagiste'}],
