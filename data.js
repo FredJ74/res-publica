@@ -1995,12 +1995,12 @@ const WORLD = {
             salle_conseil:  { name: 'Salle du Conseil du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_conseil.webp' },
             salle_presse:   { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_presse.webp' },
             archives_gouv:  { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_archives.webp' },
-            bureau_min_int: { name: 'Bureau - Ministre de la Sécurité du Peuple' },
-            bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective" },
-            bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne' },
-            bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie' },
-            bureau_min_info:{ name: 'Bureau - Ministre de la Vérité officielle' },
-            bureau_min_ae:  { name: "Bureau - Ministre de l'Amitié entre les Peuples" }
+            bureau_min_int: { name: 'Bureau - Ministre de la Sécurité du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_securite.webp' },
+            bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_economie.webp' },
+            bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_justice.webp' },
+            bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_defense.webp' },
+            bureau_min_info:{ name: 'Bureau - Ministre de la Vérité officielle', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_information.webp' },
+            bureau_min_ae:  { name: "Bureau - Ministre de l'Amitié entre les Peuples", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_diplomatie.webp' }
           },
           persons: []
         },
