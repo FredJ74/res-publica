@@ -24,3 +24,10 @@ test('audiences et brouillons de presse sans politique SELECT restent fermés',(
  assert.equal(validerSource('court_message','1','texte'),null);
  assert.equal(validerSource('pending_article','1','texte'),null);
 });
+
+
+test('forums de ville, pays et organisations : RLS obligatoire, jamais publics par défaut',()=>{
+ assert.equal(SOURCES.forum_post.privacy,'rls_via_forum_topic');
+ assert.equal(SOURCES.forum_topic.privacy,'rls_forum_lecture_autorisee');
+ assert.equal(SOURCES.chat_message.privacy,'rls_chat_participe');
+});
