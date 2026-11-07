@@ -27,17 +27,27 @@ Règles : voir `AGENTS.md`.
 
 ### Mobile Sovarka — Codex, 07/11/2026
 
-Branche `codex/mobile-sovarka-20261107`, base main `6e157d09`. Correction uniquement
-CSS commun : sélecteurs de locaux/caractéristiques lisibles et champs contenus
-sur téléphone, cache CSS majoré. Aucun JS métier, SQL, montant ou ordre modifié.
-Rapport : `outils/audits/MOBILE-SOVARKA-20261107.md`. Banc Chromium dédié : rendus
-réels avec lectures isolées, 360/390/768 et pixels bureau 1440 contre témoin main.
-Validation élargie en cours ; contrôles complets une seule fois en fin de lot.
-Pour tester sur téléphone après intégration : ouvrir les dossiers commerciaux,
-une demande de location, la création de parti, garage et événements de réunion ;
-les sélecteurs utilisent la largeur disponible, aucun paiement requis.
-PR à préparer après tests ; ne pas confondre ces fixtures avec une recette connectée.
+Branche poussée `codex/mobile-sovarka-20261107`, correction `3d22d795`, dernier
+main `17b7d13d` intégré par `c4072089` (PR #618 de Claude conservée, y compris
+le cache data.js). Seuls styles communs et cache CSS modifiés dans le jeu ;
+aucun JS métier, SQL, montant PSK, ordre ou texte RP changé.
+Rapport/inventaire : `outils/audits/MOBILE-SOVARKA-20261107.md`.
+**201/201 bancs clients**, Chromium dédié 5/5 (16 fenêtres à 360/390/768, pixels
+1440 identiques au témoin et contre-épreuve), socle mobile/reprise 27/27.
+Globaux, unique passe : **10/12**, Workflow/Authority conformes ; Baseline et
+Referential hérités, causes exactes dans le rapport, aucune référence altérée.
+Après intégration main : navigation/PNJ 26/26 ; Chromium/reprise 11/11 sur le SHA intégré `c4072089`.
 
+**PR REST refusée (Forbidden)** : Claude peut ouvrir vers `main` depuis cette
+branche. Titre : **Mobile : formulaires Sovarka lisibles sans changer le bureau**.
+Description prête : « Sélecteurs communs élargis et champs contenus sous 1024 px.
+Aucun moteur parallèle ni modification économique. Rendus réels isolés, 16 fenêtres,
+360/390/768 et comparaison pixels bureau 1440. Rapport MOBILE-SOVARKA-20261107.md. »
+Contrôles attendus : clients/Chromium, syntaxe, Workflow et garde Vercel.
+Pour Fred après intégration : sur téléphone, ouvrir les dossiers commerciaux,
+une demande de location, la création de parti, garage et réunions ; les sélecteurs
+utilisent la largeur disponible. Aucun paiement nécessaire pour ces consultations.
+Pas de recette connectée ni de déploiement attesté, aucune écriture de production.
 
 ### Novomirsk : raccordement vue par vue — Claude, 04/11/2026 (à reprendre)
 
