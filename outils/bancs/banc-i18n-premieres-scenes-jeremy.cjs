@@ -20,7 +20,8 @@ test('trente scènes réelles traduites en neuf langues avec exactement la ponct
  for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
   locale=lng;
   const dict=win.RP_I18N_RESOURCES[lng].translation.jeremyScenes;
-  assert.deepEqual(Object.keys(dict).sort(),keys.slice().sort());
+  // L'ajout d'un autre lot de libellés au même catalogue ne retire pas les scènes.
+  for(const key of keys)assert.ok(Object.hasOwn(dict,key),lng+': '+key);
   for(const key of keys){
    assert.ok(dict[key].trim(),lng+': '+key);
    const original=win.RP_I18N_RESOURCES.fr.translation.jeremyScenes[key];
