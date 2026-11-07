@@ -25,3 +25,15 @@ Le prévol corrigé `outils/audits/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql` exige u
 
 ## Dépendances
 Les modules `api/_traduction.js`, `api/_traduction-sources.js` et `i18n/texte-joueur.js` sont des briques préparatoires. Le raccordement PNJ attend l'intégration des dernières modifications Claude. Le schéma de limitation et de cache doit être audité avant toute migration ; **ne pas activer ou fusionner la PR #377 sans la recette intégrale**.
+
+
+## Contrat technique ajouté le 7 novembre — sources existantes, sans migration
+
+Un relevé **en lecture seule** d'\`information_schema.columns\` sur les trois sources autorisées montre qu'aucune ne possède de colonne \`language\` ni \`version\`. Ne jamais présumer du français pour un texte libre écrit par un joueur, ni inventer une colonne SQL.
+
+- \`api/_traduction-lecture-rls.js\` utilise le transport serveur commun \`sbGetVerdict\` avec **uniquement** \`{jeton: JWT_du_lecteur}\`, jamais une identité \`service_role\`. La catégorie, la colonne et l'ID sont revalidés selon la liste blanche. Seules les colonnes \`id\` et celle du texte sont sélectionnées ; aucun auteur caché, identité secrète ni autre métadonnée n'est retourné. Une ligne absente, interdite, dupliquée, malformée ou une panne donnent le même refus.
+- La langue source est \`und\` (*undetermined*) tant qu'une langue d'origine fiable n'est pas enregistrée. Le traducteur sait traiter une source \`und\` sans affirmer qu'elle était française.
+- Le moteur calcule une **version dérivée de l'empreinte SHA-256 du texte**, après la lecture autorisée RLS. Cela rend les éditions invalidantes même sans colonne \`version\`. Une version explicite valide reste acceptée lorsqu'une source dispose ultérieurement d'un véritable identifiant de révision.
+- Les tests de garde du lecteur et du moteur sont ajoutés à la CI, dont des contre-épreuves de JWT absent, colonne cachée, contenu vide, source sans version et réponse fournisseur simulée. La lecture RLS en production n'a pas été exercée avec des comptes PJ de test, et aucune traduction payante n'a été demandée.
+
+**Toujours interdit à l'activation :** le compteur/quota atomique persistant et le cache serveur durable ne sont pas implémentés ; aucun endpoint public. Ne pas exposer \`traduireContenu\` en HTTP ni utiliser un cache mémoire serverless comme unique protection.
