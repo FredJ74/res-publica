@@ -4762,6 +4762,13 @@ export const SCENES_PNJ = {
       "Kirill Poliakov"
     ]
   },
+  "[\"soviet\",\"capitale\",\"mairie-capitale\",\"salle_partis\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Soviet Municipal",
+    "piece": "Salle des partis",
+    "personnes": []
+  },
   "[\"soviet\",\"capitale\",\"kolkhoze-spirituel\",\"grange_sainte\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
@@ -5669,6 +5676,13 @@ export const SCENES_PNJ = {
     "piece": "Bureau du Maire Adjoint",
     "personnes": []
   },
+  "[\"soviet\",\"ville_a\",\"mairie\",\"salle_partis\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Mairie",
+    "piece": "Salle des partis",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_a\",\"banque-locale\",\"guichet\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
@@ -6023,6 +6037,13 @@ export const SCENES_PNJ = {
     "ville": "Krasnov",
     "batiment": "Mairie",
     "piece": "Bureau du Maire Adjoint",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"mairie\",\"salle_partis\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Mairie",
+    "piece": "Salle des partis",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"banque-locale\",\"guichet\"]": {
