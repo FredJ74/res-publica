@@ -603,7 +603,7 @@ function switchSelfTab(tab, el) {
     const f = (typeof resumeFortune === 'function') ? resumeFortune()
             : { liquide: state.liquide||0, comptes: totalComptesBancaires(), placements: 0,
                 poches: (state.liquide||0) + totalComptesBancaires(), arg: state.arg||0, ecart: 0 };
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">';
+    html += '<div class="hg-finances-grille" style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">';
     html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">Liquide</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + f.liquide.toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
     html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">En banque</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + f.comptes.toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
     if (f.placements > 0) {
@@ -630,11 +630,11 @@ function switchSelfTab(tab, el) {
     } else {
       items.forEach((item, i) => {
         const hasImage = item.imageUrl && item.imageUrl.length > 5;
-        html += '<div style="display:flex;align-items:center;gap:.5rem;padding:.5rem .3rem;border-bottom:1px solid #1a1810;cursor:pointer" onclick="ouvrirDetailObjet(' + i + ')">';
+        html += '<div class="hg-inventaire-ligne" style="display:flex;align-items:center;gap:.5rem;padding:.5rem .3rem;border-bottom:1px solid #1a1810;cursor:pointer" onclick="ouvrirDetailObjet(' + i + ')">';
         // Miniature ou icone
         if (hasImage) {
           html += '<div style="width:44px;height:44px;flex-shrink:0;overflow:hidden;border:1px solid #2a2010;background:#0a0805">';
-          html += '<img src="' + item.imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.85"/>';
+          html += '<img loading="lazy" decoding="async" src="' + item.imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.85"/>';
           html += '</div>';
         } else {
           html += '<div style="width:44px;height:44px;flex-shrink:0;background:#0a0805;border:1px solid #2a2010;display:flex;align-items:center;justify-content:center">';
@@ -642,7 +642,7 @@ function switchSelfTab(tab, el) {
           html += '</div>';
         }
         html += '<div style="flex:1;min-width:0">';
-        html += '<div style="font-size:.8rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + ((Number(item.quantite ?? item.qty) > 1) ? ' × ' + Number(item.quantite ?? item.qty) : '') + '</div>';
+        html += '<div class="hg-inventaire-nom" style="font-size:.8rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + ((Number(item.quantite ?? item.qty) > 1) ? ' × ' + Number(item.quantite ?? item.qty) : '') + '</div>';
         html += '<div style="font-size:.85rem;color:#9a8a68">' + (item.legal !== undefined ? (item.legal ? 'Légal' : 'Non enregistré') : '') + (item.usageUnique ? ' · Usage unique' : '') + '</div>';
         html += '</div>';
         html += '<button onclick="event.stopPropagation();jeterObjetInventaire(' + i + ')" style="font-size:.85rem;color:#a0905a;background:transparent;border:none;cursor:pointer;padding:.2rem .4rem;flex-shrink:0">Déposer</button>';

@@ -4260,57 +4260,51 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"accueil\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Hôtel Kollektiv",
+    "batiment": "Grand Hôtel de Sovarka",
     "piece": "Accueil",
     "personnes": [
-      "Olga Soupe",
-      "Boris Betterave",
-      "Natasha Privilege"
+      "Vera Clefova",
+      "Ivan Valisov"
     ]
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"restaurant\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Hôtel Kollektiv",
+    "batiment": "Grand Hôtel de Sovarka",
     "piece": "Salle du Restaurant",
     "personnes": [
-      "Grigori Smetanine",
-      "Vsevolod Vodkaïev",
-      "Svetlana Blinova",
-      "Innokenti Partiïev",
-      "Macha Scoopova"
+      "Pavel Plateaukine"
     ]
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"bar\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Hôtel Kollektiv",
+    "batiment": "Grand Hôtel de Sovarka",
     "piece": "Bar",
     "personnes": [
-      "Kostia (Barman)",
-      "Natacha",
-      "Julien",
-      "Leonid Combinov"
+      "Arkadi Shakerov",
+      "Gleb Tchoutchotov",
+      "Anouchka Velourova"
     ]
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"chambres\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Hôtel Kollektiv",
+    "batiment": "Grand Hôtel de Sovarka",
     "piece": "Chambres",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"suite_privee\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Hôtel Kollektiv",
+    "batiment": "Grand Hôtel de Sovarka",
     "piece": "Suite Privée — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"suite_presidentielle\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Hôtel Kollektiv",
+    "batiment": "Grand Hôtel de Sovarka",
     "piece": "Suite Présidentielle — Local à louer",
     "personnes": []
   },
@@ -4800,39 +4794,38 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"hall\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Commercial",
-    "piece": "Hall d'Entrée",
+    "batiment": "Galeries de Novomirsk",
+    "piece": "Entrée des galeries",
     "personnes": [
-      "Ksenia Fauchova",
-      "Arkhip Abracadabrov"
+      "Ignat Battantov"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"vitrine_principale\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Commercial",
-    "piece": "Vitrine Principale — Local à louer",
+    "batiment": "Galeries de Novomirsk",
+    "piece": "Grand local A — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"boutique_milieu\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Commercial",
-    "piece": "Boutique Milieu — Local à louer",
+    "batiment": "Galeries de Novomirsk",
+    "piece": "Grand local B — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"arriere_boutique\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Commercial",
-    "piece": "Arrière-Boutique — Local à louer",
+    "batiment": "Galeries de Novomirsk",
+    "piece": "Local moyen A — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-commercial\",\"cave_reserve\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Commercial",
-    "piece": "Cave / Réserve — Local à louer",
+    "batiment": "Galeries de Novomirsk",
+    "piece": "Local moyen B — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-artisanal\",\"travees\"]": {
@@ -4870,43 +4863,77 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"centre-affaires\",\"hall\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre d'Affaires",
-    "piece": "Hall d'Entrée",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Accueil du centre d'affaires",
     "personnes": [
-      "Inna Rendezvousova",
-      "Moïsseï Mechantov",
-      "Garri Kouverov"
+      "Valery Burov",
+      "Pietr Kastanov"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-affaires\",\"bureau_prestige\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre d'Affaires",
-    "piece": "Bureau Prestige — Local à louer",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Bureau prestige A — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-affaires\",\"bureau_standard\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre d'Affaires",
+    "batiment": "Centre d'affaires de Novomirsk",
     "piece": "Bureau Standard — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-affaires\",\"open_space\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre d'Affaires",
+    "batiment": "Centre d'affaires de Novomirsk",
     "piece": "Open Space — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-affaires\",\"tribune_republia\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre d'Affaires",
+    "batiment": "Centre d'affaires de Novomirsk",
     "piece": "La Tribune de Republia — Antenne Locale",
     "personnes": [
       "Correspondant Local"
     ]
+  },
+  "[\"soviet\",\"capitale\",\"centre-affaires\",\"bureau_prestige_b\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Bureau prestige B — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"centre-affaires\",\"reunion_grande_a\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Grande salle de réunion A",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"centre-affaires\",\"reunion_grande_b\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Grande salle de réunion B",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"centre-affaires\",\"reunion_moyenne_a\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Salle de réunion moyenne A",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"centre-affaires\",\"reunion_moyenne_b\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Centre d'affaires de Novomirsk",
+    "piece": "Salle de réunion moyenne B",
+    "personnes": []
   },
   "[\"soviet\",\"capitale\",\"terrain-a-batir-1\",\"terrain\"]": {
     "pays": "Sovarka",
@@ -5477,6 +5504,122 @@ export const SCENES_PNJ = {
     "personnes": [
       "Valentina Pilioulkina"
     ]
+  },
+  "[\"soviet\",\"capitale\",\"poissonniere-novomirsk\",\"etal_poissonniere\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Marchande de poissons",
+    "piece": "Étal",
+    "personnes": [
+      "Galina Karpova"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"usine-pharmaceutique-luthecia\",\"salle_ventes\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Usine pharmaceutique Pharmanov",
+    "piece": "Salle des Ventes",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"usine-pharmaceutique-luthecia\",\"bureau_direction\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Usine pharmaceutique Pharmanov",
+    "piece": "Bureau de Direction",
+    "personnes": [
+      "Boris Tabletkine"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"usine-pharmaceutique-luthecia\",\"salle_production\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Usine pharmaceutique Pharmanov",
+    "piece": "Salle de Production",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"hall\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Hall d'accueil",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_presidents\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Présidents de Sovarka",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"expositions_temporaires\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Expositions Temporaires",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_honneur_militaire_nationale\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle d'Honneur Militaire Nationale",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_politiques\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Personnalités Politiques",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_civils_intellectuels\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Personnalités Civiles et Intellectuelles",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_organisations\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Responsables d'Organisations Syndicales ou Religieuses",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_artistes_sportifs\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Artistes et Sportifs",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_tresor_national\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle du Trésor National",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_reussites_economiques\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Grandes Réussites Économiques",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_grandes_villes\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Grandes Villes de Sovarka",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_criminels_pays\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée de la République de Sovarka",
+    "piece": "Salle des Plus Grands Criminels du Pays",
+    "personnes": []
   },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",

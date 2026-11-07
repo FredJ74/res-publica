@@ -1744,16 +1744,109 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk','poissonniere-novomirsk','usine-pharmaceutique-luthecia','musee-national-republia'],
       buildingContext: {
+        // Galeries de Novomirsk : les 4 locaux du socle commercial restent
+        // exactement les memes baux / identifiants serveur. Ici, seuls l'apparence,
+        // les noms et les descriptions de la capitale sovarkienne sont specialises.
+        'centre-commercial': {
+          name: 'Galeries de Novomirsk',
+          desc: 'Galeries commerçantes couvertes de Novomirsk, sous une verrière monumentale.',
+          roomOverrides: {
+            hall: {
+              name: 'Entrée des galeries',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_entree.webp',
+              // Un seul PNJ à l'entrée, le portier visible sur l'image (décision de Fred, 06/11/2026 ;
+              // nom proposé par Claude, à valider). La voleuse et le magicien de Luthécia sont retirés.
+              persons: [
+                {name: 'Ignat Battantov (PNJ)', role: 'Portier des galeries', rel: 'neutral', job: 'portier'}
+              ]
+            },
+            vitrine_principale: {
+              name: 'Grand local A — Local à louer',
+              desc: '📋 À LOUER — Grande boutique en façade de la galerie, vitrine prestigieuse.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_grand_local.webp'
+            },
+            boutique_milieu: {
+              name: 'Grand local B — Local à louer',
+              desc: '📋 À LOUER — Seconde grande boutique de la galerie, avec vaste surface de vente.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_grand_local.webp'
+            },
+            arriere_boutique: {
+              name: 'Local moyen A — Local à louer',
+              desc: '📋 À LOUER — Boutique de taille moyenne dans les galeries de Novomirsk.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_moyen_local.webp'
+            },
+            cave_reserve: {
+              name: 'Local moyen B — Local à louer',
+              desc: '📋 À LOUER — Seconde boutique de taille moyenne, accessible depuis les galeries.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_galeries_moyen_local.webp'
+            }
+          }
+        },
+        // Centre d'affaires de Novomirsk : deux bureaux privés et quatre salles
+        // de réunion. Le gabarit commun reste inchangé dans les autres villes.
+        'centre-affaires': {
+          name: "Centre d'affaires de Novomirsk",
+          desc: "Adresse prestigieuse pour les réunions d'affaires et les bureaux privés de Sovarka.",
+          roomsExclues: ['bureau_standard', 'open_space', 'tribune_republia'],
+          roomOverrides: {
+            hall: {
+              name: "Accueil du centre d'affaires",
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_hall.webp',
+              persons: [
+                // Noms donnés par Fred (07/11/2026).
+                {name:'Valery Burov (PNJ)',role:"Réceptionniste",rel:'neutral',job:'hotesse'},
+                {name:'Pietr Kastanov (PNJ)',role:'Agent de sécurité',rel:'neutral',job:'agent_securite'}
+              ]
+            },
+            // Bureaux attribués par la mairie, comme les locaux des Galeries (décision de Fred,
+            // 07/11/2026) : ordres posés par definirSallesCentreAffairesNovomirsk ci-dessous.
+            bureau_prestige: {
+              name: "Bureau prestige A — Local à louer",
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_bureau_prestige.webp'
+            }
+          }
+        },
         'hotel-republica': {
-          name: "Hôtel Kollektiv",
-          desc: "Toutes les chambres sont identiques. Olga Soupe gère la cantine avec efficacité soviétique.",
+          name: "Grand Hôtel de Sovarka",
+          shortName: "Grand Hôtel",
+          desc: "Le palace de la capitale : marbre, lustres et velours rouge. On y loge les délégations étrangères et les cadres du Parti en déplacement.",
           // Pas de suites a Novomirsk (decision de Fred, 04/11/2026) : elles sont au Pavillon des
           // Ambassadeurs (vue 7), qui en a trois.
           roomsExclues: ['suite_privee', 'suite_presidentielle'],
-          roomOverrides: { accueil: { excludeOrders: ['choisir_suite'] } },
-          persons: [{"name": "Olga Soupe (PNJ)", "role": "Cantinière", "rel": "neutral", "job": "serveur"}, {"name": "Boris Betterave (PNJ)", "role": "Cuisinier", "rel": "neutral", "job": "serveur"}, {"name": "Natasha Privilege (PNJ)", "role": "Réservée aux cadres du Parti", "rel": "neutral", "job": "escort"}]
+          roomOverrides: {
+            // Accueil (decision de Fred, 06/11/2026) : deux PNJ seulement, la receptionniste et le
+            // bagagiste, portraits tires de l'image de la reception (noms proposes par Claude).
+            accueil: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_reception.webp',
+              excludeOrders: ['choisir_suite'],
+              persons: [
+                {name: 'Vera Clefova (PNJ)', role: 'Réceptionniste', rel: 'neutral', job: 'hotelier'},
+                {name: 'Ivan Valisov (PNJ)', role: 'Bagagiste', rel: 'neutral', job: 'bagagiste'}
+              ]
+            },
+            // Bar et restaurant gardes : la capitale doit etre opulente (Fred, 06/11/2026). Bar : un
+            // barman, un espion assis au comptoir, une escort a la broche ; restaurant : un serveur
+            // seulement. Portraits tires des images (noms et fiches proposes par Claude).
+            bar: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_bar.webp',
+              persons: [
+                {name: 'Arkadi Shakerov (PNJ)', role: 'Barman', rel: 'neutral', job: 'barman'},
+                {name: 'Gleb Tchoutchotov (PNJ)', role: 'Habitué du bar', rel: 'neutral', job: 'espion'},
+                {name: 'Anouchka Velourova (PNJ)', role: 'Escort', rel: 'neutral', job: 'escort', genre: 'F'}
+              ]
+            },
+            restaurant: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_restaurant.webp',
+              persons: [
+                {name: 'Pavel Plateaukine (PNJ)', role: 'Serveur', rel: 'neutral', job: 'serveur'}
+              ]
+            },
+            chambres: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_chambre.webp'
+            }
+          },
         },
         'commissariat': {
           name: "Commissariat du Peuple",
@@ -1793,11 +1886,13 @@ const WORLD = {
             // Plus de vente de terrain, de murs, de rachat ni de préemption : le notaire enregistre les
             // attributions de droits d'exploiter décidées par le maire et les cessions entre PJ.
             bureau_successions: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_successions.webp',
               persons: [
                 {name:'Claire Delhune (PNJ)', role:'Secrétaire', rel:'neutral', job:'secretaire_notaire'}
               ]
             },
             bureau_contrats: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_cessions_entreprises.webp',
               excludeOrders: ['officialiser_transaction', 'commerces_fonds_murs', 'racheter_entreprise',
                 'acte_rachat_entreprise_preemption', 'transfert_compromis'],
               orders: [
@@ -2009,6 +2104,44 @@ const WORLD = {
             quartier_troupes: { persons: [
               {name: 'Caporal Dimitri Corvéev (PNJ)', role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'},
               {name: 'Soldat Sacha Gamelline (PNJ)',  role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'}] }
+          }
+        },
+        // Usine pharmaceutique Pharmanov (vue 18), decision de Fred du 06/11/2026 : l'usine
+        // pharmaceutique du pays, rien de special. Usine du socle (BUILDINGS['usine-pharmaceutique-luthecia']) :
+        // memes pieces, ordres et fonctions serveur ; directeur nomme par le ministre de l'Economie
+        // collective (poste directeur_pharma, portee pays). Etat propre a Sovarka (migration 20261106173500).
+        // Les sels d'ammoniaque restent propres a l'Assemblee de Republia. Images a venir (Fred).
+        'usine-pharmaceutique-luthecia': {
+          name: "Usine pharmaceutique Pharmanov",
+          shortName: "Pharmanov",
+          imagesAVenir: true,
+          desc: "L'usine pharmaceutique d'État de Sovarka. Des cheminées propres, des blouses blanches et un slogan au fronton : « La santé du peuple est un devoir du Plan ».",
+          roomOverrides: {
+            salle_ventes: { excludeOrders: ['acheter_sels_ammoniaque'] },
+            // Salaire de production a l'echelle de Sovarka (Fred, 06/11/2026 : entre 15 et 20 PSK ;
+            // serveur : salaires_production_pays, migration 20261106184000).
+            salle_production: { excludeOrders: ['produire_medicaments', 'produire_desinfectant'], orders: [
+              {fn:'produire_medicaments', label:'Produire des médicaments', pa:1, cost:0, type:'legal', icon:'ti-vaccine', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 18 PSK. Consomme 5 plantes du stock de matières de l\'usine, produit 10 médicaments.'},
+              {fn:'produire_desinfectant', label:'Produire du désinfectant', pa:1, cost:0, type:'legal', icon:'ti-droplet', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 alcool du stock de matières de l\'usine, produit 10 désinfectants.'}
+            ] },
+            bureau_direction: { persons: [{name: 'Boris Tabletkine (PNJ)', role: "Directeur de l'usine Pharmanov", rel: 'neutral', job: 'directeur_pharma'}] }
+          }
+        },
+        // Musee de la Republique de Sovarka (vue 18), decision de Fred du 06/11/2026 : copie du
+        // Musee National de Republia (BUILDINGS['musee-national-republia'] : memes salles et ordres),
+        // les differences propres a Sovarka seront codees ensuite. En attendant : images a venir,
+        // pas d'audioguide (ceux de Republia parlent de la Republia), figures des salles vides
+        // (plateau-musee-personnalites.js : pas de personnalites de Republia hors de Republia).
+        // Serveur : migration 20261106194500_novomirsk_musee_national.
+        'musee-national-republia': {
+          name: "Musée de la République de Sovarka",
+          shortName: "Musée de la République",
+          imagesAVenir: true,
+          audiosAVenir: true,
+          desc: "Le grand musée national de Sovarka, où le peuple vient contempler la mémoire officielle de la nation.",
+          roomOverrides: {
+            salle_presidents: { name: "Salle des Présidents de Sovarka", desc: "L'histoire présidentielle de la nation, ses meilleurs et ses pires chefs d'État. Classement à venir." },
+            salle_grandes_villes: { name: "Salle des Grandes Villes de Sovarka" }
           }
         }
       }
@@ -6981,6 +7114,33 @@ const BUILDINGS = {
       }
     }
   },
+  // MARCHANDE DE POISSONS DE NOVOMIRSK (vue 16), decisions de Fred du 06/11/2026 : commercante
+  // tenue par une PNJ ; poisson de riviere un peu moins cher qu'a l'entrepot, 12 par jour au plus
+  // (toute la ville) ; elle connait et colporte les rumeurs (ordres existants) ; son mari fait passer
+  // par la riviere alcool et medicaments de Republia (achat illegal). Tout est decide par le serveur
+  // (migration 20261106172000, plateau-poissonniere.js). Images a venir.
+  'poissonniere-novomirsk': {
+    name: "Marchande de poissons",
+    shortName: "Poissons",
+    cat: "Économie",
+    icon: "ti-fish",
+    bgColor: "#0e1418",
+    desc: "Un étal sur le quai du marché : des caisses de glace, des poissons de rivière alignés comme des soldats et une balance qui a connu trois régimes.",
+    rooms: {
+      etal_poissonniere: {
+        name: "Étal",
+        imageBg: "linear-gradient(135deg,#0e1418,#16202a)",
+        desc: "Une bâche tendue contre le vent, des caisses de poisson sur la glace et, derrière, une marchande qui voit passer toute la ville.",
+        persons: [{name:'Galina Karpova (PNJ)', role:'Marchande de poissons', rel:'neutral', job:'commercant'}],
+        orders: [
+          {fn:'poissonniere_poisson', label:'Acheter du poisson de rivière', pa:0, cost:0, type:'legal', icon:'ti-fish', successRate:100, desc:"Pêché par son mari. Un peu moins cher qu'à l'entrepôt, mais la pêche du jour ne fait que 12 poissons."},
+          {fn:'ecouter_rumeurs', label:'Tendre l\'oreille', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:95, desc:'Galina sait tout ce qui se dit en ville. Révèle une rumeur vraie (action récente tracée) ou, à défaut, une information générée selon le contexte.'},
+          {fn:'lancer_rumeur_cible', label:'Lui glisser une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Galina la répétera à toute la ville. Succès (75%) : effet selon la cible. Échec : retour de bâton limité + risque de détection.'},
+          {fn:'contrebande_poissonniere', label:'Du poisson « de l\'autre rive »', pa:1, cost:0, type:'illegal', icon:'ti-package-off', successRate:100, desc:"Son mari fait passer par la rivière de l'alcool et des médicaments de Républia, moins chers qu'au circuit d'État. Achat illégal : on peut être repéré."}
+        ]
+      }
+    }
+  },
   'station-service-krasnov': {
     name: "Station-service de Krasnov",
     shortName: "Station-service",
@@ -9988,7 +10148,14 @@ function slugPnjSovarka(nom) {
   const photos = [
     ['commissariat', 'accueil_police', 'Sergent Matrakov (PNJ)', 'Novo_sergent_matrakov_portrait.webp'],
     ['commissariat', 'bureau_commissaire', 'Vassili Ordonov (PNJ)', 'Novo_vassili_ordonov_portrait.webp'],
-    ['office-notarial', 'accueil_notaire', 'Klara Delounova (PNJ)', 'Novo_klara_delounova_portrait.webp']
+    ['office-notarial', 'accueil_notaire', 'Klara Delounova (PNJ)', 'Novo_klara_delounova_portrait.webp'],
+    ['hotel-republica', 'accueil', 'Vera Clefova (PNJ)', 'Novo_vera_clefova_portrait.webp'],
+    ['hotel-republica', 'accueil', 'Ivan Valisov (PNJ)', 'Novo_ivan_valisov_portrait.webp'],
+    ['hotel-republica', 'bar', 'Arkadi Shakerov (PNJ)', 'Novo_arkadi_shakerov_portrait.webp'],
+    ['hotel-republica', 'bar', 'Gleb Tchoutchotov (PNJ)', 'Novo_gleb_tchoutchotov_portrait.webp'],
+    ['hotel-republica', 'bar', 'Anouchka Velourova (PNJ)', 'Novo_anouchka_velourova_portrait.webp'],
+    ['hotel-republica', 'restaurant', 'Pavel Plateaukine (PNJ)', 'Novo_pavel_plateaukine_portrait.webp'],
+    ['centre-commercial', 'hall', 'Ignat Battantov (PNJ)', 'Novo_ignat_battantov_portrait.webp']
   ];
   for (const [batiment, piece, nom, fichier] of photos) {
     const personnes = salles[batiment]?.roomOverrides?.[piece]?.persons || [];
@@ -10083,7 +10250,7 @@ function slugPnjSovarka(nom) {
     ]);
     ajouter(surcharge(ville, mairie, capitale ? 'bureau_maire' : 'bureau_maire_local'), [
       ordre('sovarka_dossiers_commerciaux', 'Dossiers commerciaux', 0, 'ti-folders',
-        'Réservé au maire (à défaut l\'adjoint, à défaut le ministre de l\'Économie collective) : accepter les demandes, attribuer les locaux, fixer les loyers (0 à 100 PSK) et le type des immeubles collectifs.')
+        'Réservé au maire (à défaut l\'adjoint, à défaut le ministre de l\'Économie collective) : accepter les demandes, attribuer les locaux, fixer les loyers (dans le plafond de chaque local) et le type des immeubles collectifs.')
     ]);
     ajouter(surcharge(ville, capitale ? 'tribunal' : 'tribunal-local', 'bureau_magistrats'), [
       ordre('sovarka_retirer_droit', 'Retirer un droit d\'exploiter', 1, 'ti-gavel',
@@ -10093,9 +10260,11 @@ function slugPnjSovarka(nom) {
                      'centre-artisanal': ['echoppe_facade', 'atelier_milieu', 'reserve_arriere'] };
     for (const [batiment, pieces] of Object.entries(locaux)) {
       for (const piece of pieces) {
+        // « Demande de location » (décision de Fred, 06/11/2026) : une lettre à la mairie qui décrit
+        // le local ; elle rejoint les dossiers commerciaux du maire, avec le nom du demandeur.
         ajouter(surcharge(ville, batiment, piece), [
-          ordre('sovarka_commerces_libres', 'Attribution par la mairie', 0, 'ti-list-details',
-            'En Sovarka, un local ne se loue pas : il s\'obtient par une demande à la mairie, puis se signe chez le notaire.')
+          ordre('sovarka_demande_location', 'Demande de location', 1, 'ti-mail',
+            'Écrire à la mairie pour demander ce local. Votre lettre rejoint les dossiers du maire, qui attribue les locaux ; l\'attribution se signe ensuite chez le notaire.')
         ], ['louer_local']);
       }
     }
@@ -10109,3 +10278,70 @@ function slugPnjSovarka(nom) {
     }
   }
 }
+
+// Bureaux et salles spécifiques à Novomirsk. Héritage de l'objet bureau_prestige
+// pour conserver les ordres, tarifs, capacités et garanties métier du socle.
+// Les réservations des salles de réunion nécessitent un paiement journalier côté
+// serveur : elles ne présentent pas de faux ordre de location tant que ce
+// mécanisme et son tarif ne sont pas approuvés.
+(function definirSallesCentreAffairesNovomirsk(){
+  const contexte = WORLD.soviet.capitale.buildingContext['centre-affaires'];
+  const modele = BUILDINGS['centre-affaires'].rooms.bureau_prestige;
+  const prefixe = 'images/Sovarka/Novomirsk/Novomirsk_centre_affaires_';
+  const salle = (nom,image,description,tarif) => ({
+    name: nom,
+    imageBg: "linear-gradient(135deg,#080a10,#171218)",
+    imageUrl: prefixe+image,
+    desc: description,
+    persons: [],
+    // Le tarif affiche n'est jamais l'autorité : le RPC valide la salle,
+    // le montant 150/100 PSK, le jour et l'état de location.
+    orders: [{
+      fn:'sovarka_reunion_reserver',
+      label:'Réserver pour aujourd’hui — '+tarif+' PSK',
+      pa:0, cost:0, type:'legal', icon:'ti-calendar-event',
+      successRate:100,
+      desc:'Location exclusive pour la journée civile, jusqu’à minuit (heure de Paris).'
+    }, {
+      // Événements (décision de Fred, 07/11/2026) : conférence de presse, réseautage, séminaire,
+      // buffet du Grand Hôtel ; réservés à celui qui a loué la salle pour la journée.
+      fn:'sovarka_reunion_evenement',
+      label:'Organiser un événement',
+      pa:1, cost:0, type:'legal', icon:'ti-confetti',
+      successRate:100,
+      desc:'Conférence de presse, soirée de réseautage, séminaire de formation ou buffet du Grand Hôtel, pour les personnes présentes.'
+    }]
+  });
+  // BUREAUX : « Demande de location » à la mairie au lieu du guichet (décision de Fred, 07/11/2026),
+  // même cheminement que les Galeries ; loyer 150 PSK/jour fixé par le serveur (sovarka_locaux).
+  // On garde « Gérer mon local » et les équipements : siège d'association, matériel.
+  const ordresBureau = () => [
+    {fn:'sovarka_demande_location', label:'Demande de location', pa:1, cost:0, type:'legal', icon:'ti-mail', successRate:100,
+     desc:"Écrire à la mairie pour demander ce bureau (150 PSK/jour). Votre lettre rejoint les dossiers du maire, qui attribue les locaux ; l'attribution se signe ensuite chez le notaire."},
+    ...modele.orders.filter(o => o.fn !== 'louer_local').map(o => ({...o}))
+  ];
+  const descBureau = "Bureau prestige avec vue, mobilier luxueux. Attribué par la mairie sur demande, 150 PSK par jour. On peut y installer le siège d'une association et du matériel.";
+  const bureauA = contexte.roomOverrides.bureau_prestige;
+  bureauA.desc = descBureau;
+  bureauA.orders = ordresBureau();
+  bureauA.locationData = { ...modele.locationData, prix: 150, label: 'Bureau prestige A' };
+  contexte.roomsExtra = {
+    bureau_prestige_b: {
+      ...modele,
+      name: "Bureau prestige B — Local à louer",
+      desc: descBureau,
+      imageUrl: prefixe+'bureau_prestige_2.webp',
+      locationData: { ...modele.locationData, prix: 150, label:'Bureau prestige B' },
+      persons: [],
+      orders: ordresBureau()
+    },
+    reunion_grande_a: salle("Grande salle de réunion A", 'grande_reunion.webp',
+      "Salle de réception professionnelle avec grand écran, minibar et espace salon. Location : 150 PSK/jour.",150),
+    reunion_grande_b: salle("Grande salle de réunion B", 'grande_reunion.webp',
+      "Seconde grande salle de réunion avec grand écran, minibar et espace salon. Location : 150 PSK/jour.",150),
+    reunion_moyenne_a: salle("Salle de réunion moyenne A", 'moyenne_reunion.webp',
+      "Salle de réunion plus intimiste, aquarium marin et grand écran. Location : 100 PSK/jour.",100),
+    reunion_moyenne_b: salle("Salle de réunion moyenne B", 'moyenne_reunion.webp',
+      "Seconde salle de réunion avec aquarium marin. Location : 100 PSK/jour.",100)
+  };
+})();

@@ -1,0 +1,63 @@
+{
+  "date": "2026-11-06",
+  "base_main": "e31044cf",
+  "environnement": "Chromium Linux local, sans compte ni données de production",
+  "clients": {
+    "total": 198,
+    "reussis": 196,
+    "echecs": [
+      "banc-pnj-localisation-psm.mjs",
+      "banc-workflow-rangement.cjs"
+    ]
+  },
+  "recette_ciblee": {
+    "tests": 80,
+    "reussis": 80,
+    "ignores": 0,
+    "plus_test_authentification_delai": {
+      "tests": 1,
+      "reussis": 1,
+      "horloge": "Chromium contrôlée"
+    }
+  },
+  "globaux": {
+    "branche": 8,
+    "main": 8,
+    "total": 12,
+    "echecs": [
+      "Workflow",
+      "Baseline",
+      "Authority",
+      "Referential"
+    ]
+  },
+  "garde_fiche": {
+    "controles": 23,
+    "contre_epreuves": 9
+  },
+  "png_1440_sha256": {
+    "forum-1440-apres.png": "0d7f587b0fd0431fd012100265b8e8a479040dbb9099ccf573061d47113a7dc0",
+    "forum-1440-avant.png": "0d7f587b0fd0431fd012100265b8e8a479040dbb9099ccf573061d47113a7dc0",
+    "creation-1440-apres.png": "cb2620ccb6da7ef219d6431c03c08a7fccee320e45b78d467c68c044ede6307b",
+    "creation-1440-avant.png": "cb2620ccb6da7ef219d6431c03c08a7fccee320e45b78d467c68c044ede6307b",
+    "plateau-1440-apres.png": "78162d765b6d26a2d5a3b13c31e3a0e84d9deeffa61bbf025d34633a35811384",
+    "plateau-1440-avant.png": "78162d765b6d26a2d5a3b13c31e3a0e84d9deeffa61bbf025d34633a35811384"
+  },
+  "branches": {
+    "codex/mobile-l5-transactions-20261106": "63a841e4e490ff7a32215c874e26e371fc48fda2",
+    "codex/mobile-l8-reprise-20261106": "5fd6722cbfde75e560950bad30d939ab74b50b2f",
+    "codex/mobile-l4-creation-20261106": "c6bef32b338abb035e9054aceef84a81430e407c",
+    "codex/mobile-l7-institutions-20261106": "65d64305603156ea85233e625bd2630145588f82",
+    "codex/mobile-l9-chargement-20261106": "2d54c94f59e908d7b187d70bec3b6470b66ee74f"
+  },
+  "pr_creees": false,
+  "fusion": false,
+  "deploiement": false,
+  "recette_authentifiee": false,
+  "controle_client_reference_precedente": "197/198 sur b41d387e ; 196/198 sur e31044cf : nouveau défaut scènes PNJ Sovarka reproduit sur main intact",
+  "client_mobile_coque": {
+    "tests": 21,
+    "reussis": 21,
+    "ignores": 0
+  }
+}

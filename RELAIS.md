@@ -31,7 +31,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 **V8 Entrepôt logistique : fait le 05/11** (branche `claude/novomirsk-entrepot-20261105`, directeur PNJ Boris Stockov, ordres « Bientôt disponible », migration `20261104232700_novomirsk_entrepot_logistique` appliquée). Décision d'origine : V8 Entrepôt logistique = copie de Luthécia en **interface + ordres « Bientôt disponible »** (directeur PNJ à faire nommer par Fred). Raison : `entrepots_par_ville` est indexé par ville sans pays (8 fonctions serveur et la passe de minuit) ; une copie naïve vendrait les stocks de Luthécia. Ajouter le pays aux entrepôts = **chantier socle à part**, avant les autres empires. **Fait le 04/11 (branche `claude/entrepots-par-pays-20261104`)** : la copie de l'entrepôt ne lira plus Luthécia ; il suffit d'ajouter la ligne (`soviet`, `capitale`, …) à `entrepots_par_ville` et à `ENTREPOT_PAR_PAYS_VILLE`. L'approvisionnement de nuit d'un entrepôt de Sovarka reste à décider (économie de Sovarka).
 **V8 Direction du Renseignement : fait le 05/11** (branche `claude/novomirsk-renseignement-20261105`, migration `20261105004500_siege_renseignement_militaire` appliquée). Décision de Fred : **siège du renseignement militaire = bâtiment du socle** (`siege-renseignement`), non listé en Républia, listé à Novomirsk. Accueil (Sergent Viktor Muetov, fiche à relire par Fred), Salle des Écoutes (« Renseignement militaire »), Salle d'Interrogatoire (copie de « Interroger un détenu », ordre générique `interroger_renseignement`, ministre de la Défense). Agents de renseignement encore ceux de Républia (vivier de Sovarka à nommer par Fred). **Pays du poste réglé le 05/11** (branche `claude/pays-du-poste-20261105`, migration `20261105013000_pays_du_poste_et_lieu_des_ordres` appliquée) : `acteur_poste_courant` lit le pays dans `postes_attribues` (compagnie pour les grades militaires), plus la position du titulaire ; ordres génériques de poste refusés hors du pays du poste (`hors_de_son_pays`) ; renseignement militaire lancé dans son pays, au siège s'il existe, sinon au Palais. Contre-épreuves annulées sur Arnie : à Novomirsk refus nommé, à la banque `pas_sur_place`, au Palais accepté ; en ministre de Sovarka simulé, siège accepté et Palais refusé.
 **V11/V12 Caserne centrale : fait le 05/11** (branche `claude/novomirsk-caserne-20261105`, PR #483, migration `20261105200100_caserne_novomirsk_en_ville` appliquée sous le nom de registre `caserne_novomirsk_en_ville_20261105200000` ; fichier renommé de 200000 pour ne pas doubler l horodatage de Krasnov) : caserne du socle, mais EN VILLE en Sovarka ; voir Derniers chantiers.
-**V11 Garage : fait le 05/11** (branche `claude/vehicules-20261105`, PR #484) : véhicules personnels, voir Derniers chantiers. **V12 Salon de coiffure : fait le 06/11** (PR #493, voir Derniers chantiers ; coupe ouverte à 20 PSK le 06/11, prix de rachat du local attendu). **V14 Logements : fait le 06/11** (voir Derniers chantiers). **V14 Pharmacie officielle : faite le 06/11** (voir Derniers chantiers). **Commissariat du Peuple** : bureau du commissaire réduit au commissaire seul (Vassili Ordonov), inspectrice retirée (décision de Fred, 06/11). **Notaire : fait le 06/11** (droits d'exploiter, voir Derniers chantiers). Fred passe désormais **rue par rue pour rectifier chaque bâtiment** (06/11). **Prochaine étape** : V16 Marchande de poissons. Restent ensuite, zones « à venir » : V16 Marchande de poissons ; V18 Usine Pharmanov et Musée de la République de Sovarka (copie probable du Musée national, à demander). Puis le **Palais du Gouvernement** (V1, pas réellement raccordé, gardé pour la fin). À confirmer par Fred : le Grand Hôtel garde-t-il restaurant et bar ? Figures du musée municipal à relire. Méthode de Fred : une question de design à la fois, l'interface d'abord, les images ensuite (`imagesAVenir`). **Direction artistique de Starovka (Fred, 06/11)** : rues vides à cause du froid polaire, vie à l'intérieur des bâtiments, habitants accueillants au **type mongol / bouriate** (pas slave par défaut), pour les images des intérieurs comme pour les portraits de PNJ ; voir `GAME-DESIGN-NOVOMIRSK.md`.
+**V11 Garage : fait le 05/11** (branche `claude/vehicules-20261105`, PR #484) : véhicules personnels, voir Derniers chantiers. **V12 Salon de coiffure : fait le 06/11** (PR #493, voir Derniers chantiers ; coupe ouverte à 20 PSK le 06/11, prix de rachat du local attendu). **V14 Logements : fait le 06/11** (voir Derniers chantiers). **V14 Pharmacie officielle : faite le 06/11** (voir Derniers chantiers). **Commissariat du Peuple** : bureau du commissaire réduit au commissaire seul (Vassili Ordonov), inspectrice retirée (décision de Fred, 06/11). **Notaire : fait le 06/11** (droits d'exploiter, voir Derniers chantiers). Fred passe désormais **rue par rue pour rectifier chaque bâtiment** (06/11). **V16 Marchande de poissons : faite le 06/11** (voir Derniers chantiers). **V18 Usine Pharmanov : faite le 06/11** (voir Derniers chantiers). **V18 Musée de la République de Sovarka : fait le 06/11** (copie du Musée national, voir Derniers chantiers ; différences à coder ensuite avec Fred). **Prochaine étape** : le **Palais du Gouvernement** (V1, pas réellement raccordé, gardé pour la fin). Figures du musée municipal à relire. Méthode de Fred : une question de design à la fois, l'interface d'abord, les images ensuite (`imagesAVenir`). **Direction artistique de Starovka (Fred, 06/11)** : rues vides à cause du froid polaire, vie à l'intérieur des bâtiments, habitants accueillants au **type mongol / bouriate** (pas slave par défaut), pour les images des intérieurs comme pour les portraits de PNJ ; voir `GAME-DESIGN-NOVOMIRSK.md`.
 
 ### Commissariat PSM : contexte PNJ et portrait — Codex, 04/11/2026
 
@@ -165,6 +165,33 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 ## Derniers chantiers
 
+- **Salles de réunion de Novomirsk : événements (Claude, 07/11, décision de Fred : idées 5 et 6)** — branche `claude/reunions-evenements-20261107`. Ordre « Organiser un événement » (1 PA) dans les quatre salles, réservé à celui qui a loué la salle pour la journée ; une fois par salle, par jour et par type ; chaque PJ en profite une fois par jour et par type ; participants = PJ présents dans la salle au lancement (position serveur), prévenus par courrier. **Valeurs proposées par Claude, à valider par Fred** : conférence de presse +3 POP +1 par présent (max +10) ; réseautage +2 INF à chaque présent, +1 INF par participant à l'organisateur (max +8) ; séminaire +1 à la caractéristique choisie jusqu'à minuit pour tous, sans cumul ; buffet 40 PSK par présent payé au restaurant du Grand Hôtel (encaissement commun, taxe locale), +2 PA chacun. Migration `20261107020000_sovarka_reunions_evenements` **appliquée** (registre `sovarka_reunions_evenements_20261107020000`) : tables `sovarka_reunions_evenements` et `sovarka_reunions_beneficiaires`, fonction `sovarka_reunion_evenement`. Banc annulé `banc-sovarka-reunions-evenements.sql` vert (non-réservataire refusé, rejeu sans double effet, second réseautage refusé, B +2 INF +2 PA INT+1, A +4 POP, 80 PSK de buffet). Écran : `plateau-reunions-evenements.js`. **Non traité** : la conférence de presse ne paraît pas encore dans le journal du matin. **À constater en jeu** : réserver une salle, inviter un PJ, lancer les quatre événements.
+
+- **Centre d'affaires de Novomirsk : accueil et bureaux (Claude, 07/11, décisions de Fred)** — branche `claude/novomirsk-centre-affaires-20261107`. Accueil : **Valery Burov** (réceptionniste) et **Pietr Kastanov** (agent de sécurité), noms de Fred, fiches de dialogue écrites par Claude (`api/_pnj-personnalites.js`, à relire), sans portrait ; scènes PNJ régénérées. **Bureaux prestige A et B** : même cheminement que les Galeries (« Demande de location » → dossiers du maire → signature chez le notaire), loyer 150 PSK/jour, « Gérer mon local » et équipements conservés (siège d'association, matériel), guichet fermé. Migration `20261107010000_novomirsk_centre_affaires_bureaux` **appliquée** (registre `novomirsk_centre_affaires_bureaux_20261107010000`) : deux lignes `sovarka_locaux` (plafond et loyer 150), libellé « Centre d'affaires » dans le bail signé. Banc annulé `banc-novomirsk-centre-affaires-bureaux.sql` vert (guichet refusé `attribution_municipale`, demande, attribution, signature, bail à 150 PSK). Test `test-novomirsk-centre-affaires-sept-pieces-20261106.mjs` mis à jour (l'ancien test figeait 1 000 FR et le guichet). **Non traité** : les bonus INF/DIS/POP du bureau prestige de Républia ne sont pas repris (bail signé à 0, comme les Galeries). **Suite avec Fred** : enrichissement des salles de réunion (événements : AG, CA…). **À constater en jeu** : dans un bureau prestige, « Demande de location » ; la demande apparaît dans les dossiers du maire.
+
+- **Dotation initiale des entrepôts de province (Claude, 07/11, décision de Fred)** — branche `claude/dotation-entrepots-20261107`. Fred : une dotation initiale pour que PSM et Montrouge tournent avec des stocks pleins. Montant choisi par Claude : caisse portée à **10 000 FR**, comme les entrepôts de Sovarka (PSM +9 998, Montrouge +9 998). Relevé avant : les stocks étaient déjà pleins, sauf **céréales et viande, à 0 dans les trois villes** (Luthécia aussi, malgré 18 019 FR en caisse : ce sont les deux matières qui se vident chaque jour) ; remplir coûtait environ 550 FR par ville, le reste couvre plusieurs semaines. Migration `20261107003000_dotation_initiale_entrepots_province` **appliquée** (registre `dotation_initiale_entrepots_province_20261107003000`) : une seule fois (garde sur `entrepot_journal.operation = 'dotation_initiale'`), journalisée, par `caisse_institution_mouvement`. Banc annulé vert (10 000 dans les deux caisses, 2 lignes au journal, rejeu sans effet). **Point ouvert** : le financement courant reste la part de 40 % des recettes municipales, faible en province ; la dotation se videra si la consommation dépasse ces recettes. **À constater** : `livraisons_entrepots` du 07/11 dans `cron_journal` sans « sansTresorerie » ; céréales et viande remontent à PSM et Montrouge.
+
+- **Caisse des entrepôts : l'achat d'un PJ perdait son argent (Claude, 07/11, urgence)** — branche `claude/caisse-entrepots-20261107`. Relevé complet (dépôt et production) : la passe de minuit (livraisons, chantiers, exportations), le trading, `entrepot_reverser`, `approvisionner_chantier` et l'écran du directeur lisent et écrivent tous la caisse canonique `caisses_batiments.<pays>_entrepot_<ville>` depuis le 08/10 ; **aucun blob d'entrepôt ne porte plus de clé `caisse`** en production. Le « double solde PSM 10 231 / 2 » noté le 06/11 était une lecture erronée : il n'y a qu'une caisse. **Seul écrivain resté sur l'ancien système** : `acheter_a_entrepot(text,…)`, appelée par la porte client `acheter_a_entrepot(uuid,…)`, créditait la recette d'un achat de PJ dans `batiments_etat.data.entrepot.caisse`, clé que plus rien ne lit et que la passe ne réécrit pas : **l'argent payé disparaissait** (Républia et Sovarka). Montant perdu non reconstituable (ces achats ne sont pas journalisés dans `entrepot_journal`), faible au vu de l'activité. Migration `20261107001000_achat_entrepot_caisse_canonique` **appliquée** (registre `achat_entrepot_caisse_canonique_20261107001000`) : patch en place sous empreinte, crédit par `caisse_institution_mouvement` (caisse exigée, tout annulé si refus), clé retirée du blob, solde canonique rendu dans `caisse_entrepot`. Banc annulé `outils/bancs/banc-achat-entrepot-caisse-canonique.sql` vert avant application (Angie, 1 bois à Luthécia : caisse +5, liquide −5, rejeu sans effet, pas de clé dans le blob). **Constat économique, non traité (décision de Fred)** : PSM et Montrouge sont à 2 FR parce que leur seule ressource est la part de 40 % des recettes municipales ; la nuit du 06/11, `budgets_municipaux` n'a versé que 1 990 FR pour les trois villes, et la passe des livraisons a trouvé 2 entrepôts sur 3 « sans trésorerie ». Ce n'est pas un défaut de code. **À constater en jeu** : acheter une matière à l'entrepôt de Luthécia ; le solde affiché au directeur augmente du prix payé.
+
+- **Commerce Premium gratuit pendant la bêta (Claude, 06/11, décision de Fred)** — branche `claude/commerce-premium-beta-20261106`. Bouton actif dans la gestion du commerce (propriétaire) : 3 types / 10 articles au lieu de 2 / 4, option posée sur le fonds par `fonds_premium_activer`. La base donnait jusqu'ici 3 / 10 à tous : les deux commerces au-delà du gratuit (Angie, un fonds de Jean Jaaj) sont passés premium d'office. Migration `20261106234500_commerce_premium_beta` **appliquée** (registre `commerce_premium_beta_20261106234500`), banc annulé vert (tiers refusé, activation 3/10, rejeu sans effet). **À constater en jeu** : sur un commerce à 2 types / 4 articles, activer l'option puis ajouter un 3e type et un 5e article.
+- **Sovarka : plafond du prix des PJ (Claude, 06/11, décision de Fred)** — branche `claude/sovarka-coef-prix-20261106`. PNJ ×2 et PJ ×4 du coût de revient, en Républia comme en Sovarka, sans exception de ville ; le coefficient serveur `coef_prix_max_pj_soviet` manquait (prix refusés « coefficient_pays_non_defini »). Migration `20261106232000_coef_prix_max_pj_sovarka` **appliquée** (registre `coef_prix_max_pj_sovarka_20261106232000`). Plafonds de loyer des Galeries de Novomirsk validés par Fred : 150 PSK par grand local, 75 par moyen (migration `20261106233000_galeries_novomirsk_plafonds_loyer` **appliquée**, contrainte de table portée à 150). **À faire à la fin du tour de Novomirsk (Fred)** : relever les bâtiments sans loyer.
+- **Galeries de Novomirsk : portier et « Demande de location » (Claude, 06/11, décisions de Fred)** — branche `claude/galeries-novomirsk-20261106`. Entrée : le portier **Ignat Battantov** seul (nom à valider par Fred), portrait tiré de l'image, fiche de dialogue ; voleuse et magicien retirés ; scènes PNJ régénérées. Dans tous les locaux des centres de Sovarka, « Attribution par la mairie » devient **« Demande de location »** (1 PA) : lettre à la mairie décrivant le local, signée du nom du PJ, activité facultative ; elle rejoint les Dossiers commerciaux du maire avec le local demandé présélectionné. Migration `20261106230000_sovarka_demande_location` **appliquée** (registre `sovarka_demande_location_20261106230000`, indépendante de l'écran) : colonnes du local souhaité, fonction `sovarka_demande_location`, locaux de Novomirsk renommés Grand local A/B et Local moyen A/B. Banc annulé `banc-sovarka-demande-location.sql` vert ; tests écran : mêmes 15 échecs hérités que main. **À trancher par Fred** : plafonds de loyer des locaux des Galeries (hérités : 100 et 50 PSK pour les deux grands, 19 et 10 pour les moyens). **À constater en jeu** : dans un local libre des Galeries, « Demande de location » → Envoyer ; au bureau du maire, « Dossiers commerciaux » montre le demandeur et le local.
+- **Mobile L5, L8, L4, L7, L9 et L10 en bêta (Codex, intégration Claude, 06/11)** — l'API REST était refusée à Codex : PR #546, #548, #549, #551, #552 et #553 créées par Claude, fusionnées dans l'ordre L5 → L8 → L4 → L7 → L9 → L10 par commit de fusion, chacune réconciliée avec main (scènes PNJ régénérées) ; seul échec de contrôle, le rangement SQL hérité ; Vercel READY. Le **chantier mobile du plan de l'audit est intégralement en bêta** ; restent les essais sur vrais téléphones (Safari, Android) et sur deux appareils connectés, par les testeurs. **Rangement** : `RATTRAPAGE-SALAIRE-MINISTRE-STAROVKA-20261106.sql` (PR #510) déplacé de `outils/corrections/` vers `historique/sql-hors-registre/` (règle des trois maisons) ; son exécution en production n'est pas vérifiée par ce déplacement.
+
+- **Grand Hôtel de Sovarka, carte du restaurant (Claude, 06/11, décision de Fred)** — branche `claude/grand-hotel-carte-20261106`. Trois menus russes `menu_sovarka_imperial`, `menu_sovarka_tsars`, `menu_sovarka_plan` (portée `soviet`/`capitale`/`hotel-republica`, 40 PSK proposé par Claude) dans `RECETTES_ALIMENTAIRES` et `recettes_commerce` ; dans le commerce `brasserie-soviet-capitale-hotel-republica`, ils remplacent les trois menus de Républia (carte, plafonds, prix). Migration `20261106213500_grand_hotel_sovarka_carte` **appliquée après Vercel READY** (registre `grand_hotel_sovarka_carte_20261106213500`, banc annulé vert avant). Stock de départ (le commerce était vide) : 10 de chaque menu, 15 de chaque boisson et du snack, migration `20261106215000_grand_hotel_sovarka_stock_depart` **appliquée**. **Non traité** : le dîner d'affaires reste propre à Luthécia (`restaurant_diner_servir`, contrat `luthecia_v1`) ; vin, café, bière et snack restent à la carte. **À constater en jeu** : carte du restaurant du Grand Hôtel de Novomirsk, commander un menu.
+
+- **Grand Hôtel de Sovarka, bar et restaurant (Claude, 06/11, décisions de Fred)** — branche `claude/grand-hotel-bar-restaurant-20261106`. Bar et restaurant gardés (capitale opulente). Bar : Arkadi Shakerov (barman), Gleb Tchoutchotov (espion, « Habitué du bar », job `espion`), Anouchka Velourova (escort, job `escort`) ; restaurant : Pavel Plateaukine (serveur). Fiches dans `api/_pnj-personnalites.js`, portraits `Novo_*_portrait.webp` tirés des images de Fred ; noms à valider. Anciens PNJ de Républia retirés des deux salles. Reste : chambres (aucun PNJ). **À constater en jeu** : bar et restaurant du Grand Hôtel de Novomirsk, portraits et dialogues.
+
+- **Grand Hôtel de Sovarka (Novomirsk), accueil (Claude, 06/11, décision de Fred)** — branche `claude/grand-hotel-pnj-20261106`. Images de Fred déjà posées (accueil, restaurant, bar, chambres). Nom « Grand Hôtel de Sovarka » (enseigne de l'image), description neuve. Accueil : **Vera Clefova** (réceptionniste) et **Ivan Valisov** (bagagiste), noms et fiches de dialogue (`api/_pnj-personnalites.js`) proposés par Claude, à valider ; portraits `Novo_vera_clefova_portrait.webp` et `Novo_ivan_valisov_portrait.webp` découpés dans l'image de la réception. Les trois PNJ du contexte (Olga Soupe, Boris Betterave, Natasha Privilege) retirés : ils s'affichaient à l'accueil. Scènes PNJ régénérées. **Suite avec Fred** : restaurant, bar, chambres. **À constater en jeu** : à l'accueil du Grand Hôtel de Novomirsk, les deux PNJ avec leur portrait, et leur dialogue.
+
+- **Mobile L0, L1, L2, L3 et L6 en bêta (Codex, intégration Claude, 06/11)** — PR #532 à #536 créées par Claude par l'API REST (GraphQL refusé à Codex), fusionnées une par une dans main par commit de fusion (pas d'écrasement, pour garder l'empilement). Conflits de L2 et L3 : seulement la version de `plateau-rue-centrale.js` dans `plateau.html` (version de main gardée, étiquette du lot ajoutée). Contrôles : seul échec, le rangement SQL hérité de main (`outils/corrections/RATTRAPAGE-SALAIRE-MINISTRE-STAROVKA-20261106.sql`, à ranger) ; Vercel READY. **Suite pour Codex** : L5, L8, puis L4, L7, L9, L10, une branche par lot depuis main. **À constater** : sur téléphone, plateau replié en tiroirs, rues et pièces au doigt, fenêtres et clavier, forum.
+
+- **Novomirsk, vue 18 : Musée de la République de Sovarka (Claude, 06/11, décision de Fred : copier le Musée national, les différences ensuite)** — branche `claude/novomirsk-musee-national-20261106`. Bâtiment du socle `musee-national-republia` listé à Novomirsk (nom, description, salles des Présidents et des Grandes Villes « de Sovarka »). `imagesAVenir` ; nouveau drapeau de contexte `audiosAVenir` (pas d'audioguide emprunté, `renderRoomActions`) ; figures du musée national masquées hors Républia (`personnalitesMuseeCourantes`). Migration `20261106194500_novomirsk_musee_national` **appliquée** (registre `novomirsk_musee_national_20261106194500`) : 12 pièces, sortie vers `novomirsk-vue-18` ; banc annulé `banc-novomirsk-musee-national.sql` vert avant. **Reste (avec Fred)** : différences propres à Sovarka (figures, salles, audioguides, images). **À constater en jeu** : à Novomirsk vue 18, entrer au musée, parcourir les 12 salles.
+
+- **Novomirsk, vue 18 : Usine pharmaceutique Pharmanov (Claude, 06/11, décision de Fred : « rien de spécial »)** — branche `claude/novomirsk-pharmanov-20261106`. Usine du socle `usine-pharmaceutique-luthecia` listée à Novomirsk (contexte : nom, directeur PNJ **Boris Tabletkine**, nom à valider par Fred ; sels d'ammoniaque exclus, propres à l'Assemblée de Républia ; images à venir). Fonctions serveur déjà par pays (production, vente directe, virement au ministère, poste `directeur_pharma` de portée pays, nommé par `min_fin` = ministre de l'Économie collective). Migration `20261106173500_usine_pharmanov_novomirsk` **appliquée** (registre `usine_pharmanov_novomirsk_20261106173500`) : pièces, sortie vers `novomirsk-vue-18`, état propre (caisse 200, stocks vides). Banc annulé : sans plantes refus `matiere_insuffisante`, avec plantes 10 médicaments produits. Salaire de production ramené à l'échelle de Sovarka (Fred : 15 à 20 PSK) : médicaments 18, désinfectant 15, table `salaires_production_pays` (migration `20261106184000_salaires_production_par_pays` **appliquée**, `produire_en_usine` patchée en place ; banc annulé : salaire 18 en Sovarka), écran aligné (branche `claude/sovarka-salaires-usine-20261106`). Reste signalé : la production de nuit des usines (cron) ne concerne que la Républia. **À constater en jeu** : à Novomirsk vue 18, entrer dans l'usine (3 pièces, Boris au bureau).
+
+- **Novomirsk, vue 16 : Marchande de poissons (Claude, 06/11, décisions de Fred)** — branche `claude/novomirsk-poissonniere-20261106`, PR #525 fusionnée (Vercel READY). Étal tenu par la PNJ **Galina Karpova** (nom, fiche de dialogue et valeurs validés par Fred le 06/11). Quatre ordres : « Acheter du poisson de rivière » (0 PA ; 12 poissons par jour pour toute la ville, refus « il faut que mon mari relève les filets » au-delà ; argent à la caisse de l'étal), « Tendre l'oreille » et « Lui glisser une rumeur » (ordres existants `ecouter_rumeurs` / `lancer_rumeur_cible`, rien de neuf au serveur), « Du poisson de l'autre rive » (contrebande du mari : alcool et médicaments de Républia, 1 PA, 10 unités par jour, acte illégal `contrebande_poissonniere` : délit mineur, détection 20 %, trace découvrable). Valeurs validées par Fred : poisson à 75 % du prix de référence (3 au lieu de 4), contrebande à 80 % (alcool 11, médicaments 18), arrivage 10/jour ; pêche et contrebande s'arrêtent si un PJ reprend l'étal (`etal_repris`). Migration `20261106172000_poissonniere_novomirsk` **appliquée** (registre `poissonniere_novomirsk_20261106172000`, version `20261106170609`), indépendante de l'écran ; banc annulé `outils/bancs/banc-poissonniere-novomirsk.sql` vert avant application (prix, quota partiel puis épuisé, rejeu sans double achat, contrebande, arrivage, caisse +36, débit exact, refus hors de l'étal). Écran : bâtiment `poissonniere-novomirsk`, zone V16 raccordée, module `plateau-poissonniere.js`, scènes PNJ régénérées ; test `test-poissonniere-novomirsk.mjs` 4/4. **À constater en jeu** : à Novomirsk vue 16, entrer chez la marchande, acheter du poisson jusqu'à épuisement (13e refusé avec la phrase du mari), écouter et lancer une rumeur, acheter de la contrebande.
+
 - **Décision de Fred (06/11, soir) : mobile après Sovarka, mais sans tarder** — au moins 3 testeurs n'ont pas d'ordinateur. Audit de Codex : `outils/audits/AUDIT-FAISABILITE-MOBILE-HUMAN-GAMBIT.md` (branche `codex/audit-mobile-20261106`). Proposition de Claude pour ne pas attendre : Codex prend dès maintenant les lots bloquants L0 à L3 de l'audit (plateau replié en tiroirs, bandeau en menu tactile, rues et pièces au doigt, fenêtres et clavier), en propriétaire unique de `style.css`, `rue-centrale.css` et de la coque de `plateau.html` ; Claude poursuit le raccordement de Sovarka (données, serveur, fenêtres propres) sans toucher à ces fichiers communs, hormis l'ajout d'une ligne de script. Forum (L6) ensuite. **Confirmé par Fred** (06/11) : Codex, sous-utilisé, peut prendre des chantiers longs.
 
 - **Sovarka : droits d'exploiter, attribution municipale, immeubles collectifs (Claude, 06/11, décisions de Fred)** — branche `claude/sovarka-droits-exploiter-20261106`, PR #521. Pas de propriété privée en Sovarka : demande de commerce à la mairie (1 PA), acceptation par le maire, sinon l'adjoint, sinon le ministre de l'Économie collective (`min_fin`), avec un local libre ou en attente d'immeuble ; mail ; signature chez le notaire de Novomirsk (1 PA) ; cession entre PJ enregistrée par le notaire (1 PA + 1 PA, sans prix, la caisse suit) ; retour à l'État au décès (raccord dans `succession_ouvrir`) ou par le juge au tribunal (1 PA, sans indemnité) ; loyer 0 à plafond (≤ 100 PSK) fixé par le maire ; le 1er et le 15, la passe de minuit (`urbanisme_sovarka`) lance un immeuble collectif payé par la mairie sur un terrain à bâtir libre (mixte ou commerces seulement), livré en 7 jours. Guichet « Louer ce local » fermé en Sovarka ; terrains sans achat ni chantier privé ; notaire sans vente, murs, rachat, préemption ni transfert de compromis. Accueil du notaire : la secrétaire seule (Klara Delounova). Migrations `20261106133000_sovarka_droits_exploiter` et `20261106140000_sovarka_baux_gardes` **appliquées** (registres `sovarka_droits_exploiter_20261106133000`, `sovarka_baux_gardes_20261106140000`) ; la seconde corrige deux gardes des baux qui lisaient le référentiel par ville sans pays (le centre commercial de Novomirsk était pris pour celui de Luthécia). Banc annulé `banc-sovarka-droits-exploiter.sql` vert (dépôt, refus, acceptation, plafond, signature, guichet fermé, cession, retrait, immeuble lancé le 1er puis livré, logements mixtes, commerce PNJ, décès) ; test écran `test-sovarka-droits-exploiter.mjs`. **Valeurs provisoires à valider par Fred** : 1 000 PSK par local, 7 jours de chantier, plafonds des locaux, logements au loyer de 10 PSK (voir `GAME-DESIGN-NOVOMIRSK.md`). Effet de bord signalé : `local_vocation_commerciale` accepte désormais les terrains à bâtir, donc aussi les lots de Républia (l'ordre « Mon fonds de commerce » y existait déjà). **À constater en jeu** : à la mairie de Novomirsk, demander un commerce ; avec un ministre des Finances de Sovarka (ou un maire), l'accepter depuis « Dossiers commerciaux » ; signer chez le notaire ; créer son fonds dans le local.
@@ -173,7 +200,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 - **Exportations de Sovarka et recette des exportations de Républia (Claude, 06/11)** — branche `claude/exportations-sovarka-20261106`. Contrats de Fred : minerai et métal vers tous, pétrole vers la Républia, viande et céréales vers Al-Khalija. Volumes de Claude (`EXPORTATIONS_SOVARKA`), tâche de minuit `exportations_sovarka`. Migration `20261106103000` appliquée (registre `exportations_sovarka_20261106103000`) : réception générique `exportation_recevoir`, avec la Républia par symétrie (PSM paie et répartit, à confirmer par Fred), et caisses passées par `caisse_institution_mouvement`. **Correctif** : la recette des exportations de Républia allait dans `etat.entrepot.caisse`, champ que plus rien ne lit ; elle va maintenant à la caisse canonique. Nuit rejouée dans une transaction annulée. **Constat** : caisses canoniques de PSM et Montrouge à 2 FR, donc aucune réception en Républia pour l'instant. Les stocks de Sovarka ne sont pas réapprovisionnés. **À constater** : `exportations_recues` et `cron_journal` (`exportations_sovarka`) après la passe du 07/11.
 
-- **Exportations de Républia livrées en Sovarka (Claude, 06/11, règle de Fred)** — branche `claude/exportations-livrees-sovarka-20261106`. Starovka paie, répartit en trois, Novomirsk et Krasnov lui paient leur part (`exportation_sovarka_recevoir`, migration `20261106100000` appliquée, registre `exportations_republia_livrees_sovarka_20261106100000`). Le moteur de minuit ne prélève en Républia que la quantité acceptée ; si la réception ne peut pas être confirmée, rien ne part ce jour-là. Rejoué dans une transaction annulée : 50 alcool à 14 → 16 / 17 / 17, caisses justes, rejeu sans effet. **Point relevé, non traité** : en Républia, la caisse d'entrepôt existe en double (`batiments_etat.entrepot.caisse`, lue par la passe de minuit, et `caisses_batiments`, lue par le trading), avec des soldes qui ont divergé (PSM 10 231 contre 2). En Sovarka, seule `caisses_batiments` sert. **À constater** : `exportations_recues` après la passe du 07/11.
+- **Exportations de Républia livrées en Sovarka (Claude, 06/11, règle de Fred)** — branche `claude/exportations-livrees-sovarka-20261106`. Starovka paie, répartit en trois, Novomirsk et Krasnov lui paient leur part (`exportation_sovarka_recevoir`, migration `20261106100000` appliquée, registre `exportations_republia_livrees_sovarka_20261106100000`). Le moteur de minuit ne prélève en Républia que la quantité acceptée ; si la réception ne peut pas être confirmée, rien ne part ce jour-là. Rejoué dans une transaction annulée : 50 alcool à 14 → 16 / 17 / 17, caisses justes, rejeu sans effet. ~~Point relevé : caisse d'entrepôt en double~~ **inexact, corrigé le 07/11** : une seule caisse (`caisses_batiments`) ; le vrai défaut était l'achat d'un PJ, voir l'entrée du 07/11. **À constater** : `exportations_recues` après la passe du 07/11.
 
 - **Exportations de Républia vers Sovarka (Claude, 06/11, décision de Fred)** — branche `claude/exportations-republia-sovarka-20261106`. `EXPORTATIONS_PORT` (passe de minuit) gagne médicaments (1 ville = 100 par jour) et alcool (0,5 ville = 50 par jour) vers `soviet`. Volumes proposés par Claude. `EMBARGO_FLUX_CONNUS` (plateau-gouvernement.js) suit. **À constater** : `port.exportations.medicaments` et `.alcool` dans l'état du port de PSM après la passe du 07/11. Exportations propres à Sovarka : encore à décider.
 
@@ -354,3 +381,243 @@ archive ZIP vérifiée (28 fichiers + manifeste), liens et filtre Vercel documen
 validés. Création de PR refusée : GraphQL `Forbidden` ; rapport consultable sur la
 branche poussée, aucune PR fusionnée ni commande de déploiement. L'audit est terminé ;
 le développement mobile n'a pas commencé et attend une mission distincte.
+
+### Mobile L0–L3 puis L6 — Codex, 06/11/2026, EN COURS
+
+Fred autorise le développement, une PR par lot puis forum L6. Codex seul propriétaire
+de `style.css`, `rue-centrale.css`, coque `plateau.html` ; Claude continue Sovarka.
+Branche L0 `codex/mobile-l0-l3-20261106`, base `728010c8`.
+Contrat : `outils/audits/MOBILE-LOTS-L0-L3-RECETTE.md`. Pas de mécanique bis,
+pas de compte ou transaction réelle ; bureau 1440 px à comparer à chaque lot.
+
+Mobile L1 : branche `codex/mobile-l1-coque-20261106`, dépend de L0. Coque responsive,
+6/6 tests Chromium dont bureau 1440 pixel identique à `728010c8`. Pas de changement
+métier ou Supabase. L2/L3 puis L6 suivent dans des branches distinctes.
+
+Mobile L2 : `codex/mobile-l2-navigation-20261106`, dépend de L1. Géométrie des rues
+et tables de destinations inchangées ; liste tactile des zones actives et clavier
+réutilisent leur clic existant. Onglets/actions défilants. Banc coque 8/8, dont
+bureau 1440 identique. Création de PR L0 tentée : GraphQL Forbidden ; mêmes accès
+pour les autres lots, branches distinctes poussées pour intégration sans bloc global.
+
+Mobile L3 : `codex/mobile-l3-fenetres-20261106`, dépend de L2. Hauteur visualViewport,
+focus dans les fenêtres, fermeture par leur bouton existant, champs >=16 px et chat
+contenu en paysage. 10/10 tests de coque ; bureau 1440 toujours pixel identique.
+Pas de test sur vrai clavier iOS ni compte authentifié. L6 démarre séparément.
+
+Mobile L6 : branche `codex/mobile-l6-forum-20261106`, dépend de L3. Contrôleur de
+composition existant étendu aux Pointer Events ; mêmes calculs, format des posts et
+permissions. 14/14 cas mobiles locaux, souris et annulation incluses ; forum et
+plateau bureau 1440 identiques. Les corrections des fixtures L1/L2 sont propagées
+avant le contrôle final. Aucun compte ni message réel publié.
+
+Mobile L1 : conserver le préfixe historique de version CSS et ajouter le suffixe mobile ;
+le banc de lisibilité exige ce préfixe. Cache effectivement majoré, test conservé. Témoin bureau embarqué et vérifié SHA-256
+pour les clones CI superficiels (aucun fetch ni historique complet nécessaire).
+
+Mobile L2 : fixture DOM des rues complétée avec setAttribute/getAttribute ; assertions
+de destinations, quatre vues PSM et positions conservées sans assouplissement.
+
+Mobile L3 : correctifs des bancs L1/L2 intégrés ; aucun test de navigation supprimé.
+
+### Suite mobile L5 — Codex, 06/11/2026, EN COURS
+
+Branche `codex/mobile-l5-transactions-20261106`, partie de L3 `9f8e8912` (pas encore
+fusionnée dans le main récupéré), réconciliée avec `d57e77e0`. PR #532–536 et leurs
+cinq branches restent à Claude. REST tenté : GET pulls/535 également Forbidden dans
+cette session ; le push Git fonctionne. L5 : fiche/inventaire/tableaux, seul changement
+ciblé de `plateau-personnage.js` = classes de présentation, aucune valeur ou ordre changé.
+Ancien Helvetia : PA locaux et absence de clé dans le wrapper constatés ; pas de
+refonte ni migration dans le lot visuel, protection financière complète non certifiée.
+Pour tester : ouvrir fiche/inventaire long, banque et tableaux à 375 px ; mêmes valeurs
+et actions qu'au bureau. Tests en cours, ne pas fusionner avant leurs résultats.
+
+L5 : bancs ciblés réussis (voir journal local hg-suite-l5), comparaison bureau 1440
+conservée ; aucun calcul ni action financière changé. PR REST ouverte au premier
+push si l'accès l'autorise. Le lot L8 suit sur une branche propre, sans modifier
+les cinq branches que Claude intègre.
+
+### Mobile L8 — Codex, 06/11/2026
+
+Branche `codex/mobile-l8-reprise-20261106`, dépend provisoirement de L5/L3, pas de
+modification des branches #532–536. Réutilise loadCharacter ; expose sa promesse,
+garde génération/UID contre les réponses tardives. Reprise sans repeindre le cache
+ni fermer une vue si la position est inchangée ; rendu différé protégé contre
+un autre personnage ou déplacement (banc dédié). En mobile, retour visible/réseau
+et signal d'un autre onglet demandent une lecture ; premier ordre suspendu, jamais
+rejoué automatiquement. Aucun polling, aucun calendrier serveur changé. Bancs de
+chargement/sauvegarde et test offline Chromium exécutés ; vrais appareils et deux
+comptes/appareils restent non testés. REST POST pulls refusé (Forbidden) dans cette
+session, malgré son fonctionnement chez Claude. Les branches sont sauvegardées.
+
+### Mobile L4 — Codex, 06/11/2026
+
+Branche `codex/mobile-l4-creation-20261106`, temporairement dépendante de L8/L5/L3.
+Création en une colonne sur petit écran, boutons +/-44 px et champs16 px, sélecteur
+langue sans recouvrement. `creation.js` et ses règles inchangés : explications « En
+jeu : » conservées. Vrais rendus locaux dans fr/en/es/zh-TW/ru/ko, sans authentifier
+ou créer de personnage ; plus/moins réversible vérifié, bureau1440 conservé.
+Pour tester : connexion, huit étapes et choix des caractéristiques à375px, changer
+la langue en conservant les choix. Vrai clavier iOS et fin de création non certifiés.
+
+### Mobile L7 — Codex, 06/11/2026
+
+Branche `codex/mobile-l7-institutions-20261106`, dans la suite temporaire L3/L5/L8/L4.
+Les grilles militaires se replient aussi jusqu'à1023px, cases à cocher tactiles et
+rapports lisibles. Ajout ciblé de classes de présentation dans ouvrirPanneauCombat
+(`plateau-politique.js`) et ouvrirTableauOrganisations (`plateau-organisations-quetes.js`),
+sans changer conditions, ordres, permissions ou RPC. Le vrai rendu combat est testé
+sur réponses serveur fixtures : non-chef/chef/groupe replié, aucune action exécutée.
+Bancs ciblés15/15 (inclut le banc historique commissariats), création six langues
+et bureau1440 préservés. Dernier main récupéré76f8653e ; L3 pas encore fusionné.
+
+### Mobile L9 — Codex, 06/11/2026
+
+Branche `codex/mobile-l9-chargement-20261106`, main76f8653e réconcilié sans perdre
+les WebP du Grand Hôtel de Sovarka (#537). Changements ciblés : attributs natifs
+loading=lazy/decoding=async dans renderPersonsList (`plateau-multijoueur.js`) et les
+miniatures d'inventaire (`plateau-personnage.js`). Aucun portrait/illustration remplacé.
+Test vrai renderer local :20 portraits, zéro requête panneau fermé, requêtes à son
+ouverture. Scènes de navigation jamais différées. Pas de nouveau chargeur de scripts
+ou cache hors ligne : dépendances globales non certifiées pour découpage aveugle.
+Mesure locale :65 scripts au plateau,7 316 011 octets bruts ; gzip local indicatif
+2 072 103 octets, pas trafic Vercel facturé. Recette croisée L10 suit. Pour tester :
+ouvrir Présents, puis une longue liste d'objets ; mêmes portraits, cadrages et ordres.
+
+### Mobile L10 — Codex, 06/11/2026, recette en cours
+
+Branche `codex/mobile-l10-recette-20261106`, suite L5→L8→L4→L7→L9. L3 vient d'être
+fusionné par Claude (#535, mainb2e357bf), réconciliation des nouvelles branches en cours.
+70/70 cas locaux ciblés : coque1440, création1440 + six langues, inventaire/tableaux,
+reprise offline/retour visible, combat sur verdicts fixtures, portraits différés,
+finance/navigation et trois cas Helvetia. Aucun compte réel ni migration.
+Anomalie de recette corrigée : callbacks Helvetia protégés par commercePjTransaction
+et contexte, sans deuxième moteur ni calcul financier ajouté. Les PA locaux historiques
+et le rejeu serveur après réponse perdue restent à vérifier hors du lot visuel.
+Le test historique de fiche exige désormais la garde tardive (obligatoire), avec sa
+nouvelle mutation de suppression :23 contrôles +9 contre-épreuves verts. Aucune assertion
+supprimée ou garde optionnelle. Création REST toujours bloquée : même curl public sans
+authentification renvoie403 Envoy. Donc ni PR créée ni fusion annoncée depuis cette session.
+
+Réconciliation de `codex/mobile-l9-chargement-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
+Réconciliation de `codex/mobile-l7-institutions-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
+Réconciliation de `codex/mobile-l4-creation-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
+Réconciliation de `codex/mobile-l8-reprise-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
+Réconciliation de `codex/mobile-l5-transactions-20261106` avec main `b2e357bf` après fusion #535 ;
+aucune des cinq branches initiales modifiée. Code du lot conservé, cache de rue de main
+préservé. Pour tester : mêmes parcours mobiles décrits ci-dessus ; recette réelle en attente.
+
+L5 : correction de recette réintégrée dans son lot : verrou commun Helvetia et
+contexte avant/après relecture, trois tests dédiés. Les PA historiques ne deviennent
+pas une nouvelle autorité mobile ; certification serveur Helvetia toujours réservée.
+
+L8 : le détecteur de fiche exige la nouvelle garde tardive, neuf mutations détectées,
+aucun test relâché ; correctif L5 reçu. Les branches L0–L3/L6 de Claude restent intactes.
+
+`codex/mobile-l4-creation-20261106` : correctifs des lots précédents propagés ; aucun changement des
+règles ou migrations. Les tests et la certification distante restent distincts.
+
+`codex/mobile-l7-institutions-20261106` : correctifs des lots précédents propagés ; aucun changement des
+règles ou migrations. Les tests et la certification distante restent distincts.
+
+`codex/mobile-l9-chargement-20261106` : correctifs des lots précédents propagés ; aucun changement des
+règles ou migrations. Les tests et la certification distante restent distincts.
+
+`codex/mobile-l10-recette-20261106` : correctifs des lots précédents propagés ; aucun changement des
+règles ou migrations. Les tests et la certification distante restent distincts.
+
+`codex/mobile-l4-creation-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
+aucune commande automatique rejouée, validations locales en cours.
+
+`codex/mobile-l7-institutions-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
+aucune commande automatique rejouée, validations locales en cours.
+
+`codex/mobile-l9-chargement-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
+aucune commande automatique rejouée, validations locales en cours.
+
+`codex/mobile-l10-recette-20261106` reçoit la reprise sans cache et la garde de restauration différée ;
+aucune commande automatique rejouée, validations locales en cours.
+
+Bilan mobile local : `outils/audits/MOBILE-LIVRAISON-20261106.md`. Branches L1/L2/L3
+certifiées séparément : 30/30, 32/32, 34/34 (cas mobiles + historiques). Avec L6 :
+38/38 ciblés. Contrôleur complet **195/196** : seul le rangement SQL déjà rouge de
+main reste en échec ; globaux **8/12**, même résultat sur le témoin. Aucun rouge masqué.
+Captures bureau plateau/forum : empreintes avant/après strictement identiques.
+`outils/livraison/MOBILE-PR-PAR-LOT-20261106.md` prépare cinq PR dépendantes ; API
+GraphQL refuse leur création. Aucune fusion, aucun déploiement ou test authentifié.
+Recette réelle appareils/compte isolé et CI distante restent nécessaires. L4/L5 non faits.
+Dernier main `bba6dec9` intégré (confirmation de la répartition #524), Sovarka intacte.
+Les journaux bruts restent locaux après rejet de leur publication par le contrôle
+automatique ; résultats structurés et captures de fixtures inspectées sont publiés.
+
+codex/mobile-l8-reprise-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
+
+codex/mobile-l4-creation-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
+
+codex/mobile-l7-institutions-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
+
+codex/mobile-l9-chargement-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
+
+codex/mobile-l10-recette-20261106 : main b41d387e et forum L6 reçus ; branches initiales intactes. Recette finale relancée.
+
+### Suite mobile — relais final de Codex, 6 novembre
+
+L5/L8/L4/L7/L9/L10 codés et sauvegardés sur six branches dédiées. Main `b41d387e`
+reçu, dont L6 livré par Claude ; aucune des cinq branches initiales modifiée.
+Rapport : `outils/audits/MOBILE-SUITE-L5-L8-L4-L7-L9-L10-20261106.md` ; résultats
+structurés et empreintes : `MOBILE-SUITE-RESULTATS-20261106.json` dans le même dossier.
+77 tests ciblés passent ; contrôleur complet 197/198, seul Workflow échoue aussi
+sur main. Globaux 8/12 sur branche ET main, quatre échecs hérités documentés.
+Plateau, création et forum 1440 : chaque paire PNG est strictement identique.
+
+Ordre d'intégration L5 → L8 → L4 → L7 → L9 → L10. Corps REST prêts dans
+`outils/livraison/MOBILE-SUITE-PR-20261106.json`. GET/POST REST refusés ici (403/Envoy),
+push Git fonctionnel ; aucune PR de ces six lots créée depuis cette session,
+aucune fusion ni CI distante ni livraison vérifiée. L'intégrateur peut reprendre
+ces branches sans demander à Fred de manipulations techniques.
+
+Test téléphone à la livraison : fiche/inventaire/tableaux sans paiement ; connexion
+et choix de création dans six langues en conservant « En jeu » ; consultation des
+organisations et rapports ; verrouillage puis retour réseau, premier clic suspendu
+pendant la relecture, jamais rejoué. Deux appareils, Safari et vraie authentification
+restent à tester sur compte isolé autorisé. Pas de compte réel utilisé.
+
+Réserve explicite Helvetia : verrou commun et contexte corrigés, trois tests passent ;
+calcul historique de PA local et absence d'idempotence serveur non certifiés par ce
+lot visuel. Aucune migration mobile préparée/appliquée. Aucune décision de design requise.
+Le poids des scripts n'est pas une mesure de consommation facturée. L10 réel n'est
+pas clos tant que la recette sur appareils et la livraison ne sont pas réalisées.
+
+codex/mobile-l5-transactions-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+codex/mobile-l8-reprise-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+codex/mobile-l4-creation-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+codex/mobile-l7-institutions-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+codex/mobile-l9-chargement-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+codex/mobile-l10-recette-20261106 : main e31044cf reçu (#540/#541 Sovarka), ressources et données conservées. Tests de référence sur b41d387e ; recette ciblée relancée sur l’intégration finale.
+
+Validation finale sur main `e31044cf` intégré : 80 tests ciblés + 1 test refus/délai
+authentification passent ; contrôleur complet **196/198**, dont coque mobile **21/21**.
+Workflow hérité inchangé. Nouveau défaut hérité de #541 reproduit sur main intact :
+`banc-pnj-localisation-psm.mjs` 15/16 ; les scènes générées nomment encore « Centre
+Commercial » / « Hall d’Entrée » et les anciens locaux, alors que data.js déclare
+« Galeries de Novomirsk » / « Entrée des galeries » et les quatre nouveaux libellés.
+À Claude : régénérer les scènes avec le générateur existant dans son lot Sovarka ;
+Codex n'a pas modifié ces fichiers. Contrôles globaux toujours 8/12 sur main et branche.
+Fichiers REST mis à jour ; recette authentifiée et livraison restent non certifiées.

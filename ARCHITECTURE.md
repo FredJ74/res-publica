@@ -400,3 +400,23 @@ indisponibilités). Ce n'est pas une recette de l'interface du jeu en production
 Aucun moteur métier remplacé ; aucun joueur réel utilisé. État et limites :
 `outils/audits/INTEGRATION95-ET-CAISSES300-219-20261031.md`. Le payeur est compatible :
 ne pas confondre l'empreinte de son corps et celle de sa définition complète.
+
+### Présentation mobile — L0–L3 et L6 (06/11/2026, branches non fusionnées)
+
+`plateau-mobile.js` replie les éléments existants et adapte le focus/viewport sans
+accès réseau ni mécanisme métier. Sous 1024 px, `style.css` et `rue-centrale.css`
+préservent une scène utilisable ; bureau 1440 comparé au témoin 728010c8.
+Le forum réutilise son contrôleur canvas avec Pointer Events et garde son format
+de publication. Rapport, limites de recette et branches :
+`outils/audits/MOBILE-LIVRAISON-20261106.md`. Aucun backend mobile distinct.
+
+### Adaptation mobile — suite du 6 novembre 2026, non livrée
+
+Les branches L5/L8/L4/L7/L9/L10 prolongent la coque existante, sans moteur métier
+ni migration. Les tableaux restent les tableaux d'origine ; la reprise appelle
+`loadCharacter({reprise:true})`, ne rejoue pas l'ordre initial et ignore les réponses
+d'une ancienne identité. La restauration différée vérifie son contexte avant rendu.
+Les miniatures seules utilisent le chargement différé natif ; les scènes et scripts
+restent ceux du jeu. Les preuves locales et limites (Safari, appareils réels,
+Helvetia historique, CI et livraison bloquées par l'API REST) sont consignées dans
+`outils/audits/MOBILE-SUITE-L5-L8-L4-L7-L9-L10-20261106.md`.

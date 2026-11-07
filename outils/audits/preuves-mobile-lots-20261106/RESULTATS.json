@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-06",
+  "fuseau": "Europe/Paris",
+  "code_commit": "57f019c9d461adc643dd80f142366591e0abfc3d",
+  "methode": "Chromium local, réseau distant bloqué, DOM métier fixture, aucun compte réel",
+  "journaux_bruts": "conservés localement, non publiés après contrôle automatique de publication",
+  "resultats": {
+    "L1": {
+      "tests": 30,
+      "reussis": 30,
+      "echecs": 0,
+      "sha256_journal_local": "3ac2c8c2e9734cdbf5e5decfe82dd5439b1429ccf34be584f1a43e4d9a135c3d"
+    },
+    "L2": {
+      "tests": 32,
+      "reussis": 32,
+      "echecs": 0,
+      "sha256_journal_local": "ac8581e97b687a8aa055af539eeff29d0c7724b7aff754a26685efd371040f18"
+    },
+    "L3": {
+      "tests": 34,
+      "reussis": 34,
+      "echecs": 0,
+      "sha256_journal_local": "e99d34bd2df3d948791114ff7926dabc788f3576efc92c63f982fe7cb91efd25"
+    },
+    "integration": {
+      "tests": 38,
+      "reussis": 38,
+      "echecs": 0,
+      "sha256_journal_local": "8f3e337e0eff48195ca85a41778b1bf576a77b098dd1f78bf1f3c55f20d1b2c3"
+    },
+    "clients": {
+      "tests": 196,
+      "reussis": 195,
+      "echecs": 1,
+      "echec_restant": "banc-workflow-rangement.cjs, SQL égaré préexistant",
+      "sha256_journal_local": "6943dcdb8470e052cd41fcc2de6d146c81ee2b6947f4ea739ce419b19c51648b"
+    },
+    "globaux": {
+      "controles": 12,
+      "reussis": 8,
+      "echecs": [
+        "Workflow",
+        "Baseline",
+        "Authority",
+        "Referential"
+      ],
+      "temoin_main_728010c8": "mêmes quatre contrôles en échec",
+      "sha256_journal_local": "9d1d33f02d655f35bf3e3d9c72c2e9fb3eb38846fce6dda918b6b894f446cd57",
+      "sha256_journal_temoin_local": "9d1d33f02d655f35bf3e3d9c72c2e9fb3eb38846fce6dda918b6b894f446cd57"
+    }
+  }
+}

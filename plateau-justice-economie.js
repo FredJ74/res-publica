@@ -4208,6 +4208,7 @@ async function confirmerOuvertureHelvetia(pa, cost) {
 }
 
 async function confirmerDepotHelvetia(pa, cost) {
+  return commercePjTransaction('helvetia-mouvement', async tx => {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('helvetia-amount-input')?.value || 0);
   const source = document.getElementById('helvetia-source-dest')?.value || 'liquide';
@@ -4217,17 +4218,21 @@ async function confirmerDepotHelvetia(pa, cost) {
   const resultat = (typeof sbDeposerHelvetia === 'function')
     ? await sbDeposerHelvetia(state.char.name, montant, source).catch(() => null)
     : null;
-  if (!resultat) { showToast('Dépôt refusé', 'Fonds insuffisants sur la source choisie.', false); return; }
+  if (!commercePjTransactionActive(tx)) return;
+  if (!resultat) { showToast('Dépôt non confirmé', 'Consultez le compte avant toute nouvelle tentative.', false); return; }
   if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
 
   await rafraichirRuntimeHelvetia();
+  if (!commercePjTransactionActive(tx)) return;
   showToast('Dépôt effectué', montant.toLocaleString('fr-FR') + ' ' + cur + ' déposés chez Helvetia (' + (source === 'liquide' ? 'liquide' : 'Cpte National') + ').', true, true);
   addJournalEntry('Dépôt Helvetia : ' + montant.toLocaleString('fr-FR') + ' ' + cur + '.', '');
   updateUI();
   ouvrirGestionHelvetia(pa, cost);
+  });
 }
 
 async function confirmerRetraitHelvetia(pa, cost) {
+  return commercePjTransaction('helvetia-mouvement', async tx => {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('helvetia-amount-input')?.value || 0);
   const destination = document.getElementById('helvetia-source-dest')?.value || 'liquide';
@@ -4243,14 +4248,17 @@ async function confirmerRetraitHelvetia(pa, cost) {
   const resultat = (typeof sbRetirerHelvetia === 'function')
     ? await sbRetirerHelvetia(state.char.name, montant, destination).catch(() => null)
     : null;
-  if (!resultat) { showToast('Retrait refusé', 'Le compte Helvetia doit conserver au moins 10 000 ' + cur + '.', false); return; }
+  if (!commercePjTransactionActive(tx)) return;
+  if (!resultat) { showToast('Retrait non confirmé', 'Consultez le compte avant toute nouvelle tentative.', false); return; }
   if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
 
   await rafraichirRuntimeHelvetia();
+  if (!commercePjTransactionActive(tx)) return;
   showToast('Retrait effectué', montant.toLocaleString('fr-FR') + ' ' + cur + ' retirés (' + (destination === 'liquide' ? 'en liquide' : 'sur le Cpte National') + ').', true, true);
   addJournalEntry('Retrait Helvetia : ' + montant.toLocaleString('fr-FR') + ' ' + cur + '.', '');
   updateUI();
   ouvrirGestionHelvetia(pa, cost);
+  });
 }
 
 async function confirmerFermerCompteHelvetia(pa, cost) {
@@ -5969,9 +5977,16 @@ async function doProduireUsine(produitId) {
   const matiereCfg = RESSOURCES_ECONOMIE[c.matiere];
   const produitCfg = RESSOURCES_ECONOMIE[produitId];
 
+  // Salaire par pays (06/11/2026) : lu sur le serveur (salaires_production_pays), qui l'applique a
+  // la production ; sans ligne pour ce pays, celui du gabarit.
+  let salairePA = c.salairePA;
+  try {
+    const ls = await sbGet('salaires_production_pays', 'pays=eq.' + encodeURIComponent(state.country || 'republic') + '&produit=eq.' + encodeURIComponent(produitId));
+    if (ls?.[0]?.salaire_pa != null) salairePA = Number(ls[0].salaire_pa);
+  } catch (_) {}
   document.getElementById('postes-modal-title').textContent = 'Produire — ' + produitCfg.label;
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">' + PA_PRODUCTION_USINE + ' PA consomme ' + MATIERE_PAR_PA_USINE + ' ' + matiereCfg.label + ' du stock de l\'usine et produit ' + PRODUIT_PAR_PA_USINE + ' ' + produitCfg.label + '. Salaire fixe : ' + c.salairePA + ' ' + cur + '.</div>';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">' + PA_PRODUCTION_USINE + ' PA consomme ' + MATIERE_PAR_PA_USINE + ' ' + matiereCfg.label + ' du stock de l\'usine et produit ' + PRODUIT_PAR_PA_USINE + ' ' + produitCfg.label + '. Salaire fixe : ' + salairePA + ' ' + cur + '.</div>';
   html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem;font-size:.85rem;color:#8a8060">Stock de ' + matiereCfg.label + ' : ' + stockMatiereActuel + ' · Stock local de ' + produitCfg.label + ' : ' + stockActuel + '/' + PLAFOND_VENTE_DIRECTE_USINE + ' · Caisse de l\'usine : ' + Math.round(caisse) + ' ' + cur + '</div>';
   html += '<button onclick="confirmerProductionUsine(\'' + produitId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Produire (' + PA_PRODUCTION_USINE + ' PA)</button>';
   html += '</div>';

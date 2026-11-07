@@ -1338,7 +1338,7 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-16': {
       image: 'images/rue-marche-novomirsk.webp',
       zones: [
-        { xPct: [20, 45],  yPct: [52, 95], nom: 'Marchande de poissons', type: 'a-venir' },
+        { xPct: [20, 45],  yPct: [52, 95], nom: 'Marchande de poissons', type: 'batiment', buildingId: 'poissonniere-novomirsk' },
         { xPct: [60, 98],  yPct: [32, 74], nom: 'Marché de Novomirsk', type: 'batiment', buildingId: 'marche' }
       ],
       liens: { arriere: 'novomirsk-vue-14', toutDroit: 'novomirsk-vue-17' },
@@ -1360,8 +1360,8 @@ const RUE_CENTRALE_NOEUDS = {
     'novomirsk-vue-18': {
       image: 'images/rue-usine-pharma-musee-novomirsk.webp',
       zones: [
-        { xPct: [0, 41],   yPct: [6, 74], nom: 'Usine pharmaceutique Pharmanov', type: 'a-venir' },
-        { xPct: [64, 97],  yPct: [0, 72], nom: 'Musée de la République de Sovarka', type: 'a-venir' }
+        { xPct: [0, 41],   yPct: [6, 74], nom: 'Usine pharmaceutique Pharmanov', type: 'batiment', buildingId: 'usine-pharmaceutique-luthecia' },
+        { xPct: [64, 97],  yPct: [0, 72], nom: 'Musée de la République de Sovarka', type: 'batiment', buildingId: 'musee-national-republia' }
       ],
       liens: { arriere: 'novomirsk-vue-17', toutDroit: 'novomirsk-vue-7' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
@@ -1684,6 +1684,9 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   zonesAffichees.forEach((z, i) => {
     const div = document.createElement('div');
     div.className = 'rc-zone';
+    div.setAttribute('aria-label', z.nom);
+    div.setAttribute('role', 'button');
+    div.tabIndex = 0;
     div.style.left = z.xPct[0] + '%';
     div.style.width = (z.xPct[1] - z.xPct[0]) + '%';
     if (z.yPct) {

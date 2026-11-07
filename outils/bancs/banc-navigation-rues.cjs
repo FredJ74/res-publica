@@ -1,6 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
 const racine=path.resolve(__dirname,'../..'),source=fs.readFileSync(path.join(racine,'plateau-rue-centrale.js'),'utf8');
-class Element{constructor(){this.innerHTML='';this.style={};this.enfants=[];this.events={};this.classList={add(){},remove(){}};}appendChild(n){this.enfants.push(n);}addEventListener(n,f){this.events[n]=f;}}
+class Element{constructor(){this.innerHTML='';this.attributes={};this.style={};this.enfants=[];this.events={};this.classList={add(){},remove(){}};}setAttribute(k,v){this.attributes[k]=String(v);}getAttribute(k){return this.attributes[k]??null;}appendChild(n){this.enfants.push(n);}addEventListener(n,f){this.events[n]=f;}}
 function jeu(ville='capitale'){
  const elements=new Map(['rue-centrale-conteneur','rc-scene','rc-image','rc-overlay','rc-texte'].map(k=>[k,new Element()]));
  const c=vm.createContext({state:{char:{name:'Alice'},country:'republic',currentCity:ville},uid:'u',session:'s',console,timers:[],document:{getElementById:id=>elements.get(id)||null,createElement:()=>new Element()},localStorage:{setItem(){},getItem(){return null;}}});
