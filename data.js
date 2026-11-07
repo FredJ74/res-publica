@@ -1839,6 +1839,12 @@ const WORLD = {
             },
             restaurant: {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Grand_Hotel_restaurant.webp',
+              // Diner d'affaires a 100 PSK (Fred, 07/11/2026), servi par le contrat serveur commerce_v1
+              // (diner_commerce_lieu_interne) avec les menus russes du restaurant.
+              excludeOrders: ['diner_affaires'],
+              orders: [
+                {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:100, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 vin du restaurant. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si le restaurant n\'a pas de quoi servir.'}
+              ],
               persons: [
                 {name: 'Pavel Plateaukine (PNJ)', role: 'Serveur', rel: 'neutral', job: 'serveur'}
               ]
