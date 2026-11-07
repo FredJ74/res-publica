@@ -2569,23 +2569,23 @@ function renderMailInbox() {
     ${mailRubrique === 'envoyes' ? `
     <div>
       <div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;padding:.4rem 0;border-bottom:1px solid #2a2010;margin-bottom:.4rem">
-        MESSAGES ENVOYÉS (${sent.length})
+        ${rpForumLibelle('sentMessagesTitle','Messages envoyés').toLocaleUpperCase()} (${sent.length})
       </div>
       ${sent.length === 0
-        ? `<div class="forum-empty">Aucun message envoyé.</div>`
+        ? `<div class="forum-empty">${rpForumLibelle('noSentMail','Aucun message envoyé.')}</div>`
         : sent.map(m => `
           <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer">
             <div style="display:flex;justify-content:space-between">
               <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Envoyé en tant qu\'organisation"></i> ' : ''}${escapeHtmlText(m.subject)}</div>
               <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
             </div>
-            <div style="font-size:.72rem;color:#6a5a30">À : ${escapeHtmlText(m.to)}</div>
+            <div style="font-size:.72rem;color:#6a5a30">${rpForumLibelle('toLabel','À :')} ${escapeHtmlText(m.to)}</div>
           </div>`).join('')}
     </div>
     ` : mailRubrique === 'archives' ? `
     <div style="margin-top:.8rem">
       <div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#6a5a30;padding:.4rem 0;border-bottom:1px solid #2a2010;margin-bottom:.4rem">
-        <i class="ti ti-archive"></i> ARCHIVES (${archives.length})
+        <i class="ti ti-archive"></i> ${rpForumLibelle('archivesTitle','Archives').toLocaleUpperCase()} (${archives.length})
       </div>
       ${archives.length ? archives.map(m => `
         <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;opacity:.75">
@@ -2593,16 +2593,16 @@ function renderMailInbox() {
             <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Organisation"></i> ' : ''}${escapeHtmlText(m.subject)}</div>
             <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
           </div>
-          <div style="font-size:.72rem;color:#6a5a30">${(m.from === myName || m.fromReal === myName) ? 'À : ' + escapeHtmlText(m.to) : 'De : ' + escapeHtmlText(m.from)}</div>
-        </div>`).join('') : '<div class="forum-empty">Aucun message archivé.</div>'}
+          <div style="font-size:.72rem;color:#6a5a30">${(m.from === myName || m.fromReal === myName) ? rpForumLibelle('toLabel','À :') + ' ' + escapeHtmlText(m.to) : rpForumLibelle('fromLabel','De :') + ' ' + escapeHtmlText(m.from)}</div>
+        </div>`).join('') : '<div class="forum-empty">' + rpForumLibelle('noArchivedMail','Aucun message archivé.') + '</div>'}
     </div>
     ` : `
     <div style="margin-bottom:.8rem">
       <div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;padding:.4rem 0;border-bottom:1px solid #2a2010;margin-bottom:.4rem">
-        MESSAGES REÇUS (${received.length})
+        ${rpForumLibelle('receivedMessagesTitle','Messages reçus').toLocaleUpperCase()} (${received.length})
       </div>
       ${received.length === 0
-        ? `<div class="forum-empty">Aucun message reçu.</div>`
+        ? `<div class="forum-empty">${rpForumLibelle('noReceivedMail','Aucun message reçu.')}</div>`
         : received.map(m => `
           <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;background:${m.read?'transparent':'rgba(201,168,76,0.05)'}">
             <div style="display:flex;justify-content:space-between;align-items:center">
@@ -2611,7 +2611,7 @@ function renderMailInbox() {
               </div>
               <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
             </div>
-            <div style="font-size:.72rem;color:#6a5a30">De : ${escapeHtmlText(m.from)}${m.fromIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
+            <div style="font-size:.72rem;color:#6a5a30">${rpForumLibelle('fromLabel','De :')} ${escapeHtmlText(m.from)}${m.fromIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
           </div>`).join('')}
     </div>
     `}
@@ -2937,7 +2937,7 @@ function renderMailRead() {
   return `
     <div class="forum-header-bar">
       <button class="forum-back-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">
-        <i class="ti ti-arrow-left"></i> Retour
+        <i class="ti ti-arrow-left"></i> ${rpForumLibelle('back','Retour')}
       </button>
       <div class="forum-title-main" style="flex:1">${escapeHtmlText(mail.subject)}</div>
     </div>
@@ -2945,8 +2945,8 @@ function renderMailRead() {
       <div style="display:flex;align-items:center;gap:.6rem;font-size:.72rem;color:#6a5a30;margin-bottom:.8rem;padding:.5rem;border:1px solid #1a1810">
         ${typeof getAvatarHtmlPost === 'function' ? getAvatarHtmlPost(mail.fromIsOrg, mail.fromOrgIcon, mail.from, 28) : ''}
         <div>
-          De : <strong style="color:#c0b090">${escapeHtmlText(mail.from)}</strong>${mail.fromIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}
-          → À : <strong style="color:#c0b090">${escapeHtmlText(mail.to)}</strong>
+          ${rpForumLibelle('fromLabel','De :')} <strong style="color:#c0b090">${escapeHtmlText(mail.from)}</strong>${mail.fromIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}
+          → ${rpForumLibelle('toLabel','À :')} <strong style="color:#c0b090">${escapeHtmlText(mail.to)}</strong>
           · ${formatDateAffichage(mail.time)}
         </div>
       </div>
@@ -2957,24 +2957,24 @@ function renderMailRead() {
         ${mail.to === myName && !mail.fromIsOrg ? `
           <button data-mail-from="${escapeHtmlText(mail.from)}" data-mail-subject="${escapeHtmlText(mail.subject)}"
             onclick="replyToMail(this.dataset.mailFrom, this.dataset.mailSubject)" class="forum-new-btn" style="font-size:.72rem">
-            <i class="ti ti-corner-down-left"></i> Répondre
+            <i class="ti ti-corner-down-left"></i> ${rpForumLibelle('reply','Répondre')}
           </button>` : ''}
         ${mail.archived ? `
           <button onclick="toggleArchiveMail('${mail.id}', false)"
             style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#C9A84C;cursor:pointer">
-            <i class="ti ti-archive-off"></i> Désarchiver
+            <i class="ti ti-archive-off"></i> ${rpForumLibelle('unarchive','Désarchiver')}
           </button>` : `
           <button onclick="toggleArchiveMail('${mail.id}', true)"
             style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#8a8060;cursor:pointer">
-            <i class="ti ti-archive"></i> Archiver (conserver indéfiniment)
+            <i class="ti ti-archive"></i> ${rpForumLibelle('archiveKeep','Archiver (conserver indéfiniment)')}
           </button>`}
         <button onclick="deleteMail('${mail.id}');mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()" 
           style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">
-          <i class="ti ti-trash"></i> Supprimer
+          <i class="ti ti-trash"></i> ${rpForumLibelle('delete','Supprimer')}
         </button>
       </div>
-      ${mail.to === myName && mail.fromIsOrg ? '<div style="margin-top:.5rem;font-size:.72rem;color:#9a8a68;font-style:italic">La réponse directe à une organisation n\'est pas encore disponible — aucune boîte de messagerie propre aux organisations n\'existe à ce jour.</div>' : ''}
-      ${!mail.archived ? '<div style="margin-top:.5rem;font-size:.72rem;color:#9a8a68;font-style:italic">Ce message sera supprimé automatiquement 14 jours après réception, sauf archivage.</div>' : ''}
+      ${mail.to === myName && mail.fromIsOrg ? '<div style="margin-top:.5rem;font-size:.72rem;color:#9a8a68;font-style:italic">' + rpForumLibelle('orgReplyUnavailable',"La réponse directe à une organisation n'est pas encore disponible — aucune boîte de messagerie propre aux organisations n'existe à ce jour.") + '</div>' : ''}
+      ${!mail.archived ? '<div style="margin-top:.5rem;font-size:.72rem;color:#9a8a68;font-style:italic">' + rpForumLibelle('autoDeleteNotice','Ce message sera supprimé automatiquement 14 jours après réception, sauf archivage.') + '</div>' : ''}
     </div>
   `;
 }
