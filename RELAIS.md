@@ -636,7 +636,7 @@ Commercial » / « Hall d’Entrée » et les anciens locaux, alors que data.js 
 Codex n'a pas modifié ces fichiers. Contrôles globaux toujours 8/12 sur main et branche.
 Fichiers REST mis à jour ; recette authentifiée et livraison restent non certifiées.
 
-### Caisses d'entrepôts — complément Codex, 07/11, NON APPLIQUÉ
+### Caisses d'entrepôts — complément Codex, 07/11, APPLIQUÉ par Claude le 07/11 (registre `effort_ravitaillement_caisse_canonique_20261107081631`, banc à blanc sur la production conforme)
 
 Branche `codex/caisses-entrepots-uniques-20261106`, base réconciliée main 747153e4.
 Relecture AGENTS/RELAIS/WORKFLOW et revue des lecteurs/écrivains : voir

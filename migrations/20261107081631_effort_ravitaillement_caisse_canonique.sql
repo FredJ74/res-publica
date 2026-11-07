@@ -1,4 +1,4 @@
--- Préparation NON APPLIQUÉE ; ne régularise aucun solde.
+-- Appliquée le 07/11/2026 par Claude (registre effort_ravitaillement_caisse_canonique_20261107081631) ; ne régularise aucun solde.
 -- Complément du patch d'achat déjà livré par Claude (#565), pas un second moteur.
 DO $patch$
 DECLARE d text; ancien text; nouveau text;
