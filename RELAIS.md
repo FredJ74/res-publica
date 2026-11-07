@@ -676,3 +676,6 @@ Claude. Aucune PR créée, fusion ou application Supabase par Codex. Migration m
 restant à confronter au catalogue vivant (pas d'outil Supabase exposé ici), puis à
 livrer via registre si nécessaire. Aucune décision de montant inventée ; le faux
 double solde est signalé comme caduc, dotation déjà livrée par Claude préservée.
+
+### Contrôle plan 97 — Codex, 06-07/11 : livré par #576 (Claude, 07/11)
+Ordres de Sovarka des 05-07/11 déclarés un à un hors des photographies historiques (plan 97, livraison complète, réconciliation des coûts, référence de navigation) ; empreintes inchangées ; `bancs-hors-production` de nouveau vert.
