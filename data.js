@@ -2027,7 +2027,9 @@ const WORLD = {
             bureau_maire_adjoint: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_bureau_adjoint.webp' },
             salle_elections:      { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_salle_elections.webp' },
             salle_archives:       { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_archives.webp' },
-            salle_partis:         { name: 'Salle des partis', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_salle_partis_politiques.webp' }
+            salle_partis:         { name: 'Salle des partis', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_salle_partis_politiques.webp',
+                                    // Nom et fonction donnés par Fred (07/11/2026) ; portrait tiré de l'illustration.
+                                    persons: [{name: 'Capitaine Igor Balatov (PNJ)', role: 'Chef de la cellule de validation et surveillance des partis', rel: 'neutral', job: 'responsable_election', photoUrl: 'images/Sovarka/Novomirsk/Novo_igor_balatov_portrait.webp'}] }
           },
           persons: []
         },

@@ -4767,7 +4767,9 @@ export const SCENES_PNJ = {
     "ville": "Novomirsk",
     "batiment": "Mairie de Novomirsk",
     "piece": "Salle des partis",
-    "personnes": []
+    "personnes": [
+      "Capitaine Igor Balatov"
+    ]
   },
   "[\"soviet\",\"capitale\",\"kolkhoze-spirituel\",\"grange_sainte\"]": {
     "pays": "Sovarka",
