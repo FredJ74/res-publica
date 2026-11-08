@@ -1,0 +1,43 @@
+name: I18N beta - integration current main
+on:
+  push:
+    branches:
+      - chatgpt/accueil-9-langues-20261102
+    paths:
+      - .github/workflows/i18n-beta-integration-20261108.yml
+permissions:
+  contents: write
+jobs:
+  sync-main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/accueil-9-langues-20261102
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Merge main into draft branch without touching main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          echo "LOCAL_HEAD=$(git rev-parse HEAD)"
+          echo "MAIN_HEAD=$(git rev-parse origin/main)"
+          if git merge-base --is-ancestor origin/main HEAD; then
+            echo "Branch already synchronized"
+            exit 0
+          fi
+          if ! git merge --no-edit origin/main; then
+            echo "Unresolved merge paths:"
+            git diff --name-only --diff-filter=U
+            exit 1
+          fi
+          node --check data.js
+          node --check plateau-politique.js
+          node --check i18n/plateau-init.js
+          node --check api/_traduction.js
+          git push origin HEAD:chatgpt/accueil-9-langues-20261102
+          echo "SYNC_HEAD=$(git rev-parse HEAD)"
