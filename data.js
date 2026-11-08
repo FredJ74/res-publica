@@ -1934,11 +1934,6 @@ const WORLD = {
           desc: "Longues files d'attente. Aspirine et bonne volonté.",
           persons: [{"name": "Infirmière Stoïque (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "medecin"}]
         },
-        'la-tribune': {
-          name: 'La Pravdovka',
-          desc: "L'organe de vérité du Parti, vérifié trois fois.",
-          persons: [{"name": "Rédacteur Vérité (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}, {"name": "Correspondant Parti (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
-        },
         'loge-maconnique': {
           requiresMembership: 'loge',
           name: 'Cercle des Camarades',
@@ -1957,11 +1952,6 @@ const WORLD = {
           orders: [
             {fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local de Camarade Kalachnikov. Rien de tout cela n\'est enregistré.'}
           ]
-        },
-        'marche': {
-          name: 'Marché d\'État',
-          desc: "Les rayons sont souvent vides. Olga propose parfois des produits sous le manteau.",
-          persons: [{"name": "Vendeur d'État (PNJ)", "role": "Vendeur collectif", "rel": "neutral", "job": "commercant"}, {"name": "Olga Marché Noir (PNJ)", "role": "Revendeuse discrète", "rel": "neutral", "job": "commercant"}]
         },
         'palais-presidentiel': {
           name: 'Palais du Parti',
@@ -2064,14 +2054,15 @@ const WORLD = {
           // article/etouffer exclus (chantier "lobbying presse", 4 septembre 2026) : cet organe du
           // Parti a Sovarka est distinct de La Tribune de Republia (Republic uniquement) -- ces deux
           // ordres n'ont de sens qu'aupres de cette derniere. Le reste (produire_fuite/
-          // fabriquer_scandale/interview/corrompre_journaliste) reste inchange. NB : cette entree
-          // 'la-tribune' est la version reellement active du buildingContext de Novomirsk (cle
-          // dupliquee plus haut dans ce meme buildingContext sous le nom "La Pravdovka", qui ne
-          // s'applique donc jamais -- bug preexistant hors perimetre de ce chantier, non corrige).
-          roomOverrides: { redaction: { excludeOrders: ['article', 'etouffer'] } }
+          // fabriquer_scandale/interview/corrompre_journaliste) reste inchange.
+          roomOverrides: {
+            accueil_tribune: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_presse_accueil.webp' },
+            redaction: { excludeOrders: ['article', 'etouffer'] }
+          }
         },
         'marche': {
           name: "Distribution Collective",
+          roomOverrides: { marche_ext: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_marche.webp' } },
           desc: "Files organisées par ordre alphabétique.",
           persons: [{"name": "Distributeur Équitable (PNJ)", "role": "Distributeur", "rel": "neutral", "job": "commercant"}]
         },
@@ -7013,6 +7004,7 @@ const BUILDINGS = {
     rooms: {
       salon_coiffure: {
         name: "Salon",
+        imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_salon_coiffure.webp',
         imageBg: "linear-gradient(135deg,#161219,#201a24)",
         desc: "Trois fauteuils, un grand miroir piqué et l'odeur de la laque. La radio diffuse le bulletin du Parti entre deux valses.",
         persons: [{name:'Ludmila Egorova (PNJ)', role:'Coiffeuse', rel:'neutral', job:'coiffeuse'}],
@@ -7146,6 +7138,7 @@ const BUILDINGS = {
     rooms: {
       comptoir_pharmacie: {
         name: "Comptoir",
+        imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pharmacie.webp',
         imageBg: "linear-gradient(135deg,#10161a,#172026)",
         desc: "Un long comptoir de bois verni, une balance de précision et un registre où chaque boîte vendue est consignée.",
         persons: [{name:'Valentina Pilioulkina (PNJ)', role:'Pharmacienne', rel:'neutral', job:'pharmacienne'}],
@@ -7170,6 +7163,7 @@ const BUILDINGS = {
     rooms: {
       etal_poissonniere: {
         name: "Étal",
+        imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_poissonniere.webp',
         imageBg: "linear-gradient(135deg,#0e1418,#16202a)",
         desc: "Une bâche tendue contre le vent, des caisses de poisson sur la glace et, derrière, une marchande qui voit passer toute la ville.",
         persons: [{name:'Galina Karpova (PNJ)', role:'Marchande de poissons', rel:'neutral', job:'commercant'}],
@@ -8515,6 +8509,14 @@ const ROOM_IMAGES_EMPIRE = {
       // change, la mecanique du hub partage (ordres de transport sur hall_gare) est intacte.
       'hall_gare':  'images/accueil-centre-multimodal-novomirsk.webp',
       'aeroport':   'images/centre-multinodal-sovarka.webp'
+    },
+    // Garde-fou par empire : le marche de Novomirsk ne reprend jamais le decor de Luthecia.
+    'marche': {
+      'marche_ext': 'images/Sovarka/Novomirsk/Novomirsk_marche.webp'
+    },
+    // L'agence de presse de Sovarka a son propre accueil, jamais celui de Luthecia.
+    'la-tribune': {
+      'accueil_tribune': 'images/Sovarka/Novomirsk/Novomirsk_presse_accueil.webp'
     },
     'palais-presidentiel': {
       'accueil_elysee':    'images/hall-parti-sovarka.webp',
