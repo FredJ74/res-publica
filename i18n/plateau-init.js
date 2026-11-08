@@ -21,6 +21,25 @@
       if(supported.includes(saved))locale=saved;
     } catch (_) { /* navigateur sans localStorage */ }
   }
+  // Conserver la valeur affichée avant la première traduction, PAR clé et attribut.
+  // Sans cela, changer vers une langue où une clé manque conserve la traduction
+  // de la langue précédente au lieu du texte français réellement présent.
+  // WeakMap évite de retenir les fenêtres/modales détruites après leur fermeture.
+  const originals=new WeakMap();
+  function originalFor(element,key,attribute) {
+    let entries=originals.get(element);
+    if(!entries){entries=new Map();originals.set(element,entries);}
+    const token=attribute+'|'+key;
+    if(!entries.has(token)) entries.set(token,attribute==='textContent'
+      ? {value:element.textContent,exists:true}
+      : {value:element.getAttribute(attribute),exists:element.hasAttribute(attribute)});
+    return entries.get(token);
+  }
+  function restore(element,attribute,saved) {
+    if(attribute==='textContent'){element.textContent=saved.value;return;}
+    if(saved.exists)element.setAttribute(attribute,saved.value);
+    else element.removeAttribute?.(attribute);
+  }
   // Point d'entrée générique pour les futures interfaces créées par JavaScript.
   // Le rendu initial s'en sert aussi : les écrans n'instancient pas un 2e moteur.
   function apply(root) {
@@ -32,8 +51,13 @@
       // Une clé encore absente du catalogue ne doit jamais devenir un libellé
       // technique affiché au joueur : conserver le français existant.
       if(!key) continue;
+      const saved=originalFor(element,key,'textContent');
       const translated=engine.t(key,{defaultValue:null});
-      if(typeof translated!=='string' || !translated.trim() || translated===key) continue;
+      if(typeof translated!=='string' || !translated.trim() || translated===key) {
+        restore(element,'textContent',saved);
+        element.removeAttribute?.('dir');
+        continue;
+      }
       element.textContent=element.hasAttribute('data-i18n-uppercase')
         ? translated.toLocaleUpperCase(locale) : translated;
       if(locale==='ar') element.setAttribute('dir','rtl');
@@ -45,9 +69,11 @@
     for(const element of placeholderNodes) {
       const key=element.getAttribute('data-i18n-placeholder');
       if(!key)continue;
+      const saved=originalFor(element,key,'placeholder');
       const translated=engine.t(key,{defaultValue:null});
       if(typeof translated==='string' && translated.trim() && translated!==key)
         element.setAttribute('placeholder',translated);
+      else restore(element,'placeholder',saved);
     }
     // Accessibilité : traduire l'intitulé vocal des contrôles tactiles sans
     // injecter de texte dans les boutons ni changer leur surface de clic.
@@ -56,9 +82,11 @@
     for(const element of ariaNodes) {
       const key=element.getAttribute('data-i18n-aria-label');
       if(!key)continue;
+      const saved=originalFor(element,key,'aria-label');
       const translated=engine.t(key,{defaultValue:null});
       if(typeof translated==='string' && translated.trim() && translated!==key)
         element.setAttribute('aria-label',translated);
+      else restore(element,'aria-label',saved);
     }
     // Les info-bulles de la barre supérieure doivent être traduites sans
     // remplacer le contenu des boutons (icônes, badges, compteurs).
@@ -67,10 +95,11 @@
     for(const element of titleNodes) {
       const key=element.getAttribute('data-i18n-title');
       if(!key) continue;
-      const translated=engine.t(key);
-      if(typeof translated==='string' && translated.trim() && translated!==key) {
+      const saved=originalFor(element,key,'title');
+      const translated=engine.t(key,{defaultValue:null});
+      if(typeof translated==='string' && translated.trim() && translated!==key)
         element.setAttribute('title',translated);
-      }
+      else restore(element,'title',saved);
     }
   }
   global.RPI18nPlateau=Object.freeze({apply,locale:()=>locale});
