@@ -37,7 +37,9 @@ Prévol `outils/bancs/prevol-tirages-dons-pnj.sql` : divergences de groupes/stat
 interdisent activation sans réconciliation par le socle ; aucun barème inventé.
 Banc `banc-tirages-dons-pnj.sql`, exécuteur local du même nom en .py : 93/93,
 2 courses réelles sur fixtures, rollback/rejeu et deux mutations détectées.
-Clients ciblés 49/49, bureau 1440 identique. Contrôleur complet en cours.
+SHA source testé `f3fab7c6` (plus enveloppe READ ONLY du prévol).
+Clients ciblés 49/49, bureau 1440 identique ; contrôleur complet **204/204**.
+Workflow CONFORME, Authority statique 13/13. Aucune CI distante attestée.
 Rapport `outils/audits/TIRAGES-DONS-PNJ-20261108.md`.
 Titre PR prêt : **Dons PNJ : DIS transactionnelle et jet serveur unique**.
 Description : « Termine la commande existante, formules inchangées, reçu et

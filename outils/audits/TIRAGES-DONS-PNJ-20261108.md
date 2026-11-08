@@ -2,7 +2,7 @@
 
 Branche `codex/tirages-dons-pnj-20261108`, départ main `d633524f`.
 Inventaire général indépendant : branche `codex/tirages-ecran-inventaire-20261108`,
-`outils/audits/TIRAGES-ECRAN-20261108.md` (75 appels, dont 20 décisifs à cette coupe).
+`outils/audits/TIRAGES-ECRAN-20261108.md` (75 appels, dont 19 décisifs à cette coupe).
 
 ## Correction et conservation des formules
 
@@ -77,7 +77,11 @@ nouveau message nomme une réponse de contrat non confirmée. Cache JS plateau m
 - Contre-épreuves : jet forcé à 1 et écriture DIS supprimée sont réellement
   détectés par le banc SQL. Aucune assertion désactivée.
 - Bureau : comparaison stricte 1440 du banc de certification, 1/1.
-- Contrôleur client complet et Workflow : en fin de lot.
+- Contrôleur client complet : **204/204**, dont rangement SQL.
+- Workflow : **CONFORME** ; Authority statique : **13/13 conformes**.
+- SHA de la correction testée : `f3fab7c6` ; complément de prévol en lecture
+  seule testé par le contrôleur complet avant ce commit de preuves.
+- Aucun résultat CI distant, Vercel ou Supabase revendiqué.
 
 Les migrations anciennes ne sont pas rejouées en bloc : seules les tables et
 routines nécessaires sont extraites pour la base jetable. Les autres fonctions

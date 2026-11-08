@@ -1,3 +1,5 @@
+BEGIN;
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;
 -- Prévol en lecture seule, compte agrégé uniquement ; aucun nom ou solde de PJ en sortie.
 -- À exécuter par l'intégrateur AVANT activation. Tous les compteurs doivent être 0.
 WITH profils AS (SELECT key AS job,value::numeric AS dup FROM jsonb_each_text('{"serveur":4,"hotelier":5,"barman":5,"escort":8,"commissaire":6,"policier":4,"inspecteur":5,"militaire":3,"soldat":3,"garde":3,"general":5,"journaliste":6,"redacteur":6,"medecin":4,"infirmier":3,"avocat":7,"juge":5,"banquier":7,"commercant":6,"marchande":5,"professeur":4,"syndicaliste":5,"loge":8,"venerable":8,"grand_pretre":6,"douanier":6,"docker":3,"portier":3,"secretaire":5,"lobbyiste":8,"hotesse":5,"default":4}'::jsonb)),
@@ -28,3 +30,5 @@ SELECT jsonb_build_object(
  'empreinte_dispatcher',md5(pg_get_functiondef(to_regprocedure('public.jauges_ordre_executer(text,uuid,jsonb)'))),
  'projection_employes_presente',to_regprocedure('public.employe_mes_employes()')IS NOT NULL
 );
+
+ROLLBACK;
