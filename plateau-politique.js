@@ -3991,7 +3991,12 @@ function renderRoomActions(room, buildingId, roomId) {
       typeof window.RPOrderI18n.labelHtml === 'function')
       ? window.RPOrderI18n.labelHtml(o,window.i18next,window.RPPlateauI18n.language())
       : o.label;
-    const libelleMarque = '<span data-rp-order-index="' + orderIndex + '">' + libelleAffiche + '</span>';
+    // Les menus peuvent conserver ce HTML et le monter après un autre catalogue.
+    // Le descripteur de présentation voyage donc avec le noeud différé.
+    const descriptor = ' data-rp-order-fn="' + encodeURIComponent(o.fn || '') +
+      '" data-rp-order-source="' + encodeURIComponent(o.label || '') +
+      '" data-rp-order-key="' + encodeURIComponent(o.i18nKey || '') + '"';
+    const libelleMarque = '<span data-rp-order-index="' + orderIndex + '"' + descriptor + '>' + libelleAffiche + '</span>';
     if (achatTerrainBloqueParIntrus && ['acheter_terrain','signer_compromis'].includes(o.fn)) {
       return '<button type="button" class="action-btn legal blocked" disabled aria-disabled="true" title="' +
         messageAchatTerrainIntrus + '"><i class="ti ' + o.icon + '"></i> ' + libelleMarque + '</button>';
