@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/novomirsk-marche-presse-20261108.yml'
+      - 'data.js'
+      - 'plateau.html'
 permissions:
   contents: read
 jobs:
