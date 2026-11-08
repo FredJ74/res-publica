@@ -25,6 +25,60 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Certification mobile — Codex, 08/11/2026
+
+**Livré : PR #633 ouverte et fusionnée par Claude le 08/11** (CI 3/3 verte sur `300c1eb1` : bancs hors production, payload, parcours immobilier ; diff relu, aucun conflit avec main). Reste à faire par Fred et les testeurs : la recette sur appareils réels (`outils/audits/RECETTE-PHYSIQUE-MOBILE-20261108.md`).
+
+Branche `codex/mobile-certification-20261108`, issue de main `520630bd` ; correction
+Sovarka existante `bc74ecd6` reprise sans moteur supplémentaire. Trois défauts
+reproduits puis corrigés dans le socle mobile : nouvelle suspension pendant une
+lecture (réponse tardive ne débloque plus l’ordre), et bouton de reconnexion
+inaccessible sous clavier réduit (CSS uniquement), et accès au vrai formulaire de
+reconnexion bloqué par la garde métier (seul ce formulaire est autorisé ; aucun
+ordre ne passe sans relecture). Versions CSS/JS majorées.
+Aucune règle, montant, ordre, migration ou donnée réelle modifié. #377 et moteurs
+Sovarka de Claude intacts ; seule fixture de lecture du tribunal actualisée.
+Rapport `outils/audits/CERTIFICATION-MOBILE-20261108.md`, protocole court iPhone /
+Android dans `RECETTE-PHYSIQUE-MOBILE-20261108.md`. Tests ciblés et contre-épreuves
+22/22 (certification et Sovarka). Première passe complète 202/203 : seule la
+comparaison du nouveau témoin bureau échouait ; chargement CSS témoin au premier
+rendu corrigé, sans masque ni tolérance. Le lancement Chrome est mutualisé pour
+la portabilité GitHub Actions. Contrôleur complet final **203/203**, nouveau banc **17/17** (quatre
+contre-épreuves), pilote de recette **119/119** sur fixtures, syntaxe API **28/28**.
+SHA testé : `65ecf3f445c339f8a832f55005aa1f6f1073a536`. Cinq paires PNG bureau 1440
+strictement identiques ; preuves `CERTIFICATION-MOBILE-PREUVES-20261108.json`.
+Globaux 10/12 : Workflow/Authority conformes, Baseline/Referential hérités documentés. Titre PR prêt : **Mobile : fiabiliser la reprise et certifier les parcours critiques**,
+base main ; description dans le rapport. GET/POST GitHub API et Vercel
+refusés par le proxy : pas de CI, fusion ou déploiement attesté. Le journal réel
+est fermé dans les deux profils sans changer URL, personnage, position ou cache.
+
+
+### Mobile Sovarka — Codex, 07/11/2026
+
+**Repris dans `codex/mobile-certification-20261108` (rubrique ci-dessus). Ne pas intégrer deux fois ce lot.**
+
+Branche poussée `codex/mobile-sovarka-20261107`, correction `3d22d795`, dernier
+main `17b7d13d` intégré par `c4072089` (PR #618 de Claude conservée, y compris
+le cache data.js). Seuls styles communs et cache CSS modifiés dans le jeu ;
+aucun JS métier, SQL, montant PSK, ordre ou texte RP changé.
+Rapport/inventaire : `outils/audits/MOBILE-SOVARKA-20261107.md`.
+**201/201 bancs clients**, Chromium dédié 5/5 (16 fenêtres à 360/390/768, pixels
+1440 identiques au témoin et contre-épreuve), socle mobile/reprise 27/27.
+Globaux, unique passe : **10/12**, Workflow/Authority conformes ; Baseline et
+Referential hérités, causes exactes dans le rapport, aucune référence altérée.
+Après intégration main : navigation/PNJ 26/26 ; Chromium/reprise 11/11 sur le SHA intégré `c4072089`.
+
+**PR REST refusée (Forbidden)** : Claude peut ouvrir vers `main` depuis cette
+branche. Titre : **Mobile : formulaires Sovarka lisibles sans changer le bureau**.
+Description prête : « Sélecteurs communs élargis et champs contenus sous 1024 px.
+Aucun moteur parallèle ni modification économique. Rendus réels isolés, 16 fenêtres,
+360/390/768 et comparaison pixels bureau 1440. Rapport MOBILE-SOVARKA-20261107.md. »
+Contrôles attendus : clients/Chromium, syntaxe, Workflow et garde Vercel.
+Pour Fred après intégration : sur téléphone, ouvrir les dossiers commerciaux,
+une demande de location, la création de parti, garage et réunions ; les sélecteurs
+utilisent la largeur disponible. Aucun paiement nécessaire pour ces consultations.
+Pas de recette connectée ni de déploiement attesté, aucune écriture de production.
+
 ### Novomirsk : raccordement vue par vue — Claude, 04/11/2026 (à reprendre)
 
 Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêta : V1 Librairie du Peuple, V2 La Mère Volga et Musée municipal, V6 Palais des Ambassades (ordres « Bientôt disponible »), V7 Pavillon des Ambassadeurs et Résidence impériale ; Grand Hôtel sans suites ; monnaie PSK ; navigation de rue serveur dans toute ville à rues (PR #474).
