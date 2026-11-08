@@ -246,7 +246,7 @@ test('les textes et titres pilotés par les mécanismes métier ne portent pas d
  for(const id of dynamicIds){
   const tag=html.match(new RegExp('<[^>]*\\bid="'+id+'"[^>]*>'));
   assert.ok(tag,'noeud dynamique absent : '+id);
-  assert.doesNotMatch(tag[0],/\\bdata-i18n(?:-uppercase)?(?:=|\\s|>)/,
+  assert.doesNotMatch(tag[0],/\bdata-i18n(?:-uppercase)?(?:=|\s|>)/,
     'un changement de langue écraserait le contenu métier de '+id);
  }
  // Les libellés purement décoratifs restent traduits via i18next.
