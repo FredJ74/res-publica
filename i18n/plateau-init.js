@@ -77,7 +77,12 @@
   // Un changement de langue dans l'interface, y compris depuis un autre onglet,
   // doit mettre à jour le texte statique et les menus dynamiques ensemble.
   if(typeof engine.on==='function')engine.on('languageChanged',function(next) {
-    locale=supported.includes(next)?next:'fr';
+    if(!supported.includes(next)) {
+      // Même un changement programmatique ne peut contourner l'ouverture fermée.
+      if(typeof engine.changeLanguage==='function' && engine.language!=='fr')engine.changeLanguage('fr');
+      return;
+    }
+    locale=next;
     global.document.documentElement.lang=locale;
     apply(global.document);
   });
