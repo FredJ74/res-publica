@@ -418,6 +418,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'sovarka_lois_examen')        { ouvrirSovarkaLoisExamen(); return; }
   if (fn === 'sovarka_autocritique')       { ouvrirSovarkaAutocritique(); return; }
   if (fn === 'sovarka_signalements')       { ouvrirSovarkaSignalements(); return; }
+  if (fn === 'sovarka_surveiller')          { ouvrirSovarkaSurveillance(); return; }
   if (fn === 'sovarka_seance')             { ouvrirSovarkaSeance(); return; }
   if (fn === 'sovarka_saisir_juge')        { ouvrirSovarkaSaisirJuge(); return; }
   if (fn === 'sovarka_sondages')           { ouvrirSovarkaSondages(); return; }
@@ -427,6 +428,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (state.country === 'soviet' && (fn === 'commanditer_sondage' || fn === 'commanditer_sondage_cible')) { ouvrirSovarkaSondage(); return; }
   if (state.country === 'soviet' && fn === 'fuite_info') { sovarkaFuite(); return; }
   if (fn === 'sovarka_repas_presidentiel') { ouvrirRepasPresidentiel(); return; }
+  if (fn === 'sovarka_musee_billet') { acheterBilletMuseePresidentiel(); return; }
   if (fn === 'louer_local')              { ouvrirModalLouerLocal(pa, cost); return; }
   if (fn === 'gerer_local')              { ouvrirModalGererLocal(); return; }
   // Point d'entree UNIQUE de la verticale commerce PJ (C5) : l'ecran decide

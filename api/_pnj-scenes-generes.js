@@ -4222,17 +4222,16 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-presidentiel\",\"accueil_elysee\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Palais du Parti",
-    "piece": "Hall d'honneur",
+    "batiment": "Palais présidentiel",
+    "piece": "Hall d'entrée",
     "personnes": [
-      "Anatoli Sokolov",
-      "Garde du Peuple"
+      "Konstantin Lvovitch Orlov"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-presidentiel\",\"bureau_president\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Palais du Parti",
+    "batiment": "Palais présidentiel",
     "piece": "Bureau du President",
     "personnes": [
       "Le Président",
@@ -4242,7 +4241,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-presidentiel\",\"salle_presse_elysee\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Palais du Parti",
+    "batiment": "Palais présidentiel",
     "piece": "Salle de Presse",
     "personnes": [
       "Porte-parole presidentiel"
@@ -4251,8 +4250,8 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-presidentiel\",\"salle_reception\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Palais du Parti",
-    "piece": "Salle de Reception",
+    "batiment": "Palais présidentiel",
+    "piece": "Salle de restaurant",
     "personnes": [
       "Anatoli Sokolov"
     ]
@@ -4260,8 +4259,15 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"palais-presidentiel\",\"appartements_president\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Palais du Parti",
-    "piece": "Appartements présidentiels",
+    "batiment": "Palais présidentiel",
+    "piece": "Appartements du Président",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"palais-presidentiel\",\"musee_presidentiel\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Palais présidentiel",
+    "piece": "Musée présidentiel",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"hotel-republica\",\"accueil\"]": {
