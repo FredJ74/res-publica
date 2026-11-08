@@ -1,0 +1,54 @@
+name: i18n — rapprocher la branche brouillon de main, une seule fois
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/i18n-sync-once.yml']
+permissions:
+  contents: write
+jobs:
+  synchroniser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fusionner main dans le seul brouillon et valider
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main chatgpt/accueil-9-langues-20261102
+          git switch -C chatgpt/accueil-9-langues-20261102 origin/chatgpt/accueil-9-langues-20261102
+          git grep -q 'Novomirsk_armurerie.webp' -- data.js
+          git grep -q 'novomirsk-ambassades-armurerie-webp-20261108' -- plateau.html
+          git grep -q 'formulaires-20261107-reconnexion-20261108' -- plateau.html
+          git grep -q 'La reconnexion reste dans le plateau' -- style.css
+          git merge --no-edit -X ours origin/main
+          git merge-base --is-ancestor origin/main HEAD
+          test "$(git grep -l 'sovarka_lois_examen' i18n/orders-resources.js | wc -l)" -eq 1
+          node --check data.js
+          node --check i18n/orders-resources.js
+          node --test outils/bancs/banc-i18n-etat-ordres.cjs outils/bancs/banc-i18n-catalogue-ordres.cjs outils/bancs/banc-i18n-dialogues-pnj.mjs outils/bancs/banc-i18n-plateau-init.cjs
+          git push origin HEAD:chatgpt/accueil-9-langues-20261102
+          echo "Brouillon i18n synchronisé sans fusion vers main"
+      - name: Supprimer le workflow éphémère de main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git switch -C main origin/main
+          git rm .github/workflows/i18n-sync-once.yml
+          git commit -m "Retirer le synchroniseur temporaire i18n"
+          for n in 1 2 3 4; do
+            if git push origin HEAD:main; then exit 0; fi
+            git fetch origin main
+            git rebase origin/main
+          done
+          exit 1
