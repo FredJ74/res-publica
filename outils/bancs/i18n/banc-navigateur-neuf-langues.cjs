@@ -51,6 +51,8 @@ async function run(){
   for(const language of LANGS){
    const page=await browser.newPage({viewport:{width:393,height:852}});
    await page.addInitScript(lang=>localStorage.setItem('respublica_language',lang),language);
+   // La recette simule explicitement l'ouverture i18n : sur main, ce drapeau est absent.
+   await page.addInitScript(()=>{window.RP_I18N_GAME_ENABLED=true});
    await page.route('**/*',route=>{
     const url=new URL(route.request().url());
     if(url.origin!==ORIGIN)return route.abort();
