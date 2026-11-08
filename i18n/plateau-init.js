@@ -71,6 +71,18 @@
     }
   }
   global.RPI18nPlateau=Object.freeze({apply,locale:()=>locale});
+  // Un changement de langue dans l'interface, y compris depuis un autre onglet,
+  // doit mettre à jour le texte statique et les menus dynamiques ensemble.
+  if(typeof engine.on==='function')engine.on('languageChanged',function(next) {
+    locale=supported.includes(next)?next:'fr';
+    global.document.documentElement.lang=locale;
+    apply(global.document);
+  });
+  if(typeof global.addEventListener==='function')global.addEventListener('storage',function(event) {
+    if(event.key!=='respublica_language' || !supported.includes(event.newValue))return;
+    if(engine.language!==event.newValue && typeof engine.changeLanguage==='function')
+      engine.changeLanguage(event.newValue);
+  });
   engine.init({
     lng:locale,
     fallbackLng:'fr',
