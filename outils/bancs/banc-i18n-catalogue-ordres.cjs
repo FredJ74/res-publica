@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('381 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('384 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,381);
+ assert.equal(ref.length,384);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -510,9 +510,12 @@ test('neuf commandes stables restantes : parité avec sources et invariants mét
 });
 
 
-test('l’ordre présidentiel de Sovarka reste traduit sans changer l’autorité du serveur',()=>{
+test('les quatre ordres du pouvoir et des partis de Sovarka restent traduits sans changer l’autorité du serveur',()=>{
  const original=[
-  {fn:'sovarka_repas_presidentiel',label:'Repas du Président',pa:0,cost:0,requiresPost:'president'}
+  {fn:'sovarka_repas_presidentiel',label:'Repas du Président',pa:0,cost:0,requiresPost:'president'},
+  {fn:'sovarka_partis',label:'Partis constitués',pa:0,cost:0,requiresPost:null},
+  {fn:'sovarka_parti_fonder',label:'Créer un parti',pa:2,cost:15,requiresPost:null},
+  {fn:'sovarka_mon_parti',label:'Mon parti',pa:0,cost:0,requiresPost:null}
  ];
  const frozen=JSON.stringify(original);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
