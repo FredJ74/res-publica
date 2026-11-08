@@ -25,6 +25,24 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Audit indépendant #377 — Codex, 08/11/2026
+
+Branche `codex/audit-i18n-377-20261108`, source réellement testée
+`6173d9a4ede2d2e27b10f4d8557c8976138601dc`. **Corrections nécessaires**,
+internationalisation reste à ChatGPT ; mobile reste à Codex. Aucun code du jeu
+modifié. Rapport `outils/audits/AUDIT-VALIDATION-I18N-377-20261108.md` et preuves
+rejouables dans `preuves-i18n-377-20261108/`.
+253/253 bancs clients, 50/50 bancs i18n ciblés (recoupement), 63 vérifications
+Chromium statiques neuf langues ; SQL jetable 16.2, concurrence et 14 refus réels
+anon/authenticated. Deux P2 reproduits : nombres/devise modifiés par une sortie
+fournisseur acceptée ; menus d’ordres non retraduits à la bascule de langue.
+Pas de P0/P1 démontré. Repli anglais historique des PNJ et accueil neuf langues
+sans drapeau explicités, pas masqués. Aucun service payant ni accès joueur réel.
+Main `e13aab9a` : fusion à blanc sans conflit, pas une certification d’intégration.
+API GitHub et lecture Vercel refusées 403 : aucune CI ou publication attestée.
+Rapport remis à ChatGPT pour corrections, sans PR applicative ni fusion #377.
+
+
 ### Certification mobile — Codex, 08/11/2026
 
 **Livré : PR #633 ouverte et fusionnée par Claude le 08/11** (CI 3/3 verte sur `300c1eb1` : bancs hors production, payload, parcours immobilier ; diff relu, aucun conflit avec main). Reste à faire par Fred et les testeurs : la recette sur appareils réels (`outils/audits/RECETTE-PHYSIQUE-MOBILE-20261108.md`).

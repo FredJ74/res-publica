@@ -1,0 +1,7 @@
+{
+  "refus_reels_anon_authenticated": 14,
+  "postgresql": "16.2",
+  "banc_stockage": true,
+  "concurrence_deux_processus": true,
+  "production": false
+}

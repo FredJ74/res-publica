@@ -1,0 +1,102 @@
+{
+  "date_locale": "2026-11-08",
+  "timezone": "Europe/Paris",
+  "sha_audite": "6173d9a4ede2d2e27b10f4d8557c8976138601dc",
+  "main_compare": "e13aab9a8fe24401561ccd02ca51085978bd9332",
+  "arbre_fusion_a_blanc": "4b18e15465c3946bbc2ee6d4e20bc33a11527a78",
+  "bancs_clients": {
+    "reussis": 253,
+    "total": 253
+  },
+  "bancs_i18n_cibles": {
+    "reussis": 50,
+    "total": 50
+  },
+  "chromium_statique": {
+    "verifications": 63,
+    "langues": 9,
+    "authentifie": false,
+    "version": "154.0.8037.57"
+  },
+  "sql_jetable": {
+    "refus_reels_anon_authenticated": 14,
+    "postgresql": "16.2",
+    "banc_stockage": true,
+    "concurrence_deux_processus": true,
+    "production": false
+  },
+  "catalogues": {
+    "cles_fr": 1006,
+    "par_locale": {
+      "fr": {
+        "cles": 1006,
+        "manquantes": 0,
+        "placeholders_incorrects": 0
+      },
+      "en": {
+        "cles": 1024,
+        "manquantes": 0,
+        "placeholders_incorrects": 0
+      },
+      "es": {
+        "cles": 1024,
+        "manquantes": 0,
+        "placeholders_incorrects": 0
+      },
+      "zh-TW": {
+        "cles": 1024,
+        "manquantes": 0,
+        "placeholders_incorrects": 0
+      },
+      "ru": {
+        "cles": 1026,
+        "manquantes": 0,
+        "placeholders_incorrects": 0
+      },
+      "ko": {
+        "cles": 1024,
+        "manquantes": 0,
+        "placeholders_incorrects": 0
+      },
+      "ar": {
+        "cles": 1024,
+        "manquantes": 0,
+        "placeholders_incorrects": 0
+      },
+      "pt-BR": {
+        "cles": 1024,
+        "manquantes": 0,
+        "placeholders_incorrects": 0
+      },
+      "de": {
+        "cles": 1024,
+        "manquantes": 0,
+        "placeholders_incorrects": 0
+      }
+    }
+  },
+  "ordres": {
+    "sourceUniqueIds": 434,
+    "catalogueFrenchKeys": 392,
+    "stableCovered": 387,
+    "ambiguousPartiallyCovered": 5,
+    "stableNotCovered": 22,
+    "ambiguousNotCovered": 20
+  },
+  "production_verifiee": false,
+  "CI_distante_verifiee": false,
+  "service_payant_appele": false,
+  "sha256_preuves": {
+    "README.md": "4062be583f5881283d6afddbb80142d05225bd63b8bef7881c53ee20a26d2651",
+    "chromium.txt": "9f00fd63d19f13a959e97a2fa413619f37bf541c425378934a8519fb53b8e0a3",
+    "clients.json": "018722296bee8ed2f6e85f600fff57b92ee284c3d6dfd6904ac272d639f09a9f",
+    "comparer-donnees.cjs": "2d4f88c026d726d18cb24e769e0ded831f58ee3bf2cabd170b9498699dcadcc1",
+    "donnees.json": "baade32d5fb15487345a18803035fa774c34126321685d6b88c327b201ed40c0",
+    "menus.json": "d4414b64e2726636fb2314c7e06b0f9e14cbedba9e350d38a943b9363f0efd82",
+    "reproduire-menus.cjs": "120b1294ab5ac3c77848ff4776e0b6795af8fb60406d437bc6491b62bc97dce2",
+    "reproduire-traduction.mjs": "8d0479541381b7f4c7e6540fdcb01c644ac58f1ee0c0a6dc24481b1ad4ac177a",
+    "stockage.json": "de58e980b6f1c697c4b379c846cf5715d122cb18c0c228ce4a15babe69331b32",
+    "traduction.json": "3f463b3eadda766bf9dce5cb8e9f7d193dbde63cce8c39d0e8fe71f3379b4a3a",
+    "valider-stockage-local.py": "a43563ddb6821ad534b9af5f625ddba646849398c03ed5e9e06cac89f8b5d619"
+  }
+}

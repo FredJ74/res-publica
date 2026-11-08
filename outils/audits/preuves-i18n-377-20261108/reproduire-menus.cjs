@@ -1,0 +1,12 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),acorn=require('../../vercel/node_modules/acorn');
+const root=require('node:path').resolve(__dirname,'../../..'),elements={};const d={documentElement:{lang:'fr'},querySelectorAll:()=>[],getElementById:id=>elements[id]??=( {textContent:'',innerHTML:'',classList:{add(){},remove(){}},style:{}})};
+const c={console,document:d,RP_I18N_GAME_ENABLED:true,localStorage:{getItem:()=> 'fr'},state:{country:'republic',currentCity:'capitale',char:{country:'republic'},pa:30},COUNTRIES:{republic:{cur:'FR'}},WORLD:{republic:{capitale:{}}},TEST_MODE:false,ORDER_EFFECTS:{},ordresDeclaresDeLaPiece:r=>r.orders,intitulePoste:(id,co,text)=>text};c.window=c;vm.createContext(c);
+for(const f of ['i18next.min.js','resources.js','plateau-resources.js','orders-resources.js','order-variants-resources.js','order-templates-resources.js','ordres.js','room-resources.js','plateau-bridge.js','plateau-init.js'])vm.runInContext(fs.readFileSync(root+'/i18n/'+f,'utf8'),c);
+const s=fs.readFileSync(root+'/plateau-politique.js','utf8'),ast=acorn.parse(s,{ecmaVersion:'latest'}),fn=ast.body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='renderRoomActions');vm.runInContext(s.slice(fn.start,fn.end),c);
+const order={fn:'plainte_police',label:'Porter plainte',pa:1,cost:200,type:'legal',icon:'ti-test'};c.renderRoomActions({name:'Accueil',orders:[order]},'banque-privee','fixture');
+const before=JSON.stringify(elements);c.i18next.changeLanguage('ar');const after=JSON.stringify(elements);c.renderRoomActions({name:'Accueil',orders:[order]},'banque-privee','fixture');
+assert.equal(c.i18next.language,'ar');
+assert.equal(JSON.parse(after)['actions-row-bat'].innerHTML,JSON.parse(before)['actions-row-bat'].innerHTML,'défaut : la bascule laisse le menu français');
+assert.ok(elements['actions-row-bat'].innerHTML.includes('تقديم بلاغ'),'contre-épreuve : le rendu explicite traduit bien');
+assert.ok(elements['actions-row-bat'].innerHTML.includes('openPlainteModal(1,200)'),'commande et coûts intacts');
+console.log(JSON.stringify({cas:'P2-menus-session',defaut_reproduit:true,langue:c.i18next.language,before:JSON.parse(before),after:JSON.parse(after),rerender:elements}));

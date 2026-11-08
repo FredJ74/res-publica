@@ -1,0 +1,1 @@
+{"cas":"P2-integrite-traduction","defaut_reproduit":true,"source":"Votre commande coûte 100 FR et 1 PA, {{name}}.","accepte":"Your order costs 1000 USD and 9 AP, {{name}}.","contre_placeholder_refuse":true,"controle_nul_accepte":true}

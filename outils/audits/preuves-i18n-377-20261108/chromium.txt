@@ -1,0 +1,1 @@
+I18N CHROMIUM : 63 vérifications accueil/rechargement/plateau, neuf langues, mobile/bureau, sans réseau externe
