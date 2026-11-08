@@ -49,3 +49,24 @@ test('les messages historiques français et anglais conservent leurs phrases',()
  assert.equal(filtrerReponseSquatteur('les_gars_du_bas','Cliquez sur les boutons.','en'),
   'What brings you to our patch of land?');
 });
+
+test('un accord ou départ inventé par un squatteur est neutralisé dans neuf langues',()=>{
+ const reponses={
+  fr:"J'accepte votre offre, nous partons.",
+  en:'We accept your offer. We are leaving.',
+  es:'Acepto tu oferta. Nos vamos del terreno.',
+  'zh-TW':'我們接受你的提議，我們離開這片土地。',
+  ru:'Мы согласны. Мы уходим с участка.',
+  ko:'제안을 수락합니다. 우리는 떠나겠습니다.',
+  ar:'نوافق على عرضك وسنغادر الأرض.',
+  'pt-BR':'Aceitamos sua proposta. Vamos embora.',
+  de:'Wir akzeptieren das Angebot. Wir verlassen das Gelände.'
+ };
+ for(const [locale,inventee] of Object.entries(reponses)){
+  for(const profil of ['la_bande_a_rotule','les_gars_du_bas']){
+   const sortie=filtrerReponseSquatteur(profil,inventee,locale);
+   assert.notEqual(sortie,inventee,locale+': '+profil+' ne doit pas inventer de transaction');
+   assert.ok(sortie?.trim(),locale+': repli vide');
+  }
+ }
+});
