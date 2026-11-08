@@ -18,10 +18,10 @@ const translator={t(key,opts={}){
 const data=fs.readFileSync(path.join(root,'data.js'),'utf8');
 const locales=Object.keys(w.RP_I18N_LANGUAGES);
 
-test('six modèles de loyers et terrains présents pour neuf langues',()=>{
+test('sept modèles de loyers, terrains et réunions présents pour neuf langues',()=>{
  assert.equal(locales.length,9);
  const ref=Object.keys(w.RP_I18N_RESOURCES.fr.translation.orderTemplates);
- assert.equal(ref.length,6);
+ assert.equal(ref.length,7);
  for(const lng of locales){
   const x=w.RP_I18N_RESOURCES[lng].translation.orderTemplates;
   assert.deepEqual(Object.keys(x),ref);
@@ -78,4 +78,26 @@ test('les modèles sont chargés après les ressources et avant le résolveur',(
  const a=html.indexOf('i18n/resources.js'),b=html.indexOf('i18n/order-templates-resources.js');
  const c=html.indexOf('i18n/ordres.js');
  assert.ok(a>=0 && a<b && b<c);
+});
+
+test('réservation journalière Sovarka : 100/150 PSK conservés sans inventer un tarif',()=>{
+ assert.match(data,/fn:'sovarka_reunion_reserver'/);
+ assert.match(data,/label:'Réserver pour aujourd’hui — '\+tarif\+' PSK'/);
+ for(const price of [100,150]){
+  const original='Réserver pour aujourd’hui — '+price+' PSK';
+  const order=Object.freeze({fn:'sovarka_reunion_reserver',label:original,pa:0,cost:0,requiresPost:'test'});
+  for(const locale of locales){
+   const translated=w.RPOrderI18n.label(order,translator,locale);
+   assert.ok(translated.includes(String(price)),locale+': prix modifié');
+   assert.ok(translated.includes('PSK'),locale+': devise absente');
+   assert.ok(!translated.includes('{{'),locale+': gabarit visible');
+   if(locale!=='fr')assert.notEqual(translated,original,locale+': non traduit');
+  }
+  assert.equal(order.fn,'sovarka_reunion_reserver');
+  assert.equal(order.label,original);
+  assert.equal(order.cost,0);assert.equal(order.pa,0);assert.equal(order.requiresPost,'test');
+ }
+ for(const original of ['Réserver pour demain — 150 PSK','Réserver pour aujourd’hui — 150 FR','Réserver pour aujourd’hui — prix libre PSK','Réserver pour aujourd’hui — <script> PSK']){
+  assert.equal(w.RPOrderI18n.label({fn:'sovarka_reunion_reserver',label:original},translator,'en'),original);
+ }
 });
