@@ -11,11 +11,13 @@ Servir de mémoire durable commune au game designer, à ChatGPT, Claude et Codex
 3. [Atlas des systèmes et parcours](ATLAS-SYSTEMES.md).
 4. [Catalogue historique des 61 mécaniques de l'architecture](CATALOGUE-MECANIQUES-HISTORIQUE.md), à actualiser ordre par ordre.
 5. [Relevé vérifié de Supabase en lecture seule](ETAT-SUPABASE-LECTURE-SEULE.md).
-6. [Matrice de couverture et d'état](MATRICE-COUVERTURE.md).
-7. [Contradictions, risques et vérifications manquantes](ECARTS-ET-VERIFICATIONS.md).
-8. [Cadre de l'audit expérience joueur et rétention](EXPERIENCE-ET-RETENTION.md).
-9. [Index technique des sources (fichiers, migrations et bancs)](INDEX-TECHNIQUE.md) : piste d'audit, non preuve d'activité.
-10. Sources détaillées préexistantes : [architecture](../ARCHITECTURE.md), [relais](../RELAIS.md), [game design Sovarka](../GAME-DESIGN-NOVOMIRSK.md), tous les `GAME-DESIGN-*.md`, [audit d'autorité](../AUDIT_UNE_SEULE_VERITE.md).
+6. [Catalogue des 517 coûts d'ordres configurés](CATALOGUE-COUTS-SERVEUR.md).
+7. [État de publication Vercel et commit réellement publié](ETAT-VERCEL-PUBLICATION.md).
+8. [Matrice de couverture et d'état](MATRICE-COUVERTURE.md).
+9. [Contradictions, risques et vérifications manquantes](ECARTS-ET-VERIFICATIONS.md).
+10. [Cadre de l'audit expérience joueur et rétention](EXPERIENCE-ET-RETENTION.md).
+11. [Index technique des sources (fichiers, migrations et bancs)](INDEX-TECHNIQUE.md) : piste d'audit, non preuve d'activité.
+12. Sources détaillées préexistantes : [architecture](../ARCHITECTURE.md), [relais](../RELAIS.md), [game design Sovarka](../GAME-DESIGN-NOVOMIRSK.md), tous les `GAME-DESIGN-*.md`, [audit d'autorité](../AUDIT_UNE_SEULE_VERITE.md).
 
 ## Convention de statut (ne jamais les confondre)
 - **D — Décidé** : règle explicitement adoptée, preuve documentaire datée ; ne prouve pas son exécution.
@@ -51,4 +53,4 @@ Pour chaque modification de mécanique future, l'agent qui intervient :
 
 **Fiche-type :** identifiant stable ; finalité sociale ; décision datée ; territoire/pays ; acteur et adversaires ; déclencheur et lieu ; préconditions ; coûts PA/monnaie/objets ; gains/risques ; sorties et contre-pouvoirs ; temps réel/quotidien ; données persistées ; route client → RPC → tables ; PNJ de repli ; dépendances ; statut D/C/T/M/P/J ; sources ; lacunes ; effet sur l'interaction entre PJ.
 
-**Périmètre du présent lot :** inventaire du dépôt, lecture des sources fondatrices et de documents métier, confrontation ponctuelle au code, **lectures SQL strictement non mutantes des catalogues et règles de configuration Supabase**, lecture du registre de migrations ; **pas d'accès authentifié à un PJ, pas de requête sur les données des joueurs, pas de tests d'actions du jeu exécutés, pas de recette de production**. L'exhaustivité des centaines de commandes et de fonctions SQL exige encore un dépouillement systématique ; consulter la matrice pour les zones non closes.
+**Périmètre du présent lot :** inventaire du dépôt, lecture des sources fondatrices et de documents métier, confrontation ponctuelle au code, **lectures SQL strictement non mutantes des catalogues et règles de configuration Supabase**, lecture du registre de migrations ; **production Vercel READY vérifiée en lecture seule pour le SHA de référence ; pas d'accès authentifié à un PJ, pas de requête sur les données des joueurs, pas de tests d'actions du jeu exécutés, pas de recette de production**. L'exhaustivité des centaines de commandes et de fonctions SQL exige encore un dépouillement systématique ; consulter la matrice pour les zones non closes.
