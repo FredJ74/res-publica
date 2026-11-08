@@ -25,6 +25,30 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mobile Sovarka — Codex, 07/11/2026
+
+Branche poussée `codex/mobile-sovarka-20261107`, correction `3d22d795`, dernier
+main `17b7d13d` intégré par `c4072089` (PR #618 de Claude conservée, y compris
+le cache data.js). Seuls styles communs et cache CSS modifiés dans le jeu ;
+aucun JS métier, SQL, montant PSK, ordre ou texte RP changé.
+Rapport/inventaire : `outils/audits/MOBILE-SOVARKA-20261107.md`.
+**201/201 bancs clients**, Chromium dédié 5/5 (16 fenêtres à 360/390/768, pixels
+1440 identiques au témoin et contre-épreuve), socle mobile/reprise 27/27.
+Globaux, unique passe : **10/12**, Workflow/Authority conformes ; Baseline et
+Referential hérités, causes exactes dans le rapport, aucune référence altérée.
+Après intégration main : navigation/PNJ 26/26 ; Chromium/reprise 11/11 sur le SHA intégré `c4072089`.
+
+**PR REST refusée (Forbidden)** : Claude peut ouvrir vers `main` depuis cette
+branche. Titre : **Mobile : formulaires Sovarka lisibles sans changer le bureau**.
+Description prête : « Sélecteurs communs élargis et champs contenus sous 1024 px.
+Aucun moteur parallèle ni modification économique. Rendus réels isolés, 16 fenêtres,
+360/390/768 et comparaison pixels bureau 1440. Rapport MOBILE-SOVARKA-20261107.md. »
+Contrôles attendus : clients/Chromium, syntaxe, Workflow et garde Vercel.
+Pour Fred après intégration : sur téléphone, ouvrir les dossiers commerciaux,
+une demande de location, la création de parti, garage et réunions ; les sélecteurs
+utilisent la largeur disponible. Aucun paiement nécessaire pour ces consultations.
+Pas de recette connectée ni de déploiement attesté, aucune écriture de production.
+
 ### Novomirsk : raccordement vue par vue — Claude, 04/11/2026 (à reprendre)
 
 Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêta : V1 Librairie du Peuple, V2 La Mère Volga et Musée municipal, V6 Palais des Ambassades (ordres « Bientôt disponible »), V7 Pavillon des Ambassadeurs et Résidence impériale ; Grand Hôtel sans suites ; monnaie PSK ; navigation de rue serveur dans toute ville à rues (PR #474).

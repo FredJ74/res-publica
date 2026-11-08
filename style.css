@@ -2405,3 +2405,10 @@ body.plateau-body .top-right {
   /* Le compositeur garde son défilement extérieur prévu par forum-compose-grow. */
   #modal-forum.forum-compose-grow .forum-main{overflow:visible}
 }
+
+/* Formulaires communs : les libellés de locaux et de caractéristiques doivent
+   rester lisibles sur téléphone, sans changer les fenêtres de bureau. */
+@media(max-width:1023px){
+  .modal-box .cpj-dialogue :is(input,textarea,select){box-sizing:border-box;max-width:100%}
+  .modal-box .cpj-dialogue select.cpj-champ{display:block;width:100%;min-width:0;text-align:left}
+}
