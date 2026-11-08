@@ -33,9 +33,10 @@ const source={
  salle_reception:'Salle de Réception',
  bureau_republia_novomirsk:'Ambassade de Républia',
  bureau_khalija_novomirsk:"Ambassade d'Al-Khalija",
- bureau_estado_novomirsk:"Ambassade d'El Estado"
+ bureau_estado_novomirsk:"Ambassade d'El Estado",
+ magasin:'Magasin'
 };
-test('neuf traductions de dix-huit salles, avec repli français explicite',()=>{
+test('neuf traductions de dix-neuf salles, avec repli français explicite',()=>{
  assert.equal(Object.keys(win.RP_I18N_LANGUAGES).length,9);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
   locale=lang;
@@ -44,7 +45,7 @@ test('neuf traductions de dix-huit salles, avec repli français explicite',()=>{
   for(const [room,original] of Object.entries(source)){
    assert.equal(typeof rooms[room],'string');
    assert.ok(rooms[room].trim(),lang+': '+room);
-   assert.equal(win.RPRoomI18n.label(room.includes('maire')||room==='accueil_mairie'?'mairie':room==='salle_reception'||room.includes('ambassades_novomirsk')||room.startsWith('bureau_republia_novomirsk')||room.startsWith('bureau_khalija_novomirsk')||room.startsWith('bureau_estado_novomirsk')?'palais-ambassades-novomirsk':'palais-gouvernement',room,original),rooms[room]);
+   assert.equal(win.RPRoomI18n.label(room==='magasin'?'armurerie':room.includes('maire')||room==='accueil_mairie'?'mairie':room==='salle_reception'||room.includes('ambassades_novomirsk')||room.startsWith('bureau_republia_novomirsk')||room.startsWith('bureau_khalija_novomirsk')||room.startsWith('bureau_estado_novomirsk')?'palais-ambassades-novomirsk':'palais-gouvernement',room,original),rooms[room]);
   }
  }
 });
@@ -55,7 +56,10 @@ test('une autre pièce, un nom contextuel ou une autre institution garde son nom
   ['palais-gouvernement','bureaux','Bureau du Premier Ministre'],
   ['palais-gouvernement','salle_conseil','Salle du Conseil'],
   ['palais-gouvernement','salle_presse','Salle de presse — Jean Jaaj'],
-  ['palais-gouvernement','hall',"Hall d'entrée"]
+  ['palais-gouvernement','hall',"Hall d'entrée"],
+  ['armurerie','magasin','Boutique privée'],
+  ['marché','magasin','Magasin'],
+  ['armurerie','hall','Magasin']
  ]){
   assert.equal(win.RPRoomI18n.label(building,room,original),original);
  }
@@ -104,4 +108,17 @@ test('les cinq pièces diplomatiques ne débordent pas sur les autres empires, I
   assert.equal(win.RPRoomI18n.label('palais-ambassades-novomirsk',id,source[id]+' (fermé)'),source[id]+' (fermé)');
  }
  assert.ok(building.includes("bientot:'Bientôt disponible"));
+});
+
+test('le magasin de l’armurerie de Sovarka utilise une traduction de salle et non un nouvel ordre',()=>{
+ const data=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ assert.ok(data.includes("name: 'Arsenal Collectif'"));
+ assert.ok(data.includes("magasin: { imageUrl: \"images/Sovarka/Novomirsk/Novomirsk_armurerie.webp\" }"));
+ for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+  locale=lng;
+  const translated=win.RPRoomI18n.label('armurerie','magasin','Magasin');
+  assert.equal(translated,win.RP_I18N_RESOURCES[lng].translation.rooms.magasin);
+  assert.ok(translated.trim());
+ }
+ assert.ok(!Object.hasOwn(win.RP_I18N_RESOURCES.fr.translation.orders,'magasin'));
 });
