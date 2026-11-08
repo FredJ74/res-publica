@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-08",
+  "main_integre": "9e1ec47f",
+  "sha_source": "99947802",
+  "clients": {
+    "reussis": 204,
+    "total": 204,
+    "echecs": 0
+  },
+  "postgresql_jetable": {
+    "postgresql": "16.2",
+    "resultats": {
+      "ok": 93,
+      "cas": 93
+    },
+    "banc": "tirages-dons",
+    "sql_annule": true,
+    "installation_rollback_rejeu": true,
+    "courses_authentifiees": 2,
+    "ok": true
+  },
+  "workflow": "CONFORME",
+  "authority_statique": {
+    "reussis": 13,
+    "total": 13
+  },
+  "bureau_1440": "comparaison stricte reussie",
+  "migration_appliquee": false,
+  "supabase_verifie": false,
+  "ci_distante_verifiee": false,
+  "vercel_verifie": false,
+  "sha256_fichiers": {
+    "migrations/20261108130723_dons_pnj_dis_serveur.sql": "bede2b08100224e4e07968c9e708f07a9369ae5aaa2e74cabd1d6645acdf475f",
+    "plateau-justice-economie.js": "81bfa29877b5957dd0ee5fbde32873f271345fc3321e1c37aa9b0a8dfd136160",
+    "outils/bancs/banc-tirages-dons-pnj-local.py": "8a40d5277d494ae49afc455008e78fc18fc315fa596fe8f20ca64d7006a5fcdd",
+    "outils/bancs/banc-tirages-dons-pnj.sql": "fe9b355fcd5b705b1bf746411c69a842694bafb4c74feef4bedcea13cca8cad4",
+    "outils/bancs/prevol-tirages-dons-pnj.sql": "614195c11dde5f1d76a5e2aef531e00811817b06d2d6d9e60d6bcb196a5dc9c7"
+  }
+}

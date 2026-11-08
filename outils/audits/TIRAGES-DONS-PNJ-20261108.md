@@ -93,5 +93,8 @@ jamais été lus ou modifiés.
 Main `9e1ec47f` intégré sans conflit (`95fb97e7`). Les cinq décors de Novomirsk et
 la nouvelle version de cache data.js restent inchangés par rapport à main. Seul le
 suffixe de cache justice de ce lot diffère. Rejeu du contrôleur complet effectué
-sur cette intégration (résultat consigné au relais). Le banc SQL indique désormais
-sa version PostgreSQL réelle ; il ne prétend pas certifier le catalogue vivant.
+sur cette intégration : **204/204**. Le banc SQL indique désormais
+sa version PostgreSQL réelle (**16.2**) ; il ne prétend pas certifier le catalogue vivant.
+
+Preuves consolidées : `TIRAGES-DONS-PNJ-PREUVES-20261108.json`, source testée
+`99947802`. Elles ne constituent pas une certification du catalogue Supabase.
