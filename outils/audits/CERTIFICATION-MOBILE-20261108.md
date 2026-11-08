@@ -79,7 +79,20 @@ de présumer `/usr/bin/chromium` (portabilité runner, pas incident CI prétendu
 - Première passe client complète : **202/203**, seul échec dans la comparaison
   du nouveau témoin bureau. Le chargement du témoin a été corrigé comme décrit
   ci-dessus ; le test n’a été ni désactivé ni rendu tolérant.
-- Passe client complète finale : à consigner après exécution sur l’outillage stabilisé.
+- Passe client complète finale sur `65ecf3f445c339f8a832f55005aa1f6f1073a536` :
+  **203/203 bancs**, zéro échec, aucun SQL exécuté. Le nouveau banc compte
+  **17/17 scénarios**, dont quatre contre-épreuves. Les 22 cas certification et
+  Sovarka avaient aussi été validés ensemble avant cette passe.
+- Pilote de recette : **119/119 tests**, sur fixtures/serveurs locaux. Aucune
+  campagne authentifiée Arnie lancée, aucun secret lu.
+- Analyseur API : **28/28 modules**, sans appel distant.
+- Cinq paires PNG 1440×900 strictement identiques (plateau, création, forum,
+  plateau témoin actuel et reconnexion). Empreintes et résultats structurés :
+  `CERTIFICATION-MOBILE-PREUVES-20261108.json`.
+- Main revérifié après tests : toujours `520630bd`, inclus dans la branche,
+  aucun conflit. `git diff --check` conforme.
+- Environnement : Node 24.19.0, Playwright 1.62.1, Chromium 154.0.8037.57,
+  Debian 13. Ces résultats locaux ne sont pas ceux d’un runner GitHub.
 - Contre-épreuves conservées pour les trois défauts. Aucun SQL exécuté.
 
 La passe globale n’est pas répétée à chaque essai : les modifications de
@@ -94,12 +107,40 @@ ou les derniers commentaires/contrôles CI via cet accès ; les PR fusionnées s
 confirmées par Git, pas par une prétendue lecture API.
 `HEAD https://res-publica.vercel.app/plateau.html` échoue au tunnel CONNECT,
 HTTP 403 Envoy. Ce refus **ne prouve aucune panne Vercel** et ne fournit aucun
-statut READY, SHA servi ou mesure réseau. Aucun déploiement de test déclenché.
+statut READY, SHA servi ou mesure réseau. Aucune commande Vercel ni mise en production effectuée. D’éventuels Preview
+automatiques liés aux pushs ne sont pas observables depuis cette session.
 Création REST de PR tentée après le premier push :
 `POST /repos/FredJ74/res-publica/pulls` → `Forbidden`.
 Branche sauvegardée ; pas de PR créée ou fusionnée depuis cette session.
+Titre prêt : **Mobile : fiabiliser la reprise et certifier les parcours critiques**.
+Head : `codex/mobile-certification-20261108` ; base : `main`.
+Description prête : « Trois correctifs du socle de reprise/reconnexion, fenêtres
+Sovarka existantes réutilisées, aucune modification de règle ou SQL. Tests des
+vrais boutons du journal, connexion sur fixtures, contre-épreuves et témoins
+bureau 1440 stricts. Rapport CERTIFICATION-MOBILE-20261108.md et protocole physique
+associé. Exiger la CI du SHA final avant fusion ; ne pas annoncer le déploiement
+ou les appareils physiques comme validés. »
+Les contrôles distants attendus restent ceux du dépôt ; aucune garde contournée.
 
 Ni compte recréé, ni secret consulté, ni migration, ni écriture en production.
 Le protocole physique court est `RECETTE-PHYSIQUE-MOBILE-20261108.md`.
 La recette connectée, les appareils physiques, la CI et le déploiement sont des
 preuves distinctes : aucune ne sera déduite des fixtures locales.
+
+
+## Verdict par niveau
+
+| Niveau | État réel |
+| --- | --- |
+| Codé | Trois correctifs de reprise/reconnexion ; formulaires communs Sovarka déjà préparés repris |
+| Testé automatiquement | 203/203 bancs clients, 119/119 pilote, syntaxe 28/28 ; globaux 10/12 avec restes explicites |
+| Appareil réel | Aucun ; protocole court prêt pour Safari iPhone / Chrome Android |
+| Fusionné | Anciens L0–L10 déjà dans main ; cette branche n’est pas fusionnée |
+| Déployé | Aucune mise en production par Codex ; version servie et READY non vérifiables ici |
+| Validé en jeu | Aucune connexion réelle, réponse IA ou transaction production certifiée par cette session |
+
+**Certification complète non acquise.** La branche et les preuves sont livrables
+pour revue ; restent l’ouverture de PR et la CI sur son SHA final, l’intégration,
+la vérification Vercel et la recette connectée/physique. Les appareils réels
+restent explicitement à tester même si les automatismes passent. Aucune décision
+de game design n’est requise, aucune opération SQL demandée à Fred.

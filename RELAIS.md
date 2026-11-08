@@ -41,13 +41,19 @@ Android dans `RECETTE-PHYSIQUE-MOBILE-20261108.md`. Tests ciblés et contre-épr
 22/22 (certification et Sovarka). Première passe complète 202/203 : seule la
 comparaison du nouveau témoin bureau échouait ; chargement CSS témoin au premier
 rendu corrigé, sans masque ni tolérance. Le lancement Chrome est mutualisé pour
-la portabilité GitHub Actions. Contrôleur complet à rejouer sur cet outillage.
-Globaux 10/12 : Workflow/Authority conformes, Baseline/Referential hérités documentés. GitHub API et Vercel
+la portabilité GitHub Actions. Contrôleur complet final **203/203**, nouveau banc **17/17** (quatre
+contre-épreuves), pilote de recette **119/119** sur fixtures, syntaxe API **28/28**.
+SHA testé : `65ecf3f445c339f8a832f55005aa1f6f1073a536`. Cinq paires PNG bureau 1440
+strictement identiques ; preuves `CERTIFICATION-MOBILE-PREUVES-20261108.json`.
+Globaux 10/12 : Workflow/Authority conformes, Baseline/Referential hérités documentés. Titre PR prêt : **Mobile : fiabiliser la reprise et certifier les parcours critiques**,
+base main ; description dans le rapport. GET/POST GitHub API et Vercel
 refusés par le proxy : pas de CI, fusion ou déploiement attesté. Le journal réel
 est fermé dans les deux profils sans changer URL, personnage, position ou cache.
 
 
 ### Mobile Sovarka — Codex, 07/11/2026
+
+**Repris dans `codex/mobile-certification-20261108` (rubrique ci-dessus). Ne pas intégrer deux fois ce lot.**
 
 Branche poussée `codex/mobile-sovarka-20261107`, correction `3d22d795`, dernier
 main `17b7d13d` intégré par `c4072089` (PR #618 de Claude conservée, y compris
