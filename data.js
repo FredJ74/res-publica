@@ -2163,9 +2163,15 @@ const WORLD = {
         // Novomirsk. Planton nomme par Fred : le Sergent Viktor Muetov, qui accueille froidement.
         'siege-renseignement': {
           name: "Direction du Renseignement de Sovarka",
-          imagesAVenir: true,
           desc: "Un bloc de béton sans enseigne, aux fenêtres opaques. Chacun à Novomirsk sait ce qu'il abrite ; personne n'en parle à voix haute.",
-          persons: [{name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'}]
+          persons: [{name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'}],
+          // Les images des 3 salles sont propres a Novomirsk, sans toucher aux
+          // ordres, aux PNJ, aux permissions et aux autres empires.
+          roomOverrides: {
+            accueil_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_accueil.webp' },
+            salle_ecoutes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_ecoutes.webp' },
+            salle_interrogatoire_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_interrogatoire.webp' }
+          }
         },
         // Caserne centrale de Novomirsk (vues 11 et 12) : la caserne du socle (BUILDINGS['caserne-militaire']),
         // memes pieces, memes ordres et memes fonctions serveur qu'en Republia, mais EN VILLE : en Sovarka la
