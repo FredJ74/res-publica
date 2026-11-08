@@ -38,8 +38,13 @@ test('les neuf onglets du guide gardent leur section et leur handler historique'
 });
 
 test('inventaire, rue et courriel ajoutent seulement une clé texte',()=>{
- for(const key of ['noItems','streetHint','planTitle','recipient'])
+ for(const key of ['noItems','streetHint','recipient'])
   assert.ok(markup.includes('data-i18n="plateau.'+key+'"'),key);
+ // Le titre de la carte évolue en fonction de la ville ; seul son bouton
+ // d'ouverture reste un libellé statique pouvant être localisé sans risque.
+ assert.ok(markup.includes('data-i18n-title="plateau.planTitle"'));
+ assert.ok(markup.includes('id="minimap-ville-title"'));
+ assert.doesNotMatch(markup,/<[^>]*id="minimap-ville-title"[^>]*data-i18n=/);
  assert.match(markup,/<input\b[^>]*id="compose-mail-to"[^>]*data-i18n-placeholder="plateau\.recipientPlaceholder"/);
  assert.match(markup,/<input\b[^>]*id="compose-mail-subject"[^>]*data-i18n-placeholder="plateau\.subjectPlaceholder"/);
  assert.match(markup,/<textarea\b[^>]*id="compose-mail-body"[^>]*data-i18n-placeholder="plateau\.messagePlaceholder"/);
