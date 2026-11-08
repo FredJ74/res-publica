@@ -183,3 +183,14 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - Le synchroniseur temporaire s'est supprimé lui-même et n'est pas un moteur permanent.
 - Les revues et suites CI propres à la PR doivent porter sur **le dernier commit**, pas sur les commits antérieurs : le statut `action_required` n'est **pas** un test réussi. Les parcours authentifiés, l'audit éditorial des traductions et la fiabilité linguistique des échanges entre PJ restent non certifiés.
 - **Aucune autorisation d'ouverture publique** ; la PR #377 reste brouillon et ne doit pas être fusionnée à `main` sans arbitrage du game designer.
+
+
+## 08/11 — suite : 392 ordres, 23 salles et retours de langue sans texte résiduel
+
+- **392 ordres canoniques** dans chacune des neuf langues : nouveau `sovarka_signalements` (Registre des signalements), présent deux fois dans les vraies pièces du gouvernement Sovarka après fusion de la PR métier #637. Aucune duplication de `fn`, aucune modification de PA/coût/permission, aucune activation des langues.
+- **23 noms de salles** localisés en prévisualisation, dont le magasin de l'armurerie, l'accueil du commissariat, le bureau du commissaire, les cellules de garde à vue et les étals du marché ; localisation conditionnée à l'identifiant de bâtiment et au libellé source exact.
+- **Bascule de langue** : le plateau mémorise le texte français avant sa première traduction et le rétablit si la nouvelle locale ne fournit pas de valeur, y compris placeholders, `aria-label`, infobulles. Les champs saisis ne sont jamais écrasés ; les objets DOM supprimés ne sont pas conservés en mémoire (WeakMap).
+- **Tarifs variables** : test de l'identité des marqueurs `{{price}}`, `{{currency}}` et `{{area}}` pour les neuf catalogues.
+- La branche brouillon a récupéré les modifications métier récentes de `main`, via un workflow éphémère exécuté sur **la branche brouillon seulement**, puis supprimé ; décalage avec `main` nul au contrôle immédiatement après fusion. Les nouveaux textes dynamiques de la fenêtre du registre restent à localiser dans un lot distinct, avec la prudence imposée par le chantier Sovarka de Claude.
+- CI : lancer et vérifier les **sept workflows sur le dernier commit humain**. Le statut GitHub `action_required` des commits produits par le bot Actions n'est pas une réussite ni un échec des bancs. Les parcours PJ authentifiés sur téléphone, les traductions PJ↔PJ et la validation éditoriale restent ouverts.
+- **Publication multilingue interdite** jusqu'à accord explicite de Fred. PR #377 conservée en brouillon, jamais fusionnée vers `main`.
