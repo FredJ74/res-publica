@@ -115,3 +115,33 @@ test('aria-label localisé sans ajouter de texte ni déplacer un contrôle tacti
  api.apply(root);
  assert.equal(element.attrs['aria-label'],'إغلاق اللوحة');
 });
+
+test('changement de langue et autre onglet : textes, direction et état dynamique synchronisés',()=>{
+ const attrs={'data-i18n':'plateau.messages'};
+ const element={textContent:'Messages',attrs,
+  getAttribute(k){return this.attrs[k]},hasAttribute(k){return Object.hasOwn(this.attrs,k)},
+  setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+ const document={documentElement:{lang:'fr'},querySelectorAll(sel){return sel==='[data-i18n]'?[element]:[]}};
+ const listeners={};
+ const engine={language:'de',on(evt,fn){listeners[evt]=fn},
+  init(opts,done){this.language=opts.lng;done(null);return this},
+  t(key){return key==='plateau.messages'?({de:'Nachrichten',ar:'الرسائل',ko:'메시지'}[this.language]||'Messages'):key},
+  changeLanguage(lang){this.language=lang;listeners.languageChanged?.(lang)}};
+ const window={document,localStorage:{getItem:()=> 'de'},addEventListener(evt,fn){listeners[evt]=fn},
+  RP_I18N_LANGUAGES:{fr:{},de:{},ar:{},ko:{}},RP_I18N_RESOURCES:{},i18next:engine};
+ vm.runInNewContext(script,{window,console});
+ assert.equal(window.RPI18nPlateau.locale(),'de');
+ engine.changeLanguage('ar');
+ assert.equal(window.RPI18nPlateau.locale(),'ar');
+ assert.equal(document.documentElement.lang,'ar');
+ assert.equal(element.textContent,'الرسائل');
+ assert.equal(attrs.dir,'rtl');
+ listeners.storage({key:'respublica_language',newValue:'ko'});
+ assert.equal(engine.language,'ko');
+ assert.equal(window.RPI18nPlateau.locale(),'ko');
+ assert.equal(document.documentElement.lang,'ko');
+ assert.equal(element.textContent,'메시지');
+ assert.equal(attrs.dir,undefined);
+ listeners.storage({key:'respublica_language',newValue:'xx'});
+ assert.equal(engine.language,'ko');
+});
