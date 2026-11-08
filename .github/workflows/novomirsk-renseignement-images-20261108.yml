@@ -1,0 +1,105 @@
+name: Novomirsk renseignement - images trois salles
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/novomirsk-renseignement-images-20261108.yml'
+permissions:
+  contents: write
+jobs:
+  installer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verifier, convertir et integrer uniquement les trois images de Novomirsk
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          root=Path('images/Sovarka/Novomirsk')
+          files=[
+            ('Novomirsk_direction renseignement_hall.png','Novomirsk_renseignement_accueil.webp',2455105,'accueil_renseignement'),
+            ('Salle d’e\u0301coute te\u0301le\u0301phonique de Novomirsk.png','Novomirsk_renseignement_ecoutes.webp',2379232,'salle_ecoutes'),
+            ('Novomirsk_agence renseignement_salle interrogatoire.png','Novomirsk_renseignement_interrogatoire.webp',2320521,'salle_interrogatoire_renseignement')
+          ]
+          for src,dst,bytes_expected,room in files:
+            source=root/src
+            if not source.is_file() or source.stat().st_size!=bytes_expected:
+              raise SystemExit('Source absente ou differente: '+repr(str(source)))
+            if (root/dst).exists():
+              raise SystemExit('Cible WebP deja existante: '+dst)
+          data=Path('data.js')
+          code=data.read_text(encoding='utf-8')
+          before="""        'siege-renseignement': {
+            name: "Direction du Renseignement de Sovarka",
+            imagesAVenir: true,"""
+          # Conserver le contexte PNJ existant : ajouter uniquement les 3 surcharges graphiques.
+          anchor="""        'siege-renseignement': {
+          name: "Direction du Renseignement de Sovarka",
+          imagesAVenir: true,
+          desc: "Un bloc de béton sans enseigne, aux fenêtres opaques. Chacun à Novomirsk sait ce qu'il abrite ; personne n'en parle à voix haute.",
+          persons: [{name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'}]
+        },"""
+          replacement="""        'siege-renseignement': {
+          name: "Direction du Renseignement de Sovarka",
+          desc: "Un bloc de béton sans enseigne, aux fenêtres opaques. Chacun à Novomirsk sait ce qu'il abrite ; personne n'en parle à voix haute.",
+          persons: [{name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'}],
+          // Les images des 3 salles sont propres a Novomirsk, sans toucher aux
+          // ordres, aux PNJ, aux permissions et aux autres empires.
+          roomOverrides: {
+            accueil_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_accueil.webp' },
+            salle_ecoutes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_ecoutes.webp' },
+            salle_interrogatoire_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_interrogatoire.webp' }
+          }
+        },"""
+          if code.count(anchor)!=1:
+            raise SystemExit('Ancrage unique Direction du Renseignement introuvable. Aucun fichier supprime.')
+          # Valider les noms de pieces depuis le gabarit commun.
+          building=code[code.index("  'siege-renseignement': {"):code.index("  'qhs-prison': {")]
+          for _,_,_,room in files:
+            if building.count('      '+room+': {')!=1:
+              raise SystemExit('Salle non declaree dans le socle: '+room)
+          for src,dst,bytes_expected,room in files:
+            with Image.open(root/src) as picture:
+              picture.load()
+              dims=picture.size
+              if dims[0]<1000 or dims[1]<600:
+                raise SystemExit('Taille suspecte: '+src)
+              picture.convert('RGB').save(root/dst,'WEBP',quality=92,method=6)
+            with Image.open(root/dst) as check:
+              assert check.format=='WEBP' and check.size==dims
+              check.verify()
+            if (root/dst).stat().st_size>=bytes_expected:
+              raise SystemExit('Compression invalide: '+dst)
+            print('WEBP VALIDE',repr(src),'->',dst,'dimensions',dims,'octets',bytes_expected,'->',(root/dst).stat().st_size)
+          data.write_text(code.replace(anchor,replacement,1),encoding='utf-8')
+          page=Path('plateau.html')
+          html=page.read_text(encoding='utf-8')
+          needle='data.js?v='
+          if html.count(needle)!=1:raise SystemExit('Version du catalogue data.js non unique')
+          start=html.index(needle)+len(needle)
+          end=html.index('"',start)
+          page.write_text(html[:end]+'-novomirsk-renseignement-20261108'+html[end:],encoding='utf-8')
+          for src,dst,_,room in files:
+            (root/src).unlink()
+            assert not (root/src).exists() and (root/dst).exists()
+          newdata=data.read_text(encoding='utf-8')
+          for src,dst,_,room in files:
+            assert newdata.count('images/Sovarka/Novomirsk/'+dst)==1
+          print('OK: 3 WebP, 3 PNG retires, 3 roomOverrides sans mutation gameplay')
+          PY
+          node --check data.js
+          node --check plateau-navigation.js
+          git add -A -- data.js plateau.html images/Sovarka/Novomirsk
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Novomirsk: trois salles du renseignement illustrees en WebP'
+          git push origin HEAD:main
