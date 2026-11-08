@@ -155,6 +155,12 @@
  function bindVisibleLabels(root) {
   for(const node of root?.querySelectorAll?.('[data-rp-order-index]')||[]) {
    if(ordersByNode.has(node))continue;
+   // L'attribut conserve la source pour les fenêtres montées plus tard.
+   if(node.hasAttribute?.('data-rp-order-source')) {
+    const decode=(name)=>decodeURIComponent(node.getAttribute(name)||'');
+    ordersByNode.set(node,{fn:decode('data-rp-order-fn'),label:decode('data-rp-order-source'),i18nKey:decode('data-rp-order-key')});
+    continue;
+   }
    const index=Number(node.getAttribute?.('data-rp-order-index'));
    if(Number.isSafeInteger(index)&&index>=0&&index<renderedOrders.length) {
     const order=renderedOrders[index];
@@ -164,6 +170,7 @@
  }
  function refreshVisibleLabels(root,engine,locale) {
   if(!root || !engine || typeof engine.t!=='function')return;
+  bindVisibleLabels(root);
   const nodes=root.querySelectorAll?.('[data-rp-order-index]')||[];
   for(const node of nodes){
    const index=Number(node.getAttribute?.('data-rp-order-index'));
