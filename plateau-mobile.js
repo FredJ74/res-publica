@@ -181,7 +181,7 @@
   document.querySelectorAll('.modal-overlay,#self-content').forEach(e => tables.observe(e,{childList:true,subtree:true}));
   petit.addEventListener('change',adapterTables); adapterTables();
   // L8 : reprendre par le chargeur existant, jamais par une copie de ses champs.
-  let aRelire = false, reprise = null;
+  let aRelire = false, reprise = null, generationReprise = 0;
   const message = document.createElement('div'); message.id = 'hg-reprise'; message.hidden = true;
   message.setAttribute('role','status');
   const texte = document.createElement('span');
@@ -193,6 +193,7 @@
     if (navigator.onLine === false) { texte.textContent = 'Connexion perdue. Les ordres attendent le retour du serveur.'; return; }
     texte.textContent = 'Vérification de votre personnage auprès du serveur…';
     reessayer.disabled = true;
+    const generation = generationReprise;
     reprise = Promise.resolve().then(async () => {
       let delai, annule = false;
       try {
@@ -206,6 +207,9 @@
           delai = setTimeout(() => { annule = true; loadCharacter.generation = (loadCharacter.generation || 0) + 1; refus(Error('délai dépassé')); },15000);
         })]);
         if (resultat !== true) throw Error('lecture non confirmée');
+        // Une nouvelle suspension peut survenir pendant la lecture (verrouillage,
+        // autre onglet). Sa réponse ne confirme pas cet état plus récent.
+        if (generation !== generationReprise) throw Error('nouvelle synchronisation nécessaire');
         aRelire = false; message.hidden = true;
         // Le listener commun de visibilité conserve déjà les actualisations mail/forum.
         // Pas de seconde paire de lectures ajoutée à chaque retour.
@@ -214,7 +218,7 @@
     });
     await reprise;
   }
-  function suspendre() { if (petit.matches) aRelire = true; }
+  function suspendre() { if (petit.matches) { aRelire = true; generationReprise++; } }
   document.addEventListener('visibilitychange',() => { if (document.hidden) suspendre(); else reprendre(); });
   window.addEventListener('pagehide',suspendre);
   window.addEventListener('pageshow',e => { if (e.persisted) { suspendre(); reprendre(); } });

@@ -25,6 +25,22 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Certification mobile — Codex, 08/11/2026
+
+Branche `codex/mobile-certification-20261108`, issue de main `520630bd` ; correction
+Sovarka existante `bc74ecd6` reprise sans moteur supplémentaire. Deux défauts
+reproduits puis corrigés dans le socle mobile : nouvelle suspension pendant une
+lecture (réponse tardive ne débloque plus l’ordre), et bouton de reconnexion
+inaccessible sous clavier réduit (CSS uniquement). Versions CSS/JS majorées.
+Aucune règle, montant, ordre, migration ou donnée réelle modifié. #377 et moteurs
+Sovarka de Claude intacts ; seule fixture de lecture du tribunal actualisée.
+Rapport `outils/audits/CERTIFICATION-MOBILE-20261108.md`, protocole court iPhone /
+Android dans `RECETTE-PHYSIQUE-MOBILE-20261108.md`. Tests ciblés et contre-épreuves
+avant contrôleur complet ; résultats finaux à consigner. GitHub API et Vercel
+refusés par le proxy : pas de CI, fusion ou déploiement attesté. Le journal réel
+est fermé dans les deux profils sans changer URL, personnage, position ou cache.
+
+
 ### Mobile Sovarka — Codex, 07/11/2026
 
 Branche poussée `codex/mobile-sovarka-20261107`, correction `3d22d795`, dernier

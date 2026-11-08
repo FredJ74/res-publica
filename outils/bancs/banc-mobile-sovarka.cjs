@@ -8,6 +8,7 @@ const temoin=JSON.parse(zlib.gunzipSync(archive));
 assert.equal(temoin.commit,'6e157d093398b658d18e4d7ea49f5c00e731f326');
 const locaux=[{ville:'capitale',batiment:'galeries',piece:'local_1',label:'Galeries du Peuple — local commercial du rez-de-chaussée',loyer:150,plafond:300,origine:'commune'}];
 const fixtures={
+ sovarka_pouvoir_lire:{ok:true,juge_villes:['capitale'],saisines:[]},
  sovarka_droits_lire:{ok:true,moi:'Fixture',ville:'capitale',role:'maire',juge:true,cessions:[],caisseMairie:12345,parametres:{coutLocal:1000,delaiJours:10},locaux,demandes:[{id:'fixture',ville:'capitale',demandeur:'Autre fixture',projet:'Librairie',statut:'en_attente'}],immeubles:[]},
  logements_sociaux_tableau:{ok:true,pays:'soviet',ville:'capitale',appartements:[{terrain:'immeuble',lot:'1',label:'Appartement familial de Novomirsk',loyer:123}],demandes:[]},
  salon_lire:{ok:true,salon:{id:'salon',prixCoupe:20},jour:1},
