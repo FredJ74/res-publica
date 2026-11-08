@@ -24,6 +24,12 @@ métier Sovarka modifié, aucune intervention sur #377.
    bouton de validation, même après demande de défilement. CSS mobile uniquement :
    conteneur défilant, hauteur visible existante, champs 16 px et boutons 44 px.
    Aucun changement des identifiants, de l’authentification ou des messages.
+3. **Reconnexion interceptée par la garde métier.** Après une reprise refusée,
+   les clics et le submit du vrai formulaire d’authentification étaient aussi
+   bloqués. La garde laisse maintenant passer uniquement ce conteneur existant,
+   comme son propre bouton de reprise. Le chargeur doit toujours confirmer l’état
+   avant le prochain ordre : le test vérifie authentification et restauration,
+   puis un premier clic encore suspendu, sans aucun ordre rejoué.
 
 Témoins compressés publics, issus de code public, vérifiés par SHA-256 :
 `fixtures/mobile-certification-temoin-520630bd.json.gz` →
@@ -53,6 +59,11 @@ Nouveau banc : `outils/bancs/banc-mobile-certification.cjs`. Profils Chromium
 ne signifient pas qu’un iPhone ou Android physique a été testé. Les formats
 375×667, 393×852, 412×915, 852×393, 768×1024 et Sovarka 360/390/768 sont conservés.
 
+Pour la comparaison stricte bureau, les animations et transitions décoratives
+sont figées identiquement des deux côtés. Un écart intermittent de deux rangées
+de pixels de bordure du bouton flottant a été observé avant cette stabilisation.
+Aucun masque, retrait de zone ni tolérance de pixels n’est utilisé.
+
 ## Résultats
 
 Résultats définitifs à consigner après les derniers contrôles.
@@ -66,6 +77,9 @@ confirmées par Git, pas par une prétendue lecture API.
 `HEAD https://res-publica.vercel.app/plateau.html` échoue au tunnel CONNECT,
 HTTP 403 Envoy. Ce refus **ne prouve aucune panne Vercel** et ne fournit aucun
 statut READY, SHA servi ou mesure réseau. Aucun déploiement de test déclenché.
+Création REST de PR tentée après le premier push :
+`POST /repos/FredJ74/res-publica/pulls` → `Forbidden`.
+Branche sauvegardée ; pas de PR créée ou fusionnée depuis cette session.
 
 Ni compte recréé, ni secret consulté, ni migration, ni écriture en production.
 Le protocole physique court est `RECETTE-PHYSIQUE-MOBILE-20261108.md`.

@@ -227,7 +227,9 @@
   window.addEventListener('storage',e => { if (e.key?.startsWith('respublica_')) suspendre(); });
   reessayer.addEventListener('click',reprendre);
   function garderOrdre(e) {
-    if (!petit.matches || !aRelire || e.target.closest('#hg-reprise')) return;
+    // L’authentification doit rester utilisable pendant que les ordres sont
+    // suspendus ; elle ne rejoue ni ne débloque elle-même aucune commande métier.
+    if (!petit.matches || !aRelire || e.target.closest('#hg-reprise,#bandeau-reconnexion')) return;
     if (e.type === 'click' && !e.target.closest('button,[onclick],a')) return;
     e.preventDefault(); e.stopImmediatePropagation(); reprendre();
     // Aucune répétition automatique du clic après réconciliation.

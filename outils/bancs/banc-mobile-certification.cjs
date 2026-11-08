@@ -131,8 +131,20 @@ test('Bureau 1440 : rendu strictement identique au main de certification', () =>
   await avant.locator('link[rel=stylesheet]').evaluateAll(es => es.forEach(e => e.remove()));
   for (const fichier of ['style.css', 'rue-centrale.css']) await avant.addStyleTag({ content: temoin.fichiers[fichier] });
   const apres = await page(b, o, 1440, 900);
+  // Fixer les décorations animées au même état dans les deux contextes.
+  // La comparaison reste intégrale, sans masque ni tolérance de pixels.
+  for (const p of [avant, apres]) {
+    await p.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' });
+    await p.evaluate(() => document.fonts.ready);
+  }
   await avant.waitForTimeout(300);
-  assert.ok((await avant.screenshot({ animations: 'disabled', caret: 'hide' })).equals(await apres.screenshot({ animations: 'disabled', caret: 'hide' })));
+  const ancienPng = await avant.screenshot({ animations: 'disabled', caret: 'hide' });
+  const nouveauPng = await apres.screenshot({ animations: 'disabled', caret: 'hide' });
+  if (!ancienPng.equals(nouveauPng)) {
+    fs.writeFileSync('/tmp/mobile-certification-bureau-avant.png', ancienPng);
+    fs.writeFileSync('/tmp/mobile-certification-bureau-apres.png', nouveauPng);
+  }
+  assert.ok(ancienPng.equals(nouveauPng), 'pixels du plateau bureau identiques');
   await formulaireReconnexion(avant, false);
   await formulaireReconnexion(apres, false);
   assert.ok((await avant.screenshot({ animations: 'disabled', caret: 'hide' })).equals(await apres.screenshot({ animations: 'disabled', caret: 'hide' })), 'reconnexion bureau inchangée');
@@ -201,4 +213,38 @@ for (const profil of profils) test(`${profil.nom} : accueil, connexion refusée 
   await p.waitForURL('**/plateau.html');
   assert.equal(await p.evaluate(() => localStorage.getItem('respublica_last_char')), 'Fixture mobile');
   assert.equal(await p.evaluate(() => JSON.parse(localStorage.getItem('respublica_char')).name), 'Fixture mobile');
+}));
+
+for (const profil of profils) test(`${profil.nom} : la garde de reprise laisse fonctionner le vrai formulaire d’authentification`, () => avecJeu(async (b, o) => {
+  const p = await telephone(b, o, profil);
+  await preparerReprise(p);
+  await p.evaluate(() => finLecture(false));
+  await p.waitForFunction(() => document.getElementById('hg-reprise').textContent.includes('État non confirmé'));
+  await formulaireReconnexion(p);
+  assert.equal(await p.locator('#bandeau-reconnexion form').count(), 1, 'la reconnexion doit rester accessible malgré le verrou métier');
+  await p.evaluate(() => {
+    window.appelsAuth = 0; window.restaurations = 0; window.REPLI_COMPTE_TENTE = true;
+    window.rpAuthSeConnecter = async () => { appelsAuth++; return { ok: true }; };
+    window.recupererPersonnageDuCompte = async () => { restaurations++; return true; };
+  });
+  await p.locator('#bandeau-reconnexion input[type=password]').fill('mot-de-passe-fixture');
+  await p.locator('#bandeau-reconnexion button[type=submit]').tap();
+  await p.waitForFunction(() => !document.getElementById('bandeau-reconnexion'));
+  assert.equal(await p.evaluate(() => appelsAuth), 1);
+  assert.equal(await p.evaluate(() => restaurations), 1);
+  assert.equal(await p.evaluate(() => ordres), 0);
+  await p.locator('#ordre-certification').click();
+  await p.waitForFunction(() => lectures === 2);
+  assert.equal(await p.evaluate(() => ordres), 0, 'authentification ne contourne pas la relecture avant un ordre');
+
+}));
+
+test('Contre-épreuve : la garde main empêchait même d’ouvrir la reconnexion', () => avecJeu(async (b, o) => {
+  const p = await telephone(b, o, profils[0], true);
+  await preparerReprise(p);
+  await p.evaluate(() => finLecture(false));
+  await p.waitForFunction(() => document.getElementById('hg-reprise').textContent.includes('État non confirmé'));
+  await formulaireReconnexion(p);
+  assert.equal(await p.locator('#bandeau-reconnexion form').count(), 0);
+  assert.equal(await p.evaluate(() => ordres), 0);
 }));
