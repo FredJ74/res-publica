@@ -186,7 +186,76 @@
     "bureau_maire_adjoint": "Büro des stellvertretenden Bürgermeisters"
   }
 };
+ const governmentRoomIds=new Set(Object.keys(localized.fr));
+ // Palais diplomatique de Novomirsk uniquement : noms des salles, jamais les
+ // accès des ambassadeurs ou les décisions serveur.
+ const embassies={
+  "fr": {
+   "accueil_ambassades_novomirsk": "Accueil du Palais des Ambassades",
+   "salle_reception": "Salle de Réception",
+   "bureau_republia_novomirsk": "Ambassade de Républia",
+   "bureau_khalija_novomirsk": "Ambassade d'Al-Khalija",
+   "bureau_estado_novomirsk": "Ambassade d'El Estado"
+  },
+  "en": {
+   "accueil_ambassades_novomirsk": "Embassies Palace Reception",
+   "salle_reception": "Reception Hall",
+   "bureau_republia_novomirsk": "Embassy of Republia",
+   "bureau_khalija_novomirsk": "Embassy of Al-Khalija",
+   "bureau_estado_novomirsk": "Embassy of El Estado"
+  },
+  "es": {
+   "accueil_ambassades_novomirsk": "Recepción del Palacio de las Embajadas",
+   "salle_reception": "Sala de recepciones",
+   "bureau_republia_novomirsk": "Embajada de Republia",
+   "bureau_khalija_novomirsk": "Embajada de Al-Khalija",
+   "bureau_estado_novomirsk": "Embajada de El Estado"
+  },
+  "zh-TW": {
+   "accueil_ambassades_novomirsk": "大使館宮殿接待廳",
+   "salle_reception": "外交接待廳",
+   "bureau_republia_novomirsk": "雷普布利亞大使館",
+   "bureau_khalija_novomirsk": "哈利賈大使館",
+   "bureau_estado_novomirsk": "埃爾埃斯塔多大使館"
+  },
+  "ru": {
+   "accueil_ambassades_novomirsk": "Приёмная Дворца посольств",
+   "salle_reception": "Зал приёмов",
+   "bureau_republia_novomirsk": "Посольство Републии",
+   "bureau_khalija_novomirsk": "Посольство Аль-Халиджи",
+   "bureau_estado_novomirsk": "Посольство Эль-Эстадо"
+  },
+  "ko": {
+   "accueil_ambassades_novomirsk": "대사관 궁전 안내실",
+   "salle_reception": "외교 연회장",
+   "bureau_republia_novomirsk": "레푸블리아 대사관",
+   "bureau_khalija_novomirsk": "알 칼리자 대사관",
+   "bureau_estado_novomirsk": "엘 에스타도 대사관"
+  },
+  "ar": {
+   "accueil_ambassades_novomirsk": "استقبال قصر السفارات",
+   "salle_reception": "قاعة الاستقبال الدبلوماسي",
+   "bureau_republia_novomirsk": "سفارة ريبوبليا",
+   "bureau_khalija_novomirsk": "سفارة الخليج",
+   "bureau_estado_novomirsk": "سفارة إل إستادو"
+  },
+  "pt-BR": {
+   "accueil_ambassades_novomirsk": "Recepção do Palácio das Embaixadas",
+   "salle_reception": "Salão de recepções",
+   "bureau_republia_novomirsk": "Embaixada de Republia",
+   "bureau_khalija_novomirsk": "Embaixada de Al-Khalija",
+   "bureau_estado_novomirsk": "Embaixada de El Estado"
+  },
+  "de": {
+   "accueil_ambassades_novomirsk": "Empfang im Botschaftspalast",
+   "salle_reception": "Empfangssaal",
+   "bureau_republia_novomirsk": "Botschaft von Republia",
+   "bureau_khalija_novomirsk": "Botschaft von Al-Khalija",
+   "bureau_estado_novomirsk": "Botschaft von El Estado"
+  }
+ };
  for(const [locale,labels] of Object.entries(mairie)) Object.assign(localized[locale],labels);
+ for(const [locale,labels] of Object.entries(embassies)) Object.assign(localized[locale],labels);
  const expected=localized.fr;
  for(const [locale,labels] of Object.entries(localized)){
   if(resources[locale]?.translation)
@@ -198,7 +267,9 @@
   if(buildingId==='mairie') {
    if(!Object.hasOwn(mairie.fr,roomId)||original!==mairie.fr[roomId])return original;
   } else if(buildingId==='palais-gouvernement') {
-   if(!Object.hasOwn(expected,roomId)||original!==expected[roomId])return original;
+   if(!governmentRoomIds.has(roomId)||original!==expected[roomId])return original;
+  } else if(buildingId==='palais-ambassades-novomirsk') {
+   if(!Object.hasOwn(embassies.fr,roomId)||original!==embassies.fr[roomId])return original;
   } else return original;
   const locale=global.RPPlateauI18n?.language?.()||'fr';
   const translated=global.i18next?.t?.('rooms.'+roomId,{lng:locale,defaultValue:original});
