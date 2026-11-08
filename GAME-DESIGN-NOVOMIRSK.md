@@ -189,6 +189,7 @@ Sovarka n'a pas le circuit de la Républia (président → Premier ministre → 
 - **Autocritique publique** : bureau du Président du Conseil (1 PA), publiée au forum national. Vote de confiance et préemption fermés en Sovarka.
 - **Coûts en PA confirmés par Fred (08/11/2026)** : dépôt de loi 1, saisine 1, autocritique 1, manifestation 1 par manifestant ; émargement, approbation et conscription gratuits.
 - **Registre des signalements de la cellule Balatov (décision de Fred, 08/11/2026)** : dossier consultable, **sans effet automatique** — lisible par le Président du Conseil et le ministre de la Sécurité du Peuple (ordre « Registre des signalements » dans leurs bureaux) ; les PJ en font usage (révocation, pression, saisine…). « Produire une fuite » aux Archives propose désormais deux pièces : le dernier sondage truqué, ou le registre (signalements des 30 derniers jours, publié au forum national ; acte illégal tracé).
+- **Surveillance d'un citoyen (décisions de Fred, 08/11/2026)** — seul ajout propre à la Sécurité du Peuple (indicateurs et passeport intérieur écartés par Fred). Ordre « Placer sous surveillance » au bureau du ministre : **4 jours**, **2 PA** au ministre, **150 PSK** sur la caisse du ministère. **Rapport garanti chaque matin**, par courrier et consultable au bureau : **tous les déplacements** de la cible et **les PJ croisés** dans chaque lieu ; hors de Sovarka, « hors du territoire ». **Risque de découverte** chaque nuit, selon la **perception** et l'**intelligence** de la cible et la **sécurité de la ville** (10 % + 1,5 × (PER − 10) + 0,5 × (INT − 10) − (ISN − 30) / 5, borné 2-40 % ; ≈ 1 chance sur 3 sur 4 jours pour un personnage moyen) : la cible reçoit un courrier anonyme (« impression d'être suivi »), sans savoir qui ni pourquoi, et la surveillance continue. **Toute cible**, ministres et Président compris. **3 surveillances simultanées** au plus, une seule par cible. Code : migrations `20261108180000_sovarka_surveillance` et `20261108180100_sovarka_surveillance_portes` (appliquées), `sovarka_surveillance_commande` / `_lire`, rapports dans `sovarka_pouvoir_passe` ; écran `plateau-sovarka-pouvoir.js`.
 
 ## Partis de Sovarka (décisions de Fred, 07/11/2026)
 
@@ -205,3 +206,23 @@ Sovarka n'a pas le circuit de la Républia (président → Premier ministre → 
 ## Règle des noms de PNJ de Sovarka (Fred, 07/11/2026)
 
 Noms russes authentiques (bouriates à Starovka), sans jeu de mots français. Exceptions : sept figures satiriques (Innokenti Partiïev, Zinaïda Propagandova, Rostislav Censurov, Raïssa Communiqueva, Macha Scoopova, Pavel Pistonov, Dimitri Compassov) ; les noms choisis par Fred ; les noms bâtis sur un mot russe (Smetanine, Blinova, Vodkaïev, Sévérov…). Tout nouveau PNJ de Sovarka suit cette règle. Le renommage du 07/11 a appliqué le tableau validé par Fred (75 noms, voir l'historique Git).
+
+## Palais présidentiel de Sovarka (décisions de Fred, 08/11/2026)
+
+- **Députés** : pas de bâtiment dédié, ils se réunissent dans la salle de réunion du Palais du Gouvernement (acté).
+- **Bâtiment propre à la présidence**, le **Palais présidentiel** (nom choisi par Fred), à côté du Palais du Gouvernement ; il remplace, sur la vue 10 revisitée par Fred (rue du Tribunal), l'ancien palais incohérent près de la gare. Id du socle `palais-presidentiel` (ex-« Palais du Parti », qui n'avait aucune entrée dans les rues). Le président n'a presque aucun pouvoir : ses appartements sont « presque une prison ouverte ».
+- **Quatre pièces** : hall d'entrée, appartements du Président, salle de restaurant, musée présidentiel. Bureau et salle de presse du socle retirés.
+- **Hall** : chef du protocole **Konstantin Lvovitch Orlov** (nom proposé par Claude, validé par Fred). **Aucun garde** ne protège le président.
+- **Appartements** : logement de fonction **gratuit** ; le président qui y dort gagne **+1 PA** chaque nuit (bonus quotidien, seulement s'il dort dans ses appartements). On n'y entre que **groupé au président**.
+- **Salle de restaurant** : on n'y entre que **groupé au président**. Le repas quotidien du président y est servi (et non plus dans les appartements) ; **repas du président gratuit** ; il peut inviter **plusieurs** personnes, **60 PSK par invité**, payés par la caisse présidentielle, tant qu'elle a assez d'argent. Effets du dîner d'affaires pour chacun (décision du 07/11).
+- **Musée présidentiel** : entrée **8 PSK**, versés à la caisse présidentielle ; **le président entre gratuitement** (Fred, 08/11). Figures (présidents fictifs) écrites par Claude, à la relecture de Fred.
+- **Caisse présidentielle** (`soviet_palais-presidentiel`) : alimentée par la ligne « Présidence » de la répartition budgétaire (3 %, inchangée) ; elle paie le **salaire du président, ramené de 800 à 600 PSK**, et les repas des invités.
+
+### Ce qui est codé (08/11/2026, branche `claude/palais-presidentiel-sovarka-20261108`)
+
+- Zone cliquable sur la vue 10, entrée serveur `rue_sorties_batiments` (novomirsk-vue-10).
+- Billet du musée : ordre « Billet du musée présidentiel » au hall (8 PSK, valable jusqu'à minuit, `sovarka_musee_billet`) ; sans billet, la porte du musée refuse. Le billet s'achète une fois par jour, chaque visiteur prend le sien ; le président entre sans billet.
+- Accès réservés : garde serveur dans la navigation intérieure (`sovarka_palais_acces_interne`) — restaurant et appartements ouverts au président et aux membres de son groupe (le président est chef du groupe).
+- Repas : `sovarka_repas_presidentiel(requete, invites[])`, refus nommé « caisse insuffisante » avec le nombre d'invités possibles.
+- Repos : `pa_repos_nocturne` ajoute +1 PA au président élu qui dort dans ses appartements (Dormir ordinaire, passé dans la pièce).
+- L'ordre « Solliciter une audience » du hall est hérité du socle (courrier au président).

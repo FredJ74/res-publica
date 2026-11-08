@@ -122,6 +122,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-couverture.cjs
       - name: Pont passif du plateau
         run: node --test outils/bancs/banc-i18n-pont-plateau.cjs
+      - name: Activation beta et garde de traduction privee
+        run: node --test outils/bancs/banc-i18n-beta-activation.cjs
       - name: Ressources multilingues du plateau
         run: node --test outils/bancs/banc-i18n-plateau-ressources.cjs
       - name: Raccordement des libellés du plateau
