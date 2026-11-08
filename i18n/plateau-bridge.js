@@ -18,6 +18,9 @@
     }) || null;
   }
   function language() {
+    // Mise en bêta fermée par défaut : les catalogues existent, mais le plateau
+    // reste en français tant que l'ouverture multilingue n'est pas autorisée.
+    if(global.RP_I18N_GAME_ENABLED !== true)return 'fr';
     // Le moteur est la source unique APRÈS initialisation : changer de langue
     // dans la session ne doit pas laisser menus et dialogues en désaccord.
     const active=global.i18next?.language;
