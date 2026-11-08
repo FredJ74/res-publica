@@ -26,6 +26,7 @@ const SOV_MOTIFS = {
   reserve_repreneur: 'Seul le repreneur peut accepter.',
   cedant_plus_exploitant: 'Le cédant n’exploite plus ce commerce : cession annulée.',
   motif_invalide: 'Indiquez un motif (3 à 300 caractères).',
+  saisine_requise: 'Le juge ne retire un droit que sur saisine du ministre de la Justice prolétarienne.',
   local_non_exploite: 'Ce commerce n’est exploité par personne.',
   pa_insuffisants: 'Pas assez de points d’action.'
 };
@@ -286,21 +287,30 @@ function sovarkaComposition(c) {
 
 // ----------------------------------------------------------------------------- Tribunal
 async function ouvrirSovarkaRetirerDroit() {
-  const l = await sovLire();
-  if (!l) { showToast('Tribunal', 'Lecture impossible auprès du serveur.', false); return; }
-  if (!l.juge) { vehModal('Retirer un droit d’exploiter', '<p>' + SOV_MOTIFS.reserve_juge + '</p>'); return; }
-  const exploites = l.locaux.filter(x => x.ville === l.ville && x.exploitant);
-  let html = '<p class="cpj-note">Le droit retiré revient à l’État, sans indemnité. L’exploitant est prévenu par courrier.</p>' +
-    '<input class="cpj-champ" id="sov-motif" maxlength="300" placeholder="Motif de la décision" style="width:100%">';
-  html += exploites.length ? exploites.map(x => sovSection(sovEsc(x.label), '<p>Exploitant : ' + sovEsc(x.exploitant) + '</p>' +
-    sovBouton('Retirer le droit (1 PA)', "sovarkaRetirer('" + sovJs(x.batiment) + "','" + sovJs(x.piece) + "')", true))).join('')
-    : '<p>Aucun commerce exploité dans cette ville.</p>';
-  vehModal('Retirer un droit d’exploiter', html);
+  // Décision de Fred (08/11/2026) : le juge ne retire un droit que sur saisine du ministre de la
+  // Justice prolétarienne ; il décide librement (retirer ou rejeter).
+  const l = (typeof sovPouvoirLire === 'function') ? await sovPouvoirLire() : null;
+  if (!l) return;
+  if (!(l.juge_villes || []).includes(state.currentCity)) { vehModal('Saisines du ministre', '<p>' + SOV_MOTIFS.reserve_juge + '</p>'); return; }
+  const saisines = (l.saisines || []).filter(x => x.statut === 'en_attente' && x.ville === state.currentCity);
+  let html = '<p class="cpj-note">Le ministre de la Justice prolétarienne vous saisit. Le droit retiré revient à l’État, sans indemnité ; '
+    + 'l’exploitant est prévenu par courrier. Vous pouvez aussi rejeter la saisine.</p>'
+    + '<input class="cpj-champ" id="sov-motif" maxlength="300" placeholder="Motif de la décision" style="width:100%">';
+  html += saisines.length ? saisines.map(x => sovSection(sovEsc(x.exploitant || '?'),
+    '<p>Commerce : ' + sovEsc(x.batiment) + ' · ' + sovEsc(x.piece) + '</p><p class="cpj-note">Motif du ministre : ' + sovEsc(x.motif) + '</p>' +
+    sovBouton('Retirer le droit (1 PA)', "sovarkaRetirer('" + sovJs(x.batiment) + "','" + sovJs(x.piece) + "')", true) +
+    sovBouton('Rejeter la saisine', 'sovarkaRejeterSaisine(' + Number(x.id) + ')', false))).join('')
+    : '<p>Aucune saisine en attente.</p>';
+  vehModal('Saisines du ministre', html);
 }
 function sovarkaRetirer(batiment, piece) {
   const motif = (document.getElementById('sov-motif')?.value || '').trim();
   sovActe('sovarka_droit_retirer', { p_ville: state.currentCity, p_batiment: batiment, p_piece: piece, p_motif: motif },
     'Droit retiré', v => v.local + ' revient à l’État.', ouvrirSovarkaRetirerDroit);
+}
+function sovarkaRejeterSaisine(id) {
+  if (typeof sovPouvoirActe === 'function')
+    sovPouvoirActe('juge_rejeter', { saisine: id }, 'Saisine', 'Saisine rejetée : le ministre est prévenu.', ouvrirSovarkaRetirerDroit);
 }
 
 // ----------------------------------------------------------------------------- Terrains

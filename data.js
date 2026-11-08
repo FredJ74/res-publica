@@ -1976,20 +1976,31 @@ const WORLD = {
           name: 'Palais du Gouvernement de Sovarka',
           desc: 'Le vrai pouvoir de Sovarka. Chaque décision est votée à l\'unanimité — le Parti ne connaît pas le désaccord.',
           // Intitulés de Sovarka (Fred, 07/11/2026, « Organisation du pouvoir en Sovarka ») ;
-          // toutes les pièces illustrées par Fred (08/11/2026).
+          // toutes les pièces illustrées par Fred (08/11/2026) ; ordres propres à Sovarka : GAME-DESIGN-NOVOMIRSK.md.
           roomOverrides: {
             hall: {
               imageUrl: 'images/Sovarka/Novomirsk/Novo_palais_hall.webp'
             },
-            bureaux:        { name: 'Bureau du Président du Conseil du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_bureau_president.webp' },
-            salle_conseil:  { name: 'Salle du Conseil du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_conseil.webp' },
+            bureaux:        { name: 'Bureau du Président du Conseil du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_bureau_president.webp',
+                              // Décisions de Fred (08/11/2026) : pas de vote de confiance, l'autocritique publique le remplace ;
+                              // le Président du Conseil tranche seul les projets de loi des partis.
+                              excludeOrders: ['declencher_vote_confiance'],
+                              orders: [{ fn: 'sovarka_lois_examen', label: 'Projets de loi à trancher', pa: 0, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, desc: "Les projets déposés par les partis. Vous tranchez seul ; une loi acceptée est promulguée aussitôt." },
+                                       { fn: 'sovarka_autocritique', label: 'Autocritique publique', pa: 1, cost: 0, type: 'legal', icon: 'ti-speakerphone', successRate: 100, desc: "Contraindre un ministre à une autocritique publiée dans la presse : il perd 5 POP, vous en gagnez 2. Une fois par ministre et par semaine." }] },
+            salle_conseil:  { name: 'Salle du Conseil du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_conseil.webp',
+                              orders: [{ fn: 'sovarka_seance', label: 'Séance du jeudi', pa: 0, cost: 0, type: 'legal', icon: 'ti-checkbox', successRate: 100, desc: "Les députés, convoqués chaque jeudi, émargent puis approuvent les lois promulguées ou s'abstiennent (abstention signalée, −5 POP au parti). Absent : indemnité perdue pour la semaine." }] },
             salle_presse:   { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_presse.webp' },
             archives_gouv:  { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_archives.webp' },
-            bureau_min_int: { name: 'Bureau - Ministre de la Sécurité du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_securite.webp' },
-            bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_economie.webp' },
-            bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_justice.webp' },
-            bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_defense.webp' },
-            bureau_min_info:{ name: 'Bureau - Ministre de la Vérité officielle', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_information.webp' },
+            bureau_min_int: { name: 'Bureau - Ministre de la Sécurité du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_securite.webp',
+                              excludeOrders: ['lois_votees_an'] },
+            bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_economie.webp',
+                              excludeOrders: ['preempter_entreprise'] },
+            bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_justice.webp',
+                              orders: [{ fn: 'sovarka_saisir_juge', label: 'Saisir le juge', pa: 1, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, desc: "Vous seul saisissez le juge pour retirer un droit d'exploiter. Juge PNJ : retrait automatique ; juge PJ : décision libre." }] },
+            bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_defense.webp',
+                              orders: [{ fn: 'sovarka_conscription', label: 'Conscription', pa: 0, cost: 0, type: 'legal', icon: 'ti-military-rank', successRate: 100, desc: "Décréter ou lever la conscription des citoyens sans poste : 48 heures pour se présenter, sinon réfractaires et recherchés." }] },
+            bureau_min_info:{ name: 'Bureau - Ministre de la Vérité officielle', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_information.webp',
+                              orders: [{ fn: 'sovarka_sondages', label: 'Sondages en attente', pa: 0, cost: 0, type: 'legal', icon: 'ti-chart-bar', successRate: 100, desc: "Les sondages reçus : publier tel quel, publier faussé ou enterrer." }] },
             bureau_min_ae:  { name: "Bureau - Ministre de l'Amitié entre les Peuples", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_diplomatie.webp' }
           },
           persons: []
@@ -2125,7 +2136,9 @@ const WORLD = {
           roomOverrides: {
             armurerie_militaire: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_armurerie.webp' },
             salle_faits_armes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_salle_honneur.webp' },
-            corps_garde: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_hall.webp', persons: [{name: 'Adjudant Piotr Antipov (PNJ)', role: 'PNJ - Aide de camp', rel: 'friendly', job: 'aide_de_camp', profilId: 'piotr_antipov'}] },
+            corps_garde: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_hall.webp', persons: [{name: 'Adjudant Piotr Antipov (PNJ)', role: 'PNJ - Aide de camp', rel: 'friendly', job: 'aide_de_camp', profilId: 'piotr_antipov'}],
+              // Conscription (Fred, 08/11/2026) : le conscrit se présente ici dans les 48 heures.
+              orders: [{ fn: 'sovarka_conscrit_presenter', label: 'Se présenter (conscription)', pa: 1, cost: 0, type: 'legal', icon: 'ti-user-check', successRate: 100, desc: "Répondre à l'ordre de conscription : votre engagement est enregistré à la caserne. Passé 48 heures, vous êtes réfractaire et recherché." }] },
             infirmerie: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_infirmerie.webp', persons: [{name: 'Infirmière Olga Komarova (PNJ)', role: 'PNJ - Infirmière militaire', rel: 'neutral', job: 'infirmier_mil', profilId: 'olga_komarova'}] },
             salle_commandement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_salle_commandement.webp', persons: [{name: 'Commandant Igor Saveliev', role: 'PNJ - Commandant de la Caserne', rel: 'neutral',
               job: 'commandant', resteApresPourvoi: true,
@@ -7436,7 +7449,7 @@ const BUILDINGS = {
         name: "La Grange Sainte",
         imageBg: "linear-gradient(135deg,#080808,#0f0f08)",
         desc: "La grange principale du culte. Un tracteur trône au centre, entouré de bougies.",
-        imageUrl: "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=1200&q=80",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_cathedrale_accueil.webp",
         persons: [
           {name:'Camarade Pontife Tractorenko (PNJ)', role:'Grand Prêtre du Tractorisme', rel:'neutral', job:'grand_pretre'},
           {name:'Frère Kolkhoze (PNJ)', role:'PNJ - Enfant de chœur laborieux', rel:'neutral', job:'clerc'}
@@ -10349,8 +10362,8 @@ function slugPnjSovarka(nom) {
         'Réservé au maire (à défaut l\'adjoint, à défaut le ministre de l\'Économie collective) : accepter les demandes, attribuer les locaux, fixer les loyers (dans le plafond de chaque local) et le type des immeubles collectifs.')
     ]);
     ajouter(surcharge(ville, capitale ? 'tribunal' : 'tribunal-local', 'bureau_magistrats'), [
-      ordre('sovarka_retirer_droit', 'Retirer un droit d\'exploiter', 1, 'ti-gavel',
-        'Réservé au juge : retirer à un PJ son droit d\'exploiter. Le commerce revient à l\'État, sans indemnité.')
+      ordre('sovarka_retirer_droit', 'Saisines du ministre', 1, 'ti-gavel',
+        'Réservé au juge : sur saisine du ministre de la Justice prolétarienne, retirer un droit d\'exploiter (le commerce revient à l\'État, sans indemnité) ou rejeter la saisine.')
     ]);
     const locaux = { 'centre-commercial': ['vitrine_principale', 'boutique_milieu', 'arriere_boutique', 'cave_reserve'],
                      'centre-artisanal': ['echoppe_facade', 'atelier_milieu', 'reserve_arriere'] };
