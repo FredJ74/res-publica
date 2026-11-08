@@ -37,3 +37,7 @@ introduit dans data.js par 22b37c79. Exclusion par triplet exact, surtout pas pa
 (les autres prix de dîner appartiennent au plan historique). Catalogue **486**,
 photographie **461**, MD5 inchangé. Quatre tests passent, **60 contre-épreuves**
 tarifaires, trois mutations du manifeste. Main réconcilié : 42a7f84d.
+
+## Variante du 8 novembre (greffe de Sovarka)
+
+`casier_mon_extrait` 1/8 : extrait de casier à 8 PSK en Sovarka, variante de tarif du triplet historique 1/100 (même traitement que le dîner 2/100). Déclarée dans les trois préparateurs et le banc de réconciliation, exclue de la projection historique. Photographie historique inchangée (461 lignes, MD5 `0ffc6e1c…`) ; catalogue courant **501**.

@@ -4431,7 +4431,8 @@ function renderRoomActions(room, buildingId, roomId) {
 
   // Greffes : boutons principaux au gabarit standard, sous-ordres dans la modale.
   // Conserver les boutons et handlers originaux, sans modifier les conditions métier.
-  if (state.country === 'republic' && ['tribunal','tribunal-local'].includes(buildingId) && roomId === 'greffe') {
+  // Greffe du Tribunal Populaire de Sovarka : même rangement (Fred, 08/11/2026).
+  if (['republic','soviet'].includes(state.country) && ['tribunal','tribunal-local'].includes(buildingId) && roomId === 'greffe') {
     const familles = [
       {titre:'Consulter les affaires', icone:'ti-folders', fns:['archives','greffe_affaires','greffe_archives','demander_juge_instruction']},
       {titre:'Documents officiels', icone:'ti-file-certificate', fns:['casier_mon_extrait','casier_extrait_enquete','orga_extrait_duplicata']},
@@ -4586,7 +4587,7 @@ function ouvrirMenuOrdresCommissaire(index) {
 function ouvrirMenuOrdresGreffe(index) {
   const groupe = window._greffeOrdresGroupes?.[index];
   if (!groupe || !['tribunal','tribunal-local'].includes(state.currentBuilding) ||
-      state.currentRoom !== 'greffe' || state.country !== 'republic') return;
+      state.currentRoom !== 'greffe' || !['republic','soviet'].includes(state.country)) return;
   const titre = document.getElementById('postes-modal-title');
   const corps = document.getElementById('postes-body');
   const modal = document.getElementById('modal-postes');

@@ -226,3 +226,19 @@ Noms russes authentiques (bouriates à Starovka), sans jeu de mots français. Ex
 - Repas : `sovarka_repas_presidentiel(requete, invites[])`, refus nommé « caisse insuffisante » avec le nombre d'invités possibles.
 - Repos : `pa_repos_nocturne` ajoute +1 PA au président élu qui dort dans ses appartements (Dormir ordinaire, passé dans la pièce).
 - L'ordre « Solliciter une audience » du hall est hérité du socle (courrier au président).
+
+## Greffe du Tribunal Populaire (décisions de Fred, 08/11/2026)
+
+Intention : un sentiment d'enfermement, peu de moyens d'échapper aux règles communes. La justice est vite expédiée.
+
+- **Retirés** : les deux ordres d'avocat (pas de barreau en Sovarka), « Demander à parler à un juge » (quête de Républia), les deux corruptions du greffier, « Falsifier un document » (reste possible ailleurs avec un ordinateur et une imprimante). « Consulter les archives » (liste des jugements) est retiré aussi, doublon des « Archives du greffe » désormais réservées.
+- **Affaires en cours** et **Archives du greffe** : réservées aux commissaires, juges, ministre de la Justice prolétarienne et ministre de la Sécurité du Peuple.
+- **Demander mon extrait de casier** : 1 PA, 8 PSK (caisse du Tribunal Populaire).
+- **Extrait de casier (enquête)** : mêmes autorités, sur n'importe quel habitant de Sovarka, sans affaire en cours ; 1 PA, aucun frais (l'État ne se paie pas lui-même).
+- **Règle commune** : ces ordres ne visent que les habitants de Sovarka ; le casier d'un étranger n'est consultable que s'il a commis une infraction en Sovarka. Le casier lu est celui du pays : seules les condamnations prononcées en Sovarka y figurent.
+- **Duplicata d'un extrait de domiciliation** : quitte le greffe pour la salle des partis, à 7 PSK.
+
+### Ce qui est codé (08/11/2026)
+
+- Écran : surcharge `roomOverrides.greffe` des tribunaux des trois villes de Sovarka (`data.js`, bloc « droits d'exploiter ») ; rangement en menus étendu au Tribunal Populaire (`plateau-politique.js`).
+- Serveur : migration `20261108224500_sovarka_greffe_tribunal_populaire` (appliquée le 08/11) — `sovarka_greffe_autorite_interne`, garde `greffe_sovarka_restreint_v1` dans `justice_affaires_publiques` et `justice_archives_greffe`, prix `greffe_sovarka_prix_v1` dans `casier_mon_extrait`, aiguillage `greffe_sovarka_enquete_v1` de `casier_extrait_enquete` vers `sovarka_casier_extrait_enquete_interne`. Refus nommés : `reserve_autorites_sovarka`, `etranger_hors_juridiction`.

@@ -66,8 +66,9 @@ def preparer(paquet=None):
  if sorted([x for x in source if x['fn'] in {t['fn'] for t in ajouts_sovarka_reunions}],key=lambda x:x['fn'])!=ajouts_sovarka_reunions:
   raise ValueError('Ordres réunions Sovarka absents, dupliques ou mal tarifes')
  # #572 : variante de dîner Sovarka, sans exclure les autres tarifs historiques du même ordre.
- ajouts_diner_sovarka=[{'fn':'diner_affaires','pa':2,'cost':100}]
- if sum(x==ajouts_diner_sovarka[0] for x in source)!=1:
+ # Variantes de tarif de Sovarka (même fn qu'un ordre historique) : dîner 08/11, extrait de casier 8 PSK (08/11).
+ ajouts_diner_sovarka=[{'fn':'diner_affaires','pa':2,'cost':100},{'fn':'casier_mon_extrait','pa':1,'cost':8}]
+ if any(sum(x==v for x in source)!=1 for v in ajouts_diner_sovarka):
   raise ValueError('Dîner Sovarka absent, dupliqué ou mal tarifé')
  # #575 : pouvoir de Sovarka (07/11), deux ordres gratuits hors coupe du plan 97.
  # Partis de Sovarka (07/11, PR #617) : salle des partis, mêmes contrôles.

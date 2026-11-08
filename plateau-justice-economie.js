@@ -14138,6 +14138,8 @@ async function ouvrirAudienceDepuisLaSalle() {
 // fiche d'objet, comme n'importe quel autre objet.
 
 const GREFFE_REFUS = {
+  reserve_autorites_sovarka:     "Réservé aux commissaires, aux juges et aux ministres de la Justice prolétarienne et de la Sécurité du Peuple.",
+  etranger_hors_juridiction:     "Cette personne n'est pas un habitant de Sovarka et n'a commis aucune infraction en Sovarka : son casier n'est pas consultable ici.",
   acteur_non_authentifie:        "Votre personnage n'est pas reconnu par le serveur.",
   personnage_introuvable:        "Votre personnage n'a pas ete retrouve.",
   greffe_indetermine:            "Aucun greffe competent pour cette ville.",
@@ -14291,7 +14293,8 @@ async function doCasierMonExtrait() {
     (v.vierge === true
       ? 'Votre casier est vierge. '
       : 'Votre casier porte ' + (v.condamnations || 0) + ' condamnation(s). ')
-    + 'L\'extrait est dans votre inventaire — 100 FR de frais de greffe.', true);
+    + 'L\'extrait est dans votre inventaire — '
+    + (state.country === 'soviet' ? '8 PSK' : '100 FR') + ' de frais de greffe.', true);
   addJournalEntry('Extrait de casier judiciaire delivre par le greffe.', 'event-neutral');
   updateUI();
 }
@@ -14303,9 +14306,13 @@ function ouvrirCasierExtraitEnquete() {
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">'
     + '<div style="font-size:.78rem;color:#8a8060;line-height:1.6;margin-bottom:.8rem">'
-    + 'Reserve au Juge et au Commissaire de la ville d\'une affaire VIVANTE qui vise cette '
-    + 'personne, et au Procureur de la Republique. Les 100 FR sont payes par la caisse de votre '
-    + 'institution ; 1 PA reste a votre charge. L\'extrait est date et fige.'
+    + (state.country === 'soviet'
+      ? 'Réservé aux commissaires, aux juges et aux ministres de la Justice prolétarienne et de la '
+        + 'Sécurité du Peuple. Tout habitant de Sovarka ; un étranger seulement s\'il a commis une '
+        + 'infraction en Sovarka. 1 PA, aucun frais. L\'extrait est daté et figé.'
+      : 'Reserve au Juge et au Commissaire de la ville d\'une affaire VIVANTE qui vise cette '
+        + 'personne, et au Procureur de la Republique. Les 100 FR sont payes par la caisse de votre '
+        + 'institution ; 1 PA reste a votre charge. L\'extrait est date et fige.')
     + '</div>'
     + '<input id="greffe-casier-nom" type="text" maxlength="80" placeholder="Nom exact de la personne" '
     + 'style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;'
@@ -14330,7 +14337,7 @@ async function confirmerCasierExtraitEnquete() {
   await rafraichirInventaireDepuisServeur();
   showToast('Extrait delivre',
     nom + ' : ' + (v.vierge === true ? 'casier vierge' : (v.condamnations || 0) + ' condamnation(s)')
-    + '. 100 FR preleves sur la caisse de votre institution.', true);
+    + (v.sovarka ? '.' : '. 100 FR preleves sur la caisse de votre institution.'), true);
   addJournalEntry('Extrait de casier de ' + nom + ' verse au dossier d\'enquete.', 'event-neutral');
   updateUI();
 }
