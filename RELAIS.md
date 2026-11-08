@@ -25,6 +25,21 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Tirages écran — complément de reprise, Codex, 08/11
+
+Branche `codex/tirages-ecran-inventaire-20261108`, inventaire source `6de0d3a1`,
+réconciliée avec main `9e1ec47f` sans modification de ses décors. 75 appels
+exécutables : 56 cosmétiques/techniques, 19 décisifs. Deux contre-cas de narration
+exécutés ; aucun tirage cosmétique supprimé. Titre PR prêt : **Inventorier les
+tirages navigateur et distinguer narration et résultats de jeu**. Description :
+« Inventaire exhaustif à la coupe d633524f, classification argumentée, deux tests
+de la négociation narrative ; aucune modification du jeu ni migration. Lots et
+ambiguïtés explicités dans TIRAGES-ECRAN-20261108.md. » Contrôles attendus : bancs
+clients, Workflow, payload. Claude ouvre la PR ; aucune tentative API.
+Le lot dons est sur une branche indépendante ; ne pas considérer les cinq autres
+familles (loge, bénédictions, lobbying, Maxence, football) comme déjà corrigées.
+
+
 ### Tirages décisifs de l’écran — inventaire Codex, 08/11/2026
 
 Branche `codex/tirages-ecran-inventaire-20261108`, départ main `d633524f` (#633).
@@ -945,3 +960,13 @@ Contrôles attendus : CI habituelles, 200 bancs clients, six tests Python ciblé
 les douze globaux (deux rouges bloqués documentés). Ne pas fusionner comme une
 clôture 12/12 avant collecte/rendu conformes. Aucune migration ni écriture en
 production, aucun fichier Sovarka de Claude modifié par cette branche.
+
+### Décisions attendues de Fred — tirages écran, 08/11
+
+- Bénédiction : le bonus expire-t-il exactement 24 h après son attribution,
+  alors que l'ancien code utilisait le compteur local de jours ?
+- Portier de la loge : les appels depuis la rue doivent-ils coûter le même PA
+  que le bouton (1), ou conserver leur coût actuel nul ?
+
+Sources et contradictions dans `outils/audits/TIRAGES-ECRAN-20261108.md`.
+Aucun changement de règle, de coût ou migration appliquée en attendant.

@@ -168,3 +168,53 @@ avec leurs bancs et leur propre rubrique RELAIS ; aucune migration appliquée ic
 Ce document certifie la lecture du code, **pas** l’état réel du catalogue Supabase.
 Aucun fichier Sovarka, montant, ordre ou texte RP modifié. Aucun accès réseau de
 production, aucune migration, fusion ou campagne sur joueur réel.
+
+## Livraison partielle et suites — 08/11
+
+Branche inventaire réconciliée sans conflit avec main `9e1ec47f` (décors Novomirsk
+préservés). La coupe du tableau reste `d633524f`, pour conserver des lignes
+vérifiables. Tests de narration : deux tirages opposés donnent exactement la même
+progression et aucun gain/perte. La variante du promoteur reste cosmétique.
+
+**Lot dons préparé et poussé séparément**, branche
+`codex/tirages-dons-pnj-20261108`, source `f3fab7c6`, preuves `edc59c9c`, intégration
+main `95fb97e7`. Migration `20261108130723_dons_pnj_dis_serveur.sql` non appliquée,
+dépendante du nouvel écran. 93 assertions SQL annulées, deux courses authentifiées,
+rollback/rejeu et deux mutations négatives détectées ; 204 bancs clients avant
+intégration du dernier main. Rapport complet sur cette branche. Le jet DIS est
+retiré de l'écran dans ce lot, pas encore dans le jeu publié.
+
+### Questions réellement non résolues (aucune règle choisie ici)
+
+- **Expiration de la bénédiction** : le texte annonce 24 h mais
+  `doDemanderBenediction` et `doDemanderBenedictionContact` enregistrent
+  `expire=(state.day||1)+1`, consommé avec `state.day<=expire`. Ce n'est pas une
+  échéance réelle. La règle d'horloge commune est acquise ; aucune migration ne
+  doit convertir silencieusement cette durée contradictoire. Préciser l'échéance
+  applicable au bonus, sans changer ses taux ni ses cinq points.
+- **Portier** : `demander_parler_loge` passe 1 PA via le routeur ; les appels sans
+  arguments de `plateau-navigation.js:331,447` passent par les valeurs par défaut
+  zéro de `deduireCoutOrdre`. Les 95 % sont non ambigus, le coût des appels depuis
+  la rue ne l'est pas. Ne pas créer un ordre gratuit ni débiter arbitrairement.
+
+### Raccordements encore à réaliser (pas des blocages d'accès)
+
+- Bénédictions : les sept appels encore présents à `consommerBonusBenediction`
+  concernent vol, arme noire, évasion, enquête, filature, chasse et matériau de
+  chantier. Ils transmettent encore `p_benediction` depuis l'écran. Porter le
+  seul tirage sans consommation serveur permettrait de rejouer le bonus : le lot
+  doit fermer ces chemins ensemble, dans les fonctions existantes.
+- Lobbying : PA prélevés avant le jet, argent seulement au succès, recette de la
+  rédaction, étouffement et publication sont aujourd'hui plusieurs appels. La
+  nouvelle commande devra rendre ce parcours entier atomique, conserver
+  `clamp(round(base+2*(CHA-13)),5,95)` et ne pas se limiter à un RPC « lancer un dé ».
+- Maxence : choix personnel parc/serre 50/50 puis fuite après deux questions ;
+  conserver cette continuité par PJ. Il est classé B par prudence : sa présence
+  est persistante, même si les succès relevés n'accordent aucune jauge.
+- Football : les deux modes, les blessures, le lieu de finale et les effets du
+  championnat restent à porter. Aucun contrôle ni commande fictive ne remplace
+  cette réalisation. Les taux recensés ne sont pas déclarés validés au serveur.
+
+**Chantier global non terminé.** Aucune panne extérieure ne justifie les lots
+encore non implémentés ; ils sont explicitement laissés ouverts. Ni CI distante,
+ni application SQL, ni vérification en production n'est revendiquée.
