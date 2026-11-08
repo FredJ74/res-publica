@@ -290,6 +290,165 @@
    "bureau_commissaire":"Büro des Polizeikommissars","marche_ext":"Marktstände"}
  };
  for(const [locale,labels] of Object.entries(everyday)) Object.assign(localized[locale],labels);
+ // Noms historiques de l'hôtel, des banques, de l'office notarial et de l'université.
+ // Surcharges de texte uniquement sur correspondance exacte salle + bâtiment.
+ const serviceRooms={
+  "fr": {
+   "accueil": "Accueil",
+   "restaurant": "Salle du Restaurant",
+   "bar": "Bar",
+   "chambres": "Chambres",
+   "suite_privee": "Suite Privée — Local à louer",
+   "suite_presidentielle": "Suite Présidentielle — Local à louer",
+   "accueil_banque": "Accueil",
+   "coffre_privatif": "Coffre Privatif — Local à louer",
+   "bureau_prive": "Bureau prive",
+   "accueil_notaire": "Accueil",
+   "bureau_successions": "Bureau des Successions",
+   "bureau_contrats": "Bureau des Contrats",
+   "archives_notariales": "Archives Notariales",
+   "amphi": "Amphitheatre",
+   "salle_reunion": "Salle de Réunion"
+  },
+  "en": {
+   "accueil": "Reception",
+   "restaurant": "Restaurant Dining Room",
+   "bar": "Bar",
+   "chambres": "Guest Rooms",
+   "suite_privee": "Private Suite — Available to rent",
+   "suite_presidentielle": "Presidential Suite — Available to rent",
+   "accueil_banque": "Bank Reception",
+   "coffre_privatif": "Private Safe — Available to rent",
+   "bureau_prive": "Private Office",
+   "accueil_notaire": "Notary Reception",
+   "bureau_successions": "Inheritance Office",
+   "bureau_contrats": "Contracts Office",
+   "archives_notariales": "Notarial Archives",
+   "amphi": "Lecture Hall",
+   "salle_reunion": "Meeting Room"
+  },
+  "es": {
+   "accueil": "Recepción",
+   "restaurant": "Sala del restaurante",
+   "bar": "Bar",
+   "chambres": "Habitaciones",
+   "suite_privee": "Suite privada — Disponible para alquilar",
+   "suite_presidentielle": "Suite presidencial — Disponible para alquilar",
+   "accueil_banque": "Recepción del banco",
+   "coffre_privatif": "Caja fuerte privada — Disponible para alquilar",
+   "bureau_prive": "Despacho privado",
+   "accueil_notaire": "Recepción de la notaría",
+   "bureau_successions": "Despacho de sucesiones",
+   "bureau_contrats": "Despacho de contratos",
+   "archives_notariales": "Archivos notariales",
+   "amphi": "Anfiteatro",
+   "salle_reunion": "Sala de reuniones"
+  },
+  "zh-TW": {
+   "accueil": "接待處",
+   "restaurant": "餐廳用餐區",
+   "bar": "酒吧",
+   "chambres": "客房",
+   "suite_privee": "私人套房—可租賃",
+   "suite_presidentielle": "總統套房—可租賃",
+   "accueil_banque": "銀行接待處",
+   "coffre_privatif": "私人保險箱—可租賃",
+   "bureau_prive": "私人辦公室",
+   "accueil_notaire": "公證處接待處",
+   "bureau_successions": "繼承事務辦公室",
+   "bureau_contrats": "合約事務辦公室",
+   "archives_notariales": "公證檔案室",
+   "amphi": "階梯講堂",
+   "salle_reunion": "會議室"
+  },
+  "ru": {
+   "accueil": "Приёмная",
+   "restaurant": "Ресторанный зал",
+   "bar": "Бар",
+   "chambres": "Номера",
+   "suite_privee": "Частный люкс — сдаётся в аренду",
+   "suite_presidentielle": "Президентский люкс — сдаётся в аренду",
+   "accueil_banque": "Приёмная банка",
+   "coffre_privatif": "Частный сейф — сдаётся в аренду",
+   "bureau_prive": "Частный кабинет",
+   "accueil_notaire": "Приёмная нотариуса",
+   "bureau_successions": "Отдел наследства",
+   "bureau_contrats": "Отдел договоров",
+   "archives_notariales": "Нотариальный архив",
+   "amphi": "Лекционный зал",
+   "salle_reunion": "Зал заседаний"
+  },
+  "ko": {
+   "accueil": "안내실",
+   "restaurant": "식당 홀",
+   "bar": "바",
+   "chambres": "객실",
+   "suite_privee": "개인 스위트룸 — 임대 가능",
+   "suite_presidentielle": "대통령 스위트룸 — 임대 가능",
+   "accueil_banque": "은행 접수처",
+   "coffre_privatif": "개인 금고 — 임대 가능",
+   "bureau_prive": "개인 사무실",
+   "accueil_notaire": "공증사무소 접수처",
+   "bureau_successions": "상속 사무실",
+   "bureau_contrats": "계약 사무실",
+   "archives_notariales": "공증 기록보관소",
+   "amphi": "강의실",
+   "salle_reunion": "회의실"
+  },
+  "ar": {
+   "accueil": "الاستقبال",
+   "restaurant": "قاعة المطعم",
+   "bar": "البار",
+   "chambres": "الغرف",
+   "suite_privee": "جناح خاص — متاح للإيجار",
+   "suite_presidentielle": "جناح رئاسي — متاح للإيجار",
+   "accueil_banque": "استقبال البنك",
+   "coffre_privatif": "خزنة خاصة — متاحة للإيجار",
+   "bureau_prive": "مكتب خاص",
+   "accueil_notaire": "استقبال مكتب التوثيق",
+   "bureau_successions": "مكتب شؤون الميراث",
+   "bureau_contrats": "مكتب العقود",
+   "archives_notariales": "أرشيف التوثيق",
+   "amphi": "قاعة المحاضرات",
+   "salle_reunion": "قاعة الاجتماعات"
+  },
+  "pt-BR": {
+   "accueil": "Recepção",
+   "restaurant": "Salão do restaurante",
+   "bar": "Bar",
+   "chambres": "Quartos",
+   "suite_privee": "Suíte privativa — Disponível para aluguel",
+   "suite_presidentielle": "Suíte presidencial — Disponível para aluguel",
+   "accueil_banque": "Recepção do banco",
+   "coffre_privatif": "Cofre privativo — Disponível para aluguel",
+   "bureau_prive": "Escritório privativo",
+   "accueil_notaire": "Recepção do cartório",
+   "bureau_successions": "Sala de sucessões",
+   "bureau_contrats": "Sala de contratos",
+   "archives_notariales": "Arquivo notarial",
+   "amphi": "Anfiteatro",
+   "salle_reunion": "Sala de reuniões"
+  },
+  "de": {
+   "accueil": "Empfang",
+   "restaurant": "Restaurantbereich",
+   "bar": "Bar",
+   "chambres": "Zimmer",
+   "suite_privee": "Privatsuite — zu vermieten",
+   "suite_presidentielle": "Präsidentensuite — zu vermieten",
+   "accueil_banque": "Bankempfang",
+   "coffre_privatif": "Privater Tresor — zu vermieten",
+   "bureau_prive": "Privatbüro",
+   "accueil_notaire": "Notariatsempfang",
+   "bureau_successions": "Nachlassbüro",
+   "bureau_contrats": "Vertragsbüro",
+   "archives_notariales": "Notariatsarchiv",
+   "amphi": "Hörsaal",
+   "salle_reunion": "Besprechungsraum"
+  }
+ };
+ for(const [locale,labels] of Object.entries(serviceRooms)) Object.assign(localized[locale],labels);
+
 
  for(const [locale,labels] of Object.entries(mairie)) Object.assign(localized[locale],labels);
  for(const [locale,labels] of Object.entries(embassies)) Object.assign(localized[locale],labels);
@@ -313,6 +472,15 @@
    if(!['accueil_police','prison','bureau_commissaire'].includes(roomId)||original!==everyday.fr[roomId])return original;
   } else if(buildingId==='marche') {
    if(roomId!=='marche_ext'||original!==everyday.fr[roomId])return original;
+  } else if(['hotel-republica','banque-nationale','banque-privee','office-notarial','universite'].includes(buildingId)) {
+   const allowed={
+    'hotel-republica':['accueil','restaurant','bar','chambres','suite_privee','suite_presidentielle'],
+    'banque-nationale':['accueil_banque','coffre_privatif'],
+    'banque-privee':['bureau_prive'],
+    'office-notarial':['accueil_notaire','bureau_successions','bureau_contrats','archives_notariales'],
+    'universite':['amphi','salle_reunion']
+   };
+   if(!allowed[buildingId].includes(roomId)||original!==serviceRooms.fr[roomId])return original;
   } else return original;
   const locale=global.RPPlateauI18n?.language?.()||'fr';
   const translated=global.i18next?.t?.('rooms.'+roomId,{lng:locale,defaultValue:original});
