@@ -17,6 +17,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Attester le lancement du convertisseur
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'conversion-declenchee %s\n' "$GITHUB_SHA" > outils/audits/novomirsk-presidence-conversion-statut-20261108.txt
+          git add outils/audits/novomirsk-presidence-conversion-statut-20261108.txt
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'audit(images): workflow de conversion presidentielle demarre'
+          git push origin HEAD:main
       - name: Convertir et brancher les quatre pieces sans changer le gameplay
         shell: bash
         run: |
