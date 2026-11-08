@@ -358,10 +358,35 @@ async function sovarkaSondageDecider(id, choix) {
   sovPouvoirActe('sondage_decider', params, 'Sondage',
     v => ({ publie: 'Sondage publié.', fausse: 'Sondage publié avec vos chiffres.', enterre: 'Sondage enterré.' }[v.statut]), ouvrirSovarkaSondages);
 }
+// Deux pièces compromettantes aux Archives (Fred, 08/11/2026) : le dernier sondage truqué, ou le
+// registre secret de la cellule Balatov (signalements des 30 derniers jours).
 function sovarkaFuite() {
-  sovPouvoirActe('fuite', {}, 'Produire une fuite',
-    v => v.trouve ? 'Les vrais chiffres d’un sondage truqué sont publiés. Le ministre ' + v.ministre + ' perd 10 POP.'
-                  : 'Rien de compromettant dans les archives aujourd’hui.');
+  vehModal('Produire une fuite', '<p class="cpj-note">Acte illégal : il laisse une trace. Que cherchez-vous dans les archives ?</p>'
+    + vehBouton('Un sondage truqué', "document.getElementById('modal-postes')?.classList.remove('open');sovarkaFuiteProduire('sondage')", true)
+    + vehBouton('Le registre de la cellule Balatov', "document.getElementById('modal-postes')?.classList.remove('open');sovarkaFuiteProduire('signalements')", false));
+}
+function sovarkaFuiteProduire(objet) {
+  sovPouvoirActe('fuite', { objet }, 'Produire une fuite',
+    v => v.objet === 'signalements'
+      ? (v.trouve ? 'Le registre des signalements est publié au forum national.' : 'Aucun signalement récent dans le registre.')
+      : (v.trouve ? 'Les vrais chiffres d’un sondage truqué sont publiés. Le ministre ' + v.ministre + ' perd 10 POP.'
+                  : 'Rien de compromettant dans les archives aujourd’hui.'));
+}
+
+// ---------------------------------------------------------------- Registre des signalements (cellule Balatov)
+// Lisible par le Président du Conseil et le ministre de la Sécurité du Peuple (Fred, 08/11/2026) ;
+// aucun effet automatique, les PJ en font ce qu'ils veulent.
+async function ouvrirSovarkaSignalements() {
+  const l = await sovPouvoirLire(); if (!l) return;
+  if (!Array.isArray(l.signalements)) { vehModal('Registre des signalements', '<p>Réservé au Président du Conseil du Peuple et au ministre de la Sécurité du Peuple.</p>'); return; }
+  const motifs = { abstention: 'abstention' };
+  vehModal('Registre des signalements', '<p class="cpj-note">Cellule de validation et surveillance des partis — Capitaine Igor Balatov. '
+    + 'Ce registre ne déclenche rien de lui-même : à vous d’en faire usage.</p>'
+    + (l.signalements.length ? l.signalements.map(g => '<div style="margin:.3rem 0">'
+        + new Date(g.ts).toLocaleDateString('fr-FR') + ' — <b>' + sovEchapper(g.cible) + '</b>'
+        + (g.parti_nom ? ' (' + sovEchapper(g.parti_nom) + ')' : '') + ' : ' + sovEchapper(motifs[g.motif] || g.motif)
+        + (g.loi ? ' sur « ' + sovEchapper(g.loi) + ' »' : '') + '</div>').join('')
+      : '<p>Aucun signalement.</p>'));
 }
 
 // ---------------------------------------------------------------- Défense de la Patrie : conscription

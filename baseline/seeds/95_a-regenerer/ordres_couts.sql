@@ -451,6 +451,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('sovarka_reunion_reserver',0,0),
   ('sovarka_saisir_juge',1,0),
   ('sovarka_seance',0,0),
+  ('sovarka_signalements',0,0),
   ('sovarka_signer_attribution',1,0),
   ('sovarka_sondages',0,0),
   ('sovarka_terrain_municipal',0,0),
