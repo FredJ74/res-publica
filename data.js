@@ -8595,8 +8595,10 @@ const ROOM_IMAGES_EMPIRE = {
       'bureau_min_def':    'images/mdef-sovarka.webp'
     },
     'tribunal': {
-      'salle_audience': 'images/tribunal-sovarka.webp',
-      'greffe':         'images/tribunal-sovarka.webp'
+      // Decor exclusivement sovarkien ; aucun changement de PNJ, d'ordre ou de salle.
+      'salle_audience': 'images/Sovarka/Novomirsk/Novomirsk_tribunal_salle_audience.webp',
+      'greffe': 'images/Sovarka/Novomirsk/Novomirsk_tribunal_greffe.webp',
+      'bureau_magistrats': 'images/Sovarka/Novomirsk/Novomirsk_tribunal_bureau_magistrats.webp'
     },
     'mairie-capitale': {
       'hall_mairie':    'images/mairie-sovarka.webp',
