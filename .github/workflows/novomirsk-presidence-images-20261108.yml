@@ -65,17 +65,17 @@ jobs:
           section_end=original.index("  khalija: {",section_start)
           section=original[section_start:section_end]
           old="""    'palais-presidentiel': {
-      'accueil_elysee':    'images/hall-parti-sovarka.webp',
-      'bureau_president':  'images/bureau-gouv-sovarka.png'
-    },"""
+                'accueil_elysee':    'images/hall-parti-sovarka.webp',
+                'bureau_president':  'images/bureau-gouv-sovarka.png'
+              },"""
           new="""    'palais-presidentiel': {
-      // Images specifiques a Novomirsk : aucune modification des pieces, PNJ ou ordres.
-      'accueil_elysee': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-hall.webp',
-      'appartements_president': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-appartements.webp',
-      'musee_presidentiel': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-musee.webp',
-      'salle_reception_presidentielle': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-reception.webp',
-      'bureau_president': 'images/bureau-gouv-sovarka.png'
-    },"""
+                // Images specifiques a Novomirsk : aucune modification des pieces, PNJ ou ordres.
+                'accueil_elysee': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-hall.webp',
+                'appartements_president': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-appartements.webp',
+                'musee_presidentiel': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-musee.webp',
+                'salle_reception_presidentielle': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-reception.webp',
+                'bureau_president': 'images/bureau-gouv-sovarka.png'
+              },"""
           if section.count(old)!=1:
               raise SystemExit('Ancrage des images palais-presidentiel modifie par un autre chantier. Arret sans ecrasement.')
           updated=original[:section_start]+section.replace(old,new)+original[section_end:]
