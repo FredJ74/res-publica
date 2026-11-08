@@ -87,6 +87,7 @@ on:
       - 'outils/bancs/banc-i18n-variantes-hotel.cjs'
       - 'data.js'
       - 'outils/bancs/banc-i18n-render-ordres.cjs'
+      - 'outils/bancs/banc-i18n-corrections-codex-20261109.cjs'
       - 'plateau-politique.js'
       - 'plateau-divers.js'
       - 'outils/bancs/banc-i18n-traduction-sources.mjs'
@@ -232,6 +233,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-variantes-hotel.cjs
       - name: Rendu des ordres, échappement HTML et autorité inchangée
         run: node --test outils/bancs/banc-i18n-render-ordres.cjs
+      - name: Non-régression des menus et fenêtres ouverts après changement de langue
+        run: node --test outils/bancs/banc-i18n-corrections-codex-20261109.cjs
       - name: "Sources privées : seules les colonnes de contenu autorisées"
         run: node --test outils/bancs/banc-i18n-traduction-sources.mjs
       - name: Prévol de confidentialité forum et chat, lecture seule
