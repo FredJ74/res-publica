@@ -4214,55 +4214,118 @@
       "sovarka_repas_presidentiel": "Repas du Président",
       "sovarka_partis": "Partis constitués",
       "sovarka_parti_fonder": "Créer un parti",
-      "sovarka_mon_parti": "Mon parti"
+      ",
+      "sovarka_lois_examen": "Projets de loi à trancher",
+      "sovarka_autocritique": "Autocritique publique",
+      "sovarka_seance": "Séance du jeudi",
+      "sovarka_saisir_juge": "Saisir le juge",
+      "sovarka_conscription": "Conscription",
+      "sovarka_sondages": "Sondages en attente",
+      "sovarka_conscrit_presenter": "Se présenter (conscription)"
     },
     "en": {
       "sovarka_repas_presidentiel": "President's meal",
       "sovarka_partis": "Established parties",
       "sovarka_parti_fonder": "Found a party",
-      "sovarka_mon_parti": "My party"
+      ",
+      "sovarka_lois_examen": "Bills awaiting a decision",
+      "sovarka_autocritique": "Public self-criticism",
+      "sovarka_seance": "Thursday session",
+      "sovarka_saisir_juge": "Bring a case before the judge",
+      "sovarka_conscription": "Conscription",
+      "sovarka_sondages": "Pending opinion polls",
+      "sovarka_conscrit_presenter": "Report for conscription"
     },
     "es": {
       "sovarka_repas_presidentiel": "Comida del Presidente",
       "sovarka_partis": "Partidos constituidos",
       "sovarka_parti_fonder": "Fundar un partido",
-      "sovarka_mon_parti": "Mi partido"
+      ",
+      "sovarka_lois_examen": "Proyectos de ley por resolver",
+      "sovarka_autocritique": "Autocrítica pública",
+      "sovarka_seance": "Sesión del jueves",
+      "sovarka_saisir_juge": "Acudir al juez",
+      "sovarka_conscription": "Servicio militar obligatorio",
+      "sovarka_sondages": "Sondeos pendientes",
+      "sovarka_conscrit_presenter": "Presentarse al reclutamiento"
     },
     "zh-TW": {
       "sovarka_repas_presidentiel": "主席餐宴",
       "sovarka_partis": "已成立的政黨",
       "sovarka_parti_fonder": "創立政黨",
-      "sovarka_mon_parti": "我的政黨"
+      ",
+      "sovarka_lois_examen": "待裁決法案",
+      "sovarka_autocritique": "公開自我批評",
+      "sovarka_seance": "週四會議",
+      "sovarka_saisir_juge": "向法官提出申請",
+      "sovarka_conscription": "徵兵",
+      "sovarka_sondages": "待處理的民意調查",
+      "sovarka_conscrit_presenter": "報到接受徵兵"
     },
     "ru": {
       "sovarka_repas_presidentiel": "Обед председателя",
       "sovarka_partis": "Действующие партии",
       "sovarka_parti_fonder": "Создать партию",
-      "sovarka_mon_parti": "Моя партия"
+      ",
+      "sovarka_lois_examen": "Законопроекты на рассмотрении",
+      "sovarka_autocritique": "Публичная самокритика",
+      "sovarka_seance": "Заседание в четверг",
+      "sovarka_saisir_juge": "Обратиться к судье",
+      "sovarka_conscription": "Призыв на военную службу",
+      "sovarka_sondages": "Ожидающие опросы",
+      "sovarka_conscrit_presenter": "Явиться по призыву"
     },
     "ko": {
       "sovarka_repas_presidentiel": "의장 식사",
       "sovarka_partis": "기존 정당",
       "sovarka_parti_fonder": "정당 창당",
-      "sovarka_mon_parti": "내 정당"
+      ",
+      "sovarka_lois_examen": "심의할 법안",
+      "sovarka_autocritique": "공개 자기비판",
+      "sovarka_seance": "목요일 회의",
+      "sovarka_saisir_juge": "판사에게 심리 요청",
+      "sovarka_conscription": "징병",
+      "sovarka_sondages": "대기 중인 여론조사",
+      "sovarka_conscrit_presenter": "징병 신고"
     },
     "ar": {
       "sovarka_repas_presidentiel": "وجبة الرئيس",
       "sovarka_partis": "الأحزاب القائمة",
       "sovarka_parti_fonder": "تأسيس حزب",
-      "sovarka_mon_parti": "حزبي"
+      ",
+      "sovarka_lois_examen": "مشاريع قوانين بانتظار القرار",
+      "sovarka_autocritique": "نقد ذاتي علني",
+      "sovarka_seance": "جلسة يوم الخميس",
+      "sovarka_saisir_juge": "اللجوء إلى القاضي",
+      "sovarka_conscription": "التجنيد الإجباري",
+      "sovarka_sondages": "استطلاعات رأي معلّقة",
+      "sovarka_conscrit_presenter": "الحضور للتجنيد"
     },
     "pt-BR": {
       "sovarka_repas_presidentiel": "Refeição do Presidente",
       "sovarka_partis": "Partidos constituídos",
       "sovarka_parti_fonder": "Fundar um partido",
-      "sovarka_mon_parti": "Meu partido"
+      ",
+      "sovarka_lois_examen": "Projetos de lei a decidir",
+      "sovarka_autocritique": "Autocrítica pública",
+      "sovarka_seance": "Sessão de quinta-feira",
+      "sovarka_saisir_juge": "Recorrer ao juiz",
+      "sovarka_conscription": "Serviço militar obrigatório",
+      "sovarka_sondages": "Pesquisas de opinião pendentes",
+      "sovarka_conscrit_presenter": "Apresentar-se para o alistamento"
     },
     "de": {
       "sovarka_repas_presidentiel": "Mahlzeit des Vorsitzenden",
       "sovarka_partis": "Bestehende Parteien",
       "sovarka_parti_fonder": "Partei gründen",
-      "sovarka_mon_parti": "Meine Partei"
+      ",
+      "sovarka_lois_examen": "Gesetzentwürfe zur Entscheidung",
+      "sovarka_autocritique": "Öffentliche Selbstkritik",
+      "sovarka_seance": "Donnerstagssitzung",
+      "sovarka_saisir_juge": "Den Richter anrufen",
+      "sovarka_conscription": "Wehrpflicht",
+      "sovarka_sondages": "Ausstehende Umfragen",
+      "sovarka_conscrit_presenter": "Sich zur Einberufung melden"
     }
   };
   for(const [locale,labels] of Object.entries(sovarkaOrders)) Object.assign(words[locale],labels);
