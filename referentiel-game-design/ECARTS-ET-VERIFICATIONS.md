@@ -57,6 +57,7 @@
 - **Preuves directes obtenues en lecture seule dans Supabase :** nombre de tables/fonctions/RLS, registre des migrations, catalogue de coûts et configurations des bateaux et PNJ sociaux. Les autres données, droits et effets serveur n'ont pas été audités exhaustivement.
 - Aucun journal CI du commit de référence n'a été rejoué ni inspecté au-delà des comptes rendus lus.
 - Aucun parcours navigateur authentifié, achat, interaction entre PJ ou dialogue DeepSeek n'a été exécuté.
+- Le **déploiement Vercel READY** du commit étudié a été vérifié auprès de Vercel (voir `ETAT-VERCEL-PUBLICATION.md`), mais aucune recette authentifiée n'a été effectuée.
 - Aucune statistique de conversion, d'activation, d'abandon ou de rétention joueur n'a été fournie.
 - Aucune conclusion sur « ce qui est effectivement jouable » ne peut être certifiée pour **tous** les ordres sans ces preuves.
 
