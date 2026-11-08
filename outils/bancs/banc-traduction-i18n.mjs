@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { LANGUES, traduireTexte } from '../../api/_traduction.js';
+import { traduireContenu } from '../../api/_traduction-contenu.js';
 const win={};vm.runInNewContext(fs.readFileSync(new URL('../../i18n/resources.js',import.meta.url),'utf8'),{window:win});
 test('langues serveur et interface rigoureusement identiques',()=>{
  assert.deepEqual([...LANGUES],Object.keys(win.RP_I18N_LANGUAGES));
@@ -73,5 +74,28 @@ test('P2-01: refuser tout marqueur de contrôle dans la sortie fournisseur',asyn
   const response=await traduireTexte({texte:source,langueOriginale:'fr',langueCible:'en'},
    async()=>({ok:true,texte:'Welcome to the forum.'+char,tronque:false}));
   assert.equal(response.ok,false);
+ }
+});
+
+test('P2-01: RLS avant cache, entrée cache falsifiée jamais livrée',async()=>{
+ const original='Votre commande coûte 100 FR et 1 PA, {{name}}.';
+ for(const cached of [
+  'Your order costs 1000 USD and 9 AP, {{name}}.',
+  'Your order costs 100 FR and 1 PA, {{name}}.\u0000'
+ ]){
+  const steps=[];
+  const deps={
+   authenticate:async()=>{steps.push('auth');return {userId:'uid',readerToken:'jwt'}},
+   readUnderRls:async(_source,jwt)=>{assert.equal(jwt,'jwt');steps.push('rls');return {text:original,language:'fr'}},
+   readCache:async()=>{steps.push('cache');return cached},
+   reserveBudget:async()=>{steps.push('budget');return true},
+   provider:async()=>{steps.push('provider');return {ok:true,texte:'Your order costs 100 FR and 1 PA, {{name}}.',tronque:false}},
+   writeCache:async(_key,value)=>{steps.push('write');assert.equal(value,'Your order costs 100 FR and 1 PA, {{name}}.')}
+  };
+  const result=await traduireContenu({type:'forum_post',id:'1',field:'content',langueCible:'en'},deps);
+  assert.equal(result.ok,true);
+  assert.equal(result.fromCache,false);
+  assert.equal(result.traduit,'Your order costs 100 FR and 1 PA, {{name}}.');
+  assert.deepEqual(steps,['auth','rls','cache','budget','provider','write']);
  }
 });
