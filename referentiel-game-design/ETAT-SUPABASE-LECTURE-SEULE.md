@@ -25,7 +25,7 @@ La table `public.chantier_naval_modeles` contient actuellement :
 | `bateau_3` | 3 | 300 | 90 000 | 1 200 | 1 200 | 600 | 7 |
 | `bateau_5` | 5 | 500 | 150 000 | 1 800 | 1 800 | 600 | 10 |
 
-**Statut : configuration serveur vérifiée**, conforme à `GAME-DESIGN-CHANTIER-NAVAL.md` et aux identifiants de `plateau-naval.js`. La contradiction potentielle avec l'ancien arbitrage d'un modèle unique à 150 000 FR reste **une question de priorité des décisions**, pas une incertitude sur les valeurs actuellement stockées. Aucun achat, aucune commande et aucune navigation privée n'ont été exécutés.
+**Statut : configuration serveur vérifiée**, conforme à `GAME-DESIGN-CHANTIER-NAVAL.md` et aux identifiants de `plateau-naval.js`. **Aucune contradiction prouvée** entre la règle écrite, les identifiants du client et le catalogue SQL vivant au 9 novembre. Une variante historique éventuelle ne saurait être retenue sans source explicite datée. Aucun achat, aucune commande et aucune navigation privée n'ont été exécutés.
 
 Tables présentes : `chantier_naval_modeles`, `chantier_naval_commandes`, `chantier_naval_bateaux`. Fonctions observées : `chantier_naval_devis`, `chantier_naval_commander`, `chantier_naval_mes_commandes`, `chantier_naval_avancer_interne`, `chantier_naval_avancer_jour`. Leurs signatures ont été lues dans `pg_proc`, leur **corps et leurs droits d'exécution n'ont pas encore été audités**.
 
