@@ -173,3 +173,13 @@ Les deux workflows i18n du brouillon, la réconciliation de `main` et le contrô
 - Adaptateurs internes \`api/_traduction-stockage.js\` et \`api/_traduction-dependances.js\` : réutilisent la couche serveur Supabase, ne rendent rien accessible en HTTP, et exigent Auth -> lecture RLS -> cache -> quota avant toute dépense. Une panne de cache bloque désormais le fournisseur plutôt que de se faire passer pour une absence de cache.
 - Bancs Node ajoutés à la CI : lecture minimale/RLS, stockage serveur, refus de quota, source indéterminée et absence de version, chaîne complète simulée. Vérifications de scénarios ciblés exécutées en V8 isolé avec fournisseurs simulés ; **pas** de migration, d'appel fournisseur payant, de PJ réel ni de recette JWT multipersonnes.
 - Seul blocage exigeant arbitrage avant activation : fixer le plafond monétaire et d'usage des traductions, appliquer **après tests PostgreSQL** la migration issue de ce brouillon et autoriser explicitement l'ouverture publique. Aucune activation anticipée.
+
+
+## 08/11 — catalogue 391 commandes et réconciliation mobile / décors (brouillon)
+
+- Catalogue porté à **391 libellés d'ordres par langue** sur FR, EN, ES, zh-TW, RU, KO, AR, pt-BR et DE, dont sept commandes du gouvernement sovarkien : projets de lois à trancher, autocritique publique, séance du jeudi, saisine du juge, conscription, sondages en attente, présentation du conscrit.
+- Les sept clés ont été recoupées sur les déclarations réelles de `data.js`. Audit programmatique indépendant : **391/391 clés françaises canoniques exactes**, neuf catalogues de 391 entrées chacun, aucune chaîne vide.
+- Le socle `main` du 8 novembre (certification mobile, armurerie et quatre pièces diplomatiques en WebP, invalidateurs de cache) a été réintégré **dans la branche brouillon uniquement** par workflow temporaire, en conservant les modifications i18n et les mécanismes serveur. Aucun changement de mécaniques, coût, PA ou autorité.
+- Le synchroniseur temporaire s'est supprimé lui-même et n'est pas un moteur permanent.
+- Les revues et suites CI propres à la PR doivent porter sur **le dernier commit**, pas sur les commits antérieurs : le statut `action_required` n'est **pas** un test réussi. Les parcours authentifiés, l'audit éditorial des traductions et la fiabilité linguistique des échanges entre PJ restent non certifiés.
+- **Aucune autorisation d'ouverture publique** ; la PR #377 reste brouillon et ne doit pas être fusionnée à `main` sans arbitrage du game designer.
