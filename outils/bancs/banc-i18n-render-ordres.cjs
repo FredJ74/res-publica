@@ -83,3 +83,15 @@ test('un changement de langue ne recalcule jamais les ordres dynamiques et ne to
  assert.equal(alien.textContent,'Ne pas modifier');
  assert.equal(order.label,'Porter plainte');
 });
+
+test('sous-menus ouverts après la bascule : rafraîchissement du texte existant, sans nouveau doOrder',()=>{
+ const source=fs.readFileSync(path.join(root,'plateau-politique.js'),'utf8');
+ for(const name of ['ouvrirMenuOrdresCommissaire','ouvrirMenuOrdresGreffe','ouvrirMenuOrdresTerrain','ouvrirMenuOrdresTribune']){
+  const from=source.indexOf('function '+name+'(');
+  const end=source.indexOf('\nfunction ',from+10);
+  assert.ok(from>=0 && end>from,name);
+  const code=source.slice(from,end);
+  assert.ok(code.includes('refreshVisibleLabels?.('),name+' : texte du menu stale');
+  assert.ok(code.indexOf('refreshVisibleLabels?.(')>code.indexOf("classList.add('open')"),name+' : le texte doit être mis à jour après insertion');
+ }
+});
