@@ -56,3 +56,17 @@ test('le plateau ne choisit pas une autre langue navigateur que l accueil',()=>{
  vm.runInNewContext(src,{window,Intl,Number,Object,String});
  assert.equal(window.RPPlateauI18n.language(),'fr');
 });
+
+test('changement de langue : le pont suit i18next plutôt que le stockage ancien',()=>{
+ let selected='de';
+ const engine={language:'de',t:(key,opts)=>opts.lng+':'+key};
+ const window={RP_I18N_LANGUAGES:languages,localStorage:{getItem:()=>selected},i18next:engine};
+ vm.runInNewContext(src,{window,Intl,Number,Object,String});
+ assert.equal(window.RPPlateauI18n.language(),'de');
+ engine.language='ar';
+ assert.equal(window.RPPlateauI18n.language(),'ar');
+ assert.equal(window.RPPlateauI18n.translate('plateau.messages'),'ar:plateau.messages');
+ assert.equal(window.RPPlateauI18n.message('texte','translation','de').isTranslated,false);
+ selected='ko'; // Le stockage ne doit pas remplacer la langue en cours.
+ assert.equal(window.RPPlateauI18n.language(),'ar');
+});
