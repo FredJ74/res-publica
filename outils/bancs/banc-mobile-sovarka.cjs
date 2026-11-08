@@ -1,0 +1,26 @@
+// Rendu des fonctions réelles, réponses de lecture isolées. Aucun compte ni serveur de jeu.
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),zlib=require('node:zlib'),crypto=require('node:crypto');
+const R=path.resolve(__dirname,'../..');
+const archive=fs.readFileSync(path.join(__dirname,'fixtures/mobile-sovarka-temoin-6e157d09.json.gz'));
+assert.equal(crypto.createHash('sha256').update(archive).digest('hex'),'f1dbccdf30f9caf5ec997c7cf096ed75385f8248c27ba1ba0ff1a498a4fe7fd0');
+const temoin=JSON.parse(zlib.gunzipSync(archive));
+assert.equal(temoin.commit,'6e157d093398b658d18e4d7ea49f5c00e731f326');
+const locaux=[{ville:'capitale',batiment:'galeries',piece:'local_1',label:'Galeries du Peuple — local commercial du rez-de-chaussée',loyer:150,plafond:300,origine:'commune'}];
+const fixtures={
+ sovarka_pouvoir_lire:{ok:true,juge_villes:['capitale'],saisines:[]},
+ sovarka_droits_lire:{ok:true,moi:'Fixture',ville:'capitale',role:'maire',juge:true,cessions:[],caisseMairie:12345,parametres:{coutLocal:1000,delaiJours:10},locaux,demandes:[{id:'fixture',ville:'capitale',demandeur:'Autre fixture',projet:'Librairie',statut:'en_attente'}],immeubles:[]},
+ logements_sociaux_tableau:{ok:true,pays:'soviet',ville:'capitale',appartements:[{terrain:'immeuble',lot:'1',label:'Appartement familial de Novomirsk',loyer:123}],demandes:[]},
+ salon_lire:{ok:true,salon:{id:'salon',prixCoupe:20},jour:1},
+ sovarka_partis_liste:{ok:true,partis:[{nom:'Parti fixture',chef:'Autre fixture',siege:'capitale',desc:'Programme de démonstration',membres:4,pop:12,prix:15}]},
+ sovarka_soviet_etat:{ok:true,scores:[]},
+ vehicules_lire:{ok:true,vehicules:[],ici:{id:'garage',type:'garage',stock:{voiture:2},prix:{voiture:12345},matieres:{},modeles:{}}}
+};
+const {avecJeu:environnement,page}=require('./mobile-navigateur.cjs');
+async function ouvrir(b,o,w,ancien=false){const p=await page(b,o,w,900,false,{fichiers:ancien?temoin.fichiers:undefined});
+await p.evaluate(f=>{window.state={country:'soviet',city:'capitale',currentCity:'capitale',currentBuilding:'galeries',currentRoom:'local_1',pa:20};window.COUNTRIES={soviet:{cur:'PSK'}};window.VILLES={soviet:{capitale:{nom:'Novomirsk'}}};window.WORLD={soviet:{capitale:{name:'Novomirsk',streetName:'Rue centrale'}}};window.BUILDINGS={galeries:{name:'Galeries du Peuple',rooms:{local_1:{name:'Local commercial',desc:'Local de démonstration'}}},immeuble:{name:'Immeuble collectif'}};window.appels=[];window.sbRpcVerdict=async(n)=>{appels.push(n);if(!f[n])throw Error('Écriture interdite : '+n);return structuredClone(f[n]);};window.showToast=()=>{throw Error('Erreur UI');};},fixtures);
+for(const n of ['plateau-vehicules.js','plateau-sovarka-droits.js','plateau-sovarka-partis.js','plateau-sovarka-pouvoir.js','plateau-salon.js','plateau-logements-sociaux.js','plateau-reunions-evenements.js'])await p.addScriptTag({url:o+'/'+n});return p;}
+const ecrans=['ouvrirSalonCoupe','ouvrirGarageVehicules','ouvrirGarageRevision','ouvrirMesVehicules','ouvrirSovarkaPartis','ouvrirSovietSupreme','ouvrirSovarkaSignerAttribution','ouvrirSovarkaCession','ouvrirSovarkaDemanderLocal','ouvrirSovarkaDemandeLocation','ouvrirSovarkaRetirerDroit','ouvrirSovarkaDossiers','ouvrirSovarkaCommercesLibres','partiFormulaireCreation','ouvrirTableauLogementsSociaux','ouvrirReunionEvenement'];
+async function afficher(p,n){await p.evaluate(n=>window[n](),n);await p.waitForTimeout(500);await p.evaluate(()=>document.fonts.ready);}
+for(const w of [360,390,768])test('Sovarka '+w+' : fenêtres réelles contenues et champs utilisables',()=>environnement(async(b,o)=>{const p=await ouvrir(b,o,w);for(const n of ecrans){await afficher(p,n);const erreur=await p.locator('#postes-body').evaluate(e=>({client:e.clientWidth,scroll:e.scrollWidth}));if(n==='partiFormulaireCreation')assert.equal(await p.locator('#parti-desc').getAttribute('maxlength'),'200');if(n==='ouvrirGarageVehicules')assert.match(await p.locator('#postes-body').innerText(),/12.345 PSK/);assert.ok(erreur.scroll<=erreur.client+1,n+' déborde : '+JSON.stringify(erreur));if(n==='ouvrirSovarkaDossiers')assert.ok(await p.locator('#sov-local-0').evaluate(e=>e.getBoundingClientRect().width>=180),'sélection de local lisible');await p.locator('#postes-body :is(input,textarea,select)').evaluateAll(es=>es.forEach(e=>{if(e.getBoundingClientRect().width<64)throw Error(e.id+' trop étroit');}));}assert.ok((await p.evaluate(()=>appels)).every(n=>Object.hasOwn(fixtures,n)));}));
+test('Bureau 1440 : pixels identiques au main témoin pour chaque fenêtre',()=>environnement(async(b,o)=>{const a=await ouvrir(b,o,1440,true),n=await ouvrir(b,o,1440);for(const e of ecrans){await afficher(a,e);await afficher(n,e);assert.ok((await a.screenshot({animations:'disabled',caret:'hide'})).equals(await n.screenshot({animations:'disabled',caret:'hide'})),e+' modifié sur bureau');}}));
+test('Contre-épreuve : sélecteur de local étroit dans le témoin',()=>environnement(async(b,o)=>{const p=await ouvrir(b,o,360,true);await afficher(p,'ouvrirSovarkaDossiers');assert.ok(await p.locator('#sov-local-0').evaluate(e=>e.getBoundingClientRect().width<100));}));

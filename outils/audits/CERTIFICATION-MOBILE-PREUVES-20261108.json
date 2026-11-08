@@ -1,0 +1,100 @@
+{
+  "date": "2026-11-08",
+  "branche": "codex/mobile-certification-20261108",
+  "sha_teste": "65ecf3f445c339f8a832f55005aa1f6f1073a536",
+  "main_integre": "520630bd491f1a1022207dd9df0611bc4f6cfa4f",
+  "clients": {
+    "commande": "python outils/bancs/controler-client.py",
+    "bancs": 203,
+    "reussis": 203,
+    "echecs": 0,
+    "sql_execute": false
+  },
+  "nouveau_banc_certification": {
+    "tests": 17,
+    "reussis": 17,
+    "contre_epreuves": 4,
+    "profils": "Chromium tactile 390x844 DPR3, 360x800 DPR2, aucun appareil physique"
+  },
+  "pilote_recette": {
+    "commande": "node --test outils/e2e/test-*.cjs",
+    "tests": 119,
+    "reussis": 119,
+    "transport": "fixtures et serveurs locaux",
+    "campagne_Arnie_executee": false
+  },
+  "syntaxe_api": {
+    "modules": 28,
+    "reussis": 28,
+    "appel_distant": false
+  },
+  "globaux": {
+    "reussis": 10,
+    "total": 12,
+    "echecs": [
+      "Baseline",
+      "Referential"
+    ],
+    "sha_code_applicatif": "6251fe6a",
+    "lecture_supabase_vivante": false,
+    "passe_unique": true
+  },
+  "captures_fixtures": [
+    {
+      "vue": "plateau",
+      "largeur": 1440,
+      "hauteur": 900,
+      "identiques": true,
+      "sha256_avant": "78162d765b6d26a2d5a3b13c31e3a0e84d9deeffa61bbf025d34633a35811384",
+      "sha256_apres": "78162d765b6d26a2d5a3b13c31e3a0e84d9deeffa61bbf025d34633a35811384"
+    },
+    {
+      "vue": "creation",
+      "largeur": 1440,
+      "hauteur": 900,
+      "identiques": true,
+      "sha256_avant": "cb2620ccb6da7ef219d6431c03c08a7fccee320e45b78d467c68c044ede6307b",
+      "sha256_apres": "cb2620ccb6da7ef219d6431c03c08a7fccee320e45b78d467c68c044ede6307b"
+    },
+    {
+      "vue": "forum",
+      "largeur": 1440,
+      "hauteur": 900,
+      "identiques": true,
+      "sha256_avant": "0d7f587b0fd0431fd012100265b8e8a479040dbb9099ccf573061d47113a7dc0",
+      "sha256_apres": "0d7f587b0fd0431fd012100265b8e8a479040dbb9099ccf573061d47113a7dc0"
+    },
+    {
+      "vue": "certification",
+      "largeur": 1440,
+      "hauteur": 900,
+      "identiques": true,
+      "sha256_avant": "78162d765b6d26a2d5a3b13c31e3a0e84d9deeffa61bbf025d34633a35811384",
+      "sha256_apres": "78162d765b6d26a2d5a3b13c31e3a0e84d9deeffa61bbf025d34633a35811384"
+    },
+    {
+      "vue": "reconnexion",
+      "largeur": 1440,
+      "hauteur": 900,
+      "identiques": true,
+      "sha256_avant": "9efe7f0ac37bed034c20f37ca11f2a492ccf3c2a797751814308f7636a11bc78",
+      "sha256_apres": "9efe7f0ac37bed034c20f37ca11f2a492ccf3c2a797751814308f7636a11bc78"
+    }
+  ],
+  "navigateurs": {
+    "node": "24.19.0",
+    "chromium": "154.0.8037.57",
+    "playwright": "1.62.1"
+  },
+  "livraison": {
+    "pr_creee": false,
+    "refus_api": "Forbidden",
+    "fusionnee": false,
+    "deploiement_verifie": false,
+    "refus_site": "CONNECT HTTP 403 Envoy",
+    "iPhone_Safari_physique": "non teste",
+    "Android_Chrome_physique": "non teste",
+    "authentification_production_testee": false,
+    "donnees_production_modifiees": false
+  }
+}
