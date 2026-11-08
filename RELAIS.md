@@ -25,9 +25,13 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Justice de Sovarka — À CODER (Claude, décisions de Fred du 08/11 au soir)
+
+Toutes les décisions sont prises et consignées dans `GAME-DESIGN-NOVOMIRSK.md`, « Justice de Sovarka : bureau des magistrats et circuit sans procureur » : circuit commissaire/ministre → juge (ou affaire enterrée), « Prendre les ordres du ministre », « Offrir un café », acte officiel au greffe, Extrait d'enregistrement du parti (remplace le duplicata), titulaires PNJ juge/commissaire des trois villes. Feu vert de Fred attendu dans une nouvelle session. Point technique à prévoir : le circuit actuel (`parquet_*`, `justice_rendre_sentence`, `justice_audience_ouvrir`, `audience_role_de`) suppose un parquet ; garder la Républia intacte.
+
 ### Greffe du Tribunal Populaire de Sovarka — Claude, 08/11/2026
 
-Décisions de Fred dans `GAME-DESIGN-NOVOMIRSK.md`, « Greffe du Tribunal Populaire ». Greffe ramené de 12 à 4 ordres dans les trois villes (registres et casier d'autrui réservés aux autorités, extrait personnel 8 PSK), rangé en menus comme en Républia. Migration `20261108224500_sovarka_greffe_tribunal_populaire` **appliquée** (registre `sovarka_greffe_tribunal_populaire_20261108224500`, indépendante de l'écran ; patchs sous empreinte, Républia inchangée). **Reste** : le duplicata de domiciliation à installer en salle des partis (7 PSK) — les partis de Sovarka n'ont pas d'extrait original, question posée à Fred. Images du tribunal : Fred les refait.
+Décisions de Fred dans `GAME-DESIGN-NOVOMIRSK.md`, « Greffe du Tribunal Populaire ». Greffe ramené de 12 à 4 ordres dans les trois villes (registres et casier d'autrui réservés aux autorités, extrait personnel 8 PSK), rangé en menus comme en Républia. Migration `20261108224500_sovarka_greffe_tribunal_populaire` **appliquée** (registre `sovarka_greffe_tribunal_populaire_20261108224500`, indépendante de l'écran ; patchs sous empreinte, Républia inchangée). **Reste** : remplacé par l'Extrait d'enregistrement du parti (voir rubrique « Justice de Sovarka — À CODER »). Images du tribunal : Fred les refait.
 
 ### Palais présidentiel de Sovarka — Claude, 08/11/2026 (LIVRÉ)
 

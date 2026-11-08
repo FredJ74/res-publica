@@ -242,3 +242,27 @@ Intention : un sentiment d'enfermement, peu de moyens d'échapper aux règles co
 
 - Écran : surcharge `roomOverrides.greffe` des tribunaux des trois villes de Sovarka (`data.js`, bloc « droits d'exploiter ») ; rangement en menus étendu au Tribunal Populaire (`plateau-politique.js`).
 - Serveur : migration `20261108224500_sovarka_greffe_tribunal_populaire` (appliquée le 08/11) — `sovarka_greffe_autorite_interne`, garde `greffe_sovarka_restreint_v1` dans `justice_affaires_publiques` et `justice_archives_greffe`, prix `greffe_sovarka_prix_v1` dans `casier_mon_extrait`, aiguillage `greffe_sovarka_enquete_v1` de `casier_extrait_enquete` vers `sovarka_casier_extrait_enquete_interne`. Refus nommés : `reserve_autorites_sovarka`, `etranger_hors_juridiction`.
+
+## Justice de Sovarka : bureau des magistrats et circuit sans procureur (décisions de Fred, 08/11/2026, À CODER)
+
+**Circuit judiciaire**
+- Pas de procureur en Sovarka. La plainte est inscrite au registre du commissariat.
+- Le **commissaire** et le **ministre de la Justice prolétarienne** peuvent tous deux **saisir le juge**, ou **enterrer** l'affaire : elle n'est pas classée, elle est « perdue » — elle reste au registre du commissariat, n'apparaît jamais au registre du tribunal, et peut toujours être transmise plus tard. Une affaire enterrée alimente les **rumeurs** (« On dit qu'une plainte contre Untel s'est égarée au commissariat… », sans nommer qui l'a enterrée).
+
+**Bureau des magistrats**
+- Gardés : Rendre la sentence, Tenir l'audience, Saisines du ministre. Retiré : Dossiers du parquet.
+- **Prendre les ordres du ministre** (nouveau) : le ministre de la Justice a la liste de chaque affaire et peut envoyer au juge, jusqu'à la veille du procès, l'une des consignes : condamner sévèrement, condamner légèrement, relaxer, libre à vous (défaut si rien n'est coché). Le juge consulte ces consignes et reste libre. **Aucun effet automatique** : le juge, nommé par le ministre, peut être démis puis poursuivi ; tout se joue entre joueurs avec les moyens existants (le ministre vérifie par les Archives du greffe).
+- **Offrir un café** (nouveau, sur le modèle d'« Offrir une tournée ») : réservé au magistrat, à une personne présente dans le bureau ; +10 moral ; 1 PSK pris sur la caisse du tribunal ; un café par jour et par bénéficiaire, nombre de bénéficiaires illimité.
+
+**Greffe**
+- **Délivrer un acte officiel** (état civil / succession) quitte le bureau du juge pour le greffe : chacun pour soi (1 PA, 8 PSK, caisse du Tribunal Populaire) ; juge, commissaire et ministre de la Justice pour n'importe qui (1 PA, sans frais).
+
+**Salle des partis**
+- Le duplicata de domiciliation devient l'**Extrait d'enregistrement du parti** : délivré au chef du parti, 1 PA et 7 PSK ; nom, chef, siège et membres du parti.
+
+**Titulaires PNJ (référents justice)**
+- Juges et commissaires PNJ inscrits comme titulaires dans les trois villes (aujourd'hui aucun titulaire en Sovarka, d'où le refus de « Saisines du ministre ») : Novomirsk juge **Pravdine**, commissaire **Vassili Ostrovski** ; Starovka juge **Dulma Tsyrenova**, commissaire **Bato Dashiev** ; Krasnov juge **Anatoli Gromov**, commissaire **Oleg Morozov** (noms validés par Fred).
+- Quand un PJ prend le poste, le PNJ reste comme **référent justice**, assistant du juge (ou du commissaire).
+- Le « Défenseur Collectif, Avocat du Peuple » est retiré du tribunal de Novomirsk (plus d'avocats).
+
+Salle d'audience : pas de changement demandé. Les audiences existent côté serveur mais n'ont jamais servi (aucune plainte ni aucun jugement en base) ; en Sovarka elles dépendent du nouveau circuit ci-dessus.
