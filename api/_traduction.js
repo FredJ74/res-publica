@@ -23,7 +23,7 @@ function identiques(a,b){
 // montant, une devise ou un nombre de PA reste en langue originale.
 // L'extraction est identique à celle du cache, contre les reprises périmées.
 function invariantsMetier(texte) {
- const tokens=String(texte).match(/(?:[+-]?[0-9]+(?:[.,][0-9]+)*|\b(?:FR|PSK|PA|AP|USD|EUR|GBP|CHF|CAD|BRL|CNY|RUB|KRW|AED|DR)\b|[€$£¥₽₩%])/gu);
+ const tokens=String(texte).match(/(?:(?:[+\-\u2212\u2013\u2014\uFF0B\uFF0D\uFE63\uFE62]\s*)?\p{Nd}+(?:[.,]\p{Nd}+)*|\b(?:FR|PSK|PA|AP|USD|EUR|GBP|CHF|CAD|BRL|CNY|RUB|KRW|AED|DR)\b|[€$£¥₽₩%])/gu);
  return tokens||[];
 }
 function invariantsIdentiques(original,traduction) {
