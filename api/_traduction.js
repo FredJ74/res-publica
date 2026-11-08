@@ -62,7 +62,8 @@ async function traduireTexte({texte,langueOriginale,langueCible},provider=appelD
  if(!result?.ok || result.tronque || typeof result.texte!=='string')
   return retour(original,source,target,null,'fournisseur_indisponible');
  const traduction=result.texte.trim();
- if(!traduction || traduction.length>4000 || caracteresControles(traduction) ||\n    !identiques(original,traduction) || !invariantsIdentiques(original,traduction))
+ if(!traduction || traduction.length>4000 || caracteresControles(traduction) ||
+    !identiques(original,traduction) || !invariantsIdentiques(original,traduction))
   return retour(original,source,target,null,'traduction_invalide');
  return retour(original,source,target,traduction,null);
 }
