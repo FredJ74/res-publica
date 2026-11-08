@@ -52,16 +52,19 @@
       // technique affiché au joueur : conserver le français existant.
       if(!key) continue;
       const saved=originalFor(element,key,'textContent');
+      // Respecter un sens de lecture fixé par le contenu initial (ex. LTR).
+      // Un aller-retour en arabe ne doit jamais effacer cet attribut métier.
+      const savedDir=originalFor(element,key,'dir');
       const translated=engine.t(key,{defaultValue:null});
       if(typeof translated!=='string' || !translated.trim() || translated===key) {
         restore(element,'textContent',saved);
-        element.removeAttribute?.('dir');
+        restore(element,'dir',savedDir);
         continue;
       }
       element.textContent=element.hasAttribute('data-i18n-uppercase')
         ? translated.toLocaleUpperCase(locale) : translated;
       if(locale==='ar') element.setAttribute('dir','rtl');
-      else element.removeAttribute?.('dir');
+      else restore(element,'dir',savedDir);
     }
     // Les placeholders sont localisés sans jamais réécrire la valeur saisie.
     const placeholderNodes=Array.from(elementRoot.querySelectorAll?.('[data-i18n-placeholder]')||[]);
