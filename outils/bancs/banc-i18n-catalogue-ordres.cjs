@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('391 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('392 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,391);
+ assert.equal(ref.length,392);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -546,4 +546,18 @@ test('sept nouveaux ordres sovarkiens : catalogues synchronisés, mécanique inc
   assert.equal(before.cost,137);
   assert.equal(before.requiresPost,'sovarka_test');
  }
+});
+
+test('registre des signalements : un seul nouvel ID, deux entrées métier et neuf traductions sans effet',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ assert.equal([...source.matchAll(/fn: 'sovarka_signalements'/g)].length,2);
+ const fr=win.RP_I18N_RESOURCES.fr.translation.orders.sovarka_signalements;
+ assert.equal(fr,'Registre des signalements');
+ const order=Object.freeze({fn:'sovarka_signalements',label:fr,pa:0,cost:0,requiresPost:'president_conseil'});
+ for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+  const expected=win.RP_I18N_RESOURCES[lng].translation.orders.sovarka_signalements;
+  assert.ok(expected?.trim(),lng);
+  assert.equal(win.RPOrderI18n.label(order,engine,lng),expected,lng);
+ }
+ assert.equal(order.pa,0);assert.equal(order.cost,0);assert.equal(order.requiresPost,'president_conseil');
 });
