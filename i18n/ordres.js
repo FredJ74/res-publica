@@ -142,5 +142,25 @@
    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   })[char]);
  }
- global.RPOrderI18n=Object.freeze({label,labelHtml,ambiguous:(fn)=>ambiguities.has(fn)});
+ // Les boutons deja presents dans le DOM ne portent pas de data-i18n statique.
+ // Garder une photographie du catalogue d'ordres effectivement affiche, jamais
+ // ses handlers, puis actualiser uniquement le texte (ni rerender ni transaction).
+ let renderedOrders=[];
+ function registerRenderedOrders(orders) {
+  renderedOrders=Array.isArray(orders)?orders.slice():[];
+ }
+ function refreshVisibleLabels(root,engine,locale) {
+  if(!root || !engine || typeof engine.t!=='function')return;
+  const nodes=root.querySelectorAll?.('[data-rp-order-index]')||[];
+  for(const node of nodes){
+   const index=Number(node.getAttribute?.('data-rp-order-index'));
+   if(!Number.isSafeInteger(index)||index<0||index>=renderedOrders.length)continue;
+   const ordre=renderedOrders[index];
+   if(!ordre)continue;
+   // textContent plutôt que innerHTML : aucun remplacement de noeud,
+   // saisie, ecouteur de clic, badge de coût ou position de défilement.
+   node.textContent=label(ordre,engine,locale);
+  }
+ }
+ global.RPOrderI18n=Object.freeze({label,labelHtml,registerRenderedOrders,refreshVisibleLabels,ambiguous:(fn)=>ambiguities.has(fn)});
 })(window);
