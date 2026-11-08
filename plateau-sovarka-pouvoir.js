@@ -5,7 +5,7 @@
 
 const SOVIET_MOTIFS = {
   pas_chef_de_parti: 'Seul le chef d’un parti de Sovarka désigne les députés de son parti.',
-  pas_sur_place: 'Les députés se désignent à l’hémicycle du Soviet Suprême.',
+  pas_sur_place: 'Les députés se désignent depuis « Mon parti », dans la salle des partis d’une mairie.',
   aucun_siege: 'Votre parti n’a obtenu aucun siège à la dernière semaine à la gloire.',
   sieges_pourvus: 'Tous les sièges de votre parti sont déjà pourvus.',
   hors_parti: 'Seuls les membres de votre parti peuvent siéger en son nom.',
