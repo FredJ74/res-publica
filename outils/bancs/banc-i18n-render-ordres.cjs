@@ -48,7 +48,7 @@ test('le renderer ne change que le texte visible : doOrder conserve le libellé 
  assert.match(segment,/doOrder\('/);
  assert.match(segment,/const libelleMarque = '<span data-rp-order-index=/);
  assert.equal(segment.split(" + libelleMarque + ").length-1,2);
- assert.match(segment,/registerRenderedOrders\\?\\.\\(ordresTerrainLuthecia\\)/);
+ assert.ok(segment.includes('registerRenderedOrders?.(ordresTerrainLuthecia)'));
  assert.match(segment,/const coutJoint = \[costDisplay, paDisplay\]/);
 });
 
