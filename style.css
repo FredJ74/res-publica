@@ -2411,3 +2411,17 @@ body.plateau-body .top-right {
   /* Le compositeur garde son défilement extérieur prévu par forum-compose-grow. */
   #modal-forum.forum-compose-grow .forum-main{overflow:visible}
 }
+/* Formulaires communs : les libellés de locaux et de caractéristiques doivent
+   rester lisibles sur téléphone, sans changer les fenêtres de bureau. */
+@media(max-width:1023px){
+  .modal-box .cpj-dialogue :is(input,textarea,select){box-sizing:border-box;max-width:100%}
+  .modal-box .cpj-dialogue select.cpj-champ{display:block;width:100%;min-width:0;text-align:left}
+}
+
+/* La reconnexion reste dans le plateau, y compris lorsque le clavier réduit
+   la hauteur visible. Même formulaire et mêmes contrôles d’authentification. */
+@media(max-width:1023px){
+  #bandeau-reconnexion{height:var(--hg-visible,100dvh);box-sizing:border-box;overflow:auto;align-items:flex-start!important}
+  #bandeau-reconnexion>div{margin-block:auto;min-width:0;max-width:100%;box-sizing:border-box}
+  #bandeau-reconnexion :is(input,button){font-size:16px!important;min-height:44px;max-width:100%;white-space:normal}
+}
