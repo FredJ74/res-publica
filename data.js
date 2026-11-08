@@ -1873,7 +1873,10 @@ const WORLD = {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_commissariat-bureau.webp',
               persons: [
                 // Décision de Fred (06/11) : le commissaire seul, plus d'inspectrice.
-                {name:'Raoul Toufaud (PNJ)', role:'Commissaire de Novomirsk', rel:'neutral', job:'commissaire'}
+                // Titulaire PNJ (renommé Vassili Ostrovski) ; référent justice quand un PJ prend le poste (08/11).
+                {name:'Raoul Toufaud (PNJ)', role:'Commissaire de Novomirsk', rel:'neutral', job:'commissaire',
+                 resteApresPourvoi:true, posteCity:'capitale', roleSiPnjTitulaire:'Commissaire de Novomirsk',
+                 roleSiPjTitulaire:'Référent justice — adjoint du commissaire'}
               ]
             }
           }
@@ -1912,7 +1915,12 @@ const WORLD = {
         'tribunal': {
           name: 'Tribunal Populaire',
           desc: "Les verdicts sont décidés avant l'audience.",
-          persons: [{"name": "Camarade Juge Pravdine (PNJ)", "role": "Juge Populaire", "rel": "neutral", "job": "juge"}, {"name": "Défenseur Collectif (PNJ)", "role": "Avocat du Peuple", "rel": "neutral", "job": "avocat"}]
+          // Justice de Sovarka (Fred, 08/11/2026) : plus d'avocat (Défenseur Collectif retiré) ; le juge PNJ
+          // est titulaire (titulaires_pnj) et reste référent justice quand un PJ prend le poste.
+          persons: [{"name": "Camarade Juge Pravdine (PNJ)", "role": "Juge Populaire", "rel": "neutral", "job": "juge",
+                     "resteApresPourvoi": true, "posteCity": "capitale",
+                     "roleSiPnjTitulaire": "Juge Populaire de Novomirsk",
+                     "roleSiPjTitulaire": "Référent justice — assistant du juge"}]
         },
         'banque-nationale': {
           name: 'Banque d\'État de Sovarka',
@@ -2038,7 +2046,9 @@ const WORLD = {
             bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_economie.webp',
                               excludeOrders: ['preempter_entreprise'] },
             bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_justice.webp',
-                              orders: [{ fn: 'sovarka_saisir_juge', label: 'Saisir le juge', pa: 1, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, desc: "Vous seul saisissez le juge pour retirer un droit d'exploiter. Juge PNJ : retrait automatique ; juge PJ : décision libre." }] },
+                              orders: [{ fn: 'sovarka_saisir_juge', label: 'Saisir le juge', pa: 1, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, desc: "Vous seul saisissez le juge pour retirer un droit d'exploiter. Juge PNJ : retrait automatique ; juge PJ : décision libre." },
+                                       // Justice de Sovarka (Fred, 08/11/2026) : pas de procureur ; le ministre saisit le juge ou enterre, et donne ses consignes.
+                                       { fn: 'sovarka_registre_plaintes', label: 'Affaires judiciaires', pa: 0, cost: 0, type: 'legal', icon: 'ti-scale', successRate: 100, requiresPost: 'min_just', desc: "Toutes les plaintes de Sovarka : saisir le juge ou enterrer l'affaire, et envoyer au juge vos consignes (condamner sévèrement, légèrement, relaxer, ou libre à lui) jusqu'à la veille du procès." }] },
             bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_defense.webp',
                               orders: [{ fn: 'sovarka_conscription', label: 'Conscription', pa: 0, cost: 0, type: 'legal', icon: 'ti-military-rank', successRate: 100, desc: "Décréter ou lever la conscription des citoyens sans poste : 48 heures pour se présenter, sinon réfractaires et recherchés." }] },
             bureau_min_info:{ name: 'Bureau - Ministre de la Vérité officielle', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_information.webp',
@@ -10432,14 +10442,50 @@ function slugPnjSovarka(nom) {
       Object.assign(ordre('casier_mon_extrait', 'Demander mon extrait de casier', 1, 'ti-file-certificate',
         'Un extrait de VOTRE casier judiciaire en Sovarka, daté et figé. 8 PSK de frais de greffe, versés à la caisse du Tribunal Populaire.'), { cost: 8 }),
       ordre('casier_extrait_enquete', 'Extrait de casier (enquête)', 1, 'ti-file-search',
-        'Réservé aux mêmes autorités : le casier de n\'importe quel habitant de Sovarka, sans affaire en cours. Un étranger seulement s\'il a commis une infraction en Sovarka. 1 PA, aucun frais.')
+        'Réservé aux mêmes autorités : le casier de n\'importe quel habitant de Sovarka, sans affaire en cours. Un étranger seulement s\'il a commis une infraction en Sovarka. 1 PA, aucun frais.'),
+      // L'acte officiel quitte le bureau du juge pour le greffe (Fred, 08/11/2026) : chacun pour soi
+      // (1 PA, 8 PSK à la caisse du Tribunal Populaire), autorités pour n'importe qui (1 PA, sans frais).
+      Object.assign(ordre('sovarka_acte_officiel', 'Demander un acte officiel', 1, 'ti-file-certificate',
+        'Un extrait d\'état civil ou de succession VOUS concernant. 8 PSK de frais de greffe, versés à la caisse du Tribunal Populaire.'), { cost: 8 }),
+      Object.assign(ordre('sovarka_acte_officiel_autorite', 'Délivrer un acte officiel', 1, 'ti-file-certificate',
+        'Réservé au juge, au commissaire et au ministre de la Justice prolétarienne : l\'extrait d\'état civil ou de succession de n\'importe qui. 1 PA, sans frais.'),
+        { requiresPost: ['juge', 'commissaire', 'min_just'] })
     ], ['archives', 'falsifier_document', 'demander_juge_instruction', 'avocat_dossiers', 'avocat_barreau', 'greffe_affaires',
         'greffe_archives', 'casier_mon_extrait', 'casier_extrait_enquete', 'orga_extrait_duplicata',
         'greffe_corrompre_dossier', 'greffe_corrompre_faux_casier']);
+    // Bureau des magistrats (Fred, 08/11/2026) : pas de parquet ; l'acte officiel part au greffe ; le juge
+    // prend les ordres du ministre (sans effet automatique) et peut offrir un café.
     ajouter(surcharge(ville, capitale ? 'tribunal' : 'tribunal-local', 'bureau_magistrats'), [
+      Object.assign(ordre('rendre_sentence', 'Rendre la sentence', 2, 'ti-scale',
+        'Juger une affaire dont vous êtes saisi par le commissaire ou le ministre de la Justice prolétarienne. Requalification, relaxe ou condamnation ; la peine est bornée par le barème.'),
+        { requiresPost: 'juge' }),
       ordre('sovarka_retirer_droit', 'Saisines du ministre', 1, 'ti-gavel',
-        'Réservé au juge : sur saisine du ministre de la Justice prolétarienne, retirer un droit d\'exploiter (le commerce revient à l\'État, sans indemnité) ou rejeter la saisine.')
+        'Réservé au juge : sur saisine du ministre de la Justice prolétarienne, retirer un droit d\'exploiter (le commerce revient à l\'État, sans indemnité) ou rejeter la saisine.'),
+      Object.assign(ordre('sovarka_ordres_ministre', 'Prendre les ordres du ministre', 0, 'ti-mail-opened',
+        'Réservé au juge : les consignes du ministre de la Justice prolétarienne pour chacune de vos affaires. Vous restez libre de votre jugement… et le ministre, de vous démettre.'),
+        { requiresPost: 'juge' }),
+      Object.assign(ordre('sovarka_offrir_cafe', 'Offrir un café', 0, 'ti-coffee',
+        'Réservé au magistrat : un café aux personnes présentes dans le bureau. +10 Moral pour chacune ; 1 PSK par café, pris sur la caisse du tribunal ; un café par jour et par personne.'),
+        { requiresPost: 'juge' })
+    ], ['parquet', 'rendre_sentence', 'acte_officiel_juge']);
+    // Commissariat (Fred, 08/11/2026) : la plainte reste au registre ; le commissaire saisit le juge ou enterre.
+    ajouter(surcharge(ville, capitale ? 'commissariat' : 'commissariat-local', 'bureau_commissaire'), [
+      Object.assign(ordre('sovarka_registre_plaintes', 'Registre des plaintes', 0, 'ti-scale',
+        'Les plaintes déposées dans votre ville : saisir le juge, ou enterrer l\'affaire. Une affaire enterrée n\'est jamais close : elle reste ici, et peut toujours être transmise.'),
+        { requiresPost: 'commissaire' })
     ]);
+    // Juge et commissaire PNJ titulaires de Starovka et Krasnov (noms validés par Fred, 08/11/2026) ;
+    // ils restent référents justice quand un PJ prend le poste. Novomirsk : déclarés plus haut.
+    if (!capitale) {
+      const local = { ville_a: { juge: 'Dulma Tsyrenova (PNJ)', comm: 'Bato Dashiev (PNJ)', nom: 'Starovka' },
+                      ville_b: { juge: 'Anatoli Gromov (PNJ)', comm: 'Egor Tikhonov (PNJ)', nom: 'Krasnov' } }[ville];
+      surcharge(ville, 'tribunal-local', 'salle_audience_locale').persons = [
+        { name: local.juge, role: 'Juge Populaire de ' + local.nom, rel: 'neutral', job: 'juge', resteApresPourvoi: true,
+          posteCity: ville, roleSiPnjTitulaire: 'Juge Populaire de ' + local.nom, roleSiPjTitulaire: 'Référent justice — assistant du juge' }];
+      surcharge(ville, 'commissariat-local', 'bureau_commissaire').persons = [
+        { name: local.comm, role: 'Commissaire de ' + local.nom, rel: 'neutral', job: 'commissaire', resteApresPourvoi: true,
+          posteCity: ville, roleSiPnjTitulaire: 'Commissaire de ' + local.nom, roleSiPjTitulaire: 'Référent justice — adjoint du commissaire' }];
+    }
     const locaux = { 'centre-commercial': ['vitrine_principale', 'boutique_milieu', 'arriere_boutique', 'cave_reserve'],
                      'centre-artisanal': ['echoppe_facade', 'atelier_milieu', 'reserve_arriere'] };
     for (const [batiment, pieces] of Object.entries(locaux)) {
@@ -10545,7 +10591,10 @@ function slugPnjSovarka(nom) {
       {fn:'sovarka_parti_fonder', label:'Créer un parti', pa:2, cost:15, type:'legal', icon:'ti-flag-plus', successRate:100,
        desc:"Fonder un parti national, dont le siège sera dans cette ville : 2 PA et 15 PSK de droits d'enregistrement. On ne peut appartenir qu'à un parti."},
       {fn:'sovarka_mon_parti', label:'Mon parti', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100,
-       desc:"Membres, demandes d'adhésion, droit d'entrée, successeur ; quitter le parti coûte 1 PA."}
+       desc:"Membres, demandes d'adhésion, droit d'entrée, successeur ; quitter le parti coûte 1 PA."},
+      // Remplace le duplicata de domiciliation (Fred, 08/11/2026).
+      {fn:'sovarka_extrait_parti', label:"Extrait d'enregistrement du parti", pa:1, cost:7, type:'legal', icon:'ti-file-certificate', successRate:100,
+       desc:"Réservé au chef du parti : un extrait officiel daté (nom, chef, siège et membres du parti). 1 PA et 7 PSK, versés à la caisse de la mairie."}
     ]
   });
   for (const [ville, batiment] of [['capitale', 'mairie-capitale'], ['ville_a', 'mairie'], ['ville_b', 'mairie']]) {

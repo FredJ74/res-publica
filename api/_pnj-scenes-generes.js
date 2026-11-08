@@ -4426,8 +4426,7 @@ export const SCENES_PNJ = {
     "batiment": "Tribunal Populaire",
     "piece": "Salle d'audience",
     "personnes": [
-      "Camarade Juge Pravdine",
-      "Défenseur Collectif"
+      "Camarade Juge Pravdine"
     ]
   },
   "[\"soviet\",\"capitale\",\"tribunal\",\"bureau_magistrats\"]": {
@@ -5700,7 +5699,9 @@ export const SCENES_PNJ = {
     "ville": "Starovka",
     "batiment": "Commissariat Local",
     "piece": "Bureau du Commissaire",
-    "personnes": []
+    "personnes": [
+      "Bato Dashiev"
+    ]
   },
   "[\"soviet\",\"ville_a\",\"tribunal-local\",\"salle_audience_locale\"]": {
     "pays": "Sovarka",
@@ -5708,7 +5709,7 @@ export const SCENES_PNJ = {
     "batiment": "Tribunal Municipal",
     "piece": "Salle d'audience",
     "personnes": [
-      "Juge Local"
+      "Dulma Tsyrenova"
     ]
   },
   "[\"soviet\",\"ville_a\",\"tribunal-local\",\"bureau_magistrats\"]": {
@@ -6063,7 +6064,9 @@ export const SCENES_PNJ = {
     "ville": "Krasnov",
     "batiment": "Commissariat de Krasnov",
     "piece": "Bureau du Commissaire",
-    "personnes": []
+    "personnes": [
+      "Egor Tikhonov"
+    ]
   },
   "[\"soviet\",\"ville_b\",\"tribunal-local\",\"salle_audience_locale\"]": {
     "pays": "Sovarka",
@@ -6071,7 +6074,7 @@ export const SCENES_PNJ = {
     "batiment": "Tribunal Municipal",
     "piece": "Salle d'audience",
     "personnes": [
-      "Juge Local"
+      "Anatoli Gromov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"tribunal-local\",\"bureau_magistrats\"]": {

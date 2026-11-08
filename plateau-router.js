@@ -177,6 +177,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'sovarka_demande_location')    { ouvrirSovarkaDemandeLocation(); return; }
   if (fn === 'sovarka_dossiers_commerciaux'){ ouvrirSovarkaDossiers(); return; }
   if (fn === 'sovarka_retirer_droit')       { ouvrirSovarkaRetirerDroit(); return; }
+  // Justice de Sovarka (Fred, 08/11/2026) : plateau-sovarka-justice.js ; actes au greffe par le circuit d'état civil.
+  if (fn === 'sovarka_registre_plaintes')   { ouvrirSovarkaRegistrePlaintes(); return; }
+  if (fn === 'sovarka_ordres_ministre')     { ouvrirSovarkaOrdresMinistre(); return; }
+  if (fn === 'sovarka_offrir_cafe')         { ouvrirSovarkaOffrirCafe(); return; }
+  if (fn === 'sovarka_extrait_parti')       { sovarkaExtraitParti(); return; }
+  if (fn === 'sovarka_acte_officiel')       { doActeOfficiel(pa, cost); return; }
+  if (fn === 'sovarka_acte_officiel_autorite') { ouvrirActeOfficielJuge(pa, cost); return; }
   if (fn === 'sovarka_terrain_municipal')   { ouvrirSovarkaTerrain(); return; }
   if (fn === 'station_carburant') { ouvrirStationCarburant(); return; }
   if (fn === 'mes_vehicules')     { ouvrirMesVehicules(); return; }

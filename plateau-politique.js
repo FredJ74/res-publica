@@ -4435,7 +4435,7 @@ function renderRoomActions(room, buildingId, roomId) {
   if (['republic','soviet'].includes(state.country) && ['tribunal','tribunal-local'].includes(buildingId) && roomId === 'greffe') {
     const familles = [
       {titre:'Consulter les affaires', icone:'ti-folders', fns:['archives','greffe_affaires','greffe_archives','demander_juge_instruction']},
-      {titre:'Documents officiels', icone:'ti-file-certificate', fns:['casier_mon_extrait','casier_extrait_enquete','orga_extrait_duplicata']},
+      {titre:'Documents officiels', icone:'ti-file-certificate', fns:['casier_mon_extrait','casier_extrait_enquete','orga_extrait_duplicata','sovarka_acte_officiel','sovarka_acte_officiel_autorite']},
       {titre:'Profession d’avocat', icone:'ti-briefcase', fns:['avocat_dossiers','avocat_barreau']},
       {titre:'Actions illégales', icone:'ti-alert-triangle', fns:['falsifier_document','greffe_corrompre_dossier','greffe_corrompre_faux_casier']}
     ];

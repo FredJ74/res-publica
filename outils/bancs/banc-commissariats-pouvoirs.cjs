@@ -24,7 +24,11 @@ for (const [pays, villes] of Object.entries(W)) for (const [ville, v] of Object.
   const h = v?.buildingContext?.['commissariat-local']; if (h) habillages.push([pays + '/' + ville, h]);
 }
 t('habillages de ville trouves (' + habillages.length + ')', habillages.length >= 2);
-t('aucun habillage ne porte d ordres ni de piece ajoutee', habillages.every(([, h]) => !h.roomsExtra
-  && Object.values(h.roomOverrides || {}).every(r => !('orders' in r))));
+// Un empire peut AJOUTER un ordre propre à son récit (Sovarka, 08/11/2026 : « Registre des plaintes »),
+// à condition de ne rien masquer ni redéfinir du gabarit.
+const fnsGabarit = new Set(Object.values(B['commissariat-local'].rooms).flatMap(r => (r.orders || []).map(o => o.fn)));
+t('aucun habillage ne masque ni ne redefinit d ordre, ni n ajoute de piece', habillages.every(([, h]) => !h.roomsExtra
+  && Object.values(h.roomOverrides || {}).every(r => !(r.excludeOrders || []).length
+     && (r.orders || []).every(o => !fnsGabarit.has(o.fn)))));
 console.log(`\n${n - ko}/${n} tests passes`);
 process.exit(ko ? 1 : 0);
