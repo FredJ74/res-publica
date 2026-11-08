@@ -54,6 +54,8 @@ test('P2-01: refuser changement de montant, de devise ou du nombre de PA, sans c
   'Your order costs 100 FR and 9 PA, {{name}}.',
   'Your order costs 100 USD and 1 PA, {{name}}.',
   'Your order costs 1 FR and 100 PA, {{name}}.',
+  'Your order costs -100 FR and 1 PA, {{name}}.',
+  'Your order costs +100 FR and 1 PA, {{name}}.',
   'Your order costs 100 FR and 1 PA, {{name}}.\u0000'
  ]){
   const response=await traduireTexte({texte:source,langueOriginale:'fr',langueCible:'en'},
