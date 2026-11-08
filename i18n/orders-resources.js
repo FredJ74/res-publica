@@ -4221,7 +4221,8 @@
       "sovarka_saisir_juge": "Saisir le juge",
       "sovarka_conscription": "Conscription",
       "sovarka_sondages": "Sondages en attente",
-      "sovarka_conscrit_presenter": "Se présenter (conscription)"
+      "sovarka_conscrit_presenter": "Se présenter (conscription)",
+      "sovarka_signalements": "Registre des signalements"
     },
     "en": {
       "sovarka_repas_presidentiel": "President's meal",
@@ -4234,7 +4235,8 @@
       "sovarka_saisir_juge": "Bring a case before the judge",
       "sovarka_conscription": "Conscription",
       "sovarka_sondages": "Pending opinion polls",
-      "sovarka_conscrit_presenter": "Report for conscription"
+      "sovarka_conscrit_presenter": "Report for conscription",
+      "sovarka_signalements": "Reports register"
     },
     "es": {
       "sovarka_repas_presidentiel": "Comida del Presidente",
@@ -4247,7 +4249,8 @@
       "sovarka_saisir_juge": "Acudir al juez",
       "sovarka_conscription": "Servicio militar obligatorio",
       "sovarka_sondages": "Sondeos pendientes",
-      "sovarka_conscrit_presenter": "Presentarse al reclutamiento"
+      "sovarka_conscrit_presenter": "Presentarse al reclutamiento",
+      "sovarka_signalements": "Registro de señalamientos"
     },
     "zh-TW": {
       "sovarka_repas_presidentiel": "主席餐宴",
@@ -4260,7 +4263,8 @@
       "sovarka_saisir_juge": "向法官提出申請",
       "sovarka_conscription": "徵兵",
       "sovarka_sondages": "待處理的民意調查",
-      "sovarka_conscrit_presenter": "報到接受徵兵"
+      "sovarka_conscrit_presenter": "報到接受徵兵",
+      "sovarka_signalements": "通報登記簿"
     },
     "ru": {
       "sovarka_repas_presidentiel": "Обед председателя",
@@ -4273,7 +4277,8 @@
       "sovarka_saisir_juge": "Обратиться к судье",
       "sovarka_conscription": "Призыв на военную службу",
       "sovarka_sondages": "Ожидающие опросы",
-      "sovarka_conscrit_presenter": "Явиться по призыву"
+      "sovarka_conscrit_presenter": "Явиться по призыву",
+      "sovarka_signalements": "Журнал донесений"
     },
     "ko": {
       "sovarka_repas_presidentiel": "의장 식사",
@@ -4286,7 +4291,8 @@
       "sovarka_saisir_juge": "판사에게 심리 요청",
       "sovarka_conscription": "징병",
       "sovarka_sondages": "대기 중인 여론조사",
-      "sovarka_conscrit_presenter": "징병 신고"
+      "sovarka_conscrit_presenter": "징병 신고",
+      "sovarka_signalements": "신고 기록부"
     },
     "ar": {
       "sovarka_repas_presidentiel": "وجبة الرئيس",
@@ -4299,7 +4305,8 @@
       "sovarka_saisir_juge": "اللجوء إلى القاضي",
       "sovarka_conscription": "التجنيد الإجباري",
       "sovarka_sondages": "استطلاعات رأي معلّقة",
-      "sovarka_conscrit_presenter": "الحضور للتجنيد"
+      "sovarka_conscrit_presenter": "الحضور للتجنيد",
+      "sovarka_signalements": "سجل البلاغات"
     },
     "pt-BR": {
       "sovarka_repas_presidentiel": "Refeição do Presidente",
@@ -4312,7 +4319,8 @@
       "sovarka_saisir_juge": "Recorrer ao juiz",
       "sovarka_conscription": "Serviço militar obrigatório",
       "sovarka_sondages": "Pesquisas de opinião pendentes",
-      "sovarka_conscrit_presenter": "Apresentar-se para o alistamento"
+      "sovarka_conscrit_presenter": "Apresentar-se para o alistamento",
+      "sovarka_signalements": "Registro de denúncias"
     },
     "de": {
       "sovarka_repas_presidentiel": "Mahlzeit des Vorsitzenden",
@@ -4325,7 +4333,8 @@
       "sovarka_saisir_juge": "Den Richter anrufen",
       "sovarka_conscription": "Wehrpflicht",
       "sovarka_sondages": "Ausstehende Umfragen",
-      "sovarka_conscrit_presenter": "Sich zur Einberufung melden"
+      "sovarka_conscrit_presenter": "Sich zur Einberufung melden",
+      "sovarka_signalements": "Meldungsregister"
     }
   };
   for(const [locale,labels] of Object.entries(sovarkaOrders)) Object.assign(words[locale],labels);
