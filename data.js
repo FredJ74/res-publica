@@ -8538,6 +8538,10 @@ const ROOM_IMAGES_EMPIRE = {
     'marche': {
       'marche_ext': 'images/Sovarka/Novomirsk/Novomirsk_marche.webp'
     },
+    // L'agence de presse de Sovarka a son propre accueil, jamais celui de Luthecia.
+    'la-tribune': {
+      'accueil_tribune': 'images/Sovarka/Novomirsk/Novomirsk_presse_accueil.webp'
+    },
     'palais-presidentiel': {
       'accueil_elysee':    'images/hall-parti-sovarka.webp',
       'bureau_president':  'images/bureau-gouv-sovarka.png'
