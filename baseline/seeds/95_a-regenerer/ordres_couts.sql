@@ -446,7 +446,6 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('sovarka_reunion_evenement',1,0),
   ('sovarka_reunion_reserver',0,0),
   ('sovarka_signer_attribution',1,0),
-  ('sovarka_soviet_deputes',0,0),
   ('sovarka_terrain_municipal',0,0),
   ('sponsoriser_club',1,0),
   ('ssm_besoin_aide',0,0),
