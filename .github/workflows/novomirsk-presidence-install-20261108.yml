@@ -1,4 +1,4 @@
-name: Novomirsk - installer les quatre visuels presidentiels
+name: Novomirsk - convertir et integrer les quatre visuels presidentiels
 on:
   push:
     branches: [main]
