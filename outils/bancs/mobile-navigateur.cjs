@@ -14,6 +14,21 @@ async function avecJeu(f){
  await new Promise(r=>serveur.listen(0,'127.0.0.1',r));const origine='http://127.0.0.1:'+serveur.address().port;
  let b;try{b=await chromium.launch({executablePath:process.env.HG_CHROMIUM||['/usr/bin/chromium','/usr/bin/google-chrome','/usr/bin/google-chrome-stable'].find(fs.existsSync),args:['--no-sandbox']});await f(b,origine);}finally{if(b)await b.close();serveur.closeAllConnections();await new Promise(r=>serveur.close(r));}
 }
-async function page(b,o,w,h,ancien=false,options={}){const c=await b.newContext({viewport:{width:w,height:h},hasTouch:w<1024,...options.contexte});await c.route('**/*',r=>r.request().url().startsWith(o+'/')?r.continue():r.abort());const p=await c.newPage();p.setDefaultTimeout(5000);await p.goto(o+'/plateau.html'+(ancien?'?ancien':''));if(ancien){await p.addStyleTag({content:lecture('style.css',true).toString()});}else await p.addScriptTag(options.mobileSource ? {content:options.mobileSource} : {url:o+'/plateau-mobile.js'});await p.waitForTimeout(500);return p;}
+async function page(b,o,w,h,ancien=false,options={}) {
+ const c=await b.newContext({viewport:{width:w,height:h},hasTouch:w<1024,...options.contexte});
+ await c.route('**/*',r=>{
+  const url=new URL(r.request().url());
+  if(url.origin!==o)return r.abort();
+  const nom=url.pathname.slice(1);
+  if(options.fichiers&&Object.hasOwn(options.fichiers,nom))
+   return r.fulfill({contentType:nom.endsWith('.css')?'text/css':'text/javascript',body:options.fichiers[nom]});
+  return r.continue();
+ });
+ const p=await c.newPage();p.setDefaultTimeout(5000);
+ await p.goto(o+'/plateau.html'+(ancien?'?ancien':''));
+ if(ancien)await p.addStyleTag({content:lecture('style.css',true).toString()});
+ else await p.addScriptTag(options.mobileSource?{content:options.mobileSource}:{url:o+'/plateau-mobile.js'});
+ await p.waitForTimeout(500);return p;
+}
 
 module.exports={R,temoin,lecture,preuve,avecJeu,page};

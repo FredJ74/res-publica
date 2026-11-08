@@ -38,7 +38,11 @@ Aucune règle, montant, ordre, migration ou donnée réelle modifié. #377 et mo
 Sovarka de Claude intacts ; seule fixture de lecture du tribunal actualisée.
 Rapport `outils/audits/CERTIFICATION-MOBILE-20261108.md`, protocole court iPhone /
 Android dans `RECETTE-PHYSIQUE-MOBILE-20261108.md`. Tests ciblés et contre-épreuves
-avant contrôleur complet ; résultats finaux à consigner. GitHub API et Vercel
+22/22 (certification et Sovarka). Première passe complète 202/203 : seule la
+comparaison du nouveau témoin bureau échouait ; chargement CSS témoin au premier
+rendu corrigé, sans masque ni tolérance. Le lancement Chrome est mutualisé pour
+la portabilité GitHub Actions. Contrôleur complet à rejouer sur cet outillage.
+Globaux 10/12 : Workflow/Authority conformes, Baseline/Referential hérités documentés. GitHub API et Vercel
 refusés par le proxy : pas de CI, fusion ou déploiement attesté. Le journal réel
 est fermé dans les deux profils sans changer URL, personnage, position ou cache.
 

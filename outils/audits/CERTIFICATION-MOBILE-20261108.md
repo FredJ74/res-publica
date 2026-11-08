@@ -59,14 +59,32 @@ Nouveau banc : `outils/bancs/banc-mobile-certification.cjs`. Profils Chromium
 ne signifient pas qu’un iPhone ou Android physique a été testé. Les formats
 375×667, 393×852, 412×915, 852×393, 768×1024 et Sovarka 360/390/768 sont conservés.
 
-Pour la comparaison stricte bureau, les animations et transitions décoratives
-sont figées identiquement des deux côtés. Un écart intermittent de deux rangées
-de pixels de bordure du bouton flottant a été observé avant cette stabilisation.
-Aucun masque, retrait de zone ni tolérance de pixels n’est utilisé.
+Pour la comparaison stricte bureau, les feuilles du témoin sont servies dès le
+premier rendu, dans leur ordre d’origine. Le remplacement après affichage produisait
+un écart intermittent de deux rangées de pixels sur la bordure du bouton flottant.
+Les animations et transitions décoratives sont figées identiquement des deux côtés.
+Aucun masque, retrait de zone ni tolérance de pixels n’est utilisé. Le lancement
+Sovarka réutilise le helper commun qui détecte Chromium ou Google Chrome, au lieu
+de présumer `/usr/bin/chromium` (portabilité runner, pas incident CI prétendu).
 
 ## Résultats
 
-Résultats définitifs à consigner après les derniers contrôles.
+- Passe globale unique sur le code applicatif `6251fe6a` : **10/12**.
+  Workflow et Authority conformes. Baseline : seeds `chaines_production_usine`
+  (6 lignes contre 5) et `entreprises_constantes` (23 contre 22), empreintes de
+  manifeste discordantes. Referential : déclarations historiques `ordres_couts`
+  (439 lignes) et `pa_bonus_differes` (10 lignes) divergentes des sources actuelles.
+  Ces sources/seeds ne sont pas modifiés par ce lot ; aucune mesure vivante
+  Supabase, empreinte ou tolérance n’a été fabriquée.
+- Première passe client complète : **202/203**, seul échec dans la comparaison
+  du nouveau témoin bureau. Le chargement du témoin a été corrigé comme décrit
+  ci-dessus ; le test n’a été ni désactivé ni rendu tolérant.
+- Passe client complète finale : à consigner après exécution sur l’outillage stabilisé.
+- Contre-épreuves conservées pour les trois défauts. Aucun SQL exécuté.
+
+La passe globale n’est pas répétée à chaque essai : les modifications de
+stabilisation ultérieures concernent seulement les bancs navigateur, pas le
+code applicatif ni les fichiers examinés par Baseline/Referential.
 
 ## Accès extérieurs et état de livraison
 

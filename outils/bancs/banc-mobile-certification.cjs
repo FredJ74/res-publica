@@ -6,7 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const zlib = require('node:zlib');
 const acorn = require('../vercel/node_modules/acorn');
-const { R, avecJeu, page } = require('./mobile-navigateur.cjs');
+const { R, avecJeu, page, preuve } = require('./mobile-navigateur.cjs');
 const archive = fs.readFileSync(path.join(__dirname, 'fixtures/mobile-certification-temoin-520630bd.json.gz'));
 assert.equal(crypto.createHash('sha256').update(archive).digest('hex'), '6e0a56feaba4d50f731551e2440f9f2962b50559ec6eabdb63960e3c70289f9c');
 const temoin = JSON.parse(zlib.gunzipSync(archive));
@@ -18,7 +18,8 @@ const profils = [
 async function telephone(b, o, profil, ancien = false) {
   return page(b, o, profil.w, profil.h, false, {
     contexte: profil.contexte,
-    mobileSource: ancien ? temoin.fichiers['plateau-mobile.js'] : undefined
+    mobileSource: ancien ? temoin.fichiers['plateau-mobile.js'] : undefined,
+    fichiers: ancien ? temoin.fichiers : undefined
   });
 }
 async function preparerReprise(p) {
@@ -127,9 +128,8 @@ for (const profil of profils) test(`${profil.nom} : fermer le journal d’accuei
 }));
 
 test('Bureau 1440 : rendu strictement identique au main de certification', () => avecJeu(async (b, o) => {
-  const avant = await page(b, o, 1440, 900, false, { mobileSource: temoin.fichiers['plateau-mobile.js'] });
-  await avant.locator('link[rel=stylesheet]').evaluateAll(es => es.forEach(e => e.remove()));
-  for (const fichier of ['style.css', 'rue-centrale.css']) await avant.addStyleTag({ content: temoin.fichiers[fichier] });
+  // Servir le témoin dès le premier rendu conserve l’ordre réel des feuilles CSS.
+  const avant = await page(b, o, 1440, 900, false, { mobileSource: temoin.fichiers['plateau-mobile.js'], fichiers: temoin.fichiers });
   const apres = await page(b, o, 1440, 900);
   // Fixer les décorations animées au même état dans les deux contextes.
   // La comparaison reste intégrale, sans masque ni tolérance de pixels.
@@ -143,11 +143,18 @@ test('Bureau 1440 : rendu strictement identique au main de certification', () =>
   if (!ancienPng.equals(nouveauPng)) {
     fs.writeFileSync('/tmp/mobile-certification-bureau-avant.png', ancienPng);
     fs.writeFileSync('/tmp/mobile-certification-bureau-apres.png', nouveauPng);
+
   }
+  preuve('certification-1440-avant.png', ancienPng);
+  preuve('certification-1440-apres.png', nouveauPng);
   assert.ok(ancienPng.equals(nouveauPng), 'pixels du plateau bureau identiques');
   await formulaireReconnexion(avant, false);
   await formulaireReconnexion(apres, false);
-  assert.ok((await avant.screenshot({ animations: 'disabled', caret: 'hide' })).equals(await apres.screenshot({ animations: 'disabled', caret: 'hide' })), 'reconnexion bureau inchangée');
+  const formulaireAvant = await avant.screenshot({ animations: 'disabled', caret: 'hide' });
+  const formulaireApres = await apres.screenshot({ animations: 'disabled', caret: 'hide' });
+  preuve('reconnexion-1440-avant.png', formulaireAvant);
+  preuve('reconnexion-1440-apres.png', formulaireApres);
+  assert.ok(formulaireAvant.equals(formulaireApres), 'reconnexion bureau inchangée');
 }));
 
 const core = fs.readFileSync(path.join(R, 'plateau-core.js'), 'utf8');
@@ -174,8 +181,6 @@ for (const profil of profils) test(`${profil.nom} : reconnexion défilante avec 
 }));
 test('Contre-épreuve : bouton de reconnexion hors écran avec le CSS main et clavier simulé', () => avecJeu(async (b, o) => {
   const p = await telephone(b, o, profils[0], true);
-  await p.locator('link[rel=stylesheet]').evaluateAll(es => es.forEach(e => e.remove()));
-  for (const fichier of ['style.css', 'rue-centrale.css']) await p.addStyleTag({ content: temoin.fichiers[fichier] });
   await formulaireReconnexion(p);
   await p.setViewportSize({ width: 390, height: 350 });
   const valider = p.locator('#bandeau-reconnexion button[type=submit]');
