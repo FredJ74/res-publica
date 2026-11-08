@@ -8,12 +8,13 @@ const plateau=fs.readFileSync(path.join(root,'plateau.html'),'utf8');
 const init=fs.readFileSync(path.join(root,'i18n/plateau-init.js'),'utf8');
 const bridge=fs.readFileSync(path.join(root,'i18n/plateau-bridge.js'),'utf8');
 
-test('la beta active les neuf langues avant le pont et le moteur plateau',()=>{
- const enabled=plateau.indexOf('window.RP_I18N_GAME_ENABLED = true;');
+test('le plateau reste fermé au multilingue avant autorisation du game designer',()=>{
+ const disabled=plateau.indexOf('window.RP_I18N_GAME_ENABLED = false;');
  const startup=plateau.indexOf('src="i18n/plateau-bridge.js');
  const engine=plateau.indexOf('src="i18n/plateau-init.js');
- assert.ok(enabled>=0,'activation du plateau absente');
- assert.ok(startup>enabled,'la garde doit précéder la résolution de langue');
+ assert.ok(disabled>=0,'garde du plateau absente');
+ assert.equal(plateau.includes('window.RP_I18N_GAME_ENABLED = true;'),false,'activation publique non autorisée');
+ assert.ok(startup>disabled,'la garde doit précéder la résolution de langue');
  assert.ok(engine>startup,'initialisation après le pont');
  assert.match(init,/const supported=global\.RP_I18N_GAME_ENABLED === true/);
  assert.match(bridge,/if\(global\.RP_I18N_GAME_ENABLED !== true\)return 'fr'/);
