@@ -1,26 +1,40 @@
-name: Novomirsk - images du palais presidentiel (inventaire)
+name: Novomirsk - inventaire images du palais presidentiel
 on:
   push:
     branches: [main]
     paths:
       - '.github/workflows/novomirsk-presidence-images-20261108.yml'
 permissions:
-  contents: read
+  contents: write
 jobs:
   inventory:
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - name: Lister les nouvelles images pour affectation sure
+        with:
+          persist-credentials: true
+      - name: Inventaire source a relire avant suppression
+        shell: bash
         run: |
+          set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          import os
+          import json
+          entries=[]
           for root in ('images/Sovarka/Novomirsk','images/sovarka/novomirsk'):
               p=Path(root)
-              print('DIRECTORY',root,'EXISTS',p.is_dir())
               if p.is_dir():
                   for f in sorted(p.iterdir()):
                       if f.is_file() and f.suffix.lower() in ('.png','.jpg','.jpeg'):
-                          print('CANDIDATE',repr(f.as_posix()),'BYTES',f.stat().st_size)
+                          entries.append(dict(path=f.as_posix(),bytes=f.stat().st_size))
+          out=Path('outils/audits/novomirsk-presidence-png-manifest-20261108.json')
+          out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps(entries,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+          print(out.read_text())
           PY
+          git add outils/audits/novomirsk-presidence-png-manifest-20261108.json
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'audit(images): inventaire PNG Novomirsk avant conversion'
+            git push origin HEAD:main
+          fi
