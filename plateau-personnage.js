@@ -6,6 +6,11 @@
 // =====================
 // CHAR SHEET
 // =====================
+// Traductions d'affichage du profil, sans effet sur les comptes ni la fiche PJ.
+function rpCharSheetLabel(key,source) {
+  return (typeof window!=='undefined' && window.RPCharacterSheetI18n?.label?.(key,source)) || source;
+}
+
 async function openCharSheet() {
   const char = state.char;
   if (!char) return;
@@ -53,13 +58,13 @@ async function openCharSheet() {
       </div>
     </div>
     <div style="display:flex;gap:.4rem;padding:.6rem 1rem;border-bottom:1px solid #1a1810">
-      <button id="cs-tab-btn-identite" onclick="switchCharSheetTab('identite')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #8a6a20;background:#1a1408;color:#C9A84C;cursor:pointer">Identité</button>
-      <button id="cs-tab-btn-stats" onclick="switchCharSheetTab('stats')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #4a3a20;background:#12100a;color:#c0a060;cursor:pointer">Statistiques</button>
+      <button id="cs-tab-btn-identite" onclick="switchCharSheetTab('identite')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #8a6a20;background:#1a1408;color:#C9A84C;cursor:pointer">${rpCharSheetLabel('identity','Identité')}</button>
+      <button id="cs-tab-btn-stats" onclick="switchCharSheetTab('stats')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #4a3a20;background:#12100a;color:#c0a060;cursor:pointer">${rpCharSheetLabel('statistics','Statistiques')}</button>
     </div>
     <div id="cs-tab-identite">
     <div class="char-sheet-grid">
       <div class="cs-section">
-        <div class="cs-title">Caracteristiques</div>
+        <div class="cs-title">${rpCharSheetLabel('characteristics','Caracteristiques')}</div>
         ${STAT_DEFS.map(({k,n,i}) => `
           <div class="cs-stat-row">
             <span class="cs-stat-name"><i class="ti ${i}" style="font-size:.75rem;vertical-align:-1px"></i> ${n}</span>
@@ -67,17 +72,17 @@ async function openCharSheet() {
           </div>`).join('')}
       </div>
       <div class="cs-section">
-        <div class="cs-title">Ressources</div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Argent total</span><span class="cs-stat-val">${((Number(state.liquide)||0) + (typeof resumeFortune === 'function' ? Number(resumeFortune().comptes)||0 : Number(totalComptesBancaires())||0)).toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Liquide</span><span class="cs-stat-val">${state.liquide.toLocaleString('fr-FR')}</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">En banque</span><span class="cs-stat-val">${(typeof resumeFortune === 'function' ? resumeFortune().comptes : totalComptesBancaires()).toLocaleString('fr-FR')}</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Placements</span><span class="cs-stat-val">${totalPlacements.toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Emprunts en cours</span><span class="cs-stat-val">${pretsEnCours.length === 0 ? 'Aucun' : totalRestantPrets.toLocaleString('fr-FR') + ' ' + (co?.cur||'FR') + ' restant (' + pretsEnCours.length + ')'}</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Influence</span><span class="cs-stat-val">${state.inf}/100</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Popularite</span><span class="cs-stat-val">${state.pop}/100</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Discretion</span><span class="cs-stat-val">${state.dis}/100</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Sante</span><span class="cs-stat-val">${state.hp}/100</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Moral</span><span class="cs-stat-val">${state.moral}/100</span></div>
+        <div class="cs-title">${rpCharSheetLabel('resources','Ressources')}</div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('totalMoney','Argent total')}</span><span class="cs-stat-val">${((Number(state.liquide)||0) + (typeof resumeFortune === 'function' ? Number(resumeFortune().comptes)||0 : Number(totalComptesBancaires())||0)).toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('cash','Liquide')}</span><span class="cs-stat-val">${state.liquide.toLocaleString('fr-FR')}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('bank','En banque')}</span><span class="cs-stat-val">${(typeof resumeFortune === 'function' ? resumeFortune().comptes : totalComptesBancaires()).toLocaleString('fr-FR')}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('investments','Placements')}</span><span class="cs-stat-val">${totalPlacements.toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('outstandingLoans','Emprunts en cours')}</span><span class="cs-stat-val">${pretsEnCours.length === 0 ? 'Aucun' : totalRestantPrets.toLocaleString('fr-FR') + ' ' + (co?.cur||'FR') + ' restant (' + pretsEnCours.length + ')'}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('influence','Influence')}</span><span class="cs-stat-val">${state.inf}/100</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('popularity','Popularite')}</span><span class="cs-stat-val">${state.pop}/100</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('discretion','Discretion')}</span><span class="cs-stat-val">${state.dis}/100</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('health','Sante')}</span><span class="cs-stat-val">${state.hp}/100</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('morale','Moral')}</span><span class="cs-stat-val">${state.moral}/100</span></div>
         ${pretsEnCours.length > 0 ? pretsEnCours.map(p => `
           <div style="font-size:.72rem;color:#8a8060;padding:.15rem 0 .15rem .5rem;border-left:2px solid #3a2a10;margin-top:.3rem">
             ${(TYPES_PRET?.[p.type_pret]?.label || p.type_pret || 'Prêt')} (${p.type_banque === 'privee' ? 'Helvetia' : 'Nationale'}) — ${(p.montant_restant||0).toLocaleString('fr-FR')} ${co?.cur||'FR'} restant, ${(p.mensualite||0).toLocaleString('fr-FR')} ${co?.cur||'FR'}/jour
@@ -85,7 +90,7 @@ async function openCharSheet() {
       </div>
     </div>
     <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">
-      <div class="cs-title" style="margin-bottom:.4rem">Parcours</div>
+      <div class="cs-title" style="margin-bottom:.4rem">${rpCharSheetLabel('journey','Parcours')}</div>
       <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.6rem">
         ${[or,sc,ar,ca].filter(Boolean).map(x => `
           <div style="font-size:.72rem;padding:.2rem .6rem;border:1px solid #2a2010;color:#8a8060;background:#0f0d05;display:flex;align-items:center;gap:.3rem">
@@ -96,8 +101,8 @@ async function openCharSheet() {
     </div>
     <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">
       <div class="cs-title" style="margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">
-        <span>Signature (forum)</span>
-        <button onclick="ouvrirEditeurSignature()" style="font-family:'Bebas Neue',sans-serif;font-size:.68rem;letter-spacing:.06em;padding:.25rem .6rem;border:1px solid #4a3a20;background:transparent;color:#8a6a20;cursor:pointer">Modifier</button>
+        <span>${rpCharSheetLabel('forumSignature','Signature (forum)')}</span>
+        <button onclick="ouvrirEditeurSignature()" style="font-family:'Bebas Neue',sans-serif;font-size:.68rem;letter-spacing:.06em;padding:.25rem .6rem;border:1px solid #4a3a20;background:transparent;color:#8a6a20;cursor:pointer">${rpCharSheetLabel('edit','Modifier')}</button>
       </div>
       ${char.signatureHtml
         ? `<div style="font-size:.78rem;color:#8a8060;padding:.5rem;background:#0f0d05;border:1px solid #1a1810">${typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(char.signatureHtml) : char.signatureHtml}</div>`
@@ -106,19 +111,19 @@ async function openCharSheet() {
           : `<div style="font-size:.75rem;color:#9a8a68;font-style:italic">Aucune signature. Elle apparaîtra automatiquement en bas de tes posts sur le forum.</div>`)}
     </div>
     <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">
-      <div class="cs-title" style="margin-bottom:.4rem">Réservations d'hôtel</div>
+      <div class="cs-title" style="margin-bottom:.4rem">${rpCharSheetLabel('hotelReservations',"Réservations d'hôtel")}</div>
       ${listeHotelBrute === null
-        ? '<div style="font-size:.75rem;color:#c0a060">Lecture des réservations indisponible. Aucun droit n’est effacé.</div>'
+        ? '<div style="font-size:.75rem;color:#c0a060">' + rpCharSheetLabel('readUnavailable','Lecture des réservations indisponible. Aucun droit n’est effacé.') + '</div>'
         : groupesHotel.length === 0
-          ? '<div style="font-size:.75rem;color:#9a8a68">Aucune nuit réservée.</div>'
+          ? '<div style="font-size:.75rem;color:#9a8a68">' + rpCharSheetLabel('noReservedNights','Aucune nuit réservée.') + '</div>'
           : groupesHotel.map(g => `
             <div class="cs-stat-row"><span class="cs-stat-name">${sansBalisesHotel(BUILDINGS[g.batiment]?.shortName || g.batiment)} — ${sansBalisesHotel(g.ville)}</span>
             <span class="cs-stat-val">${g.nuits} nuit${g.nuits>1?'s':''} (+${g.bonus.paBonus||0} PA, +${g.bonus.moral||0} Moral/nuit)</span></div>`).join('')}
     </div>
     <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">
-      <div class="cs-title" style="margin-bottom:.4rem">Inventaire</div>
+      <div class="cs-title" style="margin-bottom:.4rem">${rpCharSheetLabel('inventory','Inventaire')}</div>
       ${state.inventory.length === 0
-        ? '<div style="font-size:.75rem;color:#9a8a68;font-style:italic">Aucun objet</div>'
+        ? '<div style="font-size:.75rem;color:#9a8a68;font-style:italic">' + rpCharSheetLabel('noItems','Aucun objet') + '</div>'
         : state.inventory.map(item => `
             <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:#c0b090;padding:.2rem 0">
               <i class="ti ${item.icon}" style="font-size:.8rem;color:#8a6a20"></i> ${item.name}
@@ -183,7 +188,7 @@ Chaque pièce propose des ordres (boutons en bas). Certains coûtent des PA (Poi
 ━━━━━━━━━━━━━━━━━━━━━━━━
 ÉTAPE 5 — Dormir pour progresser
 ━━━━━━━━━━━━━━━━━━━━━━━━
-Dormez une fois par jour dans un hôtel ou via votre fiche personnage. Cela vous verse votre salaire, restaure vos PA et fait avancer le temps. Sans sommeil, pas de revenus !
+Dormez une fois par jour dans un hôtel ou via votre fiche personnage. Cela vous verse votre salaire et restaure vos PA. Le temps du jeu suit l'heure réelle, et les jours sans sommeil ne sont pas rattrapés. Sans sommeil, pas de revenus !
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
 CONSEILS
@@ -207,17 +212,19 @@ Choisissez qui vous voulez être. Mais sachez que dans Res Publica, comme à Rom
     titre: 'Créer son personnage',
     contenu: `Votre personnage est défini par 4 choix fondamentaux :
 
-ORIGINE SOCIALE — Détermine votre capital de départ et vos bonus de stats.
-• Milieu défavorisé : 200 FR, +VOL +DUP
-• Classe ouvrière : 500 FR, +VOL +ENT
-• Petite bourgeoisie : 1200 FR, +INT +CHA
-• Haute société : 3000 FR, +ENT +CHA
+ORIGINE SOCIALE — Détermine votre capital de départ et vos caractéristiques.
+• Milieu défavorisé : 300 unités, +2 VOL, +2 DUP, −1 CHA
+• Classe ouvrière : 600 unités, +1 VOL, +1 PER, −1 DUP
+• Petite bourgeoisie : 1 000 unités, +1 INT, +1 CHA, −1 ENT
+• Haute société : 2 200 unités, +2 ENT, −2 VOL
+Le capital est exprimé dans la monnaie de votre empire.
 
-PARCOURS SCOLAIRE — Détermine les carrières accessibles et vos points de compétence.
-• Pas d'école : bloque plusieurs carrières
-• Études supérieures et Hautes écoles : toutes les carrières accessibles
+PARCOURS SCOLAIRE — Détermine notamment les carrières accessibles et modifie vos caractéristiques.
+• Pas d'école : plusieurs carrières sont interdites
+• Études supérieures : certaines carrières spécialisées restent réservées aux Hautes écoles
+• Hautes écoles : toutes les familles de carrières du socle sont accessibles
 
-ARCHÉTYPE — Votre nature profonde. Définit vos bonus de ressources et votre style de jeu.
+ARCHÉTYPE — Votre nature profonde. Modifie vos caractéristiques, et influence votre style de jeu.
 
 CARRIÈRE — Votre activité principale. Donne des contacts, des compétences et un salaire journalier.`
   },
@@ -263,14 +270,15 @@ BOÎTE MAIL — Accessible depuis le bouton "Mail" en haut. Contient vos message
 
 AJOUTER UN CONTACT — Cliquez sur un PJ puis "Ajouter au répertoire". Indispensable pour porter plainte, lancer une rumeur ciblée, ou envoyer un mail.
 
-LE FORUM — Accessible depuis le bouton "Forum" en haut. C'est l'espace de communication publique et privée du jeu. Il comporte plusieurs forums :
-• Forum Local — Discussions de votre ville
-• Forum Régional — Discussions régionales
-• Forum National — Débats politiques nationaux
-• Forum International — Relations entre empires
-• Forum Gouvernemental — Réservé au gouvernement (Président + ministres)
-• Forum Syndical — Réservé aux syndicalistes
-Pour créer un sujet : bouton "Nouveau sujet". Pour répondre : bouton "Répondre" dans le sujet. L'éditeur permet la mise en forme (gras, souligné, centrage) et l'insertion d'images. Les sujets créés sont visibles de tous les membres du forum concerné.`
+LE FORUM — Accessible depuis « Messages/Forums », en haut du plateau, il rassemble les échanges publics et privés.
+• Forum local — Celui de la ville où vous vous trouvez, qui change lorsque vous voyagez.
+• Forum national — Celui de votre pays actuel, accessible depuis ses différentes villes.
+• Forum international — Relations entre les empires.
+• Forum sportif — Championnat, résultats et supporters.
+• Forums institutionnels — Selon les droits de votre poste ; les annonces publiques restent accessibles selon les règles de chaque rubrique.
+• Forums des organisations — Privés : vous ne voyez que ceux des organisations auxquelles vous appartenez ou que vous dirigez.
+• Presse et médias — Lecture publique ; création des sujets réservée aux journalistes.
+Pour créer un sujet : bouton "Nouveau sujet". Pour répondre : bouton "Répondre" dans le sujet. L'éditeur permet la mise en forme (gras, souligné, centrage) et l'insertion d'images. Chaque sujet reste soumis aux droits de lecture de sa rubrique.`
   },
   sport: {
     titre: '⚽ Football — Matchs en direct',
@@ -500,14 +508,14 @@ function switchSelfTab(tab, el) {
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem;margin-bottom:.8rem">';
     html += '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">';
     html += '<i class="ti ti-moon" style="font-size:1.2rem;color:#6a8aaa"></i>';
-    html += '<div><div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">Dormir</div>';
+    html += '<div><div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">' + rpCharSheetLabel('sleep','Dormir') + '</div>';
     html += '<div style="font-size:.72rem;color:#6a5a30"><i class="ti ' + confort.icon + '" style="font-size:.7rem"></i> ' + confort.label + '</div></div>';
     html += '</div>';
     html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem;line-height:1.5">';
-    html += (dejaDormi ? '<span style="color:#9a8a68">Vous avez deja dormi aujourd\'hui.</span>' : texteVersementDormir()) + '<br>';
+    html += (dejaDormi ? '<span style="color:#9a8a68">' + rpCharSheetLabel('alreadySlept',"Vous avez deja dormi aujourd'hui.") + '</span>' : texteVersementDormir()) + '<br>';
     html += '+' + confort.moral + ' Moral · ';
-    html += (confort.paBonus > 0 ? '+' + confort.paBonus + ' PA bonus demain' : 'Pas de bonus PA') + '</div>';
-    html += '<button onclick="doDormir()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid ' + (dejaDormi ? '#2a2010' : '#4a6a8a') + ';background:transparent;color:' + (dejaDormi ? '#4a4030' : '#6a8aaa') + ';cursor:' + (dejaDormi ? 'not-allowed' : 'pointer') + '"' + (dejaDormi ? ' disabled' : '') + '>Dormir maintenant</button>';
+    html += (confort.paBonus > 0 ? '+' + confort.paBonus + ' ' + rpCharSheetLabel('paBonusTomorrow','PA bonus demain')  : rpCharSheetLabel('noPaBonus','Pas de bonus PA')) + '</div>';
+    html += '<button onclick="doDormir()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid ' + (dejaDormi ? '#2a2010' : '#4a6a8a') + ';background:transparent;color:' + (dejaDormi ? '#4a4030' : '#6a8aaa') + ';cursor:' + (dejaDormi ? 'not-allowed' : 'pointer') + '"' + (dejaDormi ? ' disabled' : '') + '>' + rpCharSheetLabel('sleepNow','Dormir maintenant') + '</button>';
     html += '</div>';
 
     // Se soigner
@@ -515,23 +523,23 @@ function switchSelfTab(tab, el) {
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem;margin-bottom:.8rem">';
     html += '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">';
     html += '<i class="ti ti-first-aid-kit" style="font-size:1.2rem;color:#6a9a6a"></i>';
-    html += '<div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">Se soigner</div></div>';
-    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">' + (medocs.length > 0 ? medocs.length + ' medicament(s) en inventaire. +20 HP par utilisation.' : 'Aucun medicament en inventaire.') + '</div>';
-    html += '<button onclick="doSesoigner()" ' + (medocs.length === 0 ? 'disabled style="opacity:.4;cursor:not-allowed"' : '') + ' style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid #2a4a20;background:transparent;color:#4a8a4a;cursor:pointer">Utiliser un medicament</button>';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">' + rpCharSheetLabel('heal','Se soigner') + '</div></div>';
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">' + (medocs.length > 0 ? medocs.length + ' medicament(s) en inventaire. +20 HP par utilisation.' : rpCharSheetLabel('noMedicine','Aucun medicament en inventaire.')) + '</div>';
+    html += '<button onclick="doSesoigner()" ' + (medocs.length === 0 ? 'disabled style="opacity:.4;cursor:not-allowed"' : '') + ' style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid #2a4a20;background:transparent;color:#4a8a4a;cursor:pointer">' + rpCharSheetLabel('useMedicine','Utiliser un medicament') + '</button>';
     html += '</div>';
 
     // Mediter
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem">';
     html += '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">';
     html += '<i class="ti ti-brain" style="font-size:1.2rem;color:#8a6aaa"></i>';
-    html += '<div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">Mediter</div></div>';
-    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Se recentrer. +3 Moral. 1 PA.</div>';
-    html += '<button onclick="doOrder(\'se_reposer\',1,0,\'Mediter\',\'Vous prenez le temps de vous recentrer.\',100);closeSelfView()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid #3a2a5a;background:transparent;color:#8a6aaa;cursor:pointer">Mediter</button>';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">' + rpCharSheetLabel('meditate','Mediter') + '</div></div>';
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">' + rpCharSheetLabel('meditateHint','Se recentrer. +3 Moral. 1 PA.') + '</div>';
+    html += '<button onclick="doOrder(\'se_reposer\',1,0,\'Mediter\',\'Vous prenez le temps de vous recentrer.\',100);closeSelfView()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid #3a2a5a;background:transparent;color:#8a6aaa;cursor:pointer">' + rpCharSheetLabel('meditate','Mediter') + '</button>';
     html += '</div>';
 
     // Ordres tactiques
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem;margin-bottom:.8rem">';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.6rem">ACTIONS TACTIQUES</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.6rem">' + rpCharSheetLabel('tacticalActions','ACTIONS TACTIQUES') + '</div>';
 
     const malusISN = getMalusISN();
     const groupSize = getGroupSize ? getGroupSize() : 1;
@@ -539,10 +547,10 @@ function switchSelfTab(tab, el) {
 
     html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
     html += '<button onclick="doOrder(\'se_cacher\',1,0,\'Se cacher\',\'Vous vous dissimulez dans la piece.\',70);closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #2a3a20;background:#0a0d08;color:#8a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
-    html += '<span><i class="ti ti-eye-off" style="font-size:.85rem"></i> Se cacher</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a6a3a">70% · 1 PA</span></button>';
+    html += '<span><i class="ti ti-eye-off" style="font-size:.85rem"></i> ' + rpCharSheetLabel('hide','Se cacher') + '</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a6a3a">70% · 1 PA</span></button>';
     // Vehicules personnels (05/11/2026) : on conduit depuis n'importe quel endroit de la ville.
     html += '<button onclick="closeSelfView();ouvrirMesVehicules()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #2a3440;background:#0a0d10;color:#8aa0b4;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
-    html += '<span><i class="ti ti-car" style="font-size:.85rem"></i> Mes véhicules</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a5a6a">plein · cargaison · conduire</span></button>';
+    html += '<span><i class="ti ti-car" style="font-size:.85rem"></i> ' + rpCharSheetLabel('myVehicles','Mes véhicules') + '</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a5a6a">plein · cargaison · conduire</span></button>';
 
     // 1 PA, PAS 3. Le bouton a toujours affiche « 1 PA » (ligne suivante) et le routeur commente
     // « Blocus : 1 PA quoi qu'il arrive ». Le 3 passe ici etait preleve par executerOrdreGenerique,
@@ -551,7 +559,7 @@ function switchSelfTab(tab, el) {
     // le montant unique passe ici correspond a l'affichage -- il gouverne aussi la garde de
     // suffisance (doOrder l.74), qu'un 0 aurait desactivee.
     html += '<button onclick="doOrder(\'organiser_blocus\',1,0,\'Organiser un blocus\',\'Le groupe bloque l\\\'acces.\','+tauxBlocus+');closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a1a1a;background:#0d0808;color:#9a6a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
-    html += '<span><i class="ti ti-ban" style="font-size:.85rem"></i> Organiser un blocus</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#6a3a20">' + tauxBlocus + '% · 1 PA · groupe:' + groupSize + '</span></button>';
+    html += '<span><i class="ti ti-ban" style="font-size:.85rem"></i> ' + rpCharSheetLabel('organizeBlockade','Organiser un blocus') + '</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#6a3a20">' + tauxBlocus + '% · 1 PA · groupe:' + groupSize + '</span></button>';
 
     // Blocus syndical reel — reserve au Secretaire General / Adjoint (decision de Fred,
     // 02/11/2026 ; le serveur revalide). Organiser : dans le batiment ou l'on se trouve.
@@ -560,9 +568,9 @@ function switchSelfTab(tab, el) {
       const infosSyndicat = getMonSyndicatEtGrade();
       if (infosSyndicat && infosSyndicat.dirigeant) {
         html += '<button onclick="closeSelfView();doOrganiserBlocusSyndical()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a2a1a;background:#0d0a08;color:#C9A84C;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
-        html += '<span><i class="ti ti-flag" style="font-size:.85rem"></i> Organiser un blocus syndical (ici)</span></button>';
+        html += '<span><i class="ti ti-flag" style="font-size:.85rem"></i> ' + rpCharSheetLabel('unionBlockadeHere','Organiser un blocus syndical (ici)') + '</span></button>';
         html += '<button onclick="closeSelfView();doRenouvelerBlocusSyndical()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a2a1a;background:#0d0a08;color:#C9A84C;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
-        html += '<span><i class="ti ti-refresh" style="font-size:.85rem"></i> Renouveler un blocus syndical</span></button>';
+        html += '<span><i class="ti ti-refresh" style="font-size:.85rem"></i> ' + rpCharSheetLabel('renewUnionBlockade','Renouveler un blocus syndical') + '</span></button>';
       }
     }
     // Commissaire : intervention sur les blocus de sa ville depuis sa propre interface (decision de
@@ -4118,6 +4126,20 @@ function closeRulesView() {
 function renderRulesContent(section) {
   const regle = REGLES[section];
   if (!regle) return;
+  // Le texte français de REGLES reste source et repli. Le moteur i18next déjà
+  // chargé fournit uniquement des versions d'affichage, jamais de logique.
+  const langueGuide = window.RPPlateauI18n?.language?.() || 'fr';
+  // Si REGLES a changé depuis la relecture des traductions, conserver la
+  // nouvelle règle française plutôt que publier une explication périmée.
+  const guideTraductionValide = window.RPGuideIntegrity?.valid?.(section,regle) === true;
+  const lireGuide = (champ) => {
+    const original=regle[champ];
+    if(langueGuide==='fr' || !guideTraductionValide || typeof window.i18next?.t!=='function')return original;
+    const key='guide.'+section+'.'+champ;
+    const value=window.i18next.t(key,{lng:langueGuide,defaultValue:original});
+    return typeof value==='string' && value.trim() && value!==key ? value : original;
+  };
+  const titreGuide=lireGuide('titre'), contenuGuide=lireGuide('contenu');
 
   document.querySelectorAll('.rules-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.rules-tab').forEach(t => {
@@ -4126,11 +4148,20 @@ function renderRulesContent(section) {
 
   const el = document.getElementById('rules-content');
   if (!el) return;
+  // RTL limité au corps du guide ; aucun déplacement des onglets ou des boutons.
+  if(langueGuide==='ar')el.setAttribute?.('dir','rtl');
+  else el.removeAttribute?.('dir');
+
+  // Le guide peut recevoir d'autres catalogues : aucune balise issue d'une
+  // traduction ne doit être interprétée comme du HTML.
+  const escapeRules = value=>String(value).replace(/[&<>"']/g,ch=>({
+   '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[ch]);
 
   // Transformer le contenu texte en HTML riche
   function parseRulesContent(texte) {
     let html = '';
-    const lignes = texte.split('\n');
+    const lignes = escapeRules(texte).split('\n');
     let inBlock = false;
 
     for (let i = 0; i < lignes.length; i++) {
@@ -4184,8 +4215,8 @@ function renderRulesContent(section) {
   el.innerHTML =
     '<div style="padding:1.5rem;max-width:700px;margin:0 auto">' +
     '<div style="font-family:Playfair Display,serif;font-size:1.4rem;font-style:italic;color:#E8C97A;margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:2px solid #2a2010">' +
-    regle.titre + '</div>' +
-    parseRulesContent(regle.contenu) +
+    escapeRules(titreGuide) + '</div>' +
+    parseRulesContent(contenuGuide) +
     '</div>';
 }
 

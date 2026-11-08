@@ -1,0 +1,154 @@
+'use strict';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+const root=path.resolve(__dirname,'../..');
+const win={};
+const ctx=vm.createContext({window:win});
+for(const file of ['resources.js','guide-resources.js'])
+ vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
+const original=fs.readFileSync(path.join(root,'plateau-personnage.js'),'utf8');
+const start=original.indexOf('function renderRulesContent(section) {');
+const end=original.indexOf('\n}\n',start);
+assert.ok(start>=0&&end>start);
+const fn=original.slice(start,end+2);
+
+test('tutoriel initial disponible pour huit langues + repli FR',()=>{
+ const langs=Object.keys(win.RP_I18N_LANGUAGES);
+ assert.equal(langs.length,9);
+ for(const lng of langs.filter(x=>x!=='fr')){
+  const d=win.RP_I18N_RESOURCES[lng].translation.guide.tuto;
+  assert.ok(d.titre.trim(),lng+' titre');
+  assert.ok(d.contenu.trim().length>600,lng+' contenu');
+  assert.equal((d.contenu.match(/^━+$/gm)||[]).length,12,lng+' cinq étapes et conseils');
+ }
+ const html=fs.readFileSync(path.join(root,'plateau.html'),'utf8');
+ assert.ok(html.indexOf('i18n/guide-resources.js')>html.indexOf('i18n/resources.js'));
+ assert.ok(html.indexOf('i18n/guide-resources.js')<html.indexOf('i18n/plateau-init.js'));
+});
+
+function render(lang,unsafe=false,section='tuto'){
+ const el={innerHTML:'',attrs:{},setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+ const window={
+  RPPlateauI18n:{language:()=>lang},
+  // Dans ce banc de rendu les REGLES sont des fixtures, le garde réel est
+  // testé séparément par banc-i18n-guide-integrite.cjs.
+  RPGuideIntegrity:{valid:()=>true},
+  i18next:{t(key,opts){
+   if(unsafe)return '<img src=x onerror="evil()"> & test';
+   return key.split('.').reduce((value,part)=>value?.[part],
+    win.RP_I18N_RESOURCES[lang]?.translation)??opts.defaultValue;
+  }}
+ };
+ const document={
+  querySelectorAll:()=>[],
+  getElementById:(id)=>id==='rules-content'?el:null
+ };
+ vm.runInNewContext(fn+';renderRulesContent('+JSON.stringify(section)+')',{window,document,REGLES:{tuto:{titre:'FR TITRE',contenu:'FR TEXTE'},intro:{titre:'FR INTRO',contenu:'FR TEXTE INTRO'},personnage:{titre:'FR PERSONNAGE',contenu:'FR PERSONNAGE TEXTE'}}});
+ return el.innerHTML;
+}
+test('le guide rend l’anglais et l’arabe dans le moteur existant, sans nouveau handler',()=>{
+ const en=render('en');
+ assert.ok(en.includes('Tutorial — First steps'));
+ assert.ok(en.includes('STEP 1'));
+ const ar=render('ar');
+ assert.ok(ar.includes('الخطوة 1'));
+ assert.ok(!ar.includes('FR TEXTE'));
+ const fr=render('fr');
+ assert.ok(fr.includes('FR TEXTE'));
+});
+test('les balises dans des traductions ne deviennent jamais du HTML actif',()=>{
+ const html=render('en',true);
+ assert.ok(html.includes('&lt;img'));
+ assert.ok(!html.includes('<img'));
+ assert.ok(html.includes('&amp;'));
+});
+
+
+test('introduction du jeu disponible et rendue dans les huit langues',()=>{
+ const languages=Object.keys(win.RP_I18N_LANGUAGES).filter(x=>x!=='fr');
+ for(const lang of languages){
+  const intro=win.RP_I18N_RESOURCES[lang].translation.guide.intro;
+  assert.ok(intro?.titre?.trim(),lang+' titre');
+  assert.ok(intro?.contenu?.includes('Panem et circenses'),lang+' texte');
+  // Les écritures idéographiques expriment le même contenu en moins de caractères.
+  assert.ok(intro.contenu.length>250,lang+' trop court');
+  assert.equal(intro.contenu.split('\n\n').length,4,lang+' quatre paragraphes');
+  const html=render(lang,false,'intro');
+  assert.ok(html.includes('Panem et circenses'));
+  assert.ok(!html.includes('FR TEXTE INTRO'));
+ }
+ assert.ok(render('fr',false,'intro').includes('FR TEXTE INTRO'));
+});
+
+
+test('l’arabe applique le RTL au seul corps du guide sans déplacer les commandes',()=>{
+ const src=fs.readFileSync(path.join(root,'plateau-personnage.js'),'utf8');
+ const start=src.indexOf('function renderRulesContent(section) {');
+ const end=src.indexOf('\n}\n',start);
+ const code=src.slice(start,end+2);
+ for(const [locale,direction] of [['ar','rtl'],['en',undefined],['fr',undefined]]){
+  const el={innerHTML:'',attrs:{},setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+  const window={RPPlateauI18n:{language:()=>locale},RPGuideIntegrity:{valid:()=>true},i18next:{t:(k,opt)=>k.split('.').reduce((v,p)=>v?.[p],win.RP_I18N_RESOURCES[locale]?.translation)??opt.defaultValue}};
+  const document={querySelectorAll:()=>[],getElementById:()=>el};
+  vm.runInNewContext(code+';renderRulesContent("intro")',{window,document,REGLES:{intro:{titre:'FR',contenu:'Texte français'}}});
+  assert.equal(el.attrs.dir,direction,locale);
+  assert.ok(el.innerHTML.length>10);
+ }
+ assert.match(code,/langueGuide==='ar'/);
+});
+
+
+test('guide personnage : les montants et attributs respectent les origines du serveur',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const server=fs.readFileSync(path.join(root,'api/_referentiels-generes.js'),'utf8');
+ const orig=source.slice(source.indexOf('const ORIGINS = ['),source.indexOf('\n];',source.indexOf('const ORIGINS = ['))+3);
+ const expect=[['poor',300,'+2 VOL, +2 DUP, −1 CHA'],
+  ['worker',600,'+1 VOL, +1 PER, −1 DUP'],
+  ['bourgeois',1000,'+1 INT, +1 CHA, −1 ENT'],
+  ['elite',2200,'+2 ENT, −2 VOL']];
+ const guide=original.slice(original.indexOf('  personnage: {'),original.indexOf('  plateau: {'));
+ for(const [id,amount,stats] of expect){
+  assert.match(orig,new RegExp("id:'"+id+"'[^\\n]*arg:"+amount+"\\b"));
+  assert.ok(server.includes('"id": "'+id+'"'));
+  assert.ok(server.includes('"arg": '+amount));
+  assert.ok(guide.includes(stats),'stats FR : '+id);
+  assert.ok(guide.includes(amount.toLocaleString('fr-FR').replace(/\u202f/g,' ')) ||
+    guide.includes(amount.toLocaleString('fr-FR').replace(/\u00a0/g,' ')),
+    'capital FR '+id);
+ }
+ for(const locale of Object.keys(win.RP_I18N_LANGUAGES).filter(x=>x!=='fr')){
+  const local=win.RP_I18N_RESOURCES[locale].translation.guide.personnage;
+  assert.ok(local?.titre?.trim(),locale);
+  for(const [,amount] of expect){
+   assert.ok(new RegExp(amount.toLocaleString('en-US').replace(/,/g,'[,. ]?')).test(local.contenu),
+    locale+' amount '+amount);
+  }
+  assert.ok(render(locale,false,'personnage').length>200,locale);
+ }
+});
+
+
+test('tutoriel : sommeil et salaire ne déclenchent pas le temps, aucun rattrapage',()=>{
+ const source=fs.readFileSync(path.join(root,'plateau-personnage.js'),'utf8');
+ const ref=source.slice(source.indexOf('  tuto: {'),source.indexOf('  intro: {'));
+ assert.ok(ref.includes("Le temps du jeu suit l'heure réelle"));
+ assert.ok(ref.includes("jours sans sommeil ne sont pas rattrapés"));
+ assert.ok(!ref.includes('fait avancer le temps'));
+ const phrases={
+  en:'missed sleep days cannot be reclaimed',
+  es:'días sin dormir no se recuperan',
+  'zh-TW':'錯過的睡眠日不能補領',
+  ru:'пропущенные дни сна не компенсируются',
+  ko:'잠을 건너뛴 날은 나중에 보충할 수 없습니다',
+  ar:'لا يمكن تعويض أيام النوم الفائتة',
+  'pt-BR':'dias sem dormir não podem ser recuperados',
+  de:'verpasste Schlaftage lassen sich nicht nachholen'
+ };
+ for(const [lng,phrase] of Object.entries(phrases)){
+  const tuto=win.RP_I18N_RESOURCES[lng].translation.guide.tuto.contenu;
+  assert.ok(tuto.includes(phrase),lng+' missing real clock semantics');
+ }
+});

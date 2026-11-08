@@ -22,6 +22,7 @@ function scene(){
    canAccessForum:()=>true,rafraichirVoyantsEtCompteursForum:()=>{ctx.rafraichissements++},
    rafraichissements:0,sbCompterSujetsForums:async ids=>Object.fromEntries(ids.map(id=>[id,id==='gouvernement'?1:id==='national'?2:0]))};
  vm.createContext(ctx);
+ vm.runInContext(bloc(source,'function rpForumLibelle(', '/* ==========================='),ctx);
  vm.runInContext(bloc(source,'const FORUMS_BASE =','// Alias retro-compatible'),ctx);
  vm.runInContext(bloc(source,'const FORUM_TOPICS =','// Mails inter-joueurs'),ctx);
  vm.runInContext(bloc(source,'function renderForumNavItem(', 'function toggleSousGroupeForum('),ctx);

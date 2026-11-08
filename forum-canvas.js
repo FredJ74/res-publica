@@ -529,6 +529,10 @@ function rpCanvasCreateController(container) {
 // son code reste intact dans forum.js -- non supprimé -- car encore nécessaire à la lecture
 // et à la modification des sujets créés avant la bascule).
 // ===========================================================================
+function rpCanvasLabel(key,source) {
+  return typeof rpForumLibelle==='function' ? rpForumLibelle(key,source) : source;
+}
+
 function renderComposeCanvasForm() {
   // Trois modes, distingués sans variable globale dédiée, en réutilisant l'état déjà
   // maintenu par forum.js :
@@ -548,11 +552,11 @@ function renderComposeCanvasForm() {
     ? (FORUM_TOPICS[currentForumId] || []).find(t => t.id === currentTopicId) : null;
 
   const backAction = (enEdition || enReponse) ? 'backToTopic()' : 'backToList()';
-  const backLabel = enReponse ? 'Retour au sujet' : (enEdition ? 'Annuler' : 'Retour');
+  const backLabel = enReponse ? rpCanvasLabel('backToTopic','Retour au sujet') : (enEdition ? rpCanvasLabel('cancel','Annuler') : rpCanvasLabel('back','Retour'));
   const headerTitle = enReponse
-    ? `Répondre : ${escapeHtmlText(topicReponse?.title || '')}`
-    : (enEdition ? 'Modifier le message' : 'Nouveau sujet');
-  const submitLabel = enReponse ? 'Publier la réponse' : (enEdition ? 'Enregistrer les modifications' : 'Publier le sujet');
+    ? `${rpCanvasLabel('reply','Répondre')} : ${escapeHtmlText(topicReponse?.title || '')}`
+    : (enEdition ? rpCanvasLabel('editMessage','Modifier le message') : rpCanvasLabel('newTopic','Nouveau sujet'));
+  const submitLabel = enReponse ? rpCanvasLabel('publishReply','Publier la réponse') : (enEdition ? rpCanvasLabel('saveChanges','Enregistrer les modifications') : rpCanvasLabel('publishTopic','Publier le sujet'));
 
   return `
     <div class="forum-header-bar">
@@ -565,22 +569,22 @@ function renderComposeCanvasForm() {
       ${enEdition ? '' : `
       ${enReponse ? '' : `
       <div class="forum-field">
-        <label class="forum-field-label">Titre du sujet</label>
-        <input class="forum-field-input" id="compose-canvas-title" type="text" placeholder="Intitulé du sujet..."/>
+        <label class="forum-field-label">${rpCanvasLabel('topicTitle','Titre du sujet')}</label>
+        <input class="forum-field-input" id="compose-canvas-title" type="text" placeholder="${rpCanvasLabel('topicPlaceholder','Intitulé du sujet...')}"/>
       </div>`}
       ${typeof renderPosterEnTantQue === 'function' ? renderPosterEnTantQue('compose-canvas-auteur') : ''}`}
       <div class="rp-compose-toolbar" id="rp-compose-toolbar">
         <div id="rp-compose-add-buttons" class="rp-compose-btn-group">
           <button class="forum-new-btn" onclick="rpCanvasAddTextZoneToCompose()">
-            <i class="ti ti-text-plus"></i> Ajouter une zone de texte
+            <i class="ti ti-text-plus"></i> ${rpCanvasLabel('addTextZone','Ajouter une zone de texte')}
           </button>
           <button class="forum-new-btn" onclick="rpCanvasAddImageToCompose()">
-            <i class="ti ti-photo-plus"></i> Ajouter une image
+            <i class="ti ti-photo-plus"></i> ${rpCanvasLabel('addImage','Ajouter une image')}
           </button>
         </div>
         <div class="rp-compose-btn-group">
           <button class="forum-new-btn" id="rp-compose-preview-btn" onclick="rpCanvasTogglePreview()">
-            <i class="ti ti-eye"></i> Prévisualiser
+            <i class="ti ti-eye"></i> ${rpCanvasLabel('preview','Prévisualiser')}
           </button>
           <button class="forum-submit-btn" onclick="submitComposeCanvas()">
             <i class="ti ti-send"></i> ${submitLabel}
@@ -1617,7 +1621,7 @@ function rpCanvasTogglePreview() {
     previewEl.innerHTML = '';
     canvasEl.style.display = '';
     addButtonsEl.style.display = '';
-    btn.innerHTML = '<i class="ti ti-eye"></i> Prévisualiser';
+    btn.innerHTML = '<i class="ti ti-eye"></i> ' + rpCanvasLabel('preview','Prévisualiser');
     rpComposeEnPreview = false;
     return;
   }
@@ -1632,6 +1636,6 @@ function rpCanvasTogglePreview() {
   canvasEl.style.display = 'none';
   addButtonsEl.style.display = 'none';
   previewEl.style.display = 'block';
-  btn.innerHTML = '<i class="ti ti-arrow-back-up"></i> Revenir à l\'édition';
+  btn.innerHTML = '<i class="ti ti-arrow-back-up"></i> ' + rpCanvasLabel('backToEditing',"Revenir à l'édition");
   rpComposeEnPreview = true;
 }

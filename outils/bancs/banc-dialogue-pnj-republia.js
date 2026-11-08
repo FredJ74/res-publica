@@ -341,6 +341,11 @@ function tour(pnj, action) {
 
   REPONSE_FETCH = { ok: false, status: 400, clone: function () { return this; },
                     json: function () { return Promise.resolve({ error: 'Profil inconnu.' }); } };
+  // Dans le navigateur, le div créé par innerHTML possède firstElementChild.
+  // Le DOM minimal du banc doit refléter cette propriété après la sécurisation
+  // du texte via textContent ; on contrôle ensuite cette vraie sortie et l'absence
+  // du champ de saisie, sans accepter une exception comme un succès.
+  __noeud('pnj-zone-question').firstElementChild = { textContent: '' };
   var r3 = await tour(unPnj, 'Une question a un PNJ sans profil.');
   REPONSE_FETCH = null;
   att('un 400 ne promet PAS de reessayer -- ce PNJ n a pas de dialogue, et ca ne changera pas',
@@ -348,8 +353,10 @@ function tour(pnj, action) {
       JSON.stringify(r3.vu.slice(0, 70)));
   att('les deux messages de panne sont DIFFERENTS', r2.vu !== r3.vu);
   att('un refus DEFINITIF retire la boite de question -- on n invite plus a ecrire pour rien',
-      __noeud('pnj-zone-question').innerHTML.indexOf('ne tient pas de conversation') >= 0,
-      JSON.stringify(__noeud('pnj-zone-question').innerHTML.slice(0, 60)));
+      __noeud('pnj-zone-question').innerHTML.indexOf('pnj-question-libre') < 0
+        && __noeud('pnj-zone-question').firstElementChild.textContent.indexOf('ne tient pas de conversation') >= 0,
+      JSON.stringify({html:__noeud('pnj-zone-question').innerHTML.slice(0, 60),
+        texte:__noeud('pnj-zone-question').firstElementChild.textContent}));
   att('aucun des deux ne nomme un detail technique',
       !/HTTP|DeepSeek|400|502|profil|API|token/i.test(r2.vu + ' ' + r3.vu));
   // ET L'INVERSE, qui est la moitie qui compte : une panne PASSAGERE ne doit rien retirer, sinon

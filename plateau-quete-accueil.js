@@ -10,6 +10,20 @@
 //   attente_entree_mairie -> guidage termine, joueur libre d'entrer dans le bon batiment
 //   (suite a coder : detection du Secretaire Petit, Jeremy, etc.)
 
+// Ne localise que les textes fixes connus. Les événements de visite et les
+// étapes de quête restent ceux du moteur existant.
+function rpQueteGuardTexte(key,source) {
+  return (typeof window!=='undefined' && window.RPGuardWelcomeI18n?.label?.(key,source)) || source;
+}
+
+function rpQueteModele(key,variables,source) {
+  return (typeof window!=='undefined' && window.RPJeremyScenesI18n?.format?.(key,variables,source)) || source;
+}
+
+function rpQueteTexte(key,source) {
+  return (typeof window!=='undefined' && window.RPJeremyScenesI18n?.label?.(key,source)) || source;
+}
+
 const QUETE_ACCUEIL_IMAGES = {
   gardeMenacant: 'images/garde-menacant-luthecia.webp',
   gardeBienveillant: 'images/garde-bienveillant-luthecia.webp',
@@ -26,7 +40,7 @@ function queteAccueilAccepterJeremy() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Bonjour, je suis Jérémy, le stagiaire à tout faire de ce maudit Hôtel de Ville. Je suis bien content de pouvoir vous guider, le secrétaire n'arrête pas de me demander de lui faire du café et des photocopies. On va commencer par aller dans un endroit plus calme. On va aller dans la salle des élections.",
+    texte: rpQueteTexte('welcomeJeremy', "Bonjour, je suis Jérémy, le stagiaire à tout faire de ce maudit Hôtel de Ville. Je suis bien content de pouvoir vous guider, le secrétaire n'arrête pas de me demander de lui faire du café et des photocopies. On va commencer par aller dans un endroit plus calme. On va aller dans la salle des élections."),
     suivant: function() {
       state.char.queteAccueil = { etape: 'guide_salle_elections' };
       if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
@@ -73,7 +87,7 @@ function queteAccueilApresFichePersonnage() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Donc une bonne chambre, c'est primordial, mais un bon repas aussi. Il y a tout ça à l'hôtel-restaurant. On y va ?<br><br>C'est le deuxième bâtiment après l'Hôtel de Ville. Vous vous souvenez où c'est ? On en vient. Il faut sortir du bâtiment et aller à droite.",
+    texte: rpQueteTexte('hotelInstructions', "Donc une bonne chambre, c'est primordial, mais un bon repas aussi. Il y a tout ça à l'hôtel-restaurant. On y va ?<br><br>C'est le deuxième bâtiment après l'Hôtel de Ville. Vous vous souvenez où c'est ? On en vient. Il faut sortir du bâtiment et aller à droite."),
     suivant: null
   });
 }
@@ -85,7 +99,7 @@ function afficherPopupQueteAccueilSommeil() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Chaque jour, on se fatigue au travail. Il est important de se reposer en dormant. Une fois par jour seulement.<br><br>Idéalement, il vaut mieux dormir dans une chambre, on récupère mieux que si on dort n'importe où. Je vous montrerai juste après.",
+    texte: rpQueteTexte('sleepInstructions', "Chaque jour, on se fatigue au travail. Il est important de se reposer en dormant. Une fois par jour seulement.<br><br>Idéalement, il vaut mieux dormir dans une chambre, on récupère mieux que si on dort n'importe où. Je vous montrerai juste après."),
     suivant: function() {
       queteAccueilSurbrillance('[onclick*="openSelfView"]', 15000);
     }
@@ -120,7 +134,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Ici vous pouvez réserver une chambre, ou si vous avez les moyens, louer une suite. Une bonne nuit ici, c'est plus d'énergie pour le lendemain.",
+      texte: rpQueteTexte('hotelRoom', "Ici vous pouvez réserver une chambre, ou si vous avez les moyens, louer une suite. Une bonne nuit ici, c'est plus d'énergie pour le lendemain."),
       suivant: function() {
         queteAccueilSurbrillance('.action-btn[onclick*="reserver_chambre_hotel"]', 12000);
       }
@@ -135,7 +149,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Ici c'est un lieu un peu spécial, pas toujours bien fréquenté...<br><br>Enfin, c'est ce qu'on m'a dit, je n'ai pas le droit de venir seul ici, seulement avec des adultes.<br><br>Vous pouvez m'offrir un verre ? J'ai très soif à force de parler.",
+      texte: rpQueteTexte('barIntroduction', "Ici c'est un lieu un peu spécial, pas toujours bien fréquenté...<br><br>Enfin, c'est ce qu'on m'a dit, je n'ai pas le droit de venir seul ici, seulement avec des adultes.<br><br>Vous pouvez m'offrir un verre ? J'ai très soif à force de parler."),
       suivant: function() {
         queteAccueilSurbrillance('.action-btn[onclick*="boire_verre"]', 12000);
       }
@@ -184,7 +198,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Ça c'est le stade de notre équipe de Luthécia ! On y est tous très attaché.<br><br>Il y a 12 clubs qui s'affrontent pour savoir qui sera le meilleur. Pour connaître le classement, il suffit de le consulter.<br><br>Si vous voulez intégrer l'équipe, il faut prendre sa licence dans le vestiaire et vous entraîner jusqu'à faire partie des 15 meilleurs joueurs du club. Demandez conseil à l'entraîneur adjoint, il est là pour ça.<br><br>On peut boire un coup, acheter des accessoires du club, parier sur les matchs, ou encore rejoindre le club des supporters.<br><br>Attention, il ne faut pas croire mais c'est bien plus qu'un endroit où l'on fait du sport. Vous verrez à l'usage, mais ici des maires ont perdu leur poste ou à l'inverse ont été réélus selon l'humeur des supporters...<br><br>Allez-y, jetez un œil, essayez quelque chose !",
+      texte: rpQueteTexte('stadium', "Ça c'est le stade de notre équipe de Luthécia ! On y est tous très attaché.<br><br>Il y a 12 clubs qui s'affrontent pour savoir qui sera le meilleur. Pour connaître le classement, il suffit de le consulter.<br><br>Si vous voulez intégrer l'équipe, il faut prendre sa licence dans le vestiaire et vous entraîner jusqu'à faire partie des 15 meilleurs joueurs du club. Demandez conseil à l'entraîneur adjoint, il est là pour ça.<br><br>On peut boire un coup, acheter des accessoires du club, parier sur les matchs, ou encore rejoindre le club des supporters.<br><br>Attention, il ne faut pas croire mais c'est bien plus qu'un endroit où l'on fait du sport. Vous verrez à l'usage, mais ici des maires ont perdu leur poste ou à l'inverse ont été réélus selon l'humeur des supporters...<br><br>Allez-y, jetez un œil, essayez quelque chose !"),
       suivant: null
     });
     return;
@@ -197,7 +211,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Ici c'est le dispensaire. On peut se faire soigner gratuitement, ou à moindre frais. Bien sûr, si vous êtes riche, vous pouvez aller en hôpital privé pour de meilleurs soins.<br><br>Il y a aussi nos anciens, ici, à l'EHPAD. Ils sont un peu la mémoire de la ville, vous savez.<br><br>N'hésitez pas à venir leur parler.",
+      texte: rpQueteTexte('clinic', "Ici c'est le dispensaire. On peut se faire soigner gratuitement, ou à moindre frais. Bien sûr, si vous êtes riche, vous pouvez aller en hôpital privé pour de meilleurs soins.<br><br>Il y a aussi nos anciens, ici, à l'EHPAD. Ils sont un peu la mémoire de la ville, vous savez.<br><br>N'hésitez pas à venir leur parler."),
       suivant: afficherPopupQueteAccueilSommeil
     });
     return;
@@ -210,7 +224,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Ici on est au cœur du système électoral car c'est ici qu'on vote.<br><br>On peut aussi voir qui est candidat aux élections par exemple.<br><br>Chaque pièce est dédiée à un usage.<br><br>À présent, on va aller en ville. On va déjà sortir de l'Hôtel de Ville.",
+      texte: rpQueteTexte('electionRoom', "Ici on est au cœur du système électoral car c'est ici qu'on vote.<br><br>On peut aussi voir qui est candidat aux élections par exemple.<br><br>Chaque pièce est dédiée à un usage.<br><br>À présent, on va aller en ville. On va déjà sortir de l'Hôtel de Ville."),
       suivant: function() {
         // Les deux boutons reels concernes sont mis en surbrillance en meme temps :
         // "Voir les candidats" (bouton d'ordre de la piece) et "Sortir" (bouton de batiment).
@@ -252,8 +266,8 @@ function demarrerQueteAccueil() {
 
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.gardeMenacant,
-    titre: 'Un garde presidentiel',
-    texte: "Hey, vous !<br><br>Vous n'êtes pas autorisé à rester ici ! Le Président va bientôt sortir !<br><br>Et puis vous êtes nouveau, on ne vous a jamais vu, je me trompe ? Allez vous présenter à l'Hôtel de Ville sinon c'est au commissariat que vous finirez.",
+    titre: rpQueteGuardTexte('hostileTitle','Un garde presidentiel'),
+    texte: rpQueteGuardTexte('guardWarning', "Hey, vous !<br><br>Vous n'êtes pas autorisé à rester ici ! Le Président va bientôt sortir !<br><br>Et puis vous êtes nouveau, on ne vous a jamais vu, je me trompe ? Allez vous présenter à l'Hôtel de Ville sinon c'est au commissariat que vous finirez."),
     suivant: afficherPopupQueteAccueilEtape2
   });
 }
@@ -261,8 +275,8 @@ function demarrerQueteAccueil() {
 function afficherPopupQueteAccueilEtape2() {
   afficherPopupQueteAccueil({
     image: (state.char && state.char.photoUrl) || null,
-    titre: (state.char && state.char.name) || 'Vous',
-    texte: "Je veux bien, mais ou est l'Hotel de Ville ?",
+    titre: (state.char && state.char.name) || rpQueteGuardTexte('you','Vous'),
+    texte: rpQueteGuardTexte('playerAsks', "Je veux bien, mais ou est l'Hotel de Ville ?"),
     suivant: afficherPopupQueteAccueilEtape3
   });
 }
@@ -270,8 +284,8 @@ function afficherPopupQueteAccueilEtape2() {
 function afficherPopupQueteAccueilEtape3() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.gardeBienveillant,
-    titre: 'Le garde presidentiel',
-    texte: "Continuez sur cette rue, ensuite il y aura un croisement.<br><br>Continuez encore une fois sur la même rue, et vous trouverez l'Hôtel de Ville.<br><br>Adressez-vous au secrétaire municipal <strong>Petit</strong>.<br><br>Il vous parlera sûrement des impôts, mais répondez-lui simplement que <strong>vous êtes nouveau</strong>, cela devrait l'adoucir.",
+    titre: rpQueteGuardTexte('friendlyTitle','Le garde presidentiel'),
+    texte: rpQueteGuardTexte('guardDirections', "Continuez sur cette rue, ensuite il y aura un croisement.<br><br>Continuez encore une fois sur la même rue, et vous trouverez l'Hôtel de Ville.<br><br>Adressez-vous au secrétaire municipal <strong>Petit</strong>.<br><br>Il vous parlera sûrement des impôts, mais répondez-lui simplement que <strong>vous êtes nouveau</strong>, cela devrait l'adoucir."),
     suivant: afficherPopupQueteAccueilEtape4
   });
 }
@@ -279,8 +293,8 @@ function afficherPopupQueteAccueilEtape3() {
 function afficherPopupQueteAccueilEtape4() {
   afficherPopupQueteAccueil({
     image: (state.char && state.char.photoUrl) || null,
-    titre: (state.char && state.char.name) || 'Vous',
-    texte: "D'accord... merci... je lui dirai que je suis nouveau...",
+    titre: (state.char && state.char.name) || rpQueteGuardTexte('you','Vous'),
+    texte: rpQueteGuardTexte('playerThanks', "D'accord... merci... je lui dirai que je suis nouveau..."),
     suivant: terminerEtapeGardeQueteAccueil
   });
 }
@@ -317,7 +331,7 @@ function queteAccueilVerifierGuidage(pays, noeudId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Allons sur la gauche, j'ai quelque chose à vous montrer.",
+      texte: rpQueteTexte('turnLeft', "Allons sur la gauche, j'ai quelque chose à vous montrer."),
       suivant: null
     });
     return;
@@ -357,7 +371,7 @@ function afficherGuidageUnBatiment(noeudId, buildingIdCible, texteAccroche) {
   afficherPopupQueteAccueil({
     guidageHtml: guidageHtml,
     titre: 'Jérémy',
-    texte: texteAccroche || 'Entrons ici !',
+    texte: rpQueteTexte('enterHere',texteAccroche || 'Entrons ici !'),
     suivant: null
   });
 }
@@ -381,8 +395,8 @@ function afficherGuidageFleche(noeudId, direction) {
 
   afficherPopupQueteAccueil({
     guidageHtml: guidageHtml,
-    titre: 'Suivez la route',
-    texte: "Continuez dans cette direction.",
+    titre: rpQueteTexte('followRoadTitle','Suivez la route'),
+    texte: rpQueteTexte('keepDirection', "Continuez dans cette direction."),
     suivant: null
   });
 }
@@ -406,8 +420,8 @@ function afficherGuidageBatiments(noeudId) {
 
   afficherPopupQueteAccueil({
     guidageHtml: guidageHtml,
-    titre: "Vous voici rue de l'Hotel de Ville",
-    texte: "Cliquez sur le bon batiment.",
+    titre: rpQueteTexte('townHallStreetTitle',"Vous voici rue de l'Hotel de Ville"),
+    texte: rpQueteTexte('selectBuilding', "Cliquez sur le bon batiment."),
     suivant: null
   });
 }
@@ -424,7 +438,7 @@ function queteAccueilNotifierOrdre(fn) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "On va aller dans un super endroit : le stade de foot !<br><br>Pour ça il faut sortir puis aller sur la gauche, et ensuite, prendre la route perpendiculaire, puis tourner à droite.<br><br>Au pire, si vous êtes perdu, vous pouvez consulter le plan, en haut à droite.",
+      texte: rpQueteTexte('routeStadium', "On va aller dans un super endroit : le stade de foot !<br><br>Pour ça il faut sortir puis aller sur la gauche, et ensuite, prendre la route perpendiculaire, puis tourner à droite.<br><br>Au pire, si vous êtes perdu, vous pouvez consulter le plan, en haut à droite."),
       suivant: function() {
         queteAccueilSurbrillance('button[onclick*="ouvrirPlanVille"]', 12000);
       }
@@ -460,7 +474,7 @@ function afficherDecouverteStade() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Je vous laisse découvrir le stade. Si vous avez des questions pendant la visite, n'hésitez pas à me les poser.",
+    texte: rpQueteTexte('exploreStadium', "Je vous laisse découvrir le stade. Si vous avez des questions pendant la visite, n'hésitez pas à me les poser."),
     suivant: queteAccueilArmerMinuteurStade
   });
 }
@@ -476,7 +490,7 @@ function queteAccueilApresReservationChambre() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Parfait ! Maintenant, dès que vous passerez l'ordre Dormir dans cette chambre réservée, vous vous requinquerez bien mieux. Bon, en attendant, allons faire un tour au bar, juste à côté.",
+    texte: rpQueteTexte('bedroomSleepOrder', "Parfait ! Maintenant, dès que vous passerez l'ordre Dormir dans cette chambre réservée, vous vous requinquerez bien mieux. Bon, en attendant, allons faire un tour au bar, juste à côté."),
     suivant: function() {
       queteAccueilSurbrillance(".piece-tab[onclick*=\",'bar',\"]", 15000);
     }
@@ -505,7 +519,7 @@ function queteAccueilRepriseNon() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Je vais vous laisser découvrir la ville seul(e). Nos chemins se séparent ici. Pour le moment, bien sûr !<br><br>Si vous avez besoin de moi, cliquez sur ma fiche pour m'ajouter à vos contacts, et utilisez ensuite le bouton Messages/Forums pour m'envoyer un mail.",
+    texte: rpQueteTexte('partWays', "Je vais vous laisser découvrir la ville seul(e). Nos chemins se séparent ici. Pour le moment, bien sûr !<br><br>Si vous avez besoin de moi, cliquez sur ma fiche pour m'ajouter à vos contacts, et utilisez ensuite le bouton Messages/Forums pour m'envoyer un mail."),
     suivant: function() {
       // La derniere question d'orientation n'est plus enchainee immediatement ici : le joueur
       // n'aurait pas le temps materiel de cliquer sur la fiche de Jeremy avant qu'elle
@@ -543,13 +557,13 @@ function queteAccueilProposerCarriere() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Bon, une dernière chose... Vous commencez à connaître Luthécia. Mais visiter une ville, c'est une chose. S'y faire une place, c'en est une autre. Vous avez une idée de ce que vous aimeriez devenir ?",
+    texte: rpQueteTexte('careerChoice', "Bon, une dernière chose... Vous commencez à connaître Luthécia. Mais visiter une ville, c'est une chose. S'y faire une place, c'en est une autre. Vous avez une idée de ce que vous aimeriez devenir ?"),
     suivant: null,
     actionsHtml:
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'criminel\');">Plutôt du côté criminel</button> ' +
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'politique\');">Plutôt la politique</button> ' +
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'entrepreneurial\');">Plutôt entreprendre</button> ' +
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'indecis\');">Je ne sais pas encore</button>'
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'criminel\');">' + rpQueteTexte('criminalChoice','Plutôt du côté criminel') + '</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'politique\');">' + rpQueteTexte('politicalChoice','Plutôt la politique') + '</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'entrepreneurial\');">' + rpQueteTexte('entrepreneurialChoice','Plutôt entreprendre') + '</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'indecis\');">' + rpQueteTexte('undecidedChoice','Je ne sais pas encore') + '</button>'
   });
 }
 
@@ -564,8 +578,9 @@ function queteAccueilChoisirAmbition(ambition) {
 
   const ref = QUETE_CARRIERE_REFERENTS[ambition];
   let texte = ref
-    ? "Alors allez donc voir " + ref.nom + ". Vous le trouverez à " + ref.lieu + ". Dites-lui que c'est moi qui vous envoie."
-    : "Je comprends, ce n'est pas facile de se déterminer. Continuez à arpenter la ville et rencontrer les habitants, ça vous aidera à vous faire une idée.";
+    ? rpQueteModele('orientationRef',{name:ref.nom,place:ref.lieu},
+        "Alors allez donc voir " + ref.nom + ". Vous le trouverez à " + ref.lieu + ". Dites-lui que c'est moi qui vous envoie.")
+    : rpQueteTexte('orientationUndecided',"Je comprends, ce n'est pas facile de se déterminer. Continuez à arpenter la ville et rencontrer les habitants, ça vous aidera à vous faire une idée.");
 
   // Branche criminelle (lot Pat Hounette) : le tronc commun s'arrete ici, sans repasser par la
   // sequence de cloture generique (repertoire/recontact/conclusion — deja redondante avec ce
@@ -573,7 +588,7 @@ function queteAccueilChoisirAmbition(ambition) {
   // de l'ancienne conclusion est fusionnee directement dans cette meme fenetre plutot que d'en
   // ouvrir une nouvelle. Politique/entrepreneurial gardent la sequence complete, inchangee.
   if (ambition === 'criminel') {
-    texte += " Mais sachez que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.";
+    texte += ' ' + rpQueteTexte('criminalWarning',"Mais sachez que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.");
   }
 
   afficherPopupQueteAccueil({
@@ -590,7 +605,7 @@ function queteAccueilCarriereRepertoire() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Au fait, tant que j'y pense : dès que vous croisez quelqu'un d'intéressant, cliquez sur sa fiche et ajoutez-le à votre répertoire — ça vous servira pour porter plainte, lancer une rumeur ciblée, ou lui envoyer un mail plus tard.",
+    texte: rpQueteTexte('contactsTip', "Au fait, tant que j'y pense : dès que vous croisez quelqu'un d'intéressant, cliquez sur sa fiche et ajoutez-le à votre répertoire — ça vous servira pour porter plainte, lancer une rumeur ciblée, ou lui envoyer un mail plus tard."),
     suivant: queteAccueilCarriereRecontact
   });
 }
@@ -601,7 +616,7 @@ function queteAccueilCarriereRecontact() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Et si jamais vous avez encore besoin de moi après ça : ajoutez-moi au répertoire tant qu'on est encore ensemble, et envoyez-moi un mail via Messages/Forums quand vous voulez. Je vous répondrai où que je sois.",
+    texte: rpQueteTexte('contactJeremy', "Et si jamais vous avez encore besoin de moi après ça : ajoutez-moi au répertoire tant qu'on est encore ensemble, et envoyez-moi un mail via Messages/Forums quand vous voulez. Je vous répondrai où que je sois."),
     suivant: queteAccueilCarriereConclusion
   });
   queteAccueilSurbrillance(".person-card[onclick*=\"openPnjModal('\"]", 15000);
@@ -614,8 +629,9 @@ function queteAccueilCarriereConclusion() {
   const ambition = state.char?.queteCarriere?.ambition;
   const ref = QUETE_CARRIERE_REFERENTS[ambition];
   const texte = ref
-    ? ref.nom + " saura vous aider, mais sachez que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous."
-    : "Sachez en tout cas que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.";
+    ? rpQueteModele('conclusionRef',{name:ref.nom},
+        ref.nom + " saura vous aider, mais sachez que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.")
+    : rpQueteTexte('conclusionUnknown',"Sachez en tout cas que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.");
 
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
@@ -656,11 +672,11 @@ function queteAccueilProposerPresentationForum() {
   afficherPopupQueteAccueil({
     image: null,
     titre: 'Luthécia',
-    texte: "Vous commencez à connaître Luthécia... mais Luthécia ne vous connaît pas encore.<br><br>Le forum local est le lieu où les citoyens débattent, annoncent leurs projets et commencent parfois leurs premières querelles.<br><br>Souhaitez-vous vous présenter aux autres habitants ?",
+    texte: rpQueteTexte('localForumInvite', "Vous commencez à connaître Luthécia... mais Luthécia ne vous connaît pas encore.<br><br>Le forum local est le lieu où les citoyens débattent, annoncent leurs projets et commencent parfois leurs premières querelles.<br><br>Souhaitez-vous vous présenter aux autres habitants ?"),
     suivant: null,
     actionsHtml:
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilLancerPresentationForum();">Me présenter</button> ' +
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilIgnorerPresentationForum();">Plus tard</button>'
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilLancerPresentationForum();">' + rpQueteTexte('introduceMyself','Me présenter') + '</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilIgnorerPresentationForum();">' + rpQueteTexte('later','Plus tard') + '</button>'
   });
 }
 
@@ -677,7 +693,7 @@ function queteAccueilLancerPresentationForum() {
   if (typeof showComposeCanvasForm === 'function') showComposeCanvasForm();
   if (typeof onboardingArmerComposeCanvas === 'function') onboardingArmerComposeCanvas();
   const titleEl = document.getElementById('compose-canvas-title');
-  if (titleEl) titleEl.value = 'Présentation de ' + (state.char?.name || '');
+  if (titleEl) titleEl.value = rpQueteTexte('forumTitlePrefix','Présentation de ') + (state.char?.name || '');
 }
 
 // "Plus tard" : choix valide, terminal -- aucune relance automatique, aucun minuteur, aucune
@@ -743,9 +759,9 @@ async function queteAccueilGenererReponseMailJeremy(subjectRecu, bodyRecu) {
 
   const prompt = "Tu es Jeremy, jeune stagiaire un peu maladroit mais serviable de l'Hotel de Ville de Luthecia, dans le jeu Res Publica. Tu vouvoies toujours le joueur.\n" +
     "Le joueur, que tu as guide dans la ville il y a quelque temps, vient de t'envoyer un mail. Sujet : \"" + subjectRecu.replace(/"/g, "'") + "\". Message : \"" + bodyRecu.replace(/"/g, "'") + "\".\n" +
-    "Reponds en 2 a 3 phrases, dans ton personnage, de facon coherente avec sa demande. Termine TOUJOURS ta reponse en indiquant que tu te trouves actuellement sur la Place du Marche Central de Luthecia, et que le joueur peut venir t'y retrouver puis cliquer sur \"Rejoindre le groupe\" pour que tu l'accompagnes de nouveau. Reponds UNIQUEMENT avec ta replique, sans guillemets ni introduction.";
+    "Reponds en 2 a 3 phrases, dans ton personnage, de facon coherente avec sa demande. Termine TOUJOURS ta reponse en indiquant que tu te trouves actuellement sur la Place du Marche Central de Luthecia, et que le joueur peut venir t'y retrouver puis cliquer sur \"Rejoindre le groupe\" pour que tu l'accompagnes de nouveau. Reponds UNIQUEMENT avec ta replique, sans guillemets ni introduction." + "\n" + rpQueteTexte('replyLanguageInstruction','Réponds EXCLUSIVEMENT en français.');
 
-  let reply = "Oh, vous avez besoin de moi ? Je suis sur la Place du Marché, venez me chercher !";
+  let reply = rpQueteTexte('jeremyMailFallback',"Oh, vous avez besoin de moi ? Je suis sur la Place du Marché, venez me chercher !");
   try {
     // Modele corrige le 21 aout 2026 : 'claude-sonnet-4-20250514' (mai 2025) est desormais
     // retire par Anthropic (confirme en production, HTTP 404 not_found_error) -- remplace par
@@ -764,7 +780,7 @@ async function queteAccueilGenererReponseMailJeremy(subjectRecu, bodyRecu) {
   if (typeof sbSendMail === 'function') {
     sbSendMail('Jérémy', state.char.name, sujetReponse, reply, heure).catch(function() {});
   }
-  if (typeof showToast === 'function') showToast('Nouveau mail', 'Jérémy vous a répondu !', true);
+  if (typeof showToast === 'function') showToast(rpQueteTexte('newMailTitle','Nouveau mail'), rpQueteTexte('jeremyReplied','Jérémy vous a répondu !'), true);
 }
 
 // Explique au joueur comment se separer d'un employe recupere (Jeremy ou n'importe quel
@@ -773,7 +789,7 @@ function queteAccueilExpliquerLicenciement() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Me revoilà ! Au fait, si un jour vous voulez vous séparer de moi (ou de n'importe quel autre employé), il suffit de cliquer sur la petite croix à côté de sa carte, dans le panneau \"Mes Employés\", à gauche.",
+    texte: rpQueteTexte('returnEmployees', "Me revoilà ! Au fait, si un jour vous voulez vous séparer de moi (ou de n'importe quel autre employé), il suffit de cliquer sur la petite croix à côté de sa carte, dans le panneau \"Mes Employés\", à gauche."),
     suivant: function() {
       queteAccueilSurbrillance('#panel-employes, .panel-employes', 15000);
     }
@@ -859,14 +875,59 @@ const QUETE_ACCUEIL_PHRASES_PERDU = [
   /ou dois je aller|ou aller|ou doit on aller|mon objectif|mes objectifs|ma mission/
 ];
 
+// Portée limitée à la phrase d'arrivée au secrétaire Petit. Les formulations
+// historiques françaises et toutes les étapes/validations existantes restent inchangées.
+// Les autres langues sont reconnues uniquement si elles sont choisies sur le plateau.
+const QUETE_ACCUEIL_PHRASES_ARRIVEE_I18N = {
+  en: [/\b(?:i(?:'m| am) new|new here|just arrived|first time here)\b/, /\b(?:the guard sent me|sent by the guard)\b/],
+  es: [/\b(?:soy nuev[oa]|acabo de llegar|primera vez|el guardia me envio)\b/],
+  'pt-BR': [/\b(?:sou nov[oa]|acabei de chegar|primeira vez|o guarda me mandou)\b/],
+  de: [/\b(?:ich bin neu|gerade angekommen|zum ersten mal|die wache hat mich geschickt)\b/],
+  ru: [/я новеньк(?:ий|ая)|только что приехал|впервые здесь|меня прислал охранник/],
+  ko: [/새로 왔|처음 왔|막 도착했|경비가 보냈/],
+  ar: [/انا جديد|انا جديدة|وصلت للتو|هذه اول مرة|الحارس ارسلني|أنا جديد|أنا جديدة|هذه أول مرة|الحارس أرسلني/],
+  'zh-TW': [/我是新來的|剛到這裡|第一次來|警衛叫我來/]
+};
+
+// Comparaison spécifique aux systèmes d'écriture. Le normaliseur historique
+// français reste intact : NFD détruit les syllabes coréennes et la lettre й,
+// tandis que les hamzas arabes exigent une neutralisation locale.
+function queteAccueilComparerI18n(texte,normalise,langue) {
+  if (langue==='ar')return normalise.replace(/[\u064b-\u065f]/g,'');
+  if (langue==='ko'||langue==='ru')return String(texte==null?'':texte).toLowerCase().normalize('NFC').trim();
+  return normalise;
+}
+
 function queteAccueilPhraseDeNouvelArrivant(texte) {
   const t = queteAccueilNormaliserPhrase(texte);
-  return !!t && QUETE_ACCUEIL_PHRASES_ARRIVEE.some(function (m) { return m.test(t); });
+  if (!t) return false;
+  if (QUETE_ACCUEIL_PHRASES_ARRIVEE.some(function (m) { return m.test(t); }))return true;
+  const langue = (typeof window!=='undefined' && window.RPPlateauI18n?.language?.()) || 'fr';
+  return (QUETE_ACCUEIL_PHRASES_ARRIVEE_I18N[langue] || []).some(function (m) {
+    return m.test(queteAccueilComparerI18n(texte,t,langue));
+  });
 }
+
+// Rappel de Jérémy : reconnaître une demande de guidage dans la langue choisie.
+// Ces motifs ne modifient ni l'étape ni les actions de la quête.
+const QUETE_ACCUEIL_PHRASES_PERDU_I18N = {
+  en: [/\b(?:i(?:'m| am) lost|where are we|remind me|what should i do|what next)\b/],
+  es: [/\b(?:estoy perdid[oa]|donde estamos|recuerdame|que tengo que hacer|que sigue)\b/],
+  'pt-BR': [/\b(?:estou perdid[oa]|onde paramos|me lembre|o que devo fazer|proximo passo)\b/],
+  de: [/\b(?:ich habe mich verlaufen|wo waren wir|erinnere mich|was soll ich tun|wie geht es weiter)\b/],
+  ru: [/я заблудил(?:ся|ась)|что мне делать|напомни|где мы остановились|я потерял(?:ся|ась)/],
+  ko: [/길을 잃었|어떻게 해야|다음에는 뭘|다시 알려|어디까지 왔/],
+  ar: [/انا تايه|انا تايهة|ماذا علي ان افعل|ما التالي|ذكرني|اين وصلنا/],
+  'zh-TW': [/我迷路了|接下來怎麼辦|我們到哪一步了|提醒我|下一步/]
+};
 
 function queteAccueilPhraseDeJoueurPerdu(texte) {
   const t = queteAccueilNormaliserPhrase(texte);
-  return !!t && QUETE_ACCUEIL_PHRASES_PERDU.some(function (m) { return m.test(t); });
+  if (!t) return false;
+  if (QUETE_ACCUEIL_PHRASES_PERDU.some(function (m) { return m.test(t); }))return true;
+  const langue = (typeof window!=='undefined' && window.RPPlateauI18n?.language?.()) || 'fr';
+  const comparable = queteAccueilComparerI18n(texte,t,langue);
+  return (QUETE_ACCUEIL_PHRASES_PERDU_I18N[langue] || []).some(function (m) { return m.test(comparable); });
 }
 
 // =====================
@@ -933,17 +994,17 @@ function queteAccueilRappel() {
   const rappels = {
     jeremy_groupe: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "On va dans la salle des élections, vous vous souvenez ?",
+        texte: rpQueteTexte('rememberElections', "On va dans la salle des élections, vous vous souvenez ?"),
         suivant: function() { queteAccueilSurbrillance('.piece-tab[onclick*="salle_elections"]', 12000); } });
     },
     guide_salle_elections: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "On va dans la salle des élections.",
+        texte: rpQueteTexte('goElections', "On va dans la salle des élections."),
         suivant: function() { queteAccueilSurbrillance('.piece-tab[onclick*="salle_elections"]', 12000); } });
     },
     guide_sortie: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "On sort de l'Hôtel de Ville, vous vous souvenez ?",
+        texte: rpQueteTexte('leaveTownHall', "On sort de l'Hôtel de Ville, vous vous souvenez ?"),
         suivant: function() {
           queteAccueilSurbrillance('.action-btn[onclick*="consulter_elections"]', 12000);
           queteAccueilSurbrillance('.sortir-btn', 12000);
@@ -951,7 +1012,7 @@ function queteAccueilRappel() {
     },
     attente_gauche_dispensaire: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "Allons sur la gauche, j'ai quelque chose à vous montrer.", suivant: null });
+        texte: rpQueteTexte('turnLeft', "Allons sur la gauche, j'ai quelque chose à vous montrer."), suivant: null });
     },
     attente_entree_dispensaire: function() {
       afficherGuidageUnBatiment('luthecia-imprimerie', 'dispensaire-public', 'Entrons ici !');
@@ -961,46 +1022,46 @@ function queteAccueilRappel() {
     },
     attente_fiche_personnage: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "Allez donc consulter votre fiche personnage, je vous montrerai la suite après.",
+        texte: rpQueteTexte('openCharacterSheet', "Allez donc consulter votre fiche personnage, je vous montrerai la suite après."),
         suivant: function() { queteAccueilSurbrillance('[onclick*="openSelfView"]', 15000); } });
     },
     attente_hotel: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "On va à l'hôtel-restaurant, vous vous souvenez ? C'est le deuxième bâtiment après l'Hôtel de Ville, sur la droite en sortant.",
+        texte: rpQueteTexte('returnHotel', "On va à l'hôtel-restaurant, vous vous souvenez ? C'est le deuxième bâtiment après l'Hôtel de Ville, sur la droite en sortant."),
         suivant: null });
     },
     attente_bar: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "Allons faire un tour au bar, juste à côté.",
+        texte: rpQueteTexte('toBar', "Allons faire un tour au bar, juste à côté."),
         suivant: function() { queteAccueilSurbrillance(".piece-tab[onclick*=\",'bar',\"]", 15000); } });
     },
     attente_bar_apres_chambre: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "Allons faire un tour au bar, juste à côté.",
+        texte: rpQueteTexte('toBar', "Allons faire un tour au bar, juste à côté."),
         suivant: function() { queteAccueilSurbrillance(".piece-tab[onclick*=\",'bar',\"]", 15000); } });
     },
     attente_offre_verre: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "Vous pouvez m'offrir un verre ? J'ai très soif à force de parler.",
+        texte: rpQueteTexte('askDrink', "Vous pouvez m'offrir un verre ? J'ai très soif à force de parler."),
         suivant: function() { queteAccueilSurbrillance('.action-btn[onclick*="boire_verre"]', 12000); } });
     },
     guide_stade: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "On va au stade de foot ! Sortez, allez à gauche, puis prenez la route perpendiculaire et tournez à droite. Le plan peut vous aider, en haut à droite.",
+        texte: rpQueteTexte('returnStadium', "On va au stade de foot ! Sortez, allez à gauche, puis prenez la route perpendiculaire et tournez à droite. Le plan peut vous aider, en haut à droite."),
         suivant: function() { queteAccueilSurbrillance('button[onclick*="ouvrirPlanVille"]', 12000); } });
     },
     stade_attente_action: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "Allez-y, jetez un œil, essayez quelque chose au stade !", suivant: null });
+        texte: rpQueteTexte('tryStadium', "Allez-y, jetez un œil, essayez quelque chose au stade !"), suivant: null });
     },
     stade_apres_action: function() { afficherDecouverteStade(); },
     stade_libre_minuteur: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "Je vous laisse découvrir le stade. Si vous avez des questions pendant la visite, n'hésitez pas à me les poser.", suivant: null });
+        texte: rpQueteTexte('exploreStadium', "Je vous laisse découvrir le stade. Si vous avez des questions pendant la visite, n'hésitez pas à me les poser."), suivant: null });
     },
     attente_depart_jeremy: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "Nos chemins se séparent ici, vous vous souvenez ? Si besoin, cliquez sur ma fiche pour m'ajouter à vos contacts, puis utilisez le bouton Messages/Forums.",
+        texte: rpQueteTexte('sayGoodbyeAgain', "Nos chemins se séparent ici, vous vous souvenez ? Si besoin, cliquez sur ma fiche pour m'ajouter à vos contacts, puis utilisez le bouton Messages/Forums."),
         suivant: function() {
           queteAccueilSurbrillance(".person-card[onclick*=\"openPnjModal('\"]", 15000);
           queteAccueilSurbrillance('#btn-messages', 15000);

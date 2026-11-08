@@ -78,6 +78,12 @@ body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:colum
 #lang-switcher button:hover{color:var(--text2)}
 #lang-switcher button.lang-actif{color:var(--gold)}
 #lang-switcher .lang-sep{color:var(--text5)}
+/* Neuf langues : adaptation strictement mobile ; desktop pixel-identique. */
+@media (max-width:700px){
+  #lang-switcher{left:.5rem;right:.5rem;top:.4rem;max-width:none;flex-wrap:wrap;justify-content:center;font-size:.68rem;gap:.1rem;row-gap:.15rem}
+  #lang-switcher button{white-space:nowrap}
+}
+
 @media (max-width:420px){
   #lang-switcher{top:.6rem;right:.6rem;font-size:.7rem;padding:.25rem .4rem}
 }
@@ -2405,7 +2411,6 @@ body.plateau-body .top-right {
   /* Le compositeur garde son défilement extérieur prévu par forum-compose-grow. */
   #modal-forum.forum-compose-grow .forum-main{overflow:visible}
 }
-
 /* Formulaires communs : les libellés de locaux et de caractéristiques doivent
    rester lisibles sur téléphone, sans changer les fenêtres de bureau. */
 @media(max-width:1023px){

@@ -5,7 +5,7 @@ const {lancerChromium}=require('./fixtures/chromium-cdp.cjs');
 const {chromium}=require('../e2e/node_modules/playwright');
 const acorn=require('../e2e/node_modules/acorn');
 const root=path.resolve(__dirname,'../..'),source=fs.readFileSync(path.join(root,'forum.js'),'utf8');
-const noms=['renderForumContent','renderMailView','renderMailRead','renderMailCompose','replyToMail','escapeHtmlText'];
+const noms=['renderForumContent','renderMailView','renderMailRead','renderMailCompose','replyToMail','escapeHtmlText','rpForumLibelle','rpForumCompte','rpForumPlateauLibelle'];
 const code=acorn.parse(source,{ecmaVersion:'latest'}).body.filter(n=>n.type==='FunctionDeclaration'&&noms.includes(n.id.name)).map(n=>source.slice(n.start,n.end)).join('\n');
 async function scenario(largeur,ancien=false){
  const profil=fs.mkdtempSync(path.join(os.tmpdir(),'hg-mails-'));let chrome,navigateur;

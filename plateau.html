@@ -180,7 +180,7 @@
 
 <!-- TOP BAR -->
 <div id="topbar">
-  <div class="logo bebas" onclick="window.location.href='index.html'" style="cursor:pointer" title="Retour accueil">Res Publica</div>
+  <div class="logo bebas" onclick="window.location.href='index.html'" style="cursor:pointer" title="Retour accueil" data-i18n-title="plateau.backHomeTitle">Res Publica</div>
   <div class="res-bar">
 
     <!-- Stats cachées — mises à jour par JS, lues par updateUI -->
@@ -195,48 +195,48 @@
     <div style="display:none"><div id="b-hp" style="width:92%"></div></div>
     <div style="display:none"><div id="b-moral" style="width:78%"></div></div>
   </div>
-  <button type="button" class="hg-mobile-acces" data-hg-panneau="personnage" aria-expanded="false" aria-controls="left">Personnage</button>
-  <button type="button" class="hg-mobile-acces" data-hg-panneau="personnes" aria-expanded="false">Présents</button>
-  <button type="button" class="hg-mobile-acces" data-hg-panneau="menu" aria-expanded="false" aria-controls="hg-menu-existant">Menu</button>
+  <button type="button" class="hg-mobile-acces" data-hg-panneau="personnage" aria-expanded="false" aria-controls="left" data-i18n="plateau.mobileCharacter">Personnage</button>
+  <button type="button" class="hg-mobile-acces" data-hg-panneau="personnes" aria-expanded="false" data-i18n="plateau.mobilePresent">Présents</button>
+  <button type="button" class="hg-mobile-acces" data-hg-panneau="menu" aria-expanded="false" aria-controls="hg-menu-existant" data-i18n="plateau.mobileMenu">Menu</button>
   <div class="top-right" id="hg-menu-existant">
-    <button class="forum-btn" onclick="ouvrirIndicesImperiaux()" title="Indices des 4 empires" style="white-space:nowrap;font-size:.65rem;letter-spacing:.08em">
-      <i class="ti ti-chart-bar" style="font-size:.75rem;vertical-align:-1px"></i> INDICES IMPERIAUX
+    <button class="forum-btn" onclick="ouvrirIndicesImperiaux()" data-i18n-title="plateau.indicesTitle" title="Indices des 4 empires" style="white-space:nowrap;font-size:.65rem;letter-spacing:.08em">
+      <i class="ti ti-chart-bar" style="font-size:.75rem;vertical-align:-1px"></i> <span data-i18n="plateau.imperialIndices" data-i18n-uppercase>INDICES IMPERIAUX</span>
     </button>
     <button class="forum-btn" onclick="openRulesView()">
-      <i class="ti ti-book" style="font-size:.8rem;vertical-align:-1px"></i> Règles
+      <i class="ti ti-book" style="font-size:.8rem;vertical-align:-1px"></i> <span data-i18n="plateau.rules">Règles</span>
     </button>
-    <button class="forum-btn" onclick="openForumView()" id="btn-messages" title="Messages et Forums">
-      <i class="ti ti-messages" style="font-size:.8rem;vertical-align:-1px"></i> Messages/Forums
+    <button class="forum-btn" onclick="openForumView()" id="btn-messages" data-i18n-title="plateau.forumsTitle" title="Messages et Forums">
+      <i class="ti ti-messages" style="font-size:.8rem;vertical-align:-1px"></i> <span data-i18n="plateau.messagesForums">Messages/Forums</span>
       <span id="mail-badge" style="display:none;background:#cc2020;color:#fff;font-size:.6rem;padding:.1rem .3rem;border-radius:50%;margin-left:.2rem;font-family:'Bebas Neue',sans-serif">0</span>
-      <span id="forum-activity-dot" title="Nouvelle activité sur le forum" style="display:none;width:8px;height:8px;background:#cc2020;border-radius:50%;margin-left:.25rem;vertical-align:middle"></span>
+      <span id="forum-activity-dot" data-i18n-title="plateau.forumActivity" title="Nouvelle activité sur le forum" style="display:none;width:8px;height:8px;background:#cc2020;border-radius:50%;margin-left:.25rem;vertical-align:middle"></span>
     </button>
-    <button class="forum-btn" onclick="ouvrirRepertoirePJ()" title="Liste des joueurs">
-      <i class="ti ti-users" style="font-size:.8rem;vertical-align:-1px"></i> PJ
+    <button class="forum-btn" onclick="ouvrirRepertoirePJ()" data-i18n-title="plateau.playersTitle" title="Liste des joueurs">
+      <i class="ti ti-users" style="font-size:.8rem;vertical-align:-1px"></i> <span data-i18n="plateau.players">PJ</span>
     </button>
-    <button class="forum-btn" onclick="ouvrirTableauOrganisations()" title="Mes organisations" style="color:#c0a0ff">
-      <i class="ti ti-building-community" style="font-size:.8rem;vertical-align:-1px"></i> Orgas
+    <button class="forum-btn" onclick="ouvrirTableauOrganisations()" data-i18n-title="plateau.orgsTitle" title="Mes organisations" style="color:#c0a0ff">
+      <i class="ti ti-building-community" style="font-size:.8rem;vertical-align:-1px"></i> <span data-i18n="plateau.orgs">Orgas</span>
     </button>
-    <button class="forum-btn" onclick="ouvrirCalendrierElectoral()" title="Calendrier électoral" style="color:#6ada6a">
-      <i class="ti ti-calendar-event" style="font-size:.8rem;vertical-align:-1px"></i> Élections
+    <button class="forum-btn" onclick="ouvrirCalendrierElectoral()" data-i18n-title="plateau.electionsTitle" title="Calendrier électoral" style="color:#6ada6a">
+      <i class="ti ti-calendar-event" style="font-size:.8rem;vertical-align:-1px"></i> <span data-i18n="plateau.elections">Élections</span>
     </button>
-    <button class="forum-btn football-live-badge" id="football-live-badge" style="display:none" title="Rejoindre le match en direct"></button>
+    <button class="forum-btn football-live-badge" id="football-live-badge" style="display:none" data-i18n-title="plateau.footballTitle" title="Rejoindre le match en direct"></button>
     </button>
     <button class="world-btn" onclick="openWorldMap()">
-      <i class="ti ti-map" style="font-size:.8rem;vertical-align:-1px"></i> Carte
+      <i class="ti ti-map" style="font-size:.8rem;vertical-align:-1px"></i> <span data-i18n="plateau.worldMap">Carte</span>
     </button>
-    <button class="forum-btn" onclick="ouvrirPlanVille()" title="Plan de la ville">
-      <i class="ti ti-map-2" style="font-size:.8rem;vertical-align:-1px"></i> Plan
+    <button class="forum-btn" onclick="ouvrirPlanVille()" data-i18n-title="plateau.planTitle" title="Plan de la ville">
+      <i class="ti ti-map-2" style="font-size:.8rem;vertical-align:-1px"></i> <span data-i18n="plateau.plan">Plan</span>
     </button>
   </div>
 </div>
 
-<button type="button" id="hg-mobile-fond" aria-label="Fermer le panneau" hidden></button>
+<button type="button" id="hg-mobile-fond" aria-label="Fermer le panneau" data-i18n-aria-label="plateau.mobileClosePanel" hidden></button>
 <!-- MAIN LAYOUT -->
 <div id="main">
 
   <!-- LEFT PANEL -->
   <div id="left">
-    <div class="panel-title">MON PERSONNAGE</div>
+    <div class="panel-title" data-i18n="plateau.character" data-i18n-uppercase>MON PERSONNAGE</div>
     <div class="char-card" onclick="openCharSheet()" style="cursor:pointer">
       <div class="char-photo" id="char-photo-left"><i class="ti ti-user" style="font-size:1.4rem"></i></div>
       <div class="char-fullname" id="char-fullname-left">Mon Personnage</div>
@@ -253,17 +253,17 @@
         </div>
       </div>
       <div style="flex:1;background:#0a0a07;border:1px solid #2a1a08;border-radius:3px;padding:.3rem .5rem;text-align:center">
-        <div style="font-size:.58rem;color:#C9A84C;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em">ARGENT</div>
+        <div style="font-size:.58rem;color:#C9A84C;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em" data-i18n="plateau.money" data-i18n-uppercase>ARGENT</div>
         <div style="font-size:.75rem;color:#C9A84C;font-family:'Bebas Neue',sans-serif" id="r-arg">4 250 FR</div>
       </div>
     </div>
 
     <!-- BOUTON STATS -->
     <button onclick="openSelfView('stats')" style="width:100%;margin:.3rem 0 .2rem;font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.35rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem">
-      <i class="ti ti-chart-bar" style="font-size:.75rem"></i> Mes Statistiques
+      <i class="ti ti-chart-bar" style="font-size:.75rem"></i> <span data-i18n="plateau.myStats">Mes Statistiques</span>
     </button>
     <button onclick="afficherObjectifsSecrets()" style="width:100%;margin:.2rem 0 .4rem;font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.35rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem">
-      <i class="ti ti-target" style="font-size:.75rem"></i> Mes Objectifs 🎯
+      <i class="ti ti-target" style="font-size:.75rem"></i> <span data-i18n="plateau.myGoals">Mes Objectifs 🎯</span>
     </button>
 
     <!-- LOCATION — masqué, IDs conservés pour le JS -->
@@ -273,7 +273,7 @@
 
     <!-- EMPLOYÉS -->
     <div class="panel-title" style="cursor:pointer" onclick="toggleSection('employes-panel','emp-chevron')">
-      MES EMPLOYÉS <i class="ti ti-chevron-right" id="emp-chevron" style="font-size:.7rem;float:right;margin-top:.1rem"></i>
+      <span data-i18n="plateau.myEmployees" data-i18n-uppercase>MES EMPLOYÉS</span> <i class="ti ti-chevron-right" id="emp-chevron" style="font-size:.7rem;float:right;margin-top:.1rem"></i>
     </div>
     <div id="employes-panel" style="display:none;padding:.3rem 0">
       <div id="employes-list"></div>
@@ -281,19 +281,19 @@
 
     <!-- INVENTAIRE (fermé par défaut) -->
     <div class="panel-title" style="cursor:pointer" onclick="toggleInventaire()">
-      INVENTAIRE <i class="ti ti-chevron-right" id="inv-chevron" style="font-size:.7rem;float:right;margin-top:.1rem"></i>
+      <span data-i18n="plateau.inventory" data-i18n-uppercase>INVENTAIRE</span> <i class="ti ti-chevron-right" id="inv-chevron" style="font-size:.7rem;float:right;margin-top:.1rem"></i>
     </div>
     <div id="inventaire-panel" style="display:none">
       <div class="inv-section">
-        <div class="inv-label">Argent liquide</div>
+        <div class="inv-label" data-i18n="plateau.cash">Argent liquide</div>
         <div class="inv-val" id="inv-liquide">500 FR</div>
       </div>
       <div class="inv-section">
-        <div class="inv-label">En banque</div>
+        <div class="inv-label" data-i18n="plateau.bank">En banque</div>
         <div class="inv-val" id="inv-banque">3 750 FR</div>
       </div>
       <div class="inv-items" id="inv-items">
-        <div class="inv-item-empty">Aucun objet</div>
+        <div class="inv-item-empty" data-i18n="plateau.noItems">Aucun objet</div>
       </div>
     </div>
 
@@ -325,20 +325,20 @@
 
         <!-- MINI-CARTE des batiments -->
         <div class="minimap" id="minimap">
-          <div class="minimap-title">PLAN DE LA VILLE</div>
+          <div class="minimap-title" data-i18n="plateau.cityMap" data-i18n-uppercase>PLAN DE LA VILLE</div>
           <div class="minimap-grid" id="minimap-grid"></div>
         </div>
 
         <!-- Personnes presentes (rue centrale) — utilise l'espace libere quand la minimap est masquee -->
         <div class="persons-sidebar" id="persons-sidebar-rue" style="display:none">
-          <div class="persons-title">PERSONNES PRESENTES</div>
+          <div class="persons-title" data-i18n="plateau.peoplePresent" data-i18n-uppercase>PERSONNES PRESENTES</div>
           <div id="persons-list-rue"></div>
         </div>
       </div>
 
       <!-- Barre d'actions de rue -->
       <div id="actionbar">
-        <div class="action-context">DANS LA RUE &mdash; Cliquez sur un batiment pour entrer</div>
+        <div class="action-context" data-i18n="plateau.streetHint">DANS LA RUE &mdash; Cliquez sur un batiment pour entrer</div>
         <div class="actions-row" id="rue-actions-row">
 
         </div>
@@ -349,18 +349,18 @@
     <div id="vue-self" class="vue">
       <div class="batiment-header">
         <button class="sortir-btn" onclick="closeSelfView()">
-          <i class="ti ti-x"></i> Fermer
+          <i class="ti ti-x"></i> <span data-i18n="plateau.closeButton">Fermer</span>
         </button>
         <div class="batiment-header-info">
           <div class="batiment-nom" id="self-view-name">Mon Personnage</div>
           <div class="batiment-cat" id="self-view-role">Citoyen</div>
         </div>
         <div class="pieces-tabs">
-          <div class="piece-tab active" onclick="switchSelfTab('actions',this)">Actions personnelles</div>
-          <div class="piece-tab" onclick="switchSelfTab('inventaire',this)">Inventaire</div>
-          <div class="piece-tab" onclick="switchSelfTab('orgas',this)">Organisations</div>
-          <div class="piece-tab" onclick="switchSelfTab('identite',this)">Identité</div>
-          <div class="piece-tab" onclick="switchSelfTab('stats',this)">Statistiques</div>
+          <div class="piece-tab active" onclick="switchSelfTab('actions',this)" data-i18n="plateau.personalActions">Actions personnelles</div>
+          <div class="piece-tab" onclick="switchSelfTab('inventaire',this)" data-i18n="plateau.inventory">Inventaire</div>
+          <div class="piece-tab" onclick="switchSelfTab('orgas',this)" data-i18n="plateau.organizations">Organisations</div>
+          <div class="piece-tab" onclick="switchSelfTab('identite',this)" data-i18n="plateau.identity">Identité</div>
+          <div class="piece-tab" onclick="switchSelfTab('stats',this)" data-i18n="plateau.statistics">Statistiques</div>
         </div>
       </div>
       <div id="self-content" style="flex:1;overflow-y:auto;background:#0a0805"></div>
@@ -370,22 +370,22 @@
     <div id="vue-rules" class="vue">
       <div class="batiment-header">
         <button class="sortir-btn" onclick="closeRulesView()">
-          <i class="ti ti-x"></i> Fermer
+          <i class="ti ti-x"></i> <span data-i18n="plateau.closeButton">Fermer</span>
         </button>
         <div class="batiment-header-info">
-          <div class="batiment-nom">Règles du jeu</div>
-          <div class="batiment-cat">Res Publica — Guide du joueur</div>
+          <div class="batiment-nom" data-i18n="plateau.rules">Règles du jeu</div>
+          <div class="batiment-cat" data-i18n="plateau.gameGuide">Res Publica — Guide du joueur</div>
         </div>
         <div class="pieces-tabs">
-          <div class="rules-tab piece-tab active" data-section="intro" onclick="renderRulesContent('intro');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Le Grand Jeu</div>
-          <div class="rules-tab piece-tab" data-section="tuto" onclick="renderRulesContent('tuto');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">🎓 Tutoriel</div>
-          <div class="rules-tab piece-tab" data-section="personnage" onclick="renderRulesContent('personnage');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Personnage</div>
-          <div class="rules-tab piece-tab" data-section="plateau" onclick="renderRulesContent('plateau');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Plateau</div>
-          <div class="rules-tab piece-tab" data-section="politique" onclick="renderRulesContent('politique');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Politique</div>
-          <div class="rules-tab piece-tab" data-section="interactions" onclick="renderRulesContent('interactions');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Interactions</div>
-          <div class="rules-tab piece-tab" data-section="economie" onclick="renderRulesContent('economie');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Économie</div>
-          <div class="rules-tab piece-tab" data-section="sport" onclick="renderRulesContent('sport');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">⚽ Football</div>
-          <div class="rules-tab piece-tab" data-section="religion" onclick="renderRulesContent('religion');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Religions</div>
+          <div class="rules-tab piece-tab active" data-section="intro" data-i18n="plateau.rulesIntro" onclick="renderRulesContent('intro');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Le Grand Jeu</div>
+          <div class="rules-tab piece-tab" data-section="tuto" data-i18n="plateau.rulesTutorial" onclick="renderRulesContent('tuto');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">🎓 Tutoriel</div>
+          <div class="rules-tab piece-tab" data-section="personnage" data-i18n="plateau.rulesCharacter" onclick="renderRulesContent('personnage');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Personnage</div>
+          <div class="rules-tab piece-tab" data-section="plateau" data-i18n="plateau.rulesBoard" onclick="renderRulesContent('plateau');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Plateau</div>
+          <div class="rules-tab piece-tab" data-section="politique" data-i18n="plateau.rulesPolitics" onclick="renderRulesContent('politique');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Politique</div>
+          <div class="rules-tab piece-tab" data-section="interactions" data-i18n="plateau.rulesInteractions" onclick="renderRulesContent('interactions');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Interactions</div>
+          <div class="rules-tab piece-tab" data-section="economie" data-i18n="plateau.rulesEconomy" onclick="renderRulesContent('economie');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Économie</div>
+          <div class="rules-tab piece-tab" data-section="sport" data-i18n="plateau.rulesFootball" onclick="renderRulesContent('sport');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">⚽ Football</div>
+          <div class="rules-tab piece-tab" data-section="religion" data-i18n="plateau.rulesReligion" onclick="renderRulesContent('religion');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Religions</div>
         </div>
       </div>
       <div id="rules-content" style="flex:1;overflow-y:auto;background:#0a0805"></div>
@@ -395,10 +395,10 @@
     <div id="vue-forum" class="vue">
       <div class="batiment-header">
         <button class="sortir-btn" onclick="closeForumView()">
-          <i class="ti ti-x"></i> Fermer
+          <i class="ti ti-x"></i> <span data-i18n="plateau.closeButton">Fermer</span>
         </button>
         <div class="batiment-header-info">
-          <div class="batiment-nom">Forum</div>
+          <div class="batiment-nom" data-i18n="plateau.forum">Forum</div>
           <div class="batiment-cat" id="forum-view-subtitle">Forum Local</div>
         </div>
       </div>
@@ -410,10 +410,10 @@
     <div id="vue-mail" class="vue">
       <div class="batiment-header">
         <button class="sortir-btn" onclick="closeMailView()">
-          <i class="ti ti-x"></i> Fermer
+          <i class="ti ti-x"></i> <span data-i18n="plateau.closeButton">Fermer</span>
         </button>
         <div class="batiment-header-info">
-          <div class="batiment-nom">Boite Mail</div>
+          <div class="batiment-nom" data-i18n="plateau.mailbox">Boite Mail</div>
           <div class="batiment-cat" id="mail-view-subtitle">Messages recus</div>
         </div>
       </div>
@@ -425,7 +425,7 @@
     <div id="vue-batiment" class="vue">
       <div class="batiment-header">
         <button class="sortir-btn" onclick="sortirBatiment()">
-          <i class="ti ti-arrow-left"></i> Sortir
+          <i class="ti ti-arrow-left"></i> <span data-i18n="plateau.exitButton">Sortir</span>
         </button>
         <div class="batiment-header-info">
           <div class="batiment-nom" id="bat-nom">Batiment</div>
@@ -448,7 +448,7 @@
 
         <!-- Personnes presentes -->
         <div class="persons-sidebar">
-          <div class="persons-title">PERSONNES PRESENTES</div>
+          <div class="persons-title" data-i18n="plateau.peoplePresent" data-i18n-uppercase>PERSONNES PRESENTES</div>
           <div id="persons-list"></div>
         </div>
       </div>
@@ -467,7 +467,7 @@
 
 <!-- JOURNAL FLOTTANT (store) -->
 <!-- Bouton d'ouverture flottant -->
-<button id="journal-open-btn" onclick="toggleJournalStore()" title="Journal des événements"
+<button id="journal-open-btn" onclick="toggleJournalStore()" title="Journal des événements" data-i18n-title="plateau.eventJournal"
   style="position:fixed;bottom:80px;left:20px;z-index:997;width:44px;height:44px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;transition:all .2s">
   <i class="ti ti-news" style="font-size:1rem"></i>
   <span id="journal-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:#cc2020;border-radius:50%;animation:blink 1.2s ease infinite"></span>
@@ -476,12 +476,12 @@
 <!-- Panneau store journal -->
 <div id="journal-store" style="display:none;position:fixed;top:0;right:0;width:300px;height:100vh;z-index:996;background:#0d0b05;border-left:1px solid #2a2010;box-shadow:-4px 0 20px rgba(0,0,0,.7);flex-direction:column;animation:slideInRight .25s ease">
   <div style="padding:.5rem .7rem;border-bottom:1px solid #1a1810;background:#0a0805;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
-    <span style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.2em;color:#9a8a50">JOURNAL DES ÉVÉNEMENTS</span>
+    <span style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.2em;color:#9a8a50" data-i18n="plateau.eventJournal" data-i18n-uppercase>JOURNAL DES ÉVÉNEMENTS</span>
     <button onclick="toggleJournalStore()" style="background:none;border:none;color:#6a5a30;cursor:pointer;font-size:1rem;padding:.2rem;transition:color .2s" onmouseover="this.style.color='#C9A84C'" onmouseout="this.style.color='#6a5a30'">
       <i class="ti ti-x"></i>
     </button>
   </div>
-  <button class="cpj-touche" onclick="ouvrirCalepinCampagne()">Rapports de combat</button>
+  <button class="cpj-touche" onclick="ouvrirCalepinCampagne()" data-i18n="plateau.combatReports">Rapports de combat</button>
   <div class="journal" id="journal" style="flex:1;overflow-y:auto;padding:.4rem">
     <div class="journal-entry">
       <span class="journal-time">--/--/---- &middot; --h--</span>
@@ -539,7 +539,7 @@
 <div id="modal-char" class="modal-overlay">
   <div class="modal-box modal-large">
     <div class="modal-header">
-      <div class="modal-title">Fiche de personnage</div>
+      <div class="modal-title" data-i18n="plateau.characterSheet">Fiche de personnage</div>
       <button class="modal-close" onclick="closeCharSheet()"><i class="ti ti-x"></i></button>
     </div>
     <div id="char-sheet-body"></div>
@@ -550,7 +550,7 @@
 <div id="modal-world" class="modal-overlay">
   <div class="modal-box modal-large">
     <div class="modal-header">
-      <div class="modal-title">Carte du Monde</div>
+      <div class="modal-title" data-i18n="plateau.worldMap">Carte du Monde</div>
       <button class="modal-close" onclick="closeWorldMap()"><i class="ti ti-x"></i></button>
     </div>
     <div id="world-map-body"></div>
@@ -583,7 +583,7 @@
 <div id="modal-finances" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-header">
-      <div class="modal-title">Gestion des finances</div>
+      <div class="modal-title" data-i18n="plateau.financeManagement">Gestion des finances</div>
       <button class="modal-close" onclick="document.getElementById('modal-finances').classList.remove('open')"><i class="ti ti-x"></i></button>
     </div>
     <div id="finances-body"></div>
@@ -616,24 +616,24 @@
 <div id="modal-compose-mail" class="modal-overlay">
   <div class="modal-box" style="max-width:520px">
     <div class="modal-header">
-      <div class="modal-title">Nouveau message</div>
+      <div class="modal-title" data-i18n="plateau.newMessage">Nouveau message</div>
       <button class="modal-close" onclick="fermerComposeMail()"><i class="ti ti-x"></i></button>
     </div>
     <div style="padding:.8rem 1rem;display:flex;flex-direction:column;gap:.6rem">
       <div>
-        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem">À</label>
-        <input id="compose-mail-to" type="text" placeholder="Destinataire..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box"/>
+        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem" data-i18n="plateau.recipient">À</label>
+        <input id="compose-mail-to" type="text" placeholder="Destinataire..." data-i18n-placeholder="plateau.recipientPlaceholder" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box"/>
       </div>
       <div>
-        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem">Sujet</label>
-        <input id="compose-mail-subject" type="text" placeholder="Objet du message..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box"/>
+        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem" data-i18n="plateau.subject">Sujet</label>
+        <input id="compose-mail-subject" type="text" placeholder="Objet du message..." data-i18n-placeholder="plateau.subjectPlaceholder" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box"/>
       </div>
       <div>
-        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem">Message</label>
-        <textarea id="compose-mail-body" rows="6" placeholder="Votre message..." style="width:100%;padding:.5rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;resize:vertical"></textarea>
+        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem" data-i18n="plateau.messageLabel">Message</label>
+        <textarea id="compose-mail-body" rows="6" placeholder="Votre message..." data-i18n-placeholder="plateau.messagePlaceholder" style="width:100%;padding:.5rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;resize:vertical"></textarea>
       </div>
       <button onclick="envoyerComposeMail()" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.12em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;align-self:flex-end">
-        <i class="ti ti-send" style="font-size:.8rem"></i> Envoyer
+        <i class="ti ti-send" style="font-size:.8rem"></i> <span data-i18n="plateau.sendButton">Envoyer</span>
       </button>
     </div>
   </div>
@@ -869,7 +869,7 @@
 
 <div id="chat-piece-panel" style="display:none;position:fixed;bottom:80px;left:20px;z-index:999;width:300px;height:380px;background:#0a0805;border:1px solid #2a2010;border-radius:8px;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,.6)">
   <div style="padding:.5rem .7rem;border-bottom:1px solid #2a2010;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
-    <span style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.08em;color:#C9A84C">MESSAGES</span>
+    <span style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.08em;color:#C9A84C" data-i18n="plateau.messages" data-i18n-uppercase>MESSAGES</span>
     <button onclick="toggleChatPiece()" style="background:none;border:none;color:#8a8060;cursor:pointer;font-size:.9rem">✕</button>
   </div>
   <div id="chat-piece-body" style="flex:1;display:flex;flex-direction:column;overflow:hidden"></div>
@@ -907,6 +907,37 @@ function signalerEvenementJournal() {
   to   { transform: translateX(0);    opacity: 1; }
 }
 </style>
+<!-- Localisation des libellés statiques du plateau, sans changer les ordres serveur. -->
+<script src="i18n/i18next.min.js"></script>
+<script src="i18n/resources.js?v=9-langues-20261102"></script>
+<script src="i18n/plateau-resources.js?v=1"></script>
+<script src="i18n/guide-resources.js?v=tutoriel-20261107"></script>
+<script src="i18n/guide-plateau-resources.js?v=plateau-20261107"></script>
+<script src="i18n/guide-interactions-resources.js?v=forums-20261107"></script>
+<script src="i18n/guide-politique-resources.js?v=politique-20261107"></script>
+<script src="i18n/guide-sport-resources.js?v=sport-20261107"></script>
+<script src="i18n/guide-economie-resources.js?v=economie-20261107"></script>
+<script src="i18n/guide-religion-resources.js?v=religion-20261107"></script>
+<script src="i18n/guide-integrity.js?v=integrite-20261107"></script>
+<script src="i18n/orders-resources.js?v=391-ordres-20261108"></script>
+<script src="i18n/order-variants-resources.js?v=47-variantes-20261108"></script>
+<script src="i18n/order-templates-resources.js?v=7-modeles-20261108"></script>
+<!-- BETA INTERNATIONALE — accueil et plateau : neuf langues ; repli FR.
+     Retour arrière sans migration : retirer uniquement l'affectation ci-dessous.
+     Ne concerne PAS le service privé de traduction automatique forum/chat. -->
+<script>window.RP_I18N_GAME_ENABLED = true;</script>
+<script src="i18n/plateau-bridge.js?v=garde-20261108"></script>
+<script src="i18n/character-sheet-resources.js?v=profil-9lang-20261107"></script>
+<script src="i18n/pnj-status-resources.js?v=pnj-status-20261107"></script>
+<script src="i18n/petit-accueil-resources.js?v=petit-20261107"></script>
+<script src="i18n/jeremy-scenes-resources.js?v=jeremy-scenes-20261107"></script>
+<script src="i18n/guard-welcome-resources.js?v=guard-20261107"></script>
+<script src="i18n/room-resources.js?v=38-salles-20261108"></script>
+<script src="i18n/forum-ui.js?v=forum-ui-20261107"></script>
+<script src="i18n/toast-resources.js?v=titres-20261107"></script>
+<script src="i18n/ordres.js?v=variantes-contextuelles-20261108"></script>
+<script src="i18n/texte-joueur.js?v=1"></script>
+<script src="i18n/plateau-init.js?v=rtl-valeurs-dynamiques-20261108"></script>
 <script src="plateau-mobile.js?v=certification-reprise-r2-20261108" defer></script>
 </body>
 </html>

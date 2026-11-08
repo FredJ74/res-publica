@@ -1,0 +1,117 @@
+'use strict';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+const root=path.resolve(__dirname,'../..');
+const ctx=vm.createContext({window:{}});
+for(const file of ['resources.js','order-templates-resources.js','ordres.js'])
+ vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
+const w=ctx.window;
+const translator={t(key,opts={}){
+ const parts=key.split('.');
+ const template=parts.reduce((item,part)=>item?.[part],w.RP_I18N_RESOURCES[opts.lng]?.translation);
+ if(typeof template!=='string')return opts.defaultValue;
+ return template.replace(/\{\{([a-z]+)\}\}/g,(_,name)=>String(opts[name]??'{{'+name+'}}'));
+}};
+const data=fs.readFileSync(path.join(root,'data.js'),'utf8');
+const locales=Object.keys(w.RP_I18N_LANGUAGES);
+
+test('sept modèles de loyers, terrains et réunions présents pour neuf langues',()=>{
+ assert.equal(locales.length,9);
+ const ref=Object.keys(w.RP_I18N_RESOURCES.fr.translation.orderTemplates);
+ assert.equal(ref.length,7);
+ for(const lng of locales){
+  const x=w.RP_I18N_RESOURCES[lng].translation.orderTemplates;
+  assert.deepEqual(Object.keys(x),ref);
+  for(const text of Object.values(x))assert.ok(text.trim());
+ }
+});
+test('chaque loyer du jeu garde exactement son montant, sa monnaie et son ordre',()=>{
+ const labels=[...data.matchAll(/fn:'louer_local',\s*label:'((?:\\.|[^'])*)'/g)].map(x=>x[1]);
+ assert.ok(labels.length>=12);
+ for(const original of labels){
+  assert.match(original,/^Louer (ce local|cette suite|ce coffre|cet appartement) \(\d[\d ]* (FR|PSK)\/jour\)$/);
+  const price=original.match(/\((\d[\d ]*) (FR|PSK)\/jour\)/);
+  const order=Object.freeze({fn:'louer_local',label:original,cost:874,pa:1});
+  for(const lng of locales){
+   const translated=w.RPOrderI18n.label(order,translator,lng);
+   assert.ok(translated.includes(price[1]),lng+': somme absente');
+   assert.ok(translated.includes(price[2]),lng+': monnaie absente');
+   if(lng!=='fr')assert.notEqual(translated,original,lng+': non traduit');
+  }
+  assert.equal(order.label,original);assert.equal(order.cost,874);assert.equal(order.pa,1);
+ }
+});
+test('tous les achats de terrains à prix affiché préservent surface et prix',()=>{
+ const labels=[...data.matchAll(/fn:'acheter_terrain',\s*label:'((?:\\.|[^'])*)'/g)].map(x=>x[1]);
+ assert.ok(labels.length>=12);
+ for(const original of labels){
+  const order=Object.freeze({fn:'acheter_terrain',label:original,cost:25200,pa:1});
+  const variable=original.match(/^Acheter ce terrain \((\d[\d ]*) m² — (\d[\d ]*) FR\)$/);
+  assert.ok(variable||original==='Acheter ce terrain',original);
+  for(const lng of locales){
+   const translated=w.RPOrderI18n.label(order,translator,lng);
+   if(variable){
+    assert.ok(translated.includes(variable[1]),lng+': surface');
+    assert.ok(translated.includes(variable[2]),lng+': prix');
+    assert.ok(translated.includes('FR'),lng+': devise');
+   }else assert.ok(translated.trim());
+  }
+  assert.equal(order.label,original);assert.equal(order.cost,25200);assert.equal(order.pa,1);
+ }
+});
+test('pas de traduction pour devises et formes inconnues, jamais de prix interpolé incorrect',()=>{
+ for(const order of [
+  {fn:'louer_local',label:'Louer ce local (200 EUR/jour)'},
+  {fn:'louer_local',label:'Louer ce local (prix variable)'},
+  {fn:'acheter_terrain',label:'Acheter ce terrain (2500 m² — prix libre)'},
+  {fn:'acheter_terrain',label:'Acheter ce terrain <script>alert(1)</script>'}
+ ])assert.equal(w.RPOrderI18n.label(order,translator,'en'),order.label);
+ const unavailable={t:()=> 'Rent this local ({{price}} {{currency}}/day)'};
+ const priced={fn:'louer_local',label:'Louer ce local (800 FR/jour)'};
+ assert.equal(w.RPOrderI18n.label(priced,unavailable,'en'),priced.label);
+});
+test('les modèles sont chargés après les ressources et avant le résolveur',()=>{
+ const html=fs.readFileSync(path.join(root,'plateau.html'),'utf8');
+ const a=html.indexOf('i18n/resources.js'),b=html.indexOf('i18n/order-templates-resources.js');
+ const c=html.indexOf('i18n/ordres.js');
+ assert.ok(a>=0 && a<b && b<c);
+});
+
+test('réservation journalière Sovarka : 100/150 PSK conservés sans inventer un tarif',()=>{
+ assert.match(data,/fn:'sovarka_reunion_reserver'/);
+ assert.match(data,/label:'Réserver pour aujourd’hui — '\+tarif\+' PSK'/);
+ for(const price of [100,150]){
+  const original='Réserver pour aujourd’hui — '+price+' PSK';
+  const order=Object.freeze({fn:'sovarka_reunion_reserver',label:original,pa:0,cost:0,requiresPost:'test'});
+  for(const locale of locales){
+   const translated=w.RPOrderI18n.label(order,translator,locale);
+   assert.ok(translated.includes(String(price)),locale+': prix modifié');
+   assert.ok(translated.includes('PSK'),locale+': devise absente');
+   assert.ok(!translated.includes('{{'),locale+': gabarit visible');
+   if(locale!=='fr')assert.notEqual(translated,original,locale+': non traduit');
+  }
+  assert.equal(order.fn,'sovarka_reunion_reserver');
+  assert.equal(order.label,original);
+  assert.equal(order.cost,0);assert.equal(order.pa,0);assert.equal(order.requiresPost,'test');
+ }
+ for(const original of ['Réserver pour demain — 150 PSK','Réserver pour aujourd’hui — 150 FR','Réserver pour aujourd’hui — prix libre PSK','Réserver pour aujourd’hui — <script> PSK']){
+  assert.equal(w.RPOrderI18n.label({fn:'sovarka_reunion_reserver',label:original},translator,'en'),original);
+ }
+});
+
+test('tous les gabarits des neuf langues ont exactement les mêmes variables métier que le français',()=>{
+ const reference=w.RP_I18N_RESOURCES.fr.translation.orderTemplates;
+ const args=template=>[...String(template).matchAll(/\\{\\{([a-z]+)\\}\\}/g)].map(m=>m[1]).sort();
+ for(const [id,original] of Object.entries(reference)){
+  const expected=args(original);
+  // Pas de perte/duplication de devise, surface ou montant dans une langue.
+  for(const locale of locales){
+   const candidate=w.RP_I18N_RESOURCES[locale].translation.orderTemplates[id];
+   assert.ok(typeof candidate==='string',locale+'/'+id+' : gabarit manquant');
+   assert.deepEqual(args(candidate),expected,locale+'/'+id+' : variables incohérentes');
+  }
+ }
+});

@@ -1,3 +1,27 @@
+// L'interface peut encore fonctionner sans son catalogue non activé :
+ // seule la présentation change ; les valeurs publiées restent strictement d'origine.
+function rpForumLibelle(key,source) {
+  return (typeof window!=='undefined' && window.RPForumUI?.labelHtml?.(key,source)) || source;
+}
+// Réutiliser les traductions de champs de l'interface centrale (pas de doublon).
+function rpForumPlateauLibelle(key,source) {
+  if(typeof window==='undefined' || window.RPPlateauI18n?.language?.()==='fr')return source;
+  const translation=window.RPPlateauI18n?.translate?.('plateau.'+key);
+  if(typeof translation!=='string'||!translation.trim()||translation==='plateau.'+key)return source;
+  return translation.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function rpActionMailLabel(key,original) {
+  return (typeof window!=='undefined' && window.RPForumUI?.mailActionLabel?.(key,original)) || original;
+}
+function rpForumCompte(kind,number,source) {
+  return (typeof window!=='undefined' && window.RPForumUI?.count?.(kind,number,source)) || source;
+}
+function rpForumNom(id,source) {
+  return (typeof window!=='undefined' && window.RPForumUI?.forumNameHtml?.(id,source)) || source;
+}
+function rpForumDescription(id,source) {
+  return (typeof window!=='undefined' && window.RPForumUI?.forumDescriptionHtml?.(id,source)) || source;
+}
 /* ===========================
    RES PUBLICA — FORUM.JS v3
    Éditeur riche, mails, emojis
@@ -153,11 +177,15 @@ let forumCompteursDernierChargement = 0;
 let forumCompteursChargement = null;
 let forumCompteursIdentite = '';
 function nombreSujetsForum(id) {
-  if (Object.prototype.hasOwnProperty.call(forumCompteursServeur, id))
-    return forumCompteursServeur[id] + ' sujet(s)';
-  if (FORUM_LECTURE_TERMINEE[id] && !FORUM_LECTURE_ECHOUEE[id])
-    return (FORUM_TOPICS[id] || []).length + ' sujet(s)';
-  return '… sujet(s)';
+  if (Object.prototype.hasOwnProperty.call(forumCompteursServeur, id)) {
+    const n=forumCompteursServeur[id];
+    return rpForumCompte('subjects',n,n+' sujet(s)');
+  }
+  if (FORUM_LECTURE_TERMINEE[id] && !FORUM_LECTURE_ECHOUEE[id]) {
+    const n=(FORUM_TOPICS[id] || []).length;
+    return rpForumCompte('subjects',n,n+' sujet(s)');
+  }
+  return rpForumCompte('subjects',null,'… sujet(s)');
 }
 async function rafraichirCompteursForums() {
   if (typeof sbCompterSujetsForums !== 'function') return;
@@ -830,7 +858,7 @@ function renderForumNavItem(id, f) {
     onclick="${accessible ? `switchForum('${id}')` : `showToast('Accès restreint','Ce forum est réservé aux membres autorisés.',false)`}">
     <i class="ti ${f.icon}" style="font-size:.85rem"></i>
     <div>
-      <div class="forum-nav-name">${f.name}${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
+      <div class="forum-nav-name">${rpForumNom(id,f.name)}${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
       <div class="forum-nav-count">${nombreSujetsForum(id)}</div>
     </div>
     ${f.private ? `<i class="ti ti-lock" style="font-size:.65rem;color:#4a4030;margin-left:auto"></i>` : ''}
@@ -854,7 +882,7 @@ function renderForumCategorieItems(cat) {
       parNational.map(([id, f]) => renderForumNavItem(id, f)).join('') +
       (institutions.length > 0 ? `<div class="forum-nav-item" onclick="toggleSousGroupeForum()">
         <i class="ti ti-building-bank" style="font-size:.85rem"></i>
-        <div><div class="forum-nav-name">Institutionnels${institutions.some(([id, f]) => (!f.private || canAccessForum(id)) && !!forumActivite.forums[id]) ? htmlPointRougeActivite('.4rem') : ''}</div></div>
+        <div><div class="forum-nav-name">${rpForumLibelle('institutions','Institutionnels')}${institutions.some(([id, f]) => (!f.private || canAccessForum(id)) && !!forumActivite.forums[id]) ? htmlPointRougeActivite('.4rem') : ''}</div></div>
         <i class="ti ti-chevron-right forum-categorie-chevron ${forumSousGroupeOuvert ? 'ouvert' : ''}" style="margin-left:auto"></i>
       </div>` +
         `<div class="forum-sousgroupe">` +
@@ -865,7 +893,7 @@ function renderForumCategorieItems(cat) {
   }
 
   if (cat === 'prive' && entries.length === 0) {
-    return `<div class="forum-categorie-items"><div style="padding:.7rem .8rem;font-size:.75rem;color:#6a5a30;font-style:italic">Aucune organisation trouvée. Rejoignez ou fondez une organisation pour accéder à son forum privé.</div></div>`;
+    return `<div class="forum-categorie-items"><div style="padding:.7rem .8rem;font-size:.75rem;color:#6a5a30;font-style:italic">${rpForumLibelle('noOrganizations','Aucune organisation trouvée. Rejoignez ou fondez une organisation pour accéder à son forum privé.')}</div></div>`;
   }
 
   return `<div class="forum-categorie-items">` + entries.map(([id, f]) => renderForumNavItem(id, f)).join('') + `</div>`;
@@ -929,8 +957,8 @@ function renderForumSidebar() {
     <div class="forum-nav-item forum-mail-item ${forumView === 'mail' ? 'active' : ''}" onclick="switchToMail()">
       <i class="ti ti-mail" style="font-size:.85rem"></i>
       <div>
-        <div class="forum-nav-name">Boîte Mail${unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}</div>
-        <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${unreadCount} non lu(s)</span>` : 'Aucun message'}</div>
+        <div class="forum-nav-name">${rpForumLibelle('mailbox','Boîte Mail')}${unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}</div>
+        <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${rpForumCompte('unread',unreadCount,unreadCount+' non lu(s)')}</span>` : rpForumLibelle('noMessages','Aucun message')}</div>
       </div>
     </div>
     ${forumView === 'mail' ? `
@@ -938,12 +966,12 @@ function renderForumSidebar() {
         ${[['recus','ti-inbox','Mails reçus'],['envoyes','ti-send','Mails envoyés'],['archives','ti-archive','Mails archivés']].map(([id,icone,nom]) => `
           <button type="button" class="forum-mail-rubrique ${mailRubrique === id ? 'active' : ''}"
             aria-current="${mailRubrique === id ? 'page' : 'false'}" onclick="selectionnerRubriqueMail('${id}')">
-            <i class="ti ${icone}"></i> ${nom}${id === 'recus' && unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}
+            <i class="ti ${icone}"></i> ${rpForumLibelle(id==='recus'?'receivedMails':id==='envoyes'?'sentMails':'archivedMails',nom)}${id === 'recus' && unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}
           </button>`).join('')}
       </div>` : ''}
-    ${renderCategorieHeader('intra', 'ti-flag', 'Forums nationaux')}
-    ${renderCategorieHeader('inter', 'ti-world', 'Forums internationaux')}
-    ${renderCategorieHeader('prive', 'ti-lock', 'Forums privés')}
+    ${renderCategorieHeader('intra', 'ti-flag', rpForumLibelle('nationalForums','Forums nationaux'))}
+    ${renderCategorieHeader('inter', 'ti-world', rpForumLibelle('internationalForums','Forums internationaux'))}
+    ${renderCategorieHeader('prive', 'ti-lock', rpForumLibelle('privateForums','Forums privés'))}
   `;
 }
 
@@ -1097,8 +1125,8 @@ function renderForumContent() {
 function renderForumAccueil() {
   return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#6a5a30;gap:.6rem">
     <i class="ti ti-message-2-cog" style="font-size:2.2rem;opacity:.5"></i>
-    <div style="font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:.05em;color:#8a7040">Choisissez une categorie a gauche</div>
-    <div style="font-size:.78rem;max-width:260px;text-align:center">Forums nationaux, internationaux ou prives -- deroulez une categorie pour voir ses forums.</div>
+    <div style="font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:.05em;color:#8a7040">${rpForumLibelle('chooseCategory','Choisissez une categorie a gauche')}</div>
+    <div style="font-size:.78rem;max-width:260px;text-align:center">${rpForumLibelle('categoryHelp','Forums nationaux, internationaux ou prives -- deroulez une categorie pour voir ses forums.')}</div>
   </div>`;
 }
 
@@ -1111,27 +1139,27 @@ function renderTopicList() {
   return `
     <div class="forum-header-bar">
       <div>
-        <div class="forum-title-main"><i class="ti ${f.icon}"></i> ${f.name}</div>
-        <div class="forum-subtitle">${f.desc}</div>
+        <div class="forum-title-main"><i class="ti ${f.icon}"></i> ${rpForumNom(currentForumId,f.name)}</div>
+        <div class="forum-subtitle">${rpForumDescription(currentForumId,f.desc)}</div>
       </div>
       ${peutCreerSujet ? `
       <button class="forum-new-btn" onclick="showComposeCanvasForm()">
-        <i class="ti ti-pencil-plus"></i> Nouveau sujet
+        <i class="ti ti-pencil-plus"></i> ${rpForumLibelle('newTopic','Nouveau sujet')}
       </button>` : ''}
     </div>
     ${topics.length === 0
       ? (FORUM_LECTURE_EN_COURS[currentForumId] || !FORUM_LECTURE_TERMINEE[currentForumId]
-          ? `<div class="forum-empty">Chargement des sujets depuis le serveur…</div>`
+          ? `<div class="forum-empty">${rpForumLibelle('loadingTopics','Chargement des sujets depuis le serveur…')}</div>`
           : FORUM_LECTURE_ECHOUEE[currentForumId]
           // PANNE, PAS VIDE. Dire « aucun sujet » ici serait une affirmation fausse sur le
           // contenu du forum -- et c'est exactement ce qui s'est produit en production.
-          ? `<div class="forum-empty">Les sujets de cette rubrique n'ont pas pu être chargés.
-             Ce n'est pas qu'elle est vide : la lecture du serveur a échoué ou a dépassé 12 secondes.
-             <button class="forum-new-btn" onclick="rechargerForumActuel()">Réessayer</button></div>`
-          : `<div class="forum-empty">Aucun sujet. ${peutCreerSujet ? 'Soyez le premier à en créer un !' : "Seul le Président peut s'exprimer ici."}</div>`)
+          ? `<div class="forum-empty">${rpForumLibelle('failedTopics',"Les sujets de cette rubrique n'ont pas pu être chargés.")}
+             ${rpForumLibelle('failedTopicsDetail',"Ce n'est pas qu'elle est vide : la lecture du serveur a échoué ou a dépassé 12 secondes.")}
+             <button class="forum-new-btn" onclick="rechargerForumActuel()">${rpForumLibelle('retry','Réessayer')}</button></div>`
+          : `<div class="forum-empty">${rpForumLibelle('noTopics','Aucun sujet.')} ${peutCreerSujet ? rpForumLibelle('firstTopic','Soyez le premier à en créer un !') : rpForumLibelle('presidentOnly',"Seul le Président peut s'exprimer ici.")}</div>`)
       : `<div class="forum-topics-list">
           <div class="forum-topics-header">
-            <span>Sujet</span><span>Auteur</span><span>Dernier post</span><span>Vues</span><span>Rép.</span>
+            <span>${rpForumLibelle('topicColumn','Sujet')}</span><span>${rpForumLibelle('authorColumn','Auteur')}</span><span>${rpForumLibelle('lastPostColumn','Dernier post')}</span><span>${rpForumLibelle('viewsColumn','Vues')}</span><span>${rpForumLibelle('repliesColumn','Rép.')}</span>
           </div>
           ${topics.map(t => `
             <div class="forum-topic-row" onclick="openTopic('${t.id}')">
@@ -1208,20 +1236,20 @@ function renderTopicView() {
             <div class="forum-post-avatar" ${(!p.authorIsOrg && !(typeof PNJ_PERSONALITIES !== 'undefined' && PNJ_PERSONALITIES[p.author])) ? `style="cursor:pointer" data-author="${escapeHtmlText(p.author)}" onclick="ouvrirFichePublique(this.dataset.author)"` : ''}>${getAvatarHtmlPost(p.authorIsOrg, p.authorOrgIcon, p.author, 40)}</div>
             ${p.authorCountry && COUNTRIES?.[p.authorCountry] ? '<div style="width:100%;height:6px;background:' + COUNTRIES[p.authorCountry].col + ';margin:.3rem 0 .1rem"></div>' : ''}
             <div class="forum-post-author">${escapeHtmlText(p.author)}${p.authorIsOrg ? ' <i class="ti ti-shield" style="font-size:.7rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
-            ${p.authorSecret ? '<span class="forum-post-badge" style="border-color:#8a2020;color:#cc4444">secrète</span>' : ''}
+            ${p.authorSecret ? '<span class="forum-post-badge" style="border-color:#8a2020;color:#cc4444">' + rpForumLibelle('secret','secrète') + '</span>' : ''}
             <div class="forum-post-time">${formatDateAffichage(p.time)}</div>
-            ${i === 0 ? `<span class="forum-post-badge">Auteur du sujet</span>` : ''}
+            ${i === 0 ? `<span class="forum-post-badge">${rpForumLibelle('topicAuthor','Auteur du sujet')}</span>` : ''}
           </div>
           <div class="forum-post-main">
             <div class="forum-post-toolbar">
               ${(p.authorReal || p.author) === myName ? `
-                <button onclick="editPost('${topic.id}','${p.id || i}')" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="Modifier">
+                <button onclick="editPost('${topic.id}','${p.id || i}')" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="${rpForumLibelle('edit','Modifier')}">
                   <i class="ti ti-edit"></i>
                 </button>
-                <button onclick="confirmerSuppressionPost('${topic.id}','${p.id || i}')" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="Supprimer">
+                <button onclick="confirmerSuppressionPost('${topic.id}','${p.id || i}')" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="${rpForumLibelle('delete','Supprimer')}">
                   <i class="ti ti-trash"></i>
                 </button>` : ''}
-              <button onclick="quotePost(${i})" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="Citer">
+              <button onclick="quotePost(${i})" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="${rpForumLibelle('quote','Citer')}">
                 <i class="ti ti-quote"></i>
               </button>
             </div>
@@ -1231,7 +1259,7 @@ function renderTopicView() {
     </div>
     <div class="forum-reply-bar">
       <button class="forum-new-btn" onclick="showComposeCanvasReply()">
-        <i class="ti ti-corner-down-right"></i> Répondre
+        <i class="ti ti-corner-down-right"></i> ${rpForumLibelle('reply','Répondre')}
       </button>
     </div>
   `;
@@ -1244,9 +1272,9 @@ function renderRichEditor(id, initialContent = '') {
   return `
     <div class="rich-editor">
       <div class="rich-toolbar">
-        <button class="rich-btn" onclick="richFmt('bold')" title="Gras"><b>G</b></button>
-        <button class="rich-btn" onclick="richFmt('italic')" title="Italique"><i>I</i></button>
-        <button class="rich-btn" onclick="richFmt('underline')" title="Souligné"><u>S</u></button>
+        <button class="rich-btn" onclick="richFmt('bold')" title="${rpForumLibelle('bold','Gras')}"><b>G</b></button>
+        <button class="rich-btn" onclick="richFmt('italic')" title="${rpForumLibelle('italic','Italique')}"><i>I</i></button>
+        <button class="rich-btn" onclick="richFmt('underline')" title="${rpForumLibelle('underline','Souligné')}"><u>S</u></button>
         <div class="rich-sep"></div>
         <button class="rich-btn" onclick="richHeading(2)" title="Titre H2">H2</button>
         <button class="rich-btn" onclick="richHeading(3)" title="Titre H3">H3</button>
@@ -1292,7 +1320,7 @@ function renderRichEditor(id, initialContent = '') {
 
       <div class="rich-content" id="${id}" contenteditable="true" onfocus="window._lastRichEditorId=this.id" onkeydown="handleRichEditorEnter(event)"
         style="min-height:150px;padding:.8rem;outline:none;font-family:Crimson Pro,Georgia,serif;font-size:.9rem;line-height:1.7;color:#f0ead6"
-        placeholder="Écrivez votre message...">${initialContent}</div>
+        placeholder="${rpForumLibelle('editorPlaceholder','Écrivez votre message...')}">${initialContent}</div>
     </div>
   `;
 }
@@ -1686,7 +1714,7 @@ function getMesOrganisations() {
 function renderPosterEnTantQue(fieldId) {
   const mesOrgas = getMesOrganisations();
   if (mesOrgas.length === 0) return '';
-  let html = '<div class="forum-field"><label class="forum-field-label">Publier en tant que</label>';
+  let html = '<div class="forum-field"><label class="forum-field-label">' + rpForumLibelle('postAs','Publier en tant que') + '</label>';
   html += '<select id="' + fieldId + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
   html += '<option value="">' + escapeHtmlText(state.char?.name || 'Moi-même') + '</option>';
   mesOrgas.forEach(o => {
@@ -1771,7 +1799,7 @@ function getSignatureHtml() {
 function renderNewTopicForm() {
   return `
     <div class="forum-header-bar">
-      <button class="forum-back-btn" onclick="backToList()"><i class="ti ti-arrow-left"></i> Retour</button>
+      <button class="forum-back-btn" onclick="backToList()"><i class="ti ti-arrow-left"></i> ${rpForumLibelle('back','Retour')}</button>
       <div class="forum-title-main">Nouveau sujet</div>
     </div>
     <div class="forum-compose-form">
@@ -1796,7 +1824,7 @@ function renderReplyForm() {
   const topic = (FORUM_TOPICS[currentForumId]||[]).find(t => t.id === currentTopicId);
   return `
     <div class="forum-header-bar">
-      <button class="forum-back-btn" onclick="backToTopic()"><i class="ti ti-arrow-left"></i> Retour au sujet</button>
+      <button class="forum-back-btn" onclick="backToTopic()"><i class="ti ti-arrow-left"></i> ${rpForumLibelle('backToTopic','Retour au sujet')}</button>
       <div class="forum-title-main">Répondre : ${escapeHtmlText(topic?.title||'')}</div>
     </div>
     <div class="forum-compose-form">
@@ -2542,32 +2570,32 @@ function renderMailInbox() {
   const sent = mails.filter(m => m.from === myName || m.fromReal === myName);
   return `
     <div class="forum-header-bar">
-      <div class="forum-title-main"><i class="ti ti-mail"></i> Boîte Mail</div>
+      <div class="forum-title-main"><i class="ti ti-mail"></i> ${rpForumLibelle('mailbox','Boîte Mail')}</div>
       <button class="forum-new-btn" onclick="mailView='compose';document.getElementById('forum-main').innerHTML=renderForumContent()">
-        <i class="ti ti-pencil-plus"></i> Nouveau mail
+        <i class="ti ti-pencil-plus"></i> ${rpForumLibelle('newMail','Nouveau mail')}
       </button>
     </div>
     <div class="forum-topics-list">
     ${mailRubrique === 'envoyes' ? `
     <div>
       <div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;padding:.4rem 0;border-bottom:1px solid #2a2010;margin-bottom:.4rem">
-        MESSAGES ENVOYÉS (${sent.length})
+        ${rpForumLibelle('sentMessagesTitle','Messages envoyés').toLocaleUpperCase()} (${sent.length})
       </div>
       ${sent.length === 0
-        ? `<div class="forum-empty">Aucun message envoyé.</div>`
+        ? `<div class="forum-empty">${rpForumLibelle('noSentMail','Aucun message envoyé.')}</div>`
         : sent.map(m => `
           <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer">
             <div style="display:flex;justify-content:space-between">
               <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Envoyé en tant qu\'organisation"></i> ' : ''}${escapeHtmlText(m.subject)}</div>
               <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
             </div>
-            <div style="font-size:.72rem;color:#6a5a30">À : ${escapeHtmlText(m.to)}</div>
+            <div style="font-size:.72rem;color:#6a5a30">${rpForumLibelle('toLabel','À :')} ${escapeHtmlText(m.to)}</div>
           </div>`).join('')}
     </div>
     ` : mailRubrique === 'archives' ? `
     <div style="margin-top:.8rem">
       <div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#6a5a30;padding:.4rem 0;border-bottom:1px solid #2a2010;margin-bottom:.4rem">
-        <i class="ti ti-archive"></i> ARCHIVES (${archives.length})
+        <i class="ti ti-archive"></i> ${rpForumLibelle('archivesTitle','Archives').toLocaleUpperCase()} (${archives.length})
       </div>
       ${archives.length ? archives.map(m => `
         <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;opacity:.75">
@@ -2575,16 +2603,16 @@ function renderMailInbox() {
             <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Organisation"></i> ' : ''}${escapeHtmlText(m.subject)}</div>
             <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
           </div>
-          <div style="font-size:.72rem;color:#6a5a30">${(m.from === myName || m.fromReal === myName) ? 'À : ' + escapeHtmlText(m.to) : 'De : ' + escapeHtmlText(m.from)}</div>
-        </div>`).join('') : '<div class="forum-empty">Aucun message archivé.</div>'}
+          <div style="font-size:.72rem;color:#6a5a30">${(m.from === myName || m.fromReal === myName) ? rpForumLibelle('toLabel','À :') + ' ' + escapeHtmlText(m.to) : rpForumLibelle('fromLabel','De :') + ' ' + escapeHtmlText(m.from)}</div>
+        </div>`).join('') : '<div class="forum-empty">' + rpForumLibelle('noArchivedMail','Aucun message archivé.') + '</div>'}
     </div>
     ` : `
     <div style="margin-bottom:.8rem">
       <div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;padding:.4rem 0;border-bottom:1px solid #2a2010;margin-bottom:.4rem">
-        MESSAGES REÇUS (${received.length})
+        ${rpForumLibelle('receivedMessagesTitle','Messages reçus').toLocaleUpperCase()} (${received.length})
       </div>
       ${received.length === 0
-        ? `<div class="forum-empty">Aucun message reçu.</div>`
+        ? `<div class="forum-empty">${rpForumLibelle('noReceivedMail','Aucun message reçu.')}</div>`
         : received.map(m => `
           <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;background:${m.read?'transparent':'rgba(201,168,76,0.05)'}">
             <div style="display:flex;justify-content:space-between;align-items:center">
@@ -2593,7 +2621,7 @@ function renderMailInbox() {
               </div>
               <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
             </div>
-            <div style="font-size:.72rem;color:#6a5a30">De : ${escapeHtmlText(m.from)}${m.fromIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
+            <div style="font-size:.72rem;color:#6a5a30">${rpForumLibelle('fromLabel','De :')} ${escapeHtmlText(m.from)}${m.fromIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
           </div>`).join('')}
     </div>
     `}
@@ -2890,7 +2918,7 @@ function boutonsActionMail(actions) {
     html += '<button onclick="' + def.fn + '(' + args.join(',') + ')" '
          + 'style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em;'
          + 'padding:.45rem 1rem;border:1px solid ' + bord + ';background:transparent;color:'
-         + couleur + ';cursor:pointer">' + escapeHtmlText(def.label) + '</button>';
+         + couleur + ';cursor:pointer">' + escapeHtmlText(rpActionMailLabel(a.cle,def.label)) + '</button>';
   }
   return html + '</div>';
 }
@@ -2919,7 +2947,7 @@ function renderMailRead() {
   return `
     <div class="forum-header-bar">
       <button class="forum-back-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">
-        <i class="ti ti-arrow-left"></i> Retour
+        <i class="ti ti-arrow-left"></i> ${rpForumLibelle('back','Retour')}
       </button>
       <div class="forum-title-main" style="flex:1">${escapeHtmlText(mail.subject)}</div>
     </div>
@@ -2927,8 +2955,8 @@ function renderMailRead() {
       <div style="display:flex;align-items:center;gap:.6rem;font-size:.72rem;color:#6a5a30;margin-bottom:.8rem;padding:.5rem;border:1px solid #1a1810">
         ${typeof getAvatarHtmlPost === 'function' ? getAvatarHtmlPost(mail.fromIsOrg, mail.fromOrgIcon, mail.from, 28) : ''}
         <div>
-          De : <strong style="color:#c0b090">${escapeHtmlText(mail.from)}</strong>${mail.fromIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}
-          → À : <strong style="color:#c0b090">${escapeHtmlText(mail.to)}</strong>
+          ${rpForumLibelle('fromLabel','De :')} <strong style="color:#c0b090">${escapeHtmlText(mail.from)}</strong>${mail.fromIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}
+          → ${rpForumLibelle('toLabel','À :')} <strong style="color:#c0b090">${escapeHtmlText(mail.to)}</strong>
           · ${formatDateAffichage(mail.time)}
         </div>
       </div>
@@ -2939,24 +2967,24 @@ function renderMailRead() {
         ${mail.to === myName && !mail.fromIsOrg ? `
           <button data-mail-from="${escapeHtmlText(mail.from)}" data-mail-subject="${escapeHtmlText(mail.subject)}"
             onclick="replyToMail(this.dataset.mailFrom, this.dataset.mailSubject)" class="forum-new-btn" style="font-size:.72rem">
-            <i class="ti ti-corner-down-left"></i> Répondre
+            <i class="ti ti-corner-down-left"></i> ${rpForumLibelle('reply','Répondre')}
           </button>` : ''}
         ${mail.archived ? `
           <button onclick="toggleArchiveMail('${mail.id}', false)"
             style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#C9A84C;cursor:pointer">
-            <i class="ti ti-archive-off"></i> Désarchiver
+            <i class="ti ti-archive-off"></i> ${rpForumLibelle('unarchive','Désarchiver')}
           </button>` : `
           <button onclick="toggleArchiveMail('${mail.id}', true)"
             style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#8a8060;cursor:pointer">
-            <i class="ti ti-archive"></i> Archiver (conserver indéfiniment)
+            <i class="ti ti-archive"></i> ${rpForumLibelle('archiveKeep','Archiver (conserver indéfiniment)')}
           </button>`}
         <button onclick="deleteMail('${mail.id}');mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()" 
           style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">
-          <i class="ti ti-trash"></i> Supprimer
+          <i class="ti ti-trash"></i> ${rpForumLibelle('delete','Supprimer')}
         </button>
       </div>
-      ${mail.to === myName && mail.fromIsOrg ? '<div style="margin-top:.5rem;font-size:.72rem;color:#9a8a68;font-style:italic">La réponse directe à une organisation n\'est pas encore disponible — aucune boîte de messagerie propre aux organisations n\'existe à ce jour.</div>' : ''}
-      ${!mail.archived ? '<div style="margin-top:.5rem;font-size:.72rem;color:#9a8a68;font-style:italic">Ce message sera supprimé automatiquement 14 jours après réception, sauf archivage.</div>' : ''}
+      ${mail.to === myName && mail.fromIsOrg ? '<div style="margin-top:.5rem;font-size:.72rem;color:#9a8a68;font-style:italic">' + rpForumLibelle('orgReplyUnavailable',"La réponse directe à une organisation n'est pas encore disponible — aucune boîte de messagerie propre aux organisations n'existe à ce jour.") + '</div>' : ''}
+      ${!mail.archived ? '<div style="margin-top:.5rem;font-size:.72rem;color:#9a8a68;font-style:italic">' + rpForumLibelle('autoDeleteNotice','Ce message sera supprimé automatiquement 14 jours après réception, sauf archivage.') + '</div>' : ''}
     </div>
   `;
 }
@@ -2974,7 +3002,7 @@ function replyToMail(to, subject) {
 function renderEnvoyerMailEnTantQue(fieldId, selectedOrgaId) {
   const mesOrgas = typeof getMesOrganisations === 'function' ? getMesOrganisations() : [];
   if (mesOrgas.length === 0) return '';
-  let html = '<div class="forum-field"><label class="forum-field-label">Envoyer en tant que</label>';
+  let html = '<div class="forum-field"><label class="forum-field-label">' + rpForumLibelle('sendAs','Envoyer en tant que') + '</label>';
   html += '<select id="' + fieldId + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
   html += '<option value="">' + escapeHtmlText(state.char?.name || 'Moi-même') + '</option>';
   mesOrgas.forEach(o => {
@@ -2990,31 +3018,31 @@ function renderMailCompose(defaultTo = '', defaultSubject = '', defaultOrgaId = 
   return `
     <div class="forum-header-bar">
       <button class="forum-back-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">
-        <i class="ti ti-arrow-left"></i> Retour
+        <i class="ti ti-arrow-left"></i> ${rpForumLibelle('back','Retour')}
       </button>
-      <div class="forum-title-main">Nouveau message</div>
+      <div class="forum-title-main">${rpForumPlateauLibelle('newMessage','Nouveau message')}</div>
     </div>
     <div class="forum-compose-form">
       <div class="forum-field">
-        <label class="forum-field-label">Destinataire</label>
+        <label class="forum-field-label">${rpForumPlateauLibelle('recipient','Destinataire')}</label>
         <input class="forum-field-input" id="mail-to" type="text" value="${escapeHtmlText(defaultTo)}"
-          placeholder="Nom du destinataire..." list="contacts-list"/>
+          placeholder="${rpForumPlateauLibelle('recipientPlaceholder','Nom du destinataire...')}" list="contacts-list"/>
         <datalist id="contacts-list">
           ${contacts.map(c => `<option value="${escapeHtmlText(c.name)}">`).join('')}
         </datalist>
       </div>
       ${renderEnvoyerMailEnTantQue('compose-mail-auteur', defaultOrgaId)}
       <div class="forum-field">
-        <label class="forum-field-label">Sujet</label>
+        <label class="forum-field-label">${rpForumPlateauLibelle('subject','Sujet')}</label>
         <input class="forum-field-input" id="mail-subject" type="text" value="${escapeHtmlText(defaultSubject)}"
-          placeholder="Objet du message..."/>
+          placeholder="${rpForumPlateauLibelle('subjectPlaceholder','Objet du message...')}"/>
       </div>
       <div class="forum-field">
-        <label class="forum-field-label">Message</label>
+        <label class="forum-field-label">${rpForumPlateauLibelle('messageLabel','Message')}</label>
         ${renderRichEditor('compose-body')}
       </div>
       <button class="forum-submit-btn" onclick="submitMail()">
-        <i class="ti ti-send"></i> Envoyer
+        <i class="ti ti-send"></i> ${rpForumPlateauLibelle('sendButton','Envoyer')}
       </button>
     </div>
   `;

@@ -59,11 +59,31 @@ import {
   CE_QUI_N_EXISTE_PAS_ASSEMBLEE
 } from './_bible-assemblee.js';
 
+// Consignes de présentation : mêmes connaissances, droits et personnalité PNJ
+// pour toutes les locales. zh désigne UNIQUEMENT zh-TW, pt désigne pt-BR.
+// Les clés historiques fr/en restent inchangées pour les anciens clients.
 const LANGUES = {
   fr: { nom: 'francais', consigne: 'Reponds EXCLUSIVEMENT en francais.' },
-  en: { nom: 'anglais',  consigne: 'Reply EXCLUSIVELY in English.' }
+  en: { nom: 'anglais',  consigne: 'Reply EXCLUSIVELY in English.' },
+  es: { nom: 'espagnol', consigne: 'Responde EXCLUSIVAMENTE en español.' },
+  zh: { nom: 'chinois traditionnel', consigne: '請只使用繁體中文（臺灣）回答，不要使用簡體中文。' },
+  ru: { nom: 'russe', consigne: 'Отвечай ИСКЛЮЧИТЕЛЬНО на русском языке.' },
+  ko: { nom: 'coréen', consigne: '반드시 한국어로만 답변하세요.' },
+  ar: { nom: 'arabe', consigne: 'أجب باللغة العربية فقط دون استخدام لغة أخرى.' },
+  pt: { nom: 'portugais brésilien', consigne: 'Responda EXCLUSIVAMENTE em português brasileiro.' },
+  de: { nom: 'allemand', consigne: 'Antworte AUSSCHLIESSLICH auf Deutsch.' }
 };
 const LANGUE_DEFAUT = 'en';   // repli impose : jamais de langue devinee
+
+// La localisation des dialogues PNJ ne s'ouvre PAS en production par un
+// changement de navigateur ou une simple requête HTTP. La variable serveur
+// doit être explicitement activée après l'accord du game designer.
+// Le mode historique fr/en reste accessible lorsque le drapeau est fermé.
+function langueDialogueAutorisee(lang, autorise = process.env.RP_I18N_GAME_ENABLED === 'true') {
+  const code=String(lang || '').toLowerCase().slice(0, 2);
+  if(!autorise)return code==='fr'?'fr':'en';
+  return Object.hasOwn(LANGUES,code)?code:LANGUE_DEFAUT;
+}
 
 function consigneLangue(lang) {
   const l = LANGUES[String(lang || '').toLowerCase().slice(0, 2)] || LANGUES[LANGUE_DEFAUT];
@@ -785,10 +805,38 @@ function filtrerReponseSquatteur(profilId, texte, lang = 'fr') {
   const accueilCordial = agressif && /\bbonjour\b|\bbienvenue\b|\benchant[ée]|ravi de (?:vous|te)|hello|good morning|welcome/i.test(texte);
   // Une discussion libre ne peut annoncer le verdict d'une transaction.
   const accordInvente = /march[ée] conclu|j['’]accepte|on accepte|nous acceptons|nous partons|on (?:part|se casse|quitte)|accord conclu|we (?:accept|leave|are leaving)|accept[ée]e? votre offre/i.test(texte);
-  if (!horsPersonnage && !accueilCordial && !accordInvente) return texte;
+  // Réponses négociées : la parole de l'IA ne peut pas constater un départ ou
+  // un accord qui n'existe pas dans l'état serveur. Filtrage dans la langue
+  // réellement demandée au fournisseur, pas seulement en français/anglais.
+  const accordsLocalises = {
+    es: /\b(?:acepto|aceptamos|aceptada?|acuerdo cerrado|trato hecho|nos vamos|nos marchamos|abandonamos|dejamos el terreno)\b/i,
+    de: /\b(?:ich akzeptiere|wir akzeptieren|angenommen|abgemacht|einverstanden|wir gehen|wir verlassen|verlassen das gelände)\b/i,
+    pt: /\b(?:aceito|aceitamos|proposta aceita|negócio fechado|acordo fechado|vamos embora|saímos|deixamos o terreno)\b/i,
+    ru: /(?:согласен|согласна|согласны|принимаю|принимаем|договорились|сделка заключена|мы уходим|покидаем|освобождаем участок)/i,
+    zh: /(?:同意|接受|成交|達成協議|我們離開|我們走|撤離|讓出土地)/,
+    ko: /(?:수락하|수락했|동의하|동의했|합의했|거래가 성사|우리는 떠나|우리는 나가|땅을 비우)/,
+    ar: /(?:أوافق|نوافق|وافقنا|قبلت العرض|نقبل العرض|تم الاتفاق|اتفقنا|سنغادر|نغادر|نترك الأرض|نخلي الأرض)/
+  };
+  const codeLangue = String(lang || '').toLowerCase().slice(0, 2);
+  const accordLocalise = accordsLocalises[codeLangue]?.test(texte) || false;
+  if (!horsPersonnage && !accueilCordial && !accordInvente && !accordLocalise) return texte;
   if (String(lang).toLowerCase().startsWith('en')) return agressif
     ? "What are you doing here? We don't like nosy strangers."
     : "What brings you to our patch of land?";
+  // Un remplacement anti-HRP doit rester immersif DANS la langue du lecteur,
+  // même quand DeepSeek a envoyé du texte hors personnage.
+  // FR et EN conservent mot pour mot leurs répliques historiques.
+  const repliLocalise = {
+    es: ["¿Qué haces aquí? No nos gustan los entrometidos.", "¿Qué te trae a nuestro terreno?"],
+    zh: ["你來這裡做什麼？我們不歡迎愛管閒事的人。", "你來我們這塊地做什麼？"],
+    ru: ["Что тебе здесь нужно? Мы не любим любопытных чужаков.", "Зачем ты пришёл на нашу землю?"],
+    ko: ["여기서 뭐 하는 거야? 참견하는 외지인은 싫어.", "우리 구역에는 무슨 일로 왔어?"],
+    ar: ["ماذا تفعل هنا؟ لا نحب المتطفلين.", "ما الذي جاء بك إلى أرضنا؟"],
+    pt: ["O que você está fazendo aqui? Não gostamos de intrometidos.", "O que traz você ao nosso terreno?"],
+    de: ["Was willst du hier? Neugierige Fremde mögen wir nicht.", "Was führt dich auf unser Gelände?"]
+  };
+  const choix = repliLocalise[String(lang || '').toLowerCase().slice(0, 2)];
+  if (choix) return choix[agressif ? 0 : 1];
   return agressif
     ? "Tu cherches quoi, baltringue ? T'as intérêt à pas te foutre de nous."
     : "Qu'est-ce qui t'amène sur notre bout de terrain ?";
@@ -803,5 +851,5 @@ function maxTokensProfil(profilId) {
 }
 
 export { PROFILS, TOUS_PROFILS, construirePromptSysteme, profilExiste, maxTokensProfil,
-         LANGUES, LANGUE_DEFAUT, QUETE_ACCUEIL_OBJECTIFS, filtrerReponseSquatteur, blocGenreInterlocuteur };
+         LANGUES, LANGUE_DEFAUT, langueDialogueAutorisee, QUETE_ACCUEIL_OBJECTIFS, filtrerReponseSquatteur, blocGenreInterlocuteur };
 
