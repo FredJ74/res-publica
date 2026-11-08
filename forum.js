@@ -16,6 +16,9 @@ function rpActionMailLabel(key,original) {
 function rpForumCompte(kind,number,source) {
   return (typeof window!=='undefined' && window.RPForumUI?.count?.(kind,number,source)) || source;
 }
+function rpForumUiOuvert(key,source,translated) {
+  return '<span data-rp-forum-ui-key="'+encodeURIComponent(key)+'" data-rp-forum-ui-source="'+encodeURIComponent(source)+'">'+translated+'</span>';
+}
 function rpForumNomOuvert(id,source,translated) {
   return '<span data-rp-forum-name="'+encodeURIComponent(id)+'" data-rp-forum-source="'+encodeURIComponent(source)+'">'+translated+'</span>';
 }
@@ -28,6 +31,11 @@ function rpRefreshForumOpenLabels() {
     const id=decodeURIComponent(node.getAttribute('data-rp-forum-name'));
     const source=decodeURIComponent(node.getAttribute('data-rp-forum-source'));
     node.innerHTML=rpForumNom(id,source);
+  }
+  for(const node of document.querySelectorAll('[data-rp-forum-ui-key]')) {
+    const key=decodeURIComponent(node.getAttribute('data-rp-forum-ui-key'));
+    const source=decodeURIComponent(node.getAttribute('data-rp-forum-ui-source'));
+    node.innerHTML=rpForumLibelle(key,source);
   }
   for(const node of document.querySelectorAll('[data-rp-plateau-key]')) {
     const key=decodeURIComponent(node.getAttribute('data-rp-plateau-key'));
@@ -908,7 +916,7 @@ function renderForumCategorieItems(cat) {
       parNational.map(([id, f]) => renderForumNavItem(id, f)).join('') +
       (institutions.length > 0 ? `<div class="forum-nav-item" onclick="toggleSousGroupeForum()">
         <i class="ti ti-building-bank" style="font-size:.85rem"></i>
-        <div><div class="forum-nav-name">${rpForumLibelle('institutions','Institutionnels')}${institutions.some(([id, f]) => (!f.private || canAccessForum(id)) && !!forumActivite.forums[id]) ? htmlPointRougeActivite('.4rem') : ''}</div></div>
+        <div><div class="forum-nav-name">${rpForumUiOuvert('institutions','Institutionnels',rpForumLibelle('institutions','Institutionnels'))}${institutions.some(([id, f]) => (!f.private || canAccessForum(id)) && !!forumActivite.forums[id]) ? htmlPointRougeActivite('.4rem') : ''}</div></div>
         <i class="ti ti-chevron-right forum-categorie-chevron ${forumSousGroupeOuvert ? 'ouvert' : ''}" style="margin-left:auto"></i>
       </div>` +
         `<div class="forum-sousgroupe">` +
@@ -983,8 +991,8 @@ function renderForumSidebar() {
     <div class="forum-nav-item forum-mail-item ${forumView === 'mail' ? 'active' : ''}" onclick="switchToMail()">
       <i class="ti ti-mail" style="font-size:.85rem"></i>
       <div>
-        <div class="forum-nav-name">${rpForumLibelle('mailbox','Boîte Mail')}${unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}</div>
-        <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${rpForumCompte('unread',unreadCount,unreadCount+' non lu(s)')}</span>` : rpForumLibelle('noMessages','Aucun message')}</div>
+        <div class="forum-nav-name">${rpForumUiOuvert('mailbox','Boîte Mail',rpForumLibelle('mailbox','Boîte Mail'))}${unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}</div>
+        <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${rpForumCompte('unread',unreadCount,unreadCount+' non lu(s)')}</span>` : rpForumUiOuvert('noMessages','Aucun message',rpForumLibelle('noMessages','Aucun message'))}</div>
       </div>
     </div>
     ${forumView === 'mail' ? `
@@ -992,12 +1000,12 @@ function renderForumSidebar() {
         ${[['recus','ti-inbox','Mails reçus'],['envoyes','ti-send','Mails envoyés'],['archives','ti-archive','Mails archivés']].map(([id,icone,nom]) => `
           <button type="button" class="forum-mail-rubrique ${mailRubrique === id ? 'active' : ''}"
             aria-current="${mailRubrique === id ? 'page' : 'false'}" onclick="selectionnerRubriqueMail('${id}')">
-            <i class="ti ${icone}"></i> ${rpForumLibelle(id==='recus'?'receivedMails':id==='envoyes'?'sentMails':'archivedMails',nom)}${id === 'recus' && unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}
+            <i class="ti ${icone}"></i> ${rpForumUiOuvert(id==='recus'?'receivedMails':id==='envoyes'?'sentMails':'archivedMails',nom,rpForumLibelle(id==='recus'?'receivedMails':id==='envoyes'?'sentMails':'archivedMails',nom))}${id === 'recus' && unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}
           </button>`).join('')}
       </div>` : ''}
-    ${renderCategorieHeader('intra', 'ti-flag', rpForumLibelle('nationalForums','Forums nationaux'))}
-    ${renderCategorieHeader('inter', 'ti-world', rpForumLibelle('internationalForums','Forums internationaux'))}
-    ${renderCategorieHeader('prive', 'ti-lock', rpForumLibelle('privateForums','Forums privés'))}
+    ${renderCategorieHeader('intra', 'ti-flag', rpForumUiOuvert('nationalForums','Forums nationaux',rpForumLibelle('nationalForums','Forums nationaux')))}
+    ${renderCategorieHeader('inter', 'ti-world', rpForumUiOuvert('internationalForums','Forums internationaux',rpForumLibelle('internationalForums','Forums internationaux')))}
+    ${renderCategorieHeader('prive', 'ti-lock', rpForumUiOuvert('privateForums','Forums privés',rpForumLibelle('privateForums','Forums privés')))}
   `;
 }
 
