@@ -1,0 +1,12 @@
+[
+  {
+    "mutation": "catalogue",
+    "code": 1,
+    "assertion_detectee": true
+  },
+  {
+    "mutation": "salle",
+    "code": 1,
+    "assertion_detectee": true
+  }
+]

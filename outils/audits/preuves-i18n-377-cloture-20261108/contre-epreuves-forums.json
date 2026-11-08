@@ -1,0 +1,37 @@
+[
+  {
+    "mode": "pg17",
+    "tests": 25,
+    "reussis": 25,
+    "echecs": [],
+    "moteur": "170006"
+  },
+  {
+    "mode": "-contre",
+    "tests": 25,
+    "reussis": 14,
+    "echecs": [
+      "sujets_et_reponses_identite_1",
+      "sujets_et_reponses_identite_2",
+      "sujets_et_reponses_identite_3",
+      "sujets_et_reponses_identite_4",
+      "aller_retour_local_et_national_permanent",
+      "pays_homonyme_et_acces_direct_isoles",
+      "perte_adhesion_chef_et_nouvelle_adhesion",
+      "organisation_invalide_aucune_fuite_ni_panne_globale",
+      "anonyme_territoriaux_prives_fermes_institutions_inchangees",
+      "refus_reponse_sujet_etranger",
+      "ancien_auteur_non_adherent_ne_modifie_ni_supprime"
+    ],
+    "moteur": "170006"
+  },
+  {
+    "mode": "-contre-publication",
+    "tests": 25,
+    "reussis": 24,
+    "echecs": [
+      "publication_transactionnelle_chef_et_membre_etranger"
+    ],
+    "moteur": "170006"
+  }
+]

@@ -1,0 +1,390 @@
+{
+  "description": "Inventaire statique, pas une certification de toutes les commandes dynamiques",
+  "sourceFiles": 65,
+  "sourceUniqueIds": 436,
+  "sourceAmbiguousIds": 25,
+  "locales": [
+    "fr",
+    "en",
+    "es",
+    "zh-TW",
+    "ru",
+    "ko",
+    "ar",
+    "pt-BR",
+    "de"
+  ],
+  "catalogueFrenchKeys": 392,
+  "canonicalMatches": 392,
+  "stableCovered": 387,
+  "ambiguousPartiallyCovered": 5,
+  "stableNotCovered": 24,
+  "ambiguousNotCovered": 20,
+  "obsoleteCanonical": [],
+  "perLocale": {
+    "fr": {
+      "keys": 392,
+      "missing": [],
+      "extra": []
+    },
+    "en": {
+      "keys": 392,
+      "missing": [],
+      "extra": []
+    },
+    "es": {
+      "keys": 392,
+      "missing": [],
+      "extra": []
+    },
+    "zh-TW": {
+      "keys": 392,
+      "missing": [],
+      "extra": []
+    },
+    "ru": {
+      "keys": 392,
+      "missing": [],
+      "extra": []
+    },
+    "ko": {
+      "keys": 392,
+      "missing": [],
+      "extra": []
+    },
+    "ar": {
+      "keys": 392,
+      "missing": [],
+      "extra": []
+    },
+    "pt-BR": {
+      "keys": 392,
+      "missing": [],
+      "extra": []
+    },
+    "de": {
+      "keys": 392,
+      "missing": [],
+      "extra": []
+    }
+  },
+  "missingStable": [
+    {
+      "fn": "acte_officiel",
+      "label": "Demander un acte officiel"
+    },
+    {
+      "fn": "demander_mariage",
+      "label": "Demander en mariage"
+    },
+    {
+      "fn": "demander_naturalisation",
+      "label": "Demander la naturalisation"
+    },
+    {
+      "fn": "deposer_candidature",
+      "label": "Déposer sa candidature"
+    },
+    {
+      "fn": "gerer_candidature_directeur_entrepot",
+      "label": "Étudier les candidatures à la direction de l’entrepôt"
+    },
+    {
+      "fn": "gerer_candidature_maire_adjoint",
+      "label": "Étudier les candidatures à la fonction de maire adjoint"
+    },
+    {
+      "fn": "nommer_commissaire",
+      "label": "Nommer le commissaire"
+    },
+    {
+      "fn": "nommer_directeur_entrepot",
+      "label": "Nommer la direction de l’entrepôt"
+    },
+    {
+      "fn": "nommer_directeur_pharma",
+      "label": "Nommer le directeur pharmaceutique"
+    },
+    {
+      "fn": "nommer_directeur_raffinerie",
+      "label": "Nommer le directeur de la raffinerie"
+    },
+    {
+      "fn": "nommer_directeur_tabac_alcools",
+      "label": "Nommer le directeur tabac et alcools"
+    },
+    {
+      "fn": "officialiser_mariage",
+      "label": "Officialiser un mariage"
+    },
+    {
+      "fn": "prix_chantier",
+      "label": "Prix d’achat des matériaux"
+    },
+    {
+      "fn": "receptionner_chantier",
+      "label": "Réceptionner le bâtiment"
+    },
+    {
+      "fn": "revoquer_commissaire",
+      "label": "Révoquer le commissaire"
+    },
+    {
+      "fn": "revoquer_directeur_entrepot",
+      "label": "Révoquer la direction de l’entrepôt"
+    },
+    {
+      "fn": "revoquer_directeur_pharma",
+      "label": "Révoquer le directeur pharmaceutique"
+    },
+    {
+      "fn": "revoquer_directeur_raffinerie",
+      "label": "Révoquer le directeur de la raffinerie"
+    },
+    {
+      "fn": "revoquer_directeur_tabac_alcools",
+      "label": "Révoquer le directeur tabac et alcools"
+    },
+    {
+      "fn": "revoquer_maire_adjoint",
+      "label": "Révoquer le maire adjoint"
+    },
+    {
+      "fn": "sovarka_musee_billet",
+      "label": "Billet du musée présidentiel"
+    },
+    {
+      "fn": "sovarka_reunion_reserver",
+      "label": "Réserver pour aujourd’hui — "
+    },
+    {
+      "fn": "sovarka_surveiller",
+      "label": "Placer sous surveillance"
+    },
+    {
+      "fn": "taux_chantier",
+      "label": "Salaire horaire des ouvriers"
+    }
+  ],
+  "ambiguousPartiallyCoveredDetails": [
+    {
+      "fn": "installer_equipements",
+      "sourceLabels": [
+        "Installer des équipements",
+        "Équipements et serrure"
+      ]
+    },
+    {
+      "fn": "lancer_rumeur_cible",
+      "sourceLabels": [
+        "Lancer une rumeur",
+        "Lui glisser une rumeur"
+      ]
+    },
+    {
+      "fn": "modifier_plan_chantier",
+      "sourceLabels": [
+        "Définir les lots intérieurs",
+        "Modifier le plan de decoupage"
+      ]
+    },
+    {
+      "fn": "inspecter_troupes",
+      "sourceLabels": [
+        "Inspecter les troupes",
+        "Inspecter les unités",
+        "Passer les troupes en revue"
+      ]
+    },
+    {
+      "fn": "mobilisation_nationale",
+      "sourceLabels": [
+        "Démobiliser",
+        "Mobilisation nationale",
+        "Mobiliser l'armée",
+        "Réquisition civile"
+      ]
+    }
+  ],
+  "ambiguousNotCoveredDetails": [
+    {
+      "fn": "acheter_terrain",
+      "labels": [
+        "Acheter ce terrain",
+        "Acheter ce terrain (1 650 m² — 19 800 FR)",
+        "Acheter ce terrain (1500 m² — 18 000 FR)",
+        "Acheter ce terrain (1800 m² — 21 600 FR)",
+        "Acheter ce terrain (1850 m² — 22 200 FR)",
+        "Acheter ce terrain (2 200 m² — 26 400 FR)",
+        "Acheter ce terrain (2100 m² — 25 200 FR)",
+        "Acheter ce terrain (2150 m² — 25 800 FR)",
+        "Acheter ce terrain (2200 m² — 26 400 FR)",
+        "Acheter ce terrain (2300 m² — 27 600 FR)",
+        "Acheter ce terrain (2500 m² — 30 000 FR)",
+        "Acheter ce terrain (2750 m² — 33 000 FR)",
+        "Acheter ce terrain (3 100 m² — 37 200 FR)",
+        "Acheter ce terrain (3000 m² — 36 000 FR)",
+        "Acheter ce terrain (4 200 m² — 50 400 FR)",
+        "Acheter ce terrain (5 500 m² — 66 000 FR)"
+      ]
+    },
+    {
+      "fn": "archives_police",
+      "labels": [
+        "Consulter le registre",
+        "Consulter les archives"
+      ]
+    },
+    {
+      "fn": "conference_presse",
+      "labels": [
+        "Conference de presse",
+        "Conférence de presse"
+      ]
+    },
+    {
+      "fn": "consulter_carte_commerce",
+      "labels": [
+        "Consulter la carte",
+        "Petit-déjeuner"
+      ]
+    },
+    {
+      "fn": "corrompre_fonct",
+      "labels": [
+        "Corrompre le directeur",
+        "Falsifier un proces-verbal"
+      ]
+    },
+    {
+      "fn": "corrompre_fonctionnaire_permis",
+      "labels": [
+        "Corrompre un fonctionnaire (accélérer le permis)",
+        "Corrompre un fonctionnaire (accélérer)"
+      ]
+    },
+    {
+      "fn": "dementi",
+      "labels": [
+        "Dementi officiel",
+        "Démenti officiel"
+      ]
+    },
+    {
+      "fn": "ecouter_rumeurs",
+      "labels": [
+        "Ecouter le barman",
+        "Ecouter le patron",
+        "Ecouter les rumeurs",
+        "Ecouter les tables",
+        "Tendre l'oreille",
+        "Écouter la serveuse"
+      ]
+    },
+    {
+      "fn": "expedier_colis",
+      "labels": [
+        "Expédier un colis",
+        "Réserver une caisse de fret"
+      ]
+    },
+    {
+      "fn": "faire_don",
+      "labels": [
+        "Donner au Kolkhoze",
+        "Faire un don a l'Eglise",
+        "Faire une offrande",
+        "Offrir des loukoums"
+      ]
+    },
+    {
+      "fn": "gerer_finances",
+      "labels": [
+        "Gérer mon compte / mes placements",
+        "Ouvrir / gérer mon compte"
+      ]
+    },
+    {
+      "fn": "gerer_local",
+      "labels": [
+        "Gérer mon coffre",
+        "Gérer mon local"
+      ]
+    },
+    {
+      "fn": "louer_local",
+      "labels": [
+        "Louer ce coffre (600 FR/jour)",
+        "Louer ce local (100 FR/jour)",
+        "Louer ce local (1000 FR/jour)",
+        "Louer ce local (150 FR/jour)",
+        "Louer ce local (200 FR/jour)",
+        "Louer ce local (300 FR/jour)",
+        "Louer ce local (400 FR/jour)",
+        "Louer ce local (500 FR/jour)",
+        "Louer ce local (600 FR/jour)",
+        "Louer ce local (80 FR/jour)",
+        "Louer ce local (800 FR/jour)",
+        "Louer cet appartement (1200 PSK/jour)",
+        "Louer cet appartement (500 PSK/jour)",
+        "Louer cette suite (500 FR/jour)",
+        "Louer cette suite (500 PSK/jour)"
+      ]
+    },
+    {
+      "fn": "prier",
+      "labels": [
+        "Chanter l'hymne au Tracteur",
+        "Communier avec la Feuille",
+        "Communier avec le Loukoum",
+        "Prier le Formulaire Sacré"
+      ]
+    },
+    {
+      "fn": "produire_commerce",
+      "labels": [
+        "Cuisiner",
+        "Produire",
+        "Produire les articles du marché",
+        "Préparer le petit-déjeuner",
+        "Préparer les consommations",
+        "Servir"
+      ]
+    },
+    {
+      "fn": "propagande_etat",
+      "labels": [
+        "Campagne de propagande",
+        "Propagande d'Etat"
+      ]
+    },
+    {
+      "fn": "receptionner_commande",
+      "labels": [
+        "Réceptionner une caisse",
+        "Réceptionner une commande"
+      ]
+    },
+    {
+      "fn": "repartition_budget_local",
+      "labels": [
+        "Repartir le budget municipal",
+        "Répartir le budget municipal"
+      ]
+    },
+    {
+      "fn": "reserver_chambre_hotel",
+      "labels": [
+        "Reserver une chambre",
+        "Réserver une chambre d'hôtel"
+      ]
+    },
+    {
+      "fn": "vendre_matiere_commerce",
+      "labels": [
+        "Vendre des matières au commerce",
+        "Vendre des matières au marché"
+      ]
+    }
+  ]
+}

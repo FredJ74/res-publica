@@ -1,0 +1,60 @@
+{
+  "tests": [
+    {
+      "cas": "membre_autorise_premier_cache_reel",
+      "ok": true
+    },
+    {
+      "cas": "autre_membre_cache_partage_apres_RLS",
+      "ok": true
+    },
+    {
+      "cas": "non_membre_aucun_cache_ni_divulgation",
+      "ok": true
+    },
+    {
+      "cas": "revocation_adhesion_immediate_avant_hit_cache",
+      "ok": true
+    },
+    {
+      "cas": "sujet_prive_lu_sans_post_par_le_chef",
+      "ok": true
+    },
+    {
+      "cas": "edition_original_invalide_cache_sans_version",
+      "ok": true
+    },
+    {
+      "cas": "forum_national_pays_etranger_refuse",
+      "ok": true
+    },
+    {
+      "cas": "forum_local_voyage_revoque_meme_cache",
+      "ok": true
+    },
+    {
+      "cas": "chat_salon_acces_puis_revocation",
+      "ok": true
+    },
+    {
+      "cas": "chat_direct_seuls_les_participants",
+      "ok": true
+    },
+    {
+      "cas": "cache_falsifie_refuse_sans_nouveau_fournisseur_si_deja_reserve",
+      "ok": true
+    },
+    {
+      "cas": "timeout_fournisseur_ni_rejeu_payant_ni_faux_succes",
+      "ok": true
+    },
+    {
+      "cas": "identite_inconnue_refusee_avant_toute_lecture",
+      "ok": true
+    }
+  ],
+  "fournisseur_simule": true,
+  "SQL_RLS_reel": true,
+  "auth_uid_de_fixture": true,
+  "production": false
+}

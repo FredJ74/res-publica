@@ -13,7 +13,7 @@ replace('plateau-politique.js', '''    const libelleMarque = '<span data-rp-orde
 replace('i18n/ordres.js', '''   const index=Number(node.getAttribute?.('data-rp-order-index'));
    if(!Number.isSafeInteger(index)||index<0||index>=renderedOrders.length)continue;
    const ordre=renderedOrders[index];
-   if(!ordre)continue;''','''   const description=node.getAttribute?.('data-rp-order-description');
+   if(!ordre)continue;''','''   const description=node.hasAttribute?.('data-rp-order-description') ? node.getAttribute('data-rp-order-description') : null;
    let ordre;
    if(description!=null){
     try{ordre=JSON.parse(description);}catch{continue;}
@@ -55,7 +55,7 @@ b='''  const titrePiece = document.getElementById('piece-nom');
     ? RPRoomI18n.label(buildingId, roomId, nomPieceAffiche) : nomPieceAffiche;'''
 replace('plateau-navigation.js',a,b)
 # Attributs statiques uniquement : jamais les sujets, identités ou contenus PJ.
-replace('forum.js', "${rpForumNom(id,f.name)}${nonVu ?", "<span${Object.hasOwn(window.RP_I18N_RESOURCES?.fr?.translation?.forumNames||{},id) && window.RP_I18N_RESOURCES.fr.translation.forumNames[id]===f.name ? ' data-i18n=\"forumNames.'+id+'\"' : ''}>${rpForumNom(id,f.name)}</span>${nonVu ?")
+replace('forum.js', "${rpForumNom(id,f.name)}${nonVu ?", "<span${typeof window!=='undefined' && Object.hasOwn(window.RP_I18N_RESOURCES?.fr?.translation?.forumNames||{},id) && window.RP_I18N_RESOURCES.fr.translation.forumNames[id]===f.name ? ' data-i18n=\"forumNames.'+id+'\"' : ''}>${rpForumNom(id,f.name)}</span>${nonVu ?")
 a=after['forum.js'].index('function renderMailCompose(');b=after['forum.js'].index('let _mailEnvoiEnCours',a)
 segment=after['forum.js'][a:b]
 for key,source in [('newMessage','Nouveau message'),('recipient','Destinataire'),('subject','Sujet'),('messageLabel','Message'),('sendButton','Envoyer')]:

@@ -7,7 +7,7 @@
 -   const index=Number(node.getAttribute?.('data-rp-order-index'));
 -   if(!Number.isSafeInteger(index)||index<0||index>=renderedOrders.length)continue;
 -   const ordre=renderedOrders[index];
-+   const description=node.getAttribute?.('data-rp-order-description');
++   const description=node.hasAttribute?.('data-rp-order-description') ? node.getAttribute('data-rp-order-description') : null;
 +   let ordre;
 +   if(description!=null){
 +    try{ordre=JSON.parse(description);}catch{continue;}
@@ -72,7 +72,7 @@
          messageAchatTerrainIntrus + '"><i class="ti ' + o.icon + '"></i> ' + libelleMarque + '</button>';
 --- a/plateau-navigation.js
 +++ b/plateau-navigation.js
-@@ -657,7 +657,7 @@
+@@ -659,7 +659,7 @@
          ? varianteNomPiece(buildingId, roomId, state.currentCity, tabNameBase) : null) || tabNameBase;
        // Traduction de présentation uniquement : le clic conserve les mêmes IDs.
        const tabNameDisplay = (typeof RPRoomI18n !== 'undefined')
@@ -81,7 +81,7 @@
        const actif = roomActifId ? (roomId === roomActifId) : (i === 0);
        return `<div class="piece-tab ${actif ? 'active' : ''}" data-piece="${roomId}" onclick="${clic}" style="${style}"${titre ? ` title="${titre}"` : ''}>
          ${icon}${tabNameDisplay}
-@@ -1065,9 +1065,11 @@
+@@ -1067,9 +1067,11 @@
    const nomBasePiece = roomOverride?.name || room.name;
    const nomPieceAffiche = ((typeof varianteNomPiece === 'function')
      ? varianteNomPiece(buildingId, roomId, state.currentCity, nomBasePiece) : null) || nomBasePiece;
@@ -103,7 +103,7 @@
      <i class="ti ${f.icon}" style="font-size:.85rem"></i>
      <div>
 -      <div class="forum-nav-name">${rpForumNom(id,f.name)}${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
-+      <div class="forum-nav-name"><span${Object.hasOwn(window.RP_I18N_RESOURCES?.fr?.translation?.forumNames||{},id) && window.RP_I18N_RESOURCES.fr.translation.forumNames[id]===f.name ? ' data-i18n="forumNames.'+id+'"' : ''}>${rpForumNom(id,f.name)}</span>${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
++      <div class="forum-nav-name"><span${typeof window!=='undefined' && Object.hasOwn(window.RP_I18N_RESOURCES?.fr?.translation?.forumNames||{},id) && window.RP_I18N_RESOURCES.fr.translation.forumNames[id]===f.name ? ' data-i18n="forumNames.'+id+'"' : ''}>${rpForumNom(id,f.name)}</span>${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
        <div class="forum-nav-count">${nombreSujetsForum(id)}</div>
      </div>
      ${f.private ? `<i class="ti ti-lock" style="font-size:.65rem;color:#4a4030;margin-left:auto"></i>` : ''}

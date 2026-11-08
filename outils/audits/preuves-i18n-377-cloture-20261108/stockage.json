@@ -1,0 +1,7 @@
+{
+  "postgresql": "17.6",
+  "stockage": true,
+  "concurrence_deux_processus": true,
+  "refus_anon_authenticated": 14,
+  "production": false
+}
