@@ -1989,13 +1989,16 @@ const WORLD = {
                               // le Président du Conseil tranche seul les projets de loi des partis.
                               excludeOrders: ['declencher_vote_confiance'],
                               orders: [{ fn: 'sovarka_lois_examen', label: 'Projets de loi à trancher', pa: 0, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, desc: "Les projets déposés par les partis. Vous tranchez seul ; une loi acceptée est promulguée aussitôt." },
-                                       { fn: 'sovarka_autocritique', label: 'Autocritique publique', pa: 1, cost: 0, type: 'legal', icon: 'ti-speakerphone', successRate: 100, desc: "Contraindre un ministre à une autocritique publiée dans la presse : il perd 5 POP, vous en gagnez 2. Une fois par ministre et par semaine." }] },
+                                       { fn: 'sovarka_autocritique', label: 'Autocritique publique', pa: 1, cost: 0, type: 'legal', icon: 'ti-speakerphone', successRate: 100, desc: "Contraindre un ministre à une autocritique publiée dans la presse : il perd 5 POP, vous en gagnez 2. Une fois par ministre et par semaine." },
+                                       { fn: 'sovarka_signalements', label: 'Registre des signalements', pa: 0, cost: 0, type: 'legal', icon: 'ti-file-alert', successRate: 100, desc: "Le registre de la cellule de surveillance des partis du Capitaine Balatov : les députés signalés pour abstention. Aucun effet automatique : à vous d'en faire usage." }] },
             salle_conseil:  { name: 'Salle du Conseil du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_conseil.webp',
                               orders: [{ fn: 'sovarka_seance', label: 'Séance du jeudi', pa: 0, cost: 0, type: 'legal', icon: 'ti-checkbox', successRate: 100, desc: "Les députés, convoqués chaque jeudi, émargent puis approuvent les lois promulguées ou s'abstiennent (abstention signalée, −5 POP au parti). Absent : indemnité perdue pour la semaine." }] },
             salle_presse:   { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_presse.webp' },
             archives_gouv:  { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_archives.webp' },
             bureau_min_int: { name: 'Bureau - Ministre de la Sécurité du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_securite.webp',
-                              excludeOrders: ['lois_votees_an'] },
+                              excludeOrders: ['lois_votees_an'],
+                              // Registre de la cellule Balatov lisible par la Sécurité du Peuple (Fred, 08/11/2026).
+                              orders: [{ fn: 'sovarka_signalements', label: 'Registre des signalements', pa: 0, cost: 0, type: 'legal', icon: 'ti-file-alert', successRate: 100, desc: "Le registre de la cellule de surveillance des partis du Capitaine Balatov : les députés signalés pour abstention. Aucun effet automatique : à vous d'en faire usage." }] },
             bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_economie.webp',
                               excludeOrders: ['preempter_entreprise'] },
             bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_justice.webp',
