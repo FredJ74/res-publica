@@ -44,5 +44,9 @@ Les suffixes **-R** sont des rapports historiques lorsqu'ils ne sont pas recoup�
 - `plateau-social-pnj.js` et `api/chat.js` : raccord client/mémoire/dialectique IA.
 - `plateau-naval.js` et `GAME-DESIGN-CHANTIER-NAVAL.md` : exemple d'une construction présente sans navigation privée déclarée.
 
+## Vérification GitHub du SHA de référence
+
+Le 9 novembre, interrogation directe des contrôles GitHub du commit `a8bd5e266f18f3432ec3feb11d53dbb799043531` : **6 check-runs terminés en succès** — `parcours-immobilier`, `bancs-hors-production`, `verifier` (deux workflows distincts), `mesurer-le-payload` et `placements`. Les six workflows correspondants sont `Garde du payload Vercel`, `Novomirsk — decors du marche et de la presse`, `Titres ministeriels — isolation des empires`, `Parcours immobilier cinq terrains - PostgreSQL jetable`, `Placement national transactionnel`, `Cohérence client et transactions locales`. Source : [contrôles GitHub du commit](https://github.com/FredJ74/res-publica/commit/a8bd5e266f18f3432ec3feb11d53dbb799043531/checks). **Ces six succès ne prouvent pas l'exécution de tous les bancs du dépôt, les migrations de production ni une recette de jeu.** Ce sont des preuves CI-R du SHA historique seulement.
+
 ## État des opérations de cet audit
-Lecture GitHub uniquement, aucune compilation ni exécution de banc ni vérification physique. La publication de ce référentiel est un **travail documentaire**, à ne pas interpréter comme la certification de l'état du jeu.
+Lecture GitHub uniquement, aucune compilation locale ni exécution directe de banc ni vérification physique ; contrôles GitHub du SHA source consultés. La publication de ce référentiel est un **travail documentaire**, à ne pas interpréter comme la certification de l'état du jeu.
