@@ -117,6 +117,9 @@
     locale=next;
     global.document.documentElement.lang=locale;
     apply(global.document);
+    // Mettre a jour le texte des ordres deja visibles (y compris dans les
+    // sous-menus ouverts), sans rerender ni effet serveur.
+    global.RPOrderI18n?.refreshVisibleLabels?.(global.document,engine,locale);
   });
   if(typeof global.addEventListener==='function')global.addEventListener('storage',function(event) {
     if(event.key!=='respublica_language' || !supported.includes(event.newValue))return;
