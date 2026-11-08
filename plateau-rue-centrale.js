@@ -1263,12 +1263,14 @@ const RUE_CENTRALE_NOEUDS = {
       flechesStyle: { arriere: RC_FLECHE_BAS }
     },
 
-    // V10 — Tribunal. Le palais presidentiel visible au fond est atteint par V1 :
-    // pas de hotspot ici (un batiment d'arriere-plan n'est pas rendu cliquable).
+    // V10 — Tribunal et Palais presidentiel (image revisitee par Fred le 08/11/2026 : le palais
+    // presidentiel, a droite de la gare, remplace l'ancien palais incoherent). Entree du Palais
+    // presidentiel de Sovarka (rue_sorties_batiments novomirsk-vue-10, migration 20261108190500).
     'novomirsk-vue-10': {
       image: 'images/Sovarka/Novomirsk/novomirsk-rue-tribunal-palais-presidentiel.webp',
       zones: [
-        { xPct: [0, 34], yPct: [0, 78], nom: 'Tribunal de Novomirsk', type: 'batiment', buildingId: 'tribunal' }
+        { xPct: [0, 34], yPct: [0, 78], nom: 'Tribunal de Novomirsk', type: 'batiment', buildingId: 'tribunal' },
+        { xPct: [67, 91], yPct: [34, 70], nom: 'Palais présidentiel', type: 'batiment', buildingId: 'palais-presidentiel' }
       ],
       liens: { toutDroit: 'novomirsk-vue-9', arriere: 'novomirsk-vue-1' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }

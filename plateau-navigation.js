@@ -314,6 +314,8 @@ async function commanderNavigationInterieure(buildingId,roomId) {
         interception_en_cours:'Une interception doit être résolue avant de partir.',
         inventaire_surcharge:'Un membre porte trop d’objets pour changer de bâtiment.',
         membre_loge_requis:'Tous les membres du groupe doivent être admis dans la loge.',
+        groupe_president_requis:'On n’entre ici que groupé au Président de la République.',
+        billet_musee_requis:'Chaque visiteur doit d’abord acheter son billet au hall (8 PSK).',
         visite_refusee:'Les visites sont interdites à un membre de ce groupe.',
         acces_collectif_a_raccorder:'Cet accès particulier n’est pas encore disponible pour un groupe.',
         batiment_ferme:'Ce bâtiment est fermé.',porte_fermee_a_cle:'Cette porte est fermée à clé.',blocus_syndical:'Un blocus syndical interdit d’aller plus loin que la première pièce.',rendezvous_ssm_requis:'Le bureau d’Edwige Jacquard est accessible uniquement le jour de votre rendez-vous. Demandez un rendez-vous à Pascale, à l’accueil.',destination_inconnue:'Cette destination n’est pas référencée.',

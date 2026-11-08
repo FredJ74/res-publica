@@ -1956,22 +1956,55 @@ const WORLD = {
             {fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local de Camarade Kalachnikov. Rien de tout cela n\'est enregistré.'}
           ]
         },
+        // PALAIS PRESIDENTIEL DE SOVARKA (decisions de Fred, 08/11/2026 ; GAME-DESIGN-NOVOMIRSK.md,
+        // « Palais presidentiel »). Batiment propre a la presidence, a cote du Palais du Gouvernement,
+        // entre par la vue 10. Le president n'a aucun pouvoir : une prison doree, sans garde.
+        // Quatre pieces : hall (chef du protocole), appartements (gratuits, +1 PA au president qui y
+        // dort), salle de restaurant (repas du president, invites a 60 PSK payes par la caisse
+        // presidentielle), musee presidentiel (billet du jour a 8 PSK, verses a la caisse).
+        // Restaurant et appartements : entree groupee au president (garde serveur
+        // sovarka_palais_acces_interne). Bureau et salle de presse du socle retires. Images a venir.
         'palais-presidentiel': {
-          name: 'Palais du Parti',
-          desc: 'Le cœur du pouvoir de Sovarka. Camarade Borodine reçoit sur rendez-vous uniquement, après vérification de votre dossier de loyauté.',
+          name: 'Palais présidentiel',
+          imagesAVenir: true,
+          desc: 'La résidence du Président de la République de Sovarka, à deux pas du Palais du Gouvernement. Dorures, lustres et tapis rouges : tout y respire le pouvoir, sauf le pouvoir lui-même.',
           persons: [],
-          // Le président de Sovarka n'a aucun pouvoir mais des avantages (Fred, 07/11/2026) :
-          // un repas gratuit par jour dans ses appartements, avec un invité (effets du dîner
-          // d'affaires). Image à venir.
-          roomsExtra: {
-            appartements_president: {
-              name: 'Appartements présidentiels',
-              imageBg: 'linear-gradient(135deg,#140a0a,#22100e)',
-              desc: 'Les appartements privés du Président de la République de Sovarka : boiseries, samovar d\'argent et une table toujours dressée. Le pouvoir est ailleurs, mais on y mange bien.',
+          roomsExclues: ['bureau_president', 'salle_presse_elysee'],
+          roomOverrides: {
+            accueil_elysee: {
+              name: "Hall d'entrée",
+              desc: "Le hall d'honneur du Palais présidentiel. Marbre, colonnes et un registre des visiteurs que personne ne relit. Konstantin Lvovitch Orlov, chef du protocole, veille à l'étiquette ; il n'y a aucun garde.",
+              persons: [{name: 'Konstantin Lvovitch Orlov (PNJ)', role: 'PNJ - Chef du protocole présidentiel', rel: 'neutral', job: 'protocole'}],
+              orders: [{ fn: 'sovarka_musee_billet', label: 'Billet du musée présidentiel', pa: 0, cost: 8,
+                type: 'legal', icon: 'ti-ticket', successRate: 100,
+                desc: "8 PSK, versés à la caisse présidentielle. Le billet ouvre le musée présidentiel toute la journée." }]
+            },
+            salle_reception: {
+              name: 'Salle de restaurant',
+              desc: "La salle à manger du Palais : une table de trente couverts, de l'argenterie impériale « nationalisée » et un samovar d'argent. On n'y entre qu'avec le Président.",
               persons: [],
+              excludeOrders: ['reception_etat', 'banquet_diplo'],
               orders: [{ fn: 'sovarka_repas_presidentiel', label: 'Repas du Président', pa: 0, cost: 0,
                 type: 'legal', icon: 'ti-tools-kitchen-2', successRate: 100, requiresPost: 'president',
-                desc: 'Un repas offert par jour, seul ou avec un invité présent : +10 Santé, +2 Moral, +5 INF, +3 PA au prochain Dormir.' }]
+                desc: "Un repas par jour, gratuit pour le Président ; chaque invité présent coûte 60 PSK à la caisse présidentielle. Effets pour chacun : +10 Santé, +2 Moral, +5 INF, +3 PA au prochain Dormir." }]
+            }
+          },
+          roomsExtra: {
+            appartements_president: {
+              name: 'Appartements du Président',
+              imageBg: 'linear-gradient(135deg,#140a0a,#22100e)',
+              desc: "Les appartements privés du Président : boiseries, lit à baldaquin et vue sur la Place du Peuple. Une cage dorée, mais une cage. On n'y entre qu'avec le Président.",
+              persons: [],
+              orders: [{ fn: 'dormir', label: 'Dormir', pa: 0, cost: 0, type: 'legal', icon: 'ti-moon', successRate: 100,
+                requiresPost: 'president', desc: "Logement de fonction gratuit. Le Président qui dort ici récupère 1 PA de plus." }]
+            },
+            musee_presidentiel: {
+              name: 'Musée présidentiel',
+              imageBg: 'linear-gradient(135deg,#1a140a,#241a0e)',
+              desc: "Les présidents successifs de Sovarka, leurs portraits officiels et leurs rares décisions. Billet du jour à acheter au hall (8 PSK).",
+              persons: [],
+              orders: [{ fn: 'consulter_personnalites_musee', label: 'Consulter les personnalités', pa: 0, cost: 0, type: 'legal',
+                icon: 'ti-users', successRate: 100, desc: 'Voir les présidents qui ont marqué Sovarka.' }]
             }
           }
         },

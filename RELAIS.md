@@ -25,6 +25,10 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Palais présidentiel de Sovarka — Claude, 08/11/2026 (EN COURS)
+
+Branche `claude/palais-presidentiel-sovarka-20261108`. Décisions de Fred du 08/11 consignées dans `GAME-DESIGN-NOVOMIRSK.md`, « Palais présidentiel de Sovarka » : bâtiment propre (id `palais-presidentiel`, ex-Palais du Parti) entré par la vue 10 (image revisitée par Fred, implantée par ChatGPT) ; quatre pièces (hall avec Konstantin Lvovitch Orlov, appartements gratuits +1 PA au président qui y dort, salle de restaurant, musée à 8 PSK) ; restaurant et appartements réservés au groupe du président ; repas du président gratuit, 60 PSK par invité sur la caisse présidentielle ; salaire du président 800 → 600 PSK. Écran fait (data.js, vue 10, repas multi-invités, billet, messages de refus, figures du musée, fiche PNJ d'Orlov, scènes régénérées). Banc annulé `outils/bancs/banc-sovarka-palais-presidentiel.sql` **vert** sur la production (accès refusés puis acceptés groupé, billet 8 PSK caisse +8, rejeu, invité absent, caisse insuffisante, repas 2 invités −120, second repas refusé, repos 13 contre 12). **Migration `20261108190500_sovarka_palais_presidentiel` PAS ENCORE APPLIQUÉE** : l'application a attendu une confirmation de Fred dans Supabase, restée sans réponse. À appliquer **après Vercel READY** (sinon l'ancien écran appelle l'ancienne signature du repas). Bancs clients : 136/203, mêmes 67 échecs que main dans cet environnement. Images des pièces : Fred les génère.
+
 ### Certification mobile — Codex, 08/11/2026
 
 **Livré : PR #633 ouverte et fusionnée par Claude le 08/11** (CI 3/3 verte sur `300c1eb1` : bancs hors production, payload, parcours immobilier ; diff relu, aucun conflit avec main). Reste à faire par Fred et les testeurs : la recette sur appareils réels (`outils/audits/RECETTE-PHYSIQUE-MOBILE-20261108.md`).
