@@ -164,6 +164,8 @@ const SOV_POUVOIR_MOTIFS = {
   pas_ministre: 'Cette personne n’est pas ministre.', deja_cette_semaine: 'Déjà fait cette semaine pour ce ministre.',
   pa_insuffisants: 'Pas assez de points d’action.', fonds_insuffisants: 'Fonds insuffisants.',
   portee_reservee_sovarka: 'Taxe propre à Sovarka.', pas_de_taxe_locale_en_sovarka: 'Pas de taxe locale en Sovarka.',
+  cible_invalide: 'Choisissez un autre citoyen.', deja_surveille: 'Cette personne est déjà sous surveillance.',
+  limite_surveillances: 'Trois surveillances sont déjà en cours.', caisse_insuffisante: 'La caisse du ministère ne couvre pas les 150 PSK.',
   acteur_non_authentifie: 'Votre session doit être rétablie.'
 };
 const sovPMotif = v => SOV_POUVOIR_MOTIFS[v?.raison] || (v ? 'Refusé par le serveur.' : 'Réponse du serveur non reçue.');
@@ -415,4 +417,58 @@ async function ouvrirSovarkaAutocritique() {
         + (x.autocritique_faite ? '<span class="cpj-note">(déjà cette semaine)</span>'
            : vehBouton('Exiger une autocritique', "sovPouvoirActe('autocritique',{ministre:" + sovJsArg(x.nom) + "},'Autocritique publique',v=>v.ministre+' fait son autocritique dans la presse.',ouvrirSovarkaAutocritique)", true))
         + '</div>').join('') : '<p>Aucun ministre en exercice.</p>'));
+}
+
+// ---------------------------------------------------------------- Sécurité du Peuple : surveillance d'un citoyen
+// Décisions de Fred (08/11/2026) : 4 jours, 2 PA, 150 PSK sur la caisse du ministère ; rapport garanti chaque
+// matin (déplacements et PJ croisés) ; découverte possible (perception, intelligence, sécurité de la ville) ;
+// toute cible ; trois au plus. Tout est décidé par sovarka_surveillance_commande / _lire ; l'écran recopie.
+function sovLieuSurveillance(e) {
+  if (e.hors_territoire) return 'Hors du territoire';
+  const ville = (typeof villeNom === 'function' && villeNom('soviet', e.ville)) || e.ville || '?';
+  if (!e.batiment || String(e.batiment).startsWith('rue')) return ville + ', dans la rue';
+  const ctx = (typeof WORLD !== 'undefined' && WORLD.soviet?.[e.ville]?.buildingContext?.[e.batiment]) || null;
+  const def = (typeof BUILDINGS !== 'undefined' && BUILDINGS[e.batiment]) || null;
+  const bat = ctx?.name || def?.name || e.batiment;
+  const piece = ctx?.rooms?.[e.piece]?.name || def?.rooms?.[e.piece]?.name || '';
+  return ville + ', ' + bat + (piece && piece !== bat ? ' — ' + piece : '');
+}
+async function ouvrirSovarkaSurveillance() {
+  const l = await sbRpcVerdict('sovarka_surveillance_lire', {}).catch(() => null);
+  if (!l || l.ok !== true) { vehModal('Placer sous surveillance', '<p>' + sovPMotif(l) + '</p>'); return; }
+  const toutes = l.surveillances || [];
+  const actives = toutes.filter(x => x.statut === 'active');
+  const enCours = new Set(actives.map(x => x.cible));
+  const max = l.max || 3;
+  const heure = t => new Date(t).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const rapport = r => '<div style="margin:.3rem 0 .6rem .6rem">' + ((r.deplacements || []).length
+      ? r.deplacements.map(e => '<div>' + heure(e.debut) + ' — ' + sovEchapper(sovLieuSurveillance(e))
+          + ((e.croises || []).length ? ' <span class="cpj-note">— en présence de ' + e.croises.map(sovEchapper).join(', ') + '</span>' : '') + '</div>').join('')
+      : '<div class="cpj-note">Aucun déplacement enregistré.</div>') + '</div>';
+  const libres = (l.cibles || []).filter(n => !enCours.has(n));
+  vehModal('Placer sous surveillance', '<p class="cpj-note">Un citoyen suivi pendant 4 jours : chaque matin, un rapport de tous ses déplacements '
+    + 'et des personnes croisées. 2 PA, 150 PSK prélevés sur la caisse du ministère (solde : ' + Math.floor(l.caisse || 0) + ' PSK). '
+    + 'La cible peut s’en rendre compte, sans savoir qui la surveille. Trois surveillances au plus.</p>'
+    + (actives.length < max && libres.length
+      ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.5rem 0"><select id="sov-surv-cible" class="cpj-champ">'
+        + libres.map(n => '<option value="' + sovEchapper(n) + '">' + sovEchapper(n) + '</option>').join('') + '</select>'
+        + vehBouton('Surveiller', "sovarkaSurveiller(document.getElementById('sov-surv-cible').value)", true) + '</div>'
+      : '<p>' + (actives.length >= max ? SOV_POUVOIR_MOTIFS.limite_surveillances : 'Aucune cible disponible.') + '</p>')
+    + toutes.map(x => '<div style="margin-top:.6rem"><b>' + sovEchapper(x.cible) + '</b> — '
+        + (x.statut === 'active' ? 'en cours, ' + x.rapports_restants + ' rapport(s) à venir' : 'terminée')
+        + (x.rapports || []).map(r => '<div class="cpj-note">Rapport du ' + new Date(r.jour).toLocaleDateString('fr-FR') + '</div>' + rapport(r)).join('')
+        + '</div>').join(''));
+}
+async function sovarkaSurveiller(cible) {
+  if (sovPouvoirEnCours || !cible) return;
+  sovPouvoirEnCours = true;
+  let v = null;
+  try {
+    v = await sbRpcVerdict('sovarka_surveillance_commande', { p_requete: crypto.randomUUID(), p_cible: cible }).catch(() => null);
+    if (!v || v.ok !== true) { showToast('Surveillance', sovPMotif(v), false); return; }
+    if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+    if (typeof updateHeader === 'function') updateHeader();
+    showToast('Surveillance', v.cible + ' est placé sous surveillance pour 4 jours. Premier rapport demain matin.', true);
+  } finally { sovPouvoirEnCours = false; }
+  if (v && v.ok === true) ouvrirSovarkaSurveillance();
 }

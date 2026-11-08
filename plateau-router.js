@@ -418,6 +418,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'sovarka_lois_examen')        { ouvrirSovarkaLoisExamen(); return; }
   if (fn === 'sovarka_autocritique')       { ouvrirSovarkaAutocritique(); return; }
   if (fn === 'sovarka_signalements')       { ouvrirSovarkaSignalements(); return; }
+  if (fn === 'sovarka_surveiller')          { ouvrirSovarkaSurveillance(); return; }
   if (fn === 'sovarka_seance')             { ouvrirSovarkaSeance(); return; }
   if (fn === 'sovarka_saisir_juge')        { ouvrirSovarkaSaisirJuge(); return; }
   if (fn === 'sovarka_sondages')           { ouvrirSovarkaSondages(); return; }

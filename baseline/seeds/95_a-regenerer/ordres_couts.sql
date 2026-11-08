@@ -454,6 +454,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('sovarka_signalements',0,0),
   ('sovarka_signer_attribution',1,0),
   ('sovarka_sondages',0,0),
+  ('sovarka_surveiller',2,0),
   ('sovarka_terrain_municipal',0,0),
   ('sponsoriser_club',1,0),
   ('ssm_besoin_aide',0,0),

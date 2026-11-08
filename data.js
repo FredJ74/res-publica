@@ -1998,7 +1998,9 @@ const WORLD = {
             bureau_min_int: { name: 'Bureau - Ministre de la Sécurité du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_securite.webp',
                               excludeOrders: ['lois_votees_an'],
                               // Registre de la cellule Balatov lisible par la Sécurité du Peuple (Fred, 08/11/2026).
-                              orders: [{ fn: 'sovarka_signalements', label: 'Registre des signalements', pa: 0, cost: 0, type: 'legal', icon: 'ti-file-alert', successRate: 100, desc: "Le registre de la cellule de surveillance des partis du Capitaine Balatov : les députés signalés pour abstention. Aucun effet automatique : à vous d'en faire usage." }] },
+                              // Surveillance d'un citoyen (Fred, 08/11/2026) : 4 jours, 2 PA, 150 PSK sur la caisse du ministère.
+                              orders: [{ fn: 'sovarka_signalements', label: 'Registre des signalements', pa: 0, cost: 0, type: 'legal', icon: 'ti-file-alert', successRate: 100, desc: "Le registre de la cellule de surveillance des partis du Capitaine Balatov : les députés signalés pour abstention. Aucun effet automatique : à vous d'en faire usage." },
+                                       { fn: 'sovarka_surveiller', label: 'Placer sous surveillance', pa: 2, cost: 0, type: 'legal', icon: 'ti-eye', successRate: 100, desc: "Faire suivre un citoyen pendant 4 jours : chaque matin, un rapport de tous ses déplacements et des personnes croisées. 150 PSK prélevés sur la caisse du ministère. La cible peut s'en rendre compte. Trois surveillances au plus en même temps." }] },
             bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_economie.webp',
                               excludeOrders: ['preempter_entreprise'] },
             bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_justice.webp',
