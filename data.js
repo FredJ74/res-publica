@@ -1936,6 +1936,7 @@ const WORLD = {
         },
         'la-tribune': {
           name: 'La Pravdovka',
+          roomOverrides: { accueil_tribune: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_presse_accueil.webp' } },
           desc: "L'organe de vérité du Parti, vérifié trois fois.",
           persons: [{"name": "Rédacteur Vérité (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}, {"name": "Correspondant Parti (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
         },
@@ -1960,6 +1961,7 @@ const WORLD = {
         },
         'marche': {
           name: 'Marché d\'État',
+          roomOverrides: { marche_ext: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_marche.webp' } },
           desc: "Les rayons sont souvent vides. Olga propose parfois des produits sous le manteau.",
           persons: [{"name": "Vendeur d'État (PNJ)", "role": "Vendeur collectif", "rel": "neutral", "job": "commercant"}, {"name": "Olga Marché Noir (PNJ)", "role": "Revendeuse discrète", "rel": "neutral", "job": "commercant"}]
         },
@@ -7026,6 +7028,7 @@ const BUILDINGS = {
     rooms: {
       salon_coiffure: {
         name: "Salon",
+        imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_salon_coiffure.webp',
         imageBg: "linear-gradient(135deg,#161219,#201a24)",
         desc: "Trois fauteuils, un grand miroir piqué et l'odeur de la laque. La radio diffuse le bulletin du Parti entre deux valses.",
         persons: [{name:'Ludmila Egorova (PNJ)', role:'Coiffeuse', rel:'neutral', job:'coiffeuse'}],
@@ -7159,6 +7162,7 @@ const BUILDINGS = {
     rooms: {
       comptoir_pharmacie: {
         name: "Comptoir",
+        imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pharmacie.webp',
         imageBg: "linear-gradient(135deg,#10161a,#172026)",
         desc: "Un long comptoir de bois verni, une balance de précision et un registre où chaque boîte vendue est consignée.",
         persons: [{name:'Valentina Pilioulkina (PNJ)', role:'Pharmacienne', rel:'neutral', job:'pharmacienne'}],
@@ -7183,6 +7187,7 @@ const BUILDINGS = {
     rooms: {
       etal_poissonniere: {
         name: "Étal",
+        imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_poissonniere.webp',
         imageBg: "linear-gradient(135deg,#0e1418,#16202a)",
         desc: "Une bâche tendue contre le vent, des caisses de poisson sur la glace et, derrière, une marchande qui voit passer toute la ville.",
         persons: [{name:'Galina Karpova (PNJ)', role:'Marchande de poissons', rel:'neutral', job:'commercant'}],
