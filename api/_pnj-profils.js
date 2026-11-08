@@ -75,6 +75,16 @@ const LANGUES = {
 };
 const LANGUE_DEFAUT = 'en';   // repli impose : jamais de langue devinee
 
+// La localisation des dialogues PNJ ne s'ouvre PAS en production par un
+// changement de navigateur ou une simple requête HTTP. La variable serveur
+// doit être explicitement activée après l'accord du game designer.
+// Le mode historique fr/en reste accessible lorsque le drapeau est fermé.
+function langueDialogueAutorisee(lang, autorise = process.env.RP_I18N_GAME_ENABLED === 'true') {
+  const code=String(lang || '').toLowerCase().slice(0, 2);
+  if(!autorise)return code==='fr'?'fr':'en';
+  return Object.hasOwn(LANGUES,code)?code:LANGUE_DEFAUT;
+}
+
 function consigneLangue(lang) {
   const l = LANGUES[String(lang || '').toLowerCase().slice(0, 2)] || LANGUES[LANGUE_DEFAUT];
   return l.consigne;
@@ -841,5 +851,5 @@ function maxTokensProfil(profilId) {
 }
 
 export { PROFILS, TOUS_PROFILS, construirePromptSysteme, profilExiste, maxTokensProfil,
-         LANGUES, LANGUE_DEFAUT, QUETE_ACCUEIL_OBJECTIFS, filtrerReponseSquatteur, blocGenreInterlocuteur };
+         LANGUES, LANGUE_DEFAUT, langueDialogueAutorisee, QUETE_ACCUEIL_OBJECTIFS, filtrerReponseSquatteur, blocGenreInterlocuteur };
 
