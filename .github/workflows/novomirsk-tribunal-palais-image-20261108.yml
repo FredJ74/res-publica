@@ -1,0 +1,86 @@
+name: Novomirsk V10 - remplacer la rue du tribunal par le palais presidentiel
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/novomirsk-tribunal-palais-image-20261108.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  image-tribunal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Convertir, remplacer et verifier la scene V10
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import hashlib
+          source = Path('images/Sovarka/Novomirsk/Novomirsk_rue tribunal palais pre\u0301sidentiel.png')
+          old_image = Path('images/rue-tribunal-palais-novomirsk.webp')
+          target = Path('images/Sovarka/Novomirsk/novomirsk-rue-tribunal-palais-presidentiel.webp')
+          js = Path('plateau-rue-centrale.js')
+          html = Path('plateau.html')
+          for path in (source, old_image, js, html):
+              if not path.is_file():
+                  raise SystemExit(f'Fichier requis introuvable: {path}')
+          if target.exists():
+              raise SystemExit(f'Destination deja presente, eviter toute suppression non verifiee: {target}')
+          before = hashlib.sha256(old_image.read_bytes()).hexdigest()
+          with Image.open(source) as image:
+              image.load()
+              dimensions = image.size
+              if dimensions[0] < 1000 or dimensions[1] < 600:
+                  raise SystemExit(f'Image source anormalement petite : {dimensions}')
+              image.convert('RGB').save(target, 'WEBP', quality=92, method=6)
+          with Image.open(target) as image:
+              image.verify()
+          with Image.open(target) as image:
+              if image.format != 'WEBP' or image.size != dimensions:
+                  raise SystemExit('Conversion WebP non conforme')
+          if hashlib.sha256(target.read_bytes()).hexdigest() == before:
+              raise SystemExit('Ancienne illustration conservee sans remplacement')
+          current = js.read_text(encoding='utf-8')
+          old_ref = "image: 'images/rue-tribunal-palais-novomirsk.webp'"
+          new_ref = "image: 'images/Sovarka/Novomirsk/novomirsk-rue-tribunal-palais-presidentiel.webp'"
+          if current.count(old_ref) != 1:
+              raise SystemExit(f'Reference V10 non unique : {current.count(old_ref)}')
+          current = current.replace(old_ref, new_ref)
+          current = current.replace(
+              '// V10 — Tribunal. Le palais visible au fond est le Palais du Gouvernement, atteint par V1 :',
+              '// V10 — Tribunal. Le palais presidentiel visible au fond est atteint par V1 :'
+          )
+          js.write_text(current, encoding='utf-8')
+          current_html = html.read_text(encoding='utf-8')
+          needle = 'plateau-rue-centrale.js?v='
+          if current_html.count(needle) != 1:
+              raise SystemExit('Lien de script du plateau non unique')
+          script_start = current_html.index(needle) + len(needle)
+          script_end = current_html.index('"', script_start)
+          current_html = current_html[:script_end] + '-tribunal-palais-presidentiel-20261108' + current_html[script_end:]
+          html.write_text(current_html, encoding='utf-8')
+          source.unlink()
+          old_image.unlink()
+          if old_ref in js.read_text(encoding='utf-8') or 'images/rue-tribunal-palais-novomirsk.webp' in js.read_text(encoding='utf-8'):
+              raise SystemExit('Reference obsolete encore presente')
+          if not target.is_file() or source.exists() or old_image.exists():
+              raise SystemExit('Nettoyage incomplet')
+          print('V10 image WebP:', target, dimensions, 'octets:', target.stat().st_size)
+          print('Suppression confirmee: PNG source et ancienne image du jeu')
+          print('V10 mise a jour, cache du script invalide')
+          PY
+          node --check plateau-rue-centrale.js
+          git add -A -- 'images/Sovarka/Novomirsk' 'images/rue-tribunal-palais-novomirsk.webp' 'plateau-rue-centrale.js' 'plateau.html'
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Novomirsk V10: palais presidentiel WebP, retirer anciennes images'
+          git push origin HEAD:main
