@@ -795,7 +795,21 @@ function filtrerReponseSquatteur(profilId, texte, lang = 'fr') {
   const accueilCordial = agressif && /\bbonjour\b|\bbienvenue\b|\benchant[ée]|ravi de (?:vous|te)|hello|good morning|welcome/i.test(texte);
   // Une discussion libre ne peut annoncer le verdict d'une transaction.
   const accordInvente = /march[ée] conclu|j['’]accepte|on accepte|nous acceptons|nous partons|on (?:part|se casse|quitte)|accord conclu|we (?:accept|leave|are leaving)|accept[ée]e? votre offre/i.test(texte);
-  if (!horsPersonnage && !accueilCordial && !accordInvente) return texte;
+  // Réponses négociées : la parole de l'IA ne peut pas constater un départ ou
+  // un accord qui n'existe pas dans l'état serveur. Filtrage dans la langue
+  // réellement demandée au fournisseur, pas seulement en français/anglais.
+  const accordsLocalises = {
+    es: /\\b(?:acepto|aceptamos|acepta(?:mos)?mos|aceptada?|acuerdo cerrado|trato hecho|nos vamos|nos marchamos|abandonamos|dejamos el terreno)\\b/i,
+    de: /\\b(?:ich akzeptiere|wir akzeptieren|angenommen|abgemacht|einverstanden|wir gehen|wir verlassen|verlassen das gelände)\\b/i,
+    pt: /\\b(?:aceito|aceitamos|proposta aceita|negócio fechado|acordo fechado|vamos embora|saímos|deixamos o terreno)\\b/i,
+    ru: /(?:согласен|согласна|согласны|принимаю|принимаем|договорились|сделка заключена|мы уходим|покидаем|освобождаем участок)/i,
+    zh: /(?:同意|接受|成交|達成協議|我們離開|我們走|撤離|讓出土地)/,
+    ko: /(?:수락하|수락했|동의하|동의했|합의했|거래가 성사|우리는 떠나|우리는 나가|땅을 비우)/,
+    ar: /(?:أوافق|نوافق|وافقنا|قبلت العرض|نقبل العرض|تم الاتفاق|اتفقنا|سنغادر|نغادر|نترك الأرض|نخلي الأرض)/
+  };
+  const codeLangue = String(lang || '').toLowerCase().slice(0, 2);
+  const accordLocalise = accordsLocalises[codeLangue]?.test(texte) || false;
+  if (!horsPersonnage && !accueilCordial && !accordInvente && !accordLocalise) return texte;
   if (String(lang).toLowerCase().startsWith('en')) return agressif
     ? "What are you doing here? We don't like nosy strangers."
     : "What brings you to our patch of land?";
