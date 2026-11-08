@@ -115,7 +115,7 @@ faire bouger. Une ligne par appel AST, y compris deux appels sur une même ligne
 | `plateau-personnage.js:2847:59` | `doSoinPublic` | A | Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge. |
 | `plateau-personnage.js:2893:71` | `doSoinCliniquePrivee` | A | Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge. |
 | `plateau-personnage.js:3901:6` | `jeterObjetInventaire` | A | Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge. |
-| `plateau-pnj.js:638:17` | `repondreNegociationParcelle` | B | Quête du promoteur : résultat et étape persistants (50/50), pas un simple texte. |
+| `plateau-pnj.js:638:17` | `repondreNegociationParcelle` | A | Variante de réplique 50/50, même progression et aucune conséquence économique dans les deux cas ; consommateurs et banc vérifiés. |
 | `plateau-pnj.js:2549:26` | `validerLobbyingPresse` | B | Lobbying presse : succès, paiement conditionnel et publication ; jet uniforme 1..100, taux clamp(base+2*(CHA-13),5,95). |
 | `plateau-pnj.js:2720` | `commentaire` | A | Mention en commentaire, non exécutable. |
 | `plateau-pnj.js:2941:59` | `ouvrirModalFaireLAmour` | A | Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge. |
@@ -127,9 +127,19 @@ faire bouger. Une ligne par appel AST, y compris deux appels sur une même ligne
 | `plateau-politique.js:12489:6` | `confirmerMobilisation` | A | Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge. |
 | `plateau-politique.js:13802:85` | `confirmerRechercheMilitaire` | A | Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge. |
 
+## Vérification de la portée de la négociation
+
+L’examen de tous les consommateurs de `resultatNegociation` montre qu’il ne
+change que le texte du retour à Laurent. Dans les deux branches, l’étape devient
+`negociation_obtenue`, puis `terminee` sans effet économique. Le tirage 50/50 est
+donc **A** (réplique) et conservé. Deux contre-cas exécutent les vrais gestionnaires
+avec les deux réponses et vérifient progression identique, argent/PA/jauges et
+inventaire inchangés (`banc-tirages-narration.cjs`). Ce reclassement corrige
+l’inventaire initial, il ne retire aucune assertion sur un jet décisif.
+
 ## Lots de livraison
 
-Comptage exécutables : **A 55, B 20**. Les lots partent séparément du dernier main,
+Comptage exécutables : **A 56, B 19**. Les lots partent séparément du dernier main,
 avec leurs bancs et leur propre rubrique RELAIS ; aucune migration appliquée ici.
 
 1. Inventaire (cette branche), aucune modification de jeu.
@@ -139,7 +149,7 @@ avec leurs bancs et leur propre rubrique RELAIS ; aucune migration appliquée ic
    identification de tous les consommateurs (dont p_benediction côté crime).
 5. Lobbying : reprendre le même paiement conditionnel, les recettes de rédaction,
    les règles d’étouffement et la publication en une commande transactionnelle.
-6. Quête promoteur / Maxence : conserver l’état par PJ et le moteur de quête.
+6. Maxence : conserver l’état par PJ et le moteur de quête ; la réponse du promoteur est cosmétique et conservée.
 7. Football : porter le moteur commun complet, CAS, primes, effets et calendrier ;
    ne pas remplacer seulement la fonction qui appelle Math.random.
 

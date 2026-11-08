@@ -31,11 +31,15 @@ Branche `codex/tirages-ecran-inventaire-20261108`, départ main `d633524f` (#633
 Inventaire exhaustif AST + recherche textuelle : `outils/audits/TIRAGES-ECRAN-20261108.md`
 et JSON voisin, fonctions/lignes/colonnes et classement A/B. Antipoison déjà traité
 par #482 : aucun moteur réécrit ni migration rejouée. Reste notamment DIS des dons,
-portier de loge, bénédictions, lobbying, quêtes et moteur football (buts/blessures).
+portier de loge, bénédictions, lobbying, Maxence et moteur football (buts/blessures).
 Aucune modification de jeu. Titre PR prêt : **Inventaire des tirages locaux décisifs**.
 Description : « Coupe d633524f, tirages cosmétiques/techniques séparés des issues,
 formules et circuits existants repérés ; feuille de route par familles, aucune
 modification d’ordre ou de montant. » Contrôle : correspondance recherche/AST.
+SHA source contrôlé : `d633524f` ; premier inventaire `1c091b54`. Reclassement
+sémantique justifié : la réponse du promoteur ne change que le texte, jamais le
+prix ni la réussite de quête ; deux cas du vrai gestionnaire le démontrent.
+**75 appels : 56 A et 19 B**, plus neuf commentaires. Banc narration 2/2.
 Claude ouvre la PR ; pas de nouvelle tentative API/Vercel. Lots techniques suivants
 sur branches distinctes, SQL préparé seulement avec prévol et banc annulé authenticated.
 

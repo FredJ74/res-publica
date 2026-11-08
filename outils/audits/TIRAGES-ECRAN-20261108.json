@@ -993,8 +993,8 @@
         "end": 653
       },
       "type": "executable",
-      "classe": "B",
-      "motif": "Quête du promoteur : résultat et étape persistants (50/50), pas un simple texte."
+      "classe": "A",
+      "motif": "Réplique de négociation : les deux réponses avancent identiquement vers negociation_obtenue puis terminee ; aucun prix, gain, PA ou autre issue ne dépend du résultat (consommateurs vérifiés, banc narration)."
     },
     {
       "file": "plateau-pnj.js",
