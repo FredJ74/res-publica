@@ -1,5 +1,5 @@
--- Banc annulé de 20261108013000_sovarka_pouvoir_ministeres : jouer APRÈS la migration, dans la même
--- transaction ; le bloc final lève toujours une exception (rien ne reste). Acteur : Arnie (Sovarka).
+-- Banc annulé de 20261108013000_sovarka_pouvoir_ministeres (joué le 08/11 contre la production, rien conservé) ; le bloc final lève toujours une exception (rien ne reste). Acteur : Arnie (Sovarka).
+BEGIN;
 CREATE TEMP TABLE banc_r (n serial, cas text, r jsonb) ON COMMIT DROP;
 GRANT ALL ON banc_r TO authenticated; GRANT ALL ON SEQUENCE banc_r_n_seq TO authenticated;
 
@@ -52,3 +52,4 @@ INSERT INTO banc_r (cas, r) SELECT 'pop_parti', public.sovarka_parti_pop_interne
 DO $fin$ BEGIN
   RAISE EXCEPTION 'BANC %', (SELECT jsonb_agg(jsonb_build_object(cas, r) ORDER BY n) FROM banc_r);
 END $fin$;
+ROLLBACK;
