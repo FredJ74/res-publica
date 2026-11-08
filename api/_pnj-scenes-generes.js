@@ -4414,43 +4414,6 @@ export const SCENES_PNJ = {
       "Evgueni Gromov"
     ]
   },
-  "[\"soviet\",\"capitale\",\"assemblee\",\"accueil_assemblee\"]": {
-    "pays": "Sovarka",
-    "ville": "Novomirsk",
-    "batiment": "Soviet Suprême",
-    "piece": "Accueil",
-    "personnes": [
-      "Garde du Peuple",
-      "Hotesse Accueil",
-      "Babouchka Kouzmina"
-    ]
-  },
-  "[\"soviet\",\"capitale\",\"assemblee\",\"hemicycle\"]": {
-    "pays": "Sovarka",
-    "ville": "Novomirsk",
-    "batiment": "Soviet Suprême",
-    "piece": "Hemicycle",
-    "personnes": []
-  },
-  "[\"soviet\",\"capitale\",\"assemblee\",\"couloirs\"]": {
-    "pays": "Sovarka",
-    "ville": "Novomirsk",
-    "batiment": "Soviet Suprême",
-    "piece": "Couloirs",
-    "personnes": [
-      "Lobbyiste Pavel Pistonov",
-      "Journaliste Iouri Sorokine"
-    ]
-  },
-  "[\"soviet\",\"capitale\",\"assemblee\",\"salle_archives_assemblee\"]": {
-    "pays": "Sovarka",
-    "ville": "Novomirsk",
-    "batiment": "Soviet Suprême",
-    "piece": "Salle des Archives",
-    "personnes": [
-      "Archiviste Parlementaire"
-    ]
-  },
   "[\"soviet\",\"capitale\",\"tribunal\",\"salle_audience\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
