@@ -9,7 +9,7 @@ const sourceFiles=['i18n/resources.js','i18n/plateau-resources.js',
  'i18n/plateau-bridge.js','i18n/texte-joueur.js'];
 function load(locale){
  const listeners={};
- const root={localStorage:{getItem:()=>locale}};
+ const root={RP_I18N_GAME_ENABLED:true,localStorage:{getItem:()=>locale}};
  const context=vm.createContext({window:root,Intl,Object,String,Number});
  for(const file of sourceFiles){
   if(file.endsWith('plateau-bridge.js')){
