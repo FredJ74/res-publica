@@ -7436,7 +7436,7 @@ const BUILDINGS = {
         name: "La Grange Sainte",
         imageBg: "linear-gradient(135deg,#080808,#0f0f08)",
         desc: "La grange principale du culte. Un tracteur trône au centre, entouré de bougies.",
-        imageUrl: "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=1200&q=80",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_cathedrale_accueil.webp",
         persons: [
           {name:'Camarade Pontife Tractorenko (PNJ)', role:'Grand Prêtre du Tractorisme', rel:'neutral', job:'grand_pretre'},
           {name:'Frère Kolkhoze (PNJ)', role:'PNJ - Enfant de chœur laborieux', rel:'neutral', job:'clerc'}
