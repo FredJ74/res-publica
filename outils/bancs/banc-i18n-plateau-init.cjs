@@ -180,3 +180,59 @@ test('même une bascule programmatique non autorisée revient au français',()=>
  assert.equal(document.documentElement.lang,'fr');
  assert.equal(element.textContent,'MESSAGES');
 });
+
+test('basculer vers une locale incomplète rétablit le français sans conserver l’anglais précédent',()=>{
+ const attrs={'data-i18n':'plateau.messages','data-i18n-placeholder':'plateau.placeholder',
+  'data-i18n-aria-label':'plateau.accessible','data-i18n-title':'plateau.tooltip',
+  placeholder:'Destinataire…','aria-label':'Fermer',title:'Fermer la fenêtre'};
+ const element={textContent:'Messages',value:'Saisie non modifiée',attrs,
+  getAttribute(k){return this.attrs[k]},hasAttribute(k){return Object.hasOwn(this.attrs,k)},
+  setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+ const document={documentElement:{lang:'fr'},querySelectorAll(selector){
+  return ['[data-i18n]','[data-i18n-placeholder]','[data-i18n-aria-label]','[data-i18n-title]'].includes(selector)?[element]:[];
+ }};
+ const listeners={};
+ const english={'plateau.messages':'Inbox','plateau.placeholder':'Recipient…',
+  'plateau.accessible':'Close','plateau.tooltip':'Close window'};
+ const engine={language:'en',on(name,fn){listeners[name]=fn},
+  init(options,done){this.language=options.lng;done(null)},
+  t(key){return this.language==='en'?english[key]||key:key},
+  changeLanguage(lng){this.language=lng;listeners.languageChanged?.(lng)}};
+ const window={RP_I18N_GAME_ENABLED:true,document,localStorage:{getItem:()=> 'en'},
+  RP_I18N_LANGUAGES:{fr:{},en:{},ar:{}},RP_I18N_RESOURCES:{},i18next:engine};
+ vm.runInNewContext(script,{window,console});
+ assert.equal(element.textContent,'Inbox');
+ assert.equal(attrs.placeholder,'Recipient…');
+ assert.equal(attrs.title,'Close window');
+ engine.changeLanguage('ar');
+ assert.equal(window.RPI18nPlateau.locale(),'ar');
+ assert.equal(element.textContent,'Messages');
+ assert.equal(attrs.placeholder,'Destinataire…');
+ assert.equal(attrs['aria-label'],'Fermer');
+ assert.equal(attrs.title,'Fermer la fenêtre');
+ assert.equal(attrs.dir,undefined);
+ assert.equal(element.value,'Saisie non modifiée');
+ engine.changeLanguage('en');
+ assert.equal(element.textContent,'Inbox');
+ assert.equal(attrs.placeholder,'Recipient…');
+});
+test('un attribut absent ne reste pas artificiellement présent après une traduction',()=>{
+ const attrs={'data-i18n-title':'plateau.details'};
+ const element={attrs,getAttribute(k){return this.attrs[k]??null},
+  hasAttribute(k){return Object.hasOwn(this.attrs,k)},
+  setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+ const document={documentElement:{lang:'fr'},querySelectorAll(selector){
+  return selector==='[data-i18n-title]'?[element]:[];
+ }};
+ const listeners={};
+ const engine={language:'en',on(name,fn){listeners[name]=fn},
+  init(options,done){this.language=options.lng;done(null)},
+  t(){return this.language==='en'?'Details':'plateau.details'},
+  changeLanguage(lng){this.language=lng;listeners.languageChanged?.(lng)}};
+ const window={RP_I18N_GAME_ENABLED:true,document,localStorage:{getItem:()=> 'en'},
+  RP_I18N_LANGUAGES:{fr:{},en:{},ar:{}},RP_I18N_RESOURCES:{},i18next:engine};
+ vm.runInNewContext(script,{window,console});
+ assert.equal(attrs.title,'Details');
+ engine.changeLanguage('ar');
+ assert.equal(Object.hasOwn(attrs,'title'),false);
+});
