@@ -57,14 +57,22 @@ jobs:
           ville = code[debut:fin]
           for bat,piece,nom in [
             ("'la-tribune': {","accueil_tribune","Novomirsk_presse_accueil.webp"),
-            ("'marche': {","marche_ext","Novomirsk_marche.webp"),
-            ("'salon-coiffure-novomirsk': {","salon_coiffure","Novomirsk_salon_coiffure.webp"),
-            ("'pharmacie-officielle-novomirsk': {","comptoir_pharmacie","Novomirsk_pharmacie.webp"),
-            ("'poissonniere-novomirsk': {","etal_poissonniere","Novomirsk_poissonniere.webp")
+            ("'marche': {","marche_ext","Novomirsk_marche.webp")
           ]:
               assert bat in ville, bat
               assert piece in ville, piece
               assert ville.count(nom) == 1, nom
+          # Ces trois commerces sont des gabarits propres a Novomirsk dans BUILDINGS,
+          # non des surcharges WORLD.capitale.buildingContext.
+          for bat,piece,nom in [
+            ("'salon-coiffure-novomirsk': {","salon_coiffure","Novomirsk_salon_coiffure.webp"),
+            ("'pharmacie-officielle-novomirsk': {","comptoir_pharmacie","Novomirsk_pharmacie.webp"),
+            ("'poissonniere-novomirsk': {","etal_poissonniere","Novomirsk_poissonniere.webp")
+          ]:
+              debut_bat = code.index(bat,fin)
+              piece_bloc = code[debut_bat:code.index("    rooms:",debut_bat)+1700]
+              assert piece in piece_bloc, piece
+              assert code.count(nom) == 1, nom
           PY
           git diff --check
       - name: Commit fichiers WebP et suppressions
