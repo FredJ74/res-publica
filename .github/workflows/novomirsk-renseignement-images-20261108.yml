@@ -40,28 +40,25 @@ jobs:
               raise SystemExit('Cible WebP deja existante: '+dst)
           data=Path('data.js')
           code=data.read_text(encoding='utf-8')
-          before="""        'siege-renseignement': {
-            name: "Direction du Renseignement de Sovarka",
-            imagesAVenir: true,"""
           # Conserver le contexte PNJ existant : ajouter uniquement les 3 surcharges graphiques.
           anchor="""        'siege-renseignement': {
-          name: "Direction du Renseignement de Sovarka",
-          imagesAVenir: true,
-          desc: "Un bloc de béton sans enseigne, aux fenêtres opaques. Chacun à Novomirsk sait ce qu'il abrite ; personne n'en parle à voix haute.",
-          persons: [{name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'}]
-        },"""
+                    name: "Direction du Renseignement de Sovarka",
+                    imagesAVenir: true,
+                    desc: "Un bloc de béton sans enseigne, aux fenêtres opaques. Chacun à Novomirsk sait ce qu'il abrite ; personne n'en parle à voix haute.",
+                    persons: [{name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'}]
+                  },"""
           replacement="""        'siege-renseignement': {
-          name: "Direction du Renseignement de Sovarka",
-          desc: "Un bloc de béton sans enseigne, aux fenêtres opaques. Chacun à Novomirsk sait ce qu'il abrite ; personne n'en parle à voix haute.",
-          persons: [{name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'}],
-          // Les images des 3 salles sont propres a Novomirsk, sans toucher aux
-          // ordres, aux PNJ, aux permissions et aux autres empires.
-          roomOverrides: {
-            accueil_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_accueil.webp' },
-            salle_ecoutes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_ecoutes.webp' },
-            salle_interrogatoire_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_interrogatoire.webp' }
-          }
-        },"""
+                    name: "Direction du Renseignement de Sovarka",
+                    desc: "Un bloc de béton sans enseigne, aux fenêtres opaques. Chacun à Novomirsk sait ce qu'il abrite ; personne n'en parle à voix haute.",
+                    persons: [{name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'}],
+                    // Les images des 3 salles sont propres a Novomirsk, sans toucher aux
+                    // ordres, aux PNJ, aux permissions et aux autres empires.
+                    roomOverrides: {
+                      accueil_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_accueil.webp' },
+                      salle_ecoutes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_ecoutes.webp' },
+                      salle_interrogatoire_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_interrogatoire.webp' }
+                    }
+                  },"""
           if code.count(anchor)!=1:
             raise SystemExit('Ancrage unique Direction du Renseignement introuvable. Aucun fichier supprime.')
           # Valider les noms de pieces depuis le gabarit commun.
