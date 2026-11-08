@@ -261,7 +261,7 @@ Intention : un sentiment d'enfermement, peu de moyens d'échapper aux règles co
 - Le duplicata de domiciliation devient l'**Extrait d'enregistrement du parti** : délivré au chef du parti, 1 PA et 7 PSK ; nom, chef, siège et membres du parti.
 
 **Titulaires PNJ (référents justice)**
-- Juges et commissaires PNJ inscrits comme titulaires dans les trois villes (aujourd'hui aucun titulaire en Sovarka, d'où le refus de « Saisines du ministre ») : Novomirsk juge **Pravdine**, commissaire **Vassili Ostrovski** ; Starovka juge **Dulma Tsyrenova**, commissaire **Bato Dashiev** ; Krasnov juge **Anatoli Gromov**, commissaire **Oleg Morozov** (noms validés par Fred).
+- Juges et commissaires PNJ inscrits comme titulaires dans les trois villes (aujourd'hui aucun titulaire en Sovarka, d'où le refus de « Saisines du ministre ») : Novomirsk juge **Pravdine**, commissaire **Vassili Ostrovski** ; Starovka juge **Dulma Tsyrenova**, commissaire **Bato Dashiev** ; Krasnov juge **Anatoli Gromov**, commissaire **Egor Tikhonov** (noms validés par Fred ; Egor Tikhonov remplace Oleg Morozov, homonyme du chef de cabinet du Président du Conseil, décision du 08/11).
 - Quand un PJ prend le poste, le PNJ reste comme **référent justice**, assistant du juge (ou du commissaire).
 - Le « Défenseur Collectif, Avocat du Peuple » est retiré du tribunal de Novomirsk (plus d'avocats).
 

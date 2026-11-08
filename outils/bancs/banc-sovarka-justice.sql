@@ -26,7 +26,7 @@ INSERT INTO public.titulaires_pnj (id, country, poste_id, city, nom_pnj) VALUES
   ('soviet_juge_ville_a',         'soviet', 'juge',        'ville_a',  'Dulma Tsyrenova (PNJ)'),
   ('soviet_commissaire_ville_a',  'soviet', 'commissaire', 'ville_a',  'Bato Dashiev (PNJ)'),
   ('soviet_juge_ville_b',         'soviet', 'juge',        'ville_b',  'Anatoli Gromov (PNJ)'),
-  ('soviet_commissaire_ville_b',  'soviet', 'commissaire', 'ville_b',  'Oleg Morozov (PNJ)')
+  ('soviet_commissaire_ville_b',  'soviet', 'commissaire', 'ville_b',  'Egor Tikhonov (PNJ)')
 ON CONFLICT (id) DO NOTHING;
 
 -- 2. Tables propres

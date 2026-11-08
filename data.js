@@ -10478,7 +10478,7 @@ function slugPnjSovarka(nom) {
     // ils restent référents justice quand un PJ prend le poste. Novomirsk : déclarés plus haut.
     if (!capitale) {
       const local = { ville_a: { juge: 'Dulma Tsyrenova (PNJ)', comm: 'Bato Dashiev (PNJ)', nom: 'Starovka' },
-                      ville_b: { juge: 'Anatoli Gromov (PNJ)', comm: 'Oleg Morozov (PNJ)', nom: 'Krasnov' } }[ville];
+                      ville_b: { juge: 'Anatoli Gromov (PNJ)', comm: 'Egor Tikhonov (PNJ)', nom: 'Krasnov' } }[ville];
       surcharge(ville, 'tribunal-local', 'salle_audience_locale').persons = [
         { name: local.juge, role: 'Juge Populaire de ' + local.nom, rel: 'neutral', job: 'juge', resteApresPourvoi: true,
           posteCity: ville, roleSiPnjTitulaire: 'Juge Populaire de ' + local.nom, roleSiPjTitulaire: 'Référent justice — assistant du juge' }];
