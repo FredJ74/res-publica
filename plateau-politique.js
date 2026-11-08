@@ -4579,6 +4579,8 @@ function ouvrirMenuOrdresCommissaire(index) {
     groupe.entries.map(e => '<div style="padding:.7rem;border:1px solid #5b4825;border-radius:8px">' +
       e.html + '</div>').join('') + '</div>';
   modal.classList.add('open');
+  // Un sous-menu ajoute après la bascule doit refléter la langue courante.
+  window.RPOrderI18n?.refreshVisibleLabels?.(corps, window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
 }
 
 function ouvrirMenuOrdresGreffe(index) {
@@ -4594,6 +4596,8 @@ function ouvrirMenuOrdresGreffe(index) {
     groupe.entries.map(e => '<div style="padding:.7rem;border:1px solid #5b4825;border-radius:8px">' +
       e.html + '</div>').join('') + '</div>';
   modal.classList.add('open');
+  // Un sous-menu ajoute après la bascule doit refléter la langue courante.
+  window.RPOrderI18n?.refreshVisibleLabels?.(corps, window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
 }
 
 function ouvrirMenuOrdresTerrain(index) {
@@ -4611,6 +4615,8 @@ function ouvrirMenuOrdresTerrain(index) {
     groupe.entries.map(e => '<div style="padding:.7rem;border:1px solid #5b4825;border-radius:8px">' + e.html + '</div>').join('') +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
+  // Un sous-menu ajoute après la bascule doit refléter la langue courante.
+  window.RPOrderI18n?.refreshVisibleLabels?.(document.getElementById('postes-body'), window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
 }
 
 function ouvrirMenuOrdresTribune(index) {
@@ -4670,6 +4676,8 @@ function ouvrirMenuOrdresTribune(index) {
   });
   corps.appendChild(liste);
   document.getElementById('modal-postes').classList.add('open');
+  // Un sous-menu ajoute après la bascule doit refléter la langue courante.
+  window.RPOrderI18n?.refreshVisibleLabels?.(corps, window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
 }
 
 function ouvrirAudioguide(url, nomSalle) {
