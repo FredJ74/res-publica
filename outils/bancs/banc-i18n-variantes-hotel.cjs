@@ -16,7 +16,7 @@ test('réservation simple et standard : 9 traductions contextuelles, identifiant
  assert.equal(languages.length,9);
  for(const lng of languages) {
   const vars=w.RP_I18N_RESOURCES[lng].translation.orderVariants;
-  assert.equal(Object.keys(vars).length,31);
+  assert.equal(Object.keys(vars).length,47);
   for(const value of Object.values(vars))assert.ok(value.trim());
  }
  for(const [key,original,cost] of [
@@ -139,4 +139,36 @@ test('les quatre cultes et leurs dons gardent la bonne traduction par empire dan
  // Les libellés inconnus, ou une traduction absente, reviennent au français.
  const noVariant={t:(_key,opts)=>opts.defaultValue};
  assert.equal(w.RPOrderI18n.label({fn:'prier',label:'Communier avec la Feuille'},noVariant,'ko'),'Communier avec la Feuille');
+});
+
+test('seize autres variantes ambiguës sont traduites par le couple fn et libellé exact',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const {extract}=require('../audits/libelles-ordres-source.cjs');
+ const records=extract(source);
+ const variants={
+  propagande_etat:[["Propagande d'Etat",'politics_propaganda_state'],['Campagne de propagande','politics_propaganda_campaign']],
+  dementi:[['Dementi officiel','politics_denial_plain'],['Démenti officiel','politics_denial_accent']],
+  archives_police:[['Consulter les archives','police_archives'],['Consulter le registre','police_register']],
+  repartition_budget_local:[['Repartir le budget municipal','budget_plain'],['Répartir le budget municipal','budget_accent']],
+  receptionner_commande:[['Réceptionner une caisse','shipment_receive_crate'],['Réceptionner une commande','shipment_receive_order']],
+  expedier_colis:[['Réserver une caisse de fret','shipment_book_crate'],['Expédier un colis','shipment_send_parcel']],
+  corrompre_fonctionnaire_permis:[['Corrompre un fonctionnaire (accélérer)','permit_bribe_general'],['Corrompre un fonctionnaire (accélérer le permis)','permit_bribe_permit']],
+  corrompre_fonct:[['Corrompre le directeur','corruption_director'],['Falsifier un proces-verbal','corruption_false_report']]
+ };
+ for(const [fn,labels] of Object.entries(variants))for(const [original,key] of labels){
+  assert.ok(records.some(row=>row.fn===fn&&row.label===original),'ordre déclaré manquant '+fn+'/'+original);
+  const order=Object.freeze({fn,label:original,pa:2,cost:430,requiresPost:'test',successRate:41});
+  for(const locale of Object.keys(w.RP_I18N_LANGUAGES)){
+   const expected=w.RP_I18N_RESOURCES[locale].translation.orderVariants[key];
+   assert.ok(expected?.trim(),locale+'/'+key);
+   assert.equal(w.RPOrderI18n.label(order,engine,locale),expected,locale+'/'+key);
+  }
+  assert.equal(order.label,original);assert.equal(order.pa,2);
+  assert.equal(order.cost,430);assert.equal(order.requiresPost,'test');
+  assert.equal(order.successRate,41);
+ }
+ for(const fn of Object.keys(variants)){
+  const order={fn,label:'Variante sans équivalent dans le catalogue',pa:1,cost:1};
+  assert.equal(w.RPOrderI18n.label(order,engine,'es'),order.label);
+ }
 });
