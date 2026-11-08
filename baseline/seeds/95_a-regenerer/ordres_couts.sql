@@ -66,6 +66,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('camion_militaire',0,0),
   ('campagne_securite',2,500),
   ('casier_extrait_enquete',1,0),
+  ('casier_mon_extrait',1,8),
   ('casier_mon_extrait',1,100),
   ('censurer_media',2,0),
   ('centre_anti_poison',1,60),
