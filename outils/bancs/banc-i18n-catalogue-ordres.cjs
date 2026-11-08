@@ -533,7 +533,7 @@ test('sept nouveaux ordres sovarkiens : catalogues synchronisés, mécanique inc
  for(const fn of ids){
   const label=win.RP_I18N_RESOURCES.fr.translation.orders[fn];
   assert.ok(label,'catalogue français manquant : '+fn);
-  assert.ok(source.includes("fn:'"+fn+"'") || source.includes('fn:"'+fn+'"'),'ordre absent du monde : '+fn);
+  assert.ok(source.includes("fn:'"+fn+"'") || source.includes("fn: '"+fn+"'") || source.includes('fn:"'+fn+'"') || source.includes('fn: "'+fn+'"'),'ordre absent du monde : '+fn);
   const before=Object.freeze({fn,label,pa:2,cost:137,requiresPost:'sovarka_test'});
   for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
     const expected=win.RP_I18N_RESOURCES[lang].translation.orders[fn];
