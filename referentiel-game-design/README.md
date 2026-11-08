@@ -1,0 +1,51 @@
+# Référentiel de game design — Human Gambit / Res Publica
+
+**Édition d'audit initiale : 9 novembre 2026.** Source examinée : `main` au commit `a8bd5e266f18f3432ec3feb11d53dbb799043531`. **Statut : audit documentaire et statique partiel, non certification générale de jouabilité.**
+
+## Objet
+Servir de mémoire durable commune au game designer, à ChatGPT, Claude et Codex, afin de comprendre **les règles, leurs interactions et leur disponibilité effective**, puis d'évaluer expérience joueur, rétention et masse critique. Ce répertoire **ne modifie aucune règle**, n'entraîne aucune migration et n'autorise aucune mise en production.
+
+## Ordre de lecture obligatoire
+1. [Constitution fondatrice](../CONSTITUTION.md) : la relation humaine prime sur la simulation ; plusieurs trajectoires de réussite ; le moteur arbitre sans remplacer le joueur.
+2. [Méthode et niveaux de preuve](METHODE-ET-PREUVES.md).
+3. [Atlas des systèmes et parcours](ATLAS-SYSTEMES.md).
+4. [Matrice de couverture et d'état](MATRICE-COUVERTURE.md).
+5. [Contradictions, risques et vérifications manquantes](ECARTS-ET-VERIFICATIONS.md).
+6. [Cadre de l'audit expérience joueur et rétention](EXPERIENCE-ET-RETENTION.md).
+7. Sources détaillées préexistantes : [architecture](../ARCHITECTURE.md), [relais](../RELAIS.md), [game design Sovarka](../GAME-DESIGN-NOVOMIRSK.md), tous les `GAME-DESIGN-*.md`, [audit d'autorité](../AUDIT_UNE_SEULE_VERITE.md).
+
+## Convention de statut (ne jamais les confondre)
+- **D — Décidé** : règle explicitement adoptée, preuve documentaire datée ; ne prouve pas son exécution.
+- **C — Codé** : chemin effectif identifiable dans le code du commit examiné ; ne prouve ni migration appliquée ni absence de défaut.
+- **T — Testé** : banc et résultat identifiables, avec environnement, date et SHA ; une simple présence de fichier de test ne suffit pas.
+- **M — Migration appliquée** : preuve du registre de production ou mention d'exécution attribuée et datée ; distinguer **déclarée** de **indépendamment vérifiée**.
+- **P — Publié** : commit réellement fusionné et déploiement explicitement attesté ; jamais déduit d'un fichier présent.
+- **J — Jouable confirmé** : essai humain avec version, parcours et résultat réellement observés. **Non établi** par un test de code ou une CI verte.
+- **? — Inconnu / à corroborer** : ne pas extrapoler.
+
+Un élément peut être D+C mais non T/M/P/J. `main` ne vaut ni migration produite ni recette réelle.
+
+## Où se trouve chaque source
+| Source | Usage canonique | Limite |
+| --- | --- | --- |
+| `CONSTITUTION.md` | Principes non négociables du jeu | Ne précise pas les valeurs chiffrées de chaque ordre |
+| `GAME-DESIGN-*.md` et `GAME-DESIGN-NOVOMIRSK.md` | Décisions et exceptions d'empire | Contiennent parfois propositions et états historiques |
+| `ARCHITECTURE.md` | Cartographie des couches et catalogue historique | Daté principalement du 26–27 octobre ; chiffres non recalculés au 9 novembre |
+| `RELAIS.md` | Historique d'intégration, déclarations et chantiers | Journal cumulatif, mélanges de livraisons et travaux non publiés |
+| `data.js`, `plateau-*.js`, `api/*.js` | Interface, catalogue, chemin de commande et services Vercel | Pas la preuve du schéma vivant Supabase |
+| `baseline/`, `migrations/`, `historique/` | Modèle SQL, évolutions et archives | Le contenu Git ne certifie pas l'état réel de la production |
+| `outils/bancs/`, `outils/audits/` | Tests et rapports versionnés | Résultats à rattacher à un SHA précis ; certaines fixtures ne simulent que le serveur |
+| Issues et PR GitHub | Arbitrages, intégration, contre-exemples | Une PR ouverte n'est pas fusionnée |
+
+## Règle de maintenance partagée
+Pour chaque modification de mécanique future, l'agent qui intervient :
+1. vérifie la décision existante et cite la source, sans réarbitrer spontanément ;
+2. met à jour la fiche de système et sa ligne de matrice, sans remplacer un **?** par une supposition ;
+3. relie la fonction client, la RPC/SQL, les autorisations, le coût PA/monnaie, les impacts croisés et les tests ;
+4. conserve séparément le résultat des tests automatiques, l'état de la migration, la publication et la recette PJ ;
+5. documente contradictions et régressions dans `ECARTS-ET-VERIFICATIONS.md` ;
+6. ne déclare « jouable confirmé » qu'après un test réellement observé.
+
+**Fiche-type :** identifiant stable ; finalité sociale ; décision datée ; territoire/pays ; acteur et adversaires ; déclencheur et lieu ; préconditions ; coûts PA/monnaie/objets ; gains/risques ; sorties et contre-pouvoirs ; temps réel/quotidien ; données persistées ; route client → RPC → tables ; PNJ de repli ; dépendances ; statut D/C/T/M/P/J ; sources ; lacunes ; effet sur l'interaction entre PJ.
+
+**Périmètre du présent lot :** inventaire du dépôt, lecture des sources fondatrices et de documents métier, confrontation ponctuelle au code ; **pas d'accès authentifié à un PJ, pas de requête sur données de joueurs, pas de tests exécutés, pas de recette de production**. L'exhaustivité des centaines de commandes et de fonctions SQL exige encore un dépouillement systématique ; consulter la matrice pour les zones non closes.
