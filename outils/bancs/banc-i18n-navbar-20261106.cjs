@@ -11,7 +11,7 @@ const ids=['imperialIndices','rules','messagesForums','players','orgs','election
 const titles=['indicesTitle','forumsTitle','playersTitle','orgsTitle','electionsTitle','footballTitle','planTitle','forumActivity'];
 
 function fixture(locale) {
- const window={};
+ const window={RP_I18N_GAME_ENABLED:true};
  const ctx=vm.createContext({window,console});
  vm.runInContext(read('i18n/resources.js'),ctx);
  vm.runInContext(read('i18n/plateau-resources.js'),ctx);
