@@ -10,8 +10,9 @@
 ### E-02 — Publication et jouabilité confondues dans certains relais historiques
 `RELAIS.md` utilise « livré » avec diverses preuves (PR fusionnée, Vercel READY, migration exécutée, banc SQL), et demande séparément « à constater en jeu », notamment pour le palais présidentiel et la justice de Sovarka du 8 novembre. **Écart : livraison technique ne prouve pas recette utilisateur.** Créer des colonnes séparées MIG-R / P-R / J ; fournir URL, version et testeur isolé.
 
-### E-03 — Référentiel naval : deux modèles sur main, décisions récentes à vérifier
-`GAME-DESIGN-CHANTIER-NAVAL.md` décrit deux modèles **90 000 FR / 3 places / 300 fret** et **150 000 FR / 5 places / 500 fret**, avec 1 200 ou 1 800 bois/métal, et deux durées 7/10 jours. `plateau-naval.js` expose réellement les identifiants `bateau_3` et `bateau_5` et exige deux devis, mais **ne fixe pas lui-même** les tarifs (RPC serveur). Des arbitrages conversationnels antérieurs ont évoqué un modèle unique à trois places / 300 fret au prix de 150 000 FR / 1 800 unités de bois et de métal. **Contradiction potentielle entre décisions successives et document/écran ; pas de conclusion ferme sans rechercher la dernière décision explicite et le catalogue SQL vivant.** Ne pas changer les prix à ce stade. Distinguer fabrication déjà codée et **navigation privée déclarée désactivée** dans le document.
+### E-03 — Référentiel naval : deux modèles concordants ; mobilité encore distincte
+`GAME-DESIGN-CHANTIER-NAVAL.md` définit deux modèles à 90 000 FR (3 places, 300 fret) et 150 000 FR (5 places, 500 fret) ; `plateau-naval.js` référence les deux et lit les tarifs par RPC. **Le 9 novembre, `chantier_naval_modeles` en production confirme exactement ces deux modèles, leurs durées et matières** (voir `ETAT-SUPABASE-LECTURE-SEULE.md`). **Aucune contradiction document/code/SQL établie** sur les valeurs actuelles. La navigation privée, distincte de la construction, est explicitement déclarée désactivée dans le document de design et reste à vérifier. Ne pas supposer une règle alternative sans source datée.
+
 
 ### E-04 — PNJ sociaux : perspective de sept supplémentaires ≠ déploiement
 `plateau-social-pnj.js` dit qu'il serait possible d'ajouter « sept autres PNJ sociaux » ; les lieux recensés dans ce fichier sont le bar des pêcheurs et Capitaine Sauvage, et `baseline/seeds/90_socle/pnj_social_jalons_regles.sql` porte **deux jalons**. **Écart : ambition / corpus réellement inspecté.** Il faut recenser séparément tous les profils, règles SQL et déclencheurs éventuels hors de ce fichier, puis confirmer une entrée spontanée et la continuité de mémoire sur un compte isolé. Ne pas prétendre que seulement deux PNJ de toute nature peuvent mémoriser leurs échanges : `api/chat.js` appelle aussi d'autres mémoires contextuelles.
@@ -53,7 +54,7 @@
 | V-16 | Cadence des crons à l'heure d'été/d'hiver | journaux Vercel + événement de minuit + dates réelles | Haute |
 
 ## Ce que le présent audit ne peut pas affirmer
-- Aucune preuve directe de la base vivante Supabase n'a été obtenue dans cette revue GitHub.
+- **Preuves directes obtenues en lecture seule dans Supabase :** nombre de tables/fonctions/RLS, registre des migrations, catalogue de coûts et configurations des bateaux et PNJ sociaux. Les autres données, droits et effets serveur n'ont pas été audités exhaustivement.
 - Aucun journal CI du commit de référence n'a été rejoué ni inspecté au-delà des comptes rendus lus.
 - Aucun parcours navigateur authentifié, achat, interaction entre PJ ou dialogue DeepSeek n'a été exécuté.
 - Aucune statistique de conversion, d'activation, d'abandon ou de rétention joueur n'a été fournie.
