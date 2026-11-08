@@ -18,6 +18,21 @@ function identiques(a,b){
  const x=placeholders(a),y=placeholders(b);
  return x.length===y.length && x.every((v,i)=>v===y[i]);
 }
+// Les faits chiffrés et unités métier ne sont pas des éléments traduisibles.
+// Comparaison ordonnée, fail-closed : une reformulation qui déplace/altère un
+// montant, une devise ou un nombre de PA reste en langue originale.
+// L'extraction est identique à celle du cache, contre les reprises périmées.
+function invariantsMetier(texte) {
+ const tokens=String(texte).match(/(?:(?:[+\-\u2212\u2013\u2014\uFF0B\uFF0D\uFE63\uFE62]\s*)?\p{Nd}+(?:[.,]\p{Nd}+)*|\b(?:FR|PSK|PA|AP|USD|EUR|GBP|CHF|CAD|BRL|CNY|RUB|KRW|AED|DR)\b|[€$£¥₽₩%])/gu);
+ return tokens||[];
+}
+function invariantsIdentiques(original,traduction) {
+ const a=invariantsMetier(original),b=invariantsMetier(traduction);
+ return a.length===b.length && a.every((token,index)=>token===b[index]);
+}
+function caracteresControles(texte) {
+ return /[\u0000-\u0008\u000E-\u001F]/.test(texte);
+}
 function retour(original,source,cible,traduit=null,raison=null) {
  return Object.freeze({
   original,langueOriginale:source,langueTraduction:cible,
@@ -32,7 +47,7 @@ async function traduireTexte({texte,langueOriginale,langueCible},provider=appelD
  // Ne jamais les déclarer français par défaut.
  const source=langueAdmise(langueOriginale)||langueOriginale==='und'?langueOriginale:null;
  const target=langueAdmise(langueCible)?langueCible:null;
- if(!source || !target || !original.trim() || original.length>1800 || /[\u0000-\u0008\u000E-\u001F]/.test(original))
+ if(!source || !target || !original.trim() || original.length>1800 || caracteresControles(original))
   return retour(original,source,target,null,'entree_invalide');
  if(source===target) return retour(original,source,target,original,'langue_identique');
  const instructionSource=source==='und'
@@ -47,8 +62,9 @@ async function traduireTexte({texte,langueOriginale,langueCible},provider=appelD
  if(!result?.ok || result.tronque || typeof result.texte!=='string')
   return retour(original,source,target,null,'fournisseur_indisponible');
  const traduction=result.texte.trim();
- if(!traduction || traduction.length>4000 || !identiques(original,traduction))
+ if(!traduction || traduction.length>4000 || caracteresControles(traduction) ||
+    !identiques(original,traduction) || !invariantsIdentiques(original,traduction))
   return retour(original,source,target,null,'traduction_invalide');
  return retour(original,source,target,traduction,null);
 }
-export { LANGUES, langueAdmise, placeholders, traduireTexte };
+export { LANGUES, langueAdmise, placeholders, invariantsIdentiques, caracteresControles, traduireTexte };

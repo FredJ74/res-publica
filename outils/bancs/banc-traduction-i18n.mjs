@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { LANGUES, traduireTexte } from '../../api/_traduction.js';
+import { traduireContenu } from '../../api/_traduction-contenu.js';
 const win={};vm.runInNewContext(fs.readFileSync(new URL('../../i18n/resources.js',import.meta.url),'utf8'),{window:win});
 test('langues serveur et interface rigoureusement identiques',()=>{
  assert.deepEqual([...LANGUES],Object.keys(win.RP_I18N_LANGUAGES));
@@ -44,4 +45,84 @@ test('langue source indéterminée : traduction automatique sans supposer le fra
  assert.equal(result.ok,true);
  assert.equal(result.langueOriginale,'und');
  assert.equal(result.traduit,'Hallo {{name}}');
+});
+
+test('P2-01: refuser changement de montant, de devise ou du nombre de PA, sans cache',async()=>{
+ const source='Votre commande coûte 100 FR et 1 PA, {{name}}.';
+ for(const text of [
+  'Your order costs 1000 USD and 9 AP, {{name}}.',
+  'Your order costs 100 FR and 9 PA, {{name}}.',
+  'Your order costs 100 USD and 1 PA, {{name}}.',
+  'Your order costs 1 FR and 100 PA, {{name}}.',
+  'Your order costs -100 FR and 1 PA, {{name}}.',
+  'Your order costs +100 FR and 1 PA, {{name}}.',
+  'Your order costs 100 FR and 1 PA, {{name}}.\u0000'
+ ]){
+  const response=await traduireTexte({texte:source,langueOriginale:'fr',langueCible:'en'},
+   async()=>({ok:true,texte:text,tronque:false}));
+  assert.equal(response.ok,false,JSON.stringify(text));
+  assert.equal(response.traduit,null);
+  assert.equal(response.original,source);
+  assert.equal(response.raison,'traduction_invalide');
+ }
+ const correct=await traduireTexte({texte:source,langueOriginale:'fr',langueCible:'en'},
+  async()=>({ok:true,texte:'Your order costs 100 FR and 1 PA, {{name}}.',tronque:false}));
+ assert.equal(correct.ok,true);
+ assert.equal(correct.traduit,'Your order costs 100 FR and 1 PA, {{name}}.');
+});
+test('P2-01: refuser tout marqueur de contrôle dans la sortie fournisseur',async()=>{
+ const source='Bienvenue sur le forum.';
+ for(const char of ['\u0000','\u0007','\u001f']){
+  const response=await traduireTexte({texte:source,langueOriginale:'fr',langueCible:'en'},
+   async()=>({ok:true,texte:'Welcome to the forum.'+char,tronque:false}));
+  assert.equal(response.ok,false);
+ }
+});
+
+test('P2-01: RLS avant cache, entrée cache falsifiée jamais livrée',async()=>{
+ const original='Votre commande coûte 100 FR et 1 PA, {{name}}.';
+ for(const cached of [
+  'Your order costs 1000 USD and 9 AP, {{name}}.',
+  'Your order costs 100 FR and 1 PA, {{name}}.\u0000'
+ ]){
+  const steps=[];
+  const deps={
+   authenticate:async()=>{steps.push('auth');return {userId:'uid',readerToken:'jwt'}},
+   readUnderRls:async(_source,jwt)=>{assert.equal(jwt,'jwt');steps.push('rls');return {text:original,language:'fr'}},
+   readCache:async()=>{steps.push('cache');return cached},
+   reserveBudget:async()=>{steps.push('budget');return true},
+   provider:async()=>{steps.push('provider');return {ok:true,texte:'Your order costs 100 FR and 1 PA, {{name}}.',tronque:false}},
+   writeCache:async(_key,value)=>{steps.push('write');assert.equal(value,'Your order costs 100 FR and 1 PA, {{name}}.')}
+  };
+  const result=await traduireContenu({type:'forum_post',id:'1',field:'content',langueCible:'en'},deps);
+  assert.equal(result.ok,true);
+  assert.equal(result.fromCache,false);
+  assert.equal(result.traduit,'Your order costs 100 FR and 1 PA, {{name}}.');
+  assert.deepEqual(steps,['auth','rls','cache','budget','provider','write']);
+ }
+});
+
+test('P2-01 Codex: signes Unicode et séparés rejetés, y compris via le cache',async()=>{
+ for(const [source,contradictoire] of [
+  ['Solde : 100 FR.','Balance: −100 FR.'],
+  ['Solde : - 100 FR.','Balance: + 100 FR.'],
+  ['Solde : 100 FR.','Balance: －100 FR.'],
+  ['Solde : 100 FR.','Balance: + 100 FR.'],
+  ['Solde : ١٠٠ FR.','Balance: 100 FR.']
+ ]){
+  const bad=await traduireTexte({texte:source,langueOriginale:'fr',langueCible:'en'},
+   async()=>({ok:true,texte:contradictoire}));
+  assert.equal(bad.ok,false,source+' => '+contradictoire);
+  assert.equal(bad.original,source);
+  const cached=await traduireContenu({type:'forum_post',id:'1',field:'content',langueCible:'en'},{
+   authenticate:async()=>({userId:'uid',readerToken:'jwt'}),
+   readUnderRls:async()=>({text:source,language:'fr'}),
+   readCache:async()=>contradictoire,
+   reserveBudget:async()=>false,
+   provider:async()=>{throw new Error('quota refuse')},
+   writeCache:async()=>{throw new Error('aucune ecriture permise')}
+  });
+  assert.equal(cached.ok,false,'cache trompeur accepté : '+contradictoire);
+  assert.equal(cached.traduit,null);
+ }
 });
