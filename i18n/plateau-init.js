@@ -5,7 +5,10 @@
   'use strict';
   const engine=global.i18next, config=global.RP_I18N_RESOURCES;
   if(!engine || !config) return;
-  const supported=Object.keys(global.RP_I18N_LANGUAGES||{fr:{}});
+  // Les ressources des neuf langues restent disponibles pour les bancs, mais
+  // le plateau public est exclusivement français sans autorisation explicite.
+  const supported=global.RP_I18N_GAME_ENABLED === true
+    ? Object.keys(global.RP_I18N_LANGUAGES||{fr:{}}) : ['fr'];
   // Point d'entrée commun avec le pont du plateau : préférence persistée,
   // sinon langue du navigateur, sinon français. L'accueil emploie cette priorité.
   let locale='fr';
