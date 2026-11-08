@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('384 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('391 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,384);
+ assert.equal(ref.length,391);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -525,4 +525,25 @@ test('les quatre ordres du pouvoir et des partis de Sovarka restent traduits san
   }
  }
  assert.equal(JSON.stringify(original),frozen);
+});
+
+test('sept nouveaux ordres sovarkiens : catalogues synchronisés, mécanique inchangée',()=>{
+ const ids=["sovarka_lois_examen","sovarka_autocritique","sovarka_seance","sovarka_saisir_juge","sovarka_conscription","sovarka_sondages","sovarka_conscrit_presenter"];
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ for(const fn of ids){
+  const label=win.RP_I18N_RESOURCES.fr.translation.orders[fn];
+  assert.ok(label,'catalogue français manquant : '+fn);
+  assert.ok(source.includes("fn:'"+fn+"'") || source.includes('fn:"'+fn+'"'),'ordre absent du monde : '+fn);
+  const before=Object.freeze({fn,label,pa:2,cost:137,requiresPost:'sovarka_test'});
+  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
+    const expected=win.RP_I18N_RESOURCES[lang].translation.orders[fn];
+    assert.ok(typeof expected==='string'&&expected.trim(),lang+'/'+fn);
+    assert.equal(win.RPOrderI18n.label(before,engine,lang),expected);
+  }
+  assert.equal(before.fn,fn);
+  assert.equal(before.label,label);
+  assert.equal(before.pa,2);
+  assert.equal(before.cost,137);
+  assert.equal(before.requiresPost,'sovarka_test');
+ }
 });
