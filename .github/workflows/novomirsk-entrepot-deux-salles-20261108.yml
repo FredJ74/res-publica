@@ -1,0 +1,92 @@
+name: Novomirsk entrepot - installer deux images WebP
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/novomirsk-entrepot-deux-salles-20261108.yml'
+permissions:
+  contents: write
+jobs:
+  installer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Convertir les sources et ne modifier que les deux salles de Novomirsk
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          root=Path('images/Sovarka/Novomirsk')
+          entries=[
+              ('Novomirsk.entrepot.salle vente.png','Novomirsk_entrepot_salle_ventes.webp',2811039),
+              ('Novomirsk.entrepot.bureau directeur.png','Novomirsk_entrepot_bureau_direction.webp',2656568)
+          ]
+          for src,out,size in entries:
+              original=root/src
+              if not original.is_file() or original.stat().st_size!=size:
+                  raise SystemExit('PNG source absent ou modifie : '+str(original))
+              if (root/out).exists():
+                  raise SystemExit('WebP cible preexistant : '+str(root/out))
+          filename=Path('data.js')
+          code=filename.read_text(encoding='utf-8')
+          begin=code.index("  'entrepot-logistique-novomirsk': {")
+          end=code.index("\n  },",begin)+5
+          building=code[begin:end]
+          for room,name in [('salle_ventes','salle_ventes'),('bureau_direction','bureau_direction')]:
+              anchor="      "+room+": {\n        name:"
+              if building.count(anchor)!=1:raise SystemExit('Structure salle modifiee : '+room)
+              if 'imageUrl:' in building.split(anchor)[1].split('\n      },')[0].split('\n      }')[0]:
+                  raise SystemExit('Ancien visuel specifique a examiner avant remplacement : '+room)
+          new=building
+          for room,out in [('salle_ventes',entries[0][1]),('bureau_direction',entries[1][1])]:
+              anchor="      "+room+": {\n"
+              new=new.replace(anchor,anchor+"        imageUrl: 'images/Sovarka/Novomirsk/"+out+"',\n",1)
+          if new==building:raise SystemExit('Aucune insertion')
+          for src,out,old_size in entries:
+              original=root/src
+              dest=root/out
+              with Image.open(original) as img:
+                  img.load()
+                  dims=img.size
+                  if dims[0]<1000 or dims[1]<600:raise SystemExit('Taille inattendue : '+src)
+                  img.convert('RGB').save(dest,'WEBP',quality=92,method=6)
+              with Image.open(dest) as chk:
+                  if chk.format!='WEBP' or chk.size!=dims:raise SystemExit('WebP mal forme : '+out)
+                  chk.verify()
+              if dest.stat().st_size>=old_size:raise SystemExit('WebP non optimise : '+out)
+              print('VALIDATION WEBP',src,'->',out,'dimensions',dims,'octets',old_size,'->',dest.stat().st_size)
+          code=code[:begin]+new+code[end:]
+          filename.write_text(code,encoding='utf-8')
+          html=Path('plateau.html')
+          page=html.read_text(encoding='utf-8')
+          anchor='data.js?v='
+          if page.count(anchor)!=1:raise SystemExit('Version data.js ambigue')
+          idx=page.index(anchor)+len(anchor)
+          closing=page.index('"',idx)
+          page=page[:closing]+'-entrepot-novomirsk-2-webp-20261108'+page[closing:]
+          html.write_text(page,encoding='utf-8')
+          for src,out,_ in entries:
+              (root/src).unlink()
+              assert (root/out).is_file()
+              assert not (root/src).exists()
+              assert code.count('images/Sovarka/Novomirsk/'+out)==1
+          # Pas d'ancienne image propre a ces salles dans data.js :
+          # la situation initiale utilisait des fonds generiques. Ne pas
+          # supprimer un asset commun aux entrepots des autres villes.
+          print('SUCCES : 2 conversions, 2 PNG effaces, 2 references propres aux salles de Novomirsk')
+          PY
+          node --check data.js
+          node --check plateau-navigation.js
+          git add -A -- data.js plateau.html images/Sovarka/Novomirsk
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Novomirsk entrepot: salle ventes et bureau direction en WebP'
+          git push origin HEAD:main
