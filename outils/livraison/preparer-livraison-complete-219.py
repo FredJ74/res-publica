@@ -67,9 +67,10 @@ def preparer(destination=None):
  if sorted((r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] in fns_sovarka)!=sorted(sovarka):
   raise ValueError('Ordres Sovarka absents, dupliqués ou mal tarifés')
  diner_sovarka=('diner_affaires',2,100)
- if sum((r['fn'],r['pa'],r['cost'])==diner_sovarka for r in gen)!=1:
+ casier_sovarka=('casier_mon_extrait',1,8)  # extrait de casier à 8 PSK en Sovarka (08/11)
+ if sum((r['fn'],r['pa'],r['cost'])==diner_sovarka for r in gen)!=1 or sum((r['fn'],r['pa'],r['cost'])==casier_sovarka for r in gen)!=1:
   raise ValueError('Dîner Sovarka absent, dupliqué ou mal tarifé')
- t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements','produire_derives_petrochimiques','consulter_devis_chantier_naval','interroger_renseignement')+vehicules and r['fn'] not in fns_sovarka and (r['fn'],r['pa'],r['cost'])!=diner_sovarka and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
+ t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements','produire_derives_petrochimiques','consulter_devis_chantier_naval','interroger_renseignement')+vehicules and r['fn'] not in fns_sovarka and (r['fn'],r['pa'],r['cost'])!=diner_sovarka and (r['fn'],r['pa'],r['cost'])!=casier_sovarka and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
  md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
  if md5!=cm['apres']['md5'] or len(t)!=cm['apres']['lignes']:raise ValueError('Sources de tarifs changées : réexaminer le plan')
  entrees=om['migrations']+gm['prerequis']+gm['migrations']+[{'version':cm['version'],'fichier':cm['migration'],'sha256':cm['sha256']}]
