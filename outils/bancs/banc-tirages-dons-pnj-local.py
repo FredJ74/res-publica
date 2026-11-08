@@ -9,6 +9,7 @@ def main():
  srv=pgserver.get_server(tempfile.mkdtemp(prefix='hg-tirages-dons-'),cleanup_mode='delete');c=None
  try:
   c=psycopg2.connect(srv.get_uri());q=c.cursor()
+  q.execute('SHOW server_version');version=q.fetchone()[0]
   q.execute("CREATE ROLE authenticated;CREATE ROLE anon;CREATE ROLE service_role;CREATE SCHEMA auth;CREATE FUNCTION auth.uid()RETURNS uuid LANGUAGE sql STABLE AS $$SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;GRANT USAGE ON SCHEMA auth,public TO authenticated")
   for d,n in [('personnage-et-presence','personnages_donnees'),('banque','comptes_bancaires'),('finances-publiques','fonds_debits'),('socle-PNJ','pnj_membres'),('socle-PNJ','pnj_employes_metier')]:h.table(q,'baseline/domaines/'+d+'/10_tables.sql',n)
   q.execute('ALTER TABLE personnages_donnees ADD PRIMARY KEY(name);ALTER TABLE personnages_donnees ENABLE ROW LEVEL SECURITY;CREATE VIEW personnages AS SELECT * FROM personnages_donnees')
@@ -58,7 +59,7 @@ def main():
   with ThreadPoolExecutor(2) as ex:v=list(ex.map(lambda i:appel('00000000-0000-4000-9000-'+str(9002+i).zfill(12),600),range(2)))
   assert sum(x.get('ok',False)for x in v)==1 and sum(x.get('raison')=='fonds_insuffisants'for x in v)==1
   q.execute("SELECT liquide FROM personnages_donnees WHERE name='Course'");assert q.fetchone()[0]==400
-  print(json.dumps({'resultats':bilan,'banc':'tirages-dons','sql_annule':True,'installation_rollback_rejeu':True,'courses_authentifiees':2,'ok':True}))
+  print(json.dumps({'postgresql':version,'resultats':bilan,'banc':'tirages-dons','sql_annule':True,'installation_rollback_rejeu':True,'courses_authentifiees':2,'ok':True}))
  finally:
   if c:c.close()
   srv.cleanup()

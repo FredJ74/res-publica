@@ -66,7 +66,7 @@ nouveau message nomme une réponse de contrat non confirmée. Cache JS plateau m
 - Client dédié : 10/10 ; Math.random et getStatEffective interdits dans la fixture,
   succès/échec/refus, DIS zéro, banquier, rejeu et réponses incomplètes.
 - Régressions avec le banc de jauges existant : 49/49 tests clients ciblés.
-- PostgreSQL jetable : **93/93** assertions en transaction annulée sous
+- PostgreSQL **16.2** jetable : **93/93** assertions en transaction annulée sous
   `role=authenticated`, `request.path=/rpc/jauges_ordre_executer` ; corps réels de
   débit et de dispatcher, projection PNJ existante. La vue de lecture personnages
   est minimale ; ce n’est pas une reconstruction du catalogue complet.
@@ -87,3 +87,11 @@ Les migrations anciennes ne sont pas rejouées en bloc : seules les tables et
 routines nécessaires sont extraites pour la base jetable. Les autres fonctions
 ne sont pas certifiées par ces tests. Les comptes et les soldes réels n’ont
 jamais été lus ou modifiés.
+
+## Réconciliation finale
+
+Main `9e1ec47f` intégré sans conflit (`95fb97e7`). Les cinq décors de Novomirsk et
+la nouvelle version de cache data.js restent inchangés par rapport à main. Seul le
+suffixe de cache justice de ce lot diffère. Rejeu du contrôleur complet effectué
+sur cette intégration (résultat consigné au relais). Le banc SQL indique désormais
+sa version PostgreSQL réelle ; il ne prétend pas certifier le catalogue vivant.
