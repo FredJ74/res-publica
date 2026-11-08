@@ -278,3 +278,30 @@ test('bascule arabe : rétablir le dir initial, y compris après traduction manq
  assert.equal(element.textContent,'Messages');
  assert.equal(attrs.dir,'ltr');
 });
+
+test('bascule appelle le rafraîchissement des ordres visibles sans entrer de nouveau dans la pièce',()=>{
+ const listeners={};
+ const orderRefresh=[];
+ const element={textContent:'Messages',attrs:{'data-i18n':'plateau.messages'},
+  getAttribute(k){return this.attrs[k]},hasAttribute(k){return Object.hasOwn(this.attrs,k)},
+  setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+ const document={documentElement:{lang:'fr'},querySelectorAll(sel){return sel==='[data-i18n]'?[element]:[]}};
+ const engine={language:'fr',on(evt,fn){listeners[evt]=fn},
+  init(opts,done){this.language=opts.lng;done(null)},
+  t(key){return key==='plateau.messages'?(this.language==='ar'?'الرسائل':'Messages'):key},
+  changeLanguage(lang){this.language=lang;listeners.languageChanged?.(lang)}};
+ const window={RP_I18N_GAME_ENABLED:true,document,localStorage:{getItem:()=> 'fr'},
+  RP_I18N_LANGUAGES:{fr:{},ar:{},en:{}},RP_I18N_RESOURCES:{},i18next:engine,
+  RPOrderI18n:{refreshVisibleLabels(root,selected,locale){orderRefresh.push({root,selected,locale})}}};
+ vm.runInNewContext(script,{window,console});
+ engine.changeLanguage('ar');
+ assert.equal(orderRefresh.length,1);
+ assert.equal(orderRefresh[0].root,document);
+ assert.equal(orderRefresh[0].selected,engine);
+ assert.equal(orderRefresh[0].locale,'ar');
+ assert.equal(document.documentElement.lang,'ar');
+ assert.equal(element.textContent,'الرسائل');
+ engine.changeLanguage('en');
+ assert.equal(orderRefresh.length,2);
+ assert.equal(orderRefresh[1].locale,'en');
+});
