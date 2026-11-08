@@ -222,7 +222,7 @@ jobs:
           retention-days: 7
       - name: "Libellés d’ordres : contexte et autorité préservés"
         run: node --test outils/bancs/banc-i18n-ordres.cjs
-      - name: 382 ordres canoniques traduits et droits préservés
+      - name: 381 ordres canoniques traduits et droits préservés
         run: node --test outils/bancs/banc-i18n-catalogue-ordres.cjs
       - name: Loyers et terrains à tarifs variables, sans conversion ni mutation
         run: node --test outils/bancs/banc-i18n-tarifs-variables.cjs
