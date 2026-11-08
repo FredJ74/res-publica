@@ -16,6 +16,32 @@ function rpActionMailLabel(key,original) {
 function rpForumCompte(kind,number,source) {
   return (typeof window!=='undefined' && window.RPForumUI?.count?.(kind,number,source)) || source;
 }
+function rpForumNomOuvert(id,source) {
+  return '<span data-rp-forum-name="'+encodeURIComponent(id)+'" data-rp-forum-source="'+encodeURIComponent(source)+'">'+rpForumNom(id,source)+'</span>';
+}
+function rpForumPlateauOuvert(key,source) {
+  return '<span data-rp-plateau-key="'+encodeURIComponent(key)+'" data-rp-plateau-source="'+encodeURIComponent(source)+'">'+rpForumPlateauLibelle(key,source)+'</span>';
+}
+function rpRefreshForumOpenLabels() {
+  if(typeof document==='undefined')return;
+  for(const node of document.querySelectorAll('[data-rp-forum-name]')) {
+    const id=decodeURIComponent(node.getAttribute('data-rp-forum-name'));
+    const source=decodeURIComponent(node.getAttribute('data-rp-forum-source'));
+    node.innerHTML=rpForumNom(id,source);
+  }
+  for(const node of document.querySelectorAll('[data-rp-plateau-key]')) {
+    const key=decodeURIComponent(node.getAttribute('data-rp-plateau-key'));
+    const source=decodeURIComponent(node.getAttribute('data-rp-plateau-source'));
+    node.innerHTML=rpForumPlateauLibelle(key,source);
+  }
+  for(const node of document.querySelectorAll('[data-rp-placeholder-key]')) {
+    const key=node.getAttribute('data-rp-placeholder-key');
+    const source=node.getAttribute('data-rp-placeholder-source');
+    const translated=window.RPPlateauI18n?.translate?.('plateau.'+key);
+    node.setAttribute('placeholder',typeof translated==='string'&&translated.trim()&&translated!=='plateau.'+key?translated:source);
+  }
+}
+if(typeof window!=='undefined')window.RPRefreshForumOpenLabels=rpRefreshForumOpenLabels;
 function rpForumNom(id,source) {
   return (typeof window!=='undefined' && window.RPForumUI?.forumNameHtml?.(id,source)) || source;
 }
@@ -858,7 +884,7 @@ function renderForumNavItem(id, f) {
     onclick="${accessible ? `switchForum('${id}')` : `showToast('Accès restreint','Ce forum est réservé aux membres autorisés.',false)`}">
     <i class="ti ${f.icon}" style="font-size:.85rem"></i>
     <div>
-      <div class="forum-nav-name">${rpForumNom(id,f.name)}${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
+      <div class="forum-nav-name">${rpForumNomOuvert(id,f.name)}${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
       <div class="forum-nav-count">${nombreSujetsForum(id)}</div>
     </div>
     ${f.private ? `<i class="ti ti-lock" style="font-size:.65rem;color:#4a4030;margin-left:auto"></i>` : ''}
@@ -1139,7 +1165,7 @@ function renderTopicList() {
   return `
     <div class="forum-header-bar">
       <div>
-        <div class="forum-title-main"><i class="ti ${f.icon}"></i> ${rpForumNom(currentForumId,f.name)}</div>
+        <div class="forum-title-main"><i class="ti ${f.icon}"></i> ${rpForumNomOuvert(currentForumId,f.name)}</div>
         <div class="forum-subtitle">${rpForumDescription(currentForumId,f.desc)}</div>
       </div>
       ${peutCreerSujet ? `
