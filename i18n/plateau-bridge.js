@@ -18,6 +18,11 @@
     }) || null;
   }
   function language() {
+    // Le moteur est la source unique APRÈS initialisation : changer de langue
+    // dans la session ne doit pas laisser menus et dialogues en désaccord.
+    const active=global.i18next?.language;
+    if(typeof active==='string' && active.trim())return resolve(active) || 'fr';
+    // La préférence enregistrée et le navigateur ne servent qu'au premier accès.
     try {
       const saved=global.localStorage?.getItem('respublica_language');
       // Comme sur l'accueil, une préférence persistée doit être exacte.
