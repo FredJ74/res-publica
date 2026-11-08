@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { LANGUES, LANGUE_DEFAUT, construirePromptSysteme, filtrerReponseSquatteur,
-  profilExiste } from '../../api/_pnj-profils.js';
+  profilExiste, langueDialogueAutorisee } from '../../api/_pnj-profils.js';
 
 // Contrat d'affichage uniquement : aucune requête IA, aucune lecture de profil PJ,
 // aucun effet métier, aucun changement de personnalité ou d'identité.
@@ -69,4 +69,15 @@ test('un accord ou départ inventé par un squatteur est neutralisé dans neuf l
    assert.ok(sortie?.trim(),locale+': repli vide');
   }
  }
+});
+
+test('drapeau serveur fermé : la requête PNJ ne peut pas activer de nouvelles langues',()=>{
+ for(const locale of ['es','zh-TW','ru','ko','ar','pt-BR','de']){
+  assert.equal(langueDialogueAutorisee(locale,false),'en',locale);
+  assert.notEqual(langueDialogueAutorisee(locale,true),'en',locale);
+ }
+ assert.equal(langueDialogueAutorisee('fr',false),'fr');
+ assert.equal(langueDialogueAutorisee('en',false),'en');
+ assert.equal(langueDialogueAutorisee('inconnue',true),'en');
+ assert.equal(langueDialogueAutorisee('ar',undefined),process.env.RP_I18N_GAME_ENABLED==='true'?'ar':'en');
 });
