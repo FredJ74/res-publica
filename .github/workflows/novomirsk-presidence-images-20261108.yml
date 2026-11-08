@@ -1,0 +1,26 @@
+name: Novomirsk - images du palais presidentiel (inventaire)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/novomirsk-presidence-images-20261108.yml'
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lister les nouvelles images pour affectation sure
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          for root in ('images/Sovarka/Novomirsk','images/sovarka/novomirsk'):
+              p=Path(root)
+              print('DIRECTORY',root,'EXISTS',p.is_dir())
+              if p.is_dir():
+                  for f in sorted(p.iterdir()):
+                      if f.is_file() and f.suffix.lower() in ('.png','.jpg','.jpeg'):
+                          print('CANDIDATE',repr(f.as_posix()),'BYTES',f.stat().st_size)
+          PY
