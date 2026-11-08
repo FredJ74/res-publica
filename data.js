@@ -8544,8 +8544,12 @@ const ROOM_IMAGES_EMPIRE = {
       'accueil_tribune': 'images/Sovarka/Novomirsk/Novomirsk_presse_accueil.webp'
     },
     'palais-presidentiel': {
-      'accueil_elysee':    'images/hall-parti-sovarka.webp',
-      'bureau_president':  'images/bureau-gouv-sovarka.png'
+      // Images specifiques a Novomirsk : aucune modification des pieces, PNJ ou ordres.
+      'accueil_elysee': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-hall.webp',
+      'appartements_president': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-appartements.webp',
+      'musee_presidentiel': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-musee.webp',
+      'salle_reception_presidentielle': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-reception.webp',
+      'bureau_president': 'images/bureau-gouv-sovarka.png'
     },
     'palais-gouvernement': {
       'hall':              'images/hall-parti-sovarka.webp',
