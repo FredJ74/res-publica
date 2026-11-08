@@ -135,9 +135,9 @@ test('quatre salles publiques : source canonique et périmètre limité aux lieu
  const data=fs.readFileSync(path.join(root,'data.js'),'utf8');
  const civic={commissariat:['accueil_police','prison','bureau_commissaire'],marche:['marche_ext']};
  for(const [building,ids] of Object.entries(civic)){
-  const start=data.indexOf("\\n  '"+building+"': {",300000);
+  const start=data.indexOf("\n  '"+building+"': {",300000);
   assert.ok(start>=0,'édifice manquant '+building);
-  const end=data.indexOf("\\n  '",start+5);
+  const end=data.indexOf("\n  '",start+5);
   const sourceBuilding=data.slice(start,end>start?end:undefined);
   for(const id of ids){
    assert.ok(sourceBuilding.includes(id+': {'),'salle absente '+building+'/'+id);
