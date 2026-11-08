@@ -4,7 +4,7 @@
  */
 import { createHash } from 'node:crypto';
 import { validerSource } from './_traduction-sources.js';
-import { traduireTexte, langueAdmise, placeholders } from './_traduction.js';
+import { traduireTexte, langueAdmise, placeholders, invariantsIdentiques, caracteresControles } from './_traduction.js';
 
 function refuse(raison='indisponible') {
  return Object.freeze({ok:false,raison,original:null,traduit:null});
@@ -51,7 +51,7 @@ async function traduireContenu({type,id,field,langueCible},deps) {
  try { cached=await deps.readCache(key); } catch { return refuse('cache_indisponible'); }
  const sameTokens=(left,right)=>JSON.stringify(placeholders(left))===JSON.stringify(placeholders(right));
  if(typeof cached==='string' && cached.trim() && cached.length<=4000 &&
-    !/[\u0000-\u0008\u000E-\u001F]/.test(cached) && sameTokens(original,cached))
+    !caracteresControles(cached) && sameTokens(original,cached) && invariantsIdentiques(original,cached))
   return Object.freeze({ok:true,original,traduit:cached,fromCache:true});
  // Quota persistant et atomique vérifié avant tout appel payant.
  let permit;
