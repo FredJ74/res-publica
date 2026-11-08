@@ -55,6 +55,13 @@ Les entrées suivantes ont été **effectivement trouvées dans le registre lu**
 
 Ces dernières entrées recoupent les déclarations d'application de `RELAIS.md` pour Sovarka. **Présence au registre ≠ succès de toutes les actions de justice / pouvoir**, et ne donne pas de preuve de l'identité du client, du contenu des ordres, ni de la recette réelle. Il reste à examiner fonctions, politiques, données de configuration, routeurs et tests.
 
+## Catalogue d'ordres et villes — existence vérifiée
+
+- `ordres_couts` : **517 lignes**, exportées intégralement dans [CATALOGUE-COUTS-SERVEUR.md](CATALOGUE-COUTS-SERVEUR.md) ; ce nombre ne doit pas être comparé sans retraitement aux 346 actions différentes d'octobre (`fn` peut être une variante, une fonction inactive ou un coût de branche conditionnelle).
+- `ordres_generiques` : **6 règles de fonction** actuellement configurées : `deliberer_loge` (100 %, +3 INF), `fuite_info` (60 %, +5 INF et +10 POP), `interroger` (75 %, +5 INF, commissaire), `interroger_renseignement` (75 %, +5 INF, ministre de la Défense), `soins_discrets` (95 %, +30 santé, -2 discrétion), `soins_urgence` (100 %, +40 santé). Ces **champs stockés** n'établissent ni coût PA ni droit d'accès complet, et le comportement dépend de la fonction serveur.
+- `villes` : **12 lignes**, correspondant au référentiel de `data.js` pour `republic`, `soviet`, `narco`, `khalija` (trois villes chacun). **Un nom en base n'implique pas qu'une ville soit terminée ou ouverte aux joueurs.**
+- `ordres_couts_inconnus` : **8 lignes** existent, non examinées (peuvent signaler des écarts de prix rencontrés). Évaluer avant toute déclaration d'exhaustivité de la couverture des ordres.
+
 ## Conclusion probatoire
 - **Vérifié :** existence de tables/fonctions/registre, règle des deux modèles navals, deux jalons PNJ sociaux.
 - **Non vérifié :** permissions de chaque action, exactitude opérationnelle des RPC, cohérence client/serveur de toutes les transactions, activation de traduction, déploiement Vercel, jouabilité humaine.
