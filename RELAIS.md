@@ -25,6 +25,25 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Certification technique #377 — Codex, reprise du 08/11/2026
+
+Source PR `81b219e4af96c22bf60cdde73030942ea9238f36` ; branche de preuves
+`codex/audit-i18n-377-20261108`. L’audit 6173 reste historique : ses défauts
+initiaux sont corrigés dans 81b219e4. **253/253 bancs sur HEAD**, 63 contrôles
+Chromium. Intégration locale détachée avec main `ee986fe1` : arbre
+`0c3e7f5773a0ca50737b54f16d4cbd5810c4cef0`, **253/253**, sans fusion de branche.
+PostgreSQL 17.6 : stockage/concurrence/14 refus d’accès ; 25/25 cas forums ;
+13 chaînes de traduction contre RLS SQL réelle et identités de fixture (pas Auth
+Supabase réel). Deux contre-épreuves forums échouent comme attendu.
+Deux cas résiduels : ancien menu lié au dernier catalogue par index, et rendus
+déjà ouverts (pièce/forum/courrier) restant dans l’ancienne langue. Patch de
+référence préparé, uniquement artefact : correction des cas en mémoire Chromium,
+pas un changement applicatif de la PR. Contre-épreuves ciblées détectées.
+Dossier `outils/audits/preuves-i18n-377-cloture-20261108/`. Contrôleur complet du
+patch sur copie d’intégration en cours ; rapport final à compléter avant clôture.
+Aucun service payant, écriture production, activation, fusion ou déploiement.
+
+
 ### Audit indépendant #377 — Codex, 08/11/2026
 
 Branche `codex/audit-i18n-377-20261108`, source réellement testée

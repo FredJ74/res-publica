@@ -1,0 +1,149 @@
+--- a/i18n/ordres.js
++++ b/i18n/ordres.js
+@@ -153,9 +153,17 @@
+   if(!root || !engine || typeof engine.t!=='function')return;
+   const nodes=root.querySelectorAll?.('[data-rp-order-index]')||[];
+   for(const node of nodes){
+-   const index=Number(node.getAttribute?.('data-rp-order-index'));
+-   if(!Number.isSafeInteger(index)||index<0||index>=renderedOrders.length)continue;
+-   const ordre=renderedOrders[index];
++   const description=node.getAttribute?.('data-rp-order-description');
++   let ordre;
++   if(description!=null){
++    try{ordre=JSON.parse(description);}catch{continue;}
++    if(!ordre||typeof ordre.fn!=='string'||typeof ordre.label!=='string')continue;
++   }else{
++    // Compatibilité des anciens consommateurs, nouveaux boutons auto-descriptifs.
++    const index=Number(node.getAttribute?.('data-rp-order-index'));
++    if(!Number.isSafeInteger(index)||index<0||index>=renderedOrders.length)continue;
++    ordre=renderedOrders[index];
++   }
+    if(!ordre)continue;
+    // textContent plutôt que innerHTML : aucun remplacement de noeud,
+    // saisie, ecouteur de clic, badge de coût ou position de défilement.
+--- a/i18n/room-resources.js
++++ b/i18n/room-resources.js
+@@ -491,5 +491,21 @@
+   if(output===original)return original;
+   return output.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+- global.RPRoomI18n=Object.freeze({label,labelHtml});
++ function bindLabel(node,buildingId,roomId,original){
++  if(!node)return;
++  node.setAttribute('data-rp-room-description',JSON.stringify([buildingId,roomId,original]));
++  node.textContent=label(buildingId,roomId,original);
++ }
++ function spanHtml(buildingId,roomId,original){
++  const description=JSON.stringify([buildingId,roomId,original]).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
++  return '<span data-rp-room-description="'+description+'">'+labelHtml(buildingId,roomId,original)+'</span>';
++ }
++ function refreshVisibleLabels(root){
++  for(const node of root?.querySelectorAll?.('[data-rp-room-description]')||[]){
++   let data;try{data=JSON.parse(node.getAttribute('data-rp-room-description'));}catch{continue;}
++   if(!Array.isArray(data)||data.length!==3||!data.every(v=>typeof v==='string'))continue;
++   node.textContent=label(data[0],data[1],data[2]);
++  }
++ }
++ global.RPRoomI18n=Object.freeze({label,labelHtml,bindLabel,spanHtml,refreshVisibleLabels});
+ })(window);
+--- a/i18n/plateau-init.js
++++ b/i18n/plateau-init.js
+@@ -120,6 +120,7 @@
+     // Mettre a jour le texte des ordres deja visibles (y compris dans les
+     // sous-menus ouverts), sans rerender ni effet serveur.
+     global.RPOrderI18n?.refreshVisibleLabels?.(global.document,engine,locale);
++    global.RPRoomI18n?.refreshVisibleLabels?.(global.document);
+   });
+   if(typeof global.addEventListener==='function')global.addEventListener('storage',function(event) {
+     if(event.key!=='respublica_language' || !supported.includes(event.newValue))return;
+--- a/plateau-politique.js
++++ b/plateau-politique.js
+@@ -3991,7 +3991,10 @@
+       typeof window.RPOrderI18n.labelHtml === 'function')
+       ? window.RPOrderI18n.labelHtml(o,window.i18next,window.RPPlateauI18n.language())
+       : o.label;
+-    const libelleMarque = '<span data-rp-order-index="' + orderIndex + '">' + libelleAffiche + '</span>';
++    // Le descripteur appartient au noeud, pas au dernier catalogue d'une autre pièce.
++    const descripteurLibelle = JSON.stringify({fn:o.fn,label:o.label,i18nKey:o.i18nKey})
++      .replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
++    const libelleMarque = '<span data-rp-order-index="' + orderIndex + '" data-rp-order-description="' + descripteurLibelle + '">' + libelleAffiche + '</span>';
+     if (achatTerrainBloqueParIntrus && ['acheter_terrain','signer_compromis'].includes(o.fn)) {
+       return '<button type="button" class="action-btn legal blocked" disabled aria-disabled="true" title="' +
+         messageAchatTerrainIntrus + '"><i class="ti ' + o.icon + '"></i> ' + libelleMarque + '</button>';
+--- a/plateau-navigation.js
++++ b/plateau-navigation.js
+@@ -657,7 +657,7 @@
+         ? varianteNomPiece(buildingId, roomId, state.currentCity, tabNameBase) : null) || tabNameBase;
+       // Traduction de présentation uniquement : le clic conserve les mêmes IDs.
+       const tabNameDisplay = (typeof RPRoomI18n !== 'undefined')
+-        ? RPRoomI18n.labelHtml(buildingId, roomId, tabName) : tabName;
++        ? (RPRoomI18n.spanHtml?.(buildingId, roomId, tabName) || RPRoomI18n.labelHtml(buildingId, roomId, tabName)) : tabName;
+       const actif = roomActifId ? (roomId === roomActifId) : (i === 0);
+       return `<div class="piece-tab ${actif ? 'active' : ''}" data-piece="${roomId}" onclick="${clic}" style="${style}"${titre ? ` title="${titre}"` : ''}>
+         ${icon}${tabNameDisplay}
+@@ -1065,9 +1065,11 @@
+   const nomBasePiece = roomOverride?.name || room.name;
+   const nomPieceAffiche = ((typeof varianteNomPiece === 'function')
+     ? varianteNomPiece(buildingId, roomId, state.currentCity, nomBasePiece) : null) || nomBasePiece;
+-  document.getElementById('piece-nom').textContent =
+-    (typeof RPRoomI18n !== 'undefined')
+-      ? RPRoomI18n.label(buildingId, roomId, nomPieceAffiche) : nomPieceAffiche;
++  const titrePiece = document.getElementById('piece-nom');
++  if (typeof RPRoomI18n !== 'undefined' && typeof RPRoomI18n.bindLabel === 'function')
++    RPRoomI18n.bindLabel(titrePiece, buildingId, roomId, nomPieceAffiche);
++  else titrePiece.textContent = (typeof RPRoomI18n !== 'undefined')
++    ? RPRoomI18n.label(buildingId, roomId, nomPieceAffiche) : nomPieceAffiche;
+   // roomOverride.desc a priorite sur ctx.desc (batiment, 1ere room seulement) et sur room.desc
+   // (base partagee) -- meme priorite que roomOverride.imageUrl ci-dessus, generique, sans aucun
+   // cas particulier de ville/batiment/room.
+--- a/forum.js
++++ b/forum.js
+@@ -858,7 +858,7 @@
+     onclick="${accessible ? `switchForum('${id}')` : `showToast('Accès restreint','Ce forum est réservé aux membres autorisés.',false)`}">
+     <i class="ti ${f.icon}" style="font-size:.85rem"></i>
+     <div>
+-      <div class="forum-nav-name">${rpForumNom(id,f.name)}${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
++      <div class="forum-nav-name"><span${Object.hasOwn(window.RP_I18N_RESOURCES?.fr?.translation?.forumNames||{},id) && window.RP_I18N_RESOURCES.fr.translation.forumNames[id]===f.name ? ' data-i18n="forumNames.'+id+'"' : ''}>${rpForumNom(id,f.name)}</span>${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
+       <div class="forum-nav-count">${nombreSujetsForum(id)}</div>
+     </div>
+     ${f.private ? `<i class="ti ti-lock" style="font-size:.65rem;color:#4a4030;margin-left:auto"></i>` : ''}
+@@ -3018,14 +3018,14 @@
+   return `
+     <div class="forum-header-bar">
+       <button class="forum-back-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">
+-        <i class="ti ti-arrow-left"></i> ${rpForumLibelle('back','Retour')}
++        <i class="ti ti-arrow-left"></i> <span data-i18n="forumUI.back">${rpForumLibelle('back','Retour')}</span>
+       </button>
+-      <div class="forum-title-main">${rpForumPlateauLibelle('newMessage','Nouveau message')}</div>
++      <div class="forum-title-main"><span data-i18n="plateau.newMessage">${rpForumPlateauLibelle('newMessage','Nouveau message')}</span></div>
+     </div>
+     <div class="forum-compose-form">
+       <div class="forum-field">
+-        <label class="forum-field-label">${rpForumPlateauLibelle('recipient','Destinataire')}</label>
+-        <input class="forum-field-input" id="mail-to" type="text" value="${escapeHtmlText(defaultTo)}"
++        <label class="forum-field-label"><span data-i18n="plateau.recipient">${rpForumPlateauLibelle('recipient','Destinataire')}</span></label>
++        <input class="forum-field-input" id="mail-to" data-i18n-placeholder="plateau.recipientPlaceholder" type="text" value="${escapeHtmlText(defaultTo)}"
+           placeholder="${rpForumPlateauLibelle('recipientPlaceholder','Nom du destinataire...')}" list="contacts-list"/>
+         <datalist id="contacts-list">
+           ${contacts.map(c => `<option value="${escapeHtmlText(c.name)}">`).join('')}
+@@ -3033,16 +3033,16 @@
+       </div>
+       ${renderEnvoyerMailEnTantQue('compose-mail-auteur', defaultOrgaId)}
+       <div class="forum-field">
+-        <label class="forum-field-label">${rpForumPlateauLibelle('subject','Sujet')}</label>
+-        <input class="forum-field-input" id="mail-subject" type="text" value="${escapeHtmlText(defaultSubject)}"
++        <label class="forum-field-label"><span data-i18n="plateau.subject">${rpForumPlateauLibelle('subject','Sujet')}</span></label>
++        <input class="forum-field-input" id="mail-subject" data-i18n-placeholder="plateau.subjectPlaceholder" type="text" value="${escapeHtmlText(defaultSubject)}"
+           placeholder="${rpForumPlateauLibelle('subjectPlaceholder','Objet du message...')}"/>
+       </div>
+       <div class="forum-field">
+-        <label class="forum-field-label">${rpForumPlateauLibelle('messageLabel','Message')}</label>
++        <label class="forum-field-label"><span data-i18n="plateau.messageLabel">${rpForumPlateauLibelle('messageLabel','Message')}</span></label>
+         ${renderRichEditor('compose-body')}
+       </div>
+       <button class="forum-submit-btn" onclick="submitMail()">
+-        <i class="ti ti-send"></i> ${rpForumPlateauLibelle('sendButton','Envoyer')}
++        <i class="ti ti-send"></i> <span data-i18n="plateau.sendButton">${rpForumPlateauLibelle('sendButton','Envoyer')}</span>
+       </button>
+     </div>
+   `;
