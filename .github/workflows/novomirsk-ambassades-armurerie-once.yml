@@ -61,13 +61,13 @@ jobs:
             'bureau_estado_novomirsk':'Novomirsk_ambassades_El Estado.webp'
           }
           for room,image in mapping.items():
-            pattern=r'(      '+re.escape(room)+r': \\{\\n        name: [^\\n]+\\n        imageBg: [^\\n]+\\n)'
+            pattern=r'(      '+re.escape(room)+r': \{\n        name: [^\n]+\n        imageBg: [^\n]+\n)'
             # Compilé séparément pour garantir que le remplacement ne cible que la salle demandée.
             regex=re.compile(pattern)
             found=list(regex.finditer(morceau))
             assert len(found)==1, f'Définition unique introuvable : {room}: {len(found)}'
             url='images/Sovarka/Novomirsk/'+image
-            morceau=regex.sub(lambda match: match.group(1)+'        imageUrl: "'+url+'",\\n',morceau,count=1)
+            morceau=regex.sub(lambda match: match.group(1)+'        imageUrl: "'+url+'",\n',morceau,count=1)
             assert morceau.count('imageUrl: "'+url+'"')==1,room
 
           text=text[:debut]+morceau+text[fin:]
