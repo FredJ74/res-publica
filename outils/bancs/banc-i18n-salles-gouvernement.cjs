@@ -38,9 +38,32 @@ const source={
  accueil_police:'Accueil',
  prison:'Cellules de garde a vue',
  bureau_commissaire:'Bureau du Commissaire',
- marche_ext:'Etals du marche'
+ marche_ext:'Etals du marche',
+ accueil:'Accueil',
+ restaurant:'Salle du Restaurant',
+ bar:'Bar',
+ chambres:'Chambres',
+ suite_privee:'Suite Privée — Local à louer',
+ suite_presidentielle:'Suite Présidentielle — Local à louer',
+ accueil_banque:'Accueil',
+ coffre_privatif:'Coffre Privatif — Local à louer',
+ bureau_prive:'Bureau prive',
+ accueil_notaire:'Accueil',
+ bureau_successions:'Bureau des Successions',
+ bureau_contrats:'Bureau des Contrats',
+ archives_notariales:'Archives Notariales',
+ amphi:'Amphitheatre',
+ salle_reunion:'Salle de Réunion'
 };
-test('neuf traductions de vingt-trois salles, avec repli français explicite',()=>{
+const serviceBuilding={
+ accueil:'hotel-republica',restaurant:'hotel-republica',bar:'hotel-republica',
+ chambres:'hotel-republica',suite_privee:'hotel-republica',suite_presidentielle:'hotel-republica',
+ accueil_banque:'banque-nationale',coffre_privatif:'banque-nationale',bureau_prive:'banque-privee',
+ accueil_notaire:'office-notarial',bureau_successions:'office-notarial',
+ bureau_contrats:'office-notarial',archives_notariales:'office-notarial',
+ amphi:'universite',salle_reunion:'universite'
+};
+test('neuf traductions de trente-huit salles, avec repli français explicite',()=>{
  assert.equal(Object.keys(win.RP_I18N_LANGUAGES).length,9);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
   locale=lang;
@@ -49,7 +72,7 @@ test('neuf traductions de vingt-trois salles, avec repli français explicite',()
   for(const [room,original] of Object.entries(source)){
    assert.equal(typeof rooms[room],'string');
    assert.ok(rooms[room].trim(),lang+': '+room);
-   assert.equal(win.RPRoomI18n.label(room==='magasin'?'armurerie':['accueil_police','prison','bureau_commissaire'].includes(room)?'commissariat':room==='marche_ext'?'marche':room.includes('maire')||room==='accueil_mairie'?'mairie':room==='salle_reception'||room.includes('ambassades_novomirsk')||room.startsWith('bureau_republia_novomirsk')||room.startsWith('bureau_khalija_novomirsk')||room.startsWith('bureau_estado_novomirsk')?'palais-ambassades-novomirsk':'palais-gouvernement',room,original),rooms[room]);
+   assert.equal(win.RPRoomI18n.label(serviceBuilding[room]|| (room==='magasin'?'armurerie':['accueil_police','prison','bureau_commissaire'].includes(room)?'commissariat':room==='marche_ext'?'marche':room.includes('maire')||room==='accueil_mairie'?'mairie':room==='salle_reception'||room.includes('ambassades_novomirsk')||room.startsWith('bureau_republia_novomirsk')||room.startsWith('bureau_khalija_novomirsk')||room.startsWith('bureau_estado_novomirsk')?'palais-ambassades-novomirsk':'palais-gouvernement'),room,original),rooms[room]);
   }
  }
 });
@@ -148,6 +171,31 @@ test('quatre salles publiques : source canonique et périmètre limité aux lieu
    }
    locale='en';
    assert.equal(win.RPRoomI18n.label(building,id,source[id]+' (privé)'),source[id]+' (privé)');
+  }
+ }
+});
+
+test('quinze salles supplémentaires sont ancrées au bâtiment exact sans changer la navigation',()=>{
+ const data=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const grouped={
+  'hotel-republica':['accueil','restaurant','bar','chambres','suite_privee','suite_presidentielle'],
+  'banque-nationale':['accueil_banque','coffre_privatif'],
+  'banque-privee':['bureau_prive'],
+  'office-notarial':['accueil_notaire','bureau_successions','bureau_contrats','archives_notariales'],
+  'universite':['amphi','salle_reunion']
+ };
+ assert.equal(Object.values(grouped).flat().length,15);
+ for(const [building,ids] of Object.entries(grouped)){
+  const begin=data.indexOf("\n  '"+building+"': {",190000);
+  assert.ok(begin>=0,'bâtiment absent : '+building);
+  const end=data.indexOf("\n  '",begin+5);
+  const body=data.slice(begin,end>begin?end:undefined);
+  for(const id of ids){
+   assert.ok(body.includes(id+': {'),'salle absente '+building+'/'+id);
+   locale='en';
+   assert.equal(win.RPRoomI18n.label(building,id,source[id]),win.RP_I18N_RESOURCES.en.translation.rooms[id]);
+   assert.equal(win.RPRoomI18n.label('mairie',id,source[id]),source[id]);
+   assert.equal(win.RPRoomI18n.label(building,id,source[id]+' — temporairement fermé'),source[id]+' — temporairement fermé');
   }
  }
 });
