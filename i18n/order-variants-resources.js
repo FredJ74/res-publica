@@ -30,7 +30,15 @@
     "finance_account_placements": "Gérer mon compte / mes placements",
     "finance_open_account": "Ouvrir / gérer mon compte",
     "local_manage": "Gérer mon local",
-    "local_safe": "Gérer mon coffre"
+    "local_safe": "Gérer mon coffre",
+    "religion_formulaire": "Prier le Formulaire Sacré",
+    "religion_feuille": "Communier avec la Feuille",
+    "religion_tracteur": "Chanter l'hymne au Tracteur",
+    "religion_loukoum": "Communier avec le Loukoum",
+    "don_eglise": "Faire un don a l'Eglise",
+    "don_offrande": "Faire une offrande",
+    "don_kolkhoze": "Donner au Kolkhoze",
+    "don_loukoums": "Offrir des loukoums"
   },
   "en": {
     "hotel_basic": "Reserve a room",
@@ -55,7 +63,15 @@
     "finance_account_placements": "Manage my account and investments",
     "finance_open_account": "Open or manage my account",
     "local_manage": "Manage my premises",
-    "local_safe": "Manage my safe-deposit box"
+    "local_safe": "Manage my safe-deposit box",
+    "religion_formulaire": "Pray to the Sacred Form",
+    "religion_feuille": "Commune with the Leaf",
+    "religion_tracteur": "Sing the Tractor Hymn",
+    "religion_loukoum": "Commune with the Turkish Delight",
+    "don_eglise": "Donate to the Church",
+    "don_offrande": "Make an offering",
+    "don_kolkhoze": "Donate to the Kolkhoz",
+    "don_loukoums": "Offer Turkish delights"
   },
   "es": {
     "hotel_basic": "Reservar una habitación",
@@ -80,7 +96,15 @@
     "finance_account_placements": "Gestionar mi cuenta e inversiones",
     "finance_open_account": "Abrir o gestionar mi cuenta",
     "local_manage": "Gestionar mi local",
-    "local_safe": "Gestionar mi caja de seguridad"
+    "local_safe": "Gestionar mi caja de seguridad",
+    "religion_formulaire": "Rezar al Formulario Sagrado",
+    "religion_feuille": "Comulgar con la Hoja",
+    "religion_tracteur": "Cantar el himno al Tractor",
+    "religion_loukoum": "Comulgar con el dulce de lokum",
+    "don_eglise": "Donar a la Iglesia",
+    "don_offrande": "Hacer una ofrenda",
+    "don_kolkhoze": "Donar al koljós",
+    "don_loukoums": "Ofrecer dulces de lokum"
   },
   "zh-TW": {
     "hotel_basic": "預訂房間",
@@ -105,7 +129,15 @@
     "finance_account_placements": "管理帳戶與投資",
     "finance_open_account": "開設或管理我的帳戶",
     "local_manage": "管理我的營業場所",
-    "local_safe": "管理我的保管箱"
+    "local_safe": "管理我的保管箱",
+    "religion_formulaire": "向神聖表格祈禱",
+    "religion_feuille": "與聖葉共融",
+    "religion_tracteur": "唱頌拖拉機讚歌",
+    "religion_loukoum": "與土耳其軟糖共融",
+    "don_eglise": "向教會捐款",
+    "don_offrande": "奉獻供品",
+    "don_kolkhoze": "向集體農莊捐贈",
+    "don_loukoums": "獻上土耳其軟糖"
   },
   "ru": {
     "hotel_basic": "Забронировать номер",
@@ -130,7 +162,15 @@
     "finance_account_placements": "Управлять счётом и вложениями",
     "finance_open_account": "Открыть счёт или управлять им",
     "local_manage": "Управлять своим помещением",
-    "local_safe": "Управлять своей банковской ячейкой"
+    "local_safe": "Управлять своей банковской ячейкой",
+    "religion_formulaire": "Помолиться Священному Бланку",
+    "religion_feuille": "Причаститься к Листу",
+    "religion_tracteur": "Спеть гимн Трактору",
+    "religion_loukoum": "Причаститься к рахат-лукуму",
+    "don_eglise": "Пожертвовать церкви",
+    "don_offrande": "Сделать подношение",
+    "don_kolkhoze": "Пожертвовать колхозу",
+    "don_loukoums": "Поднести рахат-лукум"
   },
   "ko": {
     "hotel_basic": "객실 예약",
@@ -155,7 +195,15 @@
     "finance_account_placements": "계좌 및 투자 관리",
     "finance_open_account": "계좌 개설 또는 관리",
     "local_manage": "내 점포 관리",
-    "local_safe": "내 금고 관리"
+    "local_safe": "내 금고 관리",
+    "religion_formulaire": "신성한 서식지에 기도하기",
+    "religion_feuille": "잎과 교감하기",
+    "religion_tracteur": "트랙터 찬가 부르기",
+    "religion_loukoum": "로쿰과 교감하기",
+    "don_eglise": "교회에 기부하기",
+    "don_offrande": "공물 바치기",
+    "don_kolkhoze": "집단농장에 기부하기",
+    "don_loukoums": "로쿰 바치기"
   },
   "ar": {
     "hotel_basic": "حجز غرفة",
@@ -180,7 +228,15 @@
     "finance_account_placements": "إدارة حسابي واستثماراتي",
     "finance_open_account": "فتح حسابي أو إدارته",
     "local_manage": "إدارة محلي",
-    "local_safe": "إدارة صندوق الأمانات"
+    "local_safe": "إدارة صندوق الأمانات",
+    "religion_formulaire": "الصلاة للنموذج المقدس",
+    "religion_feuille": "التواصل الروحي مع الورقة",
+    "religion_tracteur": "إنشاد نشيد الجرار",
+    "religion_loukoum": "التواصل الروحي مع الحلقوم",
+    "don_eglise": "التبرع للكنيسة",
+    "don_offrande": "تقديم قربان",
+    "don_kolkhoze": "التبرع للمزرعة الجماعية",
+    "don_loukoums": "تقديم الحلقوم"
   },
   "pt-BR": {
     "hotel_basic": "Reservar um quarto",
@@ -205,7 +261,15 @@
     "finance_account_placements": "Gerenciar minha conta e investimentos",
     "finance_open_account": "Abrir ou gerenciar minha conta",
     "local_manage": "Gerenciar meu estabelecimento",
-    "local_safe": "Gerenciar meu cofre"
+    "local_safe": "Gerenciar meu cofre",
+    "religion_formulaire": "Rezar ao Formulário Sagrado",
+    "religion_feuille": "Comungar com a Folha",
+    "religion_tracteur": "Cantar o hino ao Trator",
+    "religion_loukoum": "Comungar com o doce de lokum",
+    "don_eglise": "Doar à Igreja",
+    "don_offrande": "Fazer uma oferenda",
+    "don_kolkhoze": "Doar ao kolkhoz",
+    "don_loukoums": "Oferecer doces de lokum"
   },
   "de": {
     "hotel_basic": "Ein Zimmer buchen",
@@ -230,7 +294,15 @@
     "finance_account_placements": "Mein Konto und meine Anlagen verwalten",
     "finance_open_account": "Mein Konto eröffnen oder verwalten",
     "local_manage": "Mein Geschäftslokal verwalten",
-    "local_safe": "Mein Schließfach verwalten"
+    "local_safe": "Mein Schließfach verwalten",
+    "religion_formulaire": "Zum Heiligen Formular beten",
+    "religion_feuille": "Mit dem Blatt Gemeinschaft pflegen",
+    "religion_tracteur": "Die Traktorhymne singen",
+    "religion_loukoum": "Mit dem Lokum in Einklang treten",
+    "don_eglise": "An die Kirche spenden",
+    "don_offrande": "Eine Opfergabe darbringen",
+    "don_kolkhoze": "Dem Kolchos spenden",
+    "don_loukoums": "Lokum darbringen"
   }
 };
  for(const [locale,labels] of Object.entries(variants)) {
