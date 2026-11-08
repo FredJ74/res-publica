@@ -305,7 +305,8 @@ async function postulerPosteAutoritePnj(posteId, posteName, villeCourante) {
       poste_inconnu: 'Ce poste ne figure pas parmi les postes nommes.',
       acteur_non_authentifie: 'Votre identite n\'a pas pu etre etablie.',
       pm_impose_par_le_parti: 'En Sovarka, ce poste revient d\'office au chef du parti vainqueur de la semaine à la gloire.',
-      ministre_hors_parti: 'En Sovarka, seuls les membres du parti du Président du Conseil du Peuple peuvent devenir ministres.',
+      ministre_hors_parti: 'En Sovarka, un ministre vient du parti du Président du Conseil du Peuple tant qu\'un de ses membres est libre.',
+      parti_requis: 'Vous ne pouvez pas obtenir un poste si vous n\'adhérez pas à un parti.',
       carriere_requise: 'Votre carriere ne vous ouvre pas ce poste' + (v && Array.isArray(v.carrieres_qui_ouvrent) && v.carrieres_qui_ouvrent.length ? ' (carriere requise : ' + v.carrieres_qui_ouvrent.join(', ') + ').' : '.')
     };
     // Refus de paiement (1 PA par candidature, Fred 25/10/2026) : message commun des couts.
@@ -399,6 +400,7 @@ async function demanderNominationPoste(posteId, posteName, villeCible) {
     if (r === 'recruteur_pnj') { await postulerPosteAutoritePnj(posteId, posteName, villeCourante); return; }
     if (r === 'deja_candidat') { showToast('Déjà candidat', 'Votre candidature au poste de ' + posteName + ' est déjà enregistrée, en attente de décision.', false); return; }
     if (r === 'poste_deja_occupe_par_un_joueur') { showToast('Poste pourvu', "Ce poste vient d'être pris par un autre joueur.", false); return; }
+    if (r === 'parti_requis') { showToast('Parti requis', "Vous ne pouvez pas obtenir un poste si vous n'adhérez pas à un parti.", false); return; }
     if (r === 'recruteur_soi_meme') { showToast('Candidature inutile', 'Vous êtes vous-même le recruteur de ce poste.', false); return; }
     if (vT && !vT.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(vT); return; }
     showToast('Candidature non transmise', "L'opération n'a pas abouti : rien n'a été prélevé ni transmis.", false);
@@ -4294,7 +4296,8 @@ function renderRoomActions(room, buildingId, roomId) {
     } else if (o.fn === 'gerer_finances') {
       onclickFn = 'openFinancesModal(' + o.pa + ',' + o.cost + ')';
     } else if (o.fn === 'postuler') {
-      onclickFn = 'ouvrirEcranPostes()';
+      // Sovarka : adhésion à un parti exigée avant tout poste (Fred, 07/11/2026, plateau-sovarka-partis.js).
+      onclickFn = (typeof sovarkaPostuler === 'function') ? 'sovarkaPostuler()' : 'ouvrirEcranPostes()';
     } else {
       // BUG CORRIGE (12 septembre 2026) : seule l'apostrophe etait neutralisee. Une desc contenant
       // un GUILLEMET DOUBLE (data.js:2806, « un futur "Placer un article favorable" ») fermait

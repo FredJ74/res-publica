@@ -1,0 +1,69 @@
+name: Novomirsk — convertir et raccorder les cinq pièces de la mairie
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/novomirsk-mairie-interieurs-20261107.yml'
+permissions:
+  contents: write
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Convertir les cinq PNG en WebP et supprimer les originaux
+        run: |
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          folder = Path('images/Sovarka/Novomirsk')
+          files = {
+            'Novomirsk_mairie_hall.png': 'Novomirsk_mairie_hall.webp',
+            'Novomirsk_mairie_bureau maire.png': 'Novomirsk_mairie_bureau_maire.webp',
+            'Novomirsk_mairie_bureau adjoint.png': 'Novomirsk_mairie_bureau_adjoint.webp',
+            'Novomirsk_mairie_salle elections.png': 'Novomirsk_mairie_salle_elections.webp',
+            'Novomirsk_mairie_archives.png': 'Novomirsk_mairie_archives.webp'
+          }
+          app = Path('data.js').read_text(encoding='utf-8')
+          for original, target in files.items():
+              src = folder / original
+              dest = folder / target
+              if not src.is_file():
+                  raise SystemExit('Image originale absente: ' + str(src))
+              if app.count(str(dest)) != 1:
+                  raise SystemExit('Liaison data.js manquante ou en double: ' + str(dest))
+              with Image.open(src) as im:
+                  im.convert('RGB').save(dest, format='WEBP', quality=94, method=6)
+              with Image.open(dest) as im:
+                  if im.format != 'WEBP' or im.width < 640:
+                      raise SystemExit('WebP invalide: ' + str(dest))
+                  print(str(dest), im.size, dest.stat().st_size)
+              src.unlink()
+          assert not any((folder / name).exists() for name in files), 'PNG restants'
+          PY
+      - name: Vérifier les définitions JS et les fichiers
+        run: |
+          node --check data.js
+          python - <<'PY'
+          from pathlib import Path
+          s = Path('data.js').read_text(encoding='utf8')
+          a = s.index("        'mairie-capitale': {",s.index("'Palais du Gouvernement de Sovarka'"))
+          b = s.index("        'centre-multinodal-luthecia': {", a)
+          section = s[a:b]
+          for room in ['hall_mairie', 'bureau_maire', 'bureau_maire_adjoint', 'salle_elections', 'salle_archives']:
+              assert room + ':' in section, room
+          assert section.count("imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_") == 5
+          PY
+          git diff --check
+      - name: Enregistrer la conversion
+        run: |
+          git add -A images/Sovarka/Novomirsk
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Novomirsk : cinq intérieurs de mairie convertis en WebP, PNG supprimés'
+            git push
+          fi

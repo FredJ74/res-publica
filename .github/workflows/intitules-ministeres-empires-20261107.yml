@@ -1,0 +1,25 @@
+name: Titres ministeriels — isolation des empires
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/intitules-ministeres-empires-20261107.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'outils/bancs/banc-intitules-ministeres-empires.cjs'
+permissions:
+  contents: read
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check data.js
+          node --check plateau-core.js
+          node --test outils/bancs/banc-intitules-ministeres-empires.cjs outils/bancs/banc-hydratation-personnage.cjs
+          git diff --check

@@ -70,7 +70,8 @@ def preparer(paquet=None):
  if sum(x==ajouts_diner_sovarka[0] for x in source)!=1:
   raise ValueError('Dîner Sovarka absent, dupliqué ou mal tarifé')
  # #575 : pouvoir de Sovarka (07/11), deux ordres gratuits hors coupe du plan 97.
- ajouts_sovarka_pouvoir=[{'fn':'sovarka_repas_presidentiel','pa':0,'cost':0},{'fn':'sovarka_soviet_deputes','pa':0,'cost':0}]
+ # Partis de Sovarka (07/11, PR #617) : salle des partis, mêmes contrôles.
+ ajouts_sovarka_pouvoir=[{'fn':'sovarka_mon_parti','pa':0,'cost':0},{'fn':'sovarka_parti_fonder','pa':2,'cost':15},{'fn':'sovarka_partis','pa':0,'cost':0},{'fn':'sovarka_repas_presidentiel','pa':0,'cost':0}]
  if sorted([x for x in source if x['fn'] in {t['fn'] for t in ajouts_sovarka_pouvoir}],key=lambda x:x['fn'])!=ajouts_sovarka_pouvoir:
   raise ValueError('Ordres pouvoir Sovarka absents, dupliques ou mal tarifes')
  source_historique=[x for x in source if x['fn'] not in ajouts_ssm+ajouts_manufactures and cle(x) not in {cle(t) for t in ajouts_terrains_psm} and x not in ajouts_petrochimie+ajouts_naval+ajouts_renseignement+ajouts_vehicules+ajouts_sovarka+ajouts_sovarka_reunions+ajouts_diner_sovarka+ajouts_sovarka_pouvoir]

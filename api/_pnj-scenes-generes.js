@@ -4414,43 +4414,6 @@ export const SCENES_PNJ = {
       "Evgueni Gromov"
     ]
   },
-  "[\"soviet\",\"capitale\",\"assemblee\",\"accueil_assemblee\"]": {
-    "pays": "Sovarka",
-    "ville": "Novomirsk",
-    "batiment": "Soviet Suprême",
-    "piece": "Accueil",
-    "personnes": [
-      "Garde du Peuple",
-      "Hotesse Accueil",
-      "Babouchka Kouzmina"
-    ]
-  },
-  "[\"soviet\",\"capitale\",\"assemblee\",\"hemicycle\"]": {
-    "pays": "Sovarka",
-    "ville": "Novomirsk",
-    "batiment": "Soviet Suprême",
-    "piece": "Hemicycle",
-    "personnes": []
-  },
-  "[\"soviet\",\"capitale\",\"assemblee\",\"couloirs\"]": {
-    "pays": "Sovarka",
-    "ville": "Novomirsk",
-    "batiment": "Soviet Suprême",
-    "piece": "Couloirs",
-    "personnes": [
-      "Lobbyiste Pavel Pistonov",
-      "Journaliste Iouri Sorokine"
-    ]
-  },
-  "[\"soviet\",\"capitale\",\"assemblee\",\"salle_archives_assemblee\"]": {
-    "pays": "Sovarka",
-    "ville": "Novomirsk",
-    "batiment": "Soviet Suprême",
-    "piece": "Salle des Archives",
-    "personnes": [
-      "Archiviste Parlementaire"
-    ]
-  },
   "[\"soviet\",\"capitale\",\"tribunal\",\"salle_audience\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
@@ -4720,7 +4683,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"mairie-capitale\",\"hall_mairie\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Soviet Municipal",
+    "batiment": "Mairie de Novomirsk",
     "piece": "Hall d'accueil",
     "personnes": [
       "Secrétaire municipal Arseni Krylov",
@@ -4731,7 +4694,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"mairie-capitale\",\"bureau_maire\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Soviet Municipal",
+    "batiment": "Mairie de Novomirsk",
     "piece": "Bureau du Maire",
     "personnes": [
       "Le Maire de Novomirsk"
@@ -4740,14 +4703,14 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"mairie-capitale\",\"bureau_maire_adjoint\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Soviet Municipal",
+    "batiment": "Mairie de Novomirsk",
     "piece": "Bureau du Maire Adjoint",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"mairie-capitale\",\"salle_elections\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Soviet Municipal",
+    "batiment": "Mairie de Novomirsk",
     "piece": "Salle des Elections",
     "personnes": [
       "Ivan Tarassov"
@@ -4756,10 +4719,19 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"mairie-capitale\",\"salle_archives\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Soviet Municipal",
+    "batiment": "Mairie de Novomirsk",
     "piece": "Salle des Archives",
     "personnes": [
       "Kirill Poliakov"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"mairie-capitale\",\"salle_partis\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Mairie de Novomirsk",
+    "piece": "Salle des partis",
+    "personnes": [
+      "Capitaine Igor Balatov"
     ]
   },
   "[\"soviet\",\"capitale\",\"kolkhoze-spirituel\",\"grange_sainte\"]": {
@@ -5669,6 +5641,13 @@ export const SCENES_PNJ = {
     "piece": "Bureau du Maire Adjoint",
     "personnes": []
   },
+  "[\"soviet\",\"ville_a\",\"mairie\",\"salle_partis\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Mairie",
+    "piece": "Salle des partis",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_a\",\"banque-locale\",\"guichet\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
@@ -6023,6 +6002,13 @@ export const SCENES_PNJ = {
     "ville": "Krasnov",
     "batiment": "Mairie",
     "piece": "Bureau du Maire Adjoint",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"mairie\",\"salle_partis\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Mairie",
+    "piece": "Salle des partis",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"banque-locale\",\"guichet\"]": {

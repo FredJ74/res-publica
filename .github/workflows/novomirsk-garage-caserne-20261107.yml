@@ -1,0 +1,61 @@
+name: Novomirsk — garage et corps de garde WebP
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/novomirsk-garage-caserne-20261107.yml'
+permissions:
+  contents: write
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Convertir les images et supprimer les PNG
+        run: |
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          images = {
+            Path('images/Novomirsk_Caserne_hall.png'): Path('images/Sovarka/Novomirsk/Novomirsk_caserne_hall.webp'),
+            Path('images/Novomirsk_garage.png'): Path('images/Sovarka/Novomirsk/Novomirsk_garage.webp'),
+          }
+          data = Path('data.js').read_text(encoding='utf8')
+          for source, destination in images.items():
+              assert source.exists(), f'Image manquante : {source}'
+              assert data.count(str(destination)) == 1, f'Raccordement non unique : {destination}'
+          for source, destination in images.items():
+              with Image.open(source) as im:
+                  assert im.width >= 1200 and im.height >= 650, f'Dimensions insuffisantes : {source}'
+                  im.convert('RGB').save(destination, 'WEBP', quality=93, method=6)
+              with Image.open(destination) as im:
+                  assert im.format == 'WEBP' and im.width >= 1200 and im.height >= 650
+                  print(destination, im.size, destination.stat().st_size)
+              source.unlink()
+          assert all(not x.exists() for x in images)
+          PY
+      - name: Verifier le JS et les raccordements
+        run: |
+          node --check data.js
+          python - <<'PY'
+          from pathlib import Path
+          s = Path('data.js').read_text(encoding='utf8')
+          caserne = s[s.index("'caserne-militaire': {", 125000):]
+          assert "corps_garde: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_hall.webp'" in caserne
+          garage = s[s.index("'garage-novomirsk': {"):]
+          assert "imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_garage.webp'" in garage
+          assert "fn:'garage_vehicules'" in garage
+          PY
+          git diff --check
+      - name: Commit et nettoyage des fichiers
+        run: |
+          git add -A images/Novomirsk_Caserne_hall.png images/Novomirsk_garage.png images/Sovarka/Novomirsk/Novomirsk_caserne_hall.webp images/Sovarka/Novomirsk/Novomirsk_garage.webp
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Novomirsk : images caserne et garage WebP, suppression des PNG'
+            git push
+          fi

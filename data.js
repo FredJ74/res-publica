@@ -1744,7 +1744,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk','poissonniere-novomirsk','usine-pharmaceutique-luthecia','musee-national-republia'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk','poissonniere-novomirsk','usine-pharmaceutique-luthecia','musee-national-republia'],
       buildingContext: {
         // Galeries de Novomirsk : les 4 locaux du socle commercial restent
         // exactement les memes baux / identifiants serveur. Ici, seuls l'apparence,
@@ -1934,11 +1934,6 @@ const WORLD = {
           desc: "Longues files d'attente. Aspirine et bonne volonté.",
           persons: [{"name": "Infirmière Stoïque (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "medecin"}]
         },
-        'la-tribune': {
-          name: 'La Pravdovka',
-          desc: "L'organe de vérité du Parti, vérifié trois fois.",
-          persons: [{"name": "Rédacteur Vérité (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}, {"name": "Correspondant Parti (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
-        },
         'loge-maconnique': {
           requiresMembership: 'loge',
           name: 'Cercle des Camarades',
@@ -1957,11 +1952,6 @@ const WORLD = {
           orders: [
             {fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local de Camarade Kalachnikov. Rien de tout cela n\'est enregistré.'}
           ]
-        },
-        'marche': {
-          name: 'Marché d\'État',
-          desc: "Les rayons sont souvent vides. Olga propose parfois des produits sous le manteau.",
-          persons: [{"name": "Vendeur d'État (PNJ)", "role": "Vendeur collectif", "rel": "neutral", "job": "commercant"}, {"name": "Olga Marché Noir (PNJ)", "role": "Revendeuse discrète", "rel": "neutral", "job": "commercant"}]
         },
         'palais-presidentiel': {
           name: 'Palais du Parti',
@@ -1986,7 +1976,7 @@ const WORLD = {
           name: 'Palais du Gouvernement de Sovarka',
           desc: 'Le vrai pouvoir de Sovarka. Chaque décision est votée à l\'unanimité — le Parti ne connaît pas le désaccord.',
           // Intitulés de Sovarka (Fred, 07/11/2026, « Organisation du pouvoir en Sovarka ») ;
-          // images des bureaux à venir (imagesAVenir), seul le hall a la sienne.
+          // toutes les pièces illustrées par Fred (08/11/2026).
           roomOverrides: {
             hall: {
               imageUrl: 'images/Sovarka/Novomirsk/Novo_palais_hall.webp'
@@ -1995,32 +1985,30 @@ const WORLD = {
             salle_conseil:  { name: 'Salle du Conseil du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_conseil.webp' },
             salle_presse:   { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_presse.webp' },
             archives_gouv:  { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_archives.webp' },
-            bureau_min_int: { name: 'Bureau - Ministre de la Sécurité du Peuple' },
-            bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective" },
-            bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne' },
-            bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie' },
-            bureau_min_info:{ name: 'Bureau - Ministre de la Vérité officielle' },
-            bureau_min_ae:  { name: "Bureau - Ministre de l'Amitié entre les Peuples" }
+            bureau_min_int: { name: 'Bureau - Ministre de la Sécurité du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_securite.webp' },
+            bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_economie.webp' },
+            bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_justice.webp' },
+            bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_defense.webp' },
+            bureau_min_info:{ name: 'Bureau - Ministre de la Vérité officielle', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_information.webp' },
+            bureau_min_ae:  { name: "Bureau - Ministre de l'Amitié entre les Peuples", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_diplomatie.webp' }
           },
           persons: []
         },
-        'assemblee': {
-          name: 'Soviet Suprême',
-          desc: 'L\'assemblée du Peuple. Tous les votes sont unanimes. Camarade Président parle, les délégués approuvent.',
-          persons: [],
-          // Sièges répartis à la semaine à la gloire des partis, députés désignés par les chefs de
-          // parti (Fred, 07/11/2026) : sovarka_soviet_etat / sovarka_depute_designer.
-          roomOverrides: {
-            hemicycle: {
-              orders: [{ fn: 'sovarka_soviet_deputes', label: 'Sièges et députés du Soviet Suprême',
-                pa: 0, cost: 0, type: 'legal', icon: 'ti-users-group', successRate: 100,
-                desc: 'Consulter la répartition des sièges ; un chef de parti y désigne les députés de son parti.' }]
-            }
-          }
-        },
+        // Soviet Suprême retiré de Novomirsk (Fred, 08/11/2026) : pas de chambre des députés ; ils sont
+        // convoqués le jeudi au Palais du Gouvernement. Les chefs désignent leurs députés depuis « Mon parti ».
         'mairie-capitale': {
-          name: 'Soviet Municipal',
+          name: 'Mairie de Novomirsk',
           desc: 'L\'administration locale du Parti. Formulaires en quadruple exemplaire.',
+          roomOverrides: {
+            hall_mairie:          { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_hall.webp' },
+            bureau_maire:         { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_bureau_maire.webp' },
+            bureau_maire_adjoint: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_bureau_adjoint.webp' },
+            salle_elections:      { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_salle_elections.webp' },
+            salle_archives:       { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_archives.webp' },
+            salle_partis:         { name: 'Salle des partis', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_mairie_salle_partis_politiques.webp',
+                                    // Nom et fonction donnés par Fred (07/11/2026) ; portrait tiré de l'illustration.
+                                    persons: [{name: 'Capitaine Igor Balatov (PNJ)', role: 'Chef de la cellule de validation et surveillance des partis', rel: 'neutral', job: 'responsable_election', photoUrl: 'images/Sovarka/Novomirsk/Novo_igor_balatov_portrait.webp'}] }
+          },
           persons: []
         },
                 'centre-multinodal-luthecia': {
@@ -2066,14 +2054,15 @@ const WORLD = {
           // article/etouffer exclus (chantier "lobbying presse", 4 septembre 2026) : cet organe du
           // Parti a Sovarka est distinct de La Tribune de Republia (Republic uniquement) -- ces deux
           // ordres n'ont de sens qu'aupres de cette derniere. Le reste (produire_fuite/
-          // fabriquer_scandale/interview/corrompre_journaliste) reste inchange. NB : cette entree
-          // 'la-tribune' est la version reellement active du buildingContext de Novomirsk (cle
-          // dupliquee plus haut dans ce meme buildingContext sous le nom "La Pravdovka", qui ne
-          // s'applique donc jamais -- bug preexistant hors perimetre de ce chantier, non corrige).
-          roomOverrides: { redaction: { excludeOrders: ['article', 'etouffer'] } }
+          // fabriquer_scandale/interview/corrompre_journaliste) reste inchange.
+          roomOverrides: {
+            accueil_tribune: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_presse_accueil.webp' },
+            redaction: { excludeOrders: ['article', 'etouffer'] }
+          }
         },
         'marche': {
           name: "Distribution Collective",
+          roomOverrides: { marche_ext: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_marche.webp' } },
           desc: "Files organisées par ordre alphabétique.",
           persons: [{"name": "Distributeur Équitable (PNJ)", "role": "Distributeur", "rel": "neutral", "job": "commercant"}]
         },
@@ -2129,20 +2118,21 @@ const WORLD = {
         // memes pieces, memes ordres et memes fonctions serveur qu'en Republia, mais EN VILLE : en Sovarka la
         // caserne n'est pas une zone hors ville (decision de Fred, 05/11/2026 ; migration 20261105200100).
         // PNJ propres a Novomirsk, noms valides par Fred le 05/11 (regle « pas de connexion entre les villes ») ;
-        // l'armurier et l'archiviste restent anonymes. Images a venir.
+        // l'armurier et l'archiviste restent anonymes. Sept pieces illustrees par Fred (08/11).
         'caserne-militaire': {
           name: "Caserne centrale de Novomirsk",
-          imagesAVenir: true,
           desc: "La caserne centrale de l'Armée populaire de Sovarka, en plein cœur de Novomirsk. Deux portails, des sentinelles qui ne cillent pas, et l'étoile rouge repeinte chaque printemps.",
           roomOverrides: {
-            corps_garde: { persons: [{name: 'Adjudant Piotr Antipov (PNJ)', role: 'PNJ - Aide de camp', rel: 'friendly', job: 'aide_de_camp', profilId: 'piotr_antipov'}] },
-            infirmerie: { persons: [{name: 'Infirmière Olga Komarova (PNJ)', role: 'PNJ - Infirmière militaire', rel: 'neutral', job: 'infirmier_mil', profilId: 'olga_komarova'}] },
-            salle_commandement: { persons: [{name: 'Commandant Igor Saveliev', role: 'PNJ - Commandant de la Caserne', rel: 'neutral',
+            armurerie_militaire: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_armurerie.webp' },
+            salle_faits_armes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_salle_honneur.webp' },
+            corps_garde: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_hall.webp', persons: [{name: 'Adjudant Piotr Antipov (PNJ)', role: 'PNJ - Aide de camp', rel: 'friendly', job: 'aide_de_camp', profilId: 'piotr_antipov'}] },
+            infirmerie: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_infirmerie.webp', persons: [{name: 'Infirmière Olga Komarova (PNJ)', role: 'PNJ - Infirmière militaire', rel: 'neutral', job: 'infirmier_mil', profilId: 'olga_komarova'}] },
+            salle_commandement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_salle_commandement.webp', persons: [{name: 'Commandant Igor Saveliev', role: 'PNJ - Commandant de la Caserne', rel: 'neutral',
               job: 'commandant', resteApresPourvoi: true,
               roleSiPnjTitulaire: 'PNJ - Commandant de la Caserne',
               roleSiPjTitulaire:  'PNJ - Commandant adjoint'}] },
-            refectoire: { persons: [{name: 'Caporal Vassili Kachaev', role: 'Cuisinier de compagnie', rel: 'friendly', job: 'cuistot_mil', profilId: 'vassili_kachaev'}] },
-            quartier_troupes: { persons: [
+            refectoire: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_refectoire.webp', persons: [{name: 'Caporal Vassili Kachaev', role: 'Cuisinier de compagnie', rel: 'friendly', job: 'cuistot_mil', profilId: 'vassili_kachaev'}] },
+            quartier_troupes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_caserne_dortoir.webp', persons: [
               {name: 'Caporal Dimitri Loguinov (PNJ)', role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'},
               {name: 'Soldat Sacha Iline (PNJ)',  role: 'PNJ - Soldat', rel: 'neutral', job: 'soldat'}] }
           }
@@ -6987,6 +6977,7 @@ const BUILDINGS = {
     rooms: {
       atelier_garage: {
         name: "Atelier",
+        imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_garage.webp',
         imageBg: "linear-gradient(135deg,#12161a,#1a2026)",
         desc: "Le comptoir, l'atelier et la cour où attendent les véhicules neufs.",
         persons: [{name:'Sergueï Zaptchastov (PNJ)', role:'Garagiste', rel:'neutral', job:'garagiste'}],
@@ -7013,6 +7004,7 @@ const BUILDINGS = {
     rooms: {
       salon_coiffure: {
         name: "Salon",
+        imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_salon_coiffure.webp',
         imageBg: "linear-gradient(135deg,#161219,#201a24)",
         desc: "Trois fauteuils, un grand miroir piqué et l'odeur de la laque. La radio diffuse le bulletin du Parti entre deux valses.",
         persons: [{name:'Ludmila Egorova (PNJ)', role:'Coiffeuse', rel:'neutral', job:'coiffeuse'}],
@@ -7146,6 +7138,7 @@ const BUILDINGS = {
     rooms: {
       comptoir_pharmacie: {
         name: "Comptoir",
+        imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pharmacie.webp',
         imageBg: "linear-gradient(135deg,#10161a,#172026)",
         desc: "Un long comptoir de bois verni, une balance de précision et un registre où chaque boîte vendue est consignée.",
         persons: [{name:'Valentina Pilioulkina (PNJ)', role:'Pharmacienne', rel:'neutral', job:'pharmacienne'}],
@@ -7170,6 +7163,7 @@ const BUILDINGS = {
     rooms: {
       etal_poissonniere: {
         name: "Étal",
+        imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_poissonniere.webp',
         imageBg: "linear-gradient(135deg,#0e1418,#16202a)",
         desc: "Une bâche tendue contre le vent, des caisses de poisson sur la glace et, derrière, une marchande qui voit passer toute la ville.",
         persons: [{name:'Galina Karpova (PNJ)', role:'Marchande de poissons', rel:'neutral', job:'commercant'}],
@@ -8516,6 +8510,14 @@ const ROOM_IMAGES_EMPIRE = {
       'hall_gare':  'images/accueil-centre-multimodal-novomirsk.webp',
       'aeroport':   'images/centre-multinodal-sovarka.webp'
     },
+    // Garde-fou par empire : le marche de Novomirsk ne reprend jamais le decor de Luthecia.
+    'marche': {
+      'marche_ext': 'images/Sovarka/Novomirsk/Novomirsk_marche.webp'
+    },
+    // L'agence de presse de Sovarka a son propre accueil, jamais celui de Luthecia.
+    'la-tribune': {
+      'accueil_tribune': 'images/Sovarka/Novomirsk/Novomirsk_presse_accueil.webp'
+    },
     'palais-presidentiel': {
       'accueil_elysee':    'images/hall-parti-sovarka.webp',
       'bureau_president':  'images/bureau-gouv-sovarka.png'
@@ -9843,12 +9845,20 @@ const INTITULES_POSTES_PAR_PAYS = {
   }
 };
 
-// Nom affiche d'un poste dans un pays ; `defaut` sert quand le pays n'a pas d'intitule propre.
+// Conserver le libelle canonique avant de brancher les getters qui suivent : la lecture
+// d'un poste de Republia depuis Sovarka ne doit jamais heriter du titre sovarkien.
+const INTITULES_POSTES_CANONIQUES = Object.fromEntries(
+  Object.entries(POSTES_NOMMES_EXCLUSIFS).map(([id, poste]) => [id, poste.label])
+);
+Object.values(POSTES_ELECTIFS).forEach(liste =>
+  liste.forEach(poste => { if (!(poste.id in INTITULES_POSTES_CANONIQUES)) INTITULES_POSTES_CANONIQUES[poste.id] = poste.name; })
+);
+
+// Nom affiche d'un poste dans son pays de mandat, pas le pays de deplacement du PJ.
 function intitulePoste(posteId, pays, defaut) {
   const propre = INTITULES_POSTES_PAR_PAYS[pays] && INTITULES_POSTES_PAR_PAYS[pays][posteId];
   if (propre) return propre;
-  if (defaut) return defaut;
-  return (POSTES_NOMMES_EXCLUSIFS[posteId] && POSTES_NOMMES_EXCLUSIFS[posteId].label) || posteId;
+  return INTITULES_POSTES_CANONIQUES[posteId] || defaut || posteId;
 }
 
 // Les ecrans lisent `POSTES_NOMMES_EXCLUSIFS[id].label` et `POSTES_ELECTIFS[...].name` en
@@ -10430,4 +10440,31 @@ function slugPnjSovarka(nom) {
     reunion_moyenne_b: salle("Salle de réunion moyenne B", 'moyenne_reunion.webp',
       "Seconde salle de réunion avec aquarium marin. Location : 100 PSK/jour.",100)
   };
+})();
+
+// SALLE DES PARTIS DES TROIS MAIRIES DE SOVARKA (Fred, 07/11/2026, GAME-DESIGN-NOVOMIRSK.md « Partis
+// de Sovarka »). Les partis y sont domiciliés : création libre (2 PA, 15 PSK), siège dans la ville de
+// création. Navigation serveur : migration 20261107184000. Image : Novomirsk (roomOverrides), Krasnov et Starovka à venir.
+(function () {
+  const salle = () => ({
+    name: 'Salle des partis',
+    imageBg: 'linear-gradient(135deg,#1a0c0c,#2a1414)',
+    desc: "Une longue salle aux murs couverts d'affiches. Chaque parti de Sovarka y a son casier, son tampon et sa bannière ; on s'y inscrit, on y adhère, on y règle ses comptes entre camarades.",
+    persons: [],
+    orders: [
+      {fn:'sovarka_partis', label:'Partis constitués', pa:0, cost:0, type:'legal', icon:'ti-flag', successRate:100,
+       desc:"La liste des partis de Sovarka, leur chef, leur siège et leur droit d'entrée. Demander à adhérer coûte 2 PA ; le chef accepte ou refuse."},
+      {fn:'sovarka_parti_fonder', label:'Créer un parti', pa:2, cost:15, type:'legal', icon:'ti-flag-plus', successRate:100,
+       desc:"Fonder un parti national, dont le siège sera dans cette ville : 2 PA et 15 PSK de droits d'enregistrement. On ne peut appartenir qu'à un parti."},
+      {fn:'sovarka_mon_parti', label:'Mon parti', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100,
+       desc:"Membres, demandes d'adhésion, droit d'entrée, successeur ; quitter le parti coûte 1 PA."}
+    ]
+  });
+  for (const [ville, batiment] of [['capitale', 'mairie-capitale'], ['ville_a', 'mairie'], ['ville_b', 'mairie']]) {
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    if (!cite) continue;
+    cite.buildingContext = cite.buildingContext || {};
+    const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+    ctx.roomsExtra = Object.assign({}, ctx.roomsExtra || {}, { salle_partis: salle() });
+  }
 })();
