@@ -16,11 +16,11 @@ function rpActionMailLabel(key,original) {
 function rpForumCompte(kind,number,source) {
   return (typeof window!=='undefined' && window.RPForumUI?.count?.(kind,number,source)) || source;
 }
-function rpForumNomOuvert(id,source) {
-  return '<span data-rp-forum-name="'+encodeURIComponent(id)+'" data-rp-forum-source="'+encodeURIComponent(source)+'">'+rpForumNom(id,source)+'</span>';
+function rpForumNomOuvert(id,source,translated) {
+  return '<span data-rp-forum-name="'+encodeURIComponent(id)+'" data-rp-forum-source="'+encodeURIComponent(source)+'">'+translated+'</span>';
 }
-function rpForumPlateauOuvert(key,source) {
-  return '<span data-rp-plateau-key="'+encodeURIComponent(key)+'" data-rp-plateau-source="'+encodeURIComponent(source)+'">'+rpForumPlateauLibelle(key,source)+'</span>';
+function rpForumPlateauOuvert(key,source,translated) {
+  return '<span data-rp-plateau-key="'+encodeURIComponent(key)+'" data-rp-plateau-source="'+encodeURIComponent(source)+'">'+translated+'</span>';
 }
 function rpRefreshForumOpenLabels() {
   if(typeof document==='undefined')return;
@@ -884,7 +884,7 @@ function renderForumNavItem(id, f) {
     onclick="${accessible ? `switchForum('${id}')` : `showToast('Accès restreint','Ce forum est réservé aux membres autorisés.',false)`}">
     <i class="ti ${f.icon}" style="font-size:.85rem"></i>
     <div>
-      <div class="forum-nav-name">${rpForumNomOuvert(id,f.name)}${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
+      <div class="forum-nav-name">${rpForumNomOuvert(id,f.name,rpForumNom(id,f.name))}${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
       <div class="forum-nav-count">${nombreSujetsForum(id)}</div>
     </div>
     ${f.private ? `<i class="ti ti-lock" style="font-size:.65rem;color:#4a4030;margin-left:auto"></i>` : ''}
@@ -1165,7 +1165,7 @@ function renderTopicList() {
   return `
     <div class="forum-header-bar">
       <div>
-        <div class="forum-title-main"><i class="ti ${f.icon}"></i> ${rpForumNomOuvert(currentForumId,f.name)}</div>
+        <div class="forum-title-main"><i class="ti ${f.icon}"></i> ${rpForumNomOuvert(currentForumId,f.name,rpForumNom(currentForumId,f.name))}</div>
         <div class="forum-subtitle">${rpForumDescription(currentForumId,f.desc)}</div>
       </div>
       ${peutCreerSujet ? `
@@ -3046,11 +3046,11 @@ function renderMailCompose(defaultTo = '', defaultSubject = '', defaultOrgaId = 
       <button class="forum-back-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">
         <i class="ti ti-arrow-left"></i> ${rpForumLibelle('back','Retour')}
       </button>
-      <div class="forum-title-main">${rpForumPlateauOuvert('newMessage','Nouveau message')}</div>
+      <div class="forum-title-main">${rpForumPlateauOuvert('newMessage','Nouveau message',rpForumPlateauLibelle('newMessage','Nouveau message'))}</div>
     </div>
     <div class="forum-compose-form">
       <div class="forum-field">
-        <label class="forum-field-label">${rpForumPlateauOuvert('recipient','Destinataire')}</label>
+        <label class="forum-field-label">${rpForumPlateauOuvert('recipient','Destinataire',rpForumPlateauLibelle('recipient','Destinataire'))}</label>
         <input class="forum-field-input" id="mail-to" type="text" value="${escapeHtmlText(defaultTo)}"
           data-rp-placeholder-key="recipientPlaceholder" data-rp-placeholder-source="Nom du destinataire..." placeholder="${rpForumPlateauLibelle('recipientPlaceholder','Nom du destinataire...')}" list="contacts-list"/>
         <datalist id="contacts-list">
@@ -3059,16 +3059,16 @@ function renderMailCompose(defaultTo = '', defaultSubject = '', defaultOrgaId = 
       </div>
       ${renderEnvoyerMailEnTantQue('compose-mail-auteur', defaultOrgaId)}
       <div class="forum-field">
-        <label class="forum-field-label">${rpForumPlateauOuvert('subject','Sujet')}</label>
+        <label class="forum-field-label">${rpForumPlateauOuvert('subject','Sujet',rpForumPlateauLibelle('subject','Sujet'))}</label>
         <input class="forum-field-input" id="mail-subject" type="text" value="${escapeHtmlText(defaultSubject)}"
           data-rp-placeholder-key="subjectPlaceholder" data-rp-placeholder-source="Objet du message..." placeholder="${rpForumPlateauLibelle('subjectPlaceholder','Objet du message...')}"/>
       </div>
       <div class="forum-field">
-        <label class="forum-field-label">${rpForumPlateauOuvert('messageLabel','Message')}</label>
+        <label class="forum-field-label">${rpForumPlateauOuvert('messageLabel','Message',rpForumPlateauLibelle('messageLabel','Message'))}</label>
         ${renderRichEditor('compose-body')}
       </div>
       <button class="forum-submit-btn" onclick="submitMail()">
-        <i class="ti ti-send"></i> ${rpForumPlateauOuvert('sendButton','Envoyer')}
+        <i class="ti ti-send"></i> ${rpForumPlateauOuvert('sendButton','Envoyer',rpForumPlateauLibelle('sendButton','Envoyer'))}
       </button>
     </div>
   `;
