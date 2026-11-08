@@ -1,4 +1,5 @@
 name: Novomirsk — 5 décors ambassades et armurerie (exécution unique)
+# Relance de recette via pull_request sans déploiement anticipé.
 on:
   push:
     branches: [main]
