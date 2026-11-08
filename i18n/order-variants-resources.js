@@ -196,7 +196,7 @@
     "finance_open_account": "계좌 개설 또는 관리",
     "local_manage": "내 점포 관리",
     "local_safe": "내 금고 관리",
-    "religion_formulaire": "신성한 서식지에 기도하기",
+    "religion_formulaire": "신성한 서식에 기도하기",
     "religion_feuille": "잎과 교감하기",
     "religion_tracteur": "트랙터 찬가 부르기",
     "religion_loukoum": "로쿰과 교감하기",
