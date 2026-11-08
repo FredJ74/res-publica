@@ -1934,12 +1934,6 @@ const WORLD = {
           desc: "Longues files d'attente. Aspirine et bonne volonté.",
           persons: [{"name": "Infirmière Stoïque (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "medecin"}]
         },
-        'la-tribune': {
-          name: 'La Pravdovka',
-          roomOverrides: { accueil_tribune: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_presse_accueil.webp' } },
-          desc: "L'organe de vérité du Parti, vérifié trois fois.",
-          persons: [{"name": "Rédacteur Vérité (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}, {"name": "Correspondant Parti (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
-        },
         'loge-maconnique': {
           requiresMembership: 'loge',
           name: 'Cercle des Camarades',
@@ -1958,12 +1952,6 @@ const WORLD = {
           orders: [
             {fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local de Camarade Kalachnikov. Rien de tout cela n\'est enregistré.'}
           ]
-        },
-        'marche': {
-          name: 'Marché d\'État',
-          roomOverrides: { marche_ext: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_marche.webp' } },
-          desc: "Les rayons sont souvent vides. Olga propose parfois des produits sous le manteau.",
-          persons: [{"name": "Vendeur d'État (PNJ)", "role": "Vendeur collectif", "rel": "neutral", "job": "commercant"}, {"name": "Olga Marché Noir (PNJ)", "role": "Revendeuse discrète", "rel": "neutral", "job": "commercant"}]
         },
         'palais-presidentiel': {
           name: 'Palais du Parti',
@@ -2078,14 +2066,15 @@ const WORLD = {
           // article/etouffer exclus (chantier "lobbying presse", 4 septembre 2026) : cet organe du
           // Parti a Sovarka est distinct de La Tribune de Republia (Republic uniquement) -- ces deux
           // ordres n'ont de sens qu'aupres de cette derniere. Le reste (produire_fuite/
-          // fabriquer_scandale/interview/corrompre_journaliste) reste inchange. NB : cette entree
-          // 'la-tribune' est la version reellement active du buildingContext de Novomirsk (cle
-          // dupliquee plus haut dans ce meme buildingContext sous le nom "La Pravdovka", qui ne
-          // s'applique donc jamais -- bug preexistant hors perimetre de ce chantier, non corrige).
-          roomOverrides: { redaction: { excludeOrders: ['article', 'etouffer'] } }
+          // fabriquer_scandale/interview/corrompre_journaliste) reste inchange.
+          roomOverrides: {
+            accueil_tribune: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_presse_accueil.webp' },
+            redaction: { excludeOrders: ['article', 'etouffer'] }
+          }
         },
         'marche': {
           name: "Distribution Collective",
+          roomOverrides: { marche_ext: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_marche.webp' } },
           desc: "Files organisées par ordre alphabétique.",
           persons: [{"name": "Distributeur Équitable (PNJ)", "role": "Distributeur", "rel": "neutral", "job": "commercant"}]
         },
