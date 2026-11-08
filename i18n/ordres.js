@@ -16,7 +16,7 @@
  // Une même commande joue des cérémonies réellement différentes selon l'empire.
  // Ne jamais traduire par fn seul : correspondance stricte avec le libellé
  // canonique du serveur, sans modifier l'ordre ni créer de nouvel effet.
- const cultVariants=Object.freeze({
+ const exactVariants=Object.freeze({
   prier:Object.freeze({
    'Prier le Formulaire Sacré':'religion_formulaire',
    'Communier avec la Feuille':'religion_feuille',
@@ -28,10 +28,42 @@
    'Faire une offrande':'don_offrande',
    'Donner au Kolkhoze':'don_kolkhoze',
    'Offrir des loukoums':'don_loukoums'
+  }),
+  propagande_etat:Object.freeze({
+   "Propagande d'Etat":'politics_propaganda_state',
+   'Campagne de propagande':'politics_propaganda_campaign'
+  }),
+  dementi:Object.freeze({
+   'Dementi officiel':'politics_denial_plain',
+   'Démenti officiel':'politics_denial_accent'
+  }),
+  archives_police:Object.freeze({
+   'Consulter les archives':'police_archives',
+   'Consulter le registre':'police_register'
+  }),
+  repartition_budget_local:Object.freeze({
+   'Repartir le budget municipal':'budget_plain',
+   'Répartir le budget municipal':'budget_accent'
+  }),
+  receptionner_commande:Object.freeze({
+   'Réceptionner une caisse':'shipment_receive_crate',
+   'Réceptionner une commande':'shipment_receive_order'
+  }),
+  expedier_colis:Object.freeze({
+   'Réserver une caisse de fret':'shipment_book_crate',
+   'Expédier un colis':'shipment_send_parcel'
+  }),
+  corrompre_fonctionnaire_permis:Object.freeze({
+   'Corrompre un fonctionnaire (accélérer)':'permit_bribe_general',
+   'Corrompre un fonctionnaire (accélérer le permis)':'permit_bribe_permit'
+  }),
+  corrompre_fonct:Object.freeze({
+   'Corrompre le directeur':'corruption_director',
+   'Falsifier un proces-verbal':'corruption_false_report'
   })
  });
  function cultLabel(code,original,engine,locale){
-  const variant=cultVariants[code]?.[original];
+  const variant=exactVariants[code]?.[original];
   if(!variant)return original;
   const translated=engine.t('orderVariants.'+variant,{lng:locale,defaultValue:original});
   return typeof translated==='string'&&translated.trim() ? translated : original;
@@ -78,7 +110,7 @@
     : 'orders.'+order.i18nKey;
   }
   else if(validKey.test(code) && !ambiguities.has(code))key='orders.'+code;
-  if(!key)return cultVariants[code]
+  if(!key)return exactVariants[code]
    ? cultLabel(code,original,engine,locale)
    : structuredLabel(code,original,engine,locale);
   // Un même fn peut changer de sens ou de prix selon la pièce / le fournisseur.
