@@ -253,3 +253,28 @@ test('les textes et titres pilotés par les mécanismes métier ne portent pas d
  assert.match(html,/data-i18n="plateau.character"/);
  assert.match(html,/data-i18n="plateau.messagesForums"/);
 });
+
+test('bascule arabe : rétablir le dir initial, y compris après traduction manquante',()=>{
+ const attrs={'data-i18n':'plateau.messages',dir:'ltr'};
+ const element={textContent:'Messages',attrs,
+  getAttribute(k){return this.attrs[k]??null},
+  hasAttribute(k){return Object.hasOwn(this.attrs,k)},
+  setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+ const document={documentElement:{lang:'fr'},querySelectorAll(sel){return sel==='[data-i18n]'?[element]:[]}};
+ const listeners={};
+ const engine={language:'en',on(name,fn){listeners[name]=fn},
+  init(opts,done){this.language=opts.lng;done(null)},
+  t(key){return this.language==='ar'?'الرسائل':this.language==='en'?'Messages':key},
+  changeLanguage(lng){this.language=lng;listeners.languageChanged?.(lng)}};
+ const window={RP_I18N_GAME_ENABLED:true,document,localStorage:{getItem:()=> 'en'},
+  RP_I18N_LANGUAGES:{fr:{},en:{},ar:{},ko:{}},RP_I18N_RESOURCES:{},i18next:engine};
+ vm.runInNewContext(script,{window,console});
+ assert.equal(attrs.dir,'ltr');
+ engine.changeLanguage('ar');
+ assert.equal(attrs.dir,'rtl');
+ engine.changeLanguage('en');
+ assert.equal(attrs.dir,'ltr');
+ engine.changeLanguage('ko'); // traduction manquante => source et direction initiales
+ assert.equal(element.textContent,'Messages');
+ assert.equal(attrs.dir,'ltr');
+});
