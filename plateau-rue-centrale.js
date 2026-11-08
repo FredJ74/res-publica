@@ -1263,10 +1263,10 @@ const RUE_CENTRALE_NOEUDS = {
       flechesStyle: { arriere: RC_FLECHE_BAS }
     },
 
-    // V10 — Tribunal. Le palais visible au fond est le Palais du Gouvernement, atteint par V1 :
+    // V10 — Tribunal. Le palais presidentiel visible au fond est atteint par V1 :
     // pas de hotspot ici (un batiment d'arriere-plan n'est pas rendu cliquable).
     'novomirsk-vue-10': {
-      image: 'images/rue-tribunal-palais-novomirsk.webp',
+      image: 'images/Sovarka/Novomirsk/novomirsk-rue-tribunal-palais-presidentiel.webp',
       zones: [
         { xPct: [0, 34], yPct: [0, 78], nom: 'Tribunal de Novomirsk', type: 'batiment', buildingId: 'tribunal' }
       ],
