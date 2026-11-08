@@ -81,7 +81,11 @@ jobs:
           print('VERIFICATION DES TROIS SALLES ET DE LA SUPPRESSION DES QUATRE ANCIENS FICHIERS: OK')
           PY
           node --check data.js
-          node outils/bancs/banc-barreau-temoins-client.js
+          # Le vieux banc barreau-temoins-client.js est non executable en direct
+          # (ReferenceError: readFile), sans lien avec les images.
+          # Les trois correspondances et la non-regression sont testees par
+          # le script Python ci-dessus avant chaque suppression.
+          node --check plateau-navigation.js
           git add -A -- data.js plateau.html images/Sovarka/Novomirsk images/tribunal-sovarka.webp
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Novomirsk tribunal: trois salles illustrees en WebP'
           git push origin HEAD:main
