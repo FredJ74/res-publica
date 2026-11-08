@@ -45,3 +45,33 @@ test('langue source indéterminée : traduction automatique sans supposer le fra
  assert.equal(result.langueOriginale,'und');
  assert.equal(result.traduit,'Hallo {{name}}');
 });
+
+test('P2-01: refuser changement de montant, de devise ou du nombre de PA, sans cache',async()=>{
+ const source='Votre commande coûte 100 FR et 1 PA, {{name}}.';
+ for(const text of [
+  'Your order costs 1000 USD and 9 AP, {{name}}.',
+  'Your order costs 100 FR and 9 PA, {{name}}.',
+  'Your order costs 100 USD and 1 PA, {{name}}.',
+  'Your order costs 1 FR and 100 PA, {{name}}.',
+  'Your order costs 100 FR and 1 PA, {{name}}.\u0000'
+ ]){
+  const response=await traduireTexte({texte:source,langueOriginale:'fr',langueCible:'en'},
+   async()=>({ok:true,texte:text,tronque:false}));
+  assert.equal(response.ok,false,JSON.stringify(text));
+  assert.equal(response.traduit,null);
+  assert.equal(response.original,source);
+  assert.equal(response.raison,'traduction_invalide');
+ }
+ const correct=await traduireTexte({texte:source,langueOriginale:'fr',langueCible:'en'},
+  async()=>({ok:true,texte:'Your order costs 100 FR and 1 PA, {{name}}.',tronque:false}));
+ assert.equal(correct.ok,true);
+ assert.equal(correct.traduit,'Your order costs 100 FR and 1 PA, {{name}}.');
+});
+test('P2-01: refuser tout marqueur de contrôle dans la sortie fournisseur',async()=>{
+ const source='Bienvenue sur le forum.';
+ for(const char of ['\u0000','\u0007','\u001f']){
+  const response=await traduireTexte({texte:source,langueOriginale:'fr',langueCible:'en'},
+   async()=>({ok:true,texte:'Welcome to the forum.'+char,tronque:false}));
+  assert.equal(response.ok,false);
+ }
+});
