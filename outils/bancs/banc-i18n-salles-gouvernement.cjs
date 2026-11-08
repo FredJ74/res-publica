@@ -34,9 +34,13 @@ const source={
  bureau_republia_novomirsk:'Ambassade de Républia',
  bureau_khalija_novomirsk:"Ambassade d'Al-Khalija",
  bureau_estado_novomirsk:"Ambassade d'El Estado",
- magasin:'Magasin'
+ magasin:'Magasin',
+ accueil_police:'Accueil',
+ prison:'Cellules de garde a vue',
+ bureau_commissaire:'Bureau du Commissaire',
+ marche_ext:'Etals du marche'
 };
-test('neuf traductions de dix-neuf salles, avec repli français explicite',()=>{
+test('neuf traductions de vingt-trois salles, avec repli français explicite',()=>{
  assert.equal(Object.keys(win.RP_I18N_LANGUAGES).length,9);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
   locale=lang;
@@ -45,7 +49,7 @@ test('neuf traductions de dix-neuf salles, avec repli français explicite',()=>{
   for(const [room,original] of Object.entries(source)){
    assert.equal(typeof rooms[room],'string');
    assert.ok(rooms[room].trim(),lang+': '+room);
-   assert.equal(win.RPRoomI18n.label(room==='magasin'?'armurerie':room.includes('maire')||room==='accueil_mairie'?'mairie':room==='salle_reception'||room.includes('ambassades_novomirsk')||room.startsWith('bureau_republia_novomirsk')||room.startsWith('bureau_khalija_novomirsk')||room.startsWith('bureau_estado_novomirsk')?'palais-ambassades-novomirsk':'palais-gouvernement',room,original),rooms[room]);
+   assert.equal(win.RPRoomI18n.label(room==='magasin'?'armurerie':['accueil_police','prison','bureau_commissaire'].includes(room)?'commissariat':room==='marche_ext'?'marche':room.includes('maire')||room==='accueil_mairie'?'mairie':room==='salle_reception'||room.includes('ambassades_novomirsk')||room.startsWith('bureau_republia_novomirsk')||room.startsWith('bureau_khalija_novomirsk')||room.startsWith('bureau_estado_novomirsk')?'palais-ambassades-novomirsk':'palais-gouvernement',room,original),rooms[room]);
   }
  }
 });
@@ -59,7 +63,10 @@ test('une autre pièce, un nom contextuel ou une autre institution garde son nom
   ['palais-gouvernement','hall',"Hall d'entrée"],
   ['armurerie','magasin','Boutique privée'],
   ['marché','magasin','Magasin'],
-  ['armurerie','hall','Magasin']
+  ['armurerie','hall','Magasin'],
+  ['commissariat','accueil_police','Accueil du poste de garde'],
+  ['marche','marche_ext','Marché couvert'],
+  ['mairie','accueil_police','Accueil']
  ]){
   assert.equal(win.RPRoomI18n.label(building,room,original),original);
  }
@@ -122,4 +129,25 @@ test('le magasin de l’armurerie de Sovarka utilise une traduction de salle et 
  }
  // Ce banc ne charge aucun catalogue d'ordres : les ressources de salle sont isolées.
  assert.equal(win.RP_I18N_RESOURCES.fr.translation.orders,undefined);
+});
+
+test('quatre salles publiques : source canonique et périmètre limité aux lieux appropriés',()=>{
+ const data=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const civic={commissariat:['accueil_police','prison','bureau_commissaire'],marche:['marche_ext']};
+ for(const [building,ids] of Object.entries(civic)){
+  const start=data.indexOf("\\n  '"+building+"': {",300000);
+  assert.ok(start>=0,'édifice manquant '+building);
+  const end=data.indexOf("\\n  '",start+5);
+  const sourceBuilding=data.slice(start,end>start?end:undefined);
+  for(const id of ids){
+   assert.ok(sourceBuilding.includes(id+': {'),'salle absente '+building+'/'+id);
+   for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
+    locale=lng;
+    const label=win.RPRoomI18n.label(building,id,source[id]);
+    assert.equal(label,win.RP_I18N_RESOURCES[lng].translation.rooms[id]);
+   }
+   locale='en';
+   assert.equal(win.RPRoomI18n.label(building,id,source[id]+' (privé)'),source[id]+' (privé)');
+  }
+ }
 });
