@@ -22,7 +22,7 @@ test('les en-têtes de plateau ont un fallback français sans modifier leurs com
 });
 
 test('les panneaux statiques portent des clés de localisation sans modifier les handlers',()=>{
- for(const key of ['money','cash','bank','cityMap','peoplePresent','availableActions','combatReports','newMessage','description']) {
+ for(const key of ['money','cash','bank','cityMap','peoplePresent','combatReports','newMessage']) {
   assert.ok(plateau.includes('data-i18n="plateau.'+key+'"'),'clé absente '+key);
  }
  assert.match(plateau,/onclick="ouvrirCalepinCampagne\(\)"/);
@@ -30,7 +30,7 @@ test('les panneaux statiques portent des clés de localisation sans modifier les
 });
 
 test('navigation principale, forum et courrier gardent leurs clés et événements',()=>{
- for(const key of ['personalActions','inventory','organizations','identity','statistics','rules','forum','localForum','mailbox','receivedMessages','financeManagement','characterSheet','conversation']) {
+ for(const key of ['personalActions','inventory','organizations','identity','statistics','rules','forum','mailbox','financeManagement','characterSheet']) {
   assert.ok(plateau.includes('data-i18n="plateau.'+key+'"'),key);
  }
  assert.match(plateau,/onclick="switchSelfTab\('actions',this\)"/);
@@ -39,10 +39,19 @@ test('navigation principale, forum et courrier gardent leurs clés et événemen
 });
 
 test('cartes, organigramme, courrier et guide utilisent des textes localisés statiques',()=>{
- for(const key of ['worldMap','orgChart','postalCard','subject','messageLabel','gameGuide']) {
+ for(const key of ['worldMap','subject','messageLabel','gameGuide']) {
   assert.ok(plateau.includes('data-i18n="plateau.'+key+'"'),key);
  }
  assert.match(plateau,/onclick="closeWorldMap\(\)"/);
  assert.match(plateau,/id="compose-mail-subject"/);
  assert.match(plateau,/id="compose-mail-body"/);
+});
+
+test('les titres et descriptions dynamiques préservent les valeurs métier entre deux langues',()=>{
+ for(const id of ['piece-desc','pnj-modal-title','postes-modal-title','forum-view-subtitle',
+  'mail-view-subtitle','action-context-bat','minimap-ville-title','carte-postale-modal-title']){
+  const fragment=plateau.match(new RegExp('<[^>]*id="'+id+'"[^>]*>'));
+  assert.ok(fragment,'noeud absent '+id);
+  assert.doesNotMatch(fragment[0],/data-i18n=/,'marqueur statique dangereux sur '+id);
+ }
 });
