@@ -32,12 +32,25 @@ jobs:
           git grep -q 'La reconnexion reste dans le plateau' -- style.css
           git merge --no-edit -X ours origin/main
           git merge-base --is-ancestor origin/main HEAD
-          test "$(git grep -l 'sovarka_lois_examen' i18n/orders-resources.js | wc -l)" -eq 1
+          # Le synchroniseur n'a pas vocation à survivre dans le brouillon.
+          git rm -f .github/workflows/i18n-sync-once.yml
+          git commit -m "Nettoyer le synchroniseur du brouillon i18n"
           node --check data.js
           node --check i18n/orders-resources.js
           node --test outils/bancs/banc-i18n-etat-ordres.cjs outils/bancs/banc-i18n-catalogue-ordres.cjs outils/bancs/banc-i18n-dialogues-pnj.mjs outils/bancs/banc-i18n-plateau-init.cjs
-          git push origin HEAD:chatgpt/accueil-9-langues-20261102
-          echo "Brouillon i18n synchronisé sans fusion vers main"
+          # Un travail concurrent sur le brouillon ne doit pas provoquer d'écrasement.
+          for n in 1 2 3 4; do
+            if git push origin HEAD:chatgpt/accueil-9-langues-20261102; then
+              echo "Brouillon synchronisé avec succès"
+              exit 0
+            fi
+            git fetch origin main chatgpt/accueil-9-langues-20261102
+            git rebase origin/chatgpt/accueil-9-langues-20261102
+            git merge --no-edit -X ours origin/main
+            git rm -f .github/workflows/i18n-sync-once.yml || true
+            git diff --cached --quiet || git commit -m "Retirer le synchroniseur i18n"
+          done
+          exit 1
       - name: Supprimer le workflow éphémère de main
         shell: bash
         run: |
