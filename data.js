@@ -10411,6 +10411,21 @@ function slugPnjSovarka(nom) {
       ordre('sovarka_dossiers_commerciaux', 'Dossiers commerciaux', 0, 'ti-folders',
         'Réservé au maire (à défaut l\'adjoint, à défaut le ministre de l\'Économie collective) : accepter les demandes, attribuer les locaux, fixer les loyers (dans le plafond de chaque local) et le type des immeubles collectifs.')
     ]);
+    // Greffe du Tribunal Populaire (Fred, 08/11/2026, GAME-DESIGN-NOVOMIRSK.md) : ni avocats, ni quête du
+    // juge, ni corruption, ni faux ; registres et casier d'autrui réservés aux autorités ; extrait 8 PSK.
+    // Le duplicata de domiciliation quitte le greffe (salle des partis). Le serveur décide de tout.
+    ajouter(surcharge(ville, capitale ? 'tribunal' : 'tribunal-local', 'greffe'), [
+      ordre('greffe_affaires', 'Affaires en cours', 0, 'ti-folders',
+        'Réservé aux commissaires, aux juges et aux ministres de la Justice prolétarienne et de la Sécurité du Peuple : qui est poursuivi, pour quoi, où en est la procédure.'),
+      ordre('greffe_archives', 'Archives du greffe', 0, 'ti-archive',
+        'Réservé aux mêmes autorités : l\'histoire des affaires closes, du dépôt au jugement.'),
+      Object.assign(ordre('casier_mon_extrait', 'Demander mon extrait de casier', 1, 'ti-file-certificate',
+        'Un extrait de VOTRE casier judiciaire en Sovarka, daté et figé. 8 PSK de frais de greffe, versés à la caisse du Tribunal Populaire.'), { cost: 8 }),
+      ordre('casier_extrait_enquete', 'Extrait de casier (enquête)', 1, 'ti-file-search',
+        'Réservé aux mêmes autorités : le casier de n\'importe quel habitant de Sovarka, sans affaire en cours. Un étranger seulement s\'il a commis une infraction en Sovarka. 1 PA, aucun frais.')
+    ], ['archives', 'falsifier_document', 'demander_juge_instruction', 'avocat_dossiers', 'avocat_barreau', 'greffe_affaires',
+        'greffe_archives', 'casier_mon_extrait', 'casier_extrait_enquete', 'orga_extrait_duplicata',
+        'greffe_corrompre_dossier', 'greffe_corrompre_faux_casier']);
     ajouter(surcharge(ville, capitale ? 'tribunal' : 'tribunal-local', 'bureau_magistrats'), [
       ordre('sovarka_retirer_droit', 'Saisines du ministre', 1, 'ti-gavel',
         'Réservé au juge : sur saisine du ministre de la Justice prolétarienne, retirer un droit d\'exploiter (le commerce revient à l\'État, sans indemnité) ou rejeter la saisine.')
