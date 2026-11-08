@@ -13,6 +13,29 @@
   'expedier_colis','receptionner_commande'
  ]);
  const validKey=/^[a-zA-Z0-9_.-]+$/;
+ // Une même commande joue des cérémonies réellement différentes selon l'empire.
+ // Ne jamais traduire par fn seul : correspondance stricte avec le libellé
+ // canonique du serveur, sans modifier l'ordre ni créer de nouvel effet.
+ const cultVariants=Object.freeze({
+  prier:Object.freeze({
+   'Prier le Formulaire Sacré':'religion_formulaire',
+   'Communier avec la Feuille':'religion_feuille',
+   "Chanter l'hymne au Tracteur":'religion_tracteur',
+   'Communier avec le Loukoum':'religion_loukoum'
+  }),
+  faire_don:Object.freeze({
+   "Faire un don a l'Eglise":'don_eglise',
+   'Faire une offrande':'don_offrande',
+   'Donner au Kolkhoze':'don_kolkhoze',
+   'Offrir des loukoums':'don_loukoums'
+  })
+ });
+ function cultLabel(code,original,engine,locale){
+  const variant=cultVariants[code]?.[original];
+  if(!variant)return original;
+  const translated=engine.t('orderVariants.'+variant,{lng:locale,defaultValue:original});
+  return typeof translated==='string'&&translated.trim() ? translated : original;
+ }
  // Les libellés à prix variables n'utilisent pas une traduction par fn.
  // Seules des formes françaises exactes et des montants déjà présents dans
  // l'ordre sont interpolés, sans aucun calcul ni conversion monétaire.
@@ -55,7 +78,9 @@
     : 'orders.'+order.i18nKey;
   }
   else if(validKey.test(code) && !ambiguities.has(code))key='orders.'+code;
-  if(!key)return structuredLabel(code,original,engine,locale);
+  if(!key)return cultVariants[code]
+   ? cultLabel(code,original,engine,locale)
+   : structuredLabel(code,original,engine,locale);
   // Un même fn peut changer de sens ou de prix selon la pièce / le fournisseur.
   // Pour une traduction par ID implicite, accepter uniquement le libellé
   // de référence réellement catalogué en français. Un i18nKey explicite
