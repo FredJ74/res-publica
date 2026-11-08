@@ -1,0 +1,1128 @@
+{
+  "source": "d633524f",
+  "portee": "plateau-*.js, data.js et tous les HTML suivis par Git",
+  "occurrences": [
+    {
+      "file": "plateau-actions-illegales-rumeurs.js",
+      "line": 12,
+      "column": 50,
+      "fonction": "tracerActionPourRumeur",
+      "range": {
+        "name": "tracerActionPourRumeur",
+        "start": 9,
+        "end": 22
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-actions-illegales-rumeurs.js",
+      "line": 603,
+      "column": 63,
+      "fonction": "confirmerFuite",
+      "range": {
+        "name": "confirmerFuite",
+        "start": 580,
+        "end": 642
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-actions-illegales-rumeurs.js",
+      "line": 740,
+      "column": 68,
+      "fonction": "confirmerCorrompreJournaliste",
+      "range": {
+        "name": "confirmerCorrompreJournaliste",
+        "start": 715,
+        "end": 781
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-actions-illegales-rumeurs.js",
+      "line": 889,
+      "column": 66,
+      "fonction": "confirmerScandale",
+      "range": {
+        "name": "confirmerScandale",
+        "start": 863,
+        "end": 938
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-actions-illegales-rumeurs.js",
+      "line": 1722,
+      "column": 61,
+      "fonction": "confirmerSubtilisationExplosif",
+      "range": {
+        "name": "confirmerSubtilisationExplosif",
+        "start": 1679,
+        "end": 1767
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-actions-illegales-rumeurs.js",
+      "line": 1760,
+      "column": 64,
+      "fonction": "confirmerSubtilisationExplosif",
+      "range": {
+        "name": "confirmerSubtilisationExplosif",
+        "start": 1679,
+        "end": 1767
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-actions-illegales-rumeurs.js",
+      "line": 2183,
+      "column": 113,
+      "fonction": "getInfomateurInfo",
+      "range": {
+        "name": "getInfomateurInfo",
+        "start": 2167,
+        "end": 2197
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-actions-illegales-rumeurs.js",
+      "line": 2196,
+      "column": 25,
+      "fonction": "getInfomateurInfo",
+      "range": {
+        "name": "getInfomateurInfo",
+        "start": 2167,
+        "end": 2197
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-assemblee.js",
+      "line": 767,
+      "column": 49,
+      "fonction": "assembleeNouvelleRequete",
+      "range": {
+        "name": "assembleeNouvelleRequete",
+        "start": 766,
+        "end": 768
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-commerce-pj.js",
+      "line": 570,
+      "column": 58,
+      "fonction": "commercePjInstaller",
+      "range": {
+        "name": "commercePjInstaller",
+        "start": 564,
+        "end": 580
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-communication.js",
+      "line": 908,
+      "column": 58,
+      "fonction": "confirmerTractageCollectifStade",
+      "range": {
+        "name": "confirmerTractageCollectifStade",
+        "start": 900,
+        "end": 922
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-communication.js",
+      "line": 949,
+      "column": 64,
+      "fonction": "confirmerDistribuerTractElectoral",
+      "range": {
+        "name": "confirmerDistribuerTractElectoral",
+        "start": 925,
+        "end": 986
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-communication.js",
+      "line": 1058,
+      "column": 65,
+      "fonction": "confirmerDistribuerTractCalomnieux",
+      "range": {
+        "name": "confirmerDistribuerTractCalomnieux",
+        "start": 1041,
+        "end": 1140
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-communication.js",
+      "line": 1145,
+      "column": 26,
+      "fonction": "doLogePortail",
+      "range": {
+        "name": "doLogePortail",
+        "start": 1142,
+        "end": 1155
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Portier de la loge : accès au dialogue 95 %, paiement par l’ordre demander_parler_loge."
+    },
+    {
+      "file": "plateau-divers.js",
+      "line": 21,
+      "column": 6,
+      "fonction": "genererEvenementAleatoire",
+      "range": {
+        "name": "genererEvenementAleatoire",
+        "start": 17,
+        "end": 63
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-divers.js",
+      "line": 23,
+      "column": 15,
+      "fonction": "genererEvenementAleatoire",
+      "range": {
+        "name": "genererEvenementAleatoire",
+        "start": 17,
+        "end": 63
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-divers.js",
+      "line": 530,
+      "column": 36,
+      "fonction": "doSeConfeser",
+      "range": {
+        "name": "doSeConfeser",
+        "start": 516,
+        "end": 537
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-divers.js",
+      "line": 534,
+      "column": 6,
+      "fonction": "doSeConfeser",
+      "range": {
+        "name": "doSeConfeser",
+        "start": 516,
+        "end": 537
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-divers.js",
+      "line": 609,
+      "column": 26,
+      "fonction": "doDemanderBenediction",
+      "range": {
+        "name": "doDemanderBenediction",
+        "start": 586,
+        "end": 619
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Bénédiction historique : réussite et bonus de prochain ordre ; formule CHA titulaire + piété."
+    },
+    {
+      "file": "plateau-divers.js",
+      "line": 697,
+      "column": 26,
+      "fonction": "doDemanderBenedictionContact",
+      "range": {
+        "name": "doDemanderBenedictionContact",
+        "start": 688,
+        "end": 708
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Bénédiction en contact : 80 %, bonus prochain jet +5, 24 h non cumulable."
+    },
+    {
+      "file": "plateau-football-realisateur-ia.js",
+      "line": 815,
+      "column": 66,
+      "fonction": "undefined::<callback> / selectionnerRealisation",
+      "range": {
+        "name": "selectionnerRealisation",
+        "start": 812,
+        "end": 935
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-football-realisateur-ia.js",
+      "line": 1056,
+      "column": 70,
+      "fonction": "undefined::<callback> / construireArcNarratif",
+      "range": {
+        "name": "construireArcNarratif",
+        "start": 1053,
+        "end": 1110
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-immobilier.js",
+      "line": 858,
+      "column": 100,
+      "fonction": "construireDocumentUrbanisme",
+      "range": {
+        "name": "construireDocumentUrbanisme",
+        "start": 851,
+        "end": 880
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-immobilier.js",
+      "line": 1005,
+      "column": 72,
+      "fonction": "archiverEvenementUrbanisme",
+      "range": {
+        "name": "archiverEvenementUrbanisme",
+        "start": 999,
+        "end": 1024
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "line": 882,
+      "text": "// Math.random(), ni lecture de caracteristique. Elle coutait 2 PA et reussissait TOUJOURS. Il n'y",
+      "type": "commentaire",
+      "classe": "A",
+      "motif": "Mention en commentaire, non exécutable."
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "line": 998,
+      "column": 49,
+      "fonction": "ouvrirModalArrestation",
+      "range": {
+        "name": "ouvrirModalArrestation",
+        "start": 970,
+        "end": 1020
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "line": 2062,
+      "text": "// au navigateur (Math.random) la decouverte des traces posees par l'ecran, puis arretait le joueur.",
+      "type": "commentaire",
+      "classe": "A",
+      "motif": "Mention en commentaire, non exécutable."
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "line": 2785,
+      "column": 52,
+      "fonction": "appliquerSentence",
+      "range": {
+        "name": "appliquerSentence",
+        "start": 2669,
+        "end": 2954
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "line": 2859,
+      "column": 60,
+      "fonction": "appliquerSentence",
+      "range": {
+        "name": "appliquerSentence",
+        "start": 2669,
+        "end": 2954
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "line": 3782,
+      "column": 80,
+      "fonction": "confirmerDonPnj / confirmerDonPnj::<callback>",
+      "range": {
+        "name": "confirmerDonPnj::<callback>",
+        "start": 3781,
+        "end": 3785
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Don PNJ : issue DIS dépendant du métier et de DUP ; décompte encore local après commande serveur."
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "line": 6192,
+      "column": 62,
+      "fonction": "genererIdArmoireSouvenirs",
+      "range": {
+        "name": "genererIdArmoireSouvenirs",
+        "start": 6191,
+        "end": 6193
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "line": 6201,
+      "text": "// tres ancien sans crypto.randomUUID) : concatenation de deux tirages Math.random() distincts,",
+      "type": "commentaire",
+      "classe": "A",
+      "motif": "Mention en commentaire, non exécutable."
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "line": 6205,
+      "column": 18,
+      "fonction": "genererReferenceSecreteArmoire",
+      "range": {
+        "name": "genererReferenceSecreteArmoire",
+        "start": 6203,
+        "end": 6206
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "line": 6205,
+      "column": 62,
+      "fonction": "genererReferenceSecreteArmoire",
+      "range": {
+        "name": "genererReferenceSecreteArmoire",
+        "start": 6203,
+        "end": 6206
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "line": 7823,
+      "column": 65,
+      "fonction": "confirmerCreationFonds",
+      "range": {
+        "name": "confirmerCreationFonds",
+        "start": 7816,
+        "end": 7837
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-maxence.js",
+      "line": 22,
+      "column": 34,
+      "fonction": "maxenceVerifierPresence",
+      "range": {
+        "name": "maxenceVerifierPresence",
+        "start": 17,
+        "end": 50
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Présence personnelle de Maxence et progression persistées ; choix parc/serre 50/50."
+    },
+    {
+      "file": "plateau-multijoueur.js",
+      "line": 997,
+      "column": 55,
+      "fonction": "doRecruterInformateurPNJ",
+      "range": {
+        "name": "doRecruterInformateurPNJ",
+        "start": 986,
+        "end": 1084
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 1035,
+      "text": "    // une seule fois par geste. Plus de Math.random ni de sauvegarde du blob ici.",
+      "type": "commentaire",
+      "classe": "A",
+      "motif": "Mention en commentaire, non exécutable."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 1582,
+      "column": 24,
+      "fonction": "genererEvenementsMatch / minuteLibre",
+      "range": {
+        "name": "minuteLibre",
+        "start": 1580,
+        "end": 1585
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 1586,
+      "column": 53,
+      "fonction": "genererEvenementsMatch / genererEvenementsMatch::<callback>",
+      "range": {
+        "name": "genererEvenementsMatch::<callback>",
+        "start": 1586,
+        "end": 1586
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 1602,
+      "column": 33,
+      "fonction": "genererEvenementsMatch",
+      "range": {
+        "name": "genererEvenementsMatch",
+        "start": 1577,
+        "end": 1613
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 1604,
+      "column": 17,
+      "fonction": "genererEvenementsMatch",
+      "range": {
+        "name": "genererEvenementsMatch",
+        "start": 1577,
+        "end": 1613
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 1606,
+      "column": 40,
+      "fonction": "genererEvenementsMatch",
+      "range": {
+        "name": "genererEvenementsMatch",
+        "start": 1577,
+        "end": 1613
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 1627,
+      "column": 65,
+      "fonction": "simulerMatch / simulerMatch::<callback>",
+      "range": {
+        "name": "simulerMatch::<callback>",
+        "start": 1627,
+        "end": 1627
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Score de match ; classement, primes et salaires en découlent."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 1663,
+      "column": 26,
+      "fonction": "choisirStadeFinale",
+      "range": {
+        "name": "choisirStadeFinale",
+        "start": 1660,
+        "end": 1664
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Lieu persistant de la finale, donc destination de jeu."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2372,
+      "column": 19,
+      "fonction": "notifierCompositionsEtBlessures",
+      "range": {
+        "name": "notifierCompositionsEtBlessures",
+        "start": 2345,
+        "end": 2399
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Blessure réelle après match instantané : probabilité 8 %."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2374,
+      "column": 20,
+      "fonction": "notifierCompositionsEtBlessures",
+      "range": {
+        "name": "notifierCompositionsEtBlessures",
+        "start": 2345,
+        "end": 2399
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Gravité réelle de blessure : 30 %."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2375,
+      "column": 44,
+      "fonction": "notifierCompositionsEtBlessures",
+      "range": {
+        "name": "notifierCompositionsEtBlessures",
+        "start": 2345,
+        "end": 2399
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Durée réelle de blessure : grave 7..10 jours, légère 2..3 (deux appels distincts)."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2375,
+      "column": 80,
+      "fonction": "notifierCompositionsEtBlessures",
+      "range": {
+        "name": "notifierCompositionsEtBlessures",
+        "start": 2345,
+        "end": 2399
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Durée réelle de blessure : grave 7..10 jours, légère 2..3 (deux appels distincts)."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2482,
+      "column": 41,
+      "fonction": "tirerPondere",
+      "range": {
+        "name": "tirerPondere",
+        "start": 2479,
+        "end": 2486
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2483,
+      "column": 10,
+      "fonction": "tirerPondere",
+      "range": {
+        "name": "tirerPondere",
+        "start": 2479,
+        "end": 2486
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2513,
+      "column": 32,
+      "fonction": "genererBut",
+      "range": {
+        "name": "genererBut",
+        "start": 2511,
+        "end": 2519
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2522,
+      "column": 15,
+      "fonction": "genererEvenementCouleurLive",
+      "range": {
+        "name": "genererEvenementCouleurLive",
+        "start": 2521,
+        "end": 2530
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2525,
+      "column": 48,
+      "fonction": "genererEvenementCouleurLive",
+      "range": {
+        "name": "genererEvenementCouleurLive",
+        "start": 2521,
+        "end": 2530
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2528,
+      "column": 32,
+      "fonction": "genererEvenementCouleurLive",
+      "range": {
+        "name": "genererEvenementCouleurLive",
+        "start": 2521,
+        "end": 2530
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2542,
+      "column": 6,
+      "fonction": "tenterBlessureLive",
+      "range": {
+        "name": "tenterBlessureLive",
+        "start": 2539,
+        "end": 2559
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Blessure en direct selon probabilité déjà calculée."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2543,
+      "column": 39,
+      "fonction": "tenterBlessureLive",
+      "range": {
+        "name": "tenterBlessureLive",
+        "start": 2539,
+        "end": 2559
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Choix du titulaire effectivement blessé."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2544,
+      "column": 16,
+      "fonction": "tenterBlessureLive",
+      "range": {
+        "name": "tenterBlessureLive",
+        "start": 2539,
+        "end": 2559
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Gravité effective 30 %."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2545,
+      "column": 40,
+      "fonction": "tenterBlessureLive",
+      "range": {
+        "name": "tenterBlessureLive",
+        "start": 2539,
+        "end": 2559
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Durée effective grave 7..10 ou légère 2..3 jours (deux appels)."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2545,
+      "column": 78,
+      "fonction": "tenterBlessureLive",
+      "range": {
+        "name": "tenterBlessureLive",
+        "start": 2539,
+        "end": 2559
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Durée effective grave 7..10 ou légère 2..3 jours (deux appels)."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2556,
+      "column": 82,
+      "fonction": "tenterBlessureLive",
+      "range": {
+        "name": "tenterBlessureLive",
+        "start": 2539,
+        "end": 2559
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2653,
+      "column": 8,
+      "fonction": "avancerEvenementsJusqua",
+      "range": {
+        "name": "avancerEvenementsJusqua",
+        "start": 2637,
+        "end": 2659
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Décide du but domicile et du score ; tauxButHome/90."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2654,
+      "column": 8,
+      "fonction": "avancerEvenementsJusqua",
+      "range": {
+        "name": "avancerEvenementsJusqua",
+        "start": 2637,
+        "end": 2659
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Décide du but extérieur et du score ; tauxButAway/90."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2655,
+      "column": 8,
+      "fonction": "avancerEvenementsJusqua",
+      "range": {
+        "name": "avancerEvenementsJusqua",
+        "start": 2637,
+        "end": 2659
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 2788,
+      "column": 50,
+      "fonction": "construireEffetsRestantsMatch / construireEffetsRestantsMatch::<callback>",
+      "range": {
+        "name": "construireEffetsRestantsMatch::<callback>",
+        "start": 2788,
+        "end": 2788
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 3284,
+      "column": 33,
+      "fonction": "doRecruterMilitants",
+      "range": {
+        "name": "doRecruterMilitants",
+        "start": 3265,
+        "end": 3349
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 4241,
+      "text": "      if (plan.effet === 'travelling') plan.travellingDx = rng() < .5 ? -3 : 3; // sens deterministe, jamais Math.random",
+      "type": "commentaire",
+      "classe": "A",
+      "motif": "Mention en commentaire, non exécutable."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 5636,
+      "column": 27,
+      "fonction": "positionnerBallon",
+      "range": {
+        "name": "positionnerBallon",
+        "start": 5631,
+        "end": 5637
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "line": 6010,
+      "text": "//    vertical ALEATOIRE (Math.random) a chaque appel -- les acteurs, eux, ont des coordonnees x/y",
+      "type": "commentaire",
+      "classe": "A",
+      "motif": "Mention en commentaire, non exécutable."
+    },
+    {
+      "file": "plateau-personnage.js",
+      "line": 2787,
+      "text": "// ci-dessus (aucune duplication : reutilise le meme Math.random()*length au point d'appel,",
+      "type": "commentaire",
+      "classe": "A",
+      "motif": "Mention en commentaire, non exécutable."
+    },
+    {
+      "file": "plateau-personnage.js",
+      "line": 2847,
+      "column": 59,
+      "fonction": "doSoinPublic",
+      "range": {
+        "name": "doSoinPublic",
+        "start": 2803,
+        "end": 2850
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-personnage.js",
+      "line": 2893,
+      "column": 71,
+      "fonction": "doSoinCliniquePrivee",
+      "range": {
+        "name": "doSoinCliniquePrivee",
+        "start": 2853,
+        "end": 2896
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-personnage.js",
+      "line": 3901,
+      "column": 6,
+      "fonction": "jeterObjetInventaire",
+      "range": {
+        "name": "jeterObjetInventaire",
+        "start": 3889,
+        "end": 3906
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-pnj.js",
+      "line": 638,
+      "column": 17,
+      "fonction": "repondreNegociationParcelle",
+      "range": {
+        "name": "repondreNegociationParcelle",
+        "start": 634,
+        "end": 653
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Quête du promoteur : résultat et étape persistants (50/50), pas un simple texte."
+    },
+    {
+      "file": "plateau-pnj.js",
+      "line": 2549,
+      "column": 26,
+      "fonction": "validerLobbyingPresse",
+      "range": {
+        "name": "validerLobbyingPresse",
+        "start": 2505,
+        "end": 2620
+      },
+      "type": "executable",
+      "classe": "B",
+      "motif": "Lobbying presse : succès, paiement conditionnel et publication ; jet uniforme 1..100, taux clamp(base+2*(CHA-13),5,95)."
+    },
+    {
+      "file": "plateau-pnj.js",
+      "line": 2720,
+      "text": "// convives dans une seule transaction. L'ancien chemin de l'ecran (tirage Math.random, debit puis",
+      "type": "commentaire",
+      "classe": "A",
+      "motif": "Mention en commentaire, non exécutable."
+    },
+    {
+      "file": "plateau-pnj.js",
+      "line": 2941,
+      "column": 59,
+      "fonction": "ouvrirModalFaireLAmour",
+      "range": {
+        "name": "ouvrirModalFaireLAmour",
+        "start": 2932,
+        "end": 2969
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-pnj.js",
+      "line": 2960,
+      "column": 61,
+      "fonction": "ouvrirModalFaireLAmour",
+      "range": {
+        "name": "ouvrirModalFaireLAmour",
+        "start": 2932,
+        "end": 2969
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-politique.js",
+      "line": 4711,
+      "column": 34,
+      "fonction": "signerDecretInutile",
+      "range": {
+        "name": "signerDecretInutile",
+        "start": 4689,
+        "end": 4743
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-politique.js",
+      "line": 7855,
+      "column": 53,
+      "fonction": "confirmerSubventionMontant",
+      "range": {
+        "name": "confirmerSubventionMontant",
+        "start": 7793,
+        "end": 7932
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Identifiant technique ; aucune issue ni quantité décidée par ce hasard."
+    },
+    {
+      "file": "plateau-politique.js",
+      "line": 8500,
+      "text": "// grisee seulement, jet Math.random(), et il telechargeait la compagnie ennemie",
+      "type": "commentaire",
+      "classe": "A",
+      "motif": "Mention en commentaire, non exécutable."
+    },
+    {
+      "file": "plateau-politique.js",
+      "line": 9671,
+      "column": 54,
+      "fonction": "doConsulterDossiersGouv",
+      "range": {
+        "name": "doConsulterDossiersGouv",
+        "start": 9667,
+        "end": 9678
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-politique.js",
+      "line": 12489,
+      "column": 6,
+      "fonction": "confirmerMobilisation",
+      "range": {
+        "name": "confirmerMobilisation",
+        "start": 12448,
+        "end": 12494
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    },
+    {
+      "file": "plateau-politique.js",
+      "line": 13802,
+      "column": 85,
+      "fonction": "confirmerRechercheMilitaire",
+      "range": {
+        "name": "confirmerRechercheMilitaire",
+        "start": 13789,
+        "end": 13803
+      },
+      "type": "executable",
+      "classe": "A",
+      "motif": "Texte, choix de nom à profil serveur fixe, récit ou réalisation visuelle ; ne décide pas du succès, score, paiement ou effet de jauge."
+    }
+  ]
+}

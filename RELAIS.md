@@ -25,6 +25,21 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Tirages décisifs de l’écran — inventaire Codex, 08/11/2026
+
+Branche `codex/tirages-ecran-inventaire-20261108`, départ main `d633524f` (#633).
+Inventaire exhaustif AST + recherche textuelle : `outils/audits/TIRAGES-ECRAN-20261108.md`
+et JSON voisin, fonctions/lignes/colonnes et classement A/B. Antipoison déjà traité
+par #482 : aucun moteur réécrit ni migration rejouée. Reste notamment DIS des dons,
+portier de loge, bénédictions, lobbying, quêtes et moteur football (buts/blessures).
+Aucune modification de jeu. Titre PR prêt : **Inventaire des tirages locaux décisifs**.
+Description : « Coupe d633524f, tirages cosmétiques/techniques séparés des issues,
+formules et circuits existants repérés ; feuille de route par familles, aucune
+modification d’ordre ou de montant. » Contrôle : correspondance recherche/AST.
+Claude ouvre la PR ; pas de nouvelle tentative API/Vercel. Lots techniques suivants
+sur branches distinctes, SQL préparé seulement avec prévol et banc annulé authenticated.
+
+
 ### Certification mobile — Codex, 08/11/2026
 
 **Livré : PR #633 ouverte et fusionnée par Claude le 08/11** (CI 3/3 verte sur `300c1eb1` : bancs hors production, payload, parcours immobilier ; diff relu, aucun conflit avec main). Reste à faire par Fred et les testeurs : la recette sur appareils réels (`outils/audits/RECETTE-PHYSIQUE-MOBILE-20261108.md`).
