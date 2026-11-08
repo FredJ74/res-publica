@@ -51,10 +51,17 @@ async function run(){
   for(const language of LANGS){
    const page=await browser.newPage({viewport:{width:393,height:852}});
    await page.addInitScript(lang=>localStorage.setItem('respublica_language',lang),language);
-   // La recette simule explicitement l'ouverture i18n : sur main, ce drapeau est absent.
-   await page.addInitScript(()=>{window.RP_I18N_GAME_ENABLED=true});
-   await page.route('**/*',route=>{
+   // Activation uniquement dans la réponse HTTP de la fixture Chromium.
+   // La page réellement livrée reste fermée, et aucun code métier n'est exécuté.
+   await page.route('**/*',async route=>{
     const url=new URL(route.request().url());
+    if(url.origin===ORIGIN && url.pathname==='/plateau.html') {
+      const response=await route.fetch();
+      const source=await response.text();
+      assert.ok(source.includes('window.RP_I18N_GAME_ENABLED = false;'));
+      return route.fulfill({response,body:source.replace('window.RP_I18N_GAME_ENABLED = false;',
+        'window.RP_I18N_GAME_ENABLED = true;')});
+    }
     if(url.origin!==ORIGIN)return route.abort();
     if(url.pathname.endsWith('.js') && !url.pathname.startsWith('/i18n/') &&
        !['/forum.js','/plateau-quete-accueil.js'].includes(url.pathname))return route.abort();
