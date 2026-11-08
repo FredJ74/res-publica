@@ -267,6 +267,30 @@
   "de":{"magasin":"Waffengeschäft"}
  };
  for(const [locale,labels] of Object.entries(armory)) Object.assign(localized[locale],labels);
+ // Accès civiques ordinaires : traduire seulement les noms sources exacts,
+ // jamais la destination, le rôle ou les droits des visiteurs.
+ const everyday={
+  "fr":{"accueil_police":"Accueil","prison":"Cellules de garde a vue",
+   "bureau_commissaire":"Bureau du Commissaire","marche_ext":"Etals du marche"},
+  "en":{"accueil_police":"Police reception","prison":"Holding cells",
+   "bureau_commissaire":"Police Commissioner's Office","marche_ext":"Market stalls"},
+  "es":{"accueil_police":"Recepción de la comisaría","prison":"Calabozos",
+   "bureau_commissaire":"Despacho del comisario","marche_ext":"Puestos del mercado"},
+  "zh-TW":{"accueil_police":"警察局接待處","prison":"拘留室",
+   "bureau_commissaire":"警察局長辦公室","marche_ext":"市場攤位"},
+  "ru":{"accueil_police":"Приёмная полиции","prison":"Камеры предварительного задержания",
+   "bureau_commissaire":"Кабинет комиссара полиции","marche_ext":"Торговые ряды"},
+  "ko":{"accueil_police":"경찰서 접수처","prison":"유치장",
+   "bureau_commissaire":"경찰서장실","marche_ext":"시장 가판대"},
+  "ar":{"accueil_police":"استقبال مركز الشرطة","prison":"زنازين الاحتجاز",
+   "bureau_commissaire":"مكتب مفوض الشرطة","marche_ext":"أكشاك السوق"},
+  "pt-BR":{"accueil_police":"Recepção da delegacia","prison":"Celas de detenção",
+   "bureau_commissaire":"Gabinete do delegado","marche_ext":"Bancas do mercado"},
+  "de":{"accueil_police":"Empfang der Polizeiwache","prison":"Gewahrsamszellen",
+   "bureau_commissaire":"Büro des Polizeikommissars","marche_ext":"Marktstände"}
+ };
+ for(const [locale,labels] of Object.entries(everyday)) Object.assign(localized[locale],labels);
+
  for(const [locale,labels] of Object.entries(mairie)) Object.assign(localized[locale],labels);
  for(const [locale,labels] of Object.entries(embassies)) Object.assign(localized[locale],labels);
  const expected=localized.fr;
@@ -285,6 +309,10 @@
    if(!Object.hasOwn(embassies.fr,roomId)||original!==embassies.fr[roomId])return original;
   } else if(buildingId==='armurerie') {
    if(!Object.hasOwn(armory.fr,roomId)||original!==armory.fr[roomId])return original;
+  } else if(buildingId==='commissariat') {
+   if(!['accueil_police','prison','bureau_commissaire'].includes(roomId)||original!==everyday.fr[roomId])return original;
+  } else if(buildingId==='marche') {
+   if(roomId!=='marche_ext'||original!==everyday.fr[roomId])return original;
   } else return original;
   const locale=global.RPPlateauI18n?.language?.()||'fr';
   const translated=global.i18next?.t?.('rooms.'+roomId,{lng:locale,defaultValue:original});
