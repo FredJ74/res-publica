@@ -218,3 +218,6 @@ retiré de l'écran dans ce lot, pas encore dans le jeu publié.
 **Chantier global non terminé.** Aucune panne extérieure ne justifie les lots
 encore non implémentés ; ils sont explicitement laissés ouverts. Ni CI distante,
 ni application SQL, ni vérification en production n'est revendiquée.
+
+Validation finale de cette branche après intégration : **204/204 bancs clients**,
+Workflow inclus, SHA source testé `a2f6d409`. Aucun SQL exécuté dans ce lot.

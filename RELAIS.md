@@ -28,7 +28,8 @@ Règles : voir `AGENTS.md`.
 ### Tirages écran — complément de reprise, Codex, 08/11
 
 Branche `codex/tirages-ecran-inventaire-20261108`, inventaire source `6de0d3a1`,
-réconciliée avec main `9e1ec47f` sans modification de ses décors. 75 appels
+réconciliée avec main `9e1ec47f` sans modification de ses décors.
+SHA testé `a2f6d409` : contrôleur complet **204/204**, Workflow conforme. 75 appels
 exécutables : 56 cosmétiques/techniques, 19 décisifs. Deux contre-cas de narration
 exécutés ; aucun tirage cosmétique supprimé. Titre PR prêt : **Inventorier les
 tirages navigateur et distinguer narration et résultats de jeu**. Description :
