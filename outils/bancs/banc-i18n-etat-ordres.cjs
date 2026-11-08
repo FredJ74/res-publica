@@ -8,7 +8,6 @@ test('couverture des 381 identifiants sans faux positifs de source',()=>{
  assert.equal(report.catalogueFrenchKeys,381);
  assert.equal(report.canonicalMatches,381);
  assert.equal(report.obsoleteCanonical.length,0);
- assert.ok(!report.perLocale.fr || report.catalogueFrenchKeys === 381);
  assert.ok(!report.obsoleteCanonical.some(item => item.fn === 'sovarka_soviet_deputes'));
  assert.ok(report.missingStable.every(item => item.fn !== 'sovarka_soviet_deputes'));
 
