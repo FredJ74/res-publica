@@ -120,5 +120,6 @@ test('le magasin de l’armurerie de Sovarka utilise une traduction de salle et 
   assert.equal(translated,win.RP_I18N_RESOURCES[lng].translation.rooms.magasin);
   assert.ok(translated.trim());
  }
- assert.ok(!Object.hasOwn(win.RP_I18N_RESOURCES.fr.translation.orders,'magasin'));
+ // Ce banc ne charge aucun catalogue d'ordres : les ressources de salle sont isolées.
+ assert.equal(win.RP_I18N_RESOURCES.fr.translation.orders,undefined);
 });
