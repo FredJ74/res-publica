@@ -75,15 +75,16 @@ async function designerDeputeSoviet(nom, retirer) {
   } finally { sovietDesignationEnCours = false; }
 }
 
-// REPAS PRESIDENTIEL (étape 6, Fred 07/11/2026) : un repas gratuit par jour dans les appartements
-// du Palais du Parti, avec un invité présent s'il le souhaite ; effets du dîner d'affaires. Le
-// serveur (sovarka_repas_presidentiel) vérifie le président, le lieu, l'invité et le jour.
+// REPAS PRESIDENTIEL (Fred, 07/11 puis 08/11/2026) : un repas par jour dans la salle de restaurant
+// du Palais présidentiel ; gratuit pour le président, chaque invité présent coûte 60 PSK à la
+// caisse présidentielle ; effets du dîner d'affaires pour chacun. Le serveur
+// (sovarka_repas_presidentiel) vérifie le président, le lieu, les invités, la caisse et le jour.
 const REPAS_PRES_MOTIFS = {
   reserve_president: 'Réservé au Président de la République de Sovarka.',
-  pas_sur_place: 'Le repas se prend dans les appartements présidentiels.',
+  pas_sur_place: 'Le repas se prend dans la salle de restaurant du Palais présidentiel.',
   deja_pris_aujourdhui: 'Le repas présidentiel a déjà été servi aujourd’hui.',
-  invite_absent: 'Votre invité doit se trouver avec vous dans les appartements.',
-  invite_invalide: 'Choisissez un autre invité.',
+  invite_absent: 'Vos invités doivent se trouver avec vous dans la salle de restaurant.',
+  invite_invalide: 'Choisissez d’autres invités.',
   acteur_non_authentifie: 'Votre session doit être rétablie.'
 };
 let repasPresidentielEnCours = false;
@@ -94,25 +95,31 @@ async function ouvrirRepasPresidentiel() {
     : [];
   const moi = state.char?.name || '';
   const noms = Array.from(new Set((presents || []).map(p => p.name || p.nom).filter(n => n && n !== moi)));
-  let corps = '<p>Un repas offert par jour : +10 Santé, +2 Moral, +5 INF et +3 PA au prochain Dormir, ' +
-    'pour vous et pour votre invité.</p><select id="repas-pres-invite" class="cpj-champ"><option value="">Seul</option>' +
-    noms.map(n => '<option value="' + sovEchapper(n) + '">' + sovEchapper(n) + '</option>').join('') + '</select><br>' +
-    vehBouton('Faire servir le repas', 'servirRepasPresidentiel()', true);
-  vehModal('Appartements présidentiels', vehSection('Repas du Président', corps));
+  let corps = '<p>Un repas par jour, gratuit pour vous. Chaque invité coûte 60 PSK à la caisse présidentielle. ' +
+    'Effets pour chacun : +10 Santé, +2 Moral, +5 INF et +3 PA au prochain Dormir.</p>' +
+    (noms.length
+      ? noms.map(n => '<label class="cpj-note" style="display:block"><input type="checkbox" class="repas-pres-invite" value="' +
+          sovEchapper(n) + '"> ' + sovEchapper(n) + '</label>').join('')
+      : '<p class="cpj-note">Personne d’autre n’est à table : vous mangerez seul.</p>') +
+    '<br>' + vehBouton('Faire servir le repas', 'servirRepasPresidentiel()', true);
+  vehModal('Salle de restaurant', vehSection('Repas du Président', corps));
 }
 
 async function servirRepasPresidentiel() {
   if (repasPresidentielEnCours) return;
   repasPresidentielEnCours = true;
-  const invite = document.getElementById('repas-pres-invite')?.value || null;
+  const invites = Array.from(document.querySelectorAll('.repas-pres-invite:checked')).map(c => c.value);
   const cle = 'hg-repas-pres:' + (state.char?.name || '') + ':' + new Date().toISOString().slice(0, 10);
   try {
     let requete = sessionStorage.getItem(cle);
     if (!requete) { requete = crypto.randomUUID(); sessionStorage.setItem(cle, requete); }
-    const v = await sbRpcVerdict('sovarka_repas_presidentiel', { p_requete: requete, p_invite: invite }).catch(() => null);
+    const v = await sbRpcVerdict('sovarka_repas_presidentiel', { p_requete: requete, p_invites: invites }).catch(() => null);
     if (v && !v.transport && v.ok !== true) sessionStorage.removeItem(cle);
     if (!v || v.ok !== true) {
-      showToast('Repas présidentiel', REPAS_PRES_MOTIFS[v?.raison] || 'Le serveur n’a pas confirmé le repas.', false);
+      const motif = v?.raison === 'caisse_insuffisante'
+        ? 'La caisse présidentielle ne contient que ' + v.solde + ' PSK : ' + v.invites_possibles + ' invité(s) au plus aujourd’hui.'
+        : REPAS_PRES_MOTIFS[v?.raison];
+      showToast('Repas présidentiel', motif || 'Le serveur n’a pas confirmé le repas.', false);
       return;
     }
     if (typeof v.hp === 'number') state.hp = v.hp;
@@ -121,8 +128,31 @@ async function servirRepasPresidentiel() {
     if (typeof updateHeader === 'function') updateHeader();
     if (typeof updateUI === 'function') updateUI();
     document.getElementById('modal-postes')?.classList.remove('open');
-    showToast('Repas présidentiel', v.invite ? 'Servi pour vous et ' + v.invite + '.' : 'Servi.', true);
+    const liste = Array.isArray(v.invites) ? v.invites : [];
+    showToast('Repas présidentiel', liste.length
+      ? 'Servi pour vous et ' + liste.join(', ') + ' (' + v.cout + ' PSK pris sur la caisse présidentielle).' : 'Servi.', true);
   } finally { repasPresidentielEnCours = false; }
+}
+
+// BILLET DU MUSEE PRESIDENTIEL (Fred, 08/11/2026) : 8 PSK au hall, versés à la caisse présidentielle ;
+// le billet ouvre le musée toute la journée (garde serveur à l'entrée de la pièce).
+let billetMuseePresEnCours = false;
+async function acheterBilletMuseePresidentiel() {
+  if (billetMuseePresEnCours) return;
+  billetMuseePresEnCours = true;
+  try {
+    const v = await sbRpcVerdict('sovarka_musee_billet', {}).catch(() => null);
+    if (!v || v.ok !== true) {
+      const motifs = { pas_sur_place: 'Le billet s’achète au hall du Palais présidentiel.',
+        fonds_insuffisants: 'Vous n’avez pas 8 PSK.', acteur_non_authentifie: 'Votre session doit être rétablie.' };
+      showToast('Musée présidentiel', motifs[v?.raison] || 'Le serveur n’a pas confirmé le billet.', false);
+      return;
+    }
+    if (typeof appliquerPaiementServeur === 'function' && (v.pa != null || v.liquide != null))
+      appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+    if (typeof updateUI === 'function') updateUI();
+    showToast('Musée présidentiel', v.deja ? 'Vous avez déjà votre billet pour aujourd’hui.' : 'Billet acheté : 8 PSK. Le musée vous est ouvert jusqu’à minuit.', true);
+  } finally { billetMuseePresEnCours = false; }
 }
 
 // ============================================================================================

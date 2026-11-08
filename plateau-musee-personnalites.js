@@ -190,6 +190,17 @@ const MUSEE_PROVINCE_PERSONNALITES = {
       { nom: 'Le grand ravalement', dates: '2016', bio: "Le budget de rénovation des façades du Prospekt disparut. Les façades furent repeintes en gris, la couleur d'origine." }
     ]
   },
+  // Musée présidentiel du Palais présidentiel de Sovarka (Fred, 08/11/2026) : figures écrites par
+  // Claude, à la relecture de Fred. Le bâtiment du socle n'a cette pièce qu'en Sovarka.
+  'palais-presidentiel': {
+    musee_presidentiel: [
+      { nom: 'Camarade Arkadi Ivanovitch Zolotov', dates: '1889–1952', bio: "Premier Président de la République de Sovarka. Inaugura le Palais, puis découvrit qu'il n'y avait rien à y décider. Passa trente ans à couper des rubans." },
+      { nom: 'Tamara Sergueïevna Belova', dates: '1911–1983', bio: "Seule Présidente à avoir signé un décret : celui qui fixait l'heure du thé au Palais. Il est toujours en vigueur." },
+      { nom: 'Camarade Boris Nikolaïevitch Gromov', dates: '1925–1999', bio: "Réélu sept fois sans s'être présenté. Le Parti n'avait pas jugé utile de le prévenir." },
+      { nom: 'Vladimir Petrovitch Lebedev', dates: '1947–2011', bio: "Tenta de convoquer le Conseil du Peuple dans ses appartements. Le Conseil répondit par courrier, en trois exemplaires, qu'il était occupé." },
+      { nom: 'Galina Andreïevna Sokolova', dates: '1958–', bio: "Fit installer le samovar d'argent de la salle de restaurant. Son mandat reste considéré comme le plus utile de l'histoire du Palais." }
+    ]
+  },
   'musee-histoire-montrouge': {
     salle_terre: [
       { nom: 'Abbé Hippolyte Ferrand', dates: '1790–1861', bio: "Géologue amateur, découvrit le charbon du bassin en creusant un puits pour son presbytère." },
