@@ -44,7 +44,7 @@ INSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,memb
 ('narco','ville_b','zone-production','["zone_recolte"]'::jsonb,false,NULL),
 ('narco','caserne','caserne-militaire','["corps_garde","infirmerie","salle_commandement","armurerie_militaire","refectoire","salle_faits_armes","quartier_troupes"]'::jsonb,false,NULL),
 ('narco','qhs','qhs-prison','["entree_qhs","cellules_qhs","salle_interrogatoire","promenoir","salle_commune_qhs"]'::jsonb,false,NULL),
-('soviet','capitale','palais-presidentiel','["accueil_elysee","bureau_president","salle_presse_elysee","salle_reception"]'::jsonb,false,NULL),
+('soviet','capitale','palais-presidentiel','["accueil_elysee","salle_reception","musee_presidentiel"]'::jsonb,false,NULL),
 ('soviet','capitale','hotel-republica','["accueil","restaurant","bar","chambres","suite_privee","suite_presidentielle"]'::jsonb,false,NULL),
 ('soviet','capitale','palais-gouvernement','["hall","bureaux","salle_conseil","salle_presse","archives_gouv","bureau_min_int","bureau_min_fin","bureau_min_just","bureau_min_def","bureau_min_info","bureau_min_ae"]'::jsonb,false,NULL),
 ('soviet','capitale','assemblee','["accueil_assemblee","hemicycle","couloirs","salle_archives_assemblee"]'::jsonb,false,NULL),

@@ -1963,10 +1963,10 @@ const WORLD = {
         // dort), salle de restaurant (repas du president, invites a 60 PSK payes par la caisse
         // presidentielle), musee presidentiel (billet du jour a 8 PSK, verses a la caisse).
         // Restaurant et appartements : entree groupee au president (garde serveur
-        // sovarka_palais_acces_interne). Bureau et salle de presse du socle retires. Images a venir.
+        // sovarka_palais_acces_interne). Bureau et salle de presse du socle retires. Images des
+        // quatre pieces illustrees par Fred (table des images de Sovarka, plus bas).
         'palais-presidentiel': {
           name: 'Palais présidentiel',
-          imagesAVenir: true,
           desc: 'La résidence du Président de la République de Sovarka, à deux pas du Palais du Gouvernement. Dorures, lustres et tapis rouges : tout y respire le pouvoir, sauf le pouvoir lui-même.',
           persons: [],
           roomsExclues: ['bureau_president', 'salle_presse_elysee'],
@@ -8578,8 +8578,12 @@ const ROOM_IMAGES_EMPIRE = {
       'accueil_tribune': 'images/Sovarka/Novomirsk/Novomirsk_presse_accueil.webp'
     },
     'palais-presidentiel': {
-      'accueil_elysee':    'images/hall-parti-sovarka.webp',
-      'bureau_president':  'images/bureau-gouv-sovarka.png'
+      // Images specifiques a Novomirsk : aucune modification des pieces, PNJ ou ordres.
+      'accueil_elysee': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-hall.webp',
+      'appartements_president': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-appartements.webp',
+      'musee_presidentiel': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-musee.webp',
+      'salle_reception': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-reception.webp',
+      'bureau_president': 'images/bureau-gouv-sovarka.png'
     },
     'palais-gouvernement': {
       'hall':              'images/hall-parti-sovarka.webp',
