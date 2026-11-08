@@ -3046,29 +3046,29 @@ function renderMailCompose(defaultTo = '', defaultSubject = '', defaultOrgaId = 
       <button class="forum-back-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">
         <i class="ti ti-arrow-left"></i> ${rpForumLibelle('back','Retour')}
       </button>
-      <div class="forum-title-main">${rpForumPlateauLibelle('newMessage','Nouveau message')}</div>
+      <div class="forum-title-main">${rpForumPlateauOuvert('newMessage','Nouveau message')}</div>
     </div>
     <div class="forum-compose-form">
       <div class="forum-field">
-        <label class="forum-field-label">${rpForumPlateauLibelle('recipient','Destinataire')}</label>
+        <label class="forum-field-label">${rpForumPlateauOuvert('recipient','Destinataire')}</label>
         <input class="forum-field-input" id="mail-to" type="text" value="${escapeHtmlText(defaultTo)}"
-          placeholder="${rpForumPlateauLibelle('recipientPlaceholder','Nom du destinataire...')}" list="contacts-list"/>
+          data-rp-placeholder-key="recipientPlaceholder" data-rp-placeholder-source="Nom du destinataire..." placeholder="${rpForumPlateauLibelle('recipientPlaceholder','Nom du destinataire...')}" list="contacts-list"/>
         <datalist id="contacts-list">
           ${contacts.map(c => `<option value="${escapeHtmlText(c.name)}">`).join('')}
         </datalist>
       </div>
       ${renderEnvoyerMailEnTantQue('compose-mail-auteur', defaultOrgaId)}
       <div class="forum-field">
-        <label class="forum-field-label">${rpForumPlateauLibelle('subject','Sujet')}</label>
+        <label class="forum-field-label">${rpForumPlateauOuvert('subject','Sujet')}</label>
         <input class="forum-field-input" id="mail-subject" type="text" value="${escapeHtmlText(defaultSubject)}"
-          placeholder="${rpForumPlateauLibelle('subjectPlaceholder','Objet du message...')}"/>
+          data-rp-placeholder-key="subjectPlaceholder" data-rp-placeholder-source="Objet du message..." placeholder="${rpForumPlateauLibelle('subjectPlaceholder','Objet du message...')}"/>
       </div>
       <div class="forum-field">
-        <label class="forum-field-label">${rpForumPlateauLibelle('messageLabel','Message')}</label>
+        <label class="forum-field-label">${rpForumPlateauOuvert('messageLabel','Message')}</label>
         ${renderRichEditor('compose-body')}
       </div>
       <button class="forum-submit-btn" onclick="submitMail()">
-        <i class="ti ti-send"></i> ${rpForumPlateauLibelle('sendButton','Envoyer')}
+        <i class="ti ti-send"></i> ${rpForumPlateauOuvert('sendButton','Envoyer')}
       </button>
     </div>
   `;
