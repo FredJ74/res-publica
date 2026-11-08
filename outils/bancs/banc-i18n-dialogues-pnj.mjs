@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { LANGUES, LANGUE_DEFAUT, construirePromptSysteme, filtrerReponseSquatteur,
   profilExiste, langueDialogueAutorisee } from '../../api/_pnj-profils.js';
 
@@ -80,4 +81,11 @@ test('drapeau serveur fermé : la requête PNJ ne peut pas activer de nouvelles 
  assert.equal(langueDialogueAutorisee('en',false),'en');
  assert.equal(langueDialogueAutorisee('inconnue',true),'en');
  assert.equal(langueDialogueAutorisee('ar',undefined),process.env.RP_I18N_GAME_ENABLED==='true'?'ar':'en');
+});
+
+test('le point HTTP chat réutilise la même langue autorisée pour le prompt et le filtre',()=>{
+ const src=readFileSync(new URL('../../api/chat.js',import.meta.url),'utf8');
+ assert.match(src,/const langueAutorisee = langueDialogueAutorisee\(req\.body\.lang\)/);
+ assert.match(src,/req\.body\.profil, langueAutorisee, relation/);
+ assert.match(src,/filtrerReponseSquatteur\(req\.body\.profil, r\.texte, langueAutorisee\)/);
 });
