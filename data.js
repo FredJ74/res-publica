@@ -1977,7 +1977,7 @@ const WORLD = {
               persons: [{name: 'Konstantin Lvovitch Orlov (PNJ)', role: 'PNJ - Chef du protocole présidentiel', rel: 'neutral', job: 'protocole'}],
               orders: [{ fn: 'sovarka_musee_billet', label: 'Billet du musée présidentiel', pa: 0, cost: 8,
                 type: 'legal', icon: 'ti-ticket', successRate: 100,
-                desc: "8 PSK, versés à la caisse présidentielle. Le billet ouvre le musée présidentiel toute la journée." }]
+                desc: "8 PSK, versés à la caisse présidentielle. Le billet ouvre le musée présidentiel toute la journée. Le Président entre gratuitement." }]
             },
             salle_reception: {
               name: 'Salle de restaurant',
@@ -2001,7 +2001,7 @@ const WORLD = {
             musee_presidentiel: {
               name: 'Musée présidentiel',
               imageBg: 'linear-gradient(135deg,#1a140a,#241a0e)',
-              desc: "Les présidents successifs de Sovarka, leurs portraits officiels et leurs rares décisions. Billet du jour à acheter au hall (8 PSK).",
+              desc: "Les présidents successifs de Sovarka, leurs portraits officiels et leurs rares décisions. Billet du jour à acheter au hall (8 PSK) ; le Président entre gratuitement.",
               persons: [],
               orders: [{ fn: 'consulter_personnalites_musee', label: 'Consulter les personnalités', pa: 0, cost: 0, type: 'legal',
                 icon: 'ti-users', successRate: 100, desc: 'Voir les présidents qui ont marqué Sovarka.' }]

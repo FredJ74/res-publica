@@ -215,13 +215,13 @@ Noms russes authentiques (bouriates à Starovka), sans jeu de mots français. Ex
 - **Hall** : chef du protocole **Konstantin Lvovitch Orlov** (nom proposé par Claude, validé par Fred). **Aucun garde** ne protège le président.
 - **Appartements** : logement de fonction **gratuit** ; le président qui y dort gagne **+1 PA** chaque nuit (bonus quotidien, seulement s'il dort dans ses appartements). On n'y entre que **groupé au président**.
 - **Salle de restaurant** : on n'y entre que **groupé au président**. Le repas quotidien du président y est servi (et non plus dans les appartements) ; **repas du président gratuit** ; il peut inviter **plusieurs** personnes, **60 PSK par invité**, payés par la caisse présidentielle, tant qu'elle a assez d'argent. Effets du dîner d'affaires pour chacun (décision du 07/11).
-- **Musée présidentiel** : entrée **8 PSK**, versés à la caisse présidentielle. Figures (présidents fictifs) écrites par Claude, à la relecture de Fred.
+- **Musée présidentiel** : entrée **8 PSK**, versés à la caisse présidentielle ; **le président entre gratuitement** (Fred, 08/11). Figures (présidents fictifs) écrites par Claude, à la relecture de Fred.
 - **Caisse présidentielle** (`soviet_palais-presidentiel`) : alimentée par la ligne « Présidence » de la répartition budgétaire (3 %, inchangée) ; elle paie le **salaire du président, ramené de 800 à 600 PSK**, et les repas des invités.
 
 ### Ce qui est codé (08/11/2026, branche `claude/palais-presidentiel-sovarka-20261108`)
 
 - Zone cliquable sur la vue 10, entrée serveur `rue_sorties_batiments` (novomirsk-vue-10).
-- Billet du musée : ordre « Billet du musée présidentiel » au hall (8 PSK, valable jusqu'à minuit, `sovarka_musee_billet`) ; sans billet, la porte du musée refuse. Choix technique : le billet s'achète une fois par jour, chaque visiteur (président compris) prend le sien.
+- Billet du musée : ordre « Billet du musée présidentiel » au hall (8 PSK, valable jusqu'à minuit, `sovarka_musee_billet`) ; sans billet, la porte du musée refuse. Le billet s'achète une fois par jour, chaque visiteur prend le sien ; le président entre sans billet.
 - Accès réservés : garde serveur dans la navigation intérieure (`sovarka_palais_acces_interne`) — restaurant et appartements ouverts au président et aux membres de son groupe (le président est chef du groupe).
 - Repas : `sovarka_repas_presidentiel(requete, invites[])`, refus nommé « caisse insuffisante » avec le nombre d'invités possibles.
 - Repos : `pa_repos_nocturne` ajoute +1 PA au président élu qui dort dans ses appartements (ordre Dormir de la pièce).

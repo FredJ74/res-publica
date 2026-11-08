@@ -79,7 +79,9 @@ BEGIN
     END IF;
     RETURN 'groupe_president_requis';
   ELSIF p_piece = 'musee_presidentiel' THEN
-    IF EXISTS (SELECT 1 FROM public.sovarka_musee_billets
+    -- Le président visite son musée gratuitement (Fred, 08/11/2026).
+    IF EXISTS (SELECT 1 FROM public.cycles_electoraux WHERE id = 'soviet_president' AND data::jsonb ->> 'eluId' = p_nom)
+       OR EXISTS (SELECT 1 FROM public.sovarka_musee_billets
                 WHERE jour = (now() AT TIME ZONE 'Europe/Paris')::date AND personnage = p_nom) THEN
       RETURN NULL;
     END IF;
@@ -245,6 +247,8 @@ BEGIN
   IF (v->>'ok')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'banc KO appartement président: %', v; END IF;
   v := public.navigation_interieure_personnage_interne(c, 'palais-presidentiel', 'musee_presidentiel', true);
   IF v->>'raison' IS DISTINCT FROM 'billet_musee_requis' THEN RAISE EXCEPTION 'banc KO musée sans billet: %', v; END IF;
+  v := public.navigation_interieure_personnage_interne(a, 'palais-presidentiel', 'musee_presidentiel', true);
+  IF (v->>'ok')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'banc KO musée gratuit pour le président: %', v; END IF;
   -- Entrée depuis la rue du Tribunal
   UPDATE public.personnages_donnees SET current_building=NULL, current_room=NULL, current_street='novomirsk-vue-10' WHERE name = c;
   v := public.navigation_interieure_personnage_interne(c, 'palais-presidentiel', 'accueil_elysee', true);

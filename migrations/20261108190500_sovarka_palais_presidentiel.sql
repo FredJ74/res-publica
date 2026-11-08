@@ -77,7 +77,9 @@ BEGIN
     END IF;
     RETURN 'groupe_president_requis';
   ELSIF p_piece = 'musee_presidentiel' THEN
-    IF EXISTS (SELECT 1 FROM public.sovarka_musee_billets
+    -- Le président visite son musée gratuitement (Fred, 08/11/2026).
+    IF EXISTS (SELECT 1 FROM public.cycles_electoraux WHERE id = 'soviet_president' AND data::jsonb ->> 'eluId' = p_nom)
+       OR EXISTS (SELECT 1 FROM public.sovarka_musee_billets
                 WHERE jour = (now() AT TIME ZONE 'Europe/Paris')::date AND personnage = p_nom) THEN
       RETURN NULL;
     END IF;
