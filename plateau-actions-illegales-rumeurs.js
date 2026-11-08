@@ -413,6 +413,8 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   nuit_escort:            (a, c) => 'Des mauvaises langues jurent avoir vu ' + a + ' quitter discrètement une chambre en compagnie d\'une professionnelle de l\'Agence Roxane Velours.',
   plainte_sans_suite:     (a, c) => 'Une rumeur evoque une plainte deposee par ' + a + ' contre ' + c + ', finalement classee sans suite.',
   plainte_enquete:        (a, c) => 'Une enquete viserait ' + c + ', dit-on, suite a une plainte deposee par ' + a + '.',
+  // Justice de Sovarka (Fred, 08/11/2026) : une affaire enterree au commissariat, sans nommer qui l'a enterree.
+  plainte_egaree:         (a, c) => 'On dit qu\'une plainte contre ' + c + ' s\'est égarée au commissariat…',
   plainte_confirmee:      (a, c) => 'La rumeur veut que ' + c + ' ait ete place en garde a vue suite a une plainte de ' + a + '.',
   cellules_fragilisees:   (a, c) => 'On raconte que les cellules de garde a vue de ' + c + ' se fragiliseraient, suite a des incidents recents.',
   // Chantier "refonte Lancer une rumeur" (2 septembre 2026) : cle manquante corrigee -- avant ce

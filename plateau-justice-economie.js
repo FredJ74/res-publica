@@ -459,10 +459,14 @@ async function soumettrePlaynte() {
   if (ecartes.length) suite += ' Non retenu(s) : '
     + ecartes.map(x => x.temoin + ' (' + (MOTIFS_TEMOIN[x.raison] || x.raison) + ')').join(', ') + '.';
 
+  // Sovarka (Fred, 08/11/2026) : pas de procureur, la plainte reste au registre du commissariat.
+  const sovarka = state.country === 'soviet';
   addJournalEntry('Plainte deposee contre ' + cible + '. Motif : ' + motif
-    + '. Dossier transmis au parquet.' + suite, 'event-info');
+    + (sovarka ? '. Plainte inscrite au registre du commissariat.' : '. Dossier transmis au parquet.') + suite, 'event-info');
   showToast('Plainte enregistree',
-    'Le dossier est au parquet. Le Procureur de la Republique decidera s\'il y a lieu de poursuivre.'
+    (sovarka
+      ? 'La plainte est inscrite au registre du commissariat. Le commissaire ou le ministre de la Justice prolétarienne décidera de saisir le juge.'
+      : 'Le dossier est au parquet. Le Procureur de la Republique decidera s\'il y a lieu de poursuivre.')
     + suite,
     true);
 }

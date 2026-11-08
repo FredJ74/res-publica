@@ -243,7 +243,7 @@ Intention : un sentiment d'enfermement, peu de moyens d'échapper aux règles co
 - Écran : surcharge `roomOverrides.greffe` des tribunaux des trois villes de Sovarka (`data.js`, bloc « droits d'exploiter ») ; rangement en menus étendu au Tribunal Populaire (`plateau-politique.js`).
 - Serveur : migration `20261108224500_sovarka_greffe_tribunal_populaire` (appliquée le 08/11) — `sovarka_greffe_autorite_interne`, garde `greffe_sovarka_restreint_v1` dans `justice_affaires_publiques` et `justice_archives_greffe`, prix `greffe_sovarka_prix_v1` dans `casier_mon_extrait`, aiguillage `greffe_sovarka_enquete_v1` de `casier_extrait_enquete` vers `sovarka_casier_extrait_enquete_interne`. Refus nommés : `reserve_autorites_sovarka`, `etranger_hors_juridiction`.
 
-## Justice de Sovarka : bureau des magistrats et circuit sans procureur (décisions de Fred, 08/11/2026, À CODER)
+## Justice de Sovarka : bureau des magistrats et circuit sans procureur (décisions de Fred, 08/11/2026)
 
 **Circuit judiciaire**
 - Pas de procureur en Sovarka. La plainte est inscrite au registre du commissariat.
@@ -266,3 +266,9 @@ Intention : un sentiment d'enfermement, peu de moyens d'échapper aux règles co
 - Le « Défenseur Collectif, Avocat du Peuple » est retiré du tribunal de Novomirsk (plus d'avocats).
 
 Salle d'audience : pas de changement demandé. Les audiences existent côté serveur mais n'ont jamais servi (aucune plainte ni aucun jugement en base) ; en Sovarka elles dépendent du nouveau circuit ci-dessus.
+
+### Ce qui est codé (08/11/2026, branche `claude/justice-sovarka-20261108`)
+
+- Serveur : migration `20261108230000_sovarka_justice_circuit`. Titulaires PNJ dans `titulaires_pnj` (six lignes `soviet_juge_*` / `soviet_commissaire_*`). `sovarka_justice_registre` (commissaire : sa ville ; ministre : tout Sovarka ; juge : ses affaires saisies, avec la consigne), `sovarka_justice_decider` (saisir : statut `saisie`, acte `juge_saisi`, courrier au juge PJ ; enterrer : statut `enterree`, jamais clos ni expiré, trace `plainte_egaree` d'auteur « Le commissariat » pour les rumeurs), `sovarka_consigne_envoyer` (table `sovarka_consignes_ministre`, refus le jour de l'audience ou après son ouverture, courrier au juge PJ), `sovarka_offrir_cafe` (tables `sovarka_cafes_magistrat` et `sovarka_cafes_requetes`), `sovarka_parti_extrait` (document `domiciliation_extrait`, motif `enregistrement_parti`). Patchs sous empreinte : `etat_civil_document_recevoir` (acte au greffe de Sovarka, plus au bureau des magistrats), `rumeur_ecoute_jauges_interne` (`plainte_egaree` audible), `justice_affaires_publiques` (en Sovarka, seules les affaires saisies). La plainte garde son statut historique `au_parquet`, qui signifie ici « au registre du commissariat ».
+- Écran : `plateau-sovarka-justice.js` ; ordres « Registre des plaintes » (bureau du commissaire, trois villes), « Affaires judiciaires » (bureau du ministre de la Justice prolétarienne), « Prendre les ordres du ministre » et « Offrir un café » (bureau des magistrats), « Demander / Délivrer un acte officiel » (greffe), « Extrait d'enregistrement du parti » (salle des partis) ; « Dossiers du parquet » et l'acte du juge retirés du bureau ; Défenseur Collectif retiré ; juges et commissaires PNJ avec titre de référent quand un PJ tient le poste.
+- Choix laissés à la relecture de Fred : saisir, enterrer, consigner et offrir un café ne coûtent pas de PA (aucun coût décidé) ; les 7 PSK de l'extrait du parti vont à la caisse de la mairie ; la rumeur ne s'entend que là où l'on écoute les rumeurs (en Sovarka, le Grand Hôtel de Novomirsk) ; quand commissaire et ministre sont des PNJ, les plaintes attendent au registre.
