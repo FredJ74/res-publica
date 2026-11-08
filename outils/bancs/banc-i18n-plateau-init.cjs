@@ -236,3 +236,20 @@ test('un attribut absent ne reste pas artificiellement présent après une tradu
  engine.changeLanguage('ar');
  assert.equal(Object.hasOwn(attrs,'title'),false);
 });
+
+test('les textes et titres pilotés par les mécanismes métier ne portent pas de traduction statique',()=>{
+ const html=fs.readFileSync(path.join(__dirname,'../../plateau.html'),'utf8');
+ const dynamicIds=[
+  'piece-desc','pnj-modal-title','postes-modal-title','forum-view-subtitle',
+  'mail-view-subtitle','action-context-bat','minimap-ville-title','carte-postale-modal-title'
+ ];
+ for(const id of dynamicIds){
+  const tag=html.match(new RegExp('<[^>]*\\bid="'+id+'"[^>]*>'));
+  assert.ok(tag,'noeud dynamique absent : '+id);
+  assert.doesNotMatch(tag[0],/\\bdata-i18n(?:-uppercase)?(?:=|\\s|>)/,
+    'un changement de langue écraserait le contenu métier de '+id);
+ }
+ // Les libellés purement décoratifs restent traduits via i18next.
+ assert.match(html,/data-i18n="plateau.character"/);
+ assert.match(html,/data-i18n="plateau.messagesForums"/);
+});
