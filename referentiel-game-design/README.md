@@ -9,11 +9,12 @@ Servir de mémoire durable commune au game designer, à ChatGPT, Claude et Codex
 1. [Constitution fondatrice](../CONSTITUTION.md) : la relation humaine prime sur la simulation ; plusieurs trajectoires de réussite ; le moteur arbitre sans remplacer le joueur.
 2. [Méthode et niveaux de preuve](METHODE-ET-PREUVES.md).
 3. [Atlas des systèmes et parcours](ATLAS-SYSTEMES.md).
-4. [Matrice de couverture et d'état](MATRICE-COUVERTURE.md).
-5. [Contradictions, risques et vérifications manquantes](ECARTS-ET-VERIFICATIONS.md).
-6. [Cadre de l'audit expérience joueur et rétention](EXPERIENCE-ET-RETENTION.md).
-7. [Index technique des sources (fichiers, migrations et bancs)](INDEX-TECHNIQUE.md) : piste d'audit, non preuve d'activité.
-8. Sources détaillées préexistantes : [architecture](../ARCHITECTURE.md), [relais](../RELAIS.md), [game design Sovarka](../GAME-DESIGN-NOVOMIRSK.md), tous les `GAME-DESIGN-*.md`, [audit d'autorité](../AUDIT_UNE_SEULE_VERITE.md).
+4. [Catalogue historique des 61 mécaniques de l'architecture](CATALOGUE-MECANIQUES-HISTORIQUE.md), à actualiser ordre par ordre.
+5. [Matrice de couverture et d'état](MATRICE-COUVERTURE.md).
+6. [Contradictions, risques et vérifications manquantes](ECARTS-ET-VERIFICATIONS.md).
+7. [Cadre de l'audit expérience joueur et rétention](EXPERIENCE-ET-RETENTION.md).
+8. [Index technique des sources (fichiers, migrations et bancs)](INDEX-TECHNIQUE.md) : piste d'audit, non preuve d'activité.
+9. Sources détaillées préexistantes : [architecture](../ARCHITECTURE.md), [relais](../RELAIS.md), [game design Sovarka](../GAME-DESIGN-NOVOMIRSK.md), tous les `GAME-DESIGN-*.md`, [audit d'autorité](../AUDIT_UNE_SEULE_VERITE.md).
 
 ## Convention de statut (ne jamais les confondre)
 - **D — Décidé** : règle explicitement adoptée, preuve documentaire datée ; ne prouve pas son exécution.
