@@ -399,7 +399,7 @@
         </button>
         <div class="batiment-header-info">
           <div class="batiment-nom" data-i18n="plateau.forum">Forum</div>
-          <div class="batiment-cat" id="forum-view-subtitle" data-i18n="plateau.localForum">Forum Local</div>
+          <div class="batiment-cat" id="forum-view-subtitle">Forum Local</div>
         </div>
       </div>
       <div id="forum-view-body" style="flex:1;overflow:hidden;display:flex"></div>
@@ -414,7 +414,7 @@
         </button>
         <div class="batiment-header-info">
           <div class="batiment-nom" data-i18n="plateau.mailbox">Boite Mail</div>
-          <div class="batiment-cat" id="mail-view-subtitle" data-i18n="plateau.receivedMessages">Messages recus</div>
+          <div class="batiment-cat" id="mail-view-subtitle">Messages recus</div>
         </div>
       </div>
       <div id="mail-content" style="flex:1;overflow-y:auto;background:#0a0805"></div>
@@ -442,7 +442,7 @@
         <div class="piece-image" id="piece-image">
           <div class="piece-ambiance">
             <div class="piece-nom" id="piece-nom">Piece</div>
-            <div class="piece-desc" id="piece-desc" data-i18n="plateau.description">Description</div>
+            <div class="piece-desc" id="piece-desc">Description</div>
           </div>
         </div>
 
@@ -455,7 +455,7 @@
 
       <!-- Actions de la piece -->
       <div id="actionbar-batiment">
-        <div class="action-context" id="action-context-bat" data-i18n="plateau.availableActions" data-i18n-uppercase>ACTIONS DISPONIBLES</div>
+        <div class="action-context" id="action-context-bat">ACTIONS DISPONIBLES</div>
         <div class="actions-row" id="actions-row-bat"></div>
       </div>
     </div>
@@ -498,7 +498,7 @@
 <div id="modal-pnj" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-header">
-      <div class="modal-title" id="pnj-modal-title" data-i18n="plateau.conversation">Conversation</div>
+      <div class="modal-title" id="pnj-modal-title">Conversation</div>
       <button class="modal-close" onclick="closePnjModal()"><i class="ti ti-x"></i></button>
     </div>
     <div id="pnj-modal-body">
@@ -561,7 +561,7 @@
 <div id="modal-postes" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-header">
-      <div class="modal-title" id="postes-modal-title" data-i18n="plateau.orgChart">Organigramme</div>
+      <div class="modal-title" id="postes-modal-title">Organigramme</div>
       <button class="modal-close" onclick="if (typeof arreterAudioguide === 'function') arreterAudioguide(); if (typeof desactiverDragJournal === 'function') desactiverDragJournal(); document.getElementById('modal-postes').classList.remove('open'); document.querySelector('#modal-postes .modal-box')?.classList.remove('modal-wide', 'journal-mode', 'cpj-machine', 'mil-machine')"><i class="ti ti-x"></i></button>
     </div>
     <div id="postes-body"></div>
@@ -605,7 +605,7 @@
 <div id="modal-minimap-ville" class="modal-overlay">
   <div class="modal-box modal-large" style="max-width:700px;max-height:85vh;overflow-y:auto">
     <div class="modal-header">
-      <div class="modal-title" id="minimap-ville-title" data-i18n="plateau.planTitle">Plan de la ville</div>
+      <div class="modal-title" id="minimap-ville-title">Plan de la ville</div>
       <button class="modal-close" onclick="document.getElementById('modal-minimap-ville').classList.remove('open')"><i class="ti ti-x"></i></button>
     </div>
     <div id="minimap-ville-body" style="padding:.5rem"></div>
@@ -643,7 +643,7 @@
 <div id="modal-carte-postale" class="modal-overlay">
   <div class="modal-box" style="max-width:640px">
     <div class="modal-header">
-      <div class="modal-title" id="carte-postale-modal-title" data-i18n="plateau.postalCard">Carte postale</div>
+      <div class="modal-title" id="carte-postale-modal-title">Carte postale</div>
       <button class="modal-close" onclick="fermerModalCartePostale()"><i class="ti ti-x"></i></button>
     </div>
     <div id="carte-postale-body"></div>
