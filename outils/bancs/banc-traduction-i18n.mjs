@@ -101,3 +101,28 @@ test('P2-01: RLS avant cache, entrée cache falsifiée jamais livrée',async()=>
   assert.deepEqual(steps,['auth','rls','cache','budget','provider','write']);
  }
 });
+
+test('P2-01 Codex: signes Unicode et séparés rejetés, y compris via le cache',async()=>{
+ for(const [source,contradictoire] of [
+  ['Solde : 100 FR.','Balance: −100 FR.'],
+  ['Solde : - 100 FR.','Balance: + 100 FR.'],
+  ['Solde : 100 FR.','Balance: －100 FR.'],
+  ['Solde : 100 FR.','Balance: + 100 FR.'],
+  ['Solde : ١٠٠ FR.','Balance: 100 FR.']
+ ]){
+  const bad=await traduireTexte({texte:source,langueOriginale:'fr',langueCible:'en'},
+   async()=>({ok:true,texte:contradictoire}));
+  assert.equal(bad.ok,false,source+' => '+contradictoire);
+  assert.equal(bad.original,source);
+  const cached=await traduireContenu({type:'forum_post',id:'1',field:'content',langueCible:'en'},{
+   authenticate:async()=>({userId:'uid',readerToken:'jwt'}),
+   readUnderRls:async()=>({text:source,language:'fr'}),
+   readCache:async()=>contradictoire,
+   reserveBudget:async()=>false,
+   provider:async()=>{throw new Error('quota refuse')},
+   writeCache:async()=>{throw new Error('aucune ecriture permise')}
+  });
+  assert.equal(cached.ok,false,'cache trompeur accepté : '+contradictoire);
+  assert.equal(cached.traduit,null);
+ }
+});
