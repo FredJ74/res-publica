@@ -141,10 +141,12 @@ async function ouvrirSovarkaMonParti() {
       : '<p class="cpj-note">Aucune demande en attente.</p>');
     html += vehSection('Soviet Suprême', '<p class="cpj-note">Sièges obtenus à la semaine à la gloire ; désignez les députés de votre parti.</p>' +
       vehBouton('Sièges et députés', 'ouvrirSovietSupreme()', false));
-    html += vehSection('Lois et manifestations', '<p class="cpj-note">Déposer un projet de loi au nom du parti (1 PA) ; '
-      + 'organiser une manifestation de soutien au parti au pouvoir, qui part de la mairie, avec au moins 10 manifestants de votre groupe présents (1 PA).</p>'
+    html += vehSection('Lois et manifestations', '<p class="cpj-note">Déposer un projet de loi au nom du parti (1 PA). '
+      + 'Une manifestation de soutien au gouvernement se demande d’abord au ministre de la Sécurité du Peuple ; une fois autorisée '
+      + '(jusqu’au lendemain soir), elle part de la mairie avec au moins 10 manifestants de votre groupe présents (1 PA).</p>'
       + vehBouton('Déposer un projet de loi', 'ouvrirSovarkaDeposerLoi()', true)
-      + vehBouton('Manifestation de soutien', 'sovarkaManifSoutien()', false));
+      + vehBouton('Demander une manifestation de soutien', 'sovarkaManifDemander()', false)
+      + vehBouton('Manifester (autorisation accordée)', 'sovarkaManifSoutien()', false));
     html += vehSection('Droit d’entrée', '<input id="parti-prix" class="cpj-champ" type="number" min="0" step="1" value="' + m.prix + '"> PSK ' +
       vehBouton('Fixer', 'partiFixerPrix()', false));
   }

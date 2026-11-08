@@ -417,6 +417,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Ministères de Sovarka (Fred, 08/11/2026)
   if (fn === 'sovarka_lois_examen')        { ouvrirSovarkaLoisExamen(); return; }
   if (fn === 'sovarka_autocritique')       { ouvrirSovarkaAutocritique(); return; }
+  if (fn === 'sovarka_graces')             { ouvrirSovarkaGraces(); return; }
+  if (fn === 'sovarka_manifs_gerer')       { ouvrirSovarkaManifsGerer(); return; }
   if (fn === 'sovarka_seance')             { ouvrirSovarkaSeance(); return; }
   if (fn === 'sovarka_saisir_juge')        { ouvrirSovarkaSaisirJuge(); return; }
   if (fn === 'sovarka_sondages')           { ouvrirSovarkaSondages(); return; }

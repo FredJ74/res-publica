@@ -735,7 +735,9 @@ async function ouvrirMobilisationNationale() {
   const entete = '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">'
     + (mobilisee ? 'Mobilisation nationale EN COURS.' : 'Aucune mobilisation nationale en cours.')
     + '</div>';
-  const entrees = entreesMobilisationNationale(mobilisee).map(function (e) {
+  // Sovarka (Fred, 08/11/2026) : la conscription remplace la réquisition civile.
+  const entrees = entreesMobilisationNationale(mobilisee)
+    .filter(e => !(state.country === 'soviet' && e.cle === 'requisition')).map(function (e) {
     const base = { pa: e.pa, indisponible: e.indisponible || null };
     if (e.cle === 'mobiliser') {
       return Object.assign(base, { label: 'Mobiliser l\'armée',

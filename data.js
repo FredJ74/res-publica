@@ -1985,22 +1985,43 @@ const WORLD = {
                               // Décisions de Fred (08/11/2026) : pas de vote de confiance, l'autocritique publique le remplace ;
                               // le Président du Conseil tranche seul les projets de loi des partis.
                               excludeOrders: ['declencher_vote_confiance'],
-                              orders: [{ fn: 'sovarka_lois_examen', label: 'Projets de loi à trancher', pa: 0, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, desc: "Les projets déposés par les partis. Vous tranchez seul ; une loi acceptée est promulguée aussitôt." },
+                              // Décisions de Fred (08/11/2026, tour des ministères) : 1 PA par projet tranché ; les grâces passent par lui.
+                              orders: [{ fn: 'sovarka_lois_examen', label: 'Projets de loi à trancher', pa: 0, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, desc: "Les projets déposés par les partis. Vous tranchez seul, 1 PA par projet ; une loi acceptée est promulguée aussitôt." },
+                                       { fn: 'sovarka_graces', label: 'Grâces à transmettre', pa: 0, cost: 0, type: 'legal', icon: 'ti-heart-handshake', successRate: 100, desc: "Les grâces proposées par le ministre de la Justice prolétarienne : vous les transmettez ou non au Président de la République (1 PA par décision)." },
                                        { fn: 'sovarka_autocritique', label: 'Autocritique publique', pa: 1, cost: 0, type: 'legal', icon: 'ti-speakerphone', successRate: 100, desc: "Contraindre un ministre à une autocritique publiée dans la presse : il perd 5 POP, vous en gagnez 2. Une fois par ministre et par semaine." }] },
             salle_conseil:  { name: 'Salle du Conseil du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_conseil.webp',
                               orders: [{ fn: 'sovarka_seance', label: 'Séance du jeudi', pa: 0, cost: 0, type: 'legal', icon: 'ti-checkbox', successRate: 100, desc: "Les députés, convoqués chaque jeudi, émargent puis approuvent les lois promulguées ou s'abstiennent (abstention signalée, −5 POP au parti). Absent : indemnité perdue pour la semaine." }] },
             salle_presse:   { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_presse.webp' },
             archives_gouv:  { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_archives.webp' },
             bureau_min_int: { name: 'Bureau - Ministre de la Sécurité du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_securite.webp',
-                              excludeOrders: ['lois_votees_an'] },
+                              // Fred, 08/11/2026 : seules les manifestations de soutien existent ; le ministre accepte ou refuse
+                              // les demandes des partis, puis ne peut plus que réprimer (pas d'interdiction).
+                              excludeOrders: ['lois_votees_an', 'gestion_manifestations'],
+                              orders: [{ fn: 'sovarka_manifs_gerer', label: 'Gérer les manifestations', pa: 0, cost: 0, type: 'legal', icon: 'ti-users-group', successRate: 100, requiresPost: 'min_int', desc: "Accepter ou refuser les demandes de manifestation de soutien des partis (1 PA), ou réprimer une manifestation autorisée (3 PA)." }] },
             bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_economie.webp',
-                              excludeOrders: ['preempter_entreprise'] },
+                              // Fred, 08/11/2026 : pas de Bureau de l'Emploi en Sovarka ; subvention plafonnée à 150 PSK.
+                              excludeOrders: ['preempter_entreprise', 'bne_caisse_prelever', 'subvention'],
+                              orders: [{ fn: 'subvention', label: 'Accorder une subvention', pa: 2, cost: 0, type: 'legal', icon: 'ti-coins', successRate: 100, requiresPost: 'min_fin', desc: "Cibler un citoyen, un club sportif, une entreprise ou une organisation. Montant à fixer ensuite (plafond 150 PSK)." }] },
             bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_justice.webp',
-                              orders: [{ fn: 'sovarka_saisir_juge', label: 'Saisir le juge', pa: 1, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, desc: "Vous seul saisissez le juge pour retirer un droit d'exploiter. Juge PNJ : retrait automatique ; juge PJ : décision libre." }] },
+                              // Fred, 08/11/2026 : le goulag remplacera le QHS (à Starovka) ; même gestion en attendant.
+                              excludeOrders: ['gestion_qhs'],
+                              orders: [{ fn: 'sovarka_saisir_juge', label: 'Saisir le juge', pa: 1, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, desc: "Vous seul saisissez le juge pour retirer un droit d'exploiter. Juge PNJ : retrait automatique ; juge PJ : décision libre." },
+                                       { fn: 'gestion_qhs', label: 'Gestion du goulag', pa: 0, cost: 0, type: 'legal', icon: 'ti-building-fortress', successRate: 100, requiresPost: 'min_just', desc: "Liste des détenus du goulag : transférer, améliorer les conditions ou faire torturer. Le goulag sera installé à Starovka." }] },
             bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_defense.webp',
-                              orders: [{ fn: 'sovarka_conscription', label: 'Conscription', pa: 0, cost: 0, type: 'legal', icon: 'ti-military-rank', successRate: 100, desc: "Décréter ou lever la conscription des citoyens sans poste : 48 heures pour se présenter, sinon réfractaires et recherchés." }] },
+                              // Fred, 08/11/2026 : réquisition civile retirée (doublon de la conscription) ; cessez-le-feu en attente de la
+                              // diplomatie inter-empires ; Garde de la Patrie au seul Palais du Gouvernement (15 PSK par garde) ;
+                              // rapports des centres radars liés aux centres d'écoute de Starovka et Krasnov (à leur tour).
+                              excludeOrders: ['activer_cessez_le_feu', 'garde_republicaine'],
+                              orders: [{ fn: 'sovarka_conscription', label: 'Conscription', pa: 0, cost: 0, type: 'legal', icon: 'ti-military-rank', successRate: 100, desc: "Décréter ou lever la conscription des citoyens sans poste : 48 heures pour se présenter, sinon réfractaires et recherchés." },
+                                       { fn: 'garde_republicaine', label: 'Garde de la Patrie', pa: 0, cost: 0, type: 'legal', icon: 'ti-shield-lock', successRate: 100, requiresPost: 'min_def', desc: "Renforcer la Garde du Palais du Gouvernement pendant 24 h : ×2 à ×5, 15 PSK par garde supplémentaire sur la caisse du ministère." },
+                                       { fn: 'activer_cessez_le_feu', label: 'Activer un cessez-le-feu', pa: 2, cost: 0, type: 'legal', icon: 'ti-handshake', successRate: 100, requiresPost: 'min_def', bientot: 'Bientôt disponible : la diplomatie entre empires arrivera avec le voyage inter-empires.', desc: "Activer une trêve déjà négociée par la diplomatie." },
+                                       { fn: 'sovarka_radars_rapports', label: 'Demander les rapports aux centres radars', pa: 1, cost: 0, type: 'legal', icon: 'ti-radar', successRate: 100, requiresPost: 'min_def', bientot: 'Bientôt disponible : les centres d’écoute militaires de Starovka et Krasnov seront raccordés à leur tour.', desc: "Recevoir les rapports des centres d'écoute militaires." }] },
             bureau_min_info:{ name: 'Bureau - Ministre de la Vérité officielle', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_information.webp',
-                              orders: [{ fn: 'sovarka_sondages', label: 'Sondages en attente', pa: 0, cost: 0, type: 'legal', icon: 'ti-chart-bar', successRate: 100, desc: "Les sondages reçus : publier tel quel, publier faussé ou enterrer." }] },
+                              // Fred, 08/11/2026 : prix adaptés à Sovarka (propagande 150 PSK, sondage 60 PSK).
+                              excludeOrders: ['propagande_etat', 'commanditer_sondage'],
+                              orders: [{ fn: 'propagande_etat', label: 'Campagne de propagande', pa: 3, cost: 150, type: 'legal', icon: 'ti-speakerphone', successRate: 100, requiresPost: 'min_info', desc: "Influencer massivement l'opinion publique. +POP." },
+                                       { fn: 'commanditer_sondage', label: 'Commanditer un sondage', pa: 1, cost: 60, type: 'legal', icon: 'ti-chart-pie', successRate: 100, requiresPost: 'min_info', desc: "Un sondage réel sur la popularité des partis, dont vous seul recevez les chiffres (60 PSK)." },
+                                       { fn: 'sovarka_sondages', label: 'Sondages en attente', pa: 0, cost: 0, type: 'legal', icon: 'ti-chart-bar', successRate: 100, desc: "Les sondages reçus : publier tel quel, publier faussé ou enterrer." }] },
             bureau_min_ae:  { name: "Bureau - Ministre de l'Amitié entre les Peuples", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_diplomatie.webp' }
           },
           persons: []
