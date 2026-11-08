@@ -3764,25 +3764,23 @@ async function confirmerDonPnj(encodedPnj) {
   // DON A UN PNJ AU SERVEUR (#379, 03/11/2026). Le navigateur se debitait lui-meme (debit fictif :
   // l'argent est protege en base) et s'ajoutait POP, INF, moral et sante. La commande don_argent_pnj
   // verifie la presence du PNJ, tire le refus des metiers a risque, debite et applique les jauges
-  // dans une transaction, formules d'origine. Restent a l'ecran : les jets de DIS des metiers qui
-  // n'agissent que sur la DIS (commissaire, policier, inspecteur, juge, banquier).
+  // dans une transaction, formules d'origine. DIS est aussi rendue par le serveur ;
+  // le contrat versionné refuse les anciennes versions avant tout débit.
   const nomCourt = pnj.name.replace(' (PNJ)','');
-  const v = await executerOrdreJaugesServeur('don_argent_pnj', { nom: nomCourt, montant });
+  const v = await executerOrdreJaugesServeur('don_argent_pnj', { nom: nomCourt, montant, contrat_dis: 1 });
   if (!v) return;
+  if (v.contrat_dis !== 1 || typeof v.dis !== 'number' || !Number.isFinite(v.dis)) {
+    showToast('Don non confirmé', 'La réponse du serveur ne confirme pas votre discrétion. Consultez votre état.', false);
+    return;
+  }
+  state.dis = v.dis;
   if (typeof v.moral === 'number') state.moral = v.moral;
   if (v.refuse) {
-    state.dis = Math.max(0, (state.dis||50) - 15);
     updateUI();
     addJournalEntry('Don refuse par ' + nomCourt + '. -15 DIS.', 'event-bad');
     showToast('Refus indigne !', nomCourt + ' a refuse. -15 DIS.', false);
     return;
   }
-  const dup = getStatEffective('DUP');
-  const jetDis = (base, plafond, gain, perte, okTxt, koTxt) => {
-    const t = Math.min(plafond, base + Math.floor(dup*2)); const r = Math.floor(Math.random()*100)+1;
-    if (r <= t) { state.dis = Math.max(0,(state.dis||50)-gain); showToast(okTxt, '-' + gain + ' DIS.', true); }
-    else { state.dis = Math.max(0,(state.dis||50)-perte); showToast(koTxt, '-' + perte + ' DIS.', false); }
-  };
   const gains = [];
   if (v.gain_pop) gains.push('+' + v.gain_pop + ' POP');
   if (v.gain_inf) gains.push('+' + v.gain_inf + ' INF');
@@ -3796,11 +3794,12 @@ async function confirmerDonPnj(encodedPnj) {
     loge: ['Don a la Loge.', 'Don a la Loge.'], grand_pretre: ['Don beni !', 'Don a ' + nomCourt + '.'],
     escort: ['Information exclusive !', 'Don a ' + nomCourt + '.']
   };
-  if (v.job === 'commissaire') jetDis(30, 70, 5, 20, 'Arrangement discret', 'Refus !');
-  else if (v.job === 'policier') jetDis(25, 65, 3, 15, 'Il regarde ailleurs.', 'Refus !');
-  else if (v.job === 'inspecteur') jetDis(35, 70, 5, 15, 'Inspecteur convaincu !', 'Refus !');
-  else if (v.job === 'juge') jetDis(20, 55, 8, 25, 'Le juge est comprehensif.', 'SCANDALE !');
-  else if (v.job === 'banquier') { state.dis = Math.min(100,(state.dis||50)+5); showToast('Service discret.','+5 DIS.',true); }
+  const titresDis = {
+    commissaire: ['Arrangement discret', 'Refus !'], policier: ['Il regarde ailleurs.', 'Refus !'],
+    inspecteur: ['Inspecteur convaincu !', 'Refus !'], juge: ['Le juge est comprehensif.', 'SCANDALE !']
+  };
+  if (titresDis[v.job]) showToast(titresDis[v.job][v.dis_reussi ? 0 : 1], '-' + Math.abs(v.dis_delta) + ' DIS.', v.dis_reussi === true);
+  else if (v.job === 'banquier') showToast('Service discret.','+5 DIS.',true);
   else {
     const m = messages[v.job] || ['Don accepte.', 'Don a ' + nomCourt + '.'];
     showToast(m[0], (v.job in messages ? '' : nomCourt + ' apprecie. ') + txt, true, v.job === 'journaliste' || v.job === 'loge' || v.job === 'grand_pretre' || v.job === 'escort');

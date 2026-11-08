@@ -25,6 +25,27 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Tirages — dons aux PNJ, Codex, 08/11/2026
+
+Branche `codex/tirages-dons-pnj-20261108`, base main `d633524f`. Patch ciblé de
+`jauges_ordre_executer` : même débit et reçu, jet/effet DIS au serveur, aucun jet
+ou delta local. Client `contrat_dis:1`, anciens clients refusés AVANT débit.
+Migration préparée **non appliquée** `20261108130723_dons_pnj_dis_serveur.sql`,
+**dépendante du client** : écran intégré → Vercel READY → prévol agrégé en lecture
+seule → banc isolé authenticated annulé → application par Claude au registre.
+Prévol `outils/bancs/prevol-tirages-dons-pnj.sql` : divergences de groupes/stats
+interdisent activation sans réconciliation par le socle ; aucun barème inventé.
+Banc `banc-tirages-dons-pnj.sql`, exécuteur local du même nom en .py : 93/93,
+2 courses réelles sur fixtures, rollback/rejeu et deux mutations détectées.
+Clients ciblés 49/49, bureau 1440 identique. Contrôleur complet en cours.
+Rapport `outils/audits/TIRAGES-DONS-PNJ-20261108.md`.
+Titre PR prêt : **Dons PNJ : DIS transactionnelle et jet serveur unique**.
+Description : « Termine la commande existante, formules inchangées, reçu et
+soldes préservés ; port DUP vérifié contre le socle. Contrat de transition sans
+double débit. Migration non appliquée et dépendante du nouvel écran ; prévol et
+bancs dans le rapport. » Claude ouvre et contrôle la PR ; aucune tentative API.
+
+
 ### Certification mobile — Codex, 08/11/2026
 
 **Livré : PR #633 ouverte et fusionnée par Claude le 08/11** (CI 3/3 verte sur `300c1eb1` : bancs hors production, payload, parcours immobilier ; diff relu, aucun conflit avec main). Reste à faire par Fred et les testeurs : la recette sur appareils réels (`outils/audits/RECETTE-PHYSIQUE-MOBILE-20261108.md`).
