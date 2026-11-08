@@ -1,0 +1,54 @@
+name: Novomirsk — decors du marche et de la presse
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/novomirsk-marche-presse-20261108.yml'
+permissions:
+  contents: read
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verifier les chemins reels et l'isolation de Republia
+        run: |
+          node --check data.js
+          node --check plateau-navigation.js
+          node <<'NODE'
+          const assert=require('node:assert/strict');
+          const vm=require('node:vm');
+          const fs=require('node:fs');
+          const code=fs.readFileSync('data.js','utf8');
+          const html=fs.readFileSync('plateau.html','utf8');
+          const ctx=vm.createContext({console,state:{country:'soviet',currentCity:'capitale'}});
+          vm.runInContext(code,ctx);
+          const defs=vm.runInContext(`({
+            sovietMarket:WORLD.soviet.capitale.buildingContext['marche']?.roomOverrides?.marche_ext?.imageUrl,
+            sovietPress:WORLD.soviet.capitale.buildingContext['la-tribune']?.roomOverrides?.accueil_tribune?.imageUrl,
+            empireMarket:ROOM_IMAGES_EMPIRE.soviet['marche']?.marche_ext,
+            empirePress:ROOM_IMAGES_EMPIRE.soviet['la-tribune']?.accueil_tribune,
+            republicMarket:WORLD.republic.capitale.buildingContext['marche']?.roomOverrides?.marche_ext?.imageUrl,
+            republicPress:WORLD.republic.capitale.buildingContext['la-tribune']?.roomOverrides?.accueil_tribune?.imageUrl
+          })`,ctx);
+          const expected={
+            sovietMarket:'images/Sovarka/Novomirsk/Novomirsk_marche.webp',
+            sovietPress:'images/Sovarka/Novomirsk/Novomirsk_presse_accueil.webp'
+          };
+          for(const [k,path] of Object.entries(expected)){
+            assert.equal(defs[k],path,k);
+            assert.equal(defs[k==='sovietMarket'?'empireMarket':'empirePress'],path,k+' empire');
+            const bytes=fs.readFileSync(path);
+            assert.equal(bytes.toString('ascii',0,4),'RIFF',path);
+            assert.equal(bytes.toString('ascii',8,12),'WEBP',path);
+            assert.ok(bytes.length>100000);
+          }
+          assert.notEqual(defs.republicMarket,expected.sovietMarket);
+          assert.notEqual(defs.republicPress,expected.sovietPress);
+          assert.match(html,/data\.js\?v=[^"]*marche-novomirsk-webp-20261108/);
+          console.log('Marché et presse : 2 raccordements locaux + 2 impériaux et 2 WebP vérifiés; Republia inchangée');
+          NODE
