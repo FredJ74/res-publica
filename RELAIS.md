@@ -27,6 +27,8 @@ Règles : voir `AGENTS.md`.
 
 ### Certification mobile — Codex, 08/11/2026
 
+**Livré : PR #633 ouverte et fusionnée par Claude le 08/11** (CI 3/3 verte sur `300c1eb1` : bancs hors production, payload, parcours immobilier ; diff relu, aucun conflit avec main). Reste à faire par Fred et les testeurs : la recette sur appareils réels (`outils/audits/RECETTE-PHYSIQUE-MOBILE-20261108.md`).
+
 Branche `codex/mobile-certification-20261108`, issue de main `520630bd` ; correction
 Sovarka existante `bc74ecd6` reprise sans moteur supplémentaire. Trois défauts
 reproduits puis corrigés dans le socle mobile : nouvelle suspension pendant une
