@@ -1948,6 +1948,9 @@ const WORLD = {
         'armurerie': {
           name: 'Arsenal Collectif',
           desc: "Les armes appartiennent au Peuple. Accès sur autorisation du Parti.",
+          roomOverrides: {
+            magasin: { imageUrl: "images/Sovarka/Novomirsk/Novomirsk_armurerie.webp" }
+          },
           persons: [{"name": "Camarade Kalachnikov (PNJ)", "role": "Responsable Arsenal", "rel": "neutral", "job": "commercant"}],
           orders: [
             {fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local de Camarade Kalachnikov. Rien de tout cela n\'est enregistré.'}
@@ -6772,6 +6775,7 @@ const BUILDINGS = {
       accueil_ambassades_novomirsk: {
         name: "Accueil du Palais des Ambassades",
         imageBg: "linear-gradient(135deg,#12100a,#1a1610)",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_Palais des Ambassades_hall.webp",
         desc: "Le hall d'accueil du palais diplomatique. Trois bureaux d'ambassadeurs, un portrait officiel par mur, et un employé du Parti qui note les allées et venues.",
         persons: [
           {name:'Hôtesse d\'Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse'},
@@ -6793,6 +6797,7 @@ const BUILDINGS = {
       bureau_republia_novomirsk: {
         name: "Ambassade de Républia",
         imageBg: "linear-gradient(135deg,#10141c,#161c26)",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_amabassades_Republia.webp",
         desc: "Le bureau de l'ambassadeur de Républia. On n'y est reçu que sur audience, demandée à l'accueil.",
         persons: [{name:'Hubert de La Courtoisie (PNJ)', role:"Ambassadeur de Républia", rel:'neutral', job:'ambassadeur'}],
         orders: [
@@ -6805,6 +6810,7 @@ const BUILDINGS = {
       bureau_khalija_novomirsk: {
         name: "Ambassade d'Al-Khalija",
         imageBg: "linear-gradient(135deg,#1a160c,#241e10)",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_ambassades_Al Khalija.webp",
         desc: "Le bureau de l'ambassadeur d'Al-Khalija. On n'y est reçu que sur audience, demandée à l'accueil.",
         persons: [{name:'Cheikh Rachid Al-Diplomi (PNJ)', role:"Ambassadeur d'Al-Khalija", rel:'neutral', job:'ambassadeur'}],
         orders: [
@@ -6817,6 +6823,7 @@ const BUILDINGS = {
       bureau_estado_novomirsk: {
         name: "Ambassade d'El Estado",
         imageBg: "linear-gradient(135deg,#1a0e0c,#241410)",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_ambassades_El Estado.webp",
         desc: "Le bureau de l'ambassadeur d'El Estado. On n'y est reçu que sur audience, demandée à l'accueil.",
         persons: [{name:'Don Esteban Cortesano (PNJ)', role:"Ambassadeur d'El Estado", rel:'neutral', job:'ambassadeur'}],
         orders: [
