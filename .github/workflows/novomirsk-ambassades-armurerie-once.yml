@@ -74,8 +74,8 @@ jobs:
             assert morceau.count('imageUrl: "'+url+'"')==1,room
 
           text=text[:debut]+morceau+text[fin:]
-          ancien = "          name: 'Arsenal Collectif',\\n          desc: \\"Les armes appartiennent au Peuple. Accès sur autorisation du Parti.\\",\\n"
-          nouveau = ancien + '          roomOverrides: {\\n            magasin: { imageUrl: "images/Sovarka/Novomirsk/Novomirsk_armurerie.webp" }\\n          },\\n'
+          ancien = "          name: 'Arsenal Collectif',\n          desc: \"Les armes appartiennent au Peuple. Accès sur autorisation du Parti.\",\n"
+          nouveau = ancien + '          roomOverrides: {\n            magasin: { imageUrl: "images/Sovarka/Novomirsk/Novomirsk_armurerie.webp" }\n          },\n'
           assert text.count(ancien)==1, "Armurerie sovarkienne non identifiée sans ambiguïté"
           text=text.replace(ancien,nouveau,1)
           assert text.count('Novomirsk_armurerie.webp')==1, 'Image de l’armurerie doit rester propre à Sovarka'
