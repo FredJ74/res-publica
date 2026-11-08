@@ -6,7 +6,7 @@
  'use strict';
  const ambiguities=new Set([
   'louer_local','gerer_local','produire_commerce','vendre_matiere_commerce',
-  'acheter_terrain','reserver_chambre_hotel','ecouter_rumeurs','consulter_carte_commerce',
+  'acheter_terrain','sovarka_reunion_reserver','reserver_chambre_hotel','ecouter_rumeurs','consulter_carte_commerce',
   'conference_presse','propagande_etat','dementi','gerer_finances',
   'archives_police','repartition_budget_local','prier','faire_don',
   'corrompre_fonctionnaire_permis','corrompre_fonct',
