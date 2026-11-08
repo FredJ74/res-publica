@@ -443,6 +443,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('sovarka_dossiers_commerciaux',0,0),
   ('sovarka_lois_examen',0,0),
   ('sovarka_mon_parti',0,0),
+  ('sovarka_musee_billet',0,8),
   ('sovarka_parti_fonder',2,15),
   ('sovarka_partis',0,0),
   ('sovarka_repas_presidentiel',0,0),

@@ -224,5 +224,5 @@ Noms russes authentiques (bouriates à Starovka), sans jeu de mots français. Ex
 - Billet du musée : ordre « Billet du musée présidentiel » au hall (8 PSK, valable jusqu'à minuit, `sovarka_musee_billet`) ; sans billet, la porte du musée refuse. Le billet s'achète une fois par jour, chaque visiteur prend le sien ; le président entre sans billet.
 - Accès réservés : garde serveur dans la navigation intérieure (`sovarka_palais_acces_interne`) — restaurant et appartements ouverts au président et aux membres de son groupe (le président est chef du groupe).
 - Repas : `sovarka_repas_presidentiel(requete, invites[])`, refus nommé « caisse insuffisante » avec le nombre d'invités possibles.
-- Repos : `pa_repos_nocturne` ajoute +1 PA au président élu qui dort dans ses appartements (ordre Dormir de la pièce).
+- Repos : `pa_repos_nocturne` ajoute +1 PA au président élu qui dort dans ses appartements (Dormir ordinaire, passé dans la pièce).
 - L'ordre « Solliciter une audience » du hall est hérité du socle (courrier au président).

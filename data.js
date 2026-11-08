@@ -1993,10 +1993,11 @@ const WORLD = {
             appartements_president: {
               name: 'Appartements du Président',
               imageBg: 'linear-gradient(135deg,#140a0a,#22100e)',
-              desc: "Les appartements privés du Président : boiseries, lit à baldaquin et vue sur la Place du Peuple. Une cage dorée, mais une cage. On n'y entre qu'avec le Président.",
+              desc: "Les appartements privés du Président : boiseries, lit à baldaquin et vue sur la Place du Peuple. Une cage dorée, mais une cage : le Président qui dort ici récupère 1 PA de plus. On n'y entre qu'avec le Président.",
               persons: [],
-              orders: [{ fn: 'dormir', label: 'Dormir', pa: 0, cost: 0, type: 'legal', icon: 'ti-moon', successRate: 100,
-                requiresPost: 'president', desc: "Logement de fonction gratuit. Le Président qui dort ici récupère 1 PA de plus." }]
+              // Logement de fonction gratuit : le Dormir ordinaire, passé ici par le Président, rend 1 PA de plus
+              // (pa_repos_nocturne, patch palais_presidentiel_repos_v1).
+              orders: []
             },
             musee_presidentiel: {
               name: 'Musée présidentiel',
