@@ -8534,6 +8534,10 @@ const ROOM_IMAGES_EMPIRE = {
       'hall_gare':  'images/accueil-centre-multimodal-novomirsk.webp',
       'aeroport':   'images/centre-multinodal-sovarka.webp'
     },
+    // Garde-fou par empire : le marche de Novomirsk ne reprend jamais le decor de Luthecia.
+    'marche': {
+      'marche_ext': 'images/Sovarka/Novomirsk/Novomirsk_marche.webp'
+    },
     'palais-presidentiel': {
       'accueil_elysee':    'images/hall-parti-sovarka.webp',
       'bureau_president':  'images/bureau-gouv-sovarka.png'
