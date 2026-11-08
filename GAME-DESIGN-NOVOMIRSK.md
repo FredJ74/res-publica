@@ -177,6 +177,18 @@ Sovarka n'a pas le circuit de la Républia (président → Premier ministre → 
 - **Repas du président** (`20261107124500`, effets choisis par Fred le 07/11 : ceux du dîner d'affaires) : pièce « Appartements présidentiels » au Palais du Parti (`20261107130000` pour la navigation serveur) ; un repas par jour, seul ou avec un invité présent : +10 Santé, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Image à venir.
 - **Reste** : statut de dignitaire à raccorder quand les invitations des ambassades et entre gouvernements existeront (voyage inter-empires).
 
+### Ministères de Sovarka : ce qui est codé (08/11/2026)
+
+- Migrations `20261108013000_sovarka_pouvoir_ministeres` et `20261108023000_sovarka_manif_mairie_couts` (appliquées) ; `sovarka_pouvoir_lire` / `sovarka_pouvoir_commande` ; passe de nuit `sovarka_pouvoir_passe` (tâche `sovarka_pouvoir`) ; écran `plateau-sovarka-pouvoir.js`.
+- **Lois** : « Mon parti » → « Déposer un projet de loi » (chef, 1 PA ; déclarative, interdiction d'une catégorie entière, abrogation) ; bureau du Président du Conseil → « Projets de loi à trancher » (promulgation = loi adoptée et appliquée à l'instant) ; Salle du Conseil du Peuple → « Séance du jeudi » (émarger, approuver / s'abstenir). Ordre du jour d'un jeudi : lois promulguées du vendredi précédent à ce jeudi. Indemnité payée chaque nuit sur la caisse du Soviet (`soviet_assemblee`, plafonnée à son solde).
+- **Manifestation de soutien** : depuis « Mon parti » ; elle part de la mairie (pas d'ordre de rue en Sovarka) avec au moins 10 manifestants du groupe du chef présents dans la mairie (1 PA) ; une par ville et par jour.
+- **Fiscalité** : taxe de transaction 0 % local / 10 % national ; 10 % de la main-d'œuvre (production des commerces, fabrication des véhicules) et 10 % des recettes municipales (loyers…) versés au Trésor (`budgets_nationaux.soviet.reserveJour`) ; trois curseurs au bureau du ministre. **Point ouvert** : la Sovarka n'a pas encore de redistribution nationale (cascade) ; le Trésor accumule.
+- **Justice** : « Saisir le juge » (1 PA) au bureau du ministre ; le juge PJ traite « Saisines du ministre » au tribunal (retirer ou rejeter) ; sans saisine, plus de retrait.
+- **Vérité officielle** : « Commanditer un sondage » (1 PA, 200) → popularité réelle des partis, puis « Sondages en attente » ; « Produire une fuite » aux Archives révèle le dernier sondage faussé (acte illégal tracé ; −10 POP au ministre). Censure sans risque.
+- **Conscription** : bureau du ministre de la Défense ; à la caserne de Novomirsk « Se présenter (conscription) » dépose l'engagement de soldat (1 PA) ; pas de démission tant que la conscription n'est pas levée ; à la levée, retrait des sections et fin de l'avis de recherche.
+- **Autocritique publique** : bureau du Président du Conseil (1 PA), publiée au forum national. Vote de confiance et préemption fermés en Sovarka.
+- Coûts en PA non décidés par Fred, posés par Claude, à confirmer : dépôt de loi 1, saisine 1, autocritique 1, manifestation 1 ; émargement, approbation et conscription gratuits.
+
 ## Partis de Sovarka (décisions de Fred, 07/11/2026)
 
 - **« Postuler à un poste »** (hall du Palais du Gouvernement) : sans parti, message « Vous ne pouvez pas obtenir un poste si vous n'adhérez pas à un parti », avec la liste des partis constitués (demande d'adhésion) et l'accès à la création. Le serveur refuse aussi toute candidature ou nomination à un poste nommé sans parti (`parti_requis`).

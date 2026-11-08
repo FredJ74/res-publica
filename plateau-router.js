@@ -414,6 +414,17 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'sovarka_reunion_reserver') { reserverSalleAffairesNovomirsk(); return; }
   if (fn === 'sovarka_reunion_evenement') { ouvrirReunionEvenement(); return; }
   if (fn === 'sovarka_soviet_deputes') { ouvrirSovietSupreme(); return; }
+  // Ministères de Sovarka (Fred, 08/11/2026)
+  if (fn === 'sovarka_lois_examen')        { ouvrirSovarkaLoisExamen(); return; }
+  if (fn === 'sovarka_autocritique')       { ouvrirSovarkaAutocritique(); return; }
+  if (fn === 'sovarka_seance')             { ouvrirSovarkaSeance(); return; }
+  if (fn === 'sovarka_saisir_juge')        { ouvrirSovarkaSaisirJuge(); return; }
+  if (fn === 'sovarka_sondages')           { ouvrirSovarkaSondages(); return; }
+  if (fn === 'sovarka_conscription')       { ouvrirSovarkaConscription(); return; }
+  if (fn === 'sovarka_conscrit_presenter') { sovarkaConscritPresenter(); return; }
+  if (state.country === 'soviet' && fn === 'pilotage_fiscal_budgetaire') { ouvrirFiscaliteSovarka(pa, cost); return; }
+  if (state.country === 'soviet' && (fn === 'commanditer_sondage' || fn === 'commanditer_sondage_cible')) { ouvrirSovarkaSondage(); return; }
+  if (state.country === 'soviet' && fn === 'fuite_info') { sovarkaFuite(); return; }
   if (fn === 'sovarka_repas_presidentiel') { ouvrirRepasPresidentiel(); return; }
   if (fn === 'louer_local')              { ouvrirModalLouerLocal(pa, cost); return; }
   if (fn === 'gerer_local')              { ouvrirModalGererLocal(); return; }
