@@ -80,6 +80,13 @@
     'ce coffre':'rental_safe','cet appartement':'rental_apartment'};
    key=types[match[1]];
    vars={price:match[2],currency:match[3]};
+  }else if(code==='sovarka_reunion_reserver'){
+   // Les tarifs 100/150 PSK proviennent exclusivement du libellé métier :
+   // l'internationalisation ne calcule ni ne modifie le prix.
+   const match=/^Réserver pour aujourd’hui — (\d+) PSK$/.exec(original);
+   if(!match)return original;
+   key='sovarka_meeting_today';
+   vars={price:match[1]};
   }else if(code==='acheter_terrain'){
    if(original==='Acheter ce terrain')key='buy_plot_plain';
    else{
