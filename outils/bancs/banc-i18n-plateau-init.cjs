@@ -161,3 +161,22 @@ test('sans drapeau, les scripts du plateau restent exclusivement français',()=>
  assert.equal(window.RPI18nPlateau.locale(),'fr');
  assert.equal(element.attrs.dir,undefined);
 });
+
+test('même une bascule programmatique non autorisée revient au français',()=>{
+ const listeners={};
+ const element={textContent:'MESSAGES',attrs:{'data-i18n':'plateau.messages'},
+  getAttribute(k){return this.attrs[k]},hasAttribute(k){return Object.hasOwn(this.attrs,k)},
+  setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+ const document={documentElement:{lang:'fr'},querySelectorAll(sel){return sel==='[data-i18n]'?[element]:[]}};
+ const engine={language:'fr',on(evt,fn){listeners[evt]=fn},
+  init(options,cb){this.language=options.lng;cb(null)},
+  t(key){return this.language==='fr'?'MESSAGES':'الرسائل'},
+  changeLanguage(lang){this.language=lang;listeners.languageChanged?.(lang)}};
+ const window={document,navigator:{language:'ar'},localStorage:{getItem:()=> 'ar'},
+  RP_I18N_LANGUAGES:{fr:{},ar:{}},RP_I18N_RESOURCES:{},i18next:engine};
+ vm.runInNewContext(script,{window,console});
+ engine.changeLanguage('ar');
+ assert.equal(engine.language,'fr');
+ assert.equal(document.documentElement.lang,'fr');
+ assert.equal(element.textContent,'MESSAGES');
+});
