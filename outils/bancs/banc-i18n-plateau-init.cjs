@@ -10,7 +10,7 @@ function run(locale){
   getAttribute(k){return this.attrs[k]},hasAttribute(k){return Object.hasOwn(this.attrs,k)},
   setAttribute(k,v){this.attrs[k]=v}};
  const document={documentElement:{lang:'fr'},querySelectorAll:()=>[el]};
- const window={document,localStorage:{getItem:()=>locale},
+ const window={RP_I18N_GAME_ENABLED:true,document,localStorage:{getItem:()=>locale},
   RP_I18N_LANGUAGES:{fr:{},ar:{},en:{}},RP_I18N_RESOURCES:{fr:{},ar:{},en:{}},
   i18next:{init(opts,done){this.options=opts;done(null)},t(key){return key==='plateau.messages'?(locale==='ar'?'الرسائل':'Messages'):key}}};
  vm.runInNewContext(script,{window,console});
@@ -89,7 +89,7 @@ test('plateau et pont partagent la langue détectée au premier chargement',()=>
    return selector==='[data-i18n]'?[element]:[];
   }};
   const languages={fr:{},en:{},es:{},'zh-TW':{},ru:{},ko:{},ar:{},'pt-BR':{},de:{}};
-  const window={document,navigator:{language:navigatorLanguage},localStorage:{getItem:()=>stored},
+  const window={RP_I18N_GAME_ENABLED:true,document,navigator:{language:navigatorLanguage},localStorage:{getItem:()=>stored},
    RP_I18N_LANGUAGES:languages,RP_I18N_RESOURCES:{},
    i18next:{init(options,done){this.options=options;done(null)},t:()=> 'Messages'}};
   vm.runInNewContext(bridge,{window,console,Intl,Number,Object,String});
@@ -127,7 +127,7 @@ test('changement de langue et autre onglet : textes, direction et état dynamiqu
   init(opts,done){this.language=opts.lng;done(null);return this},
   t(key){return key==='plateau.messages'?({de:'Nachrichten',ar:'الرسائل',ko:'메시지'}[this.language]||'Messages'):key},
   changeLanguage(lang){this.language=lang;listeners.languageChanged?.(lang)}};
- const window={document,localStorage:{getItem:()=> 'de'},addEventListener(evt,fn){listeners[evt]=fn},
+ const window={RP_I18N_GAME_ENABLED:true,document,localStorage:{getItem:()=> 'de'},addEventListener(evt,fn){listeners[evt]=fn},
   RP_I18N_LANGUAGES:{fr:{},de:{},ar:{},ko:{}},RP_I18N_RESOURCES:{},i18next:engine};
  vm.runInNewContext(script,{window,console});
  assert.equal(window.RPI18nPlateau.locale(),'de');
@@ -144,4 +144,20 @@ test('changement de langue et autre onglet : textes, direction et état dynamiqu
  assert.equal(attrs.dir,undefined);
  listeners.storage({key:'respublica_language',newValue:'xx'});
  assert.equal(engine.language,'ko');
+});
+
+test('sans drapeau, les scripts du plateau restent exclusivement français',()=>{
+ const element={textContent:'MESSAGES',attrs:{'data-i18n':'plateau.messages'},
+  getAttribute(k){return this.attrs[k]},hasAttribute(k){return Object.hasOwn(this.attrs,k)},
+  setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+ const document={documentElement:{lang:'fr'},querySelectorAll(sel){return sel==='[data-i18n]'?[element]:[]}};
+ const engine={init(opts,cb){this.options=opts;this.language=opts.lng;cb(null)},
+  t(key){return this.language==='fr'?'MESSAGES':'الرسائل'}};
+ const window={document,navigator:{language:'ar'},localStorage:{getItem:()=> 'ar'},
+  RP_I18N_LANGUAGES:{fr:{},ar:{},en:{}},RP_I18N_RESOURCES:{},i18next:engine};
+ vm.runInNewContext(script,{window,console});
+ assert.equal(engine.options.lng,'fr');
+ assert.equal(document.documentElement.lang,'fr');
+ assert.equal(window.RPI18nPlateau.locale(),'fr');
+ assert.equal(element.attrs.dir,undefined);
 });
