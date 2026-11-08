@@ -7,7 +7,7 @@ const vm=require('node:vm');
 const src=fs.readFileSync(path.join(__dirname,'../../i18n/plateau-bridge.js'),'utf8');
 const languages={fr:{},en:{},es:{},'zh-TW':{},ru:{},ko:{},ar:{},'pt-BR':{},de:{}};
 function load(lang) {
- const win={RP_I18N_LANGUAGES:languages,localStorage:{getItem:()=>lang},i18next:{t:(key,o)=>o.lng+':'+key}};
+ const win={RP_I18N_GAME_ENABLED:true,RP_I18N_LANGUAGES:languages,localStorage:{getItem:()=>lang},i18next:{t:(key,o)=>o.lng+':'+key}};
  vm.runInNewContext(src,{window:win,Intl,Number,Object,String});
  return win.RPPlateauI18n;
 }
@@ -37,21 +37,21 @@ test('le navigateur choisit une langue en absence de préférence explicite',()=
   ['pt-BR','pt-BR'],['zh-Hant-TW','zh-TW'],['zh-Hans-CN','fr'],
   ['pt-PT','fr'],['zh','fr']
  ]) {
-  const window={RP_I18N_LANGUAGES:languages,navigator:{language:locale},localStorage:{getItem:()=>null}};
+  const window={RP_I18N_GAME_ENABLED:true,RP_I18N_LANGUAGES:languages,navigator:{language:locale},localStorage:{getItem:()=>null}};
   vm.runInNewContext(source,{window,Intl,Number,Object,String});
   assert.equal(window.RPPlateauI18n.language(),expected,locale);
  }
 });
 test('la préférence de jeu prime sur le navigateur et le stockage bloqué ne casse rien',()=>{
- const window={RP_I18N_LANGUAGES:languages,navigator:{language:'es-MX'},localStorage:{getItem:()=>'ar'}};
+ const window={RP_I18N_GAME_ENABLED:true,RP_I18N_LANGUAGES:languages,navigator:{language:'es-MX'},localStorage:{getItem:()=>'ar'}};
  vm.runInNewContext(src,{window,Intl,Number,Object,String});
  assert.equal(window.RPPlateauI18n.language(),'ar');
- const blocked={RP_I18N_LANGUAGES:languages,navigator:{language:'de-DE'},localStorage:{getItem(){throw Error('blocked')}}};
+ const blocked={RP_I18N_GAME_ENABLED:true,RP_I18N_LANGUAGES:languages,navigator:{language:'de-DE'},localStorage:{getItem(){throw Error('blocked')}}};
  vm.runInNewContext(src,{window:blocked,Intl,Number,Object,String});
  assert.equal(blocked.RPPlateauI18n.language(),'de');
 });
 test('le plateau ne choisit pas une autre langue navigateur que l accueil',()=>{
- const window={RP_I18N_LANGUAGES:languages,navigator:{languages:['zh-CN','es-ES'],language:'zh-CN'},
+ const window={RP_I18N_GAME_ENABLED:true,RP_I18N_LANGUAGES:languages,navigator:{languages:['zh-CN','es-ES'],language:'zh-CN'},
   localStorage:{getItem:()=>null}};
  vm.runInNewContext(src,{window,Intl,Number,Object,String});
  assert.equal(window.RPPlateauI18n.language(),'fr');
@@ -60,7 +60,7 @@ test('le plateau ne choisit pas une autre langue navigateur que l accueil',()=>{
 test('changement de langue : le pont suit i18next plutôt que le stockage ancien',()=>{
  let selected='de';
  const engine={language:'de',t:(key,opts)=>opts.lng+':'+key};
- const window={RP_I18N_LANGUAGES:languages,localStorage:{getItem:()=>selected},i18next:engine};
+ const window={RP_I18N_GAME_ENABLED:true,RP_I18N_LANGUAGES:languages,localStorage:{getItem:()=>selected},i18next:engine};
  vm.runInNewContext(src,{window,Intl,Number,Object,String});
  assert.equal(window.RPPlateauI18n.language(),'de');
  engine.language='ar';
@@ -69,4 +69,15 @@ test('changement de langue : le pont suit i18next plutôt que le stockage ancien
  assert.equal(window.RPPlateauI18n.message('texte','translation','de').isTranslated,false);
  selected='ko'; // Le stockage ne doit pas remplacer la langue en cours.
  assert.equal(window.RPPlateauI18n.language(),'ar');
+});
+
+test('le plateau public reste en français sans activation, malgré la préférence et la locale du navigateur',()=>{
+ for(const statut of [undefined,false]){
+  const window={RP_I18N_GAME_ENABLED:statut,RP_I18N_LANGUAGES:languages,
+   navigator:{language:'ru-RU'},localStorage:{getItem:()=> 'de'},
+   i18next:{language:'ar',t:(key,o)=>o.lng+':'+key}};
+  vm.runInNewContext(src,{window,Intl,Number,Object,String});
+  assert.equal(window.RPPlateauI18n.language(),'fr');
+  assert.equal(window.RPPlateauI18n.translate('plateau.messages'),'fr:plateau.messages');
+ }
 });
