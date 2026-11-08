@@ -16,7 +16,7 @@ test('réservation simple et standard : 9 traductions contextuelles, identifiant
  assert.equal(languages.length,9);
  for(const lng of languages) {
   const vars=w.RP_I18N_RESOURCES[lng].translation.orderVariants;
-  assert.equal(Object.keys(vars).length,23);
+  assert.equal(Object.keys(vars).length,31);
   for(const value of Object.values(vars))assert.ok(value.trim());
  }
  for(const [key,original,cost] of [
@@ -100,4 +100,43 @@ test('66 ordres de commerces et banque localisés par contexte, sans altérer le
    assert.equal(order.label,sourceLabel);
   }
  }
+});
+
+test('les quatre cultes et leurs dons gardent la bonne traduction par empire dans neuf langues',()=>{
+ const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const {extract}=require('../audits/libelles-ordres-source.cjs');
+ const rows=extract(source);
+ const forms=[
+  ['prier','Prier le Formulaire Sacré','religion_formulaire'],
+  ['prier','Communier avec la Feuille','religion_feuille'],
+  ['prier',"Chanter l'hymne au Tracteur",'religion_tracteur'],
+  ['prier','Communier avec le Loukoum','religion_loukoum'],
+  ['faire_don',"Faire un don a l'Eglise",'don_eglise'],
+  ['faire_don','Faire une offrande','don_offrande'],
+  ['faire_don','Donner au Kolkhoze','don_kolkhoze'],
+  ['faire_don','Offrir des loukoums','don_loukoums']
+ ];
+ for(const [fn,label,key] of forms){
+  assert.ok(rows.some(item=>item.fn===fn && item.label===label),'forme canonique absente '+fn+'/'+label);
+  const order=Object.freeze({fn,label,pa:4,cost:83,requiresPost:'rite_test',successRate:23});
+  for(const locale of Object.keys(w.RP_I18N_LANGUAGES)){
+   const translation=w.RP_I18N_RESOURCES[locale].translation.orderVariants[key];
+   assert.ok(translation?.trim(),locale+'/'+key);
+   assert.equal(w.RPOrderI18n.label(order,engine,locale),translation,locale+'/'+key);
+  }
+  assert.equal(order.fn,fn);
+  assert.equal(order.label,label);
+  assert.equal(order.pa,4);
+  assert.equal(order.cost,83);
+  assert.equal(order.requiresPost,'rite_test');
+  assert.equal(order.successRate,23);
+ }
+ // Aucune variante n'est déduite d'une chaîne inconnue, même à fn identique.
+ for(const fn of ['prier','faire_don']){
+  const unknown=Object.freeze({fn,label:'Cérémonie temporaire',pa:1,cost:7});
+  assert.equal(w.RPOrderI18n.label(unknown,engine,'ru'),unknown.label);
+ }
+ // Les libellés inconnus, ou une traduction absente, reviennent au français.
+ const noVariant={t:(_key,opts)=>opts.defaultValue};
+ assert.equal(w.RPOrderI18n.label({fn:'prier',label:'Communier avec la Feuille'},noVariant,'ko'),'Communier avec la Feuille');
 });
