@@ -254,6 +254,19 @@
    "bureau_estado_novomirsk": "Botschaft von El Estado"
   }
  };
+ // Armurerie partagée : seul « Magasin » est traduit, sans changer le fournisseur.
+ const armory={
+  "fr":{"magasin":"Magasin"},
+  "en":{"magasin":"Gun shop"},
+  "es":{"magasin":"Armería"},
+  "zh-TW":{"magasin":"槍械商店"},
+  "ru":{"magasin":"Оружейный магазин"},
+  "ko":{"magasin":"총포점"},
+  "ar":{"magasin":"متجر الأسلحة"},
+  "pt-BR":{"magasin":"Loja de armas"},
+  "de":{"magasin":"Waffengeschäft"}
+ };
+ for(const [locale,labels] of Object.entries(armory)) Object.assign(localized[locale],labels);
  for(const [locale,labels] of Object.entries(mairie)) Object.assign(localized[locale],labels);
  for(const [locale,labels] of Object.entries(embassies)) Object.assign(localized[locale],labels);
  const expected=localized.fr;
@@ -270,6 +283,8 @@
    if(!governmentRoomIds.has(roomId)||original!==expected[roomId])return original;
   } else if(buildingId==='palais-ambassades-novomirsk') {
    if(!Object.hasOwn(embassies.fr,roomId)||original!==embassies.fr[roomId])return original;
+  } else if(buildingId==='armurerie') {
+   if(!Object.hasOwn(armory.fr,roomId)||original!==armory.fr[roomId])return original;
   } else return original;
   const locale=global.RPPlateauI18n?.language?.()||'fr';
   const translated=global.i18next?.t?.('rooms.'+roomId,{lng:locale,defaultValue:original});
