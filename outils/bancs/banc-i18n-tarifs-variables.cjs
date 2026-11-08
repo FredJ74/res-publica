@@ -101,3 +101,17 @@ test('réservation journalière Sovarka : 100/150 PSK conservés sans inventer u
   assert.equal(w.RPOrderI18n.label({fn:'sovarka_reunion_reserver',label:original},translator,'en'),original);
  }
 });
+
+test('tous les gabarits des neuf langues ont exactement les mêmes variables métier que le français',()=>{
+ const reference=w.RP_I18N_RESOURCES.fr.translation.orderTemplates;
+ const args=template=>[...String(template).matchAll(/\\{\\{([a-z]+)\\}\\}/g)].map(m=>m[1]).sort();
+ for(const [id,original] of Object.entries(reference)){
+  const expected=args(original);
+  // Pas de perte/duplication de devise, surface ou montant dans une langue.
+  for(const locale of locales){
+   const candidate=w.RP_I18N_RESOURCES[locale].translation.orderTemplates[id];
+   assert.ok(typeof candidate==='string',locale+'/'+id+' : gabarit manquant');
+   assert.deepEqual(args(candidate),expected,locale+'/'+id+' : variables incohérentes');
+  }
+ }
+});
