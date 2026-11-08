@@ -23,7 +23,7 @@ function identiques(a,b){
 // montant, une devise ou un nombre de PA reste en langue originale.
 // L'extraction est identique à celle du cache, contre les reprises périmées.
 function invariantsMetier(texte) {
- const tokens=String(texte).match(/(?:[0-9]+(?:[.,][0-9]+)*|\\b(?:FR|PSK|PA|AP|USD|EUR|GBP|CHF|CAD|BRL|CNY|RUB|KRW|AED|DR)\\b|[€$£¥₽₩])/gu);
+ const tokens=String(texte).match(/(?:[0-9]+(?:[.,][0-9]+)*|\b(?:FR|PSK|PA|AP|USD|EUR|GBP|CHF|CAD|BRL|CNY|RUB|KRW|AED|DR)\b|[€$£¥₽₩])/gu);
  return tokens||[];
 }
 function invariantsIdentiques(original,traduction) {
@@ -31,7 +31,7 @@ function invariantsIdentiques(original,traduction) {
  return a.length===b.length && a.every((token,index)=>token===b[index]);
 }
 function caracteresControles(texte) {
- return /[\\u0000-\\u0008\\u000E-\\u001F]/.test(texte);
+ return /[\u0000-\u0008\u000E-\u001F]/.test(texte);
 }
 function retour(original,source,cible,traduit=null,raison=null) {
  return Object.freeze({
