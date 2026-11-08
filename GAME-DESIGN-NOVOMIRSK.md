@@ -177,6 +177,12 @@ Sovarka n'a pas le circuit de la Républia (président → Premier ministre → 
 - **Repas du président** (`20261107124500`, effets choisis par Fred le 07/11 : ceux du dîner d'affaires) : pièce « Appartements présidentiels » au Palais du Parti (`20261107130000` pour la navigation serveur) ; un repas par jour, seul ou avec un invité présent : +10 Santé, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Image à venir.
 - **Reste** : statut de dignitaire à raccorder quand les invitations des ambassades et entre gouvernements existeront (voyage inter-empires).
 
+### Tractorisme : religion de Sovarka (décision de Fred, 08/11/2026)
+
+- Le **Tractorisme** est la religion de Sovarka et **reprend le socle des religions**, comme la religion de Républia ; les ordres sont **adaptés pour habiller la religion localement**.
+- Audit du 08/11 (Grande Église du Tractorisme, bâtiment `kolkhoze-spirituel`, une seule pièce `grange_sainte`) : « Chanter l'hymne » et « Se déclarer pèlerin » sont calculés côté écran seulement ; « Donner au Kolkhoze » est **cassé** (`religion_agir` refuse hors Républia) ; « Se confesser » est l'ancienne simulation (secrets au hasard, blague des formulaires, fausse rumeur), alors qu'en Républia la confession et la bénédiction sont des services des religieux PNJ (la confession efface une trace non découverte). Nom incohérent : « Grande Église du Tractorisme » dans la rue, « Le Kolkhoze Spirituel » à l'intérieur.
+- **À faire** : généraliser le socle religieux au pays (`religion_agir`, `piete_score_actif_interne`, `piete_ville_calculee_interne`, `piete_villes_actualiser`, déclencheur `indices_villes_piete_du_registre`, `religion_titulaire_interne` / `_poser_interne`, tous figés sur `republic` et sur les trois églises de Républia), puis l'écran (prière, don, confession et bénédiction au religieux PNJ, grades, Grand Prêtre national, excommunication), avec des libellés tractoristes ; retirer la confession du bouton de pièce comme en Républia ; trancher le sort de « Se déclarer pèlerin » (absent du socle) ; repérer les lieux de culte de Krasnov et Starovka.
+
 ### Ministères de Sovarka : ce qui est codé (08/11/2026)
 
 - Migrations `20261108013000_sovarka_pouvoir_ministeres` et `20261108023000_sovarka_manif_mairie_couts` (appliquées) ; `sovarka_pouvoir_lire` / `sovarka_pouvoir_commande` ; passe de nuit `sovarka_pouvoir_passe` (tâche `sovarka_pouvoir`) ; écran `plateau-sovarka-pouvoir.js`.
