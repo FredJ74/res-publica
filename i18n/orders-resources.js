@@ -4211,31 +4211,58 @@
   // uniquement pour leur rendu, sans toucher aux règles du Soviet.
   const sovarkaOrders = {
     "fr": {
-      "sovarka_repas_presidentiel": "Repas du Président"
+      "sovarka_repas_presidentiel": "Repas du Président",
+      "sovarka_partis": "Partis constitués",
+      "sovarka_parti_fonder": "Créer un parti",
+      "sovarka_mon_parti": "Mon parti"
     },
     "en": {
-      "sovarka_repas_presidentiel": "President's meal"
+      "sovarka_repas_presidentiel": "President's meal",
+      "sovarka_partis": "Established parties",
+      "sovarka_parti_fonder": "Found a party",
+      "sovarka_mon_parti": "My party"
     },
     "es": {
-      "sovarka_repas_presidentiel": "Comida del Presidente"
+      "sovarka_repas_presidentiel": "Comida del Presidente",
+      "sovarka_partis": "Partidos constituidos",
+      "sovarka_parti_fonder": "Fundar un partido",
+      "sovarka_mon_parti": "Mi partido"
     },
     "zh-TW": {
-      "sovarka_repas_presidentiel": "主席餐宴"
+      "sovarka_repas_presidentiel": "主席餐宴",
+      "sovarka_partis": "已成立的政黨",
+      "sovarka_parti_fonder": "創立政黨",
+      "sovarka_mon_parti": "我的政黨"
     },
     "ru": {
-      "sovarka_repas_presidentiel": "Обед председателя"
+      "sovarka_repas_presidentiel": "Обед председателя",
+      "sovarka_partis": "Действующие партии",
+      "sovarka_parti_fonder": "Создать партию",
+      "sovarka_mon_parti": "Моя партия"
     },
     "ko": {
-      "sovarka_repas_presidentiel": "의장 식사"
+      "sovarka_repas_presidentiel": "의장 식사",
+      "sovarka_partis": "기존 정당",
+      "sovarka_parti_fonder": "정당 창당",
+      "sovarka_mon_parti": "내 정당"
     },
     "ar": {
-      "sovarka_repas_presidentiel": "وجبة الرئيس"
+      "sovarka_repas_presidentiel": "وجبة الرئيس",
+      "sovarka_partis": "الأحزاب القائمة",
+      "sovarka_parti_fonder": "تأسيس حزب",
+      "sovarka_mon_parti": "حزبي"
     },
     "pt-BR": {
-      "sovarka_repas_presidentiel": "Refeição do Presidente"
+      "sovarka_repas_presidentiel": "Refeição do Presidente",
+      "sovarka_partis": "Partidos constituídos",
+      "sovarka_parti_fonder": "Fundar um partido",
+      "sovarka_mon_parti": "Meu partido"
     },
     "de": {
-      "sovarka_repas_presidentiel": "Mahlzeit des Vorsitzenden"
+      "sovarka_repas_presidentiel": "Mahlzeit des Vorsitzenden",
+      "sovarka_partis": "Bestehende Parteien",
+      "sovarka_parti_fonder": "Partei gründen",
+      "sovarka_mon_parti": "Meine Partei"
     }
   };
   for(const [locale,labels] of Object.entries(sovarkaOrders)) Object.assign(words[locale],labels);
