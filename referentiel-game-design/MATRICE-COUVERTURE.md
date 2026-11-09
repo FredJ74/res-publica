@@ -6,8 +6,8 @@
 |---|---|---|---|---|
 | Principes et trajectoires | D : `CONSTITUTION.md` | C : mécanique distribuée dans les modules | T : sans objet | J : capacité réelle des PJ à se rencontrer non mesurée |
 | Identité, création, carrière | D : `ARCHITECTURE.md` | C repéré : `creation.js`, `auth.js`, `plateau-personnage.js` | TEST-F : nombreux bancs création et carrière | J ?, parcours entier non joué |
-| Accueil et première quête | D : Constitution art. 15 | C repéré : `plateau-quete-accueil.js` | TEST-F : bancs accueil et quêtes | J ?, guidage à mesurer |
-| Horloge, nuit, sommeil, paie, loyers | D : `ARCHITECTURE.md` | C repéré : `api/cron-minuit.js`, `vercel.json` (vu) | TEST-F : banc cron Paris, nocturnes | J ?, vérifier changement d'heure et traitement effectif |
+| Accueil et première quête | D : Constitution art. 15 | **C vu** : `plateau-quete-accueil.js` ; parcours de Luthécia, Jérémy, carrières et forum | TEST-F : bancs accueil et quêtes non rejoués | J ? ; guidage et autonomie de sortie à mesurer ; [audit](AUDIT-ACCUEIL-I18N-NUIT-DROITS.md) |
+| Horloge, nuit, sommeil, paie, loyers | D : `ARCHITECTURE.md` | **C vu** : `api/cron-minuit.js`, `vercel.json` ; horaire `23 UTC`, jour serveur Paris | **Production lue** : six `_passe=echec` (1–6/11, RPC Helvetia), trois `_passe=ok` (7–9/11) ; tests unitaires non rejoués | J ? ; effets des échecs, décalage horaire et rattrapage non certifiés ; [audit](AUDIT-ACCUEIL-I18N-NUIT-DROITS.md) |
 | PA, santé, moral, hospitalisation | D : `GAME-DESIGN-HOSPITALISATION.md` | C repéré : `plateau-personnage.js` | TEST-F : banc hospitalisation | J ?, sorties à 0 PA |
 | Objets, inventaire, dons | D : Constitution art. 13 ; Architecture | C repéré : `plateau-objets.js`, `supabase.js` | TEST-F : bancs inventaire | J ?, cohérence multi-session |
 | Argent, banque, prêts, caisses | D : `GAME-DESIGN-BANQUES.md` | C repéré : `plateau-justice-economie.js`, `plateau-terrain-banque.js` | TEST-F : tests banque et fonds | J ?, transfert et risque perte de réponse |
