@@ -1,4 +1,21 @@
 -- Dynamo Novomirsk : permettre les accessoires dans la boutique propre à la ville.
+-- Ajouter uniquement la boutique au graphe intérieur du stade de Novomirsk.
+-- Le serveur interdit les pièces non référencées : roomsExtra côté client ne suffit pas.
+UPDATE public.navigation_lieux_regles
+   SET pieces = pieces || '["boutique"]'::jsonb
+ WHERE pays='soviet' AND ville='capitale' AND batiment='stade'
+   AND jsonb_typeof(pieces)='array'
+   AND NOT pieces ? 'boutique'
+   AND NOT pieces @> '["boutique"]'::jsonb;
+
+DO $
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM public.navigation_lieux_regles
+      WHERE pays='soviet' AND ville='capitale' AND batiment='stade'
+        AND pieces @> '["boutique"]'::jsonb)
+  THEN RAISE EXCEPTION 'Dynamo: boutique absente du referentiel navigation'; END IF;
+END $;
+
 -- Conserver la buvette historique des autres stades, prix et contrats inchangés.
 -- Aucun permis de commerce ou nouvelle logique de paiement.
 CREATE OR REPLACE FUNCTION public.club_accessoire_acheter(p_requete uuid, p_accessoire text, p_pa integer, p_cost integer)
