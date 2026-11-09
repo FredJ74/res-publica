@@ -36,3 +36,14 @@ Discuter en connaissance des **contraintes de conception** : l'intérêt central
 
 ## Ordre de lecture pour une discussion de rétention
 `CONSTITUTION.md` → `ATLAS-SYSTEMES.md` → `FICHES-PARCOURS-SOCIAUX-ET-FRICTIONS.md` → `FICHES-POUVOIRS-ET-CONTREPOUVOIRS.md` → `FICHES-ECONOMIE-LOGISTIQUE-MOBILITE.md` → `EXPERIENCE-ET-RETENTION.md` → `ECARTS-ET-VERIFICATIONS.md`. Toujours consulter les catalogues et la matrice pour vérifier une action précise avant de la présenter comme jouable.
+
+
+## Actualisation de synthèse — 9 novembre 2026 au soir
+
+L'audit initial reste valable à sa date et pour ses chiffres d'inventaire, mais **le diagnostic des premiers instants doit désormais intégrer les deux retours mobiles** : un testeur comprend mal l'objectif de son calepin et ses premières directions ; un autre ne comprend pas assez les PA, malgré une appréciation positive des graphismes. Le correctif du guidage de Jérémy est suivi séparément par Claude.
+
+Le game designer a adopté **un accueil suivi d'une sollicitation personnelle** : Jodie Moitout, journaliste de L'Autruche Entravée, appelle à **J+1 (24 h, après accueil clos)** au sujet des tableaux du **Musée de la Ville de Luthécia**, avec portrait et dialogue libre. Elle reconnaît des échanges antérieurs au marché ou à la rédaction, sans divulguer l'affaire avant le déclenchement. Le joueur peut refuser sans verrouiller l'enquête ; un rappel et un appel final sont prévus. La mémoire serveur est persistante mais sélective, pas une omniscience. Les PR #664/#666 sont fusionnées ; leurs RPC sont vérifiées en production et le déploiement Vercel `d58fa004` est READY. **Une recette authentifiée d'un PJ et un effet sur le retour D1/D7 ne sont pas prouvés.**
+
+L'objectif de design désormais **acté, et non encore généralisé**, est **une quête d'accueil et une enquête propres à chaque ville**. L'enquête de PSM reste à redéfinir avec son auteur. Les cartes et l'orientation, la pédagogie des PA et le futur traitement de « Mes objectifs » en activités courtes et pop-up restent des points d'analyse. **Priorité de chantier : finir Sovarka avant d'élargir ces enquêtes.**
+
+Les détails, critères de validation et distinctions D/C/T/M/P/J sont dans [expérience et rétention](EXPERIENCE-ET-RETENTION.md), [PNJ et mémoires](PNJ-IA-MEMOIRES-INTERACTIONS.md), [matrice](MATRICE-COUVERTURE.md) et [écarts](ECARTS-ET-VERIFICATIONS.md).
