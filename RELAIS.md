@@ -31,6 +31,10 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Décisions du 09/11 au soir — lot à coder AU FEU VERT de Fred — Claude
+
+Session de décisions (préférence de Fred : ne pas coder avant son feu vert explicite). **Starovka et Krasnov** : les onze réponses sont dans `GAME-DESIGN-NOVOMIRSK.md`, « Réponses de Fred (09/11/2026, soir) » (bons d'État au lieu de placements et prêts, pas de syndicat, bâtiments du socle à coder, extraction pétrole/bois et forêt de Krasnov avec l'ours et Olga, prix ÷ 2,5, hôtels, « La Voix de Sovarka », 4 parcelles, anciens noms, pas de route). **Cartes** : à Montrouge, l'impasse du tribunal s'arrête **au nord de l'Hôtel de Ville** et ne croise jamais la rue de l'Hôtel de Ville ni la place du Rail (décision de Fred) — corriger le dessin du plan (une impasse s'arrête avant la rue qu'elle couperait), navigation inchangée ; fusionner en un point les carrefours photographiés deux fois (Novomirsk V4/V5, V14/V15). **À rappeler à Fred au tour de Starovka et Krasnov** : images des bâtiments sans façade, ferme, maisons, poste militaire, radar, images de la forêt.
+
 ### Quête d'accueil : Jérémy redemandait la fiche personnage — Claude, 09/11/2026 (correctif technique)
 
 Signalé par Fred : Jérémy demande d'aller voir sa fiche, le joueur y va, Jérémy redemande. Cause : l'étape `attente_fiche_personnage` ne se validait qu'à la **fermeture** du raccourci « moi » (`closeSelfView`) ; la carte du personnage en haut (`openCharSheet`, l'autre porte vers la fiche) n'avait plus de raccordement, et quitter la vue « moi » autrement que par « Sortir » ne validait rien. Correctif (branche `claude/quete-accueil-fiche-20261109`) : l'étape se valide et s'enregistre **dès l'ouverture** par l'une ou l'autre porte ; la suite (direction l'hôtel) s'affiche à la fermeture ; Jérémy redit ensuite l'étape hôtel. Banc `outils/bancs/test-quete-accueil-fiche-20261109.mjs` 5/5. Un personnage en base était bloqué à cette étape : il passera à la prochaine ouverture de sa fiche. **À constater en jeu** : nouveau personnage, au dispensaire, ouvrir la fiche par la carte du haut puis la fermer : Jérémy envoie à l'hôtel.
