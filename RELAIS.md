@@ -18,6 +18,12 @@
 
 ---
 
+### Audit game design — ChatGPT, 09/11/2026 (EN COURS, sans développement)
+
+Le chantier transversal de constitution du référentiel a sa propre branche `chatgpt/referentiel-game-design-20261109` et la [PR #646](https://github.com/FredJ74/res-publica/pull/646) **en brouillon**. Documentation `referentiel-game-design/README.md` : Constitution, atlas des systèmes, 61 mécaniques historiques, catalogues d'ordres côté client et coûts serveur, preuves de déploiement et des migrations, matrice D/C/T/M/P/J, contradictions, critères de jouabilité et base de l'audit expérience/rétention.
+
+**Réalisé et vérifié :** arbre GitHub du SHA `a8bd5e26` (5 003 fichiers), contrôles CI (6 verts), Vercel production READY pour ce SHA, catalogues Supabase publics en SELECT (444 tables/1 605 fonctions/1 317 migrations), règles navales et deux jalons PNJ sociaux. **Non vérifié :** la totalité des parcours ordre→RPC→effet, RLS et autorisations de chaque RPC, essais connectés PJ, recette iPhone/Android et métriques de rétention. Aucun mécanisme/SQL/API/état joueur modifié ; **ne pas présenter ce référentiel comme achevé ou validé en jeu**. Ce chantier n'autorise aucune fusion de PR métier ou activation i18n.
+
 # Relais entre agents
 
 Passage de témoin entre Codex et Claude. Mis à jour à **chaque push**.
