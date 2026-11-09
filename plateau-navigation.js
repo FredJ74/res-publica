@@ -2158,6 +2158,10 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   // explicitement pour reactiver le clic, si un jour ce choix change.
   readOnly = readOnly === false ? false : true;
 
+  // PLAN DEDUIT DES RUES (9 novembre 2026) : toute ville qui a des rues est dessinee depuis son
+  // graphe de navigation (plateau-plan-rues.js). Les autres gardent l'ancien plan ci-dessous.
+  if (typeof ouvrirPlanRuesVille === 'function' && ouvrirPlanRuesVille(countryId, cityId)) return;
+
   const co = COUNTRIES[countryId];
   const world = WORLD[countryId];
   const city = world?.[cityId];
