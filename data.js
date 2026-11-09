@@ -1746,6 +1746,59 @@ const WORLD = {
       empireName: 'Sovarka',
       buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','imprimerie-librairie','capitaine-sauvage','musee-novomirsk','palais-ambassades-novomirsk','entrepot-logistique-novomirsk','siege-renseignement','pavillon-ambassadeurs-novomirsk','residence-imperiale-novomirsk','caserne-militaire','garage-novomirsk','salon-coiffure-novomirsk','logements-novomirsk','pharmacie-officielle-novomirsk','poissonniere-novomirsk','usine-pharmaceutique-luthecia','musee-national-republia'],
       buildingContext: {
+        // Six décors du Dynamo, cantonnés à Novomirsk : aucun changement de
+        // pièces ni d'images pour les autres stades du socle.
+        'stade': {
+          name: 'Stade du Dynamo de Novomirsk',
+          desc: "L'enceinte du Dynamo, avec ses gradins bordeaux et ses supporters.",
+          roomOverrides: {
+            terrain: {
+              name: 'Terrain — Dynamo de Novomirsk',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk.stade.terrain.webp'
+            },
+            vestiaires: {
+              name: 'Vestiaires — Dynamo de Novomirsk',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk.stade.vestiaire.webp',
+              persons: [
+                {name:'Entraineur Adjoint du Dynamo (PNJ)', role:'Entraîneur adjoint', rel:'neutral', job:'entraineur_adjoint'}
+              ]
+            },
+            buvette: {
+              name: 'Buvette des tribunes',
+              desc: 'Au grand air, les supporters se réchauffent avec du thé, du chocolat chaud et du vin chaud.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk.stade.buvette.webp',
+              excludeOrders: ['choisir_accessoire_club','acheter_accessoire_personnalise']
+            },
+            guichet_paris: {
+              name: 'Bookmaker du Dynamo',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk.stade.bookmaker.webp'
+            },
+            siege_supporters: {
+              name: 'Club des supporters du Dynamo',
+              desc: 'Lieu de rassemblement sportif autorisé, sans droit de manifester contre les autorités.',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk.stade.club.webp',
+              excludeOrders: ['organiser_manifestation']
+            }
+          },
+          // Salle uniquement présente à Novomirsk ; les achats utilisent la
+          // commande existante du socle et conservent leur autorité serveur.
+          roomsExtra: {
+            boutique: {
+              name: 'Boutique officielle du Dynamo',
+              image: '🧣',
+              imageBg: 'linear-gradient(135deg,#25100f,#4a2025)',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk.stade.boutique.webp',
+              desc: 'Maillots, écharpes et casquettes aux couleurs du Dynamo.',
+              persons: [
+                {name:'Vendeuse du Dynamo (PNJ)', role:'Vente des accessoires', rel:'neutral', job:'vendeur'}
+              ],
+              orders: [
+                {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa:0, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Écharpe, casquette ou maillot du Dynamo, à choisir.'},
+                {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-lock', successRate:100, desc:'Personnalisation premium à venir.'}
+              ]
+            }
+          }
+        },
         // Galeries de Novomirsk : les 4 locaux du socle commercial restent
         // exactement les memes baux / identifiants serveur. Ici, seuls l'apparence,
         // les noms et les descriptions de la capitale sovarkienne sont specialises.
