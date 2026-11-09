@@ -75,14 +75,27 @@ function queteAccueilSurbrillance(selector, dureeMs) {
   }, dureeMs || 10000);
 }
 
-// Declenche depuis le hook ajoute dans enterRoom() (plateau-navigation.js).
-// Declenchee depuis le hook ajoute dans closeCharSheet() (plateau-personnage.js).
-function queteAccueilApresFichePersonnage() {
+// ETAPE « FICHE PERSONNAGE » (correctif du 09/11/2026). Le joueur a deux portes vers sa fiche :
+// la carte du personnage en haut (openCharSheet, fenetre) et le raccourci « moi » (openSelfView).
+// Avant, l'etape ne se validait qu'a la FERMETURE de la seconde (closeSelfView) : ouvrir la
+// premiere, ou quitter la seconde autrement que par « Sortir », laissait l'etape en attente et
+// Jeremy redemandait d'aller voir la fiche — le nouveau joueur tournait en rond. Desormais
+// l'etape se valide et s'enregistre des L'OUVERTURE de l'une ou l'autre ; la suite (direction
+// l'hotel) s'affiche a la fermeture, et Jeremy la redit au besoin (rappel attente_hotel).
+let _queteAccueilSuiteFicheEnAttente = false;
+function queteAccueilFichePersonnageOuverte() {
   if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return;
   if (state.char.queteAccueil.etape !== 'attente_fiche_personnage') return;
-
   state.char.queteAccueil = { etape: 'attente_hotel' };
+  _queteAccueilSuiteFicheEnAttente = true;
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+}
+
+// Appelee a la fermeture de la fiche (closeCharSheet et closeSelfView, plateau-personnage.js).
+function queteAccueilApresFichePersonnage() {
+  queteAccueilFichePersonnageOuverte(); // filet : etape encore en attente (ancienne session)
+  if (!_queteAccueilSuiteFicheEnAttente) return;
+  _queteAccueilSuiteFicheEnAttente = false;
 
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
