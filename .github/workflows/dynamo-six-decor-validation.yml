@@ -1,0 +1,32 @@
+name: Dynamo — six salles et isolation des autres stades
+on:
+  pull_request:
+    paths:
+      - 'data.js'
+      - 'plateau.html'
+      - 'images/Sovarka/Novomirsk/Novomirsk.stade.*'
+      - 'outils/bancs/test-dynamo-novomirsk-20261110.mjs'
+      - 'migrations/20261110000500_dynamo_boutique_accessoires.sql'
+  push:
+    branches:
+      - main
+      - chatgpt/dynamo-six-salles-webp-20261110
+    paths:
+      - '.github/workflows/dynamo-six-decor-validation.yml'
+      - 'data.js'
+      - 'plateau.html'
+      - 'images/Sovarka/Novomirsk/Novomirsk.stade.*'
+      - 'outils/bancs/test-dynamo-novomirsk-20261110.mjs'
+      - 'migrations/20261110000500_dynamo_boutique_accessoires.sql'
+permissions:
+  contents: read
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check data.js && node --test outils/bancs/test-dynamo-novomirsk-20261110.mjs
