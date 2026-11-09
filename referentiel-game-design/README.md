@@ -2,6 +2,8 @@
 
 **Édition consolidée de l'audit : 9 novembre 2026.** Source examinée : `main` au commit `a8bd5e266f18f3432ec3feb11d53dbb799043531`. **Statut : audit documentaire et technique avancé, sans certification générale de jouabilité.**
 
+**Actualisation ciblée du 9 novembre au soir :** décisions de rétention et livraison de l'appel de Jodie Moitout à **J+1 après la quête d'accueil**, avec mémoire entre marché/rédaction/téléphone ; PR #664 et #666, dernier code vérifié Vercel READY `d58fa004`. Les inventaires chiffrés ci-dessous restent ceux de **l'instantané initial `a8bd5e26`** et ne doivent pas être présentés comme recalculés ce soir. Aucune certification de rétention ni validation humaine du nouveau parcours. Voir [expérience et rétention](EXPERIENCE-ET-RETENTION.md) et [PNJ sociaux](PNJ-IA-MEMOIRES-INTERACTIONS.md).
+
 ## Objet
 Servir de mémoire durable commune au game designer, à ChatGPT, Claude et Codex, afin de comprendre **les règles, leurs interactions et leur disponibilité effective**, puis d'évaluer expérience joueur, rétention et masse critique. Ce répertoire **ne modifie aucune règle**, n'entraîne aucune migration et n'autorise aucune mise en production.
 
