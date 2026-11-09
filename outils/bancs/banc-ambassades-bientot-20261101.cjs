@@ -36,7 +36,8 @@ function rendreEtatCivil(batiment) {
     document: { getElementById: el },
   };
   vm.createContext(ctx);
-  vm.runInContext(extraire(politique, 'const DEMARCHES_ETAT_CIVIL_PAR_BATIMENT') + ';\n' +
+  vm.runInContext(extraire(politique, 'function libelleMunicipalI18n(') + ';\n' +
+    extraire(politique, 'const DEMARCHES_ETAT_CIVIL_PAR_BATIMENT') + ';\n' +
     extraire(politique, 'function ouvrirEtatCivil()') + ';\nouvrirEtatCivil();', ctx);
   return elements['postes-body'].innerHTML;
 }
