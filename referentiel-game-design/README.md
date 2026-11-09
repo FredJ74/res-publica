@@ -17,11 +17,12 @@ Servir de mémoire durable commune au game designer, à ChatGPT, Claude et Codex
 9. [Localisation des 956 ordres par bâtiment et pièce](CATALOGUE-BATIMENTS-PIECES-ORDRES.md).
 10. [Croisement statique des identifiants client et des coûts serveur](CROISEMENT-CATALOGUES.md).
 11. [Navigation et accessibilité : six graphes de rues](NAVIGATION-ET-ACCESSIBILITE.md).
-12. [Matrice de couverture et d'état](MATRICE-COUVERTURE.md).
-13. [Contradictions, risques et vérifications manquantes](ECARTS-ET-VERIFICATIONS.md).
-14. [Cadre de l'audit expérience joueur et rétention](EXPERIENCE-ET-RETENTION.md).
-15. [Index technique des sources (fichiers, migrations et bancs)](INDEX-TECHNIQUE.md) : piste d'audit, non preuve d'activité.
-16. Sources détaillées préexistantes : [architecture](../ARCHITECTURE.md), [relais](../RELAIS.md), [game design Sovarka](../GAME-DESIGN-NOVOMIRSK.md), tous les `GAME-DESIGN-*.md`, [audit d'autorité](../AUDIT_UNE_SEULE_VERITE.md).
+12. [PNJ IA : prise de contact et formes de mémoire](PNJ-IA-MEMOIRES-INTERACTIONS.md).
+13. [Matrice de couverture et d'état](MATRICE-COUVERTURE.md).
+14. [Contradictions, risques et vérifications manquantes](ECARTS-ET-VERIFICATIONS.md).
+15. [Cadre de l'audit expérience joueur et rétention](EXPERIENCE-ET-RETENTION.md).
+16. [Index technique des sources (fichiers, migrations et bancs)](INDEX-TECHNIQUE.md) : piste d'audit, non preuve d'activité.
+17. Sources détaillées préexistantes : [architecture](../ARCHITECTURE.md), [relais](../RELAIS.md), [game design Sovarka](../GAME-DESIGN-NOVOMIRSK.md), tous les `GAME-DESIGN-*.md`, [audit d'autorité](../AUDIT_UNE_SEULE_VERITE.md).
 
 ## Convention de statut (ne jamais les confondre)
 - **D — Décidé** : règle explicitement adoptée, preuve documentaire datée ; ne prouve pas son exécution.
