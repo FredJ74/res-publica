@@ -22,13 +22,14 @@ Servir de mémoire durable commune au game designer, à ChatGPT, Claude et Codex
 14. [Fiches détaillées d'économie, logistique et mobilité](FICHES-ECONOMIE-LOGISTIQUE-MOBILITE.md).
 15. [Fiches parcours personnel, sociabilité et frictions](FICHES-PARCOURS-SOCIAUX-ET-FRICTIONS.md).
 16. [Synthèse, certitudes et frontières de l'audit](SYNTHESE-AUDIT-ET-LIMITES.md).
-17. [Fiches sécurité, conflit et justice](FICHES-CONFLITS-SECURITE-JUSTICE.md).
-18. [Fiches sport, réputation, culture et prestations](FICHES-SPORT-CULTURE-COMMERCES.md).
-19. [Matrice de couverture et d'état](MATRICE-COUVERTURE.md).
-20. [Contradictions, risques et vérifications manquantes](ECARTS-ET-VERIFICATIONS.md).
-21. [Cadre de l'audit expérience joueur et rétention](EXPERIENCE-ET-RETENTION.md).
-22. [Index technique des sources (fichiers, migrations et bancs)](INDEX-TECHNIQUE.md) : piste d'audit, non preuve d'activité.
-23. Sources détaillées préexistantes : [architecture](../ARCHITECTURE.md), [relais](../RELAIS.md), [game design Sovarka](../GAME-DESIGN-NOVOMIRSK.md), tous les `GAME-DESIGN-*.md`, [audit d'autorité](../AUDIT_UNE_SEULE_VERITE.md).
+17. [Audit ciblé de l'accueil, des neuf locales, des nuits et des droits SQL](AUDIT-ACCUEIL-I18N-NUIT-DROITS.md).
+18. [Fiches sécurité, conflit et justice](FICHES-CONFLITS-SECURITE-JUSTICE.md).
+19. [Fiches sport, réputation, culture et prestations](FICHES-SPORT-CULTURE-COMMERCES.md).
+20. [Matrice de couverture et d'état](MATRICE-COUVERTURE.md).
+21. [Contradictions, risques et vérifications manquantes](ECARTS-ET-VERIFICATIONS.md).
+22. [Cadre de l'audit expérience joueur et rétention](EXPERIENCE-ET-RETENTION.md).
+23. [Index technique des sources (fichiers, migrations et bancs)](INDEX-TECHNIQUE.md) : piste d'audit, non preuve d'activité.
+24. Sources détaillées préexistantes : [architecture](../ARCHITECTURE.md), [relais](../RELAIS.md), [game design Sovarka](../GAME-DESIGN-NOVOMIRSK.md), tous les `GAME-DESIGN-*.md`, [audit d'autorité](../AUDIT_UNE_SEULE_VERITE.md).
 
 ## Convention de statut (ne jamais les confondre)
 - **D — Décidé** : règle explicitement adoptée, preuve documentaire datée ; ne prouve pas son exécution.
@@ -63,5 +64,7 @@ Pour chaque modification de mécanique future, l'agent qui intervient :
 6. ne déclare « jouable confirmé » qu'après un test réellement observé.
 
 **Fiche-type :** identifiant stable ; finalité sociale ; décision datée ; territoire/pays ; acteur et adversaires ; déclencheur et lieu ; préconditions ; coûts PA/monnaie/objets ; gains/risques ; sorties et contre-pouvoirs ; temps réel/quotidien ; données persistées ; route client → RPC → tables ; PNJ de repli ; dépendances ; statut D/C/T/M/P/J ; sources ; lacunes ; effet sur l'interaction entre PJ.
+
+**Complément direct (9 novembre) :** revue des chemins de création et du tutoriel, interrogation du journal de la passe nocturne (six échecs de l'étape Helvetia du 1er au 6 novembre, trois passes globales ok du 7 au 9), inventaire des privilèges SQL. Voir [audit ciblé](AUDIT-ACCUEIL-I18N-NUIT-DROITS.md).
 
 **Périmètre du présent lot :** inventaire du dépôt, lecture des sources fondatrices et de documents métier, confrontation ponctuelle au code, **lectures SQL strictement non mutantes des catalogues et règles de configuration Supabase**, lecture du registre de migrations ; **production Vercel READY vérifiée en lecture seule pour le SHA de référence ; pas d'accès authentifié à un PJ, pas de requête sur les données des joueurs, pas de tests d'actions du jeu exécutés, pas de recette de production**. L'exhaustivité des centaines de commandes et de fonctions SQL exige encore un dépouillement systématique ; consulter la matrice pour les zones non closes.

@@ -41,6 +41,18 @@ Les fonctions SQL **réellement lues** (`pnj_social_entrer`, `pnj_social_context
 Les six graphes de villes de Républia/Sovarka sont chacun connexes au sens non orienté, sans arc vers un nœud manquant. La base contient pourtant un arc `novomirsk-vue-15 → novomirsk-vue-16` sans retour direct. **Possible itinéraire voulu ou défaut à caractériser**, et non bogue confirmé. Les sorties explicites de bâtiments n'enregistrent que trois bâtiments à Starovka et cinq à Krasnov ; la disponibilité effective des autres dépend des voies d'entrée alternatives ou du contenu encore manquant. Voir `NAVIGATION-ET-ACCESSIBILITE.md`.
 
 
+### E-12 — Traitement nocturne : six passes incomplètes attestées, retour au vert
+
+Le journal **vivant** `cron_journal` consulté le 9 novembre indique **six états `_passe=echec` consécutifs du 1er au 6 novembre**, tous portant l'étape `sbRpc:traiter_prets_helvetia_quotidien`, et **trois `_passe=ok` du 7 au 9 novembre**. Le relevé ne prouve ni perte de fonds, ni rattrapage des échéances des nuits défaillantes. L'investigation opérationnelle de cette période reste distincte de la clôture du référentiel de conception. Source et requêtes décrites dans [l'audit ciblé](AUDIT-ACCUEIL-I18N-NUIT-DROITS.md).
+
+### E-13 — « Minuit » et expérience temporelle réelle
+
+`vercel.json` lance le cron à `23:00 UTC` : minuit à Paris en hiver, **01:00 en été** ; les trois dernières passes rapportées commencent vers **00:40** en heure de Paris. Le calcul journalier du backend est explicitement `Europe/Paris`, mais programmation, moment d'exécution et date de l'effet ne sont pas trois concepts identiques. **Ne pas annoncer un bug de date/débit sans test**, ni garantir une activation à la seconde de minuit. Voir [audit ciblé](AUDIT-ACCUEIL-I18N-NUIT-DROITS.md).
+
+### E-14 — Audit statique des permissions des fonctions à prolonger
+
+Sur 1 605 fonctions publiques observées, 1 401 sont `SECURITY DEFINER`, dont 26 exécutables par `anon` et 750 par `authenticated`. **Ce comptage ne démontre aucune vulnérabilité** sans lecture des contrôles d'identité internes. Toute certification d'autorité serveur devra vérifier la protection des fonctions actionnelles plutôt que seulement la RLS des 444 tables. Voir [audit ciblé](AUDIT-ACCUEIL-I18N-NUIT-DROITS.md).
+
 ## Zones encore non vérifiées
 
 | Identifiant | Ce qu'il faut démontrer | Moyen de preuve | Sévérité pour la compréhension |
