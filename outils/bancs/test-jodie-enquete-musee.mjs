@@ -41,7 +41,7 @@ function simuler(options = {}) {
   return {ctx,modal,title,body,question,appels,conversations};
 }
 
-test('appel initial illustré, destination exacte et mémoire du marché', async () => {
+test('appel initial J+1 illustré, destination exacte et mémoire du marché', async () => {
   const s=simuler({etat:{ok:true,type:'premier',lieu_precedent:'marche',contact:{}}});
   await s.ctx.jodieEnqueteVerifierAppel();
   assert.equal(s.modal.ouvert,true);
@@ -92,7 +92,7 @@ test('conclusion : libre choix de transmettre ses découvertes', async () => {
   assert.ok(s.appels.some(x=>x.p_action==='conclusion' && x.p_reponse==='informer'));
 });
 
-test('serveur : unicité, J+3, rappel et mémoire commune', () => {
+test('serveur : unicité, J+1, rappel et mémoire commune', () => {
   assert.match(sql,/3\*86400/);
   assert.match(sql,/premierLe/);
   assert.match(sql,/rappelLe/);
@@ -107,4 +107,16 @@ test('serveur : unicité, J+3, rappel et mémoire commune', () => {
   assert.match(api,/profilId === 'jodie_moitout_autruche' \? 'jodie_moitout'/);
   assert.match(prompt,/PAROLES PASSÉES DU JOUEUR/);
   assert.match(enigme,/enigme1TerminerEtRecevoirJodie/);
+});
+
+// Garde du report de J+3 à J+1, tout en respectant la clôture de l'accueil.
+test('déclenchement J+1 seulement après accueil, rappel toujours après trois jours', () => {
+  const migration = lire('migrations/20261109230000_jodie_declenchement_j1.sql');
+  assert.match(migration,/>=1\*86400/);
+  assert.match(migration,/carriere_terminee/);
+  assert.match(migration,/quete_terminee_sans_aide/);
+  assert.match(migration,/presentation_en_cours/);
+  assert.match(migration,/premierLe/);
+  assert.match(migration,/>=3\*86400/);
+  assert.match(lire('plateau-enigme-portrait.js'),/ENIGME1_DELAI_DECLENCHEMENT_JOURS = 1/);
 });

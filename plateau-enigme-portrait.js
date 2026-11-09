@@ -3,7 +3,7 @@
 // Etat sauvegarde sur le personnage : state.char.enigme1 = { etape, variante, dateDeclenchement }
 //
 // Etapes :
-//   (absent / non_commencee) -> pas encore declenchee (personnage cree il y a moins de 3 jours)
+//   (absent / non_commencee) -> pas encore declenchee (personnage cree il y a moins d'un jour, ou accueil non termine)
 //   declenchee               -> le mystere a ete annonce dans le journal, le joueur peut aller au musee
 //   relancee                 -> relance unique a J+6 si le joueur n'a toujours rien fait
 //   (suite a coder : resolution de l'enquete)
@@ -879,7 +879,7 @@ function enigme1AfficherPopupCadreVide(roomId) {
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
-const ENIGME1_DELAI_DECLENCHEMENT_JOURS = 3;
+const ENIGME1_DELAI_DECLENCHEMENT_JOURS = 1;
 const ENIGME1_DELAI_RELANCE_JOURS = 6; // 3 jours apres le declenchement
 
 // Appelee a chaque synchronisation du personnage (hook dans plateau-core.js). Verifie si le
@@ -908,7 +908,7 @@ async function enigme1VerifierDeclenchement() {
 }
 
 
-// Jodie Moitout — appel narratif à J+3, relance unique, puis conclusion.
+// Jodie Moitout — appel narratif à J+1, relance unique, puis conclusion.
 // La réponse et l'unicité sont validées par le serveur ; le client ne fabrique
 // jamais de progression d'enquête ni de doublon de calepin.
 let jodieEnqueteAppelEnCours = false;
