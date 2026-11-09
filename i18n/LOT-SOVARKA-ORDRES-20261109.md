@@ -11,6 +11,8 @@
 | `sovarka_registre_plaintes` | Affaires judiciaires | Ministre de la Justice |
 | `sovarka_extrait_parti` | Extrait d'enregistrement du parti | Guichet des partis |
 
+Le catalogue de commandes exactes passe de **392 à 396 identifiants canoniques** ; les variantes contextuelles ne sont pas comptabilisées comme des commandes distinctes. Le banc historique `banc-i18n-etat-ordres.cjs` est ajusté à ce nouveau total après un premier échec CI identifié et corrigé.
+
 Chaque libellé est renseigné dans **FR, EN, ES, zh-TW, RU, KO, AR, pt-BR, DE** dans `i18n/orders-resources.js`. Le rendu d'ordre déjà existant `RPOrderI18n.label` ne traduit une commande par identifiant qu'en cas de correspondance **exacte** avec la version française. Les chaînes originales restent envoyées au moteur métier ; les variantes de contexte non reconnues gardent le français.
 
 **Contrôle ajouté :** `node outils/bancs/banc-i18n-sovarka-ordres-novembre.cjs` — vérification des 36 entrées, de la correspondance française, du repli sans traduction en cas de libellé divergent, de la non-modification du contrat d'ordre et du maintien du drapeau de non-activation. Aucune action serveur n'est exécutée.
