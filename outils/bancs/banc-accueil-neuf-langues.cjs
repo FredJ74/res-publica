@@ -9,6 +9,7 @@ function load() {
   const sandbox = { window: {} };
   vm.createContext(sandbox);
   vm.runInContext(fs.readFileSync(path.join(root, 'i18n/resources.js'), 'utf8'), sandbox);
+  vm.runInContext(fs.readFileSync(path.join(root, 'i18n/beta-language-notice.js'), 'utf8'), sandbox);
   return sandbox.window;
 }
 test('six langues historiques et trois autres presentes a l accueil', () => {
