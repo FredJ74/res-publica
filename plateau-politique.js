@@ -3996,9 +3996,10 @@ function renderRoomActions(room, buildingId, roomId) {
     // hors Républia le montant reste celui que le serveur prélève, seul le sigle suit le pays
     // (Sovarka : PSK, mêmes chiffres, décision de Fred du 04/11/2026). Copie d'affichage :
     // fn, PA, coût et permissions sont inchangés.
-    const o = cur !== 'FR' ? Object.assign({}, ordreSource, {
-      label: deviseDansTexte(ordreSource.label, cur),
-      desc: deviseDansTexte(ordreSource.desc, cur)
+    const deviseOrdre = (typeof cur === 'string') ? cur : 'FR';
+    const o = (deviseOrdre !== 'FR' && typeof deviseDansTexte === 'function') ? Object.assign({}, ordreSource, {
+      label: deviseDansTexte(ordreSource.label, deviseOrdre),
+      desc: deviseDansTexte(ordreSource.desc, deviseOrdre)
     }) : ordreSource;
     // Le libellé d'affichage seul est traduit. L'ordre d'origine (fn, PA,
     // prix, permissions et o.label passé à doOrder) est strictement conservé.
