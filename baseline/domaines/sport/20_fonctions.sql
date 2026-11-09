@@ -408,7 +408,7 @@ BEGIN
  IF p_requete IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','requete_invalide'); END IF;
  params:=jsonb_build_object('accessoire',p_accessoire,'pa',p_pa,'cost',p_cost);
  v:=public.inventaire_action_rejouer_interne(a.name,p_requete,'club_accessoire',params);IF v IS NOT NULL THEN RETURN v;END IF;
- IF a.current_building IS DISTINCT FROM 'stade' OR a.current_room IS DISTINCT FROM 'buvette' THEN RETURN jsonb_build_object('ok',false,'raison','pas_sur_place');END IF;
+ IF a.current_building IS DISTINCT FROM 'stade' OR (a.current_room IS DISTINCT FROM 'buvette' AND NOT (a.country='soviet' AND a.current_city='capitale' AND a.current_room='boutique')) THEN RETURN jsonb_build_object('ok',false,'raison','pas_sur_place');END IF;
  SELECT * INTO c FROM public.clubs_sportifs_regles WHERE country=a.country AND city=a.current_city;
  IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','club_local_introuvable');END IF;
  prix:=CASE p_accessoire WHEN 'echarpe' THEN 80 WHEN 'casquette' THEN 60 WHEN 'maillot' THEN 150 END;
