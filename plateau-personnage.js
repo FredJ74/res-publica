@@ -14,6 +14,7 @@ function rpCharSheetLabel(key,source) {
 async function openCharSheet() {
   const char = state.char;
   if (!char) return;
+  if (typeof queteAccueilFichePersonnageOuverte === 'function') queteAccueilFichePersonnageOuverte();
   const co = COUNTRIES[char.country];
   const ar = ARCHETYPES.find(x => x.id === char.archetype);
   const ca = CAREERS.find(x => x.id === char.career);
@@ -149,6 +150,7 @@ function switchCharSheetTab(tab) {
 }
 function closeCharSheet() {
   document.getElementById('modal-char').classList.remove('open');
+  if (typeof queteAccueilApresFichePersonnage === 'function') queteAccueilApresFichePersonnage();
 }
 
 // =====================
@@ -401,6 +403,7 @@ function openSelfView(ongletInitial) {
   if (typeof state !== 'undefined' && state.char?.queteAccueil?.etape === 'attente_fiche_personnage' && typeof queteAccueilSurbrillance === 'function') {
     queteAccueilSurbrillance('.sortir-btn', 15000);
   }
+  if (typeof queteAccueilFichePersonnageOuverte === 'function') queteAccueilFichePersonnageOuverte();
   document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
   document.getElementById('vue-self').classList.add('active');
   const char = state.char;
@@ -417,13 +420,13 @@ function openSelfView(ongletInitial) {
 
 function closeSelfView() {
   window._indemnitesRelues = false;   // voir switchSelfTab : relire a chaque ouverture, pas plus
-  if (typeof queteAccueilApresFichePersonnage === 'function') queteAccueilApresFichePersonnage();
   document.getElementById('vue-self').classList.remove('active');
   if (state.currentBuilding) {
     document.getElementById('vue-batiment').classList.add('active');
   } else {
     document.getElementById('vue-rue').classList.add('active');
   }
+  if (typeof queteAccueilApresFichePersonnage === 'function') queteAccueilApresFichePersonnage();
 }
 
 // Salaire de reference a l'ordre Dormir : poste politique, sinon le plancher universel
