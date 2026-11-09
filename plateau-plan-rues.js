@@ -254,9 +254,11 @@ function dessinerPlanRues(plan, options) {
     o.push(`<line x1="${vx.toFixed(1)}" y1="${vy.toFixed(1)}" x2="${r.x.toFixed(1)}" y2="${r.y.toFixed(1)}" stroke="#a98d56" stroke-opacity="0.35" stroke-width="1"/>`);
   });
   reperes.forEach(r => {
-    o.push(`<g class="plan-rues-repere" data-batiment="${planRuesEchapper(r.b.id)}"><title>${planRuesEchapper(r.b.nom)}</title>` +
-      `<rect x="${(r.x - R).toFixed(1)}" y="${(r.y - R).toFixed(1)}" width="${2 * R}" height="${2 * R}" rx="4" fill="#202a36" stroke="#a98d56" stroke-width="1.5"/>` +
-      `<text x="${r.x.toFixed(1)}" y="${(r.y + 4).toFixed(1)}" text-anchor="middle" font-size="11" font-family="sans-serif" font-weight="bold" fill="#e5c477">${r.num}</text></g>`);
+    const ici = opts.batimentIci && r.b.id === opts.batimentIci;
+    if (ici) o.push(`<circle cx="${r.x.toFixed(1)}" cy="${r.y.toFixed(1)}" r="16" fill="none" stroke="#e5c477" stroke-width="2"><animate attributeName="r" values="14;22;14" dur="2s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values="1;0.2;1" dur="2s" repeatCount="indefinite"/></circle>`);
+    o.push(`<g class="plan-rues-repere" data-batiment="${planRuesEchapper(r.b.id)}"><title>${planRuesEchapper(r.b.nom)}${ici ? ' — vous êtes ici' : ''}</title>` +
+      `<rect x="${(r.x - R).toFixed(1)}" y="${(r.y - R).toFixed(1)}" width="${2 * R}" height="${2 * R}" rx="4" fill="${ici ? '#e5c477' : '#202a36'}" stroke="#a98d56" stroke-width="1.5"/>` +
+      `<text x="${r.x.toFixed(1)}" y="${(r.y + 4).toFixed(1)}" text-anchor="middle" font-size="11" font-family="sans-serif" font-weight="bold" fill="${ici ? '#202a36' : '#e5c477'}">${r.num}</text></g>`);
   });
   if (opts.ici && plan.noeuds[opts.ici]) {
     const [x, y] = P(opts.ici);
@@ -271,6 +273,43 @@ function dessinerPlanRues(plan, options) {
     legende: reperes.map(r => ({ num: r.num, id: r.b.id, nom: r.b.nom, noeud: r.b.noeud })),
     largeur: L, hauteur: H
   };
+}
+
+// =====================================================================
+// RACCORDEMENT AU JEU : fenetre « Plan de la ville »
+// =====================================================================
+// Rend true si la ville a des rues et que son plan a ete dessine ; false sinon (l'appelant garde
+// alors l'ancien plan). Lecture seule : le plan oriente, il ne deplace pas (choix de Fred).
+function ouvrirPlanRuesVille(countryId, cityId) {
+  if (typeof RUE_CENTRALE_NOEUDS === 'undefined' || typeof RUE_CENTRALE_DEPART === 'undefined') return false;
+  const depart = RUE_CENTRALE_DEPART[countryId]?.[cityId];
+  const noeuds = RUE_CENTRALE_NOEUDS[countryId];
+  if (!depart || !noeuds || !noeuds[depart]) return false;
+  const plan = calculerPlanRues(noeuds, depart);
+  if (Object.keys(plan.noeuds).length < 2) return false;
+  const st = (typeof state !== 'undefined') ? state : {};
+  const memeVille = st.country === countryId && st.currentCity === cityId;
+  const batimentIci = memeVille && st.currentBuilding ? st.currentBuilding : null;
+  const noeudIci = memeVille && !batimentIci && typeof rueCentraleNoeudActuel !== 'undefined' && plan.noeuds[rueCentraleNoeudActuel] ? rueCentraleNoeudActuel : null;
+  const co = (typeof COUNTRIES !== 'undefined') ? COUNTRIES[countryId] : null;
+  const city = (typeof WORLD !== 'undefined') ? WORLD[countryId]?.[cityId] : null;
+  const nomVille = city?.name || cityId;
+  const dessin = dessinerPlanRues(plan, { ici: noeudIci, batimentIci, titre: 'Plan de ' + nomVille });
+  const ligne = l => {
+    const ici = batimentIci && l.id === batimentIci;
+    return `<li style="display:flex;gap:.45rem;align-items:center;padding:.18rem 0;${ici ? 'color:#e5c477;font-weight:bold' : ''}">` +
+      `<span style="flex:0 0 auto;min-width:1.6rem;text-align:center;border:1px solid #a98d56;border-radius:4px;font-size:.7rem;color:#e5c477;background:${ici ? '#3a3220' : '#202a36'}">${l.num}</span>` +
+      `<span style="font-size:.78rem">${planRuesEchapper(l.nom)}${ici ? ' — vous êtes ici' : ''}</span></li>`;
+  };
+  const enRue = noeudIci ? '<span style="color:#e5c477">●</span> Vous êtes ici, dans la rue.' : (batimentIci ? '' : '');
+  document.getElementById('minimap-ville-title').textContent = nomVille + (co?.n ? ' — ' + co.n : '');
+  document.getElementById('minimap-ville-body').innerHTML =
+    '<div style="padding:.3rem">' + dessin.svg + '</div>' +
+    (enRue ? '<div style="font-size:.75rem;color:#e2e9f1;padding:.2rem .6rem">' + enRue + '</div>' : '') +
+    '<ul style="list-style:none;margin:.3rem 0 0;padding:.2rem .6rem .6rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));column-gap:.8rem;color:#e2e9f1">' +
+    dessin.legende.map(ligne).join('') + '</ul>';
+  document.getElementById('modal-minimap-ville').classList.add('open');
+  return true;
 }
 
 if (typeof module !== 'undefined' && module.exports) {
