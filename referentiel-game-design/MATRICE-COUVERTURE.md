@@ -35,6 +35,9 @@
 | Diplomatie / interempire | D : `GAME-DESIGN-AMBASSADES.md`, Architecture | C repéré : `plateau-gouvernement.js`, ambassades | TEST-F : bancs ambassades | J ?, voyage individuel entre empires déclaré absent (architecture oct.) |
 | Premium et publicité | D : principe non P2W, arbitrages dispersés | C repéré : `plateau-publicite-premium.js` | TEST-F : contrôles premium | J ?, facturation bêta non ouverte |
 
+| Enquête narrative du musée de Luthécia | D : appel de Jodie, destination explicite, refus libre, relance, conclusion | **C** : `plateau-enigme-portrait.js`, `api/chat.js`, `migrations/20261109230000_jodie_declenchement_j1.sql` | **T/M/P** : PR #664 et #666, CI ciblée, RPC contrôlées, Vercel READY `d58fa004` | **J ?** : parcours mobile complet avec PJ, absence d'indice inventé et contact après résolution à tester |
+| Quêtes d'accueil et enquêtes propres à chaque ville | **D** : principe validé le 9/11 au soir, après Sovarka | **C ?** : pas de parcours complet attesté dans chaque ville | **T/M/P ?** : pas de livraison globale | **J ?** : PSM à préciser ; ne pas confondre règle cible avec contenu disponible |
+
 ## Compléments par système
 Les trois fiches transversales approfondissent plusieurs contrats d'ordre, leurs préconditions, interactions et cas-limites : [pouvoirs](FICHES-POUVOIRS-ET-CONTREPOUVOIRS.md), [économie](FICHES-ECONOMIE-LOGISTIQUE-MOBILITE.md), [parcours et sociabilité](FICHES-PARCOURS-SOCIAUX-ET-FRICTIONS.md). Les sources sont des décisions datées et chemins de livraison cités, pas des tests rejoués. La [synthèse de portée](SYNTHESE-AUDIT-ET-LIMITES.md) formule précisément les limites de cet audit.
 
@@ -43,6 +46,3 @@ La matrice est un **registre de couverture initial**, non une liste exhaustive d
 
 ## Tests restant impératifs pour clôturer la matrice
 Pour chaque ligne, relever un SHA courant, le ou les handlers actifs, la RPC et sa migration canonique, la preuve de droits SQL, l'exécution de test reproductible, la disponibilité de déploiement et une recette utilisateur. La matrice ne passe en statut « exhaustive et certifiée » que lorsque **chaque ordre accessible** possède une telle traçabilité ; ce seuil n'est pas atteint dans cette édition.
-
-| Enquête narrative du musée de Luthécia | D : appel de Jodie, destination explicite, refus libre, relance, conclusion | **C** : `plateau-enigme-portrait.js`, `api/chat.js`, `migrations/20261109230000_jodie_declenchement_j1.sql` | **T/M/P** : PR #664 et #666, CI ciblée, RPC contrôlées, Vercel READY `d58fa004` | **J ?** : parcours mobile complet avec PJ, absence d'indice inventé et contact après résolution à tester |
-| Quêtes d'accueil et enquêtes propres à chaque ville | **D** : principe validé le 9/11 au soir, après Sovarka | **C ?** : pas de parcours complet attesté dans chaque ville | **T/M/P ?** : pas de livraison globale | **J ?** : PSM à préciser ; ne pas confondre règle cible avec contenu disponible |
