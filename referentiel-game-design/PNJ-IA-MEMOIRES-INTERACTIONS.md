@@ -51,3 +51,19 @@ Un PNJ qui reconnaît un joueur à son retour peut créer de la familiarité mê
 5. Examiner séparément l'historique de la conversation courante, la mémoire des référents, celle des institutions et la continuité véritable en jours.
 
 **Statuts : D (conception commentée), C/M (code et fonctions/config en production vérifiés), T (bancs disponibles, non rejoués ici), P (SHA de production vérifié), J (non testé sur PJ).** Aucune mécanique n'a été changée.
+
+
+## Complément vérifié le 9 novembre au soir — Jodie Moitout
+
+**La description « deux PNJ sociaux actuels » ci-dessus correspond au relevé initial, désormais daté.** La fonctionnalité Jodie s'y ajoute via les PR [#664](https://github.com/FredJ74/res-publica/pull/664) et [#666](https://github.com/FredJ74/res-publica/pull/666).
+
+- **Identité unique** : `jodie_moitout` désigne la relation sociale conservée entre **marché**, **L'Autruche Entravée** et **appel téléphonique** ; `jodie_moitout_autruche` reste un profil de lieu mais lit la même relation. L'entrée sociale est enregistrée sans déclencher une interpellation automatique supplémentaire.
+- **Photo** : `images/jodie-moitout.webp` dans la pop-up de l'appel.
+- **Mémoire sémantique limitée, non universelle** : la RPC `jodie_enquete_contact` peut conserver les **six dernières paroles du PJ** (bornées), sans les qualifier de preuves. La mémoire sociale V1 de Jean-Lou et Marine ne devient **pas** rétrospectivement un historique sémantique ; ne pas appliquer la capacité de Jodie à tous les PNJ.
+- **Mémoire narrative canonique** : `enigme1.jodie` garde le premier appel, l'acceptation/le refus, une éventuelle relance et le choix final. `api/chat.js` et `api/_pnj-profils.js` donnent au dialogue les informations pertinentes sans lui faire inventer les indices du PJ.
+- **Surprise protégée** : avant le déclenchement, Jodie ne parle spontanément ni des portraits ni du calepin, même si elle a rencontré le PJ.
+- **Appel J+1** : 24 h après la création, sous condition que la quête d'accueil de Jérémy soit terminée ; la relance est distincte, trois jours après le premier appel si le dossier est vide. Les PJ déjà engagés ne voient ni inventaire ni dossier remis à zéro.
+- **Lieu incontournable dans le dialogue** : `Musée de la Ville de Luthécia` ; ne jamais envoyer par erreur le PJ au musée de Port-Sainte-Marie.
+- **Fin** : appel après la résolution, avec possibilité de transmettre ou non les découvertes à Jodie, journaliste motivée par la vérité et non par une obéissance au PJ.
+
+**État des preuves** : code fusionné et Vercel READY au commit `d58fa004` ; fonctions de production et seuils J+1/rappel contrôlés en lecture ; suite CI de cohérence de la PR J+1 déclarée verte. **La qualité DeepSeek, le comportement sur compte testeur, la mémoire entre plusieurs lieux après reconnexion et l'appel final n'ont pas été confirmés en jeu.** Ne pas confondre possibilité d'une conversation libre et satisfaction constatée de ce dialogue.

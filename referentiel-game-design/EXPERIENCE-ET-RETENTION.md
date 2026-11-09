@@ -62,3 +62,41 @@ Ces points sont des **hypothèses issues de la structure du jeu et des objectifs
 
 ## 6. Seuil avant un vrai diagnostic forces/faiblesses
 Obtenir (1) catalogue actif des ordres et statuts, (2) vérification des effets et permissions des principales boucles, (3) recette exploratoire connectée dans chaque empire jouable, (4) test mobile physique, (5) parcours nouveaux joueurs observés, (6) échantillon d'interactions réelles ou consenties. Tant qu'ils manquent, toute conclusion doit rester **provisoire et attribuée**.
+
+
+## 7. Actualisation du 9 novembre 2026 au soir — premiers testeurs et enquête du musée
+
+**Statut : décision de design et livraison technique documentées ; aucune amélioration de rétention mesurée.** Le présent complément actualise l'analyse initiale sans transformer une hypothèse en preuve.
+
+### Retours qualitatifs des deux premiers testeurs mobiles
+
+- **Testeur 1** : jeu davantage jouable sur téléphone, mais désorientation manifeste ; le stagiaire et le calepin sont présents sans raison d'enquête comprise ; les personnages rencontrés et les destinations ne paraissent pas hiérarchisés. Il décrit également une répétition de consigne après l'EHPAD (consulter la fiche personnage).
+- **Testeur 2** : graphismes appréciés ; système des PA insuffisamment compris au début.
+
+Ces propos motivent des investigations, mais ne constituent **ni taux de rétention, ni validation du parcours complet**. Le correctif de validation de fiche d'accueil est suivi **par Claude**, sans le fusionner avec la présente fiche de Jodie ; vérifier sa recette réelle séparément.
+
+### Parcours décidé, désormais implémenté : « Le Portrait disparu », Luthécia
+
+**Décision du game designer :** la rumeur passive dans le journal ne suffit pas à attirer l'attention. Le calepin et l'appel téléphonique de **Jodie Moitout** forment un événement narratif explicite, accompagné de son portrait `images/jodie-moitout.webp`. Jodie est journaliste à **L'Autruche Entravée**. Elle contacte le PJ pour lui demander d'observer la disparition de tableaux au **Musée de la Ville de Luthécia**, nommé intégralement, sans confusion avec les musées de PSM/Montrouge.
+
+**Chronologie actuelle :**
+1. **J+1 = 24 heures réelles depuis la création du PJ**, et quête d'accueil de Jérémy terminée : déclenchement de l'énigme côté serveur, remise du calepin si absent, proposition de Jodie en pop-up interactive. Le déclencheur antérieur à J+3 est **dépassé**. Le délai n'est pas simplement « le lendemain à minuit ».
+2. L'appel propose des réponses **« Comptez sur moi » / « Pas maintenant »**, des questions courantes et un champ de dialogue libre utilisant le PNJ serveur. L'enquête reste accessible sans acceptation ; Jodie **oriente**, elle ne verrouille ni les indices ni le musée.
+3. Jodie connaît le PJ si une conversation antérieure a été enregistrée au **marché de Luthécia** ou à **L'Autruche Entravée**. Avant l'appel initial, elle ne révèle ni la disparition ni le calepin. L'identité sociale `jodie_moitout` est commune aux deux lieux et au téléphone.
+4. Si aucune piste n'a été recueillie dans le dossier, **une seule relance** peut intervenir au moins trois jours après le premier appel, sans réinitialiser l'enquête.
+5. À la résolution, Jodie reprend contact ; le PJ peut **lui raconter ses découvertes** ou **les garder pour lui**. Sa quête est la vérité, pas une loyauté inconditionnelle au joueur ; elle ne doit pas connaître d'indices jamais confiés et distinguer paroles du PJ et faits vérifiés.
+6. Les testeurs qui possèdent déjà le calepin sont éligibles à l'appel selon l'état enregistré, **sans duplication ni réinitialisation** de leur dossier. Un état déjà résolu peut conduire à l'appel conclusif.
+
+**Preuves techniques disponibles au 9/11 :** PR [#664](https://github.com/FredJ74/res-publica/pull/664) fusionnée (Jodie : dialogue, portrait, relation sociale, rappel/conclusion), PR [#666](https://github.com/FredJ74/res-publica/pull/666) fusionnée (J+1 et condition d'accueil), migration `jodie_enquete_sociale_20261109221000` et migration `jodie_declenchement_j1_20261109230000` signalées/appliquées en production puis vérification en lecture de leurs fonctions, Vercel READY au SHA `d58fa004d1331b3db03c97fe571ecbc32d9abdfe`. La suite de cohérence GitHub du changement J+1 s'est achevée avec succès. **Une recette PNJ/IA authentifiée et une observation réelle de l'appel par un PJ restent à mener.**
+
+### Stratégie de rétention décidée, non encore généralisée
+
+- **Chaque ville aura sa propre quête d'accueil et sa propre enquête** : orientation locale, secrets et personnages distincts, sans imposer une trajectoire politique ou verrouiller l'exploration libre.
+- **Port-Sainte-Marie (PSM)** : contours d'une enquête existants dans l'intention du game designer, mais une partie de son scénario reste à retrouver ; **ne pas compléter par invention**.
+- **Sovarka** : terminer d'abord son contenu ; la création/extension des enquêtes par ville viendra ensuite. Ne pas annoncer que les six villes possèdent déjà un tel parcours.
+- Le projet de remplacer l'interface « Mes objectifs » par des propositions de **missions courtes ou de questions sur le jeu**, en pop-up, est une **piste de conception**, pas une fonctionnalité livrée.
+- La **lisibilité des cartes et des itinéraires** reste un chantier transversal : orienter vers le musée de Luthécia ne suffit pas si le joueur ne peut le localiser facilement.
+
+### Mesures de validation à conduire avec les prochains testeurs
+
+Vérifier qualitativement : le PJ comprend-il *qui* l'appelle, *pourquoi*, *où* se rendre, *comment* ouvrir le calepin et *comment* poursuivre après un refus ? Jodie reconnaît-elle une rencontre antérieure et la continuité après reconnexion ? Les testeurs déjà équipés reçoivent-ils un appel unique, sans perdre leurs indices ? Tester sur un téléphone réel. Suivre ensuite, seulement avec échantillons suffisants, l'activation, D1/D7 et le retour volontaire lié à une relation/une enquête ; ne pas promettre « zéro départ » comme résultat technique.

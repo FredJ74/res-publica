@@ -68,3 +68,14 @@ Le passage entre empires est déclaré **non existant** dans la description des 
 
 ## 11. Premium, langues, supports
 Bêta gratuite ; personnalisation et prestige plutôt que puissance ; conditions de monétisation à dater par option. Localisation : catalogue de ressources et bancs i18n présents mais couverture réelle de chaque écran et langue à calculer. Mobile : `plateau-mobile.js` et CSS du socle présents ; `outils/audits/CERTIFICATION-MOBILE-20261108.md` rapporte des bancs Chromium, mais `RECETTE-PHYSIQUE-MOBILE-20261108.md` constate qu'iPhone/Android et deux appareils réels **restent à essayer**. Ces distinctions sont structurantes pour l'acquisition et la rétention.
+
+
+## 12. Parcours narratif et rétention — évolution du 9 novembre au soir
+
+**Le point 3 décrit la situation de l'audit initial.** Les premiers retours mobiles montrent qu'un calepin et un stagiaire peuvent être présents sans que la finalité soit comprise. Le design adopté lie désormais l'onboarding à une **sollicitation incarnée** : Jérémy pour l'accueil, puis Jodie Moitout pour l'enquête « Le Portrait disparu » à Luthécia.
+
+À **J+1 (24 heures réelles)** et après conclusion de l'accueil, le serveur déclenche la remise du calepin et l'appel illustré et interactif de Jodie. Elle nomme le **Musée de la Ville de Luthécia** et adapte son introduction à une rencontre antérieure au marché ou à L'Autruche Entravée. Refuser son invitation ne bloque pas l'exploration ; une seconde proposition est possible si le dossier demeure vide ; à la résolution, elle reprend contact. Sa mémoire est commune aux trois canaux mais ne vaut ni omniscience ni preuve des paroles du PJ. Le principe est **un PNJ qui propose sans contraindre**.
+
+**Extension décidée, non codée à l'échelle du monde** : chaque ville aura sa propre quête d'accueil et sa propre enquête, donnant envie de se repérer et d'entretenir une relation ; PSM reste à redéfinir à partir de ses contours connus du game designer. **Sovarka est prioritaire avant l'extension narrative**. La réorganisation de « Mes objectifs » en missions/questions courtes en pop-up et les cartes de villes plus lisibles sont encore des intentions.
+
+Sources et statuts probatoires précis : [expérience et rétention](EXPERIENCE-ET-RETENTION.md), [PNJ sociaux](PNJ-IA-MEMOIRES-INTERACTIONS.md), [matrice](MATRICE-COUVERTURE.md), PR #664 et #666. **Aucune amélioration mesurée de D1/D7 ni recette réelle de ce parcours ne peut être affirmée.**

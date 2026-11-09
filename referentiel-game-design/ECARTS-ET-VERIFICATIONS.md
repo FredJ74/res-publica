@@ -88,3 +88,14 @@ Sur 1 605 fonctions publiques observées, 1 401 sont `SECURITY DEFINER`, dont 26
 - Aucune conclusion sur « ce qui est effectivement jouable » ne peut être certifiée pour **tous** les ordres sans ces preuves.
 
 **Conséquence :** registre ouvert ; l'audit n'est pas clos et ne doit pas être utilisé comme approbation de déploiement.
+
+
+## Complément E-15 — Rétention, amorce de l'enquête et premier contact (9 novembre au soir)
+
+**Retours réels, non quantifiés :** un testeur mobile peut être perdu malgré Jérémy et le calepin ; un autre ne comprend pas encore les PA. Ce sont des signaux précis de guidage, pas des résultats de cohortes. Le problème de consigne répétée de Jérémy est attribué au chantier Claude ; sa correction technique ne vaut pas preuve de compréhension humaine.
+
+**Évolution livrée** : la rumeur passive du journal est complétée par l'appel explicite de Jodie Moitout avec portrait et dialogue, la destination unique Musée de la Ville de Luthécia, une mémoire sociale commune aux deux lieux et au téléphone, un refus qui n'empêche pas l'enquête, un rappel et une conclusion. Déclenchement corrigé de J+3 à **J+1, 24 heures après création et après fin de l'accueil** (PR #664/#666). **Précision** : la relance suit son propre délai de trois jours après le premier appel. Les fonctions et seuils SQL ont été contrôlés en production, ainsi que le déploiement Vercel READY au SHA `d58fa004`. Aucun PJ testeur n'a encore attesté ce parcours dans cet audit.
+
+**Points à vérifier avant de conclure** : déclenchement non intrusif au premier retour, reconnaissance du PJ connu de Jodie au marché ou à la rédaction, aucune divulgation avant J+1, contenu du calepin déjà possédé, dialogue DeepSeek sans divulgation intempestive, étape finale et conservation de l'état après refresh, comportement sur smartphone et compréhension des PA. Mesurer le retour réel avant d'attribuer à l'enquête un impact sur D1/D7.
+
+**Évolution de cap** : une quête d'accueil et une enquête par ville ont été décidées, mais ne sont pas toutes implémentées. Le scénario de PSM est partiellement oublié par son auteur et doit être redéfini avec lui, sans supposition. Sovarka reste prioritaire ; la refonte de « Mes objectifs » et la lisibilité des cartes restent distinctes.
