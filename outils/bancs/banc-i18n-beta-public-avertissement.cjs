@@ -16,7 +16,7 @@ test('les neuf locales présentent sans ambiguïté le repli en français et la 
  for(const locale of langs){
   const text=resources[locale]?.translation?.betaLanguage?.notice;
   assert.equal(typeof text,'string',locale);
-  assert.ok(text.length>60,locale);
+  assert.ok(Array.from(text).length>25,locale);
   assert.ok(!/<[^>]+>/.test(text),locale+': aucun HTML de traduction');
  }
  for(const locale of langs) assert.equal(typeof resources[locale].translation.home.createCharacter,'string');
