@@ -1,0 +1,43 @@
+name: i18n — Sovarka et PNJ sociaux (9 langues)
+
+on:
+  pull_request:
+    paths:
+      - 'i18n/orders-resources.js'
+      - 'i18n/social-pnj-resources.js'
+      - 'plateau-social-pnj.js'
+      - 'plateau.html'
+      - 'outils/bancs/banc-i18n-sovarka-ordres-novembre.cjs'
+      - 'outils/bancs/banc-i18n-pnj-sociaux-amorces.cjs'
+      - '.github/workflows/i18n-sovarka-pnj.yml'
+  push:
+    paths:
+      - 'i18n/orders-resources.js'
+      - 'i18n/social-pnj-resources.js'
+      - 'plateau-social-pnj.js'
+      - 'plateau.html'
+      - 'outils/bancs/banc-i18n-sovarka-ordres-novembre.cjs'
+      - 'outils/bancs/banc-i18n-pnj-sociaux-amorces.cjs'
+      - '.github/workflows/i18n-sovarka-pnj.yml'
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe des modules modifiés
+        run: |
+          node --check i18n/orders-resources.js
+          node --check i18n/social-pnj-resources.js
+          node --check plateau-social-pnj.js
+          node --check outils/bancs/banc-i18n-sovarka-ordres-novembre.cjs
+          node --check outils/bancs/banc-i18n-pnj-sociaux-amorces.cjs
+      - name: Canon, neuf langues, contrats inchangés, activation fermée
+        run: node outils/bancs/banc-i18n-sovarka-ordres-novembre.cjs
+      - name: Amorces des PNJ sociaux et repli en français
+        run: node --test outils/bancs/banc-i18n-pnj-sociaux-amorces.cjs
