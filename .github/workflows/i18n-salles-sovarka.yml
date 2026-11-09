@@ -1,0 +1,30 @@
+name: i18n — Salles Novomirsk et services Sovarka
+on:
+  pull_request:
+    paths:
+      - 'i18n/room-resources.js'
+      - 'outils/bancs/banc-i18n-salles-sovarka-services.cjs'
+      - '.github/workflows/i18n-salles-sovarka.yml'
+  push:
+    paths:
+      - 'i18n/room-resources.js'
+      - 'outils/bancs/banc-i18n-salles-sovarka-services.cjs'
+      - '.github/workflows/i18n-salles-sovarka.yml'
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe
+        run: |
+          node --check i18n/room-resources.js
+          node --check outils/bancs/banc-i18n-salles-sovarka-services.cjs
+      - name: Salles Sovarka en neuf langues
+        run: node --test outils/bancs/banc-i18n-salles-sovarka-services.cjs
+      - name: Conserver les trente-huit salles existantes
+        run: node --test outils/bancs/banc-i18n-salles-gouvernement.cjs
