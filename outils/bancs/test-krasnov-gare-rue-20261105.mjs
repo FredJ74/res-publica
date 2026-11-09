@@ -136,7 +136,9 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.eglise.flechesStyle.arriere,'bottom:10px; left:43%; transform:translateX(-50%);');
   assert.equal(got.eglise.liensEnAttente,undefined);
   assert.equal(got.eglise.flechesStyle.droite,'top:33.3333%; right:10px; transform:translateY(-50%);');
-  assert.equal(got.terrains.zones.length,0);
+  // Terrain municipal raccordé le 09/11/2026 (migration 20261109004500).
+  assert.equal(got.terrains.zones.length,1);
+  assert.equal(got.terrains.zones[0].buildingId,'terrain-a-batir-2');
   assert.equal(got.maison.zones.length,0);
   // L'entrepôt de Krasnov est raccordé (05/11/2026, migration 20261105030000).
   assert.equal(got.entrepot.zones.length,1);

@@ -272,3 +272,48 @@ Salle d'audience : pas de changement demandé. Les audiences existent côté ser
 - Serveur : migration `20261108230000_sovarka_justice_circuit`. Titulaires PNJ dans `titulaires_pnj` (six lignes `soviet_juge_*` / `soviet_commissaire_*`). `sovarka_justice_registre` (commissaire : sa ville ; ministre : tout Sovarka ; juge : ses affaires saisies, avec la consigne), `sovarka_justice_decider` (saisir : statut `saisie`, acte `juge_saisi`, courrier au juge PJ ; enterrer : statut `enterree`, jamais clos ni expiré, trace `plainte_egaree` d'auteur « Le commissariat » pour les rumeurs), `sovarka_consigne_envoyer` (table `sovarka_consignes_ministre`, refus le jour de l'audience ou après son ouverture, courrier au juge PJ), `sovarka_offrir_cafe` (tables `sovarka_cafes_magistrat` et `sovarka_cafes_requetes`), `sovarka_parti_extrait` (document `domiciliation_extrait`, motif `enregistrement_parti`). Patchs sous empreinte : `etat_civil_document_recevoir` (acte au greffe de Sovarka, plus au bureau des magistrats), `rumeur_ecoute_jauges_interne` (`plainte_egaree` audible), `justice_affaires_publiques` (en Sovarka, seules les affaires saisies). La plainte garde son statut historique `au_parquet`, qui signifie ici « au registre du commissariat ».
 - Écran : `plateau-sovarka-justice.js` ; ordres « Registre des plaintes » (bureau du commissaire, trois villes), « Affaires judiciaires » (bureau du ministre de la Justice prolétarienne), « Prendre les ordres du ministre » et « Offrir un café » (bureau des magistrats), « Demander / Délivrer un acte officiel » (greffe), « Extrait d'enregistrement du parti » (salle des partis) ; « Dossiers du parquet » et l'acte du juge retirés du bureau ; Défenseur Collectif retiré ; juges et commissaires PNJ avec titre de référent quand un PJ tient le poste.
 - Choix laissés à la relecture de Fred : saisir, enterrer, consigner et offrir un café ne coûtent pas de PA (aucun coût décidé) ; les 7 PSK de l'extrait du parti vont à la caisse de la mairie ; la rumeur ne s'entend que là où l'on écoute les rumeurs (en Sovarka, le Grand Hôtel de Novomirsk) ; quand commissaire et ministre sont des PNJ, les plaintes attendent au registre.
+
+## Starovka et Krasnov : audit du 09/11/2026 (Claude, feu vert de Fred)
+
+Constat : les deux villes ont 17 bâtiments chacune, dont 14 copiés de Montrouge. Les règles nationales de Sovarka y étaient
+déjà en place (droits d'exploiter, demande de commerce, salle des partis, greffe, justice, juges et commissaires), mais
+**la plupart des bâtiments étaient inaccessibles** : les rues dessinées par Fred n'avaient de façade cliquable que pour la gare,
+l'entrepôt et le port (Starovka), et la gare, l'entrepôt, le stade, le commissariat et la station (Krasnov).
+
+### Ce qui est codé (branche `claude/krasnov-starovka-20261109`, PR #647)
+
+- **Onze façades raccordées**, chacune dans la rue qui porte son nom : Starovka — hôtel (rue de l'hôtel), terrain municipal,
+  stade, mairie (rue mairie-marché), commissariat (rue lycée-commissariat), centre d'affaires (immeuble « Офисы в аренду »,
+  rue bureaux-caserne) ; Krasnov — terrain municipal, centre artisanal, centre commercial, mairie (place), centre d'affaires
+  (rue des bureaux). Migration `20261109004500_starovka_krasnov_entrees_rue`.
+- **Bureaux des centres d'affaires de province** : demande à la mairie, comme les locaux des centres (règles du 06 et du
+  07/11) ; le guichet privé (1 000 / 500 / 200 par jour) est fermé. Migration `20261109003000_sovarka_bureaux_provinces`.
+  **Plafonds proposés par Claude, à valider** : prestige 100, standard 50, open space 20 PSK (même règle provisoire que les
+  centres : proportionnels au loyer de Républia, le plus grand à 100, plafond des provinces décidé le 06/11).
+- **Textes** : plus de renvoi à Montrouge, Luthécia ou Port-Sainte-Marie (hôtel, EHPAD, geôles, syndicat, usine « propriété
+  de l'État » au lieu de « Rachetable », gare « vers une autre ville de Sovarka », terrain municipal) ; bureau des magistrats
+  sans Procureur dans les trois villes (pas de parquet). Textes neutres, **à relire par Fred**.
+- **Devise** : partout hors Républia, les libellés d'ordres affichent le sigle du pays (PSK) au lieu de « FR » ; les montants
+  ne changent pas (mêmes chiffres, décision du 04/11).
+
+### Questions ouvertes pour Fred (à poser une par une)
+
+1. **Banque locale** des deux villes : que devient-elle dans un pays sans propriété privée (comptes, placements, prêts) ?
+2. **Siège syndical** : un syndicat ouvrier a-t-il sa place sous le régime des partis, et avec quels ordres ?
+3. **Bâtiments sans façade** : banque, dispensaire, tribunal, siège syndical, usine et zone de production n'apparaissent dans
+   aucune rue. Dans quelle rue les placer (ou faut-il une nouvelle image) ?
+4. **Rue « locaux à louer » de Starovka** : les deux bâtiments « Помещение в аренду » sont-ils le centre commercial, le centre
+   artisanal, ou de nouveaux locaux ?
+5. **Bâtiments dessinés mais inexistants** : Starovka — marché, lycée, poste militaire, magasin de chasse, restaurant « Entre
+   terre et mer », fourreur, pétrole, ferme, logements collectifs ; Krasnov — église, école, distillerie, radar, marché, ferme,
+   tabac-bar, musée, maisons. Lesquels doivent devenir des bâtiments, et dans quel ordre ?
+6. **Prix courants à l'échelle de Sovarka** (un PA ≈ 15 PSK) : train 75, bus/taxi 150, soin 25, transfert en clinique 1 000,
+   licence sportive 150, chambre d'hôtel 60, recrutement de policiers 50 et 100 par jour sont encore au barème de Républia.
+7. **Hôtel** : « Hôtel des Mineurs » convient-il aux deux villes, ou un nom propre à chacune (l'enseigne de Starovka dit
+   « Гостиница путешественников », hôtel des voyageurs) ?
+8. **Antenne « La Tribune de Républia »** au centre d'affaires des deux villes : la garder, la renommer (journal de Sovarka) ou
+   la retirer ?
+9. **Terrain de Starovka** : l'image annonce 4 parcelles, le serveur n'en connaît qu'une (un seul immeuble collectif à la fois).
+10. **Anciens noms jamais affichés** (« Baraquement Sibirsk-9 », « Caisse Minière Collective », « Gazette du Charbon »,
+    « Infirmerie du Froid », etc.) : à reprendre ou à supprimer ?
+11. **Route de Starovka** : elle n'est reliée par la route à aucune ville (véhicules personnels) ; voulu ?

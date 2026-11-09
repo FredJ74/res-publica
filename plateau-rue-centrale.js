@@ -829,7 +829,10 @@ const RUE_CENTRALE_NOEUDS = {
 
     'starovka-rue-hotel': {
       image: 'images/Sovarka/Starovka/Starovka_rue_hotel.webp',
-      zones: [],
+      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
+      zones: [
+        { xPct: [0, 38], yPct: [0, 72], nom: 'Hôtel de Starovka', type: 'batiment', buildingId: 'hotel-mineur' }
+      ],
       liens: { toutDroit: 'starovka-rue-gare', arriere: 'starovka-maisons-ferme' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
     },
@@ -858,7 +861,10 @@ const RUE_CENTRALE_NOEUDS = {
 
     'starovka-rue-terrains': {
       image: 'images/Sovarka/Starovka/Starovka_rue_terrains.webp',
-      zones: [],
+      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
+      zones: [
+        { xPct: [36, 70], yPct: [25, 70], nom: 'Terrain municipal', type: 'batiment', buildingId: 'terrain-a-batir-3' }
+      ],
       liens: { gauche: 'starovka-rue-petrole-ferme', droite: 'starovka-rue-logements-collectifs' },
       flechesStyle: {
         gauche: 'top:50%; left:10px; transform:translateY(-50%);',
@@ -883,7 +889,10 @@ const RUE_CENTRALE_NOEUDS = {
 
     'starovka-rue-stade': {
       image: 'images/Sovarka/Starovka/Starovka_rue_stade.webp',
-      zones: [],
+      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
+      zones: [
+        { xPct: [33, 85], yPct: [30, 65], nom: 'Stade de Starovka', type: 'batiment', buildingId: 'stade' }
+      ],
       liens: { gauche: 'starovka-rue-logements-collectifs' },
       flechesStyle: { gauche: 'top:50%; left:10px; transform:translateY(-50%);' }
     },
@@ -904,7 +913,10 @@ const RUE_CENTRALE_NOEUDS = {
 
     'starovka-rue-mairie-marche': {
       image: 'images/Sovarka/Starovka/Starovka_rue_mairie_marché.webp',
-      zones: [],
+      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
+      zones: [
+        { xPct: [0, 35], yPct: [5, 60], nom: 'Mairie de Starovka', type: 'batiment', buildingId: 'mairie' }
+      ],
       liens: { toutDroit: 'starovka-rue-blizzard', gauche: 'starovka-rue-lycee-commissariat' },
       flechesStyle: {
         toutDroit: RC_FLECHE_HAUT,
@@ -914,7 +926,10 @@ const RUE_CENTRALE_NOEUDS = {
 
     'starovka-rue-lycee-commissariat': {
       image: 'images/Sovarka/Starovka/Starovka_rue_lycée_commissariat.webp',
-      zones: [],
+      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
+      zones: [
+        { xPct: [0, 42], yPct: [15, 70], nom: 'Commissariat de Starovka', type: 'batiment', buildingId: 'commissariat-local' }
+      ],
       liens: { droite: 'starovka-rue-mairie-marche', gauche: 'starovka-rue-bureaux-caserne' },
       flechesStyle: {
         droite: 'top:50%; right:10px; transform:translateY(-50%);',
@@ -924,7 +939,10 @@ const RUE_CENTRALE_NOEUDS = {
 
     'starovka-rue-bureaux-caserne': {
       image: 'images/Sovarka/Starovka/Starovka_rue_bureaux_caserne.webp',
-      zones: [],
+      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
+      zones: [
+        { xPct: [47, 100], yPct: [0, 72], nom: "Centre d'affaires de Starovka", type: 'batiment', buildingId: 'centre-affaires' }
+      ],
       liens: {
         droite: 'starovka-rue-lycee-commissariat',
         toutDroit: 'starovka-rue-magasin-chasse'
@@ -998,7 +1016,10 @@ const RUE_CENTRALE_NOEUDS = {
     // Krasnov : l'image du marché fermé est disponible, son accès est actif.
     'krasnov-rue-terrains': {
       image: 'images/Sovarka/Krasnov/Krasnov rue terrains.webp',
-      zones: [],
+      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
+      zones: [
+        { xPct: [10, 58], yPct: [40, 64], nom: 'Terrain municipal', type: 'batiment', buildingId: 'terrain-a-batir-2' }
+      ],
       liens: { gauche: 'krasnov-rue-maison', toutDroit: 'krasnov-rue-eglise', droite: 'krasnov-rue-marche-ferme' },
       flechesStyle: {
         gauche: 'top:50%; left:10px; transform:translateY(-50%);',
@@ -1019,7 +1040,10 @@ const RUE_CENTRALE_NOEUDS = {
 
     'krasnov-centre-artisanal': {
       image: 'images/Sovarka/Krasnov/Krasnov centre artisanal.webp',
-      zones: [],
+      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
+      zones: [
+        { xPct: [0, 35], yPct: [0, 62], nom: 'Centre artisanal de Krasnov', type: 'batiment', buildingId: 'centre-artisanal' }
+      ],
       liens: { gauche: 'krasnov-rue-marche-ferme', toutDroit: 'krasnov-rue-stade-commissariat' },
       flechesStyle: {
         gauche: 'top:66.6667%; left:10px; transform:translateY(-50%);',
@@ -1066,7 +1090,10 @@ const RUE_CENTRALE_NOEUDS = {
     // Rue des immeubles et du centre commercial : retour distillerie, puis mairie.
     'krasnov-rue-immeubles-centre-commercial': {
       image: 'images/Sovarka/Krasnov/Krasnov rue immeubles centre commercial.webp',
-      zones: [],
+      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
+      zones: [
+        { xPct: [0, 36], yPct: [12, 62], nom: 'Centre commercial de Krasnov', type: 'batiment', buildingId: 'centre-commercial' }
+      ],
       liens: { arriere: 'krasnov-rue-distillerie-radar', toutDroit: 'krasnov-rue-mairie-place' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
@@ -1077,7 +1104,10 @@ const RUE_CENTRALE_NOEUDS = {
     // Place de la mairie : retour centre commercial et suite vers la rue tabac-bar.
     'krasnov-rue-mairie-place': {
       image: 'images/Sovarka/Krasnov/Krasnov rue mairie place.webp',
-      zones: [],
+      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
+      zones: [
+        { xPct: [72, 100], yPct: [8, 68], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' }
+      ],
       liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
@@ -1113,7 +1143,10 @@ const RUE_CENTRALE_NOEUDS = {
     // Bureaux : la sortie haute est légèrement décalée vers la gauche.
     'krasnov-rue-bureaux': {
       image: 'images/Sovarka/Krasnov/Krasnov_rue_bureaux.webp',
-      zones: [],
+      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
+      zones: [
+        { xPct: [45, 90], yPct: [18, 58], nom: "Centre d'affaires de Krasnov", type: 'batiment', buildingId: 'centre-affaires' }
+      ],
       liens: { arriere: 'krasnov-rue-station-musee', toutDroit: 'krasnov-rue-descendante' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
