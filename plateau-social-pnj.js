@@ -41,7 +41,8 @@ const RP_SOCIAL_JALONS = {
     portrait: 'images/port-sainte-marie-bar-pecheurs-jean-lou-demer.webp',
     // Texte EXACT, « moussaillon » avec deux S.
     texte: function () {
-      return 'Alors moussaillon, on apprécie l\'endroit ? C\'est la deuxième fois que je vous vois venir ici.';
+      const original = 'Alors moussaillon, on apprécie l\'endroit ? C\'est la deuxième fois que je vous vois venir ici.';
+      return (typeof window !== 'undefined' && window.RPSocialPnjI18n?.format?.('jeanLou', {}, original)) || original;
     }
   },
   accueil_premiere_visite: {
@@ -55,8 +56,9 @@ const RP_SOCIAL_JALONS = {
     texte: function (nom) {
       const g = socialGenreJoueur();
       const civilite = g === 'H' ? 'Monsieur ' : (g === 'F' ? 'Madame ' : '');
-      return 'Bonjour ' + civilite + nom + ', bienvenue dans notre restaurant Capitaine Sauvage. '
+      const original = 'Bonjour ' + civilite + nom + ', bienvenue dans notre restaurant Capitaine Sauvage. '
            + 'N\'ayez crainte, c\'est le surnom de mon Papa, mais il est très gentil.';
+      return (typeof window !== 'undefined' && window.RPSocialPnjI18n?.format?.('marine', {name: nom}, original)) || original;
     }
   }
 };

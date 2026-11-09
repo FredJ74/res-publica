@@ -278,6 +278,120 @@
     "transferCompleted": "Überweisung abgeschlossen"
   }
 };
+ // Titres d'échecs déjà présents dans les parcours client : affichage seulement.
+ Object.assign(originals,{
+  "Bloqué": "blocked",
+  "Action indisponible": "actionUnavailable",
+  "Personnage non reconnu": "characterUnrecognized",
+  "Action non enregistrée": "actionNotRecorded",
+  "Serveur temporairement indisponible": "serverUnavailable",
+  "Forum local non accessible": "localForumInaccessible",
+  "Forum introuvable": "forumNotFound",
+  "Publication incomplète": "publicationIncomplete",
+  "Fiche non synchronisée": "sheetNotSynced"
+});
+ const moreTitles={
+  "fr": {
+    "blocked": "Bloqué",
+    "actionUnavailable": "Action indisponible",
+    "characterUnrecognized": "Personnage non reconnu",
+    "actionNotRecorded": "Action non enregistrée",
+    "serverUnavailable": "Serveur temporairement indisponible",
+    "localForumInaccessible": "Forum local non accessible",
+    "forumNotFound": "Forum introuvable",
+    "publicationIncomplete": "Publication incomplète",
+    "sheetNotSynced": "Fiche non synchronisée"
+  },
+  "en": {
+    "blocked": "Blocked",
+    "actionUnavailable": "Action unavailable",
+    "characterUnrecognized": "Character not recognized",
+    "actionNotRecorded": "Action not recorded",
+    "serverUnavailable": "Server temporarily unavailable",
+    "localForumInaccessible": "Local forum inaccessible",
+    "forumNotFound": "Forum not found",
+    "publicationIncomplete": "Publication incomplete",
+    "sheetNotSynced": "Character sheet not synchronized"
+  },
+  "es": {
+    "blocked": "Bloqueado",
+    "actionUnavailable": "Acción no disponible",
+    "characterUnrecognized": "Personaje no reconocido",
+    "actionNotRecorded": "Acción no registrada",
+    "serverUnavailable": "Servidor temporalmente no disponible",
+    "localForumInaccessible": "No se puede acceder al foro local",
+    "forumNotFound": "Foro no encontrado",
+    "publicationIncomplete": "Publicación incompleta",
+    "sheetNotSynced": "Ficha de personaje sin sincronizar"
+  },
+  "zh-TW": {
+    "blocked": "已封鎖",
+    "actionUnavailable": "無法使用此行動",
+    "characterUnrecognized": "無法辨識角色",
+    "actionNotRecorded": "行動未記錄",
+    "serverUnavailable": "伺服器暫時無法使用",
+    "localForumInaccessible": "無法存取當地論壇",
+    "forumNotFound": "找不到論壇",
+    "publicationIncomplete": "發布未完成",
+    "sheetNotSynced": "角色資料尚未同步"
+  },
+  "ru": {
+    "blocked": "Заблокировано",
+    "actionUnavailable": "Действие недоступно",
+    "characterUnrecognized": "Персонаж не распознан",
+    "actionNotRecorded": "Действие не зарегистрировано",
+    "serverUnavailable": "Сервер временно недоступен",
+    "localForumInaccessible": "Местный форум недоступен",
+    "forumNotFound": "Форум не найден",
+    "publicationIncomplete": "Публикация не завершена",
+    "sheetNotSynced": "Данные персонажа не синхронизированы"
+  },
+  "ko": {
+    "blocked": "차단됨",
+    "actionUnavailable": "행동을 사용할 수 없음",
+    "characterUnrecognized": "캐릭터를 인식할 수 없음",
+    "actionNotRecorded": "행동이 기록되지 않음",
+    "serverUnavailable": "서버를 일시적으로 사용할 수 없음",
+    "localForumInaccessible": "지역 게시판에 접근할 수 없음",
+    "forumNotFound": "게시판을 찾을 수 없음",
+    "publicationIncomplete": "게시가 완료되지 않음",
+    "sheetNotSynced": "캐릭터 정보가 동기화되지 않음"
+  },
+  "ar": {
+    "blocked": "محظور",
+    "actionUnavailable": "الإجراء غير متاح",
+    "characterUnrecognized": "تعذّر التعرّف على الشخصية",
+    "actionNotRecorded": "لم يُسجَّل الإجراء",
+    "serverUnavailable": "الخادم غير متاح مؤقتًا",
+    "localForumInaccessible": "تعذّر الوصول إلى المنتدى المحلي",
+    "forumNotFound": "لم يُعثر على المنتدى",
+    "publicationIncomplete": "النشر غير مكتمل",
+    "sheetNotSynced": "بيانات الشخصية غير متزامنة"
+  },
+  "pt-BR": {
+    "blocked": "Bloqueado",
+    "actionUnavailable": "Ação indisponível",
+    "characterUnrecognized": "Personagem não reconhecido",
+    "actionNotRecorded": "Ação não registrada",
+    "serverUnavailable": "Servidor temporariamente indisponível",
+    "localForumInaccessible": "Fórum local inacessível",
+    "forumNotFound": "Fórum não encontrado",
+    "publicationIncomplete": "Publicação incompleta",
+    "sheetNotSynced": "Ficha do personagem não sincronizada"
+  },
+  "de": {
+    "blocked": "Blockiert",
+    "actionUnavailable": "Aktion nicht verfügbar",
+    "characterUnrecognized": "Figur nicht erkannt",
+    "actionNotRecorded": "Aktion nicht gespeichert",
+    "serverUnavailable": "Server vorübergehend nicht verfügbar",
+    "localForumInaccessible": "Lokales Forum nicht zugänglich",
+    "forumNotFound": "Forum nicht gefunden",
+    "publicationIncomplete": "Veröffentlichung unvollständig",
+    "sheetNotSynced": "Charakterdaten nicht synchronisiert"
+  }
+};
+ for(const [locale,strings] of Object.entries(moreTitles))Object.assign(translated[locale],strings);
  for(const [locale,titles] of Object.entries(translated)){
   if(resources[locale]?.translation)
    resources[locale].translation.toastTitles={...titles};
