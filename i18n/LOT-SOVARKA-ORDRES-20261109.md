@@ -31,3 +31,11 @@ Le changement dans `plateau-social-pnj.js` se limite à choisir le texte affich�
 Le nouveau banc `node --test outils/bancs/banc-i18n-pnj-sociaux-amorces.cjs` vérifie les neuf locales, l'interpolation, le repli en français et l'absence de traduction pour une clé inconnue. Un workflow GitHub dédié `.github/workflows/i18n-sovarka-pnj.yml` lance aussi les vérifications syntaxiques et les deux bancs de ce lot.
 
 **Ce que le lot ne fait PAS :** générer des propos DeepSeek dans neuf langues, traduire le contenu passé de la relation, traduire le journal déjà enregistré, étendre le nombre de PNJ sociaux, ni activer le drapeau `RP_I18N_GAME_ENABLED`.
+
+## Messages d'échec : neuf titres supplémentaires (sans modifier les raisons)
+
+Le dictionnaire de **titres** `i18n/toast-resources.js` passe de **25 à 34 titres canoniques** sur neuf langues : bloqué, action indisponible, personnage non reconnu, action non enregistrée, serveur temporairement indisponible, forum local non accessible, forum introuvable, publication incomplète et fiche non synchronisée. Ce sont les formulations déjà employées dans `plateau-core.js` ; aucun nouveau motif métier inventé.
+
+Le pont existant `RPToastI18n.label` continue à faire une comparaison française **exacte**, à n'altérer que `toast-result.textContent`, et à laisser **`toast-sub` et `noterIncidentSession` en français original**. Les messages dynamiques et les décisions serveur ne sont pas requalifiés ; la couverture des **corps de message** reste donc explicitement incomplète.
+
+Le banc `banc-i18n-notifications.cjs` (9 langues, parité de 34 clés, non-traduction des titres inconnus et conservation du sous-message) est actualisé et exécuté dans le workflow spécifique.
