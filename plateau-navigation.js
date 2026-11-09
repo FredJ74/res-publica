@@ -11,6 +11,8 @@ function buildCityTabs() {
 }
 
 function travelToCity(cityId) {
+  const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
+
   if (cityId === state.currentCity) {
     forceRenderCity(cityId);
     return;
@@ -20,14 +22,16 @@ function travelToCity(cityId) {
   // Villes spéciales (caserne, QHS) — accès conditionné sur place, pas depuis la carte
   const specialCities = ['caserne', 'qhs'];
   if (specialCities.includes(cityId)) {
-    showToast('Accès restreint', 'Cette zone n\'est accessible que via un taxi depuis le centre multinodal.', false);
+    showToast('Accès restreint', rpNav('specialAreaMessage', 'Cette zone n\'est accessible que via un taxi depuis le centre multinodal.'), false);
     return;
   }
   // Voyage inter-villes bloqué — doit passer par le centre multinodal
-  showToast('Transport requis', 'Pour voyager entre les villes, rendez-vous au Centre Multinodal.', false);
+  showToast(rpNav('transportRequired','Transport requis'), rpNav('transportRequiredMessage','Pour voyager entre les villes, rendez-vous au Centre Multinodal.'), false);
 }
 
 function forceRenderCity(cityId, options) {
+  const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
+
   const world = WORLD[state.country];
   if (!world) return;
   const city = world[cityId];
@@ -39,7 +43,7 @@ function forceRenderCity(cityId, options) {
     if (t.textContent === city.name) t.classList.add('active');
   });
 
-  document.getElementById('city-name-display').textContent = `${city.name}, ${city.isCapitale ? 'Capitale de ' : ''}${COUNTRIES[state.country]?.n || ''}`;
+  document.getElementById('city-name-display').textContent = `${city.name}, ${city.isCapitale ? rpNav('capitalPrefix','Capitale de ') : ''}${COUNTRIES[state.country]?.n || ''}`;
 
   // Vue rue. Au chargement (07/11/2026), ce rendu ne doit jamais effacer le batiment que le
   // serveur vient de restaurer : il remettait currentBuilding a null pendant les 300 ms de la
@@ -58,6 +62,8 @@ function forceRenderCity(cityId, options) {
 // MINIMAP
 // =====================
 function renderMinimap(cityId) {
+  const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
+
   const world = WORLD[state.country];
   const city = world?.[cityId];
   if (!city) return;
@@ -72,11 +78,11 @@ function renderMinimap(cityId) {
   let html = '';
 
   if (capitalOnly.length > 0 && city.isCapitale) {
-    html += `<div class="minimap-section-title">Institutions nationales</div>`;
+    html += `<div class="minimap-section-title">${rpNavHtml('nationalInstitutions','Institutions nationales')}</div>`;
     html += capitalOnly.map(id => minimapCard(id)).join('');
   }
 
-  html += `<div class="minimap-section-title">Batiments</div>`;
+  html += `<div class="minimap-section-title" >${rpNavHtml('buildings','Batiments')}</div>`;
   html += regular.map(id => minimapCard(id)).join('');
 
   grid.innerHTML = html;
@@ -2151,6 +2157,9 @@ function planLayoutDepuisGrille(plan) {
 }
 
 function ouvrirPlanVille(countryId, cityId, readOnly) {
+  const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
+  const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
+
   countryId = countryId || state.country;
   cityId = cityId || state.currentCity;
   // Le plan est une carte d'orientation, pas un moyen de deplacement (choix explicite de
@@ -2421,14 +2430,14 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   // Légende
   const legendeY = SVG_H - 5;
   svg += '<circle cx="16" cy="' + legendeY + '" r="4" fill="#ff3333"/>';
-  svg += '<text x="26" y="' + (legendeY + 4) + '" font-size="7.5" fill="#8a6a6a" font-family="sans-serif">Vous êtes ici</text>';
+  svg += '<text x="26" y="' + (legendeY + 4) + '" font-size="7.5" fill="#8a6a6a" font-family="sans-serif">' + rpNavHtml('youAreHere','Vous êtes ici') + '</text>';
 
   svg += '</svg>';
 
-  const title = city.name + (readOnly ? ' — ' + co?.n + ' (information)' : ' — ' + co?.n);
+  const title = city.name + (readOnly ? ' — ' + co?.n + ' (' + rpNav('information','information') + ')' : ' — ' + co?.n);
   document.getElementById('minimap-ville-title').textContent = title;
   document.getElementById('minimap-ville-body').innerHTML =
-    (readOnly ? '<div style="padding:.4rem .6rem .6rem;font-size:.72rem;color:#8a3a20;border-bottom:1px solid #2a1010;margin-bottom:.4rem"><i class="ti ti-info-circle"></i> Utilisez l\'aeroport ou le port pour vous rendre dans cet empire.</div>' : '') +
+    (readOnly ? '<div style="padding:.4rem .6rem .6rem;font-size:.72rem;color:#8a3a20;border-bottom:1px solid #2a1010;margin-bottom:.4rem"><i class="ti ti-info-circle"></i> ' + rpNavHtml('foreignTravelHelp',"Utilisez l'aeroport ou le port pour vous rendre dans cet empire.") + '</div>' : '') +
     '<div style="padding:.4rem">' + svg + '</div>';
 
   document.getElementById('modal-minimap-ville').classList.add('open');
@@ -2442,6 +2451,9 @@ function ouvrirMinimapLectureSeule(countryId, cityId) {
   ouvrirPlanVille(countryId, cityId, true);
 }
 function ouvrirMinimapLectureSeule_old(countryId, cityId) {
+  const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
+  const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
+
   const co = COUNTRIES[countryId];
   const world = WORLD[countryId];
   const city = world?.[cityId];
@@ -2474,11 +2486,11 @@ function ouvrirMinimapLectureSeule_old(countryId, cityId) {
   }).join('');
 
   document.getElementById('postes-modal-title').textContent =
-    city.name + ' — ' + co?.n + ' (lecture seule)';
+    city.name + ' — ' + co?.n + ' (' + rpNav('readOnly','lecture seule') + ')';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.5rem .8rem;font-size:.72rem;color:#8a3a20;border-bottom:1px solid #2a1010;margin-bottom:.2rem">' +
       '<i class="ti ti-lock" style="font-size:.7rem"></i> ' +
-      'Vous ne pouvez pas vous rendre ici sans passer par l\'aeroport ou le port.' +
+      rpNavHtml('foreignTravelBlocked',"Vous ne pouvez pas vous rendre ici sans passer par l'aeroport ou le port.") +
     '</div>' +
     cardsHtml;
   document.getElementById('modal-postes').classList.add('open');
@@ -2574,6 +2586,9 @@ const EMPIRES_CONFIG = {
 };
 
 function ouvrirModalTransport(mode) {
+  const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
+  const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
+
   if (state.estEmprisonne) {
     showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de voyager avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s)).', false);
     return;
@@ -2583,29 +2598,30 @@ function ouvrirModalTransport(mode) {
   const pays = state.country || 'republic';
   const isInter = config.type === 'inter';
 
-  document.getElementById('postes-modal-title').textContent = 'Prendre le ' + config.label;
+  const nomTransport = mode.charAt(0).toUpperCase() + mode.slice(1);
+  document.getElementById('postes-modal-title').textContent = rpNav('transportTitle'+nomTransport, 'Prendre le ' + config.label);
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + config.pa + ' PA · ' + config.cost + ' ' + cur + ' · ' + config.desc + '</div>';
-  if(state._navigationServeur===true)html += '<p class="cpj-note">Tarif par voyageur, PJ et PNJ compris. Le chef paie pour tout le groupe ; le coût en PA de cet ordre reste inchangé.</p>';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + config.pa + ' PA · ' + config.cost + ' ' + cur + ' · ' + rpNavHtml('transportDesc'+nomTransport,config.desc) + '</div>';
+  if(state._navigationServeur===true)html += '<p class="cpj-note">' + rpNavHtml('groupPriceNote','Tarif par voyageur, PJ et PNJ compris. Le chef paie pour tout le groupe ; le coût en PA de cet ordre reste inchangé.') + '</p>';
 
   if (isInter) {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATION — EMPIRE</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem" >' + rpNavHtml('destinationEmpire','DESTINATION — EMPIRE') + '</div>';
     Object.entries(EMPIRES_CONFIG).forEach(([key, emp]) => {
       if (key === pays) return;
       html += '<div onclick="confirmerTransport(\'' + mode + '\',\'' + key + '\',\'capitale\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
       html += '<div style="font-size:.85rem;color:#c0b090">' + emp.name + '</div>';
-      html += '<div style="font-size:.7rem;color:#5a4030">Capitale</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030">' + rpNavHtml('capital','Capitale') + '</div>';
       html += '</div>';
     });
   } else {
     // Intra-empire
     const villes = villesDe(pays);
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATION</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem" >' + rpNavHtml('destination','DESTINATION') + '</div>';
     villes.forEach(ville => {
       if (ville.id === state.currentCity) return;
       html += '<div onclick="confirmerTransport(\'' + mode + '\',\'' + pays + '\',\'' + ville.id + '\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
       html += '<div style="font-size:.85rem;color:#c0b090">' + ville.nom + '</div>';
-      html += '<div style="font-size:.7rem;color:#5a4030">' + (ville.capitale ? 'Capitale' : 'Ville') + '</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030">' + (ville.capitale ? rpNavHtml('capital','Capitale') : rpNavHtml('city','Ville')) + '</div>';
       html += '</div>';
     });
   }
