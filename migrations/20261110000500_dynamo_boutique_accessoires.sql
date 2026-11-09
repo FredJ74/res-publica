@@ -5,16 +5,15 @@ UPDATE public.navigation_lieux_regles
    SET pieces = pieces || '["boutique"]'::jsonb
  WHERE pays='soviet' AND ville='capitale' AND batiment='stade'
    AND jsonb_typeof(pieces)='array'
-   AND NOT pieces ? 'boutique'
    AND NOT pieces @> '["boutique"]'::jsonb;
 
-DO $
+DO $dynamo$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.navigation_lieux_regles
       WHERE pays='soviet' AND ville='capitale' AND batiment='stade'
         AND pieces @> '["boutique"]'::jsonb)
   THEN RAISE EXCEPTION 'Dynamo: boutique absente du referentiel navigation'; END IF;
-END $;
+END $dynamo$;
 
 -- Conserver la buvette historique des autres stades, prix et contrats inchangés.
 -- Aucun permis de commerce ou nouvelle logique de paiement.
