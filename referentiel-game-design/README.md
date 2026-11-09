@@ -1,6 +1,6 @@
 # Référentiel de game design — Human Gambit / Res Publica
 
-**Édition d'audit initiale : 9 novembre 2026.** Source examinée : `main` au commit `a8bd5e266f18f3432ec3feb11d53dbb799043531`. **Statut : audit documentaire et statique partiel, non certification générale de jouabilité.**
+**Édition d'audit initiale : 9 novembre 2026.** Source examinée : `main` au commit `a8bd5e266f18f3432ec3feb11d53dbb799043531`. **Statut : audit documentaire et technique avancé, sans certification générale de jouabilité.**
 
 ## Objet
 Servir de mémoire durable commune au game designer, à ChatGPT, Claude et Codex, afin de comprendre **les règles, leurs interactions et leur disponibilité effective**, puis d'évaluer expérience joueur, rétention et masse critique. Ce répertoire **ne modifie aucune règle**, n'entraîne aucune migration et n'autorise aucune mise en production.
@@ -13,11 +13,15 @@ Servir de mémoire durable commune au game designer, à ChatGPT, Claude et Codex
 5. [Relevé vérifié de Supabase en lecture seule](ETAT-SUPABASE-LECTURE-SEULE.md).
 6. [Catalogue des 517 coûts d'ordres configurés](CATALOGUE-COUTS-SERVEUR.md).
 7. [État de publication Vercel et commit réellement publié](ETAT-VERCEL-PUBLICATION.md).
-8. [Matrice de couverture et d'état](MATRICE-COUVERTURE.md).
-9. [Contradictions, risques et vérifications manquantes](ECARTS-ET-VERIFICATIONS.md).
-10. [Cadre de l'audit expérience joueur et rétention](EXPERIENCE-ET-RETENTION.md).
-11. [Index technique des sources (fichiers, migrations et bancs)](INDEX-TECHNIQUE.md) : piste d'audit, non preuve d'activité.
-12. Sources détaillées préexistantes : [architecture](../ARCHITECTURE.md), [relais](../RELAIS.md), [game design Sovarka](../GAME-DESIGN-NOVOMIRSK.md), tous les `GAME-DESIGN-*.md`, [audit d'autorité](../AUDIT_UNE_SEULE_VERITE.md).
+8. [Catalogue des 1 072 déclarations d'ordres client](CATALOGUE-ORDRES-CLIENT.md).
+9. [Localisation des 956 ordres par bâtiment et pièce](CATALOGUE-BATIMENTS-PIECES-ORDRES.md).
+10. [Croisement statique des identifiants client et des coûts serveur](CROISEMENT-CATALOGUES.md).
+11. [Navigation et accessibilité : six graphes de rues](NAVIGATION-ET-ACCESSIBILITE.md).
+12. [Matrice de couverture et d'état](MATRICE-COUVERTURE.md).
+13. [Contradictions, risques et vérifications manquantes](ECARTS-ET-VERIFICATIONS.md).
+14. [Cadre de l'audit expérience joueur et rétention](EXPERIENCE-ET-RETENTION.md).
+15. [Index technique des sources (fichiers, migrations et bancs)](INDEX-TECHNIQUE.md) : piste d'audit, non preuve d'activité.
+16. Sources détaillées préexistantes : [architecture](../ARCHITECTURE.md), [relais](../RELAIS.md), [game design Sovarka](../GAME-DESIGN-NOVOMIRSK.md), tous les `GAME-DESIGN-*.md`, [audit d'autorité](../AUDIT_UNE_SEULE_VERITE.md).
 
 ## Convention de statut (ne jamais les confondre)
 - **D — Décidé** : règle explicitement adoptée, preuve documentaire datée ; ne prouve pas son exécution.
