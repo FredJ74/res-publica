@@ -39,3 +39,13 @@ Le dictionnaire de **titres** `i18n/toast-resources.js` passe de **25 à 34 titr
 Le pont existant `RPToastI18n.label` continue à faire une comparaison française **exacte**, à n'altérer que `toast-result.textContent`, et à laisser **`toast-sub` et `noterIncidentSession` en français original**. Les messages dynamiques et les décisions serveur ne sont pas requalifiés ; la couverture des **corps de message** reste donc explicitement incomplète.
 
 Le banc `banc-i18n-notifications.cjs` (9 langues, parité de 34 clés, non-traduction des titres inconnus et conservation du sous-message) est actualisé et exécuté dans le workflow spécifique.
+
+## Diagnostic complémentaire : dialogues DeepSeek, chemin déjà câblé mais fermé
+
+Lecture directe des fichiers **inchangés** `plateau-pnj.js`, `api/chat.js` et `api/_pnj-profils.js` :
+- le client transmet `lang: langueDuJeu()` (code court du moteur i18next) dans la requête PNJ authentifiée ;
+- le serveur choisit `langueDialogueAutorisee` avant de composer le prompt DeepSeek ;
+- les **neuf consignes** linguistiques existent déjà côté serveur (fr/en/es/zh/ru/ko/ar/pt/de, correspondances zh→zh-TW et pt→pt-BR) ;
+- **le drapeau serveur `RP_I18N_GAME_ENABLED` ferme l'ouverture générale** : sans activation autorisée, la fonction conserve seulement l'historique français/anglais. Un navigateur dans une autre langue ne peut pas ouvrir cette fonction seul.
+
+Ce socle peut éviter une reconstruction inutile de la traduction du dialogue, mais **aucune conversation réelle DeepSeek sur neuf langues n'est certifiée ici** : qualité, fidélité des profils, consommation et repli restent à éprouver. Aucune modification des fichiers tenus par Claude.
