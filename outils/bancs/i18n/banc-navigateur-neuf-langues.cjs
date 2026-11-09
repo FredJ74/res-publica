@@ -33,6 +33,13 @@ async function run(){
      saved:localStorage.getItem('respublica_language'),
      title:document.title};
    });
+   // Avertissement de traduction partielle effectivement rendu par i18next.
+   const homeNotice=await page.evaluate(()=>{
+     const lang=window.i18next.language;
+     return {visible:document.getElementById('i18n-beta-notice-home')?.textContent?.trim(),
+       expected:window.RP_I18N_RESOURCES?.[lang]?.translation?.betaLanguage?.notice};
+   });
+   assert.equal(homeNotice.visible,homeNotice.expected,language+': transparence beta accueil');
    assert.equal(state.htmlLang,language);
    assert.equal(state.saved,language);
    assert.equal(state.message,state.expected,language+': traduction visible');
@@ -108,6 +115,12 @@ async function run(){
       },
       toolbarDir:document.querySelector('.top-right')?.getAttribute('dir')||null};
    });
+   const plateauNotice=await page.evaluate(()=>{
+     const lang=window.i18next.language;
+     return {visible:document.getElementById('i18n-beta-notice-plateau')?.textContent?.trim(),
+       expected:window.RP_I18N_RESOURCES?.[lang]?.translation?.betaLanguage?.notice};
+   });
+   assert.equal(plateauNotice.visible,plateauNotice.expected,language+': transparence beta plateau');
    assert.equal(state.label,state.expected,language+': guide sur le plateau réel');
    assert.equal(state.placeholder,state.expectedPlaceholder,language+': composition de mail');
    assert.equal(state.dir,language==='ar'?'rtl':null,language+': direction limitée au texte');
