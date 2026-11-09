@@ -5,18 +5,14 @@
 
 // CITY TABS
 // =====================
-function rpNav(key,original) {
-  return (typeof window !== 'undefined' && window.RPNavigationI18n?.label?.(key,original)) || original;
-}
-function rpNavHtml(key,original) {
-  return (typeof window !== 'undefined' && window.RPNavigationI18n?.labelHtml?.(key,original)) || original;
-}
 function buildCityTabs() {
   const tabs = document.getElementById('city-tabs');
   if (!tabs) return; // Supprimé de l'UI, on ne fait rien
 }
 
 function travelToCity(cityId) {
+  const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
+
   if (cityId === state.currentCity) {
     forceRenderCity(cityId);
     return;
@@ -34,6 +30,8 @@ function travelToCity(cityId) {
 }
 
 function forceRenderCity(cityId, options) {
+  const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
+
   const world = WORLD[state.country];
   if (!world) return;
   const city = world[cityId];
@@ -64,6 +62,8 @@ function forceRenderCity(cityId, options) {
 // MINIMAP
 // =====================
 function renderMinimap(cityId) {
+  const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
+
   const world = WORLD[state.country];
   const city = world?.[cityId];
   if (!city) return;
@@ -2157,6 +2157,9 @@ function planLayoutDepuisGrille(plan) {
 }
 
 function ouvrirPlanVille(countryId, cityId, readOnly) {
+  const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
+  const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
+
   countryId = countryId || state.country;
   cityId = cityId || state.currentCity;
   // Le plan est une carte d'orientation, pas un moyen de deplacement (choix explicite de
@@ -2444,6 +2447,9 @@ function ouvrirMinimapLectureSeule(countryId, cityId) {
   ouvrirPlanVille(countryId, cityId, true);
 }
 function ouvrirMinimapLectureSeule_old(countryId, cityId) {
+  const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
+  const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
+
   const co = COUNTRIES[countryId];
   const world = WORLD[countryId];
   const city = world?.[cityId];
@@ -2576,6 +2582,9 @@ const EMPIRES_CONFIG = {
 };
 
 function ouvrirModalTransport(mode) {
+  const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
+  const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
+
   if (state.estEmprisonne) {
     showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de voyager avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s)).', false);
     return;
