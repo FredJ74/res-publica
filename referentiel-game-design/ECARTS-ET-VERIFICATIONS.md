@@ -40,10 +40,13 @@ Les fonctions SQL **réellement lues** (`pnj_social_entrer`, `pnj_social_context
 ### E-11 — Graphes de rues : intégrité globale et un trajet unidirectionnel
 Les six graphes de villes de Républia/Sovarka sont chacun connexes au sens non orienté, sans arc vers un nœud manquant. La base contient pourtant un arc `novomirsk-vue-15 → novomirsk-vue-16` sans retour direct. **Possible itinéraire voulu ou défaut à caractériser**, et non bogue confirmé. Les sorties explicites de bâtiments n'enregistrent que trois bâtiments à Starovka et cinq à Krasnov ; la disponibilité effective des autres dépend des voies d'entrée alternatives ou du contenu encore manquant. Voir `NAVIGATION-ET-ACCESSIBILITE.md`.
 
+**Suivi du 9 novembre (Claude, PR #647, migrations appliquées le matin)** : onze façades ajoutées (Starovka : hôtel, terrain, stade, mairie, commissariat, centre d'affaires ; Krasnov : terrain, centre artisanal, centre commercial, mairie, centre d'affaires) ; 19 sorties de bâtiments au total dans les deux villes. Restent sans façade : banque, dispensaire, tribunal, siège syndical, usine, zone de production (question de design ouverte).
 
 ### E-12 — Traitement nocturne : six passes incomplètes attestées, retour au vert
 
 Le journal **vivant** `cron_journal` consulté le 9 novembre indique **six états `_passe=echec` consécutifs du 1er au 6 novembre**, tous portant l'étape `sbRpc:traiter_prets_helvetia_quotidien`, et **trois `_passe=ok` du 7 au 9 novembre**. Le relevé ne prouve ni perte de fonds, ni rattrapage des échéances des nuits défaillantes. L'investigation opérationnelle de cette période reste distincte de la clôture du référentiel de conception. Source et requêtes décrites dans [l'audit ciblé](AUDIT-ACCUEIL-I18N-NUIT-DROITS.md).
+
+**Cause et impact établis (Claude, 9 novembre)** : erreur SQL « column reference "pret_id" is ambiguous » dans `traiter_prets_helvetia_quotidien`, qui annulait toute la transaction ; corrigée par la migration `20261106030500_prets_helvetia_pret_id_ambigu` (appliquée le 06/11 vers 3 h, voir `RELAIS.md`). Un seul prêt Helvetia existe (compte de test Jean Jaaj, 150 000, 5 600 par jour). Le remboursement est un décompte de mensualités jusqu'à solde nul, sans échéance datée (la fonction n'utilise ni `created_at` ni `duree_jours`) : les six nuits manquées ont **décalé le calendrier de six jours, sans perte d'argent ni pénalité indue**. Pas de rattrapage : prélever six mensualités d'un coup ferait payer au joueur une panne du serveur et pourrait le pousser en contentieux. Statut : clos côté données.
 
 ### E-13 — « Minuit » et expérience temporelle réelle
 
@@ -52,6 +55,8 @@ Le journal **vivant** `cron_journal` consulté le 9 novembre indique **six état
 ### E-14 — Audit statique des permissions des fonctions à prolonger
 
 Sur 1 605 fonctions publiques observées, 1 401 sont `SECURITY DEFINER`, dont 26 exécutables par `anon` et 750 par `authenticated`. **Ce comptage ne démontre aucune vulnérabilité** sans lecture des contrôles d'identité internes. Toute certification d'autorité serveur devra vérifier la protection des fonctions actionnelles plutôt que seulement la RLS des 444 tables. Voir [audit ciblé](AUDIT-ACCUEIL-I18N-NUIT-DROITS.md).
+
+**Revue des 26 fonctions DEFINER exécutables par `anon` (Claude, 9 novembre)** : 24 sûres (gardées par `exiger_acteur`, `mon_personnage` ou `acteur_poste_courant`, neutralisées comme `calomnie_distribuer`, ou lectures publiques voulues : journal publié, sièges de l'assemblée, catalogue d'un commerce, rumeurs anonymisées, empreintes de configuration). Deux helpers internes sans garde laissaient sonder l'inventaire et la position d'un PJ nommé (`militaire_terminal_liaison`) et l'arme d'un PNJ (`militaire_arme_operationnelle`) : droits client retirés, migration `20261109094500_fonctions_militaires_internes` appliquée (banc annulé vert : client refusé, appelants DEFINER intacts). Les 36 fonctions INVOKER exécutables par `anon` sont des calculs et lectures soumis à la RLS. Les 750 DEFINER exécutables par `authenticated` restent hors de cette revue.
 
 ## Zones encore non vérifiées
 
