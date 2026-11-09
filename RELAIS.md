@@ -31,7 +31,7 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### Décisions du 09/11 au soir — lot à coder AU FEU VERT de Fred — Claude
+### Décisions du 09/11 au soir — lot à coder EN SESSION NOCTURNE, quand Fred va dormir (consigne de Fred, 09/11, 23 h 26 ; pas avant) — Claude
 
 Session de décisions (préférence de Fred : ne pas coder avant son feu vert explicite). **Starovka et Krasnov** : les onze réponses sont dans `GAME-DESIGN-NOVOMIRSK.md`, « Réponses de Fred (09/11/2026, soir) » (bons d'État au lieu de placements et prêts, pas de syndicat, bâtiments du socle à coder, extraction pétrole/bois et forêt de Krasnov avec l'ours et Olga, prix ÷ 2,5, hôtels, « La Voix de Sovarka », 4 parcelles, anciens noms, pas de route). **Cartes** : à Montrouge, l'impasse du tribunal s'arrête **au nord de l'Hôtel de Ville** et ne croise jamais la rue de l'Hôtel de Ville ni la place du Rail (décision de Fred) — corriger le dessin du plan (une impasse s'arrête avant la rue qu'elle couperait), navigation inchangée ; fusionner en un point les carrefours photographiés deux fois (Novomirsk V4/V5, V14/V15). **À rappeler à Fred au tour de Starovka et Krasnov** : images des bâtiments sans façade, ferme, maisons, poste militaire, radar, images de la forêt.
 
