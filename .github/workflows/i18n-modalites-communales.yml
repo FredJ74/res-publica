@@ -1,0 +1,40 @@
+name: i18n — Démarches et ordres dynamiques (9 langues)
+on:
+  pull_request:
+    paths:
+      - 'i18n/orders-resources.js'
+      - 'i18n/municipal-ui-resources.js'
+      - 'plateau-politique.js'
+      - 'plateau.html'
+      - 'outils/bancs/banc-i18n-modalites-communales.cjs'
+      - '.github/workflows/i18n-modalites-communales.yml'
+  push:
+    paths:
+      - 'i18n/orders-resources.js'
+      - 'i18n/municipal-ui-resources.js'
+      - 'plateau-politique.js'
+      - 'plateau.html'
+      - 'outils/bancs/banc-i18n-modalites-communales.cjs'
+      - '.github/workflows/i18n-modalites-communales.yml'
+jobs:
+  coherence:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe des fichiers modifiés
+        run: |
+          node --check i18n/orders-resources.js
+          node --check i18n/municipal-ui-resources.js
+          node --check plateau-politique.js
+          node --check outils/bancs/banc-i18n-modalites-communales.cjs
+      - name: Catalogues, rendu modale et contrat métier
+        run: node --test outils/bancs/banc-i18n-modalites-communales.cjs
+      - name: Couverture canonique du catalogue
+        run: |
+          node --test outils/bancs/banc-i18n-etat-ordres.cjs
+          node --test outils/bancs/banc-i18n-catalogue-ordres.cjs

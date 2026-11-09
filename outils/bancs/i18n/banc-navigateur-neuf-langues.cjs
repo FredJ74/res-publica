@@ -121,6 +121,8 @@ async function run(){
        expected:window.RP_I18N_RESOURCES?.[lang]?.translation?.betaLanguage?.notice};
    });
    assert.equal(plateauNotice.visible,plateauNotice.expected,language+': transparence beta plateau');
+   assert.equal(await page.locator('#i18n-beta-notice-plateau').isVisible(), language!=='fr',
+    language+': avertissement destiné aux joueurs étrangers seulement');
    assert.equal(state.label,state.expected,language+': guide sur le plateau réel');
    assert.equal(state.placeholder,state.expectedPlaceholder,language+': composition de mail');
    assert.equal(state.dir,language==='ar'?'rtl':null,language+': direction limitée au texte');

@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('396 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('417 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,396);
+ assert.equal(ref.length,417);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -54,12 +54,13 @@ test('les 14 nouveaux libellés sont ancrés dans les ordres réellement déclar
 });
 
 test('tous les libellés pilotes français correspondent exactement aux vrais ordres du socle',()=>{
- const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
+ const sources=['data.js','plateau-politique.js','plateau-construction-commandes.js']
+  .map(name=>fs.readFileSync(path.join(root,name),'utf8'));
  // Le parseur du référentiel reconnaît les apostrophes échappées (l'état-civil,
  // l'armée, l'aéroport), contrairement à l'ancienne expression régulière.
  const {extract}=require('../audits/libelles-ordres-source.cjs');
  const actual=new Map();
- for(const {fn,label} of extract(source)){
+ for(const source of sources) for(const {fn,label} of extract(source)){
   if(!actual.has(fn))actual.set(fn,new Set());
   actual.get(fn).add(label);
  }
