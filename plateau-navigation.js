@@ -78,11 +78,11 @@ function renderMinimap(cityId) {
   let html = '';
 
   if (capitalOnly.length > 0 && city.isCapitale) {
-    html += `<div class="minimap-section-title" >${rpNavHtml('nationalInstitutions','Institutions nationales')}</div>`;
+    html += `<div class="minimap-section-title">${rpNavHtml('nationalInstitutions','Institutions nationales')}</div>`;
     html += capitalOnly.map(id => minimapCard(id)).join('');
   }
 
-  html += `<div class="minimap-section-title">Batiments</div>`;
+  html += `<div class="minimap-section-title" >${rpNavHtml('buildings','Batiments')}</div>`;
   html += regular.map(id => minimapCard(id)).join('');
 
   grid.innerHTML = html;
@@ -2430,7 +2430,7 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   const title = city.name + (readOnly ? ' — ' + co?.n + ' (' + rpNav('information','information') + ')' : ' — ' + co?.n);
   document.getElementById('minimap-ville-title').textContent = title;
   document.getElementById('minimap-ville-body').innerHTML =
-    (readOnly ? '<div style="padding:.4rem .6rem .6rem;font-size:.72rem;color:#8a3a20;border-bottom:1px solid #2a1010;margin-bottom:.4rem"><i class="ti ti-info-circle"></i> Utilisez l\'aeroport ou le port pour vous rendre dans cet empire.</div>' : '') +
+    (readOnly ? '<div style="padding:.4rem .6rem .6rem;font-size:.72rem;color:#8a3a20;border-bottom:1px solid #2a1010;margin-bottom:.4rem"><i class="ti ti-info-circle"></i> ' + rpNavHtml('foreignTravelHelp',"Utilisez l'aeroport ou le port pour vous rendre dans cet empire.") + '</div>' : '') +
     '<div style="padding:.4rem">' + svg + '</div>';
 
   document.getElementById('modal-minimap-ville').classList.add('open');
@@ -2480,7 +2480,7 @@ function ouvrirMinimapLectureSeule_old(countryId, cityId) {
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.5rem .8rem;font-size:.72rem;color:#8a3a20;border-bottom:1px solid #2a1010;margin-bottom:.2rem">' +
       '<i class="ti ti-lock" style="font-size:.7rem"></i> ' +
-      'Vous ne pouvez pas vous rendre ici sans passer par l\'aeroport ou le port.' +
+      rpNavHtml('foreignTravelBlocked',"Vous ne pouvez pas vous rendre ici sans passer par l'aeroport ou le port.") +
     '</div>' +
     cardsHtml;
   document.getElementById('modal-postes').classList.add('open');
@@ -2589,21 +2589,21 @@ function ouvrirModalTransport(mode) {
   document.getElementById('postes-modal-title').textContent = rpNav('transportTitle'+nomTransport, 'Prendre le ' + config.label);
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + config.pa + ' PA · ' + config.cost + ' ' + cur + ' · ' + rpNavHtml('transportDesc'+nomTransport,config.desc) + '</div>';
-  if(state._navigationServeur===true)html += '<p class="cpj-note">Tarif par voyageur, PJ et PNJ compris. Le chef paie pour tout le groupe ; le coût en PA de cet ordre reste inchangé.</p>';
+  if(state._navigationServeur===true)html += '<p class="cpj-note">' + rpNavHtml('groupPriceNote','Tarif par voyageur, PJ et PNJ compris. Le chef paie pour tout le groupe ; le coût en PA de cet ordre reste inchangé.') + '</p>';
 
   if (isInter) {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATION — EMPIRE</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem" >' + rpNavHtml('destinationEmpire','DESTINATION — EMPIRE') + '</div>';
     Object.entries(EMPIRES_CONFIG).forEach(([key, emp]) => {
       if (key === pays) return;
       html += '<div onclick="confirmerTransport(\'' + mode + '\',\'' + key + '\',\'capitale\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
       html += '<div style="font-size:.85rem;color:#c0b090">' + emp.name + '</div>';
-      html += '<div style="font-size:.7rem;color:#5a4030">Capitale</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030">' + rpNavHtml('capital','Capitale') + '</div>';
       html += '</div>';
     });
   } else {
     // Intra-empire
     const villes = villesDe(pays);
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATION</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem" >' + rpNavHtml('destination','DESTINATION') + '</div>';
     villes.forEach(ville => {
       if (ville.id === state.currentCity) return;
       html += '<div onclick="confirmerTransport(\'' + mode + '\',\'' + pays + '\',\'' + ville.id + '\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
