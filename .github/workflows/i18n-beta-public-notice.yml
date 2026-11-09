@@ -1,0 +1,28 @@
+name: I18N — Transparence de la beta internationale
+on:
+  pull_request:
+    paths:
+      - 'i18n/beta-language-notice.js'
+      - 'index.html'
+      - 'plateau.html'
+      - 'outils/bancs/banc-i18n-beta-public-avertissement.cjs'
+      - '.github/workflows/i18n-beta-public-notice.yml'
+  push:
+    paths:
+      - 'i18n/beta-language-notice.js'
+      - 'index.html'
+      - 'plateau.html'
+      - 'outils/bancs/banc-i18n-beta-public-avertissement.cjs'
+      - '.github/workflows/i18n-beta-public-notice.yml'
+jobs:
+  avertissement:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check i18n/beta-language-notice.js
+      - run: node --test outils/bancs/banc-i18n-beta-public-avertissement.cjs
