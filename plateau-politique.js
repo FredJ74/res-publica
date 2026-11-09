@@ -443,14 +443,20 @@ const DEMARCHES_ETAT_CIVIL_PAR_BATIMENT = {
   ]
 };
 
+function libelleMunicipalI18n(cle, original, html = false) {
+  const module = typeof window !== 'undefined' ? window.RPMunicipalI18n : null;
+  const format = html ? module?.labelHtml : module?.label;
+  return typeof format === 'function' ? format(cle, original) : original;
+}
+
 function ouvrirEtatCivil() {
   const demarches = DEMARCHES_ETAT_CIVIL_PAR_BATIMENT[state.currentBuilding] || [];
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
 
-  document.getElementById('postes-modal-title').textContent = 'État civil';
+  document.getElementById('postes-modal-title').textContent = libelleMunicipalI18n('civilStatusTitle', 'État civil');
   let html = '<div style="padding:1rem;display:flex;flex-direction:column;gap:.5rem">';
   if (demarches.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune démarche d\'état civil disponible ici.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">' + libelleMunicipalI18n('civilStatusEmpty', "Aucune démarche d'état civil disponible ici.", true) + '</div>';
   }
   demarches.forEach(d => {
     // Le rendu peut être traduit, mais doOrder reçoit toujours la chaîne source.
@@ -470,7 +476,7 @@ function ouvrirEtatCivil() {
       const toast = JSON.stringify(motif).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
       html += '<button onclick="showToast(\'Bientôt disponible\', ' + toast + ', false)" title="' + motifAttr + '" style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.7rem 1rem;border:1px solid #4a3a20;background:transparent;color:#c0b090;cursor:not-allowed;opacity:.45;font-size:.85rem;text-align:left">' +
         '<span><i class="ti ' + (d.icon || 'ti-file-certificate') + '" style="font-size:1rem;margin-right:.5rem"></i> ' + libelleTraduit + '</span>' +
-        '<span style="font-size:.75rem;color:#8a8060;white-space:nowrap">Bientôt disponible</span>' +
+        '<span style="font-size:.75rem;color:#8a8060;white-space:nowrap">' + libelleMunicipalI18n('comingSoon', 'Bientôt disponible', true) + '</span>' +
       '</button>';
       return;
     }
@@ -6077,7 +6083,7 @@ async function ouvrirGestionPosteNomme(posteId) {
   const villeNom = ville ? (WORLD[state.country]?.[ville]?.name || ville) : null;
   document.getElementById('postes-modal-title').textContent = regle.label + (villeNom ? ' — ' + villeNom : '');
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1.2rem;color:#8a8060;font-style:italic">Consultation du registre...</div>';
+    '<div style="padding:1.2rem;color:#8a8060;font-style:italic">' + libelleMunicipalI18n('registerLoading','Consultation du registre...',true) + '</div>';
   document.getElementById('modal-postes').classList.add('open');
 
   const titulaire = await getTitulaireActuel(posteId, ville);
@@ -6105,15 +6111,15 @@ async function ouvrirGestionPosteNomme(posteId) {
   const coutCandidature = actions.candidatures ?? actions.nommer;
   if (coutCandidature !== null) {
     html += bouton("ouvrirGestionCandidatures(['" + posteId + "']," + coutCandidature.pa + ",0)",
-                   'Gerer les candidatures recues', coutCandidature.pa, '#8a7a40');
+                   libelleMunicipalI18n('manageApplications', 'Gerer les candidatures recues', true), coutCandidature.pa, '#8a7a40');
   }
   if (actions.nommer !== null) {
     html += bouton("ouvrirNominerPosteNomme('" + posteId + "'," + actions.nommer.pa + ",0)",
-                   titulaire ? 'Nommer quelqu\'un d\'autre' : 'Nommer un titulaire', actions.nommer.pa, '#8a7a40');
+                   titulaire ? libelleMunicipalI18n('appointReplacement', "Nommer quelqu'un d'autre", true) : libelleMunicipalI18n('appointHolder', 'Nommer un titulaire', true), actions.nommer.pa, '#8a7a40');
   }
   if (actions.revoquer !== null && titulaire) {
     html += bouton("ouvrirRevoquerPosteNomme('" + posteId + "'," + actions.revoquer.pa + ",0)",
-                   'Revoquer le titulaire', actions.revoquer.pa, '#8a3a2a');
+                   libelleMunicipalI18n('dismissHolder', 'Revoquer le titulaire', true), actions.revoquer.pa, '#8a3a2a');
   }
   html += '</div></div>';
   document.getElementById('postes-body').innerHTML = html;
