@@ -22,11 +22,12 @@ Servir de mémoire durable commune au game designer, à ChatGPT, Claude et Codex
 14. [Fiches détaillées d'économie, logistique et mobilité](FICHES-ECONOMIE-LOGISTIQUE-MOBILITE.md).
 15. [Fiches parcours personnel, sociabilité et frictions](FICHES-PARCOURS-SOCIAUX-ET-FRICTIONS.md).
 16. [Synthèse, certitudes et frontières de l'audit](SYNTHESE-AUDIT-ET-LIMITES.md).
-17. [Matrice de couverture et d'état](MATRICE-COUVERTURE.md).
-18. [Contradictions, risques et vérifications manquantes](ECARTS-ET-VERIFICATIONS.md).
-19. [Cadre de l'audit expérience joueur et rétention](EXPERIENCE-ET-RETENTION.md).
-20. [Index technique des sources (fichiers, migrations et bancs)](INDEX-TECHNIQUE.md) : piste d'audit, non preuve d'activité.
-21. Sources détaillées préexistantes : [architecture](../ARCHITECTURE.md), [relais](../RELAIS.md), [game design Sovarka](../GAME-DESIGN-NOVOMIRSK.md), tous les `GAME-DESIGN-*.md`, [audit d'autorité](../AUDIT_UNE_SEULE_VERITE.md).
+17. [Fiches sécurité, conflit et justice](FICHES-CONFLITS-SECURITE-JUSTICE.md).
+18. [Matrice de couverture et d'état](MATRICE-COUVERTURE.md).
+19. [Contradictions, risques et vérifications manquantes](ECARTS-ET-VERIFICATIONS.md).
+20. [Cadre de l'audit expérience joueur et rétention](EXPERIENCE-ET-RETENTION.md).
+21. [Index technique des sources (fichiers, migrations et bancs)](INDEX-TECHNIQUE.md) : piste d'audit, non preuve d'activité.
+22. Sources détaillées préexistantes : [architecture](../ARCHITECTURE.md), [relais](../RELAIS.md), [game design Sovarka](../GAME-DESIGN-NOVOMIRSK.md), tous les `GAME-DESIGN-*.md`, [audit d'autorité](../AUDIT_UNE_SEULE_VERITE.md).
 
 ## Convention de statut (ne jamais les confondre)
 - **D — Décidé** : règle explicitement adoptée, preuve documentaire datée ; ne prouve pas son exécution.
