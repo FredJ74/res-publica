@@ -31,6 +31,10 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Alerte des pannes de la passe de minuit — Claude, 09/11/2026 (APPLIQUÉ)
+
+Demande de Fred : être prévenu de chaque panne. RPC publique `cron_alerte_etat(p_jour)` (état de la passe, étape et tâches en échec, aucune donnée de joueur ; migration `20261109162000_cron_alerte_etat` appliquée, registre `cron_alerte_etat`). Workflow `.github/workflows/alerte-passe-minuit.yml`, chaque nuit à 00:20 UTC : si la passe manque, n'est pas `ok` ou si une tâche est en échec, il ouvre l'issue « Panne de la passe de minuit du AAAA-MM-JJ » assignée à Fred (GitHub le prévient par mail et sur l'application) ; une seule issue par jour. **Consigne aux agents** : une issue de panne ouverte se traite en priorité (cause, impact sur les joueurs, correction), puis se ferme avec le résultat noté ici.
+
 ### Nuits Helvetia et fonctions appelables sans connexion — Claude, 09/11/2026 (APPLIQUÉ)
 
 Suite du référentiel de ChatGPT (`referentiel-game-design/`, E-12 et E-14, mis à jour). **Helvetia** : cause déjà corrigée le 06/11 (colonne `pret_id` ambiguë). Impact mesuré : un seul prêt (Jean Jaaj), remboursement par décompte sans échéance datée, donc six jours de décalage, aucune perte ni pénalité ; **pas de rattrapage**, volontairement (ne pas faire payer au joueur une panne serveur). Passes `ok` depuis le 07/11. Leçon : la passe a rendu 500 cinq nuits avant d'être vue. **Fonctions `anon`** : 26 DEFINER examinées, 24 sûres ; deux helpers militaires sans garde (`militaire_terminal_liaison`, `militaire_arme_operationnelle`) fermés aux clients, migration `20261109094500_fonctions_militaires_internes` appliquée (registre `fonctions_militaires_internes`), banc annulé vert. Les 750 DEFINER ouvertes à `authenticated` restent à revoir (dette, non urgente : l'invariant 10 du vérificateur d'autorité couvre les mutantes).

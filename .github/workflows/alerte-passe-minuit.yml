@@ -1,0 +1,78 @@
+name: alerte-passe-minuit
+
+# Fred veut etre prevenu de CHAQUE panne de la passe de minuit (09/11/2026 : du 1er au 6 novembre,
+# la passe a echoue sans que personne ne le voie). Chaque nuit, apres la passe (lancee a 23:00 UTC),
+# ce controle lit son etat par la RPC publique cron_alerte_etat (aucune donnee de joueur, cle publique
+# du site) et ouvre une issue si la passe manque, n'est pas « ok », ou si une tache est en echec.
+# GitHub previent alors Fred par mail et sur l'application GitHub. Une seule issue par jour.
+on:
+  schedule:
+    - cron: '20 0 * * *'
+  workflow_dispatch:
+    inputs:
+      jour:
+        description: 'Jour a controler (AAAA-MM-JJ, Europe/Paris) ; vide = aujourd hui'
+        required: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  controler:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: supabase.js
+          sparse-checkout-cone-mode: false
+      - name: Lire l'etat de la passe
+        id: etat
+        run: |
+          set -euo pipefail
+          URL=$(grep -oP "const SUPABASE_URL = '\K[^']+" supabase.js)
+          CLE=$(grep -oP "const SUPABASE_ANON = '\K[^']+" supabase.js)
+          JOUR="${{ github.event.inputs.jour }}"
+          [ -n "$JOUR" ] || JOUR=$(TZ=Europe/Paris date +%F)
+          CORPS=$(jq -nc --arg j "$JOUR" '{p_jour:$j}')
+          REPONSE=$(curl -sS --max-time 30 -w '\n%{http_code}' -X POST "$URL/rest/v1/rpc/cron_alerte_etat" \
+            -H "apikey: $CLE" -H "Authorization: Bearer $CLE" -H 'Content-Type: application/json' -d "$CORPS" || true)
+          CODE=$(printf '%s' "$REPONSE" | tail -n1)
+          JSON=$(printf '%s' "$REPONSE" | sed '$d')
+          echo "jour=$JOUR" >> "$GITHUB_OUTPUT"
+          if [ "$CODE" != "200" ]; then
+            echo "panne=oui" >> "$GITHUB_OUTPUT"
+            echo "motif=Le serveur n'a pas repondu au controle (HTTP $CODE)." >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          PASSE=$(printf '%s' "$JSON" | jq -r '.passe // "absente"')
+          ERREUR=$(printf '%s' "$JSON" | jq -r '.erreur // ""')
+          TACHES=$(printf '%s' "$JSON" | jq -r '.taches_en_echec | join(", ")')
+          echo "Passe du $JOUR : $PASSE ; erreur : $ERREUR ; taches en echec : $TACHES"
+          if [ "$PASSE" = "ok" ] && [ -z "$TACHES" ]; then
+            echo "panne=non" >> "$GITHUB_OUTPUT"
+          else
+            echo "panne=oui" >> "$GITHUB_OUTPUT"
+            if [ "$PASSE" = "absente" ]; then
+              echo "motif=La passe de minuit n'a pas tourne du tout (aucune trace pour ce jour)." >> "$GITHUB_OUTPUT"
+            else
+              echo "motif=Passe : $PASSE. Etape en echec : ${ERREUR:-aucune}. Taches en echec : ${TACHES:-aucune}." >> "$GITHUB_OUTPUT"
+            fi
+          fi
+      - name: Prevenir Fred
+        if: steps.etat.outputs.panne == 'oui'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOUR: ${{ steps.etat.outputs.jour }}
+          MOTIF: ${{ steps.etat.outputs.motif }}
+        run: |
+          set -euo pipefail
+          TITRE="Panne de la passe de minuit du $JOUR"
+          if gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$TITRE\" in:title" --json number --jq 'length' | grep -qv '^0$'; then
+            echo "Issue deja ouverte pour $JOUR"; exit 0
+          fi
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITRE" --assignee FredJ74 --body "$MOTIF
+
+          Detail : table \`cron_journal\` (tache \`_passe\` du $JOUR). Agent : trouver la cause, mesurer l'impact sur les joueurs, corriger, puis fermer cette issue en notant le resultat dans RELAIS.md." \
+          || gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITRE" --body "$MOTIF"
