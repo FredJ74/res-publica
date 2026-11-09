@@ -232,6 +232,12 @@
     "specialAreaMessage": "Dieses Gebiet ist nur per Taxi vom Multimodalen Verkehrszentrum aus erreichbar."
   }
 };
+ // "Bâtiments" correspond au libellé historique littéral du petit plan de ville.
+ const buildings={
+  fr:"Batiments",en:"Buildings",es:"Edificios","zh-TW":"建築物",ru:"Здания",
+  ko:"건물",ar:"المباني","pt-BR":"Edifícios",de:"Gebäude"
+ };
+ for(const [locale,value] of Object.entries(buildings))catalog[locale].buildings=value;
  for(const [locale,strings] of Object.entries(catalog))
   if(resources[locale]?.translation) resources[locale].translation.navigation={...strings};
  const french=catalog.fr;
