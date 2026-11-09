@@ -13,7 +13,9 @@
 7. Les pouvoirs de Sovarka changent substantiellement la relation entre institutions et joueurs : compétition des partis, présidence limitée, conseil très puissant, censure, surveillance et exploitation de biens étatiques. Ne pas les réduire à un habillage de Républia.
 8. Les économies et la logistique offrent de multiples occasions de coopération et de conflits : offres d'achat avec fonds bloqués, contrats de propriété, pénuries, production progressive, fret et douanes, entreprises et recrutement.
 9. Certains systèmes affichés sont **intentionnellement incomplets** : navigation privée des bateaux, mobilité PJ interempire et effets internationaux dérivés, activation multilingue générale, certaines options diplomatiques ; des documents comportent un historique « à coder » suivi d'un état codé plus tardif.
-10. Aucune base de mesure de l'activation, de D1/D7 ou de la réussite d'un nouveau joueur n'a été examinée ; toute prévision de rétention est une **hypothèse**, pas un résultat.
+10. **Journal de production vérifié** : les passes nocturnes du 1er au 6 novembre 2026 sont toutes marquées en échec sur une RPC de prêts Helvetia ; les trois du 7 au 9 sont marquées ok. Ce n'est ni une certification de chaque débit ni une preuve de rattrapage. [Audit](AUDIT-ACCUEIL-I18N-NUIT-DROITS.md).
+11. **Onboarding codé et substantiel** : parcours de Luthécia, Jérémy, trois orientations de carrière plus l'indécision, et invitation au forum volontaire, sans recette humaine. Les neuf codes de langues sur l'accueil ne signifient pas neuf expériences complètes. [Audit](AUDIT-ACCUEIL-I18N-NUIT-DROITS.md).
+12. Aucune base de mesure de l'activation, de D1/D7 ou de la réussite d'un nouveau joueur n'a été examinée ; toute prévision de rétention est une **hypothèse**, pas un résultat.
 
 ## Ce que cet audit rend possible
 
