@@ -4338,6 +4338,66 @@
     }
   };
   for(const [locale,labels] of Object.entries(sovarkaOrders)) Object.assign(words[locale],labels);
+  // 09/11/2026 — quatre libellés Sovarka nouvellement exposés par data.js.
+  // Concordance exacte obligatoire avec le label français ; si le label change,
+  // l'ancien libellé reste affiché plutôt que de traduire une variante ambiguë.
+  const sovarkaRecent = {
+    "fr": {
+      "sovarka_musee_billet": "Billet du musée présidentiel",
+      "sovarka_surveiller": "Placer sous surveillance",
+      "sovarka_registre_plaintes": "Affaires judiciaires",
+      "sovarka_extrait_parti": "Extrait d'enregistrement du parti"
+    },
+    "en": {
+      "sovarka_musee_billet": "Presidential museum ticket",
+      "sovarka_surveiller": "Place under surveillance",
+      "sovarka_registre_plaintes": "Judicial cases",
+      "sovarka_extrait_parti": "Party registration certificate"
+    },
+    "es": {
+      "sovarka_musee_billet": "Entrada al museo presidencial",
+      "sovarka_surveiller": "Poner bajo vigilancia",
+      "sovarka_registre_plaintes": "Asuntos judiciales",
+      "sovarka_extrait_parti": "Certificado de inscripción del partido"
+    },
+    "zh-TW": {
+      "sovarka_musee_billet": "總統博物館門票",
+      "sovarka_surveiller": "列入監視",
+      "sovarka_registre_plaintes": "司法案件",
+      "sovarka_extrait_parti": "政黨登記證明"
+    },
+    "ru": {
+      "sovarka_musee_billet": "Билет в президентский музей",
+      "sovarka_surveiller": "Установить наблюдение",
+      "sovarka_registre_plaintes": "Судебные дела",
+      "sovarka_extrait_parti": "Выписка о регистрации партии"
+    },
+    "ko": {
+      "sovarka_musee_billet": "대통령 박물관 입장권",
+      "sovarka_surveiller": "감시 대상으로 지정",
+      "sovarka_registre_plaintes": "사법 사건",
+      "sovarka_extrait_parti": "정당 등록 증명서"
+    },
+    "ar": {
+      "sovarka_musee_billet": "تذكرة المتحف الرئاسي",
+      "sovarka_surveiller": "وضع تحت المراقبة",
+      "sovarka_registre_plaintes": "القضايا القضائية",
+      "sovarka_extrait_parti": "مستخرج من سجل الحزب"
+    },
+    "pt-BR": {
+      "sovarka_musee_billet": "Ingresso do museu presidencial",
+      "sovarka_surveiller": "Colocar sob vigilância",
+      "sovarka_registre_plaintes": "Processos judiciais",
+      "sovarka_extrait_parti": "Certidão de registro do partido"
+    },
+    "de": {
+      "sovarka_musee_billet": "Eintrittskarte für das Präsidentenmuseum",
+      "sovarka_surveiller": "Unter Überwachung stellen",
+      "sovarka_registre_plaintes": "Justizfälle",
+      "sovarka_extrait_parti": "Auszug aus dem Parteienregister"
+    }
+  };
+  for(const [locale,labels] of Object.entries(sovarkaRecent)) Object.assign(words[locale],labels);
   for(const [locale,labels] of Object.entries(words)) {
     if(resources[locale]?.translation) resources[locale].translation.orders={...labels};
   }
