@@ -4377,7 +4377,7 @@ const BUILDINGS = {
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire_adjoint', desc:'Valider ou refuser les permis de construire arrives a instruction terminee, dans cette ville uniquement.'},
           {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
           // Trois villes (29/10/2026) ; hors Montrouge : « Il n'y a pas de logements sociaux dans la ville. »
-          {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de Montrouge (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
+          {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de la ville (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
           {fn:'traiter_demandes_logement_social', label:'Tableau de bord des logements sociaux', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, requiresPost:'maire_adjoint', desc:'Voir les demandes en attente, l\'état des 4 logements, et attribuer un logement libre à un bénéficiaire.'},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'}
@@ -5063,7 +5063,7 @@ const BUILDINGS = {
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire_adjoint', desc:'Valider ou refuser les permis de construire arrives a instruction terminee, dans cette ville uniquement.'},
           {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
           // Trois villes (29/10/2026) ; hors Montrouge : « Il n'y a pas de logements sociaux dans la ville. »
-          {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de Montrouge (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
+          {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de la ville (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
           {fn:'traiter_demandes_logement_social', label:'Tableau de bord des logements sociaux', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, requiresPost:'maire_adjoint', desc:'Voir les demandes en attente, l\'état des 4 logements, et attribuer un logement libre à un bénéficiaire.'},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'}
@@ -10603,5 +10603,84 @@ function slugPnjSovarka(nom) {
     cite.buildingContext = cite.buildingContext || {};
     const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
     ctx.roomsExtra = Object.assign({}, ctx.roomsExtra || {}, { salle_partis: salle() });
+  }
+})();
+
+// STAROVKA ET KRASNOV : TEXTES DU GABARIT DE MONTROUGE (Claude, 09/11/2026, audit des deux villes).
+// Les batiments copies de Montrouge affichaient encore « de Montrouge », « Vers Luthecia ou
+// Port-Sainte-Marie », « Rachetable », le Procureur de la Republique ou le lotissement de la
+// Chataigneraie pres de Luthecia. Regles appliquees : « pas de connexion entre les villes »
+// (01/11/2026), pas de propriete privee ni de parquet en Sovarka (06/11 et 08/11/2026).
+// Textes neutres, a relire par Fred ; noms des batiments inchanges (questions en attente).
+(function () {
+  const cites = { ville_a: 'Starovka', ville_b: 'Krasnov' };
+  const contexte = (ville, batiment) => {
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    if (!cite) return null;
+    cite.buildingContext = cite.buildingContext || {};
+    return cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+  };
+  const piece = (ctx, id) => {
+    ctx.roomOverrides = ctx.roomOverrides || {};
+    return ctx.roomOverrides[id] = ctx.roomOverrides[id] || {};
+  };
+  for (const [ville, nom] of Object.entries(cites)) {
+    let ctx = contexte(ville, 'hotel-mineur');
+    if (ctx) ctx.desc = ctx.desc || ('Hôtel modeste de ' + nom + '. Clientèle ouvrière.');
+    ctx = contexte(ville, 'siege-syndical');
+    if (ctx) ctx.desc = ctx.desc || ('Le siège du syndicat ouvrier de ' + nom + '.');
+    ctx = contexte(ville, 'usine-principale');
+    if (ctx) ctx.desc = ctx.desc || ('L\'usine principale de ' + nom + ', propriété de l\'État.');
+    ctx = contexte(ville, 'dispensaire-public-v');
+    if (ctx) Object.assign(piece(ctx, 'ehpad'), { name: 'EHPAD de ' + nom, desc: 'Le salon commun de l\'EHPAD, rattaché au dispensaire de ' + nom + '.' });
+    ctx = contexte(ville, 'commissariat-local');
+    if (ctx) piece(ctx, 'geoles').desc = 'Les cellules de garde à vue du commissariat de ' + nom + '.';
+    // Gare : le gabarit annonce « Vers Luthecia ou Port-Sainte-Marie » ; le serveur propose les villes du pays.
+    ctx = contexte(ville, 'centre-multinodal-montrouge');
+    if (ctx) {
+      const train = (BUILDINGS['centre-multinodal-montrouge'].rooms.hall_gare_montrouge.orders || []).find(o => o.fn === 'prendre_train');
+      if (train) {
+        const p = piece(ctx, 'hall_gare_montrouge');
+        p.excludeOrders = Array.from(new Set((p.excludeOrders || []).concat(['prendre_train'])));
+        p.orders = (p.orders || []).filter(o => o.fn !== 'prendre_train')
+          .concat([Object.assign({}, train, { desc: train.cost + ' FR. ' + train.pa + ' PA. Vers une autre ville de Sovarka.' })]);
+      }
+    }
+    // Soin du dispensaire : le gabarit le dit « commun aux 3 dispensaires publics de Republia ».
+    ctx = contexte(ville, 'dispensaire-public-v');
+    if (ctx) {
+      const soin = (BUILDINGS['dispensaire-public-v'].rooms.attente.orders || []).find(o => o.fn === 'soin_public');
+      if (soin) {
+        const p = piece(ctx, 'attente');
+        p.excludeOrders = Array.from(new Set((p.excludeOrders || []).concat(['soin_public'])));
+        p.orders = (p.orders || []).filter(o => o.fn !== 'soin_public')
+          .concat([Object.assign({}, soin, { desc: String(soin.desc || '').replace('commun aux 3 dispensaires publics de Republia', 'commun aux dispensaires publics du pays') })]);
+      }
+    }
+    const n = { ville_a: 3, ville_b: 2 }[ville];
+    ctx = contexte(ville, 'terrain-a-batir-' + n);
+    if (ctx) {
+      ctx.name = ctx.name || 'Terrain municipal';
+      ctx.desc = ctx.desc || ('Terrain de la commune de ' + nom + '. La mairie y fait construire un immeuble collectif quand des dossiers de commerce attendent un local.');
+    }
+  }
+  // Bureaux des centres d'affaires de province : attribués par la mairie comme les locaux des centres
+  // (Fred, 06 et 07/11/2026 ; migration 20261109003000, plafonds 100 / 50 / 20 PSK à valider).
+  const plafonds = { bureau_prestige: 100, bureau_standard: 50, open_space: 20 };
+  for (const ville of Object.keys(cites)) {
+    const ctx = contexte(ville, 'centre-affaires');
+    if (!ctx) continue;
+    for (const [id, plafond] of Object.entries(plafonds)) {
+      const p = piece(ctx, id);
+      p.excludeOrders = Array.from(new Set((p.excludeOrders || []).concat(['louer_local'])));
+      p.orders = (p.orders || []).filter(o => o.fn !== 'sovarka_demande_location').concat([
+        { fn: 'sovarka_demande_location', label: 'Demande de location', pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
+          desc: 'Écrire à la mairie pour demander ce bureau (loyer fixé par le maire, ' + plafond + ' PSK par jour au plus). Votre lettre rejoint les dossiers du maire ; l\'attribution se signe ensuite chez le notaire.' }]);
+    }
+  }
+  // Bureau des magistrats des trois villes : pas de parquet en Sovarka (Fred, 08/11/2026).
+  for (const [ville, batiment] of [['capitale', 'tribunal'], ['ville_a', 'tribunal-local'], ['ville_b', 'tribunal-local']]) {
+    const ctx = contexte(ville, batiment);
+    if (ctx) piece(ctx, 'bureau_magistrats').desc = 'Le bureau du juge populaire. Dossiers empilés, code pénal annoté, et le portrait officiel au-dessus du bureau.';
   }
 })();

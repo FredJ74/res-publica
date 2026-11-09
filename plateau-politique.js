@@ -3818,6 +3818,13 @@ function afficherCaisseAccueilCommunal(buildingId, roomId) {
   }
 }
 
+// Remplace le sigle « FR » (mot entier) par la devise du pays ; « FRAIS » et les mots qui
+// contiennent FR restent intacts. Rend le texte tel quel s'il n'y a rien à remplacer.
+function deviseDansTexte(texte, devise) {
+  if (typeof texte !== 'string' || !devise || devise === 'FR') return texte;
+  return texte.replace(/\bFR\b/g, devise);
+}
+
 function renderRoomActions(room, buildingId, roomId) {
   // La liste des PNJ et l'interdiction d'achat doivent refléter le même état confirmé.
   // Le chargement d'occupation, auparavant déclenché seulement par « Vérifier le terrain »,
@@ -3984,7 +3991,15 @@ function renderRoomActions(room, buildingId, roomId) {
     });
   })();
 
-  const buttons = ordresTerrainLuthecia.map((o, orderIndex) => {
+  const buttons = ordresTerrainLuthecia.map((ordreSource, orderIndex) => {
+    // Devise du pays dans les textes (09/11/2026) : les libellés du gabarit écrivent « 75 FR » ;
+    // hors Républia le montant reste celui que le serveur prélève, seul le sigle suit le pays
+    // (Sovarka : PSK, mêmes chiffres, décision de Fred du 04/11/2026). Copie d'affichage :
+    // fn, PA, coût et permissions sont inchangés.
+    const o = cur !== 'FR' ? Object.assign({}, ordreSource, {
+      label: deviseDansTexte(ordreSource.label, cur),
+      desc: deviseDansTexte(ordreSource.desc, cur)
+    }) : ordreSource;
     // Le libellé d'affichage seul est traduit. L'ordre d'origine (fn, PA,
     // prix, permissions et o.label passé à doOrder) est strictement conservé.
     const libelleAffiche = (window.RPOrderI18n && window.RPPlateauI18n &&
