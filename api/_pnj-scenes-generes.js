@@ -5675,7 +5675,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Starovka",
     "batiment": "Dispensaire Public",
-    "piece": "EHPAD de Montrouge",
+    "piece": "EHPAD de Starovka",
     "personnes": []
   },
   "[\"soviet\",\"ville_a\",\"commissariat-local\",\"accueil_loc\"]": {
@@ -5865,7 +5865,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"terrain-a-batir-3\",\"terrain\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Terrain a batir - Lot 3 (La Châtaigneraie)",
+    "batiment": "Terrain municipal",
     "piece": "Terrain",
     "personnes": []
   },
@@ -6040,7 +6040,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Dispensaire Public",
-    "piece": "EHPAD de Montrouge",
+    "piece": "EHPAD de Krasnov",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"commissariat-local\",\"accueil_loc\"]": {
@@ -6230,7 +6230,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"terrain-a-batir-2\",\"terrain\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Terrain a batir - Lot 2 (La Châtaigneraie)",
+    "batiment": "Terrain municipal",
     "piece": "Terrain",
     "personnes": []
   },
