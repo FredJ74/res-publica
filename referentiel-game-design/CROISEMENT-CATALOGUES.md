@@ -1,18 +1,18 @@
 # Croisement des identifiants d'ordres — source client et prix serveur
 
-**Snapshot (9 novembre 2026)** : `data.js` au commit `a8bd5e26` versus table de configuration Supabase `ordres_couts` obtenue par `SELECT`. Extraction des seuls identifiants `fn: '...'` ou `fn: "..."` écrits **littéralement dans data.js**. Pas d'exécution des objets JS, pas de lecture de PJ, aucun changement de mécanisme.
+**Snapshot (9 novembre 2026)** : `data.js` au commit `a8bd5e26` versus configuration Supabase `ordres_couts` obtenue par `SELECT`. Extraction stricte des seuls identifiants `fn: '...'` ou `fn: "..."` **hors lignes de commentaires**. Les variantes dynamiques, les autres fichiers, la disponibilité et les permissions ne sont pas inférées.
 
-## Totaux et lecture prudente
+## Totaux et précautions
 
-- **1073 déclarations littérales** `fn:` dans `data.js`, regroupées sous **418 identifiants distincts**.
-- **517 entrées** de `ordres_couts` en base, dont **440 identifiants aussi écrits littéralement dans data.js** et **77 non trouvés par ce critère strict**.
-- La présence dans les deux sources ne prouve **ni l'ouverture du bouton ni le succès de la commande**.
-- L'absence dans data.js ne prouve **ni suppression ni défaut** : fonctions virtuelles (`#reussite`), appels dynamiques, interfaces modulaires hors `data.js`, fonctions réservées au serveur. **Ne jamais supprimer un coût de ce seul rapprochement.**
-- `data.js` peut contenir plusieurs déclarations `fn` réutilisées entre lieux/variantes ; ces comptes ne représentent pas les 846 ordres historiques. Une correspondance technique de coût ne suffit pas à vérifier PA et débit affichés.
+- **1072 déclarations `fn:` non commentées** dans `data.js`, regroupées sous **417 identifiants distincts**.
+- **517 entrées de coûts** sur Supabase, dont **440 correspondances nominales directes** et **77 non retrouvées** selon ce critère. Une absence peut être normale pour une variante `#reussite` ou un dispatch dynamique.
+- **11 identifiants non commentés côté client** sans entrée directe de coût (menus / prestations gratuites / mécanismes externes possibles).
+- Un piège d'audit concret est éliminé : **`contrebande` figure seulement dans un commentaire de `data.js` comme ordre supprimé**, et **ne doit pas être compté comme ordre déclaré actif**. Le balayage regex naïf donnerait à tort 1 073 occurrences et 418 identifiants.
+- Une concordance de nom ne démontre ni emplacement réellement accessible, ni respect du coût, ni résultat serveur. Ne supprimer aucun coût sur cette seule comparaison.
 
 ## Correspondance par identifiant
 
-| Fonction de coût serveur | PA serveur | Coût serveur | Déclarations littérales dans data.js |
+| Fonction de coût serveur | PA configurés | Coût numérique configuré | Occurrences client non commentées |
 |---|---:|---:|---:|
 | `acheter_accessoire_personnalise` | 0 | 0 | 1 |
 | `acheter_armoire_souvenirs` | 0 | 0 | — |
@@ -532,12 +532,11 @@
 | `voter_election` | 0 | 0 | 3 |
 | `voter_loi` | 0 | 0 | 1 |
 
-## Identifiants définis dans data.js absents du catalogue des coûts
+## Identifiants de data.js sans coût serveur nominal
 
-Les **12 identifiants** ci-dessous sont des **décalages de couverture de catalogue**, pas des anomalies démontrées : beaucoup d'ordres à menu, consultation, dispatch dynamique ou service gratuit n'exigent pas une entrée dédiée. Pour les qualifier, recouper routeur, RPC et calcul de coût.
+Cette liste n'est pas une liste de bogues. Ces identifiants exigent une lecture du routeur, de l'éventuelle RPC et de l'interface.
 
 - `consulter_catalogue_manufactures` (1 déclaration)
-- `contrebande` (1 déclaration)
 - `sovarka_cession` (1 déclaration)
 - `sovarka_commerces_libres` (1 déclaration)
 - `sovarka_demande_location` (1 déclaration)
@@ -549,5 +548,6 @@ Les **12 identifiants** ci-dessous sont des **décalages de couverture de catalo
 - `ssm_besoin_aide` (1 déclaration)
 - `virements` (2 déclarations)
 
-## Suite de la certification
-Pour chaque ligne, reconstruire la chaîne `pays → ville → bâtiment → pièce → fn → handler réel → droits serveur → coût effectif → transaction → résultat → test → recette`. Les filtres de disponibilité (statut, poste, pays, rôle, images à venir) ne sont **pas** inférables des seules définitions statiques.
+## Méthode de certification suivante
+
+Reconstituer `pays → ville → bâtiment → pièce → fn → handler → autorité → débit → effet → test → recette` pour chaque ordre réellement proposé. Les 517 tarifs comprennent des noms techniques et ne représentent ni 517 commandes disponibles, ni toutes les commandes possibles.
