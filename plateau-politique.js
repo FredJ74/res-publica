@@ -453,6 +453,9 @@ function ouvrirEtatCivil() {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune démarche d\'état civil disponible ici.</div>';
   }
   demarches.forEach(d => {
+    // Le rendu peut être traduit, mais doOrder reçoit toujours la chaîne source.
+    const libelleTraduit = (typeof window !== 'undefined' && window.RPOrderI18n?.labelHtml)
+      ? window.RPOrderI18n.labelHtml(d, window.i18next, window.RPPlateauI18n?.language?.() || 'fr') : d.label;
     const safeLabel = d.label.replace(/'/g, ' ');
     const safeDesc = (d.desc || '').replace(/'/g, ' ');
     const rate = d.successRate || 100;
@@ -466,13 +469,13 @@ function ouvrirEtatCivil() {
       const motifAttr = motif.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
       const toast = JSON.stringify(motif).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
       html += '<button onclick="showToast(\'Bientôt disponible\', ' + toast + ', false)" title="' + motifAttr + '" style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.7rem 1rem;border:1px solid #4a3a20;background:transparent;color:#c0b090;cursor:not-allowed;opacity:.45;font-size:.85rem;text-align:left">' +
-        '<span><i class="ti ' + (d.icon || 'ti-file-certificate') + '" style="font-size:1rem;margin-right:.5rem"></i> ' + d.label + '</span>' +
+        '<span><i class="ti ' + (d.icon || 'ti-file-certificate') + '" style="font-size:1rem;margin-right:.5rem"></i> ' + libelleTraduit + '</span>' +
         '<span style="font-size:.75rem;color:#8a8060;white-space:nowrap">Bientôt disponible</span>' +
       '</button>';
       return;
     }
     html += '<button onclick="doOrder(\'' + d.fn + '\',' + d.pa + ',' + d.cost + ",'" + safeLabel + "','" + safeDesc + "'," + rate + ')" style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.7rem 1rem;border:1px solid #4a3a20;background:transparent;color:#c0b090;cursor:pointer;font-size:.85rem;text-align:left">' +
-      '<span><i class="ti ' + (d.icon || 'ti-file-certificate') + '" style="font-size:1rem;margin-right:.5rem"></i> ' + d.label + '</span>' +
+      '<span><i class="ti ' + (d.icon || 'ti-file-certificate') + '" style="font-size:1rem;margin-right:.5rem"></i> ' + libelleTraduit + '</span>' +
       '<span style="font-size:.75rem;color:#8a8060;white-space:nowrap">' + coutParts.join(' · ') + '</span>' +
     '</button>';
   });
