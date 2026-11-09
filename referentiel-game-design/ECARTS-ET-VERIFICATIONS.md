@@ -33,6 +33,14 @@
 ### E-09 — Travail simultané et documents périmés
 `RELAIS.md` contient des sections explicitement remplacées par une note plus récente (ex. certification mobile) et des décisions de 4–8 novembre déjà intégrées dans `GAME-DESIGN-NOVOMIRSK.md`. **Risque :** un agent qui lit une mention historique isolée réintroduit une règle dépassée. En cas de contradiction : dernier arbitrage explicite du game designer > projet d'agent ; le code est constaté, pas arbitre de design. Garder la source historique intacte et ajouter lien vers règle courante.
 
+
+### E-10 — Mémoire des PNJ sociaux : relation persistée, pas récit de dialogue persisté
+Les fonctions SQL **réellement lues** (`pnj_social_entrer`, `pnj_social_contexte`, `pnj_social_noter`) suivent rencontres, conversations et familiarité, ainsi que des faits sûrs d'identité. La fonction `pnj_social_entrer` exclut explicitement la sauvegarde du contenu et de son résumé dans la V1. `api/_pnj-profils.js` exploite les compteurs dans le prompt ; `api/chat.js` accepte un historique court transmis lors de la conversation courante. **Une mémoire relationnelle existe ; une mémoire sémantique à long terme de ces dialogues n'a pas été démontrée pour ces PNJ.** Voir `PNJ-IA-MEMOIRES-INTERACTIONS.md`. Ne pas extrapoler ce résultat à toutes les mémoires institutionnelles ou pédagogiques.
+
+### E-11 — Graphes de rues : intégrité globale et un trajet unidirectionnel
+Les six graphes de villes de Républia/Sovarka sont chacun connexes au sens non orienté, sans arc vers un nœud manquant. La base contient pourtant un arc `novomirsk-vue-15 → novomirsk-vue-16` sans retour direct. **Possible itinéraire voulu ou défaut à caractériser**, et non bogue confirmé. Les sorties explicites de bâtiments n'enregistrent que trois bâtiments à Starovka et cinq à Krasnov ; la disponibilité effective des autres dépend des voies d'entrée alternatives ou du contenu encore manquant. Voir `NAVIGATION-ET-ACCESSIBILITE.md`.
+
+
 ## Zones encore non vérifiées
 
 | Identifiant | Ce qu'il faut démontrer | Moyen de preuve | Sévérité pour la compréhension |
