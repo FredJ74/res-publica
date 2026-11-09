@@ -291,10 +291,12 @@ att('le canal est lu sous le JETON DU JOUEUR, jamais sous une cle de service',
 // l'Assemblee n'appartiennent qu'a Renee. Aucun ne se substitue a un autre, et ils partent
 // ENSEMBLE. Le septieme relit la fonction des deux PNJ municipaux permanents,
 // sans remplacer une memoire ni concerner les autres profils.
-att('les huit canaux partent ensemble et restent distincts',
-    contient(CHAT, 'const [relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, position] = await Promise.all([')
+att('les huit canaux historiques restent distincts ; le neuvieme est reserve a Jodie',
+    contient(CHAT, 'const [relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, position, enqueteJodie] = await Promise.all([')
     && contient(CHAT, 'lireFonctionMunicipale(req.body.profil, utilisateur.jeton)')
-    && contient(CHAT, "lireMemoire('rue_position_lire', null, utilisateur.jeton)"));
+    && contient(CHAT, "lireMemoire('rue_position_lire', null, utilisateur.jeton)")
+    && contient(CHAT, "etatEnqueteJodie(req.body.profil, utilisateur.jeton)")
+    && contient(CHAT, "['jodie_moitout','jodie_moitout_autruche'].includes(profilId)"));
 att('et le sixieme n est demande que pour Jeremy, pas pour Renee',
     contient(CHAT, "const VISITE_D_ACCUEIL = 'jeremy';")
     && contient(CHAT, 'profilId === VISITE_D_ACCUEIL'));

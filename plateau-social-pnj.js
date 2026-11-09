@@ -135,10 +135,21 @@ function socialAfficherJalon(jalon, buildingId, roomId) {
 //
 // No-op pour les 175 PNJ ordinaires -- le serveur rend `social:false` et rien
 // n'est ecrit.
-function pnjSocialNoterConversation(pnjId) {
+function pnjSocialNoterConversation(pnjId, paroleJoueur) {
   if (!pnjId || typeof sbPnjSocialNoter !== 'function') return;
-  if (!Object.prototype.hasOwnProperty.call(RP_SOCIAL_JALONS_PAR_PNJ, pnjId)) return;
-  sbPnjSocialNoter(pnjId, 'conversation').catch(function () {});
+  const identite = pnjId === 'jodie_moitout_autruche' ? 'jodie_moitout' : pnjId;
+  if (!Object.prototype.hasOwnProperty.call(RP_SOCIAL_JALONS_PAR_PNJ, identite)) return;
+  sbPnjSocialNoter(identite, 'conversation').catch(function () {});
+  if (identite === 'jodie_moitout' && typeof sbRpc === 'function' && typeof paroleJoueur === 'string' && paroleJoueur.trim()) {
+    sbRpc('jodie_enquete_contact', {p_action:'memoriser', p_reponse:paroleJoueur.slice(0,500)}).catch(function () {});
+  }
+  // Un seul souvenir de première conversation, depuis l'une ou l'autre adresse.
+  // Le serveur vérifie la position réelle et ne dévoile jamais l'enquête avant J+3.
+  if (identite === 'jodie_moitout' && typeof sbRpc === 'function'
+      && state?.country === 'republic' && state.currentCity === 'capitale'
+      && ['marche','la-tribune'].includes(state.currentBuilding)) {
+    sbRpc('jodie_enquete_contact', { p_action:'rencontre', p_reponse:null }).catch(function () {});
+  }
 }
 
 // Les PNJ qui tiennent une memoire, deduits de la table des lieux : on evite un
@@ -146,5 +157,6 @@ function pnjSocialNoterConversation(pnjId) {
 const RP_SOCIAL_JALONS_PAR_PNJ = (function () {
   const t = {};
   Object.keys(RP_SOCIAL_LIEUX).forEach(function (k) { t[RP_SOCIAL_LIEUX[k]] = true; });
+  t.jodie_moitout = true; // marché et rédaction : une seule relation serveur
   return t;
 })();
