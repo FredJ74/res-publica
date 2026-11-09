@@ -317,3 +317,51 @@ l'entrepôt et le port (Starovka), et la gare, l'entrepôt, le stade, le commiss
 10. **Anciens noms jamais affichés** (« Baraquement Sibirsk-9 », « Caisse Minière Collective », « Gazette du Charbon »,
     « Infirmerie du Froid », etc.) : à reprendre ou à supprimer ?
 11. **Route de Starovka** : elle n'est reliée par la route à aucune ville (véhicules personnels) ; voulu ?
+
+### Réponses de Fred (09/11/2026, soir) — décidé, NON codé (attend le feu vert de Fred)
+
+1. **Banque de Sovarka** (les trois villes) : **ni placements privés ni prêts** (un projet est financé par la collectivité).
+   À la place, des **bons d'État « pour soutenir l'économie de Sovarka »** :
+   - motivation **purement RP** (geste patriotique), aucun avantage en jeu ;
+   - rendement **fixé à la souscription** d'après l'**indice Économie moyen des trois villes** : de **+3 %** (économie au
+     plus haut) à **−10 %** (au plus bas), proportionnel entre les deux ;
+   - durée **7 jours** ; mise ± rendement rendue à l'échéance ;
+   - l'argent va au **Trésor de Sovarka**, qui rembourse ; **Trésor vide à l'échéance : planche à billets**, uniquement pour
+     les bons — le PJ est remboursé quand même, mais **à −10 %** quel que soit le rendement prévu ;
+   - pas de plancher ni de plafond de souscription hors l'argent du PJ (proposé par Claude, non contesté).
+2. **Pas de syndicat en Sovarka** : les partis les remplacent ; siège syndical retiré de Starovka et Krasnov.
+   **Manifestations hostiles interdites** : une manifestation de PJ y est illégale et hors de toute organisation
+   (socle de la manifestation spontanée, toujours illégale en Sovarka — à vérifier au codage).
+3. **Bâtiments sans façade** (banque, dispensaire, tribunal, usine, zone de production) : Fred fera les images pendant le
+   **tour des deux villes**. **À lui rappeler à ce moment-là.**
+4. **Rue « locaux à louer » de Starovka** : deux **nouveaux locaux simples**, demandés à la mairie comme les autres locaux
+   de Sovarka.
+5. **Bâtiments dessinés** : tous auront une vraie utilité.
+   - **Codables dès maintenant depuis le socle** : marchés, église (Krasnov), magasin de chasse (= armurerie), lycée et
+     école (modèle de l'université de Luthécia), logements collectifs (= logements sociaux), restaurant « Entre terre et
+     mer », tabac-bar, distillerie, fourreur (commerces), musée (Krasnov).
+   - **Lieux d'extraction** : **pétrole** (Starovka) et **exploitation forestière** (Krasnov) — RP du pays, et les PJ
+     peuvent y extraire des matières premières pour augmenter la production (partir de la zone de production du socle).
+   - **Hors socle, plus tard (tour des villes)** : ferme, maisons, poste militaire (Starovka) et station radar (Krasnov) ;
+     Fred dira à quoi servent les deux derniers.
+   - **Exploitation forestière de Krasnov** (idée de Fred, retrouvée nulle part, consignée ici) : l'**entrée** est un lieu
+     sûr (extraction normale). On peut **s'enfoncer dans la forêt** : arrivée sur l'une des **4 vues de forêt profonde**
+     (1 chance sur 4, proposé par Claude). Sur les 4 vues, « **Couper du bois** » rapporte **×2** ; **2 fois au plus** sur
+     les vues 1 et 2, **1 fois** sur les vues 3 et 4. Une **seconde coupe** déclenche la rencontre : **vue 3 = toujours
+     l'ours**, **vue 4 = toujours Olga**. Mise en scène commune : un bruit dans les fourrés, le joueur croit jusqu'au
+     dernier moment que c'est l'ours. **L'ours** : mécanique de combat existante, **combattre ou fuir**. **Olga** apporte
+     à manger : effet d'un **repas ordinaire** (PA au prochain Dormir). **Ressortir** : « Revenir à l'entrée de la forêt »
+     n'y mène qu'à **20 %** ; sinon on retombe sur l'une des 4 vues (20 % chacune) — on s'est perdu.
+6. **Prix courants de Sovarka** ramenés à l'échelle du pays (÷ 2,5 environ) : train 30, bus/taxi 60, soin 10, transfert en
+   clinique 400, licence sportive 60, chambre d'hôtel 25, policiers 20 et 40 PSK par jour ; Fred ajustera en jeu.
+7. **Hôtels** : « **Hôtel des Voyageurs** » à Starovka (comme l'enseigne), « **Hôtel du Kolkhoze** » à Krasnov.
+8. **Presse** : le journal de Sovarka s'appelle **« La Voix de Sovarka »** (façade de l'agence officielle de Novomirsk) —
+   l'agence de Novomirsk (affichée « Bulletin du Parti Local ») est alignée, et les mentions « La Tribune » de Sovarka
+   (censure, 08/11) désignent ce journal. Antennes à Starovka et Krasnov, journalistes validés : **Saran Batbayar**
+   (Starovka), **Anatoli Kolosov** (Krasnov).
+9. **Terrain de Starovka** : **4 parcelles** ; la mairie y construit ce qu'elle veut, logements ou commerces.
+10. **Anciens noms** : « **Baraquement Sibirsk-9** » devient le nom des logements collectifs de Starovka ; « **Poste de
+    Vigilance Glaciale** » celui du poste militaire de Starovka ; le **Goulag de Sovarka** sera ajouté (fiche gardée) ;
+    tous les autres anciens noms sont supprimés.
+11. **Route de Starovka** : **aucune, voulu** (train et bateau seulement). Piste écartée pour l'instant : la motoneige
+    (il faudrait de la neige dans les autres villes).
