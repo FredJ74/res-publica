@@ -62,12 +62,15 @@ test('Plan déduit des rues : chaque bâtiment visible en rue figure une seule f
   }
 });
 
-test('Plan déduit des rues : les flèches sans retour de Novomirsk sont signalées', () => {
+test('Plan déduit des rues : les carrefours photographiés deux fois ne sont pas des anomalies', () => {
   const { ctx } = charger();
-  const ano = vm.runInContext(`calculerPlanRues(RUE_CENTRALE_NOEUDS.soviet, RUE_CENTRALE_DEPART.soviet.capitale).anomalies.filter(a => a.type === 'sans_retour').map(a => a.noeuds.join('>'))`, ctx);
-  // Constat du 09/11/2026 : deux flèches à sens unique. Le test suit la donnée, pas l'inverse :
-  // si la navigation est corrigée, la liste rétrécit et ce test doit être mis à jour.
-  for (const a of ano) assert.match(a, /^novomirsk-vue-\d+>novomirsk-vue-\d+$/);
+  // Novomirsk V5→V3 et V15→V16 : le retour ramène à l'autre image du même carrefour (V4, V14),
+  // voulu par la navigation serveur (migration 20261105011000).
+  const ano = vm.runInContext(`calculerPlanRues(RUE_CENTRALE_NOEUDS.soviet, RUE_CENTRALE_DEPART.soviet.capitale).anomalies.filter(a => a.type === 'sans_retour')`, ctx);
+  assert.equal(ano.length, 0);
+  // Une vraie rue sans retour reste signalée.
+  const vraie = vm.runInContext(`calculerPlanRues({ a: { liens: { toutDroit: 'b' } }, b: { liens: {} } }, 'a').anomalies.filter(a => a.type === 'sans_retour').length`, ctx);
+  assert.equal(vraie, 1);
 });
 
 test('Fenêtre « Plan de la ville » : le joueur dans un bâtiment le voit surligné, lecture seule', () => {

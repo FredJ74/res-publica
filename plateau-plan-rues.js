@@ -88,7 +88,13 @@ function calculerPlanRues(noeudsPays, depart, options) {
     for (const [rA, b] of planRuesLiens(noeuds[a])) {
       if (!dans.has(b)) continue;
       const retour = planRuesLiens(noeuds[b]).some(([, x]) => x === a);
-      if (!retour) anomalies.push({ type: 'sans_retour', noeuds: [a, b], texte: `La rue « ${a} » mene a « ${b} », mais « ${b} » n'a pas de fleche pour revenir.` });
+      // Carrefour photographie deux fois (Novomirsk V4/V5, V14/V15) : A et C sont deux images du
+      // meme carrefour, reliees entre elles ; depuis B, le retour ramene a C. Voulu par la
+      // navigation (migration 20261105011000) : ce n'est pas une rue a corriger.
+      const memeCarrefour = !retour && planRuesLiens(noeuds[b]).some(([, c]) =>
+        dans.has(c) && planRuesLiens(noeuds[a]).some(([, x]) => x === c)
+        && planRuesLiens(noeuds[c]).some(([, x]) => x === a));
+      if (!retour && !memeCarrefour) anomalies.push({ type: 'sans_retour', noeuds: [a, b], texte: `La rue « ${a} » mene a « ${b} », mais « ${b} » n'a pas de fleche pour revenir.` });
       const k = a < b ? a + '|' + b : b + '|' + a;
       if (cles.has(k)) continue;
       cles.add(k);
