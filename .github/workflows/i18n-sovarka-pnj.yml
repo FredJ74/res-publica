@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'i18n/orders-resources.js'
+      - 'i18n/toast-resources.js'
+      - 'outils/bancs/banc-i18n-notifications.cjs'
       - 'i18n/social-pnj-resources.js'
       - 'plateau-social-pnj.js'
       - 'plateau.html'
@@ -13,6 +15,8 @@ on:
   push:
     paths:
       - 'i18n/orders-resources.js'
+      - 'i18n/toast-resources.js'
+      - 'outils/bancs/banc-i18n-notifications.cjs'
       - 'i18n/social-pnj-resources.js'
       - 'plateau-social-pnj.js'
       - 'plateau.html'
@@ -33,6 +37,7 @@ jobs:
       - name: Syntaxe des modules modifiés
         run: |
           node --check i18n/orders-resources.js
+          node --check i18n/toast-resources.js
           node --check i18n/social-pnj-resources.js
           node --check plateau-social-pnj.js
           node --check outils/bancs/banc-i18n-sovarka-ordres-novembre.cjs
@@ -41,3 +46,5 @@ jobs:
         run: node outils/bancs/banc-i18n-sovarka-ordres-novembre.cjs
       - name: Amorces des PNJ sociaux et repli en français
         run: node --test outils/bancs/banc-i18n-pnj-sociaux-amorces.cjs
+      - name: Titres de notification stables dans neuf langues
+        run: node --test outils/bancs/banc-i18n-notifications.cjs
