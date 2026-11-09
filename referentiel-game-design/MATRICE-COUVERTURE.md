@@ -35,6 +35,9 @@
 | Diplomatie / interempire | D : `GAME-DESIGN-AMBASSADES.md`, Architecture | C repéré : `plateau-gouvernement.js`, ambassades | TEST-F : bancs ambassades | J ?, voyage individuel entre empires déclaré absent (architecture oct.) |
 | Premium et publicité | D : principe non P2W, arbitrages dispersés | C repéré : `plateau-publicite-premium.js` | TEST-F : contrôles premium | J ?, facturation bêta non ouverte |
 
+## Compléments par système
+Les trois fiches transversales approfondissent plusieurs contrats d'ordre, leurs préconditions, interactions et cas-limites : [pouvoirs](FICHES-POUVOIRS-ET-CONTREPOUVOIRS.md), [économie](FICHES-ECONOMIE-LOGISTIQUE-MOBILITE.md), [parcours et sociabilité](FICHES-PARCOURS-SOCIAUX-ET-FRICTIONS.md). Les sources sont des décisions datées et chemins de livraison cités, pas des tests rejoués. La [synthèse de portée](SYNTHESE-AUDIT-ET-LIMITES.md) formule précisément les limites de cet audit.
+
 ## Légende de complétude
 La matrice est un **registre de couverture initial**, non une liste exhaustive des 346 actions historiques : elle doit être développée en fiches **ordre → préconditions → coût → effet → RPC → contre-épreuve → test connecté**. Rien ici ne certifie que les migrations annoncées par les relais sont toutes présentes dans la base de production.
 
