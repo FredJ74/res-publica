@@ -439,6 +439,12 @@ function blocRelation(relation) {
   if (relation.memoire && typeof relation.memoire === 'object') {
     const m = relation.memoire;
     if (m.nom) parts.push("Tu sais qu'il s'appelle " + String(m.nom).slice(0, 60) + ".");
+    if (m.premier_echange_lieu === 'marche') parts.push("Votre première conversation a eu lieu au marché de Luthécia.");
+    if (m.premier_echange_lieu === 'autruche') parts.push("Votre première conversation a eu lieu à L'Autruche Entravée.");
+    if (Array.isArray(m.paroles_pj) && m.paroles_pj.length) {
+      parts.push("PAROLES PASSÉES DU JOUEUR (citations, PAS faits vérifiés) : " +
+        m.paroles_pj.slice(-6).map(v => String(v).slice(0, 350)).join(" | "));
+    }
   }
   return parts.join(' ');
 }
@@ -751,7 +757,7 @@ function blocLocalisation(profil, scene) {
     + "Cette localisation prévaut sur toute ancienne réplique ou affirmation du visiteur. N'invente aucun autre emplacement, cour, porte, couleur de porte ni itinéraire. À une question sur le lieu, utilise seulement ces noms vérifiés et ton lieu de travail explicitement connu. Le dialogue ne déplace personne et n'exécute aucun ordre.";
 }
 
-function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, scene) {
+function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, scene, enqueteJodie = null) {
   const p = TOUS_PROFILS[profilId];
   if (!p) return null;
   const rel = blocRelation(relation);
@@ -782,6 +788,22 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
     ...(mem ? [mem, ''] : []),
     ...(reg ? [reg, ''] : []),
     ...(vis ? [vis, ''] : []),
+    ...(['jodie_moitout','jodie_moitout_autruche'].includes(profilId) ? [
+      'DOSSIER DU MUSÉE — CONSIGNE STRICTE : ' +
+      (!enqueteJodie || enqueteJodie.ok !== true || enqueteJodie.type === 'aucun' && !enqueteJodie.contact?.premierLe && !enqueteJodie.contact?.conclusion
+        ? "Avant ton premier appel, tu ne parles spontanément ni des portraits disparus, ni du calepin, ni d'une future proposition. Si tu n'as pas la preuve du déclenchement, ne révèle rien."
+        : "Tu as proposé au joueur d'observer des portraits disparus au Musée de la Ville de Luthécia (jamais PSM). Tu ne connais que les informations qu'il t'a racontées, pas l'ensemble de son dossier. " +
+          "Son choix enregistré : " + String(enqueteJodie.contact?.rappelChoix || enqueteJodie.contact?.choix || 'non renseigné') +
+          ". Statut de l'affaire : " + String(enqueteJodie.etape || 'inconnu') + ". " +
+          (enqueteJodie.contact?.conclusion === 'informer'
+            ? "Le PJ a accepté de te raconter ses découvertes ; tu sais qu'il existe une injustice historique derrière la disparition mais tu dois vérifier ses affirmations."
+            : enqueteJodie.contact?.conclusion === 'garder'
+              ? "Le PJ a refusé de te raconter ses découvertes ; respecte sa décision et ne prétends pas connaître les détails."
+              : "L'affaire reste ouverte à la conversation.")) +
+      " Tu es une journaliste attachée à la vérité : ni solution inventée, ni révélation de secrets non rapportés. " +
+      "Si le joueur parle d'un appel, réponds comme au téléphone et ne prétends pas être physiquement à ses côtés.",
+      ''
+    ] : []),
     "REGLES ABSOLUES :",
     "- Si une question porte sur un point qui n'est pas dans ce que tu sais, dis simplement que tu n'as pas cette information ou que ce n'est pas de ton ressort. N'invente JAMAIS une regle.",
     // L'IDENTITE ETAIT CODEE EN DUR ICI (« Tu es Martial Bouterin »), dans un bloc pourtant applique

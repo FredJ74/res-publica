@@ -84,6 +84,7 @@ function validerPayload(body) {
 // prompt reste rigoureusement celui d'avant.
 const CORPS_RPC = {
   pnj_social_contexte:          (profilId) => ({ p_pnj_id: profilId }),
+  jodie_enquete_contact:        () => ({ p_action: 'etat', p_reponse: null }),
   referent_pedagogie_contexte:  (profilId) => ({ p_referent_id: profilId }),
   pnj_contexte_public:          () => ({}),
   rue_position_lire:           () => ({}),
@@ -122,7 +123,12 @@ async function lireMemoire(rpc, profilId, jeton) {
 }
 
 // La relation d'un PNJ SOCIAL : rencontres, conversations, familiarite.
-const relationSociale = (profilId, jeton) => lireMemoire('pnj_social_contexte', profilId, jeton);
+const relationSociale = (profilId, jeton) => lireMemoire('pnj_social_contexte',
+  profilId === 'jodie_moitout_autruche' ? 'jodie_moitout' : profilId, jeton);
+const etatEnqueteJodie = (profilId, jeton) =>
+  ['jodie_moitout','jodie_moitout_autruche'].includes(profilId)
+    ? lireMemoire('jodie_enquete_contact', null, jeton)
+    : Promise.resolve(null);
 
 // La memoire d'un REFERENT : combien de fois il a deja explique des choses a ce
 // joueur. Rien d'autre -- ni familiarite, ni confiance. Un referent n'est pas un ami.
@@ -242,7 +248,7 @@ export default async function handler(req, res) {
   // Huguette Papier, les regards de l'Assemblee pour Renee Toitout. Pour tous les autres profils,
   // ces trois appels ne sont pas emis du tout -- le troisieme etant l'etape de la
   // visite d'accueil, qui n'appartient qu'a Jeremy.
-  const [relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, position] = await Promise.all([
+  const [relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, position, enqueteJodie] = await Promise.all([
     relationSociale(req.body.profil, utilisateur.jeton),
     memoirePedagogique(req.body.profil, utilisateur.jeton),
     contextePublicJoueur(utilisateur.jeton),
@@ -250,11 +256,12 @@ export default async function handler(req, res) {
     regardsAssemblee(req.body.profil, utilisateur.jeton),
     etapeDeLaVisite(req.body.profil, utilisateur.jeton),
     lireFonctionMunicipale(req.body.profil, utilisateur.jeton),
-    lireMemoire('rue_position_lire', null, utilisateur.jeton)
+    lireMemoire('rue_position_lire', null, utilisateur.jeton),
+    etatEnqueteJodie(req.body.profil, utilisateur.jeton)
   ]);
   const langueAutorisee = langueDialogueAutorisee(req.body.lang);
   const systeme = construirePromptSysteme(
-    req.body.profil, langueAutorisee, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, sceneDialogue(position));
+    req.body.profil, langueAutorisee, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, sceneDialogue(position), enqueteJodie);
   if (!systeme) return res.status(400).json({ error: 'Profil inconnu.' });
 
   const messages = [];

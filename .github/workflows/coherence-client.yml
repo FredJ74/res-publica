@@ -34,6 +34,13 @@ jobs:
         run: node outils/bancs/banc-jodie-portraits-journal.cjs
       - name: "Portrait Jodie — autorisation, contenu signé, anti-doublons"
         run: node outils/bancs/banc-jodie-portrait-api.cjs
+      - name: "Enquête du musée — appels de Jodie, mémoire sociale et migration"
+        run: |
+          node --check plateau-enigme-portrait.js
+          node --check plateau-social-pnj.js
+          node --check plateau-pnj.js
+          node --test outils/bancs/test-jodie-enquete-musee.mjs
+          python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261109221000_jodie_enquete_sociale.sql').read_text()); print('SQL Jodie : syntaxe valide')"
       - name: Constructeur Vercel épinglé pour la régression de chargement
         run: npm ci --prefix outils/vercel --no-audit --no-fund
       - name: Installer les dépendances du pilote navigateur avant les bancs client

@@ -1832,7 +1832,7 @@ function verifierSuccesMaxence(cle) {
     // parle -- c'est ce qui empeche, par exemple, Jean-Lou d'aborder a la deuxieme
     // visite quelqu'un a qui il a deja parle. No-op pour les autres PNJ.
     if (typeof pnjSocialNoterConversation === 'function') {
-      pnjSocialNoterConversation(profilServeur);
+      pnjSocialNoterConversation(profilServeur, action);
     }
     // ET LA MEMOIRE PEDAGOGIQUE D'UN REFERENT. Les deux notations sont distinctes :
     // un PNJ social retient qu'on lui a parle, un referent retient qu'il a explique.

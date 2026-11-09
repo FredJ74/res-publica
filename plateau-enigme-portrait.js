@@ -772,7 +772,7 @@ async function doDemanderJugeInstruction(pa, cost) {
 
 async function doPresenterAutorisationCoffre(pa, cost) {
   const v = await executerReceptionInventaire('enigme_objet_recevoir', { p_action: 'coffre', p_pa: pa, p_cost: cost });
-  if (!v) return;
+  if (!v) { await jodieEnqueteVerifierAppel(); return; }
   state.char.enigme1 = v.enigme;
   const textes = {
     sans_autorisation: '« Je suis navré, mais sans une autorisation en bonne et due forme, je ne peux rien vous dire sur un quelconque coffre. »',
@@ -810,7 +810,8 @@ function enigme1VerifierDebarras(buildingId, roomId) {
 
   state.char.enigme1.debarrasOuvert = true;
   state.char.enigme1.etape = 'resolue';
-  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(function() {});
+  state._enigme1Sauvegarde = typeof sbSavePersonnage === 'function'
+    ? sbSavePersonnage(state).catch(function() { return null; }) : Promise.resolve(null);
   enigme1AfficherRevelationGerard();
 }
 
@@ -850,7 +851,15 @@ function enigme1RevelationEtape3() {
   html += '<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #2a2010;font-size:.9rem;color:#C9A84C;font-style:italic;line-height:1.6">« Vous savez maintenant pourquoi j\'ai retiré ces portraits...<br>...mais vous ne savez toujours pas pourquoi ils ont été accrochés. »</div>';
   html += '</div>';
 
+  html += '<button class="pnj-action-btn" onclick="enigme1TerminerEtRecevoirJodie()">Terminer</button>';
   document.getElementById('postes-body').innerHTML = html;
+}
+
+// L'appel final n'efface ni la révélation ni les indices.
+async function enigme1TerminerEtRecevoirJodie() {
+  document.getElementById('modal-postes').classList.remove('open');
+  if (state._enigme1Sauvegarde) await state._enigme1Sauvegarde;
+  if (typeof jodieEnqueteVerifierAppel === 'function') await jodieEnqueteVerifierAppel();
 }
 
 function enigme1AfficherPopupCadreVide(roomId) {
@@ -880,7 +889,10 @@ const ENIGME1_DELAI_RELANCE_JOURS = 6; // 3 jours apres le declenchement
 async function enigme1VerifierDeclenchement() {
   if (typeof state === 'undefined' || !state.char) return;
   const avant = state.char.enigme1;
-  if (avant && !['non_commencee', 'declenchee'].includes(avant.etape)) return;
+  if (avant && !['non_commencee', 'declenchee'].includes(avant.etape)) {
+    if (typeof jodieEnqueteVerifierAppel === 'function') await jodieEnqueteVerifierAppel();
+    return;
+  }
   const revision = state._inventaireRevision;
   const v = await executerReceptionInventaire('enigme_objet_recevoir', { p_action: 'verifier', p_pa: 0, p_cost: 0 });
   if (!v) return;
@@ -892,4 +904,130 @@ async function enigme1VerifierDeclenchement() {
     addJournalEntry("La rumeur persiste : le mystère du musée de la ville n'est toujours pas éclairci...", 'event-secret');
   }
   if (JSON.stringify(avant) !== JSON.stringify(v.enigme) || revision !== state._inventaireRevision) { updateUI(); renderInventory(); }
+  if (typeof jodieEnqueteVerifierAppel === 'function') await jodieEnqueteVerifierAppel();
+}
+
+
+// Jodie Moitout — appel narratif à J+3, relance unique, puis conclusion.
+// La réponse et l'unicité sont validées par le serveur ; le client ne fabrique
+// jamais de progression d'enquête ni de doublon de calepin.
+let jodieEnqueteAppelEnCours = false;
+let jodieEnqueteFenetre = null;
+const JODIE_ENQUETE_PHOTO = 'images/jodie-moitout.webp';
+const JODIE_ENQUETE_DESTINATION = 'Musée de la Ville de Luthécia';
+
+async function jodieEnqueteRpc(action, reponse) {
+  if (typeof sbRpcVerdict !== 'function') return null;
+  const r = await sbRpcVerdict('jodie_enquete_contact', {p_action:action,p_reponse:reponse || null}).catch(() => null);
+  return r && r.ok === true ? r : null;
+}
+
+async function jodieEnqueteVerifierAppel() {
+  if (jodieEnqueteAppelEnCours || !state?.char || !document.getElementById('modal-postes')) return;
+  jodieEnqueteAppelEnCours = true;
+  try {
+    const r = await jodieEnqueteRpc('etat');
+    if (!r || !['premier','rappel','conclusion'].includes(r.type)) return;
+    if (document.querySelector('.modal.open')) return; // la prochaine connexion reproposera l'appel
+    jodieEnqueteFenetre = r;
+    jodieEnqueteAfficherAppel();
+  } finally { jodieEnqueteAppelEnCours = false; }
+}
+
+function jodieEnqueteAfficherAppel(extra) {
+  const r = jodieEnqueteFenetre;
+  if (!r) return;
+  const nom = typeof escapeHtmlText === 'function' ? escapeHtmlText(state.char?.name || '') : '';
+  const deja = r.lieu_precedent === 'marche'
+    ? 'Nous avions discuté lors de votre passage au marché de Luthécia. '
+    : r.lieu_precedent === 'autruche'
+      ? "Nous avions discuté dans les locaux de L'Autruche Entravée. " : '';
+  let texte = '';
+  if (r.type === 'conclusion') {
+    texte = 'Bonjour ' + nom + '. C\'est Jodie Moitout. On m\'a dit que les portraits avaient été retrouvés. '
+      + 'Avez-vous découvert ce qui se cachait derrière leur disparition ? Vous accepteriez de me raconter ce que vous savez ?';
+  } else if (r.type === 'rappel') {
+    texte = 'Bonjour ' + nom + ', c\'est encore Jodie Moitout. Je sais, je suis un peu insistante… '
+      + 'Avez-vous eu l\'occasion de passer au ' + JODIE_ENQUETE_DESTINATION + ' ? Mon offre tient toujours.';
+  } else {
+    texte = 'Bonjour ' + nom + '. ' + deja + "Je suis Jodie Moitout, journaliste à L'Autruche Entravée. "
+      + "Vous trouverez ma démarche étrange, mais j'ai besoin de votre aide. Vous êtes nouveau en ville, "
+      + "et donc encore inconnu des habitants. Moi, je suis trop connue, par contre… "
+      + "J'ai eu écho d'une histoire de disparition de tableaux au " + JODIE_ENQUETE_DESTINATION + ". "
+      + "Pourriez-vous vous y rendre et consigner vos observations dans le calepin que vous avez reçu ? "
+      + "Et oui, c'est moi qui vous l'ai fait parvenir… Vous feriez ça pour moi ?";
+  }
+  if (extra) texte = extra;
+  const fin = r.type === 'conclusion';
+  let html = '<div style="padding:1rem;display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap">'
+    + '<img src="' + JODIE_ENQUETE_PHOTO + '" alt="Jodie Moitout" style="width:104px;height:112px;object-fit:cover;object-position:62% 20%;border-radius:6px;flex-shrink:0">'
+    + '<div style="flex:1;min-width:185px"><strong>Jodie Moitout — appel téléphonique</strong>'
+    + '<p style="line-height:1.55">' + texte + '</p></div></div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:.5rem;padding:0 1rem 1rem">';
+  if (fin) {
+    html += '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'informer\')">Lui raconter mes découvertes</button>'
+      + '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'garder\')">Garder mes découvertes pour moi</button>';
+  } else {
+    html += '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'accepte\')">Comptez sur moi</button>'
+      + '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'refuse\')">Pas maintenant</button>'
+      + '<button class="pnj-action-btn" onclick="jodieEnqueteQuestion(\'pourquoi\')">Pourquoi moi ?</button>'
+      + '<button class="pnj-action-btn" onclick="jodieEnqueteQuestion(\'ou\')">Où est ce musée ?</button>';
+  }
+  html += '</div><div style="padding:0 1rem 1rem"><label for="jodie-enquete-question">Parler à Jodie</label>'
+    + '<textarea id="jodie-enquete-question" rows="2" maxlength="500" style="box-sizing:border-box;width:100%;background:#121005;color:#f0ead6;border:1px solid #8a6a20;padding:.5rem" placeholder="Votre question…"></textarea>'
+    + '<button class="pnj-action-btn" onclick="jodieEnqueteParler()">Envoyer</button></div>';
+  document.getElementById('postes-modal-title').textContent = 'Appel de Jodie Moitout';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function jodieEnqueteQuestion(sujet) {
+  const reponse = sujet === 'pourquoi'
+    ? "Parce que vous êtes encore inconnu à Luthécia. Si je me montre au musée, les langues se délieront beaucoup moins facilement."
+    : 'C\'est le Musée de la Ville de Luthécia, pas celui de Port-Sainte-Marie ni celui de Montrouge. Si vous êtes ailleurs, il faudra revenir à Luthécia.';
+  jodieEnqueteAfficherAppel(reponse);
+}
+
+async function jodieEnqueteParler() {
+  const champ = document.getElementById('jodie-enquete-question');
+  const message = (champ?.value || '').trim();
+  if (!message || !jodieEnqueteFenetre || typeof reponsePnjServeur !== 'function') return;
+  champ.disabled = true;
+  const historique = state.pnjConversations?.['conv_Jodie Moitout_day'+(state.day||1)] || [];
+  try {
+    const reponse = await reponsePnjServeur('jodie_moitout', message, historique.slice(-6));
+    if (!reponse) throw new Error('réponse absente');
+    if (!state.pnjConversations) state.pnjConversations = {};
+    const cle = 'conv_Jodie Moitout_day'+(state.day||1);
+    state.pnjConversations[cle] = historique.concat([{role:'user',content:message},{role:'assistant',content:reponse}]).slice(-12);
+    if (typeof pnjSocialNoterConversation === 'function') pnjSocialNoterConversation('jodie_moitout',message);
+    jodieEnqueteAfficherAppel(typeof escapeHtmlText === 'function' ? escapeHtmlText(reponse) : reponse);
+  } catch(e) {
+    if (typeof showToast === 'function') showToast('Appel interrompu','Jodie ne répond pas pour le moment.',false);
+    if (champ) champ.disabled = false;
+  }
+}
+
+async function jodieEnqueteRepondre(reponse) {
+  if (!jodieEnqueteFenetre) return;
+  const appel = jodieEnqueteFenetre;
+  const r = await jodieEnqueteRpc(appel.type === 'conclusion' ? 'conclusion' : 'choix',reponse);
+  if (!r) { if (typeof showToast === 'function') showToast('Appel non enregistré','Réessayez à votre prochaine connexion.',false); return; }
+  if (state.char?.enigme1 && r.contact) state.char.enigme1.jodie = r.contact;
+  if (typeof pnjSocialNoterConversation === 'function') pnjSocialNoterConversation('jodie_moitout');
+  jodieEnqueteFenetre = null;
+  if (appel.type === 'conclusion') {
+    const texte = reponse === 'informer'
+      ? "Merci de m'avoir fait confiance. Je vais vérifier ces informations, consulter les archives, et raconter cette affaire sans déformer les faits. Il y a bien plus ici que des tableaux disparus."
+      : "Je comprends. Je ne vous forcerai pas la main. Mais je continuerai à chercher ce qui s'est passé. Si vous changez d'avis, vous savez où me trouver.";
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem;display:flex;gap:1rem;align-items:flex-start"><img alt="Jodie Moitout" src="' +
+      JODIE_ENQUETE_PHOTO + '" style="width:100px;height:110px;object-fit:cover;border-radius:6px">' +
+      '<p style="line-height:1.55">' + texte + '</p></div>' +
+      '<div style="padding:1rem"><button class="pnj-action-btn" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')">Raccrocher</button></div>';
+    return;
+  }
+  document.getElementById('modal-postes').classList.remove('open');
+  if (typeof showToast === 'function') showToast('Jodie Moitout',reponse === 'accepte'
+    ? 'Jodie compte sur vous au Musée de la Ville de Luthécia.' : "L'enquête reste accessible au Musée de la Ville de Luthécia.",true);
 }
