@@ -3859,8 +3859,11 @@ function renderRoomActions(room, buildingId, roomId) {
   }
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
 
+  // En-tête affiché uniquement : nom de salle canonique, sans changer roomId ni ordres.
+  const nomSalleAffiche = (typeof window !== 'undefined' && window.RPRoomI18n?.label?.(buildingId,roomId,room.name)) || room.name;
+  const titreActionsAffiche = (typeof window !== 'undefined' && window.RPRoomActionsI18n?.label?.('actionsAvailable','ACTIONS DISPONIBLES')) || 'ACTIONS DISPONIBLES';
   document.getElementById('action-context-bat').textContent =
-    room.name.toUpperCase() + ' — ACTIONS DISPONIBLES';
+    nomSalleAffiche.toUpperCase() + ' — ' + titreActionsAffiche;
 
   // Caisse du bâtiment communal à l'accueil (fonction séparée : un incident de lecture de la
   // caisse ne doit jamais empêcher l'affichage des ordres).
@@ -4425,7 +4428,12 @@ function renderRoomActions(room, buildingId, roomId) {
   const audiosAVenir = typeof getBuildingContext === 'function' && getBuildingContext(buildingId)?.audiosAVenir === true;
   if (room.audioUrl && !audiosAVenir) {
     const safeNom = room.name.replace(/'/g, ' ');
-    buttons.push('<button class="action-btn legal" onclick="ouvrirAudioguide(\'' + room.audioUrl + '\',\'' + safeNom + '\')" title="Ecouter l\'audioguide de cette salle"><i class="ti ti-headphones" style="font-size:.82rem"></i> Écouter l\'audioguide <span class="pa-cost">gratuit · 0 PA</span></button>');
+    // Présentation localisée : l'URL et le callback ouvrirAudioguide restent canoniques.
+    const resAudio=typeof window!=='undefined'?window.RPRoomActionsI18n:null;
+    const audioTitle=resAudio?.labelHtml?.('audioTooltip',"Ecouter l'audioguide de cette salle") || "Ecouter l'audioguide de cette salle";
+    const audioAction=resAudio?.labelHtml?.('audioAction',"Écouter l'audioguide") || "Écouter l'audioguide";
+    const audioCost=resAudio?.labelHtml?.('audioCost','gratuit · 0 PA') || 'gratuit · 0 PA';
+    buttons.push('<button class="action-btn legal" onclick="ouvrirAudioguide(\'' + room.audioUrl + '\',\'' + safeNom + '\')" title="' + audioTitle + '"><i class="ti ti-headphones" style="font-size:.82rem"></i> ' + audioAction + ' <span class="pa-cost">' + audioCost + '</span></button>');
   }
 
   // Bureau du commissaire : boutons principaux identiques aux greffes ;
