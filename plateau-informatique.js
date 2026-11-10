@@ -105,6 +105,7 @@ async function ouvrirDossiers() {
     '<span>' + informatiqueEch(d.titre) + ' <span style="color:#7a8898;font-size:.78rem">(' + (d.support === 'ordinateur' ? 'ordinateur' : 'stockage') + ')</span></span><span>' +
     equipementsBouton('dossierOuvrir(\'' + d.id + '\')', 'Lire') + ' ' +
     equipementsBouton('dossierDeplacer(\'' + d.id + '\')', 'Déplacer') + ' ' +
+    ((d.type === 'faux_document' || d.type === 'plan_3d') ? equipementsBouton('dossierImprimer(\'' + d.id + '\')', 'Imprimer (1 PA)') + ' ' : '') +
     equipementsBouton('dossierTransmettre(\'' + d.id + '\')', 'Transmettre') + ' ' +
     equipementsBouton('dossierDetruire(\'' + d.id + '\')', 'Détruire') + '</span></div>').join('');
   equipementsModale('Mes dossiers', '<p class="cpj-note">' + (supports || 'Aucun ordinateur ni périphérique de stockage installé ici.') +
@@ -149,4 +150,113 @@ function confirmerSansDialogue(message) {
   RP_DOSSIER_CONFIRM = maintenant;
   showToast('Confirmation', message + ' Cliquez une seconde fois pour confirmer.', false);
   return false;
+}
+
+/* ---------------------------------------------------------------------------
+   IMPRIMANTES, BANQUE DE PLANS 3D, VOL DE MATERIEL, MATERIEL DES ORGANISATIONS
+   (decisions 12 a 15, 17 et 18). RPC : faux_document_imprimer, dossier_imprimer,
+   imprimer_couteau_plastique, plans3d_lire, plan3d_obtenir, equipements_voler_lire,
+   voler_materiel, equipement_ceder_organisation, organisation_materiel_lire,
+   organisation_materiel_autoriser.
+   --------------------------------------------------------------------------- */
+Object.assign(INFORMATIQUE_REFUS, {
+  pas_imprimante: 'Il faut un ordinateur et une imprimante installés dans votre bureau.',
+  pas_imprimante_3d: 'Il faut un ordinateur et une imprimante 3D installés dans votre bureau.',
+  pas_de_cartouche: 'Il vous faut une cartouche d\'encre (boutique d\'électronique).',
+  pas_de_plastique: 'Il vous faut 1 unité de plastique (dérivés pétrochimiques).',
+  dossier_non_imprimable: 'Ce dossier ne s\'imprime pas.',
+  plan_invalide: 'Plan inconnu.',
+  dossiers_pleins: 'Vos dossiers sont pleins.',
+  fonds_insuffisants: 'Fonds insuffisants.',
+  deja_a_vous: 'Ce matériel est déjà à vous.',
+  local_pas_a_organisation: 'Ce local n\'est pas loué par cette organisation.',
+  pas_chef: 'Seul le chef de l\'organisation le peut.',
+  pas_membre: 'Cette personne n\'est pas membre.'
+});
+function informatiqueInventaire(r) {
+  if (r && Array.isArray(r.inventory)) { state.inventory = r.inventory; if (r.revision != null) state.inventoryRevision = r.revision; }
+  informatiquePa(r);
+}
+
+function ouvrirImprimantes() {
+  const docs = [['fausse_identite', 'Fausse identité'], ['faux_permis', 'Faux permis de construire'], ['faux_contrat', 'Faux contrat commercial'], ['fausse_convocation', 'Fausse convocation']];
+  equipementsModale('Imprimantes', '<div class="cpj-titre">Imprimante papier — faux documents</div>' +
+    '<p class="cpj-note">3 PA et une cartouche d\'encre. 70 % de réussite, sans risque d\'être vu. Le modèle est rangé dans vos dossiers.</p>' +
+    docs.map(d => equipementsBouton('fauxImprimer(\'' + d[0] + '\')', d[1])).join(' ') +
+    '<div class="cpj-titre">Imprimante 3D</div><p class="cpj-note">1 PA et 1 plastique par objet. Les souvenirs s\'impriment depuis un plan (vos dossiers).</p>' +
+    equipementsBouton('couteauImprimer()', 'Couteau en plastique') + ' ' + equipementsBouton('ouvrirPlans3d()', 'Banque de plans 3D') +
+    '<div style="margin-top:1rem">' + equipementsBouton('ouvrirModalEquipements()', 'Retour') + '</div>');
+}
+async function fauxImprimer(doc) {
+  const r = await informatiqueRpc('faux_document_imprimer', { p_doc: doc });
+  if (!r || r.ok !== true) { showToast('Impression refusée', informatiqueRefus(r), false); return; }
+  informatiqueInventaire(r);
+  showToast(r.reussi ? 'Faux imprimé' : 'Impression ratée', r.reussi ? (r.nom_document + ' ajouté à votre inventaire.') : 'Le faux est inutilisable ; la cartouche est perdue.', !!r.reussi);
+}
+async function couteauImprimer() {
+  const r = await informatiqueRpc('imprimer_couteau_plastique', {});
+  if (!r || r.ok !== true) { showToast('Impression refusée', informatiqueRefus(r), false); return; }
+  informatiqueInventaire(r);
+  showToast('Imprimé', 'Couteau en plastique ajouté à votre inventaire.', true);
+}
+async function dossierImprimer(id) {
+  const r = await informatiqueRpc('dossier_imprimer', { p_id: id });
+  if (!r || r.ok !== true) { showToast('Impression refusée', informatiqueRefus(r), false); return; }
+  informatiqueInventaire(r);
+  showToast('Imprimé', r.objet + ' ajouté à votre inventaire.', true);
+}
+async function ouvrirPlans3d() {
+  const r = await informatiqueRpc('plans3d_lire', {});
+  if (!r || r.ok !== true) { showToast('Banque de plans', informatiqueRefus(r), false); return; }
+  const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
+  const lignes = (r.plans || []).map(p => '<div style="display:flex;justify-content:space-between;gap:.4rem;padding:.3rem 0;border-top:1px solid #2a3340"><span>' +
+    informatiqueEch(p.label) + '</span><span>' + equipementsBouton('plan3dObtenir(\'' + p.id + '\',\'acheter\')', 'Acheter ' + p.prix + ' ' + cur) + ' ' +
+    equipementsBouton('plan3dObtenir(\'' + p.id + '\',\'pirater\')', 'Pirater (3 PA)') + '</span></div>').join('');
+  equipementsModale('Banque de plans 3D', '<p class="cpj-note">Le plan est rangé dans vos dossiers ; imprimez-le depuis « Mes dossiers ».</p>' + lignes +
+    '<div style="margin-top:1rem">' + equipementsBouton('ouvrirImprimantes()', 'Retour') + '</div>');
+}
+async function plan3dObtenir(id, mode) {
+  const r = await informatiqueRpc('plan3d_obtenir', { p_recette: id, p_mode: mode });
+  if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
+  informatiquePa(r);
+  showToast(r.reussi ? 'Plan obtenu' : 'Piratage raté', r.reussi ? (r.label + ' est dans vos dossiers.') : 'Les 3 PA sont perdus.', !!r.reussi);
+}
+
+async function ouvrirVolMateriel() {
+  const r = await informatiqueRpc('equipements_voler_lire', {});
+  if (!r || r.ok !== true) { showToast('Vol', informatiqueRefus(r), false); return; }
+  const lib = typeof EQUIPEMENTS_LIBELLES !== 'undefined' ? EQUIPEMENTS_LIBELLES : {};
+  const lignes = (r.materiel || []).map(m => '<div style="display:flex;justify-content:space-between;padding:.3rem 0;border-top:1px solid #2a3340"><span>' +
+    informatiqueEch(lib[m.generique] || m.generique) + '</span>' + equipementsBouton('materielVoler(\'' + m.id + '\')', 'Voler (3 PA)') + '</div>').join('');
+  equipementsModale('Voler du matériel', '<p class="cpj-note">20 % de réussite, selon votre duplicité. Si vous êtes repéré : arrestation. Tout vol laisse une trace.</p>' +
+    (lignes || '<p class="cpj-note">Rien à voler ici.</p>'));
+}
+async function materielVoler(id) {
+  const r = await informatiqueRpc('voler_materiel', { p_id: id });
+  if (!r || r.ok !== true) { showToast('Vol impossible', informatiqueRefus(r), false); return; }
+  informatiqueInventaire(r);
+  if (r.repere) { showToast('Repéré !', 'Vous êtes arrêté en flagrant délit.', false); if (typeof chargerPersonnage === 'function') chargerPersonnage(); return; }
+  showToast(r.reussi ? 'Volé !' : 'Raté', r.reussi ? 'Le matériel est dans votre inventaire.' : 'Vous n\'avez pas réussi à l\'emporter.', !!r.reussi);
+  ouvrirVolMateriel();
+}
+
+async function ouvrirMaterielOrganisation() {
+  const r = await informatiqueRpc('organisation_materiel_lire', {});
+  if (!r || r.ok !== true) { showToast('Organisation', informatiqueRefus(r), false); return; }
+  const h = (r.organisations || []).map(o => '<div class="cpj-titre">' + informatiqueEch(o.nom) + '</div>' +
+    (o.membres || []).map(mb => '<div style="display:flex;justify-content:space-between;padding:.25rem 0"><span>' + informatiqueEch(mb.nom) + '</span>' +
+      equipementsBouton('materielAutoriser(\'' + o.id + '\',\'' + informatiqueEch(mb.nom).replace(/'/g, '') + '\',' + (!mb.autorise) + ')', mb.autorise ? 'Retirer l\'autorisation' : 'Autoriser') + '</div>').join('')).join('');
+  equipementsModale('Matériel des organisations', '<p class="cpj-note">Les membres autorisés se servent du matériel de l\'organisation (leurs PA) et reçoivent les rapports des caméras.</p>' +
+    (h || '<p class="cpj-note">Vous ne dirigez aucune organisation.</p>') + '<div style="margin-top:1rem">' + equipementsBouton('ouvrirModalEquipements()', 'Retour') + '</div>');
+}
+async function materielAutoriser(orga, membre, autorise) {
+  const r = await informatiqueRpc('organisation_materiel_autoriser', { p_organisation: orga, p_membre: membre, p_autorise: autorise });
+  if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
+  ouvrirMaterielOrganisation();
+}
+async function materielCeder(id, orga) {
+  const r = await informatiqueRpc('equipement_ceder_organisation', { p_id: id, p_organisation: orga });
+  if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
+  showToast('Matériel cédé', 'Il appartient désormais à l\'organisation.', true);
+  ouvrirModalEquipements();
 }

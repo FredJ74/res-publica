@@ -130,7 +130,9 @@ async function ouvrirModalEquipements() {
       (typeof ouvrirPiratage === 'function' ? ' ' + equipementsBouton('ouvrirPiratage()', 'Pirater') : '')
     : '<p class="cpj-note">Installez ici votre ordinateur et votre box internet pour vous connecter.</p>';
   // Dossiers informatiques (11/11/2026) : ordinateur ou peripherique de stockage installe ici.
-  if (typeof ouvrirDossiers === 'function') h += '<div style="margin-top:.6rem">' + equipementsBouton('ouvrirDossiers()', 'Mes dossiers') + '</div>';
+  if (typeof ouvrirDossiers === 'function') h += '<div style="margin-top:.6rem">' + equipementsBouton('ouvrirDossiers()', 'Mes dossiers') +
+    (typeof ouvrirImprimantes === 'function' ? ' ' + equipementsBouton('ouvrirImprimantes()', 'Imprimantes') : '') +
+    (typeof ouvrirMaterielOrganisation === 'function' ? ' ' + equipementsBouton('ouvrirMaterielOrganisation()', 'Matériel d\'organisation') : '') + '</div>';
   equipementsModale('Équipements du local', h);
 }
 
