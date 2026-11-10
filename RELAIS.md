@@ -31,6 +31,25 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### i18n matières et catalogue — Codex, 10/11/2026 (LOT EMPILÉ)
+
+Branche `codex/i18n-matieres-catalogue-20261110`, base lot fiches `f8ca377e`.
+**63 clés × neuf langues** : 19 matières du socle, produits/menus et souvenirs
+canoniques de Républia dont trois descriptions. Correspondance obligatoire par
+identifiant ET texte français : un produit renommé ou un texte libre reste intact.
+Aucun data.js ou module Sovarka modifié ; quatre recettes Dynamo déjà traduites
+réutilisent #685. Marqueurs du moteur existant : carte, composition, fiche,
+principaux tableaux de matières des commerces PJ. Cinq tests Chromium/contrat
+verts, zéro stock conservé, boutons et appels immuables, 360/390/768, carte FR
+strictement identique à 1440 ; descriptifs et saisies changent de langue sans
+nouvelle lecture. Titre PR : « Matières, produits et descriptions canoniques en
+neuf langues ». Description : « 63 clés, garde ID + français pour ne pas traduire
+les personnalisations. Raccordement des rendus communs, tests de contrat et
+pixels FR identiques, aucun coût/stock/RPC changé. » Base PR initiale : branche
+fiches, puis main après intégration du premier lot. Validation complète en cours.
+Suite immédiate : messages de production et refus, encore français.
+
+
 ### i18n fiches produits — Codex, 10/11/2026
 
 Branche `codex/i18n-produits-economie-20261110`, base `main 7aafbb9f` après

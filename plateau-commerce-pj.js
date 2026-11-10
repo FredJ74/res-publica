@@ -374,9 +374,14 @@ function commercePjMontant(n) {
 
 function commercePjLibelleMatiere(cle) {
   if (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[cle] && RESSOURCES_ECONOMIE[cle].label) {
-    return RESSOURCES_ECONOMIE[cle].label;
+    return typeof window !== 'undefined' && window.RPEconomicCatalogI18n ? window.RPEconomicCatalogI18n.text('material',cle,'label',RESSOURCES_ECONOMIE[cle].label) : RESSOURCES_ECONOMIE[cle].label;
   }
   return String(cle || '').replace(/_/g, ' ');
+}
+
+function commercePjMatiereHtml(cle) {
+  const original = typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[cle] ? RESSOURCES_ECONOMIE[cle].label : String(cle || '').replace(/_/g, ' ');
+  return typeof window !== 'undefined' && window.RPEconomicCatalogI18n ? window.RPEconomicCatalogI18n.markup('material',cle,'label',original) : commercePjEchapper(original);
 }
 
 function commercePjModale(titre, html) {
@@ -1053,7 +1058,7 @@ async function commercePjEcranGestion(ctx) {
       h += '<div class="cpj-grille' + (maxi <= 0 ? ' cpj-refuse' : '') + '" id="cpj-lig-' + cle + '">';
       h += commercePjPictoMatiere(cle);
       h += '<div class="cpj-nom"><span class="cpj-nom-t">' +
-             commercePjEchapper(commercePjLibelleMatiere(cle)) + '</span>' +
+             commercePjMatiereHtml(cle) + '</span>' +
            (sous ? '<span class="cpj-sous">' + commercePjEchapper(sous) + '</span>' : '');
       // APPORT EN PLACE. Les deux touches sont fermees quand l'issue serait un
       // refus certain : rien en poche, ou plus de place. Le serveur refuserait de
@@ -1983,7 +1988,7 @@ async function commercePjEcranMatieresPubliques(ctx) {
     const reste = Math.max(0, Number(m.place_restante) || 0);
     html += '<div style="border:1px solid #2a2620;padding:.6rem .8rem;margin-bottom:.5rem">';
     html += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:.6rem">' +
-      '<b style="color:#e0d8c0;font-size:.92rem">' + commercePjEchapper(commercePjLibelleMatiere(m.matiere)) + '</b>' +
+      '<b style="color:#e0d8c0;font-size:.92rem">' + commercePjMatiereHtml(m.matiere) + '</b>' +
       '<span style="color:#E8C97A;white-space:nowrap">' + commercePjMontant(m.prix_achat) + ' ' + cur +
       ' / ' + commercePjEchapper(tCommercePJ('commercepj.ref.unite')) + '</span></div>';
     // Le maximum d'une MATIERE est un chiffre nu depuis C7 : il n'est jamais
@@ -2029,7 +2034,7 @@ async function commercePjEcranApporter(matiere) {
 
   let html = '<div style="padding:1.1rem">';
   html += '<div style="font-family:Playfair Display,serif;color:#E8C97A;margin-bottom:.6rem">' +
-    commercePjEchapper(commercePjLibelleMatiere(matiere)) + '</div>';
+    commercePjMatiereHtml(matiere) + '</div>';
   html += commercePjLigne(tCommercePJ('commercepj.appro.vous'), jai);
   html += commercePjLigne(tCommercePJ('commercepj.appro.besoin'), m.place_restante);
   html += commercePjLigne(tCommercePJ('commercepj.matiere.prix'),

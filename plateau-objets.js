@@ -628,8 +628,8 @@ function ficheCommercialeHtml(infos) {
   let h = '<div style="' + cadre + '">'
         + '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.12em;color:#E5C477;margin-bottom:.45rem">'
         + '<i class="ti ti-tag" style="font-size:.8rem"></i> ' + ficheLibelleHtml('commercialTitle', 'PRÉSENTATION COMMERCIALE') + '</div>';
-  if (texteSur(i.nom))       h += '<div style="font-family:Playfair Display,serif;font-size:.98rem;color:#E5C477">' + ficheEchapper(i.nom) + '</div>';
-  if (texteSur(i.description)) h += '<div style="font-size:.82rem;color:#c8d2de;line-height:1.55;margin-top:.25rem">' + ficheEchapper(i.description) + '</div>';
+  if (texteSur(i.nom))       h += '<div style="font-family:Playfair Display,serif;font-size:.98rem;color:#E5C477">' + (typeof window !== 'undefined' && i.catalogueId && window.RPEconomicCatalogI18n ? window.RPEconomicCatalogI18n.markup('product', i.catalogueId, 'label', i.nom) : ficheEchapper(i.nom)) + '</div>';
+  if (texteSur(i.description)) h += '<div style="font-size:.82rem;color:#c8d2de;line-height:1.55;margin-top:.25rem">' + (typeof window !== 'undefined' && i.catalogueId && window.RPEconomicCatalogI18n ? window.RPEconomicCatalogI18n.markup('product', i.catalogueId, 'desc', i.description) : ficheEchapper(i.description)) + '</div>';
   if (i.prix != null)        h += '<div style="font-size:.85rem;color:#C9A84C;margin-top:.35rem">' + Number(i.prix).toLocaleString('fr-FR') + ' ' + ficheEchapper(i.devise || 'FR') + '</div>';
   if (texteSur(i.vendeur))   h += '<div style="font-size:.76rem;color:#aab5c3;margin-top:.2rem">' + ficheLibelleHtml('soldBy', 'Vendu par ' + i.vendeur, {seller:i.vendeur}) + '</div>';
   if (i.stock != null)       h += '<div style="font-size:.76rem;color:#aab5c3">' + ficheLibelleHtml('stock', 'Stock : ' + Number(i.stock), {stock:Number(i.stock)}) + '</div>';

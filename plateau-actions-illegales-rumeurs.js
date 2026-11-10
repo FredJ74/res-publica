@@ -4717,7 +4717,17 @@ function texteCommerceMenu(key, original, vars = {}) {
     original.replace(/\{(\w+)\}/g,(token,k)=>Object.hasOwn(vars,k)?String(vars[k]):token);
 }
 function nomProduitCommerce(id, original) {
+  if (typeof window !== 'undefined' && window.RPEconomicCatalogI18n?.key('product',id,'label',original)) return window.RPEconomicCatalogI18n.text('product',id,'label',original);
   return (typeof window!=='undefined' && window.RPCommerceMenuI18n?.productLabel?.(id,original)) || original;
+}
+
+function nomProduitCommerceHtml(id, original) {
+  if (typeof window !== 'undefined' && window.RPEconomicCatalogI18n?.key('product',id,'label',original)) return window.RPEconomicCatalogI18n.markup('product',id,'label',original);
+  return nomProduitCommerce(id,original);
+}
+function libelleMatiereCommerceHtml(id) {
+  const original = typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[id] ? RESSOURCES_ECONOMIE[id].label : id;
+  return typeof window !== 'undefined' && window.RPEconomicCatalogI18n ? window.RPEconomicCatalogI18n.markup('material',id,'label',original) : original;
 }
 
 function actionsCatalogueCommerceHtml(data, commerceType, buildingId, roomId, id) {
@@ -4755,7 +4765,7 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
     const recette = resoudreProduitCommerce(id);
     const stock = data.stockProduits[id] || 0;
     const prix = data.parametres.prixVente[id];
-    const composition = Object.entries(recette.materiaux).map(([m, q]) => q + ' ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m] ? RESSOURCES_ECONOMIE[m].label : m)).join(', ');
+    const composition = Object.entries(recette.materiaux).map(([m, q]) => q + ' ' + libelleMatiereCommerceHtml(m)).join(', ');
     const effetsTxt = Object.entries(recette.effets || {}).map(([k, v]) => (v > 0 ? '+' : '') + v + ' ' + k.toUpperCase()).join(', ');
     const enRupture = stock <= 0;
     // La rupture ne bloque que l'achat : ne pas rendre « Produire » visuellement inactif.
@@ -4763,7 +4773,7 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
     html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #394656;background:#252D38;border-radius:9px;margin-bottom:.5rem;align-items:center">';
     if (recette.image) html += '<img src="' + recette.image + '" style="width:56px;height:56px;object-fit:cover;border-radius:4px;flex-shrink:0" />';
     html += '<div style="flex:1">';
-    html += '<b style="font-size:.93rem;color:#E5C477">' + nomProduitCommerce(id,recette.label) + '</b><br>';
+    html += '<b style="font-size:.93rem;color:#E5C477">' + nomProduitCommerceHtml(id,recette.label) + '</b><br>';
     html += '<span style="font-size:.82rem;color:#aab5c3">' + composition + '</span><br>';
     if (effetsTxt) html += '<span style="font-size:.82rem;color:#6ab858">' + effetsTxt + '</span><br>';
     html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' ' + monnaie : texteCommerceMenu('priceUndefined','Prix non défini')) + ' — ' + texteCommerceMenu('stock','Stock : {stock}',{stock}) + '</span>';
@@ -4773,6 +4783,7 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('postes-body'));
   document.getElementById('modal-postes').classList.add('open');
 }
 
@@ -4829,7 +4840,7 @@ async function ouvrirFicheProduitCommerce(commerceType, buildingId, roomId, rece
   if (recette.image) html += '<img src="' + recette.image + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:200px;object-fit:cover"/>';
   html += typeof ficheCommercialeHtml === 'function'
     ? ficheCommercialeHtml({
-        nom: nomProduitCommerce(recetteId,recette.label),
+        nom: typeof window !== 'undefined' && window.RPEconomicCatalogI18n?.key('product',recetteId,'label',recette.label) ? recette.label : nomProduitCommerce(recetteId,recette.label), catalogueId: recetteId,
         description: recette.desc || null,
         prix: (data && data.parametres && data.parametres.prixVente) ? data.parametres.prixVente[recetteId] : null,
         devise: cur,
@@ -4912,6 +4923,7 @@ async function afficherCategorieAchatsMarche(commerceType, buildingId, roomId, f
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('postes-body'));
   document.getElementById('modal-postes').classList.add('open');
 }
 
@@ -5034,6 +5046,7 @@ async function doConsommerBoisson(commerceType, buildingId, roomId) {
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('postes-body'));
   document.getElementById('modal-postes').classList.add('open');
 }
 
