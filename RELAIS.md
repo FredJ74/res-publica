@@ -31,6 +31,13 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Cartes de commerces et buvettes en neuf langues — ChatGPT, 10/11/2026 (PR #685)
+
+Continuation immédiate après #683 : catalogue `i18n/commerce-menu-resources.js` avec **27 clés dans les neuf langues** couvrant menus, cartes, stocks, boutons d'achat/production, retour d'achat et fiche produit. Les quatre recettes propres au Dynamo sont traduites uniquement si leur nom français canonique correspond. Raccordement client dans `plateau-actions-illegales-rumeurs.js`, inclusion dans `plateau.html` et banc de rendu `outils/bancs/banc-i18n-commerce-menu.cjs` dans la CI. Aucune modification de PA, coût, RPC, stocks, permissions ou règles. PR [#685](https://github.com/FredJ74/res-publica/pull/685). Recette réelle des neuf langues en jeu encore distincte des tests automatisés.
+
+**Réparation préalable #684 :** l'affichage « Consulter la carte » utilisait `monnaie` sans variable locale, malgré le déploiement #682. Correctif ciblé [PR #684](https://github.com/FredJ74/res-publica/pull/684), fusionné, pipeline Dynamo vert et Vercel production READY (commit `4bc4cacd`).
+
+
 ### Internationalisation des fenêtres du bookmaker — 10/11/2026 (PR #683)
 
 Lot ChatGPT consécutif au chantier stades #682 : 29 libellés du bookmaker dans les neuf langues, nouveaux titres des quarts/demies/finale, affichage des pronostics et des montants PSK/FR, messages d'indisponibilité et date de coup d'envoi. Fichiers `i18n/sport-bets-resources.js`, `plateau-organisations-quetes.js`, `plateau.html` ; banc `outils/bancs/banc-i18n-bookmaker.cjs` intégré à la CI. Garde métier : aucun changement d'identifiant de manche/club, de pronostic, de PA, de montant ni de RPC. PR [#683](https://github.com/FredJ74/res-publica/pull/683). Une validation des neuf parcours en navigateur réel reste nécessaire, en distinguant les tests automatisés du jeu effectivement essayé.
