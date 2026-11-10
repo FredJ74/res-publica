@@ -1,6 +1,6 @@
 -- A jouer APRES la migration 20261107093000, dans la meme transaction annulee.
 -- A invite B (PJ) au restaurant du Grand Hotel de Sovarka : B accepte, A sert. Attendu : 100 PSK
--- payes par A, caisse du commerce +100, 2 menus imperiaux et 1 vin sortis du stock, +5 INF pour
+-- payes par A, caisse du commerce +100, 2 menus imperiaux et 1 champagne sovietique sortis du stock, +5 INF pour
 -- chacun ; rejeu du service sans double effet ; hors du restaurant refus pas_sur_place.
 DO $$
 DECLARE a text; ua uuid; b text; ub uuid; r jsonb; inv bigint; q text := 'diner-'||gen_random_uuid()::text;
@@ -39,12 +39,12 @@ BEGIN
   SELECT (resources->>'inf')::numeric INTO inf1 FROM public.personnages_donnees WHERE name=b;
   IF inf1 <> 55 THEN RAISE EXCEPTION 'inf B %', inf1; END IF;
   IF (s0->'stockProduits'->>'menu_sovarka_imperial')::int - (s1->'stockProduits'->>'menu_sovarka_imperial')::int <> 2
-     OR (s0->'stockProduits'->>'vin')::int - (s1->'stockProduits'->>'vin')::int <> 1 THEN RAISE EXCEPTION 'stock % -> %', s0->'stockProduits', s1->'stockProduits'; END IF;
+     OR (s0->'stockProduits'->>'grand_hotel_champagne_sovietique')::int - (s1->'stockProduits'->>'grand_hotel_champagne_sovietique')::int <> 1 THEN RAISE EXCEPTION 'stock % -> %', s0->'stockProduits', s1->'stockProduits'; END IF;
   UPDATE public.personnages_donnees SET current_room='bar' WHERE name=a;
   SET LOCAL ROLE authenticated;
   r := public.restaurant_diner_creer('diner-'||gen_random_uuid()::text, b, false, '');
   IF r->>'raison' IS DISTINCT FROM 'pas_sur_place' THEN RAISE EXCEPTION 'hors restaurant: %', r; END IF;
   RESET ROLE;
-  RAISE NOTICE 'BANC OK : debit 100, INF +5 x2, stock -2 menus -1 vin, rejeu, hors lieu refuse ; caisse % -> %',
+  RAISE NOTICE 'BANC OK : debit 100, INF +5 x2, stock -2 menus -1 champagne, rejeu, hors lieu refuse ; caisse % -> %',
     s0->>'caisse', s1->>'caisse';
 END $$;

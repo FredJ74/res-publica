@@ -89,7 +89,9 @@ def par_lecture():
        stable et verifiee par le banc (toute recette portant un paDiffere doit apparaitre ici)."""
     src = open(os.path.join(RACINE, 'plateau-actions-illegales-rumeurs.js'), encoding='utf-8').read()
     trouves = {}
-    for m in re.finditer(r"id:\s*'([a-z0-9_]+)'[\s\S]{0,900}?paDiffere:\s*(\d+)", src):
+    # Le bloc s'arrete a l'identifiant suivant : une recette sans paDiffere ne doit jamais
+    # emprunter celui de la recette qui la suit (correctif du 10/11/2026).
+    for m in re.finditer(r"id:\s*'([a-z0-9_]+)'(?:(?!\bid:\s*')[\s\S]){0,900}?paDiffere:\s*(\d+)", src):
         trouves[m.group(1)] = int(m.group(2))
     return trouves
 
