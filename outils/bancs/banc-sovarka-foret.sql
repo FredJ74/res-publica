@@ -51,7 +51,7 @@ BEGIN
   IF t3->>'raison' IS DISTINCT FROM 'rencontre_en_cours' THEN RAISE EXCEPTION 'partir pendant la rencontre: %', t3; END IF;
   SELECT public.inventaire_quantite(inventory, 'bois')::int INTO v_bois FROM public.personnages_donnees WHERE name = 'Arnie';
   SET LOCAL ROLE authenticated;
-  f1 := public.sovarka_foret_rencontre('00000000-0000-4000-8000-0000000fr001', 'fuir');
+  f1 := public.sovarka_foret_rencontre('00000000-0000-4000-8000-0000000fd001', 'fuir');
   RESET ROLE;
   IF (f1->>'ok')::boolean IS NOT TRUE OR (f1->>'bois_perdu')::int <> (t1->>'quantite')::int THEN RAISE EXCEPTION 'fuite: % (coupe %)', f1, t1; END IF;
   IF (SELECT current_room FROM public.personnages_donnees WHERE name = 'Arnie') <> 'zone_recolte'
@@ -77,7 +77,7 @@ BEGIN
   SET LOCAL ROLE authenticated;
   s1 := public.sovarka_foret_couper('00000000-0000-4000-8000-0000000fc010');
   s2 := public.sovarka_foret_couper('00000000-0000-4000-8000-0000000fc011');
-  s3 := public.sovarka_foret_rencontre('00000000-0000-4000-8000-0000000fr002', 'subir');
+  s3 := public.sovarka_foret_rencontre('00000000-0000-4000-8000-0000000fd002', 'subir');
   RESET ROLE;
   IF (s3->>'ok')::boolean IS NOT TRUE OR (SELECT pa FROM public.personnages_donnees WHERE name = 'Arnie') <> 0 THEN RAISE EXCEPTION 'subir: % / %', s2, s3; END IF;
   RAISE EXCEPTION 'banc_ok vue_tiree=% coupes=%+% creature=% alerte=% butin=%', a1->>'vue', c1->>'quantite', c2->>'quantite', v_type, c2->>'fausse_alerte', iss->'butin';
