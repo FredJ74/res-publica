@@ -1404,6 +1404,33 @@ const RUE_CENTRALE_NOEUDS = {
   }
 };
 
+// STAROVKA ET KRASNOV : FACADES DU LOT DU 10/11/2026 (reponses de Fred du 09/11 au soir). Chaque
+// facade est reperee sur l'image de la rue (enseignes) ; sorties serveur : migration 20261110004000
+// et suivantes. Les batiments sans facade (banque, dispensaire, tribunal, usine) attendent les
+// images de Fred au tour des deux villes.
+(function () {
+  const Z = (noeud, xPct, nom, buildingId, yPct) => {
+    const n = RUE_CENTRALE_NOEUDS.soviet[noeud];
+    if (!n) return;
+    n.zones = (n.zones || []).filter(z => z.buildingId !== buildingId);
+    n.zones.push({ xPct, yPct: yPct || [8, 76], nom, type: 'batiment', buildingId });
+  };
+  Z('starovka-rue-hotel', [0, 38], 'Hôtel des Voyageurs', 'hotel-mineur', [0, 72]);
+  Z('starovka-rue-petrole-ferme', [0, 22], 'Compagnie Nationale du Pétrole', 'zone-production');
+  Z('starovka-rue-logements-collectifs', [55, 100], 'Baraquement Sibirsk-9', 'logements-novomirsk');
+  Z('starovka-rue-restaurant-boutique', [0, 30], 'Restaurant « Entre terre et mer »', 'capitaine-sauvage');
+  Z('starovka-rue-mairie-marche', [30, 60], 'Marché de Starovka', 'marche');
+  Z('starovka-rue-lycee-commissariat', [60, 95], 'Lycée de l\'Avenir', 'universite');
+  Z('starovka-rue-magasin-chasse', [62, 95], 'Chasse et Pêche', 'armurerie');
+  Z('starovka-rue-locaux-a-louer', [45, 100], 'Locaux à louer', 'locaux-starovka');
+  Z('krasnov-rue-marche-ferme', [0, 50], 'Marché de Krasnov', 'marche');
+  Z('krasnov-rue-ecole-foret', [0, 35], 'École de Krasnov', 'universite');
+  Z('krasnov-rue-ecole-foret', [75, 100], 'Exploitation forestière de Krasnov', 'zone-production');
+  Z('krasnov-rue-eglise', [30, 60], 'Église du Tractorisme', 'kolkhoze-spirituel');
+  Z('krasnov-rue-station-musee', [15, 45], 'Musée de Krasnov', 'musee-novomirsk');
+  Z('krasnov-rue-tabac-bar', [0, 35], 'Bar Sever', 'cafe-tabac-cheminots-montrouge');
+})();
+
 // =====================
 // ETAT + RENDU
 // =====================

@@ -4009,10 +4009,19 @@ function renderRoomActions(room, buildingId, roomId) {
     // (Sovarka : PSK, mêmes chiffres, décision de Fred du 04/11/2026). Copie d'affichage :
     // fn, PA, coût et permissions sont inchangés.
     const deviseOrdre = (typeof cur === 'string') ? cur : 'FR';
-    const o = (deviseOrdre !== 'FR' && typeof deviseDansTexte === 'function') ? Object.assign({}, ordreSource, {
+    let o = (deviseOrdre !== 'FR' && typeof deviseDansTexte === 'function') ? Object.assign({}, ordreSource, {
       label: deviseDansTexte(ordreSource.label, deviseOrdre),
       desc: deviseDansTexte(ordreSource.desc, deviseOrdre)
     }) : ordreSource;
+    // Tarif national (Sovarka, 09/11/2026) : le serveur n'accepte que lui pour un joueur du pays.
+    const tarifNational = (typeof tarifOrdrePays === 'function') ? tarifOrdrePays(ordreSource.fn, state.country) : null;
+    if (tarifNational && (tarifNational.cost !== ordreSource.cost || tarifNational.pa !== ordreSource.pa)) {
+      o = Object.assign({}, o, {
+        pa: tarifNational.pa, cost: tarifNational.cost,
+        label: montantDansTexte(o.label, ordreSource.cost, tarifNational.cost),
+        desc: montantDansTexte(o.desc, ordreSource.cost, tarifNational.cost)
+      });
+    }
     // Le libellé d'affichage seul est traduit. L'ordre d'origine (fn, PA,
     // prix, permissions et o.label passé à doOrder) est strictement conservé.
     const libelleAffiche = (window.RPOrderI18n && window.RPPlateauI18n &&

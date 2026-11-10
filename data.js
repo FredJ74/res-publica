@@ -2319,36 +2319,6 @@ const WORLD = {
               personsVides: true
             }
           }
-        },
-        'hotel-republica': {
-          name: "Baraquement Sibirsk-9",
-          desc: "Le poele central chauffe a peine la piece la plus proche.",
-          persons: [{"name": "Responsable Baraquement (PNJ)", "role": "Gérant", "rel": "neutral", "job": "serveur"}]
-        },
-        'commissariat': {
-          name: "Poste de Vigilance Glaciale",
-          desc: "Le registre des allees et venues est tenu avec zele.",
-          persons: [{"name": "Sergent Gel (PNJ)", "role": "Sergent", "rel": "neutral", "job": "commissaire"}]
-        },
-        'banque-nationale': {
-          name: "Caisse Miniere Collective",
-          desc: "Les salaires arrivent, parfois en retard, jamais en avance.",
-          persons: [{"name": "Comptable Sibirsk (PNJ)", "role": "Comptable", "rel": "neutral", "job": "banquier"}]
-        },
-        'dispensaire-public': {
-          name: "Infirmerie du Froid",
-          desc: "Engelures et poussiere de charbon, le quotidien du medecin.",
-          persons: [{"name": "Infirmiere Frimas (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "medecin"}]
-        },
-        'la-tribune': {
-          name: "Gazette du Charbon",
-          desc: "Un feuillet hebdomadaire, imprime a la mine.",
-          persons: [{"name": "Redacteur Suie (PNJ)", "role": "Rédacteur", "rel": "neutral", "job": "journaliste"}]
-        },
-        'marche': {
-          name: "Cooperative Miniere",
-          desc: "Rations et outils, distribues selon le quota.",
-          persons: [{"name": "Gerant Cooperative (PNJ)", "role": "Gérant", "rel": "neutral", "job": "commercant"}]
         }
       }
     },
@@ -2372,11 +2342,6 @@ const WORLD = {
             }
           }
         },
-        'hotel-republica': {
-          name: "Baraquement Collectif N°7",
-          desc: "Le logement collectif du kolkhoze. Confort spartiate garanti.",
-          persons: [{"name": "Responsable Logement (PNJ)", "role": "Responsable", "rel": "neutral", "job": "serveur"}]
-        },
         // Le commissariat de Krasnov hérite intégralement des pièces et ordres
         // du commissariat-local commun à Montrouge et Port-Sainte-Marie.
         'commissariat-local': {
@@ -2387,26 +2352,6 @@ const WORLD = {
         'stade': {
           name: "Stade Étoile Rouge de Krasnov",
           desc: "Le stade de football de Krasnov, face au commissariat."
-        },
-        'banque-nationale': {
-          name: "Caisse Kolkhozienne",
-          desc: "Les bénéfices vont à l'État.",
-          persons: [{"name": "Comptable Kolkhoze (PNJ)", "role": "Comptable", "rel": "neutral", "job": "banquier"}]
-        },
-        'dispensaire-public': {
-          name: "Infirmerie du Kolkhoze",
-          desc: "Pour les accidents de tracteur.",
-          persons: [{"name": "Infirmier Rural (PNJ)", "role": "Infirmier", "rel": "neutral", "job": "medecin"}]
-        },
-        'la-tribune': {
-          name: "Affichage Mural Collectif",
-          desc: "Mises à jour hebdomadaires.",
-          persons: [{"name": "Afficheur Officiel (PNJ)", "role": "Afficheur", "rel": "neutral", "job": "journaliste"}]
-        },
-        'marche': {
-          name: "Entrepôt Collectif",
-          desc: "On y prend sa ration hebdomadaire.",
-          persons: [{"name": "Gérant Entrepôt (PNJ)", "role": "Gérant", "rel": "neutral", "job": "commercant"}]
         }
       }
     },
@@ -10659,6 +10604,29 @@ function slugPnjSovarka(nom) {
   }
 })();
 
+// TARIFS NATIONAUX (decision de Fred du 09/11/2026 au soir, reponse 6) : en Sovarka un PA vaut
+// moins, les prix courants de Republia sont divises par 2,5 environ. Miroir d'affichage de la
+// table serveur public.ordres_couts_pays (migration 20261110003000), qui seule decide : le serveur
+// refuse tout autre montant pour un joueur du pays. Policiers : 20 et 40 PSK par jour (serveur).
+const TARIFS_PAYS = {
+  soviet: {
+    prendre_train:             { pa: 2, cost: 30 },
+    prendre_bus_taxi:          { pa: 1, cost: 60 },
+    soin_public:               { pa: 0, cost: 10 },
+    transfert_clinique_privee: { pa: 0, cost: 400 },
+    prendre_licence_sportive:  { pa: 1, cost: 60 },
+    reserver_chambre_hotel:    { pa: 0, cost: 25 }
+  }
+};
+function tarifOrdrePays(fn, pays) {
+  return (TARIFS_PAYS[pays] && TARIFS_PAYS[pays][fn]) || null;
+}
+// Remplace un montant (nombre entier, mot entier) par un autre dans un libelle.
+function montantDansTexte(texte, ancien, nouveau) {
+  if (typeof texte !== 'string' || ancien === nouveau) return texte;
+  return texte.replace(new RegExp('\\b' + ancien + '\\b', 'g'), String(nouveau));
+}
+
 // STAROVKA ET KRASNOV : TEXTES DU GABARIT DE MONTROUGE (Claude, 09/11/2026, audit des deux villes).
 // Les batiments copies de Montrouge affichaient encore « de Montrouge », « Vers Luthecia ou
 // Port-Sainte-Marie », « Rachetable », le Procureur de la Republique ou le lotissement de la
@@ -10737,3 +10705,101 @@ function slugPnjSovarka(nom) {
     if (ctx) piece(ctx, 'bureau_magistrats').desc = 'Le bureau du juge populaire. Dossiers empilés, code pénal annoté, et le portrait officiel au-dessus du bureau.';
   }
 })();
+
+// STAROVKA ET KRASNOV : LOT DU 10/11/2026 (reponses de Fred du 09/11 au soir, GAME-DESIGN-NOVOMIRSK.md).
+// - Hotels : « Hotel des Voyageurs » (Starovka, comme l'enseigne), « Hotel du Kolkhoze » (Krasnov).
+// - Presse : le journal de Sovarka est « La Voix de Sovarka » ; antennes a Starovka (Saran Batbayar)
+//   et Krasnov (Anatoli Kolosov), l'agence de Novomirsk alignee.
+// - Pas de syndicat en Sovarka (les partis le remplacent) : siege syndical retire des deux villes.
+// - Batiments dessines par Fred et codables depuis le socle : marches, magasin de chasse (armurerie),
+//   restaurant « Entre terre et mer », lycee et ecole (universite), logements collectifs (« Baraquement
+//   Sibirsk-9 », logements sociaux), eglise du Tractorisme, musee, tabac-bar ; zone d'extraction du
+//   petrole (Starovka) et de la foret (Krasnov) sur la zone de production du socle ; deux locaux
+//   simples rue « locaux a louer » de Starovka, demandes a la mairie. Noms des PNJ proposes par Claude,
+//   a valider par Fred (regle : noms russes authentiques, bouriates a Starovka).
+(function () {
+  const contexte = (ville, batiment) => {
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    if (!cite) return null;
+    cite.buildingContext = cite.buildingContext || {};
+    return cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+  };
+  const piece = (ctx, id) => {
+    ctx.roomOverrides = ctx.roomOverrides || {};
+    return ctx.roomOverrides[id] = ctx.roomOverrides[id] || {};
+  };
+  const pnj = (name, role, job) => ({ name: name + ' (PNJ)', role, rel: 'neutral', job });
+  const lister = (ville, ids) => {
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    if (!cite) return;
+    cite.buildings = cite.buildings.filter(b => b !== 'siege-syndical');
+    ids.forEach(b => { if (!cite.buildings.includes(b)) cite.buildings.push(b); });
+  };
+  lister('ville_a', ['marche', 'armurerie', 'capitaine-sauvage', 'universite', 'logements-novomirsk', 'locaux-starovka']);
+  lister('ville_b', ['marche', 'universite', 'kolkhoze-spirituel', 'musee-novomirsk', 'cafe-tabac-cheminots-montrouge']);
+
+  // Hotels.
+  Object.assign(contexte('ville_a', 'hotel-mineur'), { name: 'Hôtel des Voyageurs', desc: 'L\'hôtel des voyageurs de Starovka : on y attend le train ou le bateau, au chaud, en buvant du thé au beurre.' });
+  Object.assign(contexte('ville_b', 'hotel-mineur'), { name: 'Hôtel du Kolkhoze', desc: 'L\'hôtel du kolkhoze de Krasnov : chambres simples, poêle en faïence et petit-déjeuner de la ferme.' });
+
+  // Presse : « La Voix de Sovarka ».
+  const voix = (ville, nom, journaliste) => {
+    const p = piece(contexte(ville, 'centre-affaires'), 'tribune_republia');
+    Object.assign(p, {
+      name: 'La Voix de Sovarka — Antenne de ' + nom,
+      desc: 'L\'antenne locale de La Voix de Sovarka, le journal du pays. Chaque article passe par le bureau de la censure avant d\'être imprimé.',
+      persons: [pnj(journaliste, 'Journaliste — correspondant de La Voix de Sovarka', 'journaliste')]
+    });
+  };
+  voix('ville_a', 'Starovka', 'Saran Batbayar');
+  voix('ville_b', 'Krasnov', 'Anatoli Kolosov');
+  const agence = contexte('capitale', 'la-tribune');
+  if (agence) Object.assign(agence, { name: 'La Voix de Sovarka', desc: 'L\'agence officielle de La Voix de Sovarka, le journal du pays : nouvelles de la production, communiqués du Parti et censure à l\'étage.' });
+
+  // Starovka.
+  Object.assign(contexte('ville_a', 'marche'), { name: 'Marché de Starovka', desc: 'Des étals couverts de bâches sur la place de la mairie : poisson gelé, viande de renne, thé et bonnets de fourrure.', persons: [pnj('Tuyana Dashieva', 'Marchande', 'commercant')] });
+  Object.assign(contexte('ville_a', 'armurerie'), { name: 'Chasse et Pêche', desc: 'Le magasin de chasse de Starovka (« Охота и рыбалка ») : fusils, couteaux, filets et hameçons pour la pêche sous la glace.', persons: [pnj('Bato Tsyrenov', 'Armurier', 'commercant')] });
+  Object.assign(contexte('ville_a', 'capitaine-sauvage'), { name: 'Restaurant « Entre terre et mer »', desc: 'Le restaurant de Starovka (« Между землёй и морем ») : poisson de la mer de glace et viande de renne, servis près du poêle.' });
+  Object.assign(piece(contexte('ville_a', 'capitaine-sauvage'), 'salle_principale'), { persons: [pnj('Sesegma Badmaeva', 'Serveuse', 'serveur')] });
+  Object.assign(contexte('ville_a', 'universite'), { name: 'Lycée de l\'Avenir', desc: 'Le lycée de Starovka (« Лицей будущего ») : on y prépare les cadres du Plan, entre deux tempêtes de neige.' });
+  Object.assign(piece(contexte('ville_a', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Darima Zhambalova', 'Directrice du lycée', 'professeur')] });
+  Object.assign(contexte('ville_a', 'logements-novomirsk'), { name: 'Baraquement Sibirsk-9', desc: 'Les logements collectifs de Starovka : une longue barre de béton où le poêle central chauffe à peine la pièce la plus proche. Attribués par la mairie.' });
+  Object.assign(contexte('ville_a', 'zone-production'), { name: 'Compagnie Nationale du Pétrole', desc: 'Les derricks de Starovka pompent sous la glace le pétrole de Sovarka. Les volontaires peuvent y prêter la main pour augmenter la production.' });
+
+  // Krasnov.
+  Object.assign(contexte('ville_b', 'marche'), { name: 'Marché de Krasnov', desc: 'Les étals du kolkhoze : pommes, choux, miel et conserves maison, vendus sous les tilleuls.', persons: [pnj('Nina Gorbounova', 'Marchande', 'commercant')] });
+  Object.assign(contexte('ville_b', 'universite'), { name: 'École de Krasnov', desc: 'L\'école du kolkhoze : on y apprend à lire, à compter et à réciter les rendements de la récolte.' });
+  Object.assign(piece(contexte('ville_b', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Pavel Smirnov', 'Directeur de l\'école', 'professeur')] });
+  Object.assign(contexte('ville_b', 'kolkhoze-spirituel'), { name: 'Église du Tractorisme de Krasnov', desc: 'Une église aux bulbes dorés, consacrée au Tractorisme : on y prie pour la récolte et la santé des moteurs.' });
+  const musee = contexte('ville_b', 'musee-novomirsk');
+  Object.assign(musee, { name: 'Musée de Krasnov', desc: 'Le musée du kolkhoze : machines agricoles d\'époque, records de récolte et portraits des tractoristes émérites.' });
+  ['hall', 'salle_criminels', 'salle_maires', 'salle_personnalites', 'salle_entrepreneurs', 'salle_organisations', 'salle_plumes', 'salle_honneur_militaire', 'salle_unions', 'salle_scandales']
+    .forEach(id => { piece(musee, id).personsVides = true; });
+  Object.assign(piece(musee, 'hall'), { personsVides: false, persons: [pnj('Vera Lebedeva', 'Guide du musée', 'guide')] });
+  Object.assign(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), { name: 'Bar Sever', desc: 'Le bar-tabac de Krasnov (« Бар Север ») : vodka, cigarettes, journaux du Parti et le match à la radio.' });
+  Object.assign(piece(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), 'salle'), { persons: [pnj('Grigori Zaitsev', 'Patron du bar', 'serveur')] });
+  Object.assign(contexte('ville_b', 'zone-production'), { name: 'Exploitation forestière de Krasnov', desc: 'L\'entrée de la grande forêt de Krasnov : ici, on coupe le bois en sécurité. Plus loin, sous les arbres, c\'est une autre affaire.' });
+})();
+
+// LOCAUX A LOUER DE STAROVKA (reponse 4 de Fred, 09/11/2026) : deux nouveaux locaux simples, demandes a la
+// mairie comme les autres locaux de Sovarka (sovarka_locaux, migration 20261110004000). Plafond de loyer
+// propose : 50 PSK par jour chacun (comme une boutique moyenne des centres de province), a valider.
+BUILDINGS['locaux-starovka'] = {
+  name: 'Locaux à louer',
+  shortName: 'Locaux',
+  cat: 'Économie',
+  icon: 'ti-building-store',
+  bgColor: '#121418',
+  desc: 'Deux petits locaux commerciaux de plain-pied (« Помещение в аренду »), propriété de l\'État. On les obtient en écrivant à la mairie.',
+  rooms: Object.fromEntries([1, 2].map(k => ['local_' + k, {
+    name: 'Local n°' + k,
+    imageBg: 'linear-gradient(135deg,#121418,#1a1d22)',
+    desc: 'Un local vide, des étagères, un comptoir et un poêle. Le loyer est fixé par le maire.',
+    persons: [],
+    orders: [
+      { fn: 'sovarka_demande_location', label: 'Demande de location', pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
+        desc: 'Écrire à la mairie pour demander ce local (loyer fixé par le maire, 50 PSK par jour au plus). Votre lettre rejoint les dossiers du maire ; l\'attribution se signe ensuite chez le notaire.' },
+      { fn: 'commerce_pj', label: 'Ce commerce', pa: 0, cost: 0, type: 'legal', icon: 'ti-building-store', successRate: 100, desc: 'Gérer votre commerce, ou visiter la boutique du commerçant.' }
+    ]
+  }]))
+};

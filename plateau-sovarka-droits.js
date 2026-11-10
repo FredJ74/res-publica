@@ -317,10 +317,14 @@ function sovarkaRejeterSaisine(id) {
 async function ouvrirSovarkaTerrain() {
   const l = await sovLire();
   if (!l) { showToast('Terrain', 'Lecture impossible auprès du serveur.', false); return; }
-  const i = l.immeubles.find(x => x.ville === state.currentCity && x.terrain === state.currentBuilding);
-  const html = !i ? '<p>Terrain libre. La mairie y construira un immeuble collectif quand des dossiers de commerce attendront un local.</p>'
-    : '<p>Immeuble collectif : ' + i.nb_commerces + ' local(aux) commercial(aux)' + (i.nb_logements ? ' et ' + i.nb_logements + ' logement(s)' : '') +
-      ' — ' + (SOV_IMMEUBLES[i.statut] || i.statut) + (i.statut === 'en_chantier' ? ', livraison le ' + sovEsc(i.livraison_le) : '') + '.</p>';
+  // Un terrain peut porter plusieurs parcelles (Starovka : 4, decision de Fred du 09/11/2026) :
+  // le serveur nomme la parcelle n « terrain@pn ».
+  const parcelle = t => (String(t).split('@')[1] || 'p1').slice(1);
+  const imm = l.immeubles.filter(x => x.ville === state.currentCity && String(x.terrain).split('@')[0] === state.currentBuilding);
+  const html = !imm.length ? '<p>Terrain libre. La mairie y construira un immeuble collectif quand des dossiers de commerce attendront un local.</p>'
+    : imm.map(i => '<p>' + (imm.length > 1 || String(i.terrain).includes('@') ? 'Parcelle ' + parcelle(i.terrain) + ' — ' : '') +
+      'Immeuble collectif : ' + i.nb_commerces + ' local(aux) commercial(aux)' + (i.nb_logements ? ' et ' + i.nb_logements + ' logement(s)' : '') +
+      ' — ' + (SOV_IMMEUBLES[i.statut] || i.statut) + (i.statut === 'en_chantier' ? ', livraison le ' + sovEsc(i.livraison_le) : '') + '.</p>').join('');
   vehModal('Terrain municipal', html);
   if (typeof rafraichirPiecesDynamiques === 'function') rafraichirPiecesDynamiques(state.currentBuilding);
 }
@@ -330,8 +334,8 @@ async function ouvrirSovarkaTerrain() {
 function sovarkaPiecesImmeuble(buildingId) {
   if (typeof state === 'undefined' || state.country !== 'soviet' || !sovarkaDroitsCache) return [];
   const ville = state.currentCity;
-  const i = (sovarkaDroitsCache.immeubles || []).find(x => x.ville === ville && x.terrain === buildingId && x.statut === 'livre');
-  if (!i) return [];
+  const livres = (sovarkaDroitsCache.immeubles || []).filter(x => x.ville === ville && String(x.terrain).split('@')[0] === buildingId && x.statut === 'livre');
+  if (!livres.length) return [];
   const fond = 'linear-gradient(135deg,#121418,#1a1d22)';
   const pieces = (sovarkaDroitsCache.locaux || []).filter(x => x.ville === ville && x.batiment === buildingId).map(x => [x.piece, {
     name: x.label, desc: 'Local commercial de l’immeuble collectif, propriété de l’État. ' + (x.exploitant ? 'Exploité par ' + x.exploitant + '.' : 'Attribué par la mairie.'),
@@ -342,10 +346,12 @@ function sovarkaPiecesImmeuble(buildingId) {
       { fn: 'gerer_local', label: 'Gérer mon local', pa: 1, cost: 0, type: 'legal', icon: 'ti-settings', successRate: 100 }
     ]
   }]);
-  for (let k = 1; k <= (i.nb_logements || 0); k++) {
-    pieces.push(['logement_' + k, {
-      name: 'Logement n°' + k, desc: 'Un logement social de l’immeuble collectif, attribué par la mairie.', imageBg: fond, isLocationRoom: true, persons: [],
-      locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Logement n°' + k, logementSocial: true,
+  for (const i of livres) for (let k = 1; k <= (i.nb_logements || 0); k++) {
+    const prefixe = String(i.terrain).includes('@') ? String(i.terrain).split('@')[1] + '_' : '';
+    const nom = (prefixe ? 'Parcelle ' + prefixe.slice(1, -1) + ' — logement n°' : 'Logement n°') + k;
+    pieces.push([prefixe + 'logement_' + k, {
+      name: nom, desc: 'Un logement social de l’immeuble collectif, attribué par la mairie.', imageBg: fond, isLocationRoom: true, persons: [],
+      locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: nom, logementSocial: true,
         orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
       orders: [{ fn: 'gerer_logement_social', label: 'Mon logement', pa: 0, cost: 0, type: 'legal', icon: 'ti-home-cog', successRate: 100,
         desc: 'Voir les conditions de votre bail, si vous êtes le locataire de ce logement.' }]

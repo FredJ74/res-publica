@@ -2596,7 +2596,9 @@ function ouvrirModalTransport(mode) {
     showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de voyager avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s)).', false);
     return;
   }
-  const config = TRANSPORT_CONFIG[mode];
+  // Tarif national (Sovarka, 09/11/2026) : affichage seulement, le serveur fixe le prix.
+  const tarifNational = (typeof tarifOrdrePays === 'function' && TRANSPORT_CONFIG[mode]) ? tarifOrdrePays(TRANSPORT_CONFIG[mode].ordre, state.country) : null;
+  const config = tarifNational ? Object.assign({}, TRANSPORT_CONFIG[mode], tarifNational) : TRANSPORT_CONFIG[mode];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const pays = state.country || 'republic';
   const isInter = config.type === 'inter';
