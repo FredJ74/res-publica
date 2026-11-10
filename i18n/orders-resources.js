@@ -948,7 +948,6 @@
   const sportJustice = {
     "fr": {
       "tenue_match": "Mettre la tenue de match",
-      "consommer_buvette": "Prendre un verre",
       "choisir_accessoire_club": "Acheter un accessoire",
       "acheter_accessoire_personnalise": "Acheter un accessoire personnalisé",
       "parier_match": "Parier sur un match",
@@ -970,7 +969,6 @@
     },
     "en": {
       "tenue_match": "Put on match kit",
-      "consommer_buvette": "Have a drink",
       "choisir_accessoire_club": "Buy an accessory",
       "acheter_accessoire_personnalise": "Buy a personalised accessory",
       "parier_match": "Bet on a match",
@@ -992,7 +990,6 @@
     },
     "es": {
       "tenue_match": "Ponerse la equipación de partido",
-      "consommer_buvette": "Tomar algo",
       "choisir_accessoire_club": "Comprar un accesorio",
       "acheter_accessoire_personnalise": "Comprar un accesorio personalizado",
       "parier_match": "Apostar por un partido",
@@ -1014,7 +1011,6 @@
     },
     "zh-TW": {
       "tenue_match": "換上比賽球衣",
-      "consommer_buvette": "喝一杯",
       "choisir_accessoire_club": "購買配件",
       "acheter_accessoire_personnalise": "購買客製化配件",
       "parier_match": "投注一場比賽",
@@ -1036,7 +1032,6 @@
     },
     "ru": {
       "tenue_match": "Надеть игровую форму",
-      "consommer_buvette": "Выпить",
       "choisir_accessoire_club": "Купить аксессуар",
       "acheter_accessoire_personnalise": "Купить персонализированный аксессуар",
       "parier_match": "Сделать ставку на матч",
@@ -1058,7 +1053,6 @@
     },
     "ko": {
       "tenue_match": "경기 유니폼 착용",
-      "consommer_buvette": "한 잔 마시기",
       "choisir_accessoire_club": "액세서리 구매",
       "acheter_accessoire_personnalise": "맞춤형 액세서리 구매",
       "parier_match": "경기에 베팅하기",
@@ -1080,7 +1074,6 @@
     },
     "ar": {
       "tenue_match": "ارتداء زي المباراة",
-      "consommer_buvette": "تناول مشروب",
       "choisir_accessoire_club": "شراء إكسسوار",
       "acheter_accessoire_personnalise": "شراء إكسسوار مخصص",
       "parier_match": "المراهنة على مباراة",
@@ -1102,7 +1095,6 @@
     },
     "pt-BR": {
       "tenue_match": "Vestir o uniforme de jogo",
-      "consommer_buvette": "Tomar uma bebida",
       "choisir_accessoire_club": "Comprar um acessório",
       "acheter_accessoire_personnalise": "Comprar um acessório personalizado",
       "parier_match": "Apostar em uma partida",
@@ -1124,7 +1116,6 @@
     },
     "de": {
       "tenue_match": "Spieltrikot anziehen",
-      "consommer_buvette": "Etwas trinken",
       "choisir_accessoire_club": "Ein Accessoire kaufen",
       "acheter_accessoire_personnalise": "Ein personalisiertes Accessoire kaufen",
       "parier_match": "Auf ein Spiel wetten",
