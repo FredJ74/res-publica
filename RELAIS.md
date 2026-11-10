@@ -34,6 +34,10 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Cartes des restaurants de Sovarka — Claude, 10/11/2026 (soir), branche `claude/cartes-restaurants-sovarka-20261110`
+
+Décisions de Fred (22 h 27 – 22 h 45) dans `GAME-DESIGN-NOVOMIRSK.md`, « Cartes des restaurants de Sovarka ». **Fait** : 14 recettes locales (La Mère Volga, « Entre terre et mer », Bar Sever, extras du Grand Hôtel), plats français et vin réservés à la Républia, dotations `@soviet.ville` (nouveau : `entreprise_assurer_existence` lit d'abord `bâtiment|pièce@pays.ville`), carte du Grand Hôtel nettoyée, dîner d'affaires du Grand Hôtel au champagne soviétique. Migrations **appliquées** (`20261110230000_sovarka_cartes_restaurants`, complément dîner) ; contrôles : création à blanc de la Mère Volga, de Starovka et du Bar Sever avec leur carte, témoin PSM inchangé ; banc annulé du dîner du Grand Hôtel vert. **NE PAS RÉAPPLIQUER.** Écran : `RECETTES_ALIMENTAIRES` (`plateau-actions-illegales-rumeurs.js`). **Reste** : marché de Krasnov qui hérite de `marche@ville_b` (objets de Montrouge) — à signaler à Fred. **À constater en jeu** : consulter la carte de la Mère Volga, d'« Entre terre et mer », du Bar Sever et du Grand Hôtel ; plus de bœuf bourguignon ni de vin en Sovarka ; dîner d'affaires au Grand Hôtel.
+
 ### Matériels par combinaison — Claude, 10/11/2026 (soir), branche `claude/equipements-combos-20261110`
 
 **Décisions** : séance de Fred du 10/11, 20 h 53 – 21 h 30, **19 décisions** consignées dans `GAME-DESIGN-EQUIPEMENTS.md` (surveillance, Fouiller les lieux et Couinator, piratage à 5 cibles, dossiers et stockage, imprimantes et banque de plans 3D, vol de matériel, matériel des organisations, intranet). **Feu vert de Fred : coder en session de nuit**, sauf la décision 19 lancée dès 21 h 32.

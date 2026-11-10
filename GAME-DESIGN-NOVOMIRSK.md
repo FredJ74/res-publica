@@ -533,3 +533,23 @@ pétrole et du bois devra d'abord passer au serveur (règle « une seule réalit
     tous les autres anciens noms sont supprimés.
 11. **Route de Starovka** : **aucune, voulu** (train et bateau seulement). Piste écartée pour l'instant : la motoneige
     (il faudrait de la neige dans les autres villes).
+
+### Cartes des restaurants de Sovarka (Fred, 10/11/2026, 22 h 27 – 22 h 45)
+
+1. **En Sovarka, plus aucun plat français ni vin** : les plats génériques de la Républia (bœuf bourguignon, saucisse-purée,
+   plat de poisson, petit-déjeuner, vin, carbonade-frites, sandwich des cheminots) sont réservés à la Républia ; bière, café,
+   boissons sans alcool et cacahuètes restent communs.
+2. **La Mère Volga** (Novomirsk) : Menu du Prolétaire (chtchi, kacha de sarrasin, kissel de canneberge), Menu du Stakhanoviste
+   (vinegret, côtelettes Pojarski, syrniki), Menu du Jour de Repos (hareng sous fourrure, golubtsy, blinis à la confiture).
+3. **« Entre terre et mer »** (Starovka) : Menu du Pêcheur des Glaces (stroganina, oukha, airelles au miel), Menu de l'Éleveur
+   (bouillon de renne, bouzy, boortsog), Menu Terre et Mer (chou de mer, omoul fumé et côtes de renne, crème de lait de renne).
+4. **Bar Sever** (Krasnov) : tartine de salo et cornichons, solianka, petit-déjeuner du kolkhozien, verre de vodka, thé au samovar.
+5. **Grand Hôtel de Novomirsk** : ses trois menus, plus zakouski, champagne soviétique et vodka impériale glacée (8 PSK fixes).
+
+**Codé le 10/11 (feu vert de Fred à 22 h 45)** : migration `20261110230000_sovarka_cartes_restaurants` appliquée (registres
+`sovarka_cartes_restaurants_20261110230000` et `sovarka_diner_champagne_20261110230500`). Prix PNJ : formule commune
+(2 × coût de revient) à l'échelle de Sovarka — menus 6 PSK, plats du Bar Sever 5, boissons 2 à 3. Socle : une dotation de
+commerce peut viser un pays et une ville (clé `bâtiment|pièce@pays.ville`, prioritaire sur `@ville`). **Choix technique** : le
+dîner d'affaires du Grand Hôtel sert désormais une bouteille de **champagne soviétique** au lieu du vin (banc
+`banc-diner-grand-hotel-sovarka.sql` vert). **Reste signalé** : le marché de Krasnov hérite encore de la dotation
+`marche@ville_b` de Montrouge (casquette et cartes postales de Montrouge, carbonade).

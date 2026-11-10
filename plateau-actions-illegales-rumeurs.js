@@ -3149,7 +3149,7 @@ const RECETTES_ALIMENTAIRES = {
     id: 'boeuf_bourguignon', label: 'Bœuf bourguignon — plat du jour', categorie: 'plat', image: null,
     materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 5,
     effets: { hp: 8, moral: 2 },
-    typesAutorises: ['cafe', 'brasserie'], villesAutorisees: null, buildingsAutorises: null
+    typesAutorises: ['cafe', 'brasserie'], paysAutorises: ['republic'], villesAutorisees: null, buildingsAutorises: null
   },
   // Sandwich jambon-beurre-cornichon (Cafe/Bar des Cheminots, 30 aout 2026) : identite propre
   // distincte du boeuf bourguignon du Cafe de la Gare (demande explicite de Fred). Le cornichon
@@ -3164,7 +3164,7 @@ const RECETTES_ALIMENTAIRES = {
     id: 'sandwich_cheminots', label: 'Sandwich jambon-beurre-cornichon', categorie: 'plat', image: null,
     materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 5,
     effets: { hp: 5, moral: 1 },
-    typesAutorises: ['cafe'], villesAutorisees: null, buildingsAutorises: ['cafe-tabac-cheminots-montrouge'],
+    typesAutorises: ['cafe'], paysAutorises: ['republic'], villesAutorisees: null, buildingsAutorises: ['cafe-tabac-cheminots-montrouge'],
     prixFixe: true
   },
 
@@ -3178,19 +3178,19 @@ const RECETTES_ALIMENTAIRES = {
     image: 'images/montrouge/montrouge-plat-carbonade.jpg',
     materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 5,
     effets: { hp: 8, moral: 3 },
-    typesAutorises: ['brasserie'], villesAutorisees: ['ville_b'], buildingsAutorises: null
+    typesAutorises: ['brasserie'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: null
   },
   plat_de_poisson: {
     id: 'plat_de_poisson', label: 'Plat de poisson', categorie: 'plat', image: null,
     materiaux: { cereales: 1, poisson: 1 }, pa: 1, portions: 5,
     effets: { hp: 8, moral: 2 },
-    typesAutorises: ['brasserie'], villesAutorisees: null, buildingsAutorises: null
+    typesAutorises: ['brasserie'], paysAutorises: ['republic'], villesAutorisees: null, buildingsAutorises: null
   },
   saucisse_puree: {
     id: 'saucisse_puree', label: 'Saucisse-purée', categorie: 'plat', image: null,
     materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 5,
     effets: { hp: 8, moral: 2 },
-    typesAutorises: ['brasserie'], villesAutorisees: null, buildingsAutorises: null
+    typesAutorises: ['brasserie'], paysAutorises: ['republic'], villesAutorisees: null, buildingsAutorises: null
   },
 
   // Hotel Mineur (Montrouge, lot 4/6) : pas de restaurant, une petite offre de petit-dejeuner
@@ -3200,7 +3200,7 @@ const RECETTES_ALIMENTAIRES = {
     id: 'petit_dejeuner', label: 'Petit-déjeuner', categorie: 'petit_dej', image: null,
     materiaux: { cereales: 1 }, pa: 1, portions: 10,
     effets: { hp: 3, moral: 1 },
-    typesAutorises: ['cafe'], villesAutorisees: null, buildingsAutorises: null
+    typesAutorises: ['cafe'], paysAutorises: ['republic'], villesAutorisees: null, buildingsAutorises: null
   },
 
   // Buvette de stade (lot 5/6) : alcool comme vraie matiere stockee, consommee a la commande
@@ -3299,7 +3299,7 @@ const RECETTES_ALIMENTAIRES = {
     // (DOTATIONS_COMMERCE_PILOTE) -- celle de Montrouge ne liste toujours que ses 3 plats.
     // 'bar' ajoute (correctif boucle nourriture Luthecia, 22 aout 2026) : meme principe, pour le
     // Bar du Republica desormais Cafe/Biere/Vin.
-    typesAutorises: ['cafe', 'brasserie', 'bar'], villesAutorisees: null, buildingsAutorises: null
+    typesAutorises: ['cafe', 'brasserie', 'bar'], paysAutorises: ['republic'], villesAutorisees: null, buildingsAutorises: null
   },
 
   // Carte gastronomique Le Republica (21 aout 2026) -- remplace l'ancienne carte provisoire
@@ -3441,6 +3441,123 @@ const RECETTES_ALIMENTAIRES = {
     effets: { hp: 10, moral: 1, paDiffere: 3 },
     typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['hotel-republica'],
     prixFixe: 40
+  },
+  // Cartes des restaurants de Sovarka (decisions de Fred du 10/11/2026 au soir) : plats locaux, plus de plats
+  // francais ni de vin en Sovarka. Serveur : migration 20261110230000_sovarka_cartes_restaurants (dotations
+  // « @soviet.ville », prix PNJ 2 x cout de revient a l'echelle de Sovarka).
+  volga_menu_proletaire: {
+    id: 'volga_menu_proletaire',
+    label: 'Menu du Prolétaire — Soupe aux choux (chtchi), Kacha de sarrasin au beurre, Kissel de canneberge',
+    categorie: 'menu', image: null,
+    materiaux: { cereales: 1, fruits_legumes: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['capitaine-sauvage']
+  },
+  volga_menu_stakhanoviste: {
+    id: 'volga_menu_stakhanoviste',
+    label: 'Menu du Stakhanoviste — Salade vinegret de betteraves, Côtelettes Pojarski et pommes de terre, Syrniki à la crème aigre',
+    categorie: 'menu', image: null,
+    materiaux: { viande: 1, cereales: 1, fruits_legumes: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['capitaine-sauvage']
+  },
+  volga_menu_repos: {
+    id: 'volga_menu_repos',
+    label: 'Menu du Jour de Repos — Hareng sous fourrure, Golubtsy (choux farcis), Blinis à la confiture',
+    categorie: 'menu', image: null,
+    materiaux: { poisson: 1, viande: 1, cereales: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['capitaine-sauvage']
+  },
+  starovka_menu_pecheur: {
+    id: 'starovka_menu_pecheur',
+    label: 'Menu du Pêcheur des Glaces — Stroganina (poisson cru gelé), Oukha (soupe de poisson), Airelles au miel',
+    categorie: 'menu', image: null,
+    materiaux: { poisson: 2, fruits_legumes: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['capitaine-sauvage']
+  },
+  starovka_menu_eleveur: {
+    id: 'starovka_menu_eleveur',
+    label: 'Menu de l\'Éleveur — Bouillon de renne, Bouzy (raviolis vapeur bouriates), Beignets boortsog',
+    categorie: 'menu', image: null,
+    materiaux: { viande: 2, cereales: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['capitaine-sauvage']
+  },
+  starovka_menu_terre_mer: {
+    id: 'starovka_menu_terre_mer',
+    label: 'Menu Terre et Mer — Salade de chou de mer, Omoul fumé et côtes de renne grillées, Crème de lait de renne au sucre',
+    categorie: 'menu', image: null,
+    materiaux: { poisson: 1, viande: 1, laitages: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['capitaine-sauvage']
+  },
+  sever_tartine_salo: {
+    id: 'sever_tartine_salo',
+    label: 'Tartine de salo et cornichons',
+    categorie: 'plat', image: null,
+    materiaux: { viande: 1, cereales: 1 }, pa: 1, portions: 8,
+    effets: { hp: 5, moral: 1 },
+    typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['cafe-tabac-cheminots-montrouge']
+  },
+  sever_solianka: {
+    id: 'sever_solianka',
+    label: 'Solianka — plat du jour',
+    categorie: 'plat', image: null,
+    materiaux: { viande: 1, fruits_legumes: 1 }, pa: 1, portions: 8,
+    effets: { hp: 8, moral: 2 },
+    typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['cafe-tabac-cheminots-montrouge']
+  },
+  sever_petit_dejeuner: {
+    id: 'sever_petit_dejeuner',
+    label: 'Petit-déjeuner du kolkhozien (kacha au lait, pain noir, thé)',
+    categorie: 'petit_dej', image: null,
+    materiaux: { cereales: 1 }, pa: 1, portions: 10,
+    effets: { hp: 3, moral: 1 },
+    typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['cafe-tabac-cheminots-montrouge']
+  },
+  sever_vodka: {
+    id: 'sever_vodka',
+    label: 'Verre de vodka',
+    categorie: 'boisson', image: null,
+    materiaux: { alcool: 1 }, pa: 1, portions: 15,
+    effets: { moral: 2 },
+    typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['cafe-tabac-cheminots-montrouge']
+  },
+  sever_the_samovar: {
+    id: 'sever_the_samovar',
+    label: 'Thé au samovar',
+    categorie: 'boisson', image: null,
+    materiaux: { produits_exotiques: 1 }, pa: 1, portions: 15,
+    effets: { moral: 2 },
+    typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['cafe-tabac-cheminots-montrouge']
+  },
+  grand_hotel_zakouski: {
+    id: 'grand_hotel_zakouski',
+    label: 'Zakouski (cornichons, harengs, œufs de saumon)',
+    categorie: 'snack', image: null,
+    materiaux: { poisson: 1 }, pa: 1, portions: 15,
+    effets: { hp: 2, moral: 1 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['hotel-republica']
+  },
+  grand_hotel_champagne_sovietique: {
+    id: 'grand_hotel_champagne_sovietique',
+    label: 'Champagne soviétique (Sovetskoïe Shampanskoïe)',
+    categorie: 'boisson', image: null,
+    materiaux: { fruits_legumes: 2 }, pa: 2, portions: 9,
+    effets: { moral: 2 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['hotel-republica'],
+    prixFixe: 8
+  },
+  grand_hotel_vodka_imperiale: {
+    id: 'grand_hotel_vodka_imperiale',
+    label: 'Vodka impériale glacée',
+    categorie: 'boisson', image: null,
+    materiaux: { cereales: 2 }, pa: 2, portions: 9,
+    effets: { moral: 2 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['hotel-republica'],
+    prixFixe: 8
   },
 
   // Menus gastronomiques du Capitaine Sauvage (Port-Sainte-Marie, 23 aout 2026) -- carte propre a
