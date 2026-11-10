@@ -452,6 +452,309 @@
 
  for(const [locale,labels] of Object.entries(mairie)) Object.assign(localized[locale],labels);
  for(const [locale,labels] of Object.entries(embassies)) Object.assign(localized[locale],labels);
+ // Pièces de Novomirsk/Krasnov, identifiants séparés pour éviter toute collision de salles homonymes.
+ // Résolution strictement par bâtiment + pièce + libellé français : aucune navigation changée.
+ const extraRoomScopes={
+  "musee-novomirsk": {
+    "hall": [
+      "novoMuseumHall",
+      "Hall d'accueil"
+    ],
+    "salle_criminels": [
+      "novoMuseumCriminals",
+      "Salle des Grands Criminels Novomirskois"
+    ],
+    "salle_maires": [
+      "novoMuseumMayors",
+      "Salle des Présidents du Soviet municipal"
+    ],
+    "salle_personnalites": [
+      "novoMuseumHeroes",
+      "Salle des Héros du Peuple"
+    ],
+    "salle_entrepreneurs": [
+      "novoMuseumBuilders",
+      "Salle des Grands Bâtisseurs de la Production"
+    ],
+    "salle_organisations": [
+      "novoMuseumOrgs",
+      "Salle des Organisations Novomirskoises"
+    ],
+    "salle_plumes": [
+      "novoMuseumWriters",
+      "Salle des Plumes Novomirskoises"
+    ],
+    "salle_honneur_militaire": [
+      "novoMuseumMilitary",
+      "Salle d'Honneur Militaire"
+    ],
+    "salle_unions": [
+      "novoMuseumUnions",
+      "Salle des Unions Célèbres"
+    ],
+    "salle_scandales": [
+      "novoMuseumScandals",
+      "Salle des Scandales et Affaires"
+    ]
+  },
+  "garage-novomirsk": {
+    "atelier_garage": [
+      "novoGarageWorkshop",
+      "Atelier"
+    ]
+  },
+  "salon-coiffure-novomirsk": {
+    "salon_coiffure": [
+      "novoHairSalon",
+      "Salon"
+    ]
+  },
+  "pharmacie-officielle-novomirsk": {
+    "comptoir_pharmacie": [
+      "novoPharmacyCounter",
+      "Comptoir"
+    ]
+  },
+  "poissonniere-novomirsk": {
+    "etal_poissonniere": [
+      "novoFishStall",
+      "Étal"
+    ]
+  },
+  "station-service-krasnov": {
+    "boutique_station": [
+      "krasnovFuelShop",
+      "Boutique"
+    ]
+  },
+  "siege-renseignement": {
+    "accueil_renseignement": [
+      "intelReception",
+      "Accueil"
+    ],
+    "salle_ecoutes": [
+      "intelListeningRoom",
+      "Salle des Écoutes"
+    ],
+    "salle_interrogatoire_renseignement": [
+      "intelInterrogationRoom",
+      "Salle d'Interrogatoire"
+    ]
+  },
+  "entrepot-logistique-novomirsk": {
+    "salle_ventes": [
+      "novoWarehouseSales",
+      "Salle des Ventes"
+    ],
+    "bureau_direction": [
+      "novoWarehouseDirector",
+      "Bureau de Direction"
+    ]
+  }
+};
+ const extraRoomWords={
+  "fr": {
+    "novoMuseumHall": "Hall d'accueil",
+    "novoMuseumCriminals": "Salle des Grands Criminels Novomirskois",
+    "novoMuseumMayors": "Salle des Présidents du Soviet municipal",
+    "novoMuseumHeroes": "Salle des Héros du Peuple",
+    "novoMuseumBuilders": "Salle des Grands Bâtisseurs de la Production",
+    "novoMuseumOrgs": "Salle des Organisations Novomirskoises",
+    "novoMuseumWriters": "Salle des Plumes Novomirskoises",
+    "novoMuseumMilitary": "Salle d'Honneur Militaire",
+    "novoMuseumUnions": "Salle des Unions Célèbres",
+    "novoMuseumScandals": "Salle des Scandales et Affaires",
+    "novoGarageWorkshop": "Atelier",
+    "novoHairSalon": "Salon",
+    "novoPharmacyCounter": "Comptoir",
+    "novoFishStall": "Étal",
+    "krasnovFuelShop": "Boutique",
+    "intelReception": "Accueil",
+    "intelListeningRoom": "Salle des Écoutes",
+    "intelInterrogationRoom": "Salle d'Interrogatoire",
+    "novoWarehouseSales": "Salle des Ventes",
+    "novoWarehouseDirector": "Bureau de Direction"
+  },
+  "en": {
+    "novoMuseumHall": "Reception Hall",
+    "novoMuseumCriminals": "Hall of Notorious Novomirsk Criminals",
+    "novoMuseumMayors": "Hall of Municipal Soviet Chairpersons",
+    "novoMuseumHeroes": "Hall of the People's Heroes",
+    "novoMuseumBuilders": "Hall of the Great Builders of Production",
+    "novoMuseumOrgs": "Hall of Novomirsk Organisations",
+    "novoMuseumWriters": "Hall of Novomirsk Writers",
+    "novoMuseumMilitary": "Military Hall of Honour",
+    "novoMuseumUnions": "Hall of Famous Unions",
+    "novoMuseumScandals": "Hall of Scandals and Affairs",
+    "novoGarageWorkshop": "Workshop",
+    "novoHairSalon": "Hair Salon",
+    "novoPharmacyCounter": "Pharmacy Counter",
+    "novoFishStall": "Fish Stall",
+    "krasnovFuelShop": "Petrol Station Shop",
+    "intelReception": "Intelligence Reception",
+    "intelListeningRoom": "Listening Room",
+    "intelInterrogationRoom": "Interrogation Room",
+    "novoWarehouseSales": "Sales Room",
+    "novoWarehouseDirector": "Director's Office"
+  },
+  "es": {
+    "novoMuseumHall": "Vestíbulo de recepción",
+    "novoMuseumCriminals": "Sala de los grandes criminales de Novomirsk",
+    "novoMuseumMayors": "Sala de los presidentes del Sóviet municipal",
+    "novoMuseumHeroes": "Sala de los héroes del pueblo",
+    "novoMuseumBuilders": "Sala de los grandes constructores de la producción",
+    "novoMuseumOrgs": "Sala de las organizaciones de Novomirsk",
+    "novoMuseumWriters": "Sala de los escritores de Novomirsk",
+    "novoMuseumMilitary": "Sala de honor militar",
+    "novoMuseumUnions": "Sala de las uniones célebres",
+    "novoMuseumScandals": "Sala de escándalos y asuntos",
+    "novoGarageWorkshop": "Taller",
+    "novoHairSalon": "Peluquería",
+    "novoPharmacyCounter": "Mostrador de farmacia",
+    "novoFishStall": "Puesto de pescado",
+    "krasnovFuelShop": "Tienda de la gasolinera",
+    "intelReception": "Recepción de inteligencia",
+    "intelListeningRoom": "Sala de escuchas",
+    "intelInterrogationRoom": "Sala de interrogatorios",
+    "novoWarehouseSales": "Sala de ventas",
+    "novoWarehouseDirector": "Despacho de dirección"
+  },
+  "zh-TW": {
+    "novoMuseumHall": "接待大廳",
+    "novoMuseumCriminals": "諾沃米爾斯克重大罪犯展廳",
+    "novoMuseumMayors": "市蘇維埃主席展廳",
+    "novoMuseumHeroes": "人民英雄展廳",
+    "novoMuseumBuilders": "生產建設功臣展廳",
+    "novoMuseumOrgs": "諾沃米爾斯克組織展廳",
+    "novoMuseumWriters": "諾沃米爾斯克文人展廳",
+    "novoMuseumMilitary": "軍事榮譽展廳",
+    "novoMuseumUnions": "著名聯盟展廳",
+    "novoMuseumScandals": "醜聞與案件展廳",
+    "novoGarageWorkshop": "維修工坊",
+    "novoHairSalon": "理髮店",
+    "novoPharmacyCounter": "藥房櫃檯",
+    "novoFishStall": "魚販攤位",
+    "krasnovFuelShop": "加油站商店",
+    "intelReception": "情報部門接待處",
+    "intelListeningRoom": "監聽室",
+    "intelInterrogationRoom": "訊問室",
+    "novoWarehouseSales": "銷售大廳",
+    "novoWarehouseDirector": "主管辦公室"
+  },
+  "ru": {
+    "novoMuseumHall": "Приёмный зал",
+    "novoMuseumCriminals": "Зал известных преступников Новомирска",
+    "novoMuseumMayors": "Зал председателей городского Совета",
+    "novoMuseumHeroes": "Зал народных героев",
+    "novoMuseumBuilders": "Зал великих строителей производства",
+    "novoMuseumOrgs": "Зал организаций Новомирска",
+    "novoMuseumWriters": "Зал писателей Новомирска",
+    "novoMuseumMilitary": "Зал воинской славы",
+    "novoMuseumUnions": "Зал знаменитых союзов",
+    "novoMuseumScandals": "Зал скандалов и дел",
+    "novoGarageWorkshop": "Мастерская",
+    "novoHairSalon": "Парикмахерская",
+    "novoPharmacyCounter": "Аптечный прилавок",
+    "novoFishStall": "Рыбный прилавок",
+    "krasnovFuelShop": "Магазин автозаправки",
+    "intelReception": "Приёмная разведки",
+    "intelListeningRoom": "Комната прослушивания",
+    "intelInterrogationRoom": "Комната допросов",
+    "novoWarehouseSales": "Торговый зал",
+    "novoWarehouseDirector": "Кабинет директора"
+  },
+  "ko": {
+    "novoMuseumHall": "안내 홀",
+    "novoMuseumCriminals": "노보미르스크 주요 범죄자 전시실",
+    "novoMuseumMayors": "시 소비에트 의장 전시실",
+    "novoMuseumHeroes": "인민 영웅 전시실",
+    "novoMuseumBuilders": "생산 건설 공로자 전시실",
+    "novoMuseumOrgs": "노보미르스크 단체 전시실",
+    "novoMuseumWriters": "노보미르스크 작가 전시실",
+    "novoMuseumMilitary": "군사 명예 전시실",
+    "novoMuseumUnions": "유명한 연합 전시실",
+    "novoMuseumScandals": "스캔들과 사건 전시실",
+    "novoGarageWorkshop": "정비 작업장",
+    "novoHairSalon": "미용실",
+    "novoPharmacyCounter": "약국 계산대",
+    "novoFishStall": "생선 가판대",
+    "krasnovFuelShop": "주유소 매점",
+    "intelReception": "정보기관 접수처",
+    "intelListeningRoom": "도청실",
+    "intelInterrogationRoom": "심문실",
+    "novoWarehouseSales": "판매실",
+    "novoWarehouseDirector": "소장실"
+  },
+  "ar": {
+    "novoMuseumHall": "قاعة الاستقبال",
+    "novoMuseumCriminals": "قاعة كبار المجرمين في نوفوميرسك",
+    "novoMuseumMayors": "قاعة رؤساء المجلس البلدي",
+    "novoMuseumHeroes": "قاعة أبطال الشعب",
+    "novoMuseumBuilders": "قاعة كبار بناة الإنتاج",
+    "novoMuseumOrgs": "قاعة منظمات نوفوميرسك",
+    "novoMuseumWriters": "قاعة أدباء نوفوميرسك",
+    "novoMuseumMilitary": "قاعة الشرف العسكري",
+    "novoMuseumUnions": "قاعة الاتحادات الشهيرة",
+    "novoMuseumScandals": "قاعة الفضائح والقضايا",
+    "novoGarageWorkshop": "ورشة العمل",
+    "novoHairSalon": "صالون تصفيف الشعر",
+    "novoPharmacyCounter": "منضدة الصيدلية",
+    "novoFishStall": "بسطة بيع الأسماك",
+    "krasnovFuelShop": "متجر محطة الوقود",
+    "intelReception": "استقبال الاستخبارات",
+    "intelListeningRoom": "غرفة التنصّت",
+    "intelInterrogationRoom": "غرفة الاستجواب",
+    "novoWarehouseSales": "قاعة المبيعات",
+    "novoWarehouseDirector": "مكتب المدير"
+  },
+  "pt-BR": {
+    "novoMuseumHall": "Hall de recepção",
+    "novoMuseumCriminals": "Sala dos grandes criminosos de Novomirsk",
+    "novoMuseumMayors": "Sala dos presidentes do Soviete municipal",
+    "novoMuseumHeroes": "Sala dos heróis do povo",
+    "novoMuseumBuilders": "Sala dos grandes construtores da produção",
+    "novoMuseumOrgs": "Sala das organizações de Novomirsk",
+    "novoMuseumWriters": "Sala dos escritores de Novomirsk",
+    "novoMuseumMilitary": "Sala de honra militar",
+    "novoMuseumUnions": "Sala das uniões célebres",
+    "novoMuseumScandals": "Sala dos escândalos e casos",
+    "novoGarageWorkshop": "Oficina",
+    "novoHairSalon": "Salão de beleza",
+    "novoPharmacyCounter": "Balcão da farmácia",
+    "novoFishStall": "Banca de peixes",
+    "krasnovFuelShop": "Loja do posto de combustível",
+    "intelReception": "Recepção da inteligência",
+    "intelListeningRoom": "Sala de escuta",
+    "intelInterrogationRoom": "Sala de interrogatório",
+    "novoWarehouseSales": "Salão de vendas",
+    "novoWarehouseDirector": "Gabinete da direção"
+  },
+  "de": {
+    "novoMuseumHall": "Empfangshalle",
+    "novoMuseumCriminals": "Saal der großen Verbrecher von Novomirsk",
+    "novoMuseumMayors": "Saal der Vorsitzenden des Stadtsowjets",
+    "novoMuseumHeroes": "Saal der Volkshelden",
+    "novoMuseumBuilders": "Saal der großen Produktionspioniere",
+    "novoMuseumOrgs": "Saal der Organisationen von Novomirsk",
+    "novoMuseumWriters": "Saal der Schriftsteller von Novomirsk",
+    "novoMuseumMilitary": "Militärischer Ehrensaal",
+    "novoMuseumUnions": "Saal berühmter Vereinigungen",
+    "novoMuseumScandals": "Saal der Skandale und Affären",
+    "novoGarageWorkshop": "Werkstatt",
+    "novoHairSalon": "Friseursalon",
+    "novoPharmacyCounter": "Apothekentheke",
+    "novoFishStall": "Fischstand",
+    "krasnovFuelShop": "Tankstellenshop",
+    "intelReception": "Empfang des Nachrichtendienstes",
+    "intelListeningRoom": "Abhörraum",
+    "intelInterrogationRoom": "Verhörraum",
+    "novoWarehouseSales": "Verkaufshalle",
+    "novoWarehouseDirector": "Direktionsbüro"
+  }
+};
+ for(const [locale,translations] of Object.entries(extraRoomWords)) {
+   if(resources[locale]?.translation) resources[locale].translation.extraRooms={...translations};
+ }
  const expected=localized.fr;
  for(const [locale,labels] of Object.entries(localized)){
   if(resources[locale]?.translation)
@@ -459,6 +762,13 @@
  }
  function label(buildingId,roomId,original){
   if(typeof original!=='string')return original;
+  const extra=extraRoomScopes[buildingId]?.[roomId];
+  if(extra){
+   if(original!==extra[1])return original;
+   const locale=global.RPPlateauI18n?.language?.()||'fr';
+   const translated=resources[locale]?.translation?.extraRooms?.[extra[0]];
+   return typeof translated==='string' && translated.trim()?translated:original;
+  }
   // Les autres édifices et les variantes politiques conservent leurs noms.
   if(buildingId==='mairie') {
    if(!Object.hasOwn(mairie.fr,roomId)||original!==mairie.fr[roomId])return original;
