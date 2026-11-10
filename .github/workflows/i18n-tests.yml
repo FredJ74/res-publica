@@ -8,6 +8,8 @@ on:
     paths:
       - 'i18n/**'
       - 'outils/bancs/banc-i18n-bookmaker.cjs'
+      - 'outils/bancs/banc-i18n-commerce-menu.cjs'
+      - 'plateau-actions-illegales-rumeurs.js'
       - 'plateau-organisations-quetes.js'
       - '.github/workflows/i18n-tests.yml'
       - 'index.html'
@@ -249,6 +251,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-lecture-rls.mjs
       - name: Sécurité de lecture, cache et quota des traductions
         run: node --test outils/bancs/banc-i18n-contenu-securise.mjs
+      - name: Cartes et buvettes en neuf langues — prix, stock et contrats inchangés
+        run: node --test outils/bancs/banc-i18n-commerce-menu.cjs
       - name: Bookmaker dans neuf langues — affichage, variables et RPC intacts
         run: node --test outils/bancs/banc-i18n-bookmaker.cjs
       - name: Syntaxe du moteur et des ressources
