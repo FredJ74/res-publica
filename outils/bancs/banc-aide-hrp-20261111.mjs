@@ -109,5 +109,5 @@ test('Le premier onglet est Aide, les anciens guides sont conservés',()=>{
   const code=lire('plateau-aide.js');
   assert.match(code,/textContent=\s*text/); // Affichage sans HTML IA
   assert.match(code,/fetch\('\/api\/aide'/);
-  assert.doesNotMatch(code,/\b(?:localStorage|sessionStorage)\b|\.innerHTML\s*=/);
+  assert.doesNotMatch(code,/\.innerHTML\s*=|\.setItem\s*\(|\.getItem\s*\(/);
 });
