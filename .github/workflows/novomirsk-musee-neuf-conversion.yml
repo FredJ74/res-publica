@@ -71,4 +71,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'assets(sovarka): neuf images du musée national en WebP'
+          # Conserver les commits arrivés entre le checkout et la conversion.
+          git fetch origin chatgpt/novomirsk-musee-national-neuf-webp-20261110
+          git rebase origin/chatgpt/novomirsk-musee-national-neuf-webp-20261110
           git push origin HEAD:chatgpt/novomirsk-musee-national-neuf-webp-20261110
