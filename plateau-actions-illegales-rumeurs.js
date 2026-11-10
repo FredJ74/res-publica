@@ -4769,16 +4769,17 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
 async function doCommanderProduitCommerceUI(commerceType, buildingId, roomId, recetteId) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
+  const monnaie = (typeof COUNTRIES!=='undefined' && COUNTRIES[pays]?.cur) || 'FR';
   const recette = resoudreProduitCommerce(recetteId);
   const res = await commanderProduitCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
   if (!res.ok) {
-    const messages = { rupture: 'Ce produit est en rupture de stock.', fonds_insuffisants: (res.prix || 0) + ' FR requis.', prix_non_defini: 'Prix non défini pour ce produit.', introuvable: '' };
+    const messages = { rupture: 'Ce produit est en rupture de stock.', fonds_insuffisants: (res.prix || 0) + ' ' + monnaie + ' requis.', prix_non_defini: 'Prix non défini pour ce produit.', introuvable: '' };
     if (!res.dejaSignale) showToast('Commande impossible', messages[res.raison] || '', false);
     return;
   }
   updateUI();
   showToast('Commande servie', recette.label + '.', true, true);
-  addJournalEntry(recette.label + ' commandé(e) — ' + res.prix + ' FR.', 'event-good');
+  addJournalEntry(recette.label + ' commandé(e) — ' + res.prix + ' ' + monnaie + '.', 'event-good');
   // Rafraichit la carte pour permettre d'enchainer sans rouvrir (meme pattern que confirmerProduction/doProduireArme)
   doConsulterCarteCommerce(commerceType, buildingId, roomId, 0, 0);
 }
