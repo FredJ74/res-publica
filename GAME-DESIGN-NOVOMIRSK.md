@@ -374,6 +374,17 @@ vues 3 et 4, une seule coupe rapporte du bois, la tentative suivante déclenche 
   rapproché (loup 9, meute 13, ours 16 ; un PJ moyen est à 8-10) ; « Fuir » ramène à l'entrée ; les dents d'ours sont un
   objet empilable « Dent d'ours » (son passage dans l'armoire à souvenirs n'a pas été vérifié).
 - Images des 4 vues : à faire par Fred (`imagesAVenir`).
+- **Précision de Fred (10/11/2026, 14 h 40)** : lecture confirmée (vues 3 et 4 : une coupe, puis la tentative suivante
+  déclenche la rencontre). **La première coupe est acquise** : la fuite ne fait perdre que le bénéfice de la **seconde**.
+  « Fuir » ne retire plus aucun bois (corrigé, voir ci-dessous).
+- **Victoire totale (Fred, 10/11/2026, 14 h 42)** : sur la vue 3, un groupe qui gagne le combat reçoit **le bois de la
+  seconde coupe (2 à 4 bois) en plus du butin** de la créature.
+- **Olga (Fred, 10/11/2026, 14 h 42)** : sur la vue 4, la seconde coupe rapporte **aussi son bois (2 à 4) en plus du
+  repas** d'Olga.
+- **Codé et appliqué le 10/11 (feu vert de Fred à 14 h 43)** : migration `20261110144500_sovarka_foret_seconde_coupe`
+  (patchs ancrés de `sovarka_foret_rencontre`, `sovarka_foret_issue_combat_interne`, `sovarka_foret_couper` ; Olga exige
+  désormais 4 places d'inventaire), banc annulé `outils/bancs/banc-sovarka-foret.sql` vert sur la production avant
+  application ; écran : libellé de « Fuir » et bois d'Olga affichés.
 
 ### Règle des prix en Sovarka (Fred, 10/11/2026)
 

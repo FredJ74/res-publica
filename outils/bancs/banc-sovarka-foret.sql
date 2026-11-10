@@ -1,4 +1,4 @@
--- Banc annule de la foret profonde de Krasnov (a jouer apres la migration 20261110124500). Se termine toujours par une
+-- Banc annule de la foret profonde de Krasnov (a jouer apres les migrations 20261110124500, 131500 et 144500). Se termine toujours par une
 -- exception : rien ne reste (groupe d'Arnie, position, inventaire, creatures, bataille).
 DO $banc$
 DECLARE u uuid; g1 jsonb; a1 jsonb; a2 jsonb; c1 jsonb; c2 jsonb; c3 jsonb; g2 jsonb; o1 jsonb; o2 jsonb; t1 jsonb; t2 jsonb; t3 jsonb; f1 jsonb;
@@ -38,9 +38,9 @@ BEGIN
   o1 := public.sovarka_foret_couper('00000000-0000-4000-8000-0000000fc004');
   o2 := public.sovarka_foret_couper('00000000-0000-4000-8000-0000000fc005');
   RESET ROLE;
-  IF (o1->>'quantite') IS NULL OR o2->>'rencontre' IS DISTINCT FROM 'olga' THEN RAISE EXCEPTION 'vue 4: % / %', o1, o2; END IF;
+  IF (o1->>'quantite') IS NULL OR o2->>'rencontre' IS DISTINCT FROM 'olga' OR (o2->>'quantite')::int NOT IN (2, 4) THEN RAISE EXCEPTION 'vue 4: % / %', o1, o2; END IF;
   IF (SELECT bonus_pa_differe FROM public.personnages_donnees WHERE name = 'Arnie') <> least(30, b0 + 2) THEN RAISE EXCEPTION 'repas Olga'; END IF;
-  -- Vue 3 : une coupe, puis l'attaquant ; fuir lache le bois de la vue et ramene a l'entree.
+  -- Vue 3 : une coupe, puis l'attaquant ; fuir garde la premiere coupe, perd la seconde, et ramene a l'entree.
   UPDATE public.personnages_donnees SET current_room = 'foret_vue_3' WHERE name = 'Arnie';
   SET LOCAL ROLE authenticated;
   t1 := public.sovarka_foret_couper('00000000-0000-4000-8000-0000000fc006');
@@ -53,9 +53,9 @@ BEGIN
   SET LOCAL ROLE authenticated;
   f1 := public.sovarka_foret_rencontre('00000000-0000-4000-8000-0000000fd001', 'fuir');
   RESET ROLE;
-  IF (f1->>'ok')::boolean IS NOT TRUE OR (f1->>'bois_perdu')::int <> (t1->>'quantite')::int THEN RAISE EXCEPTION 'fuite: % (coupe %)', f1, t1; END IF;
+  IF (f1->>'ok')::boolean IS NOT TRUE OR (f1->>'bois_perdu')::int <> 0 THEN RAISE EXCEPTION 'fuite: % (coupe %)', f1, t1; END IF;
   IF (SELECT current_room FROM public.personnages_donnees WHERE name = 'Arnie') <> 'zone_recolte'
-     OR (SELECT public.inventaire_quantite(inventory, 'bois')::int FROM public.personnages_donnees WHERE name = 'Arnie') <> v_bois - (t1->>'quantite')::int THEN RAISE EXCEPTION 'apres fuite'; END IF;
+     OR (SELECT public.inventaire_quantite(inventory, 'bois')::int FROM public.personnages_donnees WHERE name = 'Arnie') <> v_bois THEN RAISE EXCEPTION 'apres fuite'; END IF;
   -- Combattre : la bataille est de type faune ; une victoire donne le butin au leader.
   UPDATE public.personnages_donnees SET current_room = 'foret_vue_3', pa = 30 WHERE name = 'Arnie';
   SET LOCAL ROLE authenticated;
@@ -65,11 +65,13 @@ BEGIN
   RESET ROLE;
   IF (cb->>'ok')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'combat_ouvrir: %', cb; END IF;
   IF (SELECT contexte->>'type' FROM public.batailles WHERE id = (cb->>'bataille')::bigint) <> 'faune' THEN RAISE EXCEPTION 'type de bataille'; END IF;
+  SELECT public.inventaire_quantite(inventory, 'bois')::int INTO v_bois FROM public.personnages_donnees WHERE name = 'Arnie';
   iss := public.sovarka_foret_issue_combat_interne(k2->>'pnj', 'Arnie', 'neutralises');
   v_type := k2->>'creature';
   SELECT inventory INTO inv FROM public.personnages_donnees WHERE name = 'Arnie';
   IF public.inventaire_quantite(inv, 'viande') <> (CASE v_type WHEN 'loup' THEN 3 WHEN 'meute' THEN 6 ELSE 9 END)
-     OR public.inventaire_quantite(inv, 'dent_ours') <> (CASE v_type WHEN 'ours' THEN 2 ELSE 0 END) THEN RAISE EXCEPTION 'butin %: %', v_type, inv; END IF;
+     OR public.inventaire_quantite(inv, 'dent_ours') <> (CASE v_type WHEN 'ours' THEN 2 ELSE 0 END)
+     OR public.inventaire_quantite(inv, 'bois')::int - v_bois NOT IN (2, 4) THEN RAISE EXCEPTION 'butin %: %', v_type, inv; END IF;
   -- Ne pas se defendre : PA a 0 (l'hospitalisation suit a la validation de la transaction).
   UPDATE public.batailles SET statut = 'terminee' WHERE id = (cb->>'bataille')::bigint;
   UPDATE public.personnages_donnees SET current_room = 'foret_vue_3', pa = 30 WHERE name = 'Arnie';
