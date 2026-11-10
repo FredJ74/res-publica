@@ -3234,6 +3234,28 @@ const RECETTES_ALIMENTAIRES = {
     effets: { moral: 1 },
     typesAutorises: ['buvette', 'bar', 'cafe'], villesAutorisees: null, buildingsAutorises: null
   },
+  // Carte propre au Dynamo de Novomirsk. Mêmes fondations de vente, production et inventaire
+  // que la buvette du socle, mais offres et prix propres à l'économie sovarkienne.
+  the_chaud_sovarka: {
+    id:'the_chaud_sovarka', label:'Thé chaud', categorie:'boisson', image:null,
+    materiaux:{ produits_exotiques:1 }, pa:1, portions:15, effets:{ moral:1 },
+    typesAutorises:['buvette'], paysAutorises:['soviet'], villesAutorisees:['capitale'], buildingsAutorises:['stade'], prixFixe:5
+  },
+  chocolat_chaud_sovarka: {
+    id:'chocolat_chaud_sovarka', label:'Chocolat chaud', categorie:'boisson', image:null,
+    materiaux:{ produits_exotiques:1 }, pa:1, portions:10, effets:{ moral:2 },
+    typesAutorises:['buvette'], paysAutorises:['soviet'], villesAutorisees:['capitale'], buildingsAutorises:['stade'], prixFixe:8
+  },
+  vin_chaud_sovarka: {
+    id:'vin_chaud_sovarka', label:'Vin chaud', categorie:'boisson', image:null,
+    materiaux:{ alcool:1 }, pa:1, portions:10, effets:{ moral:2 },
+    typesAutorises:['buvette'], paysAutorises:['soviet'], villesAutorisees:['capitale'], buildingsAutorises:['stade'], prixFixe:12
+  },
+  pirojki_sovarka: {
+    id:'pirojki_sovarka', label:'Pirojki', categorie:'snack', image:null,
+    materiaux:{ cereales:1 }, pa:1, portions:15, effets:{ hp:2, moral:1 },
+    typesAutorises:['buvette'], paysAutorises:['soviet'], villesAutorisees:['capitale'], buildingsAutorises:['stade'], prixFixe:6
+  },
   snack_buvette: {
     id: 'snack_buvette', label: 'Cacahuètes salées', categorie: 'snack', image: null,
     materiaux: { cereales: 1 }, pa: 1, portions: 15,
@@ -4171,6 +4193,14 @@ const DOTATIONS_COMMERCE_PILOTE = {
     data.parametres.prixVente = { petit_dejeuner: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.petit_dejeuner)) };
   },
   'stade|buvette': function(data) {
+    if (data.country === 'soviet' && data.city === 'capitale') {
+      data.stockMatieres = { produits_exotiques:10, alcool:10, cereales:5 };
+      data.coutMoyenMatieres = { produits_exotiques:5, alcool:5, cereales:2 };
+      data.carte = ['the_chaud_sovarka','chocolat_chaud_sovarka','vin_chaud_sovarka','pirojki_sovarka'];
+      data.parametres.stockMax = { the_chaud_sovarka:20, chocolat_chaud_sovarka:20, vin_chaud_sovarka:20, pirojki_sovarka:20 };
+      data.parametres.prixVente = { the_chaud_sovarka:5, chocolat_chaud_sovarka:8, vin_chaud_sovarka:12, pirojki_sovarka:6 };
+      return;
+    }
     // AUCUNE caisse ici (data.caisse reste 0 en permanence) -- ni pour les ventes (deja routees
     // vers la caisse du stade, doctrine du lot precedent), ni pour la main-d'oeuvre de
     // production (routee vers la meme caisse du stade, voir produireRecetteCommerce ci-dessus).
@@ -4459,6 +4489,7 @@ function doGererCommerceGenerique(pa, cost) {
 async function doGererCommerce(commerceType, buildingId, roomId) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
+  const monnaie = (typeof COUNTRIES !== 'undefined' && COUNTRIES[pays]?.cur) || 'FR';
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   if (!data) { showToast('Indisponible', '', false); return; }
   if (data.proprietaire === 'PNJ') { showToast('Réservé au propriétaire', 'Ce commerce appartient encore à un PNJ (rachetable au Bureau des Contrats).', false); return; }
@@ -4723,7 +4754,7 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
     html += '<b style="font-size:.93rem;color:#E5C477">' + recette.label + '</b><br>';
     html += '<span style="font-size:.82rem;color:#aab5c3">' + composition + '</span><br>';
     if (effetsTxt) html += '<span style="font-size:.82rem;color:#6ab858">' + effetsTxt + '</span><br>';
-    html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
+    html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' ' + monnaie : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
     html += '</div>';
     html += actionsCatalogueCommerceHtml(data, commerceType, buildingId, roomId, id);
     html += '</div>';
@@ -4738,16 +4769,17 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
 async function doCommanderProduitCommerceUI(commerceType, buildingId, roomId, recetteId) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
+  const monnaie = (typeof COUNTRIES!=='undefined' && COUNTRIES[pays]?.cur) || 'FR';
   const recette = resoudreProduitCommerce(recetteId);
   const res = await commanderProduitCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
   if (!res.ok) {
-    const messages = { rupture: 'Ce produit est en rupture de stock.', fonds_insuffisants: (res.prix || 0) + ' FR requis.', prix_non_defini: 'Prix non défini pour ce produit.', introuvable: '' };
+    const messages = { rupture: 'Ce produit est en rupture de stock.', fonds_insuffisants: (res.prix || 0) + ' ' + monnaie + ' requis.', prix_non_defini: 'Prix non défini pour ce produit.', introuvable: '' };
     if (!res.dejaSignale) showToast('Commande impossible', messages[res.raison] || '', false);
     return;
   }
   updateUI();
   showToast('Commande servie', recette.label + '.', true, true);
-  addJournalEntry(recette.label + ' commandé(e) — ' + res.prix + ' FR.', 'event-good');
+  addJournalEntry(recette.label + ' commandé(e) — ' + res.prix + ' ' + monnaie + '.', 'event-good');
   // Rafraichit la carte pour permettre d'enchainer sans rouvrir (meme pattern que confirmerProduction/doProduireArme)
   doConsulterCarteCommerce(commerceType, buildingId, roomId, 0, 0);
 }
