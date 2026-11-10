@@ -318,7 +318,29 @@ l'entrepôt et le port (Starovka), et la gare, l'entrepôt, le stade, le commiss
     « Infirmerie du Froid », etc.) : à reprendre ou à supprimer ?
 11. **Route de Starovka** : elle n'est reliée par la route à aucune ville (véhicules personnels) ; voulu ?
 
-### Réponses de Fred (09/11/2026, soir) — décidé, NON codé (attend le feu vert de Fred)
+### Réponses de Fred (09/11/2026, soir) — feu vert de Fred le 10/11 à 1 h 05
+
+**Codé le 10/11 (branche `claude/sovarka-lot-nuit-20261110`, PR #670)** : prix courants à l'échelle de Sovarka
+(réponse 6 ; table serveur `ordres_couts_pays`, seul tarif valable pour un joueur du pays, policiers 20/40 PSK),
+hôtels (7), « La Voix de Sovarka » et ses deux antennes (8), siège syndical retiré (2), deux locaux à louer à
+Starovka (4, plafond proposé 50 PSK), 4 parcelles sur le terrain de Starovka (9, parcelle n = « terrain@pn »),
+anciens noms supprimés (10 ; « Baraquement Sibirsk-9 » = logements collectifs de Starovka), et bâtiments du socle
+de la réponse 5 : marchés des deux villes, magasin de chasse (armurerie), restaurant « Entre terre et mer », lycée
+et école (université), logements collectifs (4 petits à 10 PSK, 4 grands à 20 PSK, comme Novomirsk — proposé),
+église du Tractorisme, musée et bar-tabac de Krasnov, façades « Compagnie Nationale du Pétrole » et « Exploitation
+forestière » sur la zone de production du socle. Noms des PNJ proposés par Claude, **à valider par Fred** :
+Tuyana Dashieva (marché), Bato Tsyrenov (chasse), Sesegma Badmaeva (restaurant), Darima Zhambalova (lycée) à
+Starovka ; Nina Gorbounova (marché), Pavel Smirnov (école), Vera Lebedeva (musée), Grigori Zaitsev (Bar Sever) à
+Krasnov. Manifestations : vérifié, en Sovarka seules existent les manifestations de soutien des partis
+(`sovarka_manifs`), la manifestation spontanée n'a pas de place dans le pays : les manifestations hostiles y sont
+donc impossibles, conforme.
+
+**Reste à coder** (lot suivant) : bons d'État (1), fermes, distillerie et fourreur (commerces), centres d'écoute
+(poste militaire « Poste de Vigilance Glaciale », station radar), maisons (hospitalité, beuverie, ragots), forêt
+de Krasnov (vues profondes, coupes, rencontres) et extraction du pétrole. Point technique relevé : la récolte de la
+zone de production est encore décidée par le navigateur (« Récolter », sans fonction serveur) ; l'extraction du
+pétrole et du bois devra d'abord passer au serveur (règle « une seule réalité »).
+
 
 1. **Banque de Sovarka** (les trois villes) : **ni placements privés ni prêts** (un projet est financé par la collectivité).
    À la place, des **bons d'État « pour soutenir l'économie de Sovarka »** :
@@ -391,8 +413,6 @@ l'entrepôt et le port (Starovka), et la gare, l'entrepôt, le stade, le commiss
      le PJ** (de son inventaire), **n'importe quel alcool** ; l'IA fait réagir l'habitant à ce qu'on lui apporte (ex.
      « Oh, je n'ai jamais bu de vin de Républia ! »). **Chaque bouteille bue coûte 3 PA** : la limite vient de là (pas de plafond de bouteilles ; tomber à 0 PA suit la règle d'hospitalisation, avec
      l'avertissement existant).
-   - **Hors socle, plus tard (tour des villes)** : poste militaire (Starovka) et station radar (Krasnov) ;
-     Fred dira à quoi servent les deux derniers.
    - **Exploitation forestière de Krasnov** (idée de Fred du 21/10/2026, issue #72 retrouvée par Fred le 09/11 ;
      les décisions ci-dessous priment sur l'issue) — **précision du 09/11, 23 h 41** : la rencontre de la **vue 3**
      tire au sort l'un des **trois attaquants**, du plus facile au plus dur à battre : **loup solitaire**, **meute de
