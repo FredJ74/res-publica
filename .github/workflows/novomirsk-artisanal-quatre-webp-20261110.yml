@@ -4,6 +4,8 @@ on:
     branches: [chatgpt/novomirsk-artisanal-quatre-webp-20261110]
     paths:
       - '.github/workflows/novomirsk-artisanal-quatre-webp-20261110.yml'
+      - 'data.js'
+      - 'plateau.html'
 permissions:
   contents: write
 jobs:
