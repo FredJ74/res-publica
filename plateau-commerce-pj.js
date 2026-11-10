@@ -385,6 +385,7 @@ function commercePjModale(titre, html) {
   if (!t || !b) return;
   t.textContent = titre;
   b.innerHTML = '<div class="cpj-ecran cpj-dialogue">' + html + '</div>';
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(b);
   // LA COQUE NE SURVIT PAS A L'ECRAN QUI L'A POSEE. #modal-postes est partage
   // avec l'organigramme, le journal, Helvetia : tout ecran ordinaire retire la
   // classe de la machine, sans quoi le suivant heriterait d'un boitier beige.

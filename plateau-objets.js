@@ -542,36 +542,41 @@ function ficheLignesEffets(effets) {
   });
 }
 
+// Marqueur de présentation : le moteur commun applique ensuite la langue choisie.
+// Le texte français reste dans le HTML, y compris sans moteur ou avec une clé absente.
+function ficheLibelleHtml(cle, francais, values) {
+  return '<span data-i18n="productSheet.' + ficheEchapper(cle) + '"' + (values ? ' data-i18n-values="' + ficheEchapper(JSON.stringify(values)) + '"' : '') + '>' + ficheEchapper(francais) + '</span>';
+}
+
 // Bloc OFFICIEL. `fiche` est le retour brut de la RPC objet_fiche_officielle.
 // fiche.resolu === false  ->  objet hors catalogue : AUCUN generique de repli n'est
 // affiche, et rien n'est invente.
 function ficheOfficielleHtml(fiche) {
   const cadre = 'border:1px solid #394656;background:#252D38;border-radius:9px;padding:.6rem .7rem;margin-top:.7rem';
   const titre = '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.12em;color:#E5C477;margin-bottom:.45rem">'
-              + '<i class="ti ti-certificate" style="font-size:.8rem"></i> FICHE OFFICIELLE — INFORMATIONS SYSTÈME</div>';
+              + '<i class="ti ti-certificate" style="font-size:.8rem"></i> ' + ficheLibelleHtml('officialTitle', 'FICHE OFFICIELLE — INFORMATIONS SYSTÈME') + '</div>';
 
   if (!fiche || fiche.resolu !== true) {
     return '<div style="' + cadre + '">' + titre
-      + '<div style="font-size:.8rem;color:#aab5c3;line-height:1.5">Cet objet ne figure pas au catalogue officiel des commerces. '
-      + 'Ses propriétés ne sont pas garanties par une fiche système.</div></div>';
+      + '<div style="font-size:.8rem;color:#aab5c3;line-height:1.5">' + ficheLibelleHtml('unresolved', 'Cet objet ne figure pas au catalogue officiel des commerces. Ses propriétés ne sont pas garanties par une fiche système.') + '</div></div>';
   }
 
-  const ligne = function (l, v) {
+  const ligne = function (l, v, cle, valeurHtml) {
     return '<div style="display:flex;gap:.5rem;font-size:.8rem;line-height:1.55">'
-         + '<span style="color:#aab5c3;min-width:8.5rem;flex-shrink:0">' + ficheEchapper(l) + '</span>'
-         + '<span style="color:#e0e6ed">' + ficheEchapper(v) + '</span></div>';
+         + '<span style="color:#aab5c3;min-width:8.5rem;flex-shrink:0">' + (cle ? ficheLibelleHtml(cle, l) : ficheEchapper(l)) + '</span>'
+         + '<span style="color:#e0e6ed">' + (valeurHtml || ficheEchapper(v)) + '</span></div>';
   };
 
   let h = '<div style="' + cadre + '">' + titre;
 
-  h += ligne(fiche.est_service ? 'Prestation' : 'Objet', fiche.generique);
-  if (fiche.variante) h += ligne('Configuration', fiche.variante);
-  h += ligne('Famille', fiche.famille);
+  h += ligne(fiche.est_service ? 'Prestation' : 'Objet', fiche.generique, fiche.est_service ? 'service' : 'object');
+  if (fiche.variante) h += ligne('Configuration', fiche.variante, 'configuration');
+  h += ligne('Famille', fiche.famille, 'family');
   if (Array.isArray(fiche.types) && fiche.types.length) {
-    h += ligne(fiche.types.length > 1 ? 'Types de commerce' : 'Type de commerce', fiche.types.join(', '));
+    h += ligne(fiche.types.length > 1 ? 'Types de commerce' : 'Type de commerce', fiche.types.join(', '), fiche.types.length > 1 ? 'tradeTypes' : 'tradeType');
   }
   if (fiche.regime && fiche.regime !== 'libre') {
-    h += ligne('Régime', FICHE_LIBELLES_REGIMES[fiche.regime] || fiche.regime);
+    h += ligne('Régime', FICHE_LIBELLES_REGIMES[fiche.regime] || fiche.regime, 'regime', FICHE_LIBELLES_REGIMES[fiche.regime] ? ficheLibelleHtml('status_' + fiche.regime, FICHE_LIBELLES_REGIMES[fiche.regime]) : null);
   }
 
   // « Aucun effet » est AFFICHE EXPLICITEMENT : c'est la garantie donnee a l'acheteur.
@@ -581,29 +586,33 @@ function ficheOfficielleHtml(fiche) {
   // permet de faire : ce serait exact sur les chiffres et trompeur sur le fond.
   const lignes = ficheLignesEffets(fiche.effets);
   if (fiche.aucun_effet === true) {
-    h += '<div style="margin-top:.4rem;font-size:.82rem;color:#aab5c3"><b style="color:#a09070">Effets : Aucun</b></div>';
+    h += '<div style="margin-top:.4rem;font-size:.82rem;color:#aab5c3"><b style="color:#a09070">' + ficheLibelleHtml('noEffects', 'Effets : Aucun') + '</b></div>';
   } else if (lignes.length > 0) {
-    h += '<div style="margin-top:.45rem;font-size:.7rem;letter-spacing:.08em;color:#aab5c3;font-family:Bebas Neue,sans-serif">EFFETS RÉELS</div>';
-    lignes.forEach(function (l) { h += ligne(l.libelle, l.valeur); });
+    h += '<div style="margin-top:.45rem;font-size:.7rem;letter-spacing:.08em;color:#aab5c3;font-family:Bebas Neue,sans-serif">' + ficheLibelleHtml('effects', 'EFFETS RÉELS') + '</div>';
+    lignes.forEach(function (l, index) {
+      const cle = Object.keys(fiche.effets)[index], valeur = fiche.effets[cle];
+      const valeurHtml = valeur === true ? ficheLibelleHtml('yes', 'Oui') : valeur === false ? ficheLibelleHtml('no', 'Non') : valeur === null ? ficheLibelleHtml('none', 'Aucune') : null;
+      h += ligne(l.libelle, l.valeur, FICHE_LIBELLES_EFFETS[cle] ? 'effect_' + cle : null, valeurHtml);
+    });
   }
 
   if (Array.isArray(fiche.capacites) && fiche.capacites.length) {
-    h += '<div style="margin-top:.45rem;font-size:.7rem;letter-spacing:.08em;color:#aab5c3;font-family:Bebas Neue,sans-serif">CE QU\'IL PERMET</div>';
+    h += '<div style="margin-top:.45rem;font-size:.7rem;letter-spacing:.08em;color:#aab5c3;font-family:Bebas Neue,sans-serif">' + ficheLibelleHtml('abilities', 'CE QU\'IL PERMET') + '</div>';
     fiche.capacites.forEach(function (c) {
-      h += '<div style="font-size:.8rem;color:#e0e6ed;line-height:1.55">• ' + ficheEchapper(FICHE_LIBELLES_CAPACITES[c] || c) + '</div>';
+      h += '<div style="font-size:.8rem;color:#e0e6ed;line-height:1.55">' + (FICHE_LIBELLES_CAPACITES[c] ? ficheLibelleHtml('ability_' + c, '• ' + FICHE_LIBELLES_CAPACITES[c]) : '• ' + ficheEchapper(c)) + '</div>';
     });
   }
 
   // Proprietes d'usage : affichees UNIQUEMENT quand elles portent une information.
   let usage = '';
-  if (fiche.consommable)   usage += ligne('Consommable', 'Oui');
-  if (fiche.equipable)     usage += ligne('Peut être affecté', 'Oui');
-  if (fiche.encombrement)  usage += ligne('Encombrement', fiche.encombrement + ' emplacement(s)');
-  if (fiche.durabilite)    usage += ligne('Durabilité', JSON.stringify(fiche.durabilite));
-  if (fiche.conditions)    usage += ligne('Conditions', JSON.stringify(fiche.conditions));
-  if (fiche.contraintes)   usage += ligne('Contraintes', JSON.stringify(fiche.contraintes));
+  if (fiche.consommable)   usage += ligne('Consommable', 'Oui', 'consumable', ficheLibelleHtml('yes', 'Oui'));
+  if (fiche.equipable)     usage += ligne('Peut être affecté', 'Oui', 'assignable', ficheLibelleHtml('yes', 'Oui'));
+  if (fiche.encombrement)  usage += ligne('Encombrement', fiche.encombrement + ' emplacement(s)', 'bulk', ficheLibelleHtml('slots', fiche.encombrement + ' emplacement(s)', {slots:fiche.encombrement}));
+  if (fiche.durabilite)    usage += ligne('Durabilité', JSON.stringify(fiche.durabilite), 'durability');
+  if (fiche.conditions)    usage += ligne('Conditions', JSON.stringify(fiche.conditions), 'conditions');
+  if (fiche.contraintes)   usage += ligne('Contraintes', JSON.stringify(fiche.contraintes), 'constraints');
   if (usage) {
-    h += '<div style="margin-top:.45rem;font-size:.7rem;letter-spacing:.08em;color:#aab5c3;font-family:Bebas Neue,sans-serif">USAGE</div>' + usage;
+    h += '<div style="margin-top:.45rem;font-size:.7rem;letter-spacing:.08em;color:#aab5c3;font-family:Bebas Neue,sans-serif">' + ficheLibelleHtml('usage', 'USAGE') + '</div>' + usage;
   }
 
   h += '</div>';
@@ -618,12 +627,12 @@ function ficheCommercialeHtml(infos) {
   const cadre = 'border:1px solid #394656;background:#252D38;border-radius:9px;padding:.6rem .7rem';
   let h = '<div style="' + cadre + '">'
         + '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.12em;color:#E5C477;margin-bottom:.45rem">'
-        + '<i class="ti ti-tag" style="font-size:.8rem"></i> PRÉSENTATION COMMERCIALE</div>';
+        + '<i class="ti ti-tag" style="font-size:.8rem"></i> ' + ficheLibelleHtml('commercialTitle', 'PRÉSENTATION COMMERCIALE') + '</div>';
   if (texteSur(i.nom))       h += '<div style="font-family:Playfair Display,serif;font-size:.98rem;color:#E5C477">' + ficheEchapper(i.nom) + '</div>';
   if (texteSur(i.description)) h += '<div style="font-size:.82rem;color:#c8d2de;line-height:1.55;margin-top:.25rem">' + ficheEchapper(i.description) + '</div>';
   if (i.prix != null)        h += '<div style="font-size:.85rem;color:#C9A84C;margin-top:.35rem">' + Number(i.prix).toLocaleString('fr-FR') + ' ' + ficheEchapper(i.devise || 'FR') + '</div>';
-  if (texteSur(i.vendeur))   h += '<div style="font-size:.76rem;color:#aab5c3;margin-top:.2rem">Vendu par ' + ficheEchapper(i.vendeur) + '</div>';
-  if (i.stock != null)       h += '<div style="font-size:.76rem;color:#aab5c3">Stock : ' + Number(i.stock) + '</div>';
+  if (texteSur(i.vendeur))   h += '<div style="font-size:.76rem;color:#aab5c3;margin-top:.2rem">' + ficheLibelleHtml('soldBy', 'Vendu par ' + i.vendeur, {seller:i.vendeur}) + '</div>';
+  if (i.stock != null)       h += '<div style="font-size:.76rem;color:#aab5c3">' + ficheLibelleHtml('stock', 'Stock : ' + Number(i.stock), {stock:Number(i.stock)}) + '</div>';
   h += '</div>';
   return h;
 }

@@ -1291,6 +1291,7 @@ async function ouvrirFicheArmeCommerce(id) {
   document.getElementById('postes-body').innerHTML='<div style="padding:1rem;background:#151A21;color:#e0e6ed">'+
     ficheCommercialeHtml({nom:arme.name,description:arme.desc,prix:data.parametres.prixVente[id],stock:data.stockProduits[id]||0,devise:COUNTRIES[c.pays]?.cur})+
     ficheOfficielleHtml(fiche)+'<button onclick="ouvrirModalAcheterArme()">Retour aux produits</button></div>';
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('postes-body'));
 }
 
 async function confirmerAchatArme(armeId) {
@@ -4842,6 +4843,7 @@ async function ouvrirFicheProduitCommerce(commerceType, buildingId, roomId, rece
   html += '<button onclick="doConsulterCarteCommerce(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',0,0)" style="width:100%;margin-top:.9rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.45rem;border:1px solid #3a2a10;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-arrow-left"></i> ' + texteCommerceMenu('back','Retour à la carte') + '</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('postes-body'));
 }
 
 // =====================

@@ -31,6 +31,25 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### i18n fiches produits — Codex, 10/11/2026
+
+Branche `codex/i18n-produits-economie-20261110`, base `main 7aafbb9f` après
+#688/#689 et cartes #685. **79 clés dans neuf langues** : rubriques des fiches
+commerciales/officielles, effets, capacités, régimes, booléens et unités.
+Présentation seule, aucune propriété serveur, RPC, nom ou description de joueur
+modifié. Application du moteur existant dans les fiches arme/carte/commerce PJ ;
+bascule à chaud sans relecture ou perte de saisie. Quatre tests dédiés verts,
+360/390/768 et RTL ; PNG FR 1440 identique au main. Deux bancs commerce chargent
+le vrai helper supplémentaire, aucun scénario supprimé. API GET PR refusée 403 :
+les branches et relais disponibles ont été examinés, pas de preuve d’exhaustivité
+sur les PR privées. Lot suivant : matières et descriptions canoniques seulement.
+Titre PR prêt : « Fiches produits officielles et commerciales dans neuf langues ».
+Description : « Localise 79 libellés avec i18next et marqueurs existants ; garde
+les données officielles et contenus personnalisés intacts. Tests de contrat,
+RTL/mobile et égalité stricte française à 1440. Aucun SQL ni gameplay modifié. »
+Tests complets et preuves à compléter avant intégration. Aucune publication attestée.
+
+
 ### i18n connexion — lot Codex intégré après inventaire (#689)
 
 Neuf messages dynamiques de connexion traduits dans neuf langues. Bascule de langue sans effacer les identifiants saisis et sans répéter l'authentification ; mêmes autorisations, résultats serveur et méthodes RPC. Rapport et preuves `outils/audits/I18N-CONNEXION-20261110.md`. Couverture d'après Codex : 265/265 bancs clients, RTL/mobile Chromium ; contrôles globaux 10/12 avec erreurs Baseline/Référentiels déjà présentes sur main. Recette authentifiée et validation linguistique humaine non effectuées. Cette réconciliation préserve `main` après fusion squash du lot Inventaire #688.
