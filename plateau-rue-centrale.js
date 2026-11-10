@@ -941,6 +941,8 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/Sovarka/Starovka/Starovka_rue_bureaux_caserne.webp',
       // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
+        // 10/11/2026 : Poste de Vigilance Glaciale (centre d'écoute), migration 20261110092000.
+        { xPct: [0, 15], yPct: [8, 76], nom: 'Poste de Vigilance Glaciale', type: 'batiment', buildingId: 'poste-vigilance-glaciale' },
         { xPct: [47, 100], yPct: [0, 72], nom: "Centre d'affaires de Starovka", type: 'batiment', buildingId: 'centre-affaires' }
       ],
       liens: {
@@ -1079,7 +1081,10 @@ const RUE_CENTRALE_NOEUDS = {
     // Krasnov : retour vers l'école / forêt, puis route vers les immeubles.
     'krasnov-rue-distillerie-radar': {
       image: 'images/Sovarka/Krasnov/Krasnov rue distillerie centre radar.webp',
-      zones: [],
+      // 10/11/2026 : station radar (centre d'écoute), sortie serveur (migration 20261110092000).
+      zones: [
+        { xPct: [55, 95], yPct: [8, 76], nom: 'Station radar de Krasnov', type: 'batiment', buildingId: 'station-radar-krasnov' }
+      ],
       liens: { arriere: 'krasnov-rue-ecole-foret', toutDroit: 'krasnov-rue-immeubles-centre-commercial' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',

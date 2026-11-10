@@ -2107,7 +2107,9 @@ const WORLD = {
                                        // Justice de Sovarka (Fred, 08/11/2026) : pas de procureur ; le ministre saisit le juge ou enterre, et donne ses consignes.
                                        { fn: 'sovarka_registre_plaintes', label: 'Affaires judiciaires', pa: 0, cost: 0, type: 'legal', icon: 'ti-scale', successRate: 100, requiresPost: 'min_just', desc: "Toutes les plaintes de Sovarka : saisir le juge ou enterrer l'affaire, et envoyer au juge vos consignes (condamner sévèrement, légèrement, relaxer, ou libre à lui) jusqu'à la veille du procès." }] },
             bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_defense.webp',
-                              orders: [{ fn: 'sovarka_conscription', label: 'Conscription', pa: 0, cost: 0, type: 'legal', icon: 'ti-military-rank', successRate: 100, desc: "Décréter ou lever la conscription des citoyens sans poste : 48 heures pour se présenter, sinon réfractaires et recherchés." }] },
+                              orders: [{ fn: 'sovarka_conscription', label: 'Conscription', pa: 0, cost: 0, type: 'legal', icon: 'ti-military-rank', successRate: 100, desc: "Décréter ou lever la conscription des citoyens sans poste : 48 heures pour se présenter, sinon réfractaires et recherchés." },
+                                       // Centres d'écoute (Fred, 10/11/2026) : le ministre demande à distance le rapport du jour qu'il veut, reçu par mail.
+                                       { fn: 'sovarka_ecoutes', label: 'Rapports des centres d’écoute', pa: 0, cost: 0, type: 'legal', icon: 'ti-antenna', successRate: 100, requiresPost: 'min_def', desc: "Les cellules d'écoute de Novomirsk, Starovka et Krasnov interceptent chaque jour une partie des mails. Demandez le rapport du jour que vous voulez : il vous arrive par mail." }] },
             bureau_min_info:{ name: 'Bureau - Ministre de la Vérité officielle', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_information.webp',
                               orders: [{ fn: 'sovarka_sondages', label: 'Sondages en attente', pa: 0, cost: 0, type: 'legal', icon: 'ti-chart-bar', successRate: 100, desc: "Les sondages reçus : publier tel quel, publier faussé ou enterrer." }] },
             bureau_min_ae:  { name: "Bureau - Ministre de l'Amitié entre les Peuples", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_diplomatie.webp' }
@@ -10820,4 +10822,31 @@ BUILDINGS['locaux-starovka'] = {
   regler('ville_a', 'banque-locale', 'guichet');
   regler('ville_b', 'banque-locale', 'guichet');
   if (pays.capitale) pays.capitale.buildings = pays.capitale.buildings.filter(b => b !== 'banque-privee');
+})();
+
+// CENTRES D'ECOUTE DE STAROVKA ET KRASNOV (Fred, 10/11/2026 ; migration 20261110092000). Specialite de Sovarka :
+// l'espionnage. Une seule piece : l'operateur et les archives (rapports consignes chaque nuit). Tout PJ qui n'est pas
+// ministre de la Defense peut tenter de voler un rapport (acte illegal, sovarka_ecoute_archives_voler).
+(function () {
+  const centre = (id, nom, court, pnj, role, desc, pieceDesc) => {
+    BUILDINGS[id] = {
+      name: nom, shortName: court, cat: 'Sécurité', icon: 'ti-antenna', bgColor: '#101418', desc,
+      imagesAVenir: true,
+      rooms: { salle_ecoute: {
+        name: 'Salle d’écoute', imageBg: 'linear-gradient(135deg,#101418,#18202a)', desc: pieceDesc,
+        persons: [{ name: pnj + ' (PNJ)', role, rel: 'neutral', job: 'militaire' }],
+        orders: [{ fn: 'voler_archives_ecoute', label: 'Voler un rapport dans les archives', pa: 2, cost: 0, type: 'illegal', icon: 'ti-file-search', successRate: 45,
+          desc: 'Dérober un rapport d’écoute au hasard parmi ceux des 30 derniers jours. Acte illégal : en cas d’échec, bagarre avec l’opérateur puis prison ; en cas de réussite, vous laissez une trace.' }]
+      } }
+    };
+  };
+  centre('poste-vigilance-glaciale', 'Poste de Vigilance Glaciale', 'Poste militaire', 'Sergent Bair Dorjiev', 'Opérateur d’écoute',
+    'Un poste militaire planté dans la glace, hérissé d’antennes : il écoute la ville et, au-delà de l’océan, El Estado.',
+    'Des casques, des bandes magnétiques, un poêle et des classeurs alignés : le sergent Dorjiev écoute en silence.');
+  centre('station-radar-krasnov', 'Station radar de Krasnov', 'Station radar', 'Lieutenante Nadejda Sokolova', 'Opératrice d’écoute',
+    'La station radar du kolkhoze : sa grande parabole tourne vers le sud, vers Al-Khalija, et écoute aussi Krasnov.',
+    'Des consoles qui grésillent et des archives tenues en triple exemplaire par la lieutenante Sokolova.');
+  const cite = v => WORLD.soviet && WORLD.soviet[v];
+  if (cite('ville_a') && !cite('ville_a').buildings.includes('poste-vigilance-glaciale')) cite('ville_a').buildings.push('poste-vigilance-glaciale');
+  if (cite('ville_b') && !cite('ville_b').buildings.includes('station-radar-krasnov')) cite('ville_b').buildings.push('station-radar-krasnov');
 })();

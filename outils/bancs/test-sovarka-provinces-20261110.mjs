@@ -31,3 +31,26 @@ test('Extraction : pétrole à Starovka, bois à Krasnov', () => {
   assert.match(src, /ville_a: \['Pétrole'\],\s+\/\/ Starovka/);
   assert.match(src, /ville_b: \['Bois'\]\s+\/\/ Krasnov/);
 });
+
+test('Centres d’écoute : façades, une pièce, opérateur, vol d’archives ; ministre de la Défense', () => {
+  const ctx = vm.createContext({console, state: {country: 'soviet', currentCity: 'ville_a'}});
+  vm.runInContext(fs.readFileSync(path.join(root, 'data.js'), 'utf8'), ctx);
+  vm.runInContext(fs.readFileSync(path.join(root, 'plateau-rue-centrale.js'), 'utf8'), ctx);
+  const r = vm.runInContext(`(() => {
+    const z = (n, b) => (RUE_CENTRALE_NOEUDS.soviet[n].zones || []).some(x => x.buildingId === b);
+    return {
+      poste: z('starovka-rue-bureaux-caserne', 'poste-vigilance-glaciale') && WORLD.soviet.ville_a.buildings.includes('poste-vigilance-glaciale'),
+      radar: z('krasnov-rue-distillerie-radar', 'station-radar-krasnov') && WORLD.soviet.ville_b.buildings.includes('station-radar-krasnov'),
+      pieces: Object.keys(BUILDINGS['poste-vigilance-glaciale'].rooms).join() + '|' + Object.keys(BUILDINGS['station-radar-krasnov'].rooms).join(),
+      vol: BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute.orders.map(o => o.fn + ':' + o.pa).join(),
+      operateurs: BUILDINGS['poste-vigilance-glaciale'].rooms.salle_ecoute.persons[0].name + '|' + BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute.persons[0].name
+    };
+  })()`, ctx);
+  assert.ok(r.poste && r.radar);
+  assert.equal(r.pieces, 'salle_ecoute|salle_ecoute');
+  assert.equal(r.vol, 'voler_archives_ecoute:2');
+  assert.equal(r.operateurs, 'Sergent Bair Dorjiev (PNJ)|Lieutenante Nadejda Sokolova (PNJ)');
+  assert.match(fs.readFileSync(path.join(root, 'data.js'), 'utf8'), /fn: 'sovarka_ecoutes', label: 'Rapports des centres d’écoute'[^\n]*requiresPost: 'min_def'/);
+  const routeur = fs.readFileSync(path.join(root, 'plateau-router.js'), 'utf8');
+  for (const fn of ['souscrire_bon_etat', 'sovarka_ecoutes', 'voler_archives_ecoute']) assert.ok(routeur.includes(`fn === '${fn}'`), fn);
+});
