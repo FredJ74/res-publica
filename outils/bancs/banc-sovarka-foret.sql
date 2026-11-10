@@ -68,8 +68,8 @@ BEGIN
   iss := public.sovarka_foret_issue_combat_interne(k2->>'pnj', 'Arnie', 'neutralises');
   v_type := k2->>'creature';
   SELECT inventory INTO inv FROM public.personnages_donnees WHERE name = 'Arnie';
-  IF public.inventaire_quantite(inv, 'viande') <> CASE v_type WHEN 'loup' THEN 3 WHEN 'meute' THEN 6 ELSE 9 END
-     OR public.inventaire_quantite(inv, 'dent_ours') <> CASE v_type WHEN 'ours' THEN 2 ELSE 0 END THEN RAISE EXCEPTION 'butin %: %', v_type, inv; END IF;
+  IF public.inventaire_quantite(inv, 'viande') <> (CASE v_type WHEN 'loup' THEN 3 WHEN 'meute' THEN 6 ELSE 9 END)
+     OR public.inventaire_quantite(inv, 'dent_ours') <> (CASE v_type WHEN 'ours' THEN 2 ELSE 0 END) THEN RAISE EXCEPTION 'butin %: %', v_type, inv; END IF;
   -- Ne pas se defendre : PA a 0 (l'hospitalisation suit a la validation de la transaction).
   UPDATE public.batailles SET statut = 'terminee' WHERE id = (cb->>'bataille')::bigint;
   UPDATE public.personnages_donnees SET current_room = 'foret_vue_3', pa = 30 WHERE name = 'Arnie';
