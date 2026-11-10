@@ -50,6 +50,7 @@ INSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,memb
 ('soviet','capitale','assemblee','["accueil_assemblee","hemicycle","couloirs","salle_archives_assemblee"]'::jsonb,false,NULL),
 ('soviet','capitale','tribunal','["salle_audience","bureau_magistrats","greffe"]'::jsonb,false,NULL),
 ('soviet','capitale','banque-nationale','["accueil_banque","coffre_privatif"]'::jsonb,false,NULL),
+('soviet','capitale','banque-privee','["bureau_prive"]'::jsonb,false,NULL),
 ('soviet','capitale','clinique-privee','["reception_clinique","chambre_1","chambre_2","chambre_3","chambre_4","chambre_5","chambre_6","chambre_7","chambre_8","chambre_9","chambre_10"]'::jsonb,false,NULL),
 ('soviet','capitale','dispensaire-public','["salle_attente","ehpad_tilleuls"]'::jsonb,false,NULL),
 ('soviet','capitale','commissariat','["accueil_police","prison","bureau_commissaire"]'::jsonb,false,NULL),
@@ -58,6 +59,5 @@ INSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,memb
 ('soviet','capitale','universite','["amphi","salle_reunion"]'::jsonb,false,NULL),
 ('soviet','capitale','armurerie','["magasin"]'::jsonb,false,NULL),
 ('soviet','capitale','marche','["marche_ext"]'::jsonb,false,NULL),
-('soviet','capitale','mairie-capitale','["hall_mairie","bureau_maire","bureau_maire_adjoint","salle_elections","salle_archives"]'::jsonb,false,NULL),
-('soviet','capitale','kolkhoze-spirituel','["grange_sainte"]'::jsonb,false,NULL)
+('soviet','capitale','mairie-capitale','["hall_mairie","bureau_maire","bureau_maire_adjoint","salle_elections","salle_archives"]'::jsonb,false,NULL)
 ON CONFLICT(pays,ville,batiment) DO UPDATE SET pieces=EXCLUDED.pieces,ferme=EXCLUDED.ferme,membership=EXCLUDED.membership;

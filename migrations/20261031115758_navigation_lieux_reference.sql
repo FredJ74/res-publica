@@ -1,12 +1,5 @@
 -- Généré par outils/generateurs/navigation-lieux.cjs depuis data.js.
 INSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,membership) VALUES
-('khalija','capitale','commissariat','["accueil_police","prison","bureau_commissaire"]'::jsonb,false,NULL),
-('khalija','capitale','la-tribune','["accueil_tribune","redaction"]'::jsonb,false,NULL),
-('khalija','capitale','loge-maconnique','["portail","hall_loge","bureau_venerable","salle_reunion_loge"]'::jsonb,false,'loge'),
-('khalija','capitale','universite','["amphi","salle_reunion"]'::jsonb,false,NULL),
-('khalija','capitale','armurerie','["magasin"]'::jsonb,false,NULL),
-('khalija','capitale','marche','["marche_ext"]'::jsonb,false,NULL),
-('khalija','capitale','mairie-capitale','["hall_mairie","bureau_maire","bureau_maire_adjoint","salle_elections","salle_archives"]'::jsonb,false,NULL),
 ('khalija','capitale','patisserie-sacree','["salle_degustation"]'::jsonb,false,NULL),
 ('khalija','capitale','centre-multinodal-luthecia','["hall_gare","hall_douanes","zone_embarquement"]'::jsonb,false,NULL),
 ('khalija','capitale','centre-commercial','["hall","vitrine_principale","boutique_milieu","arriere_boutique","cave_reserve"]'::jsonb,false,NULL),
