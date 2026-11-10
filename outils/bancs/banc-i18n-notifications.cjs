@@ -8,11 +8,11 @@ win.RPPlateauI18n={language:()=>lang};
 win.i18next={t:(key,{lng,defaultValue}={})=>key.split('.').reduce((obj,k)=>obj?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue};
 const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','toast-resources.js'])vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx,{filename:file});
-test('61 titres de notification conformes dans neuf langues, hors messages libres',()=>{
+test('101 titres de notification conformes dans neuf langues, hors messages libres',()=>{
  const langs=Object.keys(win.RP_I18N_LANGUAGES);
  assert.equal(langs.length,9);
  const expected=Object.keys(win.RP_I18N_RESOURCES.fr.translation.toastTitles);
- assert.equal(expected.length,61);
+ assert.equal(expected.length,101);
  for(const language of langs){
   lang=language;
   const titles=win.RP_I18N_RESOURCES[language].translation.toastTitles;
@@ -25,6 +25,27 @@ test('61 titres de notification conformes dans neuf langues, hors messages libre
  assert.equal(win.RPToastI18n.label('Forum introuvable'),win.RP_I18N_RESOURCES.ru.translation.toastTitles.forumNotFound);
  for(const text of ['Erreur technique — 411','Arnie','Action impossible : 75 FR','{{placeholder}}',''])
   assert.equal(win.RPToastI18n.label(text),text,'inconnu jamais traduit');
+});
+test('40 titres supplémentaires sont émis par les actions politiques et restent des titres seuls',()=>{
+ const source=fs.readFileSync(path.join(root,'plateau-politique.js'),'utf8');
+ const examples=[
+  'Poste obtenu','Déjà candidat','Poste pourvu','Candidature refusee',
+  'Candidatures closes','Candidature enregistree','Programme requis',
+  'Vote fermé','Déjà voté','Vote non enregistré','Vote enregistré !',
+  'Poste vacant','Non domicilié','Influence insuffisante',
+  'Nomination impossible','Nomination refusée','Nomination effectuee',
+  'Déjà marié(e)','Union non célébrée','Félicitations !',
+  'Demande déjà traitée','Demande envoyée','Demande acceptée'
+ ];
+ for(const title of examples){
+  assert.ok(source.includes("showToast('"+title+"'"),title+' : titre réellement émis');
+  const key=win.RPToastI18n.label(title);
+  lang='ko';
+  assert.notEqual(win.RPToastI18n.label(title),title,'titre traduit : '+title);
+  lang='fr';
+  assert.equal(win.RPToastI18n.label(title),title,'texte canonique inchangé : '+title);
+ }
+ lang='ru';
 });
 test('incident et sous-message non modifiés, titre non injecté en HTML',()=>{
  const start=core.indexOf('function showToast('),end=core.indexOf('// =====================',start);
