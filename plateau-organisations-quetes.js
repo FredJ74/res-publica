@@ -2216,6 +2216,19 @@ async function verifierEtJouerJournees() {
 // constate que la phase n'est plus 'terminee' et n'ecrit rien.
 // Renvoie la saison effectivement en base (la sienne ou celle du gagnant), ou null.
 async function demarrerNouvelleSaison(saisonPrecedente) {
+  // Avant d'effacer la saison achevée, s'assurer que tous les tickets des
+  // playoffs ont bien été réglés. Panne de RPC = on conserve les résultats et
+  // les tickets en attente ; aucune dette ne doit disparaître avec le calendrier.
+  if (saisonPrecedente?.phase === 'terminee' && saisonPrecedente.playoffs) {
+    for (const manche of ['quarts_aller','quarts_retour','demies_aller','demies_retour','finale']) {
+      const ok = await reglerParisPlayoff(manche);
+      if (!ok) {
+        if (typeof showToast === 'function')
+          showToast('Championnat en attente','Impossible de vérifier le règlement des paris ; nouvelle saison reportée.',false);
+        return saisonPrecedente;
+      }
+    }
+  }
   let creee = false;
   const r = await majChampionnatCAS((fraiche) => {
     // Seule une saison reellement terminee peut etre remplacee. Toute autre phase = un autre
@@ -9203,10 +9216,11 @@ async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, p
 // Les scores de phase finale sont lus exclusivement par la RPC de règlement.
 // Le règlement est idempotent : un appel répété ne verse jamais deux fois.
 async function reglerParisPlayoff(manche) {
-  if (typeof sbRpc !== 'function') return;
+  if (typeof sbRpc !== 'function') return false;
   const r = await sbRpc('football_pari_playoff_resoudre',{p_manche:manche})
     .then(rows => Array.isArray(rows)?rows[0]:rows).catch(()=>null);
-  if (!r?.ok || !Array.isArray(r.detail) || !r.detail.length) return;
+  if (!r?.ok) return false;
+  if (!Array.isArray(r.detail) || !r.detail.length) return true;
   const date = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   for (const pari of r.detail) {
     if (typeof sbSendMail !== 'function') break;
@@ -9218,6 +9232,7 @@ async function reglerParisPlayoff(manche) {
       : 'Votre pari sur ' + a.nom + ' vs ' + b.nom + ' est perdant. Mise perdue.';
     await sbSendMail('Ligue Officielle',pari.joueur,pari.gagne?'Pari gagné !':'Pari perdu',message,date).catch(()=>{});
   }
+  return true;
 }
 
 // Resout tous les paris en attente pour une journee qui vient d'etre jouee
