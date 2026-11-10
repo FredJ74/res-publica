@@ -1,3 +1,6 @@
+### Internationalisation des produits et de la production — intégration des lots Codex (10/11/2026)
+Les trois branches Codex du 10 novembre ont été consolidées dans une seule intégration sur le main actuel : 79 clés fiches/effets, 63 clés catalogue/matières, 11 clés refus/confirmations, soit **153 clés en neuf langues**. Rapport et preuves complets : `outils/audits/I18N-PRODUITS-ECONOMIE-20261110.md`. Rapport Codex : **31/31** tests ciblés ; **269/270** bancs clients avec échec scènes PNJ du Dynamo reproduit sur main historique, **10/12** contrôles globaux avec Baseline/Referential inchangés. Fusion et déploiement ne sont établis qu'après les vérifications de la PR d'intégration. Aucun changement de règle, PA, prix, permission, RPC ni donnée joueur.
+
 
 ### Priorité P0 explicite — affichage navigateur / vérité serveur (29/10)
 

@@ -1112,6 +1112,47 @@
   }
 };
  for(const [locale,labels] of Object.entries(politicsTitles))Object.assign(translated[locale],labels);
+ // Deux titres du moteur de production : l’incident conserve toujours le français.
+ Object.assign(originals,{'Production impossible':'productionRefused','Production réussie !':'productionSucceeded'});
+ const productionTitles={
+  "fr": {
+    "productionRefused": "Production impossible",
+    "productionSucceeded": "Production réussie !"
+  },
+  "en": {
+    "productionRefused": "Production impossible",
+    "productionSucceeded": "Production successful!"
+  },
+  "es": {
+    "productionRefused": "Producción imposible",
+    "productionSucceeded": "¡Producción realizada!"
+  },
+  "zh-TW": {
+    "productionRefused": "無法生產",
+    "productionSucceeded": "生產成功！"
+  },
+  "ru": {
+    "productionRefused": "Производство невозможно",
+    "productionSucceeded": "Производство завершено!"
+  },
+  "ko": {
+    "productionRefused": "생산 불가",
+    "productionSucceeded": "생산 성공!"
+  },
+  "ar": {
+    "productionRefused": "الإنتاج غير ممكن",
+    "productionSucceeded": "نجح الإنتاج!"
+  },
+  "pt-BR": {
+    "productionRefused": "Produção impossível",
+    "productionSucceeded": "Produção concluída!"
+  },
+  "de": {
+    "productionRefused": "Produktion nicht möglich",
+    "productionSucceeded": "Produktion erfolgreich!"
+  }
+};
+ for(const [locale,labels]of Object.entries(productionTitles))Object.assign(translated[locale],labels);
  for(const [locale,titles] of Object.entries(translated)){
   if(resources[locale]?.translation)
    resources[locale].translation.toastTitles={...titles};

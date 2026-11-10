@@ -1,0 +1,14 @@
+[
+  {
+    "url": "https://github.com/FredJ74/res-publica/commit/8831502511d9b9df6ecde0f1925f118ca53ca8f6/checks",
+    "http": 200,
+    "sha256": "cc2fda18531321b985391e207ba8ac4a9def510c73f43c16f3c5a0239ea19713",
+    "title": [
+      "feat(i18n): traduire les verdicts de production en préservant les diagnostics canoniques · FredJ74/res-publica@8831502  · GitHub"
+    ]
+  },
+  {
+    "url": "https://res-publica.vercel.app/plateau.html",
+    "erreur": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  }
+]

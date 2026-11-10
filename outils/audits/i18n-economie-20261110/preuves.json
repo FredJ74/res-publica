@@ -1,0 +1,61 @@
+{
+  "main": "7aafbb9f",
+  "sha_code_teste": "8831502511d9b9df6ecde0f1925f118ca53ca8f6",
+  "lots": [
+    {
+      "branche": "codex/i18n-produits-economie-20261110",
+      "sha": "f8ca377e",
+      "cles": 79
+    },
+    {
+      "branche": "codex/i18n-matieres-catalogue-20261110",
+      "sha": "c53beaf2",
+      "cles": 63
+    },
+    {
+      "branche": "codex/i18n-production-commandes-20261110",
+      "sha": "88315025",
+      "cles": 11
+    }
+  ],
+  "nouvelle_cles": 153,
+  "locales": 9,
+  "editorial_cles_fr": 1420,
+  "cibles_reussis": 31,
+  "client_reussis": 269,
+  "client_total": 270,
+  "client_echecs_preexistants": [
+    "banc-pnj-localisation-psm.mjs"
+  ],
+  "globaux_reussis": 10,
+  "globaux_total": 12,
+  "globaux_logs_main_branche_identiques": true,
+  "globaux_sha256": "cca22b0539b7c7fa68f2c2db49810fac28c8326c50ec00d7d354cbcb733cc56b",
+  "largeurs_chromium": [
+    360,
+    390,
+    768,
+    1440
+  ],
+  "comparaisons_png_fr": {
+    "fiche": "287039dda771b09cec7a1bdc8537a38d793586271a393867310b1e953684bc2f",
+    "carte": "df3d3a7865e98b990c13be9cfda031ad6e11832118c8dc7407749aa4d7db007d"
+  },
+  "comparaisons_png_egales": true,
+  "contre_epreuves_nouvelles": 2,
+  "github_api_get_post": "403",
+  "github_web_read": "200",
+  "creation_pr_effectuee": false,
+  "fusion_effectuee": false,
+  "vercel_acces": "403 tunnel",
+  "appareil_physique": false,
+  "personnage_connecte": false,
+  "ecriture_production": false,
+  "migration": false,
+  "surface_candidate": {
+    "scannedFiles": 54,
+    "marked": 164,
+    "literalTextAssignments": 663,
+    "dynamicHTMLSites": 838
+  }
+}
