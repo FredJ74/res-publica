@@ -99,3 +99,14 @@ de décisions du **10 novembre 2026 au soir** (20 h 53 – 21 h 30), à coder en
 
 - **Décision 19 (10/11, 21 h 50)** : recettes `couinator_3000_commerce` et `cartouche_encre_commerce`, génériques `couinator-3000` et `cartouche-encre` (type `electronique-informatique`) ; migration `20261110214000_equipements_couinator_cartouche` appliquée. Les objets n'ont pas encore d'effet (Fouiller les lieux et imprimante à venir).
 - **Téléphone cellulaire (10/11, 22 h 15)** : `pnj_rappeler_radio` accepte une radio **ou** un téléphone (générique `telephone-portable-cellulaire`) chez l'appelant et chez au moins un membre de l'unité, même ville uniquement ; le téléphone se donne à un employé par le bouton 📦 existant. Migration `20261110221000_telephone_cellulaire_rappel` appliquée ; textes du bouton 📻 et des refus dans `plateau-multijoueur.js`.
+- **Étape 1 de la nuit (11/11, vers 0 h 30) — surveillance, Fouiller les lieux, Couinator** : migration
+  `20261111000500_equipements_surveillance` appliquée (tables `cameras_posees`, `cameras_decouvertes` ; RPC `cameras_lire`,
+  `camera_poser`, `camera_reprendre`, `camera_frequence`, `fouiller_lieux`, `camera_trouvee_traiter` ; passe horaire
+  `cameras_rapports_passe` planifiée par **pg_cron** à la 7e minute de chaque heure — extension activée pour l'occasion,
+  Vercel n'offrant qu'un cron quotidien). Acte illégal `poser_camera` (délit mineur, détection 30). Rapports : passages lus
+  dans `historique_deplacements` ; « actes filmés » = traces serveur datées commises pendant la présence. Écran :
+  `plateau-surveillance.js` (bloc dans la colonne des personnes présentes, pièce et rue ; pop-up animée du Couinator).
+  **Choix techniques** : la pose exige au moins un ordinateur connecté (sans quoi la caméra serait inopérante) ; un rapport
+  n'est envoyé que s'il y a eu du passage ; « chez soi » = propriétaire foncier du lot (bâtiments construits par un PJ).
+  Banc `outils/bancs/banc-equipements-surveillance.sql` (annulé) : pose, rapport par mail, fouille et emport validés avant
+  un dernier contrôle bloqué par le garde d'inventaire du banc (corrigé dans le fichier, **à rejouer**).

@@ -423,6 +423,8 @@ function renderPersonsList(persons, targetId) {
   chargerVraisJoueursPresents();
   // Charger les objets abandonnés visibles dans cette pièce — affichés à la suite des personnes
   if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
+  // Surveillance (11/11/2026) : mes cameras ici, poser une camera, fouiller les lieux.
+  if (typeof surveillanceAfficherIci === 'function') surveillanceAfficherIci(targetId);
 }
 
 // Cache partagé des photos de profil (nom -> photo_url), réutilisé pour la présence, le forum et les mails
