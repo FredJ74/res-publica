@@ -12,20 +12,41 @@ const api = lire('api/chat.js');
 const prompt = lire('api/_pnj-profils.js');
 
 function simuler(options = {}) {
-  const modal = { ouvert: false, classList: {
-    add() { modal.ouvert = true; }, remove() { modal.ouvert = false; }
-  } };
-  const title = { textContent: '' };
-  const body = { innerHTML: '' };
+  const elements = {};
+  function creerElement() {
+    const e = { innerHTML: '', textContent: '', style: {}, attributes: {},
+      setAttribute(k,v) { this.attributes[k] = v; },
+      classList: { add(n) { if(n==='open') e.ouvert=true; }, remove(n) { if(n==='open') e.ouvert=false; } }
+    };
+    return e;
+  }
+  const modal = creerElement();
+  modal.ouvert = false;
+  const title = creerElement(), body = creerElement();
+  const postes = creerElement(), postesBody = creerElement();
   const question = { value: '', disabled: false };
+  elements['modal-postes'] = postes;
+  elements['postes-modal-title'] = creerElement();
+  elements['postes-body'] = postesBody;
+  elements['jodie-enquete-question'] = question;
   const appels = [];
   const conversations = [];
   const ctx = {
     state: { char: { name: 'Angie', enigme1: { etape: 'declenchee' } }, day: 1 },
-    document: { getElementById: id => ({
-      'modal-postes': modal, 'postes-modal-title': title,
-      'postes-body': body, 'jodie-enquete-question': question
-    }[id] || null), querySelector: () => options.autreModale ? {} : null },
+    document: {
+      body: { appendChild(el) {
+        elements[el.id] = el;
+        if (el.id === 'modal-jodie-enquete') {
+          modal.classList = el.classList;
+          Object.defineProperty(modal, 'ouvert', {get: () => el.ouvert});
+        }
+        elements['jodie-enquete-body'] = body;
+        elements['jodie-enquete-titre'] = title;
+      }},
+      createElement: creerElement,
+      getElementById: id => elements[id] || null,
+      querySelector: () => options.autreModale ? {} : null
+    },
     sbRpcVerdict: async (rpc, params) => {
       appels.push({rpc, ...params});
       if (params.p_action === 'etat') return options.etat || {ok:true,type:'aucun'};
@@ -90,6 +111,19 @@ test('conclusion : libre choix de transmettre ses découvertes', async () => {
   assert.match(s.body.innerHTML,/Garder mes découvertes/);
   await s.ctx.jodieEnqueteRepondre('informer');
   assert.ok(s.appels.some(x=>x.p_action==='conclusion' && x.p_reponse==='informer'));
+});
+
+test('la presse réutilise modal-postes sans effacer ni raccrocher Jodie', async () => {
+  const s=simuler({etat:{ok:true,type:'premier',contact:{}}});
+  await s.ctx.jodieEnqueteVerifierAppel();
+  const texte = s.body.innerHTML;
+  s.ctx.document.getElementById('postes-body').innerHTML = 'Édition des journaux';
+  s.ctx.document.getElementById('modal-postes').classList.add('open');
+  s.ctx.document.getElementById('modal-postes').classList.remove('open');
+  assert.equal(s.modal.ouvert,true);
+  assert.equal(s.body.innerHTML,texte);
+  s.ctx.jodieEnqueteFermerAppel();
+  assert.equal(s.modal.ouvert,false);
 });
 
 test('serveur : unicité, J+1, rappel et mémoire commune', () => {
