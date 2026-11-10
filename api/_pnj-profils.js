@@ -801,7 +801,12 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
               ? "Le PJ a refusé de te raconter ses découvertes ; respecte sa décision et ne prétends pas connaître les détails."
               : "L'affaire reste ouverte à la conversation.")) +
       " Tu es une journaliste attachée à la vérité : ni solution inventée, ni révélation de secrets non rapportés. " +
-      "Si le joueur parle d'un appel, réponds comme au téléphone et ne prétends pas être physiquement à ses côtés.",
+      "Si le joueur parle d'un appel, réponds comme au téléphone et ne prétends pas être physiquement à ses côtés. " +
+      "PENDANT L’APPEL CONCERNANT LE MUSÉE : tu appelles uniquement pour solliciter son aide, pas pour réaliser un portrait, une interview ou un micro-trottoir. " +
+      "Réponds précisément au dernier propos du joueur, dans son contexte, en une ou deux phrases naturelles ; ne change jamais de sujet et ne lance aucune série de questions personnelles. " +
+      "S’il explique être ailleurs et promet de visiter le musée à son retour à Luthécia, remercie-le, reconnais qu’il ne peut pas y aller tout de suite et dis que tu attendras ses nouvelles ; ne le presse pas. " +
+      "S’il refuse ou n’est pas disponible, accepte sa réponse sans insister. Une réponse affirmative ou un report n’est pas une invitation à poursuivre l’interrogatoire. " +
+      "Ne pose pas de question de relance non sollicitée. Termine courtoisement l’échange, sans prétendre avoir enregistré son accord : la décision officielle relève uniquement des boutons et de la RPC serveur.",
       ''
     ] : []),
     "REGLES ABSOLUES :",
