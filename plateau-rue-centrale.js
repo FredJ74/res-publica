@@ -839,7 +839,10 @@ const RUE_CENTRALE_NOEUDS = {
 
     'starovka-maisons-ferme': {
       image: 'images/Sovarka/Starovka/Starovka_maisons_ferme.webp',
-      zones: [],
+      // 10/11/2026 : maison de Dolgor (hospitalité), migration 20261110094500.
+      zones: [
+        { xPct: [0, 35], yPct: [8, 76], nom: 'Maison de Dolgor', type: 'batiment', buildingId: 'maison-starovka' }
+      ],
       liens: { toutDroit: 'starovka-rue-hotel', arriere: 'starovka-rue-petrole-ferme' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
     },
@@ -1007,7 +1010,10 @@ const RUE_CENTRALE_NOEUDS = {
     // Rue des maisons : aucune direction supplémentaire tant que non définie.
     'krasnov-rue-maison': {
       image: 'images/Sovarka/Krasnov/Krasnov rue maison.webp',
-      zones: [],
+      // 10/11/2026 : maison de Stepan (hospitalité), migration 20261110094500.
+      zones: [
+        { xPct: [40, 90], yPct: [8, 76], nom: 'Maison de Stepan', type: 'batiment', buildingId: 'maison-krasnov' }
+      ],
       liens: { gauche: 'krasnov-rue-entrepot', droite: 'krasnov-rue-terrains' },
       flechesStyle: {
         gauche: 'top:50%; left:10px; transform:translateY(-50%);',

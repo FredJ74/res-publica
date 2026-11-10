@@ -54,3 +54,19 @@ test('Centres d’écoute : façades, une pièce, opérateur, vol d’archives ;
   const routeur = fs.readFileSync(path.join(root, 'plateau-router.js'), 'utf8');
   for (const fn of ['souscrire_bon_etat', 'sovarka_ecoutes', 'voler_archives_ecoute']) assert.ok(routeur.includes(`fn === '${fn}'`), fn);
 });
+
+test('Maisons : façades, habitant, service, trinquer (3 PA), dormir comme à l’hôtel', () => {
+  const ctx = vm.createContext({console, state: {country: 'soviet', currentCity: 'ville_a'}});
+  vm.runInContext(fs.readFileSync(path.join(root, 'data.js'), 'utf8'), ctx);
+  vm.runInContext(fs.readFileSync(path.join(root, 'plateau-rue-centrale.js'), 'utf8'), ctx);
+  const r = vm.runInContext(`(() => {
+    const z = (n, b) => (RUE_CENTRALE_NOEUDS.soviet[n].zones || []).some(x => x.buildingId === b);
+    return {
+      facades: z('starovka-maisons-ferme', 'maison-starovka') && z('krasnov-rue-maison', 'maison-krasnov'),
+      listees: WORLD.soviet.ville_a.buildings.includes('maison-starovka') && WORLD.soviet.ville_b.buildings.includes('maison-krasnov'),
+      ordres: BUILDINGS['maison-krasnov'].rooms.piece_maison.orders.map(o => o.fn + ':' + o.pa).join()
+    };
+  })()`, ctx);
+  assert.ok(r.facades && r.listees);
+  assert.equal(r.ordres, 'maison_habitant:0,trinquer_habitant:3,dormir_chambre:0');
+});

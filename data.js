@@ -10850,3 +10850,35 @@ BUILDINGS['locaux-starovka'] = {
   if (cite('ville_a') && !cite('ville_a').buildings.includes('poste-vigilance-glaciale')) cite('ville_a').buildings.push('poste-vigilance-glaciale');
   if (cite('ville_b') && !cite('ville_b').buildings.includes('station-radar-krasnov')) cite('ville_b').buildings.push('station-radar-krasnov');
 })();
+
+// MAISONS DE STAROVKA ET KRASNOV (Fred, 10/11/2026 ; migration 20261110094500) : hospitalite russe. Un habitant tres
+// accueillant offre le gite et le couvert contre un service tire chaque jour ; on peut aussi trinquer avec lui
+// (« secret contre secret », nid a ragots). Habitants proposes par Claude, a valider par Fred.
+(function () {
+  const maison = (id, nom, habitant, role, desc, pieceDesc) => {
+    BUILDINGS[id] = {
+      name: nom, shortName: 'Maison', cat: 'Social', icon: 'ti-home-heart', bgColor: '#16110c', desc, imagesAVenir: true,
+      rooms: { piece_maison: {
+        name: 'La pièce commune', imageBg: 'linear-gradient(135deg,#16110c,#221a12)', desc: pieceDesc,
+        persons: [{ name: habitant + ' (PNJ)', role, rel: 'friendly', job: 'habitant' }],
+        orders: [
+          { fn: 'maison_habitant', label: 'Parler à l’habitant', pa: 0, cost: 0, type: 'legal', icon: 'ti-home-heart', successRate: 100,
+            desc: 'L’habitant vous offre le gîte et le couvert contre un petit service, différent chaque jour. Une hospitalité par jour.' },
+          { fn: 'trinquer_habitant', label: 'Trinquer avec l’habitant', pa: 3, cost: 0, type: 'legal', icon: 'ti-glass-full', successRate: 100,
+            desc: 'Apportez une bouteille (n’importe quel alcool). À chaque bouteille, l’habitant vous livre un secret de la ville… et vous lui en livrez un, malgré vous. 3 PA par bouteille.' },
+          { fn: 'dormir_chambre', label: 'Dormir chez l’habitant', pa: 0, cost: 0, type: 'legal', icon: 'ti-bed', successRate: 100,
+            desc: 'Une fois le service rendu : une nuit au chaud, comme à l’hôtel (+2 PA, +3 Moral au réveil).' }
+        ]
+      } }
+    };
+  };
+  maison('maison-starovka', 'Maison de Dolgor', 'Dolgor Tsybikova', 'Habitante de Starovka',
+    'Une maison de bois basse, fumée qui monte droit dans le froid : la porte s’ouvre avant même qu’on ait frappé.',
+    'Un poêle ronflant, du thé au beurre sur le feu et une vieille dame bouriate qui vous fait signe de vous asseoir.');
+  maison('maison-krasnov', 'Maison de Stepan', 'Stepan Kouznetsov', 'Habitant de Krasnov',
+    'La maison d’un vieux kolkhozien, ses bocaux alignés sur le rebord de la fenêtre.',
+    'Une table couverte d’une toile cirée, des cornichons, du pain noir et un vieil homme ravi d’avoir de la compagnie.');
+  const cite = v => WORLD.soviet && WORLD.soviet[v];
+  if (cite('ville_a') && !cite('ville_a').buildings.includes('maison-starovka')) cite('ville_a').buildings.push('maison-starovka');
+  if (cite('ville_b') && !cite('ville_b').buildings.includes('maison-krasnov')) cite('ville_b').buildings.push('maison-krasnov');
+})();
