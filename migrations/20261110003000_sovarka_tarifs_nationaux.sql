@@ -70,11 +70,11 @@ BEGIN
   d := pg_get_functiondef('public.recevoir_soin(text,text,text,text,text,integer)'::regprocedure);
   IF position('ordres_couts_pays' IN d) = 0 THEN
     avant := E'  IF NOT EXISTS (SELECT 1 FROM public.ordres_couts\n                 WHERE fn = CASE WHEN p_type=''public'' THEN ''soin_public'' ELSE ''soins'' END\n                   AND cost = coalesce(p_cout,0)) THEN';
-    apres := E'  IF CASE WHEN EXISTS (SELECT 1 FROM public.ordres_couts_pays o WHERE o.pays = p_pays\n'
+    apres := E'  IF (CASE WHEN EXISTS (SELECT 1 FROM public.ordres_couts_pays o WHERE o.pays = p_pays\n'
       || E'                AND o.fn = CASE WHEN p_type=''public'' THEN ''soin_public'' ELSE ''soins'' END)\n'
       || E'      THEN NOT EXISTS (SELECT 1 FROM public.ordres_couts_pays o WHERE o.pays = p_pays  -- sovarka_tarifs_nationaux_v1\n'
       || E'                AND o.fn = CASE WHEN p_type=''public'' THEN ''soin_public'' ELSE ''soins'' END AND o.cost = coalesce(p_cout,0))\n'
-      || E'      ELSE NOT EXISTS (SELECT 1 FROM public.ordres_couts\n                 WHERE fn = CASE WHEN p_type=''public'' THEN ''soin_public'' ELSE ''soins'' END\n                   AND cost = coalesce(p_cout,0)) END THEN';
+      || E'      ELSE NOT EXISTS (SELECT 1 FROM public.ordres_couts\n                 WHERE fn = CASE WHEN p_type=''public'' THEN ''soin_public'' ELSE ''soins'' END\n                   AND cost = coalesce(p_cout,0)) END) THEN';
     IF (length(d) - length(replace(d, avant, ''))) / length(avant) <> 1 THEN RAISE EXCEPTION 'recevoir_soin : ancrage introuvable'; END IF;
     EXECUTE replace(d, avant, apres);
   END IF;

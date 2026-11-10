@@ -915,6 +915,33 @@ let jodieEnqueteAppelEnCours = false;
 let jodieEnqueteFenetre = null;
 const JODIE_ENQUETE_PHOTO = 'images/jodie-moitout.webp';
 const JODIE_ENQUETE_DESTINATION = 'Musée de la Ville de Luthécia';
+ 
+// L'appel est indépendant du modal-postes partagé avec la presse et les ordres.
+// Aucun autre écran ne doit remplacer son contenu ou fermer implicitement l'appel.
+function jodieEnqueteElements() {
+  let fenetre = document.getElementById('modal-jodie-enquete');
+  if (!fenetre) {
+    fenetre = document.createElement('div');
+    fenetre.id = 'modal-jodie-enquete';
+    fenetre.className = 'modal-overlay';
+    fenetre.setAttribute('role', 'dialog');
+    fenetre.setAttribute('aria-modal', 'true');
+    fenetre.setAttribute('aria-labelledby', 'jodie-enquete-titre');
+    fenetre.style.zIndex = '170';
+    fenetre.innerHTML = '<div class="modal-box"><div class="modal-header">'
+      + '<div class="modal-title" id="jodie-enquete-titre">Appel de Jodie Moitout</div>'
+      + '<button type="button" class="modal-close" aria-label="Raccrocher" onclick="jodieEnqueteFermerAppel()"><i class="ti ti-x"></i></button>'
+      + '</div><div id="jodie-enquete-body"></div></div>';
+    document.body.appendChild(fenetre);
+  }
+  return { fenetre, corps: document.getElementById('jodie-enquete-body') };
+}
+
+function jodieEnqueteFermerAppel() {
+  document.getElementById('modal-jodie-enquete')?.classList.remove('open');
+  jodieEnqueteFenetre = null;
+}
+
 
 async function jodieEnqueteRpc(action, reponse) {
   if (typeof sbRpcVerdict !== 'function') return null;
@@ -923,7 +950,7 @@ async function jodieEnqueteRpc(action, reponse) {
 }
 
 async function jodieEnqueteVerifierAppel() {
-  if (jodieEnqueteAppelEnCours || !state?.char || !document.getElementById('modal-postes')) return;
+  if (jodieEnqueteAppelEnCours || jodieEnqueteFenetre || !state?.char || !document.body) return;
   jodieEnqueteAppelEnCours = true;
   try {
     const r = await jodieEnqueteRpc('etat');
@@ -969,16 +996,17 @@ function jodieEnqueteAfficherAppel(extra) {
       + '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'garder\')">Garder mes découvertes pour moi</button>';
   } else {
     html += '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'accepte\')">Comptez sur moi</button>'
-      + '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'refuse\')">Pas maintenant</button>'
-      + '<button class="pnj-action-btn" onclick="jodieEnqueteQuestion(\'pourquoi\')">Pourquoi moi ?</button>'
+      + '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'accepte\',\'retour\')">J’irai à mon retour à Luthécia</button>'
+      + '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'refuse\')">Pas maintenant</button>';
+    if (!extra) html += '<button class="pnj-action-btn" onclick="jodieEnqueteQuestion(\'pourquoi\')">Pourquoi moi ?</button>'
       + '<button class="pnj-action-btn" onclick="jodieEnqueteQuestion(\'ou\')">Où est ce musée ?</button>';
   }
   html += '</div><div style="padding:0 1rem 1rem"><label for="jodie-enquete-question">Parler à Jodie</label>'
     + '<textarea id="jodie-enquete-question" rows="2" maxlength="500" style="box-sizing:border-box;width:100%;background:#121005;color:#f0ead6;border:1px solid #8a6a20;padding:.5rem" placeholder="Votre question…"></textarea>'
     + '<button class="pnj-action-btn" onclick="jodieEnqueteParler()">Envoyer</button></div>';
-  document.getElementById('postes-modal-title').textContent = 'Appel de Jodie Moitout';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  const { fenetre, corps } = jodieEnqueteElements();
+  corps.innerHTML = html;
+  fenetre.classList.add('open');
 }
 
 function jodieEnqueteQuestion(sujet) {
@@ -1008,7 +1036,7 @@ async function jodieEnqueteParler() {
   }
 }
 
-async function jodieEnqueteRepondre(reponse) {
+async function jodieEnqueteRepondre(reponse, precision) {
   if (!jodieEnqueteFenetre) return;
   const appel = jodieEnqueteFenetre;
   const r = await jodieEnqueteRpc(appel.type === 'conclusion' ? 'conclusion' : 'choix',reponse);
@@ -1020,14 +1048,17 @@ async function jodieEnqueteRepondre(reponse) {
     const texte = reponse === 'informer'
       ? "Merci de m'avoir fait confiance. Je vais vérifier ces informations, consulter les archives, et raconter cette affaire sans déformer les faits. Il y a bien plus ici que des tableaux disparus."
       : "Je comprends. Je ne vous forcerai pas la main. Mais je continuerai à chercher ce qui s'est passé. Si vous changez d'avis, vous savez où me trouver.";
-    document.getElementById('postes-body').innerHTML =
+    jodieEnqueteElements().corps.innerHTML =
       '<div style="padding:1rem;display:flex;gap:1rem;align-items:flex-start"><img alt="Jodie Moitout" src="' +
       JODIE_ENQUETE_PHOTO + '" style="width:100px;height:110px;object-fit:cover;border-radius:6px">' +
       '<p style="line-height:1.55">' + texte + '</p></div>' +
-      '<div style="padding:1rem"><button class="pnj-action-btn" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')">Raccrocher</button></div>';
+      '<div style="padding:1rem"><button class="pnj-action-btn" onclick="jodieEnqueteFermerAppel()">Raccrocher</button></div>';
     return;
   }
-  document.getElementById('modal-postes').classList.remove('open');
+  jodieEnqueteFermerAppel();
   if (typeof showToast === 'function') showToast('Jodie Moitout',reponse === 'accepte'
-    ? 'Jodie compte sur vous au Musée de la Ville de Luthécia.' : "L'enquête reste accessible au Musée de la Ville de Luthécia.",true);
+    ? (precision === 'retour'
+      ? 'Jodie vous remercie et attendra votre retour à Luthécia.'
+      : 'Jodie compte sur vous au Musée de la Ville de Luthécia.')
+    : "L'enquête reste accessible au Musée de la Ville de Luthécia.",true);
 }
