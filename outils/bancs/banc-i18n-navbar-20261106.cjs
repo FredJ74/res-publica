@@ -60,7 +60,8 @@ test('les spans de navigation sont localisés sans déplacer les icônes ou comp
 
 test('le HTML ne traduit pas les boutons entiers et conserve les gestionnaires',()=>{
  for(const id of ids){
-  assert.ok(html.includes('data-i18n="plateau.'+id+'"'),id);
+  if(id==='rules') assert.ok(html.includes('data-aide-ui="nav"'),'navigation Aide');
+  else assert.ok(html.includes('data-i18n="plateau.'+id+'"'),id);
   const bad=new RegExp('<button[^>]*data-i18n="plateau\\.'+id+'"');
   assert.doesNotMatch(html,bad,'ne pas remplacer le contenu entier du bouton: '+id);
  }
