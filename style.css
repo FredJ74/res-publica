@@ -2425,3 +2425,36 @@ body.plateau-body .top-right {
   #bandeau-reconnexion>div{margin-block:auto;min-width:0;max-width:100%;box-sizing:border-box}
   #bandeau-reconnexion :is(input,button){font-size:16px!important;min-height:44px;max-width:100%;white-space:normal}
 }
+
+
+/* Appel de Jodie : choix réellement actifs, lisibles à l'état normal.
+   Limité à ce modal : aucun changement aux autres dialogues PNJ. */
+#modal-jodie-enquete .pnj-action-btn:not(:disabled) {
+  color: #f4e8c9;
+  background: #3a2e1c;
+  border: 1px solid #c6a15b;
+  border-radius: 4px;
+  opacity: 1;
+  font-size: .94rem;
+  line-height: 1.35;
+  min-height: 42px;
+  padding: .58rem .85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+#modal-jodie-enquete .pnj-action-btn:not(:disabled):hover {
+  background: #514027;
+  border-color: #f1ce7b;
+  color: #fff5db;
+}
+#modal-jodie-enquete .pnj-action-btn:not(:disabled):focus-visible {
+  outline: 3px solid #f4ce75;
+  outline-offset: 2px;
+}
+#modal-jodie-enquete .pnj-action-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+@media (max-width: 600px) {
+  #modal-jodie-enquete .pnj-action-btn { max-width: 100%; }
+}
