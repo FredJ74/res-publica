@@ -16,9 +16,9 @@ fs.mkdirSync(dir,{recursive:true});
     await p.evaluate(()=>{
       const bouton=document.querySelector('button[onclick="openRulesView()"]');
       if(!bouton)throw new Error('Bouton Aide/Règles introuvable');
-      const label=bouton.querySelector('span');
-      if(!label)throw new Error('Libellé introuvable');
-      label.textContent='AIDE';
+      // L'ancien témoin utilisait un noeud texte, le nouveau un span.
+      // Normaliser les deux sur le même DOM permet une comparaison pixel à pixel.
+      bouton.innerHTML='<i class="ti ti-book" style="font-size:.8rem;vertical-align:-1px"></i> Aide';
     });
   }
   await normaliserTitre(a);await normaliserTitre(n);
