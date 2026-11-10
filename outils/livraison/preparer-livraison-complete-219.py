@@ -37,7 +37,8 @@ def preparer(destination=None):
           ('fabriquer_armoire_souvenirs',3,0),
           ('acheter_armoire_souvenirs',0,0),
           ('virement_joueur',1,0),
-          ('virement_automatique',1,0)]
+          ('virement_automatique',1,0),
+          ('consommer_buvette',1,50)]  # retire par #682
  if any(r['fn'] in {t[0] for t in retires} for r in gen):
   raise ValueError('Ordre retiré réintroduit dans les commandes actuelles')
  # Prix d'achat des nouvelles parcelles de PSM (decision de Fred, 04/11/2026), posterieurs a la photographie.
@@ -66,11 +67,19 @@ def preparer(destination=None):
  fns_sovarka={f for f,_,_ in sovarka}
  if sorted((r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] in fns_sovarka)!=sorted(sovarka):
   raise ValueError('Ordres Sovarka absents, dupliqués ou mal tarifés')
+ # Provinces de Sovarka (10/11, #681/#686) : memes ajouts que preparer-recette97-219.py, controles un par un.
+ provinces=[('ferme_lapin',2,0),('ferme_legumes',1,0),('ferme_oeufs',1,0),('ferme_poulet',2,0),('ferme_renne',5,0),('ferme_traire',1,0),('foret_couper',2,0),('foret_enfoncer',0,0),('foret_revenir',0,0),('maison_habitant',0,0),('souscrire_bon_etat',0,0),('sovarka_ecoutes',0,0),('trinquer_habitant',3,0),('voler_archives_ecoute',2,0)]
+ if sorted((r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] in {f for f,_,_ in provinces})!=sorted(provinces):
+  raise ValueError('Ordres des provinces de Sovarka absents, dupliqués ou mal tarifés')
+ fns_sovarka=fns_sovarka|{f for f,_,_ in provinces}
+ supporters_dynamo=('rejoindre_club_supporters',1,25)  # variante de tarif du Dynamo (#682)
+ if sum((r['fn'],r['pa'],r['cost'])==supporters_dynamo for r in gen)!=1:
+  raise ValueError('Adhésion des supporters du Dynamo absente ou dupliquée')
  diner_sovarka=('diner_affaires',2,100)
  casier_sovarka=('casier_mon_extrait',1,8)  # extrait de casier à 8 PSK en Sovarka (08/11)
  if sum((r['fn'],r['pa'],r['cost'])==diner_sovarka for r in gen)!=1 or sum((r['fn'],r['pa'],r['cost'])==casier_sovarka for r in gen)!=1:
   raise ValueError('Dîner Sovarka absent, dupliqué ou mal tarifé')
- t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements','produire_derives_petrochimiques','consulter_devis_chantier_naval','interroger_renseignement')+vehicules and r['fn'] not in fns_sovarka and (r['fn'],r['pa'],r['cost'])!=diner_sovarka and (r['fn'],r['pa'],r['cost'])!=casier_sovarka and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
+ t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements','produire_derives_petrochimiques','consulter_devis_chantier_naval','interroger_renseignement')+vehicules and r['fn'] not in fns_sovarka and (r['fn'],r['pa'],r['cost'])!=diner_sovarka and (r['fn'],r['pa'],r['cost'])!=casier_sovarka and (r['fn'],r['pa'],r['cost'])!=supporters_dynamo and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
  md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
  if md5!=cm['apres']['md5'] or len(t)!=cm['apres']['lignes']:raise ValueError('Sources de tarifs changées : réexaminer le plan')
  entrees=om['migrations']+gm['prerequis']+gm['migrations']+[{'version':cm['version'],'fichier':cm['migration'],'sha256':cm['sha256']}]
