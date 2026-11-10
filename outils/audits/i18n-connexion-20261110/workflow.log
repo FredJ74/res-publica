@@ -1,0 +1,241 @@
+GARDE-FOU DU WORKFLOW SUPABASE
+
+1. AUCUN .sql A LA RACINE
+  --------------------------------------------------------------------
+  fichiers .sql a la racine du depot                    0 / 0        OK 
+  c'est la dispersion de 184 fichiers ici qui avait rendu l'histoire illisible
+
+2. ARCHIVE DES SQL DE LA RACINE
+  --------------------------------------------------------------------
+  migrations historiques archivees                    184 / 184      OK 
+  fichiers non appliques archives                       3 / 3        OK 
+  archives au nom inattendu                             0 / 0        OK 
+
+3. MIGRATIONS FUTURES : NOMMAGE
+  --------------------------------------------------------------------
+  migrations au nom non conforme                        0 / 0        OK 
+  horodatages en double                                 0 / 0        OK 
+  307 migration(s) en attente d'application ou deja appliquee(s)
+
+4. MIGRATIONS POSTERIEURES AU POINT DE COUPE
+  --------------------------------------------------------------------
+  point de coupe du baseline : 2026-11-01T17:55:21.375915
+  présence réelle au registre observé, versions et noms ; fichiers plus anciens absents autorisés
+  migrations deja couvertes par le point de coupe        0 / 0        OK 
+
+5. SQL DANS SES TROIS MAISONS
+  --------------------------------------------------------------------
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-secretaires-referents.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 13 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-avis-personnels-expediteurs.sql
+  outils/bancs/     1 blocs DO, 1 RAISE, 0 ordre(s) nu(s)  banc-organisations-etape-b.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-carrieres-et-audience.sql
+  outils/bancs/     1 blocs DO, 6 RAISE, 0 ordre(s) nu(s)  banc-employes-paie.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-construction-moteur-94.sql
+  outils/bancs/     2 blocs DO, 2 RAISE, 5 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-entrepots-par-pays.sql
+  outils/bancs/     1 blocs DO, 17 RAISE, 0 ordre(s) nu(s)  banc-contestation-e4-e8.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-placement-helvetia.sql
+  outils/bancs/     1 blocs DO, 7 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-securite-privee-priorites-135.sql
+  outils/bancs/     1 blocs DO, 3 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-arnie.sql
+  outils/bancs/     1 blocs DO, 9 RAISE, 0 ordre(s) nu(s)  banc-sovarka-chef-elu-designe-pm.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-cycle-plaintes-1.sql
+  outils/bancs/     4 blocs DO, 6 RAISE, 14 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-caserne-novomirsk.sql
+  outils/bancs/     1 blocs DO, 11 RAISE, 0 ordre(s) nu(s)  banc-trading-perte-jouissance.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-avocat-et-temoins.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  PREFLIGHT-GROUPES-UNIVERSELS-20261028.sql
+  outils/bancs/     1 blocs DO, 1 RAISE, 0 ordre(s) nu(s)  banc-sovarka-partis-candidatures.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-tribunes-officielles.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-equipements-collectifs.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-nominations-municipales.sql
+  outils/bancs/     1 blocs DO, 1 RAISE, 0 ordre(s) nu(s)  banc-blocus-syndical.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  PREFLIGHT-GROUPES-219-LIVRAISON.sql
+  outils/bancs/     1 blocs DO, 32 RAISE, 0 ordre(s) nu(s)  banc-fonds-murs-66.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  jetable-empreintes.sql
+  outils/bancs/     6 blocs DO, 6 RAISE, 0 ordre(s) nu(s)  banc-budget-cascade.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-assemblee-regards.sql
+  outils/bancs/     1 blocs DO, 10 RAISE, 0 ordre(s) nu(s)  banc-debauchage-pnj.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-palais-contexte-et-eligibilite.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-presidence-suspension-partis.sql
+  outils/bancs/     2 blocs DO, 2 RAISE, 2 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-grand-hotel-sovarka-carte.sql
+  outils/bancs/     1 blocs DO, 4 RAISE, 17 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-greffe-et-universite.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-quatrieme-passe.sql
+  outils/bancs/     2 blocs DO, 2 RAISE, 2 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-novomirsk-ambassades.sql
+  outils/bancs/  SELECT d'introspection sans ecriture  COLLECTE-FORUMS422-export_logique.sql
+  outils/bancs/     1 blocs DO, 12 RAISE, 0 ordre(s) nu(s)  banc-brume-estadine.sql
+  outils/bancs/     1 blocs DO, 7 RAISE, 0 ordre(s) nu(s)  banc-detention-fiche-serveur.sql
+  outils/bancs/     1 blocs DO, 25 RAISE, 0 ordre(s) nu(s)  banc-detention-evasion-rebellion.sql
+  outils/bancs/     3 blocs DO, 13 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  contre-epreuves-subventions.sql
+  outils/bancs/  SELECT d'introspection sans ecriture  COLLECTE-FORUMS422-controle_global.sql
+  outils/bancs/     1 blocs DO, 8 RAISE, 0 ordre(s) nu(s)  banc-jardins-ouvriers.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-presidence-election.sql
+  outils/bancs/     6 blocs DO, 0 RAISE, 38 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-pop-inf-lot3-379.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  empreinte-catalogue-detail.sql
+  outils/bancs/     2 blocs DO, 6 RAISE, 7 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-caisse-helvetia.sql
+  outils/bancs/     2 blocs DO, 6 RAISE, 3 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-sovarka-tresor-signalements.sql
+  outils/bancs/     2 blocs DO, 1 RAISE, 9 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-genre-pnj.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-justice-peine-serveur.sql
+  outils/bancs/     1 blocs DO, 7 RAISE, 0 ordre(s) nu(s)  banc-trading-livraison-terrestre.sql
+  outils/bancs/     1 blocs DO, 6 RAISE, 0 ordre(s) nu(s)  banc-controles-entree-zone.sql
+  outils/bancs/     1 blocs DO, 12 RAISE, 0 ordre(s) nu(s)  banc-squatteurs-don.sql
+  outils/bancs/     1 blocs DO, 13 RAISE, 0 ordre(s) nu(s)  banc-urgence-registre-armes.sql
+  outils/bancs/     1 blocs DO, 17 RAISE, 0 ordre(s) nu(s)  banc-fret-caisses-serveur.sql
+  outils/bancs/    17 blocs DO, 28 RAISE, 20 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-securite-privee-socle-135.sql
+  outils/bancs/     1 blocs DO, 3 RAISE, 0 ordre(s) nu(s)  banc-reprise-autorite-universelle-20261028.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  PREFLIGHT-LECTURE-SEULE-135-20261102.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  PREFLIGHT-INTERCEPTION-46.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s)  banc-trading-matieres.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-renouvellement-legislature.sql
+  outils/bancs/     1 blocs DO, 15 RAISE, 0 ordre(s) nu(s)  banc-successions-serveur.sql
+  outils/bancs/     1 blocs DO, 1 RAISE, 0 ordre(s) nu(s)  banc-chaine-elective-20261102.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-quete-accueil-contexte.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-etat-terrain-2.sql
+  outils/bancs/     1 blocs DO, 30 RAISE, 0 ordre(s) nu(s)  banc-vehicules.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  PREFLIGHT-379-CONTRATS-LECTURE-SEULE.sql
+  outils/bancs/     2 blocs DO, 3 RAISE, 2 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-novomirsk-mere-volga.sql
+  outils/bancs/     1 blocs DO, 1 RAISE, 0 ordre(s) nu(s)  banc-sovarka-deputes-designes.sql
+  outils/bancs/     1 blocs DO, 1 RAISE, 27 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-sovarka-pouvoir-ministeres-tests.sql
+  outils/bancs/     1 blocs DO, 14 RAISE, 0 ordre(s) nu(s)  banc-salon-coiffure.sql
+  outils/bancs/     1 blocs DO, 9 RAISE, 0 ordre(s) nu(s)  banc-argent-arg-derive.sql
+  outils/bancs/     1 blocs DO, 14 RAISE, 0 ordre(s) nu(s)  banc-vehicules-fabrication.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-universite-socle.sql
+  outils/bancs/  SELECT d'introspection sans ecriture  COLLECTE-FORUMS422-export_droits.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-construction-permis.sql
+  outils/bancs/     1 blocs DO, 13 RAISE, 0 ordre(s) nu(s)  banc-hooliganisme-serveur.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-etat-terrain-1.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-299-prime-signature.sql
+  outils/bancs/     1 blocs DO, 4 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-caserne-autorites.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  PREFLIGHT-CAISSES-ENTREPOTS-20261106.sql
+  outils/bancs/  SELECT d'introspection sans ecriture  COLLECTE-ATOMIQUE-219.sql
+  outils/bancs/  SELECT d'introspection sans ecriture  COLLECTE-FORUMS422-capture_atomique.sql
+  outils/bancs/  SELECT d'introspection sans ecriture  COLLECTE-FORUMS422-export_structure.sql
+  outils/bancs/     2 blocs DO, 0 RAISE, 8 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-pop-inf-presidence-379.sql
+  outils/bancs/     1 blocs DO, 14 RAISE, 0 ordre(s) nu(s)  banc-arrestations-flagrant-delit.sql
+  outils/bancs/     2 blocs DO, 2 RAISE, 7 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-psm-six-terrains.sql
+  outils/bancs/     1 blocs DO, 8 RAISE, 0 ordre(s) nu(s)  banc-boulette-consommation.sql
+  outils/bancs/     1 blocs DO, 11 RAISE, 0 ordre(s) nu(s)  banc-sovarka-reunions-evenements.sql
+  outils/bancs/     1 blocs DO, 35 RAISE, 0 ordre(s) nu(s)  banc-sovarka-droits-exploiter.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-reservation-republica-prevol.sql
+  outils/bancs/     1 blocs DO, 5 RAISE, 0 ordre(s) nu(s)  banc-soldats-renforts-policiers.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-dependances-coherence-lecture.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-cycle-plaintes-2.sql
+  outils/bancs/     2 blocs DO, 2 RAISE, 0 ordre(s) nu(s)  banc-chambre-grand-hotel-sovarka.sql
+  outils/bancs/     1 blocs DO, 9 RAISE, 0 ordre(s) nu(s)  banc-fret-amende-caisse.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 1 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-fixture-terrain-chantier-acte-avant-commandes.sql
+  outils/bancs/     1 blocs DO, 11 RAISE, 0 ordre(s) nu(s)  banc-douanes-voyageurs.sql
+  outils/bancs/     1 blocs DO, 3 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-subventions-2.sql
+  outils/bancs/     2 blocs DO, 2 RAISE, 3 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-novomirsk-librairie.sql
+  outils/bancs/     2 blocs DO, 3 RAISE, 1 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-sovarka-salaires-pouvoir.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-fontaine-110.sql
+  outils/bancs/     3 blocs DO, 29 RAISE, 20 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-sovarka-palais-presidentiel.sql
+  outils/bancs/     1 blocs DO, 1 RAISE, 0 ordre(s) nu(s)  banc-sovarka-repas-presidentiel.sql
+  outils/bancs/     2 blocs DO, 2 RAISE, 2 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-novomirsk-musee-national.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-administration-tribunal.sql
+  outils/bancs/     2 blocs DO, 2 RAISE, 3 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-novomirsk-residence.sql
+  outils/bancs/     2 blocs DO, 2 RAISE, 7 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-securite-privee-issues-135.sql
+  outils/bancs/     1 blocs DO, 3 RAISE, 0 ordre(s) nu(s)  banc-incorporation-retire-desertion.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-luthecia-controle-navigation-banque-20261028.sql
+  outils/bancs/     1 blocs DO, 24 RAISE, 0 ordre(s) nu(s)  banc-sovarka-partis-salle.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  empreinte-catalogue-racine.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-tribunal-pv-et-delai.sql
+  outils/bancs/     1 blocs DO, 9 RAISE, 0 ordre(s) nu(s)  banc-diner-grand-hotel-sovarka.sql
+  outils/bancs/     1 blocs DO, 21 RAISE, 0 ordre(s) nu(s)  banc-indices-villes-serveur.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-garde-republicaine.sql
+  outils/bancs/     1 blocs DO, 6 RAISE, 0 ordre(s) nu(s)  banc-centre-anti-poison.sql
+  outils/bancs/     1 blocs DO, 8 RAISE, 0 ordre(s) nu(s)  banc-logements-sociaux-novomirsk.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  PREFLIGHT-AUDIT-SECURITE-135.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-defense-simplifiee.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-tribunal-appel-indemnite-signalement.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-credit-tournee.sql
+  outils/bancs/     2 blocs DO, 13 RAISE, 24 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-sovarka-surveillance.sql
+  outils/bancs/     1 blocs DO, 3 RAISE, 0 ordre(s) nu(s)  banc-livraison-terrestre-tranches.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  RELAIS-CANONIQUE-219.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-seance-parole-discipline.sql
+  outils/bancs/     1 blocs DO, 12 RAISE, 0 ordre(s) nu(s)  banc-trading-option-premium.sql
+  outils/bancs/     1 blocs DO, 1 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-achats-cle-unicite.sql
+  outils/bancs/     1 blocs DO, 1 RAISE, 0 ordre(s) nu(s)  banc-securite-dissuasion.sql
+  outils/bancs/     1 blocs DO, 9 RAISE, 0 ordre(s) nu(s)  banc-sovarka-demande-location.sql
+  outils/bancs/     1 blocs DO, 8 RAISE, 0 ordre(s) nu(s)  banc-sovarka-bureaux-provinces.sql
+  outils/bancs/     1 blocs DO, 16 RAISE, 0 ordre(s) nu(s)  banc-greves-generales-serveur.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-succession-sans-vacance.sql
+  outils/bancs/     2 blocs DO, 2 RAISE, 2 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-novomirsk-musee.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-cycle-plaintes-3.sql
+  outils/bancs/     1 blocs DO, 3 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-conference-de-presse.sql
+  outils/bancs/     1 blocs DO, 1 RAISE, 0 ordre(s) nu(s)  banc-sovarka-gloire-des-partis.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 1 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-fixture-terrain-permis-acte-avant-depot.sql
+  outils/bancs/     4 blocs DO, 6 RAISE, 5 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-reliquats-immobilier.sql
+  outils/bancs/    14 blocs DO, 9 RAISE, 17 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-argent-fonctions-serveur.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  controle-coherence-rues-sorties.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-subventions-3.sql
+  outils/bancs/     1 blocs DO, 3 RAISE, 0 ordre(s) nu(s)  banc-radio-ordres-meme-ville-20261028.sql
+  outils/bancs/     2 blocs DO, 14 RAISE, 0 ordre(s) nu(s)  banc-serrures-batiment.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  PREFLIGHT-FORUMS-422-LECTURE-SEULE.sql
+  outils/bancs/     1 blocs DO, 13 RAISE, 25 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-parcours-judiciaires.sql
+  outils/bancs/     1 blocs DO, 4 RAISE, 0 ordre(s) nu(s)  banc-achat-entrepot-caisse-canonique.sql
+  outils/bancs/     1 blocs DO, 14 RAISE, 0 ordre(s) nu(s)  banc-deserteurs-liberation.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-catalogue-boire.sql
+  outils/bancs/     1 blocs DO, 38 RAISE, 0 ordre(s) nu(s)  banc-serrures.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-parquet-serveur.sql
+  outils/bancs/  SELECT d'introspection sans ecriture  COLLECTE-FORUMS422-export_fonctions.sql
+  outils/bancs/     1 blocs DO, 4 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-subventions-1.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-restaurant-luthecia-prevol.sql
+  outils/bancs/     1 blocs DO, 14 RAISE, 0 ordre(s) nu(s)  banc-poissonniere-novomirsk.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-reception-contrat-lecture.sql
+  outils/bancs/     2 blocs DO, 5 RAISE, 2 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-psm-terrains-onglets.sql
+  outils/bancs/     3 blocs DO, 44 RAISE, 36 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-sovarka-justice.sql
+  outils/bancs/     1 blocs DO, 3 RAISE, 0 ordre(s) nu(s)  banc-rumeur-alerte-chef.sql
+  outils/bancs/     1 blocs DO, 8 RAISE, 0 ordre(s) nu(s)  banc-se-cacher.sql
+  outils/bancs/     2 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-entrepot-capacite.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  PREFLIGHT-INVENTAIRE-RECEPTIONS-20261027.sql
+  outils/bancs/     1 blocs DO, 3 RAISE, 0 ordre(s) nu(s)  banc-agences-securite-pj.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-seance-protestation-suspension.sql
+  outils/bancs/     1 blocs DO, 4 RAISE, 0 ordre(s) nu(s)  banc-scierie-atelier.sql
+  outils/bancs/     1 blocs DO, 8 RAISE, 0 ordre(s) nu(s)  banc-commissaire-jets.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-presidence-memoire.sql
+  outils/bancs/     1 blocs DO, 3 RAISE, 0 ordre(s) nu(s)  banc-trading-offres.sql
+  outils/bancs/     1 blocs DO, 6 RAISE, 0 ordre(s) nu(s)  banc-novomirsk-centre-affaires-bureaux.sql
+  outils/bancs/     2 blocs DO, 4 RAISE, 6 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-novomirsk-pavillon.sql
+  fichiers .sql hors des trois maisons                  0 / 0        OK 
+  baseline/       255 fichiers  l'etat canonique, genere -- jamais edite a la main
+  historique/    1119 fichiers  l'archive documentaire, non rejouable
+  migrations/     307 fichiers  les evolutions futures, une par fichier horodate
+
+6. LE PROCESSUS EST ECRIT
+  --------------------------------------------------------------------
+  WORKFLOW-SUPABASE.md present                          1 / 1        OK 
+  longueur du processus, en lignes                    607 / 607      OK 
+  README renvoyant au processus                         4 / 4        OK 
+
+7. UN SEUL OUTIL PAR RESPONSABILITE
+  --------------------------------------------------------------------
+  controle global                verifier-baseline.py       OK 
+  reconstruction                 reconstruire.py            OK 
+  rendu des seeds                seeds.py                   OK 
+  rendu du schema                rendre.py                  OK 
+  requetes d'introspection       requetes.py                OK 
+
+8. AUCUN SCRIPT TECHNIQUE A LA RACINE
+  --------------------------------------------------------------------
+  fichiers .py a la racine du depot                     0 / 0        OK 
+  correctifs ponctuels archives                       342 / 342      OK 
+  generateurs dans outils/generateurs                  14 / 14       OK 
+  generateurs restes dans .scratch                      0 / 0        OK 
+  fichiers citant encore l'ancien chemin                0 / 0        OK 
+
+9. LE DEPLOIEMENT RESTE DEPLOYABLE
+  --------------------------------------------------------------------
+  taches cron declarees                         2 / 2 au plus
+  planifications a plus d'une invocation par jour        0 / 0        OK 
+
+========================================================================
+  1. AUCUN .sql A LA RACINE                            CONFORME
+  2. ARCHIVE DES SQL DE LA RACINE                      CONFORME
+  3. MIGRATIONS FUTURES : NOMMAGE                      CONFORME
+  4. MIGRATIONS POSTERIEURES AU POINT DE COUPE         CONFORME
+  5. SQL DANS SES TROIS MAISONS                        CONFORME
+  6. LE PROCESSUS EST ECRIT                            CONFORME
+  7. UN SEUL OUTIL PAR RESPONSABILITE                  CONFORME
+  8. AUCUN SCRIPT TECHNIQUE A LA RACINE                CONFORME
+  9. LE DEPLOIEMENT RESTE DEPLOYABLE                   CONFORME
+
+CONFORME : le processus tient. Aucun .sql a la racine, l'archive est
+           complete, les migrations sont nommees et posterieures au
+           point de coupe, et chaque responsabilite a un seul outil.

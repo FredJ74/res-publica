@@ -18,7 +18,7 @@ const scripts=[
  'room-resources.js','forum-ui.js',
  'guard-welcome-resources.js','jeremy-scenes-resources.js',
  'petit-accueil-resources.js','pnj-status-resources.js',
- 'toast-resources.js','character-sheet-resources.js','inventory-ui-resources.js',
+ 'toast-resources.js','character-sheet-resources.js','inventory-ui-resources.js','connection-resources.js',
  'municipal-ui-resources.js','social-pnj-resources.js','room-actions-resources.js','navigation-resources.js',
  'sport-bets-resources.js','commerce-menu-resources.js'
 ];

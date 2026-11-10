@@ -91,7 +91,24 @@ function genererSelecteurLangueRP() {
 // placeholder des champs de saisie. Une seule fonction, pas de framework maison.
 function appliquerTraductionsRP() {
   document.querySelectorAll('[data-i18n]').forEach(function (el) {
-    el.textContent = i18next.t(el.getAttribute('data-i18n'));
+    const key=el.getAttribute('data-i18n'),source=el.getAttribute('data-i18n-fallback');
+    let values;
+    const raw=el.getAttribute('data-i18n-values');
+    if(raw!=null){
+      try{
+        const parsed=JSON.parse(raw);
+        if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error('format');
+        values=Object.create(null);
+        for(const [name,value]of Object.entries(parsed)){
+          if(!/^[A-Za-z][A-Za-z0-9_]*$/.test(name)||['constructor','prototype'].includes(name)||
+             !(typeof value==='string'||typeof value==='number'&&Number.isFinite(value)))throw new Error('variable');
+          values[name]=value;
+        }
+      }catch(_){if(source!==null)el.textContent=source;return;}
+    }
+    const translated=i18next.t(key,{values});
+    el.textContent=typeof translated==='string'&&translated!==key&&!/\{\{[^}]+\}\}/.test(translated)
+      ? translated : source!==null?source:el.textContent;
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
     el.setAttribute('placeholder', i18next.t(el.getAttribute('data-i18n-placeholder')));

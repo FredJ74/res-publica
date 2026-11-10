@@ -31,6 +31,11 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### i18n connexion — lot Codex intégré après inventaire (#689)
+
+Neuf messages dynamiques de connexion traduits dans neuf langues. Bascule de langue sans effacer les identifiants saisis et sans répéter l'authentification ; mêmes autorisations, résultats serveur et méthodes RPC. Rapport et preuves `outils/audits/I18N-CONNEXION-20261110.md`. Couverture d'après Codex : 265/265 bancs clients, RTL/mobile Chromium ; contrôles globaux 10/12 avec erreurs Baseline/Référentiels déjà présentes sur main. Recette authentifiée et validation linguistique humaine non effectuées. Cette réconciliation préserve `main` après fusion squash du lot Inventaire #688.
+
+
 ### i18n premiers parcours — Codex, 10/11/2026 (LOT INVENTAIRE)
 
 Branche `codex/i18n-premiers-parcours-20261110`, base main `b29d676f`, réconciliée avec `02319679`. 32 clés dans
