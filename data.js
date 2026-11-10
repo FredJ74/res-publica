@@ -1845,6 +1845,32 @@ const WORLD = {
             }
           }
         },
+        // Centre artisanal de Novomirsk : quatre images propres a la capitale.
+        // Les trois locaux sont les trois identifiants de bail deja existants :
+        // echoppe_facade (grand), atelier_milieu (moyen), reserve_arriere (petit).
+        // Aucune nouvelle mecanique de location ni changement pour les autres villes.
+        'centre-artisanal': {
+          name: 'Centre artisanal de Novomirsk',
+          desc: 'Ateliers et locaux artisanaux de tailles variees, face au Dynamo.',
+          roomOverrides: {
+            travees: {
+              name: 'Accueil du centre artisanal',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre artisanal_accueil.webp'
+            },
+            echoppe_facade: {
+              name: 'Grand atelier — Local à louer',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre artisanal_grand atelier.webp'
+            },
+            atelier_milieu: {
+              name: 'Atelier moyen — Local à louer',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre artisanal_moyen local.webp'
+            },
+            reserve_arriere: {
+              name: 'Petit atelier — Local à louer',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre artisanal_petit local.webp'
+            }
+          }
+        },
         // Centre d'affaires de Novomirsk : deux bureaux privés et quatre salles
         // de réunion. Le gabarit commun reste inchangé dans les autres villes.
         'centre-affaires': {
