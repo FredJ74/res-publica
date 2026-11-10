@@ -33,17 +33,29 @@ async function connecterAvecMotDePasse() {
   const msg = document.getElementById('connexion-msg');
   const email = (document.getElementById('connexion-email')?.value || '').trim();
   const mdp = document.getElementById('connexion-mdp')?.value || '';
-  const dire = (texte, erreur) => { if (msg) { msg.textContent = texte; msg.style.color = erreur ? '#8a3a2a' : '#4a8a4a'; } };
+  const dire = (texte, erreur, cle, values = {}) => { if (msg) {
+    // Marqueurs de présentation uniquement ; les saisies et la session restent intactes.
+    if (cle) {
+      msg.setAttribute?.('data-i18n', 'connectionUi.' + cle);
+      msg.setAttribute?.('data-i18n-values', JSON.stringify(values));
+      msg.setAttribute?.('data-i18n-fallback', texte);
+    } else {
+      msg.removeAttribute?.('data-i18n');msg.removeAttribute?.('data-i18n-values');msg.removeAttribute?.('data-i18n-fallback');
+    }
+    msg.textContent = cle ? rpMessageIdentifiants('connectionUi.' + cle, texte, {values}) : texte;
+    msg.setAttribute?.('dir', typeof i18next !== 'undefined' && i18next.language === 'ar' ? 'rtl' : 'auto');
+    msg.style.color = erreur ? '#8a3a2a' : '#4a8a4a';
+  } };
 
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { dire('Cette adresse n\'est pas valide.', true); return; }
-  if (!mdp) { dire('Saisissez votre mot de passe.', true); return; }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { dire('Cette adresse n\'est pas valide.', true, 'invalidEmail'); return; }
+  if (!mdp) { dire('Saisissez votre mot de passe.', true, 'passwordRequired'); return; }
   if (typeof rpAuthSeConnecter !== 'function' || typeof sbRpc !== 'function') {
-    dire('Service momentanément indisponible.', true); return;
+    dire('Service momentanément indisponible.', true, 'unavailable'); return;
   }
 
   const bouton = document.getElementById('connexion-valider');
   if (bouton) { bouton.disabled = true; bouton.style.opacity = '.5'; }
-  dire('Connexion…', false);
+  dire('Connexion…', false, 'working');
 
   const r = await rpAuthSeConnecter(email, mdp).catch(() => null);
   if (!r || r.ok !== true) {
@@ -54,7 +66,7 @@ async function connecterAvecMotDePasse() {
       validation_failed: 'Cette adresse n\'est pas valide.',
       over_request_rate_limit: 'Trop de tentatives. Réessayez dans un instant.'
     };
-    dire((r && motifs[r.raison]) || 'Adresse ou mot de passe incorrect.', true);
+    dire((r && motifs[r.raison]) || 'Adresse ou mot de passe incorrect.', true, r?.raison === 'validation_failed' ? 'invalidEmail' : r?.raison === 'over_request_rate_limit' ? 'tooManyAttempts' : 'invalidCredentials');
     if (bouton) { bouton.disabled = false; bouton.style.opacity = '1'; }
     return;
   }
@@ -69,13 +81,13 @@ async function connecterAvecMotDePasse() {
   } catch (e) { nom = null; }
 
   if (!nom) {
-    dire('Connexion réussie, mais ce compte ne porte aucun personnage. Vous pouvez en créer un.', true);
+    dire('Connexion réussie, mais ce compte ne porte aucun personnage. Vous pouvez en créer un.', true, 'noCharacter');
     if (bouton) { bouton.disabled = false; bouton.style.opacity = '1'; }
     return;
   }
 
   const sbState = await sbLoadPersonnage(nom).catch(() => null);
-  if (!sbState) { dire('Personnage introuvable sur le serveur.', true);
+  if (!sbState) { dire('Personnage introuvable sur le serveur.', true, 'characterUnavailable');
                   if (bouton) { bouton.disabled = false; bouton.style.opacity = '1'; } return; }
 
   // Hydratation du cache local, a l'identique de chargerPersonnageParNom ci-dessous : meme
@@ -100,7 +112,7 @@ async function connecterAvecMotDePasse() {
     }
   } catch (e) { console.warn('Cache local non ecrit (quota) :', e); }
 
-  dire('Bienvenue, ' + charData.name + '. Chargement…', false);
+  dire('Bienvenue, ' + charData.name + '. Chargement…', false, 'welcome', {name:charData.name});
   // REDIRECTION PLUTOT QUE RECHARGEMENT EN PLACE. loadCharacter() ne s'execute qu'au
   // DOMContentLoaded et porte toute la reconciliation -- position, journal, portillon
   // d'identite, interface. La rejouer a chaud demanderait de la reimplementer, sur un etat qui
@@ -917,9 +929,9 @@ function ouvrirEcranIdentifiants() {
   if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
 }
 
-function rpMessageIdentifiants(cle, secours) {
-  const t = (typeof i18next !== 'undefined' && i18next.t) ? i18next.t(cle) : null;
-  return (t && t !== cle) ? t : secours;
+function rpMessageIdentifiants(cle, secours, variables) {
+  const t = (typeof i18next !== 'undefined' && i18next.t) ? i18next.t(cle, variables) : null;
+  return (typeof t === 'string' && t.trim() && t !== cle && !/\{\{[^}]+\}\}/.test(t)) ? t : secours;
 }
 
 function afficherMessageIdentifiants(texte) {

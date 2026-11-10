@@ -190,13 +190,15 @@ test('Contre-épreuve : bouton de reconnexion hors écran avec le CSS main et cl
 
 const creation = fs.readFileSync(path.join(R, 'creation.js'), 'utf8');
 const fonctionsConnexion = acorn.parse(creation, { ecmaVersion: 'latest' }).body
-  .filter(n => n.type === 'FunctionDeclaration' && ['ouvrirConnexionCompte', 'connecterAvecMotDePasse'].includes(n.id.name))
+  .filter(n => n.type === 'FunctionDeclaration' && ['ouvrirConnexionCompte', 'connecterAvecMotDePasse', 'rpMessageIdentifiants'].includes(n.id.name))
   .map(n => creation.slice(n.start, n.end)).join('\n');
 for (const profil of profils) test(`${profil.nom} : accueil, connexion refusée puis compte existant, sans créer de personnage`, () => avecJeu(async (b, o) => {
   const p = await telephone(b, o, profil);
   const accueil = fs.readFileSync(path.join(R, 'index.html'), 'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
   await p.route('**/index.html', r => r.fulfill({ contentType: 'text/html', body: accueil }));
   await p.goto(o + '/index.html');
+  const erreursConnexion = [];
+  p.on('pageerror', e => erreursConnexion.push(e.message));
   await p.addScriptTag({ content: fonctionsConnexion });
   await p.evaluate(() => {
     window.authentifications = 0;
@@ -211,6 +213,7 @@ for (const profil of profils) test(`${profil.nom} : accueil, connexion refusée 
   await p.locator('#connexion-mdp').fill('mot-de-passe-fixture');
   await p.locator('#connexion-valider').tap();
   await p.waitForFunction(() => document.getElementById('connexion-msg').textContent.includes('incorrect'));
+  assert.deepEqual(erreursConnexion, [], 'aucune erreur de chargement des helpers réels');
   assert.equal(await p.evaluate(() => lecturesCompte), 0);
   assert.equal(await p.locator('#connexion-valider').isEnabled(), true);
   await p.evaluate(() => { window.rpAuthSeConnecter = async () => { authentifications++; return { ok: true }; }; });
