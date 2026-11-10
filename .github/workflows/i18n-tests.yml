@@ -7,6 +7,8 @@ on:
     branches: [main]
     paths:
       - 'i18n/**'
+      - 'outils/bancs/banc-i18n-bookmaker.cjs'
+      - 'plateau-organisations-quetes.js'
       - '.github/workflows/i18n-tests.yml'
       - 'index.html'
       - 'plateau.html'
@@ -247,6 +249,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-lecture-rls.mjs
       - name: Sécurité de lecture, cache et quota des traductions
         run: node --test outils/bancs/banc-i18n-contenu-securise.mjs
+      - name: Bookmaker dans neuf langues — affichage, variables et RPC intacts
+        run: node --test outils/bancs/banc-i18n-bookmaker.cjs
       - name: Syntaxe du moteur et des ressources
         run: |
           node --check i18n/resources.js
