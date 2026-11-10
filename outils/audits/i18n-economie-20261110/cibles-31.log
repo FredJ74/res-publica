@@ -1,0 +1,39 @@
+✔ 63 clés dans neuf langues, texte français exactement égal aux catalogues métier (163.101864ms)
+✔ carte réelle : produits, composition, stock zéro et permissions conservés en neuf langues (2339.320117ms)
+✔ fiche réelle : description canonique traduite, noms personnalisés et contenu libre intacts (1651.419623ms)
+✔ matières du commerce PJ : bascule sans perdre la quantité ni relire le serveur (1710.605413ms)
+✔ carte française à 1440 : mêmes pixels que main 7aafbb9f (2252.749111ms)
+✔ 27 clés par langue, mêmes variables, aucun texte absent (11.970919ms)
+✔ affichage respectant langue, variables, fail-closed et texte français désactivé (1.817855ms)
+✔ la carte Dynamo traduit ses boutons, le stock et conserve son prix PSK (26.283225ms)
+✔ aucun identifiant, RPC ou condition métier modifié par les libellés (0.735507ms)
+✔ les neuf langues couvrent les catalogues de base sans variables perdues (1.250867ms)
+✔ les traductions identiques et unités monétaires restent visibles pour relecture (0.129742ms)
+✔ tout catalogue de ressources chargé par le plateau ou l’accueil est inclus dans la mesure (0.752371ms)
+✔ 79 clés complètes dans neuf langues ; toutes les tables officielles correspondent au français (7.63122ms)
+✔ aucune propriété officielle ajoutée ou modifiée, aucun contenu commercial réécrit (31.473209ms)
+✔ vraies fiches : neuf langues à chaud, RTL, données et saisie conservées sur mobile (2933.248854ms)
+✔ bureau 1440 : fiches françaises pixel-identiques au main 7aafbb9f (2692.359021ms)
+✔ 103 titres de notification conformes dans neuf langues, hors messages libres (2.854256ms)
+✔ 40 titres supplémentaires sont émis par les actions politiques et restent des titres seuls (5.596725ms)
+✔ incident et sous-message non modifiés, titre non injecté en HTML (0.363316ms)
+✔ 9 clés, paramètres et montants littéraux identiques dans neuf langues (52.694327ms)
+✔ production fr : refus, succès et zéros sans mutation ni appel supplémentaire (107.916879ms)
+✔ production en : refus, succès et zéros sans mutation ni appel supplémentaire (107.892021ms)
+✔ production es : refus, succès et zéros sans mutation ni appel supplémentaire (140.544847ms)
+✔ production zh-TW : refus, succès et zéros sans mutation ni appel supplémentaire (252.054015ms)
+✔ production ru : refus, succès et zéros sans mutation ni appel supplémentaire (184.286839ms)
+✔ production ko : refus, succès et zéros sans mutation ni appel supplémentaire (153.130313ms)
+✔ production ar : refus, succès et zéros sans mutation ni appel supplémentaire (75.680412ms)
+✔ production pt-BR : refus, succès et zéros sans mutation ni appel supplémentaire (67.733928ms)
+✔ production de : refus, succès et zéros sans mutation ni appel supplémentaire (83.524972ms)
+✔ clé absente ou traduction incomplète : texte français exact, pas de clé technique (4.240612ms)
+✔ Chromium : langue changée pendant la commande, valeurs serveur et diagnostic canonique (1781.031194ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8543.855853

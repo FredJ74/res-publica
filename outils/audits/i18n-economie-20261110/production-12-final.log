@@ -1,0 +1,20 @@
+✔ 9 clés, paramètres et montants littéraux identiques dans neuf langues (50.095868ms)
+✔ production fr : refus, succès et zéros sans mutation ni appel supplémentaire (89.629571ms)
+✔ production en : refus, succès et zéros sans mutation ni appel supplémentaire (67.041531ms)
+✔ production es : refus, succès et zéros sans mutation ni appel supplémentaire (68.232191ms)
+✔ production zh-TW : refus, succès et zéros sans mutation ni appel supplémentaire (67.723309ms)
+✔ production ru : refus, succès et zéros sans mutation ni appel supplémentaire (66.840284ms)
+✔ production ko : refus, succès et zéros sans mutation ni appel supplémentaire (79.984357ms)
+✔ production ar : refus, succès et zéros sans mutation ni appel supplémentaire (68.664222ms)
+✔ production pt-BR : refus, succès et zéros sans mutation ni appel supplémentaire (67.293923ms)
+✔ production de : refus, succès et zéros sans mutation ni appel supplémentaire (63.990633ms)
+✔ clé absente ou traduction incomplète : texte français exact, pas de clé technique (17.622044ms)
+✔ Chromium : langue changée pendant la commande, valeurs serveur et diagnostic canonique (1177.095123ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2256.354703
