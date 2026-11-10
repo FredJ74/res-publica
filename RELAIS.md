@@ -31,6 +31,11 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Internationalisation des fenêtres du bookmaker — 10/11/2026 (PR #683)
+
+Lot ChatGPT consécutif au chantier stades #682 : 29 libellés du bookmaker dans les neuf langues, nouveaux titres des quarts/demies/finale, affichage des pronostics et des montants PSK/FR, messages d'indisponibilité et date de coup d'envoi. Fichiers `i18n/sport-bets-resources.js`, `plateau-organisations-quetes.js`, `plateau.html` ; banc `outils/bancs/banc-i18n-bookmaker.cjs` intégré à la CI. Garde métier : aucun changement d'identifiant de manche/club, de pronostic, de PA, de montant ni de RPC. PR [#683](https://github.com/FredJ74/res-publica/pull/683). Une validation des neuf parcours en navigateur réel reste nécessaire, en distinguant les tests automatisés du jeu effectivement essayé.
+
+
 ### Correctifs du stade et du Dynamo — ChatGPT, 10/11/2026 (PR #682)
 
 Fred a demandé : suppression universelle du doublon « Prendre un verre » face à « Consulter la carte » ; buvette de Novomirsk distincte de Luthécia ; bookmaker fonctionnel ; prix de boutique soviarkiens ; adhésion supporters Novomirsk à 25 PSK ; pas de changement des autres ordres du club. Branche `chatgpt/stades-sovarka-carte-boutique-paris-20261110`, [PR #682](https://github.com/FredJ74/res-publica/pull/682).

@@ -9085,9 +9085,14 @@ function rencontresPariPlayoff(saison) {
     })) };
 }
 
+function texteBookmaker(key, original, variables={}) {
+  const localized=typeof window!=='undefined' ? window.RPSportBetsI18n?.text?.(key,variables) : null;
+  return typeof localized==='string' && localized ? localized :
+    original.replace(/\{(\w+)\}/g,(match,v)=>Object.hasOwn(variables,v)?String(variables[v]):match);
+}
 async function doParierMatch(pa, cost) {
   const saison = await verifierEtJouerJournees();
-  if (!saison) { showToast('Paris indisponibles', 'Impossible de lire le championnat pour le moment. Réessayez dans un instant.', false); return; }
+  if (!saison) { showToast(texteBookmaker('betsUnavailable','Paris indisponibles'), texteBookmaker('readError','Impossible de lire le championnat pour le moment. Réessayez dans un instant.'), false); return; }
 
   // Rattrapage idempotent si la connexion a été interrompue après une manche.
   if (saison.playoffs) {
@@ -9105,22 +9110,23 @@ async function doParierMatch(pa, cost) {
   const phaseFinale = !prochaineJournee ? rencontresPariPlayoff(saison) : null;
   const matchs = prochaineJournee ? prochaineJournee.matchs.filter(m=>!m.played) : phaseFinale?.matchs;
   if (!matchs?.length) {
-    showToast('Aucun pari disponible', saison.phase === 'terminee'
-      ? 'La saison est achevée : les paris reprendront lorsque la prochaine saison sera ouverte.'
-      : 'Aucune rencontre à venir n’est programmée.', false);
+    showToast(texteBookmaker('noBets','Aucun pari disponible'), saison.phase === 'terminee'
+      ? texteBookmaker('seasonEnded','La saison est achevée : les paris reprendront lorsque la prochaine saison sera ouverte.')
+      : texteBookmaker('noUpcoming','Aucune rencontre à venir n’est programmée.'), false);
     return;
   }
   if (phaseFinale && (!Number.isFinite(Date.parse(phaseFinale.kickoff)) || Date.now() >= Date.parse(phaseFinale.kickoff))) {
-    showToast('Paris clôturés','La prochaine manche a commencé ou son calendrier est indisponible.',false);
+    showToast(texteBookmaker('betsClosed','Paris clôturés'),texteBookmaker('kickoffPassed','La prochaine manche a commencé ou son calendrier est indisponible.'),false);
     return;
   }
 
   document.getElementById('postes-modal-title').textContent = phaseFinale
-    ? 'Parier — ' + phaseFinale.titre : 'Parier — Journée ' + prochaineJournee.numero;
+    ? texteBookmaker('betRound','Parier — {round}',{round:texteBookmaker(({'Quarts de finale — aller':'qfFirst','Quarts de finale — retour':'qfReturn','Demi-finales — aller':'semiFirst','Demi-finales — retour':'semiReturn','Finale':'final'})[phaseFinale.titre],phaseFinale.titre)})
+    : texteBookmaker('betDay','Parier — Journée {day}',{day:prochaineJournee.numero});
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Choisissez un match</div>';
-  if (phaseFinale) html += '<div style="margin-bottom:.8rem;font-size:.78rem">Coup d’envoi : ' +
-    new Date(phaseFinale.kickoff).toLocaleString('fr-FR',{timeZone:'Europe/Paris',dateStyle:'long',timeStyle:'short'}) + ' (Paris)</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">' + texteBookmaker('choose','Choisissez un match') + '</div>';
+  if (phaseFinale) html += '<div style="margin-bottom:.8rem;font-size:.78rem">' +
+    texteBookmaker('kickoff','Coup d’envoi : {date} (Paris)',{date:new Date(phaseFinale.kickoff).toLocaleString((typeof window!=='undefined' && window.RPPlateauI18n?.language?.())||'fr-FR',{timeZone:'Europe/Paris',dateStyle:'long',timeStyle:'short'})}) + '</div>';
   matchs.forEach(m => {
     const a=getClub(m.home), b=getClub(m.away);
     if (!a || !b) return;
@@ -9137,20 +9143,20 @@ async function doParierMatch(pa, cost) {
 function ouvrirFormulairePari(homeId, awayId, journeeNumero, saisonNumero, pa, cost, manche = null) {
   const homeClub = getClub(homeId), advClub = getClub(awayId);
 
-  document.getElementById('postes-modal-title').textContent = 'Parier sur ce match';
+  document.getElementById('postes-modal-title').textContent = texteBookmaker('betMatch','Parier sur ce match');
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.8rem">' + homeClub.nom + ' (domicile) vs ' + advClub.nom + '</div>';
-  html += '<div style="font-size:.72rem;color:#5a5040;font-style:italic;margin-bottom:.6rem">Le pari sera tranché par le vrai résultat du match, pas avant.</div>';
-  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">Votre pronostic</label>';
+  html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.8rem">' + homeClub.nom + ' (' + texteBookmaker('home','domicile') + ') vs ' + advClub.nom + '</div>';
+  html += '<div style="font-size:.72rem;color:#5a5040;font-style:italic;margin-bottom:.6rem">' + texteBookmaker('outcomeInfo','Le pari sera tranché par le vrai résultat du match, pas avant.') + '</div>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">' + texteBookmaker('prediction','Votre pronostic') + '</label>';
   html += '<div style="display:flex;gap:.4rem;margin-bottom:.8rem">';
-  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'domicile\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Victoire ' + homeClub.nom + '</button>';
-  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'nul\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Match nul</button>';
-  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'adversaire\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Victoire ' + advClub.nom + '</button>';
+  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'domicile\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">' + texteBookmaker('win','Victoire {club}',{club:homeClub.nom}) + '</button>';
+  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'nul\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">' + texteBookmaker('draw','Match nul') + '</button>';
+  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'adversaire\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">' + texteBookmaker('win','Victoire {club}',{club:advClub.nom}) + '</button>';
   html += '</div>';
   html += '<input type="hidden" id="pari-choix" value="domicile"/>';
-  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">Mise (' + ((typeof COUNTRIES!=='undefined'&&COUNTRIES[state.country]?.cur)||'FR') + ')</label>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">' + texteBookmaker('stake','Mise ({currency})',{currency:((typeof COUNTRIES!=='undefined'&&COUNTRIES[state.country]?.cur)||'FR')}) + '</label>';
   html += '<input id="pari-mise" type="number" value="' + (state.country==='soviet' ? 10 : 100) + '" min="10" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.9rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
-  html += '<button onclick="confirmerPariMatch(\'' + homeId + '\',\'' + awayId + '\',' + journeeNumero + ',' + saisonNumero + ',' + pa + ',' + cost + ',' + (manche ? '\''+manche+'\'' : 'null') + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider le pari</button>';
+  html += '<button onclick="confirmerPariMatch(\'' + homeId + '\',\'' + awayId + '\',' + journeeNumero + ',' + saisonNumero + ',' + pa + ',' + cost + ',' + (manche ? '\''+manche+'\'' : 'null') + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">' + texteBookmaker('confirm','Valider le pari') + '</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -9160,8 +9166,8 @@ async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, p
   const mise = parseInt(document.getElementById('pari-mise')?.value || '0');
   const choix = document.getElementById('pari-choix')?.value || 'domicile';
   const monnaie = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
-  if (!mise || mise < 10) { showToast('Mise invalide', 'Minimum 10 ' + monnaie + '.', false); return; }
-  if (state.arg < mise) { showToast('Fonds insuffisants', '', false); return; }
+  if (!mise || mise < 10) { showToast(texteBookmaker('invalidStake','Mise invalide'), texteBookmaker('minimum','Minimum 10 {currency}.',{currency:monnaie}), false); return; }
+  if (state.arg < mise) { showToast(texteBookmaker('insufficient','Fonds insuffisants'), '', false); return; }
   // En phase finale, l'appel serveur débite PA + mise dans une unique transaction :
   // ne surtout pas prélever le PA avant la confirmation du ticket.
   if (!manche) {
@@ -9198,7 +9204,7 @@ async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, p
       match_inconnu:      'Ce match est introuvable au calendrier.',
       journee_inconnue:   'Journée introuvable au calendrier.'
     };
-    showToast('Pari refusé', motifs[rPari && rPari.raison] || 'Le serveur a refusé ce pari.', false);
+    showToast(texteBookmaker('betRejected','Pari refusé'), motifs[rPari && rPari.raison] || 'Le serveur a refusé ce pari.', false);
     return;
   }
 
@@ -9209,7 +9215,7 @@ async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, p
   updateUI();
 
   const homeClub = getClub(homeId), advClub = getClub(awayId);
-  showToast('Pari enregistré', mise + ' ' + monnaie + ' misés sur ' + homeClub.nom + ' vs ' + advClub.nom + '. Résultat au coup de sifflet final.', true, true);
+  showToast(texteBookmaker('betRecorded','Pari enregistré'), mise + ' ' + monnaie + ' misés sur ' + homeClub.nom + ' vs ' + advClub.nom + '. Résultat au coup de sifflet final.', true, true);
   addJournalEntry('Pari de ' + mise + ' ' + monnaie + ' sur ' + homeClub.nom + ' vs ' + advClub.nom + '.', 'event-info');
 }
 
