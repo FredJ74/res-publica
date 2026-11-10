@@ -1777,7 +1777,11 @@ const WORLD = {
               name: 'Club des supporters du Dynamo',
               desc: 'Lieu de rassemblement sportif autorisé, sans droit de manifester contre les autorités.',
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk.stade.club.webp',
-              excludeOrders: ['organiser_manifestation']
+              excludeOrders: ['organiser_manifestation','rejoindre_club_supporters'],
+              orders: [
+                {fn:'rejoindre_club_supporters', label:'Rejoindre le club de supporters', pa:1, cost:25, type:'legal', icon:'ti-users-group', successRate:100,
+                  desc:'Adhésion au club de supporters du Dynamo : 25 PSK, renouvelable à chaque nouveau championnat.'}
+              ]
             }
           },
           // Salle uniquement présente à Novomirsk ; les achats utilisent la
@@ -3545,7 +3549,6 @@ const BUILDINGS = {
           {name:'Tenancier de Buvette (PNJ)', role:'PNJ - Buvette', rel:'neutral', job:'serveur'}
         ],
         orders: [
-          {fn:'consommer_buvette', label:'Prendre un verre', pa:1, cost:50, type:'legal', icon:'ti-beer', successRate:100, desc:'Un moment convivial entre supporters. Leger gain de popularite.'},
           {fn:'produire_commerce', label:'Servir', i18nKey:'variant.commerce_serve', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Preparer bieres, boissons et snacks pour le service (consomme le stock, remunere en FR).'},
           {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au comptoir et commander.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
