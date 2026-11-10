@@ -3445,54 +3445,6 @@ const RECETTES_ALIMENTAIRES = {
   // Cartes des restaurants de Sovarka (decisions de Fred du 10/11/2026 au soir) : plats locaux, plus de plats
   // francais ni de vin en Sovarka. Serveur : migration 20261110230000_sovarka_cartes_restaurants (dotations
   // « @soviet.ville », prix PNJ 2 x cout de revient a l'echelle de Sovarka).
-  volga_menu_proletaire: {
-    id: 'volga_menu_proletaire',
-    label: 'Menu du Prolétaire — Soupe aux choux (chtchi), Kacha de sarrasin au beurre, Kissel de canneberge',
-    categorie: 'menu', image: null,
-    materiaux: { cereales: 1, fruits_legumes: 1 }, pa: 1, portions: 6,
-    effets: { hp: 10, moral: 1, paDiffere: 3 },
-    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['capitaine-sauvage']
-  },
-  volga_menu_stakhanoviste: {
-    id: 'volga_menu_stakhanoviste',
-    label: 'Menu du Stakhanoviste — Salade vinegret de betteraves, Côtelettes Pojarski et pommes de terre, Syrniki à la crème aigre',
-    categorie: 'menu', image: null,
-    materiaux: { viande: 1, cereales: 1, fruits_legumes: 1 }, pa: 1, portions: 6,
-    effets: { hp: 10, moral: 1, paDiffere: 3 },
-    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['capitaine-sauvage']
-  },
-  volga_menu_repos: {
-    id: 'volga_menu_repos',
-    label: 'Menu du Jour de Repos — Hareng sous fourrure, Golubtsy (choux farcis), Blinis à la confiture',
-    categorie: 'menu', image: null,
-    materiaux: { poisson: 1, viande: 1, cereales: 1 }, pa: 1, portions: 6,
-    effets: { hp: 10, moral: 1, paDiffere: 3 },
-    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['capitaine-sauvage']
-  },
-  starovka_menu_pecheur: {
-    id: 'starovka_menu_pecheur',
-    label: 'Menu du Pêcheur des Glaces — Stroganina (poisson cru gelé), Oukha (soupe de poisson), Airelles au miel',
-    categorie: 'menu', image: null,
-    materiaux: { poisson: 2, fruits_legumes: 1 }, pa: 1, portions: 6,
-    effets: { hp: 10, moral: 1, paDiffere: 3 },
-    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['capitaine-sauvage']
-  },
-  starovka_menu_eleveur: {
-    id: 'starovka_menu_eleveur',
-    label: 'Menu de l\'Éleveur — Bouillon de renne, Bouzy (raviolis vapeur bouriates), Beignets boortsog',
-    categorie: 'menu', image: null,
-    materiaux: { viande: 2, cereales: 1 }, pa: 1, portions: 6,
-    effets: { hp: 10, moral: 1, paDiffere: 3 },
-    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['capitaine-sauvage']
-  },
-  starovka_menu_terre_mer: {
-    id: 'starovka_menu_terre_mer',
-    label: 'Menu Terre et Mer — Salade de chou de mer, Omoul fumé et côtes de renne grillées, Crème de lait de renne au sucre',
-    categorie: 'menu', image: null,
-    materiaux: { poisson: 1, viande: 1, laitages: 1 }, pa: 1, portions: 6,
-    effets: { hp: 10, moral: 1, paDiffere: 3 },
-    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['capitaine-sauvage']
-  },
   sever_tartine_salo: {
     id: 'sever_tartine_salo',
     label: 'Tartine de salo et cornichons',
@@ -3558,6 +3510,54 @@ const RECETTES_ALIMENTAIRES = {
     effets: { moral: 2 },
     typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['hotel-republica'],
     prixFixe: 8
+  },
+  volga_menu_proletaire: {
+    id: 'volga_menu_proletaire',
+    label: 'Menu du Prolétaire — Soupe aux choux (chtchi), Kacha de sarrasin au beurre, Kissel de canneberge',
+    categorie: 'menu', image: null,
+    materiaux: { cereales: 1, fruits_legumes: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['capitaine-sauvage']
+  },
+  volga_menu_stakhanoviste: {
+    id: 'volga_menu_stakhanoviste',
+    label: 'Menu du Stakhanoviste — Salade vinegret de betteraves, Côtelettes Pojarski et pommes de terre, Syrniki à la crème aigre',
+    categorie: 'menu', image: null,
+    materiaux: { viande: 1, cereales: 1, fruits_legumes: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['capitaine-sauvage']
+  },
+  volga_menu_repos: {
+    id: 'volga_menu_repos',
+    label: 'Menu du Jour de Repos — Hareng sous fourrure, Golubtsy (choux farcis), Blinis à la confiture',
+    categorie: 'menu', image: null,
+    materiaux: { poisson: 1, viande: 1, cereales: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['capitale'], buildingsAutorises: ['capitaine-sauvage']
+  },
+  starovka_menu_pecheur: {
+    id: 'starovka_menu_pecheur',
+    label: 'Menu du Pêcheur des Glaces — Stroganina (poisson cru gelé), Oukha (soupe de poisson), Airelles au miel',
+    categorie: 'menu', image: null,
+    materiaux: { poisson: 2, fruits_legumes: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['capitaine-sauvage']
+  },
+  starovka_menu_eleveur: {
+    id: 'starovka_menu_eleveur',
+    label: 'Menu de l\'Éleveur — Bouillon de renne, Bouzy (raviolis vapeur bouriates), Beignets boortsog',
+    categorie: 'menu', image: null,
+    materiaux: { viande: 2, cereales: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['capitaine-sauvage']
+  },
+  starovka_menu_terre_mer: {
+    id: 'starovka_menu_terre_mer',
+    label: 'Menu Terre et Mer — Salade de chou de mer, Omoul fumé et côtes de renne grillées, Crème de lait de renne au sucre',
+    categorie: 'menu', image: null,
+    materiaux: { poisson: 1, viande: 1, laitages: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['capitaine-sauvage']
   },
 
   // Menus gastronomiques du Capitaine Sauvage (Port-Sainte-Marie, 23 aout 2026) -- carte propre a

@@ -126,3 +126,13 @@ BEGIN
   EXECUTE replace(d, a, b);
 END $diner$;
 COMMIT;
+
+-- Complement (meme lot) : bonus de +3 PA au prochain Dormir des menus de Sovarka (miroir pa_bonus_differes, regenere
+-- par outils/generateurs/generer_pa_bonus_differes.py). Les trois menus du Grand Hotel y manquaient depuis le 06/11.
+BEGIN;
+INSERT INTO public.pa_bonus_differes (source, montant) VALUES
+ ('volga_menu_proletaire',3),('volga_menu_stakhanoviste',3),('volga_menu_repos',3),
+ ('starovka_menu_pecheur',3),('starovka_menu_eleveur',3),('starovka_menu_terre_mer',3),
+ ('menu_sovarka_imperial',3),('menu_sovarka_tsars',3),('menu_sovarka_plan',3)
+ON CONFLICT (source) DO NOTHING;
+COMMIT;
