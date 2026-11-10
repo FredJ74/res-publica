@@ -139,7 +139,8 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   // Terrain municipal raccordé le 09/11/2026 (migration 20261109004500).
   assert.equal(got.terrains.zones.length,1);
   assert.equal(got.terrains.zones[0].buildingId,'terrain-a-batir-2');
-  assert.equal(got.maison.zones.length,0);
+  assert.equal(got.maison.zones.length,1); // 10/11/2026 : maison de Stepan (hospitalité)
+  assert.equal(got.maison.zones[0].buildingId,'maison-krasnov');
   // L'entrepôt de Krasnov est raccordé (05/11/2026, migration 20261105030000).
   assert.equal(got.entrepot.zones.length,1);
   assert.equal(got.entrepot.zones[0].buildingId,'entrepot-logistique-krasnov');

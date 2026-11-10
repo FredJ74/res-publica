@@ -3234,6 +3234,28 @@ const RECETTES_ALIMENTAIRES = {
     effets: { moral: 1 },
     typesAutorises: ['buvette', 'bar', 'cafe'], villesAutorisees: null, buildingsAutorises: null
   },
+  // Carte propre au Dynamo de Novomirsk. Mêmes fondations de vente, production et inventaire
+  // que la buvette du socle, mais offres et prix propres à l'économie sovarkienne.
+  the_chaud_sovarka: {
+    id:'the_chaud_sovarka', label:'Thé chaud', categorie:'boisson', image:null,
+    materiaux:{ produits_exotiques:1 }, pa:1, portions:15, effets:{ moral:1 },
+    typesAutorises:['buvette'], paysAutorises:['soviet'], villesAutorisees:['capitale'], buildingsAutorises:['stade'], prixFixe:5
+  },
+  chocolat_chaud_sovarka: {
+    id:'chocolat_chaud_sovarka', label:'Chocolat chaud', categorie:'boisson', image:null,
+    materiaux:{ produits_exotiques:1 }, pa:1, portions:10, effets:{ moral:2 },
+    typesAutorises:['buvette'], paysAutorises:['soviet'], villesAutorisees:['capitale'], buildingsAutorises:['stade'], prixFixe:8
+  },
+  vin_chaud_sovarka: {
+    id:'vin_chaud_sovarka', label:'Vin chaud', categorie:'boisson', image:null,
+    materiaux:{ alcool:1 }, pa:1, portions:10, effets:{ moral:2 },
+    typesAutorises:['buvette'], paysAutorises:['soviet'], villesAutorisees:['capitale'], buildingsAutorises:['stade'], prixFixe:12
+  },
+  pirojki_sovarka: {
+    id:'pirojki_sovarka', label:'Pirojki', categorie:'snack', image:null,
+    materiaux:{ cereales:1 }, pa:1, portions:15, effets:{ hp:2, moral:1 },
+    typesAutorises:['buvette'], paysAutorises:['soviet'], villesAutorisees:['capitale'], buildingsAutorises:['stade'], prixFixe:6
+  },
   snack_buvette: {
     id: 'snack_buvette', label: 'Cacahuètes salées', categorie: 'snack', image: null,
     materiaux: { cereales: 1 }, pa: 1, portions: 15,
@@ -4171,6 +4193,14 @@ const DOTATIONS_COMMERCE_PILOTE = {
     data.parametres.prixVente = { petit_dejeuner: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.petit_dejeuner)) };
   },
   'stade|buvette': function(data) {
+    if (data.country === 'soviet' && data.city === 'capitale') {
+      data.stockMatieres = { produits_exotiques:10, alcool:10, cereales:5 };
+      data.coutMoyenMatieres = { produits_exotiques:5, alcool:5, cereales:2 };
+      data.carte = ['the_chaud_sovarka','chocolat_chaud_sovarka','vin_chaud_sovarka','pirojki_sovarka'];
+      data.parametres.stockMax = { the_chaud_sovarka:20, chocolat_chaud_sovarka:20, vin_chaud_sovarka:20, pirojki_sovarka:20 };
+      data.parametres.prixVente = { the_chaud_sovarka:5, chocolat_chaud_sovarka:8, vin_chaud_sovarka:12, pirojki_sovarka:6 };
+      return;
+    }
     // AUCUNE caisse ici (data.caisse reste 0 en permanence) -- ni pour les ventes (deja routees
     // vers la caisse du stade, doctrine du lot precedent), ni pour la main-d'oeuvre de
     // production (routee vers la meme caisse du stade, voir produireRecetteCommerce ci-dessus).
@@ -4459,6 +4489,7 @@ function doGererCommerceGenerique(pa, cost) {
 async function doGererCommerce(commerceType, buildingId, roomId) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
+  const monnaie = (typeof COUNTRIES !== 'undefined' && COUNTRIES[pays]?.cur) || 'FR';
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   if (!data) { showToast('Indisponible', '', false); return; }
   if (data.proprietaire === 'PNJ') { showToast('Réservé au propriétaire', 'Ce commerce appartient encore à un PNJ (rachetable au Bureau des Contrats).', false); return; }
@@ -4678,6 +4709,16 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
 // ni notion de legalite. Ouvre le PA/cost de l'ordre de salle (browsing), chaque "Commander"
 // est ensuite une transaction FR independante (meme principe que confirmerAchatEntrepot :
 // un seul PA pour parcourir la salle, chaque ligne a son propre cout).
+// Traductions d'affichage uniquement : moteur de commande, stocks et prix inchangés.
+function texteCommerceMenu(key, original, vars = {}) {
+  const translated=typeof window!=='undefined' ? window.RPCommerceMenuI18n?.text?.(key,vars) : null;
+  return typeof translated==='string' && translated ? translated :
+    original.replace(/\{(\w+)\}/g,(token,k)=>Object.hasOwn(vars,k)?String(vars[k]):token);
+}
+function nomProduitCommerce(id, original) {
+  return (typeof window!=='undefined' && window.RPCommerceMenuI18n?.productLabel?.(id,original)) || original;
+}
+
 function actionsCatalogueCommerceHtml(data, commerceType, buildingId, roomId, id) {
   const recette=resoudreProduitCommerce(id);
   const stock=data.stockProduits[id]||0;
@@ -4687,26 +4728,27 @@ function actionsCatalogueCommerceHtml(data, commerceType, buildingId, roomId, id
   const style='padding:.45rem .7rem;border:1px solid #526176;border-radius:5px;background:#394656;color:#f2f4f6;';
   const bouton=(action,label,actif)=>'<button '+(actif?'onclick="'+action+'"':'disabled')+' style="'+style+(actif?'cursor:pointer':'opacity:.45')+'">'+label+'</button>';
   return '<div style="display:flex;gap:.4rem;flex-wrap:wrap">'+
-    bouton('doCommanderProduitCommerceUI('+args+')',commander?'Commander':'Acheter',stock>0)+
-    bouton('doProduireRecetteCommerceUI('+args+')','Produire',peutProduire)+
-    bouton('ouvrirFicheProduitCommerce('+args+')','Fiche produit',true)+'</div>';
+    bouton('doCommanderProduitCommerceUI('+args+')',commander?texteCommerceMenu('order','Commander'):texteCommerceMenu('buy','Acheter'),stock>0)+
+    bouton('doProduireRecetteCommerceUI('+args+')',texteCommerceMenu('produce','Produire'),peutProduire)+
+    bouton('ouvrirFicheProduitCommerce('+args+')',texteCommerceMenu('sheet','Fiche produit'),true)+'</div>';
 }
 
 async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false); return; }
+  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? texteCommerceMenu('paInsufficient','PA insuffisants') : texteCommerceMenu('fundsInsufficient','Fonds insuffisants'), '', false); return; }
 
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
+  const monnaie = (typeof COUNTRIES !== 'undefined' && COUNTRIES[pays]?.cur) || 'FR';
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
-  if (!data) { showToast('Indisponible', '', false); return; }
+  if (!data) { showToast(texteCommerceMenu('unavailable','Indisponible'), '', false); return; }
 
-  document.getElementById('postes-modal-title').textContent = commerceType === 'marche' ? 'Produits' : 'Carte';
+  document.getElementById('postes-modal-title').textContent = commerceType === 'marche' ? texteCommerceMenu('products','Produits') : texteCommerceMenu('card','Carte');
   let html = '<div style="padding:1rem;background:#151A21;color:#e0e6ed">';
   const carte = data.carte || [];
   const carteValide = carte.filter(id => resoudreProduitCommerce(id));
   if (carteValide.length === 0) {
-    html += '<div style="font-size:.9rem;color:#aab5c3">Aucun produit disponible pour le moment.</div>';
+    html += '<div style="font-size:.9rem;color:#aab5c3">' + texteCommerceMenu('empty','Aucun produit disponible pour le moment.') + '</div>';
   }
   carteValide.forEach(id => {
     const recette = resoudreProduitCommerce(id);
@@ -4720,10 +4762,10 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
     html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #394656;background:#252D38;border-radius:9px;margin-bottom:.5rem;align-items:center">';
     if (recette.image) html += '<img src="' + recette.image + '" style="width:56px;height:56px;object-fit:cover;border-radius:4px;flex-shrink:0" />';
     html += '<div style="flex:1">';
-    html += '<b style="font-size:.93rem;color:#E5C477">' + recette.label + '</b><br>';
+    html += '<b style="font-size:.93rem;color:#E5C477">' + nomProduitCommerce(id,recette.label) + '</b><br>';
     html += '<span style="font-size:.82rem;color:#aab5c3">' + composition + '</span><br>';
     if (effetsTxt) html += '<span style="font-size:.82rem;color:#6ab858">' + effetsTxt + '</span><br>';
-    html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
+    html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' ' + monnaie : texteCommerceMenu('priceUndefined','Prix non défini')) + ' — ' + texteCommerceMenu('stock','Stock : {stock}',{stock}) + '</span>';
     html += '</div>';
     html += actionsCatalogueCommerceHtml(data, commerceType, buildingId, roomId, id);
     html += '</div>';
@@ -4738,16 +4780,17 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
 async function doCommanderProduitCommerceUI(commerceType, buildingId, roomId, recetteId) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
+  const monnaie = (typeof COUNTRIES!=='undefined' && COUNTRIES[pays]?.cur) || 'FR';
   const recette = resoudreProduitCommerce(recetteId);
   const res = await commanderProduitCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
   if (!res.ok) {
-    const messages = { rupture: 'Ce produit est en rupture de stock.', fonds_insuffisants: (res.prix || 0) + ' FR requis.', prix_non_defini: 'Prix non défini pour ce produit.', introuvable: '' };
-    if (!res.dejaSignale) showToast('Commande impossible', messages[res.raison] || '', false);
+    const messages = { rupture: texteCommerceMenu('outOfStock','Ce produit est en rupture de stock.'), fonds_insuffisants: texteCommerceMenu('required','{price} {currency} requis.',{price:res.prix||0,currency:monnaie}), prix_non_defini: texteCommerceMenu('undefinedProductPrice','Prix non défini pour ce produit.'), introuvable: '' };
+    if (!res.dejaSignale) showToast(texteCommerceMenu('orderImpossible','Commande impossible'), messages[res.raison] || '', false);
     return;
   }
   updateUI();
-  showToast('Commande servie', recette.label + '.', true, true);
-  addJournalEntry(recette.label + ' commandé(e) — ' + res.prix + ' FR.', 'event-good');
+  showToast(texteCommerceMenu('served','Commande servie'), nomProduitCommerce(recetteId,recette.label) + '.', true, true);
+  addJournalEntry(texteCommerceMenu('orderJournal','{product} commandé(e) — {price} {currency}.',{product:nomProduitCommerce(recetteId,recette.label),price:res.prix,currency:monnaie}), 'event-good');
   // Rafraichit la carte pour permettre d'enchainer sans rouvrir (meme pattern que confirmerProduction/doProduireArme)
   doConsulterCarteCommerce(commerceType, buildingId, roomId, 0, 0);
 }
@@ -4763,12 +4806,12 @@ async function ouvrirFicheProduitCommerce(commerceType, buildingId, roomId, rece
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   const recette = resoudreProduitCommerce(recetteId);
-  if (!recette) { showToast('Produit introuvable', '', false); return; }
+  if (!recette) { showToast(texteCommerceMenu('productMissing','Produit introuvable'), '', false); return; }
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   const cur = COUNTRIES[pays]?.cur || 'FR';
 
-  document.getElementById('postes-modal-title').textContent = 'Fiche du produit';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('postes-modal-title').textContent = texteCommerceMenu('sheetTitle','Fiche du produit');
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">' + texteCommerceMenu('loading','Chargement...') + '</div>';
   document.getElementById('modal-postes').classList.add('open');
 
   // Un produit de marche pousse en inventaire un objet dont `type` vaut l'identifiant de
@@ -4785,7 +4828,7 @@ async function ouvrirFicheProduitCommerce(commerceType, buildingId, roomId, rece
   if (recette.image) html += '<img src="' + recette.image + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:200px;object-fit:cover"/>';
   html += typeof ficheCommercialeHtml === 'function'
     ? ficheCommercialeHtml({
-        nom: recette.label,
+        nom: nomProduitCommerce(recetteId,recette.label),
         description: recette.desc || null,
         prix: (data && data.parametres && data.parametres.prixVente) ? data.parametres.prixVente[recetteId] : null,
         devise: cur,
@@ -4795,8 +4838,8 @@ async function ouvrirFicheProduitCommerce(commerceType, buildingId, roomId, rece
     : '';
   html += fiche && typeof ficheOfficielleHtml === 'function'
     ? ficheOfficielleHtml(fiche)
-    : '<div style="margin-top:.7rem;font-size:.8rem;color:#8a8060;font-style:italic">Fiche officielle momentanément indisponible.</div>';
-  html += '<button onclick="doConsulterCarteCommerce(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',0,0)" style="width:100%;margin-top:.9rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.45rem;border:1px solid #3a2a10;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-arrow-left"></i> Retour à la carte</button>';
+    : '<div style="margin-top:.7rem;font-size:.8rem;color:#8a8060;font-style:italic">' + texteCommerceMenu('officialUnavailable','Fiche officielle momentanément indisponible.') + '</div>';
+  html += '<button onclick="doConsulterCarteCommerce(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',0,0)" style="width:100%;margin-top:.9rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.45rem;border:1px solid #3a2a10;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-arrow-left"></i> ' + texteCommerceMenu('back','Retour à la carte') + '</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
@@ -6585,7 +6628,8 @@ const MATIERE_RECOLTE_VERS_CLE = {
   'Métal': 'metal',
   'Poisson': 'poisson',
   'Charbon': 'charbon',
-  'Bois': 'bois'
+  'Bois': 'bois',
+  'Pétrole': 'petrole'
 };
 
 async function confirmerRecolte(matiere, pa, cost) {

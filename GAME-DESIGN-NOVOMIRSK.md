@@ -341,6 +341,13 @@ Krasnov. Manifestations : vérifié, en Sovarka seules existent les manifestatio
 (`sovarka_manifs`), la manifestation spontanée n'a pas de place dans le pays : les manifestations hostiles y sont
 donc impossibles, conforme.
 
+**Codé le 10/11 (lot suivant, branche `claude/sovarka-lot-suivant-20261110`, PR #681)** : extraction du pétrole (Starovka)
+et du bois (Krasnov) ; bons d'État (1) ; centres d'écoute ; maisons. Choix de Claude à relire par Fred : vol d'archives à 2 PA,
+jet de base 45 % (celui de la falsification) ; repas chez l'habitant = +2 PA au prochain sommeil ; habitants proposés :
+**Dolgor Tsybikova** (Starovka), **Stepan Kouznetsov** (Krasnov) ; la réaction de l'habitant à la bouteille est une phrase
+fixe selon l'alcool (pas encore l'IA). Les banques de Sovarka n'ont pas de façade dans les rues : les bons d'État seront
+accessibles après le tour des images. Restent la forêt profonde et les fermes, distillerie et fourreur.
+
 **Reste à coder** (lot suivant) : bons d'État (1), fermes, distillerie et fourreur (commerces), centres d'écoute
 (poste militaire « Poste de Vigilance Glaciale », station radar), maisons (hospitalité, beuverie, ragots), forêt
 de Krasnov (vues profondes, coupes, rencontres) et extraction du pétrole. Point technique relevé : la récolte de la
