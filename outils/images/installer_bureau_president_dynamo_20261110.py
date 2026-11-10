@@ -19,7 +19,7 @@ DATA = ROOT / "data.js"
 RELATIVE_TARGET = "images/Sovarka/Novomirsk/Novomirsk.stade.bureau président.webP"
 
 def git_blob_sha(raw: bytes) -> str:
-    return hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\\0" + raw).hexdigest()
+    return hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
 
 def main():
     data = DATA.read_text(encoding="utf-8")
