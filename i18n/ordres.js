@@ -146,21 +146,40 @@
  // Garder une photographie du catalogue d'ordres effectivement affiche, jamais
  // ses handlers, puis actualiser uniquement le texte (ni rerender ni transaction).
  let renderedOrders=[];
+ // Chaque noeud garde son ordre d'origine, même après le rendu d'une autre pièce.
+ // WeakMap : aucune rétention de fenêtre détruite ni mutation des handlers.
+ const ordersByNode=new WeakMap();
  function registerRenderedOrders(orders) {
   renderedOrders=Array.isArray(orders)?orders.slice():[];
  }
+ function bindVisibleLabels(root) {
+  for(const node of root?.querySelectorAll?.('[data-rp-order-index]')||[]) {
+   if(ordersByNode.has(node))continue;
+   // L'attribut conserve la source pour les fenêtres montées plus tard.
+   if(node.hasAttribute?.('data-rp-order-source')) {
+    const decode=(name)=>decodeURIComponent(node.getAttribute(name)||'');
+    ordersByNode.set(node,{fn:decode('data-rp-order-fn'),label:decode('data-rp-order-source'),i18nKey:decode('data-rp-order-key')});
+    continue;
+   }
+   const index=Number(node.getAttribute?.('data-rp-order-index'));
+   if(Number.isSafeInteger(index)&&index>=0&&index<renderedOrders.length) {
+    const order=renderedOrders[index];
+    if(order)ordersByNode.set(node,{fn:order.fn,label:order.label,i18nKey:order.i18nKey});
+   }
+  }
+ }
  function refreshVisibleLabels(root,engine,locale) {
   if(!root || !engine || typeof engine.t!=='function')return;
+  bindVisibleLabels(root);
   const nodes=root.querySelectorAll?.('[data-rp-order-index]')||[];
   for(const node of nodes){
    const index=Number(node.getAttribute?.('data-rp-order-index'));
-   if(!Number.isSafeInteger(index)||index<0||index>=renderedOrders.length)continue;
-   const ordre=renderedOrders[index];
+   const ordre=ordersByNode.get(node) || (Number.isSafeInteger(index)&&index>=0&&index<renderedOrders.length ? renderedOrders[index] : null);
    if(!ordre)continue;
    // textContent plutôt que innerHTML : aucun remplacement de noeud,
    // saisie, ecouteur de clic, badge de coût ou position de défilement.
    node.textContent=label(ordre,engine,locale);
   }
  }
- global.RPOrderI18n=Object.freeze({label,labelHtml,registerRenderedOrders,refreshVisibleLabels,ambiguous:(fn)=>ambiguities.has(fn)});
+ global.RPOrderI18n=Object.freeze({label,labelHtml,registerRenderedOrders,bindVisibleLabels,refreshVisibleLabels,ambiguous:(fn)=>ambiguities.has(fn)});
 })(window);
