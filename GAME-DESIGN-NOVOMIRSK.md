@@ -318,6 +318,63 @@ l'entrepôt et le port (Starovka), et la gare, l'entrepôt, le stade, le commiss
     « Infirmerie du Froid », etc.) : à reprendre ou à supprimer ?
 11. **Route de Starovka** : elle n'est reliée par la route à aucune ville (véhicules personnels) ; voulu ?
 
+### Fermes : production (Fred, 10/11/2026, midi)
+
+Une ferme ne consomme que du travail (PA), sans matière première en entrée, comme les jardins ouvriers :
+- **Abattre et dépecer un renne** (Starovka) : 5 PA → 3 viandes de renne, 2 peaux, 1 bois de renne ;
+- **Extraire des légumes** (Krasnov) : 1 PA → 1 fruit et légume ;
+- **Traire les rennes** (Starovka) : 1 PA → 2 laits de renne.
+- **Ramasser les œufs** (Krasnov) : 1 PA → 3 œufs.
+- **Abattre un poulet** (Krasnov) : 2 PA → 2 poulets ; **abattre un lapin** : 2 PA → 1 lapin et 1 peau (textile). **1 poulet ou 1 lapin = 1 viande** (matière `viande` existante, pas de nouvelle matière).
+- La **viande de renne** n'est que de la **viande** : l'appellation est purement RP (le service de Dolgor demande donc 2 viandes).
+- Le **lait de renne** est des **laitages** (matière existante), appellation purement RP.
+- Les **œufs** sont une **nouvelle matière** (`oeufs`), **hors du commerce international** (pas de trading). **Consommer 3 œufs rapporte 2 PA au prochain Dormir** (le lendemain). Les œufs se transportent sur soi et se mangent quand on veut (par exemple à l'hôpital, en plus du repas de l'hôpital) ; manger ne coûte pas de PA, seul le ramassage coûte 1 PA. Les œufs vont **toujours par 3, indissociables** : on ne mange jamais 1 œuf, mais les 3 d'un coup ; le chiffre 3 est cosmétique (une unité d'œufs = 3 œufs ; ramassage : 1 PA → 1 unité ; le service de Stepan « 6 œufs » = 2 unités). **Prix : 6 FR ou 3 PSK** l'unité de 3 œufs. **Les entrepôts ne vendent pas d'œufs** : ressource locale, équivalent d'un sandwich ou d'un repas ; un commerce classique peut vendre les œufs que son propriétaire a ramassés.
+- Le **bois de renne** est du **bois** (matière existante), appellation purement RP : pas de nouvelle matière, pas de distinction sur le couteau vendu (la recette du couteau ne change pas).
+- Le **sucre** (distillerie, 5 fruits et légumes = 10 sucres) est une **ressource locale** comme les œufs : ni entrepôt ni trading, gardé sur soi, revendable par un commerce, sans effet pour l'instant ; **prix : 2 FR ou 1 PSK** (jamais de décimales dans les monnaies).
+- Les **peaux** sont du **textile** (matière existante). Le libellé de la matière devient « Tissus et peaux » (proposé par Fred, retenu par Claude ; la clé technique `textile` ne change pas).
+- **Fourreur** : commerce classique (mécanique générale des commerces). Le commerçant nomme lui-même ses articles pour coller au RP (chapka plutôt que slip de bain en peau de bête, mais libre à chacun). Aucun effet bonus pour l'instant (Fred ne se l'interdit pas plus tard).
+
+**Codé le 10/11 (partie 2 du lot, feu vert de Fred à 13 h 02, branche `claude/sovarka-lot-suivant-partie2-20261110`, PR #686)** :
+- **Fermes** : « Ferme de Starovka » (éleveur Bair Sambuev) et « Kolkhoze S. M. Kirov » à Krasnov (présidente Galina Belova),
+  façades sur les enseignes ; ouvertes à tous, comme les jardins ouvriers (le produit va dans l'inventaire de qui travaille),
+  sans limite par jour autre que les PA. Serveur `sovarka_ferme_travailler`.
+- **Œufs** : matière `oeufs` hors `ressources_economie` (donc hors entrepôts et trading) ; bouton « Manger 3 œufs » dans la
+  fiche de l'objet, sans PA, +2 PA au prochain Dormir (`sovarka_oeufs_manger`, source `oeufs`). Stepan demande « 6 œufs » =
+  2 unités ; Dolgor « 2 viandes ».
+- **Distillerie de Krasnov** et **fourreur « La Fourrure chaude »** (Starovka) : locaux de Sovarka (demande à la mairie,
+  signature chez le notaire), puis commerce classique. Type de commerce **« Distillerie »**, réservé au local de la distillerie :
+  vodka, slivovitz, samogon (10 bouteilles par recette, 1 PA) et sucre (5 fruits et légumes = 10 sucres). Le fourreur prend
+  le type « Vêtements » et nomme ses articles (habillage du fonds). Un commerce alimentaire peut revendre œufs et sucre
+  (« Ressource locale »). À l'achat, bouteilles, sucre et œufs arrivent sous leur clé (vodka, slivovitz, samogon, sucre,
+  oeufs) : on peut trinquer chez l'habitant, lui rendre service ou manger ses œufs avec ce qu'on a acheté.
+- **Matière textile** affichée « Tissus et peaux ».
+- **Choix de Claude à relire par Fred** : plafond de loyer de la distillerie et du fourreur 30 PSK (comme les locaux de
+  Starovka) ; 1 PA par recette de distillerie ; revente des œufs par lots de 5 unités et du sucre par 10 (pour que le
+  commerce ait un coût de revient : le prix de vente reste fixé par le commerçant sous le plafond habituel, le « 6 FR / 3 PSK »
+  de Fred n'est donc pas imposé) ; noms des deux fermiers.
+
+### Forêt profonde de Krasnov : ce qui est codé (10/11/2026, partie 2, PR #686)
+
+Décisions ci-dessous (point 5, « Exploitation forestière »). Lecture retenue et non contestée par Fred au feu vert : sur les
+vues 3 et 4, une seule coupe rapporte du bois, la tentative suivante déclenche la rencontre (vue 3 : attaquant tiré au sort
+— précision du 09/11, 23 h 41, qui prime sur « vue 3 = toujours l'ours » ; vue 4 : Olga).
+- Les 4 vues sont des pièces masquées de l'exploitation forestière de Krasnov : on y entre, on y change de vue et on en sort
+  **uniquement** par « S'enfoncer dans la forêt » et « Revenir à l'entrée de la forêt » (tirages au serveur,
+  `sovarka_foret_aller`) ; la navigation libre est refusée (« vous êtes en pleine forêt »). Hospitalisation et décrochage de
+  combat ne sont pas bloqués.
+- « Couper du bois » (`sovarka_foret_couper`) : 2 à 4 bois (le double d'une récolte), 2 coupes sur les vues 1 et 2, 1 sur les
+  vues 3 et 4 ; fausse alerte une fois sur deux à la seconde coupe des vues 1 et 2 (lièvre, tractoriste perdu, élan…).
+- Attaquant : PNJ de combat temporaire (comme les squatteurs), combat par le moteur universel (bataille de type « faune »,
+  jamais tracée comme agression) ; victoire = butin au leader (en inventaire, ou en réception s'il est plein, plus un mail) ;
+  « Fuir » lâche le bois coupé sur la vue et ramène le groupe à l'entrée ; « Ne pas se défendre » met les PA du groupe
+  présent à 0 : hospitalisation automatique, comme un combat perdu (`sovarka_foret_rencontre`).
+- En groupe : seul le chef coupe et décide du chemin ; un membre qui veut couper doit quitter le groupe.
+- **Choix de Claude à relire par Fred** : 2 PA par coupe (comme la récolte), y compris la tentative qui déclenche la
+  rencontre ; les coupes de la forêt profonde ne comptent pas dans les 2 récoltes du jour ; force des créatures en combat
+  rapproché (loup 9, meute 13, ours 16 ; un PJ moyen est à 8-10) ; « Fuir » ramène à l'entrée ; les dents d'ours sont un
+  objet empilable « Dent d'ours » (son passage dans l'armoire à souvenirs n'a pas été vérifié).
+- Images des 4 vues : à faire par Fred (`imagesAVenir`).
+
 ### Règle des prix en Sovarka (Fred, 10/11/2026)
 
 En Sovarka on gagne peu mais on paie peu, sauf à Novomirsk, la ville des tsars : loyers et prix plus bas dans les

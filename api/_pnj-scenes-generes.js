@@ -6099,6 +6099,22 @@ export const SCENES_PNJ = {
       "Dolgor Tsybikova"
     ]
   },
+  "[\"soviet\",\"ville_a\",\"ferme-starovka\",\"cour_ferme\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Ferme de Starovka",
+    "piece": "La cour de la ferme",
+    "personnes": [
+      "Bair Sambuev"
+    ]
+  },
+  "[\"soviet\",\"ville_a\",\"fourreur-starovka\",\"boutique_fourreur\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Fourreur « La Fourrure chaude »",
+    "piece": "La boutique",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_b\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
@@ -6411,7 +6427,35 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Exploitation forestière de Krasnov",
-    "piece": "Zone de Récolte",
+    "piece": "Entrée de la forêt",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"zone-production\",\"foret_vue_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Exploitation forestière de Krasnov",
+    "piece": "Forêt profonde — Sous les grands pins",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"zone-production\",\"foret_vue_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Exploitation forestière de Krasnov",
+    "piece": "Forêt profonde — La clairière des bouleaux",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"zone-production\",\"foret_vue_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Exploitation forestière de Krasnov",
+    "piece": "Forêt profonde — Le ravin noir",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"zone-production\",\"foret_vue_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Exploitation forestière de Krasnov",
+    "piece": "Forêt profonde — Près de la vieille isba",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"entrepot-logistique-krasnov\",\"salle_ventes\"]": {
@@ -6572,6 +6616,22 @@ export const SCENES_PNJ = {
     "personnes": [
       "Stepan Kouznetsov"
     ]
+  },
+  "[\"soviet\",\"ville_b\",\"ferme-krasnov\",\"cour_ferme\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Kolkhoze S. M. Kirov",
+    "piece": "La cour de la ferme",
+    "personnes": [
+      "Galina Belova"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"distillerie-krasnov\",\"atelier_distillerie\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Distillerie de Krasnov",
+    "piece": "L’atelier de distillation",
+    "personnes": []
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"corps_garde\"]": {
     "pays": "Sovarka",
