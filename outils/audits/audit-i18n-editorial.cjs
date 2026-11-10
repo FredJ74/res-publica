@@ -18,7 +18,9 @@ const scripts=[
  'room-resources.js','forum-ui.js',
  'guard-welcome-resources.js','jeremy-scenes-resources.js',
  'petit-accueil-resources.js','pnj-status-resources.js',
- 'toast-resources.js','character-sheet-resources.js'
+ 'toast-resources.js','character-sheet-resources.js','inventory-ui-resources.js',
+ 'municipal-ui-resources.js','social-pnj-resources.js','room-actions-resources.js','navigation-resources.js',
+ 'sport-bets-resources.js','commerce-menu-resources.js'
 ];
 const global={};
 const context=vm.createContext({window:global});
@@ -34,7 +36,7 @@ function flatten(node,prefix='',out={}){
  return out;
 }
 function placeholders(str){
- return [...str.matchAll(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g)]
+ return [...str.matchAll(/\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}/g)]
   .map(match=>match[1]).sort().join(',');
 }
 const languages=Object.keys(global.RP_I18N_LANGUAGES||{});

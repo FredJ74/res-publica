@@ -20,3 +20,11 @@ test('les traductions identiques et unités monétaires restent visibles pour re
   assert.ok(r.keys>=audit.referenceKeys);
  }
 });
+
+test('tout catalogue de ressources chargé par le plateau est inclus dans la mesure',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const html=fs.readFileSync(path.join(__dirname,'../../plateau.html'),'utf8');
+ const files=[...html.matchAll(/src="i18n\/([^"?]+\.js)(?:\?[^"\s]*)?"/g)].map(m=>m[1])
+  .filter(n=>n==='resources.js'||n==='forum-ui.js'||n.endsWith('-resources.js'));
+ for(const file of files)assert.ok(audit.sourceFiles.includes(file),file+' absent de l’audit éditorial');
+});
