@@ -31,6 +31,10 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Référentiel de game design mis à jour — Claude, 10/11/2026 (soir), branche `claude/referentiel-maj-20261110`
+
+Demande de Fred (fin de lot). `referentiel-game-design/ATLAS-SYSTEMES.md` : section Sovarka complétée avec la partie 2 (#686 : fermes, œufs, distillerie, fourreur, forêt profonde et seconde coupe), statuts D/C/T/M/P/J et choix à relire par Fred. `ECARTS-ET-VERIFICATIONS.md` : complément E-16 (régression #688, contrôle `bancs-hors-production`, vieux bugs d'août, écarts du baseline caducs). **Reste** : régénérer les catalogues (bâtiments, coûts, croisement), encore au SHA `a8bd5e26` du 9/11. Documentation seule, aucun code ni SQL.
+
 ### Régression de #688 réparée, vieux bugs relevés — Claude, 10/11/2026 (après-midi, chantiers autonomes choisis par Fred)
 
 **Régression** : le lot i18n de l'inventaire (#688) avait écrasé dans `plateau-personnage.js` les ajouts de #686 (bouton « Manger 3 œufs » dans les deux fiches d'objet, texte de l'hôpital public) et remis dans `plateau.html` des versions de cache antérieures à #686 (`plateau-vehicules.js`, `plateau-sovarka-provinces.js`, `plateau-router.js`, `plateau-navigation.js`) : risque de vieux fichiers servis par le cache. Rétabli, versions rafraîchies (suffixe `retablir-p2-20261110`). C'était la cause du contrôle rouge sur main (`test-sovarka-provinces-partie2`). **Consigne** : avant de pousser un gros fichier commun, repartir du dernier main et vérifier qu'aucune ligne d'un lot fusionné entre-temps ne disparaît.

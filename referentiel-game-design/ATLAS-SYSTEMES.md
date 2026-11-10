@@ -80,15 +80,19 @@ Bêta gratuite ; personnalisation et prestige plutôt que puissance ; conditions
 
 Sources et statuts probatoires précis : [expérience et rétention](EXPERIENCE-ET-RETENTION.md), [PNJ sociaux](PNJ-IA-MEMOIRES-INTERACTIONS.md), [matrice](MATRICE-COUVERTURE.md), PR #664 et #666. **Aucune amélioration mesurée de D1/D7 ni recette réelle de ce parcours ne peut être affirmée.**
 
-## Sovarka — lot des provinces (10/11/2026, Claude, PR #681)
+## Sovarka — lot des provinces (10/11/2026, Claude, PR #681 puis #686)
 
-Règles : `GAME-DESIGN-NOVOMIRSK.md`, « Réponses de Fred ». Statut : **codé, banc annulé vert sur la production, non vérifié en jeu**.
+Règles : `GAME-DESIGN-NOVOMIRSK.md`, « Réponses de Fred », « Fermes : production » et « Forêt profonde de Krasnov : ce qui est codé ». Statut commun : **D+C, banc annulé vert sur la production (T), migrations déclarées appliquées (M déclarée), fusionné (P) ; non vérifié en jeu (pas de J)**.
 
 | Système | Serveur | Écran | Reste |
 |---|---|---|---|
 | Extraction (pétrole Starovka, bois Krasnov) | `recolte_effectuer` (patch `sovarka_extraction_v1`) | `MATIERES_PREMIERES_VILLE` | — |
 | Bons d'État | `sovarka_bon_etat_souscrire`, `sovarka_bons_etat_lire`, `sovarka_bons_etat_passe` (minuit) | `plateau-sovarka-provinces.js` | banques sans façade dans les rues |
-| Centres d'écoute | `sovarka_ecoutes_passe` (minuit), `sovarka_ecoutes_lire`, `sovarka_ecoute_rapport_demander`, `sovarka_ecoute_archives_voler` | idem, bureau du ministre de la Défense | images |
-| Maisons (hospitalité, trinquer, ragots) | `sovarka_maison_lire`, `sovarka_maison_agir`, nuitée par `hotel_nuitees` | idem | réaction IA de l'habitant ; services « viande de renne / œufs / vodka » actifs avec fermes et distillerie |
-| Fermes, distillerie, fourreur | — | — | questions de design posées à Fred |
-| Forêt profonde de Krasnov | — | — | à coder (combat contre une créature : socle des combats) |
+| Centres d'écoute | `sovarka_ecoutes_passe` (minuit), `sovarka_ecoutes_lire`, `sovarka_ecoute_rapport_demander`, `sovarka_ecoute_archives_voler` | idem, bureau du ministre de la Défense | images ; vol d'archives 2 PA / 45 % = choix de Claude à relire par Fred |
+| Maisons (hospitalité, trinquer, ragots) | `sovarka_maison_lire`, `sovarka_maison_agir`, nuitée par `hotel_nuitees` | idem | réaction IA de l'habitant ; noms des maisons (Dolgor, Stepan) à valider par Fred |
+| Fermes (Ferme de Starovka, Kolkhoze S. M. Kirov à Krasnov) | `sovarka_ferme_travailler` (travail en PA, sans matière d'entrée, produit à qui travaille) | idem | noms des deux fermiers à valider par Fred |
+| Œufs (matière locale `oeufs`, hors entrepôts et trading) | `sovarka_oeufs_manger` (+2 PA au prochain Dormir, source `oeufs`) | bouton « Manger 3 œufs » de la fiche d'objet (`plateau-personnage.js`) | bouton perdu par #688 puis rétabli le 10/11 après-midi |
+| Distillerie de Krasnov, fourreur « La Fourrure chaude » (Starovka) | locaux de Sovarka puis commerce classique ; type « Distillerie » (vodka, slivovitz, samogon, sucre) ; fourreur = type « Vêtements » | commerces | plafond de loyer 30 PSK, 1 PA par recette, revente œufs ×5 / sucre ×10 = choix de Claude à relire |
+| Forêt profonde de Krasnov (4 vues, coupes, loup / meute / ours, Olga) | `sovarka_foret_aller`, `sovarka_foret_couper`, `sovarka_foret_rencontre`, `sovarka_foret_issue_combat_interne` ; seconde coupe : migration `20261110144500_sovarka_foret_seconde_coupe` (1re coupe acquise, victoire et Olga rapportent le bois de la 2e) | idem, « Fuir » | images des 4 vues (Fred) ; 2 PA par coupe, force des créatures (9 / 13 / 16), « Dent d'ours » = choix de Claude à relire |
+
+**À constater en jeu** : récolte de pétrole et de bois ; travail aux fermes et « Manger 3 œufs » ; commande à la distillerie ; forêt (fuir sur la vue 3 sans perdre la première coupe, victoire et Olga rapportent du bois) ; maisons ; centres d'écoute après une première nuit.
