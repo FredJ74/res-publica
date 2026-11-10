@@ -3723,6 +3723,28 @@ const PRODUITS_MARCHE = {
   // commanderProduitCommerce, la branche familleProduitMarche pousse un objet en inventaire, pas
   // d'effets). L'ancien sandwich (RECETTES_ALIMENTAIRES, marche de Luthecia) reste strictement
   // intact et inchange -- ces 3 entrees n'y touchent pas.
+  // Marche de Krasnov (decision de Fred, 10/11/2026) : goulash, guide des baies sauvages, chemise de bucheron.
+  // La chemise vaut integration locale a Krasnov seulement (cible « soviet.ville_b »). Serveur : migration
+  // 20261110233000_marche_krasnov (dotation « marche@soviet.ville_b »). Images a venir (Fred).
+  goulash_krasnov: {
+    id: 'goulash_krasnov', label: 'Portion de goulash', familleProduitMarche: 'aliment',
+    categorie: 'objet', image: null, icon: 'ti-bowl',
+    materiaux: { viande: 1, fruits_legumes: 1 }, pa: 1, portions: 8,
+    typesAutorises: ['marche'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
+  },
+  guide_baies_krasnov: {
+    id: 'guide_baies_krasnov', label: 'Guide des baies sauvages de Krasnov',
+    categorie: 'objet', image: null, icon: 'ti-book',
+    materiaux: { bois: 1 }, pa: 1, portions: 10,
+    typesAutorises: ['marche'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
+  },
+  chemise_bucheron_krasnov: {
+    id: 'chemise_bucheron_krasnov', label: 'Chemise de bûcheron à carreaux', familleProduitMarche: 'integration_locale',
+    categorie: 'objet', image: null, icon: 'ti-shirt',
+    materiaux: { textile: 2 }, pa: 1, portions: 6,
+    bonusIntegrationVille: 'soviet.ville_b',
+    typesAutorises: ['marche'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
+  },
   casse_croute_cheminot: {
     id: 'casse_croute_cheminot', label: 'Casse-croûte du Cheminot', familleProduitMarche: 'aliment',
     categorie: 'objet', image: 'images/montrouge/montrouge-marche-casse-croute.webp', icon: 'ti-meat',
