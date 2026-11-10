@@ -45,6 +45,10 @@ Suite prioritaire constatée : messages du login encore français, puis autres
 fenêtres de la capture ; ne pas refaire les ordres/salles déjà livrés #671–675.
 
 
+### Forêt de Krasnov : seconde coupe — Claude, 10/11/2026 (APPLIQUÉ)
+
+Précisions de Fred (14 h 40-14 h 43), consignées dans `GAME-DESIGN-NOVOMIRSK.md` (« Forêt profonde de Krasnov : ce qui est codé ») : la **première coupe est acquise**, la fuite ne fait perdre que la seconde ; **victoire** sur la vue 3 = bois de la seconde coupe (2 à 4) **en plus** du butin ; **Olga** (vue 4) donne aussi le bois de la seconde coupe. Migration `20261110144500_sovarka_foret_seconde_coupe` **appliquée** (registre `sovarka_foret_seconde_coupe_20261110144500`, patchs ancrés, rejouable) après banc annulé `banc-sovarka-foret.sql` vert sur la production. **NE PAS RÉAPPLIQUER.** Écran : libellé « Fuir », bois d'Olga. Rappel : la partie 2 (forêt, fermes, distillerie, fourreur) est codée dans la PR #686. **À constater en jeu** : fuir sur la vue 3 sans perdre la première coupe ; victoire et Olga rapportent du bois.
+
 ### Bureau du président du Dynamo — illustration (10/11/2026, PR #687)
 
 Fred a fourni `images/Sovarka/Novomirsk/Les cinq triomphes mondiaux du Dynamo Novomirsk.png`. La branche `chatgpt/dynamo-bureau-president-webp-20261110` contient le WebP `images/Sovarka/Novomirsk/Novomirsk.stade.bureau président.webP` ; le workflow GitHub #42814758055 a vérifié l'identité du PNG (SHA blob `b35f3331`), la conversion et les dimensions, et a supprimé l'ancien PNG. Le gabarit `BUILDINGS.stade` reste inchangé ; seule la surcharge de `WORLD.soviet.capitale.buildingContext.stade.roomOverrides.bureau_president` pointe sur le WebP. Test dédié dans `outils/bancs/test-dynamo-novomirsk-20261110.mjs`. [PR #687](https://github.com/FredJ74/res-publica/pull/687). CI PR, fusion, déploiement et recette IG à confirmer séparément. Aucun changement mécanique/SQL.

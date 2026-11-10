@@ -244,8 +244,9 @@ async function foretCouper() {
     vehModal('Un bruit dans les fourrés…', '<p>Les branches craquent, une masse sombre approche… vous serrez votre hache.</p>' +
       '<p>Ce n’est pas l’ours. C’est <strong>Olga</strong>, la vieille de l’isba, une marmite fumante dans les bras : ' +
       '« Mange, mon petit, tu es tout maigre ! »</p>' +
-      '<p class="cpj-note">Un repas ordinaire : +' + v.bonus + ' PA au prochain sommeil' + (nourris > 1 ? ', pour chacun des ' + nourris + ' membres du groupe.' : '.') + '</p>');
-    if (typeof addJournalEntry === 'function') addJournalEntry('Olga vous a nourri dans la forêt profonde.', 'event-good');
+      '<p class="cpj-note">Un repas ordinaire : +' + v.bonus + ' PA au prochain sommeil' + (nourris > 1 ? ', pour chacun des ' + nourris + ' membres du groupe.' : '.') + '</p>' +
+      (v.quantite ? '<p class="cpj-note">Et vous rapportez ' + v.quantite + ' bois.</p>' : ''));
+    if (typeof addJournalEntry === 'function') addJournalEntry('Olga vous a nourri dans la forêt profonde' + (v.quantite ? ' ; ' + v.quantite + ' bois coupés.' : '.'), 'event-good');
     return;
   }
   if (v.rencontre === 'attaque') { foretAfficherRencontre(v.nom, v.pnj); return; }
@@ -273,7 +274,7 @@ function foretAfficherRencontre(nom, pnj) {
     const possede = m === 'mains' || typeof neutraliserPossedeArme !== 'function' || neutraliserPossedeArme(m);
     return possede ? vehBouton(provEchapper(modes[m].label), 'foretCombattre(' + js(pnj) + ',' + js(m) + ')', m === 'mains') : '';
   }).join(''));
-  html += vehSection('Ou bien', vehBouton('Fuir (vous lâchez le bois coupé ici)', 'foretChoisir(\'fuir\')') +
+  html += vehSection('Ou bien', vehBouton('Fuir (vous renoncez au bois de cette coupe)', 'foretChoisir(\'fuir\')') +
     vehBouton('Ne pas se défendre', 'foretChoisir(\'subir\')') +
     '<p class="cpj-note">On ne meurt jamais dans le jeu : un combat perdu, et l’on se réveille à l’hôpital.</p>');
   vehModal('Rencontre en forêt profonde', html);
@@ -294,7 +295,7 @@ async function foretChoisir(choix) {
   document.getElementById('modal-postes')?.classList.remove('open');
   if (choix === 'fuir') {
     provForetRendre(v.room);
-    showToast('Sauve qui peut !', 'Vous détalez jusqu’à l’entrée de la forêt' + (v.bois_perdu ? ', en lâchant ' + v.bois_perdu + ' bois.' : '.'), false);
+    showToast('Sauve qui peut !', 'Vous détalez jusqu’à l’entrée de la forêt. Le bois de la première coupe est sauf ; la seconde est perdue.', false);
   } else {
     showToast('Bon appétit…', provEchapper(v.nom) + ' ne s’est pas fait prier. Vous vous réveillerez à l’hôpital.', false);
     if (typeof relireHospitalisationServeur === 'function') await relireHospitalisationServeur(true);
