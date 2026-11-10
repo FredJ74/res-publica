@@ -319,27 +319,12 @@ def main():
   def stade(ville='capitale'):
    own("UPDATE personnages_donnees SET current_building='stade',current_room='buvette',current_city=%s WHERE name='Fixture'",(ville,))
   def caisses():return own("SELECT jsonb_object_agg(id,data)FROM caisses_batiments")
-  for ville in ['capitale','ville_a','ville_b']:
-   def consommation(ville=ville):
-    stade(ville);v=rpc('consommer_buvette');assert v['ok']and v['pop']==12 and v['pa']==19 and v['arg']==50,v
-    assert v['montant_preleve']==50 and v['taxe']['taxeLocale']==v['taxe']['taxeNationale']==1
-    assert own("SELECT (data->>'solde')::numeric FROM caisses_batiments WHERE id=%s",('republic_stade_'+ville,))==48
-    assert rpc('consommer_buvette')['pop']==12 and photo()['arg']==50
-   case('buvette_'+ville+'_un_debit_taxes_caisse_POP_et_rejeu',consommation)
-  def staderefus():
-   p=photo();caisse=caisses();assert rpc('consommer_buvette')['raison']=='pas_sur_place'and photo()==p and caisses()==caisse
-   stade();own("UPDATE personnages_donnees SET arg=0,liquide=0 WHERE name='Fixture'");p=photo()
-   assert rpc('consommer_buvette')['raison']=='fonds_insuffisants'and photo()==p and caisses()==caisse
-  case('buvette_rue_et_fonds_insuffisants_aucune_mutation',staderefus)
-  def stadepanne():
-   stade();p=photo();cash=caisses()
-   own("CREATE FUNCTION fixture_panne_stade()RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'panne_stade';END$$;CREATE TRIGGER fixture_panne_stade BEFORE INSERT ON jauges_actions_recus FOR EACH ROW EXECUTE FUNCTION fixture_panne_stade()")
-   own('SAVEPOINT panne_stade')
-   try:rpc('consommer_buvette');raise AssertionError('panne absente')
-   except psycopg2.Error as e:assert 'panne_stade'in str(e);own('ROLLBACK TO SAVEPOINT panne_stade')
-   assert photo()==p and caisses()==cash
-   assert own('SELECT count(*)FROM recettes_municipales')==0 and own("SELECT (data->>'reserveJour')::numeric FROM budgets_nationaux WHERE id='republic'")is None
-  case('buvette_panne_recu_annule_debit_taxes_caisse_et_gain',stadepanne)
+  # « Prendre un verre » (consommer_buvette) est retiré par décision de Fred (#682, 10/11/2026) : doublon de
+  # « Consulter la carte ». Le serveur le refuse désormais sans rien débiter ni créditer.
+  def buvetteretiree():
+   stade();p=photo();cash=caisses();v=rpc('consommer_buvette')
+   assert v['ok'] is False and v['raison']=='ordre_inconnu' and photo()==p and caisses()==cash,v
+  case('buvette_ordre_retire_refuse_sans_mutation',buvetteretiree)
   def maire(ville='capitale',solde=1000):
    own("UPDATE personnages_donnees SET poste=jsonb_build_object('id','maire','city',%s),current_city=%s,current_building=%s WHERE name='Fixture'",(ville,ville,'mairie-capitale'if ville=='capitale'else'mairie'))
    own("UPDATE caisses_batiments SET data=jsonb_build_object('solde',%s)WHERE id=salaire_caisse_de('maire','republic',%s)",(solde,ville))
