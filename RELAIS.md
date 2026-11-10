@@ -41,7 +41,8 @@ Branche `codex/i18n-gestion-commerces-20261110`, base `336eace8` après #698.
 produits, matières et approvisionnement. Compatibilité des anciens paramètres
 `{n}` avec i18next `values.*`, replis français ; noms/enseignes et saisies intacts.
 Le moteur commun applique aussi les légendes mobiles data-l et les préfixes de
-compteur sans supprimer le nombre en gras. Trois tests ciblés verts, 360/390/768,
+compteur sans supprimer le nombre en gras. Trois tests ciblés verts, rejoués après réconciliation main `2f30d23b`, statuts
+de matière et contre-épreuve de repli également contrôlés, 360/390/768,
 RTL, aucun appel supplémentaire pendant les bascules, PNG FR 1440 **identique**.
 PR web ouvertes examinées : #699/#636/#562/#467/#463, pas de doublon de ce lot.
 Aucune modification des travaux Sovarka/PNJ ou onglet Règles, aucun SQL.
