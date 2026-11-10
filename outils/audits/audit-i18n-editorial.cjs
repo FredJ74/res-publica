@@ -19,7 +19,8 @@ const scripts=[
  'guard-welcome-resources.js','jeremy-scenes-resources.js',
  'petit-accueil-resources.js','pnj-status-resources.js',
  'toast-resources.js','character-sheet-resources.js','inventory-ui-resources.js',
- 'municipal-ui-resources.js','social-pnj-resources.js','room-actions-resources.js','navigation-resources.js'
+ 'municipal-ui-resources.js','social-pnj-resources.js','room-actions-resources.js','navigation-resources.js',
+ 'sport-bets-resources.js','commerce-menu-resources.js'
 ];
 const global={};
 const context=vm.createContext({window:global});
