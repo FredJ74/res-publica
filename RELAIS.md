@@ -34,6 +34,25 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### i18n gestion des commerces — Codex, 10/11/2026 (lot suivant #698)
+
+Branche `codex/i18n-gestion-commerces-20261110`, base `336eace8` après #698.
+**52 clés dans neuf langues**, dictionnaire FR local conservé : terminal caisse,
+produits, matières et approvisionnement. Compatibilité des anciens paramètres
+`{n}` avec i18next `values.*`, replis français ; noms/enseignes et saisies intacts.
+Le moteur commun applique aussi les légendes mobiles data-l et les préfixes de
+compteur sans supprimer le nombre en gras. Trois tests ciblés verts, 360/390/768,
+RTL, aucun appel supplémentaire pendant les bascules, PNG FR 1440 **identique**.
+PR web ouvertes examinées : #699/#636/#562/#467/#463, pas de doublon de ce lot.
+Aucune modification des travaux Sovarka/PNJ ou onglet Règles, aucun SQL.
+Titre PR prêt : « Gestion commerciale : caisse, stocks et matières dans neuf langues ».
+Description : « 52 clés, dictionnaire canonique et paramètres conservés, labels
+mobiles/préfixes via moteur existant ; saisies/handlers/lectures et pixels FR
+1440 identiques. Aucun coût, PA, permission, RPC ou donnée joueur modifié. »
+Contrôles complets à consigner après les lots suivants. Tests réels connectés et
+publication non attestés. Suite immédiate : entrepôt et consultation notariale.
+
+
 ### Référentiel de game design mis à jour — Claude, 10/11/2026 (soir), branche `claude/referentiel-maj-20261110`
 
 Demande de Fred (fin de lot). `referentiel-game-design/ATLAS-SYSTEMES.md` : section Sovarka complétée avec la partie 2 (#686 : fermes, œufs, distillerie, fourreur, forêt profonde et seconde coupe), statuts D/C/T/M/P/J et choix à relire par Fred. `ECARTS-ET-VERIFICATIONS.md` : complément E-16 (régression #688, contrôle `bancs-hors-production`, vieux bugs d'août, écarts du baseline caducs). **Reste** : régénérer les catalogues (bâtiments, coûts, croisement), encore au SHA `a8bd5e26` du 9/11. Documentation seule, aucun code ni SQL.

@@ -120,6 +120,29 @@
         element.setAttribute('title',translated);
       else restore(element,'title',saved);
     }
+    // Préfixe textuel suivi d’un compteur stylé : ne pas supprimer son <b>.
+    const prefixNodes=Array.from(elementRoot.querySelectorAll?.('[data-i18n-prefix]')||[]);
+    if(elementRoot.getAttribute?.('data-i18n-prefix'))prefixNodes.unshift(elementRoot);
+    for(const element of prefixNodes){
+      const key=element.getAttribute('data-i18n-prefix'),node=element.firstChild;
+      if(!key||node?.nodeType!==3)continue;
+      const saved=originalFor(node,key,'textContent'),savedDir=originalFor(element,key,'dir');
+      const translated=engine.t(key,{defaultValue:null});
+      node.textContent=typeof translated==='string'&&translated.trim()&&translated!==key
+        ? translated+(saved.value.match(/\s*$/)?.[0]||'') : saved.value;
+      if(locale==='ar')element.setAttribute('dir','rtl');else restore(element,'dir',savedDir);
+    }
+    // Les légendes mobiles des tableaux du terminal utilisent data-l en CSS.
+    const labelNodes=Array.from(elementRoot.querySelectorAll?.('[data-i18n-label]')||[]);
+    if(elementRoot.getAttribute?.('data-i18n-label')) labelNodes.unshift(elementRoot);
+    for(const element of labelNodes) {
+      const key=element.getAttribute('data-i18n-label');if(!key)continue;
+      const saved=originalFor(element,key,'data-l');
+      const translated=engine.t(key,{defaultValue:null});
+      if(typeof translated==='string' && translated.trim() && translated!==key)element.setAttribute('data-l',translated);
+      else restore(element,'data-l',saved);
+    }
+
   }
   global.RPI18nPlateau=Object.freeze({apply,locale:()=>locale});
   // Un changement de langue dans l'interface, y compris depuis un autre onglet,
