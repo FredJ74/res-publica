@@ -4600,7 +4600,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"la-tribune\",\"accueil_tribune\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Bulletin du Parti Local",
+    "batiment": "La Voix de Sovarka",
     "piece": "Accueil",
     "personnes": [
       "Correspondant Local"
@@ -4609,7 +4609,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"la-tribune\",\"redaction\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Bulletin du Parti Local",
+    "batiment": "La Voix de Sovarka",
     "piece": "Redaction",
     "personnes": [
       "Rostislav Censurov",
@@ -4993,8 +4993,8 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"stade\",\"terrain\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Stade Municipal",
-    "piece": "Terrain",
+    "batiment": "Stade du Dynamo de Novomirsk",
+    "piece": "Terrain — Dynamo de Novomirsk",
     "personnes": [
       "Entraineur Local",
       "Commentateur Sportif"
@@ -5003,17 +5003,17 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"stade\",\"vestiaires\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Stade Municipal",
-    "piece": "Vestiaires",
+    "batiment": "Stade du Dynamo de Novomirsk",
+    "piece": "Vestiaires — Dynamo de Novomirsk",
     "personnes": [
-      "Entraineur Local"
+      "Entraineur Adjoint du Dynamo"
     ]
   },
   "[\"soviet\",\"capitale\",\"stade\",\"buvette\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Stade Municipal",
-    "piece": "Buvette",
+    "batiment": "Stade du Dynamo de Novomirsk",
+    "piece": "Buvette des tribunes",
     "personnes": [
       "Tenancier de Buvette"
     ]
@@ -5021,8 +5021,8 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"stade\",\"guichet_paris\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Stade Municipal",
-    "piece": "Guichet de Paris",
+    "batiment": "Stade du Dynamo de Novomirsk",
+    "piece": "Bookmaker du Dynamo",
     "personnes": [
       "Bookmaker Officiel"
     ]
@@ -5030,8 +5030,8 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"stade\",\"siege_supporters\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Stade Municipal",
-    "piece": "Siege des Supporters",
+    "batiment": "Stade du Dynamo de Novomirsk",
+    "piece": "Club des supporters du Dynamo",
     "personnes": [
       "Meneur des Supporters"
     ]
@@ -5039,9 +5039,18 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"stade\",\"bureau_president\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Stade Municipal",
+    "batiment": "Stade du Dynamo de Novomirsk",
     "piece": "Bureau du Président",
     "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"stade\",\"boutique\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Stade du Dynamo de Novomirsk",
+    "piece": "Boutique officielle du Dynamo",
+    "personnes": [
+      "Vendeuse du Dynamo"
+    ]
   },
   "[\"soviet\",\"capitale\",\"imprimerie-librairie\",\"accueil_imprimerie\"]": {
     "pays": "Sovarka",
@@ -5608,7 +5617,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Hotel des Mineurs",
+    "batiment": "Hôtel des Voyageurs",
     "piece": "Hall",
     "personnes": [
       "Receptionniste"
@@ -5617,7 +5626,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"chambre_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Hotel des Mineurs",
+    "batiment": "Hôtel des Voyageurs",
     "piece": "Chambre",
     "personnes": []
   },
@@ -5725,15 +5734,6 @@ export const SCENES_PNJ = {
     "batiment": "Tribunal Municipal",
     "piece": "Greffe",
     "personnes": []
-  },
-  "[\"soviet\",\"ville_a\",\"siege-syndical\",\"bureau_syndical\"]": {
-    "pays": "Sovarka",
-    "ville": "Starovka",
-    "batiment": "Siege Syndical",
-    "piece": "Bureau syndical",
-    "personnes": [
-      "Délégué Batbayar Dachiev"
-    ]
   },
   "[\"soviet\",\"ville_a\",\"usine-principale\",\"direction_usine\"]": {
     "pays": "Sovarka",
@@ -5857,9 +5857,9 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Starovka",
     "batiment": "Centre d'Affaires",
-    "piece": "La Tribune de Republia — Antenne Locale",
+    "piece": "La Voix de Sovarka — Antenne de Starovka",
     "personnes": [
-      "Correspondant Local"
+      "Saran Batbayar"
     ]
   },
   "[\"soviet\",\"ville_a\",\"terrain-a-batir-3\",\"terrain\"]": {
@@ -5925,7 +5925,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"zone-production\",\"zone_recolte\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Zone de Production",
+    "batiment": "Compagnie Nationale du Pétrole",
     "piece": "Zone de Récolte",
     "personnes": []
   },
@@ -5970,10 +5970,130 @@ export const SCENES_PNJ = {
       "Douanier Sükhbaatar Baïartouïev"
     ]
   },
+  "[\"soviet\",\"ville_a\",\"marche\",\"marche_ext\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Marché de Starovka",
+    "piece": "Etals du marche",
+    "personnes": [
+      "Tuyana Dashieva"
+    ]
+  },
+  "[\"soviet\",\"ville_a\",\"armurerie\",\"magasin\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Chasse et Pêche",
+    "piece": "Magasin",
+    "personnes": [
+      "Bato Tsyrenov"
+    ]
+  },
+  "[\"soviet\",\"ville_a\",\"capitaine-sauvage\",\"salle_principale\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Restaurant « Entre terre et mer »",
+    "piece": "Salle Principale",
+    "personnes": [
+      "Sesegma Badmaeva"
+    ]
+  },
+  "[\"soviet\",\"ville_a\",\"universite\",\"amphi\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Lycée de l'Avenir",
+    "piece": "Salle de classe",
+    "personnes": [
+      "Darima Zhambalova"
+    ]
+  },
+  "[\"soviet\",\"ville_a\",\"universite\",\"salle_reunion\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Lycée de l'Avenir",
+    "piece": "Salle de Réunion",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"salle\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Hall d'immeuble",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"petit_appartement_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Petit appartement n°1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"petit_appartement_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Petit appartement n°2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"petit_appartement_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Petit appartement n°3",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"petit_appartement_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Petit appartement n°4",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"grand_appartement_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Grand appartement n°1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"grand_appartement_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Grand appartement n°2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"grand_appartement_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Grand appartement n°3",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"grand_appartement_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Grand appartement n°4",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"locaux-starovka\",\"local_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Locaux à louer",
+    "piece": "Local n°1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"locaux-starovka\",\"local_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Locaux à louer",
+    "piece": "Local n°2",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_b\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Hotel des Mineurs",
+    "batiment": "Hôtel du Kolkhoze",
     "piece": "Hall",
     "personnes": [
       "Receptionniste"
@@ -5982,7 +6102,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"hotel-mineur\",\"chambre_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Hotel des Mineurs",
+    "batiment": "Hôtel du Kolkhoze",
     "piece": "Chambre",
     "personnes": []
   },
@@ -6090,15 +6210,6 @@ export const SCENES_PNJ = {
     "batiment": "Tribunal Municipal",
     "piece": "Greffe",
     "personnes": []
-  },
-  "[\"soviet\",\"ville_b\",\"siege-syndical\",\"bureau_syndical\"]": {
-    "pays": "Sovarka",
-    "ville": "Krasnov",
-    "batiment": "Siege Syndical",
-    "piece": "Bureau syndical",
-    "personnes": [
-      "Délégué Prokofi Panov"
-    ]
   },
   "[\"soviet\",\"ville_b\",\"usine-principale\",\"direction_usine\"]": {
     "pays": "Sovarka",
@@ -6222,9 +6333,9 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Centre d'Affaires",
-    "piece": "La Tribune de Republia — Antenne Locale",
+    "piece": "La Voix de Sovarka — Antenne de Krasnov",
     "personnes": [
-      "Correspondant Local"
+      "Anatoli Kolosov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"terrain-a-batir-2\",\"terrain\"]": {
@@ -6290,7 +6401,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"zone-production\",\"zone_recolte\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Zone de Production",
+    "batiment": "Exploitation forestière de Krasnov",
     "piece": "Zone de Récolte",
     "personnes": []
   },
@@ -6317,6 +6428,122 @@ export const SCENES_PNJ = {
     "piece": "Boutique",
     "personnes": [
       "Lioudmila Zapravkina"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"marche\",\"marche_ext\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Marché de Krasnov",
+    "piece": "Etals du marche",
+    "personnes": [
+      "Nina Gorbounova"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"universite\",\"amphi\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "École de Krasnov",
+    "piece": "Salle de classe",
+    "personnes": [
+      "Pavel Smirnov"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"universite\",\"salle_reunion\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "École de Krasnov",
+    "piece": "Salle de Réunion",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"kolkhoze-spirituel\",\"grange_sainte\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Église du Tractorisme de Krasnov",
+    "piece": "La Grange Sainte",
+    "personnes": [
+      "Camarade Pontife Tractorenko",
+      "Frère Kolkhoze"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"hall\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Musée de Krasnov",
+    "piece": "Hall d'accueil",
+    "personnes": [
+      "Vera Lebedeva"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_criminels\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Musée de Krasnov",
+    "piece": "Salle des Grands Criminels Novomirskois",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_maires\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Musée de Krasnov",
+    "piece": "Salle des Présidents du Soviet municipal",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_personnalites\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Musée de Krasnov",
+    "piece": "Salle des Héros du Peuple",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_entrepreneurs\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Musée de Krasnov",
+    "piece": "Salle des Grands Bâtisseurs de la Production",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_organisations\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Musée de Krasnov",
+    "piece": "Salle des Organisations Novomirskoises",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_plumes\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Musée de Krasnov",
+    "piece": "Salle des Plumes Novomirskoises",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_honneur_militaire\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Musée de Krasnov",
+    "piece": "Salle d'Honneur Militaire",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_unions\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Musée de Krasnov",
+    "piece": "Salle des Unions Célèbres",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_scandales\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Musée de Krasnov",
+    "piece": "Salle des Scandales et Affaires",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"cafe-tabac-cheminots-montrouge\",\"salle\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Bar Sever",
+    "piece": "Salle",
+    "personnes": [
+      "Grigori Zaitsev"
     ]
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"corps_garde\"]": {
