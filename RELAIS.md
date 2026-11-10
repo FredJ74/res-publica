@@ -31,6 +31,11 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Appel de Jodie et édition des journaux — ChatGPT, 10/11/2026 (PR #678)
+
+Signalement réel de Fred : l'appel J+1 de Jodie disparaissait quand la fenêtre des éditions de journaux était fermée. Cause : les deux contenus utilisaient le modal partagé `modal-postes`, dont le corps est écrasé lors de l'ouverture d'un autre écran. Branche `chatgpt/jodie-appel-fenetre-isolee-20261110`, [PR #678](https://github.com/FredJ74/res-publica/pull/678). Correctif : appel dans une fenêtre indépendante, fermée par la croix ou par une réponse d'ordre, sans changer la RPC ni le scénario ; test ajouté dans `test-jodie-enquete-musee.mjs` simulant l'ouverture puis fermeture des journaux. **À vérifier avant fusion :** CI sur le dernier SHA et absence de régression des autres modales. **À constater en jeu :** appel Jodie simultané à l'édition quotidienne ; après fermeture des journaux, Jodie doit rester visible et utilisable. Aucune migration.
+
+
 ### Sovarka : lot de nuit du 10/11 — Claude, branche `claude/sovarka-lot-nuit-20261110`, [PR #670](https://github.com/FredJ74/res-publica/pull/670) (EN COURS)
 
 Décisions de Fred du 09/11 au soir et du 10/11 entre minuit et 1 h : `GAME-DESIGN-NOVOMIRSK.md`, « Réponses de Fred » (tout y est, y compris forêt de Krasnov #72, fermes, distillerie, centres d'écoute, maisons). Nouveau `IDEES_PREMIUM.md` (renommer ses objets).
