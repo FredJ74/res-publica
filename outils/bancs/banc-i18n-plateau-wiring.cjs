@@ -30,8 +30,15 @@ test('les panneaux statiques portent des clés de localisation sans modifier les
 });
 
 test('navigation principale, forum et courrier gardent leurs clés et événements',()=>{
- for(const key of ['personalActions','inventory','organizations','identity','statistics','rules','forum','mailbox','financeManagement','characterSheet']) {
+ for(const key of ['personalActions','inventory','organizations','identity','statistics','forum','mailbox','financeManagement','characterSheet']) {
   assert.ok(plateau.includes('data-i18n="plateau.'+key+'"'),key);
+ }
+ // La refonte du 11/11 remplace Règles par une aide HRP (traduite en neuf langues).
+ assert.ok(plateau.includes('data-aide-ui="nav"'), 'libellé Aide absent');
+ assert.ok(plateau.includes('data-aide-ui="tab"'), 'premier onglet Aide absent');
+ const aide=fs.readFileSync(path.join(root,'plateau-aide.js'),'utf8');
+ for(const lang of ['fr','en','es','zh','ru','ko','ar','pt','de']) {
+  assert.ok(aide.includes(lang+':{nav:'), 'langue aide manquante : '+lang);
  }
  assert.match(plateau,/onclick="switchSelfTab\('actions',this\)"/);
  assert.match(plateau,/onclick="switchSelfTab\('inventaire',this\)"/);
@@ -39,9 +46,10 @@ test('navigation principale, forum et courrier gardent leurs clés et événemen
 });
 
 test('cartes, organigramme, courrier et guide utilisent des textes localisés statiques',()=>{
- for(const key of ['worldMap','subject','messageLabel','gameGuide']) {
+ for(const key of ['worldMap','subject','messageLabel']) {
   assert.ok(plateau.includes('data-i18n="plateau.'+key+'"'),key);
  }
+ assert.ok(plateau.includes('data-aide-ui="subtitle"'), 'sous-titre de l’aide absent');
  assert.match(plateau,/onclick="closeWorldMap\(\)"/);
  assert.match(plateau,/id="compose-mail-subject"/);
  assert.match(plateau,/id="compose-mail-body"/);
