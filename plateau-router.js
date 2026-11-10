@@ -196,6 +196,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'voler_archives_ecoute') { volerArchivesEcoute(); return; }
   if (fn === 'maison_habitant') { ouvrirMaisonHabitant(); return; }
   if (fn === 'trinquer_habitant') { trinquerHabitant(); return; }
+  // Fermes et forêt profonde de Krasnov (10/11/2026, partie 2) : plateau-sovarka-provinces.js.
+  if (/^ferme_(renne|traire|legumes|oeufs|poulet|lapin)$/.test(fn)) { travaillerFerme(fn); return; }
+  if (fn === 'foret_enfoncer') { foretAller('enfoncer'); return; }
+  if (fn === 'foret_revenir') { foretAller('revenir'); return; }
+  if (fn === 'foret_couper') { foretCouper(); return; }
   // Jardins ouvriers de Montrouge (01/11/2026) : plateau-logements-montrouge.js.
   if (fn === 'travailler_jardins') { doTravaillerJardins(); return; }
   if (fn === 'laisser_legumes_jardins') { doEchangeLegumesJardins('laisser'); return; }

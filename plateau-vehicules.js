@@ -17,7 +17,7 @@ const VEH_MODELES = Object.freeze({
   'deux-roues':          { label: 'Deux-roues', icon: 'ti-motorbike', places: 2, chargement: 50,  reservoir: 12 },
   'vehicule-utilitaire': { label: 'Utilitaire', icon: 'ti-truck',     places: 3, chargement: 500, reservoir: 25 }
 });
-const VEH_GARAGE_MATIERES = Object.freeze({ metal: 'Métal', textile: 'Textile', derives_petrochimiques: 'Dérivés pétrochimiques' });
+const VEH_GARAGE_MATIERES = Object.freeze({ metal: 'Métal', textile: 'Tissus et peaux', derives_petrochimiques: 'Dérivés pétrochimiques' });
 
 const vehEchappe = v => String(v == null ? '' : v).replace(/[&<>"']/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

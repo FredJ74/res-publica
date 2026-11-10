@@ -1440,6 +1440,11 @@ const RUE_CENTRALE_NOEUDS = {
   Z('krasnov-rue-eglise', [30, 60], 'Église du Tractorisme', 'kolkhoze-spirituel');
   Z('krasnov-rue-station-musee', [15, 45], 'Musée de Krasnov', 'musee-novomirsk');
   Z('krasnov-rue-tabac-bar', [0, 35], 'Bar Sever', 'cafe-tabac-cheminots-montrouge');
+  // Partie 2 du lot (10/11/2026, migration 20261110123000) : fermes, distillerie et fourreur, reperes sur les enseignes.
+  Z('starovka-rue-petrole-ferme', [62, 100], 'Ferme de Starovka', 'ferme-starovka', [22, 64]);
+  Z('krasnov-rue-marche-ferme', [70, 100], 'Kolkhoze S. M. Kirov', 'ferme-krasnov', [18, 66]);
+  Z('krasnov-rue-distillerie-radar', [0, 34], 'Distillerie de Krasnov', 'distillerie-krasnov', [8, 66]);
+  Z('starovka-rue-restaurant-boutique', [77, 100], 'Fourreur « La Fourrure chaude »', 'fourreur-starovka', [20, 64]);
 })();
 
 // =====================
