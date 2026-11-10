@@ -6931,3 +6931,19 @@ async function sbOrganisationCommande(orgaId, action, parametres) {
   } catch(_){return {disponible:true,ok:false,raison:'commande_non_confirmee'};}
   finally{RP_ORGA_COMMANDES_EN_COURS.delete(orgaId);}
 }
+
+
+// TARIFS NATIONAUX (Sovarka, 10/11/2026) : lus a la table serveur ordres_couts_pays, seule autorite.
+// Lecture publique, une fois au chargement ; table absente ou panne : l'ecran garde les prix du socle.
+(function chargerTarifsPays() {
+  if (typeof fetch !== 'function' || typeof SUPABASE_URL === 'undefined' || typeof TARIFS_PAYS === 'undefined') return;
+  fetch(SUPABASE_URL + '/rest/v1/ordres_couts_pays?select=fn,pays,pa,cost', { headers: sbEnTetes() })
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (lignes) {
+      (Array.isArray(lignes) ? lignes : []).forEach(function (t) {
+        if (!t || !t.fn || !t.pays) return;
+        (TARIFS_PAYS[t.pays] = TARIFS_PAYS[t.pays] || {})[t.fn] = { pa: Number(t.pa) || 0, cost: Number(t.cost) || 0 };
+      });
+    })
+    .catch(function () {});
+})();

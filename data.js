@@ -10605,19 +10605,12 @@ function slugPnjSovarka(nom) {
 })();
 
 // TARIFS NATIONAUX (decision de Fred du 09/11/2026 au soir, reponse 6) : en Sovarka un PA vaut
-// moins, les prix courants de Republia sont divises par 2,5 environ. Miroir d'affichage de la
-// table serveur public.ordres_couts_pays (migration 20261110003000), qui seule decide : le serveur
-// refuse tout autre montant pour un joueur du pays. Policiers : 20 et 40 PSK par jour (serveur).
-const TARIFS_PAYS = {
-  soviet: {
-    prendre_train:             { pa: 2, cost: 30 },
-    prendre_bus_taxi:          { pa: 1, cost: 60 },
-    soin_public:               { pa: 0, cost: 10 },
-    transfert_clinique_privee: { pa: 0, cost: 400 },
-    prendre_licence_sportive:  { pa: 1, cost: 60 },
-    reserver_chambre_hotel:    { pa: 0, cost: 25 }
-  }
-};
+// moins, les prix courants de Republia sont divises par 2,5 environ (train 30, bus/taxi 60, soin 10,
+// transfert en clinique 400, licence 60, chambre 25 PSK ; policiers 20 et 40 par jour). La table
+// serveur public.ordres_couts_pays (migration 20261110003000) seule decide ; l'ecran la LIT au
+// chargement (supabase.js, chargerTarifsPays) : tant qu'elle n'existe pas, il garde les prix du socle,
+// et il ne peut jamais annoncer un prix que le serveur n'exigerait pas.
+const TARIFS_PAYS = {};
 function tarifOrdrePays(fn, pays) {
   return (TARIFS_PAYS[pays] && TARIFS_PAYS[pays][fn]) || null;
 }
