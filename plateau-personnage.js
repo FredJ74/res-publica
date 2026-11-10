@@ -3265,7 +3265,7 @@ function verifierProgressionHospitalisation() {
   // Régime pa0 : ni date de fin ni PA écrits par l'écran ; la sortie est un ordre (20 PA, dès J2).
   if (state.hospitalisation.regime === 'pa0') {
     const j = hospitalisationJourPa0();
-    addJournalEntry('Hospitalisation, jour ' + j + ' (' + state.hospitalisation.lieu + '). Sortie possible à partir du jour 2, avec 20 PA.', 'event-info');
+    addJournalEntry('Hospitalisation, jour ' + j + ' (' + state.hospitalisation.lieu + '). Vous sortez dès que vous avez 20 PA, au plus tôt le jour 2 (à l’hôpital public, comptez environ 3 jours : chaque nuit et chaque repas vous rendent des PA).', 'event-info');
     return;
   }
   const dateFinParis = state.hospitalisation.dateFinParis;
@@ -3407,6 +3407,10 @@ async function ouvrirDetailObjetInventaire(idx) {
   // Brume et Estadine (2 novembre 2026) : consommer est legal ; seuls l'achat et le transport ne le sont pas.
   if (item.type === 'drogue') {
     html += '<button onclick="consommerDrogue(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ' + (item.drogue === 'estadine' ? 'ti-snowflake' : 'ti-cloud') + '"></i> ' + (item.drogue === 'estadine' ? '<span data-i18n="inventoryUi.consume">Consommer</span>' : '<span data-i18n="inventoryUi.smoke">Fumer</span>') + '</button>';
+  }
+  // Œufs de Sovarka (10/11/2026) : toujours par 3, mangés d'un coup, sans PA (+2 PA au prochain sommeil).
+  if (item.stackKey === 'oeufs' && typeof mangerOeufs === 'function') {
+    html += '<button onclick="mangerOeufs()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-egg"></i> Manger 3 œufs</button>';
   }
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> <span data-i18n="inventoryUi.consume">Consommer</span></button>';
@@ -4068,6 +4072,9 @@ function ouvrirDetailObjet(idx) {
   html += '<div style="display:flex;gap:.5rem">';
   if (item.type === 'drogue') {
     html += '<button onclick="consommerDrogue(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">' + (item.drogue === 'estadine' ? 'Consommer' : 'Fumer') + '</button>';
+  }
+  if (item.stackKey === 'oeufs' && typeof mangerOeufs === 'function') {
+    html += '<button onclick="mangerOeufs()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Manger 3 œufs</button>';
   }
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Consommer</button>';

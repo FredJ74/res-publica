@@ -115,3 +115,20 @@ test('Plan déduit des rues : une impasse s’arrête avant la rue qu’elle cou
   assert.deepEqual(r.croise, [], 'l’impasse ne croise aucune rue');
   assert.ok(r.auNord, 'le tribunal est au nord de l’Hôtel de Ville');
 });
+
+test('Plan déduit des rues : aucune rue n’en croise une autre hors d’un carrefour, dans les six villes', () => {
+  const { ctx } = charger();
+  for (const [p, v] of VILLES) {
+    const out = JSON.parse(vm.runInContext(`(() => { const pl = calculerPlanRues(RUE_CENTRALE_NOEUDS['${p}'], RUE_CENTRALE_DEPART['${p}']['${v}']);
+      const P = n => [pl.noeuds[n].x, pl.noeuds[n].y];
+      const coupe = (p1, p2, p3, p4) => { const d = (p2[0]-p1[0])*(p4[1]-p3[1]) - (p2[1]-p1[1])*(p4[0]-p3[0]); if (Math.abs(d) < 1e-9) return false;
+        const t = ((p3[0]-p1[0])*(p4[1]-p3[1]) - (p3[1]-p1[1])*(p4[0]-p3[0])) / d, u = ((p3[0]-p1[0])*(p2[1]-p1[1]) - (p3[1]-p1[1])*(p2[0]-p1[0])) / d;
+        return t > 0.02 && t < 0.98 && u > 0.02 && u < 0.98; };
+      const out = [], R = pl.rues;
+      for (let i = 0; i < R.length; i++) for (let j = i + 1; j < R.length; j++) {
+        const a = R[i], b = R[j]; if ([a.de, a.vers].some(n => n === b.de || n === b.vers)) continue;
+        if (coupe(P(a.de), P(a.vers), P(b.de), P(b.vers))) out.push(a.de + '→' + a.vers + ' × ' + b.de + '→' + b.vers); }
+      return JSON.stringify(out); })()`, ctx));
+    assert.deepEqual(out, [], p + '/' + v + ' : rues croisées sans carrefour');
+  }
+});
