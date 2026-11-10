@@ -50,7 +50,10 @@ Titre PR : « Consultations du port et des douanes en neuf langues ».
 Description : « 21 clés de rendu, paramètres et flux canoniques conservés ; mêmes
 lectures et permissions, aucun ordre ou traitement modifié, tests mobile/RTL et
 comparaison stricte FR. » Base PR : branche vente/don, puis main après les trois
-lots précédents. Validation cumulative finale en cours. Aucun SQL/donnée PJ,
+lots précédents. Les quatre branches sont réconciliées avec main `2f30d23b` (#699–701),
+recettes/téléphone/images et versions de cache préservés. Les renvois vers
+« Gérer la logistique nationale » concordent avec le libellé réel dans neuf langues.
+Validation cumulative finale après réconciliation en cours. Aucun SQL/donnée PJ,
 module Sovarka/PNJ ni chantier Règles modifié.
 
 
