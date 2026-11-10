@@ -77,7 +77,15 @@ def preparer(paquet=None):
  ajouts_sovarka_pouvoir=sorted(ajouts_sovarka_pouvoir+[{'fn':'sovarka_acte_officiel','pa':1,'cost':8},{'fn':'sovarka_acte_officiel_autorite','pa':1,'cost':0},{'fn':'sovarka_extrait_parti','pa':1,'cost':7},{'fn':'sovarka_offrir_cafe','pa':0,'cost':0},{'fn':'sovarka_ordres_ministre','pa':0,'cost':0},{'fn':'sovarka_registre_plaintes','pa':0,'cost':0}],key=lambda x:x['fn'])
  if sorted([x for x in source if x['fn'] in {t['fn'] for t in ajouts_sovarka_pouvoir}],key=lambda x:x['fn'])!=ajouts_sovarka_pouvoir:
   raise ValueError('Ordres pouvoir Sovarka absents, dupliques ou mal tarifes')
- source_historique=[x for x in source if x['fn'] not in ajouts_ssm+ajouts_manufactures and cle(x) not in {cle(t) for t in ajouts_terrains_psm} and x not in ajouts_petrochimie+ajouts_naval+ajouts_renseignement+ajouts_vehicules+ajouts_sovarka+ajouts_sovarka_reunions+ajouts_diner_sovarka+ajouts_sovarka_pouvoir]
+ # Provinces de Sovarka (10/11, #681 et #686) et Dynamo (#682) : ajouts posterieurs a la photographie.
+ # L'adhesion des supporters a 25 PSK est une variante de tarif d'un ordre historique (comme le diner).
+ ajouts_sovarka_provinces=[{'fn':'ferme_lapin','pa':2,'cost':0},{'fn':'ferme_legumes','pa':1,'cost':0},{'fn':'ferme_oeufs','pa':1,'cost':0},{'fn':'ferme_poulet','pa':2,'cost':0},{'fn':'ferme_renne','pa':5,'cost':0},{'fn':'ferme_traire','pa':1,'cost':0},{'fn':'foret_couper','pa':2,'cost':0},{'fn':'foret_enfoncer','pa':0,'cost':0},{'fn':'foret_revenir','pa':0,'cost':0},{'fn':'maison_habitant','pa':0,'cost':0},{'fn':'souscrire_bon_etat','pa':0,'cost':0},{'fn':'sovarka_ecoutes','pa':0,'cost':0},{'fn':'trinquer_habitant','pa':3,'cost':0},{'fn':'voler_archives_ecoute','pa':2,'cost':0}]
+ if sorted([x for x in source if x['fn'] in {t['fn'] for t in ajouts_sovarka_provinces}],key=lambda x:x['fn'])!=ajouts_sovarka_provinces:
+  raise ValueError('Ordres des provinces de Sovarka absents, dupliques ou mal tarifes')
+ variante_supporters={'fn':'rejoindre_club_supporters','pa':1,'cost':25}
+ if sum(x==variante_supporters for x in source)!=1:
+  raise ValueError('Adhesion des supporters du Dynamo absente ou dupliquee')
+ source_historique=[x for x in source if x['fn'] not in ajouts_ssm+ajouts_manufactures and cle(x) not in {cle(t) for t in ajouts_terrains_psm} and x not in ajouts_petrochimie+ajouts_naval+ajouts_renseignement+ajouts_vehicules+ajouts_sovarka+ajouts_sovarka_reunions+ajouts_diner_sovarka+ajouts_sovarka_pouvoir+ajouts_sovarka_provinces+[variante_supporters]]
  # Les deux virements bancaires sont désormais un sous-menu graphique (04/11) :
  # leurs anciens triplets sont maintenus dans la photographie d'origine,
  # et le menu gratuit 'virements' n'appartenait pas au plan 97.
@@ -91,7 +99,8 @@ def preparer(paquet=None):
           {'fn':'fabriquer_armoire_souvenirs','pa':3,'cost':0},
           {'fn':'acheter_armoire_souvenirs','pa':0,'cost':0},
           {'fn':'virement_joueur','pa':1,'cost':0},
-          {'fn':'virement_automatique','pa':1,'cost':0}]
+          {'fn':'virement_automatique','pa':1,'cost':0},
+          {'fn':'consommer_buvette','pa':1,'cost':50}]  # retire par #682 (doublon de « Consulter la carte »)
  if any(x['fn'] in {r['fn'] for r in retires} for x in source):
   raise ValueError('Un ordre retiré ne doit plus figurer au catalogue actuel')
  source_historique=source_historique+retires
@@ -100,7 +109,7 @@ def preparer(paquet=None):
  md5=hashlib.md5('\n'.join('%s|%d|%d'%t for t in ts).encode()).hexdigest()
  triplets_actuels=sorted(cmp.triples(source))
  md5_actuel=hashlib.md5('\n'.join('%s|%d|%d'%t for t in triplets_actuels).encode()).hexdigest()
- rapport={'production_executee':False,'execution_autorisee':False,'migrations':es,'nombre':97,'tarifs_source':{'lignes':len(ts),'md5':md5},'tarifs_ajoutes_apres_plan97':hors_coupe,'tarifs_ajoutes_manufactures':hors_coupe_manufactures,'tarifs_ajoutes_petrochimie':ajouts_petrochimie,'tarifs_ajoutes_naval':ajouts_naval,'tarifs_ajoutes_renseignement':ajouts_renseignement,'tarifs_ajoutes_vehicules':ajouts_vehicules,'tarifs_ajoutes_sovarka':ajouts_sovarka,'tarifs_ajoutes_sovarka_reunions':ajouts_sovarka_reunions,'tarifs_ajoutes_diner_sovarka':ajouts_diner_sovarka,'tarifs_ajoutes_sovarka_pouvoir':ajouts_sovarka_pouvoir,'tarifs_actuels':{'lignes':len(triplets_actuels),'md5':md5_actuel},'ancien_plan_tarifaire_conforme_source':couts['apres']=={'lignes':len(ts),'md5':md5},'etapes':['valider paquet atomique et SHA indépendants','rendre et seeds depuis les exports ; comparer six racines, douze référentiels et locale','réconcilier le delta tarifaire complet ; régénérer le plan SQL et ses contrôles','95 : panne tardive + rollback, installation atomique, rejeu refusé sans mutation','recettes groupes/organisations puis #318 et #324 dans cet ordre, avec leurs gardes et reçus de registre','recette finale GoTrue/PostgREST : 27 cas, puis contre-épreuves et contrôles globaux'], 'limite':'Plan d’ordre et de provenance seulement ; aucun clone courant certifié ni migration exécutée.'}
+ rapport={'production_executee':False,'execution_autorisee':False,'migrations':es,'nombre':97,'tarifs_source':{'lignes':len(ts),'md5':md5},'tarifs_ajoutes_apres_plan97':hors_coupe,'tarifs_ajoutes_manufactures':hors_coupe_manufactures,'tarifs_ajoutes_petrochimie':ajouts_petrochimie,'tarifs_ajoutes_naval':ajouts_naval,'tarifs_ajoutes_renseignement':ajouts_renseignement,'tarifs_ajoutes_vehicules':ajouts_vehicules,'tarifs_ajoutes_sovarka':ajouts_sovarka,'tarifs_ajoutes_sovarka_reunions':ajouts_sovarka_reunions,'tarifs_ajoutes_diner_sovarka':ajouts_diner_sovarka,'tarifs_ajoutes_sovarka_pouvoir':ajouts_sovarka_pouvoir,'tarifs_ajoutes_sovarka_provinces':ajouts_sovarka_provinces+[variante_supporters],'tarifs_actuels':{'lignes':len(triplets_actuels),'md5':md5_actuel},'ancien_plan_tarifaire_conforme_source':couts['apres']=={'lignes':len(ts),'md5':md5},'etapes':['valider paquet atomique et SHA indépendants','rendre et seeds depuis les exports ; comparer six racines, douze référentiels et locale','réconcilier le delta tarifaire complet ; régénérer le plan SQL et ses contrôles','95 : panne tardive + rollback, installation atomique, rejeu refusé sans mutation','recettes groupes/organisations puis #318 et #324 dans cet ordre, avec leurs gardes et reçus de registre','recette finale GoTrue/PostgREST : 27 cas, puis contre-épreuves et contrôles globaux'], 'limite':'Plan d’ordre et de provenance seulement ; aucun clone courant certifié ni migration exécutée.'}
  if paquet:
   editor=module('paquet_recette97','outils/livraison/export-sql-editor-219.py');paquet=Path(paquet).resolve()
   # Les sept octets originaux doivent être présents, pas une reconstruction manuelle.
