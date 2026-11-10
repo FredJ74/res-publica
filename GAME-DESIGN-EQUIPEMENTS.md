@@ -93,4 +93,8 @@ de décisions du **10 novembre 2026 au soir** (20 h 53 – 21 h 30), à coder en
 
 ## Images
 
-- Couinator 3000 : illustration fournie par Fred le 10/11 (pistolet-canard jaune, « Coin coin ! »), à convertir en WebP.
+- Couinator 3000 : illustration fournie par Fred le 10/11 (pistolet-canard jaune, « Coin coin ! »), `images/objet-couinator-3000.webp`.
+
+## Ce qui est codé
+
+- **Décision 19 (10/11, 21 h 50)** : recettes `couinator_3000_commerce` et `cartouche_encre_commerce`, génériques `couinator-3000` et `cartouche-encre` (type `electronique-informatique`) ; migration `20261110214000_equipements_couinator_cartouche` appliquée. Les objets n'ont pas encore d'effet (Fouiller les lieux et imprimante à venir).
