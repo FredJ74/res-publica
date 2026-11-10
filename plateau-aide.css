@@ -1,0 +1,23 @@
+/* Première page Aide : sobre, mobile, sans refonte des guides existants. */
+.aide-jeu{max-width:850px;margin:0 auto;padding:clamp(1rem,3vw,2rem);color:#e6dcc5;box-sizing:border-box}
+.aide-jeu-titre{font-family:'Bebas Neue',sans-serif;letter-spacing:.09em;color:#d7ad58;font-size:clamp(1.5rem,3vw,2rem);margin:0 0 .7rem}
+.aide-jeu-intro{font-family:'Crimson Pro',serif;font-size:clamp(1rem,2vw,1.25rem);line-height:1.5;background:#1d2026;border-left:3px solid #d8ad57;padding:1rem 1.2rem;margin:0 0 1rem;border-radius:3px}
+.aide-jeu-messages{max-height:min(44vh,420px);overflow-y:auto;display:flex;flex-direction:column;gap:.7rem;scrollbar-color:#776138 #181510}
+.aide-jeu-message{max-width:90%;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;padding:.75rem 1rem;border-radius:8px;line-height:1.5;font-family:'Crimson Pro',serif;font-size:1.08rem}
+.aide-jeu-user{background:#373324;color:#f7e7c6;align-self:flex-end}
+.aide-jeu-assistant{background:#202a32;border:1px solid #4a5460;align-self:flex-start}
+.aide-jeu-attente{color:#cab37b;font-style:italic}
+.aide-jeu-suggestions{display:flex;flex-wrap:wrap;gap:.6rem;margin:1.2rem 0}
+.aide-jeu-proposition{padding:.65rem .9rem;border:1px solid #b99753;border-radius:7px;background:#292519;color:#e9d6a7;cursor:pointer;min-height:44px;text-align:start;font-size:.92rem}
+.aide-jeu-proposition:hover,.aide-jeu-proposition:focus-visible{background:#3a301e;border-color:#efc574;color:#fff}
+.aide-jeu-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.6rem;margin:1rem 0 0}
+.aide-jeu-label{grid-column:1/-1;color:#cdb47b;font-size:.8rem}
+.aide-jeu-question{box-sizing:border-box;min-width:0;width:100%;min-height:75px;background:#10151a;border:1px solid #7b6b50;border-radius:6px;color:#f2eadb;font:1rem 'Crimson Pro',serif;padding:.65rem .75rem;resize:vertical}
+.aide-jeu-question:focus-visible,.aide-jeu-envoi:focus-visible{outline:2px solid #e9c67f;outline-offset:2px}
+.aide-jeu-envoi{border:1px solid #d3ac61;border-radius:6px;color:#16100b;background:#e4be73;font-weight:700;cursor:pointer;padding:.7rem 1rem;min-height:44px;align-self:end}
+.aide-jeu-envoi:hover:not(:disabled){background:#f6d38e}
+.aide-jeu-envoi:disabled,.aide-jeu-proposition:disabled{opacity:.55;cursor:not-allowed}
+.aide-jeu-erreur{color:#ffd2bc;border-left:3px solid #de7854;padding:.5rem .75rem;background:#39231e}
+.aide-jeu-disclaimer{margin:.75rem 0 0;color:#a69c85;font-size:.8rem}
+[dir=rtl] .aide-jeu-intro{border-left:0;border-right:3px solid #d8ad57}
+@media(max-width:600px){.aide-jeu{padding:1rem}.aide-jeu-form{grid-template-columns:1fr}.aide-jeu-envoi{width:100%}.aide-jeu-message{max-width:100%}.aide-jeu-suggestions{flex-direction:column}}
