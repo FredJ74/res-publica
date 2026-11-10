@@ -34,6 +34,26 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### i18n consultations port et douanes — Codex, 10/11/2026 (lot empilé)
+
+Branche `codex/i18n-port-douanes-20261110`, base vente/don `2376b5d9`.
+**21 clés en neuf langues** : administration du port, origines et flux affichés,
+exportations, caisse, effectifs douaniers (vide/erreur/liste/unité cynophile).
+Consultation seule : recrutement, salaires, répartitions, transports et droits
+restent intacts. Noms/matricules/destinations/dates et chiffres 150/150/300,
+2/3, 1/3, 100% préservés ; aucune traduction de contenu personnel.
+Trois cas ciblés verts dans neuf langues, 360/390 et RTL, lectures uniques,
+aucune commande ajoutée, port et douanes FR 1440 pixel-identiques à main 336eace8.
+**Les trois premiers lots ont passé 274/274 bancs clients** après correction du
+chargement des vrais helpers dans le banc stock (20 assertions conservées).
+Titre PR : « Consultations du port et des douanes en neuf langues ».
+Description : « 21 clés de rendu, paramètres et flux canoniques conservés ; mêmes
+lectures et permissions, aucun ordre ou traitement modifié, tests mobile/RTL et
+comparaison stricte FR. » Base PR : branche vente/don, puis main après les trois
+lots précédents. Validation cumulative finale en cours. Aucun SQL/donnée PJ,
+module Sovarka/PNJ ni chantier Règles modifié.
+
+
 ### i18n vente et don de matières — Codex, 10/11/2026 (lot empilé)
 
 Branche `codex/i18n-vente-don-matieres-20261110`, base entrepôt/notaire `76a4e0b5`.

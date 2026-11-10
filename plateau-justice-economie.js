@@ -9052,28 +9052,28 @@ async function doLicencierDouanier(matricule) {
 async function ouvrirConsulterEffectifsDouane() {
   const r = await sbDouaneEffectifsPublics().catch(() => null);
 
-  document.getElementById('postes-modal-title').textContent = 'Effectifs des douanes';
+  document.getElementById('postes-modal-title').innerHTML = ficheLibelleHtml('customsTitle', 'Effectifs des douanes', null, 'portCustoms');
   let html = '<div style="padding:1rem">';
   if (!r || r.ok !== true) {
-    html += '<div style="font-size:.85rem;color:#cc4444">Consultation impossible — '
-         + ((typeof escapeHtmlText === 'function' ? escapeHtmlText(String(r?.raison || '')) : (r?.raison || ''))
-            || 'l\'appel n\'a pas abouti') + '.</div></div>';
+    html += '<div style="font-size:.85rem;color:#cc4444">' + (r?.raison ? ficheLibelleHtml('failure', 'Consultation impossible — ' + r.raison + '.', {reason:String(r.raison)}, 'portCustoms') : ficheLibelleHtml('failureNoResult', 'Consultation impossible — l\'appel n\'a pas abouti.', null, 'portCustoms')) + '</div></div>';
     document.getElementById('postes-body').innerHTML = html;
-    document.getElementById('modal-postes').classList.add('open');
+    if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
+  document.getElementById('modal-postes').classList.add('open');
     return;
   }
   const douaniers = r.douaniers || [];
   if (douaniers.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060">Aucun douanier en service pour l\'instant.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060">' + ficheLibelleHtml('noOfficers', 'Aucun douanier en service pour l\'instant.', null, 'portCustoms') + '</div>';
   } else {
     html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.6rem">' + douaniers.length + ' douanier(s) en service, rattachés au service des douanes du port.</div>';
     douaniers.forEach(d => {
-      const label = d.type === 'cynophile' ? (d.matricule + ' — Unité cynophile (' + d.maitreNom + ' & ' + d.chienNom + ')') : d.matricule;
+      const label = d.type === 'cynophile' ? ficheLibelleHtml('canine', d.matricule + ' — Unité cynophile (' + d.maitreNom + ' & ' + d.chienNom + ')', {id:d.matricule,handler:d.maitreNom,dog:d.chienNom}, 'portCustoms') : d.matricule;
       html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.2rem">' + label + '</div>';
     });
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
   document.getElementById('modal-postes').classList.add('open');
 }
 
@@ -9194,13 +9194,13 @@ async function ouvrirConsulterPort() {
   const port = await getEtatPort();
   const estCommandant = commandantPortValide().ok;
 
-  document.getElementById('postes-modal-title').textContent = 'Administration du Port';
+  document.getElementById('postes-modal-title').innerHTML = ficheLibelleHtml('portTitle', 'Administration du Port', null, 'portCustoms');
   let html = '<div style="padding:1rem;max-height:70vh;overflow-y:auto">';
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">STOCK INSTITUTIONNEL DU PORT</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">' + ficheLibelleHtml('stock', 'STOCK INSTITUTIONNEL DU PORT', null, 'portCustoms') + '</div>';
   const clesStock = RESSOURCES_PORT_IMPORTEES.filter(cle => (port.stock?.[cle] || 0) > 0);
   if (clesStock.length === 0) {
-    html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.7rem">Aucun stock en attente de répartition.</div>';
+    html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.7rem">' + ficheLibelleHtml('noStock', 'Aucun stock en attente de répartition.', null, 'portCustoms') + '</div>';
   } else {
     clesStock.forEach(cle => {
       const res = RESSOURCES_ECONOMIE[cle];
@@ -9209,10 +9209,10 @@ async function ouvrirConsulterPort() {
     html += '<div style="margin-bottom:.7rem"></div>';
   }
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">ORIGINE DES MATIÈRES</div>';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">Bois : 150/jour Scierie Guy Tarembois (Port-Sainte-Marie) + 150/jour Sovarka, soit 300/jour au total — Pétrole brut : 2/3 Al-Khalija, 1/3 Sovarka — Produits exotiques : 100% El Estado.</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">' + ficheLibelleHtml('originsTitle', 'ORIGINE DES MATIÈRES', null, 'portCustoms') + '</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">' + ficheLibelleHtml('origins', 'Bois : 150/jour Scierie Guy Tarembois (Port-Sainte-Marie) + 150/jour Sovarka, soit 300/jour au total — Pétrole brut : 2/3 Al-Khalija, 1/3 Sovarka — Produits exotiques : 100% El Estado.', null, 'portCustoms') + '</div>';
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">RÉPARTITION NATIONALE ACTUELLE</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">' + ficheLibelleHtml('distribution', 'RÉPARTITION NATIONALE ACTUELLE', null, 'portCustoms') + '</div>';
   RESSOURCES_PORT_IMPORTEES.forEach(cle => {
     const res = RESSOURCES_ECONOMIE[cle];
     const rep = port.repartition?.[cle] || REPARTITION_PORT_DEFAUT;
@@ -9220,10 +9220,10 @@ async function ouvrirConsulterPort() {
   });
   html += '<div style="margin-bottom:.5rem"></div>';
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">ARRIVAGES RÉCENTS</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">' + ficheLibelleHtml('recent', 'ARRIVAGES RÉCENTS', null, 'portCustoms') + '</div>';
   const arrivages = (port.arrivages || []).slice(0, 10);
   if (arrivages.length === 0) {
-    html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.5rem">Aucun arrivage enregistré pour l\'instant.</div>';
+    html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.5rem">' + ficheLibelleHtml('noRecent', 'Aucun arrivage enregistré pour l\'instant.', null, 'portCustoms') + '</div>';
   } else {
     arrivages.forEach(a => {
       const res = RESSOURCES_ECONOMIE[a.resource];
@@ -9235,14 +9235,14 @@ async function ouvrirConsulterPort() {
     });
   }
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">EXPORTATIONS</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">' + ficheLibelleHtml('exports', 'EXPORTATIONS', null, 'portCustoms') + '</div>';
   Object.entries(EXPORTATIONS_PORT_INFOS).forEach(([cle, infos]) => {
     const exp = port.exportations?.[cle];
     if (!exp) { html += '<div style="font-size:.76rem;color:#8a8060">' + infos.label + ' vers ' + infos.destination + ' : aucune donnée pour l\'instant.</div>'; return; }
     html += '<div style="font-size:.8rem;color:#c0b090">' + infos.label + ' vers ' + infos.destination + ' : ' + Math.round(exp.envoye) + '/' + exp.contrat + ' (' + exp.satisfactionPct + '% satisfait)</div>';
   });
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">STOCKS DES ENTREPÔTS</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">' + ficheLibelleHtml('warehouses', 'STOCKS DES ENTREPÔTS', null, 'portCustoms') + '</div>';
   for (const v of ENTREPOTS_PORT_INFOS) {
     const etatE = await sbGetBatimentEtat('republic', v.city, v.buildingId).catch(() => null);
     const stock = etatE?.entrepot?.stock || {};
@@ -9250,7 +9250,7 @@ async function ouvrirConsulterPort() {
   }
 
   const caissePort = await chargerCaisseBatiment('republic', BUILDING_ID_PORT).catch(() => ({ solde: 0 }));
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">CAISSE DU PORT</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">' + ficheLibelleHtml('cash', 'CAISSE DU PORT', null, 'portCustoms') + '</div>';
   html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.7rem">' + Math.round(caissePort.solde || 0) + ' FR</div>';
 
   // Correctif UX (25 aout 2026, apres retour de test) : le bouton de modification n'est plus
@@ -9262,12 +9262,13 @@ async function ouvrirConsulterPort() {
   // c'est le nouvel order qui les appelle directement (plateau-router.js).
   html += '<div style="margin-top:.5rem;font-size:.76rem;color:#6a5a30;font-style:italic">' +
     (estCommandant
-      ? 'Utilisez « Gérer la logistique nationale » (visible dans cette salle) pour modifier la répartition.'
-      : 'Seul le Commandant du Port peut modifier la répartition, via « Gérer la logistique nationale ».') +
+      ? ficheLibelleHtml('commanderHint', 'Utilisez « Gérer la logistique nationale » (visible dans cette salle) pour modifier la répartition.', null, 'portCustoms')
+      : ficheLibelleHtml('visitorHint', 'Seul le Commandant du Port peut modifier la répartition, via « Gérer la logistique nationale ».', null, 'portCustoms')) +
     '</div>';
 
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
   document.getElementById('modal-postes').classList.add('open');
 }
 
