@@ -47,7 +47,7 @@ BEGIN
  SELECT jsonb_build_object('pa',pa,'liquide',liquide,'arg',arg,'solde_national',coalesce((SELECT solde FROM public.comptes_bancaires WHERE personnage=a.name AND banque='nationale'),0)) INTO paiement FROM public.personnages_donnees WHERE name=a.name;
  v:=d||jsonb_build_object('paie',paiement,'prix',prix,'objet',o->>'name');
  INSERT INTO public.inventaire_actions_recus VALUES(a.name,p_requete,'club_accessoire',params,v,now());RETURN v;
-END; $function$
+END; $function$;
 
 
 CREATE OR REPLACE FUNCTION public.club_supporters_cotiser(p_requete text, p_club text)
@@ -76,7 +76,7 @@ BEGIN
                  coalesce((SELECT day FROM public.personnages_donnees WHERE name = v_moi), 1));
   v_res := jsonb_build_object('ok', true, 'caisse', v_nouveau, 'paiement', v_paie);
   RETURN public.caisse_collective_recu_noter_interne(p_requete, v_moi, 'rejoindre_club_supporters', p_club, v_res);
-END $function$
+END $function$;
 
 
 CREATE OR REPLACE FUNCTION public.cotisation_renouveler(p_orga_id text, p_membre text, p_saison integer DEFAULT NULL::integer)
@@ -162,7 +162,7 @@ BEGIN
   UPDATE public.organisations SET data = v_data::text WHERE id = p_orga_id;
   RETURN jsonb_build_object('ok',true,'action','renouvellement','membre',p_membre,
                             'montant',v_montant,'club',v_club);
-END; $function$
+END; $function$;
 
 
 INSERT INTO public.recettes_commerce (id,source,label,pa,portions,materiaux,prix_fixe,categorie,types_autorises,pays_autorises,villes_autorisees,buildings_autorises,effets,image,intermediaires)
