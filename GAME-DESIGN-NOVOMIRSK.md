@@ -318,17 +318,23 @@ l'entrepôt et le port (Starovka), et la gare, l'entrepôt, le stade, le commiss
     « Infirmerie du Froid », etc.) : à reprendre ou à supprimer ?
 11. **Route de Starovka** : elle n'est reliée par la route à aucune ville (véhicules personnels) ; voulu ?
 
+### Règle des prix en Sovarka (Fred, 10/11/2026)
+
+En Sovarka on gagne peu mais on paie peu, sauf à Novomirsk, la ville des tsars : loyers et prix plus bas dans les
+provinces (Starovka, Krasnov) qu'à Novomirsk. Novomirsk garde pourtant sa classe ouvrière (quartier du marché) :
+logements sociaux au même prix dans les trois villes (10 / 20 PSK).
+
 ### Réponses de Fred (09/11/2026, soir) — feu vert de Fred le 10/11 à 1 h 05
 
 **Codé le 10/11 (branche `claude/sovarka-lot-nuit-20261110`, PR #670)** : prix courants à l'échelle de Sovarka
 (réponse 6 ; table serveur `ordres_couts_pays`, seul tarif valable pour un joueur du pays, policiers 20/40 PSK),
 hôtels (7), « La Voix de Sovarka » et ses deux antennes (8), siège syndical retiré (2), deux locaux à louer à
-Starovka (4, plafond proposé 50 PSK), 4 parcelles sur le terrain de Starovka (9, parcelle n = « terrain@pn »),
+Starovka (4, plafond **30 PSK** décidé par Fred le 10/11 au lieu des 50 proposés), 4 parcelles sur le terrain de Starovka (9, parcelle n = « terrain@pn »),
 anciens noms supprimés (10 ; « Baraquement Sibirsk-9 » = logements collectifs de Starovka), et bâtiments du socle
 de la réponse 5 : marchés des deux villes, magasin de chasse (armurerie), restaurant « Entre terre et mer », lycée
-et école (université), logements collectifs (4 petits à 10 PSK, 4 grands à 20 PSK, comme Novomirsk — proposé),
+et école (université), logements collectifs (4 petits à 10 PSK, 4 grands à 20 PSK, comme Novomirsk — **validé par Fred le 10/11** : Novomirsk a aussi sa classe ouvrière, voir le contraste entre le quartier chic et celui du marché),
 église du Tractorisme, musée et bar-tabac de Krasnov, façades « Compagnie Nationale du Pétrole » et « Exploitation
-forestière » sur la zone de production du socle. Noms des PNJ proposés par Claude, **à valider par Fred** :
+forestière » sur la zone de production du socle. Noms des PNJ proposés par Claude, **validés par Fred le 10/11** :
 Tuyana Dashieva (marché), Bato Tsyrenov (chasse), Sesegma Badmaeva (restaurant), Darima Zhambalova (lycée) à
 Starovka ; Nina Gorbounova (marché), Pavel Smirnov (école), Vera Lebedeva (musée), Grigori Zaitsev (Bar Sever) à
 Krasnov. Manifestations : vérifié, en Sovarka seules existent les manifestations de soutien des partis
