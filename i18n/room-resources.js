@@ -455,6 +455,14 @@
  // Pièces de Novomirsk/Krasnov, identifiants séparés pour éviter toute collision de salles homonymes.
  // Résolution strictement par bâtiment + pièce + libellé français : aucune navigation changée.
  const extraRoomScopes={
+  "stade": {
+    "terrain": ["dynamoPitch", "Terrain — Dynamo de Novomirsk"],
+    "vestiaires": ["dynamoChangingRooms", "Vestiaires — Dynamo de Novomirsk"],
+    "buvette": ["dynamoKiosk", "Buvette des tribunes"],
+    "guichet_paris": ["dynamoBookmaker", "Bookmaker du Dynamo"],
+    "siege_supporters": ["dynamoFanClub", "Club des supporters du Dynamo"],
+    "boutique": ["dynamoStore", "Boutique officielle du Dynamo"]
+  },
   "musee-novomirsk": {
     "hall": [
       "novoMuseumHall",
@@ -554,6 +562,12 @@
 };
  const extraRoomWords={
   "fr": {
+    "dynamoPitch": "Terrain — Dynamo de Novomirsk",
+    "dynamoChangingRooms": "Vestiaires — Dynamo de Novomirsk",
+    "dynamoKiosk": "Buvette des tribunes",
+    "dynamoBookmaker": "Bookmaker du Dynamo",
+    "dynamoFanClub": "Club des supporters du Dynamo",
+    "dynamoStore": "Boutique officielle du Dynamo",
     "novoMuseumHall": "Hall d'accueil",
     "novoMuseumCriminals": "Salle des Grands Criminels Novomirskois",
     "novoMuseumMayors": "Salle des Présidents du Soviet municipal",
@@ -576,6 +590,12 @@
     "novoWarehouseDirector": "Bureau de Direction"
   },
   "en": {
+    "dynamoPitch": "Pitch — Dynamo Novomirsk",
+    "dynamoChangingRooms": "Changing rooms — Dynamo Novomirsk",
+    "dynamoKiosk": "Stands refreshment kiosk",
+    "dynamoBookmaker": "Dynamo bookmaker",
+    "dynamoFanClub": "Dynamo Supporters' Club",
+    "dynamoStore": "Official Dynamo Store",
     "novoMuseumHall": "Reception Hall",
     "novoMuseumCriminals": "Hall of Notorious Novomirsk Criminals",
     "novoMuseumMayors": "Hall of Municipal Soviet Chairpersons",
@@ -598,6 +618,12 @@
     "novoWarehouseDirector": "Director's Office"
   },
   "es": {
+    "dynamoPitch": "Campo — Dynamo de Novomirsk",
+    "dynamoChangingRooms": "Vestuarios — Dynamo de Novomirsk",
+    "dynamoKiosk": "Bar de las gradas",
+    "dynamoBookmaker": "Casa de apuestas del Dynamo",
+    "dynamoFanClub": "Club de aficionados del Dynamo",
+    "dynamoStore": "Tienda oficial del Dynamo",
     "novoMuseumHall": "Vestíbulo de recepción",
     "novoMuseumCriminals": "Sala de los grandes criminales de Novomirsk",
     "novoMuseumMayors": "Sala de los presidentes del Sóviet municipal",
@@ -620,6 +646,12 @@
     "novoWarehouseDirector": "Despacho de dirección"
   },
   "zh-TW": {
+    "dynamoPitch": "球場 — 諾沃米爾斯克迪納摩",
+    "dynamoChangingRooms": "更衣室 — 諾沃米爾斯克迪納摩",
+    "dynamoKiosk": "看臺飲料攤",
+    "dynamoBookmaker": "迪納摩投注站",
+    "dynamoFanClub": "迪納摩球迷俱樂部",
+    "dynamoStore": "迪納摩官方商店",
     "novoMuseumHall": "接待大廳",
     "novoMuseumCriminals": "諾沃米爾斯克重大罪犯展廳",
     "novoMuseumMayors": "市蘇維埃主席展廳",
@@ -642,6 +674,12 @@
     "novoWarehouseDirector": "主管辦公室"
   },
   "ru": {
+    "dynamoPitch": "Поле — «Динамо» Новомирска",
+    "dynamoChangingRooms": "Раздевалки — «Динамо» Новомирска",
+    "dynamoKiosk": "Буфет на трибунах",
+    "dynamoBookmaker": "Букмекер «Динамо»",
+    "dynamoFanClub": "Клуб болельщиков «Динамо»",
+    "dynamoStore": "Официальный магазин «Динамо»",
     "novoMuseumHall": "Приёмный зал",
     "novoMuseumCriminals": "Зал известных преступников Новомирска",
     "novoMuseumMayors": "Зал председателей городского Совета",
@@ -664,6 +702,12 @@
     "novoWarehouseDirector": "Кабинет директора"
   },
   "ko": {
+    "dynamoPitch": "경기장 — 노보미르스크 디나모",
+    "dynamoChangingRooms": "탈의실 — 노보미르스크 디나모",
+    "dynamoKiosk": "관중석 매점",
+    "dynamoBookmaker": "디나모 스포츠 베팅 창구",
+    "dynamoFanClub": "디나모 서포터즈 클럽",
+    "dynamoStore": "디나모 공식 상점",
     "novoMuseumHall": "안내 홀",
     "novoMuseumCriminals": "노보미르스크 주요 범죄자 전시실",
     "novoMuseumMayors": "시 소비에트 의장 전시실",
@@ -686,6 +730,12 @@
     "novoWarehouseDirector": "소장실"
   },
   "ar": {
+    "dynamoPitch": "الملعب — دينامو نوفوميرسك",
+    "dynamoChangingRooms": "غرف تبديل الملابس — دينامو نوفوميرسك",
+    "dynamoKiosk": "كشك مشروبات المدرجات",
+    "dynamoBookmaker": "مكتب مراهنات دينامو",
+    "dynamoFanClub": "نادي مشجعي دينامو",
+    "dynamoStore": "متجر دينامو الرسمي",
     "novoMuseumHall": "قاعة الاستقبال",
     "novoMuseumCriminals": "قاعة كبار المجرمين في نوفوميرسك",
     "novoMuseumMayors": "قاعة رؤساء المجلس البلدي",
@@ -708,6 +758,12 @@
     "novoWarehouseDirector": "مكتب المدير"
   },
   "pt-BR": {
+    "dynamoPitch": "Campo — Dynamo Novomirsk",
+    "dynamoChangingRooms": "Vestiários — Dynamo Novomirsk",
+    "dynamoKiosk": "Lanchonete das arquibancadas",
+    "dynamoBookmaker": "Casa de apostas do Dynamo",
+    "dynamoFanClub": "Clube de torcedores do Dynamo",
+    "dynamoStore": "Loja oficial do Dynamo",
     "novoMuseumHall": "Hall de recepção",
     "novoMuseumCriminals": "Sala dos grandes criminosos de Novomirsk",
     "novoMuseumMayors": "Sala dos presidentes do Soviete municipal",
@@ -730,6 +786,12 @@
     "novoWarehouseDirector": "Gabinete da direção"
   },
   "de": {
+    "dynamoPitch": "Spielfeld — Dynamo Nowomirsk",
+    "dynamoChangingRooms": "Umkleiden — Dynamo Nowomirsk",
+    "dynamoKiosk": "Tribünenkiosk",
+    "dynamoBookmaker": "Dynamo-Wettbüro",
+    "dynamoFanClub": "Dynamo-Fanclub",
+    "dynamoStore": "Offizieller Dynamo-Fanshop",
     "novoMuseumHall": "Empfangshalle",
     "novoMuseumCriminals": "Saal der großen Verbrecher von Novomirsk",
     "novoMuseumMayors": "Saal der Vorsitzenden des Stadtsowjets",
