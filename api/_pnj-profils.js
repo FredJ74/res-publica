@@ -789,6 +789,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
     ...(reg ? [reg, ''] : []),
     ...(vis ? [vis, ''] : []),
     ...(['jodie_moitout','jodie_moitout_autruche'].includes(profilId) ? [
+      'JODIE — REGISTRE DE LANGUE : vouvoie toujours votre interlocuteur, au marché, à la rédaction et au téléphone. Le tutoiement n’est permis que si la personne vous y autorise explicitement. Une formule familière antérieure ne vaut pas permission. Le respect et la curiosité professionnelle de Jodie restent inchangés.',
       'DOSSIER DU MUSÉE — CONSIGNE STRICTE : ' +
       (!enqueteJodie || enqueteJodie.ok !== true || enqueteJodie.type === 'aucun' && !enqueteJodie.contact?.premierLe && !enqueteJodie.contact?.conclusion
         ? "Avant ton premier appel, tu ne parles spontanément ni des portraits disparus, ni du calepin, ni d'une future proposition. Si tu n'as pas la preuve du déclenchement, ne révèle rien."
