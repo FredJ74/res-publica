@@ -10779,7 +10779,7 @@ function montantDansTexte(texte, ancien, nouveau) {
 
 // LOCAUX A LOUER DE STAROVKA (reponse 4 de Fred, 09/11/2026) : deux nouveaux locaux simples, demandes a la
 // mairie comme les autres locaux de Sovarka (sovarka_locaux, migration 20261110004000). Plafond de loyer
-// propose : 50 PSK par jour chacun (comme une boutique moyenne des centres de province), a valider.
+// 30 PSK par jour chacun (decision de Fred du 10/11, migration 20261110093000).
 BUILDINGS['locaux-starovka'] = {
   name: 'Locaux à louer',
   shortName: 'Locaux',
@@ -10794,8 +10794,30 @@ BUILDINGS['locaux-starovka'] = {
     persons: [],
     orders: [
       { fn: 'sovarka_demande_location', label: 'Demande de location', pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
-        desc: 'Écrire à la mairie pour demander ce local (loyer fixé par le maire, 50 PSK par jour au plus). Votre lettre rejoint les dossiers du maire ; l\'attribution se signe ensuite chez le notaire.' },
+        desc: 'Écrire à la mairie pour demander ce local (loyer fixé par le maire, 30 PSK par jour au plus). Votre lettre rejoint les dossiers du maire ; l\'attribution se signe ensuite chez le notaire.' },
       { fn: 'commerce_pj', label: 'Ce commerce', pa: 0, cost: 0, type: 'legal', icon: 'ti-building-store', successRate: 100, desc: 'Gérer votre commerce, ou visiter la boutique du commerçant.' }
     ]
   }]))
 };
+
+// BANQUES DE SOVARKA (reponse 1 de Fred, 09/11/2026) : ni placements prives ni prets. Les guichets
+// (Banque nationale de Novomirsk, banques locales de Starovka et Krasnov) proposent les bons d'Etat
+// (sovarka_bon_etat_souscrire, migration 20261110085000) ; la banque privee n'existe pas a Novomirsk.
+(function () {
+  const pays = WORLD.soviet; if (!pays) return;
+  const bon = { fn: 'souscrire_bon_etat', label: 'Bons d’État', pa: 0, cost: 0, type: 'legal', icon: 'ti-certificate', successRate: 100,
+    desc: 'Soutenir l’économie de Sovarka : un bon de 7 jours, rendement fixé à la souscription selon l’économie du pays.' };
+  const regler = (ville, batiment, pieceId) => {
+    const cite = pays[ville]; if (!cite) return;
+    cite.buildingContext = cite.buildingContext || {};
+    const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+    ctx.roomOverrides = ctx.roomOverrides || {};
+    const p = ctx.roomOverrides[pieceId] = ctx.roomOverrides[pieceId] || {};
+    p.excludeOrders = Array.from(new Set([...(p.excludeOrders || []), 'emprunter']));
+    p.orders = [...(p.orders || []).filter(o => o.fn !== bon.fn), bon];
+  };
+  regler('capitale', 'banque-nationale', 'accueil_banque');
+  regler('ville_a', 'banque-locale', 'guichet');
+  regler('ville_b', 'banque-locale', 'guichet');
+  if (pays.capitale) pays.capitale.buildings = pays.capitale.buildings.filter(b => b !== 'banque-privee');
+})();

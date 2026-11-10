@@ -53,7 +53,8 @@ Retour réel de Fred : à l'appel au sujet du musée, le PJ disait être hors de
 
 Feu vert de Fred le 10/11 à 9 h 26. Décisions : `GAME-DESIGN-NOVOMIRSK.md`, « Réponses de Fred ». **Prérequis levé** : la récolte passe déjà par le serveur (`recolte_effectuer`, depuis le 27/10) ; la note « récolte décidée par le navigateur » était périmée.
 **Fait** : (1) **extraction** — pétrole à Starovka, bois à Krasnov (matières économiques `petrole`, `bois`), anciennes matières sans valeur retirées de ces deux villes ; migration `20261110083500_sovarka_extraction_petrole_bois` **appliquée** (registre `sovarka_extraction_petrole_bois_20261110083500`, banc annulé vert).
-**Reste** : bons d'État, fermes/distillerie/fourreur, centres d'écoute, maisons, forêt profonde.
+(2) **bons d'État** — guichets des banques de Sovarka (Banque nationale de Novomirsk, banques locales) : « Bons d'État » à la place des prêts, banque privée retirée de Novomirsk ; serveur `sovarka_bon_etat_souscrire` / `sovarka_bons_etat_lire` / `sovarka_bons_etat_passe` (passe de minuit, tâche `sovarka_bons_etat`, avant `sovarka_pouvoir`) ; migration `20261110085000_sovarka_bons_etat` **appliquée** (registre `sovarka_bons_etat_20261110085000`) ; banc annulé `outils/bancs/banc-sovarka-bons-etat.sql` **vert** sur la production (souscription, rejeu, fonds insuffisants, Trésor +1 000, échéance, pas de double remboursement, planche à billets −10 % sans débit du Trésor, refus hors banque). Taux du jour : −3,5 % (indices de Sovarka non persistés = 50). **Les banques de Sovarka n'ont pas encore de façade** dans les rues : inaccessibles jusqu'au tour des images de Fred.
+**Reste** : fermes/distillerie/fourreur, centres d'écoute, maisons, forêt profonde.
 
 ### Appel de Jodie et édition des journaux — ChatGPT, 10/11/2026 (PR #678)
 
