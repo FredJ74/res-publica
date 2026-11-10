@@ -5031,7 +5031,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Stade du Dynamo de Novomirsk",
-    "piece": "Bureau du Président",
+    "piece": "Bureau du président du Dynamo",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"stade\",\"boutique\"]": {
