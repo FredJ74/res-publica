@@ -294,7 +294,7 @@ function text(key,vars={}){
   const locale=global.RP_I18N_GAME_ENABLED===true
     ? global.RPPlateauI18n?.language?.()||'fr' : 'fr';
   const template=texts[locale]?.[key]||original;
-  return template.replace(/\\{(\\w+)\\}/g,(all,name)=>Object.hasOwn(vars,name)?String(vars[name]):all);
+  return template.replace(/\{(\w+)\}/g,(all,name)=>Object.hasOwn(vars,name)?String(vars[name]):all);
 }
 function html(key,vars={}){
   return text(key,vars).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
