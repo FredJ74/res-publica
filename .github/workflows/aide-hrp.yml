@@ -1,0 +1,27 @@
+name: Aide HRP — conversation et sécurité
+on:
+  pull_request:
+    paths:
+      - 'api/aide.js'
+      - 'plateau-aide.js'
+      - 'plateau-aide.css'
+      - 'plateau-personnage.js'
+      - 'plateau.html'
+      - 'outils/bancs/banc-aide-hrp-20261111.mjs'
+      - '.github/workflows/aide-hrp.yml'
+permissions:
+  contents: read
+jobs:
+  controle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check api/aide.js
+      - run: node --check plateau-aide.js
+      - run: node --check plateau-personnage.js
+      - run: node --test outils/bancs/banc-aide-hrp-20261111.mjs
+      - run: git diff --check
