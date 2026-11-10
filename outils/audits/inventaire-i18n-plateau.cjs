@@ -8,7 +8,7 @@ const excluded = new Set(['node_modules', '.git', 'i18n', 'outils', 'images']);
 function visit(dir, output) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) { if (!excluded.has(entry.name)) visit(path.join(dir, entry.name), output); continue; }
-    if (!entry.isFile() || !/^(?:plateau.*|data|creation|supabase)\.(?:js|html)$/.test(entry.name)) continue;
+    if (!entry.isFile() || !/^(?:plateau.*|data|creation|supabase|forum(?:-canvas)?|index|auth)\.(?:js|html)$/.test(entry.name)) continue;
     const file = path.join(dir, entry.name);
     const relative = path.relative(root, file);
     const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);

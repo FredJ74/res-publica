@@ -31,6 +31,22 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### i18n premiers parcours — Codex, 10/11/2026 (LOT INVENTAIRE)
+
+Branche `codex/i18n-premiers-parcours-20261110`, base main `b29d676f`. 32 clés dans
+les neuf langues : inventaire rempli, détail, infobulles et refus. Aucun objet,
+identifiant, coût, condition, RPC ou état de joueur modifié. Styles conservés.
+Six cas ciblés verts, deux PNG français à 1440 identiques ; audit éditorial 1 203
+clés (32 nouvelles, 38 anciennes désormais comptées), deux mutations détectées.
+Premier contrôleur 263/264 : banc courrier cassé aussi sur le témoin main ; ses
+helpers #674 sont maintenant chargés, trois tests conservés et verts. Rejeu final
+à terminer. Rapport `outils/audits/COUVERTURE-I18N-PARCOURS-20261110.md`.
+Titre/description de PR prêts dans le rapport. API GitHub refusée 403 en lecture ;
+aucune fusion ni publication attestée. Aucun SQL ou service de traduction payant.
+Suite prioritaire constatée : messages du login encore français, puis autres
+fenêtres de la capture ; ne pas refaire les ordres/salles déjà livrés #671–675.
+
+
 ### Sovarka : lot de nuit du 10/11 — Claude, branche `claude/sovarka-lot-nuit-20261110`, [PR #670](https://github.com/FredJ74/res-publica/pull/670) (EN COURS)
 
 Décisions de Fred du 09/11 au soir et du 10/11 entre minuit et 1 h : `GAME-DESIGN-NOVOMIRSK.md`, « Réponses de Fred » (tout y est, y compris forêt de Krasnov #72, fermes, distillerie, centres d'écoute, maisons). Nouveau `IDEES_PREMIUM.md` (renommer ses objets).

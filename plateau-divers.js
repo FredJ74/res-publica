@@ -1076,6 +1076,8 @@ async function removeFromInventory(idx, motif, options) {
 // Message unique des refus de sortie, pour que les 32 anciens sites ne reinventent pas chacun
 // leur formulation -- et surtout pour que le motif reel du serveur soit toujours dit au joueur.
 function messageRefusSortieInventaire(raison) {
+  // Même motif serveur et même texte français canonique ; traduction d'affichage seulement.
+  const original = (() => {
   if (raison === 'contexte_modifie') return 'Le personnage a changé. Vérifiez l’inventaire du personnage précédent.';
   if (raison === 'objet_protege') {
     return 'Ce colis est indispensable à votre mission en cours. Remettez-le à son destinataire avant de vous en séparer.';
@@ -1097,6 +1099,13 @@ function messageRefusSortieInventaire(raison) {
   if (raison === 'transport_indisponible') return "Le service n'a pas répondu. Rien n'a été modifié — réessayez.";
   if (raison === 'reseau_indisponible') return 'Connexion interrompue. Rien n’a été modifié — réessayez.';
   return "L'opération a été refusée. Rien n'a été modifié.";
+  })();
+  if (typeof window === 'undefined' || typeof window.RPPlateauI18n?.translate !== 'function') return original;
+  const words = window.RP_I18N_RESOURCES?.fr?.translation?.inventoryUi;
+  const name = 'refused_' + raison;
+  const key = 'inventoryUi.' + (words && Object.hasOwn(words,name) ? name : 'refused_default');
+  const value = window.RPPlateauI18n.translate(key);
+  return typeof value === 'string' && value.trim() && value !== key ? value : original;
 }
 
 function enSurcharge() {
@@ -1147,16 +1156,17 @@ function renderInventory() {
     return;
   }
   el.innerHTML = state.inventory.map((item, idx) => {
-    const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.8rem"> ⚠ Illégal</span>' : '';
-    const expiry = item.expireDay ? '<div style="font-size:.8rem;color:#6a5030">Expire jour ' + item.expireDay + '</div>' : '';
+    const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.8rem" data-i18n="inventoryUi.illegal"> ⚠ Illégal</span>' : '';
+    const expiry = item.expireDay ? '<div style="font-size:.8rem;color:#6a5030" data-i18n="inventoryUi.expiresDay" data-i18n-values="' +
+      JSON.stringify({day:item.expireDay}).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;') + '">Expire jour ' + item.expireDay + '</div>' : '';
     const qtyBadge = (item.stackable && item.qty > 1) ? '<span style="color:#C9A84C;font-weight:bold"> ×' + item.qty + '</span>' : '';
     // Objet de quete indispensable (ex: Colis secret) : boutons jeter/supprimer masques tant
     // qu'il est protege, remplaces par un simple indicateur -- voir colisSecretProtege().
     const protege = typeof colisSecretProtege === 'function' && colisSecretProtege(item);
     const actionsHtml = protege
-      ? '<span title="Indispensable à une mission en cours" style="flex-shrink:0;color:#6a5a30;font-size:.85rem;padding:.15rem .35rem"><i class="ti ti-lock"></i></span>'
-      : '<button onclick="jeterObjetInventaire(' + idx + ')" title="Déposer ici (visible par les autres joueurs)" style="flex-shrink:0;background:none;border:1px solid #4a3010;color:#a0905a;cursor:pointer;padding:.15rem .35rem;font-size:.85rem;font-family:Bebas Neue,sans-serif"><i class="ti ti-map-pin"></i></button>' +
-        '<button onclick="supprimerItemInventaire(' + idx + ')" title="Supprimer" style="flex-shrink:0;background:none;border:1px solid #3a1a1a;color:#cc5540;cursor:pointer;padding:.15rem .35rem;font-size:.85rem;font-family:Bebas Neue,sans-serif">✕</button>';
+      ? '<span data-i18n-title="inventoryUi.protectedTitle" title="Indispensable à une mission en cours" style="flex-shrink:0;color:#6a5a30;font-size:.85rem;padding:.15rem .35rem"><i class="ti ti-lock"></i></span>'
+      : '<button onclick="jeterObjetInventaire(' + idx + ')" data-i18n-title="inventoryUi.dropTitle" title="Déposer ici (visible par les autres joueurs)" style="flex-shrink:0;background:none;border:1px solid #4a3010;color:#a0905a;cursor:pointer;padding:.15rem .35rem;font-size:.85rem;font-family:Bebas Neue,sans-serif"><i class="ti ti-map-pin"></i></button>' +
+        '<button onclick="supprimerItemInventaire(' + idx + ')" data-i18n-title="inventoryUi.deleteTitle" title="Supprimer" style="flex-shrink:0;background:none;border:1px solid #3a1a1a;color:#cc5540;cursor:pointer;padding:.15rem .35rem;font-size:.85rem;font-family:Bebas Neue,sans-serif">✕</button>';
     return '<div class="inv-item" style="display:flex;align-items:center;justify-content:space-between;gap:.4rem">' +
       '<div style="display:flex;align-items:center;gap:.4rem;flex:1;min-width:0;cursor:pointer" onclick="ouvrirDetailObjetInventaire(' + idx + ')">' +
         '<i class="ti ' + (item.icon||'ti-package') + '" style="font-size:.85rem;color:#8a6a20;flex-shrink:0"></i>' +
@@ -1169,6 +1179,8 @@ function renderInventory() {
       actionsHtml +
     '</div>';
   }).join('');
+  if (typeof window !== 'undefined' && typeof window.RPI18nPlateau?.apply === 'function')
+    window.RPI18nPlateau.apply(el);
 }
 
 

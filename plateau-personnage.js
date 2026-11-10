@@ -3349,10 +3349,11 @@ async function ouvrirDetailObjetInventaire(idx) {
   }
 
   document.getElementById('postes-modal-title').textContent = item.name;
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic"><span data-i18n="inventoryUi.loading">Chargement...</span></div>';
   document.getElementById('modal-postes').classList.add('open');
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('postes-body'));
 
-  const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.72rem"> ⚠ Objet illégal / compromettant</span>' : '';
+  const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.72rem" data-i18n="inventoryUi.illegalObject"> ⚠ Objet illégal / compromettant</span>' : '';
   const imageHtml = item.imageUrl
     ? '<img src="' + item.imageUrl + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:220px;object-fit:cover"/>'
     : '';
@@ -3405,10 +3406,10 @@ async function ouvrirDetailObjetInventaire(idx) {
   // regle de design validee) -- le libelle reste neutre, identique quel que soit l'etat reel.
   // Brume et Estadine (2 novembre 2026) : consommer est legal ; seuls l'achat et le transport ne le sont pas.
   if (item.type === 'drogue') {
-    html += '<button onclick="consommerDrogue(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ' + (item.drogue === 'estadine' ? 'ti-snowflake' : 'ti-cloud') + '"></i> ' + (item.drogue === 'estadine' ? 'Consommer' : 'Fumer') + '</button>';
+    html += '<button onclick="consommerDrogue(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ' + (item.drogue === 'estadine' ? 'ti-snowflake' : 'ti-cloud') + '"></i> ' + (item.drogue === 'estadine' ? '<span data-i18n="inventoryUi.consume">Consommer</span>' : '<span data-i18n="inventoryUi.smoke">Fumer</span>') + '</button>';
   }
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
-    html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> Consommer</button>';
+    html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> <span data-i18n="inventoryUi.consume">Consommer</span></button>';
   }
 
   // Carte postale (Lot 4, 23 aout 2026) : bouton toujours affiche independamment de la
@@ -3417,9 +3418,9 @@ async function ouvrirDetailObjetInventaire(idx) {
   // ecrite ne redevient jamais vierge -- point 14 du cahier des charges).
   if (item.familleProduitMarche === 'carte_postale') {
     if (item.etatCarte === 'vierge') {
-      html += '<button onclick="ouvrirEcrireCartePostale(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-feather"></i> Écrire et envoyer</button>';
+      html += '<button onclick="ouvrirEcrireCartePostale(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-feather"></i> <span data-i18n="inventoryUi.writeSend">Écrire et envoyer</span></button>';
     } else if (item.etatCarte === 'ecrite') {
-      html += '<button onclick="lireCartePostale(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-mail-opened"></i> Lire</button>';
+      html += '<button onclick="lireCartePostale(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-mail-opened"></i> <span data-i18n="inventoryUi.read">Lire</span></button>';
     }
   }
 
@@ -3428,26 +3429,27 @@ async function ouvrirDetailObjetInventaire(idx) {
   if (['serrure_cle', 'cle_serrure', 'cle_vierge'].includes(item.type) && typeof ouvrirSerrureObjet === 'function') {
     html += '<button class="cpj-touche cpj-primaire" onclick="ouvrirSerrureObjet(' + idx + ')"><i class="ti ' +
       (item.type === 'serrure_cle' ? 'ti-lock' : 'ti-key') + '"></i> ' +
-      ({ serrure_cle: 'Installer', cle_serrure: 'Fermer ou ouvrir', cle_vierge: 'Faire un double' })[item.type] + '</button>';
+      ({ serrure_cle: '<span data-i18n="inventoryUi.install">Installer</span>', cle_serrure: '<span data-i18n="inventoryUi.lockToggle">Fermer ou ouvrir</span>', cle_vierge: '<span data-i18n="inventoryUi.copyKey">Faire un double</span>' })[item.type] + '</button>';
   }
 
   const protege = typeof colisSecretProtege === 'function' && colisSecretProtege(item);
   if (protege) {
-    html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic"><i class="ti ti-lock"></i> Indispensable à une mission en cours — ne peut être ni donné à un autre joueur, ni abandonné, ni détruit.</div>';
+    html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic"><i class="ti ti-lock"></i> <span data-i18n="inventoryUi.protectedDetails">Indispensable à une mission en cours — ne peut être ni donné à un autre joueur, ni abandonné, ni détruit.</span></div>';
   } else {
     if (joueursPresents.length > 0) {
       html += '<select id="donner-objet-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
       joueursPresents.forEach(p => { html += '<option value="' + p.name + '">' + p.name + '</option>'; });
       html += '</select>';
-      html += '<button onclick="donnerObjetAJoueur(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer"><i class="ti ti-gift"></i> Donner a ce joueur</button>';
+      html += '<button onclick="donnerObjetAJoueur(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer"><i class="ti ti-gift"></i> <span data-i18n="inventoryUi.givePlayer">Donner a ce joueur</span></button>';
     }
 
-    html += '<button onclick="jeterObjetInventaire(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a30;background:transparent;color:#a0905a;cursor:pointer"><i class="ti ti-map-pin"></i> Abandonner ici (visible par les autres joueurs)</button>';
-    html += '<button onclick="supprimerItemInventaire(' + idx + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-x"></i> Supprimer (destruction definitive)</button>';
+    html += '<button onclick="jeterObjetInventaire(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a30;background:transparent;color:#a0905a;cursor:pointer"><i class="ti ti-map-pin"></i> <span data-i18n="inventoryUi.dropHere">Abandonner ici (visible par les autres joueurs)</span></button>';
+    html += '<button onclick="supprimerItemInventaire(' + idx + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-x"></i> <span data-i18n="inventoryUi.deleteForever">Supprimer (destruction definitive)</span></button>';
   }
 
   html += '</div></div>';
   document.getElementById('postes-body').innerHTML = html;
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('postes-body'));
 }
 
 // Duree de fraicheur d'un aliment a emporter (Lot 3, 23 aout 2026) : 7x24h REELLES (horloge

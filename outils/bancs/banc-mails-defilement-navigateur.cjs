@@ -5,14 +5,14 @@ const {lancerChromium}=require('./fixtures/chromium-cdp.cjs');
 const {chromium}=require('../e2e/node_modules/playwright');
 const acorn=require('../e2e/node_modules/acorn');
 const root=path.resolve(__dirname,'../..'),source=fs.readFileSync(path.join(root,'forum.js'),'utf8');
-const noms=['renderForumContent','renderMailView','renderMailRead','renderMailCompose','replyToMail','escapeHtmlText','rpForumLibelle','rpForumCompte','rpForumPlateauLibelle'];
+const noms=['renderForumContent','renderMailView','renderMailRead','renderMailCompose','replyToMail','escapeHtmlText','rpForumLibelle','rpForumCompte','rpForumPlateauLibelle','rpForumUiOuvert','rpForumNomOuvert','rpForumPlateauOuvert'];
 const code=acorn.parse(source,{ecmaVersion:'latest'}).body.filter(n=>n.type==='FunctionDeclaration'&&noms.includes(n.id.name)).map(n=>source.slice(n.start,n.end)).join('\n');
 async function scenario(largeur,ancien=false){
  const profil=fs.mkdtempSync(path.join(os.tmpdir(),'hg-mails-'));let chrome,navigateur;
  try{
   chrome=await lancerChromium({executable:process.env.HG_CHROMIUM||'/usr/bin/chromium',profil});
   navigateur=await chromium.connectOverCDP('http://127.0.0.1:'+chrome.port);
-  const page=await navigateur.contexts()[0].newPage();await page.setViewportSize({width:largeur,height:720});
+  const page=await navigateur.contexts()[0].newPage();const erreurs=[];page.on('pageerror',e=>erreurs.push(e.message));await page.setViewportSize({width:largeur,height:720});
   await page.route('**/*',r=>r.abort());
   const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
   await page.setContent('<style>'+css+'</style><div id="modal-forum" class="modal-overlay open"><div class="modal-box modal-fullscreen"><div class="modal-header">Messagerie</div><div id="forum-body"><div class="forum-layout"><div class="forum-sidebar">Courrier</div><div class="forum-main" id="forum-main"></div></div></div></div></div>');
@@ -33,6 +33,7 @@ async function scenario(largeur,ancien=false){
   if(ancien)return {reponse};
   assert.equal(reponse,true,'Répondre doit être accessible après lecture du courrier long');
   await page.locator('button[data-mail-from]').click();
+  assert.deepEqual(erreurs,[],'aucune erreur JS masquée pendant la réponse');
   assert.equal(await accessible('.forum-submit-btn'),true,'Envoyer doit rester accessible après réponse longue');
   await page.locator('.forum-submit-btn').click();assert.equal(await page.evaluate(()=>envois),1);
   return {reponse};

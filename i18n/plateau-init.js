@@ -55,8 +55,24 @@
       // Respecter un sens de lecture fixé par le contenu initial (ex. LTR).
       // Un aller-retour en arabe ne doit jamais effacer cet attribut métier.
       const savedDir=originalFor(element,key,'dir');
-      const translated=engine.t(key,{defaultValue:null});
-      if(typeof translated!=='string' || !translated.trim() || translated===key) {
+      // Variables de présentation isolées sous {{values.*}} : elles ne peuvent
+      // remplacer lng, defaultValue ou une option du moteur.
+      let values;
+      const rawValues=element.getAttribute('data-i18n-values');
+      if(rawValues!=null){
+        try{
+          const parsed=JSON.parse(rawValues);
+          if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error('format');
+          values=Object.create(null);
+          for(const [name,value]of Object.entries(parsed)){
+            if(!/^[A-Za-z][A-Za-z0-9_]*$/.test(name)||['constructor','prototype'].includes(name)||
+               !(typeof value==='string'||typeof value==='number'&&Number.isFinite(value)))throw new Error('variable');
+            values[name]=value;
+          }
+        }catch(_){restore(element,'textContent',saved);restore(element,'dir',savedDir);continue;}
+      }
+      const translated=engine.t(key,{defaultValue:null,values});
+      if(typeof translated!=='string' || !translated.trim() || translated===key || /\{\{[^}]+\}\}/.test(translated)) {
         restore(element,'textContent',saved);
         restore(element,'dir',savedDir);
         continue;
