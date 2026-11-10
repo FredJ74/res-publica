@@ -104,5 +104,7 @@
   }
   // Aucun stockage du dialogue dans localStorage, la fiche du joueur ou Supabase.
   global.RPAideJeu=Object.freeze({render:afficher,updateLabels});
+  // Traduire le bouton de navigation dès le chargement, avant même l'ouverture.
+  updateLabels();
   if(global.i18next?.on)global.i18next.on('languageChanged',()=>{updateLabels();if(active())afficher()});
 })(window);
