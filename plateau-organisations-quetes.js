@@ -9125,8 +9125,8 @@ async function doParierMatch(pa, cost) {
     : texteBookmaker('betDay','Parier — Journée {day}',{day:prochaineJournee.numero});
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">' + texteBookmaker('choose','Choisissez un match') + '</div>';
-  if (phaseFinale) html += '<div style="margin-bottom:.8rem;font-size:.78rem">Coup d’envoi : ' +
-    new Date(phaseFinale.kickoff).toLocaleString('fr-FR',{timeZone:'Europe/Paris',dateStyle:'long',timeStyle:'short'}) + ' (Paris)</div>';
+  if (phaseFinale) html += '<div style="margin-bottom:.8rem;font-size:.78rem">' +
+    texteBookmaker('kickoff','Coup d’envoi : {date} (Paris)',{date:new Date(phaseFinale.kickoff).toLocaleString((typeof window!=='undefined' && window.RPPlateauI18n?.language?.())||'fr-FR',{timeZone:'Europe/Paris',dateStyle:'long',timeStyle:'short'})}) + '</div>';
   matchs.forEach(m => {
     const a=getClub(m.home), b=getClub(m.away);
     if (!a || !b) return;
@@ -9149,9 +9149,9 @@ function ouvrirFormulairePari(homeId, awayId, journeeNumero, saisonNumero, pa, c
   html += '<div style="font-size:.72rem;color:#5a5040;font-style:italic;margin-bottom:.6rem">' + texteBookmaker('outcomeInfo','Le pari sera tranché par le vrai résultat du match, pas avant.') + '</div>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">' + texteBookmaker('prediction','Votre pronostic') + '</label>';
   html += '<div style="display:flex;gap:.4rem;margin-bottom:.8rem">';
-  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'domicile\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Victoire ' + homeClub.nom + '</button>';
+  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'domicile\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">' + texteBookmaker('win','Victoire {club}',{club:homeClub.nom}) + '</button>';
   html += '<button onclick="document.getElementById(\'pari-choix\').value=\'nul\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">' + texteBookmaker('draw','Match nul') + '</button>';
-  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'adversaire\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Victoire ' + advClub.nom + '</button>';
+  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'adversaire\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">' + texteBookmaker('win','Victoire {club}',{club:advClub.nom}) + '</button>';
   html += '</div>';
   html += '<input type="hidden" id="pari-choix" value="domicile"/>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">' + texteBookmaker('stake','Mise ({currency})',{currency:((typeof COUNTRIES!=='undefined'&&COUNTRIES[state.country]?.cur)||'FR')}) + '</label>';
