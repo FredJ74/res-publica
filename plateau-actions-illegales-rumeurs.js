@@ -4459,6 +4459,7 @@ function doGererCommerceGenerique(pa, cost) {
 async function doGererCommerce(commerceType, buildingId, roomId) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
+  const monnaie = (typeof COUNTRIES !== 'undefined' && COUNTRIES[pays]?.cur) || 'FR';
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   if (!data) { showToast('Indisponible', '', false); return; }
   if (data.proprietaire === 'PNJ') { showToast('Réservé au propriétaire', 'Ce commerce appartient encore à un PNJ (rachetable au Bureau des Contrats).', false); return; }
@@ -4723,7 +4724,7 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
     html += '<b style="font-size:.93rem;color:#E5C477">' + recette.label + '</b><br>';
     html += '<span style="font-size:.82rem;color:#aab5c3">' + composition + '</span><br>';
     if (effetsTxt) html += '<span style="font-size:.82rem;color:#6ab858">' + effetsTxt + '</span><br>';
-    html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
+    html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' ' + monnaie : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
     html += '</div>';
     html += actionsCatalogueCommerceHtml(data, commerceType, buildingId, roomId, id);
     html += '</div>';
