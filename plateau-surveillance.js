@@ -90,6 +90,9 @@ async function surveillanceAfficherIci(targetId) {
     h += '<button type="button" onclick="surveillancePoser()" style="width:100%;padding:.45rem;margin:.35rem 0;border:1px solid #5d7085;background:#151a21;color:#dce4ee;font-size:.85rem;cursor:pointer">📷 Poser une caméra ici (1 PA)</button>';
   }
   h += '<button type="button" onclick="surveillanceFouiller()" style="width:100%;padding:.45rem;margin:.35rem 0;border:1px solid #6a5a20;background:#151107;color:#e0d8c0;font-size:.85rem;cursor:pointer">🔍 Fouiller les lieux (2 PA)' + (r.couinator ? ' 🦆' : '') + '</button>';
+  if (typeof ouvrirVolMateriel === 'function' && state.currentBuilding) {
+    h += '<button type="button" onclick="ouvrirVolMateriel()" style="width:100%;padding:.45rem;margin:.35rem 0;border:1px solid #5a2a2a;background:#160d0d;color:#e0c8c8;font-size:.85rem;cursor:pointer">🕵 Voler du matériel installé ici</button>';
+  }
   bloc.innerHTML = h;
   liste.appendChild(bloc);
 }

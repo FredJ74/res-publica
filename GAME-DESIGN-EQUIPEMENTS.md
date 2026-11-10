@@ -119,3 +119,9 @@ de décisions du **10 novembre 2026 au soir** (20 h 53 – 21 h 30), à coder en
   banque, casernes, ordinateur avec copie unique, dossiers rangés, traces, refus hors bureau). **Choix techniques** : alerte
   d'une institution = ministre des Finances (banque), de la Défense (casernes), de l'Intérieur (registres), s'il est tenu par un
   PJ ; un PJ cible a l'intranet s'il en a installé un, où que ce soit ; registre « signalements » seulement en Sovarka.
+- **Étapes 4 à 6 (11/11, vers 1 h 30) — préparées, non appliquées** : migration `20261111020000_equipements_imprimantes_vol_organisations`
+  (faux document à l'imprimante 70 %, cartouche, réimpression 1 PA sans jet ; couteau en plastique bonus 3, légal ; souvenirs
+  imprimés depuis un plan ; banque de plans 3D, prix = 2 × coût de revient, ÷ 3 en Sovarka ; vol 3 PA, 20 % ± (DUP − 10),
+  détection du vol, rien n'est pris si repéré ; cession au chef et autorisations nominatives). **Choix techniques** : la
+  réimpression coûte 1 PA ; un faux raté consomme la cartouche ; la banque de plans couvre les cartes postales et les objets
+  d'intégration locale du jeu.
