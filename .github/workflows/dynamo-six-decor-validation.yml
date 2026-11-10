@@ -6,6 +6,11 @@ on:
       - 'plateau.html'
       - 'images/Sovarka/Novomirsk/Novomirsk.stade.*'
       - 'outils/bancs/test-dynamo-novomirsk-20261110.mjs'
+      - 'outils/bancs/test-stades-sovarka-20261110.mjs'
+      - 'plateau-organisations-quetes.js'
+      - 'plateau-actions-illegales-rumeurs.js'
+      - 'migrations/20261110083000_stades_sovarka_carte_tarifs.sql'
+      - 'migrations/20261110083100_football_paris_playoffs.sql'
       - 'migrations/20261110000500_dynamo_boutique_accessoires.sql'
   push:
     branches:
@@ -17,6 +22,11 @@ on:
       - 'plateau.html'
       - 'images/Sovarka/Novomirsk/Novomirsk.stade.*'
       - 'outils/bancs/test-dynamo-novomirsk-20261110.mjs'
+      - 'outils/bancs/test-stades-sovarka-20261110.mjs'
+      - 'plateau-organisations-quetes.js'
+      - 'plateau-actions-illegales-rumeurs.js'
+      - 'migrations/20261110083000_stades_sovarka_carte_tarifs.sql'
+      - 'migrations/20261110083100_football_paris_playoffs.sql'
       - 'migrations/20261110000500_dynamo_boutique_accessoires.sql'
 permissions:
   contents: read
@@ -29,4 +39,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --check data.js && node --test outils/bancs/test-dynamo-novomirsk-20261110.mjs
+      - run: node --check data.js && node --check plateau-organisations-quetes.js && node --check plateau-actions-illegales-rumeurs.js && node --test outils/bancs/test-dynamo-novomirsk-20261110.mjs outils/bancs/test-stades-sovarka-20261110.mjs
