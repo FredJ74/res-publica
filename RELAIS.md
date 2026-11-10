@@ -49,7 +49,10 @@ Description : « 65 clés et paramètres canoniques, mêmes commandes et conséq
 réutilisation des traductions de matières existantes et du système de notifications.
 Diagnostics français, tests de refus réseau/métier et comparaison stricte FR. »
 Base PR : branche entrepôt/notaire puis main après les deux premiers lots.
-Contrôles complets en cours ; aucune création de compte, SQL ou donnée réelle.
+Première passe complète : un banc historique extrayait le formulaire sans son
+helper de rendu ; il charge maintenant les vrais helpers, conserve ses 20 cas
+et vérifie aussi le handler du don. Statuts de matière complétés à chaud.
+Contrôles complets rejoués ; aucune création de compte, SQL ou donnée réelle.
 Aucun circuit historique réactivé. Les travaux Sovarka/PNJ et Règles restent intacts.
 
 
