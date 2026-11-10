@@ -1,0 +1,23 @@
+name: Centre artisanal Novomirsk — quatre WebP et pièces
+on:
+  pull_request:
+    paths:
+      - 'data.js'
+      - 'plateau.html'
+      - 'images/Sovarka/Novomirsk/Novomirsk_centre artisanal_*'
+      - 'outils/bancs/banc-centre-artisanal-novomirsk-20261110.mjs'
+      - '.github/workflows/novomirsk-centre-artisanal-check.yml'
+permissions:
+  contents: read
+jobs:
+  images-et-pieces:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check data.js
+      - run: node --test outils/bancs/banc-centre-artisanal-novomirsk-20261110.mjs
+      - run: git diff --check
