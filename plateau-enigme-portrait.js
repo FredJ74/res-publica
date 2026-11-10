@@ -996,8 +996,9 @@ function jodieEnqueteAfficherAppel(extra) {
       + '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'garder\')">Garder mes découvertes pour moi</button>';
   } else {
     html += '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'accepte\')">Comptez sur moi</button>'
-      + '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'refuse\')">Pas maintenant</button>'
-      + '<button class="pnj-action-btn" onclick="jodieEnqueteQuestion(\'pourquoi\')">Pourquoi moi ?</button>'
+      + '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'accepte\',\'retour\')">J’irai à mon retour à Luthécia</button>'
+      + '<button class="pnj-action-btn" onclick="jodieEnqueteRepondre(\'refuse\')">Pas maintenant</button>';
+    if (!extra) html += '<button class="pnj-action-btn" onclick="jodieEnqueteQuestion(\'pourquoi\')">Pourquoi moi ?</button>'
       + '<button class="pnj-action-btn" onclick="jodieEnqueteQuestion(\'ou\')">Où est ce musée ?</button>';
   }
   html += '</div><div style="padding:0 1rem 1rem"><label for="jodie-enquete-question">Parler à Jodie</label>'
@@ -1035,7 +1036,7 @@ async function jodieEnqueteParler() {
   }
 }
 
-async function jodieEnqueteRepondre(reponse) {
+async function jodieEnqueteRepondre(reponse, precision) {
   if (!jodieEnqueteFenetre) return;
   const appel = jodieEnqueteFenetre;
   const r = await jodieEnqueteRpc(appel.type === 'conclusion' ? 'conclusion' : 'choix',reponse);
@@ -1056,5 +1057,8 @@ async function jodieEnqueteRepondre(reponse) {
   }
   jodieEnqueteFermerAppel();
   if (typeof showToast === 'function') showToast('Jodie Moitout',reponse === 'accepte'
-    ? 'Jodie compte sur vous au Musée de la Ville de Luthécia.' : "L'enquête reste accessible au Musée de la Ville de Luthécia.",true);
+    ? (precision === 'retour'
+      ? 'Jodie vous remercie et attendra votre retour à Luthécia.'
+      : 'Jodie compte sur vous au Musée de la Ville de Luthécia.')
+    : "L'enquête reste accessible au Musée de la Ville de Luthécia.",true);
 }
