@@ -1,0 +1,12 @@
+--- main-7aafbb9f-archive
+
++++ regeneration-main
+
+@@ -5032,5 +5032,5 @@
+
+     "ville": "Novomirsk",
+     "batiment": "Stade du Dynamo de Novomirsk",
+-    "piece": "Bureau du Président",
++    "piece": "Bureau du président du Dynamo",
+     "personnes": []
+   },

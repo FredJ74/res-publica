@@ -32,7 +32,7 @@ test('clé absente ou traduction incomplète : texte français exact, pas de cl�
 const {avecJeu,page}=require('./mobile-navigateur.cjs');
 test('Chromium : langue changée pendant la commande, valeurs serveur et diagnostic canonique',()=>avecJeu(async(b,o)=>{
  const p=await page(b,o,390,900);await p.evaluate(()=>{window.RP_I18N_GAME_ENABLED=true;localStorage.setItem('respublica_language','fr')});
- for(const f of ['i18next.min.js','resources.js','toast-resources.js','commerce-production-resources.js','plateau-bridge.js','plateau-init.js'])await p.addScriptTag({path:path.join(R,'i18n',f)});
+ for(const f of ['i18next.min.js','resources.js','economic-catalog-resources.js','toast-resources.js','commerce-production-resources.js','plateau-bridge.js','plateau-init.js'])await p.addScriptTag({path:path.join(R,'i18n',f)});
  const core=read('plateau-core.js'),start=core.indexOf('function showToast('),end=core.indexOf('// =====================',start);
  await p.addScriptTag({content:core.slice(start,end)+'\n'+code});
  await p.evaluate(()=>{
@@ -45,5 +45,8 @@ test('Chromium : langue changée pendant la commande, valeurs serveur et diagnos
  assert.equal(await p.locator('#toast-sub').textContent(),await p.evaluate(()=>i18next.t('commerceProduction.served',{values:{product:'Produit original',portions:5,salary:12.5}})));
  assert.deepEqual(await p.evaluate(()=>[_calls,_refresh,state.pa,state.liquide]),[1,1,0,0]);
  await p.evaluate(()=>{window._pending=doProduireRecetteCommerceUI('marche','marche','salle','produit')});await p.evaluate(()=>_reply({ok:false,raison:'caisse_insuffisante'}));await p.evaluate(()=>_pending);
- assert.deepEqual(await p.evaluate(()=>_incidents),[['notification','Production impossible']],'le diagnostic reste français');assert.deepEqual(await p.evaluate(()=>[_calls,_refresh,state.pa,state.liquide]),[2,1,0,0]);await p.close();
+ assert.deepEqual(await p.evaluate(()=>_incidents),[['notification','Production impossible']],'le diagnostic reste français');assert.deepEqual(await p.evaluate(()=>[_calls,_refresh,state.pa,state.liquide]),[2,1,0,0]);
+ await p.evaluate(()=>{window._pending=doProduireRecetteCommerceUI('marche','marche','salle','produit')});await p.evaluate(()=>_reply({ok:false,raison:'stock_matiere_insuffisant',matiere:'bois'}));await p.evaluate(()=>_pending);
+ assert.equal(await p.locator('#toast-sub').textContent(),await p.evaluate(()=>i18next.t('commerceProduction.material',{values:{material:i18next.t('economicCatalog.material_bois_label')}})));
+ assert.deepEqual(await p.evaluate(()=>[_calls,_refresh,state.pa,state.liquide]),[3,1,0,0]);await p.close();
 }));

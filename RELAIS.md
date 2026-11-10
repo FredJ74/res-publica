@@ -31,6 +31,39 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Certification cumulée des trois lots i18n économiques — Codex, 10/11/2026
+
+**Code source testé `88315025`**, main final revérifié `7aafbb9f`.
+Branches / commits : fiches `codex/i18n-produits-economie-20261110` / `f8ca377e`,
+catalogue `codex/i18n-matieres-catalogue-20261110` / `c53beaf2`, production
+`codex/i18n-production-commandes-20261110` / `88315025`. **153 clés nouvelles
+complètes dans neuf langues**, mesure éditoriale 1 420 clés sans clé/variable absente.
+**31/31 ciblés**, contre-épreuves (clé arabe retirée, salaire DE mal paramétré),
+PNG fiche et carte FR strictement identiques à 1440 ; mobile 360/390/768, RTL,
+saisies et commandes préservées. Complément production 12/12 : matière arabe et
+diagnostic français. Pas de modification de data.js, CSS, API, SQL ou données PJ.
+
+**Contrôleur complet : 269/270**. L’unique échec est reproduit sur main intact :
+`banc-pnj-localisation-psm.mjs`, scènes générées du bureau Dynamo (« Bureau du
+Président » dans l’archive, « Bureau du président du Dynamo » dans la source).
+À coordonner avec Claude pour régénérer cet artefact, **non modifié dans ce lot**.
+Globaux **10/12** : Baseline/Referential rouges, sorties main/branche identiques
+octet pour octet, Workflow et Authority verts. Aucun échec masqué.
+
+Rapport complet, titres/descriptions de PR, couverture et lacunes :
+`outils/audits/I18N-PRODUITS-ECONOMIE-20261110.md` ; preuves détaillées sous
+`outils/audits/i18n-economie-20261110/`. Les anciens « en cours » de ces trois
+lots ci-dessous sont l’historique de leurs premiers pushs : ce bilan les complète.
+GitHub API GET/POST 403. Voie web vérifiée : lecture publique des cinq PR ouvertes
+(#692/#636/#562/#467/#463) et du commit possible ; pas d’écriture authentifiée ni
+certification CI. **Aucune PR créée/fusion effectuée ici.** Titres/corps prêts
+ci-dessous, ordre fiches → catalogue → production, bases empilées puis main.
+Production Vercel : accès HTTP par tunnel refusé 403, READY non vérifié.
+Aucun compte réel connecté, aucun téléphone physique testé, aucune traduction
+payante/activation nouvelle. Recette sans transaction : ouvrir carte et fiche,
+basculer FR/DE/AR, conserver quantités/saisies et revenir en français.
+
+
 ### i18n verdicts de production — Codex, 10/11/2026 (LOT EMPILÉ)
 
 Branche `codex/i18n-production-commandes-20261110`, base catalogue `c53beaf2`.
