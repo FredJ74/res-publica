@@ -1469,7 +1469,7 @@ function renderEmployesPanel() {
           : '<button onclick="recupererPnjDansGroupe(\'' + emp.nom.replace(/'/g,'') + '\')" title="Faire rejoindre votre groupe" style="background:none;border:1px solid #3a2a10;color:#8a6a20;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">🔄</button>'
         ) +
         (!emp.inGroupe && emp.pnjId
-          ? '<button onclick="rappelerEmployeParRadio(\'' + String(emp.pnjId).replace(/'/g,'') + '\')" title="Rappeler par radio — nécessite une radio de chaque côté et la même ville" style="background:none;border:1px solid #425a75;color:#92b5db;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📻</button>'
+          ? '<button onclick="rappelerEmployeParRadio(\'' + String(emp.pnjId).replace(/'/g,'') + '\')" title="Rappeler par radio ou téléphone — nécessite une radio ou un téléphone de chaque côté et la même ville" style="background:none;border:1px solid #425a75;color:#92b5db;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📻</button>'
           : '') +
         '<button onclick="ouvrirDonnerEmploye(\'' + emp.nom.replace(/'/g,'') + '\')" title="Donner un objet a porter (plafond 100 unites au total)" style="background:none;border:1px solid #2a3a3a;color:#4a7a7a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📦</button>' +
         '<button onclick="ouvrirReprendreEmploye(\'' + emp.nom.replace(/'/g,'') + '\')" title="Reprendre ce que porte cet employe" style="background:none;border:1px solid #3a3a2a;color:#7a7a4a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">↩️</button>' +
@@ -1492,9 +1492,9 @@ async function rappelerEmployeParRadio(ancreId) {
       ? await sbPnjRappelerRadio(ancreId, {encoreValide:()=>contexteGroupePjValide(c)}).catch(() => null) : null;
     if (!contexteGroupePjValide(c)) return;
     if (!r || r.ok !== true) {
-      const messages = { radio_hors_ville: 'Le groupe est dans une autre ville : aucune liaison radio.',
-        radio_appelant_absente: 'Vous devez posséder une radio.',
-        radio_unite_absente: 'Au moins un agent du groupe doit porter une radio.',
+      const messages = { radio_hors_ville: 'Le groupe est dans une autre ville : aucune liaison radio ou téléphone.',
+        radio_appelant_absente: 'Vous devez posséder une radio ou un téléphone cellulaire.',
+        radio_unite_absente: 'Au moins un agent du groupe doit porter une radio ou un téléphone cellulaire.',
         autorite_insuffisante: 'Vous ne disposez pas de l’autorité sur tous les agents.',
         axe_position_hors_socle: 'Cette famille utilise encore son circuit de position propre.',
         unite_non_stationnaire: 'Le groupe doit être en position.',

@@ -98,3 +98,4 @@ de décisions du **10 novembre 2026 au soir** (20 h 53 – 21 h 30), à coder en
 ## Ce qui est codé
 
 - **Décision 19 (10/11, 21 h 50)** : recettes `couinator_3000_commerce` et `cartouche_encre_commerce`, génériques `couinator-3000` et `cartouche-encre` (type `electronique-informatique`) ; migration `20261110214000_equipements_couinator_cartouche` appliquée. Les objets n'ont pas encore d'effet (Fouiller les lieux et imprimante à venir).
+- **Téléphone cellulaire (10/11, 22 h 15)** : `pnj_rappeler_radio` accepte une radio **ou** un téléphone (générique `telephone-portable-cellulaire`) chez l'appelant et chez au moins un membre de l'unité, même ville uniquement ; le téléphone se donne à un employé par le bouton 📦 existant. Migration `20261110221000_telephone_cellulaire_rappel` appliquée ; textes du bouton 📻 et des refus dans `plateau-multijoueur.js`.
