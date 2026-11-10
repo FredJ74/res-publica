@@ -126,6 +126,24 @@ test('la presse réutilise modal-postes sans effacer ni raccrocher Jodie', async
   assert.equal(s.modal.ouvert,false);
 });
 
+test('Jodie ne transforme pas l’appel en interview et propose un report explicite', async () => {
+  const profil = lire('api/_pnj-profils.js');
+  assert.match(profil,/pas pour réaliser un portrait, une interview ou un micro-trottoir/);
+  assert.match(profil,/Réponds précisément au dernier propos du joueur/);
+  assert.match(profil,/promet de visiter le musée à son retour à Luthécia/);
+  assert.match(profil,/Ne pose pas de question de relance non sollicitée/);
+  const s = simuler({etat:{ok:true,type:'premier',contact:{}}});
+  await s.ctx.jodieEnqueteVerifierAppel();
+  assert.match(s.body.innerHTML,/J’irai à mon retour à Luthécia/);
+  assert.equal(s.appels.filter(x => x.p_action==='choix').length,0);
+  s.ctx.jodieEnqueteAfficherAppel('Merci, je vous attendrai à votre retour.');
+  assert.doesNotMatch(s.body.innerHTML,/Pourquoi moi/);
+  assert.doesNotMatch(s.body.innerHTML,/Où est ce musée/);
+  await s.ctx.jodieEnqueteRepondre('accepte','retour');
+  assert.equal(s.appels.filter(x => x.p_action==='choix' && x.p_reponse==='accepte').length,1);
+  assert.equal(s.modal.ouvert,false);
+});
+
 test('serveur : unicité, J+1, rappel et mémoire commune', () => {
   assert.match(sql,/3\*86400/);
   assert.match(sql,/premierLe/);
