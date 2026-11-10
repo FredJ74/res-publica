@@ -2181,6 +2181,8 @@ async function verifierEtJouerJournees() {
       // PHASE D'EFFETS : uniquement pour le gagnant du CAS. Un perdant n'a rien persiste et
       // n'emet donc rien -- ni salaire, ni popularite, ni blessure, ni mail, ni publication.
       if (r.ok) {
+        // Le serveur règle les tickets uniquement après la persistance CAS des scores.
+        await reglerParisPlayoff(etapeAvant);
         await appliquerEffetsTour(tour.effets);
         // Primes du tour : meme primitive serveur que les journees, meme registre, meme
         // idempotence. L'etape a deja avance en base, on paie donc la manche qu'on vient de jouer.
@@ -9074,6 +9076,18 @@ async function doParierMatch(pa, cost) {
   const saison = await verifierEtJouerJournees();
   if (!saison) { showToast('Paris indisponibles', 'Impossible de lire le championnat pour le moment. Réessayez dans un instant.', false); return; }
 
+  // Rattrapage idempotent si la connexion a été interrompue après une manche.
+  if (saison.playoffs) {
+    for (const manche of ['quarts_aller','quarts_retour','demies_aller','demies_retour','finale']) {
+      if ((manche==='quarts_aller' && saison.playoffs.quarts?.aller)
+        || (manche==='quarts_retour' && saison.playoffs.quarts?.retour)
+        || (manche==='demies_aller' && saison.playoffs.demies?.aller)
+        || (manche==='demies_retour' && saison.playoffs.demies?.retour)
+        || (manche==='finale' && saison.playoffs.finale?.resultat)) {
+        await reglerParisPlayoff(manche);
+      }
+    }
+  }
   const prochaineJournee = (saison.calendrier || []).find(j=>j.matchs?.some(m=>!m.played));
   const phaseFinale = !prochaineJournee ? rencontresPariPlayoff(saison) : null;
   const matchs = prochaineJournee ? prochaineJournee.matchs.filter(m=>!m.played) : phaseFinale?.matchs;
@@ -9122,7 +9136,7 @@ function ouvrirFormulairePari(homeId, awayId, journeeNumero, saisonNumero, pa, c
   html += '</div>';
   html += '<input type="hidden" id="pari-choix" value="domicile"/>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">Mise (' + ((typeof COUNTRIES!=='undefined'&&COUNTRIES[state.country]?.cur)||'FR') + ')</label>';
-  html += '<input id="pari-mise" type="number" value="100" min="10" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.9rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
+  html += '<input id="pari-mise" type="number" value="' + (state.country==='soviet' ? 10 : 100) + '" min="10" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.9rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
   html += '<button onclick="confirmerPariMatch(\'' + homeId + '\',\'' + awayId + '\',' + journeeNumero + ',' + saisonNumero + ',' + pa + ',' + cost + ',' + (manche ? '\''+manche+'\'' : 'null') + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider le pari</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -9135,10 +9149,12 @@ async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, p
   const monnaie = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
   if (!mise || mise < 10) { showToast('Mise invalide', 'Minimum 10 ' + monnaie + '.', false); return; }
   if (state.arg < mise) { showToast('Fonds insuffisants', '', false); return; }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  document.getElementById('modal-postes')?.classList.remove('open');
+  // En phase finale, l'appel serveur débite PA + mise dans une unique transaction :
+  // ne surtout pas prélever le PA avant la confirmation du ticket.
+  if (!manche) {
+    const r = await deduireCoutOrdre({ pa, cost });
+    if (!r.ok) { signalerRefusCout(r); return; }
+  }
 
   // L'ENGAGEMENT DU PARI PASSE PAR LE SERVEUR (§6.3, 20 septembre 2026).
   //
@@ -9163,6 +9179,9 @@ async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, p
       pari_deja_engage:   'Vous avez déjà parié sur cette rencontre.',
       fonds_insuffisants: 'Fonds insuffisants.',
       mise_invalide:      'Mise invalide (minimum 10 ' + monnaie + ').',
+      mise_ou_pronostic_invalide:'Pronostic ou mise invalide.',
+      manche_indisponible:'Cette manche ne peut plus recevoir de paris.',
+      match_deja_commence:'Le coup d’envoi est passé : paris clôturés.',
       match_inconnu:      'Ce match est introuvable au calendrier.',
       journee_inconnue:   'Journée introuvable au calendrier.'
     };
@@ -9171,12 +9190,34 @@ async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, p
   }
 
   // Recopie de l'etat arrete par le serveur, jamais un calcul local.
+  if (manche && rPari.paiement && typeof appliquerPaiementServeur === 'function')
+    appliquerPaiementServeur(rPari.paiement);
   if (typeof rPari.arg === 'number') { state.arg = Number(rPari.arg); if (state.char) state.char.arg = state.arg; }
   updateUI();
 
   const homeClub = getClub(homeId), advClub = getClub(awayId);
   showToast('Pari enregistré', mise + ' ' + monnaie + ' misés sur ' + homeClub.nom + ' vs ' + advClub.nom + '. Résultat au coup de sifflet final.', true, true);
   addJournalEntry('Pari de ' + mise + ' ' + monnaie + ' sur ' + homeClub.nom + ' vs ' + advClub.nom + '.', 'event-info');
+}
+
+// Les scores de phase finale sont lus exclusivement par la RPC de règlement.
+// Le règlement est idempotent : un appel répété ne verse jamais deux fois.
+async function reglerParisPlayoff(manche) {
+  if (typeof sbRpc !== 'function') return;
+  const r = await sbRpc('football_pari_playoff_resoudre',{p_manche:manche})
+    .then(rows => Array.isArray(rows)?rows[0]:rows).catch(()=>null);
+  if (!r?.ok || !Array.isArray(r.detail) || !r.detail.length) return;
+  const date = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  for (const pari of r.detail) {
+    if (typeof sbSendMail !== 'function') break;
+    const a = getClub(pari.homeId), b = getClub(pari.awayId);
+    if (!a || !b) continue;
+    const monnaie = (typeof COUNTRIES !== 'undefined' && COUNTRIES[pari.country]?.cur) || 'FR';
+    const message = pari.gagne
+      ? 'Votre pari sur ' + a.nom + ' vs ' + b.nom + ' est gagnant ! +' + Number(pari.gain||0).toLocaleString('fr-FR') + ' ' + monnaie + '.'
+      : 'Votre pari sur ' + a.nom + ' vs ' + b.nom + ' est perdant. Mise perdue.';
+    await sbSendMail('Ligue Officielle',pari.joueur,pari.gagne?'Pari gagné !':'Pari perdu',message,date).catch(()=>{});
+  }
 }
 
 // Resout tous les paris en attente pour une journee qui vient d'etre jouee
