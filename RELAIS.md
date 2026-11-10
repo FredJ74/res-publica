@@ -31,6 +31,19 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Correctifs du stade et du Dynamo — ChatGPT, 10/11/2026 (PR #682)
+
+Fred a demandé : suppression universelle du doublon « Prendre un verre » face à « Consulter la carte » ; buvette de Novomirsk distincte de Luthécia ; bookmaker fonctionnel ; prix de boutique soviarkiens ; adhésion supporters Novomirsk à 25 PSK ; pas de changement des autres ordres du club. Branche `chatgpt/stades-sovarka-carte-boutique-paris-20261110`, [PR #682](https://github.com/FredJ74/res-publica/pull/682).
+
+- Buvette gabarit : retrait de `consommer_buvette`, catalogue i18n 416 clés dans les neuf langues et tests de nombres actualisés.
+- Dynamo : thé chaud (5 PSK), chocolat chaud (8), vin chaud (12), pirojki (6), stock initial 5 unités par recette, autres stades inchangés.
+- Boutique du Dynamo : écharpe 25, casquette 20, maillot 45 PSK, montants client/serveur alignés.
+- Club de supporters de Sovarka : adhésion 25 PSK et renouvellement 25 PSK ; autres pays 50 FR inchangés ; ordres supporters restants inchangés.
+- Bookmaker : le championnat réel est en quarts, `calendrier` régulier entièrement joué ; en phase finale, reprise des paires et de la date persistées. Deux RPC nouvelles vérifient la manche, le coup d'envoi et les vrais résultats, débitent PA+mise de façon atomique et règlent une fois seulement ; une nouvelle saison est bloquée tant que le solde des tickets des playoffs n'est pas vérifié.
+- **Supabase :** les migrations `stades_sovarka_carte_tarifs_20261110` et `football_paris_playoffs_20261110` ont été appliquées via le connecteur au projet actif `jxpwoosmmhohoihxpbuc` ; la lecture de contrôle après migration confirme 25 PSK, quatre recettes et stocks, deux nouvelles fonctions. Les prévols `BEGIN ... ROLLBACK` ont réussi.
+- **Non validé en jeu :** passage d'une commande d'un vrai PJ à Novomirsk, adhésion/renouvellement et ticket réel de pari du 15/11/2026 ; tests CI en cours de consolidation. Faire recette avec un compte joueur avant de prétendre à une validation IG.
+
+
 ### Jodie : conversation téléphonique contextualisée — ChatGPT, 10/11/2026 (PR #679)
 
 Retour réel de Fred : à l'appel au sujet du musée, le PJ disait être hors de Luthécia et vouloir s'y rendre à son retour ; Jodie enchaînait des questions de micro-trottoir hors sujet. Correctif `chatgpt/jodie-conversation-ciblee-20261110`, [PR #679](https://github.com/FredJ74/res-publica/pull/679) : consignes au profil serveur Jodie pour reconnaître le dernier propos, éviter les interviews et conclure poliment ; bouton explicite « J'irai à mon retour » utilisant le choix `accepte` de la RPC déjà existante, sans inférence d'un choix depuis une phrase libre ; boutons de questions annexes cachés après la première réponse. Pas de migration ni modification de progression. Test de non-régression ajouté. **À vérifier** : CI, déploiement, puis recette du dialogue IA réel (un modèle génératif ne garantit pas chaque formulation).
