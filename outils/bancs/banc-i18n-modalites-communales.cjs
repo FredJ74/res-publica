@@ -29,7 +29,7 @@ test('les 21 commandes nouvellement localisées correspondent aux sources et aux
  const {win}=load('en');
  const source=read('plateau-politique.js')+'\n'+read('plateau-construction-commandes.js');
  const canonical=win.RP_I18N_RESOURCES.fr.translation.orders;
- assert.equal(Object.keys(canonical).length,417);
+ assert.equal(Object.keys(canonical).length,416); // consommer_buvette supprimé du stade et des 9 catalogues
  for(const id of ids){
   const escaped=id.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   assert.match(source,new RegExp('fn\\s*:\\s*[\\x27\\x22]'+escaped+'[\\x27\\x22]\\s*,\\s*label\\s*:\\s*[\\x27\\x22]'));
