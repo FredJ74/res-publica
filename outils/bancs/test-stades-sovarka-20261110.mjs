@@ -67,7 +67,7 @@ test('bookmaker : les quarts aller et retour sont les vraies paires du serveur',
 });
 
 test('serveur refuse les tickets inventés et les mises après le coup d’envoi',()=>{
-  assert.match(paris,/v_p#>>'\{playoffs,etape\}' IS DISTINCT FROM p_manche/);
+  assert.match(paris,/v_s#>>'\{playoffs,etape\}' IS DISTINCT FROM p_manche/);
   assert.match(paris,/now\(\)>=v_kickoff/);
   assert.match(paris,/RETURN jsonb_build_object\('ok',false,'raison','match_inconnu'\)/);
   assert.match(paris,/pg_advisory_xact_lock/);
