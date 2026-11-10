@@ -34,6 +34,23 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### i18n entrepôt et consultation notariale — Codex, 10/11/2026 (lot empilé)
+
+Branche `codex/i18n-entrepot-notaire-20261110`, base gestion `91544c5a`.
+**21 clés dans neuf langues** : salle des ventes, interdiction (titre de loi intact),
+formulaire et résultats de dossiers notariaux, recherche partielle et erreurs.
+Les quantités civiles, prix/devise, saisies, dates, noms et lectures restent
+identiques ; aucun ordre de paiement exécuté pour tester. Réutilisation de
+ficheLibelleHtml avec namespace facultatif : ancien comportement produit inchangé.
+Quatre tests verts, 360/390 et RTL, saisies conservées à chaud, entrepôt et notaire
+pixel-identiques à main `336eace8` en FR 1440. Aucun module Sovarka/PNJ, Règles
+ou SQL modifié. Titre PR : « Entrepôt et consultation notariale en neuf langues ».
+Description : « 21 clés de présentation, conditions et lectures préservées,
+paramètres canoniques intacts, tests réels des rendus et comparaison stricte FR. »
+Base PR initiale : branche gestion, puis main après intégration. Suite automatique :
+vente/don de matières et messages de résultat. Publication non attestée.
+
+
 ### i18n gestion des commerces — Codex, 10/11/2026 (lot suivant #698)
 
 Branche `codex/i18n-gestion-commerces-20261110`, base `336eace8` après #698.

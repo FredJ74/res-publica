@@ -5169,14 +5169,15 @@ async function traiterActeVente(candidat) {
 // reel n'existe encore, voir §9 du lot).
 // =====================
 function doConsulterDossierNotarial() {
-  document.getElementById('postes-modal-title').textContent = 'Se renseigner sur un dossier';
+  document.getElementById('postes-modal-title').innerHTML = ficheLibelleHtml('notaryTitle', 'Se renseigner sur un dossier', null, 'administrationEconomy');
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">Indiquez le nom du personnage dont vous souhaitez consulter les dossiers notariaux en cours.</div>';
-  html += '<input id="dossier-notarial-nom" type="text" placeholder="Nom du personnage..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem .6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem;box-sizing:border-box" />';
-  html += '<button class="pnj-action-btn" onclick="rechercherDossierNotarial()"><i class="ti ti-search" style="font-size:.85rem"></i> Consulter</button>';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">' + ficheLibelleHtml('notaryIntro', 'Indiquez le nom du personnage dont vous souhaitez consulter les dossiers notariaux en cours.', null, 'administrationEconomy') + '</div>';
+  html += '<input id="dossier-notarial-nom" type="text" data-i18n-placeholder="administrationEconomy.namePlaceholder" placeholder="Nom du personnage..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem .6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem;box-sizing:border-box" />';
+  html += '<button class="pnj-action-btn" onclick="rechercherDossierNotarial()"><i class="ti ti-search" style="font-size:.85rem"></i>' + ficheLibelleHtml('consult', ' Consulter', null, 'administrationEconomy') + '</button>';
   html += '<div id="dossier-notarial-resultats" style="margin-top:.9rem"></div>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
   document.getElementById('modal-postes').classList.add('open');
 }
 
@@ -5195,10 +5196,12 @@ async function rechercherDossierNotarial() {
   const resultatsEl = document.getElementById('dossier-notarial-resultats');
   if (!resultatsEl) return;
   if (!nom) {
-    resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a3a20;font-style:italic">Indiquez un nom.</div>';
+    resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a3a20;font-style:italic">' + ficheLibelleHtml('needName', 'Indiquez un nom.', null, 'administrationEconomy') + '</div>';
+    if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(resultatsEl);
     return;
   }
-  resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a8060;font-style:italic">Recherche en cours...</div>';
+  resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a8060;font-style:italic">' + ficheLibelleHtml('searching', 'Recherche en cours...', null, 'administrationEconomy') + '</div>';
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(resultatsEl);
 
   const dossiers = [];
   let lecturesEchouees = 0;
@@ -5214,13 +5217,15 @@ async function rechercherDossierNotarial() {
         if (!ts) continue;
         const nomBatiment = BUILDINGS[id]?.shortName || BUILDINGS[id]?.name || id;
         if (ts.compromis && ts.compromisPar === nom) {
-          dossiers.push('Achat d\'un terrain (' + nomBatiment + ') — signature prévue avant le ' + formaterHorodatageJournal(ts.compromisExpireAt));
+          const dateAffichee = formaterHorodatageJournal(ts.compromisExpireAt);
+          dossiers.push(ficheLibelleHtml('landPurchase', '• Achat d\'un terrain (' + nomBatiment + ') — signature prévue avant le ' + dateAffichee, {place:nomBatiment,date:dateAffichee}, 'administrationEconomy'));
         }
         if (ts.achatDirect && ts.achatDirect.demandeur === nom) {
-          dossiers.push('Achat direct d\'un terrain (' + nomBatiment + ') — rendez-vous notarial le ' + formaterHorodatageJournal(ts.achatDirect.dateAchat));
+          const dateAffichee = formaterHorodatageJournal(ts.achatDirect.dateAchat);
+          dossiers.push(ficheLibelleHtml('directLandPurchase', '• Achat direct d\'un terrain (' + nomBatiment + ') — rendez-vous notarial le ' + dateAffichee, {place:nomBatiment,date:dateAffichee}, 'administrationEconomy'));
         }
         if (ts.transfertPropose === nom) {
-          dossiers.push('Transfert de compromis proposé (' + nomBatiment + ') — en attente de validation');
+          dossiers.push(ficheLibelleHtml('transfer', '• Transfert de compromis proposé (' + nomBatiment + ') — en attente de validation', {place:nomBatiment}, 'administrationEconomy'));
         }
       } catch (e) {
         console.error('rechercherDossierNotarial : lecture terrain échouée', id, e);
@@ -5236,7 +5241,8 @@ async function rechercherDossierNotarial() {
       try {
         const data = await def.charger();
         if (data && data.compromis && data.compromisPar === nom) {
-          dossiers.push('Rachat de "' + def.label + '" — signature prévue avant le ' + formaterHorodatageJournal(data.compromisExpireAt));
+          const dateAffichee = formaterHorodatageJournal(data.compromisExpireAt);
+          dossiers.push(ficheLibelleHtml('businessPurchase', '• Rachat de "' + def.label + '" — signature prévue avant le ' + dateAffichee, {place:def.label,date:dateAffichee}, 'administrationEconomy'));
         }
       } catch (e) {
         console.error('rechercherDossierNotarial : lecture entreprise échouée', def.id, e);
@@ -5251,12 +5257,12 @@ async function rechercherDossierNotarial() {
   // masquer les resultats deja valides trouves par ailleurs.
   let html;
   if (dossiers.length === 0) {
-    html = '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun dossier en cours à ce nom.</div>';
+    html = '<div style="font-size:.85rem;color:#8a8060;font-style:italic">' + ficheLibelleHtml('noFile', 'Aucun dossier en cours à ce nom.', null, 'administrationEconomy') + '</div>';
   } else {
-    html = '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.5rem">Vous avez ' + dossiers.length + ' dossier(s) en attente :</div>';
+    html = '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.5rem">' + ficheLibelleHtml('pending', 'Vous avez ' + dossiers.length + ' dossier(s) en attente :', {count:dossiers.length}, 'administrationEconomy') + '</div>';
     html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
     dossiers.forEach(texte => {
-      html += '<div style="font-size:.82rem;color:#e0d8c0">• ' + texte + '</div>';
+      html += '<div style="font-size:.82rem;color:#e0d8c0">' + texte + '</div>';
     });
     html += '</div>';
   }
@@ -5264,6 +5270,7 @@ async function rechercherDossierNotarial() {
     html += '<div style="font-size:.72rem;color:#8a3a20;font-style:italic;margin-top:.6rem">' + lecturesEchouees + ' dossier(s) n\'ont pas pu être consultés (réessayez plus tard) — les résultats ci-dessus restent fiables.</div>';
   }
   resultatsEl.innerHTML = html;
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(resultatsEl);
 }
 
 // =====================
@@ -5435,9 +5442,9 @@ async function doOuvrirAchatEntrepot(pa, cost) {
   const prixManuel = etat.entrepot?.prixManuel || {};
 
   let html = '<div style="padding:1.2rem">';
-  html += '<div style="font-size:.96rem;color:#8a8060;margin-bottom:1rem">Indiquez la quantité souhaitée pour chaque produit (laissez vide pour ne rien acheter). Le prix affiché varie selon le niveau du stock.</div>';
+  html += '<div style="font-size:.96rem;color:#8a8060;margin-bottom:1rem">' + ficheLibelleHtml('warehouseIntro', 'Indiquez la quantité souhaitée pour chaque produit (laissez vide pour ne rien acheter). Le prix affiché varie selon le niveau du stock.', null, 'administrationEconomy') + '</div>';
   html += '<table style="width:100%;font-size:1rem;border-collapse:collapse">';
-  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.93rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix actuel</th><th>Quantité</th></tr>';
+  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.93rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">' + ficheLibelleHtml('product', 'Produit', null, 'administrationEconomy') + '</th><th>' + ficheLibelleHtml('stock', 'Stock', null, 'administrationEconomy') + '</th><th>' + ficheLibelleHtml('price', 'Prix actuel', null, 'administrationEconomy') + '</th><th>' + ficheLibelleHtml('quantity', 'Quantité', null, 'administrationEconomy') + '</th></tr>';
 
   // §36 : le fournisseur institutionnel ne vend PLUS legalement une categorie interdite en
   // Republia. Le stock n'est jamais supprime (§34) -- il redeviendra vendable de lui-meme des
@@ -5453,10 +5460,10 @@ async function doOuvrirAchatEntrepot(pa, cost) {
     const prixActuel = prixManuel[cle] != null ? prixManuel[cle] : (typeof getPrixRessourceEntrepot === 'function' ? getPrixRessourceEntrepot(cle) : res.prixBase);
     const bloque = !!loiInterdit || enStock === 0;
     html += '<tr style="border-top:1px solid #2a2010"' + (loiInterdit ? ' style="opacity:.55"' : '') + '>';
-    html += '<td style="padding:.55rem 0"><i class="ti ' + res.icon + '" style="margin-right:.4rem;font-size:1.1rem"></i>' + res.label + '</td>';
+    html += '<td style="padding:.55rem 0"><i class="ti ' + res.icon + '" style="margin-right:.4rem;font-size:1.1rem"></i>' + (typeof libelleMatiereCommerceHtml === 'function' ? libelleMatiereCommerceHtml(cle) : res.label) + '</td>';
     html += '<td style="color:' + (enStock === 0 ? '#cc5540' : '#8a8060') + '">' + enStock + '</td>';
     if (loiInterdit) {
-      html += '<td colspan="2" style="color:#cc4444;font-size:.86rem">Vente interdite — « ' + loiInterdit.titre + ' »</td>';
+      html += '<td colspan="2" style="color:#cc4444;font-size:.86rem">' + ficheLibelleHtml('forbidden', 'Vente interdite — « ' + loiInterdit.titre + ' »', {law:loiInterdit.titre}, 'administrationEconomy') + '</td>';
     } else {
       html += '<td style="color:#C9A84C;font-weight:bold">' + prixActuel + ' ' + cur + '</td>';
       html += '<td><input type="number" min="0" max="' + enStock + '" id="achat-entrepot-' + cle + '" style="width:90px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:1rem" ' + (bloque ? 'disabled' : '') + ' /></td>';
@@ -5464,11 +5471,12 @@ async function doOuvrirAchatEntrepot(pa, cost) {
     html += '</tr>';
   });
   html += '</table>';
-  html += '<button class="pnj-action-btn" onclick="confirmerAchatEntrepot(\'' + buildingId + '\',' + pa + ',' + cost + ')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">Valider l\'achat</button>';
+  html += '<button class="pnj-action-btn" onclick="confirmerAchatEntrepot(\'' + buildingId + '\',' + pa + ',' + cost + ')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">' + ficheLibelleHtml('validate', 'Valider l\'achat', null, 'administrationEconomy') + '</button>';
   html += '</div>';
 
-  document.getElementById('postes-modal-title').textContent = 'Salle des Ventes';
+  document.getElementById('postes-modal-title').innerHTML = ficheLibelleHtml('salesRoom', 'Salle des Ventes', null, 'administrationEconomy');
   document.getElementById('postes-body').innerHTML = html;
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
   document.getElementById('modal-postes').classList.add('open');
 }
 
