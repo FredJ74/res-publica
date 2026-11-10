@@ -31,6 +31,11 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Bureau du président du Dynamo — illustration (10/11/2026, PR #687)
+
+Fred a fourni `images/Sovarka/Novomirsk/Les cinq triomphes mondiaux du Dynamo Novomirsk.png`. La branche `chatgpt/dynamo-bureau-president-webp-20261110` contient le WebP `images/Sovarka/Novomirsk/Novomirsk.stade.bureau président.webP` ; le workflow GitHub #42814758055 a vérifié l'identité du PNG (SHA blob `b35f3331`), la conversion et les dimensions, et a supprimé l'ancien PNG. Le gabarit `BUILDINGS.stade` reste inchangé ; seule la surcharge de `WORLD.soviet.capitale.buildingContext.stade.roomOverrides.bureau_president` pointe sur le WebP. Test dédié dans `outils/bancs/test-dynamo-novomirsk-20261110.mjs`. [PR #687](https://github.com/FredJ74/res-publica/pull/687). CI PR, fusion, déploiement et recette IG à confirmer séparément. Aucun changement mécanique/SQL.
+
+
 ### Cartes de commerces et buvettes en neuf langues — ChatGPT, 10/11/2026 (PR #685)
 
 Continuation immédiate après #683 : catalogue `i18n/commerce-menu-resources.js` avec **27 clés dans les neuf langues** couvrant menus, cartes, stocks, boutons d'achat/production, retour d'achat et fiche produit. Les quatre recettes propres au Dynamo sont traduites uniquement si leur nom français canonique correspond. Raccordement client dans `plateau-actions-illegales-rumeurs.js`, inclusion dans `plateau.html` et banc de rendu `outils/bancs/banc-i18n-commerce-menu.cjs` dans la CI. Aucune modification de PA, coût, RPC, stocks, permissions ou règles. PR [#685](https://github.com/FredJ74/res-publica/pull/685). Recette réelle des neuf langues en jeu encore distincte des tests automatisés.
