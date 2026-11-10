@@ -16,7 +16,7 @@ function simuler(options = {}) {
   function creerElement() {
     const e = { innerHTML: '', textContent: '', style: {}, attributes: {},
       setAttribute(k,v) { this.attributes[k] = v; },
-      classList: { add(n) { if(n==='open') modal.ouvert=true; }, remove(n) { if(n==='open') modal.ouvert=false; } }
+      classList: { add(n) { if(n==='open') e.ouvert=true; }, remove(n) { if(n==='open') e.ouvert=false; } }
     };
     return e;
   }
@@ -36,6 +36,10 @@ function simuler(options = {}) {
     document: {
       body: { appendChild(el) {
         elements[el.id] = el;
+        if (el.id === 'modal-jodie-enquete') {
+          modal.classList = el.classList;
+          Object.defineProperty(modal, 'ouvert', {get: () => el.ouvert});
+        }
         elements['jodie-enquete-body'] = body;
         elements['jodie-enquete-titre'] = title;
       }},
