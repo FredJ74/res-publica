@@ -175,14 +175,18 @@ ON CONFLICT (id) DO UPDATE SET label=excluded.label,pa=excluded.pa,portions=excl
 UPDATE public.entreprises e SET data =
   jsonb_set(
     jsonb_set(
-      jsonb_set(e.data, '{carte}',
+      jsonb_set(
+        jsonb_set(e.data, '{carte}',
         '["the_chaud_sovarka","chocolat_chaud_sovarka","vin_chaud_sovarka","pirojki_sovarka"]'::jsonb,true),
       '{parametres,stockMax}',
         (coalesce(e.data#>'{parametres,stockMax}','{}'::jsonb) - 'biere_pression' - 'boisson_sans_alcool' - 'snack_buvette')
         || '{"the_chaud_sovarka":20,"chocolat_chaud_sovarka":20,"vin_chaud_sovarka":20,"pirojki_sovarka":20}'::jsonb,true),
     '{parametres,prixVente}',
        (coalesce(e.data#>'{parametres,prixVente}','{}'::jsonb) - 'biere_pression' - 'boisson_sans_alcool' - 'snack_buvette')
-       || '{"the_chaud_sovarka":5,"chocolat_chaud_sovarka":8,"vin_chaud_sovarka":12,"pirojki_sovarka":6}'::jsonb,true)
+       || '{"the_chaud_sovarka":5,"chocolat_chaud_sovarka":8,"vin_chaud_sovarka":12,"pirojki_sovarka":6}'::jsonb,true),
+    '{stockProduits}',
+       coalesce(e.data->'stockProduits','{}'::jsonb)
+       || '{"the_chaud_sovarka":5,"chocolat_chaud_sovarka":5,"vin_chaud_sovarka":5,"pirojki_sovarka":5}'::jsonb,true)
  WHERE e.id='buvette-soviet-capitale-stade-buvette';
 
 DO $controle$
