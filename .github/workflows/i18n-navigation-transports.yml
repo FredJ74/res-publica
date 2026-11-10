@@ -1,0 +1,31 @@
+name: I18N — Plans et transports (9 langues)
+on:
+  pull_request:
+    paths:
+      - 'i18n/navigation-resources.js'
+      - 'plateau-navigation.js'
+      - 'plateau.html'
+      - 'outils/bancs/banc-i18n-navigation-transports.cjs'
+      - '.github/workflows/i18n-navigation-transports.yml'
+  push:
+    paths:
+      - 'i18n/navigation-resources.js'
+      - 'plateau-navigation.js'
+      - 'plateau.html'
+      - 'outils/bancs/banc-i18n-navigation-transports.cjs'
+      - '.github/workflows/i18n-navigation-transports.yml'
+jobs:
+  navigation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check i18n/navigation-resources.js
+          node --check plateau-navigation.js
+          node --check outils/bancs/banc-i18n-navigation-transports.cjs
+      - run: node --test outils/bancs/banc-i18n-navigation-transports.cjs
