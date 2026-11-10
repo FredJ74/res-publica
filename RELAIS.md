@@ -36,7 +36,7 @@ Règles : voir `AGENTS.md`.
 Branche `codex/i18n-premiers-parcours-20261110`, base main `b29d676f`. 32 clés dans
 les neuf langues : inventaire rempli, détail, infobulles et refus. Aucun objet,
 identifiant, coût, condition, RPC ou état de joueur modifié. Styles conservés.
-Six cas ciblés verts, deux PNG français à 1440 identiques ; audit éditorial 1 203
+SHA source testé `4f1e8118` ; six cas ciblés verts, deux PNG français à 1440 identiques ; audit éditorial 1 203
 clés (32 nouvelles, 38 anciennes désormais comptées), deux mutations détectées.
 Premier contrôleur 263/264 : banc courrier cassé aussi sur le témoin main ; ses
 helpers #674 sont maintenant chargés, trois tests conservés et verts. Rejeu final

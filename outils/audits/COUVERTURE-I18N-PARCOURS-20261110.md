@@ -59,7 +59,7 @@ et options moteur protégées ; deux images bureau 1440 strictement identiques.
 Le témoin contient uniquement les trois fonctions publiques de main b29d676f,
 compressées et vérifiées SHA-256, sans dépendre de la profondeur Git de la CI.
 
-Une première comparaison a détecté quatre pixels de l’avertissement FR : le
+Une première comparaison a détecté un écart localisé dans l’avertissement FR : le
 sous-span séparait le pictogramme et le mot. Le bloc original est maintenant
 traduit d’un seul tenant. **Aucune tolérance ou assertion assouplie.**
 
