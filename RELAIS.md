@@ -31,6 +31,11 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Jodie : conversation téléphonique contextualisée — ChatGPT, 10/11/2026 (PR #679)
+
+Retour réel de Fred : à l'appel au sujet du musée, le PJ disait être hors de Luthécia et vouloir s'y rendre à son retour ; Jodie enchaînait des questions de micro-trottoir hors sujet. Correctif `chatgpt/jodie-conversation-ciblee-20261110`, [PR #679](https://github.com/FredJ74/res-publica/pull/679) : consignes au profil serveur Jodie pour reconnaître le dernier propos, éviter les interviews et conclure poliment ; bouton explicite « J'irai à mon retour » utilisant le choix `accepte` de la RPC déjà existante, sans inférence d'un choix depuis une phrase libre ; boutons de questions annexes cachés après la première réponse. Pas de migration ni modification de progression. Test de non-régression ajouté. **À vérifier** : CI, déploiement, puis recette du dialogue IA réel (un modèle génératif ne garantit pas chaque formulation).
+
+
 ### Appel de Jodie et édition des journaux — ChatGPT, 10/11/2026 (PR #678)
 
 Signalement réel de Fred : l'appel J+1 de Jodie disparaissait quand la fenêtre des éditions de journaux était fermée. Cause : les deux contenus utilisaient le modal partagé `modal-postes`, dont le corps est écrasé lors de l'ouverture d'un autre écran. Branche `chatgpt/jodie-appel-fenetre-isolee-20261110`, [PR #678](https://github.com/FredJ74/res-publica/pull/678). Correctif : appel dans une fenêtre indépendante, fermée par la croix ou par une réponse d'ordre, sans changer la RPC ni le scénario ; test ajouté dans `test-jodie-enquete-musee.mjs` simulant l'ouverture puis fermeture des journaux. **À vérifier avant fusion :** CI sur le dernier SHA et absence de régression des autres modales. **À constater en jeu :** appel Jodie simultané à l'édition quotidienne ; après fermeture des journaux, Jodie doit rester visible et utilisable. Aucune migration.
