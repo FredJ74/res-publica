@@ -34,6 +34,34 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### i18n gestion / administration — clôture locale cumulative, Codex 10/11
+
+**159 nouvelles clés / neuf langues**, quatre branches poussées, réconciliées
+avec main `2f30d23b` (#699–701 préservées). Code cumulatif testé `08336f09`.
+- A `codex/i18n-gestion-commerces-20261110` : `b73a86b8` (52 clés).
+- B `codex/i18n-entrepot-notaire-20261110` : `f2b8212b` (21 clés).
+- C `codex/i18n-vente-don-matieres-20261110` : `dd451135` (65 clés).
+- D `codex/i18n-port-douanes-20261110` : code `08336f09` (21 clés), puis commit
+  documentaire portant cette rubrique et les preuves finales.
+
+**28/28 ciblés ; 275/276 bancs clients ; globaux 10/12**. Six PNG français1440
+strictement identiques, mobile360/390 et RTL testés localement, variables et
+saisies préservées, contre-épreuves de clé absente et paramètre faux détectées.
+Le seul rouge client, `banc-pnj-localisation-psm.mjs`, est reproduit sur main2f :
+scènes générées avec anciens noms du centre artisanal de Novomirsk depuis #701.
+Diff et journal fournis, pas de modification PNJ/Claude. Baseline/Referential
+identiquement rouges sur main et branche, Workflow/Authority conformes.
+
+Rapport, titres/descriptions PR prêts, ordre **A→B→C→D**, commandes et preuves :
+`outils/audits/I18N-GESTION-ADMINISTRATION-20261110.md` et sous-dossier associé.
+REST création PR :403 ; aucune PR créée, fusion ou CI distante déclarée.
+L'intégrateur peut ouvrir les quatre PR avec ces branches et les titres du rapport.
+Vercel inaccessible via proxy (CONNECT403, HEAD10/11 21:49UTC), pas de READY observé.
+Aucune migration ni donnée réelle modifiée, aucun fichier des chantiers Claude ou
+Règles modifié. Pas d'essai connecté ou sur appareil physique. Restes français et
+inventaire candidat documentés ; ne pas annoncer le jeu intégralement traduit.
+
+
 ### i18n consultations port et douanes — Codex, 10/11/2026 (lot empilé)
 
 Branche `codex/i18n-port-douanes-20261110`, base vente/don `2376b5d9`.
