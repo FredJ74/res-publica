@@ -318,6 +318,22 @@ l'entrepôt et le port (Starovka), et la gare, l'entrepôt, le stade, le commiss
     « Infirmerie du Froid », etc.) : à reprendre ou à supprimer ?
 11. **Route de Starovka** : elle n'est reliée par la route à aucune ville (véhicules personnels) ; voulu ?
 
+### Fermes : production (Fred, 10/11/2026, midi)
+
+Une ferme ne consomme que du travail (PA), sans matière première en entrée, comme les jardins ouvriers :
+- **Abattre et dépecer un renne** (Starovka) : 5 PA → 3 viandes de renne, 2 peaux, 1 bois de renne ;
+- **Extraire des légumes** (Krasnov) : 1 PA → 1 fruit et légume ;
+- **Traire les rennes** (Starovka) : 1 PA → 2 laits de renne.
+- **Ramasser les œufs** (Krasnov) : 1 PA → 3 œufs.
+- **Abattre un poulet** (Krasnov) : 2 PA → 2 poulets ; **abattre un lapin** : 2 PA → 1 lapin et 1 peau (textile). **1 poulet ou 1 lapin = 1 viande** (matière `viande` existante, pas de nouvelle matière).
+- La **viande de renne** n'est que de la **viande** : l'appellation est purement RP (le service de Dolgor demande donc 2 viandes).
+- Le **lait de renne** est des **laitages** (matière existante), appellation purement RP.
+- Les **œufs** sont une **nouvelle matière** (`oeufs`), **hors du commerce international** (pas de trading). **Consommer 3 œufs rapporte 2 PA au prochain Dormir** (le lendemain). Les œufs se transportent sur soi et se mangent quand on veut (par exemple à l'hôpital, en plus du repas de l'hôpital) ; manger ne coûte pas de PA, seul le ramassage coûte 1 PA. Les œufs vont **toujours par 3, indissociables** : on ne mange jamais 1 œuf, mais les 3 d'un coup ; le chiffre 3 est cosmétique (une unité d'œufs = 3 œufs ; ramassage : 1 PA → 1 unité ; le service de Stepan « 6 œufs » = 2 unités). **Prix : 6 FR ou 3 PSK** l'unité de 3 œufs. **Les entrepôts ne vendent pas d'œufs** : ressource locale, équivalent d'un sandwich ou d'un repas ; un commerce classique peut vendre les œufs que son propriétaire a ramassés.
+- Le **bois de renne** est du **bois** (matière existante), appellation purement RP : pas de nouvelle matière, pas de distinction sur le couteau vendu (la recette du couteau ne change pas).
+- Le **sucre** (distillerie, 5 fruits et légumes = 10 sucres) est une **ressource locale** comme les œufs : ni entrepôt ni trading, gardé sur soi, revendable par un commerce, sans effet pour l'instant ; **prix : 2 FR ou 1 PSK** (jamais de décimales dans les monnaies).
+- Les **peaux** sont du **textile** (matière existante). Le libellé de la matière devient « Tissus et peaux » (proposé par Fred, retenu par Claude ; la clé technique `textile` ne change pas).
+- **Fourreur** : commerce classique (mécanique générale des commerces). Le commerçant nomme lui-même ses articles pour coller au RP (chapka plutôt que slip de bain en peau de bête, mais libre à chacun). Aucun effet bonus pour l'instant (Fred ne se l'interdit pas plus tard).
+
 ### Règle des prix en Sovarka (Fred, 10/11/2026)
 
 En Sovarka on gagne peu mais on paie peu, sauf à Novomirsk, la ville des tsars : loyers et prix plus bas dans les
