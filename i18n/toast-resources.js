@@ -1153,6 +1153,91 @@
   }
 };
  for(const [locale,labels]of Object.entries(productionTitles))Object.assign(translated[locale],labels);
+ Object.assign(originals,{"Commerce injoignable": "tradeUnavailable", "Don non abouti": "donationUnconfirmed", "Vente non aboutie": "saleUnconfirmed", "Don refusé": "donationRefused", "Vente refusée": "saleRefused", "Don effectué": "donationCompleted", "Vente effectuée": "saleCompleted"});
+ const materialTradeTitles={
+  "fr": {
+    "tradeUnavailable": "Commerce injoignable",
+    "donationUnconfirmed": "Don non abouti",
+    "saleUnconfirmed": "Vente non aboutie",
+    "donationRefused": "Don refusé",
+    "saleRefused": "Vente refusée",
+    "donationCompleted": "Don effectué",
+    "saleCompleted": "Vente effectuée"
+  },
+  "en": {
+    "tradeUnavailable": "Business unreachable",
+    "donationUnconfirmed": "Donation not completed",
+    "saleUnconfirmed": "Sale not completed",
+    "donationRefused": "Donation refused",
+    "saleRefused": "Sale refused",
+    "donationCompleted": "Donation completed",
+    "saleCompleted": "Sale completed"
+  },
+  "es": {
+    "tradeUnavailable": "Comercio inaccesible",
+    "donationUnconfirmed": "Donación no realizada",
+    "saleUnconfirmed": "Venta no realizada",
+    "donationRefused": "Donación rechazada",
+    "saleRefused": "Venta rechazada",
+    "donationCompleted": "Donación realizada",
+    "saleCompleted": "Venta realizada"
+  },
+  "zh-TW": {
+    "tradeUnavailable": "無法連絡商店",
+    "donationUnconfirmed": "捐贈未完成",
+    "saleUnconfirmed": "出售未完成",
+    "donationRefused": "捐贈遭拒",
+    "saleRefused": "出售遭拒",
+    "donationCompleted": "捐贈完成",
+    "saleCompleted": "出售完成"
+  },
+  "ru": {
+    "tradeUnavailable": "Бизнес недоступен",
+    "donationUnconfirmed": "Пожертвование не завершено",
+    "saleUnconfirmed": "Продажа не завершена",
+    "donationRefused": "Пожертвование отклонено",
+    "saleRefused": "Продажа отклонена",
+    "donationCompleted": "Пожертвование выполнено",
+    "saleCompleted": "Продажа выполнена"
+  },
+  "ko": {
+    "tradeUnavailable": "상점에 연결할 수 없음",
+    "donationUnconfirmed": "기부 미완료",
+    "saleUnconfirmed": "판매 미완료",
+    "donationRefused": "기부 거부",
+    "saleRefused": "판매 거부",
+    "donationCompleted": "기부 완료",
+    "saleCompleted": "판매 완료"
+  },
+  "ar": {
+    "tradeUnavailable": "تعذّر الوصول للمتجر",
+    "donationUnconfirmed": "التبرع لم يكتمل",
+    "saleUnconfirmed": "البيع لم يكتمل",
+    "donationRefused": "رُفض التبرع",
+    "saleRefused": "رُفض البيع",
+    "donationCompleted": "تم التبرع",
+    "saleCompleted": "تم البيع"
+  },
+  "pt-BR": {
+    "tradeUnavailable": "Comércio inacessível",
+    "donationUnconfirmed": "Doação não concluída",
+    "saleUnconfirmed": "Venda não concluída",
+    "donationRefused": "Doação recusada",
+    "saleRefused": "Venda recusada",
+    "donationCompleted": "Doação realizada",
+    "saleCompleted": "Venda realizada"
+  },
+  "de": {
+    "tradeUnavailable": "Geschäft nicht erreichbar",
+    "donationUnconfirmed": "Spende nicht abgeschlossen",
+    "saleUnconfirmed": "Verkauf nicht abgeschlossen",
+    "donationRefused": "Spende abgelehnt",
+    "saleRefused": "Verkauf abgelehnt",
+    "donationCompleted": "Spende abgeschlossen",
+    "saleCompleted": "Verkauf abgeschlossen"
+  }
+};
+ for(const[locale,labels]of Object.entries(materialTradeTitles))Object.assign(translated[locale],labels);
  for(const [locale,titles] of Object.entries(translated)){
   if(resources[locale]?.translation)
    resources[locale].translation.toastTitles={...titles};

@@ -34,6 +34,25 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### i18n vente et don de matières — Codex, 10/11/2026 (lot empilé)
+
+Branche `codex/i18n-vente-don-matieres-20261110`, base entrepôt/notaire `76a4e0b5`.
+**65 clés dans neuf langues** : formulaire actif de vente/don, 19 légendes de
+stock réutilisant les noms traduits de #698, tous les refus et confirmations,
+7 titres dans le système existant (103 → 110), diagnostics français inchangés.
+Les stocks, PA, identifiants, devises, gardes, commandes et rafraîchissements sont
+préservés. Douze tests dédiés verts : deux modes, 17 motifs, réponse déjà signalée,
+zéros, saisie invalide, mêmes appels/états que main ; formulaire FR 1440 identique,
+360/390, RTL et saisies conservées, aucune écriture lors d’une bascule.
+Titre PR : « Vente et don de matières : formulaires et verdicts en neuf langues ».
+Description : « 65 clés et paramètres canoniques, mêmes commandes et conséquences,
+réutilisation des traductions de matières existantes et du système de notifications.
+Diagnostics français, tests de refus réseau/métier et comparaison stricte FR. »
+Base PR : branche entrepôt/notaire puis main après les deux premiers lots.
+Contrôles complets en cours ; aucune création de compte, SQL ou donnée réelle.
+Aucun circuit historique réactivé. Les travaux Sovarka/PNJ et Règles restent intacts.
+
+
 ### i18n entrepôt et consultation notariale — Codex, 10/11/2026 (lot empilé)
 
 Branche `codex/i18n-entrepot-notaire-20261110`, base gestion `91544c5a`.
