@@ -172,3 +172,24 @@ test('déclenchement J+1 seulement après accueil, rappel toujours après trois 
   assert.match(migration,/>=3\*86400/);
   assert.match(lire('plateau-enigme-portrait.js'),/ENIGME1_DELAI_DECLENCHEMENT_JOURS = 1/);
 });
+
+
+test('Jodie vouvoie sans permission et les choix de son appel sont visiblement actifs', () => {
+  const personnalites = lire('api/_pnj-personnalites.js');
+  const prompt = lire('api/_pnj-profils.js');
+  const css = lire('style.css');
+  assert.match(personnalites,/vouvoiement professionnel par défaut, y compris au téléphone/);
+  assert.doesNotMatch(personnalites,/enjouée, rapide, tutoiement spontané/);
+  assert.match(prompt,/JODIE — REGISTRE DE LANGUE/);
+  assert.match(prompt,/Le tutoiement n’est permis que si la personne vous y autorise explicitement/);
+  assert.match(css,/#modal-jodie-enquete \.pnj-action-btn:not\(:disabled\)/);
+  assert.match(css,/background: #3a2e1c/);
+  assert.match(css,/#modal-jodie-enquete \.pnj-action-btn:not\(:disabled\):focus-visible/);
+  const s = simuler({etat:{ok:true,type:'premier',contact:{}}});
+  return s.ctx.jodieEnqueteVerifierAppel().then(() => {
+    assert.match(s.body.innerHTML,/Comptez sur moi/);
+    assert.match(s.body.innerHTML,/J’irai à mon retour à Luthécia/);
+    assert.match(s.body.innerHTML,/Pas maintenant/);
+    assert.doesNotMatch(s.body.innerHTML,/disabled="true"/);
+  });
+});
