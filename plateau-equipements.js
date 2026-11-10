@@ -17,7 +17,8 @@
    reponses et n'ecrit rien lui-meme.
    =========================================================================== */
 
-const EQUIPEMENTS_LIBELLES = { 'ordinateur-complet': 'Ordinateur', 'box-internet': 'Box internet', 'armoire_souvenirs': 'Armoire à souvenirs' };
+const EQUIPEMENTS_LIBELLES = { 'ordinateur-complet': 'Ordinateur', 'box-internet': 'Box internet', 'armoire_souvenirs': 'Armoire à souvenirs',
+  'imprimante-papier': 'Imprimante papier', 'imprimante-3d': 'Imprimante 3D', 'peripherique-stockage': 'Périphérique de stockage', 'peripherique-reseau-intranet': 'Intranet' };
 const TRADING_VILLES = { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' };
 // Nom d'une ville d'entrepôt, quel que soit son pays (trading international, 05/11/2026).
 function tradingNomVille(pays, ville) {
@@ -125,8 +126,11 @@ async function ouvrirModalEquipements() {
   h += '<div class="cpj-titre">Connexion internet</div>';
   h += r.connexion
     ? '<p class="cpj-note">Votre ordinateur et votre box sont installés : vous êtes connecté.</p>' +
-      equipementsBouton('ouvrirTrading()', 'Trading de matières premières', true)
+      equipementsBouton('ouvrirTrading()', 'Trading de matières premières', true) +
+      (typeof ouvrirPiratage === 'function' ? ' ' + equipementsBouton('ouvrirPiratage()', 'Pirater') : '')
     : '<p class="cpj-note">Installez ici votre ordinateur et votre box internet pour vous connecter.</p>';
+  // Dossiers informatiques (11/11/2026) : ordinateur ou peripherique de stockage installe ici.
+  if (typeof ouvrirDossiers === 'function') h += '<div style="margin-top:.6rem">' + equipementsBouton('ouvrirDossiers()', 'Mes dossiers') + '</div>';
   equipementsModale('Équipements du local', h);
 }
 

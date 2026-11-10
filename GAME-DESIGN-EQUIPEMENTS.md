@@ -109,4 +109,13 @@ de décisions du **10 novembre 2026 au soir** (20 h 53 – 21 h 30), à coder en
   **Choix techniques** : la pose exige au moins un ordinateur connecté (sans quoi la caméra serait inopérante) ; un rapport
   n'est envoyé que s'il y a eu du passage ; « chez soi » = propriétaire foncier du lot (bâtiments construits par un PJ).
   Banc `outils/bancs/banc-equipements-surveillance.sql` (annulé) : pose, rapport par mail, fouille et emport validés avant
-  un dernier contrôle bloqué par le garde d'inventaire du banc (corrigé dans le fichier, **à rejouer**).
+  un dernier contrôle bloqué par le garde d'inventaire du banc ; **rejoué vert le 11/11 à 0 h 10**.
+- **Étapes 2 et 3 (11/11, vers 1 h) — piratage et dossiers** : migration `20261111010000_equipements_piratage_dossiers`
+  appliquée (tables `dossiers_informatiques`, `piratages_acces` ; RPC `pirater`, `piratage_dossier_agir`, `dossiers_lire`,
+  `dossier_ouvrir`, `dossier_deplacer`, `dossier_detruire`, `dossier_transferer` ; l'imprimante, l'imprimante 3D, le
+  périphérique de stockage et l'intranet s'installent désormais dans le bureau). Les dossiers sont attachés à l'**objet**
+  (identifiant de l'ordinateur ou du périphérique), donc suivent l'ordinateur volé. Écran : boutons « Pirater » et « Mes
+  dossiers » de la fenêtre des équipements (`plateau-informatique.js`). Banc `banc-equipements-piratage.sql` **vert** (registre,
+  banque, casernes, ordinateur avec copie unique, dossiers rangés, traces, refus hors bureau). **Choix techniques** : alerte
+  d'une institution = ministre des Finances (banque), de la Défense (casernes), de l'Intérieur (registres), s'il est tenu par un
+  PJ ; un PJ cible a l'intranet s'il en a installé un, où que ce soit ; registre « signalements » seulement en Sovarka.
