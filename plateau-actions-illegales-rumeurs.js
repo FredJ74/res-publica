@@ -6617,7 +6617,8 @@ const MATIERE_RECOLTE_VERS_CLE = {
   'Métal': 'metal',
   'Poisson': 'poisson',
   'Charbon': 'charbon',
-  'Bois': 'bois'
+  'Bois': 'bois',
+  'Pétrole': 'petrole'
 };
 
 async function confirmerRecolte(matiere, pa, cost) {

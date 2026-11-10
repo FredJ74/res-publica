@@ -4554,8 +4554,10 @@ const MATIERES_PREMIERES_VILLE = {
     ville_b: ['Bois exotique', 'Caoutchouc']  // La Selva
   },
   soviet: {
-    ville_a: ['Minerai de fer', 'Charbon'],   // Sibirsk-9
-    ville_b: ['Blé', 'Cuir']                  // Kolkhoz-7
+    // Lieux d'extraction (decision de Fred du 09/11/2026, migration 20261110083500) :
+    // Compagnie Nationale du Petrole a Starovka, exploitation forestiere a Krasnov.
+    ville_a: ['Pétrole'],                     // Starovka
+    ville_b: ['Bois']                         // Krasnov
   },
   khalija: {
     ville_a: ['Épices', 'Coton'],             // Oasis Al-Baraka

@@ -79,3 +79,16 @@ Bêta gratuite ; personnalisation et prestige plutôt que puissance ; conditions
 **Extension décidée, non codée à l'échelle du monde** : chaque ville aura sa propre quête d'accueil et sa propre enquête, donnant envie de se repérer et d'entretenir une relation ; PSM reste à redéfinir à partir de ses contours connus du game designer. **Sovarka est prioritaire avant l'extension narrative**. La réorganisation de « Mes objectifs » en missions/questions courtes en pop-up et les cartes de villes plus lisibles sont encore des intentions.
 
 Sources et statuts probatoires précis : [expérience et rétention](EXPERIENCE-ET-RETENTION.md), [PNJ sociaux](PNJ-IA-MEMOIRES-INTERACTIONS.md), [matrice](MATRICE-COUVERTURE.md), PR #664 et #666. **Aucune amélioration mesurée de D1/D7 ni recette réelle de ce parcours ne peut être affirmée.**
+
+## Sovarka — lot des provinces (10/11/2026, Claude, PR #681)
+
+Règles : `GAME-DESIGN-NOVOMIRSK.md`, « Réponses de Fred ». Statut : **codé, banc annulé vert sur la production, non vérifié en jeu**.
+
+| Système | Serveur | Écran | Reste |
+|---|---|---|---|
+| Extraction (pétrole Starovka, bois Krasnov) | `recolte_effectuer` (patch `sovarka_extraction_v1`) | `MATIERES_PREMIERES_VILLE` | — |
+| Bons d'État | `sovarka_bon_etat_souscrire`, `sovarka_bons_etat_lire`, `sovarka_bons_etat_passe` (minuit) | `plateau-sovarka-provinces.js` | banques sans façade dans les rues |
+| Centres d'écoute | `sovarka_ecoutes_passe` (minuit), `sovarka_ecoutes_lire`, `sovarka_ecoute_rapport_demander`, `sovarka_ecoute_archives_voler` | idem, bureau du ministre de la Défense | images |
+| Maisons (hospitalité, trinquer, ragots) | `sovarka_maison_lire`, `sovarka_maison_agir`, nuitée par `hotel_nuitees` | idem | réaction IA de l'habitant ; services « viande de renne / œufs / vodka » actifs avec fermes et distillerie |
+| Fermes, distillerie, fourreur | — | — | questions de design posées à Fred |
+| Forêt profonde de Krasnov | — | — | à coder (combat contre une créature : socle des combats) |

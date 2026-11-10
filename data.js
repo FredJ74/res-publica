@@ -2107,7 +2107,9 @@ const WORLD = {
                                        // Justice de Sovarka (Fred, 08/11/2026) : pas de procureur ; le ministre saisit le juge ou enterre, et donne ses consignes.
                                        { fn: 'sovarka_registre_plaintes', label: 'Affaires judiciaires', pa: 0, cost: 0, type: 'legal', icon: 'ti-scale', successRate: 100, requiresPost: 'min_just', desc: "Toutes les plaintes de Sovarka : saisir le juge ou enterrer l'affaire, et envoyer au juge vos consignes (condamner sévèrement, légèrement, relaxer, ou libre à lui) jusqu'à la veille du procès." }] },
             bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_defense.webp',
-                              orders: [{ fn: 'sovarka_conscription', label: 'Conscription', pa: 0, cost: 0, type: 'legal', icon: 'ti-military-rank', successRate: 100, desc: "Décréter ou lever la conscription des citoyens sans poste : 48 heures pour se présenter, sinon réfractaires et recherchés." }] },
+                              orders: [{ fn: 'sovarka_conscription', label: 'Conscription', pa: 0, cost: 0, type: 'legal', icon: 'ti-military-rank', successRate: 100, desc: "Décréter ou lever la conscription des citoyens sans poste : 48 heures pour se présenter, sinon réfractaires et recherchés." },
+                                       // Centres d'écoute (Fred, 10/11/2026) : le ministre demande à distance le rapport du jour qu'il veut, reçu par mail.
+                                       { fn: 'sovarka_ecoutes', label: 'Rapports des centres d’écoute', pa: 0, cost: 0, type: 'legal', icon: 'ti-antenna', successRate: 100, requiresPost: 'min_def', desc: "Les cellules d'écoute de Novomirsk, Starovka et Krasnov interceptent chaque jour une partie des mails. Demandez le rapport du jour que vous voulez : il vous arrive par mail." }] },
             bureau_min_info:{ name: 'Bureau - Ministre de la Vérité officielle', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_information.webp',
                               orders: [{ fn: 'sovarka_sondages', label: 'Sondages en attente', pa: 0, cost: 0, type: 'legal', icon: 'ti-chart-bar', successRate: 100, desc: "Les sondages reçus : publier tel quel, publier faussé ou enterrer." }] },
             bureau_min_ae:  { name: "Bureau - Ministre de l'Amitié entre les Peuples", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_diplomatie.webp' }
@@ -10779,7 +10781,7 @@ function montantDansTexte(texte, ancien, nouveau) {
 
 // LOCAUX A LOUER DE STAROVKA (reponse 4 de Fred, 09/11/2026) : deux nouveaux locaux simples, demandes a la
 // mairie comme les autres locaux de Sovarka (sovarka_locaux, migration 20261110004000). Plafond de loyer
-// propose : 50 PSK par jour chacun (comme une boutique moyenne des centres de province), a valider.
+// 30 PSK par jour chacun (decision de Fred du 10/11, migration 20261110093000).
 BUILDINGS['locaux-starovka'] = {
   name: 'Locaux à louer',
   shortName: 'Locaux',
@@ -10794,8 +10796,89 @@ BUILDINGS['locaux-starovka'] = {
     persons: [],
     orders: [
       { fn: 'sovarka_demande_location', label: 'Demande de location', pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
-        desc: 'Écrire à la mairie pour demander ce local (loyer fixé par le maire, 50 PSK par jour au plus). Votre lettre rejoint les dossiers du maire ; l\'attribution se signe ensuite chez le notaire.' },
+        desc: 'Écrire à la mairie pour demander ce local (loyer fixé par le maire, 30 PSK par jour au plus). Votre lettre rejoint les dossiers du maire ; l\'attribution se signe ensuite chez le notaire.' },
       { fn: 'commerce_pj', label: 'Ce commerce', pa: 0, cost: 0, type: 'legal', icon: 'ti-building-store', successRate: 100, desc: 'Gérer votre commerce, ou visiter la boutique du commerçant.' }
     ]
   }]))
 };
+
+// BANQUES DE SOVARKA (reponse 1 de Fred, 09/11/2026) : ni placements prives ni prets. Les guichets
+// (Banque nationale de Novomirsk, banques locales de Starovka et Krasnov) proposent les bons d'Etat
+// (sovarka_bon_etat_souscrire, migration 20261110085000) ; la banque privee n'existe pas a Novomirsk.
+(function () {
+  const pays = WORLD.soviet; if (!pays) return;
+  const bon = { fn: 'souscrire_bon_etat', label: 'Bons d’État', pa: 0, cost: 0, type: 'legal', icon: 'ti-certificate', successRate: 100,
+    desc: 'Soutenir l’économie de Sovarka : un bon de 7 jours, rendement fixé à la souscription selon l’économie du pays.' };
+  const regler = (ville, batiment, pieceId) => {
+    const cite = pays[ville]; if (!cite) return;
+    cite.buildingContext = cite.buildingContext || {};
+    const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+    ctx.roomOverrides = ctx.roomOverrides || {};
+    const p = ctx.roomOverrides[pieceId] = ctx.roomOverrides[pieceId] || {};
+    p.excludeOrders = Array.from(new Set([...(p.excludeOrders || []), 'emprunter']));
+    p.orders = [...(p.orders || []).filter(o => o.fn !== bon.fn), bon];
+  };
+  regler('capitale', 'banque-nationale', 'accueil_banque');
+  regler('ville_a', 'banque-locale', 'guichet');
+  regler('ville_b', 'banque-locale', 'guichet');
+  if (pays.capitale) pays.capitale.buildings = pays.capitale.buildings.filter(b => b !== 'banque-privee');
+})();
+
+// CENTRES D'ECOUTE DE STAROVKA ET KRASNOV (Fred, 10/11/2026 ; migration 20261110092000). Specialite de Sovarka :
+// l'espionnage. Une seule piece : l'operateur et les archives (rapports consignes chaque nuit). Tout PJ qui n'est pas
+// ministre de la Defense peut tenter de voler un rapport (acte illegal, sovarka_ecoute_archives_voler).
+(function () {
+  const centre = (id, nom, court, pnj, role, desc, pieceDesc) => {
+    BUILDINGS[id] = {
+      name: nom, shortName: court, cat: 'Sécurité', icon: 'ti-antenna', bgColor: '#101418', desc,
+      imagesAVenir: true,
+      rooms: { salle_ecoute: {
+        name: 'Salle d’écoute', imageBg: 'linear-gradient(135deg,#101418,#18202a)', desc: pieceDesc,
+        persons: [{ name: pnj + ' (PNJ)', role, rel: 'neutral', job: 'militaire' }],
+        orders: [{ fn: 'voler_archives_ecoute', label: 'Voler un rapport dans les archives', pa: 2, cost: 0, type: 'illegal', icon: 'ti-file-search', successRate: 45,
+          desc: 'Dérober un rapport d’écoute au hasard parmi ceux des 30 derniers jours. Acte illégal : en cas d’échec, bagarre avec l’opérateur puis prison ; en cas de réussite, vous laissez une trace.' }]
+      } }
+    };
+  };
+  centre('poste-vigilance-glaciale', 'Poste de Vigilance Glaciale', 'Poste militaire', 'Sergent Bair Dorjiev', 'Opérateur d’écoute',
+    'Un poste militaire planté dans la glace, hérissé d’antennes : il écoute la ville et, au-delà de l’océan, El Estado.',
+    'Des casques, des bandes magnétiques, un poêle et des classeurs alignés : le sergent Dorjiev écoute en silence.');
+  centre('station-radar-krasnov', 'Station radar de Krasnov', 'Station radar', 'Lieutenante Nadejda Sokolova', 'Opératrice d’écoute',
+    'La station radar du kolkhoze : sa grande parabole tourne vers le sud, vers Al-Khalija, et écoute aussi Krasnov.',
+    'Des consoles qui grésillent et des archives tenues en triple exemplaire par la lieutenante Sokolova.');
+  const cite = v => WORLD.soviet && WORLD.soviet[v];
+  if (cite('ville_a') && !cite('ville_a').buildings.includes('poste-vigilance-glaciale')) cite('ville_a').buildings.push('poste-vigilance-glaciale');
+  if (cite('ville_b') && !cite('ville_b').buildings.includes('station-radar-krasnov')) cite('ville_b').buildings.push('station-radar-krasnov');
+})();
+
+// MAISONS DE STAROVKA ET KRASNOV (Fred, 10/11/2026 ; migration 20261110094500) : hospitalite russe. Un habitant tres
+// accueillant offre le gite et le couvert contre un service tire chaque jour ; on peut aussi trinquer avec lui
+// (« secret contre secret », nid a ragots). Habitants proposes par Claude, a valider par Fred.
+(function () {
+  const maison = (id, nom, habitant, role, desc, pieceDesc) => {
+    BUILDINGS[id] = {
+      name: nom, shortName: 'Maison', cat: 'Social', icon: 'ti-home-heart', bgColor: '#16110c', desc, imagesAVenir: true,
+      rooms: { piece_maison: {
+        name: 'La pièce commune', imageBg: 'linear-gradient(135deg,#16110c,#221a12)', desc: pieceDesc,
+        persons: [{ name: habitant + ' (PNJ)', role, rel: 'friendly', job: 'habitant' }],
+        orders: [
+          { fn: 'maison_habitant', label: 'Parler à l’habitant', pa: 0, cost: 0, type: 'legal', icon: 'ti-home-heart', successRate: 100,
+            desc: 'L’habitant vous offre le gîte et le couvert contre un petit service, différent chaque jour. Une hospitalité par jour.' },
+          { fn: 'trinquer_habitant', label: 'Trinquer avec l’habitant', pa: 3, cost: 0, type: 'legal', icon: 'ti-glass-full', successRate: 100,
+            desc: 'Apportez une bouteille (n’importe quel alcool). À chaque bouteille, l’habitant vous livre un secret de la ville… et vous lui en livrez un, malgré vous. 3 PA par bouteille.' },
+          { fn: 'dormir_chambre', label: 'Dormir chez l’habitant', pa: 0, cost: 0, type: 'legal', icon: 'ti-bed', successRate: 100,
+            desc: 'Une fois le service rendu : une nuit au chaud, comme à l’hôtel (+2 PA, +3 Moral au réveil).' }
+        ]
+      } }
+    };
+  };
+  maison('maison-starovka', 'Maison de Dolgor', 'Dolgor Tsybikova', 'Habitante de Starovka',
+    'Une maison de bois basse, fumée qui monte droit dans le froid : la porte s’ouvre avant même qu’on ait frappé.',
+    'Un poêle ronflant, du thé au beurre sur le feu et une vieille dame bouriate qui vous fait signe de vous asseoir.');
+  maison('maison-krasnov', 'Maison de Stepan', 'Stepan Kouznetsov', 'Habitant de Krasnov',
+    'La maison d’un vieux kolkhozien, ses bocaux alignés sur le rebord de la fenêtre.',
+    'Une table couverte d’une toile cirée, des cornichons, du pain noir et un vieil homme ravi d’avoir de la compagnie.');
+  const cite = v => WORLD.soviet && WORLD.soviet[v];
+  if (cite('ville_a') && !cite('ville_a').buildings.includes('maison-starovka')) cite('ville_a').buildings.push('maison-starovka');
+  if (cite('ville_b') && !cite('ville_b').buildings.includes('maison-krasnov')) cite('ville_b').buildings.push('maison-krasnov');
+})();

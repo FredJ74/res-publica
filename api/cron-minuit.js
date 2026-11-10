@@ -6732,6 +6732,17 @@ export default async function handler(req, res) {
       return (await sbRpc('sovarka_gloire_synchroniser', {}, HEADERS_SERVICE)) || { ok: false, raison: 'rpc_indisponible' };
     });
 
+    // SOVARKA (10/11/2026, GAME-DESIGN-NOVOMIRSK.md, reponse 1) : bons d'Etat arrives a echeance,
+    // rembourses par le Tresor (ou par la planche a billets a -10 %). AVANT sovarka_pouvoir, qui
+    // redistribue le Tresor du jour. Chaque remboursement est revendique dans actes_nocturnes.
+    const bonsEtatSovarka = await tacheQuotidienne('sovarka_bons_etat', async function () {
+      return (await sbRpc('sovarka_bons_etat_passe', {}, HEADERS_SERVICE)) || { ok: false, raison: 'rpc_indisponible' };
+    });
+    // SOVARKA (10/11/2026) : les centres d'ecoute compilent les mails interceptes de la veille.
+    const ecoutesSovarka = await tacheQuotidienne('sovarka_ecoutes', async function () {
+      return (await sbRpc('sovarka_ecoutes_passe', {}, HEADERS_SERVICE)) || { ok: false, raison: 'rpc_indisponible' };
+    });
+
     // SOVARKA (08/11/2026, GAME-DESIGN-NOVOMIRSK.md) : convocation des députés le jeudi, suspension de
     // l'indemnité des absents le vendredi, indemnité quotidienne (250 PSK), réfractaires à la
     // conscription après 48 h. Chaque effet non idempotent est revendiqué dans actes_nocturnes.
@@ -6861,7 +6872,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, exportationsSovarka, urbanismeSovarka, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, exportationsSovarka, urbanismeSovarka, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

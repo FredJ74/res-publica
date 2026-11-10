@@ -190,6 +190,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'produire_arme') { doProduireArme(); return; }
   if (fn === 'racheter_entreprise') { doRachatEntreprise(); return; }
   if (fn === 'recolter_matiere') { doRecolterMatiere(pa, cost); return; }
+  // Sovarka, lot des provinces (10/11/2026) : plateau-sovarka-provinces.js.
+  if (fn === 'souscrire_bon_etat') { ouvrirBonsEtat(); return; }
+  if (fn === 'sovarka_ecoutes') { ouvrirEcoutesMinistre(); return; }
+  if (fn === 'voler_archives_ecoute') { volerArchivesEcoute(); return; }
+  if (fn === 'maison_habitant') { ouvrirMaisonHabitant(); return; }
+  if (fn === 'trinquer_habitant') { trinquerHabitant(); return; }
   // Jardins ouvriers de Montrouge (01/11/2026) : plateau-logements-montrouge.js.
   if (fn === 'travailler_jardins') { doTravaillerJardins(); return; }
   if (fn === 'laisser_legumes_jardins') { doEchangeLegumesJardins('laisser'); return; }

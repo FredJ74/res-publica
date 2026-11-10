@@ -4461,15 +4461,6 @@ export const SCENES_PNJ = {
     "piece": "Coffre Privatif — Local à louer",
     "personnes": []
   },
-  "[\"soviet\",\"capitale\",\"banque-privee\",\"bureau_prive\"]": {
-    "pays": "Sovarka",
-    "ville": "Novomirsk",
-    "batiment": "Caisse Collective Spéciale",
-    "piece": "Bureau prive",
-    "personnes": [
-      "Camarade Privilège"
-    ]
-  },
   "[\"soviet\",\"capitale\",\"clinique-privee\",\"reception_clinique\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
@@ -6090,6 +6081,24 @@ export const SCENES_PNJ = {
     "piece": "Local n°2",
     "personnes": []
   },
+  "[\"soviet\",\"ville_a\",\"poste-vigilance-glaciale\",\"salle_ecoute\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Poste de Vigilance Glaciale",
+    "piece": "Salle d’écoute",
+    "personnes": [
+      "Sergent Bair Dorjiev"
+    ]
+  },
+  "[\"soviet\",\"ville_a\",\"maison-starovka\",\"piece_maison\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Maison de Dolgor",
+    "piece": "La pièce commune",
+    "personnes": [
+      "Dolgor Tsybikova"
+    ]
+  },
   "[\"soviet\",\"ville_b\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
@@ -6544,6 +6553,24 @@ export const SCENES_PNJ = {
     "piece": "Salle",
     "personnes": [
       "Grigori Zaitsev"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"station-radar-krasnov\",\"salle_ecoute\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Station radar de Krasnov",
+    "piece": "Salle d’écoute",
+    "personnes": [
+      "Lieutenante Nadejda Sokolova"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"maison-krasnov\",\"piece_maison\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Maison de Stepan",
+    "piece": "La pièce commune",
+    "personnes": [
+      "Stepan Kouznetsov"
     ]
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"corps_garde\"]": {

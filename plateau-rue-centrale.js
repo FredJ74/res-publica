@@ -839,7 +839,10 @@ const RUE_CENTRALE_NOEUDS = {
 
     'starovka-maisons-ferme': {
       image: 'images/Sovarka/Starovka/Starovka_maisons_ferme.webp',
-      zones: [],
+      // 10/11/2026 : maison de Dolgor (hospitalité), migration 20261110094500.
+      zones: [
+        { xPct: [0, 35], yPct: [8, 76], nom: 'Maison de Dolgor', type: 'batiment', buildingId: 'maison-starovka' }
+      ],
       liens: { toutDroit: 'starovka-rue-hotel', arriere: 'starovka-rue-petrole-ferme' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
     },
@@ -941,6 +944,8 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/Sovarka/Starovka/Starovka_rue_bureaux_caserne.webp',
       // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
+        // 10/11/2026 : Poste de Vigilance Glaciale (centre d'écoute), migration 20261110092000.
+        { xPct: [0, 15], yPct: [8, 76], nom: 'Poste de Vigilance Glaciale', type: 'batiment', buildingId: 'poste-vigilance-glaciale' },
         { xPct: [47, 100], yPct: [0, 72], nom: "Centre d'affaires de Starovka", type: 'batiment', buildingId: 'centre-affaires' }
       ],
       liens: {
@@ -1005,7 +1010,10 @@ const RUE_CENTRALE_NOEUDS = {
     // Rue des maisons : aucune direction supplémentaire tant que non définie.
     'krasnov-rue-maison': {
       image: 'images/Sovarka/Krasnov/Krasnov rue maison.webp',
-      zones: [],
+      // 10/11/2026 : maison de Stepan (hospitalité), migration 20261110094500.
+      zones: [
+        { xPct: [40, 90], yPct: [8, 76], nom: 'Maison de Stepan', type: 'batiment', buildingId: 'maison-krasnov' }
+      ],
       liens: { gauche: 'krasnov-rue-entrepot', droite: 'krasnov-rue-terrains' },
       flechesStyle: {
         gauche: 'top:50%; left:10px; transform:translateY(-50%);',
@@ -1079,7 +1087,10 @@ const RUE_CENTRALE_NOEUDS = {
     // Krasnov : retour vers l'école / forêt, puis route vers les immeubles.
     'krasnov-rue-distillerie-radar': {
       image: 'images/Sovarka/Krasnov/Krasnov rue distillerie centre radar.webp',
-      zones: [],
+      // 10/11/2026 : station radar (centre d'écoute), sortie serveur (migration 20261110092000).
+      zones: [
+        { xPct: [55, 95], yPct: [8, 76], nom: 'Station radar de Krasnov', type: 'batiment', buildingId: 'station-radar-krasnov' }
+      ],
       liens: { arriere: 'krasnov-rue-ecole-foret', toutDroit: 'krasnov-rue-immeubles-centre-commercial' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
