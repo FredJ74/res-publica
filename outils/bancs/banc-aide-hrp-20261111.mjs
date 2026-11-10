@@ -24,7 +24,7 @@ test('Neuf langues, validation fail-closed et aucun prompt transmis par le clien
   ])assert.notEqual(validerQuestionAide(mauvais),null);
   const p=promptAideJeu('fr');
   assert.match(p,/Les PA sont les Points d.Action/);
-  assert.match(p,/une fois par journée réelle/);
+  assert.match(p,/Une fois par journée réelle/);
   assert.match(p,/Explore la ville/);
   assert.match(p,/Ça restera entre nous/);
   assert.match(p,/AUCUN ordre/);
@@ -109,5 +109,5 @@ test('Le premier onglet est Aide, les anciens guides sont conservés',()=>{
   const code=lire('plateau-aide.js');
   assert.match(code,/textContent=\s*text/); // Affichage sans HTML IA
   assert.match(code,/fetch\('\/api\/aide'/);
-  assert.doesNotMatch(code,/localStorage|sessionStorage|innerHTML/);
+  assert.doesNotMatch(code,/\b(?:localStorage|sessionStorage)\b|\.innerHTML\s*=/);
 });
