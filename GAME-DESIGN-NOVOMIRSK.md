@@ -551,5 +551,11 @@ pétrole et du bois devra d'abord passer au serveur (règle « une seule réalit
 (2 × coût de revient) à l'échelle de Sovarka — menus 6 PSK, plats du Bar Sever 5, boissons 2 à 3. Socle : une dotation de
 commerce peut viser un pays et une ville (clé `bâtiment|pièce@pays.ville`, prioritaire sur `@ville`). **Choix technique** : le
 dîner d'affaires du Grand Hôtel sert désormais une bouteille de **champagne soviétique** au lieu du vin (banc
-`banc-diner-grand-hotel-sovarka.sql` vert). **Reste signalé** : le marché de Krasnov hérite encore de la dotation
-`marche@ville_b` de Montrouge (casquette et cartes postales de Montrouge, carbonade).
+`banc-diner-grand-hotel-sovarka.sql` vert). 
+
+### Marché de Krasnov (Fred, 10/11/2026, 23 h 19)
+
+Le marché vend **une portion de goulash, un guide des baies sauvages de Krasnov et des chemises de bûcheron à carreaux**.
+**Codé le 10/11** : migration `20261110233000_marche_krasnov` appliquée (dotation `marche@soviet.ville_b`, il n'hérite plus
+des objets de Montrouge). Choix techniques : goulash = aliment ; chemise = objet d'intégration locale (+1 ENT à Krasnov,
+cible `soviet.ville_b`) ; guide = objet simple ; prix PNJ 4, 3 et 6 PSK (formule commune). Images à faire par Fred.
