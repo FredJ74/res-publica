@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="stylesheet" href="style.css?v=lisibilite-pnj-20261031-caracs-mobile-l7-20261106-formulaires-20261107-reconnexion-20261108">
+<link rel="stylesheet" href="plateau-aide.css?v=aide-hrp-20261111">
 <style>
 /* Le bandeau de traduction partielle concerne les langues étrangères ; l'interface FR conserve son gabarit initial. */
 html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
@@ -205,7 +206,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
       <i class="ti ti-chart-bar" style="font-size:.75rem;vertical-align:-1px"></i> <span data-i18n="plateau.imperialIndices" data-i18n-uppercase>INDICES IMPERIAUX</span>
     </button>
     <button class="forum-btn" onclick="openRulesView()">
-      <i class="ti ti-book" style="font-size:.8rem;vertical-align:-1px"></i> <span data-i18n="plateau.rules">Règles</span>
+      <i class="ti ti-book" style="font-size:.8rem;vertical-align:-1px"></i> <span data-aide-ui="nav">Aide</span>
     </button>
     <button class="forum-btn" onclick="openForumView()" id="btn-messages" data-i18n-title="plateau.forumsTitle" title="Messages et Forums">
       <i class="ti ti-messages" style="font-size:.8rem;vertical-align:-1px"></i> <span data-i18n="plateau.messagesForums">Messages/Forums</span>
@@ -377,11 +378,12 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
           <i class="ti ti-x"></i> <span data-i18n="plateau.closeButton">Fermer</span>
         </button>
         <div class="batiment-header-info">
-          <div class="batiment-nom" data-i18n="plateau.rules">Règles du jeu</div>
-          <div class="batiment-cat" data-i18n="plateau.gameGuide">Res Publica — Guide du joueur</div>
+          <div class="batiment-nom" data-aide-ui="nav">Aide</div>
+          <div class="batiment-cat" data-aide-ui="subtitle">Human Gambit — Aide du joueur</div>
         </div>
         <div class="pieces-tabs">
-          <div class="rules-tab piece-tab active" data-section="intro" data-i18n="plateau.rulesIntro" onclick="renderRulesContent('intro');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Le Grand Jeu</div>
+          <div class="rules-tab piece-tab active" data-section="aide" data-aide-ui="tab" onclick="renderRulesContent('aide')">Poser une question</div>
+          <div class="rules-tab piece-tab" data-section="intro" data-i18n="plateau.rulesIntro" onclick="renderRulesContent('intro');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Le Grand Jeu</div>
           <div class="rules-tab piece-tab" data-section="tuto" data-i18n="plateau.rulesTutorial" onclick="renderRulesContent('tuto');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">🎓 Tutoriel</div>
           <div class="rules-tab piece-tab" data-section="personnage" data-i18n="plateau.rulesCharacter" onclick="renderRulesContent('personnage');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Personnage</div>
           <div class="rules-tab piece-tab" data-section="plateau" data-i18n="plateau.rulesBoard" onclick="renderRulesContent('plateau');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Plateau</div>
@@ -959,6 +961,7 @@ function signalerEvenementJournal() {
 <script src="i18n/beta-language-notice.js?v=20261109"></script>
 <script src="i18n/navigation-resources.js?v=20261110"></script>
 <script src="i18n/plateau-init.js?v=inventaire-variables-20261110-i18n-refresh-fenetres-20261110"></script>
+<script src="plateau-aide.js?v=aide-hrp-20261111"></script>
 <script src="plateau-mobile.js?v=certification-reprise-r2-20261108" defer></script>
 </body>
 </html>
