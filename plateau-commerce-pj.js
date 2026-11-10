@@ -1466,7 +1466,8 @@ function commercePjIntermediaires(rec) {
     'imprimante_3d_commerce': 2,
     'peripherique_stockage_commerce': 1,
     'peripherique_reseau_commerce': 2,
-    'jeu_video_commerce': 1
+    'jeu_video_commerce': 1,
+    'couinator_3000_commerce': 1
   };
   const nombre = quantites[rec.recette_id];
   return nombre ? { 'composants-electroniques': nombre } : (rec.intermediaires || {});
