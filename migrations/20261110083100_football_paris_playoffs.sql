@@ -112,7 +112,8 @@ BEGIN
    END IF;
    v_n:=v_n+1;
    v_detail:=v_detail||jsonb_build_array(jsonb_build_object('id',v_pari.id,'joueur',v_pari.data->>'joueur',
-       'gagne',v_gagne,'gain',v_gain,'homeId',v_pari.data->>'homeId','awayId',v_pari.data->>'awayId'));
+       'gagne',v_gagne,'gain',v_gain,'homeId',v_pari.data->>'homeId','awayId',v_pari.data->>'awayId',
+       'country',(SELECT country FROM public.personnages_donnees WHERE name=v_pari.data->>'joueur')));
  END LOOP;
  RETURN jsonb_build_object('ok',true,'manche',p_manche,'regles',v_n,'payes',v_payes,'total',v_total,'detail',v_detail);
 END $football$;
