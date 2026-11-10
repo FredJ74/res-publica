@@ -2334,7 +2334,7 @@ const WORLD = {
           // navigation serveur. Les trois salles exclues ne sont pas détruites.
           roomsExclues: ['salle_tresor_national','salle_reussites_economiques','salle_criminels_pays'],
           roomOverrides: {
-            hall: { name: "Accueil", desc: "Accueil du musée national, avec la réceptionniste et la guide.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_accueil.webp", persons: [{name:'Réceptionniste du musée de Sovarka (PNJ)',role:'Accueil du musée',rel:'neutral',job:'hotesse'}, {name:'Guide du musée de Sovarka (PNJ)',role:'Guide',rel:'neutral',job:'guide'}] },
+            hall: { name: "Accueil", desc: "Accueil du musée national, avec la réceptionniste et la guide.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_accueil.webp" },
             salle_presidents: { name: "Salle des présidents", desc: "Portraits des cinq présidents historiques de Sovarka et deux emplacements réservés aux futurs dirigeants.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle présidents.webp" },
             salle_politiques: { name: "Salle des partis politiques victorieux", desc: "Les partis des présidents victorieux : PPP, Parti du Prolétariat Heureux et Parti du Progrès Nostalgique.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle partis.webp" },
             salle_honneur_militaire_nationale: { name: "Salle des honneurs militaires", desc: "Hommages militaires et objets de mémoire du pays.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle des honneurs militaires.webp" },
