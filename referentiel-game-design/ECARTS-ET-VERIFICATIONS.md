@@ -99,3 +99,24 @@ Sur 1 605 fonctions publiques observées, 1 401 sont `SECURITY DEFINER`, dont 26
 **Points à vérifier avant de conclure** : déclenchement non intrusif au premier retour, reconnaissance du PJ connu de Jodie au marché ou à la rédaction, aucune divulgation avant J+1, contenu du calepin déjà possédé, dialogue DeepSeek sans divulgation intempestive, étape finale et conservation de l'état après refresh, comportement sur smartphone et compréhension des PA. Mesurer le retour réel avant d'attribuer à l'enquête un impact sur D1/D7.
 
 **Évolution de cap** : une quête d'accueil et une enquête par ville ont été décidées, mais ne sont pas toutes implémentées. Le scénario de PSM est partiellement oublié par son auteur et doit être redéfini avec lui, sans supposition. Sovarka reste prioritaire ; la refonte de « Mes objectifs » et la lisibilité des cartes restent distinctes.
+
+## Complément E-16 — Régression #688, contrôles et vieux bugs d'août (10 novembre, après-midi)
+
+**Régression constatée et réparée** : le lot i18n de l'inventaire (#688) avait écrasé dans `plateau-personnage.js` les ajouts de #686 (« Manger 3 œufs », texte de l'hôpital public) et remis dans `plateau.html` des versions de cache antérieures (`plateau-vehicules.js`, `plateau-sovarka-provinces.js`, `plateau-router.js`, `plateau-navigation.js`). Rétabli par Claude ; c'était la cause du contrôle rouge `test-sovarka-provinces-partie2` sur main. **Leçon** : deux lots fusionnés le même jour sur un gros fichier commun peuvent s'effacer sans conflit Git apparent ; repartir du dernier main et vérifier qu'aucune ligne d'un lot fusionné ne disparaît.
+
+**Contrôle `bancs-hors-production`** : rouge sur main pendant plusieurs lots, ce qui masquait les étapes suivantes ; redevenu vert (scènes PNJ régénérées, photographies historiques des tarifs complétées : 14 ordres des provinces de Sovarka et adhésion Dynamo à 25 PSK déclarés, `consommer_buvette` restauré dans la photographie, 521 tarifs actuels ; bâtiments et vues de forêt du 10/11 exclus de la référence de navigation). Les références `20261031115754-58_navigation_lieux_reference.sql` restent immuables (empreintes #219).
+
+**Vieux bugs du suivi d'août, statut** (vérification de code et de base, pas de recette PJ) :
+
+| Bug | Statut |
+|---|---|
+| Photo du Chef de Cabinet | réglé (fichier présent, chemin juste) |
+| Retour à Luthécia sur l'ancienne rue | réglé (le serveur pose le centre multimodal depuis le 31/10) |
+| Images manquantes à PSM | réglé (aucune image référencée absente ; restent des visuels attendus : armoire à souvenirs, députés, enseigne du joueur, armes des futurs empires) |
+| Calendrier électoral | réglé (scrutins en base datés au 15 et 22/11) |
+| Indices remis à zéro au rafraîchissement | probablement réglé (lecture des ressources serveur au chargement) — **à constater en jeu** |
+| Rues croisées sans carrefour (six villes) | réglé par #670 ; garde générale dans `test-plan-rues-20261109.mjs` (8/8) |
+
+**Écarts du baseline (#262) devenus caducs** : `inventaire_place_restante` et `personnages_convocations_garder` identiques au baseline ; `payer_ordre` = version du dépôt patchée par `20261031115831` ; table `acquisitions_transactions_internes` présente dans le baseline immobilier.
+
+**Limite du référentiel** : les catalogues `CATALOGUE-BATIMENTS-PIECES-ORDRES.md`, `CATALOGUE-COUTS-SERVEUR.md` et `CROISEMENT-CATALOGUES.md` restent extraits au SHA `a8bd5e26` (9/11) ; ils **n'incluent pas** les bâtiments et ordres de Sovarka ajoutés le 10/11 (#670, #681, #686, forêt), ni les tarifs nationaux (`ordres_couts_pays`). Les régénérer avant tout audit chiffré des ordres.
