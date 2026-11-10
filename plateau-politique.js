@@ -4019,7 +4019,12 @@ function renderRoomActions(room, buildingId, roomId) {
       typeof window.RPOrderI18n.labelHtml === 'function')
       ? window.RPOrderI18n.labelHtml(o,window.i18next,window.RPPlateauI18n.language())
       : o.label;
-    const libelleMarque = '<span data-rp-order-index="' + orderIndex + '">' + libelleAffiche + '</span>';
+    // Les menus peuvent conserver ce HTML et le monter après un autre catalogue.
+    // Le descripteur de présentation voyage donc avec le noeud différé.
+    const descriptor = ' data-rp-order-fn="' + encodeURIComponent(o.fn || '') +
+      '" data-rp-order-source="' + encodeURIComponent(o.label || '') +
+      '" data-rp-order-key="' + encodeURIComponent(o.i18nKey || '') + '"';
+    const libelleMarque = '<span data-rp-order-index="' + orderIndex + '"' + descriptor + '>' + libelleAffiche + '</span>';
     if (achatTerrainBloqueParIntrus && ['acheter_terrain','signer_compromis'].includes(o.fn)) {
       return '<button type="button" class="action-btn legal blocked" disabled aria-disabled="true" title="' +
         messageAchatTerrainIntrus + '"><i class="ti ' + o.icon + '"></i> ' + libelleMarque + '</button>';
@@ -4493,6 +4498,7 @@ function renderRoomActions(room, buildingId, roomId) {
   window.RPOrderI18n?.registerRenderedOrders?.(ordresTerrainLuthecia);
   document.getElementById('actions-row-bat').innerHTML = boutonsOrganises.join('') ||
     '<div style="font-size:.75rem;color:#9a8a68;font-style:italic;padding:.3rem">Aucune action disponible ici.</div>';
+  window.RPOrderI18n?.bindVisibleLabels?.(document.getElementById('actions-row-bat'));
 }
 
 function ouvrirInformationsTerrainLuthecia(nature) {
@@ -4614,7 +4620,8 @@ function ouvrirMenuOrdresCommissaire(index) {
       e.html + '</div>').join('') + '</div>';
   modal.classList.add('open');
   // Un sous-menu ajoute après la bascule doit refléter la langue courante.
-  window.RPOrderI18n?.refreshVisibleLabels?.(corps, window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
+  window.RPOrderI18n?.bindVisibleLabels?.(corps);
+   window.RPOrderI18n?.refreshVisibleLabels?.(corps, window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
 }
 
 function ouvrirMenuOrdresGreffe(index) {
@@ -4631,7 +4638,8 @@ function ouvrirMenuOrdresGreffe(index) {
       e.html + '</div>').join('') + '</div>';
   modal.classList.add('open');
   // Un sous-menu ajoute après la bascule doit refléter la langue courante.
-  window.RPOrderI18n?.refreshVisibleLabels?.(corps, window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
+  window.RPOrderI18n?.bindVisibleLabels?.(corps);
+   window.RPOrderI18n?.refreshVisibleLabels?.(corps, window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
 }
 
 function ouvrirMenuOrdresTerrain(index) {
@@ -4650,7 +4658,8 @@ function ouvrirMenuOrdresTerrain(index) {
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
   // Un sous-menu ajoute après la bascule doit refléter la langue courante.
-  window.RPOrderI18n?.refreshVisibleLabels?.(document.getElementById('postes-body'), window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
+  window.RPOrderI18n?.bindVisibleLabels?.(document.getElementById('postes-body'));
+   window.RPOrderI18n?.refreshVisibleLabels?.(document.getElementById('postes-body'), window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
 }
 
 function ouvrirMenuOrdresTribune(index) {
@@ -4711,7 +4720,8 @@ function ouvrirMenuOrdresTribune(index) {
   corps.appendChild(liste);
   document.getElementById('modal-postes').classList.add('open');
   // Un sous-menu ajoute après la bascule doit refléter la langue courante.
-  window.RPOrderI18n?.refreshVisibleLabels?.(corps, window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
+  window.RPOrderI18n?.bindVisibleLabels?.(corps);
+   window.RPOrderI18n?.refreshVisibleLabels?.(corps, window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
 }
 
 function ouvrirAudioguide(url, nomSalle) {
