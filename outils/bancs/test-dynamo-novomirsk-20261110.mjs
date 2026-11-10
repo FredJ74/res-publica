@@ -45,8 +45,10 @@ test('bureau du président : illustration unique du Dynamo, conversion contrôl�
   assert.equal(bytes.toString('ascii',8,12),'WEBP');
   assert.ok(bytes.length>10000);
   assert.equal(fs.existsSync(path.join(root,'images/Sovarka/Novomirsk/Les cinq triomphes mondiaux du Dynamo Novomirsk.png')),false);
-  assert.equal(room.bureau_president.imageUrl,'images/bureau-president-luthecia.webp',
-    'Le gabarit des autres stades ne doit pas être modifié');
+  assert.equal(room.bureau_president.imageUrl,undefined,
+    'Le gabarit commun des autres stades ne doit pas être modifié');
+  assert.equal(vm.runInContext('WORLD.republic.capitale.buildingContext.stade.roomOverrides.bureau_president.imageUrl',ctx),
+    'images/bureau-president-luthecia.webp', 'Le bureau de Luthécia doit rester inchangé');
 });
 
 test('boutique uniquement pour le Dynamo, achats du socle et pas de copie dans les autres villes', () => {
