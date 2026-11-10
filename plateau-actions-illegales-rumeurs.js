@@ -4729,6 +4729,7 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
 
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
+  const monnaie = (typeof COUNTRIES !== 'undefined' && COUNTRIES[pays]?.cur) || 'FR';
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   if (!data) { showToast('Indisponible', '', false); return; }
 
