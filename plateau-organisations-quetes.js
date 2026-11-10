@@ -7567,6 +7567,8 @@ async function doRejoindreClubSupporters(pa, cost) {
   const dejaMembre = orga?.membres?.some(m => m.nom === state.char?.name);
   if (dejaMembre) { showToast('Déjà membre', 'Vous êtes déjà membre du club de supporters de ' + clubLocal.nom + '.', false); return; }
 
+  const monnaie = COUNTRIES[pays]?.cur || 'FR';
+  const cotisation = pays === 'soviet' ? 25 : 50;
   // Avant Phase K, le PA (1) etait deduit ici sans jamais respecter TEST_MODE (bug decouvert
   // lors de la migration -- seul le cout (alors 150 FR) etait correctement verifie). Cout ramene
   // a 50 FR le 25 aout 2026 (lot logistique portuaire, §13, "cotisations non eternelles") pour
@@ -7580,7 +7582,7 @@ async function doRejoindreClubSupporters(pa, cost) {
     ? await sbCaisseCollective('club_supporters_adherer', { p_club: clubLocal.id, p_meneur: getMeneurSupportersLocal() }, [clubLocal.id, 'supporter'])
     : { ok: false, raison: 'reponse_absente' };
   if (!r.ok) {
-    const motifs = { pa_insuffisants: '1 PA requis.', fonds_insuffisants: '50 FR requis pour l\'adhésion.',
+    const motifs = { pa_insuffisants: '1 PA requis.', fonds_insuffisants: cotisation + ' ' + monnaie + ' requis pour l\'adhésion.',
       deja_membre: 'Vous êtes déjà membre du club de supporters de ' + clubLocal.nom + '.',
       reponse_absente: "Le serveur n'a pas confirmé l'adhésion. Réessayez : elle ne sera jamais payée deux fois." };
     showToast(r.raison === 'deja_membre' ? 'Déjà membre' : 'Adhésion refusée', motifs[r.raison] || "L'adhésion n'a pas été enregistrée.", false);
@@ -7594,7 +7596,7 @@ async function doRejoindreClubSupporters(pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
   showToast('Bienvenue !', 'Vous êtes désormais ' + grades[0] + ' du club de supporters — ' + clubLocal.nom + '.', true, true);
-  addJournalEntry('Adhésion au club de supporters du ' + clubLocal.nom + ' (-50 FR).', 'event-good');
+  addJournalEntry('Adhésion au club de supporters du ' + clubLocal.nom + ' (-' + cotisation + ' ' + monnaie + ').', 'event-good');
   // Cotisation deja versee au club par le serveur (club_supporters_cotiser).
 
   // Rafraichir immediatement l'onglet Organisations si la fiche est deja ouverte dessus
@@ -8887,10 +8889,12 @@ function doChoisirAccessoireClub(pa, cost) {
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
 
   const visuels = PRODUITS_VISUELS_CLUB[clubLocal.id] || {};
+  const enSovarka = state.country === 'soviet';
+  const monnaie = COUNTRIES[state.country]?.cur || 'FR';
   const accessoires = [
-    { id:'echarpe', label:'Écharpe', prix:80, icon:'ti-scarf' },
-    { id:'casquette', label:'Casquette', prix:60, icon:'ti-hat' },
-    { id:'maillot', label:'Maillot', prix:150, icon:'ti-shirt' }
+    { id:'echarpe', label:'Écharpe', prix:enSovarka ? 25 : 80, icon:'ti-scarf' },
+    { id:'casquette', label:'Casquette', prix:enSovarka ? 20 : 60, icon:'ti-hat' },
+    { id:'maillot', label:'Maillot', prix:enSovarka ? 45 : 150, icon:'ti-shirt' }
   ];
 
   document.getElementById('postes-modal-title').textContent = 'Accessoires — ' + clubLocal.nom;
@@ -8901,7 +8905,7 @@ function doChoisirAccessoireClub(pa, cost) {
     html += img
       ? '<img src="' + img + '" style="width:56px;height:56px;object-fit:cover;border:1px solid #2a2010;flex-shrink:0"/>'
       : '<i class="ti ' + a.icon + '" style="font-size:1.4rem;color:#8a6a20;width:56px;text-align:center;flex-shrink:0"></i>';
-    html += '<span style="flex:1">' + a.label + '</span><span style="color:#C9A84C">' + a.prix + ' FR</span></button>';
+    html += '<span style="flex:1">' + a.label + '</span><span style="color:#C9A84C">' + a.prix + ' ' + monnaie + '</span></button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -8912,8 +8916,9 @@ async function confirmerAchatAccessoireClub(id, label, prix, pa, cost) {
   const v = await executerReceptionInventaire('club_accessoire_acheter', { p_accessoire: id, p_pa: pa, p_cost: cost });
   if (!v) return;
   document.getElementById('modal-postes').classList.remove('open'); updateUI();
-  showToast('Achat effectué', v.objet + ' ajouté à votre inventaire, ' + v.prix + ' FR.', true);
-  addJournalEntry('Achat : ' + v.objet + ' (-' + v.prix + ' FR).', 'event-good');
+  const monnaie = COUNTRIES[state.country]?.cur || 'FR';
+  showToast('Achat effectué', v.objet + ' ajouté à votre inventaire, ' + v.prix + ' ' + monnaie + '.', true);
+  addJournalEntry('Achat : ' + v.objet + ' (-' + v.prix + ' ' + monnaie + ').', 'event-good');
 }
 
 function doAcheterAccessoirePersonnalise() {
