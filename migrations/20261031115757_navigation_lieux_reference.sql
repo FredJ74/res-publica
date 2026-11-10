@@ -1,6 +1,5 @@
 -- Généré par outils/generateurs/navigation-lieux.cjs depuis data.js.
 INSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,membership) VALUES
-('soviet','capitale','kolkhoze-spirituel','["grange_sainte"]'::jsonb,false,NULL),
 ('soviet','capitale','centre-multinodal-luthecia','["hall_gare","hall_douanes","zone_embarquement"]'::jsonb,false,NULL),
 ('soviet','capitale','centre-commercial','["hall","vitrine_principale","boutique_milieu","arriere_boutique","cave_reserve"]'::jsonb,false,NULL),
 ('soviet','capitale','centre-artisanal','["travees","echoppe_facade","atelier_milieu","reserve_arriere"]'::jsonb,false,NULL),
@@ -27,6 +26,10 @@ INSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,memb
 ('soviet','ville_a','terrain-a-batir-3','["terrain"]'::jsonb,false,NULL),
 ('soviet','ville_a','stade','["terrain","vestiaires","buvette","guichet_paris","siege_supporters","bureau_president"]'::jsonb,false,NULL),
 ('soviet','ville_a','zone-production','["zone_recolte"]'::jsonb,false,NULL),
+('soviet','ville_a','poste-vigilance-glaciale','["salle_ecoute"]'::jsonb,false,NULL),
+('soviet','ville_a','maison-starovka','["piece_maison"]'::jsonb,false,NULL),
+('soviet','ville_a','ferme-starovka','["cour_ferme"]'::jsonb,false,NULL),
+('soviet','ville_a','fourreur-starovka','["boutique_fourreur"]'::jsonb,false,NULL),
 ('soviet','ville_b','hotel-mineur','["hall_mineur","chambre_mineur"]'::jsonb,false,NULL),
 ('soviet','ville_b','mairie','["accueil_mairie","bureau_maire_local","bureau_maire_adjoint"]'::jsonb,false,NULL),
 ('soviet','ville_b','banque-locale','["guichet"]'::jsonb,false,NULL),
@@ -41,7 +44,11 @@ INSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,memb
 ('soviet','ville_b','centre-affaires','["hall","bureau_prestige","bureau_standard","open_space","tribune_republia"]'::jsonb,false,NULL),
 ('soviet','ville_b','terrain-a-batir-2','["terrain"]'::jsonb,false,NULL),
 ('soviet','ville_b','stade','["terrain","vestiaires","buvette","guichet_paris","siege_supporters","bureau_president"]'::jsonb,false,NULL),
-('soviet','ville_b','zone-production','["zone_recolte"]'::jsonb,false,NULL),
+('soviet','ville_b','zone-production','["zone_recolte","foret_vue_1","foret_vue_2","foret_vue_3","foret_vue_4"]'::jsonb,false,NULL),
+('soviet','ville_b','station-radar-krasnov','["salle_ecoute"]'::jsonb,false,NULL),
+('soviet','ville_b','maison-krasnov','["piece_maison"]'::jsonb,false,NULL),
+('soviet','ville_b','ferme-krasnov','["cour_ferme"]'::jsonb,false,NULL),
+('soviet','ville_b','distillerie-krasnov','["atelier_distillerie"]'::jsonb,false,NULL),
 ('soviet','caserne','caserne-militaire','["corps_garde","infirmerie","salle_commandement","armurerie_militaire","refectoire","salle_faits_armes","quartier_troupes"]'::jsonb,false,NULL),
 ('soviet','qhs','qhs-prison','["entree_qhs","cellules_qhs","salle_interrogatoire","promenoir","salle_commune_qhs"]'::jsonb,false,NULL),
 ('khalija','capitale','palais-presidentiel','["accueil_elysee","bureau_president","salle_presse_elysee","salle_reception"]'::jsonb,false,NULL),
@@ -52,12 +59,5 @@ INSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,memb
 ('khalija','capitale','banque-nationale','["accueil_banque","coffre_privatif"]'::jsonb,false,NULL),
 ('khalija','capitale','banque-privee','["bureau_prive"]'::jsonb,false,NULL),
 ('khalija','capitale','clinique-privee','["reception_clinique","chambre_1","chambre_2","chambre_3","chambre_4","chambre_5","chambre_6","chambre_7","chambre_8","chambre_9","chambre_10"]'::jsonb,false,NULL),
-('khalija','capitale','dispensaire-public','["salle_attente","ehpad_tilleuls"]'::jsonb,false,NULL),
-('khalija','capitale','commissariat','["accueil_police","prison","bureau_commissaire"]'::jsonb,false,NULL),
-('khalija','capitale','la-tribune','["accueil_tribune","redaction"]'::jsonb,false,NULL),
-('khalija','capitale','loge-maconnique','["portail","hall_loge","bureau_venerable","salle_reunion_loge"]'::jsonb,false,'loge'),
-('khalija','capitale','universite','["amphi","salle_reunion"]'::jsonb,false,NULL),
-('khalija','capitale','armurerie','["magasin"]'::jsonb,false,NULL),
-('khalija','capitale','marche','["marche_ext"]'::jsonb,false,NULL),
-('khalija','capitale','mairie-capitale','["hall_mairie","bureau_maire","bureau_maire_adjoint","salle_elections","salle_archives"]'::jsonb,false,NULL)
+('khalija','capitale','dispensaire-public','["salle_attente","ehpad_tilleuls"]'::jsonb,false,NULL)
 ON CONFLICT(pays,ville,batiment) DO UPDATE SET pieces=EXCLUDED.pieces,ferme=EXCLUDED.ferme,membership=EXCLUDED.membership;
