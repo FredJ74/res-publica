@@ -668,7 +668,7 @@ function renderOngletsPieces(buildingId, roomActifId) {
         ? RPRoomI18n.labelHtml(buildingId, roomId, tabName) : tabName;
       const actif = roomActifId ? (roomId === roomActifId) : (i === 0);
       return `<div class="piece-tab ${actif ? 'active' : ''}" data-piece="${roomId}" onclick="${clic}" style="${style}"${titre ? ` title="${titre}"` : ''}>
-        ${icon}${tabNameDisplay}
+        ${icon}<span data-rp-room-source="${encodeURIComponent(tabName)}" data-rp-room-building="${encodeURIComponent(buildingId)}" data-rp-room-id="${encodeURIComponent(roomId)}">${tabNameDisplay}</span>
       </div>`;
     }).join('')
     // Onglet visible "Chambre" (finalisation chambres clinique, 31 aout 2026) : materialise la
@@ -1076,6 +1076,9 @@ function enterRoom(buildingId, roomId, tabEl) {
   document.getElementById('piece-nom').textContent =
     (typeof RPRoomI18n !== 'undefined')
       ? RPRoomI18n.label(buildingId, roomId, nomPieceAffiche) : nomPieceAffiche;
+  document.getElementById('piece-nom').setAttribute('data-rp-room-source',nomPieceAffiche);
+  document.getElementById('piece-nom').setAttribute('data-rp-room-building',buildingId);
+  document.getElementById('piece-nom').setAttribute('data-rp-room-id',roomId);
   // roomOverride.desc a priorite sur ctx.desc (batiment, 1ere room seulement) et sur room.desc
   // (base partagee) -- meme priorite que roomOverride.imageUrl ci-dessus, generique, sans aucun
   // cas particulier de ville/batiment/room.
@@ -2894,3 +2897,18 @@ async function doInspecterCargaisons(pa, cost) {
 
 // =====================
 
+// Bascule purement visuelle des salles déjà affichées : aucune entrée dans
+// une pièce, aucun rechargement, aucune écriture ni mutation de navigation.
+function rpRefreshOpenRoomNames() {
+  if(typeof RPRoomI18n==='undefined')return;
+  for(const node of document.querySelectorAll('[data-rp-room-source]')) {
+    const encoded=node.closest?.('.piece-tab')!==null;
+    const read=(v)=>encoded?decodeURIComponent(v):v;
+    const source=read(node.getAttribute('data-rp-room-source')||'');
+    const building=read(node.getAttribute('data-rp-room-building')||'');
+    const room=read(node.getAttribute('data-rp-room-id')||'');
+    if(!source||!building||!room)continue;
+    node.textContent=RPRoomI18n.label(building,room,source);
+  }
+}
+if(typeof window!=='undefined')window.RPRefreshOpenRoomNames=rpRefreshOpenRoomNames;
