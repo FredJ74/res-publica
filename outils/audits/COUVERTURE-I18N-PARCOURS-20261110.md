@@ -73,7 +73,9 @@ sur main. Reproduction avec les fichiers exacts de main : le bouton Répondre
 lève une erreur JS car trois helpers de #674 n’étaient pas extraits par le banc.
 Correction de l’outillage : charger ces vrais helpers, échouer immédiatement sur
 pageerror ; les **trois tests** (390/1280 et contre-épreuve) restent et passent.
-Aucun fichier forum.js/CSS modifié. Contrôleur final à consigner au relais.
+Aucun fichier forum.js/CSS modifié. Contrôleur final **264/264** sur `7f4afee1`,
+après réconciliation avec main `02319679`. Résultats détaillés dans
+`i18n-premiers-parcours-20261110/preuves-locales.json`.
 
 ## Livraison et recette
 

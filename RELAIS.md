@@ -36,11 +36,10 @@ Règles : voir `AGENTS.md`.
 Branche `codex/i18n-premiers-parcours-20261110`, base main `b29d676f`, réconciliée avec `02319679`. 32 clés dans
 les neuf langues : inventaire rempli, détail, infobulles et refus. Aucun objet,
 identifiant, coût, condition, RPC ou état de joueur modifié. Styles conservés.
-SHA source testé `4f1e8118` ; six cas ciblés verts, deux PNG français à 1440 identiques ; audit éditorial 1 203
+SHA source testé `7f4afee1` ; six cas ciblés verts, deux PNG français à 1440 identiques ; audit éditorial 1 203
 clés (32 nouvelles, 38 anciennes désormais comptées), deux mutations détectées.
 Premier contrôleur 263/264 : banc courrier cassé aussi sur le témoin main ; ses
-helpers #674 sont maintenant chargés, trois tests conservés et verts. Rejeu final
-à terminer. Rapport `outils/audits/COUVERTURE-I18N-PARCOURS-20261110.md`.
+helpers #674 sont maintenant chargés, trois tests conservés et verts. Rejeu final **264/264**, après réconciliation main. Preuves JSON archivées. Rapport `outils/audits/COUVERTURE-I18N-PARCOURS-20261110.md`.
 Titre/description de PR prêts dans le rapport. API GitHub refusée 403 en lecture et création de PR ;
 aucune fusion ni publication attestée. Aucun SQL ou service de traduction payant.
 Suite prioritaire constatée : messages du login encore français, puis autres
