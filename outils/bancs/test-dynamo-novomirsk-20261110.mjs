@@ -34,6 +34,21 @@ test('six WebP valides et aucun PNG source dans les six pieces', () => {
     assert.equal(fs.existsSync(file.slice(0,-5)+'.png'), false, 'Ancien PNG encore present: '+file);
   }
 });
+test('bureau du président : illustration unique du Dynamo, conversion contrôlée et PNG supprimé', () => {
+  const expected='images/Sovarka/Novomirsk/Novomirsk.stade.bureau président.webP';
+  assert.equal(context.roomOverrides?.bureau_president?.imageUrl, expected);
+  assert.equal(context.roomOverrides?.bureau_president?.name, 'Bureau du président du Dynamo');
+  const webp=path.join(root,expected);
+  assert.ok(fs.existsSync(webp),'WebP absent du repository');
+  const bytes=fs.readFileSync(webp);
+  assert.equal(bytes.toString('ascii',0,4),'RIFF');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  assert.ok(bytes.length>10000);
+  assert.equal(fs.existsSync(path.join(root,'images/Sovarka/Novomirsk/Les cinq triomphes mondiaux du Dynamo Novomirsk.png')),false);
+  assert.equal(room.bureau_president.imageUrl,'images/bureau-president-luthecia.webp',
+    'Le gabarit des autres stades ne doit pas être modifié');
+});
+
 test('boutique uniquement pour le Dynamo, achats du socle et pas de copie dans les autres villes', () => {
   assert.ok(context.roomsExtra?.boutique);
   assert.deepEqual([...context.roomsExtra.boutique.orders.map(v=>v.fn)], [
