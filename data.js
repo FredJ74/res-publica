@@ -1773,6 +1773,10 @@ const WORLD = {
               name: 'Bookmaker du Dynamo',
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk.stade.bookmaker.webp'
             },
+            bureau_president: {
+              name: 'Bureau du président du Dynamo',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk.stade.bureau président.webP'
+            },
             siege_supporters: {
               name: 'Club des supporters du Dynamo',
               desc: 'Lieu de rassemblement sportif autorisé, sans droit de manifester contre les autorités.',
