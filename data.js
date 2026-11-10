@@ -9621,7 +9621,7 @@ const RESSOURCES_ECONOMIE = {
   // avec les autres matieres premieres brutes livrees de tier moyen (poisson/viande/produits_
   // exotiques), meme convention prixAchatFournisseur = prixBase/2 deja verifiee sur toutes les
   // entrees existantes -- ajustables, aucune recette ne les utilise encore dans ce lot.
-  textile:            { label: 'Textile',         icon: 'ti-shirt',   prixBase: 5, prixAchatFournisseur: 2.5, plafond: 125, source: 'livraison' },
+  textile:            { label: 'Tissus et peaux',         icon: 'ti-shirt',   prixBase: 5, prixAchatFournisseur: 2.5, plafond: 125, source: 'livraison' },
 
   // --- Produits transformes (redistribution 20% des transformateurs, jamais livres directement) ---
   medicaments:  { label: 'Médicaments',  icon: 'ti-pill',        prixBase: 22, prixAchatFournisseur: 11,  plafond: 100, source: 'transformation' },
@@ -10885,4 +10885,101 @@ BUILDINGS['locaux-starovka'] = {
   const cite = v => WORLD.soviet && WORLD.soviet[v];
   if (cite('ville_a') && !cite('ville_a').buildings.includes('maison-starovka')) cite('ville_a').buildings.push('maison-starovka');
   if (cite('ville_b') && !cite('ville_b').buildings.includes('maison-krasnov')) cite('ville_b').buildings.push('maison-krasnov');
+})();
+
+// FERMES, DISTILLERIE ET FOURREUR DE SOVARKA (Fred, 10/11/2026 a midi ; migration 20261110123000). Une ferme ne consomme
+// que du travail (PA), comme les jardins ouvriers : le produit va dans l'inventaire de qui travaille. Les appellations
+// « de renne » sont purement RP (viande, laitages, bois, tissus et peaux). La distillerie et le fourreur sont des locaux
+// de Sovarka : droit d'exploiter demande a la mairie, puis commerce classique (type Distillerie, ou Vetements pour le
+// fourreur, qui nomme lui-meme ses articles).
+(function () {
+  const ordreFerme = (fn, label, pa, icon, desc) => ({ fn, label, pa, cost: 0, type: 'legal', icon, successRate: 100, desc });
+  const ferme = (id, nom, court, desc, pieceDesc, pnj, role, ordres) => {
+    BUILDINGS[id] = {
+      name: nom, shortName: court, cat: 'Économie', icon: 'ti-tractor', bgColor: '#12140e', desc, imagesAVenir: true,
+      rooms: { cour_ferme: {
+        name: 'La cour de la ferme', imageBg: 'linear-gradient(135deg,#12140e,#1c2014)', desc: pieceDesc,
+        persons: [{ name: pnj + ' (PNJ)', role, rel: 'friendly', job: 'fermier' }],
+        orders: ordres
+      } }
+    };
+  };
+  ferme('ferme-starovka', 'Ferme de Starovka', 'Ferme',
+    'L’abattoir de rennes et sa boutique de ferme (« Убойный цех оленины — Магазин фермы ») : on y vient prêter la main contre une part du travail.',
+    'Un enclos de rennes, une grange pleine de foin et l’odeur du feu de bois. Le fermier vous tend une paire de gants.',
+    'Bair Sambuev', 'Éleveur de rennes', [
+      ordreFerme('ferme_renne', 'Abattre et dépecer un renne', 5, 'ti-meat', 'Un renne entier : 3 viandes, 2 peaux (tissus et peaux) et 1 bois de renne (bois).'),
+      ordreFerme('ferme_traire', 'Traire les rennes', 1, 'ti-milk', 'Deux laits de renne (laitages).')
+    ]);
+  ferme('ferme-krasnov', 'Kolkhoze S. M. Kirov', 'Kolkhoze',
+    'Le kolkhoze de Krasnov (« Колхоз им. С. М. Кирова ») : champs, poulailler et clapiers, ouverts aux bras volontaires.',
+    'Une cour boueuse, des poules qui picorent entre les roues du tracteur et des clapiers alignés contre la grange.',
+    'Galina Belova', 'Présidente du kolkhoze', [
+      ordreFerme('ferme_legumes', 'Extraire des légumes', 1, 'ti-carrot', 'Un fruits et légumes, tiré de la terre du kolkhoze.'),
+      ordreFerme('ferme_oeufs', 'Ramasser les œufs', 1, 'ti-egg', 'Trois œufs (une unité). À manger quand vous voulez : +2 PA au prochain Dormir.'),
+      ordreFerme('ferme_poulet', 'Abattre un poulet', 2, 'ti-meat', 'Deux poulets (2 viandes).'),
+      ordreFerme('ferme_lapin', 'Abattre un lapin', 2, 'ti-meat', 'Un lapin (1 viande) et sa peau (tissus et peaux).')
+    ]);
+
+  const local = (id, nom, court, icon, desc, pieceId, pieceNom, pieceDesc, plafond) => {
+    BUILDINGS[id] = {
+      name: nom, shortName: court, cat: 'Économie', icon, bgColor: '#141210', desc, imagesAVenir: true,
+      rooms: { [pieceId]: {
+        name: pieceNom, imageBg: 'linear-gradient(135deg,#141210,#1e1a16)', desc: pieceDesc, persons: [],
+        orders: [
+          { fn: 'sovarka_demande_location', label: 'Demande de location', pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
+            desc: 'Écrire à la mairie pour obtenir le droit d’exploiter ce local (loyer fixé par le maire, ' + plafond + ' PSK par jour au plus). L’attribution se signe ensuite chez le notaire.' },
+          { fn: 'commerce_pj', label: 'Ce commerce', pa: 0, cost: 0, type: 'legal', icon: 'ti-building-store', successRate: 100, desc: 'Gérer votre commerce, ou visiter la boutique du commerçant.' }
+        ]
+      } }
+    };
+  };
+  local('distillerie-krasnov', 'Distillerie de Krasnov', 'Distillerie', 'ti-bottle',
+    'L’usine de liqueurs et de vodka de Krasnov (« ликёро-водочный завод ») : « Traditions de qualité pour le peuple ».',
+    'atelier_distillerie', 'L’atelier de distillation',
+    'Des alambics de cuivre, des fûts empilés et l’odeur sucrée de la betterave. L’exploitant y tire vodka, slivovitz, samogon et sucre (commerce de type « Distillerie »).', 30);
+  local('fourreur-starovka', 'Fourreur « La Fourrure chaude »', 'Fourreur', 'ti-hanger',
+    'La boutique du fourreur de Starovka (« Тёплый мех ») : chapkas, manteaux et bottes fourrées, indispensables à neuf mois d’hiver.',
+    'boutique_fourreur', 'La boutique',
+    'Des peaux tendues sur des cadres, des chapkas alignées en vitrine. Le commerçant nomme lui-même ses articles (commerce de type « Vêtements »).', 30);
+
+  const cite = v => WORLD.soviet && WORLD.soviet[v];
+  [['ville_a', 'ferme-starovka'], ['ville_a', 'fourreur-starovka'], ['ville_b', 'ferme-krasnov'], ['ville_b', 'distillerie-krasnov']]
+    .forEach(([v, b]) => { if (cite(v) && !cite(v).buildings.includes(b)) cite(v).buildings.push(b); });
+})();
+
+// FORET PROFONDE DE KRASNOV (Fred, 09-10/11/2026, issue #72 ; migration 20261110124500). L'entree de l'exploitation
+// forestiere est sure ; « S'enfoncer dans la foret » mene au hasard sur l'une des 4 vues profondes (pieces masquees : on n'y
+// va et on n'en revient que par les ordres de la foret, tires au serveur). Coupes doublees, fausses alertes, loup, meute,
+// ours ou Olga : tout est decide par sovarka_foret_*.
+(function () {
+  const ctxBase = WORLD.soviet && WORLD.soviet.ville_b && WORLD.soviet.ville_b.buildingContext;
+  if (!ctxBase) return;
+  const ctx = ctxBase['zone-production'] = ctxBase['zone-production'] || {};
+  ctx.roomOverrides = ctx.roomOverrides || {};
+  const entree = ctx.roomOverrides.zone_recolte = ctx.roomOverrides.zone_recolte || {};
+  entree.name = 'Entrée de la forêt';
+  entree.orders = [...(entree.orders || []).filter(o => o.fn !== 'foret_enfoncer'),
+    { fn: 'foret_enfoncer', label: 'S’enfoncer dans la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-trees', successRate: 100,
+      desc: 'Plus loin, le bois est plus beau : chaque coupe rapporte le double. Mais on dit que les loups et l’ours rôdent sous les arbres… et qu’on s’y perd facilement.' }];
+  const vues = {
+    1: ['Sous les grands pins', 'Des troncs immenses, la neige qui étouffe les bruits. Le chemin a disparu derrière vous.'],
+    2: ['La clairière des bouleaux', 'Une clairière blanche, des bouleaux couchés par le vent. Quelque chose a gratté l’écorce, bien haut.'],
+    3: ['Le ravin noir', 'Un ravin sombre où le jour peine à entrer. Des empreintes larges comme une assiette s’enfoncent dans la neige.'],
+    4: ['Près de la vieille isba', 'Une isba à demi enfouie sous la neige, un filet de fumée. On jurerait sentir la soupe aux choux.']
+  };
+  ctx.roomsExtra = Object.assign({}, ctx.roomsExtra || {});
+  Object.keys(vues).forEach(n => {
+    ctx.roomsExtra['foret_vue_' + n] = {
+      name: 'Forêt profonde — ' + vues[n][0], imageBg: 'linear-gradient(135deg,#0a120c,#132016)', desc: vues[n][1], persons: [],
+      imagesAVenir: true,
+      orders: [
+        { fn: 'foret_couper', label: 'Couper du bois', pa: 2, cost: 0, type: 'legal', icon: 'ti-axe', successRate: 100,
+          desc: 'Le bois de la forêt profonde : une coupe rapporte le double d’une récolte. Combien de fois avant que quelque chose ne bouge dans les fourrés ?' },
+        { fn: 'foret_revenir', label: 'Revenir à l’entrée de la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-arrow-back-up', successRate: 100,
+          desc: 'Retrouver le chemin de l’entrée… si l’on ne se perd pas en route.' }
+      ]
+    };
+  });
+  ctx.roomsMasquees = Array.from(new Set([...(ctx.roomsMasquees || []), 'foret_vue_1', 'foret_vue_2', 'foret_vue_3', 'foret_vue_4']));
 })();

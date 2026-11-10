@@ -1096,7 +1096,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (state.hospitalisation && (buildingId === batimentHospitalisation() || (state.hospitalisation.regime === 'pa0' && buildingId === state.currentBuilding))) {
     if (state.hospitalisation.regime === 'pa0' && typeof hospitalisationJourPa0 === 'function') {
       // Régime à 0 PA (Fred, 01/11/2026) : pas de durée fixe, la sortie dépend du jour et des PA.
-      displayDesc += ' — Hospitalisé(e), jour ' + hospitalisationJourPa0() + '. Sortie possible à partir du jour 2, avec 20 PA.';
+      displayDesc += ' — Hospitalisé(e), jour ' + hospitalisationJourPa0() + '. Vous sortez dès que vous avez 20 PA, au plus tôt le jour 2 (à l’hôpital public, comptez environ 3 jours : chaque nuit et chaque repas vous rendent des PA).';
     } else {
       const fin = state.hospitalisation.dateFinParis;
       const joursRestants = fin && typeof dateCivileParisMedicale === 'function'
