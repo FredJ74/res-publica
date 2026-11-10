@@ -33,8 +33,10 @@ test('Plan déduit des rues : chaque ville à rues est entièrement posée, sans
       const n = r.plan.noeuds[id];
       assert.ok(Number.isFinite(n.x) && Number.isFinite(n.y), `${p}/${v} ${id} : position calculée`);
     }
+    const fusion = new Set(r.plan.fusions.map(([x, y]) => x < y ? x + '|' + y : y + '|' + x));
     for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
       const a = r.plan.noeuds[ids[i]], b = r.plan.noeuds[ids[j]];
+      if (fusion.has(ids[i] < ids[j] ? ids[i] + '|' + ids[j] : ids[j] + '|' + ids[i])) continue;
       assert.ok(Math.hypot(a.x - b.x, a.y - b.y) > 0.7, `${p}/${v} : ${ids[i]} et ${ids[j]} ne se superposent pas`);
     }
     assert.ok(r.plan.rues.length >= ids.length - 1, `${p}/${v} : les rues relient la ville`);
@@ -86,4 +88,30 @@ test('Fenêtre « Plan de la ville » : le joueur dans un bâtiment le voit surl
 test('Fenêtre « Plan de la ville » : une ville sans rues garde l’ancien plan', () => {
   const { ctx } = charger({ country: 'republic', currentCity: 'capitale' });
   assert.equal(vm.runInContext(`ouvrirPlanRuesVille('republic', 'ville_inexistante')`, ctx), false);
+});
+
+test('Plan déduit des rues : un carrefour photographié deux fois est un seul point (Novomirsk V4/V5, V14/V15)', () => {
+  const { ctx } = charger();
+  const r = vm.runInContext(`(() => { const pl = calculerPlanRues(RUE_CENTRALE_NOEUDS.soviet, RUE_CENTRALE_DEPART.soviet.capitale);
+    const d = (a, b) => Math.hypot(pl.noeuds[a].x - pl.noeuds[b].x, pl.noeuds[a].y - pl.noeuds[b].y);
+    return { v45: d('novomirsk-vue-4', 'novomirsk-vue-5'), v1415: d('novomirsk-vue-14', 'novomirsk-vue-15'), ano: pl.anomalies.length }; })()`, ctx);
+  assert.ok(r.v45 < 1e-6, 'V4 et V5 au même point');
+  assert.ok(r.v1415 < 1e-6, 'V14 et V15 au même point');
+  assert.equal(r.ano, 0, 'plus d’anomalie « flèches opposées » entre deux images du même carrefour');
+});
+
+test('Plan déduit des rues : une impasse s’arrête avant la rue qu’elle couperait (Montrouge, impasse du tribunal)', () => {
+  const { ctx } = charger();
+  const r = JSON.parse(vm.runInContext(`(() => { const pl = calculerPlanRues(RUE_CENTRALE_NOEUDS.republic, RUE_CENTRALE_DEPART.republic.ville_b);
+    const P = n => [pl.noeuds[n].x, pl.noeuds[n].y];
+    const coupe = (p1, p2, p3, p4) => { const d = (p2[0]-p1[0])*(p4[1]-p3[1]) - (p2[1]-p1[1])*(p4[0]-p3[0]); if (Math.abs(d) < 1e-9) return false;
+      const t = ((p3[0]-p1[0])*(p4[1]-p3[1]) - (p3[1]-p1[1])*(p4[0]-p3[0])) / d, u = ((p3[0]-p1[0])*(p2[1]-p1[1]) - (p3[1]-p1[1])*(p2[0]-p1[0])) / d;
+      return t > 0 && t < 1 && u > 0 && u < 1; };
+    const a = P('montrouge-vue-13'), b = P('montrouge-tribunal-ssm');
+    const croise = pl.rues.filter(x => ![x.de, x.vers].some(n => n === 'montrouge-vue-13' || n === 'montrouge-tribunal-ssm'))
+      .filter(x => coupe(a, b, P(x.de), P(x.vers))).map(x => x.de + '-' + x.vers);
+    // Nord = y plus petit : le bout de l'impasse reste au nord de l'Hôtel de Ville (mairie, vue 7).
+    return JSON.stringify({ croise, auNord: b[1] < P('montrouge-vue-7')[1] }); })()`, ctx));
+  assert.deepEqual(r.croise, [], 'l’impasse ne croise aucune rue');
+  assert.ok(r.auNord, 'le tribunal est au nord de l’Hôtel de Ville');
 });

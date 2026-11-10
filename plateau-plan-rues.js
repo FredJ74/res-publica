@@ -55,7 +55,7 @@ function calculerPlanRues(noeudsPays, depart, options) {
   const opts = options || {};
   const anomalies = [];
   const noeuds = noeudsPays || {};
-  if (!depart || !noeuds[depart]) return { noeuds: {}, rues: [], batiments: [], anomalies: [{ type: 'sans_depart', texte: 'Aucun noeud de depart pour cette ville.' }] };
+  if (!depart || !noeuds[depart]) return { noeuds: {}, rues: [], batiments: [], fusions: [], anomalies: [{ type: 'sans_depart', texte: 'Aucun noeud de depart pour cette ville.' }] };
   const ids = planRuesComposante(noeuds, depart);
   const dans = new Set(ids);
 
@@ -84,6 +84,10 @@ function calculerPlanRues(noeudsPays, depart, options) {
 
   // 2) RUES (aretes non orientees) avec leur direction absolue, et liens sans retour.
   const rues = [], cles = new Set();
+  // Paires de vues qui sont deux images d'un meme carrefour : dessinees en UN SEUL point
+  // (decision de Fred du 09/11/2026 au soir).
+  const fusions = [], fusionCle = new Set();
+  const cleFusion = (x, y) => (x < y ? x + '|' + y : y + '|' + x);
   for (const a of ids) {
     for (const [rA, b] of planRuesLiens(noeuds[a])) {
       if (!dans.has(b)) continue;
@@ -94,6 +98,14 @@ function calculerPlanRues(noeudsPays, depart, options) {
       const memeCarrefour = !retour && planRuesLiens(noeuds[b]).some(([, c]) =>
         dans.has(c) && planRuesLiens(noeuds[a]).some(([, x]) => x === c)
         && planRuesLiens(noeuds[c]).some(([, x]) => x === a));
+      if (memeCarrefour) {
+        for (const [, c] of planRuesLiens(noeuds[b])) {
+          if (dans.has(c) && planRuesLiens(noeuds[a]).some(([, x]) => x === c)
+            && planRuesLiens(noeuds[c]).some(([, x]) => x === a) && !fusionCle.has(cleFusion(a, c))) {
+            fusionCle.add(cleFusion(a, c)); fusions.push([a, c]);
+          }
+        }
+      }
       if (!retour && !memeCarrefour) anomalies.push({ type: 'sans_retour', noeuds: [a, b], texte: `La rue « ${a} » mene a « ${b} », mais « ${b} » n'a pas de fleche pour revenir.` });
       const k = a < b ? a + '|' + b : b + '|' + a;
       if (cles.has(k)) continue;
@@ -109,6 +121,12 @@ function calculerPlanRues(noeudsPays, depart, options) {
   // les directions a la fois (moindres carres) : l'ecart d'une boucle se repartit en douce
   // courbure sur toutes ses rues au lieu de casser le plan a un endroit.
   rues.forEach(r => {
+    if (fusionCle.has(cleFusion(r.de, r.vers))) {
+      // Deux images d'un meme carrefour : aucune distance entre elles, et leurs fleches
+      // mutuelles ne disent rien de la geographie (pas d'anomalie « fleches opposees »).
+      r.dx = 0; r.dy = 0; r.poids = 25; r.fusion = true;
+      return;
+    }
     const [ax, ay] = PLAN_RUES_PAS[r.sens];
     const retour = planRuesLiens(noeuds[r.vers]).find(([, x]) => x === r.de);
     let dx = ax, dy = ay;
@@ -127,9 +145,9 @@ function calculerPlanRues(noeudsPays, depart, options) {
     // Laplacien du graphe, depart fixe a l'origine.
     const n = ids.length, A = Array.from({ length: n }, () => new Array(n).fill(0)), b = new Array(n).fill(0);
     rues.forEach(r => {
-      const i = index[r.de], j = index[r.vers], d = r[cle];
-      A[i][i] += 1; A[j][j] += 1; A[i][j] -= 1; A[j][i] -= 1;
-      b[i] -= d; b[j] += d;
+      const i = index[r.de], j = index[r.vers], d = r[cle], w = r.poids || 1;
+      A[i][i] += w; A[j][j] += w; A[i][j] -= w; A[j][i] -= w;
+      b[i] -= w * d; b[j] += w * d;
     });
     const k0 = index[depart];
     for (let c = 0; c < n; c++) { A[k0][c] = 0; } A[k0][k0] = 1; b[k0] = 0;
@@ -146,20 +164,91 @@ function calculerPlanRues(noeudsPays, depart, options) {
     return ids.map((_, k) => (Math.abs(A[k][k]) < 1e-9 ? 0 : b[k] / A[k][k]));
   };
   const X = resoudre('dx'), Y = resoudre('dy');
+  // Un carrefour photographie deux fois forme un groupe : un seul point sur le plan.
+  const groupe = {}; ids.forEach(id => { groupe[id] = id; });
+  fusions.forEach(([a, c]) => { groupe[c] = groupe[a]; });
+  const memeGroupe = (i, j) => groupe[ids[i]] === groupe[ids[j]];
+  const regrouper = () => fusions.forEach(([a, c]) => {
+    const i = index[a], j = index[c];
+    const mx = a === depart ? X[i] : c === depart ? X[j] : (X[i] + X[j]) / 2;
+    const my = a === depart ? Y[i] : c === depart ? Y[j] : (Y[i] + Y[j]) / 2;
+    X[i] = X[j] = mx; Y[i] = Y[j] = my;
+  });
   // Deux vues trop proches (rues sans lien qui se croiseraient) : on les ecarte doucement.
-  for (let tour = 0; tour < 200; tour++) {
+  const separer = () => {
+    for (let tour = 0; tour < 200; tour++) {
+      let bouge = false;
+      for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
+        if (memeGroupe(i, j)) continue;
+        const ddx = X[j] - X[i], ddy = Y[j] - Y[i], d = Math.hypot(ddx, ddy);
+        if (d < 0.75) {
+          const ux = d > 1e-6 ? ddx / d : 1, uy = d > 1e-6 ? ddy / d : 0, m = (0.75 - d) / 2;
+          if (ids[i] !== depart) { X[i] -= ux * m; Y[i] -= uy * m; }
+          if (ids[j] !== depart) { X[j] += ux * m; Y[j] += uy * m; }
+          bouge = true;
+        }
+      }
+      regrouper();
+      if (!bouge) break;
+    }
+  };
+  regrouper();
+  separer();
+
+  // IMPASSES (decision de Fred du 09/11/2026 : a Montrouge, l'impasse du tribunal s'arrete au
+  // nord de l'Hotel de Ville et ne croise jamais la rue de l'Hotel de Ville ni la place du Rail).
+  // Regle generale : une impasse (vue au bout d'une seule rue) s'arrete AVANT la rue qu'elle
+  // couperait. Quand le calcul la fait traverser une autre rue, cette rue est repoussee au-dela
+  // du bout de l'impasse, de proche en proche ; la navigation n'est pas touchee.
+  const degre = {}; ids.forEach(id => { degre[id] = 0; });
+  rues.forEach(r => { if (!r.fusion) { degre[r.de]++; degre[r.vers]++; } });
+  const coupe = (p1, p2, p3, p4) => {
+    const d = (p2[0] - p1[0]) * (p4[1] - p3[1]) - (p2[1] - p1[1]) * (p4[0] - p3[0]);
+    if (Math.abs(d) < 1e-9) return false;
+    const t = ((p3[0] - p1[0]) * (p4[1] - p3[1]) - (p3[1] - p1[1]) * (p4[0] - p3[0])) / d;
+    const u = ((p3[0] - p1[0]) * (p2[1] - p1[1]) - (p3[1] - p1[1]) * (p2[0] - p1[0])) / d;
+    return t > 0.001 && t < 0.999 && u > 0.001 && u < 0.999;
+  };
+  const distSeg = (p, a, b) => {
+    const vx = b[0] - a[0], vy = b[1] - a[1], l2 = vx * vx + vy * vy;
+    const t = l2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * vx + (p[1] - a[1]) * vy) / l2)) : 0;
+    return Math.hypot(p[0] - a[0] - t * vx, p[1] - a[1] - t * vy);
+  };
+  const pt = id => [X[index[id]], Y[index[id]]];
+  const impasses = rues.filter(r => !r.fusion && (degre[r.de] === 1 || degre[r.vers] === 1))
+    .map(r => (degre[r.vers] === 1 ? [r.de, r.vers] : [r.vers, r.de]))
+    .filter(([p, bout]) => bout !== depart && degre[p] > 1);
+  // D'abord raccourcir l'impasse qui coupe une rue (une impasse est courte), puis repousser.
+  for (const [p, bout] of impasses) {
+    const P = pt(p), B = pt(bout), l = Math.hypot(B[0] - P[0], B[1] - P[1]);
+    const croise = rues.some(r => !r.fusion && ![r.de, r.vers].some(x => x === p || x === bout)
+      && coupe(P, B, pt(r.de), pt(r.vers)));
+    if (croise && l > 0.85) {
+      const k = index[bout], f = 0.85 / l;
+      X[k] = P[0] + (B[0] - P[0]) * f; Y[k] = P[1] + (B[1] - P[1]) * f;
+    }
+  }
+  for (let tour = 0; tour < 150 && impasses.length; tour++) {
     let bouge = false;
-    for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
-      const ddx = X[j] - X[i], ddy = Y[j] - Y[i], d = Math.hypot(ddx, ddy);
-      if (d < 0.75) {
-        const ux = d > 1e-6 ? ddx / d : 1, uy = d > 1e-6 ? ddy / d : 0, m = (0.75 - d) / 2;
-        if (ids[i] !== depart) { X[i] -= ux * m; Y[i] -= uy * m; }
-        if (ids[j] !== depart) { X[j] += ux * m; Y[j] += uy * m; }
-        bouge = true;
+    for (const [p, bout] of impasses) {
+      const P = pt(p), B = pt(bout);
+      const l = Math.hypot(B[0] - P[0], B[1] - P[1]) || 1, ux = (B[0] - P[0]) / l, uy = (B[1] - P[1]) / l;
+      for (const r of rues) {
+        if (r.fusion || [r.de, r.vers].some(x => x === p || x === bout || groupe[x] === groupe[p])) continue;
+        const R1 = pt(r.de), R2 = pt(r.vers);
+        if (coupe(P, B, R1, R2) || distSeg(B, R1, R2) < 0.4) {
+          for (const x of [r.de, r.vers]) {
+            if (x === depart) continue;
+            // Tout le groupe du carrefour bouge ensemble.
+            ids.forEach((y, k) => { if (groupe[y] === groupe[x]) { X[k] += ux * 0.06; Y[k] += uy * 0.06; } });
+          }
+          bouge = true;
+        }
       }
     }
     if (!bouge) break;
   }
+  separer();
   ids.forEach(id => { cx[id] = X[index[id]]; cy[id] = Y[index[id]]; });
   const anoUniques = anomalies;
 
@@ -185,7 +274,7 @@ function calculerPlanRues(noeudsPays, depart, options) {
 
   const sortie = {};
   ids.forEach(id => { sortie[id] = { x: cx[id], y: cy[id], regard: regard[id], suppose: suppose.has(id) }; });
-  return { noeuds: sortie, rues, batiments, anomalies: anoUniques };
+  return { noeuds: sortie, rues, batiments, anomalies: anoUniques, fusions };
 }
 
 // =====================================================================

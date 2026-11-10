@@ -318,7 +318,29 @@ l'entrepôt et le port (Starovka), et la gare, l'entrepôt, le stade, le commiss
     « Infirmerie du Froid », etc.) : à reprendre ou à supprimer ?
 11. **Route de Starovka** : elle n'est reliée par la route à aucune ville (véhicules personnels) ; voulu ?
 
-### Réponses de Fred (09/11/2026, soir) — décidé, NON codé (attend le feu vert de Fred)
+### Réponses de Fred (09/11/2026, soir) — feu vert de Fred le 10/11 à 1 h 05
+
+**Codé le 10/11 (branche `claude/sovarka-lot-nuit-20261110`, PR #670)** : prix courants à l'échelle de Sovarka
+(réponse 6 ; table serveur `ordres_couts_pays`, seul tarif valable pour un joueur du pays, policiers 20/40 PSK),
+hôtels (7), « La Voix de Sovarka » et ses deux antennes (8), siège syndical retiré (2), deux locaux à louer à
+Starovka (4, plafond proposé 50 PSK), 4 parcelles sur le terrain de Starovka (9, parcelle n = « terrain@pn »),
+anciens noms supprimés (10 ; « Baraquement Sibirsk-9 » = logements collectifs de Starovka), et bâtiments du socle
+de la réponse 5 : marchés des deux villes, magasin de chasse (armurerie), restaurant « Entre terre et mer », lycée
+et école (université), logements collectifs (4 petits à 10 PSK, 4 grands à 20 PSK, comme Novomirsk — proposé),
+église du Tractorisme, musée et bar-tabac de Krasnov, façades « Compagnie Nationale du Pétrole » et « Exploitation
+forestière » sur la zone de production du socle. Noms des PNJ proposés par Claude, **à valider par Fred** :
+Tuyana Dashieva (marché), Bato Tsyrenov (chasse), Sesegma Badmaeva (restaurant), Darima Zhambalova (lycée) à
+Starovka ; Nina Gorbounova (marché), Pavel Smirnov (école), Vera Lebedeva (musée), Grigori Zaitsev (Bar Sever) à
+Krasnov. Manifestations : vérifié, en Sovarka seules existent les manifestations de soutien des partis
+(`sovarka_manifs`), la manifestation spontanée n'a pas de place dans le pays : les manifestations hostiles y sont
+donc impossibles, conforme.
+
+**Reste à coder** (lot suivant) : bons d'État (1), fermes, distillerie et fourreur (commerces), centres d'écoute
+(poste militaire « Poste de Vigilance Glaciale », station radar), maisons (hospitalité, beuverie, ragots), forêt
+de Krasnov (vues profondes, coupes, rencontres) et extraction du pétrole. Point technique relevé : la récolte de la
+zone de production est encore décidée par le navigateur (« Récolter », sans fonction serveur) ; l'extraction du
+pétrole et du bois devra d'abord passer au serveur (règle « une seule réalité »).
+
 
 1. **Banque de Sovarka** (les trois villes) : **ni placements privés ni prêts** (un projet est financé par la collectivité).
    À la place, des **bons d'État « pour soutenir l'économie de Sovarka »** :
@@ -342,9 +364,74 @@ l'entrepôt et le port (Starovka), et la gare, l'entrepôt, le stade, le commiss
      mer », tabac-bar, distillerie, fourreur (commerces), musée (Krasnov).
    - **Lieux d'extraction** : **pétrole** (Starovka) et **exploitation forestière** (Krasnov) — RP du pays, et les PJ
      peuvent y extraire des matières premières pour augmenter la production (partir de la zone de production du socle).
-   - **Hors socle, plus tard (tour des villes)** : ferme, maisons, poste militaire (Starovka) et station radar (Krasnov) ;
-     Fred dira à quoi servent les deux derniers.
-   - **Exploitation forestière de Krasnov** (idée de Fred, retrouvée nulle part, consignée ici) : l'**entrée** est un lieu
+   - **Ferme (décision de Fred, 10/11/2026)** : se raccorde à la **mécanique des commerces** (produits alimentaires et
+     non alimentaires ; 2 familles et 4 articles en freemium, 3 familles et 10 articles en premium). **Ferme de
+     Starovka** : viande de renne, fourrure (= tissu), lait de renne, **bois de renne** (non alimentaire) ; le bois de
+     renne peut servir à **fabriquer des couteaux dans les armureries, à la place du bois d'arbre** : **un seul couteau**, le bois de
+     renne remplace le bois d'arbre dans la recette au choix de l'armurier (même objet, même effet). Renommer ses objets :
+     idée premium cosmétique notée dans `IDEES_PREMIUM.md`, non codée.
+     **Ferme de Krasnov** (même principe) : œufs, poulets, lapins, légumes (matière `fruits_legumes` existante).
+     **Alcool local à la ferme** (ex. vin) : piste de Fred, **à voir**, non décidée.
+   - **Distillerie** : produit de l'**alcool** (matière existante) à partir de la matière première **fruits et légumes**.
+     C'est un **commerce** : un PJ peut l'exploiter si le maire accepte sa demande (droit d'exploiter de Sovarka).
+     **Trois recettes** (validées par Fred, 10/11), pour 10 bouteilles : **vodka** = 6 céréales ; **slivovitz** = 8 fruits
+     et légumes ; **samogon** (gnôle de contrebande, la moins chère) = 4 fruits et légumes + 2 céréales. **Sucre** :
+     **4e article de la distillerie** (Fred, 10/11), tiré des fruits et légumes (betterave), sur le modèle historique des
+     sucreries-distilleries ; recette : **5 fruits et légumes = 10 sucres** ; nouvelle matière ; **son utilité sera décidée plus tard** (pas d'adjuvant pour l'instant).
+   - **Poste militaire (Starovka) et station radar (Krasnov)** (Fred, 10/11) : des **centres d'écoute** ; **spécialité
+     de Sovarka : l'espionnage**. Ils permettent d'**intercepter des communications**, et serviront aussi à **espionner
+     l'empire extraterrestre** (monde P2W) quand il existera (point à concilier avec la règle « entre les deux mondes,
+     seul le tourisme »). **Fonctionnement** : chaque centre intercepte **10 % des mails** de la journée ; en fin de
+     journée, les écoutes sont **compilées en un rapport consigné** ; le **ministre de la Défense** (pas de poste de chef
+     du renseignement, décision de Fred du 10/11) demande à chaque cellule de renseignement le rapport du jour qu'il veut, **à distance** : il le demande et le **reçoit par mail**. Couverture :
+     **Novomirsk** = la ville + Républia + l'empire parodie des USA (P2W) ; **Starovka** = la ville + El Estado + l'empire
+     parodie d'un pays d'Afrique (P2W) ; **Krasnov** = la ville + Al-Khalija + l'empire extraterrestre (P2W). Seul
+     l'empire parodie de la Corée et du Japon **ne peut pas être espionné**. « Mails de la ville » / « d'un pays » = mails
+     envoyés ou reçus par un PJ **domicilié** dans cette ville / ce pays. Seuls les mails écrits entre PJ sont
+     interceptés (pas les notifications du jeu) ; les joueurs sont prévenus que leurs mails peuvent être lus en jeu.
+     Poste militaire et station radar : **bâtiments où l'on entre**, **une seule pièce** avec **l'opérateur** (PNJ) et
+     **les archives** (les rapports consignés). Opérateurs validés par Fred (10/11) : **Sergent Bair Dorjiev**
+     (Starovka, bouriate taciturne) et **Lieutenante Nadejda Sokolova** (Krasnov, méticuleuse, tout en triple exemplaire).
+     **Vol d'archives** (tout PJ qui n'est pas ministre de la Défense) : voler **un rapport au hasard parmi ceux des 30
+     derniers jours** ; acte illégal, jet selon la règle existante des actes illégaux. **Échec** : bagarre avec l'opérateur,
+     puis **prison**. **Réussite** : le PJ obtient le rapport mais **laisse une trace**.
+   - **Maisons** (Fred, 10/11) : occupées par des **habitants PNJ très accueillants et sympathiques**, qui offrent
+     **spontanément l'hospitalité contre un service** — hommage à l'**hospitalité russe**. Ex. : « Tu peux rester manger
+     et dormir ici, étranger. Je te demande juste de me ramener 3 bois. » Service rendu (les 3 bois donnés) : le PJ peut
+     **manger et dormir** chez l'habitant, avec les **bonus de PA** de chaque ordre. Le service demandé est
+     **tiré au hasard chaque jour** dans une liste de besoins locaux : **Starovka** = 3 bois, 2 poissons, 1 bidon de
+     carburant, 2 viandes de renne, 1 bouteille de vodka ; **Krasnov** = 3 bois, 5 fruits et légumes, 6 œufs, 1 bouteille
+     de vodka (« pour trinquer ensemble », dans les deux villes). **Une hospitalité par jour et par PJ.** Bonus proposés
+     par Claude (non contestés) : manger = repas ordinaire ; dormir = une nuit à l'hôtel de la ville, gratuite.
+     **Trinquer avec l'habitant** (Fred, 10/11) : on peut se saouler avec le PNJ ; **une bouteille consommée à chaque
+     fois** ; à chaque bouteille bue se déclenche la mécanique **« secret contre secret »** des escorts de Luthécia : le PJ
+     livre un secret, le PNJ livre **un secret de la ville**. Le PJ livre son secret **malgré lui** (l'alcool aidant) : le
+     serveur tire au hasard un renseignement réel sur le PJ, que l'habitant retient ; plus on boit, plus on en dit.
+     **Nid à ragots** (validé) : l'habitant **répète au buveur suivant** ce qu'il a appris ; les secrets des PJ deviennent
+     des « secrets de la ville ». Il puise aussi dans le **circuit des rumeurs alimenté par les traces des actes
+     illégaux** (ex. « Il paraîtrait qu'Arnie a volé un rapport d'espionnage à la station radar… »). **La bouteille est fournie par
+     le PJ** (de son inventaire), **n'importe quel alcool** ; l'IA fait réagir l'habitant à ce qu'on lui apporte (ex.
+     « Oh, je n'ai jamais bu de vin de Républia ! »). **Chaque bouteille bue coûte 3 PA** : la limite vient de là (pas de plafond de bouteilles ; tomber à 0 PA suit la règle d'hospitalisation, avec
+     l'avertissement existant).
+   - **Exploitation forestière de Krasnov** (idée de Fred du 21/10/2026, issue #72 retrouvée par Fred le 09/11 ;
+     les décisions ci-dessous priment sur l'issue) — **précision du 09/11, 23 h 41** : la rencontre de la **vue 3**
+     tire au sort l'un des **trois attaquants**, du plus facile au plus dur à battre : **loup solitaire**, **meute de
+     loups** (un seul PNJ collectif en combat), **ours** — **un tiers de chances chacun** ; mécanique de combat existante. Trois options face à l'attaquant :
+     **combattre**, **fuir** ou **ne pas se défendre** (« se laisser bouffer », parodique ; mêmes suites qu'un combat
+     perdu). **On ne meurt jamais dans le jeu : on se réveille à l'hôpital.** **Exploration en groupe** possible
+     (socle des groupes) : le combat se fait alors **groupe contre créature**. En groupe, la limite de coupes par vue compte **par groupe**
+     (le groupe = un seul bûcheron) ; un PJ groupé qui veut couper pour lui doit **quitter le groupe**, et prend alors
+     seul le risque d'être attaqué. Devant un groupe, **Olga nourrit tout le monde** (effet d'un repas ordinaire pour
+     chaque membre). **Attaquant battu** : on récupère **sa viande et sa peau**. La peau
+     **équivaut à du tissu** (matière textile existante) : **une peau d'ours = 10 tissus**. En groupe, **le leader reçoit
+     le butin**, les PJ se partagent entre eux, hors code. Butin : **loup solitaire** = 3 tissus + 3 viande ;
+     **meute** = 9 tissus (3 peaux) + 6 viande ; **ours** = 10 tissus + 9 viande **+ 2 dents d'ours** (objet de collection
+     pour l'armoire à souvenirs, revendable librement entre PJ : de quoi susciter des vocations de chasseurs d'ours).
+     **Fuir** fait lâcher le bois coupé sur la vue. **Fausses alertes** (validées, 10/11) : le bruit dans les fourrés
+     peut aussi venir d'un lièvre, d'un tractoriste perdu… : à la **seconde coupe des vues 1 et 2**, le bruit survient **une fois sur deux** et finit en
+     fausse alerte (au bruit, le joueur ne sait jamais s'il est sur une vue dangereuse). Capture et dressage de l'ours (#72) :
+     piste pour plus tard, non codée.
+     Base décidée : l'**entrée** est un lieu
      sûr (extraction normale). On peut **s'enfoncer dans la forêt** : arrivée sur l'une des **4 vues de forêt profonde**
      (1 chance sur 4, proposé par Claude). Sur les 4 vues, « **Couper du bois** » rapporte **×2** ; **2 fois au plus** sur
      les vues 1 et 2, **1 fois** sur les vues 3 et 4. Une **seconde coupe** déclenche la rencontre : **vue 3 = toujours
