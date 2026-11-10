@@ -5,6 +5,12 @@ const data=fs.readFileSync(path.join(root,'data.js'),'utf8');
 const nav=fs.readFileSync(path.join(root,'plateau-navigation.js'),'utf8');
 const langs=['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de'];
 const entries=[
+ ["stade","terrain","Terrain — Dynamo de Novomirsk","dynamoPitch"],
+ ["stade","vestiaires","Vestiaires — Dynamo de Novomirsk","dynamoChangingRooms"],
+ ["stade","buvette","Buvette des tribunes","dynamoKiosk"],
+ ["stade","guichet_paris","Bookmaker du Dynamo","dynamoBookmaker"],
+ ["stade","siege_supporters","Club des supporters du Dynamo","dynamoFanClub"],
+ ["stade","boutique","Boutique officielle du Dynamo","dynamoStore"],
  ['musee-novomirsk','hall',"Hall d'accueil",'novoMuseumHall'],
  ['musee-novomirsk','salle_criminels','Salle des Grands Criminels Novomirskois','novoMuseumCriminals'],
  ['musee-novomirsk','salle_maires','Salle des Présidents du Soviet municipal','novoMuseumMayors'],
@@ -32,7 +38,7 @@ win.i18next={t:(key,{lng,defaultValue}={})=>key.split('.').reduce((v,k)=>v?.[k],
 const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','room-resources.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx,{filename:file});
-test('20 salles contextualisées avec intitulés canoniques du socle et surcharges',()=>{
+test('26 salles contextualisées avec intitulés canoniques du socle et surcharges',()=>{
  const environment=vm.createContext({console,window:{},state:{country:'soviet',currentCity:'capitale'}});
  vm.runInContext(data,environment);
  const defs=vm.runInContext('BUILDINGS',environment);
@@ -45,12 +51,12 @@ test('20 salles contextualisées avec intitulés canoniques du socle et surcharg
   assert.equal(expected,original,building+'/'+room+': intitulé canonique divergent');
  }
 });
-test('20 salles dans neuf langues, sans interférence entre bâtiments homonymes',()=>{
- assert.equal(entries.length,20);
+test('26 salles dans neuf langues, sans interférence entre bâtiments homonymes',()=>{
+ assert.equal(entries.length,26);
  for(const lang of langs){
   locale=lang;
   const dict=win.RP_I18N_RESOURCES[lang].translation.extraRooms;
-  assert.equal(Object.keys(dict).length,20,lang+': nombre de clés');
+  assert.equal(Object.keys(dict).length,26,lang+': nombre de clés');
   for(const [building,room,original,key] of entries){
    assert.ok(typeof dict[key]==='string'&&dict[key].trim(),lang+'/'+key);
    assert.equal(win.RPRoomI18n.label(building,room,original),dict[key],lang+'/'+key);
