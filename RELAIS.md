@@ -31,6 +31,25 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### i18n verdicts de production — Codex, 10/11/2026 (LOT EMPILÉ)
+
+Branche `codex/i18n-production-commandes-20261110`, base catalogue `c53beaf2`.
+**11 nouvelles clés dans neuf langues** : 7 refus, salaire/portions confirmés,
+journal, 2 titres ajoutés au catalogue de notifications existant (101 → 103).
+Les titres français restent envoyés à showToast et au diagnostic d’incident ;
+seul l’affichage change. Aucun ordre, montant, PA, calcul ou RPC modifié.
+12 tests du nouveau banc verts (contrat comparé à main sur neuf langues,
+refus inconnus, zéros, réponse retardée et changement vers AR pendant l’attente,
+diagnostic français). Contrôleur complet en cours. Aucun compte réel utilisé.
+Titre PR : « Traduire les verdicts et confirmations de production commerciale ».
+Description prête : « 9 messages paramétrés et 2 titres dans neuf langues,
+réponses serveur et diagnostics français intacts. Succès, refus, valeurs zéro,
+réponse retardée et fallback testés. Aucun mécanisme métier ni SQL changé. »
+Base PR initiale : branche catalogue ; rediriger vers main après les deux premiers.
+GitHub GET et POST PR : 403 confirmés, pas de boucle de nouvelles tentatives.
+Trois branches poussées ; ni création de PR, ni fusion, ni Vercel attestés ici.
+
+
 ### i18n matières et catalogue — Codex, 10/11/2026 (LOT EMPILÉ)
 
 Branche `codex/i18n-matieres-catalogue-20261110`, base lot fiches `f8ca377e`.

@@ -5455,6 +5455,12 @@ async function doProduireRecetteCommerce(commerceType, buildingId, roomId, pa, c
   return doConsulterCarteCommerce(commerceType, buildingId, roomId, 0, 0);
 }
 
+function texteProductionCommerce(cle, secours, values = {}) {
+  const key = 'commerceProduction.' + cle;
+  const translated = typeof window !== 'undefined' ? window.RPPlateauI18n?.translate?.(key, {values}) : null;
+  return typeof translated === 'string' && translated.trim() && translated !== key && !/{{[^}]+}}/.test(translated) ? translated : secours;
+}
+
 async function doProduireRecetteCommerceUI(commerceType, buildingId, roomId, recetteId) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
@@ -5466,13 +5472,13 @@ async function doProduireRecetteCommerceUI(commerceType, buildingId, roomId, rec
   const res = await produireRecetteCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
   if (!res.ok) {
     const messages = {
-      production_non_autorisee: 'Vous n’êtes pas habilité à produire dans cet établissement.',
-      marge_pnj_insuffisante: 'Le coût de ce lot dépasse la marge minimale à 25 FR. Aucun PA ni matière consommé.',
-      recette_non_autorisee: 'Cette recette n\'est pas autorisée pour cet établissement.',
-      pa_insuffisants: recette.pa + ' PA requis.',
-      stock_matiere_insuffisant: 'Il manque du ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[res.matiere] ? RESSOURCES_ECONOMIE[res.matiere].label : res.matiere) + ' en stock.',
-      caisse_insuffisante: 'L\'établissement ne peut pas payer ce travail actuellement.',
-      stock_plein: 'Le stock maximum de ce produit est atteint.',
+      production_non_autorisee: texteProductionCommerce('unauthorized', 'Vous n’êtes pas habilité à produire dans cet établissement.'),
+      marge_pnj_insuffisante: texteProductionCommerce('margin', 'Le coût de ce lot dépasse la marge minimale à 25 FR. Aucun PA ni matière consommé.'),
+      recette_non_autorisee: texteProductionCommerce('recipe', 'Cette recette n\'est pas autorisée pour cet établissement.'),
+      pa_insuffisants: texteProductionCommerce('pa', recette.pa + ' PA requis.', {pa:recette.pa}),
+      stock_matiere_insuffisant: texteProductionCommerce('material', 'Il manque du ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[res.matiere] ? RESSOURCES_ECONOMIE[res.matiere].label : res.matiere) + ' en stock.', {material:typeof window !== 'undefined' && window.RPEconomicCatalogI18n ? window.RPEconomicCatalogI18n.text('material',res.matiere,'label',typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[res.matiere] ? RESSOURCES_ECONOMIE[res.matiere].label : res.matiere) : typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[res.matiere] ? RESSOURCES_ECONOMIE[res.matiere].label : res.matiere}),
+      caisse_insuffisante: texteProductionCommerce('cash', 'L\'établissement ne peut pas payer ce travail actuellement.'),
+      stock_plein: texteProductionCommerce('full', 'Le stock maximum de ce produit est atteint.'),
       introuvable: ''
     };
     showToast('Production impossible', messages[res.raison] || '', false);
@@ -5481,8 +5487,8 @@ async function doProduireRecetteCommerceUI(commerceType, buildingId, roomId, rec
   }
 
   updateUI();
-  showToast('Production réussie !', recette.label + ' — ' + res.portions + ' portions. +' + res.salaire + ' FR de salaire.', true, true);
-  addJournalEntry('Production de ' + recette.label + ' (' + res.portions + ' portions) à ' + (BUILDINGS[buildingId]?.name || buildingId) + '.', 'event-good');
+  showToast('Production réussie !', texteProductionCommerce('served', recette.label + ' — ' + res.portions + ' portions. +' + res.salaire + ' FR de salaire.', {product:nomProduitCommerce(recetteId,recette.label), portions:res.portions, salary:res.salaire}), true, true);
+  addJournalEntry(texteProductionCommerce('journal', 'Production de ' + recette.label + ' (' + res.portions + ' portions) à ' + (BUILDINGS[buildingId]?.name || buildingId) + '.', {product:nomProduitCommerce(recetteId,recette.label), portions:res.portions, place:BUILDINGS[buildingId]?.name || buildingId}), 'event-good');
   // Ne ferme pas le modal : rafraichit pour enchainer (meme pattern que confirmerProduction/doProduireArme)
   doConsulterCarteCommerce(commerceType, buildingId, roomId, 0, 0);
 }

@@ -8,11 +8,11 @@ win.RPPlateauI18n={language:()=>lang};
 win.i18next={t:(key,{lng,defaultValue}={})=>key.split('.').reduce((obj,k)=>obj?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue};
 const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','toast-resources.js'])vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx,{filename:file});
-test('101 titres de notification conformes dans neuf langues, hors messages libres',()=>{
+test('103 titres de notification conformes dans neuf langues, hors messages libres',()=>{
  const langs=Object.keys(win.RP_I18N_LANGUAGES);
  assert.equal(langs.length,9);
  const expected=Object.keys(win.RP_I18N_RESOURCES.fr.translation.toastTitles);
- assert.equal(expected.length,101);
+ assert.equal(expected.length,103);
  for(const language of langs){
   lang=language;
   const titles=win.RP_I18N_RESOURCES[language].translation.toastTitles;
@@ -20,6 +20,7 @@ test('101 titres de notification conformes dans neuf langues, hors messages libr
   for(const title of Object.values(titles))assert.ok(typeof title==='string'&&title.trim(),language);
  }
  lang='ru';
+ for(const [original,key]of [['Production impossible','productionRefused'],['Production réussie !','productionSucceeded']])assert.equal(win.RPToastI18n.label(original),win.RP_I18N_RESOURCES.ru.translation.toastTitles[key]);
  assert.equal(win.RPToastI18n.label('Action impossible'),win.RP_I18N_RESOURCES.ru.translation.toastTitles.actionImpossible);
  assert.equal(win.RPToastI18n.label('Fiche non synchronisée'),win.RP_I18N_RESOURCES.ru.translation.toastTitles.sheetNotSynced);
  assert.equal(win.RPToastI18n.label('Forum introuvable'),win.RP_I18N_RESOURCES.ru.translation.toastTitles.forumNotFound);
