@@ -32,15 +32,17 @@ win.i18next={t:(key,{lng,defaultValue}={})=>key.split('.').reduce((v,k)=>v?.[k],
 const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','room-resources.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx,{filename:file});
-test('20 salles contextualisées avec intitulés exacts dans la source data.js',()=>{
+test('20 salles contextualisées avec intitulés canoniques du socle et surcharges',()=>{
+ const environment=vm.createContext({console,window:{},state:{country:'soviet',currentCity:'capitale'}});
+ vm.runInContext(data,environment);
+ const defs=vm.runInContext('BUILDINGS',environment);
+ const world=vm.runInContext('WORLD',environment);
  for(const [building,room,original] of entries){
-  const i=data.indexOf("'"+building+"': {");
-  assert.ok(i>=0,building+': bâtiment absent');
-  const j=data.indexOf(room+': {',i);
-  assert.ok(j>i,building+': pièce absente '+room);
-  const near=data.slice(j,j+350);
-  assert.ok(near.includes('name: "'+original+'"')||near.includes("name: '"+original.replace(/'/g,"\\'")+"'"),
-    building+'/'+room+': intitulé non canonique');
+  const local=building==='station-service-krasnov'?world.soviet.ville_b:world.soviet.capitale;
+  const localContext=local.buildingContext?.[building];
+  const expected=localContext?.roomOverrides?.[room]?.name ||
+    localContext?.roomsExtra?.[room]?.name || defs[building]?.rooms?.[room]?.name;
+  assert.equal(expected,original,building+'/'+room+': intitulé canonique divergent');
  }
 });
 test('20 salles dans neuf langues, sans interférence entre bâtiments homonymes',()=>{
