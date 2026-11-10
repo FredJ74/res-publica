@@ -1,0 +1,26 @@
+name: i18n — salles et services de Sovarka
+on:
+  pull_request:
+    paths:
+      - 'i18n/room-resources.js'
+      - 'outils/bancs/banc-i18n-salles-sovarka-services.cjs'
+  push:
+    branches:
+      - 'chatgpt/i18n-sovarka-20-salles-20261110'
+      - main
+    paths:
+      - '.github/workflows/i18n-salles-sovarka.yml'
+      - 'i18n/room-resources.js'
+      - 'outils/bancs/banc-i18n-salles-sovarka-services.cjs'
+permissions:
+  contents: read
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check i18n/room-resources.js && node --test outils/bancs/banc-i18n-salles-sovarka-services.cjs
