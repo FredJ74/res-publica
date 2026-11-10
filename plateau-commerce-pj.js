@@ -1060,7 +1060,7 @@ async function commercePjEcranGestion(ctx) {
       h += commercePjPictoMatiere(cle);
       h += '<div class="cpj-nom"><span class="cpj-nom-t">' +
              commercePjMatiereHtml(cle) + '</span>' +
-           (sous ? '<span class="cpj-sous">' + commercePjEchapper(sous) + '</span>' : '');
+           (sous ? '<span class="cpj-sous" data-i18n="' + (maxi <= 0 ? 'commercepj.matiere.refusCourt' : 'commercepj.matiere.utilisee') + '">' + commercePjEchapper(maxi <= 0 ? I18N_COMMERCE_PJ_FR['commercepj.matiere.refusCourt'] : I18N_COMMERCE_PJ_FR['commercepj.matiere.utilisee']) + '</span>' : '');
       // APPORT EN PLACE. Les deux touches sont fermees quand l'issue serait un
       // refus certain : rien en poche, ou plus de place. Le serveur refuserait de
       // toute facon -- on ne propose simplement pas un geste sans issue.
