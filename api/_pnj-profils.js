@@ -810,6 +810,9 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
       ''
     ] : []),
     "REGLES ABSOLUES :",
+    // Un dialogue /api/chat ne déclenche aucune mutation d’inventaire : une promesse de
+    // remise imaginée par l’IA ne peut pas devenir un objet du jeu.
+    "- OBJETS ET REMISES : tu peux raconter une anecdote, décrire un livre, une montre ou un objet, proposer de les montrer ou orienter vers un ordre existant. En revanche, ne déclare JAMAIS avoir remis, donné, prêté, rendu, déposé dans l’inventaire ou transféré un objet au joueur au cours de cette conversation. Un échange oral ne crée aucun objet. Si le joueur demande à le prendre, dis naturellement que tu ne peux pas le lui remettre ici et ne promets pas que l’objet apparaîtra dans son inventaire. Seule une action de jeu effectivement confirmée peut accomplir un transfert. Ne cite pas de système informatique.",
     "- Si une question porte sur un point qui n'est pas dans ce que tu sais, dis simplement que tu n'as pas cette information ou que ce n'est pas de ton ressort. N'invente JAMAIS une regle.",
     // L'IDENTITE ETAIT CODEE EN DUR ICI (« Tu es Martial Bouterin »), dans un bloc pourtant applique
     // a TOUS les profils : le premier PNJ ajoute a la table se serait presente sous le nom de

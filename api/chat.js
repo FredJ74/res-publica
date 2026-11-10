@@ -219,6 +219,39 @@ async function lireFonctionMunicipale(profilId, jeton) {
   }
 }
 
+// Garde deterministe et volontairement restrictive : cible les affirmations
+// de remise physique d'objet, pas les descriptions (« je vous montre le livre »).
+// Ce filet ne garantit pas la detection de toute paraphrase imaginable.
+// Il se superpose a l'interdiction explicite presente dans le prompt.
+export function neutraliserRemiseFictive(texte, langue = 'fr') {
+  if (typeof texte !== 'string') return texte;
+  const motifs = {
+    fr: /(?:je\s+(?:vous\s+|te\s+)?(?:donne|remets|rends|passe|confie|offre|prête|ai\s+(?:donné|remis|rendu|passé|confié|offert|prêté))\s+(?:ce|cet|cette|le|la|les|un|une|mon|ma|mes|votre|ton|ta)|(?:voici|tiens|tenez)\s+(?:le|la|les|un|une|votre|ton|ta|ce|cette)|(?:je\s+(?:le|la|les|l')\s+(?:vous\s+|te\s+)?(?:donne|remets|rends|passe|confie|offre)))/iu,
+    en: /(?:i\s+(?:am\s+)?(?:give|hand|return|lend|pass)\s+(?:you\s+)?(?:the|this|that|a|my|your)|(?:here\s+(?:is|are)|there\s+you\s+go)\s+(?:the|your|a)|i(?:'ve|\s+have)\s+(?:given|handed|returned|lent)\s+you)/iu,
+    es: /(?:te\s+(?:doy|entrego|devuelvo|presto)|le\s+(?:doy|entrego|devuelvo|presto)|aquí\s+tienes\s+(?:el|la|un|una))/iu,
+    de: /(?:ich\s+(?:gebe|reiche|übergebe|schenke)\s+(?:dir|ihnen)|hier\s+(?:ist|hast\s+du)\s+(?:das|dein|ihr))/iu,
+    pt: /(?:eu\s+(?:te|lhe)\s+(?:dou|entrego|devolvo|empresto)|aqui\s+está\s+(?:o|a|seu|sua))/iu,
+    ru: /(?:я\s+(?:отдаю|передаю|дарю|возвращаю)\s+(?:тебе|вам)|вот\s+(?:твоя|ваша|твой|ваш))/iu,
+    zh: /(?:我(?:把|將).{0,15}(?:交給|送給|還給)你|(?:給你|送你|還你)(?:這|那|一|本|個))/u,
+    ko: /(?:제가\s*.{0,18}(?:드릴게요|건네드릴게요|돌려드릴게요)|(?:이걸|이것을)\s*(?:드릴게요|줄게요))/u,
+    ar: /(?:أ(?:عطيك|سلمك|عيد\s+إليك)|ها\s+(?:هو|هي)\s+(?:كتابك|ساعتك))/u
+  };
+  const lang = String(langue).slice(0, 2).toLowerCase();
+  if (!(motifs[lang] || motifs.fr).test(texte)) return texte;
+  const replis = {
+    fr: "Je peux vous en parler, mais je ne peux pas vous remettre cet objet au cours de notre conversation.",
+    en: "I can tell you about it, but I cannot hand over an item during our conversation.",
+    es: "Puedo hablarle de ello, pero no puedo entregarle un objeto durante nuestra conversación.",
+    de: "Ich kann darüber sprechen, aber während unseres Gesprächs keinen Gegenstand übergeben.",
+    pt: "Posso falar sobre isso, mas não posso entregar um objeto durante a nossa conversa.",
+    ru: "Я могу рассказать об этом, но не могу передать предмет во время разговора.",
+    zh: "我可以向你介紹，但無法在對話中交付物品。",
+    ko: "설명해 드릴 수는 있지만 대화 중에 물건을 전달할 수는 없습니다.",
+    ar: "يمكنني الحديث عن هذا الشيء، لكن لا يمكنني تسليمه خلال المحادثة."
+  };
+  return replis[lang] || replis.fr;
+}
+
 export default async function handler(req, res) {
   const origin = req.headers.origin;
   if (origin === ALLOWED_ORIGIN) {
@@ -280,5 +313,10 @@ export default async function handler(req, res) {
     journalChat('fournisseur', diagnostic?.cause || 'inconnu', r.http || null);
     return res.status(502).json({ error: 'Le PNJ est momentanément indisponible.' });
   }
-  return res.status(200).json({ reponse: filtrerReponseSquatteur(req.body.profil, r.texte, langueAutorisee) });
+  // Une reponse de dialogue ne constitue jamais une transaction d'inventaire.
+  // En cas de fausse remise explicite dans la reponse du modele, bloquer la
+  // promesse plutot que d'afficher un cadeau inexistant. Les vrais dons ne
+  // passent pas par cette route : ils exigent un ordre et une confirmation serveur.
+  const reponse = filtrerReponseSquatteur(req.body.profil, r.texte, langueAutorisee);
+  return res.status(200).json({ reponse: neutraliserRemiseFictive(reponse, langueAutorisee) });
 }
