@@ -10,6 +10,18 @@ fs.mkdirSync(dir,{recursive:true});
   await a.addStyleTag({content:lecture('style.css',true).toString()});
   await a.addStyleTag({content:lecture('rue-centrale.css',true).toString()});
   await a.waitForTimeout(400);
+  // Neutraliser uniquement le libellé de navigation renommé, pas sa géométrie
+  // ni les CSS de l'application : le reste doit rester pixel-perfect.
+  async function normaliserTitre(p) {
+    await p.evaluate(()=>{
+      const bouton=document.querySelector('button[onclick="openRulesView()"]');
+      if(!bouton)throw new Error('Bouton Aide/Règles introuvable');
+      const label=bouton.querySelector('span');
+      if(!label)throw new Error('Libellé introuvable');
+      label.textContent='AIDE';
+    });
+  }
+  await normaliserTitre(a);await normaliserTitre(n);
   await fs.promises.writeFile(path.join(dir,'avant.png'),await a.screenshot());
   await fs.promises.writeFile(path.join(dir,'apres.png'),await n.screenshot());
   function forumFixture(p){return p.evaluate(()=>{
