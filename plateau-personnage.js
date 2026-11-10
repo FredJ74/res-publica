@@ -4123,7 +4123,7 @@ function ouvrirDetailObjet(idx) {
 function openRulesView() {
   document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
   document.getElementById('vue-rules').classList.add('active');
-  renderRulesContent('intro');
+  renderRulesContent('aide');
 }
 
 function closeRulesView() {
@@ -4136,6 +4136,11 @@ function closeRulesView() {
 }
 
 function renderRulesContent(section) {
+  // La première page est une conversation d'aide HRP, indépendante des guides.
+  if (section === 'aide' && window.RPAideJeu?.render) {
+    window.RPAideJeu.render();
+    return;
+  }
   const regle = REGLES[section];
   if (!regle) return;
   // Le texte français de REGLES reste source et repli. Le moteur i18next déjà
