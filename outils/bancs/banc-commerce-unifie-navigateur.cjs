@@ -4,7 +4,7 @@ const {lancerChromium}=require('./fixtures/chromium-cdp.cjs');
 const racine=path.resolve(__dirname,'../..');
 const acorn=require('../vercel/node_modules/acorn');
 function fonctions(file,noms){const s=fs.readFileSync(path.join(racine,file),'utf8');return acorn.parse(s,{ecmaVersion:'latest'}).body.filter(n=>n.type==='FunctionDeclaration'&&noms.includes(n.id.name)).map(n=>s.slice(n.start,n.end)).join('\n');}
-const composants=fonctions('plateau-objets.js',['texteSur','ficheEchapper','ficheCommercialeHtml','ficheOfficielleHtml','ficheLignesEffets'])+fonctions('plateau-actions-illegales-rumeurs.js',['actionsCatalogueCommerceHtml','doConsulterCarteCommerce','ouvrirFicheProduitCommerce']);
+const composants=fonctions('plateau-objets.js',['texteSur','ficheEchapper','ficheCommercialeHtml','ficheOfficielleHtml','ficheLignesEffets'])+fonctions('plateau-actions-illegales-rumeurs.js',['texteCommerceMenu','nomProduitCommerce','actionsCatalogueCommerceHtml','doConsulterCarteCommerce','ouvrirFicheProduitCommerce']);
 const scenario=`
 (async()=>{try{
 const exiger=(v,m)=>{if(!v)throw Error(m);};
