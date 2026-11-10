@@ -9043,25 +9043,71 @@ async function doConsulterPalmares() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// Rencontres de phase finale déjà programmées dans le championnat persistant.
+// Ce calcul est uniquement une projection du calendrier réel : le serveur reste
+// seul autorisé à ouvrir le pari et à constater le résultat.
+function rencontresPariPlayoff(saison) {
+  const p = saison?.playoffs;
+  if (!p || saison.phase === 'terminee') return null;
+  const manches = {
+    quarts_aller: ['quarts', false, 'Quarts de finale — aller'],
+    quarts_retour: ['quarts', true, 'Quarts de finale — retour'],
+    demies_aller: ['demies', false, 'Demi-finales — aller'],
+    demies_retour: ['demies', true, 'Demi-finales — retour']
+  };
+  if (p.etape === 'finale') {
+    const paire = p.finale?.paire;
+    return Array.isArray(paire) && paire.length === 2
+      ? { manche:'finale', titre:'Finale', matchs:[{home:paire[0],away:paire[1]}], kickoff:p.prochainKickoffISO } : null;
+  }
+  const info = manches[p.etape];
+  if (!info) return null;
+  const paires = p[info[0]]?.paires;
+  if (!Array.isArray(paires)) return null;
+  return { manche:p.etape, titre:info[2], kickoff:p.prochainKickoffISO,
+    matchs:paires.filter(pair=>Array.isArray(pair)&&pair.length===2).map(pair=>({
+      home:info[1] ? pair[1] : pair[0], away:info[1] ? pair[0] : pair[1]
+    })) };
+}
+
 async function doParierMatch(pa, cost) {
   const saison = await verifierEtJouerJournees();
   if (!saison) { showToast('Paris indisponibles', 'Impossible de lire le championnat pour le moment. Réessayez dans un instant.', false); return; }
 
-  const prochaineJournee = saison.calendrier.find(j => j.matchs.some(m => !m.played));
-  if (!prochaineJournee) { showToast('Aucun pari disponible', 'Plus aucun match à venir cette saison.', false); return; }
+  const prochaineJournee = (saison.calendrier || []).find(j=>j.matchs?.some(m=>!m.played));
+  const phaseFinale = !prochaineJournee ? rencontresPariPlayoff(saison) : null;
+  const matchs = prochaineJournee ? prochaineJournee.matchs.filter(m=>!m.played) : phaseFinale?.matchs;
+  if (!matchs?.length) {
+    showToast('Aucun pari disponible', saison.phase === 'terminee'
+      ? 'La saison est achevée : les paris reprendront lorsque la prochaine saison sera ouverte.'
+      : 'Aucune rencontre à venir n’est programmée.', false);
+    return;
+  }
+  if (phaseFinale && (!Number.isFinite(Date.parse(phaseFinale.kickoff)) || Date.now() >= Date.parse(phaseFinale.kickoff))) {
+    showToast('Paris clôturés','La prochaine manche a commencé ou son calendrier est indisponible.',false);
+    return;
+  }
 
-  document.getElementById('postes-modal-title').textContent = 'Parier — Journée ' + prochaineJournee.numero;
+  document.getElementById('postes-modal-title').textContent = phaseFinale
+    ? 'Parier — ' + phaseFinale.titre : 'Parier — Journée ' + prochaineJournee.numero;
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Choisissez un match</div>';
-  prochaineJournee.matchs.filter(m => !m.played).forEach(m => {
-    html += '<button onclick="ouvrirFormulairePari(\'' + m.home + '\',\'' + m.away + '\',' + prochaineJournee.numero + ',' + saison.numero + ',' + pa + ',' + cost + ')" style="width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">' + getClub(m.home).nom + ' vs ' + getClub(m.away).nom + '</button>';
+  if (phaseFinale) html += '<div style="margin-bottom:.8rem;font-size:.78rem">Coup d’envoi : ' +
+    new Date(phaseFinale.kickoff).toLocaleString('fr-FR',{timeZone:'Europe/Paris',dateStyle:'long',timeStyle:'short'}) + ' (Paris)</div>';
+  matchs.forEach(m => {
+    const a=getClub(m.home), b=getClub(m.away);
+    if (!a || !b) return;
+    html += '<button onclick="ouvrirFormulairePari(\'' + m.home + '\',\'' + m.away + '\',' +
+      (prochaineJournee?.numero || 0) + ',' + saison.numero + ',' + pa + ',' + cost + ',' +
+      (phaseFinale ? '\''+phaseFinale.manche+'\'' : 'null') +
+      ')" style="width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">' + a.nom + ' vs ' + b.nom + '</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function ouvrirFormulairePari(homeId, awayId, journeeNumero, saisonNumero, pa, cost) {
+function ouvrirFormulairePari(homeId, awayId, journeeNumero, saisonNumero, pa, cost, manche = null) {
   const homeClub = getClub(homeId), advClub = getClub(awayId);
 
   document.getElementById('postes-modal-title').textContent = 'Parier sur ce match';
@@ -9075,18 +9121,19 @@ function ouvrirFormulairePari(homeId, awayId, journeeNumero, saisonNumero, pa, c
   html += '<button onclick="document.getElementById(\'pari-choix\').value=\'adversaire\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Victoire ' + advClub.nom + '</button>';
   html += '</div>';
   html += '<input type="hidden" id="pari-choix" value="domicile"/>';
-  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">Mise (FR)</label>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">Mise (' + ((typeof COUNTRIES!=='undefined'&&COUNTRIES[state.country]?.cur)||'FR') + ')</label>';
   html += '<input id="pari-mise" type="number" value="100" min="10" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.9rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
-  html += '<button onclick="confirmerPariMatch(\'' + homeId + '\',\'' + awayId + '\',' + journeeNumero + ',' + saisonNumero + ',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider le pari</button>';
+  html += '<button onclick="confirmerPariMatch(\'' + homeId + '\',\'' + awayId + '\',' + journeeNumero + ',' + saisonNumero + ',' + pa + ',' + cost + ',' + (manche ? '\''+manche+'\'' : 'null') + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider le pari</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, pa, cost) {
+async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, pa, cost, manche = null) {
   const mise = parseInt(document.getElementById('pari-mise')?.value || '0');
   const choix = document.getElementById('pari-choix')?.value || 'domicile';
-  if (!mise || mise < 10) { showToast('Mise invalide', 'Minimum 10 FR.', false); return; }
+  const monnaie = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
+  if (!mise || mise < 10) { showToast('Mise invalide', 'Minimum 10 ' + monnaie + '.', false); return; }
   if (state.arg < mise) { showToast('Fonds insuffisants', '', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
@@ -9104,9 +9151,10 @@ async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, p
   // Desormais : le parieur est l'appelant, la saison est lue par le serveur, le match doit
   // exister ET ne pas etre joue, la mise est REELLEMENT prelevee avant l'inscription, et
   // l'identifiant deterministe interdit un second pari sur la meme rencontre.
-  const rPari = await sbRpc('football_pari_engager', {
-    p_home: homeId, p_away: awayId, p_journee: journeeNumero, p_choix: choix, p_mise: mise
-  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
+  const rPari = await sbRpc(manche ? 'football_pari_playoff_engager' : 'football_pari_engager',
+    manche ? { p_manche:manche, p_home:homeId, p_away:awayId, p_choix:choix, p_mise:mise }
+      : { p_home:homeId, p_away:awayId, p_journee:journeeNumero, p_choix:choix, p_mise:mise })
+    .then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
     .catch(function () { return null; });
 
   if (!rPari || rPari.ok !== true) {
@@ -9114,7 +9162,7 @@ async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, p
       match_deja_joue:    'Ce match est déjà joué.',
       pari_deja_engage:   'Vous avez déjà parié sur cette rencontre.',
       fonds_insuffisants: 'Fonds insuffisants.',
-      mise_invalide:      'Mise invalide (minimum 10 FR).',
+      mise_invalide:      'Mise invalide (minimum 10 ' + monnaie + ').',
       match_inconnu:      'Ce match est introuvable au calendrier.',
       journee_inconnue:   'Journée introuvable au calendrier.'
     };
@@ -9127,8 +9175,8 @@ async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, p
   updateUI();
 
   const homeClub = getClub(homeId), advClub = getClub(awayId);
-  showToast('Pari enregistré', mise + ' FR misés sur ' + homeClub.nom + ' vs ' + advClub.nom + '. Résultat au coup de sifflet final.', true, true);
-  addJournalEntry('Pari de ' + mise + ' FR sur ' + homeClub.nom + ' vs ' + advClub.nom + '.', 'event-info');
+  showToast('Pari enregistré', mise + ' ' + monnaie + ' misés sur ' + homeClub.nom + ' vs ' + advClub.nom + '. Résultat au coup de sifflet final.', true, true);
+  addJournalEntry('Pari de ' + mise + ' ' + monnaie + ' sur ' + homeClub.nom + ' vs ' + advClub.nom + '.', 'event-info');
 }
 
 // Resout tous les paris en attente pour une journee qui vient d'etre jouee
