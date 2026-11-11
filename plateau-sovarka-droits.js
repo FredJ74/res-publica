@@ -4,33 +4,14 @@
 // Cession entre PJ enregistree par le notaire, retour a l'Etat au deces ou par decision du juge.
 // Tout est decide par les fonctions serveur sovarka_* ; l'ecran n'affiche que leurs reponses.
 
-const SOV_MOTIFS = {
-  pas_a_la_mairie: 'Présentez-vous à la mairie.',
-  pas_chez_le_notaire: 'Présentez-vous chez le notaire de Novomirsk.',
-  pas_au_tribunal: 'Présentez-vous au tribunal de la ville.',
-  pas_dans_le_local: 'Rendez-vous dans le local que vous demandez.',
-  demande_deja_en_cours: 'Vous avez déjà une demande en cours dans cette ville.',
-  projet_invalide: 'Décrivez votre projet en quelques mots (3 à 200 caractères).',
-  reserve_autorite_municipale: 'Réservé au maire, à défaut à son adjoint, à défaut au ministre de l’Économie collective.',
-  reserve_juge: 'Réservé au juge de la ville.',
-  demande_introuvable: 'Ce dossier n’est plus en attente.',
-  local_introuvable: 'Local introuvable.',
-  local_non_libre: 'Ce local n’est plus libre.',
-  loyer_invalide: 'Loyer hors des limites de ce local.',
-  commerce_sans_loyer: 'Ce commerce n’a pas de loyer.',
-  aucune_attribution: 'Aucune attribution à signer.',
-  pas_exploitant: 'Vous n’exploitez pas ce commerce.',
-  repreneur_introuvable: 'Repreneur introuvable.',
-  cession_deja_en_cours: 'Une cession est déjà en cours pour ce commerce.',
-  cession_introuvable: 'Cette cession n’est plus en cours.',
-  reserve_repreneur: 'Seul le repreneur peut accepter.',
-  cedant_plus_exploitant: 'Le cédant n’exploite plus ce commerce : cession annulée.',
-  motif_invalide: 'Indiquez un motif (3 à 300 caractères).',
-  saisine_requise: 'Le juge ne retire un droit que sur saisine du ministre de la Justice prolétarienne.',
-  local_non_exploite: 'Ce commerce n’est exploité par personne.',
-  pa_insuffisants: 'Pas assez de points d’action.'
-};
-const sovMotif = v => SOV_MOTIFS[v?.raison] || (v?.transport ? 'Réponse du serveur non reçue.' : 'Refusé par le serveur.');
+// Textes d'affichage : catalogue i18n/sovarka-droits-resources.js (français de référence et de repli).
+const sovT = (k, v) => (typeof texteSovDroits === 'function' ? texteSovDroits(k, v) : k);
+const SOV_RAISONS = ['pas_a_la_mairie', 'pas_chez_le_notaire', 'pas_au_tribunal', 'pas_dans_le_local', 'demande_deja_en_cours',
+  'projet_invalide', 'reserve_autorite_municipale', 'reserve_juge', 'demande_introuvable', 'local_introuvable', 'local_non_libre',
+  'loyer_invalide', 'commerce_sans_loyer', 'aucune_attribution', 'pas_exploitant', 'repreneur_introuvable', 'cession_deja_en_cours',
+  'cession_introuvable', 'reserve_repreneur', 'cedant_plus_exploitant', 'motif_invalide', 'saisine_requise', 'local_non_exploite',
+  'pa_insuffisants'];
+const sovMotif = v => SOV_RAISONS.includes(v?.raison) ? sovT('m_' + v.raison) : sovT(v?.transport ? 'noReply' : 'refused');
 const sovEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sovJs = s => String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 const sovVille = v => (typeof VILLES !== 'undefined' && VILLES.soviet?.[v]?.nom) || v;
@@ -38,13 +19,33 @@ const sovSection = (titre, corps) => (typeof vehSection === 'function') ? vehSec
   : '<section><strong>' + titre + '</strong>' + corps + '</section>';
 const sovBouton = (libelle, js, primaire) =>
   '<button class="cpj-touche' + (primaire ? ' cpj-primaire' : '') + '" style="margin:.4rem .4rem 0 0" onclick="' + js + '">' + libelle + '</button>';
-const SOV_STATUTS = { en_attente: 'en attente d’examen', acceptee: 'acceptée, en attente d’un local', attribuee: 'local attribué, à signer chez le notaire' };
-const SOV_IMMEUBLES = { en_attente_fonds: 'en attente des fonds de la mairie', en_chantier: 'en chantier', livre: 'livré' };
+const sovStatut = st => ['en_attente', 'acceptee', 'attribuee'].includes(st) ? sovT('st_' + st) : st;
+const sovImmeuble = st => ['en_attente_fonds', 'en_chantier', 'livre'].includes(st) ? sovT('im_' + st) : st;
+
+// Fenêtre de Sovarka ouverte : retenue pour la réafficher au changement de langue.
+// Le marqueur caché distingue nos fenêtres de celles des autres modules qui partagent #modal-postes.
+function sovModal(titre, html, rouvrir) {
+  window.sovFenetreCourante = typeof rouvrir === 'function' ? rouvrir : null;
+  vehModal(titre, '<span data-sov-fenetre hidden></span>' + html);
+}
+// Changement de langue : réaffichage depuis la dernière lecture du serveur (aucun acte), saisies conservées.
+function sovarkaRerendreFenetre() {
+  const f = window.sovFenetreCourante;
+  if (typeof f !== 'function' || !document.getElementById('modal-postes')?.classList.contains('open')
+    || !document.querySelector('#postes-body [data-sov-fenetre]')) return;
+  const champs = {};
+  document.querySelectorAll('#postes-body input[id], #postes-body select[id], #postes-body textarea[id]').forEach(e => { champs[e.id] = e.value; });
+  return Promise.resolve(f(true)).then(() => {
+    for (const [id, v] of Object.entries(champs)) { const e = document.getElementById(id); if (e) e.value = v; }
+  });
+}
+window.sovarkaRerendreFenetre = sovarkaRerendreFenetre;
 
 let sovarkaDroitsCache = null;
 let sovarkaActeEnCours = false;
 
-async function sovLire() {
+async function sovLire(cache) {
+  if (cache === true && sovarkaDroitsCache) return sovarkaDroitsCache;
   const l = await sbRpcVerdict('sovarka_droits_lire', {}).catch(() => null);
   if (!l || l.ok !== true) return null;
   sovarkaDroitsCache = l;
@@ -67,102 +68,98 @@ async function sovActe(fn, params, titre, succes, rouvrir) {
 }
 
 const sovLibre = l => !l.exploitant && !l.reserve;
-const sovLoyer = l => l.origine === 'pnj' ? 'sans loyer' : l.loyer + ' PSK / jour';
+const sovLoyer = l => l.origine === 'pnj' ? sovT('noRent') : sovT('rentPerDay', { loyer: l.loyer });
 
 // ----------------------------------------------------------------------------- Notaire
-async function ouvrirSovarkaCommercesLibres() {
-  const l = await sovLire();
-  if (!l) { showToast('Commerces', 'Lecture impossible auprès du serveur.', false); return; }
-  let html = '<p class="cpj-note">L’État possède tout. Un commerce s’obtient par une demande à la mairie de la ville ; ' +
-    'le maire l’attribue, puis l’attribution se signe ici. Pas de droit au bail : seul le loyer fixé par le maire est dû.</p>';
+async function ouvrirSovarkaCommercesLibres(cache) {
+  const l = await sovLire(cache);
+  if (!l) { showToast(sovT('tShops'), sovT('readFail'), false); return; }
+  let html = '<p class="cpj-note">' + sovT('freeIntro') + '</p>';
   for (const ville of ['capitale', 'ville_a', 'ville_b']) {
     const libres = l.locaux.filter(x => x.ville === ville && sovLibre(x));
     html += sovSection(sovVille(ville), libres.length
       ? '<ul>' + libres.map(x => '<li>' + sovEsc(x.label) + ' — ' + sovLoyer(x) + '</li>').join('') + '</ul>'
-      : '<p class="cpj-note">Aucun commerce libre.</p>');
+      : '<p class="cpj-note">' + sovT('noFreeShop') + '</p>');
   }
-  vehModal('Commerces non attribués', html);
+  sovModal(sovT('titleUnassigned'), html, ouvrirSovarkaCommercesLibres);
 }
 
-async function ouvrirSovarkaSignerAttribution() {
-  const l = await sovLire();
-  if (!l) { showToast('Attribution', 'Lecture impossible auprès du serveur.', false); return; }
+async function ouvrirSovarkaSignerAttribution(cache) {
+  const l = await sovLire(cache);
+  if (!l) { showToast(sovT('tAttribution'), sovT('readFail'), false); return; }
   const aSigner = l.demandes.filter(d => d.demandeur === l.moi && d.statut === 'attribuee');
   let html = '';
-  if (!aSigner.length) html = '<p>' + SOV_MOTIFS.aucune_attribution + '</p><p class="cpj-note">Le maire doit d’abord accepter votre demande et vous attribuer un local.</p>';
+  if (!aSigner.length) html = '<p>' + sovT('m_aucune_attribution') + '</p><p class="cpj-note">' + sovT('signWait') + '</p>';
   for (const d of aSigner) {
     const loc = l.locaux.find(x => x.ville === d.ville && x.batiment === d.local_batiment && x.piece === d.local_piece);
-    html += sovSection(sovEsc(loc?.label || 'Local') + ' (' + sovVille(d.ville) + ')',
-      '<p>Projet : « ' + sovEsc(d.projet) + ' ». ' + (loc ? sovLoyer(loc) : '') + '.</p>' +
-      sovBouton('Signer l’attribution (1 PA)', "sovarkaSigner('" + sovJs(d.id) + "')", true));
+    html += sovSection(sovEsc(loc?.label || sovT('premises')) + ' (' + sovVille(d.ville) + ')',
+      '<p>' + sovT('projectLine', { projet: sovEsc(d.projet) }) + ' ' + (loc ? sovLoyer(loc) : '') + '.</p>' +
+      sovBouton(sovT('signBtn'), "sovarkaSigner('" + sovJs(d.id) + "')", true));
   }
-  vehModal('Signer une attribution', html);
+  sovModal(sovT('titleSign'), html, ouvrirSovarkaSignerAttribution);
 }
 function sovarkaSigner(id) {
-  sovActe('sovarka_attribution_signer', { p_demande: id }, 'Attribution signée',
-    v => 'Vous exploitez désormais : ' + v.local + '.', () => document.getElementById('modal-postes')?.classList.remove('open'));
+  sovActe('sovarka_attribution_signer', { p_demande: id }, sovT('tSigned'),
+    v => sovT('nowExploit', { local: v.local }), () => document.getElementById('modal-postes')?.classList.remove('open'));
 }
 
-async function ouvrirSovarkaCession() {
-  const l = await sovLire();
-  if (!l) { showToast('Cession', 'Lecture impossible auprès du serveur.', false); return; }
+async function ouvrirSovarkaCession(cache) {
+  const l = await sovLire(cache);
+  if (!l) { showToast(sovT('tCession'), sovT('readFail'), false); return; }
   const miens = l.locaux.filter(x => x.exploitant === l.moi);
-  let html = '<p class="cpj-note">La cession se fait sans prix officiel : l’État possède le commerce. ' +
-    'La caisse suit le droit (le cédant peut la vider avant). Proposer coûte 1 PA, accepter 1 PA, les deux chez le notaire.</p>';
+  let html = '<p class="cpj-note">' + sovT('cessionIntro') + '</p>';
   for (const c of l.cessions) {
     const loc = l.locaux.find(x => x.ville === c.ville && x.batiment === c.batiment && x.piece === c.piece);
-    const nom = sovEsc(loc?.label || 'Commerce') + ' (' + sovVille(c.ville) + ')';
+    const nom = sovEsc(loc?.label || sovT('shop')) + ' (' + sovVille(c.ville) + ')';
     html += c.repreneur === l.moi
-      ? sovSection('Reprise proposée par ' + sovEsc(c.cedant), '<p>' + nom + '</p>' +
-          sovBouton('Accepter (1 PA)', "sovarkaCessionRepondre('" + sovJs(c.id) + "',true)", true) +
-          sovBouton('Refuser', "sovarkaCessionRepondre('" + sovJs(c.id) + "',false)"))
-      : sovSection('Cession proposée à ' + sovEsc(c.repreneur), '<p>' + nom + '</p>' +
-          sovBouton('Annuler', "sovarkaCessionRepondre('" + sovJs(c.id) + "',false)"));
+      ? sovSection(sovT('takeoverBy', { nom: sovEsc(c.cedant) }), '<p>' + nom + '</p>' +
+          sovBouton(sovT('accept1'), "sovarkaCessionRepondre('" + sovJs(c.id) + "',true)", true) +
+          sovBouton(sovT('refuse'), "sovarkaCessionRepondre('" + sovJs(c.id) + "',false)"))
+      : sovSection(sovT('cessionTo', { nom: sovEsc(c.repreneur) }), '<p>' + nom + '</p>' +
+          sovBouton(sovT('cancel'), "sovarkaCessionRepondre('" + sovJs(c.id) + "',false)"));
   }
   miens.forEach((x, i) => {
     if (l.cessions.some(c => c.ville === x.ville && c.batiment === x.batiment && c.piece === x.piece)) return;
     html += sovSection(sovEsc(x.label) + ' (' + sovVille(x.ville) + ')',
-      '<input class="cpj-champ" id="sov-repreneur-' + i + '" maxlength="60" placeholder="Nom du repreneur" style="width:100%">' +
-      sovBouton('Proposer la cession (1 PA)', "sovarkaCessionProposer('" + sovJs(x.ville) + "','" + sovJs(x.batiment) + "','" + sovJs(x.piece) + "'," + i + ")", true));
+      '<input class="cpj-champ" id="sov-repreneur-' + i + '" maxlength="60" placeholder="' + sovEsc(sovT('buyerPh')) + '" style="width:100%">' +
+      sovBouton(sovT('proposeBtn'), "sovarkaCessionProposer('" + sovJs(x.ville) + "','" + sovJs(x.batiment) + "','" + sovJs(x.piece) + "'," + i + ")", true));
   });
-  if (!miens.length && !l.cessions.length) html += '<p>Vous n’exploitez aucun commerce et aucune cession ne vous attend.</p>';
-  vehModal('Cession d’un droit d’exploiter', html);
+  if (!miens.length && !l.cessions.length) html += '<p>' + sovT('noneOwned') + '</p>';
+  sovModal(sovT('titleCession'), html, ouvrirSovarkaCession);
 }
 function sovarkaCessionProposer(ville, batiment, piece, i) {
   const rep = (document.getElementById('sov-repreneur-' + i)?.value || '').trim();
   sovActe('sovarka_cession_proposer', { p_ville: ville, p_batiment: batiment, p_piece: piece, p_repreneur: rep },
-    'Cession proposée', 'Le repreneur est prévenu par courrier ; il doit accepter chez le notaire.', ouvrirSovarkaCession);
+    sovT('tProposed'), sovT('proposedOk'), ouvrirSovarkaCession);
 }
 function sovarkaCessionRepondre(id, accepter) {
   sovActe('sovarka_cession_repondre', { p_cession: id, p_accepter: !!accepter },
-    accepter ? 'Cession enregistrée' : 'Cession annulée',
-    v => v.annulee ? 'La cession n’aura pas lieu.' : 'Vous exploitez désormais : ' + v.local + '.', ouvrirSovarkaCession);
+    accepter ? sovT('tRegistered') : sovT('tCancelled'),
+    v => v.annulee ? sovT('willNot') : sovT('nowExploit', { local: v.local }), ouvrirSovarkaCession);
 }
 
 // ----------------------------------------------------------------------------- Mairie
-async function ouvrirSovarkaDemanderLocal() {
-  const l = await sovLire();
-  if (!l) { showToast('Demande', 'Lecture impossible auprès du serveur.', false); return; }
+async function ouvrirSovarkaDemanderLocal(cache) {
+  const l = await sovLire(cache);
+  if (!l) { showToast(sovT('tRequest'), sovT('readFail'), false); return; }
   const miennes = l.demandes.filter(d => d.demandeur === l.moi);
-  let html = '<p class="cpj-note">Le maire examine les dossiers. S’il accepte, il vous attribue un local libre, ' +
-    'ou vous attendrez l’immeuble collectif que la mairie fait construire le 1er et le 15 de chaque mois. ' +
-    'Vous recevrez un courrier, puis vous signerez chez le notaire.</p>';
+  let html = '<p class="cpj-note">' + sovT('requestIntro') + '</p>';
   miennes.forEach(d => {
-    html += sovSection('Votre demande à ' + sovVille(d.ville), '<p>« ' + sovEsc(d.projet) + ' » — ' + (SOV_STATUTS[d.statut] || d.statut) + '.</p>' +
-      sovBouton('Retirer ma demande', "sovarkaDemandeAnnuler('" + sovJs(d.id) + "')"));
+    html += sovSection(sovT('yourRequest', { ville: sovVille(d.ville) }), '<p>' + sovT('statusLine', { projet: sovEsc(d.projet), statut: sovStatut(d.statut) }) + '</p>' +
+      sovBouton(sovT('withdraw'), "sovarkaDemandeAnnuler('" + sovJs(d.id) + "')"));
   });
   if (!miennes.some(d => d.ville === l.ville)) {
-    html += sovSection('Nouvelle demande', '<input class="cpj-champ" id="sov-projet" maxlength="200" placeholder="Votre projet de commerce" style="width:100%">' +
-      sovBouton('Déposer la demande (1 PA)', 'sovarkaDemandeDeposer()', true));
+    html += sovSection(sovT('newRequest'), '<input class="cpj-champ" id="sov-projet" maxlength="200" placeholder="' + sovEsc(sovT('projectPh')) + '" style="width:100%">' +
+      sovBouton(sovT('fileBtn'), 'sovarkaDemandeDeposer()', true));
   }
-  vehModal('Demander un commerce', html);
+  sovModal(sovT('titleRequest'), html, ouvrirSovarkaDemanderLocal);
 }
 function sovarkaDemandeDeposer() {
   const projet = (document.getElementById('sov-projet')?.value || '').trim();
-  sovActe('sovarka_demande_deposer', { p_projet: projet }, 'Demande déposée', 'Le maire examinera votre dossier.', ouvrirSovarkaDemanderLocal);
+  sovActe('sovarka_demande_deposer', { p_projet: projet }, sovT('tFiled'), sovT('filedOk'), ouvrirSovarkaDemanderLocal);
 }
 function sovarkaDemandeAnnuler(id) {
-  sovActe('sovarka_demande_annuler', { p_demande: id }, 'Demande retirée', 'Votre dossier est clos.', ouvrirSovarkaDemanderLocal);
+  sovActe('sovarka_demande_annuler', { p_demande: id }, sovT('tWithdrawn'), sovT('withdrawnOk'), ouvrirSovarkaDemanderLocal);
 }
 
 // Demande de location depuis le local (décision de Fred, 06/11/2026) : une lettre à la mairie
@@ -180,22 +177,22 @@ function sovPieceCourante() {
   };
 }
 
-async function ouvrirSovarkaDemandeLocation() {
-  const l = await sovLire();
-  if (!l) { showToast('Demande de location', 'Lecture impossible auprès du serveur.', false); return; }
+async function ouvrirSovarkaDemandeLocation(cache) {
+  const l = await sovLire(cache);
+  if (!l) { showToast(sovT('tRental'), sovT('readFail'), false); return; }
   const p = sovPieceCourante();
   const loc = l.locaux.find(x => x.ville === l.ville && x.batiment === p.batiment && x.piece === p.piece);
-  const titre = 'Demande de location';
-  if (!loc) { vehModal(titre, '<p>' + SOV_MOTIFS.local_introuvable + '</p>'); return; }
+  const titre = sovT('tRental');
+  const fen = (h) => sovModal(titre, h, ouvrirSovarkaDemandeLocation);
+  if (!loc) { fen('<p>' + sovT('m_local_introuvable') + '</p>'); return; }
   const mienne = l.demandes.find(d => d.demandeur === l.moi && d.ville === l.ville);
   if (mienne) {
-    vehModal(titre, '<p>Vous avez déjà une demande en cours à la mairie de ' + sovEsc(sovVille(l.ville)) + ' : « ' + sovEsc(mienne.projet) +
-      ' » — ' + (SOV_STATUTS[mienne.statut] || mienne.statut) + '.</p><p class="cpj-note">Une seule demande à la fois par ville. ' +
-      'Vous pouvez la retirer à l’accueil de la mairie.</p>');
+    fen('<p>' + sovT('already', { ville: sovEsc(sovVille(l.ville)), projet: sovEsc(mienne.projet), statut: sovStatut(mienne.statut) }) +
+      '</p><p class="cpj-note">' + sovT('oneAtTime') + '</p>');
     return;
   }
   if (!sovLibre(loc)) {
-    vehModal(titre, '<p>' + (loc.exploitant ? 'Ce local est exploité par ' + sovEsc(loc.exploitant) + '.' : 'Ce local est déjà attribué, en attente de signature chez le notaire.') + '</p>');
+    fen('<p>' + (loc.exploitant ? sovT('exploitedBy', { nom: sovEsc(loc.exploitant) }) : sovT('reservedSign')) + '</p>');
     return;
   }
   const ville = sovVille(l.ville);
@@ -203,40 +200,38 @@ async function ouvrirSovarkaDemandeLocation() {
   const lettre =
     '<div style="background:#1b2531;border:1px solid #a98d56;border-radius:6px;padding:1rem;line-height:1.5">' +
     '<p style="margin:0">' + sovEsc(l.moi) + '<br>' + sovEsc(ville) + '</p>' +
-    '<p style="text-align:right;margin:.6rem 0">À l’attention du Maire<br>Mairie de ' + sovEsc(ville) + '</p>' +
-    '<p><strong>Objet : demande de location d’un local commercial</strong></p>' +
-    '<p>Camarade Maire,</p>' +
-    '<p>J’ai l’honneur de solliciter l’attribution du local suivant :</p>' +
+    '<p style="text-align:right;margin:.6rem 0">' + sovT('lAttn') + '<br>' + sovT('lTownHall', { ville: sovEsc(ville) }) + '</p>' +
+    '<p><strong>' + sovT('lSubject') + '</strong></p>' +
+    '<p>' + sovT('lComrade') + '</p>' +
+    '<p>' + sovT('lHonour') + '</p>' +
     '<ul style="margin:.3rem 0 .6rem 1.2rem"><li><strong>' + sovEsc(p.nomPiece) + '</strong></li>' +
-    '<li>Emplacement : ' + sovEsc(p.nomBatiment) + (rue ? ', ' + sovEsc(rue) : '') + ', ' + sovEsc(ville) + '</li>' +
-    (p.desc ? '<li>Description : ' + sovEsc(p.desc) + '</li>' : '') + '</ul>' +
-    '<p style="margin-bottom:.3rem">Activité envisagée (facultatif) :</p>' +
-    '<input class="cpj-champ" id="sov-activite" maxlength="200" placeholder="Ex. : une librairie" style="width:100%">' +
-    '<p style="margin-top:.6rem">Dans l’attente de votre décision, je vous prie d’agréer, Camarade Maire, l’expression de mon dévouement au bien commun.</p>' +
+    '<li>' + sovT('lPlace', { lieu: sovEsc(p.nomBatiment) + (rue ? ', ' + sovEsc(rue) : '') + ', ' + sovEsc(ville) }) + '</li>' +
+    (p.desc ? '<li>' + sovT('lDesc', { desc: sovEsc(p.desc) }) + '</li>' : '') + '</ul>' +
+    '<p style="margin-bottom:.3rem">' + sovT('lActivity') + '</p>' +
+    '<input class="cpj-champ" id="sov-activite" maxlength="200" placeholder="' + sovEsc(sovT('lActivityPh')) + '" style="width:100%">' +
+    '<p style="margin-top:.6rem">' + sovT('lClose') + '</p>' +
     '<p style="text-align:right;font-style:italic">' + sovEsc(l.moi) + '</p></div>' +
-    '<p class="cpj-note">Loyer actuellement fixé par la mairie : ' + sovLoyer(loc) + '. Si le maire accepte, vous recevrez un courrier, ' +
-    'puis vous signerez l’attribution chez le notaire.</p>' +
-    sovBouton('Envoyer (1 PA)', "sovarkaDemandeLocationEnvoyer('" + sovJs(p.batiment) + "','" + sovJs(p.piece) + "')", true);
-  vehModal(titre, lettre);
+    '<p class="cpj-note">' + sovT('lRentNote', { loyer: sovLoyer(loc) }) + '</p>' +
+    sovBouton(sovT('send'), "sovarkaDemandeLocationEnvoyer('" + sovJs(p.batiment) + "','" + sovJs(p.piece) + "')", true);
+  fen(lettre);
 }
 function sovarkaDemandeLocationEnvoyer(batiment, piece) {
   const activite = (document.getElementById('sov-activite')?.value || '').trim();
-  sovActe('sovarka_demande_location', { p_batiment: batiment, p_piece: piece, p_activite: activite || null }, 'Lettre envoyée',
-    v => 'Votre demande pour « ' + v.local + ' » est entre les mains du maire.', () => document.getElementById('modal-postes')?.classList.remove('open'));
+  sovActe('sovarka_demande_location', { p_batiment: batiment, p_piece: piece, p_activite: activite || null }, sovT('tSent'),
+    v => sovT('sentOk', { local: v.local }), () => document.getElementById('modal-postes')?.classList.remove('open'));
 }
 
-async function ouvrirSovarkaDossiers() {
-  const l = await sovLire();
-  if (!l) { showToast('Dossiers', 'Lecture impossible auprès du serveur.', false); return; }
-  if (!l.role) { vehModal('Dossiers commerciaux', '<p>' + SOV_MOTIFS.reserve_autorite_municipale + '</p>'); return; }
+async function ouvrirSovarkaDossiers(cache) {
+  const l = await sovLire(cache);
+  if (!l) { showToast(sovT('tFiles'), sovT('readFail'), false); return; }
+  if (!l.role) { sovModal(sovT('titleFiles'), '<p>' + sovT('m_reserve_autorite_municipale') + '</p>', ouvrirSovarkaDossiers); return; }
   const ville = l.ville;
   const locaux = l.locaux.filter(x => x.ville === ville);
   const libres = locaux.filter(sovLibre);
-  const options = '<option value="">— attendre l’immeuble collectif —</option>' +
+  const options = '<option value="">' + sovT('waitBuilding') + '</option>' +
     libres.map(x => '<option value="' + sovEsc(x.batiment + '|' + x.piece) + '">' + sovEsc(x.label) + ' (' + sovLoyer(x) + ')</option>').join('');
-  let html = '<p class="cpj-note">Caisse de la mairie : ' + Number(l.caisseMairie || 0).toLocaleString('fr-FR') + ' PSK. ' +
-    'Un immeuble collectif coûte ' + l.parametres.coutLocal + ' PSK par local et se construit en ' + l.parametres.delaiJours +
-    ' jours ; il est lancé le 1er et le 15 pour les dossiers acceptés qui attendent.</p>';
+  let html = '<p class="cpj-note">' + sovT('cashNote', { caisse: Number(l.caisseMairie || 0).toLocaleString('fr-FR'),
+    cout: l.parametres.coutLocal, jours: l.parametres.delaiJours }) + '</p>';
   const dossiers = l.demandes.filter(d => d.ville === ville && (d.statut === 'en_attente' || d.statut === 'acceptee'));
   // Demande de location (06/11/2026) : le local souhaité est indiqué et présélectionné s'il est encore libre.
   const optionsPour = d => {
@@ -246,87 +241,86 @@ async function ouvrirSovarkaDossiers() {
   const souhait = d => {
     if (!d.local_souhaite_batiment) return '';
     const x = locaux.find(y => y.batiment === d.local_souhaite_batiment && y.piece === d.local_souhaite_piece);
-    return '<br>Local demandé : <strong>' + sovEsc(x?.label || d.local_souhaite_piece) + '</strong>' + (x && !sovLibre(x) ? ' (plus libre)' : '');
+    return '<br>' + sovT('wanted') + ' <strong>' + sovEsc(x?.label || d.local_souhaite_piece) + '</strong>' + (x && !sovLibre(x) ? sovT('noLongerFree') : '');
   };
-  html += sovSection('Demandes', dossiers.length ? dossiers.map((d, i) =>
-    '<div style="margin:.5rem 0"><strong>' + sovEsc(d.demandeur) + '</strong> — « ' + sovEsc(d.projet) + ' » (' + (SOV_STATUTS[d.statut] || d.statut) + ')' + souhait(d) + '<br>' +
+  html += sovSection(sovT('requests'), dossiers.length ? dossiers.map((d, i) =>
+    '<div style="margin:.5rem 0"><strong>' + sovEsc(d.demandeur) + '</strong> — « ' + sovEsc(d.projet) + ' » (' + sovStatut(d.statut) + ')' + souhait(d) + '<br>' +
     '<select class="cpj-champ" id="sov-local-' + i + '">' + optionsPour(d) + '</select>' +
-    sovBouton('Accepter', "sovarkaAccepter('" + sovJs(d.id) + "'," + i + ")", true) + '</div>').join('')
-    : '<p class="cpj-note">Aucune demande en attente.</p>');
+    sovBouton(sovT('accept'), "sovarkaAccepter('" + sovJs(d.id) + "'," + i + ")", true) + '</div>').join('')
+    : '<p class="cpj-note">' + sovT('noneWaiting') + '</p>');
   const attribuees = l.demandes.filter(d => d.ville === ville && d.statut === 'attribuee');
-  if (attribuees.length) html += sovSection('Attributions à signer', '<ul>' + attribuees.map(d => '<li>' + sovEsc(d.demandeur) + ' — ' +
+  if (attribuees.length) html += sovSection(sovT('toSign'), '<ul>' + attribuees.map(d => '<li>' + sovEsc(d.demandeur) + ' — ' +
     sovEsc((locaux.find(x => x.batiment === d.local_batiment && x.piece === d.local_piece) || {}).label || '') + '</li>').join('') + '</ul>');
-  html += sovSection('Locaux et loyers', locaux.map((x, i) => '<div style="margin:.4rem 0">' + sovEsc(x.label) + ' — ' +
-    (x.exploitant ? 'exploité par ' + sovEsc(x.exploitant) : x.reserve ? 'réservé' : 'libre') +
-    (x.origine === 'pnj' ? ' (sans loyer)' : '<br><input class="cpj-champ" id="sov-loyer-' + i + '" type="number" min="0" max="' + x.plafond +
-      '" value="' + x.loyer + '" style="width:6rem"> PSK / jour (0 à ' + x.plafond + ')' +
-      sovBouton('Fixer', "sovarkaLoyer('" + sovJs(x.batiment) + "','" + sovJs(x.piece) + "'," + i + ")")) + '</div>').join(''));
+  html += sovSection(sovT('premisesRents'), locaux.map((x, i) => '<div style="margin:.4rem 0">' + sovEsc(x.label) + ' — ' +
+    (x.exploitant ? sovT('exploitedByShort', { nom: sovEsc(x.exploitant) }) : x.reserve ? sovT('reserved') : sovT('free')) +
+    (x.origine === 'pnj' ? sovT('noRentParen') : '<br><input class="cpj-champ" id="sov-loyer-' + i + '" type="number" min="0" max="' + x.plafond +
+      '" value="' + x.loyer + '" style="width:6rem"> ' + sovT('rentRange', { max: x.plafond }) +
+      sovBouton(sovT('set'), "sovarkaLoyer('" + sovJs(x.batiment) + "','" + sovJs(x.piece) + "'," + i + ")")) + '</div>').join(''));
   const comp = l.composition || 'commerces';
-  html += sovSection('Immeubles collectifs', '<p>Type des prochains immeubles : <strong>' + (comp === 'mixte' ? 'mixte (commerces et logements)' : 'uniquement des commerces') + '</strong></p>' +
-    sovBouton('Mixte', "sovarkaComposition('mixte')", comp === 'mixte') + sovBouton('Commerces seulement', "sovarkaComposition('commerces')", comp !== 'mixte') +
-    '<ul>' + l.immeubles.filter(i => i.ville === ville).map(i => '<li>' + sovEsc(i.terrain) + ' : ' + i.nb_commerces + ' commerce(s)' +
-      (i.nb_logements ? ', ' + i.nb_logements + ' logement(s)' : '') + ' — ' + (SOV_IMMEUBLES[i.statut] || i.statut) +
-      (i.statut === 'en_chantier' ? ', livraison le ' + sovEsc(i.livraison_le) : '') + '</li>').join('') + '</ul>');
-  vehModal('Dossiers commerciaux — ' + sovVille(ville), html);
+  html += sovSection(sovT('buildings'), '<p>' + sovT('nextType') + ' <strong>' + (comp === 'mixte' ? sovT('mixed') : sovT('shopsOnly')) + '</strong></p>' +
+    sovBouton(sovT('bMixed'), "sovarkaComposition('mixte')", comp === 'mixte') + sovBouton(sovT('bShops'), "sovarkaComposition('commerces')", comp !== 'mixte') +
+    '<ul>' + l.immeubles.filter(i => i.ville === ville).map(i => '<li>' + sovT('bLine', { terrain: sovEsc(i.terrain), n: i.nb_commerces }) +
+      (i.nb_logements ? sovT('bHomes', { n: i.nb_logements }) : '') + ' — ' + sovImmeuble(i.statut) +
+      (i.statut === 'en_chantier' ? sovT('delivery', { date: sovEsc(i.livraison_le) }) : '') + '</li>').join('') + '</ul>');
+  sovModal(sovT('titleFilesCity', { ville: sovVille(ville) }), html, ouvrirSovarkaDossiers);
 }
 function sovarkaAccepter(id, i) {
   const v = document.getElementById('sov-local-' + i)?.value || '';
   const [batiment, piece] = v ? v.split('|') : [null, null];
-  sovActe('sovarka_demande_accepter', { p_demande: id, p_batiment: batiment, p_piece: piece }, 'Demande acceptée',
-    r => r.attente ? 'Le dossier attend le prochain immeuble collectif.' : 'Local attribué : ' + r.local + '. Le demandeur est prévenu.', ouvrirSovarkaDossiers);
+  sovActe('sovarka_demande_accepter', { p_demande: id, p_batiment: batiment, p_piece: piece }, sovT('tAccepted'),
+    r => r.attente ? sovT('waitsNext') : sovT('attributed', { local: r.local }), ouvrirSovarkaDossiers);
 }
 function sovarkaLoyer(batiment, piece, i) {
   const loyer = parseInt(document.getElementById('sov-loyer-' + i)?.value, 10);
   sovActe('sovarka_local_loyer_fixer', { p_ville: state.currentCity, p_batiment: batiment, p_piece: piece, p_loyer: isNaN(loyer) ? null : loyer },
-    'Loyer fixé', v => 'Nouveau loyer : ' + v.loyer + ' PSK par jour.', ouvrirSovarkaDossiers);
+    sovT('tRentSet'), v => sovT('newRent', { loyer: v.loyer }), ouvrirSovarkaDossiers);
 }
 function sovarkaComposition(c) {
-  sovActe('sovarka_composition_fixer', { p_ville: state.currentCity, p_composition: c }, 'Immeubles collectifs',
-    c === 'mixte' ? 'Les prochains immeubles mêleront commerces et logements.' : 'Les prochains immeubles n’auront que des commerces.', ouvrirSovarkaDossiers);
+  sovActe('sovarka_composition_fixer', { p_ville: state.currentCity, p_composition: c }, sovT('buildings'),
+    c === 'mixte' ? sovT('mixedOk') : sovT('shopsOk'), ouvrirSovarkaDossiers);
 }
 
 // ----------------------------------------------------------------------------- Tribunal
-async function ouvrirSovarkaRetirerDroit() {
+async function ouvrirSovarkaRetirerDroit(cache) {
   // Décision de Fred (08/11/2026) : le juge ne retire un droit que sur saisine du ministre de la
   // Justice prolétarienne ; il décide librement (retirer ou rejeter).
-  const l = (typeof sovPouvoirLire === 'function') ? await sovPouvoirLire() : null;
+  const l = (typeof sovPouvoirLire === 'function') ? await sovPouvoirLire(cache) : null;
   if (!l) return;
-  if (!(l.juge_villes || []).includes(state.currentCity)) { vehModal('Saisines du ministre', '<p>' + SOV_MOTIFS.reserve_juge + '</p>'); return; }
+  if (!(l.juge_villes || []).includes(state.currentCity)) { sovModal(sovT('titleReferrals'), '<p>' + sovT('m_reserve_juge') + '</p>', ouvrirSovarkaRetirerDroit); return; }
   const saisines = (l.saisines || []).filter(x => x.statut === 'en_attente' && x.ville === state.currentCity);
-  let html = '<p class="cpj-note">Le ministre de la Justice prolétarienne vous saisit. Le droit retiré revient à l’État, sans indemnité ; '
-    + 'l’exploitant est prévenu par courrier. Vous pouvez aussi rejeter la saisine.</p>'
-    + '<input class="cpj-champ" id="sov-motif" maxlength="300" placeholder="Motif de la décision" style="width:100%">';
+  let html = '<p class="cpj-note">' + sovT('referralIntro') + '</p>'
+    + '<input class="cpj-champ" id="sov-motif" maxlength="300" placeholder="' + sovEsc(sovT('reasonPh')) + '" style="width:100%">';
   html += saisines.length ? saisines.map(x => sovSection(sovEsc(x.exploitant || '?'),
-    '<p>Commerce : ' + sovEsc(x.batiment) + ' · ' + sovEsc(x.piece) + '</p><p class="cpj-note">Motif du ministre : ' + sovEsc(x.motif) + '</p>' +
-    sovBouton('Retirer le droit (1 PA)', "sovarkaRetirer('" + sovJs(x.batiment) + "','" + sovJs(x.piece) + "')", true) +
-    sovBouton('Rejeter la saisine', 'sovarkaRejeterSaisine(' + Number(x.id) + ')', false))).join('')
-    : '<p>Aucune saisine en attente.</p>';
-  vehModal('Saisines du ministre', html);
+    '<p>' + sovT('shopLine', { lieu: sovEsc(x.batiment) + ' · ' + sovEsc(x.piece) }) + '</p><p class="cpj-note">' + sovT('ministerReason', { motif: sovEsc(x.motif) }) + '</p>' +
+    sovBouton(sovT('revokeBtn'), "sovarkaRetirer('" + sovJs(x.batiment) + "','" + sovJs(x.piece) + "')", true) +
+    sovBouton(sovT('rejectBtn'), 'sovarkaRejeterSaisine(' + Number(x.id) + ')', false))).join('')
+    : '<p>' + sovT('noReferral') + '</p>';
+  sovModal(sovT('titleReferrals'), html, ouvrirSovarkaRetirerDroit);
 }
 function sovarkaRetirer(batiment, piece) {
   const motif = (document.getElementById('sov-motif')?.value || '').trim();
   sovActe('sovarka_droit_retirer', { p_ville: state.currentCity, p_batiment: batiment, p_piece: piece, p_motif: motif },
-    'Droit retiré', v => v.local + ' revient à l’État.', ouvrirSovarkaRetirerDroit);
+    sovT('tRevoked'), v => sovT('revokedOk', { local: v.local }), ouvrirSovarkaRetirerDroit);
 }
 function sovarkaRejeterSaisine(id) {
   if (typeof sovPouvoirActe === 'function')
-    sovPouvoirActe('juge_rejeter', { saisine: id }, 'Saisine', 'Saisine rejetée : le ministre est prévenu.', ouvrirSovarkaRetirerDroit);
+    sovPouvoirActe('juge_rejeter', { saisine: id }, sovT('tReferral'), sovT('rejectedOk'), ouvrirSovarkaRetirerDroit);
 }
 
 // ----------------------------------------------------------------------------- Terrains
-async function ouvrirSovarkaTerrain() {
-  const l = await sovLire();
-  if (!l) { showToast('Terrain', 'Lecture impossible auprès du serveur.', false); return; }
+async function ouvrirSovarkaTerrain(cache) {
+  const l = await sovLire(cache);
+  if (!l) { showToast(sovT('tLand'), sovT('readFail'), false); return; }
   // Un terrain peut porter plusieurs parcelles (Starovka : 4, decision de Fred du 09/11/2026) :
   // le serveur nomme la parcelle n « terrain@pn ».
   const parcelle = t => (String(t).split('@')[1] || 'p1').slice(1);
   const imm = l.immeubles.filter(x => x.ville === state.currentCity && String(x.terrain).split('@')[0] === state.currentBuilding);
-  const html = !imm.length ? '<p>Terrain libre. La mairie y construira un immeuble collectif quand des dossiers de commerce attendront un local.</p>'
-    : imm.map(i => '<p>' + (imm.length > 1 || String(i.terrain).includes('@') ? 'Parcelle ' + parcelle(i.terrain) + ' — ' : '') +
-      'Immeuble collectif : ' + i.nb_commerces + ' local(aux) commercial(aux)' + (i.nb_logements ? ' et ' + i.nb_logements + ' logement(s)' : '') +
-      ' — ' + (SOV_IMMEUBLES[i.statut] || i.statut) + (i.statut === 'en_chantier' ? ', livraison le ' + sovEsc(i.livraison_le) : '') + '.</p>').join('');
-  vehModal('Terrain municipal', html);
-  if (typeof rafraichirPiecesDynamiques === 'function') rafraichirPiecesDynamiques(state.currentBuilding);
+  const html = !imm.length ? '<p>' + sovT('landFree') + '</p>'
+    : imm.map(i => '<p>' + (imm.length > 1 || String(i.terrain).includes('@') ? sovT('plot', { n: parcelle(i.terrain) }) : '') +
+      sovT('landBuilding', { n: i.nb_commerces }) + (i.nb_logements ? sovT('landHomes', { n: i.nb_logements }) : '') +
+      ' — ' + sovImmeuble(i.statut) + (i.statut === 'en_chantier' ? sovT('delivery', { date: sovEsc(i.livraison_le) }) : '') + '.</p>').join('');
+  sovModal(sovT('titleLand'), html, ouvrirSovarkaTerrain);
+  if (!cache && typeof rafraichirPiecesDynamiques === 'function') rafraichirPiecesDynamiques(state.currentBuilding);
 }
 
 // Pieces des immeubles collectifs (locaux et logements), injectees dans le terrain par
@@ -338,11 +332,11 @@ function sovarkaPiecesImmeuble(buildingId) {
   if (!livres.length) return [];
   const fond = 'linear-gradient(135deg,#121418,#1a1d22)';
   const pieces = (sovarkaDroitsCache.locaux || []).filter(x => x.ville === ville && x.batiment === buildingId).map(x => [x.piece, {
-    name: x.label, desc: 'Local commercial de l’immeuble collectif, propriété de l’État. ' + (x.exploitant ? 'Exploité par ' + x.exploitant + '.' : 'Attribué par la mairie.'),
+    name: x.label, desc: sovT('roomDesc') + ' ' + (x.exploitant ? sovT('roomExploited', { nom: x.exploitant }) : sovT('roomAttributed')),
     imageBg: fond, isLocationRoom: true, persons: [],
     locationData: { prix: x.loyer, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: x.label },
     orders: [
-      { fn: 'commerce_pj', label: 'Ce commerce', pa: 0, cost: 0, type: 'legal', icon: 'ti-building-store', successRate: 100, desc: 'Gérer votre commerce, ou visiter la boutique du commerçant.' },
+      { fn: 'commerce_pj', label: 'Ce commerce', pa: 0, cost: 0, type: 'legal', icon: 'ti-building-store', successRate: 100, desc: sovT('orderShopDesc') },
       { fn: 'gerer_local', label: 'Gérer mon local', pa: 1, cost: 0, type: 'legal', icon: 'ti-settings', successRate: 100 }
     ]
   }]);
@@ -350,11 +344,11 @@ function sovarkaPiecesImmeuble(buildingId) {
     const prefixe = String(i.terrain).includes('@') ? String(i.terrain).split('@')[1] + '_' : '';
     const nom = (prefixe ? 'Parcelle ' + prefixe.slice(1, -1) + ' — logement n°' : 'Logement n°') + k;
     pieces.push([prefixe + 'logement_' + k, {
-      name: nom, desc: 'Un logement social de l’immeuble collectif, attribué par la mairie.', imageBg: fond, isLocationRoom: true, persons: [],
+      name: nom, desc: sovT('homeDesc'), imageBg: fond, isLocationRoom: true, persons: [],
       locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: nom, logementSocial: true,
         orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
       orders: [{ fn: 'gerer_logement_social', label: 'Mon logement', pa: 0, cost: 0, type: 'legal', icon: 'ti-home-cog', successRate: 100,
-        desc: 'Voir les conditions de votre bail, si vous êtes le locataire de ce logement.' }]
+        desc: sovT('homeOrderDesc') }]
     }]);
   }
   return pieces;
