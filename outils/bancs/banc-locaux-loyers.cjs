@@ -37,7 +37,7 @@ const sql = [lire('historique/migrations-appliquees/20261029184321_location_loca
 const serveur = {}; const nonLouables = [];
 // La migration Pavillon révoque l'ancien guichet de ses trois suites :
  // ce ne sont plus des locaux louables via louer_local.
-const pavillonMigration = lire('migrations/20261111205000_pavillon_diplomatique_baux.sql');
+const pavillonMigration = lire('historique/migrations-appliquees/20261111214350_pavillon_diplomatique_baux_20261111.sql');
 const pavillonAnciennesSuites = ['suite_parti','suite_privee','suite_presidentielle'];
 if(!pavillonAnciennesSuites.every(room =>
   pavillonMigration.includes("AND piece IN ('suite_parti','suite_privee','suite_presidentielle')") &&
