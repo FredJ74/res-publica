@@ -51,7 +51,7 @@ function environment(locale='fr',enabled=true){
  vm.createContext(context);vm.runInContext(src,context,{filename:'sales-resource'});
  vm.runInContext(journalSrc,context,{filename:'sales-journal'});
  vm.runInContext(dinnerSrc,context,{filename:'restaurant-dinner'});
- return {context,cards,calls,toasts,fields,storage,timeline,change(l){context.currentLang=l;onLanguage?.(l)},setRpc(fn){context.sbRpcVerdict=fn}};
+ return {context,cards,calls,toasts,fields,storage,timeline,change(l){context.currentLang=l;for(const cb of context.RP_I18N_CHANGE_CALLBACKS||[])cb(l)},setRpc(fn){context.sbRpcVerdict=fn}};
 }
 test('neuf langues, 25 clés et interpolations strictement symétriques',()=>{
  const e=environment();
