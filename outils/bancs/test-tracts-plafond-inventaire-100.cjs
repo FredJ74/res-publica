@@ -55,6 +55,8 @@ test('la RPC refuse au serveur avant toute dépense et protège les deux types d
  assert.ok(!migration.includes('DROP FUNCTION'));
  assert.match(imprimerie,/raison === 'inventaire_plein'/);
  assert.match(imprimerie,/cap\.parPlace < 1/);
- assert.match(imprimerie,/les places libres de votre inventaire/);
+ assert.match(imprimerie,/limite = texteTract\('limitSpace'\)/);
+ // Libellé déplacé dans le catalogue i18n des tracts (11/11/2026), français inchangé.
+ assert.match(require('node:fs').readFileSync(require('node:path').resolve(__dirname,'../../i18n/tracts-resources.js'),'utf8'),/"limitSpace": "les places libres de votre inventaire"/);
  assert.match(imprimerie,/p_cible: cible, p_sens: sens/);
 });
