@@ -164,6 +164,18 @@ def ecarts_apres_lot(appels=None):
 def calculer(appels):
     f = formes_baseline()
     illisibles = []
+    # La photographie baseline date du 01/11 et n'a pas encore été réextraite.
+    # Pavillon : archive appliquée au registre Supabase le 11/11 (20261111214350).
+    # Intégrer EXCLUSIVEMENT cette migration attestée au référentiel simulé :
+    # autrement les deux RPC publiques pavillon_etat / pavillon_acte apparaissent
+    # fictivement absentes malgré leur application vérifiée en production.
+    # Dès que la baseline contiendra ces fonctions, ne plus rejouer l'archive.
+    if not any(n == 'pavillon_acte' for (n, _types) in f):
+        archive = os.path.join(RACINE, 'historique', 'migrations-appliquees',
+            '20261111214350_pavillon_diplomatique_baux_20261111.sql')
+        e = appliquer(f, archive)
+        if e:
+            illisibles.append((os.path.basename(archive), e))
     for chemin in sorted(glob.glob(os.path.join(RACINE, 'migrations', '*.sql'))):
         e = appliquer(f, chemin)
         if e:
