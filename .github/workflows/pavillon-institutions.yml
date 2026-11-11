@@ -2,7 +2,7 @@ name: Pavillon — baux institutionnels et parité
 on:
   pull_request:
     paths:
-      - 'migrations/20261111205000_pavillon_diplomatique_baux.sql'
+      - 'historique/migrations-appliquees/20261111214350_pavillon_diplomatique_baux_20261111.sql'
       - 'outils/bancs/banc-pavillon-institutions.sql'
       - 'data.js'
       - 'plateau-pavillon.js'
