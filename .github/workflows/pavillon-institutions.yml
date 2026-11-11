@@ -1,0 +1,50 @@
+name: Pavillon — baux institutionnels et parité
+on:
+  pull_request:
+    paths:
+      - 'migrations/20261111205000_pavillon_diplomatique_baux.sql'
+      - 'outils/bancs/banc-pavillon-institutions.sql'
+      - 'data.js'
+      - 'plateau-pavillon.js'
+      - 'plateau-router.js'
+      - 'plateau.html'
+      - '.github/workflows/pavillon-institutions.yml'
+permissions:
+  contents: read
+jobs:
+  pavillon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pavillon_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 6
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: pavillon_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Contrôler la syntaxe de l'interface
+        run: |
+          node --check plateau-pavillon.js
+          node --check plateau-router.js
+          node --check data.js
+          git diff --check
+      - name: Tester PostgreSQL en base jetable
+        run: psql -v ON_ERROR_STOP=1 -X -f outils/bancs/banc-pavillon-institutions.sql
