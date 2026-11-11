@@ -6,9 +6,14 @@ const {R,temoin,lecture,preuve,avecJeu,page}=require('./mobile-navigateur.cjs');
 // que le libellé de ce bouton dans le témoin historique. Ne pas masquer
 // le bouton entier : ses dimensions et les éléments voisins restent contrôlés.
 async function alignerNomAideTemoin(pageTemoin) {
- const bouton=pageTemoin.locator('button[onclick="openRulesView()"] span[data-i18n="plateau.rules"]');
+ const bouton=pageTemoin.locator('button[onclick="openRulesView()"]');
  assert.equal(await bouton.count(),1);
- await bouton.evaluate(el=>{el.textContent='Aide';});
+ await bouton.evaluate(el=>{
+  // Le témoin précède les balises data-i18n : "Règles" y est un nœud texte direct.
+  const texte=Array.from(el.childNodes).find(n=>n.nodeType===Node.TEXT_NODE&&n.nodeValue?.includes('Règles'));
+  if(!texte) throw Error('Libellé historique des règles absent du témoin');
+  texte.nodeValue=texte.nodeValue.replace('Règles','Aide');
+ });
 }
 
 test('L1 : bureau 1440 strictement identique au témoin avant mobile',async()=>avecJeu(async(b,o)=>{
