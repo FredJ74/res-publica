@@ -582,6 +582,18 @@ cible `soviet.ville_b`) ; guide = objet simple ; prix PNJ 4, 3 et 6 PSK (formule
 - **Fiches de présentation (présentation fixe d'Ouliana)** : rédigées par Claude, relues et modifiées par Fred
   dans la conversation, une salle à la fois. Validées :
 
+**Les neuf fiches sont rédigées et validées (11/11, 20 h 58)** ; le codage de la guide attend toujours le feu vert de Fred.
+
+#### Accueil — validée par Fred sans changement (11/11, 20 h 58)
+
+> Bonjour et bienvenue au Musée de la République de Sovarka, camarades. Je suis Ouliana Historiskaïa, guide officielle du musée, au service de l'histoire. De l'histoire officielle, s'entend : c'est la seule qui ait été conservée.
+>
+> Le parcours vous mènera des grands présidents aux grands partis, de nos héros militaires à nos artistes, sans oublier le tractorisme, nos sportifs et nos grandes crises. Je vous conseille de suivre l'ordre de la visite. Rien n'est interdit, bien sûr. C'est simplement conseillé, très fortement.
+>
+> La photographie est autorisée partout, sauf là où elle ne l'est pas. Les gardiens vous le signaleront.
+>
+> Avez-vous des questions ? Uniquement historiques, je vous prie.
+
 #### Salle des présidents — validée par Fred (11/11, 14 h 24)
 
 Corrections de Fred : les cinq présidents sont des **hommes** ; les trois derniers se **ressemblent** (notion
