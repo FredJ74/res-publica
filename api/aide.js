@@ -1,5 +1,6 @@
 // Assistant HRP du jeu. Strictement pedagogique, sans effet sur le personnage.
 import { appelDeepSeek, joueurAuthentifie } from './_deepseek.js';
+import { contexteAideQuestion } from './_aide-themes.js';
 
 const MAX_MESSAGE = 1000;
 const MAX_HISTORIQUE = 6;
@@ -44,7 +45,7 @@ export default async function handler(req,res) {
   if (!joueur) return res.status(401).json({error:'Connexion nécessaire pour demander de l’aide.'});
   const messages=[...(req.body.historique||[]),{role:'user',content:req.body.message}];
   const result=await appelDeepSeek({
-    systeme: GUIDE+'\nLangue choisie : '+(req.body.lang||'fr')+'.',
+    systeme: GUIDE+'\nLangue choisie : '+(req.body.lang||'fr')+'.\nFaits vérifiés pertinents :\n'+contexteAideQuestion(req.body.message,req.body.historique||[]),
     messages,maxTokens:500,timeoutMs:23000
   });
   if (!result.ok || result.tronque || !result.texte) {
