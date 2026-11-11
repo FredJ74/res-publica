@@ -53,14 +53,31 @@ def inspect():
 def apply():
     import cv2
     import numpy as np
-    rgb=np.array(Image.open(SOURCE).convert('RGB'))
+    # Toujours repartir de la source WebP exacte, sans réencoder la première
+    # retouche insuffisante. Le SHA de commit est fixé pour empêcher un glissement.
+    url='https://raw.githubusercontent.com/FredJ74/res-publica/d79b7ad0f7ec2b42e9d433bd2418553f894b3c67/images/rue-residences-eglise-novomirsk.webp'
+    original=Image.open(io.BytesIO(urllib.request.urlopen(url,timeout=20).read())).convert('RGB')
+    rgb=np.array(original)
     assert rgb.shape==(1024,1536,3),f'Taille modifiée : {rgb.shape}'
+    region=rgb[376:416,1462:1491]
+    rr,gg,bb=region[:,:,0],region[:,:,1],region[:,:,2]
+    gold=((rr>95)&(gg>60)&(rr>gg*1.12)&(gg>bb*1.1)).astype('uint8')
+    count,labels,stats,centroids=cv2.connectedComponentsWithStats(gold,8)
+    candidates=[i for i in range(1,count) if stats[i,4]>=30 and centroids[i,0]+1462>=1479]
+    assert len(candidates)==1,f'Le S final n\'est pas isolable : {candidates}'
+    target=candidates[0]
+    x,y,w,h,pixels=map(int,stats[target])
+    assert (x+1462,y+376,w,h)==(1478,381,8,26),(x,y,w,h)
+    print('S_ISOLE=',x+1462,y+376,w,h,'pixels=',pixels)
+    glyph=(labels==target).astype('uint8')*255
+    glyph=cv2.dilate(glyph,np.ones((3,3),dtype=np.uint8),iterations=1)
+    # Les composants dorés voisins, notamment le E final, sont intouchables.
+    glyph[(labels>0)&(labels!=target)]=0
     mask=np.zeros(rgb.shape[:2],dtype=np.uint8)
-    # S final uniquement, plaque noire en perspective à droite.
-    polygon=np.array([(1477,370),(1491,369),(1491,412),(1476,414)],dtype=np.int32)
-    cv2.fillPoly(mask,[polygon],255)
-    bgr=cv2.cvtColor(rgb,cv2.COLOR_RGB2BGR)
-    corrected=cv2.inpaint(bgr,mask,3,cv2.INPAINT_TELEA)
+    mask[376:416,1462:1491]=glyph
+    assert np.count_nonzero(mask)<200
+    corrected=cv2.inpaint(cv2.cvtColor(rgb,cv2.COLOR_RGB2BGR),mask,2,cv2.INPAINT_TELEA)
+    assert np.all(corrected[mask==0]==cv2.cvtColor(rgb,cv2.COLOR_RGB2BGR)[mask==0])
     output=Image.fromarray(cv2.cvtColor(corrected,cv2.COLOR_BGR2RGB))
     output.save(SOURCE,format='WEBP',quality=96,method=6)
     check=Image.open(SOURCE)
@@ -68,9 +85,6 @@ def apply():
     print('CORRECTED_FILE=',SOURCE)
     print('WEBP_BYTES=',SOURCE.stat().st_size)
     print('FILE_SHA256=',hashlib.sha256(SOURCE.read_bytes()).hexdigest())
-    # Aucun pixel hors de la zone sélectionnée n'a été modifié avant réencodage.
-    exact=np.all(corrected[mask==0]==bgr[mask==0])
-    assert exact,'La correction change des pixels hors masque'
 
 def main():
     parser=argparse.ArgumentParser()
