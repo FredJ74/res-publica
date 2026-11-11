@@ -317,7 +317,7 @@ async function agenceEmploiEmbaucher(candidatId, fn) {
 
 // Une bascule de langue ne relit pas le serveur et ne relance pas d'embauche.
 // Le catalogue déjà reçu est seulement réaffiché avec les libellés du choix actif.
-if (typeof window.i18next?.on==='function') window.i18next.on('languageChanged',function(){
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
   const corps=document.getElementById('postes-body');
   if(!RP_AGENCE_AFFICHEE || !corps || !document.getElementById('modal-postes')?.classList.contains('open'))return;
   const ech=t=>typeof escapeHtmlText==='function'?escapeHtmlText(String(t??'')):String(t??'');
