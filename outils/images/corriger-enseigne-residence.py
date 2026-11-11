@@ -21,6 +21,18 @@ def inspect():
     url='https://raw.githubusercontent.com/FredJ74/res-publica/d79b7ad0f7ec2b42e9d433bd2418553f894b3c67/images/rue-residences-eglise-novomirsk.webp'
     original=Image.open(io.BytesIO(urllib.request.urlopen(url,timeout=20).read())).convert('RGB')
     image=original
+    import cv2
+    import numpy as np
+    raw=np.array(original)
+    region=raw[376:416,1462:1491]
+    rr,gg,bb=region[:,:,0],region[:,:,1],region[:,:,2]
+    gold=((rr>95)&(gg>60)&(rr>gg*1.12)&(gg>bb*1.1)).astype('uint8')
+    n,lbl,stats,centroids=cv2.connectedComponentsWithStats(gold,8)
+    print('GOLD_COMPONENTS')
+    for idx in range(1,n):
+        x,y,w,h,area=map(int,stats[idx])
+        if area>=2:
+            print(f'COMP {idx}: x={x+1462}..{x+w+1461}, y={y+376}..{y+h+375}, pixels={area}, cx={centroids[idx][0]+1462:.1f}, cy={centroids[idx][1]+376:.1f}')
     print(f"ORIGINAL_SIZE={image.size[0]}x{image.size[1]}")
     crop=image.crop((1420,355,1515,435)).resize((760,640),Image.Resampling.NEAREST)
     draw=ImageDraw.Draw(crop)
