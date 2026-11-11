@@ -559,3 +559,21 @@ Le marché vend **une portion de goulash, un guide des baies sauvages de Krasnov
 **Codé le 10/11** : migration `20261110233000_marche_krasnov` appliquée (dotation `marche@soviet.ville_b`, il n'hérite plus
 des objets de Montrouge). Choix techniques : goulash = aliment ; chemise = objet d'intégration locale (+1 ENT à Krasnov,
 cible `soviet.ville_b`) ; guide = objet simple ; prix PNJ 4, 3 et 6 PSK (formule commune). Images à faire par Fred.
+
+### Guide du Musée de la République (Fred, 11/11/2026, 9 h 35 – 9 h 44) — décisions en cours, PAS de feu vert de codage
+
+- **Principe** : une guide (PNJ) présente dans **toutes les salles du Musée de la République** de Novomirsk (pièces créées par
+  Fred). Ordre de pièce **« Écouter la guide »** : ouvre la fenêtre de la guide, qui récite d'abord une **présentation fixe**
+  de la salle, puis propose de la **questionner librement**. Le musée de la ville aura plus tard **un autre guide**.
+- **Présentation fixe** : générée une fois par langue puis stockée (système de traduction existant), resservie gratuitement.
+  Les audioguides français restent un bonus ; pas d'audio multilingue (décision de Fred).
+- **Dialogue libre** (DeepSeek, langue du joueur) : **1 PA** ouvre le dialogue dans la salle, **3 questions au maximum**,
+  ensuite la guide invite poliment à avancer dans la visite.
+- **Personnage** : employée de l'État, elle risque sa place, voire la prison, si elle va contre le régime. **Réellement
+  cultivée et intelligente**, elle **élude subtilement** les questions gênantes ; poussée dans ses retranchements, elle
+  peut répondre sèchement : « Vous voulez peut-être en discuter avec la Police Politique ?! »
+- **Conséquences** : **aucune pour l'instant**, la menace reste une réplique. Piste d'ambiance pour plus tard : après un
+  avertissement ignoré, un PNJ policier apparaît pour ce seul joueur (détection par marque d'alerte de l'IA, pas sur une
+  seule alerte).
+- **Question ouverte** : qui rédige les fiches de présentation des salles (Claude puis relecture de Fred, ou Fred) ; nom et
+  image de la guide.
