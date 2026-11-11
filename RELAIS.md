@@ -8,6 +8,11 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Pavillon des Ambassadeurs — baux diplomatiques (ChatGPT, 11/11, PR #764, EN TEST)
+Issue [#753](https://github.com/FredJ74/res-publica/issues/753). **Décision supplémentaire de Fred : 1 PSK = 1 FR, sans frais de change**, uniquement pour les paiements du Pavillon ; enregistrée dans `GAME-DESIGN-NOVOMIRSK.md`.
+Branche `chatgpt/pavillon-baux-institutions-20261111`, PR #764 brouillon. Code préparé : `migrations/20261111205000_pavillon_diplomatique_baux.sql` (baux 7 jours 500/650/800 FR/jour, paiement caisses étrangères avec parité 1:1, réception 1 500 PSK/jour, recettes à la caisse `soviet_palais-gouvernement`, clôture du vieux guichet générique, +3 PA au sommeil autorisé) ; `plateau-pavillon.js`, raccordement dans `data.js`, `plateau-router.js` et `plateau.html` ; tests `outils/bancs/banc-pavillon-institutions.sql` et CI `.github/workflows/pavillon-institutions.yml`. Les sources JavaScript compilent (contrôle syntaxique via V8 connecté). **Non fusionné, migration non appliquée, pas de recette PJ réelle.** Les jobs GitHub sont en file d'attente suite à de nombreux commits. Vérifier les tests SQL sur PostgreSQL 17 jetable et les contrôles globaux AVANT toute livraison, puis appliquer via `WORKFLOW-SUPABASE.md`. Aucune modification de données PJ n'a été exécutée.
+
+
 ### i18n commun — agence sociale, ChatGPT, 11/11/2026 (livré : PR #728, SHA 2cb77db2, Vercel READY)
 Branche `chatgpt/i18n-agence-sociale-20261111`. **28 libellés** sur neuf langues dans `plateau-escorts-agence.js` et `i18n/social-agency-resources.js` : galerie d'accompagnants, statuts, confidentes, plafond de dix employés, refus du serveur et confirmations. Les noms, identifiants, choix, coûts et mutations déjà décidés par le serveur restent inchangés ; la galerie ouverte est repeinte depuis le cache au changement de langue sans nouvelle RPC. Banc dédié `outils/bancs/banc-i18n-agence-sociale-20261111.cjs` et CI `.github/workflows/i18n-agence-sociale.yml`. Aucune modification aux dialogues PNJ ou institutions Sovarka. Restent à vérifier : CI distante, merge, Vercel READY, recette connectée et revue linguistique.
 
