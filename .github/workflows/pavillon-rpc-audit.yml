@@ -1,0 +1,26 @@
+name: Pavillon — audit RPC après migration appliquée
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - outils/baseline/simuler-rpc-apres-lot.py
+      - outils/bancs/test-rpc-apres-lot-219.mjs
+      - .github/workflows/pavillon-rpc-audit.yml
+permissions:
+  contents: read
+jobs:
+  rpc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Installer le parseur PostgreSQL épinglé
+        run: python3 -m pip install 'pglast==7.21'
+      - name: Contrôle RPC navigateur et contre-épreuves des anciennes portes
+        run: node --test outils/bancs/test-rpc-apres-lot-219.mjs
