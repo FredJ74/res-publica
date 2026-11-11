@@ -53,9 +53,20 @@ async function envoyer(message){
    if(typeof result.reponse!=='string'||!result.reponse.trim())throw Error('empty');
    historique.push({role:'assistant',content:result.reponse.slice(0,4000)});
    if(document.getElementById('aide-hrp-fil'))ajouter('assistant',result.reponse.slice(0,4000));
-   status.textContent='';
- }catch(e){status.textContent=t.retry;historique.pop();zone.value=question}
- finally{attente=false;button.disabled=false}
+   const statutActuel=document.getElementById('aide-hrp-statut');
+   if(statutActuel)statutActuel.textContent='';
+ }catch(e){
+   historique.pop();
+   const statutActuel=document.getElementById('aide-hrp-statut');
+   const saisieActuelle=document.getElementById('aide-hrp-question');
+   if(statutActuel)statutActuel.textContent=texte().retry;
+   if(saisieActuelle)saisieActuelle.value=question;
+ }
+ finally{
+   attente=false;
+   const boutonActuel=document.getElementById('aide-hrp-envoyer');
+   if(boutonActuel)boutonActuel.disabled=false;
+ }
 }
 // Changement de langue à chaud : préserver les échanges et un brouillon en cours.
 if(global.i18next?.on)global.i18next.on('languageChanged',()=>{
