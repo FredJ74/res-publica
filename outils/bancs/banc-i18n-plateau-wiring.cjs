@@ -30,7 +30,7 @@ test('les panneaux statiques portent des clés de localisation sans modifier les
 });
 
 test('navigation principale, forum et courrier gardent leurs clés et événements',()=>{
- for(const key of ['personalActions','inventory','organizations','identity','statistics','rules','forum','mailbox','financeManagement','characterSheet']) {
+ for(const key of ['personalActions','inventory','organizations','identity','statistics','help','forum','mailbox','financeManagement','characterSheet']) {
   assert.ok(plateau.includes('data-i18n="plateau.'+key+'"'),key);
  }
  assert.match(plateau,/onclick="switchSelfTab\('actions',this\)"/);
