@@ -659,13 +659,13 @@ Apport de Fred : les graines de la liberté et de l'émancipation qui germent da
 
 #### Salle des sportifs de Sovarka — rédigée par Fred (11/11, 19 h 36)
 
-Athlètes de l'image de la salle. Texte de Fred recopié tel quel (introduction et conclusion de Claude gardées). Le basketteur s'appelle **Arvidas** Tkhatchenko (le nom « Vladimir Tkhatchenko » existe réellement ; la plaque de l'image porte encore « Владимир »). Au codage, corriger seulement l'orthographe : « inarrêtable », « l'entraîneur de la ville », « forêt », « basketteur », « qui l'a propulsé », doubles espaces ; « Volkok » = **Volkov** (plaque de l'image).
+Athlètes de l'image de la salle. Texte de Fred recopié tel quel (introduction et conclusion de Claude gardées). Le basketteur s'appelle **Vladimir Sabonatchenko** (Fred, 19 h 39 : « Vladimir Tkhatchenko » existe réellement ; le prénom colle à la plaque de l'image, « Владимир » ; nom de famille de la plaque à corriger par Fred). Au codage, corriger seulement l'orthographe : « inarrêtable », « l'entraîneur de la ville », « forêt », « basketteur », « qui l'a propulsé », doubles espaces ; « Volkok » = **Volkov** (plaque de l'image).
 
 > Voici la Salle des sportifs de Sovarka, camarades. Ici sont célébrés ceux qui ont porté haut nos couleurs, à Novomirsk, à Krasnov et à Starovka.
 >
 > Igor Sedov, footballeur de Novomirsk. Le plus grand buteur de l’histoire du championnat national. Il était inarrétable, surtout en troisième mi-temps.  Il était célèbre pour fêter chaque but en buvant une bouteille de vodka cul sec. Il n'a jamais marqué plus de 3 buts/match, ceci expliquant cela...
 >
-> Arvidas Tkhatchenko, basketteur de Krasnov, était un véritable colosse. Repéré par l'entraineur de le ville alors qu'il combattait les ours à mains nues en fôret de Krasnov où il était bûcheron, à 12 ans, ses débuts comme basketteurs furent compliqués pour les panneaux de basket qui ont dû être renforcés spécialement du fait de ses dunks destructeurs. Il est le symbole de la puissance Sovarkienne.
+> Vladimir Sabonatchenko, basketteur de Krasnov, était un véritable colosse. Repéré par l'entraineur de le ville alors qu'il combattait les ours à mains nues en fôret de Krasnov où il était bûcheron, à 12 ans, ses débuts comme basketteurs furent compliqués pour les panneaux de basket qui ont dû être renforcés spécialement du fait de ses dunks destructeurs. Il est le symbole de la puissance Sovarkienne.
 >
 > Andreï Volkok, perchiste de Novomirsk, était surnommé l'oiseau. Avec sa perche, il déviait les lois de la pesanteur. La légende dit qu'il a eu un orteil gelé suite à un saut qui la propulsé dans la stratosphère. Un accident avec un satellite a mis prématurément fin à sa carrière. Andreï est la seule personne au monde pour qui "Sky is not the limit".
 >
