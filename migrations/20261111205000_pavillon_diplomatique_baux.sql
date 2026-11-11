@@ -215,4 +215,11 @@ BEGIN
     marqueur);
   EXECUTE nouveau;
 END $mig$;
+-- Les anciens ordres génériques ne sont plus affichés. Fermer aussi leur porte serveur :
+-- la base existante contient encore trois lignes du référentiel, même si aucun bail n'existe.
+UPDATE public.locaux_loyers_referentiel
+   SET louable=false
+ WHERE batiment='pavillon-ambassadeurs-novomirsk'
+   AND piece IN ('suite_parti','suite_privee','suite_presidentielle');
+
 -- Fonction de repos : droits conservés par CREATE OR REPLACE, pas de GRANT supplémentaire.
