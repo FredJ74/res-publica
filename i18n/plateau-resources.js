@@ -157,7 +157,7 @@
     "organizations": "Organisations",
     "identity": "Identité",
     "statistics": "Statistiques",
-    "rules": "Règles du jeu",
+    "rules": "Aide",
     "localForum": "Forum local",
     "mailbox": "Boîte mail",
     "receivedMessages": "Messages reçus",
@@ -171,7 +171,7 @@
     "organizations": "Organizations",
     "identity": "Identity",
     "statistics": "Statistics",
-    "rules": "Game rules",
+    "rules": "Help",
     "localForum": "Local forum",
     "mailbox": "Mailbox",
     "receivedMessages": "Received messages",
@@ -185,7 +185,7 @@
     "organizations": "Organizaciones",
     "identity": "Identidad",
     "statistics": "Estadísticas",
-    "rules": "Reglas del juego",
+    "rules": "Ayuda",
     "localForum": "Foro local",
     "mailbox": "Buzón",
     "receivedMessages": "Mensajes recibidos",
@@ -199,7 +199,7 @@
     "organizations": "組織",
     "identity": "身分",
     "statistics": "統計",
-    "rules": "遊戲規則",
+    "rules": "說明",
     "localForum": "本地論壇",
     "mailbox": "信箱",
     "receivedMessages": "收到的訊息",
@@ -213,7 +213,7 @@
     "organizations": "Организации",
     "identity": "Личность",
     "statistics": "Характеристики",
-    "rules": "Правила игры",
+    "rules": "Помощь",
     "localForum": "Местный форум",
     "mailbox": "Почта",
     "receivedMessages": "Входящие сообщения",
@@ -227,7 +227,7 @@
     "organizations": "조직",
     "identity": "신원",
     "statistics": "능력치",
-    "rules": "게임 규칙",
+    "rules": "도움말",
     "localForum": "지역 게시판",
     "mailbox": "우편함",
     "receivedMessages": "받은 메시지",
@@ -241,7 +241,7 @@
     "organizations": "المنظمات",
     "identity": "الهوية",
     "statistics": "الإحصاءات",
-    "rules": "قواعد اللعبة",
+    "rules": "المساعدة",
     "localForum": "المنتدى المحلي",
     "mailbox": "صندوق البريد",
     "receivedMessages": "الرسائل الواردة",
@@ -255,7 +255,7 @@
     "organizations": "Organizações",
     "identity": "Identidade",
     "statistics": "Estatísticas",
-    "rules": "Regras do jogo",
+    "rules": "Ajuda",
     "localForum": "Fórum local",
     "mailbox": "Caixa de correio",
     "receivedMessages": "Mensagens recebidas",
@@ -269,7 +269,7 @@
     "organizations": "Organisationen",
     "identity": "Identität",
     "statistics": "Statistiken",
-    "rules": "Spielregeln",
+    "rules": "Hilfe",
     "localForum": "Lokales Forum",
     "mailbox": "Postfach",
     "receivedMessages": "Eingegangene Nachrichten",
@@ -444,7 +444,7 @@
   const navigationLabels={
   "fr": {
     "imperialIndices": "Indices impériaux",
-    "rules": "Règles",
+    "rules": "Aide",
     "messagesForums": "Messages/Forums",
     "players": "PJ",
     "orgs": "Orgas",
@@ -462,7 +462,7 @@
   },
   "en": {
     "imperialIndices": "Imperial indicators",
-    "rules": "Rules",
+    "rules": "Help",
     "messagesForums": "Messages/Forums",
     "players": "Players",
     "orgs": "Orgs",
@@ -480,7 +480,7 @@
   },
   "es": {
     "imperialIndices": "Indicadores imperiales",
-    "rules": "Reglas",
+    "rules": "Ayuda",
     "messagesForums": "Mensajes/Foros",
     "players": "Jugadores",
     "orgs": "Organiz.",
@@ -498,7 +498,7 @@
   },
   "zh-TW": {
     "imperialIndices": "帝國指標",
-    "rules": "規則",
+    "rules": "說明",
     "messagesForums": "訊息／論壇",
     "players": "玩家",
     "orgs": "組織",
@@ -516,7 +516,7 @@
   },
   "ru": {
     "imperialIndices": "Показатели империй",
-    "rules": "Правила",
+    "rules": "Помощь",
     "messagesForums": "Сообщения/Форумы",
     "players": "Игроки",
     "orgs": "Организации",
@@ -534,7 +534,7 @@
   },
   "ko": {
     "imperialIndices": "제국 지표",
-    "rules": "규칙",
+    "rules": "도움말",
     "messagesForums": "메시지/포럼",
     "players": "플레이어",
     "orgs": "조직",
@@ -552,7 +552,7 @@
   },
   "ar": {
     "imperialIndices": "مؤشرات الإمبراطوريات",
-    "rules": "القواعد",
+    "rules": "المساعدة",
     "messagesForums": "الرسائل/المنتديات",
     "players": "اللاعبون",
     "orgs": "المنظمات",
@@ -570,7 +570,7 @@
   },
   "pt-BR": {
     "imperialIndices": "Indicadores imperiais",
-    "rules": "Regras",
+    "rules": "Ajuda",
     "messagesForums": "Mensagens/Fóruns",
     "players": "Jogadores",
     "orgs": "Organiz.",
@@ -588,7 +588,7 @@
   },
   "de": {
     "imperialIndices": "Imperiale Indikatoren",
-    "rules": "Regeln",
+    "rules": "Hilfe",
     "messagesForums": "Nachrichten/Foren",
     "players": "Spieler",
     "orgs": "Orgas",
@@ -863,6 +863,9 @@
     }
   };
   for(const [locale,labels] of Object.entries(mobileAccess)) Object.assign(translations[locale],labels);
+  // Premier onglet de la nouvelle aide HRP (ne modifie aucune règle).
+  const aideOnglets = {"fr":"Pose ta question","en":"Ask a question","es":"Haz una pregunta","zh-TW":"提出問題","ru":"Задать вопрос","ko":"질문하기","ar":"اطرح سؤالاً","pt-BR":"Faça uma pergunta","de":"Frage stellen"};
+  for(const [locale,label] of Object.entries(aideOnglets)) translations[locale].helpAsk=label;
   // Barre personnelle : localiser seulement le texte, préserver boutons, chiffres et chevrons.
   const personalNavigation = {
     "fr": {
