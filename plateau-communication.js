@@ -209,14 +209,14 @@ function ouvrirChoixImprimerTracts() {
   window._choixImprimerTracts = choix;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
-  document.getElementById('postes-modal-title').textContent = 'Imprimer des tracts';
+  document.getElementById('postes-modal-title').textContent = texteTract('titlePrint');
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Quel type de tracts voulez-vous produire ?</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + texteTract('chooseType') + '</div>';
   choix.forEach((o, i) => {
     const illegal = o.type === 'illegal';
-    const cout = [o.pa ? o.pa + ' PA' : '', o.cost ? o.cost.toLocaleString('fr-FR') + ' ' + cur + ' par lot de 10' : ''].filter(Boolean).join(' + ');
+    const cout = [o.pa ? o.pa + ' PA' : '', o.cost ? texteTract('perLot', { cost: o.cost.toLocaleString('fr-FR'), cur }) : ''].filter(Boolean).join(' + ');
     html += '<div onclick="choisirTypeImprimerTracts(' + i + ')" style="padding:.6rem .8rem;border:1px solid ' + (illegal ? '#5a2020' : '#2a2010') + ';background:#0f0d05;margin-bottom:.5rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">'
-      + '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.08em;color:' + (illegal ? '#cc4444' : '#C9A84C') + '"><i class="ti ' + o.icon + '"></i> ' + o.label + (illegal ? ' — illégal' : '') + '</div>'
+      + '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.08em;color:' + (illegal ? '#cc4444' : '#C9A84C') + '"><i class="ti ' + o.icon + '"></i> ' + o.label + (illegal ? texteTract('illegalSuffix') : '') + '</div>'
       + (cout ? '<div style="font-size:.74rem;color:#a89870;margin-top:.2rem">' + cout + '</div>' : '')
       + (o.desc ? '<div style="font-size:.72rem;color:#8a8060;font-style:italic;margin-top:.2rem">' + o.desc + '</div>' : '')
       + '</div>';
@@ -345,17 +345,17 @@ async function imprimerTractsServeur(nbLots, cible, sens, calomnieux) {
   if (!r || r.ok !== true) {
     const raison = (r && r.raison) || 'indisponible';
     if (raison === 'bois_insuffisant') {
-      showToast('Stock de bois insuffisant', messageStockBoisInsuffisant(nbLots * BOIS_PAR_LOT_TRACTS, Number(r.stock || 0)), false);
+      showToast(texteTract('woodTitle'), messageStockBoisInsuffisant(nbLots * BOIS_PAR_LOT_TRACTS, Number(r.stock || 0)), false);
     } else if (raison === 'pa_insuffisants') {
-      showToast('PA insuffisants', 'Il faut ' + (r.requis || nbLots) + ' PA pour produire ' + (nbLots * 10) + ' tracts (1 PA par lot de 10).', false);
+      showToast(texteTract('paTitle'), texteTract('paNeed', { pa: r.requis || nbLots, n: nbLots * 10 }), false);
     } else if (raison === 'fonds_insuffisants') {
-      showToast('Fonds insuffisants', 'Il vous faut ' + (r.cout || '') + ' ' + cur, false);
+      showToast(texteTract('fundsTitle'), texteTract('fundsNeed', { cost: r.cout || '', cur }), false);
     } else if (raison === 'inventaire_plein') {
-      showToast('Inventaire plein', 'Chaque tract occupe une unité. Libérez assez de place pour produire sans dépasser 100 unités.', false);
+      showToast(texteTract('invTitle'), texteTract('invFull'), false);
     } else if (raison === 'atelier_introuvable') {
-      showToast('Atelier introuvable', 'Ces tracts ne s\'impriment que dans un atelier d\'imprimerie.', false);
+      showToast(texteTract('shopTitle'), texteTract('shopOnly'), false);
     } else {
-      showToast('Commande impossible', '', false);
+      showToast(texteTract('orderImpossible'), '', false);
     }
     return null;
   }
@@ -371,8 +371,7 @@ async function imprimerTractsServeur(nbLots, cible, sens, calomnieux) {
 // produireLotsTracts SUPPRIMEE (27/10/2026) : remplacee par imprimerTractsServeur ci-dessus.
 
 function messageStockBoisInsuffisant(nbLots, dispo) {
-  return 'L\'imprimerie n\'a que ' + dispo + ' bois en stock, il en faut ' + nbLots
-    + ' pour ' + (nbLots * 10) + ' tracts. Vendez-lui des matières premières.';
+  return texteTract('woodShort', { stock: dispo, need: nbLots, n: nbLots * 10 });
 }
 
 // --- Tracts electoraux : moteur unique des trois imprimeries ---
@@ -448,54 +447,54 @@ async function ouvrirModalImprimerTractsElectoraux(pa, cost) {
   const imprimeur = (typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || null;
   const empireNoms = { republic: 'Républia', narco: 'El Estado', soviet: 'Sovarka', khalija: 'Al-Khalija' };
   const moi = (state.char && state.char.name) || '';
-  document.getElementById('postes-modal-title').textContent = 'Imprimer des tracts électoraux';
+  document.getElementById('postes-modal-title').textContent = texteTract('titleElectoral');
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Par lot de ' + TRACTS_PAR_LOT + ' tracts : ' + prixLot + ' ' + cur + ', ' + BOIS_PAR_LOT_TRACTS + ' bois du stock de l\'imprimerie et 1 PA de travail, rémunéré ' + SALAIRE_LOT_TRACTS + ' ' + cur + '.</div>';
-  html += '<section style="padding:.8rem;border:1px solid #554525;border-radius:6px;background:#17130b;margin-bottom:.8rem" aria-label="Stocks et capacité de production">';
-  html += '<div style="font-family:Bebas Neue,sans-serif;color:#C9A84C;font-size:.84rem;letter-spacing:.1em;margin-bottom:.5rem">STOCKS ET PRODUCTION</div>';
-  html += '<div style="font-size:.81rem;color:' + (cap.parBois >= 1 ? '#ddd2b8' : '#cc5540') + ';margin-bottom:.35rem"><i class="ti ti-trees"></i> Matière première — bois de ' + (imprimeur ? echapperTexteTract(imprimeur) : 'l\'imprimerie') + ' : <strong>' + stockBois + ' / ' + STOCK_BOIS_MAX_IMPRIMERIE_PNJ + '</strong></div>';
-  html += '<div style="font-size:.8rem;color:#c7bda8;margin-bottom:.35rem">Tracts électoraux déjà dans votre inventaire : <strong>' + tractsDejaPossedes + '</strong>.</div>';
-  html += '<div style="font-size:.82rem;color:' + (cap.parPlace > 0 ? '#c7bda8' : '#cc5540') + ';margin-bottom:.35rem">Inventaire personnel : <strong>' + cap.charge + ' / 100 unités</strong> · ' + cap.libres + ' place(s) libre(s) (1 tract = 1 unité).</div>';
-  html += '<div style="font-size:.8rem;color:#c7bda8;margin-bottom:.35rem">Vos PA : <strong>' + (state.pa || 0) + '</strong> · Fonds : <strong>' + cap.fonds.toLocaleString('fr-FR') + ' ' + cur + '</strong></div>';
-  html += '<div style="font-size:.84rem;color:' + (cap.lots ? '#9ec38c' : '#cc5540') + '">Production possible maintenant : <strong>' + (cap.lots * TRACTS_PAR_LOT) + ' tracts</strong> (' + cap.lots + ' lot' + (cap.lots > 1 ? 's' : '') + ' de 10).</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + texteTract('electoralIntro', { lot: TRACTS_PAR_LOT, price: prixLot, cur, wood: BOIS_PAR_LOT_TRACTS, wage: SALAIRE_LOT_TRACTS }) + '</div>';
+  html += '<section style="padding:.8rem;border:1px solid #554525;border-radius:6px;background:#17130b;margin-bottom:.8rem" aria-label="' + texteTract('stocksAria') + '">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;color:#C9A84C;font-size:.84rem;letter-spacing:.1em;margin-bottom:.5rem">' + texteTract('stocksTitle') + '</div>';
+  html += '<div style="font-size:.81rem;color:' + (cap.parBois >= 1 ? '#ddd2b8' : '#cc5540') + ';margin-bottom:.35rem"><i class="ti ti-trees"></i> ' + texteTract('rawWood', { who: imprimeur ? echapperTexteTract(imprimeur) : texteTract('thePrinter'), stock: stockBois, max: STOCK_BOIS_MAX_IMPRIMERIE_PNJ }) + '</div>';
+  html += '<div style="font-size:.8rem;color:#c7bda8;margin-bottom:.35rem">' + texteTract('alreadyOwned', { n: tractsDejaPossedes }) + '</div>';
+  html += '<div style="font-size:.82rem;color:' + (cap.parPlace > 0 ? '#c7bda8' : '#cc5540') + ';margin-bottom:.35rem">' + texteTract('inventory', { load: cap.charge, free: cap.libres }) + '</div>';
+  html += '<div style="font-size:.8rem;color:#c7bda8;margin-bottom:.35rem">' + texteTract('paFunds', { pa: state.pa || 0, funds: cap.fonds.toLocaleString('fr-FR'), cur }) + '</div>';
+  html += '<div style="font-size:.84rem;color:' + (cap.lots ? '#9ec38c' : '#cc5540') + '">' + texteTract(cap.lots > 1 ? 'possibleMany' : 'possibleOne', { n: cap.lots * TRACTS_PAR_LOT, lots: cap.lots }) + '</div>';
   html += '</section>';
   if (cibles.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060">Aucun personnage à viser n\'est accessible pour l\'instant.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060">' + texteTract('noTarget') + '</div>';
   } else if (cap.parPlace < 1) {
-    html += '<div style="font-size:.85rem;color:#cc5540">Inventaire plein ou moins de 10 places libres : libérez de la place pour recevoir un lot de tracts.</div>';
+    html += '<div style="font-size:.85rem;color:#cc5540">' + texteTract('invFullLot') + '</div>';
   } else if (cap.parBois < 1) {
     html += '<div style="font-size:.85rem;color:#cc5540">L\'imprimerie n\'a plus de bois. Vendez-lui des matières premières avant de commander.</div>';
   } else if (cap.parPa < 1) {
-    html += '<div style="font-size:.85rem;color:#cc5540">Il faut au moins 1 PA pour produire un lot de ' + TRACTS_PAR_LOT + ' tracts.</div>';
+    html += '<div style="font-size:.85rem;color:#cc5540">' + texteTract('needPa', { lot: TRACTS_PAR_LOT }) + '</div>';
   } else if (cap.parFonds < 1) {
-    html += '<div style="font-size:.85rem;color:#cc5540">Il vous faut ' + prixLot + ' ' + cur + ' disponibles pour un lot de ' + TRACTS_PAR_LOT + ' tracts.</div>';
+    html += '<div style="font-size:.85rem;color:#cc5540">' + texteTract('needFunds', { price: prixLot, cur, lot: TRACTS_PAR_LOT }) + '</div>';
   } else {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">ORIENTATION DU TRACT</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">' + texteTract('orientation') + '</div>';
     html += '<div style="display:flex;gap:.5rem;margin-bottom:.7rem">';
-    html += '<button id="tract-type-pour" onclick="selectTractType(\'pour\')" style="flex:1;padding:.4rem;border:1px solid #4a8a4a;background:#0a1808;color:#6a9a6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">POUR</button>';
-    html += '<button id="tract-type-contre" onclick="selectTractType(\'contre\')" style="flex:1;padding:.4rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">CONTRE</button>';
+    html += '<button id="tract-type-pour" onclick="selectTractType(\'pour\')" style="flex:1;padding:.4rem;border:1px solid #4a8a4a;background:#0a1808;color:#6a9a6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">' + texteTract('for') + '</button>';
+    html += '<button id="tract-type-contre" onclick="selectTractType(\'contre\')" style="flex:1;padding:.4rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">' + texteTract('against') + '</button>';
     html += '</div>';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">PERSONNE VISÉE</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">' + texteTract('targetPerson') + '</div>';
     html += '<select id="tract-electoral-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.4rem">';
     cibles.forEach(c => {
       const n = echapperTexteTract(c.nom);
       let suffixe = '';
-      if (c.nom === moi) suffixe += ' — vous';
+      if (c.nom === moi) suffixe += texteTract('you');
       else if (c.country && empireNoms[c.country] && c.country !== state.country) suffixe += ' — ' + empireNoms[c.country];
-      if (c.enCampagne) suffixe += ' — en campagne';
+      if (c.enCampagne) suffixe += texteTract('campaigning');
       html += '<option value="' + n + '"' + (c.nom === moi ? ' selected' : '') + '>' + n + suffixe + '</option>';
     });
     html += '</select>';
-    html += '<div style="font-size:.72rem;color:#7a7050;font-style:italic;margin-bottom:.8rem">Un tract se distribue le dimanche d\'un scrutin où la personne visée est candidate.</div>';
-    html += '<label for="tract-electoral-lots" style="display:block;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">QUANTITÉ À PRODUIRE (LOTS DE 10)</label>';
+    html += '<div style="font-size:.72rem;color:#7a7050;font-style:italic;margin-bottom:.8rem">' + texteTract('distributionHint') + '</div>';
+    html += '<label for="tract-electoral-lots" style="display:block;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">' + texteTract('qtyLabel') + '</label>';
     html += '<input type="number" id="tract-electoral-lots" min="1" max="' + cap.lots + '" step="1" value="1" inputmode="numeric" oninput="actualiserApercuTractsElectoraux()" style="width:100%;box-sizing:border-box;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.4rem">';
-    html += '<div id="tract-electoral-apercu" style="font-size:.76rem;color:#b8a67f;margin-bottom:.65rem" aria-live="polite">1 lot : 10 tracts · ' + prixLot + ' ' + cur + ' · 1 bois · 1 PA.</div>';
-    let limite = 'le stock de bois de l\'imprimerie';
-    if (cap.parPlace <= Math.min(cap.parBois, cap.parPa, cap.parFonds)) limite = 'les places libres de votre inventaire';
-    else if (cap.parPa <= cap.parBois && cap.parPa <= cap.parFonds) limite = 'vos PA';
-    else if (cap.parFonds <= cap.parBois) limite = 'vos fonds';
-    html += '<div style="font-size:.72rem;color:#7a7050;font-style:italic;margin-bottom:.8rem">Maximum ici : ' + cap.lots + ' lot' + (cap.lots > 1 ? 's' : '') + ', limité par ' + limite + '.</div>';
-    html += '<button onclick="confirmerImprimerTractsElectoraux(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Commander</button>';
+    html += '<div id="tract-electoral-apercu" style="font-size:.76rem;color:#b8a67f;margin-bottom:.65rem" aria-live="polite">' + texteTract('previewOne', { lots: 1, n: TRACTS_PAR_LOT, cost: prixLot, cur }) + '</div>';
+    let limite = texteTract('limitWood');
+    if (cap.parPlace <= Math.min(cap.parBois, cap.parPa, cap.parFonds)) limite = texteTract('limitSpace');
+    else if (cap.parPa <= cap.parBois && cap.parPa <= cap.parFonds) limite = texteTract('limitPa');
+    else if (cap.parFonds <= cap.parBois) limite = texteTract('limitFunds');
+    html += '<div style="font-size:.72rem;color:#7a7050;font-style:italic;margin-bottom:.8rem">' + texteTract(cap.lots > 1 ? 'maxMany' : 'maxOne', { lots: cap.lots, limit: limite }) + '</div>';
+    html += '<button onclick="confirmerImprimerTractsElectoraux(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">' + texteTract('order') + '</button>';
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -509,20 +508,19 @@ function actualiserApercuTractsElectoraux() {
   if (!element) return;
   const max = Number(window._tractsCapaciteAffichee || 0);
   if (!Number.isSafeInteger(valeur) || valeur < 1 || valeur > max) {
-    element.textContent = 'Quantité invalide : choisissez entre 1 et ' + max + ' lots.';
+    element.textContent = texteTract('qtyInvalid', { max });
     element.style.color = '#cc5540';
     return;
   }
   const cout = valeur * prixLotTractsAtelier();
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  element.textContent = valeur + ' lot' + (valeur > 1 ? 's' : '') + ' : ' + (valeur * TRACTS_PAR_LOT) +
-    ' tracts · ' + cout + ' ' + cur + ' · ' + valeur + ' bois · ' + valeur + ' PA.';
+  element.textContent = texteTract(valeur > 1 ? 'previewMany' : 'previewOne', { lots: valeur, n: valeur * TRACTS_PAR_LOT, cost: cout, cur });
   element.style.color = '#b8a67f';
 }
 
 async function confirmerImprimerTractsElectoraux(pa, cost) {
   const cible = document.getElementById('tract-electoral-cible')?.value;
-  if (!cible) { showToast('Aucune cible', 'Choisissez la personne visée par les tracts.', false); return; }
+  if (!cible) { showToast(texteTract('noTargetTitle'), texteTract('chooseTarget'), false); return; }
   const sens = window._tractType === 'contre' ? 'contre' : 'pour';
   const saisi = document.getElementById('tract-electoral-lots')?.value;
   const nbLots = Number(saisi);
@@ -531,13 +529,13 @@ async function confirmerImprimerTractsElectoraux(pa, cost) {
   // Une valeur manipulee ou une pop-up perimee ne doit jamais contourner cette limite UI.
   if (!Number.isSafeInteger(nbLots) || nbLots < 1 || nbLots > limiteAffichee ||
       window._tractsAtelierAffiche !== JSON.stringify(atelierImprimerieCourant())) {
-    showToast('Quantité non disponible', 'Rouvrez la production pour vérifier le stock et les quantités possibles.', false);
+    showToast(texteTract('qtyUnavailTitle'), texteTract('qtyUnavail'), false);
     return;
   }
   // Le stock peut avoir change depuis l'ouverture : relire avant la commande.
   const capActuelle = capaciteImpressionTracts(await stockBoisAtelier());
   if (nbLots > capActuelle.lots) {
-    showToast('Stock ou fonds modifiés', 'La quantité demandée n’est plus disponible. Rouvrez la production.', false);
+    showToast(texteTract('changedTitle'), texteTract('changed'), false);
     return;
   }
   const quantite = nbLots * TRACTS_PAR_LOT;
@@ -556,7 +554,7 @@ async function confirmerImprimerTractsElectoraux(pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   updateUI();
-  showToast('Tracts imprimés !', quantite + ' tracts ' + (sens === 'contre' ? 'contre ' : 'en faveur de ') + cible + ' ajoutés à votre inventaire. -' + montantDebite + ' ' + cur + ', -' + prod.paConsommes + ' PA, +' + prod.salaire + ' ' + cur + ' de main-d\'œuvre.', true, true);
+  showToast(texteTract('printedTitle'), texteTract(sens === 'contre' ? 'printedAgainst' : 'printedFor', { n: quantite, target: cible, cost: montantDebite, cur, pa: prod.paConsommes, wage: prod.salaire }), true, true);
   addJournalEntry('Impression de ' + quantite + ' tracts électoraux ' + (sens === 'contre' ? 'contre ' : 'en faveur de ') + cible + ' (' + prod.paConsommes + ' PA, salaire ' + prod.salaire + ' ' + cur + ').', 'event-info');
 }
 
@@ -599,29 +597,29 @@ async function ouvrirModalImprimerTractsCalomnieux(pa, cost) {
   cibles = cibles.filter(c => c && c.name && c.name !== moi)
                  .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
   const stockBois = await stockBoisAtelier();
-  document.getElementById('postes-modal-title').textContent = 'Imprimer des tracts calomnieux';
+  document.getElementById('postes-modal-title').textContent = texteTract('titleSlander');
   let html = '<div style="padding:1rem">';
   const prixLot = prixLotTractsCalomnieux();
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const imprimeur = (typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || null;
   const empireNoms = { republic: 'Républia', narco: 'El Estado', soviet: 'Sovarka', khalija: 'Al-Khalija' };
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Un lot de 10 tracts calomnieux (illégal) : ' + prixLot + ' ' + cur + ', ' + BOIS_PAR_LOT_TRACTS + ' bois du stock de l\'imprimerie et 1 PA de travail, rémunéré ' + SALAIRE_LOT_TRACTS + ' ' + cur + '.</div>';
-  html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock ' + (imprimeur ? 'de ' + imprimeur : 'de l\'imprimerie') + ' : ' + stockBois + '</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + texteTract('slanderIntro', { price: prixLot, cur, wood: BOIS_PAR_LOT_TRACTS, wage: SALAIRE_LOT_TRACTS }) + '</div>';
+  html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> ' + texteTract('woodStock', { who: imprimeur ? echapperTexteTract(imprimeur) : texteTract('thePrinter'), stock: stockBois }) + '</div>';
   if (cibles.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060">Aucun autre joueur enregistré à viser pour l\'instant.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060">' + texteTract('noOtherPlayer') + '</div>';
   } else if (capaciteImpressionTracts(stockBois).parPlace < 1) {
-    html += '<div style="font-size:.85rem;color:#cc5540">Inventaire plein : il vous faut 10 places libres pour recevoir les tracts.</div>';
+    html += '<div style="font-size:.85rem;color:#cc5540">' + texteTract('invFull10') + '</div>';
   } else if (stockBois < BOIS_PAR_LOT_TRACTS) {
     html += '<div style="font-size:.85rem;color:#cc5540">L\'imprimerie n\'a plus de bois. Vendez-lui des matières premières avant de commander.</div>';
   } else {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">' + texteTract('target') + '</div>';
     html += '<select id="tract-calomnieux-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
     cibles.forEach(c => {
       const suffixe = c.country && empireNoms[c.country] ? ' — ' + empireNoms[c.country] : '';
       html += '<option value="' + c.name + '">' + c.name + suffixe + '</option>';
     });
     html += '</select>';
-    html += '<button onclick="confirmerImprimerTractsCalomnieux(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Imprimer 10 tracts</button>';
+    html += '<button onclick="confirmerImprimerTractsCalomnieux(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">' + texteTract('print10') + '</button>';
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -630,14 +628,14 @@ async function ouvrirModalImprimerTractsCalomnieux(pa, cost) {
 
 async function confirmerImprimerTractsCalomnieux(pa, cost) {
   const cible = document.getElementById('tract-calomnieux-cible')?.value;
-  if (!cible) { showToast('Aucune cible', '', false); return; }
+  if (!cible) { showToast(texteTract('noTargetTitle'), '', false); return; }
 
   // Paiement du lot (arbitrage du 11 septembre 2026 : meme prix que les tracts ordinaires) par le
   // mecanisme standard : fonds reels (liquide puis Banque nationale) verifies avant toute
   // production, puis PA + debit en un seul appel. Aucun paiement la ou l'atelier n'a pas de caisse.
   // Jamais d'impression gratuite hors d'un atelier connu : l'argent n'aurait aucune caisse ou aller.
   if (ATELIERS_TRACTS_CALOMNIEUX.indexOf(state.currentBuilding) < 0) {
-    showToast('Atelier introuvable', 'Ces tracts ne s\'impriment que dans un atelier d\'imprimerie.', false);
+    showToast(texteTract('shopTitle'), texteTract('shopOnly'), false);
     return;
   }
   // Meme production que les tracts electoraux : 1 lot de 10 = 1 PA, 150 FR, 1 bois de l'imprimerie
@@ -651,7 +649,7 @@ async function confirmerImprimerTractsCalomnieux(pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   updateUI();
-  showToast('Tracts imprimés !', '10 tracts calomnieux contre ' + cible + ' ajoutés à votre inventaire (illégal). -' + montantDebite + ' ' + (COUNTRIES[state.country]?.cur || 'FR') + ', -' + prod.paConsommes + ' PA, +' + prod.salaire + ' ' + (COUNTRIES[state.country]?.cur || 'FR') + ' de main-d\'œuvre.', true, true);
+  showToast(texteTract('printedTitle'), texteTract('printedSlander', { target: cible, cost: montantDebite, cur: COUNTRIES[state.country]?.cur || 'FR', pa: prod.paConsommes, wage: prod.salaire }), true, true);
   addJournalEntry('Impression clandestine de 10 tracts calomnieux contre ' + cible + '.', 'event-info');
 }
 
