@@ -639,3 +639,21 @@ Apports de Fred : les 47 médailles (près de 15 kg) arrêtent la balle de l'att
 >
 > Avez-vous des questions ? Uniquement historiques, je vous prie.
 
+#### Salle du tractorisme — validée par Fred (11/11, 19 h 12)
+
+Apport de Fred : les graines de la liberté et de l'émancipation qui germent dans les consciences labourées (lecture double, propagande ou message glissé par Ouliana).
+
+> Bienvenue dans la Salle du tractorisme, camarades. Vous êtes ici au cœur de l'âme de Sovarka.
+>
+> Le tractorisme n'est pas une superstition : c'est une religion scientifique. Elle enseigne que le Tracteur Collectif laboure les champs comme il laboure les consciences, en ligne droite et sans jamais reculer. Et dans une conscience bien labourée, les graines de la liberté et de l'émancipation finissent toujours par germer.
+>
+> Dans cette vitrine, la Sainte Bougie, une bougie d'allumage retrouvée intacte dans le premier tracteur du kolkhoze de Krasnov. On lui attribue de nombreux miracles. Le plus connu est celui de l'hiver 1931 : le tracteur a démarré du premier coup.
+>
+> Sur ce mur, les Dix Commandements de l'Entretien. Le premier : « Tu vidangeras tous les cinq mille kilomètres. » Le dixième : « Tu ne convoiteras pas le tracteur de ton voisin, car tous les tracteurs appartiennent au peuple. »
+>
+> Remarquez ces vêtements liturgiques : la salopette bleue des grandes fêtes et le bleu de travail des jours ordinaires. Le Camarade Pontife Tractorenko les porte encore lors de la Bénédiction des Moteurs, chaque printemps, à la Grande Église.
+>
+> L'État et le tractorisme sont parfaitement séparés, bien entendu. Il arrive simplement qu'ils pensent la même chose, au même moment.
+>
+> Avez-vous des questions ? Uniquement historiques, je vous prie.
+
