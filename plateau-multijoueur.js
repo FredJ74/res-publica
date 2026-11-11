@@ -2754,7 +2754,7 @@ async function confirmerGroupePnjTransferer(i, destEncode) {
 // langue du joueur. Les neuf fiches sont stockées dans i18n/guide-musee-novomirsk-resources.js, chargé
 // à la première ouverture (texte volumineux, inutile ailleurs). Pas d'appel serveur ni d'IA.
 // Le dialogue libre (1 PA, 3 questions) viendra ensuite.
-const GUIDE_MUSEE_CATALOGUE = 'i18n/guide-musee-novomirsk-resources.js?v=guide-fiches-20261111';
+const GUIDE_MUSEE_CATALOGUE = 'i18n/guide-musee-novomirsk-resources.js?v=guide-questions-20261111';
 let guideMuseeChargement = null;
 function guideMuseeCharger() {
   if (typeof texteGuideMusee === 'function') return Promise.resolve(true);
@@ -2771,6 +2771,32 @@ function guideMuseeCharger() {
 function guideMuseeEchapper(t) {
   return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
+// Questions libres (1 PA pour 3 questions par salle et par jour) : le serveur tient le compte
+// (guide_musee_dialogue_lire / _ouvrir, et /api/chat qui consomme une question après chaque réponse).
+// L'échange reste en mémoire pour la session ; rien d'autre n'est enregistré.
+const guideMuseeEtat = {};       // salle -> { ouvert, restantes }
+const guideMuseeEchanges = {};   // salle -> [{ role, content }]
+let guideMuseeEnCours = false;
+const guideMuseeMotif = r => texteGuideMusee(['pas_sur_place', 'questions_epuisees', 'dialogue_non_ouvert', 'pa_insuffisants'].includes(r) ? 'q_r_' + r : 'q_r_autre');
+function guideMuseeQuestionsHtml(salle) {
+  const T = texteGuideMusee, e = guideMuseeEtat[salle];
+  const echanges = (guideMuseeEchanges[salle] || []).map(m => m.role === 'user'
+    ? '<p class="cpj-note"><strong>' + guideMuseeEchapper(T('q_you')) + ' :</strong> ' + guideMuseeEchapper(m.content) + '</p>'
+    : '<p><strong>Ouliana :</strong> ' + guideMuseeEchapper(m.content) + '</p>').join('');
+  let corps = echanges;
+  if (!e || !e.ouvert) {
+    corps += '<p class="cpj-note">' + guideMuseeEchapper(T('q_intro')) + '</p>' +
+      '<button class="cpj-touche cpj-primaire" onclick="guideMuseeOuvrirQuestions()">' + guideMuseeEchapper(T('q_open')) + '</button>';
+  } else if (e.restantes > 0) {
+    corps += '<textarea id="guide-musee-question" class="cpj-champ" rows="2" maxlength="500" style="width:100%" placeholder="' +
+      guideMuseeEchapper(T('q_placeholder')) + '"></textarea>' +
+      '<button class="cpj-touche cpj-primaire" onclick="guideMuseePoser()">' + guideMuseeEchapper(T('q_ask', { n: e.restantes })) + '</button>';
+  } else {
+    corps += '<p class="cpj-note">' + guideMuseeEchapper(T('q_done')) + '</p>';
+  }
+  return '<div class="guide-musee-questions"><h4>' + guideMuseeEchapper(T('q_title')) + '</h4>' + corps + '</div>';
+}
+let guideMuseeRendreCourant = null;
 async function ouvrirGuideMusee() {
   const salle = state.currentRoom;
   if (!(await guideMuseeCharger())) {
@@ -2784,11 +2810,64 @@ async function ouvrirGuideMusee() {
     if (!corps) return;
     const html = '<div class="guide-musee-fiche"><img src="images/Sovarka/Novomirsk/Novo_guide_musee_national_portrait.webp" alt="" ' +
       'style="float:left;width:72px;height:72px;object-fit:cover;object-position:50% 30%;border-radius:50%;margin:0 .8rem .4rem 0">' +
-      corps.split('\n\n').map(p => '<p>' + guideMuseeEchapper(p) + '</p>').join('') + '</div>';
+      corps.split('\n\n').map(p => '<p>' + guideMuseeEchapper(p) + '</p>').join('') + guideMuseeQuestionsHtml(salle) + '</div>';
     const titre = texteGuideMusee('tGuide');
     if (typeof sovModal === 'function') sovModal(titre, html, rendre);
     else if (typeof vehModal === 'function') vehModal(titre, html);
   };
+  guideMuseeRendreCourant = rendre;
   rendre();
+  // État des questions dans cette salle : une seule lecture à l'ouverture.
+  if (typeof sbRpcVerdict === 'function') {
+    const v = await sbRpcVerdict('guide_musee_dialogue_lire', {}).catch(() => null);
+    if (v && v.ok === true && v.salle === salle) { guideMuseeEtat[salle] = { ouvert: v.ouvert === true, restantes: Number(v.restantes) || 0 }; rendre(); }
+  }
+}
+async function guideMuseeOuvrirQuestions() {
+  if (guideMuseeEnCours) return;
+  guideMuseeEnCours = true;
+  try {
+    const v = await sbRpcVerdict('guide_musee_dialogue_ouvrir', {}).catch(() => null);
+    if (!v || v.ok !== true) { showToast('Ouliana Historiskaïa', guideMuseeMotif(v?.raison), false); return; }
+    if (v.pa != null && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+    if (typeof updateUI === 'function') updateUI();
+    guideMuseeEtat[v.salle] = { ouvert: true, restantes: Number(v.restantes) || 0 };
+    if (guideMuseeRendreCourant) guideMuseeRendreCourant();
+  } finally { guideMuseeEnCours = false; }
+}
+async function guideMuseePoser() {
+  const salle = state.currentRoom, e = guideMuseeEtat[salle];
+  const champ = document.getElementById('guide-musee-question');
+  const question = String(champ?.value || '').trim().slice(0, 500);
+  if (!question || !e || !(e.restantes > 0) || guideMuseeEnCours) return;
+  guideMuseeEnCours = true;
+  const bouton = champ.nextElementSibling;
+  if (bouton) { bouton.disabled = true; bouton.textContent = texteGuideMusee('q_wait'); }
+  try {
+    if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession().catch(() => null);
+    const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+    const langue = typeof langueDuJeu === 'function' ? langueDuJeu() : 'fr';
+    const historique = (guideMuseeEchanges[salle] || []).slice(-6);
+    const resp = jeton ? await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jeton },
+      body: JSON.stringify({ profil: 'ouliana_historiskaia', lang: langue, message: question, historique })
+    }).catch(() => null) : null;
+    const d = resp ? await resp.json().catch(() => null) : null;
+    if (!resp || !resp.ok || !d || typeof d.reponse !== 'string') {
+      if (d?.raison === 'questions_epuisees' || d?.raison === 'dialogue_non_ouvert') {
+        guideMuseeEtat[salle] = { ouvert: d.raison === 'questions_epuisees', restantes: 0 };
+        showToast('Ouliana Historiskaïa', guideMuseeMotif(d.raison), false);
+        if (guideMuseeRendreCourant) guideMuseeRendreCourant();
+      } else showToast('Ouliana Historiskaïa', d?.raison ? guideMuseeMotif(d.raison) : texteGuideMusee('q_error'), false);
+      return;
+    }
+    (guideMuseeEchanges[salle] = guideMuseeEchanges[salle] || []).push({ role: 'user', content: question }, { role: 'assistant', content: d.reponse });
+    guideMuseeEtat[salle] = { ouvert: true, restantes: Math.max(0, Number(d.restantes) || 0) };
+    if (champ) champ.value = '';
+    if (guideMuseeRendreCourant) guideMuseeRendreCourant();
+  } finally {
+    guideMuseeEnCours = false;
+    if (bouton && document.body.contains(bouton)) { bouton.disabled = false; bouton.textContent = texteGuideMusee('q_ask', { n: guideMuseeEtat[salle]?.restantes || 0 }); }
+  }
 }
 
