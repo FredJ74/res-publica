@@ -7001,7 +7001,7 @@ const BUILDINGS = {
         name: "Suite des Partis — Location diplomatique",
         imageBg: "linear-gradient(135deg,#200a0a,#2a1010)",
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_suite_parti.webp',
-        desc: "📋 À LOUER — Suite d'apparat aux tentures rouges, où l'on se montre. Le portrait du Secrétaire général veille sur chaque réception.",
+        desc: "📋 À LOUER — Suite d'apparat aux tentures rouges, où l'on se montre. Le buste du camarade président Zolotov veille sur chaque réception.",
         persons: [],
         orders: [{fn:'pavillon_suite',label:'Gérer le bail diplomatique (500 FR/jour)',pa:0,cost:0,type:'legal',
           icon:'ti-key',successRate:100,desc:'Bail de 7 jours renouvelable ; caisse de l’institution étrangère. +3 PA à chaque sommeil.'}]
