@@ -98,18 +98,26 @@ async function ouvrirModalEquipements() {
       equipementsBouton('equipementOptionPremium()', 'Activer l\'option') + '</div>';
   }
 
+  // Cession a une organisation (decision 18, 11/11/2026) : proposee seulement au chef d'au moins une
+  // organisation ; le serveur verifie que le local est loue par elle.
+  let peutCeder = false;
+  if (typeof materielCederChoisir === 'function') {
+    const o = await sbRpc('organisation_materiel_lire', {}).catch(function () { return null; });
+    peutCeder = !!(o && o.ok === true && Array.isArray(o.organisations) && o.organisations.length);
+  }
   h += '<div class="cpj-titre">Installés</div>';
   if (!r.installes.length) h += '<p class="cpj-note">Aucun équipement.</p>';
   r.installes.forEach(function (e) {
     h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin:.3rem 0">' +
       '<span>' + equipementsEchapper(EQUIPEMENTS_LIBELLES[e.generique_id] || e.nom) +
-      (e.a_moi ? '' : ' <span class="cpj-note">(à ' + equipementsEchapper(e.proprietaire) + ')</span>') +
+      (e.a_moi ? '' : ' <span class="cpj-note">(' + (/^orga:/.test(e.proprietaire || '') ? 'à l\'organisation' : 'à ' + equipementsEchapper(e.proprietaire)) + ')</span>') +
       (e.a_moi && e.delai_jusqu_au ? ' <span class="cpj-note">— bail perdu : à désinstaller avant le ' +
         equipementsEchapper(new Date(e.delai_jusqu_au).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })) +
         ', sinon il revient au propriétaire des lieux</span>' : '') +
       (e.serrure ? ' <span class="cpj-note">— serrure n° ' + equipementsEchapper(e.serrure.numero) + (e.serrure.fermee ? ', fermée à clé' : ', ouverte') + '</span>' : '') +
       '</span><span style="display:flex;gap:.3rem">' +
       (e.serrure && e.serrure.a_cle ? equipementsBouton('serrureBasculer(\'' + e.serrure.id + '\',' + (!e.serrure.fermee) + ')', e.serrure.fermee ? 'Ouvrir' : 'Fermer à clé') : '') +
+      (e.a_moi && peutCeder ? equipementsBouton('materielCederChoisir(\'' + e.id + '\')', 'Céder à l\'organisation') : '') +
       (e.a_moi ? equipementsBouton('equipementDesinstaller(\'' + e.id + '\')', 'Désinstaller') : '') + '</span></div>';
   });
 

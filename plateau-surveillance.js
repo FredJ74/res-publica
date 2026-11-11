@@ -89,7 +89,11 @@ async function surveillanceAfficherIci(targetId) {
   if (r.cameras_inventaire > 0) {
     h += '<button type="button" onclick="surveillancePoser()" style="width:100%;padding:.45rem;margin:.35rem 0;border:1px solid #5d7085;background:#151a21;color:#dce4ee;font-size:.85rem;cursor:pointer">📷 Poser une caméra ici (1 PA)</button>';
   }
-  h += '<button type="button" onclick="surveillanceFouiller()" style="width:100%;padding:.45rem;margin:.35rem 0;border:1px solid #6a5a20;background:#151107;color:#e0d8c0;font-size:.85rem;cursor:pointer">🔍 Fouiller les lieux (2 PA)' + (r.couinator ? ' 🦆' : '') + '</button>';
+  // Dans une piece, « Fouiller les lieux » est un ordre de piece (en vert, tout en bas, decision de
+  // Fred du 11/11/2026) ; dans la rue, sans liste d'ordres, il reste ici.
+  if (!state.currentBuilding) {
+    h += '<button type="button" onclick="surveillanceFouiller()" style="width:100%;padding:.45rem;margin:.35rem 0;border:1px solid #6a5a20;background:#151107;color:#e0d8c0;font-size:.85rem;cursor:pointer">🔍 Fouiller les lieux (2 PA)' + (r.couinator ? ' 🦆' : '') + '</button>';
+  }
   if (typeof ouvrirVolMateriel === 'function' && state.currentBuilding) {
     h += '<button type="button" onclick="ouvrirVolMateriel()" style="width:100%;padding:.45rem;margin:.35rem 0;border:1px solid #5a2a2a;background:#160d0d;color:#e0c8c8;font-size:.85rem;cursor:pointer">🕵 Voler du matériel installé ici</button>';
   }
@@ -168,4 +172,17 @@ function surveillanceFenetreTrouvaille(trouvees, couinator) {
     if (ligne) ligne.innerHTML = '<span style="color:#9aa8b8">' + (r.action === 'detruire' ? 'Caméra détruite.' : 'Caméra emportée.') + '</span>';
   });
   document.body.appendChild(fond);
+}
+
+// « Fouiller les lieux » : ordre de toute piece, en vert, tout en bas de la liste (decision de Fred,
+// 11/11/2026). Les 2 PA sont debites par le serveur (fouiller_lieux) ; le routeur sort avant payer_ordre.
+function ordresFouillerLieux(buildingId, roomId) {
+  if (!buildingId || !roomId) return [];
+  return [{ fn: 'fouiller_lieux', label: 'Fouiller les lieux', pa: 2, cost: 0, type: 'legal', icon: 'ti-search',
+    successRate: 100, basDeListe: true,
+    desc: 'Chercher des caméras cachées dans cette pièce. Avec un Couinator 3000 sur vous, vous avez bien plus de chances de les trouver.' }];
+}
+if (typeof window !== 'undefined') {
+  window.RP_ORDRES_DYNAMIQUES = window.RP_ORDRES_DYNAMIQUES || [];
+  if (!window.RP_ORDRES_DYNAMIQUES.includes(ordresFouillerLieux)) window.RP_ORDRES_DYNAMIQUES.push(ordresFouillerLieux);
 }

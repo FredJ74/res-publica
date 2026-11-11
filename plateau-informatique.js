@@ -254,6 +254,16 @@ async function materielAutoriser(orga, membre, autorise) {
   if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
   ouvrirMaterielOrganisation();
 }
+// Choix de l'organisation qui recoit le materiel (chef seulement ; le local doit etre loue par elle).
+async function materielCederChoisir(id) {
+  const r = await informatiqueRpc('organisation_materiel_lire', {});
+  if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
+  const orgs = r.organisations || [];
+  const h = orgs.map(o => '<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-top:1px solid #2a3340"><span>' +
+    informatiqueEch(o.nom || o.id) + '</span>' + equipementsBouton('materielCeder(\'' + String(id).replace(/'/g, '') + '\',\'' + informatiqueEch(o.id).replace(/'/g, '') + '\')', 'Céder', true) + '</div>').join('');
+  equipementsModale('Céder à l\'organisation', '<p class="cpj-note">Le matériel appartiendra à l\'organisation : vous ne pourrez plus le désinstaller vous-même. Le local doit être loué par elle.</p>' +
+    (h || '<p class="cpj-note">Vous ne dirigez aucune organisation.</p>') + '<div style="margin-top:1rem">' + equipementsBouton('ouvrirModalEquipements()', 'Retour') + '</div>');
+}
 async function materielCeder(id, orga) {
   const r = await informatiqueRpc('equipement_ceder_organisation', { p_id: id, p_organisation: orga });
   if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
