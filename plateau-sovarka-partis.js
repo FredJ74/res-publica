@@ -4,7 +4,7 @@
 
 // Textes d'affichage : catalogue i18n/sovarka-partis-resources.js (français de référence et de repli).
 const partiT = (k, v) => (typeof texteSovPartis === 'function' ? texteSovPartis(k, v) : k);
-const PARTI_RAISONS = ['parti_non_vainqueur', 'chef_pm_d_office', 'cible_deja_elue', 'salle_des_partis_requise', 'deja_dans_un_parti',
+const PARTI_RAISONS = ['action_inconnue', 'champs_interdits', 'cible_requise', 'parti_non_vainqueur', 'chef_pm_d_office', 'cible_deja_elue', 'salle_des_partis_requise', 'deja_dans_un_parti',
   'demande_en_cours', 'nom_requis', 'nom_deja_pris', 'texte_trop_long', 'reserve_au_chef', 'reserve_a_sovarka', 'prix_invalide',
   'demande_absente', 'membre_absent', 'candidat_deja_dans_un_parti', 'fonds_insuffisants_candidat', 'successeur_requis',
   'parti_introuvable', 'pa_insuffisants', 'fonds_insuffisants', 'acteur_non_authentifie'];

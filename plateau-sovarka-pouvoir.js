@@ -76,7 +76,7 @@ async function designerDeputeSoviet(nom, retirer) {
 // du Palais présidentiel ; gratuit pour le président, chaque invité présent coûte 60 PSK à la
 // caisse présidentielle ; effets du dîner d'affaires pour chacun. Le serveur
 // (sovarka_repas_presidentiel) vérifie le président, le lieu, les invités, la caisse et le jour.
-const REPAS_PRES_RAISONS = ['reserve_president', 'pas_sur_place', 'deja_pris_aujourdhui', 'invite_absent', 'invite_invalide'];
+const REPAS_PRES_RAISONS = ['requete_absente', 'reserve_president', 'pas_sur_place', 'deja_pris_aujourdhui', 'invite_absent', 'invite_invalide'];
 let repasPresidentielEnCours = false;
 
 let repasPresidentielPresents = null;
@@ -152,7 +152,7 @@ async function acheterBilletMuseePresidentiel() {
 // fiscalité 10/10/10, saisine du juge, sondages, fuite, conscription, autocritique publique.
 // Tout est décidé par sovarka_pouvoir_commande / sovarka_pouvoir_lire ; l'écran recopie.
 // ============================================================================================
-const SOV_POUVOIR_RAISONS = ['reserve_a_sovarka', 'reserve_chef_de_parti', 'salle_des_partis_requise', 'type_invalide', 'champs_requis',
+const SOV_POUVOIR_RAISONS = ['action_inconnue', 'cause_invalide', 'dans_la_rue', 'local_introuvable', 'reserve_a_sovarka', 'reserve_chef_de_parti', 'salle_des_partis_requise', 'type_invalide', 'champs_requis',
   'texte_trop_long', 'titre_trop_long', 'loi_cible_introuvable', 'categorie_invalide', 'reserve_president_du_conseil',
   'bureau_du_president_du_conseil_requis', 'projet_introuvable', 'reserve_depute', 'seance_le_jeudi', 'salle_du_conseil_requise',
   'emargement_requis', 'choix_invalide', 'hors_ordre_du_jour', 'deja_vote', 'aucun_parti_au_pouvoir', 'a_la_mairie', 'pas_chef',

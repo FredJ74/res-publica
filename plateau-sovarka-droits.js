@@ -10,7 +10,7 @@ const SOV_RAISONS = ['pas_a_la_mairie', 'pas_chez_le_notaire', 'pas_au_tribunal'
   'projet_invalide', 'reserve_autorite_municipale', 'reserve_juge', 'demande_introuvable', 'local_introuvable', 'local_non_libre',
   'loyer_invalide', 'commerce_sans_loyer', 'aucune_attribution', 'pas_exploitant', 'repreneur_introuvable', 'cession_deja_en_cours',
   'cession_introuvable', 'reserve_repreneur', 'cedant_plus_exploitant', 'motif_invalide', 'saisine_requise', 'local_non_exploite',
-  'pa_insuffisants'];
+  'pa_insuffisants', 'acteur_non_authentifie', 'parametres_invalides', 'cause_invalide'];
 const sovMotif = v => SOV_RAISONS.includes(v?.raison) ? sovT('m_' + v.raison) : sovT(v?.transport ? 'noReply' : 'refused');
 const sovEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sovJs = s => String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");

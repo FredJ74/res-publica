@@ -91,7 +91,10 @@ const texts={
     "pm": "{nom} est désormais Président du Conseil du Peuple.",
     "tLeft": "Parti quitté",
     "dissolved": "Vous étiez le dernier membre : le parti « {nom} » est dissous.",
-    "left": "Vous avez quitté le parti « {nom} »."
+    "left": "Vous avez quitté le parti « {nom} ».",
+    "m_action_inconnue": "Demande incomplète ou périmée : rouvrez la fenêtre.",
+    "m_champs_interdits": "Demande incomplète ou périmée : rouvrez la fenêtre.",
+    "m_cible_requise": "Choisissez un membre du parti."
   },
   "en": {
     "m_parti_non_vainqueur": "Only the leader of the party that won the glory week appoints the Chairman of the Council.",
@@ -178,7 +181,10 @@ const texts={
     "pm": "{nom} is now Chairman of the People's Council.",
     "tLeft": "Party left",
     "dissolved": "You were the last member: the party “{nom}” is dissolved.",
-    "left": "You have left the party “{nom}”."
+    "left": "You have left the party “{nom}”.",
+    "m_action_inconnue": "Incomplete or outdated request: reopen the window.",
+    "m_champs_interdits": "Incomplete or outdated request: reopen the window.",
+    "m_cible_requise": "Choose a party member."
   },
   "es": {
     "m_parti_non_vainqueur": "Solo el jefe del partido vencedor de la semana de la gloria designa al Presidente del Consejo.",
@@ -265,7 +271,10 @@ const texts={
     "pm": "{nom} es ahora Presidente del Consejo del Pueblo.",
     "tLeft": "Partido abandonado",
     "dissolved": "Era el último miembro: el partido «{nom}» queda disuelto.",
-    "left": "Ha abandonado el partido «{nom}»."
+    "left": "Ha abandonado el partido «{nom}».",
+    "m_action_inconnue": "Solicitud incompleta o caducada: vuelva a abrir la ventana.",
+    "m_champs_interdits": "Solicitud incompleta o caducada: vuelva a abrir la ventana.",
+    "m_cible_requise": "Elija a un miembro del partido."
   },
   "zh-TW": {
     "m_parti_non_vainqueur": "只有在榮耀週獲勝政黨的黨主席能指派會議主席。",
@@ -352,7 +361,10 @@ const texts={
     "pm": "{nom} 現在是人民會議主席。",
     "tLeft": "已退黨",
     "dissolved": "您是最後一名黨員：政黨「{nom}」已解散。",
-    "left": "您已退出政黨「{nom}」。"
+    "left": "您已退出政黨「{nom}」。",
+    "m_action_inconnue": "請求不完整或已過期：請重新開啟視窗。",
+    "m_champs_interdits": "請求不完整或已過期：請重新開啟視窗。",
+    "m_cible_requise": "請選擇一名黨員。"
   },
   "ru": {
     "m_parti_non_vainqueur": "Председателя Совета назначает только глава партии — победительницы недели славы.",
@@ -439,7 +451,10 @@ const texts={
     "pm": "{nom} теперь Председатель Совета Народа.",
     "tLeft": "Выход из партии",
     "dissolved": "Вы были последним членом: партия «{nom}» распущена.",
-    "left": "Вы вышли из партии «{nom}»."
+    "left": "Вы вышли из партии «{nom}».",
+    "m_action_inconnue": "Запрос неполный или устарел: откройте окно заново.",
+    "m_champs_interdits": "Запрос неполный или устарел: откройте окно заново.",
+    "m_cible_requise": "Выберите члена партии."
   },
   "ko": {
     "m_parti_non_vainqueur": "영광의 주간에 승리한 정당의 대표만 회의 의장을 지명합니다.",
@@ -526,7 +541,10 @@ const texts={
     "pm": "이제 {nom} 님이 인민회의 의장입니다.",
     "tLeft": "탈당함",
     "dissolved": "마지막 당원이었습니다: 정당 “{nom}”이(가) 해산되었습니다.",
-    "left": "정당 “{nom}”에서 탈당했습니다."
+    "left": "정당 “{nom}”에서 탈당했습니다.",
+    "m_action_inconnue": "요청이 불완전하거나 만료되었습니다. 창을 다시 여세요.",
+    "m_champs_interdits": "요청이 불완전하거나 만료되었습니다. 창을 다시 여세요.",
+    "m_cible_requise": "당원을 선택하세요."
   },
   "ar": {
     "m_parti_non_vainqueur": "لا يعيّن رئيس المجلس إلا رئيس الحزب الفائز في أسبوع المجد.",
@@ -613,7 +631,10 @@ const texts={
     "pm": "{nom} هو الآن رئيس مجلس الشعب.",
     "tLeft": "غادرت الحزب",
     "dissolved": "كنت آخر الأعضاء: حُلّ حزب «{nom}».",
-    "left": "غادرت حزب «{nom}»."
+    "left": "غادرت حزب «{nom}».",
+    "m_action_inconnue": "الطلب غير مكتمل أو منتهي الصلاحية: أعد فتح النافذة.",
+    "m_champs_interdits": "الطلب غير مكتمل أو منتهي الصلاحية: أعد فتح النافذة.",
+    "m_cible_requise": "اختر عضوًا في الحزب."
   },
   "pt-BR": {
     "m_parti_non_vainqueur": "Só o líder do partido vencedor da semana da glória designa o Presidente do Conselho.",
@@ -700,7 +721,10 @@ const texts={
     "pm": "{nom} agora é Presidente do Conselho do Povo.",
     "tLeft": "Saída do partido",
     "dissolved": "Você era o último membro: o partido “{nom}” foi dissolvido.",
-    "left": "Você saiu do partido “{nom}”."
+    "left": "Você saiu do partido “{nom}”.",
+    "m_action_inconnue": "Solicitação incompleta ou desatualizada: reabra a janela.",
+    "m_champs_interdits": "Solicitação incompleta ou desatualizada: reabra a janela.",
+    "m_cible_requise": "Escolha um membro do partido."
   },
   "de": {
     "m_parti_non_vainqueur": "Nur der Vorsitzende der Siegerpartei der Ruhmeswoche ernennt den Vorsitzenden des Rates.",
@@ -787,7 +811,10 @@ const texts={
     "pm": "{nom} ist nun Vorsitzender des Volksrates.",
     "tLeft": "Ausgetreten",
     "dissolved": "Sie waren das letzte Mitglied: Die Partei „{nom}“ ist aufgelöst.",
-    "left": "Sie sind aus der Partei „{nom}“ ausgetreten."
+    "left": "Sie sind aus der Partei „{nom}“ ausgetreten.",
+    "m_action_inconnue": "Unvollständige oder veraltete Anfrage: Öffnen Sie das Fenster erneut.",
+    "m_champs_interdits": "Unvollständige oder veraltete Anfrage: Öffnen Sie das Fenster erneut.",
+    "m_cible_requise": "Wählen Sie ein Parteimitglied."
   }
 };
 for(const [lang,labels] of Object.entries(texts))

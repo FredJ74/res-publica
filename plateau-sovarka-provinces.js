@@ -6,7 +6,7 @@
 // PROV_MOTIFS ne garde que la liste des raisons connues (ses valeurs sont les clés du catalogue).
 const provT = (k, v) => (typeof texteSovProvinces === 'function' ? texteSovProvinces(k, v) : k);
 const provRaisons = l => Object.fromEntries(l.map(r => [r, 'm_' + r]));
-const PROV_MOTIFS = provRaisons(['acteur_non_authentifie', 'pas_sur_place', 'montant_invalide', 'fonds_insuffisants', 'requete_etrangere']);
+const PROV_MOTIFS = provRaisons(['requete_absente', 'action_inconnue', 'acteur_non_authentifie', 'pas_sur_place', 'montant_invalide', 'fonds_insuffisants', 'requete_etrangere']);
 const provMotif = v => PROV_MOTIFS[v?.raison] ? provT(PROV_MOTIFS[v.raison]) : provT(v?.transport ? 'noReplyReplay' : 'refused');
 const provModal = (titre, html, rouvrir) => (typeof sovModal === 'function') ? sovModal(titre, html, rouvrir) : vehModal(titre, html);
 const provDate = d => new Date(d + 'T12:00:00').toLocaleDateString('fr-FR');

@@ -1,0 +1,35 @@
+name: i18n — messages dynamiques de Sovarka (9 langues)
+on:
+  pull_request:
+    paths:
+      - 'i18n/sovarka-*-resources.js'
+      - 'plateau-sovarka-*.js'
+      - 'plateau-reunions-evenements.js'
+      - 'plateau-router.js'
+      - 'plateau-mail.js'
+      - 'outils/bancs/banc-i18n-sovarka-*.cjs'
+      - 'outils/bancs/test-novomirsk-salles-reservation-20261106.mjs'
+      - '.github/workflows/i18n-sovarka-messages.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'i18n/sovarka-*-resources.js'
+      - 'plateau-sovarka-*.js'
+      - 'plateau-reunions-evenements.js'
+      - 'outils/bancs/banc-i18n-sovarka-*.cjs'
+      - '.github/workflows/i18n-sovarka-messages.yml'
+permissions:
+  contents: read
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe
+        run: for f in i18n/sovarka-*-resources.js plateau-sovarka-*.js plateau-reunions-evenements.js plateau-router.js; do node --check "$f"; done
+      - name: Catalogues, motifs, réunions et non-régression des lots Sovarka
+        run: node --test outils/bancs/banc-i18n-sovarka-messages-20261111.cjs outils/bancs/banc-i18n-sovarka-droits-20261111.cjs outils/bancs/banc-i18n-sovarka-justice-provinces-20261111.cjs outils/bancs/banc-i18n-sovarka-partis-20261111.cjs outils/bancs/banc-i18n-sovarka-pouvoir-20261111.cjs outils/bancs/test-novomirsk-salles-reservation-20261106.mjs
