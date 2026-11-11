@@ -64,7 +64,7 @@ BEGIN
 END;
 $function$;
 
-\i migrations/20261111205000_pavillon_diplomatique_baux.sql
+\i historique/migrations-appliquees/20261111214350_pavillon_diplomatique_baux_20261111.sql
 
 INSERT INTO public.caisses_batiments VALUES
  ('republic_gouvernement-min_def','{"solde":30000}'),
