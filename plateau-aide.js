@@ -21,7 +21,9 @@ function texte(){return traductions[langue()]}
 function ajouter(role,content){
  const zone=document.getElementById('aide-hrp-fil');if(!zone)return;
  const el=document.createElement('p');el.className='aide-hrp-bulle aide-hrp-'+role;el.textContent=content;el.setAttribute('dir','auto');
- zone.appendChild(el);zone.scrollTop=zone.scrollHeight;
+ zone.appendChild(el);
+ // Une réponse s'affiche à partir de son début (retour de Fred, 11/11/2026) ; une question reste en bas du fil.
+ if(role==='assistant'&&typeof el.scrollIntoView==='function')el.scrollIntoView({block:'start',behavior:'smooth'});else zone.scrollTop=zone.scrollHeight;
 }
 function initialiser(){
  const zone=document.getElementById('rules-content');if(!zone)return;
