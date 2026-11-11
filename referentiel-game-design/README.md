@@ -13,11 +13,11 @@ Servir de mémoire durable commune au game designer, à ChatGPT, Claude et Codex
 3. [Atlas des systèmes et parcours](ATLAS-SYSTEMES.md).
 4. [Catalogue historique des 61 mécaniques de l'architecture](CATALOGUE-MECANIQUES-HISTORIQUE.md), à actualiser ordre par ordre.
 5. [Relevé vérifié de Supabase en lecture seule](ETAT-SUPABASE-LECTURE-SEULE.md).
-6. [Catalogue des 517 coûts d'ordres configurés](CATALOGUE-COUTS-SERVEUR.md).
+6. [Catalogue des 534 coûts d'ordres configurés (relevé du 11/11/2026)](CATALOGUE-COUTS-SERVEUR.md).
 7. [État de publication Vercel et commit réellement publié](ETAT-VERCEL-PUBLICATION.md).
 8. [Catalogue des 1 072 déclarations d'ordres client](CATALOGUE-ORDRES-CLIENT.md).
-9. [Localisation des 956 ordres par bâtiment et pièce](CATALOGUE-BATIMENTS-PIECES-ORDRES.md).
-10. [Croisement statique des identifiants client et des coûts serveur](CROISEMENT-CATALOGUES.md).
+9. [Localisation des 1 121 ordres par bâtiment et pièce (11/11/2026)](CATALOGUE-BATIMENTS-PIECES-ORDRES.md).
+10. [Croisement statique des identifiants client et des coûts serveur](CROISEMENT-CATALOGUES.md) ; les trois se régénèrent avec `outils/referentiel/generer_catalogues.cjs`.
 11. [Navigation et accessibilité : six graphes de rues](NAVIGATION-ET-ACCESSIBILITE.md).
 12. [PNJ IA : prise de contact et formes de mémoire](PNJ-IA-MEMOIRES-INTERACTIONS.md).
 13. [Fiches détaillées des pouvoirs, élections et contre-pouvoirs](FICHES-POUVOIRS-ET-CONTREPOUVOIRS.md).
