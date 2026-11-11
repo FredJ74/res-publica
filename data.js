@@ -6922,7 +6922,7 @@ const BUILDINGS = {
   // Pavillon des Ambassadeurs de Novomirsk (vue 7) : appartements de luxe, pas specialement reserves
   // aux ambassadeurs -- l'equivalent des suites de l'hotel Republica a Luthecia (decisions de Fred,
   // 04/11/2026). Trois suites louables (Suite Privee et Suite Presidentielle reprises a l'identique,
-  // Suite du Parti +10 POP +6 INF +2 DIS), une grande salle de reception (copie de celle des
+  // Suite des Partis +10 POP +6 INF +2 DIS), une grande salle de reception (copie de celle des
   // ambassadeurs, sans ordre) et un bar (copie du Bar du Republica, commerce 'bar' propre au
   // Pavillon). PNJ et portraits tires des images (Fred, 11/11/2026).
   // « Organiser une rencontre piege » n'est pas repris : aucune agence d'escorts a Novomirsk.
@@ -6998,7 +6998,7 @@ const BUILDINGS = {
 
       },
       suite_parti: {
-        name: "Suite du Parti — Location diplomatique",
+        name: "Suite des Partis — Location diplomatique",
         imageBg: "linear-gradient(135deg,#200a0a,#2a1010)",
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_suite_parti.webp',
         desc: "📋 À LOUER — Suite d'apparat aux tentures rouges, où l'on se montre. Le portrait du Secrétaire général veille sur chaque réception.",

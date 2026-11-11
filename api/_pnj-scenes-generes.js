@@ -5294,7 +5294,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Pavillon des Ambassadeurs",
-    "piece": "Suite du Parti — Location diplomatique",
+    "piece": "Suite des Partis — Location diplomatique",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"hall_residence\"]": {
