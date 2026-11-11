@@ -575,5 +575,9 @@ cible `soviet.ville_b`) ; guide = objet simple ; prix PNJ 4, 3 et 6 PSK (formule
 - **Conséquences** : **aucune pour l'instant**, la menace reste une réplique. Piste d'ambiance pour plus tard : après un
   avertissement ignoré, un PNJ policier apparaît pour ce seul joueur (détection par marque d'alerte de l'IA, pas sur une
   seule alerte).
+- **Fait le 11/11 (13 h 49, demande de Fred)** : portrait de la guide recadré dans l'image de l'accueil
+  (`images/Sovarka/Novomirsk/Novo_guide_musee_national_portrait.webp`) ; guide présente dans les **neuf salles**
+  (`GUIDE_MUSEE_NOVOMIRSK` dans `data.js`). Sa carte n'ouvre **pas** le dialogue libre gratuit : message d'attente
+  jusqu’à l’ordre « Écouter la guide ». **Nom : Ouliana Historiskaïa** (Fred, 13 h 56).
 - **Question ouverte** : qui rédige les fiches de présentation des salles (Claude puis relecture de Fred, ou Fred) ; nom et
   image de la guide.

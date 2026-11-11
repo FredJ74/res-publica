@@ -351,6 +351,11 @@ function bureauxOpenSpaceCentreAffaires() {
   return sortie;
 }
 
+// Guide du Musée de la République de Novomirsk (décisions de Fred du 11/11/2026, GAME-DESIGN-NOVOMIRSK.md) :
+// présente dans les neuf salles ; portrait tiré de l'image de l'accueil. Nom choisi par Fred : Ouliana Historiskaïa.
+// guideMusee : la carte n'ouvre pas le dialogue libre gratuit (1 PA et 3 questions par salle, à venir).
+const GUIDE_MUSEE_NOVOMIRSK = Object.freeze({name: 'Ouliana Historiskaïa (PNJ)', role: 'Guide officielle du musée', rel: 'neutral', job: 'guide_musee', guideMusee: true, photoUrl: 'images/Sovarka/Novomirsk/Novo_guide_musee_national_portrait.webp', photoPos: '50% 30%'});
+
 const WORLD = {
   republic: {
     capitale: {
@@ -2334,15 +2339,15 @@ const WORLD = {
           // navigation serveur. Les trois salles exclues ne sont pas détruites.
           roomsExclues: ['salle_tresor_national','salle_reussites_economiques','salle_criminels_pays'],
           roomOverrides: {
-            hall: { name: "Accueil", desc: "Accueil du musée national, avec la réceptionniste et la guide.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_accueil.webp" },
-            salle_presidents: { name: "Salle des présidents", desc: "Portraits des cinq présidents historiques de Sovarka et deux emplacements réservés aux futurs dirigeants.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle présidents.webp" },
-            salle_politiques: { name: "Salle des partis politiques victorieux", desc: "Les partis des présidents victorieux : PPP, Parti du Prolétariat Heureux et Parti du Progrès Nostalgique.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle partis.webp" },
-            salle_honneur_militaire_nationale: { name: "Salle des honneurs militaires", desc: "Hommages militaires et objets de mémoire du pays.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle des honneurs militaires.webp" },
-            salle_organisations: { name: "Salle du tractorisme", desc: "La religion du tractorisme et ses traditions.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle tractorisme.webp" },
-            salle_artistes_sportifs: { name: "Salle des sportifs de Sovarka", desc: "Les sportifs célébrés de Novomirsk, Krasnov et Starovka.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle sportifs.webp" },
-            salle_civils_intellectuels: { name: "Salle des artistes de Sovarka", desc: "Les poètes, musiciens, sculpteurs et peintres de Sovarka.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle artistes.webp" },
-            salle_grandes_villes: { name: "Salle des grandes crises de Sovarka", desc: "Famines, guerre, grève et défaite en finale de football contre El Estado en 1937.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle crises.webp" },
-            expositions_temporaires: { name: "Salle des expositions tournantes", desc: "Salle momentanément vide, réservée aux expositions tournantes.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle expo tournantes.webp" }
+            hall: { name: "Accueil", desc: "Accueil du musée national, avec la réceptionniste et la guide.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_accueil.webp", persons: [GUIDE_MUSEE_NOVOMIRSK] },
+            salle_presidents: { name: "Salle des présidents", desc: "Portraits des cinq présidents historiques de Sovarka et deux emplacements réservés aux futurs dirigeants.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle présidents.webp", persons: [GUIDE_MUSEE_NOVOMIRSK] },
+            salle_politiques: { name: "Salle des partis politiques victorieux", desc: "Les partis des présidents victorieux : PPP, Parti du Prolétariat Heureux et Parti du Progrès Nostalgique.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle partis.webp", persons: [GUIDE_MUSEE_NOVOMIRSK] },
+            salle_honneur_militaire_nationale: { name: "Salle des honneurs militaires", desc: "Hommages militaires et objets de mémoire du pays.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle des honneurs militaires.webp", persons: [GUIDE_MUSEE_NOVOMIRSK] },
+            salle_organisations: { name: "Salle du tractorisme", desc: "La religion du tractorisme et ses traditions.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle tractorisme.webp", persons: [GUIDE_MUSEE_NOVOMIRSK] },
+            salle_artistes_sportifs: { name: "Salle des sportifs de Sovarka", desc: "Les sportifs célébrés de Novomirsk, Krasnov et Starovka.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle sportifs.webp", persons: [GUIDE_MUSEE_NOVOMIRSK] },
+            salle_civils_intellectuels: { name: "Salle des artistes de Sovarka", desc: "Les poètes, musiciens, sculpteurs et peintres de Sovarka.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle artistes.webp", persons: [GUIDE_MUSEE_NOVOMIRSK] },
+            salle_grandes_villes: { name: "Salle des grandes crises de Sovarka", desc: "Famines, guerre, grève et défaite en finale de football contre El Estado en 1937.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle crises.webp", persons: [GUIDE_MUSEE_NOVOMIRSK] },
+            expositions_temporaires: { name: "Salle des expositions tournantes", desc: "Salle momentanément vide, réservée aux expositions tournantes.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle expo tournantes.webp", persons: [GUIDE_MUSEE_NOVOMIRSK] }
           }
         }
       }
