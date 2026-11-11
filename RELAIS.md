@@ -8,6 +8,10 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### i18n commun — journal des ventes et dîners, ChatGPT, 11/11/2026 (en intégration)
+Branche `chatgpt/i18n-journal-diners-20261111`, distincte de l'Aide (Codex) et de Sovarka (Claude). **25 messages** traduits dans neuf langues : journal des ventes PJ, lecture/erreur, carte restaurant, invitations, réponses, confirmation serveur, service et description de dîner. Noms, devises, montants, PA, identifiants et RPC restent strictement issus des données et règles d'origine. Les ventes sont réaffichées à la bascule de langue sans nouvel appel réseau ni acquittement. Fichiers : `i18n/shared-sales-dinner-resources.js`, `plateau-journal-ventes.js`, `plateau-restaurant-luthecia.js`, `plateau.html`, audit éditorial et `outils/bancs/banc-i18n-ventes-diners-20261111.cjs`. CI dédiée : `.github/workflows/i18n-ventes-diners.yml`. Recette connectée, revue linguistique native et téléphone physique non réalisés. Ne pas déclarer le lot livré avant CI, fusion et Vercel READY.
+
+
 ### PR encore ouvertes (relevé du 11/11/2026, 15 h 20)
 
 - #636 (brouillon) `claude/sovarka-ministeres-lot2-20261108` — Sovarka : ministères, lot 2 — **NE PAS FUSIONNER avant la migration**.
