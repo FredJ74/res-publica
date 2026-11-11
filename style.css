@@ -2458,3 +2458,22 @@ body.plateau-body .top-right {
 @media (max-width: 600px) {
   #modal-jodie-enquete .pnj-action-btn { max-width: 100%; }
 }
+
+/* Piece et ordres sur telephone (11/11/2026, retour de Fred sur une boutique premium) :
+   image en pleine largeur a ses proportions, nom et description sous l'image (plateau-mobile.js
+   pose data-hg-split), ordres en liste pleine largeur, et une marge basse pour que les boutons
+   ronds (journal, discussion) ne cachent jamais le dernier ordre. Bureau >= 1024 px inchange. */
+@media(max-width:1023px){
+  .piece-container:has(#piece-image[data-hg-split="1"]){flex:0 0 auto;min-height:0;overflow:visible}
+  #piece-image[data-hg-split="1"]{display:block;min-height:0!important;background-size:100% auto!important;background-position:center top!important;background-repeat:no-repeat!important;background-color:var(--bg)!important}
+  #piece-image[data-hg-split="1"]::before{content:'';position:static;display:block;padding-top:var(--hg-ratio-image,56.25%);background:none}
+  #piece-image[data-hg-split="1"] .piece-ambiance{background:var(--bg2);border-top:1px solid var(--border);padding:.7rem .9rem .8rem}
+  #piece-image[data-hg-split="1"] .piece-nom{font-size:1.15rem;line-height:1.25;text-shadow:none}
+  #piece-image[data-hg-split="1"] .piece-desc{text-shadow:none}
+  #piece-image[data-hg-split="1"] .piece-emoji{display:none}
+  .actions-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:6px}
+  .actions-row>.action-btn{width:100%;box-sizing:border-box;justify-content:flex-start;text-align:left;line-height:1.25}
+  .actions-row>.action-btn .pa-cost{margin-left:auto;padding-left:.5rem;flex-shrink:0}
+  #actionbar-batiment{padding-bottom:calc(140px + env(safe-area-inset-bottom))}
+}
+

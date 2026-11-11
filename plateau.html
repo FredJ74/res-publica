@@ -6,7 +6,7 @@
 <title>Res Publica — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=lisibilite-pnj-20261031-caracs-mobile-l7-20261106-formulaires-20261107-reconnexion-20261108">
+<link rel="stylesheet" href="style.css?v=lisibilite-pnj-20261031-caracs-mobile-l7-20261106-formulaires-20261107-reconnexion-20261108-piece-mobile-20261111">
 <style>
 /* Le bandeau de traduction partielle concerne les langues étrangères ; l'interface FR conserve son gabarit initial. */
 html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
@@ -793,7 +793,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
      enterRoom appelle varianteImagePiece() et varianteAppliquerEnseigne(). Ne depend d'aucun
      autre fichier au chargement : ses appels a getLocationPourRoom (plateau-justice-economie.js)
      et sbGetFonds (supabase.js) sont tous gardes par typeof et n'ont lieu qu'a l'execution. -->
-<script src="plateau-variantes-pieces.js?v=audit-republia-20261102"></script>
+<script src="plateau-variantes-pieces.js?v=audit-republia-20261102-piece-mobile-20261111"></script>
 <!-- Plan de l'open space : APRES plateau-variantes-pieces.js, dont il reutilise la
      geometrie (varianteZoneEnPixels, varianteTailleNaturelle), et AVANT
      plateau-navigation.js, dont enterRoom appelle openSpaceInjecterZones(). -->
@@ -967,7 +967,7 @@ function signalerEvenementJournal() {
 <script src="i18n/plateau-init.js?v=inventaire-variables-20261110-i18n-refresh-fenetres-20261110-legendes-i18n-20261110"></script>
 <link rel="stylesheet" href="plateau-aide.css?v=20261111">
 <script src="plateau-aide.js?v=20261111"></script>
-<script src="plateau-mobile.js?v=certification-reprise-r2-20261108" defer></script>
+<script src="plateau-mobile.js?v=certification-reprise-r2-20261108-piece-20261111" defer></script>
 </body>
 </html>
 
