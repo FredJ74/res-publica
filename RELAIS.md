@@ -40,6 +40,26 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Certification et corpus Aide — Codex, 11/11/2026 (EN COURS après #720)
+
+Branche `codex/aide-certification-corpus-20261111`, base main `665cf1e4`.
+La livraison antérieure `49e48f38` est conservée, READY rapporté par #722 ;
+aucune réécriture des corrections interface/mobile/IME déjà intégrées.
+Six compléments non chiffrés, sourcés : sommeil, emploi PJ/BNE, commerce,
+inventaire, organisations, forums. Même corpus canonique pour neuf langues ;
+question économique et suivi couverts ; distinction règle/aspiration renforcée.
+54/54 tests serveur Aide verts, non-régressions chat/PNJ et guides vertes.
+Rejeu Chromium séquentiel : toujours bloqué avant assertions (Cannot fork),
+binaire direct également refusé ; pas de contournement ou faux résultat vert.
+Contrôleur transversal lancé, globaux10/12 (Baseline/Referential hérités).
+Aucune clé DeepSeek ou session isolée dans cet environnement : sorties IA
+réelles non vérifiées. Pas de mutation PJ, migration ou modification Sovarka.
+REST lecture des PR403 ; références vérifiées dans Git/relais ; PR à préparer.
+Pour tester une fois livré : Aide, PA puis but libre et question « Un client
+peut-il produire dans un commerce ? », suivi et bascule de langue. Aucun ordre
+métier n'est exécuté par le conseiller.
+
+
 ### Aide HRP multilingue — Codex, 11/11/2026 (INTÉGRATION EN COURS)
 
 Branche poussée `codex/aide-hrp-neuf-langues-20261111`, main `6b9f5d30`,
