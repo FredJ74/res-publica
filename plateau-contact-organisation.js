@@ -47,6 +47,17 @@ const CONTACT_ORGA_PASSEURS = {
   }
 };
 
+function contactOrgaTexte(cle,fr,vars){
+ const tr=window.RPContactOrganizationI18n?.text;
+ return typeof tr==='function'?tr(cle,fr,vars):String(fr).replace(/\{([a-z]+)\}/g,(m,k)=>Object.hasOwn(vars||{},k)?String(vars[k]):m);
+}
+function contactOrgaLibelleAction(passeur){
+ return passeur?.nom==='Pat Hounette'?contactOrgaTexte('action',passeur.libelleAction):passeur?.libelleAction||'';
+}
+function contactOrgaReplique(passeur,champ){
+ const cle={question:'question',projet:'project',conclusion:'conclusion',refusDelai:'wait',personne:'nobody'}[champ];
+ return cle&&passeur?.nom==='Pat Hounette'?contactOrgaTexte(cle,passeur[champ]):passeur?.[champ]||'';
+}
 function contactOrgaPasseur(passeurId) {
   return CONTACT_ORGA_PASSEURS[passeurId] || null;
 }
@@ -100,31 +111,31 @@ async function contactOrgaDemarrer(passeurId) {
   if (!r) {
     contactOrgaFermer();
     if (typeof showToast === 'function') {
-      showToast('Action impossible', 'Réessayez dans un instant.', false);
+      showToast(contactOrgaTexte('impossible','Action impossible'),contactOrgaTexte('retry','Réessayez dans un instant.'), false);
     }
     return;
   }
   if (r.ok === false) {
     contactOrgaFermer();
     if (typeof showToast === 'function') {
-      showToast('Indisponible', 'Cette mise en relation n\'est pas possible ici.', false);
+      showToast(contactOrgaTexte('unavailable','Indisponible'),contactOrgaTexte('notHere','Cette mise en relation n\'est pas possible ici.'), false);
     }
     return;
   }
 
   if (r.peut_demander === false) {
-    contactOrgaDire(passeurId, p.refusDelai,
+    contactOrgaDire(passeurId, contactOrgaReplique(p,'refusDelai'),
       '<div style="margin-top:1rem"><button class="pnj-action-btn" '
-      + 'onclick="contactOrgaFermer()">Je repasserai</button></div>');
+      + 'onclick="contactOrgaFermer()">'+contactOrgaEch(contactOrgaTexte('later','Je repasserai'))+'</button></div>');
     return;
   }
 
-  contactOrgaDire(passeurId, p.question,
+  contactOrgaDire(passeurId, contactOrgaReplique(p,'question'),
     '<div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">'
     + '<button class="pnj-action-btn" onclick="contactOrgaConfirmer(\'' + passeurId + '\')">'
-    + '<i class="ti ti-check" style="font-size:.85rem"></i> Oui</button>'
+    + '<i class="ti ti-check" style="font-size:.85rem"></i> '+contactOrgaEch(contactOrgaTexte('yes','Oui'))+'</button>'
     + '<button class="pnj-action-btn" onclick="contactOrgaFermer()">'
-    + '<i class="ti ti-x" style="font-size:.85rem"></i> Non, laisse tomber</button>'
+    + '<i class="ti ti-x" style="font-size:.85rem"></i> '+contactOrgaEch(contactOrgaTexte('no','Non, laisse tomber'))+'</button>'
     + '</div>');
 }
 
@@ -137,16 +148,16 @@ async function contactOrgaDemarrer(passeurId) {
 function contactOrgaConfirmer(passeurId) {
   const p = contactOrgaPasseur(passeurId);
   if (!p) return;
-  contactOrgaDire(passeurId, p.projet,
+  contactOrgaDire(passeurId, contactOrgaReplique(p,'projet'),
     '<textarea id="contact-orga-projet" rows="4" placeholder="…" '
     + 'style="width:100%;margin-top:.9rem;padding:.5rem .6rem;background:#0a0a07;'
     + 'border:1px solid #3a2a10;color:#d8c8a8;font-family:Crimson Pro,serif;'
     + 'font-size:.88rem;resize:vertical"></textarea>'
     + '<div style="margin-top:.8rem;display:flex;gap:.5rem;flex-wrap:wrap">'
     + '<button class="pnj-action-btn" onclick="contactOrgaEnvoyer(\'' + passeurId + '\')">'
-    + '<i class="ti ti-send" style="font-size:.85rem"></i> Lui expliquer</button>'
+    + '<i class="ti ti-send" style="font-size:.85rem"></i> '+contactOrgaEch(contactOrgaTexte('explain','Lui expliquer'))+'</button>'
     + '<button class="pnj-action-btn" onclick="contactOrgaFermer()">'
-    + '<i class="ti ti-x" style="font-size:.85rem"></i> Renoncer</button>'
+    + '<i class="ti ti-x" style="font-size:.85rem"></i> '+contactOrgaEch(contactOrgaTexte('withdraw','Renoncer'))+'</button>'
     + '</div>');
 }
 
@@ -163,31 +174,31 @@ async function contactOrgaEnvoyer(passeurId) {
   if (!r) {
     contactOrgaFermer();
     if (typeof showToast === 'function') {
-      showToast('Action impossible', 'Réessayez dans un instant.', false);
+      showToast(contactOrgaTexte('impossible','Action impossible'),contactOrgaTexte('retry','Réessayez dans un instant.'), false);
     }
     return;
   }
 
   const fermer = '<div style="margin-top:1rem"><button class="pnj-action-btn" '
-               + 'onclick="contactOrgaFermer()">Entendu</button></div>';
+               + 'onclick="contactOrgaFermer()">'+contactOrgaEch(contactOrgaTexte('understood','Entendu'))+'</button></div>';
 
   if (r.ok === true) {
-    contactOrgaDire(passeurId, p.conclusion, fermer);
+    contactOrgaDire(passeurId, contactOrgaReplique(p,'conclusion'), fermer);
     if (typeof addJournalEntry === 'function') {
       // Le journal ne nomme pas l'organisation : le joueur ne la connait pas, et
       // le passeur ne transmet aucun detail.
-      addJournalEntry(p.nom + ' a transmis un message pour vous.', 'event-info');
+      addJournalEntry(contactOrgaTexte('journal','{name} a transmis un message pour vous.',{name:p.nom}), 'event-info');
     }
     return;
   }
 
-  if (r.raison === 'delai_non_ecoule') { contactOrgaDire(passeurId, p.refusDelai, fermer); return; }
+  if (r.raison === 'delai_non_ecoule') { contactOrgaDire(passeurId, contactOrgaReplique(p,'refusDelai'), fermer); return; }
   if (r.raison === 'aucune_organisation' || r.raison === 'toutes_contactees') {
-    contactOrgaDire(passeurId, p.personne, fermer);
+    contactOrgaDire(passeurId, contactOrgaReplique(p,'personne'), fermer);
     return;
   }
   contactOrgaFermer();
   if (typeof showToast === 'function') {
-    showToast('Indisponible', 'Cette mise en relation n\'est pas possible.', false);
+    showToast(contactOrgaTexte('unavailable','Indisponible'),contactOrgaTexte('notPossible','Cette mise en relation n\'est pas possible.'), false);
   }
 }
