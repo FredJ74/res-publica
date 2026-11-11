@@ -657,3 +657,23 @@ Apport de Fred : les graines de la liberté et de l'émancipation qui germent da
 >
 > Avez-vous des questions ? Uniquement historiques, je vous prie.
 
+#### Salle des sportifs de Sovarka — rédigée par Fred (11/11, 19 h 36)
+
+Athlètes de l'image de la salle. Texte de Fred recopié tel quel (introduction et conclusion de Claude gardées). Le basketteur s'appelle **Arvidas** Tkhatchenko (le nom « Vladimir Tkhatchenko » existe réellement ; la plaque de l'image porte encore « Владимир »). Au codage, corriger seulement l'orthographe : « inarrêtable », « l'entraîneur de la ville », « forêt », « basketteur », « qui l'a propulsé », doubles espaces ; « Volkok » = **Volkov** (plaque de l'image).
+
+> Voici la Salle des sportifs de Sovarka, camarades. Ici sont célébrés ceux qui ont porté haut nos couleurs, à Novomirsk, à Krasnov et à Starovka.
+>
+> Igor Sedov, footballeur de Novomirsk. Le plus grand buteur de l’histoire du championnat national. Il était inarrétable, surtout en troisième mi-temps.  Il était célèbre pour fêter chaque but en buvant une bouteille de vodka cul sec. Il n'a jamais marqué plus de 3 buts/match, ceci expliquant cela...
+>
+> Arvidas Tkhatchenko, basketteur de Krasnov, était un véritable colosse. Repéré par l'entraineur de le ville alors qu'il combattait les ours à mains nues en fôret de Krasnov où il était bûcheron, à 12 ans, ses débuts comme basketteurs furent compliqués pour les panneaux de basket qui ont dû être renforcés spécialement du fait de ses dunks destructeurs. Il est le symbole de la puissance Sovarkienne.
+>
+> Andreï Volkok, perchiste de Novomirsk, était surnommé l'oiseau. Avec sa perche, il déviait les lois de la pesanteur. La légende dit qu'il a eu un orteil gelé suite à un saut qui la propulsé dans la stratosphère. Un accident avec un satellite a mis prématurément fin à sa carrière. Andreï est la seule personne au monde pour qui "Sky is not the limit".
+>
+> Batyr Nourbaïev, biathlète de Starovka, était prédestiné à devenir un champion. Fils de fermier, il accompagnait les troupeaux de rennes à ski, et devait les défendre contre les attaques de loups et d'ours polaires.  Ses capacités hors normes lui ont valu d'être recruté par l'armée de Sovarka où il fut nommé capitaine de la compagnie en charge de défendre la frontière nord du pays. Mais qui pouvait bien arriver par le nord quand on est la ville la plus au nord du monde... ?
+>
+> Enfin, Elena Gromova, gymnaste de Krasnov, dix fois championne nationale. Non, camarades, aucun lien avec le président Gromov. La ressemblance des noms est un pur hasard, comme toutes les ressemblances de ce musée. Elle incarne à elle seule la force et la grâce de notre belle nation.
+>
+> Le sport, camarades, enseigne l'effort, la discipline et le respect des résultats officiels.
+>
+> Avez-vous des questions ? Uniquement historiques, je vous prie.
+
