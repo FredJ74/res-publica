@@ -34,6 +34,119 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### i18n gestion / administration — clôture locale cumulative, Codex 10/11 — INTÉGRÉ par Claude le 11/11 (branche `claude/integration-i18n-codex-20261111`)
+
+**159 nouvelles clés / neuf langues**, quatre branches poussées, réconciliées
+avec main `2f30d23b` (#699–701 préservées). Code cumulatif testé `08336f09`.
+- A `codex/i18n-gestion-commerces-20261110` : `b73a86b8` (52 clés).
+- B `codex/i18n-entrepot-notaire-20261110` : `f2b8212b` (21 clés).
+- C `codex/i18n-vente-don-matieres-20261110` : `dd451135` (65 clés).
+- D `codex/i18n-port-douanes-20261110` : code `08336f09` (21 clés), puis commit
+  documentaire portant cette rubrique et les preuves finales.
+
+**28/28 ciblés ; 275/276 bancs clients ; globaux 10/12**. Six PNG français1440
+strictement identiques, mobile360/390 et RTL testés localement, variables et
+saisies préservées, contre-épreuves de clé absente et paramètre faux détectées.
+Le seul rouge client, `banc-pnj-localisation-psm.mjs`, est reproduit sur main2f :
+scènes générées avec anciens noms du centre artisanal de Novomirsk depuis #701.
+Diff et journal fournis, pas de modification PNJ/Claude. Baseline/Referential
+identiquement rouges sur main et branche, Workflow/Authority conformes.
+
+Rapport, titres/descriptions PR prêts, ordre **A→B→C→D**, commandes et preuves :
+`outils/audits/I18N-GESTION-ADMINISTRATION-20261110.md` et sous-dossier associé.
+REST création PR :403 ; aucune PR créée, fusion ou CI distante déclarée.
+L'intégrateur peut ouvrir les quatre PR avec ces branches et les titres du rapport.
+Vercel inaccessible via proxy (CONNECT403, HEAD10/11 21:49UTC), pas de READY observé.
+Aucune migration ni donnée réelle modifiée, aucun fichier des chantiers Claude ou
+Règles modifié. Pas d'essai connecté ou sur appareil physique. Restes français et
+inventaire candidat documentés ; ne pas annoncer le jeu intégralement traduit.
+
+
+### i18n consultations port et douanes — Codex, 10/11/2026 (lot empilé)
+
+Branche `codex/i18n-port-douanes-20261110`, base vente/don `2376b5d9`.
+**21 clés en neuf langues** : administration du port, origines et flux affichés,
+exportations, caisse, effectifs douaniers (vide/erreur/liste/unité cynophile).
+Consultation seule : recrutement, salaires, répartitions, transports et droits
+restent intacts. Noms/matricules/destinations/dates et chiffres 150/150/300,
+2/3, 1/3, 100% préservés ; aucune traduction de contenu personnel.
+Trois cas ciblés verts dans neuf langues, 360/390 et RTL, lectures uniques,
+aucune commande ajoutée, port et douanes FR 1440 pixel-identiques à main 336eace8.
+**Les trois premiers lots ont passé 274/274 bancs clients** après correction du
+chargement des vrais helpers dans le banc stock (20 assertions conservées).
+Titre PR : « Consultations du port et des douanes en neuf langues ».
+Description : « 21 clés de rendu, paramètres et flux canoniques conservés ; mêmes
+lectures et permissions, aucun ordre ou traitement modifié, tests mobile/RTL et
+comparaison stricte FR. » Base PR : branche vente/don, puis main après les trois
+lots précédents. Les quatre branches sont réconciliées avec main `2f30d23b` (#699–701),
+recettes/téléphone/images et versions de cache préservés. Les renvois vers
+« Gérer la logistique nationale » concordent avec le libellé réel dans neuf langues.
+Validation cumulative finale après réconciliation en cours. Aucun SQL/donnée PJ,
+module Sovarka/PNJ ni chantier Règles modifié.
+
+
+### i18n vente et don de matières — Codex, 10/11/2026 (lot empilé)
+
+Branche `codex/i18n-vente-don-matieres-20261110`, base entrepôt/notaire `76a4e0b5`.
+**65 clés dans neuf langues** : formulaire actif de vente/don, 19 légendes de
+stock réutilisant les noms traduits de #698, tous les refus et confirmations,
+7 titres dans le système existant (103 → 110), diagnostics français inchangés.
+Les stocks, PA, identifiants, devises, gardes, commandes et rafraîchissements sont
+préservés. Douze tests dédiés verts : deux modes, 17 motifs, réponse déjà signalée,
+zéros, saisie invalide, mêmes appels/états que main ; formulaire FR 1440 identique,
+360/390, RTL et saisies conservées, aucune écriture lors d’une bascule.
+Titre PR : « Vente et don de matières : formulaires et verdicts en neuf langues ».
+Description : « 65 clés et paramètres canoniques, mêmes commandes et conséquences,
+réutilisation des traductions de matières existantes et du système de notifications.
+Diagnostics français, tests de refus réseau/métier et comparaison stricte FR. »
+Base PR : branche entrepôt/notaire puis main après les deux premiers lots.
+Première passe complète : un banc historique extrayait le formulaire sans son
+helper de rendu ; il charge maintenant les vrais helpers, conserve ses 20 cas
+et vérifie aussi le handler du don. Statuts de matière complétés à chaud.
+Contrôles complets rejoués ; aucune création de compte, SQL ou donnée réelle.
+Aucun circuit historique réactivé. Les travaux Sovarka/PNJ et Règles restent intacts.
+
+
+### i18n entrepôt et consultation notariale — Codex, 10/11/2026 (lot empilé)
+
+Branche `codex/i18n-entrepot-notaire-20261110`, base gestion `91544c5a`.
+**21 clés dans neuf langues** : salle des ventes, interdiction (titre de loi intact),
+formulaire et résultats de dossiers notariaux, recherche partielle et erreurs.
+Les quantités civiles, prix/devise, saisies, dates, noms et lectures restent
+identiques ; aucun ordre de paiement exécuté pour tester. Réutilisation de
+ficheLibelleHtml avec namespace facultatif : ancien comportement produit inchangé.
+Quatre tests verts, 360/390 et RTL, saisies conservées à chaud, entrepôt et notaire
+pixel-identiques à main `336eace8` en FR 1440. Aucun module Sovarka/PNJ, Règles
+ou SQL modifié. Titre PR : « Entrepôt et consultation notariale en neuf langues ».
+Description : « 21 clés de présentation, conditions et lectures préservées,
+paramètres canoniques intacts, tests réels des rendus et comparaison stricte FR. »
+Base PR initiale : branche gestion, puis main après intégration. Suite automatique :
+vente/don de matières et messages de résultat. Publication non attestée.
+
+
+### i18n gestion des commerces — Codex, 10/11/2026 (lot suivant #698)
+
+Branche `codex/i18n-gestion-commerces-20261110`, base `336eace8` après #698.
+**52 clés dans neuf langues**, dictionnaire FR local conservé : terminal caisse,
+produits, matières et approvisionnement. Compatibilité des anciens paramètres
+`{n}` avec i18next `values.*`, replis français ; noms/enseignes et saisies intacts.
+Le moteur commun applique aussi les légendes mobiles data-l et les préfixes de
+compteur sans supprimer le nombre en gras. Trois tests ciblés verts, rejoués après réconciliation main `2f30d23b`, statuts
+de matière et contre-épreuve de repli également contrôlés, 360/390/768,
+RTL, aucun appel supplémentaire pendant les bascules, PNG FR 1440 **identique**.
+PR web ouvertes examinées : #699/#636/#562/#467/#463, pas de doublon de ce lot.
+Aucune modification des travaux Sovarka/PNJ ou onglet Règles, aucun SQL.
+Titre PR prêt : « Gestion commerciale : caisse, stocks et matières dans neuf langues ».
+Description : « 52 clés, dictionnaire canonique et paramètres conservés, labels
+mobiles/préfixes via moteur existant ; saisies/handlers/lectures et pixels FR
+1440 identiques. Aucun coût, PA, permission, RPC ou donnée joueur modifié. »
+Contrôles complets à consigner après les lots suivants. Tests réels connectés et
+publication non attestés. Suite immédiate : entrepôt et consultation notariale.
+
+
+Réconciliation : main `2f30d23b` intégré, Couinator/téléphone/images artisanales et caches conservés.
+
+
 ### Cartes des restaurants de Sovarka — Claude, 10/11/2026 (soir), branche `claude/cartes-restaurants-sovarka-20261110`
 
 Décisions de Fred (22 h 27 – 22 h 45) dans `GAME-DESIGN-NOVOMIRSK.md`, « Cartes des restaurants de Sovarka ». **Fait** : 14 recettes locales (La Mère Volga, « Entre terre et mer », Bar Sever, extras du Grand Hôtel), plats français et vin réservés à la Républia, dotations `@soviet.ville` (nouveau : `entreprise_assurer_existence` lit d'abord `bâtiment|pièce@pays.ville`), carte du Grand Hôtel nettoyée, dîner d'affaires du Grand Hôtel au champagne soviétique. Migrations **appliquées** (`20261110230000_sovarka_cartes_restaurants`, complément dîner) ; contrôles : création à blanc de la Mère Volga, de Starovka et du Bar Sever avec leur carte, témoin PSM inchangé ; banc annulé du dîner du Grand Hôtel vert. **NE PAS RÉAPPLIQUER.** Écran : `RECETTES_ALIMENTAIRES` (`plateau-actions-illegales-rumeurs.js`). Bonus de +3 PA différés des six nouveaux menus ajoutés au miroir `pa_bonus_differes` (seed régénéré) ; **les trois menus du Grand Hôtel y manquaient depuis le 06/11** (corrigé). Générateur `generer_pa_bonus_differes.py` : une recette sans paDiffere n'emprunte plus celui de la suivante. Banc `banc-i18n-catalogue-economique.cjs` : les recettes de Sovarka (`paysAutorises` soviet) restent hors du catalogue i18n, comme les `menu_sovarka_*` (libellés en français dans toutes les langues). **Marché de Krasnov** (décision de Fred, 23 h 19) : goulash, guide des baies sauvages, chemise de bûcheron (intégration locale `soviet.ville_b`, `bonusEntIntegrationLocale` accepte la cible « pays.ville ») ; migration `20261110233000_marche_krasnov` **appliquée**, création à blanc vérifiée (témoin Montrouge inchangé) ; images à faire par Fred. Contrôle `banc-pnj-localisation-psm.mjs` rouge **déjà sur main** (hors de ce lot). **À constater en jeu** : consulter la carte de la Mère Volga, d'« Entre terre et mer », du Bar Sever et du Grand Hôtel ; plus de bœuf bourguignon ni de vin en Sovarka ; dîner d'affaires au Grand Hôtel.
@@ -337,7 +450,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 ### Points ouverts transmis (non bloquants)
 
-- **Coûts serveur : écart entre le miroir du dépôt et la production (relevé par Claude le 11/11, non corrigé)** : `baseline/seeds/95_a-regenerer/ordres_couts.sql` (521 triplets, généré depuis `data.js`) contre `public.ordres_couts` en production (534). **En base mais absents du miroir (29)**, ajoutés par migrations directes : p. ex. `consommer_buvette`, `manger_oeufs`, `se_cacher`, `foret_aller`, `foret_rencontre`, `virement_joueur`, `virement_automatique`, `sovarka_parti_adherer`, `sovarka_reunion_moyenne_reserver`… **Dans le miroir mais absents de la base (16)** : `consulter_catalogue_manufactures`, `rejoindre_club_supporters` (1 PA / 25), `sovarka_cession`, `sovarka_commerces_libres`, `sovarka_demande_location`, `sovarka_dossiers_commerciaux`, `sovarka_mon_parti`, `sovarka_offrir_cafe`, `sovarka_ordres_ministre`, `sovarka_partis`, `sovarka_registre_plaintes`, `sovarka_repas_presidentiel`, `sovarka_reunion_reserver`, `sovarka_terrain_municipal`, `ssm_besoin_aide`, `virements`. À vérifier : si l'un de ces ordres passe par `payer_ordre` (miroir fermé par défaut), le serveur le refuse ; la plupart sont des menus à 0 PA qui sortent avant le débit. Liste complète : comparer les deux fichiers.
+- **Coûts serveur : écart miroir / production VÉRIFIÉ le 11/11 (Claude), aucun ordre bloqué.** 16 triplets du miroir `baseline/seeds/95_a-regenerer/ordres_couts.sql` sont absents de `public.ordres_couts` en production (29 autres n'existent qu'en production ; relevé complet `outils/referentiel/ordres_couts_production_20261111.tsv`). Aucun n'est refusé : 13 sont gratuits (`deduireCoutOrdre` n'appelle `payer_ordre` qu'au-delà de 0 PA et 0) ; `sovarka_cession` et `sovarka_demande_location` passent par leur propre RPC (`sovActe`), sans `payer_ordre` sur ce nom ; `rejoindre_club_supporters` 1 PA / 25 à Sovarka est validé par `payer_ordre_interne` dans `ordres_couts_pays` (soviet 1/25). Pas de correction nécessaire.
 - **Codex (signalé par Claude, 31/10)** : `militaire_entree_zone` a répondu 404 une fois à 17 h 24 (fonction présente en base : probable cache de schéma pendant une migration ; à surveiller). ~~`sbMarquerVolTraite`~~ retirée le 03/11 (voir Derniers chantiers).
 
 - **Refinancement BNR en trop d'Helvetia (#267)** : annulé par `20261031150000_helvetia_bnr_excedent_regulariser` (PR #288, appliquée) ; Fred a laissé le choix à Claude, qui garde l'annulation (la première note « remboursement normal » est caduque). Voir `GAME-DESIGN-BANQUES.md`.

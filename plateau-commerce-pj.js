@@ -24,12 +24,10 @@
 // ---------------------------------------------------------------------------
 // LIBELLES
 // ---------------------------------------------------------------------------
-// Meme convention que plateau-entrepots.js, seul ecran du plateau dont les
-// libelles sont extraits : table locale plus accesseur unique. i18next n'est PAS
-// charge par plateau.html (verifie : aucune occurrence) -- le jour ou il le sera,
-// il suffira de deplacer cette table sous la cle racine `commercepj.` et de
-// retirer le repli, sans qu'aucun appelant change.
+// Table française canonique et repli historique. Les catalogues i18next du plateau
+// apportent les traductions sans changer les identifiants ni les effets.
 const I18N_COMMERCE_PJ_FR = {
+  'commercepj.gestion.identite': "Local : {local} · Activités : {activites}",
   'commercepj.titre.gestion':        "Mon commerce",
   'commercepj.titre.boutique':       "Boutique",
   'commercepj.titre.creation':       "Installer un commerce",
@@ -285,19 +283,28 @@ const I18N_COMMERCE_PJ_FR = {
 
 // Accesseur unique. Aucune chaine visible n'est ecrite ailleurs dans ce fichier.
 function tCommercePJ(cle, remplacements) {
-  let texte;
+  let texte = I18N_COMMERCE_PJ_FR[cle] || cle;
   if (typeof i18next !== 'undefined' && i18next.isInitialized && i18next.exists(cle)) {
-    texte = i18next.t(cle, remplacements);
-  } else {
-    texte = I18N_COMMERCE_PJ_FR[cle] || cle;
-    if (remplacements) {
-      Object.keys(remplacements).forEach(function (k) {
-        texte = texte.split('{' + k + '}').join(String(remplacements[k]));
-      });
-    }
+    const traduit = i18next.t(cle, {values:remplacements});
+    if (typeof traduit === 'string' && traduit.trim() && traduit !== cle && !/{{[^}]+}}/.test(traduit)) texte = traduit;
   }
+  // Compatibilité des libellés historiques {n}, également dans le repli français.
+  if (remplacements) Object.keys(remplacements).forEach(function (k) {
+    texte = texte.split('{' + k + '}').join(String(remplacements[k]));
+  });
   return texte;
 }
+
+// Marqueurs de présentation seulement ; aucun parcours ni état ne se rejoue.
+function commercePjTexteHtml(cle, values) {
+  let source = I18N_COMMERCE_PJ_FR[cle] || cle;
+  if (values) Object.keys(values).forEach(function (k) { source = source.split('{' + k + '}').join(String(values[k])); });
+  return '<span data-i18n="' + commercePjEchapper(cle) + '"' +
+    (values ? ' data-i18n-values="' + commercePjEchapper(JSON.stringify(values)) + '"' : '') + '>' + commercePjEchapper(source) + '</span>';
+}
+function commercePjBoutonI18n(onclick, cle, primaire, desactive) { return commercePjBouton(onclick, tCommercePJ(cle), primaire, desactive, cle); }
+function commercePjToucheI18n(onclick, cle, primaire, desactive) { return commercePjTouche(onclick, tCommercePJ(cle), primaire, desactive, cle); }
+function commercePjLigneI18n(cle, valeur) { return commercePjLigne(tCommercePJ(cle), valeur, cle); }
 
 // Traduit un refus serveur. Le code interne reste disponible pour le diagnostic,
 // mais il n'est jamais montre au joueur.
@@ -419,15 +426,16 @@ function commercePjMachine(titre, enseigne, htmlEcran) {
     '<div class="cpj-fronton">' +
       '<span class="cpj-led" aria-hidden="true"></span>' +
       '<span class="cpj-plaque">' +
-        commercePjEchapper(tCommercePJ('commercepj.machine.plaque')) + '</span>' +
+        commercePjTexteHtml('commercepj.machine.plaque') + '</span>' +
       '<span class="cpj-grilles" aria-hidden="true"></span>' +
       '<span class="cpj-enseigne">' + commercePjEchapper(enseigne || '—') + '</span>' +
-      '<button class="cpj-eteindre" onclick="commercePjFermer()" title="' +
+      '<button class="cpj-eteindre" onclick="commercePjFermer()" data-i18n-title="commercepj.machine.eteindre" title="' +
         commercePjEchapper(tCommercePJ('commercepj.machine.eteindre')) + '">' +
         '<i class="ti ti-power"></i></button>' +
     '</div>' +
     '<div class="cpj-ecran">' + htmlEcran + '</div>' +
     '<div class="cpj-socle" aria-hidden="true"></div>';
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(b);
   const boite = document.querySelector('#modal-postes .modal-box');
   if (boite) boite.classList.add('cpj-machine');
   document.getElementById('modal-postes').classList.add('open');
@@ -442,10 +450,10 @@ function commercePjFermer() {
 
 // Touche de l'ecran. Meme role que commercePjBouton, autre materiau : les
 // boutons du jeu n'ont rien a faire sur un ecran a phosphore.
-function commercePjTouche(onclick, libelle, primaire, desactive) {
+function commercePjTouche(onclick, libelle, primaire, desactive, cle) {
   return '<button class="cpj-touche' + (primaire ? ' cpj-primaire' : '') + '" ' +
     (desactive ? 'disabled' : 'onclick="' + onclick + '"') + '>' +
-    commercePjEchapper(libelle) + '</button>';
+    (cle ? commercePjTexteHtml(cle) : commercePjEchapper(libelle)) + '</button>';
 }
 
 // PICTOGRAMME : JAMAIS SEUL, ET JAMAIS INVENTE. Les deux sources existent deja
@@ -468,13 +476,13 @@ function commercePjChargement(titre) {
   commercePjModale(titre, '<div style="padding:1.2rem;color:#8a8060;font-style:italic">…</div>');
 }
 
-function commercePjBouton(onclick, libelle, primaire, desactive) {
+function commercePjBouton(onclick, libelle, primaire, desactive, cle) {
   const bord = desactive ? '#2a2620' : (primaire ? '#8a6a20' : '#3a3a30');
   const couleur = desactive ? '#5a5448' : (primaire ? '#E8C97A' : '#c0b090');
   return '<button ' + (desactive ? 'disabled ' : 'onclick="' + onclick + '" ') +
     'style="padding:.45rem .8rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.07em;' +
     'border:1px solid ' + bord + ';background:transparent;color:' + couleur + ';' +
-    'cursor:' + (desactive ? 'default' : 'pointer') + '">' + commercePjEchapper(libelle) + '</button>';
+    'cursor:' + (desactive ? 'default' : 'pointer') + '">' + (cle ? commercePjTexteHtml(cle) : commercePjEchapper(libelle)) + '</button>';
 }
 
 // UN MAXIMUM NUL SE LIT « ILLIMITE ». Le chiffre 0 est exact mais illisible : il
@@ -485,9 +493,9 @@ function commercePjMaximumLisible(maxi) {
   return n === 0 ? tCommercePJ('commercepj.matiere.illimite') : String(n);
 }
 
-function commercePjLigne(label, valeur) {
+function commercePjLigne(label, valeur, cle) {
   return '<div style="display:flex;justify-content:space-between;gap:1rem;padding:.2rem 0;font-size:.84rem">' +
-    '<span style="color:#8a8060">' + commercePjEchapper(label) + '</span>' +
+    '<span style="color:#8a8060">' + (cle ? commercePjTexteHtml(cle) : commercePjEchapper(label)) + '</span>' +
     '<span style="color:#e0d8c0;text-align:right">' + valeur + '</span></div>';
 }
 
@@ -926,38 +934,35 @@ async function commercePjEcranGestion(ctx) {
 
   // --- IDENTITE : deux lignes, pas une section. Le proprietaire sait ou il est.
   h += '<div class="cpj-note">' +
-    commercePjEchapper(tCommercePJ('commercepj.gestion.local')) + ' : ' +
-    commercePjEchapper((f.implantation && f.implantation.roomId) || '—') + ' · ' +
-    commercePjEchapper(tCommercePJ('commercepj.gestion.activites')) + ' : ' +
-    commercePjEchapper(mesTypes.length ? mesTypes.join(', ') : '—') + '</div>';
+    commercePjTexteHtml('commercepj.gestion.identite', {local:(f.implantation && f.implantation.roomId) || '—', activites:mesTypes.length ? mesTypes.join(', ') : '—'}) + '</div>';
 
   // --- CAISSE -------------------------------------------------------------
   // LES PA SONT AFFICHES ICI parce qu'ils sont devenus une ressource de cet
   // ecran : produire depuis la ligne les consomme. Sans ce chiffre, « PA
   // insuffisants » serait un refus qu'on ne peut pas anticiper.
-  h += '<div class="cpj-titre">' + commercePjEchapper(tCommercePJ('commercepj.tab.caisse')) + '</div>';
+  h += '<div class="cpj-titre">' + commercePjTexteHtml('commercepj.tab.caisse') + '</div>';
   h += '<div class="cpj-caisse">';
   h += '<div class="cpj-solde"><small>' +
-    commercePjEchapper(tCommercePJ('commercepj.caisse.solde')) + '</small>' +
+    commercePjTexteHtml('commercepj.caisse.solde') + '</small>' +
     commercePjMontant(f.caisse || 0) + ' ' + cur + '</div>';
   h += '<div class="cpj-caisse-actions">';
   h += '<input id="cpj-caisse-montant" class="cpj-champ" type="number" min="1" step="1" value="100" ' +
     'aria-label="' + commercePjEchapper(tCommercePJ('commercepj.caisse.montant')) + '"><em>' + cur + '</em>';
-  h += commercePjTouche("commercePjCaisseMouvement('apport')",
-    tCommercePJ('commercepj.caisse.apport'), true);
-  h += commercePjTouche("commercePjCaisseMouvement('prelevement')",
-    tCommercePJ('commercepj.caisse.prelever'));
+  h += commercePjToucheI18n("commercePjCaisseMouvement('apport')",
+    'commercepj.caisse.apport', true);
+  h += commercePjToucheI18n("commercePjCaisseMouvement('prelevement')",
+    'commercepj.caisse.prelever');
   h += '</div></div>';
   h += '<div class="cpj-msg" id="cpj-msg-caisse"></div>';
 
   // --- PRODUITS VENDUS ----------------------------------------------------
-  h += '<div class="cpj-titre">' + commercePjEchapper(tCommercePJ('commercepj.tab.produits')) + '</div>';
+  h += '<div class="cpj-titre">' + commercePjTexteHtml('commercepj.tab.produits') + '</div>';
   if (!mesTypes.length) {
     h += '<div class="cpj-vide">' +
-      commercePjEchapper(tCommercePJ('commercepj.gestion.aucuneActivite')) + '</div>';
+      commercePjTexteHtml('commercepj.gestion.aucuneActivite') + '</div>';
   } else if (!cles.length) {
     h += '<div class="cpj-vide">' +
-      commercePjEchapper(tCommercePJ('commercepj.gestion.aucunProduit')) + '</div>';
+      commercePjTexteHtml('commercepj.gestion.aucunProduit') + '</div>';
   } else {
     h += commercePjEntetes('commercepj.col.produit', 'commercepj.col.prixVente');
     cles.forEach(function (id) {
@@ -993,7 +998,7 @@ async function commercePjEcranGestion(ctx) {
       // FABRICATION EN PLACE. Un produit sans recette ne se fabrique pas : on ne
       // propose alors ni nombre de lots ni bouton, et on le dit.
       if (rec) {
-        h += '<em class="cpj-etiq">' + commercePjEchapper(tCommercePJ('commercepj.prod.lots')) + '</em>' +
+        h += '<em class="cpj-etiq">' + commercePjTexteHtml('commercepj.prod.lots') + '</em>' +
           '<input id="cpj-lots-' + id + '" class="cpj-champ cpj-mini" type="number" min="1" max="99" ' +
             'step="1" value="1" oninput="commercePjResumeLots(\'' + id + '\')" aria-label="' +
             commercePjEchapper(tCommercePJ('commercepj.prod.lots')) + '">' +
@@ -1007,27 +1012,23 @@ async function commercePjEcranGestion(ctx) {
       if (rec) h += '<span class="cpj-resume" id="cpj-resume-' + id + '"></span>';
       h += '<span class="cpj-msg" id="cpj-msg-' + id + '"></span>';
       h += '</div>';
-      h += '<span class="cpj-num' + (stock <= 0 ? ' cpj-zero' : '') + '" data-l="' +
-             commercePjEchapper(tCommercePJ('commercepj.col.stock')) + '">' + stock + '</span>';
-      h += '<span class="cpj-cell" data-l="' +
-             commercePjEchapper(tCommercePJ('commercepj.col.stockMax')) + '">' +
+      h += '<span class="cpj-num' + (stock <= 0 ? ' cpj-zero' : '') + '" data-i18n-label="commercepj.col.stock" data-l="' + commercePjEchapper(tCommercePJ('commercepj.col.stock')) + '">' + stock + '</span>';
+      h += '<span class="cpj-cell" data-i18n-label="commercepj.col.stockMax" data-l="' + commercePjEchapper(tCommercePJ('commercepj.col.stockMax')) + '">' +
            '<input id="cpj-r-max-' + id + '" class="cpj-champ" type="number" min="0" step="1" ' +
              'value="' + maxi + '" data-avant="' + maxi + '" ' +
              'onchange="commercePjSauverMaxRef(\'' + id + '\')" aria-label="' +
              commercePjEchapper(tCommercePJ('commercepj.col.stockMax')) + '"></span>';
-      h += '<span class="cpj-cell" data-l="' +
-             commercePjEchapper(tCommercePJ('commercepj.col.prixVente')) + '">' +
+      h += '<span class="cpj-cell" data-i18n-label="commercepj.col.prixVente" data-l="' + commercePjEchapper(tCommercePJ('commercepj.col.prixVente')) + '">' +
            '<input id="cpj-r-prix-' + id + '" class="cpj-champ" type="number" min="1" step="1" ' +
              (dispo ? 'max="' + Number(c.prixMaximum) + '" ' : 'disabled ') +
              'value="' + (Number(r.prixVente) > 0 ? Number(r.prixVente) : '') + '" ' +
              'data-avant="' + (Number(r.prixVente) > 0 ? Number(r.prixVente) : '') + '" ' +
-             'onchange="commercePjSauverPrixRef(\'' + id + '\')" aria-label="' +
-             commercePjEchapper(tCommercePJ('commercepj.col.prixVente')) + '">' +
+             'onchange="commercePjSauverPrixRef(\'' + id + '\')" data-i18n-aria-label="commercepj.col.prixVente" aria-label="' + commercePjEchapper(tCommercePJ('commercepj.col.prixVente')) + '">' +
            '<em>' + cur + '</em></span>';
       h += '</div>';
     });
     h += '<div class="cpj-note">' +
-      commercePjEchapper(tCommercePJ('commercepj.ref.maxAide')) + '</div>';
+      commercePjTexteHtml('commercepj.ref.maxAide') + '</div>';
   }
 
   // --- MATIERES PREMIERES -------------------------------------------------
@@ -1039,10 +1040,10 @@ async function commercePjEcranGestion(ctx) {
   // un autre : il vend ou donne a son commerce par la MEME primitive que
   // n'importe quel client, sans aucun raccourci -- memes controles de capacite,
   // de caisse, de presence et de possession reelle.
-  h += '<div class="cpj-titre">' + commercePjEchapper(tCommercePJ('commercepj.tab.matieres')) + '</div>';
+  h += '<div class="cpj-titre">' + commercePjTexteHtml('commercepj.tab.matieres') + '</div>';
   if (!matieres.length) {
     h += '<div class="cpj-vide">' +
-      commercePjEchapper(tCommercePJ('commercepj.global.aucuneMatiere')) + '</div>';
+      commercePjTexteHtml('commercepj.global.aucuneMatiere') + '</div>';
   } else {
     h += commercePjEntetes('commercepj.col.matiere', 'commercepj.col.rachat');
     matieres.forEach(function (m) {
@@ -1059,38 +1060,33 @@ async function commercePjEcranGestion(ctx) {
       h += commercePjPictoMatiere(cle);
       h += '<div class="cpj-nom"><span class="cpj-nom-t">' +
              commercePjMatiereHtml(cle) + '</span>' +
-           (sous ? '<span class="cpj-sous">' + commercePjEchapper(sous) + '</span>' : '');
+           (sous ? '<span class="cpj-sous" data-i18n="' + (maxi <= 0 ? 'commercepj.matiere.refusCourt' : 'commercepj.matiere.utilisee') + '">' + commercePjEchapper(maxi <= 0 ? I18N_COMMERCE_PJ_FR['commercepj.matiere.refusCourt'] : I18N_COMMERCE_PJ_FR['commercepj.matiere.utilisee']) + '</span>' : '');
       // APPORT EN PLACE. Les deux touches sont fermees quand l'issue serait un
       // refus certain : rien en poche, ou plus de place. Le serveur refuserait de
       // toute facon -- on ne propose simplement pas un geste sans issue.
       const bloque = (jai <= 0) || (reste <= 0) || (maxi <= 0);
       h += '<span class="cpj-actions">';
-      h += '<em class="cpj-etiq">' +
-        commercePjEchapper(tCommercePJ('commercepj.appro.vous')) + ' ' +
+      h += '<em class="cpj-etiq" data-i18n-prefix="commercepj.appro.vous">Vous en avez ' +
         '<b class="' + (jai > 0 ? 'cpj-jai' : '') + '">' + jai + '</b></em>';
-      h += '<em class="cpj-etiq">' + commercePjEchapper(tCommercePJ('commercepj.appro.quantite')) + '</em>' +
+      h += '<em class="cpj-etiq" data-i18n="commercepj.appro.quantite">Quantité</em>' +
         '<input id="cpj-appro-' + cle + '" class="cpj-champ cpj-mini" type="number" min="1" step="1" ' +
           'value="' + Math.max(1, Math.min(jai || 1, reste || 1)) + '" ' +
-          'oninput="commercePjApercuMatiere(\'' + cle + '\')" aria-label="' +
-          commercePjEchapper(tCommercePJ('commercepj.appro.quantite')) + '">';
-      h += commercePjTouche("commercePjApporterDepuisTerminal('" + cle + "','vente')",
-        tCommercePJ('commercepj.appro.vendre'), true, bloque);
-      h += commercePjTouche("commercePjApporterDepuisTerminal('" + cle + "','don')",
-        tCommercePJ('commercepj.appro.donner'), false, bloque);
+          'oninput="commercePjApercuMatiere(\'' + cle + '\')" data-i18n-aria-label="commercepj.appro.quantite" aria-label="' + commercePjEchapper(tCommercePJ('commercepj.appro.quantite')) + '">';
+      h += commercePjToucheI18n("commercePjApporterDepuisTerminal('" + cle + "','vente')",
+        'commercepj.appro.vendre', true, bloque);
+      h += commercePjToucheI18n("commercePjApporterDepuisTerminal('" + cle + "','don')",
+        'commercepj.appro.donner', false, bloque);
       h += '</span>';
       h += '<span class="cpj-resume" id="cpj-resume-mat-' + cle + '"></span>';
       h += '<span class="cpj-msg" id="cpj-msg-mat-' + cle + '"></span>';
       h += '</div>';
-      h += '<span class="cpj-num' + (stock <= 0 ? ' cpj-zero' : '') + '" data-l="' +
-             commercePjEchapper(tCommercePJ('commercepj.col.stock')) + '">' + stock + '</span>';
-      h += '<span class="cpj-cell" data-l="' +
-             commercePjEchapper(tCommercePJ('commercepj.col.stockMax')) + '">' +
+      h += '<span class="cpj-num' + (stock <= 0 ? ' cpj-zero' : '') + '" data-i18n-label="commercepj.col.stock" data-l="' + commercePjEchapper(tCommercePJ('commercepj.col.stock')) + '">' + stock + '</span>';
+      h += '<span class="cpj-cell" data-i18n-label="commercepj.col.stockMax" data-l="' + commercePjEchapper(tCommercePJ('commercepj.col.stockMax')) + '">' +
            '<input id="cpj-m-max-' + cle + '" class="cpj-champ" type="number" min="0" step="1" ' +
              'max="' + (Number(m.plafond_pays) || 0) + '" value="' + maxi + '" data-avant="' + maxi + '" ' +
              'onchange="commercePjSauverMatiere(\'' + cle + '\')" aria-label="' +
              commercePjEchapper(tCommercePJ('commercepj.col.stockMax')) + '"></span>';
-      h += '<span class="cpj-cell" data-l="' +
-             commercePjEchapper(tCommercePJ('commercepj.col.rachat')) + '">' +
+      h += '<span class="cpj-cell" data-i18n-label="commercepj.col.rachat" data-l="' + commercePjEchapper(tCommercePJ('commercepj.col.rachat')) + '">' +
            '<input id="cpj-m-prix-' + cle + '" class="cpj-champ" type="number" min="0" step="0.01" ' +
              'value="' + prix + '" data-avant="' + prix + '" ' +
              'onchange="commercePjSauverMatiere(\'' + cle + '\')" aria-label="' +
@@ -1099,7 +1095,7 @@ async function commercePjEcranGestion(ctx) {
       h += '</div>';
     });
     h += '<div class="cpj-note">' +
-      commercePjEchapper(tCommercePJ('commercepj.matiere.maxAide', { plafond: plafondMat })) + '</div>';
+      commercePjTexteHtml('commercepj.matiere.maxAide',{ plafond: plafondMat }) + '</div>';
   }
 
   // --- COMMERCE PREMIUM (gratuit pendant la beta, decision de Fred du 06/11/2026) ---
@@ -1140,10 +1136,10 @@ async function commercePjEcranGestion(ctx) {
   // --- TOUCHES DE L'ECRAN -------------------------------------------------
   h += '<div class="cpj-barre">';
   if (mesTypes.length) {
-    h += commercePjTouche('commercePjNouvelleReference()', tCommercePJ('commercepj.gestion.nouveau'), true);
+    h += commercePjToucheI18n('commercePjNouvelleReference()', 'commercepj.gestion.nouveau', true);
   }
-  h += commercePjTouche('commercePjEcranTypes()', tCommercePJ('commercepj.gestion.modifierActivites'));
-  h += commercePjTouche('commercePjEcranPublic()', tCommercePJ('commercepj.menu.boutique'));
+  h += commercePjToucheI18n('commercePjEcranTypes()', 'commercepj.gestion.modifierActivites');
+  h += commercePjToucheI18n('commercePjEcranPublic()', 'commercepj.menu.boutique');
   h += '</div>';
 
   commercePjMachine(tCommercePJ('commercepj.titre.gestion'), f.enseigne, h);
@@ -1174,10 +1170,10 @@ function commercePjEcranArticles(ctx) { return commercePjEcranGestion(ctx); }
 function commercePjEntetes(cleNom, clePrix) {
   return '<div class="cpj-grille cpj-entetes">' +
     '<span></span>' +
-    '<span>' + commercePjEchapper(tCommercePJ(cleNom)) + '</span>' +
-    '<span class="cpj-num">' + commercePjEchapper(tCommercePJ('commercepj.col.stock')) + '</span>' +
-    '<span class="cpj-cell">' + commercePjEchapper(tCommercePJ('commercepj.col.stockMax')) + '</span>' +
-    '<span class="cpj-cell">' + commercePjEchapper(tCommercePJ(clePrix)) + '</span>' +
+    '<span>' + commercePjTexteHtml(cleNom) + '</span>' +
+    '<span class="cpj-num">' + commercePjTexteHtml('commercepj.col.stock') + '</span>' +
+    '<span class="cpj-cell">' + commercePjTexteHtml('commercepj.col.stockMax') + '</span>' +
+    '<span class="cpj-cell">' + commercePjTexteHtml(clePrix) + '</span>' +
     '</div>';
 }
 
@@ -1978,10 +1974,10 @@ async function commercePjEcranMatieresPubliques(ctx) {
 
   let html = '<div style="padding:1rem">';
   html += '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.1em;color:#a09070;font-size:.85rem;margin-bottom:.5rem">' +
-    commercePjEchapper(tCommercePJ('commercepj.appro.recherche')) + '</div>';
+    commercePjTexteHtml('commercepj.appro.recherche') + '</div>';
   if (!matieres.length) {
     html += '<p style="color:#8a8060;font-size:.85rem;font-style:italic">' +
-      commercePjEchapper(tCommercePJ('commercepj.appro.aucune')) + '</p>';
+      commercePjTexteHtml('commercepj.appro.aucune') + '</p>';
   }
   matieres.forEach(function (m) {
     const stock = Math.max(0, Number(m.stock) || 0), maxi = Math.max(0, Number(m.maximum) || 0);
@@ -1998,12 +1994,12 @@ async function commercePjEcranMatieresPubliques(ctx) {
     // ARTICLES, ou 0 garde son sens de « non defini ».
     html += commercePjLigne(tCommercePJ('commercepj.travail.stockCommerce'),
       stock + ' / ' + maxi);
-    html += commercePjLigne(tCommercePJ('commercepj.appro.besoin'), reste);
-    html += commercePjLigne(tCommercePJ('commercepj.appro.vous'),
+    html += commercePjLigneI18n('commercepj.appro.besoin', reste);
+    html += commercePjLigneI18n('commercepj.appro.vous',
       '<span style="color:' + (jai > 0 ? '#6fa07a' : '#8a8060') + '">' + jai + '</span>');
     html += '<div style="margin-top:.45rem">' +
-      commercePjBouton("commercePjEcranApporter('" + commercePjEchapper(m.matiere) + "')",
-        tCommercePJ('commercepj.appro.titre'), true, jai <= 0 || reste <= 0) + '</div>';
+      commercePjBoutonI18n("commercePjEcranApporter('" + commercePjEchapper(m.matiere) + "')",
+        'commercepj.appro.titre', true, jai <= 0 || reste <= 0) + '</div>';
     html += '</div>';
   });
 
@@ -2036,22 +2032,22 @@ async function commercePjEcranApporter(matiere) {
   let html = '<div style="padding:1.1rem">';
   html += '<div style="font-family:Playfair Display,serif;color:#E8C97A;margin-bottom:.6rem">' +
     commercePjMatiereHtml(matiere) + '</div>';
-  html += commercePjLigne(tCommercePJ('commercepj.appro.vous'), jai);
-  html += commercePjLigne(tCommercePJ('commercepj.appro.besoin'), m.place_restante);
-  html += commercePjLigne(tCommercePJ('commercepj.matiere.prix'),
+  html += commercePjLigneI18n('commercepj.appro.vous', jai);
+  html += commercePjLigneI18n('commercepj.appro.besoin', m.place_restante);
+  html += commercePjLigneI18n('commercepj.matiere.prix',
     commercePjMontant(m.prix_achat) + ' ' + cur + ' / ' + tCommercePJ('commercepj.ref.unite'));
 
   html += '<div style="margin-top:.8rem;font-size:.82rem;color:#a09070">' +
-    commercePjEchapper(tCommercePJ('commercepj.appro.quantite')) + '</div>';
+    commercePjTexteHtml('commercepj.appro.quantite') + '</div>';
   html += '<input id="cpj-appro-qte" type="number" min="1" step="1" value="' +
     Math.max(1, Math.min(jai, Number(m.place_restante) || 1)) +
     '" style="width:100%;box-sizing:border-box;background:#0d0b05;border:1px solid #2a2620;color:#e0d8c0;padding:.45rem .6rem">';
 
   html += '<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:1rem">';
-  html += commercePjBouton("commercePjApporter('" + commercePjEchapper(matiere) + "','" + cle + "','vente')",
-    tCommercePJ('commercepj.appro.vendre'), true, jai <= 0);
-  html += commercePjBouton("commercePjApporter('" + commercePjEchapper(matiere) + "','" + cle + "-d','don')",
-    tCommercePJ('commercepj.appro.donner'), false, jai <= 0);
+  html += commercePjBoutonI18n("commercePjApporter('" + commercePjEchapper(matiere) + "','" + cle + "','vente')",
+    'commercepj.appro.vendre', true, jai <= 0);
+  html += commercePjBoutonI18n("commercePjApporter('" + commercePjEchapper(matiere) + "','" + cle + "-d','don')",
+    'commercepj.appro.donner', false, jai <= 0);
   html += commercePjBouton('commercePjEcranMatieresPubliques()', tCommercePJ('commercepj.public.retour'));
   html += '</div></div>';
   commercePjModale(tCommercePJ('commercepj.appro.titre'), html);

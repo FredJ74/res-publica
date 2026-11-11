@@ -544,8 +544,8 @@ function ficheLignesEffets(effets) {
 
 // Marqueur de présentation : le moteur commun applique ensuite la langue choisie.
 // Le texte français reste dans le HTML, y compris sans moteur ou avec une clé absente.
-function ficheLibelleHtml(cle, francais, values) {
-  return '<span data-i18n="productSheet.' + ficheEchapper(cle) + '"' + (values ? ' data-i18n-values="' + ficheEchapper(JSON.stringify(values)) + '"' : '') + '>' + ficheEchapper(francais) + '</span>';
+function ficheLibelleHtml(cle, francais, values, namespace = 'productSheet') {
+  return '<span data-i18n="' + ficheEchapper(namespace) + '.' + ficheEchapper(cle) + '"' + (values ? ' data-i18n-values="' + ficheEchapper(JSON.stringify(values)) + '"' : '') + '>' + ficheEchapper(francais) + '</span>';
 }
 
 // Bloc OFFICIEL. `fiche` est le retour brut de la RPC objet_fiche_officielle.

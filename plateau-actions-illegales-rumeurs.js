@@ -4115,6 +4115,12 @@ function doVendreMatiereCommerceGenerique(pa, cost) {
 
 // Une seule fenêtre de stock/prix/vente pour le commerce. La liste provient
 // toujours de la carte serveur, et non des seuls objets du PJ.
+function texteVenteMatiere(cle, secours, values = {}) {
+  const key = 'materialTrade.' + cle;
+  const traduit = typeof window !== 'undefined' ? window.RPPlateauI18n?.translate?.(key, {values}) : null;
+  return typeof traduit === 'string' && traduit.trim() && traduit !== key && !/{{[^}]+}}/.test(traduit) ? traduit : secours;
+}
+
 async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cost) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
@@ -4124,15 +4130,15 @@ async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cos
       state.currentBuilding !== buildingId || state.char?.name !== personnage ||
       (roomId && state.currentRoom !== roomId)) return;
   if (!data) {
-    showToast('Commerce injoignable', "Les informations de ce commerce n'ont pas pu être chargées. Réessayez dans un instant.", false);
+    showToast('Commerce injoignable', texteVenteMatiere('unavailable', "Les informations de ce commerce n'ont pas pu être chargées. Réessayez dans un instant."), false);
     return;
   }
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const matieres = matieresAccepteesParCommerce(data);
-  document.getElementById('postes-modal-title').textContent = 'Vendre des matières au commerce';
+  document.getElementById('postes-modal-title').innerHTML = ficheLibelleHtml('title', 'Vendre des matières au commerce', null, 'materialTrade');
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Stock et prix d\'achat pratiqués par ce commerce. Vous pouvez consulter ces informations sans posséder de matières premières.</div>';
-  if (!matieres.length) html += '<div style="font-size:.9rem;color:#8a8060">Aucune matière première achetée actuellement.</div>';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">' + ficheLibelleHtml('intro', 'Stock et prix d\'achat pratiqués par ce commerce. Vous pouvez consulter ces informations sans posséder de matières premières.', null, 'materialTrade') + '</div>';
+  if (!matieres.length) html += '<div style="font-size:.9rem;color:#8a8060">' + ficheLibelleHtml('none', 'Aucune matière première achetée actuellement.', null, 'materialTrade') + '</div>';
   matieres.forEach(m => {
     const qteDispo = (state.inventory || []).filter(i => i.stackKey === m && (i.qty || 0) > 0)
       .reduce((total,i) => total + Number(i.qty || 0), 0);
@@ -4143,27 +4149,28 @@ async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cos
     const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].label : m;
     const vendable = Math.min(qteDispo, placeRestante);
     html += '<div style="padding:.65rem;border:1px solid #455365;margin-bottom:.65rem">';
-    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">Stock ' + label + ' : ' + stockActuel + '/' + stockMax + '</div>';
-    html += '<div style="font-size:.84rem;color:#a9b7c9;margin:.3rem 0">Prix d\'achat : ' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + ' / unité — Vous en possédez : ' + qteDispo + '</div>';
+    html += '<div style="font-size:.92rem;color:#c0b090;font-weight:bold">' + ficheLibelleHtml(typeof window !== 'undefined' && window.RPEconomicCatalogI18n?.key('material',m,'label',label) && window.RP_I18N_RESOURCES?.fr?.translation?.materialTrade?.['stock_'+m] ? 'stock_'+m : 'stockLine', 'Stock ' + label + ' : ' + stockActuel + '/' + stockMax, {material:label,stock:stockActuel,maximum:stockMax}, 'materialTrade') + '</div>';
+    html += '<div style="font-size:.84rem;color:#a9b7c9;margin:.3rem 0">' + ficheLibelleHtml('priceLine', 'Prix d\'achat : ' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + ' / unité — Vous en possédez : ' + qteDispo, {price:prixUnitaire.toLocaleString('fr-FR'),currency:cur,quantity:qteDispo}, 'materialTrade') + '</div>';
     html += '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">';
-    html += '<label for="vendre-commerce-qte-' + m + '" style="font-size:.83rem;color:#c0b090">Quantité à céder</label>';
+    html += '<label for="vendre-commerce-qte-' + m + '" style="font-size:.83rem;color:#c0b090">' + ficheLibelleHtml('quantity', 'Quantité à céder', null, 'materialTrade') + '</label>';
     html += '<input type="number" id="vendre-commerce-qte-' + m + '" min="1" max="' + vendable + '" ' +
       (vendable <= 0 ? 'disabled value="" placeholder="—"' : 'value="' + vendable + '"') +
       ' style="width:76px;background:#202b39;border:1px solid #455365;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
     const inactif = 'padding:.3rem .6rem;border:1px solid #455365;background:transparent;color:#667080;cursor:default;font-size:.82rem';
     html += '<button ' + (vendable <= 0 ? 'disabled style="' + inactif + '"' :
-      'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\',\'vente\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
+      'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\',\'vente\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>' + ficheLibelleHtml('sell', 'Vendre', null, 'materialTrade') + '</button>';
     // Le don existant reste disponible, sans solliciter la caisse.
     html += '<button ' + (vendable <= 0 ? 'disabled style="' + inactif + '"' :
       'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\',\'don\')" style="padding:.3rem .6rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.82rem"') +
-      ' title="Céder sans contrepartie. Ne prélève rien dans la caisse.">Donner</button>';
+      ' data-i18n-title="materialTrade.hint" title="Céder sans contrepartie. Ne prélève rien dans la caisse.">' + ficheLibelleHtml('donate', 'Donner', null, 'materialTrade') + '</button>';
     html += '</div>';
-    if (!qteDispo) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Vous ne possédez pas cette matière.</div>';
-    else if (!placeRestante) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Le commerce a atteint sa limite d\'achat.</div>';
+    if (!qteDispo) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">' + ficheLibelleHtml('noOwned', 'Vous ne possédez pas cette matière.', null, 'materialTrade') + '</div>';
+    else if (!placeRestante) html += '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">' + ficheLibelleHtml('maxReached', 'Le commerce a atteint sa limite d\'achat.', null, 'materialTrade') + '</div>';
     html += '</div>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
   document.getElementById('modal-postes').classList.add('open');
 }
 
@@ -4176,7 +4183,7 @@ async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId
   const qte = parseInt(document.getElementById('vendre-commerce-qte-' + matiere)?.value || '0');
   document.getElementById('modal-postes')?.classList.remove('open');
   if (!qte || qte <= 0) { showToast('Quantité invalide',
-    'Indiquez un nombre entier d\'unités supérieur à zéro.', false); return; }
+    texteVenteMatiere('inputInvalid', 'Indiquez un nombre entier d\'unités supérieur à zéro.'), false); return; }
 
   const res = await vendreMatiereCommerce(commerceType, pays, ville, buildingId, roomIdReel, matiere, qte, don ? 'don' : 'vente');
   const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) ? RESSOURCES_ECONOMIE[matiere].label : matiere;
@@ -4190,31 +4197,31 @@ async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId
     // « ce commerce n'achète pas cette matière » serait faux pour un cadeau.
     const acte = don ? 'le don' : 'la vente';
     const messages = {
-      introuvable: 'Ce commerce est introuvable.',
-      matiere_non_acceptee: don ? 'Ce commerce n\'a pas d\'usage de cette matière.'
-                                : 'Ce commerce n\'achète pas cette matière.',
-      quantite_invalide: 'Indiquez une quantité entière supérieure à zéro.',
+      introuvable: texteVenteMatiere('notFound', 'Ce commerce est introuvable.'),
+      matiere_non_acceptee: texteVenteMatiere(don ? 'unused' : 'notBought', don ? 'Ce commerce n\'a pas d\'usage de cette matière.'
+                                : 'Ce commerce n\'achète pas cette matière.'),
+      quantite_invalide: texteVenteMatiere('invalidQuantity', 'Indiquez une quantité entière supérieure à zéro.'),
       // On ne vend ni ne donne a distance : la marchandise se porte sur place.
       // Le serveur lit la position reelle, pas l'ecran affiche -- ce message
       // apparait donc aussi quand l'ecran est reste ouvert apres un deplacement.
-      pas_sur_place: 'Il faut être dans ce commerce pour lui remettre des matières. Retournez-y et réessayez.',
+      pas_sur_place: texteVenteMatiere('notHere', 'Il faut être dans ce commerce pour lui remettre des matières. Retournez-y et réessayez.'),
       // INTERDICTION DE L'ASSEMBLEE, tranchee par le serveur. Le controle en amont
       // (assembleeControlerVenteLegale) evite d'arriver ici en jeu normal ; ce
       // message est la garantie, pas la politesse.
-      matiere_interdite: 'Cette matière est interdite par la loi'
+      matiere_interdite: texteVenteMatiere('banned', 'Cette matière est interdite par la loi'
         + (res.loi && res.loi.titre ? ' « ' + res.loi.titre + ' »' : '')
-        + ' : elle ne peut être ni vendue ni donnée.',
-      mode_invalide: 'Cette opération n\'est pas reconnue par le serveur.',
-      requete_invalide: 'Cette opération n\'a pas pu être identifiée. Réessayez.',
-      parametres_invalides: 'Il manque une information pour identifier ce commerce.',
-      personnage_introuvable: 'Votre personnage n\'a pas pu être identifié. Rechargez la page.',
-      ressource_inconnue: 'Cette matière n\'a pas de prix de référence.',
-      session_perdue: 'Votre session a expiré. Reconnectez-vous : ' + acte + ' n\'a pas eu lieu.',
-      transport_indisponible: 'Le serveur n\'a pas répondu. ' + (don ? 'Le don' : 'La vente') + ' n\'a pas eu lieu.',
-      reseau_indisponible: 'Connexion interrompue. ' + (don ? 'Le don' : 'La vente') + ' n\'a pas eu lieu.',
-      stock_personnel_insuffisant: 'Vous n\'avez pas ' + qte + ' unité(s) de ' + label + '.',
-      stock_plein: 'Le stock maximum de cette matière est atteint pour ce commerce.',
-      caisse_insuffisante: 'Le commerce ne peut pas acheter cette quantité actuellement.'
+        + ' : elle ne peut être ni vendue ni donnée.', {law:res.loi && res.loi.titre ? ' « '+res.loi.titre+' »' : ''}),
+      mode_invalide: texteVenteMatiere('invalidMode', 'Cette opération n\'est pas reconnue par le serveur.'),
+      requete_invalide: texteVenteMatiere('invalidRequest', 'Cette opération n\'a pas pu être identifiée. Réessayez.'),
+      parametres_invalides: texteVenteMatiere('missingParams', 'Il manque une information pour identifier ce commerce.'),
+      personnage_introuvable: texteVenteMatiere('unknownActor', 'Votre personnage n\'a pas pu être identifié. Rechargez la page.'),
+      ressource_inconnue: texteVenteMatiere('noReference', 'Cette matière n\'a pas de prix de référence.'),
+      session_perdue: texteVenteMatiere(don ? 'sessionDonation' : 'sessionSale', 'Votre session a expiré. Reconnectez-vous : ' + acte + ' n\'a pas eu lieu.'),
+      transport_indisponible: texteVenteMatiere(don ? 'transportDonation' : 'transportSale', 'Le serveur n\'a pas répondu. ' + (don ? 'Le don' : 'La vente') + ' n\'a pas eu lieu.'),
+      reseau_indisponible: texteVenteMatiere(don ? 'networkDonation' : 'networkSale', 'Connexion interrompue. ' + (don ? 'Le don' : 'La vente') + ' n\'a pas eu lieu.'),
+      stock_personnel_insuffisant: texteVenteMatiere('notOwned', 'Vous n\'avez pas ' + qte + ' unité(s) de ' + label + '.', {quantity:qte,material:typeof window !== 'undefined' && window.RPEconomicCatalogI18n ? window.RPEconomicCatalogI18n.text('material',matiere,'label',label) : label}),
+      stock_plein: texteVenteMatiere('full', 'Le stock maximum de cette matière est atteint pour ce commerce.'),
+      caisse_insuffisante: texteVenteMatiere('cash', 'Le commerce ne peut pas acheter cette quantité actuellement.')
     };
     // Un appel qui n'a pas abouti ne s'annonce pas comme un refus du commerce :
     // le titre change, parce que le geste a faire n'est pas le meme (se
@@ -4226,18 +4233,18 @@ async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId
       const titre = estTransport ? (don ? 'Don non abouti' : 'Vente non aboutie')
                                  : (don ? 'Don refusé'    : 'Vente refusée');
       showToast(titre,
-        messages[res.raison] || ('Le commerce a refusé ' + acte + ' (' + (res.raison || 'motif inconnu') + ').'),
+        messages[res.raison] || texteVenteMatiere(don ? 'unknownDonation' : 'unknownSale', 'Le commerce a refusé ' + acte + ' (' + (res.raison || 'motif inconnu') + ').', {reason:res.raison || 'motif inconnu'}),
         false);
     }
     return;
   }
   updateUI();
   if (don) {
-    showToast('Don effectué', res.qte + ' ' + label + ' remis à ce commerce, sans contrepartie.', true, true);
-    addJournalEntry('Don de ' + res.qte + ' ' + label + ' à ce commerce.', 'event-good');
+    showToast('Don effectué', texteVenteMatiere('donationSuccess', res.qte + ' ' + label + ' remis à ce commerce, sans contrepartie.', {quantity:res.qte,material:typeof window !== 'undefined' && window.RPEconomicCatalogI18n ? window.RPEconomicCatalogI18n.text('material',matiere,'label',label) : label}), true, true);
+    addJournalEntry(texteVenteMatiere('donationJournal', 'Don de ' + res.qte + ' ' + label + ' à ce commerce.', {quantity:res.qte,material:typeof window !== 'undefined' && window.RPEconomicCatalogI18n ? window.RPEconomicCatalogI18n.text('material',matiere,'label',label) : label}), 'event-good');
   } else {
-    showToast('Vente effectuée', '+' + res.total.toLocaleString('fr-FR') + ' FR pour ' + res.qte + ' ' + label + '.', true, true);
-    addJournalEntry('Vente de ' + res.qte + ' ' + label + ' au commerce (+' + res.total.toLocaleString('fr-FR') + ' FR).', 'event-good');
+    showToast('Vente effectuée', texteVenteMatiere('saleSuccess', '+' + res.total.toLocaleString('fr-FR') + ' FR pour ' + res.qte + ' ' + label + '.', {quantity:res.qte,material:typeof window !== 'undefined' && window.RPEconomicCatalogI18n ? window.RPEconomicCatalogI18n.text('material',matiere,'label',label) : label,total:res.total.toLocaleString('fr-FR')}), true, true);
+    addJournalEntry(texteVenteMatiere('saleJournal', 'Vente de ' + res.qte + ' ' + label + ' au commerce (+' + res.total.toLocaleString('fr-FR') + ' FR).', {quantity:res.qte,material:typeof window !== 'undefined' && window.RPEconomicCatalogI18n ? window.RPEconomicCatalogI18n.text('material',matiere,'label',label) : label,total:res.total.toLocaleString('fr-FR')}), 'event-good');
   }
   doVendreMatiereCommerce(commerceType, buildingId, roomIdReel, 0, 0); // rafraichit, meme pattern que les autres interfaces de commerce
 }
