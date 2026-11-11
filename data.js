@@ -6930,7 +6930,7 @@ const BUILDINGS = {
     cat: "Hôtellerie",
     icon: "ti-crown",
     bgColor: "#1a0d10",
-    desc: "Les appartements de luxe de la Place de la Grande Église. On y loge les ambassadeurs, les cadres du Parti et tous ceux qui peuvent payer pour en avoir l'air.",
+    desc: "Le Pavillon accueille les dignitaires étrangers dans trois suites prestigieuses, louées et payées par leurs institutions.",
     rooms: {
       hall_pavillon: {
         name: "Hall du Pavillon",
@@ -6948,7 +6948,8 @@ const BUILDINGS = {
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_salle_reception.webp',
         desc: "Une grande salle de réception sous verrière, où l'on donne les dîners officiels et les réceptions qui le sont moins.",
         persons: [],
-        orders: []
+        orders: [{fn:'pavillon_reception',label:'Réserver la réception (1 500 PSK/jour)',pa:0,cost:0,type:'legal',icon:'ti-calendar-event',successRate:100,
+          desc:'Réservation exclusive pour une institution étrangère, journée en cours. Paiement par sa caisse.'}]
       },
       bar: {
         name: "Bar",
@@ -6969,43 +6970,34 @@ const BUILDINGS = {
         ]
       },
       suite_privee: {
-        name: "Suite Privée — Local à louer",
+        name: "Suite Privée — Location diplomatique",
         imageBg: "linear-gradient(135deg,#1a0d10,#250f18)",
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_suite_privee.webp',
         desc: "📋 À LOUER — Suite luxueuse et très discrète. On y reçoit une clientèle triée sur le volet. Informations exclusives garanties.",
-        isLocationRoom: true,
-        locationData: { prix: 500, bonusPOP: 0, bonusINF: 8, bonusDIS: 10, label: 'Suite Privée', tier: 1 },
         persons: [],
-        orders: [
-          {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite luxueuse et très discrète. +8 INF +10 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
-        ]
+        orders: [{fn:'pavillon_suite',label:'Gérer le bail diplomatique (650 FR/jour)',pa:0,cost:0,type:'legal',
+          icon:'ti-key',successRate:100,desc:'Bail de 7 jours renouvelable ; caisse de l’institution étrangère. +3 PA à chaque sommeil.'}]
+
       },
       suite_presidentielle: {
-        name: "Suite Présidentielle — Local à louer",
+        name: "Suite Présidentielle — Location diplomatique",
         imageBg: "linear-gradient(135deg,#181008,#20140a)",
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_suite_presidentielle.webp',
         desc: "📋 À LOUER — Suite d'apparat, vue sur la Grande Église du Tractorisme. Le nec plus ultra pour recevoir en grande pompe.",
-        isLocationRoom: true,
-        locationData: { prix: 500, bonusPOP: 8, bonusINF: 8, bonusDIS: 2, label: 'Suite Présidentielle', tier: 1 },
         persons: [],
-        orders: [
-          {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat. +8 POP +8 INF +2 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
-        ]
+        orders: [{fn:'pavillon_suite',label:'Gérer le bail diplomatique (800 FR/jour)',pa:0,cost:0,type:'legal',
+          icon:'ti-key',successRate:100,desc:'Bail de 7 jours renouvelable ; caisse de l’institution étrangère. +3 PA à chaque sommeil.'}]
+
       },
       suite_parti: {
-        name: "Suite du Parti — Local à louer",
+        name: "Suite du Parti — Location diplomatique",
         imageBg: "linear-gradient(135deg,#200a0a,#2a1010)",
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_suite_parti.webp',
         desc: "📋 À LOUER — Suite d'apparat aux tentures rouges, où l'on se montre. Le portrait du Secrétaire général veille sur chaque réception.",
-        isLocationRoom: true,
-        locationData: { prix: 500, bonusPOP: 10, bonusINF: 6, bonusDIS: 2, label: 'Suite du Parti', tier: 1 },
         persons: [],
-        orders: [
-          {fn:'louer_local', label:'Louer cette suite (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat où l\'on se montre. +10 POP +6 INF +2 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
-        ]
+        orders: [{fn:'pavillon_suite',label:'Gérer le bail diplomatique (500 FR/jour)',pa:0,cost:0,type:'legal',
+          icon:'ti-key',successRate:100,desc:'Bail de 7 jours renouvelable ; caisse de l’institution étrangère. +3 PA à chaque sommeil.'}]
+
       }
     }
   },
