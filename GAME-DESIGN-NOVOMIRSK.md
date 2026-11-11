@@ -677,3 +677,21 @@ Athlètes de l'image de la salle. Texte de Fred recopié tel quel (introduction 
 >
 > Avez-vous des questions ? Uniquement historiques, je vous prie.
 
+#### Salle des artistes de Sovarka — validée par Fred sans changement (11/11, 19 h 40)
+
+Artistes de l'image de la salle : Alexeï Mironov (poète), Severny Veter (groupe de rock), Viktor Roudenko (sculpteur, glace et bois), Sergueï Kravtsov (peintre).
+
+> Voici la Salle des artistes de Sovarka, camarades. La création y est libre, totalement libre, dans le cadre prévu à cet effet.
+>
+> Alexeï Mironov, poète. Son recueil « Odes au Plan quinquennal » fut tiré à deux millions d'exemplaires, un pour chaque foyer, et sa lecture fut rendue obligatoire. Jamais un poète n'a été autant lu. Son second recueil, plus personnel, n'a jamais été retrouvé. Lui non plus, d'ailleurs, pendant quelques années.
+>
+> Le groupe Severny Veter, « Vent du Nord », le premier groupe de rock de Sovarka. Leur premier album fut interdit. Le deuxième aussi. Le troisième, « Hymne au Tracteur », est enfin passé à la radio d'État. Les fans de la première heure n'en parlent jamais.
+>
+> Viktor Roudenko, sculpteur du bois et de la glace, à la tronçonneuse. Ses statues de glace des héros de la nation sont d'une fidélité saisissante, jusqu'au printemps. Il fallait chaque année tout recommencer. L'État y vit la plus belle métaphore de la révolution permanente.
+>
+> Sergueï Kravtsov, peintre. Il a consacré sa vie aux paysages de Sovarka : usines, cheminées, fumées. Les critiques étrangers lui reprochaient de peindre toujours le même tableau. C'est faux : il a peint aussi la fumée par temps de neige.
+>
+> L'art, camarades, élève l'âme du peuple. Tant qu'il ne l'élève pas trop haut.
+>
+> Avez-vous des questions ? Uniquement historiques, je vous prie.
+
