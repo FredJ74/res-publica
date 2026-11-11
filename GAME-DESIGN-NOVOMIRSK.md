@@ -727,7 +727,17 @@ Quatre crises de l'image : famine (années 1920-1930), Grande Guerre, grève gé
   langue puis resservi). Le texte reste celui d'un joueur : la guide le récite, il ne lui donne aucune instruction.
 - **File d'attente** (Fred, 20 h 54) : un joueur peut réserver alors que la salle est occupée ; sa demande prend place dans
   l'ordre des réservations, et chaque exposition démarre à la fin de la précédente.
-- Restent à trancher avec Fred : ce que dit la guide quand la salle est vide (brouillon de Claude) et comment elle
-  introduit le texte de l'auteur.
-- Brouillon de la guide pour la salle vide (proposé par Claude, non validé) : vitrines vides en attente des autorisations du comité de validation.
+- **Textes de la guide validés par Fred (20 h 56)**, nom de l'auteur affiché :
+
+  Salle vide :
+
+  > Voici la Salle des expositions tournantes, camarades. Admirez. Vous ne voyez rien ? C'est normal : l'exposition précédente est terminée, et la suivante n'a pas encore été réservée. Certains visiteurs y voient une œuvre d'art à part entière : « Vitrines vides », le seul chef-d'œuvre de Sovarka que l'État n'a jamais eu à censurer. Si vous souhaitez exposer, adressez-vous à l'accueil.
+
+  Exposition en cours (`{auteur}` = nom du PJ, `{texte}` = texte de l'auteur, jamais modifié, traduit pour l'affichage) :
+
+  > Voici la Salle des expositions tournantes, camarades. Cette semaine, le musée a l'honneur de présenter l'œuvre de {auteur}. Je vous lis les mots de l'artiste :
+  >
+  > « {texte} »
+  >
+  > Le musée rappelle que les opinions exprimées ici n'engagent que leur auteur. Et elles l'engagent entièrement.
 
