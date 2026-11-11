@@ -2310,17 +2310,17 @@ const WORLD = {
         'usine-pharmaceutique-luthecia': {
           name: "Usine pharmaceutique Pharmanov",
           shortName: "Pharmanov",
-          imagesAVenir: true,
+          imagesAVenir: false,
           desc: "L'usine pharmaceutique d'État de Sovarka. Des cheminées propres, des blouses blanches et un slogan au fronton : « La santé du peuple est un devoir du Plan ».",
           roomOverrides: {
-            salle_ventes: { excludeOrders: ['acheter_sels_ammoniaque'] },
+            salle_ventes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Pharmanov_accueil.webp', excludeOrders: ['acheter_sels_ammoniaque'] },
             // Salaire de production a l'echelle de Sovarka (Fred, 06/11/2026 : entre 15 et 20 PSK ;
             // serveur : salaires_production_pays, migration 20261106184000).
-            salle_production: { excludeOrders: ['produire_medicaments', 'produire_desinfectant'], orders: [
+            salle_production: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Pharmanov_production.webp', excludeOrders: ['produire_medicaments', 'produire_desinfectant'], orders: [
               {fn:'produire_medicaments', label:'Produire des médicaments', pa:1, cost:0, type:'legal', icon:'ti-vaccine', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 18 PSK. Consomme 5 plantes du stock de matières de l\'usine, produit 10 médicaments.'},
               {fn:'produire_desinfectant', label:'Produire du désinfectant', pa:1, cost:0, type:'legal', icon:'ti-droplet', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 alcool du stock de matières de l\'usine, produit 10 désinfectants.'}
             ] },
-            bureau_direction: { persons: [{name: 'Boris Kovaliov (PNJ)', role: "Directeur de l'usine Pharmanov", rel: 'neutral', job: 'directeur_pharma'}] }
+            bureau_direction: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Pharmanov_bureau_direction.webp', persons: [{name: 'Boris Kovaliov (PNJ)', role: "Directeur de l'usine Pharmanov", rel: 'neutral', job: 'directeur_pharma'}] }
           }
         },
         // Musee de la Republique de Sovarka (vue 18), decision de Fred du 06/11/2026 : copie du
