@@ -22,6 +22,11 @@
 
 // Le catalogue ne change pas en cours de partie : on le relit une fois, puis on
 // le garde. Vide au changement d'empire, puisque le casting en depend.
+function escortsAgenceTexte(cle,fr,vars){
+ const tr=window.RPSocialAgencyI18n?.text;
+ return typeof tr==='function'?tr(cle,fr,vars):String(fr).replace(/\{([a-z]+)\}/g,(m,k)=>Object.hasOwn(vars||{},k)?String(vars[k]):m);
+}
+let RP_AGENCE_GENRE_AFFICHE=null;
 let RP_AGENCE = null;
 // La confidente du joueur, relue en meme temps que le catalogue. Elle n'a rien a
 // voir avec l'emploi : un joueur peut avoir une confidente qu'il n'emploie pas,
@@ -55,20 +60,20 @@ async function escortsAgenceConfidente(escortId) {
   if (typeof sbEscortSocialeChoisir !== 'function') return;
   const r = await sbEscortSocialeChoisir(escortId).catch(function () { return null; });
   if (!r || r.ok !== true) {
-    showToast('Refusé', 'Ce choix n\'a pas pu être enregistré.', false);
+    showToast(escortsAgenceTexte('refused','Refusé'),escortsAgenceTexte('choiceFailed','Ce choix n\'a pas pu être enregistré.'), false);
     return;
   }
   RP_CONFIDENTE = r.escort_id || escortId;
   if (r.inchange) return;
   if (r.precedente_nom) {
-    showToast('Vous vous confiez désormais à ' + r.nom,
-              r.precedente_nom + ' n\'était plus la bonne oreille.', true, true);
+    showToast(escortsAgenceTexte('confidanteNow','Vous vous confiez désormais à {name}',{name:r.nom}),
+              escortsAgenceTexte('previousEar','{name} n\'était plus la bonne oreille.',{name:r.precedente_nom}), true, true);
   } else {
-    showToast('Vous vous confiez à ' + r.nom,
-              'Elle se souviendra de vous, désormais.', true, true);
+    showToast(escortsAgenceTexte('confidanteNew','Vous vous confiez à {name}',{name:r.nom}),
+              escortsAgenceTexte('remember','Elle se souviendra de vous, désormais.'), true, true);
   }
   if (typeof addJournalEntry === 'function') {
-    addJournalEntry('Vous vous confiez désormais à ' + r.nom + '.', 'event-info');
+    addJournalEntry(escortsAgenceTexte('confidanteJournal','Vous vous confiez désormais à {name}.',{name:r.nom}), 'event-info');
   }
   const m = document.getElementById('modal-pnj');
   if (m) m.classList.remove('open');
@@ -89,18 +94,18 @@ async function escortsAgenceOuvrir(genre) {
   const ech = (t) => (typeof escapeHtmlText === 'function')
     ? escapeHtmlText(String(t == null ? '' : t)) : String(t == null ? '' : t);
 
-  titre.textContent = 'Agence';
-  corps.innerHTML = '<div style="padding:1.2rem;color:#8a8060;font-family:Crimson Pro,serif">Un instant…</div>';
+  titre.textContent = escortsAgenceTexte('agency','Agence');
+  corps.innerHTML = '<div style="padding:1.2rem;color:#8a8060;font-family:Crimson Pro,serif">'+escortsAgenceTexte('loading','Un instant…')+'</div>'; 
   modale.classList.add('open');
 
   const cat = await escortsAgenceCatalogue();
   if (!cat) {
     corps.innerHTML = '<div style="padding:1.2rem;color:#8a8060;font-family:Crimson Pro,serif">'
-      + 'L\'agence ne répond pas pour le moment.</div>';
+      + escortsAgenceTexte('agencyDown','L\'agence ne répond pas pour le moment.')+'</div>'; 
     return;
   }
 
-  titre.textContent = cat.agence || 'Agence';
+  titre.textContent = cat.agence || escortsAgenceTexte('agency','Agence');
 
   // UN EMPIRE SANS CASTING EST UN ETAT VALIDE, pas une panne : ses personnages
   // n'ont simplement pas encore ete ecrits, et on ne va pas lui preter ceux d'un
@@ -108,17 +113,18 @@ async function escortsAgenceOuvrir(genre) {
   const gens = (cat.escorts || []).filter(function (e) { return e.genre === genre; });
   if (!cat.agence || gens.length === 0) {
     corps.innerHTML = '<div style="padding:1.2rem;color:#8a8060;font-family:Crimson Pro,serif;line-height:1.6">'
-      + 'L\'agence n\'a personne à vous présenter ici.</div>';
+      + escortsAgenceTexte('noPeople','L\'agence n\'a personne à vous présenter ici.')+'</div>'; 
     return;
   }
 
   const employes = escortsAgenceEmployees();
   const places = escortsAgencePlacesRestantes();
 
-  let h = '<div style="padding:1rem 1.1rem">';
+  RP_AGENCE_GENRE_AFFICHE=genre;
+  let h = '<div data-social-agency-gallery="1" style="padding:1rem 1.1rem">';
   h += '<div style="font-size:.82rem;color:#a09060;font-family:Crimson Pro,serif;font-style:italic;'
     +  'line-height:1.6;margin-bottom:.9rem">'
-    +  ech('« Prenez le temps de choisir. Elles ne se ressemblent pas. »')
+    +  ech(escortsAgenceTexte('banner','« Prenez le temps de choisir. Elles ne se ressemblent pas. »'))
     +  '</div>';
 
   h += '<div style="display:flex;flex-wrap:wrap;gap:.7rem">';
@@ -134,10 +140,10 @@ async function escortsAgenceOuvrir(genre) {
       +  '<div style="padding:.4rem .5rem">'
       +  '<div style="font-family:Playfair Display,serif;font-size:.92rem;color:#E8C97A">' + ech(e.nom) + '</div>'
       +  (escortsAgenceEstConfidente(e.escort_id)
-          ? '<div style="font-size:.7rem;color:#E8C97A;font-family:Crimson Pro,serif">votre confidente</div>'
+          ? '<div style="font-size:.7rem;color:#E8C97A;font-family:Crimson Pro,serif">'+ech(escortsAgenceTexte('confidante','votre confidente'))+'</div>'
           : (dejaLa
-            ? '<div style="font-size:.7rem;color:#8a8060;font-family:Crimson Pro,serif">déjà avec vous</div>'
-            : '<div style="font-size:.7rem;color:#6a6050;font-family:Crimson Pro,serif">libre</div>'))
+            ? '<div style="font-size:.7rem;color:#8a8060;font-family:Crimson Pro,serif">'+ech(escortsAgenceTexte('withYou','déjà avec vous'))+'</div>'
+            : '<div style="font-size:.7rem;color:#6a6050;font-family:Crimson Pro,serif">'+ech(escortsAgenceTexte('free','libre'))+'</div>'))
       +  '</div></div>';
   });
   h += '</div>';
@@ -147,8 +153,8 @@ async function escortsAgenceOuvrir(genre) {
   // ete prevenu. Il l'est maintenant avant de cliquer.
   h += '<div style="margin-top:.9rem;font-size:.72rem;color:#6a5030;font-family:Crimson Pro,serif">'
     +  ech(places === null ? '' : (places > 0
-          ? places + ' place(s) restante(s) parmi vos dix employés.'
-          : 'Vous employez déjà dix personnes : il faudra en libérer une.'))
+          ? escortsAgenceTexte('remaining','{count} place(s) restante(s) parmi vos dix employés.',{count:places})
+          : escortsAgenceTexte('full','Vous employez déjà dix personnes : il faudra en libérer une.')))
     +  '</div>';
   h += '</div>';
 
@@ -216,18 +222,18 @@ function escortsAgenceChoisir(escortId) {
 // de refus, rien n'a bouge -- ni argent, ni employe.
 async function escortsAgenceRecruter(escortId) {
   if (typeof sbEscortRecruter !== 'function') {
-    showToast('Indisponible', 'L\'agence ne répond pas.', false); return;
+    showToast(escortsAgenceTexte('unavailable','Indisponible'),escortsAgenceTexte('noReply','L\'agence ne répond pas.'), false); return;
   }
   const r = await sbEscortRecruter(escortId).catch(function () { return null; });
-  if (!r) { showToast('Action impossible', 'L\'agence ne répond pas.', false); return; }
+  if (!r) { showToast(escortsAgenceTexte('impossible','Action impossible'),escortsAgenceTexte('noReply','L\'agence ne répond pas.'), false); return; }
   if (r.ok !== true) {
     const motifs = {
-      plafond_employes: 'Vous employez déjà dix personnes.',
-      deja_employee:    'Elle fait déjà partie de votre groupe.',
-      escort_inconnue:  'L\'agence ne connaît personne de ce nom ici.',
-      paiement_refuse:  'Fonds insuffisants pour la première journée.'
+      plafond_employes: escortsAgenceTexte('limit','Vous employez déjà dix personnes.'),
+      deja_employee:    escortsAgenceTexte('already','Elle fait déjà partie de votre groupe.'),
+      escort_inconnue:  escortsAgenceTexte('unknown','L\'agence ne connaît personne de ce nom ici.'),
+      paiement_refuse:  escortsAgenceTexte('funds','Fonds insuffisants pour la première journée.')
     };
-    showToast('Refusé', motifs[r.raison] || 'L\'agence a décliné.', false);
+    showToast(escortsAgenceTexte('refused','Refusé'), motifs[r.raison] || escortsAgenceTexte('declined','L\'agence a décliné.'), false);
     return;
   }
 
@@ -266,9 +272,9 @@ async function escortsAgenceRecruter(escortId) {
 
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   if (typeof updateUI === 'function') updateUI();
-  showToast(r.nom + ' vous accompagne', '-' + r.cout_jour + ' / réveil.', true, true);
+  showToast(escortsAgenceTexte('accompanies','{name} vous accompagne',{name:r.nom}),escortsAgenceTexte('perWake','-{amount} / réveil.',{amount:r.cout_jour}),true,true);
   if (typeof addJournalEntry === 'function') {
-    addJournalEntry('Engagement : ' + r.nom + '. -' + r.cout_jour + ' par réveil.', 'event-info');
+    addJournalEntry(escortsAgenceTexte('hireJournal','Engagement : {name}. -{amount} par réveil.',{name:r.nom,amount:r.cout_jour}), 'event-info');
   }
   if (typeof addExternalEvent === 'function') {
     addExternalEvent('👀 ' + (state.char?.name || 'Anonyme') + ' est vu(e) accompagné(e) de ' + r.nom + '.');
@@ -276,3 +282,12 @@ async function escortsAgenceRecruter(escortId) {
   const modale = document.getElementById('modal-pnj');
   if (modale) modale.classList.remove('open');
 }
+
+// Un changement de langue repeint uniquement la galerie encore affichée.
+// Aucun nouvel appel au serveur : le catalogue du pays est déjà en cache.
+if(typeof window.i18next?.on==='function')window.i18next.on('languageChanged',function(){
+ const corps=document.getElementById('postes-body');
+ if(RP_AGENCE_GENRE_AFFICHE && RP_AGENCE?.pays===state.country && corps?.querySelector?.('[data-social-agency-gallery]') && document.getElementById('modal-postes')?.classList.contains('open')){
+  void escortsAgenceOuvrir(RP_AGENCE_GENRE_AFFICHE);
+ }
+});
