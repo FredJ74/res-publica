@@ -1,10 +1,20 @@
 // HTML/CSS et présentation réels ; aucun serveur de jeu, identité ou ordre.
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {R,temoin,lecture,preuve,avecJeu,page}=require('./mobile-navigateur.cjs');
+// Différence volontaire validée : l'onglet « Règles » devient « Aide ».
+// Pour la comparaison pixel à pixel du RESTE de l'interface, ne changer
+// que le libellé de ce bouton dans le témoin historique. Ne pas masquer
+// le bouton entier : ses dimensions et les éléments voisins restent contrôlés.
+async function alignerNomAideTemoin(pageTemoin) {
+ const bouton=pageTemoin.locator('button[onclick="openRulesView()"] span[data-i18n="plateau.rules"]');
+ assert.equal(await bouton.count(),1);
+ await bouton.evaluate(el=>{el.textContent='Aide';});
+}
+
 test('L1 : bureau 1440 strictement identique au témoin avant mobile',async()=>avecJeu(async(b,o)=>{
  const a=await page(b,o,1440,900,true),n=await page(b,o,1440,900);
  // Le témoin doit remplacer, pas compléter, la feuille courante.
- await a.locator('link[rel=stylesheet]').evaluateAll(es=>es.forEach(e=>e.remove()));await a.addStyleTag({content:lecture('style.css',true).toString()});await a.addStyleTag({content:lecture('rue-centrale.css',true).toString()});await a.waitForTimeout(400);
+ await a.locator('link[rel=stylesheet]').evaluateAll(es=>es.forEach(e=>e.remove()));await a.addStyleTag({content:lecture('style.css',true).toString()});await a.addStyleTag({content:lecture('rue-centrale.css',true).toString()});await a.waitForTimeout(400);await alignerNomAideTemoin(a);
  const avant=await a.screenshot(),apres=await n.screenshot();preuve('plateau-1440-avant.png',avant);preuve('plateau-1440-apres.png',apres);assert.ok(apres.equals(avant),'pixels du plateau bureau inchangés');
 }));
 for(const [w,h] of [[375,667],[393,852],[412,915],[852,393],[768,1024]])test(`L1 : coque ${w}×${h}, panneaux uniques et navigation UI sans RPC`,async()=>avecJeu(async(b,o)=>{
@@ -66,7 +76,7 @@ test('L6 : resize, pointeur étranger, annulation et perte de focus ne laissent 
 async function forumFixture(p){await p.evaluate(()=>{document.getElementById('forum-body').innerHTML='<div class="forum-layout"><div class="forum-sidebar">'+Array.from({length:15},(_,i)=>'<button>Rubrique '+i+'</button>').join('')+'</div><div class="forum-main" id="forum-main"><div class="forum-topics-header"><span>Sujet</span><span>Auteur</span><span>Dernier</span><span>Vues</span><span>Réponses</span></div><div class="forum-topic-row"><span>Sujet local</span><span>Auteur</span><span>Hier</span><span>10</span><span>2</span></div><div class="forum-post"><div class="forum-post-side">Auteur</div><div class="forum-post-main">Réponse</div></div></div></div>';document.getElementById('modal-forum').classList.add('open');});await p.waitForTimeout(500);}
 test('L6 : rubriques, liste et lecture sans débordement mobile ; bureau forum 1440 identique',async()=>avecJeu(async(b,o)=>{
  for(const w of [375,393,412,768,852]){const p=await page(b,o,w,w===852?393:852);await forumFixture(p);assert.ok(await p.locator('#forum-main').evaluate(e=>e.scrollWidth<=e.clientWidth+1));assert.ok(await p.locator('#forum-main').evaluate(e=>e.clientHeight>60));if(w===375)preuve('mobile-375-forum.png',await p.screenshot());await p.close();}
- const ancien=await page(b,o,1440,900,true);await ancien.locator('link[rel=stylesheet]').evaluateAll(es=>es.forEach(e=>e.remove()));await ancien.addStyleTag({content:lecture('style.css',true).toString()});const n=await page(b,o,1440,900);await forumFixture(ancien);await forumFixture(n);const avant=await ancien.screenshot(),apres=await n.screenshot();preuve('forum-1440-avant.png',avant);preuve('forum-1440-apres.png',apres);assert.ok(avant.equals(apres),'forum bureau identique pixel pour pixel');
+ const ancien=await page(b,o,1440,900,true);await ancien.locator('link[rel=stylesheet]').evaluateAll(es=>es.forEach(e=>e.remove()));await ancien.addStyleTag({content:lecture('style.css',true).toString()});const n=await page(b,o,1440,900);await forumFixture(ancien);await forumFixture(n);await alignerNomAideTemoin(ancien);const avant=await ancien.screenshot(),apres=await n.screenshot();preuve('forum-1440-avant.png',avant);preuve('forum-1440-apres.png',apres);assert.ok(avant.equals(apres),'forum bureau identique pixel pour pixel');
 }));
 test('L6 : boutons historiques et champs dans une poignée ne déclenchent pas de déplacement',async()=>avecJeu(async(b,o)=>{
  const p=await page(b,o,375,667);await surface(p);await p.evaluate(()=>{window.commandesToolbar=0;const b=document.createElement('button');b.textContent='Dupliquer fixture';b.id='toolbar-fixture';b.addEventListener('mousedown',()=>commandesToolbar++);document.getElementById('objet-audit').append(b);});
