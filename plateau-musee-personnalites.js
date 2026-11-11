@@ -195,10 +195,10 @@ const MUSEE_PROVINCE_PERSONNALITES = {
   'palais-presidentiel': {
     musee_presidentiel: [
       { nom: 'Camarade Arkadi Ivanovitch Zolotov', dates: '1889–1952', bio: "Premier Président de la République de Sovarka. Inaugura le Palais, puis découvrit qu'il n'y avait rien à y décider. Passa trente ans à couper des rubans." },
-      { nom: 'Tamara Sergueïevna Belova', dates: '1911–1983', bio: "Seule Présidente à avoir signé un décret : celui qui fixait l'heure du thé au Palais. Il est toujours en vigueur." },
+      { nom: 'Camarade Taras Sergueïevitch Belov', dates: '1911–1983', bio: "Seul Président à avoir signé un décret : celui qui fixait l'heure du thé au Palais. Il est toujours en vigueur." },
       { nom: 'Camarade Boris Nikolaïevitch Gromov', dates: '1925–1999', bio: "Réélu sept fois sans s'être présenté. Le Parti n'avait pas jugé utile de le prévenir." },
-      { nom: 'Vladimir Petrovitch Lebedev', dates: '1947–2011', bio: "Tenta de convoquer le Conseil du Peuple dans ses appartements. Le Conseil répondit par courrier, en trois exemplaires, qu'il était occupé." },
-      { nom: 'Galina Andreïevna Sokolova', dates: '1958–', bio: "Fit installer le samovar d'argent de la salle de restaurant. Son mandat reste considéré comme le plus utile de l'histoire du Palais." }
+      { nom: 'Vladimir Petrovitch Lebedev', dates: '1947–2011', bio: "D'une ressemblance troublante avec le camarade Gromov, qui lui valut l'affection du peuple. Tenta de convoquer le Conseil du Peuple dans ses appartements. Le Conseil répondit par courrier, en trois exemplaires, qu'il était occupé." },
+      { nom: 'Camarade Guennadi Andreïevitch Sokolov', dates: '1958–', bio: "La même mâchoire, le même regard que les camarades Gromov et Lebedev : un signe d'admirable continuité. Aucun lien de parenté, bien entendu. Fit installer le samovar d'argent de la salle de restaurant. Son mandat reste considéré comme le plus utile de l'histoire du Palais." }
     ]
   },
   'musee-histoire-montrouge': {

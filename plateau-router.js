@@ -460,6 +460,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // FOUILLER OU VOLER (11/11/2026) : ordre de piece qui ouvre un menu (fouille ou vol) ; les PA sont
   // debites par le serveur dans chaque action, donc sortie avant tout debit generique.
   if (fn === 'fouiller_voler' && typeof ouvrirMenuFouillerVoler === 'function') { ouvrirMenuFouillerVoler(); return; }
+  // GUIDE DU MUSEE DE NOVOMIRSK (11/11/2026) : presentation fixe, gratuite, aucun debit ni tirage.
+  if (fn === 'ecouter_guide_musee' && typeof ouvrirGuideMusee === 'function') { ouvrirGuideMusee(); return; }
   // CAMION MILITAIRE (29 septembre 2026). Quatre ordres, tous a 0 PA et 0 FR :
   // monter, descendre, conduire, envoyer a vide. Le seul cout du systeme -- 2 PA
   // par occupant reellement transporte -- est calcule et preleve PAR LE SERVEUR,

@@ -16,7 +16,7 @@ test('réservation simple et standard : 9 traductions contextuelles, identifiant
  assert.equal(languages.length,9);
  for(const lng of languages) {
   const vars=w.RP_I18N_RESOURCES[lng].translation.orderVariants;
-  assert.equal(Object.keys(vars).length,47);
+  assert.equal(Object.keys(vars).length,48); // +guide_listen (guide du musée de Novomirsk, 11/11/2026)
   for(const value of Object.values(vars))assert.ok(value.trim());
  }
  for(const [key,original,cost] of [

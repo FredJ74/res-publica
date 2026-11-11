@@ -582,7 +582,7 @@ cible `soviet.ville_b`) ; guide = objet simple ; prix PNJ 4, 3 et 6 PSK (formule
 - **Fiches de présentation (présentation fixe d'Ouliana)** : rédigées par Claude, relues et modifiées par Fred
   dans la conversation, une salle à la fois. Validées :
 
-**Les neuf fiches sont rédigées et validées (11/11, 20 h 58)** ; le codage de la guide attend toujours le feu vert de Fred.
+**Les neuf fiches sont rédigées et validées (11/11, 20 h 58)**. **Codé le 11/11 au soir (feu vert de Fred, 21 h 32)** : ordre « Écouter la guide » (0 PA) dans les neuf salles et carte d'Ouliana → présentation fixe de la salle, dans la langue du joueur ; fiches traduites une fois et stockées dans `i18n/guide-musee-novomirsk-resources.js` (chargé à la première ouverture). Restent à coder : le dialogue libre (1 PA, 3 questions, DeepSeek) et l'exposition premium. Orthographe corrigée au codage ; la phrase d'Arvydas Tkatchenko a été légèrement remise d'aplomb (« Repéré à 12 ans… il eut des débuts… ») et « 3 buts/match » devient « 3 buts par match ». Musée présidentiel : Belov, Sokolov et la ressemblance avec Gromov répercutés.
 
 #### Accueil — validée par Fred sans changement (11/11, 20 h 58)
 
