@@ -20,7 +20,7 @@ const scripts=[
  'petit-accueil-resources.js','pnj-status-resources.js',
  'toast-resources.js','character-sheet-resources.js','inventory-ui-resources.js','port-customs-ui-resources.js','material-trade-resources.js','administration-economy-resources.js','commerce-management-resources.js','commerce-production-resources.js','economic-catalog-resources.js','product-sheet-resources.js','connection-resources.js',
  'municipal-ui-resources.js','social-pnj-resources.js','room-actions-resources.js','navigation-resources.js',
- 'sport-bets-resources.js','commerce-menu-resources.js','tracts-resources.js','sovarka-droits-resources.js','sovarka-justice-resources.js','sovarka-provinces-resources.js',
+ 'sport-bets-resources.js','commerce-menu-resources.js','tracts-resources.js','sovarka-droits-resources.js','sovarka-justice-resources.js','sovarka-provinces-resources.js','sovarka-partis-resources.js',
  'employment-agency-resources.js','shared-sales-dinner-resources.js','social-agency-resources.js','contact-organization-resources.js'
 ];
 const global={};
