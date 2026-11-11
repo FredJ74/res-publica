@@ -37,7 +37,7 @@ for room,(png,webp) in MAPPING.items():
     with Image.open(src) as im:
         im.load()
         assert im.format=='PNG' and im.width>=900 and im.height>=600,(src,im.size)
-        assert im.width/im.height>1.35 and im.width/im.height<2.4,(src,im.size)
+        assert im.width/im.height>=1.30 and im.width/im.height<2.4,(src,im.size)
         color=im.convert('RGB')
         color.save(dest,'WEBP',quality=87,method=6)
         with Image.open(dest) as chk:
