@@ -754,6 +754,10 @@ Quatre crises de l'image : famine (années 1920-1930), Grande Guerre, grève gé
   > Le musée rappelle que les opinions exprimées ici n'engagent que leur auteur. Et elles l'engagent entièrement.
 
 
+## Pavillon des Ambassadeurs — personnages et portraits (Fred, 11/11/2026, 23 h 11)
+
+Les personnages suivent désormais les images, et leurs portraits en sont tirés. **Hall** : Arkadi Belov devient le **garde** du Pavillon (décision de Fred) ; deux hôtesses ajoutées, **Touyana Dachieva** et **Alina Belokourova**. **Grande salle de réception** : **Grigori Podnosov** et **Varvara Salfetkina**, serveurs de réception. **Bar** : **Mikhaïl Stakanov**, barman, aux côtés de Lena Abramova. Noms proposés par Claude (Fred : « invente les noms »). Restent signalés par l'audit du 11/11 : plaque « Suite des Partis » contre « Suite du Parti », « portrait du Secrétaire général » (titre inexistant en Sovarka), description de la Suite Privée héritée du Républica et mention « À LOUER », enseigne « Résidences Impériales » au pluriel vue des suites, prix du bar affichés en FR. La ligne « État technique : non livré » ci-dessous est caduque depuis la PR #764.
+
 ## Pavillon des Ambassadeurs — décisions financières du 11/11/2026
 
 La règle explicite la plus récente de Fred prévaut sur la ligne du 04/11 : les suites sont réservées aux dignitaires étrangers (ambassadeurs, ministres, présidents, députés), payées par l'institution signataire et non par le portefeuille du joueur. **Tarifs journaliers : Suite du Parti 500 FR ; Suite Privée 650 FR ; Suite Présidentielle 800 FR.** Bail de sept jours renouvelable ; résiliation avant terme : un seul jour de ménage supplémentaire facturé une fois. Le bénéficiaire d'une suite louée reçoit +3 PA lors de chaque sommeil autorisé, jamais au moment de la réservation. La grande salle de réception se réserve exclusivement par une institution pour 1 500 PSK par jour, recettes à Sovarka.
