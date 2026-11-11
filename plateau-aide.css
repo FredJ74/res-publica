@@ -1,0 +1,22 @@
+/* Aide HRP — reste dans la vue Règles et ne change aucun autre onglet. */
+.aide-hrp{max-width:850px;margin:0 auto;padding:clamp(14px,3vw,30px);color:#e4dfd4;font-family:Georgia,serif}
+.aide-hrp-entete{padding:1rem 1.25rem;border:1px solid #514227;border-radius:10px;background:#171b1b}
+.aide-hrp-entete h2{font-size:clamp(1.2rem,2.4vw,1.7rem);color:#e5bf69;margin:0 0 .65rem}
+.aide-hrp-entete p{line-height:1.65;margin:.25rem 0 .6rem}
+.aide-hrp-entete small{color:#b4aea3}
+#aide-hrp-fil{display:flex;flex-direction:column;gap:.75rem;margin:1rem 0;max-height:45vh;overflow:auto}
+.aide-hrp-bulle{max-width:94%;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;padding:.8rem 1rem;border-radius:9px;margin:0}
+.aide-hrp-user{align-self:flex-end;background:#2b352e;color:#f4f2e5}
+.aide-hrp-assistant{align-self:flex-start;background:#25211b;border:1px solid #554328}
+.aide-hrp-suggestions{display:flex;gap:.65rem;flex-wrap:wrap;margin:.75rem 0 1.25rem}
+.aide-hrp-suggestions button,.aide-hrp form button{cursor:pointer}
+.aide-hrp-suggestions button{font-size:.92rem;background:#2c2b25;border:1px solid #9b834b;border-radius:7px;color:#efe4c9;padding:.7rem .9rem;min-height:44px}
+.aide-hrp-suggestions button:hover{background:#403a2b}
+#aide-hrp-form{display:flex;gap:.7rem;flex-wrap:wrap;align-items:flex-end}
+.aide-hrp-label{width:100%;font-size:.9rem;color:#c8ab6c}
+#aide-hrp-question{box-sizing:border-box;flex:1 1 250px;min-height:75px;resize:vertical;padding:.85rem;background:#0e1112;color:#faf5e9;border:1px solid #897348;border-radius:7px;font:inherit}
+#aide-hrp-envoyer{min-height:44px;padding:.72rem 1.2rem;border:1px solid #d4b46b;border-radius:7px;background:#44341f;color:#fff0c9;font-weight:700;cursor:pointer}
+#aide-hrp-envoyer:disabled{opacity:.5;cursor:wait}
+.aide-hrp button:focus-visible,#aide-hrp-question:focus-visible{outline:3px solid #eac46c;outline-offset:2px}
+#aide-hrp-statut{color:#c6b99b;min-height:1.4em;line-height:1.5}
+@media(max-width:600px){.aide-hrp{padding:10px}.aide-hrp-suggestions button{width:100%}#aide-hrp-envoyer{width:100%}}
