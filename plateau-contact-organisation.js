@@ -205,7 +205,7 @@ async function contactOrgaEnvoyer(passeurId) {
 
 // Mise à jour des seuls libellés d'une scène encore ouverte. Le projet saisi ne
 // quitte jamais son textarea, et une bascule ne déclenche aucune lecture ni action.
-if(typeof window.i18next?.on==='function')window.i18next.on('languageChanged',function(){
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
  const corps=document.getElementById('postes-body');
  const modal=document.getElementById('modal-postes');
  if(!modal?.classList.contains('open'))return;
