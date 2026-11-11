@@ -25,4 +25,10 @@ jobs:
           node-version: '22'
       - run: node --check api/aide.js && node --check api/_aide-hrp.js && node --check plateau-aide.js && node --check plateau-personnage.js
       - run: node --test outils/bancs/banc-aide-hrp-20261111.mjs
+      - name: Pilote navigateur local et dépendances statiques
+        run: |
+          npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+          npm ci --prefix outils/vercel --no-audit --no-fund
+      - name: Non-régression de la coque mobile et de la barre supérieure
+        run: node --test outils/bancs/banc-mobile-coque.cjs
       - run: git diff --check
