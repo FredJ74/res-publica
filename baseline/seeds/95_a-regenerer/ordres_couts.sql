@@ -1,7 +1,8 @@
 -- Généré depuis data.js par outils/generateurs/generer_ordres_couts.py --sql.
 -- Ne pas retoucher ; régénérer avec outils/baseline/regenerer-seeds-miroirs.py.
 INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
-('acheter_accessoire_personnalise',0,0),
+('acces_reserve_info',0,0),
+  ('acheter_accessoire_personnalise',0,0),
   ('acheter_bombe_illegale',2,0),
   ('acheter_bombe_illegale#reussite',0,1200),
   ('acheter_criee',0,0),
@@ -340,6 +341,8 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('parier_match',1,0),
   ('parquet',0,0),
   ('passer_douanes_aeroport',0,0),
+  ('pavillon_reception',0,0),
+  ('pavillon_suite',0,0),
   ('payer_versement_chantier',0,0),
   ('pelerin',2,0),
   ('pharmacie_medicaments',0,0),
@@ -412,6 +415,9 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('reserver_chambre_hotel',0,60),
   ('reserver_chambre_hotel',0,80),
   ('reserver_salle_reception',1,0),
+  ('residence_location',0,0),
+  ('residence_minibar',0,0),
+  ('residence_reserver',0,0),
   ('retirer_armes_militaires',0,0),
   ('retirer_equipement_militaire',0,0),
   ('retirer_explosifs_militaires',0,0),

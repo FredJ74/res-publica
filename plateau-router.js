@@ -431,6 +431,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_organigramme_mairie') { ouvrirOrganigrammeMairie(); return; }
   if (fn === 'pavillon_suite') { ouvrirPavillonSuite(); return; }
   if (fn === 'pavillon_reception') { ouvrirPavillonReception(); return; }
+  if (fn === 'acces_reserve_info') { ouvrirAccesReserveInfo(); return; }
+  if (fn === 'residence_reserver') { ouvrirResidenceReservation(); return; }
+  if (fn === 'residence_minibar') { ouvrirResidenceMinibar(); return; }
+  if (fn === 'residence_location') { ouvrirResidenceLocation(); return; }
   if (fn === 'sovarka_reunion_reserver') { reserverSalleAffairesNovomirsk(); return; }
   if (fn === 'sovarka_reunion_evenement') { ouvrirReunionEvenement(); return; }
   if (fn === 'sovarka_soviet_deputes') { ouvrirSovietSupreme(); return; }

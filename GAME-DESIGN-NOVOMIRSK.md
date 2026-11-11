@@ -754,7 +754,9 @@ Quatre crises de l'image : famine (années 1920-1930), Grande Guerre, grève gé
   > Le musée rappelle que les opinions exprimées ici n'engagent que leur auteur. Et elles l'engagent entièrement.
 
 
-## Pavillon des Ambassadeurs — accès réservé aux dignitaires (Fred, 11/11/2026, 23 h 27) — décisions en cours, PAS de feu vert de codage
+## Pavillon des Ambassadeurs — accès réservé aux dignitaires (Fred, 11/11/2026, 23 h 27) — CODÉ le 12/11/2026 (feu vert de Fred)
+
+**Codé (12/11/2026)** : migration `20261111232000_acces_reserve_pavillon_residence.sql` (appliquée), module `plateau-acces-reserve.js` (9 langues), banc `outils/bancs/banc-acces-reserve-20261112.cjs`. Porte serveur dans la navigation intérieure (raisons `acces_dignitaires`, `location_requise`, `un_seul_invite`) ; RPC `acces_forcer_passage` (2 PA, jet serveur, intrusion jusqu'à la sortie du bâtiment, recherche `forcer_passage`) ; garde temporaire `garde_acces:<id>` combattu dans le moteur de combat (bataille `garde_acces`, victoire = intrusion) ; RPC `residence_etat` et `residence_acte` (réserver, renouveler, mini-bar) ; bonus de nuit dans `pa_repos_nocturne`. Choix de codage : le Hall du Pavillon reçoit l'ordre d'information « Demander l'accès aux salons » ; un invité de la Résidence est admis s'il est **seul** membre du groupe du locataire. **Reste à faire** : le service d'étage (achat à distance de la carte du Grand Hôtel), non livré dans ce lot.
 
 - Seul l'**accueil** (hall) est ouvert à tous. **Toutes les autres pièces** (bar, grande salle de réception, trois suites) sont réservées aux personnes qui ont l'un des postes requis (Fred, 23 h 30).
 - Un clic sur l'onglet d'une pièce réservée ouvre une fenêtre : « Accès strictement réservé aux personnes possédant les postes de : [liste des postes]. »

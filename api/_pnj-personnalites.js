@@ -84,6 +84,8 @@ CE DONT TU NE PARLES PAS : tes sources, jamais ; ni ce que la rédaction a accep
   // Pavillon : Arkadi Belov devient le garde du hall (Fred, 11/11/2026) ; hôtesses, serveurs de réception
   // et barman tirés des images, noms proposés par Claude (Fred, 11/11/2026).
   'arkadi_belov':              { nom: "Arkadi Belov", role: "Garde du Pavillon", lieu: "Hall du Pavillon des Ambassadeurs, Novomirsk" },
+  'lev_zamkov':                { nom: "Lev Zamkov", role: "Gardien de la Résidence impériale", lieu: "Hall de la Résidence impériale, Novomirsk" },
+  'ekaterina_klioutcheva':     { nom: "Ekaterina Klioutcheva", role: "Réceptionniste de la Résidence impériale", lieu: "Hall de la Résidence impériale, Novomirsk" },
   'touyana_dachieva':          { nom: "Touyana Dachieva", role: "Hôtesse d'accueil", lieu: "Hall du Pavillon des Ambassadeurs, Novomirsk" },
   'alina_belokourova':         { nom: "Alina Belokourova", role: "Hôtesse d'accueil", lieu: "Hall du Pavillon des Ambassadeurs, Novomirsk" },
   'grigori_podnosov':          { nom: "Grigori Podnosov", role: "Serveur de réception", lieu: "Grande Salle de Réception du Pavillon des Ambassadeurs, Novomirsk" },

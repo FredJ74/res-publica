@@ -6944,7 +6944,8 @@ const BUILDINGS = {
           {name:'Alina Belokourova (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'images/Sovarka/Novomirsk/Novo_alina_belokourova_portrait.webp'},
           {name:'Arkadi Belov (PNJ)', role:'Garde du Pavillon', rel:'neutral', job:'gardien', photoUrl:'images/Sovarka/Novomirsk/Novo_arkadi_belov_portrait.webp'}
         ],
-        orders: []
+        orders: [{fn:'acces_reserve_info',label:'Demander l\'accès aux salons',pa:0,cost:0,type:'legal',icon:'ti-lock',successRate:100,
+          desc:'Bar, réception et suites sont réservés aux dignitaires : présidents, Président du Conseil, ministres, ambassadeurs et députés.'}]
       },
       salle_reception: {
         name: "Grande Salle de Réception",
@@ -6981,7 +6982,7 @@ const BUILDINGS = {
         name: "Suite Privée — Location diplomatique",
         imageBg: "linear-gradient(135deg,#1a0d10,#250f18)",
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_suite_privee.webp',
-        desc: "📋 À LOUER — Suite luxueuse et très discrète. On y reçoit une clientèle triée sur le volet. Informations exclusives garanties.",
+        desc: "Suite luxueuse et très discrète. On y reçoit une clientèle triée sur le volet. Informations exclusives garanties.",
         persons: [],
         orders: [{fn:'pavillon_suite',label:'Gérer le bail diplomatique (650 FR/jour)',pa:0,cost:0,type:'legal',
           icon:'ti-key',successRate:100,desc:'Bail de 7 jours renouvelable ; caisse de l’institution étrangère. +3 PA à chaque sommeil.'}]
@@ -6991,7 +6992,7 @@ const BUILDINGS = {
         name: "Suite Présidentielle — Location diplomatique",
         imageBg: "linear-gradient(135deg,#181008,#20140a)",
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_suite_presidentielle.webp',
-        desc: "📋 À LOUER — Suite d'apparat, vue sur la Grande Église du Tractorisme. Le nec plus ultra pour recevoir en grande pompe.",
+        desc: "Suite d'apparat, vue sur la Grande Église du Tractorisme. Le nec plus ultra pour recevoir en grande pompe.",
         persons: [],
         orders: [{fn:'pavillon_suite',label:'Gérer le bail diplomatique (800 FR/jour)',pa:0,cost:0,type:'legal',
           icon:'ti-key',successRate:100,desc:'Bail de 7 jours renouvelable ; caisse de l’institution étrangère. +3 PA à chaque sommeil.'}]
@@ -7001,7 +7002,7 @@ const BUILDINGS = {
         name: "Suite des Partis — Location diplomatique",
         imageBg: "linear-gradient(135deg,#200a0a,#2a1010)",
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_suite_parti.webp',
-        desc: "📋 À LOUER — Suite d'apparat aux tentures rouges, où l'on se montre. Le buste du camarade président Zolotov veille sur chaque réception.",
+        desc: "Suite d'apparat aux tentures rouges, où l'on se montre. Le buste du camarade président Zolotov veille sur chaque réception.",
         persons: [],
         orders: [{fn:'pavillon_suite',label:'Gérer le bail diplomatique (500 FR/jour)',pa:0,cost:0,type:'legal',
           icon:'ti-key',successRate:100,desc:'Bail de 7 jours renouvelable ; caisse de l’institution étrangère. +3 PA à chaque sommeil.'}]
@@ -7009,9 +7010,9 @@ const BUILDINGS = {
       }
     }
   },
-  // Residence imperiale de Novomirsk (vue 7) : logements de prestige louables comme les suites du
-  // Pavillon (decisions de Fred, 04/11/2026) -- quatre appartements a 500/jour (+4 POP +4 INF +4 DIS)
-  // et un grand appartement a 1 200/jour (+15 POP +15 INF +5 DIS). Images a venir.
+  // Residence imperiale de Novomirsk (vue 7) : appartements prives reserves a l'accueil (Fred, 11-12/11/2026) --
+  // 3 nuits renouvelables payees d'avance, 1 000 PSK la nuit (+4 POP +4 INF +4 DIS par nuit) ou 1 800 PSK pour le
+  // grand (+15 POP +15 INF +5 DIS), rendus a 12 h 00 ; locataire et un seul invite ; mini-bar et service d'etage.
   'residence-imperiale-novomirsk': {
     name: "Résidence impériale",
     shortName: "Résidence",
@@ -7024,75 +7025,67 @@ const BUILDINGS = {
         imageUrl: 'images/Sovarka/Novomirsk/novomirsk-residence-imperiale-hall.webp',
         name: "Hall de la Résidence",
         imageBg: "linear-gradient(135deg,#16120c,#201a10)",
-        desc: "Un escalier d'honneur à double révolution, des aigles impériaux martelés et repeints en étoiles rouges. Le gardien note chaque visiteur dans un registre.",
+        desc: "Un escalier d'honneur à double révolution, des aigles impériaux martelés et repeints en étoiles rouges. Ekaterina Klioutcheva tient le registre des réservations ; Lev Zamkov, en uniforme, veille à ce que nul ne monte sans clé.",
         persons: [
-          {name:'Gardien de la Résidence (PNJ)', role:'PNJ - Gardien', rel:'neutral', job:'gardien'}
+          {name:'Ekaterina Klioutcheva (PNJ)', role:'Réceptionniste', rel:'neutral', job:'receptionniste', photoUrl:'images/Sovarka/Novomirsk/Novo_ekaterina_klioutcheva_portrait.webp'},
+          {name:'Lev Zamkov (PNJ)', role:'Gardien de la Résidence', rel:'neutral', job:'gardien', photoUrl:'images/Sovarka/Novomirsk/Novo_lev_zamkov_portrait.webp'}
         ],
-        orders: []
+        orders: [{fn:'residence_reserver',label:'Réserver un appartement (3 nuits)',pa:0,cost:0,type:'legal',icon:'ti-key',successRate:100,
+          desc:'Location privative de 3 nuits payées d\'avance (1 000 PSK la nuit, 1 800 PSK le grand appartement), à rendre le 3e jour à 12 h 00 ou à renouveler. Le locataire peut amener une seule personne de son groupe.'}]
       },
       appartement_1: {
         imageUrl: 'images/Sovarka/Novomirsk/novomirsk-residence-imperiale-appartement-1.webp',
-        name: "Appartement n°1 — Local à louer",
+        name: "Appartement n°1",
         imageBg: "linear-gradient(135deg,#16120c,#201a10)",
-        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
-        isLocationRoom: true,
-        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°1', tier: 1 },
+        desc: "Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'residence_minibar',label:'Mini-bar',pa:0,cost:0,type:'legal',icon:'ti-bottle',successRate:100,desc:'Trois bouteilles de vodka offertes pour les 3 jours. « Remplir le minibar » : 350 PSK.'},
+          {fn:'residence_location',label:'Ma location',pa:0,cost:0,type:'legal',icon:'ti-calendar-time',successRate:100,desc:'Fin de la location, renouvellement pour 3 nuits. Chaque nuit passée ici : +4 POP +4 INF +4 DIS.'}
         ]
       },
       appartement_2: {
         imageUrl: 'images/Sovarka/Novomirsk/novomirsk-residence-imperiale-appartement-2.webp',
-        name: "Appartement n°2 — Local à louer",
+        name: "Appartement n°2",
         imageBg: "linear-gradient(135deg,#16120c,#201a10)",
-        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
-        isLocationRoom: true,
-        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°2', tier: 1 },
+        desc: "Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'residence_minibar',label:'Mini-bar',pa:0,cost:0,type:'legal',icon:'ti-bottle',successRate:100,desc:'Trois bouteilles de vodka offertes pour les 3 jours. « Remplir le minibar » : 350 PSK.'},
+          {fn:'residence_location',label:'Ma location',pa:0,cost:0,type:'legal',icon:'ti-calendar-time',successRate:100,desc:'Fin de la location, renouvellement pour 3 nuits. Chaque nuit passée ici : +4 POP +4 INF +4 DIS.'}
         ]
       },
       appartement_3: {
         imageUrl: 'images/Sovarka/Novomirsk/novomirsk-residence-imperiale-appartement-3.webp',
-        name: "Appartement n°3 — Local à louer",
+        name: "Appartement n°3",
         imageBg: "linear-gradient(135deg,#16120c,#201a10)",
-        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
-        isLocationRoom: true,
-        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°3', tier: 1 },
+        desc: "Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'residence_minibar',label:'Mini-bar',pa:0,cost:0,type:'legal',icon:'ti-bottle',successRate:100,desc:'Trois bouteilles de vodka offertes pour les 3 jours. « Remplir le minibar » : 350 PSK.'},
+          {fn:'residence_location',label:'Ma location',pa:0,cost:0,type:'legal',icon:'ti-calendar-time',successRate:100,desc:'Fin de la location, renouvellement pour 3 nuits. Chaque nuit passée ici : +4 POP +4 INF +4 DIS.'}
         ]
       },
       appartement_4: {
         imageUrl: 'images/Sovarka/Novomirsk/novomirsk-residence-imperiale-appartement-4.webp',
-        name: "Appartement n°4 — Local à louer",
+        name: "Appartement n°4",
         imageBg: "linear-gradient(135deg,#16120c,#201a10)",
-        desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
-        isLocationRoom: true,
-        locationData: { prix: 500, bonusPOP: 4, bonusINF: 4, bonusDIS: 4, label: 'Appartement n°4', tier: 1 },
+        desc: "Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cet appartement (500 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Appartement de prestige. +4 POP +4 INF +4 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'residence_minibar',label:'Mini-bar',pa:0,cost:0,type:'legal',icon:'ti-bottle',successRate:100,desc:'Trois bouteilles de vodka offertes pour les 3 jours. « Remplir le minibar » : 350 PSK.'},
+          {fn:'residence_location',label:'Ma location',pa:0,cost:0,type:'legal',icon:'ti-calendar-time',successRate:100,desc:'Fin de la location, renouvellement pour 3 nuits. Chaque nuit passée ici : +4 POP +4 INF +4 DIS.'}
         ]
       },
       grand_appartement: {
         imageUrl: 'images/Sovarka/Novomirsk/novomirsk-residence-imperiale-grand-appartement.webp',
-        name: "Grand Appartement impérial — Local à louer",
+        name: "Grand Appartement impérial",
         imageBg: "linear-gradient(135deg,#1e1608,#2a1e0a)",
-        desc: "📋 À LOUER — Les anciens appartements de l'impératrice : enfilade de salons, dorures d'origine, balcon sur la Place de la Grande Église. Un seul locataire, très convoité.",
-        isLocationRoom: true,
-        locationData: { prix: 1200, bonusPOP: 15, bonusINF: 15, bonusDIS: 5, label: 'Grand Appartement impérial', tier: 1 },
+        desc: "Les anciens appartements de l'impératrice : enfilade de salons, dorures d'origine, balcon sur la Place de la Grande Église. Un seul locataire, très convoité.",
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cet appartement (1200 PSK/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Les anciens appartements de l\'impératrice. +15 POP +15 INF +5 DIS à votre organisation.'},
-          {fn:'gerer_local', label:'Gérer mon local', i18nKey:'variant.local_manage', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'residence_minibar',label:'Mini-bar',pa:0,cost:0,type:'legal',icon:'ti-bottle',successRate:100,desc:'Trois bouteilles de vodka offertes pour les 3 jours. « Remplir le minibar » : 350 PSK.'},
+          {fn:'residence_location',label:'Ma location',pa:0,cost:0,type:'legal',icon:'ti-calendar-time',successRate:100,desc:'Fin de la location, renouvellement pour 3 nuits. Chaque nuit passée ici : +15 POP +15 INF +5 DIS.'}
         ]
       }
     }
