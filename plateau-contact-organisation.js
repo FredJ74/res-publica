@@ -78,7 +78,7 @@ function contactOrgaEch(t) {
 
 // Une replique du passeur, dans la fenetre generique deja utilisee partout
 // ailleurs (#modal-postes) -- aucun nouveau modal, aucun nouveau style.
-function contactOrgaDire(passeurId, replique, boutons) {
+function contactOrgaDire(passeurId, replique, boutons, cleReplique) {
   const p = contactOrgaPasseur(passeurId);
   const titre = document.getElementById('postes-modal-title');
   const corps = document.getElementById('postes-body');
@@ -86,8 +86,8 @@ function contactOrgaDire(passeurId, replique, boutons) {
   if (!p || !titre || !corps || !modale) return;
   titre.textContent = p.nom;
   corps.innerHTML =
-    '<div style="padding:1rem 1.1rem">'
-    + '<div style="font-family:Crimson Pro,serif;font-size:.95rem;color:#d8c8a8;'
+    '<div data-contact-passeur="'+contactOrgaEch(passeurId)+'" style="padding:1rem 1.1rem">'
+    + '<div data-contact-replique="'+contactOrgaEch(cleReplique||'')+'" style="font-family:Crimson Pro,serif;font-size:.95rem;color:#d8c8a8;'
     + 'line-height:1.7;font-style:italic">« ' + contactOrgaEch(replique) + ' »</div>'
     + (boutons || '')
     + '</div>';
@@ -126,17 +126,17 @@ async function contactOrgaDemarrer(passeurId) {
   if (r.peut_demander === false) {
     contactOrgaDire(passeurId, contactOrgaReplique(p,'refusDelai'),
       '<div style="margin-top:1rem"><button class="pnj-action-btn" '
-      + 'onclick="contactOrgaFermer()">'+contactOrgaEch(contactOrgaTexte('later','Je repasserai'))+'</button></div>');
+      + 'onclick="contactOrgaFermer()"><span data-contact-label="later">'+contactOrgaEch(contactOrgaTexte('later','Je repasserai'))+'</span></button></div>', 'refusDelai');
     return;
   }
 
   contactOrgaDire(passeurId, contactOrgaReplique(p,'question'),
     '<div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">'
     + '<button class="pnj-action-btn" onclick="contactOrgaConfirmer(\'' + passeurId + '\')">'
-    + '<i class="ti ti-check" style="font-size:.85rem"></i> '+contactOrgaEch(contactOrgaTexte('yes','Oui'))+'</button>'
+    + '<i class="ti ti-check" style="font-size:.85rem"></i> <span data-contact-label="yes">'+contactOrgaEch(contactOrgaTexte('yes','Oui'))+'</span></button>'
     + '<button class="pnj-action-btn" onclick="contactOrgaFermer()">'
-    + '<i class="ti ti-x" style="font-size:.85rem"></i> '+contactOrgaEch(contactOrgaTexte('no','Non, laisse tomber'))+'</button>'
-    + '</div>');
+    + '<i class="ti ti-x" style="font-size:.85rem"></i> <span data-contact-label="no">'+contactOrgaEch(contactOrgaTexte('no','Non, laisse tomber'))+'</span></button>'
+    + '</div>', 'question');
 }
 
 // ---- 2. LA QUESTION QUI NE SERT A RIEN, ET C'EST VOULU ----
@@ -155,10 +155,10 @@ function contactOrgaConfirmer(passeurId) {
     + 'font-size:.88rem;resize:vertical"></textarea>'
     + '<div style="margin-top:.8rem;display:flex;gap:.5rem;flex-wrap:wrap">'
     + '<button class="pnj-action-btn" onclick="contactOrgaEnvoyer(\'' + passeurId + '\')">'
-    + '<i class="ti ti-send" style="font-size:.85rem"></i> '+contactOrgaEch(contactOrgaTexte('explain','Lui expliquer'))+'</button>'
+    + '<i class="ti ti-send" style="font-size:.85rem"></i> <span data-contact-label="explain">'+contactOrgaEch(contactOrgaTexte('explain','Lui expliquer'))+'</span></button>'
     + '<button class="pnj-action-btn" onclick="contactOrgaFermer()">'
-    + '<i class="ti ti-x" style="font-size:.85rem"></i> '+contactOrgaEch(contactOrgaTexte('withdraw','Renoncer'))+'</button>'
-    + '</div>');
+    + '<i class="ti ti-x" style="font-size:.85rem"></i> <span data-contact-label="withdraw">'+contactOrgaEch(contactOrgaTexte('withdraw','Renoncer'))+'</span></button>'
+    + '</div>', 'projet');
 }
 
 // ---- 3. LE MESSAGE PART ----
@@ -180,10 +180,10 @@ async function contactOrgaEnvoyer(passeurId) {
   }
 
   const fermer = '<div style="margin-top:1rem"><button class="pnj-action-btn" '
-               + 'onclick="contactOrgaFermer()">'+contactOrgaEch(contactOrgaTexte('understood','Entendu'))+'</button></div>';
+               + 'onclick="contactOrgaFermer()"><span data-contact-label="understood">'+contactOrgaEch(contactOrgaTexte('understood','Entendu'))+'</span></button></div>';
 
   if (r.ok === true) {
-    contactOrgaDire(passeurId, contactOrgaReplique(p,'conclusion'), fermer);
+    contactOrgaDire(passeurId, contactOrgaReplique(p,'conclusion'), fermer, 'conclusion');
     if (typeof addJournalEntry === 'function') {
       // Le journal ne nomme pas l'organisation : le joueur ne la connait pas, et
       // le passeur ne transmet aucun detail.
@@ -192,9 +192,9 @@ async function contactOrgaEnvoyer(passeurId) {
     return;
   }
 
-  if (r.raison === 'delai_non_ecoule') { contactOrgaDire(passeurId, contactOrgaReplique(p,'refusDelai'), fermer); return; }
+  if (r.raison === 'delai_non_ecoule') { contactOrgaDire(passeurId, contactOrgaReplique(p,'refusDelai'), fermer, 'refusDelai'); return; }
   if (r.raison === 'aucune_organisation' || r.raison === 'toutes_contactees') {
-    contactOrgaDire(passeurId, contactOrgaReplique(p,'personne'), fermer);
+    contactOrgaDire(passeurId, contactOrgaReplique(p,'personne'), fermer, 'personne');
     return;
   }
   contactOrgaFermer();
@@ -202,3 +202,22 @@ async function contactOrgaEnvoyer(passeurId) {
     showToast(contactOrgaTexte('unavailable','Indisponible'),contactOrgaTexte('notPossible','Cette mise en relation n\'est pas possible.'), false);
   }
 }
+
+// Mise à jour des seuls libellés d'une scène encore ouverte. Le projet saisi ne
+// quitte jamais son textarea, et une bascule ne déclenche aucune lecture ni action.
+if(typeof window.i18next?.on==='function')window.i18next.on('languageChanged',function(){
+ const corps=document.getElementById('postes-body');
+ const modal=document.getElementById('modal-postes');
+ if(!modal?.classList.contains('open'))return;
+ const root=corps?.querySelector?.('[data-contact-passeur]');
+ const p=root?contactOrgaPasseur(root.getAttribute('data-contact-passeur')):null;
+ if(!p)return;
+ const parole=root.querySelector('[data-contact-replique]');
+ const champ=parole?.getAttribute('data-contact-replique');
+ if(champ)parole.textContent='« '+contactOrgaReplique(p,champ)+' »';
+ const actions={later:'Je repasserai',yes:'Oui',no:'Non, laisse tomber',explain:'Lui expliquer',withdraw:'Renoncer',understood:'Entendu'};
+ root.querySelectorAll('[data-contact-label]').forEach(function(label){
+  const key=label.getAttribute('data-contact-label');
+  if(Object.hasOwn(actions,key))label.textContent=contactOrgaTexte(key,actions[key]);
+ });
+});
