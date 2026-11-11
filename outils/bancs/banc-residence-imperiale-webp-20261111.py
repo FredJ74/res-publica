@@ -36,5 +36,7 @@ def canon(f):
     return ''.join(c for c in unicodedata.normalize('NFKD',f.name) if not unicodedata.combining(c)).lower()
 assert not any("residence" in canon(p) and "imperial" in canon(p)
                for p in base.glob("*.png")), "anciens PNG non supprimés"
-assert all(("fn:'louer_local'" in b, "fn:'gerer_local'" in b)), "ne pas changer les commandes"
-print("Six salles illustrées en WebP, six PNG supprimés, ordres de location préservés.")
+# Location privative à l'accueil (Fred, 12/11/2026) : l'ancienne location de local a disparu.
+assert "fn:'louer_local'" not in b and "fn:'gerer_local'" not in b, "ancienne location de local encore présente"
+assert "fn:'residence_reserver'" in b and b.count("fn:'residence_minibar'")==5, "ordres de la Résidence absents"
+print("Six salles illustrées en WebP, six PNG supprimés, réservation à l'accueil en place.")

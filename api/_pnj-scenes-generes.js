@@ -5303,42 +5303,43 @@ export const SCENES_PNJ = {
     "batiment": "Résidence impériale",
     "piece": "Hall de la Résidence",
     "personnes": [
-      "Gardien de la Résidence"
+      "Ekaterina Klioutcheva",
+      "Lev Zamkov"
     ]
   },
   "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"appartement_1\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Résidence impériale",
-    "piece": "Appartement n°1 — Local à louer",
+    "piece": "Appartement n°1",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"appartement_2\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Résidence impériale",
-    "piece": "Appartement n°2 — Local à louer",
+    "piece": "Appartement n°2",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"appartement_3\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Résidence impériale",
-    "piece": "Appartement n°3 — Local à louer",
+    "piece": "Appartement n°3",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"appartement_4\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Résidence impériale",
-    "piece": "Appartement n°4 — Local à louer",
+    "piece": "Appartement n°4",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"grand_appartement\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Résidence impériale",
-    "piece": "Grand Appartement impérial — Local à louer",
+    "piece": "Grand Appartement impérial",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"caserne-militaire\",\"corps_garde\"]": {
