@@ -242,3 +242,99 @@ test('messagerie : le sujet et le corps affichés passent par la présentation t
   const html = lire('plateau.html');
   assert.ok(html.indexOf('i18n/sovarka-messages-resources.js') < html.indexOf('plateau-sovarka-courriers.js'));
 });
+
+// Lots 3 et 4 : maisons des habitants (réplique, ragots, service), forêt de Krasnov et fermes.
+function provinces(langue, reponses) {
+  const els = {};
+  const el = id => els[id] || (els[id] = { id, textContent: '', innerHTML: '', value: '', classList: { s: new Set(), add(c) { this.s.add(c); }, remove(c) { this.s.delete(c); }, contains(c) { return this.s.has(c); } } });
+  const appels = [], toasts = [];
+  const ctx = {
+    console, JSON, Number, Object, Array, Date, Promise, langue, RP_I18N_GAME_ENABLED: true,
+    crypto: { randomUUID: () => 'u1' }, sessionStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+    state: { country: 'soviet', currentCity: 'ville_b', char: { name: 'Ivan' } },
+    document: { getElementById: el, querySelector: () => null, querySelectorAll: () => [] },
+    vehModal(t, h) { el('postes-modal-title').textContent = t; el('postes-body').innerHTML = h; },
+    vehSection: (t, c) => '<section><b>' + t + '</b>' + c + '</section>',
+    vehBouton: (l, js) => '<button onclick="' + js + '">' + l + '</button>',
+    showToast: (t, m, ok) => toasts.push([t, m, ok]), addJournalEntry() {},
+    sbRpcVerdict: async (fn, p) => { appels.push(fn); return JSON.parse(JSON.stringify(reponses[fn] || { ok: false })); }
+  };
+  ctx.RPPlateauI18n = { language: () => ctx.langue };
+  vm.createContext(ctx);
+  ctx.window = ctx;
+  for (const f of ['i18n/sovarka-droits-resources.js', 'i18n/sovarka-provinces-resources.js', 'i18n/sovarka-messages-resources.js',
+    'plateau-sovarka-courriers.js', 'plateau-sovarka-droits.js', 'plateau-sovarka-provinces.js']) vm.runInContext(lire(f), ctx);
+  return { ctx, el, appels, toasts };
+}
+// Réponses composées comme les fonctions serveur (textes recopiés des migrations).
+const TRINQUER = { ok: true, action: 'trinquer', habitant: 'Stepan Kouznetsov',
+  reaction: 'Du samogon ! On ne demande pas d\'où il vient. Na zdorovie !',
+  secret_livre: 'Ivan' + ' se promène avec plus de ' + 1200 + ' PSK' + ' en poche.',
+  secret_recu: 'On m\'a raconté ici même que ' + 'b' + 'oris Kozlov occupe le poste de Ministre de l\'Économie collective.' };
+const RAGOT_VOL = 'Il paraîtrait que ' + 'Olga Brejneva' + ' a ' + 'volé un rapport d\'espionnage' + ' — ' + 'Centre d\'écoute' + ', du côté de ' + 'Starovka' + '…';
+
+test('maisons en français : réplique, ragots et service du serveur affichés tels quels', async () => {
+  const j = provinces('fr', { sovarka_maison_agir: TRINQUER, sovarka_maison_lire: { ok: true, habitant: 'Dolgor Tsybikova', service: { cle: 'oeufs', qte: 2, label: '6 œufs' }, bouteille: true } });
+  await j.ctx.trinquerHabitant();
+  const html = j.el('postes-body').innerHTML;
+  for (const s of [TRINQUER.reaction, TRINQUER.secret_recu, TRINQUER.secret_livre]) assert.ok(html.includes(s.replace(/'/g, '&#39;')) || html.includes(s), s);
+  await j.ctx.ouvrirMaisonHabitant();
+  assert.ok(j.el('postes-body').innerHTML.includes('6 œufs'), 'libellé du serveur en français');
+});
+
+test('maisons en anglais, russe et arabe : réplique et ragots traduits, noms et montants intacts, un seul appel', async () => {
+  const attendu = {
+    en: ['Samogon! Nobody asks where it comes from. Na zdorovie!', 'Someone told me right here that… Boris Kozlov holds the post of Ministre de l\'Économie collective.', 'Ivan walks around with more than 1200 PSK in their pocket.'],
+    ru: ['Самогон! Откуда он — не спрашивают. На здоровье!', 'Мне прямо здесь рассказали… Boris Kozlov занимает должность: Ministre de l\'Économie collective.', 'Ivan разгуливает с более чем 1200 PSK в кармане.'],
+    ar: ['ساموغون! لا أحد يسأل من أين أتى. نا زدوروفيه!', 'أخبرني أحدهم هنا بالذات… Boris Kozlov يشغل منصب Ministre de l\'Économie collective.', 'يتجول Ivan وفي جيبه أكثر من 1200 PSK.']
+  };
+  for (const [l, [rep, recu, livre]] of Object.entries(attendu)) {
+    const j = provinces(l, { sovarka_maison_agir: TRINQUER });
+    await j.ctx.trinquerHabitant();
+    const html = j.el('postes-body').innerHTML.replace(/&#39;/g, '\'');
+    for (const s of [rep, recu, livre]) assert.ok(html.includes(s), l + ' : ' + s);
+    assert.equal(JSON.stringify(j.appels), JSON.stringify(['sovarka_maison_agir']));
+  }
+  const de = provinces('de', {});
+  assert.equal(de.ctx.RPCourriersSovarka.ragot(RAGOT_VOL), 'Es heißt, Olga Brejneva habe in der Gegend von Starovka einen Spionagebericht gestohlen — Centre d\'écoute …');
+  assert.equal(de.ctx.RPCourriersSovarka.ragot('On m\'a raconté ici même que texte inconnu.'), null, 'ragot rapporté inconnu : texte d’origine');
+  assert.equal(de.ctx.RPCourriersSovarka.ragot('Ivan n\'a rien d\'intéressant à cacher, paraît-il.'), 'Ivan hat angeblich nichts Interessantes zu verbergen.');
+});
+
+test('maisons : service traduit depuis la clé et la quantité exigées par le serveur', async () => {
+  const j = provinces('en', { sovarka_maison_lire: { ok: true, habitant: 'Dolgor Tsybikova', service: { cle: 'oeufs', qte: 2, label: '6 œufs' }, bouteille: true } });
+  await j.ctx.ouvrirMaisonHabitant();
+  const html = j.el('postes-body').innerHTML;
+  assert.ok(html.includes('2 eggs') && !html.includes('6 œufs'), 'quantité exigée par le serveur');
+  const inconnu = provinces('en', { sovarka_maison_lire: { ok: true, habitant: 'X', service: { cle: 'caviar', qte: 1, label: '1 caviar' }, bouteille: true } });
+  await inconnu.ctx.ouvrirMaisonHabitant();
+  assert.ok(inconnu.el('postes-body').innerHTML.includes('1 caviar'), 'objet inconnu : libellé du serveur');
+});
+
+test('forêt et fermes : fausses alertes, créatures et travaux traduits ; texte inconnu conservé', async () => {
+  const alerte = { ok: true, quantite: 2, fausse_alerte: 'Un élan vous regarde un long moment, puis s\'en va sans se presser.' };
+  const ko = provinces('ko', { sovarka_foret_couper: alerte });
+  await ko.ctx.foretCouper();
+  assert.ok(ko.el('postes-body').innerHTML.includes('엘크 한 마리가 한참 당신을 바라보더니 서두르지 않고 떠납니다.'));
+  const fr = provinces('fr', { sovarka_foret_couper: alerte });
+  await fr.ctx.foretCouper();
+  assert.ok(fr.el('postes-body').innerHTML.replace(/&#39;/g, '\'').includes(alerte.fausse_alerte));
+  const ru = provinces('ru', {});
+  ru.ctx.foretAfficherRencontre('Meute de loups', 'pnj-1');
+  assert.ok(ru.el('postes-body').innerHTML.includes('Волчья стая') && ru.el('postes-body').innerHTML.includes('pnj-1'));
+  ru.ctx.foretAfficherRencontre('Créature inédite', 'pnj-2');
+  assert.ok(ru.el('postes-body').innerHTML.includes('Créature inédite'));
+  const ferme = provinces('es', { sovarka_ferme_travailler: { ok: true, travail: 'renne', label: 'Abattre et dépecer un renne', produits: [{ cle: 'viande', qte: 3 }] } });
+  await ferme.ctx.travaillerFerme('ferme_renne');
+  assert.equal(ferme.toasts[0][0], 'Sacrificar y despiezar un reno');
+  const fermeFr = provinces('fr', { sovarka_ferme_travailler: { ok: true, travail: 'renne', label: 'Abattre et dépecer un renne', produits: [{ cle: 'viande', qte: 3 }] } });
+  await fermeFr.ctx.travaillerFerme('ferme_renne');
+  assert.equal(fermeFr.toasts[0][0], 'Abattre et dépecer un renne');
+});
+
+test('forêt et fermes : les textes du catalogue reproduisent ceux des migrations', () => {
+  const { t } = catalogue('i18n/sovarka-messages-resources.js', 'RPSovarkaMessagesI18n', 'fr');
+  const sql = ['20261110124500_sovarka_foret_profonde_krasnov.sql', '20261110123000_sovarka_fermes_distillerie_fourreur.sql', '20261110094500_sovarka_maisons_hospitalite.sql']
+    .map(f => lire('migrations/' + f).replace(/''/g, '\'')).join('\n');
+  for (const k of t.cles.filter(c => /^(fa_|ft_|hb_|cf_)/.test(c))) assert.ok(sql.includes(t.fr(k)), k + ' absent des migrations');
+});

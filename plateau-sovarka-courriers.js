@@ -1,4 +1,4 @@
-// SOVARKA : COURRIERS DU SERVEUR DANS LA LANGUE DU JOUEUR (11/11/2026, mission i18n de Fred).
+// SOVARKA : COURRIERS ET PHRASES DU SERVEUR DANS LA LANGUE DU JOUEUR (11/11/2026, mission i18n de Fred).
 // Les fonctions serveur de Sovarka écrivent leurs courriers en français dans public.mails (texte figé,
 // historique conservé). Ce module ne change rien à ce texte : à l'affichage, s'il reconnaît EN ENTIER le
 // sujet et le corps d'un modèle connu, il présente la même phrase dans la langue choisie, avec les mêmes
@@ -96,5 +96,29 @@
     const t = traduire(mail);
     return t ? { ...mail, subject: t.subject, body: t.body } : mail;
   }
-  global.RPCourriersSovarka = Object.freeze({ traduire, vu, modeles: MODELES.length });
+  // Une phrase du serveur (réplique, ragot, fausse alerte, nom fixe) : traduite si elle correspond EN ENTIER
+  // à l'un des modèles donnés, sinon null (l'appelant garde alors le texte d'origine).
+  function phrase(cles, texte) {
+    if (!cat() || langue() === 'fr' || texte == null) return null;
+    for (const cle of cles) {
+      const v = capter(cle, texte);
+      if (v) return T(cle, presenter(v));
+    }
+    return null;
+  }
+  // Ragots des maisons : ce que le PJ laisse échapper (sp_) et ce qu'il apprend (sv_). Un ragot répété
+  // (« On m'a raconté ici même que … ») n'est traduit que si la phrase rapportée l'est aussi.
+  const SECRETS_PJ = ['sp_poste', 'sp_argent', 'sp_vit', 'sp_louche_cible', 'sp_louche', 'sp_rien'];
+  const SECRETS_VILLE = ['sv_rien', 'sv_rapport_cible', 'sv_rapport', 'sv_vol_cible', 'sv_vol', 'sv_louche_cible', 'sv_louche'];
+  function ragot(texte) {
+    if (!cat() || langue() === 'fr' || texte == null) return null;
+    // Le ragot rapporté d'abord : les modèles sp_ commencent par un nom libre et l'avaleraient.
+    const r = capter('sv_raconte', texte);
+    if (r) {
+      const rapporte = phrase(SECRETS_PJ, r.ragot.charAt(0).toUpperCase() + r.ragot.slice(1));
+      return rapporte ? T('sv_raconte', { ragot: rapporte }) : null;
+    }
+    return phrase(SECRETS_VILLE.concat(SECRETS_PJ), texte);
+  }
+  global.RPCourriersSovarka = Object.freeze({ traduire, vu, phrase, ragot, langue, modeles: MODELES.length });
 })(typeof window !== 'undefined' ? window : globalThis);
