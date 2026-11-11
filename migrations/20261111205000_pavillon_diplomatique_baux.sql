@@ -186,7 +186,7 @@ BEGIN
     r:=jsonb_build_object('ok',true,'action',p_action,'bail',b.id,
        'fin_excl',b.fin_excl+7,'montant',somme,'devise','FR');
   ELSE
-    UPDATE public.pavillon_baux SET statut='resilie',fin_excl=j WHERE id=b.id;
+    UPDATE public.pavillon_baux SET statut='resilie' WHERE id=b.id;
     r:=jsonb_build_object('ok',true,'action',p_action,'bail',b.id,
       'montant',somme,'devise','FR','menage_jours',1);
   END IF;
