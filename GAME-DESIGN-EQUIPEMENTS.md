@@ -46,6 +46,10 @@ de décisions du **10 novembre 2026 au soir** (20 h 53 – 21 h 30), à coder en
 - **Placement (décision de Fred, 11/11/2026, 0 h 58)** : dans une pièce, « Fouiller les lieux » est un **ordre de pièce**,
   en vert (légal), **tout en bas** de la liste des ordres ; il n'est plus dans la colonne des personnes présentes. Dans une
   vue de rue (sans liste d'ordres), le bouton reste dans la colonne.
+- **Regroupement (décision de Fred, 11/11/2026, 14 h 57)** : « Fouiller les lieux » et « Voler du matériel installé »
+  forment **un seul ordre vert « Fouiller ou voler », tout en bas**, dans **toutes les pièces et toutes les vues de rue**.
+  Un clic ouvre un **menu déroulant** (fouille ou vol) ; chaque choix ouvre **sa fenêtre dédiée** (fouille : explication
+  et confirmation 2 PA ; vol : liste du matériel, 3 PA). Plus aucun de ces deux boutons dans la colonne des présents.
 
 ### Piratage
 6. **3 PA** par tentative, depuis un bureau connecté ; base **45 %** ± intelligence ; cible protégée par un intranet : seuls
