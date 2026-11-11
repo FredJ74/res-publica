@@ -25,6 +25,10 @@ jobs:
           node-version: '22'
       - run: node --check plateau-contact-organisation.js && node --check plateau-pnj.js && node --check i18n/plateau-init.js && node --check i18n/contact-organization-resources.js
       - run: node --test --test-concurrency=1 outils/bancs/banc-i18n-passeur-20261111.cjs outils/bancs/banc-i18n-agence-emploi-20261111.cjs outils/bancs/banc-i18n-agence-sociale-20261111.cjs outils/bancs/banc-i18n-ventes-diners-20261111.cjs
-      - run: python .scratch/banc_contact_organisation.py
+      - name: Exécuter le banc historique avec sa migration archivée
+        run: |
+          cp historique/sql-racine/migrations/migration_20261001_contact_organisation.sql migration_20261001_contact_organisation.sql
+          trap 'rm -f migration_20261001_contact_organisation.sql' EXIT
+          python .scratch/banc_contact_organisation.py
       - run: node --test outils/bancs/banc-i18n-editorial.cjs
       - run: git diff --check
