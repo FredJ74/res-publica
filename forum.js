@@ -2620,7 +2620,7 @@ function renderMailInbox() {
         : sent.map(m => `
           <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer">
             <div style="display:flex;justify-content:space-between">
-              <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Envoyé en tant qu\'organisation"></i> ' : ''}${escapeHtmlText(m.subject)}</div>
+              <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Envoyé en tant qu\'organisation"></i> ' : ''}${escapeHtmlText(mailSujetAffiche(m))}</div>
               <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
             </div>
             <div style="font-size:.72rem;color:#6a5a30">${rpForumLibelle('toLabel','À :')} ${escapeHtmlText(m.to)}</div>
@@ -2634,7 +2634,7 @@ function renderMailInbox() {
       ${archives.length ? archives.map(m => `
         <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;opacity:.75">
           <div style="display:flex;justify-content:space-between">
-            <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Organisation"></i> ' : ''}${escapeHtmlText(m.subject)}</div>
+            <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Organisation"></i> ' : ''}${escapeHtmlText(mailSujetAffiche(m))}</div>
             <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
           </div>
           <div style="font-size:.72rem;color:#6a5a30">${(m.from === myName || m.fromReal === myName) ? rpForumLibelle('toLabel','À :') + ' ' + escapeHtmlText(m.to) : rpForumLibelle('fromLabel','De :') + ' ' + escapeHtmlText(m.from)}</div>
@@ -2651,7 +2651,7 @@ function renderMailInbox() {
           <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;background:${m.read?'transparent':'rgba(201,168,76,0.05)'}">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <div style="font-size:.82rem;color:${m.read?'#8a8060':'#f0ead6'};font-weight:${m.read?'normal':'bold'}">
-                ${!m.read?'🔵 ':''}${escapeHtmlText(m.subject)}
+                ${!m.read?'🔵 ':''}${escapeHtmlText(mailSujetAffiche(m))}
               </div>
               <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
             </div>
@@ -2957,6 +2957,13 @@ function boutonsActionMail(actions) {
   return html + '</div>';
 }
 
+// Courriers du serveur (Sovarka, 11/11/2026) : présentés dans la langue du joueur quand un modèle connu
+// est reconnu en entier (plateau-sovarka-courriers.js) ; sinon, et en français, le texte d'origine.
+function mailVuTraduit(m) {
+  return (typeof window !== 'undefined' && window.RPCourriersSovarka?.vu?.(m)) || m;
+}
+function mailSujetAffiche(m) { return mailVuTraduit(m).subject; }
+
 function renderMailRead() {
   const mail = getMails().find(m => m.id === currentMailId);
   if (!mail) return renderMailInbox();
@@ -2978,12 +2985,15 @@ function renderMailRead() {
   // Les marqueurs d'action sont retires du corps AVANT sanitisation, et rendus comme de vrais
   // boutons hors du bloc sanitise -- seul endroit ou un onclick peut survivre.
   const _actionsMail = extraireActionsMail(mail.body || '');
+  // Présentation traduite d'un courrier du serveur : seul le texte change, les actions restent celles d'origine.
+  const _mailVu = mailVuTraduit(mail);
+  if (_mailVu !== mail) _actionsMail.corps = extraireActionsMail(_mailVu.body || '').corps;
   return `
     <div class="forum-header-bar">
       <button class="forum-back-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">
         <i class="ti ti-arrow-left"></i> ${rpForumLibelle('back','Retour')}
       </button>
-      <div class="forum-title-main" style="flex:1">${escapeHtmlText(mail.subject)}</div>
+      <div class="forum-title-main" style="flex:1">${escapeHtmlText(_mailVu.subject)}</div>
     </div>
     <div style="padding:.8rem">
       <div style="display:flex;align-items:center;gap:.6rem;font-size:.72rem;color:#6a5a30;margin-bottom:.8rem;padding:.5rem;border:1px solid #1a1810">

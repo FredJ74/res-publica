@@ -133,3 +133,112 @@ test('réunions en arabe et en russe : interface et refus traduits, paramètres 
   assert.equal(JSON.stringify(ru.toasts[0]), JSON.stringify(['Вечер нетворкинга', 'Присутствующих: 2.', true]));
   assert.equal(ru.appels.length, 1);
 });
+
+// Lot 2 : courriers écrits en français par le serveur, présentés dans la langue du joueur à l'affichage.
+function courriers(langue) {
+  const ctx = { langue, RP_I18N_GAME_ENABLED: true };
+  ctx.RPPlateauI18n = { language: () => ctx.langue };
+  vm.createContext(ctx);
+  ctx.window = ctx;
+  vm.runInContext(lire('i18n/sovarka-messages-resources.js'), ctx);
+  vm.runInContext(lire('plateau-sovarka-courriers.js'), ctx);
+  return ctx;
+}
+// Courriers tels que les fonctions serveur les composent (concaténations recopiées des migrations).
+const COURRIERS = [
+  { from: 'Mairie', subject: 'Demande de commerce acceptée',
+    body: 'Votre demande (« ' + 'Boulangerie du Peuple' + ' ») est acceptée. Local attribué : ' + 'Galeries, local 3' + ', loyer ' + 75 + ' ' + 'PSK' + ' par jour' + '. Présentez-vous chez le notaire de Novomirsk pour signer l\'attribution.' },
+  { from: 'Mairie', subject: 'Demande de commerce acceptée',
+    body: 'Votre demande (« Kiosque ») est acceptée. Aucun local n\'est libre : il vous sera attribué dans le prochain immeuble collectif construit par la mairie. Votre dossier reste valide.' },
+  { from: 'Tribunal Populaire', subject: 'Droit d\'exploiter retiré',
+    body: 'Le Tribunal Populaire vous retire le droit d\'exploiter : ' + 'Pharmacie officielle' + '. Motif : ' + 'Vente de « vodka » frelatée' + '. Le local revient à l\'État, sans indemnité.' },
+  { from: 'Parti des Précurseurs Politiques', subject: 'Demande d\'adhésion : ' + 'Boris Kozlov',
+    body: 'Boris Kozlov' + ' demande à adhérer à votre parti. Droit d\'entrée actuel : ' + '15' + ' PSK, payé à l\'acceptation. Un refus coûte 2 POP au parti. Répondez depuis la salle des partis d\'une mairie (« Mon parti »).' },
+  { from: 'Parti des Précurseurs Politiques', subject: 'Adhésion acceptée',
+    body: 'Bienvenue au parti ' + 'Parti des Précurseurs Politiques' + '.' + ' Droit d\'entrée payé : ' + 15 + ' PSK.' },
+  { from: 'Conseil du Peuple', subject: 'Loi promulguée : ' + 'Tracteurs pour tous',
+    body: 'Le Président du Conseil du Peuple a accepté votre projet. La loi est promulguée et s\'applique dès maintenant ; les députés l\'approuveront jeudi.' },
+  { from: 'Secrétariat du Conseil du Peuple', subject: 'Convocation : séance du jeudi',
+    body: 'Camarade député, vous êtes convoqué aujourd\'hui au Palais du Gouvernement de Sovarka, Salle du Conseil du Peuple, '
+      + 'pour approuver les lois promulguées. Émargez puis approuvez ou abstenez-vous (une abstention est signalée et coûte 5 POP à votre parti).'
+      + '\n\nAttention : un député absent perd son indemnité (250 PSK par jour) pour toute la semaine, jusqu\'à la convocation suivante.'
+      + '\n\nOrdre du jour :\n' + '(aucune loi promulguée cette semaine)' },
+  { from: 'Secrétariat du Conseil du Peuple', subject: 'Indemnité suspendue',
+    body: 'Absent à la séance de jeudi : votre indemnité de député est suspendue pour sept jours, jusqu\'au ' + '19/11' + ' inclus.' },
+  { from: 'Centre d\'affaires de Novomirsk', subject: 'Séminaire de formation',
+    body: 'Séminaire de formation organisé par ' + 'Ivan' + ' : ' + 'PER' + ' +1 jusqu\'à minuit.' },
+  { from: 'Banque de Sovarka', subject: 'Bon d\'État remboursé',
+    body: 'Camarade, votre bon d\'État de ' + 100 + ' PSK arrive à échéance (rendement fixé à ' + 2.5 + ' %). Le Trésor de Sovarka vous rend ' + 102 + ' PSK sur votre compte. La Patrie vous remercie.' },
+  { from: 'Événement', subject: 'Forêt de Krasnov',
+    body: 'Vous avez vaincu : ' + 'Ours' + '. Le butin (peaux, viande' + ', dents d\'ours' + ') vous revient, à partager avec votre groupe.' }
+];
+
+test('courriers en français : jamais transformés', () => {
+  const ctx = courriers('fr');
+  for (const m of COURRIERS) { assert.equal(ctx.RPCourriersSovarka.traduire(m), null); assert.equal(ctx.RPCourriersSovarka.vu(m), m); }
+});
+
+test('courriers dans les huit autres langues : tous reconnus, données des joueurs et montants intacts', () => {
+  for (const l of LANGUES.filter(x => x !== 'fr')) {
+    const ctx = courriers(l);
+    for (const m of COURRIERS) {
+      const t = ctx.RPCourriersSovarka.traduire(m);
+      assert.ok(t, l + ' non reconnu : ' + m.subject);
+      assert.notEqual(t.body, m.body, l + ' ' + m.subject);
+      assert.ok(!/\{\w+\}/.test(t.subject + t.body), l + ' variable non remplie');
+    }
+    const [loc, , retrait, adh, bienv, loi, conv, indem, sem, bon, foret] = COURRIERS.map(m => ctx.RPCourriersSovarka.traduire(m));
+    for (const s of ['Boulangerie du Peuple', 'Galeries, local 3', '75', 'PSK']) assert.ok(loc.body.includes(s), l + ' ' + s);
+    assert.ok(retrait.body.includes('Vente de « vodka » frelatée') && retrait.body.includes('Pharmacie officielle'));
+    assert.ok(adh.subject.includes('Boris Kozlov') && adh.body.includes('Boris Kozlov') && adh.body.includes('15'));
+    assert.ok(bienv.body.includes('Parti des Précurseurs Politiques') && bienv.body.includes('15'));
+    assert.ok(loi.subject.includes('Tracteurs pour tous'), 'titre de loi conservé');
+    assert.ok(conv.body.includes('250') && !conv.body.includes('aucune loi'), l + ' ordre du jour vide traduit');
+    assert.ok(indem.body.includes('19/11'));
+    assert.ok(sem.body.includes('Ivan') && !sem.body.includes('PER'), 'caractéristique nommée');
+    assert.ok(bon.body.includes('100') && bon.body.includes('2.5') && bon.body.includes('102'));
+    assert.ok(!foret.body.includes('Ours'), 'créature nommée dans la langue');
+  }
+  const de = courriers('de');
+  assert.equal(de.RPCourriersSovarka.traduire(COURRIERS[10]).body, 'Sie haben besiegt: Bär. Die Beute (Felle, Fleisch, Bärenzähne) gehört Ihnen, teilen Sie sie mit Ihrer Gruppe.');
+});
+
+test('courriers : texte inconnu, expéditeur différent ou modifié = courrier d’origine', () => {
+  const ctx = courriers('en');
+  const c = ctx.RPCourriersSovarka;
+  assert.equal(c.traduire({ from: 'Ivan', subject: 'Demande de commerce acceptée', body: COURRIERS[0].body }), null, 'expéditeur imposé');
+  assert.equal(c.traduire({ ...COURRIERS[0], body: COURRIERS[0].body + ' PS : merci.' }), null, 'corps modifié');
+  assert.equal(c.traduire({ from: 'Mairie', subject: 'Bonjour', body: 'Texte libre' }), null);
+  assert.equal(c.traduire({ ...COURRIERS[4], subject: 'Adhésion acceptée !' }), null);
+  const autre = { from: 'Ivan', subject: 'Salut', body: 'Écrit par un joueur.' };
+  assert.equal(c.vu(autre), autre);
+});
+
+test('courriers : chaque sujet fixe des migrations Sovarka a son modèle dans le catalogue', () => {
+  const { t } = catalogue('i18n/sovarka-messages-resources.js', 'RPSovarkaMessagesI18n', 'fr');
+  const sujetsFr = new Set(t.cles.filter(k => /^(cs_|re_t_)/.test(k)).map(k => t.fr(k).split('{')[0]));
+  const dossier = path.join(racine, 'migrations');
+  const sujets = new Set();
+  for (const f of fs.readdirSync(dossier).filter(n => /sovarka/.test(n) && n.endsWith('.sql'))) {
+    for (const m of fs.readFileSync(path.join(dossier, f), 'utf8').matchAll(/mail_systeme_poser_interne\(\s*('(?:[^']|'')*'|[a-z_>\-'()]+)\s*,\s*[^,]+,\s*'((?:[^']|'')*)'/g)) sujets.add(m[2].replace(/''/g, "'"));
+  }
+  // Restent en français (listés au relais) : cotisation (module commun des organisations) ; rapports de
+  // surveillance et d'écoute, dont le corps reprend des déplacements et des courriers interceptés.
+  const ignores = ['Fin d\'adhésion — cotisation non renouvelée', 'Rapport de surveillance — ', 'Rapport d\'écoute — ', 'Rapport d\'écoute dérobé — '];
+  for (const s of sujets) {
+    if (ignores.some(i => s.startsWith(i))) continue;
+    assert.ok([...sujetsFr].some(p => s.startsWith(p)), 'sujet sans modèle : ' + s);
+  }
+  assert.ok(sujets.size >= 20, 'relevé des sujets anormalement court');
+});
+
+test('messagerie : le sujet et le corps affichés passent par la présentation traduite', () => {
+  const src = lire('forum.js');
+  assert.ok(src.includes('function mailVuTraduit(m)') && src.includes('window.RPCourriersSovarka?.vu?.(m)'));
+  assert.equal((src.match(/escapeHtmlText\(mailSujetAffiche\(m\)\)/g) || []).length, 3);
+  assert.ok(src.includes("const _actionsMail = extraireActionsMail(mail.body || '');"));
+  assert.ok(src.includes("if (_mailVu !== mail) _actionsMail.corps = extraireActionsMail(_mailVu.body || '').corps;"));
+  assert.ok(src.includes('${escapeHtmlText(_mailVu.subject)}'));
+  const html = lire('plateau.html');
+  assert.ok(html.indexOf('i18n/sovarka-messages-resources.js') < html.indexOf('plateau-sovarka-courriers.js'));
+});
