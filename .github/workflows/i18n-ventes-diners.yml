@@ -1,0 +1,26 @@
+name: I18N - journal de ventes et diners
+on:
+  pull_request:
+    paths:
+      - 'plateau-journal-ventes.js'
+      - 'plateau-restaurant-luthecia.js'
+      - 'i18n/shared-sales-dinner-resources.js'
+      - 'outils/bancs/banc-i18n-ventes-diners-20261111.cjs'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'plateau.html'
+      - '.github/workflows/i18n-ventes-diners.yml'
+permissions:
+  contents: read
+jobs:
+  ventes-diners:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-journal-ventes.js && node --check plateau-restaurant-luthecia.js && node --check i18n/shared-sales-dinner-resources.js
+      - run: node --test outils/bancs/banc-i18n-ventes-diners-20261111.cjs
+      - run: node --test outils/bancs/banc-i18n-editorial.cjs
+      - run: git diff --check

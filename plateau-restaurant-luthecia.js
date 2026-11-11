@@ -1,4 +1,8 @@
 // Facade de la carte et des invitations EXISTANTES. Aucun moteur de paiement ou de stock ici.
+function restaurantTexte(cle,fr,vars){
+ const t=window.RPSharedSalesDinnerI18n?.text;
+ return typeof t==='function'?t(cle,fr,vars):String(fr).replace(/\{([a-z]+)\}/g,(m,k)=>Object.hasOwn(vars||{},k)?String(vars[k]):m);
+}
 function restaurantLutheciaIci() {
   return state.country==='republic'&&state.currentCity==='capitale'&&state.currentBuilding==='hotel-republica'&&state.currentRoom==='restaurant';
 }
@@ -15,7 +19,7 @@ function restaurantLutheciaCarte(data,pays,ville,batiment,piece) {
   const room=piece||state.currentRoom;
   if(!['restaurant','bar'].includes(room)) return data;
   if(data.versionGastronomieLuthecia!==1||!Array.isArray(data.cartesParPiece?.[room])) {
-    showToast('Carte en cours de mise à jour','La nouvelle carte doit être confirmée par le serveur. Aucun paiement effectué.',false);
+    showToast(restaurantTexte('menuUpdating','Carte en cours de mise à jour'),restaurantTexte('menuNotConfirmed','La nouvelle carte doit être confirmée par le serveur. Aucun paiement effectué.'),false);
     return null;
   }
   // Copie de presentation seulement. L'entreprise et ses stocks ne sont jamais recopies ni scindes.
@@ -28,7 +32,7 @@ async function restaurantLutheciaActe(cle,executer) {
   const contexte=contexteNavigationRue();
   const valide=()=>contexteNavigationRueValide(contexte);
   try{return await executer(contexte,valide);}
-  catch(_){if(valide())showToast('Dîner non confirmé','La réponse est incertaine. Réessayez le même ordre pour relire son résultat.',false);}
+  catch(_){if(valide())showToast(restaurantTexte('dinnerUnconfirmed','Dîner non confirmé'),restaurantTexte('dinnerUncertain','La réponse est incertaine. Réessayez le même ordre pour relire son résultat.'),false);}
   finally{RP_RESTAURANT_ACTES.delete(cle);}
 }
 async function restaurantLutheciaInviter(nomInvite,estPJ) {
@@ -42,11 +46,11 @@ async function restaurantLutheciaInviter(nomInvite,estPJ) {
     try{sessionStorage.setItem(stockage,requete);}catch(_){}
     const v=await sbRpcVerdict('restaurant_diner_creer',{p_requete:requete,p_invite:nomInvite,p_pnj:!estPJ,p_message:message},{encoreValide:valide});
     if(!valide())return;
-    if(v?.ok!==true){showToast('Invitation non confirmée','Le serveur n’a pas confirmé ce dîner. Aucun succès annoncé.',false);return;}
+    if(v?.ok!==true){showToast(restaurantTexte('invitationUnconfirmed','Invitation non confirmée'),restaurantTexte('invitationNotConfirmed','Le serveur n’a pas confirmé ce dîner. Aucun succès annoncé.'),false);return;}
     try{sessionStorage.removeItem(stockage);}catch(_){}RP_RESTAURANT_REQUETES.delete(signature);
     document.getElementById('modal-postes')?.classList.remove('open');
     state._restaurantLutheciaSuivi=true;
-    showToast(v.statut==='refusee'?'Invitation refusée':'Invitation enregistrée',v.statut==='refusee'?'Aucun paiement effectué.':'Le dîner sera servi et facturé uniquement après acceptation et confirmation serveur.',v.statut!=='refusee');
+    showToast(v.statut==='refusee'?restaurantTexte('invitationRefused','Invitation refusée'):restaurantTexte('invitationRecorded','Invitation enregistrée'),v.statut==='refusee'?restaurantTexte('noPayment','Aucun paiement effectué.'):restaurantTexte('dinnerAfterAcceptance','Le dîner sera servi et facturé uniquement après acceptation et confirmation serveur.'),v.statut!=='refusee');
     await restaurantLutheciaSuivre(true);
   });
 }
@@ -56,11 +60,11 @@ async function restaurantLutheciaRepondre(id,accepte) {
     const message=(document.getElementById('invitation-reponse-input')?.value||'').trim().slice(0,200);
     const v=await sbRpcVerdict('restaurant_diner_repondre',{p_invitation:id,p_accepte:!!accepte,p_reponse:message},{encoreValide:valide});
     if(!valide())return;
-    if(v?.ok!==true){showToast('Réponse non confirmée','Votre réponse n’a pas été confirmée. Réessayez.',false);return;}
+    if(v?.ok!==true){showToast(restaurantTexte('replyUnconfirmed','Réponse non confirmée'),restaurantTexte('replyRetry','Votre réponse n’a pas été confirmée. Réessayez.'),false);return;}
     state._restaurantLutheciaSuivi=true;
     state._invitationSocialeModalOuvert=false;state._invitationSocialeCourante=null;
     document.getElementById('modal-postes')?.classList.remove('open');
-    showToast(accepte?'Invitation acceptée':'Invitation refusée',accepte?'Le dîner sera servi après confirmation du restaurant.':'Aucun dîner facturé.',accepte);
+    showToast(accepte?restaurantTexte('invitationAccepted','Invitation acceptée'):restaurantTexte('invitationRefused','Invitation refusée'),accepte?restaurantTexte('dinnerAfterConfirmation','Le dîner sera servi après confirmation du restaurant.'):restaurantTexte('noDinnerCharged','Aucun dîner facturé.'),accepte);
     // Aucun effet ici. Le service atomique applique les effets aux deux convives.
   });
 }
@@ -84,7 +88,7 @@ async function restaurantLutheciaSuivre(force=false) {
       const acquit=await sbRpcVerdict('restaurant_diner_acquitter',{p_invitation:invitation.id},{encoreValide:valide});
       if(!valide())return;
       if(acquit?.ok!==true||acquit.rejeu)continue;
-      showToast(resultat.ok?'Dîner servi':'Dîner non servi',resultat.ok?('Deux repas et '+(resultat.champagnes?'deux champagnes':'une bouteille de vin')+' servis ; '+resultat.total+' FR facturés une seule fois à l’organisateur.'):'Le serveur a refusé le service : aucun débit ni consommation partielle.',!!resultat.ok);
+      showToast(resultat.ok?restaurantTexte('dinnerServed','Dîner servi'):restaurantTexte('dinnerNotServed','Dîner non servi'),resultat.ok?restaurantTexte('mealServed','Deux repas et {drinks} servis ; {total} FR facturés une seule fois à l’organisateur.',{drinks:resultat.champagnes?restaurantTexte('champagnes','deux champagnes'):restaurantTexte('wine','une bouteille de vin'),total:resultat.total}):restaurantTexte('mealDeclined','Le serveur a refusé le service : aucun débit ni consommation partielle.'),!!resultat.ok);
       if(resultat.ok&&typeof tracerActionPourRumeur==='function')tracerActionPourRumeur('diner_affaires_accepte',invitation.invite);
       if(resultat.ok&&invitation.inviteur===c.nom&&typeof advanceTime==='function')advanceTime(2);
     }
@@ -96,7 +100,7 @@ async function restaurantLutheciaSuivre(force=false) {
 function ordresRestaurantLuthecia(buildingId,roomId) {
   if(state.country!=='republic'||state.currentCity!=='capitale'||buildingId!=='hotel-republica'||roomId!=='restaurant')return [];
   const ordre=BUILDINGS[buildingId]?.rooms?.[roomId]?.orders?.find(o=>o.fn==='diner_affaires');
-  return ordre?[{...ordre,desc:'Après acceptation : deux repas gastronomiques et deux verres de champagne pour 300 FR. 2 PA. +10 Santé, +2 Moral, +5 INF et +3 PA au prochain Dormir pour chaque convive. Aucun paiement si refus ou service impossible.',masque:['produire_commerce']}]:[];
+  return ordre?[{...ordre,desc:restaurantTexte('dinnerOrderDesc','Après acceptation : deux repas gastronomiques et deux verres de champagne pour 300 FR. 2 PA. +10 Santé, +2 Moral, +5 INF et +3 PA au prochain Dormir pour chaque convive. Aucun paiement si refus ou service impossible.'),masque:['produire_commerce']}]:[];
 }
 if(typeof window!=='undefined'){
   window.RP_ORDRES_DYNAMIQUES=window.RP_ORDRES_DYNAMIQUES||[];
