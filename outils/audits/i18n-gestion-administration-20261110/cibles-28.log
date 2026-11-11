@@ -1,0 +1,36 @@
+✔ 21 clés, neuf langues, paramètres identiques (9.531952ms)
+✔ entrepôt : stock civil, prix, interdiction et saisie inchangés en neuf langues (3398.82134ms)
+✔ notaire : même recherche, résultats et panne partielle, bascule sans perdre le nom (2848.344519ms)
+✔ français 1440 : entrepôt et résultats notariaux identiques au main (4253.994619ms)
+✔ les neuf langues couvrent les catalogues de base sans variables perdues (1.303397ms)
+✔ les traductions identiques et unités monétaires restent visibles pour relecture (0.181007ms)
+✔ tout catalogue de ressources chargé par le plateau ou l’accueil est inclus dans la mesure (0.948182ms)
+✔ 52 clés, neuf langues, paramètres et français égaux au dictionnaire historique (13.973619ms)
+✔ terminal réel : neuf langues, RTL, saisies et données conservées sans nouvelle lecture (4633.058063ms)
+✔ terminal français 1440 : pixels identiques au main 336eace8 (5032.892394ms)
+✔ 110 titres de notification conformes dans neuf langues, hors messages libres (2.465554ms)
+✔ 40 titres supplémentaires sont émis par les actions politiques et restent des titres seuls (4.811171ms)
+✔ incident et sous-message non modifiés, titre non injecté en HTML (0.323598ms)
+✔ 21 clés, neuf langues, paramètres et chiffres des origines préservés (24.685654ms)
+✔ port et douanes : neuf langues, lecture unique, pas de commande ni modification (4468.550828ms)
+✔ français à 1440 : port et effectifs pixel-identiques au main 336eace8 (4807.673787ms)
+✔ 58 clés de corps dans neuf langues ; paramètres et stock réutilisé depuis #698 (9.138043ms)
+✔ vente/don fr : commandes et conséquences identiques, valeurs zéro conservées (335.363778ms)
+✔ vente/don en : commandes et conséquences identiques, valeurs zéro conservées (316.949617ms)
+✔ vente/don es : commandes et conséquences identiques, valeurs zéro conservées (404.729698ms)
+✔ vente/don zh-TW : commandes et conséquences identiques, valeurs zéro conservées (631.418822ms)
+✔ vente/don ru : commandes et conséquences identiques, valeurs zéro conservées (326.719234ms)
+✔ vente/don ko : commandes et conséquences identiques, valeurs zéro conservées (342.110976ms)
+✔ vente/don ar : commandes et conséquences identiques, valeurs zéro conservées (307.296712ms)
+✔ vente/don pt-BR : commandes et conséquences identiques, valeurs zéro conservées (318.862274ms)
+✔ vente/don de : commandes et conséquences identiques, valeurs zéro conservées (324.951039ms)
+✔ formulaire réel : neuf langues à chaud, saisie et habilitations intactes, aucune transaction (2048.007536ms)
+✔ formulaire français 1440 : pixels identiques au main 336eace8 (2707.447933ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18807.202454

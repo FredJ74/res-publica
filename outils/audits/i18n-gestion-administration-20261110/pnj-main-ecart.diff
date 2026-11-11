@@ -1,0 +1,42 @@
+--- api/_pnj-scenes-generes.js	2026-11-10 21:30:54.476330915 +0000
++++ /tmp/hg-scenes-main-gen.js	2026-11-10 21:51:10.232663108 +0000
+@@ -4806,8 +4806,8 @@
+   "[\"soviet\",\"capitale\",\"centre-artisanal\",\"travees\"]": {
+     "pays": "Sovarka",
+     "ville": "Novomirsk",
+-    "batiment": "Centre Artisanal",
+-    "piece": "Travées",
++    "batiment": "Centre artisanal de Novomirsk",
++    "piece": "Accueil du centre artisanal",
+     "personnes": [
+       "Sava Goussev",
+       "Kolia Titov",
+@@ -4817,22 +4817,22 @@
+   "[\"soviet\",\"capitale\",\"centre-artisanal\",\"echoppe_facade\"]": {
+     "pays": "Sovarka",
+     "ville": "Novomirsk",
+-    "batiment": "Centre Artisanal",
+-    "piece": "Échoppe Façade — Local à louer",
++    "batiment": "Centre artisanal de Novomirsk",
++    "piece": "Grand atelier — Local à louer",
+     "personnes": []
+   },
+   "[\"soviet\",\"capitale\",\"centre-artisanal\",\"atelier_milieu\"]": {
+     "pays": "Sovarka",
+     "ville": "Novomirsk",
+-    "batiment": "Centre Artisanal",
+-    "piece": "Atelier Central — Local à louer",
++    "batiment": "Centre artisanal de Novomirsk",
++    "piece": "Atelier moyen — Local à louer",
+     "personnes": []
+   },
+   "[\"soviet\",\"capitale\",\"centre-artisanal\",\"reserve_arriere\"]": {
+     "pays": "Sovarka",
+     "ville": "Novomirsk",
+-    "batiment": "Centre Artisanal",
+-    "piece": "Réserve Arrière — Local à louer",
++    "batiment": "Centre artisanal de Novomirsk",
++    "piece": "Petit atelier — Local à louer",
+     "personnes": []
+   },
+   "[\"soviet\",\"capitale\",\"centre-affaires\",\"hall\"]": {

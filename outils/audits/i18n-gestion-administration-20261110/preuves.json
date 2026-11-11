@@ -1,0 +1,70 @@
+{
+  "sha_code_teste": "08336f09",
+  "main_integre": "2f30d23b",
+  "nouvelles_cles": 159,
+  "langues": [
+    "fr",
+    "en",
+    "es",
+    "zh-TW",
+    "ru",
+    "ko",
+    "ar",
+    "pt-BR",
+    "de"
+  ],
+  "tests_cibles": 28,
+  "cas_nouveaux": 22,
+  "globaux_branche": {
+    "reussis": 10,
+    "total": 12
+  },
+  "globaux_identiques_main": true,
+  "comparaisons_png_fr_1440": {
+    "gestion": {
+      "octets": 421912,
+      "sha256_avant_et_apres": "4570d643d6a04a33db875654aae349c630bca3282c0fab685ad733d87216b314",
+      "identiques": true
+    },
+    "entrepot": {
+      "octets": 17929,
+      "sha256_avant_et_apres": "0e0c6c93d05067af7d4c56fe9f4284102dede808e190c8a5b5e551cb0422060c",
+      "identiques": true
+    },
+    "notaire": {
+      "octets": 29527,
+      "sha256_avant_et_apres": "77d028a4435bb9924386f495cf158420201c59712b2da04f82610e2a8f6383ff",
+      "identiques": true
+    },
+    "vente-don": {
+      "octets": 27720,
+      "sha256_avant_et_apres": "4e8788f5c3f5b3a29247e528a1f2062ce1db106d5216048bda88f37c0c6bf252",
+      "identiques": true
+    },
+    "port": {
+      "octets": 43587,
+      "sha256_avant_et_apres": "8dc4a4de7c109c93a180326e2373109322cca03b10011f473842cb2ed9092d5e",
+      "identiques": true
+    },
+    "douanes": {
+      "octets": 9834,
+      "sha256_avant_et_apres": "b48dc5616b03d875242ec9a233a1f3aab2bb441f9831a1b96f3010a624eb0150",
+      "identiques": true
+    }
+  },
+  "appareils_physiques": false,
+  "recette_authentifiee": false,
+  "ecritures_production": false,
+  "PR_creee": false,
+  "fusion": false,
+  "Vercel_READY_verifie": false,
+  "acces_production": "curl HEAD : CONNECT tunnel failed, HTTP 403 proxy envoy, 2026-11-10 21:49 UTC",
+  "bancs_clients": {
+    "prevus": 276,
+    "reussis": 275,
+    "echecs": 1,
+    "banc_rouge": "banc-pnj-localisation-psm.mjs",
+    "reproduit_main_2f30d23b": true,
+    "cause": "scenes PNJ generees non reconciliees avec nouveaux noms du centre artisanal de Novomirsk (#701)"
+  }
+}

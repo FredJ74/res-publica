@@ -10,6 +10,7 @@ const nav = read('plateau-navigation.js');
 const politique = read('plateau-politique.js');
 const data = read('data.js');
 const router = read('plateau-router.js');
+const objets = read('plateau-objets.js');
 let n=0;
 function check(nom, ok) { assert.ok(ok,nom); console.log('OK', ++n, nom); }
 function extract(src, start, end) {
@@ -25,7 +26,7 @@ function dialogue() {
 async function run(src,first,last,deps,state,args) {
  const ui=dialogue();
  const f=first.match(/function\s+(\w+)/)[1];
- const fn=new Function('state','document',...Object.keys(deps),extract(src,first,last)+';return '+f+';');
+ const fn=new Function('state','document',...Object.keys(deps),extract(objets,'function ficheEchapper(', '// Valeur lisible') + extract(objets,'function ficheLibelleHtml(', '// Bloc OFFICIEL.') + extract(src,first,last)+';return '+f+';');
  await fn(state,ui.document,...Object.values(deps))(...args);
  return ui.elements['postes-body'].innerHTML;
 }
@@ -59,7 +60,7 @@ async function main() {
  shop.inventory=[{stackKey:'bois',qty:5}];
  html=await run(commerce,'async function doVendreMatiereCommerce(','async function confirmerVendreMatiereCommerceUI(',food,shop,['bar','magasin','salle',0,0]);
  check('Commerce : vente disponible après approvisionnement PJ',html.includes('confirmerVendreMatiereCommerceUI('));
- check('Commerce : don conservé',html.includes('>Donner</button>'));
+ check('Commerce : don conservé avec son handler et son libellé',/<button[^>]+onclick="confirmerVendreMatiereCommerceUI\([^"]+'don'\)"[^>]*><span data-i18n="materialTrade.donate">Donner<\/span><\/button>/.test(html));
  const arm={COUNTRIES:{republic:{cur:'FR'}},chargerArmurerieLocale:async()=>({parametres:{prixAchatMatiere:{metal:20}},stockMatieres:{metal:49}}),
  RESSOURCES_ECONOMIE:{metal:{label:'Métal'}},showToast:()=>{}};
  const gun={country:'republic',currentCity:'capitale',currentBuilding:'armurerie',char:{name:'Arnie'},inventory:[]};
