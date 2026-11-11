@@ -43,6 +43,9 @@ de décisions du **10 novembre 2026 au soir** (20 h 53 – 21 h 30), à coder en
 5. Caméra trouvée : celui qui trouve **la détruit ou l'emporte** (inventaire) ; l'emporter est **un vol avec trace**, sauf si
    elle était posée chez lui. Le propriétaire reçoit un mail **« Signal perdu »** sans savoir qui l'a trouvée ; celui qui
    trouve **ignore le propriétaire** (seules une enquête de police sur la trace ou les rumeurs le révèlent).
+- **Placement (décision de Fred, 11/11/2026, 0 h 58)** : dans une pièce, « Fouiller les lieux » est un **ordre de pièce**,
+  en vert (légal), **tout en bas** de la liste des ordres ; il n'est plus dans la colonne des personnes présentes. Dans une
+  vue de rue (sans liste d'ordres), le bouton reste dans la colonne.
 
 ### Piratage
 6. **3 PA** par tentative, depuis un bureau connecté ; base **45 %** ± intelligence ; cible protégée par un intranet : seuls
@@ -99,3 +102,33 @@ de décisions du **10 novembre 2026 au soir** (20 h 53 – 21 h 30), à coder en
 
 - **Décision 19 (10/11, 21 h 50)** : recettes `couinator_3000_commerce` et `cartouche_encre_commerce`, génériques `couinator-3000` et `cartouche-encre` (type `electronique-informatique`) ; migration `20261110214000_equipements_couinator_cartouche` appliquée. Les objets n'ont pas encore d'effet (Fouiller les lieux et imprimante à venir).
 - **Téléphone cellulaire (10/11, 22 h 15)** : `pnj_rappeler_radio` accepte une radio **ou** un téléphone (générique `telephone-portable-cellulaire`) chez l'appelant et chez au moins un membre de l'unité, même ville uniquement ; le téléphone se donne à un employé par le bouton 📦 existant. Migration `20261110221000_telephone_cellulaire_rappel` appliquée ; textes du bouton 📻 et des refus dans `plateau-multijoueur.js`.
+- **Étape 1 de la nuit (11/11, vers 0 h 30) — surveillance, Fouiller les lieux, Couinator** : migration
+  `20261111000500_equipements_surveillance` appliquée (tables `cameras_posees`, `cameras_decouvertes` ; RPC `cameras_lire`,
+  `camera_poser`, `camera_reprendre`, `camera_frequence`, `fouiller_lieux`, `camera_trouvee_traiter` ; passe horaire
+  `cameras_rapports_passe` planifiée par **pg_cron** à la 7e minute de chaque heure — extension activée pour l'occasion,
+  Vercel n'offrant qu'un cron quotidien). Acte illégal `poser_camera` (délit mineur, détection 30). Rapports : passages lus
+  dans `historique_deplacements` ; « actes filmés » = traces serveur datées commises pendant la présence. Écran :
+  `plateau-surveillance.js` (bloc dans la colonne des personnes présentes, pièce et rue ; pop-up animée du Couinator).
+  **Choix techniques** : la pose exige au moins un ordinateur connecté (sans quoi la caméra serait inopérante) ; un rapport
+  n'est envoyé que s'il y a eu du passage ; « chez soi » = propriétaire foncier du lot (bâtiments construits par un PJ).
+  Banc `outils/bancs/banc-equipements-surveillance.sql` (annulé) : pose, rapport par mail, fouille et emport validés avant
+  un dernier contrôle bloqué par le garde d'inventaire du banc ; **rejoué vert le 11/11 à 0 h 10**.
+- **Étapes 2 et 3 (11/11, vers 1 h) — piratage et dossiers** : migration `20261111010000_equipements_piratage_dossiers`
+  appliquée (tables `dossiers_informatiques`, `piratages_acces` ; RPC `pirater`, `piratage_dossier_agir`, `dossiers_lire`,
+  `dossier_ouvrir`, `dossier_deplacer`, `dossier_detruire`, `dossier_transferer` ; l'imprimante, l'imprimante 3D, le
+  périphérique de stockage et l'intranet s'installent désormais dans le bureau). Les dossiers sont attachés à l'**objet**
+  (identifiant de l'ordinateur ou du périphérique), donc suivent l'ordinateur volé. Écran : boutons « Pirater » et « Mes
+  dossiers » de la fenêtre des équipements (`plateau-informatique.js`). Banc `banc-equipements-piratage.sql` **vert** (registre,
+  banque, casernes, ordinateur avec copie unique, dossiers rangés, traces, refus hors bureau). **Choix techniques** : alerte
+  d'une institution = ministre des Finances (banque), de la Défense (casernes), de l'Intérieur (registres), s'il est tenu par un
+  PJ ; un PJ cible a l'intranet s'il en a installé un, où que ce soit ; registre « signalements » seulement en Sovarka.
+- **Étapes 4 à 6 (11/11) — appliquées à 0 h 35, banc `banc-equipements-imprimantes-vol.sql` vert** : migration `20261111020000_equipements_imprimantes_vol_organisations`
+  (faux document à l'imprimante 70 %, cartouche, réimpression 1 PA sans jet ; couteau en plastique bonus 3, légal ; souvenirs
+  imprimés depuis un plan ; banque de plans 3D, prix = 2 × coût de revient, ÷ 3 en Sovarka ; vol 3 PA, 20 % ± (DUP − 10),
+  détection du vol, rien n'est pris si repéré ; cession au chef et autorisations nominatives). **Choix techniques** : la
+  réimpression coûte 1 PA ; un faux raté consomme la cartouche ; la banque de plans couvre les cartes postales et les objets
+  d'intégration locale du jeu.
+- **11/11, matin (branche `claude/fouiller-ceder-catalogues-20261111`)** : « Fouiller les lieux » déplacé en ordre de pièce
+  (source dynamique `ordresFouillerLieux`, marque `basDeListe`, routeur avant tout débit) ; bouton **« Céder à
+  l'organisation »** sur son matériel installé, proposé au chef d'au moins une organisation (choix de l'organisation, le
+  serveur vérifie que le local est loué par elle) ; le matériel cédé s'affiche « à l'organisation ». Aucune migration.

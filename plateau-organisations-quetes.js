@@ -3175,7 +3175,9 @@ function getMembresGroupeAvecStat(stat) {
 // prochain appel, sans code supplementaire. Jamais d'ecriture dans state.char.stats.
 function bonusEntIntegrationLocale() {
   return (state.inventory || []).some(i =>
-    i && i.familleProduitMarche === 'integration_locale' && i.bonusIntegrationVille === state.currentCity
+    // Cible « pays.ville » (10/11/2026) : ville_a/ville_b/capitale existent dans les deux empires.
+    i && i.familleProduitMarche === 'integration_locale' &&
+      (i.bonusIntegrationVille === state.currentCity || i.bonusIntegrationVille === state.country + '.' + state.currentCity)
   ) ? 1 : 0;
 }
 

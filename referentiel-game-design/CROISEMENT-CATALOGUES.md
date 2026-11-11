@@ -1,20 +1,19 @@
 # Croisement des identifiants d'ordres — source client et prix serveur
 
-**Snapshot (9 novembre 2026)** : `data.js` au commit `a8bd5e26` versus configuration Supabase `ordres_couts` obtenue par `SELECT`. Extraction stricte des seuls identifiants `fn: '...'` ou `fn: "..."` **hors lignes de commentaires**. Les variantes dynamiques, les autres fichiers, la disponibilité et les permissions ne sont pas inférées.
+**Instantané (11 novembre 2026)** : `data.js` au commit `50e3c118` versus configuration Supabase `ordres_couts` relevée par `SELECT`. Extraction des seuls identifiants `fn: '...'` ou `fn: "..."` **hors commentaires**. Les variantes dynamiques, les autres fichiers, la disponibilité et les permissions ne sont pas inférées.
 
 ## Totaux et précautions
 
-- **1072 déclarations `fn:` non commentées** dans `data.js`, regroupées sous **417 identifiants distincts**.
-- **517 entrées de coûts** sur Supabase, dont **440 correspondances nominales directes** et **77 non retrouvées** selon ce critère. Une absence peut être normale pour une variante `#reussite` ou un dispatch dynamique.
+- **1088 déclarations `fn:` non commentées** dans `data.js`, regroupées sous **424 identifiants distincts**.
+- **534 entrées de coûts** sur Supabase, dont **447 correspondances nominales directes** et **87 non retrouvées** selon ce critère. Une absence peut être normale pour une variante `#reussite`, un dispatch dynamique ou un ordre déclaré dans un fichier `plateau-*.js`.
 - **11 identifiants non commentés côté client** sans entrée directe de coût (menus / prestations gratuites / mécanismes externes possibles).
-- Un piège d'audit concret est éliminé : **`contrebande` figure seulement dans un commentaire de `data.js` comme ordre supprimé**, et **ne doit pas être compté comme ordre déclaré actif**. Le balayage regex naïf donnerait à tort 1 073 occurrences et 418 identifiants.
 - Une concordance de nom ne démontre ni emplacement réellement accessible, ni respect du coût, ni résultat serveur. Ne supprimer aucun coût sur cette seule comparaison.
 
 ## Correspondance par identifiant
 
 | Fonction de coût serveur | PA configurés | Coût numérique configuré | Occurrences client non commentées |
 |---|---:|---:|---:|
-| `acheter_accessoire_personnalise` | 0 | 0 | 1 |
+| `acheter_accessoire_personnalise` | 0 | 0 | 2 |
 | `acheter_armoire_souvenirs` | 0 | 0 | — |
 | `acheter_bombe_illegale` | 2 | 0 | 1 |
 | `acheter_bombe_illegale#reussite` | 0 | 1200 | — |
@@ -86,18 +85,18 @@
 | `censurer_media` | 2 | 0 | 1 |
 | `centre_anti_poison` | 1 | 60 | 12 |
 | `centre_anti_poison` | 1 | 150 | 12 |
-| `choisir_accessoire_club` | 0 | 0 | 1 |
+| `choisir_accessoire_club` | 0 | 0 | 2 |
 | `choisir_arme` | 0 | 0 | 2 |
 | `choisir_arme` | 1 | 0 | 2 |
 | `choisir_suite` | 1 | 0 | 1 |
 | `commanditer_sondage` | 1 | 200 | 1 |
 | `commerce_personnaliser` | 0 | 0 | — |
-| `commerce_pj` | 0 | 0 | 7 |
+| `commerce_pj` | 0 | 0 | 9 |
 | `commerces_fonds_murs` | 0 | 0 | 1 |
 | `compte_offshore` | 0 | 0 | 1 |
 | `conference_presse` | 2 | 0 | 2 |
 | `conseil_entraineur_adjoint` | 0 | 0 | 1 |
-| `consommer_buvette` | 1 | 50 | 1 |
+| `consommer_buvette` | 1 | 50 | — |
 | `construire_sur_terrain` | 0 | 0 | 10 |
 | `consulter_administration_port` | 0 | 0 | 1 |
 | `consulter_archives_notariales` | 0 | 0 | 1 |
@@ -185,7 +184,7 @@
 | `don_objet_pnj` | 0 | 0 | — |
 | `donner_argent_pnj` | 1 | 0 | 1 |
 | `donner_conf` | 2 | 0 | 1 |
-| `dormir_chambre` | 0 | 0 | 3 |
+| `dormir_chambre` | 0 | 0 | 4 |
 | `dossiers_plaintes` | 0 | 0 | 2 |
 | `ecouter_rumeurs` | 0 | 0 | 7 |
 | `ecouter_rumeurs` | 1 | 0 | 7 |
@@ -211,12 +210,23 @@
 | `falsifier_document#reussite` | 0 | 300 | — |
 | `falsifier_document#tentative` | 3 | 0 | — |
 | `falsifier_listes_electorales` | 2 | 0 | 3 |
+| `ferme_lapin` | 2 | 0 | — |
+| `ferme_legumes` | 1 | 0 | — |
+| `ferme_oeufs` | 1 | 0 | — |
+| `ferme_poulet` | 2 | 0 | — |
+| `ferme_renne` | 5 | 0 | — |
+| `ferme_traire` | 1 | 0 | — |
 | `financer_communal` | 1 | 0 | 2 |
 | `financer_oeuvre_culturelle` | 1 | 600 | 6 |
 | `fixer_impots_locaux` | 2 | 0 | 2 |
 | `fixer_prix_achat_entrepot` | 1 | 0 | 5 |
 | `fixer_prix_vente_directe` | 1 | 0 | 3 |
 | `fixer_repartition_production` | 1 | 0 | 3 |
+| `foret_aller` | 0 | 0 | — |
+| `foret_couper` | 2 | 0 | 1 |
+| `foret_enfoncer` | 0 | 0 | 1 |
+| `foret_rencontre` | 0 | 0 | — |
+| `foret_revenir` | 0 | 0 | 1 |
 | `fuite_info` | 3 | 0 | 1 |
 | `garage_reviser` | 0 | 0 | 1 |
 | `garage_vehicules` | 0 | 0 | 1 |
@@ -286,6 +296,8 @@
 | `louer_box` | 1 | 0 | 1 |
 | `louer_local` | 1 | 0 | 22 |
 | `louer_lot_ici` | 1 | 0 | 10 |
+| `maison_habitant` | 0 | 0 | 1 |
+| `manger_oeufs` | 0 | 0 | — |
 | `manger_ration` | 0 | 0 | 1 |
 | `marchander_vote` | 1 | 100 | 1 |
 | `marchandises_non_reclamees` | 0 | 0 | 1 |
@@ -410,7 +422,7 @@
 | `recruter_policier_cynophile` | 1 | 0 | 2 |
 | `regarder_live` | 0 | 0 | 1 |
 | `registre_assemblee` | 0 | 0 | 1 |
-| `rejoindre_club_supporters` | 1 | 50 | 1 |
+| `rejoindre_club_supporters` | 1 | 50 | 2 |
 | `relations_bilaterales` | 0 | 0 | 6 |
 | `remonter_renseignement` | 1 | 0 | 1 |
 | `rendre_sentence` | 2 | 0 | 2 |
@@ -460,6 +472,7 @@
 | `soins_urgence` | 0 | 500 | 10 |
 | `solliciter_audience_president` | 0 | 0 | 1 |
 | `sortie_hopital` | 0 | 0 | 13 |
+| `souscrire_bon_etat` | 0 | 0 | 1 |
 | `sovarka_accepter_cession` | 1 | 0 | — |
 | `sovarka_acte_officiel` | 1 | 8 | — |
 | `sovarka_acte_officiel_autorite` | 1 | 0 | — |
@@ -467,6 +480,7 @@
 | `sovarka_conscription` | 0 | 0 | 1 |
 | `sovarka_conscrit_presenter` | 1 | 0 | 1 |
 | `sovarka_demander_local` | 1 | 0 | — |
+| `sovarka_ecoutes` | 0 | 0 | 1 |
 | `sovarka_extrait_parti` | 1 | 7 | 1 |
 | `sovarka_loi_deposer` | 1 | 0 | — |
 | `sovarka_lois_examen` | 0 | 0 | 1 |
@@ -514,6 +528,7 @@
 | `transfert_compromis` | 1 | 0 | 1 |
 | `travailler_chantier` | 0 | 0 | 10 |
 | `travailler_jardins` | 1 | 0 | 1 |
+| `trinquer_habitant` | 3 | 0 | 1 |
 | `truquer_depouillement` | 2 | 0 | 3 |
 | `utiliser_explosifs` | 3 | 0 | — |
 | `vendre_bois_imprimerie` | 0 | 0 | 2 |
@@ -528,6 +543,7 @@
 | `visiter_prisonnier` | 1 | 0 | 1 |
 | `voir_ma_section` | 0 | 0 | 1 |
 | `voler` | 2 | 0 | — |
+| `voler_archives_ecoute` | 2 | 0 | 1 |
 | `voler_materiel_chantier` | 2 | 0 | 10 |
 | `voter_election` | 0 | 0 | 3 |
 | `voter_loi` | 0 | 0 | 1 |
@@ -539,7 +555,7 @@ Cette liste n'est pas une liste de bogues. Ces identifiants exigent une lecture 
 - `consulter_catalogue_manufactures` (1 déclaration)
 - `sovarka_cession` (1 déclaration)
 - `sovarka_commerces_libres` (1 déclaration)
-- `sovarka_demande_location` (1 déclaration)
+- `sovarka_demande_location` (4 déclarations)
 - `sovarka_mon_parti` (1 déclaration)
 - `sovarka_partis` (1 déclaration)
 - `sovarka_registre_plaintes` (1 déclaration)
@@ -550,4 +566,4 @@ Cette liste n'est pas une liste de bogues. Ces identifiants exigent une lecture 
 
 ## Méthode de certification suivante
 
-Reconstituer `pays → ville → bâtiment → pièce → fn → handler → autorité → débit → effet → test → recette` pour chaque ordre réellement proposé. Les 517 tarifs comprennent des noms techniques et ne représentent ni 517 commandes disponibles, ni toutes les commandes possibles.
+Reconstituer `pays → ville → bâtiment → pièce → fn → handler → autorité → débit → effet → test → recette` pour chaque ordre réellement proposé. Les 534 tarifs comprennent des noms techniques et ne représentent ni 534 commandes disponibles, ni toutes les commandes possibles.

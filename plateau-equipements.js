@@ -17,7 +17,8 @@
    reponses et n'ecrit rien lui-meme.
    =========================================================================== */
 
-const EQUIPEMENTS_LIBELLES = { 'ordinateur-complet': 'Ordinateur', 'box-internet': 'Box internet', 'armoire_souvenirs': 'Armoire à souvenirs' };
+const EQUIPEMENTS_LIBELLES = { 'ordinateur-complet': 'Ordinateur', 'box-internet': 'Box internet', 'armoire_souvenirs': 'Armoire à souvenirs',
+  'imprimante-papier': 'Imprimante papier', 'imprimante-3d': 'Imprimante 3D', 'peripherique-stockage': 'Périphérique de stockage', 'peripherique-reseau-intranet': 'Intranet' };
 const TRADING_VILLES = { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' };
 // Nom d'une ville d'entrepôt, quel que soit son pays (trading international, 05/11/2026).
 function tradingNomVille(pays, ville) {
@@ -97,18 +98,26 @@ async function ouvrirModalEquipements() {
       equipementsBouton('equipementOptionPremium()', 'Activer l\'option') + '</div>';
   }
 
+  // Cession a une organisation (decision 18, 11/11/2026) : proposee seulement au chef d'au moins une
+  // organisation ; le serveur verifie que le local est loue par elle.
+  let peutCeder = false;
+  if (typeof materielCederChoisir === 'function') {
+    const o = await sbRpc('organisation_materiel_lire', {}).catch(function () { return null; });
+    peutCeder = !!(o && o.ok === true && Array.isArray(o.organisations) && o.organisations.length);
+  }
   h += '<div class="cpj-titre">Installés</div>';
   if (!r.installes.length) h += '<p class="cpj-note">Aucun équipement.</p>';
   r.installes.forEach(function (e) {
     h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin:.3rem 0">' +
       '<span>' + equipementsEchapper(EQUIPEMENTS_LIBELLES[e.generique_id] || e.nom) +
-      (e.a_moi ? '' : ' <span class="cpj-note">(à ' + equipementsEchapper(e.proprietaire) + ')</span>') +
+      (e.a_moi ? '' : ' <span class="cpj-note">(' + (/^orga:/.test(e.proprietaire || '') ? 'à l\'organisation' : 'à ' + equipementsEchapper(e.proprietaire)) + ')</span>') +
       (e.a_moi && e.delai_jusqu_au ? ' <span class="cpj-note">— bail perdu : à désinstaller avant le ' +
         equipementsEchapper(new Date(e.delai_jusqu_au).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })) +
         ', sinon il revient au propriétaire des lieux</span>' : '') +
       (e.serrure ? ' <span class="cpj-note">— serrure n° ' + equipementsEchapper(e.serrure.numero) + (e.serrure.fermee ? ', fermée à clé' : ', ouverte') + '</span>' : '') +
       '</span><span style="display:flex;gap:.3rem">' +
       (e.serrure && e.serrure.a_cle ? equipementsBouton('serrureBasculer(\'' + e.serrure.id + '\',' + (!e.serrure.fermee) + ')', e.serrure.fermee ? 'Ouvrir' : 'Fermer à clé') : '') +
+      (e.a_moi && peutCeder ? equipementsBouton('materielCederChoisir(\'' + e.id + '\')', 'Céder à l\'organisation') : '') +
       (e.a_moi ? equipementsBouton('equipementDesinstaller(\'' + e.id + '\')', 'Désinstaller') : '') + '</span></div>';
   });
 
@@ -125,8 +134,13 @@ async function ouvrirModalEquipements() {
   h += '<div class="cpj-titre">Connexion internet</div>';
   h += r.connexion
     ? '<p class="cpj-note">Votre ordinateur et votre box sont installés : vous êtes connecté.</p>' +
-      equipementsBouton('ouvrirTrading()', 'Trading de matières premières', true)
+      equipementsBouton('ouvrirTrading()', 'Trading de matières premières', true) +
+      (typeof ouvrirPiratage === 'function' ? ' ' + equipementsBouton('ouvrirPiratage()', 'Pirater') : '')
     : '<p class="cpj-note">Installez ici votre ordinateur et votre box internet pour vous connecter.</p>';
+  // Dossiers informatiques (11/11/2026) : ordinateur ou peripherique de stockage installe ici.
+  if (typeof ouvrirDossiers === 'function') h += '<div style="margin-top:.6rem">' + equipementsBouton('ouvrirDossiers()', 'Mes dossiers') +
+    (typeof ouvrirImprimantes === 'function' ? ' ' + equipementsBouton('ouvrirImprimantes()', 'Imprimantes') : '') +
+    (typeof ouvrirMaterielOrganisation === 'function' ? ' ' + equipementsBouton('ouvrirMaterielOrganisation()', 'Matériel d\'organisation') : '') + '</div>';
   equipementsModale('Équipements du local', h);
 }
 

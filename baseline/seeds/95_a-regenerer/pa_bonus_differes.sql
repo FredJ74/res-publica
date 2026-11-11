@@ -13,5 +13,11 @@ INSERT INTO public.pa_bonus_differes (source,montant) VALUES
   ('menu_sovarka_tsars', 3),
   ('repas_gastronomique', 1),
   ('sandwich', 1),
-  ('service_etage_hotel', 1)
+  ('service_etage_hotel', 1),
+  ('starovka_menu_eleveur', 3),
+  ('starovka_menu_pecheur', 3),
+  ('starovka_menu_terre_mer', 3),
+  ('volga_menu_proletaire', 3),
+  ('volga_menu_repos', 3),
+  ('volga_menu_stakhanoviste', 3)
 ON CONFLICT DO NOTHING;

@@ -1,0 +1,23 @@
+name: Musée national de Novomirsk — neuf salles WebP
+on:
+  pull_request:
+    paths:
+      - 'data.js'
+      - 'plateau.html'
+      - 'images/Sovarka/Novomirsk/Novomirsk_musée national_*'
+      - 'outils/bancs/banc-musee-national-novomirsk-neuf-salles.mjs'
+      - '.github/workflows/novomirsk-musee-national-check.yml'
+permissions:
+  contents: read
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check data.js
+      - run: node --test outils/bancs/banc-musee-national-novomirsk-neuf-salles.mjs
+      - run: git diff --check
