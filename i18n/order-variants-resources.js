@@ -54,7 +54,8 @@
     "permit_bribe_general": "Corrompre un fonctionnaire (accélérer)",
     "permit_bribe_permit": "Corrompre un fonctionnaire (accélérer le permis)",
     "corruption_director": "Corrompre le directeur",
-    "corruption_false_report": "Falsifier un proces-verbal"
+    "corruption_false_report": "Falsifier un proces-verbal",
+    "guide_listen": "Écouter la guide"
   },
   "en": {
     "hotel_basic": "Reserve a room",
@@ -103,7 +104,8 @@
     "permit_bribe_general": "Bribe an official (speed things up)",
     "permit_bribe_permit": "Bribe an official (expedite the permit)",
     "corruption_director": "Bribe the director",
-    "corruption_false_report": "Falsify an official report"
+    "corruption_false_report": "Falsify an official report",
+    "guide_listen": "Listen to the guide"
   },
   "es": {
     "hotel_basic": "Reservar una habitación",
@@ -152,7 +154,8 @@
     "permit_bribe_general": "Sobornar a un funcionario (acelerar)",
     "permit_bribe_permit": "Sobornar a un funcionario (agilizar el permiso)",
     "corruption_director": "Sobornar al director",
-    "corruption_false_report": "Falsificar un acta oficial"
+    "corruption_false_report": "Falsificar un acta oficial",
+    "guide_listen": "Escuchar a la guía"
   },
   "zh-TW": {
     "hotel_basic": "預訂房間",
@@ -201,7 +204,8 @@
     "permit_bribe_general": "賄賂官員（加快流程）",
     "permit_bribe_permit": "賄賂官員（加快核發許可）",
     "corruption_director": "賄賂主管",
-    "corruption_false_report": "偽造官方筆錄"
+    "corruption_false_report": "偽造官方筆錄",
+    "guide_listen": "聆聽導覽員"
   },
   "ru": {
     "hotel_basic": "Забронировать номер",
@@ -250,7 +254,8 @@
     "permit_bribe_general": "Подкупить чиновника (ускорить процесс)",
     "permit_bribe_permit": "Подкупить чиновника (ускорить разрешение)",
     "corruption_director": "Подкупить директора",
-    "corruption_false_report": "Подделать протокол"
+    "corruption_false_report": "Подделать протокол",
+    "guide_listen": "Послушать гида"
   },
   "ko": {
     "hotel_basic": "객실 예약",
@@ -299,7 +304,8 @@
     "permit_bribe_general": "공무원 매수(처리 가속)",
     "permit_bribe_permit": "공무원 매수(허가 처리 가속)",
     "corruption_director": "책임자 매수",
-    "corruption_false_report": "공식 조서 위조"
+    "corruption_false_report": "공식 조서 위조",
+    "guide_listen": "해설사의 설명 듣기"
   },
   "ar": {
     "hotel_basic": "حجز غرفة",
@@ -348,7 +354,8 @@
     "permit_bribe_general": "رشوة موظف لتسريع الإجراءات",
     "permit_bribe_permit": "رشوة موظف لتسريع التصريح",
     "corruption_director": "رشوة المدير",
-    "corruption_false_report": "تزوير محضر رسمي"
+    "corruption_false_report": "تزوير محضر رسمي",
+    "guide_listen": "الاستماع إلى المرشدة"
   },
   "pt-BR": {
     "hotel_basic": "Reservar um quarto",
@@ -397,7 +404,8 @@
     "permit_bribe_general": "Subornar um funcionário (acelerar)",
     "permit_bribe_permit": "Subornar um funcionário (agilizar a licença)",
     "corruption_director": "Subornar o diretor",
-    "corruption_false_report": "Falsificar uma ata oficial"
+    "corruption_false_report": "Falsificar uma ata oficial",
+    "guide_listen": "Ouvir a guia"
   },
   "de": {
     "hotel_basic": "Ein Zimmer buchen",
@@ -446,7 +454,8 @@
     "permit_bribe_general": "Einen Beamten bestechen (beschleunigen)",
     "permit_bribe_permit": "Einen Beamten bestechen (Genehmigung beschleunigen)",
     "corruption_director": "Den Direktor bestechen",
-    "corruption_false_report": "Ein amtliches Protokoll fälschen"
+    "corruption_false_report": "Ein amtliches Protokoll fälschen",
+    "guide_listen": "Der Führerin zuhören"
   }
 };
  for(const [locale,labels] of Object.entries(variants)) {

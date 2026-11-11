@@ -2749,8 +2749,46 @@ async function confirmerGroupePnjTransferer(i, destEncode) {
   return commanderConduitePnj(i, (m, options) => sbPnjTransferer([m.id], dest, false, options), 'Confié', m => m.nom + ' suit désormais ' + dest + '.');
 }
 
-// Provisoire (11/11/2026) : la fenetre de la guide arrive avec l'ordre « Écouter la guide ».
-function ouvrirGuideMusee() {
-  if (typeof showToast === 'function') showToast('Ouliana Historiskaïa', 'Elle vous adresse un sourire professionnel. Les visites commentées commencent bientôt.', true);
+// Guide du Musée de la République de Sovarka (Fred, 11/11/2026, GAME-DESIGN-NOVOMIRSK.md) : la carte
+// d'Ouliana et l'ordre « Écouter la guide » ouvrent la présentation fixe de la salle, gratuite, dans la
+// langue du joueur. Les neuf fiches sont stockées dans i18n/guide-musee-novomirsk-resources.js, chargé
+// à la première ouverture (texte volumineux, inutile ailleurs). Pas d'appel serveur ni d'IA.
+// Le dialogue libre (1 PA, 3 questions) viendra ensuite.
+const GUIDE_MUSEE_CATALOGUE = 'i18n/guide-musee-novomirsk-resources.js?v=guide-fiches-20261111';
+let guideMuseeChargement = null;
+function guideMuseeCharger() {
+  if (typeof texteGuideMusee === 'function') return Promise.resolve(true);
+  if (guideMuseeChargement) return guideMuseeChargement;
+  guideMuseeChargement = new Promise(resolve => {
+    const s = document.createElement('script');
+    s.src = GUIDE_MUSEE_CATALOGUE;
+    s.onload = () => resolve(typeof texteGuideMusee === 'function');
+    s.onerror = () => { guideMuseeChargement = null; resolve(false); };
+    document.head.appendChild(s);
+  });
+  return guideMuseeChargement;
+}
+function guideMuseeEchapper(t) {
+  return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+async function ouvrirGuideMusee() {
+  const salle = state.currentRoom;
+  if (!(await guideMuseeCharger())) {
+    if (typeof showToast === 'function') showToast('Ouliana Historiskaïa', 'La guide est momentanément indisponible. Réessayez dans un instant.', false);
+    return;
+  }
+  // Fenêtre réaffichée au changement de langue (fenêtre commune de Sovarka) ; seulement dans la salle d'origine.
+  const rendre = () => {
+    if (state.currentRoom !== salle) return;
+    const corps = texteGuideMusee('f_' + salle);
+    if (!corps) return;
+    const html = '<div class="guide-musee-fiche"><img src="images/Sovarka/Novomirsk/Novo_guide_musee_national_portrait.webp" alt="" ' +
+      'style="float:left;width:72px;height:72px;object-fit:cover;object-position:50% 30%;border-radius:50%;margin:0 .8rem .4rem 0">' +
+      corps.split('\n\n').map(p => '<p>' + guideMuseeEchapper(p) + '</p>').join('') + '</div>';
+    const titre = texteGuideMusee('tGuide');
+    if (typeof sovModal === 'function') sovModal(titre, html, rendre);
+    else if (typeof vehModal === 'function') vehModal(titre, html);
+  };
+  rendre();
 }
 

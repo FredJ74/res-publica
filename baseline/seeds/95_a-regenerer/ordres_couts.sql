@@ -167,6 +167,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('donner_conf',2,0),
   ('dormir_chambre',0,0),
   ('dossiers_plaintes',0,0),
+  ('ecouter_guide_musee',0,0),
   ('ecouter_rumeurs',0,0),
   ('ecouter_rumeurs',1,0),
   ('effort_national',0,0),
