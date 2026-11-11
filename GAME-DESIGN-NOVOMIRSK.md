@@ -623,3 +623,19 @@ Texte de Fred, recopié tel quel (une première version, corrigée dans une sess
 > Ces trois grands partis ont un point commun : ils ont remporté toutes les élections auxquelles ils se sont présentés. Les autres partis ? Ils n'étaient pas prêts. Ils le sont peut-être aujourd'hui… Les registres d'inscription se trouvent à la mairie.
 > Avez-vous des questions ? Uniquement historiques, je vous prie.
 
+#### Salle des honneurs militaires — validée par Fred (11/11, 19 h 08)
+
+Apports de Fred : les 47 médailles (près de 15 kg) arrêtent la balle de l'attentat de Krasnov ; Sovarka n'a jamais été conquise, l'une de ses plus grandes fiertés.
+
+> Approchez, camarades. Vous entrez dans la Salle des honneurs militaires. Ici, chaque médaille raconte une victoire, et chaque victoire a été dûment homologuée par le ministère de la Défense de la Patrie.
+>
+> Dans la grande vitrine, l'uniforme d'apparat du premier commandant de l'Armée populaire. Il compte quarante-sept médailles : près de quinze kilos de métal. Les historiens s'accordent à dire qu'il les a toutes méritées, y compris celles qu'il s'est remises lui-même. Lors de l'attentat de Krasnov, elles lui ont sauvé la vie : la balle, tirée en plein cœur, s'est écrasée contre elles, ne lui causant qu'un léger hématome.
+>
+> Sur ce mur, la carte de la Grande Défense du Nord. Nos soldats y ont tenu leurs positions pendant onze hivers, face à un ennemi qui, faute de documents, reste à ce jour inconnu. Il n'est jamais venu : la preuve que la défense fut parfaite. Notez d'ailleurs que Sovarka n'a jamais été conquise. C'est l'une de ses plus grandes fiertés.
+>
+> Ce casque cabossé appartenait au soldat Piotr Neviyev, héros de la nation. Il fut le premier à franchir le fleuve gelé lors de la marche de 1924. Le second fut son commandant, qui tenait à vérifier que la glace était solide.
+>
+> Remarquez enfin le registre d'honneur des conscrits. Chaque citoyen appelé sous les drapeaux y inscrit son nom avec fierté. Ceux qui ne s'y sont pas inscrits figurent dans un autre registre, conservé ailleurs.
+>
+> Avez-vous des questions ? Uniquement historiques, je vous prie.
+
