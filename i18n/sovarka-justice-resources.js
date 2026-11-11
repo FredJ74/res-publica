@@ -80,7 +80,9 @@ const texts={
     "coffeeServed": "Café servi à {noms} ({cout} PSK pris sur la caisse du tribunal).",
     "tExtract": "Extrait du parti",
     "extractOk": "L’extrait d’enregistrement de « {parti} » est dans votre inventaire (1 PA, 7 PSK).",
-    "yourParty": "votre parti"
+    "yourParty": "votre parti",
+    "m_decision_invalide": "Demande incomplète ou périmée : rouvrez la fenêtre.",
+    "m_requete_absente": "Demande incomplète ou périmée : rouvrez la fenêtre."
   },
   "en": {
     "m_reserve_justice_sovarka": "Reserved for the commissioner, the judge and the Minister of Proletarian Justice.",
@@ -156,7 +158,9 @@ const texts={
     "coffeeServed": "Coffee served to {noms} ({cout} PSK taken from the court's funds).",
     "tExtract": "Party extract",
     "extractOk": "The registration extract of “{parti}” is in your inventory (1 AP, 7 PSK).",
-    "yourParty": "your party"
+    "yourParty": "your party",
+    "m_decision_invalide": "Incomplete or outdated request: reopen the window.",
+    "m_requete_absente": "Incomplete or outdated request: reopen the window."
   },
   "es": {
     "m_reserve_justice_sovarka": "Reservado al comisario, al juez y al ministro de Justicia Proletaria.",
@@ -232,7 +236,9 @@ const texts={
     "coffeeServed": "Café servido a {noms} ({cout} PSK de la caja del tribunal).",
     "tExtract": "Extracto del partido",
     "extractOk": "El extracto de inscripción de «{parti}» está en su inventario (1 PA, 7 PSK).",
-    "yourParty": "su partido"
+    "yourParty": "su partido",
+    "m_decision_invalide": "Solicitud incompleta o caducada: vuelva a abrir la ventana.",
+    "m_requete_absente": "Solicitud incompleta o caducada: vuelva a abrir la ventana."
   },
   "zh-TW": {
     "m_reserve_justice_sovarka": "限警察局長、法官與無產階級司法部長。",
@@ -308,7 +314,9 @@ const texts={
     "coffeeServed": "已為 {noms} 奉上咖啡（由法院金庫支付 {cout} PSK）。",
     "tExtract": "政黨摘要",
     "extractOk": "「{parti}」的登記摘要已放入您的物品欄（1 行動點，7 PSK）。",
-    "yourParty": "您的政黨"
+    "yourParty": "您的政黨",
+    "m_decision_invalide": "請求不完整或已過期：請重新開啟視窗。",
+    "m_requete_absente": "請求不完整或已過期：請重新開啟視窗。"
   },
   "ru": {
     "m_reserve_justice_sovarka": "Только для комиссара, судьи и министра пролетарской юстиции.",
@@ -384,7 +392,9 @@ const texts={
     "coffeeServed": "Кофе подан: {noms} ({cout} PSK из кассы суда).",
     "tExtract": "Выписка партии",
     "extractOk": "Выписка о регистрации «{parti}» в вашем инвентаре (1 ОД, 7 PSK).",
-    "yourParty": "вашей партии"
+    "yourParty": "вашей партии",
+    "m_decision_invalide": "Запрос неполный или устарел: откройте окно заново.",
+    "m_requete_absente": "Запрос неполный или устарел: откройте окно заново."
   },
   "ko": {
     "m_reserve_justice_sovarka": "경찰서장, 판사, 프롤레타리아 법무부 장관 전용입니다.",
@@ -460,7 +470,9 @@ const texts={
     "coffeeServed": "{noms} 님에게 커피를 대접했습니다 (법원 금고에서 {cout} PSK).",
     "tExtract": "정당 등록 초본",
     "extractOk": "“{parti}”의 등록 초본이 인벤토리에 들어왔습니다 (1 AP, 7 PSK).",
-    "yourParty": "당신의 정당"
+    "yourParty": "당신의 정당",
+    "m_decision_invalide": "요청이 불완전하거나 만료되었습니다. 창을 다시 여세요.",
+    "m_requete_absente": "요청이 불완전하거나 만료되었습니다. 창을 다시 여세요."
   },
   "ar": {
     "m_reserve_justice_sovarka": "مخصّص للمفوّض والقاضي ووزير العدالة البروليتارية.",
@@ -536,7 +548,9 @@ const texts={
     "coffeeServed": "قُدّمت القهوة إلى {noms} ({cout} PSK من صندوق المحكمة).",
     "tExtract": "مستخرج الحزب",
     "extractOk": "مستخرج تسجيل «{parti}» في مخزونك (1 نقطة حركة، 7 PSK).",
-    "yourParty": "حزبك"
+    "yourParty": "حزبك",
+    "m_decision_invalide": "الطلب غير مكتمل أو منتهي الصلاحية: أعد فتح النافذة.",
+    "m_requete_absente": "الطلب غير مكتمل أو منتهي الصلاحية: أعد فتح النافذة."
   },
   "pt-BR": {
     "m_reserve_justice_sovarka": "Reservado ao comissário, ao juiz e ao ministro da Justiça Proletária.",
@@ -612,7 +626,9 @@ const texts={
     "coffeeServed": "Café servido a {noms} ({cout} PSK do caixa do tribunal).",
     "tExtract": "Certidão do partido",
     "extractOk": "A certidão de registro de “{parti}” está no seu inventário (1 PA, 7 PSK).",
-    "yourParty": "seu partido"
+    "yourParty": "seu partido",
+    "m_decision_invalide": "Solicitação incompleta ou desatualizada: reabra a janela.",
+    "m_requete_absente": "Solicitação incompleta ou desatualizada: reabra a janela."
   },
   "de": {
     "m_reserve_justice_sovarka": "Dem Kommissar, dem Richter und dem Minister für Proletarische Justiz vorbehalten.",
@@ -688,7 +704,9 @@ const texts={
     "coffeeServed": "Kaffee serviert für {noms} ({cout} PSK aus der Gerichtskasse).",
     "tExtract": "Parteiauszug",
     "extractOk": "Der Registerauszug von „{parti}“ liegt in Ihrem Inventar (1 AP, 7 PSK).",
-    "yourParty": "Ihrer Partei"
+    "yourParty": "Ihrer Partei",
+    "m_decision_invalide": "Unvollständige oder veraltete Anfrage: Öffnen Sie das Fenster erneut.",
+    "m_requete_absente": "Unvollständige oder veraltete Anfrage: Öffnen Sie das Fenster erneut."
   }
 };
 for(const [lang,labels] of Object.entries(texts))

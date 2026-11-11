@@ -235,7 +235,12 @@ const texts={
     "ended": "terminée",
     "reportOf": "Rapport du {date}",
     "tSurv": "Surveillance",
-    "survOk": "{cible} est placé sous surveillance pour 4 jours. Premier rapport demain matin."
+    "survOk": "{cible} est placé sous surveillance pour 4 jours. Premier rapport demain matin.",
+    "pm_action_inconnue": "Demande incomplète ou périmée : rouvrez la fenêtre.",
+    "pm_cause_invalide": "Demande incomplète ou périmée : rouvrez la fenêtre.",
+    "pm_dans_la_rue": "La manifestation se lance depuis la rue, hors de tout bâtiment.",
+    "pm_local_introuvable": "Ce local est introuvable.",
+    "rm_requete_absente": "Demande incomplète ou périmée : rouvrez la fenêtre."
   },
   "en": {
     "session": "Your session needs to be restored.",
@@ -465,7 +470,12 @@ const texts={
     "ended": "ended",
     "reportOf": "Report of {date}",
     "tSurv": "Surveillance",
-    "survOk": "{cible} is placed under surveillance for 4 days. First report tomorrow morning."
+    "survOk": "{cible} is placed under surveillance for 4 days. First report tomorrow morning.",
+    "pm_action_inconnue": "Incomplete or outdated request: reopen the window.",
+    "pm_cause_invalide": "Incomplete or outdated request: reopen the window.",
+    "pm_dans_la_rue": "The demonstration must be launched from the street, outside any building.",
+    "pm_local_introuvable": "This premises cannot be found.",
+    "rm_requete_absente": "Incomplete or outdated request: reopen the window."
   },
   "es": {
     "session": "Su sesión debe restablecerse.",
@@ -695,7 +705,12 @@ const texts={
     "ended": "terminada",
     "reportOf": "Informe del {date}",
     "tSurv": "Vigilancia",
-    "survOk": "{cible} queda bajo vigilancia durante 4 días. Primer informe mañana por la mañana."
+    "survOk": "{cible} queda bajo vigilancia durante 4 días. Primer informe mañana por la mañana.",
+    "pm_action_inconnue": "Solicitud incompleta o caducada: vuelva a abrir la ventana.",
+    "pm_cause_invalide": "Solicitud incompleta o caducada: vuelva a abrir la ventana.",
+    "pm_dans_la_rue": "La manifestación se convoca desde la calle, fuera de cualquier edificio.",
+    "pm_local_introuvable": "No se encuentra este local.",
+    "rm_requete_absente": "Solicitud incompleta o caducada: vuelva a abrir la ventana."
   },
   "zh-TW": {
     "session": "您的連線階段需要恢復。",
@@ -925,7 +940,12 @@ const texts={
     "ended": "已結束",
     "reportOf": "{date} 的報告",
     "tSurv": "監視",
-    "survOk": "{cible} 已被置於監視之下 4 天。首份報告明早送達。"
+    "survOk": "{cible} 已被置於監視之下 4 天。首份報告明早送達。",
+    "pm_action_inconnue": "請求不完整或已過期：請重新開啟視窗。",
+    "pm_cause_invalide": "請求不完整或已過期：請重新開啟視窗。",
+    "pm_dans_la_rue": "示威必須在街上發起，不能在任何建築內。",
+    "pm_local_introuvable": "找不到此店面。",
+    "rm_requete_absente": "請求不完整或已過期：請重新開啟視窗。"
   },
   "ru": {
     "session": "Сеанс нужно восстановить.",
@@ -1155,7 +1175,12 @@ const texts={
     "ended": "завершено",
     "reportOf": "Доклад от {date}",
     "tSurv": "Наблюдение",
-    "survOk": "{cible} под наблюдением на 4 дня. Первый доклад завтра утром."
+    "survOk": "{cible} под наблюдением на 4 дня. Первый доклад завтра утром.",
+    "pm_action_inconnue": "Запрос неполный или устарел: откройте окно заново.",
+    "pm_cause_invalide": "Запрос неполный или устарел: откройте окно заново.",
+    "pm_dans_la_rue": "Манифестацию начинают на улице, вне зданий.",
+    "pm_local_introuvable": "Помещение не найдено.",
+    "rm_requete_absente": "Запрос неполный или устарел: откройте окно заново."
   },
   "ko": {
     "session": "세션을 복구해야 합니다.",
@@ -1385,7 +1410,12 @@ const texts={
     "ended": "종료됨",
     "reportOf": "{date} 보고서",
     "tSurv": "감시",
-    "survOk": "{cible} 님이 4일간 감시 대상이 되었습니다. 첫 보고서는 내일 아침입니다."
+    "survOk": "{cible} 님이 4일간 감시 대상이 되었습니다. 첫 보고서는 내일 아침입니다.",
+    "pm_action_inconnue": "요청이 불완전하거나 만료되었습니다. 창을 다시 여세요.",
+    "pm_cause_invalide": "요청이 불완전하거나 만료되었습니다. 창을 다시 여세요.",
+    "pm_dans_la_rue": "시위는 건물 밖, 거리에서 시작해야 합니다.",
+    "pm_local_introuvable": "이 점포를 찾을 수 없습니다.",
+    "rm_requete_absente": "요청이 불완전하거나 만료되었습니다. 창을 다시 여세요."
   },
   "ar": {
     "session": "يجب استعادة جلستك.",
@@ -1615,7 +1645,12 @@ const texts={
     "ended": "منتهية",
     "reportOf": "تقرير {date}",
     "tSurv": "المراقبة",
-    "survOk": "وُضع {cible} تحت المراقبة لمدة 4 أيام. أول تقرير صباح الغد."
+    "survOk": "وُضع {cible} تحت المراقبة لمدة 4 أيام. أول تقرير صباح الغد.",
+    "pm_action_inconnue": "الطلب غير مكتمل أو منتهي الصلاحية: أعد فتح النافذة.",
+    "pm_cause_invalide": "الطلب غير مكتمل أو منتهي الصلاحية: أعد فتح النافذة.",
+    "pm_dans_la_rue": "تنطلق المظاهرة من الشارع، خارج أي مبنى.",
+    "pm_local_introuvable": "تعذّر العثور على هذا المحل.",
+    "rm_requete_absente": "الطلب غير مكتمل أو منتهي الصلاحية: أعد فتح النافذة."
   },
   "pt-BR": {
     "session": "Sua sessão precisa ser restabelecida.",
@@ -1845,7 +1880,12 @@ const texts={
     "ended": "encerrada",
     "reportOf": "Relatório de {date}",
     "tSurv": "Vigilância",
-    "survOk": "{cible} está sob vigilância por 4 dias. Primeiro relatório amanhã de manhã."
+    "survOk": "{cible} está sob vigilância por 4 dias. Primeiro relatório amanhã de manhã.",
+    "pm_action_inconnue": "Solicitação incompleta ou desatualizada: reabra a janela.",
+    "pm_cause_invalide": "Solicitação incompleta ou desatualizada: reabra a janela.",
+    "pm_dans_la_rue": "A manifestação é lançada da rua, fora de qualquer edifício.",
+    "pm_local_introuvable": "Este espaço não foi encontrado.",
+    "rm_requete_absente": "Solicitação incompleta ou desatualizada: reabra a janela."
   },
   "de": {
     "session": "Ihre Sitzung muss wiederhergestellt werden.",
@@ -2075,7 +2115,12 @@ const texts={
     "ended": "beendet",
     "reportOf": "Bericht vom {date}",
     "tSurv": "Beobachtung",
-    "survOk": "{cible} steht für 4 Tage unter Beobachtung. Erster Bericht morgen früh."
+    "survOk": "{cible} steht für 4 Tage unter Beobachtung. Erster Bericht morgen früh.",
+    "pm_action_inconnue": "Unvollständige oder veraltete Anfrage: Öffnen Sie das Fenster erneut.",
+    "pm_cause_invalide": "Unvollständige oder veraltete Anfrage: Öffnen Sie das Fenster erneut.",
+    "pm_dans_la_rue": "Die Kundgebung startet auf der Straße, außerhalb jedes Gebäudes.",
+    "pm_local_introuvable": "Dieses Lokal ist nicht auffindbar.",
+    "rm_requete_absente": "Unvollständige oder veraltete Anfrage: Öffnen Sie das Fenster erneut."
   }
 };
 for(const [lang,labels] of Object.entries(texts))

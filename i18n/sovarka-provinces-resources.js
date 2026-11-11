@@ -126,7 +126,9 @@ const texts={
     "tRun": "Sauve qui peut !",
     "run": "Vous détalez jusqu’à l’entrée de la forêt. Le bois de la première coupe est sauf ; la seconde est perdue.",
     "tEaten": "Bon appétit…",
-    "eaten": "{nom} ne s’est pas fait prier. Vous vous réveillerez à l’hôpital."
+    "eaten": "{nom} ne s’est pas fait prier. Vous vous réveillerez à l’hôpital.",
+    "m_requete_absente": "Demande incomplète ou périmée : rouvrez la fenêtre.",
+    "m_action_inconnue": "Demande incomplète ou périmée : rouvrez la fenêtre."
   },
   "en": {
     "m_acteur_non_authentifie": "Your session needs to be restored.",
@@ -248,7 +250,9 @@ const texts={
     "tRun": "Run for it!",
     "run": "You bolt back to the edge of the forest. The wood from the first cut is safe; the second is lost.",
     "tEaten": "Bon appétit…",
-    "eaten": "{nom} didn't need asking twice. You will wake up in hospital."
+    "eaten": "{nom} didn't need asking twice. You will wake up in hospital.",
+    "m_requete_absente": "Incomplete or outdated request: reopen the window.",
+    "m_action_inconnue": "Incomplete or outdated request: reopen the window."
   },
   "es": {
     "m_acteur_non_authentifie": "Su sesión debe restablecerse.",
@@ -370,7 +374,9 @@ const texts={
     "tRun": "¡Sálvese quien pueda!",
     "run": "Sale corriendo hasta la entrada del bosque. La madera de la primera tala está a salvo; la segunda se pierde.",
     "tEaten": "Buen provecho…",
-    "eaten": "{nom} no se ha hecho de rogar. Despertará en el hospital."
+    "eaten": "{nom} no se ha hecho de rogar. Despertará en el hospital.",
+    "m_requete_absente": "Solicitud incompleta o caducada: vuelva a abrir la ventana.",
+    "m_action_inconnue": "Solicitud incompleta o caducada: vuelva a abrir la ventana."
   },
   "zh-TW": {
     "m_acteur_non_authentifie": "您的連線階段需要恢復。",
@@ -492,7 +498,9 @@ const texts={
     "tRun": "快逃啊！",
     "run": "您一路狂奔到森林入口。第一次砍伐的木材保住了；第二次的沒了。",
     "tEaten": "祝您好胃口……",
-    "eaten": "{nom} 毫不客氣。您將在醫院醒來。"
+    "eaten": "{nom} 毫不客氣。您將在醫院醒來。",
+    "m_requete_absente": "請求不完整或已過期：請重新開啟視窗。",
+    "m_action_inconnue": "請求不完整或已過期：請重新開啟視窗。"
   },
   "ru": {
     "m_acteur_non_authentifie": "Сеанс нужно восстановить.",
@@ -614,7 +622,9 @@ const texts={
     "tRun": "Спасайся кто может!",
     "run": "Вы удираете к опушке. Дерево первой рубки цело; второе потеряно.",
     "tEaten": "Приятного аппетита…",
-    "eaten": "{nom} не заставил себя упрашивать. Вы очнётесь в больнице."
+    "eaten": "{nom} не заставил себя упрашивать. Вы очнётесь в больнице.",
+    "m_requete_absente": "Запрос неполный или устарел: откройте окно заново.",
+    "m_action_inconnue": "Запрос неполный или устарел: откройте окно заново."
   },
   "ko": {
     "m_acteur_non_authentifie": "세션을 복구해야 합니다.",
@@ -736,7 +746,9 @@ const texts={
     "tRun": "걸음아 날 살려라!",
     "run": "숲 입구까지 줄행랑칩니다. 첫 번째 벌채의 목재는 무사하지만 두 번째 것은 잃었습니다.",
     "tEaten": "맛있게 드세요…",
-    "eaten": "{nom}은(는) 사양하지 않았습니다. 병원에서 깨어날 것입니다."
+    "eaten": "{nom}은(는) 사양하지 않았습니다. 병원에서 깨어날 것입니다.",
+    "m_requete_absente": "요청이 불완전하거나 만료되었습니다. 창을 다시 여세요.",
+    "m_action_inconnue": "요청이 불완전하거나 만료되었습니다. 창을 다시 여세요."
   },
   "ar": {
     "m_acteur_non_authentifie": "يجب استعادة جلستك.",
@@ -858,7 +870,9 @@ const texts={
     "tRun": "انجُ بنفسك!",
     "run": "تفرّ حتى مدخل الغابة. خشب القطعة الأولى سليم؛ أما الثانية فضاعت.",
     "tEaten": "شهية طيبة…",
-    "eaten": "لم يتردد {nom}. ستستيقظ في المستشفى."
+    "eaten": "لم يتردد {nom}. ستستيقظ في المستشفى.",
+    "m_requete_absente": "الطلب غير مكتمل أو منتهي الصلاحية: أعد فتح النافذة.",
+    "m_action_inconnue": "الطلب غير مكتمل أو منتهي الصلاحية: أعد فتح النافذة."
   },
   "pt-BR": {
     "m_acteur_non_authentifie": "Sua sessão precisa ser restabelecida.",
@@ -980,7 +994,9 @@ const texts={
     "tRun": "Salve-se quem puder!",
     "run": "Você dispara até a entrada da floresta. A madeira do primeiro corte está salva; a do segundo se perdeu.",
     "tEaten": "Bom apetite…",
-    "eaten": "{nom} não se fez de rogado. Você vai acordar no hospital."
+    "eaten": "{nom} não se fez de rogado. Você vai acordar no hospital.",
+    "m_requete_absente": "Solicitação incompleta ou desatualizada: reabra a janela.",
+    "m_action_inconnue": "Solicitação incompleta ou desatualizada: reabra a janela."
   },
   "de": {
     "m_acteur_non_authentifie": "Ihre Sitzung muss wiederhergestellt werden.",
@@ -1102,7 +1118,9 @@ const texts={
     "tRun": "Rette sich, wer kann!",
     "run": "Sie rennen bis zum Waldrand. Das Holz des ersten Schlags ist sicher; das des zweiten ist verloren.",
     "tEaten": "Guten Appetit …",
-    "eaten": "{nom} ließ sich nicht lange bitten. Sie werden im Krankenhaus aufwachen."
+    "eaten": "{nom} ließ sich nicht lange bitten. Sie werden im Krankenhaus aufwachen.",
+    "m_requete_absente": "Unvollständige oder veraltete Anfrage: Öffnen Sie das Fenster erneut.",
+    "m_action_inconnue": "Unvollständige oder veraltete Anfrage: Öffnen Sie das Fenster erneut."
   }
 };
 for(const [lang,labels] of Object.entries(texts))

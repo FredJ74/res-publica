@@ -2,43 +2,27 @@
 // Le serveur (sovarka_reunion_evenement) verifie tout : reservation du jour, presence, evenement
 // deja tenu, paiement, participants et effets. L'ecran n'affiche que la reponse.
 
-const REUNION_EVENEMENTS = {
-  conference_presse: { titre: 'Conférence de presse',
-    desc: 'Vous prenez la parole : +3 POP, et +1 POP par personne présente dans la salle (au plus +10).' },
-  reseautage: { titre: 'Soirée de réseautage',
-    desc: 'Chaque personne présente gagne +2 INF ; vous gagnez +1 INF par participant (au plus +8).' },
-  seminaire: { titre: 'Séminaire de formation',
-    desc: 'Toutes les personnes présentes, vous compris, gagnent +1 à la caractéristique choisie jusqu’à minuit (sans cumul de séminaires).' },
-  buffet: { titre: 'Buffet du Grand Hôtel',
-    desc: 'Le restaurant du Grand Hôtel livre un buffet : 40 PSK par personne présente, à votre charge ; chacun gagne +2 PA.' }
-};
-const REUNION_CARACS = { CHA: 'Charisme', DUP: 'Duplicité', ENT: 'Entregent', INT: 'Intelligence', PER: 'Perception', VOL: 'Volonté' };
-const REUNION_MOTIFS = {
-  salle_non_reservee: 'Seul celui qui a réservé la salle aujourd’hui peut y organiser un événement.',
-  evenement_deja_tenu: 'Cet événement a déjà eu lieu dans cette salle aujourd’hui.',
-  pas_sur_place: 'Vous devez vous trouver dans la salle.',
-  caracteristique_inconnue: 'Choisissez la caractéristique du séminaire.',
-  fonds_insuffisants: 'Vous ne disposez pas de suffisamment de PSK pour le buffet.',
-  pa_insuffisants: 'Vous n’avez pas assez de PA.',
-  acteur_non_authentifie: 'Votre session doit être rétablie.'
-};
+// Textes d'affichage : catalogue i18n/sovarka-messages-resources.js (français de référence et de repli).
+const reuT = (k, v) => (typeof texteSovMessages === 'function' ? texteSovMessages(k, v) : k);
+const REUNION_EVENEMENTS = ['conference_presse', 'reseautage', 'seminaire', 'buffet'];
+const REUNION_CARACS = ['CHA', 'DUP', 'ENT', 'INT', 'PER', 'VOL'];
+const REUNION_MOTIFS = ['salle_non_reservee', 'evenement_deja_tenu', 'pas_sur_place', 'caracteristique_inconnue',
+  'fonds_insuffisants', 'pa_insuffisants', 'acteur_non_authentifie', 'evenement_inconnu'];
 let reunionEvenementEnCours = false;
 
 function ouvrirReunionEvenement() {
   const salle = state.currentRoom;
-  let html = '<p>Vous avez réservé la salle pour la journée ? Organisez-y un événement. Chaque événement coûte 1 PA et ' +
-    'ne peut avoir lieu qu’une fois par salle et par jour. Les participants sont les personnes présentes dans la salle ' +
-    'au moment où vous le lancez.</p>';
-  for (const [type, e] of Object.entries(REUNION_EVENEMENTS)) {
-    let corps = '<p style="margin:.4rem 0">' + e.desc + '</p>';
+  let html = '<p>' + reuT('re_intro') + '</p>';
+  for (const type of REUNION_EVENEMENTS) {
+    let corps = '<p style="margin:.4rem 0">' + reuT('re_d_' + type) + '</p>';
     if (type === 'seminaire') {
       corps += '<select id="reunion-carac" class="cpj-champ" style="margin-top:.3rem">' +
-        Object.entries(REUNION_CARACS).map(([k, l]) => '<option value="' + k + '">' + l + '</option>').join('') + '</select><br>';
+        REUNION_CARACS.map(k => '<option value="' + k + '">' + reuT('re_c_' + k) + '</option>').join('') + '</select><br>';
     }
-    corps += vehBouton('Organiser', "lancerReunionEvenement('" + type + "','" + salle + "')", true);
-    html += vehSection(e.titre, corps);
+    corps += vehBouton(reuT('re_organize'), "lancerReunionEvenement('" + type + "','" + salle + "')", true);
+    html += vehSection(reuT('re_t_' + type), corps);
   }
-  vehModal('Organiser un événement', html);
+  vehModal(reuT('re_title'), html);
 }
 
 async function lancerReunionEvenement(type, salle) {
@@ -53,7 +37,7 @@ async function lancerReunionEvenement(type, salle) {
       { p_requete: requete, p_salle: salle, p_type: type, p_carac: carac }).catch(() => null);
     if (v && !v.transport) sessionStorage.removeItem(cle);
     if (!v || v.ok !== true) {
-      showToast('Événement refusé', REUNION_MOTIFS[v?.raison] || 'Le serveur n’a pas confirmé l’événement.', false);
+      showToast(reuT('re_tRefused'), REUNION_MOTIFS.includes(v?.raison) ? reuT('re_m_' + v.raison) : reuT('re_notConfirmed'), false);
       return;
     }
     if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
@@ -66,7 +50,9 @@ async function lancerReunionEvenement(type, salle) {
     if (typeof updateUI === 'function') updateUI();
     document.getElementById('modal-postes')?.classList.remove('open');
     const n = (v.presents || []).length;
-    showToast(v.titre || 'Événement', n + ' personne' + (n > 1 ? 's' : '') + ' présente' + (n > 1 ? 's' : '') +
-      (v.paye ? ' ; buffet payé ' + v.paye + ' PSK.' : '.'), true);
+    // Titre : celui de l'événement confirmé (type renvoyé par le serveur), sinon le titre du serveur tel quel.
+    const titre = REUNION_EVENEMENTS.includes(v.type) ? reuT('re_t_' + v.type) : (v.titre || reuT('re_tEvent'));
+    const presents = reuT(n > 1 ? 're_present_many' : 're_present_one', { n });
+    showToast(titre, v.paye ? reuT('re_doneBuffet', { presents, montant: v.paye }) : reuT('re_done', { presents }), true);
   } finally { reunionEvenementEnCours = false; }
 }

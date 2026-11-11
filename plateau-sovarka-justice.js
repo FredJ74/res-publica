@@ -7,7 +7,7 @@
 
 // Textes d'affichage : catalogue i18n/sovarka-justice-resources.js (français de référence et de repli).
 const justiceT = (k, v) => (typeof texteSovJustice === 'function' ? texteSovJustice(k, v) : k);
-const JUSTICE_SOV_RAISONS = ['reserve_justice_sovarka', 'reserve_commissaire_ou_ministre', 'reserve_ministre_justice', 'reserve_juge',
+const JUSTICE_SOV_RAISONS = ['decision_invalide', 'requete_absente', 'reserve_justice_sovarka', 'reserve_commissaire_ou_ministre', 'reserve_ministre_justice', 'reserve_juge',
   'statut_incompatible', 'affaire_absente', 'hors_juridiction', 'pas_de_juge', 'proces_trop_proche', 'consigne_invalide',
   'pas_au_bureau_des_magistrats', 'aucun_beneficiaire', 'beneficiaire_invalide', 'beneficiaire_absent', 'caisse_insuffisante',
   'requete_invalide', 'salle_des_partis_requise', 'reserve_au_chef', 'inventaire_plein', 'caisse_de_la_mairie_introuvable',

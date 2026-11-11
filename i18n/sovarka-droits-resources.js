@@ -160,7 +160,10 @@ const texts={
     "roomAttributed": "Attribué par la mairie.",
     "orderShopDesc": "Gérer votre commerce, ou visiter la boutique du commerçant.",
     "homeDesc": "Un logement social de l’immeuble collectif, attribué par la mairie.",
-    "homeOrderDesc": "Voir les conditions de votre bail, si vous êtes le locataire de ce logement."
+    "homeOrderDesc": "Voir les conditions de votre bail, si vous êtes le locataire de ce logement.",
+    "m_acteur_non_authentifie": "Votre session doit être rétablie.",
+    "m_parametres_invalides": "Demande incomplète ou périmée : rouvrez la fenêtre.",
+    "m_cause_invalide": "Demande incomplète ou périmée : rouvrez la fenêtre."
   },
   "en": {
     "m_pas_a_la_mairie": "Go to the town hall.",
@@ -316,7 +319,10 @@ const texts={
     "roomAttributed": "Allocated by the town hall.",
     "orderShopDesc": "Manage your shop, or visit the shopkeeper's store.",
     "homeDesc": "Social housing in the collective building, allocated by the town hall.",
-    "homeOrderDesc": "See the terms of your lease, if you are the tenant of this home."
+    "homeOrderDesc": "See the terms of your lease, if you are the tenant of this home.",
+    "m_acteur_non_authentifie": "Your session needs to be restored.",
+    "m_parametres_invalides": "Incomplete or outdated request: reopen the window.",
+    "m_cause_invalide": "Incomplete or outdated request: reopen the window."
   },
   "es": {
     "m_pas_a_la_mairie": "Preséntese en el ayuntamiento.",
@@ -472,7 +478,10 @@ const texts={
     "roomAttributed": "Adjudicado por el ayuntamiento.",
     "orderShopDesc": "Gestionar su comercio o visitar la tienda del comerciante.",
     "homeDesc": "Una vivienda social del edificio colectivo, adjudicada por el ayuntamiento.",
-    "homeOrderDesc": "Ver las condiciones de su contrato, si es el inquilino de esta vivienda."
+    "homeOrderDesc": "Ver las condiciones de su contrato, si es el inquilino de esta vivienda.",
+    "m_acteur_non_authentifie": "Su sesión debe restablecerse.",
+    "m_parametres_invalides": "Solicitud incompleta o caducada: vuelva a abrir la ventana.",
+    "m_cause_invalide": "Solicitud incompleta o caducada: vuelva a abrir la ventana."
   },
   "zh-TW": {
     "m_pas_a_la_mairie": "請前往市政廳。",
@@ -628,7 +637,10 @@ const texts={
     "roomAttributed": "由市政廳配給。",
     "orderShopDesc": "管理您的商店，或參觀店主的店鋪。",
     "homeDesc": "集體大樓的社會住宅，由市政廳配給。",
-    "homeOrderDesc": "若您是此住宅的承租人，可查看租約條件。"
+    "homeOrderDesc": "若您是此住宅的承租人，可查看租約條件。",
+    "m_acteur_non_authentifie": "您的工作階段需要重新建立。",
+    "m_parametres_invalides": "請求不完整或已過期：請重新開啟視窗。",
+    "m_cause_invalide": "請求不完整或已過期：請重新開啟視窗。"
   },
   "ru": {
     "m_pas_a_la_mairie": "Явитесь в мэрию.",
@@ -784,7 +796,10 @@ const texts={
     "roomAttributed": "Выделено мэрией.",
     "orderShopDesc": "Управлять своим заведением или посетить магазин торговца.",
     "homeDesc": "Социальное жильё в коллективном доме, выделяемое мэрией.",
-    "homeOrderDesc": "Посмотреть условия аренды, если вы — съёмщик этого жилья."
+    "homeOrderDesc": "Посмотреть условия аренды, если вы — съёмщик этого жилья.",
+    "m_acteur_non_authentifie": "Нужно восстановить сеанс.",
+    "m_parametres_invalides": "Запрос неполный или устарел: откройте окно заново.",
+    "m_cause_invalide": "Запрос неполный или устарел: откройте окно заново."
   },
   "ko": {
     "m_pas_a_la_mairie": "시청으로 가십시오.",
@@ -940,7 +955,10 @@ const texts={
     "roomAttributed": "시청이 배정.",
     "orderShopDesc": "상점을 관리하거나 상인의 가게를 둘러봅니다.",
     "homeDesc": "시청이 배정하는 공동 건물의 사회 주택입니다.",
-    "homeOrderDesc": "이 주택의 세입자라면 임대 조건을 확인합니다."
+    "homeOrderDesc": "이 주택의 세입자라면 임대 조건을 확인합니다.",
+    "m_acteur_non_authentifie": "세션을 다시 연결해야 합니다.",
+    "m_parametres_invalides": "요청이 불완전하거나 만료되었습니다. 창을 다시 여세요.",
+    "m_cause_invalide": "요청이 불완전하거나 만료되었습니다. 창을 다시 여세요."
   },
   "ar": {
     "m_pas_a_la_mairie": "توجّه إلى مقر البلدية.",
@@ -1096,7 +1114,10 @@ const texts={
     "roomAttributed": "خصّصته البلدية.",
     "orderShopDesc": "إدارة متجرك، أو زيارة متجر التاجر.",
     "homeDesc": "مسكن اجتماعي في المبنى الجماعي، تخصّصه البلدية.",
-    "homeOrderDesc": "الاطلاع على شروط عقد إيجارك، إن كنت مستأجر هذا المسكن."
+    "homeOrderDesc": "الاطلاع على شروط عقد إيجارك، إن كنت مستأجر هذا المسكن.",
+    "m_acteur_non_authentifie": "يجب استعادة جلستك.",
+    "m_parametres_invalides": "الطلب غير مكتمل أو منتهي الصلاحية: أعد فتح النافذة.",
+    "m_cause_invalide": "الطلب غير مكتمل أو منتهي الصلاحية: أعد فتح النافذة."
   },
   "pt-BR": {
     "m_pas_a_la_mairie": "Compareça à prefeitura.",
@@ -1252,7 +1273,10 @@ const texts={
     "roomAttributed": "Concedido pela prefeitura.",
     "orderShopDesc": "Gerenciar seu comércio ou visitar a loja do comerciante.",
     "homeDesc": "Uma moradia social do prédio coletivo, concedida pela prefeitura.",
-    "homeOrderDesc": "Ver as condições do seu contrato, se você for o inquilino desta moradia."
+    "homeOrderDesc": "Ver as condições do seu contrato, se você for o inquilino desta moradia.",
+    "m_acteur_non_authentifie": "Sua sessão precisa ser restabelecida.",
+    "m_parametres_invalides": "Solicitação incompleta ou desatualizada: reabra a janela.",
+    "m_cause_invalide": "Solicitação incompleta ou desatualizada: reabra a janela."
   },
   "de": {
     "m_pas_a_la_mairie": "Begeben Sie sich zum Rathaus.",
@@ -1408,7 +1432,10 @@ const texts={
     "roomAttributed": "Vom Rathaus zugeteilt.",
     "orderShopDesc": "Ihr Geschäft verwalten oder den Laden des Händlers besuchen.",
     "homeDesc": "Eine Sozialwohnung des Kollektivgebäudes, vom Rathaus zugeteilt.",
-    "homeOrderDesc": "Die Bedingungen Ihres Mietvertrags ansehen, wenn Sie Mieter dieser Wohnung sind."
+    "homeOrderDesc": "Die Bedingungen Ihres Mietvertrags ansehen, wenn Sie Mieter dieser Wohnung sind.",
+    "m_acteur_non_authentifie": "Ihre Sitzung muss wiederhergestellt werden.",
+    "m_parametres_invalides": "Unvollständige oder veraltete Anfrage: Öffnen Sie das Fenster erneut.",
+    "m_cause_invalide": "Unvollständige oder veraltete Anfrage: Öffnen Sie das Fenster erneut."
   }
 };
 for(const [lang,labels] of Object.entries(texts))

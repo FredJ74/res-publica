@@ -8,6 +8,9 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### i18n — messages dynamiques de Sovarka, Claude, 11/11/2026 (mission de Fred, lots successifs)
+Branche `claude/i18n-sovarka-messages-20261111`. Nouveau catalogue `i18n/sovarka-messages-resources.js` (`texteSovMessages`), banc `outils/bancs/banc-i18n-sovarka-messages-20261111.cjs`, CI `.github/workflows/i18n-sovarka-messages.yml`. **Lot 1 (institutions)** : 16 motifs de refus du serveur jusque-là affichés « Refusé » ajoutés aux catalogues et listes des écrans (droits, justice, partis, pouvoir, provinces) ; salles de réunion de Novomirsk (événements et réservation, 49 textes) traduites, titre de l'événement tiré du `type` renvoyé par le serveur. Aucune RPC, aucun coût, aucune règle changés ; journal en français. Lots suivants : courriers serveur, habitants, forêt et fermes. Nouveaux messages de la PR #636 à traduire à sa reprise : refus `conscription_en_sovarka`, `grace_introuvable`, `manif_non_autorisee`, `rien_a_reprimer` ; courriers « Grâce non transmise », « Recommandation de grâce », « Manifestation réprimée », « Demande de manifestation de soutien ».
+
 ### i18n commun — agence sociale, ChatGPT, 11/11/2026 (livré : PR #728, SHA 2cb77db2, Vercel READY)
 Branche `chatgpt/i18n-agence-sociale-20261111`. **28 libellés** sur neuf langues dans `plateau-escorts-agence.js` et `i18n/social-agency-resources.js` : galerie d'accompagnants, statuts, confidentes, plafond de dix employés, refus du serveur et confirmations. Les noms, identifiants, choix, coûts et mutations déjà décidés par le serveur restent inchangés ; la galerie ouverte est repeinte depuis le cache au changement de langue sans nouvelle RPC. Banc dédié `outils/bancs/banc-i18n-agence-sociale-20261111.cjs` et CI `.github/workflows/i18n-agence-sociale.yml`. Aucune modification aux dialogues PNJ ou institutions Sovarka. Restent à vérifier : CI distante, merge, Vercel READY, recette connectée et revue linguistique.
 

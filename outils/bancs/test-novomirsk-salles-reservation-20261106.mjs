@@ -30,6 +30,7 @@ test('réservation client: jamais de paiement local et appel RPC de salle vérif
     sbRpcVerdict:async(n,args)=>{calls.push([n,args]);return{ok:true,jour:'2026-11-06',montant:150,pa:11,liquide:100,arg:100,solde_national:0};},
     showToast:(...args)=>toast.push(args),appliquerPaiementServeur:v=>payments.push(v),
     addJournalEntry:(...args)=>journal.push(args),updateUI:()=>{}});
+ runInContext(lire('i18n/sovarka-messages-resources.js'),ctx);ctx.texteSovMessages=ctx.window.texteSovMessages; // catalogue des textes (11/11)
  runInContext(lire('plateau-router.js'),ctx);
  await ctx.reserverSalleAffairesNovomirsk();
  assert.equal(calls.length,1);
@@ -47,6 +48,7 @@ test('réponse perdue: pas de second débit ni succès inventé; réponse déjà
    sbRpcVerdict:async(n,args)=>{calls.push(args.p_salle);return response;},
    showToast:(...x)=>toasts.push(x),appliquerPaiementServeur:v=>payments.push(v),
    updateUI:()=>{}});
+ runInContext(lire('i18n/sovarka-messages-resources.js'),ctx);ctx.texteSovMessages=ctx.window.texteSovMessages; // catalogue des textes (11/11)
  runInContext(lire('plateau-router.js'),ctx);
  await ctx.reserverSalleAffairesNovomirsk();
  assert.equal(payments.length,0);
