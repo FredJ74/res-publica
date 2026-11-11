@@ -1,0 +1,67 @@
+{
+  "code_final": "90f01b384a4006f19d507d570cbd4989dca7d060",
+  "main": "6b9f5d30efe79ce817bc55b5d72efe1f914d2fbc",
+  "langues": [
+    "fr",
+    "en",
+    "es",
+    "zh-TW",
+    "ru",
+    "ko",
+    "ar",
+    "pt-BR",
+    "de"
+  ],
+  "serveur": {
+    "reussis": 27,
+    "total": 27,
+    "fournisseur_simule": true
+  },
+  "premiere_campagne_navigateur": {
+    "reussis": 13,
+    "total": 13
+  },
+  "complements_navigateur_passes_isoles": [
+    "contre-epreuve-double-envoi",
+    "circuit-18-questions",
+    "IME"
+  ],
+  "campagne_groupee": {
+    "reussis": 51,
+    "total": 52,
+    "echec": "Chromium pthread_create, cas IME"
+  },
+  "rejeu_final_serie": {
+    "reussis": 34,
+    "total": 36,
+    "echecs": "deux fichiers navigateur, saturation de threads"
+  },
+  "controleur_final": {
+    "etat": "interrompue",
+    "bancs_prevus": 284,
+    "bancs_termines": 165,
+    "echecs": 16
+  },
+  "globaux": {
+    "reussis": 10,
+    "total": 12,
+    "journal_identique_main": true
+  },
+  "png_fr_1440": {
+    "avant": {
+      "octets": 49645,
+      "sha256": "baa314a5d47815d885e77a9229328b5fd3bfb1289058ae35e53e8715ef57df93"
+    },
+    "apres": {
+      "octets": 49645,
+      "sha256": "baa314a5d47815d885e77a9229328b5fd3bfb1289058ae35e53e8715ef57df93"
+    }
+  },
+  "DeepSeek_reel": false,
+  "recette_authentifiee": false,
+  "telephone_physique": false,
+  "ecritures_production": false,
+  "PR": null,
+  "fusion": false,
+  "Vercel_READY_verifie": false
+}

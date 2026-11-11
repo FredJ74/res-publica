@@ -37,6 +37,40 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Aide HRP multilingue — Codex, 11/11/2026 (INTÉGRATION EN COURS)
+
+Branche poussée `codex/aide-hrp-neuf-langues-20261111`, main `6b9f5d30`,
+commits code `2f1027f9` puis `90f01b38`. Rapport :
+`outils/audits/AIDE-HRP-NEUF-LANGUES-20261111.md`, preuves brutes et SHA256 associés.
+Dépistage neuf langues, langue imposée par le sélecteur, question courante
+prioritaire, verrou avant auth, délai30s, contexte1500/6 sans perte d'affichage,
+brouillons/statuts conservés et IME protégé. Aucune modification PNJ, règle,
+argent, inventaire, migration ou joueur. Toujours douze fonctions Vercel.
+
+27/27 cas serveur ; 13/13 premiers cas Chromium, puis trois compléments passés
+isolément (contre-double-envoi, circuit18questions, IME). Campagne complétée :
+51/52, dernier lancement Chromium échoue (pthread_create). Rejeu séquentiel
+final34/36 : deux fichiers navigateur ne démarrent plus, saturation système
+confirmée jusque dans Node et fork sandbox. Contrôleur final interrompu165/284,
+16 échecs, état exact conservé. **Ne pas annoncer les bancs complets verts.**
+Première campagne exploratoire281/284 : Aide en stabilisation, coque/mobile et
+scènes PNJ ; deux derniers reproduits sur main intact, preuves fournies.
+Globaux10/12 identiques main, Workflow/Authority conformes ; Baseline et
+Referential hérités inchangés. PNG FR1440 strictement identique, 360/390 et RTL
+passés avant saturation. Pas de téléphone physique ni recette connectée.
+
+Aucune clé DeepSeek ni compte E2E autorisé disponibles : réponse IA réelle non
+vérifiée. REST PR403, proxy Vercel CONNECT403 : aucune PR créée, CI distante,
+fusion, READY ou déploiement certifiés. Titre PR prêt : « Aide HRP : langue
+imposée, thèmes multilingues et conversation fiable ». Description et commandes
+dans le rapport. Intégrateur : créer la PR, rejouer sur runner disponible,
+contrôler CI, recette réelle neuf langues puis fusion/READY si conforme ; aucun
+SQL ou secret à faire manipuler à Fred. Dernier commit documentaire ne change
+pas le code testé. Sur téléphone : Aide, questions PA/but, fr→en→ko→fr avec
+brouillon/réponse en cours, arabe RTL, clavier IME. Aucune action sur personnage.
+
+
+
 ### i18n gestion / administration — clôture locale cumulative, Codex 10/11 — INTÉGRÉ par Claude le 11/11 (branche `claude/integration-i18n-codex-20261111`)
 
 **159 nouvelles clés / neuf langues**, quatre branches poussées, réconciliées

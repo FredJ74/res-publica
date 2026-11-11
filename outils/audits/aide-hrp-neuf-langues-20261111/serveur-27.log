@@ -1,0 +1,37 @@
+DeepSeek HTTP 503
+Erreur fournisseur IA
+✔ thèmes canoniques : fr (4.379591ms)
+✔ circuit authentifié, questions PA et but, langue imposée : fr (24.172058ms)
+✔ thèmes canoniques : en (0.225012ms)
+✔ circuit authentifié, questions PA et but, langue imposée : en (1.701967ms)
+✔ thèmes canoniques : es (0.150101ms)
+✔ circuit authentifié, questions PA et but, langue imposée : es (1.028605ms)
+✔ thèmes canoniques : zh-TW (0.128058ms)
+✔ circuit authentifié, questions PA et but, langue imposée : zh-TW (2.402659ms)
+✔ thèmes canoniques : ru (0.200015ms)
+✔ circuit authentifié, questions PA et but, langue imposée : ru (1.060822ms)
+✔ thèmes canoniques : ko (0.140157ms)
+✔ circuit authentifié, questions PA et but, langue imposée : ko (0.77378ms)
+✔ thèmes canoniques : ar (0.095551ms)
+✔ circuit authentifié, questions PA et but, langue imposée : ar (0.727352ms)
+✔ thèmes canoniques : pt-BR (0.132646ms)
+✔ circuit authentifié, questions PA et but, langue imposée : pt-BR (0.679781ms)
+✔ thèmes canoniques : de (0.118214ms)
+✔ circuit authentifié, questions PA et but, langue imposée : de (0.993052ms)
+✔ question courante prioritaire, historique utilisateur seulement, trois thèmes maximum (0.191382ms)
+✔ auth refusée et bornes : aucun appel IA, aucun accès aux données (0.609448ms)
+✔ fournisseur vide : erreur bornée sans détails privés (0.396374ms)
+✔ fournisseur espaces : erreur bornée sans détails privés (0.401251ms)
+✔ fournisseur tronquee : erreur bornée sans détails privés (0.279332ms)
+✔ fournisseur http : erreur bornée sans détails privés (0.990569ms)
+✔ fournisseur json : erreur bornée sans détails privés (0.466537ms)
+✔ fournisseur delai : erreur bornée sans détails privés (0.403285ms)
+✔ contre-épreuve : ancien dépistage ignore les PA sans sigle ASCII en trois écritures (4.278753ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54.6737

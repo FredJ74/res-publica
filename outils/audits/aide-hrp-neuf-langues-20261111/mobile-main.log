@@ -1,0 +1,45 @@
+✖ L1 : bureau 1440 strictement identique au témoin avant mobile (2374.469233ms)
+✔ L6 contre-épreuve : ancien contrôleur immobile au toucher, contrôleur corrigé mobile et souris (1986.579286ms)
+✔ L6 : resize, pointeur étranger, annulation et perte de focus ne laissent aucun geste actif (1027.578698ms)
+✖ L6 : rubriques, liste et lecture sans débordement mobile ; bureau forum 1440 identique (11009.677288ms)
+✔ L6 : boutons historiques et champs dans une poignée ne déclenchent pas de déplacement (1213.678688ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 3
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17968.832327
+
+✖ failing tests:
+
+test at outils/bancs/banc-mobile-coque.cjs:4:1
+✖ L1 : bureau 1440 strictement identique au témoin avant mobile (2374.469233ms)
+  AssertionError [ERR_ASSERTION]: pixels du plateau bureau inchangés
+      at /tmp/hg-aide-main-6b9f5d30/outils/bancs/banc-mobile-coque.cjs:8:147
+      at async avecJeu (/tmp/hg-aide-main-6b9f5d30/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-mobile-coque.cjs:67:1
+✖ L6 : rubriques, liste et lecture sans débordement mobile ; bureau forum 1440 identique (11009.677288ms)
+  AssertionError [ERR_ASSERTION]: forum bureau identique pixel pour pixel
+      at /tmp/hg-aide-main-6b9f5d30/outils/bancs/banc-mobile-coque.cjs:69:434
+      at async avecJeu (/tmp/hg-aide-main-6b9f5d30/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
