@@ -753,3 +753,11 @@ Quatre crises de l'image : famine (années 1920-1930), Grande Guerre, grève gé
   >
   > Le musée rappelle que les opinions exprimées ici n'engagent que leur auteur. Et elles l'engagent entièrement.
 
+
+## Pavillon des Ambassadeurs — décisions financières du 11/11/2026
+
+La règle explicite la plus récente de Fred prévaut sur la ligne du 04/11 : les suites sont réservées aux dignitaires étrangers (ambassadeurs, ministres, présidents, députés), payées par l'institution signataire et non par le portefeuille du joueur. **Tarifs journaliers : Suite du Parti 500 FR ; Suite Privée 650 FR ; Suite Présidentielle 800 FR.** Bail de sept jours renouvelable ; résiliation avant terme : un seul jour de ménage supplémentaire facturé une fois. Le bénéficiaire d'une suite louée reçoit +3 PA lors de chaque sommeil autorisé, jamais au moment de la réservation. La grande salle de réception se réserve exclusivement par une institution pour 1 500 PSK par jour, recettes à Sovarka.
+
+**Décision complémentaire de Fred du 11/11 : parité fixe et sans frais, 1 PSK = 1 FR.** Les règlements de ces chambres et de la réception peuvent utiliser la parité 1:1 sans faux différentiel monétaire ; la comptabilité doit conserver les informations de devise de chaque opération. Aucune conversion générale des autres monnaies/transactions du jeu n'est décidée.
+
+**État technique au moment du relevé : non livré.** Les anciens boutons `louer_local` et tarifs 500 PSK sont encore présents pour les trois suites, et la salle ne dispose pas de réservation. La facturation des ambassadeurs doit encore s'appuyer sur une caisse institutionnelle autorisée et reconnue, pas sur la création arbitraire d'un compte. Voir l'issue #753.
