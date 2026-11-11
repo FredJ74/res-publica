@@ -1,4 +1,6 @@
 // Assistant HRP du jeu. Strictement pedagogique, sans effet sur le personnage.
+// Pas une fonction Vercel a part (offre limitee a 12 fonctions) : /api/aide est redirige vers
+// /api/chat?mode=aide (vercel.json), et api/chat.js delegue ici. Correctif du 11/11/2026.
 import { appelDeepSeek, joueurAuthentifie } from './_deepseek.js';
 import { contexteAideQuestion } from './_aide-themes.js';
 
@@ -36,7 +38,7 @@ export function verifierAidePayload(body) {
   return true;
 }
 
-export default async function handler(req,res) {
+export async function handlerAide(req,res) {
   res.setHeader('Cache-Control','no-store');
   if (req.method !== 'POST') return res.status(405).json({error:'Méthode non autorisée.'});
   if (!verifierAidePayload(req.body)) return res.status(400).json({error:'Question invalide.'});

@@ -29,6 +29,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/aide",
+      "destination": "/api/chat?mode=aide"
+    },
+    {
       "source": "/admin",
       "destination": "/admin.html"
     },
