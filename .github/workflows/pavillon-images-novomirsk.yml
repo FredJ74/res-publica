@@ -44,6 +44,6 @@ jobs:
               assert src.exists(),str(src)
               with Image.open(src) as im:
                   im.verify()
-              assert 'imageUrl: \'images/Sovarka/Novomirsk/'+src.name+'\'' in txt,src.name
+              assert ("imageUrl: 'images/Sovarka/Novomirsk/"+src.name+"'") in txt,src.name
           print('5/5 WebP décodables et liés dans data.js')
           PY
