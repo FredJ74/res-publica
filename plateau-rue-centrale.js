@@ -1269,7 +1269,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // V7 — Place de la Grande Eglise. Trois hotspots, tous cliquables.
     'novomirsk-vue-7': {
-      image: 'images/rue-residences-eglise-novomirsk.webp',
+      image: 'images/rue-residences-eglise-novomirsk.webp?v=residence-enseigne-20261111',
       zones: [
         // Raccorde le 04/11/2026 (decisions de Fred) : appartements de luxe, trois suites, salle de reception, bar.
         { xPct: [0, 16],   yPct: [18, 74], nom: 'Pavillon des Ambassadeurs', type: 'batiment', buildingId: 'pavillon-ambassadeurs-novomirsk' },
