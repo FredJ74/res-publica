@@ -1,5 +1,8 @@
 name: Intégrer le bar du Pavillon en WebP
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - chatgpt/pavillon-bar-webp-20261111
