@@ -610,3 +610,16 @@ et la ressemblance Gromov / Lebedev / Sokolov.
 >
 > Avez-vous des questions ? Je vous rappelle que je ne réponds qu'aux questions historiques.
 
+#### Salle des partis politiques victorieux — rédigée par Fred (11/11, 19 h 00)
+
+Texte de Fred, recopié tel quel (une première version, corrigée dans une session précédente, n'avait pas été consignée et a été perdue). Partis : **PPP** = Zolotov et Belov ; **Prolétariat Heureux** = Gromov (dissous) ; **Progrès Nostalgique** = Lebedev et Sokolov. Au codage, corriger seulement l'orthographe (« d'autres », « qu'il a fallu rééduquer », double espace).
+
+> Voici la Salle des partis politiques victorieux. Admirez ces bannières : chacune porte le visage d'un président élu, et derrière chaque visage, le grand parti qui l'a porté au pouvoir.
+> Car oui, un Président n'est que l'humble représentant du parti qui l'a porté au pouvoir, et le parti n'est lui-même que la modeste structure qui représente le peuple souverain.
+> Commençons par le Parti des Précurseurs Politiques. Ce sont eux qui ont conduit notre nation hors des ténèbres tsaristes, vers la vie hautement démocratique que nous connaissons aujourd'hui. Hautement démocratique, oui. Je pèse mes mots. Le Parti a donné à Sovarka ses deux premiers présidents, le camarade Zolotov et le camarade Belov. Dans la vitrine, vous verrez la première carte du Parti, la plume qui signa la Constitution, et une photographie du premier scrutin libre. On y distingue très bien l'urne, et le représentant du Parti qui en assurait la protection.
+> Au centre, le Parti du Prolétariat Heureux, celui du camarade Gromov. Son programme tenait en une phrase : le prolétariat est heureux. Les études de l'époque l'ont confirmé à cent pour cent. Le Parti s'est ensuite dissous de lui-même, sa mission étant accomplie.
+> Enfin, le Parti du Progrès Nostalgique, qui a donné au pays les camarades Lebedev et Sokolov. Sa devise : « Avancer vers le passé sans jamais reculer ».  Certains pays appellent ceci le "moonwalk", d'autre le tango Estadien. Ses adversaires, des traîtres à la nation qui a fallut ré-éduquer, disaient qu'il n'avait rien de nouveau à proposer. C'était justement tout son programme.
+> Vous remarquerez peut-être que les camarades Lebedev et Sokolov ressemblent beaucoup au camarade Gromov, alors qu'ils appartenaient à un autre parti. C'est la preuve que chez nous, le pluralisme n'empêche pas la continuité.
+> Ces trois grands partis ont un point commun : ils ont remporté toutes les élections auxquelles ils se sont présentés. Les autres partis ? Ils n'étaient pas prêts. Ils le sont peut-être aujourd'hui… Les registres d'inscription se trouvent à la mairie.
+> Avez-vous des questions ? Uniquement historiques, je vous prie.
+
