@@ -20,6 +20,12 @@ CREATE TABLE public.cycles_electoraux (
 );
 CREATE TABLE public.caisses_batiments(id text PRIMARY KEY,data jsonb);
 CREATE TABLE public.salaires_caisses(poste_id text,motif text);
+CREATE TABLE public.locaux_loyers_referentiel(batiment text,piece text,louable boolean);
+INSERT INTO public.locaux_loyers_referentiel(batiment,piece,louable) VALUES
+ ('pavillon-ambassadeurs-novomirsk','suite_parti',true),
+ ('pavillon-ambassadeurs-novomirsk','suite_privee',true),
+ ('pavillon-ambassadeurs-novomirsk','suite_presidentielle',true);
+
 CREATE OR REPLACE FUNCTION public.mon_personnage() RETURNS text LANGUAGE sql STABLE AS $$
  SELECT nullif(current_setting('pavillon.test_acteur',true),'') $$;
 CREATE OR REPLACE FUNCTION public.exiger_acteur(p text) RETURNS void LANGUAGE plpgsql AS $$
@@ -139,5 +145,11 @@ BEGIN
     OR has_table_privilege('anon','public.pavillon_baux','SELECT')
     OR has_function_privilege('anon','public.pavillon_acte(uuid,text,text)','EXECUTE') THEN
   RAISE EXCEPTION 'droits trop ouverts'; END IF;
+END $checks$;
+DO $checks$
+BEGIN
+ IF EXISTS(SELECT 1 FROM public.locaux_loyers_referentiel
+           WHERE batiment='pavillon-ambassadeurs-novomirsk' AND louable) THEN
+  RAISE EXCEPTION 'ancien guichet générique encore ouvert'; END IF;
 END $checks$;
 SELECT 'BANC PAVILLON VERT' AS conclusion;
