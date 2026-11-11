@@ -35,6 +35,8 @@ function faireContexte(stock=3,pa=5,fonds=1500) {
   nomImprimeurLocal:()=>null
  };
  vm.createContext(ctx);
+ vm.runInContext(fs.readFileSync(path.resolve(__dirname,'../../i18n/tracts-resources.js'),'utf8'),ctx);
+ ctx.texteTract=ctx.window.texteTract;
  vm.runInContext(fn,ctx);
  return {ctx,noeuds,appels,toasts};
 }
