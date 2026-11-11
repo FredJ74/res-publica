@@ -1,0 +1,74 @@
+name: Intégrer le bar du Pavillon en WebP
+on:
+  push:
+    branches:
+      - chatgpt/pavillon-bar-webp-20261111
+    paths:
+      - .github/workflows/pavillon-bar-webp-20261111.yml
+permissions:
+  contents: write
+jobs:
+  convertir-et-raccorder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Installer Pillow
+        run: python -m pip install 'Pillow==11.1.0'
+      - name: Convertir, raccorder, supprimer l'original
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          src = Path('images/Novomirsk_ambassades_bar.png')
+          dst = Path('images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_bar.webp')
+          assert src.is_file(), f'Image GitHub introuvable: {src}'
+          assert not dst.exists(), f'WebP déjà présent: {dst}'
+          dst.parent.mkdir(parents=True, exist_ok=True)
+          with Image.open(src) as im:
+              im.convert('RGB').save(dst, format='WEBP', quality=87, method=6)
+              original_size = im.size
+          with Image.open(dst) as converted:
+              assert converted.format == 'WEBP' and converted.size == original_size
+              converted.verify()
+          source = Path('data.js')
+          content = source.read_text(encoding='utf-8')
+          start = content.index("  'pavillon-ambassadeurs-novomirsk': {")
+          end = content.index("  'residence-imperiale-novomirsk': {", start)
+          block = content[start:end]
+          anchor = '''      bar: {
+          name: "Bar",'''
+          # Recherche robuste avec l'indentation réelle de data.js.
+          anchor = '''      bar: {
+        name: "Bar",
+        imageBg: "linear-gradient(135deg,#120d05,#1e1508)",'''
+          assert block.count(anchor) == 1, 'Ancrage du bar introuvable ou non unique'
+          replacement = anchor + "\n        imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_bar.webp',"
+          block = block.replace(anchor, replacement, 1)
+          source.write_text(content[:start]+block+content[end:],encoding='utf-8')
+          html = Path('plateau.html')
+          current = html.read_text(encoding='utf-8')
+          assert '20261111-pavillon-cinq-images' in current, 'Balise cache data.js inattendue'
+          current = current.replace('20261111-pavillon-cinq-images', '20261111-pavillon-cinq-images-bar-webp', 1)
+          html.write_text(current,encoding='utf-8')
+          src.unlink()
+          Path('.github/workflows/pavillon-bar-webp-20261111.yml').unlink()
+          print('WEBP:', dst, dst.stat().st_size, 'bytes')
+          print('PNG supprimé:', not src.exists())
+          print('Référence data.js:', block.count('Novomirsk_pavillon_ambassadeurs_bar.webp'))
+          PY
+      - name: Vérifier et committer
+        run: |
+          git diff --check
+          test -f images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_bar.webp
+          test ! -e images/Novomirsk_ambassades_bar.png
+          grep -q "imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_bar.webp'" data.js
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Novomirsk : convertir et raccorder le bar du Pavillon en WebP"
+          git push origin HEAD:chatgpt/pavillon-bar-webp-20261111
