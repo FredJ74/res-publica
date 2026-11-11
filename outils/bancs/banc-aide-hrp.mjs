@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import vm from 'node:vm';
 import {verifierAidePayload} from '../../api/aide.js';
+import {contexteAideQuestion} from '../../api/_aide-themes.js';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const lire=p=>readFileSync(path.join(root,p),'utf8');
@@ -53,4 +54,18 @@ test('Aide : textes affichés de manière sûre et saisie conservée en cas de p
   assert.match(code,/historique\.slice\(-6\)/);
   assert.match(code,/maxLength="1000"|maxlength="1000"/);
   assert.doesNotMatch(code,/localStorage|sessionStorage/);
+});
+
+test('Aide : les grands sujets récupèrent une base de faits pertinente',()=>{
+  const pa=contexteAideQuestion('Je ne comprends pas les PA');
+  assert.match(pa,/POINTS D'ACTION/);
+  assert.match(pa,/sommeil/);
+  const but=contexteAideQuestion('Qu’est-ce que je dois faire dans le jeu ?');
+  assert.match(but,/bac à sable social/);
+  assert.match(but,/quel personnage veux-tu devenir/i);
+  const commerce=contexteAideQuestion('Comment monter mon business ?');
+  assert.match(commerce,/ARGENT ET ÉCONOMIE/);
+  const societe=contexteAideQuestion('Comment rencontrer des joueurs ?');
+  assert.match(societe,/RELATIONS/);
+  assert.ok(contexteAideQuestion('Bonjour').length<contexteAideQuestion('Comment monter mon business ?').length);
 });
