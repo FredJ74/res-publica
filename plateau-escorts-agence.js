@@ -285,7 +285,7 @@ async function escortsAgenceRecruter(escortId) {
 
 // Un changement de langue repeint uniquement la galerie encore affichée.
 // Aucun nouvel appel au serveur : le catalogue du pays est déjà en cache.
-if(typeof window.i18next?.on==='function')window.i18next.on('languageChanged',function(){
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
  const corps=document.getElementById('postes-body');
  if(RP_AGENCE_GENRE_AFFICHE && RP_AGENCE?.pays===state.country && corps?.querySelector?.('[data-social-agency-gallery]') && document.getElementById('modal-postes')?.classList.contains('open')){
   void escortsAgenceOuvrir(RP_AGENCE_GENRE_AFFICHE);
