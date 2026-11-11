@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import vm from 'node:vm';
-import {verifierAidePayload} from '../../api/aide.js';
+import {verifierAidePayload} from '../../api/_aide.js';
 import {contexteAideQuestion} from '../../api/_aide-themes.js';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
@@ -20,7 +20,7 @@ test('Aide : validation serveur fermée et bornée',()=>{
   }
 });
 test('Aide : authentification avant le modèle, aucune mutation personnage',()=>{
-  const s=lire('api/aide.js');
+  const s=lire('api/_aide.js');
   assert.ok(s.indexOf('await joueurAuthentifie(req')<s.indexOf('await appelDeepSeek({'));
   assert.match(s,/maxTokens:500/);
   assert.match(s,/timeoutMs:23000/);

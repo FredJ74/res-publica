@@ -22,6 +22,7 @@
 // LA CLE D'API N'EST JAMAIS TRANSMISE AU NAVIGATEUR, ni journalisee, ni renvoyee dans une erreur.
 
 import { construirePromptSysteme, profilExiste, maxTokensProfil, filtrerReponseSquatteur, langueDialogueAutorisee } from './_pnj-profils.js';
+import { handlerAide } from './_aide.js';
 import { appelDeepSeek, joueurAuthentifie, classerEchecFournisseur } from './_deepseek.js';
 import { sbTransport } from './_supabase.js';
 import { sceneDialogue } from './_pnj-localisation.js';
@@ -253,6 +254,8 @@ export function neutraliserRemiseFictive(texte, langue = 'fr') {
 }
 
 export default async function handler(req, res) {
+  // Assistant d'aide HRP : /api/aide est redirige ici (vercel.json), pour rester a 12 fonctions.
+  if (req.query && req.query.mode === 'aide') return handlerAide(req, res);
   const origin = req.headers.origin;
   if (origin === ALLOWED_ORIGIN) {
     res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);

@@ -111,6 +111,15 @@ leur numéro (#57, #135…).
 - Freemium **jamais pay-to-win** : le premium est cosmétique ou de confort.
 - Aucune clé ni secret dans le dépôt ou les messages.
 
+## Fonctions serveur Vercel : 12 au maximum (incident du 11/11/2026)
+
+L'offre Vercel du projet accepte **12 fonctions serveur** par déploiement. Chaque fichier `api/xxx.js` sans
+préfixe `_` en est une ; une 13ᵉ fait échouer **tous** les déploiements sans que rien ne casse ailleurs
+(la production cesse simplement d'être mise à jour). Un nouveau point d'entrée s'écrit en module
+`api/_xxx.js` et passe par une fonction existante (redirection `vercel.json` + délégation, comme
+`/api/aide` → `/api/chat?mode=aide`). Le banc `banc-vercel-douze-fonctions-20261111.cjs` le vérifie.
+Après une fusion, vérifier que le statut Vercel de `main` est vert.
+
 ## Charte graphique
 
 - **Habillage retenu : fond bleu-gris** (décision de Fred, 03/11/2026 ; l'ancienne charte
