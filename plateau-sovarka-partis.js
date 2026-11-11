@@ -2,38 +2,23 @@
 // Le serveur (sovarka_partis_liste, sovarka_parti_commande) décide de tout : lieu, coûts, adhésion
 // unique, droit d'entrée, refus à -2 POP, successeur, dissolution. L'écran n'affiche que ses réponses.
 
-const PARTI_MOTIFS = {
-  parti_non_vainqueur: 'Seul le chef du parti vainqueur de la semaine à la gloire désigne le Président du Conseil.',
-  chef_pm_d_office: 'Vous n’êtes ni président ni maire : le Président du Conseil, c’est vous, d’office.',
-  cible_deja_elue: 'Ce membre est déjà président ou maire.',
-  salle_des_partis_requise: 'On crée un parti dans la salle des partis d’une mairie de Sovarka.',
-  deja_dans_un_parti: 'Vous êtes déjà membre d’un parti : quittez-le d’abord.',
-  demande_en_cours: 'Vous avez déjà une demande d’adhésion en attente.',
-  nom_requis: 'Donnez un nom au parti (2 caractères au moins).',
-  nom_deja_pris: 'Un parti porte déjà ce nom.',
-  texte_trop_long: 'Nom (40 caractères) ou description (200 caractères) trop long.',
-  reserve_au_chef: 'Réservé au chef du parti.',
-  reserve_a_sovarka: 'Les partis n’existent qu’en Sovarka.',
-  prix_invalide: 'Le droit d’entrée doit être un nombre entier de PSK, entre 0 et 100 000.',
-  demande_absente: 'Cette demande n’existe plus.',
-  membre_absent: 'Ce camarade n’est pas membre du parti.',
-  candidat_deja_dans_un_parti: 'Ce candidat a rejoint un autre parti entre-temps.',
-  fonds_insuffisants_candidat: 'Le candidat n’a pas de quoi payer le droit d’entrée : la demande reste en attente.',
-  successeur_requis: 'Le chef doit désigner un successeur avant de quitter le parti.',
-  parti_introuvable: 'Ce parti n’existe plus.',
-  pa_insuffisants: 'Vous n’avez pas assez de PA.',
-  fonds_insuffisants: 'Vous n’avez pas assez de PSK.',
-  acteur_non_authentifie: 'Votre session doit être rétablie.'
-};
+// Textes d'affichage : catalogue i18n/sovarka-partis-resources.js (français de référence et de repli).
+const partiT = (k, v) => (typeof texteSovPartis === 'function' ? texteSovPartis(k, v) : k);
+const PARTI_RAISONS = ['parti_non_vainqueur', 'chef_pm_d_office', 'cible_deja_elue', 'salle_des_partis_requise', 'deja_dans_un_parti',
+  'demande_en_cours', 'nom_requis', 'nom_deja_pris', 'texte_trop_long', 'reserve_au_chef', 'reserve_a_sovarka', 'prix_invalide',
+  'demande_absente', 'membre_absent', 'candidat_deja_dans_un_parti', 'fonds_insuffisants_candidat', 'successeur_requis',
+  'parti_introuvable', 'pa_insuffisants', 'fonds_insuffisants', 'acteur_non_authentifie'];
+const partiModal = (titre, html, rouvrir) => (typeof sovModal === 'function') ? sovModal(titre, html, rouvrir) : vehModal(titre, html);
 const PARTI_VILLES = { capitale: 'Novomirsk', ville_a: 'Starovka', ville_b: 'Krasnov' };
 let partiDonnees = null;
 let partiEnCours = false;
 const partiE = v => (typeof vehEchappe === 'function') ? vehEchappe(v)
   : String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-async function partiCharger() {
+async function partiCharger(cache) {
+  if (cache === true && partiDonnees) return partiDonnees;
   const v = await sbRpcVerdict('sovarka_partis_liste', {}).catch(() => null);
-  if (!v || v.ok !== true) { showToast('Partis', 'Le serveur n’a pas répondu.', false); return null; }
+  if (!v || v.ok !== true) { showToast(partiT('tParties'), partiT('noServer'), false); return null; }
   partiDonnees = v;
   return v;
 }
@@ -43,43 +28,42 @@ function partiEstDansSalle() {
 }
 
 function partiListeHtml(partis) {
-  if (!partis.length) return '<p class="cpj-note">Aucun parti n’est encore constitué.</p>';
+  if (!partis.length) return '<p class="cpj-note">' + partiT('noParty') + '</p>';
   return partis.map((p, i) =>
     '<div style="border-top:1px solid #344354;padding:.5rem 0">' +
-      '<b>' + partiE(p.nom) + '</b> — chef : ' + partiE(p.chef) + ' · siège : ' + partiE(PARTI_VILLES[p.siege] || p.siege) +
-      '<br><span class="cpj-note">' + (p.desc ? partiE(p.desc) + ' · ' : '') + p.membres + ' membre' + (p.membres > 1 ? 's' : '') +
-      ' · popularité ' + p.pop + ' · droit d’entrée ' + p.prix + ' PSK (payé à l’acceptation)</span><br>' +
-      (p.demande_en_cours ? '<span class="cpj-note">Votre demande est en attente.</span>'
-        : (partiDonnees && !partiDonnees.mon_parti ? vehBouton('Demander l’adhésion (2 PA)', 'partiDemander(' + i + ')', false) : '')) +
+      '<b>' + partiE(p.nom) + '</b>' + partiT('partyHead', { chef: partiE(p.chef), siege: partiE(PARTI_VILLES[p.siege] || p.siege) }) +
+      '<br><span class="cpj-note">' + (p.desc ? partiE(p.desc) + ' · ' : '') + partiT(p.membres > 1 ? 'membersMany' : 'membersOne', { n: p.membres }) +
+      partiT('partyStats', { pop: p.pop, prix: p.prix }) + '</span><br>' +
+      (p.demande_en_cours ? '<span class="cpj-note">' + partiT('requestPending') + '</span>'
+        : (partiDonnees && !partiDonnees.mon_parti ? vehBouton(partiT('askJoin'), 'partiDemander(' + i + ')', false) : '')) +
     '</div>').join('');
 }
 
 // « Postuler à un poste » : en Sovarka, le parti d'abord (Fred, 07/11/2026).
-async function sovarkaPostuler() {
+async function sovarkaPostuler(cache) {
   if (state.country !== 'soviet') { ouvrirEcranPostes(); return; }
-  const v = await partiCharger();
+  const v = await partiCharger(cache);
   if (!v) return;
-  if (v.mon_parti) { ouvrirEcranPostes(); return; }
-  vehModal('Postuler à un poste',
-    '<p><b>Vous ne pouvez pas obtenir un poste si vous n’adhérez pas à un parti.</b></p>' +
-    vehSection('Partis constitués', partiListeHtml(v.partis)) +
-    vehSection('Créer un parti', '<p>2 PA et 15 PSK de droits d’enregistrement. Un parti se crée dans la <b>salle des partis</b> ' +
-      'd’une mairie ; il est national et a son siège dans la ville où il est créé.</p>' +
-      (partiEstDansSalle() ? vehBouton('Créer un parti', 'partiFormulaireCreation()', true) : '')));
+  if (v.mon_parti) { if (cache !== true) ouvrirEcranPostes(); return; }
+  partiModal(partiT('titleApply'),
+    '<p><b>' + partiT('mustJoin') + '</b></p>' +
+    vehSection(partiT('secParties'), partiListeHtml(v.partis)) +
+    vehSection(partiT('secCreate'), '<p>' + partiT('createInfo') + '</p>' +
+      (partiEstDansSalle() ? vehBouton(partiT('create'), 'partiFormulaireCreation()', true) : '')), sovarkaPostuler);
 }
 
-async function ouvrirSovarkaPartis() {
-  const v = await partiCharger();
+async function ouvrirSovarkaPartis(cache) {
+  const v = await partiCharger(cache);
   if (!v) return;
-  vehModal('Salle des partis', vehSection('Partis constitués', partiListeHtml(v.partis)));
+  partiModal(partiT('titleHall'), vehSection(partiT('secParties'), partiListeHtml(v.partis)), ouvrirSovarkaPartis);
 }
 
 function partiFormulaireCreation() {
-  vehModal('Créer un parti',
-    '<p>Fonder un parti coûte 2 PA et 15 PSK de droits d’enregistrement. Vous en serez le chef ; son siège sera dans cette ville.</p>' +
-    '<input id="parti-nom" class="cpj-champ" maxlength="40" placeholder="Nom du parti" style="width:100%"><br>' +
-    '<textarea id="parti-desc" class="cpj-champ" maxlength="200" rows="3" placeholder="Programme (facultatif)" style="width:100%;margin-top:.4rem"></textarea><br>' +
-    vehBouton('Fonder le parti', 'partiFonder()', true));
+  partiModal(partiT('create'),
+    '<p>' + partiT('createIntro') + '</p>' +
+    '<input id="parti-nom" class="cpj-champ" maxlength="40" placeholder="' + partiE(partiT('namePh')) + '" style="width:100%"><br>' +
+    '<textarea id="parti-desc" class="cpj-champ" maxlength="200" rows="3" placeholder="' + partiE(partiT('programPh')) + '" style="width:100%;margin-top:.4rem"></textarea><br>' +
+    vehBouton(partiT('found'), 'partiFonder()', true), partiFormulaireCreation);
 }
 
 async function partiCommande(action, parti, params, cleSuffixe) {
@@ -93,7 +77,7 @@ async function partiCommande(action, parti, params, cleSuffixe) {
       { p_requete: requete, p_action: action, p_parti: parti || null, p_params: params || {} }).catch(() => null);
     if (v && !v.transport) sessionStorage.removeItem(cle);
     if (!v || v.ok !== true) {
-      showToast('Refusé', PARTI_MOTIFS[v?.raison] || 'Le serveur n’a pas confirmé l’opération.', false);
+      showToast(partiT('tRefused'), PARTI_RAISONS.includes(v?.raison) ? partiT('m_' + v.raison) : partiT('notConfirmed'), false);
       return null;
     }
     if (typeof appliquerPaiementServeur === 'function' && (v.pa != null || v.liquide != null))
@@ -109,7 +93,7 @@ async function partiFonder() {
   const v = await partiCommande('fonder', null, { nom, desc }, nom);
   if (!v) return;
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Parti fondé', 'Le parti « ' + v.nom + ' » est enregistré. Vous en êtes le chef.', true);
+  showToast(partiT('tFounded'), partiT('founded', { nom: v.nom }), true);
   if (typeof addJournalEntry === 'function') addJournalEntry('Fondation du parti ' + v.nom + '.', 'event-info');
 }
 
@@ -119,39 +103,37 @@ async function partiDemander(i) {
   const v = await partiCommande('demander', p.id, {});
   if (!v) return;
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Demande envoyée', 'Votre demande d’adhésion au parti « ' + v.nom + ' » attend la décision de son chef.', true);
+  showToast(partiT('tSent'), partiT('sent', { nom: v.nom }), true);
 }
 
-async function ouvrirSovarkaMonParti() {
-  const v = await partiCharger();
+async function ouvrirSovarkaMonParti(cache) {
+  const v = await partiCharger(cache);
   if (!v) return;
   const m = v.mon_parti;
-  if (!m) { ouvrirSovarkaPartis(); return; }
-  let html = '<p><b>' + partiE(m.nom) + '</b> — chef : ' + partiE(m.chef) + ' · siège : ' + partiE(PARTI_VILLES[m.siege] || m.siege) +
-    ' · popularité ' + m.pop + ' · droit d’entrée ' + m.prix + ' PSK' + (m.est_chef ? ' · caisse ' + m.caisse + ' PSK' : '') + '</p>';
-  html += vehSection('Membres', m.membres.map((x, i) => '<div>' + partiE(x.nom) + ' — ' + partiE(x.grade) +
-    (m.est_chef && x.nom !== m.chef ? ' ' + vehBouton('Désigner comme successeur', 'partiSuccesseur(' + i + ')', false) : '') +
-    (m.peut_designer_pm && x.nom !== m.chef ? ' ' + vehBouton('Désigner Président du Conseil', 'partiDesignerPm(' + i + ')', true) : '') + '</div>').join(''));
-  if (m.peut_designer_pm) html += '<p class="cpj-note">Votre parti a remporté la semaine à la gloire et vous êtes déjà élu : '
-    + 'désignez le Président du Conseil du Peuple parmi les membres du parti.</p>';
+  if (!m) { ouvrirSovarkaPartis(cache); return; }
+  let html = '<p><b>' + partiE(m.nom) + '</b>' + partiT('partyHead', { chef: partiE(m.chef), siege: partiE(PARTI_VILLES[m.siege] || m.siege) }) +
+    partiT('myStats', { pop: m.pop, prix: m.prix }) + (m.est_chef ? partiT('treasury', { caisse: m.caisse }) : '') + '</p>';
+  html += vehSection(partiT('secMembers'), m.membres.map((x, i) => '<div>' + partiE(x.nom) + ' — ' + partiE(x.grade) +
+    (m.est_chef && x.nom !== m.chef ? ' ' + vehBouton(partiT('makeSuccessor'), 'partiSuccesseur(' + i + ')', false) : '') +
+    (m.peut_designer_pm && x.nom !== m.chef ? ' ' + vehBouton(partiT('makePm'), 'partiDesignerPm(' + i + ')', true) : '') + '</div>').join(''));
+  if (m.peut_designer_pm) html += '<p class="cpj-note">' + partiT('pmNote') + '</p>';
   if (m.est_chef) {
-    html += vehSection('Demandes d’adhésion', m.demandes.length
-      ? m.demandes.map((x, i) => '<div>' + partiE(x.nom) + ' ' + vehBouton('Accepter', 'partiRepondre(' + i + ',true)', true) + ' ' +
-          vehBouton('Refuser (−2 POP au parti)', 'partiRepondre(' + i + ',false)', false) + '</div>').join('')
-      : '<p class="cpj-note">Aucune demande en attente.</p>');
-    html += vehSection('Soviet Suprême', '<p class="cpj-note">Sièges obtenus à la semaine à la gloire ; désignez les députés de votre parti.</p>' +
-      vehBouton('Sièges et députés', 'ouvrirSovietSupreme()', false));
-    html += vehSection('Lois et manifestations', '<p class="cpj-note">Déposer un projet de loi au nom du parti (1 PA) ; '
-      + 'organiser une manifestation de soutien au parti au pouvoir, qui part de la mairie, avec au moins 10 manifestants de votre groupe présents (1 PA).</p>'
-      + vehBouton('Déposer un projet de loi', 'ouvrirSovarkaDeposerLoi()', true)
-      + vehBouton('Manifestation de soutien', 'sovarkaManifSoutien()', false));
-    html += vehSection('Droit d’entrée', '<input id="parti-prix" class="cpj-champ" type="number" min="0" step="1" value="' + m.prix + '"> PSK ' +
-      vehBouton('Fixer', 'partiFixerPrix()', false));
+    html += vehSection(partiT('secRequests'), m.demandes.length
+      ? m.demandes.map((x, i) => '<div>' + partiE(x.nom) + ' ' + vehBouton(partiT('accept'), 'partiRepondre(' + i + ',true)', true) + ' ' +
+          vehBouton(partiT('refuse'), 'partiRepondre(' + i + ',false)', false) + '</div>').join('')
+      : '<p class="cpj-note">' + partiT('noRequest') + '</p>');
+    html += vehSection(partiT('secSoviet'), '<p class="cpj-note">' + partiT('sovietNote') + '</p>' +
+      vehBouton(partiT('seats'), 'ouvrirSovietSupreme()', false));
+    html += vehSection(partiT('secLaws'), '<p class="cpj-note">' + partiT('lawsNote') + '</p>'
+      + vehBouton(partiT('bill'), 'ouvrirSovarkaDeposerLoi()', true)
+      + vehBouton(partiT('rally'), 'sovarkaManifSoutien()', false));
+    html += vehSection(partiT('secFee'), '<input id="parti-prix" class="cpj-champ" type="number" min="0" step="1" value="' + m.prix + '"> PSK ' +
+      vehBouton(partiT('set'), 'partiFixerPrix()', false));
   }
-  html += vehSection('Quitter le parti', '<p class="cpj-note">1 PA. ' + (m.est_chef
-    ? 'Le chef doit d’abord désigner un successeur ; s’il est le dernier membre, le parti est dissous.' : '') + '</p>' +
-    vehBouton('Quitter', 'partiQuitter()', false));
-  vehModal('Mon parti', html);
+  html += vehSection(partiT('secLeave'), '<p class="cpj-note">' + partiT('leaveCost') + (m.est_chef
+    ? partiT('leaveChief') : '') + '</p>' +
+    vehBouton(partiT('leave'), 'partiQuitter()', false));
+  partiModal(partiT('titleMine'), html, ouvrirSovarkaMonParti);
 }
 
 async function partiRepondre(i, accepter) {
@@ -159,9 +141,9 @@ async function partiRepondre(i, accepter) {
   if (!x) return;
   const v = await partiCommande(accepter ? 'accepter' : 'refuser', m.id, { nom: x.nom }, x.nom);
   if (!v) return;
-  showToast(accepter ? 'Adhésion acceptée' : 'Adhésion refusée',
-    accepter ? x.nom + ' rejoint le parti' + (v.prix ? ' (' + v.prix + ' PSK versés à la caisse).' : '.')
-             : 'Demande de ' + x.nom + ' refusée. Popularité du parti : ' + v.pop + '.', true);
+  showToast(accepter ? partiT('tAccepted') : partiT('tRejected'),
+    accepter ? (v.prix ? partiT('joinsPaid', { nom: x.nom, prix: v.prix }) : partiT('joins', { nom: x.nom }))
+             : partiT('rejected', { nom: x.nom, pop: v.pop }), true);
   ouvrirSovarkaMonParti();
 }
 
@@ -170,21 +152,21 @@ async function partiFixerPrix() {
   const prix = Number(document.getElementById('parti-prix')?.value);
   if (!m) return;
   const v = await partiCommande('fixer_prix', m.id, { prix }, String(prix));
-  if (v) { showToast('Droit d’entrée', 'Fixé à ' + v.prix + ' PSK.', true); ouvrirSovarkaMonParti(); }
+  if (v) { showToast(partiT('tFee'), partiT('feeSet', { prix: v.prix }), true); ouvrirSovarkaMonParti(); }
 }
 
 async function partiSuccesseur(i) {
   const m = partiDonnees?.mon_parti, x = m?.membres?.[i];
   if (!x) return;
   const v = await partiCommande('successeur', m.id, { nom: x.nom }, x.nom);
-  if (v) { showToast('Successeur désigné', x.nom + ' dirige désormais le parti.', true); ouvrirSovarkaMonParti(); }
+  if (v) { showToast(partiT('tSuccessor'), partiT('successor', { nom: x.nom }), true); ouvrirSovarkaMonParti(); }
 }
 
 async function partiDesignerPm(i) {
   const m = partiDonnees?.mon_parti, x = m?.membres?.[i];
   if (!x) return;
   const v = await partiCommande('designer_pm', m.id, { nom: x.nom }, x.nom);
-  if (v) { showToast('Président du Conseil', v.nom + ' est désormais Président du Conseil du Peuple.', true); ouvrirSovarkaMonParti(); }
+  if (v) { showToast(partiT('tPm'), partiT('pm', { nom: v.nom }), true); ouvrirSovarkaMonParti(); }
 }
 
 async function partiQuitter() {
@@ -193,6 +175,5 @@ async function partiQuitter() {
   const v = await partiCommande('quitter', m.id, {});
   if (!v) return;
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Parti quitté', v.dissous ? 'Vous étiez le dernier membre : le parti « ' + v.nom + ' » est dissous.'
-    : 'Vous avez quitté le parti « ' + v.nom + ' ».', true);
+  showToast(partiT('tLeft'), v.dissous ? partiT('dissolved', { nom: v.nom }) : partiT('left', { nom: v.nom }), true);
 }
