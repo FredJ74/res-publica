@@ -1,0 +1,24 @@
+name: Résidence impériale — 6 WebP et raccordement
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'data.js'
+      - 'images/Sovarka/Novomirsk/**'
+      - 'outils/audits/residence-imperiale-six-webp-20261111.json'
+      - 'outils/bancs/banc-residence-imperiale-webp-20261111.py'
+      - '.github/workflows/residence-imperiale-six-webp-check.yml'
+permissions:
+  contents: read
+jobs:
+  six-webp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install 'Pillow==11.3.0'
+      - run: python3 outils/bancs/banc-residence-imperiale-webp-20261111.py
+      - run: git diff --check
