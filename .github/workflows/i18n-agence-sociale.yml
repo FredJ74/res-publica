@@ -1,0 +1,25 @@
+name: I18N - agence sociale
+on:
+  pull_request:
+    paths:
+      - 'plateau-escorts-agence.js'
+      - 'i18n/social-agency-resources.js'
+      - 'outils/bancs/banc-i18n-agence-sociale-20261111.cjs'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'plateau.html'
+      - '.github/workflows/i18n-agence-sociale.yml'
+permissions:
+  contents: read
+jobs:
+  agence-sociale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-escorts-agence.js && node --check i18n/social-agency-resources.js && node --check outils/bancs/banc-i18n-agence-sociale-20261111.cjs
+      - run: node --test outils/bancs/banc-i18n-agence-sociale-20261111.cjs
+      - run: node --test outils/bancs/banc-i18n-editorial.cjs
+      - run: git diff --check
