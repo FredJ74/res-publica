@@ -74,7 +74,7 @@ jobs:
               t=f.read_text(encoding='utf-8')
               import re
               # Change la version du catalogue pour vider le cache des vues.
-              t2,n=re.subn(r'(src="data\\.js\\?v=[^"]+)',r'\\1-pharmanov-webp-20261111',t,count=1)
+              t2,n=re.subn(r'(src="data\.js\?v=[^"]+)',r'\1-pharmanov-webp-20261111',t,count=1)
               assert n==1 and t2!=t, f'Balise data.js absente : {page}'
               f.write_text(t2,encoding='utf-8')
           print('3 overrides Pharmanov et versions data.js OK')
