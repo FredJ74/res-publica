@@ -1,0 +1,74 @@
+[
+  {
+    "piece": "hall",
+    "ancien_png": "images/Sovarka/Novomirsk/Novomirsk_residence impériale_hall.png",
+    "webp": "images/Sovarka/Novomirsk/novomirsk-residence-imperiale-hall.webp",
+    "dimensions": [
+      1448,
+      1086
+    ],
+    "png_octets": 3456260,
+    "webp_octets": 571204,
+    "sha256_webp": "5d4a3a23a29db87f0b027347e7ea880aa4915d863464f93e2f0494880772a945"
+  },
+  {
+    "piece": "grand",
+    "ancien_png": "images/Sovarka/Novomirsk/Novomirsk_residence impériale_grand appartement.png",
+    "webp": "images/Sovarka/Novomirsk/novomirsk-residence-imperiale-grand-appartement.webp",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "png_octets": 2953344,
+    "webp_octets": 456098,
+    "sha256_webp": "788fe7f05a3bfad780e53a70dca80858b7f34f6e485a9544f294d4f037d23aba"
+  },
+  {
+    "piece": "1",
+    "ancien_png": "images/Sovarka/Novomirsk/Novomirsk_résidences impériales_appartement 1.png",
+    "webp": "images/Sovarka/Novomirsk/novomirsk-residence-imperiale-appartement-1.webp",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "png_octets": 2790400,
+    "webp_octets": 425910,
+    "sha256_webp": "5759d58db311b97f3f495b7625a9d6e09fcf4be15c65041d1b89d8ee3c06b0e1"
+  },
+  {
+    "piece": "2",
+    "ancien_png": "images/Sovarka/Novomirsk/Novomirsk_résidences impériales_appartement 2.png",
+    "webp": "images/Sovarka/Novomirsk/novomirsk-residence-imperiale-appartement-2.webp",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "png_octets": 2782403,
+    "webp_octets": 441582,
+    "sha256_webp": "cfa9a9ba26df4d5e19cb59f671753f270f63b20eb8cbed6c5e03ea266f9e409e"
+  },
+  {
+    "piece": "3",
+    "ancien_png": "images/Sovarka/Novomirsk/Novomirsk_résidences impériales_appartment 3.png",
+    "webp": "images/Sovarka/Novomirsk/novomirsk-residence-imperiale-appartement-3.webp",
+    "dimensions": [
+      1448,
+      1086
+    ],
+    "png_octets": 3072757,
+    "webp_octets": 520068,
+    "sha256_webp": "6918958233f212be54b7a920f0ee6db43eab1b98934c4e37ef85e32fef73b1e1"
+  },
+  {
+    "piece": "4",
+    "ancien_png": "images/Sovarka/Novomirsk/Novomirsk_résidences impériales_appartement 4.png",
+    "webp": "images/Sovarka/Novomirsk/novomirsk-residence-imperiale-appartement-4.webp",
+    "dimensions": [
+      1448,
+      1086
+    ],
+    "png_octets": 2989845,
+    "webp_octets": 511330,
+    "sha256_webp": "46eb5ee9b5722cc36aaa0ea25e4f8b970767ecd6a5f946d9c3f1f81ff39338ae"
+  }
+]
