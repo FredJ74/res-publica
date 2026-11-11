@@ -4,6 +4,9 @@
     "api/chat.js": {
       "maxDuration": 30
     },
+    "api/aide.js": {
+      "maxDuration": 30
+    },
     "api/assemblee-seblex.js": {
       "maxDuration": 30
     },
