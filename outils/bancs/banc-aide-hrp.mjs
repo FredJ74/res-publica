@@ -49,7 +49,7 @@ test('Aide : neuf langues et toutes les rubriques historiques conservées',()=>{
 test('Aide : textes affichés de manière sûre et saisie conservée en cas de panne',()=>{
   const code=lire('plateau-aide.js');
   assert.match(code,/el\.textContent=content/);
-  assert.match(code,/zone\.value=question/);
+  assert.match(code,/saisieActuelle\.value=question/);
   assert.match(code,/historique\.slice\(-6\)/);
   assert.match(code,/maxLength="1000"|maxlength="1000"/);
   assert.doesNotMatch(code,/localStorage|sessionStorage/);
