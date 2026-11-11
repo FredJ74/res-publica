@@ -31,7 +31,7 @@ const PAVILLON_REFUS = {
 };
 let pavillonActeEnCours=false;
 function pavillonT(key, vars={}) {
-  const lang=typeof window!=='undefined' && (window.getLang?.() || window.i18n?.lang || localStorage.getItem('rp_lang')) || 'fr';
+  const lang=(typeof window!=='undefined' && window.RPPlateauI18n?.language?.()) || 'fr';
   const template=(PAVILLON_TEXTES[lang] || PAVILLON_TEXTES.fr)[key] || PAVILLON_TEXTES.fr[key] || key;
   return template.replace(/\{(\w+)\}/g,(_,k)=>String(vars[k] ?? ''));
 }
