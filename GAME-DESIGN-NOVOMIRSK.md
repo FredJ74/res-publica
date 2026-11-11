@@ -714,8 +714,13 @@ Quatre crises de l'image : famine (années 1920-1930), Grande Guerre, grève gé
 #### Salle des expositions tournantes — décision de Fred (11/11, 19 h 53), PAS de feu vert de codage
 
 - La salle fonctionne en **génération d'image premium**, sur le modèle des options premium des commerces : coût réel **1,90 €**.
-- Les **dignitaires** peuvent y générer une image, qui reste exposée **7 jours**.
+- **Ouverte à tout joueur** (Fred, 19 h 55 : pas réservée aux dignitaires). L'image reste exposée **7 jours**.
 - **Aucun effet de jeu** : ni bonus, ni POP, purement cosmétique (règle du freemium jamais pay-to-win).
-- Restent à trancher avec Fred, une question à la fois : qui sont les dignitaires, une ou plusieurs expositions à la fois, ce que dit la guide (salle vide / exposition en cours).
+- **Espace de liberté** (Fred, 20 h 00) : aucune évaluation automatique du caractère « subversif ». Ce sont les autorités
+  jouées par des PJ qui jugent : l'auteur (connu par le registre du musée) peut **répondre de ses actes en jeu** s'il est mis
+  en cause (circuit de justice existant : plaintes, consignes, juge). **L'image n'est jamais décrochée** avant ses 7 jours,
+  pour éviter toute protestation HRP d'un joueur qui a payé ; seul l'auteur peut être poursuivi.
+- **Modération réelle** : celle de l'IA au moment de la génération (contenus interdits), qui protège naturellement le jeu.
+- Restent à trancher avec Fred, une question à la fois : une ou plusieurs expositions à la fois, ce que dit la guide (salle vide / exposition en cours).
 - Brouillon de la guide pour la salle vide (proposé par Claude, non validé) : vitrines vides en attente des autorisations du comité de validation.
 
