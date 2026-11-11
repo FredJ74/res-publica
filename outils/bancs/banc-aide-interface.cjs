@@ -5,6 +5,8 @@ const {avecJeu,page}=require('./mobile-navigateur.cjs');
 test('Aide : première page visible et sans débordement en mobile et en bureau',async()=>avecJeu(async(b,o)=>{
  for(const [width,height] of [[375,667],[393,852],[1440,900]]){
   const p=await page(b,o,width,height);
+  // Le harnais mobile neutralise tous les scripts du HTML : charger explicitement l'Aide.
+  await p.addScriptTag({url:o+'/plateau-aide.js'});
   await p.evaluate(()=>{
     document.querySelectorAll('.vue').forEach(v=>v.classList.remove('active'));
     document.getElementById('vue-rules').classList.add('active');
@@ -20,6 +22,7 @@ test('Aide : première page visible et sans débordement en mobile et en bureau'
 }));
 test('Aide : une question produit une seule requête authentifiée et une réponse sans HTML actif',async()=>avecJeu(async(b,o)=>{
  const p=await page(b,o,375,667);
+ await p.addScriptTag({url:o+'/plateau-aide.js'});
  await p.evaluate(()=>{
    document.querySelectorAll('.vue').forEach(v=>v.classList.remove('active'));
    document.getElementById('vue-rules').classList.add('active');
