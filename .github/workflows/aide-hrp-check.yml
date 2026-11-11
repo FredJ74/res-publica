@@ -32,8 +32,8 @@ jobs:
         with:
           node-version: '22'
       - run: node --check api/_aide.js && node --check plateau-aide.js && node --check plateau-personnage.js && node --check i18n/plateau-resources.js
-      - run: node --test outils/bancs/banc-aide-hrp.mjs outils/bancs/banc-aide-multilingue.mjs outils/bancs/banc-aide-corpus.mjs outils/bancs/banc-aide-avancee.mjs
       - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: node --test outils/bancs/banc-aide-hrp.mjs outils/bancs/banc-aide-multilingue.mjs outils/bancs/banc-aide-corpus.mjs outils/bancs/banc-aide-avancee.mjs
       - run: node --test --test-concurrency=1 outils/bancs/banc-aide-interface.cjs outils/bancs/banc-aide-neuf-langues-navigateur.cjs
       - run: node --test outils/bancs/banc-i18n-guide-mail.cjs outils/bancs/banc-i18n-navbar-20261106.cjs outils/bancs/banc-i18n-tutoriel.cjs
       - run: git diff --check
