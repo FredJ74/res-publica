@@ -238,3 +238,51 @@
   document.addEventListener('submit',garderOrdre,true);
   dimensionner();
 })();
+
+// Piece sur telephone (11/11/2026, retour de Fred) : l'image occupe toute la largeur a ses
+// proportions, et le nom et la description passent SOUS l'image au lieu de la recouvrir.
+// Presentation seule ; le bureau (>= 1024 px) et les salles de musee (zones cliquables) sont exclus.
+(() => {
+  'use strict';
+  const petit = window.matchMedia('(max-width: 1023px)');
+  const cadre = document.getElementById('piece-image');
+  if (!cadre) return;
+  const tailles = new Map();
+  let jeton = 0;
+  function urlImage() {
+    const urls = [...String(cadre.style.backgroundImage || '').matchAll(/url\(["']?([^"')]+)["']?\)/g)].map(m => m[1]);
+    return urls.length ? urls[urls.length - 1] : '';
+  }
+  function retirer() {
+    delete cadre.dataset.hgSplit;
+    delete cadre.dataset.hgImageH;
+    cadre.style.removeProperty('--hg-ratio-image');
+  }
+  function poser(t) {
+    const ratio = t.h / t.w;
+    cadre.style.setProperty('--hg-ratio-image', (ratio * 100).toFixed(3) + '%');
+    cadre.dataset.hgImageH = String(Math.round(cadre.clientWidth * ratio));
+    cadre.dataset.hgSplit = '1';
+  }
+  function appliquer() {
+    const url = urlImage();
+    if (!petit.matches || !url || cadre.dataset.musee === '1') { retirer(); return; }
+    if (tailles.has(url)) { poser(tailles.get(url)); return; }
+    const mien = ++jeton;
+    const img = new Image();
+    img.onload = () => {
+      if (!img.naturalWidth || !img.naturalHeight) return;
+      tailles.set(url, { w: img.naturalWidth, h: img.naturalHeight });
+      if (mien === jeton && urlImage() === url) appliquer();
+    };
+    img.src = url;
+  }
+  new MutationObserver(appliquer).observe(cadre, { attributes: true, attributeFilter: ['style', 'data-musee'] });
+  if (typeof ResizeObserver !== 'undefined') {
+    let largeur = 0;
+    new ResizeObserver(() => { if (cadre.clientWidth !== largeur) { largeur = cadre.clientWidth; appliquer(); } }).observe(cadre);
+  }
+  petit.addEventListener?.('change', appliquer);
+  appliquer();
+})();
+

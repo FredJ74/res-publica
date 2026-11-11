@@ -706,7 +706,7 @@ function varianteTailleNaturelle(url) {
    cadre, en refaisant le calcul de `background-size:cover` + `center`.
    Rend null si le cadre ou l'image n'ont pas encore de dimensions. */
 function varianteZoneEnPixels(zone, cadre, taille, ancrage) {
-  const cl = cadre.clientWidth, ch = cadre.clientHeight;
+  const cl = cadre.clientWidth, ch = varianteHauteurImage(cadre);
   if (!cl || !ch || !taille || !taille.l || !taille.h) return null;
 
   const echelle = Math.max(cl / taille.l, ch / taille.h);
@@ -1103,6 +1103,14 @@ function varianteDessinerEnseigne(cadre, decl, contenu) {
    Rappele a chaque changement de dimensions du cadre : la zone change, donc la
    maquette est recomposee -- une enseigne n'est pas calibree une fois pour
    toutes, elle est recomposee pour la place dont elle dispose. */
+/* Sur telephone, plateau-mobile.js place le texte de la piece SOUS l'image : le cadre est alors
+   plus haut que l'image, dont il publie la hauteur dans data-hg-image-h. Sans cet attribut
+   (bureau), la hauteur utile reste celle du cadre : aucun pixel ne bouge. */
+function varianteHauteurImage(cadre) {
+  const h = Number(cadre.dataset.hgImageH);
+  return h > 0 ? h : cadre.clientHeight;
+}
+
 function variantePositionnerEnseigne(cadre, conf, url, el, ancrage) {
   Promise.all([varianteTailleNaturelle(url), enseignePolicesPretes()]).then(function (r) {
     const taille = r[0];
@@ -1112,8 +1120,8 @@ function variantePositionnerEnseigne(cadre, conf, url, el, ancrage) {
     // Placer l'enseigne dans son propre bandeau superieur, centree dans le cadre.
     const decorPremium = cadre.getAttribute('data-commerce-decor') === '1';
     const px = decorPremium
-      ? { gauche: cadre.clientWidth * .15, haut: Math.max(8, cadre.clientHeight * .145),
-          largeur: cadre.clientWidth * .70, hauteur: Math.max(36, cadre.clientHeight * .085) }
+      ? { gauche: cadre.clientWidth * .15, haut: Math.max(8, varianteHauteurImage(cadre) * .145),
+          largeur: cadre.clientWidth * .70, hauteur: Math.max(36, varianteHauteurImage(cadre) * .085) }
       : varianteZoneEnPixels(conf.zone, cadre, taille, ancrage);
     if (!px) { el.style.display = 'none'; return; }
 
