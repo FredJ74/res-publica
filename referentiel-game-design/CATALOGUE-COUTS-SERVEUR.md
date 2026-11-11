@@ -1,6 +1,6 @@
 # Coûts des ordres enregistrés en production — catalogue en lecture seule
 
-**Source :** table de configuration `public.ordres_couts` de Supabase `res-publica`, interrogée le 9 novembre 2026 en **SELECT**. Montants configurés, non preuve d'affichage, de permission ou de fonctionnement. Les empires peuvent posséder des règles spéciales.
+**Source :** table de configuration `public.ordres_couts` de Supabase `res-publica`, relevée le 11 novembre 2026 en **SELECT DISTINCT** (534 triplets ; relevé brut : `outils/referentiel/ordres_couts_production_20261111.tsv`). Montants configurés, non preuve d'affichage, de permission ou de fonctionnement. Les empires peuvent posséder des règles spéciales ; les tarifs nationaux de Sovarka sont dans `ordres_couts_pays`.
 
 | Identifiant de fonction | PA configurés | Coût numérique configuré |
 |---|---:|---:|
@@ -201,12 +201,23 @@
 | `falsifier_document#reussite` | 0 | 300 |
 | `falsifier_document#tentative` | 3 | 0 |
 | `falsifier_listes_electorales` | 2 | 0 |
+| `ferme_lapin` | 2 | 0 |
+| `ferme_legumes` | 1 | 0 |
+| `ferme_oeufs` | 1 | 0 |
+| `ferme_poulet` | 2 | 0 |
+| `ferme_renne` | 5 | 0 |
+| `ferme_traire` | 1 | 0 |
 | `financer_communal` | 1 | 0 |
 | `financer_oeuvre_culturelle` | 1 | 600 |
 | `fixer_impots_locaux` | 2 | 0 |
 | `fixer_prix_achat_entrepot` | 1 | 0 |
 | `fixer_prix_vente_directe` | 1 | 0 |
 | `fixer_repartition_production` | 1 | 0 |
+| `foret_aller` | 0 | 0 |
+| `foret_couper` | 2 | 0 |
+| `foret_enfoncer` | 0 | 0 |
+| `foret_rencontre` | 0 | 0 |
+| `foret_revenir` | 0 | 0 |
 | `fuite_info` | 3 | 0 |
 | `garage_reviser` | 0 | 0 |
 | `garage_vehicules` | 0 | 0 |
@@ -276,6 +287,8 @@
 | `louer_box` | 1 | 0 |
 | `louer_local` | 1 | 0 |
 | `louer_lot_ici` | 1 | 0 |
+| `maison_habitant` | 0 | 0 |
+| `manger_oeufs` | 0 | 0 |
 | `manger_ration` | 0 | 0 |
 | `marchander_vote` | 1 | 100 |
 | `marchandises_non_reclamees` | 0 | 0 |
@@ -450,6 +463,7 @@
 | `soins_urgence` | 0 | 500 |
 | `solliciter_audience_president` | 0 | 0 |
 | `sortie_hopital` | 0 | 0 |
+| `souscrire_bon_etat` | 0 | 0 |
 | `sovarka_accepter_cession` | 1 | 0 |
 | `sovarka_acte_officiel` | 1 | 8 |
 | `sovarka_acte_officiel_autorite` | 1 | 0 |
@@ -457,6 +471,7 @@
 | `sovarka_conscription` | 0 | 0 |
 | `sovarka_conscrit_presenter` | 1 | 0 |
 | `sovarka_demander_local` | 1 | 0 |
+| `sovarka_ecoutes` | 0 | 0 |
 | `sovarka_extrait_parti` | 1 | 7 |
 | `sovarka_loi_deposer` | 1 | 0 |
 | `sovarka_lois_examen` | 0 | 0 |
@@ -504,6 +519,7 @@
 | `transfert_compromis` | 1 | 0 |
 | `travailler_chantier` | 0 | 0 |
 | `travailler_jardins` | 1 | 0 |
+| `trinquer_habitant` | 3 | 0 |
 | `truquer_depouillement` | 2 | 0 |
 | `utiliser_explosifs` | 3 | 0 |
 | `vendre_bois_imprimerie` | 0 | 0 |
@@ -518,6 +534,7 @@
 | `visiter_prisonnier` | 1 | 0 |
 | `voir_ma_section` | 0 | 0 |
 | `voler` | 2 | 0 |
+| `voler_archives_ecoute` | 2 | 0 |
 | `voler_materiel_chantier` | 2 | 0 |
 | `voter_election` | 0 | 0 |
 | `voter_loi` | 0 | 0 |

@@ -204,6 +204,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('foret_couper',2,0),
   ('foret_enfoncer',0,0),
   ('foret_revenir',0,0),
+  ('fouiller_lieux',2,0),
   ('fuite_info',3,0),
   ('garage_reviser',0,0),
   ('garage_vehicules',0,0),

@@ -43,6 +43,9 @@ de décisions du **10 novembre 2026 au soir** (20 h 53 – 21 h 30), à coder en
 5. Caméra trouvée : celui qui trouve **la détruit ou l'emporte** (inventaire) ; l'emporter est **un vol avec trace**, sauf si
    elle était posée chez lui. Le propriétaire reçoit un mail **« Signal perdu »** sans savoir qui l'a trouvée ; celui qui
    trouve **ignore le propriétaire** (seules une enquête de police sur la trace ou les rumeurs le révèlent).
+- **Placement (décision de Fred, 11/11/2026, 0 h 58)** : dans une pièce, « Fouiller les lieux » est un **ordre de pièce**,
+  en vert (légal), **tout en bas** de la liste des ordres ; il n'est plus dans la colonne des personnes présentes. Dans une
+  vue de rue (sans liste d'ordres), le bouton reste dans la colonne.
 
 ### Piratage
 6. **3 PA** par tentative, depuis un bureau connecté ; base **45 %** ± intelligence ; cible protégée par un intranet : seuls
@@ -125,3 +128,7 @@ de décisions du **10 novembre 2026 au soir** (20 h 53 – 21 h 30), à coder en
   détection du vol, rien n'est pris si repéré ; cession au chef et autorisations nominatives). **Choix techniques** : la
   réimpression coûte 1 PA ; un faux raté consomme la cartouche ; la banque de plans couvre les cartes postales et les objets
   d'intégration locale du jeu.
+- **11/11, matin (branche `claude/fouiller-ceder-catalogues-20261111`)** : « Fouiller les lieux » déplacé en ordre de pièce
+  (source dynamique `ordresFouillerLieux`, marque `basDeListe`, routeur avant tout débit) ; bouton **« Céder à
+  l'organisation »** sur son matériel installé, proposé au chef d'au moins une organisation (choix de l'organisation, le
+  serveur vérifie que le local est loué par elle) ; le matériel cédé s'affiche « à l'organisation ». Aucune migration.

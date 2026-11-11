@@ -3941,7 +3941,9 @@ function renderRoomActions(room, buildingId, roomId) {
     .filter(o => !['produire_commerce','produire_arme'].includes(o.fn))
     .filter(o => o.fn !== 'gerer_commerce' || (typeof commerceDroitsPiece === 'function' && commerceDroitsPiece(buildingId, roomId)))
     .filter(o => !dynOrders.some(d => d.fn === o.fn))
-    .concat(dynOrders);
+    .concat(dynOrders.filter(d => !d.basDeListe))
+    // Ordres universels de piece places tout en bas (« Fouiller les lieux », decision de Fred, 11/11/2026).
+    .concat(dynOrders.filter(d => d.basDeListe));
 
   const achatTerrainBloqueParIntrus = /^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain' &&
     typeof getTerrainState === 'function' &&
