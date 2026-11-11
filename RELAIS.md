@@ -8,6 +8,24 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Aide — fiabilité avancée, Codex, 11/11/2026 (EN COURS)
+Branche `codex/aide-fiabilite-avancee-20261111`, base `d79b7ad0` (#736 conservée).
+16 thèmes conservés : économie/prêts/dettes, salaire attendu, voyage/trading,
+politique, justice, santé précisés sans nouveau barème. Sélection existante
+ordonnée par première mention et non liste arbitraire ; normalisation limitée
+au dépistage (accents latins, vocalisation arabe, variantes russes et chinoises),
+questions et noms transmis intacts ; fautes usuelles reconnues.
+22 nouveaux cas : neuf langues, ambiguïtés, sujets multiples, suivis, injections,
+limites du savoir et garde de non-mutation. **76/76 tests serveur verts**.
+Collecteur de recette réelle préparé : `outils/audits/recetter-aide-neuf-langues.mjs`,
+36 consultations Aide seulement, compte isolé/UID attendus, aucune répétition,
+archive0600 hors Git. Pas d'accès privé présent ici, donc pas de recette IA réelle.
+Aucune modification UI/mobile, Sovarka, RPC, coût ou donnée PJ ; toujours12fonctions.
+GitHub CLI lecture PR ne démarre pas (pthread_create), relais consulté : Aide Codex,
+messages Sovarka Claude, interfaces communes ChatGPT. Validations finales en cours.
+Ne pas annoncer une nouvelle fusion/READY ou qualité IA réelle validée.
+
+
 ### i18n commun — agence sociale, ChatGPT, 11/11/2026 (livré : PR #728, SHA 2cb77db2, Vercel READY)
 Branche `chatgpt/i18n-agence-sociale-20261111`. **28 libellés** sur neuf langues dans `plateau-escorts-agence.js` et `i18n/social-agency-resources.js` : galerie d'accompagnants, statuts, confidentes, plafond de dix employés, refus du serveur et confirmations. Les noms, identifiants, choix, coûts et mutations déjà décidés par le serveur restent inchangés ; la galerie ouverte est repeinte depuis le cache au changement de langue sans nouvelle RPC. Banc dédié `outils/bancs/banc-i18n-agence-sociale-20261111.cjs` et CI `.github/workflows/i18n-agence-sociale.yml`. Aucune modification aux dialogues PNJ ou institutions Sovarka. Restent à vérifier : CI distante, merge, Vercel READY, recette connectée et revue linguistique.
 
