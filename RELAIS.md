@@ -8,7 +8,11 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### i18n commun — journal des ventes et dîners, ChatGPT, 11/11/2026 (en intégration)
+### i18n commun — agence sociale, ChatGPT, 11/11/2026 (en intégration)
+Branche `chatgpt/i18n-agence-sociale-20261111`. **28 libellés** sur neuf langues dans `plateau-escorts-agence.js` et `i18n/social-agency-resources.js` : galerie d'accompagnants, statuts, confidentes, plafond de dix employés, refus du serveur et confirmations. Les noms, identifiants, choix, coûts et mutations déjà décidés par le serveur restent inchangés ; la galerie ouverte est repeinte depuis le cache au changement de langue sans nouvelle RPC. Banc dédié `outils/bancs/banc-i18n-agence-sociale-20261111.cjs` et CI `.github/workflows/i18n-agence-sociale.yml`. Aucune modification aux dialogues PNJ ou institutions Sovarka. Restent à vérifier : CI distante, merge, Vercel READY, recette connectée et revue linguistique.
+
+
+### i18n commun — journal des ventes et dîners, ChatGPT, 11/11/2026 (livré : PR #726, SHA a6afca36, Vercel READY)
 Branche `chatgpt/i18n-journal-diners-20261111`, distincte de l'Aide (Codex) et de Sovarka (Claude). **25 messages** traduits dans neuf langues : journal des ventes PJ, lecture/erreur, carte restaurant, invitations, réponses, confirmation serveur, service et description de dîner. Noms, devises, montants, PA, identifiants et RPC restent strictement issus des données et règles d'origine. Les ventes sont réaffichées à la bascule de langue sans nouvel appel réseau ni acquittement. Fichiers : `i18n/shared-sales-dinner-resources.js`, `plateau-journal-ventes.js`, `plateau-restaurant-luthecia.js`, `plateau.html`, audit éditorial et `outils/bancs/banc-i18n-ventes-diners-20261111.cjs`. CI dédiée : `.github/workflows/i18n-ventes-diners.yml`. Recette connectée, revue linguistique native et téléphone physique non réalisés. Ne pas déclarer le lot livré avant CI, fusion et Vercel READY.
 
 
