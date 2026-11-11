@@ -15,22 +15,24 @@ const traductions = {
  de:{titre:'Brauchst du Hilfe?',intro:'Kommst du nicht weiter? Weißt du nicht, was du tun sollst? Frag mich, ich helfe dir gern.',goal:'Was soll ich im Spiel tun?',pa:'Ich verstehe die Aktionspunkte nicht',input:'Schreib deine Frage…',send:'Senden',thinking:'Ich suche eine Antwort…',retry:'Antwort nicht verfügbar. Versuch es erneut.',offline:'Melde dich an, um eine Frage zu stellen.',hint:'Hilfe außerhalb des Rollenspiels · keine Änderung deiner Figur',heading:'Stell eine Frage'}
 };
 const escape=s=>String(s).replace(/[&<>"']/g,k=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[k]));
-let historique=[],attente=false,ouvert=false;
+let historique=[],attente=false,statut='';
 function langue(){const code=global.RPPlateauI18n?.language?.()||global.i18next?.language||'fr';return traductions[code]?code:'fr'}
 function texte(){return traductions[langue()]}
 function ajouter(role,content){
  const zone=document.getElementById('aide-hrp-fil');if(!zone)return;
- const el=document.createElement('p');el.className='aide-hrp-bulle aide-hrp-'+role;el.textContent=content;
+ const el=document.createElement('p');el.className='aide-hrp-bulle aide-hrp-'+role;el.textContent=content;el.setAttribute('dir','auto');
  zone.appendChild(el);zone.scrollTop=zone.scrollHeight;
 }
 function initialiser(){
  const zone=document.getElementById('rules-content');if(!zone)return;
- ouvert=true;const t=texte();
+ const t=texte();
  zone.setAttribute('dir',langue()==='ar'?'rtl':'ltr');
  zone.innerHTML='<section class="aide-hrp"><div class="aide-hrp-entete"><h2>'+escape(t.titre)+'</h2><p>'+escape(t.intro)+'</p><small>'+escape(t.hint)+'</small></div><div id="aide-hrp-fil" role="log" aria-live="polite" aria-label="'+escape(t.heading)+'"></div><div class="aide-hrp-suggestions"><button type="button" data-question="goal">'+escape(t.goal)+'</button><button type="button" data-question="pa">'+escape(t.pa)+'</button></div><form id="aide-hrp-form"><label class="aide-hrp-label" for="aide-hrp-question">'+escape(t.heading)+'</label><textarea id="aide-hrp-question" maxlength="1000" rows="2" placeholder="'+escape(t.input)+'" required></textarea><button id="aide-hrp-envoyer" type="submit">'+escape(t.send)+'</button></form><p id="aide-hrp-statut" role="status"></p></section>';
- const fil=zone.querySelector('#aide-hrp-fil');for(const m of historique){const el=document.createElement('p');el.className='aide-hrp-bulle aide-hrp-'+m.role;el.textContent=m.content;fil.appendChild(el)}
+ const fil=zone.querySelector('#aide-hrp-fil');for(const m of historique){const el=document.createElement('p');el.className='aide-hrp-bulle aide-hrp-'+m.role;el.textContent=m.content;el.setAttribute('dir','auto');fil.appendChild(el)}
  zone.querySelectorAll('[data-question]').forEach(b=>b.addEventListener('click',()=>envoyer(t[b.dataset.question])));
  zone.querySelector('#aide-hrp-form').addEventListener('submit',e=>{e.preventDefault();const value=zone.querySelector('#aide-hrp-question').value;envoyer(value)});
+ zone.querySelector('#aide-hrp-statut').textContent=statut?t[statut]:'';
+ zone.querySelector('#aide-hrp-envoyer').disabled=attente;
  const field=zone.querySelector('#aide-hrp-question');field.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();envoyer(field.value)}});
 }
 async function envoyer(message){
@@ -38,32 +40,43 @@ async function envoyer(message){
  if(!question||attente)return;
  const zone=document.getElementById('aide-hrp-question'),button=document.getElementById('aide-hrp-envoyer'),status=document.getElementById('aide-hrp-statut');
  if(!zone||!button||!status)return;
- const t=texte();
- let jeton=null;
- if(typeof global.rpAuthAssurerSession==='function')await global.rpAuthAssurerSession().catch(()=>null);
- jeton=typeof global.rpAuthJeton==='function'?global.rpAuthJeton():null;
- if(!jeton){status.textContent=t.offline;return}
- const precedent=historique.slice(-6);
- historique.push({role:'user',content:question});ajouter('user',question);
- zone.value='';attente=true;button.disabled=true;status.textContent=t.thinking;
+ // Verrou avant l'attente d'authentification : clic, Entrée et suggestion
+ // doivent partager la même requête, même si la session met du temps à revenir.
+ const langueRequete=langue();
+ attente=true;button.disabled=true;statut='thinking';status.textContent=texte().thinking;
+ let envoyee=false;
+ const controleur=new AbortController();
+ let refuserDelai;
+ const delai=new Promise((_,refuser)=>{refuserDelai=refuser});
+ const minuteur=setTimeout(()=>{controleur.abort();refuserDelai(Error('delai'))},30000);
  try {
-   const rep=await fetch('/api/aide',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+jeton},body:JSON.stringify({message:question,historique:precedent,lang:langue()})});
-   if(!rep.ok)throw Error('HTTP '+rep.status);
+   await Promise.race([typeof global.rpAuthAssurerSession==='function'?global.rpAuthAssurerSession().catch(()=>null):Promise.resolve(),delai]);
+   const jeton=typeof global.rpAuthJeton==='function'?global.rpAuthJeton():null;
+   if(!jeton){statut='offline';return}
+   // L'affichage garde les réponses intégrales. Seul le contexte transmis respecte
+   // la limite serveur de 1500 caractères par tour (y compris après une longue réponse).
+   const precedent=historique.slice(-6).map(m=>({role:m.role,content:m.content.slice(0,1500)}));
+   historique.push({role:'user',content:question});ajouter('user',question);envoyee=true;
+   const saisie=document.getElementById('aide-hrp-question');
+   if(saisie && saisie.value.trim()===question)saisie.value='';
+   const rep=await fetch('/api/aide',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+jeton},body:JSON.stringify({message:question,historique:precedent,lang:langueRequete}),signal:controleur.signal});
+   if(!rep.ok){if(rep.status===401)statut='offline';throw Error('HTTP '+rep.status)}
    const result=await rep.json();
    if(typeof result.reponse!=='string'||!result.reponse.trim())throw Error('empty');
-   historique.push({role:'assistant',content:result.reponse.slice(0,4000)});
-   if(document.getElementById('aide-hrp-fil'))ajouter('assistant',result.reponse.slice(0,4000));
-   const statutActuel=document.getElementById('aide-hrp-statut');
-   if(statutActuel)statutActuel.textContent='';
+   const reponse=result.reponse.slice(0,4000);
+   historique.push({role:'assistant',content:reponse});ajouter('assistant',reponse);
+   statut='';
  }catch(e){
-   historique.pop();
-   const statutActuel=document.getElementById('aide-hrp-statut');
+   // Conserver le message déjà affiché et tout nouveau brouillon, même si la
+   // langue a changé ou si l'onglet a été refermé pendant la réponse.
+   if(statut!=='offline')statut='retry';
    const saisieActuelle=document.getElementById('aide-hrp-question');
-   if(statutActuel)statutActuel.textContent=texte().retry;
-   if(saisieActuelle)saisieActuelle.value=question;
+   if(envoyee && saisieActuelle && !saisieActuelle.value)saisieActuelle.value=question;
  }
  finally{
-   attente=false;
+   clearTimeout(minuteur);attente=false;
+   const statutActuel=document.getElementById('aide-hrp-statut');
+   if(statutActuel)statutActuel.textContent=statut?texte()[statut]:'';
    const boutonActuel=document.getElementById('aide-hrp-envoyer');
    if(boutonActuel)boutonActuel.disabled=false;
  }

@@ -34,6 +34,29 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Aide HRP multilingue — Codex, 11/11/2026 (EN COURS)
+
+Branche `codex/aide-hrp-neuf-langues-20261111`, issue du main `6b9f5d30`
+(PR #712, #716 et mobile #717 conservées). Aucun doublon local de ce chantier
+retrouvé ; lecture API GitHub refusée403, vérification des PR via historique Git.
+Correctifs : détection des thèmes dans neuf langues sans frontières ASCII pour
+les écritures non latines ; question courante prioritaire ; langue imposée par
+le sélecteur malgré corpus/historique français ; verrou avant authentification,
+délai borné, historique transporté limité à1500 sans tronquer l'affichage,
+conservation des brouillons/messages et statut retraduit à chaud.
+Aucune modification PNJ, règle, RPC, migration, ni données de personnage.
+Toujours douze fonctions Vercel : `_aide.js` via le routeur existant.
+27 cas serveur verts, 13 cas navigateur et deux contre-épreuves additionnelles
+validés séparément ; parcours UI→chat→auth→fournisseur simulé, 18 questions.
+Comparaison FR1440 stricte identique. Rejeu complet des bancs encore en cours.
+Pas de clé DeepSeek ni compte de recette autorisé présents dans cet environnement :
+**aucune réponse IA réelle ni recette connectée revendiquée**. Pas de fusion/déploiement.
+Prochaine étape : preuves finales, PR si accès possible, puis CI et livraison
+seulement si les garanties sont satisfaites. Sur téléphone : onglet Aide,
+questions PA/buts, bascule fr→en→ko→fr avec brouillon, puis arabe et RTL ;
+ces manipulations ne changent pas le personnage.
+
+
 ### i18n gestion / administration — clôture locale cumulative, Codex 10/11 — INTÉGRÉ par Claude le 11/11 (branche `claude/integration-i18n-codex-20261111`)
 
 **159 nouvelles clés / neuf langues**, quatre branches poussées, réconciliées
