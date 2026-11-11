@@ -721,6 +721,11 @@ Quatre crises de l'image : famine (années 1920-1930), Grande Guerre, grève gé
   en cause (circuit de justice existant : plaintes, consignes, juge). **L'image n'est jamais décrochée** avant ses 7 jours,
   pour éviter toute protestation HRP d'un joueur qui a payé ; seul l'auteur peut être poursuivi.
 - **Modération réelle** : celle de l'IA au moment de la génération (contenus interdits), qui protège naturellement le jeu.
-- Restent à trancher avec Fred, une question à la fois : une ou plusieurs expositions à la fois, ce que dit la guide (salle vide / exposition en cours).
+- **Une seule exposition à la fois** (Fred, 20 h 52).
+- L'option premium comprend **l'image et un texte** écrit par l'auteur, que la **guide raconte** aux visiteurs, **en
+  multilingue** (traduit dans la langue de chaque joueur, sur le principe de la présentation fixe : traduit une fois par
+  langue puis resservi). Le texte reste celui d'un joueur : la guide le récite, il ne lui donne aucune instruction.
+- Restent à trancher avec Fred, une question à la fois : file d'attente ou salle libre seulement, ce que dit la guide
+  quand la salle est vide (brouillon de Claude) et comment elle introduit le texte de l'auteur.
 - Brouillon de la guide pour la salle vide (proposé par Claude, non validé) : vitrines vides en attente des autorisations du comité de validation.
 
