@@ -151,6 +151,12 @@ BEGIN
     ELSE
       IF NOT FOUND OR b.locataire IS DISTINCT FROM moi THEN
         RETURN jsonb_build_object('ok',false,'raison','bail_non_titulaire'); END IF;
+      -- La signature appartient à l'institution d'origine : un changement de
+      -- poste/pays ne peut pas faire renouveler ou résilier sur une autre caisse.
+      IF b.pays_payeur IS DISTINCT FROM q->>'pays'
+         OR b.poste_payeur IS DISTINCT FROM q->>'poste'
+         OR b.caisse_payeur IS DISTINCT FROM caisse THEN
+        RETURN jsonb_build_object('ok',false,'raison','institution_signataire_differente'); END IF;
       IF p_action='renouveler' THEN somme:=prix*7;
       ELSE
         -- Le jour supplémentaire de ménage s'applique une seule fois ; la ligne devient résiliée.
