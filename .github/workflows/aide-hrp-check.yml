@@ -1,0 +1,31 @@
+name: Aide HRP — questions libres et neuf langues
+on:
+  pull_request:
+    paths:
+      - 'api/aide.js'
+      - 'plateau-aide.js'
+      - 'plateau-aide.css'
+      - 'plateau-personnage.js'
+      - 'plateau.html'
+      - 'i18n/plateau-resources.js'
+      - 'outils/bancs/banc-aide-hrp.mjs'
+      - 'outils/bancs/banc-aide-interface.cjs'
+      - 'api/_aide-themes.js'
+      - '.github/workflows/aide-hrp-check.yml'
+permissions:
+  contents: read
+jobs:
+  aide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check api/aide.js && node --check plateau-aide.js && node --check plateau-personnage.js && node --check i18n/plateau-resources.js
+      - run: node --test outils/bancs/banc-aide-hrp.mjs
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: node --test outils/bancs/banc-aide-interface.cjs
+      - run: node --test outils/bancs/banc-i18n-guide-mail.cjs outils/bancs/banc-i18n-navbar-20261106.cjs outils/bancs/banc-i18n-tutoriel.cjs
+      - run: git diff --check

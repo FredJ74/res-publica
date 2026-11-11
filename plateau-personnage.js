@@ -4123,7 +4123,7 @@ function ouvrirDetailObjet(idx) {
 function openRulesView() {
   document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
   document.getElementById('vue-rules').classList.add('active');
-  renderRulesContent('intro');
+  renderRulesContent('aide');
 }
 
 function closeRulesView() {
@@ -4136,6 +4136,11 @@ function closeRulesView() {
 }
 
 function renderRulesContent(section) {
+  if (section === 'aide') {
+    document.querySelectorAll('.rules-tab').forEach(t => t.classList.toggle('active',t.dataset.section==='aide'));
+    if (typeof window.renderAideHrp === 'function') window.renderAideHrp();
+    return;
+  }
   const regle = REGLES[section];
   if (!regle) return;
   // Le texte français de REGLES reste source et repli. Le moteur i18next déjà

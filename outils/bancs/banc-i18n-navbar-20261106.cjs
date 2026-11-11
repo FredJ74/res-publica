@@ -7,7 +7,7 @@ const vm=require('node:vm');
 const root=path.resolve(__dirname,'../..');
 const read=name=>fs.readFileSync(path.join(root,name),'utf8');
 const html=read('plateau.html');
-const ids=['imperialIndices','rules','messagesForums','players','orgs','elections','worldMap','plan'];
+const ids=['imperialIndices','help','messagesForums','players','orgs','elections','worldMap','plan'];
 const titles=['indicesTitle','forumsTitle','playersTitle','orgsTitle','electionsTitle','footballTitle','planTitle','forumActivity'];
 
 function fixture(locale) {

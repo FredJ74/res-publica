@@ -912,6 +912,20 @@
     }
   };
   for(const [locale,labels] of Object.entries(personalNavigation)) Object.assign(translations[locale],labels);
+  // « Règles » reste la cle historique des anciens liens ; la nouvelle entrée HRP
+  // a ses propres libellés dans les neuf langues.
+  const aideLabels={
+    fr:{help:'Aide',helpChat:'Poser une question'},
+    en:{help:'Help',helpChat:'Ask a question'},
+    es:{help:'Ayuda',helpChat:'Hacer una pregunta'},
+    'zh-TW':{help:'幫助',helpChat:'提出問題'},
+    ru:{help:'Помощь',helpChat:'Задать вопрос'},
+    ko:{help:'도움말',helpChat:'질문하기'},
+    ar:{help:'المساعدة',helpChat:'اطرح سؤالاً'},
+    'pt-BR':{help:'Ajuda',helpChat:'Fazer uma pergunta'},
+    de:{help:'Hilfe',helpChat:'Frage stellen'}
+  };
+  for(const [locale,labels] of Object.entries(aideLabels))Object.assign(translations[locale],labels);
   for(const [locale,labels] of Object.entries(translations)) {
     if(resources[locale]?.translation) resources[locale].translation.plateau={...labels};
   }
