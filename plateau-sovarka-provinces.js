@@ -13,6 +13,22 @@ const provDate = d => new Date(d + 'T12:00:00').toLocaleDateString('fr-FR');
 let provBonsDernier = null, provEcoutesDernier = null, provMaisonDerniere = null;
 const provEchapper = s => (typeof sovEchapper === 'function') ? sovEchapper(s) : String(s == null ? '' : s);
 let provActeEnCours = false;
+// Phrases renvoyées en français par le serveur (réplique de l'habitant, ragots, fausses alertes, noms de
+// créatures, travaux de ferme, services) : traduites si elles correspondent EN ENTIER à un modèle connu
+// (plateau-sovarka-courriers.js, catalogue des messages) ; sinon, et en français, texte d'origine.
+const provServeur = (cles, s) => (typeof RPCourriersSovarka === 'object' && RPCourriersSovarka.phrase(cles, s)) || s;
+const provRagot = s => (typeof RPCourriersSovarka === 'object' && RPCourriersSovarka.ragot(s)) || s;
+const PROV_REACTIONS = ['hb_vodka', 'hb_slivovitz', 'hb_samogon', 'hb_alcool'];
+const PROV_CREATURES = ['cf_loup', 'cf_meute', 'cf_ours'];
+const PROV_ALERTES = ['fa_1', 'fa_2', 'fa_3', 'fa_4', 'fa_5'];
+const PROV_SERVICES = ['bois', 'fruits_legumes', 'oeufs', 'vodka', 'poisson', 'carburant', 'viande', 'viande_renne'];
+// Service demandé : en français le libellé du serveur ; ailleurs, la quantité et l'objet exigés par le serveur.
+function provService(s) {
+  if (!s) return '';
+  const fr = typeof RPCourriersSovarka !== 'object' || RPCourriersSovarka.langue() === 'fr';
+  if (fr || !PROV_SERVICES.includes(s.cle) || !Number.isSafeInteger(Number(s.qte)) || typeof texteSovMessages !== 'function') return s.label;
+  return texteSovMessages('hs_' + s.cle, { n: Number(s.qte) });
+}
 
 // Un acte idempotent : clé de requête stable par geste, oubliée après une réponse du serveur.
 async function provActe(rpc, params, geste) {
@@ -125,8 +141,8 @@ async function ouvrirMaisonHabitant(cache) {
   } else if (!v.service) {
     html = '<p>' + provT('hNothing') + '</p>';
   } else {
-    html = '<p>' + provT('hAsk', { objet: provEchapper(v.service.label) }) + '</p>' +
-      vehBouton(provT('give', { objet: provEchapper(v.service.label) }), 'agirMaisonHabitant(\'service\')', true);
+    html = '<p>' + provT('hAsk', { objet: provEchapper(provService(v.service)) }) + '</p>' +
+      vehBouton(provT('give', { objet: provEchapper(provService(v.service)) }), 'agirMaisonHabitant(\'service\')', true);
   }
   html += '<p class="cpj-note" style="margin-top:.7rem">' + provT('toastWith', { nom }) +
     (v.bouteille ? '' : provT('noBottle')) + '</p>';
@@ -146,9 +162,9 @@ async function trinquerHabitant() {
   const v = await provActe('sovarka_maison_agir', { p_action: 'trinquer' }, 'trinquer');
   if (!v) return;
   if (v.ok !== true) { if (typeof signalerRefusCout === 'function' && !PROV_MOTIFS[v.raison]) signalerRefusCout(v); else showToast(provT('tToast'), provMotif(v), false); return; }
-  const fenetre = () => provModal(provT('titleToast'), '<p>« ' + provEchapper(v.reaction) + ' »</p>' +
-    vehSection(provT('learn'), '<p>« ' + provEchapper(v.secret_recu) + ' »</p>') +
-    vehSection(provT('slip'), '<p class="cpj-note">' + provT('slipNote', { secret: provEchapper(v.secret_livre) }) + '</p>') +
+  const fenetre = () => provModal(provT('titleToast'), '<p>« ' + provEchapper(provServeur(PROV_REACTIONS, v.reaction)) + ' »</p>' +
+    vehSection(provT('learn'), '<p>« ' + provEchapper(provRagot(v.secret_recu)) + ' »</p>') +
+    vehSection(provT('slip'), '<p class="cpj-note">' + provT('slipNote', { secret: provEchapper(provRagot(v.secret_livre)) }) + '</p>') +
     vehBouton(provT('another'), 'trinquerHabitant()', false), fenetre);
   fenetre();
   if (typeof addJournalEntry === 'function') addJournalEntry('Trinqué avec ' + v.habitant + ' : « ' + v.secret_recu + ' »', 'event-neutral');
@@ -157,6 +173,7 @@ async function trinquerHabitant() {
 // ---------- FERMES (Fred, 10/11/2026 à midi) ----------
 // Une ferme ne consomme que du travail : le serveur paie les PA et dépose les produits dans l'inventaire.
 Object.assign(PROV_MOTIFS, provRaisons(['inventaire_plein', 'pas_d_oeufs']));
+const PROV_FERME_LABELS = ['ft_renne', 'ft_traire', 'ft_legumes', 'ft_oeufs', 'ft_poulet', 'ft_lapin'];
 const PROV_FERME_TRAVAUX = { ferme_renne: 'renne', ferme_traire: 'traire', ferme_legumes: 'legumes', ferme_oeufs: 'oeufs', ferme_poulet: 'poulet', ferme_lapin: 'lapin' };
 const PROV_MATIERES = ['viande', 'textile', 'bois', 'laitages', 'fruits_legumes', 'oeufs'];
 const provProduits = l => (Array.isArray(l) ? l : []).map(p => p.qte + ' ' + (PROV_MATIERES.includes(p.cle) ? provT('mat_' + p.cle) : p.cle)).join(', ');
@@ -168,7 +185,8 @@ async function travaillerFerme(fn) {
   const v = await provActe('sovarka_ferme_travailler', { p_travail: travail }, travail);
   if (!v) return;
   if (v.ok !== true) { provRefus(provT('tFarm'), v); return; }
-  showToast(provEchapper(v.label), provT('bring', { produits: provProduits(v.produits) }), true, true);
+  showToast(provEchapper(PROV_FERME_LABELS.includes('ft_' + v.travail) ? provServeur(['ft_' + v.travail], v.label) : v.label),
+    provT('bring', { produits: provProduits(v.produits) }), true, true);
   if (typeof addJournalEntry === 'function') addJournalEntry(v.label + ' : ' + provProduits(v.produits) + '.', 'event-good');
 }
 
@@ -223,7 +241,7 @@ async function foretCouper() {
   if (v.rencontre === 'attaque') { foretAfficherRencontre(v.nom, v.pnj); return; }
   if (v.fausse_alerte) {
     const fenetre = () => provModal(provT('titleNoise'), '<p>' + provT('falseAlarm') + '</p>' +
-      '<p>' + provEchapper(v.fausse_alerte) + '</p><p class="cpj-note">' + provT('woodBack', { n: v.quantite }) + '</p>', fenetre);
+      '<p>' + provEchapper(provServeur(PROV_ALERTES, v.fausse_alerte)) + '</p><p class="cpj-note">' + provT('woodBack', { n: v.quantite }) + '</p>', fenetre);
     fenetre();
   } else {
     showToast(provT('tWood'), provT('woodCut', { n: v.quantite }), true, true);
@@ -240,7 +258,7 @@ async function foretReprendreRencontre() {
 function foretAfficherRencontre(nom, pnj) {
   const js = s => JSON.stringify(String(s)).replace(/"/g, '&quot;');
   let html = '<p>' + provT('enc1') + '</p>' +
-    '<p>' + provT('enc2', { nom: provEchapper(nom) }) + '</p>';
+    '<p>' + provT('enc2', { nom: provEchapper(provServeur(PROV_CREATURES, nom)) }) + '</p>';
   const modes = (typeof NEUTRALISER_MODES === 'object' && NEUTRALISER_MODES) ? NEUTRALISER_MODES : { mains: { label: provT('bare') } };
   html += vehSection(provT('fight'), Object.keys(modes).map(m => {
     const possede = m === 'mains' || typeof neutraliserPossedeArme !== 'function' || neutraliserPossedeArme(m);
@@ -269,7 +287,7 @@ async function foretChoisir(choix) {
     provForetRendre(v.room);
     showToast(provT('tRun'), provT('run'), false);
   } else {
-    showToast(provT('tEaten'), provT('eaten', { nom: provEchapper(v.nom) }), false);
+    showToast(provT('tEaten'), provT('eaten', { nom: provEchapper(provServeur(PROV_CREATURES, v.nom)) }), false);
     if (typeof relireHospitalisationServeur === 'function') await relireHospitalisationServeur(true);
   }
 }
