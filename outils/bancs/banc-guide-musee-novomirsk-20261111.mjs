@@ -101,11 +101,31 @@ test('la fenêtre de la guide affiche la fiche de la salle dans la langue du jou
   const [titre, html, rouvrir] = modales[0];
   assert.equal(titre, 'Ульяна Историская, официальный гид');
   assert.match(html, /финал 1937 года/);
-  assert.equal(appels.length, 0);
+  assert.match(html, /guideMuseeOuvrirQuestions\(\)/, 'espace de questions sous la fiche');
+  assert.match(html, /Задать вопросы \(1 ОД\)/);
+  assert.equal(JSON.stringify(appels), JSON.stringify(['guide_musee_dialogue_lire']), 'une seule lecture serveur');
   ctx.langue = 'fr';
   rouvrir();
   assert.match(modales[1][1], /la finale de 1937, perdue contre El Estado/);
   ctx.state.currentRoom = 'hall';
   rouvrir();
   assert.equal(modales.length, 2, 'pas de réaffichage hors de la salle d’origine');
+});
+
+test('questions à la guide : compte tenu par le serveur, consommé après la réponse de l’IA', async () => {
+  const chat = lire('api/chat.js');
+  const iLire = chat.indexOf("rpcGuideMusee('guide_musee_dialogue_lire'");
+  const iIA = chat.indexOf('const r = await appelDeepSeek(');
+  const iConso = chat.indexOf("rpcGuideMusee('guide_musee_question_consommer'");
+  assert.ok(iLire > 0 && iLire < iIA && iIA < iConso, 'lecture, IA, puis consommation');
+  const mig = lire('migrations/20261111211500_guide_musee_dialogue.sql');
+  for (const f of ['guide_musee_dialogue_lire', 'guide_musee_dialogue_ouvrir', 'guide_musee_question_consommer'])
+    assert.match(mig, new RegExp('GRANT EXECUTE ON FUNCTION public.' + f + '\\(\\) TO authenticated'));
+  assert.match(mig, /payer_ordre\(a, 'questionner_guide_musee', 1, 0\)/);
+  assert.match(mig, /REVOKE ALL ON public.guide_musee_dialogues FROM PUBLIC, anon, authenticated/);
+  assert.doesNotMatch(mig, /p_salle/, 'la salle n’est jamais dictée par le client');
+  const m = await import(new URL('api/_pnj-profils.js', racine));
+  const p = m.construirePromptSysteme('ouliana_historiskaia', 'ko');
+  assert.ok(p && /Ouliana Historiskaïa/.test(p) && /PSK/.test(p) && /Police Politique/.test(p));
+  assert.ok(!/seule monnaie est le FR/.test(p));
 });

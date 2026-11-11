@@ -2483,3 +2483,6 @@ body.plateau-body .top-right {
 .guide-musee-fiche p:last-child { margin-bottom: 0; }
 .guide-musee-fiche img { width: 96px !important; height: 96px !important; }
 @media (max-width: 1023px) { .guide-musee-fiche p { font-size: 1.08rem; } }
+.guide-musee-questions { clear: both; margin-top: 1.2rem; padding-top: .9rem; border-top: 1px solid #a98d56; }
+.guide-musee-questions h4 { margin: 0 0 .6rem; color: #e5c477; }
+.guide-musee-questions textarea { margin: .4rem 0; font-size: 1.05rem; }

@@ -123,6 +123,27 @@ async function lireMemoire(rpc, profilId, jeton) {
   }
 }
 
+// GUIDE DU MUSEE DE NOVOMIRSK (11/11/2026) : ses questions sont comptees par le SERVEUR (1 PA pour 3
+// questions par salle et par jour). On lit le compte AVANT d'interroger l'IA, et on ne le consomme
+// qu'APRES une reponse obtenue : une panne du fournisseur ne coute aucune question au joueur.
+const PROFIL_GUIDE_MUSEE = 'ouliana_historiskaia';
+async function rpcGuideMusee(rpc, jeton) {
+  const url = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
+  const anon = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
+  try {
+    const r = await fetch(url.replace(/\/$/, '') + '/rest/v1/rpc/' + rpc, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': anon, 'Authorization': 'Bearer ' + jeton },
+      body: '{}', signal: AbortSignal.timeout(BUDGET_LECTURES_MS)
+    });
+    if (!r.ok) { journalChat('guide_musee', 'http', r.status); return null; }
+    return await r.json();
+  } catch (e) {
+    journalChat('guide_musee', 'reseau_ou_format');
+    return null;
+  }
+}
+
 // La relation d'un PNJ SOCIAL : rencontres, conversations, familiarite.
 const relationSociale = (profilId, jeton) => lireMemoire('pnj_social_contexte',
   profilId === 'jodie_moitout_autruche' ? 'jodie_moitout' : profilId, jeton);
@@ -277,6 +298,13 @@ export default async function handler(req, res) {
   });
   if (!utilisateur) return res.status(401).json({ error: 'Authentification requise.' });
 
+  const guideMusee = req.body.profil === PROFIL_GUIDE_MUSEE;
+  if (guideMusee) {
+    const etat = await rpcGuideMusee('guide_musee_dialogue_lire', utilisateur.jeton);
+    if (!etat || etat.ok !== true) return res.status(403).json({ error: 'Dialogue indisponible.', raison: etat?.raison || 'indisponible' });
+    if (!(etat.restantes > 0)) return res.status(403).json({ error: 'Plus de question.', raison: etat.ouvert ? 'questions_epuisees' : 'dialogue_non_ouvert' });
+  }
+
   // Les lectures de contexte et de position partent ENSEMBLE : elles sont independantes, et les enchainer ajouterait
   // quatre allers-retours reseau a chaque replique. Un PNJ n'a jamais les deux memoires -- un
   // social n'est pas referent, un referent ne se lie pas --, le contexte public les concerne
@@ -321,5 +349,10 @@ export default async function handler(req, res) {
   // promesse plutot que d'afficher un cadeau inexistant. Les vrais dons ne
   // passent pas par cette route : ils exigent un ordre et une confirmation serveur.
   const reponse = filtrerReponseSquatteur(req.body.profil, r.texte, langueAutorisee);
+  if (guideMusee) {
+    const c = await rpcGuideMusee('guide_musee_question_consommer', utilisateur.jeton);
+    if (!c || c.ok !== true) return res.status(403).json({ error: 'Plus de question.', raison: c?.raison || 'indisponible' });
+    return res.status(200).json({ reponse: neutraliserRemiseFictive(reponse, langueAutorisee), restantes: c.restantes });
+  }
   return res.status(200).json({ reponse: neutraliserRemiseFictive(reponse, langueAutorisee) });
 }

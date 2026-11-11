@@ -4806,8 +4806,8 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"centre-artisanal\",\"travees\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Artisanal",
-    "piece": "Travées",
+    "batiment": "Centre artisanal de Novomirsk",
+    "piece": "Accueil du centre artisanal",
     "personnes": [
       "Sava Goussev",
       "Kolia Titov",
@@ -4817,22 +4817,22 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"centre-artisanal\",\"echoppe_facade\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Artisanal",
-    "piece": "Échoppe Façade — Local à louer",
+    "batiment": "Centre artisanal de Novomirsk",
+    "piece": "Grand atelier — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-artisanal\",\"atelier_milieu\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Artisanal",
-    "piece": "Atelier Central — Local à louer",
+    "batiment": "Centre artisanal de Novomirsk",
+    "piece": "Atelier moyen — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-artisanal\",\"reserve_arriere\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Centre Artisanal",
-    "piece": "Réserve Arrière — Local à louer",
+    "batiment": "Centre artisanal de Novomirsk",
+    "piece": "Petit atelier — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"centre-affaires\",\"hall\"]": {
@@ -5525,57 +5525,73 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Musée de la République de Sovarka",
-    "piece": "Hall d'accueil",
-    "personnes": []
+    "piece": "Accueil",
+    "personnes": [
+      "Ouliana Historiskaïa"
+    ]
   },
   "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_presidents\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Musée de la République de Sovarka",
-    "piece": "Salle des Présidents de Sovarka",
-    "personnes": []
+    "piece": "Salle des présidents",
+    "personnes": [
+      "Ouliana Historiskaïa"
+    ]
   },
   "[\"soviet\",\"capitale\",\"musee-national-republia\",\"expositions_temporaires\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Musée de la République de Sovarka",
-    "piece": "Expositions Temporaires",
-    "personnes": []
+    "piece": "Salle des expositions tournantes",
+    "personnes": [
+      "Ouliana Historiskaïa"
+    ]
   },
   "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_honneur_militaire_nationale\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Musée de la République de Sovarka",
-    "piece": "Salle d'Honneur Militaire Nationale",
-    "personnes": []
+    "piece": "Salle des honneurs militaires",
+    "personnes": [
+      "Ouliana Historiskaïa"
+    ]
   },
   "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_politiques\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Musée de la République de Sovarka",
-    "piece": "Salle des Personnalités Politiques",
-    "personnes": []
+    "piece": "Salle des partis politiques victorieux",
+    "personnes": [
+      "Ouliana Historiskaïa"
+    ]
   },
   "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_civils_intellectuels\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Musée de la République de Sovarka",
-    "piece": "Salle des Personnalités Civiles et Intellectuelles",
-    "personnes": []
+    "piece": "Salle des artistes de Sovarka",
+    "personnes": [
+      "Ouliana Historiskaïa"
+    ]
   },
   "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_organisations\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Musée de la République de Sovarka",
-    "piece": "Salle des Responsables d'Organisations Syndicales ou Religieuses",
-    "personnes": []
+    "piece": "Salle du tractorisme",
+    "personnes": [
+      "Ouliana Historiskaïa"
+    ]
   },
   "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_artistes_sportifs\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Musée de la République de Sovarka",
-    "piece": "Salle des Artistes et Sportifs",
-    "personnes": []
+    "piece": "Salle des sportifs de Sovarka",
+    "personnes": [
+      "Ouliana Historiskaïa"
+    ]
   },
   "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_tresor_national\"]": {
     "pays": "Sovarka",
@@ -5595,8 +5611,10 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Musée de la République de Sovarka",
-    "piece": "Salle des Grandes Villes de Sovarka",
-    "personnes": []
+    "piece": "Salle des grandes crises de Sovarka",
+    "personnes": [
+      "Ouliana Historiskaïa"
+    ]
   },
   "[\"soviet\",\"capitale\",\"musee-national-republia\",\"salle_criminels_pays\"]": {
     "pays": "Sovarka",
