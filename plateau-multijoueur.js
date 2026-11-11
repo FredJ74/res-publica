@@ -2751,6 +2751,6 @@ async function confirmerGroupePnjTransferer(i, destEncode) {
 
 // Provisoire (11/11/2026) : la fenetre de la guide arrive avec l'ordre « Écouter la guide ».
 function ouvrirGuideMusee() {
-  if (typeof showToast === 'function') showToast('La guide', 'Elle vous adresse un sourire professionnel. Les visites commentées commencent bientôt.', true);
+  if (typeof showToast === 'function') showToast('Ouliana Historiskaïa', 'Elle vous adresse un sourire professionnel. Les visites commentées commencent bientôt.', true);
 }
 

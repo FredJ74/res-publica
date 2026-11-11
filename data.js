@@ -352,9 +352,9 @@ function bureauxOpenSpaceCentreAffaires() {
 }
 
 // Guide du Musée de la République de Novomirsk (décisions de Fred du 11/11/2026, GAME-DESIGN-NOVOMIRSK.md) :
-// présente dans les neuf salles ; portrait tiré de l'image de l'accueil. Son nom reste à choisir.
+// présente dans les neuf salles ; portrait tiré de l'image de l'accueil. Nom choisi par Fred : Ouliana Historiskaïa.
 // guideMusee : la carte n'ouvre pas le dialogue libre gratuit (1 PA et 3 questions par salle, à venir).
-const GUIDE_MUSEE_NOVOMIRSK = Object.freeze({name: 'Guide du musée (PNJ)', role: 'Guide officielle du musée', rel: 'neutral', job: 'guide_musee', guideMusee: true, photoUrl: 'images/Sovarka/Novomirsk/Novo_guide_musee_national_portrait.webp', photoPos: '50% 30%'});
+const GUIDE_MUSEE_NOVOMIRSK = Object.freeze({name: 'Ouliana Historiskaïa (PNJ)', role: 'Guide officielle du musée', rel: 'neutral', job: 'guide_musee', guideMusee: true, photoUrl: 'images/Sovarka/Novomirsk/Novo_guide_musee_national_portrait.webp', photoPos: '50% 30%'});
 
 const WORLD = {
   republic: {
