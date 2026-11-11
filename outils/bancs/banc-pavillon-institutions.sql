@@ -78,6 +78,11 @@ VALUES
 INSERT INTO public.postes_attribues(titulaire,country,poste_id) VALUES ('ministre','republic','min_def');
 
 GRANT USAGE ON SCHEMA public TO authenticated,anon;
+CREATE OR REPLACE FUNCTION public.pavillon_test_solde(p_id text)
+RETURNS numeric LANGUAGE sql STABLE SECURITY DEFINER
+AS $ SELECT (data->>'solde')::numeric FROM public.caisses_batiments WHERE id=p_id $;
+GRANT EXECUTE ON FUNCTION public.pavillon_test_solde(text) TO authenticated;
+
 GRANT SELECT ON public.personnages_donnees TO authenticated;
 SELECT set_config('pavillon.test_acteur','ministre',false);
 SET ROLE authenticated;
@@ -93,10 +98,8 @@ BEGIN
  IF r->>'rejeu'<>'true' THEN RAISE EXCEPTION 'rejeu non idempotent: %',r; END IF;
  r:=public.pavillon_acte(gen_random_uuid(),'reserver','suite_privee');
  IF r->>'raison'<>'suite_occupee' THEN RAISE EXCEPTION 'double signature: %',r; END IF;
- SELECT (data->>'solde')::numeric INTO a FROM public.caisses_batiments
-  WHERE id='republic_gouvernement-min_def';
- SELECT (data->>'solde')::numeric INTO b FROM public.caisses_batiments
-  WHERE id='soviet_palais-gouvernement';
+ a:=public.pavillon_test_solde('republic_gouvernement-min_def');
+ b:=public.pavillon_test_solde('soviet_palais-gouvernement');
  IF a<>25450 OR b<>4550 THEN RAISE EXCEPTION 'caisses incoherentes %, %',a,b; END IF;
  r:=public.pa_repos_nocturne('ministre');
  IF r->>'ok'<>'true' OR (r->>'pa')::int<>20 THEN RAISE EXCEPTION 'bonus sommeil: %',r; END IF;
@@ -121,10 +124,8 @@ BEGIN
   RAISE EXCEPTION 'reception: %',r; END IF;
  r:=public.pavillon_acte(gen_random_uuid(),'reception','salle_reception');
  IF r->>'raison'<>'reception_deja_reservee' THEN RAISE EXCEPTION 'double reception: %',r; END IF;
- SELECT (data->>'solde')::numeric INTO a FROM public.caisses_batiments
-  WHERE id='republic_gouvernement-min_def';
- SELECT (data->>'solde')::numeric INTO b FROM public.caisses_batiments
-  WHERE id='soviet_palais-gouvernement';
+ a:=public.pavillon_test_solde('republic_gouvernement-min_def');
+ b:=public.pavillon_test_solde('soviet_palais-gouvernement');
  IF a<>18750 OR b<>11250 THEN RAISE EXCEPTION 'caisses finales incoherentes %, %',a,b; END IF;
 END $checks$;
 RESET ROLE;
