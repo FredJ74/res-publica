@@ -351,8 +351,7 @@ if(resources)for(const [lang,entries] of Object.entries(words)){
  if(resources[lang]?.translation)resources[lang].translation.employmentAgency=entries;
 }
 function text(key,fallback,vars){
- if(global.RP_I18N_GAME_ENABLED!==true)return String(fallback);
- const lang=global.RPPlateauI18n?.language?.()||'fr';
+ const lang=global.RP_I18N_GAME_ENABLED===true?(global.RPPlateauI18n?.language?.()||'fr'):'fr';
  const template=lang==='fr'?String(fallback):words[lang]?.[key]||String(fallback);
  return template.replace(/\{([a-zA-Z]+)\}/g,(match,name)=>Object.hasOwn(vars||{},name)?String(vars[name]):match);
 }
