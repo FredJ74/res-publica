@@ -1,3 +1,6 @@
+### Images Pharmanov (Novomirsk) — ChatGPT, 11/11/2026
+Branche `chatgpt/pharmanov-images-20261111`, PR #719 : trois PNG deposés dans `images/Sovarka/Novomirsk/` convertis en WebP et sources supprimées ; les pieces `salle_ventes`, `bureau_direction`, `salle_production` de l'usine Sovarka `usine-pharmaceutique-luthecia` pointent chacune vers leur propre vue WebP. `imagesAVenir` leve pour ce batiment seulement, versions du script `data.js` renouvelees dans les deux pages. Workflow ponctuel de conversion : 3/3 decodages, dimensions conservees, node --check, controle des chemins et de l'absence des PNG, puis workflow retire. Aucune modification des images de Republia, des ordres ou des donnees joueur. Recette authentifiee et physique non effectuee a cette etape. Attention : l'ancien PNJ Boris Kovaliov dans le bureau reste tel quel, cette intervention n'a concerne que les images.
+
 ### Internationalisation des produits et de la production — intégration des lots Codex (10/11/2026)
 Les trois branches Codex du 10 novembre ont été consolidées dans une seule intégration sur le main actuel : 79 clés fiches/effets, 63 clés catalogue/matières, 11 clés refus/confirmations, soit **153 clés en neuf langues**. Rapport et preuves complets : `outils/audits/I18N-PRODUITS-ECONOMIE-20261110.md`. Rapport Codex : **31/31** tests ciblés ; **269/270** bancs clients avec échec scènes PNJ du Dynamo reproduit sur main historique, **10/12** contrôles globaux avec Baseline/Referential inchangés. Fusion et déploiement ne sont établis qu'après les vérifications de la PR d'intégration. Aucun changement de règle, PA, prix, permission, RPC ni donnée joueur.
 
@@ -34,7 +37,7 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### Aide HRP multilingue — Codex, 11/11/2026 (BLOQUÉ POUR LIVRAISON)
+### Aide HRP multilingue — Codex, 11/11/2026 (INTÉGRATION EN COURS)
 
 Branche poussée `codex/aide-hrp-neuf-langues-20261111`, main `6b9f5d30`,
 commits code `2f1027f9` puis `90f01b38`. Rapport :
@@ -65,6 +68,7 @@ contrôler CI, recette réelle neuf langues puis fusion/READY si conforme ; aucu
 SQL ou secret à faire manipuler à Fred. Dernier commit documentaire ne change
 pas le code testé. Sur téléphone : Aide, questions PA/but, fr→en→ko→fr avec
 brouillon/réponse en cours, arabe RTL, clavier IME. Aucune action sur personnage.
+
 
 
 ### i18n gestion / administration — clôture locale cumulative, Codex 10/11 — INTÉGRÉ par Claude le 11/11 (branche `claude/integration-i18n-codex-20261111`)
@@ -517,6 +521,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 ## Derniers chantiers
 
+- **Guide du musée de Novomirsk, présence (Claude, 11/11, branche `claude/guide-musee-presence-20261111`)** : portrait recadré de l'accueil, guide dans les neuf salles, carte sans dialogue gratuit (message d'attente `ouvrirGuideMusee`). L'ordre « Écouter la guide », la présentation fixe et le dialogue payant restent à coder **après le feu vert de Fred** ; nom : Ouliana Historiskaïa ; question ouverte : auteur des fiches de salle. Décisions : `GAME-DESIGN-NOVOMIRSK.md`.
 - **Pièce sur téléphone (Claude, 11/11, branche `claude/mobile-piece-20261111`, retour de Fred sur la vitrine premium SLAVA)** : sous 1024 px, l'image de la pièce occupe toute la largeur à ses proportions et le **nom et la description passent sous l'image** (`plateau-mobile.js` pose `data-hg-split` et la hauteur d'image ; l'enseigne se cale sur cette hauteur via `varianteHauteurImage`) ; **ordres en liste pleine largeur**, coût en PA aligné à droite ; **marge sous les ordres** pour que les boutons ronds (journal, discussion) ne cachent plus le dernier. Bureau inchangé (règles dans le seul media ≤ 1023 px) ; **salles de musée exclues** (zones cliquables de l'énigme). Banc `banc-mobile-piece-20261111.cjs`. **À constater sur téléphone** : boutique premium, pièce à enseigne variable, rue.
 - **Production Vercel bloquée depuis #712, réparé (Claude, 11/11, branche `claude/vercel-12-fonctions-20261111`)** : la refonte de l'Aide avait ajouté `api/aide.js`, **13ᵉ fonction serveur** alors que l'offre Vercel en accepte **12** : tous les déploiements échouaient depuis (#712, #715 non en ligne). Correctif : `api/aide.js` devient le module `api/_aide.js` ; `/api/aide` est redirigé vers `/api/chat?mode=aide` (`vercel.json`) et `api/chat.js` délègue à `handlerAide`. Le client appelle toujours `/api/aide`. Garde-fou : `banc-vercel-douze-fonctions-20261111.cjs`. **Règle pour tous les agents : ne jamais ajouter de fichier `api/xxx.js` sans préfixe `_` ; passer par une fonction existante.**
 - **i18n impression des tracts (Claude, 11/11, branche `claude/i18n-tracts-20261111`)** : catalogue `i18n/tracts-resources.js`, **67 clés dans les neuf langues** (choix du type, tracts électoraux et calomnieux : stocks, capacités, limites, aperçu, refus serveur, confirmations). Raccordé dans `plateau-communication.js` (fonction globale `texteTract`), rendu français inchangé (test `test-imprimerie-stocks-tracts-20261104.cjs` vert), nouveau banc `banc-i18n-tracts-20261111.cjs` (clés, variables et balises identiques dans les neuf langues). Les entrées de journal restent en français (texte conservé). **Pas encore traduits dans ce fichier** : don et distribution des tracts (électoraux, calomnieux, tractage au stade), archives de police, interview, petites annonces, manifestation spontanée. Traductions non relues par un natif.

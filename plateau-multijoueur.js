@@ -308,6 +308,17 @@ function renderPersonsList(persons, targetId) {
     // Le chef de la section est renvoye vers sa vraie mecanique ; tout autre joueur n'obtient
     // qu'une fiche d'information. Ce n'est pas la securite -- les RPC militaires revalident
     // l'autorite -- c'est la coherence de l'interface.
+    // GUIDE DU MUSEE (11/11/2026) : pas de dialogue libre gratuit depuis sa carte. Le dialogue se
+    // payera 1 PA et se limitera a 3 questions par salle (decisions de Fred, GAME-DESIGN-NOVOMIRSK.md).
+    if (p.guideMusee === true) {
+      const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : t;
+      return '<div class="person-card" style="cursor:pointer" onclick="ouvrirGuideMusee()">' +
+        avatarHtml +
+        '<div>' +
+        '<div class="person-name">' + ech(p.name) + '</div>' +
+        '<div class="person-role">' + ech(p.role) + '</div>' +
+        '</div></div>';
+    }
     if (p.detachement === true) {
       const estSonChef = state.poste?.id === 'lieutenant' && p.lieutenantNom
                       && p.lieutenantNom === state.char?.name;
@@ -2737,3 +2748,9 @@ async function confirmerGroupePnjTransferer(i, destEncode) {
   if (!dest) return false;
   return commanderConduitePnj(i, (m, options) => sbPnjTransferer([m.id], dest, false, options), 'Confié', m => m.nom + ' suit désormais ' + dest + '.');
 }
+
+// Provisoire (11/11/2026) : la fenetre de la guide arrive avec l'ordre « Écouter la guide ».
+function ouvrirGuideMusee() {
+  if (typeof showToast === 'function') showToast('Ouliana Historiskaïa', 'Elle vous adresse un sourire professionnel. Les visites commentées commencent bientôt.', true);
+}
+
