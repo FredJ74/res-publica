@@ -30,6 +30,11 @@
 // Le catalogue d'une agence ne change pas en cours de partie. On le relit une
 // fois par employeur, et on l'oublie au changement d'empire -- le casting en
 // depend, et un employeur n'existe jamais hors de son pays.
+function agenceEmploiTraduire(cle,fr,vars) {
+  return typeof window.RPEmploymentAgencyI18n?.text === 'function'
+    ? window.RPEmploymentAgencyI18n.text(cle,fr,vars) : String(fr).replace(/\{([a-zA-Z]+)\}/g,(m,k)=>Object.hasOwn(vars||{},k)?String(vars[k]):m);
+}
+let RP_AGENCE_AFFICHEE = null;
 let RP_AGENCES_EMPLOI = {};
 let RP_AGENCES_EMPLOI_PAYS = null;
 
@@ -86,23 +91,25 @@ async function agenceEmploiOuvrir(fn) {
   const ordre = agenceEmploiOrdreCourant(fn);
   if (!ordre) {
     if (typeof showToast === 'function') {
-      showToast('Indisponible', 'Ce comptoir n\'est pas déclaré ici.', false);
+      showToast(agenceEmploiTraduire('unavailable','Indisponible'), agenceEmploiTraduire('unregistered','Ce comptoir n\'est pas déclaré ici.'), false);
     }
     return;
   }
 
-  titre.textContent = 'Recrutement';
-  corps.innerHTML = '<div style="padding:1.2rem;color:#8a8060;font-family:Crimson Pro,serif">Un instant…</div>';
+  RP_AGENCE_AFFICHEE=null;
+  titre.textContent = agenceEmploiTraduire('recruitment','Recrutement');
+  corps.innerHTML = '<div style="padding:1.2rem;color:#8a8060;font-family:Crimson Pro,serif">'+agenceEmploiTraduire('loading','Un instant…')+'</div>';
   modale.classList.add('open');
 
   const cat = await agenceEmploiCatalogue(ordre.employeur, true);
   if (!cat) {
     corps.innerHTML = '<div style="padding:1.2rem;color:#8a8060;font-family:Crimson Pro,serif">'
-      + 'L\'agence ne répond pas pour le moment.</div>';
+      + agenceEmploiTraduire('agencyUnavailable','L\'agence ne répond pas pour le moment.')+'</div>';
     return;
   }
 
-  titre.textContent = cat.employeur || 'Recrutement';
+  RP_AGENCE_AFFICHEE={cat,ordre};
+  titre.textContent = cat.employeur || agenceEmploiTraduire('recruitment','Recrutement');
   corps.innerHTML = agenceEmploiRendu(cat, ordre, ech);
 }
 
@@ -117,11 +124,11 @@ function agenceEmploiRendu(cat, ordre, ech) {
   // personne a presenter aujourd'hui, et on ne va pas lui inventer quelqu'un.
   if (!metier || gens.length === 0) {
     return '<div style="padding:1.2rem;color:#8a8060;font-family:Crimson Pro,serif;line-height:1.6">'
-      + 'L\'agence n\'a personne à vous présenter pour ce poste.</div>';
+      + agenceEmploiTraduire('noCandidates','L\'agence n\'a personne à vous présenter pour ce poste.')+'</div>';
   }
   if (metier.recrutable !== true) {
     return '<div style="padding:1.2rem;color:#8a8060;font-family:Crimson Pro,serif;line-height:1.6">'
-      + 'Ce poste n\'est pas ouvert au recrutement.</div>';
+      + agenceEmploiTraduire('jobClosed','Ce poste n\'est pas ouvert au recrutement.')+'</div>';
   }
 
   const av = (typeof PNJ_AVATAR !== 'undefined')
@@ -138,12 +145,12 @@ function agenceEmploiRendu(cat, ordre, ech) {
   h += '<div style="font-size:.8rem;color:#c0b090;font-family:Crimson Pro,serif;line-height:1.7;'
     +  'border-left:2px solid #3a2a10;padding-left:.7rem;margin-bottom:.9rem">'
     +  '<div><strong style="color:#C9A84C">' + ech(metier.libelle || ordre.metier) + '</strong></div>'
-    +  '<div>Frais d\'embauche : <strong>' + (metier.cout_embauche || 0) + ' ' + ech(cur) + '</strong>'
+    +  '<div>'+agenceEmploiTraduire('hireFee','Frais d\'embauche : ')+'<strong>' + (metier.cout_embauche || 0) + ' ' + ech(cur) + '</strong>'
     +  ' · ' + (metier.pa || 0) + ' PA</div>'
     +  '<div style="color:#9a8a68">'
     +  (metier.cout_jour > 0
-         ? 'Puis ' + metier.cout_jour + ' ' + ech(cur) + ' par jour.'
-         : 'Aucun salaire journalier à ce stade.')
+         ? agenceEmploiTraduire('thenDaily','Puis {amount} {currency} par jour.',{amount:metier.cout_jour,currency:ech(cur)})
+         : agenceEmploiTraduire('noDaily','Aucun salaire journalier à ce stade.'))
     +  '</div>'
     +  '<div style="color:#9a8a68">PER ' + ech(metier.caracteristiques?.PER ?? '?')
     +  ' · VOL ' + ech(metier.caracteristiques?.VOL ?? '?') + '</div>'
@@ -182,7 +189,7 @@ function agenceEmploiRendu(cat, ordre, ech) {
 
     h += '<div style="font-size:.7rem;font-family:Crimson Pro,serif;flex-shrink:0;'
       +  'color:' + (pris ? '#8a8060' : (cliquable ? '#6a8a6a' : '#6a6050')) + '">'
-      +  (pris ? 'à votre service' : (cliquable ? 'disponible' : '—'))
+      +  (pris ? agenceEmploiTraduire('inService','à votre service') : (cliquable ? agenceEmploiTraduire('available','disponible') : '—'))
       +  '</div>';
 
     h += '</div>';
@@ -195,15 +202,11 @@ function agenceEmploiRendu(cat, ordre, ech) {
   h += '<div style="margin-top:.9rem;font-size:.72rem;color:#6a5030;'
     +  'font-family:Crimson Pro,serif;line-height:1.6">';
   h += placesMetier > 0
-    ? '<div>' + placesMetier + ' poste(s) de ce type encore ouvert(s) sur '
-      + (metier.quota || 1) + '.</div>'
-    : '<div>Vous employez déjà ' + (metier.quota || 1)
-      + ' personne(s) à ce poste : c\'est le maximum.</div>';
+    ? '<div>' + agenceEmploiTraduire('remainingJob','{remaining} poste(s) de ce type encore ouvert(s) sur {total}.',{remaining:placesMetier,total:(metier.quota || 1)}) + '</div>'
+    : '<div>' + agenceEmploiTraduire('jobLimit','Vous employez déjà {total} personne(s) à ce poste : c\'est le maximum.',{total:(metier.quota || 1)}) + '</div>';
   h += placesTotal > 0
-    ? '<div>' + placesTotal + ' place(s) restante(s) parmi vos '
-      + (cat.plafond_employes || 10) + ' employés.</div>'
-    : '<div>Vous employez déjà ' + (cat.plafond_employes || 10)
-      + ' personnes : il faudra en libérer une.</div>';
+    ? '<div>' + agenceEmploiTraduire('remainingTotal','{remaining} place(s) restante(s) parmi vos {total} employés.',{remaining:placesTotal,total:(cat.plafond_employes || 10)}) + '</div>'
+    : '<div>' + agenceEmploiTraduire('totalLimit','Vous employez déjà {total} personnes : il faudra en libérer une.',{total:(cat.plafond_employes || 10)}) + '</div>';
   h += '</div>';
 
   h += '</div>';
@@ -218,34 +221,34 @@ function agenceEmploiRendu(cat, ordre, ech) {
 // ni argent, ni PA, ni employe.
 async function agenceEmploiEmbaucher(candidatId, fn) {
   if (typeof sbEmployeurEmbaucher !== 'function') {
-    showToast('Indisponible', 'L\'agence ne répond pas.', false); return;
+    showToast(agenceEmploiTraduire('unavailable','Indisponible'),agenceEmploiTraduire('agencyNoReply','L\'agence ne répond pas.'), false); return;
   }
   if (!state.char?.name) {
-    showToast('Action impossible', 'Votre personnage n\'est pas chargé.', false); return;
+    showToast(agenceEmploiTraduire('actionImpossible','Action impossible'),agenceEmploiTraduire('characterMissing','Votre personnage n\'est pas chargé.'), false); return;
   }
 
   const ordreAgence = fn ? agenceEmploiOrdreCourant(fn) : null;
   const r = await ((ordreAgence && ordreAgence.agencePj && typeof sbEmployeurEmbaucherAgence === 'function')
       ? sbEmployeurEmbaucherAgence(ordreAgence.employeur, candidatId)
       : sbEmployeurEmbaucher(candidatId)).catch(function () { return null; });
-  if (!r) { showToast('Action impossible', 'L\'agence ne répond pas.', false); return; }
+  if (!r) { showToast(agenceEmploiTraduire('actionImpossible','Action impossible'),agenceEmploiTraduire('agencyNoReply','L\'agence ne répond pas.'), false); return; }
   if (r.ok !== true) {
+    const t=agenceEmploiTraduire;
     const motifs = {
-      acteur_non_authentifie: 'Votre personnage n\'est pas identifié.',
-      candidat_inconnu:       'L\'agence ne connaît personne de ce nom.',
-      employeur_inconnu:      'Cette agence n\'existe pas ici.',
-      employeur_hors_pays:    'Cette agence n\'opère pas dans votre empire.',
-      metier_non_recrutable:  'Ce poste n\'est pas ouvert au recrutement.',
-      plafond_employes:       'Vous employez déjà ' + (r.plafond || 10) + ' personnes.',
-      quota_metier_atteint:   'Vous employez déjà ' + (r.quota || 1)
-                              + ' personne(s) à ce poste : c\'est le maximum.',
-      deja_employe:           (r.nom || 'Cette personne') + ' travaille déjà pour vous.',
-      ordre_non_declare:      'Le tarif de ce recrutement n\'est pas déclaré.',
-      agence_fermee:          'Cette agence a fermé ses portes.',
-      pas_sur_place:          'Il faut être dans les locaux de l\'agence.',
-      paiement_refuse:        'Fonds ou PA insuffisants.'
+      acteur_non_authentifie: t('notIdentified','Votre personnage n\'est pas identifié.'),
+      candidat_inconnu: t('unknownCandidate','L\'agence ne connaît personne de ce nom.'),
+      employeur_inconnu: t('unknownEmployer','Cette agence n\'existe pas ici.'),
+      employeur_hors_pays: t('otherCountry','Cette agence n\'opère pas dans votre empire.'),
+      metier_non_recrutable: t('jobClosed','Ce poste n\'est pas ouvert au recrutement.'),
+      plafond_employes: t('totalRefusal','Vous employez déjà {total} personnes.',{total:r.plafond||10}),
+      quota_metier_atteint: t('jobRefusal','Vous employez déjà {total} personne(s) à ce poste : c\'est le maximum.',{total:r.quota||1}),
+      deja_employe: t('alreadyEmployed','{name} travaille déjà pour vous.',{name:r.nom||t('person','Cette personne')}),
+      ordre_non_declare: t('unknownFee','Le tarif de ce recrutement n\'est pas déclaré.'),
+      agence_fermee: t('agencyClosed','Cette agence a fermé ses portes.'),
+      pas_sur_place: t('mustBeHere','Il faut être dans les locaux de l\'agence.'),
+      paiement_refuse: t('insufficient','Fonds ou PA insuffisants.')
     };
-    showToast('Refusé', motifs[r.raison] || 'L\'agence a décliné.', false);
+    showToast(t('refused','Refusé'), motifs[r.raison] || t('declined','L\'agence a décliné.'), false);
     return;
   }
 
@@ -281,14 +284,13 @@ async function agenceEmploiEmbaucher(candidatId, fn) {
   // LES DEUX MONTANTS SONT ANNONCES SEPAREMENT. Le joueur doit pouvoir lire
   // dans le message ce qu'il vient de payer et ce qu'il paiera demain -- c'est
   // la seule facon qu'il ne confonde pas les deux, lui non plus.
-  const suite = (r.cout_jour > 0)
-    ? ' Puis ' + r.cout_jour + ' ' + cur + ' par jour.'
-    : ' Aucun salaire journalier à ce stade.';
-  showToast(nomPnj + ' entre à votre service',
-            '-' + r.cout_embauche + ' ' + cur + ' de frais d\'embauche.' + suite, true, true);
+  const suite = ' ' + ((r.cout_jour > 0)
+    ? agenceEmploiTraduire('thenDaily','Puis {amount} {currency} par jour.',{amount:r.cout_jour,currency:cur})
+    : agenceEmploiTraduire('noDaily','Aucun salaire journalier à ce stade.'));
+  showToast(agenceEmploiTraduire('joins','{name} entre à votre service',{name:nomPnj}),
+            agenceEmploiTraduire('feePaid','-{amount} {currency} de frais d\'embauche.',{amount:r.cout_embauche,currency:cur}) + suite, true, true);
   if (typeof addJournalEntry === 'function') {
-    addJournalEntry('Embauche : ' + nomPnj + ' (' + (r.role_libelle || r.metier) + ') rejoint le groupe. -'
-      + r.cout_embauche + ' ' + cur + ' de frais d\'embauche.' + suite, 'event-good');
+    addJournalEntry(agenceEmploiTraduire('journalHired','Embauche : {name} ({role}) rejoint le groupe. -{amount} {currency} de frais d\'embauche.',{name:nomPnj,role:r.role_libelle || r.metier,amount:r.cout_embauche,currency:cur}) + suite, 'event-good');
   }
 
   // AUCUNE ECRITURE DANS room.persons : c'est la strategie de l'informateur, la
@@ -307,7 +309,17 @@ async function agenceEmploiEmbaucher(candidatId, fn) {
     if (cat && corps) {
       const ech = (t) => (typeof escapeHtmlText === 'function')
         ? escapeHtmlText(String(t == null ? '' : t)) : String(t == null ? '' : t);
+      RP_AGENCE_AFFICHEE={cat,ordre};
       corps.innerHTML = agenceEmploiRendu(cat, ordre, ech);
     }
   }
 }
+
+// Une bascule de langue ne relit pas le serveur et ne relance pas d'embauche.
+// Le catalogue déjà reçu est seulement réaffiché avec les libellés du choix actif.
+if (typeof window.i18next?.on==='function') window.i18next.on('languageChanged',function(){
+  const corps=document.getElementById('postes-body');
+  if(!RP_AGENCE_AFFICHEE || !corps || !document.getElementById('modal-postes')?.classList.contains('open'))return;
+  const ech=t=>typeof escapeHtmlText==='function'?escapeHtmlText(String(t??'')):String(t??'');
+  corps.innerHTML=agenceEmploiRendu(RP_AGENCE_AFFICHEE.cat,RP_AGENCE_AFFICHEE.ordre,ech);
+});
