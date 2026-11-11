@@ -6953,6 +6953,7 @@ const BUILDINGS = {
       bar: {
         name: "Bar",
         imageBg: "linear-gradient(135deg,#120d05,#1e1508)",
+        imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_bar.webp',
         desc: "Le bar du Pavillon. Petits fours, vodka glacée et conversations à voix basse : Lena Abramova sert comme un traiteur de réception, et entend tout.",
         persons: [
           {name:'Lena Abramova (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur'}
