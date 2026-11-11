@@ -725,7 +725,9 @@ Quatre crises de l'image : famine (années 1920-1930), Grande Guerre, grève gé
 - L'option premium comprend **l'image et un texte** écrit par l'auteur, que la **guide raconte** aux visiteurs, **en
   multilingue** (traduit dans la langue de chaque joueur, sur le principe de la présentation fixe : traduit une fois par
   langue puis resservi). Le texte reste celui d'un joueur : la guide le récite, il ne lui donne aucune instruction.
-- Restent à trancher avec Fred, une question à la fois : file d'attente ou salle libre seulement, ce que dit la guide
-  quand la salle est vide (brouillon de Claude) et comment elle introduit le texte de l'auteur.
+- **File d'attente** (Fred, 20 h 54) : un joueur peut réserver alors que la salle est occupée ; sa demande prend place dans
+  l'ordre des réservations, et chaque exposition démarre à la fin de la précédente.
+- Restent à trancher avec Fred : ce que dit la guide quand la salle est vide (brouillon de Claude) et comment elle
+  introduit le texte de l'auteur.
 - Brouillon de la guide pour la salle vide (proposé par Claude, non validé) : vitrines vides en attente des autorisations du comité de validation.
 
