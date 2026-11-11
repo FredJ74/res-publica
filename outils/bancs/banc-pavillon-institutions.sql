@@ -80,7 +80,7 @@ INSERT INTO public.postes_attribues(titulaire,country,poste_id) VALUES ('ministr
 GRANT USAGE ON SCHEMA public TO authenticated,anon;
 CREATE OR REPLACE FUNCTION public.pavillon_test_solde(p_id text)
 RETURNS numeric LANGUAGE sql STABLE SECURITY DEFINER
-AS $ SELECT (data->>'solde')::numeric FROM public.caisses_batiments WHERE id=p_id $;
+AS $solde$ SELECT (data->>'solde')::numeric FROM public.caisses_batiments WHERE id=p_id $solde$;
 GRANT EXECUTE ON FUNCTION public.pavillon_test_solde(text) TO authenticated;
 
 GRANT SELECT ON public.personnages_donnees TO authenticated;
