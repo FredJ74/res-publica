@@ -711,3 +711,11 @@ Quatre crises de l'image : famine (années 1920-1930), Grande Guerre, grève gé
 >
 > Avez-vous des questions ? Uniquement historiques, je vous prie. Et si possible, pas sur le football.
 
+#### Salle des expositions tournantes — décision de Fred (11/11, 19 h 53), PAS de feu vert de codage
+
+- La salle fonctionne en **génération d'image premium**, sur le modèle des options premium des commerces : coût réel **1,90 €**.
+- Les **dignitaires** peuvent y générer une image, qui reste exposée **7 jours**.
+- **Aucun effet de jeu** : ni bonus, ni POP, purement cosmétique (règle du freemium jamais pay-to-win).
+- Restent à trancher avec Fred, une question à la fois : qui sont les dignitaires, une ou plusieurs expositions à la fois, ce que dit la guide (salle vide / exposition en cours).
+- Brouillon de la guide pour la salle vide (proposé par Claude, non validé) : vitrines vides en attente des autorisations du comité de validation.
+
