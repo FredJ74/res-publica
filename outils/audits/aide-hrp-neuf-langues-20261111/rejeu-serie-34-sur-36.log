@@ -1,0 +1,64 @@
+node[1701674]: pthread_create: Resource temporarily unavailable
+✔ Aide : validation serveur fermée et bornée (0.985638ms)
+✔ Aide : authentification avant le modèle, aucune mutation personnage (0.46627ms)
+✔ Aide : neuf langues et toutes les rubriques historiques conservées (4.686203ms)
+✔ Aide : textes affichés de manière sûre et saisie conservée en cas de panne (0.33139ms)
+✔ Aide : les grands sujets récupèrent une base de faits pertinente (3.293182ms)
+node[1701681]: pthread_create: Resource temporarily unavailable
+Warning: Failed to load CA certificates off thread: resource temporarily unavailable
+✖ outils/bancs/banc-aide-interface.cjs (336.428968ms)
+node[1701690]: pthread_create: Resource temporarily unavailable
+Warning: Failed to load CA certificates off thread: resource temporarily unavailable
+DeepSeek HTTP 503
+Erreur fournisseur IA
+✔ thèmes canoniques : fr (4.57637ms)
+✔ circuit authentifié, questions PA et but, langue imposée : fr (28.564205ms)
+✔ thèmes canoniques : en (0.254667ms)
+✔ circuit authentifié, questions PA et but, langue imposée : en (2.341278ms)
+✔ thèmes canoniques : es (0.282979ms)
+✔ circuit authentifié, questions PA et but, langue imposée : es (1.02776ms)
+✔ thèmes canoniques : zh-TW (0.129382ms)
+✔ circuit authentifié, questions PA et but, langue imposée : zh-TW (1.456194ms)
+✔ thèmes canoniques : ru (0.20257ms)
+✔ circuit authentifié, questions PA et but, langue imposée : ru (2.310999ms)
+✔ thèmes canoniques : ko (0.546799ms)
+✔ circuit authentifié, questions PA et but, langue imposée : ko (0.863227ms)
+✔ thèmes canoniques : ar (0.219074ms)
+✔ circuit authentifié, questions PA et but, langue imposée : ar (1.074139ms)
+✔ thèmes canoniques : pt-BR (0.20294ms)
+✔ circuit authentifié, questions PA et but, langue imposée : pt-BR (0.786013ms)
+✔ thèmes canoniques : de (0.118886ms)
+✔ circuit authentifié, questions PA et but, langue imposée : de (1.384929ms)
+✔ question courante prioritaire, historique utilisateur seulement, trois thèmes maximum (0.476926ms)
+✔ auth refusée et bornes : aucun appel IA, aucun accès aux données (0.581941ms)
+✔ fournisseur vide : erreur bornée sans détails privés (0.410327ms)
+✔ fournisseur espaces : erreur bornée sans détails privés (0.444468ms)
+✔ fournisseur tronquee : erreur bornée sans détails privés (0.409446ms)
+✔ fournisseur http : erreur bornée sans détails privés (1.29119ms)
+✔ fournisseur json : erreur bornée sans détails privés (0.63534ms)
+✔ fournisseur delai : erreur bornée sans détails privés (0.335246ms)
+✔ contre-épreuve : ancien dépistage ignore les PA sans sigle ASCII en trois écritures (5.479126ms)
+node[1701698]: pthread_create: Resource temporarily unavailable
+Warning: Failed to load CA certificates off thread: resource temporarily unavailable
+✖ outils/bancs/banc-aide-neuf-langues-navigateur.cjs (364.040089ms)
+node[1701707]: pthread_create: Resource temporarily unavailable
+✔ au plus 12 fonctions serveur dans api/ (1.030244ms)
+✔ l'aide HRP passe par /api/chat (redirection et délégation) (0.485848ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 34
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1003.370082
+
+✖ failing tests:
+
+test at outils/bancs/banc-aide-interface.cjs:1:1
+✖ outils/bancs/banc-aide-interface.cjs (336.428968ms)
+  'test failed'
+
+test at outils/bancs/banc-aide-neuf-langues-navigateur.cjs:1:1
+✖ outils/bancs/banc-aide-neuf-langues-navigateur.cjs (364.040089ms)
+  'test failed'

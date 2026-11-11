@@ -34,30 +34,37 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### Aide HRP multilingue — Codex, 11/11/2026 (EN COURS)
+### Aide HRP multilingue — Codex, 11/11/2026 (BLOQUÉ POUR LIVRAISON)
 
-Branche `codex/aide-hrp-neuf-langues-20261111`, issue du main `6b9f5d30`
-(PR #712, #716 et mobile #717 conservées). Aucun doublon local de ce chantier
-retrouvé ; lecture API GitHub refusée403, vérification des PR via historique Git.
-Correctifs : détection des thèmes dans neuf langues sans frontières ASCII pour
-les écritures non latines ; question courante prioritaire ; langue imposée par
-le sélecteur malgré corpus/historique français ; verrou avant authentification,
-délai borné, historique transporté limité à1500 sans tronquer l'affichage,
-conservation des brouillons/messages et statut retraduit à chaud.
-Aucune modification PNJ, règle, RPC, migration, ni données de personnage.
-Toujours douze fonctions Vercel : `_aide.js` via le routeur existant.
-27 cas serveur verts, 13 cas navigateur et deux contre-épreuves additionnelles
-validés séparément ; parcours UI→chat→auth→fournisseur simulé, 18 questions.
-Comparaison FR1440 stricte identique. Rejeu complet des bancs encore en cours. Saisie IME protégée : Entrée de
-composition coréenne/chinoise ne soumet pas la question. REST création PR refusée403 ;
-branche sauvegardée, titre prêt « Aide HRP : langue imposée, thèmes multilingues
-et conversation fiable ». Aucun numéro de PR inventé.
-Pas de clé DeepSeek ni compte de recette autorisé présents dans cet environnement :
-**aucune réponse IA réelle ni recette connectée revendiquée**. Pas de fusion/déploiement.
-Prochaine étape : preuves finales, PR si accès possible, puis CI et livraison
-seulement si les garanties sont satisfaites. Sur téléphone : onglet Aide,
-questions PA/buts, bascule fr→en→ko→fr avec brouillon, puis arabe et RTL ;
-ces manipulations ne changent pas le personnage.
+Branche poussée `codex/aide-hrp-neuf-langues-20261111`, main `6b9f5d30`,
+commits code `2f1027f9` puis `90f01b38`. Rapport :
+`outils/audits/AIDE-HRP-NEUF-LANGUES-20261111.md`, preuves brutes et SHA256 associés.
+Dépistage neuf langues, langue imposée par le sélecteur, question courante
+prioritaire, verrou avant auth, délai30s, contexte1500/6 sans perte d'affichage,
+brouillons/statuts conservés et IME protégé. Aucune modification PNJ, règle,
+argent, inventaire, migration ou joueur. Toujours douze fonctions Vercel.
+
+27/27 cas serveur ; 13/13 premiers cas Chromium, puis trois compléments passés
+isolément (contre-double-envoi, circuit18questions, IME). Campagne complétée :
+51/52, dernier lancement Chromium échoue (pthread_create). Rejeu séquentiel
+final34/36 : deux fichiers navigateur ne démarrent plus, saturation système
+confirmée jusque dans Node et fork sandbox. Contrôleur final interrompu165/284,
+16 échecs, état exact conservé. **Ne pas annoncer les bancs complets verts.**
+Première campagne exploratoire281/284 : Aide en stabilisation, coque/mobile et
+scènes PNJ ; deux derniers reproduits sur main intact, preuves fournies.
+Globaux10/12 identiques main, Workflow/Authority conformes ; Baseline et
+Referential hérités inchangés. PNG FR1440 strictement identique, 360/390 et RTL
+passés avant saturation. Pas de téléphone physique ni recette connectée.
+
+Aucune clé DeepSeek ni compte E2E autorisé disponibles : réponse IA réelle non
+vérifiée. REST PR403, proxy Vercel CONNECT403 : aucune PR créée, CI distante,
+fusion, READY ou déploiement certifiés. Titre PR prêt : « Aide HRP : langue
+imposée, thèmes multilingues et conversation fiable ». Description et commandes
+dans le rapport. Intégrateur : créer la PR, rejouer sur runner disponible,
+contrôler CI, recette réelle neuf langues puis fusion/READY si conforme ; aucun
+SQL ou secret à faire manipuler à Fred. Dernier commit documentaire ne change
+pas le code testé. Sur téléphone : Aide, questions PA/but, fr→en→ko→fr avec
+brouillon/réponse en cours, arabe RTL, clavier IME. Aucune action sur personnage.
 
 
 ### i18n gestion / administration — clôture locale cumulative, Codex 10/11 — INTÉGRÉ par Claude le 11/11 (branche `claude/integration-i18n-codex-20261111`)

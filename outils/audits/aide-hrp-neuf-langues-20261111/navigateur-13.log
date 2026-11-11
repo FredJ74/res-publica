@@ -1,0 +1,21 @@
+✔ Aide fr : interface 360/390, Unicode, RTL et deux suggestions (2472.473511ms)
+✔ Aide en : interface 360/390, Unicode, RTL et deux suggestions (2378.076613ms)
+✔ Aide es : interface 360/390, Unicode, RTL et deux suggestions (2213.072288ms)
+✔ Aide zh-TW : interface 360/390, Unicode, RTL et deux suggestions (2136.029045ms)
+✔ Aide ru : interface 360/390, Unicode, RTL et deux suggestions (2073.906249ms)
+✔ Aide ko : interface 360/390, Unicode, RTL et deux suggestions (2124.614158ms)
+✔ Aide ar : interface 360/390, Unicode, RTL et deux suggestions (2338.596836ms)
+✔ Aide pt-BR : interface 360/390, Unicode, RTL et deux suggestions (2007.361062ms)
+✔ Aide de : interface 360/390, Unicode, RTL et deux suggestions (2259.954861ms)
+✔ bascule fr→en→ko→fr pendant auth/réponse : verrou, brouillons et historique intacts (1377.210312ms)
+✔ panne, session absente, réponse vide : erreur traduite, question conservée et brouillon non écrasé (1294.299936ms)
+✔ timeout authentification : libération du verrou, aucune requête, aucun effet tardif (1208.382873ms)
+✔ français 1440 identique au main témoin, guides historiques conservés (2405.977501ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26297.921326
