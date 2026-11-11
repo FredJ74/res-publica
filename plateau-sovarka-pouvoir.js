@@ -3,17 +3,15 @@
 // les chefs de parti. Le serveur décide tout (sovarka_soviet_etat, sovarka_depute_designer) ;
 // l'écran n'affiche que ses réponses.
 
-const SOVIET_MOTIFS = {
-  pas_chef_de_parti: 'Seul le chef d’un parti de Sovarka désigne les députés de son parti.',
-  pas_sur_place: 'Les députés se désignent depuis « Mon parti », dans la salle des partis d’une mairie.',
-  aucun_siege: 'Votre parti n’a obtenu aucun siège à la dernière semaine à la gloire.',
-  sieges_pourvus: 'Tous les sièges de votre parti sont déjà pourvus.',
-  hors_parti: 'Seuls les membres de votre parti peuvent siéger en son nom.',
-  deja_depute: 'Cette personne est déjà député.',
-  pas_depute_du_parti: 'Cette personne ne siège pas pour votre parti.',
-  personnage_introuvable: 'Personnage introuvable.',
-  acteur_non_authentifie: 'Votre session doit être rétablie.'
-};
+// Textes d'affichage : catalogue i18n/sovarka-pouvoir-resources.js (français de référence et de repli).
+const powT = (k, v) => (typeof texteSovPouvoir === 'function' ? texteSovPouvoir(k, v) : k);
+const powModal = (titre, html, rouvrir) => (typeof sovModal === 'function') ? sovModal(titre, html, rouvrir) : vehModal(titre, html);
+// Motif d'un refus : clé du catalogue sous un préfixe (sm_, rm_, mu_, pm_) ; la session perdue est commune.
+const powMotif = (prefixe, raisons, raison) => raison === 'acteur_non_authentifie' ? powT('session')
+  : raisons.includes(raison) ? powT(prefixe + raison) : null;
+const SOVIET_RAISONS = ['pas_chef_de_parti', 'pas_sur_place', 'aucun_siege', 'sieges_pourvus', 'hors_parti', 'deja_depute',
+  'pas_depute_du_parti', 'personnage_introuvable'];
+let sovietDernier = null;
 let sovietDesignationEnCours = false;
 
 function sovEchapper(s) {
@@ -22,43 +20,42 @@ function sovEchapper(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-async function ouvrirSovietSupreme() {
-  const v = await sbRpcVerdict('sovarka_soviet_etat', {}).catch(() => null);
+async function ouvrirSovietSupreme(cache) {
+  const v = (cache === true && sovietDernier) || await sbRpcVerdict('sovarka_soviet_etat', {}).catch(() => null);
   if (!v || v.ok !== true) {
-    showToast('Soviet Suprême', SOVIET_MOTIFS[v?.raison] || 'Le serveur n’a pas répondu.', false);
+    showToast(powT('tSoviet'), powMotif('sm_', SOVIET_RAISONS, v?.raison) || powT('noServer'), false);
     return;
   }
+  sovietDernier = v;
   const scores = Array.isArray(v.scores) ? v.scores : [];
   const sieges = v.sieges || {};
   const deputes = v.deputes || {};
-  let html = '<p>Les 9 sièges du Soviet Suprême sont répartis entre les partis à la proportionnelle de leurs ' +
-    'partisans, lors de la semaine à la gloire des partis. Chaque chef de parti désigne ensuite ses députés.</p>';
+  let html = '<p>' + powT('sovietIntro') + '</p>';
   if (!scores.length) {
-    html += vehSection('Législature', '<p class="cpj-note">Aucune semaine à la gloire n’a encore été proclamée.</p>');
+    html += vehSection(powT('secLegislature'), '<p class="cpj-note">' + powT('noGlory') + '</p>');
   } else {
-    let corps = v.vainqueur ? '<p>Parti vainqueur : <strong>' + sovEchapper(v.vainqueur) + '</strong></p>' : '';
+    let corps = v.vainqueur ? '<p>' + powT('winner', { nom: sovEchapper(v.vainqueur) }) + '</p>' : '';
     scores.forEach(s => {
       const noms = Array.isArray(deputes[s.partiId]) ? deputes[s.partiId] : [];
-      corps += '<p style="margin:.35rem 0"><strong>' + sovEchapper(s.nom) + '</strong> — ' +
-        (sieges[s.partiId] || 0) + ' siège(s) · ' + (s.adherentsPJ || 0) + ' adhérent(s), ' +
-        (s.partisansPNJ || 0) + ' partisan(s)' +
-        (noms.length ? '<br><span class="cpj-note">Députés : ' + noms.map(sovEchapper).join(', ') + '</span>' : '') + '</p>';
+      corps += '<p style="margin:.35rem 0"><strong>' + sovEchapper(s.nom) + '</strong>' +
+        powT('seatsLine', { sieges: sieges[s.partiId] || 0, adherents: s.adherentsPJ || 0, partisans: s.partisansPNJ || 0 }) +
+        (noms.length ? '<br><span class="cpj-note">' + powT('deputies', { noms: noms.map(sovEchapper).join(', ') }) + '</span>' : '') + '</p>';
     });
-    html += vehSection('Législature en cours', corps);
+    html += vehSection(powT('secCurrent'), corps);
   }
   if (v.chef && v.monParti) {
     const miens = Array.isArray(deputes[v.monParti]) ? deputes[v.monParti] : [];
     const nb = sieges[v.monParti] || 0;
-    let corps = '<p>' + miens.length + ' / ' + nb + ' siège(s) pourvu(s).</p>';
+    let corps = '<p>' + powT('filled', { n: miens.length, total: nb }) + '</p>';
     (Array.isArray(v.membres) ? v.membres : []).forEach(nom => {
       const siege = miens.indexOf(nom) >= 0;
       const js = 'designerDeputeSoviet(' + JSON.stringify(nom).replace(/"/g, '&quot;') + ',' + siege + ')';
-      corps += '<div style="margin:.3rem 0">' + sovEchapper(nom) + (siege ? ' — <em>député</em>' : '') +
-        vehBouton(siege ? 'Retirer le siège' : 'Désigner député', js, !siege) + '</div>';
+      corps += '<div style="margin:.3rem 0">' + sovEchapper(nom) + (siege ? ' — <em>' + powT('deputy') + '</em>' : '') +
+        vehBouton(siege ? powT('removeSeat') : powT('makeDeputy'), js, !siege) + '</div>';
     });
-    html += vehSection('Désigner les députés de votre parti', corps);
+    html += vehSection(powT('secDesignate'), corps);
   }
-  vehModal('Soviet Suprême', html);
+  powModal(powT('tSoviet'), html, ouvrirSovietSupreme);
 }
 
 async function designerDeputeSoviet(nom, retirer) {
@@ -67,10 +64,10 @@ async function designerDeputeSoviet(nom, retirer) {
   try {
     const v = await sbRpcVerdict('sovarka_depute_designer', { p_nom: nom, p_retirer: !!retirer }).catch(() => null);
     if (!v || v.ok !== true) {
-      showToast('Soviet Suprême', SOVIET_MOTIFS[v?.raison] || 'Le serveur n’a pas confirmé.', false);
+      showToast(powT('tSoviet'), powMotif('sm_', SOVIET_RAISONS, v?.raison) || powT('notConfirmed'), false);
       return;
     }
-    showToast('Soviet Suprême', retirer ? nom + ' ne siège plus.' : nom + ' siège désormais au Soviet Suprême.', true);
+    showToast(powT('tSoviet'), retirer ? powT('noLongerSits', { nom }) : powT('nowSits', { nom }), true);
     await ouvrirSovietSupreme();
   } finally { sovietDesignationEnCours = false; }
 }
@@ -79,30 +76,26 @@ async function designerDeputeSoviet(nom, retirer) {
 // du Palais présidentiel ; gratuit pour le président, chaque invité présent coûte 60 PSK à la
 // caisse présidentielle ; effets du dîner d'affaires pour chacun. Le serveur
 // (sovarka_repas_presidentiel) vérifie le président, le lieu, les invités, la caisse et le jour.
-const REPAS_PRES_MOTIFS = {
-  reserve_president: 'Réservé au Président de la République de Sovarka.',
-  pas_sur_place: 'Le repas se prend dans la salle de restaurant du Palais présidentiel.',
-  deja_pris_aujourdhui: 'Le repas présidentiel a déjà été servi aujourd’hui.',
-  invite_absent: 'Vos invités doivent se trouver avec vous dans la salle de restaurant.',
-  invite_invalide: 'Choisissez d’autres invités.',
-  acteur_non_authentifie: 'Votre session doit être rétablie.'
-};
+const REPAS_PRES_RAISONS = ['reserve_president', 'pas_sur_place', 'deja_pris_aujourdhui', 'invite_absent', 'invite_invalide'];
 let repasPresidentielEnCours = false;
 
-async function ouvrirRepasPresidentiel() {
-  const presents = (typeof sbGetPresencesInRoom === 'function')
+let repasPresidentielPresents = null;
+async function ouvrirRepasPresidentiel(cache) {
+  const presents = (cache === true && repasPresidentielPresents) || ((typeof sbGetPresencesInRoom === 'function')
     ? await sbGetPresencesInRoom(state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => [])
-    : [];
+    : []);
+  repasPresidentielPresents = presents;
+  const coches = cache === true ? Array.from(document.querySelectorAll('.repas-pres-invite:checked')).map(c => c.value) : [];
   const moi = state.char?.name || '';
   const noms = Array.from(new Set((presents || []).map(p => p.name || p.nom).filter(n => n && n !== moi)));
-  let corps = '<p>Un repas par jour, gratuit pour vous. Chaque invité coûte 60 PSK à la caisse présidentielle. ' +
-    'Effets pour chacun : +10 Santé, +2 Moral, +5 INF et +3 PA au prochain Dormir.</p>' +
+  let corps = '<p>' + powT('mealIntro') + '</p>' +
     (noms.length
       ? noms.map(n => '<label class="cpj-note" style="display:block"><input type="checkbox" class="repas-pres-invite" value="' +
           sovEchapper(n) + '"> ' + sovEchapper(n) + '</label>').join('')
-      : '<p class="cpj-note">Personne d’autre n’est à table : vous mangerez seul.</p>') +
-    '<br>' + vehBouton('Faire servir le repas', 'servirRepasPresidentiel()', true);
-  vehModal('Salle de restaurant', vehSection('Repas du Président', corps));
+      : '<p class="cpj-note">' + powT('alone') + '</p>') +
+    '<br>' + vehBouton(powT('serveMeal'), 'servirRepasPresidentiel()', true);
+  powModal(powT('titleRestaurant'), vehSection(powT('secMeal'), corps), ouvrirRepasPresidentiel);
+  document.querySelectorAll('.repas-pres-invite').forEach(c => { if (coches.includes(c.value)) c.checked = true; });
 }
 
 async function servirRepasPresidentiel() {
@@ -117,9 +110,9 @@ async function servirRepasPresidentiel() {
     if (v && !v.transport && v.ok !== true) sessionStorage.removeItem(cle);
     if (!v || v.ok !== true) {
       const motif = v?.raison === 'caisse_insuffisante'
-        ? 'La caisse présidentielle ne contient que ' + v.solde + ' PSK : ' + v.invites_possibles + ' invité(s) au plus aujourd’hui.'
-        : REPAS_PRES_MOTIFS[v?.raison];
-      showToast('Repas présidentiel', motif || 'Le serveur n’a pas confirmé le repas.', false);
+        ? powT('cashLow', { solde: v.solde, n: v.invites_possibles })
+        : powMotif('rm_', REPAS_PRES_RAISONS, v?.raison);
+      showToast(powT('tMeal'), motif || powT('mealNotConfirmed'), false);
       return;
     }
     if (typeof v.hp === 'number') state.hp = v.hp;
@@ -129,8 +122,8 @@ async function servirRepasPresidentiel() {
     if (typeof updateUI === 'function') updateUI();
     document.getElementById('modal-postes')?.classList.remove('open');
     const liste = Array.isArray(v.invites) ? v.invites : [];
-    showToast('Repas présidentiel', liste.length
-      ? 'Servi pour vous et ' + liste.join(', ') + ' (' + v.cout + ' PSK pris sur la caisse présidentielle).' : 'Servi.', true);
+    showToast(powT('tMeal'), liste.length
+      ? powT('servedFor', { noms: liste.join(', '), cout: v.cout }) : powT('served'), true);
   } finally { repasPresidentielEnCours = false; }
 }
 
@@ -143,15 +136,13 @@ async function acheterBilletMuseePresidentiel() {
   try {
     const v = await sbRpcVerdict('sovarka_musee_billet', {}).catch(() => null);
     if (!v || v.ok !== true) {
-      const motifs = { pas_sur_place: 'Le billet s’achète au hall du Palais présidentiel.',
-        fonds_insuffisants: 'Vous n’avez pas 8 PSK.', acteur_non_authentifie: 'Votre session doit être rétablie.' };
-      showToast('Musée présidentiel', motifs[v?.raison] || 'Le serveur n’a pas confirmé le billet.', false);
+      showToast(powT('tMuseum'), powMotif('mu_', ['pas_sur_place', 'fonds_insuffisants'], v?.raison) || powT('ticketNotConfirmed'), false);
       return;
     }
     if (typeof appliquerPaiementServeur === 'function' && (v.pa != null || v.liquide != null))
       appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
     if (typeof updateUI === 'function') updateUI();
-    showToast('Musée présidentiel', v.deja ? 'Vous avez déjà votre billet pour aujourd’hui.' : 'Billet acheté : 8 PSK. Le musée vous est ouvert jusqu’à minuit.', true);
+    showToast(powT('tMuseum'), v.deja ? powT('ticketAlready') : powT('ticketOk'), true);
   } finally { billetMuseePresEnCours = false; }
 }
 
@@ -161,50 +152,26 @@ async function acheterBilletMuseePresidentiel() {
 // fiscalité 10/10/10, saisine du juge, sondages, fuite, conscription, autocritique publique.
 // Tout est décidé par sovarka_pouvoir_commande / sovarka_pouvoir_lire ; l'écran recopie.
 // ============================================================================================
-const SOV_POUVOIR_MOTIFS = {
-  reserve_a_sovarka: 'Réservé aux citoyens de Sovarka.',
-  reserve_chef_de_parti: 'Réservé au chef d’un parti de Sovarka.',
-  salle_des_partis_requise: 'Rendez-vous dans la salle des partis d’une mairie.',
-  type_invalide: 'Type de loi inconnu.', champs_requis: 'Remplissez le titre et le texte.',
-  texte_trop_long: 'Texte trop long.', titre_trop_long: 'Titre trop long (120 caractères au plus).',
-  loi_cible_introuvable: 'Loi à abroger introuvable.', categorie_invalide: 'Catégorie d’interdiction inconnue.',
-  reserve_president_du_conseil: 'Réservé au Président du Conseil du Peuple.',
-  bureau_du_president_du_conseil_requis: 'Rendez-vous dans votre bureau du Palais du Gouvernement.',
-  projet_introuvable: 'Ce projet n’est plus en examen.',
-  reserve_depute: 'Réservé aux députés du Soviet Suprême.', seance_le_jeudi: 'La séance a lieu le jeudi.',
-  salle_du_conseil_requise: 'Rendez-vous dans la Salle du Conseil du Peuple.',
-  emargement_requis: 'Émargez d’abord.', choix_invalide: 'Choix invalide.',
-  hors_ordre_du_jour: 'Cette loi n’est pas à l’ordre du jour.', deja_vote: 'Vous vous êtes déjà prononcé.',
-  aucun_parti_au_pouvoir: 'Aucun parti n’est au pouvoir : rien à soutenir.',
-  a_la_mairie: 'La manifestation part de la mairie : organisez-la depuis la salle des partis.', pas_chef: 'Seul le meneur du groupe organise.',
-  deja_aujourdhui: 'Une manifestation a déjà eu lieu dans cette ville aujourd’hui.',
-  groupe_insuffisant: 'Il faut au moins 10 manifestants présents avec vous.',
-  poste_requis: 'Réservé au titulaire du poste.', pas_sur_place: 'Rendez-vous sur place.',
-  sujet_invalide: 'Sujet du sondage : 3 à 200 caractères.', sondage_introuvable: 'Sondage introuvable.',
-  deja_decide: 'Ce sondage a déjà été traité.', valeurs_requises: 'Indiquez les chiffres à publier.',
-  publication_refusee: 'La publication a été refusée.',
-  reserve_ministre_justice: 'Réservé au ministre de la Justice prolétarienne.',
-  motif_invalide: 'Motif : 3 à 300 caractères.', local_non_exploite: 'Ce commerce n’est exploité par personne.',
-  saisine_deja_en_cours: 'Le juge est déjà saisi pour ce commerce.', saisine_introuvable: 'Saisine introuvable.',
-  saisine_requise: 'Le juge ne peut retirer un droit que sur saisine du ministre.',
-  reserve_juge: 'Réservé au juge de la ville.', pas_au_tribunal: 'Rendez-vous au tribunal.',
-  reserve_ministre_defense: 'Réservé au ministre de la Défense de la Patrie.',
-  deja_active: 'La conscription est déjà en vigueur.', pas_active: 'Aucune conscription en vigueur.',
-  pas_convoque: 'Vous n’êtes pas convoqué.', pas_a_la_caserne: 'Présentez-vous à la caserne.',
-  pas_ministre: 'Cette personne n’est pas ministre.', deja_cette_semaine: 'Déjà fait cette semaine pour ce ministre.',
-  pa_insuffisants: 'Pas assez de points d’action.', fonds_insuffisants: 'Fonds insuffisants.',
-  portee_reservee_sovarka: 'Taxe propre à Sovarka.', pas_de_taxe_locale_en_sovarka: 'Pas de taxe locale en Sovarka.',
-  cible_invalide: 'Choisissez un autre citoyen.', deja_surveille: 'Cette personne est déjà sous surveillance.',
-  limite_surveillances: 'Trois surveillances sont déjà en cours.', caisse_insuffisante: 'La caisse du ministère ne couvre pas les 150 PSK.',
-  acteur_non_authentifie: 'Votre session doit être rétablie.'
-};
-const sovPMotif = v => SOV_POUVOIR_MOTIFS[v?.raison] || (v ? 'Refusé par le serveur.' : 'Réponse du serveur non reçue.');
+const SOV_POUVOIR_RAISONS = ['reserve_a_sovarka', 'reserve_chef_de_parti', 'salle_des_partis_requise', 'type_invalide', 'champs_requis',
+  'texte_trop_long', 'titre_trop_long', 'loi_cible_introuvable', 'categorie_invalide', 'reserve_president_du_conseil',
+  'bureau_du_president_du_conseil_requis', 'projet_introuvable', 'reserve_depute', 'seance_le_jeudi', 'salle_du_conseil_requise',
+  'emargement_requis', 'choix_invalide', 'hors_ordre_du_jour', 'deja_vote', 'aucun_parti_au_pouvoir', 'a_la_mairie', 'pas_chef',
+  'deja_aujourdhui', 'groupe_insuffisant', 'poste_requis', 'pas_sur_place', 'sujet_invalide', 'sondage_introuvable', 'deja_decide',
+  'valeurs_requises', 'publication_refusee', 'reserve_ministre_justice', 'motif_invalide', 'local_non_exploite', 'saisine_deja_en_cours',
+  'saisine_introuvable', 'saisine_requise', 'reserve_juge', 'pas_au_tribunal', 'reserve_ministre_defense', 'deja_active', 'pas_active',
+  'pas_convoque', 'pas_a_la_caserne', 'pas_ministre', 'deja_cette_semaine', 'pa_insuffisants', 'fonds_insuffisants',
+  'portee_reservee_sovarka', 'pas_de_taxe_locale_en_sovarka', 'cible_invalide', 'deja_surveille', 'limite_surveillances',
+  'caisse_insuffisante'];
+const sovPMotif = v => powMotif('pm_', SOV_POUVOIR_RAISONS, v?.raison) || powT(v ? 'refused' : 'noReply');
+let sovPouvoirDernier = null;
 const sovJsArg = s => JSON.stringify(String(s == null ? '' : s)).replace(/"/g, '&quot;');
 let sovPouvoirEnCours = false;
 
-async function sovPouvoirLire() {
+async function sovPouvoirLire(cache) {
+  if (cache === true && sovPouvoirDernier) return sovPouvoirDernier;
   const v = await sbRpcVerdict('sovarka_pouvoir_lire', {}).catch(() => null);
   if (!v || v.ok !== true) { showToast('Sovarka', sovPMotif(v), false); return null; }
+  sovPouvoirDernier = v;
   return v;
 }
 
@@ -227,25 +194,24 @@ async function sovPouvoirActe(action, params, titre, succes, rouvrir) {
 }
 
 // ---------------------------------------------------------------- Lois : dépôt (chef de parti)
-async function ouvrirSovarkaDeposerLoi() {
-  const l = await sovPouvoirLire(); if (!l) return;
-  if (!l.chef_parti) { vehModal('Déposer un projet de loi', '<p>' + SOV_POUVOIR_MOTIFS.reserve_chef_de_parti + '</p>'); return; }
+async function ouvrirSovarkaDeposerLoi(cache) {
+  const l = await sovPouvoirLire(cache); if (!l) return;
+  if (!l.chef_parti) { powModal(powT('titleDeposit'), '<p>' + powT('pm_reserve_chef_de_parti') + '</p>', ouvrirSovarkaDeposerLoi); return; }
   const cats = (typeof rafraichirAssembleeCategories === 'function') ? (await rafraichirAssembleeCategories()) || {} : {};
   const enVigueur = (l.lois || []).filter(x => x.statut === 'adoptee');
-  let html = '<p class="cpj-note">Votre parti dépose le projet (1 PA). Le Président du Conseil du Peuple le tranche seul ; '
-    + 'accepté, il est promulgué aussitôt, puis les députés l’approuvent le jeudi.</p>'
+  let html = '<p class="cpj-note">' + powT('depositIntro') + '</p>'
     + '<select id="sov-loi-type" class="cpj-champ" style="width:100%;margin:.3rem 0">'
-    + '<option value="rp">Loi déclarative</option>'
-    + (Object.keys(cats).length ? '<option value="mecanique">Loi d’interdiction</option>' : '')
-    + (enVigueur.length ? '<option value="abrogation">Abrogation d’une loi</option>' : '') + '</select>'
-    + '<input id="sov-loi-titre" class="cpj-champ" maxlength="120" placeholder="Titre" style="width:100%;margin:.3rem 0">'
+    + '<option value="rp">' + powT('lawRp') + '</option>'
+    + (Object.keys(cats).length ? '<option value="mecanique">' + powT('lawBan') + '</option>' : '')
+    + (enVigueur.length ? '<option value="abrogation">' + powT('lawRepeal') + '</option>' : '') + '</select>'
+    + '<input id="sov-loi-titre" class="cpj-champ" maxlength="120" placeholder="' + sovEchapper(powT('titlePh')) + '" style="width:100%;margin:.3rem 0">'
     + (Object.keys(cats).length ? '<select id="sov-loi-cat" class="cpj-champ" style="width:100%;margin:.3rem 0">'
-       + Object.keys(cats).map(k => '<option value="' + sovEchapper(k) + '">Interdiction : ' + sovEchapper(cats[k].label) + '</option>').join('') + '</select>' : '')
+       + Object.keys(cats).map(k => '<option value="' + sovEchapper(k) + '">' + powT('banOpt', { label: sovEchapper(cats[k].label) }) + '</option>').join('') + '</select>' : '')
     + (enVigueur.length ? '<select id="sov-loi-cible" class="cpj-champ" style="width:100%;margin:.3rem 0">'
-       + enVigueur.map(x => '<option value="' + sovEchapper(x.id) + '">À abroger : ' + sovEchapper(x.titre) + '</option>').join('') + '</select>' : '')
-    + '<textarea id="sov-loi-texte" class="cpj-champ" rows="6" maxlength="20000" placeholder="Texte de la loi" style="width:100%;margin:.3rem 0"></textarea>'
-    + vehBouton('Déposer (1 PA)', 'sovarkaDeposerLoi()', true);
-  vehModal('Déposer un projet de loi', html);
+       + enVigueur.map(x => '<option value="' + sovEchapper(x.id) + '">' + powT('repealOpt', { titre: sovEchapper(x.titre) }) + '</option>').join('') + '</select>' : '')
+    + '<textarea id="sov-loi-texte" class="cpj-champ" rows="6" maxlength="20000" placeholder="' + sovEchapper(powT('textPh')) + '" style="width:100%;margin:.3rem 0"></textarea>'
+    + vehBouton(powT('deposit'), 'sovarkaDeposerLoi()', true);
+  powModal(powT('titleDeposit'), html, ouvrirSovarkaDeposerLoi);
 }
 function sovarkaDeposerLoi() {
   const type = document.getElementById('sov-loi-type')?.value || 'rp';
@@ -253,131 +219,129 @@ function sovarkaDeposerLoi() {
                    texte: (document.getElementById('sov-loi-texte')?.value || '').trim() };
   if (type === 'mecanique') params.categorie = document.getElementById('sov-loi-cat')?.value || '';
   if (type === 'abrogation') params.loi_cible = document.getElementById('sov-loi-cible')?.value || '';
-  sovPouvoirActe('loi_deposer', params, 'Projet de loi', v => '« ' + v.titre + ' » attend la décision du Président du Conseil du Peuple.',
+  sovPouvoirActe('loi_deposer', params, powT('tBill'), v => powT('billWaits', { titre: v.titre }),
     () => document.getElementById('modal-postes')?.classList.remove('open'));
 }
 
 // ---------------------------------------------------------------- Lois : le Président du Conseil tranche
-async function ouvrirSovarkaLoisExamen() {
-  const l = await sovPouvoirLire(); if (!l) return;
-  if (!l.pm) { vehModal('Projets de loi', '<p>' + SOV_POUVOIR_MOTIFS.reserve_president_du_conseil + '</p>'); return; }
+async function ouvrirSovarkaLoisExamen(cache) {
+  const l = await sovPouvoirLire(cache); if (!l) return;
+  if (!l.pm) { powModal(powT('titleBills'), '<p>' + powT('pm_reserve_president_du_conseil') + '</p>', ouvrirSovarkaLoisExamen); return; }
   const examen = (l.lois || []).filter(x => x.statut === 'examen');
-  const html = '<p class="cpj-note">Vous tranchez seul, sans réunir vos ministres. Une loi acceptée est promulguée '
-    + 'aussitôt ; les députés l’approuveront jeudi.</p>'
+  const html = '<p class="cpj-note">' + powT('examIntro') + '</p>'
     + (examen.length ? examen.map(x => vehSection(sovEchapper(x.titre),
-        '<p class="cpj-note">Parti : ' + sovEchapper(x.parti_nom || '—') + ' · ' + sovEchapper(x.auteur) + '</p>'
+        '<p class="cpj-note">' + powT('partyLine', { parti: sovEchapper(x.parti_nom || '—'), auteur: sovEchapper(x.auteur) }) + '</p>'
         + '<p style="white-space:pre-wrap">' + sovEchapper(x.texte) + '</p>'
-        + vehBouton('Promulguer', 'sovarkaTrancherLoi(' + sovJsArg(x.id) + ',true)', true)
-        + vehBouton('Refuser', 'sovarkaTrancherLoi(' + sovJsArg(x.id) + ',false)', false))).join('')
-      : '<p>Aucun projet en attente.</p>');
-  vehModal('Projets de loi à trancher', html);
+        + vehBouton(powT('promulgate'), 'sovarkaTrancherLoi(' + sovJsArg(x.id) + ',true)', true)
+        + vehBouton(powT('refuse'), 'sovarkaTrancherLoi(' + sovJsArg(x.id) + ',false)', false))).join('')
+      : '<p>' + powT('noBill') + '</p>');
+  powModal(powT('titleBillsDecide'), html, ouvrirSovarkaLoisExamen);
 }
 function sovarkaTrancherLoi(id, accepter) {
-  sovPouvoirActe('loi_trancher', { loi: id, accepter }, accepter ? 'Loi promulguée' : 'Projet refusé',
-    v => accepter ? '« ' + v.titre + ' » s’applique dès maintenant.' : '« ' + v.titre + ' » est refusé.', ouvrirSovarkaLoisExamen);
+  sovPouvoirActe('loi_trancher', { loi: id, accepter }, accepter ? powT('tPromulgated') : powT('tRefusedBill'),
+    v => accepter ? powT('appliesNow', { titre: v.titre }) : powT('isRefused', { titre: v.titre }), ouvrirSovarkaLoisExamen);
 }
 
 // ---------------------------------------------------------------- Séance du jeudi (députés)
-async function ouvrirSovarkaSeance() {
-  const l = await sovPouvoirLire(); if (!l) return;
-  let html = '<p class="cpj-note">Les députés sont convoqués chaque jeudi. Ils approuvent les lois déjà promulguées, '
-    + 'ou s’abstiennent : l’abstention est signalée à la cellule de surveillance et coûte 5 POP à leur parti. '
-    + 'Un député absent perd son indemnité (250 PSK par jour) pour toute la semaine.</p>';
-  if (l.indemnite_suspendue_jusqu_au) html += '<p class="cpj-note">Votre indemnité est suspendue jusqu’au ' + sovEchapper(l.indemnite_suspendue_jusqu_au) + ' inclus.</p>';
+async function ouvrirSovarkaSeance(cache) {
+  const l = await sovPouvoirLire(cache); if (!l) return;
+  let html = '<p class="cpj-note">' + powT('sessionIntro') + '</p>';
+  if (l.indemnite_suspendue_jusqu_au) html += '<p class="cpj-note">' + powT('suspended', { date: sovEchapper(l.indemnite_suspendue_jusqu_au) }) + '</p>';
   const odj = l.ordre_du_jour || [];
-  if (l.depute && l.jeudi && !l.emarge) html += vehBouton('Émarger', "sovPouvoirActe('seance_emarger',{},'Séance','Présence enregistrée.',ouvrirSovarkaSeance)", true);
-  html += vehSection(l.jeudi ? 'Ordre du jour' : 'Ordre du jour de la séance du ' + sovEchapper(l.jeudi_seance),
+  if (l.depute && l.jeudi && !l.emarge) html += vehBouton(powT('signIn'), 'sovarkaEmarger()', true);
+  html += vehSection(l.jeudi ? powT('agenda') : powT('agendaOf', { date: sovEchapper(l.jeudi_seance) }),
     odj.length ? odj.map(o => '<div style="margin:.4rem 0"><strong>' + sovEchapper(o.titre) + '</strong>'
-      + ' <span class="cpj-note">(' + sovEchapper(o.parti_nom || '—') + ' · ' + o.approbations + ' approbation(s), ' + o.abstentions + ' abstention(s))</span>'
-      + (o.mon_choix ? ' — <em>' + (o.mon_choix === 'APPROUVE' ? 'approuvée' : 'abstention') + '</em>'
-        : (l.depute && l.jeudi && l.emarge ? '<br>' + vehBouton('Approuver', 'sovarkaApprouver(' + sovJsArg(o.id) + ",'APPROUVE')", true)
-          + vehBouton('S’abstenir (−5 POP au parti)', 'sovarkaApprouver(' + sovJsArg(o.id) + ",'ABSTENTION')", false) : ''))
-      + '</div>').join('') : '<p>Aucune loi promulguée cette semaine.</p>');
+      + ' <span class="cpj-note">' + powT('votes', { parti: sovEchapper(o.parti_nom || '—'), a: o.approbations, b: o.abstentions }) + '</span>'
+      + (o.mon_choix ? ' — <em>' + (o.mon_choix === 'APPROUVE' ? powT('approvedChoice') : powT('abstentionChoice')) + '</em>'
+        : (l.depute && l.jeudi && l.emarge ? '<br>' + vehBouton(powT('approve'), 'sovarkaApprouver(' + sovJsArg(o.id) + ",'APPROUVE')", true)
+          + vehBouton(powT('abstain'), 'sovarkaApprouver(' + sovJsArg(o.id) + ",'ABSTENTION')", false) : ''))
+      + '</div>').join('') : '<p>' + powT('noLaw') + '</p>');
   const vigueur = (l.lois || []).filter(x => x.statut === 'adoptee');
-  html += vehSection('Lois en vigueur', vigueur.length ? vigueur.map(x => '<div>• ' + sovEchapper(x.titre) + '</div>').join('') : '<p>Aucune.</p>');
-  vehModal('Séance du Conseil du Peuple', html);
+  html += vehSection(powT('inForce'), vigueur.length ? vigueur.map(x => '<div>• ' + sovEchapper(x.titre) + '</div>').join('') : '<p>' + powT('none') + '</p>');
+  powModal(powT('titleSitting'), html, ouvrirSovarkaSeance);
+}
+function sovarkaEmarger() {
+  return sovPouvoirActe('seance_emarger', {}, powT('tSitting'), powT('presence'), ouvrirSovarkaSeance);
 }
 function sovarkaApprouver(id, choix) {
-  sovPouvoirActe('loi_approuver', { loi: id, choix }, 'Séance',
-    v => v.choix === 'APPROUVE' ? 'Approbation enregistrée.' : 'Abstention enregistrée et signalée. Votre parti perd 5 POP.', ouvrirSovarkaSeance);
+  sovPouvoirActe('loi_approuver', { loi: id, choix }, powT('tSitting'),
+    v => v.choix === 'APPROUVE' ? powT('approvalOk') : powT('abstentionOk'), ouvrirSovarkaSeance);
 }
 
 // ---------------------------------------------------------------- Manifestation de soutien (chef de parti)
 function sovarkaManifSoutien() {
-  sovPouvoirActe('manif_soutien', {}, 'Manifestation de soutien',
-    v => v.participants + ' manifestants : +' + v.participants + ' POP au parti au pouvoir.',
+  sovPouvoirActe('manif_soutien', {}, powT('tRally'),
+    v => powT('rallyOk', { n: v.participants }),
     () => document.getElementById('modal-postes')?.classList.remove('open'));
 }
 
 // ---------------------------------------------------------------- Économie collective : trois taux
 async function ouvrirFiscaliteSovarka(pa, cost) {
   const l = await sovPouvoirLire(); if (!l) return;
-  if (!(l.postes || []).includes('min_fin')) { vehModal('Fiscalité', '<p>Réservé au ministre de l’Économie collective.</p>'); return; }
+  if (!(l.postes || []).includes('min_fin')) { vehModal(powT('tTax'), '<p>' + powT('taxReserved') + '</p>'); return; }
   const b = (typeof chargerBudgetNational === 'function') ? (await chargerBudgetNational('soviet')) || {} : {};
   const curseur = (id, libelle, taux, portee) => vehSection(libelle,
     '<input id="' + id + '" type="range" min="0" max="40" value="' + taux + '" oninput="document.getElementById(\'' + id + '-v\').textContent=this.value+\' %\'" style="width:100%">'
     + '<div id="' + id + '-v" style="text-align:center">' + taux + ' %</div>'
-    + vehBouton('Appliquer', "sovarkaFixerTaux('" + portee + "','" + id + "'," + (pa || 0) + ',' + (cost || 0) + ')', true));
-  vehModal('Fiscalité de Sovarka',
-    '<p class="cpj-note">Les mairies vivent des loyers ; l’État prélève sur les ventes, sur la main-d’œuvre et sur les recettes des mairies.</p>'
-    + curseur('sov-taux-ventes', 'Impôt sur les ventes', b.tauxNational ?? 10, 'national')
-    + curseur('sov-taux-mo', 'Impôt sur la main-d’œuvre', b.tauxMainOeuvre ?? 10, 'main_oeuvre')
-    + curseur('sov-taux-muni', 'Impôt sur les recettes municipales', b.tauxMunicipal ?? 10, 'municipal'));
+    + vehBouton(powT('apply'), "sovarkaFixerTaux('" + portee + "','" + id + "'," + (pa || 0) + ',' + (cost || 0) + ')', true));
+  vehModal(powT('titleTax'),
+    '<p class="cpj-note">' + powT('taxIntro') + '</p>'
+    + curseur('sov-taux-ventes', powT('taxSales'), b.tauxNational ?? 10, 'national')
+    + curseur('sov-taux-mo', powT('taxLabour'), b.tauxMainOeuvre ?? 10, 'main_oeuvre')
+    + curseur('sov-taux-muni', powT('taxMunicipal'), b.tauxMunicipal ?? 10, 'municipal'));
 }
 async function sovarkaFixerTaux(portee, id, pa, cost) {
   if (typeof fixerTauxImposition !== 'function') return;
   const r = await fixerTauxImposition(portee, id, pa, cost);
-  if (r) showToast('Taux fixé', 'Nouveau taux : ' + r.taux + ' %.', true);
+  if (r) showToast(powT('tRateSet'), powT('newRate', { taux: r.taux }), true);
 }
 
 // ---------------------------------------------------------------- Justice prolétarienne : saisir le juge
-async function ouvrirSovarkaSaisirJuge() {
-  const l = await sovPouvoirLire(); if (!l) return;
-  if (!(l.postes || []).includes('min_just')) { vehModal('Saisir le juge', '<p>' + SOV_POUVOIR_MOTIFS.reserve_ministre_justice + '</p>'); return; }
-  const d = (typeof sovLire === 'function') ? await sovLire() : null;
+async function ouvrirSovarkaSaisirJuge(cache) {
+  const l = await sovPouvoirLire(cache); if (!l) return;
+  if (!(l.postes || []).includes('min_just')) { powModal(powT('titleRefer'), '<p>' + powT('pm_reserve_ministre_justice') + '</p>', ouvrirSovarkaSaisirJuge); return; }
+  const d = (typeof sovLire === 'function') ? await sovLire(cache) : null;
   const exploites = (d?.locaux || []).filter(x => x.exploitant);
   const enCours = new Set((l.saisines || []).filter(s => s.statut === 'en_attente').map(s => s.ville + '|' + s.batiment + '|' + s.piece));
-  let html = '<p class="cpj-note">Vous seul saisissez le juge (1 PA). Un juge PNJ vous donne toujours raison : le droit revient '
-    + 'aussitôt à l’État. Un juge PJ décide librement.</p>'
-    + '<input class="cpj-champ" id="sov-saisine-motif" maxlength="300" placeholder="Motif" style="width:100%">';
+  let html = '<p class="cpj-note">' + powT('referIntro') + '</p>'
+    + '<input class="cpj-champ" id="sov-saisine-motif" maxlength="300" placeholder="' + sovEchapper(powT('reasonPh')) + '" style="width:100%">';
   html += exploites.length ? exploites.map(x => vehSection(sovEchapper(x.label) + ' (' + sovEchapper(sovVille(x.ville)) + ')',
-    '<p>Exploitant : ' + sovEchapper(x.exploitant) + '</p>' + (enCours.has(x.ville + '|' + x.batiment + '|' + x.piece)
-      ? '<p class="cpj-note">Juge déjà saisi.</p>'
-      : vehBouton('Saisir le juge (1 PA)', 'sovarkaSaisirJuge(' + sovJsArg(x.ville) + ',' + sovJsArg(x.batiment) + ',' + sovJsArg(x.piece) + ')', true)))).join('')
-    : '<p>Aucun commerce exploité.</p>';
+    '<p>' + powT('operator', { nom: sovEchapper(x.exploitant) }) + '</p>' + (enCours.has(x.ville + '|' + x.batiment + '|' + x.piece)
+      ? '<p class="cpj-note">' + powT('alreadyReferred') + '</p>'
+      : vehBouton(powT('referBtn'), 'sovarkaSaisirJuge(' + sovJsArg(x.ville) + ',' + sovJsArg(x.batiment) + ',' + sovJsArg(x.piece) + ')', true)))).join('')
+    : '<p>' + powT('noShop') + '</p>';
   const passees = (l.saisines || []).slice(0, 8);
-  if (passees.length) html += vehSection('Saisines', passees.map(s => '<div>' + sovEchapper(s.exploitant || '?') + ' — '
-    + ({ en_attente: 'en attente du juge', retire: 'droit retiré', rejete: 'rejetée' }[s.statut] || s.statut) + '</div>').join(''));
-  vehModal('Saisir le juge', html);
+  if (passees.length) html += vehSection(powT('secReferrals'), passees.map(s => '<div>' + sovEchapper(s.exploitant || '?') + ' — '
+    + (['en_attente', 'retire', 'rejete'].includes(s.statut) ? powT('sa_' + s.statut) : s.statut) + '</div>').join(''));
+  powModal(powT('titleRefer'), html, ouvrirSovarkaSaisirJuge);
 }
 function sovarkaSaisirJuge(ville, batiment, piece) {
   const motif = (document.getElementById('sov-saisine-motif')?.value || '').trim();
-  sovPouvoirActe('saisir_juge', { ville, batiment, piece, motif }, 'Saisine',
-    v => v.decision === 'retire' ? 'Le juge vous donne raison : le droit revient à l’État.' : 'Le juge ' + v.juge + ' est saisi.', ouvrirSovarkaSaisirJuge);
+  sovPouvoirActe('saisir_juge', { ville, batiment, piece, motif }, powT('tReferral'),
+    v => v.decision === 'retire' ? powT('judgeAgrees') : powT('judgeSeized', { juge: v.juge }), ouvrirSovarkaSaisirJuge);
 }
 
 // ---------------------------------------------------------------- Vérité officielle : sondages et fuite
 function ouvrirSovarkaSondage() {
-  vehModal('Commanditer un sondage', '<p class="cpj-note">Le sondage mesure la popularité réelle des partis. Vous seul recevez '
-    + 'les vrais chiffres, puis vous le publiez, l’enterrez ou le publiez faussé. Les vrais chiffres restent aux Archives.</p>'
-    + '<input class="cpj-champ" id="sov-sondage-sujet" maxlength="200" placeholder="Sujet du sondage" style="width:100%">'
-    + vehBouton('Commander (1 PA)', 'sovarkaSondageCommander()', true));
+  powModal(powT('titlePoll'), '<p class="cpj-note">' + powT('pollIntro') + '</p>'
+    + '<input class="cpj-champ" id="sov-sondage-sujet" maxlength="200" placeholder="' + sovEchapper(powT('pollPh')) + '" style="width:100%">'
+    + vehBouton(powT('orderPoll'), 'sovarkaSondageCommander()', true), ouvrirSovarkaSondage);
 }
 function sovarkaSondageCommander() {
   const sujet = (document.getElementById('sov-sondage-sujet')?.value || '').trim();
-  sovPouvoirActe('sondage_commander', { sujet }, 'Sondage', v => 'Résultats reçus. +' + v.gain_inf + ' INF.', ouvrirSovarkaSondages);
+  sovPouvoirActe('sondage_commander', { sujet }, powT('tPoll'), v => powT('pollReceived', { inf: v.gain_inf }), ouvrirSovarkaSondages);
 }
-async function ouvrirSovarkaSondages() {
-  const l = await sovPouvoirLire(); if (!l) return;
+async function ouvrirSovarkaSondages(cache) {
+  const l = await sovPouvoirLire(cache); if (!l) return;
   const attente = (l.sondages || []).filter(s => s.statut === 'en_attente');
   const html = attente.length ? attente.map(s => vehSection(sovEchapper(s.sujet),
-      (s.reels || []).map(r => '<div>' + sovEchapper(r.nom) + ' : ' + r.pop + ' % — publier '
+      (s.reels || []).map(r => '<div>' + powT('publishLine', { nom: sovEchapper(r.nom), pop: r.pop }) + ' '
         + '<input class="cpj-champ" type="number" min="0" max="100" style="width:4.5rem" id="sov-fx-' + s.id + '-' + sovEchapper(r.parti) + '" value="' + r.pop + '"> %</div>').join('')
-      + vehBouton('Publier tel quel', 'sovarkaSondageDecider(' + s.id + ",'publier')", true)
-      + vehBouton('Publier les chiffres modifiés', 'sovarkaSondageDecider(' + s.id + ",'fausser')", false)
-      + vehBouton('Enterrer', 'sovarkaSondageDecider(' + s.id + ",'enterrer')", false))).join('')
-    : '<p>Aucun sondage en attente.</p>';
-  vehModal('Sondages', '<p class="cpj-note">Un sondage faussé peut être démasqué par une fuite : le ministre perd alors 10 POP.</p>' + html);
+      + vehBouton(powT('publishAsIs'), 'sovarkaSondageDecider(' + s.id + ",'publier')", true)
+      + vehBouton(powT('publishModified'), 'sovarkaSondageDecider(' + s.id + ",'fausser')", false)
+      + vehBouton(powT('bury'), 'sovarkaSondageDecider(' + s.id + ",'enterrer')", false))).join('')
+    : '<p>' + powT('noPoll') + '</p>';
+  powModal(powT('titlePolls'), '<p class="cpj-note">' + powT('pollWarn') + '</p>' + html, ouvrirSovarkaSondages);
 }
 async function sovarkaSondageDecider(id, choix) {
   const params = { sondage: id, choix };
@@ -387,66 +351,71 @@ async function sovarkaSondageDecider(id, choix) {
     params.valeurs = {};
     (s.reels || []).forEach(r => { params.valeurs[r.parti] = Number(document.getElementById('sov-fx-' + id + '-' + r.parti)?.value); });
   }
-  sovPouvoirActe('sondage_decider', params, 'Sondage',
-    v => ({ publie: 'Sondage publié.', fausse: 'Sondage publié avec vos chiffres.', enterre: 'Sondage enterré.' }[v.statut]), ouvrirSovarkaSondages);
+  sovPouvoirActe('sondage_decider', params, powT('tPoll'),
+    v => (['publie', 'fausse', 'enterre'].includes(v.statut) ? powT('po_' + v.statut) : undefined), ouvrirSovarkaSondages);
 }
 // Deux pièces compromettantes aux Archives (Fred, 08/11/2026) : le dernier sondage truqué, ou le
 // registre secret de la cellule Balatov (signalements des 30 derniers jours).
 function sovarkaFuite() {
-  vehModal('Produire une fuite', '<p class="cpj-note">Acte illégal : il laisse une trace. Que cherchez-vous dans les archives ?</p>'
-    + vehBouton('Un sondage truqué', "document.getElementById('modal-postes')?.classList.remove('open');sovarkaFuiteProduire('sondage')", true)
-    + vehBouton('Le registre de la cellule Balatov', "document.getElementById('modal-postes')?.classList.remove('open');sovarkaFuiteProduire('signalements')", false));
+  powModal(powT('titleLeak'), '<p class="cpj-note">' + powT('leakIntro') + '</p>'
+    + vehBouton(powT('leakPoll'), "document.getElementById('modal-postes')?.classList.remove('open');sovarkaFuiteProduire('sondage')", true)
+    + vehBouton(powT('leakRegister'), "document.getElementById('modal-postes')?.classList.remove('open');sovarkaFuiteProduire('signalements')", false), sovarkaFuite);
 }
 function sovarkaFuiteProduire(objet) {
-  sovPouvoirActe('fuite', { objet }, 'Produire une fuite',
+  sovPouvoirActe('fuite', { objet }, powT('titleLeak'),
     v => v.objet === 'signalements'
-      ? (v.trouve ? 'Le registre des signalements est publié au forum national.' : 'Aucun signalement récent dans le registre.')
-      : (v.trouve ? 'Les vrais chiffres d’un sondage truqué sont publiés. Le ministre ' + v.ministre + ' perd 10 POP.'
-                  : 'Rien de compromettant dans les archives aujourd’hui.'));
+      ? (v.trouve ? powT('leakRegOk') : powT('leakRegNone'))
+      : (v.trouve ? powT('leakPollOk', { ministre: v.ministre }) : powT('leakPollNone')));
 }
 
 // ---------------------------------------------------------------- Registre des signalements (cellule Balatov)
 // Lisible par le Président du Conseil et le ministre de la Sécurité du Peuple (Fred, 08/11/2026) ;
 // aucun effet automatique, les PJ en font ce qu'ils veulent.
-async function ouvrirSovarkaSignalements() {
-  const l = await sovPouvoirLire(); if (!l) return;
-  if (!Array.isArray(l.signalements)) { vehModal('Registre des signalements', '<p>Réservé au Président du Conseil du Peuple et au ministre de la Sécurité du Peuple.</p>'); return; }
-  const motifs = { abstention: 'abstention' };
-  vehModal('Registre des signalements', '<p class="cpj-note">Cellule de validation et surveillance des partis — Capitaine Igor Balatov. '
-    + 'Ce registre ne déclenche rien de lui-même : à vous d’en faire usage.</p>'
+async function ouvrirSovarkaSignalements(cache) {
+  const l = await sovPouvoirLire(cache); if (!l) return;
+  if (!Array.isArray(l.signalements)) { powModal(powT('titleReports'), '<p>' + powT('reportsReserved') + '</p>', ouvrirSovarkaSignalements); return; }
+  const motifs = { abstention: powT('mo_abstention') };
+  powModal(powT('titleReports'), '<p class="cpj-note">' + powT('reportsIntro') + '</p>'
     + (l.signalements.length ? l.signalements.map(g => '<div style="margin:.3rem 0">'
         + new Date(g.ts).toLocaleDateString('fr-FR') + ' — <b>' + sovEchapper(g.cible) + '</b>'
         + (g.parti_nom ? ' (' + sovEchapper(g.parti_nom) + ')' : '') + ' : ' + sovEchapper(motifs[g.motif] || g.motif)
-        + (g.loi ? ' sur « ' + sovEchapper(g.loi) + ' »' : '') + '</div>').join('')
-      : '<p>Aucun signalement.</p>'));
+        + (g.loi ? powT('onLaw', { loi: sovEchapper(g.loi) }) : '') + '</div>').join('')
+      : '<p>' + powT('noReport') + '</p>'), ouvrirSovarkaSignalements);
 }
 
 // ---------------------------------------------------------------- Défense de la Patrie : conscription
-async function ouvrirSovarkaConscription() {
-  const l = await sovPouvoirLire(); if (!l) return;
-  if (!(l.postes || []).includes('min_def')) { vehModal('Conscription', '<p>' + SOV_POUVOIR_MOTIFS.reserve_ministre_defense + '</p>'); return; }
+async function ouvrirSovarkaConscription(cache) {
+  const l = await sovPouvoirLire(cache); if (!l) return;
+  if (!(l.postes || []).includes('min_def')) { powModal(powT('titleConscription'), '<p>' + powT('pm_reserve_ministre_defense') + '</p>', ouvrirSovarkaConscription); return; }
   const active = !!l.conscription?.active;
-  vehModal('Conscription', '<p class="cpj-note">La conscription appelle les citoyens de Sovarka sans poste. Chacun a 48 heures pour se '
-    + 'présenter à la caserne, sinon il est réfractaire et recherché. Le service dure jusqu’à ce que vous la leviez.</p>'
-    + '<p>' + (active ? 'Conscription en vigueur.' : 'Aucune conscription en vigueur.') + '</p>'
-    + (active ? vehBouton('Lever la conscription', "sovPouvoirActe('conscription_lever',{},'Conscription',v=>v.liberes+' conscrit(s) libéré(s).',ouvrirSovarkaConscription)", true)
-              : vehBouton('Décréter la conscription', "sovPouvoirActe('conscription_declencher',{},'Conscription',v=>v.appeles+' citoyen(s) appelé(s).',ouvrirSovarkaConscription)", true)));
+  powModal(powT('titleConscription'), '<p class="cpj-note">' + powT('conscIntro') + '</p>'
+    + '<p>' + (active ? powT('conscActive') : powT('conscNone')) + '</p>'
+    + (active ? vehBouton(powT('lift'), 'sovarkaConscriptionLever()', true)
+              : vehBouton(powT('decree'), 'sovarkaConscriptionDecreter()', true)), ouvrirSovarkaConscription);
+}
+function sovarkaConscriptionLever() {
+  return sovPouvoirActe('conscription_lever', {}, powT('titleConscription'), v => powT('freed', { n: v.liberes }), ouvrirSovarkaConscription);
+}
+function sovarkaConscriptionDecreter() {
+  return sovPouvoirActe('conscription_declencher', {}, powT('titleConscription'), v => powT('called', { n: v.appeles }), ouvrirSovarkaConscription);
 }
 function sovarkaConscritPresenter() {
-  sovPouvoirActe('conscrit_presenter', {}, 'Conscription', 'Vous vous êtes présenté : votre incorporation est enregistrée à la caserne.');
+  sovPouvoirActe('conscrit_presenter', {}, powT('titleConscription'), powT('reported'));
 }
 
 // ---------------------------------------------------------------- Autocritique publique (Président du Conseil)
-async function ouvrirSovarkaAutocritique() {
-  const l = await sovPouvoirLire(); if (!l) return;
-  if (!l.pm) { vehModal('Autocritique publique', '<p>' + SOV_POUVOIR_MOTIFS.reserve_president_du_conseil + '</p>'); return; }
+async function ouvrirSovarkaAutocritique(cache) {
+  const l = await sovPouvoirLire(cache); if (!l) return;
+  if (!l.pm) { powModal(powT('titleSelfCrit'), '<p>' + powT('pm_reserve_president_du_conseil') + '</p>', ouvrirSovarkaAutocritique); return; }
   const m = l.ministres || [];
-  vehModal('Autocritique publique', '<p class="cpj-note">Vous contraignez un ministre à une autocritique publiée dans la presse (1 PA) : '
-    + 'il perd 5 POP et garde son poste, vous gagnez 2 POP. Une fois par ministre et par semaine.</p>'
+  powModal(powT('titleSelfCrit'), '<p class="cpj-note">' + powT('selfCritIntro') + '</p>'
     + (m.length ? m.map(x => '<div style="margin:.3rem 0">' + sovEchapper(x.nom) + ' — ' + sovEchapper(typeof intitulePoste === 'function' ? intitulePoste(x.poste, 'soviet') : x.poste) + ' '
-        + (x.autocritique_faite ? '<span class="cpj-note">(déjà cette semaine)</span>'
-           : vehBouton('Exiger une autocritique', "sovPouvoirActe('autocritique',{ministre:" + sovJsArg(x.nom) + "},'Autocritique publique',v=>v.ministre+' fait son autocritique dans la presse.',ouvrirSovarkaAutocritique)", true))
-        + '</div>').join('') : '<p>Aucun ministre en exercice.</p>'));
+        + (x.autocritique_faite ? '<span class="cpj-note">' + powT('alreadyWeek') + '</span>'
+           : vehBouton(powT('demand'), 'sovarkaAutocritiqueExiger(' + sovJsArg(x.nom) + ')', true))
+        + '</div>').join('') : '<p>' + powT('noMinister') + '</p>'), ouvrirSovarkaAutocritique);
+}
+function sovarkaAutocritiqueExiger(ministre) {
+  return sovPouvoirActe('autocritique', { ministre }, powT('titleSelfCrit'), v => powT('selfCritOk', { ministre: v.ministre }), ouvrirSovarkaAutocritique);
 }
 
 // ---------------------------------------------------------------- Sécurité du Peuple : surveillance d'un citoyen
@@ -454,18 +423,20 @@ async function ouvrirSovarkaAutocritique() {
 // matin (déplacements et PJ croisés) ; découverte possible (perception, intelligence, sécurité de la ville) ;
 // toute cible ; trois au plus. Tout est décidé par sovarka_surveillance_commande / _lire ; l'écran recopie.
 function sovLieuSurveillance(e) {
-  if (e.hors_territoire) return 'Hors du territoire';
+  if (e.hors_territoire) return powT('abroad');
   const ville = (typeof villeNom === 'function' && villeNom('soviet', e.ville)) || e.ville || '?';
-  if (!e.batiment || String(e.batiment).startsWith('rue')) return ville + ', dans la rue';
+  if (!e.batiment || String(e.batiment).startsWith('rue')) return powT('inStreet', { ville });
   const ctx = (typeof WORLD !== 'undefined' && WORLD.soviet?.[e.ville]?.buildingContext?.[e.batiment]) || null;
   const def = (typeof BUILDINGS !== 'undefined' && BUILDINGS[e.batiment]) || null;
   const bat = ctx?.name || def?.name || e.batiment;
   const piece = ctx?.rooms?.[e.piece]?.name || def?.rooms?.[e.piece]?.name || '';
   return ville + ', ' + bat + (piece && piece !== bat ? ' — ' + piece : '');
 }
-async function ouvrirSovarkaSurveillance() {
-  const l = await sbRpcVerdict('sovarka_surveillance_lire', {}).catch(() => null);
-  if (!l || l.ok !== true) { vehModal('Placer sous surveillance', '<p>' + sovPMotif(l) + '</p>'); return; }
+let sovSurveillanceDerniere = null;
+async function ouvrirSovarkaSurveillance(cache) {
+  const l = (cache === true && sovSurveillanceDerniere) || await sbRpcVerdict('sovarka_surveillance_lire', {}).catch(() => null);
+  if (!l || l.ok !== true) { powModal(powT('titleSurv'), '<p>' + sovPMotif(l) + '</p>'); return; }
+  sovSurveillanceDerniere = l;
   const toutes = l.surveillances || [];
   const actives = toutes.filter(x => x.statut === 'active');
   const enCours = new Set(actives.map(x => x.cible));
@@ -473,21 +444,19 @@ async function ouvrirSovarkaSurveillance() {
   const heure = t => new Date(t).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   const rapport = r => '<div style="margin:.3rem 0 .6rem .6rem">' + ((r.deplacements || []).length
       ? r.deplacements.map(e => '<div>' + heure(e.debut) + ' — ' + sovEchapper(sovLieuSurveillance(e))
-          + ((e.croises || []).length ? ' <span class="cpj-note">— en présence de ' + e.croises.map(sovEchapper).join(', ') + '</span>' : '') + '</div>').join('')
-      : '<div class="cpj-note">Aucun déplacement enregistré.</div>') + '</div>';
+          + ((e.croises || []).length ? ' <span class="cpj-note">' + powT('inPresence', { noms: e.croises.map(sovEchapper).join(', ') }).replace(/^ /, '') + '</span>' : '') + '</div>').join('')
+      : '<div class="cpj-note">' + powT('noMove') + '</div>') + '</div>';
   const libres = (l.cibles || []).filter(n => !enCours.has(n));
-  vehModal('Placer sous surveillance', '<p class="cpj-note">Un citoyen suivi pendant 4 jours : chaque matin, un rapport de tous ses déplacements '
-    + 'et des personnes croisées. 2 PA, 150 PSK prélevés sur la caisse du ministère (solde : ' + Math.floor(l.caisse || 0) + ' PSK). '
-    + 'La cible peut s’en rendre compte, sans savoir qui la surveille. Trois surveillances au plus.</p>'
+  powModal(powT('titleSurv'), '<p class="cpj-note">' + powT('survIntro', { solde: Math.floor(l.caisse || 0) }) + '</p>'
     + (actives.length < max && libres.length
       ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.5rem 0"><select id="sov-surv-cible" class="cpj-champ">'
         + libres.map(n => '<option value="' + sovEchapper(n) + '">' + sovEchapper(n) + '</option>').join('') + '</select>'
-        + vehBouton('Surveiller', "sovarkaSurveiller(document.getElementById('sov-surv-cible').value)", true) + '</div>'
-      : '<p>' + (actives.length >= max ? SOV_POUVOIR_MOTIFS.limite_surveillances : 'Aucune cible disponible.') + '</p>')
+        + vehBouton(powT('watch'), "sovarkaSurveiller(document.getElementById('sov-surv-cible').value)", true) + '</div>'
+      : '<p>' + (actives.length >= max ? powT('pm_limite_surveillances') : powT('noTarget')) + '</p>')
     + toutes.map(x => '<div style="margin-top:.6rem"><b>' + sovEchapper(x.cible) + '</b> — '
-        + (x.statut === 'active' ? 'en cours, ' + x.rapports_restants + ' rapport(s) à venir' : 'terminée')
-        + (x.rapports || []).map(r => '<div class="cpj-note">Rapport du ' + new Date(r.jour).toLocaleDateString('fr-FR') + '</div>' + rapport(r)).join('')
-        + '</div>').join(''));
+        + (x.statut === 'active' ? powT('ongoing', { n: x.rapports_restants }) : powT('ended'))
+        + (x.rapports || []).map(r => '<div class="cpj-note">' + powT('reportOf', { date: new Date(r.jour).toLocaleDateString('fr-FR') }) + '</div>' + rapport(r)).join('')
+        + '</div>').join(''), ouvrirSovarkaSurveillance);
 }
 async function sovarkaSurveiller(cible) {
   if (sovPouvoirEnCours || !cible) return;
@@ -495,10 +464,10 @@ async function sovarkaSurveiller(cible) {
   let v = null;
   try {
     v = await sbRpcVerdict('sovarka_surveillance_commande', { p_requete: crypto.randomUUID(), p_cible: cible }).catch(() => null);
-    if (!v || v.ok !== true) { showToast('Surveillance', sovPMotif(v), false); return; }
+    if (!v || v.ok !== true) { showToast(powT('tSurv'), sovPMotif(v), false); return; }
     if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
     if (typeof updateHeader === 'function') updateHeader();
-    showToast('Surveillance', v.cible + ' est placé sous surveillance pour 4 jours. Premier rapport demain matin.', true);
+    showToast(powT('tSurv'), powT('survOk', { cible: v.cible }), true);
   } finally { sovPouvoirEnCours = false; }
   if (v && v.ok === true) ouvrirSovarkaSurveillance();
 }
