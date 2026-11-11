@@ -29,7 +29,7 @@ function setup(lang='fr',enabled=true){
   vm.createContext(ctx);
   vm.runInContext(resources,ctx,{filename:'i18n/employment-agency-resources.js'});
   vm.runInContext(source,ctx,{filename:'plateau-agence-emploi.js'});
-  return {ctx,calls,elements,change(l){ctx.currentLang=l;onLanguage?.(l)}};
+  return {ctx,calls,elements,change(l){ctx.currentLang=l;for(const cb of ctx.RP_I18N_CHANGE_CALLBACKS||[])cb(l)}};
 }
 test('chargement dans le plateau, syntaxe et couverture exacte des neuf langues',()=>{
   assert.match(html,/i18n\/employment-agency-resources\.js\?v=20261111/);
