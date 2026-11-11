@@ -177,6 +177,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 }
 </style>
   <link rel="stylesheet" href="rue-centrale.css?v=mobile-l3-20261106">
+<link rel="stylesheet" href="plateau-aide.css?v=hrp-20261111">
 </head>
 <body class="plateau-body">
 
@@ -205,7 +206,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
       <i class="ti ti-chart-bar" style="font-size:.75rem;vertical-align:-1px"></i> <span data-i18n="plateau.imperialIndices" data-i18n-uppercase>INDICES IMPERIAUX</span>
     </button>
     <button class="forum-btn" onclick="openRulesView()">
-      <i class="ti ti-book" style="font-size:.8rem;vertical-align:-1px"></i> <span data-i18n="plateau.rules">Règles</span>
+      <i class="ti ti-book" style="font-size:.8rem;vertical-align:-1px"></i> <span data-i18n="plateau.rules">Aide</span>
     </button>
     <button class="forum-btn" onclick="openForumView()" id="btn-messages" data-i18n-title="plateau.forumsTitle" title="Messages et Forums">
       <i class="ti ti-messages" style="font-size:.8rem;vertical-align:-1px"></i> <span data-i18n="plateau.messagesForums">Messages/Forums</span>
@@ -370,18 +371,19 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
       <div id="self-content" style="flex:1;overflow-y:auto;background:#0a0805"></div>
     </div>
 
-    <!-- Vue REGLES -->
+    <!-- Vue AIDE (conversation HRP et anciennes rubriques du guide) -->
     <div id="vue-rules" class="vue">
       <div class="batiment-header">
         <button class="sortir-btn" onclick="closeRulesView()">
           <i class="ti ti-x"></i> <span data-i18n="plateau.closeButton">Fermer</span>
         </button>
         <div class="batiment-header-info">
-          <div class="batiment-nom" data-i18n="plateau.rules">Règles du jeu</div>
+          <div class="batiment-nom" data-i18n="plateau.rules">Aide</div>
           <div class="batiment-cat" data-i18n="plateau.gameGuide">Res Publica — Guide du joueur</div>
         </div>
         <div class="pieces-tabs">
-          <div class="rules-tab piece-tab active" data-section="intro" data-i18n="plateau.rulesIntro" onclick="renderRulesContent('intro');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Le Grand Jeu</div>
+          <div class="rules-tab piece-tab active" data-section="aide" data-i18n="plateau.helpAsk" onclick="renderRulesContent('aide')">Pose ta question</div>
+          <div class="rules-tab piece-tab" data-section="intro" data-i18n="plateau.rulesIntro" onclick="renderRulesContent('intro');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Le Grand Jeu</div>
           <div class="rules-tab piece-tab" data-section="tuto" data-i18n="plateau.rulesTutorial" onclick="renderRulesContent('tuto');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">🎓 Tutoriel</div>
           <div class="rules-tab piece-tab" data-section="personnage" data-i18n="plateau.rulesCharacter" onclick="renderRulesContent('personnage');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Personnage</div>
           <div class="rules-tab piece-tab" data-section="plateau" data-i18n="plateau.rulesBoard" onclick="renderRulesContent('plateau');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Plateau</div>
@@ -805,6 +807,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="plateau-plan-rues.js?v=carrefours-doubles-20261109-sovarka-nuit-20261110"></script>
 <script src="plateau-navigation.js?v=i18n-refresh-fenetres-20261110-sovarka-nuit-20261110-retablir-p2-20261110"></script>
 <script src="plateau-personnage.js?v=mobile-l9-20261106-jets-serveur-20261105-vehicules-fiche-20261109-inventaire-i18n-20261110-retablir-p2-20261110"></script>
+<script src="plateau-aide.js?v=hrp-20261111"></script>
 <script src="plateau-pnj.js?v=social-reponse-directe-20261104-psm-terrains-onglets-novomirsk-librairie-v6-jodie-enquete-20261109"></script>
 <script src="plateau-ced.js?v=brume-estadine-20261102"></script>
 <script src="plateau-multijoueur.js?v=mobile-l9-20261106-surveillance-20261111"></script>
