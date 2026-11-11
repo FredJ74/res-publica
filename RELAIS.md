@@ -48,7 +48,10 @@ Aucune modification PNJ, règle, RPC, migration, ni données de personnage.
 Toujours douze fonctions Vercel : `_aide.js` via le routeur existant.
 27 cas serveur verts, 13 cas navigateur et deux contre-épreuves additionnelles
 validés séparément ; parcours UI→chat→auth→fournisseur simulé, 18 questions.
-Comparaison FR1440 stricte identique. Rejeu complet des bancs encore en cours.
+Comparaison FR1440 stricte identique. Rejeu complet des bancs encore en cours. Saisie IME protégée : Entrée de
+composition coréenne/chinoise ne soumet pas la question. REST création PR refusée403 ;
+branche sauvegardée, titre prêt « Aide HRP : langue imposée, thèmes multilingues
+et conversation fiable ». Aucun numéro de PR inventé.
 Pas de clé DeepSeek ni compte de recette autorisé présents dans cet environnement :
 **aucune réponse IA réelle ni recette connectée revendiquée**. Pas de fusion/déploiement.
 Prochaine étape : preuves finales, PR si accès possible, puis CI et livraison

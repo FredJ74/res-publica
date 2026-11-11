@@ -33,8 +33,23 @@ Le conseiller peut adapter naturellement cette réponse et aider ensuite le joue
 - Évaluer la qualité réelle des réponses, notamment la capacité du conseiller à éviter les chiffres obsolètes et à expliquer les PA ; les tests statiques ne valident pas DeepSeek.
 - Refonte visuelle sous validation du game designer avant fusion/déploiement ; les mécanismes du jeu restent inchangés.
 
-## Implémentation proposée / état de la branche
+## Historique de livraison et validation
 
-PR #712, branche `chatgpt/aide-hrp-20261111` : panneau HRP et requête dédiée `/api/aide`, styles adaptés au mobile, neuf langues, bancs ciblés. **Pas encore fusionné, pas déployé, pas de recette authentifiée effectuée** au moment de la rédaction.
+PR #712 fusionnée sous `48682eb7` : panneau HRP et requête dédiée `/api/aide`,
+styles adaptés au mobile, neuf langues, bancs ciblés. PR #716 fusionnée sous
+`782eacd6` : la route passe par `/api/chat?mode=aide` et le module interne
+`_aide.js`, pour respecter les douze fonctions Vercel. Ces commits sont présents
+sur main `6b9f5d30` ; cela ne prouve pas à soi seul le déploiement ou une recette
+IA authentifiée.
+
+Correctif multilingue en cours, branche `codex/aide-hrp-neuf-langues-20261111` :
+langue du sélecteur imposée dans les instructions, corpus thématique canonique
+sélectionné par mots-clés dans neuf langues, contexte de la question courante
+prioritaire sur le passé. Messages historiques conservés dans leur langue
+d'origine ; une réponse en cours garde la langue de son envoi, les suivantes
+utilisent la nouvelle sélection. Verrou unique dès l'authentification, saisie
+IME respectée, brouillons et erreurs préservés à la bascule. Aucun effet de jeu.
+Les tests à fournisseur simulé ne certifient pas la langue d'une réponse réelle
+DeepSeek : la recette authentifiée reste à établir si les accès sont absents.
 
 Une future extension peut enrichir le corpus canonique du conseiller à partir des référentiels, avec vérification de versions et sans créer de deuxième source de règles divergente ; ne pas présenter la couverture de tout le gameplay comme déjà exhaustive.

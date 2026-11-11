@@ -16,7 +16,7 @@ const traductions = {
 };
 const escape=s=>String(s).replace(/[&<>"']/g,k=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[k]));
 let historique=[],attente=false,statut='';
-function langue(){const code=global.RPPlateauI18n?.language?.()||global.i18next?.language||'fr';return traductions[code]?code:'fr'}
+function langue(){const code=global.RPPlateauI18n?.language?.()||global.i18next?.language||'fr';return Object.hasOwn(traductions,code)?code:'fr'}
 function texte(){return traductions[langue()]}
 function ajouter(role,content){
  const zone=document.getElementById('aide-hrp-fil');if(!zone)return;
@@ -33,7 +33,7 @@ function initialiser(){
  zone.querySelector('#aide-hrp-form').addEventListener('submit',e=>{e.preventDefault();const value=zone.querySelector('#aide-hrp-question').value;envoyer(value)});
  zone.querySelector('#aide-hrp-statut').textContent=statut?t[statut]:'';
  zone.querySelector('#aide-hrp-envoyer').disabled=attente;
- const field=zone.querySelector('#aide-hrp-question');field.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();envoyer(field.value)}});
+ const field=zone.querySelector('#aide-hrp-question');field.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){e.preventDefault();envoyer(field.value)}});
 }
 async function envoyer(message){
  const question=String(message||'').trim().slice(0,1000);
