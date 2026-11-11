@@ -579,5 +579,34 @@ cible `soviet.ville_b`) ; guide = objet simple ; prix PNJ 4, 3 et 6 PSK (formule
   (`images/Sovarka/Novomirsk/Novo_guide_musee_national_portrait.webp`) ; guide présente dans les **neuf salles**
   (`GUIDE_MUSEE_NOVOMIRSK` dans `data.js`). Sa carte n'ouvre **pas** le dialogue libre gratuit : message d'attente
   jusqu’à l’ordre « Écouter la guide ». **Nom : Ouliana Historiskaïa** (Fred, 13 h 56).
-- **Question ouverte** : qui rédige les fiches de présentation des salles (Claude puis relecture de Fred, ou Fred) ; nom et
-  image de la guide.
+- **Fiches de présentation (présentation fixe d'Ouliana)** : rédigées par Claude, relues et modifiées par Fred
+  dans la conversation, une salle à la fois. Validées :
+
+#### Salle des présidents — validée par Fred (11/11, 14 h 24)
+
+Corrections de Fred : les cinq présidents sont des **hommes** ; les trois derniers se **ressemblent** (notion
+d'appartenance familiale, ressemblance qui leur vaut une part de popularité, parenté niée officiellement).
+**À répercuter au codage** dans le Musée présidentiel du Palais (`plateau-musee-personnalites.js`) : Tamara
+Sergueïevna Belova → **Taras Sergueïevitch Belov**, Galina Andreïevna Sokolova → **Guennadi Andreïevitch Sokolov**,
+et la ressemblance Gromov / Lebedev / Sokolov.
+
+> Bienvenue dans la Salle des présidents, camarades visiteurs. Approchez, approchez.
+>
+> Voici les cinq grands guides qui ont conduit Sovarka sur le chemin du progrès.
+>
+> À gauche, le camarade Arkadi Ivanovitch Zolotov, premier Président de notre République. C'est lui qui inaugura le Palais présidentiel. Pendant trente ans, il honora de sa présence chaque ouverture d'usine, de pont et d'école du pays. Aucun président n'a coupé autant de rubans au service du peuple.
+>
+> Vient ensuite Taras Sergueïevitch Belov. On lui doit le célèbre décret sur l'heure du thé, toujours en vigueur aujourd'hui. Un texte d'une rare stabilité : jamais contesté, jamais abrogé.
+>
+> Le camarade Boris Nikolaïevitch Gromov fut réélu sept fois. Le peuple l'aimait tant qu'il n'eut même pas besoin de se porter candidat.
+>
+> Lui succéda Vladimir Petrovitch Lebedev. Vous remarquez sans doute la ressemblance avec son prédécesseur… Elle est en effet troublante. Le peuple, qui avait tant aimé le camarade Gromov, reporta naturellement sur lui une grande partie de son affection. Lebedev fut aussi un grand défenseur du dialogue entre les institutions : sa correspondance avec le Conseil du Peuple est conservée aux archives… en trois exemplaires.
+>
+> Enfin, Guennadi Andreïevitch Sokolov. Oui, la même mâchoire, le même regard. Les électeurs y virent le signe d'une admirable continuité. Il offrit au Palais son samovar d'argent, qui réchauffe encore aujourd'hui les plus hautes délibérations de l'État.
+>
+> Il n'existe, bien entendu, aucun lien de parenté entre ces trois grands hommes. Les noms de famille le prouvent. Les registres de l'état civil de l'époque ont malheureusement été détruits lors de l'incendie des archives, mais l'historiographie officielle est formelle.
+>
+> Et ces deux cadres vides, me direz-vous ? Ils attendent les futurs dirigeants que le peuple aura la sagesse de choisir. Qui sait… peut-être l'un d'entre vous ?
+>
+> Avez-vous des questions ? Je vous rappelle que je ne réponds qu'aux questions historiques.
+

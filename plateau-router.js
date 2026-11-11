@@ -457,9 +457,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // mecanique. Sortie immediate, AVANT tout debit -- l'ordre est a 0 PA / 0 FR
   // et n'a rien a faire savoir au serveur. Voir plateau-equipements.js.
   if (fn === 'installer_equipements')    { ouvrirModalEquipements(); return; }
-  // FOUILLER LES LIEUX (11/11/2026) : ordre de piece ; les 2 PA sont debites par le serveur
-  // (fouiller_lieux), donc sortie avant tout debit generique. Voir plateau-surveillance.js.
-  if (fn === 'fouiller_lieux' && typeof surveillanceFouiller === 'function') { surveillanceFouiller(); return; }
+  // FOUILLER OU VOLER (11/11/2026) : ordre de piece qui ouvre un menu (fouille ou vol) ; les PA sont
+  // debites par le serveur dans chaque action, donc sortie avant tout debit generique.
+  if (fn === 'fouiller_voler' && typeof ouvrirMenuFouillerVoler === 'function') { ouvrirMenuFouillerVoler(); return; }
   // CAMION MILITAIRE (29 septembre 2026). Quatre ordres, tous a 0 PA et 0 FR :
   // monter, descendre, conduire, envoyer a vide. Le seul cout du systeme -- 2 PA
   // par occupant reellement transporte -- est calcule et preleve PAR LE SERVEUR,

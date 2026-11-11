@@ -184,9 +184,11 @@ function showVueRue(batimentQuitte, positionConfirmee = null) {
   // les 3 villes de l'empire courant -> confirmerTransport -> executerVoyage).
   const rueActionsRow = document.getElementById('rue-actions-row');
   if (rueActionsRow) {
-    rueActionsRow.innerHTML = city?.isSpecial
+    rueActionsRow.innerHTML = (city?.isSpecial
       ? '<button class="action-btn legal" onclick="ouvrirModalTransport(\'bus\')"><i class="ti ti-bus" style="font-size:.82rem"></i> Prendre un taxi</button>'
-      : '';
+      : '')
+      // « Fouiller ou voler », tout en bas des ordres de rue (Fred, 11/11/2026).
+      + (typeof ordreFouillerVolerRueHtml === 'function' ? ordreFouillerVolerRueHtml() : '');
   }
 
   const rueImage = document.getElementById('rue-image');

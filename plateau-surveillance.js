@@ -89,14 +89,8 @@ async function surveillanceAfficherIci(targetId) {
   if (r.cameras_inventaire > 0) {
     h += '<button type="button" onclick="surveillancePoser()" style="width:100%;padding:.45rem;margin:.35rem 0;border:1px solid #5d7085;background:#151a21;color:#dce4ee;font-size:.85rem;cursor:pointer">📷 Poser une caméra ici (1 PA)</button>';
   }
-  // Dans une piece, « Fouiller les lieux » est un ordre de piece (en vert, tout en bas, decision de
-  // Fred du 11/11/2026) ; dans la rue, sans liste d'ordres, il reste ici.
-  if (!state.currentBuilding) {
-    h += '<button type="button" onclick="surveillanceFouiller()" style="width:100%;padding:.45rem;margin:.35rem 0;border:1px solid #6a5a20;background:#151107;color:#e0d8c0;font-size:.85rem;cursor:pointer">🔍 Fouiller les lieux (2 PA)' + (r.couinator ? ' 🦆' : '') + '</button>';
-  }
-  if (typeof ouvrirVolMateriel === 'function' && state.currentBuilding) {
-    h += '<button type="button" onclick="ouvrirVolMateriel()" style="width:100%;padding:.45rem;margin:.35rem 0;border:1px solid #5a2a2a;background:#160d0d;color:#e0c8c8;font-size:.85rem;cursor:pointer">🕵 Voler du matériel installé ici</button>';
-  }
+  // « Fouiller les lieux » et « Voler du matériel installé » ne sont plus dans cette colonne : un seul
+  // ordre vert « Fouiller ou voler », tout en bas des ordres de la piece ou de la rue (Fred, 11/11/2026).
   bloc.innerHTML = h;
   liste.appendChild(bloc);
 }
@@ -174,15 +168,97 @@ function surveillanceFenetreTrouvaille(trouvees, couinator) {
   document.body.appendChild(fond);
 }
 
-// « Fouiller les lieux » : ordre de toute piece, en vert, tout en bas de la liste (decision de Fred,
-// 11/11/2026). Les 2 PA sont debites par le serveur (fouiller_lieux) ; le routeur sort avant payer_ordre.
-function ordresFouillerLieux(buildingId, roomId) {
+// « Fouiller ou voler » : un seul ordre vert, tout en bas, dans toute piece et toute vue de rue
+// (decision de Fred, 11/11/2026, 14 h 57). Il ouvre un menu deroulant : « Fouiller les lieux » ou
+// « Voler du matériel installé », chacun avec sa fenetre dediee. Les PA sont debites par le serveur
+// (fouiller_lieux : 2 PA ; vol : 3 PA) ; le routeur sort avant tout debit generique.
+function ordresFouillerVoler(buildingId, roomId) {
   if (!buildingId || !roomId) return [];
-  return [{ fn: 'fouiller_lieux', label: 'Fouiller les lieux', pa: 2, cost: 0, type: 'legal', icon: 'ti-search',
+  return [{ fn: 'fouiller_voler', label: 'Fouiller ou voler', pa: 0, cost: 0, type: 'legal', icon: 'ti-search',
     successRate: 100, basDeListe: true,
-    desc: 'Chercher des caméras cachées dans cette pièce. Avec un Couinator 3000 sur vous, vous avez bien plus de chances de les trouver.' }];
+    desc: 'Fouiller les lieux à la recherche de caméras cachées, ou voler du matériel installé ici.' }];
 }
 if (typeof window !== 'undefined') {
   window.RP_ORDRES_DYNAMIQUES = window.RP_ORDRES_DYNAMIQUES || [];
-  if (!window.RP_ORDRES_DYNAMIQUES.includes(ordresFouillerLieux)) window.RP_ORDRES_DYNAMIQUES.push(ordresFouillerLieux);
+  if (!window.RP_ORDRES_DYNAMIQUES.includes(ordresFouillerVoler)) window.RP_ORDRES_DYNAMIQUES.push(ordresFouillerVoler);
 }
+
+// Bouton de la vue de rue (meme ordre, meme place : tout en bas, en vert).
+function ordreFouillerVolerRueHtml() {
+  return '<button type="button" class="action-btn legal" data-fn="fouiller_voler" onclick="ouvrirMenuFouillerVoler(this)" title="Fouiller les lieux à la recherche de caméras cachées, ou voler du matériel installé ici.">' +
+    '<i class="ti ti-search" style="font-size:.82rem"></i> Fouiller ou voler</button>';
+}
+
+function fermerMenuFouillerVoler() {
+  const m = document.getElementById('menu-fouiller-voler');
+  if (m) m.remove();
+  document.removeEventListener('pointerdown', fermerMenuFouillerVolerDehors, true);
+  document.removeEventListener('keydown', fermerMenuFouillerVolerEchap, true);
+}
+function fermerMenuFouillerVolerDehors(e) {
+  const m = document.getElementById('menu-fouiller-voler');
+  if (m && !m.contains(e.target)) fermerMenuFouillerVoler();
+}
+function fermerMenuFouillerVolerEchap(e) { if (e.key === 'Escape') fermerMenuFouillerVoler(); }
+
+// Dernier bouton d'ordre clique : le routeur peut appeler le menu apres une attente, quand
+// window.event n'existe plus ; le menu s'ancre alors sur ce bouton.
+let RP_DERNIER_BOUTON_ORDRE = null;
+if (typeof document !== 'undefined' && document.addEventListener) {
+  document.addEventListener('click', (e) => {
+    const b = e.target && e.target.closest ? e.target.closest('.action-btn') : null;
+    if (b) RP_DERNIER_BOUTON_ORDRE = b;
+  }, true);
+}
+
+// Menu deroulant sous le bouton (au-dessus s'il manque de place en bas).
+function ouvrirMenuFouillerVoler(ancre) {
+  fermerMenuFouillerVoler();
+  const evt = (typeof window !== 'undefined') ? window.event : null;
+  const el = ancre || (evt && evt.target && evt.target.closest ? evt.target.closest('.action-btn') : null)
+    || (RP_DERNIER_BOUTON_ORDRE && RP_DERNIER_BOUTON_ORDRE.isConnected ? RP_DERNIER_BOUTON_ORDRE : null);
+  const menu = document.createElement('div');
+  menu.id = 'menu-fouiller-voler';
+  menu.setAttribute('role', 'menu');
+  menu.style.cssText = 'position:fixed;z-index:1000;min-width:240px;max-width:calc(100vw - 16px);background:#151107;border:1px solid #6a5a20;border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.6);padding:4px;display:flex;flex-direction:column;gap:4px';
+  const item = (libelle, action) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('role', 'menuitem');
+    b.textContent = libelle;
+    b.style.cssText = 'text-align:left;min-height:44px;padding:.5rem .75rem;background:#1d170a;color:#e0d8c0;border:1px solid #3a3215;border-radius:4px;font:inherit;font-size:.95rem;cursor:pointer';
+    b.addEventListener('click', () => { fermerMenuFouillerVoler(); action(); });
+    return b;
+  };
+  menu.appendChild(item('🔍 Fouiller les lieux (2 PA)', ouvrirFenetreFouille));
+  menu.appendChild(item('🕵 Voler du matériel installé (3 PA)', () => { if (typeof ouvrirVolMateriel === 'function') ouvrirVolMateriel(); }));
+  document.body.appendChild(menu);
+  const r = el && el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+  const h = menu.offsetHeight, w = menu.offsetWidth, vw = window.innerWidth, vh = window.innerHeight;
+  if (r) {
+    const enBas = r.bottom + 4 + h <= vh;
+    menu.style.top = Math.max(8, enBas ? r.bottom + 4 : r.top - 4 - h) + 'px';
+    menu.style.left = Math.min(Math.max(8, r.left), vw - w - 8) + 'px';
+  } else {
+    menu.style.top = Math.max(8, (vh - h) / 2) + 'px';
+    menu.style.left = Math.max(8, (vw - w) / 2) + 'px';
+  }
+  menu.querySelector('button')?.focus({ preventScroll: true });
+  setTimeout(() => {
+    document.addEventListener('pointerdown', fermerMenuFouillerVolerDehors, true);
+    document.addEventListener('keydown', fermerMenuFouillerVolerEchap, true);
+  }, 0);
+}
+
+// Fenetre dediee a la fouille : explication puis confirmation (le jet et le debit restent au serveur).
+function ouvrirFenetreFouille() {
+  const html = '<p class="cpj-note">Vous inspectez les lieux à la recherche de caméras cachées. Coût : <strong>2 PA</strong>.</p>' +
+    '<p class="cpj-note">À mains nues, vous trouvez chaque caméra une fois sur sept environ. Avec un <strong>Couinator 3000</strong> sur vous, trois fois sur quatre. Une caméra trouvée peut être détruite ou emportée.</p>' +
+    '<div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">' +
+    '<button class="cpj-touche cpj-primaire" onclick="fouilleConfirmer()">Fouiller (2 PA)</button>' +
+    '<button class="cpj-touche" onclick="fouilleAnnuler()">Annuler</button></div>';
+  if (typeof equipementsModale === 'function' && equipementsModale('Fouiller les lieux', html)) return;
+  surveillanceFouiller();
+}
+function fouilleAnnuler() { document.getElementById('modal-postes')?.classList.remove('open'); }
+function fouilleConfirmer() { fouilleAnnuler(); surveillanceFouiller(); }
