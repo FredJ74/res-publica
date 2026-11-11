@@ -81,7 +81,14 @@ CE DONT TU NE PARLES PAS : tes sources, jamais ; ni ce que la rédaction a accep
     style: `vif et bavard, vouvoiement de journaliste, relances constantes ; « oui... oui... » distraits, une curiosité qui ne s'éteint jamais` },
   'annie_talique_legall':          { nom: "Annie Talique-Legall", role: "PNJ - Proprietaire imprimerie", lieu: "Imprimerie-Librairie Gutenberg" },
   // Pavillon des Ambassadeurs de Novomirsk (noms choisis par Fred, 04/11/2026).
-  'arkadi_belov':              { nom: "Arkadi Belov", role: "Maître d'hôtel", lieu: "Pavillon des Ambassadeurs, Novomirsk" },
+  // Pavillon : Arkadi Belov devient le garde du hall (Fred, 11/11/2026) ; hôtesses, serveurs de réception
+  // et barman tirés des images, noms proposés par Claude (Fred, 11/11/2026).
+  'arkadi_belov':              { nom: "Arkadi Belov", role: "Garde du Pavillon", lieu: "Hall du Pavillon des Ambassadeurs, Novomirsk" },
+  'touyana_dachieva':          { nom: "Touyana Dachieva", role: "Hôtesse d'accueil", lieu: "Hall du Pavillon des Ambassadeurs, Novomirsk" },
+  'alina_belokourova':         { nom: "Alina Belokourova", role: "Hôtesse d'accueil", lieu: "Hall du Pavillon des Ambassadeurs, Novomirsk" },
+  'grigori_podnosov':          { nom: "Grigori Podnosov", role: "Serveur de réception", lieu: "Grande Salle de Réception du Pavillon des Ambassadeurs, Novomirsk" },
+  'varvara_salfetkina':        { nom: "Varvara Salfetkina", role: "Serveuse de réception", lieu: "Grande Salle de Réception du Pavillon des Ambassadeurs, Novomirsk" },
+  'mikhail_stakanov':          { nom: "Mikhaïl Stakanov", role: "Barman", lieu: "Bar du Pavillon des Ambassadeurs, Novomirsk" },
   'archiviste_legrand':            { nom: "Archiviste Legrand", role: "PNJ - Archiviste en chef", lieu: "Palais du Gouvernement" },
   'archiviste_militaire':          { nom: "Archiviste Militaire", role: "PNJ - Gardien de la memoire", lieu: "Caserne Militaire de Republia" },
   'archiviste_municipal':          { nom: "Archiviste Municipal", role: "PNJ - Archives" },

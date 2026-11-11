@@ -5251,6 +5251,8 @@ export const SCENES_PNJ = {
     "batiment": "Pavillon des Ambassadeurs",
     "piece": "Hall du Pavillon",
     "personnes": [
+      "Touyana Dachieva",
+      "Alina Belokourova",
       "Arkadi Belov"
     ]
   },
@@ -5259,7 +5261,10 @@ export const SCENES_PNJ = {
     "ville": "Novomirsk",
     "batiment": "Pavillon des Ambassadeurs",
     "piece": "Grande Salle de Réception",
-    "personnes": []
+    "personnes": [
+      "Grigori Podnosov",
+      "Varvara Salfetkina"
+    ]
   },
   "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"bar\"]": {
     "pays": "Sovarka",
@@ -5267,6 +5272,7 @@ export const SCENES_PNJ = {
     "batiment": "Pavillon des Ambassadeurs",
     "piece": "Bar",
     "personnes": [
+      "Mikhaïl Stakanov",
       "Lena Abramova"
     ]
   },
@@ -5274,21 +5280,21 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Pavillon des Ambassadeurs",
-    "piece": "Suite Privée — Local à louer",
+    "piece": "Suite Privée — Location diplomatique",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"suite_presidentielle\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Pavillon des Ambassadeurs",
-    "piece": "Suite Présidentielle — Local à louer",
+    "piece": "Suite Présidentielle — Location diplomatique",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"suite_parti\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Pavillon des Ambassadeurs",
-    "piece": "Suite du Parti — Local à louer",
+    "piece": "Suite du Parti — Location diplomatique",
     "personnes": []
   },
   "[\"soviet\",\"capitale\",\"residence-imperiale-novomirsk\",\"hall_residence\"]": {

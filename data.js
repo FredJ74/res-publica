@@ -6924,7 +6924,7 @@ const BUILDINGS = {
   // 04/11/2026). Trois suites louables (Suite Privee et Suite Presidentielle reprises a l'identique,
   // Suite du Parti +10 POP +6 INF +2 DIS), une grande salle de reception (copie de celle des
   // ambassadeurs, sans ordre) et un bar (copie du Bar du Republica, commerce 'bar' propre au
-  // Pavillon). Maitre d'hotel et serveuse facon traiteur nommes par Fred. Images a venir.
+  // Pavillon). PNJ et portraits tires des images (Fred, 11/11/2026).
   // « Organiser une rencontre piege » n'est pas repris : aucune agence d'escorts a Novomirsk.
   'pavillon-ambassadeurs-novomirsk': {
     name: "Pavillon des Ambassadeurs",
@@ -6938,9 +6938,11 @@ const BUILDINGS = {
         name: "Hall du Pavillon",
         imageBg: "linear-gradient(135deg,#1a0d10,#241218)",
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_hall.webp',
-        desc: "Marbre rouge, lustres de cristal et tapis épais. Arkadi Belov, le maître d'hôtel, accueille les résidents et ne retient jamais un visage — officiellement.",
+        desc: "Marbre rouge, lustres de cristal et tapis épais. Touyana Dachieva et Alina Belokourova, les hôtesses, accueillent les résidents ; Arkadi Belov, le garde, ne retient jamais un visage — officiellement.",
         persons: [
-          {name:'Arkadi Belov (PNJ)', role:'Maître d\'hôtel', rel:'neutral', job:'hotesse'}
+          {name:'Touyana Dachieva (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'images/Sovarka/Novomirsk/Novo_touyana_dachieva_portrait.webp'},
+          {name:'Alina Belokourova (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'images/Sovarka/Novomirsk/Novo_alina_belokourova_portrait.webp'},
+          {name:'Arkadi Belov (PNJ)', role:'Garde du Pavillon', rel:'neutral', job:'gardien', photoUrl:'images/Sovarka/Novomirsk/Novo_arkadi_belov_portrait.webp'}
         ],
         orders: []
       },
@@ -6948,8 +6950,11 @@ const BUILDINGS = {
         name: "Grande Salle de Réception",
         imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_salle_reception.webp',
-        desc: "Une grande salle de réception sous verrière, où l'on donne les dîners officiels et les réceptions qui le sont moins.",
-        persons: [],
+        desc: "Une grande salle de réception sous verrière, où l'on donne les dîners officiels et les réceptions qui le sont moins. Grigori Podnosov et Varvara Salfetkina assurent le service, plateaux en main.",
+        persons: [
+          {name:'Grigori Podnosov (PNJ)', role:'Serveur de réception', rel:'neutral', job:'serveur', photoUrl:'images/Sovarka/Novomirsk/Novo_grigori_podnosov_portrait.webp'},
+          {name:'Varvara Salfetkina (PNJ)', role:'Serveuse de réception', rel:'neutral', job:'serveur', photoUrl:'images/Sovarka/Novomirsk/Novo_varvara_salfetkina_portrait.webp'}
+        ],
         orders: [{fn:'pavillon_reception',label:'Réserver la réception (1 500 PSK/jour)',pa:0,cost:0,type:'legal',icon:'ti-calendar-event',successRate:100,
           desc:'Réservation exclusive pour une institution étrangère, journée en cours. Paiement par sa caisse.'}]
       },
@@ -6957,9 +6962,10 @@ const BUILDINGS = {
         name: "Bar",
         imageBg: "linear-gradient(135deg,#120d05,#1e1508)",
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_bar.webp',
-        desc: "Le bar du Pavillon. Petits fours, vodka glacée et conversations à voix basse : Lena Abramova sert comme un traiteur de réception, et entend tout.",
+        desc: "Le bar du Pavillon. Petits fours, vodka glacée et conversations à voix basse : Mikhaïl Stakanov essuie ses verres derrière le comptoir, Lena Abramova sert comme un traiteur de réception, et entend tout.",
         persons: [
-          {name:'Lena Abramova (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur'}
+          {name:'Mikhaïl Stakanov (PNJ)', role:'Barman', rel:'neutral', job:'barman', photoUrl:'images/Sovarka/Novomirsk/Novo_mikhail_stakanov_portrait.webp'},
+          {name:'Lena Abramova (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur', photoUrl:'images/Sovarka/Novomirsk/Novo_lena_abramova_portrait.webp'}
         ],
         orders: [
           {fn:'ecouter_rumeurs', label:'Écouter la serveuse', i18nKey:'variant.rumours_waitress', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:90, desc:'La serveuse entend tout. Révèle une rumeur vraie ou générée selon le contexte.', sourceOverride:'Lena'},
