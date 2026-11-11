@@ -21,7 +21,7 @@ jobs:
       - name: Retoucher le WebP original et pousser la source modifiée
         run: |
           source='images/rue-residences-eglise-novomirsk.webp'
-          if [ "$(git hash-object "$source")" = 'fdbb8059497dbade335e0695a0f7431dd7bee361' ]; then
+          if [ "$(git hash-object "$source")" = '3483980552394b3d240837de2a26ecb450e48197' ]; then
             python outils/images/corriger-enseigne-residence.py --apply
             git add "$source"
             git config user.name 'github-actions[bot]'
