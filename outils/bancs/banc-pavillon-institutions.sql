@@ -68,6 +68,7 @@ $function$;
 
 INSERT INTO public.caisses_batiments VALUES
  ('republic_gouvernement-min_def','{"solde":30000}'),
+ ('republic_gouvernement-min_fin','{"solde":30000}'),
  ('soviet_palais-gouvernement','{"solde":0}');
 INSERT INTO public.personnages_donnees(name,country,current_city,current_building,current_room,poste,pa)
 VALUES
@@ -82,6 +83,19 @@ CREATE OR REPLACE FUNCTION public.pavillon_test_solde(p_id text)
 RETURNS numeric LANGUAGE sql STABLE SECURITY DEFINER
 AS $solde$ SELECT (data->>'solde')::numeric FROM public.caisses_batiments WHERE id=p_id $solde$;
 GRANT EXECUTE ON FUNCTION public.pavillon_test_solde(text) TO authenticated;
+-- Simulation du changement de poste par le serveur, isolée à la base jetable.
+CREATE OR REPLACE FUNCTION public.pavillon_test_changer_poste(p_poste text)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public','pg_temp'
+AS $test$
+BEGIN
+ IF p_poste NOT IN ('min_def','min_fin') THEN RAISE EXCEPTION 'poste test inconnu'; END IF;
+ UPDATE public.personnages_donnees
+    SET poste=jsonb_build_object('id',p_poste) WHERE name='ministre';
+ UPDATE public.postes_attribues
+    SET poste_id=p_poste WHERE titulaire='ministre' AND country='republic';
+END $test$;
+GRANT EXECUTE ON FUNCTION public.pavillon_test_changer_poste(text) TO authenticated;
+
 
 GRANT SELECT ON public.personnages_donnees TO authenticated;
 SELECT set_config('pavillon.test_acteur','ministre',false);
@@ -105,6 +119,13 @@ BEGIN
  IF r->>'ok'<>'true' OR (r->>'pa')::int<>20 THEN RAISE EXCEPTION 'bonus sommeil: %',r; END IF;
  r:=public.pa_repos_nocturne('ministre');
  IF r->>'raison'<>'deja_repose' THEN RAISE EXCEPTION 'double sommeil: %',r; END IF;
+ PERFORM public.pavillon_test_changer_poste('min_fin');
+ r:=public.pavillon_acte(gen_random_uuid(),'renouveler','suite_privee');
+ IF r->>'raison'<>'institution_signataire_differente' THEN
+   RAISE EXCEPTION 'renouvellement sur une autre caisse accepté: %',r; END IF;
+ IF public.pavillon_test_solde('republic_gouvernement-min_fin') <> 30000 THEN
+   RAISE EXCEPTION 'nouvelle institution debitée par erreur'; END IF;
+ PERFORM public.pavillon_test_changer_poste('min_def');
  r:=public.pavillon_acte(gen_random_uuid(),'renouveler','suite_privee');
  IF r->>'ok'<>'true' OR (r->>'montant')::int<>4550 THEN RAISE EXCEPTION 'renouvellement: %',r; END IF;
  r:=public.pavillon_acte(gen_random_uuid(),'resilier','suite_privee');
