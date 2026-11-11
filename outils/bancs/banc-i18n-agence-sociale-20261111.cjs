@@ -32,7 +32,7 @@ function setup(lang='fr',active=true){
  vm.createContext(context);
  vm.runInContext(resource,context,{filename:'social-agency-resources.js'});
  vm.runInContext(source,context,{filename:'plateau-escorts-agence.js'});
- return {context,requests,toasts,entries,external,corps,controls,change(l){context.locale=l;redraw?.(l);},get opened(){return opened}};
+ return {context,requests,toasts,entries,external,corps,controls,change(l){context.locale=l;for(const cb of context.RP_I18N_CHANGE_CALLBACKS||[])cb(l);},get opened(){return opened}};
 }
 test('28 messages complets, variables et scripts sur les neuf locales',()=>{
  const e=setup(),fr=e.context.RP_I18N_RESOURCES.fr.translation.socialAgency;
