@@ -429,6 +429,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne', pa, cost); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
   if (fn === 'consulter_organigramme_mairie') { ouvrirOrganigrammeMairie(); return; }
+  if (fn === 'pavillon_suite') { ouvrirPavillonSuite(); return; }
+  if (fn === 'pavillon_reception') { ouvrirPavillonReception(); return; }
   if (fn === 'sovarka_reunion_reserver') { reserverSalleAffairesNovomirsk(); return; }
   if (fn === 'sovarka_reunion_evenement') { ouvrirReunionEvenement(); return; }
   if (fn === 'sovarka_soviet_deputes') { ouvrirSovietSupreme(); return; }

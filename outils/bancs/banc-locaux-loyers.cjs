@@ -35,9 +35,24 @@ const sql = [lire('historique/migrations-appliquees/20261029184321_location_loca
   .concat(fs.readdirSync(path.join(racine, 'migrations')).filter(f => f.endsWith('.sql')).sort()
     .map(f => lire('migrations/' + f)).filter(t => t.includes('INSERT INTO public.locaux_loyers_referentiel'))).join('\n');
 const serveur = {}; const nonLouables = [];
+// La migration Pavillon révoque l'ancien guichet de ses trois suites :
+ // ce ne sont plus des locaux louables via louer_local.
+const pavillonMigration = lire('historique/migrations-appliquees/20261111214350_pavillon_diplomatique_baux_20261111.sql');
+const pavillonAnciennesSuites = ['suite_parti','suite_privee','suite_presidentielle'];
+if(!pavillonAnciennesSuites.every(room =>
+  pavillonMigration.includes("AND piece IN ('suite_parti','suite_privee','suite_presidentielle')") &&
+  pavillonMigration.includes("SET louable=false"))) {
+  throw new Error('Le pavillon doit fermer son ancien guichet de location');
+}
+
 for (const m of sql.matchAll(/\('([a-z-]+)','([a-z0-9_-]+)','([*a-z_]+)',(\d+),(\d+),(\d+),(\d+),'[^']*',(true|false)\)/g)) {
   if (m[8] === 'false') { nonLouables.push(m[1] + '|' + m[2] + '|' + m[3]); continue; }
   if (m[2] === 'box-portuaire') continue;
+  if (m[1]==='pavillon-ambassadeurs-novomirsk' &&
+      pavillonAnciennesSuites.includes(m[2])) {
+    nonLouables.push(m[1]+'|'+m[2]+'|'+m[3]);
+    continue;
+  }
   serveur[m[1] + '|' + m[2] + '|' + m[3]] = [m[4], m[5], m[6], m[7]].join(',');
 }
 
@@ -49,6 +64,9 @@ att(Object.keys(attendus).length + ' locaux louables de data.js, tous au referen
 att('aucun local au referentiel absent de data.js', enTrop.length === 0, enTrop.join(', '));
 att('memes prix et bonus', differents.length === 0, differents.map(k => k + ' data=' + attendus[k] + ' serveur=' + serveur[k]).join(' ; '));
 att("l'open space unique de Luthecia n'est pas louable (remplace par ses postes)", nonLouables.includes('centre-affaires|open_space|capitale'));
+att('les trois suites diplomatiques sont fermees au guichet de location generale',
+ pavillonAnciennesSuites.every(room=>nonLouables.includes('pavillon-ambassadeurs-novomirsk|'+room+'|*')));
+
 
 console.log('2. UN SEUL GABARIT POUR LES CENTRES DES TROIS VILLES');
 const villes = W.republic || {};

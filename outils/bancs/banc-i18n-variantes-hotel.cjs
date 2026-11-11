@@ -73,9 +73,9 @@ test('sept rumeurs et deux conférences disposent de variantes sûres',()=>{
 });
 
 
-test('66 ordres de commerces et banque localisés par contexte, sans altérer leur coût',()=>{
+test('63 ordres de commerces et banque localisés par contexte, sans altérer leur coût',()=>{
  const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
- const expected={produire_commerce:14,consulter_carte_commerce:11,vendre_matiere_commerce:16,gerer_finances:3,gerer_local:22};
+ const expected={produire_commerce:14,consulter_carte_commerce:11,vendre_matiere_commerce:16,gerer_finances:3,gerer_local:19};
  const keys={
   produire_commerce:['commerce_produce_market','commerce_cook','commerce_prepare_drinks','commerce_serve','commerce_breakfast_prep','commerce_produce'],
   consulter_carte_commerce:['commerce_menu','commerce_breakfast_menu'],
@@ -83,6 +83,9 @@ test('66 ordres de commerces et banque localisés par contexte, sans altérer le
   gerer_finances:['finance_account_placements','finance_open_account'],
   gerer_local:['local_manage','local_safe']
  };
+ // Les trois suites du Pavillon utilisent désormais pavillon_suite : elles ne sont plus
+ // des locaux commerciaux et ne doivent pas être traduites comme gerer_local.
+ assert.equal((source.match(/fn:'pavillon_suite'/g) || []).length,3);
  for(const [fn,count] of Object.entries(expected)){
   const regex=new RegExp("fn:'"+fn+"',\\s*label:'((?:\\\\.|[^'])*)',\\s*i18nKey:'variant\\.([a-z_]+)',\\s*pa:(\\d+),\\s*cost:(\\d+)",'g');
   const matches=[...source.matchAll(regex)];
