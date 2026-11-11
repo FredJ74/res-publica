@@ -695,3 +695,19 @@ Artistes de l'image de la salle : Alexeï Mironov (poète), Severny Veter (group
 >
 > Avez-vous des questions ? Uniquement historiques, je vous prie.
 
+#### Salle des grandes crises de Sovarka — validée par Fred (11/11, 19 h 46)
+
+Quatre crises de l'image : famine (années 1920-1930), Grande Guerre, grève générale (années 1930), finale de 1937 perdue contre El Estado. Apports de Fred : le cœur qui saigne toujours, la blessure indélébile avec laquelle on apprend à vivre.
+
+> Voici la Salle des grandes crises de Sovarka, camarades. Un peuple fort ne cache pas ses épreuves : il les expose, sous verre, avec un éclairage soigné.
+>
+> La famine des années vingt. Les historiens étrangers parlent de famine. Chez nous, on parle de « période de sobriété alimentaire volontaire ». Dans la vitrine, la carte de rationnement, le sac de farine et le dernier pain de l'époque. Il est authentique. Personne n'a osé le manger.
+>
+> La Grande Guerre. Nos soldats ont combattu avec un courage que le monde entier nous envie. Je vous rappelle que Sovarka n'a jamais été conquise. Les villes en ruines que vous voyez sur ce tableau ont été réorganisées de manière stratégique par notre état-major.
+>
+> La grève générale des années trente. Les ouvriers réclamaient des droits pour les travailleurs. Le Parti leur a donné entière satisfaction : la grève a été déclarée illégale, puisque les travailleurs étaient désormais au pouvoir. Contre qui auraient-ils fait grève ? Contre eux-mêmes ?
+>
+> Et enfin, la plus douloureuse de toutes : la finale de 1937, perdue contre El Estado. Ce jour-là, la nation entière a pleuré. Aujourd'hui encore, notre cœur saigne : jamais Sovarka ne se remettra de cette défaite. On n'oublie pas, on apprend simplement à vivre avec cette blessure indélébile. Notre arbitre avait pourtant été soigneusement choisi. Le leur aussi, hélas. La revanche n'a jamais eu lieu : El Estado refuse toujours de rejouer ce match. Il faut croire qu'ils ont peur.
+>
+> Avez-vous des questions ? Uniquement historiques, je vous prie. Et si possible, pas sur le football.
+
