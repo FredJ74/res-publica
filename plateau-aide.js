@@ -57,5 +57,16 @@ async function envoyer(message){
  }catch(e){status.textContent=t.retry;historique.pop();zone.value=question}
  finally{attente=false;button.disabled=false}
 }
+// Changement de langue à chaud : préserver les échanges et un brouillon en cours.
+if(global.i18next?.on)global.i18next.on('languageChanged',()=>{
+  const panel=document.getElementById('aide-hrp-form');
+  if(!panel)return;
+  const draft=document.getElementById('aide-hrp-question')?.value||'';
+  initialiser();
+  const nouveau=document.getElementById('aide-hrp-question');
+  if(nouveau)nouveau.value=draft;
+  const send=document.getElementById('aide-hrp-envoyer');
+  if(send)send.disabled=attente;
+});
 global.renderAideHrp=initialiser;
 })(window);
