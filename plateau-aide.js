@@ -25,6 +25,7 @@ function addLine(parent,role,content){
 }
 function view(){
  const el=document.getElementById('rules-content');if(!el)return;
+ const brouillon=document.getElementById('hg-aide-input')?.value||'';
  el.replaceChildren();
  if(lang()==='ar')el.setAttribute('dir','rtl');else el.removeAttribute('dir');
  const box=document.createElement('div');box.className='hg-aide';
@@ -37,7 +38,7 @@ function view(){
  for(const key of ['pa','but']){const b=document.createElement('button');b.type='button';b.className='hg-aide-example';b.textContent=t()[key];b.disabled=sending;b.addEventListener('click',()=>{const field=document.getElementById('hg-aide-input');if(field){field.value=t()[key];field.focus();}});examples.appendChild(b);}
  box.appendChild(examples);
  const form=document.createElement('form');form.className='hg-aide-form';form.id='hg-aide-form';
- const input=document.createElement('textarea');input.id='hg-aide-input';input.rows=3;input.maxLength=1000;input.required=true;input.placeholder=t().placeholder;input.setAttribute('aria-label',t().placeholder);input.disabled=sending;
+ const input=document.createElement('textarea');input.id='hg-aide-input';input.rows=3;input.maxLength=1000;input.value=brouillon;input.required=true;input.placeholder=t().placeholder;input.setAttribute('aria-label',t().placeholder);input.disabled=sending;
  const button=document.createElement('button');button.type='submit';button.className='hg-aide-send';button.textContent=t().send;button.disabled=sending;
  const status=document.createElement('div');status.id='hg-aide-status';status.className='hg-aide-status';status.setAttribute('role','status');
  form.append(input,button);form.addEventListener('submit',submit);box.append(form,status);el.appendChild(box);
@@ -50,6 +51,7 @@ async function submit(event){
  if(!message||message.length>1000)return;
  const history=messages.slice(-6).map(m=>({role:m.role,content:m.content.slice(0,1500)}));
  messages.push({role:'user',content:message});
+ input.value='';
  sending=true;const seq=++requestSeq;
  view();
  const status=document.getElementById('hg-aide-status');if(status)status.textContent=t().pending;
