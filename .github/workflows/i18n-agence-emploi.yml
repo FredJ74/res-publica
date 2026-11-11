@@ -1,0 +1,23 @@
+name: I18N - guichet de recrutement
+on:
+  pull_request:
+    paths:
+      - 'plateau-agence-emploi.js'
+      - 'i18n/employment-agency-resources.js'
+      - 'outils/bancs/banc-i18n-agence-emploi-20261111.cjs'
+      - 'plateau.html'
+      - '.github/workflows/i18n-agence-emploi.yml'
+permissions:
+  contents: read
+jobs:
+  recrutement-i18n:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-agence-emploi.js && node --check i18n/employment-agency-resources.js && node --check outils/bancs/banc-i18n-agence-emploi-20261111.cjs
+      - run: node --test outils/bancs/banc-i18n-agence-emploi-20261111.cjs
+      - run: git diff --check
