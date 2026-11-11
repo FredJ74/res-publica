@@ -7021,6 +7021,7 @@ const BUILDINGS = {
     desc: "L'ancienne résidence de la cour impériale, nationalisée puis découpée en appartements de prestige. Le Parti y loge ceux qu'il veut récompenser, et ceux qui peuvent payer.",
     rooms: {
       hall_residence: {
+        imageUrl: 'images/Sovarka/Novomirsk/novomirsk-residence-imperiale-hall.webp',
         name: "Hall de la Résidence",
         imageBg: "linear-gradient(135deg,#16120c,#201a10)",
         desc: "Un escalier d'honneur à double révolution, des aigles impériaux martelés et repeints en étoiles rouges. Le gardien note chaque visiteur dans un registre.",
@@ -7030,6 +7031,7 @@ const BUILDINGS = {
         orders: []
       },
       appartement_1: {
+        imageUrl: 'images/Sovarka/Novomirsk/novomirsk-residence-imperiale-appartement-1.webp',
         name: "Appartement n°1 — Local à louer",
         imageBg: "linear-gradient(135deg,#16120c,#201a10)",
         desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
@@ -7042,6 +7044,7 @@ const BUILDINGS = {
         ]
       },
       appartement_2: {
+        imageUrl: 'images/Sovarka/Novomirsk/novomirsk-residence-imperiale-appartement-2.webp',
         name: "Appartement n°2 — Local à louer",
         imageBg: "linear-gradient(135deg,#16120c,#201a10)",
         desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
@@ -7054,6 +7057,7 @@ const BUILDINGS = {
         ]
       },
       appartement_3: {
+        imageUrl: 'images/Sovarka/Novomirsk/novomirsk-residence-imperiale-appartement-3.webp',
         name: "Appartement n°3 — Local à louer",
         imageBg: "linear-gradient(135deg,#16120c,#201a10)",
         desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
@@ -7066,6 +7070,7 @@ const BUILDINGS = {
         ]
       },
       appartement_4: {
+        imageUrl: 'images/Sovarka/Novomirsk/novomirsk-residence-imperiale-appartement-4.webp',
         name: "Appartement n°4 — Local à louer",
         imageBg: "linear-gradient(135deg,#16120c,#201a10)",
         desc: "📋 À LOUER — Appartement de prestige aux plafonds moulurés, parquet ciré et poêle de faïence. Ancien logement de la cour impériale.",
@@ -7078,6 +7083,7 @@ const BUILDINGS = {
         ]
       },
       grand_appartement: {
+        imageUrl: 'images/Sovarka/Novomirsk/novomirsk-residence-imperiale-grand-appartement.webp',
         name: "Grand Appartement impérial — Local à louer",
         imageBg: "linear-gradient(135deg,#1e1608,#2a1e0a)",
         desc: "📋 À LOUER — Les anciens appartements de l'impératrice : enfilade de salons, dorures d'origine, balcon sur la Place de la Grande Église. Un seul locataire, très convoité.",
