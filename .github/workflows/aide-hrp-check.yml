@@ -14,6 +14,8 @@ on:
       - 'outils/bancs/banc-aide-neuf-langues-navigateur.cjs'
       - 'outils/bancs/fixtures/aide-questions-neuf-langues.json'
       - 'api/_aide-themes.js'
+      - 'outils/bancs/banc-aide-corpus.mjs'
+      - 'outils/bancs/fixtures/aide-corpus-neuf-langues.json'
       - '.github/workflows/aide-hrp-check.yml'
 permissions:
   contents: read
@@ -27,7 +29,7 @@ jobs:
         with:
           node-version: '22'
       - run: node --check api/_aide.js && node --check plateau-aide.js && node --check plateau-personnage.js && node --check i18n/plateau-resources.js
-      - run: node --test outils/bancs/banc-aide-hrp.mjs outils/bancs/banc-aide-multilingue.mjs
+      - run: node --test outils/bancs/banc-aide-hrp.mjs outils/bancs/banc-aide-multilingue.mjs outils/bancs/banc-aide-corpus.mjs
       - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
       - run: node --test --test-concurrency=1 outils/bancs/banc-aide-interface.cjs outils/bancs/banc-aide-neuf-langues-navigateur.cjs
       - run: node --test outils/bancs/banc-i18n-guide-mail.cjs outils/bancs/banc-i18n-navbar-20261106.cjs outils/bancs/banc-i18n-tutoriel.cjs
