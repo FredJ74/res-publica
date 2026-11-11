@@ -1027,7 +1027,7 @@ function openPnjModal(encodedPnj, options = null) {
       const defPasseur = contactOrgaPasseur(passeur);
       actionBtns += '<button class="pnj-action-btn" onclick="contactOrgaDemarrer(\'' + passeur + '\')">'
         + '<i class="ti ti-user-search" style="font-size:.85rem"></i> '
-        + defPasseur.libelleAction + '</button>';
+        + (typeof contactOrgaLibelleAction==='function' ? contactOrgaEch(contactOrgaLibelleAction(defPasseur)) : defPasseur.libelleAction) + '</button>';
     }
   }
 

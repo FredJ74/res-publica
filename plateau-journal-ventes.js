@@ -43,4 +43,4 @@ if(typeof rpRealitesEnregistrer==='function')rpRealitesEnregistrer('journal-vent
 else document.addEventListener('click',()=>{void chargerJournalVentes(false);});
 
 // Changer de langue ne doit jamais relire ni acquitter les ventes.
-if(typeof window.i18next?.on==='function')window.i18next.on('languageChanged',()=>journalVentesPeindre());
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(()=>journalVentesPeindre());

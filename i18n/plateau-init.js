@@ -161,6 +161,14 @@
     global.RPOrderI18n?.refreshVisibleLabels?.(global.document,engine,locale);
     global.RPRefreshOpenRoomNames?.();
     global.RPRefreshForumOpenLabels?.();
+    // Certains modules du plateau sont chargés avant i18next. Ils enregistrent
+    // une fonction passive plutôt que d'essayer de s'abonner trop tôt au moteur.
+    // N'effectuer aucune action métier, chaque module ne repeint que son écran.
+    const callbacks=global.RP_I18N_CHANGE_CALLBACKS;
+    if(Array.isArray(callbacks))for(const callback of callbacks){
+      if(typeof callback!=='function')continue;
+      try{callback(next);}catch(err){console.error('i18n : rafraîchissement partiel indisponible',err);}
+    }
   });
   if(typeof global.addEventListener==='function')global.addEventListener('storage',function(event) {
     if(event.key!=='respublica_language' || !supported.includes(event.newValue))return;

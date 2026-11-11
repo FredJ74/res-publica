@@ -1,0 +1,34 @@
+name: I18N - passeur et callbacks tardifs
+on:
+  pull_request:
+    paths:
+      - 'plateau-contact-organisation.js'
+      - 'plateau-pnj.js'
+      - 'plateau-agence-emploi.js'
+      - 'plateau-escorts-agence.js'
+      - 'plateau-journal-ventes.js'
+      - 'i18n/contact-organization-resources.js'
+      - 'i18n/plateau-init.js'
+      - 'outils/bancs/banc-i18n-passeur-20261111.cjs'
+      - 'plateau.html'
+      - '.github/workflows/i18n-passeur.yml'
+permissions:
+  contents: read
+jobs:
+  passeur-i18n:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-contact-organisation.js && node --check plateau-pnj.js && node --check i18n/plateau-init.js && node --check i18n/contact-organization-resources.js
+      - run: node --test --test-concurrency=1 outils/bancs/banc-i18n-passeur-20261111.cjs outils/bancs/banc-i18n-agence-emploi-20261111.cjs outils/bancs/banc-i18n-agence-sociale-20261111.cjs outils/bancs/banc-i18n-ventes-diners-20261111.cjs
+      - name: Exécuter le banc historique avec sa migration archivée
+        run: |
+          cp historique/sql-racine/migrations/migration_20261001_contact_organisation.sql migration_20261001_contact_organisation.sql
+          trap 'rm -f migration_20261001_contact_organisation.sql' EXIT
+          python .scratch/banc_contact_organisation.py
+      - run: node --test outils/bancs/banc-i18n-editorial.cjs
+      - run: git diff --check

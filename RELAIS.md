@@ -8,7 +8,12 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### i18n commun — agence sociale, ChatGPT, 11/11/2026 (en intégration)
+### i18n commun — passeur et chargement tardif de l'i18n, ChatGPT, 11/11/2026 (en validation)
+Branche `chatgpt/i18n-passeur-organisation-20261111`, hors Codex/Aide et hors Claude/Sovarka. **18 textes** pour Pat Hounette et la mise en relation avec une organisation, neuf langues ; répliques françaises originales et données métier inchangées. La commande et son journal utilisent les mêmes identifiants, et le texte du projet saisi par le PJ **n'est jamais transmis au serveur** (garde historique `.scratch/banc_contact_organisation.py`). Le bouton d'accès dans `plateau-pnj.js` reçoit une traduction de surface sans modifier l'autorité du PNJ.
+**Correctif transversal découvert** : `plateau-agence-emploi.js`, `plateau-escorts-agence.js` et `plateau-journal-ventes.js` avaient enregistré leurs callbacks avant le chargement réel d'i18next. `i18n/plateau-init.js` distribue désormais le changement de langue aux callbacks enregistrés en amont, sans RPC ; le passeur conserve son champ texte lors d'une bascule. Tests antérieurs adaptés au véritable ordre de scripts et nouveau banc `banc-i18n-passeur-20261111.cjs`, CI dédiée. CI, fusion, READY et recette physique à vérifier. Pas de migration, permission, prix, PA ni donnée joueur modifiée.
+
+
+### i18n commun — agence sociale, ChatGPT, 11/11/2026 (livré : PR #728, SHA 2cb77db2, Vercel READY)
 Branche `chatgpt/i18n-agence-sociale-20261111`. **28 libellés** sur neuf langues dans `plateau-escorts-agence.js` et `i18n/social-agency-resources.js` : galerie d'accompagnants, statuts, confidentes, plafond de dix employés, refus du serveur et confirmations. Les noms, identifiants, choix, coûts et mutations déjà décidés par le serveur restent inchangés ; la galerie ouverte est repeinte depuis le cache au changement de langue sans nouvelle RPC. Banc dédié `outils/bancs/banc-i18n-agence-sociale-20261111.cjs` et CI `.github/workflows/i18n-agence-sociale.yml`. Aucune modification aux dialogues PNJ ou institutions Sovarka. Restent à vérifier : CI distante, merge, Vercel READY, recette connectée et revue linguistique.
 
 
