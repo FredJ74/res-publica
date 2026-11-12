@@ -335,6 +335,8 @@ const words={
     "title": "Werft Le Roux — Bestellungen"
   }
 };
+const workdays={'fr':'journées','en':'workdays','es':'jornadas','zh-TW':'工作日','ru':'рабочих дней','ko':'작업일','ar':'أيام عمل','pt-BR':'dias de trabalho','de':'Arbeitstage'};
+for(const [locale,word] of Object.entries(workdays))words[locale].workdays=word;
 const resources=global.RP_I18N_RESOURCES;
 if(resources)for(const [locale,entries] of Object.entries(words)){if(resources[locale]?.translation)resources[locale].translation.naval=entries}
 function text(key,fr,vars){
