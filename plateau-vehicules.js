@@ -323,7 +323,7 @@ async function vehPlein(id) {
   const q = vehLireChamp('veh-plein-' + id); if (q < 1) return;
   const v = await vehActe('plein', { vehicule: id, qte: q }, id + '-' + q);
   if (!v || v.ok !== true) { showToast('Plein refusé', vehMotif(v), false); return; }
-  showToast('Plein fait', 'Réservoir : ' + v.carburant + ' / ' + v.reservoir + '.', true);
+  showToast(vehTT('fuelDone','Plein fait'),vehTT('fuelLevel','Réservoir : {current} / {max}.',{current:v.carburant,max:v.reservoir}),true);
   await ouvrirMesVehicules();
 }
 
@@ -334,7 +334,7 @@ async function vehCharger(id) {
   const v = await vehActe('charger', { vehicule: id, index: i, qte: q,
     signature: { name: o.name || '', type: o.type || '', stackKey: o.stackKey || '' } }, id + '-' + i + '-' + q + '-' + (o.name || ''));
   if (!v || v.ok !== true) { showToast('Chargement refusé', vehMotif(v), false); return; }
-  showToast('Chargé', 'L’objet est dans le véhicule.', true);
+  showToast(vehTT('loadingDone','Chargé'),vehTT('loaded','L’objet est dans le véhicule.'),true);
   await ouvrirMesVehicules();
 }
 
@@ -343,7 +343,7 @@ async function vehDecharger(id, pos) {
   const q = Math.max(1, vehLireChamp('veh-dech-' + id + '-' + pos));
   const v = await vehActe('decharger', { vehicule: id, position: pos, qte: q, signature: { name: o.name || '' } }, id + '-' + pos + '-' + q);
   if (!v || v.ok !== true) { showToast('Déchargement refusé', vehMotif(v), false); return; }
-  showToast('Repris', 'L’objet est dans votre inventaire.', true);
+  showToast(vehTT('unloadingDone','Repris'),vehTT('unloaded','L’objet est dans votre inventaire.'),true);
   await ouvrirMesVehicules();
 }
 
@@ -355,21 +355,21 @@ async function vehConduire(id, ville) {
   state._zeroPaConfirme = null;
   const c = typeof contexteNavigationRue === 'function' ? contexteNavigationRue() : null;
   const v = await vehActe('trajet', { vehicule: id, ville }, id + '-' + (state.currentCity || '') + '-' + ville);
-  if (!v || v.ok !== true) { showToast('Trajet impossible', vehMotif(v), false); return; }
+  if (!v || v.ok !== true) { showToast(vehTT('journeyFailed','Trajet impossible'), vehMotif(v), false); return; }
   if (v.panne) { afficherPanneVehicule(id, { depart: v.depart, destination: v.destination, garages: v.garages }); return; }
-  await vehAdopterPosition(c, 'Trajet en véhicule → ' + vehVille(v.pays, v.ville),
-    String(v.occupants || 1) + ' occupant(s), ' + v.consommation + ' unités de carburant.');
+  await vehAdopterPosition(c, vehTT('journeyJournal','Trajet en véhicule → {city}',{city:vehVille(v.pays,v.ville)}),
+    vehTT('journeyDetails','{count} occupant(s), {fuel} unités de carburant.',{count:String(v.occupants||1),fuel:v.consommation}));
 }
 
 // La position est relue depuis la fiche officielle, jamais fabriquee a partir de la reponse.
 async function vehAdopterPosition(c, journal, detail) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const frais = await sbLoadPersonnage(state.char?.name).catch(() => null);
-  if (!frais || (c && c.uid && frais.userId !== c.uid)) { showToast('Trajet enregistré', 'La position doit encore être relue.', false); return; }
+  if (!frais || (c && c.uid && frais.userId !== c.uid)) { showToast(vehTT('tripRecorded','Trajet enregistré'),vehTT('positionPending','La position doit encore être relue.'),false); return; }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: frais.pa, liquide: frais.liquide, arg: frais.arg });
   afficherPositionNavigationConfirmee(frais);
   if (typeof addJournalEntry === 'function') addJournalEntry(journal, 'event-info');
-  showToast('Arrivée', detail, true);
+  showToast(vehTT('arrival','Arrivée'), detail, true);
 }
 
 // ---------- PANNE ----------
@@ -378,25 +378,25 @@ function afficherPanneVehicule(id, panne) {
   const garages = Array.isArray(p.garages) ? p.garages : [];
   const pays = state.country;
   let html = '<div style="text-align:center;font-size:3rem;color:#d98a5a"><i class="ti ti-car-crash"></i></div>' +
-    '<p style="text-align:center;font-size:1.15rem;color:#e5c477"><b>Vous êtes en panne !</b></p>' +
-    '<p>Vous n’avez d’autre choix que d’appeler un dépanneur.</p>' +
-    '<p class="cpj-note">Sur la route de ' + vehEchappe(vehVille(pays, p.depart)) + ' à ' + vehEchappe(vehVille(pays, p.destination)) + '.</p>';
-  if (!garages.length) html += '<p>Aucun garage dans le pays ne peut vous dépanner pour l’instant.</p>';
+    '<p style="text-align:center;font-size:1.15rem;color:#e5c477"><b>'+vehTH('breakdownBig','Vous êtes en panne !')+'</b></p>' +
+    '<p>'+vehTH('callTow','Vous n’avez d’autre choix que d’appeler un dépanneur.')+'</p>' +
+    '<p class="cpj-note">'+vehTH('onRoad','Sur la route de {from} à {to}.',{from:vehVille(pays,p.depart),to:vehVille(pays,p.destination)})+'</p>';
+  if (!garages.length) html += '<p>'+vehTH('noGarage','Aucun garage dans le pays ne peut vous dépanner pour l’instant.')+'</p>';
   else {
-    html += '<p>' + (garages.length > 1 ? 'Les garages les plus proches sont :' : 'Le garage le plus proche est :') + '</p>';
+    html += '<p>'+(garages.length>1?vehTH('nearestPlural','Les garages les plus proches sont :'):vehTH('nearestSingle','Le garage le plus proche est :'))+'</p>';
     html += garages.map(g => vehBouton(vehEchappe(g.nom) + ' — ' + vehEchappe(vehVille(pays, g.ville)) + ' (' + vehNombre(g.prix) + ' ' + cur + ')',
       "vehDepanner('" + id + "','" + g.id + "')", true)).join('');
   }
-  html += '<p class="cpj-note" style="margin-top:.8rem">Le dépannage ne remplace pas la révision : il faudra encore la payer avant de repartir. Ça fait réfléchir, non ?</p>';
-  vehModal('En panne', html);
+  html += '<p class="cpj-note" style="margin-top:.8rem">'+vehTH('towHelp','Le dépannage ne remplace pas la révision : il faudra encore la payer avant de repartir. Ça fait réfléchir, non ?')+'</p>';
+  vehModal(vehTT('breakdownTitle','En panne'),'<div data-veh-i18n="breakdown"></div>'+html);
 }
 
 async function vehDepanner(id, garage) {
   const c = typeof contexteNavigationRue === 'function' ? contexteNavigationRue() : null;
   const v = await vehActe('depanner', { vehicule: id, garage }, id + '-' + garage);
-  if (!v || v.ok !== true) { showToast('Dépannage refusé', vehMotif(v), false); return; }
+  if (!v || v.ok !== true) { showToast(vehTT('towRefused','Dépannage refusé'),vehMotif(v),false); return; }
   await vehAdopterPosition(c, 'Dépannage → ' + vehVille(state.country, v.ville),
-    'Dépanneuse : ' + vehNombre(v.garage?.prix) + ' ' + vehMonnaie() + '. Pensez à la révision avant de repartir.');
+    vehTT('towPrice','Dépanneuse : {price} {currency}. Pensez à la révision avant de repartir.',{price:vehNombre(v.garage?.prix),currency:vehMonnaie()}));
 }
 
 /* Repeindre une fenêtre garage/station déjà affichée depuis le dernier verdict
