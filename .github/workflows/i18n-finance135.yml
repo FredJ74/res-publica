@@ -1,0 +1,28 @@
+name: i18n — financement et acquisition communale
+on:
+  pull_request:
+    paths:
+      - 'plateau-terrain-banque.js'
+      - 'i18n/finance135-resources.js'
+      - 'plateau.html'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'outils/bancs/banc-i18n-finance135-20261112.cjs'
+      - '.github/workflows/i18n-finance135.yml'
+permissions:
+  contents: read
+jobs:
+  controle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Vérifier JS
+        run: node --check plateau-terrain-banque.js && node --check i18n/finance135-resources.js
+      - name: Banc des neuf langues sans serveur
+        run: node --test outils/bancs/banc-i18n-finance135-20261112.cjs
+      - name: Audit éditorial
+        run: node outils/audits/audit-i18n-editorial.cjs > /tmp/audit-finance135.json
+      - run: git diff --check
