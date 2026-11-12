@@ -1,4 +1,9 @@
 // Reprise des moteurs terrain et banque existants, jamais de debit ni de remboursement client.
+function financeT(key,fr,vars){return window.RPFinance135I18n?.text?.(key,fr,vars||{})||fr;}
+function financeR(raison){
+ const original=typeof TERRAIN_RAISONS_COMMUNE!=='undefined'?TERRAIN_RAISONS_COMMUNE[raison]:null;
+ return original?financeT('reason_'+raison,original):null;
+}
 let finance135EnCours=false;
 function finance135Cle(domaine,cible,c=contexteNavigationRue()) {return 'finance135:'+JSON.stringify([c.uid,c.nom,state.country,domaine,cible]);}
 async function finance135Relire(domaine,cible,c) {
@@ -14,10 +19,10 @@ async function finance135Executer(domaine,cible,parametres) {
  try{
   i=JSON.parse(sessionStorage.getItem(cle)||'null')||{requete:crypto.randomUUID(),parametres,domaine,cible};
   if(JSON.stringify(i.parametres)!==JSON.stringify(parametres)){
-   constructionFenetre('Opération en attente',constructionBouton('Vérifier l’opération précédente','finance135Reprendre('+JSON.stringify(cle)+')'));return null;
+   constructionFenetre(financeT("pending",'Opération en attente'),constructionBouton(financeT("verifyPrevious",'Vérifier l’opération précédente'),'finance135Reprendre('+JSON.stringify(cle)+')'));return null;
   }
   sessionStorage.setItem(cle,JSON.stringify(i));
- }catch(_){showToast('Opération non lancée','La reprise sûre ne peut pas être conservée.',false);return null;}
+ }catch(_){showToast(financeT("notStarted",'Opération non lancée'),financeT("safeResume",'La reprise sûre ne peut pas être conservée.'),false);return null;}
  finance135EnCours=true;
  try{
   let r;try{
@@ -32,9 +37,9 @@ async function finance135Executer(domaine,cible,parametres) {
   if(!contexteNavigationRueValide(c))return null;
   if(!r?.ok){
    if(r&&!r.transport){await finance135Relire(domaine,cible,c);if(!contexteNavigationRueValide(c))return null;sessionStorage.removeItem(cle);}
-   showToast('Opération non confirmée',r?.transport||!r?'Réponse incertaine : vérifiez la même opération, sans nouveau paiement.':((typeof TERRAIN_RAISONS_COMMUNE!=='undefined'&&TERRAIN_RAISONS_COMMUNE[r.raison])||r.raison||'Refus du serveur.'),false);return null;
+   showToast(financeT("notConfirmed",'Opération non confirmée'),r?.transport||!r?financeT("uncertain",'Réponse incertaine : vérifiez la même opération, sans nouveau paiement.'):(financeR(r.raison)||r.raison||financeT('serverRefusal','Refus du serveur.')),false);return null;
   }
-  if(!await finance135Relire(domaine,cible,c)){if(contexteNavigationRueValide(c))showToast('Opération enregistrée','La relecture reste à confirmer. La reprise est conservée.',true);return null;}
+  if(!await finance135Relire(domaine,cible,c)){if(contexteNavigationRueValide(c))showToast(financeT("recorded",'Opération enregistrée'),financeT("reloadPending",'La relecture reste à confirmer. La reprise est conservée.'),true);return null;}
   sessionStorage.removeItem(cle);return r;
  }finally{finance135EnCours=false;}
 }
@@ -54,15 +59,15 @@ async function finance135Reconcilier(){
    if(!i||cle!==finance135Cle(i.domaine,i.cible,c))continue;
    const r=await sbRpcVerdict('finance_terrain_banque_recu',{p_requete:i.requete,p_domaine:i.domaine}).catch(()=>null);
    if(!contexteNavigationRueValide(c))return;
-   if(r?.ok&&r.terminee&&await finance135Relire(i.domaine,i.cible,c)){sessionStorage.removeItem(cle);n--;showToast('Opération retrouvée','L’état officiel a été rechargé sans nouveau paiement.',true);}
+   if(r?.ok&&r.terminee&&await finance135Relire(i.domaine,i.cible,c)){sessionStorage.removeItem(cle);n--;showToast(financeT("recovered",'Opération retrouvée'),financeT("officialReload",'L’état officiel a été rechargé sans nouveau paiement.'),true);}
   }
  }finally{finance135Reconciliation=false;}
 }
 async function finance135ContracterPret(type){
  const montant=Number(document.getElementById('pret-montant')?.value),duree=Number(document.getElementById('pret-duree')?.value);
- if(!Number.isSafeInteger(montant)||!Number.isSafeInteger(duree)){showToast('Montant ou durée invalide','Les francs et les jours doivent être entiers.',false);return;}
+ if(!Number.isSafeInteger(montant)||!Number.isSafeInteger(duree)){showToast(financeT("invalidDuration",'Montant ou durée invalide'),financeT("whole",'Les francs et les jours doivent être entiers.'),false);return;}
  const r=await finance135Executer('pret','banque-nationale',{p_montant:montant,p_duree_jours:duree,p_type_pret:type,p_building_id:state.currentBuilding});
- if(!r)return;document.getElementById('modal-postes')?.classList.remove('open');showToast('Prêt accordé','La dette et le crédit sur le compte national sont enregistrés.',true);addJournalEntry('Prêt '+type+' accordé : '+montant+' FR.','event-good');
+ if(!r)return;document.getElementById('modal-postes')?.classList.remove('open');showToast(financeT("loanGranted",'Prêt accordé'),financeT("loanDesc",'La dette et le crédit sur le compte national sont enregistrés.'),true);addJournalEntry(financeT('loanEntry','Prêt {type} accordé : {amount} FR.',{type,amount:montant}),'event-good');
 }
 // ACHAT POUR LA COMMUNE (29/10/2026, décision de Fred : « une mairie suit le même cheminement
 // qu'un PJ particulier »). Le maire qui dépose ou signe un compromis dans SA ville choisit s'il
@@ -74,11 +79,11 @@ function terrainChoisirAcquereur(){
  if(!terrainEstMaireIci())return Promise.resolve('personnel');
  return new Promise(resoudre=>{
   terrainAcquereurAttente=resoudre;
-  const bouton=(choix,texte)=>'<button onclick="terrainAcquereurRepondre(\''+choix+'\')" style="display:block;width:100%;margin-top:.6rem;padding:.6rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;letter-spacing:.08em">'+texte+'</button>';
-  document.getElementById('postes-modal-title').textContent='Pour qui achetez-vous ?';
-  document.getElementById('postes-body').innerHTML='<div style="padding:1rem"><div style="font-size:.85rem;color:#8a8060">Vous êtes maire de cette ville. Achetez-vous ce terrain au titre de maire, pour la commune, ou en votre nom propre ?</div>'
-   +bouton('commune','Au titre de maire, pour la commune')+bouton('personnel','En mon nom propre')
-   +'<div style="font-size:.75rem;color:#6a6040;font-style:italic;margin-top:.7rem">Pour la commune : dépôt et solde payés par la caisse de la mairie, sans prêt ; le terrain appartient à la ville.</div></div>';
+  const bouton=(choix,texte)=>'<button data-finance135-key="'+(choix==='commune'?'commune':'personal')+'" onclick="terrainAcquereurRepondre(\''+choix+'\')" style="display:block;width:100%;margin-top:.6rem;padding:.6rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;letter-spacing:.08em">'+texte+'</button>';
+  document.getElementById('postes-modal-title').textContent=financeT('chooseBuyer','Pour qui achetez-vous ?');
+  document.getElementById('postes-body').innerHTML='<div id="finance135-choix" style="padding:1rem"><div data-finance135-key="buyerIntro" style="font-size:.85rem;color:#8a8060">'+financeT('buyerIntro','Vous êtes maire de cette ville. Achetez-vous ce terrain au titre de maire, pour la commune, ou en votre nom propre ?')+'</div>'
+   +bouton('commune',financeT('commune','Au titre de maire, pour la commune'))+bouton('personnel',financeT('personal','En mon nom propre'))
+   +'<div data-finance135-key="communeDesc" style="font-size:.75rem;color:#6a6040;font-style:italic;margin-top:.7rem">'+financeT('communeDesc','Pour la commune : dépôt et solde payés par la caisse de la mairie, sans prêt ; le terrain appartient à la ville.')+'</div></div>';
   document.getElementById('modal-postes').classList.add('open');
  });
 }
@@ -88,13 +93,27 @@ async function finance135Acquerir(id,action,params={}){
  if(action==='depot'||action==='compromis'){
   const qui=await terrainChoisirAcquereur();
   if(qui==='commune'){
-   if(params.pret){showToast('Prêt impossible',TERRAIN_RAISONS_COMMUNE.commune_sans_pret,false);return null;}
+   if(params.pret){showToast(financeT("loanImpossible",'Prêt impossible'),financeR('commune_sans_pret'),false);return null;}
    params={...params,acquereur:'commune'};
-  }else if(String(params.permis||'').startsWith('logements_')){showToast('Logements sociaux',TERRAIN_RAISONS_COMMUNE.logements_reserves_commune,false);return null;}
+  }else if(String(params.permis||'').startsWith('logements_')){showToast(financeT("socialHousing",'Logements sociaux'),financeR('logements_reserves_commune'),false);return null;}
  }
  const r=await finance135Executer('acquisition',id,{p_terrain:id,p_action:action,p_parametres:params});
  if(!r)return null;
  document.getElementById('modal-postes')?.classList.remove('open');
- addJournalEntry(action.startsWith('acte_')?'Acte de vente enregistré, dépôt imputé.':action==='depot'?'Dépôt enregistré, rendez-vous notarial fixé.':'Compromis enregistré.','event-good');
- showToast('Opération enregistrée',action.startsWith('acte_')?'Le titre et le paiement sont confirmés.':'Retrouvez votre dossier chez le notaire.',true);return r;
+ addJournalEntry(action.startsWith('acte_')?financeT("saleDeed",'Acte de vente enregistré, dépôt imputé.'):action==='depot'?financeT("depositRecorded",'Dépôt enregistré, rendez-vous notarial fixé.'):financeT("compromisRecorded",'Compromis enregistré.'),'event-good');
+ showToast(financeT("recorded",'Opération enregistrée'),action.startsWith('acte_')?financeT("titleConfirmed",'Le titre et le paiement sont confirmés.'):financeT("notaryFile",'Retrouvez votre dossier chez le notaire.'),true);return r;
 }
+
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
+ const body=document.getElementById('postes-body'),modal=document.getElementById('modal-postes');
+ if(!body?.querySelector?.('#finance135-choix')||!modal?.classList?.contains('open'))return;
+ const titre=document.getElementById('postes-modal-title');
+ if(titre)titre.textContent=financeT('chooseBuyer','Pour qui achetez-vous ?');
+ const fr=window.RPFinance135I18n?.words?.fr;
+ if(!fr)return;
+ body.querySelectorAll('[data-finance135-key]').forEach(node=>{
+  const key=node.getAttribute('data-finance135-key');
+  if(fr[key])node.textContent=financeT(key,fr[key]);
+ });
+ // Les décisions, paramètres, boutons et paiements restent inchangés.
+});
