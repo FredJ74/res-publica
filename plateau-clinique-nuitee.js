@@ -8,8 +8,8 @@ function ordresNuiteeClinique(buildingId,roomId){
  if(roomId==='reception_clinique')return [{
    fn:'clinique_reserver_nuit',label:'Réserver une chambre — 150 '+cliniqueDevise(),
    pa:0,cost:0,type:'legal',icon:'ti-bed',successRate:100,
-   desc:'Réserver et payer une nuit à la clinique : 150 '+cliniqueDevise()
-    +'. Dans votre chambre, Dormir apporte +2 PA, +10 Santé et +3 Moral en plus du repos normal.'
+   desc:'Réserver une chambre jusqu’à votre prochain Dormir validé dans celle-ci : 150 '+cliniqueDevise()
+    +'. Même après avoir déjà dormi aujourd’hui, vous pouvez réserver. Le prochain Dormir dans votre chambre apportera +2 PA, +10 Santé et +3 Moral en plus du repos normal.'
  }];
  if(/^chambre_(?:[1-9]|10)$/.test(roomId)){
  const propre=(state.locationsActives||[]).some(l=>l.buildingId==='clinique-privee'
@@ -30,7 +30,6 @@ function ordresNuiteeClinique(buildingId,roomId){
 const REFUS={
  non_authentifie:'Connectez-vous pour réserver.',pas_a_accueil:'Présentez-vous à l’accueil de la clinique.',
  deja_hospitalise:'Vous disposez déjà d’une chambre au titre de votre hospitalisation.',
- deja_dormi:'Vous avez déjà dormi aujourd’hui. Revenez après le changement de jour.',
  indisponible:'Votre situation actuelle ne permet pas de réserver.',
  complet:'Les dix chambres sont occupées.'
 };
@@ -54,7 +53,7 @@ function reserverNuiteeClinique(){
  +'<p style="line-height:1.65;margin:0 0 .75rem">Tarif : <strong>150 '+cur
  +' par nuit</strong>, prélevés lors de la réservation.</p>'
  +'<p style="line-height:1.65;margin:0 0 .75rem">En dormant dans votre chambre : <strong>+2 PA, +10 Santé et +3 Moral</strong>, en plus des effets du sommeil habituel et dans la limite des plafonds.</p>'
- +'<p style="color:#a69b86;font-size:.83rem;margin:0 0 1.2rem">La chambre est attribuée selon les disponibilités.</p>'
+ +'<p style="color:#a69b86;font-size:.83rem;margin:0 0 1.2rem">La chambre est attribuée selon les disponibilités et reste réservée tant que vous n’avez pas effectué l’ordre Dormir dans cette chambre. Vous pouvez réserver même si vous avez déjà dormi aujourd’hui ; les bonus seront accordés lors de votre prochain sommeil autorisé.</p>'
  +'<div style="display:flex;flex-wrap:wrap;gap:.65rem;justify-content:flex-end">'
  +'<button type="button" id="clinique-annuler-reservation" style="padding:.65rem 1rem;background:transparent;color:#c9b99a;border:1px solid #64543b;cursor:pointer">Annuler</button>'
  +'<button type="button" id="clinique-confirmer-reservation" style="padding:.65rem 1rem;background:#493615;color:#ffe4a8;border:1px solid #a37d35;cursor:pointer">Confirmer la réservation — 150 '+cur+'</button>'
@@ -89,7 +88,7 @@ async function confirmerReservationNuiteeClinique(){
   if(typeof chargerLocations==='function')await chargerLocations();
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Chambre réservée',r.chambre.replace('chambre_','Chambre ')
-    +' : une nuit réglée pour 150 '+cliniqueDevise()+'.',true);
+    +' : 150 '+cliniqueDevise()+' réglés. Réservation valable jusqu’à votre prochain Dormir dans la chambre.',true);
   if(state.char?.name===acteur&&state.country===pays
     &&state.currentBuilding==='clinique-privee'&&state.currentRoom==='reception_clinique'
     &&typeof enterRoom==='function')enterRoom('clinique-privee',r.chambre,null);

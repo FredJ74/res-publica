@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'migrations/20261112121000_clinique_nuitee_reservation.sql'
+      - 'migrations/20261112133000_clinique_reservation_sans_expiration.sql'
       - 'plateau-clinique-nuitee.js'
       - 'plateau-router.js'
       - 'plateau-personnage.js'
@@ -48,6 +49,8 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f outils/bancs/clinique-nuitee-fixture.sql
       - name: Installer la vraie migration
         run: psql -X -v ON_ERROR_STOP=1 -f migrations/20261112121000_clinique_nuitee_reservation.sql
+      - name: Appliquer la règle sans expiration
+        run: psql -X -v ON_ERROR_STOP=1 -f migrations/20261112133000_clinique_reservation_sans_expiration.sql
       - name: Tester paiement, chambres et sommeil
         run: |
           psql -X -v ON_ERROR_STOP=1 -f outils/bancs/clinique-nuitee-tests.sql | tee /tmp/clinique-tests.log
