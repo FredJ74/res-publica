@@ -1,7 +1,7 @@
 # Appartements populaires : option premium, colocation, sommeil, matériel
 
-Décisions de Fred, session du 12/11/2026 au soir (questions de Claude une à une). **Rien n'est codé** :
-le codage attend le feu vert explicite de Fred.
+Décisions de Fred, session du 12/11/2026 au soir (questions de Claude une à une). **Codé le 12/11 au soir**
+après le feu vert de Fred (voir « Ce qui est codé » en fin de document).
 
 ## Périmètre : le logement populaire
 
@@ -76,3 +76,53 @@ le codage attend le feu vert explicite de Fred.
   la taille de l'appartement, sans désignation.
 - Dès le mariage, le conjoint a **automatiquement la jouissance complète** de l'appartement (matériel,
   serrure, sommeil, décors de toutes les pièces).
+
+## Ce qui est codé (Claude, 12/11/2026 au soir, branche `claude/appartements-populaires-20261112`)
+
+Serveur : migration `20261112221500_appartements_populaires` **appliquée** ; banc annulé vert
+`outils/bancs/banc-appartements-populaires-20261112.sql` (8 étapes). Écran : `plateau-appartements.js`,
+catalogue `i18n/appartements-resources.js` (9 langues), test `outils/bancs/test-appartements-populaires-20261112.mjs`.
+Décors : fonction serveur `logement-decoration` (déployée), même atelier que le Commerce Premium.
+
+- **Sommeil** : `pa_repos_nocturne` ajoute +1 PA (titulaire, conjoint, colocataire) dans la pièce unique en
+  gratuit, dans une chambre en premium ; le salon premium ne donne rien. Le serveur rend aussi le moral et la
+  santé du logement, appliqués par l'écran (plus aucun calcul local).
+- **Premium** : ordre « Mon logement » → « Activer l'option premium » (titulaire ou conjoint), gratuit en bêta,
+  attaché à l'appartement (table `logements_premium`). Chambres `<appartement>_chambre_1/2` : onglets visibles
+  seulement dans l'appartement premium, entrée refusée par le serveur sinon. Images de chambre raccordées pour
+  les Logements du Marché et des Quais (et la V14, qui reprend les images des Quais) ; ailleurs, fond neutre
+  en attendant les images de Fred.
+- **Emplacements** : 3 / 5 en gratuit, 3 au salon et 6 par chambre en premium. L'option « bureau » est refusée
+  dans un appartement populaire.
+- **Colocation** : désigner (2 PA) / retirer (2 PA) par le titulaire, départ gratuit du colocataire ; matériel
+  laissé plus de 48 h → au titulaire du bail (et non plus à la commune). Départ du titulaire (quelle qu'en soit
+  la cause : bail supprimé) → offre « Reprendre le bail » de 48 h au colocataire, attribution par la mairie
+  bloquée pendant ce temps ; s'il accepte, même loyer, même option premium, sa serrure de chambre reste valable.
+- **Époux** : jouissance complète automatique (matériel, serrure, sommeil, décors de toutes les pièces).
+- **Serrures** : une serrure de chambre se rattache au bail de l'appartement ; elle tombe si son poseur perd la
+  jouissance de la pièce (colocataire parti, divorce).
+- **Correctif** : les 8 logements du Baraquement Sibirsk-9 (Starovka) n'existaient pas côté serveur (clé sans
+  la ville) ; clé corrigée, logements créés.
+
+### Choix de Claude, à relire par Fred
+
+1. Le **moral et la santé** du logement suivent la même règle que le +1 PA : le colocataire et le conjoint en
+   profitent aussi (avant, seul le titulaire) ; en premium, seulement en chambre.
+2. L'option premium peut être activée par le **titulaire ou son conjoint**, pas par le colocataire.
+3. Pour désigner un colocataire, le titulaire doit **être dans l'appartement** ; impossible de désigner son
+   conjoint ou quelqu'un déjà colocataire ailleurs. En premium, la **chambre 2 doit être vide de matériel**
+   (elle revient au colocataire), pour qu'aucun objet ne soit perdu en silence.
+4. Reprise du bail : **pas de loyer prélevé à la reprise** (le bail continue, prochaine échéance normale).
+5. Décors : description écrite seulement, **sans images de référence** (l'atelier du commerce en accepte 5).
+6. **Chambres premium : seulement les immeubles dessinés** (Montrouge, Novomirsk V14/V16, Starovka). Pour les
+   lots sociaux des terrains de Montrouge et les logements des immeubles des mairies de Sovarka, le +1 PA, la
+   colocation, les époux et les emplacements marchent, mais l'option premium affiche « pas encore disponible »
+   (leurs pièces sont créées à la volée : chantier à part si Fred le veut).
+7. Une chambre sans serrure fermée est **ouverte à tous**, comme le salon.
+
+### Écart relevé (à trancher par Fred)
+
+- **Armoire à souvenirs** : elle n'occupe déjà qu'**un** emplacement côté serveur (une armoire = un
+  équipement installé) ; rien à changer. En revanche, le code ne lui connaît **aucun avantage au sommeil**
+  (le catalogue la décrit « sans bonus de sommeil ») : si « son avantage lié à la pièce où l'on dort » désigne
+  un effet précis, il reste à le définir.

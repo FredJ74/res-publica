@@ -2012,8 +2012,12 @@ async function doDormir() {
   // Logements sociaux de Montrouge (18 aout 2026) : bonus MORAL/SANTE UNIQUEMENT si le bail
   // est actif ET que Dormir est passe physiquement dans ce meme appartement -- n'a AUCUN effet
   // sur le loyer (paye normalement par payerLocations() plus bas, quel que soit le lieu).
-  const bonusLogement = typeof getBonusLogementSocialDormir === 'function'
-    ? getBonusLogementSocialDormir() : { moral: 0, sante: 0 };
+  // Appartements populaires (12/11/2026) : c'est le SERVEUR qui dit si l'on dort dans son
+  // appartement (titulaire, conjoint, colocataire ; une chambre en premium) -- +1 PA deja compte dans
+  // vRepos.pa, moral et sante du logement rendus avec lui. Plus aucun calcul local.
+  const bonusLogement = vRepos?.logement
+    ? { moral: Number(vRepos.logement.moral) || 0, sante: Number(vRepos.logement.sante) || 0 } : { moral: 0, sante: 0 };
+  if (vRepos?.logement) addJournalEntry('Nuit dans votre appartement : +' + (Number(vRepos.logement.pa) || 0) + ' PA.', 'event-good');
 
   if (state.empoisonnement?.actif) {
     state.hp = Math.floor((state.hp || 0) / 2);

@@ -7,8 +7,10 @@ const source = readFileSync(new URL('../../data.js', import.meta.url), 'utf8');
 const ctx = { console: { log() {}, warn() {} } }; ctx.window = ctx;
 vm.createContext(ctx);
 vm.runInContext(source + ';this.B=BUILDINGS;this.W=WORLD;', ctx);
-const ref = ctx.B['logements-novomirsk-quais'].rooms;
-const base = ctx.B['logements-novomirsk'].rooms;
+// Chambres des appartements premium (12/11/2026, plateau-appartements.js) : testées à part.
+const sansChambres = (rooms) => Object.fromEntries(Object.entries(rooms).filter(([, r]) => !r.chambreLogement));
+const ref = sansChambres(ctx.B['logements-novomirsk-quais'].rooms);
+const base = sansChambres(ctx.B['logements-novomirsk'].rooms);
 const ville = ctx.W.soviet.capitale.buildingContext['logements-novomirsk'];
 test('V14 : hall et huit appartements affichent exactement les six WebP des Quais', () => {
   assert.ok(ville?.roomOverrides);
@@ -32,4 +34,11 @@ test('les baux des huit logements V14 ne changent pas', () => {
 test('aucune image des quais injectée à Starovka', () => {
   assert.ok(ctx.W.soviet.ville_a.buildings.includes('logements-novomirsk'));
   assert.ok(!ctx.W.soviet.ville_a.buildingContext?.['logements-novomirsk']?.roomOverrides?.salle?.imageUrl?.includes('Novomirsk_logements_quais'));
+});
+test('V14 : les chambres premium reprennent l\'image de chambre des Quais', () => {
+  const chambres = Object.entries(ctx.B['logements-novomirsk'].rooms).filter(([, r]) => r.chambreLogement);
+  assert.equal(chambres.length, 12);
+  for (const [pieceId] of chambres) {
+    assert.equal(ville.roomOverrides[pieceId]?.imageUrl, 'images/Sovarka/Novomirsk/Novomirsk_logements_quais_chambre.webp', pieceId);
+  }
 });

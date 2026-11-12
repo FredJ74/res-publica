@@ -2536,6 +2536,48 @@ export const SCENES_PNJ = {
     "piece": "Grand appartement n°2",
     "personnes": []
   },
+  "[\"republic\",\"ville_b\",\"logements-montrouge\",\"petit_appartement_1_chambre_1\"]": {
+    "pays": "Republia",
+    "ville": "Montrouge",
+    "batiment": "Logements",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"republic\",\"ville_b\",\"logements-montrouge\",\"petit_appartement_2_chambre_1\"]": {
+    "pays": "Republia",
+    "ville": "Montrouge",
+    "batiment": "Logements",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"republic\",\"ville_b\",\"logements-montrouge\",\"grand_appartement_1_chambre_1\"]": {
+    "pays": "Republia",
+    "ville": "Montrouge",
+    "batiment": "Logements",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"republic\",\"ville_b\",\"logements-montrouge\",\"grand_appartement_1_chambre_2\"]": {
+    "pays": "Republia",
+    "ville": "Montrouge",
+    "batiment": "Logements",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"republic\",\"ville_b\",\"logements-montrouge\",\"grand_appartement_2_chambre_1\"]": {
+    "pays": "Republia",
+    "ville": "Montrouge",
+    "batiment": "Logements",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"republic\",\"ville_b\",\"logements-montrouge\",\"grand_appartement_2_chambre_2\"]": {
+    "pays": "Republia",
+    "ville": "Montrouge",
+    "batiment": "Logements",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
   "[\"republic\",\"ville_b\",\"cafe-tabac-cheminots-montrouge\",\"salle\"]": {
     "pays": "Republia",
     "ville": "Montrouge",
@@ -5387,6 +5429,90 @@ export const SCENES_PNJ = {
     "piece": "Grand appartement n°4",
     "personnes": []
   },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"petit_appartement_1_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"petit_appartement_2_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"petit_appartement_3_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"petit_appartement_4_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"grand_appartement_1_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"grand_appartement_1_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"grand_appartement_2_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"grand_appartement_2_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"grand_appartement_3_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"grand_appartement_3_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"grand_appartement_4_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk\",\"grand_appartement_4_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements collectifs de Novomirsk",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
   "[\"soviet\",\"capitale\",\"pharmacie-officielle-novomirsk\",\"comptoir_pharmacie\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
@@ -5572,6 +5698,90 @@ export const SCENES_PNJ = {
     "piece": "Grand appartement n°8",
     "personnes": []
   },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-marche\",\"petit_appartement_1_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements du Marché",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-marche\",\"petit_appartement_2_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements du Marché",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-marche\",\"petit_appartement_3_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements du Marché",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-marche\",\"petit_appartement_4_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements du Marché",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-marche\",\"grand_appartement_1_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements du Marché",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-marche\",\"grand_appartement_1_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements du Marché",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-marche\",\"grand_appartement_2_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements du Marché",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-marche\",\"grand_appartement_2_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements du Marché",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-marche\",\"grand_appartement_3_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements du Marché",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-marche\",\"grand_appartement_3_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements du Marché",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-marche\",\"grand_appartement_4_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements du Marché",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-marche\",\"grand_appartement_4_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements du Marché",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
   "[\"soviet\",\"capitale\",\"logements-novomirsk-quais\",\"salle\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
@@ -5633,6 +5843,90 @@ export const SCENES_PNJ = {
     "ville": "Novomirsk",
     "batiment": "Logements des Quais de Sovarka",
     "piece": "Grand appartement n°12",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-quais\",\"petit_appartement_1_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements des Quais de Sovarka",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-quais\",\"petit_appartement_2_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements des Quais de Sovarka",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-quais\",\"petit_appartement_3_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements des Quais de Sovarka",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-quais\",\"petit_appartement_4_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements des Quais de Sovarka",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-quais\",\"grand_appartement_1_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements des Quais de Sovarka",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-quais\",\"grand_appartement_1_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements des Quais de Sovarka",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-quais\",\"grand_appartement_2_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements des Quais de Sovarka",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-quais\",\"grand_appartement_2_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements des Quais de Sovarka",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-quais\",\"grand_appartement_3_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements des Quais de Sovarka",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-quais\",\"grand_appartement_3_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements des Quais de Sovarka",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-quais\",\"grand_appartement_4_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements des Quais de Sovarka",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"capitale\",\"logements-novomirsk-quais\",\"grand_appartement_4_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Logements des Quais de Sovarka",
+    "piece": "Chambre 2",
     "personnes": []
   },
   "[\"soviet\",\"ville_a\",\"hotel-mineur\",\"hall_mineur\"]": {
@@ -6095,6 +6389,90 @@ export const SCENES_PNJ = {
     "ville": "Starovka",
     "batiment": "Baraquement Sibirsk-9",
     "piece": "Grand appartement n°4",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"petit_appartement_1_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"petit_appartement_2_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"petit_appartement_3_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"petit_appartement_4_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"grand_appartement_1_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"grand_appartement_1_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"grand_appartement_2_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"grand_appartement_2_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"grand_appartement_3_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"grand_appartement_3_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"grand_appartement_4_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"grand_appartement_4_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Baraquement Sibirsk-9",
+    "piece": "Chambre 2",
     "personnes": []
   },
   "[\"soviet\",\"ville_a\",\"locaux-starovka\",\"local_1\"]": {

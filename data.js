@@ -10913,6 +10913,32 @@ function montantDansTexte(texte, ancien, nouveau) {
   // 12/11/2026 (Fred) : deux immeubles et non un. Celui de droite reste les Logements du Marche
   // (n°5 a 8) ; celui de gauche devient les Logements des Quais de Sovarka (nom du fleuve, n°9 a 12),
   // meme nombre de logements. Serveur : migration 20261112131500_logements_quais_novomirsk.
+  // APPARTEMENTS POPULAIRES — CHAMBRES PREMIUM (decisions de Fred du 12/11/2026,
+  // GAME-DESIGN-APPARTEMENTS.md). Option premium : petit appartement = salon + 1 chambre, grand =
+  // salon + 2 chambres. Les chambres sont des pieces « <appartement>_chambre_N » ; l'onglet n'apparait
+  // que dans un appartement dont le serveur dit qu'il est premium (plateau-appartements.js), et le
+  // serveur refuse d'y entrer autrement (logement_chambre_valide_interne). Ajoutees AVANT la copie des
+  // immeubles de Novomirsk, qui les recoivent donc aussi.
+  const ajouterChambresLogement = (id) => {
+    const b = BUILDINGS[id];
+    if (!b) return;
+    Object.entries(b.rooms).forEach(([pieceId, r]) => {
+      const m = pieceId.match(/^(petit|grand)_appartement_(\d)$/);
+      if (!m) return;
+      const n = m[1] === 'grand' ? 2 : 1;
+      for (let k = 1; k <= n; k++) {
+        b.rooms[pieceId + '_chambre_' + k] = {
+          name: n > 1 ? 'Chambre ' + k : 'Chambre',
+          desc: 'Une chambre de l\'appartement. On y dort, on y range son matériel ; sa porte peut recevoir une serrure.',
+          imageBg: r.imageBg, persons: [], chambreLogement: true, baseLogement: pieceId,
+          orders: [{fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir l'appartement, son option premium, sa colocation et ses décors."}]
+        };
+      }
+    });
+  };
+  ajouterChambresLogement('logements-montrouge');
+  ajouterChambresLogement('logements-novomirsk');
+
   const copieLogements = (id, nomImmeuble, desc, decalage) => {
     if (!BUILDINGS['logements-novomirsk'] || BUILDINGS[id]) return;
     const b = JSON.parse(JSON.stringify(BUILDINGS['logements-novomirsk']));
@@ -10924,6 +10950,7 @@ function montantDansTexte(texte, ancien, nouveau) {
       + (id === 'logements-novomirsk-marche' ? 'marche' : 'quais') + '_';
     b.rooms.salle.imageUrl = prefixeImage + 'hall.webp';
     Object.entries(b.rooms).forEach(([pieceId, r]) => {
+      if (r.chambreLogement) { r.imageUrl = prefixeImage + 'chambre.webp'; return; }
       const m = pieceId.match(/^(petit|grand)_appartement_(\d)$/);
       if (!m) return;
       const nom = (m[1] === 'petit' ? 'Petit' : 'Grand') + ' appartement n°' + (Number(m[2]) + decalage);
