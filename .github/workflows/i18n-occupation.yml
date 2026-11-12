@@ -1,0 +1,25 @@
+name: i18n — occupations de terrains
+on:
+  pull_request:
+    paths:
+      - 'plateau-occupation-commandes.js'
+      - 'i18n/occupation-resources.js'
+      - 'plateau.html'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'outils/bancs/banc-i18n-occupation-20261112.cjs'
+      - '.github/workflows/i18n-occupation.yml'
+permissions:
+  contents: read
+jobs:
+  occupation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-occupation-commandes.js && node --check i18n/occupation-resources.js
+      - run: node --test outils/bancs/banc-i18n-occupation-20261112.cjs
+      - run: node outils/audits/audit-i18n-editorial.cjs >/tmp/audit-i18n-occupation.json
+      - run: git diff --check
