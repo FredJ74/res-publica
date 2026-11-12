@@ -1,0 +1,23 @@
+name: i18n — chantier naval de PSM
+on:
+  pull_request:
+    paths:
+      - 'plateau-naval.js'
+      - 'i18n/naval-resources.js'
+      - 'plateau.html'
+      - 'outils/bancs/banc-i18n-naval-20261112.cjs'
+      - '.github/workflows/i18n-naval.yml'
+permissions:
+  contents: read
+jobs:
+  naval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-naval.js && node --check i18n/naval-resources.js
+      - run: node --test outils/bancs/banc-i18n-naval-20261112.cjs
+      - run: git diff --check
