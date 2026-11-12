@@ -1093,6 +1093,11 @@ function enterRoom(buildingId, roomId, tabEl) {
   const descBase = roomOverride?.desc || ((isFirstRoom && ctx?.desc) ? ctx.desc : (room.desc || ''));
   let displayDesc = ((typeof varianteDescPiece === 'function')
     ? varianteDescPiece(buildingId, roomId, state.currentCity, descBase) : null) || descBase;
+  // Description propre à Sovarka dans la langue du joueur (12/11/2026) : texte français exact
+  // seulement, avant les suffixes dynamiques ; la source est gardée pour la bascule de langue.
+  const descSourcePiece = displayDesc;
+  if (typeof RPSovarkaDescI18n !== 'undefined') displayDesc = RPSovarkaDescI18n.desc(displayDesc);
+  const descAfficheePiece = displayDesc;
   if (state.estEmprisonne && estDansSaCellule) {
     const joursRestants = Math.max(0, state.estEmprisonne.jourFin - (state.day || 1));
     displayDesc += ' — Peine : ' + state.estEmprisonne.raison + '. Temps restant : ' + joursRestants + ' jour(s) (libération au Jour ' + state.estEmprisonne.jourFin + ').';
@@ -1110,6 +1115,8 @@ function enterRoom(buildingId, roomId, tabEl) {
     }
   }
   document.getElementById('piece-desc').textContent = displayDesc;
+  document.getElementById('piece-desc').setAttribute('data-rp-desc-source', descSourcePiece);
+  document.getElementById('piece-desc').setAttribute('data-rp-desc-affichee', descAfficheePiece);
   const ROOMS_AVEC_CAISSE_SPECIFIQUE = {
     'bureaux': 'gouvernement-pm', 'bureau_min_int': 'gouvernement-min_int', 'bureau_min_fin': 'gouvernement-min_fin',
     'bureau_min_just': 'gouvernement-min_just', 'bureau_min_info': 'gouvernement-min_info', 'bureau_min_ae': 'gouvernement-min_ae',
@@ -2915,6 +2922,14 @@ function rpRefreshOpenRoomNames() {
     const room=read(node.getAttribute('data-rp-room-id')||'');
     if(!source||!building||!room)continue;
     node.textContent=RPRoomI18n.label(building,room,source);
+  }
+  // Description de la pièce ouverte (Sovarka) : seul le début traduit change, les suffixes restent.
+  const desc=document.getElementById?.('piece-desc');
+  const src=desc?.getAttribute?.('data-rp-desc-source'), avant=desc?.getAttribute?.('data-rp-desc-affichee');
+  if(desc&&src&&avant!=null&&typeof RPSovarkaDescI18n!=='undefined'&&desc.textContent.startsWith(avant)){
+    const apres=RPSovarkaDescI18n.desc(src);
+    desc.textContent=apres+desc.textContent.slice(avant.length);
+    desc.setAttribute('data-rp-desc-affichee',apres);
   }
 }
 if(typeof window!=='undefined')window.RPRefreshOpenRoomNames=rpRefreshOpenRoomNames;

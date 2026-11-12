@@ -2217,14 +2217,14 @@ const WORLD = {
         },
                 'centre-multinodal-luthecia': {
           name: "Hall Principal",
-          desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Camarade Horaire veille. Les trains arrivent à l\\'heure, c\\'est obligatoire.",
+          desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Camarade Horaire veille. Les trains arrivent à l'heure, c'est obligatoire.",
           persons: [{"name": "Camarade Horaire (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}, {"name": "Agente Nadejda (PNJ)", "role": "Agente de contrôle", "rel": "neutral", "job": "securite"}],
           // La caserne de Sovarka est en ville (vues 11 et 12) : pas de taxi vers une caserne hors ville.
           roomOverrides: { hall_gare: { excludeOrders: ['taxi_caserne'] } },
           rooms: {
           'hall_gare': {
             name: "Hall Principal — Gare Centrale du Peuple",
-            desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Camarade Horaire veille. Les trains arrivent à l\\'heure, c\\'est obligatoire.",
+            desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Camarade Horaire veille. Les trains arrivent à l'heure, c'est obligatoire.",
             persons: [{"name": "Camarade Horaire (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}, {"name": "Agente Nadejda (PNJ)", "role": "Agente de contrôle", "rel": "neutral", "job": "securite"}]
           },
           'hall_douanes': {
