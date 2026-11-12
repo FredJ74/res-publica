@@ -1,0 +1,53 @@
+name: Clinique privée — réservation et nuitée sécurisées
+on:
+  pull_request:
+    paths:
+      - 'migrations/20261112121000_clinique_nuitee_reservation.sql'
+      - 'plateau-clinique-nuitee.js'
+      - 'plateau-router.js'
+      - 'plateau-personnage.js'
+      - 'plateau.html'
+      - 'outils/bancs/clinique-nuitee-*'
+      - '.github/workflows/clinique-nuitee.yml'
+permissions:
+  contents: read
+jobs:
+  reservation-et-repos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: clin_banc
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: clin_banc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe des scripts
+        run: node --check plateau-clinique-nuitee.js && node --check plateau-router.js && node --check plateau-personnage.js
+      - name: Préparer la base fictive
+        run: psql -X -v ON_ERROR_STOP=1 -f outils/bancs/clinique-nuitee-fixture.sql
+      - name: Installer la vraie migration
+        run: psql -X -v ON_ERROR_STOP=1 -f migrations/20261112121000_clinique_nuitee_reservation.sql
+      - name: Tester paiement, chambres et sommeil
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f outils/bancs/clinique-nuitee-tests.sql | tee /tmp/clinique-tests.log
+          grep -q 'anon_reserver | joueur_reserver | anon_consommer' /tmp/clinique-tests.log
+          grep -E '^ f[[:space:]]*\| t[[:space:]]*\| f' /tmp/clinique-tests.log
+      - run: git diff --check
