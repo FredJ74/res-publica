@@ -92,8 +92,8 @@ function etatCivilConstruireFiche(nomPersonne) {
       // formulation neutre dans ce cas, jamais de ville inventee.
       const naissance = (ETAT_CIVIL_CACHE_NAISSANCES || []).find(function(x) { return x.nom === nomPersonne; });
       const nomVilleNaissance = etatCivilNomVille(naissance?.city);
-      const suffixeNaissance = nomVilleNaissance ? (', née à ' + nomVilleNaissance) : '';
-      evenementsJoueur.push({ annee: d.getFullYear(), texte: d.getDate() + ' ' + ETAT_CIVIL_MOIS[d.getMonth()] + ' ' + d.getFullYear() + ' : naissance de ' + joueur.name + suffixeNaissance + '.' });
+      const suffixeNaissance = nomVilleNaissance ? ecT('birthPlace',{city:nomVilleNaissance}) : '';
+      evenementsJoueur.push({ annee: d.getFullYear(), texte: ecT('birthEvent',{date:ecDate(d.getDate(),d.getMonth()+1,d.getFullYear()),name:joueur.name,place:suffixeNaissance,parents:''}) });
     }
 
     (ETAT_CIVIL_CACHE_MARIAGES || []).forEach(function(m) {
@@ -101,13 +101,13 @@ function etatCivilConstruireFiche(nomPersonne) {
       const conjoint = m.conjoint1 === nomPersonne ? m.conjoint2 : m.conjoint1;
       if (!m.created_at) return;
       const dm = new Date(m.created_at);
-      const dateTxt = dm.getDate() + ' ' + ETAT_CIVIL_MOIS[dm.getMonth()] + ' ' + dm.getFullYear();
+      const dateTxt = ecDate(dm.getDate(),dm.getMonth()+1,dm.getFullYear());
       const nomVilleMariage = etatCivilNomVille(m.city);
-      const suffixeMariage = nomVilleMariage ? (', célébré à ' + nomVilleMariage) : '';
-      evenementsJoueur.push({ annee: dm.getFullYear(), texte: dateTxt + ' : mariage de ' + nomPersonne + ' avec ' + conjoint + suffixeMariage + '.' });
+      const suffixeMariage = nomVilleMariage ? ecT('marriagePlace',{city:nomVilleMariage}) : '';
+      evenementsJoueur.push({ annee: dm.getFullYear(), texte: ecT('marriageEvent',{date:dateTxt,name:nomPersonne,spouse:conjoint,place:suffixeMariage}) });
       if (m.statut === 'dissous') {
-        const motif = m.raison_dissolution === 'veuvage' ? 'veuvage' : 'divorce';
-        evenementsJoueur.push({ annee: dm.getFullYear(), texte: 'Union avec ' + conjoint + ' dissoute (' + motif + ').' });
+        const motif = m.raison_dissolution === 'veuvage' ? ecT('widow') : ecT('divorce');
+        evenementsJoueur.push({ annee: dm.getFullYear(), texte: ecT('dissolvedEvent',{spouse:conjoint,reason:motif}) });
       }
     });
 
@@ -115,8 +115,8 @@ function etatCivilConstruireFiche(nomPersonne) {
     if (deces && deces.created_at) {
       const dd = new Date(deces.created_at);
       const nomVilleDeces = etatCivilNomVille(deces.city);
-      const suffixeDeces = nomVilleDeces ? (' à ' + nomVilleDeces) : '';
-      evenementsJoueur.push({ annee: dd.getFullYear(), texte: dd.getDate() + ' ' + ETAT_CIVIL_MOIS[dd.getMonth()] + ' ' + dd.getFullYear() + ' : décès de ' + joueur.name + suffixeDeces + '.' });
+      const suffixeDeces = nomVilleDeces ? ecT('deathPlace',{city:nomVilleDeces}) : '';
+      evenementsJoueur.push({ annee: dd.getFullYear(), texte: ecT('deathEvent',{date:ecDate(dd.getDate(),dd.getMonth()+1,dd.getFullYear()),name:joueur.name,place:suffixeDeces}) });
     }
 
     evenementsJoueur.sort(function(a, b) { return a.annee - b.annee; });
@@ -127,26 +127,26 @@ function etatCivilConstruireFiche(nomPersonne) {
 
   if (p.naissanceAnnee) {
     const parentsTxt = (p.parents && p.parents.length === 2)
-      ? ', fils/fille de ' + p.parents[0] + ' et ' + p.parents[1]
+      ? ecT('birthParents',{parents:p.parents[0]+' et '+p.parents[1]})
       : '';
-    const dateTxt = etatCivilFormaterDate(p.naissanceJour, p.naissanceMois, p.naissanceAnnee);
-    evenements.push({ annee: p.naissanceAnnee, texte: dateTxt + ' : naissance de ' + p.nom + parentsTxt + '.' });
+    const dateTxt = ecDate(p.naissanceJour,p.naissanceMois,p.naissanceAnnee);
+    evenements.push({ annee: p.naissanceAnnee, texte: ecT('birthEvent',{date:dateTxt,name:p.nom,place:'',parents:parentsTxt}) });
   }
   if (p.mariageAnnee && p.conjoint) {
-    const dateTxt = etatCivilFormaterDate(p.mariageJour, p.mariageMois, p.mariageAnnee);
-    evenements.push({ annee: p.mariageAnnee, texte: dateTxt + ' : mariage de ' + p.nom + ' avec ' + p.conjoint + '.' });
+    const dateTxt = ecDate(p.mariageJour,p.mariageMois,p.mariageAnnee);
+    evenements.push({ annee: p.mariageAnnee, texte: ecT('marriageEvent',{date:dateTxt,name:p.nom,spouse:p.conjoint,place:''}) });
   }
   // Enfants : toute personne du registre dont p.nom figure dans ses parents.
   registre.forEach(function(autre) {
     if (autre.parents && autre.parents.indexOf(p.nom) !== -1 && autre.naissanceAnnee) {
       const parentsEnfantTxt = autre.parents.join(' et ');
-      const dateTxt = etatCivilFormaterDate(autre.naissanceJour, autre.naissanceMois, autre.naissanceAnnee);
-      evenements.push({ annee: autre.naissanceAnnee, texte: dateTxt + ' : naissance de ' + autre.nom + ', fils/fille de ' + parentsEnfantTxt + '.' });
+      const dateTxt = ecDate(autre.naissanceJour,autre.naissanceMois,autre.naissanceAnnee);
+      evenements.push({ annee: autre.naissanceAnnee, texte: ecT('birthEvent',{date:dateTxt,name:autre.nom,place:'',parents:ecT('birthParents',{parents:parentsEnfantTxt})}) });
     }
   });
   if (p.decesAnnee) {
-    const dateTxt = etatCivilFormaterDate(p.decesJour, p.decesMois, p.decesAnnee);
-    evenements.push({ annee: p.decesAnnee, texte: dateTxt + ' : décès de ' + p.nom + '.' });
+    const dateTxt = ecDate(p.decesJour,p.decesMois,p.decesAnnee);
+    evenements.push({ annee: p.decesAnnee, texte: ecT('deathEvent',{date:dateTxt,name:p.nom,place:''}) });
   }
 
   evenements.sort(function(a, b) { return a.annee - b.annee; });
@@ -336,20 +336,35 @@ function etatCivilRechercherPourActe(nomQuery) {
 // INTERFACE (reutilise le modal generique #modal-postes, comme l'organigramme des supporters)
 // =====================
 
+function ecT(key,vars){return window.RPCivilRegistryI18n?.text?.(key,vars||{})||key;}
+function ecDate(jour,mois,annee){
+ if(!annee)return '';
+ if(!jour||!mois)return String(annee);
+ const locale=window.RP_I18N_GAME_ENABLED===true?(window.RPPlateauI18n?.language?.()||'fr'):'fr';
+ if(locale==='fr')return etatCivilFormaterDate(jour,mois,annee);
+ const formats={en:'en-US',es:'es-ES','zh-TW':'zh-TW',ru:'ru-RU',ko:'ko-KR',ar:'ar','pt-BR':'pt-BR',de:'de-DE'};
+ return new Date(annee,mois-1,jour).toLocaleDateString(formats[locale]||'fr-FR',{year:'numeric',month:'long',day:'numeric'});
+}
+
+function ecH(str){return String(str).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function ecLabel(key,vars){return ecH(ecT(key,vars));}
+function ecSpan(key,vars){
+ return '<span data-ec-i18n="'+key+'" data-ec-args="'+ecH(JSON.stringify(vars||{}))+'">'+ecLabel(key,vars)+'</span>';
+}
 function doConsulterEtatCivil() {
-  document.getElementById('postes-modal-title').textContent = "Registre d'État-Civil de Republia";
+  document.getElementById('postes-modal-title').textContent = ecT('title');
   document.getElementById('postes-body').innerHTML = etatCivilHtmlRecherche();
   document.getElementById('modal-postes').classList.add('open');
 }
 
 function etatCivilHtmlRecherche(messageErreur) {
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.85rem;color:#8a8060;margin-bottom:.8rem">Recherchez par nom, par décennie (ex : 1940), ou les deux à la fois.</div>';
+  html += '<div style="font-size:.85rem;color:#8a8060;margin-bottom:.8rem">'+ecSpan('instructions')+'</div>';
   html += '<div style="display:flex;gap:.4rem;margin-bottom:.4rem">';
-  html += '<input id="etat-civil-nom" type="text" placeholder="Nom..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
-  html += '<input id="etat-civil-decennie" type="text" placeholder="Décennie (ex: 1940)" style="width:150px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '<input id="etat-civil-nom" type="text" data-ec-placeholder="name" placeholder="'+ecLabel('name')+'" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '<input id="etat-civil-decennie" type="text" data-ec-placeholder="decade" placeholder="'+ecLabel('decade')+'" style="width:150px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
   html += '</div>';
-  html += '<button class="pnj-action-btn" onclick="etatCivilLancerRecherche()"><i class="ti ti-search" style="font-size:.85rem"></i> Rechercher</button>';
+  html += '<button class="pnj-action-btn" onclick="etatCivilLancerRecherche()"><i class="ti ti-search" style="font-size:.85rem"></i> '+ecSpan('search')+'</button>';
   if (messageErreur) {
     html += '<div style="margin-top:.7rem;font-size:.8rem;color:#8a3a20;font-style:italic">' + messageErreur + '</div>';
   }
@@ -370,15 +385,15 @@ async function etatCivilLancerRecherche() {
   if (!resultatsEl) return;
 
   if (!nom.trim() && !decennie.trim()) {
-    resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a3a20;font-style:italic">Indiquez au moins un nom ou une décennie.</div>';
+    resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a3a20;font-style:italic">'+ecSpan('needSearch')+'</div>';
     return;
   }
   if (resultats.length === 0) {
-    resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a3a20;font-style:italic">Aucun résultat.</div>';
+    resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a3a20;font-style:italic">'+ecSpan('noResults')+'</div>';
     return;
   }
 
-  let html = '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.4rem">' + resultats.length + ' résultat(s) :</div>';
+  let html = '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.4rem">' + ecSpan('results',{count:resultats.length}) + '</div>';
   html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
   resultats.forEach(function(nomPersonne) {
     const nomEchap = nomPersonne.replace(/'/g, "\\'");
@@ -393,18 +408,18 @@ function etatCivilAfficherFiche(nomPersonne) {
   if (!fiche) return;
 
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;margin-bottom:.7rem">Fiche — ' + fiche.nom + '</div>';
+  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;margin-bottom:.7rem">'+ecSpan('record',{name:fiche.nom})+'</div>';
   html += '<div style="display:flex;flex-direction:column;gap:.35rem;margin-bottom:1rem">';
   if (fiche.evenements.length === 0) {
-    html += '<div style="font-size:.82rem;color:#5a5040;font-style:italic">Aucun événement connu.</div>';
+    html += '<div style="font-size:.82rem;color:#5a5040;font-style:italic">'+ecSpan('noEvent')+'</div>';
   }
   fiche.evenements.forEach(function(e) {
     html += '<div style="font-size:.85rem;color:#e0d8c0">' + e.texte + '</div>';
   });
   html += '</div>';
   const nomEchap = fiche.nom.replace(/'/g, "\\'");
-  html += '<button class="pnj-action-btn" onclick="etatCivilImprimerFiche(\'' + nomEchap + '\')"><i class="ti ti-printer" style="font-size:.85rem"></i> Imprimer cette fiche</button> ';
-  html += '<button class="pnj-action-btn" onclick="doConsulterEtatCivil()" style="opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Nouvelle recherche</button>';
+  html += '<button class="pnj-action-btn" onclick="etatCivilImprimerFiche(\'' + nomEchap + '\')"><i class="ti ti-printer" style="font-size:.85rem"></i> '+ecSpan('print')+'</button> ';
+  html += '<button class="pnj-action-btn" onclick="doConsulterEtatCivil()" style="opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> '+ecSpan('newSearch')+'</button>';
   html += '</div>';
 
   document.getElementById('postes-body').innerHTML = html;
@@ -413,5 +428,20 @@ function etatCivilAfficherFiche(nomPersonne) {
 async function etatCivilImprimerFiche(nomPersonne) {
   const v = await executerReceptionInventaire('etat_civil_document_recevoir', { p_nom: nomPersonne, p_type: 'fiche', p_reference: null, p_pa: 0, p_cost: 0 });
   if (!v) return;
-  updateUI(); renderInventory(); showToast('Fiche imprimée', v.objet + ' ajouté à votre inventaire.', true);
+  updateUI(); renderInventory(); showToast(ecT('printed'), ecT('added',{object:v.objet}), true);
 }
+
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
+ const body=document.getElementById('postes-body');
+ const modal=document.getElementById('modal-postes');
+ if(!modal?.classList?.contains('open')||!body?.querySelector?.('[data-ec-i18n],[data-ec-placeholder]'))return;
+ const titre=document.getElementById('postes-modal-title');
+ if(titre)titre.textContent=ecT('title');
+ body.querySelectorAll('[data-ec-i18n]').forEach(node=>{
+  let args={};try{args=JSON.parse(node.getAttribute('data-ec-args')||'{}');}catch(_){}
+  node.textContent=ecT(node.getAttribute('data-ec-i18n'),args);
+ });
+ body.querySelectorAll('[data-ec-placeholder]').forEach(node=>{
+  node.placeholder=ecT(node.getAttribute('data-ec-placeholder'));
+ });
+});
