@@ -22,6 +22,8 @@ const VEH_GARAGE_MATIERES = Object.freeze({ metal: 'Métal', textile: 'Tissus et
 const vehGT = (key,fr,vars) => window.RPVehicleGarageI18n?.text?.(key,fr,vars)
  || String(fr).replace(/\{([a-z]+)\}/g,(m,k)=>Object.hasOwn(vars||{},k)?String(vars[k]):m);
 const vehGH = (key,fr,vars) => vehEchappe(vehGT(key,fr,vars));
+const vehTT = (key,fr,vars) => window.RPVehicleTravelI18n?.text?.(key,fr,vars) || String(fr).replace(/\{([a-z]+)\}/g,(m,k)=>Object.hasOwn(vars||{},k)?String(vars[k]):m);
+const vehTH = (key,fr,vars) => vehEchappe(vehTT(key,fr,vars));
 const vehGModele = id => vehGT(({voiture:'car','deux-roues':'bike','vehicule-utilitaire':'utility'})[id],
   VEH_MODELES[id]?.label || id);
 const vehGMatiere = key => vehGT(({metal:'metal',textile:'textiles',derives_petrochimiques:'derivatives'})[key],VEH_GARAGE_MATIERES[key]||key);
@@ -221,22 +223,21 @@ async function ouvrirGarageRevision() {
   if (!l.ici || l.ici.type !== 'garage') { showToast('Garage', 'Présentez-vous au comptoir d’un garage.', false); return; }
   const cur = vehMonnaie();
   const prix = l.ici.proprietaire === 'PNJ' || !l.ici.prix?.revision_vehicule ? 500 : l.ici.prix.revision_vehicule;
-  let html = '<p class="cpj-note">Une révision tous les 10 trajets. Au-delà, le risque de panne grimpe ; au 15e trajet, ' +
-    'le véhicule ne démarre plus. Révision : ' + vehNombre(prix) + ' ' + cur + '.</p>';
+  let html = '<p class="cpj-note">'+vehTH('revisionNote','Une révision tous les 10 trajets. Au-delà, le risque de panne grimpe ; au 15e trajet, le véhicule ne démarre plus. Révision : {price} {currency}.',{price:vehNombre(prix),currency:cur})+'</p>';
   const ici = l.vehicules.filter(x => x.sur_place);
-  if (!ici.length) html += '<p>Aucun de vos véhicules n’est dans cette ville.</p>';
+  if (!ici.length) html += '<p>'+vehTH('noneHere','Aucun de vos véhicules n’est dans cette ville.')+'</p>';
   for (const x of ici) {
     html += vehSection(vehEchappe(x.label) + ' n° ' + vehEchappe(x.numero),
-      '<div>' + x.trajets + ' trajet(s) depuis la dernière révision' + (x.statut === 'en_panne' ? ' · <b>en panne</b>' : '') + '</div>' +
-      (x.trajets > 0 && x.statut !== 'en_panne' ? vehBouton('Faire réviser — ' + vehNombre(prix) + ' ' + cur, "vehReviser('" + x.id + "')", true) : ''));
+      '<div>'+vehTH('journeys','{count} trajet(s) depuis la dernière révision',{count:x.trajets}) + (x.statut === 'en_panne' ? ' · <b>'+vehTH('broken','en panne')+'</b>' : '') + '</div>' +
+      (x.trajets > 0 && x.statut !== 'en_panne' ? vehBouton(vehTH('revise','Faire réviser — {price} {currency}',{price:vehNombre(prix),currency:cur}), "vehReviser('" + x.id + "')", true) : ''));
   }
-  vehModal('Garage — révision', html);
+  vehModal(vehTT('revisionTitle','Garage — révision'),'<div data-veh-i18n="revision"></div>'+html);
 }
 
 async function vehReviser(id) {
   const v = await vehActe('reviser', { vehicule: id, entreprise: VEH_LECTURE?.ici?.id }, id);
   if (!v || v.ok !== true) { showToast('Révision refusée', vehMotif(v), false); return; }
-  showToast('Révision faite', 'Le compteur de trajets repart à zéro (' + vehNombre(v.prix) + ' ' + vehMonnaie() + ').', true);
+  showToast(vehTT('revisionDone','Révision faite'),vehTT('revisionReset','Le compteur de trajets repart à zéro ({price} {currency}).',{price:vehNombre(v.prix),currency:vehMonnaie()}),true);
   await ouvrirGarageRevision();
 }
 
@@ -283,39 +284,39 @@ async function vehConditionner(entreprise) {
 async function ouvrirMesVehicules() {
   const l = await vehLire(); if (!l) return;
   const cur = vehMonnaie();
-  if (!l.vehicules.length) { vehModal('Mes véhicules', '<p>Vous ne détenez la clé d’aucun véhicule.</p>'); return; }
+  if (!l.vehicules.length) { vehModal(vehTT('vehicles','Mes véhicules'), '<p>'+vehTH('noKeys','Vous ne détenez la clé d’aucun véhicule.')+'</p>'); return; }
   const enPanne = l.vehicules.find(x => x.statut === 'en_panne' && x.sur_place);
   if (enPanne) { afficherPanneVehicule(enPanne.id, enPanne.panne); return; }
   const bidons = (state.inventory || []).filter(o => o && o.stackKey === 'carburant').reduce((s, o) => s + Number(o.qty || 1), 0);
   let html = '';
   for (const x of l.vehicules) {
-    let corps = '<div>' + x.places + ' places · ' + vehEchappe(vehVille(x.pays, x.ville)) +
-      (x.proprietaire === state.char?.name ? '' : ' · propriétaire : ' + vehEchappe(x.proprietaire)) + '</div>' +
-      '<div>Carburant : ' + x.carburant + ' / ' + x.reservoir + ' · un trajet en consomme ' + x.consommation + '</div>' +
-      '<div>Chargement : ' + vehNombre(x.unites) + ' / ' + x.chargement + ' · ' + x.trajets + ' trajet(s) depuis la révision</div>';
-    if (!x.sur_place) { html += vehSection(vehEchappe(x.label) + ' n° ' + vehEchappe(x.numero), corps + '<div class="cpj-note">Ailleurs : rejoignez sa ville pour vous en servir.</div>'); continue; }
+    let corps = '<div>'+vehTH('seatsCity','{seats} places · {city}',{seats:x.places,city:vehVille(x.pays,x.ville)}) +
+      (x.proprietaire === state.char?.name ? '' : ' · '+vehTH('owner','propriétaire : {owner}',{owner:x.proprietaire})) + '</div>' +
+      '<div>'+vehTH('fuel','Carburant : {current} / {max} · un trajet en consomme {consumption}',{current:x.carburant,max:x.reservoir,consumption:x.consommation})+'</div>' +
+      '<div>'+vehTH('cargoStats','Chargement : {current} / {max} · {trips} trajet(s) depuis la révision',{current:vehNombre(x.unites),max:x.chargement,trips:x.trajets})+'</div>';
+    if (!x.sur_place) { html += vehSection(vehEchappe(x.label) + ' n° ' + vehEchappe(x.numero), corps + '<div class="cpj-note">'+vehTH('elsewhere','Ailleurs : rejoignez sa ville pour vous en servir.')+'</div>'); continue; }
     // Plein
     const place = x.reservoir - x.carburant;
-    if (place > 0) corps += '<div style="margin-top:.5rem">Verser des bidons (' + bidons + ' sur vous) : ' +
-      vehChamp('veh-plein-' + x.id, Math.min(place, bidons) || 1, place) + vehBouton('Faire le plein', "vehPlein('" + x.id + "')") + '</div>';
+    if (place > 0) corps += '<div style="margin-top:.5rem">'+vehTH('cansOnPerson','Verser des bidons ({count} sur vous) :',{count:bidons})+' ' +
+      vehChamp('veh-plein-' + x.id, Math.min(place, bidons) || 1, place) + vehBouton(vehTH('refill','Faire le plein'), "vehPlein('" + x.id + "')") + '</div>';
     // Conduire
     const routes = Array.isArray(x.routes) ? x.routes : [];
     corps += '<div style="margin-top:.5rem">' + (routes.length
-      ? routes.map(v => vehBouton('<i class="ti ti-steering-wheel"></i> Conduire vers ' + vehEchappe(vehVille(x.pays, v)) + ' (1 PA)', "vehConduire('" + x.id + "','" + v + "')", true)).join('')
-      : '<span class="cpj-note">Aucune route depuis cette ville.</span>') + '</div>';
+      ? routes.map(v => vehBouton('<i class="ti ti-steering-wheel"></i> '+vehTH('driveTo','Conduire vers {city} (1 PA)',{city:vehVille(x.pays,v)}), "vehConduire('" + x.id + "','" + v + "')", true)).join('')
+      : '<span class="cpj-note">'+vehTH('noRoad','Aucune route depuis cette ville.')+'</span>') + '</div>';
     // Cargaison
-    corps += '<div style="margin-top:.6rem"><b>Cargaison</b>' + (x.cargaison.length ? x.cargaison.map((o, i) =>
-      '<div>' + vehEchappe(o.name || o.type || 'objet') + (o.qty ? ' × ' + o.qty : '') + ' ' +
-      vehChamp('veh-dech-' + x.id + '-' + i, o.qty || 1, o.qty || 1) + vehBouton('Reprendre', "vehDecharger('" + x.id + "'," + i + ")") + '</div>').join('')
-      : ' <span class="cpj-note">vide</span>') + '</div>';
+    corps += '<div style="margin-top:.6rem"><b>'+vehTH('cargo','Cargaison')+'</b>' + (x.cargaison.length ? x.cargaison.map((o, i) =>
+      '<div>' + vehEchappe(o.name || o.type || vehTT('object','objet')) + (o.qty ? ' × ' + o.qty : '') + ' ' +
+      vehChamp('veh-dech-' + x.id + '-' + i, o.qty || 1, o.qty || 1) + vehBouton(vehTH('take','Reprendre'), "vehDecharger('" + x.id + "'," + i + ")") + '</div>').join('')
+      : ' <span class="cpj-note">'+vehTH('empty','vide')+'</span>') + '</div>';
     const inv = (state.inventory || []).map((o, i) => [o, i]).filter(([o]) => o);
-    if (inv.length) corps += '<div style="margin-top:.4rem">Charger : <select id="veh-charge-' + x.id + '" class="cpj-champ">' +
-      inv.map(([o, i]) => '<option value="' + i + '">' + vehEchappe(o.name || o.type || 'objet') + (o.qty ? ' × ' + o.qty : '') + '</option>').join('') +
-      '</select> ' + vehChamp('veh-charge-q-' + x.id, 1) + vehBouton('Charger', "vehCharger('" + x.id + "')") + '</div>';
+    if (inv.length) corps += '<div style="margin-top:.4rem">'+vehTH('loadLabel','Charger :')+' <select id="veh-charge-' + x.id + '" class="cpj-champ">' +
+      inv.map(([o, i]) => '<option value="' + i + '">' + vehEchappe(o.name || o.type || vehTT('object','objet')) + (o.qty ? ' × ' + o.qty : '') + '</option>').join('') +
+      '</select> ' + vehChamp('veh-charge-q-' + x.id, 1) + vehBouton(vehTH('load','Charger'), "vehCharger('" + x.id + "')") + '</div>';
     html += vehSection(vehEchappe(x.label) + ' n° ' + vehEchappe(x.numero), corps);
   }
   html += '<p class="cpj-note">Révisions et dépannages : au garage. Prix en ' + cur + '.</p>';
-  vehModal('Mes véhicules', html);
+  vehModal(vehTT('vehicles','Mes véhicules'),'<div data-veh-i18n="vehicles"></div>'+html);
 }
 
 async function vehPlein(id) {
