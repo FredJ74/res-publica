@@ -1,0 +1,22 @@
+name: "Novomirsk V14 — images des Quais"
+on:
+  push:
+    branches:
+      - chatgpt/novomirsk-v14-images-quais-20261112
+  pull_request:
+    paths:
+      - data.js
+      - outils/bancs/test-novomirsk-v14-images-quais-20261112.mjs
+permissions:
+  contents: read
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check data.js
+      - run: node --test outils/bancs/test-novomirsk-v14-images-quais-20261112.mjs outils/bancs/test-logements-marche-novomirsk-20261112.mjs
