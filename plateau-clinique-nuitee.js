@@ -1,27 +1,28 @@
 // Clinique privée : réservation libre d'une nuit à l'accueil.
 // L'attribution, la facturation et les soins de nuit restent exclusivement côté serveur.
 (function(global){'use strict';
+function clT(key,fr,vars){return global.RPClinicStayI18n?.text?.(key,fr,vars)||String(fr).replace(/\{([a-z]+)\}/g,(m,k)=>Object.hasOwn(vars||{},k)?String(vars[k]):m)}
+function clH(key,fr,vars){return String(clT(key,fr,vars)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 const cliniquePays=()=>typeof state!=='undefined'&&['republic','soviet'].includes(state.country);
 function cliniqueDevise(){return state.country==='soviet'?'PSK':'FR';}
 function ordresNuiteeClinique(buildingId,roomId){
  if(!cliniquePays()||state.currentCity!=='capitale'||buildingId!=='clinique-privee')return [];
  if(roomId==='reception_clinique')return [{
-   fn:'clinique_reserver_nuit',label:'Réserver une chambre — 150 '+cliniqueDevise(),
+   fn:'clinique_reserver_nuit',label:clT('reserveLabel',"Réserver une chambre — 150 {currency}",{currency:cliniqueDevise()}),
    pa:0,cost:0,type:'legal',icon:'ti-bed',successRate:100,
-   desc:'Réserver une chambre jusqu’à votre prochain Dormir validé dans celle-ci : 150 '+cliniqueDevise()
-    +'. Même après avoir déjà dormi aujourd’hui, vous pouvez réserver. Le prochain Dormir dans votre chambre apportera +2 PA, +10 Santé et +3 Moral en plus du repos normal.'
+   desc:clT('reserveDesc',"Réserver une chambre jusqu’à votre prochain Dormir validé dans celle-ci : 150 {currency}. Même après avoir déjà dormi aujourd’hui, vous pouvez réserver. Le prochain Dormir dans votre chambre apportera +2 PA, +10 Santé et +3 Moral en plus du repos normal.",{currency:cliniqueDevise()})
  }];
  if(/^chambre_(?:[1-9]|10)$/.test(roomId)){
  const propre=(state.locationsActives||[]).some(l=>l.buildingId==='clinique-privee'
    &&l.roomId===roomId&&l.locataire===state.char?.name&&l.reservationClinique===true);
  return [{
-   fn:'clinique_dormir',label:'Dormir dans la chambre',
+   fn:'clinique_dormir',label:clT('sleepLabel','Dormir dans la chambre'),
    pa:0,cost:0,type:'legal',icon:'ti-moon',successRate:100,
-   desc:'Une seule nuitée payée donne +2 PA, +10 Santé et +3 Moral lors du prochain Dormir validé par le serveur.'
+   desc:clT('sleepDesc','Une seule nuitée payée donne +2 PA, +10 Santé et +3 Moral lors du prochain Dormir validé par le serveur.')
  }].concat(propre?[{
-   fn:'clinique_verifier_bonus',label:'Vérifier les bonus de la nuit',
+   fn:'clinique_verifier_bonus',label:clT('verifyLabel','Vérifier les bonus de la nuit'),
    pa:0,cost:0,type:'legal',icon:'ti-check',successRate:100,
-   desc:'Après Dormir, vérifier les bonus de nuitée auprès du serveur. Aucun bonus n’est accordé deux fois.'
+   desc:clT('verifyDesc','Après Dormir, vérifier les bonus de nuitée auprès du serveur. Aucun bonus n’est accordé deux fois.')
  }]:[]);
  }
  return [];
@@ -46,17 +47,16 @@ function reserverNuiteeClinique(){
   return;
  }
  const cur=cliniqueDevise();
- titre.textContent='Réserver une chambre à la clinique';
+ titre.textContent=clT('title','Réserver une chambre à la clinique');
  corps.innerHTML=
   '<div id="clinique-nuitee-confirmation" style="padding:1.25rem 1.4rem;color:#d7d0be">'
- +'<div style="font-size:1.03rem;color:#eac67a;margin-bottom:.85rem">Une nuit en chambre privée</div>'
- +'<p style="line-height:1.65;margin:0 0 .75rem">Tarif : <strong>150 '+cur
- +' par nuit</strong>, prélevés lors de la réservation.</p>'
- +'<p style="line-height:1.65;margin:0 0 .75rem">En dormant dans votre chambre : <strong>+2 PA, +10 Santé et +3 Moral</strong>, en plus des effets du sommeil habituel et dans la limite des plafonds.</p>'
- +'<p style="color:#a69b86;font-size:.83rem;margin:0 0 1.2rem">La chambre est attribuée selon les disponibilités et reste réservée tant que vous n’avez pas effectué l’ordre Dormir dans cette chambre. Vous pouvez réserver même si vous avez déjà dormi aujourd’hui ; les bonus seront accordés lors de votre prochain sommeil autorisé.</p>'
+ +'<div style="font-size:1.03rem;color:#eac67a;margin-bottom:.85rem">'+clH('oneNight','Une nuit en chambre privée')+'</div>'
+ +'<p style="line-height:1.65;margin:0 0 .75rem">'+clH('rateIntro','Tarif : ')+'<strong>150 '+cur+clH('rateNight',' par nuit')+'</strong>'+clH('rateCharge',', prélevés lors de la réservation.')+'</p>'
+ +'<p style="line-height:1.65;margin:0 0 .75rem">'+clH('benefitIntro','En dormant dans votre chambre : ')+'<strong>'+clH('benefitStrong','+2 PA, +10 Santé et +3 Moral')+'</strong>'+clH('benefitEnd',', en plus des effets du sommeil habituel et dans la limite des plafonds.')+'</p>'
+ +'<p style="color:#a69b86;font-size:.83rem;margin:0 0 1.2rem">'+clH('terms','La chambre est attribuée selon les disponibilités et reste réservée tant que vous n’avez pas effectué l’ordre Dormir dans cette chambre. Vous pouvez réserver même si vous avez déjà dormi aujourd’hui ; les bonus seront accordés lors de votre prochain sommeil autorisé.')+'</p>'
  +'<div style="display:flex;flex-wrap:wrap;gap:.65rem;justify-content:flex-end">'
- +'<button type="button" id="clinique-annuler-reservation" style="padding:.65rem 1rem;background:transparent;color:#c9b99a;border:1px solid #64543b;cursor:pointer">Annuler</button>'
- +'<button type="button" id="clinique-confirmer-reservation" style="padding:.65rem 1rem;background:#493615;color:#ffe4a8;border:1px solid #a37d35;cursor:pointer">Confirmer la réservation — 150 '+cur+'</button>'
+ +'<button type="button" id="clinique-annuler-reservation" style="padding:.65rem 1rem;background:transparent;color:#c9b99a;border:1px solid #64543b;cursor:pointer">'+clH('cancel','Annuler')+'</button>'
+ +'<button type="button" id="clinique-confirmer-reservation" style="padding:.65rem 1rem;background:#493615;color:#ffe4a8;border:1px solid #a37d35;cursor:pointer">'+clH('confirmButton','Confirmer la réservation — 150 {currency}',{currency:cur})+'</button>'
  +'</div></div>';
  corps.querySelector('#clinique-annuler-reservation')?.addEventListener('click',()=>modal.classList.remove('open'));
  corps.querySelector('#clinique-confirmer-reservation')?.addEventListener('click',()=>{void confirmerReservationNuiteeClinique();});
@@ -67,7 +67,7 @@ async function confirmerReservationNuiteeClinique(){
  if(!cliniquePays()||state.currentCity!=='capitale'||state.currentBuilding!=='clinique-privee'
    ||state.currentRoom!=='reception_clinique')return;
  const bouton=document.getElementById('clinique-confirmer-reservation');
- if(bouton){bouton.disabled=true;bouton.textContent='Vérification auprès de la clinique…';}
+ if(bouton){bouton.disabled=true;bouton.textContent=clT('checking','Vérification auprès de la clinique…');}
  reservationEnCours=true;
  const acteur=state.char?.name,pays=state.country;
  try{
@@ -76,10 +76,10 @@ async function confirmerReservationNuiteeClinique(){
    :await sbRpc('clinique_nuitee_reserver',{}).catch(()=>null);
   const r=Array.isArray(brut)?brut[0]:brut;
   if(!r||r.transport){
-   showToast('Réservation non confirmée','Vérifiez votre chambre avant de réessayer : aucun second paiement automatique.',false);return;
+   showToast(clT('unconfirmed','Réservation non confirmée'),clT('uncertain','Vérifiez votre chambre avant de réessayer : aucun second paiement automatique.'),false);return;
   }
   if(!r.ok){
-   showToast('Réservation refusée',(r.raison==='fonds_insuffisants'?'Il vous faut 150 '+cliniqueDevise()+' pour cette nuit.':REFUS[r.raison])||'Le serveur a refusé la réservation.',false);return;
+   showToast(clT('refused','Réservation refusée'),(r.raison==='fonds_insuffisants'?clT('insufficient','Il vous faut 150 {currency} pour cette nuit.',{currency:cliniqueDevise()}):REFUS[r.raison])||'Le serveur a refusé la réservation.',false);return;
   }
   if(state.char?.name!==acteur||state.country!==pays)return;
   if(typeof r.liquide==='number')state.liquide=r.liquide;
@@ -87,15 +87,15 @@ async function confirmerReservationNuiteeClinique(){
   if(typeof updateUI==='function')updateUI();
   if(typeof chargerLocations==='function')await chargerLocations();
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Chambre réservée',r.chambre.replace('chambre_','Chambre ')
-    +' : 150 '+cliniqueDevise()+' réglés. Réservation valable jusqu’à votre prochain Dormir dans la chambre.',true);
+  showToast(clT('booked','Chambre réservée'),
+    clT('bookedDetails','Chambre {number} : 150 {currency} réglés. Réservation valable jusqu’à votre prochain Dormir dans la chambre.',{number:r.chambre.replace('chambre_',''),currency:cliniqueDevise()}),true);
   if(state.char?.name===acteur&&state.country===pays
     &&state.currentBuilding==='clinique-privee'&&state.currentRoom==='reception_clinique'
     &&typeof enterRoom==='function')enterRoom('clinique-privee',r.chambre,null);
  }finally{
   reservationEnCours=false;
   const bouton=document.getElementById('clinique-confirmer-reservation');
-  if(bouton){bouton.disabled=false;bouton.textContent='Confirmer la réservation — 150 '+cliniqueDevise();}
+  if(bouton){bouton.disabled=false;bouton.textContent=clT('confirmButton','Confirmer la réservation — 150 {currency}',{currency:cliniqueDevise()});}
  }
 }
 // Appelée APRÈS la sauvegarde du repos normal : le serveur constate la même nuit
@@ -125,7 +125,7 @@ async function consommerNuiteeCliniqueApresDormir(nomInitial,paysInitial,pieceIn
  if(typeof r.moral==='number')state.moral=r.moral;
  if(typeof updateUI==='function')updateUI();
  if(!r.rejeu){
-  showToast('Nuit à la clinique','+2 PA, +10 Santé, +3 Moral (plafonds habituels).',true);
+  showToast(clT('night','Nuit à la clinique'),clT('bonus','+2 PA, +10 Santé, +3 Moral (plafonds habituels).'),true);
   if(typeof addJournalEntry==='function')addJournalEntry('Nuit à la clinique privée : +2 PA, +10 Santé, +3 Moral.','event-good');
  }
  if(typeof chargerLocations==='function')await chargerLocations();
@@ -138,3 +138,13 @@ global.verifierNuiteeClinique=function(){
 global.reserverNuiteeClinique=reserverNuiteeClinique;
 global.consommerNuiteeCliniqueApresDormir=consommerNuiteeCliniqueApresDormir;
 })(window);
+
+(global.RP_I18N_CHANGE_CALLBACKS=global.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
+ const modal=document.getElementById('modal-postes'),corps=document.getElementById('postes-body');
+ if(!reservationEnCours&&modal?.classList?.contains('open')
+   &&corps?.querySelector?.('#clinique-nuitee-confirmation')
+   &&state.currentBuilding==='clinique-privee'&&state.currentRoom==='reception_clinique'){
+  // Aucun champ ni paiement n'est recréé ; il s'agit seulement d'une confirmation.
+  reserverNuiteeClinique();
+ }
+});
