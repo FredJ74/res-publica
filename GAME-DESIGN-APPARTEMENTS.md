@@ -135,3 +135,4 @@ Décors : fonction serveur `logement-decoration` (déployée), même atelier que
 - **Décision de Fred (13/11/2026, 0 h 20)** : « un emplacement au lieu de 3 » vaut **dans les deux sens** : 1 emplacement
   de matériel dans un local (déjà le cas côté serveur) **et 1 place dans l'inventaire** au lieu de 3 (encombrement
   aujourd'hui 3 à la fabrication et à l'achat, Scierie Guy Tarembois). Inventaire : non codé.
+- **Décision de Fred (13/11/2026, 0 h 28)** : déposer ou retirer un souvenir dans l'armoire est **gratuit** (0 PA). Non codé.
