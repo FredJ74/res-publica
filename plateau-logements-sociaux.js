@@ -110,7 +110,7 @@ async function ouvrirTableauLogementsSociaux() {
   demandes.forEach(d => {
     const options = libres.map(a => '<option value="' + e(a.terrain) + '|' + e(a.lot) + '">' + e(a.label) + ' — ' + e(nomBatiment(a.terrain)) + ' (' + Number(a.loyer || 0) + ' ' + cur + ')</option>').join('');
     html += '<div style="padding:.4rem .5rem;border:1px solid #2a2010;margin-bottom:.3rem;font-size:.78rem;color:#c0b090">'
-      + '<div>' + e(d.demandeur) + ' <span style="color:#6a6040">— souhaite : ' + (d.type === 'petit' ? 'petit' : d.type === 'grand' ? 'grand' : 'sans préférence') + '</span></div>'
+      + '<div>' + e(d.demandeur) + ' <span style="color:#6a6040">'+socialSpan('wants',{choiceType:d.type,choice:d.type==='petit'?socialT('smallChoice','petit'):d.type==='grand'?socialT('largeChoice','grand'):socialT('anyChoice','sans préférence')})+'</span></div>'
       + (libres.length
         ? '<div style="display:flex;gap:.3rem;margin-top:.3rem"><select id="attrib-social-' + e(d.id) + '" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.2rem">' + options + '</select>'
           + '<button onclick="attribuerLogementSocialCommun(\'' + e(d.id) + '\')" style="font-size:.7rem;padding:.2rem .5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">'+socialSpan('assign')+'</button></div>'
@@ -124,10 +124,10 @@ async function ouvrirTableauLogementsSociaux() {
 async function fixerLoyerLogementSocial(terrain, lot) {
   const brut = document.getElementById('loyer-social-' + terrain + '|' + lot)?.value;
   const loyer = Number(brut);
-  if (!Number.isSafeInteger(loyer) || loyer < 1) { showToast('Loyer invalide', LOGEMENTS_SOCIAUX_MOTIFS.loyer_invalide, false); return; }
+  if (!Number.isSafeInteger(loyer) || loyer < 1) { showToast(socialT('invalidRent','Loyer invalide'),socialReason('loyer_invalide'),false); return; }
   const v = await sbRpcVerdict('logement_social_loyer_fixer', { p_terrain: terrain, p_lot: lot, p_loyer: loyer }).catch(() => null);
-  if (!v || v.ok !== true) { showToast('Loyer non modifié', logementsSociauxMotif(v), false); return; }
-  showToast('Loyer fixé', v.ancien + ' → ' + v.loyer + (v.occupe ? ' (bail en cours mis à jour)' : ''), true);
+  if (!v || v.ok !== true) { showToast(socialT('rentNotChanged','Loyer non modifié'),logementsSociauxMotif(v),false); return; }
+  showToast(socialT('rentSet','Loyer fixé'),v.ancien+' → '+v.loyer+(v.occupe?socialT('leaseUpdated',' (bail en cours mis à jour)'):''),true);
   addJournalEntry('Loyer social modifié (' + lot + ') : ' + v.ancien + ' → ' + v.loyer + '.', 'event-info');
   ouvrirTableauLogementsSociaux();
 }
@@ -137,8 +137,8 @@ async function attribuerLogementSocialCommun(demandeId) {
   const [terrain, lot] = choix.split('|');
   if (!terrain || !lot) return;
   const v = await sbRpcVerdict('logement_social_attribuer', { p_terrain: terrain, p_lot: lot, p_demande: demandeId }).catch(() => null);
-  if (!v || v.ok !== true) { showToast('Attribution refusée', logementsSociauxMotif(v), false); return; }
-  showToast('Logement attribué', v.beneficiaire + ' est informé par courrier.', true, true);
+  if (!v || v.ok !== true) { showToast(socialT('assignDenied','Attribution refusée'),logementsSociauxMotif(v),false); return; }
+  showToast(socialT('assigned','Logement attribué'),socialT('notified','{name} est informé par courrier.',{name:v.beneficiaire}),true,true);
   addJournalEntry('Logement social attribué à ' + v.beneficiaire + '.', 'event-good');
   ouvrirTableauLogementsSociaux();
 }
@@ -225,3 +225,24 @@ function ouvrirAidePascaleSsm(rubrique) {
   body.innerHTML = html + '</div>';
   modal.classList.add('open');
 }
+
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
+ const body=document.getElementById('postes-body'),modal=document.getElementById('modal-postes');
+ const root=body?.querySelector?.('[data-social-context]');
+ if(!root||!modal?.classList?.contains('open'))return;
+ const title=document.getElementById('postes-modal-title');
+ if(title)title.textContent=root.getAttribute('data-social-context')==='demand'
+   ?socialT('demandTitle','Demande de logement social'):socialT('title','Logements sociaux');
+ const words=window.RPSocialHousingI18n?.words?.fr;
+ if(!words)return;
+ body.querySelectorAll('[data-social-i18n]').forEach(node=>{
+  const key=node.getAttribute('data-social-i18n');
+  let vars={};try{vars=JSON.parse(node.getAttribute('data-social-args')||'{}');}catch(_){}
+  if(key==='wants'&&Object.hasOwn(vars,'choiceType'))
+    vars.choice=vars.choiceType==='petit'?socialT('smallChoice','petit'):
+      vars.choiceType==='grand'?socialT('largeChoice','grand'):socialT('anyChoice','sans préférence');
+  if(words[key])node.textContent=socialT(key,words[key],vars);
+ });
+ // Ne pas recréer les champs de loyer ni les choix d'attribution.
+ // Aucun appel réseau ni écriture serveur sur changement de langue.
+});
