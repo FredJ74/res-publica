@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - chatgpt/novomirsk-hopital-images-chambre-20261112
+      - main
     paths:
       - .github/workflows/novomirsk-hopital-webp.yml
   workflow_dispatch:
