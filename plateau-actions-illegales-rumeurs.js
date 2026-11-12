@@ -5228,8 +5228,8 @@ async function confirmerConsommerBoissonUI(commerceType, buildingId, roomId, rec
 // generique a cibles multiples (PJ et/ou PNJ), adossee au moteur commerce existant. Reutilise
 // integralement chargerCommerce/RECETTES_ALIMENTAIRES/appliquerTaxeTransaction/
 // crediterCaisseBatiment/ajouterHistoriqueEntreprise/sbSaveEntreprise (memes primitives que
-// commanderProduitCommerce, jamais dupliquees ni bouclees N+1 fois) et appliquerGainENT (meme
-// plafond/limite quotidienne que partout ailleurs). Persistance dans les tables "tournees"
+// commanderProduitCommerce, jamais dupliquees ni bouclees N+1 fois). Depuis le contrat boire_v1,
+// tout le reglement (et l'ENT) est au serveur ; l'ancien chemin ecran est supprime (12/11/2026). Persistance dans les tables "tournees"
 // (etat partage : boisson, prix de reference, pa_debite, statut) et invitations_diner.tournee_id
 // (une ligne par cible PJ) -- migration_tournees_boissons.sql, deja executee. Etat local
 // (state._tourneeModalOuvert) sert uniquement a eviter d'ouvrir deux fois la meme modale de
@@ -5370,124 +5370,12 @@ async function resoudreTourneeBoire(tournee) {
 // revérifié ici). Relit systematiquement stock/prix/argent avant toute mutation, y compris lors
 // d'une reprise apres crash (pa_debite=true) : le plafond calcule au lancement n'est jamais
 // reutilise tel quel.
+// UNE SEULE VERITE (12/11/2026, Fred) : une tournee se regle entierement au serveur
+// (tournee_cloturer_boire : PA, vente, Sante, INF, ENT de l'offreur comme des invites). L'ancien
+// chemin, qui revendiquait la ligne a l'ecran puis s'ajoutait +2 Moral / +1 ENT localement, est
+// supprime ; tournee_creer est le seul createur et pose toujours le contrat boire_v1.
 async function resoudreTournee(tournee) {
-  if(tournee.contrat==='boire_v1') return resoudreTourneeBoire(tournee);
-  const invitationsPJ = await sbGetInvitationsTournee(tournee.id);
-  const pjAcceptants = invitationsPJ.filter(r => r.statut === 'acceptee');
-  const pnjAcceptants = (tournee.pnj_resultats || []).filter(p => p.accepte);
-  const N = pjAcceptants.length + pnjAcceptants.length;
-
-  const estMoi = tournee.offreur === state.char?.name;
-
-  // LA CLOTURE EST UNE SEULE PORTE, POUR LES QUATRE SORTIES (chantier 5, chaine 6, 10 octobre
-  // 2026). Avant : nettoyerInvitations() supprimait les invitations une par une avec un catch
-  // avale, puis sbMarquerTourneeResolue etait attendu sans que son retour soit lu. Si ce dernier
-  // echouait, la ligne restait en 'en_resolution' -- et trente secondes plus tard le polling la
-  // RECLAMAIT, donc resoudreTournee RECOMMENCAIT TOUT : vente, PA, stock, caisse. Le
-  // compare-and-swap sur statut, dans tournee_cloturer, rend ce rejeu impossible.
-  // Rend true si la cloture a pris ; false sinon, et alors on n'annonce rien de definitif.
-  async function cloturer(servie) {
-    if (typeof sbRpc !== 'function') return false;
-    const v = await sbRpc('tournee_cloturer', { p_tournee_id: tournee.id, p_servie: !!servie })
-      .then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
-      .catch(function () { return null; });
-    return !!(v && v.ok === true);
-  }
-
-  if (N === 0) {
-    await cloturer(false);
-    if (estMoi) {
-      showToast('Tournée déclinée', 'Personne n\'a accepté votre offre.', false);
-      addJournalEntry('Tournée proposée : personne n\'a accepté.', 'event-info');
-    }
-    return;
-  }
-
-  const recette = RECETTES_ALIMENTAIRES[tournee.recette_id];
-  const data = await chargerCommerce(tournee.commerce_type, tournee.country, tournee.ville, tournee.building_id, tournee.room_id);
-  const quantite = N + 1;
-  const stockActuel = data ? (data.stockProduits[tournee.recette_id] || 0) : 0;
-  const prixReel = data ? data.parametres.prixVente[tournee.recette_id] : null;
-  const argentDispo = estMoi ? getFondsDisponiblesOrdinaires() : 0;
-
-  // Echec total (section 10) : une seule ressource manquante suffit, aucun service partiel.
-  if (!data || !recette || prixReel == null || stockActuel < quantite || argentDispo < prixReel * quantite) {
-    await cloturer(false);
-    if (estMoi) {
-      showToast('Tournée annulée', 'Les ressources nécessaires ne sont plus réunies au moment de servir la tournée.', false);
-      addJournalEntry('Tournée annulée à la résolution : stock, prix ou fonds insuffisants.', 'event-bad');
-      updateUI();
-    }
-    return;
-  }
-
-  const montantTotal = prixReel * quantite;
-
-
-  // Flux financier/stock (section 12) : memes primitives que commanderProduitCommerce, appliquees
-  // UNE FOIS pour la quantite agregee (jamais une boucle N+1 fois, qui multiplierait a tort les
-  // effets de la recette). La caisse du commerce est toujours CREDITEE (jamais debitee) : c'est
-  // l'argent personnel de l'offreur qui paie, exactement comme une vente normale.
-  // CHANTIER C / PHASE 3 — PA, argent, stock et caisse en UNE SEULE transaction serveur.
-  // Trois defauts corriges d'un coup :
-  //   1. le 1 PA de la tournee etait REFUSE depuis la phase 1 : l'ordre offrir_tournee est
-  //      declare a 0 PA dans data.js, la regle "1 PA quel que soit N" ne vit que dans ce code,
-  //      et payer_ordre ne peut valider qu'un triple reellement declare ;
-  //   2. resoudreTournee tourne dans une boucle de polling, ou state._ordreEnCours vaut
-  //      n'importe quel ordre precedent : le nom d'ordre transmis n'avait aucun sens ;
-  //   3. le montant (prix x quantite) etait calcule et preleve par le navigateur, puis la caisse
-  //      creditee par une seconde ecriture -- les deux pouvaient diverger.
-  // Le serveur relit le prix de carte, multiplie par la quantite, applique la regle de PA NOMMEE
-  // 'pa_tournee' (valeur lue dans le miroir, jamais transmise), preleve, taxe et credite.
-  const vente = await commerceVendreProduit(data.id,
-                  [{ produit: tournee.recette_id, qte: quantite }], 'comptoir', null, 0, 0,
-                  tournee.pa_debite ? null : 'pa_tournee');
-  if (!vente.ok) {
-    await cloturer(false);
-    if (estMoi) {
-      showToast('Tournée annulée',
-        vente.raison === 'pa_insuffisants' ? 'Plus assez de PA pour offrir la tournée.'
-                                           : 'Fonds insuffisants au moment de servir la tournée.', false);
-      addJournalEntry('Tournée annulée à la résolution : '
-        + (vente.raison === 'pa_insuffisants' ? 'PA insuffisants.' : 'fonds insuffisants.'),
-        'event-bad');
-      updateUI();
-    }
-    return;
-  }
-  // sbMarquerTourneePaDebite A DISPARU D'ICI : tournee_cloturer pose pa_debite=true dans la meme
-  // transaction que statut='resolue'. Un marqueur intermediaire avale n'apportait rien de plus et
-  // pouvait se perdre seul.
-  const net = vente.net;
-
-  // Effets (section 13) : offreur une seule fois, chaque invite PJ ayant reellement accepte de
-  // meme -- jamais les PNJ (aucun personnage persiste a crediter). Traitement PUIS suppression de
-  // chaque ligne d'invitation (et non une boucle de credit separee de la suppression) : c'est ce
-  // qui rend une reprise apres crash idempotente sans colonne de suivi supplementaire -- une ligne
-  // deja supprimee ne peut plus jamais etre recreditee lors d'une reprise ulterieure.
-  // LA CLOTURE D'ABORD, L'ANNONCE ENSUITE. Elle porte le credit des invites, la suppression des
-  // invitations et le marqueur, dans une seule transaction. Si elle n'aboutit pas, la vente a bien
-  // eu lieu -- on ne peut pas la defaire -- mais on ne pretend pas que la tournee est servie : la
-  // reprise a 30 s la reprendra, et le joueur le sait.
-  const close = await cloturer(true);
-  if (!close) {
-    if (estMoi) {
-      showToast('Tournée non confirmée',
-        "Les consommations ont été payées, mais la tournée n'a pas pu être clôturée. Elle sera "
-        + "reprise automatiquement.", false);
-      addJournalEntry('Tournée : clôture non confirmée, reprise automatique en attente.',
-        'event-bad');
-      updateUI();
-    }
-    return;
-  }
-
-  state.moral = Math.min(100, (state.moral || 0) + 2);
-  if (typeof appliquerGainENT === 'function') appliquerGainENT(1);
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-  updateUI();
-  showToast('Tournée servie !', quantite + ' ' + recette.label + ' servi(e)s. -' + montantTotal.toLocaleString('fr-FR') + ' FR. +2 Moral +1 ENT.', true, true);
-  addJournalEntry('Tournée offerte (' + recette.label + ') : ' + N + ' invité(s) sur ' + (invitationsPJ.length + (tournee.pnj_resultats || []).length) + ' ont accepté. -' + montantTotal + ' FR. +2 Moral +1 ENT.', 'event-good');
+  if (tournee?.contrat === 'boire_v1') return resoudreTourneeBoire(tournee);
 }
 
 // Polling offreur (section 9) : retrouve les tournees encore actives EN BASE (jamais via un
@@ -5500,38 +5388,16 @@ async function verifierTourneesActivesOffreur() {
   if (window._tourneeResolutionEnCours) return;
   let tournees = [];
   try { tournees = await sbGetTourneesActivesOffreur(state.char.name); } catch (e) { return; }
-
   for (const t of tournees) {
-    if(t.contrat==='boire_v1') {
-      if(window._tourneeResolutionEnCours) continue;
-      window._tourneeResolutionEnCours=true;
-      try { await resoudreTournee(t); } finally { window._tourneeResolutionEnCours=false; }
-      continue;
-    }
-    if (t.statut === 'en_attente') {
-      const invitationsPJ = await sbGetInvitationsTournee(t.id).catch(() => []);
-      const expiree = t.expires_at && new Date(t.expires_at).getTime() <= Date.now();
-      const tousRepondu = invitationsPJ.every(r => r.statut !== 'attente');
-      if (!expiree && !tousRepondu) continue;
-      const claim = await sbClaimResolutionTournee(t.id);
-      if (!claim || claim.length === 0) continue;
-      window._tourneeResolutionEnCours = true;
-      try { await resoudreTournee(claim[0]); } finally { window._tourneeResolutionEnCours = false; }
-    } else if (t.statut === 'en_resolution') {
-      const debutMs = t.resolution_started_at ? new Date(t.resolution_started_at).getTime() : 0;
-      if (Date.now() - debutMs < 30000) continue; // pas encore perime, laisser sa chance au claimant en cours
-      const seuilIso = new Date(Date.now() - 30000).toISOString();
-      const reclaim = await sbReclaimResolutionTourneeExpiree(t.id, seuilIso);
-      if (!reclaim || reclaim.length === 0) continue;
-      window._tourneeResolutionEnCours = true;
-      try { await resoudreTournee(reclaim[0]); } finally { window._tourneeResolutionEnCours = false; }
-    }
+    if (t.contrat !== 'boire_v1' || window._tourneeResolutionEnCours) continue;
+    window._tourneeResolutionEnCours = true;
+    try { await resoudreTournee(t); } finally { window._tourneeResolutionEnCours = false; }
   }
 }
 
 // Polling invite (section 7) : ecran de reponse dedie a la tournee, distinct de l'ancien
 // verifierInvitationsSocialesRecues (qui l'ignore desormais, cf. sbGetInvitationsDinerRecues).
-// Reponse via sbRepondreInvitationDiner (meme primitive que l'ancien systeme, aucune duplication)
+// Reponse via la porte serveur tournee_repondre.
 // -- AUCUN effet applique ici, ni pour un "oui" ni pour un "non" : c'est la correction obligatoire
 // de l'asymetrie de l'ancien systeme, les bonus n'arrivent qu'a la resolution par l'offreur.
 async function verifierTourneesRecues() {
@@ -5561,7 +5427,7 @@ async function verifierTourneesRecues() {
       }
       continue;
     }
-    if(ligne.statut==='attente'&&(!t.contrat||t.statut==='en_attente')) {invitation=ligne;tournee=t;break;}
+    if(ligne.statut==='attente'&&t.contrat==='boire_v1'&&t.statut==='en_attente') {invitation=ligne;tournee=t;break;}
   }
   if(!invitation||!tournee) return;
   const recette = RECETTES_ALIMENTAIRES[tournee.recette_id];
@@ -5588,7 +5454,7 @@ async function repondreTournee(id, accepte) {
     const tournee=state._tourneeAffichee;
     const v=tournee?.contrat==='boire_v1'
       ?await sbRpcVerdict('tournee_repondre',{p_invitation:id,p_accepte:!!accepte},{encoreValide:()=>contexteNavigationRueValide(c)})
-      :await sbRepondreInvitationDiner(id,accepte,null).then(rows=>({ok:Array.isArray(rows)&&rows.length===1}));
+      :null;
     if(!contexteNavigationRueValide(c)) return;
     if(v?.ok!==true){showToast('Réponse non confirmée','Réessayez : aucune acceptation ni refus confirmé.',false);return;}
     document.getElementById('modal-postes')?.classList.remove('open');
