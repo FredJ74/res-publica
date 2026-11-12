@@ -4594,7 +4594,8 @@ export const SCENES_PNJ = {
     "batiment": "La Voix de Sovarka",
     "piece": "Accueil",
     "personnes": [
-      "Correspondant Local"
+      "Zoïa Glazounova",
+      "Capitaine Arseni Petchatnikov"
     ]
   },
   "[\"soviet\",\"capitale\",\"la-tribune\",\"redaction\"]": {

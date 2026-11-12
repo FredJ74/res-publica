@@ -784,7 +784,32 @@ La règle explicite la plus récente de Fred prévaut sur la ligne du 04/11 : le
 
 **État technique au moment du relevé : non livré.** Les anciens boutons `louer_local` et tarifs 500 PSK sont encore présents pour les trois suites, et la salle ne dispose pas de réservation. La facturation des ambassadeurs doit encore s'appuyer sur une caisse institutionnelle autorisée et reconnue, pas sur la création arbitraire d'un compte. Voir l'issue #753.
 
-## Pavillon et Résidence : service d'étage, escorts et espionnage (Fred, 12/11/2026, 0 h 41 – 1 h 22) — décisions, PAS encore de feu vert de codage
+## Pavillon et Résidence : service d'étage, escorts et espionnage (Fred, 12/11/2026, 0 h 41 – 1 h 23) — CODÉ le 12/11/2026 (feu vert de Fred, 1 h 23)
+
+**Codé (12/11/2026, branche `claude/escorts-pavillon-residence-20261112`, PR #779)** : migrations `20261112005000_escorts_roxane_velours_sovarka`
+et `20261112012000_escort_rumeur_marqueur` **appliquées, NE PAS RÉAPPLIQUER** (banc annulé `outils/bancs/banc-escorts-roxane-velours-20261112.sql`
+vert sur la production avant application) ; écran `plateau-escorts-sovarka.js` (9 langues), banc `banc-escorts-sovarka-20261112.cjs`.
+- Ordres verts **« Appel à un(e) escort »** (`escort_standard`) et **« Service d'étage »** (`service_etage_carte` : `service_etage` est déjà
+  l'ordre des hôtels de Républia) dans les 3 suites du Pavillon et les 5 appartements de la Résidence ; le serveur vérifie que l'on est le
+  locataire, dans sa pièce (bail diplomatique actif au Pavillon, location en cours à la Résidence).
+- Standard : la réponse libre est lue par le serveur (`escort_demande_analyser` : chiffres et nombres en neuf langues, « une/un escort »,
+  « les deux ») ; demande incomprise ou genre imprécis = Rebecca demande de préciser ; demande plafonnée aux escorts libres du catalogue et
+  au plafond de 10 employés. Validation = embauche identique à `escort_recruter` (800 PSK chacun, paie de nuit, renvoi par le PJ), trace
+  `appel_escort` (cible « lieu|intitulé du poste »).
+- Rumeur : `rumeur_ecoute_jauges_interne` reconnaît `appel_escort` ; chaque écoute retire 3 POP (`escort_scandales.ecoutes`) ; à la 3e,
+  projets d'article (`interieur_dossiers`) au ministre de l'Intérieur de Sovarka et, si le poste est étranger, à celui de son pays ;
+  ministre PJ = courrier + ordre **« Dossiers confidentiels »** (bureau du ministre de l'Intérieur, Républia et Sovarka) : valider la
+  publication (article dans la file du journal du pays) ou mettre en attente ; ministre PNJ = tirage à 50 %. La trace s'éteint après
+  7 jours de jeu, comme toutes les traces de rumeur.
+- Choix de codage : aucun poste de journaliste PJ n'existe aujourd'hui, les journalistes sont donc toujours des PNJ et le projet va
+  toujours au ministre ; un intrus ou un invité ne voit pas l'ordre agir (refus « réservé au locataire ») ; les 20 PSK de service vont à la
+  caisse du restaurant du Grand Hôtel ; un dossier piraté laisse une trace « pirater » au nom de l'escort, jamais racontée par les rumeurs.
+- Secrets : déclencheur sur `renseignements_connus` (confidences et « secret contre secret » reçus par une escort du catalogue, client
+  présent en Sovarka) → dossier et courrier au ministre de la Sécurité du Peuple.
+- Piratage : branché dans le Dormir (`pa_repos_nocturne`), une fois par nuit (`escort_piratages_nuits`).
+- **Non fait, signalé** : les bonus de « Faire l'amour » restent calculés par l'écran, comme en Républia (chantier socle à part, il
+  touche aussi la Républia).
+
 
 **Service d'étage** : disponible dans les **deux** bâtiments (suites du Pavillon, appartements de la Résidence). Carte du restaurant du Grand Hôtel de Sovarka **à son prix**, **+ 20 PSK de service par commande** (les 50 FR des hôtels de province de Républia à l'échelle de Sovarka) ; mêmes effets qu'au restaurant.
 
