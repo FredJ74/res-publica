@@ -23,17 +23,17 @@ function fixture(locale='fr',active=true,sovarkaLabel=null){
  vm.runInContext(shared,ctx,{filename:'common-room-resources.js'});
  return{global,refs,setLang:x=>{lang=x;},enable:x=>{enabled=x;},label:(b,r,name)=>global.RPRoomI18n.label(b,r,name)};
 }
-test('140 intitulés dans neuf langues et 205 paires bâtiment/pièce validées',()=>{
+test('164 intitulés dans neuf langues et 233 paires bâtiment/pièce validées',()=>{
  const f=fixture();
  for(const lang of langs){
   const words=f.refs[lang].translation.commonRoomLabels;
-  assert.equal(Object.keys(words).length,140,lang);
+  assert.equal(Object.keys(words).length,164,lang);
   for(const [key,value] of Object.entries(words)){
    assert.ok(key.length>0&&value.length>0,lang+':'+key);
    assert.ok(!/[{}]/.test(value),'aucune variable de moteur dans les titres '+key);
   }
  }
- assert.equal(f.global.RPCommonRoomI18n.scopes.size,205);
+ assert.equal(f.global.RPCommonRoomI18n.scopes.size,233);
 });
 test('noms de gabarit traduits, de la mairie au tribunal, dans neuf langues',()=>{
  for(const lang of langs){
@@ -87,6 +87,23 @@ test('troisième vague : musées, patrimoine, logements et ports',()=>{
  ['logements-montrouge','grand_appartement_2','Grand appartement n°2'],
  ['qhs-prison','promenoir','Promenoir'],
  ['pole-tabac-alcools-psm','distillerie','Distillerie']
+ ];
+ for(const lang of langs){
+  const f=fixture(lang),words=f.refs[lang].translation.commonRoomLabels;
+  for(const [building,room,name] of cases)
+   assert.equal(f.label(building,room,name),lang==='fr'?name:words[name],lang+':'+building+':'+room);
+ }
+});
+test('quatrième vague : ministères, ambassades, services et lieux de culte',()=>{
+ const cases=[
+  ['hotel-republica','suite_privee','Suite Privée — Local à louer'],
+  ['palais-gouvernement','bureau_min_int',"Bureau - Ministre de l'Interieur"],
+  ['palais-gouvernement','bureau_min_fin','Bureau - Ministre des Finances'],
+  ['quartier-ambassades','accueil_ambassades','Accueil du Quartier des Ambassades'],
+  ['quartier-ambassades','bureau_sovarka','Ambassade de Sovarka'],
+  ['dispensaire-public-v','ehpad','EHPAD de Montrouge'],
+  ['tabernacle-impots','nef_principale','Nef des Formulaires'],
+  ['qhs-prison','salle_interrogatoire',"Salle d'Interrogatoire"]
  ];
  for(const lang of langs){
   const f=fixture(lang),words=f.refs[lang].translation.commonRoomLabels;
