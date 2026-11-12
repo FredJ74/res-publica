@@ -1389,8 +1389,10 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [
         { xPct: [20, 45],  yPct: [52, 95], nom: 'Marchande de poissons', type: 'batiment', buildingId: 'poissonniere-novomirsk' },
         { xPct: [60, 98],  yPct: [32, 74], nom: 'Marché de Novomirsk', type: 'batiment', buildingId: 'marche' },
-        // Immeubles au-dessus du marche : logements sociaux (Fred, 12/11/2026), moitie droite de l'image.
-        { xPct: [50, 100], yPct: [0, 32],  nom: 'Logements du Marché', type: 'batiment', buildingId: 'logements-novomirsk-marche' }
+        // Immeubles au-dessus du marche : logements sociaux (Fred, 12/11/2026), deux immeubles. A gauche
+        // celui a la fresque (Quais de Sovarka), tout a droite celui du Marche.
+        { xPct: [50, 72],  yPct: [0, 32],  nom: 'Logements des Quais de Sovarka', type: 'batiment', buildingId: 'logements-novomirsk-quais' },
+        { xPct: [72, 100], yPct: [0, 32],  nom: 'Logements du Marché', type: 'batiment', buildingId: 'logements-novomirsk-marche' }
       ],
       liens: { arriere: 'novomirsk-vue-14', toutDroit: 'novomirsk-vue-17' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
