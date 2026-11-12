@@ -2309,7 +2309,7 @@ const WORLD = {
           roomOverrides: {
             salle_principale: {
               imageUrl: 'images/Sovarka/Novomirsk/Novo_restaurant_Volga.webp',
-              persons: [{name: 'Tatiana Bortchova (PNJ)', role: 'Responsable de salle', rel: 'neutral', job: 'serveur', photoUrl: 'images/Sovarka/Novomirsk/Novo_tatiana_bortchova_portrait_v2.webp'}]
+              persons: [{name: 'Tatiana Bortchova (PNJ)', role: 'Responsable de salle', rel: 'neutral', job: 'serveur', photoUrl: 'images/Sovarka/Novomirsk/Novo_tatiana_bortchova_portrait_v3.webp'}]
             }
           },
           persons: [{name: 'Tatiana Bortchova (PNJ)', role: 'Serveuse', rel: 'neutral', job: 'serveur'}]
