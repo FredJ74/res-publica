@@ -7018,7 +7018,7 @@ const BUILDINGS = {
         orders: [
           {fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours. 800 PSK par escort et par jour, jusqu’à ce que vous rompiez le contrat. Légal, mais immoral : la rumeur coûte cher.'},
           {fn:'service_etage_carte',label:'Service d’étage',pa:0,cost:0,type:'legal',icon:'ti-tools-kitchen-2',successRate:100,desc:'La carte du restaurant du Grand Hôtel, servie dans votre appartement : prix de la carte, plus 20 PSK de service par commande.'},
-          {fn:'pavillon_suite',label:'Gérer le bail diplomatique (650 FR/jour)',pa:0,cost:0,type:'legal',
+          {fn:'pavillon_suite',label:'Gérer le bail diplomatique (650 FR/jour)',i18nKey:'variant.sov_bail_650',pa:0,cost:0,type:'legal',
           icon:'ti-key',successRate:100,desc:'Bail de 7 jours renouvelable ; caisse de l’institution étrangère. +3 PA à chaque sommeil.'}]
 
       },
@@ -7031,7 +7031,7 @@ const BUILDINGS = {
         orders: [
           {fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours. 800 PSK par escort et par jour, jusqu’à ce que vous rompiez le contrat. Légal, mais immoral : la rumeur coûte cher.'},
           {fn:'service_etage_carte',label:'Service d’étage',pa:0,cost:0,type:'legal',icon:'ti-tools-kitchen-2',successRate:100,desc:'La carte du restaurant du Grand Hôtel, servie dans votre appartement : prix de la carte, plus 20 PSK de service par commande.'},
-          {fn:'pavillon_suite',label:'Gérer le bail diplomatique (800 FR/jour)',pa:0,cost:0,type:'legal',
+          {fn:'pavillon_suite',label:'Gérer le bail diplomatique (800 FR/jour)',i18nKey:'variant.sov_bail_800',pa:0,cost:0,type:'legal',
           icon:'ti-key',successRate:100,desc:'Bail de 7 jours renouvelable ; caisse de l’institution étrangère. +3 PA à chaque sommeil.'}]
 
       },
@@ -7044,7 +7044,7 @@ const BUILDINGS = {
         orders: [
           {fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours. 800 PSK par escort et par jour, jusqu’à ce que vous rompiez le contrat. Légal, mais immoral : la rumeur coûte cher.'},
           {fn:'service_etage_carte',label:'Service d’étage',pa:0,cost:0,type:'legal',icon:'ti-tools-kitchen-2',successRate:100,desc:'La carte du restaurant du Grand Hôtel, servie dans votre appartement : prix de la carte, plus 20 PSK de service par commande.'},
-          {fn:'pavillon_suite',label:'Gérer le bail diplomatique (500 FR/jour)',pa:0,cost:0,type:'legal',
+          {fn:'pavillon_suite',label:'Gérer le bail diplomatique (500 FR/jour)',i18nKey:'variant.sov_bail_500',pa:0,cost:0,type:'legal',
           icon:'ti-key',successRate:100,desc:'Bail de 7 jours renouvelable ; caisse de l’institution étrangère. +3 PA à chaque sommeil.'}]
 
       }
@@ -7348,7 +7348,7 @@ const BUILDINGS = {
         orders: [
           {fn:'poissonniere_poisson', label:'Acheter du poisson de rivière', pa:0, cost:0, type:'legal', icon:'ti-fish', successRate:100, desc:"Pêché par son mari. Un peu moins cher qu'à l'entrepôt, mais la pêche du jour ne fait que 12 poissons."},
           {fn:'ecouter_rumeurs', label:'Tendre l\'oreille', i18nKey:'variant.rumours_listen', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:95, desc:'Galina sait tout ce qui se dit en ville. Révèle une rumeur vraie (action récente tracée) ou, à défaut, une information générée selon le contexte.'},
-          {fn:'lancer_rumeur_cible', label:'Lui glisser une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Galina la répétera à toute la ville. Succès (75%) : effet selon la cible. Échec : retour de bâton limité + risque de détection.'},
+          {fn:'lancer_rumeur_cible', label:'Lui glisser une rumeur', i18nKey:'variant.sov_rumeur_glisser', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Galina la répétera à toute la ville. Succès (75%) : effet selon la cible. Échec : retour de bâton limité + risque de détection.'},
           {fn:'contrebande_poissonniere', label:'Du poisson « de l\'autre rive »', pa:1, cost:0, type:'illegal', icon:'ti-package-off', successRate:100, desc:"Son mari fait passer par la rivière de l'alcool et des médicaments de Républia, moins chers qu'au circuit d'État. Achat illégal : on peut être repéré."}
         ]
       }
@@ -10544,8 +10544,8 @@ function slugPnjSovarka(nom) {
         'Réservé aux mêmes autorités : l\'histoire des affaires closes, du dépôt au jugement.'),
       Object.assign(ordre('casier_mon_extrait', 'Demander mon extrait de casier', 1, 'ti-file-certificate',
         'Un extrait de VOTRE casier judiciaire en Sovarka, daté et figé. 8 PSK de frais de greffe, versés à la caisse du Tribunal Populaire.'), { cost: 8 }),
-      ordre('casier_extrait_enquete', 'Extrait de casier (enquête)', 1, 'ti-file-search',
-        'Réservé aux mêmes autorités : le casier de n\'importe quel habitant de Sovarka, sans affaire en cours. Un étranger seulement s\'il a commis une infraction en Sovarka. 1 PA, aucun frais.'),
+      Object.assign(ordre('casier_extrait_enquete', 'Extrait de casier (enquête)', 1, 'ti-file-search',
+        'Réservé aux mêmes autorités : le casier de n\'importe quel habitant de Sovarka, sans affaire en cours. Un étranger seulement s\'il a commis une infraction en Sovarka. 1 PA, aucun frais.'), { i18nKey: 'variant.sov_casier_enquete' }),
       // L'acte officiel quitte le bureau du juge pour le greffe (Fred, 08/11/2026) : chacun pour soi
       // (1 PA, 8 PSK à la caisse du Tribunal Populaire), autorités pour n'importe qui (1 PA, sans frais).
       Object.assign(ordre('sovarka_acte_officiel', 'Demander un acte officiel', 1, 'ti-file-certificate',
@@ -10575,7 +10575,7 @@ function slugPnjSovarka(nom) {
     ajouter(surcharge(ville, capitale ? 'commissariat' : 'commissariat-local', 'bureau_commissaire'), [
       Object.assign(ordre('sovarka_registre_plaintes', 'Registre des plaintes', 0, 'ti-scale',
         'Les plaintes déposées dans votre ville : saisir le juge, ou enterrer l\'affaire. Une affaire enterrée n\'est jamais close : elle reste ici, et peut toujours être transmise.'),
-        { requiresPost: 'commissaire' })
+        { requiresPost: 'commissaire', i18nKey: 'variant.sov_registre_plaintes' })
     ]);
     // Juge et commissaire PNJ titulaires de Starovka et Krasnov (noms validés par Fred, 08/11/2026) ;
     // ils restent référents justice quand un PJ prend le poste. Novomirsk : déclarés plus haut.
@@ -10966,7 +10966,7 @@ BUILDINGS['locaux-starovka'] = {
             desc: 'L’habitant vous offre le gîte et le couvert contre un petit service, différent chaque jour. Une hospitalité par jour.' },
           { fn: 'trinquer_habitant', label: 'Trinquer avec l’habitant', pa: 3, cost: 0, type: 'legal', icon: 'ti-glass-full', successRate: 100,
             desc: 'Apportez une bouteille (n’importe quel alcool). À chaque bouteille, l’habitant vous livre un secret de la ville… et vous lui en livrez un, malgré vous. 3 PA par bouteille.' },
-          { fn: 'dormir_chambre', label: 'Dormir chez l’habitant', pa: 0, cost: 0, type: 'legal', icon: 'ti-bed', successRate: 100,
+          { fn: 'dormir_chambre', label: 'Dormir chez l’habitant', i18nKey: 'variant.sov_dormir_habitant', pa: 0, cost: 0, type: 'legal', icon: 'ti-bed', successRate: 100,
             desc: 'Une fois le service rendu : une nuit au chaud, comme à l’hôtel (+2 PA, +3 Moral au réveil).' }
         ]
       } }
