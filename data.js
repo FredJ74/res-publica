@@ -2031,10 +2031,40 @@ const WORLD = {
           desc: "Réservée aux membres du Parti. Docteur Stakhanov soigne selon le rang.",
           persons: [{"name": "Docteur Stakhanov (PNJ)", "role": "Médecin du Parti", "rel": "neutral", "job": "medecin"}]
         },
+        // Hôpital public de Novomirsk : habillage et troisième pièce propres à cette ville.
+        // Aucun ordre de soins nouveau : le socle serveur reste l'autorité.
         'dispensaire-public': {
-          name: 'Dispensaire Populaire',
-          desc: "Longues files d'attente. Aspirine et bonne volonté.",
-          persons: [{"name": "Infirmière Stoïque (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "medecin"}]
+          name: 'Hôpital public de Novomirsk',
+          desc: "Un hôpital public ancien, sobre et propre. L'accueil oriente les malades vers les soins et les chambres.",
+          persons: [],
+          roomOverrides: {
+            salle_attente: {
+              name: 'Accueil',
+              desc: "Un hall ancien mais bien entretenu. Une infirmière reçoit les patients, tandis qu'un médecin veille à leur orientation.",
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_acceuil.png',
+              persons: [
+                {name:'Infirmière de Novomirsk (PNJ)', role:'Infirmière d’accueil', rel:'neutral', job:'infirmier'},
+                {name:'Médecin de garde de Novomirsk (PNJ)', role:'Médecin', rel:'neutral', job:'medecin'}
+              ]
+            },
+            ehpad_tilleuls: {
+              name: 'EHPAD de Novomirsk',
+              desc: "Un service de long séjour très sommaire mais propre, où les personnes âgées sont accompagnées au quotidien.",
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.png',
+              persons: []
+            }
+          },
+          roomsExtra: {
+            chambre: {
+              name: "Chambre d'hôpital",
+              image: '🛏️',
+              imageBg: 'linear-gradient(135deg,#13201e,#29352f)',
+              desc: "Une chambre modeste, propre et chauffée. Le mobilier est ancien, mais les draps sont impeccables.",
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_chambre.png',
+              persons: [],
+              orders: []
+            }
+          }
         },
         'loge-maconnique': {
           requiresMembership: 'loge',
