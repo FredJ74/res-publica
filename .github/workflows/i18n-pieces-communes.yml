@@ -1,0 +1,28 @@
+name: i18n — pièces communes neuf langues
+on:
+  pull_request:
+    paths:
+      - 'i18n/common-room-resources.js'
+      - 'i18n/room-resources.js'
+      - 'plateau.html'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'outils/bancs/banc-i18n-pieces-communes-20261112.cjs'
+      - '.github/workflows/i18n-pieces-communes.yml'
+permissions:
+  contents: read
+jobs:
+  pieces-communes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Contrôles de syntaxe
+        run: node --check i18n/common-room-resources.js && node --check i18n/room-resources.js
+      - name: Vérifier les pièces partagées sans serveur
+        run: node --test outils/bancs/banc-i18n-pieces-communes-20261112.cjs
+      - name: Audit éditorial central
+        run: node outils/audits/audit-i18n-editorial.cjs > /tmp/i18n-pieces-audit.json
+      - run: git diff --check

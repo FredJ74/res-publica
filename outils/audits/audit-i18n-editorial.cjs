@@ -15,7 +15,7 @@ const scripts=[
  'guide-economie-resources.js','guide-religion-resources.js',
  'orders-resources.js','order-variants-resources.js',
  'order-templates-resources.js',
- 'room-resources.js','forum-ui.js',
+ 'room-resources.js','common-room-resources.js','forum-ui.js',
  'guard-welcome-resources.js','jeremy-scenes-resources.js',
  'petit-accueil-resources.js','pnj-status-resources.js',
  'toast-resources.js','character-sheet-resources.js','inventory-ui-resources.js','port-customs-ui-resources.js','material-trade-resources.js','administration-economy-resources.js','commerce-management-resources.js','commerce-production-resources.js','economic-catalog-resources.js','product-sheet-resources.js','connection-resources.js',
