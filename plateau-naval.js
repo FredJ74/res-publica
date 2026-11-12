@@ -113,7 +113,7 @@ async function ouvrirDevisChantierNaval(utiliserCache=false) {
         c.etat==='acheve' ? navT("completed","Achevé") : navT("building","En construction");
       html += '<div style="border:1px solid #394656;border-radius:8px;padding:.6rem;margin-top:.5rem">' +
        navalEchappe(navalNom(c.modele)) + ' — ' +
-       navalNombre(c.jours)+' / '+navalNombre(c.total)+' '+navalHtml('workdays','journées')+' · '+navalEchappe(etat) +
+       navalNombre(c.jours)+' / '+navalNombre(c.total)+' '+navHtml('workdays','journées')+' · '+navalEchappe(etat) +
        '<div>'+navHtml('paid',"Payé : {paid} / {total} FR",{paid:navalNombre(c.verse),total:navalNombre(c.prix_total)})+'</div>' +
        navire+'</div>';
     }
