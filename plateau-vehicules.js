@@ -218,8 +218,8 @@ async function vehVendreMatiere(entreprise, matiere) {
   showToast('Matières vendues', vehNombre(r.qte) + ' × ' + matiere + ' pour ' + vehNombre(r.total) + ' ' + vehMonnaie() + '.', true);
 }
 
-async function ouvrirGarageRevision() {
-  const l = await vehLire(); if (!l) return;
+async function ouvrirGarageRevision(utiliserCache=false) {
+  const l = utiliserCache && VEH_LECTURE ? VEH_LECTURE : await vehLire(); if (!l) return;
   if (!l.ici || l.ici.type !== 'garage') { showToast('Garage', 'Présentez-vous au comptoir d’un garage.', false); return; }
   const cur = vehMonnaie();
   const prix = l.ici.proprietaire === 'PNJ' || !l.ici.prix?.revision_vehicule ? 500 : l.ici.prix.revision_vehicule;
@@ -281,8 +281,8 @@ async function vehConditionner(entreprise) {
 }
 
 // ---------- MES VEHICULES ----------
-async function ouvrirMesVehicules() {
-  const l = await vehLire(); if (!l) return;
+async function ouvrirMesVehicules(utiliserCache=false) {
+  const l = utiliserCache && VEH_LECTURE ? VEH_LECTURE : await vehLire(); if (!l) return;
   const cur = vehMonnaie();
   if (!l.vehicules.length) { vehModal(vehTT('vehicles','Mes véhicules'), '<p>'+vehTH('noKeys','Vous ne détenez la clé d’aucun véhicule.')+'</p>'); return; }
   const enPanne = l.vehicules.find(x => x.statut === 'en_panne' && x.sur_place);
@@ -419,5 +419,32 @@ async function vehDepanner(id, garage) {
  for(const [id,value] of values){
   const node=document.getElementById(id);
   if(node)node.value=value;
+ }
+});
+
+/* Traduction à chaud de Mes véhicules et Révision, sans nouveau verdict serveur.
+ * Les champs saisis sont conservés ; pas de nouvel appel à vehicule_acte.
+ * Pour la panne, on ne réaffiche que si le dernier état serveur est connu.
+ */
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
+ const modal=document.getElementById('modal-postes');
+ const body=document.getElementById('postes-body');
+ if(!modal?.classList?.contains('open')||!body||!VEH_LECTURE)return;
+ const vehs=!!body.querySelector('[data-veh-i18n="vehicles"]');
+ const revise=!!body.querySelector('[data-veh-i18n="revision"]');
+ const breakdown=!!body.querySelector('[data-veh-i18n="breakdown"]');
+ if(!vehs&&!revise&&!breakdown)return;
+ const values=new Map(Array.from(body.querySelectorAll('input[id],select[id]'))
+  .map(node=>[node.id,node.value]));
+ if(vehs)void ouvrirMesVehicules(true);
+ else if(revise&&VEH_LECTURE.ici?.type==='garage')void ouvrirGarageRevision(true);
+ else if(breakdown){
+  const panne=VEH_LECTURE.vehicules?.find(x=>x.statut==='en_panne'&&x.sur_place);
+  if(!panne)return;
+  afficherPanneVehicule(panne.id,panne.panne);
+ }
+ for(const [id,value] of values){
+  const field=document.getElementById(id);
+  if(field)field.value=value;
  }
 });
