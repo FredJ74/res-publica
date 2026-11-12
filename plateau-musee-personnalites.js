@@ -49,14 +49,27 @@ const MUSEE_NATIONAL_PERSONNALITES = {
   ]
 };
 
+function museeNationalRepubI18nActif(){
+ return state.country==='republic'&&state.currentBuilding==='musee-national-republia';
+}
+function museeNationalTexte(key,fr){
+ return museeNationalRepubI18nActif() ? (window.RPMuseumNationalBiosI18n?.text?.(key,fr)||fr) : fr;
+}
+function museeNationalBio(personnage){
+ if(!museeNationalRepubI18nActif())return personnage.bio;
+ return window.RPMuseumNationalBiosI18n?.bio?.(personnage.nom,personnage.bio)||personnage.bio;
+}
+function museeNationalEchapper(texte){
+ return String(texte??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 function doConsulterPersonnalitesMusee() {
   const liste = personnalitesMuseeCourantes();
   const room = (typeof BUILDINGS !== 'undefined' && BUILDINGS[state.currentBuilding]) ? BUILDINGS[state.currentBuilding].rooms?.[state.currentRoom] : null;
-  document.getElementById('postes-modal-title').textContent = (room && room.name) ? room.name : 'Personnalités';
+  document.getElementById('postes-modal-title').textContent = (room && room.name) ? room.name : museeNationalTexte('title','Personnalités');
 
-  let html = '<div style="padding:1rem">';
+  let html = '<div data-musee-national="liste" style="padding:1rem">';
   if (liste.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Rien à consulter ici pour l\'instant.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">'+museeNationalEchapper(museeNationalTexte('empty',"Rien à consulter ici pour l'instant."))+'</div>';
   } else {
     html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
     liste.forEach(function(p, i) {
@@ -74,11 +87,11 @@ function afficherFichePersonnaliteMusee(idx) {
   const p = liste[idx];
   if (!p) return;
 
-  let html = '<div style="padding:1.2rem">';
+  let html = '<div data-musee-national="fiche" data-personnalite="'+idx+'" style="padding:1.2rem">';
   html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.05em;margin-bottom:.2rem">' + p.nom + '</div>';
   html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">' + p.dates + '</div>';
-  html += '<div style="font-size:.88rem;color:#e0d8c0;line-height:1.5">' + p.bio + '</div>';
-  html += '<button class="pnj-action-btn" onclick="doConsulterPersonnalitesMusee()" style="margin-top:1rem;opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Retour à la liste</button>';
+  html += '<div style="font-size:.88rem;color:#e0d8c0;line-height:1.5">'+museeNationalEchapper(museeNationalBio(p))+'</div>';
+  html += '<button class="pnj-action-btn" onclick="doConsulterPersonnalitesMusee()" style="margin-top:1rem;opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> '+museeNationalEchapper(museeNationalTexte('back','Retour à la liste'))+'</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
@@ -250,3 +263,17 @@ function personnalitesMuseeCourantes() {
   if (state.country !== 'republic') return [];
   return MUSEE_NATIONAL_PERSONNALITES[state.currentRoom] || [];
 }
+
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
+ if(!museeNationalRepubI18nActif())return;
+ const modal=document.getElementById('modal-postes');
+ const body=document.getElementById('postes-body');
+ if(!modal?.classList?.contains('open')||!body)return;
+ const fiche=body.querySelector('[data-musee-national="fiche"]');
+ if(fiche){
+  const i=Number(fiche.dataset.personnalite);
+  if(Number.isInteger(i)&&i>=0)afficherFichePersonnaliteMusee(i);
+  return;
+ }
+ if(body.querySelector('[data-musee-national="liste"]'))doConsulterPersonnalitesMusee();
+});
