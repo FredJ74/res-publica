@@ -10919,6 +10919,23 @@ function montantDansTexte(texte, ancien, nouveau) {
   copieLogements('logements-novomirsk-quais', 'Logements des Quais de Sovarka',
     "L'immeuble à la grande fresque qui regarde les quais de la Sovarka. Chaque appartement est attribué par la ville ; on y voit passer les barques des pêcheurs et le vent du fleuve passe sous les portes.", 8);
 
+  // Novomirsk V14 (vue de la pharmacie) : reprendre les trois images des Quais,
+  // uniquement dans cette ville. Starovka partage le bâtiment socle et doit rester intacte.
+  // La surcharge porte sur l'image, jamais sur le bail, les ordres ou le loyer.
+  {
+    const novomirskV14 = WORLD.soviet.capitale.buildingContext;
+    const contexteV14 = novomirskV14['logements-novomirsk'] ||
+      (novomirskV14['logements-novomirsk'] = {});
+    const piecesV14 = contexteV14.roomOverrides || (contexteV14.roomOverrides = {});
+    const piecesDesQuais = BUILDINGS['logements-novomirsk-quais'].rooms;
+    for (const [pieceId, piece] of Object.entries(piecesDesQuais)) {
+      piecesV14[pieceId] = {
+        ...(piecesV14[pieceId] || {}),
+        imageUrl: piece.imageUrl
+      };
+    }
+  }
+
 
   // Hotels.
   Object.assign(contexte('ville_a', 'hotel-mineur'), { name: 'Hôtel des Voyageurs', desc: 'L\'hôtel des voyageurs de Starovka : on y attend le train ou le bateau, au chaud, en buvant du thé au beurre.' });
