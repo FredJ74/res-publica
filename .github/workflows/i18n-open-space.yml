@@ -1,0 +1,25 @@
+name: i18n — Open Space de Luthécia
+on:
+  pull_request:
+    paths:
+      - 'plateau-open-space.js'
+      - 'i18n/open-space-resources.js'
+      - 'plateau.html'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'outils/bancs/banc-i18n-open-space-20261112.cjs'
+      - '.github/workflows/i18n-open-space.yml'
+permissions:
+  contents: read
+jobs:
+  open-space:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-open-space.js && node --check i18n/open-space-resources.js
+      - run: node --test outils/bancs/banc-i18n-open-space-20261112.cjs
+      - run: node outils/audits/audit-i18n-editorial.cjs
+      - run: git diff --check
