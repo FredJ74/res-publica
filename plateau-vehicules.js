@@ -20,7 +20,7 @@ const VEH_MODELES = Object.freeze({
 const VEH_GARAGE_MATIERES = Object.freeze({ metal: 'Métal', textile: 'Tissus et peaux', derives_petrochimiques: 'Dérivés pétrochimiques' });
 
 const vehGT = (key,fr,vars) => window.RPVehicleGarageI18n?.text?.(key,fr,vars)
- || String(fr).replace(/\\{([a-z]+)\\}/g,(m,k)=>Object.hasOwn(vars||{},k)?String(vars[k]):m);
+ || String(fr).replace(/\{([a-z]+)\}/g,(m,k)=>Object.hasOwn(vars||{},k)?String(vars[k]):m);
 const vehGH = (key,fr,vars) => vehEchappe(vehGT(key,fr,vars));
 const vehGModele = id => vehGT(({voiture:'car','deux-roues':'bike','vehicule-utilitaire':'utility'})[id],
   VEH_MODELES[id]?.label || id);
@@ -397,3 +397,26 @@ async function vehDepanner(id, garage) {
   await vehAdopterPosition(c, 'Dépannage → ' + vehVille(state.country, v.ville),
     'Dépanneuse : ' + vehNombre(v.garage?.prix) + ' ' + vehMonnaie() + '. Pensez à la révision avant de repartir.');
 }
+
+/* Repeindre une fenêtre garage/station déjà affichée depuis le dernier verdict
+ * en cache : pas de requête ni de paiement provoqué par un changement de langue.
+ * Conserver exactement les quantités éventuellement saisies.
+ */
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
+ const modal=document.getElementById('modal-postes');
+ const body=document.getElementById('postes-body');
+ if(!modal?.classList?.contains('open')||!body||!VEH_LECTURE?.ici)return;
+ const garage=!!body.querySelector('[data-veh-i18n="garage"]');
+ const station=!!body.querySelector('[data-veh-i18n="station"]');
+ if(!garage&&!station)return;
+ if(garage&&VEH_LECTURE.ici.type!=='garage')return;
+ if(station&&VEH_LECTURE.ici.type!=='station-service')return;
+ const values=new Map(Array.from(body.querySelectorAll('input[id],select[id]'))
+   .map(node=>[node.id,node.value]));
+ if(garage)void ouvrirGarageVehicules(true);
+ else void ouvrirStationCarburant(true);
+ for(const [id,value] of values){
+  const node=document.getElementById(id);
+  if(node)node.value=value;
+ }
+});
