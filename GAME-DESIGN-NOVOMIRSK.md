@@ -783,3 +783,29 @@ La règle explicite la plus récente de Fred prévaut sur la ligne du 04/11 : le
 **Décision complémentaire de Fred du 11/11 : parité fixe et sans frais, 1 PSK = 1 FR.** Les règlements de ces chambres et de la réception peuvent utiliser la parité 1:1 sans faux différentiel monétaire ; la comptabilité doit conserver les informations de devise de chaque opération. Aucune conversion générale des autres monnaies/transactions du jeu n'est décidée.
 
 **État technique au moment du relevé : non livré.** Les anciens boutons `louer_local` et tarifs 500 PSK sont encore présents pour les trois suites, et la salle ne dispose pas de réservation. La facturation des ambassadeurs doit encore s'appuyer sur une caisse institutionnelle autorisée et reconnue, pas sur la création arbitraire d'un compte. Voir l'issue #753.
+
+## Pavillon et Résidence : service d'étage, escorts et espionnage (Fred, 12/11/2026, 0 h 41 – 1 h 22) — décisions, PAS encore de feu vert de codage
+
+**Service d'étage** : disponible dans les **deux** bâtiments (suites du Pavillon, appartements de la Résidence). Carte du restaurant du Grand Hôtel de Sovarka **à son prix**, **+ 20 PSK de service par commande** (les 50 FR des hôtels de province de Républia à l'échelle de Sovarka) ; mêmes effets qu'au restaurant.
+
+**Ordre « Appel à un(e) escort »**
+- **Ordre vert** de pièce dans les suites du Pavillon et les appartements de la Résidence ; **seul le locataire** peut le passer.
+- **Légal mais immoral.**
+- Il ouvre une fenêtre qui simule le **standard de l'agence internationale Roxane Velours** (clin d'œil assumé : l'agence a été fondée par Roxane Velours, l'escort du catalogue ; même orthographe). Accueil fixe : « Bonsoir, agence internationale Roxane Velours à l'appareil, Rebecca pour vous servir. Que puis-je pour vous ? » ; **réponse libre** du PJ (un, une, les deux, plusieurs) ; Rebecca : « Très bien, je vous les envoie de suite. Le coût est de [nombre] × 800 PSK. Validez le paiement sur votre téléphone. » ; pictogrammes **valider / refuser** cliquables ; refus : « Vous n'avez pas validé, ce n'est pas grave. En espérant vous satisfaire une prochaine fois. Passez une bonne soirée. », puis fermeture.
+- **Validation** : les escorts PNJ apparaissent immédiatement dans la pièce ; **c'est la validation qui déclenche la trace**.
+- **800 PSK par jour et par escort** ; ils ne disparaissent que si le PJ **rompt le contrat** : **mêmes mécanismes qu'en Républia** (embauche, paie de nuit, secret contre secret, « Faire l'amour »…). Escorts envoyés : les **7 du catalogue de Républia** (agence internationale) ; le PJ donne un nombre et des genres, le serveur choisit ; de nouveaux PNJ escorts viendront probablement plus tard.
+- Note de codage (Claude) : la réponse libre est interprétée par le serveur (nombre et genres seulement ; hors sujet = Rebecca reformule) ; les bonus de « Faire l'amour », encore calculés par l'écran en Républia, passeront au serveur.
+
+**Rumeur et presse**
+- Chaque fois que la rumeur est entendue (« Écouter les rumeurs », barman, tables) : **−3 POP** au dignitaire.
+- **Décompte** : à la **3ᵉ écoute** (−9 POP), la rumeur parvient aux journalistes ; elle **continue de circuler** ensuite, −3 POP à chaque écoute, **sans plafond**.
+- Journalistes prévenus : **celui de La Voix de Sovarka à Novomirsk** et **un journaliste du pays du dignitaire** (dignitaire de Sovarka : Zoïa seule).
+- **Journaliste PNJ** : il en réfère au **ministre de l'Intérieur de son pays** (Sécurité du Peuple en Sovarka), par courrier, sous forme de **projet d'article** ; le ministre **valide la publication** ou la **met en attente** (sans date limite, publiable quand il veut) ; **ministre PNJ : tirage à 50 %**.
+- Accueil de La Voix de Sovarka à Novomirsk (remplace le « Correspondant Local » générique) : **Zoïa Glazounova**, journaliste (la réceptionniste au regard inquiétant) ; **Capitaine Arseni Petchatnikov**, officier de censure (ambiance).
+- Textes validés :
+  - rumeur : « On raconte que l'agence Roxane Velours a fait livrer de la compagnie au Pavillon des Ambassadeurs, chez {nom}, {poste}. Et pas pour parler politique. » (lieu adapté : « à la Résidence impériale ») ;
+  - projet d'article : **« Soirée velours pour {poste} »** — « Selon nos informations, {nom}, {poste}, a fait appel aux services de l'agence internationale Roxane Velours dans son appartement du {lieu}, aux frais de qui, la question reste posée. La rédaction a tenté de joindre l'intéressé, sans succès. »
+
+**Espionnage**
+- En Sovarka, **tous les secrets** obtenus par les escorts (secret sur l'oreiller et secret contre secret) sont **transmis au ministre de l'Intérieur**.
+- Dignitaire venu avec un **ordinateur** (dans son inventaire) : **25 % de chances, une fois par nuit** (escort sous contrat, nuit passée dans l'appartement), qu'un escort PNJ le pirate : **copie discrète d'un dossier au hasard** pour le ministre de l'Intérieur de Sovarka ; le dignitaire garde l'original et **n'est pas prévenu** (seule la trace d'un acte illégal ordinaire).
