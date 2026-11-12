@@ -1,0 +1,25 @@
+name: i18n — Musée national de Républia
+on:
+  pull_request:
+    paths:
+      - 'plateau-musee-personnalites.js'
+      - 'i18n/museum-national-bios-resources.js'
+      - 'plateau.html'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'outils/bancs/banc-i18n-musee-national-20261112.cjs'
+      - '.github/workflows/i18n-musee-national.yml'
+permissions:
+  contents: read
+jobs:
+  biographies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-musee-personnalites.js && node --check i18n/museum-national-bios-resources.js
+      - run: node --test outils/bancs/banc-i18n-musee-national-20261112.cjs
+      - run: node outils/audits/audit-i18n-editorial.cjs
+      - run: git diff --check
