@@ -65,7 +65,8 @@ test("l'ordre « Equipements et serrure » : local a louer oui, hotel non", () =
       'centre-commercial': { rooms: { vitrine_principale: { isLocationRoom: true }, hall: {} } },
       'hotel-du-port': { rooms: { suite: { isLocationRoom: true } } }
     },
-    getBuildingContext: () => null
+    getBuildingContext: () => null,
+    texteEquip: (cle, fr) => fr
   };
   vm.createContext(ctx);
   vm.runInContext(src.slice(debut, fin) + '; this.f = ordresSerrureDuLocal;', ctx);

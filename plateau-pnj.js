@@ -2918,7 +2918,7 @@ async function ouvrirModalFaireLAmour(nomEscort) {
   // Embauche et palier de complicité : lus au serveur (escort_complicite), jamais dans le blob.
   const lu = (typeof sbRpcVerdict === 'function')
     ? await sbRpcVerdict('escort_complicite', { p_escort: nomEscort }).catch(() => null) : null;
-  if (!lu || lu.transport) { showToast('Serveur injoignable', 'Réessayez dans un instant. Rien n\'a été facturé.', false); return; }
+  if (!lu || lu.transport) { showToast(texteEquip('serveurInjoignable', 'Serveur injoignable'), texteEquip('reessayerRien', 'Réessayez dans un instant. Rien n\'a été facturé.'), false); return; }
   const escortInfo = lu.ok === true ? (state.escortActive || []).find(e => e.nom === nomEscort) || { nom: nomEscort } : null;
   if (escortInfo) escortInfo.palier = lu.palier;
 
@@ -2981,17 +2981,17 @@ async function escortIntimiteServeur(nomEscort, palierVise) {
     if (v && !v.transport) { try { sessionStorage.removeItem(cle); } catch (e) {} }
   } finally { RP_ESCORT_INTIMITE_EN_COURS = false; }
   if (state.char?.name !== moi) return;
-  if (!v || v.transport) { showToast('Serveur injoignable', 'Réessayez : la même demande sera reconnue, jamais payée deux fois.', false); return; }
+  if (!v || v.transport) { showToast(texteEquip('serveurInjoignable', 'Serveur injoignable'), texteEquip('reessayerMeme', 'Réessayez : la même demande sera reconnue, jamais payée deux fois.'), false); return; }
 
   const escortInfo = (state.escortActive || []).find(e => e.nom === nomEscort);
   if (v.ok !== true) {
     if (escortInfo && typeof v.palier === 'number') escortInfo.palier = v.palier;
     const motifs = {
-      escort_non_engagee: 'Engagez d\'abord ' + nomEscort + ' comme escort.',
-      fonds_insuffisants: (v.total || ESCORT_COUT_PRESTATION) + ' ' + cur + ' requis. Rien n\'a été facturé.',
-      etape_invalide: 'La complicité a changé entre-temps. Rouvrez la fiche de ' + nomEscort + '.'
+      escort_non_engagee: texteEquip('escNonEngagee', 'Engagez d\'abord {nom} comme escort.', {nom: nomEscort}),
+      fonds_insuffisants: texteEquip('requisRien', '{total} {cur} requis. Rien n\'a été facturé.', {total: v.total || ESCORT_COUT_PRESTATION, cur: cur}),
+      etape_invalide: texteEquip('complChange', 'La complicité a changé entre-temps. Rouvrez la fiche de {nom}.', {nom: nomEscort})
     };
-    showToast('Refusé', motifs[v.raison] || ('Le serveur a refusé (' + (v.raison || 'inconnu') + '). Rien n\'a été facturé.'), false);
+    showToast(texteEquip('refuseT', 'Refusé'), motifs[v.raison] || texteEquip('refusInconnuRien', 'Le serveur a refusé ({raison}). Rien n\'a été facturé.', {raison: v.raison || 'inconnu'}), false);
     return;
   }
 

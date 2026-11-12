@@ -11,6 +11,8 @@ const lire = f => fs.readFileSync(new URL(f, racine), 'utf8');
 function charger() {
   const ctx = { window: {}, state: {}, console };
   vm.createContext(ctx);
+  vm.runInContext(lire('i18n/equipements-resources.js'), ctx);
+  ctx.texteEquip = ctx.window.texteEquip;
   vm.runInContext(lire('plateau-surveillance.js'), ctx);
   return ctx;
 }
@@ -33,9 +35,9 @@ test('la liste des ordres met les ordres basDeListe a la fin ; la rue ajoute le 
 
 test('menu : deux choix, chacun vers sa fenetre ; plus de boutons dans la colonne', () => {
   const s = lire('plateau-surveillance.js');
-  assert.match(s, /item\('🔍 Fouiller les lieux \(2 PA\)', ouvrirFenetreFouille\)/);
-  assert.match(s, /item\('🕵 Voler du matériel installé \(3 PA\)', \(\) => \{ if \(typeof ouvrirVolMateriel === 'function'\) ouvrirVolMateriel\(\); \}\)/);
-  assert.match(s, /equipementsModale\('Fouiller les lieux', html\)/);
+  assert.match(s, /item\(texteEquip\('menuFouiller', '🔍 Fouiller les lieux \(2 PA\)'\), ouvrirFenetreFouille\)/);
+  assert.match(s, /item\(texteEquip\('menuVoler', '🕵 Voler du matériel installé \(3 PA\)'\), \(\) => \{ if \(typeof ouvrirVolMateriel === 'function'\) ouvrirVolMateriel\(\); \}\)/);
+  assert.match(s, /equipementsModale\(texteEquip\('fouillerLieux', 'Fouiller les lieux'\), html\)/);
   assert.ok(!s.includes('onclick="surveillanceFouiller()"'));
   assert.ok(!s.includes('onclick="ouvrirVolMateriel()"'));
   const routeur = lire('plateau-router.js');
