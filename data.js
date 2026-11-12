@@ -4684,6 +4684,7 @@ const BUILDINGS = {
       // Novomirsk) ; Krasnov, qui réutilise ce bâtiment, garde les anciennes salles et exclut celles-ci.
       salle_origines: {
         name: "Salle des Origines",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_salle_origines.webp",
         imageBg: "linear-gradient(135deg,#10161c,#18202a)",
         desc: "Cartes anciennes, filets de pêche et barques vermoulues racontent la naissance de Novomirsk sur les rives du fleuve Sovarka : des terres fertiles, des eaux poissonneuses, et un fleuve qui faisait circuler marchandises et nouvelles entre les villes et les pays. Capitale des Tsars, elle l'est restée quand la démocratie a renversé le régime. Une vitrine vide porte une simple étiquette : « Trésor impérial — au fond du fleuve, avec Sergueï IV le Terrible et sa barque percée. » Depuis, les pêcheurs relèvent leurs filets en espérant y trouver un coffre plutôt qu'une carpe.",
         persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
@@ -4693,12 +4694,31 @@ const BUILDINGS = {
       },
       salle_personnalites_discretes: {
         name: "Salle des Personnalités discrètes",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_personnalites_discretes.webp",
         imageBg: "linear-gradient(135deg,#16120c,#201a10)",
         desc: "Les présidents, sportifs et artistes de Novomirsk ont leurs honneurs au musée national. Ici reposent les autres : ceux dont l'histoire a retenu l'œuvre plutôt que le nom, et dont l'œuvre a parfois dépassé l'histoire.",
         persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
         ]
+      },
+      // Deux épisodes spécifiquement novomirskois, validés par Fred le 12/11.
+      // Ilia reste uniquement dans la colonne des PNJ : il n'apparaît pas dans les décors.
+      salle_bataille_fleuve: {
+        name: "Salle de la Bataille du Fleuve",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_bataille_fleuve.webp",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "En 1742, le prince Mikhaïl Dragounov descendit la Sovarka avec vingt-sept embarcations et près de huit cents hommes pour prendre le port de Novomirsk. Les pêcheurs menés par Piotr Karassov déplacèrent les balises et plantèrent des pieux sous l'eau. Les bateaux ennemis s'échouèrent et se percutèrent ; la ville fut sauvée. « Ils avaient huit cents soldats. Nous avions le fleuve. » Une barque attribuée à Karassov est exposée ; son authenticité est contestée par les historiens, mais pas par ses descendants.",
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        orders: []
+      },
+      salle_grand_incendie: {
+        name: "Salle du Grand Incendie",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_grand_incendie.webp",
+        imageBg: "linear-gradient(135deg,#1c100c,#24160e)",
+        desc: "En 1887, un four oublié dans la boulangerie de Grigori Pirogov déclencha un incendie qui ravagea pendant trois jours le quartier marchand de Novomirsk. Le vent poussa les flammes des maisons en bois aux entrepôts du port. Un tiers de la vieille ville fut détruit. La reconstruction en pierre et en brique transforma la capitale. Casques, pompe à bras, plans et photographies des ruines entourent une miche de pain calcinée, retrouvée dans l'ancienne boulangerie.",
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        orders: []
       },
       salle_criminels: {
         name: "Salle des Grands Criminels Novomirskois",
@@ -10974,7 +10994,7 @@ function montantDansTexte(texte, ancien, nouveau) {
   Object.assign(musee, { name: 'Musée de Krasnov', desc: 'Le musée du kolkhoze : machines agricoles d\'époque, records de récolte et portraits des tractoristes émérites.' });
   ['hall', 'salle_criminels', 'salle_maires', 'salle_personnalites', 'salle_entrepreneurs', 'salle_organisations', 'salle_plumes', 'salle_honneur_militaire', 'salle_unions', 'salle_scandales']
     .forEach(id => { piece(musee, id).personsVides = true; });
-  musee.roomsExclues = (musee.roomsExclues || []).concat(['salle_origines', 'salle_personnalites_discretes']);
+  musee.roomsExclues = (musee.roomsExclues || []).concat(['salle_origines', 'salle_personnalites_discretes', 'salle_bataille_fleuve', 'salle_grand_incendie']);
   Object.assign(piece(musee, 'hall'), { personsVides: false, persons: [pnj('Vera Lebedeva', 'Guide du musée', 'guide')] });
   Object.assign(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), { name: 'Bar Sever', desc: 'Le bar-tabac de Krasnov (« Бар Север ») : vodka, cigarettes, journaux du Parti et le match à la radio.' });
   Object.assign(piece(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), 'salle'), { persons: [pnj('Grigori Zaitsev', 'Patron du bar', 'serveur')] });

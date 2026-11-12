@@ -106,7 +106,9 @@
   ["Forêt profonde — Près de la vieille isba","Deep forest — Near the old isba","Bosque profundo — Junto a la vieja isba","密林深處 — 老木屋旁","Глухой лес — У старой избы","깊은 숲 — 오래된 통나무집 근처","الغابة العميقة — قرب الكوخ الخشبي القديم","Floresta profunda — Perto da velha isbá","Tiefer Wald — Bei der alten Isba"],
   ["L’atelier de distillation","The distilling workshop","El taller de destilación","蒸餾工坊","Винокурня","증류 작업장","ورشة التقطير","A oficina de destilação","Die Brennerei"],
   ["Salle des Origines", "Hall of Origins", "Sala de los Orígenes", "起源廳", "Зал истоков", "기원의 전시실", "قاعة الأصول", "Sala das Origens", "Saal der Ursprünge"],
-  ["Salle des Personnalités discrètes", "Hall of Discreet Figures", "Sala de las Personalidades discretas", "低調名人廳", "Зал скромных знаменитостей", "숨은 인물들의 전시실", "قاعة الشخصيات المتوارية", "Sala das Personalidades discretas", "Saal der stillen Persönlichkeiten"]
+  ["Salle des Personnalités discrètes", "Hall of Discreet Figures", "Sala de las Personalidades discretas", "低調名人廳", "Зал скромных знаменитостей", "숨은 인물들의 전시실", "قاعة الشخصيات المتوارية", "Sala das Personalidades discretas", "Saal der stillen Persönlichkeiten"],
+  ["Salle de la Bataille du Fleuve", "Battle of the River Hall", "Sala de la Batalla del Río", "河流戰役廳", "Зал битвы на реке", "강 전투 전시실", "قاعة معركة النهر", "Sala da Batalha do Rio", "Saal der Flussschlacht"],
+  ["Salle du Grand Incendie", "Great Fire Hall", "Sala del Gran Incendio", "大火災廳", "Зал Великого пожара", "대화재 전시실", "قاعة الحريق الكبير", "Sala do Grande Incêndio", "Saal des großen Brandes"]
  ];
  const parFr=new Map(L.map(l=>[l[0],l]));
  function label(_buildingId,_roomId,original){
