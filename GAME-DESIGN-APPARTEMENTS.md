@@ -132,3 +132,6 @@ Décors : fonction serveur `logement-decoration` (déployée), même atelier que
   vert de Fred, avec le dépôt des souvenirs dans l'armoire (règles déjà écrites, mécanique absente).
 - **Décision de Fred (13/11/2026, 0 h 15)** : le +1 PA de l'armoire **se cumule** avec le +1 PA de l'appartement
   (titulaire dans sa chambre avec son armoire complète = +2 PA). Non codé.
+- **Décision de Fred (13/11/2026, 0 h 20)** : « un emplacement au lieu de 3 » vaut **dans les deux sens** : 1 emplacement
+  de matériel dans un local (déjà le cas côté serveur) **et 1 place dans l'inventaire** au lieu de 3 (encombrement
+  aujourd'hui 3 à la fabrication et à l'achat, Scierie Guy Tarembois). Inventaire : non codé.
