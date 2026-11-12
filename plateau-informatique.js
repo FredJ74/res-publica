@@ -30,8 +30,12 @@ function informatiqueToast(titre,message,ok){
 function informatiqueTitre(texte){
  return '<div class="cpj-titre" data-info-heading="'+encodeURIComponent(texte)+'">'+informatiqueEch(informatiqueTr(texte))+'</div>';
 }
-function informatiquePlaceholder(texte){
- return '" data-info-placeholder="'+encodeURIComponent(texte)+'"';
+function informatiqueChamp(id,placeholder){
+ return '<input id="'+informatiqueEch(id)+'" placeholder="'+informatiqueEch(informatiqueTr(placeholder))
+   +'" data-info-placeholder="'+encodeURIComponent(placeholder)+'" style="width:100%;margin-bottom:.4rem">';
+}
+function informatiqueNote(texte){
+ return '<p class="cpj-note" data-info-note="'+encodeURIComponent(texte)+'">'+informatiqueEch(informatiqueTr(texte))+'</p>';
 }
 (window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
  const modal=document.getElementById('modal-postes');
@@ -42,6 +46,7 @@ function informatiquePlaceholder(texte){
  if(titre?.getAttribute('data-info-title'))titre.textContent=informatiqueTr(decodeURIComponent(titre.getAttribute('data-info-title')));
  for(const b of body.querySelectorAll('[data-info-text]'))b.textContent=informatiqueTr(decodeURIComponent(b.getAttribute('data-info-text')||''));
  for(const h of body.querySelectorAll('[data-info-heading]'))h.textContent=informatiqueTr(decodeURIComponent(h.getAttribute('data-info-heading')||''));
+ for(const h of body.querySelectorAll('[data-info-note]'))h.textContent=informatiqueTr(decodeURIComponent(h.getAttribute('data-info-note')||''));
  for(const input of body.querySelectorAll('[data-info-placeholder]'))input.placeholder=informatiqueTr(decodeURIComponent(input.getAttribute('data-info-placeholder')||''));
 });
 const INFORMATIQUE_REFUS = {
@@ -76,10 +81,9 @@ function informatiqueTexte(t) {
 
 function ouvrirPiratage() {
   const sov = state.country === 'soviet';
-  const h = '<p class="cpj-note">3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. ' +
-    'Tout piratage laisse une trace ; un échec peut alerter la cible.</p>' +
+  const h = informatiqueNote("3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. Tout piratage laisse une trace ; un échec peut alerter la cible.") +
     informatiqueTitre("Comptes en banque") +
-    '<input id="pirate-banque" placeholder="Nom d\'un PJ ou d\'une organisation" style="width:100%;margin-bottom:.4rem"> ' +
+    informatiqueChamp("pirate-banque","Nom d'un PJ ou d'une organisation") + ' ' +
     informatiqueBouton('piraterLancer(\'banque\')', 'Pirater la banque', true) +
     informatiqueTitre("Registres de votre ville") +
     informatiqueBouton('piraterLancer(\'registre\',\'armes\')', 'Ventes d\'armes') + ' ' +
@@ -88,7 +92,7 @@ function ouvrirPiratage() {
     (sov ? ' ' + informatiqueBouton('piraterLancer(\'registre\',\'signalements\')', 'Signalements') : '') +
     informatiqueTitre("Casernes") + informatiqueBouton('piraterLancer(\'caserne\',\'\')', 'Pirater les casernes') +
     informatiqueTitre("Ordinateur d'un PJ") +
-    '<input id="pirate-ordi" placeholder="Nom du PJ" style="width:100%;margin-bottom:.4rem"> ' +
+    informatiqueChamp("pirate-ordi","Nom du PJ") + ' ' +
     informatiqueBouton('piraterLancer(\'ordinateur\')', 'Pirater son ordinateur') +
     '<div style="margin-top:1rem">' + informatiqueBouton('ouvrirModalEquipements()', 'Retour') + '</div>';
   informatiqueModal('Piratage', h);
@@ -162,7 +166,7 @@ async function dossierDetruire(id) {
 }
 function dossierTransmettre(id) {
   informatiqueModal('Transmettre un dossier', '<p class="cpj-note">1 PA. Le destinataire reçoit une copie par mail ; vous gardez l\'original.</p>' +
-    '<input id="dossier-dest" placeholder="Nom du PJ" style="width:100%;margin-bottom:.4rem">' +
+    informatiqueChamp("dossier-dest","Nom du PJ") +
     informatiqueBouton('dossierTransmettreValider(\'' + id + '\')', 'Transmettre', true) + ' ' + informatiqueBouton('ouvrirDossiers()', 'Retour'));
 }
 async function dossierTransmettreValider(id) {
