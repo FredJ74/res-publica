@@ -863,5 +863,17 @@
   if(output===original)return original;
   return output.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  }
- global.RPRoomI18n=Object.freeze({label,labelHtml});
+ // Pièces propres à Sovarka (12/11/2026) : dernier recours, seulement si rien ci-dessus n'a traduit.
+ function labelAvecSovarka(buildingId,roomId,original){
+  const t=label(buildingId,roomId,original);
+  if(t!==original)return t;
+  const s=global.RPSovarkaPiecesI18n?.label?.(buildingId,roomId,original);
+  return typeof s==='string'&&s.trim()?s:original;
+ }
+ function labelHtmlAvecSovarka(buildingId,roomId,original){
+  const output=labelAvecSovarka(buildingId,roomId,original);
+  if(output===original)return original;
+  return output.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ }
+ global.RPRoomI18n=Object.freeze({label:labelAvecSovarka,labelHtml:labelHtmlAvecSovarka});
 })(window);
