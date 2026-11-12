@@ -13,6 +13,37 @@
    dossier_ouvrir, dossier_deplacer, dossier_detruire, dossier_transferer).
    =========================================================================== */
 
+function informatiqueTr(fr){const fn=window.RPComputerFilesI18n?.text;return typeof fn==='function'?fn(fr):fr;}
+function informatiqueBouton(onclick,libelle,primaire){
+ const source=String(libelle);
+ const html=equipementsBouton(onclick,informatiqueTr(source),primaire);
+ return html.replace('<button ','<button data-info-text="'+encodeURIComponent(source)+'" ');
+}
+function informatiqueModal(titre,html){
+ equipementsModale(informatiqueTr(titre),html);
+ const node=document.getElementById('postes-modal-title');
+ if(node)node.setAttribute('data-info-title',encodeURIComponent(titre));
+}
+function informatiqueToast(titre,message,ok){
+ showToast(informatiqueTr(titre),informatiqueTr(message),ok);
+}
+function informatiqueTitre(texte){
+ return '<div class="cpj-titre" data-info-heading="'+encodeURIComponent(texte)+'">'+informatiqueEch(informatiqueTr(texte))+'</div>';
+}
+function informatiquePlaceholder(texte){
+ return '" data-info-placeholder="'+encodeURIComponent(texte)+'"';
+}
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
+ const modal=document.getElementById('modal-postes');
+ if(!modal?.classList?.contains('open'))return;
+ const body=document.getElementById('postes-body');
+ if(!body?.querySelector?.('[data-info-text]'))return;
+ const titre=document.getElementById('postes-modal-title');
+ if(titre?.getAttribute('data-info-title'))titre.textContent=informatiqueTr(decodeURIComponent(titre.getAttribute('data-info-title')));
+ for(const b of body.querySelectorAll('[data-info-text]'))b.textContent=informatiqueTr(decodeURIComponent(b.getAttribute('data-info-text')||''));
+ for(const h of body.querySelectorAll('[data-info-heading]'))h.textContent=informatiqueTr(decodeURIComponent(h.getAttribute('data-info-heading')||''));
+ for(const input of body.querySelectorAll('[data-info-placeholder]'))input.placeholder=informatiqueTr(decodeURIComponent(input.getAttribute('data-info-placeholder')||''));
+});
 const INFORMATIQUE_REFUS = {
   pas_de_connexion: 'Il faut être dans votre bureau, avec votre ordinateur et votre box installés.',
   pa_insuffisants: 'Vous n\'avez pas assez de PA.',
@@ -25,7 +56,8 @@ const INFORMATIQUE_REFUS = {
   destinataire_inconnu: 'Destinataire inconnu.'
 };
 function informatiqueRefus(r) {
-  return (r && INFORMATIQUE_REFUS[r.raison]) || (typeof equipementsRefus === 'function' ? equipementsRefus(r) : 'Refusé.');
+  const message=r&&INFORMATIQUE_REFUS[r.raison];
+  return message?informatiqueTr(message):(typeof equipementsRefus==='function'?equipementsRefus(r):informatiqueTr('Refusé.'));
 }
 function informatiqueEch(t) {
   return typeof equipementsEchapper === 'function' ? equipementsEchapper(t) : String(t == null ? '' : t);
@@ -46,100 +78,100 @@ function ouvrirPiratage() {
   const sov = state.country === 'soviet';
   const h = '<p class="cpj-note">3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. ' +
     'Tout piratage laisse une trace ; un échec peut alerter la cible.</p>' +
-    '<div class="cpj-titre">Comptes en banque</div>' +
+    informatiqueTitre("Comptes en banque") +
     '<input id="pirate-banque" placeholder="Nom d\'un PJ ou d\'une organisation" style="width:100%;margin-bottom:.4rem"> ' +
-    equipementsBouton('piraterLancer(\'banque\')', 'Pirater la banque', true) +
-    '<div class="cpj-titre">Registres de votre ville</div>' +
-    equipementsBouton('piraterLancer(\'registre\',\'armes\')', 'Ventes d\'armes') + ' ' +
-    equipementsBouton('piraterLancer(\'registre\',\'plaintes\')', 'Plaintes') + ' ' +
-    equipementsBouton('piraterLancer(\'registre\',\'carceral\')', 'Registre carcéral') +
-    (sov ? ' ' + equipementsBouton('piraterLancer(\'registre\',\'signalements\')', 'Signalements') : '') +
-    '<div class="cpj-titre">Casernes</div>' + equipementsBouton('piraterLancer(\'caserne\',\'\')', 'Pirater les casernes') +
-    '<div class="cpj-titre">Ordinateur d\'un PJ</div>' +
+    informatiqueBouton('piraterLancer(\'banque\')', 'Pirater la banque', true) +
+    informatiqueTitre("Registres de votre ville") +
+    informatiqueBouton('piraterLancer(\'registre\',\'armes\')', 'Ventes d\'armes') + ' ' +
+    informatiqueBouton('piraterLancer(\'registre\',\'plaintes\')', 'Plaintes') + ' ' +
+    informatiqueBouton('piraterLancer(\'registre\',\'carceral\')', 'Registre carcéral') +
+    (sov ? ' ' + informatiqueBouton('piraterLancer(\'registre\',\'signalements\')', 'Signalements') : '') +
+    informatiqueTitre("Casernes") + informatiqueBouton('piraterLancer(\'caserne\',\'\')', 'Pirater les casernes') +
+    informatiqueTitre("Ordinateur d'un PJ") +
     '<input id="pirate-ordi" placeholder="Nom du PJ" style="width:100%;margin-bottom:.4rem"> ' +
-    equipementsBouton('piraterLancer(\'ordinateur\')', 'Pirater son ordinateur') +
-    '<div style="margin-top:1rem">' + equipementsBouton('ouvrirModalEquipements()', 'Retour') + '</div>';
-  equipementsModale('Piratage', h);
+    informatiqueBouton('piraterLancer(\'ordinateur\')', 'Pirater son ordinateur') +
+    '<div style="margin-top:1rem">' + informatiqueBouton('ouvrirModalEquipements()', 'Retour') + '</div>';
+  informatiqueModal('Piratage', h);
 }
 
 async function piraterLancer(cible, parametre) {
   if (cible === 'banque') parametre = (document.getElementById('pirate-banque')?.value || '').trim();
   if (cible === 'ordinateur') parametre = (document.getElementById('pirate-ordi')?.value || '').trim();
-  if ((cible === 'banque' || cible === 'ordinateur') && !parametre) { showToast('Piratage', 'Indiquez une cible.', false); return; }
+  if ((cible === 'banque' || cible === 'ordinateur') && !parametre) { informatiqueToast('Piratage', 'Indiquez une cible.', false); return; }
   const r = await informatiqueRpc('pirater', { p_cible: cible, p_parametre: parametre || '', p_ville: null });
-  if (!r || r.ok !== true) { showToast('Piratage impossible', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Piratage impossible', informatiqueRefus(r), false); return; }
   informatiquePa(r);
   if (!r.reussi) {
-    equipementsModale('Piratage', '<p class="cpj-note">Échec (jet ' + r.jet + ' pour ' + r.taux + ' %' + (r.intranet ? ', intranet' : '') + '). ' +
-      'Les 3 PA sont perdus ; la cible a peut-être été alertée.</p>' + equipementsBouton('ouvrirPiratage()', 'Retour'));
+    informatiqueModal('Piratage', '<p class="cpj-note">Échec (jet ' + r.jet + ' pour ' + r.taux + ' %' + (r.intranet ? ', intranet' : '') + '). ' +
+      'Les 3 PA sont perdus ; la cible a peut-être été alertée.</p>' + informatiqueBouton('ouvrirPiratage()', 'Retour'));
     return;
   }
   if (cible === 'ordinateur') {
     const lignes = (r.dossiers || []).map(d => '<div style="display:flex;justify-content:space-between;gap:.4rem;padding:.3rem 0;border-top:1px solid #2a3340">' +
       '<span>' + informatiqueEch(d.titre) + '</span><span>' +
-      equipementsBouton('piratageDossier(\'' + informatiqueEch(r.cible) + '\',\'' + d.id + '\',\'lire\')', 'Lire') + ' ' +
-      equipementsBouton('piratageDossier(\'' + informatiqueEch(r.cible) + '\',\'' + d.id + '\',\'copier\')', 'Copier') + ' ' +
-      equipementsBouton('piratageDossier(\'' + informatiqueEch(r.cible) + '\',\'' + d.id + '\',\'detruire\')', 'Détruire') + '</span></div>').join('');
-    equipementsModale('Piratage réussi', '<p class="cpj-note">Vous êtes dans l\'ordinateur de ' + informatiqueEch(r.cible) +
+      informatiqueBouton('piratageDossier(\'' + informatiqueEch(r.cible) + '\',\'' + d.id + '\',\'lire\')', 'Lire') + ' ' +
+      informatiqueBouton('piratageDossier(\'' + informatiqueEch(r.cible) + '\',\'' + d.id + '\',\'copier\')', 'Copier') + ' ' +
+      informatiqueBouton('piratageDossier(\'' + informatiqueEch(r.cible) + '\',\'' + d.id + '\',\'detruire\')', 'Détruire') + '</span></div>').join('');
+    informatiqueModal('Piratage réussi', '<p class="cpj-note">Vous êtes dans l\'ordinateur de ' + informatiqueEch(r.cible) +
       '. Une seule action possible sur un seul dossier.</p>' + (lignes || '<p class="cpj-note">Aucun dossier.</p>') +
-      '<div style="margin-top:1rem">' + equipementsBouton('ouvrirPiratage()', 'Retour') + '</div>');
+      '<div style="margin-top:1rem">' + informatiqueBouton('ouvrirPiratage()', 'Retour') + '</div>');
     return;
   }
-  equipementsModale(r.titre || 'Piratage réussi', '<p class="cpj-note">Rapport reçu par mail' + (r.dossier ? ' et rangé dans vos dossiers' : ' (dossiers pleins : non rangé)') + '.</p>' +
-    informatiqueTexte(r.texte) + equipementsBouton('ouvrirPiratage()', 'Retour'));
+  informatiqueModal(r.titre || 'Piratage réussi', '<p class="cpj-note">Rapport reçu par mail' + (r.dossier ? ' et rangé dans vos dossiers' : ' (dossiers pleins : non rangé)') + '.</p>' +
+    informatiqueTexte(r.texte) + informatiqueBouton('ouvrirPiratage()', 'Retour'));
 }
 
 async function piratageDossier(cible, id, action) {
   const r = await informatiqueRpc('piratage_dossier_agir', { p_cible: cible, p_id: id, p_action: action });
-  if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Refusé', informatiqueRefus(r), false); return; }
   const msg = r.action === 'detruire' ? '<p class="cpj-note">Dossier « ' + informatiqueEch(r.titre) + ' » détruit.</p>'
     : (r.action === 'copier' ? '<p class="cpj-note">Copie reçue par mail' + (r.copie ? ' et rangée dans vos dossiers' : '') + '.</p>' : '') + informatiqueTexte(r.contenu);
-  equipementsModale(r.titre || 'Dossier', msg + equipementsBouton('ouvrirPiratage()', 'Retour'));
+  informatiqueModal(r.titre || 'Dossier', msg + informatiqueBouton('ouvrirPiratage()', 'Retour'));
 }
 
 async function ouvrirDossiers() {
   const r = await informatiqueRpc('dossiers_lire', {});
-  if (!r || r.ok !== true) { showToast('Dossiers', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Dossiers', informatiqueRefus(r), false); return; }
   const supports = (r.supports || []).map(s => (s.generique === 'ordinateur-complet' ? 'Ordinateur' : 'Stockage') + ' : ' + s.nb + ' / ' + s.capacite).join(' · ');
   const lignes = (r.dossiers || []).map(d => '<div style="display:flex;justify-content:space-between;gap:.4rem;padding:.3rem 0;border-top:1px solid #2a3340">' +
     '<span>' + informatiqueEch(d.titre) + ' <span style="color:#7a8898;font-size:.78rem">(' + (d.support === 'ordinateur' ? 'ordinateur' : 'stockage') + ')</span></span><span>' +
-    equipementsBouton('dossierOuvrir(\'' + d.id + '\')', 'Lire') + ' ' +
-    equipementsBouton('dossierDeplacer(\'' + d.id + '\')', 'Déplacer') + ' ' +
-    ((d.type === 'faux_document' || d.type === 'plan_3d') ? equipementsBouton('dossierImprimer(\'' + d.id + '\')', 'Imprimer (1 PA)') + ' ' : '') +
-    equipementsBouton('dossierTransmettre(\'' + d.id + '\')', 'Transmettre') + ' ' +
-    equipementsBouton('dossierDetruire(\'' + d.id + '\')', 'Détruire') + '</span></div>').join('');
-  equipementsModale('Mes dossiers', '<p class="cpj-note">' + (supports || 'Aucun ordinateur ni périphérique de stockage installé ici.') +
+    informatiqueBouton('dossierOuvrir(\'' + d.id + '\')', 'Lire') + ' ' +
+    informatiqueBouton('dossierDeplacer(\'' + d.id + '\')', 'Déplacer') + ' ' +
+    ((d.type === 'faux_document' || d.type === 'plan_3d') ? informatiqueBouton('dossierImprimer(\'' + d.id + '\')', 'Imprimer (1 PA)') + ' ' : '') +
+    informatiqueBouton('dossierTransmettre(\'' + d.id + '\')', 'Transmettre') + ' ' +
+    informatiqueBouton('dossierDetruire(\'' + d.id + '\')', 'Détruire') + '</span></div>').join('');
+  informatiqueModal('Mes dossiers', '<p class="cpj-note">' + (supports || 'Aucun ordinateur ni périphérique de stockage installé ici.') +
     '<br>Un dossier rangé sur l\'ordinateur part avec lui s\'il est volé ; ceux du périphérique restent.</p>' +
-    (lignes || '<p class="cpj-note">Aucun dossier.</p>') + '<div style="margin-top:1rem">' + equipementsBouton('ouvrirModalEquipements()', 'Retour') + '</div>');
+    (lignes || '<p class="cpj-note">Aucun dossier.</p>') + '<div style="margin-top:1rem">' + informatiqueBouton('ouvrirModalEquipements()', 'Retour') + '</div>');
 }
 async function dossierOuvrir(id) {
   const r = await informatiqueRpc('dossier_ouvrir', { p_id: id });
-  if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
-  equipementsModale(r.titre, informatiqueTexte(r.contenu) + equipementsBouton('ouvrirDossiers()', 'Retour'));
+  if (!r || r.ok !== true) { informatiqueToast('Refusé', informatiqueRefus(r), false); return; }
+  informatiqueModal(r.titre, informatiqueTexte(r.contenu) + informatiqueBouton('ouvrirDossiers()', 'Retour'));
 }
 async function dossierDeplacer(id) {
   const r = await informatiqueRpc('dossier_deplacer', { p_id: id });
-  if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Refusé', informatiqueRefus(r), false); return; }
   ouvrirDossiers();
 }
 async function dossierDetruire(id) {
   if (!confirmerSansDialogue('Détruire définitivement ce dossier ?')) return;
   const r = await informatiqueRpc('dossier_detruire', { p_id: id });
-  if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Refusé', informatiqueRefus(r), false); return; }
   ouvrirDossiers();
 }
 function dossierTransmettre(id) {
-  equipementsModale('Transmettre un dossier', '<p class="cpj-note">1 PA. Le destinataire reçoit une copie par mail ; vous gardez l\'original.</p>' +
+  informatiqueModal('Transmettre un dossier', '<p class="cpj-note">1 PA. Le destinataire reçoit une copie par mail ; vous gardez l\'original.</p>' +
     '<input id="dossier-dest" placeholder="Nom du PJ" style="width:100%;margin-bottom:.4rem">' +
-    equipementsBouton('dossierTransmettreValider(\'' + id + '\')', 'Transmettre', true) + ' ' + equipementsBouton('ouvrirDossiers()', 'Retour'));
+    informatiqueBouton('dossierTransmettreValider(\'' + id + '\')', 'Transmettre', true) + ' ' + informatiqueBouton('ouvrirDossiers()', 'Retour'));
 }
 async function dossierTransmettreValider(id) {
   const dest = (document.getElementById('dossier-dest')?.value || '').trim();
   if (!dest) return;
   const r = await informatiqueRpc('dossier_transferer', { p_id: id, p_destinataire: dest });
-  if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Refusé', informatiqueRefus(r), false); return; }
   informatiquePa(r);
-  showToast('Dossier transmis', 'Copie envoyée à ' + dest + '.', true);
+  informatiqueToast('Dossier transmis', 'Copie envoyée à ' + dest + '.', true);
   ouvrirDossiers();
 }
 // Pas de boite de dialogue navigateur (elles bloquent certaines integrations) : double clic de confirmation.
@@ -148,7 +180,7 @@ function confirmerSansDialogue(message) {
   const maintenant = Date.now();
   if (maintenant - RP_DOSSIER_CONFIRM < 4000) { RP_DOSSIER_CONFIRM = 0; return true; }
   RP_DOSSIER_CONFIRM = maintenant;
-  showToast('Confirmation', message + ' Cliquez une seconde fois pour confirmer.', false);
+  informatiqueToast('Confirmation', message + ' Cliquez une seconde fois pour confirmer.', false);
   return false;
 }
 
@@ -180,93 +212,93 @@ function informatiqueInventaire(r) {
 
 function ouvrirImprimantes() {
   const docs = [['fausse_identite', 'Fausse identité'], ['faux_permis', 'Faux permis de construire'], ['faux_contrat', 'Faux contrat commercial'], ['fausse_convocation', 'Fausse convocation']];
-  equipementsModale('Imprimantes', '<div class="cpj-titre">Imprimante papier — faux documents</div>' +
+  informatiqueModal('Imprimantes', '<div class="cpj-titre">Imprimante papier — faux documents</div>' +
     '<p class="cpj-note">3 PA et une cartouche d\'encre. 70 % de réussite, sans risque d\'être vu. Le modèle est rangé dans vos dossiers.</p>' +
-    docs.map(d => equipementsBouton('fauxImprimer(\'' + d[0] + '\')', d[1])).join(' ') +
+    docs.map(d => informatiqueBouton('fauxImprimer(\'' + d[0] + '\')', d[1])).join(' ') +
     '<div class="cpj-titre">Imprimante 3D</div><p class="cpj-note">1 PA et 1 plastique par objet. Les souvenirs s\'impriment depuis un plan (vos dossiers).</p>' +
-    equipementsBouton('couteauImprimer()', 'Couteau en plastique') + ' ' + equipementsBouton('ouvrirPlans3d()', 'Banque de plans 3D') +
-    '<div style="margin-top:1rem">' + equipementsBouton('ouvrirModalEquipements()', 'Retour') + '</div>');
+    informatiqueBouton('couteauImprimer()', 'Couteau en plastique') + ' ' + informatiqueBouton('ouvrirPlans3d()', 'Banque de plans 3D') +
+    '<div style="margin-top:1rem">' + informatiqueBouton('ouvrirModalEquipements()', 'Retour') + '</div>');
 }
 async function fauxImprimer(doc) {
   const r = await informatiqueRpc('faux_document_imprimer', { p_doc: doc });
-  if (!r || r.ok !== true) { showToast('Impression refusée', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Impression refusée', informatiqueRefus(r), false); return; }
   informatiqueInventaire(r);
-  showToast(r.reussi ? 'Faux imprimé' : 'Impression ratée', r.reussi ? (r.nom_document + ' ajouté à votre inventaire.') : 'Le faux est inutilisable ; la cartouche est perdue.', !!r.reussi);
+  informatiqueToast(r.reussi ? 'Faux imprimé' : 'Impression ratée', r.reussi ? (r.nom_document + ' ajouté à votre inventaire.') : 'Le faux est inutilisable ; la cartouche est perdue.', !!r.reussi);
 }
 async function couteauImprimer() {
   const r = await informatiqueRpc('imprimer_couteau_plastique', {});
-  if (!r || r.ok !== true) { showToast('Impression refusée', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Impression refusée', informatiqueRefus(r), false); return; }
   informatiqueInventaire(r);
-  showToast('Imprimé', 'Couteau en plastique ajouté à votre inventaire.', true);
+  informatiqueToast('Imprimé', 'Couteau en plastique ajouté à votre inventaire.', true);
 }
 async function dossierImprimer(id) {
   const r = await informatiqueRpc('dossier_imprimer', { p_id: id });
-  if (!r || r.ok !== true) { showToast('Impression refusée', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Impression refusée', informatiqueRefus(r), false); return; }
   informatiqueInventaire(r);
-  showToast('Imprimé', r.objet + ' ajouté à votre inventaire.', true);
+  informatiqueToast('Imprimé', r.objet + ' ajouté à votre inventaire.', true);
 }
 async function ouvrirPlans3d() {
   const r = await informatiqueRpc('plans3d_lire', {});
-  if (!r || r.ok !== true) { showToast('Banque de plans', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Banque de plans', informatiqueRefus(r), false); return; }
   const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
   const lignes = (r.plans || []).map(p => '<div style="display:flex;justify-content:space-between;gap:.4rem;padding:.3rem 0;border-top:1px solid #2a3340"><span>' +
-    informatiqueEch(p.label) + '</span><span>' + equipementsBouton('plan3dObtenir(\'' + p.id + '\',\'acheter\')', 'Acheter ' + p.prix + ' ' + cur) + ' ' +
-    equipementsBouton('plan3dObtenir(\'' + p.id + '\',\'pirater\')', 'Pirater (3 PA)') + '</span></div>').join('');
-  equipementsModale('Banque de plans 3D', '<p class="cpj-note">Le plan est rangé dans vos dossiers ; imprimez-le depuis « Mes dossiers ».</p>' + lignes +
-    '<div style="margin-top:1rem">' + equipementsBouton('ouvrirImprimantes()', 'Retour') + '</div>');
+    informatiqueEch(p.label) + '</span><span>' + informatiqueBouton('plan3dObtenir(\'' + p.id + '\',\'acheter\')', 'Acheter ' + p.prix + ' ' + cur) + ' ' +
+    informatiqueBouton('plan3dObtenir(\'' + p.id + '\',\'pirater\')', 'Pirater (3 PA)') + '</span></div>').join('');
+  informatiqueModal('Banque de plans 3D', '<p class="cpj-note">Le plan est rangé dans vos dossiers ; imprimez-le depuis « Mes dossiers ».</p>' + lignes +
+    '<div style="margin-top:1rem">' + informatiqueBouton('ouvrirImprimantes()', 'Retour') + '</div>');
 }
 async function plan3dObtenir(id, mode) {
   const r = await informatiqueRpc('plan3d_obtenir', { p_recette: id, p_mode: mode });
-  if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Refusé', informatiqueRefus(r), false); return; }
   informatiquePa(r);
-  showToast(r.reussi ? 'Plan obtenu' : 'Piratage raté', r.reussi ? (r.label + ' est dans vos dossiers.') : 'Les 3 PA sont perdus.', !!r.reussi);
+  informatiqueToast(r.reussi ? 'Plan obtenu' : 'Piratage raté', r.reussi ? (r.label + ' est dans vos dossiers.') : 'Les 3 PA sont perdus.', !!r.reussi);
 }
 
 async function ouvrirVolMateriel() {
   const r = await informatiqueRpc('equipements_voler_lire', {});
-  if (!r || r.ok !== true) { showToast('Vol', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Vol', informatiqueRefus(r), false); return; }
   const lib = typeof EQUIPEMENTS_LIBELLES !== 'undefined' ? EQUIPEMENTS_LIBELLES : {};
   const lignes = (r.materiel || []).map(m => '<div style="display:flex;justify-content:space-between;padding:.3rem 0;border-top:1px solid #2a3340"><span>' +
-    informatiqueEch(lib[m.generique] || m.generique) + '</span>' + equipementsBouton('materielVoler(\'' + m.id + '\')', 'Voler (3 PA)') + '</div>').join('');
-  equipementsModale('Voler du matériel', '<p class="cpj-note">20 % de réussite, selon votre duplicité. Si vous êtes repéré : arrestation. Tout vol laisse une trace.</p>' +
+    informatiqueEch(lib[m.generique] || m.generique) + '</span>' + informatiqueBouton('materielVoler(\'' + m.id + '\')', 'Voler (3 PA)') + '</div>').join('');
+  informatiqueModal('Voler du matériel', '<p class="cpj-note">20 % de réussite, selon votre duplicité. Si vous êtes repéré : arrestation. Tout vol laisse une trace.</p>' +
     (lignes || '<p class="cpj-note">Rien à voler ici.</p>'));
 }
 async function materielVoler(id) {
   const r = await informatiqueRpc('voler_materiel', { p_id: id });
-  if (!r || r.ok !== true) { showToast('Vol impossible', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Vol impossible', informatiqueRefus(r), false); return; }
   informatiqueInventaire(r);
-  if (r.repere) { showToast('Repéré !', 'Vous êtes arrêté en flagrant délit.', false); if (typeof chargerPersonnage === 'function') chargerPersonnage(); return; }
-  showToast(r.reussi ? 'Volé !' : 'Raté', r.reussi ? 'Le matériel est dans votre inventaire.' : 'Vous n\'avez pas réussi à l\'emporter.', !!r.reussi);
+  if (r.repere) { informatiqueToast('Repéré !', 'Vous êtes arrêté en flagrant délit.', false); if (typeof chargerPersonnage === 'function') chargerPersonnage(); return; }
+  informatiqueToast(r.reussi ? 'Volé !' : 'Raté', r.reussi ? 'Le matériel est dans votre inventaire.' : 'Vous n\'avez pas réussi à l\'emporter.', !!r.reussi);
   ouvrirVolMateriel();
 }
 
 async function ouvrirMaterielOrganisation() {
   const r = await informatiqueRpc('organisation_materiel_lire', {});
-  if (!r || r.ok !== true) { showToast('Organisation', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Organisation', informatiqueRefus(r), false); return; }
   const h = (r.organisations || []).map(o => '<div class="cpj-titre">' + informatiqueEch(o.nom) + '</div>' +
     (o.membres || []).map(mb => '<div style="display:flex;justify-content:space-between;padding:.25rem 0"><span>' + informatiqueEch(mb.nom) + '</span>' +
-      equipementsBouton('materielAutoriser(\'' + o.id + '\',\'' + informatiqueEch(mb.nom).replace(/'/g, '') + '\',' + (!mb.autorise) + ')', mb.autorise ? 'Retirer l\'autorisation' : 'Autoriser') + '</div>').join('')).join('');
-  equipementsModale('Matériel des organisations', '<p class="cpj-note">Les membres autorisés se servent du matériel de l\'organisation (leurs PA) et reçoivent les rapports des caméras.</p>' +
-    (h || '<p class="cpj-note">Vous ne dirigez aucune organisation.</p>') + '<div style="margin-top:1rem">' + equipementsBouton('ouvrirModalEquipements()', 'Retour') + '</div>');
+      informatiqueBouton('materielAutoriser(\'' + o.id + '\',\'' + informatiqueEch(mb.nom).replace(/'/g, '') + '\',' + (!mb.autorise) + ')', mb.autorise ? 'Retirer l\'autorisation' : 'Autoriser') + '</div>').join('')).join('');
+  informatiqueModal('Matériel des organisations', '<p class="cpj-note">Les membres autorisés se servent du matériel de l\'organisation (leurs PA) et reçoivent les rapports des caméras.</p>' +
+    (h || '<p class="cpj-note">Vous ne dirigez aucune organisation.</p>') + '<div style="margin-top:1rem">' + informatiqueBouton('ouvrirModalEquipements()', 'Retour') + '</div>');
 }
 async function materielAutoriser(orga, membre, autorise) {
   const r = await informatiqueRpc('organisation_materiel_autoriser', { p_organisation: orga, p_membre: membre, p_autorise: autorise });
-  if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Refusé', informatiqueRefus(r), false); return; }
   ouvrirMaterielOrganisation();
 }
 // Choix de l'organisation qui recoit le materiel (chef seulement ; le local doit etre loue par elle).
 async function materielCederChoisir(id) {
   const r = await informatiqueRpc('organisation_materiel_lire', {});
-  if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
+  if (!r || r.ok !== true) { informatiqueToast('Refusé', informatiqueRefus(r), false); return; }
   const orgs = r.organisations || [];
   const h = orgs.map(o => '<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-top:1px solid #2a3340"><span>' +
-    informatiqueEch(o.nom || o.id) + '</span>' + equipementsBouton('materielCeder(\'' + String(id).replace(/'/g, '') + '\',\'' + informatiqueEch(o.id).replace(/'/g, '') + '\')', 'Céder', true) + '</div>').join('');
-  equipementsModale('Céder à l\'organisation', '<p class="cpj-note">Le matériel appartiendra à l\'organisation : vous ne pourrez plus le désinstaller vous-même. Le local doit être loué par elle.</p>' +
-    (h || '<p class="cpj-note">Vous ne dirigez aucune organisation.</p>') + '<div style="margin-top:1rem">' + equipementsBouton('ouvrirModalEquipements()', 'Retour') + '</div>');
+    informatiqueEch(o.nom || o.id) + '</span>' + informatiqueBouton('materielCeder(\'' + String(id).replace(/'/g, '') + '\',\'' + informatiqueEch(o.id).replace(/'/g, '') + '\')', 'Céder', true) + '</div>').join('');
+  informatiqueModal('Céder à l\'organisation', '<p class="cpj-note">Le matériel appartiendra à l\'organisation : vous ne pourrez plus le désinstaller vous-même. Le local doit être loué par elle.</p>' +
+    (h || '<p class="cpj-note">Vous ne dirigez aucune organisation.</p>') + '<div style="margin-top:1rem">' + informatiqueBouton('ouvrirModalEquipements()', 'Retour') + '</div>');
 }
 async function materielCeder(id, orga) {
   const r = await informatiqueRpc('equipement_ceder_organisation', { p_id: id, p_organisation: orga });
-  if (!r || r.ok !== true) { showToast('Refusé', informatiqueRefus(r), false); return; }
-  showToast('Matériel cédé', 'Il appartient désormais à l\'organisation.', true);
+  if (!r || r.ok !== true) { informatiqueToast('Refusé', informatiqueRefus(r), false); return; }
+  informatiqueToast('Matériel cédé', 'Il appartient désormais à l\'organisation.', true);
   ouvrirModalEquipements();
 }
