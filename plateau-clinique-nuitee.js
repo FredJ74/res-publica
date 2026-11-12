@@ -32,7 +32,7 @@ const REFUS={
  deja_hospitalise:'Vous disposez déjà d’une chambre au titre de votre hospitalisation.',
  deja_dormi:'Vous avez déjà dormi aujourd’hui. Revenez après le changement de jour.',
  indisponible:'Votre situation actuelle ne permet pas de réserver.',
- complet:'Les dix chambres sont occupées.',fonds_insuffisants:'Il vous faut 150 '+cliniqueDevise()+' pour cette nuit.'
+ complet:'Les dix chambres sont occupées.'
 };
 let reservationEnCours=false;
 function reserverNuiteeClinique(){
@@ -80,7 +80,7 @@ async function confirmerReservationNuiteeClinique(){
    showToast('Réservation non confirmée','Vérifiez votre chambre avant de réessayer : aucun second paiement automatique.',false);return;
   }
   if(!r.ok){
-   showToast('Réservation refusée',REFUS[r.raison]||'Le serveur a refusé la réservation.',false);return;
+   showToast('Réservation refusée',(r.raison==='fonds_insuffisants'?'Il vous faut 150 '+cliniqueDevise()+' pour cette nuit.':REFUS[r.raison])||'Le serveur a refusé la réservation.',false);return;
   }
   if(state.char?.name!==acteur||state.country!==pays)return;
   if(typeof r.liquide==='number')state.liquide=r.liquide;
