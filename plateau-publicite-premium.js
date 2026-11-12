@@ -8,22 +8,22 @@ function ouvrirPublicitePremium() {
   if(!modal||!corps)return;
   if(titre)titre.textContent=pubT('title',"Publicité premium — L’Autruche Entravée");
   corps.innerHTML='<div style="padding:1rem;max-width:680px;margin:auto">'+
-    '<h3>'+pubHT("fullPage","Votre pleine page publicitaire")+'</h3>'+
-    '<p>'+pubHT("beta","Offre bêta : création gratuite. La facturation Stripe sera activée ultérieurement.")+'</p>'+
-    '<label for="pub-premium-formule">'+pubHT("campaign","Campagne")+'</label>'+
+    '<h3 data-premium-i18n="fullPage">'+pubHT("fullPage","Votre pleine page publicitaire")+'</h3>'+
+    '<p data-premium-i18n="beta">'+pubHT("beta","Offre bêta : création gratuite. La facturation Stripe sera activée ultérieurement.")+'</p>'+
+    '<label for="pub-premium-formule" data-premium-i18n="campaign">'+pubHT("campaign","Campagne")+'</label>'+
     '<select id="pub-premium-formule" style="display:block;width:100%;padding:.6rem;margin:.4rem 0 1rem">'+
-    '<option value="cinq">'+pubHT("five","5 parutions — gratuit en bêta (futur tarif 4,99 €)")+'</option>'+
-    '<option value="dix">'+pubHT("ten","10 parutions — gratuit en bêta (futur tarif 7,99 €)")+'</option></select>'+
-    '<label for="pub-premium-texte">'+pubHT("describe","Décrivez votre publicité")+'</label>'+
+    '<option value="cinq" data-premium-i18n="five">'+pubHT("five","5 parutions — gratuit en bêta (futur tarif 4,99 €)")+'</option>'+
+    '<option value="dix" data-premium-i18n="ten">'+pubHT("ten","10 parutions — gratuit en bêta (futur tarif 7,99 €)")+'</option></select>'+
+    '<label for="pub-premium-texte" data-premium-i18n="describe">'+pubHT("describe","Décrivez votre publicité")+'</label>'+
     '<textarea id="pub-premium-texte" rows="5" maxlength="1500" style="display:block;width:100%;padding:.6rem;margin:.4rem 0 1rem" placeholder="'+pubHT("placeholder","Commerce, organisation, slogan, message, ambiance graphique...")+'"></textarea>'+
-    '<label style="display:block;margin-bottom:1rem"><input id="pub-premium-assistance" type="checkbox" checked> '+pubHT("assist","Assistance IA pour concevoir la page")+'</label>'+
-    '<label>'+pubHT("refs","Images de référence (5 maximum, PNG/JPEG/WebP, 5 Mo chacune)")+'</label>'+
+    '<label style="display:block;margin-bottom:1rem"><input id="pub-premium-assistance" type="checkbox" checked> <span data-premium-i18n="assist">'+pubHT("assist","Assistance IA pour concevoir la page")+'</span></label>'+
+    '<label data-premium-i18n="refs">'+pubHT("refs","Images de référence (5 maximum, PNG/JPEG/WebP, 5 Mo chacune)")+'</label>'+
     '<input type="file" id="pub-premium-sources" accept="image/png,image/jpeg,image/webp" multiple style="display:block;margin:.5rem 0 1rem">' +
-    '<label style="display:block;margin:.7rem 0"><input type="checkbox" id="pub-premium-droits"> '+pubHT("rights","Je confirme disposer des droits et autorisations nécessaires sur les images fournies, y compris pour les personnes reconnaissables. Je comprends que leurs originaux et leur provenance seront conservés à des fins de traçabilité et que les images litigieuses pourront être retirées.")+'</label>'+
-    '<label>'+pubHT("ownPoster","Ou importer une affiche finale personnelle (sans IA)")+'</label>'+
+    '<label style="display:block;margin:.7rem 0"><input type="checkbox" id="pub-premium-droits"> <span data-premium-i18n="rights">'+pubHT("rights","Je confirme disposer des droits et autorisations nécessaires sur les images fournies, y compris pour les personnes reconnaissables. Je comprends que leurs originaux et leur provenance seront conservés à des fins de traçabilité et que les images litigieuses pourront être retirées.")+'</span></label>'+
+    '<label data-premium-i18n="ownPoster">'+pubHT("ownPoster","Ou importer une affiche finale personnelle (sans IA)")+'</label>'+
     '<input type="file" id="pub-premium-affiche" accept="image/png,image/jpeg,image/webp" style="display:block;margin:.5rem 0 1rem">' +
-    '<p style="opacity:.8">'+pubHT("previewNote","La création comprendra un aperçu et jusqu’à deux retouches. Les parutions commenceront le lendemain de la commande validée.")+'</p>'+
-    '<button type="button" onclick="publicitePremiumEnregistrerBrouillon()" style="padding:.7rem 1rem;cursor:pointer">'+pubHT("prepare","Préparer ma publicité gratuite")+'</button>'+
+    '<p style="opacity:.8" data-premium-i18n="previewNote">'+pubHT("previewNote","La création comprendra un aperçu et jusqu’à deux retouches. Les parutions commenceront le lendemain de la commande validée.")+'</p>'+
+    '<button type="button" onclick="publicitePremiumEnregistrerBrouillon()" style="padding:.7rem 1rem;cursor:pointer" data-premium-i18n="prepare">'+pubHT("prepare","Préparer ma publicité gratuite")+'</button>'+
     '<div id="pub-premium-retour" role="status" style="margin-top:.8rem"></div></div>';
   modal.classList.add('open');
 }
@@ -135,3 +135,19 @@ async function publicitePremiumVersions(id){
   }
  }catch(e){zone.textContent=e.message;}
 }
+
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
+ const modal=document.getElementById('modal-postes');
+ const corps=document.getElementById('postes-body');
+ if(!modal?.classList?.contains('open')||!corps?.querySelector?.('[data-premium-i18n="fullPage"]'))return;
+ const titre=document.getElementById('postes-modal-title');
+ if(titre)titre.textContent=pubT('title',"Publicité premium — L’Autruche Entravée");
+ const resources=window.RPPremiumAdsI18n?.words?.fr;
+ if(!resources)return;
+ for(const key of ['fullPage','beta','campaign','five','ten','describe','assist','refs','rights','ownPoster','previewNote','prepare']){
+  const node=corps.querySelector('[data-premium-i18n="'+key+'"]');
+  if(node)node.textContent=pubT(key,resources[key]);
+ }
+ const input=document.getElementById('pub-premium-texte');
+ if(input)input.placeholder=pubT('placeholder',resources.placeholder);
+});
