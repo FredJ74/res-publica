@@ -807,8 +807,12 @@ vert sur la production avant application) ; écran `plateau-escorts-sovarka.js` 
 - Secrets : déclencheur sur `renseignements_connus` (confidences et « secret contre secret » reçus par une escort du catalogue, client
   présent en Sovarka) → dossier et courrier au ministre de la Sécurité du Peuple.
 - Piratage : branché dans le Dormir (`pa_repos_nocturne`), une fois par nuit (`escort_piratages_nuits`).
-- **Non fait, signalé** : les bonus de « Faire l'amour » restent calculés par l'écran, comme en Républia (chantier socle à part, il
-  touche aussi la Républia).
+- **« Faire l'amour » au serveur (12/11/2026, Républia et Sovarka, exigence de Fred : « une seule vérité »)** : `escort_intimite`
+  (migration `20261112014500_escort_intimite_serveur`) vérifie l'embauche, paie l'étape éventuelle et la nuit en un seul débit, tient
+  le palier de complicité (`escorts_complicite`, remis à zéro si l'escort change d'employeur) et applique les effets. Barèmes repris
+  à l'identique de l'écran, sans nouvelle décision : étapes 100 / 300 / 600, nuit 300 (monnaie du PJ) ; Moral +15/18/22/28,
+  Santé +5/6/7/10, ENT +2/2/3/4 selon le palier ; ENT plafonnée à 20 et une seule progression par jour réel, désormais enregistrée
+  au serveur (`ent_gains_quotidiens`).
 
 
 **Service d'étage** : disponible dans les **deux** bâtiments (suites du Pavillon, appartements de la Résidence). Carte du restaurant du Grand Hôtel de Sovarka **à son prix**, **+ 20 PSK de service par commande** (les 50 FR des hôtels de province de Républia à l'échelle de Sovarka) ; mêmes effets qu'au restaurant.
