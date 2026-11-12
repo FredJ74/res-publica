@@ -46,7 +46,7 @@ test('panneau de piratage traduit sans modifier les actions ni les coûts',()=>{
   assert.ok(f.markup.includes('piraterLancer('));
   assert.ok(f.markup.includes('registre'));
   assert.ok(f.markup.includes('caserne'));
-  assert.ok(f.markup.includes('3 PA'),lang);
+  assert.ok(f.markup.includes(words['3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. Tout piratage laisse une trace ; un échec peut alerter la cible.']),lang);
   assert.equal(f.calls.length,0);
  }
 });
@@ -62,7 +62,7 @@ test('changement de langue : aucune nouvelle RPC et saisies intactes',()=>{
  const f=fixture('fr');f.ctx.ouvrirPiratage();
  f.inputs.value='Cible conservée';
  f.setLang('ko');
- f.ctx.RP_I18N_CHANGE_CALLBACKS[0]();
+ f.ctx.window.RP_I18N_CHANGE_CALLBACKS[0]();
  assert.equal(f.title,'해킹');
  assert.equal(f.inputs.value,'Cible conservée');
  assert.equal(f.calls.length,0);
