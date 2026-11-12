@@ -2885,36 +2885,22 @@ function ouvrirModalEtapeEscort(nomEscort, palierVise) {
   if (!etape) return;
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
-  if (state.arg < etape.cost) { showToast('Fonds insuffisants', etape.cost + ' ' + cur + ' requis.', false); return; }
-
+  // Montants affichés = barème du serveur (escort_intimite) : l'étape, puis la nuit (300),
+  // payées ensemble ou pas du tout. Aucun contrôle de fonds à l'écran : le serveur tranche.
   document.getElementById('postes-modal-title').textContent = etape.label + ' — ' + nomEscort;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
-    '<div style="font-size:.82rem;color:#a09060;margin-bottom:1rem">' + etape.desc + ' Cout : ' + etape.cost + ' ' + cur + '.</div>' +
+    '<div style="font-size:.82rem;color:#a09060;margin-bottom:1rem">' + etape.desc + ' Cout : ' + etape.cost + ' ' + cur + ', puis ' + ESCORT_COUT_PRESTATION + ' ' + cur + ' pour la nuit.</div>' +
     '<button onclick="confirmerEtapeEscort(\'' + nomEscort.replace(/'/g,'') + '\',' + palierVise + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #cc6699;background:transparent;color:#cc6699;cursor:pointer">Confirmer</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// Étape de complicité puis nuit : un seul acte serveur (paiement, palier, effets).
 async function confirmerEtapeEscort(nomEscort, palierVise) {
   document.getElementById('modal-postes').classList.remove('open');
-  const etape = ETAPES_ESCORT[palierVise];
-  if (!etape) return;
-  const co = COUNTRIES[state.country];
-  const cur = co?.cur || 'FR';
-  const debit = await debiterFondsOrdinaires(etape.cost);
-  if (!debit.ok) { showToast('Fonds insuffisants', etape.cost + ' ' + cur + ' requis.', false); return; }
-
-  const escortInfo = (state.escortActive || []).find(e => e.nom === nomEscort);
-  if (escortInfo) escortInfo.palier = palierVise;
-  updateUI();
-
-  const petitsNoms = ['', 'grand fou', 'mon merveilleux amant', 'cheri(e)'];
-  const nouveauPetitNom = petitsNoms[palierVise];
-  showToast(etape.label + ' reussi', nomEscort + ' vous appelle desormais "' + nouveauPetitNom + '".', true, true);
-  addJournalEntry(etape.label + ' avec ' + nomEscort + '. -' + etape.cost + ' ' + cur + '. Complicite accrue.', 'event-good');
-
-  confirmerFaireLAmour(nomEscort);
+  if (!ETAPES_ESCORT[palierVise]) return;
+  await escortIntimiteServeur(nomEscort, palierVise);
 }
 
 const ETAPE_SUIVANTE_ESCORT = {
@@ -2941,11 +2927,19 @@ const PHRASES_ESCORT_ETAPE_SUIVANTE = [
   function(nom, etape) { return 'On y va doucement, ' + nom + '. ' + etape + ' pour de bon, sinon je vous connais a peine.'; }
 ];
 
-function ouvrirModalFaireLAmour(nomEscort) {
-  const nomPJ = state.char?.name || 'vous';
-  const escortInfo = (state.escortActive || []).find(e => e.nom === nomEscort);
+// Montant de la nuit : affichage seulement, le serveur (escort_intimite) applique le sien.
+const ESCORT_COUT_PRESTATION = 300;
 
-  if (!escortInfo) {
+async function ouvrirModalFaireLAmour(nomEscort) {
+  const nomPJ = state.char?.name || 'vous';
+  // Embauche et palier de complicité : lus au serveur (escort_complicite), jamais dans le blob.
+  const lu = (typeof sbRpcVerdict === 'function')
+    ? await sbRpcVerdict('escort_complicite', { p_escort: nomEscort }).catch(() => null) : null;
+  if (!lu || lu.transport) { showToast('Serveur injoignable', 'Réessayez dans un instant. Rien n\'a été facturé.', false); return; }
+  const escortInfo = lu.ok === true ? (state.escortActive || []).find(e => e.nom === nomEscort) || { nom: nomEscort } : null;
+  if (escortInfo) escortInfo.palier = lu.palier;
+
+  if (lu.ok !== true) {
     // Correction du 22 aout 2026 (regle de game design validee) : "Faire l'amour" exige
     // desormais TOUJOURS une embauche prealable -- l'ancien bouton "sans engager" permettait
     // de contourner cette regle et a ete retire. "Secret contre secret", lui, reste
@@ -2975,86 +2969,92 @@ function ouvrirModalFaireLAmour(nomEscort) {
     '<div style="padding:1rem">' +
     '<div style="font-size:.85rem;color:#c0b090;font-style:italic;margin-bottom:1rem;line-height:1.6">"' + phraseFn2(nomPJ, etapeSuivante.label) + '"</div>' +
     '<button onclick="ouvrirModalEtapeEscort(\'' + nomEscort.replace(/'/g,'') + '\',' + etapeSuivante.palierVise + ')" style="width:100%;margin-bottom:.5rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">' + etapeSuivante.label + '</button>' +
-    '<button onclick="confirmerFaireLAmour(\'' + nomEscort.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #cc6699;background:transparent;color:#cc6699;cursor:pointer">Passer outre et faire l amour (300 FR)</button>' +
+    '<button onclick="confirmerFaireLAmour(\'' + nomEscort.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #cc6699;background:transparent;color:#cc6699;cursor:pointer">Passer outre et faire l amour (' + ESCORT_COUT_PRESTATION + ' ' + (COUNTRIES[state.country]?.cur || 'FR') + ')</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
 async function confirmerFaireLAmour(nomEscort) {
   document.getElementById('modal-postes').classList.remove('open');
-  // Garde-fou (22 aout 2026, regle de game design validee) : "Faire l'amour" exige TOUJOURS
-  // une embauche active -- verifie ici, pas seulement au niveau du bouton, pour qu'un appel
-  // direct de cette fonction ne puisse jamais contourner la regle. Retour immediat avant
-  // toute depense, tout bonus, toute trace nuit_escort, toute confidence et tout appel IA.
-  const escortInfoGarde = (state.escortActive || []).find(e => e.nom === nomEscort);
-  if (!escortInfoGarde) {
-    showToast('Escort non engagée', 'Engagez d\'abord ' + nomEscort + ' comme escort.', false);
-    return;
-  }
-  const co = COUNTRIES[state.country];
-  const cur = co?.cur || 'FR';
-  const cost = 300;
-  const debit = await debiterFondsOrdinaires(cost);
-  if (!debit.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  await escortIntimiteServeur(nomEscort, null);
+}
 
-  // Phase 2 memoire des renseignements (22 aout 2026) : jet de confidence, best-effort et
-  // entierement invisible cote UI (ni toast, ni journal, ni recit modifie -- point 9 du design
-  // valide : le coeur de cette Phase 2 est la persistance, pas le dialogue). Ne bloque jamais
-  // le reste de l'action -- aucun await. Correctif du 22 aout 2026 (revue avant GO) : le taux
-  // complet (CHA_client/pays/ville/jour/piete) est desormais calcule entierement cote serveur,
-  // a partir des donnees persistees de "client" (personnages/indices_villes) -- ce client ne
-  // transmet plus que le nom du client, le nom de l'escort et chaEscort. chaEscort reste
-  // transmis ici car aucune source serveur n'existe pour les stats des PNJ (escorts sans ligne
-  // personnages, PNJ_STATS_PAR_JOB/PNJ_STATS_NOMMES vivent uniquement dans data.js, cote client
-  // -- voir api/renseignements.js pour le detail). Resolu via getPnjStats (job 'escort',
-  // CHA=10 par defaut) -- uniforme entre escorts tant qu'aucun nom precis n'est ajoute a
-  // PNJ_STATS_NOMMES (mecanisme deja existant, aucune valeur inventee ici).
-  if (typeof sbTirerConfidenceEscort === 'function') {
-    const nomClient = state.char?.name || 'Anonyme';
-    const chaEscort = (typeof getPnjStats === 'function' ? getPnjStats({ name: nomEscort, job: 'escort' }).CHA : 10) ?? 10;
-    sbTirerConfidenceEscort(nomClient, nomEscort, chaEscort).catch(() => {});
-  }
-
-  // Phase 5B memoire commerciale (22 aout 2026) : prestation reellement realisee (garde-fou
-  // Phase 5A deja passe, paiement deja effectue) -- best-effort, fire-and-forget, ne bloque
-  // jamais le reste de l'action. jour calcule cote serveur.
-  if (typeof sbEnregistrerEvenementEscort === 'function') {
-    sbEnregistrerEvenementEscort(state.char?.name || 'Anonyme', nomEscort, 'prestation').catch(() => {});
-  }
+// « FAIRE L'AMOUR » AU SERVEUR (12/11/2026, une seule vérité). escort_intimite vérifie l'embauche,
+// paie (étape éventuelle + nuit, en un seul débit), fixe le palier et applique Moral, Santé et ENT
+// (plafond 20, une progression par jour réel). L'écran recopie la réponse ; il ne calcule plus rien.
+let RP_ESCORT_INTIMITE_EN_COURS = false;
+async function escortIntimiteServeur(nomEscort, palierVise) {
+  if (RP_ESCORT_INTIMITE_EN_COURS || typeof sbRpcVerdict !== 'function' || !state.char?.name) return;
+  RP_ESCORT_INTIMITE_EN_COURS = true;
+  const moi = state.char.name;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cle = 'hg-escort-intimite:' + moi + ':' + nomEscort + ':' + (palierVise == null ? 'nuit' : palierVise);
+  let v = null;
+  try {
+    let requete = null;
+    try { requete = sessionStorage.getItem(cle); } catch (e) {}
+    if (!requete) { requete = crypto.randomUUID(); try { sessionStorage.setItem(cle, requete); } catch (e) {} }
+    v = await sbRpcVerdict('escort_intimite', { p_requete: requete, p_escort: nomEscort, p_palier_vise: palierVise }).catch(() => null);
+    if (v && !v.transport) { try { sessionStorage.removeItem(cle); } catch (e) {} }
+  } finally { RP_ESCORT_INTIMITE_EN_COURS = false; }
+  if (state.char?.name !== moi) return;
+  if (!v || v.transport) { showToast('Serveur injoignable', 'Réessayez : la même demande sera reconnue, jamais payée deux fois.', false); return; }
 
   const escortInfo = (state.escortActive || []).find(e => e.nom === nomEscort);
-  const palierActuel = escortInfo?.palier || 0;
-  const bonusParPalier = [
-    { moral: 15, hp: 5,  ent: 2 },
-    { moral: 18, hp: 6,  ent: 2 },
-    { moral: 22, hp: 7,  ent: 3 },
-    { moral: 28, hp: 10, ent: 4 }
-  ];
-  const bonus = bonusParPalier[palierActuel];
+  if (v.ok !== true) {
+    if (escortInfo && typeof v.palier === 'number') escortInfo.palier = v.palier;
+    const motifs = {
+      escort_non_engagee: 'Engagez d\'abord ' + nomEscort + ' comme escort.',
+      fonds_insuffisants: (v.total || ESCORT_COUT_PRESTATION) + ' ' + cur + ' requis. Rien n\'a été facturé.',
+      etape_invalide: 'La complicité a changé entre-temps. Rouvrez la fiche de ' + nomEscort + '.'
+    };
+    showToast('Refusé', motifs[v.raison] || ('Le serveur a refusé (' + (v.raison || 'inconnu') + '). Rien n\'a été facturé.'), false);
+    return;
+  }
 
-  state.moral = Math.min(100, (state.moral || 0) + bonus.moral);
-  state.hp = Math.min(100, (state.hp || 0) + bonus.hp);
-  appliquerGainENT(bonus.ent);
+  // Recopie de la vérité du serveur.
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ liquide: v.liquide, arg: v.arg, solde_national: v.solde_national });
+  if (typeof v.hp === 'number') state.hp = v.hp;
+  if (typeof v.moral === 'number') state.moral = v.moral;
+  if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ hp: v.hp, moral: v.moral });
+  if (state.char && typeof v.ent === 'number') { state.char.stats = state.char.stats || {}; state.char.stats.ENT = v.ent; }
+  if (escortInfo) escortInfo.palier = v.palier;
+  updateUI();
+
+  const palierActuel = v.palier;
+  if (!v.rejeu) {
+    if (v.cout_etape > 0) {
+      const etape = ETAPES_ESCORT[palierActuel];
+      const nouveauPetitNom = ['', 'grand fou', 'mon merveilleux amant', 'cheri(e)'][palierActuel];
+      if (etape) {
+        showToast(etape.label + ' reussi', nomEscort + ' vous appelle desormais "' + nouveauPetitNom + '".', true, true);
+        addJournalEntry(etape.label + ' avec ' + nomEscort + '. -' + v.cout_etape + ' ' + cur + '. Complicite accrue.', 'event-good');
+      }
+    }
+    // Jet de confidence (taux calculé au serveur) et mémoire commerciale : après le verdict seulement.
+    if (typeof sbTirerConfidenceEscort === 'function') {
+      const chaEscort = (typeof getPnjStats === 'function' ? getPnjStats({ name: nomEscort, job: 'escort' }).CHA : 10) ?? 10;
+      sbTirerConfidenceEscort(moi, nomEscort, chaEscort).catch(() => {});
+    }
+    if (typeof sbEnregistrerEvenementEscort === 'function') {
+      sbEnregistrerEvenementEscort(moi, nomEscort, 'prestation').catch(() => {});
+    }
+  }
 
   const petitsNoms = ['Monsieur ou Madame', 'grand fou', 'mon merveilleux amant', 'cheri(e)'];
   const petitNomActuel = petitsNoms[palierActuel];
   const longueurParPalier = ['2-3 phrases', '3-4 phrases', '4-5 phrases', '5-6 phrases, ton plus passionne et intime'];
   const longueurVisee = longueurParPalier[palierActuel];
-  // BAREME DE LONGUEUR PAR PALIER : [250, 320, 400, 480] jetons. Il vit desormais
-  // cote serveur (usage `escort_amour` de api/redaction.js), ou le navigateur ne
-  // transmet plus que le palier. Les valeurs n'ont pas change.
-
+  // BAREME DE LONGUEUR PAR PALIER : [250, 320, 400, 480] jetons, cote serveur (usage
+  // `escort_amour` de api/redaction.js) ; le navigateur ne transmet que le palier.
   const prompt = 'Tu es le narrateur de Res Publica, jeu politique parodique et satirique. Le joueur vient de passer un moment intime avec ' + nomEscort + ", une escort de l'Agence Roxane Velours. La complicite entre eux a atteint un palier ou le petit nom \"" + petitNomActuel + '" est desormais utilise. Redige UN recit (' + longueurVisee + ') qui flatte et valorise le joueur, lui donnant un sentiment de plenitude et de superiorite, integrant naturellement ce petit nom dans le dialogue, mais glisse a la toute fin un doute subtil sur l authenticite du plaisir ressenti par l escort (professionnelle avant tout). Ton elegant, un peu ironique, jamais vulgaire ni explicite. Reponds en texte brut uniquement, sans markdown (pas de #, pas de **).';
 
   let recit = 'Vous passez un moment agréable avec ' + nomEscort + '.';
   try {
-    // Le navigateur ne choisit plus le nombre de jetons : il declare le PALIER, et le
-    // serveur applique le meme bareme qu'avant (250 / 320 / 400 / 480).
     const r = await rpRedaction('escort_amour', prompt, palierActuel);
     recit = (r.texte || '').trim() || recit;
   } catch(e) {}
 
-  updateUI();
   document.getElementById('postes-modal-title').textContent = '💗 ' + nomEscort;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1.2rem">' +
@@ -3062,16 +3062,15 @@ async function confirmerFaireLAmour(nomEscort) {
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  addJournalEntry('Moment privé avec ' + nomEscort + '. +' + bonus.moral + ' Moral, +' + bonus.hp + ' Santé, +' + bonus.ent + ' ENT. -' + cost + ' ' + cur + '.', 'event-good');
+  if (v.rejeu) return;
+  addJournalEntry('Moment privé avec ' + nomEscort + '. +' + v.gain_moral + ' Moral, +' + v.gain_hp + ' Santé' +
+    (v.gain_ent > 0 ? ', +' + v.gain_ent + ' ENT' : '') + '. -' + v.cout_prestation + ' ' + cur + '.', 'event-good');
 
   if (typeof tracerActionPourRumeur === 'function') {
-    // Correction du 22 aout 2026 : la cible etait auparavant toujours null, rendant impossible
-    // de savoir quel escort etait concerne par la trace. Duree de actions_tracables (7 jours)
-    // inchangee -- distincte de la future memoire commerciale 90 jours.
     tracerActionPourRumeur('nuit_escort', nomEscort);
     try {
       if (typeof sbGetMariageActif === 'function') {
-        const mariage = await sbGetMariageActif(state.char?.name);
+        const mariage = await sbGetMariageActif(moi);
         if (mariage) tracerActionPourRumeur('nuit_escort', nomEscort);
       }
     } catch(e) {}
