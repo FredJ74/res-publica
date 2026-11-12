@@ -35,12 +35,40 @@ const REFUS={
  complet:'Les dix chambres sont occupées.',fonds_insuffisants:'Il vous faut 150 '+cliniqueDevise()+' pour cette nuit.'
 };
 let reservationEnCours=false;
-async function reserverNuiteeClinique(){
+function reserverNuiteeClinique(){
  if(reservationEnCours)return;
  if(!cliniquePays()||state.currentCity!=='capitale'||state.currentBuilding!=='clinique-privee'
    ||state.currentRoom!=='reception_clinique')return;
- if(!global.confirm('Réserver une chambre pour une nuit à 150 '+cliniqueDevise()
-   +' ? Le montant est payé maintenant. Dormir dans cette chambre donne +2 PA, +10 Santé et +3 Moral.'))return;
+ const modal=document.getElementById('modal-postes');
+ const titre=document.getElementById('postes-modal-title');
+ const corps=document.getElementById('postes-body');
+ if(!modal||!titre||!corps){
+  showToast('Réservation indisponible','La fenêtre de réservation ne peut pas être affichée.',false);
+  return;
+ }
+ const cur=cliniqueDevise();
+ titre.textContent='Réserver une chambre à la clinique';
+ corps.innerHTML=
+  '<div id="clinique-nuitee-confirmation" style="padding:1.25rem 1.4rem;color:#d7d0be">'
+ +'<div style="font-size:1.03rem;color:#eac67a;margin-bottom:.85rem">Une nuit en chambre privée</div>'
+ +'<p style="line-height:1.65;margin:0 0 .75rem">Tarif : <strong>150 '+cur
+ +' par nuit</strong>, prélevés lors de la réservation.</p>'
+ +'<p style="line-height:1.65;margin:0 0 .75rem">En dormant dans votre chambre : <strong>+2 PA, +10 Santé et +3 Moral</strong>, en plus des effets du sommeil habituel et dans la limite des plafonds.</p>'
+ +'<p style="color:#a69b86;font-size:.83rem;margin:0 0 1.2rem">La chambre est attribuée selon les disponibilités.</p>'
+ +'<div style="display:flex;flex-wrap:wrap;gap:.65rem;justify-content:flex-end">'
+ +'<button type="button" id="clinique-annuler-reservation" style="padding:.65rem 1rem;background:transparent;color:#c9b99a;border:1px solid #64543b;cursor:pointer">Annuler</button>'
+ +'<button type="button" id="clinique-confirmer-reservation" style="padding:.65rem 1rem;background:#493615;color:#ffe4a8;border:1px solid #a37d35;cursor:pointer">Confirmer la réservation — 150 '+cur+'</button>'
+ +'</div></div>';
+ corps.querySelector('#clinique-annuler-reservation')?.addEventListener('click',()=>modal.classList.remove('open'));
+ corps.querySelector('#clinique-confirmer-reservation')?.addEventListener('click',()=>{void confirmerReservationNuiteeClinique();});
+ modal.classList.add('open');
+}
+async function confirmerReservationNuiteeClinique(){
+ if(reservationEnCours)return;
+ if(!cliniquePays()||state.currentCity!=='capitale'||state.currentBuilding!=='clinique-privee'
+   ||state.currentRoom!=='reception_clinique')return;
+ const bouton=document.getElementById('clinique-confirmer-reservation');
+ if(bouton){bouton.disabled=true;bouton.textContent='Vérification auprès de la clinique…';}
  reservationEnCours=true;
  const acteur=state.char?.name,pays=state.country;
  try{
@@ -59,12 +87,17 @@ async function reserverNuiteeClinique(){
   if(typeof r.arg==='number'){state.arg=r.arg;if(state.char)state.char.arg=r.arg;}
   if(typeof updateUI==='function')updateUI();
   if(typeof chargerLocations==='function')await chargerLocations();
+  document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Chambre réservée',r.chambre.replace('chambre_','Chambre ')
     +' : une nuit réglée pour 150 '+cliniqueDevise()+'.',true);
   if(state.char?.name===acteur&&state.country===pays
     &&state.currentBuilding==='clinique-privee'&&state.currentRoom==='reception_clinique'
     &&typeof enterRoom==='function')enterRoom('clinique-privee',r.chambre,null);
- }finally{reservationEnCours=false;}
+ }finally{
+  reservationEnCours=false;
+  const bouton=document.getElementById('clinique-confirmer-reservation');
+  if(bouton){bouton.disabled=false;bouton.textContent='Confirmer la réservation — 150 '+cliniqueDevise();}
+ }
 }
 // Appelée APRÈS la sauvegarde du repos normal : le serveur constate la même nuit
 // et attribue, au plus une fois, le bonus de la réservation réellement payée.
