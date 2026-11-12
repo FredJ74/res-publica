@@ -2231,11 +2231,8 @@ const WORLD = {
           desc: "Transactions enregistrées en quadruple.",
           persons: [{"name": "Caissier Méticuleux (PNJ)", "role": "Caissier", "rel": "neutral", "job": "banquier"}]
         },
-        'dispensaire-public': {
-          name: "Poste Médical Collectif",
-          desc: "Le médecin est là deux fois par semaine.",
-          persons: [{"name": "Docteur Collectif (PNJ)", "role": "Médecin", "rel": "neutral", "job": "medecin"}]
-        },
+        // Ancien doublon « Poste Médical Collectif » supprimé : il écrasait l’hôpital
+        // de Novomirsk et masquait Accueil, EHPAD et Chambre malgré leurs WebP.
         'la-tribune': {
           name: "Bulletin du Parti Local",
           desc: "Nouvelles de production uniquement.",
