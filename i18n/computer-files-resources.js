@@ -346,6 +346,54 @@ const words={
     "Transmettre un dossier": "Akte übermitteln"
   }
 };
+const moreWords={
+  "fr": {
+    "Nom d'un PJ ou d'une organisation": "Nom d'un PJ ou d'une organisation",
+    "Nom du PJ": "Nom du PJ",
+    "3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. Tout piratage laisse une trace ; un échec peut alerter la cible.": "3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. Tout piratage laisse une trace ; un échec peut alerter la cible."
+  },
+  "en": {
+    "Nom d'un PJ ou d'une organisation": "Player or organization name",
+    "Nom du PJ": "Player name",
+    "3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. Tout piratage laisse une trace ; un échec peut alerter la cible.": "Each attempt costs 3 AP. Base success chance: 45%, adjusted by intelligence. An intranet almost always protects a computer. Every hack leaves a trace; failure may alert the target."
+  },
+  "es": {
+    "Nom d'un PJ ou d'une organisation": "Nombre de jugador u organización",
+    "Nom du PJ": "Nombre del jugador",
+    "3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. Tout piratage laisse une trace ; un échec peut alerter la cible.": "Cada intento cuesta 3 PA. Probabilidad base del 45%, según tu inteligencia. Una intranet casi siempre protege el ordenador. Todo pirateo deja rastros y un fallo puede alertar al objetivo."
+  },
+  "zh-TW": {
+    "Nom d'un PJ ou d'une organisation": "玩家或組織名稱",
+    "Nom du PJ": "玩家名稱",
+    "3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. Tout piratage laisse une trace ; un échec peut alerter la cible.": "每次嘗試消耗 3 行動點數。基本成功率為 45%，受智力影響。內部網路通常會保護電腦。每次入侵都會留下痕跡，失敗可能警告目標。"
+  },
+  "ru": {
+    "Nom d'un PJ ou d'une organisation": "Имя игрока или организации",
+    "Nom du PJ": "Имя игрока",
+    "3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. Tout piratage laisse une trace ; un échec peut alerter la cible.": "Каждая попытка стоит 3 ОД. Базовый шанс успеха — 45%, с поправкой на интеллект. Компьютер почти всегда защищён интранетом. Любой взлом оставляет след; неудача может предупредить цель."
+  },
+  "ko": {
+    "Nom d'un PJ ou d'une organisation": "플레이어 또는 조직 이름",
+    "Nom du PJ": "플레이어 이름",
+    "3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. Tout piratage laisse une trace ; un échec peut alerter la cible.": "시도당 3 AP가 소모됩니다. 기본 성공률은 45%이며 지능에 따라 달라집니다. 컴퓨터는 대부분 내부망으로 보호됩니다. 모든 해킹은 흔적을 남기며 실패하면 대상에게 경고가 갈 수 있습니다."
+  },
+  "ar": {
+    "Nom d'un PJ ou d'une organisation": "اسم اللاعب أو المنظمة",
+    "Nom du PJ": "اسم اللاعب",
+    "3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. Tout piratage laisse une trace ; un échec peut alerter la cible.": "تكلف كل محاولة 3 نقاط عمل. نسبة النجاح الأساسية 45٪ وتتأثر بالذكاء. تحمي الشبكة الداخلية الحاسوب في معظم الأحيان. كل اختراق يترك أثرًا وقد ينبه الفشل الهدف."
+  },
+  "pt-BR": {
+    "Nom d'un PJ ou d'une organisation": "Nome do jogador ou da organização",
+    "Nom du PJ": "Nome do jogador",
+    "3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. Tout piratage laisse une trace ; un échec peut alerter la cible.": "Cada tentativa custa 3 PA. Chance básica de sucesso de 45%, conforme a inteligência. Uma intranet quase sempre protege o computador. Toda invasão deixa rastros; uma falha pode alertar o alvo."
+  },
+  "de": {
+    "Nom d'un PJ ou d'une organisation": "Name eines Spielers oder einer Organisation",
+    "Nom du PJ": "Spielername",
+    "3 PA par tentative. Réussite de base 45 %, selon votre intelligence. Un intranet protège presque toujours un ordinateur. Tout piratage laisse une trace ; un échec peut alerter la cible.": "Jeder Versuch kostet 3 AP. Grundchance 45 %, abhängig von deiner Intelligenz. Ein Intranet schützt fast immer einen Computer. Jeder Hack hinterlässt Spuren; ein Fehlschlag kann das Ziel warnen."
+  }
+};
+for(const [locale,phrases] of Object.entries(moreWords))Object.assign(words[locale],phrases);
 const resources=global.RP_I18N_RESOURCES;
 if(resources)for(const [lang,map] of Object.entries(words)){
  if(resources[lang]?.translation)resources[lang].translation.computerFiles=map;
