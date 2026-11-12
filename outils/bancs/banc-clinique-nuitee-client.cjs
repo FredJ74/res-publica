@@ -115,5 +115,5 @@ test('les deux raccordements d’ordres et la chaîne Dormir sont présents',()=
  assert.match(perso,/consommerNuiteeCliniqueApresDormir/);
  assert.match(perso,/if \(retourActif\(\) && pieceInitialRepos/);
  assert.match(perso,/ORDRES_MEDICAUX_CHAMBRE_CLINIQUE[\s\S]*'clinique_dormir'/);
- assert.match(html,/plateau-clinique-nuitee\.js\?v=clinique-attente-sommeil-20261112/);
+ assert.match(html,/plateau-clinique-nuitee\.js\?v=clinique-i18n-20261112/);
 });
