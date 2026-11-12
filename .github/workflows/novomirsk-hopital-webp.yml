@@ -1,0 +1,69 @@
+name: Novomirsk — WebP hôpital public
+on:
+  push:
+    branches:
+      - chatgpt/novomirsk-hopital-images-chambre-20261112
+    paths:
+      - .github/workflows/novomirsk-hopital-webp.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'Pillow==11.3.0'
+      - name: Convertir, vérifier, remplacer et supprimer les PNG
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          p=Path('images/Sovarka/Novomirsk')
+          names=['Novomirsk_hopital_EPHAD','Novomirsk_hopital_acceuil','Novomirsk_hopital_chambre']
+          code=Path('data.js')
+          src=code.read_text(encoding='utf-8')
+          for name in names:
+              old=p/(name+'.png')
+              new=p/(name+'.webp')
+              assert old.is_file(), f'PNG source absent: {old}'
+              needle=str(old)
+              assert src.count(needle)==1, f'Reference inattendue {needle}: {src.count(needle)}'
+              with Image.open(old) as image:
+                  assert image.width>=800 and image.height>=450, f'Image trop petite: {old}'
+                  image.convert('RGB').save(new,'WEBP',quality=84,method=6)
+              with Image.open(new) as check:
+                  check.verify()
+              assert new.stat().st_size>20000
+              src=src.replace(needle,str(new))
+          code.write_text(src,encoding='utf-8')
+          for name in names:
+              (p/(name+'.png')).unlink()
+          print('Trois WebP valides; trois PNG retires; trois refs data.js modifiees.')
+          PY
+      - name: Vérifier syntaxe JS et références
+        run: |
+          node --check data.js
+          python - <<'PY'
+          from pathlib import Path
+          txt=Path('data.js').read_text()
+          p=Path('images/Sovarka/Novomirsk')
+          for n in ['Novomirsk_hopital_EPHAD','Novomirsk_hopital_acceuil','Novomirsk_hopital_chambre']:
+              assert (p/(n+'.webp')).is_file()
+              assert not (p/(n+'.png')).exists()
+              assert ('images/Sovarka/Novomirsk/'+n+'.webp') in txt
+          PY
+      - name: Commit des images optimisées
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data.js images/Sovarka/Novomirsk/Novomirsk_hopital*
+          git diff --cached --quiet || git commit -m 'art: convertir les trois pièces de l’hôpital en WebP'
+          git push origin HEAD:${{ github.ref_name }}
