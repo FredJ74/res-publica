@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.clinique_nuitees (
   room_id text NOT NULL CHECK (room_id ~ '^chambre_([1-9]|10)$'),
   prix integer NOT NULL DEFAULT 150 CHECK (prix=150),
   reservee_le date NOT NULL,
+  dormie_le date,
   cree_le timestamptz NOT NULL DEFAULT now(),
   consommee_le date,
   annulee_le date,
@@ -66,7 +67,8 @@ BEGIN
   WHERE personnage=v_nom AND consommee_le IS NULL AND annulee_le IS NULL
   LIMIT 1;
  IF FOUND THEN RETURN jsonb_build_object('ok',true,'deja_reservee',true,
-   'chambre',v_nuit.room_id,'prix',150,'country',p.country); END IF;
+   'chambre',v_nuit.room_id,'prix',150,'country',p.country,
+   'liquide',p.liquide,'arg',p.arg); END IF;
 
  FOR v_salle IN SELECT 'chambre_'||i::text FROM generate_series(1,10) i LOOP
    v_cle:=p.country||':clinique-privee:'||v_salle||':capitale';
@@ -120,7 +122,7 @@ BEGIN
    THEN RETURN jsonb_build_object('ok',true,'rejeu',true,'pa',p.pa,'hp',p.hp,'moral',p.moral); END IF;
    RETURN jsonb_build_object('ok',false,'raison','aucune_reservation');
  END IF;
- IF p.pa_repos_le IS DISTINCT FROM v_jour
+ IF p.pa_repos_le IS DISTINCT FROM v_jour OR n.dormie_le IS DISTINCT FROM v_jour
  THEN RETURN jsonb_build_object('ok',false,'raison','repos_non_valide'); END IF;
  IF p.current_city<>'capitale' OR p.current_building<>'clinique-privee'
    OR p.current_room<>n.room_id OR p.country<>n.country
@@ -151,3 +153,36 @@ BEGIN
 END;$func$;
 REVOKE ALL ON FUNCTION public.clinique_nuitee_consommer() FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.clinique_nuitee_consommer() TO authenticated,service_role;
+
+-- Le bonus ne peut être acquis qu'en dormant PHYSIQUEMENT dans sa chambre :
+-- marqueur écrit dans la transaction du repos serveur, pas au retour du navigateur.
+-- Pas de modification de pa_repos_nocturne ni des règles d'hospitalisation.
+CREATE OR REPLACE FUNCTION public.clinique_nuitee_marquer_repos()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER
+SET search_path TO 'public','pg_temp' AS $trigger$
+DECLARE v_jour date := (statement_timestamp() AT TIME ZONE 'Europe/Paris')::date;
+BEGIN
+ IF NEW.pa_repos_le IS DISTINCT FROM OLD.pa_repos_le
+    AND NEW.pa_repos_le=v_jour
+    AND NEW.country IN ('republic','soviet') AND NEW.current_city='capitale'
+    AND NEW.current_building='clinique-privee'
+    AND NEW.current_room ~ '^chambre_([1-9]|10)$'
+    AND NOT (NEW.hospitalisation IS NOT NULL AND jsonb_typeof(NEW.hospitalisation)='object'
+      AND COALESCE(NULLIF(NEW.hospitalisation->>'dateFinParis','')::date,v_jour)>=v_jour)
+ THEN
+  UPDATE public.clinique_nuitees n SET dormie_le=v_jour
+   WHERE n.personnage=NEW.name AND n.country=NEW.country AND n.room_id=NEW.current_room
+     AND n.consommee_le IS NULL AND n.annulee_le IS NULL
+     AND n.reservee_le IN (v_jour,v_jour-1)
+     AND EXISTS (SELECT 1 FROM public.locations_actives l
+       WHERE l.id=NEW.country||':clinique-privee:'||NEW.current_room||':capitale'
+       AND l.country=NEW.country AND l.data->>'locataire'=NEW.name
+       AND l.data->>'reservationClinique'='true');
+ END IF;
+ RETURN NEW;
+END;$trigger$;
+REVOKE ALL ON FUNCTION public.clinique_nuitee_marquer_repos() FROM PUBLIC,anon,authenticated;
+DROP TRIGGER IF EXISTS clinique_nuitee_repos_apres_update ON public.personnages_donnees;
+CREATE TRIGGER clinique_nuitee_repos_apres_update
+ AFTER UPDATE OF pa_repos_le ON public.personnages_donnees
+ FOR EACH ROW EXECUTE FUNCTION public.clinique_nuitee_marquer_repos();
