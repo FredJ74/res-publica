@@ -142,6 +142,14 @@ const MUSEE_PROVINCE_PERSONNALITES = {
   },
   // Musee municipal de Novomirsk (04/11/2026) : figures ecrites par Claude, a la relecture de Fred.
   'musee-novomirsk': {
+    // Salle des Personnalités discrètes (Fred, 12/11/2026) : figures choisies et racontées par Fred.
+    salle_personnalites_discretes: [
+      { nom: 'Sophia Nouiseteskaïa', dates: '1858–1931', bio: "Inventrice d'un métier à tisser qui produisait un voile transparent de réputation mondiale. Couturière, elle en faisait des vêtements de nuit. La légende dit qu'une femme drapée de ce voile avait un pouvoir fou sur les hommes." },
+      { nom: 'Viktor Polov', dates: '1849–1883', bio: "Grand cavalier, coursier du tsar Léonid III. Envoyé chercher d'urgence du sucre à Krasnov, il traversa la rivière en portant le sac à bout de bras pour qu'il ne fonde pas. Son cheval s'enfonçant, il lança le sac à un autre cavalier, qui le lança à un troisième, lequel atteignit la berge. On en tira un sport, le polo, en hommage à Viktor, disparu dans les eaux de la Sovarka." },
+      { nom: 'Alexander Aspirine', dates: '1861–1940', bio: "Scientifique, inventeur d'un vin fermenté qui faisait passer les maux de tête. À forte dose, il faisait vomir." },
+      { nom: 'Ivan Betonov', dates: '1872–1949', bio: "Ingénieur et architecte, à qui l'on doit le Palais du Gouvernement. Seul défaut de son œuvre : elle était si colossale que le pays manqua de matériaux de construction cinq ans de suite." },
+      { nom: 'Anna Mouriskova', dates: '1921–1956', bio: "Prostituée et espionne. Superbe femme, elle obtenait tous les secrets des dignitaires qu'elle choisissait, par sa beauté et son intelligence. Le camarade président Taras Sergueïevitch Belov la fit exécuter : jalousie, ou parce qu'elle en savait trop sur lui, on ne le saura jamais. Le décret d'exécution n'a jamais été retrouvé ; officiellement, le camarade Belov n'a signé que celui de l'heure du thé." }
+    ],
     salle_criminels: [
       { nom: '« Le Fantôme du Kolkhoze n° 7 »', dates: 'années 1920', bio: "Volait chaque nuit une betterave du silo collectif. Jamais pris ; le silo fut déclaré « en sous-production chronique »." },
       { nom: 'Grigori Faussaire', dates: '1898–1961', bio: "Imprima de faux tickets de rationnement si parfaits que le Comité les préférait aux vrais." },

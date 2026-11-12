@@ -23,7 +23,9 @@ for(const [key,file] of Object.entries({
   assert.equal(fs.existsSync(path.join(root,salle.imageUrl.replace(/\.webp$/,'.png'))),false,key);
 }
 assert.equal(actual.roomOverrides.salle_attente.persons.length,2);
-assert.equal(actual.roomOverrides.ehpad_tilleuls.persons.length,3);
+// 3 pensionnaires + Evgueni Sudakov (énigme du trésor des Tsars, Fred, 12/11/2026).
+assert.equal(actual.roomOverrides.ehpad_tilleuls.persons.length,4);
+assert.ok(actual.roomOverrides.ehpad_tilleuls.persons.some(p=>p.name==='Evgueni Sudakov (PNJ)'));
 const sovarka=actual.roomOverrides.ehpad_tilleuls.persons.map(p=>p.name);
 assert.ok(sovarka.includes('Antonina Doubrova (PNJ)'));
 assert.equal(vm.runInContext('WORLD.republic.capitale.buildingContext["dispensaire-public"].roomOverrides?.salle_attente?.imageUrl',scope),undefined);

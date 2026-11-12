@@ -27,7 +27,9 @@ if (process.argv.includes('--scenes-js')) {
       for (const id of cite.buildings) {
         const b = BUILDINGS[id]; if (!b) continue;
         const ctx = getBuildingContext(id);
-        const pieces = new Set([...Object.keys(b.rooms || {}), ...Object.keys(ctx?.roomsExtra || {})]);
+        // Pièces exclues par la ville (roomsExclues) : absentes du jeu, donc sans scène (12/11/2026).
+        const pieces = new Set([...Object.keys(b.rooms || {}), ...Object.keys(ctx?.roomsExtra || {})]
+          .filter(p => !(ctx?.roomsExclues || []).includes(p)));
         for (const piece of pieces) {
           const r = ctx?.roomOverrides?.[piece] || ctx?.roomsExtra?.[piece] || b.rooms?.[piece];
           out[JSON.stringify([pays,ville,id,piece])] = {

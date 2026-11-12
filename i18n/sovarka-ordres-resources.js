@@ -11,6 +11,7 @@
  if(!resources)return;
  const orders={
   "fr":{
+   "tresor_ecouter_guide":"Écouter le guide",
    "sovarka_ecoutes":"Rapports des centres d’écoute","sovarka_retirer_droit":"Saisines du ministre",
    "sovarka_ordres_ministre":"Prendre les ordres du ministre","sovarka_offrir_cafe":"Offrir un café",
    "sovarka_acte_officiel":"Demander un acte officiel","sovarka_acte_officiel_autorite":"Délivrer un acte officiel",
@@ -25,6 +26,7 @@
    "ferme_legumes":"Extraire des légumes","ferme_oeufs":"Ramasser les œufs","ferme_poulet":"Abattre un poulet","ferme_lapin":"Abattre un lapin"
   },
   "en":{
+   "tresor_ecouter_guide":"Listen to the guide",
    "sovarka_ecoutes":"Listening centre reports","sovarka_retirer_droit":"Referrals from the minister",
    "sovarka_ordres_ministre":"Take the minister's instructions","sovarka_offrir_cafe":"Offer a coffee",
    "sovarka_acte_officiel":"Request an official certificate","sovarka_acte_officiel_autorite":"Issue an official certificate",
@@ -39,6 +41,7 @@
    "ferme_legumes":"Dig up vegetables","ferme_oeufs":"Collect the eggs","ferme_poulet":"Slaughter a chicken","ferme_lapin":"Slaughter a rabbit"
   },
   "es":{
+   "tresor_ecouter_guide":"Escuchar al guía",
    "sovarka_ecoutes":"Informes de los centros de escucha","sovarka_retirer_droit":"Remisiones del ministro",
    "sovarka_ordres_ministre":"Recibir las instrucciones del ministro","sovarka_offrir_cafe":"Invitar a un café",
    "sovarka_acte_officiel":"Solicitar un acta oficial","sovarka_acte_officiel_autorite":"Expedir un acta oficial",
@@ -53,6 +56,7 @@
    "ferme_legumes":"Sacar verduras","ferme_oeufs":"Recoger los huevos","ferme_poulet":"Sacrificar un pollo","ferme_lapin":"Sacrificar un conejo"
   },
   "zh-TW":{
+   "tresor_ecouter_guide":"聆聽導覽員",
    "sovarka_ecoutes":"監聽中心報告","sovarka_retirer_droit":"部長移送案件",
    "sovarka_ordres_ministre":"聽取部長指示","sovarka_offrir_cafe":"請喝咖啡",
    "sovarka_acte_officiel":"申請官方證明","sovarka_acte_officiel_autorite":"核發官方證明",
@@ -67,6 +71,7 @@
    "ferme_legumes":"採收蔬菜","ferme_oeufs":"撿雞蛋","ferme_poulet":"宰一隻雞","ferme_lapin":"宰一隻兔子"
   },
   "ru":{
+   "tresor_ecouter_guide":"Послушать экскурсовода",
    "sovarka_ecoutes":"Отчёты центров прослушивания","sovarka_retirer_droit":"Обращения министра",
    "sovarka_ordres_ministre":"Получить указания министра","sovarka_offrir_cafe":"Угостить кофе",
    "sovarka_acte_officiel":"Запросить официальную справку","sovarka_acte_officiel_autorite":"Выдать официальную справку",
@@ -81,6 +86,7 @@
    "ferme_legumes":"Собрать овощи","ferme_oeufs":"Собрать яйца","ferme_poulet":"Забить курицу","ferme_lapin":"Забить кролика"
   },
   "ko":{
+   "tresor_ecouter_guide":"해설사 이야기 듣기",
    "sovarka_ecoutes":"감청 센터 보고서","sovarka_retirer_droit":"장관의 회부 사건",
    "sovarka_ordres_ministre":"장관의 지시 받기","sovarka_offrir_cafe":"커피 대접하기",
    "sovarka_acte_officiel":"공식 증명서 신청","sovarka_acte_officiel_autorite":"공식 증명서 발급",
@@ -95,6 +101,7 @@
    "ferme_legumes":"채소 캐기","ferme_oeufs":"달걀 줍기","ferme_poulet":"닭 잡기","ferme_lapin":"토끼 잡기"
   },
   "ar":{
+   "tresor_ecouter_guide":"الاستماع إلى المرشد",
    "sovarka_ecoutes":"تقارير مراكز التنصت","sovarka_retirer_droit":"إحالات الوزير",
    "sovarka_ordres_ministre":"تلقي تعليمات الوزير","sovarka_offrir_cafe":"تقديم قهوة",
    "sovarka_acte_officiel":"طلب وثيقة رسمية","sovarka_acte_officiel_autorite":"إصدار وثيقة رسمية",
@@ -109,6 +116,7 @@
    "ferme_legumes":"قلع الخضروات","ferme_oeufs":"جمع البيض","ferme_poulet":"ذبح دجاجة","ferme_lapin":"ذبح أرنب"
   },
   "pt-BR":{
+   "tresor_ecouter_guide":"Ouvir o guia",
    "sovarka_ecoutes":"Relatórios dos centros de escuta","sovarka_retirer_droit":"Encaminhamentos do ministro",
    "sovarka_ordres_ministre":"Receber as instruções do ministro","sovarka_offrir_cafe":"Oferecer um café",
    "sovarka_acte_officiel":"Solicitar uma certidão oficial","sovarka_acte_officiel_autorite":"Emitir uma certidão oficial",
@@ -123,6 +131,7 @@
    "ferme_legumes":"Colher legumes","ferme_oeufs":"Recolher os ovos","ferme_poulet":"Abater uma galinha","ferme_lapin":"Abater um coelho"
   },
   "de":{
+   "tresor_ecouter_guide":"Dem Führer zuhören",
    "sovarka_ecoutes":"Berichte der Abhörzentralen","sovarka_retirer_droit":"Vorlagen des Ministers",
    "sovarka_ordres_ministre":"Die Weisungen des Ministers einholen","sovarka_offrir_cafe":"Einen Kaffee spendieren",
    "sovarka_acte_officiel":"Eine amtliche Urkunde beantragen","sovarka_acte_officiel_autorite":"Eine amtliche Urkunde ausstellen",
