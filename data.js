@@ -2309,7 +2309,7 @@ const WORLD = {
           roomOverrides: {
             salle_principale: {
               imageUrl: 'images/Sovarka/Novomirsk/Novo_restaurant_Volga.webp',
-              imagePos: 'center top', // visage de Tatiana entier (Fred, 12/11)
+              ancrage: 'haut', // tête de Tatiana entière (Fred, 12/11)
               persons: [{name: 'Tatiana Bortchova (PNJ)', role: 'Responsable de salle', rel: 'neutral', job: 'serveur', photoUrl: 'images/Sovarka/Novomirsk/Novo_tatiana_bortchova_portrait_v3.webp'}]
             }
           },

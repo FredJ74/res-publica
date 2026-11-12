@@ -1009,10 +1009,15 @@ function enterRoom(buildingId, roomId, tabEl) {
   // empruntee a la ville d'origine, seulement le fond de la piece, tant qu'aucune image
   // propre n'est declaree dans roomOverrides.
   const imageEmpruntee = ctx?.imagesAVenir === true && !roomOverride?.imageUrl;
-  // imagePos (facultatif, roomOverride ou pièce) : cadrage de l'image quand cover la rogne (ex. visage coupé en haut).
   const imgUrl = imageEmpruntee ? null : (enigme1Img || chantierImg || varianteImg || roomOverride?.imageUrl || empireRoomImg || room.imageUrl);
+  // Ancrage déclaré par la pièce ou son roomOverride (ex. ancrage:'haut' : visage coupé en haut par cover) ;
+  // même attribut data-ancrage que les variantes (le CSS impose background-position en !important).
+  if (!varianteAncrage) {
+    const ancragePiece = (imgUrl && imgUrl === roomOverride?.imageUrl && roomOverride?.ancrage) || (imgUrl && imgUrl === room.imageUrl && room.ancrage);
+    if (ancragePiece) pieceImg.setAttribute('data-ancrage', ancragePiece);
+  }
   if (imgUrl) {
-    pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('${imgUrl}') ${(imgUrl === roomOverride?.imageUrl && roomOverride?.imagePos) || (imgUrl === room.imageUrl && room.imagePos) || 'center'}/cover no-repeat`;
+    pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {
     pieceImg.style.background = room.imageBg || 'linear-gradient(135deg,#0a0a07,#0f0d08)';
   }
