@@ -13,6 +13,7 @@ const navalEchappe = v => String(v == null ? '' : v).replace(/[&<>"']/g, c =>
   ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
 const navalNombre = v => Number(v || 0).toLocaleString('fr-FR',{maximumFractionDigits:0});
 let CHANTIER_NAVAL_DEVIS_COURANT = [];
+let CHANTIER_NAVAL_COMMANDES_COURANTES = null;
 
 async function commanderBateauNaval(modele) {
   if (!Object.prototype.hasOwnProperty.call(CHANTIER_NAVAL_MODELES,modele) ||
@@ -58,14 +59,17 @@ async function commanderBateauNaval(modele) {
   await ouvrirDevisChantierNaval();
 }
 
-async function ouvrirDevisChantierNaval() {
+async function ouvrirDevisChantierNaval(utiliserCache=false) {
   if (state.country !== 'republic' || state.currentCity !== 'ville_a' ||
       state.currentBuilding !== 'chantier-naval') {
     showToast(navT('site',"Chantier naval"),navT('mustHere',"Vous devez être présent au chantier naval de PSM."),false);
     return;
   }
   let devis, commandes;
-  try {
+  if(utiliserCache && CHANTIER_NAVAL_DEVIS_COURANT.length===2 && CHANTIER_NAVAL_COMMANDES_COURANTES){
+    devis=CHANTIER_NAVAL_DEVIS_COURANT;
+    commandes=CHANTIER_NAVAL_COMMANDES_COURANTES;
+  } else try {
     [devis,commandes] = await Promise.all([
       sbRpc('chantier_naval_devis', {}),
       sbRpc('chantier_naval_mes_commandes', {})
@@ -80,7 +84,8 @@ async function ouvrirDevisChantierNaval() {
     return;
   }
   CHANTIER_NAVAL_DEVIS_COURANT = devis;
-  let html = '<div style="padding:1rem;color:#e0e6ed;background:#151A21">' +
+  CHANTIER_NAVAL_COMMANDES_COURANTES = commandes;
+  let html = '<div data-naval-catalog="1" style="padding:1rem;color:#e0e6ed;background:#151A21">' +
     '<p style="font-size:.87rem;color:#d0b777">'+navHtml('constructionNotice',"Construction sur commande, sur 7 ou 10 journées effectives. L’absence de matériaux bloque le chantier, sans prélèvement ni journée perdue.")+'</p>';
   for (const x of devis) {
     const nom = navalNom(x.modele);
@@ -108,7 +113,7 @@ async function ouvrirDevisChantierNaval() {
         c.etat==='acheve' ? navT("completed","Achevé") : navT("building","En construction");
       html += '<div style="border:1px solid #394656;border-radius:8px;padding:.6rem;margin-top:.5rem">' +
        navalEchappe(navalNom(c.modele)) + ' — ' +
-       navalNombre(c.jours)+' / '+navalNombre(c.total)+' journées · '+navalEchappe(etat) +
+       navalNombre(c.jours)+' / '+navalNombre(c.total)+' '+navalHtml('workdays','journées')+' · '+navalEchappe(etat) +
        '<div>'+navHtml('paid',"Payé : {paid} / {total} FR",{paid:navalNombre(c.verse),total:navalNombre(c.prix_total)})+'</div>' +
        navire+'</div>';
     }
@@ -122,3 +127,11 @@ async function ouvrirDevisChantierNaval() {
   body.innerHTML=html;
   modal.classList.add('open');
 }
+
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
+ const corps=document.getElementById('postes-body');
+ if(state.country==='republic' && state.currentCity==='ville_a' && state.currentBuilding==='chantier-naval'
+  && corps?.querySelector?.('[data-naval-catalog]') && document.getElementById('modal-postes')?.classList?.contains('open')){
+  void ouvrirDevisChantierNaval(true);
+ }
+});
