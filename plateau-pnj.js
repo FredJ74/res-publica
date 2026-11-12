@@ -2706,25 +2706,8 @@ function ouvrirModalInvitationSociale(type, pa, cost, successRate) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-// Plafonnement + limite de fréquence de la croissance ENT (bêta, exploit corrigé) : aucun des
-// 4 points d'écriture directe de state.char.stats.ENT (3 variantes d'invitation sociale
-// ci-dessous, plus confirmerFaireLAmour) n'avait jusqu'ici ni plafond ni limite de fréquence --
-// un joueur pouvait répéter l'action à volonté pour faire progresser ENT sans limite, seule
-// caractéristique du jeu dans ce cas (audit dédié). Plafond dur 20 (même valeur que prévue pour
-// le futur système complet d'entraînement des 6 caractéristiques, non construit ici) ; une
-// seule progression ENT autorisée par jour, tous mécanismes confondus. Le reste de l'action
-// (argent, PA, autres bonus hp/inf/moral) n'est jamais affecté par ce garde-fou -- seul le
-// gain ENT lui-même est silencieusement plafonné/ignoré au-delà de la limite.
-function appliquerGainENT(montant) {
-  if (!montant || !state.char) return false;
-  if (!state.char.stats) state.char.stats = {};
-  const actuel = state.char.stats.ENT || 0;
-  if (actuel >= 20) return false;
-  if (state.char.dernierGainENTJour === state.day) return false;
-  state.char.stats.ENT = Math.min(20, actuel + montant);
-  state.char.dernierGainENTJour = state.day;
-  return true;
-}
+// Croissance d'ENT : plafond 20 et une progression par jour réel, tenus au serveur
+// (ent_gain_quotidien_interne, 12/11/2026). Aucun écran n'écrit plus l'ENT lui-même.
 
 // INVITATIONS SOCIALES AU SERVEUR (#379, 03/11/2026). Le diner d'affaires n'est plus propose qu'a
 // La Republia (Luthecia) et au Capitaine Sauvage (PSM), tous deux servis par le contrat atomique

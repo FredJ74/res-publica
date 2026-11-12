@@ -4894,11 +4894,6 @@ async function sbSupprimerInvitationDiner(id) {
 // partagee ; reponse/statut/suppression reutilisent tels quels sbRepondreInvitationDiner et
 // sbSupprimerInvitationDiner ci-dessus, aucune primitive dupliquee.
 // =====================
-async function sbCreerTournee(t) {
-  const rows = await sbInsert('tournees', t);
-  return rows?.[0] || null;
-}
-
 async function sbGetTournee(id) {
   const rows = await sbGet('tournees', `id=eq.${encodeURIComponent(id)}`);
   return rows?.[0] || null;
@@ -4908,39 +4903,9 @@ async function sbGetTourneesActivesOffreur(nomOffreur) {
   return sbGet('tournees', `offreur=eq.${encodeURIComponent(nomOffreur)}&statut=in.(en_attente,en_resolution)`) || [];
 }
 
-// Claim conditionnel (compare-and-swap) : le PATCH ne s'applique que si la ligne est encore
-// en_attente au moment ou Postgres l'evalue (verrouillage ligne standard) -- un tableau vide en
-// retour signifie qu'un autre client a deja pris la main, jamais une erreur.
-async function sbClaimResolutionTournee(id) {
-  return sbUpdate('tournees', `id=eq.${encodeURIComponent(id)}&statut=eq.en_attente`,
-    { statut: 'en_resolution', resolution_started_at: new Date().toISOString() });
-}
-
-// Meme principe, pour reclamer une resolution restee en_resolution au-dela du seuil de
-// peremption (crash presume du claimant precedent) -- seuilIso = horodatage ISO en-deca duquel
-// resolution_started_at est considere perime.
-async function sbReclaimResolutionTourneeExpiree(id, seuilIso) {
-  return sbUpdate('tournees', `id=eq.${encodeURIComponent(id)}&statut=eq.en_resolution&resolution_started_at=lt.${encodeURIComponent(seuilIso)}`,
-    { statut: 'en_resolution', resolution_started_at: new Date().toISOString() });
-}
-
-// sbMarquerTourneePaDebite ET sbMarquerTourneeResolue ONT ETE SUPPRIMEES (chantier 5, chaine 6,
-// 10 octobre 2026). Elles ecrivaient `tournees.statut` et `tournees.pa_debite` SANS condition :
-// deux chemins clients pour la cloture d'une tournee, en plus de la porte. La cloture passe
-// desormais exclusivement par tournee_cloturer, qui pose les deux champs par compare-and-swap sur
-// statut='en_resolution', dans la meme transaction que le credit des invites et le nettoyage des
-// invitations. Leur unique appelant (resoudreTournee) est passe a la porte le meme jour ; les
-// laisser en place aurait maintenu une seconde maniere de clore -- sans verrou, celle-la.
-// sbClaimResolutionTournee et sbReclaimResolutionTourneeExpiree ci-dessus RESTENT : ce sont les
-// deux revendications conditionnelles, et c'est elles qui amenent une tournee en 'en_resolution'.
-
-async function sbCreerInvitationsTournee(rows) {
-  return sbInsert('invitations_diner', rows);
-}
-
-async function sbGetInvitationsTournee(tourneeId) {
-  return sbGet('invitations_diner', `tournee_id=eq.${encodeURIComponent(tourneeId)}`) || [];
-}
+// Revendication, cloture et invitations d'une tournee : uniquement au serveur (tournee_creer,
+// tournee_repondre, tournee_cloturer_boire). Les ecritures directes (creation, revendication
+// conditionnelle, creation des invitations) et l'ancien chemin ecran sont supprimes le 12/11/2026.
 
 async function sbGetInvitationsTourneeRecues(nomJoueur) {
   return sbGet('invitations_diner', `invite=eq.${encodeURIComponent(nomJoueur)}&statut=in.(attente,acceptee)&tournee_id=not.is.null`) || [];

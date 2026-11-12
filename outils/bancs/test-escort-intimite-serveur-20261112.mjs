@@ -15,5 +15,11 @@ for (const f of ['async function confirmerFaireLAmour(', 'async function confirm
 if (!corps('async function ouvrirModalFaireLAmour(').includes("'escort_complicite'")) echecs.push('le palier n’est pas lu au serveur');
 for (const v of ['ARRAY[15, 18, 22, 28]', 'ARRAY[5, 6, 7, 10]', 'ARRAY[2, 2, 3, 4]', 'WHEN 1 THEN 100 WHEN 2 THEN 300 WHEN 3 THEN 600', 'c_prestation constant integer := 300', 'ent_gain_quotidien_interne'])
   if (!mig.includes(v)) echecs.push('barème serveur manquant : ' + v);
+// Tournées (12/11/2026) : plus aucun gain écran, plus d'écriture directe.
+const rum = readFileSync(new URL('../../plateau-actions-illegales-rumeurs.js', import.meta.url), 'utf8');
+const sb = readFileSync(new URL('../../supabase.js', import.meta.url), 'utf8');
+for (const [txt, ou, nom] of [[rum, 'appliquerGainENT(', 'rumeurs'], [src, 'function appliquerGainENT', 'pnj'], [rum, 'sbClaimResolutionTournee', 'rumeurs'], [sb, "sbInsert('tournees'", 'supabase'], [sb, "sbUpdate('tournees'", 'supabase']])
+  if (txt.includes(ou)) echecs.push('ancien chemin de tournée resté (' + nom + ') : ' + ou);
+if (/state\.moral\s*=\s*Math\.min\(100,\s*\(state\.moral \|\| 0\) \+ 2\)/.test(rum)) echecs.push('bonus de Moral de tournée calculé à l’écran');
 if (echecs.length) { console.error(echecs.join('\n')); process.exit(1); }
 console.log('Faire l’amour : effets, palier et paiement décidés par le serveur.');
