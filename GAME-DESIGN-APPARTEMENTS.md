@@ -122,7 +122,8 @@ Décors : fonction serveur `logement-decoration` (déployée), même atelier que
 
 ### Écart relevé (à trancher par Fred)
 
-- **Armoire à souvenirs** : elle n'occupe déjà qu'**un** emplacement côté serveur (une armoire = un
-  équipement installé) ; rien à changer. En revanche, le code ne lui connaît **aucun avantage au sommeil**
-  (le catalogue la décrit « sans bonus de sommeil ») : si « son avantage lié à la pièce où l'on dort » désigne
-  un effet précis, il reste à le définir.
+- **Armoire à souvenirs** (corrigé le 13/11) : elle n'occupe déjà qu'**un** emplacement côté serveur ; rien à changer.
+  Les règles existent (onglet Règles, Économie) : douze souvenirs exacts par armoire, et **une collection complète
+  procure un avantage de confort au personnage qui dort en présence de son armoire** (sans cumul entre armoires).
+  Mais ni le dépôt des souvenirs dans l'armoire ni cet avantage ne sont codés, et **la valeur de l'avantage n'est
+  écrite nulle part** : question posée à Fred le 13/11.
