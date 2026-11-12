@@ -2041,7 +2041,7 @@ const WORLD = {
             salle_attente: {
               name: 'Accueil',
               desc: "Un hall ancien mais bien entretenu. Une infirmière reçoit les patients, tandis qu'un médecin veille à leur orientation.",
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_acceuil.png',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_acceuil.webp',
               persons: [
                 {name:'Infirmière de Novomirsk (PNJ)', role:'Infirmière d’accueil', rel:'neutral', job:'infirmier'},
                 {name:'Médecin de garde de Novomirsk (PNJ)', role:'Médecin', rel:'neutral', job:'medecin'}
@@ -2050,7 +2050,7 @@ const WORLD = {
             ehpad_tilleuls: {
               name: 'EHPAD de Novomirsk',
               desc: "Un service de long séjour très sommaire mais propre, où les personnes âgées sont accompagnées au quotidien.",
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.png',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.webp',
               persons: []
             }
           },
@@ -2060,7 +2060,7 @@ const WORLD = {
               image: '🛏️',
               imageBg: 'linear-gradient(135deg,#13201e,#29352f)',
               desc: "Une chambre modeste, propre et chauffée. Le mobilier est ancien, mais les draps sont impeccables.",
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_chambre.png',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_chambre.webp',
               persons: [],
               orders: []
             }
