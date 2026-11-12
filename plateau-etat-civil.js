@@ -336,20 +336,26 @@ function etatCivilRechercherPourActe(nomQuery) {
 // INTERFACE (reutilise le modal generique #modal-postes, comme l'organigramme des supporters)
 // =====================
 
+function ecT(key,vars){return window.RPCivilRegistryI18n?.text?.(key,vars||{})||key;}
+function ecH(str){return String(str).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function ecLabel(key,vars){return ecH(ecT(key,vars));}
+function ecSpan(key,vars){
+ return '<span data-ec-i18n="'+key+'" data-ec-args="'+ecH(JSON.stringify(vars||{}))+'">'+ecLabel(key,vars)+'</span>';
+}
 function doConsulterEtatCivil() {
-  document.getElementById('postes-modal-title').textContent = "Registre d'État-Civil de Republia";
+  document.getElementById('postes-modal-title').textContent = ecT('title');
   document.getElementById('postes-body').innerHTML = etatCivilHtmlRecherche();
   document.getElementById('modal-postes').classList.add('open');
 }
 
 function etatCivilHtmlRecherche(messageErreur) {
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.85rem;color:#8a8060;margin-bottom:.8rem">Recherchez par nom, par décennie (ex : 1940), ou les deux à la fois.</div>';
+  html += '<div style="font-size:.85rem;color:#8a8060;margin-bottom:.8rem">'+ecSpan('instructions')+'</div>';
   html += '<div style="display:flex;gap:.4rem;margin-bottom:.4rem">';
-  html += '<input id="etat-civil-nom" type="text" placeholder="Nom..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
-  html += '<input id="etat-civil-decennie" type="text" placeholder="Décennie (ex: 1940)" style="width:150px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '<input id="etat-civil-nom" type="text" data-ec-placeholder="name" placeholder="'+ecLabel('name')+'" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '<input id="etat-civil-decennie" type="text" data-ec-placeholder="decade" placeholder="'+ecLabel('decade')+'" style="width:150px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
   html += '</div>';
-  html += '<button class="pnj-action-btn" onclick="etatCivilLancerRecherche()"><i class="ti ti-search" style="font-size:.85rem"></i> Rechercher</button>';
+  html += '<button class="pnj-action-btn" onclick="etatCivilLancerRecherche()"><i class="ti ti-search" style="font-size:.85rem"></i> '+ecSpan('search')+'</button>';
   if (messageErreur) {
     html += '<div style="margin-top:.7rem;font-size:.8rem;color:#8a3a20;font-style:italic">' + messageErreur + '</div>';
   }
@@ -370,15 +376,15 @@ async function etatCivilLancerRecherche() {
   if (!resultatsEl) return;
 
   if (!nom.trim() && !decennie.trim()) {
-    resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a3a20;font-style:italic">Indiquez au moins un nom ou une décennie.</div>';
+    resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a3a20;font-style:italic">'+ecSpan('needSearch')+'</div>';
     return;
   }
   if (resultats.length === 0) {
-    resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a3a20;font-style:italic">Aucun résultat.</div>';
+    resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a3a20;font-style:italic">'+ecSpan('noResults')+'</div>';
     return;
   }
 
-  let html = '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.4rem">' + resultats.length + ' résultat(s) :</div>';
+  let html = '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.4rem">' + ecSpan('results',{count:resultats.length}) + '</div>';
   html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
   resultats.forEach(function(nomPersonne) {
     const nomEchap = nomPersonne.replace(/'/g, "\\'");
@@ -393,18 +399,18 @@ function etatCivilAfficherFiche(nomPersonne) {
   if (!fiche) return;
 
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;margin-bottom:.7rem">Fiche — ' + fiche.nom + '</div>';
+  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;margin-bottom:.7rem">'+ecSpan('record',{name:fiche.nom})+'</div>';
   html += '<div style="display:flex;flex-direction:column;gap:.35rem;margin-bottom:1rem">';
   if (fiche.evenements.length === 0) {
-    html += '<div style="font-size:.82rem;color:#5a5040;font-style:italic">Aucun événement connu.</div>';
+    html += '<div style="font-size:.82rem;color:#5a5040;font-style:italic">'+ecSpan('noEvent')+'</div>';
   }
   fiche.evenements.forEach(function(e) {
     html += '<div style="font-size:.85rem;color:#e0d8c0">' + e.texte + '</div>';
   });
   html += '</div>';
   const nomEchap = fiche.nom.replace(/'/g, "\\'");
-  html += '<button class="pnj-action-btn" onclick="etatCivilImprimerFiche(\'' + nomEchap + '\')"><i class="ti ti-printer" style="font-size:.85rem"></i> Imprimer cette fiche</button> ';
-  html += '<button class="pnj-action-btn" onclick="doConsulterEtatCivil()" style="opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Nouvelle recherche</button>';
+  html += '<button class="pnj-action-btn" onclick="etatCivilImprimerFiche(\'' + nomEchap + '\')"><i class="ti ti-printer" style="font-size:.85rem"></i> '+ecSpan('print')+'</button> ';
+  html += '<button class="pnj-action-btn" onclick="doConsulterEtatCivil()" style="opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> '+ecSpan('newSearch')+'</button>';
   html += '</div>';
 
   document.getElementById('postes-body').innerHTML = html;
@@ -413,5 +419,20 @@ function etatCivilAfficherFiche(nomPersonne) {
 async function etatCivilImprimerFiche(nomPersonne) {
   const v = await executerReceptionInventaire('etat_civil_document_recevoir', { p_nom: nomPersonne, p_type: 'fiche', p_reference: null, p_pa: 0, p_cost: 0 });
   if (!v) return;
-  updateUI(); renderInventory(); showToast('Fiche imprimée', v.objet + ' ajouté à votre inventaire.', true);
+  updateUI(); renderInventory(); showToast(ecT('printed'), ecT('added',{object:v.objet}), true);
 }
+
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
+ const body=document.getElementById('postes-body');
+ const modal=document.getElementById('modal-postes');
+ if(!modal?.classList?.contains('open')||!body?.querySelector?.('[data-ec-i18n],[data-ec-placeholder]'))return;
+ const titre=document.getElementById('postes-modal-title');
+ if(titre)titre.textContent=ecT('title');
+ body.querySelectorAll('[data-ec-i18n]').forEach(node=>{
+  let args={};try{args=JSON.parse(node.getAttribute('data-ec-args')||'{}');}catch(_){}
+  node.textContent=ecT(node.getAttribute('data-ec-i18n'),args);
+ });
+ body.querySelectorAll('[data-ec-placeholder]').forEach(node=>{
+  node.placeholder=ecT(node.getAttribute('data-ec-placeholder'));
+ });
+});
