@@ -29,10 +29,11 @@ function ordresNuiteeClinique(buildingId,roomId){
 }
 (global.RP_ORDRES_DYNAMIQUES=global.RP_ORDRES_DYNAMIQUES||[]).push(ordresNuiteeClinique);
 const REFUS={
- non_authentifie:'Connectez-vous pour réserver.',pas_a_accueil:'Présentez-vous à l’accueil de la clinique.',
- deja_hospitalise:'Vous disposez déjà d’une chambre au titre de votre hospitalisation.',
- indisponible:'Votre situation actuelle ne permet pas de réserver.',
- complet:'Les dix chambres sont occupées.'
+ non_authentifie:['auth','Connectez-vous pour réserver.'],
+ pas_a_accueil:['desk','Présentez-vous à l’accueil de la clinique.'],
+ deja_hospitalise:['hosp','Vous disposez déjà d’une chambre au titre de votre hospitalisation.'],
+ indisponible:['unavailable','Votre situation actuelle ne permet pas de réserver.'],
+ complet:['full','Les dix chambres sont occupées.']
 };
 let reservationEnCours=false;
 function reserverNuiteeClinique(){
@@ -43,7 +44,7 @@ function reserverNuiteeClinique(){
  const titre=document.getElementById('postes-modal-title');
  const corps=document.getElementById('postes-body');
  if(!modal||!titre||!corps){
-  showToast('Réservation indisponible','La fenêtre de réservation ne peut pas être affichée.',false);
+  showToast(clT('modalUnavailable','Réservation indisponible'),clT('displayError','La fenêtre de réservation ne peut pas être affichée.'),false);
   return;
  }
  const cur=cliniqueDevise();
@@ -79,7 +80,11 @@ async function confirmerReservationNuiteeClinique(){
    showToast(clT('unconfirmed','Réservation non confirmée'),clT('uncertain','Vérifiez votre chambre avant de réessayer : aucun second paiement automatique.'),false);return;
   }
   if(!r.ok){
-   showToast(clT('refused','Réservation refusée'),(r.raison==='fonds_insuffisants'?clT('insufficient','Il vous faut 150 {currency} pour cette nuit.',{currency:cliniqueDevise()}):REFUS[r.raison])||'Le serveur a refusé la réservation.',false);return;
+   const cause=REFUS[r.raison];
+   const texte=r.raison==='fonds_insuffisants'
+    ?clT('insufficient','Il vous faut 150 {currency} pour cette nuit.',{currency:cliniqueDevise()})
+    :cause?clT(cause[0],cause[1]):clT('serverRejected','Le serveur a refusé la réservation.');
+   showToast(clT('refused','Réservation refusée'),texte,false);return;
   }
   if(state.char?.name!==acteur||state.country!==pays)return;
   if(typeof r.liquide==='number')state.liquide=r.liquide;
@@ -109,14 +114,14 @@ async function consommerNuiteeCliniqueApresDormir(nomInitial,paysInitial,pieceIn
  const brut=await sbRpc('clinique_nuitee_consommer',{}).catch(()=>null);
  const r=Array.isArray(brut)?brut[0]:brut;
  if(!r||r.transport){
-  showToast('Nuitée à confirmer','Le repos est enregistré mais les bonus de clinique restent à vérifier auprès du serveur.',false);
+  showToast(clT('bonusPending','Nuitée à confirmer'),clT('pendingDetails','Le repos est enregistré mais les bonus de clinique restent à vérifier auprès du serveur.'),false);
   return;
  }
  if(!r.ok){
   if(r.raison==='aucune_reservation')return;
-  showToast('Bonus de clinique non appliqué',r.raison==='repos_non_valide'
-    ?'Dormez d’abord dans la chambre réservée pour obtenir ces bonus.'
-    :(r.raison||'Réponse du serveur indisponible.'),false);
+  showToast(clT('bonusDenied','Bonus de clinique non appliqué'),r.raison==='repos_non_valide'
+    ?clT('sleepFirst','Dormez d’abord dans la chambre réservée pour obtenir ces bonus.')
+    :(r.raison||clT('serverUnavailable','Réponse du serveur indisponible.')),false);
   return;
  }
  if(state.char?.name!==nomInitial||state.country!==paysInitial)return;
@@ -126,7 +131,7 @@ async function consommerNuiteeCliniqueApresDormir(nomInitial,paysInitial,pieceIn
  if(typeof updateUI==='function')updateUI();
  if(!r.rejeu){
   showToast(clT('night','Nuit à la clinique'),clT('bonus','+2 PA, +10 Santé, +3 Moral (plafonds habituels).'),true);
-  if(typeof addJournalEntry==='function')addJournalEntry('Nuit à la clinique privée : +2 PA, +10 Santé, +3 Moral.','event-good');
+  if(typeof addJournalEntry==='function')addJournalEntry(clT('journal','Nuit à la clinique privée : +2 PA, +10 Santé, +3 Moral.'),'event-good');
  }
  if(typeof chargerLocations==='function')await chargerLocations();
 }
