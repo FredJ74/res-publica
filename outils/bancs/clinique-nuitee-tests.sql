@@ -14,6 +14,11 @@ BEGIN
    WHERE id='republic:clinique-privee:chambre_1:capitale'
    AND data->>'locataire'='A' AND data->>'reservationClinique'='true')
  THEN RAISE EXCEPTION 'Chambre A absente'; END IF;
+ -- Une réservation conservée pendant trente jours ne doit ni disparaître
+ -- ni être affectée par la réservation d'un autre patient.
+ UPDATE public.clinique_nuitees
+   SET reservee_le=(now() AT TIME ZONE 'Europe/Paris')::date-30
+   WHERE personnage='A' AND consommee_le IS NULL;
  PERFORM set_config('banc.clinique_acteur','B',false);
  v:=public.clinique_nuitee_reserver();
  IF v->>'chambre'<>'chambre_2' THEN RAISE EXCEPTION 'Chambre B : %',v; END IF;
@@ -36,7 +41,18 @@ BEGIN
  PERFORM set_config('banc.clinique_acteur','F',false);
  UPDATE public.personnages_donnees SET pa_repos_le=(now() AT TIME ZONE 'Europe/Paris')::date WHERE name='F';
  v:=public.clinique_nuitee_reserver();
- IF v->>'raison'<>'deja_dormi' THEN RAISE EXCEPTION 'Réservation après sommeil : %',v; END IF;
+ IF v->>'ok'<>'true' OR v->>'chambre'<>'chambre_3'
+ THEN RAISE EXCEPTION 'La réservation après sommeil doit être autorisée : %',v; END IF;
+ IF (SELECT liquide FROM public.personnages_donnees WHERE name='F')<>350
+ THEN RAISE EXCEPTION 'Paiement unique réservation après sommeil'; END IF;
+ -- L'ordre Dormir reste interdit une deuxième fois le même jour.
+ UPDATE public.personnages_donnees SET current_room='chambre_3' WHERE name='F';
+ v:=public.clinique_nuitee_consommer();
+ IF v->>'raison'<>'repos_non_valide'
+ THEN RAISE EXCEPTION 'Bonus accordé sans Dormir dans la chambre : %',v; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.clinique_nuitees
+    WHERE personnage='F' AND consommee_le IS NULL AND annulee_le IS NULL)
+ THEN RAISE EXCEPTION 'Réservation perdue après refus du repos'; END IF;
 
  PERFORM set_config('banc.clinique_acteur','A',false);
  v:=public.clinique_nuitee_consommer();
