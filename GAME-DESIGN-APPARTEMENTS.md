@@ -127,3 +127,6 @@ Décors : fonction serveur `logement-decoration` (déployée), même atelier que
   procure un avantage de confort au personnage qui dort en présence de son armoire** (sans cumul entre armoires).
   Mais ni le dépôt des souvenirs dans l'armoire ni cet avantage ne sont codés, et **la valeur de l'avantage n'est
   écrite nulle part** : question posée à Fred le 13/11.
+- **Décision de Fred (13/11/2026, 0 h 13)** : une collection complète donne **+1 PA** au personnage qui dort en
+  présence de son armoire (même pièce), sans cumul entre plusieurs armoires complètes. **Non codé** : attend le feu
+  vert de Fred, avec le dépôt des souvenirs dans l'armoire (règles déjà écrites, mécanique absente).
