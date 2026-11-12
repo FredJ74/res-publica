@@ -23,17 +23,17 @@ function fixture(locale='fr',active=true,sovarkaLabel=null){
  vm.runInContext(shared,ctx,{filename:'common-room-resources.js'});
  return{global,refs,setLang:x=>{lang=x;},enable:x=>{enabled=x;},label:(b,r,name)=>global.RPRoomI18n.label(b,r,name)};
 }
-test('108 intitulés dans neuf langues et 168 paires bâtiment/pièce validées',()=>{
+test('140 intitulés dans neuf langues et 205 paires bâtiment/pièce validées',()=>{
  const f=fixture();
  for(const lang of langs){
   const words=f.refs[lang].translation.commonRoomLabels;
-  assert.equal(Object.keys(words).length,108,lang);
+  assert.equal(Object.keys(words).length,140,lang);
   for(const [key,value] of Object.entries(words)){
    assert.ok(key.length>0&&value.length>0,lang+':'+key);
    assert.ok(!/[{}]/.test(value),'aucune variable de moteur dans les titres '+key);
   }
  }
- assert.equal(f.global.RPCommonRoomI18n.scopes.size,168);
+ assert.equal(f.global.RPCommonRoomI18n.scopes.size,205);
 });
 test('noms de gabarit traduits, de la mairie au tribunal, dans neuf langues',()=>{
  for(const lang of langs){
@@ -74,6 +74,24 @@ test('deuxième vague : institutions, commerces, bureaux louables et musées',()
   for(const [building,room,title] of targets)
    assert.equal(f.label(building,room,title),locale==='fr'?title:translated[title],
      locale+':'+building+'/'+room);
+ }
+});
+test('troisième vague : musées, patrimoine, logements et ports',()=>{
+ const cases=[
+ ['musee-port-sainte-marie','salle_maires','Salle des Maires de Port-Sainte-Marie'],
+ ['musee-national-republia','salle_presidents','Salle des Présidents de Republia'],
+ ['musee-national-republia','salle_artistes_sportifs','Salle des Artistes et Sportifs'],
+ ['musee-ville-luthecia','salle_personnalites','Salle des Personnalités Luthéciennes'],
+ ['port-sainte-marie','administration_portuaire','Administration Portuaire'],
+ ['logements-montrouge','petit_appartement_1','Petit appartement n°1'],
+ ['logements-montrouge','grand_appartement_2','Grand appartement n°2'],
+ ['qhs-prison','promenoir','Promenoir'],
+ ['pole-tabac-alcools-psm','distillerie','Distillerie']
+ ];
+ for(const lang of langs){
+  const f=fixture(lang),words=f.refs[lang].translation.commonRoomLabels;
+  for(const [building,room,name] of cases)
+   assert.equal(f.label(building,room,name),lang==='fr'?name:words[name],lang+':'+building+':'+room);
  }
 });
 test('couples inconnus, noms changés et enseignes de joueurs inchangés',()=>{
