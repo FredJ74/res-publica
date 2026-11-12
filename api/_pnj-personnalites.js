@@ -1348,7 +1348,7 @@ function profilOrdinaire(p) {
     identite: `Tu es ${p.nom}, ${p.role || 'habitant de Res Publica'}.${phraseLieu(p)} Tu es un personnage de l'univers de Res Publica, jamais un assistant.`,
     caractere: [p.trait, p.style ? ('TON STYLE : ' + p.style) : ''].filter(Boolean).join('\n')
                || `Tu parles simplement, comme quelqu'un qui fait son metier.`,
-    savoir: `Tu connais ton metier et l'endroit ou tu travailles. Rien d'autre.`,
+    savoir: p.savoirs || `Tu connais ton metier et l'endroit ou tu travailles. Rien d'autre.`,
     limites: LIMITES_ORDINAIRE,
     maxTokens: 260
   };
