@@ -68,7 +68,8 @@ test('tableau mairie : loyer, destination, demandeurs et actions conservés',asy
   const e=fixture(lang),words=e.ctx.RP_I18N_RESOURCES[lang].translation.socialHousing;
   await e.ctx.ouvrirTableauLogementsSociaux();
   assert.equal(e.title,words.title,lang);
-  assert.ok(e.body.includes(words.cityIntro.replace('{city}','Luthécia')),lang);
+  const expected=words.cityIntro.replace('{city}','Luthécia').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  assert.ok(e.body.includes(expected),lang);
   assert.ok(e.body.includes(words.pending.replace('{count}','1')),lang);
   assert.ok(e.body.includes('value="100"'),lang);
   assert.ok(e.body.includes('value="150"'),lang);
