@@ -217,7 +217,10 @@ function calculerPlanRues(noeudsPays, depart, options) {
   const pt = id => [X[index[id]], Y[index[id]]];
   const impasses = rues.filter(r => !r.fusion && (degre[r.de] === 1 || degre[r.vers] === 1))
     .map(r => (degre[r.vers] === 1 ? [r.de, r.vers] : [r.vers, r.de]))
-    .filter(([p, bout]) => bout !== depart && degre[p] > 1);
+    .filter(([p, bout]) => bout !== depart && degre[p] > 1)
+    // Un carrefour photographié deux fois (V4/V5) n'est pas une impasse parce qu'une de ses deux
+    // images n'a qu'une rue (12/11/2026, V5 sans flèche gauche) : on compte les rues du carrefour.
+    .filter(([, bout]) => ids.reduce((n, y) => n + (groupe[y] === groupe[bout] ? degre[y] : 0), 0) === 1);
   // D'abord raccourcir l'impasse qui coupe une rue (une impasse est courte), puis repousser.
   for (const [p, bout] of impasses) {
     const P = pt(p), B = pt(bout), l = Math.hypot(B[0] - P[0], B[1] - P[1]);
