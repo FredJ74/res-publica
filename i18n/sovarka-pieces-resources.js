@@ -1,0 +1,104 @@
+/* Noms des pièces propres à Sovarka (12/11/2026), dans les neuf langues.
+ * Consulté par RPRoomI18n.label en dernier recours, seulement pour un personnage en Sovarka
+ * et seulement si le nom français affiché est EXACTEMENT celui du catalogue. Navigation,
+ * identifiants, accès et ordres inchangés. Noms propres (Dynamo, La Voix de Sovarka,
+ * La Grange Sainte, villes) conservés.
+ * Ordre des colonnes : fr, en, es, zh-TW, ru, ko, ar, pt-BR, de.
+ */
+(function(global){
+ 'use strict';
+ const LANGUES=['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de'];
+ const L=[
+  ["Hall d'entrée","Entrance hall","Vestíbulo","入口大廳","Вестибюль","입구 홀","بهو المدخل","Hall de entrada","Eingangshalle"],
+  ["Salle de restaurant","Dining room","Comedor","餐廳","Обеденный зал","레스토랑 홀","قاعة المطعم","Salão do restaurante","Speisesaal"],
+  ["Appartements du Président","President's apartments","Apartamentos del Presidente","總統寓所","Апартаменты Президента","대통령 관저","شقق الرئيس","Aposentos do Presidente","Gemächer des Präsidenten"],
+  ["Musée présidentiel","Presidential museum","Museo presidencial","總統博物館","Президентский музей","대통령 박물관","المتحف الرئاسي","Museu presidencial","Präsidentenmuseum"],
+  ["Accueil","Reception","Recepción","接待處","Приёмная","안내 데스크","الاستقبال","Recepção","Empfang"],
+  ["EHPAD de Novomirsk","Novomirsk care home","Residencia de mayores de Novomirsk","新米爾斯克安養院","Дом престарелых Новомирска","노보미르스크 요양원","دار رعاية المسنين في نوفوميرسك","Casa de repouso de Novomirsk","Pflegeheim von Novomirsk"],
+  ["Chambre d'hôpital","Hospital room","Habitación de hospital","病房","Больничная палата","병실","غرفة المستشفى","Quarto de hospital","Krankenzimmer"],
+  ["Salle des partis","Parties hall","Sala de los partidos","政黨廳","Зал партий","정당실","قاعة الأحزاب","Sala dos partidos","Saal der Parteien"],
+  ["La Grange Sainte","La Grange Sainte","La Grange Sainte","La Grange Sainte","La Grange Sainte","La Grange Sainte","La Grange Sainte","La Grange Sainte","La Grange Sainte"],
+  ["Entrée des galeries","Galleries entrance","Entrada de las galerías","商場入口","Вход в галереи","갤러리 입구","مدخل الأروقة","Entrada das galerias","Eingang der Galerien"],
+  ["Grand local A — Local à louer","Large unit A — Unit to let","Local grande A — Local en alquiler","大型店面 A — 招租中","Большое помещение A — Сдаётся","대형 점포 A — 임대 가능","محل كبير A — للإيجار","Loja grande A — Para alugar","Großes Ladenlokal A — Zu vermieten"],
+  ["Grand local B — Local à louer","Large unit B — Unit to let","Local grande B — Local en alquiler","大型店面 B — 招租中","Большое помещение B — Сдаётся","대형 점포 B — 임대 가능","محل كبير B — للإيجار","Loja grande B — Para alugar","Großes Ladenlokal B — Zu vermieten"],
+  ["Local moyen A — Local à louer","Medium unit A — Unit to let","Local mediano A — Local en alquiler","中型店面 A — 招租中","Среднее помещение A — Сдаётся","중형 점포 A — 임대 가능","محل متوسط A — للإيجار","Loja média A — Para alugar","Mittleres Ladenlokal A — Zu vermieten"],
+  ["Local moyen B — Local à louer","Medium unit B — Unit to let","Local mediano B — Local en alquiler","中型店面 B — 招租中","Среднее помещение B — Сдаётся","중형 점포 B — 임대 가능","محل متوسط B — للإيجار","Loja média B — Para alugar","Mittleres Ladenlokal B — Zu vermieten"],
+  ["Accueil du centre artisanal","Craft centre reception","Recepción del centro artesanal","手工藝中心接待處","Приёмная ремесленного центра","공예 센터 안내 데스크","استقبال المركز الحرفي","Recepção do centro artesanal","Empfang des Handwerkszentrums"],
+  ["Grand atelier — Local à louer","Large workshop — Unit to let","Taller grande — Local en alquiler","大型工坊 — 招租中","Большая мастерская — Сдаётся","대형 작업장 — 임대 가능","ورشة كبيرة — للإيجار","Oficina grande — Para alugar","Große Werkstatt — Zu vermieten"],
+  ["Atelier moyen — Local à louer","Medium workshop — Unit to let","Taller mediano — Local en alquiler","中型工坊 — 招租中","Средняя мастерская — Сдаётся","중형 작업장 — 임대 가능","ورشة متوسطة — للإيجار","Oficina média — Para alugar","Mittlere Werkstatt — Zu vermieten"],
+  ["Petit atelier — Local à louer","Small workshop — Unit to let","Taller pequeño — Local en alquiler","小型工坊 — 招租中","Малая мастерская — Сдаётся","소형 작업장 — 임대 가능","ورشة صغيرة — للإيجار","Oficina pequena — Para alugar","Kleine Werkstatt — Zu vermieten"],
+  ["Accueil du centre d'affaires","Business centre reception","Recepción del centro de negocios","商務中心接待處","Приёмная бизнес-центра","비즈니스 센터 안내 데스크","استقبال مركز الأعمال","Recepção do centro de negócios","Empfang des Geschäftszentrums"],
+  ["Bureau prestige A — Local à louer","Prestige office A — Unit to let","Despacho de prestigio A — Local en alquiler","高級辦公室 A — 招租中","Престижный офис A — Сдаётся","프레스티지 사무실 A — 임대 가능","مكتب فاخر A — للإيجار","Escritório de prestígio A — Para alugar","Prestigebüro A — Zu vermieten"],
+  ["Bureau prestige B — Local à louer","Prestige office B — Unit to let","Despacho de prestigio B — Local en alquiler","高級辦公室 B — 招租中","Престижный офис B — Сдаётся","프레스티지 사무실 B — 임대 가능","مكتب فاخر B — للإيجار","Escritório de prestígio B — Para alugar","Prestigebüro B — Zu vermieten"],
+  ["Grande salle de réunion A","Large meeting room A","Sala de reuniones grande A","大型會議室 A","Большой конференц-зал A","대회의실 A","قاعة اجتماعات كبيرة A","Sala de reunião grande A","Großer Besprechungsraum A"],
+  ["Grande salle de réunion B","Large meeting room B","Sala de reuniones grande B","大型會議室 B","Большой конференц-зал B","대회의실 B","قاعة اجتماعات كبيرة B","Sala de reunião grande B","Großer Besprechungsraum B"],
+  ["Salle de réunion moyenne A","Medium meeting room A","Sala de reuniones mediana A","中型會議室 A","Средний конференц-зал A","중회의실 A","قاعة اجتماعات متوسطة A","Sala de reunião média A","Mittlerer Besprechungsraum A"],
+  ["Salle de réunion moyenne B","Medium meeting room B","Sala de reuniones mediana B","中型會議室 B","Средний конференц-зал B","중회의실 B","قاعة اجتماعات متوسطة B","Sala de reunião média B","Mittlerer Besprechungsraum B"],
+  ["Terrain vague","Vacant lot","Solar","空地","Пустырь","공터","أرض خالية","Terreno baldio","Brachland"],
+  ["Bureau du président du Dynamo","Dynamo chairman's office","Despacho del presidente del Dynamo","Dynamo 主席辦公室","Кабинет президента «Динамо»","Dynamo 회장실","مكتب رئيس نادي Dynamo","Escritório do presidente do Dynamo","Büro des Dynamo-Präsidenten"],
+  ["Hall du Pavillon","Pavilion hall","Vestíbulo del Pabellón","館舍大廳","Холл Павильона","파빌리온 홀","بهو الجناح","Hall do Pavilhão","Halle des Pavillons"],
+  ["Grande Salle de Réception","Grand reception hall","Gran salón de recepciones","大型接待廳","Большой приёмный зал","대연회장","قاعة الاستقبال الكبرى","Grande salão de recepção","Großer Empfangssaal"],
+  ["Bar","Bar","Bar","酒吧","Бар","바","البار","Bar","Bar"],
+  ["Suite Privée — Location diplomatique","Private Suite — Diplomatic lease","Suite Privada — Arrendamiento diplomático","私人套房 — 外交租用","Частный люкс — Дипломатическая аренда","프라이빗 스위트 — 외교 임대","الجناح الخاص — إيجار دبلوماسي","Suíte Privada — Locação diplomática","Private Suite — Diplomatische Vermietung"],
+  ["Suite Présidentielle — Location diplomatique","Presidential Suite — Diplomatic lease","Suite Presidencial — Arrendamiento diplomático","總統套房 — 外交租用","Президентский люкс — Дипломатическая аренда","프레지덴셜 스위트 — 외교 임대","الجناح الرئاسي — إيجار دبلوماسي","Suíte Presidencial — Locação diplomática","Präsidentensuite — Diplomatische Vermietung"],
+  ["Suite des Partis — Location diplomatique","Parties Suite — Diplomatic lease","Suite de los Partidos — Arrendamiento diplomático","政黨套房 — 外交租用","Люкс партий — Дипломатическая аренда","정당 스위트 — 외교 임대","جناح الأحزاب — إيجار دبلوماسي","Suíte dos Partidos — Locação diplomática","Suite der Parteien — Diplomatische Vermietung"],
+  ["Hall de la Résidence","Residence hall","Vestíbulo de la Residencia","官邸大廳","Холл Резиденции","관저 홀","بهو الإقامة","Hall da Residência","Halle der Residenz"],
+  ["Appartement n°1","Apartment no. 1","Apartamento n.º 1","1 號公寓","Апартаменты № 1","1호 아파트","الشقة رقم 1","Apartamento nº 1","Wohnung Nr. 1"],
+  ["Appartement n°2","Apartment no. 2","Apartamento n.º 2","2 號公寓","Апартаменты № 2","2호 아파트","الشقة رقم 2","Apartamento nº 2","Wohnung Nr. 2"],
+  ["Appartement n°3","Apartment no. 3","Apartamento n.º 3","3 號公寓","Апартаменты № 3","3호 아파트","الشقة رقم 3","Apartamento nº 3","Wohnung Nr. 3"],
+  ["Appartement n°4","Apartment no. 4","Apartamento n.º 4","4 號公寓","Апартаменты № 4","4호 아파트","الشقة رقم 4","Apartamento nº 4","Wohnung Nr. 4"],
+  ["Grand Appartement impérial","Grand Imperial Apartment","Gran Apartamento imperial","帝國大公寓","Большие императорские апартаменты","황실 대형 아파트","الشقة الإمبراطورية الكبرى","Grande Apartamento imperial","Große kaiserliche Wohnung"],
+  ["Hall d'immeuble","Building lobby","Portal del edificio","公寓大廳","Подъезд","건물 로비","مدخل العمارة","Hall do prédio","Hausflur"],
+  ["Petit appartement n°1","Small flat no. 1","Apartamento pequeño n.º 1","1 號小公寓","Малая квартира № 1","소형 아파트 1호","الشقة الصغيرة رقم 1","Apartamento pequeno nº 1","Kleine Wohnung Nr. 1"],
+  ["Petit appartement n°2","Small flat no. 2","Apartamento pequeño n.º 2","2 號小公寓","Малая квартира № 2","소형 아파트 2호","الشقة الصغيرة رقم 2","Apartamento pequeno nº 2","Kleine Wohnung Nr. 2"],
+  ["Petit appartement n°3","Small flat no. 3","Apartamento pequeño n.º 3","3 號小公寓","Малая квартира № 3","소형 아파트 3호","الشقة الصغيرة رقم 3","Apartamento pequeno nº 3","Kleine Wohnung Nr. 3"],
+  ["Petit appartement n°4","Small flat no. 4","Apartamento pequeño n.º 4","4 號小公寓","Малая квартира № 4","소형 아파트 4호","الشقة الصغيرة رقم 4","Apartamento pequeno nº 4","Kleine Wohnung Nr. 4"],
+  ["Grand appartement n°1","Large flat no. 1","Apartamento grande n.º 1","1 號大公寓","Большая квартира № 1","대형 아파트 1호","الشقة الكبيرة رقم 1","Apartamento grande nº 1","Große Wohnung Nr. 1"],
+  ["Grand appartement n°2","Large flat no. 2","Apartamento grande n.º 2","2 號大公寓","Большая квартира № 2","대형 아파트 2호","الشقة الكبيرة رقم 2","Apartamento grande nº 2","Große Wohnung Nr. 2"],
+  ["Grand appartement n°3","Large flat no. 3","Apartamento grande n.º 3","3 號大公寓","Большая квартира № 3","대형 아파트 3호","الشقة الكبيرة رقم 3","Apartamento grande nº 3","Große Wohnung Nr. 3"],
+  ["Grand appartement n°4","Large flat no. 4","Apartamento grande n.º 4","4 號大公寓","Большая квартира № 4","대형 아파트 4호","الشقة الكبيرة رقم 4","Apartamento grande nº 4","Große Wohnung Nr. 4"],
+  ["Salle des présidents","Hall of presidents","Sala de los presidentes","歷任總統廳","Зал президентов","역대 대통령실","قاعة الرؤساء","Sala dos presidentes","Saal der Präsidenten"],
+  ["Salle des expositions tournantes","Rotating exhibitions hall","Sala de exposiciones temporales","巡迴展覽廳","Зал сменных выставок","순회 전시실","قاعة المعارض المتجددة","Sala de exposições rotativas","Saal der Wechselausstellungen"],
+  ["Salle des honneurs militaires","Hall of military honours","Sala de honores militares","軍事榮譽廳","Зал воинской славы","군사 명예실","قاعة الأوسمة العسكرية","Sala das honras militares","Saal der militärischen Ehren"],
+  ["Salle des partis politiques victorieux","Hall of victorious political parties","Sala de los partidos políticos victoriosos","勝選政黨廳","Зал победивших партий","승리한 정당실","قاعة الأحزاب السياسية المنتصرة","Sala dos partidos políticos vitoriosos","Saal der siegreichen Parteien"],
+  ["Salle des artistes de Sovarka","Hall of Sovarka's artists","Sala de los artistas de Sovarka","Sovarka 藝術家廳","Зал художников Sovarka","Sovarka 예술가실","قاعة فناني Sovarka","Sala dos artistas de Sovarka","Saal der Künstler Sovarkas"],
+  ["Salle du tractorisme","Hall of Tractorism","Sala del tractorismo","拖拉機教廳","Зал тракторизма","트랙터교실","قاعة التراكتورية","Sala do tratorismo","Saal des Traktorismus"],
+  ["Salle des sportifs de Sovarka","Hall of Sovarka's athletes","Sala de los deportistas de Sovarka","Sovarka 運動員廳","Зал спортсменов Sovarka","Sovarka 체육인실","قاعة رياضيي Sovarka","Sala dos atletas de Sovarka","Saal der Sportler Sovarkas"],
+  ["Salle des grandes crises de Sovarka","Hall of Sovarka's great crises","Sala de las grandes crisis de Sovarka","Sovarka 重大危機廳","Зал великих кризисов Sovarka","Sovarka 대위기실","قاعة الأزمات الكبرى في Sovarka","Sala das grandes crises de Sovarka","Saal der großen Krisen Sovarkas"],
+  ["EHPAD de Starovka","Starovka care home","Residencia de mayores de Starovka","斯塔羅夫卡安養院","Дом престарелых Старовки","스타로프카 요양원","دار رعاية المسنين في ستاروفكا","Casa de repouso de Starovka","Pflegeheim von Starovka"],
+  ["Hall de la gare de Starovka","Starovka station hall","Vestíbulo de la estación de Starovka","斯塔羅夫卡車站大廳","Зал вокзала Старовки","스타로프카역 홀","بهو محطة ستاروفكا","Saguão da estação de Starovka","Bahnhofshalle von Starovka"],
+  ["La Voix de Sovarka — Antenne de Starovka","La Voix de Sovarka — Starovka bureau","La Voix de Sovarka — Delegación de Starovka","La Voix de Sovarka — 斯塔羅夫卡分社","La Voix de Sovarka — бюро в Старовке","La Voix de Sovarka — 스타로프카 지국","La Voix de Sovarka — مكتب ستاروفكا","La Voix de Sovarka — Sucursal de Starovka","La Voix de Sovarka — Außenstelle Starovka"],
+  ["Salle des Ventes","Sales hall","Sala de ventas","銷售廳","Торговый зал","판매장","قاعة المبيعات","Salão de vendas","Verkaufshalle"],
+  ["Bureau de Direction","Management office","Despacho de dirección","管理辦公室","Кабинет дирекции","관리 사무실","مكتب الإدارة","Escritório da direção","Direktionsbüro"],
+  ["Quai Principal","Main quay","Muelle principal","主碼頭","Главный причал","주 부두","الرصيف الرئيسي","Cais principal","Hauptkai"],
+  ["Entrepôts","Warehouses","Almacenes","倉庫","Склады","창고","المستودعات","Armazéns","Lagerhallen"],
+  ["Douanes","Customs","Aduanas","海關","Таможня","세관","الجمارك","Alfândega","Zoll"],
+  ["Salle de classe","Classroom","Aula","教室","Класс","교실","قاعة الدرس","Sala de aula","Klassenzimmer"],
+  ["Local n°1","Unit no. 1","Local n.º 1","1 號店面","Помещение № 1","1호 점포","المحل رقم 1","Loja nº 1","Ladenlokal Nr. 1"],
+  ["Local n°2","Unit no. 2","Local n.º 2","2 號店面","Помещение № 2","2호 점포","المحل رقم 2","Loja nº 2","Ladenlokal Nr. 2"],
+  ["Salle d’écoute","Listening room","Sala de escuchas","監聽室","Комната прослушивания","감청실","غرفة التنصت","Sala de escuta","Abhörraum"],
+  ["La pièce commune","The common room","La sala común","起居室","Общая комната","공용 방","الغرفة المشتركة","A sala comum","Die Wohnstube"],
+  ["La cour de la ferme","The farmyard","El patio de la granja","農場院子","Двор фермы","농장 마당","فناء المزرعة","O pátio da fazenda","Der Hof"],
+  ["La boutique","The shop","La tienda","商店","Лавка","가게","المتجر","A loja","Der Laden"],
+  ["EHPAD de Krasnov","Krasnov care home","Residencia de mayores de Krasnov","克拉斯諾夫安養院","Дом престарелых Краснова","크라스노프 요양원","دار رعاية المسنين في كراسنوف","Casa de repouso de Krasnov","Pflegeheim von Krasnov"],
+  ["Hall de la gare de Krasnov","Krasnov station hall","Vestíbulo de la estación de Krasnov","克拉斯諾夫車站大廳","Зал вокзала Краснова","크라스노프역 홀","بهو محطة كراسنوف","Saguão da estação de Krasnov","Bahnhofshalle von Krasnov"],
+  ["La Voix de Sovarka — Antenne de Krasnov","La Voix de Sovarka — Krasnov bureau","La Voix de Sovarka — Delegación de Krasnov","La Voix de Sovarka — 克拉斯諾夫分社","La Voix de Sovarka — бюро в Краснове","La Voix de Sovarka — 크라스노프 지국","La Voix de Sovarka — مكتب كراسنوف","La Voix de Sovarka — Sucursal de Krasnov","La Voix de Sovarka — Außenstelle Krasnov"],
+  ["Entrée de la forêt","Forest edge","Entrada del bosque","森林入口","Опушка леса","숲 입구","مدخل الغابة","Entrada da floresta","Waldrand"],
+  ["Forêt profonde — Sous les grands pins","Deep forest — Beneath the tall pines","Bosque profundo — Bajo los grandes pinos","密林深處 — 高大松樹下","Глухой лес — Под высокими соснами","깊은 숲 — 큰 소나무 아래","الغابة العميقة — تحت أشجار الصنوبر الكبيرة","Floresta profunda — Sob os grandes pinheiros","Tiefer Wald — Unter den hohen Kiefern"],
+  ["Forêt profonde — La clairière des bouleaux","Deep forest — The birch clearing","Bosque profundo — El claro de los abedules","密林深處 — 白樺林空地","Глухой лес — Берёзовая поляна","깊은 숲 — 자작나무 빈터","الغابة العميقة — فسحة أشجار البتولا","Floresta profunda — A clareira das bétulas","Tiefer Wald — Die Birkenlichtung"],
+  ["Forêt profonde — Le ravin noir","Deep forest — The black ravine","Bosque profundo — El barranco negro","密林深處 — 黑色峽谷","Глухой лес — Чёрный овраг","깊은 숲 — 검은 협곡","الغابة العميقة — الوادي الأسود","Floresta profunda — A ravina negra","Tiefer Wald — Die schwarze Schlucht"],
+  ["Forêt profonde — Près de la vieille isba","Deep forest — Near the old isba","Bosque profundo — Junto a la vieja isba","密林深處 — 老木屋旁","Глухой лес — У старой избы","깊은 숲 — 오래된 통나무집 근처","الغابة العميقة — قرب الكوخ الخشبي القديم","Floresta profunda — Perto da velha isbá","Tiefer Wald — Bei der alten Isba"],
+  ["L’atelier de distillation","The distilling workshop","El taller de destilación","蒸餾工坊","Винокурня","증류 작업장","ورشة التقطير","A oficina de destilação","Die Brennerei"]
+ ];
+ const parFr=new Map(L.map(l=>[l[0],l]));
+ function label(_buildingId,_roomId,original){
+  // `state` est un `let` global de plateau-core.js : visible par son nom, pas comme window.state.
+  const pays=(typeof state!=='undefined'&&state)?state.country:null;
+  if(typeof original!=='string'||pays!=='soviet')return original;
+  const ligne=parFr.get(original); if(!ligne)return original;
+  const lang=(global.RP_I18N_GAME_ENABLED===true&&global.RPPlateauI18n?.language?.())||'fr';
+  const i=LANGUES.indexOf(lang);
+  return i>0&&typeof ligne[i]==='string'&&ligne[i].trim()?ligne[i]:original;
+ }
+ global.RPSovarkaPiecesI18n=Object.freeze({label,langues:Object.freeze(LANGUES.slice()),noms:Object.freeze(L.map(l=>l[0]))});
+})(window);
