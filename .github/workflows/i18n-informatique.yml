@@ -1,0 +1,25 @@
+name: i18n — informatique et dossiers
+on:
+  pull_request:
+    paths:
+      - 'plateau-informatique.js'
+      - 'i18n/computer-files-resources.js'
+      - 'plateau.html'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'outils/bancs/banc-i18n-informatique-20261112.cjs'
+      - '.github/workflows/i18n-informatique.yml'
+permissions:
+  contents: read
+jobs:
+  interface-informatique:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-informatique.js && node --check i18n/computer-files-resources.js
+      - run: node --test outils/bancs/banc-i18n-informatique-20261112.cjs
+      - run: node outils/audits/audit-i18n-editorial.cjs > /tmp/i18n-computer-audit.json
+      - run: git diff --check
