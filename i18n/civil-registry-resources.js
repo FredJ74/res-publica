@@ -191,6 +191,117 @@ const words={
     "unknown": "Unbekannt"
   }
 };
+const eventWords={
+  "fr": {
+    "birthEvent": "{date} : naissance de {name}{place}{parents}.",
+    "birthPlace": ", née à {city}",
+    "birthParents": ", fils/fille de {parents}",
+    "marriageEvent": "{date} : mariage de {name} avec {spouse}{place}.",
+    "marriagePlace": ", célébré à {city}",
+    "dissolvedEvent": "Union avec {spouse} dissoute ({reason}).",
+    "widow": "veuvage",
+    "divorce": "divorce",
+    "deathEvent": "{date} : décès de {name}{place}.",
+    "deathPlace": " à {city}"
+  },
+  "en": {
+    "birthEvent": "{date}: birth of {name}{place}{parents}.",
+    "birthPlace": ", born in {city}",
+    "birthParents": ", child of {parents}",
+    "marriageEvent": "{date}: marriage of {name} to {spouse}{place}.",
+    "marriagePlace": ", celebrated in {city}",
+    "dissolvedEvent": "Union with {spouse} dissolved ({reason}).",
+    "widow": "widowhood",
+    "divorce": "divorce",
+    "deathEvent": "{date}: death of {name}{place}.",
+    "deathPlace": " in {city}"
+  },
+  "es": {
+    "birthEvent": "{date}: nacimiento de {name}{place}{parents}.",
+    "birthPlace": ", nacido/a en {city}",
+    "birthParents": ", hijo/a de {parents}",
+    "marriageEvent": "{date}: matrimonio de {name} con {spouse}{place}.",
+    "marriagePlace": ", celebrado en {city}",
+    "dissolvedEvent": "Unión con {spouse} disuelta ({reason}).",
+    "widow": "viudedad",
+    "divorce": "divorcio",
+    "deathEvent": "{date}: fallecimiento de {name}{place}.",
+    "deathPlace": " en {city}"
+  },
+  "zh-TW": {
+    "birthEvent": "{date}：{name} 出生{place}{parents}。",
+    "birthPlace": "，出生地：{city}",
+    "birthParents": "，父母：{parents}",
+    "marriageEvent": "{date}：{name} 與 {spouse} 結婚{place}。",
+    "marriagePlace": "，婚禮地點：{city}",
+    "dissolvedEvent": "與 {spouse} 的婚姻已解除（{reason}）。",
+    "widow": "喪偶",
+    "divorce": "離婚",
+    "deathEvent": "{date}：{name} 逝世{place}。",
+    "deathPlace": "，地點：{city}"
+  },
+  "ru": {
+    "birthEvent": "{date}: рождение {name}{place}{parents}.",
+    "birthPlace": ", место рождения: {city}",
+    "birthParents": ", родители: {parents}",
+    "marriageEvent": "{date}: брак {name} с {spouse}{place}.",
+    "marriagePlace": ", заключён в {city}",
+    "dissolvedEvent": "Брак с {spouse} расторгнут ({reason}).",
+    "widow": "вдовство",
+    "divorce": "развод",
+    "deathEvent": "{date}: смерть {name}{place}.",
+    "deathPlace": " в {city}"
+  },
+  "ko": {
+    "birthEvent": "{date}: {name} 출생{place}{parents}.",
+    "birthPlace": ", 출생지 {city}",
+    "birthParents": ", 부모 {parents}",
+    "marriageEvent": "{date}: {name}와(과) {spouse}의 결혼{place}.",
+    "marriagePlace": ", 결혼 장소 {city}",
+    "dissolvedEvent": "{spouse}와(과)의 혼인 해소 ({reason}).",
+    "widow": "사별",
+    "divorce": "이혼",
+    "deathEvent": "{date}: {name} 사망{place}.",
+    "deathPlace": " — {city}"
+  },
+  "ar": {
+    "birthEvent": "{date}: ميلاد {name}{place}{parents}.",
+    "birthPlace": "، مكان الميلاد: {city}",
+    "birthParents": "، الوالدان: {parents}",
+    "marriageEvent": "{date}: زواج {name} من {spouse}{place}.",
+    "marriagePlace": "، أُقيم في {city}",
+    "dissolvedEvent": "انحلّ زواج {spouse} ({reason}).",
+    "widow": "ترمّل",
+    "divorce": "طلاق",
+    "deathEvent": "{date}: وفاة {name}{place}.",
+    "deathPlace": " في {city}"
+  },
+  "pt-BR": {
+    "birthEvent": "{date}: nascimento de {name}{place}{parents}.",
+    "birthPlace": ", nascido(a) em {city}",
+    "birthParents": ", filho(a) de {parents}",
+    "marriageEvent": "{date}: casamento de {name} com {spouse}{place}.",
+    "marriagePlace": ", celebrado em {city}",
+    "dissolvedEvent": "União com {spouse} dissolvida ({reason}).",
+    "widow": "viuvez",
+    "divorce": "divórcio",
+    "deathEvent": "{date}: falecimento de {name}{place}.",
+    "deathPlace": " em {city}"
+  },
+  "de": {
+    "birthEvent": "{date}: Geburt von {name}{place}{parents}.",
+    "birthPlace": ", geboren in {city}",
+    "birthParents": ", Kind von {parents}",
+    "marriageEvent": "{date}: Eheschließung von {name} mit {spouse}{place}.",
+    "marriagePlace": ", geschlossen in {city}",
+    "dissolvedEvent": "Ehe mit {spouse} aufgelöst ({reason}).",
+    "widow": "Verwitwung",
+    "divorce": "Scheidung",
+    "deathEvent": "{date}: Tod von {name}{place}.",
+    "deathPlace": " in {city}"
+  }
+};
+for(const [locale,entries] of Object.entries(eventWords))Object.assign(words[locale],entries);
 for(const [locale,entries] of Object.entries(words)){
  const target=global.RP_I18N_RESOURCES?.[locale]?.translation;
  if(target)target.civilRegistry=entries;
