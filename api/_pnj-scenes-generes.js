@@ -5086,6 +5086,24 @@ export const SCENES_PNJ = {
       "Vétéran Ilia Krioukov"
     ]
   },
+  "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_bataille_fleuve\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée municipal de Novomirsk",
+    "piece": "Salle de la Bataille du Fleuve",
+    "personnes": [
+      "Vétéran Ilia Krioukov"
+    ]
+  },
+  "[\"soviet\",\"capitale\",\"musee-novomirsk\",\"salle_grand_incendie\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Musée municipal de Novomirsk",
+    "piece": "Salle du Grand Incendie",
+    "personnes": [
+      "Vétéran Ilia Krioukov"
+    ]
+  },
   "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"accueil_ambassades_novomirsk\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
