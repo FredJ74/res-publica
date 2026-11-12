@@ -19,6 +19,12 @@ const VEH_MODELES = Object.freeze({
 });
 const VEH_GARAGE_MATIERES = Object.freeze({ metal: 'Métal', textile: 'Tissus et peaux', derives_petrochimiques: 'Dérivés pétrochimiques' });
 
+const vehGT = (key,fr,vars) => window.RPVehicleGarageI18n?.text?.(key,fr,vars)
+ || String(fr).replace(/\\{([a-z]+)\\}/g,(m,k)=>Object.hasOwn(vars||{},k)?String(vars[k]):m);
+const vehGH = (key,fr,vars) => vehEchappe(vehGT(key,fr,vars));
+const vehGModele = id => vehGT(({voiture:'car','deux-roues':'bike','vehicule-utilitaire':'utility'})[id],
+  VEH_MODELES[id]?.label || id);
+const vehGMatiere = key => vehGT(({metal:'metal',textile:'textiles',derives_petrochimiques:'derivatives'})[key],VEH_GARAGE_MATIERES[key]||key);
 const vehEchappe = v => String(v == null ? '' : v).replace(/[&<>"']/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const vehNombre = v => Number(v || 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 });
@@ -84,7 +90,7 @@ const vehLireChamp = id => Math.floor(Number(document.getElementById(id)?.value 
 
 async function vehLire() {
   const v = await sbRpcVerdict('vehicules_lire', {}).catch(() => null);
-  if (!v || v.ok !== true) { showToast('Véhicules', 'Lecture impossible auprès du serveur.', false); return null; }
+  if (!v || v.ok !== true) { showToast('Véhicules', vehGT('readFailed','Lecture impossible auprès du serveur.'), false); return null; }
   VEH_LECTURE = v;
   return v;
 }
@@ -111,27 +117,29 @@ async function vehActe(action, parametres, geste) {
 }
 
 // ---------- GARAGE ----------
-async function ouvrirGarageVehicules() {
-  const l = await vehLire(); if (!l) return;
+async function ouvrirGarageVehicules(utiliserCache=false) {
+  const l = utiliserCache && VEH_LECTURE ? VEH_LECTURE : await vehLire(); if (!l) return;
   const ici = l.ici;
-  if (!ici || ici.type !== 'garage') { showToast('Garage', 'Présentez-vous au comptoir d’un garage.', false); return; }
+  if (!ici || ici.type !== 'garage') { showToast(vehGT('garage','Garage'), vehGT('garageVisit','Présentez-vous au comptoir d’un garage.'), false); return; }
   const cur = vehMonnaie();
-  let html = '<p class="cpj-note">Chaque véhicule est vendu avec sa clé. Qui détient une clé peut le conduire ; ' +
-    'faites des doubles chez le quincaillier. Un trajet entre deux villes reliées par la route coûte 1 PA à chaque occupant.</p>';
+  let html = '<p class="cpj-note">'+vehGH('garageHelp',
+    'Chaque véhicule est vendu avec sa clé. Qui détient une clé peut le conduire ; faites des doubles chez le quincaillier. Un trajet entre deux villes reliées par la route coûte 1 PA à chaque occupant.')+'</p>';
   for (const [id, m] of Object.entries(VEH_MODELES)) {
     const stock = Number(ici.stock?.[id] || 0), prix = ici.prix?.[id];
-    html += vehSection('<i class="ti ' + m.icon + '"></i> ' + m.label,
-      '<div>' + m.places + ' places · ' + m.chargement + ' unités de chargement · réservoir de ' + m.reservoir + '</div>' +
-      '<div class="cpj-note">En stock : ' + vehNombre(stock) + (prix != null ? ' · ' + vehNombre(prix) + ' ' + cur : '') + '</div>' +
-      (stock > 0 && prix != null ? vehBouton('Acheter — ' + vehNombre(prix) + ' ' + cur, "vehAcheter('" + id + "')", true) : ''));
+    html += vehSection('<i class="ti ' + m.icon + '"></i> ' + vehEchappe(vehGModele(id)),
+      '<div>'+vehGH('vehicleSpecs','{seats} places · {cargo} unités de chargement · réservoir de {tank}',
+       {seats:m.places,cargo:m.chargement,tank:m.reservoir})+'</div>' +
+      '<div class="cpj-note">'+vehGH('inStock','En stock : {stock}',{stock:vehNombre(stock)})
+       + (prix != null ? ' · ' + vehNombre(prix) + ' ' + cur : '') + '</div>' +
+      (stock > 0 && prix != null ? vehBouton(vehGH('buyPrice','Acheter — {price} {currency}',{price:vehNombre(prix),currency:cur}), "vehAcheter('" + id + "')", true) : ''));
   }
   html += vehSectionAtelier(ici);
-  html += vehSection('Vendre des matières au garage',
-    '<div class="cpj-note">Le garage rachète les matières de ses véhicules et les pièces de ses révisions.</div>' +
+  html += vehSection(vehGH('sellMaterials','Vendre des matières au garage'),
+    '<div class="cpj-note">'+vehGH('sellHelp','Le garage rachète les matières de ses véhicules et les pièces de ses révisions.')+'</div>' +
     Object.entries(VEH_GARAGE_MATIERES).map(([k, lab]) =>
-      '<div style="margin-top:.4rem">' + lab + ' : ' + vehChamp('veh-mat-' + k, 10) +
-      vehBouton('Vendre', "vehVendreMatiere('" + ici.id + "','" + k + "')") + '</div>').join(''));
-  vehModal('Garage — véhicules', html);
+      '<div style="margin-top:.4rem">' + vehEchappe(vehGMatiere(k)) + ' : ' + vehChamp('veh-mat-' + k, 10) +
+      vehBouton(vehGH('sell','Vendre'), "vehVendreMatiere('" + ici.id + "','" + k + "')") + '</div>').join(''));
+  vehModal(vehGT('garage','Garage')+' — véhicules', '<div data-veh-i18n="garage"></div>'+html);
 }
 
 // Atelier : un vehicule a la fois (5, 10 ou 15 jours). Tout PJ present lance une fabrication et
@@ -233,10 +241,10 @@ async function vehReviser(id) {
 }
 
 // ---------- STATION-SERVICE ----------
-async function ouvrirStationCarburant() {
-  const l = await vehLire(); if (!l) return;
+async function ouvrirStationCarburant(utiliserCache=false) {
+  const l = utiliserCache && VEH_LECTURE ? VEH_LECTURE : await vehLire(); if (!l) return;
   const ici = l.ici;
-  if (!ici || ici.type !== 'station-service') { showToast('Station-service', 'Présentez-vous à la boutique de la station.', false); return; }
+  if (!ici || ici.type !== 'station-service') { showToast(vehGT('station','Station-service'), vehGT('stationVisit','Présentez-vous à la boutique de la station.'), false); return; }
   const cur = vehMonnaie(), prix = ici.prix?.bidon_carburant, stock = Number(ici.stock?.bidon_carburant || 0);
   let html = '<p class="cpj-note">1 bidon = 1 unité de carburant. Vous portez jusqu’à 100 unités sur vous ; ' +
     'versez les bidons dans le réservoir depuis « Mes véhicules ».</p>';
