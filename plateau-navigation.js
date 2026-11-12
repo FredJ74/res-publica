@@ -1120,6 +1120,11 @@ function enterRoom(buildingId, roomId, tabEl) {
       displayDesc += ' — En convalescence. Temps restant estimé : ' + joursRestants + ' jour(s).';
     }
   }
+  // Au musée municipal de Novomirsk, les récits sont lus dans la fenêtre d'Ilia,
+  // jamais en surimpression sur l'œuvre. Les descriptions source restent intactes.
+  const panneauMusee = document.querySelector('#piece-image .piece-ambiance');
+  if (panneauMusee) panneauMusee.style.display =
+    (state.country === 'soviet' && state.currentCity === 'capitale' && buildingId === 'musee-novomirsk') ? 'none' : '';
   document.getElementById('piece-desc').textContent = displayDesc;
   document.getElementById('piece-desc').setAttribute('data-rp-desc-source', descSourcePiece);
   document.getElementById('piece-desc').setAttribute('data-rp-desc-affichee', descAfficheePiece);

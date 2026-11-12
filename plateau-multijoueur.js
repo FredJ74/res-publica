@@ -310,6 +310,13 @@ function renderPersonsList(persons, targetId) {
     // l'autorite -- c'est la coherence de l'interface.
     // GUIDE DU MUSEE (11/11/2026) : pas de dialogue libre gratuit depuis sa carte. Le dialogue se
     // payera 1 PA et se limitera a 3 questions par salle (decisions de Fred, GAME-DESIGN-NOVOMIRSK.md).
+    if (p.guideIlia === true) {
+      const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : t;
+      return '<div class="person-card" style="cursor:pointer" onclick="iliaEcouterGuide(false)">' +
+        avatarHtml + '<div><div class="person-name">' + ech(p.name) + '</div>' +
+        '<div class="person-role">' + ech(typeof roleAfficheSovarka === 'function' ? roleAfficheSovarka(p.role) : p.role) +
+        '</div></div></div>';
+    }
     if (p.guideMusee === true) {
       const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : t;
       return '<div class="person-card" style="cursor:pointer" onclick="ouvrirGuideMusee()">' +

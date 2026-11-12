@@ -1,0 +1,42 @@
+name: "Ilia Krioukov — guide du musée municipal"
+on:
+  push:
+    branches:
+      - chatgpt/ilia-guide-musee-20261112
+    paths:
+      - .github/workflows/ilia-guide-musee-20261112.yml
+permissions:
+  contents: write
+jobs:
+  guide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Régénérer les lieux réels des PNJ (contexte serveur)
+        run: node outils/generateurs/generer-pnj-lieux-metiers.cjs --scenes-js > api/_pnj-scenes-generes.js
+      - name: Syntaxe et recette Ilia / énigme
+        run: |
+          node --check data.js
+          node --check plateau-guide-ilia.js
+          node --check plateau-multijoueur.js
+          node --check plateau-router.js
+          node --check plateau-navigation.js
+          node --check api/chat.js
+          node --check api/_pnj-personnalites.js
+          node --test outils/bancs/test-ilia-guide-musee-20261112.mjs outils/bancs/test-musee-novomirsk-tresor-tsars-20261112.mjs
+      - name: Committer le contexte de dialogue régénéré
+        run: |
+          git config user.name "ChatGPT (GitHub Actions)"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add api/_pnj-scenes-generes.js
+          git diff --cached --check
+          if ! git diff --cached --quiet; then
+            git commit -m "Contexte serveur : cinq pièces du musée de Novomirsk pour Ilia"
+            git push origin HEAD:chatgpt/ilia-guide-musee-20261112
+          fi

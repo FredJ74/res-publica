@@ -4676,9 +4676,9 @@ const BUILDINGS = {
         persons: [
           {name:'Irina Filippova (PNJ)', role:'PNJ - Accueil du musée', rel:'neutral', job:'hotesse', photoUrl:'images/Sovarka/Novomirsk/Novo_irina_guichetova_portrait.webp'},
           {name:'Docteur Lev Vinogradov (PNJ)', role:'PNJ - Conservateur du musée', rel:'neutral', job:'conservateur', photoUrl:'images/Sovarka/Novomirsk/Novo_lev_patrimonov_portrait.webp'},
-          {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'}
+          {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp', guideIlia:true}
         ],
-        orders: []
+        orders: [{fn:'ilia_ecouter_guide', label:'Écouter le guide', pa:0, cost:0, type:'legal', icon:'ti-microphone-2', successRate:100, desc:'Ilia Krioukov présente cette salle.'}]
       },
       // Salles du musée de Novomirsk (Fred, 12/11/2026) : la ville les montre seules (roomsExclues du contexte de
       // Novomirsk) ; Krasnov, qui réutilise ce bâtiment, garde les anciennes salles et exclut celles-ci.
@@ -4687,7 +4687,7 @@ const BUILDINGS = {
         imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_salle_origines.webp",
         imageBg: "linear-gradient(135deg,#10161c,#18202a)",
         desc: "Cartes anciennes, filets de pêche et barques vermoulues racontent la naissance de Novomirsk sur les rives du fleuve Sovarka : des terres fertiles, des eaux poissonneuses, et un fleuve qui faisait circuler marchandises et nouvelles entre les villes et les pays. Capitale des Tsars, elle l'est restée quand la démocratie a renversé le régime. Une vitrine vide porte une simple étiquette : « Trésor impérial — au fond du fleuve, avec Sergueï IV le Terrible et sa barque percée. » Depuis, les pêcheurs relèvent leurs filets en espérant y trouver un coffre plutôt qu'une carpe.",
-        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp', guideIlia:true} ],
         orders: [
           {fn:'tresor_ecouter_guide', label:'Écouter le guide', pa:0, cost:0, type:'legal', icon:'ti-microphone-2', successRate:100, desc:'Le vétéran Ilia Krioukov raconte les origines de Novomirsk et la légende du trésor des Tsars.'}
         ]
@@ -4697,8 +4697,9 @@ const BUILDINGS = {
         imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_personnalites_discretes.webp",
         imageBg: "linear-gradient(135deg,#16120c,#201a10)",
         desc: "Les présidents, sportifs et artistes de Novomirsk ont leurs honneurs au musée national. Ici reposent les autres : ceux dont l'histoire a retenu l'œuvre plutôt que le nom, et dont l'œuvre a parfois dépassé l'histoire.",
-        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp', guideIlia:true} ],
         orders: [
+          {fn:'ilia_ecouter_guide', label:'Écouter le guide', pa:0, cost:0, type:'legal', icon:'ti-microphone-2', successRate:100, desc:'Ilia présente les cinq personnalités.'},
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
         ]
       },
@@ -4709,16 +4710,16 @@ const BUILDINGS = {
         imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_bataille_fleuve.webp",
         imageBg: "linear-gradient(135deg,#16120c,#201a10)",
         desc: "En 1742, le prince Mikhaïl Dragounov descendit la Sovarka avec vingt-sept embarcations et près de huit cents hommes pour prendre le port de Novomirsk. Les pêcheurs menés par Piotr Karassov déplacèrent les balises et plantèrent des pieux sous l'eau. Les bateaux ennemis s'échouèrent et se percutèrent ; la ville fut sauvée. « Ils avaient huit cents soldats. Nous avions le fleuve. » Une barque attribuée à Karassov est exposée ; son authenticité est contestée par les historiens, mais pas par ses descendants.",
-        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
-        orders: []
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp', guideIlia:true} ],
+        orders: [{fn:'ilia_ecouter_guide', label:'Écouter le guide', pa:0, cost:0, type:'legal', icon:'ti-microphone-2', successRate:100, desc:'Ilia Krioukov présente cette salle.'}]
       },
       salle_grand_incendie: {
         name: "Salle du Grand Incendie",
         imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_grand_incendie.webp",
         imageBg: "linear-gradient(135deg,#1c100c,#24160e)",
         desc: "En 1887, un four oublié dans la boulangerie de Grigori Pirogov déclencha un incendie qui ravagea pendant trois jours le quartier marchand de Novomirsk. Le vent poussa les flammes des maisons en bois aux entrepôts du port. Un tiers de la vieille ville fut détruit. La reconstruction en pierre et en brique transforma la capitale. Casques, pompe à bras, plans et photographies des ruines entourent une miche de pain calcinée, retrouvée dans l'ancienne boulangerie.",
-        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
-        orders: []
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp', guideIlia:true} ],
+        orders: [{fn:'ilia_ecouter_guide', label:'Écouter le guide', pa:0, cost:0, type:'legal', icon:'ti-microphone-2', successRate:100, desc:'Ilia Krioukov présente cette salle.'}]
       },
       salle_criminels: {
         name: "Salle des Grands Criminels Novomirskois",
