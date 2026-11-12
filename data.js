@@ -10898,11 +10898,16 @@ function montantDansTexte(texte, ancien, nouveau) {
     b.name = nomImmeuble;
     b.shortName = 'Logements';
     b.desc = desc;
+    // Les deux immeubles V16 ont chacun leurs images, sans changer les loyers.
+    const prefixeImage = 'images/Sovarka/Novomirsk/Novomirsk_logements_'
+      + (id === 'logements-novomirsk-marche' ? 'marche' : 'quais') + '_';
+    b.rooms.salle.imageUrl = prefixeImage + 'hall.webp';
     Object.entries(b.rooms).forEach(([pieceId, r]) => {
       const m = pieceId.match(/^(petit|grand)_appartement_(\d)$/);
       if (!m) return;
       const nom = (m[1] === 'petit' ? 'Petit' : 'Grand') + ' appartement n°' + (Number(m[2]) + decalage);
       r.name = nom;
+      r.imageUrl = prefixeImage + (m[1] === 'petit' ? 'petit' : 'grand') + '_appartement.webp';
       if (r.locationData) r.locationData.label = nom;
     });
     BUILDINGS[id] = b;
