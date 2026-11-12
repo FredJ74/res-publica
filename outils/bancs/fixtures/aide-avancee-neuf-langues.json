@@ -1,0 +1,65 @@
+{
+  "fr": {
+    "simple": "Je ne compren pas les PA.",
+    "complexe": "Mon salair n est pas arrivé après le sommeil, pourquoi ?",
+    "ambigue": "Et ensuite ?",
+    "multiple": "Police, banque, produire et dormir : comment ça marche ?",
+    "suivi": "Et pour le versement suivant ?"
+  },
+  "en": {
+    "simple": "I dont understand acton points.",
+    "complexe": "My salary and sleep bonus did not arrive. Why?",
+    "ambigue": "What about that?",
+    "multiple": "Police, bank, shop and sleep: how does it work?",
+    "suivi": "And the next payment?"
+  },
+  "es": {
+    "simple": "No entiendo los puntos de ación.",
+    "complexe": "Mi sueldo no llegó después de dormir. ¿Por qué?",
+    "ambigue": "¿Y eso?",
+    "multiple": "Policía, banco, producir y dormir: ¿cómo funciona?",
+    "suivi": "¿Y el próximo pago?"
+  },
+  "zh-TW": {
+    "simple": "我不懂行动点数。",
+    "complexe": "睡覺後工資沒有收到，為什麼？",
+    "ambigue": "那這個呢？",
+    "multiple": "警察、銀行、生產和睡覺怎麼運作？",
+    "suivi": "那下一次付款呢？"
+  },
+  "ru": {
+    "simple": "Не понимаю очки дейтсвий.",
+    "complexe": "Зарплата не пришла. Я спал, почему?",
+    "ambigue": "А дальше?",
+    "multiple": "Полиция, банк, магазин и сон: как это работает?",
+    "suivi": "А следующая выплата?"
+  },
+  "ko": {
+    "simple": "행동 력을 잘 모르겟어요.",
+    "complexe": "수면 후 월급과 보너스가 없어요. 왜 그런가요?",
+    "ambigue": "그건요?",
+    "multiple": "경찰, 은행, 상점과 수면은 어떻게 되나요?",
+    "suivi": "그럼 다음 지급은요?"
+  },
+  "ar": {
+    "simple": "لا أفهم نُقاط العَمَل.",
+    "complexe": "لم يصل الراتب بعد النوم، لماذا؟",
+    "ambigue": "وماذا عن ذلك؟",
+    "multiple": "شرطة وبنك ومتجر والنوم: كيف تعمل؟",
+    "suivi": "وماذا عن الدفعة التالية؟"
+  },
+  "pt-BR": {
+    "simple": "Nao entendo os pontos de acao.",
+    "complexe": "Meu salário não chegou depois de dormir. Por quê?",
+    "ambigue": "E isso?",
+    "multiple": "Polícia, banco, produzir e dormir: como funciona?",
+    "suivi": "E o próximo pagamento?"
+  },
+  "de": {
+    "simple": "Ich verstehe Aktions punkte nich.",
+    "complexe": "Mein Gehalt und der Schlafbonus fehlen. Warum?",
+    "ambigue": "Und das?",
+    "multiple": "Polizei, Bank, Geschäft und Schlaf: wie funktioniert das?",
+    "suivi": "Und die nächste Zahlung?"
+  }
+}
