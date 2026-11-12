@@ -1,0 +1,25 @@
+name: i18n — dealers de Républia
+on:
+  pull_request:
+    paths:
+      - 'plateau-ced.js'
+      - 'i18n/dealer-resources.js'
+      - 'plateau.html'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'outils/bancs/banc-i18n-dealer-20261112.cjs'
+      - '.github/workflows/i18n-dealer.yml'
+permissions:
+  contents: read
+jobs:
+  dealer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-ced.js && node --check i18n/dealer-resources.js
+      - run: node --test outils/bancs/banc-i18n-dealer-20261112.cjs
+      - run: node outils/audits/audit-i18n-editorial.cjs >/tmp/audit-i18n-dealer.json
+      - run: git diff --check
