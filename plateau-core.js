@@ -1801,7 +1801,14 @@ async function recupererPersonnageDuCompte() {
 // ci-dessus, avant de rendre la main -- le callback differe n'utilise plus jamais char directement.
 function restaurerPositionApresChargement(char) {
   if (!char.currentBuilding || !char.currentRoom) return;
-  if (!BUILDINGS[char.currentBuilding] || !BUILDINGS[char.currentBuilding].rooms?.[char.currentRoom]) {
+  // Pièces propres à une ville (roomsExtra, ex. Bureau du Directeur de la banque de Montrouge) :
+  // résolues comme à l'entrée (enterRoom) et à la sortie. Avant le 12/11/2026, seul le gabarit
+  // commun était lu : un rechargement dans une telle pièce n'était pas restauré et l'écran restait
+  // sur une rue vide, alors que le serveur plaçait le PJ dans la pièce (retour de Ben, iPhone).
+  const ctxRestauration = (typeof getBuildingContext === 'function') ? getBuildingContext(char.currentBuilding) : null;
+  const pieceRestauree = BUILDINGS[char.currentBuilding]?.rooms?.[char.currentRoom]
+    || (!ctxRestauration?.roomsExclues?.includes(char.currentRoom) && ctxRestauration?.roomsExtra?.[char.currentRoom]);
+  if (!BUILDINGS[char.currentBuilding] || !pieceRestauree) {
     // Piece dynamique de lot (Lot 1.1) : elle n'existe pas encore a cet instant.
     // MISE A JOUR DU 26 SEPTEMBRE 2026 : cette fonction ne s'execute PLUS a partir du localStorage.
     // Elle est desormais appelee une seule fois, apres la reponse de Supabase, sur la position que
