@@ -8,6 +8,7 @@ on:
       - 'plateau-personnage.js'
       - 'plateau.html'
       - 'outils/bancs/clinique-nuitee-*'
+      - 'outils/bancs/banc-clinique-nuitee-client.cjs'
       - '.github/workflows/clinique-nuitee.yml'
 permissions:
   contents: read
@@ -41,6 +42,8 @@ jobs:
           node-version: '22'
       - name: Syntaxe des scripts
         run: node --check plateau-clinique-nuitee.js && node --check plateau-router.js && node --check plateau-personnage.js
+      - name: Tests client sans compte
+        run: node --test outils/bancs/banc-clinique-nuitee-client.cjs
       - name: Préparer la base fictive
         run: psql -X -v ON_ERROR_STOP=1 -f outils/bancs/clinique-nuitee-fixture.sql
       - name: Installer la vraie migration
