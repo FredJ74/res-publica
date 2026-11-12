@@ -136,3 +136,6 @@ Décors : fonction serveur `logement-decoration` (déployée), même atelier que
   de matériel dans un local (déjà le cas côté serveur) **et 1 place dans l'inventaire** au lieu de 3 (encombrement
   aujourd'hui 3 à la fabrication et à l'achat, Scierie Guy Tarembois). Inventaire : non codé.
 - **Décision de Fred (13/11/2026, 0 h 28)** : déposer ou retirer un souvenir dans l'armoire est **gratuit** (0 PA). Non codé.
+- **Décision de Fred (13/11/2026, 0 h 30)** : un visiteur qui retire un souvenir d'une armoire non fermée à clé ne commet
+  **pas d'acte illégal** (pas de jet, pas de trace de crime) ; le propriétaire peut **porter plainte pour vol**, et c'est
+  **le juge PJ qui tranche** (parcours de plainte et de tribunal existants). Non codé.
