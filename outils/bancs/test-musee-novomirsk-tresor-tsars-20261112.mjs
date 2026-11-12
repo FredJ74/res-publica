@@ -20,7 +20,7 @@ const salles = (c, ville) => {
 
 test('Novomirsk montre seulement le hall et les deux nouvelles salles ; Krasnov garde les siennes', () => {
   const c = monde();
-  assert.deepEqual(salles(c, 'capitale'), ['hall', 'salle_origines', 'salle_personnalites_discretes']);
+  assert.deepEqual(salles(c, 'capitale'), ['hall', 'salle_origines', 'salle_personnalites_discretes', 'salle_bataille_fleuve', 'salle_grand_incendie']);
   const k = salles(c, 'ville_b');
   assert.ok(!k.includes('salle_origines') && !k.includes('salle_personnalites_discretes') && k.includes('salle_criminels'));
   const r = c.BUILDINGS['musee-novomirsk'].rooms;
