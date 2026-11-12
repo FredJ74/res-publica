@@ -92,8 +92,8 @@ function etatCivilConstruireFiche(nomPersonne) {
       // formulation neutre dans ce cas, jamais de ville inventee.
       const naissance = (ETAT_CIVIL_CACHE_NAISSANCES || []).find(function(x) { return x.nom === nomPersonne; });
       const nomVilleNaissance = etatCivilNomVille(naissance?.city);
-      const suffixeNaissance = nomVilleNaissance ? (', née à ' + nomVilleNaissance) : '';
-      evenementsJoueur.push({ annee: d.getFullYear(), texte: d.getDate() + ' ' + ETAT_CIVIL_MOIS[d.getMonth()] + ' ' + d.getFullYear() + ' : naissance de ' + joueur.name + suffixeNaissance + '.' });
+      const suffixeNaissance = nomVilleNaissance ? ecT('birthPlace',{city:nomVilleNaissance}) : '';
+      evenementsJoueur.push({ annee: d.getFullYear(), texte: ecT('birthEvent',{date:ecDate(d.getDate(),d.getMonth()+1,d.getFullYear()),name:joueur.name,place:suffixeNaissance,parents:''}) });
     }
 
     (ETAT_CIVIL_CACHE_MARIAGES || []).forEach(function(m) {
@@ -101,13 +101,13 @@ function etatCivilConstruireFiche(nomPersonne) {
       const conjoint = m.conjoint1 === nomPersonne ? m.conjoint2 : m.conjoint1;
       if (!m.created_at) return;
       const dm = new Date(m.created_at);
-      const dateTxt = dm.getDate() + ' ' + ETAT_CIVIL_MOIS[dm.getMonth()] + ' ' + dm.getFullYear();
+      const dateTxt = ecDate(dm.getDate(),dm.getMonth()+1,dm.getFullYear());
       const nomVilleMariage = etatCivilNomVille(m.city);
-      const suffixeMariage = nomVilleMariage ? (', célébré à ' + nomVilleMariage) : '';
-      evenementsJoueur.push({ annee: dm.getFullYear(), texte: dateTxt + ' : mariage de ' + nomPersonne + ' avec ' + conjoint + suffixeMariage + '.' });
+      const suffixeMariage = nomVilleMariage ? ecT('marriagePlace',{city:nomVilleMariage}) : '';
+      evenementsJoueur.push({ annee: dm.getFullYear(), texte: ecT('marriageEvent',{date:dateTxt,name:nomPersonne,spouse:conjoint,place:suffixeMariage}) });
       if (m.statut === 'dissous') {
-        const motif = m.raison_dissolution === 'veuvage' ? 'veuvage' : 'divorce';
-        evenementsJoueur.push({ annee: dm.getFullYear(), texte: 'Union avec ' + conjoint + ' dissoute (' + motif + ').' });
+        const motif = m.raison_dissolution === 'veuvage' ? ecT('widow') : ecT('divorce');
+        evenementsJoueur.push({ annee: dm.getFullYear(), texte: ecT('dissolvedEvent',{spouse:conjoint,reason:motif}) });
       }
     });
 
@@ -115,8 +115,8 @@ function etatCivilConstruireFiche(nomPersonne) {
     if (deces && deces.created_at) {
       const dd = new Date(deces.created_at);
       const nomVilleDeces = etatCivilNomVille(deces.city);
-      const suffixeDeces = nomVilleDeces ? (' à ' + nomVilleDeces) : '';
-      evenementsJoueur.push({ annee: dd.getFullYear(), texte: dd.getDate() + ' ' + ETAT_CIVIL_MOIS[dd.getMonth()] + ' ' + dd.getFullYear() + ' : décès de ' + joueur.name + suffixeDeces + '.' });
+      const suffixeDeces = nomVilleDeces ? ecT('deathPlace',{city:nomVilleDeces}) : '';
+      evenementsJoueur.push({ annee: dd.getFullYear(), texte: ecT('deathEvent',{date:ecDate(dd.getDate(),dd.getMonth()+1,dd.getFullYear()),name:joueur.name,place:suffixeDeces}) });
     }
 
     evenementsJoueur.sort(function(a, b) { return a.annee - b.annee; });
@@ -127,26 +127,26 @@ function etatCivilConstruireFiche(nomPersonne) {
 
   if (p.naissanceAnnee) {
     const parentsTxt = (p.parents && p.parents.length === 2)
-      ? ', fils/fille de ' + p.parents[0] + ' et ' + p.parents[1]
+      ? ecT('birthParents',{parents:p.parents[0]+' et '+p.parents[1]})
       : '';
-    const dateTxt = etatCivilFormaterDate(p.naissanceJour, p.naissanceMois, p.naissanceAnnee);
-    evenements.push({ annee: p.naissanceAnnee, texte: dateTxt + ' : naissance de ' + p.nom + parentsTxt + '.' });
+    const dateTxt = ecDate(p.naissanceJour,p.naissanceMois,p.naissanceAnnee);
+    evenements.push({ annee: p.naissanceAnnee, texte: ecT('birthEvent',{date:dateTxt,name:p.nom,place:'',parents:parentsTxt}) });
   }
   if (p.mariageAnnee && p.conjoint) {
-    const dateTxt = etatCivilFormaterDate(p.mariageJour, p.mariageMois, p.mariageAnnee);
-    evenements.push({ annee: p.mariageAnnee, texte: dateTxt + ' : mariage de ' + p.nom + ' avec ' + p.conjoint + '.' });
+    const dateTxt = ecDate(p.mariageJour,p.mariageMois,p.mariageAnnee);
+    evenements.push({ annee: p.mariageAnnee, texte: ecT('marriageEvent',{date:dateTxt,name:p.nom,spouse:p.conjoint,place:''}) });
   }
   // Enfants : toute personne du registre dont p.nom figure dans ses parents.
   registre.forEach(function(autre) {
     if (autre.parents && autre.parents.indexOf(p.nom) !== -1 && autre.naissanceAnnee) {
       const parentsEnfantTxt = autre.parents.join(' et ');
-      const dateTxt = etatCivilFormaterDate(autre.naissanceJour, autre.naissanceMois, autre.naissanceAnnee);
-      evenements.push({ annee: autre.naissanceAnnee, texte: dateTxt + ' : naissance de ' + autre.nom + ', fils/fille de ' + parentsEnfantTxt + '.' });
+      const dateTxt = ecDate(autre.naissanceJour,autre.naissanceMois,autre.naissanceAnnee);
+      evenements.push({ annee: autre.naissanceAnnee, texte: ecT('birthEvent',{date:dateTxt,name:autre.nom,place:'',parents:ecT('birthParents',{parents:parentsEnfantTxt})}) });
     }
   });
   if (p.decesAnnee) {
-    const dateTxt = etatCivilFormaterDate(p.decesJour, p.decesMois, p.decesAnnee);
-    evenements.push({ annee: p.decesAnnee, texte: dateTxt + ' : décès de ' + p.nom + '.' });
+    const dateTxt = ecDate(p.decesJour,p.decesMois,p.decesAnnee);
+    evenements.push({ annee: p.decesAnnee, texte: ecT('deathEvent',{date:dateTxt,name:p.nom,place:''}) });
   }
 
   evenements.sort(function(a, b) { return a.annee - b.annee; });
@@ -337,6 +337,15 @@ function etatCivilRechercherPourActe(nomQuery) {
 // =====================
 
 function ecT(key,vars){return window.RPCivilRegistryI18n?.text?.(key,vars||{})||key;}
+function ecDate(jour,mois,annee){
+ if(!annee)return '';
+ if(!jour||!mois)return String(annee);
+ const locale=window.RP_I18N_GAME_ENABLED===true?(window.RPPlateauI18n?.language?.()||'fr'):'fr';
+ if(locale==='fr')return etatCivilFormaterDate(jour,mois,annee);
+ const formats={en:'en-US',es:'es-ES','zh-TW':'zh-TW',ru:'ru-RU',ko:'ko-KR',ar:'ar','pt-BR':'pt-BR',de:'de-DE'};
+ return new Date(annee,mois-1,jour).toLocaleDateString(formats[locale]||'fr-FR',{year:'numeric',month:'long',day:'numeric'});
+}
+
 function ecH(str){return String(str).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function ecLabel(key,vars){return ecH(ecT(key,vars));}
 function ecSpan(key,vars){
