@@ -1,0 +1,62 @@
+name: "Musée Novomirsk — quatre WebP et salles locales"
+on:
+  push:
+    branches:
+      - chatgpt/novomirsk-musee-salles-20261112
+    paths:
+      - .github/workflows/novomirsk-musee-salles-20261112.yml
+permissions:
+  contents: write
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Installer Pillow
+        run: python -m pip install pillow
+      - name: Convertir les quatre images et raccorder les salles
+        run: python outils/images/implanter-musee-novomirsk-20261112.py
+      - name: Vérifier images, salles et exclusion de Krasnov
+        run: |
+          node --check data.js
+          node --test outils/bancs/test-musee-novomirsk-tresor-tsars-20261112.mjs
+          node - <<'NODE'
+          const fs=require('node:fs'), vm=require('node:vm'), assert=require('node:assert/strict');
+          const ctx={console};ctx.window=ctx;vm.createContext(ctx);
+          vm.runInContext(fs.readFileSync('data.js','utf8')+';this.B=BUILDINGS;this.W=WORLD;',ctx);
+          const rooms=ctx.B['musee-novomirsk'].rooms;
+          const names=['salle_origines','salle_personnalites_discretes','salle_bataille_fleuve','salle_grand_incendie'];
+          for(const name of names) {
+            const path=rooms[name]?.imageUrl;
+            assert.ok(path&&fs.existsSync(path),name);
+            const bytes=fs.readFileSync(path);
+            assert.equal(bytes.subarray(0,4).toString(),'RIFF',path);
+            assert.equal(bytes.subarray(8,12).toString(),'WEBP',path);
+            assert.ok(rooms[name].persons.some(p=>p.name.includes('Ilia Krioukov')),name);
+          }
+          const k=ctx.W.soviet.ville_b.buildingContext['musee-novomirsk'];
+          assert.ok(names.every(n=>k.roomsExclues.includes(n)));
+          const v=ctx.W.soviet.capitale.buildingContext['musee-novomirsk'];
+          assert.ok(names.every(n=>!v.roomsExclues.includes(n)));
+          assert.ok(rooms.salle_origines.orders.some(o=>o.fn==='tresor_ecouter_guide'));
+          const nav=fs.readFileSync('migrations/20261112224500_musee_novomirsk_bataille_incendie.sql','utf8');
+          assert.ok(names.every(n=>nav.includes(n)));
+          console.log('4 images WebP et 4 salles vérifiées ; énigme inchangée.');
+          NODE
+      - name: Committer les images et les pièces
+        run: |
+          git config user.name "ChatGPT (GitHub Actions)"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data.js i18n/sovarka-pieces-resources.js outils/bancs/test-musee-novomirsk-tresor-tsars-20261112.mjs images/Sovarka/Novomirsk/
+          git diff --cached --check
+          git commit -m "Musée Novomirsk : quatre WebP, bataille du fleuve et grand incendie"
+          git push origin HEAD:chatgpt/novomirsk-musee-salles-20261112
