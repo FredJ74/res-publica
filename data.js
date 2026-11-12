@@ -2029,7 +2029,22 @@ const WORLD = {
         'clinique-privee': {
           name: 'Clinique du Parti',
           desc: "Réservée aux membres du Parti. Docteur Stakhanov soigne selon le rang.",
-          persons: [{"name": "Docteur Stakhanov (PNJ)", "role": "Médecin du Parti", "rel": "neutral", "job": "medecin"}]
+          persons: [{"name": "Docteur Stakhanov (PNJ)", "role": "Médecin du Parti", "rel": "neutral", "job": "medecin"}],
+          // Habillage propre à Novomirsk : clinique Saint-Pavel.
+          // Aucune modification des patients, des ordres de soins ou des dix attributions de chambre.
+          roomOverrides: {
+            reception_clinique: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_clinique_accueil.webp' },
+            chambre_1: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_clinique_chambre.webp' },
+            chambre_2: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_clinique_chambre.webp' },
+            chambre_3: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_clinique_chambre.webp' },
+            chambre_4: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_clinique_chambre.webp' },
+            chambre_5: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_clinique_chambre.webp' },
+            chambre_6: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_clinique_chambre.webp' },
+            chambre_7: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_clinique_chambre.webp' },
+            chambre_8: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_clinique_chambre.webp' },
+            chambre_9: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_clinique_chambre.webp' },
+            chambre_10: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_clinique_chambre.webp' }
+          }
         },
         // Hôpital public de Novomirsk : habillage et troisième pièce propres à cette ville.
         // Aucun ordre de soins nouveau : le socle serveur reste l'autorité.
