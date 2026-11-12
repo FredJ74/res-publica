@@ -30,17 +30,25 @@ function cedCleReprise(produit) {
   return 'ced_achat_' + rpAuthUid() + '_' + state.char.name + '_' + produit;
 }
 // Fenetre du dealer : les deux produits, leur prix et le stock lu sur le serveur.
+let CED_VUE=null;
 async function ouvrirAchatCed() {
-  if (!cedSurPlace() || !state.char || !rpAuthUid()) return;
-  document.getElementById('modal-pnj')?.classList.remove('open');
-  document.getElementById('postes-modal-title').textContent = cedNomDealer();
-  const corps = document.getElementById('postes-body');
-  corps.innerHTML = '<div class="cpj-note" style="padding:1rem">'+cedH('loading',"Le dealer jette un œil à sa marchandise…")+'</div>';
-  document.getElementById('modal-postes').classList.add('open');
-  let stocks = null;
-  try { stocks = await sbRpc('dealer_stocks_lire', {}); } catch (_) { stocks = null; }
-  if (!cedSurPlace()) return;
-  let html = '<div style="padding:1rem;display:grid;gap:1rem">';
+ if (!cedSurPlace() || !state.char || !rpAuthUid()) return;
+ const acteur=state.char,uid=rpAuthUid();
+ document.getElementById('modal-pnj')?.classList.remove('open');
+ document.getElementById('postes-modal-title').textContent=cedNomDealer();
+ const corps=document.getElementById('postes-body');
+ corps.innerHTML='<div class="cpj-note" style="padding:1rem">'+cedH('loading',"Le dealer jette un œil à sa marchandise…")+'</div>';
+ document.getElementById('modal-postes').classList.add('open');
+ let stocks=null;
+ try{stocks=await sbRpc('dealer_stocks_lire',{});}catch(_){stocks=null;}
+ if(!cedSurPlace()||state.char!==acteur||rpAuthUid()!==uid)return;
+ CED_VUE={stocks,acteur,uid,country:state.country,city:state.currentCity};
+ cedAfficherStocks(stocks);
+}
+function cedAfficherStocks(stocks){
+ const corps=document.getElementById('postes-body');
+ if(!corps)return;
+  let html = '<div data-ced-catalog="1" style="padding:1rem;display:grid;gap:1rem">';
   Object.keys(DROGUES_DEALER).forEach(function (produit) {
     const d = DROGUES_DEALER[produit];
     const s = stocks && stocks.ok ? stocks[produit] : null;
@@ -57,6 +65,14 @@ async function ouvrirAchatCed() {
   html += '<p class="cpj-note">'+cedH('illegalNotice',"Marchandise illégale : l’achat et le transport peuvent laisser des traces.")+'</p></div>';
   corps.innerHTML = html;
 }
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
+ const modal=document.getElementById('modal-postes'),corps=document.getElementById('postes-body'),v=CED_VUE;
+ if(!v||!modal?.classList?.contains('open')||!corps?.querySelector?.('[data-ced-catalog="1"]')
+   ||!cedSurPlace()||state.char!==v.acteur||rpAuthUid()!==v.uid
+   ||state.country!==v.country||state.currentCity!==v.city)return;
+ cedAfficherStocks(v.stocks);
+});
+
 async function confirmerAchatCed(produit) {
   produit = DROGUES_DEALER[produit] ? produit : 'brume';
   const d = DROGUES_DEALER[produit];
