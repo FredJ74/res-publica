@@ -23,17 +23,17 @@ function fixture(locale='fr',active=true,sovarkaLabel=null){
  vm.runInContext(shared,ctx,{filename:'common-room-resources.js'});
  return{global,refs,setLang:x=>{lang=x;},enable:x=>{enabled=x;},label:(b,r,name)=>global.RPRoomI18n.label(b,r,name)};
 }
-test('59 intitulés dans neuf langues et 118 paires bâtiment/pièce validées',()=>{
+test('108 intitulés dans neuf langues et 168 paires bâtiment/pièce validées',()=>{
  const f=fixture();
  for(const lang of langs){
   const words=f.refs[lang].translation.commonRoomLabels;
-  assert.equal(Object.keys(words).length,59,lang);
+  assert.equal(Object.keys(words).length,108,lang);
   for(const [key,value] of Object.entries(words)){
    assert.ok(key.length>0&&value.length>0,lang+':'+key);
    assert.ok(!/[{}]/.test(value),'aucune variable de moteur dans les titres '+key);
   }
  }
- assert.equal(f.global.RPCommonRoomI18n.scopes.size,118);
+ assert.equal(f.global.RPCommonRoomI18n.scopes.size,168);
 });
 test('noms de gabarit traduits, de la mairie au tribunal, dans neuf langues',()=>{
  for(const lang of langs){
@@ -53,6 +53,27 @@ test('noms de gabarit traduits, de la mairie au tribunal, dans neuf langues',()=
   ]){
    assert.equal(f.label(building,room,title),lang==='fr'?title:words[title],lang+':'+building+':'+room);
   }
+ }
+});
+test('deuxième vague : institutions, commerces, bureaux louables et musées',()=>{
+ const targets=[
+  ['palais-presidentiel','accueil_elysee',"Hall d'honneur"],
+  ['assemblee','hemicycle','Hemicycle'],
+  ['office-notarial','bureau_successions','Bureau des Successions'],
+  ['stade','buvette','Buvette'],
+  ['loge-maconnique','bureau_venerable','Bureau du Venerable Maitre'],
+  ['centre-commercial','vitrine_principale','Vitrine Principale — Local à louer'],
+  ['centre-artisanal','atelier_milieu','Atelier Central — Local à louer'],
+  ['centre-affaires','open_space','Open Space — Local à louer'],
+  ['services-sociaux-montrouge','bureau_assistante_sociale','Bureau de l’assistante sociale'],
+  ['parc-botanique-national','serre','Serre Tropicale'],
+  ['musee-national-republia','salle_tresor_national','Salle du Trésor National']
+ ];
+ for(const locale of langs){
+  const f=fixture(locale),translated=f.refs[locale].translation.commonRoomLabels;
+  for(const [building,room,title] of targets)
+   assert.equal(f.label(building,room,title),locale==='fr'?title:translated[title],
+     locale+':'+building+'/'+room);
  }
 });
 test('couples inconnus, noms changés et enseignes de joueurs inchangés',()=>{
