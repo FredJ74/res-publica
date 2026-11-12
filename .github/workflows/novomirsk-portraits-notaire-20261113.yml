@@ -62,7 +62,7 @@ jobs:
           const overrides=ctx.W.soviet.capitale.buildingContext['office-notarial'].roomOverrides;
           const cases=[
             ['accueil_notaire','Klara Delounova','accueil'],
-            ['bureau_successions','Iouri Malakhov','successions'],
+            ['bureau_successions','Boris Bitchov','successions'],
             ['bureau_contrats','Camarade Bâtissov','cessions_entreprises'],
             ['archives_notariales','Daria Tikhonova','archives']
           ];
