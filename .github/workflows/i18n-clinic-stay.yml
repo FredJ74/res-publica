@@ -1,0 +1,27 @@
+name: i18n — réservations en clinique privée
+on:
+  pull_request:
+    paths:
+      - 'plateau-clinique-nuitee.js'
+      - 'i18n/clinic-stay-resources.js'
+      - 'plateau.html'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'outils/bancs/banc-i18n-clinique-20261112.cjs'
+      - 'outils/bancs/banc-clinique-nuitee-client.cjs'
+      - '.github/workflows/i18n-clinic-stay.yml'
+permissions:
+  contents: read
+jobs:
+  clinic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-clinique-nuitee.js && node --check i18n/clinic-stay-resources.js
+      - run: node --test outils/bancs/banc-i18n-clinique-20261112.cjs
+      - run: node --test outils/bancs/banc-clinique-nuitee-client.cjs
+      - run: node outils/audits/audit-i18n-editorial.cjs >/tmp/audit-i18n-clinic.json
+      - run: git diff --check
