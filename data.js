@@ -10851,6 +10851,28 @@ function montantDansTexte(texte, ancien, nouveau) {
   lister('ville_a', ['marche', 'armurerie', 'capitaine-sauvage', 'universite', 'logements-novomirsk', 'locaux-starovka']);
   lister('ville_b', ['marche', 'universite', 'kolkhoze-spirituel', 'musee-novomirsk', 'cafe-tabac-cheminots-montrouge']);
 
+  // LOGEMENTS DU MARCHE (Novomirsk, vue 16), demande de Fred du 12/11/2026 : les immeubles au-dessus
+  // du marche sont des logements sociaux. Meme immeuble que celui de la vue 14 (4 petits a 10 PSK,
+  // 4 grands a 20 PSK, memes bonus, mecanique de Montrouge) ; appartements numerotes 5 a 8 pour que
+  // la mairie, qui les presente par leur nom, ne les confonde pas avec ceux de la vue 14.
+  // Serveur : migration 20261112130000_logements_marche_novomirsk.
+  if (BUILDINGS['logements-novomirsk'] && !BUILDINGS['logements-novomirsk-marche']) {
+    const b = JSON.parse(JSON.stringify(BUILDINGS['logements-novomirsk']));
+    b.name = 'Logements du Marché';
+    b.shortName = 'Logements';
+    b.desc = "Les barres de béton qui dominent le marché de Novomirsk. Chaque appartement est attribué par la ville ; on y vit au-dessus des étals, avec l'odeur du poisson et le bruit des marchands.";
+    Object.entries(b.rooms).forEach(([id, r]) => {
+      const m = id.match(/^(petit|grand)_appartement_(\d)$/);
+      if (!m) return;
+      const nom = (m[1] === 'petit' ? 'Petit' : 'Grand') + ' appartement n°' + (Number(m[2]) + 4);
+      r.name = nom;
+      if (r.locationData) r.locationData.label = nom;
+    });
+    BUILDINGS['logements-novomirsk-marche'] = b;
+    const novomirsk = WORLD.soviet && WORLD.soviet.capitale;
+    if (novomirsk && !novomirsk.buildings.includes('logements-novomirsk-marche')) novomirsk.buildings.push('logements-novomirsk-marche');
+  }
+
   // Hotels.
   Object.assign(contexte('ville_a', 'hotel-mineur'), { name: 'Hôtel des Voyageurs', desc: 'L\'hôtel des voyageurs de Starovka : on y attend le train ou le bateau, au chaud, en buvant du thé au beurre.' });
   Object.assign(contexte('ville_b', 'hotel-mineur'), { name: 'Hôtel du Kolkhoze', desc: 'L\'hôtel du kolkhoze de Krasnov : chambres simples, poêle en faïence et petit-déjeuner de la ferme.' });
