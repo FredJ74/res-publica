@@ -17,6 +17,11 @@ BEGIN
  PERFORM set_config('banc.clinique_acteur','B',false);
  v:=public.clinique_nuitee_reserver();
  IF v->>'chambre'<>'chambre_2' THEN RAISE EXCEPTION 'Chambre B : %',v; END IF;
+ -- Le repos effectué à l'accueil ne peut pas être transformé après coup en nuitée.
+ UPDATE public.personnages_donnees SET pa_repos_le=(now() AT TIME ZONE 'Europe/Paris')::date WHERE name='B';
+ UPDATE public.personnages_donnees SET current_room='chambre_2' WHERE name='B';
+ v:=public.clinique_nuitee_consommer();
+ IF v->>'raison'<>'repos_non_valide' THEN RAISE EXCEPTION 'Dormir ailleurs puis venir à la clinique : %',v; END IF;
  PERFORM set_config('banc.clinique_acteur','C',false);
  v:=public.clinique_nuitee_reserver();
  IF v->>'chambre'<>'chambre_1' THEN RAISE EXCEPTION 'Isolation Sovarka : %',v; END IF;
