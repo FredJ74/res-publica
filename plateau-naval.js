@@ -81,27 +81,19 @@ async function ouvrirDevisChantierNaval() {
   }
   CHANTIER_NAVAL_DEVIS_COURANT = devis;
   let html = '<div style="padding:1rem;color:#e0e6ed;background:#151A21">' +
-    '<p style="font-size:.87rem;color:#d0b777">Construction sur commande, sur 7 ou 10 journées effectives. ' +
-    'L’absence de matériaux bloque le chantier, sans prélèvement ni journée perdue.</p>';
+    '<p style="font-size:.87rem;color:#d0b777">'+navHtml('constructionNotice',"Construction sur commande, sur 7 ou 10 journées effectives. L’absence de matériaux bloque le chantier, sans prélèvement ni journée perdue.")+'</p>';
   for (const x of devis) {
-    const nom = CHANTIER_NAVAL_MODELES[x.modele];
+    const nom = navalNom(x.modele);
     const jours = Number(x.jours);
     const acompte = Number(x.acompte);
     html += '<section style="border:1px solid #394656;border-radius:8px;padding:.9rem;margin-bottom:.8rem">' +
       '<strong style="color:#eac67a">' + navalEchappe(nom) + '</strong>' +
-      '<div>' + navalNombre(x.passagers) + ' passagers · ' + navalNombre(x.fret) +
-      ' unités de fret · ' + navalNombre(x.prix_total_fr) + ' FR</div>' +
+      '<div>'+navHtml('summary',"{passengers} passagers · {cargo} unités de fret · {price} FR",{passengers:navalNombre(x.passagers),cargo:navalNombre(x.fret),price:navalNombre(x.prix_total_fr)})+'</div>' +
       '<div style="font-size:.83rem;margin-top:.5rem">' +
-      jours+' jours effectifs · acompte '+navalNombre(acompte)+' FR (35 %) · solde au fil des travaux (65 %)</div>' +
-      '<div style="font-size:.83rem;margin-top:.5rem">Matériaux nécessaires : ' +
-      navalNombre(x.recette.bois)+' bois, '+navalNombre(x.recette.metal)+' métal, ' +
-      navalNombre(x.recette.derives_petrochimiques)+' dérivés pétrochimiques.</div>' +
-      '<div style="font-size:.78rem;color:#a9b7c4;margin-top:.35rem">Entrepôt PSM : ' +
-      navalNombre(x.entrepot_psm.bois)+' bois, '+navalNombre(x.entrepot_psm.metal)+
-      ' métal, '+navalNombre(x.entrepot_psm.derives_petrochimiques)+' dérivés.</div>' +
-      '<div style="font-size:.78rem;color:#dfb58a">Manque pour une construction complète : ' +
-      navalNombre(x.manquant_psm.bois)+' bois, '+navalNombre(x.manquant_psm.metal)+
-      ' métal, '+navalNombre(x.manquant_psm.derives_petrochimiques)+' dérivés.</div>' +
+      navHtml('terms',"{days} jours effectifs · acompte {deposit} FR (35 %) · solde au fil des travaux (65 %)",{days:jours,deposit:navalNombre(acompte)})+'</div>' +
+      '<div style="font-size:.83rem;margin-top:.5rem">'+navHtml('materials',"Matériaux nécessaires : {wood} bois, {metal} métal, {derivatives} dérivés pétrochimiques.",{wood:navalNombre(x.recette.bois),metal:navalNombre(x.recette.metal),derivatives:navalNombre(x.recette.derives_petrochimiques)})+'</div>' +
+      '<div style="font-size:.78rem;color:#a9b7c4;margin-top:.35rem">'+navHtml('warehouse',"Entrepôt PSM : {wood} bois, {metal} métal, {derivatives} dérivés.",{wood:navalNombre(x.entrepot_psm.bois),metal:navalNombre(x.entrepot_psm.metal),derivatives:navalNombre(x.entrepot_psm.derives_petrochimiques)})+'</div>' +
+      '<div style="font-size:.78rem;color:#dfb58a">'+navHtml('missing',"Manque pour une construction complète : {wood} bois, {metal} métal, {derivatives} dérivés.",{wood:navalNombre(x.manquant_psm.bois),metal:navalNombre(x.manquant_psm.metal),derivatives:navalNombre(x.manquant_psm.derives_petrochimiques)})+'</div>' +
       '<button class="cpj-touche cpj-primaire" style="margin-top:.7rem" ' +
       'onclick="commanderBateauNaval(\''+x.modele+'\')">Commander — acompte '+navalNombre(acompte)+' FR</button>' +
       '</section>';
