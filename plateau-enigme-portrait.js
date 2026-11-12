@@ -74,6 +74,13 @@ function enigme1AfficherCalepin(idx) {
     html += '<img src="' + item.imageUrl + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:220px;object-fit:cover"/>';
   }
   html += '<div style="display:flex;flex-direction:column;gap:.5rem">';
+  // Cadres vides examinés au musée (décision de Fred, 13/11/2026) : une ligne par salle,
+  // au-dessus des sept cases, telle que le serveur l'a enregistrée (enigme1.cadresVus).
+  enigme1CadresVus().forEach(function(salle) {
+    const info = ENIGME1_SALLES_CADRE_VIDE[salle];
+    if (!info) return;
+    html += '<div style="font-size:.85rem;color:#e0d8c0">Musée : portrait manquant de ' + info.personnage + ' (' + info.dates + ')</div>';
+  });
   ENIGME1_ORDRE_CALEPIN.forEach(function(cle) {
     const rempli = !!dossier[cle];
     const titre = rempli ? ENIGME1_TITRES_CALEPIN[cle] : '...';
@@ -117,8 +124,83 @@ function enigme1InjecterZoneCliquable(buildingId, roomId) {
   div.className = 'enigme1-zone-cadre';
   div.style.cssText = 'position:absolute;left:0;right:0;top:25%;height:45%;cursor:pointer;';
   div.title = 'Examiner les portraits';
-  div.onclick = function() { enigme1AfficherPopupCadreVide(roomId); };
+  div.onclick = function() { enigme1ExaminerCadre(); };
   pieceImg.appendChild(div);
+}
+
+// =====================
+// DÉPART LISIBLE DE L'ENQUÊTE (décisions de Fred, 13/11/2026, 0 h 46-0 h 48)
+// =====================
+// Le serveur (RPC enigme1_musee) juge le lieu et l'étape ; l'écran adopte la fiche d'enquête rendue.
+function enigme1AdopterServeur(v) {
+  if (v && v.enigme && typeof v.enigme === 'object' && state.char) state.char.enigme1 = v.enigme;
+}
+function enigme1CadresVus() {
+  const c = state && state.char && state.char.enigme1 && state.char.enigme1.cadresVus;
+  return Array.isArray(c) ? c : [];
+}
+function enigme1DansSalleCadreVide(buildingId, roomId) {
+  return buildingId === 'musee-ville-luthecia' && !!ENIGME1_SALLES_CADRE_VIDE[roomId] && enigme1EtapeActive();
+}
+const ENIGME1_REFUS = {
+  pas_sur_place: "Vous n'êtes plus dans cette salle.",
+  enquete_inactive: "Il n'y a plus rien à examiner ici.",
+  porte_fermee_a_cle: 'Cette porte est fermée à clé.'
+};
+function enigme1Refus(titre, v) {
+  const raison = v && v.raison;
+  if (typeof showToast === 'function') showToast(titre, ENIGME1_REFUS[raison] || ('Refusé' + (raison ? ' (' + raison + ')' : '') + '.'), false);
+}
+
+// Description des quatre salles pendant l'enquête (ajoutée après la description de base).
+function enigme1SuffixeDescription(buildingId, roomId) {
+  return enigme1DansSalleCadreVide(buildingId, roomId)
+    ? " Parmi les portraits, un cadre vide attire l'œil : seule sa plaque subsiste." : '';
+}
+
+// Ordre gratuit « Examiner le cadre vide » dans les quatre salles, pendant l'enquête.
+function ordresEnigme1Musee(buildingId, roomId) {
+  if (!enigme1DansSalleCadreVide(buildingId, roomId)) return [];
+  return [{ fn: 'enigme1_examiner_cadre', label: 'Examiner le cadre vide', pa: 0, cost: 0, type: 'legal', icon: 'ti-search',
+    successRate: 100, desc: 'Regarder de près le cadre dont le portrait a disparu, et noter la plaque dans votre calepin.' }];
+}
+if (typeof window !== 'undefined') {
+  window.RP_ORDRES_DYNAMIQUES = window.RP_ORDRES_DYNAMIQUES || [];
+  if (!window.RP_ORDRES_DYNAMIQUES.includes(ordresEnigme1Musee)) window.RP_ORDRES_DYNAMIQUES.push(ordresEnigme1Musee);
+}
+
+async function enigme1ExaminerCadre() {
+  const salle = state.currentRoom;
+  if (!ENIGME1_SALLES_CADRE_VIDE[salle]) return;
+  const v = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('enigme1_musee', { p_action: 'examiner', p_salle: salle }).catch(() => null) : null;
+  if (!v || v.ok !== true) { enigme1AdopterServeur(v); enigme1Refus('Cadre vide', v); return; }
+  enigme1AdopterServeur(v);
+  enigme1AfficherPopupCadreVide(salle);
+  if (v.nouveau && typeof showToast === 'function') showToast('Calepin mis à jour', 'Vous notez le nom inscrit sur la plaque.', true);
+  if (typeof renderInventory === 'function') renderInventory();
+}
+
+// Hall : Valérie Loisillon accueille UNE fois le joueur dont l'enquête est ouverte.
+// Ce n'est jamais le gardien, Gérard Poinçon, qui est le coupable démasqué au débarras.
+async function enigme1AccueilHall(buildingId, roomId) {
+  if (buildingId !== 'musee-ville-luthecia' || roomId !== 'hall' || !enigme1EtapeActive()) return;
+  if (state.char.enigme1.accueilValerie) return;
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('enigme1_musee', { p_action: 'accueil' }).catch(() => null) : null;
+  if (!v || v.ok !== true) return;
+  enigme1AdopterServeur(v);
+  if (!v.premiere || state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
+  let html = '<div style="padding:1rem;display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap">'
+    + '<img src="images/hall-musee-ville-luthecia.webp" alt="Valérie Loisillon" style="width:104px;height:112px;object-fit:cover;object-position:20% 30%;border-radius:6px;flex-shrink:0">'
+    + '<div style="flex:1;min-width:200px;font-size:.9rem;color:#e0d8c0;line-height:1.55">'
+    + "<p>Bonjour, et bienvenue au Musée de la Ville de Luthécia. Je dois d'abord vous présenter nos excuses : "
+    + 'la visite est un peu amputée en ce moment.</p>'
+    + "<p>Plusieurs portraits ont disparu de nos salles il y a quelques jours, et personne ne sait encore comment. "
+    + "Vous trouverez des cadres vides dans certaines salles. La direction préfère ne pas trop en parler, "
+    + 'mais je trouvais honnête de vous prévenir.</p></div></div>';
+  document.getElementById('postes-modal-title').textContent = "Valérie Loisillon, hôtesse d'accueil";
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 // Affiche la pop-up du cadre vide (reutilise le modal generique #modal-postes).
@@ -807,12 +889,16 @@ function enigme1VerifierDebarras(buildingId, roomId) {
 
   if (!state.char.enigme1) return;
   if (state.char.enigme1.debarrasOuvert) return; // deja ouvert, revelation deja vue
-
-  state.char.enigme1.debarrasOuvert = true;
-  state.char.enigme1.etape = 'resolue';
-  state._enigme1Sauvegarde = typeof sbSavePersonnage === 'function'
-    ? sbSavePersonnage(state).catch(function() { return null; }) : Promise.resolve(null);
-  enigme1AfficherRevelationGerard();
+  // La resolution est decidee par le serveur (13/11/2026) : lieu, cle et etape y sont juges ;
+  // la revelation ne s'affiche qu'apres sa reponse. L'appel final de Jodie attend cette promesse.
+  const appel = typeof sbRpcVerdict === 'function'
+    ? sbRpcVerdict('enigme1_musee', { p_action: 'debarras' }).catch(function() { return null; }) : Promise.resolve(null);
+  state._enigme1Sauvegarde = appel;
+  appel.then(function(v) {
+    enigme1AdopterServeur(v);
+    if (!v || v.ok !== true) { enigme1Refus('Le Débarras', v); return; }
+    if (v.premiere) enigme1AfficherRevelationGerard();
+  });
 }
 
 // Revelation en 3 temps : 1) les 4 tableaux, 2) la porte se referme / Gerard apparait

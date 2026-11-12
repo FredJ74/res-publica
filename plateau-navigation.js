@@ -1080,6 +1080,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
   if (typeof enigme1InjecterZoneCliquable === 'function') enigme1InjecterZoneCliquable(buildingId, roomId);
   if (typeof enigme1VerifierDebarras === 'function') enigme1VerifierDebarras(buildingId, roomId);
+  if (typeof enigme1AccueilHall === 'function') enigme1AccueilHall(buildingId, roomId);
   // Supprimer ancien emoji si present
   const existing = pieceImg.querySelector('.piece-emoji');
   if (existing) existing.remove();
@@ -1111,6 +1112,8 @@ function enterRoom(buildingId, roomId, tabEl) {
   const descSourcePiece = displayDesc;
   if (typeof RPSovarkaDescI18n !== 'undefined') displayDesc = RPSovarkaDescI18n.desc(displayDesc);
   const descAfficheePiece = displayDesc;
+  // Enquête du musée de Luthécia (13/11/2026) : le cadre vide est signalé dans la description.
+  if (typeof enigme1SuffixeDescription === 'function') displayDesc += enigme1SuffixeDescription(buildingId, roomId);
   if (state.estEmprisonne && estDansSaCellule) {
     const joursRestants = Math.max(0, state.estEmprisonne.jourFin - (state.day || 1));
     displayDesc += ' — Peine : ' + state.estEmprisonne.raison + '. Temps restant : ' + joursRestants + ' jour(s) (libération au Jour ' + state.estEmprisonne.jourFin + ').';

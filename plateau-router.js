@@ -478,6 +478,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // ÉNIGME DU TRÉSOR DES TSARS (12/11/2026) : ordres gratuits, tout est décidé par le serveur.
   if (fn === 'ilia_ecouter_guide' && typeof iliaEcouterGuide === 'function') { iliaEcouterGuide(false); return; }
   if (fn === 'tresor_ecouter_guide' && typeof iliaEcouterGuide === 'function') { iliaEcouterGuide(true); return; }
+  if (fn === 'enigme1_examiner_cadre' && typeof enigme1ExaminerCadre === 'function') { enigme1ExaminerCadre(); return; }
   if (fn === 'tresor_donner_livre' && typeof tresorDonnerLivre === 'function') { tresorDonnerLivre(); return; }
   if (fn === 'tresor_repondre' && typeof tresorOuvrirReponse === 'function') { tresorOuvrirReponse(); return; }
   // CAMION MILITAIRE (29 septembre 2026). Quatre ordres, tous a 0 PA et 0 FR :
