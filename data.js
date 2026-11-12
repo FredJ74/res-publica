@@ -1992,7 +1992,7 @@ const WORLD = {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_successions.webp',
               // Le notaire de cette pièce est distinct de Klara, secrétaire à l'accueil.
               persons: [
-                {name:'Iouri Malakhov (PNJ)', role:'Notaire chargé des successions', rel:'neutral', job:'notaire',
+                {name:'Boris Bitchov (PNJ)', role:'Notaire chargé des successions', rel:'neutral', job:'notaire',
                  photoUrl:'images/Sovarka/Novomirsk/Novomirsk_notaire_successions_portrait.webp', photoPos:'50% 25%'}
               ]
             },
@@ -10512,7 +10512,7 @@ function slugPnjSovarka(nom) {
     ['commissariat', 'accueil_police', 'Sergent Doubinine (PNJ)', 'Novo_sergent_matrakov_portrait.webp'],
     ['commissariat', 'bureau_commissaire', 'Vassili Ostrovski (PNJ)', 'Novo_vassili_ordonov_portrait.webp'],
     ['office-notarial', 'accueil_notaire', 'Klara Delounova (PNJ)', 'Novomirsk_notaire_accueil_portrait.webp'],
-    ['office-notarial', 'bureau_successions', 'Iouri Malakhov (PNJ)', 'Novomirsk_notaire_successions_portrait.webp'],
+    ['office-notarial', 'bureau_successions', 'Boris Bitchov (PNJ)', 'Novomirsk_notaire_successions_portrait.webp'],
     ['office-notarial', 'bureau_contrats', 'Camarade Bâtissov (PNJ)', 'Novomirsk_notaire_cessions_entreprises_portrait.webp'],
     ['office-notarial', 'archives_notariales', 'Daria Tikhonova (PNJ)', 'Novomirsk_notaire_archives_portrait.webp'],
     ['hotel-republica', 'accueil', 'Vera Pavlova (PNJ)', 'Novo_vera_clefova_portrait.webp'],
