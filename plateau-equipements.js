@@ -89,9 +89,13 @@ async function ouvrirModalEquipements() {
   if (!r || r.ok !== true) { equipementsModale(texteEquip('eqLocal', 'Équipements du local'), '<p class="cpj-note">' + equipementsEchapper(equipementsRefus(r)) + '</p>'); return; }
 
   let h = '<p class="cpj-note">' + texteEquip('emplOccupes', '{n} / {max} emplacements d\'équipement occupés dans ce local', {n: r.installes.length, max: r.emplacements}) +
-    (r.option_premium_bureau ? texteEquip('optPremiumParen', ' (option premium).') : '.') +
+    (r.option_premium_bureau && !r.logement ? texteEquip('optPremiumParen', ' (option premium).') : '.') +
     (r.jouissance ? '' : texteEquip('pasJouissance', ' Vous n\'en avez pas la jouissance légale : vous ne pouvez rien y installer.')) + '</p>';
-  if (r.jouissance && !r.option_premium_bureau) {
+  // Appartement populaire (12/11/2026) : pas d'option « bureau » ; ses emplacements viennent de
+  // l'option premium de l'appartement (fenêtre « Mon logement »).
+  if (r.logement) {
+    h += '<p class="cpj-note">' + (typeof texteAppart === 'function' ? texteAppart('equip.note', 'Appartement : 3 emplacements (petit) ou 5 (grand) en gratuit ; avec l\'option premium, 3 au salon et 6 par chambre.') : '') + '</p>';
+  } else if (r.jouissance && !r.option_premium_bureau) {
     h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin:.3rem 0">' +
       '<span class="cpj-note">' + texteEquip('optPremiumNote', 'Option premium : {premium} emplacements au lieu de {gratuits}, pour ce bureau, tant que vous le gardez. Gratuite pendant la bêta.', {premium: r.emplacements_premium, gratuits: r.emplacements_gratuits}) + '</span>' +
       equipementsBouton('equipementOptionPremium()', texteEquip('activerOpt', 'Activer l\'option')) + '</div>';
@@ -599,7 +603,7 @@ function ordresSerrureDuLocal(buildingId, roomId) {
     || (typeof getBuildingContext === 'function' && getBuildingContext(buildingId)?.roomsExtra?.[roomId]);
   // Les batiments construits par les PJ (terrains a batir) en font partie : leur proprietaire y pose
   // la serrure de l'entree (integralite de la jouissance, decision du 04/11).
-  if (!room || !(room.isLocationRoom || /^terrain-a-batir-/.test(buildingId))) return [];
+  if (!room || !(room.isLocationRoom || room.chambreLogement || /^terrain-a-batir-/.test(buildingId))) return [];
   return [{ fn: 'installer_equipements', label: texteEquip('equipSerrure', 'Équipements et serrure'), pa: 0, cost: 0, type: 'legal', icon: 'ti-lock',
     successRate: 100, desc: texteEquip('equipSerrureDesc', 'Installer vos équipements (ordinateur, box, armoire à souvenirs) et poser, fermer ou ouvrir une serrure.') }];
 }

@@ -642,7 +642,10 @@ function renderOngletsPieces(buildingId, roomActifId) {
   const rooms = (buildingId === 'clinique-privee'
     ? roomsBrutes.filter(([roomId]) => !/^chambre_(?:[1-9]|10)$/.test(roomId))
     : roomsBrutes
-  ).filter(([roomId]) => masquees.indexOf(roomId) === -1);
+  ).filter(([roomId]) => masquees.indexOf(roomId) === -1)
+   // Chambres des appartements populaires premium (12/11/2026) : onglet seulement dans l'appartement
+   // premium où l'on se trouve (plateau-appartements.js).
+   .filter(([roomId, room]) => typeof logementChambreVisible !== 'function' || logementChambreVisible(buildingId, roomId, room, roomActifId));
   const conteneur = document.getElementById('pieces-tabs');
   if (conteneur) {
     conteneur.innerHTML = rooms.map(([roomId, room], i) => {
@@ -937,6 +940,8 @@ function enterRoom(buildingId, roomId, tabEl) {
     const tabs = document.querySelectorAll('.piece-tab');
     if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
   }
+  // Appartement populaire premium : les onglets des chambres suivent la pièce où l'on entre.
+  if (typeof logementRafraichirOnglets === 'function') logementRafraichirOnglets(buildingId, roomId);
 
   // Contexte local : desc, PNJ et roomOverrides selon empire/ville
   const ctx = getBuildingContext(buildingId);
@@ -1050,6 +1055,8 @@ function enterRoom(buildingId, roomId, tabEl) {
         }).catch(() => {});
     }
   }
+  // Décor par IA d'un appartement populaire premium (12/11/2026).
+  if (typeof logementAppliquerDecor === 'function') logementAppliquerDecor(pieceImg, buildingId, roomId);
   // Enseigne : appelee pour TOUTE piece, y compris non declaree -- c'est elle
   // qui retire l'enseigne de la piece precedente. Ne jamais la conditionner a
   // varianteImg, sinon une enseigne resterait affichee en changeant de piece.

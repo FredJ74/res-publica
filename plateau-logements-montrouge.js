@@ -116,6 +116,9 @@ async function confirmerDemandeLogementSocial(typeSouhaite, pa, cost) {
 // =====================
 
 function gererLogementSocial() {
+  // Appartements populaires (12/11/2026) : fenêtre « Mon logement » décidée par le serveur
+  // (titulaire, conjoint, colocataire, option premium, décors, reprise du bail).
+  if (typeof ouvrirMonLogement === 'function') { ouvrirMonLogement(); return; }
   const buildingId = state.currentBuilding;
   const roomId = state.currentRoom;
   const location = typeof getLocationPourRoom === 'function' ? getLocationPourRoom(buildingId, roomId) : null;
