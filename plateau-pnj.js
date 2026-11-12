@@ -766,7 +766,7 @@ function openPnjModal(encodedPnj, options = null) {
 
   // Rôle et trait de personnalité
   const roleEl = document.getElementById('pnj-role-display');
-  if (roleEl) roleEl.textContent = pnj.role?.replace(' (PNJ)', '') || '';
+  if (roleEl) roleEl.textContent = (typeof roleAfficheSovarka === 'function' ? roleAfficheSovarka(pnj.role?.replace(' (PNJ)', '') || '') : (pnj.role?.replace(' (PNJ)', '') || ''));
   const traitEl = document.getElementById('pnj-trait-display');
   const pnjKey = pnj.name?.replace(' (PNJ)', '').trim();
   const perso = typeof PNJ_PERSONALITIES !== 'undefined' ? PNJ_PERSONALITIES[pnjKey] : null;

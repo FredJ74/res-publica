@@ -316,7 +316,7 @@ function renderPersonsList(persons, targetId) {
         avatarHtml +
         '<div>' +
         '<div class="person-name">' + ech(p.name) + '</div>' +
-        '<div class="person-role">' + ech(p.role) + '</div>' +
+        '<div class="person-role">' + ech(roleAfficheSovarka(p.role)) + '</div>' +
         '</div></div>';
     }
     if (p.detachement === true) {
@@ -343,7 +343,7 @@ function renderPersonsList(persons, targetId) {
       '<div>' +
       '<div class="person-name">' + p.name + '</div>' +
       marqueurMutinHtml(p.name) +
-      '<div class="person-role">' + p.role + '</div>' +
+      '<div class="person-role">' + roleAfficheSovarka(p.role) + '</div>' +
       '</div></div>';
   };
 
@@ -2871,3 +2871,8 @@ async function guideMuseePoser() {
   }
 }
 
+// Rôle affiché d'un PNJ : traduit pour les PNJ de Sovarka (i18n/sovarka-roles-resources.js, 12/11/2026),
+// texte d'origine partout ailleurs. Présentation seule : data-enc, profils et ordres gardent le rôle source.
+function roleAfficheSovarka(role) {
+  return (typeof window !== 'undefined' && window.RPSovarkaRolesI18n) ? window.RPSovarkaRolesI18n.label(role) : role;
+}
