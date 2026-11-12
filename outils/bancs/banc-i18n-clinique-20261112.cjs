@@ -41,7 +41,7 @@ function fixture(lang='fr',country='republic'){
 test('26 libellés disponibles et variables identiques dans les neuf langues',()=>{
  const {ctx}=fixture();
  const orig=ctx.RP_I18N_RESOURCES.fr.translation.clinicStay;
- assert.equal(Object.keys(orig).length,26);
+ assert.equal(Object.keys(orig).length,40);
  const params=v=>(v.match(/\{[a-z]+\}/g)||[]).sort().join(',');
  for(const lang of langs){
   const dict=ctx.RP_I18N_RESOURCES[lang].translation.clinicStay;
@@ -93,6 +93,6 @@ test('identifiants, RPC, montants et conventions HTML inchangés',()=>{
  assert.match(moduleJs,/clinique_nuitee_consommer/);
  assert.match(moduleJs,/state\.country==='soviet'\?'PSK':'FR'/);
  assert.match(html,/i18n\/clinic-stay-resources\.js\?v=20261112/);
- assert.match(html,/plateau-clinique-nuitee\.js\?v=clinique-i18n-20261112/);
+ assert.match(html,/plateau-clinique-nuitee\.js\?v=clinique-refus-i18n-20261112/);
  assert.match(read('outils/audits/audit-i18n-editorial.cjs'),/clinic-stay-resources\.js/);
 });
