@@ -1,0 +1,23 @@
+name: i18n — publicité presse premium
+on:
+  pull_request:
+    paths:
+      - 'plateau-publicite-premium.js'
+      - 'i18n/premium-ads-resources.js'
+      - 'plateau.html'
+      - 'outils/bancs/banc-i18n-publicite-premium-20261112.cjs'
+      - '.github/workflows/i18n-publicite-premium.yml'
+permissions:
+  contents: read
+jobs:
+  i18n-publicite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-publicite-premium.js && node --check i18n/premium-ads-resources.js
+      - run: node --test outils/bancs/banc-i18n-publicite-premium-20261112.cjs
+      - run: git diff --check
