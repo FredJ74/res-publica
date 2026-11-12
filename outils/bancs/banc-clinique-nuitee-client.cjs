@@ -101,6 +101,8 @@ test('présentation sovarkienne : popup intégrée et prix en PSK, jamais boîte
  assert.match(f.popupTitle,/Réserver une chambre/);
  assert.match(f.popupBody,/150 PSK/);
  assert.match(f.popupBody,/\+2 PA, \+10 Santé et \+3 Moral/);
+ assert.match(f.popupBody,/reste réservée tant que/);
+ assert.match(f.popupBody,/déjà dormi aujourd’hui/);
  assert.equal(f.calls.length,0);
  await f.confirmer();
  assert.equal(f.calls.length,1);
@@ -113,5 +115,5 @@ test('les deux raccordements d’ordres et la chaîne Dormir sont présents',()=
  assert.match(perso,/consommerNuiteeCliniqueApresDormir/);
  assert.match(perso,/if \(retourActif\(\) && pieceInitialRepos/);
  assert.match(perso,/ORDRES_MEDICAUX_CHAMBRE_CLINIQUE[\s\S]*'clinique_dormir'/);
- assert.match(html,/plateau-clinique-nuitee\.js\?v=clinique-popup-20261112/);
+ assert.match(html,/plateau-clinique-nuitee\.js\?v=clinique-attente-sommeil-20261112/);
 });
