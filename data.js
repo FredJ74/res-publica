@@ -2236,7 +2236,10 @@ const WORLD = {
         'la-tribune': {
           name: "Bulletin du Parti Local",
           desc: "Nouvelles de production uniquement.",
-          persons: [{"name": "Correspondant Local (PNJ)", "role": "Correspondant", "rel": "neutral", "job": "journaliste"}],
+          // Accueil de La Voix de Sovarka (Fred, 12/11/2026) : la réceptionniste au regard inquiétant est la journaliste,
+          // l'officier souriant est l'officier de censure ; ils remplacent le « Correspondant Local » générique.
+          persons: [{"name": "Zoïa Glazounova (PNJ)", "role": "Journaliste de La Voix de Sovarka", "rel": "neutral", "job": "journaliste", "photoUrl": "images/Sovarka/Novomirsk/Novo_zoia_glazounova_portrait.webp"},
+                    {"name": "Capitaine Arseni Petchatnikov (PNJ)", "role": "Officier de censure", "rel": "neutral", "job": "censeur", "photoUrl": "images/Sovarka/Novomirsk/Novo_arseni_petchatnikov_portrait.webp"}],
           // article/etouffer exclus (chantier "lobbying presse", 4 septembre 2026) : cet organe du
           // Parti a Sovarka est distinct de La Tribune de Republia (Republic uniquement) -- ces deux
           // ordres n'ont de sens qu'aupres de cette derniere. Le reste (produire_fuite/
@@ -3167,6 +3170,7 @@ const BUILDINGS = {
           // sont trois etapes d'une meme famille : elles cessent d'etre trois entrees principales.
           // Aucune logique metier n'est fusionnee -- les trois handlers restent distincts et
           // conservent leurs couts (1, 2 et 3 PA), leurs conditions et leurs effets.
+          {fn:'interieur_dossiers', label:'Dossiers confidentiels', pa:0, cost:0, type:'legal', icon:'ti-folder-search', successRate:100, requiresPost:'min_int', desc:'Projets d’article soumis par la presse avant publication (à valider ou à mettre en attente), confidences recueillies et dossiers copiés par les escorts de Novomirsk.'},
           {fn:'gestion_manifestations', label:'Gerer les manifestations',       pa:0, cost:0,    type:'legal',   icon:'ti-users-group',  successRate:100, requiresPost:'min_int', desc:'Traiter les demandes (1 PA), interdire (2 PA) ou reprimer une manifestation (3 PA).'},
           {fn:'demandes_naturalisation', label:'Demandes de naturalisation', pa:0, cost:0, type:'legal', icon:'ti-passport', successRate:100, requiresPost:'min_int', bientot:'Bientôt disponible : les demandes de naturalisation arriveront avec le voyage entre empires.', desc:'Examiner les demandes de naturalisation en attente (delai 48h avant traitement possible).'},
           {fn:'gerer_couvre_feu',    label:'Instaurer un couvre-feu',     pa:2, cost:0, type:'legal', icon:'ti-moon', successRate:100, requiresPost:'min_int', desc:'20h-6h, 2 jours maximum. Degrade IS et POP du gouvernement tant qu\'il dure.'},
@@ -7011,7 +7015,10 @@ const BUILDINGS = {
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_suite_privee.webp',
         desc: "Suite luxueuse et très discrète. On y reçoit une clientèle triée sur le volet. Informations exclusives garanties.",
         persons: [],
-        orders: [{fn:'pavillon_suite',label:'Gérer le bail diplomatique (650 FR/jour)',pa:0,cost:0,type:'legal',
+        orders: [
+          {fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours. 800 PSK par escort et par jour, jusqu’à ce que vous rompiez le contrat. Légal, mais immoral : la rumeur coûte cher.'},
+          {fn:'service_etage_carte',label:'Service d’étage',pa:0,cost:0,type:'legal',icon:'ti-tools-kitchen-2',successRate:100,desc:'La carte du restaurant du Grand Hôtel, servie dans votre appartement : prix de la carte, plus 20 PSK de service par commande.'},
+          {fn:'pavillon_suite',label:'Gérer le bail diplomatique (650 FR/jour)',pa:0,cost:0,type:'legal',
           icon:'ti-key',successRate:100,desc:'Bail de 7 jours renouvelable ; caisse de l’institution étrangère. +3 PA à chaque sommeil.'}]
 
       },
@@ -7021,7 +7028,10 @@ const BUILDINGS = {
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_suite_presidentielle.webp',
         desc: "Suite d'apparat, vue sur la Grande Église du Tractorisme. Le nec plus ultra pour recevoir en grande pompe.",
         persons: [],
-        orders: [{fn:'pavillon_suite',label:'Gérer le bail diplomatique (800 FR/jour)',pa:0,cost:0,type:'legal',
+        orders: [
+          {fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours. 800 PSK par escort et par jour, jusqu’à ce que vous rompiez le contrat. Légal, mais immoral : la rumeur coûte cher.'},
+          {fn:'service_etage_carte',label:'Service d’étage',pa:0,cost:0,type:'legal',icon:'ti-tools-kitchen-2',successRate:100,desc:'La carte du restaurant du Grand Hôtel, servie dans votre appartement : prix de la carte, plus 20 PSK de service par commande.'},
+          {fn:'pavillon_suite',label:'Gérer le bail diplomatique (800 FR/jour)',pa:0,cost:0,type:'legal',
           icon:'ti-key',successRate:100,desc:'Bail de 7 jours renouvelable ; caisse de l’institution étrangère. +3 PA à chaque sommeil.'}]
 
       },
@@ -7031,7 +7041,10 @@ const BUILDINGS = {
         imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_pavillon_ambassadeurs_suite_parti.webp',
         desc: "Suite d'apparat aux tentures rouges, où l'on se montre. Le buste du camarade président Zolotov veille sur chaque réception.",
         persons: [],
-        orders: [{fn:'pavillon_suite',label:'Gérer le bail diplomatique (500 FR/jour)',pa:0,cost:0,type:'legal',
+        orders: [
+          {fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours. 800 PSK par escort et par jour, jusqu’à ce que vous rompiez le contrat. Légal, mais immoral : la rumeur coûte cher.'},
+          {fn:'service_etage_carte',label:'Service d’étage',pa:0,cost:0,type:'legal',icon:'ti-tools-kitchen-2',successRate:100,desc:'La carte du restaurant du Grand Hôtel, servie dans votre appartement : prix de la carte, plus 20 PSK de service par commande.'},
+          {fn:'pavillon_suite',label:'Gérer le bail diplomatique (500 FR/jour)',pa:0,cost:0,type:'legal',
           icon:'ti-key',successRate:100,desc:'Bail de 7 jours renouvelable ; caisse de l’institution étrangère. +3 PA à chaque sommeil.'}]
 
       }
@@ -7068,6 +7081,8 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'residence_minibar',label:'Mini-bar',pa:0,cost:0,type:'legal',icon:'ti-bottle',successRate:100,desc:'Trois bouteilles de vodka offertes pour les 3 jours. « Remplir le minibar » : 350 PSK.'},
+          {fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours. 800 PSK par escort et par jour, jusqu’à ce que vous rompiez le contrat. Légal, mais immoral : la rumeur coûte cher.'},
+          {fn:'service_etage_carte',label:'Service d’étage',pa:0,cost:0,type:'legal',icon:'ti-tools-kitchen-2',successRate:100,desc:'La carte du restaurant du Grand Hôtel, servie dans votre appartement : prix de la carte, plus 20 PSK de service par commande.'},
           {fn:'residence_location',label:'Ma location',pa:0,cost:0,type:'legal',icon:'ti-calendar-time',successRate:100,desc:'Fin de la location, renouvellement pour 3 nuits. Chaque nuit passée ici : +4 POP +4 INF +4 DIS.'}
         ]
       },
@@ -7079,6 +7094,8 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'residence_minibar',label:'Mini-bar',pa:0,cost:0,type:'legal',icon:'ti-bottle',successRate:100,desc:'Trois bouteilles de vodka offertes pour les 3 jours. « Remplir le minibar » : 350 PSK.'},
+          {fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours. 800 PSK par escort et par jour, jusqu’à ce que vous rompiez le contrat. Légal, mais immoral : la rumeur coûte cher.'},
+          {fn:'service_etage_carte',label:'Service d’étage',pa:0,cost:0,type:'legal',icon:'ti-tools-kitchen-2',successRate:100,desc:'La carte du restaurant du Grand Hôtel, servie dans votre appartement : prix de la carte, plus 20 PSK de service par commande.'},
           {fn:'residence_location',label:'Ma location',pa:0,cost:0,type:'legal',icon:'ti-calendar-time',successRate:100,desc:'Fin de la location, renouvellement pour 3 nuits. Chaque nuit passée ici : +4 POP +4 INF +4 DIS.'}
         ]
       },
@@ -7090,6 +7107,8 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'residence_minibar',label:'Mini-bar',pa:0,cost:0,type:'legal',icon:'ti-bottle',successRate:100,desc:'Trois bouteilles de vodka offertes pour les 3 jours. « Remplir le minibar » : 350 PSK.'},
+          {fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours. 800 PSK par escort et par jour, jusqu’à ce que vous rompiez le contrat. Légal, mais immoral : la rumeur coûte cher.'},
+          {fn:'service_etage_carte',label:'Service d’étage',pa:0,cost:0,type:'legal',icon:'ti-tools-kitchen-2',successRate:100,desc:'La carte du restaurant du Grand Hôtel, servie dans votre appartement : prix de la carte, plus 20 PSK de service par commande.'},
           {fn:'residence_location',label:'Ma location',pa:0,cost:0,type:'legal',icon:'ti-calendar-time',successRate:100,desc:'Fin de la location, renouvellement pour 3 nuits. Chaque nuit passée ici : +4 POP +4 INF +4 DIS.'}
         ]
       },
@@ -7101,6 +7120,8 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'residence_minibar',label:'Mini-bar',pa:0,cost:0,type:'legal',icon:'ti-bottle',successRate:100,desc:'Trois bouteilles de vodka offertes pour les 3 jours. « Remplir le minibar » : 350 PSK.'},
+          {fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours. 800 PSK par escort et par jour, jusqu’à ce que vous rompiez le contrat. Légal, mais immoral : la rumeur coûte cher.'},
+          {fn:'service_etage_carte',label:'Service d’étage',pa:0,cost:0,type:'legal',icon:'ti-tools-kitchen-2',successRate:100,desc:'La carte du restaurant du Grand Hôtel, servie dans votre appartement : prix de la carte, plus 20 PSK de service par commande.'},
           {fn:'residence_location',label:'Ma location',pa:0,cost:0,type:'legal',icon:'ti-calendar-time',successRate:100,desc:'Fin de la location, renouvellement pour 3 nuits. Chaque nuit passée ici : +4 POP +4 INF +4 DIS.'}
         ]
       },
@@ -7112,6 +7133,8 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'residence_minibar',label:'Mini-bar',pa:0,cost:0,type:'legal',icon:'ti-bottle',successRate:100,desc:'Trois bouteilles de vodka offertes pour les 3 jours. « Remplir le minibar » : 350 PSK.'},
+          {fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours. 800 PSK par escort et par jour, jusqu’à ce que vous rompiez le contrat. Légal, mais immoral : la rumeur coûte cher.'},
+          {fn:'service_etage_carte',label:'Service d’étage',pa:0,cost:0,type:'legal',icon:'ti-tools-kitchen-2',successRate:100,desc:'La carte du restaurant du Grand Hôtel, servie dans votre appartement : prix de la carte, plus 20 PSK de service par commande.'},
           {fn:'residence_location',label:'Ma location',pa:0,cost:0,type:'legal',icon:'ti-calendar-time',successRate:100,desc:'Fin de la location, renouvellement pour 3 nuits. Chaque nuit passée ici : +15 POP +15 INF +5 DIS.'}
         ]
       }

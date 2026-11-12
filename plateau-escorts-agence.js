@@ -253,22 +253,7 @@ async function escortsAgenceRecruter(escortId) {
   // facturer deux fois. N'alimenter qu'`employes` reviendrait donc a ne JAMAIS
   // les payer -- et a leur faire echapper aux sanctions d'impaye. La dette des
   // trois structures reste entiere ; ce lot ne l'aggrave pas et ne la resout pas.
-  if (!state.escortActive) state.escortActive = [];
-  state.escortActive.push({
-    nom: r.nom, pnjId: r.pnj_id, escortId: r.escort_id, tarif: r.cout_jour,
-    depuis: state.day || 1, genre: r.genre, palier: 0,
-    photoUrl: e ? e.portrait : null
-  });
-  if (!state.employes) state.employes = [];
-  state.employes.push({
-    nom: r.nom, pnjId: r.pnj_id, escortId: r.escort_id, job: 'escort',
-    role: 'Escort — ' + (r.agence || 'Agence'), genre: r.genre,
-    cout: r.cout_jour, depuis: state.day || 1, inGroupe: true,
-    photoUrl: e ? e.portrait : null, photoPos: e ? e.cadrage : '50% 15%'
-  });
-  if (!state.group) state.group = { members: [] };
-  if (!state.group.members) state.group.members = [];
-  if (state.group.members.indexOf(r.nom) === -1) state.group.members.push(r.nom);
+  escortsAgenceAdopter(Object.assign({}, r, { portrait: e ? e.portrait : null, cadrage: e ? e.cadrage : null }), r.agence);
 
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   if (typeof updateUI === 'function') updateUI();
@@ -291,3 +276,26 @@ async function escortsAgenceRecruter(escortId) {
   void escortsAgenceOuvrir(RP_AGENCE_GENRE_AFFICHE);
  }
 });
+
+// Projection écran d'une escort embauchée par le serveur (agence de Républia, ou standard Roxane Velours de
+// Novomirsk) : escortActive (paie au réveil), employes (« Mes Employés ») et membres du groupe.
+function escortsAgenceAdopter(r, agence) {
+  if (!r || !r.nom) return;
+  if (!state.escortActive) state.escortActive = [];
+  if (!state.escortActive.some(function (x) { return x.pnjId === r.pnj_id; })) state.escortActive.push({
+    nom: r.nom, pnjId: r.pnj_id, escortId: r.escort_id, tarif: r.cout_jour,
+    depuis: state.day || 1, genre: r.genre, palier: 0,
+    photoUrl: r.portrait || null
+  });
+  if (!state.employes) state.employes = [];
+  if (!state.employes.some(function (x) { return x.pnjId === r.pnj_id; })) state.employes.push({
+    nom: r.nom, pnjId: r.pnj_id, escortId: r.escort_id, job: 'escort',
+    role: 'Escort — ' + (agence || 'Agence'), genre: r.genre,
+    cout: r.cout_jour, depuis: state.day || 1, inGroupe: true,
+    photoUrl: r.portrait || null, photoPos: r.cadrage || '50% 15%'
+  });
+  if (!state.group) state.group = { members: [] };
+  if (!state.group.members) state.group.members = [];
+  if (state.group.members.indexOf(r.nom) === -1) state.group.members.push(r.nom);
+}
+if (typeof window !== 'undefined') window.escortsAgenceAdopter = escortsAgenceAdopter;

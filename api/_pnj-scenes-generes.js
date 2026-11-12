@@ -4543,22 +4543,30 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"capitale\",\"dispensaire-public\",\"salle_attente\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Poste Médical Collectif",
-    "piece": "Salle d'attente",
+    "batiment": "Hôpital public de Novomirsk",
+    "piece": "Accueil",
     "personnes": [
-      "Docteur Collectif"
+      "Infirmière de Novomirsk",
+      "Médecin de garde de Novomirsk"
     ]
   },
   "[\"soviet\",\"capitale\",\"dispensaire-public\",\"ehpad_tilleuls\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
-    "batiment": "Poste Médical Collectif",
-    "piece": "EHPAD — Résidence Les Tilleuls",
+    "batiment": "Hôpital public de Novomirsk",
+    "piece": "EHPAD de Novomirsk",
     "personnes": [
       "Antonina Doubrova",
       "Matveï Tcherkassov",
       "Nikolaï Zakharov"
     ]
+  },
+  "[\"soviet\",\"capitale\",\"dispensaire-public\",\"chambre\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Hôpital public de Novomirsk",
+    "piece": "Chambre d'hôpital",
+    "personnes": []
   },
   "[\"soviet\",\"capitale\",\"commissariat\",\"accueil_police\"]": {
     "pays": "Sovarka",
@@ -4594,7 +4602,8 @@ export const SCENES_PNJ = {
     "batiment": "La Voix de Sovarka",
     "piece": "Accueil",
     "personnes": [
-      "Correspondant Local"
+      "Zoïa Glazounova",
+      "Capitaine Arseni Petchatnikov"
     ]
   },
   "[\"soviet\",\"capitale\",\"la-tribune\",\"redaction\"]": {

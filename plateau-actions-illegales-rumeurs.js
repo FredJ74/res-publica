@@ -415,6 +415,11 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   plainte_enquete:        (a, c) => 'Une enquete viserait ' + c + ', dit-on, suite a une plainte deposee par ' + a + '.',
   // Justice de Sovarka (Fred, 08/11/2026) : une affaire enterree au commissariat, sans nommer qui l'a enterree.
   plainte_egaree:         (a, c) => 'On dit qu\'une plainte contre ' + c + ' s\'est égarée au commissariat…',
+  // Pavillon et Résidence de Novomirsk (Fred, 12/11/2026) : c = « lieu|intitulé du poste », écrit par le serveur.
+  appel_escort:           (a, c) => { const [lieu, poste] = String(c || '').split('|');
+    return 'On raconte que l\'agence Roxane Velours a fait livrer de la compagnie '
+      + (lieu === 'residence' ? 'à la Résidence impériale' : 'au Pavillon des Ambassadeurs') + ', chez ' + a
+      + (poste ? ', ' + poste : '') + '. Et pas pour parler politique.'; },
   plainte_confirmee:      (a, c) => 'La rumeur veut que ' + c + ' ait ete place en garde a vue suite a une plainte de ' + a + '.',
   cellules_fragilisees:   (a, c) => 'On raconte que les cellules de garde a vue de ' + c + ' se fragiliseraient, suite a des incidents recents.',
   // Chantier "refonte Lancer une rumeur" (2 septembre 2026) : cle manquante corrigee -- avant ce

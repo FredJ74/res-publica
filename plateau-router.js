@@ -435,6 +435,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'residence_reserver') { ouvrirResidenceReservation(); return; }
   if (fn === 'residence_minibar') { ouvrirResidenceMinibar(); return; }
   if (fn === 'residence_location') { ouvrirResidenceLocation(); return; }
+  // Pavillon et Résidence (Fred, 12/11/2026) : standard Roxane Velours, service d'étage ; dossiers du ministre de l'Intérieur.
+  if (fn === 'escort_standard') { ouvrirStandardEscort(); return; }
+  if (fn === 'service_etage_carte') { ouvrirServiceEtage(); return; }
+  if (fn === 'interieur_dossiers') { ouvrirDossiersInterieur(); return; }
   if (fn === 'sovarka_reunion_reserver') { reserverSalleAffairesNovomirsk(); return; }
   if (fn === 'sovarka_reunion_evenement') { ouvrirReunionEvenement(); return; }
   if (fn === 'sovarka_soviet_deputes') { ouvrirSovietSupreme(); return; }

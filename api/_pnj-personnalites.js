@@ -84,6 +84,9 @@ CE DONT TU NE PARLES PAS : tes sources, jamais ; ni ce que la rédaction a accep
   // Pavillon : Arkadi Belov devient le garde du hall (Fred, 11/11/2026) ; hôtesses, serveurs de réception
   // et barman tirés des images, noms proposés par Claude (Fred, 11/11/2026).
   'arkadi_belov':              { nom: "Arkadi Belov", role: "Garde du Pavillon", lieu: "Hall du Pavillon des Ambassadeurs, Novomirsk" },
+  // Accueil de La Voix de Sovarka à Novomirsk (Fred, 12/11/2026) : la journaliste et l'officier de censure.
+  'zoia_glazounova':           { nom: "Zoïa Glazounova", role: "Journaliste de La Voix de Sovarka", lieu: "Accueil de La Voix de Sovarka, Novomirsk" },
+  'arseni_petchatnikov':       { nom: "Capitaine Arseni Petchatnikov", role: "Officier de censure de La Voix de Sovarka", lieu: "Accueil de La Voix de Sovarka, Novomirsk" },
   'lev_zamkov':                { nom: "Lev Zamkov", role: "Gardien de la Résidence impériale", lieu: "Hall de la Résidence impériale, Novomirsk" },
   'ekaterina_klioutcheva':     { nom: "Ekaterina Klioutcheva", role: "Réceptionniste de la Résidence impériale", lieu: "Hall de la Résidence impériale, Novomirsk" },
   'touyana_dachieva':          { nom: "Touyana Dachieva", role: "Hôtesse d'accueil", lieu: "Hall du Pavillon des Ambassadeurs, Novomirsk" },
