@@ -1,0 +1,64 @@
+name: "Novomirsk - portraits recadrés des salles notariales"
+on:
+  push:
+    branches:
+      - chatgpt/novomirsk-notaire-portraits-20261113
+    paths:
+      - .github/workflows/novomirsk-portraits-notaire-20261113.yml
+permissions:
+  contents: write
+jobs:
+  portraits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Installer les outils de recadrage
+        run: python -m pip install pillow opencv-python-headless
+      - name: Recadrer les quatre visages depuis les scènes
+        run: python outils/images/recadrer-portraits-notaire-novomirsk-20261113.py
+      - name: Contrôler les identités, les images et les ordres de chaque salle
+        run: |
+          node --check data.js
+          node - <<'NODE'
+          const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+          const ctx={console};vm.createContext(ctx);
+          vm.runInContext(fs.readFileSync('data.js','utf8')+';this.B=BUILDINGS;this.W=WORLD;',ctx);
+          const overrides=ctx.W.soviet.capitale.buildingContext['office-notarial'].roomOverrides;
+          const cases=[
+            ['accueil_notaire','Klara Delounova','accueil'],
+            ['bureau_successions','Iouri Malakhov','successions'],
+            ['bureau_contrats','Camarade Bâtissov','cessions_entreprises'],
+            ['archives_notariales','Daria Tikhonova','archives']
+          ];
+          for(const [room,name,fragment] of cases){
+            const r=overrides[room];assert.equal(r.persons.length,1,room);
+            const p=r.persons[0];assert.ok(p.name.includes(name),room+' '+p.name);
+            assert.equal(p.photoUrl,'images/Sovarka/Novomirsk/Novomirsk_notaire_'+fragment+'_portrait.webp');
+            assert.equal(r.imageUrl,'images/Sovarka/Novomirsk/Novomirsk_notaire_'+fragment+'.webp');
+            const img=fs.readFileSync(p.photoUrl);
+            assert.equal(img.toString('ascii',0,4),'RIFF');
+            assert.equal(img.toString('ascii',8,12),'WEBP');
+          }
+          assert.ok(ctx.B['office-notarial'].rooms.archives_notariales.orders.some(o=>o.fn==='consulter_archives_notariales'));
+          assert.ok(ctx.B['office-notarial'].rooms.bureau_successions.orders.some(o=>o.fn==='reclamer_heritage'));
+          const autre=ctx.W.republic.capitale.buildingContext['office-notarial'];
+          assert.ok(!autre.roomOverrides.accueil_notaire.persons);
+          console.log('Quatre PNJ et quatre vrais portraits, ordres et Républia conservés.');
+          NODE
+      - name: Committer les quatre portraits réels
+        run: |
+          git config user.name "ChatGPT (GitHub Actions)"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add images/Sovarka/Novomirsk/*_portrait.webp
+          git diff --cached --check
+          git commit -m "Recadrer les quatre portraits PNJ depuis les scènes notariales"
+          git push origin HEAD:chatgpt/novomirsk-notaire-portraits-20261113
