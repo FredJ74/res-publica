@@ -1,6 +1,9 @@
 // Chantier naval de Port-Sainte-Marie : toutes les décisions serveur.
 // Les bateaux livrés sont des actifs au port, PAS des objets d'inventaire.
 'use strict';
+function navT(key,original,vars){const fn=window.RPNavalI18n?.text;return typeof fn==='function'?fn(key,original,vars):String(original).replace(/\{([a-z]+)\}/g,(m,k)=>Object.hasOwn(vars||{},k)?String(vars[k]):m)}
+function navHtml(key,original,vars){return navalEchappe(navT(key,original,vars));}
+function navalNom(modele){const nom=CHANTIER_NAVAL_MODELES[modele];return nom?navT(modele==='bateau_3'?'boat3':'boat5',nom):modele;}
 
 const CHANTIER_NAVAL_MODELES = Object.freeze({
   bateau_3: 'Bateau 3 places',
@@ -15,21 +18,19 @@ async function commanderBateauNaval(modele) {
   if (!Object.prototype.hasOwnProperty.call(CHANTIER_NAVAL_MODELES,modele) ||
       state.country !== 'republic' || state.currentCity !== 'ville_a' ||
       state.currentBuilding !== 'chantier-naval') {
-    showToast('Chantier naval','Vous devez être présent au chantier naval de PSM.',false);
+    showToast(navT('site',"Chantier naval"),navT('mustHere',"Vous devez être présent au chantier naval de PSM."),false);
     return;
   }
   const devis = CHANTIER_NAVAL_DEVIS_COURANT.find(x => x.modele === modele);
   if (!devis) {
-    showToast('Devis périmé','Rouvrez le catalogue avant de commander.',false);
+    showToast(navT("quoteStale","Devis périmé"),navT("reopen","Rouvrez le catalogue avant de commander."),false);
     return;
   }
   const prix = Number(devis.prix_total_fr);
   const acompte = Number(devis.acompte);
-  if (!window.confirm('Commander ' + CHANTIER_NAVAL_MODELES[modele] +
-      ' pour ' + navalNombre(prix) + ' FR ?\\n' +
-      'Acompte immédiat : ' + navalNombre(acompte) +
-      ' FR. Le solde est payable pendant ' + Number(devis.jours) + ' journées de travail effectives. ' +
-      'Un manque de matériaux suspend la progression et les échéances.')) return;
+  if (!window.confirm(navT('confirm',"Commander {model} pour {price} FR ?\nAcompte immédiat : {deposit} FR. Le solde est payable pendant {days} journées de travail effectives. Un manque de matériaux suspend la progression et les échéances.",{
+ model:navalNom(modele),price:navalNombre(prix),deposit:navalNombre(acompte),days:Number(devis.jours)
+}))) return;
   const cle = 'naval-commande-attente:' + modele;
   let requete = sessionStorage.getItem(cle);
   if (!requete) {
@@ -40,27 +41,27 @@ async function commanderBateauNaval(modele) {
   try {
     resultat = await sbRpc('chantier_naval_commander', {p_modele:modele,p_requete:requete});
   } catch (e) {
-    showToast('Commande non confirmée','Réessayez : la référence est conservée pour éviter un second acompte.',false);
+    showToast(navT("notConfirmed","Commande non confirmée"),navT("retry","Réessayez : la référence est conservée pour éviter un second acompte."),false);
     return;
   }
   if (!resultat || resultat.ok !== true) {
     const raisons = {
-      fonds_insuffisants:'Fonds insuffisants pour l’acompte.',
-      lieu_incorrect:'Vous devez être au chantier naval.',
-      requete_deja_utilisee:'Cette référence a déjà été utilisée pour un autre modèle.'
+      fonds_insuffisants:navT("insufficient","Fonds insuffisants pour l’acompte."),
+      lieu_incorrect:navT("wrongPlace","Vous devez être au chantier naval."),
+      requete_deja_utilisee:navT("usedReference","Cette référence a déjà été utilisée pour un autre modèle.")
     };
-    showToast('Commande refusée',raisons[resultat?.raison] || 'Le serveur refuse cette commande.',false);
+    showToast(navT("orderRefused","Commande refusée"),raisons[resultat?.raison] || navT("serverRefused","Le serveur refuse cette commande."),false);
     return;
   }
   sessionStorage.removeItem(cle);
-  showToast('Commande enregistrée','Acompte de '+navalNombre(resultat.acompte)+' FR confirmé côté serveur.');
+  showToast(navT("orderRecorded","Commande enregistrée"),navT('depositConfirmed',"Acompte de {deposit} FR confirmé côté serveur.",{deposit:navalNombre(resultat.acompte)}));
   await ouvrirDevisChantierNaval();
 }
 
 async function ouvrirDevisChantierNaval() {
   if (state.country !== 'republic' || state.currentCity !== 'ville_a' ||
       state.currentBuilding !== 'chantier-naval') {
-    showToast('Chantier naval', 'Présentez-vous au chantier naval de Port-Sainte-Marie.', false);
+    showToast(navT('site',"Chantier naval"),navT('mustHere',"Vous devez être présent au chantier naval de PSM."),false);
     return;
   }
   let devis, commandes;
@@ -70,12 +71,12 @@ async function ouvrirDevisChantierNaval() {
       sbRpc('chantier_naval_mes_commandes', {})
     ]);
   } catch (e) {
-    showToast('Devis indisponible','Impossible de vérifier les contrats et stocks auprès du serveur.',false);
+    showToast(navT("quoteUnavailable","Devis indisponible"),navT("loadFailed","Impossible de vérifier les contrats et stocks auprès du serveur."),false);
     return;
   }
   if (!Array.isArray(devis) || devis.length !== 2 || !Array.isArray(commandes) ||
       devis.some(x=>!x || !x.recette || !x.entrepot_psm || !CHANTIER_NAVAL_MODELES[x.modele])) {
-    showToast('Devis incomplet','Le catalogue du chantier naval n’est pas disponible.',false);
+    showToast(navT("quoteIncomplete","Devis incomplet"),navT("catalogueUnavailable","Le catalogue du chantier naval n’est pas disponible."),false);
     return;
   }
   CHANTIER_NAVAL_DEVIS_COURANT = devis;
