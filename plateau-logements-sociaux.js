@@ -91,30 +91,30 @@ async function ouvrirTableauLogementsSociaux() {
   const nomBatiment = t => (typeof BUILDINGS !== 'undefined' && BUILDINGS[t]?.name) || t;
   const e = logementsSociauxEchapper;
   let html = '<div data-social-context="dashboard" style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Logements de la commune de ' + e(nomVille) + '. Les loyers sont versés à la caisse de la mairie ; chaque changement de loyer est inscrit dans l’historique du bâtiment.</div>';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;color:#C9A84C;margin:.4rem 0">Appartements (' + appartements.length + ')</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">'+socialSpan('cityIntro',{city:nomVille})+'</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;color:#C9A84C;margin:.4rem 0">'+socialSpan('apartments',{count:appartements.length})+'</div>';
   if (appartements.length === 0) {
-    html += '<div style="font-size:.8rem;color:#6a6040;font-style:italic;margin-bottom:.6rem">Aucun logement social construit par la commune pour l’instant.</div>';
+    html += '<div style="font-size:.8rem;color:#6a6040;font-style:italic;margin-bottom:.6rem">'+socialSpan('noneBuilt')+'</div>';
   }
   appartements.forEach(a => {
     const cle = e(a.terrain) + '|' + e(a.lot);
     html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;padding:.4rem .5rem;border:1px solid #2a2010;margin-bottom:.3rem;font-size:.78rem;color:#c0b090">'
       + '<div><div>' + e(a.label) + ' <span style="color:#6a6040">— ' + e(nomBatiment(a.terrain)) + '</span></div>'
-      + '<div style="color:' + (a.locataire ? '#8a8060' : '#6a8a50') + '">' + (a.locataire ? 'Occupé par ' + e(a.locataire) : 'Libre') + '</div></div>'
+      + '<div style="color:' + (a.locataire ? '#8a8060' : '#6a8a50') + '">' + (a.locataire ? socialSpan('occupied',{name:a.locataire}) : socialSpan('free')) + '</div></div>'
       + '<div style="display:flex;align-items:center;gap:.3rem;white-space:nowrap"><input id="loyer-social-' + cle + '" type="number" min="1" step="1" value="' + Number(a.loyer || 0) + '" style="width:4.5rem;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.2rem .3rem">'
       + '<span style="color:#6a6040">' + cur + '</span>'
-      + '<button onclick="fixerLoyerLogementSocial(\'' + e(a.terrain) + '\',\'' + e(a.lot) + '\')" style="font-size:.7rem;padding:.2rem .5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Fixer</button></div></div>';
+      + '<button onclick="fixerLoyerLogementSocial(\'' + e(a.terrain) + '\',\'' + e(a.lot) + '\')" style="font-size:.7rem;padding:.2rem .5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">'+socialSpan('setRent')+'</button></div></div>';
   });
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;color:#C9A84C;margin:.8rem 0 .4rem">Demandes en attente (' + demandes.length + ')</div>';
-  if (demandes.length === 0) html += '<div style="font-size:.8rem;color:#6a6040;font-style:italic">Aucune demande en attente.</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;color:#C9A84C;margin:.8rem 0 .4rem">'+socialSpan('pending',{count:demandes.length})+'</div>';
+  if (demandes.length === 0) html += '<div style="font-size:.8rem;color:#6a6040;font-style:italic">'+socialSpan('noPending')+'</div>';
   demandes.forEach(d => {
     const options = libres.map(a => '<option value="' + e(a.terrain) + '|' + e(a.lot) + '">' + e(a.label) + ' — ' + e(nomBatiment(a.terrain)) + ' (' + Number(a.loyer || 0) + ' ' + cur + ')</option>').join('');
     html += '<div style="padding:.4rem .5rem;border:1px solid #2a2010;margin-bottom:.3rem;font-size:.78rem;color:#c0b090">'
       + '<div>' + e(d.demandeur) + ' <span style="color:#6a6040">— souhaite : ' + (d.type === 'petit' ? 'petit' : d.type === 'grand' ? 'grand' : 'sans préférence') + '</span></div>'
       + (libres.length
         ? '<div style="display:flex;gap:.3rem;margin-top:.3rem"><select id="attrib-social-' + e(d.id) + '" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.2rem">' + options + '</select>'
-          + '<button onclick="attribuerLogementSocialCommun(\'' + e(d.id) + '\')" style="font-size:.7rem;padding:.2rem .5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Attribuer</button></div>'
-        : '<div style="color:#6a6040;font-style:italic;margin-top:.2rem">Aucun appartement libre.</div>')
+          + '<button onclick="attribuerLogementSocialCommun(\'' + e(d.id) + '\')" style="font-size:.7rem;padding:.2rem .5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">'+socialSpan('assign')+'</button></div>'
+        : '<div style="color:#6a6040;font-style:italic;margin-top:.2rem">'+socialSpan('noFree')+'</div>')
       + '</div>';
   });
   html += '</div>';
