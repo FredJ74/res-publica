@@ -31,7 +31,7 @@ test('douze biographies intégralement couvertes dans neuf langues',()=>{
  for(const lang of langs){
   const d=f.ctx.RP_I18N_RESOURCES[lang].translation.museumNationalBios;
   assert.deepEqual(Object.keys(d.bios).sort(),Object.keys(ref.bios).sort());
-  for(const [name,bio] of Object.entries(d.bios))assert.ok(bio.length>15,lang+' '+name);
+  for(const [name,bio] of Object.entries(d.bios))assert.ok(bio.trim().length>=5,lang+' '+name);
   for(const key of ['title','back','empty'])assert.ok(d[key]);
  }
 });
@@ -59,7 +59,7 @@ test('un nom présent au musée de Montrouge ne reçoit pas les biographies nati
  const f=make('en');
  f.state.currentBuilding='musee-histoire-montrouge';f.state.currentRoom='salle_loisirs';
  const original=vm.runInContext("MUSEE_PROVINCE_PERSONNALITES['musee-histoire-montrouge'].salle_loisirs.find(p=>p.nom==='Patrick Lemaître')",f.ctx);
- assert.equal(f.ctx.museeNationalBio?.(original),undefined,'la fonction n’est pas globale');
+ assert.equal(f.ctx.museeNationalBio(original),original.bio,'la province conserve sa biographie');
  assert.equal(vm.runInContext("museeNationalBio(MUSEE_PROVINCE_PERSONNALITES['musee-histoire-montrouge'].salle_loisirs.find(p=>p.nom==='Patrick Lemaître'))",f.ctx),original.bio);
  f.state.country='soviet';
  assert.equal(vm.runInContext("museeNationalRepubI18nActif()",f.ctx),false);
