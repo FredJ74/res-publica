@@ -1482,7 +1482,7 @@ function renderEmployesPanel() {
           : '<button onclick="recupererPnjDansGroupe(\'' + emp.nom.replace(/'/g,'') + '\')" title="Faire rejoindre votre groupe" style="background:none;border:1px solid #3a2a10;color:#8a6a20;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">🔄</button>'
         ) +
         (!emp.inGroupe && emp.pnjId
-          ? '<button onclick="rappelerEmployeParRadio(\'' + String(emp.pnjId).replace(/'/g,'') + '\')" title="Rappeler par radio ou téléphone — nécessite une radio ou un téléphone de chaque côté et la même ville" style="background:none;border:1px solid #425a75;color:#92b5db;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📻</button>'
+          ? '<button onclick="rappelerEmployeParRadio(\'' + String(emp.pnjId).replace(/'/g,'') + '\')" title="' + texteEquip('radioTitle', 'Rappeler par radio ou téléphone — nécessite une radio ou un téléphone de chaque côté et la même ville') + '" style="background:none;border:1px solid #425a75;color:#92b5db;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📻</button>'
           : '') +
         '<button onclick="ouvrirDonnerEmploye(\'' + emp.nom.replace(/'/g,'') + '\')" title="Donner un objet a porter (plafond 100 unites au total)" style="background:none;border:1px solid #2a3a3a;color:#4a7a7a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📦</button>' +
         '<button onclick="ouvrirReprendreEmploye(\'' + emp.nom.replace(/'/g,'') + '\')" title="Reprendre ce que porte cet employe" style="background:none;border:1px solid #3a3a2a;color:#7a7a4a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">↩️</button>' +
@@ -1512,7 +1512,7 @@ async function rappelerEmployeParRadio(ancreId) {
         axe_position_hors_socle: 'Cette famille utilise encore son circuit de position propre.',
         unite_non_stationnaire: 'Le groupe doit être en position.',
         unite_modifiee: 'Le groupe a changé. Relisez sa composition.' };
-      showToast('Rappel non confirmé', messages[r?.raison] || 'Le serveur n’a pas confirmé le rappel.', false);
+      showToast(texteEquip('rappelNonConfirme', 'Rappel non confirmé'), (messages[r?.raison] && texteEquip('radio.' + r.raison, messages[r.raison])) || texteEquip('rappelServeur', 'Le serveur n’a pas confirmé le rappel.'), false);
       return;
     }
     // Le rejeu ne reconstruit pas l'ancienne unité : relecture de la projection existante.

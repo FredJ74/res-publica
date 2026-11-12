@@ -17,7 +17,7 @@ test("l'achat de trading envoie l'entrepôt de livraison et ne parle plus du por
   // Le nom du port n'est jamais écrit en dur ; seul l'achat international (05/11/2026) parle du port industriel.
   assert.doesNotMatch(achat, /Port-Sainte-Marie/);
   const national = achat.slice(achat.indexOf("const ou = r.international"));
-  assert.match(national, /r\.international\s*\?\s*'le port industriel de '/);
+  assert.match(national, /r\.international\s*\?\s*texteEquip\('ouPort', 'le port industriel de \{ville\}/);
   assert.match(src, /id="trading-livraison"/);
 });
 
