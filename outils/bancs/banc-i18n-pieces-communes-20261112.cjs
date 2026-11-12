@@ -45,7 +45,7 @@ test('noms de gabarit traduits, de la mairie au tribunal, dans neuf langues',()=
    ['mairie-capitale','salle_elections','Salle des Elections'],
    ['commissariat-local','geoles','Geôles'],
    ['banque-locale','guichet','Guichet'],
-   ['port-sainte-marie','capitainerie','Capitainerie'],
+   ['port-plaisance-psm','capitainerie','Capitainerie'],
    ['centre-multinodal-montrouge','hall_gare_montrouge','Hall de la Gare'],
    ['caserne-militaire','refectoire','Réfectoire'],
    ['bureau-national-emploi','accueil','Accueil'],
