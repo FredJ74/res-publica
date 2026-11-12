@@ -139,3 +139,5 @@ Décors : fonction serveur `logement-decoration` (déployée), même atelier que
 - **Décision de Fred (13/11/2026, 0 h 30)** : un visiteur qui retire un souvenir d'une armoire non fermée à clé ne commet
   **pas d'acte illégal** (pas de jet, pas de trace de crime) ; le propriétaire peut **porter plainte pour vol**, et c'est
   **le juge PJ qui tranche** (parcours de plainte et de tribunal existants). Non codé.
+  Précision (0 h 31) : **aucun relevé propre à l'armoire** ; le dépôt de plainte existant suffit (contre X ou contre une
+  personne).
