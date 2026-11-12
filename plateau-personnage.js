@@ -1964,6 +1964,7 @@ function signalerRefusSalaire(r) {
 async function doDormir() {
   const personnageInitial = state.char, paysInitial = state.country;
   const paInitialRepos = state.pa;
+  const pieceInitialRepos = state.currentBuilding === 'clinique-privee' ? state.currentRoom : null;
   const nomInitialRepos = personnageInitial?.name;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
   const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
@@ -2313,6 +2314,13 @@ async function doDormir() {
     console.warn('doDormir: echec de la sauvegarde Supabase finale (repos deja valide par le serveur ; journal local a resynchroniser)', e);
   }
 
+  // Bonus de la nuitée clinique : après la sauvegarde du repos normal et uniquement
+  // pour un occupant titulaire ; la consommation reste atomique et anti-rejeu sur le serveur.
+  if (retourActif() && pieceInitialRepos && typeof consommerNuiteeCliniqueApresDormir==='function') {
+    await consommerNuiteeCliniqueApresDormir(nomInitialRepos,paysInitial,pieceInitialRepos).catch(e=>{
+      console.warn('Nuitée de clinique : bonus non confirmé',e);
+    });
+  }
   return retourActif();
 }
 
@@ -2355,7 +2363,7 @@ function trouverChambreLibreClinique() {
 // needsSuiteIndisponible) et par doOrder (plateau-router.js, blocage reel avant tout debit) :
 // aucune duplication de la logique medicale elle-meme (doSoinCliniquePrivee/doCentreAntiPoison/
 // executerOrdreGenerique restent intacts).
-const ORDRES_MEDICAUX_CHAMBRE_CLINIQUE = ['soins', 'soins_urgence', 'soins_discrets', 'centre_anti_poison', 'se_nourrir', 'repas_hopital', 'repas_clinique', 'sortie_hopital'];
+const ORDRES_MEDICAUX_CHAMBRE_CLINIQUE = ['soins', 'soins_urgence', 'soins_discrets', 'centre_anti_poison', 'se_nourrir', 'repas_hopital', 'repas_clinique', 'sortie_hopital', 'clinique_dormir'];
 
 function estOrdreMedicalReserveAuPatient(buildingId, roomId, fn) {
   if (buildingId !== 'clinique-privee' || !/^chambre_(?:[1-9]|10)$/.test(roomId || '')) return false;

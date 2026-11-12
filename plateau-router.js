@@ -261,6 +261,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'vendre_ressource_medicale') { doVendreRessourceMedicaleGenerique(pa, cost); return; }
   if (fn === 'gerer_visites_chambre') { doGererVisitesChambre(pa, cost); return; }
   if (fn === 'ouvrir_chambres_clinique') { doOuvrirChambresClinique(pa, cost); return; }
+  if (fn === 'clinique_reserver_nuit') { reserverNuiteeClinique(); return; }
+  if (fn === 'clinique_dormir') { doDormir(); return; }
+  if (fn === 'clinique_verifier_bonus') { verifierNuiteeClinique(); return; }
   if (fn === 'reserver_chambre_hotel') { doReserverChambreHotel(pa); return; }
   if (fn === 'dormir_chambre') { doDormirChambre(); return; }
   if (fn === 'dormir') { doDormir(); return; }
