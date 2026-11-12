@@ -1994,6 +1994,9 @@ const WORLD = {
                 {name:'Claire Delhune (PNJ)', role:'Secrétaire', rel:'neutral', job:'secretaire_notaire'}
               ]
             },
+            archives_notariales: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_archives.webp'
+            },
             bureau_contrats: {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_cessions_entreprises.webp',
               excludeOrders: ['officialiser_transaction', 'commerces_fonds_murs', 'racheter_entreprise',
