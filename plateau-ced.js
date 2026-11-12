@@ -1,4 +1,12 @@
 // Achat mecanique distinct de la conversation : serveur, inventaire revisionne et recu UUID.
+function cedT(key,original,vars){return window.RPDealerI18n?.text?.(key,original,vars)||String(original).replace(/\{([a-z]+)\}/g,(m,k)=>Object.hasOwn(vars||{},k)?String(vars[k]):m)}
+function cedH(key,original,vars){return String(cedT(key,original,vars)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function cedNomAffiche(produit,nom){
+ const d=DROGUES_DEALER[produit];
+ if(!d)return nom||'';
+ if(!nom||nom===d.nom)return cedT(produit==='brume'?'brumeName':'estadineName',d.nom);
+ return nom;
+}
 function cedContexteValide(c) {
   return !!c && state.char === c.personnage && c.uid === rpAuthUid();
 }
@@ -27,7 +35,7 @@ async function ouvrirAchatCed() {
   document.getElementById('modal-pnj')?.classList.remove('open');
   document.getElementById('postes-modal-title').textContent = cedNomDealer();
   const corps = document.getElementById('postes-body');
-  corps.innerHTML = '<div class="cpj-note" style="padding:1rem">Le dealer jette un œil à sa marchandise…</div>';
+  corps.innerHTML = '<div class="cpj-note" style="padding:1rem">'+cedH('loading',"Le dealer jette un œil à sa marchandise…")+'</div>';
   document.getElementById('modal-postes').classList.add('open');
   let stocks = null;
   try { stocks = await sbRpc('dealer_stocks_lire', {}); } catch (_) { stocks = null; }
@@ -39,14 +47,14 @@ async function ouvrirAchatCed() {
     const stock = s && typeof s.stock === 'number' ? s.stock : null;
     let precedente = null;
     try { precedente = sessionStorage.getItem(cedCleReprise(produit)); } catch (_) {}
-    html += '<div style="display:grid;gap:.4rem"><p><b>' + d.nom + '</b> — ' + d.texte + '</p>' +
-      '<p class="cpj-note">' + d.prix + ' FR · 1 place · ' +
-      (stock === null ? 'stock inconnu' : (stock > 0 ? 'en stock : ' + stock : 'rupture de stock')) + '</p>' +
+    html += '<div style="display:grid;gap:.4rem"><p><b>'+cedH(produit==='brume'?'brumeName':'estadineName',d.nom)+'</b> — '+cedH(produit==='brume'?'brumeDesc':'estadineDesc',d.texte)+'</p>' +
+      '<p class="cpj-note">' + d.prix + ' FR · '+cedH('oneSlot',"1 place")+' · '+
+      (stock===null?cedH('stockUnknown',"stock inconnu"):(stock>0?cedH('inStock',"en stock : {stock}",{stock}):cedH('outOfStock',"rupture de stock")))+'</p>' +
       '<button id="ced-acheter-' + produit + '" class="pnj-action-btn" onclick="confirmerAchatCed(\'' + produit + '\')"' +
       (stock === 0 && !precedente ? ' disabled' : '') + '>' +
-      (precedente ? 'Vérifier cet achat' : 'Acheter — ' + d.prix + ' FR') + '</button></div>';
+      (precedente?cedH('checkPurchase',"Vérifier cet achat"):cedH('buy',"Acheter — {price} FR",{price:d.prix})) + '</button></div>';
   });
-  html += '<p class="cpj-note">Marchandise illégale : l’achat et le transport peuvent laisser des traces.</p></div>';
+  html += '<p class="cpj-note">'+cedH('illegalNotice',"Marchandise illégale : l’achat et le transport peuvent laisser des traces.")+'</p></div>';
   corps.innerHTML = html;
 }
 async function confirmerAchatCed(produit) {
@@ -75,19 +83,19 @@ async function confirmerAchatCed(produit) {
   if (bouton) bouton.disabled = false;
   if (!r || r.transport) {
     c.incertain = true;
-    if (bouton) bouton.textContent = 'Vérifier cet achat';
-    showToast('Achat non confirmé', 'Vérifiez cet achat avant de recommencer. La même transaction sera relue.', false);
+    if (bouton) bouton.textContent = cedT("checkPurchase","Vérifier cet achat");
+    showToast(cedT("unconfirmed","Achat non confirmé"), cedT("retry","Vérifiez cet achat avant de recommencer. La même transaction sera relue."), false);
     return;
   }
   c.incertain = false;
   if (!r.ok) {
     try { sessionStorage.removeItem(c.cleReprise); } catch (_) {}
-    const messages = { pas_sur_place: 'Retrouvez le dealer dans les travées du centre artisanal.',
-      inventaire_plein: 'Il vous faut une place libre dans l’inventaire.',
-      rupture_stock: 'Plus rien en stock pour aujourd’hui. Repassez demain.',
-      fonds_insuffisants: 'Vos fonds disponibles ne couvrent pas les ' + d.prix + ' FR.',
-      acteur_non_authentifie: 'Reconnectez-vous avant de faire cet achat.' };
-    showToast('Achat refusé', messages[r.raison] || 'L’achat n’a pas été validé. Réessayez.', false);
+    const messages = { pas_sur_place: cedT("wrongPlace","Retrouvez le dealer dans les travées du centre artisanal."),
+      inventaire_plein: cedT("inventoryFull","Il vous faut une place libre dans l’inventaire."),
+      rupture_stock: cedT("noStock","Plus rien en stock pour aujourd’hui. Repassez demain."),
+      fonds_insuffisants: cedT('insufficient',"Vos fonds disponibles ne couvrent pas les {price} FR.",{price:d.prix}),
+      acteur_non_authentifie: cedT("auth","Reconnectez-vous avant de faire cet achat.") };
+    showToast(cedT("refused","Achat refusé"), messages[r.raison] || cedT("tryAgain","L’achat n’a pas été validé. Réessayez."), false);
     return;
   }
   c.termine = true;
@@ -101,11 +109,11 @@ async function confirmerAchatCed(produit) {
   }
   if (!cedContexteValide(c)) return;
   if (document.getElementById('ced-acheter-' + produit)) document.getElementById('modal-postes')?.classList.remove('open');
-  const nom = r.nom || d.nom, prix = r.prix || d.prix;
-  if (!r.rejeu) addJournalEntry('Achat auprès de ' + (r.dealer || cedNomDealer() || 'un dealer') + ' : ' + nom + ', ' + prix + ' FR.', 'event-info');
+  const nom = cedNomAffiche(produit,r.nom), prix = r.prix || d.prix;
+  if (!r.rejeu) addJournalEntry(cedT('purchaseJournal',"Achat auprès de {dealer} : {product}, {price} FR.",{dealer:r.dealer||cedNomDealer()||cedT('anonDealer',"un dealer"),product:nom,price:prix}), 'event-info');
   updateUI();
-  showToast('Achat enregistré', adopte ? nom + ' dans votre inventaire. −' + prix + ' FR.'
-    : 'La livraison est enregistrée. Actualisez pour relire votre inventaire.', true);
+  showToast(cedT("bought","Achat enregistré"), adopte ? cedT('inventoryDelivered',"{product} dans votre inventaire. −{price} FR.",{product:nom,price:prix})
+    : cedT("deliveryPending","La livraison est enregistrée. Actualisez pour relire votre inventaire."), true);
 }
 
 // DESCENTES D'ESTADINE (2 novembre 2026) : le serveur seul decide si une descente est echue
@@ -126,8 +134,8 @@ async function verifierDescentesDrogue() {
     if (typeof r.hp === 'number') state.hp = r.hp;
     if (Array.isArray(r.effets_actifs)) state.effetsActifs = r.effets_actifs;
     const dd = r.descente || {};
-    showToast('La descente', 'L’Estadine se paie : moral ' + dd.moral + ', santé ' + dd.hp + ', ' + dd.pa_differe + ' PA à la prochaine recharge.', false);
-    addJournalEntry('Descente d’Estadine : moral ' + dd.moral + ', santé ' + dd.hp + ', ' + dd.pa_differe + ' PA à la prochaine recharge.', 'event-bad');
+    showToast(cedT("withdrawalTitle","La descente"), cedT('withdrawalNotice',"L’Estadine se paie : moral {moral}, santé {hp}, {pa} PA à la prochaine recharge.",{moral:dd.moral,hp:dd.hp,pa:dd.pa_differe}), false);
+    addJournalEntry(cedT('withdrawalJournal',"Descente d’Estadine : moral {moral}, santé {hp}, {pa} PA à la prochaine recharge.",{moral:dd.moral,hp:dd.hp,pa:dd.pa_differe}), 'event-bad');
     if (typeof updateUI === 'function') updateUI();
   } catch (_) { /* reessaye au prochain passage */ }
   finally { descenteDrogueEnCours = false; }
