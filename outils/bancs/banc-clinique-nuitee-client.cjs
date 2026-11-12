@@ -9,7 +9,21 @@ function init(country='republic'){
  const log=[],calls=[],identite={name:'A'};
  const state={country,currentCity:'capitale',currentBuilding:'clinique-privee',
   currentRoom:'reception_clinique',char:identite,locationsActives:[],pa:10,hp:40,moral:35,liquide:500,arg:500};
- const x={console,state,confirm:()=>true,
+ let popupBody='',popupTitle='',popupOpen=false;
+ const buttons={};
+ const modal={classList:{add(k){if(k==='open')popupOpen=true;},remove(k){if(k==='open')popupOpen=false;}}};
+ const titre={set textContent(v){popupTitle=v;},get textContent(){return popupTitle;}};
+ const corps={set innerHTML(v){popupBody=v;},get innerHTML(){return popupBody;},
+  querySelector(selector){return buttons[selector]||(buttons[selector]={
+   disabled:false,textContent:'',addEventListener(event,fn){this.click=fn;}});}
+ };
+ const document={getElementById(id){
+  if(id==='modal-postes')return modal;
+  if(id==='postes-modal-title')return titre;
+  if(id==='postes-body')return corps;
+  return buttons['#'+id]||null;
+ }};
+ const x={console,state,document,confirm:()=>{throw Error('Native confirmation forbidden')},
   showToast:(...v)=>log.push(v),updateUI:()=>{},
   chargerLocations:async()=>{state.locationsActives=[{
     buildingId:'clinique-privee',roomId:'chambre_1',locataire:'A',
@@ -23,7 +37,17 @@ function init(country='republic'){
   addJournalEntry:()=>{}
  };
  x.window=x;vm.createContext(x);vm.runInContext(js,x,{filename:'plateau-clinique-nuitee.js'});
- return{x,state,log,calls};
+ return{x,state,log,calls,
+  get popupBody(){return popupBody;},get popupTitle(){return popupTitle;},get popupOpen(){return popupOpen;},
+  async confirmer(){
+   assert.equal(calls.length,0,'aucun appel réseau avant confirmation');
+   assert.equal(popupOpen,true);
+   const bouton=buttons['#clinique-confirmer-reservation'];
+   assert.ok(bouton?.click,'bouton de confirmation présent');
+   bouton.click();
+   await new Promise(resolve=>setImmediate(resolve));
+  }
+ };
 }
 test('ordres du comptoir et de chambre seulement en Republia et Sovarka',()=>{
  for(const country of ['republic','soviet']){
@@ -40,7 +64,9 @@ test('ordres du comptoir et de chambre seulement en Republia et Sovarka',()=>{
  const f=init('narco');assert.equal(f.x.RP_ORDRES_DYNAMIQUES[0]('clinique-privee','reception_clinique').length,0);
 });
 test('réservation : un seul RPC, retour de solde serveur, chambre entrée après relecture',async()=>{
- const f=init();await f.x.reserverNuiteeClinique();
+ const f=init();f.x.reserverNuiteeClinique();
+ assert.match(f.popupBody,/150 FR/);
+ await f.confirmer();
  assert.equal(f.calls.join(','),'clinique_nuitee_reserver');
  assert.equal(f.state.currentRoom,'chambre_1');
  assert.equal(f.state.liquide,350);
@@ -49,7 +75,9 @@ test('réservation : un seul RPC, retour de solde serveur, chambre entrée aprè
  assert.equal(f.x.RP_ORDRES_DYNAMIQUES[0]('clinique-privee','chambre_1').length,2);
 });
 test('bonus de sommeil : uniquement verdict serveur, récupération distincte du repos',async()=>{
- const f=init();await f.x.reserverNuiteeClinique();
+ const f=init();f.x.reserverNuiteeClinique();
+ assert.match(f.popupBody,/150 FR/);
+ await f.confirmer();
  await f.x.consommerNuiteeCliniqueApresDormir('A','republic','chambre_1');
  assert.equal(f.calls.join(','),'clinique_nuitee_reserver,clinique_nuitee_consommer');
  assert.equal(f.state.pa,12);
@@ -57,13 +85,26 @@ test('bonus de sommeil : uniquement verdict serveur, récupération distincte du
  assert.equal(f.state.moral,38);
 });
 test('hors chambre et autre personne : aucun RPC de consommation',async()=>{
- const f=init();await f.x.reserverNuiteeClinique();
+ const f=init();f.x.reserverNuiteeClinique();
+ assert.match(f.popupBody,/150 FR/);
+ await f.confirmer();
  f.state.currentRoom='reception_clinique';
  await f.x.consommerNuiteeCliniqueApresDormir('A','republic','chambre_1');
  assert.equal(f.calls.length,1);
  f.state.currentRoom='chambre_1';
  await f.x.consommerNuiteeCliniqueApresDormir('autre','republic','chambre_1');
  assert.equal(f.calls.length,1);
+});
+test('présentation sovarkienne : popup intégrée et prix en PSK, jamais boîte native',async()=>{
+ const f=init('soviet');
+ f.x.reserverNuiteeClinique();
+ assert.match(f.popupTitle,/Réserver une chambre/);
+ assert.match(f.popupBody,/150 PSK/);
+ assert.match(f.popupBody,/\+2 PA, \+10 Santé et \+3 Moral/);
+ assert.equal(f.calls.length,0);
+ await f.confirmer();
+ assert.equal(f.calls.length,1);
+ assert.equal(f.popupOpen,false);
 });
 test('les deux raccordements d’ordres et la chaîne Dormir sont présents',()=>{
  assert.match(router,/fn === 'clinique_reserver_nuit'/);
