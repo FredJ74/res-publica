@@ -39,7 +39,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ### Décisions attendues de Fred
 
-- **Armoire à souvenirs (Fred, 13/11)** : collection complète = **+1 PA** au sommeil en présence de son armoire, sans cumul entre armoires mais cumulable avec le +1 PA de l'appartement ; l'armoire ne prend plus qu'1 place dans l'inventaire (au lieu de 3) ; dépôt et retrait des souvenirs gratuits ; retrait par un visiteur (armoire ouverte) légal, mais plainte pour vol possible, jugée par le juge PJ (`GAME-DESIGN-APPARTEMENTS.md`). NON CODÉ, avec le dépôt des souvenirs : attendre le feu vert.
+- **Armoire à souvenirs (Fred, 13/11)** : collection complète = **+1 PA** au sommeil en présence de son armoire, sans cumul entre armoires mais cumulable avec le +1 PA de l'appartement ; l'armoire ne prend plus qu'1 place dans l'inventaire (au lieu de 3) ; dépôt et retrait des souvenirs gratuits ; retrait par un visiteur (armoire ouverte) légal, mais plainte pour vol possible, jugée par le juge PJ (`GAME-DESIGN-APPARTEMENTS.md`). **Ne pas coder** avant que les douze villes de la liste existent (décision de Fred) ; décisions consignées seulement.
 - **Appartements populaires : 7 choix de Claude et 1 écart à relire** (`GAME-DESIGN-APPARTEMENTS.md`, fin du document).
 - **Choix de Claude à relire par Fred** (PR #681, `GAME-DESIGN-NOVOMIRSK.md`) : vol d'archives des centres d'écoute à 2 PA, jet de base 45 % ; repas chez l'habitant +2 PA au prochain sommeil ; noms des habitants Dolgor Tsybikova (Starovka) et Stepan Kouznetsov (Krasnov) ; réaction à la bouteille = phrase fixe (pas encore l'IA).
 - Caisses d'entrepôts, reprise Codex 07/11 : la question initiale « PSM 10 231 FR

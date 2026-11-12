@@ -141,3 +141,5 @@ Décors : fonction serveur `logement-decoration` (déployée), même atelier que
   **le juge PJ qui tranche** (parcours de plainte et de tribunal existants). Non codé.
   Précision (0 h 31) : **aucun relevé propre à l'armoire** ; le dépôt de plainte existant suffit (contre X ou contre une
   personne).
+- **Décision de Fred (13/11/2026, 0 h 33)** : l'armoire **n'est pas codée maintenant** : elle reste inutilisable tant que
+  les **douze villes** de sa liste n'existent pas. Les décisions ci-dessus sont seulement consignées.
