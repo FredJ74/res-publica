@@ -11,11 +11,19 @@ function ordresNuiteeClinique(buildingId,roomId){
    desc:'Réserver et payer une nuit à la clinique : 150 '+cliniqueDevise()
     +'. Dans votre chambre, Dormir apporte +2 PA, +10 Santé et +3 Moral en plus du repos normal.'
  }];
- if(/^chambre_(?:[1-9]|10)$/.test(roomId))return [{
+ if(/^chambre_(?:[1-9]|10)$/.test(roomId)){
+ const propre=(state.locationsActives||[]).some(l=>l.buildingId==='clinique-privee'
+   &&l.roomId===roomId&&l.locataire===state.char?.name&&l.reservationClinique===true);
+ return [{
    fn:'clinique_dormir',label:'Dormir dans la chambre',
    pa:0,cost:0,type:'legal',icon:'ti-moon',successRate:100,
    desc:'Une seule nuitée payée donne +2 PA, +10 Santé et +3 Moral lors du prochain Dormir validé par le serveur.'
- }];
+ }].concat(propre?[{
+   fn:'clinique_verifier_bonus',label:'Vérifier les bonus de la nuit',
+   pa:0,cost:0,type:'legal',icon:'ti-check',successRate:100,
+   desc:'Après Dormir, vérifier les bonus de nuitée auprès du serveur. Aucun bonus n’est accordé deux fois.'
+ }]:[]);
+ }
  return [];
 }
 (global.RP_ORDRES_DYNAMIQUES=global.RP_ORDRES_DYNAMIQUES||[]).push(ordresNuiteeClinique);
@@ -73,7 +81,10 @@ async function consommerNuiteeCliniqueApresDormir(nomInitial,paysInitial,pieceIn
   return;
  }
  if(!r.ok){
-  showToast('Bonus de clinique non appliqué',r.raison||'Réponse du serveur indisponible.',false);
+  if(r.raison==='aucune_reservation')return;
+  showToast('Bonus de clinique non appliqué',r.raison==='repos_non_valide'
+    ?'Dormez d’abord dans la chambre réservée pour obtenir ces bonus.'
+    :(r.raison||'Réponse du serveur indisponible.'),false);
   return;
  }
  if(state.char?.name!==nomInitial||state.country!==paysInitial)return;
@@ -87,6 +98,11 @@ async function consommerNuiteeCliniqueApresDormir(nomInitial,paysInitial,pieceIn
  }
  if(typeof chargerLocations==='function')await chargerLocations();
 }
+global.verifierNuiteeClinique=function(){
+ const acteur=state.char?.name, pays=state.country, piece=state.currentRoom;
+ if(!acteur)return;
+ return consommerNuiteeCliniqueApresDormir(acteur,pays,piece);
+};
 global.reserverNuiteeClinique=reserverNuiteeClinique;
 global.consommerNuiteeCliniqueApresDormir=consommerNuiteeCliniqueApresDormir;
 })(window);
