@@ -1,0 +1,25 @@
+name: i18n — Conduite, révision, dépannage
+on:
+  pull_request:
+    paths:
+      - 'plateau-vehicules.js'
+      - 'i18n/vehicle-travel-resources.js'
+      - 'plateau.html'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'outils/bancs/banc-i18n-vehicules-trajets-20261112.cjs'
+      - '.github/workflows/i18n-vehicules-trajets.yml'
+permissions:
+  contents: read
+jobs:
+  vehicules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-vehicules.js && node --check i18n/vehicle-travel-resources.js
+      - run: node --test outils/bancs/banc-i18n-vehicules-trajets-20261112.cjs
+      - run: node outils/audits/audit-i18n-editorial.cjs
+      - run: git diff --check
