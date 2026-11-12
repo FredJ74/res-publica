@@ -1990,15 +1990,24 @@ const WORLD = {
             // attributions de droits d'exploiter décidées par le maire et les cessions entre PJ.
             bureau_successions: {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_successions.webp',
+              // Le notaire de cette pièce est distinct de Klara, secrétaire à l'accueil.
               persons: [
-                {name:'Claire Delhune (PNJ)', role:'Secrétaire', rel:'neutral', job:'secretaire_notaire'}
+                {name:'Iouri Malakhov (PNJ)', role:'Notaire chargé des successions', rel:'neutral', job:'notaire',
+                 photoUrl:'images/Sovarka/Novomirsk/Novomirsk_notaire_successions_portrait.webp', photoPos:'50% 25%'}
               ]
             },
             archives_notariales: {
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_archives.webp'
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_archives.webp',
+              persons: [
+                {name:'Daria Tikhonova (PNJ)', role:'Archiviste notariale', rel:'neutral', job:'archiviste_notaire',
+                 photoUrl:'images/Sovarka/Novomirsk/Novomirsk_notaire_archives_portrait.webp', photoPos:'50% 25%'}
+              ]
             },
             bureau_contrats: {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_notaire_cessions_entreprises.webp',
+              persons: [
+                {name:'Notaire Fontenelle (PNJ)', role:'Notaire chargé des contrats', rel:'neutral', job:'notaire'}
+              ],
               excludeOrders: ['officialiser_transaction', 'commerces_fonds_murs', 'racheter_entreprise',
                 'acte_rachat_entreprise_preemption', 'transfert_compromis'],
               orders: [
@@ -10502,7 +10511,10 @@ function slugPnjSovarka(nom) {
   const photos = [
     ['commissariat', 'accueil_police', 'Sergent Doubinine (PNJ)', 'Novo_sergent_matrakov_portrait.webp'],
     ['commissariat', 'bureau_commissaire', 'Vassili Ostrovski (PNJ)', 'Novo_vassili_ordonov_portrait.webp'],
-    ['office-notarial', 'accueil_notaire', 'Klara Delounova (PNJ)', 'Novo_klara_delounova_portrait.webp'],
+    ['office-notarial', 'accueil_notaire', 'Klara Delounova (PNJ)', 'Novomirsk_notaire_accueil_portrait.webp'],
+    ['office-notarial', 'bureau_successions', 'Iouri Malakhov (PNJ)', 'Novomirsk_notaire_successions_portrait.webp'],
+    ['office-notarial', 'bureau_contrats', 'Camarade Bâtissov (PNJ)', 'Novomirsk_notaire_cessions_entreprises_portrait.webp'],
+    ['office-notarial', 'archives_notariales', 'Daria Tikhonova (PNJ)', 'Novomirsk_notaire_archives_portrait.webp'],
     ['hotel-republica', 'accueil', 'Vera Pavlova (PNJ)', 'Novo_vera_clefova_portrait.webp'],
     ['hotel-republica', 'accueil', 'Ivan Semionov (PNJ)', 'Novo_ivan_valisov_portrait.webp'],
     ['hotel-republica', 'bar', 'Arkadi Melnikov (PNJ)', 'Novo_arkadi_shakerov_portrait.webp'],
