@@ -317,10 +317,14 @@ export default async function handler(req, res) {
   });
   if (!utilisateur) return res.status(401).json({ error: 'Authentification requise.' });
 
-  const guideMusee = req.body.profil === PROFIL_GUIDE_MUSEE;
+  const guideMusee = req.body.profil === PROFIL_GUIDE_MUSEE || req.body.profil === 'veteran_ilia_krioukov';
   if (guideMusee) {
     const etat = await rpcGuideMusee('guide_musee_dialogue_lire', utilisateur.jeton);
     if (!etat || etat.ok !== true) return res.status(403).json({ error: 'Dialogue indisponible.', raison: etat?.raison || 'indisponible' });
+    // Un guide ne peut répondre aux questions payantes depuis l'autre musée.
+    const estMunicipal = typeof etat.salle === 'string' && etat.salle.startsWith('novomirsk:');
+    if ((req.body.profil === 'veteran_ilia_krioukov') !== estMunicipal)
+      return res.status(403).json({ error: 'Guide absent de cette salle.', raison: 'pas_sur_place' });
     if (!(etat.restantes > 0)) return res.status(403).json({ error: 'Plus de question.', raison: etat.ouvert ? 'questions_epuisees' : 'dialogue_non_ouvert' });
   }
 
