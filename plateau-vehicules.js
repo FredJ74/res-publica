@@ -152,33 +152,33 @@ function vehSectionAtelier(ici) {
     const reste = Math.max(0, Number(f.besoin_jour || 0) - Number(f.pa_pj || 0));
     const etat = f.etat === 'attente_matieres' ? ' · <b>en attente de matières</b>'
       : f.etat === 'attente_caisse' ? ' · <b>en attente : caisse du garage vide</b>' : '';
-    return vehSection('Atelier — ' + vehEchappe(VEH_MODELES[f.modele]?.label || f.modele) + ' en fabrication',
-      '<div>Jour ' + (Number(f.jours_faits) + 1) + ' / ' + f.jours_total + etat + '</div>' +
+    return vehSection(vehGH('workshop','Atelier — fabrication')+' — '+vehEchappe(vehGModele(f.modele)),
+      '<div>'+vehGH('day','Jour {day} / {total}',{day:Number(f.jours_faits)+1,total:f.jours_total})+etat+'</div>' +
       '<div class="cpj-note">Matières du jour : ' + vehListeMatieres(f.matieres_jour) + ' · stock du garage : ' + vehListeMatieres(ici.matieres) + '</div>' +
       '<div>Main-d’œuvre du jour : ' + f.besoin_jour + ' PA, dont ' + f.pa_pj + ' déjà fournis par des joueurs. ' +
       'Ce que les joueurs ne fournissent pas, les ouvriers PNJ le font à minuit.</div>' +
       (reste > 0 ? '<div style="margin-top:.4rem">Travailler (payé 50 ' + cur + ' par PA) : ' + vehChamp('veh-travail', Math.min(reste, Number(state.pa) || 1), reste) +
         vehBouton('Travailler', "vehTravailler('" + ici.id + "')", true) + '</div>' : '<div class="cpj-note">La main-d’œuvre du jour est complète.</div>'));
   }
-  let corps = '<div class="cpj-note">Un véhicule à la fois. Chaque jour, l’atelier prend sa part de matières dans le stock du garage ; ' +
-    'les joueurs présents peuvent fournir la main-d’œuvre, payée par la caisse du garage, sinon les ouvriers PNJ s’en chargent à minuit. ' +
-    'Stock du garage : ' + (vehListeMatieres(ici.matieres) || 'vide') + '.</div>';
+  let corps = '<div class="cpj-note">'+vehGH('startWorkshop',
+    'Un véhicule à la fois. Chaque jour, l’atelier prélève des matières dans le stock du garage. Les joueurs présents peuvent fournir la main-d’œuvre rémunérée ; sinon les ouvriers PNJ travaillent à minuit.')
+    +' '+vehGH('materials','Matières du jour')+' : '+vehEchappe(vehListeMatieres(ici.matieres) || vehGT('stockEmpty','vide'))+'.</div>';
   for (const [id, m] of Object.entries(VEH_MODELES)) {
     const spec = ici.modeles?.[id]; if (!spec) continue;
     const plein = ici.stock_max?.[id] != null && Number(ici.stock?.[id] || 0) >= Number(ici.stock_max[id]);
-    corps += '<div style="margin-top:.5rem"><b>' + m.label + '</b> : ' + spec.jours + ' jours, ' + spec.pa + ' PA, ' + vehListeMatieres(spec.materiaux) +
-      (plein ? ' <span class="cpj-note">(vitrine pleine)</span>' : '<br>' + vehBouton('Lancer la fabrication', "vehFabriquer('" + ici.id + "','" + id + "')")) + '</div>';
+    corps += '<div style="margin-top:.5rem"><b>' + vehEchappe(vehGModele(id)) + '</b> : ' + spec.jours + ' jours, ' + spec.pa + ' PA, ' + vehListeMatieres(spec.materiaux) +
+      (plein ? ' <span class="cpj-note">'+vehGH('fullDisplay','(vitrine pleine)')+'</span>' : '<br>' + vehBouton(vehGH('launchBuild','Lancer la fabrication'), "vehFabriquer('" + ici.id + "','" + id + "')")) + '</div>';
   }
-  return vehSection('Atelier — fabrication', corps);
+  return vehSection(vehGH('workshop','Atelier — fabrication'), corps);
 }
 
 async function vehFabriquer(entreprise, modele) {
   const v = await vehActe('fabriquer', { entreprise, modele }, entreprise + '-' + modele);
   if (!v || v.ok !== true) {
     const m = { fabrication_en_cours: 'Un véhicule est déjà en fabrication dans ce garage.', stock_plein: 'La vitrine est déjà pleine pour ce modèle.' };
-    showToast('Fabrication refusée', m[v?.raison] || vehMotif(v), false); return;
+    showToast(vehGT('buildRefused','Fabrication refusée'), m[v?.raison] || vehMotif(v), false); return;
   }
-  showToast('Fabrication lancée', VEH_MODELES[modele].label + ' : ' + v.jours + ' jours de travail.', true);
+  showToast(vehGT('buildStarted','Fabrication lancée'), vehGT('buildDays','{model} : {days} jours de travail.',{model:vehGModele(modele),days:v.jours}), true);
   await ouvrirGarageVehicules();
 }
 
@@ -246,25 +246,25 @@ async function ouvrirStationCarburant(utiliserCache=false) {
   const ici = l.ici;
   if (!ici || ici.type !== 'station-service') { showToast(vehGT('station','Station-service'), vehGT('stationVisit','Présentez-vous à la boutique de la station.'), false); return; }
   const cur = vehMonnaie(), prix = ici.prix?.bidon_carburant, stock = Number(ici.stock?.bidon_carburant || 0);
-  let html = '<p class="cpj-note">1 bidon = 1 unité de carburant. Vous portez jusqu’à 100 unités sur vous ; ' +
-    'versez les bidons dans le réservoir depuis « Mes véhicules ».</p>';
-  html += vehSection('Bidons de carburant',
-    '<div class="cpj-note">En stock : ' + vehNombre(stock) + (prix != null ? ' · ' + vehNombre(prix) + ' ' + cur + ' le bidon' : '') + '</div>' +
+  let html = '<p class="cpj-note">'+vehGH('stationHelp',
+    '1 bidon = 1 unité de carburant. Vous portez jusqu’à 100 unités sur vous ; versez les bidons dans le réservoir depuis « Mes véhicules ».')+'</p>';
+  html += vehSection(vehGH('cans','Bidons de carburant'),
+    '<div class="cpj-note">'+vehGH('inStock','En stock : {stock}',{stock:vehNombre(stock)}) + (prix != null ? ' · '+vehGH('unitPrice','{price} {currency} le bidon',{price:vehNombre(prix),currency:cur}) : '') + '</div>' +
     (stock > 0 && prix != null ? '<div style="margin-top:.4rem">' + vehChamp('veh-bidons', 10, 100) +
-      vehBouton('Acheter', 'vehAcheterBidons()', true) + '</div>' : ''));
-  html += vehSection('Approvisionner la station',
-    '<div class="cpj-note">La station rachète le carburant de la raffinerie ; dix unités font dix bidons.</div>' +
-    '<div style="margin-top:.4rem">Carburant : ' + vehChamp('veh-mat-carburant', 10) +
-    vehBouton('Vendre', "vehVendreMatiere('" + ici.id + "','carburant')") + '</div>' +
-    vehBouton('Conditionner 10 bidons', "vehConditionner('" + ici.id + "')"));
-  vehModal('Station-service', html);
+      vehBouton(vehGH('buy','Acheter'), 'vehAcheterBidons()', true) + '</div>' : ''));
+  html += vehSection(vehGH('stationSupply','Approvisionner la station'),
+    '<div class="cpj-note">'+vehGH('stationSupplyHelp','La station rachète le carburant de la raffinerie ; dix unités font dix bidons.')+'</div>' +
+    '<div style="margin-top:.4rem">'+vehGH('fuel','Carburant')+' : ' + vehChamp('veh-mat-carburant', 10) +
+    vehBouton(vehGH('sell','Vendre'), "vehVendreMatiere('" + ici.id + "','carburant')") + '</div>' +
+    vehBouton(vehGH('condition10','Conditionner 10 bidons'), "vehConditionner('" + ici.id + "')"));
+  vehModal(vehGT('station','Station-service'),'<div data-veh-i18n="station"></div>'+html);
 }
 
 async function vehAcheterBidons() {
   const q = vehLireChamp('veh-bidons'); if (q < 1) return;
   const v = await vehActe('carburant', { entreprise: VEH_LECTURE?.ici?.id, qte: q }, 'bidons-' + q);
   if (!v || v.ok !== true) { showToast('Achat refusé', vehMotif(v), false); return; }
-  showToast('Bidons achetés', vehNombre(v.qte) + ' bidon(s) pour ' + vehNombre(v.total) + ' ' + vehMonnaie() + '.', true);
+  showToast(vehGT('fuelBought','Bidons achetés'),vehGT('cansPurchased','{count} bidon(s) pour {total} {currency}.',{count:vehNombre(v.qte),total:vehNombre(v.total),currency:vehMonnaie()}),true);
   await ouvrirStationCarburant();
 }
 
@@ -275,7 +275,7 @@ async function vehConditionner(entreprise) {
     const m = { matieres_insuffisantes: 'La station n’a pas assez de carburant en réserve.', stock_plein: 'Le stock de bidons est plein.' };
     showToast('Conditionnement refusé', m[r?.raison] || 'Refusé par le serveur.', false); return;
   }
-  showToast('Bidons conditionnés', vehNombre(r.portions) + ' bidons mis en rayon.', true);
+  showToast('Bidons conditionnés',vehGT('fuelUnits','{count} bidons mis en rayon.',{count:vehNombre(r.portions)}),true);
   await ouvrirStationCarburant();
 }
 
