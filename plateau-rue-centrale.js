@@ -1241,7 +1241,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     // V5 — Seconde entree du Grand Hotel, et centre d'affaires.
-    // La liaison haute conduit a V3 ; la sortie laterale vers V6 conserve les ambassades.
+    // La liaison haute conduit a V3 ; pas de sortie gauche (ambassades V6 par la V7).
     'novomirsk-vue-5': {
       image: 'images/rue-hotel-centre-affaires-novomirsk.webp',
       zones: [
@@ -1249,8 +1249,9 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [75, 100], yPct: [0, 74], nom: 'Grand Hôtel de Sovarka', type: 'batiment', buildingId: 'hotel-republica', sortieNoeudId: 'novomirsk-vue-4' }
       ],
       // Carrefour : en face, la rue du notaire/commissariat (V3).
-      // Les ambassades (V6) restent accessibles par la gauche, l'hotel (V4) par la droite.
-      liens: { toutDroit: 'novomirsk-vue-3', gauche: 'novomirsk-vue-6', droite: 'novomirsk-vue-4' },
+      // Pas de fleche gauche (Fred, 12/11/2026 : elle n'avait aucun sens sur cette vue). Les
+      // ambassades (V6) restent accessibles par la V7 ; l'hotel (V4) par la droite.
+      liens: { toutDroit: 'novomirsk-vue-3', droite: 'novomirsk-vue-4' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT }
     },
 
@@ -1263,7 +1264,9 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [0, 30],   yPct: [0, 72],  nom: 'Palais des Ambassades', type: 'batiment', buildingId: 'palais-ambassades-novomirsk' },
         { xPct: [79, 100], yPct: [14, 78], nom: 'Armurerie de Novomirsk', type: 'batiment', buildingId: 'armurerie' }
       ],
-      liens: { arriere: 'novomirsk-vue-5', toutDroit: 'novomirsk-vue-7' },
+      // Pas de retour vers V5 (Fred, 12/11/2026) : V5 est un carrefour en T sans rue a gauche.
+      // Les ambassades se rejoignent par la V7, dans les deux sens.
+      liens: { toutDroit: 'novomirsk-vue-7' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
     },
 
