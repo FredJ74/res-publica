@@ -142,7 +142,8 @@
   ["Présidente du kolkhoze","Kolkhoz chairwoman","Presidenta del koljós","集體農莊主席","Председательница колхоза","콜호스 의장","رئيسة الكولخوز","Presidente do colcoz","Kolchosvorsitzende"],
   ["Directeur du QHS","Director of the QHS","Director del QHS","QHS 主任","Директор QHS","QHS 소장","مدير QHS","Diretor do QHS","Direktor des QHS"],
   ["Gardien Chef","Head guard","Jefe de guardias","看守長","Старший надзиратель","간수장","كبير الحراس","Carcereiro-chefe","Oberaufseher"],
-  ["Gardien de couloir","Corridor guard","Guardia de pasillo","走廊看守","Надзиратель коридора","복도 간수","حارس الممر","Guarda de corredor","Flurwärter"]
+  ["Gardien de couloir","Corridor guard","Guardia de pasillo","走廊看守","Надзиратель коридора","복도 간수","حارس الممر","Guarda de corredor","Flurwärter"],
+  ["Pensionnaire, ancien pêcheur", "Resident, retired fisherman", "Residente, antiguo pescador", "住民，退休漁夫", "Постоялец, бывший рыбак", "입소자, 은퇴한 어부", "نزيل، صياد سابق", "Residente, ex-pescador", "Bewohner, ehemaliger Fischer"]
  ];
  const parFr=new Map(L.map(l=>[l[0],l]));
  function langue(){return (global.RP_I18N_GAME_ENABLED===true&&global.RPPlateauI18n?.language?.())||'fr';}

@@ -3402,7 +3402,7 @@ async function ouvrirDetailObjetInventaire(idx) {
 
   let html = '<div style="padding:1rem">';
   html += imageHtml;
-  html += '<div style="font-size:.85rem;color:#a0a080;line-height:1.6;margin-bottom:.8rem">' + (item.desc || '') + legal + '</div>';
+  html += '<div style="font-size:.85rem;color:#a0a080;line-height:1.6;margin-bottom:.8rem">' + ((typeof texteTresorTsarsObjet === 'function' && texteTresorTsarsObjet(item)) || item.desc || '') + legal + '</div>';
   if (documentHtml) html += documentHtml + '<div style="height:.8rem"></div>';
   if (ficheHtml) html += ficheHtml + '<div style="height:.8rem"></div>';
 
@@ -3420,6 +3420,8 @@ async function ouvrirDetailObjetInventaire(idx) {
   if (item.stackKey === 'oeufs' && typeof mangerOeufs === 'function') {
     html += '<button onclick="mangerOeufs()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-egg"></i> Manger 3 œufs</button>';
   }
+  // Énigme du trésor des Tsars (12/11/2026) : lire le livre, manger un gâteau.
+  if (typeof boutonsTresorTsarsObjet === 'function') html += boutonsTresorTsarsObjet(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> <span data-i18n="inventoryUi.consume">Consommer</span></button>';
   }
@@ -4071,7 +4073,7 @@ function ouvrirDetailObjet(idx) {
   }
   html += '<div style="padding:1rem">';
   if (item.desc) {
-    html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">' + item.desc + '</div>';
+    html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">' + ((typeof texteTresorTsarsObjet === 'function' && texteTresorTsarsObjet(item)) || item.desc) + '</div>';
   }
   html += '<div style="font-size:.68rem;color:#9a8a68;margin-bottom:.8rem">';
   html += (item.legal ? '✓ Légal' : '✗ Non enregistré');
@@ -4084,6 +4086,7 @@ function ouvrirDetailObjet(idx) {
   if (item.stackKey === 'oeufs' && typeof mangerOeufs === 'function') {
     html += '<button onclick="mangerOeufs()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Manger 3 œufs</button>';
   }
+  if (typeof boutonsTresorTsarsObjet === 'function') html += boutonsTresorTsarsObjet(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Consommer</button>';
   }

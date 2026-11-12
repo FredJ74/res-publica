@@ -475,6 +475,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'fouiller_voler' && typeof ouvrirMenuFouillerVoler === 'function') { ouvrirMenuFouillerVoler(); return; }
   // GUIDE DU MUSEE DE NOVOMIRSK (11/11/2026) : presentation fixe, gratuite, aucun debit ni tirage.
   if (fn === 'ecouter_guide_musee' && typeof ouvrirGuideMusee === 'function') { ouvrirGuideMusee(); return; }
+  // ÉNIGME DU TRÉSOR DES TSARS (12/11/2026) : ordres gratuits, tout est décidé par le serveur.
+  if (fn === 'tresor_ecouter_guide' && typeof tresorEcouterGuide === 'function') { tresorEcouterGuide(); return; }
+  if (fn === 'tresor_donner_livre' && typeof tresorDonnerLivre === 'function') { tresorDonnerLivre(); return; }
+  if (fn === 'tresor_repondre' && typeof tresorOuvrirReponse === 'function') { tresorOuvrirReponse(); return; }
   // CAMION MILITAIRE (29 septembre 2026). Quatre ordres, tous a 0 PA et 0 FR :
   // monter, descendre, conduire, envoyer a vide. Le seul cout du systeme -- 2 PA
   // par occupant reellement transporte -- est calcule et preleve PAR LE SERVEUR,

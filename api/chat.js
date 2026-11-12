@@ -26,6 +26,7 @@ import { handlerAide } from './_aide.js';
 import { appelDeepSeek, joueurAuthentifie, classerEchecFournisseur } from './_deepseek.js';
 import { sbTransport } from './_supabase.js';
 import { sceneDialogue } from './_pnj-localisation.js';
+import { PNJ_TRESOR_TSARS, contientMotCle, repliqueTresorTsars } from './_enigme-tresor-tsars.js';
 import { PROFILS_MUNICIPAUX_LUTHECIA, lireTitulaireMunicipal, contexteMunicipal } from '../continuite-municipale.js';
 
 const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
@@ -140,6 +141,24 @@ async function rpcGuideMusee(rpc, jeton) {
     return await r.json();
   } catch (e) {
     journalChat('guide_musee', 'reseau_ou_format');
+    return null;
+  }
+}
+
+// ENIGME DU TRESOR DES TSARS (12/11/2026) : appel d'une RPC sous le jeton du joueur, corps fourni.
+async function rpcJoueur(rpc, corps, jeton) {
+  const url = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
+  const anon = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
+  try {
+    const r = await fetch(url.replace(/\/$/, '') + '/rest/v1/rpc/' + rpc, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': anon, 'Authorization': 'Bearer ' + jeton },
+      body: JSON.stringify(corps || {}), signal: AbortSignal.timeout(BUDGET_LECTURES_MS)
+    });
+    if (!r.ok) { journalChat('tresor_tsars', 'http', r.status); return null; }
+    return await r.json();
+  } catch (e) {
+    journalChat('tresor_tsars', 'reseau_ou_format');
     return null;
   }
 }
@@ -303,6 +322,17 @@ export default async function handler(req, res) {
     const etat = await rpcGuideMusee('guide_musee_dialogue_lire', utilisateur.jeton);
     if (!etat || etat.ok !== true) return res.status(403).json({ error: 'Dialogue indisponible.', raison: etat?.raison || 'indisponible' });
     if (!(etat.restantes > 0)) return res.status(403).json({ error: 'Plus de question.', raison: etat.ouvert ? 'questions_epuisees' : 'dialogue_non_ouvert' });
+  }
+
+  // Énigme du trésor des Tsars : un mot clé (ou, pour Tatiana, le livre lui-même) peut déclencher une réplique
+  // fixe. C'est le serveur qui décide si la scène a lieu (lieu, étape, livre) ; sinon, dialogue habituel.
+  if (PNJ_TRESOR_TSARS.includes(req.body.profil)) {
+    const motCle = contientMotCle(req.body.profil, req.body.message, req.body.lang);
+    if (motCle || req.body.profil === 'tatiana_bortchova') {
+      const v = await rpcJoueur('tresor_tsars_parler', { p_pnj: req.body.profil, p_mot_cle: motCle }, utilisateur.jeton);
+      const replique = v && v.ok === true && v.scene ? repliqueTresorTsars(v.scene, langueDialogueAutorisee(req.body.lang)) : null;
+      if (replique) return res.status(200).json({ reponse: replique, enigme: v.scene });
+    }
   }
 
   // Les lectures de contexte et de position partent ENSEMBLE : elles sont independantes, et les enchainer ajouterait

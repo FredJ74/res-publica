@@ -130,6 +130,8 @@ async function surveillanceFouiller() {
   if (!r || r.ok !== true) { showToast(texteEquip('fouilleImpossible', 'Fouille impossible'), surveillanceRefus(r), false); return; }
   surveillanceAppliquer(r);
   const trouvees = Array.isArray(r.trouvees) ? r.trouvees : [];
+  // Énigme du trésor des Tsars (12/11/2026) : au musée présidentiel de Novomirsk, le serveur peut joindre le livre.
+  if (r.livre_tresor === true && typeof tresorTsarsApresFouille === 'function' && tresorTsarsApresFouille(r) && !trouvees.length) return;
   if (!trouvees.length) {
     showToast(texteEquip('fouilleFinie', 'Fouille terminée'), r.couinator ? texteEquip('couinMuet', 'Le Couinator reste muet. Rien ici.') : texteEquip('rienSuspect', 'Vous ne trouvez rien de suspect.'), true);
     return;

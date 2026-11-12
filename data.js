@@ -2292,6 +2292,11 @@ const WORLD = {
           },
           persons: [{name: 'Ludmila Pamphletova (PNJ)', role: 'PNJ - Libraire-imprimeuse du Parti', rel: 'neutral', job: 'imprimeur'}]
         },
+        // Musée municipal (Fred, 12/11/2026) : Salle des Origines et Salle des Personnalités discrètes à la place des
+        // neuf salles du panthéon, que Krasnov garde.
+        'musee-novomirsk': {
+          roomsExclues: ['salle_criminels', 'salle_maires', 'salle_personnalites', 'salle_entrepreneurs', 'salle_organisations', 'salle_plumes', 'salle_honneur_militaire', 'salle_unions', 'salle_scandales']
+        },
         // Restaurant La Mere Volga (vue 2) : copie du Capitaine Sauvage de PSM (decision de Fred,
         // 04/11/2026 ; la carte sera retravaillee plus tard). Meme commerce du socle
         // (commerces_types/commerces_dotations « capitaine-sauvage|salle_principale », entreprise
@@ -4660,7 +4665,7 @@ const BUILDINGS = {
     cat: "Culture",
     icon: "ti-building-monument",
     bgColor: "#1c160c",
-    desc: "Le musée de l'histoire de Novomirsk et de ses grandes figures. Chaque salle immortalise une catégorie de Novomirskois célèbres, pour le meilleur et pour le pire, selon la version en vigueur.",
+    desc: "Le musée municipal de Novomirsk, l'ancienne ville des Tsars : les origines de la ville sur le fleuve Sovarka, et les personnalités discrètes qui ont fait sa réputation.",
     rooms: {
       hall: {
         name: "Hall d'accueil",
@@ -4673,6 +4678,26 @@ const BUILDINGS = {
           {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'}
         ],
         orders: []
+      },
+      // Salles du musée de Novomirsk (Fred, 12/11/2026) : la ville les montre seules (roomsExclues du contexte de
+      // Novomirsk) ; Krasnov, qui réutilise ce bâtiment, garde les anciennes salles et exclut celles-ci.
+      salle_origines: {
+        name: "Salle des Origines",
+        imageBg: "linear-gradient(135deg,#10161c,#18202a)",
+        desc: "Cartes anciennes, filets de pêche et barques vermoulues racontent la naissance de Novomirsk sur les rives du fleuve Sovarka : des terres fertiles, des eaux poissonneuses, et un fleuve qui faisait circuler marchandises et nouvelles entre les villes et les pays. Capitale des Tsars, elle l'est restée quand la démocratie a renversé le régime. Une vitrine vide porte une simple étiquette : « Trésor impérial — au fond du fleuve, avec Sergueï IV le Terrible et sa barque percée. » Depuis, les pêcheurs relèvent leurs filets en espérant y trouver un coffre plutôt qu'une carpe.",
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        orders: [
+          {fn:'tresor_ecouter_guide', label:'Écouter le guide', pa:0, cost:0, type:'legal', icon:'ti-microphone-2', successRate:100, desc:'Le vétéran Ilia Krioukov raconte les origines de Novomirsk et la légende du trésor des Tsars.'}
+        ]
+      },
+      salle_personnalites_discretes: {
+        name: "Salle des Personnalités discrètes",
+        imageBg: "linear-gradient(135deg,#16120c,#201a10)",
+        desc: "Les présidents, sportifs et artistes de Novomirsk ont leurs honneurs au musée national. Ici reposent les autres : ceux dont l'histoire a retenu l'œuvre plutôt que le nom, et dont l'œuvre a parfois dépassé l'histoire.",
+        persons: [ {name:'Vétéran Ilia Krioukov (PNJ)', role:'PNJ - Guide bénévole du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Novomirsk/Novo_ilia_medailine_portrait.webp'} ],
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       salle_criminels: {
         name: "Salle des Grands Criminels Novomirskois",
@@ -10437,6 +10462,13 @@ function slugPnjSovarka(nom) {
 }
 
 
+// Énigme du trésor des Tsars (Fred, 12/11/2026) : Evgueni Sudakov, le vieux pêcheur rival des Karpov, rejoint
+// les trois pensionnaires de l'EHPAD de Novomirsk (APRÈS leur renommage sovarkien, qui ne le concerne pas).
+{
+  const ehpad = WORLD.soviet.capitale.buildingContext['dispensaire-public'].roomOverrides.ehpad_tilleuls;
+  ehpad.persons = (ehpad.persons || []).concat([{ name: 'Evgueni Sudakov (PNJ)', role: 'Pensionnaire, ancien pêcheur', rel: 'neutral', job: 'retraite' }]);
+}
+
 // Portraits locaux de Novomirsk, extraits des scènes d'accueil et du bureau.
 // La surcharge est appliquée APRÈS le renommage sovarkien : la mécanique du socle
 // efface volontairement les portraits hérités de Républia lors du renommage.
@@ -10919,6 +10951,7 @@ function montantDansTexte(texte, ancien, nouveau) {
   Object.assign(musee, { name: 'Musée de Krasnov', desc: 'Le musée du kolkhoze : machines agricoles d\'époque, records de récolte et portraits des tractoristes émérites.' });
   ['hall', 'salle_criminels', 'salle_maires', 'salle_personnalites', 'salle_entrepreneurs', 'salle_organisations', 'salle_plumes', 'salle_honneur_militaire', 'salle_unions', 'salle_scandales']
     .forEach(id => { piece(musee, id).personsVides = true; });
+  musee.roomsExclues = (musee.roomsExclues || []).concat(['salle_origines', 'salle_personnalites_discretes']);
   Object.assign(piece(musee, 'hall'), { personsVides: false, persons: [pnj('Vera Lebedeva', 'Guide du musée', 'guide')] });
   Object.assign(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), { name: 'Bar Sever', desc: 'Le bar-tabac de Krasnov (« Бар Север ») : vodka, cigarettes, journaux du Parti et le match à la radio.' });
   Object.assign(piece(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), 'salle'), { persons: [pnj('Grigori Zaitsev', 'Patron du bar', 'serveur')] });
