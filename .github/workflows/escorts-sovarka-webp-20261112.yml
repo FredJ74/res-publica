@@ -60,7 +60,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A images/Sovarka/Novomirsk/Sovarka_escort_*
+          git add -A images/Sovarka/Novomirsk
           if ! git diff --cached --quiet; then
             git commit -m 'art: WebP et vignettes des deux escorts de Sovarka'
             git pull --rebase origin main
