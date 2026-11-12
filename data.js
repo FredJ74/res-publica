@@ -2027,9 +2027,9 @@ const WORLD = {
           persons: [{"name": "Camarade Privilège (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}]
         },
         'clinique-privee': {
-          name: 'Clinique du Parti',
-          desc: "Réservée aux membres du Parti. Docteur Stakhanov soigne selon le rang.",
-          persons: [{"name": "Docteur Stakhanov (PNJ)", "role": "Médecin du Parti", "rel": "neutral", "job": "medecin"}],
+          name: 'Clinique privée Saint-Pavel',
+          desc: "Un établissement privé prestigieux de Novomirsk, ouvert à tous les patients capables de payer leurs soins.",
+          persons: [{"name": "Docteur Stakhanov (PNJ)", "role": "Médecin", "rel": "neutral", "job": "medecin"}],
           // Habillage propre à Novomirsk : clinique Saint-Pavel.
           // Aucune modification des patients, des ordres de soins ou des dix attributions de chambre.
           roomOverrides: {
