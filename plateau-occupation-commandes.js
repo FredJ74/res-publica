@@ -26,8 +26,24 @@ async function occupationOuvrirPolice() {
   const c=contexteNegociationSquatteurs(),[legale,rapide]=await Promise.all([occupationPreparer('police'),occupationPreparer('corruption_police')]);
   if(!legale||!rapide||!memeContexteNegociation(c))return;
   state._occupationPolice={police:legale,corruption_police:rapide};
-  constructionFenetre(occT("callPolice","Appeler la police"),'<p>'+occH('legalIntervention',"Intervention légale : {pa} PA, sans paiement ni jet aléatoire. Délai : {hours} h.",{pa:legale.pa,hours:legale.delaiHeures})+'</p>'+constructionBouton(occT("requestLegal","Demander l’intervention légale"),'occupationExecuterPolice("police")')+'<p>'+occH('bribeInfo',"Soudoyer : {pa} PA et {cost} FR ; réussite {rate} %, délai {hours} h en cas de succès.",{pa:rapide.pa,cost:rapide.cout,rate:rapide.taux,hours:rapide.delaiHeures})+'</p>'+constructionBouton(occT("bribe","Soudoyer l’inspecteur"),'occupationExecuterPolice("corruption_police")'));
+  occupationAfficherChoixPolice(legale,rapide);
 }
+function occupationAfficherChoixPolice(legale,rapide){
+ constructionFenetre(occT('callPolice','Appeler la police'),
+ '<div data-occupation-police="1"><p>'+occH('legalIntervention',"Intervention légale : {pa} PA, sans paiement ni jet aléatoire. Délai : {hours} h.",{pa:legale.pa,hours:legale.delaiHeures})+'</p>'
+ +constructionBouton(occT('requestLegal','Demander l’intervention légale'),'occupationExecuterPolice("police")')
+ +'<p>'+occH('bribeInfo',"Soudoyer : {pa} PA et {cost} FR ; réussite {rate} %, délai {hours} h en cas de succès.",{pa:rapide.pa,cost:rapide.cout,rate:rapide.taux,hours:rapide.delaiHeures})+'</p>'
+ +constructionBouton(occT('bribe','Soudoyer l’inspecteur'),'occupationExecuterPolice("corruption_police")')+'</div>');
+}
+(window.RP_I18N_CHANGE_CALLBACKS=window.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
+ const body=document.getElementById('postes-body'),modal=document.getElementById('modal-postes');
+ const p=state._occupationPolice;
+ if(!modal?.classList?.contains('open')||!body?.querySelector?.('[data-occupation-police="1"]')
+   ||!p?.police||!p?.corruption_police
+   ||!memeContexteNegociation(p.police.contexte)||!memeContexteNegociation(p.corruption_police.contexte))return;
+ occupationAfficherChoixPolice(p.police,p.corruption_police);
+});
+
 async function occupationExecuterPolice(action) {
   const plan=state._occupationPolice?.[action];
   if(!plan||!memeContexteNegociation(plan.contexte)){showToast(occT("expired","Action périmée"),occT("reopen","Rouvrez la demande depuis ce terrain."),false);return;}
