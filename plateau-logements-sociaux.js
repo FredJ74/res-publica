@@ -16,6 +16,12 @@ function logementsSociauxEchapper(t) {
   return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+function socialT(key,original,vars){return window.RPSocialHousingI18n?.text?.(key,original,vars||{})||original;}
+function socialSpan(key,vars){
+ const fr=window.RPSocialHousingI18n?.words?.fr?.[key]||key;
+ return '<span data-social-i18n="'+key+'" data-social-args="'+logementsSociauxEchapper(JSON.stringify(vars||{}))+'">'
+   +logementsSociauxEchapper(socialT(key,fr,vars))+'</span>';
+}
 const LOGEMENTS_SOCIAUX_MOTIFS = {
   aucun_logement_social: "Il n'y a pas de logements sociaux dans la ville.",
   residence_requise: 'Seul un résident officiel de cette ville (domicile officiel) peut demander un logement social ici.',
@@ -32,24 +38,25 @@ const LOGEMENTS_SOCIAUX_MOTIFS = {
   loyer_invalide: 'Le loyer doit être un nombre entier positif.',
   attribution_refusee: 'Le serveur a refusé l’attribution.'
 };
+function socialReason(raison){const source=LOGEMENTS_SOCIAUX_MOTIFS[raison];return source?socialT('reason_'+raison,source):null;}
 function logementsSociauxMotif(v) {
-  if (!v || v.transport) return 'Réponse incertaine. Réessayez.';
-  return LOGEMENTS_SOCIAUX_MOTIFS[v.raison] || ('Refus du serveur (' + v.raison + ').');
+ if(!v||v.transport)return socialT('uncertain','Réponse incertaine. Réessayez.');
+ return socialReason(v.raison)||socialT('serverRefusal','Refus du serveur ({reason}).',{reason:v.raison});
 }
 
 // Ordre « Déposer une demande de logement social » (trois mairies).
 async function demanderLogementSocialCommun(pa, cost) {
   const offre = await sbRpcVerdict('logements_sociaux_offre', {}).catch(() => null);
   if (offre && offre.ok === true && offre.offre === false) {
-    showToast('Logements sociaux', LOGEMENTS_SOCIAUX_MOTIFS.aucun_logement_social, false);
+    showToast(socialT('title','Logements sociaux'),socialReason('aucun_logement_social'),false);
     return;
   }
   const bouton = (type, texte) => '<button onclick="confirmerDemandeLogementSocialCommun(' + (type ? '\'' + type + '\'' : 'null') + ')" style="padding:.6rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;text-align:left">' + texte + '</button>';
-  document.getElementById('postes-modal-title').textContent = 'Demande de logement social';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem">'
-    + '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Votre demande sera examinée par l’adjoint au maire. Vous pouvez indiquer une préférence.</div>'
+  document.getElementById('postes-modal-title').textContent = socialT('demandTitle','Demande de logement social');
+  document.getElementById('postes-body').innerHTML = '<div data-social-context="demand" style="padding:1rem">'
+    + '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">'+socialSpan('demandIntro')+'</div>'
     + '<div style="display:flex;flex-direction:column;gap:.4rem">'
-    + bouton('petit', 'Petit appartement') + bouton('grand', 'Grand appartement') + bouton(null, 'Sans préférence')
+    + bouton('petit',socialSpan('small')) + bouton('grand',socialSpan('large')) + bouton(null,socialSpan('any'))
     + '</div></div>';
   document.getElementById('modal-postes').classList.add('open');
 }
@@ -57,22 +64,22 @@ async function demanderLogementSocialCommun(pa, cost) {
 async function confirmerDemandeLogementSocialCommun(type) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const v = await sbRpcVerdict('logement_social_demander', { p_type: type || null }).catch(() => null);
-  if (!v || v.ok !== true) { showToast('Demande non enregistrée', logementsSociauxMotif(v), false); return; }
+  if (!v || v.ok !== true) { showToast(socialT('requestDenied','Demande non enregistrée'),logementsSociauxMotif(v),false); return; }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
   updateUI();
-  showToast('Demande enregistrée', 'L’adjoint au maire examinera votre demande de logement social.', true, true);
-  addJournalEntry('Demande de logement social déposée.', 'event-info');
+  showToast(socialT('requestRecorded','Demande enregistrée'),socialT('review','L’adjoint au maire examinera votre demande de logement social.'),true,true);
+  addJournalEntry(socialT('requestJournal','Demande de logement social déposée.'),'event-info');
 }
 
 // Tableau de bord de l'adjoint au maire.
 async function ouvrirTableauLogementsSociaux() {
-  document.getElementById('postes-modal-title').textContent = 'Logements sociaux';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('postes-modal-title').textContent = socialT('title','Logements sociaux');
+  document.getElementById('postes-body').innerHTML = '<div data-social-context="dashboard" style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">'+socialSpan('loading')+'</div>';
   document.getElementById('modal-postes').classList.add('open');
   const v = await sbRpcVerdict('logements_sociaux_tableau', {}).catch(() => null);
   if (!v || v.ok !== true) {
     document.getElementById('modal-postes')?.classList.remove('open');
-    showToast('Logements sociaux', logementsSociauxMotif(v), false);
+    showToast(socialT('title','Logements sociaux'),logementsSociauxMotif(v),false);
     return;
   }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -83,7 +90,7 @@ async function ouvrirTableauLogementsSociaux() {
   const libres = appartements.filter(a => !a.locataire);
   const nomBatiment = t => (typeof BUILDINGS !== 'undefined' && BUILDINGS[t]?.name) || t;
   const e = logementsSociauxEchapper;
-  let html = '<div style="padding:1rem">';
+  let html = '<div data-social-context="dashboard" style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Logements de la commune de ' + e(nomVille) + '. Les loyers sont versés à la caisse de la mairie ; chaque changement de loyer est inscrit dans l’historique du bâtiment.</div>';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;color:#C9A84C;margin:.4rem 0">Appartements (' + appartements.length + ')</div>';
   if (appartements.length === 0) {
