@@ -49,8 +49,8 @@ test('neuf langues : devis, identifiants et paramètres serveur inchangés',asyn
   const t=e.context.RP_I18N_RESOURCES[lang].translation.naval;
   assert.equal(e.title,t.title,lang);
   assert.ok(e.body.includes(t.constructionNotice),lang);
-  assert.ok(e.body.includes('150 000 FR'),lang);
-  assert.ok(e.body.includes('52 500 FR'),lang);
+  assert.ok(/150[\\u202f ]000 FR/.test(e.body),lang);
+  assert.ok(/52[\\u202f ]500 FR/.test(e.body),lang);
   assert.ok(e.body.includes('1800')||e.body.includes('1 800'),lang);
   assert.ok(e.body.includes("commanderBateauNaval('bateau_3')"),lang);
   assert.ok(e.body.includes("commanderBateauNaval('bateau_5')"),lang);
@@ -70,8 +70,8 @@ test('changement de langue dans devis ouvert : aucune requête supplémentaire',
 test('annulation de commande : identifiants et montant transmis à la confirmation uniquement',async()=>{
  const e=fixture('en');await e.context.ouvrirDevisChantierNaval();
  await e.context.commanderBateauNaval('bateau_3');
- assert.ok(e.confirmed.includes('150 000 FR'));
- assert.ok(e.confirmed.includes('52 500 FR'));
+ assert.ok(/150[\\u202f ]000 FR/.test(e.confirmed));
+ assert.ok(/52[\\u202f ]500 FR/.test(e.confirmed));
  assert.ok(e.confirmed.includes('3-seat boat'));
  assert.equal(e.calls.length,2,'no order RPC on refusal');
 });
