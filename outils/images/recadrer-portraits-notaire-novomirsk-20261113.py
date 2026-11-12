@@ -23,13 +23,13 @@ for suffixe in noms:
         rectangles=detecteur.detectMultiScale(gris,scaleFactor=1.05,minNeighbors=3,minSize=(30,30))
         boxes=sorted([[int(x),int(y),int(a),int(b)] for x,y,a,b in rectangles],
                     key=lambda p:p[2]*p[3],reverse=True)
+        rapport.append(dict(scene=str(src),dimensions=[w,h],visages=boxes))
         if not boxes:
-            # On ne fabrique pas de tête : si aucun visage réel n'est détecté, on interrompt.
-            raise RuntimeError(f"Aucun visage détecté dans {src}. Vérification humaine nécessaire.")
+            continue
         # Le portrait central le plus grand est la personne principale de la scène.
         # En cas de plusieurs personnages, ne pas identifier arbitrairement une personne.
         if len(boxes)>1 and boxes[1][2]*boxes[1][3] > .75*boxes[0][2]*boxes[0][3]:
-            raise RuntimeError(f"Visages similaires dans {src}, choix ambigu : {boxes}")
+            continue
         x,y,fw,fh=boxes[0]
         cx=x+fw/2
         cy=y+fh/2+fh*.52   # de la tête vers les épaules pour la photo de fiche
@@ -42,5 +42,9 @@ for suffixe in noms:
         crop.save(dest,"WEBP",quality=86,method=6)
         with Image.open(dest) as out:
             assert out.format=="WEBP" and out.size==(512,512)
-        rapport.append(dict(scene=str(src),portrait=str(dest),dimensions=[w,h],visages=boxes,recadrage=[int(left),int(top),int(side)]))
+        rapport[-1].update(portrait=str(dest),recadrage=[int(left),int(top),int(side)])
+Path('outils/audits').mkdir(parents=True,exist_ok=True)
+Path('outils/audits/diagnostic-visages-notaire-novomirsk.json').write_text(json.dumps(rapport,ensure_ascii=False,indent=2),encoding='utf-8')
 print(json.dumps(rapport,ensure_ascii=False,indent=2))
+if len([r for r in rapport if 'portrait' in r])!=4:
+    raise RuntimeError('Certains portraits nécessitent un recadrage spécifique ; diagnostic enregistré.')
