@@ -95,22 +95,21 @@ async function ouvrirDevisChantierNaval() {
       '<div style="font-size:.78rem;color:#a9b7c4;margin-top:.35rem">'+navHtml('warehouse',"Entrepôt PSM : {wood} bois, {metal} métal, {derivatives} dérivés.",{wood:navalNombre(x.entrepot_psm.bois),metal:navalNombre(x.entrepot_psm.metal),derivatives:navalNombre(x.entrepot_psm.derives_petrochimiques)})+'</div>' +
       '<div style="font-size:.78rem;color:#dfb58a">'+navHtml('missing',"Manque pour une construction complète : {wood} bois, {metal} métal, {derivatives} dérivés.",{wood:navalNombre(x.manquant_psm.bois),metal:navalNombre(x.manquant_psm.metal),derivatives:navalNombre(x.manquant_psm.derives_petrochimiques)})+'</div>' +
       '<button class="cpj-touche cpj-primaire" style="margin-top:.7rem" ' +
-      'onclick="commanderBateauNaval(\''+x.modele+'\')">Commander — acompte '+navalNombre(acompte)+' FR</button>' +
+      'onclick="commanderBateauNaval(\''+x.modele+'\')">'+navHtml('orderButton',"Commander — acompte {deposit} FR",{deposit:navalNombre(acompte)})+'</button>' +
       '</section>';
   }
   if (commandes.length) {
-    html += '<strong style="color:#eac67a">Mes constructions et bateaux</strong>';
+    html += '<strong style="color:#eac67a">'+navHtml('myOrders',"Mes constructions et bateaux")+'</strong>';
     for (const c of commandes) {
       const navire = c.bateau_id ?
-        '<div style="color:#9ecfa5">Bateau livré au port de PSM — immatriculation '+navalEchappe(c.bateau_id)+
-        ' (navigation privée non encore activée).</div>' : '';
-      const etat = c.etat==='bloque_matieres' ? 'Bloqué : matériaux insuffisants' :
-        c.etat==='bloque_finances' ? 'Bloqué : fonds insuffisants ou budget matières épuisé' :
-        c.etat==='acheve' ? 'Achevé' : 'En construction';
+        '<div style="color:#9ecfa5">'+navHtml('delivered',"Bateau livré au port de PSM — immatriculation {id} (navigation privée non encore activée).",{id:c.bateau_id})+'</div>' : '';
+      const etat = c.etat==='bloque_matieres' ? navT("blockedMaterials","Bloqué : matériaux insuffisants") :
+        c.etat==='bloque_finances' ? navT("blockedFunds","Bloqué : fonds insuffisants ou budget matières épuisé") :
+        c.etat==='acheve' ? navT("completed","Achevé") : navT("building","En construction");
       html += '<div style="border:1px solid #394656;border-radius:8px;padding:.6rem;margin-top:.5rem">' +
-       navalEchappe(CHANTIER_NAVAL_MODELES[c.modele] || c.modele) + ' — ' +
+       navalEchappe(navalNom(c.modele)) + ' — ' +
        navalNombre(c.jours)+' / '+navalNombre(c.total)+' journées · '+navalEchappe(etat) +
-       '<div>Payé : '+navalNombre(c.verse)+' / '+navalNombre(c.prix_total)+' FR</div>' +
+       '<div>'+navHtml('paid',"Payé : {paid} / {total} FR",{paid:navalNombre(c.verse),total:navalNombre(c.prix_total)})+'</div>' +
        navire+'</div>';
     }
   }
@@ -119,7 +118,7 @@ async function ouvrirDevisChantierNaval() {
   const body=document.getElementById('postes-body');
   const modal=document.getElementById('modal-postes');
   if (!titre || !body || !modal) return;
-  titre.textContent='Chantier naval Le Roux — commandes';
+  titre.textContent=navT('title',"Chantier naval Le Roux — commandes");
   body.innerHTML=html;
   modal.classList.add('open');
 }
