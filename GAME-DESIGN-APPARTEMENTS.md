@@ -130,3 +130,5 @@ Décors : fonction serveur `logement-decoration` (déployée), même atelier que
 - **Décision de Fred (13/11/2026, 0 h 13)** : une collection complète donne **+1 PA** au personnage qui dort en
   présence de son armoire (même pièce), sans cumul entre plusieurs armoires complètes. **Non codé** : attend le feu
   vert de Fred, avec le dépôt des souvenirs dans l'armoire (règles déjà écrites, mécanique absente).
+- **Décision de Fred (13/11/2026, 0 h 15)** : le +1 PA de l'armoire **se cumule** avec le +1 PA de l'appartement
+  (titulaire dans sa chambre avec son armoire complète = +2 PA). Non codé.
