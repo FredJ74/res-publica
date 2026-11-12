@@ -868,7 +868,11 @@
   const t=label(buildingId,roomId,original);
   if(t!==original)return t;
   const s=global.RPSovarkaPiecesI18n?.label?.(buildingId,roomId,original);
-  return typeof s==='string'&&s.trim()?s:original;
+  if(typeof s==='string'&&s.trim()&&s!==original)return s;
+  // Dernier recours : uniquement les pièces connues des gabarits communs,
+  // après les variantes politiques et les traductions spécifiques à Sovarka.
+  const common=global.RPCommonRoomI18n?.label?.(buildingId,roomId,original);
+  return typeof common==='string'&&common.trim()?common:original;
  }
  function labelHtmlAvecSovarka(buildingId,roomId,original){
   const output=labelAvecSovarka(buildingId,roomId,original);
