@@ -316,7 +316,7 @@ function renderPersonsList(persons, targetId) {
         avatarHtml +
         '<div>' +
         '<div class="person-name">' + ech(p.name) + '</div>' +
-        '<div class="person-role">' + ech(roleAfficheSovarka(p.role)) + '</div>' +
+        '<div class="person-role">' + ech(typeof roleAfficheSovarka === 'function' ? roleAfficheSovarka(p.role) : p.role) + '</div>' +
         '</div></div>';
     }
     if (p.detachement === true) {
@@ -343,7 +343,7 @@ function renderPersonsList(persons, targetId) {
       '<div>' +
       '<div class="person-name">' + p.name + '</div>' +
       marqueurMutinHtml(p.name) +
-      '<div class="person-role">' + roleAfficheSovarka(p.role) + '</div>' +
+      '<div class="person-role">' + (typeof roleAfficheSovarka === 'function' ? roleAfficheSovarka(p.role) : p.role) + '</div>' +
       '</div></div>';
   };
 
