@@ -39,6 +39,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ### Décisions attendues de Fred
 
+- **Appartements populaires (décisions du 12/11 au soir, `GAME-DESIGN-APPARTEMENTS.md`) : NON CODÉ, attendre le feu vert de Fred.** +1 PA au sommeil dans tout logement populaire ; option premium cosmétique (chambres séparées, décors IA, emplacements) ; armoire à souvenirs à 1 emplacement ; colocation des grands appartements (2 PA) ; époux. Images des chambres à venir (Fred).
 - **Choix de Claude à relire par Fred** (PR #681, `GAME-DESIGN-NOVOMIRSK.md`) : vol d'archives des centres d'écoute à 2 PA, jet de base 45 % ; repas chez l'habitant +2 PA au prochain sommeil ; noms des habitants Dolgor Tsybikova (Starovka) et Stepan Kouznetsov (Krasnov) ; réaction à la bouteille = phrase fixe (pas encore l'IA).
 - Caisses d'entrepôts, reprise Codex 07/11 : la question initiale « PSM 10 231 FR
   dans le blob contre 2 FR canoniques : lequel garder ? » est **caduque selon le
