@@ -30,6 +30,8 @@
    luthecia-centre-affaires-open-space-vue-dessus.png : quatre ilots en 2x2,
    tapis compris -- on vise l'ilot entier, pas le seul bureau, pour que la cible
    soit confortable a la souris. */
+const openSpaceTr = (key, fr) => window.RPOpenSpaceI18n?.text?.(key, fr) || fr;
+const openSpaceNom = (poste) => openSpaceTr('post' + poste.piece.slice(-1).toUpperCase(), poste.nom);
 const OPEN_SPACE_PLAN = {
   'centre-affaires': {
     image: 'images/luthecia-centre-affaires-open-space-vue-dessus.webp',
@@ -50,7 +52,7 @@ const OPEN_SPACE_PLAN = {
 function openSpaceSituationPoste(buildingId, piece, ville) {
   const bail = (typeof getLocationPourRoom === 'function')
     ? getLocationPourRoom(buildingId, piece, ville) : null;
-  if (!bail) return { libre: true, texte: 'À louer' };
+  if (!bail) return { libre: true, texte: openSpaceTr('toRent', 'À louer') };
 
   if (bail.fondsId && typeof PIECE_VARIANTES_MEMO_ENSEIGNE !== 'undefined') {
     const memo = PIECE_VARIANTES_MEMO_ENSEIGNE[bail.fondsId];
@@ -59,7 +61,7 @@ function openSpaceSituationPoste(buildingId, piece, ville) {
   // Pas encore de commerce installe, ou enseigne pas encore lue : le locataire
   // fait foi, et il est toujours en memoire.
   const qui = (bail.locataire || '').replace(/^pj:/, '');
-  return { libre: false, texte: qui || 'Occupé' };
+  return { libre: false, texte: qui || openSpaceTr('occupied', 'Occupé') };
 }
 
 
@@ -88,7 +90,7 @@ function openSpaceInjecterZones(buildingId, roomId, ville) {
     div.style.cssText = 'position:absolute;z-index:2;cursor:pointer;';
     div.addEventListener('mousemove', function (e) {
       const s = openSpaceSituationPoste(buildingId, poste.piece, cite);
-      openSpaceAfficherInfobulle(e, poste.nom, s.texte);
+      openSpaceAfficherInfobulle(e, openSpaceNom(poste), s.texte);
     });
     div.addEventListener('mouseleave', openSpaceMasquerInfobulle);
     div.addEventListener('click', function () {
