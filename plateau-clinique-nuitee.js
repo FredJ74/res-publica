@@ -137,8 +137,6 @@ global.verifierNuiteeClinique=function(){
 };
 global.reserverNuiteeClinique=reserverNuiteeClinique;
 global.consommerNuiteeCliniqueApresDormir=consommerNuiteeCliniqueApresDormir;
-})(window);
-
 (global.RP_I18N_CHANGE_CALLBACKS=global.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){
  const modal=document.getElementById('modal-postes'),corps=document.getElementById('postes-body');
  if(!reservationEnCours&&modal?.classList?.contains('open')
@@ -148,3 +146,4 @@ global.consommerNuiteeCliniqueApresDormir=consommerNuiteeCliniqueApresDormir;
   reserverNuiteeClinique();
  }
 });
+})(window);
