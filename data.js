@@ -10856,22 +10856,31 @@ function montantDansTexte(texte, ancien, nouveau) {
   // 4 grands a 20 PSK, memes bonus, mecanique de Montrouge) ; appartements numerotes 5 a 8 pour que
   // la mairie, qui les presente par leur nom, ne les confonde pas avec ceux de la vue 14.
   // Serveur : migration 20261112130000_logements_marche_novomirsk.
-  if (BUILDINGS['logements-novomirsk'] && !BUILDINGS['logements-novomirsk-marche']) {
+  // 12/11/2026 (Fred) : deux immeubles et non un. Celui de droite reste les Logements du Marche
+  // (n°5 a 8) ; celui de gauche devient les Logements des Quais de Sovarka (nom du fleuve, n°9 a 12),
+  // meme nombre de logements. Serveur : migration 20261112131500_logements_quais_novomirsk.
+  const copieLogements = (id, nomImmeuble, desc, decalage) => {
+    if (!BUILDINGS['logements-novomirsk'] || BUILDINGS[id]) return;
     const b = JSON.parse(JSON.stringify(BUILDINGS['logements-novomirsk']));
-    b.name = 'Logements du Marché';
+    b.name = nomImmeuble;
     b.shortName = 'Logements';
-    b.desc = "Les barres de béton qui dominent le marché de Novomirsk. Chaque appartement est attribué par la ville ; on y vit au-dessus des étals, avec l'odeur du poisson et le bruit des marchands.";
-    Object.entries(b.rooms).forEach(([id, r]) => {
-      const m = id.match(/^(petit|grand)_appartement_(\d)$/);
+    b.desc = desc;
+    Object.entries(b.rooms).forEach(([pieceId, r]) => {
+      const m = pieceId.match(/^(petit|grand)_appartement_(\d)$/);
       if (!m) return;
-      const nom = (m[1] === 'petit' ? 'Petit' : 'Grand') + ' appartement n°' + (Number(m[2]) + 4);
+      const nom = (m[1] === 'petit' ? 'Petit' : 'Grand') + ' appartement n°' + (Number(m[2]) + decalage);
       r.name = nom;
       if (r.locationData) r.locationData.label = nom;
     });
-    BUILDINGS['logements-novomirsk-marche'] = b;
+    BUILDINGS[id] = b;
     const novomirsk = WORLD.soviet && WORLD.soviet.capitale;
-    if (novomirsk && !novomirsk.buildings.includes('logements-novomirsk-marche')) novomirsk.buildings.push('logements-novomirsk-marche');
-  }
+    if (novomirsk && !novomirsk.buildings.includes(id)) novomirsk.buildings.push(id);
+  };
+  copieLogements('logements-novomirsk-marche', 'Logements du Marché',
+    "Les barres de béton qui dominent le marché de Novomirsk. Chaque appartement est attribué par la ville ; on y vit au-dessus des étals, avec l'odeur du poisson et le bruit des marchands.", 4);
+  copieLogements('logements-novomirsk-quais', 'Logements des Quais de Sovarka',
+    "L'immeuble à la grande fresque qui regarde les quais de la Sovarka. Chaque appartement est attribué par la ville ; on y voit passer les barques des pêcheurs et le vent du fleuve passe sous les portes.", 8);
+
 
   // Hotels.
   Object.assign(contexte('ville_a', 'hotel-mineur'), { name: 'Hôtel des Voyageurs', desc: 'L\'hôtel des voyageurs de Starovka : on y attend le train ou le bateau, au chaud, en buvant du thé au beurre.' });
