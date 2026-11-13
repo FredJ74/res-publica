@@ -1,0 +1,26 @@
+name: "Clinique - repas du client avec réservation"
+on:
+  push:
+    branches: [chatgpt/clinique-repas-reservation-20261113]
+    paths:
+      - .github/workflows/clinique-repas-reservation-20261113.yml
+      - plateau-personnage.js
+      - migrations/20261113012000_clinique_nuitee_repas.sql
+      - outils/bancs/banc-clinique-repas-nuitee.cjs
+permissions:
+  contents: read
+jobs:
+  repas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe et tests de non-régression
+        run: |
+          node --check plateau-personnage.js
+          node --test outils/bancs/banc-clinique-repas-nuitee.cjs
+          node --test outils/bancs/banc-clinique-nuitee-client.cjs
+          node --test outils/bancs/banc-hospitalisation-client.cjs
