@@ -9,10 +9,11 @@ DECLARE
   v_poste text;
   v_pays_present text;
   v_pays_mandat text;
+  v_poste_json jsonb;
 BEGIN
   IF public.est_appel_serveur() THEN RETURN NULL; END IF;
-  SELECT p.name,p.poste->>'id',p.country
-    INTO v_nom,v_poste,v_pays_present
+  SELECT p.name,p.poste->>'id',p.country,p.poste
+    INTO v_nom,v_poste,v_pays_present,v_poste_json
     FROM public.personnages_donnees p
     WHERE p.user_id=auth.uid() LIMIT 1;
   IF v_nom IS NULL THEN
@@ -26,7 +27,8 @@ BEGIN
   SELECT a.pays INTO v_pays_mandat
     FROM public.acteur_poste_courant() a
     WHERE a.nom=v_nom AND a.poste_id=p_poste;
-  IF v_pays_mandat IS NULL OR v_pays_mandat IS DISTINCT FROM v_pays_present THEN
+  IF v_pays_mandat IS NULL OR v_pays_mandat IS DISTINCT FROM v_pays_present
+      OR public.poste_est_atteste(v_nom,v_poste_json,v_pays_present) IS DISTINCT FROM true THEN
     RAISE EXCEPTION 'mandat_autre_pays: fonction % valable uniquement dans son empire',
       p_poste USING ERRCODE='42501';
   END IF;
@@ -59,7 +61,8 @@ BEGIN
   SELECT a.pays INTO v_pays_mandat
     FROM public.acteur_poste_courant() a
     WHERE a.nom=v_nom AND a.poste_id=v_regle.nomme_par;
-  IF v_pays_mandat IS NULL OR v_pays_mandat IS DISTINCT FROM v_pays THEN
+  IF v_pays_mandat IS NULL OR v_pays_mandat IS DISTINCT FROM v_pays
+      OR public.poste_est_atteste(v_nom,v_poste,v_pays) IS DISTINCT FROM true THEN
     RETURN;
   END IF;
 
