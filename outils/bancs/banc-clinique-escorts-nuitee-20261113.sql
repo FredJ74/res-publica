@@ -33,7 +33,9 @@ BEGIN
   -- 3. Sommeil : la nuitée est créditée dans le même appel.
   v := public.pa_repos_nocturne(A);
   IF (v->>'ok')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'ECHEC 3 repos %', v; END IF;
+  PERFORM set_config('role', 'postgres', true);
   SELECT pa, hp, moral INTO rec FROM public.personnages_donnees WHERE name = A;
+  PERFORM set_config('role', 'authenticated', true);
   IF rec.pa <> 24 OR rec.hp <> 60 OR rec.moral <> 53 THEN RAISE EXCEPTION 'ECHEC 3 fiche pa % hp % moral %', rec.pa, rec.hp, rec.moral; END IF;
   rap := rap || '3 sommeil 10+12+2 PA, +10 santé, +3 moral OK ; ';
   v := public.clinique_nuitee_consommer();

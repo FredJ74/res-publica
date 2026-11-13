@@ -85,7 +85,7 @@ BEGIN
   IF position('WHEN ''clinique''' IN d) = 0 THEN
     IF position('dans son appartement ''' IN d) = 0 THEN RAISE EXCEPTION 'motif presse introuvable'; END IF;
     d := replace(d, 'dans son appartement ''' || E'\n' || '    || CASE s.lieu WHEN ''residence'' THEN ''de la Résidence impériale''',
-                    ''' || E'\n' || '    || CASE s.lieu WHEN ''residence'' THEN ''dans son appartement de la Résidence impériale'' WHEN ''clinique'' THEN ''dans sa chambre de clinique privée''');
+                    '''' || E'\n' || '    || CASE s.lieu WHEN ''residence'' THEN ''dans son appartement de la Résidence impériale'' WHEN ''clinique'' THEN ''dans sa chambre de clinique privée''');
     d := replace(d, 'ELSE ''du Pavillon des Ambassadeurs'' END', 'ELSE ''dans son appartement du Pavillon des Ambassadeurs'' END');
     IF position('WHEN ''clinique''' IN d) = 0 THEN RAISE EXCEPTION 'patch presse non appliqué'; END IF;
     EXECUTE d;
