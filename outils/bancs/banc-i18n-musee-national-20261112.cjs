@@ -66,7 +66,7 @@ test('un nom présent au musée de Montrouge ne reçoit pas les biographies nati
 });
 test('catalogue enregistré, mise en cache sans réseau et scripts liés',()=>{
  assert.match(html,/i18n\/museum-national-bios-resources\.js\?v=20261113/);
- assert.match(html,/plateau-musee-personnalites\.js\?v=i18n-musee-national-20261113/);
+ assert.match(html,/plateau-musee-personnalites\.js\?v=i18n-national-bios-20261113/);
  assert.match(read('outils/audits/audit-i18n-editorial.cjs'),/'museum-national-bios-resources\.js'/);
  assert.ok(source.includes("state.country === 'republic' && state.currentBuilding === 'musee-national-republia'"));
 });
