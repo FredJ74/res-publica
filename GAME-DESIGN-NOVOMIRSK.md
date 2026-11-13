@@ -953,7 +953,8 @@ Le pays du mandat n'est pas le pays du voyage : tous les postes, élus et nommé
 - **Prix** : 250 PSK en Sovarka, 500 FR ailleurs.
 - **Écoutes** : le ministre de la Défense lit les rapports depuis son bureau seulement. **Habilitations** : ordre « Habilitations aux archives d'écoute » au bureau du ministre de la Sécurité du Peuple (accorder, retirer, liste) ; ordre « Consulter les archives (habilitation) » dans les trois salles d'écoute (1 PA, recherche par nom, résultats par courrier).
 - **Vol raté** : 1 jour de prison (le barème générique donnait 2 jours, écart corrigé pour les trois centres) ; à Novomirsk, détention en salle d'interrogatoire jusqu'à l'interrogatoire ou la fin de la peine ; « Interroger un détenu » vise un détenu présent (2 PA, 75 %, +5 INF), un seul interrogatoire puis la cellule.
-- **Limites** : les deux équipes de Sovarka partagent les portraits « soviet » du socle (portraits propres à fournir) ; courriers traduits (habilitation, retrait, fin d'interrogatoire), mais la compilation des archives consultées reste en français comme les rapports d'écoute.
+- **Portraits** (planches de Fred, 13/11, 23 h 24) : chaque agent des deux équipes de Sovarka a son portrait dans les quatre tenues de couverture (`images/Sovarka/agents/`, migration `20261113231000`). Interprétation (Claude) : la planche aux traits décrits dans le prompt (coordinateur grisonnant, conseillère au chignon, garde au crâne rasé) est celle de la Défense, l'autre celle de la Sécurité du Peuple.
+- **Limites** : courriers traduits (habilitation, retrait, fin d'interrogatoire), mais la compilation des archives consultées reste en français comme les rapports d'écoute.
 
 ## Caserne centrale de Novomirsk — audit d'ergonomie du 13/11/2026 (PR #900)
 

@@ -59,3 +59,9 @@ test('serveur : équipes par ministère, 250 PSK, une opération à la fois, hab
   assert.match(m('20261113230300'), /interrogatoire_novomirsk/);
   assert.match(m('20261113230400'), /vol_archives_un_jour/);
 });
+
+test('portraits : 2 équipes × 4 rôles × 4 tenues', () => {
+  for (const e of ['soviet-min_def', 'soviet-min_int']) for (const r of ['coordinateur', 'conseiller', 'garde', 'traducteur'])
+    for (const p of ['soviet', 'narco', 'republic', 'khalija']) assert.ok(fs.existsSync(`images/Sovarka/agents/agent-${e}-${r}-${p}.webp`), e + r + p);
+  assert.match(m('20261113231000'), /agent_portrait_chemin\(ag\.equipe, ag\.role, ag\.pays_couverture\)/);
+});
