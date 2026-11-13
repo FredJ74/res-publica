@@ -49,11 +49,20 @@ const MUSEE_NATIONAL_PERSONNALITES = {
   ]
 };
 
-// Traduction d'affichage des fiches de Sovarka (i18n/musee-sovarka-resources.js) ; le français reste la référence.
+// Chaque musée conserve son catalogue, sans traduire les données d'un autre pays.
+function museeNationalRepubI18nActif() {
+  return state.country === 'republic' && state.currentBuilding === 'musee-national-republia';
+}
 function ficheMuseeAffichee(p) {
+  if (museeNationalRepubI18nActif())
+    return { ...p, bio: window.RPMuseumNationalBiosI18n?.bio?.(p.nom, p.bio) || p.bio };
   return (typeof RPMuseeSovarkaI18n !== 'undefined') ? RPMuseeSovarkaI18n.fiche(p) : p;
 }
 function texteMusee(cle, fr) {
+  if (museeNationalRepubI18nActif()) {
+    const cleRepub = { titre: 'title', vide: 'empty', retour: 'back' }[cle];
+    return window.RPMuseumNationalBiosI18n?.text?.(cleRepub, fr) || fr;
+  }
   return (typeof RPMuseeSovarkaI18n !== 'undefined') ? RPMuseeSovarkaI18n.ui(cle, fr) : fr;
 }
 
@@ -62,7 +71,7 @@ function doConsulterPersonnalitesMusee() {
   const room = (typeof BUILDINGS !== 'undefined' && BUILDINGS[state.currentBuilding]) ? BUILDINGS[state.currentBuilding].rooms?.[state.currentRoom] : null;
   document.getElementById('postes-modal-title').textContent = (room && room.name) ? room.name : texteMusee('titre', 'Personnalités');
 
-  let html = '<div style="padding:1rem">';
+  let html = '<div data-musee-national="liste" style="padding:1rem">';
   if (liste.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">' + texteMusee('vide', 'Rien à consulter ici pour l\'instant.') + '</div>';
   } else {
@@ -82,7 +91,7 @@ function afficherFichePersonnaliteMusee(idx) {
   const p = liste[idx] ? ficheMuseeAffichee(liste[idx]) : null;
   if (!p) return;
 
-  let html = '<div style="padding:1.2rem">';
+  let html = '<div data-musee-national="fiche" data-personnalite="'+idx+'" style="padding:1.2rem">';
   html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.05em;margin-bottom:.2rem">' + p.nom + '</div>';
   html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">' + p.dates + '</div>';
   html += '<div style="font-size:.88rem;color:#e0d8c0;line-height:1.5">' + p.bio + '</div>';
@@ -266,3 +275,18 @@ function personnalitesMuseeCourantes() {
   if (state.country !== 'republic') return [];
   return MUSEE_NATIONAL_PERSONNALITES[state.currentRoom] || [];
 }
+
+// La bascule de langue ne relance aucun ordre ni appel serveur.
+(window.RP_I18N_CHANGE_CALLBACKS = window.RP_I18N_CHANGE_CALLBACKS || []).push(function () {
+  if (!museeNationalRepubI18nActif()) return;
+  const modal = document.getElementById('modal-postes');
+  const body = document.getElementById('postes-body');
+  if (!modal?.classList?.contains('open') || !body) return;
+  const fiche = body.querySelector('[data-musee-national="fiche"]');
+  if (fiche) {
+    const index = Number(fiche.dataset.personnalite);
+    if (Number.isInteger(index) && index >= 0) afficherFichePersonnaliteMusee(index);
+    return;
+  }
+  if (body.querySelector('[data-musee-national="liste"]')) doConsulterPersonnalitesMusee();
+});
