@@ -1,0 +1,21 @@
+name: Novomirsk — image de réception des ambassades
+on:
+  pull_request:
+    paths:
+      - 'data.js'
+      - 'outils/bancs/banc-novomirsk-palais-ambassades-reception-image-20261113.cjs'
+      - '.github/workflows/novomirsk-ambassades-reception-image.yml'
+permissions:
+  contents: read
+jobs:
+  image-reception:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check data.js
+      - run: node --test outils/bancs/banc-novomirsk-palais-ambassades-reception-image-20261113.cjs
+      - run: git diff --check
