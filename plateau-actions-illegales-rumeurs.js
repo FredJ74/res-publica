@@ -4839,10 +4839,8 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
     // effets.pop retiré (#379) : aucune recette ne le porte ; une jauge ne s'écrit plus à l'écran.
     // Bonus differe atteste : le serveur lit le montant de la recette dans son miroir, le
     // client ne fait que nommer la source (16 septembre 2026).
-    if (effets.paDiffere && typeof sbRpc === 'function' && state.char?.name) {
-      sbRpc('pa_bonus_differe_crediter', { p_acteur: state.char.name,
-                                           p_source: (recette && recette.id) || '' }).catch(() => {});
-    }
+    // Depuis le 13/11/2026, le bonus est crédité par le serveur DANS la vente (commerce_vendre_produit,
+    // mode comptoir) : plus de second appel de l'écran, qui pouvait échouer en silence après paiement.
   }
 
 
@@ -4866,6 +4864,18 @@ function texteCommerceMenu(key, original, vars = {}) {
   const translated=typeof window!=='undefined' ? window.RPCommerceMenuI18n?.text?.(key,vars) : null;
   return typeof translated==='string' && translated ? translated :
     original.replace(/\{(\w+)\}/g,(token,k)=>Object.hasOwn(vars,k)?String(vars[k]):token);
+}
+// Effets d'un plat en clair (13/11/2026) : « +3 PA au prochain sommeil » plutôt que « +3 PADIFFERE ».
+function libelleEffetsCommerce(effets, separateur) {
+  const noms = {
+    hp: () => texteCommerceMenu('effectHp', 'Santé'),
+    moral: () => texteCommerceMenu('effectMoral', 'Moral'),
+    paDiffere: () => texteCommerceMenu('effectPaSleep', 'PA au prochain sommeil'),
+    inf: () => 'INF', pop: () => 'POP'
+  };
+  return Object.entries(effets || {}).filter(([, v]) => v)
+    .map(([k, v]) => (v > 0 ? '+' : '') + v + ' ' + (noms[k] ? noms[k]() : k.toUpperCase()))
+    .join(separateur || ', ');
 }
 function nomProduitCommerce(id, original) {
   if (typeof window !== 'undefined' && window.RPEconomicCatalogI18n?.key('product',id,'label',original)) return window.RPEconomicCatalogI18n.text('product',id,'label',original);
@@ -4917,7 +4927,7 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
     const stock = data.stockProduits[id] || 0;
     const prix = data.parametres.prixVente[id];
     const composition = Object.entries(recette.materiaux).map(([m, q]) => q + ' ' + libelleMatiereCommerceHtml(m)).join(', ');
-    const effetsTxt = Object.entries(recette.effets || {}).map(([k, v]) => (v > 0 ? '+' : '') + v + ' ' + k.toUpperCase()).join(', ');
+    const effetsTxt = libelleEffetsCommerce(recette.effets);
     const enRupture = stock <= 0;
     // La rupture ne bloque que l'achat : ne pas rendre « Produire » visuellement inactif.
     // Ce bouton garde son propre contrôle d'habilitation, sans modifier la transaction.
@@ -5218,7 +5228,7 @@ async function confirmerConsommerBoissonUI(commerceType, buildingId, roomId, rec
   updateUI();
   // Effets affiches derives de res.effets (retourne par commanderProduitCommerce), jamais
   // codes en dur -- reste correct si les effets d'une recette venaient a changer.
-  const effetsTxt = Object.entries(res.effets || {}).filter(([, v]) => v).map(([k, v]) => (v > 0 ? '+' : '') + v + ' ' + ({hp:'Santé', moral:'Moral', inf:'INF', pop:'POP'}[k] || k.toUpperCase())).join(' ');
+  const effetsTxt = libelleEffetsCommerce(res.effets, ' ');
   showToast('Boisson servie', recette.label + (effetsTxt ? ' — ' + effetsTxt : '') + '. -' + res.prix + ' FR.', true, true);
   addJournalEntry(recette.label + ' consommé(e) — ' + res.prix + ' FR.', 'event-good');
 }

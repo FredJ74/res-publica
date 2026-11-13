@@ -10,9 +10,9 @@ function load(locale,enabled=true){
  const ctx=vm.createContext({window,console,Number,Object});
  vm.runInContext(localeSrc,ctx);return {ctx,window};
 }
-test('27 clés par langue, mêmes variables, aucun texte absent',()=>{
+test('30 clés par langue, mêmes variables, aucun texte absent',()=>{
  const ref=load('fr').window.RP_I18N_RESOURCES.fr.translation.commerceMenu;
- assert.equal(Object.keys(ref).length,27);
+ assert.equal(Object.keys(ref).length,30);
  for(const locale of langs){
   const x=load(locale).window.RP_I18N_RESOURCES[locale].translation.commerceMenu;
   assert.deepEqual(Object.keys(x),Object.keys(ref),locale);
