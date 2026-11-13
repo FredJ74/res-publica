@@ -11267,11 +11267,12 @@ BUILDINGS['locaux-starovka'] = {
 // fourreur, qui nomme lui-meme ses articles).
 (function () {
   const ordreFerme = (fn, label, pa, icon, desc) => ({ fn, label, pa, cost: 0, type: 'legal', icon, successRate: 100, desc });
-  const ferme = (id, nom, court, desc, pieceDesc, pnj, role, ordres) => {
+  const ferme = (id, nom, court, desc, pieceDesc, pnj, role, ordres, imageUrl) => {
     BUILDINGS[id] = {
       name: nom, shortName: court, cat: 'Économie', icon: 'ti-tractor', bgColor: '#12140e', desc, imagesAVenir: true,
       rooms: { cour_ferme: {
         name: 'La cour de la ferme', imageBg: 'linear-gradient(135deg,#12140e,#1c2014)', desc: pieceDesc,
+        ...(imageUrl ? { imageUrl } : {}),
         persons: [{ name: pnj + ' (PNJ)', role, rel: 'friendly', job: 'fermier' }],
         orders: ordres
       } }
@@ -11288,11 +11289,14 @@ BUILDINGS['locaux-starovka'] = {
     'Le kolkhoze de Krasnov (« Колхоз им. С. М. Кирова ») : champs, poulailler et clapiers, ouverts aux bras volontaires.',
     'Une cour boueuse, des poules qui picorent entre les roues du tracteur et des clapiers alignés contre la grange.',
     'Galina Belova', 'Présidente du kolkhoze', [
-      ordreFerme('ferme_legumes', 'Extraire des légumes', 1, 'ti-carrot', 'Un fruits et légumes, tiré de la terre du kolkhoze.'),
-      ordreFerme('ferme_oeufs', 'Ramasser les œufs', 1, 'ti-egg', 'Trois œufs (une unité). À manger quand vous voulez : +2 PA au prochain Dormir.'),
-      ordreFerme('ferme_poulet', 'Abattre un poulet', 2, 'ti-meat', 'Deux poulets (2 viandes).'),
-      ordreFerme('ferme_lapin', 'Abattre un lapin', 2, 'ti-meat', 'Un lapin (1 viande) et sa peau (tissus et peaux).')
-    ]);
+      // Kolkhoze (Fred, 14/11/2026 ; migration 20261114004000) : tout à 1 PA, sans limite ; caisse commune.
+      ordreFerme('ferme_legumes', 'Extraire des légumes', 1, 'ti-carrot', 'Cinq fruits et légumes, tirés de la terre du kolkhoze.'),
+      ordreFerme('ferme_oeufs', 'Ramasser les œufs', 1, 'ti-egg', 'Six œufs (deux unités de trois). Une unité mangée : +2 PA au prochain Dormir.'),
+      ordreFerme('ferme_vaches', 'Traire les vaches', 1, 'ti-milk', 'Deux laitages, tirés à la main dans l’étable du kolkhoze.'),
+      ordreFerme('ferme_poulet', 'Abattre un poulet', 1, 'ti-meat', 'Deux poulets (2 viandes).'),
+      ordreFerme('ferme_lapin', 'Abattre un lapin', 1, 'ti-meat', 'Un lapin (1 viande) et sa peau (tissus et peaux).'),
+      ordreFerme('kolkhoze_caisse', 'Caisse commune', 0, 'ti-heart-handshake', 'Donner des matières premières au kolkhoze (+2 popularité par article, +6 par jour au plus) ou en prendre (5 articles par jour au plus).')
+    ], 'images/Sovarka/Krasnov/Krasnov_kolkhoze_cour.webp');
 
   const local = (id, nom, court, icon, desc, pieceId, pieceNom, pieceDesc, plafond) => {
     BUILDINGS[id] = {

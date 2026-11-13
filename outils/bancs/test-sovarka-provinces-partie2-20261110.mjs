@@ -27,7 +27,8 @@ test('Fermes : ordres et PA décidés par Fred, façades sur les enseignes', () 
       textile: RESSOURCES_ECONOMIE.textile.label };
   })()`, ctx);
   assert.equal(r.starovka, 'ferme_renne:5,ferme_traire:1');
-  assert.equal(r.krasnov, 'ferme_legumes:1,ferme_oeufs:1,ferme_poulet:2,ferme_lapin:2');
+  // Kolkhoze (Fred, 14/11/2026) : tout à 1 PA, traite des vaches et caisse commune (0 PA).
+  assert.equal(r.krasnov, 'ferme_legumes:1,ferme_oeufs:1,ferme_vaches:1,ferme_poulet:1,ferme_lapin:1,kolkhoze_caisse:0');
   assert.ok(r.facades, 'façade manquante');
   assert.ok(r.listes, 'bâtiment absent de sa ville');
   assert.equal(r.textile, 'Tissus et peaux');
