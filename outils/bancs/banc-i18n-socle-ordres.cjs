@@ -48,6 +48,15 @@ test('configurations invalides refusées sans erreur, fuite nationale ou remplac
   {id:'x',shared:true,rows:[['a']]},{id:'x',shared:true,entries:[{id:'bad key',fr:'a'}]}])assert.equal(I.registerCatalogue(spec),false);
  assert.equal(I.desc('Pas de ressource'),'Pas de ressource');
 });
+test('déclaration partielle ou invalide avant chargement : traductions communes et nationales conservées',()=>{
+ for(const config of [[],[{id:'extra',countries:['fixture'],entries:[{id:'extra.new',fr:'Nouveau',en:'New'}]}],[{id:'common',shared:true,rows:'invalid'}]]){
+  const c={RP_I18N_GAME_ENABLED:true,RPPlateauI18n:{language:()=> 'en'},state:{country:'fixture'}};c.window=c;vm.createContext(c);
+  for(const f of files.filter(f=>f.includes('infobulles-')&&!f.includes('sovarka-')))vm.runInContext(read(f),c);
+  c.RP_ORDER_DESCRIPTION_CATALOGUES=config;vm.runInContext(read('i18n/sovarka-infobulles-resources.js'),c);
+  assert.equal(c.RPOrderDescriptionsI18n.desc(shared),'See what is available at the bar and order.');
+  c.state.country='republic';const row=c.RPOrderDescriptionsI18n.republia[0];assert.equal(c.RPOrderDescriptionsI18n.desc(row[0]),row[1]);
+ }
+});
 test('métadonnées seulement dans le renderer ; données, catalogues et handlers métier inchangés',()=>{
  const base=execFileSync('git',['merge-base','origin/main','HEAD'],{cwd:root,encoding:'utf8'}).trim();
  const original=execFileSync('git',['show',base+':plateau-politique.js'],{cwd:root,encoding:'utf8',maxBuffer:4e6});

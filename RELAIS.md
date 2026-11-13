@@ -34,7 +34,7 @@ Après #861, #863, #865 et #866 (99 descriptions propres à Républia), ajout de
 
 ### #871 — socle i18n des ordres, Codex, 13/11/2026
 
-Branche `codex/i18n-socle-ordres-20261113`, PR à ouvrir. Généralisation du seul résolveur existant par catalogues déclaratifs, alias API `RPOrderDescriptionsI18n`, `descriptionKey` stable et ancien français exact conservés. Aucun texte de catalogue, pays, bâtiment, carte, PNJ, PA, coût ou RPC modifié. Seul le descripteur du renderer transporte la clé. Contrat : `outils/audits/SOCLE-I18N-ORDRES-871.md`. **52 tests Node + 3 Chromium verts** (320/390/1280, neuf langues et troisième pays fictif) avant intégration. Audit au même extracteur : zéro traduction/raccordement ajouté par ce lot d’architecture ; les lots d’interface suivront. CI distante, fusion et déploiement à vérifier. Zones Sovarka et Aide HRP métier hors périmètre.
+Branche `codex/i18n-socle-ordres-20261113`, **PR #872**. Généralisation du seul résolveur existant par catalogues déclaratifs, alias API `RPOrderDescriptionsI18n`, `descriptionKey` stable et ancien français exact conservés. Aucun texte de catalogue, pays, bâtiment, carte, PNJ, PA, coût ou RPC modifié. Seul le descripteur du renderer transporte la clé. Contrat : `outils/audits/SOCLE-I18N-ORDRES-871.md`. **53 tests Node + 3 Chromium verts** (320/390/1280, neuf langues et troisième pays fictif) avant intégration. Audit au même extracteur : zéro traduction/raccordement ajouté par ce lot d’architecture ; les lots d’interface suivront. CI distante, fusion et déploiement à vérifier. Zones Sovarka et Aide HRP métier hors périmètre.
 
 
 ### Descriptions tactiles et guillemets HTML — livrés le 13/11/2026

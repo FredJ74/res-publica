@@ -157,6 +157,8 @@
    countries:Object.freeze((spec.countries||[]).slice()),byFrench,byKey}));return true;
  }
  for(const spec of Array.isArray(global.RP_ORDER_DESCRIPTION_CATALOGUES)?global.RP_ORDER_DESCRIPTION_CATALOGUES:legacyCatalogues)registerCatalogue(spec);
+ // Une déclaration supplémentaire ou invalide ne doit pas effacer les ressources déjà livrées.
+ for(const spec of legacyCatalogues)if(!catalogues.has(spec.id))registerCatalogue(spec);
  function country(){return (typeof state!=='undefined'&&state)?state.country:null;}
  function resolve(original,key,pays){
   const eligible=[...catalogues.values()].filter(c=>c.shared||c.countries.includes(pays));
