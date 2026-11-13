@@ -2539,8 +2539,12 @@ async function doRepasHopital() {
   if (state.hospitalisation) { state.hospitalisation.repasLe = dateCivileParisMedicale(); state.hospitalisation.repasBonus = r.bonus_lendemain; }
   if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ pa: r.pa, hospitalisation: state.hospitalisation });
   updateUI();
-  showToast('Repas servi', '-1 PA' + (r.cout ? ', -' + r.cout + ' FR' : '') + '. +' + (r.bonus_lendemain || 0) + ' PA à votre prochain sommeil.', true);
-  addJournalEntry('Repas de l’hôpital (-1 PA, +' + (r.bonus_lendemain || 0) + ' PA demain).', 'event-info');
+  const estNuiteePrivee = r.mode === 'nuitee';
+  const deviseRepas = state.country === 'soviet' ? 'PSK' : 'FR';
+  showToast('Repas servi', '-1 PA' + (r.cout ? ', -' + r.cout + ' ' + deviseRepas : '')
+    + '. +' + (r.bonus_lendemain || 0) + ' PA au prochain sommeil autorisé.', true);
+  addJournalEntry((estNuiteePrivee ? 'Repas de la clinique privée' : 'Repas de l’hôpital')
+    + ' (-1 PA, +' + (r.bonus_lendemain || 0) + ' PA au prochain sommeil).', 'event-info');
 }
 
 async function doSortieHopital() {
