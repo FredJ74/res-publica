@@ -17,5 +17,6 @@ test('confirmation : français repris exactement du rendu initial, neuf langues 
  for(const lang of ['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de']){const cat=c.RP_I18N_RESOURCES[lang].translation.connectionUi;assert.equal(Object.keys(cat).length,13);for(const [key,value]of Object.entries(previous.RP_I18N_RESOURCES[lang].translation.connectionUi))assert.equal(cat[key],value);for(const key of Object.keys(fr).filter(k=>k.startsWith('confirmation'))){assert.ok(cat[key].trim());if(lang!=='fr')assert.notEqual(cat[key],fr[key]);}}
 });
 test('confirmation : aucun moteur, RPC, serveur, donnée ou authentification modifié',()=>{
- assert.equal(execFileSync('git',['diff','--name-only',base,'HEAD','--','api','migrations','supabase','supabase.js','auth.js','data.js','i18n/i18n-init.js'],{cwd:root,encoding:'utf8'}),'');
+ const manifest=path.join(root,'outils/audits/I18N-CONFIRMATION-ADRESSE-871-preuve.json'),codeCommit=fs.existsSync(manifest)?JSON.parse(fs.readFileSync(manifest)).codeCommit:'HEAD';
+ assert.equal(execFileSync('git',['diff','--name-only',base,codeCommit,'--','api','migrations','supabase','supabase.js','auth.js','data.js','i18n/i18n-init.js'],{cwd:root,encoding:'utf8'}),'');
 });

@@ -30,3 +30,5 @@ Banc existant `banc-i18n-connexion-ui.cjs` : 12 tests verts, anciennes erreurs,
 appels/cache/redirection identiques, formulaire pendant requête et rendu bureau.
 Vérification par simulation uniquement, aucun compte réel créé ou connecté.
 Relecture native et téléphone physique non réalisés. Même extracteur avant/après main `196af01` : corpus 7 565 textes / 50 690 mots inchangé ; +4 textes / +64 mots source raccordés par langue étrangère, autant de ressources. Anglais : 998 textes et 12 125 mots raccordés (23,92 % des mots identifiés). 31 tests Node finaux verts. CI et production à compléter avant livraison.
+
+La garde de périmètre compare base et commit de code du lot, pas le merge temporaire GitHub (qui inclut les migrations étrangères ajoutées entre-temps sur main, telle #905). La preuve AST porte toujours sur le programme entier du lot.
