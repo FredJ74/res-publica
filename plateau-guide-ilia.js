@@ -51,31 +51,73 @@ function iliaMuseeSurPlace(salle) {
 function iliaMuseeEchapper(t) {
   return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+// Repli français identique au texte d’origine si le catalogue est indisponible.
+const ILIA_MUSEE_LIBELLES = Object.freeze({
+  "title": "Ilia Krioukov — Guide du musée municipal",
+  "q_title": "Des questions pour Ilia ?",
+  "q_intro": "Si vous voulez en savoir davantage, pour 1 PA je réponds à trois questions dans cette salle, aujourd’hui.",
+  "q_open": "Poser des questions (1 PA)",
+  "q_placeholder": "Votre question sur Novomirsk…",
+  "q_ask": "Demander ({n} restantes)",
+  "q_you": "Vous",
+  "q_wait": "Ilia réfléchit…",
+  "q_done": "Je vous ai tout dit pour aujourd’hui dans cette salle. Bonne visite !",
+  "r_pas_sur_place": "Vous devez être dans le musée de Novomirsk.",
+  "r_dialogue_non_ouvert": "Ouvrez d’abord les questions.",
+  "r_questions_epuisees": "Vous avez posé vos trois questions dans cette salle aujourd’hui.",
+  "r_pa_insuffisants": "Vous n’avez pas assez de PA.",
+  "r_other": "Le guide ne peut pas répondre pour le moment."
+});
+function iliaMuseeTexte(cle, variables = {}) {
+  if (typeof texteGuideIlia === 'function') return texteGuideIlia(cle, variables);
+  const original = cle.startsWith('f_') ? ILIA_MUSEE_RECITS[cle.slice(2)] : ILIA_MUSEE_LIBELLES[cle];
+  return (original || '').replace(/\{(\w+)\}/g, (tout, k) => Object.hasOwn(variables, k) ? String(variables[k]) : tout);
+}
 function iliaMuseeMotif(raison) {
-  return ({
-    pas_sur_place: 'Vous devez être dans le musée de Novomirsk.',
-    dialogue_non_ouvert: 'Ouvrez d’abord les questions.',
-    questions_epuisees: 'Vous avez posé vos trois questions dans cette salle aujourd’hui.',
-    pa_insuffisants: 'Vous n’avez pas assez de PA.'
-  })[raison] || 'Le guide ne peut pas répondre pour le moment.';
+  return iliaMuseeTexte(['pas_sur_place', 'dialogue_non_ouvert', 'questions_epuisees', 'pa_insuffisants'].includes(raison)
+    ? 'r_' + raison : 'r_other');
+}
+function iliaMuseeLibelle(cle, variables = {}) {
+  return '<span data-ilia-texte="' + cle + '" data-ilia-variables="' + iliaMuseeEchapper(JSON.stringify(variables))
+    + '">' + iliaMuseeEchapper(iliaMuseeTexte(cle, variables)) + '</span>';
 }
 function iliaMuseeQuestionsHtml(salle) {
   const e = iliaMuseeEtat[salle];
   const messages = (iliaMuseeEchanges[salle] || []).map(m =>
     '<p class="' + (m.role === 'user' ? 'cpj-note' : '') + '"><strong>' +
-    (m.role === 'user' ? 'Vous' : 'Ilia') + ' :</strong> ' + iliaMuseeEchapper(m.content) + '</p>').join('');
+    (m.role === 'user' ? iliaMuseeLibelle('q_you') : 'Ilia') + ' :</strong> ' + iliaMuseeEchapper(m.content) + '</p>').join('');
   let controles;
   if (!e || !e.ouvert) {
-    controles = '<p class="cpj-note">Si vous voulez en savoir davantage, pour 1 PA je réponds à trois questions dans cette salle, aujourd’hui.</p>'
-      + '<button class="cpj-touche cpj-primaire" onclick="iliaMuseeOuvrirQuestions()">Poser des questions (1 PA)</button>';
+    controles = '<p class="cpj-note">' + iliaMuseeLibelle('q_intro') + '</p>'
+      + '<button class="cpj-touche cpj-primaire" onclick="iliaMuseeOuvrirQuestions()">' + iliaMuseeLibelle('q_open') + '</button>';
   } else if (e.restantes > 0) {
-    controles = '<textarea id="ilia-musee-question" class="cpj-champ" rows="2" maxlength="500" style="width:100%" placeholder="Votre question sur Novomirsk…"></textarea>'
-      + '<button class="cpj-touche cpj-primaire" onclick="iliaMuseePoser()">Demander (' + e.restantes + ' restantes)</button>';
+    controles = '<textarea id="ilia-musee-question" class="cpj-champ" rows="2" maxlength="500" style="width:100%" placeholder="'
+      + iliaMuseeEchapper(iliaMuseeTexte('q_placeholder')) + '"></textarea>'
+      + '<button class="cpj-touche cpj-primaire" onclick="iliaMuseePoser()">' + iliaMuseeLibelle('q_ask', {n:e.restantes}) + '</button>';
   } else {
-    controles = '<p class="cpj-note">Je vous ai tout dit pour aujourd’hui dans cette salle. Bonne visite !</p>';
+    controles = '<p class="cpj-note">' + iliaMuseeLibelle('q_done') + '</p>';
   }
-  return '<div class="guide-musee-questions"><h4>Des questions pour Ilia ?</h4>' + messages + controles + '</div>';
+  return '<div class="guide-musee-questions"><h4>' + iliaMuseeLibelle('q_title') + '</h4>' + messages + controles + '</div>';
 }
+// Ne remplacer que les textes fixes : le champ, sa sélection, le dialogue et
+// le bouton en attente restent les mêmes nœuds. Aucun appel métier ici.
+function iliaMuseeActualiserTextes() {
+  const fiche = document.querySelector?.('#postes-body [data-ilia-salle]');
+  if (!fiche || !document.getElementById('modal-postes')?.classList.contains('open')
+    || !iliaMuseeSurPlace(fiche.dataset.iliaSalle) || state.currentRoom !== fiche.dataset.iliaSalle) return;
+  const titre = document.getElementById('postes-modal-title');
+  if (titre) titre.textContent = iliaMuseeTexte('title');
+  fiche.dir = typeof langueDuJeu === 'function' && langueDuJeu() === 'ar' ? 'rtl' : 'ltr';
+  const recit = fiche.querySelector('[data-ilia-recit]');
+  if (recit) recit.innerHTML = iliaMuseeTexte('f_' + fiche.dataset.iliaSalle).split('\n\n')
+    .map(p => '<p>' + iliaMuseeEchapper(p) + '</p>').join('');
+  fiche.querySelectorAll('[data-ilia-texte]').forEach(e => {
+    e.textContent = iliaMuseeTexte(e.dataset.iliaTexte, JSON.parse(e.dataset.iliaVariables || '{}'));
+  });
+  const champ = document.getElementById('ilia-musee-question');
+  if (champ) champ.placeholder = iliaMuseeTexte('q_placeholder');
+}
+(window.RP_I18N_CHANGE_CALLBACKS = window.RP_I18N_CHANGE_CALLBACKS || []).push(iliaMuseeActualiserTextes);
 async function iliaEcouterGuide(etapeTresor = false) {
   const salle = state.currentRoom;
   if (!iliaMuseeSurPlace(salle)) return;
@@ -91,13 +133,14 @@ async function iliaEcouterGuide(etapeTresor = false) {
   if (!iliaMuseeSurPlace(salle)) return;
   const rendre = () => {
     if (!iliaMuseeSurPlace(salle)) return;
-    const texte = ILIA_MUSEE_RECITS[salle];
-    const html = '<div class="guide-musee-fiche"><img src="' + ILIA_MUSEE_PORTRAIT +
+    const texte = iliaMuseeTexte('f_' + salle);
+    const html = '<div class="guide-musee-fiche" data-ilia-salle="' + salle + '" dir="'
+      + (typeof langueDuJeu === 'function' && langueDuJeu() === 'ar' ? 'rtl' : 'ltr') + '"><img src="' + ILIA_MUSEE_PORTRAIT +
       '" alt="" style="float:left;width:96px;height:96px;object-fit:cover;border-radius:50%;margin:0 .8rem .4rem 0">'
-      + texte.split('\n\n').map(p => '<p>' + iliaMuseeEchapper(p) + '</p>').join('')
-      + iliaMuseeQuestionsHtml(salle) + '</div>';
-    if (typeof sovModal === 'function') sovModal('Ilia Krioukov — Guide du musée municipal', html, rendre);
-    else if (typeof vehModal === 'function') vehModal('Ilia Krioukov — Guide du musée municipal', html);
+      + '<div data-ilia-recit>' + texte.split('\n\n').map(p => '<p>' + iliaMuseeEchapper(p) + '</p>').join('')
+      + '</div>' + iliaMuseeQuestionsHtml(salle) + '</div>';
+    if (typeof sovModal === 'function') sovModal(iliaMuseeTexte('title'), html, iliaMuseeActualiserTextes);
+    else if (typeof vehModal === 'function') vehModal(iliaMuseeTexte('title'), html);
   };
   iliaMuseeRendu = rendre;
   rendre();
@@ -132,7 +175,7 @@ async function iliaMuseePoser() {
   if (!iliaMuseeSurPlace(salle) || !question || !e || !(e.restantes > 0) || iliaMuseeOccupé) return;
   iliaMuseeOccupé = true;
   const bouton = champ?.nextElementSibling;
-  if (bouton) {bouton.disabled = true; bouton.textContent = 'Ilia réfléchit…';}
+  if (bouton) {bouton.disabled = true; bouton.innerHTML = iliaMuseeLibelle('q_wait');}
   try {
     if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession().catch(() => null);
     const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;

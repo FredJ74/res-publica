@@ -1,0 +1,39 @@
+name: Ilia — neuf langues et mobile
+on:
+  pull_request:
+    paths:
+      - plateau-guide-ilia.js
+      - i18n/guide-ilia-resources.js
+      - outils/bancs/*ilia*20261113.cjs
+      - outils/bancs/fixtures/ilia-*.json
+      - .github/workflows/i18n-ilia-guide.yml
+  push:
+    branches: [main, codex/i18n-ilia-guide-20261113]
+    paths:
+      - plateau-guide-ilia.js
+      - i18n/guide-ilia-resources.js
+      - outils/bancs/*ilia*20261113.cjs
+      - outils/bancs/fixtures/ilia-*.json
+      - .github/workflows/i18n-ilia-guide.yml
+permissions:
+  contents: read
+jobs:
+  ilia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Catalogue, français, musée et énigmes existantes
+        run: |
+          node --check plateau-guide-ilia.js
+          node --check i18n/guide-ilia-resources.js
+          node --test outils/bancs/banc-i18n-ilia-20261113.cjs outils/bancs/test-ilia-guide-musee-20261112.mjs outils/bancs/test-musee-novomirsk-tresor-tsars-20261112.mjs outils/bancs/banc-guide-musee-novomirsk-20261111.mjs outils/bancs/banc-musee-national-novomirsk-neuf-salles.mjs outils/bancs/test-i18n-musee-sovarka-20261112.mjs outils/bancs/test-enigme1-musee-depart-20261113.mjs outils/bancs/test-juge-enigme-musee.mjs outils/bancs/test-jodie-enquete-musee.mjs outils/bancs/banc-i18n-editorial.cjs
+      - name: Playwright isolé (Chrome fourni par le runner)
+        run: npm install --prefix "$RUNNER_TEMP/ilia-browser" --no-package-lock --ignore-scripts playwright@1.56.1
+      - name: Langue à chaud, attente et mobile 320/390 px, bureau
+        run: NODE_PATH="$RUNNER_TEMP/ilia-browser/node_modules" CHROMIUM_PATH=/usr/bin/google-chrome node --test outils/bancs/banc-i18n-ilia-mobile-20261113.cjs
