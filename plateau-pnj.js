@@ -866,8 +866,14 @@ function openPnjModal(encodedPnj, options = null) {
   // uniquement dans l'une des trois eglises de Republia -- jamais depuis un autre batiment ni un
   // autre empire. "Consulter la regle" reutilise le mecanisme deja existant
   // (openRulesView/renderRulesContent, section 'religion') plutot que d'en inventer un nouveau.
-  const EGLISES_REPUBLIA_HABILITEES = ['tabernacle-impots', 'notre-dame-mer', 'eglise-montrouge'];
-  if (!isPJ && ['grand_pretre', 'pretre', 'clerc'].includes(pnj.job) && EGLISES_REPUBLIA_HABILITEES.includes(state.currentBuilding)) {
+  const EGLISES_CONFESSION_PAR_PAYS = {
+    republic: ['tabernacle-impots', 'notre-dame-mer', 'eglise-montrouge'],
+    narco: ['laboratoire-priere'],
+    soviet: ['kolkhoze-spirituel'],
+    khalija: ['patisserie-sacree']
+  };
+  if (!isPJ && ['grand_pretre', 'pretre', 'clerc'].includes(pnj.job)
+      && (EGLISES_CONFESSION_PAR_PAYS[state.country] || []).includes(state.currentBuilding)) {
     actionBtns += '<button class="pnj-action-btn" onclick="doSeConfeserContact(\'' + pnjSafeName + '\')"><i class="ti ti-message" style="font-size:.85rem"></i> Se confesser</button>';
     actionBtns += '<button class="pnj-action-btn" onclick="doDemanderBenedictionContact(\'' + pnjSafeName + '\')"><i class="ti ti-sparkles" style="font-size:.85rem"></i> Demander une bénédiction</button>';
     actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');openRulesView();renderRulesContent(\'religion\');" style="color:#8a9aca;border-color:#2a3a5a"><i class="ti ti-book" style="font-size:.85rem"></i> Consulter la règle</button>';
