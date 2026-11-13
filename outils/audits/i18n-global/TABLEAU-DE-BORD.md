@@ -1,6 +1,6 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `5de4a1b04842c1c0af3ad2e921a02ecb3d9e7bec`. Empreinte du corpus : `e3cf5664f2a40fe379656041cbae60388919e98c4adbf66940b4edb0c8fa004e`.
+Base analysée : `dc747f81085db90e32d6baaa7f39940681c48725`. Empreinte du corpus : `e3cf5664f2a40fe379656041cbae60388919e98c4adbf66940b4edb0c8fa004e`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 

@@ -22,4 +22,6 @@ vérifie leur maintien par clé et multiplicité au lieu d’interdire toute ext
 Français exact et neuf langues sont vérifiés sur les 45 clés actuelles du catalogue.
 
 Relecture native, session PJ authentifiée et téléphone physique non réalisés.
-Même extracteur avant/après le lot précédent (`3a8a954`) : corpus inchangé, 7 565 textes / 50 690 mots. +2 textes / +4 mots source raccordés par langue étrangère, +2 ressources / +4 mots. Anglais : 994 textes / 12 061 mots raccordés, 23,79 % des mots identifiés (taux arrondi). 31 tests Node finaux et deux bancs Chromium verts. Contrôles distants et vérification publique à compléter avant livraison.
+Même extracteur avant/après le lot précédent (fusion `69a1c03`, forum identique au code mesuré `3a8a954`) : corpus inchangé, 7 565 textes / 50 690 mots. +2 textes / +4 mots source raccordés par langue étrangère, +2 ressources / +4 mots. Anglais : 994 textes / 12 061 mots raccordés, 23,79 % des mots identifiés (taux arrondi). 31 tests Node finaux et deux bancs Chromium verts. Contrôles distants et vérification publique à compléter avant livraison.
+
+Correction de la preuve après rebasage : commit de code joignable dans la branche publiée et base de fusion #902, au lieu du premier commit local remplacé. Aucun code de jeu changé.
