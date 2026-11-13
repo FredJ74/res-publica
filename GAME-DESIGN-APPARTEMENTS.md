@@ -107,18 +107,32 @@ Décors : fonction serveur `logement-decoration` (déployée), même atelier que
 ### Choix de Claude, à relire par Fred
 
 1. Le **moral et la santé** du logement suivent la même règle que le +1 PA : le colocataire et le conjoint en
-   profitent aussi (avant, seul le titulaire) ; en premium, seulement en chambre.
+   profitent aussi (avant, seul le titulaire) ; en premium, seulement en chambre. **Validé par Fred (13/11).**
 2. L'option premium peut être activée par le **titulaire ou son conjoint**, pas par le colocataire.
+   **Modifié par Fred (13/11)** : le colocataire peut aussi l'activer, mais seulement avec l'acceptation du
+   titulaire du bail. Non codé. Procédure (Fred, 13/11) : le colocataire clique « Demander l'option premium »
+   (le bouton et sa confirmation lui disent explicitement que le titulaire du bail doit accepter) ; le titulaire
+   reçoit un courrier « Accepter / Refuser », valable 48 h ; sans réponse, la demande tombe.
 3. Pour désigner un colocataire, le titulaire doit **être dans l'appartement** ; impossible de désigner son
    conjoint ou quelqu'un déjà colocataire ailleurs. En premium, la **chambre 2 doit être vide de matériel**
-   (elle revient au colocataire), pour qu'aucun objet ne soit perdu en silence.
-4. Reprise du bail : **pas de loyer prélevé à la reprise** (le bail continue, prochaine échéance normale).
+   (elle revient au colocataire), pour qu'aucun objet ne soit perdu en silence. **Validé par Fred (13/11).**
+4. Reprise du bail : **pas de loyer prélevé à la reprise** (le bail continue, prochaine échéance normale). **Validé par Fred (13/11).**
 5. Décors : description écrite seulement, **sans images de référence** (l'atelier du commerce en accepte 5).
+   **Modifié par Fred (13/11)** : comme au commerce, le joueur peut fournir jusqu'à **5 images de référence**, en plus
+   de l'image de base de la pièce et de la description ; le surcoût OpenAI sera répercuté dans le prix de l'option
+   premium (session premium). Non codé.
 6. **Chambres premium : seulement les immeubles dessinés** (Montrouge, Novomirsk V14/V16, Starovka). Pour les
    lots sociaux des terrains de Montrouge et les logements des immeubles des mairies de Sovarka, le +1 PA, la
    colocation, les époux et les emplacements marchent, mais l'option premium affiche « pas encore disponible »
    (leurs pièces sont créées à la volée : chantier à part si Fred le veut).
-7. Une chambre sans serrure fermée est **ouverte à tous**, comme le salon.
+   **Modifié par Fred (13/11)** : l'option premium doit concerner **tous les types de logements**, y compris ceux
+   construits en cours de partie (lots des terrains, immeubles des mairies de Sovarka) : son but est de rapporter
+   de l'argent, et elle reste purement cosmétique (+1 PA avec ou sans premium, pas de P2W). Chantier à coder :
+   chambres créées à la construction, images génériques en attendant. Non codé.
+7. Une chambre sans serrure fermée est **ouverte à tous**, comme le salon. **Validé par Fred (13/11)**, avec rappel :
+   deux niveaux de serrure se cumulent — une serrure sur l'entrée de l'appartement (clé partagée par les
+   occupants), puis une serrure par chambre, si bien que le second occupant n'entre pas dans la chambre de l'autre.
+   À vérifier par un banc lors du prochain chantier.
 
 ### Écart relevé (à trancher par Fred)
 

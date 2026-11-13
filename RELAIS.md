@@ -82,8 +82,10 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 ### Décisions attendues de Fred
 
 - **Armoire à souvenirs (Fred, 13/11)** : collection complète = **+1 PA** au sommeil en présence de son armoire, sans cumul entre armoires mais cumulable avec le +1 PA de l'appartement ; l'armoire ne prend plus qu'1 place dans l'inventaire (au lieu de 3) ; dépôt et retrait des souvenirs gratuits ; retrait par un visiteur (armoire ouverte) légal, mais plainte pour vol possible, jugée par le juge PJ (`GAME-DESIGN-APPARTEMENTS.md`). **Ne pas coder** avant que les douze villes de la liste existent (décision de Fred) ; décisions consignées seulement.
-- **Appartements populaires : 7 choix de Claude et 1 écart à relire** (`GAME-DESIGN-APPARTEMENTS.md`, fin du document).
-- **Choix de Claude à relire par Fred** (PR #681, `GAME-DESIGN-NOVOMIRSK.md`) : vol d'archives des centres d'écoute à 2 PA, jet de base 45 % ; repas chez l'habitant +2 PA au prochain sommeil ; noms des habitants Dolgor Tsybikova (Starovka) et Stepan Kouznetsov (Krasnov) ; réaction à la bouteille = phrase fixe (pas encore l'IA).
+- **Relus par Fred le 13/11 au soir — à coder après son feu vert** :
+  - Appartements (`GAME-DESIGN-APPARTEMENTS.md`, « Choix de Claude ») : choix 1, 3, 4, 7 validés ; **à coder** : demande d'option premium par le colocataire avec acceptation du titulaire (courrier 48 h, mention explicite) ; jusqu'à 5 images de référence pour les décors ; option premium étendue aux logements construits en cours de partie (lots des terrains, immeubles des mairies de Sovarka) ; banc des deux niveaux de serrure (entrée + chambre).
+  - Sovarka, PR #681 (`GAME-DESIGN-NOVOMIRSK.md`, « Relecture de Fred (13/11/2026) ») : **à coder** : jet du vol d'archives 45 + (DIS − 50) ÷ 3 + (VOL − 8) + (DUP − 8), malus plafonnés à −33 au total (vol d'archives seulement) ; repas chez l'habitant +1 PA ; réaction à la bouteille par DeepSeek. Noms des habitants validés.
+- **Question ouverte (Fred y réfléchit)** : étendre le plafond de −33 des malus de sécurité à tous les actes illégaux ?
 - Caisses d'entrepôts, reprise Codex 07/11 : la question initiale « PSM 10 231 FR
   dans le blob contre 2 FR canoniques : lequel garder ? » est **caduque selon le
   relevé de Claude**, voir #565 : aucune clé historique en production. Ne pas

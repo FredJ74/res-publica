@@ -416,6 +416,17 @@ jet de base 45 % (celui de la falsification) ; repas chez l'habitant = +2 PA au 
 fixe selon l'alcool (pas encore l'IA). Les banques de Sovarka n'ont pas de façade dans les rues : les bons d'État seront
 accessibles après le tour des images. Restent la forêt profonde et les fermes, distillerie et fourreur.
 
+**Relecture de Fred (13/11/2026)** :
+- Vol d'archives : **2 PA validés** ; jet **45 + (DIS − 50) ÷ 3 + (VOL − 8) + (DUP − 8)**, borné 5-85 % (plafond des
+  caractéristiques à 16 : espion optimisé DIS 100 / VOL 16 / DUP 16 ≈ 78 %, moyen 45 %, maladroit ≈ 33 %). Puis les
+  malus existants (ISN de la ville, hommes armés présents), dont le **total est plafonné à −33** (option A de Fred :
+  l'espion optimisé ne descend pas sous 45 %, l'amateur reste dissuadé). Non codé. Plafond appliqué **au vol
+  d'archives seulement** ; son extension à tous les actes illégaux est une **question ouverte**, Fred y réfléchit.
+- Repas chez l'habitant : **+1 PA** au prochain sommeil (et non +2), car la maison est un logement gratuit. Non codé.
+- Noms des habitants **validés** : Dolgor Tsybikova (Starovka), Stepan Kouznetsov (Krasnov).
+- Réaction de l'habitant à la bouteille : **écrite par l'IA (DeepSeek)**, comme les dialogues des PNJ, à la place de la
+  phrase fixe (coût jugé faible, effet bien meilleur). Non codé.
+
 **Reste à coder** (lot suivant) : bons d'État (1), fermes, distillerie et fourreur (commerces), centres d'écoute
 (poste militaire « Poste de Vigilance Glaciale », station radar), maisons (hospitalité, beuverie, ragots), forêt
 de Krasnov (vues profondes, coupes, rencontres) et extraction du pétrole. Point technique relevé : la récolte de la
