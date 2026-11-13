@@ -23,25 +23,7 @@ BEGIN
  IF v_j IS NULL AND p.country IN ('republic','soviet')
     AND p.current_city='capitale'
     AND p.current_building='clinique-privee'
-    AND p.current_room ~ '^chambre_([1-9]|10)
- IF p.current_building = 'clinique-privee' THEN v_fn := 'repas_clinique'; v_bonus := 4;
- ELSIF coalesce(p.current_building,'') LIKE 'dispensaire-public%' THEN v_fn := 'repas_hopital'; v_bonus := 2;
- ELSE RETURN jsonb_build_object('ok',false,'raison','pas_a_l_hopital'); END IF;
- aujourdhui := (statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text;
- IF p.hospitalisation->>'repasLe' = aujourdhui THEN
-  RETURN jsonb_build_object('ok',false,'raison','repas_deja_pris'); END IF;
- SELECT pa, cost INTO v_pa, v_cost FROM public.ordres_couts WHERE fn = v_fn ORDER BY cost DESC LIMIT 1;
- IF v_pa IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','cout_non_declare','fn',v_fn); END IF;
- paiement := public.payer_ordre_interne(moi, v_fn, v_pa, v_cost);
- IF NOT coalesce((paiement->>'ok')::boolean,false) THEN RETURN paiement; END IF;
- UPDATE public.personnages_donnees
-    SET hospitalisation = hospitalisation || jsonb_build_object('repasLe', aujourdhui, 'repasBonus', v_bonus)
-  WHERE name = moi RETURNING pa INTO v_pa;
- RETURN jsonb_build_object('ok',true,'pa',v_pa,'cout',v_cost,'bonus_lendemain',v_bonus,'jour',v_j,
-   'liquide',(SELECT liquide FROM public.personnages_donnees WHERE name = moi),
-   'arg',(SELECT arg FROM public.personnages_donnees WHERE name = moi));
-END $function$
-
+    AND p.current_room ~ '^chambre_([1-9]|10)$'
     AND (p.hospitalisation IS NULL OR p.hospitalisation='null'::jsonb)
  THEN
    -- Le client d'une nuitée réservée est un occupant légitime, pas un patient hospitalisé.
