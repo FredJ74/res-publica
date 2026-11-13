@@ -1,0 +1,25 @@
+name: Reprise des commandes — texte fixe et corps opaque
+on:
+  pull_request:
+    paths: ['plateau-construction-commandes.js', 'i18n/plateau-init.js', 'i18n/construction-feedback-resources.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*reprise-commandes*', '.github/workflows/i18n-reprise-commandes.yml']
+  push:
+    branches: [main]
+    paths: ['plateau-construction-commandes.js', 'i18n/plateau-init.js', 'i18n/construction-feedback-resources.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*reprise-commandes*', '.github/workflows/i18n-reprise-commandes.yml']
+permissions:
+  contents: read
+jobs:
+  reprise:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - run: node --test outils/bancs/banc-i18n-reprise-commandes-20261113.cjs outils/bancs/banc-i18n-retours-chantiers-20261113.cjs outils/bancs/banc-audit-i18n-global.cjs outils/bancs/banc-i18n-editorial.cjs
+      - run: npm install --ignore-scripts --no-package-lock --prefix "$RUNNER_TEMP/reprise-browser" playwright@1.62.1
+      - name: Chromium — neuf langues, opaque intact, ancien fonctionnement conservé
+        run: NODE_PATH="$RUNNER_TEMP/reprise-browser/node_modules" CHROMIUM_PATH=/usr/bin/google-chrome node --test outils/bancs/banc-i18n-reprise-commandes-navigateur-20261113.cjs outils/bancs/banc-i18n-retours-chantiers-navigateur-20261113.cjs outils/bancs/banc-i18n-repertoire-courrier-navigateur.cjs outils/bancs/banc-i18n-retours-forum-navigateur.cjs

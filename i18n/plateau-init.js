@@ -148,16 +148,20 @@
   // Le prochain showToast écrit textContent et supprime ce span, sans ancien marqueur persistant.
   function markToast(key,fr,values,titleFr) {
     const node=global.document?.getElementById('toast-sub');
-    if(!node||typeof key!=='string'||node.textContent!==fr)return false;
-    const span=global.document.createElement('span');span.textContent=fr;span.setAttribute('data-i18n',key);
-    try{if(values)span.setAttribute('data-i18n-values',JSON.stringify(values));}catch(_){return false;}
-    node.replaceChildren(span);apply(node);
+    if(!node||(key!==null&&typeof key!=='string')||node.textContent!==fr)return false;
+    // Une clé nulle marque seulement le titre fixe : le corps opaque reste intégralement intact.
+    let marked=false;
+    if(key!==null){
+      const span=global.document.createElement('span');span.textContent=fr;span.setAttribute('data-i18n',key);
+      try{if(values)span.setAttribute('data-i18n-values',JSON.stringify(values));}catch(_){return false;}
+      node.replaceChildren(span);apply(node);marked=true;
+    }
     const titleKey=global.RPToastI18n?.key?.(titleFr),title=global.document.getElementById('toast-result');
     if(titleKey&&title&&title.textContent===global.RPToastI18n.label(titleFr)){
       const heading=global.document.createElement('span');heading.textContent=titleFr;heading.setAttribute('data-i18n',titleKey);
-      title.replaceChildren(heading);apply(title);
+      title.replaceChildren(heading);apply(title);marked=true;
     }
-    return true;
+    return marked;
   }
   global.RPI18nPlateau=Object.freeze({apply,markToast,locale:()=>locale});
   // Un changement de langue dans l'interface, y compris depuis un autre onglet,

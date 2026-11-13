@@ -277,6 +277,10 @@ function build(root=ROOT, options={}) {
       if(original?.type==='ConditionalExpression'&&marked?.type==='ConditionalExpression'&&keyNode?.type==='ConditionalExpression'&&shape(original.test)===shape(keyNode.test)){
         const left=bindMessage(original.consequent,marked.consequent,keyNode.consequent),right=bindMessage(original.alternate,marked.alternate,keyNode.alternate);return left&&right;
       }
+      // Corps opaque si la raison existe ; seul le repli fixe du `raison || texte` est traduit.
+      if(original?.type==='LogicalExpression'&&original.operator==='||'&&marked?.type==='LogicalExpression'&&keyNode?.type==='ConditionalExpression'&&shape(original.left)===shape(keyNode.test)&&keyNode.consequent?.type==='Literal'&&keyNode.consequent.value===null){
+        return bindMessage(original.right,marked.right,keyNode.alternate);
+      }
       const r=byKey.get(staticValue(keyNode));if(!r||normalize(symbolic(original))!==normalize(r.fr.replace(/\{\{[^}]+\}\}/g,'{DYNAMIC}')))return false;
       markedToasts.set(original.start,r);markedToasts.set(marked.start,r);return true;
     }
@@ -286,7 +290,8 @@ function build(root=ROOT, options={}) {
         if(first?.callee?.name!=='showToast'||prop(next?.callee?.property)!=='markToast'||!source.slice(next.callee.start,next.callee.end).includes('RPI18nPlateau'))continue;
         if(shape(first.arguments[1])!==shape(next.arguments[1]))continue;
         const bodyBound=bindMessage(first.arguments[1],next.arguments[1],next.arguments[0]);
-        if(bodyBound&&shape(first.arguments[0])===shape(next.arguments[3])){
+        const titleOnly=next.arguments[0]?.type==='Literal'&&next.arguments[0].value===null;
+        if((bodyBound||titleOnly)&&shape(first.arguments[0])===shape(next.arguments[3])){
           const titleKey=sandbox.RPToastI18n?.key?.(staticValue(next.arguments[3])),r=byKey.get(titleKey);
           if(r&&r.fr===staticValue(first.arguments[0])){markedToasts.set(first.arguments[0].start,r);markedToasts.set(next.arguments[3].start,r);}
         }

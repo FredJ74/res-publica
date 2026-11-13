@@ -218,7 +218,10 @@
     "الأسعار غير مؤكدة",
     "Preços não confirmados",
     "Preise nicht bestätigt"
-  ]
+  ],
+["uncertain", "La réponse est incertaine. Reprenez la même commande pour vérifier son résultat sans second traitement.", "The response is uncertain. Resume the same order to check its result without processing it a second time.", "La respuesta es incierta. Retoma la misma orden para comprobar su resultado sin procesarla una segunda vez.", "回覆尚不確定。請繼續同一筆指令，在不重複處理的情況下確認結果。", "Ответ не определён. Возобновите ту же команду, чтобы проверить результат без повторной обработки.", "응답이 확실하지 않습니다. 같은 명령을 재개하여 중복 처리 없이 결과를 확인하세요.", "الرد غير مؤكّد. استأنف الأمر نفسه للتحقق من نتيجته دون معالجته مرة ثانية.", "A resposta é incerta. Retome a mesma ordem para verificar o resultado sem processá-la uma segunda vez.", "Die Antwort ist unklar. Setzen Sie denselben Auftrag fort, um sein Ergebnis ohne erneute Ausführung zu prüfen."],
+["serverRefusal", "Le serveur a refusé cette commande.", "The server refused this order.", "El servidor ha rechazado esta orden.", "伺服器拒絕了此指令。", "Сервер отклонил эту команду.", "서버가 이 명령을 거부했습니다.", "رفض الخادم هذا الأمر.", "O servidor recusou esta ordem.", "Der Server hat diesen Auftrag abgelehnt."],
+["titleUnconfirmed", "Commande non confirmée", "Order not confirmed", "Orden no confirmada", "指令未確認", "Команда не подтверждена", "명령 미확인", "الأمر غير مؤكّد", "Ordem não confirmada", "Auftrag nicht bestätigt"]
 ];
  for(const [i,lang]of locales.entries()){
   const t=global.RP_I18N_RESOURCES?.[lang]?.translation;if(!t)continue;
