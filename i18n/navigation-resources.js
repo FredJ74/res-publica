@@ -232,6 +232,73 @@
     "specialAreaMessage": "Dieses Gebiet ist nur per Taxi vom Multimodalen Verkehrszentrum aus erreichbar."
   }
 };
+ // Plan de ville déduit des rues : libellés de lecture seule, sans modifier le graphe.
+ const planTerms={
+  "fr": {
+    "planTitlePrefix": "Plan de ",
+    "planOfCity": "Plan de la ville",
+    "hereSuffix": " — vous êtes ici",
+    "hereText": "Vous êtes ici",
+    "onStreet": "Vous êtes ici, dans la rue."
+  },
+  "en": {
+    "planTitlePrefix": "Map of ",
+    "planOfCity": "City map",
+    "hereSuffix": " — you are here",
+    "hereText": "You are here",
+    "onStreet": "You are here, in the street."
+  },
+  "es": {
+    "planTitlePrefix": "Plano de ",
+    "planOfCity": "Plano de la ciudad",
+    "hereSuffix": " — estás aquí",
+    "hereText": "Estás aquí",
+    "onStreet": "Estás aquí, en la calle."
+  },
+  "zh-TW": {
+    "planTitlePrefix": "城市地圖：",
+    "planOfCity": "城市地圖",
+    "hereSuffix": " — 您在這裡",
+    "hereText": "您在這裡",
+    "onStreet": "您目前位於街道上。"
+  },
+  "ru": {
+    "planTitlePrefix": "План города ",
+    "planOfCity": "План города",
+    "hereSuffix": " — вы здесь",
+    "hereText": "Вы здесь",
+    "onStreet": "Вы здесь, на улице."
+  },
+  "ko": {
+    "planTitlePrefix": "도시 지도: ",
+    "planOfCity": "도시 지도",
+    "hereSuffix": " — 현재 위치",
+    "hereText": "현재 위치",
+    "onStreet": "현재 거리 위에 있습니다."
+  },
+  "ar": {
+    "planTitlePrefix": "خريطة مدينة ",
+    "planOfCity": "خريطة المدينة",
+    "hereSuffix": " — أنت هنا",
+    "hereText": "أنت هنا",
+    "onStreet": "أنت هنا، في الشارع."
+  },
+  "pt-BR": {
+    "planTitlePrefix": "Mapa de ",
+    "planOfCity": "Mapa da cidade",
+    "hereSuffix": " — você está aqui",
+    "hereText": "Você está aqui",
+    "onStreet": "Você está aqui, na rua."
+  },
+  "de": {
+    "planTitlePrefix": "Stadtplan von ",
+    "planOfCity": "Stadtplan",
+    "hereSuffix": " — Sie sind hier",
+    "hereText": "Sie sind hier",
+    "onStreet": "Sie sind hier, auf der Straße."
+  }
+};
+ for(const [locale,words] of Object.entries(planTerms)) Object.assign(catalog[locale],words);
  // "Bâtiments" correspond au libellé historique littéral du petit plan de ville.
  const buildings={
   fr:"Batiments",en:"Buildings",es:"Edificios","zh-TW":"建築物",ru:"Здания",
