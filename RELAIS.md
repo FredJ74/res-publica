@@ -117,6 +117,12 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **Novomirsk : retour du quai du marché vers la rue de l'hôpital (Claude, 13/11 vers 15 h, demande de Fred, branche `claude/novomirsk-quai-retour-hopital-20261113`)**.
+  - **Écran** : V16 (quai du marché) a une flèche de droite vers V15 (clinique Saint-Pavel/hôpital public) ; ses autres liens ne changent pas.
+  - **Plan** : la V15 déclare `memeCarrefour: 'novomirsk-vue-14'`, car le retour supprime l'indice qui servait à deviner le carrefour pharmacie/hôpital. Résultat : 0 anomalie dans les 8 villes.
+  - **Serveur** : migration `20261113150000_novomirsk_quai_retour_hopital.sql` (V16 a V15 pour voisin, lien droite). Elle corrige la dernière anomalie `retour_absent` de production.
+  - **Cache** : les versions de `plateau-rue-centrale.js` et `plateau-plan-rues.js` dans `plateau.html`, régressées par #861, sont rétablies.
+  - **Banc** : `test-novomirsk-quai-retour-hopital-20261113.mjs` ; tous les `test-*.mjs` : les 6 échecs connus de main, aucun nouveau.
 ### Audit global de l’internationalisation — Codex, 13/11/2026
 
 **PR #862 fusionnée**, commit `2d673bc11d59eeedfd06aba25a16c77017a0bf61`. Vercel production `dpl_BkMsBq4dE37oXT75aocnrNEfvUYS` **READY**, alias `res-publica.vercel.app` vérifié. Aucun texte, catalogue, ordre, coût, RPC, migration ou donnée PJ modifié. Outillage dans `outils/audits/audit-i18n-global.cjs` et `outils/audits/i18n-global/` : tableau de bord Markdown/JSON, inventaires compressés, sources et empreintes, neuf langues/domaines/mots, priorités, comparaison et exclusions justifiées. Relevé Supabase agrégé sur sept champs de référence ; aucun contenu privé exporté. Les taux sont des **planchers de preuves statiques**, pas un pourcentage certifié de tout le jeu ; ressources disponibles, raccordements et qualité linguistique restent distincts. Limites et usage : `outils/audits/i18n-global/README.md`.

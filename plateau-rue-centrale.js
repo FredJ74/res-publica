@@ -1381,6 +1381,9 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [61, 100], yPct: [0, 78], nom: 'Hôpital public de Novomirsk', type: 'batiment', buildingId: 'dispensaire-public' }
       ],
       liens: { arriere: 'novomirsk-vue-4', gauche: 'novomirsk-vue-14', droite: 'novomirsk-vue-16' },
+      // Meme carrefour que la V14 (deux photos d'un seul point) : un seul point sur le plan des rues
+      // (declaration explicite depuis le retour du quai par la droite, 13/11/2026).
+      memeCarrefour: 'novomirsk-vue-14',
       flechesStyle: { arriere: RC_FLECHE_BAS }
     },
 
@@ -1395,7 +1398,8 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [50, 72],  yPct: [0, 32],  nom: 'Logements des Quais de Sovarka', type: 'batiment', buildingId: 'logements-novomirsk-quais' },
         { xPct: [72, 100], yPct: [0, 32],  nom: 'Logements du Marché', type: 'batiment', buildingId: 'logements-novomirsk-marche' }
       ],
-      liens: { arriere: 'novomirsk-vue-14', toutDroit: 'novomirsk-vue-17' },
+      // A droite, retour a la rue de l'hopital (V15) (Fred, 13/11/2026). Serveur : migration 20261113150000.
+      liens: { arriere: 'novomirsk-vue-14', toutDroit: 'novomirsk-vue-17', droite: 'novomirsk-vue-15' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
     },
 
