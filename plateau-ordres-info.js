@@ -26,7 +26,10 @@
     closeButton.textContent=label('closeButton');
     const p=descriptor(button),parts=[];
     if(p?.blocage)parts.push(p.blocage);
-    const tooltip=button.getAttribute('title')||'';
+    // Le descripteur garde le texte intégral, même si un ancien attribut
+    // title a été tronqué par des guillemets dans sa description HTML.
+    const tooltip=p&&!p.k&&global.RPSovarkaInfobullesI18n
+      ? global.RPSovarkaInfobullesI18n.infobulle(p) : button.getAttribute('title')||'';
     if(tooltip)parts.push(tooltip);
     // Pour une infobulle remplacée par un motif de blocage, conserver aussi
     // les détails d'affichage déjà calculés. Aucune condition n'est réévaluée.

@@ -30,7 +30,7 @@ async function setup(page,original=false){
   window.orders=[
    {fn:'louer_local',label:'Louer un appartement',desc:source,pa:1,cost:100,type:'legal',icon:'ti-home',successRate:100},
    {fn:'sovarka_surveiller',label:'Faire surveiller un citoyen',desc:'Faire suivre un citoyen pendant 4 jours',pa:1,cost:0,type:'grey',icon:'ti-eye',successRate:70},
-   {fn:'consulter_fixture',label:'Consulter librement',desc:'Description sans gain ni risque.',pa:0,cost:0,type:'legal',icon:'ti-book',successRate:100},
+   {fn:'consulter_fixture',label:'Consulter librement',desc:'Description "sans" gain ni risque.',pa:0,cost:0,type:'legal',icon:'ti-book',successRate:100},
    {fn:'payer_fixture',label:'Ordre payant avec un intitulé volontairement très long',desc:'Longue description. '.repeat(60),pa:2,cost:200,type:'legal',icon:'ti-coin',successRate:85},
    {fn:'bloque_fixture',label:'Ordre bientôt disponible',desc:'Description complète, conservée même pour un ordre bloqué.',bientot:'Bientôt disponible : les médicaments de la pharmacie seront définis prochainement.',pa:1,cost:25,type:'legal',icon:'ti-clock',successRate:80},
    {fn:'poste_fixture',label:'Ordre réservé',desc:'Description de l’ordre réservé.',requiresPost:'president',pa:1,cost:0,type:'legal',icon:'ti-user',successRate:100},
@@ -66,7 +66,7 @@ test('Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/pay
      return {title:b.title.replaceAll(' | ','\n\n'),blocage:p?.blocage||'',details:p?.details?RPSovarkaInfobullesI18n.infobulle(p.details).replaceAll(' | ','\n\n'):''};
     },i);
     assert.ok(text.includes(expected.title));if(expected.blocage)assert.ok(text.includes(expected.blocage));if(expected.details)assert.ok(text.includes(expected.details));
-    if(i===2){assert.ok(!text.includes('Gain:')&&!text.includes('Risque:'));}
+    if(i===2){assert.ok(text.includes('Description "sans" gain ni risque.'));assert.ok(!text.includes('Gain:')&&!text.includes('Risque:'));}
     assert.equal(await page.evaluate(()=>{const d=document.querySelector('dialog[open]'),r=d.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&d.scrollWidth<=d.clientWidth+1&&document.documentElement.scrollWidth<=innerWidth;}),true,'largeur '+width+' '+lang+' '+i);
     await d.locator('button').click();assert.equal(await page.locator('dialog[open]').count(),0);assert.equal(await info.evaluate(e=>e===document.activeElement),true);
    }
@@ -88,7 +88,7 @@ test('Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/pay
   await page.evaluate(()=>document.getElementById('modal-postes').classList.remove('open'));
   // Clic principal normal : exactement un appel et les arguments d'origine.
   await page.locator('.action-btn').filter({hasText:'Consulter librement'}).tap();
-  assert.deepEqual(await page.evaluate(()=>calls),[['consulter_fixture',0,0,'Consulter librement','Description sans gain ni risque.',100]]);
+  assert.deepEqual(await page.evaluate(()=>calls),[['consulter_fixture',0,0,'Consulter librement','Description "sans" gain ni risque.',100]]);
   const count=await page.locator('.rp-order-info-button').count();await page.evaluate(()=>renderRoomActions(room,'fixture','salle'));await page.waitForTimeout(20);assert.equal(await page.locator('.rp-order-info-button').count(),8);
   // Source remplacée pendant la lecture : fermer la description périmée.
   await page.locator('.rp-order-info-button').first().tap();await page.evaluate(()=>renderRoomActions(room,'fixture','salle'));await page.waitForFunction(()=>!document.querySelector('dialog[open]'));
