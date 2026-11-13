@@ -6,6 +6,7 @@ on:
       - 'plateau-politique.js'
       - 'i18n/room-actions-resources.js'
       - 'outils/bancs/banc-caserne-parite-menus-20261113.cjs'
+      - 'migrations/20261113230500_commandant_pnj_caserne_novomirsk.sql'
       - '.github/workflows/caserne-parite-menus.yml'
   push:
     branches: [main]
@@ -14,6 +15,7 @@ on:
       - 'plateau-politique.js'
       - 'i18n/room-actions-resources.js'
       - 'outils/bancs/banc-caserne-parite-menus-20261113.cjs'
+      - 'migrations/20261113230500_commandant_pnj_caserne_novomirsk.sql'
 jobs:
   verify:
     runs-on: ubuntu-latest
