@@ -33,4 +33,4 @@ Téléphone physique et lecture avec un lecteur d’écran humain non réalisés
 
 ## Livraison
 
-CI dédiée `.github/workflows/ordres-info-tactile.yml`. PR, fusion, publication et contrôle des fichiers servis à renseigner dans la PR ; première CI en cours, aucun déploiement annoncé à ce stade. Garde payload verte : 310,2 Mo / 330,0 Mo. Le banc navigateur accepte `ORDER_INFO_ASSET_DIR` pour rejouer la recette sur les fichiers téléchargés du déploiement.
+CI dédiée `.github/workflows/ordres-info-tactile.yml`. Résultats finaux de CI, fusion, publication et contrôle des fichiers servis suivis dans la PR #855, avec SHA et statut Vercel. Aucun déploiement déduit du seul succès d’un commit. Garde payload verte : 310,2 Mo / 330,0 Mo. Le banc navigateur accepte `ORDER_INFO_ASSET_DIR` pour rejouer la recette sur les fichiers téléchargés du déploiement.

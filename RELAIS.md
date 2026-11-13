@@ -11,11 +11,6 @@ Branche `chatgpt/i18n-plan-rues-20261113`. Le calcul et les déplacements des ru
 
 ## En cours
 
-### Descriptions des ordres sur écran tactile (Codex, 13/11/2026)
-Branche `codex/ordres-info-tactile-20261113`, base `main` `4d44222` (#853), rebasée sur `3a6ecd2` (plan des rues #854 conservé), PR [#855](https://github.com/FredJ74/res-publica/pull/855). Décision explicite de Fred : bouton frère « ⓘ » par ordre tactile, fenêtre légère, aucun appui long ; bouton principal et infobulles du bureau inchangés. `plateau-ordres-info.js` ajoute les boutons depuis le DOM en conservant les nœuds/handlers originaux ; dialogue natif au-dessus des écrans existants, focus et position restaurés. Réutilise `data-rp-tip`, les traductions de Claude et les mots communs Description/Fermer. Seuls des motifs déjà affichés par les refus et des détails de présentation sont ajoutés au descripteur. Aucun catalogue modifié, notamment les 205 descriptions communes en cours chez Claude.
-Tests : **35 tests ciblés + 8 tests Chromium verts**, mobile 320/390, bureau 1280, neuf langues dont RTL, ordres accessibles/bloqués/disabled/gratuits/payants, gains/risques présents/absents, vrai contrôleur mobile, clavier, brouillon/position, langue pendant lecture, clic normal unique. Comparaison transversale : 304/308 verts et les quatre mêmes échecs sur main et la branche, zéro nouvel échec. Bancs supplémentaires hérités comparés à main : commerce 19/34 verts, mêmes 15 échecs ; coque historique 19/21 verts, mêmes deux échecs. Les événements de notre information sont isolés avant les gardes de reprise et les fermetures globales : lecture possible sans relancer de chargement, bouton métier toujours soumis au garde de reprise. Rapport `outils/audits/ORDRES-INFO-TACTILE-20261113.md`. Fusion et déploiement à effectuer après CI et vérification ; aucune mutation de PA, RPC ou condition métier.
-
-
 
 ### Pavillon des Ambassadeurs — baux diplomatiques (ChatGPT, 11/11, PR #764, EN TEST)
 Issue [#753](https://github.com/FredJ74/res-publica/issues/753). **Décision supplémentaire de Fred : 1 PSK = 1 FR, sans frais de change**, uniquement pour les paiements du Pavillon ; enregistrée dans `GAME-DESIGN-NOVOMIRSK.md`.
@@ -97,6 +92,8 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - Aide HRP (PR #720) : **non certifiés** — réponses réelles DeepSeek dans les neuf langues, recette authentifiée, essais iPhone/Android. Sur téléphone : questions PA/but, fr→en→ko→fr, arabe RTL, clavier IME.
 
 ## Derniers chantiers
+
+- **Descriptions des ordres tactiles (Codex, 13/11, [PR #855](https://github.com/FredJ74/res-publica/pull/855))** : bouton frère « ⓘ », dialogue natif de lecture seule ; ordres bloqués/disabled inclus. Bureau : mêmes boutons, infobulles et clics. Catalogue de Claude et moteur existant réutilisés, aucune traduction ni mécanique modifiée. Position, fenêtre/brouillon et focus conservés ; événements de lecture isolés des fermetures globales et de la reprise de session, sans RPC ni PA. Bouton principal toujours soumis aux gardes existants. **35 tests ciblés + 8 tests Chromium verts**, 320/390/1280 px × neuf langues, RTL, gains/risques, ouverture répétée, clavier, suspension et clic normal unique. Comparaison initiale main/branche : 304/308 verts, mêmes quatre échecs ; commerce 19/34 et coque 19/21, mêmes échecs hérités. Audit et preuves : `outils/audits/ORDRES-INFO-TACTILE-20261113.md`, JSON associé. Fusion et vérification Vercel suivies dans la PR. Pour essayer au toucher : ouvrir « ⓘ », lire, fermer, puis décider de l’ordre ; aucun appui long. Téléphone physique et lecteur d’écran humain non testés.
 
 - **i18n : 205 descriptions d'ordres communes Républia/Sovarka (Claude, 13/11 matin, priorité 2 de Fred, branche `claude/i18n-infobulles-communes-20261113`)**.
   - **Inventaire** (data.js réel, pièces affichées) : il y a bien **205 descriptions communes** (affichées dans les deux pays), en plus des 104 propres à Sovarka (lot #853) et de **189 propres à la Républia, non traitées** (hors mission, toujours en français).
