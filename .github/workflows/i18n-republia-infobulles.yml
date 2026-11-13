@@ -8,7 +8,7 @@ on:
       - 'outils/bancs/test-i18n-republia-infobulles-politiques-20261113.cjs'
       - '.github/workflows/i18n-republia-infobulles.yml'
   push:
-    branches: [main, chatgpt/i18n-republia-ordres-politiques-20261113]
+    branches: [main, chatgpt/i18n-republia-politiques-main-20261113]
     paths:
       - 'i18n/republia-infobulles-resources.js'
       - 'i18n/sovarka-infobulles-resources.js'
