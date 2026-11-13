@@ -1,0 +1,59 @@
+name: Sovarka - ne pas interroger occupation privee des terrains publics
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sovarka-terrains-publics-20261114.yml'
+permissions:
+  contents: write
+jobs:
+  corriger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Corriger la visite et verifier la portee
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          f=Path('plateau-navigation.js')
+          s=f.read_text(encoding='utf8')
+          avant="  if (buildingId?.startsWith('terrain-a-batir')) {\n    const visiteTerrain = "
+          apres=("  // Sovarka : terrains de l'Etat, sans fiche terrains_etat ni tirage\n"
+                 "  // d'occupation du circuit de vente privee de Republia. Eviter un faux\n"
+                 "  // avertissement « Terrain non verifie » a chaque entree.\n"
+                 "  if (state.country !== 'soviet' && buildingId?.startsWith('terrain-a-batir')) {\n"
+                 "    const visiteTerrain = ")
+          assert s.count(avant)==1, 'Crochet de visite inattendu'
+          s=s.replace(avant,apres,1)
+          f.write_text(s,encoding='utf8')
+          f=Path('plateau-pnj.js')
+          s=f.read_text(encoding='utf8')
+          avant="async function chargerPnjTerrain(buildingId) {\n  if (!buildingId?.startsWith('terrain-a-batir')) return false;"
+          apres=("async function chargerPnjTerrain(buildingId) {\n"
+                 "  // Les parcelles publiques sovarkiennes ne suivent pas le regime de\n"
+                 "  // verification/occupation des terrains prives.\n"
+                 "  if (state.country === 'soviet') return false;\n"
+                 "  if (!buildingId?.startsWith('terrain-a-batir')) return false;")
+          assert s.count(avant)==1, 'Fonction de chargement inattendue'
+          f.write_text(s.replace(avant,apres,1),encoding='utf8')
+          PY
+          node --check plateau-navigation.js
+          node --check plateau-pnj.js
+          python3 - <<'PY'
+          from pathlib import Path
+          a=Path('plateau-navigation.js').read_text()
+          b=Path('plateau-pnj.js').read_text()
+          assert a.count("state.country !== 'soviet' && buildingId?.startsWith('terrain-a-batir')")==1
+          assert b.count("if (state.country === 'soviet') return false;")==1
+          assert "showToast('Terrain non vérifié'" in b
+          assert "return chargerPnjTerrain(buildingId);" in a
+          print('OK garde Sovarka ; les terrains de Republia conservent la lecture')
+          PY
+          git diff --check
+      - name: Commit
+        run: |
+          git add plateau-navigation.js plateau-pnj.js
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Sovarka : eviter faux avertissement sur terrains publics'
+            git push
+          fi
