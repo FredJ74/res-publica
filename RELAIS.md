@@ -12,6 +12,9 @@ Branche `chatgpt/i18n-plan-rues-20261113`. Le calcul et les déplacements des ru
 ### Républia — 19 descriptions politiques et institutionnelles (ChatGPT, 13/11/2026)
 Branche `chatgpt/i18n-republia-politiques-main-20261113` sur `main` incluant la PR #859 de Claude. Lot indépendant de l'audit exhaustif confié à Codex : **19 descriptions d'ordres exclusives à Républia** en neuf langues, soit 152 traductions étrangères. Textes français exactement repris de `data.js`, ajoutés dans `i18n/republia-infobulles-resources.js`, lus par le résolveur existant après les communes, uniquement en Républia. Nombres, sigles et paramètres métiers conservés ; aucune mutation, aucun coût ni PA modifié. Tests `outils/bancs/test-i18n-republia-infobulles-politiques-20261113.cjs` et CI `i18n-republia-infobulles.yml`. **170 descriptions propres à Républia restent à traduire** ; recette authentifiée, téléphone physique et revue native non faits. Fusion/déploiement à vérifier.
 
+### Républia — institutions, Parlement et justice, ChatGPT, 13/11/2026 (lot 2)
+Après #861 (19 descriptions politiques fusionnées et déployées), ajout de **20 descriptions supplémentaires**, soit 160 traductions étrangères nouvelles, dans le même `i18n/republia-infobulles-resources.js` (39 descriptions propres à Républia au total). Ordres nationaux, armée, élections, Assemblée, greffe, état civil et enquête. Aucun changement des mécaniques, des prix, de la localisation de Sovarka ou du moteur de rendu. Le banc existant couvre désormais les 39 sources françaises exactes de `data.js` et vérifie les neuf colonnes ainsi que la séparation des pays. **150 descriptions propres à Républia restent** après ce lot. Tests, PR, production et recette à vérifier.
+
 ## En cours
 
 ### Audit global de l’internationalisation — Codex, 13/11/2026

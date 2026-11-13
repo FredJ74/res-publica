@@ -29,15 +29,15 @@ function orderDescs(country){
  }
  return d;
 }
-test('19 descriptions républicaines originales, prises dans les 189 descriptions propres à Républia',()=>{
+test('39 descriptions républicaines originales, prises dans les 189 descriptions propres à Républia',()=>{
  const rep=orderDescs('republic'),sov=orderDescs('soviet'),spec=[...rep].filter(d=>!sov.has(d));
  assert.equal(spec.length,189,'référence du lot restant');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
- assert.equal(rows.length,19);
+ assert.equal(rows.length,39);
  for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(spec.includes(line[0]),line[0]);}
- assert.equal(new Set(rows.map(l=>l[0])).size,19);
+ assert.equal(new Set(rows.map(l=>l[0])).size,39);
 });
-test('Les 19 lignes sont présentes en neuf langues, sans perte de chiffres, devises ou sigles',()=>{
+test('Les 39 lignes sont présentes en neuf langues, sans perte de chiffres, devises ou sigles',()=>{
  const rows=setup('republic','en').RP_INFOBULLES_REPUBLIA;
  for(const line of rows){
   for(let i=1;i<line.length;i++){
