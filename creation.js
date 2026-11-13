@@ -171,19 +171,21 @@ function rpRetourConfirmation() {
   if (erreur) {
     // otp_expired, access_denied... On ne montre jamais le code technique.
     zone.innerHTML = '<div style="' + cadre + '#8a4a38;background:rgba(138,74,56,.12)">'
-      + '<div style="font-weight:600;margin-bottom:.2rem">Ce lien de confirmation n\'est plus valable.</div>'
-      + '<div style="font-size:.9rem;line-height:1.5">Il a expiré, ou une adresse plus récente l\'a remplacé. '
+      + '<div style="font-weight:600;margin-bottom:.2rem" data-i18n="connectionUi.confirmationExpiredTitle">Ce lien de confirmation n\'est plus valable.</div>'
+      + '<div style="font-size:.9rem;line-height:1.5" data-i18n="connectionUi.confirmationExpiredBody">Il a expiré, ou une adresse plus récente l\'a remplacé. '
       + 'Rouvrez votre personnage sur l\'appareil où vous jouez et demandez un nouveau courriel.</div></div>';
     zone.style.display = 'block';
+    if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
     return;
   }
 
   zone.innerHTML = '<div style="' + cadre + '#4a8a4a;background:rgba(74,138,74,.12)">'
-    + '<div style="font-weight:600;margin-bottom:.2rem">Votre adresse e-mail est confirmée.</div>'
-    + '<div style="font-size:.9rem;line-height:1.5">Votre personnage est désormais rattaché à votre compte. '
+    + '<div style="font-weight:600;margin-bottom:.2rem" data-i18n="connectionUi.confirmationSuccessTitle">Votre adresse e-mail est confirmée.</div>'
+    + '<div style="font-size:.9rem;line-height:1.5" data-i18n="connectionUi.confirmationSuccessBody">Votre personnage est désormais rattaché à votre compte. '
     + 'Connectez-vous ci-dessous avec cette adresse et votre mot de passe pour le retrouver, '
     + 'sur cet appareil ou sur n\'importe quel autre.</div></div>';
   zone.style.display = 'block';
+  if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
   // ouvrirConnexionCompte est une BASCULE : l'appeler sur un panneau deja ouvert (arrivee avec
   // ?connexion=1) le refermerait. On ne l'appelle donc que s'il est ferme.
   const panel = document.getElementById('connexion-panel');

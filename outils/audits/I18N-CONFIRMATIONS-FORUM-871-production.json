@@ -1,0 +1,68 @@
+{
+  "commit": "196af01ddc4bf65dd0421f5754ea34856eb4eebf",
+  "deployment": "dpl_93CfQ1mhf1k5abxw5a5fyNRKpYWk",
+  "files": [
+    {
+      "file": "plateau.html",
+      "sha256": "c762e58387ed288250eb33e9eb070bbef26e60c15d3f49d323c5ce58c84272a6",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "e1db97c535d9566a304b88abc054b074a93b20258c23931c578d13747171c588",
+      "identical": true
+    },
+    {
+      "file": "plateau-core.js",
+      "sha256": "d52251e01c7c71d6f4b1327a2e5607a54e2406209c8ae08c4f36cbef2cb89c73",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-resources.js",
+      "sha256": "5ab8d40c41eb8e1e60f30416019e7c2b3fb6ce8ab3725026cd9d1ccde96f55f0",
+      "identical": true
+    },
+    {
+      "file": "i18n/toast-resources.js",
+      "sha256": "8a57409e44396e0a59163dcb86b9f9d995cbf507d88ed82f56df7fc6c9bcc96e",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-init.js",
+      "sha256": "cdeaa26dcf25bee8a0050a1428ca67cf25d6c042fdf428a7735e8288062f1536",
+      "identical": true
+    },
+    {
+      "file": "forum.js",
+      "sha256": "1917728e3e296b62e4b7cec5d42842b58a2792d7fbc9b2800bd5904db4a44c30",
+      "identical": true
+    },
+    {
+      "file": "i18n/forum-feedback-resources.js",
+      "sha256": "8bea83d82bd231d8acbabbc8b790d5bfc1c0f87085f268a915b55f52fe9c70f3",
+      "identical": true
+    },
+    {
+      "file": "i18n/player-directory-resources.js",
+      "sha256": "69a7f951ab5766afadcb280a492822778d3c58f0cc4740b17df8ccfdebc26f54",
+      "identical": true
+    }
+  ],
+  "ready": true,
+  "aliasVerified": true,
+  "browserTests": {
+    "passed": 2,
+    "newLanguageSwitches": 54,
+    "existingRenders": 837
+  }
+}
