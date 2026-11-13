@@ -1,6 +1,6 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `2d673bc11d59eeedfd06aba25a16c77017a0bf61`. Empreinte du corpus : `d31ca07fa12e57820ca66470d6b1c3ef3fed5a5455f55b19dfe34671abadc488`.
+Base analysée : `5122f622888af2967bc05f45cc3755d0dfc781b0`. Empreinte du corpus : `d31ca07fa12e57820ca66470d6b1c3ef3fed5a5455f55b19dfe34671abadc488`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 
@@ -80,7 +80,7 @@ Les descriptions communes sont présentes dans plusieurs empires : ne pas additi
 
 ## Catalogue central et autres ressources
 
-Le catalogue central expose **3285 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4062 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
+Le catalogue central expose **3285 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4057 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
 
 | Langue | Clés absentes | Variables incohérentes |
 |---|---:|---:|

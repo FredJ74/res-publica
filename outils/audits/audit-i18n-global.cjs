@@ -152,7 +152,8 @@ function build(root=ROOT, options={}) {
   // Other guides, raw source lookup tables and nine-column matrices use the same existing translators.
   for(const file of files.filter(f=>f.startsWith('i18n/')))walk(trees.get(file),(n)=>{
     if(n.type==='ArrayExpression'&&n.elements.length===9 && n.elements.every(e=>e==null||e.type==='Literal'&&(typeof e.value==='string'||e.value===null))){
-      const row=n.elements.map(e=>e?.value);if(row[0])addRegistration(file,'matrix:'+n.loc.start.line,row[0],Object.fromEntries(LOCALES.map((l,i)=>[l,row[i]])),n.loc.start.line,'matrix');
+      const row=n.elements.map(e=>e?.value);if(row.every((v,i)=>v===LOCALES[i]))return;
+      if(row[0])addRegistration(file,'matrix:'+n.loc.start.line,row[0],Object.fromEntries(LOCALES.map((l,i)=>[l,row[i]])),n.loc.start.line,'matrix');
     }
     if(n.type==='ObjectExpression'){
       const p=n.properties.find(p=>p.type==='Property'&&prop(p.key)==='fr');

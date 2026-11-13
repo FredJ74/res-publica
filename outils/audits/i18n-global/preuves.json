@@ -4,8 +4,8 @@
   "mainRebase": "36bdfa46d97726d2698b624bc0f24e10e343fbd4",
   "tests": {
     "extracteur": {
-      "tests": 17,
-      "pass": 17,
+      "tests": 18,
+      "pass": 18,
       "fail": 0
     },
     "existantsBranche": {

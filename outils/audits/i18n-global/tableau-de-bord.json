@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "baseCommit": "2d673bc11d59eeedfd06aba25a16c77017a0bf61",
-  "methodHash": "da5fb22e48b4c35686e0ff77919d3c12dcad6d53734bd4ea4fdbeb738529e654",
+  "baseCommit": "5122f622888af2967bc05f45cc3755d0dfc781b0",
+  "methodHash": "4025b13e85e0b2a4e33bb4d8ae50c9612efe7f6654a800dd7385ef62bfc03510",
   "corpusHash": "d31ca07fa12e57820ca66470d6b1c3ef3fed5a5455f55b19dfe34671abadc488",
   "locales": [
     "fr",
@@ -58,7 +58,7 @@
   },
   "resourceHealth": {
     "fr": {
-      "source": 4062,
+      "source": 4057,
       "available-unreviewed": 0,
       "neutral": 0,
       "missing": 0,
@@ -67,7 +67,7 @@
     },
     "en": {
       "source": 0,
-      "available-unreviewed": 3986,
+      "available-unreviewed": 3981,
       "neutral": 1,
       "missing": 0,
       "invalid-placeholders": 0,
@@ -75,7 +75,7 @@
     },
     "es": {
       "source": 0,
-      "available-unreviewed": 4028,
+      "available-unreviewed": 4023,
       "neutral": 6,
       "missing": 0,
       "invalid-placeholders": 0,
@@ -83,7 +83,7 @@
     },
     "zh-TW": {
       "source": 0,
-      "available-unreviewed": 4055,
+      "available-unreviewed": 4050,
       "neutral": 1,
       "missing": 0,
       "invalid-placeholders": 0,
@@ -91,7 +91,7 @@
     },
     "ru": {
       "source": 0,
-      "available-unreviewed": 4053,
+      "available-unreviewed": 4048,
       "neutral": 1,
       "missing": 0,
       "invalid-placeholders": 0,
@@ -99,7 +99,7 @@
     },
     "ko": {
       "source": 0,
-      "available-unreviewed": 4054,
+      "available-unreviewed": 4049,
       "neutral": 1,
       "missing": 0,
       "invalid-placeholders": 0,
@@ -107,7 +107,7 @@
     },
     "ar": {
       "source": 0,
-      "available-unreviewed": 4053,
+      "available-unreviewed": 4048,
       "neutral": 1,
       "missing": 0,
       "invalid-placeholders": 0,
@@ -115,7 +115,7 @@
     },
     "pt-BR": {
       "source": 0,
-      "available-unreviewed": 4035,
+      "available-unreviewed": 4030,
       "neutral": 5,
       "missing": 0,
       "invalid-placeholders": 0,
@@ -123,7 +123,7 @@
     },
     "de": {
       "source": 0,
-      "available-unreviewed": 4037,
+      "available-unreviewed": 4032,
       "neutral": 5,
       "missing": 0,
       "invalid-placeholders": 0,

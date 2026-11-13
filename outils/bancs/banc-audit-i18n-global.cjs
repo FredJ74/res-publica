@@ -65,6 +65,10 @@ test('les tables par langue hors du catalogue central sont recensées',t=>{
   const {dir}=fixture(t,{'i18n/local-resources.js':'const labels='+JSON.stringify(map)+';'});
   const r=audit.build(dir);assert.ok(r.registrations.some(x=>x.fr==='Salut camarade'&&x.status.ko==='available-unreviewed'));assert.equal(r.registrations.find(x=>x.fr==='Salut camarade').loaded,false);
 });
+test('la liste technique des neuf codes de langue n’est pas une matrice de textes',t=>{
+  const {dir}=fixture(t,{'i18n/local-resources.js':'const LANGUES='+JSON.stringify(audit.LOCALES)+';'});
+  const r=audit.build(dir);assert.ok(!r.registrations.some(r=>r.fr==='fr'));
+});
 test('traducteur exporté et wrapper transparents reconnus sans importer le métier',t=>{
   const map=Object.fromEntries(audit.LOCALES.map(l=>[l,{hello:l==='fr'?'Un guide très bavard':l+' A talkative guide'}]));
   const {dir}=fixture(t,{'i18n/guide-resources.js':`(function(global){const texts=${JSON.stringify(map)}; function text(key){const original=texts.fr[key];const locale=global.RPPlateauI18n?.language?.()||'fr';return texts[locale]?.[key]||original;} global.texteGuide=text;})(window);`,
