@@ -11,6 +11,12 @@ Branche `chatgpt/i18n-plan-rues-20261113`. Le calcul et les déplacements des ru
 
 ## En cours
 
+### Descriptions tactiles — PR #855 prête, fusion BLOQUÉE par la revue automatique
+Branche `codex/ordres-info-tactile-20261113`, rebasée sur `8d9dc22` (#856), code testé `737e586`. **54 tests ciblés verts** (43 + 11 Chromium), 320/390/1280 px et neuf langues, recette conjointe avec les traductions communes de Claude. Comparaison actuelle : 312/316 verts et quatre mêmes échecs hérités sur main et la branche ; aucune régression nouvelle. Fonctionnement du bouton principal et PA préservés ; consultation isolée de toute reprise ou fermeture globale. Aucun catalogue modifié.
+**Blocage du 13/11** : deux tentatives de fusion normale de [#855](https://github.com/FredJ74/res-publica/pull/855) refusées par la revue automatique (mutation de main jugée conséquente, suite CI SSM rouge, réautorisation explicite demandée). Vérification GitHub : main non protégée, aucune règle ni required_status_check ; cela n’a pas levé le refus. **Ne pas contourner la revue.** Fred doit autoriser explicitement la fusion malgré les trois échecs SSM hérités (5/8 sur main et branche), puis la publication après contrôle. Aucune fusion, aucun déploiement de ce lot. La permission GitHub n’est pas la cause du blocage.
+Une fois cette autorisation obtenue : vérifier le head et les contrôles courants, fusion normale avec SHA attendu, vérifier Vercel READY sur le commit fusionné et rejouer `banc-ordres-info-tactile-navigateur-20261113.cjs` sur les fichiers réellement servis (`ORDER_INFO_ASSET_DIR`). Ne pas réécrire les catalogues de Claude, ne pas modifier les métiers pour verdir les anciens bancs. Audit et JSON de preuves : `outils/audits/ORDRES-INFO-TACTILE-20261113.md` et fichier associé.
+
+
 
 ### Pavillon des Ambassadeurs — baux diplomatiques (ChatGPT, 11/11, PR #764, EN TEST)
 Issue [#753](https://github.com/FredJ74/res-publica/issues/753). **Décision supplémentaire de Fred : 1 PSK = 1 FR, sans frais de change**, uniquement pour les paiements du Pavillon ; enregistrée dans `GAME-DESIGN-NOVOMIRSK.md`.
@@ -93,7 +99,6 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
-- **Descriptions des ordres tactiles (Codex, 13/11, [PR #855](https://github.com/FredJ74/res-publica/pull/855))** : bouton frère « ⓘ », dialogue natif de lecture seule ; ordres bloqués/disabled inclus. Bureau : mêmes boutons, infobulles et clics. Catalogue de Claude et moteur existant réutilisés, aucune traduction ni mécanique modifiée. Position, fenêtre/brouillon et focus conservés ; événements de lecture isolés des fermetures globales et de la reprise de session, sans RPC ni PA. Bouton principal toujours soumis aux gardes existants. **43 tests ciblés + 11 tests Chromium verts**, 320/390/1280 px × neuf langues, RTL, gains/risques, ouverture répétée, clavier, suspension et clic normal unique. Recette conjointe après #856 : descriptions propres et communes réellement traduites dans les neuf langues ; catalogues intacts. Comparaison initiale main/branche : 304/308 verts, mêmes quatre échecs ; nouvelle comparaison sur main #856 : 312/316, mêmes quatre échecs. commerce 19/34 et coque 19/21, mêmes échecs hérités. Audit et preuves : `outils/audits/ORDRES-INFO-TACTILE-20261113.md`, JSON associé. Fusion et vérification Vercel suivies dans la PR. Pour essayer au toucher : ouvrir « ⓘ », lire, fermer, puis décider de l’ordre ; aucun appui long. Le descripteur restitue aussi les descriptions contenant des guillemets, sans dépendre d’un ancien attribut title tronqué. Téléphone physique et lecteur d’écran humain non testés.
 
 - **i18n : 205 descriptions d'ordres communes Républia/Sovarka (Claude, 13/11 matin, priorité 2 de Fred, branche `claude/i18n-infobulles-communes-20261113`)**.
   - **Inventaire** (data.js réel, pièces affichées) : il y a bien **205 descriptions communes** (affichées dans les deux pays), en plus des 104 propres à Sovarka (lot #853) et de **189 propres à la Républia, non traitées** (hors mission, toujours en français).

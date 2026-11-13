@@ -34,3 +34,12 @@ Téléphone physique et lecture avec un lecteur d’écran humain non réalisés
 ## Livraison
 
 CI dédiée `.github/workflows/ordres-info-tactile.yml`. Résultats finaux de CI, fusion, publication et contrôle des fichiers servis suivis dans la PR #855, avec SHA et statut Vercel. Aucun déploiement déduit du seul succès d’un commit. Garde payload verte : 310,2 Mo / 330,0 Mo. Le banc navigateur accepte `ORDER_INFO_ASSET_DIR` pour rejouer la recette sur les fichiers téléchargés du déploiement.
+
+
+## Blocage de livraison par la revue automatique
+
+Le code `737e586` a une CI dédiée verte ([exécution](https://github.com/FredJ74/res-publica/actions/runs/43407679295)). Sur les contrôles finaux de la PR : 36 verts, une suite rouge héritée (SSM/Montrouge), aucun contrôle en attente. Les trois échecs SSM sont reproduits sur main et la branche (5/8).
+
+Deux appels normaux à l’outil de fusion, avec le SHA attendu, ont été rejetés par la revue automatique. Motif : mutation conséquente de main et échec CI sans réautorisation explicite de l’utilisateur. Le second appel faisait suite à une vérification en lecture seule : main `protected=false`, `protection.enabled=false`, listes `required_status_checks.checks` et `contexts` vides, `enforcement_level=off`, aucune règle de branche. Ces faits n’ont pas levé le refus.
+
+Aucun contournement utilisé, aucun statut CI modifié, aucune règle modifiée. PR #855 toujours ouverte, non fusionnée ; aucun déploiement de ce lot. Le blocage vient de la revue automatique, pas des permissions GitHub. Reprise : obtenir l’accord explicite de Fred pour fusionner malgré la suite SSM héritée, puis contrôler les tests courants, fusionner, publier et vérifier les fichiers servis. Les derniers changements documentaires ne modifient pas le code testé.
