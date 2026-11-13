@@ -1,0 +1,25 @@
+name: Sovarka — Saisie des achats aux entrepôts
+on:
+  pull_request:
+    paths:
+      - 'supabase.js'
+      - 'plateau-justice-economie.js'
+      - 'outils/bancs/banc-entrepot-sovarka-saisie-20261113.cjs'
+      - '.github/workflows/entrepot-sovarka-saisie.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase.js'
+      - 'plateau-justice-economie.js'
+      - 'outils/bancs/banc-entrepot-sovarka-saisie-20261113.cjs'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check supabase.js
+      - run: node --check outils/bancs/banc-entrepot-sovarka-saisie-20261113.cjs
+      - run: node --test outils/bancs/banc-entrepot-sovarka-saisie-20261113.cjs
