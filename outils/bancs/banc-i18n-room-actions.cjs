@@ -16,9 +16,15 @@ const originals={
  actionsAvailable:'ACTIONS DISPONIBLES',
  audioTooltip:"Ecouter l'audioguide de cette salle",
  audioAction:"Écouter l'audioguide",
- audioCost:'gratuit · 0 PA'
+ audioCost:'gratuit · 0 PA',
+ caserneEngagement:'Engagement et affectation',
+ caserneService:'Service et distinctions',
+ caserneRecrutement:'Gestion des engagements',
+ caserneCommandement:'Commandement et effectifs',
+ caserneSection:'Ma section',
+ caserneBudget:'Budget et stratégie'
 };
-test('quatre libellés des salles et audioguides dans les neuf langues',()=>{
+test('dix libellés des salles, audioguides et menus de caserne dans les neuf langues',()=>{
  assert.deepEqual(Object.keys(win.RP_I18N_LANGUAGES),langs);
  for(const lang of langs){
   win.RPPlateauI18n={language:()=>lang};

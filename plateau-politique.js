@@ -4548,6 +4548,53 @@ function renderRoomActions(room, buildingId, roomId) {
     boutonsOrganises = [...menus, ...nonClasses, ...buttons.slice(ordresTerrainLuthecia.length)];
   }
 
+  // Casernes : les dix ordres du corps de garde et les quinze de commandement
+  // etaient exposes sans structure. Memes groupes dans toutes les nations :
+  // 3 menus lisibles plutot qu'un mur de boutons, aucune action supprimee.
+  if (buildingId === 'caserne-militaire' &&
+      ['corps_garde','salle_commandement'].includes(roomId) &&
+      ['republic','soviet','narco','khalija'].includes(state.country)) {
+    const familles = roomId === 'corps_garde'
+      ? [
+          { titre: "Engagement et affectation", cle: 'caserneEngagement', icone: 'ti-user-plus',
+            fns: ['s_engager_armee','decouvrir_affectation','se_presenter_affectation','quitter_armee'] },
+          { titre: "Service et distinctions", cle: 'caserneService', icone: 'ti-medal',
+            fns: ['calepin_campagne','stage_caserne','decorer_militaire'] },
+          { titre: "Gestion des engagements", cle: 'caserneRecrutement', icone: 'ti-users-group',
+            fns: ['nommer_lieutenant','demettre_lieutenant','traiter_candidatures'] }
+        ]
+      : [
+          { titre: "Commandement et effectifs", cle: 'caserneCommandement', icone: 'ti-military-rank',
+            fns: ['nommer_capitaine','recruter_compagnie','inspecter_troupes'] },
+          { titre: "Ma section", cle: 'caserneSection', icone: 'ti-shield',
+            fns: ['repartir_armement','gerer_detachement','voir_ma_section','entrainer_section',
+                  'reposer_section','equiper_section','declencher_mutinerie','remonter_renseignement'] },
+          { titre: "Budget et stratégie", cle: 'caserneBudget', icone: 'ti-building-bank',
+            fns: ['recherche_militaire','caisse_caserne','gerer_budget_caserne','tableau_effort_guerre'] }
+        ];
+    window._caserneOrdresGroupes = {};
+    const utilises = new Set();
+    const menus = familles.map((famille, index) => {
+      const entries = ordresTerrainLuthecia.map((ordre, i) => ({ ordre, html: buttons[i] }))
+        .filter(e => famille.fns.includes(e.ordre.fn) && e.html);
+      if (!entries.length) return '';
+      entries.forEach(e => utilises.add(e.ordre.fn));
+      const titreMenu = (typeof window.RPRoomActionsI18n?.label === 'function')
+        ? window.RPRoomActionsI18n.label(famille.cle, famille.titre) : famille.titre;
+      window._caserneOrdresGroupes[index] = {
+        titre: titreMenu, piece: roomId, ville: state.currentCity,
+        pays: state.country, entries
+      };
+      return '<button type="button" class="action-btn legal" onclick="ouvrirMenuOrdresCaserne(' +
+        index + ')" title="' + titreMenu.replace(/&/g,'&amp;').replace(/"/g,'&quot;') +
+        '"><i class="ti ' + famille.icone + '"></i> ' +
+        titreMenu.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') +
+        ' <span class="pa-cost">▾</span></button>';
+    }).filter(Boolean);
+    const nonClasses = ordresTerrainLuthecia.map((ordre, i) => utilises.has(ordre.fn) ? '' : buttons[i]).filter(Boolean);
+    boutonsOrganises = [...menus, ...nonClasses, ...buttons.slice(ordresTerrainLuthecia.length)];
+  }
+
   // Actualisation du seul texte des boutons, sans rejouer les sources dynamiques.
   window.RPOrderI18n?.registerRenderedOrders?.(ordresTerrainLuthecia);
   document.getElementById('actions-row-bat').innerHTML = boutonsOrganises.join('') ||
@@ -4676,6 +4723,27 @@ function ouvrirMenuOrdresCommissaire(index) {
   // Un sous-menu ajoute après la bascule doit refléter la langue courante.
   window.RPOrderI18n?.bindVisibleLabels?.(corps);
    window.RPOrderI18n?.refreshVisibleLabels?.(corps, window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
+}
+
+// La caserne compte jusqu'a quinze ordres par piece : les regrouper ne change ni
+// les droits, ni les couts, ni les callbacks. Les boutons originaux (deja grises
+// selon le poste et le pays du mandat) sont remontes sans modification dans le menu.
+function ouvrirMenuOrdresCaserne(index) {
+  const groupe = window._caserneOrdresGroupes?.[index];
+  if (!groupe || state.currentBuilding !== 'caserne-militaire' ||
+      state.currentRoom !== groupe.piece || state.currentCity !== groupe.ville ||
+      state.country !== groupe.pays) return;
+  const titre = document.getElementById('postes-modal-title');
+  const corps = document.getElementById('postes-body');
+  const modal = document.getElementById('modal-postes');
+  if (!titre || !corps || !modal) return;
+  titre.textContent = groupe.titre;
+  corps.innerHTML = '<div style="display:grid;gap:.8rem;padding:1rem;max-height:68vh;overflow-y:auto">' +
+    groupe.entries.map(e => '<div style="padding:.7rem;border:1px solid #5b4825;border-radius:8px">' +
+      e.html + '</div>').join('') + '</div>';
+  modal.classList.add('open');
+  window.RPOrderI18n?.bindVisibleLabels?.(corps);
+  window.RPOrderI18n?.refreshVisibleLabels?.(corps, window.i18next, window.RPPlateauI18n?.language?.() || 'fr');
 }
 
 function ouvrirMenuOrdresGreffe(index) {
