@@ -1243,11 +1243,16 @@
    resources[locale].translation.toastTitles={...titles};
  }
  function label(original){
-  if(typeof original!=='string'||!Object.hasOwn(originals,original))return original;
+  const resourceKey=key(original);if(!resourceKey)return original;
   const lng=global.RPPlateauI18n?.language?.()||'fr';
-  const output=global.i18next?.t?.('toastTitles.'+originals[original],{lng,defaultValue:original});
+  const output=global.i18next?.t?.(resourceKey,{lng,defaultValue:original});
   return typeof output==='string'&&output.trim() ? output : original;
  }
- function key(original){return typeof original==='string'&&Object.hasOwn(originals,original)?'toastTitles.'+originals[original]:null;}
- global.RPToastI18n=Object.freeze({label,key});
+ const additionalTitles=new Map();
+ function key(original){return typeof original!=='string'?null:Object.hasOwn(originals,original)?'toastTitles.'+originals[original]:additionalTitles.get(original)||null;}
+ function registerTitle(original,resourceKey){
+  if(typeof original!=='string'||!original.trim()||key(original)||typeof resourceKey!=='string'||!/^[A-Za-z][A-Za-z0-9_.-]*$/.test(resourceKey))return false;
+  additionalTitles.set(original,resourceKey);return true;
+ }
+ global.RPToastI18n=Object.freeze({label,key,registerTitle});
 })(window);

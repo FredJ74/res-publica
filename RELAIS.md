@@ -35,9 +35,9 @@ Modification en cours : la `salle_reception` du `palais-ambassades-novomirsk` es
 
 ## En cours
 
-### #871 — répertoire partagé et courrier, Codex, 13/11/2026
+### #871 — retours fixes du forum et de la messagerie, Codex, 13/11/2026
 
-Branche `codex/i18n-repertoire-courrier-20261113`, **PR #876**. Huit nouvelles clés × neuf langues (64 traductions étrangères), chargement réutilisé du catalogue existant ; répertoire et trois messages locaux du courrier. Français conservé, noms/villes/postes et champs non traduits. Même moteur `RPI18nPlateau.apply`, aucune RPC ni fonction d’envoi modifiée hors trois lignes de marquage de présentation. **26 contrôles ciblés verts**, dont 3 spécifiques et Chromium 320/390/1280, neuf langues et 162 combinaisons de situation ; audit éditorial/extracteur verts. Noms longs et RTL testés, brouillons et nœuds conservés. Mesure au même extracteur : +7 textes uniques et +39 mots source entièrement raccordés par langue étrangère ; huit ressources nouvelles, un refus encore français ailleurs. `RPI18nPlateau.markToast` et les titres existants se rafraîchissent sans effet métier. CI répertoire et audit vertes ; trois échecs SSM transverses préexistants à comparer, fusion et déploiement à compléter. Tableau de bord régénéré, sept artefacts identiques entre deux exécutions. Contrat : `outils/audits/I18N-REPERTOIRE-COURRIER-871.md`.
+Branche `codex/i18n-retours-forum-20261113`, **PR #877**. 43 nouvelles clés, 344 traductions étrangères, 44 points de présentation. 66 contrôles de non-régression verts (dont les 29 du lot) : français exact, AST métier inchangé, Chromium 320/390/1280 et neuf langues (837 rendus, 351 bascules sur gardes réelles), zéro appel serveur ou débit supplémentaire. Mesure avec le même extracteur avant/après : +43 textes uniques entièrement raccordés et +313 mots source par langue étrangère ; corpus inchangé. Tableau de bord régénéré, sept artefacts reproductibles ; CI et déploiement à compléter. Contrat : `outils/audits/I18N-RETOURS-FORUM-871.md`.
 
 
 ### Descriptions tactiles et guillemets HTML — livrés le 13/11/2026
@@ -124,6 +124,8 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - Aide HRP (PR #720) : **non certifiés** — réponses réelles DeepSeek dans les neuf langues, recette authentifiée, essais iPhone/Android. Sur téléphone : questions PA/but, fr→en→ko→fr, arabe RTL, clavier IME.
 
 ## Derniers chantiers
+
+- **#871 — répertoire/courrier**, PR #876 fusionnée (`c7f197e`), Vercel `dpl_41cY9NbTN6Fvu7Sua2V4tXEi1wsL` READY et alias public confirmé ; dix fichiers servis identiques, banc Chromium rejoué sur ces fichiers vert (162 situations). 64 traductions étrangères, +7 textes/+39 mots raccordés par langue. 26 contrôles ciblés verts ; trois échecs SSM préexistants inchangés. Compte authentifié, relecture native et téléphone physique non vérifiés.
 
 ### #871 — socle des ordres multi-empires, livré le 13/11/2026
 

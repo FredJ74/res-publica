@@ -272,14 +272,23 @@ function build(root=ROOT, options={}) {
     const markedToasts=new Map();
     const expression=s=>s?.expression?.type==='ChainExpression'?s.expression.expression:s?.expression;
     const shape=n=>JSON.stringify(n,(k,v)=>['start','end','loc','raw'].includes(k)?undefined:v);
+    function bindMessage(original,marked,keyNode){
+      if(original?.type==='ConditionalExpression'&&marked?.type==='ConditionalExpression'&&keyNode?.type==='ConditionalExpression'&&shape(original.test)===shape(keyNode.test)){
+        const left=bindMessage(original.consequent,marked.consequent,keyNode.consequent),right=bindMessage(original.alternate,marked.alternate,keyNode.alternate);return left&&right;
+      }
+      const r=byKey.get(staticValue(keyNode));if(!r||normalize(symbolic(original))!==normalize(r.fr.replace(/\{\{[^}]+\}\}/g,'{DYNAMIC}')))return false;
+      markedToasts.set(original.start,r);markedToasts.set(marked.start,r);return true;
+    }
     walk(tree,block=>{if(block.type!=='BlockStatement')return;
       for(let i=1;i<block.body.length;i++){
         const first=expression(block.body[i-1]),next=expression(block.body[i]);
         if(first?.callee?.name!=='showToast'||prop(next?.callee?.property)!=='markToast'||!source.slice(next.callee.start,next.callee.end).includes('RPI18nPlateau'))continue;
-        const r=byKey.get(staticValue(next.arguments[0]));
-        if(!r||shape(first.arguments[1])!==shape(next.arguments[1]))continue;
-        if(normalize(symbolic(first.arguments[1]))!==normalize(r.fr.replace(/\{\{[^}]+\}\}/g,'{DYNAMIC}')))continue;
-        markedToasts.set(first.arguments[1].start,r);markedToasts.set(next.arguments[1].start,r);
+        if(shape(first.arguments[1])!==shape(next.arguments[1]))continue;
+        const bodyBound=bindMessage(first.arguments[1],next.arguments[1],next.arguments[0]);
+        if(bodyBound&&shape(first.arguments[0])===shape(next.arguments[3])){
+          const titleKey=sandbox.RPToastI18n?.key?.(staticValue(next.arguments[3])),r=byKey.get(titleKey);
+          if(r&&r.fr===staticValue(first.arguments[0])){markedToasts.set(first.arguments[0].start,r);markedToasts.set(next.arguments[3].start,r);}
+        }
       }
     });
     walk(tree,(n,parents)=>{
@@ -355,7 +364,7 @@ function build(root=ROOT, options={}) {
     // Deliberately conservative: resource existence never proves its use on the screen.
     e.locales={};for(const l of LOCALES){
       const visible=e.occurrences.filter(o=>o.certainty==='static-render-path');
-      const usable=r=>r&&['available-unreviewed','neutral','source'].includes(r.status[l]);
+      const usable=r=>r&&r.loaded&&['available-unreviewed','neutral','source'].includes(r.status[l]);
       const available=visible.some(o=>o.resources.some(id=>usable(regById.get(id)))) || e.occurrences.some(o=>o.resources.some(id=>usable(regById.get(id))));
       const wired=visible.length>0&&visible.every(o=>usable(regById.get(o.resolverBindings?.[l]||o.bindings?.[l]||o.binding)));
       e.locales[l]=l==='fr'?'source':wired?'wired-unreviewed':available?'resource-review-binding':'no-confirmed-resource';

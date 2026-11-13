@@ -1,7 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{execFileSync}=require('node:child_process');
 const {chromium}=require('playwright');
-const root=process.env.DIRECTORY_ASSET_DIR||path.resolve(__dirname,'../..'),read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const repository=path.resolve(__dirname,'../..'),root=process.env.DIRECTORY_ASSET_DIR||repository,read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const locales=['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de'];
 function fn(s,name){let a=s.indexOf('function '+name+'(');assert.ok(a>=0);if(s.slice(a-6,a)==='async ')a-=6;return s.slice(a,s.indexOf('\n}',a)+2);}
 async function setup(page,original=false){
@@ -22,7 +22,7 @@ async function setup(page,original=false){
   window.snapshot=()=>JSON.stringify({state,calls,messages,journal,to:document.getElementById('compose-mail-to').value,subject:document.getElementById('compose-mail-subject').value,body:document.getElementById('compose-mail-body').value});
  });
  for(const f of ['i18n/resources.js','i18n/plateau-resources.js','i18n/inventory-ui-resources.js','i18n/player-directory-resources.js','i18n/toast-resources.js','i18n/plateau-init.js'])await page.addScriptTag({content:read(f)});
- const source=original?execFileSync('git',['show','1163bad:plateau-communication.js'],{cwd:root,encoding:'utf8',maxBuffer:4e6}):read('plateau-communication.js');
+ const source=original?execFileSync('git',['show','1163bad:plateau-communication.js'],{cwd:repository,encoding:'utf8',maxBuffer:4e6}):read('plateau-communication.js');
  const names=original?['ouvrirRepertoirePJ','composerMailPour','fermerComposeMail','envoyerComposeMail']:['texteRepertoireHtml','repertoireActualiserTextes','ouvrirRepertoirePJ','composerMailPour','fermerComposeMail','envoyerComposeMail'];
  await page.addScriptTag({content:names.map(n=>fn(source,n)).join('\n')});
 }
