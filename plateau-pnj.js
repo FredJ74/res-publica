@@ -3247,6 +3247,9 @@ function genererPnjTerrain(buildingId) {
 // interagirPnjTerrain SUPPRIMEE (#379, 03/11/2026) : aucun appel ; elle creditait INF a l'ecran.
 
 async function chargerPnjTerrain(buildingId) {
+  // Les parcelles publiques sovarkiennes ne suivent pas le regime de
+  // verification/occupation des terrains prives.
+  if (state.country === 'soviet') return false;
   if (!buildingId?.startsWith('terrain-a-batir')) return false;
   const contexte = {personnage:state.char, pays:state.country, ville:state.currentCity,
     uid:typeof rpAuthUid==='function'?rpAuthUid():null};

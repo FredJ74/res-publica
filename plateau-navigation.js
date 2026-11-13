@@ -808,7 +808,10 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
 
   // L'occupation exige la position SERVEUR : attendre la sauvegarde avant la RPC.
-  if (buildingId?.startsWith('terrain-a-batir')) {
+  // Sovarka : terrains de l'Etat, sans fiche terrains_etat ni tirage
+  // d'occupation du circuit de vente privee de Republia. Eviter un faux
+  // avertissement « Terrain non verifie » a chaque entree.
+  if (state.country !== 'soviet' && buildingId?.startsWith('terrain-a-batir')) {
     const visiteTerrain = { personnage: state.char, pays: state.country, ville: state.currentCity,
       uid: typeof rpAuthUid === 'function' ? rpAuthUid() : null };
     const occupationConfirmee = positionEcriteSurLeServeur.then(() => {
