@@ -20,13 +20,6 @@ Après #861 (19) et #863 (+20), **31 autres descriptions** exclusivement républ
 
 ## En cours
 
-### Audit global de l’internationalisation — Codex, 13/11/2026
-
-Branche `codex/audit-i18n-global-20261113`, **PR #862**. **Audit seulement**, aucun texte du jeu, catalogue, ordre, RPC, migration ou donnée PJ modifié. Script `outils/audits/audit-i18n-global.cjs`, tableau de bord Markdown/JSON et inventaires JSON compressés dans `outils/audits/i18n-global/`, CI dédiée. Mesure des textes uniques, occurrences, mots source, neuf langues et domaines ; ressources disponibles distinctes des raccordements prouvés. Les pourcentages sont des **planchers de preuves statiques sur corpus identifié, pas un taux certifié de tout le jeu** ; annotateurs DOM et clés dynamiques sous-détectés. Candidats/SQL/contexte IA explicitement séparés. Relevé Supabase en SELECT agrégé sur sept champs de référence, sans donnée de joueur ; volumes non additionnables au corpus.
-
-Tests locaux : **31/31** (16 contre-épreuves nouvelles, 15 contrôles existants) ; les 15 existants réussissent aussi sur main initial `c299c4c` et main de rebasage `36bdfa4`. Trois échecs SSM préexistants reproduits à l’identique sur main et branche (5/8 verts), aucun de ces fichiers modifié. Deux régénérations : sept artefacts strictement identiques, variation nulle. PR #862 en brouillon ; première CI audit, immobilier et payload vertes ; CI transverse arrêtée sur les trois mêmes échecs SSM. Mise à jour et CI finale en cours, fusion et état Vercel restent à vérifier. Mode d’emploi et limites : `outils/audits/i18n-global/README.md`. Aucun des 189 textes Républia restant à traduire n’a été traduit.
-
-
 ### Descriptions tactiles et guillemets HTML — livrés le 13/11/2026
 **PR #855 fusionnée après autorisation expresse de Fred** malgré le contrôle SSM/Montrouge déjà rouge sur main, commit `d05740dd24b1c04225c06a70810d6fd28e26a2ac`. Vercel production `dpl_2Ny4NphzGNtVNQJR9gXhNva2bxC9` **READY** sur le même commit. Bouton ⓘ tactile de consultation des ordres, sans action/PA ni requête, contenu multilingue fourni par les catalogues #853 et #856. Suite ciblée et Chromium vertes avant fusion ; revue réelle PJ authentifiée et téléphone physique non faits.
 **PR #857 fusionnée**, commit `a14fd38ac17911c5bcdbbbced6c0e825af7f9969` ; Vercel production `dpl_9xe83C3dm1XAxMXCCA4mvQ42QxqU` **READY**. Correction de l'attribut HTML `title` qui tronquait deux descriptions contenant des guillemets droits ; messages bloqués inchangés, descripteur `data-rp-tip` intact, aucune modification métier. CI guillemets verte, CI descriptions tactiles verte avec Chromium 320/390/1280 et neuf langues, échec transverse SSM préexistant inchangé. Recette authentifiée, appareil physique et relecture native non faits. Audit : `outils/audits/ORDRES-INFO-TACTILE-20261113.md`.
@@ -111,6 +104,13 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - Aide HRP (PR #720) : **non certifiés** — réponses réelles DeepSeek dans les neuf langues, recette authentifiée, essais iPhone/Android. Sur téléphone : questions PA/but, fr→en→ko→fr, arabe RTL, clavier IME.
 
 ## Derniers chantiers
+
+### Audit global de l’internationalisation — Codex, 13/11/2026
+
+**PR #862 fusionnée**, commit `2d673bc11d59eeedfd06aba25a16c77017a0bf61`. Vercel production `dpl_BkMsBq4dE37oXT75aocnrNEfvUYS` **READY**, alias `res-publica.vercel.app` vérifié. Aucun texte, catalogue, ordre, coût, RPC, migration ou donnée PJ modifié. Outillage dans `outils/audits/audit-i18n-global.cjs` et `outils/audits/i18n-global/` : tableau de bord Markdown/JSON, inventaires compressés, sources et empreintes, neuf langues/domaines/mots, priorités, comparaison et exclusions justifiées. Relevé Supabase agrégé sur sept champs de référence ; aucun contenu privé exporté. Les taux sont des **planchers de preuves statiques**, pas un pourcentage certifié de tout le jeu ; ressources disponibles, raccordements et qualité linguistique restent distincts. Limites et usage : `outils/audits/i18n-global/README.md`.
+
+Suivi sur `codex/audit-i18n-livraison-20261113` : actualisation du relevé sur main `2d673bc`, qui inclut les **19 descriptions Républia de Claude (#861)** ; découverte automatique de ces catalogues dans le résolveur. **33/33 contrôles locaux** (18 contre-épreuves, 15 existants), 15/15 existants aussi sur le main livré ; sept artefacts identiques entre deux exécutions. Audit CI initial, immobilier et payload verts ; trois échecs SSM transverses reproduits à l’identique sur main et branche (5/8), hors périmètre. Les réponses IA, états non visités, relecture native et texte incrusté dans les images restent explicitement non certifiés. Aucun texte Républia restant n’a été traduit par Codex.
+
 
 - **Novomirsk V5 : flèche du haut vers les Ambassades et l'Armurerie (Claude, 13/11 vers 11 h 45, signalement de Fred, branche `claude/novomirsk-fleche-haut-20261113`)**. La flèche du haut de la vue Centre d'affaires/Grand Hôtel (V5) menait à la rue du notaire (V3).
   - **Décision de Fred (13/11)** : en haut, V6 (Ambassades/Armurerie) ; retour de V6 vers V5 par la flèche du bas. La rue du notaire reste accessible depuis le Grand Hôtel/Galeries (V4). La décision du 12/11 « pas de retour V6→V5 » est remplacée.

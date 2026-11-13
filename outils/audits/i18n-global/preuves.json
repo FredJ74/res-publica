@@ -4,8 +4,8 @@
   "mainRebase": "36bdfa46d97726d2698b624bc0f24e10e343fbd4",
   "tests": {
     "extracteur": {
-      "tests": 16,
-      "pass": 16,
+      "tests": 18,
+      "pass": 18,
       "fail": 0
     },
     "existantsBranche": {
@@ -27,6 +27,11 @@
         "écran : succès uniquement si serveur confirme ; aucun mail inventé en cas de refus",
         "Besoin d’aide : orientation libre, quatre rubriques et portrait récupéré depuis le PNJ"
       ]
+    },
+    "existantsMainLivre": {
+      "tests": 15,
+      "pass": 15,
+      "fail": 0
     }
   },
   "reproductibilite": {
@@ -40,5 +45,14 @@
     "Relecture linguistique native",
     "Texte incrusté dans les images",
     "Volumes de réponses IA et de contenus libres"
-  ]
+  ],
+  "mainLivre": "2d673bc11d59eeedfd06aba25a16c77017a0bf61",
+  "livraisonInitiale": {
+    "pr": 862,
+    "commit": "2d673bc11d59eeedfd06aba25a16c77017a0bf61",
+    "vercelDeployment": "dpl_BkMsBq4dE37oXT75aocnrNEfvUYS",
+    "state": "READY",
+    "alias": "res-publica.vercel.app"
+  },
+  "suivi": "Découverte des nouveaux catalogues de pays, relevé actualisé après les 19 descriptions Républia de la PR #861 ; aucun texte traduit par cet audit."
 }

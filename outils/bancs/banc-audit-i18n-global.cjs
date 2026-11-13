@@ -65,6 +65,10 @@ test('les tables par langue hors du catalogue central sont recensées',t=>{
   const {dir}=fixture(t,{'i18n/local-resources.js':'const labels='+JSON.stringify(map)+';'});
   const r=audit.build(dir);assert.ok(r.registrations.some(x=>x.fr==='Salut camarade'&&x.status.ko==='available-unreviewed'));assert.equal(r.registrations.find(x=>x.fr==='Salut camarade').loaded,false);
 });
+test('la liste technique des neuf codes de langue n’est pas une matrice de textes',t=>{
+  const {dir}=fixture(t,{'i18n/local-resources.js':'const LANGUES='+JSON.stringify(audit.LOCALES)+';'});
+  const r=audit.build(dir);assert.ok(!r.registrations.some(r=>r.fr==='fr'));
+});
 test('traducteur exporté et wrapper transparents reconnus sans importer le métier',t=>{
   const map=Object.fromEntries(audit.LOCALES.map(l=>[l,{hello:l==='fr'?'Un guide très bavard':l+' A talkative guide'}]));
   const {dir}=fixture(t,{'i18n/guide-resources.js':`(function(global){const texts=${JSON.stringify(map)}; function text(key){const original=texts.fr[key];const locale=global.RPPlateauI18n?.language?.()||'fr';return texts[locale]?.[key]||original;} global.texteGuide=text;})(window);`,
@@ -93,6 +97,17 @@ test('garde des guides : aucune traduction prouvée si la référence française
     'index.html':'<script src="i18n/resources.js"></script><script src="plateau-personnage.js"></script>',
     'i18n/guide-integrity.js':'window.RPGuideIntegrity={valid:()=>false};'});
   const r=audit.build(dir);assert.ok(r.registrations.some(r=>r.format==='guide-source'));assert.ok(r.entries.filter(e=>['Un guide','Un récit de référence'].includes(e.text)).every(e=>e.locales.en!=='wired-unreviewed'));
+});
+test('un nouveau catalogue de pays est découvert et pris en compte par le résolveur',t=>{
+  const row=audit.LOCALES.map(l=>l==='fr'?'Un ordre à découvrir':l+' Discover an order');
+  const {dir}=fixture(t,{
+    'index.html':'<script src="i18n/resources.js"></script><script src="i18n/nouveau-pays-resources.js"></script><script src="i18n/sovarka-infobulles-resources.js"></script><script src="data.js"></script>',
+    'i18n/nouveau-pays-resources.js':'window.RP_EXTRA='+JSON.stringify([row])+';',
+    'i18n/sovarka-infobulles-resources.js':`window.RPSovarkaInfobullesI18n={desc(text){const row=window.RP_EXTRA.find(r=>r[0]===text);return row?row[${JSON.stringify(audit.LOCALES)}.indexOf(window.RPPlateauI18n.language())]:text;}};`,
+    'data.js':"const WORLD = {republic:{capitale:{buildings:['test']}}};\nconst BUILDINGS = {test:{rooms:{hall:{orders:[{fn:'demo',label:'Agir',desc:'Un ordre à découvrir'}]}}}};"
+  });
+  const r=audit.build(dir);assert.deepEqual(r.extractionErrors,[]);
+  const e=r.entries.find(e=>e.text==='Un ordre à découvrir');for(const l of audit.LOCALES.slice(1))assert.equal(e.locales[l],'wired-unreviewed');
 });
 test('français absent du catalogue et instructions IA restent des périmètres explicites',t=>{
   const {dir}=fixture(t,{'api/_pnj-profils.js':"const prompt = 'Vous êtes un guide très bavard';",'plateau-inactif.js':"const texte = 'Une quête inconnue reste ici';"});
