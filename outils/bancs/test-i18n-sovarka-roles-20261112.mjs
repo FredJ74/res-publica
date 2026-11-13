@@ -30,7 +30,9 @@ test('aucun effet hors Sovarka, en français ou sur un rôle inconnu', () => {
 });
 test('les trois affichages passent par le traducteur, le rôle source reste dans les données', () => {
   const mj = lire('plateau-multijoueur.js'), pnj = lire('plateau-pnj.js');
-  assert.equal((mj.match(/roleAfficheSovarka\(p\.role\)/g) || []).length, 2);
+  // Carte générale et carte de la guide (12/11), puis carte d'Ilia (PR #830, 12/11) : même traducteur.
+  assert.ok((mj.match(/roleAfficheSovarka\(p\.role\)/g) || []).length >= 3);
+  assert.match(mj, /p\.guideIlia === true[\s\S]{0,400}roleAfficheSovarka\(p\.role\)/);
   assert.match(mj, /function roleAfficheSovarka\(role\)/);
   assert.match(pnj, /roleAfficheSovarka\(pnj\.role\?\.replace\(' \(PNJ\)', ''\)/);
   assert.ok(lire('plateau.html').includes('i18n/sovarka-roles-resources.js'));
