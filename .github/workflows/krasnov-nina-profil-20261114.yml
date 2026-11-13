@@ -1,0 +1,106 @@
+name: Krasnov - Nina Gorbounova portrait et dialogue
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/krasnov-nina-profil-20261114.yml'
+permissions:
+  contents: write
+jobs:
+  nina:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Recadrer la marchande, verifier les profils et raccorder Nina
+        run: |
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          root = Path('images/Sovarka/Krasnov')
+          original = root / 'Krasnov_marche_etals.webp'
+          portrait = root / 'Krasnov_marche_nina_gorbounova_portrait.webp'
+          assert original.exists() and not portrait.exists()
+          with Image.open(original) as im:
+              print('Original', im.size)
+              assert im.size == (1672, 941), im.size
+              # Nina est la marchande de pain au premier plan gauche, visage au centre superieur.
+              crop = im.crop((140,285,415,560)).convert('RGB')
+              crop.resize((512,512), Image.Resampling.LANCZOS).save(portrait,'WEBP',quality=92,method=6)
+          with Image.open(portrait) as im:
+              assert im.size == (512,512) and im.format == 'WEBP'
+          data = Path('data.js')
+          s = data.read_text(encoding='utf8')
+          start = s.index("    ville_b: {\n      name:'Krasnov'")
+          end = s.index('    // ZONE HISTORIQUE, PLUS DESSERVIE.',start)
+          section = s[start:end]
+          old = ("        'marche': {\n"
+                 "          roomOverrides: {\n"
+                 "            marche_ext: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp' }\n"
+                 "          }\n"
+                 "        },")
+          new = ("        'marche': {\n"
+                 "          name: 'Marché de Krasnov',\n"
+                 "          persons: [{\n"
+                 "            name: 'Nina Gorbounova (PNJ)', role: 'Marchande du marché',\n"
+                 "            rel: 'neutral', job: 'commercant', profilId: 'nina_gorbounova',\n"
+                 "            photoUrl: 'images/Sovarka/Krasnov/Krasnov_marche_nina_gorbounova_portrait.webp',\n"
+                 "            photoPos: '50% 24%'\n"
+                 "          }],\n"
+                 "          roomOverrides: {\n"
+                 "            marche_ext: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp' }\n"
+                 "          }\n"
+                 "        },")
+          assert section.count(old)==1, 'Surcharge Krasnov marche inattendue'
+          section=section.replace(old,new,1)
+          s=s[:start]+section+s[end:]
+          data.write_text(s,encoding='utf8')
+          profils=Path('api/_pnj-profils.js')
+          t=profils.read_text(encoding='utf8')
+          marker="const PROFILS = {\n"
+          assert t.count(marker)==1 and "nina_gorbounova:" not in t
+          fiche = """  // Krasnov : accueil populaire et solidarite, sans promesse d'acces ou paiement fictif.
+  nina_gorbounova: {
+    nom: 'Nina Gorbounova',
+    identite: 'Tu es Nina Gorbounova, marchande souriante au petit marche de Krasnov, dans la province sovarkienne. Tu accueilles les visiteurs derriere ton etal de pains et de conserves. Tu connais le quartier, ses habitants, leurs usages et le kolkhoze voisin.',
+    caractere: 'Sympathique, genereuse, serviable et humaine. Une femme de marche qui aime rendre service sans calcul et qui connait les petites difficultes quotidiennes. Chaleureuse, rassurante, sans naivete, tu parles simplement, avec une pointe de bonhomie. Tu offres volontiers un conseil, une direction ou une parole encourageante, jamais un objet fictif.',
+    savoir: `A Krasnov, l'entraide est une fierte locale. Les habitants accueillent volontiers les visiteurs chez eux et font preuve de generosite dans les limites de leurs moyens. Tu peux dire : « Ici, tout le monde s'entraide ». C'est ton experience et ton ideal, pas une garantie que toutes les maisons sont ouvertes au public : l'hospitalite ne supprime pas le consentement des habitants ni les droits d'acces.
+Tu invites les nouveaux venus a decouvrir les maisons du quartier et a rencontrer leurs habitants. Tu peux aussi dire : « Tu peux aller aussi travailler au kolkhoze pour la collectivite, et tu seras recompense pour ca ». La recompense concrete est le produit recolte, remis dans l'inventaire du travailleur, et non un salaire promis : au kolkhoze de Krasnov, des travaux manuels permettent de ramasser des legumes ou des oeufs, ou de s'occuper des poulets et des lapins. Les activites utilisent des points d'action et sont soumises aux controles du jeu.
+Tu tiens le petit marche avec des pains, des conserves et des produits locaux. Tu connais le kolkhoze voisin et la modestie des habitants de Krasnov. La generosite du peuple sovarkien est sincere pour toi : tu ne recites pas de slogan officiel et ne nies pas les difficultes de la vie quotidienne.`,
+    limites: 'Ne promets jamais de don gratuit, de salaire, de prime, de logement ou d autorisation d entrer chez autrui. Tu ne peux pas executer le travail au kolkhoze, transferer des objets ou ouvrir une maison par la conversation. Si une recompense ou un tarif exact est demande, renvoie vers les ordres du kolkhoze plutot que d inventer. Ne presente pas tous les habitants comme automatiquement accueillants. Ne quitte pas ton role pour donner un tutoriel technique.',
+    immersion: true,
+    maxTokens: 360
+  },
+"""
+          t=t.replace(marker,marker+fiche,1)
+          profils.write_text(t,encoding='utf8')
+          PY
+      - name: Tests du raccordement et de la fiche serveur
+        run: |
+          node --check data.js
+          node --check api/_pnj-profils.js
+          node --input-type=module - <<'JS'
+          import { profilExiste, construirePromptSysteme } from './api/_pnj-profils.js';
+          import { readFileSync, statSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+          assert.ok(profilExiste('nina_gorbounova'));
+          const prompt=construirePromptSysteme('nina_gorbounova','fr');
+          assert.ok(prompt.includes('Ici, tout le monde s\'entraide'));
+          assert.ok(prompt.includes('kolkhoze'));
+          const data=readFileSync('data.js','utf8');
+          const start=data.indexOf("    ville_b: {\n      name:'Krasnov'");
+          const end=data.indexOf('    // ZONE HISTORIQUE, PLUS DESSERVIE.',start);
+          const krasnov=data.slice(start,end);
+          assert.ok(krasnov.includes("profilId: 'nina_gorbounova'"));
+          assert.ok(krasnov.includes("photoUrl: 'images/Sovarka/Krasnov/Krasnov_marche_nina_gorbounova_portrait.webp'"));
+          assert.ok(krasnov.includes("marche_ext: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp' }"));
+          assert.ok(statSync('images/Sovarka/Krasnov/Krasnov_marche_nina_gorbounova_portrait.webp').size>15000);
+          console.log('OK : profil DeepSeek, accueil, portrait, uniquement marche de Krasnov');
+          JS
+          git diff --check
+      - name: Publier la fiche et le portrait
+        run: |
+          git add data.js api/_pnj-profils.js images/Sovarka/Krasnov/Krasnov_marche_nina_gorbounova_portrait.webp
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Krasnov : Nina Gorbounova, portrait et accueil chaleureux'
+          git push
