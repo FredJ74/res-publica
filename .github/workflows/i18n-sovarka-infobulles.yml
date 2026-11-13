@@ -1,0 +1,41 @@
+name: i18n — infobulles des ordres de Sovarka et salon (9 langues)
+on:
+  pull_request:
+    paths:
+      - i18n/sovarka-infobulles-resources.js
+      - i18n/sovarka-descriptions-resources.js
+      - plateau-politique.js
+      - plateau-salon.js
+      - outils/bancs/test-i18n-sovarka-*.mjs
+      - outils/bancs/banc-i18n-sovarka-infobulles-navigateur.cjs
+      - outils/bancs/fixtures/salon-coiffure-temoin-517a425.js
+      - .github/workflows/i18n-sovarka-infobulles.yml
+  push:
+    branches: [main]
+    paths:
+      - i18n/sovarka-infobulles-resources.js
+      - i18n/sovarka-descriptions-resources.js
+      - plateau-politique.js
+      - plateau-salon.js
+      - outils/bancs/test-i18n-sovarka-*.mjs
+      - outils/bancs/banc-i18n-sovarka-infobulles-navigateur.cjs
+      - .github/workflows/i18n-sovarka-infobulles.yml
+permissions:
+  contents: read
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe
+        run: for f in i18n/sovarka-infobulles-resources.js i18n/sovarka-descriptions-resources.js plateau-politique.js plateau-salon.js; do node --check "$f"; done
+      - name: Catalogues, français identique, montants, bascule, lots Sovarka du 12/11
+        run: node --test outils/bancs/test-i18n-sovarka-*.mjs outils/bancs/test-i18n-musee-sovarka-20261112.mjs
+      - name: Audit éditorial
+        run: node outils/audits/audit-i18n-editorial.cjs > /dev/null
+      - name: Chromium 320 px, 390 px et bureau (Chrome fourni par le runner)
+        run: HG_CHROMIUM=/usr/bin/google-chrome node --test outils/bancs/banc-i18n-sovarka-infobulles-navigateur.cjs
