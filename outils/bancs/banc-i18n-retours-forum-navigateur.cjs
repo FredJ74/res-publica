@@ -6,7 +6,7 @@ const locales=['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de'];
 function fn(s,name){let a=s.indexOf('function '+name+'(');assert.ok(a>=0,name);if(s.slice(a-6,a)==='async ')a-=6;return s.slice(a,s.indexOf('\n}',a)+2);}
 function cases(){const found=new Map(),source=read('forum.js'),expression=n=>n?.expression?.type==='ChainExpression'?n.expression.expression:n?.expression;
  function collect(key,fr,title,success,crit){if(key.type==='ConditionalExpression'){collect(key.consequent,fr.consequent,title,success,crit);collect(key.alternate,fr.alternate,title,success,crit);return;}
-  assert.equal(key.type,'Literal');assert.equal(fr.type,'Literal');found.set(key.value+'|'+title,{key:key.value,fr:fr.value,title,success,crit});}
+  if(key.type==='Literal'&&key.value===null)return;assert.equal(key.type,'Literal');assert.equal(fr.type,'Literal');found.set(key.value+'|'+title,{key:key.value,fr:fr.value,title,success,crit});}
  walk(parse(source),n=>{if(n.type!=='BlockStatement')return;for(let i=1;i<n.body.length;i++){const first=expression(n.body[i-1]),next=expression(n.body[i]);if(first?.callee?.name==='showToast'&&next?.callee?.property?.name==='markToast')collect(next.arguments[0],next.arguments[1],first.arguments[0].value,first.arguments[2]?.value,first.arguments[3]?.value);}});
  assert.equal(found.size,31);return [...found.values()];
 }

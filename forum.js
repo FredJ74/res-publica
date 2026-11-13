@@ -1684,7 +1684,7 @@ async function executerSuppressionPost(topicId, postId) {
       await sbDelete('forum_posts', `topic_id=eq.${encodeURIComponent(topicId)}`).catch(() => {});
     }
     FORUM_TOPICS[currentForumId] = (FORUM_TOPICS[currentForumId]||[]).filter(t => t.id !== topicId);
-    showToast('Sujet supprimé', '', true);
+    showToast('Sujet supprimé', '', true); window.RPI18nPlateau?.markToast(null, '', undefined, 'Sujet supprimé');
     backToList();
   } else {
     topic.posts.splice(idx, 1);
@@ -1692,7 +1692,7 @@ async function executerSuppressionPost(topicId, postId) {
     if (typeof sbUpdate === 'function') {
       await sbUpdate('forum_topics', `id=eq.${encodeURIComponent(topicId)}`, { replies: topic.replies }).catch(() => {});
     }
-    showToast('Message supprimé', '', true);
+    showToast('Message supprimé', '', true); window.RPI18nPlateau?.markToast(null, '', undefined, 'Message supprimé');
     document.getElementById('forum-main').innerHTML = renderForumContent();
   }
 }

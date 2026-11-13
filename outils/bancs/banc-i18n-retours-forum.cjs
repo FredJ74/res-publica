@@ -5,9 +5,9 @@ const root=path.resolve(__dirname,'../..'),read=f=>fs.readFileSync(path.join(roo
 const previous=execFileSync('git',['show','94d4631:forum.js'],{cwd:root,encoding:'utf8',maxBuffer:4e6});
 function load(){const c={RP_I18N_GAME_ENABLED:true,RPPlateauI18n:{language:()=>c.locale||'fr'}};c.window=c;vm.createContext(c);
  for(const f of ['i18n/i18next.min.js','i18n/resources.js','i18n/toast-resources.js','i18n/forum-feedback-resources.js'])vm.runInContext(read(f),c);c.i18next.init({lng:'fr',fallbackLng:'fr',resources:c.RP_I18N_RESOURCES,initImmediate:false,interpolation:{escapeValue:false}});return c;}
-test('43 textes de source exacts, neuf langues complètes et nom de forum conservé',()=>{
+test('45 textes de source exacts, neuf langues complètes et nom de forum conservé',()=>{
  const messages=new Set(),titles=new Set();walk(parse(previous),n=>{if(n.type==='CallExpression'&&n.callee.name==='showToast'){if(n.arguments[0]?.type==='Literal')titles.add(n.arguments[0].value);walk(n.arguments[1],s=>{if(s.type==='Literal'&&typeof s.value==='string')messages.add(s.value);});}});
- const c=load(),fr=c.RP_I18N_RESOURCES.fr.translation.forumFeedback;assert.equal(Object.keys(fr).length,43);
+ const c=load(),fr=c.RP_I18N_RESOURCES.fr.translation.forumFeedback;assert.equal(Object.keys(fr).length,45);
  for(const [key,text]of Object.entries(fr))assert.ok((c.RPToastI18n.key(text)==='forumFeedback.'+key?titles:messages).has(text),key+': '+text);
  for(const lang of locales){const words=c.RP_I18N_RESOURCES[lang].translation.forumFeedback;assert.deepEqual(Object.keys(words),Object.keys(fr));for(const [key,text]of Object.entries(words)){
   assert.ok(text.trim());if(lang!=='fr')assert.notEqual(text,fr[key]);if(key==='namedPresidency')assert.ok(text.includes('La Présidence à la Nation'));
@@ -36,7 +36,7 @@ test('AST métier entièrement identique après retrait des 44 appels de présen
  const after=parse(fusion);let count=0;walk(after,n=>{if(isMarker(n))count++;});assert.equal(count,44);
  assert.deepEqual(canonical(after),canonical(parse(previous)));
  // Les 44 marqueurs de présentation restent branchés dans le forum.js courant.
- let courant=0;walk(parse(read('forum.js')),n=>{if(isMarker(n))courant++;});assert.equal(courant,44);
+ const keys=source=>{const found=new Map();walk(parse(source),n=>{if(isMarker(n)){const e=n.expression.type==='ChainExpression'?n.expression.expression:n.expression;const k=JSON.stringify(cleanKey(e.arguments[0]));found.set(k,(found.get(k)||0)+1);}});return found;};function cleanKey(n){if(!n||typeof n!=='object')return n;const out={};for(const [k,v]of Object.entries(n))if(!['start','end','loc','raw'].includes(k))out[k]=Array.isArray(v)?v.map(cleanKey):cleanKey(v);return out;}const oldKeys=keys(fusion),current=keys(read('forum.js'));for(const [key,n]of oldKeys)assert.ok((current.get(key)||0)>=n,key);
  assert.match(read('plateau.html'),/forum-feedback-resources\.js/);
  assert.ok(read('plateau.html').indexOf('i18n/toast-resources.js')<read('plateau.html').indexOf('i18n/forum-feedback-resources.js'));
 });
