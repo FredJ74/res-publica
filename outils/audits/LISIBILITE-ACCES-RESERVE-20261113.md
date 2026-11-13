@@ -75,3 +75,38 @@ province, contrat RPC). Ces chantiers étrangers ne sont pas modifiés.
 Captures avant/après et mesures produites par `ACCESS_SCREENSHOTS`, conservées comme
 artefact de CI. Recette avec compte authentifié et téléphone physique non réalisée.
 CI, fusion et déploiement : statut vivant dans la PR et `RELAIS.md`.
+
+## Livraison vérifiée
+
+- **PR #880 fusionnée**, commit `7df7525ea0d19264bda3b054759384831123c4be`
+  (code `813f095`, preuves `b3d3e50`).
+- CI PR : **37 contrôles verts**, seul contrôle SSM rouge avec les trois échecs
+  préexistants. Un premier démarrage Chromium du banc transversal a expiré avant
+  les assertions d’interface ; relance inchangée du run `43469269085` : verte.
+  Les neuf essais Chromium complémentaires infobulles/modalités passent en local
+  après installation des dépendances verrouillées, sans modification de code.
+- Vercel production **READY**, `dpl_t9Xaxv4Zdzik3iMUTpHfJd5GuoAC`, sur le commit
+  de fusion ; alias `res-publica.vercel.app` confirmé.
+- **Cinq fichiers publics identiques octet pour octet** au commit fusionné :
+  `plateau.html`, `style.css`, `plateau-acces-reserve.js`, `plateau-vehicules.js`,
+  `plateau-sovarka-droits.js`. Empreintes dans le JSON `-production.json` associé.
+- Nouveau banc rejoué avec ces fichiers publics et la référence initiale `616122e` :
+  **deux tests verts**, dont les **288 rendus**. Les essais restent isolés, sans
+  compte joueur, accès réel, dépense, combat ni écriture serveur.
+- CI du commit fusionné terminée : vérifications dédiées vertes ; le banc global
+  conserve les quatre échecs initiaux, **320/324 verts** (avant : 312/316). Runs comparés :
+  `43465910660` (avant) et `43470328981` (après), mêmes intitulés d’échec.
+
+### Fichiers modifiés
+
+`style.css`, `plateau-acces-reserve.js`, `plateau.html`,
+`outils/bancs/banc-lisibilite-acces-reserve-20261113.cjs`,
+`.github/workflows/lisibilite-acces-reserve.yml`, `RELAIS.md`, et les trois preuves
+`outils/audits/LISIBILITE-ACCES-RESERVE-20261113.md`,
+`outils/audits/LISIBILITE-ACCES-RESERVE-20261113-mesures.json`,
+`outils/audits/LISIBILITE-ACCES-RESERVE-20261113-production.json`.
+
+Aucune traduction, donnée PNJ/PJ, règle ou fonction Supabase modifiée.
+**Non réalisés :** session authentifiée et téléphone physique. Les captures et
+les mesures sont celles des fixtures Chromium utilisant les scripts et styles du
+jeu ; elles ne constituent pas une navigation réelle d’un joueur connecté.

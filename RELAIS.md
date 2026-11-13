@@ -44,10 +44,6 @@ Modification en cours : la `salle_reception` du `palais-ambassades-novomirsk` es
 
 ## En cours
 
-### Lisibilité des fenêtres d’accès réservé — Codex, 13/11/2026
-
-Branche `codex/lisibilite-acces-reserve-20261113`, **PR #880**, départ `616122e`. Correction exclusivement graphique du module `plateau-acces-reserve.js` : titre 1,9rem, corps/notes 1,12rem, interligne 1,6, boutons 1rem et 44px, défilement mobile. Résidence impériale et Pavillon des Ambassadeurs de Novomirsk ; aucune autre modale générique agrandie. Un marqueur HTML et CSS ciblé, aucune modification des traductions ou fonctions métier. Banc historique, six tests Palais et illustrations Résidence verts ; deux tests du nouveau banc verts, dont Chromium 288 rendus (320/390/1280 et hauteur réduite, neuf langues existantes), comparaison source avec main. Audit : `outils/audits/LISIBILITE-ACCES-RESERVE-20261113.md`. Activation de tous les boutons et fermeture au clavier vérifiées ; 3 échecs SSM identiques à main, 4 échecs calendrier déjà présents sur main. CI et production à compléter ; compte authentifié et appareil physique non vérifiés.
-
 
 
 ### Descriptions tactiles et guillemets HTML — livrés le 13/11/2026
@@ -134,6 +130,8 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - Aide HRP (PR #720) : **non certifiés** — réponses réelles DeepSeek dans les neuf langues, recette authentifiée, essais iPhone/Android. Sur téléphone : questions PA/but, fr→en→ko→fr, arabe RTL, clavier IME.
 
 ## Derniers chantiers
+
+- **Lisibilité des accès réservés — PR #880 livrée**, `7df7525`, Vercel `dpl_t9Xaxv4Zdzik3iMUTpHfJd5GuoAC` READY et alias public confirmé (13/11/2026, Codex). Résidence impériale et Pavillon des Ambassadeurs de Novomirsk ; six vues du module, huit variantes. Titre 1,9rem, explications/notes 1,12rem, interligne 1,6, boutons 1rem/44px, largeur et défilement mobiles ; autres modales inchangées. Aucune traduction ni mécanique, donnée ou RPC modifiée. Deux tests dédiés verts avec 288 rendus Chromium (320/390/1280 et hauteur réduite), banc historique, six tests Palais, illustrations Résidence et neuf essais infobulles verts. Cinq fichiers publics identiques ; deux tests et 288 rendus rejoués sur ces fichiers : verts. CI PR : 37 verts, trois échecs SSM préexistants dans un contrôle ; démarrage Chromium résolu par relance inchangée. CI main : quatre mêmes échecs globaux (320/324, avant 312/316). Session authentifiée et téléphone physique non faits. Audit, mesures et empreintes : `outils/audits/LISIBILITE-ACCES-RESERVE-20261113.md` et deux JSON associés.
 
 - **#871 — retours fixes du forum/courrier**, PR #877 fusionnée (`e9989c6`), Vercel `dpl_BQV57ujrMBbGZcss1aTqGtHjB7GG` READY et alias public confirmé. Treize fichiers publics identiques ; Chromium forum/répertoire rejoué sur ces fichiers : deux bancs verts (837 rendus, 351 bascules, 162 situations). 344 traductions étrangères nouvelles ; +43 textes/+313 mots source raccordés par langue étrangère. 66 contrôles locaux verts ; CI PR : 40 verts, un contrôle SSM avec trois échecs préexistants reproduits sur main. Aucun effet métier, PA ou serveur ajouté. Compte authentifié, relecture native et appareil physique non vérifiés. Bilan des trois lots : `outils/audits/LIVRAISON-I18N-871.md` (408 traductions étrangères, +50 textes/+352 mots raccordés). Issue #871 ouverte pour la suite.
 

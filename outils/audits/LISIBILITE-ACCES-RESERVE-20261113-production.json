@@ -1,0 +1,37 @@
+{
+  "commit": "7df7525ea0d19264bda3b054759384831123c4be",
+  "deployment": "dpl_t9Xaxv4Zdzik3iMUTpHfJd5GuoAC",
+  "alias": "res-publica.vercel.app",
+  "files": [
+    {
+      "file": "plateau.html",
+      "bytes": 75883,
+      "sha256": "ed057c691fb043cb1fb536e71e0410796495a0bf2d217635f5cd9df8f721b0c6",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "bytes": 167017,
+      "sha256": "e1db97c535d9566a304b88abc054b074a93b20258c23931c578d13747171c588",
+      "identical": true
+    },
+    {
+      "file": "plateau-acces-reserve.js",
+      "bytes": 41106,
+      "sha256": "d0016f7eb5aa2545a647a8de71d2a2c2d7bd68b1dd8c9cae7f529445a2606117",
+      "identical": true
+    },
+    {
+      "file": "plateau-vehicules.js",
+      "bytes": 31566,
+      "sha256": "fd74b8c73e21a5998d0ef0ccc6ea9a064488db198abd749d921e388d1255113e",
+      "identical": true
+    },
+    {
+      "file": "plateau-sovarka-droits.js",
+      "bytes": 24724,
+      "sha256": "7f6198a612b63bba1d652fde3bbf12553bef5e263dd94023ea4a144678182f80",
+      "identical": true
+    }
+  ]
+}
