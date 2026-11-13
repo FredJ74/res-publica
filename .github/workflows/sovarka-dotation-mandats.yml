@@ -1,0 +1,32 @@
+name: Sovarka — dotation et mandats nationaux
+on:
+  pull_request:
+    paths:
+      - 'data.js'
+      - 'plateau-politique.js'
+      - 'plateau-router.js'
+      - 'migrations/20261113210000_novomirsk_dotation_initiale_stock.sql'
+      - 'migrations/20261113210100_renseignement_garde_pays_du_mandat.sql'
+      - 'outils/bancs/banc-dotation-cloisonnement-sovarka-20261113.cjs'
+      - '.github/workflows/sovarka-dotation-mandats.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'data.js'
+      - 'plateau-politique.js'
+      - 'plateau-router.js'
+      - 'migrations/20261113210000_novomirsk_dotation_initiale_stock.sql'
+      - 'migrations/20261113210100_renseignement_garde_pays_du_mandat.sql'
+      - 'outils/bancs/banc-dotation-cloisonnement-sovarka-20261113.cjs'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check data.js && node --check plateau-politique.js && node --check plateau-router.js
+      - run: node --test outils/bancs/banc-dotation-cloisonnement-sovarka-20261113.cjs
+      - run: node --test outils/bancs/banc-direction-renseignement-novomirsk-20261113.cjs
+      - run: node --test outils/bancs/banc-ordres-territoires.cjs
