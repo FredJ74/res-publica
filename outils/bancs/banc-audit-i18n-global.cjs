@@ -195,5 +195,9 @@ test('DOM annoté : les fausses liaisons restent non couvertes',t=>{
   "el.textContent='Bonjour '+name;el.setAttribute('data-i18n','ui.dynamic');appliquerTraductionsRP();"
  ];
  for(const source of examples){const {dir}=fixture(t,{...setup,'plateau-test.js':'function render(){'+source+'}'}),r=audit.build(dir);assert.ok(!r.entries.some(e=>e.locales.en==='wired-unreviewed'),source);}
+ for(const extra of [
+  {'index.html':'<script src="i18n/resources.js"></script><script src="plateau-test.js"></script>','autre.html':'<script src="i18n/i18n-init.js"></script>'},
+  {'index.html':'<script src="i18n/i18n-init.js"></script><script src="plateau-test.js"></script>','autre.html':'<script src="i18n/resources.js"></script>'}
+ ]){const {dir}=fixture(t,{...setup,...extra,'plateau-test.js':"function render(){el.textContent='Recherche refusée';el.setAttribute('data-i18n','ui.plain');appliquerTraductionsRP();}"});assert.ok(!audit.build(dir).entries.some(e=>e.locales.en==='wired-unreviewed'));}
  for(const engine of [null,"function appliquerTraductionsRP(){return 'français';}","function appliquerTraductionsRP(){const translated=i18next.t(key,{values});el.textContent='Français';}"]){const extra={...setup,'plateau-test.js':"function render(){el.textContent='Recherche refusée';el.setAttribute('data-i18n','ui.plain');appliquerTraductionsRP();}"};if(engine===null)extra['index.html']='<script src="i18n/resources.js"></script><script src="plateau-test.js"></script>';else extra['i18n/i18n-init.js']=engine;const {dir}=fixture(t,extra);assert.ok(!audit.build(dir).entries.some(e=>e.locales.en==='wired-unreviewed'));}
 });

@@ -269,6 +269,7 @@ function build(root=ROOT, options={}) {
       }
     }catch(e){errors.push({file:'data.js',error:'active-world: '+e.message});}
   }
+  const pageScripts=pages.map(page=>new Set([...contents.get(page).matchAll(/<script\b[^>]*src=["']([^"'?]+)(?:\?[^"']*)?["']/g)].map(m=>m[1])));
   // Le moteur commun est validé une fois, sans exécuter le code de la page.
   const commonInit=loaded.has('i18n/i18n-init.js')?trees.get('i18n/i18n-init.js'):null;
   const apply=commonInit?.body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='appliquerTraductionsRP');
@@ -322,11 +323,12 @@ function build(root=ROOT, options={}) {
       if(n.type==='VariableDeclarator'&&shadows(n.id)||/Function|ArrowFunction/.test(n.type)&&(n.id?.name==='appliquerTraductionsRP'||n.params.some(shadows))||n.type==='ImportSpecifier'&&n.local.name==='appliquerTraductionsRP')commonShadowed=true;
       if(n.type==='AssignmentExpression'&&(n.left.name==='appliquerTraductionsRP'||prop(n.left.property)==='appliquerTraductionsRP'))commonShadowed=true;
     });
-    if(engineFlow&&!commonShadowed)walk(tree,block=>{if(block.type!=='BlockStatement')return;
+    const domPages=pageScripts.filter(scripts=>scripts.has(file)&&scripts.has('i18n/i18n-init.js'));
+    if(engineFlow&&!commonShadowed&&domPages.length)walk(tree,block=>{if(block.type!=='BlockStatement')return;
       for(let i=0;i<block.body.length-2;i++){
         const first=expression(block.body[i]),next=expression(block.body[i+1]);
         if(first?.type!=='AssignmentExpression'||first.operator!=='='||prop(first.left.property)!=='textContent'||!attribute(next,first.left.object,'data-i18n'))continue;
-        const r=byKey.get(staticValue(next.arguments[1]));if(!r||!r.loaded||normalize(symbolic(first.right))!==normalize(r.fr.replace(/\{\{[^}]+\}\}/g,'{DYNAMIC}')))continue;
+        const r=byKey.get(staticValue(next.arguments[1]));if(!r||!r.loaded||!domPages.some(scripts=>scripts.has(r.file))||normalize(symbolic(first.right))!==normalize(r.fr.replace(/\{\{[^}]+\}\}/g,'{DYNAMIC}')))continue;
         let j=i+2,valuesNode=expression(block.body[j]),values=null;
         if(attribute(valuesNode,first.left.object,'data-i18n-values')){
           const json=valuesNode.arguments[1];if(json?.type!=='CallExpression'||json.callee.object?.name!=='JSON'||prop(json.callee.property)!=='stringify'||json.arguments.length!==1||json.arguments[0]?.type!=='ObjectExpression')continue;

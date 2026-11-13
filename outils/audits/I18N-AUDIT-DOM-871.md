@@ -6,7 +6,7 @@ convention DOM commune, sans modifier les fichiers du jeu ni les ressources.
 
 Preuve requise : affectation à `textContent`, clé littérale sur le même élément,
 français symbolique identique au catalogue, variables JSON exactement égales aux
-expressions du texte, puis application du moteur commun chargé. Le moteur doit
+expressions du texte, puis application du moteur et du catalogue chargés sur la même page. Le moteur doit
 transmettre le résultat d’i18next au texte ; un nom local qui le masque est refusé.
 
 Pas de propagation entre appels métier, entre éléments ou entre branches
@@ -15,7 +15,7 @@ Le texte source symbolique et ses identifiants restent intacts, même lorsque le
 noms des placeholders du catalogue diffèrent de la notation générique du corpus.
 
 26 tests d’extracteur verts, dont deux nouveaux bancs : cas positifs fixes et
-variables, conservation du dénominateur, et **16 contre-exemples** (cible, français,
+variables, conservation du dénominateur, et **18 contre-exemples** (cible, français,
 clé ou valeurs erronés, variables absentes/extra, appel intercalé, clé conditionnelle,
 moteur absent/non traduisant/masqué). Les 24 tests existants sont conservés.
 Suite ciblée de 35 tests Node verte. Les deux bancs de recherche/confirmation sont
