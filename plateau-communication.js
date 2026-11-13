@@ -53,9 +53,19 @@ async function verifierNouveauxMails() {
 
 // RÉPERTOIRE PJ
 // =====================
+// Marquage de présentation : le moteur commun capture le français puis traduit ces mêmes nœuds.
+function texteRepertoireHtml(cle,fr,values) {
+  const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return '<span data-i18n="'+cle+'"'+(values?' data-i18n-values="'+escape(JSON.stringify(values))+'"':'')+'>'+escape(fr)+'</span>';
+}
+function repertoireActualiserTextes() {
+  window.RPI18nPlateau?.apply(document.getElementById('modal-postes'));
+  window.RPPlayerDirectoryI18n?.direction();
+}
 async function ouvrirRepertoirePJ() {
-  document.getElementById('postes-modal-title').textContent = 'Répertoire des Joueurs';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('postes-modal-title').innerHTML = texteRepertoireHtml('playerDirectory.title','Répertoire des Joueurs');
+  document.getElementById('postes-body').innerHTML = '<div data-player-directory style="padding:1rem;color:#8a8060;font-style:italic">'+texteRepertoireHtml('inventoryUi.loading','Chargement...')+'</div>';
+  repertoireActualiserTextes();
   document.getElementById('modal-postes').classList.add('open');
 
   const myName = state.char?.name || '';
@@ -74,7 +84,8 @@ async function ouvrirRepertoirePJ() {
   }
 
   if (joueurs.length === 0) {
-    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#9a8a68;font-style:italic">Aucun joueur enregistre pour l\'instant.</div>';
+    document.getElementById('postes-body').innerHTML = '<div data-player-directory style="padding:1rem;color:#9a8a68;font-style:italic">'+texteRepertoireHtml('playerDirectory.empty',"Aucun joueur enregistre pour l'instant.")+'</div>';
+    repertoireActualiserTextes();
     return;
   }
 
@@ -90,7 +101,7 @@ async function ouvrirRepertoirePJ() {
     const empName = empireNames[country] || country;
     return `
       <div style="padding:.4rem 1rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:${col};border-bottom:1px solid #2a2010;margin-top:.3rem">
-        ${empName} — ${pjs.length} joueur(s)
+        ${empName} — ${texteRepertoireHtml('playerDirectory.count',pjs.length+' joueur(s)',{n:pjs.length})}
       </div>
       ${pjs.map(j => {
         const isMe = j.name === myName;
@@ -102,12 +113,12 @@ async function ouvrirRepertoirePJ() {
             <div style="width:32px;height:32px;border-radius:50%;border:1px solid ${isMe ? col : '#2a2010'};background:#0a0a07;display:flex;align-items:center;justify-content:center;flex-shrink:0">
               <i class="ti ti-user" style="font-size:.75rem;color:${isMe ? col : '#4a4030'}"></i>
             </div>
-            <div style="flex:1">
+            <div data-directory-person style="flex:1">
               <div style="font-size:.82rem;color:${isMe ? col : '#f0ead6'};font-weight:${isMe ? 'bold' : 'normal'}">
                 ${j.name}${isMe ? ' ✦' : ''}
               </div>
               <div style="font-size:.68rem;color:#6a5a30">
-                ${posteLabel ? posteLabel + ' · ' : ''}${empName}${villeDomicileNom ? ' · Domicile : ' + villeDomicileNom : ''}
+                ${posteLabel ? posteLabel + ' · ' : ''}${empName}${villeDomicileNom ? texteRepertoireHtml('playerDirectory.home',' · Domicile : '+villeDomicileNom,{city:villeDomicileNom}) : ''}
               </div>
             </div>
             ${!isMe ? `<button onclick="composerMailPour(this.dataset.name)" data-name="${j.name}" style="font-family:Bebas Neue,sans-serif;font-size:.82rem;letter-spacing:.06em;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">
@@ -118,7 +129,8 @@ async function ouvrirRepertoirePJ() {
     `;
   }).join('');
 
-  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('postes-body').innerHTML = '<div class="player-directory-list" data-player-directory>'+html+'</div>';
+  repertoireActualiserTextes();
 }
 
 function composerMailPour(destinataire) {
@@ -143,6 +155,7 @@ async function envoyerComposeMail() {
   if (!state.char?.name) {
     showToast('Personnage non chargé',
       "Votre personnage n'est pas chargé : rechargez la page avant d'envoyer un message.", false);
+    window.RPPlayerDirectoryI18n?.toast('playerDirectory.missing',"Votre personnage n'est pas chargé : rechargez la page avant d'envoyer un message.");
     return;
   }
   const to = document.getElementById('compose-mail-to').value.trim();
@@ -150,6 +163,7 @@ async function envoyerComposeMail() {
   const body = document.getElementById('compose-mail-body').value.trim();
   if (!to || !subject || !body) {
     showToast('Champs requis', 'Remplissez tous les champs.', false);
+    window.RPPlayerDirectoryI18n?.toast('playerDirectory.required','Remplissez tous les champs.');
     return;
   }
   if (typeof sendMail === 'function') {
@@ -161,6 +175,7 @@ async function envoyerComposeMail() {
     if (typeof sbSendMail === 'function') await sbSendMail(from, to, subject, body, time);
     addJournalEntry('Mail envoyé à ' + to + ' : "' + subject + '".', 'event-info');
     showToast('Mail envoyé', 'À ' + to + ' — "' + subject + '"', true);
+    window.RPPlayerDirectoryI18n?.toast('playerDirectory.sent','À '+to+' — "'+subject+'"',{to,subject});
   }
   fermerComposeMail();
 }

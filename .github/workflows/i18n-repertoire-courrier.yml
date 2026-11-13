@@ -1,0 +1,24 @@
+name: Répertoire partagé et courrier — neuf langues
+on:
+  pull_request:
+    paths: ['plateau-communication.js', 'plateau.html', 'style.css', 'i18n/player-directory-resources.js', 'outils/bancs/*repertoire-courrier*', '.github/workflows/i18n-repertoire-courrier.yml']
+  push:
+    branches: [main]
+    paths: ['plateau-communication.js', 'plateau.html', 'style.css', 'i18n/player-directory-resources.js', 'outils/bancs/*repertoire-courrier*', '.github/workflows/i18n-repertoire-courrier.yml']
+permissions:
+  contents: read
+jobs:
+  repertoire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test outils/bancs/banc-i18n-repertoire-courrier.cjs outils/bancs/banc-i18n-editorial.cjs
+      - run: npm install --ignore-scripts --no-package-lock --prefix "$RUNNER_TEMP/directory-browser" playwright@1.62.1
+      - name: Chromium — 320/390/1280, FR exact, neuf langues, brouillon et appels inchangés
+        run: NODE_PATH="$RUNNER_TEMP/directory-browser/node_modules" CHROMIUM_PATH=/usr/bin/google-chrome node --test outils/bancs/banc-i18n-repertoire-courrier-navigateur.cjs

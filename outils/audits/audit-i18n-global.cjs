@@ -54,7 +54,7 @@ function domain(file, hint='') {
   if(/(econom|commerce|produit|product|material|finance|banque|emploi|employment|sales|ventes|entreprise|dealer)/i.test(s))return 'Économie et commerces';
   if(/(justice|police|politique|administration|municipal|civil|social-agency|social-housing|sovarka-(droits|partis|pouvoir|messages|provinces))/i.test(s))return 'Politique, justice et administration';
   if(/(naval|vehicle|vehicule|travel|transport|navigation|plan-rues)/i.test(s))return 'Navigation et transports';
-  if(/(forum|courrier|journal|toast|notifications|messages|tracts)/i.test(s))return 'Courriers, notifications et journaux';
+  if(/(forum|courrier|journal|toast|notifications|messages|tracts|communication|directory|repertoire|mail)/i.test(s))return 'Courriers, notifications et journaux';
   if(/(room|pieces|descriptions|data\.js|appartements)/i.test(s))return 'Bâtiments et pièces';
   return 'Interface générale et autres activités';
 }
@@ -73,7 +73,7 @@ function fragments(value) {
   visit(doc);return out;
 }
 function human(text) {
-  if(!text || !/\p{L}/u.test(text))return false;
+  if(!text || !/\p{L}/u.test(text.replace(/\{DYNAMIC\}|\{\{[^}]+\}\}/g,'')))return false;
   if(/(?:display|padding|margin|font(?:-size|-family|-weight)?|color|background|border|align-items|flex-direction)\s*:/i.test(text))return false;
   if (/^(?:https?:|data:|[.#][a-z_-]+|[\w./-]+\.(?:js|png|webp|jpg|css|svg|json|mp3))$/i.test(text))return false;
   if(/^[\w$]+(?:[_.:-][\w$]+)+$/.test(text))return false;
@@ -269,6 +269,19 @@ function build(root=ROOT, options={}) {
     }catch(e){errors.push({file:'data.js',error:'active-world: '+e.message});}
   }
   function scanJS(file,source,tree,lineOffset=0){
+    const markedToasts=new Map();
+    const expression=s=>s?.expression?.type==='ChainExpression'?s.expression.expression:s?.expression;
+    const shape=n=>JSON.stringify(n,(k,v)=>['start','end','loc','raw'].includes(k)?undefined:v);
+    walk(tree,block=>{if(block.type!=='BlockStatement')return;
+      for(let i=1;i<block.body.length;i++){
+        const first=expression(block.body[i-1]),next=expression(block.body[i]);
+        if(first?.callee?.name!=='showToast'||prop(next?.callee?.property)!=='toast'||!source.slice(next.callee.start,next.callee.end).includes('RPPlayerDirectoryI18n'))continue;
+        const r=byKey.get(staticValue(next.arguments[0]));
+        if(!r||shape(first.arguments[1])!==shape(next.arguments[1]))continue;
+        if(normalize(symbolic(first.arguments[1]))!==normalize(r.fr.replace(/\{\{[^}]+\}\}/g,'{DYNAMIC}')))continue;
+        markedToasts.set(first.arguments[1].start,r);markedToasts.set(next.arguments[1].start,r);
+      }
+    });
     walk(tree,(n,parents)=>{
       const parent=parents.at(-1);
       let raw=null, templated=false;
@@ -281,6 +294,8 @@ function build(root=ROOT, options={}) {
       const line=n.loc.start.line+lineOffset;
       if(templated)dynamic.push({file,line,kind:'template-interpolated',expressions:n.expressions?.length??null});
       if(file.startsWith('i18n/'))return;
+      const toast=markedToasts.get(n.start);
+      if(toast){record(toast.fr,{file,line,kind:'annotated-toast',certainty:loaded.has(file)?'static-render-path':'candidate-review',domain:domain(file),key:toast.key});return;}
       const ancestors=[...parents].reverse();
       const property=parent?.type==='Property'?prop(parent.key):null;
       const call=ancestors.slice(0,5).find(p=>p.type==='CallExpression');
