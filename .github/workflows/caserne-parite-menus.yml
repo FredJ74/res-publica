@@ -1,0 +1,27 @@
+name: Casernes — parité et menus lisibles
+on:
+  pull_request:
+    paths:
+      - 'data.js'
+      - 'plateau-politique.js'
+      - 'i18n/room-actions-resources.js'
+      - 'outils/bancs/banc-caserne-parite-menus-20261113.cjs'
+      - '.github/workflows/caserne-parite-menus.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'data.js'
+      - 'plateau-politique.js'
+      - 'i18n/room-actions-resources.js'
+      - 'outils/bancs/banc-caserne-parite-menus-20261113.cjs'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-politique.js && node --check data.js && node --check i18n/room-actions-resources.js
+      - run: node --test outils/bancs/banc-caserne-parite-menus-20261113.cjs
+      - run: node --test outils/bancs/banc-mandats-nationaux-caserne-20261113.cjs
