@@ -1,0 +1,89 @@
+name: Krasnov - marche couvertures WebP et raccordement
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/krasnov-marche-webp-20261113.yml'
+permissions:
+  contents: write
+jobs:
+  remplacer-image-marche:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Convertir le marche, raccorder sa salle et retirer le PNG
+        run: |
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          directory = Path('images/Sovarka/Krasnov')
+          src = directory / 'Marché d’automne sous les bouleaux.png'
+          # Le chemin GitHub doit etre reconnu exactement, y compris la normalisation Unicode.
+          if not src.exists():
+              matches = [p for p in directory.glob('*.png') if 'automne' in p.name.lower() and 'bouleaux' in p.name.lower()]
+              assert len(matches) == 1, f'Original absent ou ambigu: {matches}'
+              src = matches[0]
+          dst = directory / 'Krasnov_marche_etals.webp'
+          assert not dst.exists(), f'WebP deja present: {dst}'
+          with Image.open(src) as img:
+              assert img.width >= 1200 and img.height >= 650, img.size
+              img.convert('RGB').save(dst, 'WEBP', quality=92, method=6)
+              size = img.size
+          with Image.open(dst) as img:
+              assert img.format == 'WEBP' and img.size == size
+          code_path = Path('data.js')
+          code = code_path.read_text(encoding='utf-8')
+          start = code.index("    ville_b: {\n      name:'Krasnov'")
+          end = code.index('    // ZONE HISTORIQUE, PLUS DESSERVIE.', start)
+          city = code[start:end]
+          assert "'marche': {" not in city, 'Surcharge du marche Krasnov deja presente; audit manuel requis'
+          marker = "        // Mêmes six pièces et tous les ordres sportifs du gabarit stade partagé."
+          assert city.count(marker) == 1
+          insertion = (
+              "        // Decor du marche interieur de Krasnov, distinct de la facade de rue.\n"
+              "        'marche': {\n"
+              "          roomOverrides: {\n"
+              "            marche_ext: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp' }\n"
+              "          }\n"
+              "        },\n"
+          )
+          city = city.replace(marker, insertion + marker, 1)
+          code = code[:start] + city + code[end:]
+          assert code.count('Krasnov_marche_etals.webp') == 1
+          code_path.write_text(code, encoding='utf-8')
+          src.unlink()
+          assert not src.exists() and dst.exists()
+          print('WebP:', dst, dst.stat().st_size, 'source PNG supprimee:', src)
+          PY
+      - name: Tester la reference et la syntaxe
+        run: |
+          node --check data.js
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          code = Path('data.js').read_text(encoding='utf8')
+          start = code.index("    ville_b: {\n      name:'Krasnov'")
+          end = code.index('    // ZONE HISTORIQUE, PLUS DESSERVIE.', start)
+          city = code[start:end]
+          assert city.count("'marche': {") == 1
+          assert "marche_ext: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp' }" in city
+          p = Path('images/Sovarka/Krasnov/Krasnov_marche_etals.webp')
+          assert p.exists() and p.stat().st_size > 100000
+          with Image.open(p) as img: assert img.format == 'WEBP'
+          assert not list(Path('images/Sovarka/Krasnov').glob('*automne*bouleaux*.png'))
+          # La facade du marche de Krasnov doit rester intacte.
+          assert list(Path('images/Sovarka/Krasnov').glob('Krasnov rue march*.webp'))
+          PY
+          git diff --check
+      - name: Publier conversion et liaison sur main
+        run: |
+          git add data.js images/Sovarka/Krasnov
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Krasnov : nouveau decor du marche en WebP'
+            git push
+          fi
