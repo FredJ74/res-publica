@@ -1,0 +1,24 @@
+name: Novomirsk — Palais des Ambassades et invitations
+on:
+  pull_request:
+    paths:
+      - 'data.js'
+      - 'plateau-navigation.js'
+      - 'plateau-politique.js'
+      - 'migrations/20261113160500_novomirsk_palais_ambassades_acces.sql'
+      - 'outils/bancs/banc-novomirsk-palais-ambassades-acces-20261113.cjs'
+      - '.github/workflows/novomirsk-palais-ambassades-acces.yml'
+permissions:
+  contents: read
+jobs:
+  ambassade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check data.js && node --check plateau-navigation.js && node --check plateau-politique.js
+      - run: node --test outils/bancs/banc-novomirsk-palais-ambassades-acces-20261113.cjs
+      - run: git diff --check

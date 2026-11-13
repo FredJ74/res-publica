@@ -6952,9 +6952,10 @@ const BUILDINGS = {
   // Palais des Ambassades de Novomirsk (vue 6) : copie du Quartier des Ambassades de Luthecia
   // (decision de Fred, 04/11/2026), batiment distinct pour ne pas heriter des portes et des
   // controles d'acces de Luthecia, qui raisonnent sur les ambassades ouvertes EN REPUBLIA.
-  // Les ambassades relevent des liens entre empires : tous les ordres sont « Bientot disponible »
-  // (grises, aucun appel) jusqu'au voyage entre empires. Bureaux de Republia, d'Al-Khalija et
-  // d'El Estado ; ambassadeurs nommes par Fred. Images a venir.
+  // L'accueil autorise les demandes d'audience et d'asile. Les bureaux sont réservés
+  // aux invités (audience accordée) et aux bénéficiaires des droits diplomatiques côté serveur.
+  // Les ordres internes différés restent « Bientôt disponible ».
+  // La réception diplomatique appartient au Pavillon des Ambassadeurs, pas au Palais.
   'palais-ambassades-novomirsk': {
     name: "Palais des Ambassades",
     shortName: "Ambassades",
@@ -6973,18 +6974,9 @@ const BUILDINGS = {
           {name:'Agent de Sécurité (PNJ)', role:'PNJ - Sécurité', rel:'neutral', job:'agent_securite'}
         ],
         orders: [
-          {fn:'demander_audience_ambassadeur', label:'Demander audience à l\'ambassadeur', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:100, desc:'Solliciter une audience. La réponse arrive par courrier ; une audience accordée ouvre le bureau de l\'ambassadeur pendant 48 heures.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
-          {fn:'demander_asile_politique', label:'Demander l\'asile politique', pa:2, cost:0, type:'legal', icon:'ti-shield-check', successRate:100, desc:'Déposer une demande d\'asile auprès d\'une ambassade. Réponse par courrier ; un réfugié ne peut pas être arrêté tant qu\'il reste au Palais des Ambassades.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
-          {fn:'reserver_salle_reception', label:'Réserver la Salle de Réception', pa:1, cost:0, type:'legal', icon:'ti-calendar-event', successRate:100, desc:'Réserver la salle pour aujourd\'hui (réservé aux ambassadeurs en poste ici).', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+          {fn:'demander_audience_ambassadeur', label:'Demander audience à l\'ambassadeur', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:100, desc:'Solliciter une audience. La réponse arrive par courrier ; une audience accordée ouvre le bureau de l\'ambassadeur pendant 48 heures.'},
+          {fn:'demander_asile_politique', label:'Demander l\'asile politique', pa:2, cost:0, type:'legal', icon:'ti-shield-check', successRate:100, desc:'Déposer une demande d\'asile auprès d\'une ambassade. Réponse par courrier ; un réfugié ne peut pas être arrêté tant qu\'il reste au Palais des Ambassades.'},
         ]
-      },
-      salle_reception: {
-        name: "Salle de Réception",
-        imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
-        imageUrl: "images/ambassades-salle-reception.webp",
-        desc: "Une salle commune aux trois ambassades, réservée aux réceptions diplomatiques organisées par les ambassadeurs.",
-        persons: [],
-        orders: []
       },
       bureau_republia_novomirsk: {
         name: "Ambassade de Républia",

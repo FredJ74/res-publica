@@ -467,7 +467,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
 
   // Precharger la liste des ambassades etrangeres ouvertes ici (partagee via Supabase), pour
   // que le controle d'acces des bureaux d'ambassadeurs (voir enterRoom) reste synchrone.
-  if (buildingId === 'quartier-ambassades' && typeof sbGetAmbassadesOuvertes === 'function') {
+  if (['quartier-ambassades', 'palais-ambassades-novomirsk'].includes(buildingId) && typeof sbGetAmbassadesOuvertes === 'function') {
     sbGetAmbassadesOuvertes(state.country).then(rows => {
       state.ambassadesOuvertesCache = (rows || []).map(r => r.data).filter(Boolean);
     }).catch(() => { state.ambassadesOuvertesCache = []; });
@@ -736,8 +736,12 @@ function enterRoom(buildingId, roomId, tabEl) {
   // decidee ici sur un cache charge en arriere-plan, pouvait declarer un bureau ferme avant la fin
   // du chargement. verifierAccesBureauAmbassade (plateau-politique.js) rappelle enterRoom une fois
   // l'acces confirme ; le jeton est consomme a ce second passage.
-  const AMBASSADE_ROOM_EMPIRE = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco' };
-  if (!positionServeurConfirmee&&buildingId === 'quartier-ambassades' && AMBASSADE_ROOM_EMPIRE[roomId]) {
+  const AMBASSADE_ROOM_EMPIRE = {
+    bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco',
+    bureau_republia_novomirsk: 'republic', bureau_khalija_novomirsk: 'khalija',
+    bureau_estado_novomirsk: 'narco'
+  };
+  if (!positionServeurConfirmee && ['quartier-ambassades', 'palais-ambassades-novomirsk'].includes(buildingId) && AMBASSADE_ROOM_EMPIRE[roomId]) {
     if (state._accesBureauAmbassade !== roomId) {
       if (typeof verifierAccesBureauAmbassade === 'function') verifierAccesBureauAmbassade(buildingId, roomId, tabEl);
       return;

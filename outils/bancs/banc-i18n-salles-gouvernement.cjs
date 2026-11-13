@@ -116,13 +116,14 @@ test('texte des onglets échappé, texte de titre non HTML, handlers et IDs pré
  assert.ok(bridge>=0&&translations>bridge&&init>translations);
 });
 
-test('les cinq pièces diplomatiques ne débordent pas sur les autres empires, IDs et actions inchangés',()=>{
+test('les quatre pièces diplomatiques du Palais sont traduites sans doublon de réception',()=>{
  const sourceData=fs.readFileSync(path.join(root,'data.js'),'utf8');
  const i=sourceData.indexOf("  'palais-ambassades-novomirsk': {");
  const j=sourceData.indexOf("  'pavillon-ambassadeurs-novomirsk': {",i);
  assert.ok(i>0 && j>i);
  const building=sourceData.slice(i,j);
- const ids=['accueil_ambassades_novomirsk','salle_reception','bureau_republia_novomirsk','bureau_khalija_novomirsk','bureau_estado_novomirsk'];
+ const ids=['accueil_ambassades_novomirsk','bureau_republia_novomirsk','bureau_khalija_novomirsk','bureau_estado_novomirsk'];
+ assert.ok(!building.includes('salle_reception: {'),'la réception se trouve uniquement au Pavillon');
  for(const id of ids){
   assert.ok(building.includes(id+': {'),'salle manquante : '+id);
   assert.ok(building.includes('name: "'+source[id]+'"'),'intitulé canonique introuvable : '+id);

@@ -9066,7 +9066,7 @@ function signerTraite() {
 // =====================
 // ORDRES DU QUARTIER DES AMBASSADES
 // =====================
-const AMBASSADE_ROOM_EMPIRE_MAP = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco' };
+const AMBASSADE_ROOM_EMPIRE_MAP = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco', bureau_republia_novomirsk: 'republic', bureau_khalija_novomirsk: 'khalija', bureau_estado_novomirsk: 'narco' };
 
 // RELATIONS BILATERALES : l'indice et les traites viennent du serveur (26/10/2026, audit R2) --
 // avant, on affichait les traites gardes dans l'etat personnel du lecteur.
@@ -9204,7 +9204,8 @@ async function doFinancerOeuvreCulturelle(pa, cost) {
 const AMBASSADEURS_PNJ = {
   khalija: { name: 'Mohamed Al-Mansoori (PNJ)', role: 'Ambassadeur d\'Al-Khalija' },
   soviet:  { name: 'Valery Antonov (PNJ)',      role: 'Ambassadeur de Sovarka' },
-  narco:   { name: 'Guillermo Vasquez (PNJ)',   role: 'Ambassadeur d\'El Estado' }
+  narco:   { name: 'Guillermo Vasquez (PNJ)',   role: 'Ambassadeur d\'El Estado' },
+  republic:{ name: 'Hubert de La Courtoisie (PNJ)', role: 'Ambassadeur de Républia' }
 };
 
 function doDemanderAudienceAmbassadeur(pa, cost) {
@@ -9214,7 +9215,7 @@ function doDemanderAudienceAmbassadeur(pa, cost) {
   let html = '<div class="cpj-dialogue">';
   html += '<p class="cpj-note" style="margin:0 0 .8rem;font-style:italic">Auprès de quelle ambassade sollicitez-vous une audience ? '
     + 'Votre demande sera transmise, et la réponse vous parviendra par courrier.</p>';
-  Object.entries(AMBASSADEURS_PNJ).forEach(([empireId, amb]) => {
+  Object.entries(AMBASSADEURS_PNJ).filter(([empireId]) => empireId !== state.country).forEach(([empireId, amb]) => {
     const pays = COUNTRIES[empireId]?.n || empireId;
     html += '<button class="cpj-touche" onclick="confirmerAudienceAmbassadeur(&quot;' + empireId + '&quot;)" '
       + 'style="display:block;width:100%;text-align:left;margin-bottom:.5rem;padding:.6rem .8rem;cursor:pointer">'
@@ -9274,7 +9275,7 @@ async function rafraichirAudiencesAmbassade() {
 
 // L'ACCES A UN BUREAU EST DECIDE PAR LE SERVEUR (ambassade_acces_bureau) : audience accordee et
 // non expiree, ou joueur ambassadeur en poste. enterRoom passe par ici avant d'ouvrir un bureau.
-const AMBASSADE_BUREAU_EMPIRE = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco' };
+const AMBASSADE_BUREAU_EMPIRE = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco', bureau_republia_novomirsk: 'republic', bureau_khalija_novomirsk: 'khalija', bureau_estado_novomirsk: 'narco' };
 
 async function verifierAccesBureauAmbassade(buildingId, roomId, tabEl) {
   const empireId = AMBASSADE_BUREAU_EMPIRE[roomId];
@@ -9297,7 +9298,7 @@ async function verifierAccesBureauAmbassade(buildingId, roomId, tabEl) {
   }
   // Un rechargement de page dans un bureau dont l'audience a expire ramene a l'accueil.
   if (state.currentBuilding === buildingId && state.currentRoom === roomId) {
-    enterRoom(buildingId, 'accueil_ambassades');
+    enterRoom(buildingId, buildingId === 'palais-ambassades-novomirsk' ? 'accueil_ambassades_novomirsk' : 'accueil_ambassades');
   }
 }
 
@@ -9475,7 +9476,7 @@ function doDemanderAsilePolitique(pa, cost) {
   html += '<p class="cpj-note" style="margin:0 0 .8rem;font-style:italic">Auprès de quelle ambassade déposez-vous votre demande ? '
     + 'Votre dossier sera examiné, et la réponse vous parviendra par courrier. Si l\'asile vous est accordé, '
     + 'vous serez en sécurité tant que vous resterez au Quartier des Ambassades.</p>';
-  Object.entries(AMBASSADEURS_PNJ).forEach(([empireId]) => {
+  Object.entries(AMBASSADEURS_PNJ).filter(([empireId]) => empireId !== state.country).forEach(([empireId]) => {
     const pays = COUNTRIES[empireId]?.n || empireId;
     html += '<button class="cpj-touche" onclick="confirmerDemandeAsile(&quot;' + empireId + '&quot;)" '
       + 'style="display:block;width:100%;text-align:left;margin-bottom:.5rem;padding:.6rem .8rem;cursor:pointer">'
