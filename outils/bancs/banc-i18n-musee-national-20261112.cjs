@@ -59,8 +59,8 @@ test('un nom présent au musée de Montrouge ne reçoit pas les biographies nati
  const f=make('en');
  f.state.currentBuilding='musee-histoire-montrouge';f.state.currentRoom='salle_loisirs';
  const original=vm.runInContext("MUSEE_PROVINCE_PERSONNALITES['musee-histoire-montrouge'].salle_loisirs.find(p=>p.nom==='Patrick Lemaître')",f.ctx);
- assert.equal(f.ctx.museeNationalBio(original),original.bio,'la province conserve sa biographie');
- assert.equal(vm.runInContext("museeNationalBio(MUSEE_PROVINCE_PERSONNALITES['musee-histoire-montrouge'].salle_loisirs.find(p=>p.nom==='Patrick Lemaître'))",f.ctx),original.bio);
+ assert.equal(vm.runInContext("ficheMuseeAffichee(MUSEE_PROVINCE_PERSONNALITES['musee-histoire-montrouge'].salle_loisirs.find(p=>p.nom==='Patrick Lemaître')).bio",f.ctx),original.bio,'la province conserve sa biographie');
+ assert.equal(vm.runInContext("ficheMuseeAffichee(MUSEE_PROVINCE_PERSONNALITES['musee-histoire-montrouge'].salle_loisirs.find(p=>p.nom==='Patrick Lemaître')).bio",f.ctx),original.bio);
  f.state.country='soviet';
  assert.equal(vm.runInContext("museeNationalRepubI18nActif()",f.ctx),false);
 });
@@ -68,5 +68,5 @@ test('catalogue enregistré, mise en cache sans réseau et scripts liés',()=>{
  assert.match(html,/i18n\/museum-national-bios-resources\.js\?v=20261112/);
  assert.match(html,/plateau-musee-personnalites\.js\?v=i18n-musee-national-20261112/);
  assert.match(read('outils/audits/audit-i18n-editorial.cjs'),/'museum-national-bios-resources\.js'/);
- assert.ok(source.includes("state.country==='republic'&&state.currentBuilding==='musee-national-republia'"));
+ assert.ok(source.includes("state.country === 'republic' && state.currentBuilding === 'musee-national-republia'"));
 });
