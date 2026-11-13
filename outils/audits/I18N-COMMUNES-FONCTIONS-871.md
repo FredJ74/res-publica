@@ -39,3 +39,16 @@ libres des joueurs ne sont jamais traduits. Mesures, CI et production : relais e
 
 Résultats locaux : 62 contrôles Node et le banc Chromium verts. Chaque ligne
 reclassée est aussi vérifiée dans les deux listes d’ordres effectivement affichées.
+
+## Mesure contrôlée
+
+Même extracteur sur `d6d2f08` avant et après le lot : corpus inchangé de **7 561
+textes / 50 628 mots source**, zéro erreur d’extraction. **+30 textes uniques et
++403 mots source entièrement raccordés** par langue étrangère ; aucune ressource
+nouvelle. En anglais : 938 → 968 textes, 11 426 → 11 829 mots raccordés. Le taux
+mots du corpus statique passe de 22,57 à 23,36 %, sans certifier tout le jeu.
+
+Le main ayant évolué depuis #885, ses changements de corpus sont distincts du gain
+des lots. Les +18/+225 et +30/+403 viennent de deux comparaisons contrôlées à
+corpus inchangé, et non d’une attribution de tous les changements de main à l’i18n.
+Preuve détaillée : `I18N-COMMUNES-FONCTIONS-871-mesures.json`.
