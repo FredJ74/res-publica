@@ -7665,7 +7665,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'prier',           label:'Communier avec la Feuille',    pa:1, cost:0,   type:'legal', icon:'ti-star',      successRate:100, desc:'+3 IP +2 Moral. Attention aux effets secondaires.'},
-          {fn:'se_confesser',    label:'Se confesser',                  pa:2, cost:0,   type:'legal', icon:'ti-message',   successRate:100, desc:'+5 Moral. Le Padre sait tout.'},
+          {fn:'se_confesser',    label:'Se confesser',                  pa:2, cost:0,   type:'legal', icon:'ti-message',   successRate:null, desc:'2 PA. Si le jet réussit (DUP, piété et sécurité de la ville), une trace d’acte illégal est effacée au hasard. Aucun choix de l’acte.'},
           {fn:'faire_don',       label:'Faire une offrande',           pa:1, cost:200, type:'legal', icon:'ti-coins',     successRate:100, desc:'+5 IP +3 POP.'},
           {fn:'pelerin',         label:'Se déclarer pèlerin',          pa:2, cost:0,   type:'legal', icon:'ti-walk',      successRate:100, desc:'+10 DIS pendant 1 jour.'}
         ]
@@ -7692,7 +7692,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'prier',           label:'Chanter l\'hymne au Tracteur', pa:1, cost:0,   type:'legal', icon:'ti-star',      successRate:100, desc:'+3 IP +2 Moral. Glorifier la production collective.'},
-          {fn:'se_confesser',    label:'Se confesser',                  pa:2, cost:0,   type:'legal', icon:'ti-message',   successRate:100, desc:'+5 Moral. Avouer ses propriétés privées.'},
+          {fn:'se_confesser',    label:'Se confesser',                  pa:2, cost:0,   type:'legal', icon:'ti-message',   successRate:null, desc:'2 PA. Si le jet réussit (DUP, piété et sécurité de la ville), une trace d’acte illégal est effacée au hasard. Aucun choix de l’acte.'},
           {fn:'faire_don',       label:'Donner au Kolkhoze',           pa:0, cost:0,   type:'legal', icon:'ti-coins',     successRate:100, desc:'Don libre en PSK. Sans PA. Bonus proportionnels, plafonnés à +10 piété et +6 popularité par jour.'},
           {fn:'pelerin',         label:'Se déclarer pèlerin',          pa:2, cost:0,   type:'legal', icon:'ti-walk',      successRate:100, desc:'+10 DIS pendant 1 jour.'}
         ]
@@ -7719,7 +7719,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'prier',           label:'Communier avec le Loukoum',    pa:1, cost:0,   type:'legal', icon:'ti-star',      successRate:100, desc:'+3 IP +2 Moral. Goût pistache ou rose au choix.'},
-          {fn:'se_confesser',    label:'Se confesser',                  pa:2, cost:0,   type:'legal', icon:'ti-message',   successRate:100, desc:'+5 Moral. Le Grand Confiseur garde vos secrets... la plupart du temps.'},
+          {fn:'se_confesser',    label:'Se confesser',                  pa:2, cost:0,   type:'legal', icon:'ti-message',   successRate:null, desc:'2 PA. Si le jet réussit (DUP, piété et sécurité de la ville), une trace d’acte illégal est effacée au hasard. Aucun choix de l’acte.'},
           {fn:'faire_don',       label:'Offrir des loukoums',          pa:1, cost:200, type:'legal', icon:'ti-coins',     successRate:100, desc:'+5 IP +3 POP. Péché mortel de refuser un loukoum.'},
           {fn:'pelerin',         label:'Se déclarer pèlerin',          pa:2, cost:0,   type:'legal', icon:'ti-walk',      successRate:100, desc:'+10 DIS pendant 1 jour.'},
           {fn:'acheter_relique', label:'Acheter une relique du Loukoum',pa: 0, cost:500, type:'legal', icon:'ti-package',  successRate:100, desc:'Objet rare. +10 IP. Accès facilité aux zones réservées Al-Khalija.'}
