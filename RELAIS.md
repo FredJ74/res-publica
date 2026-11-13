@@ -37,7 +37,7 @@ Modification en cours : la `salle_reception` du `palais-ambassades-novomirsk` es
 
 ### #871 — retours fixes du forum et de la messagerie, Codex, 13/11/2026
 
-Branche `codex/i18n-retours-forum-20261113`. 43 nouvelles clés, 344 traductions étrangères, 44 points de présentation. 29 tests verts : français exact, AST métier inchangé, Chromium 320/390/1280 et neuf langues (837 rendus, 351 bascules sur gardes réelles), zéro appel serveur ou débit supplémentaire. Mesure avec le même extracteur avant/après : +43 textes uniques entièrement raccordés et +313 mots source par langue étrangère ; corpus inchangé. PR, CI et déploiement à compléter. Contrat : `outils/audits/I18N-RETOURS-FORUM-871.md`.
+Branche `codex/i18n-retours-forum-20261113`, **PR #877**. 43 nouvelles clés, 344 traductions étrangères, 44 points de présentation. 29 tests verts : français exact, AST métier inchangé, Chromium 320/390/1280 et neuf langues (837 rendus, 351 bascules sur gardes réelles), zéro appel serveur ou débit supplémentaire. Mesure avec le même extracteur avant/après : +43 textes uniques entièrement raccordés et +313 mots source par langue étrangère ; corpus inchangé. Tableau de bord régénéré, sept artefacts reproductibles ; CI et déploiement à compléter. Contrat : `outils/audits/I18N-RETOURS-FORUM-871.md`.
 
 
 ### Descriptions tactiles et guillemets HTML — livrés le 13/11/2026

@@ -1,10 +1,10 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `d7d3c6985db278192a5cad84d70c47d333ebc42e`. Empreinte du corpus : `3121389037f05da4f03d884d35adaad09e15c1971f5ce0ae1070abe76f6ad542`.
+Base analysée : `f07406a2d921c3f7563f8319835ac9c115951e25`. Empreinte du corpus : `bcaf564eeefafa998295cff0f3a6db4b305b00174d7dadc61aa8fd4ac249d289`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 
-**17276 textes distincts repérés**, 30129 occurrences dans les sources. 218 fichiers JS/HTML et 498 fichiers SQL analysés.
+**17276 textes distincts repérés**, 30179 occurrences dans les sources. 219 fichiers JS/HTML et 498 fichiers SQL analysés.
 
 ## Périmètre et certitude
 
@@ -22,14 +22,14 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 | Langue | Corpus | Raccordés prouvés* | Taux textes* | Taux mots* | Ressource disponible** | Mots à traiter/vérifier |
 |---|---:|---:|---:|---:|---:|---:|
 | Français | 7538 | 7538 | 100.00 % | 100.00 % | 7538 | 0 |
-| Anglais | 7538 | 874 | 11.59 % | 21.45 % | 1466 | 39523 |
-| Espagnol | 7538 | 881 | 11.69 % | 21.46 % | 1482 | 39515 |
-| Chinois traditionnel | 7538 | 883 | 11.71 % | 21.47 % | 1488 | 39513 |
-| Russe | 7538 | 883 | 11.71 % | 21.47 % | 1487 | 39513 |
-| Coréen | 7538 | 883 | 11.71 % | 21.47 % | 1488 | 39513 |
-| Arabe | 7538 | 883 | 11.71 % | 21.47 % | 1487 | 39513 |
-| Portugais brésilien | 7538 | 880 | 11.67 % | 21.46 % | 1484 | 39516 |
-| Allemand | 7538 | 882 | 11.70 % | 21.47 % | 1484 | 39514 |
+| Anglais | 7538 | 913 | 12.11 % | 22.03 % | 1506 | 39231 |
+| Espagnol | 7538 | 920 | 12.20 % | 22.04 % | 1522 | 39223 |
+| Chinois traditionnel | 7538 | 922 | 12.23 % | 22.05 % | 1528 | 39221 |
+| Russe | 7538 | 922 | 12.23 % | 22.05 % | 1527 | 39221 |
+| Coréen | 7538 | 922 | 12.23 % | 22.05 % | 1528 | 39221 |
+| Arabe | 7538 | 922 | 12.23 % | 22.05 % | 1527 | 39221 |
+| Portugais brésilien | 7538 | 919 | 12.19 % | 22.04 % | 1524 | 39224 |
+| Allemand | 7538 | 921 | 12.22 % | 22.05 % | 1524 | 39222 |
 
 * Preuve statique stricte : clé explicite de même français, traducteur exporté/wrapper transparent, guide accepté par son garde d’intégrité ou description d’ordre reconnue par le résolveur existant dans son pays, dans chacune des huit langues. C’est un plancher de raccordements identifiés, pas la mesure de toutes les traductions qui fonctionnent. Les valeurs identiques au français restent à vérifier sauf sigles neutres documentés.
 
@@ -40,13 +40,13 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 | Domaine | Textes du corpus | EN raccordés | EN sans ressource | EN mots à traiter/vérifier |
 |---|---:|---:|---:|---:|
 | Bâtiments et pièces | 959 | 642 | 43 | 2631 |
-| Courriers, notifications et journaux | 388 | 59 | 283 | 1534 |
-| Création et connexion | 154 | 83 | 55 | 498 |
-| Enquêtes, missions et objectifs | 898 | 0 | 834 | 5136 |
+| Courriers, notifications et journaux | 388 | 102 | 240 | 1221 |
+| Création et connexion | 158 | 87 | 55 | 498 |
+| Enquêtes, missions et objectifs | 898 | 0 | 833 | 5136 |
 | Interface générale et autres activités | 1938 | 70 | 1685 | 9826 |
 | Navigation et transports | 139 | 0 | 97 | 706 |
 | Ordres et descriptions | 974 | 659 | 50 | 2678 |
-| PNJ, guides et récits | 508 | 27 | 454 | 3297 |
+| PNJ, guides et récits | 508 | 23 | 457 | 3318 |
 | Politique, justice et administration | 1322 | 2 | 1210 | 7204 |
 | Économie et commerces | 1855 | 7 | 1732 | 10221 |
 
@@ -57,13 +57,13 @@ Les neuf langues et leurs volumes par domaine sont détaillés dans `tableau-de-
 | Domaine | fr | en | es | zh-TW | ru | ko | ar | pt-BR | de |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | Bâtiments et pièces | 100.00 % / 100.00 % | 66.94 % / 72.85 % | 66.94 % / 72.85 % | 67.05 % / 72.86 % | 67.05 % / 72.86 % | 67.05 % / 72.86 % | 67.05 % / 72.86 % | 66.94 % / 72.85 % | 67.05 % / 72.86 % |
-| Courriers, notifications et journaux | 100.00 % / 100.00 % | 15.21 % / 17.79 % | 15.21 % / 17.79 % | 15.21 % / 17.79 % | 15.21 % / 17.79 % | 15.21 % / 17.79 % | 15.21 % / 17.79 % | 15.21 % / 17.79 % | 15.21 % / 17.79 % |
-| Création et connexion | 100.00 % / 100.00 % | 53.90 % / 47.52 % | 55.19 % / 47.73 % | 55.84 % / 47.84 % | 55.84 % / 47.84 % | 55.84 % / 47.84 % | 55.84 % / 47.84 % | 55.19 % / 47.73 % | 55.84 % / 47.84 % |
+| Courriers, notifications et journaux | 100.00 % / 100.00 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % |
+| Création et connexion | 100.00 % / 100.00 % | 55.06 % / 49.39 % | 56.33 % / 49.59 % | 56.96 % / 49.70 % | 56.96 % / 49.70 % | 56.96 % / 49.70 % | 56.96 % / 49.70 % | 56.33 % / 49.59 % | 56.96 % / 49.70 % |
 | Enquêtes, missions et objectifs | 100.00 % / 100.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % |
 | Interface générale et autres activités | 100.00 % / 100.00 % | 3.61 % / 21.72 % | 3.87 % / 21.77 % | 3.87 % / 21.77 % | 3.87 % / 21.77 % | 3.87 % / 21.77 % | 3.87 % / 21.77 % | 3.82 % / 21.76 % | 3.82 % / 21.76 % |
 | Navigation et transports | 100.00 % / 100.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % |
 | Ordres et descriptions | 100.00 % / 100.00 % | 67.66 % / 73.05 % | 67.66 % / 73.05 % | 67.76 % / 73.06 % | 67.76 % / 73.06 % | 67.76 % / 73.06 % | 67.76 % / 73.06 % | 67.66 % / 73.05 % | 67.76 % / 73.06 % |
-| PNJ, guides et récits | 100.00 % / 100.00 % | 5.31 % / 44.09 % | 5.31 % / 44.09 % | 5.31 % / 44.09 % | 5.31 % / 44.09 % | 5.31 % / 44.09 % | 5.31 % / 44.09 % | 5.31 % / 44.09 % | 5.31 % / 44.09 % |
+| PNJ, guides et récits | 100.00 % / 100.00 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % |
 | Politique, justice et administration | 100.00 % / 100.00 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % |
 | Économie et commerces | 100.00 % / 100.00 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % |
 
@@ -80,7 +80,7 @@ Les descriptions communes sont présentes dans plusieurs empires : ne pas additi
 
 ## Catalogue central et autres ressources
 
-Le catalogue central expose **3293 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4235 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
+Le catalogue central expose **3336 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4278 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
 
 | Langue | Clés absentes | Variables incohérentes |
 |---|---:|---:|
@@ -99,8 +99,8 @@ Le catalogue central expose **3293 clés françaises**. Les tables locales, guid
 | Priorité | Textes candidats non entièrement prouvés | Usage |
 |---|---:|---|
 | 1 | 233 | Compréhension d’un ordre, d’un refus ou entrée dans le jeu |
-| 2 | 9911 | Commandes et messages de gameplay |
-| 3 | 2932 | Compréhension d’une mission ou interaction narrative |
+| 2 | 9868 | Commandes et messages de gameplay |
+| 3 | 2936 | Compréhension d’une mission ou interaction narrative |
 | 4 | 2049 | Description ou repère de lieu |
 
 Classement automatique à confirmer en jeu. `inventaire.json.gz` fournit texte, identifiant, fichier, ligne, pays et ressources candidates ; `priorites.json.gz` fournit les langues manquantes et les branchements à vérifier. Les descriptions Républia restantes ne sont pas traduites par cet audit.
