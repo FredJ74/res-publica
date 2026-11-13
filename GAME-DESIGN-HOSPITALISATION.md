@@ -80,3 +80,7 @@ Correctif serveur : `migrations/20261101171000_hospitalisation_pa0.sql`
 - Ne concerne que les ordres au coût connu d'avance : un combat perdu reste un risque assumé.
 - Aide d'écran seulement (`avertirZeroPa`, `plateau-router.js`) : la règle d'hospitalisation
   reste décidée par le serveur.
+
+## Soins sans trace — décision du 13 novembre 2026
+
+Le soin `soins_discrets` en clinique privée est une prestation confidentielle : son objet est de ne laisser **aucun dossier médical exploitable** ni de **fuite automatique vers la presse**. Fred a explicitement décidé de **supprimer le malus de −2 Discrétion**, contradictoire avec cette prestation. Le reste est inchangé : **1 PA, 800 FR/PSK, taux serveur 95 %, effet de base +30 Santé** (variations liées au moteur de succès). La modification serveur supprime uniquement la clé `dis` dans `public.ordres_generiques.effets`, sans altérer le moteur de résultat ni les événements médicaux. Elle ne crée pas de mécanisme de confidentialité supplémentaire : toute future création d'un dossier médical ou source de fuite doit respecter cette interdiction.

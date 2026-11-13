@@ -29,5 +29,5 @@
 INSERT INTO public.ordres_generiques (fn, taux_reussite, toujours_reussi, effets, batiments, poste_requis) VALUES ('deliberer_loge', '100', 'true', '{"inf": 3}', '{loge-maconnique}', NULL);
 INSERT INTO public.ordres_generiques (fn, taux_reussite, toujours_reussi, effets, batiments, poste_requis) VALUES ('fuite_info', '60', 'false', '{"inf": 5, "pop": 10}', '{palais-gouvernement}', '*');
 INSERT INTO public.ordres_generiques (fn, taux_reussite, toujours_reussi, effets, batiments, poste_requis) VALUES ('interroger', '75', 'false', '{"inf": 5}', '{qhs-prison}', 'commissaire');
-INSERT INTO public.ordres_generiques (fn, taux_reussite, toujours_reussi, effets, batiments, poste_requis) VALUES ('soins_discrets', '95', 'false', '{"hp": 30, "dis": -2}', '{clinique-privee}', NULL);
+INSERT INTO public.ordres_generiques (fn, taux_reussite, toujours_reussi, effets, batiments, poste_requis) VALUES ('soins_discrets', '95', 'false', '{"hp": 30}', '{clinique-privee}', NULL);
 INSERT INTO public.ordres_generiques (fn, taux_reussite, toujours_reussi, effets, batiments, poste_requis) VALUES ('soins_urgence', '100', 'true', '{"hp": 40}', '{clinique-privee}', NULL);
