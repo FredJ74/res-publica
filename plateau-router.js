@@ -28,6 +28,17 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
     return;
   }
 
+  // Un ordre institutionnel ne traverse jamais les frontieres avec son titulaire.
+  // Meme si un bouton est appele directement, le poste exerce en Republia ne
+  // donne aucune autorite dans les ministeres de Sovarka, et reciproquement.
+  if (typeof definitionOrdreDansPiece === 'function' && typeof paysMandatPourOrdre === 'function') {
+    const definitionMinisterielle = definitionOrdreDansPiece(state.currentBuilding, state.currentRoom, fn);
+    if (definitionMinisterielle?.requiresPost && paysMandatPourOrdre() !== state.country) {
+      showToast('Accès refusé', 'Ce mandat ne vous donne aucun pouvoir dans cet empire.', false);
+      return;
+    }
+  }
+
   // Droits generiques sur un local (Lot 1.2) : murs / locataire / fonds. C'est ICI qu'est la
   // securite reelle -- le grisage de renderRoomActions n'est qu'une anticipation, contournable
   // par un appel direct a doOrder(). Verifie AVANT tout debit PA/FR, sur la meme definition
