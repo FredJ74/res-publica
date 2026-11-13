@@ -69,7 +69,7 @@ jobs:
           for(const [room,name,fragment] of cases){
             const r=overrides[room];assert.equal(r.persons.length,1,room);
             const p=r.persons[0];assert.ok(p.name.includes(name),room+' '+p.name);
-            assert.equal(p.photoUrl,'images/Sovarka/Novomirsk/Novomirsk_notaire_'+fragment+'_portrait.webp');
+            assert.equal(p.photoUrl, room === 'accueil_notaire' ? 'images/Sovarka/Novomirsk/Novo_klara_delounova_portrait.webp' : 'images/Sovarka/Novomirsk/Novomirsk_notaire_'+fragment+'_portrait.webp');
             assert.equal(r.imageUrl,'images/Sovarka/Novomirsk/Novomirsk_notaire_'+fragment+'.webp');
             const img=fs.readFileSync(p.photoUrl);
             assert.equal(img.toString('ascii',0,4),'RIFF');
@@ -79,7 +79,7 @@ jobs:
           assert.ok(ctx.B['office-notarial'].rooms.bureau_successions.orders.some(o=>o.fn==='reclamer_heritage'));
           const autre=ctx.W.republic.capitale.buildingContext['office-notarial'];
           assert.ok(!autre.roomOverrides.accueil_notaire.persons);
-          console.log('Quatre PNJ et quatre vrais portraits, ordres et Républia conservés.');
+          console.log('Quatre PNJ et leurs quatre portraits issus des scènes, ordres et Républia conservés.');
           NODE
       - name: Committer les quatre portraits réels
         run: |
