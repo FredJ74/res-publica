@@ -44,4 +44,6 @@ Le banc précédent conserve ses 270 rendus/bascules ; répertoire et forum éga
 rejoués pour protéger les autres usages du service commun.
 
 Relecture native, session authentifiée et téléphone physique non réalisés.
-Mesures, CI et production : relais et PR.
+Mesure au même extracteur sur main `817d996` et code `70f8b03` : corpus inchangé (7 565 textes / 50 690 mots), +3 textes et +24 mots raccordés par langue étrangère, +2 ressources / 21 mots source. Anglais : 992 textes et 12 057 mots raccordés, soit 23,79 % des mots du corpus identifié. Ce taux technique ne mesure pas les contenus dynamiques inconnus.
+
+31 tests Node finaux, 4 bancs Chromium verts. Les trois échecs SSM sont reproduits sur main (11/14 dans les deux cas). CI et production : relais et PR #902.
