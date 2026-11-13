@@ -6,6 +6,9 @@ Règles : voir `AGENTS.md`.
 
 > **Rangé le 11/11/2026 (Claude)** : les chantiers terminés ont été déplacés mot pour mot dans [`RELAIS-ARCHIVE-2026-11.md`](RELAIS-ARCHIVE-2026-11.md) (chercher par mot-clé : branche, PR, migration). Garder ici seulement ce qui est en cours, attendu ou à vérifier ; un chantier fusionné passe en une ligne dans « Derniers chantiers ».
 
+### Internationalisation du plan des rues — ChatGPT, 13/11/2026, PR #854
+Branche `chatgpt/i18n-plan-rues-20261113`. Le calcul et les déplacements des rues restent inchangés ; cinq textes visibles du plan (« Plan de… », titre, « Vous êtes ici », repère et position dans la rue) dans les neuf langues, via le catalogue `navigation`, avec conservation du français. La modale ouverte se rafraîchit lors de la bascule de langue sans RPC. Scripts reversionnés dans `plateau.html`. Banc `outils/bancs/banc-i18n-plan-rues-20261113.cjs`, banc historique `test-plan-rues-20261109.mjs` et CI `.github/workflows/i18n-plan-rues.yml`. CI dédiée et CI plans/transports vertes sur commit code `8021acc`; les autres échecs transversaux doivent être comparés à `main`. Recette avec PJ authentifié, revue native et téléphone physique non réalisées. Lot indépendant des missions de Codex (boutons tactiles d'ordre) et Claude (205 descriptions communes).
+
 ## En cours
 
 
