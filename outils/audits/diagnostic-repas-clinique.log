@@ -1,59 +1,45 @@
 TAP version 13
-# Subtest: La réservation de chambre ne transforme pas les clients en patients
-not ok 1 - La réservation de chambre ne transforme pas les clients en patients
+# node:internal/modules/cjs/loader:1433
+#   throw err;
+#   ^
+# Error: Cannot find module 'acorn'
+# Require stack:
+# - /home/runner/work/res-publica/res-publica/outils/bancs/banc-hospitalisation-client.cjs
+#     at Function._resolveFilename (node:internal/modules/cjs/loader:1430:15)
+#     at defaultResolveImpl (node:internal/modules/cjs/loader:1040:19)
+#     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1045:22)
+#     at Function._load (node:internal/modules/cjs/loader:1216:25)
+#     at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+#     at Module.require (node:internal/modules/cjs/loader:1527:12)
+#     at require (node:internal/modules/helpers:147:16)
+#     at Object.<anonymous> (/home/runner/work/res-publica/res-publica/outils/bancs/banc-hospitalisation-client.cjs:5:77)
+#     at Module._compile (node:internal/modules/cjs/loader:1781:14)
+#     at Object..js (node:internal/modules/cjs/loader:1913:10) {
+#   code: 'MODULE_NOT_FOUND',
+#   requireStack: [
+#     '/home/runner/work/res-publica/res-publica/outils/bancs/banc-hospitalisation-client.cjs'
+#   ]
+# }
+# Node.js v22.23.4
+# Subtest: outils/bancs/banc-hospitalisation-client.cjs
+not ok 1 - outils/bancs/banc-hospitalisation-client.cjs
   ---
-  duration_ms: 8.035024
+  duration_ms: 25.82246
   type: 'test'
-  location: '/home/runner/work/res-publica/res-publica/outils/bancs/banc-clinique-repas-nuitee.cjs:8:1'
+  location: '/home/runner/work/res-publica/res-publica/outils/bancs/banc-hospitalisation-client.cjs:1:1'
   failureType: 'testCodeFailure'
-  error: |-
-    The expression evaluated to a falsy value:
-    
-      assert.ok(!sql.includes("SET hospitalisation ="))
-    
-  code: 'ERR_ASSERTION'
-  name: 'AssertionError'
-  expected: true
-  actual: false
-  operator: '=='
-  stack: |-
-    TestContext.<anonymous> (/home/runner/work/res-publica/res-publica/outils/bancs/banc-clinique-repas-nuitee.cjs:12:9)
-    Test.runInAsyncScope (node:async_hooks:214:14)
-    Test.run (node:internal/test_runner/test:1047:25)
-    Test.start (node:internal/test_runner/test:944:17)
-    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
   ...
-# Subtest: Repas strictement réservé au détenteur de la chambre attribuée par le serveur
-ok 2 - Repas strictement réservé au détenteur de la chambre attribuée par le serveur
-  ---
-  duration_ms: 0.257463
-  type: 'test'
-  ...
-# Subtest: Paiement exact, une fois par jour, +4 PA au prochain sommeil sans crédit immédiat
-ok 3 - Paiement exact, une fois par jour, +4 PA au prochain sommeil sans crédit immédiat
-  ---
-  duration_ms: 0.247665
-  type: 'test'
-  ...
-# Subtest: Hospitalisés et hôpital public : logique préservée
-ok 4 - Hospitalisés et hôpital public : logique préservée
-  ---
-  duration_ms: 0.173906
-  type: 'test'
-  ...
-# Subtest: Client : même porte RPC et bonnes annonces selon nuitée ou hospitalisation
-ok 5 - Client : même porte RPC et bonnes annonces selon nuitée ou hospitalisation
-  ---
-  duration_ms: 0.405171
-  type: 'test'
-  ...
-1..5
-# tests 5
+1..1
+# tests 1
 # suites 0
-# pass 4
+# pass 0
 # fail 1
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 69.551448
-Banc en erreur: outils/bancs/banc-clinique-repas-nuitee.cjs
+# duration_ms 30.275675
+Banc en erreur: outils/bancs/banc-hospitalisation-client.cjs
