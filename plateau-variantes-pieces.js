@@ -613,13 +613,16 @@ PIECE_FAMILLES_ETAT.krasnovBox = {
 
 const KRASNOV_BOX_PLANche = {
   mode:'texte', etats:['occupee'],
-  zone:{ x:.195, y:.137, w:.588, h:.096 },
-  texte:{ align:'center', casse:'aucune', couleur:'#3a1d0b', ombre:false,
-    graisse:700, police:"Georgia,serif", interLettre:'.045em' }
+  // Gravure au fer sur la planche brute : traits brun noir, bord chaud
+  // et léger reflet de la fibre soulevée, sans cartouche ni fond opaque.
+  zone:{ x:.192, y:.148, w:.477, h:.085 },
+  texte:{ align:'center', casse:'aucune', couleur:'#342015', ombre:false,
+    pyrogravure:true, graisse:700, police:"Georgia,serif", interLettre:'.045em' }
 };
 const KRASNOV_BOX_ARDOISE = {
   mode:'texte', etats:['occupee'],
-  zone:{ x:.728, y:.560, w:.113, h:.157 },
+  // Zone intérieure de l'ardoise sur pied, à droite de l'entrée.
+  zone:{ x:.627, y:.587, w:.105, h:.157 },
   texte:{ align:'center', casse:'aucune', couleur:'#f1eee8', ombre:false,
     graisse:500, police:"'Playfair Display',Georgia,serif" }
 };
@@ -1143,7 +1146,13 @@ function varianteDessinerEnseigne(cadre, decl, contenu, secondaire) {
     el.style.fontFamily = t.police || "'Playfair Display',Georgia,serif";
     el.style.fontWeight = String(t.graisse || 700);
     if (t.interLettre) el.style.letterSpacing = t.interLettre;
-    if (t.ombre) el.style.textShadow = '0 1px 2px rgba(0,0,0,.75), 0 0 10px rgba(0,0,0,.45)';
+    if (t.pyrogravure) {
+      // Ombres sèches encre/charbon et léger filet chaud : effet de bois brûlé.
+      // Ne change pas le rendu des enseignes ordinaires ni de l'ardoise.
+      el.style.textShadow = '0 1px 0 rgba(30,12,3,.88), 1px 1px 1px rgba(65,24,5,.64), -1px -1px 0 rgba(209,127,60,.35), 0 0 2px rgba(85,37,8,.50)';
+    } else if (t.ombre) {
+      el.style.textShadow = '0 1px 2px rgba(0,0,0,.75), 0 0 10px rgba(0,0,0,.45)';
+    }
     el.title = String(contenu.texte);
   }
 
