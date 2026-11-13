@@ -957,7 +957,7 @@ function ouvrirEcranIdentifiants() {
   ecran.classList.add('active');
   window.scrollTo(0, 0);
   const msg = document.getElementById('auth-msg');
-  if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+  if (msg) { msg.style.display = 'none'; msg.textContent = ''; msg.removeAttribute('data-i18n'); }
 }
 
 function rpMessageIdentifiants(cle, secours, variables) {
@@ -965,13 +965,16 @@ function rpMessageIdentifiants(cle, secours, variables) {
   return (typeof t === 'string' && t.trim() && t !== cle && !/\{\{[^}]+\}\}/.test(t)) ? t : secours;
 }
 
-function afficherMessageIdentifiants(texte) {
+function afficherMessageIdentifiants(texte, cle) {
   const zone = document.getElementById('auth-msg');
   if (!zone) return;
   zone.style.display = '';
   zone.style.cssText = 'display:block;margin:.2rem 0 .4rem;padding:.6rem .8rem;border:1px solid #8a3a2a;'
     + 'background:#2a1410;color:#e8b4a0;font-size:.85rem;line-height:1.45;border-radius:4px';
+  if (cle) zone.setAttribute('data-i18n',cle);
+  else zone.removeAttribute('data-i18n');
   zone.textContent = texte;
+  if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
 }
 
 async function validerIdentifiants() {
@@ -987,37 +990,45 @@ async function validerIdentifiants() {
 
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     afficherMessageIdentifiants(rpMessageIdentifiants('auth.errEmail',
-      "Cette adresse e-mail ne semble pas valide. Vérifiez-la."));
+      "Cette adresse e-mail ne semble pas valide. Vérifiez-la."), 'auth.errEmail');
     return;
   }
   if (mdp.length < 8) {
     afficherMessageIdentifiants(rpMessageIdentifiants('auth.errPassword',
-      "Choisissez un mot de passe d'au moins huit caractères."));
+      "Choisissez un mot de passe d'au moins huit caractères."), 'auth.errPassword');
     return;
   }
 
   IDENTIFIANTS_EN_COURS = true;
   const bouton = document.getElementById('auth-valider');
   const libelle = bouton ? bouton.textContent : null;
+  const _rpCleBouton = bouton?.getAttribute('data-i18n') ?? null;
   if (bouton) {
     bouton.disabled = true;
     bouton.textContent = rpMessageIdentifiants('auth.working', 'Création du compte en cours...');
+    bouton.setAttribute('data-i18n','auth.working');
+    if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
   }
   const rendreLaMain = function () {
     IDENTIFIANTS_EN_COURS = false;
     if (bouton) { bouton.disabled = false; if (libelle !== null) bouton.textContent = libelle; }
+    if (bouton) {
+      if (_rpCleBouton !== null) bouton.setAttribute('data-i18n',_rpCleBouton);
+      else bouton.removeAttribute('data-i18n');
+      if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
+    }
   };
 
   try {
     if (typeof rpAuthAssurerSession !== 'function' || typeof rpAuthSecuriserCompte !== 'function') {
       afficherMessageIdentifiants(rpMessageIdentifiants('auth.errUnavailable',
-        "La création de compte est momentanément indisponible. Réessayez dans un instant."));
+        "La création de compte est momentanément indisponible. Réessayez dans un instant."), 'auth.errUnavailable');
       rendreLaMain(); return;
     }
     const session = await rpAuthAssurerSession().catch(() => null);
     if (!session) {
       afficherMessageIdentifiants(rpMessageIdentifiants('auth.errSession',
-        "Impossible d'ouvrir une session pour le moment. Vérifiez votre connexion et réessayez."));
+        "Impossible d'ouvrir une session pour le moment. Vérifiez votre connexion et réessayez."), 'auth.errSession');
       rendreLaMain(); return;
     }
 
@@ -1033,7 +1044,7 @@ async function validerIdentifiants() {
         ? rpMessageIdentifiants('auth.errEmailTaken',
             "Cette adresse est déjà utilisée. Retournez à l'accueil et choisissez « Me connecter à mon compte ».")
         : rpMessageIdentifiants('auth.errGeneric',
-            "Votre compte n'a pas pu être créé (" + raison + "). Réessayez dans un instant."));
+            "Votre compte n'a pas pu être créé (" + raison + "). Réessayez dans un instant."), dejaPrise?'auth.errEmailTaken':'auth.errGeneric');
       rendreLaMain(); return;
     }
 
@@ -1042,7 +1053,7 @@ async function validerIdentifiants() {
     goTo(1);
   } catch (e) {
     afficherMessageIdentifiants(rpMessageIdentifiants('auth.errGeneric',
-      "Votre compte n'a pas pu être créé. Réessayez dans un instant."));
+      "Votre compte n'a pas pu être créé. Réessayez dans un instant."), 'auth.errGeneric');
     rendreLaMain();
   }
 }

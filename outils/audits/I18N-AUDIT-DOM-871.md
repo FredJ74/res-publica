@@ -41,3 +41,7 @@ Les modifications parallèles de Sovarka sont hors de cette photographie datée.
 
 PR #911 ; CI finale et livraison de l’outil à compléter. L’outil et ses rapports
 sont destinés au dépôt ; aucune nouvelle interface n’est à déployer dans le jeu.
+
+## Livraison vérifiée
+
+PR #911 fusionnée : `2195871a4b27ab2ccd9a2d58d73cd935cfb67049`. Cinq contrôles verts ; seul rouge SSM (3 échecs identiques sur main b595c76). Payload vert. Outil et rapports livrés dans le dépôt, aucun nouveau code de jeu. Vercel `dpl_EJ7L652qcUfh2uid2weqMjgUXEr8` READY sur main `b656d95`, descendant vérifié de la fusion ; alias confirmé, sept fichiers publics identiques. Deux bancs de non-régression rejoués sur ces fichiers : recherche 324 bascules et confirmation 108 arrivées/972 bascules, verts. L’outil d’audit n’est pas une fonction exposée en production.
