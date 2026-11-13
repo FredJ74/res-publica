@@ -1,4 +1,4 @@
-/* Républia — descriptions politiques et institutionnelles (lot 1, 13/11/2026).
+/* Républia — catalogue complet des 189 descriptions propres au pays (13/11/2026).
  * Texte original strictement issu de data.js ; colonnes fr,en,es,zh-TW,ru,ko,ar,pt-BR,de.
  * Données d'affichage seules : ni cout, ni PA, ni RPC ne sont modifiés.
  */
