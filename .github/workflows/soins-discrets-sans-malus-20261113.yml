@@ -1,0 +1,21 @@
+name: "Soins sans trace - discrétion conservée"
+on:
+  push:
+    branches: [chatgpt/soins-discrets-sans-malus-20261113]
+    paths:
+      - .github/workflows/soins-discrets-sans-malus-20261113.yml
+      - migrations/20261113014500_soins_discrets_sans_malus_discretion.sql
+      - baseline/seeds/90_socle/ordres_generiques.sql
+      - outils/bancs/banc-soins-discrets-confidentialite-20261113.cjs
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Vérifier la régression et les règles inchangées
+        run: node --test outils/bancs/banc-soins-discrets-confidentialite-20261113.cjs
