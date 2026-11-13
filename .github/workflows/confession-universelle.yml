@@ -1,0 +1,32 @@
+name: Confession mondiale — DUP et indices locaux
+on:
+  pull_request:
+    paths:
+      - 'migrations/20261113214000_confession_universelle.sql'
+      - 'plateau-divers.js'
+      - 'plateau-pnj.js'
+      - 'plateau-politique.js'
+      - 'data.js'
+      - 'i18n/sovarka-infobulles-resources.js'
+      - 'outils/bancs/banc-confession-universelle-20261113.cjs'
+      - '.github/workflows/confession-universelle.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'migrations/20261113214000_confession_universelle.sql'
+      - 'plateau-divers.js'
+      - 'plateau-pnj.js'
+      - 'plateau-politique.js'
+      - 'data.js'
+      - 'i18n/sovarka-infobulles-resources.js'
+      - 'outils/bancs/banc-confession-universelle-20261113.cjs'
+jobs:
+  confession:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confession, quatre empires et formule
+        run: node --test outils/bancs/banc-confession-universelle-20261113.cjs
