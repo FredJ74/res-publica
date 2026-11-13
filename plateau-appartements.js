@@ -34,7 +34,12 @@ const REFUS = {
   aucune_colocation: ['refus.aucuneColoc', 'Vous n\'êtes colocataire nulle part.'],
   aucune_reprise: ['refus.aucuneReprise', 'Aucune offre de reprise en cours.'],
   local_occupe: ['refus.occupe', 'Le logement a déjà été attribué.'],
-  pa_insuffisants: ['refus.pa', 'Pas assez de PA.']
+  pa_insuffisants: ['refus.pa', 'Pas assez de PA.'],
+  reserve_colocataire: ['refus.colocataire', 'Réservé au colocataire.'],
+  demande_en_cours: ['refus.demandeEnCours', 'Une demande d\'option premium attend déjà la réponse du titulaire.'],
+  aucune_demande: ['refus.aucuneDemande', 'Aucune demande d\'option premium en attente.'],
+  demande_caduque: ['refus.demandeCaduque', 'La demande est tombée : son auteur n\'est plus colocataire.'],
+  aucun_titulaire: ['refus.aucunTitulaire', 'Ce logement n\'a pas de titulaire.']
 };
 function refus(r) {
   const m = r && REFUS[r.raison];
@@ -61,10 +66,37 @@ function note(t) { return '<p class="cpj-note">' + t + '</p>'; }
 
 // ---------- Appartements premium d'un immeuble (onglets des chambres)
 const PREMIUM = {};   // 'pays|ville|batiment' -> Set des appartements premium (ou 'chargement')
+const CHAMBRES = {};  // 'pays|ville|batiment' -> { appartement: nombre de chambres } (dit par le serveur)
 function cleImmeuble(bid) { return (state.country || '') + '|' + (state.currentCity || '') + '|' + bid; }
+// Tout immeuble qui contient un logement populaire peut avoir des chambres (décision de Fred du 13/11 :
+// l'option premium vaut aussi pour les logements construits en cours de partie).
 function immeubleAChambres(bid) {
   const b = typeof BUILDINGS !== 'undefined' ? BUILDINGS[bid] : null;
-  return !!(b && Object.values(b.rooms || {}).some(r => r && r.chambreLogement));
+  return !!(b && Object.entries(b.rooms || {}).some(([id, r]) => r && (r.chambreLogement
+    || (r.locationData && r.locationData.logementSocial) || id.indexOf('lot_dyn_') === 0)));
+}
+// Logements créés à la volée (lots des terrains, immeubles des mairies de Sovarka) : leurs chambres
+// n'existent pas dans data.js. On les ajoute pour les appartements dont le serveur dit qu'ils sont
+// premium, avec le nombre de chambres qu'il donne. Image : celle de l'appartement, en attendant mieux.
+function assurerChambres(bid) {
+  const b = typeof BUILDINGS !== 'undefined' ? BUILDINGS[bid] : null;
+  const n = CHAMBRES[cleImmeuble(bid)];
+  if (!b || !b.rooms || !n) return;
+  Object.entries(n).forEach(([base, total]) => {
+    const r = b.rooms[base];
+    if (!r || r.chambreLogement) return;
+    for (let k = 1; k <= (Number(total) === 2 ? 2 : 1); k++) {
+      const id = base + '_chambre_' + k;
+      if (b.rooms[id]) continue;
+      b.rooms[id] = {
+        name: Number(total) === 2 ? 'Chambre ' + k : 'Chambre',
+        desc: 'Une chambre de l\'appartement. On y dort, on y range son matériel ; sa porte peut recevoir une serrure.',
+        imageBg: r.imageBg, imageUrl: r.imageUrl, persons: [], chambreLogement: true, baseLogement: base, _chambreDyn: true,
+        orders: [{ fn: 'gerer_logement_social', label: 'Mon logement', pa: 0, cost: 0, type: 'legal', icon: 'ti-home-cog', successRate: 100,
+          desc: 'Voir l\'appartement, son option premium, sa colocation et ses décors.' }]
+      };
+    }
+  });
 }
 async function chargerPremium(bid, force) {
   const cle = cleImmeuble(bid);
@@ -73,9 +105,12 @@ async function chargerPremium(bid, force) {
   let rows = [];
   try {
     rows = await sbGet('logements_premium', 'pays=eq.' + encodeURIComponent(state.country) + '&ville=eq.' + encodeURIComponent(state.currentCity)
-      + '&batiment=eq.' + encodeURIComponent(bid) + '&select=piece');
+      + '&batiment=eq.' + encodeURIComponent(bid) + '&select=piece,chambres');
   } catch (e) { rows = []; }
   PREMIUM[cle] = new Set((rows || []).map(r => r.piece));
+  CHAMBRES[cle] = {};
+  (rows || []).forEach(r => { CHAMBRES[cle][r.piece] = r.chambres || (/^grand_/.test(r.piece) ? 2 : 1); });
+  assurerChambres(bid);
   if (state.currentBuilding === bid && typeof renderOngletsPieces === 'function') renderOngletsPieces(bid, state.currentRoom);
 }
 // Une chambre n'a d'onglet que dans un appartement premium, et seulement quand on est dedans.
@@ -89,6 +124,7 @@ function chambreVisible(bid, roomId, room, actif) {
 function rafraichirOnglets(bid, roomId) {
   if (!immeubleAChambres(bid)) return;
   if (!(PREMIUM[cleImmeuble(bid)] instanceof Set)) { chargerPremium(bid); return; }
+  assurerChambres(bid);
   if (typeof renderOngletsPieces === 'function') renderOngletsPieces(bid, roomId);
 }
 
@@ -163,9 +199,22 @@ async function ouvrirMonLogement() {
   } else if (!l.premium_possible) {
     h += note(texteAppart('premium.indispo', 'Pas encore disponible pour ce logement.'));
   } else {
+    const dem = r.premium_demande;
+    const dateDem = dem ? new Date(dem.expire_le).toLocaleString(undefined, { timeZone: 'Europe/Paris', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : '';
     h += note(texteAppart('premium.offre', 'Purement cosmétique, sans aucun avantage d\'indices ni de PA : {piece}, des décors par IA et des emplacements de matériel répartis par pièce. Attachée à l\'appartement : celui qui part la perd, le suivant en hérite. Gratuite pendant la bêta.',
       { piece: l.type === 'grand' ? texteAppart('premium.piecesGrand', 'un salon et deux chambres séparées') : texteAppart('premium.piecesPetit', 'un salon et une chambre séparée') }));
-    if (r.role === 'titulaire' || r.role === 'conjoint') h += bouton('logementPremiumActiver()', texteAppart('premium.activer', 'Activer l\'option premium'), true);
+    if (dem && r.role === 'titulaire') {
+      h += note(texteAppart('premium.demandeRecue', '{nom}, votre colocataire, demande l\'option premium. Répondez avant le {date} ; sans réponse, la demande tombe.', { nom: esc(dem.colocataire), date: esc(dateDem) }));
+      h += '<div style="display:flex;gap:.5rem;flex-wrap:wrap">' + bouton('logementPremiumDemandeRepondre(' + JSON.stringify(l.bail).replace(/"/g, '&quot;') + ',true)', texteAppart('premium.accepter', 'Accepter l\'option premium'), true)
+        + bouton('logementPremiumDemandeRepondre(' + JSON.stringify(l.bail).replace(/"/g, '&quot;') + ',false)', texteAppart('premium.refuser', 'Refuser')) + '</div>';
+    } else if (dem && r.role === 'colocataire') {
+      h += note(texteAppart('premium.demandeEnvoyee', 'Demande envoyée à {nom}, titulaire du bail : en attente de sa réponse, jusqu\'au {date}.', { nom: esc(l.titulaire || ''), date: esc(dateDem) }));
+    } else if (r.role === 'titulaire' || r.role === 'conjoint') {
+      h += bouton('logementPremiumActiver()', texteAppart('premium.activer', 'Activer l\'option premium'), true);
+    } else if (r.role === 'colocataire') {
+      h += note(texteAppart('premium.colocNote', 'En tant que colocataire, vous pouvez la demander, mais c\'est le titulaire du bail, {nom}, qui décide : il recevra un courrier et aura 48 h pour accepter ou refuser.', { nom: esc(l.titulaire || '') }));
+      h += bouton('logementPremiumDemanderConfirmer()', texteAppart('premium.demander', 'Demander l\'option premium'), true);
+    }
   }
 
   // Colocation.
@@ -218,6 +267,32 @@ async function logementPremiumActiver() {
   await chargerPremium(state.currentBuilding, true);
   ouvrirMonLogement();
 }
+// Le colocataire demande l'option : confirmation qui rappelle explicitement que le titulaire doit accepter.
+function logementPremiumDemanderConfirmer() {
+  const tit = ETAT && ETAT.logement && ETAT.logement.titulaire;
+  modale(texteAppart('premium.demandeTitre', 'Demander l\'option premium'),
+    note(texteAppart('premium.demandeConfirme', 'Votre demande sera envoyée à {nom}, titulaire du bail. L\'option ne sera activée que s\'il l\'accepte. Il a 48 h pour répondre ; sans réponse, la demande tombe.', { nom: esc(tit || '') }))
+    + '<div style="display:flex;gap:.5rem;flex-wrap:wrap">' + bouton('logementPremiumDemander()', texteAppart('premium.envoyer', 'Envoyer la demande au titulaire'), true)
+    + bouton('ouvrirMonLogement()', texteAppart('atelier.retour', 'Retour')) + '</div>');
+}
+async function logementPremiumDemander() {
+  const r = await appel('logement_premium_demander', {}, [texteAppart('premium.demandeOkT', 'Demande envoyée'),
+    texteAppart('premium.demandeOk', 'Le titulaire du bail a reçu votre demande : l\'option ne sera active que s\'il l\'accepte.')]);
+  if (!r) return;
+  if (typeof addJournalEntry === 'function') addJournalEntry('Option premium demandée au titulaire du bail (' + r.titulaire + ').', 'event-info');
+  ouvrirMonLogement();
+}
+// Réponse du titulaire : depuis le bouton du courrier (où qu'il soit) ou depuis « Mon logement ».
+async function logementPremiumDemandeRepondre(bail, accepter) {
+  const oui = accepter === true || accepter === 'true';
+  const r = await appel('logement_premium_demande_repondre', { p_bail: String(bail || ''), p_accepter: oui },
+    oui ? [texteAppart('premium.ok', 'Option premium activée'), texteAppart('premium.accepteNote', 'Votre colocataire est prévenu ; les portes des chambres s\'ouvrent depuis le salon.')]
+        : [texteAppart('premium.refusT', 'Demande refusée'), texteAppart('premium.refusNote', 'Votre colocataire est prévenu.')]);
+  if (!r) return;
+  if (typeof addJournalEntry === 'function') addJournalEntry(oui ? 'Option premium acceptée pour votre appartement.' : 'Demande d\'option premium refusée.', oui ? 'event-good' : 'event-info');
+  if (oui && r.batiment && r.batiment === state.currentBuilding) await chargerPremium(r.batiment, true);
+  if (document.getElementById('modal-postes')?.classList.contains('open') && ETAT && document.getElementById('postes-modal-title')?.textContent === texteAppart('titre', 'Mon logement')) ouvrirMonLogement();
+}
 async function logementColocDesigner() {
   const nom = (document.getElementById('logement-coloc-nom')?.value || '').trim();
   if (!nom) return;
@@ -262,6 +337,11 @@ async function atelierAppel(action, extra) {
   if (!res.ok || !data.ok) throw new Error(data.error || texteAppart('atelier.echec', 'La génération a échoué.'));
   return data;
 }
+function fichierBase64(file) {
+  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 5242880)
+    return Promise.reject(new Error(texteAppart('atelier.format', 'Images PNG, JPEG ou WebP de 5 Mo maximum.')));
+  return new Promise((ok, ko) => { const r = new FileReader(); r.onerror = () => ko(new Error(texteAppart('atelier.lecture', 'Lecture impossible.'))); r.onload = () => ok(String(r.result).split(',')[1]); r.readAsDataURL(file); });
+}
 function urlDecor(path) { return SUPABASE_URL + '/storage/v1/object/public/commerce-decors/' + encodeURIComponent(path); }
 function atelierMessage(m) { const el = document.getElementById('logement-atelier-retour'); if (el) el.textContent = m; }
 async function logementOuvrirAtelier() {
@@ -272,6 +352,12 @@ async function logementOuvrirAtelier() {
   } catch (e) {}
   let h = note(texteAppart('atelier.intro', 'Décrivez l\'ambiance souhaitée : les murs, portes et fenêtres de la pièce sont conservés. Une génération et deux retouches, gratuites pendant la bêta (ensuite 0,99 € la nouvelle génération).'));
   h += '<textarea id="logement-atelier-demande" class="cpj-champ" maxlength="1500" rows="4" style="width:100%" placeholder="' + esc(texteAppart('atelier.placeholder', 'Ambiance, mobilier, couleurs, textiles, éclairage…')) + '"></textarea>';
+  if (!ATELIER.preview) {
+    h += '<label for="logement-atelier-sources" class="cpj-note" style="display:block;margin-top:.5rem">' + texteAppart('atelier.sources', 'Images de référence (facultatif, 5 maximum, 5 Mo chacune)') + '</label>';
+    h += '<input id="logement-atelier-sources" type="file" accept="image/png,image/jpeg,image/webp" multiple style="display:block;width:100%;margin:.3rem 0">';
+    h += '<label class="cpj-note" style="display:flex;gap:.5rem;align-items:flex-start"><input type="checkbox" id="logement-atelier-droits" style="margin-top:.25rem">'
+      + '<span>' + texteAppart('atelier.droits', 'Je confirme disposer des droits nécessaires sur les images fournies, y compris les autorisations des personnes représentées, et accepte leur conservation privée pour la traçabilité.') + '</span></label>';
+  }
   h += '<div id="logement-atelier-image" style="margin:.6rem 0;min-height:80px;display:flex;align-items:center;justify-content:center" class="cpj-note">' + (ATELIER.preview ? '<img src="' + esc(urlDecor(ATELIER.preview)) + '" style="width:100%;max-height:320px;object-fit:contain">' : texteAppart('atelier.vide', 'Votre décor apparaîtra ici.')) + '</div>';
   h += '<p id="logement-atelier-retour" class="cpj-note" aria-live="polite"></p>';
   h += '<div style="display:flex;flex-wrap:wrap;gap:.5rem">'
@@ -291,6 +377,11 @@ async function logementAtelierGenerer() {
   try {
     const payload = { prompt };
     if (!ATELIER.preview) {
+      const files = Array.from(document.getElementById('logement-atelier-sources')?.files || []);
+      if (files.length > 5) throw new Error(texteAppart('atelier.cinq', 'Cinq images maximum.'));
+      if (files.length && !document.getElementById('logement-atelier-droits')?.checked) throw new Error(texteAppart('atelier.droitsRequis', 'Veuillez accepter les conditions des images fournies.'));
+      await atelierAppel('clear_sources');
+      for (const file of files) await atelierAppel('upload_source', { filename: file.name, mime: file.type, base64: await fichierBase64(file), consent: true });
       if (typeof commercePjDecorImageOriginale !== 'function') throw new Error(texteAppart('atelier.image', 'Image de la pièce introuvable.'));
       payload.baseImage = await commercePjDecorImageOriginale();
     }
@@ -320,6 +411,9 @@ global.ouvrirMonLogement = ouvrirMonLogement;
 global.fermerMonLogement = fermer;
 global.logementPremiumActiver = logementPremiumActiver;
 global.logementColocDesigner = logementColocDesigner;
+global.logementPremiumDemanderConfirmer = logementPremiumDemanderConfirmer;
+global.logementPremiumDemander = logementPremiumDemander;
+global.logementPremiumDemandeRepondre = logementPremiumDemandeRepondre;
 global.logementColocRetirer = logementColocRetirer;
 global.logementColocPartir = logementColocPartir;
 global.logementReprendre = logementReprendre;

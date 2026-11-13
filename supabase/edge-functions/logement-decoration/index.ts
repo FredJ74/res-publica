@@ -4,6 +4,9 @@
 // serveur (logement_decor_droit_interne) : titulaire seul = tout ; en colocation, le colocataire
 // sa chambre, le titulaire sa chambre et le salon ; époux = toutes les pièces.
 // Bêta : aucun paiement ; la nouvelle génération sera facturée 0,99 € lors de la session premium.
+// Images de référence (décision de Fred, 13/11/2026) : jusqu'à 5 images du joueur, comme l'atelier du
+// Commerce Premium, conservées en privé pour la traçabilité (logements_decors_sources, bucket
+// publicites-premium-sources) ; jointes à la génération (start), pas aux retouches (coût OpenAI).
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 const cors = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization,apikey,content-type","Access-Control-Allow-Methods":"POST,OPTIONS"};
 const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,"Content-Type":"application/json"}});
@@ -20,7 +23,7 @@ Deno.serve(async(req)=>{
  const db=createClient(url,service);
  let body:any;try{body=await req.json()}catch{return reply({error:"Requete invalide"},400)}
  const pays=propre(body.pays,20), ville=propre(body.ville,40), batiment=propre(body.batiment), piece=propre(body.piece), action=String(body.action||"");
- if(!pays||!ville||!batiment||!piece||!["start","retouch","finalize","versions","restart"].includes(action))return reply({error:"Parametres invalides"},400);
+ if(!pays||!ville||!batiment||!piece||!["start","retouch","finalize","versions","restart","upload_source","clear_sources"].includes(action))return reply({error:"Parametres invalides"},400);
  const cle=pays+"|"+ville+"|"+batiment+"|"+piece;
  // Droit de décorer : décidé par le serveur pour l'un des personnages de ce compte.
  const {data:perso}=await db.from("personnages").select("name").eq("user_id",user.id).limit(100);
@@ -32,6 +35,28 @@ Deno.serve(async(req)=>{
  if(!autorise)return reply({error:"Vous ne pouvez pas décorer cette pièce"},403);
  const {data:existing}=await db.from("logements_decors").select("*").eq("cle",cle).maybeSingle();
  if(existing?.retiree_le)return reply({error:"Visuel retire par moderation"},403);
+ if(action==="clear_sources"){
+  const {error}=await db.from("logements_decors_sources").update({utilisee_pour:"abandonnee"}).eq("cle",cle).eq("proprietaire_user_id",user.id).is("utilisee_pour",null);
+  return error?reply({error:"Nettoyage impossible"},500):reply({ok:true});
+ }
+ if(action==="upload_source"){
+  if(body.consent!==true)return reply({error:"Acceptez les conditions des images"},409);
+  const {count}=await db.from("logements_decors_sources").select("id",{count:"exact",head:true}).eq("cle",cle).eq("proprietaire_user_id",user.id).is("utilisee_pour",null);
+  if((count||0)>=5)return reply({error:"Cinq images maximum"},409);
+  const mime=String(body.mime||""),encoded=String(body.base64||"");
+  if(!["image/png","image/jpeg","image/webp"].includes(mime)||encoded.length>7200000)return reply({error:"Format ou taille incorrecte"},400);
+  let raw:Uint8Array;try{raw=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0))}catch{return reply({error:"Image invalide"},400)}
+  if(raw.length>5242880||raw.length<100)return reply({error:"5 Mo maximum"},400);
+  const sig=mime==="image/png"?raw[0]===137&&raw[1]===80:mime==="image/jpeg"?raw[0]===255&&raw[1]===216:String.fromCharCode(...raw.slice(0,4))==="RIFF";
+  if(!sig)return reply({error:"Format invalide"},400);
+  const ext=mime==="image/png"?"png":mime==="image/jpeg"?"jpg":"webp";
+  const path="logement/"+user.id+"/"+propre(pays+"-"+ville+"-"+batiment+"-"+piece,200)+"/"+crypto.randomUUID()+"."+ext;
+  const {error:up}=await db.storage.from("publicites-premium-sources").upload(path,raw,{contentType:mime});
+  if(up)return reply({error:"Stockage impossible"},500);
+  const hash=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",raw))).map(x=>x.toString(16).padStart(2,"0")).join("");
+  const {error:save}=await db.from("logements_decors_sources").insert({cle,proprietaire_user_id:user.id,chemin:path,nom_original:String(body.filename||"image").slice(0,180),type_mime:mime,taille_octets:raw.length,empreinte_sha256:hash});
+  return save?reply({error:"Traçabilité impossible"},500):reply({ok:true});
+ }
  if(action==="restart"){
   if(!existing||(!existing.preview_path&&!existing.image_path))return reply({error:"Aucune decoration existante"},409);
   const {data:reset,error}=await db.from("logements_decors").update({preview_path:null,retouches:0,updated_at:new Date().toISOString()})
@@ -76,6 +101,14 @@ Deno.serve(async(req)=>{
  form.append("output_compression","85");
  form.append("prompt","Edit the provided photograph of a modest apartment room interior. PRESERVE EXACTLY the original architectural geometry, walls, windows, doors, openings, room dimensions and camera angle. Change only the furniture, decoration, textiles, wall colours and lighting. Photorealistic game environment, no people. User wishes (in French): "+prompt);
  form.append("image",new File([bytes],"piece."+(webpIn?"webp":pngIn?"png":"jpg"),{type:webpIn?"image/webp":pngIn?"image/png":"image/jpeg"}));
+ const {data:sources}=action==="start"
+   ?await db.from("logements_decors_sources").select("id,chemin,type_mime").eq("cle",cle).eq("proprietaire_user_id",user.id).is("utilisee_pour",null).order("cree_le",{ascending:true}).limit(5)
+   :{data:[]};
+ for(const source of sources||[]){
+  const {data:file,error}=await db.storage.from("publicites-premium-sources").download(source.chemin);
+  if(error||!file)return reply({error:"Image de référence manquante"},409);
+  form.append("image",new File([await file.arrayBuffer()],"reference."+(source.type_mime==="image/jpeg"?"jpg":source.type_mime==="image/webp"?"webp":"png"),{type:source.type_mime}));
+ }
  const response=await fetch("https://api.openai.com/v1/images/edits",{method:"POST",headers:{Authorization:"Bearer "+key},body:form});
  const result=await response.json().catch(()=>({}));
  if(!response.ok)return reply({error:"OpenAI: "+String(result.error?.message||response.status).slice(0,250)},502);
@@ -93,6 +126,7 @@ Deno.serve(async(req)=>{
    ?await db.from("logements_decors").update(payload).eq("cle",cle).eq("preview_path",existing.preview_path).eq("retouches",existing.retouches).is("retiree_le",null).select("cle").maybeSingle()
    :await db.from("logements_decors").upsert(payload).select("cle").maybeSingle();
  if(save.error||!save.data)return reply({error:"Enregistrement impossible"},500);
+ if(sources?.length)await db.from("logements_decors_sources").update({utilisee_pour:path}).in("id",sources.map((x:any)=>x.id));
  await db.from("visuels_versions").insert({type_visuel:"logement",objet_id:cle,image_path:path,auteur_user_id:user.id,action});
  return reply({ok:true,path,retouches});
 });

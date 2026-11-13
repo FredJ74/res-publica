@@ -107,18 +107,32 @@ Décors : fonction serveur `logement-decoration` (déployée), même atelier que
 ### Choix de Claude, à relire par Fred
 
 1. Le **moral et la santé** du logement suivent la même règle que le +1 PA : le colocataire et le conjoint en
-   profitent aussi (avant, seul le titulaire) ; en premium, seulement en chambre.
+   profitent aussi (avant, seul le titulaire) ; en premium, seulement en chambre. **Validé par Fred (13/11).**
 2. L'option premium peut être activée par le **titulaire ou son conjoint**, pas par le colocataire.
+   **Modifié par Fred (13/11)** : le colocataire peut aussi l'activer, mais seulement avec l'acceptation du
+   titulaire du bail. Procédure (Fred, 13/11) : le colocataire clique « Demander l'option premium »
+   (le bouton et sa confirmation lui disent explicitement que le titulaire du bail doit accepter) ; le titulaire
+   reçoit un courrier « Accepter / Refuser », valable 48 h ; sans réponse, la demande tombe.
 3. Pour désigner un colocataire, le titulaire doit **être dans l'appartement** ; impossible de désigner son
    conjoint ou quelqu'un déjà colocataire ailleurs. En premium, la **chambre 2 doit être vide de matériel**
-   (elle revient au colocataire), pour qu'aucun objet ne soit perdu en silence.
-4. Reprise du bail : **pas de loyer prélevé à la reprise** (le bail continue, prochaine échéance normale).
+   (elle revient au colocataire), pour qu'aucun objet ne soit perdu en silence. **Validé par Fred (13/11).**
+4. Reprise du bail : **pas de loyer prélevé à la reprise** (le bail continue, prochaine échéance normale). **Validé par Fred (13/11).**
 5. Décors : description écrite seulement, **sans images de référence** (l'atelier du commerce en accepte 5).
+   **Modifié par Fred (13/11)** : comme au commerce, le joueur peut fournir jusqu'à **5 images de référence**, en plus
+   de l'image de base de la pièce et de la description ; le surcoût OpenAI sera répercuté dans le prix de l'option
+   premium (session premium).
 6. **Chambres premium : seulement les immeubles dessinés** (Montrouge, Novomirsk V14/V16, Starovka). Pour les
    lots sociaux des terrains de Montrouge et les logements des immeubles des mairies de Sovarka, le +1 PA, la
    colocation, les époux et les emplacements marchent, mais l'option premium affiche « pas encore disponible »
    (leurs pièces sont créées à la volée : chantier à part si Fred le veut).
-7. Une chambre sans serrure fermée est **ouverte à tous**, comme le salon.
+   **Modifié par Fred (13/11)** : l'option premium doit concerner **tous les types de logements**, y compris ceux
+   construits en cours de partie (lots des terrains, immeubles des mairies de Sovarka) : son but est de rapporter
+   de l'argent, et elle reste purement cosmétique (+1 PA avec ou sans premium, pas de P2W). Chantier à coder :
+   chambres créées à la construction, images génériques en attendant.
+7. Une chambre sans serrure fermée est **ouverte à tous**, comme le salon. **Validé par Fred (13/11)**, avec rappel :
+   deux niveaux de serrure se cumulent — une serrure sur l'entrée de l'appartement (clé partagée par les
+   occupants), puis une serrure par chambre, si bien que le second occupant n'entre pas dans la chambre de l'autre.
+   À vérifier par un banc lors du prochain chantier.
 
 ### Écart relevé (à trancher par Fred)
 
@@ -143,3 +157,19 @@ Décors : fonction serveur `logement-decoration` (déployée), même atelier que
   personne).
 - **Décision de Fred (13/11/2026, 0 h 33)** : l'armoire **n'est pas codée maintenant** : elle reste inutilisable tant que
   les **douze villes** de sa liste n'existent pas. Les décisions ci-dessus sont seulement consignées.
+
+## Codé le 13/11/2026 au soir (Claude, branche `claude/relecture-decisions-20261113`)
+
+Migration `20261113193000_relecture_fred_20261113` **appliquée** (registre `relecture_fred_appartements_sovarka_20261113193000`,
+NE PAS RÉAPPLIQUER) ; banc annulé vert `outils/bancs/banc-relecture-fred-20261113.sql` ; test `outils/bancs/test-relecture-fred-20261113.mjs`.
+- **Demande du colocataire** : « Mon logement » → « Demander l'option premium » ; une confirmation dit en toutes lettres que le
+  titulaire du bail doit accepter. Le titulaire reçoit un courrier avec deux boutons « Accepter l'option premium » / « Refuser »
+  (valable 48 h, aussi visibles dans sa fenêtre « Mon logement ») ; il répond d'où qu'il soit. Le colocataire reçoit la réponse
+  par courrier. La demande tombe si son auteur n'est plus colocataire.
+- **Premium pour tous les logements populaires**, y compris ceux construits en cours de partie : le serveur enregistre le nombre
+  de chambres avec l'option, l'écran crée les chambres des logements dynamiques (image de l'appartement en attendant mieux).
+  Limite connue : les lots sociaux des terrains de Républia n'ont pas encore d'ordre « Mon logement » (antérieur à ce chantier).
+- **Images de référence** : jusqu'à 5 images par génération, case de droits obligatoire, conservées en privé pour la traçabilité ;
+  jointes à la génération, pas aux retouches (coût OpenAI). Fonction `logement-decoration` redéployée (version 2).
+- **Deux serrures** (entrée + chambre) : vérifiées par le banc (le colocataire n'entre pas dans la chambre du titulaire, ni l'inverse).
+

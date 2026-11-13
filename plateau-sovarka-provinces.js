@@ -40,6 +40,7 @@ async function provActe(rpc, params, geste) {
     if (!requete) { requete = crypto.randomUUID(); sessionStorage.setItem(cle, requete); }
     const v = await sbRpcVerdict(rpc, Object.assign({ p_requete: requete }, params)).catch(() => null);
     if (v && !v.transport) sessionStorage.removeItem(cle);
+    if (v && typeof v === 'object') v._requete = requete;   // trinquer : la réaction par l'IA relit ce geste
     if (v && v.ok === true) {
       if (Array.isArray(v.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
       if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
@@ -162,12 +163,31 @@ async function trinquerHabitant() {
   const v = await provActe('sovarka_maison_agir', { p_action: 'trinquer' }, 'trinquer');
   if (!v) return;
   if (v.ok !== true) { if (typeof signalerRefusCout === 'function' && !PROV_MOTIFS[v.raison]) signalerRefusCout(v); else showToast(provT('tToast'), provMotif(v), false); return; }
-  const fenetre = () => provModal(provT('titleToast'), '<p>« ' + provEchapper(provServeur(PROV_REACTIONS, v.reaction)) + ' »</p>' +
+  // Réaction écrite par DeepSeek (Fred, 13/11/2026) : la phrase fixe s'affiche d'abord, puis la réplique de
+  // l'habitant la remplace si elle arrive. Un seul appel par bouteille (le serveur le garantit).
+  let reactionIA = null;
+  const fenetre = () => provModal(provT('titleToast'), '<p>« ' + provEchapper(reactionIA || provServeur(PROV_REACTIONS, v.reaction)) + ' »</p>' +
     vehSection(provT('learn'), '<p>« ' + provEchapper(provRagot(v.secret_recu)) + ' »</p>') +
     vehSection(provT('slip'), '<p class="cpj-note">' + provT('slipNote', { secret: provEchapper(provRagot(v.secret_livre)) }) + '</p>') +
     vehBouton(provT('another'), 'trinquerHabitant()', false), fenetre);
   fenetre();
+  provReactionIA(v._requete).then(t => { if (t) { reactionIA = t; if (window.sovFenetreCourante === fenetre && document.getElementById('modal-postes')?.classList.contains('open')) fenetre(); } });
   if (typeof addJournalEntry === 'function') addJournalEntry('Trinqué avec ' + v.habitant + ' : « ' + v.secret_recu + ' »', 'event-neutral');
+}
+
+async function provReactionIA(requete) {
+  if (!requete) return null;
+  try {
+    if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession().catch(() => null);
+    const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+    if (!jeton) return null;
+    const r = await fetch('/api/chat?mode=trinquer', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + jeton },
+      body: JSON.stringify({ requete, lang: typeof langueDuJeu === 'function' ? langueDuJeu() : 'fr' })
+    });
+    const d = r.ok ? await r.json().catch(() => null) : null;
+    return d && typeof d.reaction === 'string' && d.reaction.trim() ? d.reaction.trim() : null;
+  } catch (e) { return null; }
 }
 
 // ---------- FERMES (Fred, 10/11/2026 à midi) ----------

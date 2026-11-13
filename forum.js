@@ -2915,7 +2915,11 @@ const ACTIONS_MAIL = {
   // s'en servir sans le recopier. Le libelle est volontairement generique -- il
   // vient de la table, jamais de la donnee, et ne peut donc pas nommer la
   // personne. Le nom, lui, est l'argument.
-  ecrire_a:         { fn:'composerMailPour', n:1, label:'✉ Écrire à cette personne' }
+  ecrire_a:         { fn:'composerMailPour', n:1, label:'✉ Écrire à cette personne' },
+  // OPTION PREMIUM DEMANDÉE PAR LE COLOCATAIRE (13/11/2026) : marqueurs posés par le SERVEUR
+  // (logement_premium_demander) ; le titulaire répond d'où qu'il soit. L'argument est le bail.
+  premium_oui:      { fn:'logementPremiumDemandeRepondre', n:1, apres:['true'],  label:'✓ Accepter l\'option premium' },
+  premium_non:      { fn:'logementPremiumDemandeRepondre', n:1, apres:['false'], label:'✗ Refuser', refus:true }
 };
 
 // Pose un marqueur dans un corps de mail. Les arguments sont nettoyes des separateurs pour qu'un
