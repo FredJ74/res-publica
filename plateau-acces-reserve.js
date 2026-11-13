@@ -275,7 +275,11 @@ function accesT(cle, vars = {}) {
 }
 const accesEch = s => (typeof sovEchapper === 'function') ? sovEchapper(s) : String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const accesJs = s => JSON.stringify(String(s)).replace(/"/g, '&quot;');
-const accesModal = (titre, html, rouvrir) => (typeof sovModal === 'function') ? sovModal(titre, html, rouvrir) : vehModal(titre, html);
+// Marqueur de présentation : les autres fenêtres de #modal-postes gardent leur habillage.
+const accesModal = (titre, html, rouvrir) => {
+  const contenu = '<div class="acces-reserve-dialogue">' + html + '</div>';
+  return (typeof sovModal === 'function') ? sovModal(titre, contenu, rouvrir) : vehModal(titre, contenu);
+};
 const accesFermer = () => document.getElementById('modal-postes')?.classList.remove('open');
 const accesTitre = b => accesT(b === ACCES_RESIDENCE ? 'tRes' : 'tPav');
 const accesMotif = v => { const k = 'm_' + (v?.raison || ''); return ACCES_TEXTES.fr[k] ? accesT(k) : accesT('indispo'); };
