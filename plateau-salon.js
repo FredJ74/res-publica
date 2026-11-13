@@ -13,21 +13,33 @@ const SALON_MOTIFS = {
   fonds_insuffisants: 'Vous n’avez pas assez d’argent.'
 };
 let salonActeEnCours = false;
+// Traduction d'affichage (13/11/2026, i18n/sovarka-infobulles-resources.js) : le français reste
+// celui ci-dessus ; montants, devise et verdicts du serveur sont recopiés tels quels.
+const salT = (cle, francais, vars) => (typeof window !== 'undefined' && window.RPSovarkaInfobullesI18n)
+  ? window.RPSovarkaInfobullesI18n.salon(cle, francais, vars)
+  : String(francais).replace(/\{([a-z]+)\}/g, (m, k) => (vars && k in vars) ? String(vars[k]) : m);
+const salMotif = cle => salT(cle, SALON_MOTIFS[cle]);
+let SALON_LECTURE = null; // dernier verdict de salon_lire, pour repeindre sans requête
 
 async function ouvrirSalonCoupe() {
   const l = await sbRpcVerdict('salon_lire', {}).catch(() => null);
-  if (!l || l.ok !== true) { showToast('Salon de coiffure', 'Lecture impossible auprès du serveur.', false); return; }
-  if (!l.salon) { showToast('Salon de coiffure', SALON_MOTIFS.pas_sur_place, false); return; }
+  if (!l || l.ok !== true) { showToast(salT('titre', 'Salon de coiffure'), salT('lecture', 'Lecture impossible auprès du serveur.'), false); return; }
+  if (!l.salon) { showToast(salT('titre', 'Salon de coiffure'), salMotif('pas_sur_place'), false); return; }
+  SALON_LECTURE = l;
+  afficherSalonCoupe(l);
+}
+
+function afficherSalonCoupe(l) {
   const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
   const attente = l.prochaineCoupeJour != null && l.jour < l.prochaineCoupeJour;
-  let html = '<p class="cpj-note">Une coupe rapporte 5 points de popularité et +1 en charisme ' +
-    'jusqu’à minuit. Il faut attendre 3 jours entre deux coupes.</p>';
-  if (l.salon.prixCoupe == null) html += '<p>' + SALON_MOTIFS.prix_non_fixe + '</p>';
-  else if (attente) html += '<p>' + SALON_MOTIFS.cheveux_pas_repousses + ' Prochaine coupe possible dans ' +
-    (l.prochaineCoupeJour - l.jour) + ' jour(s).</p>';
-  else html += '<button class="cpj-touche cpj-primaire" onclick="salonCouper(\'' + l.salon.id + '\')">Se faire couper les cheveux — ' +
-    Number(l.salon.prixCoupe).toLocaleString('fr-FR') + ' ' + cur + '</button>';
-  vehModal('Salon de coiffure', html);
+  let html = '<p class="cpj-note" data-salon-i18n="coupe">' + salT('intro', 'Une coupe rapporte 5 points de popularité et +1 en charisme ' +
+    'jusqu’à minuit. Il faut attendre 3 jours entre deux coupes.') + '</p>';
+  if (l.salon.prixCoupe == null) html += '<p>' + salMotif('prix_non_fixe') + '</p>';
+  else if (attente) html += '<p>' + salMotif('cheveux_pas_repousses') + salT('prochaine', ' Prochaine coupe possible dans {n} jour(s).',
+    { n: l.prochaineCoupeJour - l.jour }) + '</p>';
+  else html += '<button class="cpj-touche cpj-primaire" onclick="salonCouper(\'' + l.salon.id + '\')">' +
+    salT('couper', 'Se faire couper les cheveux — {prix} {devise}', { prix: Number(l.salon.prixCoupe).toLocaleString('fr-FR'), devise: cur }) + '</button>';
+  vehModal(salT('titre', 'Salon de coiffure'), html);
 }
 
 async function salonCouper(entreprise) {
@@ -40,7 +52,7 @@ async function salonCouper(entreprise) {
     const v = await sbRpcVerdict('salon_coupe', { p_requete: requete, p_entreprise: entreprise }).catch(() => null);
     if (v && !v.transport) sessionStorage.removeItem(cle);
     if (!v || v.ok !== true) {
-      showToast('Coupe refusée', SALON_MOTIFS[v?.raison] || 'Le serveur n’a pas répondu.', false);
+      showToast(salT('refusee', 'Coupe refusée'), (SALON_MOTIFS[v?.raison] ? salMotif(v.raison) : null) || salT('muet', 'Le serveur n’a pas répondu.'), false);
       return;
     }
     if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
@@ -48,6 +60,15 @@ async function salonCouper(entreprise) {
     if (Array.isArray(v.effets_actifs)) state.effetsActifs = v.effets_actifs;
     if (typeof updateHeader === 'function') updateHeader();
     document.getElementById('modal-postes')?.classList.remove('open');
-    showToast('Fraîchement coiffé', '+5 popularité' + (v.bonusCha ? ', +1 charisme jusqu’à minuit.' : '.'), true);
+    showToast(salT('coiffe', 'Fraîchement coiffé'), salT('gainPop', '+5 popularité') + (v.bonusCha ? salT('gainCha', ', +1 charisme jusqu’à minuit.') : '.'), true);
   } finally { salonActeEnCours = false; }
 }
+
+// Changement de langue : la fenêtre ouverte est repeinte depuis le dernier verdict, sans requête.
+if (typeof window !== 'undefined') (window.RP_I18N_CHANGE_CALLBACKS = window.RP_I18N_CHANGE_CALLBACKS || []).push(function () {
+  const modal = document.getElementById('modal-postes');
+  const body = document.getElementById('postes-body');
+  if (!modal?.classList?.contains('open') || !body || !SALON_LECTURE?.salon) return;
+  if (!body.querySelector('[data-salon-i18n="coupe"]')) return;
+  afficherSalonCoupe(SALON_LECTURE);
+});
