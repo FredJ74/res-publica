@@ -1,0 +1,86 @@
+{
+  "commit": "8f92528e17b614757d7ff3d552bca974d31c517e",
+  "deployment": "dpl_6Z6yJMAqAxvb3rAjozuS212idNCf",
+  "files": [
+    {
+      "file": "plateau.html",
+      "sha256": "855d68adcf48f30b66aef9b8e8ab303939e748466c056f456ba632beef869a3e",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "e1db97c535d9566a304b88abc054b074a93b20258c23931c578d13747171c588",
+      "identical": true
+    },
+    {
+      "file": "plateau-politique.js",
+      "sha256": "9d50f5b2df4993d2f8d3a8c260403cb8af76eda6e8a9b80b7aed12c0c716ae58",
+      "identical": true
+    },
+    {
+      "file": "plateau-ordres-info.js",
+      "sha256": "f88288345685a27b901effb94bc6a2ac8535bb6c4bdbef3965ad3d78787a3bd1",
+      "identical": true
+    },
+    {
+      "file": "data.js",
+      "sha256": "4c7ad84d533cb5b2ff5342b65d5a67d425694c11af6cff32890102d6915e3f34",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-resources.js",
+      "sha256": "5ab8d40c41eb8e1e60f30416019e7c2b3fb6ce8ab3725026cd9d1ccde96f55f0",
+      "identical": true
+    },
+    {
+      "file": "i18n/orders-resources.js",
+      "sha256": "94afc3d7da42cfbf4026ea4ff256ce2aa2ebac33e489af59fbd50937c878065d",
+      "identical": true
+    },
+    {
+      "file": "i18n/order-variants-resources.js",
+      "sha256": "eadb9e5e75e98adad1408410a1530b0e315a8b9a20051fd130c3e4236bc4d1c2",
+      "identical": true
+    },
+    {
+      "file": "i18n/ordres.js",
+      "sha256": "3ebb1d44cf0d6435fb82ce39ddd665675141ee40b7051358cdcba706115f74d9",
+      "identical": true
+    },
+    {
+      "file": "i18n/infobulles-communes-resources.js",
+      "sha256": "7059457f5294c6f0af72390506fbead42bfaacc00e743ebd9681b177cc745e42",
+      "identical": true
+    },
+    {
+      "file": "i18n/republia-infobulles-resources.js",
+      "sha256": "6478e7381ce2a3b6454c1cf6fba1e9f659853b9934fd7b67b5cb03767afee1cc",
+      "identical": true
+    },
+    {
+      "file": "i18n/order-catalogues-config.js",
+      "sha256": "7990956dd53c2682ef52179bff3612628b73a8eda621546943c0579a3c4aab2c",
+      "identical": true
+    },
+    {
+      "file": "i18n/sovarka-infobulles-resources.js",
+      "sha256": "7504c57d09f2afd63709e0d3dbe411ed862cb49aec6788a9cf491d904964b6ab",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-init.js",
+      "sha256": "bc01b4d14b0d2dc5b20a4e88a40b222c32b3534af6f0d67ae081653560aa0bc1",
+      "identical": true
+    }
+  ]
+}

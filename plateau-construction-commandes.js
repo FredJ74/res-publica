@@ -16,10 +16,10 @@ async function constructionExecuterCommande(action,parametres={}){
     const stockee=sessionStorage.getItem(cle);
     intention=stockee?JSON.parse(stockee):{requete:'ch-'+crypto.randomUUID(),parametres};
     if(JSON.stringify(intention.parametres)!==JSON.stringify(parametres)){
-      showToast('Commande en attente','Reprenez d’abord la commande précédente avec les mêmes paramètres pour vérifier son résultat.',false);return null;
+      showToast('Commande en attente','Reprenez d’abord la commande précédente avec les mêmes paramètres pour vérifier son résultat.',false);window.RPI18nPlateau?.markToast('constructionFeedback.waiting','Reprenez d’abord la commande précédente avec les mêmes paramètres pour vérifier son résultat.',undefined,'Commande en attente');return null;
     }
     sessionStorage.setItem(cle,JSON.stringify(intention));
-  }catch(_){showToast('Commande non lancée','La reprise sûre de cette opération ne peut pas être enregistrée.',false);return null;}
+  }catch(_){showToast('Commande non lancée','La reprise sûre de cette opération ne peut pas être enregistrée.',false);window.RPI18nPlateau?.markToast('constructionFeedback.notStarted','La reprise sûre de cette opération ne peut pas être enregistrée.',undefined,'Commande non lancée');return null;}
   constructionCommandeEnCours=true;
   try{
     const r=await sbRpcVerdict('chantier_commande',{p_requete:intention.requete,p_terrain_id:id,p_action:action,p_parametres:intention.parametres}).catch(()=>null);
@@ -32,9 +32,9 @@ async function constructionExecuterCommande(action,parametres={}){
     // Le recu peut etre ancien : relire le terrain et les finances, jamais adopter son snapshot.
     const frais=await chargerTerrainState(id,true);
     if(!contexteNavigationRueValide(contexte))return null;
-    if(!frais){showToast('Commande acquise','Le serveur a confirmé l’opération, mais son état actualisé reste à relire. L’intention de reprise est conservée.',true);return null;}
+    if(!frais){showToast('Commande acquise','Le serveur a confirmé l’opération, mais son état actualisé reste à relire. L’intention de reprise est conservée.',true);window.RPI18nPlateau?.markToast('constructionFeedback.statePending','Le serveur a confirmé l’opération, mais son état actualisé reste à relire. L’intention de reprise est conservée.',undefined,'Commande acquise');return null;}
     const finance=typeof rafraichirRuntimeHelvetia==='function'?await rafraichirRuntimeHelvetia({exigerComptes:true}):null;
-    if(!finance){showToast('Commande acquise','La relecture financière reste à confirmer. L’intention de reprise est conservée.',true);return null;}
+    if(!finance){showToast('Commande acquise','La relecture financière reste à confirmer. L’intention de reprise est conservée.',true);window.RPI18nPlateau?.markToast('constructionFeedback.financePending','La relecture financière reste à confirmer. L’intention de reprise est conservée.',undefined,'Commande acquise');return null;}
     if(!contexteNavigationRueValide(contexte))return null;
     if(typeof finance.pa==='number'){state.pa=finance.pa;state.char.pa=finance.pa;}
     sessionStorage.removeItem(cle);updateUI();return r;
@@ -43,7 +43,7 @@ async function constructionExecuterCommande(action,parametres={}){
 async function receptionnerChantier(){
   const r=await constructionExecuterCommande('receptionner');
   if(!r)return;
-  showToast('Bâtiment réceptionné','Les locaux sont ouverts. Les reliquats sont conservés dans la caisse et le stock du bâtiment.',true,true);
+  showToast('Bâtiment réceptionné','Les locaux sont ouverts. Les reliquats sont conservés dans la caisse et le stock du bâtiment.',true,true);window.RPI18nPlateau?.markToast('constructionFeedback.received','Les locaux sont ouverts. Les reliquats sont conservés dans la caisse et le stock du bâtiment.',undefined,'Bâtiment réceptionné');
   if(typeof rafraichirPiecesDynamiques==='function')rafraichirPiecesDynamiques(state.currentBuilding);
   if(typeof renderRoomActions==='function')renderRoomActions(BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom],state.currentBuilding,state.currentRoom);
 }
@@ -123,28 +123,28 @@ async function confirmerTauxChantier(){
   if(constructionTauxEnCours)return;
   const contexte=contexteNavigationRue(),id=state.currentBuilding;
   const brut=(document.getElementById('chantier-taux')?.value||'').trim();
-  if(!/^[1-9][0-9]{0,5}$/.test(brut)||Number(brut)<CHANTIER_SALAIRE_MINIMUM){showToast('Taux refusé','Indiquez un nombre entier de francs, au moins le salaire minimum de '+CHANTIER_SALAIRE_MINIMUM+' FR de l’heure.',false);return;}
+  if(!/^[1-9][0-9]{0,5}$/.test(brut)||Number(brut)<CHANTIER_SALAIRE_MINIMUM){showToast('Taux refusé','Indiquez un nombre entier de francs, au moins le salaire minimum de '+CHANTIER_SALAIRE_MINIMUM+' FR de l’heure.',false);window.RPI18nPlateau?.markToast('constructionFeedback.wageInvalid','Indiquez un nombre entier de francs, au moins le salaire minimum de '+CHANTIER_SALAIRE_MINIMUM+' FR de l’heure.',{minimum:CHANTIER_SALAIRE_MINIMUM},'Taux refusé');return;}
   constructionTauxEnCours=true;
   try{
     const v=await constructionExecuterCommande('taux',{taux:brut});
     if(!contexteNavigationRueValide(contexte))return;
     if(!v?.ok)return;
     await chargerTerrainState(id);
-    if(contexteNavigationRueValide(contexte)){document.getElementById('modal-postes')?.classList.remove('open');showToast('Taux enregistré','Les ouvriers de votre chantier seront payés '+brut+' FR de l’heure.',true);}
+    if(contexteNavigationRueValide(contexte)){document.getElementById('modal-postes')?.classList.remove('open');showToast('Taux enregistré','Les ouvriers de votre chantier seront payés '+brut+' FR de l’heure.',true);window.RPI18nPlateau?.markToast('constructionFeedback.wageSaved','Les ouvriers de votre chantier seront payés '+brut+' FR de l’heure.',{amount:brut},'Taux enregistré');}
   }finally{constructionTauxEnCours=false;}
 }
 async function confirmerPrixChantier(){
   if(constructionPrixEnCours)return;
   const contexte=contexteNavigationRue(),id=state.currentBuilding,prix={};
   try{for(const m of ['bois','minerai','metal']){const v=document.getElementById('chantier-prix-'+m)?.value?.trim();if(v)prix[m]=constructionFrancsEntiers(v);}}
-  catch(_){showToast('Prix invalide','Utilisez un nombre entier de francs, positif ou nul.',false);return;}
+  catch(_){showToast('Prix invalide','Utilisez un nombre entier de francs, positif ou nul.',false);window.RPI18nPlateau?.markToast('constructionFeedback.priceInvalid','Utilisez un nombre entier de francs, positif ou nul.',undefined,'Prix invalide');return;}
   if(!Object.keys(prix).length)return;
   constructionPrixEnCours=true;
   try{
     const v=await constructionExecuterCommande('prix',{prix});
     if(!contexteNavigationRueValide(contexte))return;
-    if(!v?.ok){showToast('Prix non confirmés','Les prix n’ont pas pu être confirmés par le serveur. Relisez-les avant de réessayer.',false);return;}
+    if(!v?.ok){showToast('Prix non confirmés','Les prix n’ont pas pu être confirmés par le serveur. Relisez-les avant de réessayer.',false);window.RPI18nPlateau?.markToast('constructionFeedback.priceUnconfirmed','Les prix n’ont pas pu être confirmés par le serveur. Relisez-les avant de réessayer.',undefined,'Prix non confirmés');return;}
     await chargerTerrainState(id);if(contexteNavigationRueValide(contexte))ouvrirApprovisionnementChantier();
-  }catch(_){if(contexteNavigationRueValide(contexte))showToast('Prix non confirmés','Relisez les prix sur le serveur avant de réessayer.',false);}
+  }catch(_){if(contexteNavigationRueValide(contexte)){showToast('Prix non confirmés','Relisez les prix sur le serveur avant de réessayer.',false);window.RPI18nPlateau?.markToast('constructionFeedback.priceReload','Relisez les prix sur le serveur avant de réessayer.',undefined,'Prix non confirmés');}}
   finally{constructionPrixEnCours=false;}
 }

@@ -1,0 +1,47 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{chromium}=require('playwright');
+const {parse,walk}=require('../audits/audit-i18n-global.cjs');
+const repository=path.resolve(__dirname,'../..'),root=process.env.CONSTRUCTION_ASSET_DIR||repository,read=f=>fs.readFileSync(path.join(root,f),'utf8'),langs=['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de'];
+function fn(s,name){const i=s.indexOf('function '+name+'(');assert.ok(i>=0,name);return s.slice(i,s.indexOf('\n}',i)+2);}
+function examples(){const source=read('plateau-construction-commandes.js'),out=[],expr=n=>n?.expression?.type==='ChainExpression'?n.expression.expression:n?.expression;
+ walk(parse(source),n=>{if(n.type!=='BlockStatement')return;for(let i=1;i<n.body.length;i++){const call=expr(n.body[i-1]),marker=expr(n.body[i]);if(call?.callee?.name!=='showToast'||marker?.callee?.property?.name!=='markToast')continue;out.push('{key:'+JSON.stringify(marker.arguments[0].value)+',fr:('+source.slice(call.arguments[1].start,call.arguments[1].end)+'),values:('+source.slice(marker.arguments[2].start,marker.arguments[2].end)+'),title:'+JSON.stringify(call.arguments[0].value)+',success:'+JSON.stringify(call.arguments[2]?.value)+',critical:'+JSON.stringify(call.arguments[3]?.value)+'}');}});assert.equal(out.length,10);return 'window.examples=['+out.join(',')+'];';}
+test('chantier : 270 rendus, dix chemins réels, neuf langues, 320/390/1280, RTL et reprise conservée',async()=>{
+ const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
+ try{for(const width of [320,390,1280]){
+  const page=await browser.newPage({viewport:{width,height:780}}),errors=[];page.on('pageerror',e=>errors.push(String(e)));
+  const html='<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body class="plateau-body"><input id="draft" value="Texte personnel conservé"><input id="chantier-taux" value="275"><input id="chantier-prix-bois" value=""><input id="chantier-prix-minerai" value=""><input id="chantier-prix-metal" value=""><div id="modal-postes" class="open"></div><div id="result-toast"><div id="toast-result" class="toast-result"></div><div id="toast-sub" class="toast-sub"></div></div></body></html>';
+  await page.route('**/*',r=>r.abort());await page.route('https://fixture.invalid/',r=>r.fulfill({contentType:'text/html',body:html}));await page.goto('https://fixture.invalid/');await page.addStyleTag({content:read('style.css')});await page.addScriptTag({content:read('i18n/i18next.min.js')});
+  await page.evaluate(()=>{
+   window.RP_I18N_GAME_ENABLED=true;window.RPPlateauI18n={language:()=>i18next.language||'fr'};window.calls=[];window.incidents=[];window.mode='normal';window.brut='275';window.CHANTIER_SALAIRE_MINIMUM=40;window.failStorage=false;
+   window.state={char:{name:'Fixture',pa:20},country:'republic',currentCity:'capitale',currentBuilding:'chantier-fixture',currentRoom:'hall',pa:20,arg:500,inventory:[{id:'fixture',quantite:2}],progression:{stage:3}};
+   window.BUILDINGS={'chantier-fixture':{rooms:{hall:{}}}};window.noterIncidentSession=(...a)=>incidents.push(a);window.contexteNavigationRue=()=>({uid:'fixture',nom:'Fixture'});window.contexteNavigationRueValide=()=>true;
+   window.sbRpcVerdict=async(...args)=>{calls.push(['rpc',...args]);if(mode==='priceUnconfirmed')return null;return {ok:true};};
+   window.chargerTerrainState=async(...a)=>{calls.push(['terrain',...a]);if(mode==='statePending')return null;if(mode==='priceReload')throw Error('Relire');return {};};
+   window.rafraichirRuntimeHelvetia=async(...a)=>{calls.push(['finance',...a]);return mode==='financePending'?null:{pa:20};};window.updateUI=()=>calls.push('update');window.rafraichirPiecesDynamiques=()=>calls.push('pieces');window.renderRoomActions=()=>calls.push('actions');
+   window.constructionFrancsEntiers=v=>{calls.push(['parse',v]);if(!/^\d+$/.test(v))throw Error('Prix');return v;};window.fetch=()=>{calls.push('network');throw Error('Réseau inattendu');};
+   const set=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(failStorage)throw Error('Quota');return set.call(this,k,v);};
+   window.snapshot=()=>JSON.stringify({state,calls,incidents,storage:Object.keys(sessionStorage).sort().map(k=>[k,sessionStorage.getItem(k)]),locks:[constructionCommandeEnCours,constructionPrixEnCours,constructionTauxEnCours,constructionRepriseEnCours],timer:window._toastTimer,fields:[...document.querySelectorAll('input')].map(e=>[e.id,e.value]),focus:document.activeElement.id,start:document.getElementById('draft').selectionStart,end:document.getElementById('draft').selectionEnd});
+  });
+  for(const f of ['i18n/resources.js','i18n/plateau-resources.js','i18n/toast-resources.js','i18n/construction-feedback-resources.js','i18n/plateau-init.js'])await page.addScriptTag({content:read(f)});
+  await page.addScriptTag({content:fn(read('plateau-core.js'),'showToast')+'\n'+read('plateau-construction-commandes.js')+'\n'+examples()});
+  await page.evaluate(()=>{document.getElementById('draft').focus();document.getElementById('draft').setSelectionRange(3,8);});
+  for(let i=0;i<10;i++){
+   await page.evaluate(async i=>{await i18next.changeLanguage('fr');const e=examples[i];showToast(e.title,e.fr,e.success,e.critical);RPI18nPlateau.markToast(e.key,e.fr,e.values,e.title);window.before=snapshot();},i);
+   for(const lang of langs){const got=await page.evaluate(async({lang,i})=>{await i18next.changeLanguage(lang);const e=examples[i];return {body:document.getElementById('toast-sub').textContent,title:document.getElementById('toast-result').textContent,expected:i18next.t(e.key,{values:e.values}),expectedTitle:RPToastI18n.label(e.title),same:snapshot()===before,overflow:document.documentElement.scrollWidth>innerWidth,dir:document.querySelector('#toast-sub span')?.dir};},{lang,i});assert.equal(got.body,got.expected);assert.equal(got.title,got.expectedTitle);assert.equal(got.same,true);assert.equal(got.overflow,false);assert.equal(got.dir,lang==='ar'?'rtl':'');}
+  }
+  const guards=['waiting','notStarted','statePending','financePending','received','wageInvalid','wageSaved','priceInvalid','priceUnconfirmed','priceReload'];
+  for(const kind of guards){
+   await page.evaluate(async kind=>{
+    await i18next.changeLanguage('fr');mode=kind;failStorage=false;sessionStorage.clear();calls=[];incidents=[];constructionCommandeEnCours=false;constructionPrixEnCours=false;constructionTauxEnCours=false;
+    document.getElementById('chantier-taux').value=kind==='wageInvalid'?'abc':'275';for(const m of ['bois','minerai','metal'])document.getElementById('chantier-prix-'+m).value='';
+    if(kind==='waiting')sessionStorage.setItem('chantier-commande:'+JSON.stringify(['fixture','Fixture','republic','capitale','chantier-fixture','test']),JSON.stringify({requete:'existante',parametres:{n:1}}));
+    if(kind==='notStarted')failStorage=true;
+    if(kind==='received')await receptionnerChantier();else if(kind.startsWith('wage'))await confirmerTauxChantier();else if(kind.startsWith('price')){document.getElementById('chantier-prix-bois').value=kind==='priceInvalid'?'abc':'25';await confirmerPrixChantier();}else await constructionExecuterCommande('test',{n:2});
+    failStorage=false;window.before=snapshot();window.shown=document.getElementById('toast-sub').textContent;
+   },kind);
+   for(const lang of langs){const got=await page.evaluate(async({lang,kind})=>{await i18next.changeLanguage(lang);const values=kind==='wageInvalid'?{minimum:40}:kind==='wageSaved'?{amount:'275'}:undefined;return {same:snapshot()===before,msg:document.getElementById('toast-sub').textContent,expected:i18next.t('constructionFeedback.'+kind,{values}),pa:state.pa,overflow:document.documentElement.scrollWidth>innerWidth};},{lang,kind});assert.equal(got.same,true,kind+'/'+lang);assert.equal(got.msg,got.expected,kind+'/'+lang);assert.equal(got.pa,20);assert.equal(got.overflow,false);}
+  }
+  await page.evaluate(async()=>{delete i18next.getResourceBundle('de','translation').constructionFeedback.priceInvalid;await i18next.changeLanguage('fr');showToast('Prix invalide','Utilisez un nombre entier de francs, positif ou nul.',false);RPI18nPlateau.markToast('constructionFeedback.priceInvalid','Utilisez un nombre entier de francs, positif ou nul.',undefined,'Prix invalide');await i18next.changeLanguage('de');});assert.equal(await page.locator('#toast-sub').textContent(),'Utilisez un nombre entier de francs, positif ou nul.');
+  await page.evaluate(()=>showToast('Titre libre','Message personnel non marqué',false));await page.evaluate(()=>i18next.changeLanguage('ar'));assert.equal(await page.locator('#toast-sub').textContent(),'Message personnel non marqué');assert.equal(await page.locator('#toast-result').textContent(),'Titre libre');assert.deepEqual(errors,[]);await page.close();
+ }}finally{await browser.close();}
+});
