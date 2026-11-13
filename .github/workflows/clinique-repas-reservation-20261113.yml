@@ -8,7 +8,7 @@ on:
       - migrations/20261113012000_clinique_nuitee_repas.sql
       - outils/bancs/banc-clinique-repas-nuitee.cjs
 permissions:
-  contents: read
+  contents: write
 jobs:
   repas:
     runs-on: ubuntu-latest
@@ -20,7 +20,22 @@ jobs:
           node-version: '22'
       - name: Syntaxe et tests de non-régression
         run: |
+          mkdir -p outils/audits
+          for test_file in outils/bancs/banc-clinique-repas-nuitee.cjs outils/bancs/banc-clinique-nuitee-client.cjs outils/bancs/banc-hospitalisation-client.cjs; do
+            node --test "$test_file" > /tmp/clinique-resultat.log 2>&1 || {
+              cp /tmp/clinique-resultat.log outils/audits/diagnostic-repas-clinique.log
+              printf 'Banc en erreur: %s\n' "$test_file" >> outils/audits/diagnostic-repas-clinique.log
+              cat outils/audits/diagnostic-repas-clinique.log
+              exit 1
+            }
+          done
           node --check plateau-personnage.js
-          node --test outils/bancs/banc-clinique-repas-nuitee.cjs
-          node --test outils/bancs/banc-clinique-nuitee-client.cjs
-          node --test outils/bancs/banc-hospitalisation-client.cjs
+      - name: Publier le diagnostic en cas d'échec
+        if: failure()
+        run: |
+          git config user.name "ChatGPT (GitHub Actions)"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add outils/audits/diagnostic-repas-clinique.log
+          git commit -m "Diagnostic CI de l'accès au repas de la clinique" || true
+          git push origin HEAD:chatgpt/clinique-repas-reservation-20261113
+
