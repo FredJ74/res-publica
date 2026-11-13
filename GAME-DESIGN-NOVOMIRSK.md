@@ -972,3 +972,4 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 - Modèle retenu par Fred : **NAZ-66 « Bourlak »** (NAZ = Usine automobile de Novomirsk ; le *bourlak* est le haleur de la Volga). Image générée par Fred (camion de transport de troupes soviétique 6×6).
 - Restent à décider : destinations, capacité (25 places en Républia).
 - Destinations et fonctionnement (Fred, 23 h 31) : le NAZ-66 circule entre **les trois villes de Sovarka** (départ de la caserne de Novomirsk ; Starovka devant le Poste de Vigilance Glaciale, Krasnov devant la station radar) ; **fonctionnement rigoureusement identique à celui de la Républia** (capacité, priorité militaire, coûts, droit de commander). Image extérieure fournie par Fred (WebP) ; intérieur de la benne à fournir (fond de repli en attendant).
+- Destination supplémentaire (Fred, 23 h 32) : **le goulag**, à faire à la toute fin de Sovarka (lieu non encore créé).
