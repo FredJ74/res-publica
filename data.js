@@ -2350,7 +2350,7 @@ const WORLD = {
               orders: [{
                 fn: 'voler_archives_ecoute', label: 'Voler un rapport dans les archives',
                 pa: 2, cost: 0, type: 'illegal', icon: 'ti-file-search', successRate: 45,
-                desc: 'Dérober au hasard un rapport d’écoute de Novomirsk parmi ceux des 30 derniers jours. En cas d’échec : arrestation. En cas de réussite : une trace judiciaire subsiste.'
+                desc: 'Dérober un rapport d’écoute au hasard parmi ceux des 30 derniers jours. Acte illégal : en cas d’échec, bagarre avec l’opérateur puis prison ; en cas de réussite, vous laissez une trace.'
               }]
             },
             salle_interrogatoire_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_interrogatoire.webp' }
