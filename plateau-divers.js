@@ -556,10 +556,12 @@ function ouvrirDonKolkhoze() {
     '<input id="kolkhoze-montant" class="cpj-champ" type="number" min="1" max="100000000" step="1" value="200" style="width:100%;font-size:1rem;margin-bottom:1rem">' +
     '<div style="display:flex;gap:.6rem;flex-wrap:wrap">' +
     '<button id="kolkhoze-valider" class="cpj-touche cpj-primaire" onclick="confirmerDonKolkhoze()">Donner</button>' +
-    '<button class="cpj-touche" onclick="document.getElementById(\\'modal-postes\\').classList.remove(\\'open\\')">Annuler</button>' +
+        '<button class="cpj-touche" onclick="fermerDonKolkhoze()">Annuler</button>' +
     '</div></div>';
   modal.classList.add('open');
 }
+
+function fermerDonKolkhoze() { document.getElementById('modal-postes')?.classList.remove('open'); }
 
 async function confirmerDonKolkhoze() {
   if (donKolkhozeEnCours) return;
