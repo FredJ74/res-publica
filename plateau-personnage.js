@@ -3228,8 +3228,11 @@ async function doServiceEtage(pa) {
   addJournalEntry('Service d\'étage en chambre : +10 Santé, +1 Moral, +' + (v.bonus_pa || 0) + ' PA au prochain Dormir.', 'event-good');
 }
 
-async function doDormirChambre() {
+async function doDormirChambre(chezHabitant) {
   // Le serveur possede les droits et valide la chambre au moment du repos.
+  // chezHabitant (maisons de Sovarka, 14/11/2026) : la nuit gratuite a ete inscrite par le service rendu.
+  const habitant = chezHabitant && chezHabitant.habitant;
+  const tp = (k, v) => (typeof texteSovProvinces === 'function' ? texteSovProvinces(k, v) : k);
   const salle = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   if (!salle?.orders?.some(o => o.fn === 'dormir_chambre')) {
     showToast('Chambre non réservée', 'Il faut être dans la chambre de l’hôtel.', false);
@@ -3241,6 +3244,7 @@ async function doDormirChambre() {
     return;
   }
   if (!nuits.some(n => n.buildingId === state.currentBuilding && n.ville === state.currentCity && n.country === state.country)) {
+    if (habitant) { showToast(tp('tSleepNo'), tp('sleepUsed', { nom: habitant }), false); return; }
     showToast('Chambre non réservée', 'Aucune nuitée disponible ici. Les nuits réservées ailleurs sont conservées.', false);
     return;
   }
@@ -3259,6 +3263,11 @@ async function doDormirChambre() {
   if (typeof resultat.moral === 'number') state.moral = resultat.moral;
   updateUI();
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  if (habitant) {
+    showToast(tp('tSleepDone', { nom: habitant }), tp('sleepDone', { pa: resultat.montant, moral: resultat.moralBonus }), true, true);
+    addJournalEntry('Nuit chez ' + habitant + ' : +' + resultat.montant + ' PA, +' + resultat.moralBonus + ' Moral.', 'event-good');
+    return;
+  }
   showToast('Bonus chambre appliqué','+'+resultat.montant+' PA, +'+resultat.moralBonus+' Moral.',true,true);
   addJournalEntry('Bonus hôtel : +'+resultat.montant+' PA, +'+resultat.moralBonus+' Moral.', 'event-good');
 }
