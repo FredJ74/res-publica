@@ -30,8 +30,13 @@ function canonical(n,parent,field){
  return out;
 }
 test('AST métier entièrement identique après retrait des 44 appels de présentation',()=>{
- const after=parse(read('forum.js'));let count=0;walk(after,n=>{if(isMarker(n))count++;});assert.equal(count,44);
+ // Preuve figée sur la PR #877 elle-même (13/11, Claude) : forum.js à sa fusion (e9989c6) contre 94d4631.
+ // Comparer le forum.js courant refusait toute PR ultérieure touchant forum.js (ex. nouveaux boutons de courrier).
+ const fusion=execFileSync('git',['show','e9989c6e35a35619ff5ae762799754f5d6065ee2:forum.js'],{cwd:root,encoding:'utf8',maxBuffer:4e6});
+ const after=parse(fusion);let count=0;walk(after,n=>{if(isMarker(n))count++;});assert.equal(count,44);
  assert.deepEqual(canonical(after),canonical(parse(previous)));
+ // Les 44 marqueurs de présentation restent branchés dans le forum.js courant.
+ let courant=0;walk(parse(read('forum.js')),n=>{if(isMarker(n))courant++;});assert.equal(courant,44);
  assert.match(read('plateau.html'),/forum-feedback-resources\.js/);
  assert.ok(read('plateau.html').indexOf('i18n/toast-resources.js')<read('plateau.html').indexOf('i18n/forum-feedback-resources.js'));
 });

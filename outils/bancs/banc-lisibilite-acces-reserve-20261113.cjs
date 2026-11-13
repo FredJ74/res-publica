@@ -3,14 +3,16 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const {chromium}=require('playwright');
 const repository=path.resolve(__dirname,'../..'),root=process.env.ACCESS_ASSET_DIR||repository;
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
-const base=process.env.ACCESS_BASE_REV||execFileSync('git',['merge-base','HEAD','origin/main'],{cwd:repository,encoding:'utf8'}).trim();
+// Preuve figée sur la PR #880 elle-même (13/11, Claude) : avant = a1ac64a (main avant la fusion), après = 7df7525
+// (fusion). L'ancienne comparaison à merge-base(HEAD, origin/main) refusait toute PR ultérieure touchant data.js,
+// plateau-navigation.js, api, migrations ou supabase (même défaut que les bancs #849, #852 et #855).
+const base=process.env.ACCESS_BASE_REV||'a1ac64affc10eb7064b2cb208ff1d25eed321788',tete='7df7525ea0d19264bda3b054759384831123c4be';
 const old=f=>execFileSync('git',['show',base+':'+f],{cwd:repository,encoding:'utf8',maxBuffer:8e6});
 const source=read('plateau-acces-reserve.js');
 function sansHabillage(s){return s.replace(/^\/\/ Marqueur de présentation[^\n]*\n/m,'').replace(/const accesModal =[\s\S]*?(?=const accesFermer =)/,'');}
 test('seul l’adaptateur de présentation change ; textes et fonctions métier restent exacts',()=>{
  assert.equal(sansHabillage(source),sansHabillage(old('plateau-acces-reserve.js')));
- for(const f of ['data.js','plateau-navigation.js','plateau-router.js','plateau-vehicules.js','plateau-sovarka-droits.js'])assert.equal(fs.readFileSync(path.join(repository,f),'utf8'),old(f),f);
- const paths=execFileSync('git',['diff','--name-only',base,'--','migrations','api','supabase'],{cwd:repository,encoding:'utf8'});assert.equal(paths,'');
+ const paths=execFileSync('git',['diff','--name-only',base,tete,'--','data.js','plateau-navigation.js','plateau-router.js','plateau-vehicules.js','plateau-sovarka-droits.js','migrations','api','supabase'],{cwd:repository,encoding:'utf8'});assert.equal(paths,'');
  assert.ok(source.includes('class="acces-reserve-dialogue"'));
 });
 function fonction(s,name){const start=s.indexOf('function '+name+'(');assert.ok(start>=0,name);return s.slice(start,s.indexOf('\n}',start)+2);}
