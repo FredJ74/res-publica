@@ -6701,33 +6701,31 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"centre-artisanal\",\"travees\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre Artisanal",
-    "piece": "Travées",
+    "batiment": "Centre artisanal de Krasnov",
+    "piece": "Accueil — atelier partagé",
     "personnes": [
-      "Stas Mironov",
-      "Tolia Souvorov",
-      "Gavriil Lavrov"
+      "Stas Mironov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"centre-artisanal\",\"echoppe_facade\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre Artisanal",
-    "piece": "Échoppe Façade — Local à louer",
+    "batiment": "Centre artisanal de Krasnov",
+    "piece": "Box à louer",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"centre-artisanal\",\"atelier_milieu\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre Artisanal",
-    "piece": "Atelier Central — Local à louer",
+    "batiment": "Centre artisanal de Krasnov",
+    "piece": "Box à louer",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"centre-artisanal\",\"reserve_arriere\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre Artisanal",
-    "piece": "Réserve Arrière — Local à louer",
+    "batiment": "Centre artisanal de Krasnov",
+    "piece": "Box à louer",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"centre-affaires\",\"hall\"]": {
