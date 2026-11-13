@@ -47,7 +47,7 @@ jobs:
           const state={country:'soviet',currentCity:'ville_b'};
           let bail=null, fonds=null, requests=0;
           const room = {imageUrl:'images/Sovarka/Krasnov/Krasnov_centre_artisanal_box.webp'};
-          const world={soviet:{capitale:{buildingContext:{'centre-commercial':{roomOverrides:{vitrine_principale:room,boutique_milieu:room,arriere_boutique:room,cave_reserve:room}}}}}};
+          const centre={buildingContext:{'centre-commercial':{roomOverrides:{vitrine_principale:room,boutique_milieu:room,arriere_boutique:room,cave_reserve:room}}}}; const world={republic:{ville_a:centre},soviet:{capitale:centre}};
           const ctx={state, WORLD:world, getLocationPourRoom:(b,r,v)=>v==='ville_b'&&b==='centre-artisanal'?bail:null,
             sbGetFonds:async ()=>{requests++;return fonds;},fondsEstActif:f=>f?.statut==='actif'};
           vm.createContext(ctx);
