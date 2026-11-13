@@ -33,5 +33,11 @@ ou perte de saisie/focus/sélection à la bascule. Réponse en attente résolue 
 résurrection d’un ancien refus. Repli français et noms d’options comme données testés.
 
 Les confirmations d’adresse précédentes sont rejouées (108 arrivées / 972 bascules).
-Banc de connexion existant et mesures au même extracteur à compléter avant livraison.
+Banc de connexion existant : 12 tests verts. Suite finale : 34 tests Node verts.
+
+## Mesure conservatrice
+
+Même extracteur avant/après main `a2f43e0` : corpus inchangé (7 565 textes / 50 690 mots). Le raccordement reconnu automatiquement reste inchangé : anglais 998 textes / 12 125 mots (23,92 %). Une entrée du corpus retrouve une ressource (+19 mots) ; les autres refus assemblés et leurs annotations DOM ne sont pas reconnus comme correspondances par cet extracteur. Les cinq nouvelles clés / 40 traductions et les dix états sont pourtant vérifiés par les tests de rendu. Aucun gain de branchement statique non détecté n’est revendiqué. La reconnaissance des annotations DOM est une amélioration d’audit à traiter séparément, sans la compter comme une nouvelle traduction.
+
+CI et production à compléter avant livraison.
 Session PJ réelle, téléphone physique et revue native non réalisés.
