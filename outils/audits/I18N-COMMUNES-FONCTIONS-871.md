@@ -52,3 +52,11 @@ Le main ayant évolué depuis #885, ses changements de corpus sont distincts du 
 des lots. Les +18/+225 et +30/+403 viennent de deux comparaisons contrôlées à
 corpus inchangé, et non d’une attribution de tous les changements de main à l’i18n.
 Preuve détaillée : `I18N-COMMUNES-FONCTIONS-871-mesures.json`.
+
+## Livraison vérifiée
+
+PR #893 fusionnée, `8f92528e17b614757d7ff3d552bca974d31c517e`. 41 contrôles PR
+verts et un contrôle avec les trois échecs SSM identiques à la référence d6d2f08.
+Vercel `dpl_6Z6yJMAqAxvb3rAjozuS212idNCf` READY sur la fusion, alias public confirmé.
+Seize fichiers publics identiques au commit ; banc rejoué avec ces fichiers : vert
+(2 430 descriptions, 1 620 dialogues). Empreintes dans le JSON `-production.json`.

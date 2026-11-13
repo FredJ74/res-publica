@@ -1,0 +1,25 @@
+name: Retours des commandes de chantier — neuf langues
+on:
+  pull_request:
+    paths: ['plateau-construction-commandes.js', 'i18n/construction-feedback-resources.js', 'i18n/plateau-init.js', 'outils/bancs/*retours-chantiers*', '.github/workflows/i18n-retours-chantiers.yml']
+  push:
+    branches: [main]
+    paths: ['plateau-construction-commandes.js', 'i18n/construction-feedback-resources.js', 'i18n/plateau-init.js', 'outils/bancs/*retours-chantiers*', '.github/workflows/i18n-retours-chantiers.yml']
+permissions:
+  contents: read
+jobs:
+  retours-chantiers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - run: node --test outils/bancs/banc-i18n-retours-chantiers-20261113.cjs outils/bancs/banc-audit-i18n-global.cjs outils/bancs/banc-i18n-editorial.cjs
+      - run: npm install --ignore-scripts --no-package-lock --prefix "$RUNNER_TEMP/construction-browser" playwright@1.62.1
+      - name: Chromium — 320/390/1280, RTL, variables et reprise conservée
+        run: NODE_PATH="$RUNNER_TEMP/construction-browser/node_modules" CHROMIUM_PATH=/usr/bin/google-chrome node --test outils/bancs/banc-i18n-retours-chantiers-navigateur-20261113.cjs
