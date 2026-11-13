@@ -5073,7 +5073,16 @@ async function sbGetBatimentEtat(country, city, buildingId) {
   const id = country + '_' + city + '_' + buildingId;
   const rows = await sbGet('batiments_etat', `id=eq.${encodeURIComponent(id)}`);
   if (rows && rows[0]) {
-    try { return JSON.parse(rows[0].data); } catch(e) { return {}; }
+    // La colonne data est jsonb : PostgREST renvoie les nouveaux enregistrements
+    // comme objets JS, mais les anciens entrepots portent une chaine JSON.
+    // JSON.parse(objet) jetait une erreur et rendait un stock vide : toutes les
+    // quantites de la Salle des Ventes etaient alors desactivees en Sovarka.
+    let donnees = rows[0].data;
+    try {
+      if (typeof donnees === 'string') donnees = JSON.parse(donnees);
+      if (typeof donnees === 'string') donnees = JSON.parse(donnees);
+      return donnees && typeof donnees === 'object' && !Array.isArray(donnees) ? donnees : {};
+    } catch (e) { return {}; }
   }
   return {};
 }
