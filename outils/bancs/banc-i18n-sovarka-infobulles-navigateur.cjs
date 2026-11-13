@@ -119,7 +119,7 @@ async function scenario(largeur, mobile) {
     await new Promise((r, j) => { serveur.once('error', j); serveur.listen(0, '127.0.0.1', r); });
     const executable = process.env.HG_CHROMIUM || ['/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable'].find(p => fs.existsSync(p));
     if (!executable) throw Error('HG_CHROMIUM_SPAWN : Chromium requis pour cette vérification');
-    nav = await lancerChromium({ executable, profil });
+    nav = await lancerChromium({ executable, profil, delaiDemarrage: 60000 });
     let cible; const limite = performance.now() + 7000;
     while (performance.now() < limite) {
       nav.controlerProcessus();
