@@ -3209,35 +3209,23 @@ async function doReserverChambreHotel(pa) {
   }
 }
 
+// Service d'étage des hôtels de Républia : UNE fonction serveur vérifie la réservation, paie,
+// applique +10 Santé, +1 Moral et le bonus différé (13/11/2026). L'écran recopie la réponse.
+const SERVICE_ETAGE_REFUS = {
+  chambre_non_reservee: 'Vous devez d\'abord réserver une chambre à l\'accueil pour bénéficier du service d\'étage.',
+  service_indisponible: 'Cet hôtel ne propose pas de service d\'étage.',
+  fonds_insuffisants: 'Fonds insuffisants.'
+};
 async function doServiceEtage(pa) {
-  const nuitsService = (typeof sbRpc === 'function') ? await sbRpc('hotel_reservations_lire', {}).catch(() => null) : null;
-  if (!Array.isArray(nuitsService)) {
-    showToast('Réservations indisponibles', 'Le serveur ne confirme pas votre réservation.', false);
-    return;
-  }
-  if (!nuitsService.some(n => n.buildingId === state.currentBuilding && n.country === state.country && n.ville === state.currentCity)) {
-    showToast('Chambre non reservee', 'Vous devez d\'abord reserver une chambre a l\'accueil pour beneficier du service d\'etage.', false);
-    return;
-  }
-  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-  const ordre = room?.orders?.find(o => o.fn === 'service_etage');
-  if (!ordre || Number(ordre.cost) !== 150) {
-    showToast('Service indisponible', 'Le tarif du service d’étage n’est pas reconnu dans cette chambre.', false);
-    return;
-  }
-  const cout = Number(ordre.cost);
-  const r = await deduireCoutOrdre({ fn: 'service_etage', pa, cost: cout });
-  if (!r.ok) { showToast('Service d’étage refusé', 'Le serveur a refusé le paiement : ' + (r.raison || 'indisponible') + '. Aucun service accordé.', false); return; }
-  state.hp = Math.min(100, (state.hp || 0) + 10);
-  state.moral = Math.min(100, (state.moral || 0) + 1);
-  // Bonus differe atteste : le serveur tient le compteur et connait le montant de la source.
-  if (typeof sbRpc === 'function' && state.char?.name) {
-    sbRpc('pa_bonus_differe_crediter', { p_acteur: state.char.name,
-                                         p_source: 'service_etage_hotel' }).catch(() => {});
-  }
+  const v = (typeof sbRpcVerdict === 'function') ? await sbRpcVerdict('hotel_service_etage_commander', {}).catch(() => null) : null;
+  if (!v || v.transport) { showToast('Service d’étage non confirmé', 'Le serveur ne répond pas. Vérifiez votre argent avant de recommencer.', false); return; }
+  if (v.ok !== true) { showToast('Service d’étage refusé', SERVICE_ETAGE_REFUS[v.raison] || ('Refus du serveur : ' + (v.raison || 'indisponible') + '.'), false); return; }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+  if (typeof v.hp === 'number') state.hp = v.hp;
+  if (typeof v.moral === 'number') state.moral = v.moral;
   updateUI();
-  showToast('Service d\'etage', 'Dejeuner servi en chambre. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.', true, true);
-  addJournalEntry('Service d\'etage en chambre : +10 Sante, +1 Moral, +1 PA differe au prochain Dormir.', 'event-good');
+  showToast('Service d\'étage', 'Déjeuner servi en chambre (' + v.prix + ' FR). +10 Santé, +1 Moral. +' + (v.bonus_pa || 0) + ' PA au prochain Dormir.', true, true);
+  addJournalEntry('Service d\'étage en chambre : +10 Santé, +1 Moral, +' + (v.bonus_pa || 0) + ' PA au prochain Dormir.', 'event-good');
 }
 
 async function doDormirChambre() {

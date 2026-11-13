@@ -88,11 +88,12 @@ test('bascule de langue au milieu de la confirmation : zéro RPC ni nouvelle tra
 test('identifiants, RPC, montants et conventions HTML inchangés',()=>{
  assert.match(moduleJs,/fn:'clinique_reserver_nuit'/);
  assert.match(moduleJs,/fn:'clinique_dormir'/);
- assert.match(moduleJs,/fn:'clinique_verifier_bonus'/);
+ assert.doesNotMatch(moduleJs,/clinique_verifier_bonus/);
+ assert.match(moduleJs,/fn:'escort_standard'/);
  assert.match(moduleJs,/clinique_nuitee_reserver/);
  assert.match(moduleJs,/clinique_nuitee_consommer/);
  assert.match(moduleJs,/state\.country==='soviet'\?'PSK':'FR'/);
- assert.match(html,/i18n\/clinic-stay-resources\.js\?v=20261112/);
- assert.match(html,/plateau-clinique-nuitee\.js\?v=clinique-i18n-20261112/);
+ assert.match(html,/i18n\/clinic-stay-resources\.js\?v=20261113/);
+ assert.match(html,/plateau-clinique-nuitee\.js\?v=clinique-escorts-20261113/);
  assert.match(read('outils/audits/audit-i18n-editorial.cjs'),/clinic-stay-resources\.js/);
 });

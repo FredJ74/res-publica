@@ -13,17 +13,24 @@ function ordresNuiteeClinique(buildingId,roomId){
    desc:clT('reserveDesc',"Réserver une chambre jusqu’à votre prochain Dormir validé dans celle-ci : 150 {currency}. Même après avoir déjà dormi aujourd’hui, vous pouvez réserver. Le prochain Dormir dans votre chambre apportera +2 PA, +10 Santé et +3 Moral en plus du repos normal.",{currency:cliniqueDevise()})
  }];
  if(/^chambre_(?:[1-9]|10)$/.test(roomId)){
- const propre=(state.locationsActives||[]).some(l=>l.buildingId==='clinique-privee'
-   &&l.roomId===roomId&&l.locataire===state.char?.name&&l.reservationClinique===true);
- return [{
+ // Occupant de la chambre : client d'une nuit ou patient hospitalisé (même bail de clinique).
+ const occupant=(state.locationsActives||[]).some(l=>l.buildingId==='clinique-privee'
+   &&l.roomId===roomId&&l.locataire===state.char?.name);
+ const ordres=[{
    fn:'clinique_dormir',label:clT('sleepLabel','Dormir dans la chambre'),
    pa:0,cost:0,type:'legal',icon:'ti-moon',successRate:100,
-   desc:clT('sleepDesc','Une seule nuitée payée donne +2 PA, +10 Santé et +3 Moral lors du prochain Dormir validé par le serveur.')
- }].concat(propre?[{
-   fn:'clinique_verifier_bonus',label:clT('verifyLabel','Vérifier les bonus de la nuit'),
-   pa:0,cost:0,type:'legal',icon:'ti-check',successRate:100,
-   desc:clT('verifyDesc','Après Dormir, vérifier les bonus de nuitée auprès du serveur. Aucun bonus n’est accordé deux fois.')
- }]:[]);
+   desc:clT('sleepDesc','Une seule nuitée payée donne +2 PA, +10 Santé et +3 Moral lors du prochain Dormir validé par le serveur.'),
+   // « Sortir de l'hôpital » ne concerne que le patient hospitalisé (relevé de Fred, 13/11/2026).
+   masque:state.hospitalisation?[]:['sortie_hopital']
+ }];
+ // Escorts en clinique (décision de Fred, 13/11/2026) : même standard que les résidences de Novomirsk,
+ // ouvert à l'occupant ; le serveur vérifie le bail et ne propose que les deux escorts des cliniques.
+ if(occupant)ordres.push({
+   fn:'escort_standard',label:clT('escortLabel','Appel à un(e) escort'),
+   pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,
+   desc:clT('escortDesc','Le standard de l’agence internationale Roxane Velours. 800 {currency} par escort et par jour, jusqu’à ce que vous rompiez le contrat. Légal, mais immoral : la rumeur coûte cher.',{currency:cliniqueDevise()})
+ });
+ return ordres;
  }
  return [];
 }
@@ -98,8 +105,9 @@ async function confirmerReservationNuiteeClinique(){
   if(bouton){bouton.disabled=false;bouton.textContent=clT('confirmButton','Confirmer la réservation — 150 {currency}',{currency:cliniqueDevise()});}
  }
 }
-// Appelée APRÈS la sauvegarde du repos normal : le serveur constate la même nuit
-// et attribue, au plus une fois, le bonus de la réservation réellement payée.
+// Appelée APRÈS le repos normal. Depuis le 13/11/2026, le serveur crédite la nuitée dans le
+// sommeil lui-même (déclencheur clinique_nuitee_marquer_repos) : cet appel ne fait plus que relire
+// le résultat (réponse « rejeu ») pour l'afficher. Une coupure réseau ne fait donc plus rien perdre.
 async function consommerNuiteeCliniqueApresDormir(nomInitial,paysInitial,pieceInitial){
  if(!['republic','soviet'].includes(paysInitial)||!/^chambre_(?:[1-9]|10)$/.test(pieceInitial))return;
  if(state.char?.name!==nomInitial||state.country!==paysInitial
@@ -108,33 +116,16 @@ async function consommerNuiteeCliniqueApresDormir(nomInitial,paysInitial,pieceIn
  if(!maChambre||maChambre.roomId!==pieceInitial||maChambre.reservationClinique!==true)return;
  const brut=await sbRpc('clinique_nuitee_consommer',{}).catch(()=>null);
  const r=Array.isArray(brut)?brut[0]:brut;
- if(!r||r.transport){
-  showToast('Nuitée à confirmer','Le repos est enregistré mais les bonus de clinique restent à vérifier auprès du serveur.',false);
-  return;
- }
- if(!r.ok){
-  if(r.raison==='aucune_reservation')return;
-  showToast('Bonus de clinique non appliqué',r.raison==='repos_non_valide'
-    ?'Dormez d’abord dans la chambre réservée pour obtenir ces bonus.'
-    :(r.raison||'Réponse du serveur indisponible.'),false);
-  return;
- }
+ if(!r||r.transport||!r.ok)return;
  if(state.char?.name!==nomInitial||state.country!==paysInitial)return;
  if(typeof r.pa==='number')state.pa=r.pa;
  if(typeof r.hp==='number')state.hp=r.hp;
  if(typeof r.moral==='number')state.moral=r.moral;
  if(typeof updateUI==='function')updateUI();
- if(!r.rejeu){
-  showToast(clT('night','Nuit à la clinique'),clT('bonus','+2 PA, +10 Santé, +3 Moral (plafonds habituels).'),true);
-  if(typeof addJournalEntry==='function')addJournalEntry('Nuit à la clinique privée : +2 PA, +10 Santé, +3 Moral.','event-good');
- }
+ showToast(clT('night','Nuit à la clinique'),clT('bonus','+2 PA, +10 Santé, +3 Moral (plafonds habituels).'),true);
+ if(typeof addJournalEntry==='function')addJournalEntry('Nuit à la clinique privée : +2 PA, +10 Santé, +3 Moral.','event-good');
  if(typeof chargerLocations==='function')await chargerLocations();
 }
-global.verifierNuiteeClinique=function(){
- const acteur=state.char?.name, pays=state.country, piece=state.currentRoom;
- if(!acteur)return;
- return consommerNuiteeCliniqueApresDormir(acteur,pays,piece);
-};
 global.reserverNuiteeClinique=reserverNuiteeClinique;
 global.consommerNuiteeCliniqueApresDormir=consommerNuiteeCliniqueApresDormir;
 (global.RP_I18N_CHANGE_CALLBACKS=global.RP_I18N_CHANGE_CALLBACKS||[]).push(function(){

@@ -736,8 +736,18 @@ function commercePjFondsIci() {
 //   bail sans fonds        -> le titulaire seul peut installer un commerce ;
 //   bail avec fonds        -> le parcours commercant complet, et « Louer ce local »
 //                             est MASQUE : il est loue, et exploite.
+// Pas de commerce dans une chambre (clinique, hôtel, résidence, logement) : le serveur le refuse
+// déjà (`local_non_commercial`), l'écran ne le propose plus (relevé de Fred, 13/11/2026).
+function commercePjPieceNonCommerciale(buildingId, roomId) {
+  if (/clinique|hotel|hopital|residence|pavillon/i.test(String(buildingId || ''))) return true;
+  const room = (typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingId]?.rooms?.[roomId])
+    || (typeof getBuildingContext === 'function' && getBuildingContext(buildingId)?.roomsExtra?.[roomId]);
+  return !!(room && (room.chambreLogement || room.locationData?.logementSocial));
+}
+
 function ordresCommerceDuLocal(buildingId, roomId, ville) {
   if (commercePjEstBureau(buildingId, roomId)) return [];
+  if (commercePjPieceNonCommerciale(buildingId, roomId)) return [];
   if (typeof getLocationPourRoom !== 'function') return [];
   let bail = null;
   try { bail = getLocationPourRoom(buildingId, roomId, ville); } catch (e) { return []; }

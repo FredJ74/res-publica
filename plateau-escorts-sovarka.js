@@ -244,7 +244,9 @@ let escActeEnCours = false, escDevis = null, escTexte = '';
 function escT(cle, vars = {}) {
   const lang = (typeof window !== 'undefined' && window.RP_I18N_GAME_ENABLED === true && window.RPPlateauI18n?.language?.()) || 'fr';
   const modele = (ESC_TEXTES[lang] || ESC_TEXTES.fr)[cle] || ESC_TEXTES.fr[cle] || cle;
-  return modele.replace(/\{(\w+)\}/g, (tout, k) => Object.hasOwn(vars, k) ? String(vars[k]) : tout);
+  const texte = modele.replace(/\{(\w+)\}/g, (tout, k) => Object.hasOwn(vars, k) ? String(vars[k]) : tout);
+  // Cliniques de Républia (13/11/2026) : même standard, montants en francs républicains.
+  return (typeof state !== 'undefined' && state.country && state.country !== 'soviet') ? texte.replace(/\bPSK\b/g, 'FR') : texte;
 }
 const escEch = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const escJs = s => JSON.stringify(String(s)).replace(/"/g, '&quot;');

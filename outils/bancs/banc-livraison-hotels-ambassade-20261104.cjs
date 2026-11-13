@@ -56,30 +56,29 @@ test('#306 ordre absent : aucun achat à 60 FR',async()=>{
  assert.equal(appels.length,0);
  assert.equal(messages[0][1],'tarif_local_introuvable');
 });
-test('#307 service d’étage : payer explicitement service_etage à 150 FR',async()=>{
+// 13/11/2026 : le service d'étage passe par UNE fonction serveur (hotel_service_etage_commander),
+// qui vérifie la réservation, paie et applique les effets ; l'écran recopie sa réponse.
+test('#307 service d’étage : une seule fonction serveur, effets recopiés',async()=>{
  const {c,state,appels}=scene();
  state.currentRoom='chambre';
+ c.sbRpcVerdict=async fn=>{appels.push(['rpc',fn]);return {ok:true,prix:150,pa:20,hp:70,moral:41,liquide:850,arg:850,bonus_pa:1};};
  await c.doServiceEtage(0);
- assert.equal(appels.length,1);
- assert.deepEqual(JSON.parse(JSON.stringify(appels[0])),['service',{fn:'service_etage',pa:0,cost:150}]);
+ assert.deepEqual(JSON.parse(JSON.stringify(appels)),[['rpc','hotel_service_etage_commander']]);
  assert.equal(state.hp,70);
  assert.equal(state.moral,41);
 });
-test('#307 tarif absent : aucun paiement et aucun soin',async()=>{
- const {c,state,appels}=scene(80,null);
+test('#307 refus serveur : pas de bénéfices attribués, refus nommé',async()=>{
+ const {c,state,messages}=scene();
  state.currentRoom='chambre';
- await c.doServiceEtage(0);
- assert.equal(appels.length,0);
- assert.equal(state.hp,60);
-});
-test('#307 refus serveur : pas de bénéfices attribués',async()=>{
- const {c,state,appels,messages}=scene();
- state.currentRoom='chambre';
- c.deduireCoutOrdre=async o=>{appels.push(['refus',o]);return {ok:false,raison:'paiement_indisponible'};};
+ c.sbRpcVerdict=async()=>({ok:false,raison:'chambre_non_reservee'});
  await c.doServiceEtage(0);
  assert.equal(state.hp,60);
  assert.equal(state.moral,40);
- assert.match(messages.at(-1)[1],/paiement_indisponible/);
+ assert.match(messages.at(-1)[1],/réserver une chambre/);
+});
+test('#307 l’écran ne crédite plus rien lui-même',()=>{
+ const code=entre(personne,'async function doServiceEtage(', 'async function doDormirChambre(');
+ assert.doesNotMatch(code,/pa_bonus_differe_crediter|deduireCoutOrdre|\+ 10\)/);
 });
 test('#315 les noms de contacts sont échappés dans value et libellé',()=>{
  const html=entre(politique,'function ouvrirModalNommerAmbassadeur(', 'const REFUS_AMBASSADE_MINISTRE');
