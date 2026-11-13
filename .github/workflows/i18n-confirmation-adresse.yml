@@ -1,10 +1,10 @@
-name: Connexion et récupération — neuf langues sans rejouer les requêtes
+name: Comptes et connexion — neuf langues sans rejouer les requêtes
 on:
   pull_request:
-    paths: ['creation.js', 'index.html', 'i18n/connection-resources.js', 'i18n/i18n-init.js', 'outils/bancs/*confirmation-adresse*', 'outils/bancs/*recherche-personnage*', 'outils/bancs/banc-i18n-connexion-ui.cjs', '.github/workflows/i18n-confirmation-adresse.yml']
+    paths: ['creation.js', 'index.html', 'i18n/connection-resources.js', 'i18n/i18n-init.js', 'outils/bancs/*confirmation-adresse*', 'outils/bancs/*recherche-personnage*', 'outils/bancs/*retours-compte*', 'outils/bancs/banc-i18n-connexion-ui.cjs', '.github/workflows/i18n-confirmation-adresse.yml']
   push:
     branches: [main]
-    paths: ['creation.js', 'index.html', 'i18n/connection-resources.js', 'i18n/i18n-init.js', 'outils/bancs/*confirmation-adresse*', 'outils/bancs/*recherche-personnage*', 'outils/bancs/banc-i18n-connexion-ui.cjs', '.github/workflows/i18n-confirmation-adresse.yml']
+    paths: ['creation.js', 'index.html', 'i18n/connection-resources.js', 'i18n/i18n-init.js', 'outils/bancs/*confirmation-adresse*', 'outils/bancs/*recherche-personnage*', 'outils/bancs/*retours-compte*', 'outils/bancs/banc-i18n-connexion-ui.cjs', '.github/workflows/i18n-confirmation-adresse.yml']
 permissions:
   contents: read
 jobs:
@@ -21,10 +21,10 @@ jobs:
       - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
       - run: npm ci --ignore-scripts --prefix outils/vercel
       - run: npm ci --ignore-scripts --prefix outils/e2e
-      - run: node --test outils/bancs/banc-i18n-recherche-personnage-20261113.cjs outils/bancs/banc-i18n-confirmation-adresse-20261113.cjs outils/bancs/banc-audit-i18n-global.cjs outils/bancs/banc-i18n-editorial.cjs outils/bancs/banc-creation-personnage-reseau-20261028.cjs
-      - name: Chromium — recherche, confirmation et ancien formulaire de connexion
+      - run: node --test outils/bancs/banc-i18n-retours-compte-20261113.cjs outils/bancs/banc-i18n-recherche-personnage-20261113.cjs outils/bancs/banc-i18n-confirmation-adresse-20261113.cjs outils/bancs/banc-audit-i18n-global.cjs outils/bancs/banc-i18n-editorial.cjs outils/bancs/banc-creation-personnage-reseau-20261028.cjs
+      - name: Chromium — compte, recherche, confirmation et ancien formulaire de connexion
         env:
           NODE_PATH: ./outils/e2e/node_modules
           HG_CHROMIUM: /usr/bin/google-chrome
           CHROMIUM_PATH: /usr/bin/google-chrome
-        run: node --test outils/bancs/banc-i18n-recherche-personnage-navigateur-20261113.cjs outils/bancs/banc-i18n-confirmation-adresse-navigateur-20261113.cjs outils/bancs/banc-i18n-connexion-ui.cjs
+        run: node --test outils/bancs/banc-i18n-retours-compte-navigateur-20261113.cjs outils/bancs/banc-i18n-recherche-personnage-navigateur-20261113.cjs outils/bancs/banc-i18n-confirmation-adresse-navigateur-20261113.cjs outils/bancs/banc-i18n-connexion-ui.cjs
