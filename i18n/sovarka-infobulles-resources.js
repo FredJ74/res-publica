@@ -125,6 +125,9 @@
  // chargé avant ce fichier ; consultées après la table propre à Sovarka, dans les deux pays.
  const LC=Array.isArray(global.RP_INFOBULLES_COMMUNES)?global.RP_INFOBULLES_COMMUNES.filter(l=>Array.isArray(l)&&l.length===9):[];
  const parFrCommun=new Map(LC.map(l=>[l[0],l]));
+ // Descriptions exclusives à Républia, après les traductions communes.
+ const LR=Array.isArray(global.RP_INFOBULLES_REPUBLIA)?global.RP_INFOBULLES_REPUBLIA.filter(l=>Array.isArray(l)&&l.length===9):[];
+ const parFrRepublia=new Map(LR.map(l=>[l[0],l]));
  function indice(){
   const lang=(global.RP_I18N_GAME_ENABLED===true&&global.RPPlateauI18n?.language?.())||'fr';
   return LANGUES.indexOf(lang);
@@ -133,9 +136,12 @@
   // `state` est un `let` global de plateau-core.js : visible par son nom, pas comme window.state.
   return (typeof state!=='undefined'&&state)?state.country==='soviet':false;
  }
+ function enRepublia(){
+  return (typeof state!=='undefined'&&state)?state.country==='republic':false;
+ }
  function desc(original){
   if(typeof original!=='string')return original;
-  const ligne=(enSovarka()&&parFr.get(original))||parFrCommun.get(original); if(!ligne)return original;
+  const ligne=(enSovarka()&&parFr.get(original))||parFrCommun.get(original)||(enRepublia()&&parFrRepublia.get(original)); if(!ligne)return original;
   const i=indice();
   return i>0&&typeof ligne[i]==='string'&&ligne[i].trim()?ligne[i]:original;
  }
@@ -190,5 +196,5 @@
  (global.RP_I18N_CHANGE_CALLBACKS=global.RP_I18N_CHANGE_CALLBACKS||[]).push(rafraichir);
  global.RPSovarkaInfobullesI18n=Object.freeze({desc,descOrdre,cadre,salon,gains,infobulle,rafraichir,langues:Object.freeze(LANGUES.slice()),
   textes:Object.freeze(L.map(l=>l[0])),lignes:Object.freeze(L.map(l=>Object.freeze(l.slice()))),cadres:CADRE,salons:SALON,
-  communes:Object.freeze(LC.map(l=>Object.freeze(l.slice())))});
+  communes:Object.freeze(LC.map(l=>Object.freeze(l.slice()))),republia:Object.freeze(LR.map(l=>Object.freeze(l.slice())))});
 })(window);
