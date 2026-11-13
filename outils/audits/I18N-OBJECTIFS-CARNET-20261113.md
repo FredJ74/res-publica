@@ -1,7 +1,7 @@
 # Objectifs, missions et calepin : audit et internationalisation
 
 13 novembre 2026. Base initiale : `main` `517a425a3945e61a2f2ee8c8bba05358ef049198`.
-Branche : `codex/i18n-objectifs-carnet-20261113`.
+Branche : `codex/i18n-objectifs-carnet-20261113`. PR [#852](https://github.com/FredJ74/res-publica/pull/852). Rebasée sur `main` `7cf66d5f` après #851 ; ajout de son catalogue de biographies préservé dans l’audit commun.
 
 ## Références et coordination
 
@@ -45,6 +45,14 @@ La bascule de langue modifie les mêmes nœuds de texte. Le seul rappel spécifi
 
 Réponses serveur simulées dans Chromium ; aucun ordre joué sur un personnage réel et aucune requête Supabase pour ce lot. Essai sur téléphone physique et relecture linguistique native non réalisés.
 
+## Comparaison transversale avec main
+
+Sur deux checkouts isolés et avec les mêmes dépendances (dont pglast 7.21), exécution de `node --test outils/bancs/test-*.mjs outils/bancs/banc-i18n-vehicules-garage-20261112.cjs` : **298 tests, 291 réussites et les sept mêmes échecs**, sur `main` `7cf66d5f` comme sur le code rebasé `4fdb9688`. Zéro nouvel échec. Détail reproductible dans `i18n-objectifs-carnet-20261113-preuves.json`.
+
+Sept tests préexistants concernés : version HTML du garage, raccordements de l’audit global Républia, géométrie des galeries, couverture des descriptions Sovarka, assertion des rôles Sovarka, banc des personnalités des musées de province (depuis #851), RPC après lot 219. Aucun de ces chantiers modifié. Une première exécution sans pglast produisait des erreurs de dépendance ; seules les mesures après installation et alignement des dépendances font foi.
+
+Garde du payload Vercel : 310,0 Mo, plafond 330,0 Mo, verte.
+
 ## Livraison et contrôles restants
 
-Comparaison transversale et CI distante en cours au premier commit. PR à renseigner. Fusion, publication et vérification du commit réellement servi à effectuer après validation ; un commit ou une PR ne valent pas déploiement.
+Première [CI dédiée](https://github.com/FredJ74/res-publica/actions/runs/43346422292) verte ; 45 tests catalogue/régression puis 2 bancs Chromium. Rebasage retesté (catalogue, Chromium et audit éditorial verts). PR #852 à sortir du brouillon après confirmation distante. Fusion, publication et vérification du commit réellement servi encore à effectuer ; aucun déploiement de ce lot annoncé à ce stade.
