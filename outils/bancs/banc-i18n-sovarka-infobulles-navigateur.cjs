@@ -8,10 +8,11 @@ const root = path.resolve(__dirname, '../..');
 const lire = f => fs.readFileSync(path.join(root, f), 'utf8');
 const fnSource = (src, nom) => { const i = src.indexOf('function ' + nom + '('); const j = src.indexOf('\n}', i); return src.slice(i, j + 2); };
 
-function page() {
+function page(pays) {
   const sources = [
     fnSource(lire('plateau-politique.js'), 'deviseDansTexte'),
     fnSource(lire('data.js'), 'montantDansTexte'),
+    lire('i18n/infobulles-communes-resources.js'),
     lire('i18n/sovarka-infobulles-resources.js'),
     fnSource(lire('plateau-vehicules.js'), 'vehModal'),
     lire('plateau-salon.js')
@@ -23,8 +24,9 @@ function page() {
 <script>
 window.RP_I18N_GAME_ENABLED = true; let LANG = 'fr';
 window.RPPlateauI18n = { language: () => LANG };
-let state = { country: 'soviet', char: { name: 'Arnie' } };
-const COUNTRIES = { soviet: { cur: 'PSK' } };
+let state = { country: ${JSON.stringify(pays)}, char: { name: 'Arnie' } };
+const COUNTRIES = { soviet: { cur: 'PSK' }, republic: { cur: 'FR' } };
+const SOV = state.country === 'soviet', DEV = SOV ? 'PSK' : 'FR';
 const RPC = []; const TOASTS = [];
 async function sbRpcVerdict(nom) { RPC.push(nom); return { ok: true, salon: { id: 'salon-novo', prixCoupe: 20 }, jour: 10, prochaineCoupeJour: 12 }; }
 function showToast(t, m) { TOASTS.push(t + ' ' + m); }
@@ -37,17 +39,24 @@ const ORDRES = [
   { fn: 'residence_louer', label: 'Louer un appartement', pa: 1, cost: 0, type: 'legal', d: ${JSON.stringify(lireDesc('Location privative de 3 nuits'))}, g: [['+15', 'POP'], ['+15', 'INF']], r: [], s: 100 },
   { fn: 'train_sovarka', label: 'Prendre le train', pa: 2, cost: 75, type: 'legal', d: '75 FR. 2 PA. Vers une autre ville de Sovarka.', n: { cost: 40, pa: 2 }, g: [], r: [], s: 100 },
   { fn: 'repas_hopital', label: 'Repas', pa: 1, cost: 0, type: 'legal', d: 'Repas economique. +5 Sante.', g: [['+5', 'sante'], ['+2', 'moral']], r: [], s: 100 },
+  // Communes Républia/Sovarka (13/11) : une longue (contre-lobbying) et le train commun, à tarif en Sovarka.
+  { fn: 'contre_lobbying', label: 'Contre-lobbying', pa: 1, cost: 0, type: 'grey', commun: true, d: ${JSON.stringify(lireDesc('Contre-lobbying preventif'))}, g: [], r: [['-1', 'DIS']], s: 70 },
+  { fn: 'train_commun', label: 'Train', pa: 2, cost: 75, type: 'legal', commun: true, d: '75 FR. 2 PA. Transport intra-empire vers une autre ville.', n: ${pays === 'soviet' ? '{ cost: 40, pa: 2 }' : 'null'}, g: [], r: [], s: 100 },
   { fn: 'pharmacie', label: 'Acheter des médicaments', pa: 1, cost: 0, type: 'legal', bientot: 'Bientôt disponible : les médicaments de la pharmacie seront définis prochainement.', g: [['+10', 'sante']], r: [], s: 100 }
 ];
-function afficheFr(o) { let d = deviseDansTexte(o.d || '', 'PSK'); if (o.n) d = montantDansTexte(d, o.cost, o.n.cost); return d; }
+function afficheFr(o) { let d = SOV ? deviseDansTexte(o.d || '', 'PSK') : (o.d || ''); if (o.n) d = montantDansTexte(d, o.cost, o.n.cost); return d; }
+// Texte complet de chaque infobulle française : le gabarit du jeu n'échappe pas " dans title="…",
+// une description contenant des guillemets droits y est donc coupée dès l'affichage initial (défaut existant).
+const COMPLET = [];
 function rendreBoutons() {
   // Même gabarit que plateau-politique.js (bouton, title, descripteur, libellé, coût, badge).
   document.getElementById('actions-row-bat').innerHTML = ORDRES.map(o => {
-    const spec = { d: o.d || '', a: afficheFr(o), c: o.cost, p: o.pa, v: 'PSK', n: o.n || null, g: o.g, r: o.r, s: o.s };
+    const spec = { d: o.d || '', a: afficheFr(o), c: o.cost, p: o.pa, v: DEV, n: o.n || null, g: o.g, r: o.r, s: o.s };
     const tooltip = o.bientot ? I.desc(o.bientot) : I.infobulle(spec);
+    COMPLET.push(tooltip);
     const desc = o.bientot ? { k: 'bientot', t: o.bientot } : spec;
     const gain = I.gains(o.g);
-    return '<button class="action-btn ' + o.type + (o.bientot ? ' blocked' : '') + '" title="' + tooltip + '" data-rp-tip="' + encodeURIComponent(JSON.stringify(desc)) + '"><i class="ti ti-star"></i> <span>' + o.label + '</span> <span class="pa-cost">' + (o.n ? o.n.cost : o.cost) + ' PSK · ' + o.pa + ' PA</span>' + (gain ? '<span class="action-gain">' + gain + '</span>' : '') + '</button>';
+    return '<button class="action-btn ' + o.type + (o.bientot ? ' blocked' : '') + '" title="' + tooltip + '" data-rp-tip="' + encodeURIComponent(JSON.stringify(desc)) + '"><i class="ti ti-star"></i> <span>' + o.label + '</span> <span class="pa-cost">' + (o.n ? o.n.cost : o.cost) + ' ' + DEV + ' · ' + o.pa + ' PA</span>' + (gain ? '<span class="action-gain">' + gain + '</span>' : '') + '</button>';
   }).join('');
 }
 function exiger(c, m) { if (!c) throw Error(m); }
@@ -57,7 +66,8 @@ function debordement() { return Math.max(0, document.documentElement.scrollWidth
   rendreBoutons();
   const titresFr = [...document.querySelectorAll('[data-rp-tip]')].map(b => b.getAttribute('title'));
   // Le train : devise et tarif national appliqués au français comme à l'écran.
-  exiger(titresFr[2].startsWith('40 PSK. 2 PA.'), 'train fr : ' + titresFr[2]);
+  if (SOV) exiger(titresFr[2].startsWith('40 PSK. 2 PA.') && titresFr[5].startsWith('40 PSK. 2 PA.'), 'train fr : ' + titresFr[2] + ' / ' + titresFr[5]);
+  else exiger(titresFr[5].startsWith('75 FR. 2 PA.'), 'train commun fr : ' + titresFr[5]);
   const debFr = debordement();
   await ouvrirSalonCoupe();
   const salonFr = document.getElementById('postes-body').innerHTML;
@@ -69,12 +79,15 @@ function debordement() { return Math.max(0, document.documentElement.scrollWidth
     boutons.forEach((b, i) => {
       const t = b.getAttribute('title');
       exiger(t && !t.includes('undefined'), l + ' titre vide ' + i);
-      if (l === 'fr') exiger(t === titresFr[i], 'fr modifié ' + i);
-      else exiger(t !== titresFr[i], l + ' non traduit ' + i + ' : ' + t);
+      if (l === 'fr') exiger(t === titresFr[i] || t === COMPLET[i], 'fr modifié ' + i + ' : ' + t);
+      // En Républia, les textes propres à Sovarka restent en français ; les communes sont traduites partout.
+      else if (SOV || ORDRES[i].commun) exiger(t !== titresFr[i], l + ' non traduit ' + i + ' : ' + t);
+      else exiger(t.split(' | ')[0] === titresFr[i].split(' | ')[0], l + ' texte propre à Sovarka traduit en Républia ' + i);
       const badge = b.querySelector('.action-gain');
       if (badge) { const rb = badge.getBoundingClientRect(), rbt = b.getBoundingClientRect(); exiger(rb.right <= rbt.right + 1 && rb.left >= rbt.left - 1, l + ' badge hors du bouton ' + i); }
     });
-    exiger(boutons[2].getAttribute('title').startsWith('40 PSK'), l + ' tarif du train perdu');
+    if (SOV) exiger(boutons[2].getAttribute('title').startsWith('40 PSK') && boutons[5].getAttribute('title').startsWith('40 PSK'), l + ' tarif du train perdu');
+    else exiger(boutons[5].getAttribute('title').startsWith('75 FR'), l + ' prix du train commun perdu');
     if (l === 'de') exiger(boutons[3].querySelector('.action-gain').textContent === '+5 Gesundheit · +2 Moral', 'badge de');
     if (l === 'ru') exiger(/Здоровье/.test(boutons[3].querySelector('.action-gain').textContent), 'badge ru');
     exiger(debordement() <= Math.max(debFr, 0) + 1, l + ' débordement horizontal ' + debordement() + ' > ' + debFr);
@@ -85,7 +98,7 @@ function debordement() { return Math.max(0, document.documentElement.scrollWidth
     exiger(box.scrollWidth <= box.clientWidth + 1, l + ' défilement horizontal dans la fenêtre');
     const corps = document.getElementById('postes-body').innerHTML;
     if (l === 'fr') exiger(corps === salonFr, 'salon fr modifié'); else exiger(corps !== salonFr, l + ' salon non traduit');
-    releve[l] = { titre: document.getElementById('postes-modal-title').textContent, infobulle: boutons[0].getAttribute('title').slice(0, 60), dir: getComputedStyle(box).direction };
+    releve[l] = { titre: document.getElementById('postes-modal-title').textContent, infobulle: boutons[0].getAttribute('title').slice(0, 60), commun: boutons[4].getAttribute('title').slice(0, 80), dir: getComputedStyle(box).direction };
   }
   exiger(releve.ar.dir === 'rtl', 'arabe sans direction RTL');
   exiger(RPC.length === 1 && RPC[0] === 'salon_lire', 'requêtes : ' + RPC.join(','));
@@ -99,14 +112,16 @@ function debordement() { return Math.max(0, document.documentElement.scrollWidth
 // Textes exacts : ceux du catalogue, dont un banc Node vérifie qu'ils sont ceux de data.js.
 function lireDesc(debut) {
   const ctx = { window: null }; ctx.window = ctx; require('node:vm').createContext(ctx);
+  require('node:vm').runInContext(lire('i18n/infobulles-communes-resources.js'), ctx);
   require('node:vm').runInContext(lire('i18n/sovarka-infobulles-resources.js'), ctx);
-  const t = ctx.RPSovarkaInfobullesI18n.textes.find(x => x.startsWith(debut));
+  const I = ctx.RPSovarkaInfobullesI18n;
+  const t = [...I.textes, ...I.communes.map(l => l[0])].find(x => x.startsWith(debut));
   if (!t) throw Error('description introuvable : ' + debut);
   return t;
 }
 
-async function scenario(largeur, mobile) {
-  const html = page();
+async function scenario(largeur, mobile, pays) {
+  const html = page(pays);
   const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'hg-infobulles-'));
   const serveur = http.createServer((req, res) => {
     const css = req.url === '/style.css';
@@ -149,13 +164,16 @@ async function scenario(largeur, mobile) {
   }
 }
 
-for (const [nom, largeur, mobile] of [['téléphone 320 px', 320, true], ['téléphone 390 px', 390, true], ['bureau 1280 px', 1280, false]]) {
-  test('Chromium ' + nom + ' : neuf langues, infobulles, badge et salon', { timeout: 60000 }, async () => {
-    const r = await scenario(largeur, mobile);
+for (const pays of ['soviet', 'republic']) for (const [nom, largeur, mobile] of [['téléphone 320 px', 320, true], ['téléphone 390 px', 390, true], ['bureau 1280 px', 1280, false]]) {
+  test('Chromium ' + (pays === 'soviet' ? 'Sovarka' : 'Républia') + ', ' + nom + ' : neuf langues, infobulles, badge et salon', { timeout: 60000 }, async () => {
+    const r = await scenario(largeur, mobile, pays);
     assert.equal(r.verdict, 'OK', r.e);
     const releve = JSON.parse(r.r);
     assert.equal(releve.ru.titre, 'Парикмахерская');
     assert.equal(releve.ar.titre, 'صالون حلاقة');
-    assert.match(releve.ko.infobulle, /미행/);
+    if (pays === 'soviet') assert.match(releve.ko.infobulle, /미행/);
+    else assert.match(releve.ko.infobulle, /^Faire suivre un citoyen/);
+    assert.match(releve.de.commun, /Gegenlobbying/);
+    assert.match(releve.ar.commun, /ضغط مضاد/);
   });
 }

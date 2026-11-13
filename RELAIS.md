@@ -93,6 +93,20 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **i18n : 205 descriptions d'ordres communes Républia/Sovarka (Claude, 13/11 matin, priorité 2 de Fred, branche `claude/i18n-infobulles-communes-20261113`)**.
+  - **Inventaire** (data.js réel, pièces affichées) : il y a bien **205 descriptions communes** (affichées dans les deux pays), en plus des 104 propres à Sovarka (lot #853) et de **189 propres à la Républia, non traitées** (hors mission, toujours en français).
+  - **Codé** :
+    - catalogue de données `i18n/infobulles-communes-resources.js` (`window.RP_INFOBULLES_COMMUNES`) : 205 lignes × 9 langues, 1 640 traductions ;
+    - résolu par le **même moteur** `RPSovarkaInfobullesI18n.desc` (pas de second moteur) : table propre à Sovarka d'abord, si le personnage est en Sovarka, puis les communes dans les deux pays, sur texte français exact ;
+    - devise PSK et tarif national réappliqués après traduction (le train commun reste à 40 PSK en Sovarka, 75 FR en Républia) ;
+    - fichier chargé avant le résolveur dans `plateau.html`, déclaré à l'audit éditorial ;
+    - **`plateau-politique.js` non modifié**, conformément à la consigne Codex : le `title` et le descripteur `data-rp-tip` des boutons portent déjà la traduction, donc un futur bouton d'information mobile qui lit l'un ou l'autre, ou qui appelle `RPSovarkaInfobullesI18n.infobulle(descripteur)`, affichera la langue choisie.
+  - **Testé** :
+    - `test-i18n-infobulles-communes-20261113.mjs`, 8 tests : inventaire 205 (le test signale tout changement du nombre), français identique dans les deux sens, 8 traductions non vides, nombres, %, devises et sigles conservés (FR, PSK, POP, INF, DIS, PER, CHA, DUP, ENT, MG, QHS, ISN, HP), noms propres conservés, traduction dans les deux pays, 104 textes de Sovarka inchangés et prioritaires, comportement d'avant si le fichier manque, bascule sans requête ;
+    - banc Chromium étendu : Sovarka **et** Républia × 320/390/1280 px × 9 langues (arabe RTL, aucun débordement, textes propres à Sovarka toujours en français en Républia) ;
+    - CI dédiée mise à jour ; tous les `test-*.mjs` : 6 échecs, les mêmes que sur main, aucun nouveau.
+  - **Défaut existant relevé, non corrigé** (structure des boutons réservée à Codex) : le gabarit écrit l'infobulle dans `title="…"` sans échapper `"`. Les deux descriptions françaises qui contiennent des guillemets droits (contre-lobbying, licence de football) sont donc coupées à l'affichage initial ; le repeint après changement de langue remet le texte complet. À reprendre avec le bouton mobile, en échappant `"`.
+  - **Non vérifié** : jeu réel connecté, téléphone physique, relecture native ; recette conjointe avec le bouton mobile de Codex, absent de main et des PR au moment du lot.
 - **i18n Sovarka : infobulles des ordres, cadre de l'infobulle, salon de coiffure, salles du musée (Claude, 13/11 vers 3 h, mission i18n complémentaire de Fred, branche `claude/i18n-sovarka-infobulles-20261113`, PR #853)**. **Audit** (data.js et catalogues réels chargés hors navigateur) : les 307 descriptions d'ordres affichées en Sovarka n'avaient aucune traduction. 102 sont propres à Sovarka et 205 viennent du gabarit commun. S'y ajoutaient 2 mentions « Bientôt disponible » propres à Sovarka, le cadre de l'infobulle, la fenêtre du salon de coiffure (aucun catalogue) et 2 descriptions de salles du musée de Novomirsk ajoutées le 12/11 (#827) sans traduction. Garage, station, logements sociaux et noms de pièces communes : déjà traduits (ChatGPT). **Codé** :
   - nouveau catalogue `i18n/sovarka-infobulles-resources.js` (`RPSovarkaInfobullesI18n`), en neuf langues : **104 textes** (102 descriptions + 2 « Bientôt »), plus **5 mots du cadre** (Gain, Risque, Reussite, Sante, Moral) et **15 textes du salon**. Soit 124 clés, 1 116 entrées, 992 traductions nouvelles ;
   - **+2 descriptions** (Bataille du Fleuve, Grand Incendie) dans `i18n/sovarka-descriptions-resources.js` ;
