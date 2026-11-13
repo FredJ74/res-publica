@@ -1,0 +1,25 @@
+name: Descriptions communes — réemploi des traductions existantes
+on:
+  pull_request:
+    paths: ['i18n/infobulles-communes-resources.js', 'i18n/republia-infobulles-resources.js', 'i18n/order-catalogues-config.js', 'outils/bancs/*communes-partage*', '.github/workflows/i18n-communes-partage.yml']
+  push:
+    branches: [main]
+    paths: ['i18n/infobulles-communes-resources.js', 'i18n/republia-infobulles-resources.js', 'i18n/order-catalogues-config.js', 'outils/bancs/*communes-partage*', '.github/workflows/i18n-communes-partage.yml']
+permissions:
+  contents: read
+jobs:
+  partage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - run: node --test outils/bancs/banc-i18n-communes-partage-20261113.cjs outils/bancs/banc-audit-i18n-global.cjs outils/bancs/test-i18n-infobulles-communes-20261113.mjs outils/bancs/test-i18n-republia-infobulles-politiques-20261113.cjs outils/bancs/test-i18n-sovarka-infobulles-20261113.mjs outils/bancs/banc-i18n-editorial.cjs
+      - run: npm install --ignore-scripts --no-package-lock --prefix "$RUNNER_TEMP/shared-browser" playwright@1.62.1
+      - name: Chromium — réemploi, trois pays, neuf langues, mobile et bureau
+        run: NODE_PATH="$RUNNER_TEMP/shared-browser/node_modules" CHROMIUM_PATH=/usr/bin/google-chrome node --test outils/bancs/banc-i18n-communes-partage-navigateur-20261113.cjs

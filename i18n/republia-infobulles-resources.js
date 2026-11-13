@@ -1,4 +1,4 @@
-/* Républia — catalogue complet des 189 descriptions propres au pays (13/11/2026).
+/* Républia — catalogue complet des 171 descriptions du catalogue national (13/11/2026).
  * Texte original strictement issu de data.js ; colonnes fr,en,es,zh-TW,ru,ko,ar,pt-BR,de.
  * Données d'affichage seules : ni cout, ni PA, ni RPC ne sont modifiés.
  */
@@ -466,17 +466,6 @@ window.RP_INFOBULLES_REPUBLIA = [
     "Premiumstandort. Ihre Organisation erhält +10 POP und +5 INF."
   ],
   [
-    "Gérer votre location.",
-    "Manage your rental.",
-    "Gestionar tu alquiler.",
-    "管理您的租賃。",
-    "Управлять арендой.",
-    "임대 계약 관리.",
-    "إدارة عقد الإيجار.",
-    "Gerenciar seu aluguel.",
-    "Ihre Miete verwalten."
-  ],
-  [
     "+5 POP +3 INF à votre organisation.",
     "Your organization gains +5 POP and +3 INF.",
     "Tu organización obtiene +5 POP y +3 INF.",
@@ -541,17 +530,6 @@ window.RP_INFOBULLES_REPUBLIA = [
     "+2 POP و+1 INF و+2 DIS.",
     "+2 POP, +1 INF e +2 DIS.",
     "+2 POP, +1 INF und +2 DIS."
-  ],
-  [
-    "+12 INF +8 DIS +3 POP. Le bureau qui impressionne.",
-    "+12 INF, +8 DIS and +3 POP. An office that makes an impression.",
-    "+12 INF, +8 DIS y +3 POP. La oficina que impresiona.",
-    "+12 INF、+8 DIS、+3 POP。令人印象深刻的辦公室。",
-    "+12 INF, +8 DIS и +3 POP. Кабинет, который впечатляет.",
-    "INF +12, DIS +8, POP +3. 인상적인 사무실.",
-    "+12 INF و+8 DIS و+3 POP. مكتب يترك انطباعًا قويًا.",
-    "+12 INF, +8 DIS e +3 POP. Um escritório que impressiona.",
-    "+12 INF, +8 DIS und +3 POP. Ein beeindruckendes Büro."
   ],
   [
     "+6 INF +5 DIS +1 POP.",
@@ -708,39 +686,6 @@ window.RP_INFOBULLES_REPUBLIA = [
     "Stand der Beziehungen zu El Estado."
   ],
   [
-    "Naturalisation, demande en mariage, officialisation.",
-    "Naturalization, marriage proposal and official registration.",
-    "Naturalización, propuesta de matrimonio y formalización.",
-    "入籍、求婚與正式登記。",
-    "Натурализация, предложение руки и сердца и официальное оформление.",
-    "귀화, 청혼, 공식 등록.",
-    "التجنّس، وطلب الزواج، والتسجيل الرسمي.",
-    "Naturalização, pedido de casamento e formalização.",
-    "Einbürgerung, Heiratsantrag und amtliche Beurkundung."
-  ],
-  [
-    "Definir le taux de taxation locale.",
-    "Set the local tax rate.",
-    "Establecer el tipo impositivo local.",
-    "設定地方稅率。",
-    "Установить местную налоговую ставку.",
-    "지방세율을 설정합니다.",
-    "تحديد معدل الضريبة المحلية.",
-    "Definir a alíquota do imposto local.",
-    "Den örtlichen Steuersatz festlegen."
-  ],
-  [
-    "+10 ISN local. Preleve sur budget mairie.",
-    "+10 local ISN. Paid from the municipal budget.",
-    "+10 ISN local. Se descuenta del presupuesto municipal.",
-    "地方 ISN +10。由市政預算支付。",
-    "+10 местного ISN. Списывается из муниципального бюджета.",
-    "지역 ISN +10. 시청 예산에서 차감됩니다.",
-    "+10 ISN محلي. يُخصم من ميزانية البلدية.",
-    "+10 ISN local. Descontado do orçamento municipal.",
-    "+10 lokaler ISN. Wird aus dem Stadthaushalt bezahlt."
-  ],
-  [
     "Bilans officiels des mandats achevés des maires de la ville.",
     "Official records of completed terms served by the city's mayors.",
     "Informes oficiales de los mandatos concluidos de los alcaldes de la ciudad.",
@@ -774,17 +719,6 @@ window.RP_INFOBULLES_REPUBLIA = [
     "Pascale vereinbart einen Termin für den nächsten Tag und schickt sofort einen Brief. Das Büro ist am vereinbarten Tag ganztägig zugänglich."
   ],
   [
-    "Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.",
-    "View your balance, deposits, withdrawals, investments (min. 500 FR), due dates and loans on one screen.",
-    "Consulta saldo, depósitos, retiradas, inversiones (mín. 500 FR), vencimientos y préstamos en una sola pantalla.",
-    "在同一畫面查看餘額、存款、提款、投資（最低 500 FR）、到期日與貸款。",
-    "Баланс, вклады, снятие средств, инвестиции (мин. 500 FR), сроки платежей и кредиты на одном экране.",
-    "한 화면에서 잔액, 입금, 출금, 투자(최소 500 FR), 만기일 및 대출을 확인합니다.",
-    "الرصيد والإيداعات والسحوبات والاستثمارات (بحد أدنى 500 FR) ومواعيد الاستحقاق والقروض في شاشة واحدة.",
-    "Saldo, depósitos, saques, investimentos (mín. 500 FR), vencimentos e empréstimos em uma única tela.",
-    "Kontostand, Einzahlungen, Abhebungen, Anlagen (mind. 500 FR), Fälligkeiten und Kredite auf einem Bildschirm."
-  ],
-  [
     "Contracter un pret. Taux selon dossier.",
     "Take out a loan. Rate depends on your application.",
     "Solicitar un préstamo. El tipo depende de tu expediente.",
@@ -794,28 +728,6 @@ window.RP_INFOBULLES_REPUBLIA = [
     "الحصول على قرض. يعتمد معدل الفائدة على ملفك.",
     "Contratar um empréstimo. Taxa conforme a análise do seu cadastro.",
     "Einen Kredit aufnehmen. Der Zinssatz hängt von Ihrem Antrag ab."
-  ],
-  [
-    "Choisir un virement unique ou un virement récurrent (1 PA lors de sa confirmation).",
-    "Choose a one-off or recurring transfer (1 AP upon confirmation).",
-    "Elegir una transferencia única o periódica (1 PA al confirmarla).",
-    "選擇單次或定期轉帳（確認時消耗 1 行動點）。",
-    "Выбрать разовый или регулярный перевод (1 ОД при подтверждении).",
-    "일회성 또는 정기 이체를 선택합니다(확정 시 행동력 1).",
-    "اختيار تحويل لمرة واحدة أو تحويل دوري (1 نقطة عمل عند التأكيد).",
-    "Escolher transferência única ou recorrente (1 PA ao confirmar).",
-    "Einmalige oder regelmäßige Überweisung wählen (1 AP bei Bestätigung)."
-  ],
-  [
-    "Accéder à un coffre grâce à une autorisation du juge.",
-    "Access a safe-deposit box with a judge's authorization.",
-    "Acceder a una caja de seguridad con autorización judicial.",
-    "憑法官授權開啟保險箱。",
-    "Получить доступ к банковской ячейке по разрешению судьи.",
-    "판사의 허가를 받아 금고에 접근합니다.",
-    "الوصول إلى صندوق أمانات بإذن من القاضي.",
-    "Acessar um cofre com autorização judicial.",
-    "Mit richterlicher Genehmigung auf ein Schließfach zugreifen."
   ],
   [
     "Ouverture : versement de 10 000 FR conservé sur le compte ; solde minimum 10 000 FR. Dépôts, retraits et placements.",
@@ -1005,72 +917,6 @@ window.RP_INFOBULLES_REPUBLIA = [
     "Rohstoffe aus Ihrem Inventar an diesen Markt verkaufen."
   ],
   [
-    "Acte officiel, naturalisation, demande en mariage, officialisation.",
-    "Official document, naturalization, marriage proposal and formal registration.",
-    "Acto oficial, naturalización, propuesta de matrimonio y formalización.",
-    "官方文件、入籍、求婚及正式登記。",
-    "Официальный акт, натурализация, предложение брака и оформление.",
-    "공식 문서, 귀화, 청혼 및 공식 등록.",
-    "وثيقة رسمية، وتجنّس، وطلب زواج، وتسجيل رسمي.",
-    "Ato oficial, naturalização, pedido de casamento e formalização.",
-    "Amtlicher Vorgang, Einbürgerung, Heiratsantrag und Beurkundung."
-  ],
-  [
-    "Le service des objets trouves. On ne sait jamais ce qui finit dans une boite en carton...",
-    "Lost property service. You never know what ends up in a cardboard box...",
-    "Objetos perdidos. Nunca se sabe qué acaba dentro de una caja de cartón...",
-    "失物招領處。永遠不知道紙箱裡最後會出現什麼……",
-    "Бюро находок. Никогда не знаешь, что окажется в картонной коробке...",
-    "분실물 보관소. 종이 상자에 무엇이 들어올지는 아무도 모릅니다…",
-    "مكتب المفقودات. لا أحد يعلم ما الذي قد ينتهي في صندوق كرتوني...",
-    "Achados e perdidos. Nunca se sabe o que acaba numa caixa de papelão...",
-    "Fundbüro. Man weiß nie, was am Ende in einem Karton landet ..."
-  ],
-  [
-    "Organigramme national ou municipal, en temps reel. Public et gratuit, aucun poste requis.",
-    "Live national or municipal organization chart. Public, free, no office required.",
-    "Organigrama nacional o municipal en tiempo real. Público y gratuito, sin necesidad de cargo.",
-    "即時國家或市政組織架構圖。公開免費，無須擔任任何職務。",
-    "Организационная схема страны или города в реальном времени. Открыто, бесплатно, должность не требуется.",
-    "실시간 국가 및 지방 조직도. 무료 공개이며 직책이 없어도 됩니다.",
-    "الهيكل التنظيمي الوطني أو البلدي لحظة بلحظة. عام ومجاني ولا يتطلب منصبًا.",
-    "Organograma nacional ou municipal em tempo real. Público e gratuito, sem exigir cargo.",
-    "Nationales oder städtisches Organigramm in Echtzeit. Öffentlich und kostenlos, kein Amt erforderlich."
-  ],
-  [
-    "Definir le taux de taxation locale. Impact direct sur les recettes et la popularite.",
-    "Set the local tax rate. Directly affects revenue and popularity.",
-    "Definir el tipo impositivo local. Afecta directamente a los ingresos y la popularidad.",
-    "設定地方稅率，直接影響收入與人氣。",
-    "Установить местную налоговую ставку. Прямо влияет на доходы и популярность.",
-    "지방세율을 설정합니다. 세수와 인기도에 직접적인 영향을 줍니다.",
-    "تحديد معدل الضريبة المحلية. يؤثر مباشرة في الإيرادات والشعبية.",
-    "Definir a alíquota local de impostos. Impacto direto na arrecadação e popularidade.",
-    "Den örtlichen Steuersatz festlegen. Direkte Auswirkungen auf Einnahmen und Beliebtheit."
-  ],
-  [
-    "Repartir les recettes fiscales locales entre Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal. Applique chaque nuit, credite directement leur caisse reelle.",
-    "Allocate local tax revenue among the Police Station, Multimodal Centre, Stadium, Market, Clinic and Court. Applied nightly and paid directly into each institution's actual funds.",
-    "Repartir los ingresos fiscales locales entre la Comisaría, el Centro Multimodal, el Estadio, el Mercado, el Dispensario y el Tribunal. Se aplica cada noche e ingresa directamente en sus cajas reales.",
-    "將地方稅收分配給警局、多式運輸中心、體育場、市場、診療所及法院。每晚執行，直接存入各機構實際金庫。",
-    "Распределять местные налоги между полицейским участком, транспортным центром, стадионом, рынком, диспансером и судом. Каждую ночь средства поступают в их реальные кассы.",
-    "지방세 수입을 경찰서, 복합 교통센터, 경기장, 시장, 진료소, 법원에 배분합니다. 매일 밤 각 기관의 실제 금고로 입금됩니다.",
-    "توزيع إيرادات الضرائب المحلية بين مركز الشرطة ومركز النقل المتعدد والملعب والسوق والمستوصف والمحكمة. يُطبّق كل ليلة وتُودع الأموال مباشرة في صناديقها الفعلية.",
-    "Distribuir a arrecadação local entre Delegacia, Centro Multimodal, Estádio, Mercado, Posto de Saúde e Tribunal. Aplicação noturna com crédito direto nas caixas reais.",
-    "Örtliche Steuereinnahmen auf Polizeiwache, Verkehrszentrum, Stadion, Markt, Ambulanz und Gericht verteilen. Jede Nacht werden die Beträge direkt den tatsächlichen Kassen gutgeschrieben."
-  ],
-  [
-    "Proposer un montant de l'enveloppe municipale « Subventions » a une organisation eligible de la commune. Elle a trois jours pour accepter ou refuser ; les fonds restent reserves jusque-la.",
-    "Offer an eligible local organization a grant from the municipal funding allocation. It has three days to accept or decline; the funds remain reserved until then.",
-    "Ofrecer una subvención municipal a una organización local que cumpla los requisitos. Tiene tres días para aceptarla o rechazarla; los fondos quedan reservados hasta entonces.",
-    "從市政「補助金」預算向符合資格的當地組織提出補助金額。該組織有三天接受或拒絕，期間資金保留。",
-    "Предложить подходящей местной организации субсидию из муниципального фонда. На принятие или отказ даётся три дня; деньги до этого зарезервированы.",
-    "지자체 보조금 예산에서 자격을 갖춘 지역 단체에 지원금을 제안합니다. 단체는 3일 이내에 수락하거나 거부하며, 그동안 자금이 예약됩니다.",
-    "اقتراح منحة من مخصصات البلدية لمنظمة محلية مؤهلة. أمامها ثلاثة أيام للقبول أو الرفض، وتظل الأموال محجوزة حتى ذلك الحين.",
-    "Oferecer uma subvenção municipal a uma organização elegível da cidade. Ela tem três dias para aceitar ou recusar; os recursos ficam reservados até lá.",
-    "Einer berechtigten örtlichen Organisation einen Zuschuss aus dem städtischen Fördertopf anbieten. Sie hat drei Tage Zeit zur Annahme oder Ablehnung; das Geld bleibt bis dahin reserviert."
-  ],
-  [
     "+10 ISN local. Deploiement de forces de l'ordre supplementaires. Preleve sur budget mairie.",
     "+10 local ISN. Deploy additional police forces. Paid from the municipal budget.",
     "+10 ISN local. Despliegue de fuerzas policiales adicionales. Se descuenta del presupuesto municipal.",
@@ -1124,17 +970,6 @@ window.RP_INFOBULLES_REPUBLIA = [
     "75 FR و2 نقاط عمل. إلى Luthecia أو Montrouge.",
     "75 FR. 2 PA. Para Luthecia ou Montrouge.",
     "75 FR. 2 AP. Nach Luthecia oder Montrouge."
-  ],
-  [
-    "150 FR. 1 PA. Intra-empire uniquement.",
-    "150 FR. 1 AP. Travel within the empire only.",
-    "150 FR. 1 PA. Solo dentro del imperio.",
-    "150 FR，1 行動點。僅限帝國境內。",
-    "150 FR. 1 ОД. Только внутри империи.",
-    "150 FR, 행동력 1. 제국 내부 이동만 가능합니다.",
-    "150 FR و1 نقطة عمل. داخل الإمبراطورية فقط.",
-    "150 FR. 1 PA. Somente dentro do império.",
-    "150 FR. 1 AP. Nur innerhalb des Reiches."
   ],
   [
     "100 FR. 5 PA. Transport inter-empire. Plus lent mais moins cher que l'avion.",
@@ -1709,28 +1544,6 @@ window.RP_INFOBULLES_REPUBLIA = [
     "Einen laufenden Vorvertrag an einen anderen Spieler abtreten oder eine angebotene Übertragung annehmen."
   ],
   [
-    "Dissout immédiatement votre mariage, sans l'accord de votre conjoint. Il/elle en sera informé(e) par mail. Action instantanée et irréversible.",
-    "Dissolve your marriage immediately without your spouse's consent. They will be notified by email. Instant and irreversible.",
-    "Disolver tu matrimonio inmediatamente sin el consentimiento de tu cónyuge. Se le notificará por correo. Acción instantánea e irreversible.",
-    "無須配偶同意即可立即解除婚姻，系統會寄送電子郵件通知對方。此操作立即生效且不可撤銷。",
-    "Немедленно расторгнуть брак без согласия супруга или супруги. Уведомление придёт по почте. Действие мгновенное и необратимое.",
-    "배우자 동의 없이 즉시 혼인 관계를 해소합니다. 배우자에게 이메일로 통보됩니다. 즉시 적용되며 되돌릴 수 없습니다.",
-    "إنهاء زواجك فورًا دون موافقة الزوج أو الزوجة. يُبلّغ الطرف الآخر بالبريد الإلكتروني. إجراء فوري لا رجعة فيه.",
-    "Dissolver seu casamento imediatamente sem o consentimento do cônjuge. A outra pessoa será informada por e-mail. Ação instantânea e irreversível.",
-    "Die Ehe sofort und ohne Zustimmung des Ehepartners auflösen. Er oder sie wird per E-Mail informiert. Sofort wirksam und unumkehrbar."
-  ],
-  [
-    "Rechercher une personne et obtenir l'extrait d'etat-civil/succession correspondant, authentifie par le notaire.",
-    "Search for a person and obtain the corresponding civil-status or inheritance extract, authenticated by the notary.",
-    "Buscar a una persona y obtener el extracto correspondiente del registro civil o sucesorio, autenticado por el notario.",
-    "查詢某人並取得經公證人認證的身分或繼承登記摘錄。",
-    "Найти человека и получить соответствующую выписку из реестра актов гражданского состояния или наследования, заверенную нотариусом.",
-    "인물을 검색하고 공증인이 인증한 민사 신분 또는 상속 기록 발췌본을 받습니다.",
-    "البحث عن شخص والحصول على مستخرج السجل المدني أو التركة المناسب، مصدّق من الكاتب بالعدل.",
-    "Buscar uma pessoa e obter o extrato correspondente de registro civil ou sucessão autenticado pelo tabelião.",
-    "Eine Person suchen und den notariell beglaubigten Auszug aus dem Personenstands- oder Nachlassregister erhalten."
-  ],
-  [
     "Déposer une demande d'asile auprès d'une ambassade. Réponse par courrier ; un réfugié ne peut pas être arrêté tant qu'il reste au Quartier des Ambassades.",
     "Apply for asylum at an embassy. The answer arrives by mail; a refugee cannot be arrested while remaining in the Embassy Quarter.",
     "Solicitar asilo en una embajada. Respuesta por correo; un refugiado no puede ser detenido mientras permanezca en el Barrio de las Embajadas.",
@@ -1773,17 +1586,6 @@ window.RP_INFOBULLES_REPUBLIA = [
     "تصنيع بأجر ثابت: 1 نقطة عمل و70 FR. يستهلك 5 وحدات كحول من مخزون المصنع لإنتاج 10 مطهّرات.",
     "Produção por salário fixo: 1 PA, 70 FR. Consome 5 álcool do estoque da fábrica e produz 10 desinfetantes.",
     "Fertigung gegen festen Lohn: 1 AP, 70 FR. Verbraucht 5 Alkoholeinheiten aus dem Fabriklager und erzeugt 10 Desinfektionsmittel."
-  ],
-  [
-    "Vendre à l'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.",
-    "Sell raw materials from your inventory to the factory for its production lines.",
-    "Vender a la fábrica las materias primas de tu inventario que necesitan sus líneas de producción.",
-    "將背包中的原材料出售給工廠，供生產線使用。",
-    "Продать фабрике из своего инвентаря сырьё, необходимое её производственным линиям.",
-    "생산 라인에 필요한 원자재를 인벤토리에서 공장에 판매합니다.",
-    "بيع المواد الخام اللازمة لخطوط إنتاج المصنع من مخزونك.",
-    "Vender à fábrica, do seu inventário, as matérias-primas necessárias às linhas de produção.",
-    "Der Fabrik Rohstoffe aus Ihrem Inventar verkaufen, die ihre Produktionslinien benötigen."
   ],
   [
     "Les postes de l'État et de l'armée tenus par des PNJ faute de joueur. Votre candidature est transmise au recruteur officiel.",

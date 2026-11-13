@@ -24,23 +24,20 @@ function orderDescs(country){
   for(const [r,room] of Object.entries({...(context.BUILDINGS[b]?.rooms||{}),...(c.roomsExtra||{})})){
    if(c.roomsExclues?.includes(r))continue;
    const ov=c.roomOverrides?.[r]||{};
-   for(const o of [...(ov.orders||room?.orders||[]),...(ov.ordersExtra||[])])if(o?.desc)d.add(o.desc);
+   for(const o of [...context.ordresDeclaresDeLaPiece(room,c,r),...(ov.ordersExtra||[])])if(o?.desc)d.add(o.desc);
   }
  }
  return d;
 }
-test('189 descriptions républicaines originales, prises dans les 189 descriptions propres à Républia',()=>{
+test('171 descriptions du catalogue Républia : françaises exactes et réellement affichées',()=>{
  const rep=orderDescs('republic'),sov=orderDescs('soviet'),spec=[...rep].filter(d=>!sov.has(d));
- // 190 depuis le 13/11 (Héros du Travail) : la liste du bureau du ministre de l'Économie collective est
- // désormais explicite, donc « préempter une entreprise », exclu en Sovarka, compte comme propre à Républia ;
- // sa traduction est dans le catalogue commun, les 189 lignes républicaines restent toutes dans cette liste.
- assert.equal(spec.length,190,'référence du lot restant');
+ assert.equal(spec.length,143,'inventaire réel après fusion des ordres');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
- assert.equal(rows.length,189);
- for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(spec.includes(line[0]),line[0]);}
- assert.equal(new Set(rows.map(l=>l[0])).size,189);
+ assert.equal(rows.length,171);
+ for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(rep.has(line[0]),line[0]);}
+ assert.equal(new Set(rows.map(l=>l[0])).size,171);
 });
-test('Les 189 lignes sont présentes en neuf langues, sans perte de chiffres, devises ou sigles',()=>{
+test('Les 171 lignes sont présentes en neuf langues, sans perte de chiffres, devises ou sigles',()=>{
  const rows=setup('republic','en').RP_INFOBULLES_REPUBLIA;
  for(const line of rows){
   for(let i=1;i<line.length;i++){

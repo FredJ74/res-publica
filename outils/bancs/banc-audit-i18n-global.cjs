@@ -149,3 +149,11 @@ test('variations : ajout, suppression, progrès de langue, changement d’exclus
   const after=audit.build(dir),delta=audit.compare(before,after);assert.equal(delta.added.length,1);assert.equal(delta.removed.length,2);assert.equal(delta.sameScope,true);
   after.policy.version++;assert.equal(audit.compare(before,after).sameScope,false);
 });
+test('inventaire actif : même fusion que le jeu, héritage, contexte, exclusions et ajouts',t=>{
+ const data=fs.readFileSync(path.join(root,'data.js'),'utf8'),start=data.indexOf('function ordresDeclaresDeLaPiece('),fn=data.slice(start,data.indexOf('\n}',start)+2);
+ const {dir}=fixture(t,{'data.js':fn+`\nconst BUILDINGS = {site:{rooms:{hall:{orders:[{fn:'heritage',desc:'Description héritée'},{fn:'retire',desc:'Description exclue'}]},cache:{orders:[{fn:'cache',desc:'Pièce exclue'}]}}}};
+const WORLD = {republic:{ville:{buildings:['site'],buildingContext:{site:{roomsExclues:['cache'],orders:[{fn:'contexte',desc:'Description du contexte'}],roomOverrides:{hall:{excludeOrders:['retire'],orders:[{fn:'ajout',desc:'Description ajoutée'}],ordersExtra:[{fn:'extra',desc:'Description supplémentaire'}]}}}}}}};`});
+ const r=audit.build(dir);assert.deepEqual(r.extractionErrors,[]);
+ const active=r.entries.filter(e=>e.occurrences.some(o=>o.kind==='active-order-desc')).map(e=>e.text).sort();
+ assert.deepEqual(active,['Description héritée','Description du contexte','Description ajoutée','Description supplémentaire'].sort(),JSON.stringify({sources:r.sourceFiles,entries:r.entries.map(e=>({text:e.text,kinds:e.occurrences.map(o=>o.kind)}))}));
+});
