@@ -55,7 +55,7 @@ mesure distincte des traductions, appliquée aux deux côtés de la comparaison.
 Les ressources disponibles, les textes uniques entièrement raccordés et les
 occurrences d’une fenêtre restent des mesures différentes. Un texte générique
 traduit ici peut rester français ailleurs et ne compte alors pas comme texte
-globalement couvert. Comparaison au même extracteur, main `d016dd8` : **+7 textes uniques entièrement raccordés et +39 mots source couverts** dans chacune des huit langues étrangères. Ressources correspondantes : +8 textes / +43 mots ; corpus identifié : +2 textes / +2 mots (formalisation des templates). Volume non confirmé : −37 mots. Le neuvième texte d’interface (chargement) est réutilisé ; le refus « Remplissez tous les champs. » reste encore français dans une autre fenêtre de messagerie et ne compte donc pas comme texte globalement couvert.
+globalement couvert. Comparaison au même extracteur, main `94d4631` : **+7 textes uniques entièrement raccordés et +39 mots source couverts** dans chacune des huit langues étrangères. Ressources correspondantes : +8 textes / +43 mots ; corpus identifié : +2 textes / +2 mots (formalisation des templates). Volume non confirmé : −37 mots. Le neuvième texte d’interface (chargement) est réutilisé ; le refus « Remplissez tous les champs. » reste encore français dans une autre fenêtre de messagerie et ne compte donc pas comme texte globalement couvert.
 
 Relecture native, visite avec personnage authentifié et appareil physique non
 effectués. Les autres messages serveur ou de messagerie restent hors de ce lot.
