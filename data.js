@@ -2492,6 +2492,13 @@ const WORLD = {
         },
         // Decor du marche interieur de Krasnov, distinct de la facade de rue.
         'marche': {
+          name: 'Marché de Krasnov',
+          persons: [{
+            name: 'Nina Gorbounova (PNJ)', role: 'Marchande du marché',
+            rel: 'neutral', job: 'commercant', profilId: 'nina_gorbounova',
+            photoUrl: 'images/Sovarka/Krasnov/Krasnov_marche_nina_gorbounova_portrait.webp',
+            photoPos: '50% 24%'
+          }],
           roomOverrides: {
             marche_ext: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp' }
           }
