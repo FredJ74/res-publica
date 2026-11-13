@@ -2335,12 +2335,23 @@ const WORLD = {
         'siege-renseignement': {
           name: "Direction du Renseignement de Sovarka",
           desc: "Un bloc de béton sans enseigne, aux fenêtres opaques. Chacun à Novomirsk sait ce qu'il abrite ; personne n'en parle à voix haute.",
-          persons: [{name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'}],
+          persons: [
+            {name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'},
+            {name: 'Elena Diamentevia (PNJ)', role: 'Agente d’accueil de la Direction du Renseignement', rel: 'neutral', job: 'accueil_renseignement'}
+          ],
           // Les images des 3 salles sont propres a Novomirsk, sans toucher aux
           // ordres, aux PNJ, aux permissions et aux autres empires.
           roomOverrides: {
             accueil_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_accueil.webp' },
-            salle_ecoutes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_ecoutes.webp' },
+            salle_ecoutes: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_ecoutes.webp',
+              excludeOrders: ['renseignement_militaire'],
+              orders: [{
+                fn: 'voler_archives_ecoute', label: 'Voler un rapport dans les archives',
+                pa: 2, cost: 0, type: 'illegal', icon: 'ti-file-search', successRate: 45,
+                desc: 'Dérober au hasard un rapport d’écoute de Novomirsk parmi ceux des 30 derniers jours. En cas d’échec : arrestation. En cas de réussite : une trace judiciaire subsiste.'
+              }]
+            },
             salle_interrogatoire_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_interrogatoire.webp' }
           }
         },
