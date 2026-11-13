@@ -65,3 +65,11 @@ test('portraits : 2 équipes × 4 rôles × 4 tenues', () => {
     for (const p of ['soviet', 'narco', 'republic', 'khalija']) assert.ok(fs.existsSync(`images/Sovarka/agents/agent-${e}-${r}-${p}.webp`), e + r + p);
   assert.match(m('20261113231000'), /agent_portrait_chemin\(ag\.equipe, ag\.role, ag\.pays_couverture\)/);
 });
+
+test('camion de Novomirsk : données seules sur le socle, images WebP présentes', () => {
+  const c = m('20261113232000');
+  assert.match(c, /'camion-soviet-caserne-novomirsk-1', 'soviet'/);
+  assert.match(c, /'ville_a', 'poste-vigilance-glaciale', 'salle_ecoute'/);
+  assert.match(c, /'ville_b', 'station-radar-krasnov', 'salle_ecoute'/);
+  for (const v of ['interieur', 'exterieur']) assert.ok(fs.existsSync(`images/Sovarka/Novomirsk/Novomirsk_camion_NAZ66_${v}.webp`));
+});
