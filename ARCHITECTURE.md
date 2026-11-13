@@ -35,6 +35,10 @@ peuvent porter un `descriptionKey` stable ; les matrices existantes gardent leur
 correspondance française, sans migration des données métier. Libellés (`i18nKey`),
 descriptions, gains/risques et réponses de fenêtres restent distincts.
 Voir [le contrat et les preuves](outils/audits/SOCLE-I18N-ORDRES-871.md).
+Les fenêtres se raccordent au moteur commun par `data-i18n`. Une notification
+locale à texte fixe peut être marquée après affichage avec
+`RPI18nPlateau.markToast` ; ses variables restent des données, et le prochain
+message supprime naturellement le marqueur. Aucun appel métier n’est rejoué.
 
 ## Le temps : une seule horloge
 

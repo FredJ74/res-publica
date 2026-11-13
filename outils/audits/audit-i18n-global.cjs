@@ -275,7 +275,7 @@ function build(root=ROOT, options={}) {
     walk(tree,block=>{if(block.type!=='BlockStatement')return;
       for(let i=1;i<block.body.length;i++){
         const first=expression(block.body[i-1]),next=expression(block.body[i]);
-        if(first?.callee?.name!=='showToast'||prop(next?.callee?.property)!=='toast'||!source.slice(next.callee.start,next.callee.end).includes('RPPlayerDirectoryI18n'))continue;
+        if(first?.callee?.name!=='showToast'||prop(next?.callee?.property)!=='markToast'||!source.slice(next.callee.start,next.callee.end).includes('RPI18nPlateau'))continue;
         const r=byKey.get(staticValue(next.arguments[0]));
         if(!r||shape(first.arguments[1])!==shape(next.arguments[1]))continue;
         if(normalize(symbolic(first.arguments[1]))!==normalize(r.fr.replace(/\{\{[^}]+\}\}/g,'{DYNAMIC}')))continue;
@@ -308,6 +308,8 @@ function build(root=ROOT, options={}) {
       // Key usages add a source occurrence directly; a literal key is never an untranslated text.
       const reg=byKey.get(raw);
       if(reg&&translated&&call?.arguments?.[0]===n){record(reg.fr,{file,line,kind:'explicit-key',certainty:loaded.has(file)?'static-render-path':'unlinked-source',domain:domain(file,reg.key),key:raw});return;}
+      // Le français de repli d'un appel à clé connue n'est pas un deuxième écran non traduit.
+      if(translated&&call?.arguments?.[0]!==n&&byKey.has(staticValue(call?.arguments?.[0])))return;
       const helper=helperKeys.get(callName)?.get(raw),helperReg=helper?.registration;
       if(helperReg&&call?.arguments?.[0]===n){record(helperReg.fr,{file,line,kind:'explicit-helper-key',certainty:loaded.has(file)?'static-render-path':'unlinked-source',domain:domain(file,helperReg.key),key:null,bindings:helper.bindings});return;}
       if(/console\.(log|warn|error|info|debug)/.test(source.slice(call?.start||0,call?.callee?.end||0)))return;

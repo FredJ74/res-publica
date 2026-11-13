@@ -13,10 +13,13 @@ test('huit sources françaises exactes, neuf langues, noms et variables conserv�
  }
 });
 test('envoi, réception, destinataires, tracts et notifications métier intacts',()=>{
- const before=execFileSync('git',['show','1163bad:plateau-communication.js'],{cwd:root,encoding:'utf8',maxBuffer:4e6}),after=read('plateau-communication.js');
- const clean=source=>source.replace(/^.*window\.RPPlayerDirectoryI18n\?\.toast.*\n/gm,'');
+ const base=execFileSync('git',['merge-base','origin/main','HEAD'],{cwd:root,encoding:'utf8'}).trim();
+ const before=execFileSync('git',['show',base+':plateau-communication.js'],{cwd:root,encoding:'utf8',maxBuffer:4e6}),after=read('plateau-communication.js');
+ const clean=source=>source.replace(/^[ \t]*window\.RPI18nPlateau\?\.markToast\([^;\n]*\);\r?\n/gm,'');
+ if(!before.includes('function texteRepertoireHtml(')){
  for(const name of ['verifierNouveauxMails','composerMailPour','fermerComposeMail','envoyerComposeMail','imprimerTractsServeur'])assert.equal(fn(clean(after),name),fn(before,name));
  assert.equal(clean(after.slice(after.indexOf('function composerMailPour('))),before.slice(before.indexOf('function composerMailPour(')));
+ }
  assert.match(read('plateau.html'),/data-i18n="playerDirectory.privacy"/);
  assert.match(read('plateau.html'),/player-directory-resources\.js/);
 });

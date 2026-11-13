@@ -94,7 +94,7 @@ test('HTML concaténé : texte et accessibilité conservés, balises/CSS exclus'
   assert.ok(!r.entries.some(e=>/padding:|<button|title=/.test(e.text)));assert.ok(r.dynamicSites.length>0);
 });
 test('un placeholder isolé n’est pas un texte et une notification marquée garde une preuve de raccordement',t=>{
-  const {dir}=fixture(t,{'plateau-test.js':`el.innerHTML='<span>'+nom+'</span>'; function notify(){showToast('Titre','Partir',false);window.RPPlayerDirectoryI18n?.toast('ui.go','Partir');}`});
+  const {dir}=fixture(t,{'plateau-test.js':`el.innerHTML='<span>'+nom+'</span>'; function notify(){showToast('Titre','Partir',false);window.RPI18nPlateau?.markToast('ui.go','Partir');}`});
   const r=audit.build(dir);assert.ok(!r.entries.some(e=>e.text==='{DYNAMIC}'));assert.equal(r.entries.find(e=>e.text==='Partir').locales.en,'wired-unreviewed');
 });
 test('patch de catalogue après définition : pas de faux manque provenant d’une ancienne table',t=>{

@@ -155,7 +155,7 @@ async function envoyerComposeMail() {
   if (!state.char?.name) {
     showToast('Personnage non chargé',
       "Votre personnage n'est pas chargé : rechargez la page avant d'envoyer un message.", false);
-    window.RPPlayerDirectoryI18n?.toast('playerDirectory.missing',"Votre personnage n'est pas chargé : rechargez la page avant d'envoyer un message.");
+    window.RPI18nPlateau?.markToast('playerDirectory.missing',"Votre personnage n'est pas chargé : rechargez la page avant d'envoyer un message.",undefined,'Personnage non chargé');
     return;
   }
   const to = document.getElementById('compose-mail-to').value.trim();
@@ -163,7 +163,7 @@ async function envoyerComposeMail() {
   const body = document.getElementById('compose-mail-body').value.trim();
   if (!to || !subject || !body) {
     showToast('Champs requis', 'Remplissez tous les champs.', false);
-    window.RPPlayerDirectoryI18n?.toast('playerDirectory.required','Remplissez tous les champs.');
+    window.RPI18nPlateau?.markToast('playerDirectory.required','Remplissez tous les champs.',undefined,'Champs requis');
     return;
   }
   if (typeof sendMail === 'function') {
@@ -175,7 +175,7 @@ async function envoyerComposeMail() {
     if (typeof sbSendMail === 'function') await sbSendMail(from, to, subject, body, time);
     addJournalEntry('Mail envoyé à ' + to + ' : "' + subject + '".', 'event-info');
     showToast('Mail envoyé', 'À ' + to + ' — "' + subject + '"', true);
-    window.RPPlayerDirectoryI18n?.toast('playerDirectory.sent','À '+to+' — "'+subject+'"',{to,subject});
+    window.RPI18nPlateau?.markToast('playerDirectory.sent','À '+to+' — "'+subject+'"',{to,subject},'Mail envoyé');
   }
   fermerComposeMail();
 }

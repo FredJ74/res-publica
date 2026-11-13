@@ -1248,5 +1248,6 @@
   const output=global.i18next?.t?.('toastTitles.'+originals[original],{lng,defaultValue:original});
   return typeof output==='string'&&output.trim() ? output : original;
  }
- global.RPToastI18n=Object.freeze({label});
+ function key(original){return typeof original==='string'&&Object.hasOwn(originals,original)?'toastTitles.'+originals[original]:null;}
+ global.RPToastI18n=Object.freeze({label,key});
 })(window);

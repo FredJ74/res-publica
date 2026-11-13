@@ -20,7 +20,7 @@ français, avant le premier affichage étranger, ce qui assure le repli françai
 Les noms, empires, villes, postes et valeurs dynamiques ne sont pas traduits.
 
 Les trois notifications continuent à recevoir leurs arguments français d’origine
-dans `showToast`. Un appel de présentation suivant marque uniquement ce texte s’il
+dans `showToast`. Le point commun `RPI18nPlateau.markToast` marque uniquement ce texte s’il
 est toujours affiché. Le prochain `textContent` d’une autre notification supprime
 naturellement le marqueur : aucune alerte ancienne ne peut revenir par une bascule.
 Le journal et tous les arguments d’envoi restent canoniques et inchangés.
@@ -55,7 +55,7 @@ mesure distincte des traductions, appliquée aux deux côtés de la comparaison.
 Les ressources disponibles, les textes uniques entièrement raccordés et les
 occurrences d’une fenêtre restent des mesures différentes. Un texte générique
 traduit ici peut rester français ailleurs et ne compte alors pas comme texte
-globalement couvert. Relevé chiffré ajouté après rebasage et audit.
+globalement couvert. Comparaison au même extracteur, main `d016dd8` : **+7 textes uniques entièrement raccordés et +39 mots source couverts** dans chacune des huit langues étrangères. Ressources correspondantes : +8 textes / +43 mots ; corpus identifié : +2 textes / +2 mots (formalisation des templates). Volume non confirmé : −37 mots. Le neuvième texte d’interface (chargement) est réutilisé ; le refus « Remplissez tous les champs. » reste encore français dans une autre fenêtre de messagerie et ne compte donc pas comme texte globalement couvert.
 
 Relecture native, visite avec personnage authentifié et appareil physique non
 effectués. Les autres messages serveur ou de messagerie restent hors de ce lot.

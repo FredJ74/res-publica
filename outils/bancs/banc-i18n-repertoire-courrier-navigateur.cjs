@@ -14,14 +14,14 @@ async function setup(page,original=false){
   window.RP_I18N_GAME_ENABLED=true;window.RPPlateauI18n={language:()=>i18next.language||'fr'};window.calls=[];
   window.sbListPersonnages=()=>{calls.push('list');return new Promise(r=>window.resolveList=r);};
   window.sendMail=()=>{calls.push('send');throw Error('Envoi involontaire');};window.sbSendMail=window.sendMail;
-  window.messages=[];window.journal=[];window.addJournalEntry=(...a)=>journal.push(a);window.showToast=(title,msg,success)=>{messages.push([title,msg,success]);document.getElementById('toast-result').textContent=title;document.getElementById('toast-sub').textContent=msg;};
+  window.messages=[];window.journal=[];window.addJournalEntry=(...a)=>journal.push(a);window.showToast=(title,msg,success)=>{messages.push([title,msg,success]);document.getElementById('toast-result').textContent=window.RPToastI18n?.label(title)||title;document.getElementById('toast-sub').textContent=msg;};
   window.fetch=()=>{calls.push('network');throw Error('Réseau involontaire');};
   window.players=[{name:"Camille d'Essai",country:'republic',poste:{name:'Poste de test'},domicile:{city:'capitale'}}];
   window.longPlayers=[{name:'PersonnageAvecUnNomDeTestExceptionnellementLongSansEspace',country:'republic',poste:{name:'PosteAvecUnIntituléTrèsLongPourLaVérificationMobile'},domicile:{city:'capitale'}}];
   document.getElementById('compose-mail-to').value='Camille';document.getElementById('compose-mail-subject').value='Sujet conservé';document.getElementById('compose-mail-body').value='Brouillon conservé';
   window.snapshot=()=>JSON.stringify({state,calls,to:document.getElementById('compose-mail-to').value,subject:document.getElementById('compose-mail-subject').value,body:document.getElementById('compose-mail-body').value});
  });
- for(const f of ['i18n/resources.js','i18n/plateau-resources.js','i18n/inventory-ui-resources.js','i18n/player-directory-resources.js','i18n/plateau-init.js'])await page.addScriptTag({content:read(f)});
+ for(const f of ['i18n/resources.js','i18n/plateau-resources.js','i18n/inventory-ui-resources.js','i18n/player-directory-resources.js','i18n/toast-resources.js','i18n/plateau-init.js'])await page.addScriptTag({content:read(f)});
  const source=original?execFileSync('git',['show','1163bad:plateau-communication.js'],{cwd:root,encoding:'utf8',maxBuffer:4e6}):read('plateau-communication.js');
  const names=original?['ouvrirRepertoirePJ','composerMailPour','fermerComposeMail','envoyerComposeMail']:['texteRepertoireHtml','repertoireActualiserTextes','ouvrirRepertoirePJ','composerMailPour','fermerComposeMail','envoyerComposeMail'];
  await page.addScriptTag({content:names.map(n=>fn(source,n)).join('\n')});
@@ -61,16 +61,16 @@ test('répertoire et courrier : 320/390/1280, neuf langues, chargement/liste/vid
   // Erreurs locales : la validation et ses appels demeurent ceux de la fonction de production.
   for(const key of ['missing','required']){
    await page.evaluate(async key=>{state.char.name=key==='missing'?'':'Moi';document.getElementById('compose-mail-to').value='';await envoyerComposeMail();window.before=snapshot();},key);
-   for(const l of locales){await page.evaluate(l=>i18next.changeLanguage(l),l);assert.equal(await page.locator('#toast-sub').textContent(),await page.evaluate(key=>i18next.t('playerDirectory.'+key),key));assert.equal(await page.evaluate(()=>snapshot()===before),true);}
+   for(const l of locales){await page.evaluate(l=>i18next.changeLanguage(l),l);assert.equal(await page.locator('#toast-sub').textContent(),await page.evaluate(key=>i18next.t('playerDirectory.'+key),key));assert.equal(await page.locator('#toast-result').textContent(),await page.evaluate(key=>RPToastI18n.label(key==='missing'?'Personnage non chargé':'Champs requis'),key));assert.equal(await page.evaluate(()=>snapshot()===before),true);}
   }
   // Voie de repli simulée : un seul envoi explicite, mêmes paramètres FR et aucun nouvel appel à la bascule.
   await page.evaluate(async()=>{
-   window.sendMail=undefined;window.sbSendMail=async(...args)=>calls.push(args);
+   window.sendMail=undefined;window.sbSendMail=async(...args)=>{calls.push(args);return {ok:true};};
    document.getElementById('compose-mail-to').value='Destinataire Test';document.getElementById('compose-mail-subject').value='Objet "gardé"';document.getElementById('compose-mail-body').value='Corps conservé';
    await envoyerComposeMail();window.before=snapshot();
   });
   assert.deepEqual(await page.evaluate(()=>calls.at(-1)),['Moi','Destinataire Test','Objet "gardé"','Corps conservé','Jour 1']);
-  for(const l of locales){await page.evaluate(l=>i18next.changeLanguage(l),l);assert.equal(await page.locator('#toast-sub').textContent(),await page.evaluate(()=>i18next.t('playerDirectory.sent',{values:{to:'Destinataire Test',subject:'Objet "gardé"'}})));assert.equal(await page.evaluate(()=>snapshot()===before),true);}
+  for(const l of locales){await page.evaluate(l=>i18next.changeLanguage(l),l);assert.equal(await page.locator('#toast-sub').textContent(),await page.evaluate(()=>i18next.t('playerDirectory.sent',{values:{to:'Destinataire Test',subject:'Objet "gardé"'}})));assert.equal(await page.locator('#toast-result').textContent(),await page.evaluate(()=>RPToastI18n.label('Mail envoyé')));assert.equal(await page.evaluate(()=>snapshot()===before),true);}
   await page.evaluate(()=>showToast('Autre titre','Autre notification',false));await page.evaluate(()=>i18next.changeLanguage('ar'));assert.equal(await page.locator('#toast-sub').textContent(),'Autre notification');
   assert.deepEqual(errors,[]);await page.close();await baseline.close();
  }}finally{await browser.close();}
