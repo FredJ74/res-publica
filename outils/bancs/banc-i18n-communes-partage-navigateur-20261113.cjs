@@ -1,10 +1,10 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{chromium}=require('playwright');
 const repository=path.resolve(__dirname,'../..'),root=process.env.COMMON_ASSET_DIR||repository,read=f=>fs.readFileSync(path.join(root,f),'utf8');
-const rows=JSON.parse(fs.readFileSync(path.join(repository,'outils/audits/I18N-COMMUNES-ECONOMIE-871-sources.json'),'utf8'));
+const rows=JSON.parse(fs.readFileSync(path.join(repository,process.env.COMMON_ROWS_FILE||'outils/audits/I18N-COMMUNES-ECONOMIE-871-sources.json'),'utf8'));
 const langs=['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de'];
 function fn(s,name){const i=s.indexOf('function '+name+'(');assert.ok(i>=0);return s.slice(i,s.indexOf('\n}\n',i)+3);}
-test('18 descriptions réutilisées : neuf langues, trois pays, 320/390/1280, RTL et dialogue sans acte',async()=>{
+test(rows.length+' descriptions réutilisées : neuf langues, trois pays, 320/390/1280, RTL et dialogue sans acte',async()=>{
  const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
  try{for(const width of [320,390,1280]){
   const page=await browser.newPage({viewport:{width,height:780},hasTouch:width<1280,isMobile:width<1280}),errors=[];page.on('pageerror',e=>errors.push(String(e)));await page.route('**/*',r=>r.abort());
@@ -26,7 +26,7 @@ test('18 descriptions réutilisées : neuf langues, trois pays, 320/390/1280, RT
     window.orders=rows.map((r,i)=>({fn:'common_'+i,label:'Ordre '+i,desc:r[0],cost:i%2?50:0,pa:i%2?2:0,type:'legal',successRate:100,...(i===1?{requiresPost:'president'}:{})}));
     window.room={name:'Salle fixture',orders};renderRoomActions(room,'fixture','fixture');window.snapshot=()=>JSON.stringify({state,calls,network,toasts,orders,draft:document.getElementById('draft').value});window.infoIndex=0;window.before=snapshot();window.nodes=[...document.querySelectorAll('.action-btn')];
    },country);
-   if(width<1280){await page.waitForFunction(()=>document.querySelectorAll('.rp-order-info-button').length===18);await page.locator('.rp-order-info-button').first().tap();}
+   if(width<1280){await page.waitForFunction(count=>document.querySelectorAll('.rp-order-info-button').length===count,rows.length);await page.locator('.rp-order-info-button').first().tap();}
    for(const [column,l]of langs.entries()){
     await page.evaluate(l=>i18next.changeLanguage(l),l);
     const data=await page.evaluate(async({column,mobile})=>{
