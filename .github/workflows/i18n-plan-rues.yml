@@ -1,0 +1,24 @@
+name: i18n — plan des rues en neuf langues
+on:
+  pull_request:
+    paths:
+      - 'plateau-plan-rues.js'
+      - 'i18n/navigation-resources.js'
+      - 'plateau.html'
+      - 'outils/bancs/banc-i18n-plan-rues-20261113.cjs'
+      - '.github/workflows/i18n-plan-rues.yml'
+permissions:
+  contents: read
+jobs:
+  plan-traduit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-plan-rues.js && node --check i18n/navigation-resources.js
+      - run: node --test outils/bancs/banc-i18n-plan-rues-20261113.cjs outils/bancs/test-plan-rues-20261109.mjs
+      - run: node outils/audits/audit-i18n-editorial.cjs > /tmp/audit-i18n-plan-rues.json
+      - run: git diff --check
