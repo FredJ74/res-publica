@@ -1,0 +1,1 @@
+{"name":"human-gambit-audit-i18n","version":"1.0.0","private":true,"engines":{"node":">=22"},"scripts":{"test":"node --test ../../bancs/banc-audit-i18n-global.cjs","audit":"node ../audit-i18n-global.cjs"},"dependencies":{"acorn":"8.19.0","parse5":"7.3.0"}}

@@ -11,6 +11,13 @@ Branche `chatgpt/i18n-plan-rues-20261113`. Le calcul et les déplacements des ru
 
 ## En cours
 
+### Audit global de l’internationalisation — Codex, 13/11/2026
+
+Branche `codex/audit-i18n-global-20261113`, PR à ouvrir. **Audit seulement**, aucun texte du jeu, catalogue, ordre, RPC, migration ou donnée PJ modifié. Script `outils/audits/audit-i18n-global.cjs`, tableau de bord Markdown/JSON et inventaires JSON compressés dans `outils/audits/i18n-global/`, CI dédiée. Mesure des textes uniques, occurrences, mots source, neuf langues et domaines ; ressources disponibles distinctes des raccordements prouvés. Les pourcentages sont des **planchers de preuves statiques sur corpus identifié, pas un taux certifié de tout le jeu** ; annotateurs DOM et clés dynamiques sous-détectés. Candidats/SQL/contexte IA explicitement séparés. Relevé Supabase en SELECT agrégé sur sept champs de référence, sans donnée de joueur ; volumes non additionnables au corpus.
+
+Tests locaux : **30/30** (15 contre-épreuves nouvelles, 15 contrôles existants) ; les 15 existants réussissent aussi sur main initial `c299c4c`. Deux régénérations : sept artefacts strictement identiques, variation nulle. Publication, CI distante, fusion et état Vercel restent à vérifier. Mode d’emploi et limites : `outils/audits/i18n-global/README.md`. Aucun des 189 textes Républia restant à traduire n’a été traduit.
+
+
 ### Descriptions tactiles et guillemets HTML — livrés le 13/11/2026
 **PR #855 fusionnée après autorisation expresse de Fred** malgré le contrôle SSM/Montrouge déjà rouge sur main, commit `d05740dd24b1c04225c06a70810d6fd28e26a2ac`. Vercel production `dpl_2Ny4NphzGNtVNQJR9gXhNva2bxC9` **READY** sur le même commit. Bouton ⓘ tactile de consultation des ordres, sans action/PA ni requête, contenu multilingue fourni par les catalogues #853 et #856. Suite ciblée et Chromium vertes avant fusion ; revue réelle PJ authentifiée et téléphone physique non faits.
 **PR #857 fusionnée**, commit `a14fd38ac17911c5bcdbbbced6c0e825af7f9969` ; Vercel production `dpl_9xe83C3dm1XAxMXCCA4mvQ42QxqU` **READY**. Correction de l'attribut HTML `title` qui tronquait deux descriptions contenant des guillemets droits ; messages bloqués inchangés, descripteur `data-rp-tip` intact, aucune modification métier. CI guillemets verte, CI descriptions tactiles verte avec Chromium 320/390/1280 et neuf langues, échec transverse SSM préexistant inchangé. Recette authentifiée, appareil physique et relecture native non faits. Audit : `outils/audits/ORDRES-INFO-TACTILE-20261113.md`.

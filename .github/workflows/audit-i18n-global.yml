@@ -1,0 +1,40 @@
+name: Audit internationalisation — mesures reproductibles
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ['*.js', '*.html', 'api/**', 'i18n/**', 'migrations/**', 'baseline/domaines/**', 'outils/audits/audit-i18n-global.cjs', 'outils/audits/i18n-global/**', 'outils/bancs/banc-audit-i18n-global.cjs', '.github/workflows/audit-i18n-global.yml']
+  push:
+    branches: [main]
+    paths: ['*.js', '*.html', 'api/**', 'i18n/**', 'migrations/**', 'baseline/domaines/**', 'outils/audits/audit-i18n-global.cjs', 'outils/audits/i18n-global/**', 'outils/bancs/banc-audit-i18n-global.cjs', '.github/workflows/audit-i18n-global.yml']
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: outils/audits/i18n-global/package-lock.json
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - name: Contre-épreuves et non-régression de l’extracteur
+        run: node --test outils/bancs/banc-audit-i18n-global.cjs
+      - name: Mesure et comparaison avec le dernier témoin versionné
+        run: node outils/audits/audit-i18n-global.cjs --output "$RUNNER_TEMP/hg-i18n" --previous outils/audits/i18n-global/tableau-de-bord.json
+      - name: Déterminisme de deux exécutions
+        run: |
+          node outils/audits/audit-i18n-global.cjs --output "$RUNNER_TEMP/hg-i18n-bis"
+          for f in tableau-de-bord.json inventaire.json.gz ressources.json.gz sources.json.gz exclusions-appliquees.json.gz priorites.json.gz TABLEAU-DE-BORD.md; do
+            cmp "$RUNNER_TEMP/hg-i18n/$f" "$RUNNER_TEMP/hg-i18n-bis/$f"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audit-internationalisation-${{ github.sha }}
+          path: ${{ runner.temp }}/hg-i18n/
+          retention-days: 30
