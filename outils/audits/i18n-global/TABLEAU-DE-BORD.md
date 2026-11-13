@@ -1,19 +1,19 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `9d21b7c5203db18c1f71cb61ff98aad7140f8501`. Empreinte du corpus : `98fec2432c16741d11291f794b546c72df2b08c52c0b2d0d9401f3408c0ce46b`.
+Base analysée : `eaec619775a1d05ea8fa73e0df782a40ef66d81d`. Empreinte du corpus : `ee8465814fc01c3a076030d4e886bbdbe98eabb4348fd2eeae89e024f6d60d97`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 
-**17383 textes distincts repérés**, 30744 occurrences dans les sources. 223 fichiers JS/HTML et 515 fichiers SQL analysés.
+**17394 textes distincts repérés**, 30756 occurrences dans les sources. 223 fichiers JS/HTML et 516 fichiers SQL analysés.
 
 ## Périmètre et certitude
 
 | Classe | Textes uniques | Mots source |
 |---|---:|---:|
 | static-render-path | 7565 | 50690 |
-| candidate-review | 7617 | 63726 |
-| server-source-review | 908 | 13567 |
-| ai-context-not-output | 1293 | 54765 |
+| candidate-review | 7620 | 63736 |
+| server-source-review | 911 | 13584 |
+| ai-context-not-output | 1298 | 55135 |
 
 Les taux suivants portent seulement sur `static-render-path` : un chemin de rendu est identifié, sans preuve que chaque état soit accessible en session. Les autres classes restent visibles, hors dénominateur. Une même chaîne est dédupliquée globalement ; ses occurrences gardent leur contexte. Une seule occurrence non prouvée suffit à empêcher sa certification complète.
 
@@ -80,7 +80,7 @@ Les descriptions communes sont présentes dans plusieurs empires : ne pas additi
 
 ## Catalogue central et autres ressources
 
-Le catalogue central expose **3490 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4441 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
+Le catalogue central expose **3496 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4447 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
 
 | Langue | Clés absentes | Variables incohérentes |
 |---|---:|---:|
@@ -99,17 +99,17 @@ Le catalogue central expose **3490 clés françaises**. Les tables locales, guid
 | Priorité | Textes candidats non entièrement prouvés | Usage |
 |---|---:|---|
 | 1 | 180 | Compréhension d’un ordre, d’un refus ou entrée dans le jeu |
-| 2 | 9907 | Commandes et messages de gameplay |
+| 2 | 9911 | Commandes et messages de gameplay |
 | 3 | 2937 | Compréhension d’une mission ou interaction narrative |
-| 4 | 2067 | Description ou repère de lieu |
+| 4 | 2069 | Description ou repère de lieu |
 
 Classement automatique à confirmer en jeu. `inventaire.json.gz` fournit texte, identifiant, fichier, ligne, pays et ressources candidates ; `priorites.json.gz` fournit les langues manquantes et les branchements à vérifier. Les descriptions Républia restantes ne sont pas traduites par cet audit.
 
 ### Exemples de cibles sans ressource confirmée (à vérifier avant traduction)
 
-- Priorité 1 — La session de ce navigateur n'est plus reconnue par le serveur. Rechargez la page : une nouvelle session sera ouverte et la creati — `creation.js:1256` (23 mots source ; identifiant `0992d6e654559b672aa6`).
-- Priorité 1 — Si ce personnage est le votre et que vous avez perdu l'acces, utilisez « Retrouver mon personnage » depuis l'accueil plutot que d' — `creation.js:1240` (23 mots source ; identifiant `c736a3a6c07b70a9d058`).
-- Priorité 1 — Retournez a l'accueil pour le reprendre. Pour en creer un autre, il faut d'abord detruire celui que vous possedez, depuis sa fiche — `creation.js:1246` (22 mots source ; identifiant `cc7faa7b891a4a7bedc5`).
+- Priorité 1 — La session de ce navigateur n'est plus reconnue par le serveur. Rechargez la page : une nouvelle session sera ouverte et la creati — `creation.js:1267` (23 mots source ; identifiant `0992d6e654559b672aa6`).
+- Priorité 1 — Si ce personnage est le votre et que vous avez perdu l'acces, utilisez « Retrouver mon personnage » depuis l'accueil plutot que d' — `creation.js:1251` (23 mots source ; identifiant `c736a3a6c07b70a9d058`).
+- Priorité 1 — Retournez a l'accueil pour le reprendre. Pour en creer un autre, il faut d'abord detruire celui que vous possedez, depuis sa fiche — `creation.js:1257` (22 mots source ; identifiant `cc7faa7b891a4a7bedc5`).
 - Priorité 2 — Sans déclaration préalable. Il faut être le chef d'un groupe d'au moins 10 PJ présents sur la place. Chaque participant fait gagne — `plateau-communication.js:2687` (68 mots source ; identifiant `3aa1f0b09eca4a8dcd9c`).
 - Priorité 2 — Vous engagez la responsabilité de votre gouvernement devant l'Assemblée Nationale (9 sièges de députés). Vote sous 48h réelles. En — `plateau-politique.js:10324` (59 mots source ; identifiant `05e32526bf0eeb1365bf`).
 - Priorité 2 — ACTE ILLEGAL. 300 FR et 3 PA sont preleves A LA TENTATIVE, reussie ou non. Si la corruption est decouverte, vous n'obtenez rien et — `plateau-justice-economie.js:14494` (54 mots source ; identifiant `fea7c948803a7ffe7803`).
@@ -117,8 +117,8 @@ Classement automatique à confirmer en jeu. `inventaire.json.gz` fournit texte, 
 - Priorité 3 — Thibault ? Ah oui, le père Thibault ! Bien sûr que je m'en souviens, on se croisait tout le temps au marché, avant. Une belle terr — `plateau-pnj.js:1636` (102 mots source ; identifiant `1c46f876a3c222deb97c`).
 - Priorité 3 — Ah, mes années à l'école... j'en ai vu passer, des enfants ! Thibault... Thibault... Attendez, laissez-moi réfléchir. Oui ! Une pe — `plateau-pnj.js:1626` (84 mots source ; identifiant `3b7ab222f61ad1d6e329`).
 - Priorité 4 — Je confirme disposer des droits nécessaires sur les images fournies, y compris les autorisations des personnes représentées, et ac — `plateau-commerce-pj.js:2429` (25 mots source ; identifiant `846851839ae60f450ae4`).
-- Priorité 4 — Acheter ce terrain (4 200 m² — 50 400 FR) — `data.js:6241` (9 mots source ; identifiant `3f38fd58b36e4f5a56b8`).
-- Priorité 4 — Acheter ce terrain (2 200 m² — 26 400 FR) — `data.js:6192` (9 mots source ; identifiant `649cad5cdcaf3717a419`).
+- Priorité 4 — Acheter ce terrain (4 200 m² — 50 400 FR) — `data.js:6248` (9 mots source ; identifiant `3f38fd58b36e4f5a56b8`).
+- Priorité 4 — Acheter ce terrain (2 200 m² — 26 400 FR) — `data.js:6199` (9 mots source ; identifiant `649cad5cdcaf3717a419`).
 
 ## Données serveur et limites
 

@@ -15,7 +15,7 @@ aucune erreur ne ressurgit au changement de langue. Le moteur existant suffit.
 AST entier de `creation.js` identique après retrait des seules métadonnées de
 présentation. Les six appels de message gardent exactement leur premier argument.
 Conditions, raisons de refus, email/mot de passe transmis, requêtes, session,
-verrou et navigation restent identiques. Français exact, onze parcours comparés
+verrou et navigation restent identiques. Français exact, douze parcours comparés
 avant/après main, y compris exceptions et retour normal. Aucun compte réel créé.
 
 Chromium : **351 bascules**, onze parcours terminés et deux attentes simulées,
@@ -26,6 +26,11 @@ bloqué. Après résolution, le bouton retrouve son libellé dans la langue cour
 Réouverture sans résurrection d’alerte, texte libre avec caractères HTML conservé.
 
 Les bancs recherche et confirmation sont rejoués (324 bascules et 108/972).
-Vérifications de connexion existantes, mesure au même extracteur, CI et production
-à compléter avant livraison. Relecture native, PJ réel et téléphone physique non
+Ancien banc de connexion : 12 tests verts. Suite ciblée : 39 tests Node verts.
+
+Même extracteur avant/après main `b656d95` : corpus et couverture inchangés,
+7 565 textes / 50 690 mots. Anglais : 1 001 textes / 12 171 mots raccordés
+(24,01 % des mots identifiés). Ce lot améliore le rafraîchissement réel de huit
+traductions existantes ; aucun gain artificiel de texte, ressource ou couverture.
+CI et production à compléter avant livraison. Relecture native, PJ réel et téléphone physique non
 réalisés. Aucune modification Supabase, migration, RPC ou réglage Auth.
