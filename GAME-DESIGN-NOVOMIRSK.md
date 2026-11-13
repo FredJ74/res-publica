@@ -420,12 +420,16 @@ accessibles après le tour des images. Restent la forêt profonde et les fermes,
 - Vol d'archives : **2 PA validés** ; jet **45 + (DIS − 50) ÷ 3 + (VOL − 8) + (DUP − 8)**, borné 5-85 % (plafond des
   caractéristiques à 16 : espion optimisé DIS 100 / VOL 16 / DUP 16 ≈ 78 %, moyen 45 %, maladroit ≈ 33 %). Puis les
   malus existants (ISN de la ville, hommes armés présents), dont le **total est plafonné à −33** (option A de Fred :
-  l'espion optimisé ne descend pas sous 45 %, l'amateur reste dissuadé). Non codé. Plafond appliqué **au vol
+  l'espion optimisé ne descend pas sous 45 %, l'amateur reste dissuadé). Plafond appliqué **au vol
   d'archives seulement** ; son extension à tous les actes illégaux est une **question ouverte**, Fred y réfléchit.
-- Repas chez l'habitant : **+1 PA** au prochain sommeil (et non +2), car la maison est un logement gratuit. Non codé.
+- Repas chez l'habitant : **+1 PA** au prochain sommeil (et non +2), car la maison est un logement gratuit.
 - Noms des habitants **validés** : Dolgor Tsybikova (Starovka), Stepan Kouznetsov (Krasnov).
 - Réaction de l'habitant à la bouteille : **écrite par l'IA (DeepSeek)**, comme les dialogues des PNJ, à la place de la
-  phrase fixe (coût jugé faible, effet bien meilleur). Non codé.
+  phrase fixe (coût jugé faible, effet bien meilleur).
+- **Codé le 13/11 au soir** (migration `20261113193000_relecture_fred_20261113`, appliquée ; banc vert) : formule du vol d'archives
+  et plafond des malus (vérifié au Poste de Vigilance Glaciale : espion optimisé 73 %, moyen 40 %, avec 5 de malus) ; repas
+  +1 PA ; réaction de l'habitant écrite par DeepSeek via `/api/chat?mode=trinquer` (un seul appel par bouteille, garanti par le
+  serveur ; si l'IA ne répond pas, la phrase fixe reste affichée).
 
 **Reste à coder** (lot suivant) : bons d'État (1), fermes, distillerie et fourreur (commerces), centres d'écoute
 (poste militaire « Poste de Vigilance Glaciale », station radar), maisons (hospitalité, beuverie, ragots), forêt

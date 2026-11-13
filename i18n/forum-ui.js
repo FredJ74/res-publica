@@ -919,7 +919,9 @@
     "orga_non": "✕ Refuser l'invitation",
     "greve_oui": "✓ Accepter",
     "greve_non": "✗ Refuser",
-    "ecrire_a": "✉ Écrire à cette personne"
+    "ecrire_a": "✉ Écrire à cette personne",
+    "premium_oui": "✓ Accepter l'option premium",
+    "premium_non": "✗ Refuser"
   },
   "en": {
     "audience_accorder": "✓ Grant the audience",
@@ -937,7 +939,9 @@
     "orga_non": "✕ Decline the invitation",
     "greve_oui": "✓ Accept",
     "greve_non": "✗ Decline",
-    "ecrire_a": "✉ Write to this person"
+    "ecrire_a": "✉ Write to this person",
+    "premium_oui": "✓ Accept the premium option",
+    "premium_non": "✗ Decline"
   },
   "es": {
     "audience_accorder": "✓ Conceder la audiencia",
@@ -955,7 +959,9 @@
     "orga_non": "✕ Rechazar la invitación",
     "greve_oui": "✓ Aceptar",
     "greve_non": "✗ Rechazar",
-    "ecrire_a": "✉ Escribir a esta persona"
+    "ecrire_a": "✉ Escribir a esta persona",
+    "premium_oui": "✓ Aceptar la opción premium",
+    "premium_non": "✗ Rechazar"
   },
   "zh-TW": {
     "audience_accorder": "✓ 批准接見",
@@ -973,7 +979,9 @@
     "orga_non": "✕ 拒絕邀請",
     "greve_oui": "✓ 接受",
     "greve_non": "✗ 拒絕",
-    "ecrire_a": "✉ 寫信給此人"
+    "ecrire_a": "✉ 寫信給此人",
+    "premium_oui": "✓ Aceptar la opción premium",
+    "premium_non": "✗ Rechazar"
   },
   "ru": {
     "audience_accorder": "✓ Назначить аудиенцию",
@@ -991,7 +999,9 @@
     "orga_non": "✕ Отклонить приглашение",
     "greve_oui": "✓ Принять",
     "greve_non": "✗ Отказать",
-    "ecrire_a": "✉ Написать этому человеку"
+    "ecrire_a": "✉ Написать этому человеку",
+    "premium_oui": "✓ Принять премиум-опцию",
+    "premium_non": "✗ Отказать"
   },
   "ko": {
     "audience_accorder": "✓ 면담 승인",
@@ -1009,7 +1019,9 @@
     "orga_non": "✕ 초대 거절",
     "greve_oui": "✓ 수락",
     "greve_non": "✗ 거절",
-    "ecrire_a": "✉ 이 사람에게 편지 쓰기"
+    "ecrire_a": "✉ 이 사람에게 편지 쓰기",
+    "premium_oui": "✓ 프리미엄 옵션 수락",
+    "premium_non": "✗ 거절"
   },
   "ar": {
     "audience_accorder": "✓ الموافقة على المقابلة",
@@ -1027,7 +1039,9 @@
     "orga_non": "✕ رفض الدعوة",
     "greve_oui": "✓ قبول",
     "greve_non": "✗ رفض",
-    "ecrire_a": "✉ مراسلة هذا الشخص"
+    "ecrire_a": "✉ مراسلة هذا الشخص",
+    "premium_oui": "✓ قبول الخيار المميز",
+    "premium_non": "✗ رفض"
   },
   "pt-BR": {
     "audience_accorder": "✓ Conceder a audiência",
@@ -1045,7 +1059,9 @@
     "orga_non": "✕ Recusar o convite",
     "greve_oui": "✓ Aceitar",
     "greve_non": "✗ Recusar",
-    "ecrire_a": "✉ Escrever para esta pessoa"
+    "ecrire_a": "✉ Escrever para esta pessoa",
+    "premium_oui": "✓ قبول الخيار المميز",
+    "premium_non": "✗ رفض"
   },
   "de": {
     "audience_accorder": "✓ Audienz gewähren",
@@ -1063,7 +1079,9 @@
     "orga_non": "✕ Einladung ablehnen",
     "greve_oui": "✓ Annehmen",
     "greve_non": "✗ Ablehnen",
-    "ecrire_a": "✉ Dieser Person schreiben"
+    "ecrire_a": "✉ Dieser Person schreiben",
+    "premium_oui": "✓ Premium-Option annehmen",
+    "premium_non": "✗ Ablehnen"
   }
 };
  for(const [locale,labels] of Object.entries(mailActions)){

@@ -1,3 +1,5 @@
+-- Registre Supabase : relecture_fred_appartements_sovarka_20261113193000 (APPLIQUÉE le 13/11/2026, NE PAS RÉAPPLIQUER).
+-- Fichier nommé sans « sovarka » : ses courriers (option premium) sont communs à tous les pays.
 -- Relecture de Fred du 13/11/2026 au soir (GAME-DESIGN-APPARTEMENTS.md « Choix de Claude » et
 -- GAME-DESIGN-NOVOMIRSK.md « Relecture de Fred (13/11/2026) »). Patchs EN PLACE, gardés : chaque
 -- remplacement vérifie que le texte attendu existe, sinon la migration s'arrête (rien n'est appliqué).

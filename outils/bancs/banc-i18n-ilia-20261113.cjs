@@ -43,11 +43,12 @@ test('français strictement identique au témoin original, catalogue absent et r
  for(const [k,v] of Object.entries(fr))assert.equal(fallback.iliaMuseeTexte(k),v,k);
 });
 test('énigme, données, serveur IA, coûts et appels protégés identiques au départ de main',()=>{
- // Comparer seulement les changements du chantier : les autres missions peuvent
- // légitimement faire évoluer ces fichiers sur main sans figer tout le dépôt.
+ // Preuve figée sur la PR #849 elle-même (13/11, Claude) : avant = 44c382f (main avant #849), après = 787f256
+ // (fusion). L'ancienne comparaison à merge-base(origin/main, HEAD) refusait toute PR ultérieure touchant
+ // api/chat.js, data.js ou une migration (même défaut que les bancs #852 et #855, corrigés de la même façon).
  const protectedFiles=['data.js','plateau-enigme-tresor-tsars.js','plateau-router.js','api/chat.js','api/_enigme-tresor-tsars.js','api/_pnj-personnalites.js','i18n/guide-musee-novomirsk-resources.js','migrations'];
- const base=execFileSync('git',['merge-base','origin/main','HEAD'],{cwd:root,encoding:'utf8'}).trim();
- assert.equal(execFileSync('git',['diff','--name-only',base,'--',...protectedFiles],{cwd:root,encoding:'utf8'}).trim(),'');
+ const base='44c382ff3b755994980248213a85ca6a18168da9',tete='787f2563236999754576876799b1088daca659f9';
+ assert.equal(execFileSync('git',['diff','--name-only',base,tete,'--',...protectedFiles],{cwd:root,encoding:'utf8'}).trim(),'');
  const source=read('plateau-guide-ilia.js');
  assert.deepEqual([...source.matchAll(/sbRpcVerdict\('([^']+)', \{\}/g)].map(m=>m[1]),['tresor_tsars_guide','guide_musee_dialogue_lire','guide_musee_dialogue_ouvrir']);
  const refresh=source.slice(source.indexOf('function iliaMuseeActualiserTextes'),source.indexOf('(window.RP_I18N_CHANGE_CALLBACKS'));
