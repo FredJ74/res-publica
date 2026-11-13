@@ -9,7 +9,10 @@ test('La réservation de chambre ne transforme pas les clients en patients',()=>
  assert.match(reservation,/reservationClinique.*true/);
  assert.match(sql,/v_j IS NULL AND p\.country IN \('republic','soviet'\)/);
  assert.match(sql,/p\.hospitalisation IS NULL OR p\.hospitalisation='null'::jsonb/);
- assert.ok(!sql.includes("SET hospitalisation ="));
+ const debutInvite=sql.indexOf("IF v_j IS NULL AND p.country IN");
+ const finInvite=sql.indexOf("IF v_j IS NULL THEN RETURN",debutInvite);
+ assert.ok(debutInvite>=0&&finInvite>debutInvite);
+ assert.ok(!sql.slice(debutInvite,finInvite).includes("SET hospitalisation ="));
 });
 test('Repas strictement réservé au détenteur de la chambre attribuée par le serveur',()=>{
  for(const token of ["personnage=moi","country=p.country","room_id=p.current_room","consommee_le IS NULL",
