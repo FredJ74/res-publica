@@ -1,0 +1,30 @@
+name: Novomirsk — Direction du renseignement
+on:
+  pull_request:
+    paths:
+      - 'data.js'
+      - 'plateau-politique.js'
+      - 'api/_pnj-personnalites.js'
+      - 'migrations/20261113220500_novomirsk_archives_renseignement.sql'
+      - 'migrations/20261113222000_sovarka_renseignement_ministeres.sql'
+      - 'outils/bancs/banc-direction-renseignement-novomirsk-20261113.cjs'
+      - '.github/workflows/novomirsk-direction-renseignement.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'data.js'
+      - 'plateau-politique.js'
+      - 'api/_pnj-personnalites.js'
+      - 'migrations/20261113220500_novomirsk_archives_renseignement.sql'
+      - 'migrations/20261113222000_sovarka_renseignement_ministeres.sql'
+      - 'outils/bancs/banc-direction-renseignement-novomirsk-20261113.cjs'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check api/_pnj-personnalites.js
+      - run: node --test outils/bancs/banc-direction-renseignement-novomirsk-20261113.cjs
