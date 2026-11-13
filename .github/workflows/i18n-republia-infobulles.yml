@@ -1,0 +1,31 @@
+name: i18n — descriptions politiques Républia (9 langues)
+on:
+  pull_request:
+    paths:
+      - 'i18n/republia-infobulles-resources.js'
+      - 'i18n/sovarka-infobulles-resources.js'
+      - 'plateau.html'
+      - 'outils/bancs/test-i18n-republia-infobulles-politiques-20261113.cjs'
+      - '.github/workflows/i18n-republia-infobulles.yml'
+  push:
+    branches: [main, chatgpt/i18n-republia-politiques-main-20261113]
+    paths:
+      - 'i18n/republia-infobulles-resources.js'
+      - 'i18n/sovarka-infobulles-resources.js'
+      - 'plateau.html'
+      - 'outils/bancs/test-i18n-republia-infobulles-politiques-20261113.cjs'
+permissions:
+  contents: read
+jobs:
+  republia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check i18n/republia-infobulles-resources.js && node --check i18n/sovarka-infobulles-resources.js
+      - run: node --test outils/bancs/test-i18n-republia-infobulles-politiques-20261113.cjs outils/bancs/test-i18n-infobulles-communes-20261113.mjs outils/bancs/test-i18n-sovarka-infobulles-20261113.mjs
+      - run: node outils/audits/audit-i18n-editorial.cjs > /dev/null
+      - run: git diff --check
