@@ -78,3 +78,11 @@ test('Six titres de menus traduits dans les neuf langues sans modifier les ordre
  w.RPPlateauI18n.language=()=> 'en';
  assert.equal(w.RPRoomActionsI18n.label('caserneBudget','Budget et stratégie'),'Budget and strategy');
 });
+
+test('Le PNJ commandant national de Sovarka est ajouté seulement si le poste est vacant',()=>{
+ const sql=fs.readFileSync('migrations/20261113230500_commandant_pnj_caserne_novomirsk.sql','utf8');
+ assert.match(sql,/NOT EXISTS \(\s*SELECT 1 FROM public\.postes_attribues\s*WHERE country='soviet' AND poste_id='commandant'/);
+ assert.match(sql,/NOT EXISTS \(\s*SELECT 1 FROM public\.titulaires_pnj\s*WHERE country='soviet' AND poste_id='commandant'/);
+ assert.match(sql,/Commandant Igor Saveliev/);
+ assert.match(sql,/ON CONFLICT \(id\) DO NOTHING/);
+});
