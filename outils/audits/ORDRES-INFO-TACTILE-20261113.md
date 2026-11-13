@@ -1,6 +1,6 @@
 # Descriptions des ordres accessibles au toucher
 
-13 novembre 2026. Base `main` `4d44222` (PR #853). Branche `codex/ordres-info-tactile-20261113`, [PR #855](https://github.com/FredJ74/res-publica/pull/855). Rebasée sur `3a6ecd2`, en conservant le plan des rues #854.
+13 novembre 2026. Base `main` `4d44222` (PR #853). Branche `codex/ordres-info-tactile-20261113`, [PR #855](https://github.com/FredJ74/res-publica/pull/855). Rebasée sur `3a6ecd2` (#854), puis `8d9dc22` (#856), en conservant le plan des rues et les 205 traductions communes de Claude.
 
 ## Audit et décision
 
@@ -22,10 +22,10 @@ Pas de modification des fonctions exécutant les ordres, tarifs, PA, devises, pr
 
 ## Vérifications
 
-- **35 tests ciblés verts** : source limitée à la présentation, catalogues protégés, infobulles et salon de Claude, libellés/paramètres des ordres, présentation mobile, objectifs et anti-double crédit, double tap Helvetia, audit éditorial, douze fonctions Vercel.
-- **8 bancs Chromium verts** : nouveau parcours tactile 320/390 px dans neuf langues (8 cas dont disabled, absence de description, gratuit/payant, bloqué et poste requis), bureau 1280 comparé à main, plus les 6 tests navigateur existants des infobulles/salon et transitions/scroll. Vrai renderer, vrai moteur i18next, CSS réels et vrai `plateau-mobile.js` ; transports et doOrder instrumentés. Aucune requête ou dépense sur les ouvertures/fermetures ; clic principal = exactement un appel avec les arguments d’origine.
-- Ouvertures répétées et double clic synthétique sur l’information, Entrée/Tab/Échap, langue pendant la lecture, RTL, russe/allemand, description avec guillemets intacte, absence de débordement horizontal, brouillon et fenêtre précédente conservés, retour du focus, listes renouvelées et fermeture de source disparue. Après suspension de session : ouvrir/fermer une description ne charge rien ; un clic sur le bouton principal reste intercepté par le garde existant.
-- Tous les `test-*.mjs` et le banc garage : **308 tests, 304 verts et quatre échecs identiques sur main et la branche**. JSON de preuve associé. Aucun nouvel échec.
+- **43 tests ciblés verts** : source limitée à la présentation, catalogues protégés, 205 descriptions communes de #856, infobulles et salon de Claude, libellés/paramètres des ordres, présentation mobile, objectifs et anti-double crédit, double tap Helvetia, audit éditorial, douze fonctions Vercel.
+- **11 tests Chromium verts** : nouveau parcours tactile 320/390 px dans neuf langues (9 cas dont les descriptions communes, disabled, absence de description, gratuit/payant, bloqué et poste requis), bureau 1280 comparé à main, plus les 9 tests navigateur existants des infobulles/salon et transitions/scroll. Vrai renderer, vrai moteur i18next, CSS réels et vrai `plateau-mobile.js` ; transports et doOrder instrumentés. Aucune requête ou dépense sur les ouvertures/fermetures ; clic principal = exactement un appel avec les arguments d’origine.
+- Ouvertures répétées et double clic synthétique sur l’information, Entrée/Tab/Échap, langue pendant la lecture, RTL, russe/allemand, description avec guillemets intacte, absence de débordement horizontal, brouillon et fenêtre précédente conservés, retour du focus, stabilisation du défilement après l’ajustement natif de focus/mise en page, listes renouvelées et fermeture de source disparue. Après suspension de session : ouvrir/fermer une description ne charge rien ; un clic sur le bouton principal reste intercepté par le garde existant.
+- Tous les `test-*.mjs` et le banc garage : **308 tests, 304 verts et quatre échecs identiques sur main et la branche**. JSON de preuve associé. Total ciblé : 54 tests verts. Aucun nouvel échec. Après rebasage sur #856 : 316 tests, 312 réussites et les quatre mêmes échecs sur les deux checkouts ; huit tests communs supplémentaires verts.
 - Commerce unifié : 34 tests, 19 verts, 15 échecs dans les décors existants ; même résultat sur main. Aucun correctif métier effectué.
 - Coque mobile historique : 21 tests, 19 verts, mêmes deux échecs sur main et la branche (témoin bureau et forum historique). JSON de contre-épreuve associé.
 

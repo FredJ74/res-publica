@@ -94,6 +94,33 @@
       }
     }
   },
-  "rebased_on": "3a6ecd231b466db630abb6d4f6b4f243c48050d6",
-  "tested_code_commit": "d02c58abf819cb37ee3570447ce90f2a6931cabc"
+  "rebased_on": "8d9dc2246fd24bdd06a12f81c691328df2b4c901",
+  "tested_code_commit": "d02c58abf819cb37ee3570447ce90f2a6931cabc",
+  "joint_validation": {
+    "base": "8d9dc2246fd24bdd06a12f81c691328df2b4c901",
+    "results": {
+      "main": {
+        "tests": 316,
+        "pass": 312,
+        "fail": 4,
+        "failures": [
+          "outils/bancs/test-audit-global-republia.mjs:41:1",
+          "outils/bancs/test-galeries-novomirsk-20261106.mjs:81:1",
+          "outils/bancs/test-musees-province-personnalites.mjs:1:1",
+          "outils/bancs/test-rpc-apres-lot-219.mjs:32:1"
+        ]
+      },
+      "branch": {
+        "tests": 316,
+        "pass": 312,
+        "fail": 4,
+        "failures": [
+          "outils/bancs/test-audit-global-republia.mjs:41:1",
+          "outils/bancs/test-galeries-novomirsk-20261106.mjs:81:1",
+          "outils/bancs/test-musees-province-personnalites.mjs:1:1",
+          "outils/bancs/test-rpc-apres-lot-219.mjs:32:1"
+        ]
+      }
+    }
+  }
 }

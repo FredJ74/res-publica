@@ -21,20 +21,21 @@ async function setup(page,original=false){
   window.doOrder=(...args)=>calls.push(args);window.showToast=(...args)=>toasts.push(args);window.showPostRequired=(...args)=>toasts.push(args);
   window.fetch=()=>{throw Error('Appel réseau inattendu');};window.sbRpcVerdict=()=>{throw Error('RPC inattendue');};window.sbSavePersonnage=()=>{throw Error('Sauvegarde inattendue');};
  });
- for(const p of ['i18n/resources.js','i18n/plateau-resources.js','i18n/orders-resources.js','i18n/order-variants-resources.js','i18n/ordres.js','i18n/sovarka-infobulles-resources.js'])await page.addScriptTag({content:read(p)});
+ for(const p of ['i18n/resources.js','i18n/plateau-resources.js','i18n/orders-resources.js','i18n/order-variants-resources.js','i18n/ordres.js','i18n/infobulles-communes-resources.js','i18n/sovarka-infobulles-resources.js'])await page.addScriptTag({content:read(p)});
  const pol=original?old('plateau-politique.js'):read('plateau-politique.js');
  await page.addScriptTag({content:fn(pol,'deviseDansTexte')+'\n'+fn(pol,'renderRoomActions')});
  await page.addScriptTag({path:path.join(assets,'i18n/plateau-init.js')});
  await page.evaluate(()=>{
-  const source='Location privative de 3 nuits';
+  const source=RPSovarkaInfobullesI18n.lignes.find(l=>l[0].startsWith('Location privative de 3 nuits'))[0];
   window.orders=[
    {fn:'louer_local',label:'Louer un appartement',desc:source,pa:1,cost:100,type:'legal',icon:'ti-home',successRate:100},
-   {fn:'sovarka_surveiller',label:'Faire surveiller un citoyen',desc:'Faire suivre un citoyen pendant 4 jours',pa:1,cost:0,type:'grey',icon:'ti-eye',successRate:70},
+   {fn:'sovarka_surveiller',label:'Faire surveiller un citoyen',desc:RPSovarkaInfobullesI18n.lignes.find(l=>l[0].startsWith('Faire suivre un citoyen pendant 4 jours'))[0],pa:1,cost:0,type:'grey',icon:'ti-eye',successRate:70},
    {fn:'consulter_fixture',label:'Consulter librement',desc:'Description "sans" gain ni risque.',pa:0,cost:0,type:'legal',icon:'ti-book',successRate:100},
    {fn:'payer_fixture',label:'Ordre payant avec un intitulé volontairement très long',desc:'Longue description. '.repeat(60),pa:2,cost:200,type:'legal',icon:'ti-coin',successRate:85},
    {fn:'bloque_fixture',label:'Ordre bientôt disponible',desc:'Description complète, conservée même pour un ordre bloqué.',bientot:'Bientôt disponible : les médicaments de la pharmacie seront définis prochainement.',pa:1,cost:25,type:'legal',icon:'ti-clock',successRate:80},
    {fn:'poste_fixture',label:'Ordre réservé',desc:'Description de l’ordre réservé.',requiresPost:'president',pa:1,cost:0,type:'legal',icon:'ti-user',successRate:100},
-   {fn:'vide_fixture',label:'Sans description',pa:0,cost:0,type:'legal',icon:'ti-info-circle',successRate:100}
+   {fn:'vide_fixture',label:'Sans description',pa:0,cost:0,type:'legal',icon:'ti-info-circle',successRate:100},
+   {fn:'commune_fixture',label:'Choisir une suite',desc:"Choisir parmi les suites disponibles de l'hotel.",pa:0,cost:0,type:'legal',icon:'ti-home',successRate:100}
   ];window.room={name:'Salle',orders};
   renderRoomActions(room,'fixture','salle');
   // Ordre réellement disabled : autre retour du renderer / interface existante.
@@ -50,13 +51,14 @@ test('Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/pay
  const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
  try{for(const width of [320,390]){
   const page=await browser.newPage({viewport:{width,height:700},hasTouch:true,isMobile:true});const errors=[];page.on('pageerror',e=>errors.push(String(e)));await setup(page);
-  await page.waitForFunction(()=>document.querySelectorAll('.rp-order-info-button').length===8);
+  await page.waitForFunction(()=>document.querySelectorAll('.rp-order-info-button').length===9);
   assert.equal(await page.evaluate(()=>originalButtons.every(b=>b===document.querySelectorAll('.action-btn')[[...originalButtons].indexOf(b)])),true);
   await page.evaluate(()=>{window.outsideInfo=0;document.addEventListener('pointerdown',e=>{if(e.target.closest('.rp-order-info-button,.rp-order-info-dialog'))outsideInfo++;},true);document.addEventListener('click',e=>{if(e.target.closest('.rp-order-info-button,.rp-order-info-dialog'))outsideInfo++;});});
   const before=await page.evaluate(()=>snapshot());
+  await page.locator('.rp-order-info-button').nth(2).tap();assert.ok((await page.locator('dialog .rp-order-info-content').textContent()).includes('Description "sans" gain ni risque.'));await page.locator('dialog button').click();
   for(const lang of langs){
    await page.evaluate(l=>i18next.changeLanguage(l),lang);
-   for(let i=0;i<8;i++){
+   for(let i=0;i<9;i++){
     const info=page.locator('.rp-order-info-button').nth(i);await info.tap();
     const d=page.locator('dialog[open]');await d.waitFor();
     const text=await d.locator('.rp-order-info-content').textContent();assert.ok(text.trim());
@@ -65,6 +67,7 @@ test('Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/pay
      const b=originalButtons[i],p=b.dataset.rpTip?JSON.parse(decodeURIComponent(b.dataset.rpTip)):null;
      return {title:b.title.replaceAll(' | ','\n\n'),blocage:p?.blocage||'',details:p?.details?RPSovarkaInfobullesI18n.infobulle(p.details).replaceAll(' | ','\n\n'):''};
     },i);
+    if([0,1,7].includes(i)){const translated=await page.evaluate(i=>RPSovarkaInfobullesI18n.desc(orders[i].desc),i);assert.ok(text.includes(translated));if(lang!=='fr')assert.notEqual(translated,await page.evaluate(i=>orders[i].desc,i));}
     assert.ok(text.includes(expected.title));if(expected.blocage)assert.ok(text.includes(expected.blocage));if(expected.details)assert.ok(text.includes(expected.details));
     if(i===2){assert.ok(text.includes('Description "sans" gain ni risque.'));assert.ok(!text.includes('Gain:')&&!text.includes('Risque:'));}
     assert.equal(await page.evaluate(()=>{const d=document.querySelector('dialog[open]'),r=d.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&d.scrollWidth<=d.clientWidth+1&&document.documentElement.scrollWidth<=innerWidth;}),true,'largeur '+width+' '+lang+' '+i);
@@ -89,7 +92,7 @@ test('Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/pay
   // Clic principal normal : exactement un appel et les arguments d'origine.
   await page.locator('.action-btn').filter({hasText:'Consulter librement'}).tap();
   assert.deepEqual(await page.evaluate(()=>calls),[['consulter_fixture',0,0,'Consulter librement','Description "sans" gain ni risque.',100]]);
-  const count=await page.locator('.rp-order-info-button').count();await page.evaluate(()=>renderRoomActions(room,'fixture','salle'));await page.waitForTimeout(20);assert.equal(await page.locator('.rp-order-info-button').count(),8);
+  const count=await page.locator('.rp-order-info-button').count();await page.evaluate(()=>renderRoomActions(room,'fixture','salle'));await page.waitForTimeout(20);assert.equal(await page.locator('.rp-order-info-button').count(),9);
   // Source remplacée pendant la lecture : fermer la description périmée.
   await page.locator('.rp-order-info-button').first().tap();await page.evaluate(()=>renderRoomActions(room,'fixture','salle'));await page.waitForFunction(()=>!document.querySelector('dialog[open]'));
   // Reprise suspendue : l'information ne lance pas de réconciliation serveur.

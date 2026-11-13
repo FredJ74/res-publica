@@ -17,6 +17,9 @@
   function descriptor(button){
     try{return JSON.parse(decodeURIComponent(button.getAttribute('data-rp-tip')||''));}catch(_){return null;}
   }
+  function restorePosition(){
+    for(const [element,x,y]of scrollers)if(element.isConnected){element.scrollLeft=x;element.scrollTop=y;}
+  }
   function refreshOpen(){
     if(!dialog?.open||!origin)return;
     const button=sources.get(origin);
@@ -38,6 +41,9 @@
       if(detail&&!parts.includes(detail))parts.push(detail);
     }
     content.textContent=[...new Set(parts)].join('\n\n').replaceAll(' | ','\n\n');
+    restorePosition();
+    const current=origin;
+    global.requestAnimationFrame(()=>{if(dialog.open&&origin===current)restorePosition();});
   }
   function createDialog(){
     if(dialog)return;
@@ -51,9 +57,8 @@
     dialog.append(heading,content,closeButton);doc.body.append(dialog);
     dialog.addEventListener('close',()=>{
       const previous=origin;origin=null;
-      for(const [element,x,y]of scrollers){if(element.isConnected){element.scrollLeft=x;element.scrollTop=y;}}
-      scrollers=[];
       if(previous?.isConnected)previous.focus({preventScroll:true});
+      restorePosition();scrollers=[];
     });
 
   }
@@ -64,7 +69,7 @@
     for(let e=info.parentElement;e;e=e.parentElement)if(e.scrollHeight>e.clientHeight||e.scrollWidth>e.clientWidth)scrollers.push([e,e.scrollLeft,e.scrollTop]);
     // Le dialogue natif reste au-dessus des fenêtres existantes, qui ne sont
     // ni remplacées ni fermées. Le navigateur rend leur contenu inerte.
-    dialog.showModal();refreshOpen();closeButton.focus({preventScroll:true});
+    dialog.showModal();refreshOpen();closeButton.focus({preventScroll:true});restorePosition();
   }
   function refresh(){
     if(!tactile.matches)return;

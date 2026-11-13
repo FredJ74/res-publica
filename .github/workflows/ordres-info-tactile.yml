@@ -26,7 +26,7 @@ jobs:
         run: |
           node --check plateau-ordres-info.js
           node --check plateau-politique.js
-          node --test outils/bancs/banc-ordres-info-tactile-20261113.cjs outils/bancs/test-i18n-sovarka-infobulles-20261113.mjs outils/bancs/banc-i18n-render-ordres.cjs outils/bancs/banc-mobile-piece-20261111.cjs outils/bancs/banc-objectifs-secrets-379.cjs outils/bancs/banc-mobile-helvetia-double-tap.cjs outils/bancs/banc-i18n-editorial.cjs outils/bancs/banc-vercel-douze-fonctions-20261111.cjs
+          node --test outils/bancs/banc-ordres-info-tactile-20261113.cjs outils/bancs/test-i18n-infobulles-communes-20261113.mjs outils/bancs/test-i18n-sovarka-infobulles-20261113.mjs outils/bancs/banc-i18n-render-ordres.cjs outils/bancs/banc-mobile-piece-20261111.cjs outils/bancs/banc-objectifs-secrets-379.cjs outils/bancs/banc-mobile-helvetia-double-tap.cjs outils/bancs/banc-i18n-editorial.cjs outils/bancs/banc-vercel-douze-fonctions-20261111.cjs
       - name: Chromium mobile 320/390 et bureau 1280, neuf langues
         env:
           NODE_PATH: ./outils/e2e/node_modules
