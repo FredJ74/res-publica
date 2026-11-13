@@ -361,7 +361,7 @@ async function sendMail(to, subject, body) {
     ? await resoudreIdentitePublication('compose-mail-auteur')
     : { authorName: state.char?.name || 'Anonyme', authorIsOrg: false, authorReal: state.char?.name || 'Anonyme', orgaId: null, orgIcon: null };
   if (identite.refuse) {
-    showToast('Action refusée', "Vous n'êtes plus habilité à envoyer au nom de cette organisation.", false);
+    showToast('Action refusée', "Vous n'êtes plus habilité à envoyer au nom de cette organisation.", false); window.RPI18nPlateau?.markToast("forumFeedback.notAuthorized", "Vous n'êtes plus habilité à envoyer au nom de cette organisation.", undefined, "Action refusée");
     return;
   }
   const from = identite.authorName;
@@ -371,7 +371,7 @@ async function sendMail(to, subject, body) {
   if (typeof sbSendMail === 'function') {
     mailId = await sbSendMail(from, to, subject, body, time, identite.authorReal, identite.orgaId, identite.orgIcon);
     if (!mailId) {
-      showToast('Erreur', "Le mail n'a pas pu être enregistré.", false);
+      showToast('Erreur', "Le mail n'a pas pu être enregistré.", false); window.RPI18nPlateau?.markToast("forumFeedback.mailNotSaved", "Le mail n'a pas pu être enregistré.", undefined, "Erreur");
       return;
     }
   } else {
@@ -524,7 +524,7 @@ async function ouvrirForumSurEditeur(forumId, titreSuggere) {
   if(!await confirmerAdhesionsForums())return;
   currentForumId = forumId || idForumLocal();
   if (!getForums()[currentForumId] || !canAccessForum(currentForumId)) {
-    showToast('Accès restreint', 'Ce forum n’est pas accessible depuis votre position ou votre organisation.', false);
+    showToast('Accès restreint', 'Ce forum n’est pas accessible depuis votre position ou votre organisation.', false); window.RPI18nPlateau?.markToast("forumFeedback.forumAccess", 'Ce forum n’est pas accessible depuis votre position ou votre organisation.', undefined, "Accès restreint");
     return;
   }
   currentTopicId = null;
@@ -572,12 +572,12 @@ async function ouvrirForumSurTopic(topicId) {
     }
   }
   if(!forumTrouve) {
-    showToast('Sujet indisponible','La lecture n’a pas permis de confirmer ce sujet. Réessayez.',false);
+    showToast('Sujet indisponible','La lecture n’a pas permis de confirmer ce sujet. Réessayez.',false); window.RPI18nPlateau?.markToast("forumFeedback.topicReadUnconfirmed", 'La lecture n’a pas permis de confirmer ce sujet. Réessayez.', undefined, "Sujet indisponible");
     return;
   }
   currentForumId = forumTrouve;
   if (!getForums()[currentForumId] || !canAccessForum(currentForumId)) {
-    showToast('Accès restreint', 'Ce forum n’est pas accessible depuis votre position ou votre organisation.', false);
+    showToast('Accès restreint', 'Ce forum n’est pas accessible depuis votre position ou votre organisation.', false); window.RPI18nPlateau?.markToast("forumFeedback.forumAccess", 'Ce forum n’est pas accessible depuis votre position ou votre organisation.', undefined, "Accès restreint");
     return;
   }
   const f = getForums()[currentForumId];
@@ -596,7 +596,7 @@ async function confirmerAdhesionsForums() {
   try{ok=await chargerOrganisations({lectureSeule:true});}catch(_){}
   if(!ok || identite!==JSON.stringify(JSON.parse(cleContexteAccesForums()).slice(0,6))) {
     if(identite===JSON.stringify(JSON.parse(cleContexteAccesForums()).slice(0,6)))
-      showToast('Forum indisponible','Les droits d’accès n’ont pas pu être vérifiés. Réessayez.',false);
+      { showToast('Forum indisponible','Les droits d’accès n’ont pas pu être vérifiés. Réessayez.',false); window.RPI18nPlateau?.markToast("forumFeedback.accessCheck", 'Les droits d’accès n’ont pas pu être vérifiés. Réessayez.', undefined, "Forum indisponible"); }
     return false;
   }
   synchroniserCachesForumsTerritoriaux();
@@ -1075,7 +1075,7 @@ function canAccessForum(forumId) {
 async function switchForum(id) {
   if(!await confirmerAdhesionsForums())return;
   if (!getForums()[id] || !canAccessForum(id)) {
-    showToast('Accès restreint', 'Ce forum n’est plus accessible.', false);
+    showToast('Accès restreint', 'Ce forum n’est plus accessible.', false); window.RPI18nPlateau?.markToast("forumFeedback.forumClosed", 'Ce forum n’est plus accessible.', undefined, "Accès restreint");
     renderForumModal();
     return;
   }
@@ -1529,7 +1529,7 @@ function richInsertImage() {
 
 function confirmerRichInsertImage() {
   const url = document.getElementById('richimg-url')?.value?.trim();
-  if (!url) { showToast('URL manquante', 'Indiquez une adresse d\'image.', false); return; }
+  if (!url) { showToast('URL manquante', 'Indiquez une adresse d\'image.', false); window.RPI18nPlateau?.markToast("forumFeedback.imageUrl", 'Indiquez une adresse d\'image.', undefined, "URL manquante"); return; }
   document.getElementById('modal-postes').classList.remove('open');
 
   // Insertion immediate, centree par defaut. L'alignement/legende s'ajustent ensuite
@@ -1574,7 +1574,7 @@ function confirmerRichInsertImage() {
     _richSavedRange = null;
     _richInsertTargetId = null;
   } else {
-    showToast('Erreur', 'Impossible de retrouver le champ de texte. Cliquez dans le message avant d\'insérer une image.', false);
+    showToast('Erreur', 'Impossible de retrouver le champ de texte. Cliquez dans le message avant d\'insérer une image.', false); window.RPI18nPlateau?.markToast("forumFeedback.imageTextField", 'Impossible de retrouver le champ de texte. Cliquez dans le message avant d\'insérer une image.', undefined, "Erreur");
   }
 }
 
@@ -1801,7 +1801,7 @@ async function resoudreIdentitePublication(fieldId) {
   // chef serait repose par un autre chemin.
   if (orgaFraiche.dissoute === true) {
     if (typeof showToast === 'function') {
-      showToast('Organisation dissoute', 'Cette organisation a été dissoute : elle ne peut plus s\'exprimer en son nom.', false);
+      showToast('Organisation dissoute', 'Cette organisation a été dissoute : elle ne peut plus s\'exprimer en son nom.', false); window.RPI18nPlateau?.markToast("forumFeedback.organizationDissolved", 'Cette organisation a été dissoute : elle ne peut plus s\'exprimer en son nom.', undefined, "Organisation dissoute");
     }
     return { refuse: true };
   }
@@ -1938,7 +1938,7 @@ async function submitEditPost() {
     : null;
 
   if (!result) {
-    showToast('Échec de la sauvegarde', 'La modification n\'a pas pu être enregistrée. Réessayez.', false);
+    showToast('Échec de la sauvegarde', 'La modification n\'a pas pu être enregistrée. Réessayez.', false); window.RPI18nPlateau?.markToast("forumFeedback.editNotSaved", 'La modification n\'a pas pu être enregistrée. Réessayez.', undefined, "Échec de la sauvegarde");
     return;
   }
 
@@ -1948,7 +1948,7 @@ async function submitEditPost() {
   forumView = 'topic';
   currentTopicId = editingTopicId;
   document.getElementById('forum-main').innerHTML = renderForumContent();
-  showToast('Modifié', 'Votre message a été mis à jour.', true);
+  showToast('Modifié', 'Votre message a été mis à jour.', true); window.RPI18nPlateau?.markToast("forumFeedback.updated", 'Votre message a été mis à jour.', undefined, "Modifié");
 }
 
 function quotePost(postIndex) {
@@ -1974,13 +1974,13 @@ function quotePost(postIndex) {
 // toujours actif) partagent renderRichEditor() avec ce formulaire.
 function showNewTopicForm() {
   if (currentForumId === 'presidence' && state.poste?.id !== 'president') {
-    showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet dans "La Présidence à la Nation".', false);
+    showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet dans "La Présidence à la Nation".', false); window.RPI18nPlateau?.markToast("forumFeedback.namedPresidency", 'Seul le Président peut ouvrir un sujet dans "La Présidence à la Nation".', undefined, "Accès restreint");
     return;
   }
   // Presse & Medias (correctif du 20 aout 2026) : meme garde que submitComposeCanvas() -- chemin
   // legacy non branche a un bouton actif, conserve par coherence.
   if (currentForumId === 'presse' && state.char?.career !== 'press') {
-    showToast('Accès restreint', 'Seuls les journalistes peuvent ouvrir un sujet ici.', false);
+    showToast('Accès restreint', 'Seuls les journalistes peuvent ouvrir un sujet ici.', false); window.RPI18nPlateau?.markToast("forumFeedback.journalists", 'Seuls les journalistes peuvent ouvrir un sujet ici.', undefined, "Accès restreint");
     return;
   }
   forumView = 'new-topic'; document.getElementById('forum-main').innerHTML = renderForumContent();
@@ -1990,7 +1990,7 @@ function showComposeCanvasForm() {
   // Meme garde-fou que showNewTopicForm (double verification : le bouton est deja masque par
   // la meme condition, mais on protege aussi l'appel direct de la fonction).
   if (currentForumId === 'presidence' && state.poste?.id !== 'president') {
-    showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet dans "La Présidence à la Nation".', false);
+    showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet dans "La Présidence à la Nation".', false); window.RPI18nPlateau?.markToast("forumFeedback.namedPresidency", 'Seul le Président peut ouvrir un sujet dans "La Présidence à la Nation".', undefined, "Accès restreint");
     return;
   }
   // Onboarding forum (17 aout 2026) : toute (ré)ouverture du compositeur repart désarmée, voir
@@ -2256,28 +2256,28 @@ function parseGameTime(str) {
 }
 
 async function submitNewTopic() {
-  if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) { showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', false); return; }
+  if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) { showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', false); window.RPI18nPlateau?.markToast("forumFeedback.hospitalDay", 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', undefined, "Hospitalisé(e)"); return; }
   if (currentForumId === 'presidence' && state.poste?.id !== 'president') {
-    showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet ici.', false);
+    showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet ici.', false); window.RPI18nPlateau?.markToast("forumFeedback.president", 'Seul le Président peut ouvrir un sujet ici.', undefined, "Accès restreint");
     return;
   }
   // Presse & Medias (correctif du 20 aout 2026) : meme garde que submitComposeCanvas() -- chemin
   // legacy non branche a un bouton actif, conserve par coherence.
   if (currentForumId === 'presse' && state.char?.career !== 'press') {
-    showToast('Accès restreint', 'Seuls les journalistes peuvent ouvrir un sujet ici.', false);
+    showToast('Accès restreint', 'Seuls les journalistes peuvent ouvrir un sujet ici.', false); window.RPI18nPlateau?.markToast("forumFeedback.journalists", 'Seuls les journalistes peuvent ouvrir un sujet ici.', undefined, "Accès restreint");
     return;
   }
   const titleEl = document.getElementById('new-topic-title');
   const contentEl = document.getElementById('new-topic-content');
   const title = titleEl?.value?.trim();
   let content = sanitizeRichHtml(contentEl?.innerHTML?.trim());
-  if (!title || !content) { showToast('Champs requis','Remplissez le titre et le message.',false); return; }
+  if (!title || !content) { showToast('Champs requis','Remplissez le titre et le message.',false); window.RPI18nPlateau?.markToast("forumFeedback.titleAndMessage", 'Remplissez le titre et le message.', undefined, "Champs requis"); return; }
   if (document.getElementById('new-topic-signature')?.checked) {
     content = sanitizeRichHtml(content + getSignatureHtml());
   }
   const identite = await resoudreIdentitePublication('new-topic-auteur');
   if (identite.refuse) {
-    showToast('Publication refusée', "Vous n'êtes plus le/la responsable de cette organisation.", false);
+    showToast('Publication refusée', "Vous n'êtes plus le/la responsable de cette organisation.", false); window.RPI18nPlateau?.markToast("forumFeedback.authorityLost", "Vous n'êtes plus le/la responsable de cette organisation.", undefined, "Publication refusée");
     return;
   }
   const { authorName, authorIsOrg, authorSecret, authorReal, orgaId: idOrga, orgIcon } = identite;
@@ -2308,10 +2308,10 @@ async function submitNewTopic() {
 }
 
 async function submitReply() {
-  if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) { showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', false); return; }
+  if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) { showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', false); window.RPI18nPlateau?.markToast("forumFeedback.hospitalDay", 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', undefined, "Hospitalisé(e)"); return; }
   const contentEl = document.getElementById('reply-content');
   let content = sanitizeRichHtml(contentEl?.innerHTML?.trim());
-  if (!content) { showToast('Message vide','Écrivez votre réponse avant de publier.',false); return; }
+  if (!content) { showToast('Message vide','Écrivez votre réponse avant de publier.',false); window.RPI18nPlateau?.markToast("forumFeedback.replyRequired", 'Écrivez votre réponse avant de publier.', undefined, "Message vide"); return; }
   if (document.getElementById('reply-signature')?.checked) {
     content = sanitizeRichHtml(content + getSignatureHtml());
   }
@@ -2328,19 +2328,19 @@ async function submitReply() {
   // chef d'organisation) est faite ICI, apres ce garde-fou de connexion mais avant tout appel
   // reseau d'ecriture -- aucun etat local modifie avant le succes reel de sbCreatePost().
   if (typeof sbCreatePost !== 'function') {
-    showToast('Connexion indisponible', 'Impossible de publier sans connexion à la base.', false);
+    showToast('Connexion indisponible', 'Impossible de publier sans connexion à la base.', false); window.RPI18nPlateau?.markToast("forumFeedback.publishConnection", 'Impossible de publier sans connexion à la base.', undefined, "Connexion indisponible");
     return;
   }
   const identite = await resoudreIdentitePublication('reply-auteur');
   if (identite.refuse) {
-    showToast('Publication refusée', "Vous n'êtes plus le/la responsable de cette organisation.", false);
+    showToast('Publication refusée', "Vous n'êtes plus le/la responsable de cette organisation.", false); window.RPI18nPlateau?.markToast("forumFeedback.authorityLost", "Vous n'êtes plus le/la responsable de cette organisation.", undefined, "Publication refusée");
     return;
   }
   const { authorName, authorIsOrg, authorSecret, authorReal, orgaId: idOrga, orgIcon } = identite;
   const publication=await forumPublierAvecJauges(topic.id,null,content,blocks,null,{idOrga,authorSecret,orgIcon});
   const postId=publication?.post;
   if (!postId) {
-    showToast('Échec de la publication', "La réponse n'a pas pu être enregistrée. Réessayez.", false);
+    showToast('Échec de la publication', "La réponse n'a pas pu être enregistrée. Réessayez.", false); window.RPI18nPlateau?.markToast("forumFeedback.replyNotSaved", "La réponse n'a pas pu être enregistrée. Réessayez.", undefined, "Échec de la publication");
     return;
   }
 
@@ -2382,15 +2382,15 @@ async function submitReply() {
 async function submitEditComposedPost(layout, content) {
   const topic = (FORUM_TOPICS[currentForumId] || []).find(t => t.id === editingTopicId);
   const post = topic ? (topic.posts.find(p => (p.id || '') === editingPostId) || topic.posts[parseInt(editingPostId)]) : null;
-  if (!topic || !post) { showToast('Message introuvable', "Impossible de retrouver le message à modifier.", false); return; }
+  if (!topic || !post) { showToast('Message introuvable', "Impossible de retrouver le message à modifier.", false); window.RPI18nPlateau?.markToast("forumFeedback.messageMissing", "Impossible de retrouver le message à modifier.", undefined, "Message introuvable"); return; }
 
   if (typeof sbEditPost !== 'function') {
-    showToast('Connexion indisponible', 'Impossible d\'enregistrer sans connexion à la base.', false);
+    showToast('Connexion indisponible', 'Impossible d\'enregistrer sans connexion à la base.', false); window.RPI18nPlateau?.markToast("forumFeedback.saveConnection", 'Impossible d\'enregistrer sans connexion à la base.', undefined, "Connexion indisponible");
     return;
   }
   const result = await sbEditPost(post.id, content, [], layout).catch(() => null);
   if (!result) {
-    showToast('Échec de la sauvegarde', "Les modifications n'ont pas pu être enregistrées. Réessayez.", false);
+    showToast('Échec de la sauvegarde', "Les modifications n'ont pas pu être enregistrées. Réessayez.", false); window.RPI18nPlateau?.markToast("forumFeedback.changesNotSaved", "Les modifications n'ont pas pu être enregistrées. Réessayez.", undefined, "Échec de la sauvegarde");
     return;
   }
 
@@ -2403,7 +2403,7 @@ async function submitEditComposedPost(layout, content) {
   editingPostId = null;
   forumView = 'topic';
   document.getElementById('forum-main').innerHTML = renderForumContent();
-  showToast('Modifié', 'Votre message a été mis à jour.', true);
+  showToast('Modifié', 'Votre message a été mis à jour.', true); window.RPI18nPlateau?.markToast("forumFeedback.updated", 'Votre message a été mis à jour.', undefined, "Modifié");
 }
 
 // Réponse composée dans un sujet existant (correctif bugs bêta forum) — branche dédiée de
@@ -2414,12 +2414,12 @@ async function submitEditComposedPost(layout, content) {
 // création de sujet. Rien de local n'est modifié si la sauvegarde échoue, même principe que
 // submitEditComposedPost et submitComposeCanvas (branche nouveau sujet).
 async function submitReplyComposed(layout, content) {
-  if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) { showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', false); return; }
+  if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) { showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', false); window.RPI18nPlateau?.markToast("forumFeedback.hospitalDay", 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', undefined, "Hospitalisé(e)"); return; }
   const topic = (FORUM_TOPICS[currentForumId] || []).find(t => t.id === currentTopicId);
-  if (!topic) { showToast('Sujet introuvable', 'Impossible de retrouver le sujet.', false); return; }
+  if (!topic) { showToast('Sujet introuvable', 'Impossible de retrouver le sujet.', false); window.RPI18nPlateau?.markToast("forumFeedback.topicMissing", 'Impossible de retrouver le sujet.', undefined, "Sujet introuvable"); return; }
 
   if (typeof sbCreatePost !== 'function') {
-    showToast('Connexion indisponible', 'Impossible de publier sans connexion à la base.', false);
+    showToast('Connexion indisponible', 'Impossible de publier sans connexion à la base.', false); window.RPI18nPlateau?.markToast("forumFeedback.publishConnection", 'Impossible de publier sans connexion à la base.', undefined, "Connexion indisponible");
     return;
   }
   // Identite de publication (17 aout 2026, publication au nom d'une organisation) : meme
@@ -2427,7 +2427,7 @@ async function submitReplyComposed(layout, content) {
   // precedent intacte, rien de local touche avant le succes reel de sbCreatePost().
   const identite = await resoudreIdentitePublication('compose-canvas-auteur');
   if (identite.refuse) {
-    showToast('Publication refusée', "Vous n'êtes plus le/la responsable de cette organisation.", false);
+    showToast('Publication refusée', "Vous n'êtes plus le/la responsable de cette organisation.", false); window.RPI18nPlateau?.markToast("forumFeedback.authorityLost", "Vous n'êtes plus le/la responsable de cette organisation.", undefined, "Publication refusée");
     return;
   }
   const { authorName, authorIsOrg, authorSecret, authorReal, orgaId: idOrga, orgIcon } = identite;
@@ -2436,7 +2436,7 @@ async function submitReplyComposed(layout, content) {
   const publication=await forumPublierAvecJauges(topic.id,null,content,[],layout,{idOrga,authorSecret,orgIcon});
   const postId=publication?.post;
   if (!postId) {
-    showToast('Échec de la publication', "La réponse n'a pas pu être enregistrée. Réessayez.", false);
+    showToast('Échec de la publication', "La réponse n'a pas pu être enregistrée. Réessayez.", false); window.RPI18nPlateau?.markToast("forumFeedback.replyNotSaved", "La réponse n'a pas pu être enregistrée. Réessayez.", undefined, "Échec de la publication");
     return;
   }
 
@@ -2491,7 +2491,7 @@ async function submitComposeCanvas() {
   // répondre à un sujet existant ou modifier son propre message n'a jamais été restreint à la
   // Présidence (ni submitReply ni submitEditPost ne l'étaient).
   if (!enEdition && !enReponse && currentForumId === 'presidence' && state.poste?.id !== 'president') {
-    showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet ici.', false);
+    showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet ici.', false); window.RPI18nPlateau?.markToast("forumFeedback.president", 'Seul le Président peut ouvrir un sujet ici.', undefined, "Accès restreint");
     return;
   }
   // Presse & Medias (correctif du 20 aout 2026) : lecture desormais publique (canAccessForum),
@@ -2500,7 +2500,7 @@ async function submitComposeCanvas() {
   // Tribune, aucune nouvelle notion inventee. Meme exception "reponse jamais restreinte" que
   // presidence ci-dessus.
   if (!enEdition && !enReponse && currentForumId === 'presse' && state.char?.career !== 'press') {
-    showToast('Accès restreint', 'Seuls les journalistes peuvent ouvrir un sujet ici.', false);
+    showToast('Accès restreint', 'Seuls les journalistes peuvent ouvrir un sujet ici.', false); window.RPI18nPlateau?.markToast("forumFeedback.journalists", 'Seuls les journalistes peuvent ouvrir un sujet ici.', undefined, "Accès restreint");
     return;
   }
 
@@ -2508,7 +2508,7 @@ async function submitComposeCanvas() {
   if (!enEdition && !enReponse) {
     const titleEl = document.getElementById('compose-canvas-title');
     title = titleEl?.value?.trim();
-    if (!title) { showToast('Titre requis', 'Donnez un titre à votre sujet avant de publier.', false); return; }
+    if (!title) { showToast('Titre requis', 'Donnez un titre à votre sujet avant de publier.', false); window.RPI18nPlateau?.markToast("forumFeedback.topicTitle", 'Donnez un titre à votre sujet avant de publier.', undefined, "Titre requis"); return; }
   }
 
   if (typeof rpCanvasSerializeCompose !== 'function') return;
@@ -2516,7 +2516,8 @@ async function submitComposeCanvas() {
   if (!layout.elements || layout.elements.length === 0) {
     showToast('Composition vide',
       enEdition ? "Ajoutez au moins une zone de texte ou une image avant d'enregistrer."
-        : (enReponse ? "Ajoutez au moins une zone de texte ou une image avant de publier votre réponse." : 'Ajoutez au moins une zone de texte ou une image avant de publier.'), false);
+        : (enReponse ? "Ajoutez au moins une zone de texte ou une image avant de publier votre réponse." : 'Ajoutez au moins une zone de texte ou une image avant de publier.'), false); window.RPI18nPlateau?.markToast(enEdition ? 'forumFeedback.emptyEdit' : (enReponse ? 'forumFeedback.emptyReply' : 'forumFeedback.emptyTopic'), enEdition ? "Ajoutez au moins une zone de texte ou une image avant d'enregistrer."
+        : (enReponse ? "Ajoutez au moins une zone de texte ou une image avant de publier votre réponse." : 'Ajoutez au moins une zone de texte ou une image avant de publier.'), undefined, "Composition vide");
     return;
   }
   const content = typeof rpCanvasBuildFallbackContent === 'function' ? rpCanvasBuildFallbackContent(layout) : '';
@@ -2533,7 +2534,7 @@ async function submitComposeCanvas() {
   const time = formatDateHeureJeu();
 
   if (typeof sbCreateTopic !== 'function' || typeof sbCreatePost !== 'function') {
-    showToast('Connexion indisponible', 'Impossible de publier sans connexion à la base.', false);
+    showToast('Connexion indisponible', 'Impossible de publier sans connexion à la base.', false); window.RPI18nPlateau?.markToast("forumFeedback.publishConnection", 'Impossible de publier sans connexion à la base.', undefined, "Connexion indisponible");
     return;
   }
   // Identite de publication (17 aout 2026, publication au nom d'une organisation) : meme
@@ -2541,7 +2542,7 @@ async function submitComposeCanvas() {
   // d'ecriture, aucun etat local touche si elle est refusee.
   const identite = await resoudreIdentitePublication('compose-canvas-auteur');
   if (identite.refuse) {
-    showToast('Publication refusée', "Vous n'êtes plus le/la responsable de cette organisation.", false);
+    showToast('Publication refusée', "Vous n'êtes plus le/la responsable de cette organisation.", false); window.RPI18nPlateau?.markToast("forumFeedback.authorityLost", "Vous n'êtes plus le/la responsable de cette organisation.", undefined, "Publication refusée");
     return;
   }
   const { authorName, authorIsOrg, authorSecret, authorReal, orgaId: idOrga, orgIcon } = identite;
@@ -2567,7 +2568,7 @@ async function submitComposeCanvas() {
   document.getElementById('forum-main').innerHTML = renderForumContent();
   addJournalEntry(`Vous avez créé le sujet "${escapeHtmlText(title)}" sur le forum (composition libre).`, 'event-info');
   if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(currentForumId);
-  showToast('Sujet publié', 'Votre sujet est en ligne.', true, true);
+  showToast('Sujet publié', 'Votre sujet est en ligne.', true, true); window.RPI18nPlateau?.markToast("forumFeedback.topicPublished", 'Votre sujet est en ligne.', undefined, "Sujet publié");
   // Onboarding forum (17 aout 2026) : validation UNIQUEMENT après succès réel Supabase confirmé
   // ci-dessus, ET compositeur réellement armé par l'onboarding, ET publication personnelle (pas
   // organisationnelle). Une publication organisationnelle pendant une session armée ne valide
@@ -3094,7 +3095,7 @@ function renderMailCompose(defaultTo = '', defaultSubject = '', defaultOrgaId = 
 
 let _mailEnvoiEnCours = false;
 function submitMail() {
-  if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) { showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', false); return; }
+  if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) { showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', false); window.RPI18nPlateau?.markToast("forumFeedback.hospitalDay", 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', undefined, "Hospitalisé(e)"); return; }
   // Verrou anti-double-envoi : quelle que soit la cause (double-clic, doublon DOM du
   // formulaire), on ignore tout appel suivant tant que le premier n'est pas termine.
   if (_mailEnvoiEnCours) return;
@@ -3109,7 +3110,7 @@ function submitMail() {
   const bodyEl = bodyEls[bodyEls.length - 1];
   const bodyText = bodyEl?.innerText?.trim();
   if (!to || !subject || !bodyText) {
-    showToast('Champs requis','Remplissez tous les champs.',false);
+    showToast('Champs requis','Remplissez tous les champs.',false); window.RPI18nPlateau?.markToast("playerDirectory.required", 'Remplissez tous les champs.', undefined, "Champs requis");
     _mailEnvoiEnCours = false;
     return;
   }
@@ -3137,7 +3138,7 @@ async function forumPublierAvecJauges(topic,titre,contenu,blocs,miseEnPage,ident
   // Controle du forum local juste avant l'envoi : un voyage peut rendre le
   // forum de l'editeur perime, meme si son affichage n'a pas encore change.
   if (!forumId || (forumId.startsWith('local_') && forumId !== idForumLocal(state.currentCity))) {
-    showToast('Forum local à rouvrir', 'La ville du forum a changé. Rouvrez le forum local pour publier dans la bonne ville.', false);
+    showToast('Forum local à rouvrir', 'La ville du forum a changé. Rouvrez le forum local pour publier dans la bonne ville.', false); window.RPI18nPlateau?.markToast("forumFeedback.localForumChanged", 'La ville du forum a changé. Rouvrez le forum local pour publier dans la bonne ville.', undefined, "Forum local à rouvrir");
     return null;
   }
   const v=await executerOrdreJaugesServeur('forum_publier',{forum:forumId,topic,titre,contenu,blocs,mise_en_page:miseEnPage,organisation:identite.idOrga||null,secret:!!identite.authorSecret,icone:identite.orgIcon||null});

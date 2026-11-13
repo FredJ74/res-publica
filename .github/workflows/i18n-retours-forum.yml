@@ -1,0 +1,25 @@
+name: Retours fixes forum et messagerie — neuf langues
+on:
+  pull_request:
+    paths: ['forum.js', 'i18n/toast-resources.js', 'i18n/forum-feedback-resources.js', 'i18n/plateau-init.js', 'outils/bancs/*retours-forum*', '.github/workflows/i18n-retours-forum.yml']
+  push:
+    branches: [main]
+    paths: ['forum.js', 'i18n/toast-resources.js', 'i18n/forum-feedback-resources.js', 'i18n/plateau-init.js', 'outils/bancs/*retours-forum*', '.github/workflows/i18n-retours-forum.yml']
+permissions:
+  contents: read
+jobs:
+  retours:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - run: node --test outils/bancs/banc-i18n-retours-forum.cjs outils/bancs/banc-audit-i18n-global.cjs outils/bancs/banc-i18n-editorial.cjs
+      - run: npm install --ignore-scripts --no-package-lock --prefix "$RUNNER_TEMP/forum-browser" playwright@1.62.1
+      - name: Chromium réel — 31 messages, neuf langues et 320/390/1280
+        run: NODE_PATH="$RUNNER_TEMP/forum-browser/node_modules" CHROMIUM_PATH=/usr/bin/google-chrome node --test outils/bancs/banc-i18n-retours-forum-navigateur.cjs

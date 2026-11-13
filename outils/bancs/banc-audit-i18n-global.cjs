@@ -41,6 +41,11 @@ test('ressource présente mais écran sans clé : aucune couverture revendiquée
   const r=audit.build(dir),e=r.entries.find(e=>e.text==='Partir');
   assert.equal(e.locales.en,'resource-review-binding');assert.equal(r.perLanguage.en.wiredTexts,0);
 });
+test('une clé dont le catalogue n’est pas chargé n’est pas une traduction raccordée',t=>{
+ const {dir}=fixture(t,{'i18n/unloaded-resources.js':`for(const locale of ['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de'])window.RP_I18N_RESOURCES[locale].translation.ui.unloaded=locale==='fr'?'Ressource non chargée':locale+' Not loaded';`,
+ 'plateau-test.js':`el.textContent=t('ui.unloaded',{defaultValue:'Ressource non chargée'});`});
+ const r=audit.build(dir);assert.notEqual(r.entries.find(e=>e.text==='Ressource non chargée').locales.en,'wired-unreviewed');
+});
 test('une occurrence non raccordée empêche de déclarer tout le texte traduit',t=>{
   const {dir}=fixture(t,{'plateau-test.js':"el.textContent = 'Partir';"});
   const r=audit.build(dir),e=r.entries.find(e=>e.text==='Partir');
@@ -96,6 +101,13 @@ test('HTML concaténé : texte et accessibilité conservés, balises/CSS exclus'
 test('un placeholder isolé n’est pas un texte et une notification marquée garde une preuve de raccordement',t=>{
   const {dir}=fixture(t,{'plateau-test.js':`el.innerHTML='<span>'+nom+'</span>'; function notify(){showToast('Titre','Partir',false);window.RPI18nPlateau?.markToast('ui.go','Partir');}`});
   const r=audit.build(dir);assert.ok(!r.entries.some(e=>e.text==='{DYNAMIC}'));assert.equal(r.entries.find(e=>e.text==='Partir').locales.en,'wired-unreviewed');
+});
+test('les variantes de notification sont prouvées seulement si les mêmes conditions sélectionnent clé et français',t=>{
+ const resources=Object.fromEntries(audit.LOCALES.map(l=>[l,{translation:{ui:{go:l==='fr'?'Partir':l+' Go',welcome:l==='fr'?'Bonjour':l+' Hello'}}}]));
+ const {dir}=fixture(t,{'i18n/resources.js':'window.RP_I18N_RESOURCES='+JSON.stringify(resources)+';','plateau-test.js':`function notify(){showToast('Titre',ok?'Partir':'Bonjour',false);window.RPI18nPlateau?.markToast(ok?'ui.go':'ui.welcome',ok?'Partir':'Bonjour');}`});
+ const a=audit.build(dir);for(const text of ['Partir','Bonjour'])assert.equal(a.entries.find(e=>e.text===text).locales.en,'wired-unreviewed');
+ fs.writeFileSync(path.join(dir,'plateau-test.js'),`function notify(){showToast('Titre',ok?'Partir':'Bonjour',false);window.RPI18nPlateau?.markToast(other?'ui.go':'ui.welcome',ok?'Partir':'Bonjour');}`);
+ const b=audit.build(dir);assert.notEqual(b.entries.find(e=>e.text==='Bonjour').locales.en,'wired-unreviewed');
 });
 test('patch de catalogue après définition : pas de faux manque provenant d’une ancienne table',t=>{
   const {dir}=fixture(t,{'i18n/resources.js':`window.RP_I18N_RESOURCES={fr:{translation:{go:'Partir'}},en:{translation:{go:'Go'}},es:{translation:{}}}; window.RP_I18N_RESOURCES.es.translation.go='Salir';`});
