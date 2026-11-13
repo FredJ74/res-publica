@@ -212,7 +212,7 @@
   const g=gains(p.g),r=gains(p.r);
   if(g)parts.push(cadre('gain','Gain')+': '+g);
   if(r)parts.push(cadre('risque','Risque')+': '+r);
-  parts.push(cadre('reussite','Reussite')+': '+p.s+'%');
+  if(p.s!==null&&p.s!==undefined)parts.push(cadre('reussite','Reussite')+': '+p.s+'%');
   return parts.join(' | ');
  }
  // Changement de langue : on repeint l'infobulle et le badge des boutons déjà affichés depuis leur
