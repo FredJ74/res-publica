@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "directories": {
+    "outils": "Outillage, tests et preuves ; jamais chargé par le jeu.",
+    "historique": "Archive, pas une source de contenu courant.",
+    "baseline/seeds": "Instantanés pouvant contenir des données de personnages ; aucun texte exporté.",
+    ".scratch": "Instantanés de travail pouvant contenir des données personnelles.",
+    "images": "Ressources binaires ; texte incrusté non reconnu, périmètre inconnu explicite.",
+    "Blender": "Sources graphiques, pas des textes rendus par le navigateur.",
+    "referentiel-game-design": "Documentation de conception, pas une interface du jeu."
+  },
+  "neutralExact": ["PA", "FR", "PSK", "HP", "OK", "NPC", "PNJ", "INF", "FOR", "CHA", "INT", "DEX", "DUP", "Moral", "Score", "Email", "PIN"],
+  "textOverrides": [],
+  "notes": "Les exclusions de texte exigent id, reason et source. Les noms propres ne sont pas exclus automatiquement. Les valeurs identiques au français restent à relire sauf neutralExact. Les exclusions de dossiers sont documentées, non assimilées à une couverture."
+}

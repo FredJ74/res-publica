@@ -1,0 +1,43 @@
+{
+  "checkedAt": "2026-11-13",
+  "project": "res-publica",
+  "access": "SELECT agrégats seulement ; aucune donnée de joueur",
+  "query": "WITH source_texts(source, texte) AS (\n SELECT 'catalogue_generiques.libelle',libelle FROM public.catalogue_generiques\n UNION ALL SELECT 'recettes_commerce.label',label FROM public.recettes_commerce\n UNION ALL SELECT 'recettes_commerce.description',description FROM public.recettes_commerce\n UNION ALL SELECT 'pnj_candidats_catalogue.accroche',accroche FROM public.pnj_candidats_catalogue\n UNION ALL SELECT 'pnj_referents_sujets_connus.libelle',libelle FROM public.pnj_referents_sujets_connus\n UNION ALL SELECT 'scandales_predefinis.texte',texte FROM public.scandales_predefinis\n UNION ALL SELECT 'sovarka_maisons_ragots.texte',texte FROM public.sovarka_maisons_ragots\n), distinct_texts AS (SELECT DISTINCT source,trim(texte) texte FROM source_texts WHERE trim(coalesce(texte,''))<>'')\nSELECT source,count(*)::int AS distinct_texts,sum(cardinality(regexp_split_to_array(texte,'[[:space:]]+')))::int AS whitespace_words FROM distinct_texts GROUP BY source ORDER BY source;",
+  "rows": [
+    {
+      "source": "catalogue_generiques.libelle",
+      "distinct_texts": 96,
+      "whitespace_words": 198
+    },
+    {
+      "source": "pnj_candidats_catalogue.accroche",
+      "distinct_texts": 30,
+      "whitespace_words": 323
+    },
+    {
+      "source": "pnj_referents_sujets_connus.libelle",
+      "distinct_texts": 8,
+      "whitespace_words": 37
+    },
+    {
+      "source": "recettes_commerce.description",
+      "distinct_texts": 24,
+      "whitespace_words": 258
+    },
+    {
+      "source": "recettes_commerce.label",
+      "distinct_texts": 90,
+      "whitespace_words": 484
+    },
+    {
+      "source": "scandales_predefinis.texte",
+      "distinct_texts": 10,
+      "whitespace_words": 177
+    },
+    {
+      "source": "sovarka_maisons_ragots.texte",
+      "distinct_texts": 0,
+      "whitespace_words": 0
+    }
+  ]
+}
