@@ -78,7 +78,7 @@ BEGIN
  RETURN jsonb_build_object('ok',true,'pa',v_pa,'cout',v_cost,'bonus_lendemain',v_bonus,'jour',v_j,
    'liquide',(SELECT liquide FROM public.personnages_donnees WHERE name = moi),
    'arg',(SELECT arg FROM public.personnages_donnees WHERE name = moi));
-END $function$
+END $function$;
 
 
 REVOKE ALL ON FUNCTION public.hospitalisation_repas_prendre() FROM PUBLIC, anon, service_role;
