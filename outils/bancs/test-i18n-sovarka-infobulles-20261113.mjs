@@ -23,7 +23,8 @@ function charger(pays, langue, extra = {}) {
 }
 const I = (pays, langue) => charger(pays, langue).RPSovarkaInfobullesI18n;
 
-// Mêmes règles que l'audit du 12/11 : ordres des pièces (gabarit, roomsExtra, overrides), hors pièces exclues.
+// Ordres réellement affichés (13/11, Héros du Travail) : même fusion que l'écran, ordresDeclaresDeLaPiece
+// (gabarit moins exclusions, plus ordres de la surcharge), hors pièces exclues.
 function ordresParPays() {
   const ctx = { console, state: { country: 'soviet' }, document: { getElementById: () => null, addEventListener() {}, querySelector: () => null }, localStorage: { getItem: () => null } };
   ctx.window = ctx; vm.createContext(ctx);
@@ -34,7 +35,7 @@ function ordresParPays() {
       for (const [r, room] of Object.entries({ ...(ctx.BUILDINGS[b]?.rooms || {}), ...(c.roomsExtra || {}) })) {
         if (c.roomsExclues?.includes(r)) continue;
         const ov = c.roomOverrides?.[r] || {};
-        for (const o of [...(ov.orders || room?.orders || []), ...(ov.ordersExtra || [])]) {
+        for (const o of [...ctx.ordresDeclaresDeLaPiece(room, c, r), ...(ov.ordersExtra || [])]) {
           if (o?.desc) descs.add(o.desc);
           if (typeof o?.bientot === 'string') bientot.add(o.bientot);
         }
@@ -44,9 +45,9 @@ function ordresParPays() {
   return { descs: [...sov.descs].filter(d => !rep.descs.has(d)), bientot: [...sov.bientot].filter(d => !rep.bientot.has(d)) };
 }
 
-test('104 lignes de neuf colonnes non vides, sans guillemet droit ni balise', () => {
+test('109 lignes de neuf colonnes non vides, sans guillemet droit ni balise', () => {
   const lignes = I('soviet', 'fr').lignes;
-  assert.equal(lignes.length, 104);
+  assert.equal(lignes.length, 109);
   for (const l of lignes) {
     assert.equal(l.length, 9, l[0]);
     for (const v of l) assert.ok(v.trim(), l[0]);

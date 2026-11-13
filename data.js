@@ -10788,6 +10788,41 @@ function slugPnjSovarka(nom) {
   }
 })();
 
+// HÉROS DU TRAVAIL ET BOÎTE AUX LETTRES DU PARTI (Fred, 13/11/2026, GAME-DESIGN-NOVOMIRSK.md).
+// Points = PA dépensés en production en Sovarka ; classement envoyé chaque nuit de dimanche à lundi au
+// ministre de l'Économie collective, qui décide (record en attente). Boîte : dénonciation anonyme,
+// 1 PA, registre lu par le chef du parti et ceux qu'il désigne. Le serveur décide de tout
+// (migration 20261113163000).
+(function () {
+  const ordre = (fn, label, pa, icon, desc) => ({ fn, label, pa, cost: 0, type: 'legal', icon, successRate: 100, desc });
+  const surcharge = (ville, batiment, piece) => {
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    if (!cite) return null;
+    cite.buildingContext = cite.buildingContext || {};
+    const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+    ctx.roomOverrides = ctx.roomOverrides || {};
+    return ctx.roomOverrides[piece] = ctx.roomOverrides[piece] || {};
+  };
+  const tableau = ordre('heros_travail_tableau', 'Héros du Travail', 0, 'ti-medal',
+    "La liste des camarades décorés Héros du Travail, avec la semaine et les points de leur record.");
+  for (const [ville, batiment, piece] of [['capitale', 'mairie-capitale', 'hall_mairie'], ['ville_a', 'mairie', 'accueil_mairie'], ['ville_b', 'mairie', 'accueil_mairie']]) {
+    const o = surcharge(ville, batiment, piece);
+    if (o) o.orders = (o.orders || []).concat([Object.assign({}, tableau)]);
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    const salle = cite && cite.buildingContext && cite.buildingContext[batiment] && cite.buildingContext[batiment].roomsExtra
+      && cite.buildingContext[batiment].roomsExtra.salle_partis;
+    if (salle) salle.orders = (salle.orders || []).concat([
+      ordre('parti_denoncer', 'Poster une dénonciation', 1, 'ti-mail-forward',
+        "Glisser une dénonciation anonyme dans la boîte aux lettres d'un parti. Texte libre ; votre nom n'est consigné nulle part. 1 PA."),
+      ordre('parti_boite_registre', 'Registre des dénonciations', 0, 'ti-mailbox',
+        "Réservé au chef du parti et aux camarades qu'il désigne : lire les dénonciations reçues. Seul le chef peut en supprimer et désigner qui y a accès.")
+    ]);
+  }
+  const min = surcharge('capitale', 'palais-gouvernement', 'bureau_min_fin');
+  if (min) min.orders = (min.orders || []).concat([ordre('heros_travail_classement', 'Héros du Travail', 0, 'ti-medal',
+    "Le classement du travail de la semaine (PA dépensés en production en Sovarka) et les records en attente. Vous décorez qui vous voulez, mais jamais en dessous du meilleur record en attente ; une décoration par semaine.")]);
+})();
+
 // TARIFS NATIONAUX (decision de Fred du 09/11/2026 au soir, reponse 6) : en Sovarka un PA vaut
 // moins, les prix courants de Republia sont divises par 2,5 environ (train 30, bus/taxi 60, soin 10,
 // transfert en clinique 400, licence 60, chambre 25 PSK ; policiers 20 et 40 par jour). La table

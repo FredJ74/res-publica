@@ -182,6 +182,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'sovarka_ordres_ministre')     { ouvrirSovarkaOrdresMinistre(); return; }
   if (fn === 'sovarka_offrir_cafe')         { ouvrirSovarkaOffrirCafe(); return; }
   if (fn === 'sovarka_extrait_parti')       { sovarkaExtraitParti(); return; }
+  // Héros du Travail et boîte aux lettres du Parti (Fred, 13/11/2026) : plateau-sovarka-heros-boite.js.
+  if (fn === 'heros_travail_tableau')      { ouvrirHerosTravailTableau(); return; }
+  if (fn === 'heros_travail_classement')   { ouvrirHerosTravailClassement(); return; }
+  if (fn === 'parti_denoncer')             { ouvrirPartiDenoncer(); return; }
+  if (fn === 'parti_boite_registre')       { ouvrirPartiRegistre(); return; }
   if (fn === 'sovarka_acte_officiel')       { doActeOfficiel(pa, cost); return; }
   if (fn === 'sovarka_acte_officiel_autorite') { ouvrirActeOfficielJuge(pa, cost); return; }
   if (fn === 'sovarka_terrain_municipal')   { ouvrirSovarkaTerrain(); return; }

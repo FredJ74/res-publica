@@ -17,7 +17,7 @@
    reponses et n'ecrit rien lui-meme.
    =========================================================================== */
 
-const EQUIPEMENTS_LIBELLES = { 'ordinateur-complet': 'Ordinateur', 'box-internet': 'Box internet', 'armoire_souvenirs': 'Armoire à souvenirs',
+const EQUIPEMENTS_LIBELLES = { 'ordinateur-complet': 'Ordinateur', 'box-internet': 'Box internet', 'armoire_souvenirs': 'Armoire à souvenirs', 'medaille_heros_travail': 'Médaille de Héros du Travail',
   'imprimante-papier': 'Imprimante papier', 'imprimante-3d': 'Imprimante 3D', 'peripherique-stockage': 'Périphérique de stockage', 'peripherique-reseau-intranet': 'Intranet' };
 const TRADING_VILLES = { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' };
 // Nom d'une ville d'entrepôt, quel que soit son pays (trading international, 05/11/2026).
@@ -38,6 +38,7 @@ const EQUIPEMENTS_REFUS = {
   pas_sur_place: 'Il faut être dans le bureau où il est installé.',
   inventaire_plein: 'Votre inventaire est plein.',
   pas_de_connexion: 'Il faut être dans votre bureau, avec votre ordinateur et votre box installés.',
+  medaille_logement_seulement: 'La médaille s\'installe seulement dans un logement.',
   pas_trader: 'Vous n\'êtes ni chef ni trader autorisé de cette organisation.',
   pa_insuffisants: 'Il vous faut 1 PA.',
   quantite_invalide: 'Quantité invalide.',

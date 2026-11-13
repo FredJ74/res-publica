@@ -772,6 +772,18 @@ function openPnjModal(encodedPnj, options = null) {
   const perso = typeof PNJ_PERSONALITIES !== 'undefined' ? PNJ_PERSONALITIES[pnjKey] : null;
   if (traitEl) traitEl.textContent = perso?.trait || '';
 
+  // Décorations du personnage (Héros du Travail, 13/11/2026) : lues sur le serveur, PJ comme PNJ.
+  if (traitEl && typeof herosDecorationsDans === 'function') {
+    let decoEl = document.getElementById('pnj-decorations');
+    if (!decoEl) {
+      decoEl = document.createElement('div');
+      decoEl.id = 'pnj-decorations';
+      decoEl.style.cssText = 'font-size:.72rem;color:#c9a227;margin-top:.2rem';
+      traitEl.parentNode.insertBefore(decoEl, traitEl.nextSibling);
+    }
+    decoEl.textContent = '';
+    herosDecorationsDans(decoEl, pnjKey);
+  }
   (async () => {
     if (typeof sbGetMariageActif !== 'function') return;
     const mariage = await sbGetMariageActif(pnjKey).catch(() => null);
