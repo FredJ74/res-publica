@@ -268,3 +268,7 @@ Suivi sur `codex/audit-i18n-livraison-20261113` : actualisation du relevé sur m
 - **Référentiel de game design mis à jour (Claude, 10/11 soir, PR #695, fusionnée)** — atlas Sovarka complété avec la partie 2 (#686) et complément E-16 des écarts (régression #688, contrôle `bancs-hors-production`, vieux bugs d'août). Catalogues non régénérés (voir chantier des matériels).
 
 - Chantiers plus anciens : voir `RELAIS-ARCHIVE-2026-11.md`.
+
+
+### 13/11/2026 — Direction du Renseignement Sovarka (PR #890)
+Décision de Fred consignée dans `GAME-DESIGN-NOVOMIRSK.md`. Branché dans `chatgpt/novomirsk-direction-renseignement-20261113` : Elena Diamentevia aux côtés de Viktor Muetov, deux profils DeepSeek habilités aux seules explications générales ; refus des questions classifiées. Suppression de « Renseignement militaire » de la salle d'écoutes et ajout du vol des archives de Novomirsk (même mécanique serveur que Starovka/Krasnov, salle seule). Renseignement militaire dans les bureaux des ministres Défense et Intérieur en Sovarka, depuis leurs propres caisses ; autres empires conservés. Migrations `20261113220500_novomirsk_archives_renseignement.sql` et `20261113222000_sovarka_renseignement_ministeres.sql`, prévalidées en transaction annulée, non encore appliquées à la date de cette note. Banc CI `banc-direction-renseignement-novomirsk-20261113.cjs` vert ; tests Chromium et déploiement à confirmer. Nouveaux ordres de signalement/surveillance proposés, non validés ni codés.

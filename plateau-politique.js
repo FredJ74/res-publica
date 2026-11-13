@@ -8624,11 +8624,16 @@ function ouvrirModalRevoquerMinistre(pa, cost) {
 // Rien de nouveau n'est construit ici : ce bouton appelle la MEME fonction que celui du suivi,
 // qui interroge la MEME RPC. Seule la profondeur change. L'acces depuis « Suivre une operation »
 // est conserve : il est legitime a cet endroit, et le supprimer ne rendrait service a personne.
+function peutDirigerRenseignement() {
+  return state.poste?.id === 'min_def'
+    || (state.country === 'soviet' && state.poste?.id === 'min_int');
+}
+
 function ouvrirRenseignementMilitaire() {
-  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  if (!peutDirigerRenseignement()) { showToast('Réservé aux ministres habilités au renseignement', '', false); return; }
   ouvrirPanneauFonction('Renseignement militaire', [
     { label: 'Lancer une opération de renseignement', pa: 3,
-      desc: 'Convoquer les quatre agents sous une couverture de votre choix. 3 PA et 500 FR prélevés sur la caisse du Ministère.',
+      desc: 'Convoquer les quatre agents sous une couverture de votre choix. 3 PA et 500 unités monétaires prélevées sur la caisse de votre ministère.',
       onclick: 'ouvrirConvocationRenseignement()' },
     { label: 'Suivre une opération', pa: 0,
       desc: 'Où sont vos agents, sous quelle couverture, combien de temps reste-t-il, et y mettre fin.',
@@ -8651,7 +8656,7 @@ function ouvrirRenseignementMilitaire() {
 let RP_COUVERTURE_CHOISIE = null;
 
 async function ouvrirConvocationRenseignement() {
-  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  if (!peutDirigerRenseignement()) { showToast('Réservé aux ministres habilités au renseignement', '', false); return; }
   RP_COUVERTURE_CHOISIE = null;
   document.getElementById('postes-modal-title').textContent = 'Lancer une opération de renseignement';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';

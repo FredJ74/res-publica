@@ -2194,7 +2194,8 @@ const WORLD = {
                               excludeOrders: ['lois_votees_an'],
                               // Registre de la cellule Balatov lisible par la Sécurité du Peuple (Fred, 08/11/2026).
                               // Surveillance d'un citoyen (Fred, 08/11/2026) : 4 jours, 2 PA, 150 PSK sur la caisse du ministère.
-                              orders: [{ fn: 'sovarka_signalements', label: 'Registre des signalements', pa: 0, cost: 0, type: 'legal', icon: 'ti-file-alert', successRate: 100, desc: "Le registre de la cellule de surveillance des partis du Capitaine Balatov : les députés signalés pour abstention. Aucun effet automatique : à vous d'en faire usage." },
+                              orders: [{ fn: 'renseignement_militaire', label: 'Renseignement militaire', pa: 0, cost: 0, type: 'grey', icon: 'ti-spy', successRate: 100, requiresPost: 'min_int', desc: "Convoquer une equipe sous couverture, ou suivre une operation en cours." },
+                                       { fn: 'sovarka_signalements', label: 'Registre des signalements', pa: 0, cost: 0, type: 'legal', icon: 'ti-file-alert', successRate: 100, desc: "Le registre de la cellule de surveillance des partis du Capitaine Balatov : les députés signalés pour abstention. Aucun effet automatique : à vous d'en faire usage." },
                                        { fn: 'sovarka_surveiller', label: 'Placer sous surveillance', pa: 2, cost: 0, type: 'legal', icon: 'ti-eye', successRate: 100, desc: "Faire suivre un citoyen pendant 4 jours : chaque matin, un rapport de tous ses déplacements et des personnes croisées. 150 PSK prélevés sur la caisse du ministère. La cible peut s'en rendre compte. Trois surveillances au plus en même temps." }] },
             bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_economie.webp',
                               excludeOrders: ['preempter_entreprise'] },
@@ -2335,12 +2336,23 @@ const WORLD = {
         'siege-renseignement': {
           name: "Direction du Renseignement de Sovarka",
           desc: "Un bloc de béton sans enseigne, aux fenêtres opaques. Chacun à Novomirsk sait ce qu'il abrite ; personne n'en parle à voix haute.",
-          persons: [{name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'}],
+          persons: [
+            {name: 'Sergent Viktor Muetov (PNJ)', role: 'Planton de la Direction du Renseignement', rel: 'neutral', job: 'planton_renseignement'},
+            {name: 'Elena Diamentevia (PNJ)', role: 'Agente d’accueil de la Direction du Renseignement', rel: 'neutral', job: 'accueil_renseignement'}
+          ],
           // Les images des 3 salles sont propres a Novomirsk, sans toucher aux
           // ordres, aux PNJ, aux permissions et aux autres empires.
           roomOverrides: {
             accueil_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_accueil.webp' },
-            salle_ecoutes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_ecoutes.webp' },
+            salle_ecoutes: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_ecoutes.webp',
+              excludeOrders: ['renseignement_militaire'],
+              orders: [{
+                fn: 'voler_archives_ecoute', label: 'Voler un rapport dans les archives',
+                pa: 2, cost: 0, type: 'illegal', icon: 'ti-file-search', successRate: 45,
+                desc: 'Dérober un rapport d’écoute au hasard parmi ceux des 30 derniers jours. Acte illégal : en cas d’échec, bagarre avec l’opérateur puis prison ; en cas de réussite, vous laissez une trace.'
+              }]
+            },
             salle_interrogatoire_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_interrogatoire.webp' }
           }
         },
