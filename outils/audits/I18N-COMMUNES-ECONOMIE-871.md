@@ -64,3 +64,9 @@ deux états ; aucune variation de méthode n’est ajoutée au gain. Voir le JSO
 
 51 contrôles Node et le banc Chromium sont verts localement. Les essais authentifiés,
 physiques et natifs restent non vérifiés. Statut CI/production : PR et relais.
+
+Le banc historique du socle comparait aussi les anciens replis français : il
+interdisait ainsi toute extension future du catalogue commun. Il conserve désormais
+l’égalité exacte de toutes les traductions livrées et accepte seulement, pour un
+ancien repli, la traduction explicitement déclarée dans le catalogue partagé.
+La preuve séparée d’égalité intégrale des 394 lignes empêche toute réécriture.
