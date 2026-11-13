@@ -1,0 +1,777 @@
+{
+  "before": {
+    "fr": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 7557,
+      "wiredWords": 50565,
+      "resourceTexts": 7557,
+      "resourceWords": 50565,
+      "unconfirmedTexts": 0,
+      "unconfirmedWords": 0,
+      "withoutResourceTexts": 0,
+      "withoutResourceWords": 0,
+      "wiredTextPercent": 100,
+      "wiredWordPercent": 100,
+      "resourceTextPercent": 100,
+      "resourceWordPercent": 100
+    },
+    "en": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 921,
+      "wiredWords": 11207,
+      "resourceTexts": 1516,
+      "resourceWords": 14460,
+      "unconfirmedTexts": 6636,
+      "unconfirmedWords": 39358,
+      "withoutResourceTexts": 6041,
+      "withoutResourceWords": 36105,
+      "wiredTextPercent": 12.19,
+      "wiredWordPercent": 22.16,
+      "resourceTextPercent": 20.06,
+      "resourceWordPercent": 28.6
+    },
+    "es": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 928,
+      "wiredWords": 11215,
+      "resourceTexts": 1532,
+      "resourceWords": 14478,
+      "unconfirmedTexts": 6629,
+      "unconfirmedWords": 39350,
+      "withoutResourceTexts": 6025,
+      "withoutResourceWords": 36087,
+      "wiredTextPercent": 12.28,
+      "wiredWordPercent": 22.18,
+      "resourceTextPercent": 20.27,
+      "resourceWordPercent": 28.63
+    },
+    "zh-TW": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 930,
+      "wiredWords": 11217,
+      "resourceTexts": 1538,
+      "resourceWords": 14487,
+      "unconfirmedTexts": 6627,
+      "unconfirmedWords": 39348,
+      "withoutResourceTexts": 6019,
+      "withoutResourceWords": 36078,
+      "wiredTextPercent": 12.31,
+      "wiredWordPercent": 22.18,
+      "resourceTextPercent": 20.35,
+      "resourceWordPercent": 28.65
+    },
+    "ru": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 930,
+      "wiredWords": 11217,
+      "resourceTexts": 1537,
+      "resourceWords": 14483,
+      "unconfirmedTexts": 6627,
+      "unconfirmedWords": 39348,
+      "withoutResourceTexts": 6020,
+      "withoutResourceWords": 36082,
+      "wiredTextPercent": 12.31,
+      "wiredWordPercent": 22.18,
+      "resourceTextPercent": 20.34,
+      "resourceWordPercent": 28.64
+    },
+    "ko": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 930,
+      "wiredWords": 11217,
+      "resourceTexts": 1538,
+      "resourceWords": 14487,
+      "unconfirmedTexts": 6627,
+      "unconfirmedWords": 39348,
+      "withoutResourceTexts": 6019,
+      "withoutResourceWords": 36078,
+      "wiredTextPercent": 12.31,
+      "wiredWordPercent": 22.18,
+      "resourceTextPercent": 20.35,
+      "resourceWordPercent": 28.65
+    },
+    "ar": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 930,
+      "wiredWords": 11217,
+      "resourceTexts": 1537,
+      "resourceWords": 14483,
+      "unconfirmedTexts": 6627,
+      "unconfirmedWords": 39348,
+      "withoutResourceTexts": 6020,
+      "withoutResourceWords": 36082,
+      "wiredTextPercent": 12.31,
+      "wiredWordPercent": 22.18,
+      "resourceTextPercent": 20.34,
+      "resourceWordPercent": 28.64
+    },
+    "pt-BR": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 927,
+      "wiredWords": 11214,
+      "resourceTexts": 1534,
+      "resourceWords": 14480,
+      "unconfirmedTexts": 6630,
+      "unconfirmedWords": 39351,
+      "withoutResourceTexts": 6023,
+      "withoutResourceWords": 36085,
+      "wiredTextPercent": 12.27,
+      "wiredWordPercent": 22.18,
+      "resourceTextPercent": 20.3,
+      "resourceWordPercent": 28.64
+    },
+    "de": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 929,
+      "wiredWords": 11216,
+      "resourceTexts": 1534,
+      "resourceWords": 14480,
+      "unconfirmedTexts": 6628,
+      "unconfirmedWords": 39349,
+      "withoutResourceTexts": 6023,
+      "withoutResourceWords": 36085,
+      "wiredTextPercent": 12.29,
+      "wiredWordPercent": 22.18,
+      "resourceTextPercent": 20.3,
+      "resourceWordPercent": 28.64
+    }
+  },
+  "after": {
+    "fr": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 7557,
+      "wiredWords": 50565,
+      "resourceTexts": 7557,
+      "resourceWords": 50565,
+      "unconfirmedTexts": 0,
+      "unconfirmedWords": 0,
+      "withoutResourceTexts": 0,
+      "withoutResourceWords": 0,
+      "wiredTextPercent": 100,
+      "wiredWordPercent": 100,
+      "resourceTextPercent": 100,
+      "resourceWordPercent": 100
+    },
+    "en": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 939,
+      "wiredWords": 11432,
+      "resourceTexts": 1516,
+      "resourceWords": 14460,
+      "unconfirmedTexts": 6618,
+      "unconfirmedWords": 39133,
+      "withoutResourceTexts": 6041,
+      "withoutResourceWords": 36105,
+      "wiredTextPercent": 12.43,
+      "wiredWordPercent": 22.61,
+      "resourceTextPercent": 20.06,
+      "resourceWordPercent": 28.6
+    },
+    "es": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 946,
+      "wiredWords": 11440,
+      "resourceTexts": 1532,
+      "resourceWords": 14478,
+      "unconfirmedTexts": 6611,
+      "unconfirmedWords": 39125,
+      "withoutResourceTexts": 6025,
+      "withoutResourceWords": 36087,
+      "wiredTextPercent": 12.52,
+      "wiredWordPercent": 22.62,
+      "resourceTextPercent": 20.27,
+      "resourceWordPercent": 28.63
+    },
+    "zh-TW": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 948,
+      "wiredWords": 11442,
+      "resourceTexts": 1538,
+      "resourceWords": 14487,
+      "unconfirmedTexts": 6609,
+      "unconfirmedWords": 39123,
+      "withoutResourceTexts": 6019,
+      "withoutResourceWords": 36078,
+      "wiredTextPercent": 12.54,
+      "wiredWordPercent": 22.63,
+      "resourceTextPercent": 20.35,
+      "resourceWordPercent": 28.65
+    },
+    "ru": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 948,
+      "wiredWords": 11442,
+      "resourceTexts": 1537,
+      "resourceWords": 14483,
+      "unconfirmedTexts": 6609,
+      "unconfirmedWords": 39123,
+      "withoutResourceTexts": 6020,
+      "withoutResourceWords": 36082,
+      "wiredTextPercent": 12.54,
+      "wiredWordPercent": 22.63,
+      "resourceTextPercent": 20.34,
+      "resourceWordPercent": 28.64
+    },
+    "ko": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 948,
+      "wiredWords": 11442,
+      "resourceTexts": 1538,
+      "resourceWords": 14487,
+      "unconfirmedTexts": 6609,
+      "unconfirmedWords": 39123,
+      "withoutResourceTexts": 6019,
+      "withoutResourceWords": 36078,
+      "wiredTextPercent": 12.54,
+      "wiredWordPercent": 22.63,
+      "resourceTextPercent": 20.35,
+      "resourceWordPercent": 28.65
+    },
+    "ar": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 948,
+      "wiredWords": 11442,
+      "resourceTexts": 1537,
+      "resourceWords": 14483,
+      "unconfirmedTexts": 6609,
+      "unconfirmedWords": 39123,
+      "withoutResourceTexts": 6020,
+      "withoutResourceWords": 36082,
+      "wiredTextPercent": 12.54,
+      "wiredWordPercent": 22.63,
+      "resourceTextPercent": 20.34,
+      "resourceWordPercent": 28.64
+    },
+    "pt-BR": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 945,
+      "wiredWords": 11439,
+      "resourceTexts": 1534,
+      "resourceWords": 14480,
+      "unconfirmedTexts": 6612,
+      "unconfirmedWords": 39126,
+      "withoutResourceTexts": 6023,
+      "withoutResourceWords": 36085,
+      "wiredTextPercent": 12.5,
+      "wiredWordPercent": 22.62,
+      "resourceTextPercent": 20.3,
+      "resourceWordPercent": 28.64
+    },
+    "de": {
+      "texts": 7557,
+      "words": 50565,
+      "wiredTexts": 947,
+      "wiredWords": 11441,
+      "resourceTexts": 1534,
+      "resourceWords": 14480,
+      "unconfirmedTexts": 6610,
+      "unconfirmedWords": 39124,
+      "withoutResourceTexts": 6023,
+      "withoutResourceWords": 36085,
+      "wiredTextPercent": 12.53,
+      "wiredWordPercent": 22.63,
+      "resourceTextPercent": 20.3,
+      "resourceWordPercent": 28.64
+    }
+  },
+  "variation": {
+    "beforeHash": "9211158c5f112c5e24b8ac2a250842c0a2fd845175e89e7c312f418261d2c1dd",
+    "afterHash": "f7c29962a92e14f5a969275befa41995796ca8fd424c6f0a67c854c0119d7076",
+    "sameMethod": true,
+    "sameScope": true,
+    "added": [],
+    "removed": [],
+    "changed": [
+      "04171ac759e645181607",
+      "0a99cb06b6d572be25b6",
+      "226690c981b4932ec318",
+      "4ab786838cf242295d88",
+      "4bb2cd5c68e593b67dd9",
+      "53e02d16da33874ea6c7",
+      "5f917f7a0f080b7cd63e",
+      "6b37a4729caa9f695065",
+      "6efa5ffd65769b4aba4f",
+      "8bd51a111913488cffa7",
+      "8be42882450db8af8ae5",
+      "99632a5fd84a0e5b00d3",
+      "9e29e13cc0b0b4775d8c",
+      "a31271f65b8879ac3044",
+      "ce0871079a949129b465",
+      "ddaa3df1bc5bcdf90e33",
+      "e783b1cc754c40cdbf0f",
+      "f68e0c063dc23da94560"
+    ],
+    "locales": {
+      "fr": {
+        "wiredTexts": 0,
+        "resourceTexts": 0,
+        "unconfirmedWords": 0
+      },
+      "en": {
+        "wiredTexts": 18,
+        "resourceTexts": 0,
+        "unconfirmedWords": -225
+      },
+      "es": {
+        "wiredTexts": 18,
+        "resourceTexts": 0,
+        "unconfirmedWords": -225
+      },
+      "zh-TW": {
+        "wiredTexts": 18,
+        "resourceTexts": 0,
+        "unconfirmedWords": -225
+      },
+      "ru": {
+        "wiredTexts": 18,
+        "resourceTexts": 0,
+        "unconfirmedWords": -225
+      },
+      "ko": {
+        "wiredTexts": 18,
+        "resourceTexts": 0,
+        "unconfirmedWords": -225
+      },
+      "ar": {
+        "wiredTexts": 18,
+        "resourceTexts": 0,
+        "unconfirmedWords": -225
+      },
+      "pt-BR": {
+        "wiredTexts": 18,
+        "resourceTexts": 0,
+        "unconfirmedWords": -225
+      },
+      "de": {
+        "wiredTexts": 18,
+        "resourceTexts": 0,
+        "unconfirmedWords": -225
+      }
+    }
+  },
+  "ordersBefore": {
+    "khalija": {
+      "texts": 313,
+      "locales": {
+        "fr": {
+          "resourcePresent": 313,
+          "resourceAvailable": 313,
+          "wired": 313
+        },
+        "en": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 182
+        },
+        "es": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 182
+        },
+        "zh-TW": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 182
+        },
+        "ru": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 182
+        },
+        "ko": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 182
+        },
+        "ar": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 182
+        },
+        "pt-BR": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 182
+        },
+        "de": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 182
+        }
+      }
+    },
+    "narco": {
+      "texts": 312,
+      "locales": {
+        "fr": {
+          "resourcePresent": 312,
+          "resourceAvailable": 312,
+          "wired": 312
+        },
+        "en": {
+          "resourcePresent": 310,
+          "resourceAvailable": 309,
+          "wired": 182
+        },
+        "es": {
+          "resourcePresent": 310,
+          "resourceAvailable": 309,
+          "wired": 182
+        },
+        "zh-TW": {
+          "resourcePresent": 310,
+          "resourceAvailable": 310,
+          "wired": 182
+        },
+        "ru": {
+          "resourcePresent": 310,
+          "resourceAvailable": 309,
+          "wired": 182
+        },
+        "ko": {
+          "resourcePresent": 310,
+          "resourceAvailable": 310,
+          "wired": 182
+        },
+        "ar": {
+          "resourcePresent": 310,
+          "resourceAvailable": 309,
+          "wired": 182
+        },
+        "pt-BR": {
+          "resourcePresent": 310,
+          "resourceAvailable": 309,
+          "wired": 182
+        },
+        "de": {
+          "resourcePresent": 310,
+          "resourceAvailable": 309,
+          "wired": 182
+        }
+      }
+    },
+    "republic": {
+      "texts": 397,
+      "locales": {
+        "fr": {
+          "resourcePresent": 397,
+          "resourceAvailable": 397,
+          "wired": 397
+        },
+        "en": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "es": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "zh-TW": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "ru": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "ko": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "ar": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "pt-BR": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "de": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        }
+      }
+    },
+    "soviet": {
+      "texts": 359,
+      "locales": {
+        "fr": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 359
+        },
+        "en": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 306
+        },
+        "es": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 306
+        },
+        "zh-TW": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 306
+        },
+        "ru": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 306
+        },
+        "ko": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 306
+        },
+        "ar": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 306
+        },
+        "pt-BR": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 306
+        },
+        "de": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 306
+        }
+      }
+    }
+  },
+  "ordersAfter": {
+    "khalija": {
+      "texts": 313,
+      "locales": {
+        "fr": {
+          "resourcePresent": 313,
+          "resourceAvailable": 313,
+          "wired": 313
+        },
+        "en": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 199
+        },
+        "es": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 199
+        },
+        "zh-TW": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 199
+        },
+        "ru": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 199
+        },
+        "ko": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 199
+        },
+        "ar": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 199
+        },
+        "pt-BR": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 199
+        },
+        "de": {
+          "resourcePresent": 309,
+          "resourceAvailable": 309,
+          "wired": 199
+        }
+      }
+    },
+    "narco": {
+      "texts": 312,
+      "locales": {
+        "fr": {
+          "resourcePresent": 312,
+          "resourceAvailable": 312,
+          "wired": 312
+        },
+        "en": {
+          "resourcePresent": 310,
+          "resourceAvailable": 309,
+          "wired": 199
+        },
+        "es": {
+          "resourcePresent": 310,
+          "resourceAvailable": 309,
+          "wired": 199
+        },
+        "zh-TW": {
+          "resourcePresent": 310,
+          "resourceAvailable": 310,
+          "wired": 199
+        },
+        "ru": {
+          "resourcePresent": 310,
+          "resourceAvailable": 309,
+          "wired": 199
+        },
+        "ko": {
+          "resourcePresent": 310,
+          "resourceAvailable": 310,
+          "wired": 199
+        },
+        "ar": {
+          "resourcePresent": 310,
+          "resourceAvailable": 309,
+          "wired": 199
+        },
+        "pt-BR": {
+          "resourcePresent": 310,
+          "resourceAvailable": 309,
+          "wired": 199
+        },
+        "de": {
+          "resourcePresent": 310,
+          "resourceAvailable": 309,
+          "wired": 199
+        }
+      }
+    },
+    "republic": {
+      "texts": 397,
+      "locales": {
+        "fr": {
+          "resourcePresent": 397,
+          "resourceAvailable": 397,
+          "wired": 397
+        },
+        "en": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "es": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "zh-TW": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "ru": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "ko": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "ar": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "pt-BR": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        },
+        "de": {
+          "resourcePresent": 395,
+          "resourceAvailable": 395,
+          "wired": 394
+        }
+      }
+    },
+    "soviet": {
+      "texts": 359,
+      "locales": {
+        "fr": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 359
+        },
+        "en": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 324
+        },
+        "es": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 324
+        },
+        "zh-TW": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 324
+        },
+        "ru": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 324
+        },
+        "ko": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 324
+        },
+        "ar": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 324
+        },
+        "pt-BR": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 324
+        },
+        "de": {
+          "resourcePresent": 359,
+          "resourceAvailable": 359,
+          "wired": 324
+        }
+      }
+    }
+  },
+  "errors": [
+    [],
+    []
+  ]
+}

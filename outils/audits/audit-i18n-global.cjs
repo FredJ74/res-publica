@@ -243,7 +243,8 @@ function build(root=ROOT, options={}) {
         const c=cityData.buildingContext?.[b]||{};
         for(const [roomId,room] of Object.entries({...dataContext.BUILDINGS?.[b]?.rooms,...c.roomsExtra})){
           if(c.roomsExclues?.includes(roomId))continue;const ov=c.roomOverrides?.[roomId]||{};
-          for(const order of [...(ov.orders||room?.orders||[]),...(ov.ordersExtra||[])]){
+          const declared=typeof dataContext.ordresDeclaresDeLaPiece==='function'?dataContext.ordresDeclaresDeLaPiece(room,c,roomId):(ov.orders||room?.orders||[]);
+          for(const order of [...declared,...(ov.ordersExtra||[])]){
             for(const field of ['label','desc'])if(typeof order?.[field]==='string'){
               const text=order[field];
               const key=field==='label'?'orders.'+order.fn:null;

@@ -1,4 +1,4 @@
-// Descriptions d'ordres communes à la Républia et à Sovarka (13/11/2026) : 205 textes, neuf langues,
+// Descriptions d'ordres communes à la Républia et à Sovarka (13/11/2026) : 223 textes, neuf langues,
 // même résolveur que les 110 textes propres à Sovarka (RPSovarkaInfobullesI18n), dans les deux pays.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -44,11 +44,11 @@ test('inventaire : 254 descriptions communes affichées, aucune nouvelle hors ca
   const { sov, rep } = descsParPays();
   const communesJeu = [...sov].filter(d => rep.has(d));
   const cat = [...I('republic', 'fr').communes].map(l => l[0]);
-  // Mesuré le 13/11 avec la fusion réelle : 254 descriptions communes affichées, dont 54 pas encore au
+  // Mesuré le 13/11 avec la fusion réelle : 254 descriptions communes affichées, dont 36 pas encore au
   // catalogue (trou antérieur, chantier de traduction à venir, consigné dans RELAIS.md). Le plafond
   // empêche tout nouveau trou ; le baisser à mesure que ces textes sont traduits.
   assert.equal(communesJeu.length, 254, 'nombre de descriptions communes affichées');
-  assert.ok(communesJeu.filter(d => !cat.includes(d)).length <= 54, 'nouvelles communes absentes du catalogue');
+  assert.ok(communesJeu.filter(d => !cat.includes(d)).length <= 36, 'nouvelles communes absentes du catalogue');
   // Français strictement identique : chaque texte du catalogue est une description exacte de data.js,
   // affichée dans au moins un pays (avec la fusion réelle, quelques-unes ne sont plus visibles qu'en Républia,
   // l'exclusion de Sovarka étant désormais prise en compte ; leur traduction y reste utile).
@@ -56,9 +56,9 @@ test('inventaire : 254 descriptions communes affichées, aucune nouvelle hors ca
   assert.equal(new Set(cat).size, cat.length);
 });
 
-test('205 lignes de neuf colonnes non vides, sans guillemet droit ni balise, toutes traduites', () => {
+test('223 lignes de neuf colonnes non vides, sans guillemet droit ni balise, toutes traduites', () => {
   const lignes = I('soviet', 'fr').communes;
-  assert.equal(lignes.length, 205);
+  assert.equal(lignes.length, 223);
   for (const l of lignes) {
     assert.equal(l.length, 9, l[0]);
     for (const v of l) assert.ok(v.trim(), l[0]);

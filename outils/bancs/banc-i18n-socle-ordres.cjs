@@ -10,10 +10,16 @@ function load(country,language='en',original=false){
   const source=original?execFileSync('git',['show','1163bad:'+f],{cwd:root,encoding:'utf8',maxBuffer:4e6}):read(f);vm.runInContext(source,c);}
  return c;
 }
-test('tous les anciens textes, les deux pays et les neuf langues rendent exactement le même résultat',()=>{
+test('anciennes traductions conservées ; les anciens replis français peuvent bénéficier du catalogue commun',()=>{
  for(const country of ['republic','soviet'])for(const lang of langs){const a=load(country,lang),b=load(country,lang,true),I=a.RPOrderDescriptionsI18n,B=b.RPSovarkaInfobullesI18n;
   assert.equal(I,a.RPSovarkaInfobullesI18n);
-  for(const row of [...B.communes,...B.republia,...B.lignes])assert.equal(I.desc(row[0]),B.desc(row[0]),country+'/'+lang+': '+row[0]);
+  for(const row of [...B.communes,...B.republia,...B.lignes]){
+   const previous=B.desc(row[0]),sharedRow=I.communes.find(r=>r[0]===row[0]);
+   // Une traduction déjà livrée reste exacte ; un ancien repli français peut désormais
+   // recevoir la traduction déclarée du catalogue partagé (sans figer ses anciens manques).
+   const expected=previous===row[0]&&sharedRow?(sharedRow[langs.indexOf(lang)]||row[0]):previous;
+   assert.equal(I.desc(row[0]),expected,country+'/'+lang+': '+row[0]);
+  }
  }
 });
 test('troisième empire déclaré : commun hérité, propres isolées, français et absence de langue conservés',()=>{
