@@ -1,0 +1,35 @@
+name: Ordres — descriptions tactiles sans action
+on:
+  pull_request:
+    paths: [plateau-politique.js, plateau-ordres-info.js, plateau.html, style.css, 'outils/bancs/*ordres-info-tactile*20261113.cjs', .github/workflows/ordres-info-tactile.yml]
+  push:
+    branches: [main, codex/ordres-info-tactile-20261113]
+    paths: [plateau-politique.js, plateau-ordres-info.js, plateau.html, style.css, 'outils/bancs/*ordres-info-tactile*20261113.cjs', .github/workflows/ordres-info-tactile.yml]
+permissions:
+  contents: read
+jobs:
+  descriptions-tactiles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Dépendances verrouillées des bancs
+        run: |
+          npm ci --prefix outils/vercel --ignore-scripts --no-audit --no-fund
+          npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Présentation, infobulles, clics et non-régressions
+        run: |
+          node --check plateau-ordres-info.js
+          node --check plateau-politique.js
+          node --test outils/bancs/banc-ordres-info-tactile-20261113.cjs outils/bancs/test-i18n-sovarka-infobulles-20261113.mjs outils/bancs/banc-i18n-render-ordres.cjs outils/bancs/banc-mobile-piece-20261111.cjs outils/bancs/banc-objectifs-secrets-379.cjs outils/bancs/banc-mobile-helvetia-double-tap.cjs outils/bancs/banc-i18n-editorial.cjs outils/bancs/banc-vercel-douze-fonctions-20261111.cjs
+      - name: Chromium mobile 320/390 et bureau 1280, neuf langues
+        env:
+          NODE_PATH: ./outils/e2e/node_modules
+          CHROMIUM_PATH: /usr/bin/google-chrome
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-ordres-info-tactile-navigateur-20261113.cjs outils/bancs/banc-i18n-sovarka-infobulles-navigateur.cjs outils/bancs/banc-infobulles-navigateur.cjs

@@ -1,0 +1,29 @@
+{
+  "base": "4d442226de8b92b8bdab2eb7ca923863406319e0",
+  "command": "node --test outils/bancs/test-*.mjs outils/bancs/banc-i18n-vehicules-garage-20261112.cjs",
+  "results": {
+    "main": {
+      "tests": 308,
+      "pass": 304,
+      "fail": 4,
+      "failures": [
+        "outils/bancs/test-audit-global-republia.mjs:41:1",
+        "outils/bancs/test-galeries-novomirsk-20261106.mjs:81:1",
+        "outils/bancs/test-musees-province-personnalites.mjs:1:1",
+        "outils/bancs/test-rpc-apres-lot-219.mjs:32:1"
+      ]
+    },
+    "branch": {
+      "tests": 308,
+      "pass": 304,
+      "fail": 4,
+      "failures": [
+        "outils/bancs/test-audit-global-republia.mjs:41:1",
+        "outils/bancs/test-galeries-novomirsk-20261106.mjs:81:1",
+        "outils/bancs/test-musees-province-personnalites.mjs:1:1",
+        "outils/bancs/test-rpc-apres-lot-219.mjs:32:1"
+      ]
+    }
+  },
+  "new_failures": []
+}

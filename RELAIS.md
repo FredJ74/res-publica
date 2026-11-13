@@ -11,6 +11,11 @@ Branche `chatgpt/i18n-plan-rues-20261113`. Le calcul et les déplacements des ru
 
 ## En cours
 
+### Descriptions des ordres sur écran tactile (Codex, 13/11/2026)
+Branche `codex/ordres-info-tactile-20261113`, base `main` `4d44222` (#853), PR à ouvrir. Décision explicite de Fred : bouton frère « ⓘ » par ordre tactile, fenêtre légère, aucun appui long ; bouton principal et infobulles du bureau inchangés. `plateau-ordres-info.js` ajoute les boutons depuis le DOM en conservant les nœuds/handlers originaux ; dialogue natif au-dessus des écrans existants, focus et position restaurés. Réutilise `data-rp-tip`, les traductions de Claude et les mots communs Description/Fermer. Seuls des motifs déjà affichés par les refus et des détails de présentation sont ajoutés au descripteur. Aucun catalogue modifié, notamment les 205 descriptions communes en cours chez Claude.
+Tests : **35 tests ciblés + 8 tests Chromium verts**, mobile 320/390, bureau 1280, neuf langues dont RTL, ordres accessibles/bloqués/disabled/gratuits/payants, gains/risques présents/absents, vrai contrôleur mobile, clavier, brouillon/position, langue pendant lecture, clic normal unique. Comparaison transversale : 304/308 verts et les quatre mêmes échecs sur main et la branche, zéro nouvel échec. Bancs supplémentaires hérités (commerce et coque) comparés séparément. Rapport `outils/audits/ORDRES-INFO-TACTILE-20261113.md`. Fusion et déploiement à effectuer après CI et vérification ; aucune mutation de PA, RPC ou condition métier.
+
+
 
 ### Pavillon des Ambassadeurs — baux diplomatiques (ChatGPT, 11/11, PR #764, EN TEST)
 Issue [#753](https://github.com/FredJ74/res-publica/issues/753). **Décision supplémentaire de Fred : 1 PSK = 1 FR, sans frais de change**, uniquement pour les paiements du Pavillon ; enregistrée dans `GAME-DESIGN-NOVOMIRSK.md`.
