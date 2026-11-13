@@ -4569,7 +4569,7 @@ function renderRoomActions(room, buildingId, roomId) {
           { titre: "Ma section", cle: 'caserneSection', icone: 'ti-shield',
             fns: ['repartir_armement','gerer_detachement','voir_ma_section','entrainer_section',
                   'reposer_section','equiper_section','declencher_mutinerie','remonter_renseignement'] },
-          { titre: "Budget et strategie", cle: 'caserneBudget', icone: 'ti-building-bank',
+          { titre: "Budget et stratégie", cle: 'caserneBudget', icone: 'ti-building-bank',
             fns: ['recherche_militaire','caisse_caserne','gerer_budget_caserne','tableau_effort_guerre'] }
         ];
     window._caserneOrdresGroupes = {};
