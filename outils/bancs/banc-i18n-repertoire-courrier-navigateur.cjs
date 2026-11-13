@@ -7,19 +7,19 @@ function fn(s,name){let a=s.indexOf('function '+name+'(');assert.ok(a>=0);if(s.s
 async function setup(page,original=false){
  await page.route('**/*',r=>r.abort());
  const privacy=read('plateau.html').split('\n').find(l=>l.includes('data-i18n="playerDirectory.privacy"'));
- await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body class="plateau-body"><div id="modal-postes" class="modal-overlay"><div class="modal-box"><div class="modal-header"><div id="postes-modal-title" class="modal-title"></div></div><div id="postes-body"></div></div></div><div id="modal-compose-mail" class="modal-overlay"><div class="modal-box"><input id="compose-mail-to"><input id="compose-mail-subject"><textarea id="compose-mail-body"></textarea>'+privacy+'</div></div><div id="result-toast"><div id="toast-result"></div><div id="toast-sub"></div></div></body></html>');
+ await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body class="plateau-body"><div id="modal-postes" class="modal-overlay"><div class="modal-box"><div class="modal-header"><div id="postes-modal-title" class="modal-title"></div></div><div id="postes-body"></div></div></div><div id="modal-compose-mail" class="modal-overlay"><div class="modal-box"><input id="compose-mail-to"><input id="compose-mail-subject"><textarea id="compose-mail-body"></textarea>'+privacy+'</div></div><div id="result-toast"><div id="toast-result" class="toast-result"></div><div id="toast-sub" class="toast-sub"></div></div></body></html>');
  await page.addStyleTag({content:read('style.css')});await page.addScriptTag({content:read('i18n/i18next.min.js')});
  await page.evaluate(()=>{
   window.state={char:{name:'Moi'},country:'republic',currentCity:'capitale',pa:20,arg:500};window.WORLD={republic:{capitale:{name:'Luthécia'}},soviet:{capitale:{name:'Novomirsk'}}};
   window.RP_I18N_GAME_ENABLED=true;window.RPPlateauI18n={language:()=>i18next.language||'fr'};window.calls=[];
   window.sbListPersonnages=()=>{calls.push('list');return new Promise(r=>window.resolveList=r);};
   window.sendMail=()=>{calls.push('send');throw Error('Envoi involontaire');};window.sbSendMail=window.sendMail;
-  window.messages=[];window.journal=[];window.addJournalEntry=(...a)=>journal.push(a);window.showToast=(title,msg,success)=>{messages.push([title,msg,success]);document.getElementById('toast-result').textContent=window.RPToastI18n?.label(title)||title;document.getElementById('toast-sub').textContent=msg;};
+  window.messages=[];window.journal=[];window.addJournalEntry=(...a)=>journal.push(a);window.showToast=(title,msg,success)=>{messages.push([title,msg,success]);document.getElementById('result-toast').style.display='block';document.getElementById('result-toast').className=success?'toast-success':'toast-fail';document.getElementById('toast-result').textContent=window.RPToastI18n?.label(title)||title;document.getElementById('toast-sub').textContent=msg;};
   window.fetch=()=>{calls.push('network');throw Error('Réseau involontaire');};
   window.players=[{name:"Camille d'Essai",country:'republic',poste:{name:'Poste de test'},domicile:{city:'capitale'}}];
   window.longPlayers=[{name:'PersonnageAvecUnNomDeTestExceptionnellementLongSansEspace',country:'republic',poste:{name:'PosteAvecUnIntituléTrèsLongPourLaVérificationMobile'},domicile:{city:'capitale'}}];
   document.getElementById('compose-mail-to').value='Camille';document.getElementById('compose-mail-subject').value='Sujet conservé';document.getElementById('compose-mail-body').value='Brouillon conservé';
-  window.snapshot=()=>JSON.stringify({state,calls,to:document.getElementById('compose-mail-to').value,subject:document.getElementById('compose-mail-subject').value,body:document.getElementById('compose-mail-body').value});
+  window.snapshot=()=>JSON.stringify({state,calls,messages,journal,to:document.getElementById('compose-mail-to').value,subject:document.getElementById('compose-mail-subject').value,body:document.getElementById('compose-mail-body').value});
  });
  for(const f of ['i18n/resources.js','i18n/plateau-resources.js','i18n/inventory-ui-resources.js','i18n/player-directory-resources.js','i18n/toast-resources.js','i18n/plateau-init.js'])await page.addScriptTag({content:read(f)});
  const source=original?execFileSync('git',['show','1163bad:plateau-communication.js'],{cwd:root,encoding:'utf8',maxBuffer:4e6}):read('plateau-communication.js');
@@ -48,7 +48,7 @@ test('répertoire et courrier : 320/390/1280, neuf langues, chargement/liste/vid
   }
   await page.evaluate(()=>{delete i18next.getResourceBundle('de','translation').playerDirectory.home;});await page.evaluate(()=>i18next.changeLanguage('de'));assert.ok((await page.locator('#postes-body').textContent()).includes(' · Domicile : Luthécia'));
   // L'intention de composer reste le seul déclencheur de remise à zéro du brouillon.
-  await page.locator('#postes-body button').click();assert.equal(await page.locator('#compose-mail-to').inputValue(),"Camille d'Essai");assert.equal(await page.locator('#compose-mail-subject').inputValue(),'');assert.deepEqual(await page.evaluate(()=>calls),['list']);
+  await page.locator('#postes-body button').click();assert.equal(await page.locator('#compose-mail-to').inputValue(),"Camille d'Essai");assert.equal(await page.locator('#compose-mail-subject').inputValue(),'');assert.deepEqual(await page.evaluate(()=>calls),['list']);await page.evaluate(()=>fermerComposeMail());
   // Liste vide, sans ajout de soi-même ; ni nouvelle liste ni envoi pendant les neuf bascules.
   await page.evaluate(()=>{state.char.name='';window.opening=ouvrirRepertoirePJ();resolveList([]);});await page.evaluate(()=>opening);await page.evaluate(()=>window.before=snapshot());
   for(const l of locales){await page.evaluate(l=>i18next.changeLanguage(l),l);assert.equal(await page.locator('[data-i18n="playerDirectory.empty"]').textContent(),await page.evaluate(()=>i18next.t('playerDirectory.empty')));assert.equal(await page.evaluate(()=>snapshot()===before),true);}
@@ -61,7 +61,7 @@ test('répertoire et courrier : 320/390/1280, neuf langues, chargement/liste/vid
   // Erreurs locales : la validation et ses appels demeurent ceux de la fonction de production.
   for(const key of ['missing','required']){
    await page.evaluate(async key=>{state.char.name=key==='missing'?'':'Moi';document.getElementById('compose-mail-to').value='';await envoyerComposeMail();window.before=snapshot();},key);
-   for(const l of locales){await page.evaluate(l=>i18next.changeLanguage(l),l);assert.equal(await page.locator('#toast-sub').textContent(),await page.evaluate(key=>i18next.t('playerDirectory.'+key),key));assert.equal(await page.locator('#toast-result').textContent(),await page.evaluate(key=>RPToastI18n.label(key==='missing'?'Personnage non chargé':'Champs requis'),key));assert.equal(await page.evaluate(()=>snapshot()===before),true);}
+   for(const l of locales){await page.evaluate(l=>i18next.changeLanguage(l),l);assert.equal(await page.locator('#toast-sub').textContent(),await page.evaluate(key=>i18next.t('playerDirectory.'+key),key));assert.equal(await page.locator('#toast-result').textContent(),await page.evaluate(key=>RPToastI18n.label(key==='missing'?'Personnage non chargé':'Champs requis'),key));assert.equal(await page.evaluate(()=>snapshot()===before),true);assert.equal(await page.locator('#result-toast').isVisible(),true);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);}
   }
   // Voie de repli simulée : un seul envoi explicite, mêmes paramètres FR et aucun nouvel appel à la bascule.
   await page.evaluate(async()=>{
