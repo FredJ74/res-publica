@@ -520,7 +520,9 @@
   "محتوى فارغ",
   "Rascunho vazio",
   "Leerer Entwurf"
- ]
+ ],
+["titleTopicDeleted", "Sujet supprimé", "Topic deleted", "Tema eliminado", "主題已刪除", "Тема удалена", "주제 삭제됨", "تم حذف الموضوع", "Tópico excluído", "Thema gelöscht"],
+["titleMessageDeleted", "Message supprimé", "Message deleted", "Mensaje eliminado", "訊息已刪除", "Сообщение удалено", "메시지 삭제됨", "تم حذف الرسالة", "Mensagem excluída", "Nachricht gelöscht"]
 ];
  for(const [i,lang]of locales.entries())if(global.RP_I18N_RESOURCES?.[lang]?.translation)
   global.RP_I18N_RESOURCES[lang].translation.forumFeedback=Object.fromEntries([...bodies,...titles].map(row=>[row[0],row[i+1]]));

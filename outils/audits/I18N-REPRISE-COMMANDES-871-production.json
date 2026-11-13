@@ -1,0 +1,68 @@
+{
+  "commit": "69a1c0366b625fd14fef67769a7c81a1db8c5f33",
+  "deployment": "dpl_HfQyXpbGHaVEdsej9uXAMMx2mSfo",
+  "files": [
+    {
+      "file": "plateau.html",
+      "sha256": "699ad571fb745e7f3ea399e0e992f72da8c3e60f110ba76c584e36061fbd4508",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "e1db97c535d9566a304b88abc054b074a93b20258c23931c578d13747171c588",
+      "identical": true
+    },
+    {
+      "file": "plateau-core.js",
+      "sha256": "d52251e01c7c71d6f4b1327a2e5607a54e2406209c8ae08c4f36cbef2cb89c73",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-resources.js",
+      "sha256": "5ab8d40c41eb8e1e60f30416019e7c2b3fb6ce8ab3725026cd9d1ccde96f55f0",
+      "identical": true
+    },
+    {
+      "file": "i18n/toast-resources.js",
+      "sha256": "8a57409e44396e0a59163dcb86b9f9d995cbf507d88ed82f56df7fc6c9bcc96e",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-init.js",
+      "sha256": "cdeaa26dcf25bee8a0050a1428ca67cf25d6c042fdf428a7735e8288062f1536",
+      "identical": true
+    },
+    {
+      "file": "plateau-construction-commandes.js",
+      "sha256": "e8dfef993ad51d84a90724b1813f40c0fc2212cc3185e216b8b2deabd66623a8",
+      "identical": true
+    },
+    {
+      "file": "i18n/construction-feedback-resources.js",
+      "sha256": "58b68b256bc10b1ef6413126a24e28ff0f5b2e74a378b4f29de69990b6e65043",
+      "identical": true
+    },
+    {
+      "file": "i18n/naval-resources.js",
+      "sha256": "18b06f0d18149d2bd20d596c84b512e044dcc19b8accee7af92cafff5116adbe",
+      "identical": true
+    }
+  ],
+  "ready": true,
+  "aliasVerified": true,
+  "browserTests": {
+    "passed": 2,
+    "newRendersAndSwitches": 81,
+    "existingRendersAndSwitches": 270
+  }
+}

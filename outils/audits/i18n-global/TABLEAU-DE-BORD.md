@@ -1,6 +1,6 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `70f8b03149060eb3af8fcfed7bad83e73ab32a0c`. Empreinte du corpus : `41ca785963f3cf25affa3e0c2ca36d295738fa8e7aff68507dee47a22fbcd886`.
+Base analysée : `dc747f81085db90e32d6baaa7f39940681c48725`. Empreinte du corpus : `e3cf5664f2a40fe379656041cbae60388919e98c4adbf66940b4edb0c8fa004e`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 
@@ -22,14 +22,14 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 | Langue | Corpus | Raccordés prouvés* | Taux textes* | Taux mots* | Ressource disponible** | Mots à traiter/vérifier |
 |---|---:|---:|---:|---:|---:|---:|
 | Français | 7565 | 7565 | 100.00 % | 100.00 % | 7565 | 0 |
-| Anglais | 7565 | 992 | 13.11 % | 23.79 % | 1540 | 38633 |
-| Espagnol | 7565 | 999 | 13.21 % | 23.80 % | 1556 | 38625 |
-| Chinois traditionnel | 7565 | 1001 | 13.23 % | 23.81 % | 1562 | 38623 |
-| Russe | 7565 | 1001 | 13.23 % | 23.81 % | 1561 | 38623 |
-| Coréen | 7565 | 1001 | 13.23 % | 23.81 % | 1562 | 38623 |
-| Arabe | 7565 | 1001 | 13.23 % | 23.81 % | 1561 | 38623 |
-| Portugais brésilien | 7565 | 998 | 13.19 % | 23.80 % | 1558 | 38626 |
-| Allemand | 7565 | 1000 | 13.22 % | 23.80 % | 1558 | 38624 |
+| Anglais | 7565 | 994 | 13.14 % | 23.79 % | 1542 | 38629 |
+| Espagnol | 7565 | 1001 | 13.23 % | 23.81 % | 1558 | 38621 |
+| Chinois traditionnel | 7565 | 1003 | 13.26 % | 23.81 % | 1564 | 38619 |
+| Russe | 7565 | 1003 | 13.26 % | 23.81 % | 1563 | 38619 |
+| Coréen | 7565 | 1003 | 13.26 % | 23.81 % | 1564 | 38619 |
+| Arabe | 7565 | 1003 | 13.26 % | 23.81 % | 1563 | 38619 |
+| Portugais brésilien | 7565 | 1000 | 13.22 % | 23.81 % | 1560 | 38622 |
+| Allemand | 7565 | 1002 | 13.25 % | 23.81 % | 1560 | 38620 |
 
 * Preuve statique stricte : clé explicite de même français, traducteur exporté/wrapper transparent, guide accepté par son garde d’intégrité ou description d’ordre reconnue par le résolveur existant dans son pays, dans chacune des huit langues. C’est un plancher de raccordements identifiés, pas la mesure de toutes les traductions qui fonctionnent. Les valeurs identiques au français restent à vérifier sauf sigles neutres documentés.
 
@@ -40,7 +40,7 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 | Domaine | Textes du corpus | EN raccordés | EN sans ressource | EN mots à traiter/vérifier |
 |---|---:|---:|---:|---:|
 | Bâtiments et pièces | 973 | 701 | 44 | 2082 |
-| Courriers, notifications et journaux | 388 | 102 | 240 | 1221 |
+| Courriers, notifications et journaux | 388 | 104 | 238 | 1217 |
 | Création et connexion | 158 | 87 | 55 | 498 |
 | Enquêtes, missions et objectifs | 898 | 0 | 833 | 5136 |
 | Interface générale et autres activités | 1954 | 90 | 1679 | 9803 |
@@ -57,7 +57,7 @@ Les neuf langues et leurs volumes par domaine sont détaillés dans `tableau-de-
 | Domaine | fr | en | es | zh-TW | ru | ko | ar | pt-BR | de |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | Bâtiments et pièces | 100.00 % / 100.00 % | 72.05 % / 79.08 % | 72.05 % / 79.08 % | 72.15 % / 79.09 % | 72.15 % / 79.09 % | 72.15 % / 79.09 % | 72.15 % / 79.09 % | 72.05 % / 79.08 % | 72.15 % / 79.09 % |
-| Courriers, notifications et journaux | 100.00 % / 100.00 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % |
+| Courriers, notifications et journaux | 100.00 % / 100.00 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % |
 | Création et connexion | 100.00 % / 100.00 % | 55.06 % / 49.39 % | 56.33 % / 49.59 % | 56.96 % / 49.70 % | 56.96 % / 49.70 % | 56.96 % / 49.70 % | 56.96 % / 49.70 % | 56.33 % / 49.59 % | 56.96 % / 49.70 % |
 | Enquêtes, missions et objectifs | 100.00 % / 100.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % |
 | Interface générale et autres activités | 100.00 % / 100.00 % | 4.61 % / 22.79 % | 4.86 % / 22.83 % | 4.86 % / 22.83 % | 4.86 % / 22.83 % | 4.86 % / 22.83 % | 4.86 % / 22.83 % | 4.81 % / 22.83 % | 4.81 % / 22.83 % |
@@ -80,7 +80,7 @@ Les descriptions communes sont présentes dans plusieurs empires : ne pas additi
 
 ## Catalogue central et autres ressources
 
-Le catalogue central expose **3479 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4430 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
+Le catalogue central expose **3481 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4432 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
 
 | Langue | Clés absentes | Variables incohérentes |
 |---|---:|---:|
@@ -99,7 +99,7 @@ Le catalogue central expose **3479 clés françaises**. Les tables locales, guid
 | Priorité | Textes candidats non entièrement prouvés | Usage |
 |---|---:|---|
 | 1 | 187 | Compréhension d’un ordre, d’un refus ou entrée dans le jeu |
-| 2 | 9903 | Commandes et messages de gameplay |
+| 2 | 9901 | Commandes et messages de gameplay |
 | 3 | 2937 | Compréhension d’une mission ou interaction narrative |
 | 4 | 2067 | Description ou repère de lieu |
 
