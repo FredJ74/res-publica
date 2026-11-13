@@ -2495,7 +2495,7 @@ const WORLD = {
               imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_artisanal_accueil.webp',
               desc: 'Machines a bois, scie circulaire, deligneuse et poste de soudure partages.',
               persons: [
-                {name:'Stas Mironov (PNJ)', role:'Ébéniste', rel:'neutral', job:'commercant'}
+                {name:'Stas Mironov (PNJ)', role:'Ébéniste', rel:'neutral', job:'commercant', profilId:'sovarka_stas_mironov'}
               ]
             },
             echoppe_facade: {
