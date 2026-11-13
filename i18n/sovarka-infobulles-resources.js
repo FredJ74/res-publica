@@ -120,28 +120,56 @@
  ];
  const CADRE={"gain":["Gain","Gain","Ganancia","收益","Выгода","이득","مكسب","Ganho","Gewinn"],"risque":["Risque","Risk","Riesgo","風險","Риск","위험","مخاطرة","Risco","Risiko"],"reussite":["Reussite","Success","Éxito","成功率","Успех","성공률","نسبة النجاح","Sucesso","Erfolg"],"sante":["Sante","Health","Salud","健康","Здоровье","건강","صحة","Saúde","Gesundheit"],"moral":["Moral","Morale","Moral","士氣","Мораль","사기","معنويات","Moral","Moral"]};
  const SALON={"titre":["Salon de coiffure","Hair salon","Peluquería","理髮廳","Парикмахерская","미용실","صالون حلاقة","Salão de cabeleireiro","Friseursalon"],"lecture":["Lecture impossible auprès du serveur.","Unable to read from the server.","No se pudo leer desde el servidor.","無法從伺服器讀取。","Не удалось получить данные с сервера.","서버에서 읽을 수 없습니다.","تعذّرت القراءة من الخادم.","Não foi possível ler do servidor.","Lesen vom Server nicht möglich."],"intro":["Une coupe rapporte 5 points de popularité et +1 en charisme jusqu’à minuit. Il faut attendre 3 jours entre deux coupes.","A haircut brings 5 popularity points and +1 charisma until midnight. You must wait 3 days between two haircuts.","Un corte da 5 puntos de popularidad y +1 de carisma hasta medianoche. Hay que esperar 3 días entre dos cortes.","剪一次髮可得 5 點人氣，並在午夜前 +1 魅力。兩次剪髮之間須間隔 3 天。","Стрижка даёт 5 очков популярности и +1 к харизме до полуночи. Между двумя стрижками нужно подождать 3 дня.","이발하면 인기 5점과 자정까지 카리스마 +1을 얻습니다. 이발 사이에는 3일을 기다려야 합니다.","القصة تمنح 5 نقاط شعبية و+1 كاريزما حتى منتصف الليل. يجب الانتظار 3 أيام بين قصتين.","Um corte rende 5 pontos de popularidade e +1 de carisma até a meia-noite. É preciso esperar 3 dias entre dois cortes.","Ein Haarschnitt bringt 5 Popularitätspunkte und +1 Charisma bis Mitternacht. Zwischen zwei Haarschnitten müssen 3 Tage vergehen."],"prochaine":[" Prochaine coupe possible dans {n} jour(s)."," Next haircut possible in {n} day(s)."," Próximo corte posible en {n} día(s)."," {n} 天後可再剪。"," Следующая стрижка возможна через {n} дн."," {n}일 후에 다시 이발할 수 있습니다."," القصة التالية ممكنة بعد {n} يوم."," Próximo corte possível em {n} dia(s)."," Nächster Haarschnitt in {n} Tag(en) möglich."],"couper":["Se faire couper les cheveux — {prix} {devise}","Get a haircut — {prix} {devise}","Cortarse el pelo — {prix} {devise}","剪頭髮 — {prix} {devise}","Подстричься — {prix} {devise}","이발하기 — {prix} {devise}","قصّ الشعر — {prix} {devise}","Cortar o cabelo — {prix} {devise}","Haare schneiden lassen — {prix} {devise}"],"refusee":["Coupe refusée","Haircut refused","Corte rechazado","剪髮被拒","В стрижке отказано","이발 거절","رُفضت القصة","Corte recusado","Haarschnitt abgelehnt"],"muet":["Le serveur n’a pas répondu.","The server did not respond.","El servidor no respondió.","伺服器沒有回應。","Сервер не ответил.","서버가 응답하지 않았습니다.","لم يستجب الخادم.","O servidor não respondeu.","Der Server hat nicht geantwortet."],"coiffe":["Fraîchement coiffé","Freshly styled","Recién peinado","剛剪好頭髮","Свежая стрижка","갓 다듬은 머리","تصفيفة جديدة","Recém-penteado","Frisch frisiert"],"gainPop":["+5 popularité","+5 popularity","+5 de popularidad","+5 人氣","+5 к популярности","인기 +5","+5 شعبية","+5 de popularidade","+5 Popularität"],"gainCha":[", +1 charisme jusqu’à minuit.",", +1 charisma until midnight.",", +1 de carisma hasta medianoche.","，+1 魅力直到午夜。",", +1 к харизме до полуночи.",", 자정까지 카리스마 +1.","، +1 كاريزما حتى منتصف الليل.",", +1 de carisma até a meia-noite.",", +1 Charisma bis Mitternacht."],"prix_non_fixe":["Le salon n’a pas encore fixé le prix de ses coupes.","The salon has not yet set the price of its haircuts.","La peluquería aún no ha fijado el precio de sus cortes.","理髮廳尚未訂定剪髮價格。","Парикмахерская ещё не установила цену стрижки.","미용실이 아직 이발 가격을 정하지 않았습니다.","لم يحدّد الصالون بعد سعر قصّاته.","O salão ainda não fixou o preço dos cortes.","Der Salon hat den Preis seiner Haarschnitte noch nicht festgelegt."],"cheveux_pas_repousses":["Vos cheveux n’ont pas encore repoussé.","Your hair has not grown back yet.","Su pelo aún no ha vuelto a crecer.","您的頭髮還沒長回來。","Ваши волосы ещё не отросли.","머리카락이 아직 자라지 않았습니다.","لم ينمُ شعرك بعد.","Seu cabelo ainda não cresceu de novo.","Ihre Haare sind noch nicht nachgewachsen."],"pas_sur_place":["Présentez-vous au salon.","Go to the salon.","Preséntese en la peluquería.","請親自到理髮廳。","Придите в парикмахерскую.","미용실로 가세요.","توجّه إلى الصالون.","Vá até o salão.","Begeben Sie sich in den Salon."],"salon_introuvable":["Ce salon ne propose pas de coupe.","This salon does not offer haircuts.","Esta peluquería no ofrece cortes.","這間理髮廳不提供剪髮。","В этой парикмахерской не стригут.","이 미용실은 이발을 하지 않습니다.","هذا الصالون لا يقدّم قصّات.","Este salão não oferece cortes.","Dieser Salon bietet keine Haarschnitte an."],"fonds_insuffisants":["Vous n’avez pas assez d’argent.","You do not have enough money.","No tiene suficiente dinero.","您的錢不夠。","У вас недостаточно денег.","돈이 부족합니다.","ليس لديك ما يكفي من المال.","Você não tem dinheiro suficiente.","Sie haben nicht genug Geld."]};
- const parFr=new Map(L.map(l=>[l[0],l]));
  // Descriptions communes Républia/Sovarka (13/11/2026) : données de i18n/infobulles-communes-resources.js,
  // chargé avant ce fichier ; consultées après la table propre à Sovarka, dans les deux pays.
  const LC=Array.isArray(global.RP_INFOBULLES_COMMUNES)?global.RP_INFOBULLES_COMMUNES.filter(l=>Array.isArray(l)&&l.length===9):[];
- const parFrCommun=new Map(LC.map(l=>[l[0],l]));
  // Descriptions exclusives à Républia, après les traductions communes.
  const LR=Array.isArray(global.RP_INFOBULLES_REPUBLIA)?global.RP_INFOBULLES_REPUBLIA.filter(l=>Array.isArray(l)&&l.length===9):[];
- const parFrRepublia=new Map(LR.map(l=>[l[0],l]));
  function indice(){
   const lang=(global.RP_I18N_GAME_ENABLED===true&&global.RPPlateauI18n?.language?.())||'fr';
   return LANGUES.indexOf(lang);
  }
- function enSovarka(){
-  // `state` est un `let` global de plateau-core.js : visible par son nom, pas comme window.state.
-  return (typeof state!=='undefined'&&state)?state.country==='soviet':false;
+ // Compatibilité des anciens chargements isolés : données de configuration, pas branches de sélection.
+ const legacyCatalogues=[{id:'common',shared:true,rows:LC},
+  {id:'soviet',countries:['soviet'],builtin:true},{id:'republic',countries:['republic'],rows:LR}];
+ const catalogues=new Map(),keyPattern=/^[a-zA-Z0-9_.-]+$/;
+ function registerCatalogue(spec){
+  if(!spec||typeof spec.id!=='string'||!keyPattern.test(spec.id)||catalogues.has(spec.id))return false;
+  if(spec.countries!==undefined&&!Array.isArray(spec.countries)||spec.entries!==undefined&&!Array.isArray(spec.entries))return false;
+  if(spec.shared!==true&&(!Array.isArray(spec.countries)||!spec.countries.length||spec.countries.some(c=>typeof c!=='string'||!c)))return false;
+  const byFrench=new Map(),byKey=new Map();
+  const rows=spec.builtin===true?L:spec.rows;
+  if(rows!==undefined&&!Array.isArray(rows))return false;
+  for(const row of rows||[]){
+   if(!Array.isArray(row)||row.length!==LANGUES.length||typeof row[0]!=='string'||!row[0]||byFrench.has(row[0]))return false;
+   byFrench.set(row[0],Object.freeze(row.slice()));
+  }
+  for(const entry of spec.entries||[]){
+   if(!entry||typeof entry.id!=='string'||!keyPattern.test(entry.id)||typeof entry.fr!=='string'||!entry.fr||byKey.has(entry.id)||byFrench.has(entry.fr))return false;
+   const row=Object.freeze(LANGUES.map(l=>entry[l]));byFrench.set(entry.fr,row);byKey.set(entry.id,row);
+  }
+  // Alias incrémentaux : une référence au français existant, sans recopier ses huit traductions.
+  for(const [key,fr]of Object.entries(spec.keys||{})){
+   if(!keyPattern.test(key)||!byFrench.has(fr)||byKey.has(key))return false;
+   byKey.set(key,byFrench.get(fr));
+  }
+  catalogues.set(spec.id,Object.freeze({id:spec.id,shared:spec.shared===true,
+   countries:Object.freeze((spec.countries||[]).slice()),byFrench,byKey}));return true;
  }
- function enRepublia(){
-  return (typeof state!=='undefined'&&state)?state.country==='republic':false;
+ for(const spec of Array.isArray(global.RP_ORDER_DESCRIPTION_CATALOGUES)?global.RP_ORDER_DESCRIPTION_CATALOGUES:legacyCatalogues)registerCatalogue(spec);
+ // Une déclaration supplémentaire ou invalide ne doit pas effacer les ressources déjà livrées.
+ for(const spec of legacyCatalogues)if(!catalogues.has(spec.id))registerCatalogue(spec);
+ function country(){return (typeof state!=='undefined'&&state)?state.country:null;}
+ function resolve(original,key,pays){
+  const eligible=[...catalogues.values()].filter(c=>c.shared||c.countries.includes(pays));
+  // Le contenu commun est réutilisable dans tout empire ; une ressource nationale ne fuit jamais.
+  eligible.sort((a,b)=>Number(b.shared)-Number(a.shared));
+  for(const c of eligible){const row=key?c.byKey.get(key):c.byFrench.get(original);if(row)return row;}
+  return null;
  }
- function desc(original){
+ function desc(original,key,pays=country()){
   if(typeof original!=='string')return original;
-  const ligne=(enSovarka()&&parFr.get(original))||parFrCommun.get(original)||(enRepublia()&&parFrRepublia.get(original)); if(!ligne)return original;
+  const ligne=resolve(original,key,pays);if(!ligne)return original;
   const i=indice();
   return i>0&&typeof ligne[i]==='string'&&ligne[i].trim()?ligne[i]:original;
  }
@@ -150,7 +178,7 @@
  function descOrdre(src,affiche,devise,tarif){
   const fr=affiche&&typeof affiche.desc==='string'?affiche.desc:'';
   if(!src||typeof src.desc!=='string')return fr;
-  const t=desc(src.desc); if(t===src.desc)return fr;
+  const t=desc(src.desc,src.descriptionKey); if(t===src.desc)return fr;
   let d=t;
   if(devise&&devise!=='FR')d=(typeof global.deviseDansTexte==='function')?global.deviseDansTexte(d,devise):d.replace(/\bFR\b/g,devise);
   if(tarif&&(tarif.cost!==src.cost||tarif.pa!==src.pa))d=(typeof global.montantDansTexte==='function')?global.montantDansTexte(d,src.cost,tarif.cost):d;
@@ -173,7 +201,7 @@
  // Infobulle complète d'un ordre ; en français, chaîne identique à l'ancienne construction.
  function infobulle(p){
   const parts=[];
-  const d=descOrdre({desc:p.d,cost:p.c,pa:p.p},{desc:p.a},p.v,p.n);
+  const d=descOrdre({desc:p.d,descriptionKey:p.q,cost:p.c,pa:p.p},{desc:p.a},p.v,p.n);
   if(d)parts.push(d);
   const g=gains(p.g),r=gains(p.r);
   if(g)parts.push(cadre('gain','Gain')+': '+g);
@@ -194,7 +222,8 @@
   }
  }
  (global.RP_I18N_CHANGE_CALLBACKS=global.RP_I18N_CHANGE_CALLBACKS||[]).push(rafraichir);
- global.RPSovarkaInfobullesI18n=Object.freeze({desc,descOrdre,cadre,salon,gains,infobulle,rafraichir,langues:Object.freeze(LANGUES.slice()),
+ global.RPOrderDescriptionsI18n=global.RPSovarkaInfobullesI18n=Object.freeze({desc,descOrdre,cadre,salon,gains,infobulle,rafraichir,registerCatalogue,
+  catalogues:()=>Object.freeze([...catalogues.values()].map(c=>Object.freeze({id:c.id,shared:c.shared,countries:c.countries,texts:c.byFrench.size,keys:c.byKey.size}))),langues:Object.freeze(LANGUES.slice()),
   textes:Object.freeze(L.map(l=>l[0])),lignes:Object.freeze(L.map(l=>Object.freeze(l.slice()))),cadres:CADRE,salons:SALON,
   communes:Object.freeze(LC.map(l=>Object.freeze(l.slice()))),republia:Object.freeze(LR.map(l=>Object.freeze(l.slice())))});
 })(window);

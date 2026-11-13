@@ -121,7 +121,7 @@ function build(root=ROOT, options={}) {
     registrations.push({id:hash(file+'\0'+key+'\0'+fr).slice(0,20),file,key,fr,translations,line,format,loaded:loaded.has(file),domain:domain(file,key)});
   };
   // Discover central registrations in the same script order as pages. Only declarative catalogues execute.
-  const catalogFiles=[...new Set(['i18n/resources.js',...[...loaded].filter(f=>/^i18n\/.*(?:resources|forum-ui)\.js$/.test(f)),
+  const catalogFiles=[...new Set(['i18n/resources.js',...[...loaded].filter(f=>/^i18n\/.*(?:resources|forum-ui|order-catalogues-config)\.js$/.test(f)),
     ...files.filter(f=>/^i18n\/.*(?:resources|forum-ui)\.js$/.test(f))])].filter(f=>contents.has(f));
   const sandbox={};sandbox.window=sandbox;
   const context=vm.createContext(sandbox,{codeGeneration:{strings:false,wasm:false}});
@@ -157,6 +157,10 @@ function build(root=ROOT, options={}) {
     }
     if(n.type==='ObjectExpression'){
       const p=n.properties.find(p=>p.type==='Property'&&prop(p.key)==='fr');
+      if(p&&typeof staticValue(p.value)==='string'&&n.properties.some(q=>prop(q.key)==='id')){
+        const id=staticValue(n.properties.find(q=>prop(q.key)==='id')?.value);
+        if(typeof id==='string')addRegistration(file,id,staticValue(p.value),Object.fromEntries(LOCALES.map(l=>[l,staticValue(n.properties.find(q=>prop(q.key)===l)?.value)])),n.loc.start.line,'stable-entry');
+      }
       if(!p||p.value.type!=='ObjectExpression')return;
       // Object maps of locale -> literal/nested literal tree; skip runtime objects safely.
       const maps={};for(const l of LOCALES){const q=n.properties.find(q=>prop(q.key)===l);maps[l]=flatten(staticValue(q?.value));}
@@ -249,8 +253,11 @@ function build(root=ROOT, options={}) {
                 tooltipSandbox.state={country};vm.runInContext('var state=window.state;',context);
                 const api=tooltipSandbox.RPSovarkaInfobullesI18n;
                 occ.resolverBindings={};
-                for(const l of LOCALES.slice(1)){sandbox.__auditLocale=l;const rendered=api?.desc(text);
-                  const match=(byText.get(normalize(text))||[]).find(r=>r.loaded&&r.translations[l]===rendered);
+                for(const l of LOCALES.slice(1)){sandbox.__auditLocale=l;const rendered=api?.desc(text,order.descriptionKey);
+                  const keyed=order.descriptionKey?regs.filter(r=>r.key===order.descriptionKey):[];
+                  const alias=(sandbox.RP_ORDER_DESCRIPTION_CATALOGUES||[]).find(c=>(c.shared||c.countries?.includes(country))&&c.keys?.[order.descriptionKey])?.keys?.[order.descriptionKey];
+                  const candidates=keyed.length?keyed:byText.get(normalize(alias||text))||[];
+                  const match=candidates.find(r=>r.loaded&&r.translations[l]===rendered);
                   if(match&&rendered!==text)occ.resolverBindings[l]=match.id;
                 }
               }

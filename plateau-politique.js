@@ -4290,7 +4290,7 @@ function renderRoomActions(room, buildingId, roomId) {
     // Infobulle : description (propre à Sovarka : traduite, devise et tarif national réappliqués),
     // gains, risques, réussite. Descripteur gardé sur le bouton pour la bascule de langue.
     const infobulleI18n = (typeof window !== 'undefined' && window.RPSovarkaInfobullesI18n) || null;
-    const tipSpec = { d: ordreSource.desc || '', a: o.desc || '', c: ordreSource.cost, p: ordreSource.pa, v: deviseOrdre,
+    const tipSpec = { d: ordreSource.desc || '', q: ordreSource.descriptionKey || '', a: o.desc || '', c: ordreSource.cost, p: ordreSource.pa, v: deviseOrdre,
       n: tarifNational ? { cost: tarifNational.cost, pa: tarifNational.pa } : null, g: gainSpec, r: riskSpec, s: rate };
     const gainStr = infobulleI18n ? infobulleI18n.gains(gainSpec)
       : gainSpec.map(e => e[0] + ' ' + (e[1] === 'sante' ? 'Sante' : e[1] === 'moral' ? 'Moral' : e[1])).join(' · ');

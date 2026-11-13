@@ -25,6 +25,17 @@ article 7 : les mécaniques se partagent, les contenus jamais).
 | **1. Infrastructure** | navigateur (`plateau.html` et `plateau-*.js`, `data.js`, `supabase.js`, `forum.js`) ; base Supabase (fonctions `SECURITY DEFINER`, la seule vérité) ; serveur Vercel (`api/` : dialogues PNJ DeepSeek, journal, conférences, renseignements) ; tâches de nuit (`api/cron-minuit.js`, 26 traitements ; `api/cron-assemblee.js`) |
 | *Transversal* | administration (incarnation, journal d'administration) ; offre premium (cosmétique et confort, jamais pay-to-win dans les empires non payants) ; traduction (prévue après Républia) |
 
+## Internationalisation des ordres — socle commun (#871)
+
+Les neuf langues et i18next restent partagés. Les descriptions sont sélectionnées
+dans des catalogues déclarés par portée (commun ou liste de pays), sans branche
+spécifique par empire dans le résolveur. `RPOrderDescriptionsI18n` et l’ancien
+`RPSovarkaInfobullesI18n` sont le même service de présentation. Les nouveaux contenus
+peuvent porter un `descriptionKey` stable ; les matrices existantes gardent leur
+correspondance française, sans migration des données métier. Libellés (`i18nKey`),
+descriptions, gains/risques et réponses de fenêtres restent distincts.
+Voir [le contrat et les preuves](outils/audits/SOCLE-I18N-ORDRES-871.md).
+
 ## Le temps : une seule horloge
 
 Décision en vigueur : **une horloge commune à tous les joueurs et à tous les empires**,
