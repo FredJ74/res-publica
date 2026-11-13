@@ -9,6 +9,9 @@ Règles : voir `AGENTS.md`.
 ### Internationalisation du plan des rues — ChatGPT, 13/11/2026, PR #854
 Branche `chatgpt/i18n-plan-rues-20261113`. Le calcul et les déplacements des rues restent inchangés ; cinq textes visibles du plan (« Plan de… », titre, « Vous êtes ici », repère et position dans la rue) dans les neuf langues, via le catalogue `navigation`, avec conservation du français. La modale ouverte se rafraîchit lors de la bascule de langue sans RPC. Scripts reversionnés dans `plateau.html`. Banc `outils/bancs/banc-i18n-plan-rues-20261113.cjs`, banc historique `test-plan-rues-20261109.mjs` et CI `.github/workflows/i18n-plan-rues.yml`. CI dédiée et CI plans/transports vertes sur commit code `8021acc`; les autres échecs transversaux doivent être comparés à `main`. Recette avec PJ authentifié, revue native et téléphone physique non réalisées. Lot indépendant des missions de Codex (boutons tactiles d'ordre) et Claude (205 descriptions communes).
 
+### Républia — descriptions d'ordres politiques, ChatGPT, 13/11/2026 (lot 1)
+Branche `chatgpt/i18n-republia-ordres-politiques-20261113`, distincte de l'audit exhaustif confié à Codex. **19 descriptions exclusivement républicaines** localisées dans neuf langues (152 traductions), après les 205 descriptions communes ; intégration par le résolveur existant `RPSovarkaInfobullesI18n`, chargement avant celui-ci dans `plateau.html`. Français de `data.js` conservé exactement. Pas de modification de la mécanique, des coûts ou des RPC ; textes propres à Républia inactifs à Sovarka. Banc `outils/bancs/test-i18n-republia-infobulles-politiques-20261113.cjs`, CI dédiée et audit éditorial. **170 descriptions propres à Républia restent après ce lot**, à confirmer à la recette ; tests, PR et déploiement à vérifier avant clôture. Aucun test physique ni relecture par locuteur natif.
+
 ## En cours
 
 ### Descriptions tactiles et guillemets HTML — livrés le 13/11/2026
