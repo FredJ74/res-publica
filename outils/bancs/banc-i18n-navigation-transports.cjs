@@ -13,7 +13,8 @@ const w=ctx.window;
 const languages=['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de'];
 const canonical=w.RP_I18N_RESOURCES.fr.translation.navigation;
 test('titres du plan, légendes, transports et contextes présents dans les neuf langues',()=>{
- assert.equal(Object.keys(canonical).length,24);
+ assert.ok(Object.keys(canonical).length >= 29, 'catalogue étendu aux repères du plan');
+ for(const key of ['planTitlePrefix','planOfCity','hereSuffix','hereText','onStreet']) assert.ok(Object.hasOwn(canonical,key),key);
  assert.deepEqual(Object.keys(w.RP_I18N_LANGUAGES),languages);
  for(const lang of languages){
   const d=w.RP_I18N_RESOURCES[lang].translation.navigation;
