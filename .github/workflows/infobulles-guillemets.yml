@@ -1,0 +1,22 @@
+name: Infobulles — guillemets HTML
+on:
+  pull_request:
+    paths:
+      - 'plateau-politique.js'
+      - 'outils/bancs/banc-infobulles-guillemets-20261113.cjs'
+      - 'outils/bancs/banc-ordres-info-tactile-20261113.cjs'
+      - '.github/workflows/infobulles-guillemets.yml'
+permissions:
+  contents: read
+jobs:
+  guillemets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check plateau-politique.js
+      - run: node --test outils/bancs/banc-infobulles-guillemets-20261113.cjs outils/bancs/test-i18n-infobulles-communes-20261113.mjs outils/bancs/test-i18n-sovarka-infobulles-20261113.mjs
+      - run: git diff --check

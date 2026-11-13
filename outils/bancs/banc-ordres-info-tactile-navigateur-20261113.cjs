@@ -104,13 +104,23 @@ test('Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/pay
   assert.deepEqual(errors,[]);await page.close();
  }}finally{await browser.close();}
 });
+function verifierBureauIdentiqueSaufTitleCorrige(actual,baseline){
+ assert.equal(actual.length,baseline.length);
+ for(let i=0;i<actual.length;i++){
+  const before=baseline[i],after=actual[i];
+  for(const key of ['html','onclick','disabled','classes'])assert.deepEqual(after[key],before[key],key+' ordre '+i);
+  if(before.title==='Description '){
+   assert.match(after.title,/^Description "sans" gain ni risque\. \| Reussite: 100%$/);
+  }else assert.equal(after.title,before.title,'title ordre '+i);
+ }
+}
 test('bureau 1280 : rendu, title, clic et absence de bouton info identiques au main initial',async()=>{
  const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
  try{
   const a=await browser.newPage({viewport:{width:1280,height:900}}),b=await browser.newPage({viewport:{width:1280,height:900}});await setup(a);await setup(b,true);
   assert.equal(await a.locator('.rp-order-info-button').count(),0);
-  assert.deepEqual(await a.evaluate(()=>buttonSnapshots()),await b.evaluate(()=>buttonSnapshots()));
-  for(const l of langs){await a.evaluate(l=>i18next.changeLanguage(l),l);await b.evaluate(l=>i18next.changeLanguage(l),l);assert.deepEqual(await a.evaluate(()=>buttonSnapshots()),await b.evaluate(()=>buttonSnapshots()));}
+  verifierBureauIdentiqueSaufTitleCorrige(await a.evaluate(()=>buttonSnapshots()),await b.evaluate(()=>buttonSnapshots()));
+  for(const l of langs){await a.evaluate(l=>i18next.changeLanguage(l),l);await b.evaluate(l=>i18next.changeLanguage(l),l);verifierBureauIdentiqueSaufTitleCorrige(await a.evaluate(()=>buttonSnapshots()),await b.evaluate(()=>buttonSnapshots()));}
   await a.locator('.action-btn').filter({hasText:'Consulter librement'}).click();await b.locator('.action-btn').filter({hasText:'Consulter librement'}).click();assert.deepEqual(await a.evaluate(()=>calls),await b.evaluate(()=>calls));
   await a.close();await b.close();
  }finally{await browser.close();}

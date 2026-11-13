@@ -4382,7 +4382,10 @@ function renderRoomActions(room, buildingId, roomId) {
     const tipDescripteur = needsBientot ? { k: 'bientot', t: o.bientot, details: tipSpec } : (tooltipFinal === tooltip ? tipSpec : { k: 'badge', g: gainSpec, details: tipSpec });
     if (infoBlocage) tipDescripteur.blocage = infoBlocage;
     const tipAttr = infobulleI18n ? ' data-rp-tip="' + encodeURIComponent(JSON.stringify(tipDescripteur)) + '"' : '';
-    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn.replace(/"/g, '&quot;') + '" title="' + tooltipFinal + '"' + tipAttr + '><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + libelleMarque + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
+    // Les descriptions métier peuvent contenir des guillemets droits : ne pas tronquer title.
+    // Les messages bloqués ont déjà été échappés dans tooltipFinal ; ne pas les doubler.
+    const tooltipAttribut = tooltipFinal === tooltip ? tooltipFinal.replace(/"/g, '&quot;') : tooltipFinal;
+    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn.replace(/"/g, '&quot;') + '" title="' + tooltipAttribut + '"' + tipAttr + '><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + libelleMarque + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 
   // #57 — groupes de commandes des cinq terrains, sans fabriquer de nouveaux handlers.
