@@ -35,9 +35,9 @@ Modification en cours : la `salle_reception` du `palais-ambassades-novomirsk` es
 
 ## En cours
 
-### #871 — socle i18n des ordres, Codex, 13/11/2026
+### #871 — répertoire partagé et courrier, Codex, 13/11/2026
 
-Branche `codex/i18n-socle-ordres-20261113`, **PR #872**. Généralisation du seul résolveur existant par catalogues déclaratifs, alias API `RPOrderDescriptionsI18n`, `descriptionKey` stable et ancien français exact conservés. Aucun texte de catalogue, pays, bâtiment, carte, PNJ, PA, coût ou RPC modifié. Seul le descripteur du renderer transporte la clé. Contrat : `outils/audits/SOCLE-I18N-ORDRES-871.md`. **53 tests Node + 3 Chromium verts** (320/390/1280, neuf langues et troisième pays fictif) avant intégration. Audit au même extracteur : zéro traduction/raccordement ajouté par ce lot d’architecture ; les lots d’interface suivront. CI distante, fusion et déploiement à vérifier. Zones Sovarka et Aide HRP métier hors périmètre.
+Branche `codex/i18n-repertoire-courrier-20261113`, **PR #876**. Huit nouvelles clés × neuf langues (64 traductions étrangères), chargement réutilisé du catalogue existant ; répertoire et trois messages locaux du courrier. Français conservé, noms/villes/postes et champs non traduits. Même moteur `RPI18nPlateau.apply`, aucune RPC ni fonction d’envoi modifiée hors trois lignes de marquage de présentation. **26 contrôles ciblés verts**, dont 3 spécifiques et Chromium 320/390/1280, neuf langues et 162 combinaisons de situation ; audit éditorial/extracteur verts. Noms longs et RTL testés, brouillons et nœuds conservés. Mesure au même extracteur : +7 textes uniques et +39 mots source entièrement raccordés par langue étrangère ; huit ressources nouvelles, un refus encore français ailleurs. `RPI18nPlateau.markToast` et les titres existants se rafraîchissent sans effet métier. CI répertoire et audit vertes ; trois échecs SSM transverses préexistants à comparer, fusion et déploiement à compléter. Tableau de bord régénéré, sept artefacts identiques entre deux exécutions. Contrat : `outils/audits/I18N-REPERTOIRE-COURRIER-871.md`.
 
 
 ### Descriptions tactiles et guillemets HTML — livrés le 13/11/2026
@@ -124,6 +124,11 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - Aide HRP (PR #720) : **non certifiés** — réponses réelles DeepSeek dans les neuf langues, recette authentifiée, essais iPhone/Android. Sur téléphone : questions PA/but, fr→en→ko→fr, arabe RTL, clavier IME.
 
 ## Derniers chantiers
+
+### #871 — socle des ordres multi-empires, livré le 13/11/2026
+
+**PR #872 fusionnée**, commit `e10d5fa777218595c597ea888440be37120d2d84`, Vercel `dpl_ArpbFnCAHRe6XUhSyJgr7qx5W8Fn` **READY**, alias public vérifié. Un seul résolveur, catalogues configurables, `descriptionKey` stable optionnel et voie française historique ; aucun catalogue ni mécanisme modifié. **53 tests Node et 9 Chromium verts**, troisième pays fictif et neuf langues 320/390/1280. Quinze fichiers servis identiques aux sources ; banc supplémentaire sur ces fichiers publiés vert. CI dédiée verte ; seul échec transverse SSM reproduit sur main, délai transitoire de démarrage Chromium résolu par réexécution sans modifier les tests. Audit au même extracteur : zéro nouvelle traduction/raccordement revendiqué. Contrat : `outils/audits/SOCLE-I18N-ORDRES-871.md`. Relecture native, compte authentifié et appareil physique non vérifiés.
+
 
 - **Novomirsk : retour du quai du marché vers la rue de l'hôpital (Claude, 13/11 vers 15 h, demande de Fred, branche `claude/novomirsk-quai-retour-hopital-20261113`)**.
   - **Écran** : V16 (quai du marché) a une flèche de droite vers V15 (clinique Saint-Pavel/hôpital public) ; ses autres liens ne changent pas.

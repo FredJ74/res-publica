@@ -6,7 +6,7 @@
 <title>Res Publica — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=ordres-info-tactile-20261113-lisibilite-pnj-20261031-caracs-mobile-l7-20261106-formulaires-20261107-reconnexion-20261108-piece-mobile-20261111-guide-lisible-20261111-questions">
+<link rel="stylesheet" href="style.css?v=repertoire-i18n-20261113-ordres-info-tactile-20261113-lisibilite-pnj-20261031-caracs-mobile-l7-20261106-formulaires-20261107-reconnexion-20261108-piece-mobile-20261111-guide-lisible-20261111-questions">
 <style>
 /* Le bandeau de traduction partielle concerne les langues étrangères ; l'interface FR conserve son gabarit initial. */
 html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
@@ -637,7 +637,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
         <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem" data-i18n="plateau.messageLabel">Message</label>
         <textarea id="compose-mail-body" rows="6" placeholder="Votre message..." data-i18n-placeholder="plateau.messagePlaceholder" style="width:100%;padding:.5rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;resize:vertical"></textarea>
       </div>
-      <p class="cpj-note" style="margin:.2rem 0 .4rem;font-size:.72rem">Les mails entre joueurs peuvent être interceptés en jeu par les services d'écoute de Sovarka.</p>
+      <p class="cpj-note" data-i18n="playerDirectory.privacy" style="margin:.2rem 0 .4rem;font-size:.72rem">Les mails entre joueurs peuvent être interceptés en jeu par les services d'écoute de Sovarka.</p>
       <button onclick="envoyerComposeMail()" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.12em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;align-self:flex-end">
         <i class="ti ti-send" style="font-size:.8rem"></i> <span data-i18n="plateau.sendButton">Envoyer</span>
       </button>
@@ -812,7 +812,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="i18n/dealer-resources.js?v=20261112"></script>
 <script src="plateau-ced.js?v=dealer-i18n-20261112"></script>
 <script src="plateau-multijoueur.js?v=mobile-l9-20261106-surveillance-20261111-guide-musee-guide-fiches-20261111-questions-roles-sovarka-20261112-i18n-equip-20261112"></script>
-<script src="plateau-communication.js?v=autorite219-20261101-cloture135-20261102-r2-reliquats379-tracts-i18n-20261111"></script>
+<script src="plateau-communication.js?v=repertoire-i18n-20261113-autorite219-20261101-cloture135-20261102-r2-reliquats379-tracts-i18n-20261111"></script>
 <script src="plateau-politique.js?v=socle-ordres-871-20261113-ordres-info-tactile-20261113-i18n-refresh-fenetres-20261110-sovarka-nuit-20261110-fouiller-20261111-i18n-missions-20261113-infobulles-20261113"></script>
 <script src="plateau-gouvernement.js?v=6"></script>
 <script src="plateau-effort-guerre.js?v=inventaire-213-integration-20261029"></script>
@@ -1000,16 +1000,17 @@ function signalerEvenementJournal() {
 <script src="i18n/appartements-resources.js?v=20261112"></script>
 <script src="i18n/tresor-tsars-resources.js?v=20261112"></script>
 <script src="i18n/player-missions-resources.js?v=20261113"></script>
+<script src="i18n/player-directory-resources.js?v=20261113"></script>
 <script src="i18n/guide-ilia-resources.js?v=20261113"></script>
 <script src="i18n/musee-sovarka-resources.js?v=20261112"></script>
 <script src="plateau-sovarka-courriers.js?v=courriers-sovarka-20261111-phrases"></script>
 <script src="i18n/forum-ui.js?v=forum-ui-20261107"></script>
-<script src="i18n/toast-resources.js?v=101-titres-20261110-production-20261110-vente-don-20261110"></script>
+<script src="i18n/toast-resources.js?v=repertoire-titres-20261113-101-titres-20261110-production-20261110-vente-don-20261110"></script>
 <script src="i18n/ordres.js?v=i18n-refresh-fenetres-20261110"></script>
 <script src="i18n/texte-joueur.js?v=1"></script>
 <script src="i18n/beta-language-notice.js?v=20261109"></script>
 <script src="i18n/navigation-resources.js?v=plan-rues-i18n-20261113"></script>
-<script src="i18n/plateau-init.js?v=inventaire-variables-20261110-i18n-refresh-fenetres-20261110-legendes-i18n-20261110-callbacks-20261111"></script>
+<script src="i18n/plateau-init.js?v=repertoire-toasts-20261113-inventaire-variables-20261110-i18n-refresh-fenetres-20261110-legendes-i18n-20261110-callbacks-20261111"></script>
 <link rel="stylesheet" href="plateau-aide.css?v=20261111">
 <script src="plateau-aide.js?v=20261111-neuf-langues-debut-reponse"></script>
 <script src="plateau-ordres-info.js?v=20261113" defer></script>

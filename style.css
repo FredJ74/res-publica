@@ -2501,3 +2501,5 @@ body.plateau-body .top-right {
 .rp-order-info-content{white-space:pre-line;line-height:1.55;margin-bottom:1rem}
 .rp-order-info-dialog:not([open]){display:none}
 .rp-order-info-dialog button:focus-visible,.rp-order-info-button:focus-visible{outline:2px solid var(--gold-light);outline-offset:2px}
+/* Répertoire : noms propres et postes longs, sans élargir les fenêtres mobiles. */
+.player-directory-list [data-directory-person] { min-width: 0; overflow-wrap: anywhere; }

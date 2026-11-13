@@ -144,7 +144,22 @@
     }
 
   }
-  global.RPI18nPlateau=Object.freeze({apply,locale:()=>locale});
+  // Marquage facultatif d'une notification locale déjà rendue, jamais d'une action métier.
+  // Le prochain showToast écrit textContent et supprime ce span, sans ancien marqueur persistant.
+  function markToast(key,fr,values,titleFr) {
+    const node=global.document?.getElementById('toast-sub');
+    if(!node||typeof key!=='string'||node.textContent!==fr)return false;
+    const span=global.document.createElement('span');span.textContent=fr;span.setAttribute('data-i18n',key);
+    try{if(values)span.setAttribute('data-i18n-values',JSON.stringify(values));}catch(_){return false;}
+    node.replaceChildren(span);apply(node);
+    const titleKey=global.RPToastI18n?.key?.(titleFr),title=global.document.getElementById('toast-result');
+    if(titleKey&&title&&title.textContent===global.RPToastI18n.label(titleFr)){
+      const heading=global.document.createElement('span');heading.textContent=titleFr;heading.setAttribute('data-i18n',titleKey);
+      title.replaceChildren(heading);apply(title);
+    }
+    return true;
+  }
+  global.RPI18nPlateau=Object.freeze({apply,markToast,locale:()=>locale});
   // Un changement de langue dans l'interface, y compris depuis un autre onglet,
   // doit mettre à jour le texte statique et les menus dynamiques ensemble.
   if(typeof engine.on==='function')engine.on('languageChanged',function(next) {
