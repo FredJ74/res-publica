@@ -18,6 +18,9 @@ Après #861 (19 descriptions politiques fusionnées et déployées), ajout de **
 ### Républia — locaux, services et diplomatie (ChatGPT, 13/11/2026, lot 3)
 Après #861 (19) et #863 (+20), **31 autres descriptions** exclusivement républicaines traduites dans les neuf langues, soit 248 traductions supplémentaires. Catalogue `i18n/republia-infobulles-resources.js` : **70 lignes au total** ; source exacte `data.js` préservée. Ordres des logements, entreprises et bureaux, diplomatie, municipalités, rendez-vous administratifs. Moteur, coûts, PA et RPC inchangés ; aucune incidence sur Sovarka. Banc existant élargi à 70 lignes, audit éditorial et CI dédiés. **119 descriptions propres à Républia restent à traduire** après ce lot. Tests/fusion/déploiement et recette authentifiée à vérifier.
 
+### Républia — banque, police, marché et municipalités (ChatGPT, 13/11/2026, lot 4)
+Après les lots #861, #863 et #865 (70 descriptions propres à Républia), ajout de **29 descriptions supplémentaires**, soit 232 traductions dans les huit langues étrangères. Le catalogue `i18n/republia-infobulles-resources.js` atteint **99 descriptions spécifiques à Républia sur 189**, avec source française exacte `data.js` et mécanisme de traduction commun. Pas de modification des PA, coûts, services, règles ou RPC. Banc déterministe porté à 99 descriptions, CI d'internationalisation et audit éditorial. **90 descriptions propres à Républia restent à traduire** après ce lot. CI, fusion, Vercel, test connecté et revue native à confirmer.
+
 ## En cours
 
 ### Descriptions tactiles et guillemets HTML — livrés le 13/11/2026
