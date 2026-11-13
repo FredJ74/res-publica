@@ -965,3 +965,8 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 
 **Vérification :** banc `outils/bancs/banc-caserne-parite-menus-20261113.cjs` (inventaire des sept pièces, existence des images, parité de chaque ordre et de ses coûts, couverture sans perte ni doublon, préservation de la conscription, traductions). Recette visuelle avec un personnage connecté non réalisée à ce stade.
 
+
+## Camion militaire de Novomirsk (Fred, 13/11/2026, 23 h 18 – 23 h 23) — PAS de feu vert de codage
+- Même socle que le camion militaire de Républia (aucune mécanique nouvelle) : un camion de l'armée de Sovarka, garé dans la première pièce de la caserne de Novomirsk (la caserne est en ville en Sovarka).
+- Modèle retenu par Fred : **NAZ-66 « Bourlak »** (NAZ = Usine automobile de Novomirsk ; le *bourlak* est le haleur de la Volga). Image générée par Fred (camion de transport de troupes soviétique 6×6).
+- Restent à décider : destinations, capacité (25 places en Républia).
