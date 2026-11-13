@@ -210,6 +210,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'souscrire_bon_etat') { ouvrirBonsEtat(); return; }
   if (fn === 'sovarka_ecoutes') { ouvrirEcoutesMinistre(); return; }
   if (fn === 'voler_archives_ecoute') { volerArchivesEcoute(); return; }
+  if (fn === 'consulter_archives_ecoute') { ouvrirConsultationArchives(); return; }
+  if (fn === 'sovarka_habilitations') { ouvrirHabilitations(); return; }
+  if (fn === 'interroger_renseignement') { ouvrirInterrogatoireRenseignement(); return; }
   if (fn === 'maison_habitant') { ouvrirMaisonHabitant(); return; }
   if (fn === 'trinquer_habitant') { trinquerHabitant(); return; }
   // Fermes et forêt profonde de Krasnov (10/11/2026, partie 2) : plateau-sovarka-provinces.js.

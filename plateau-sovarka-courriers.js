@@ -48,7 +48,10 @@
     ['cs_foret', ['cr_foret_victoire_ours', 'cr_foret_victoire'], 'Événement'],
     // Héros du Travail (13/11/2026) : classement (avec ou sans record en attente) et décoration.
     ['cs_heros_classement', ['cr_heros_classement_record', 'cr_heros_classement'], "Ministère de l'Économie collective"],
-    ['cs_heros_decore', ['cr_heros_decore'], "Ministère de l'Économie collective"]
+    ['cs_heros_decore', ['cr_heros_decore'], "Ministère de l'Économie collective"],
+    ['cs_habil_ok', ['cr_habil_ok'], 'Ministère de la Sécurité du Peuple'],
+    ['cs_habil_retiree', ['cr_habil_retiree'], 'Ministère de la Sécurité du Peuple'],
+    ['cs_interro_fin', ['cr_interro_fin'], 'Direction du Renseignement']
   ];
   const echapperRegex = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const cache = {};

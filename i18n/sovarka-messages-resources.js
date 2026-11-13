@@ -7,6 +7,12 @@
 'use strict';
 const texts={
   "fr": {
+    "cs_habil_ok": "Habilitation aux archives d'écoute",
+    "cr_habil_ok": "Le ministre de la Sécurité du Peuple vous accorde l'habilitation aux archives des centres d'écoute de Sovarka. Dans la salle d'écoute de chaque centre (Novomirsk, Starovka, Krasnov), vous pouvez consulter les archives de ce centre en cherchant un nom de personnage (1 PA par recherche). Cette habilitation peut vous être retirée à tout moment.",
+    "cs_habil_retiree": "Habilitation retirée",
+    "cr_habil_retiree": "Le ministre de la Sécurité du Peuple vous retire l'habilitation aux archives des centres d'écoute.",
+    "cs_interro_fin": "Fin de l'interrogatoire",
+    "cr_interro_fin": "Vous avez été interrogé par {nom} en salle d'interrogatoire, puis conduit en cellule pour la suite de votre peine.",
     "re_title": "Organiser un événement",
     "re_intro": "Vous avez réservé la salle pour la journée ? Organisez-y un événement. Chaque événement coûte 1 PA et ne peut avoir lieu qu’une fois par salle et par jour. Les participants sont les personnes présentes dans la salle au moment où vous le lancez.",
     "re_organize": "Organiser",
@@ -161,6 +167,12 @@ const texts={
     "ft_lapin": "Abattre un lapin"
   },
   "en": {
+    "cs_habil_ok": "Clearance for the listening archives",
+    "cr_habil_ok": "The Minister of People's Security grants you clearance to the archives of Sovarka's listening centres. In the listening room of each centre (Novomirsk, Starovka, Krasnov), you may consult that centre's archives by searching for a character's name (1 AP per search). This clearance can be revoked at any time.",
+    "cs_habil_retiree": "Clearance revoked",
+    "cr_habil_retiree": "The Minister of People's Security revokes your clearance to the listening centres' archives.",
+    "cs_interro_fin": "Interrogation over",
+    "cr_interro_fin": "You were interrogated by {nom} in the interrogation room, then taken to a cell for the rest of your sentence.",
     "re_title": "Organize an event",
     "re_intro": "Have you booked the room for the day? Organize an event there. Each event costs 1 AP and can take place only once per room per day. The participants are the people present in the room when you launch it.",
     "re_organize": "Organize",
@@ -315,6 +327,12 @@ const texts={
     "ft_lapin": "Slaughter a rabbit"
   },
   "es": {
+    "cs_habil_ok": "Habilitación para los archivos de escucha",
+    "cr_habil_ok": "El ministro de la Seguridad del Pueblo le concede la habilitación para los archivos de los centros de escucha de Sovarka. En la sala de escucha de cada centro (Novomirsk, Starovka, Krasnov), puede consultar los archivos de ese centro buscando el nombre de un personaje (1 PA por búsqueda). Esta habilitación puede retirársele en cualquier momento.",
+    "cs_habil_retiree": "Habilitación retirada",
+    "cr_habil_retiree": "El ministro de la Seguridad del Pueblo le retira la habilitación para los archivos de los centros de escucha.",
+    "cs_interro_fin": "Fin del interrogatorio",
+    "cr_interro_fin": "Fue interrogado por {nom} en la sala de interrogatorio y luego llevado a la celda para el resto de su condena.",
     "re_title": "Organizar un evento",
     "re_intro": "¿Ha reservado la sala para el día? Organice allí un evento. Cada evento cuesta 1 PA y solo puede celebrarse una vez por sala y por día. Los participantes son las personas presentes en la sala en el momento de lanzarlo.",
     "re_organize": "Organizar",
@@ -469,6 +487,12 @@ const texts={
     "ft_lapin": "Sacrificar un conejo"
   },
   "zh-TW": {
+    "cs_habil_ok": "監聽檔案查閱許可",
+    "cr_habil_ok": "人民安全部長授予您查閱 Sovarka 監聽中心檔案的許可。在每個中心（Novomirsk、Starovka、Krasnov）的監聽室，您可以搜尋角色名稱來查閱該中心的檔案（每次搜尋 1 行動點）。此許可隨時可能被撤銷。",
+    "cs_habil_retiree": "許可已撤銷",
+    "cr_habil_retiree": "人民安全部長撤銷了您查閱監聽中心檔案的許可。",
+    "cs_interro_fin": "審訊結束",
+    "cr_interro_fin": "您在審訊室接受了 {nom} 的審訊，之後被送往牢房服完剩餘刑期。",
     "re_title": "舉辦活動",
     "re_intro": "您已預訂今天的會議室嗎？在此舉辦一場活動。每場活動花費 1 PA，每間會議室每天只能舉辦一次。參加者為您發起活動時在場的人。",
     "re_organize": "舉辦",
@@ -623,6 +647,12 @@ const texts={
     "ft_lapin": "宰一隻兔子"
   },
   "ru": {
+    "cs_habil_ok": "Допуск к архивам прослушки",
+    "cr_habil_ok": "Министр Народной безопасности выдаёт вам допуск к архивам центров прослушки Sovarka. В комнате прослушки каждого центра (Новомирск, Старовка, Краснов) вы можете изучать архивы этого центра, ища имя персонажа (1 ОД за поиск). Допуск может быть отозван в любой момент.",
+    "cs_habil_retiree": "Допуск отозван",
+    "cr_habil_retiree": "Министр Народной безопасности отзывает ваш допуск к архивам центров прослушки.",
+    "cs_interro_fin": "Допрос окончен",
+    "cr_interro_fin": "Вас допросил(а) {nom} в комнате допросов, затем вас отвели в камеру до конца срока.",
     "re_title": "Организовать мероприятие",
     "re_intro": "Вы забронировали зал на день? Устройте в нём мероприятие. Каждое мероприятие стоит 1 ОД и может проводиться в зале только раз в день. Участники — те, кто находится в зале в момент запуска.",
     "re_organize": "Организовать",
@@ -777,6 +807,12 @@ const texts={
     "ft_lapin": "Забить кролика"
   },
   "ko": {
+    "cs_habil_ok": "감청 기록 열람 허가",
+    "cr_habil_ok": "인민보안부 장관이 Sovarka 감청 센터 기록 열람을 허가합니다. 각 센터(Novomirsk, Starovka, Krasnov)의 감청실에서 캐릭터 이름을 검색해 그 센터의 기록을 열람할 수 있습니다(검색당 1 AP). 이 허가는 언제든 취소될 수 있습니다.",
+    "cs_habil_retiree": "허가 취소",
+    "cr_habil_retiree": "인민보안부 장관이 감청 센터 기록 열람 허가를 취소합니다.",
+    "cs_interro_fin": "심문 종료",
+    "cr_interro_fin": "심문실에서 {nom}에게 심문을 받은 뒤, 남은 형기를 위해 감방으로 이송되었습니다.",
     "re_title": "행사 개최",
     "re_intro": "오늘 회의실을 예약하셨나요? 그곳에서 행사를 여세요. 행사마다 1 PA가 들며 회의실마다 하루에 한 번만 열 수 있습니다. 참가자는 행사를 시작할 때 회의실에 있는 사람들입니다.",
     "re_organize": "개최",
@@ -931,6 +967,12 @@ const texts={
     "ft_lapin": "토끼 잡기"
   },
   "ar": {
+    "cs_habil_ok": "تصريح أرشيف التنصت",
+    "cr_habil_ok": "يمنحك وزير أمن الشعب تصريحًا بالاطلاع على أرشيف مراكز التنصت في Sovarka. في غرفة التنصت بكل مركز (Novomirsk وStarovka وKrasnov)، يمكنك الاطلاع على أرشيف ذلك المركز بالبحث عن اسم شخصية (نقطة عمل واحدة لكل بحث). يمكن سحب هذا التصريح في أي وقت.",
+    "cs_habil_retiree": "سُحب التصريح",
+    "cr_habil_retiree": "يسحب وزير أمن الشعب تصريحك بالاطلاع على أرشيف مراكز التنصت.",
+    "cs_interro_fin": "انتهى الاستجواب",
+    "cr_interro_fin": "استجوبك {nom} في غرفة الاستجواب، ثم اقتِدت إلى الزنزانة لقضاء بقية عقوبتك.",
     "re_title": "تنظيم فعالية",
     "re_intro": "هل حجزت القاعة لهذا اليوم؟ نظّم فيها فعالية. تكلّف كل فعالية 1 PA ولا يمكن إقامتها إلا مرة واحدة في كل قاعة يوميًا. المشاركون هم الحاضرون في القاعة لحظة إطلاقها.",
     "re_organize": "تنظيم",
@@ -1085,6 +1127,12 @@ const texts={
     "ft_lapin": "ذبح أرنب"
   },
   "pt-BR": {
+    "cs_habil_ok": "Habilitação aos arquivos de escuta",
+    "cr_habil_ok": "O ministro da Segurança do Povo concede a você a habilitação aos arquivos dos centros de escuta de Sovarka. Na sala de escuta de cada centro (Novomirsk, Starovka, Krasnov), você pode consultar os arquivos desse centro procurando o nome de um personagem (1 PA por busca). Esta habilitação pode ser retirada a qualquer momento.",
+    "cs_habil_retiree": "Habilitação retirada",
+    "cr_habil_retiree": "O ministro da Segurança do Povo retira sua habilitação aos arquivos dos centros de escuta.",
+    "cs_interro_fin": "Fim do interrogatório",
+    "cr_interro_fin": "Você foi interrogado por {nom} na sala de interrogatório e depois levado à cela para o restante da sua pena.",
     "re_title": "Organizar um evento",
     "re_intro": "Você reservou a sala para o dia? Organize nela um evento. Cada evento custa 1 PA e só pode acontecer uma vez por sala e por dia. Os participantes são as pessoas presentes na sala no momento em que você o lança.",
     "re_organize": "Organizar",
@@ -1239,6 +1287,12 @@ const texts={
     "ft_lapin": "Abater um coelho"
   },
   "de": {
+    "cs_habil_ok": "Freigabe für die Abhörarchive",
+    "cr_habil_ok": "Der Minister für Volkssicherheit erteilt Ihnen die Freigabe für die Archive der Abhörzentren von Sovarka. Im Abhörraum jedes Zentrums (Novomirsk, Starovka, Krasnov) können Sie die Archive dieses Zentrums einsehen, indem Sie nach dem Namen eines Charakters suchen (1 AP pro Suche). Diese Freigabe kann jederzeit entzogen werden.",
+    "cs_habil_retiree": "Freigabe entzogen",
+    "cr_habil_retiree": "Der Minister für Volkssicherheit entzieht Ihnen die Freigabe für die Archive der Abhörzentren.",
+    "cs_interro_fin": "Verhör beendet",
+    "cr_interro_fin": "Sie wurden von {nom} im Verhörraum verhört und anschließend für den Rest Ihrer Strafe in die Zelle gebracht.",
     "re_title": "Veranstaltung ausrichten",
     "re_intro": "Haben Sie den Saal für heute gebucht? Richten Sie dort eine Veranstaltung aus. Jede Veranstaltung kostet 1 AP und kann pro Saal nur einmal am Tag stattfinden. Teilnehmer sind die Personen, die beim Start im Saal anwesend sind.",
     "re_organize": "Ausrichten",

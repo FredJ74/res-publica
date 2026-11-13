@@ -117,10 +117,86 @@ async function volerArchivesEcoute() {
     showToast(provT('tStolen'), provT('stolenOk', { centre: PROV_CENTRES[v.centre] }), true, true);
     if (typeof addJournalEntry === 'function') addJournalEntry('Rapport d’écoute volé (' + PROV_CENTRES[v.centre] + ').', 'event-bad');
   } else {
-    showToast(provT('tCaught'), provT('caught'), false);
+    showToast(provT('tCaught'), provT('caught') + (v.interrogatoire ? ' ' + provT('caughtInterro') : ''), false);
     if (typeof addJournalEntry === 'function') addJournalEntry('Surpris en volant les archives d’écoute : arrêté.', 'event-bad');
     if (v.arrestation && typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
   }
+}
+
+// ---------- HABILITATIONS, CONSULTATION ET INTERROGATOIRE (Fred, 13/11/2026) ----------
+// Le ministre de la Sécurité du Peuple habilite des personnages (jamais lui-même) ; un habilité cherche un nom
+// dans les archives du centre où il se trouve (1 PA). Le voleur pris à Novomirsk attend en salle d'interrogatoire.
+Object.assign(PROV_MOTIFS, provRaisons(['pas_habilite', 'cible_absente', 'pas_ministre_securite', 'pas_soi_meme',
+  'personnage_introuvable', 'deja_habilite', 'pas_en_interrogatoire', 'autorite_insuffisante', 'pa_insuffisants']));
+const provChampTexte = (id, indice) => '<input id="' + id + '" type="text" maxlength="60" class="cpj-champ" placeholder="' + provEchapper(indice) + '">';
+const provLireTexte = id => String(document.getElementById(id)?.value || '').trim();
+const provJs = (f, x) => f + '(' + JSON.stringify(String(x)).replace(/"/g, '&quot;') + ')';
+
+async function ouvrirHabilitations() {
+  const v = await sbRpcVerdict('sovarka_habilitations_lire', {}).catch(() => null);
+  if (!v || v.ok !== true) { showToast(provT('tHabil'), provMotif(v), false); return; }
+  provAfficherHabilitations(v);
+}
+function provAfficherHabilitations(v) {
+  const liste = Array.isArray(v.habilites) ? v.habilites : [];
+  let html = '<p>' + provT('habilIntro') + '</p>' +
+    vehSection(provT('habilGrant'), '<div style="margin-top:.4rem">' + provChampTexte('habil-nom', provT('habilName')) +
+      vehBouton(provT('habilGrant'), 'accorderHabilitation()', true) + '</div>');
+  html += vehSection(provT('habilList'), liste.length
+    ? liste.map(h => '<div style="margin:.3rem 0">' + provT('habilLine', { nom: provEchapper(h.nom), par: provEchapper(h.par) }) +
+        vehBouton(provT('habilRevoke'), provJs('retirerHabilitation', h.nom)) + '</div>').join('')
+    : '<p class="cpj-note">' + provT('habilNone') + '</p>');
+  provModal(provT('tHabil'), html, ouvrirHabilitations);
+}
+async function accorderHabilitation() {
+  const nom = provLireTexte('habil-nom');
+  if (!nom) { showToast(provT('tHabil'), provT('m_cible_absente'), false); return; }
+  const v = await sbRpcVerdict('sovarka_habilitation_accorder', { p_nom: nom }).catch(() => null);
+  if (!v || v.ok !== true) { showToast(provT('tHabil'), provMotif(v), false); return; }
+  showToast(provT('tHabilOk'), provT('habilOk', { nom: provEchapper(v.accorde) }), true);
+  provAfficherHabilitations(v);
+}
+async function retirerHabilitation(nom) {
+  const v = await sbRpcVerdict('sovarka_habilitation_retirer', { p_nom: nom }).catch(() => null);
+  if (!v || v.ok !== true) { showToast(provT('tHabil'), provMotif(v), false); return; }
+  showToast(provT('tHabilOff'), provT('habilOff', { nom: provEchapper(v.retire) }), true);
+  provAfficherHabilitations(v);
+}
+
+function ouvrirConsultationArchives() {
+  provModal(provT('tConsult'), '<p>' + provT('consultIntro') + '</p><div style="margin-top:.4rem">' +
+    provChampTexte('archives-cible', provT('consultName')) + vehBouton(provT('consultGo'), 'consulterArchivesEcoute()', true) + '</div>');
+}
+async function consulterArchivesEcoute() {
+  const cible = provLireTexte('archives-cible');
+  if (!cible) { showToast(provT('tConsult'), provT('m_cible_absente'), false); return; }
+  const v = await provActe('sovarka_ecoute_archives_consulter', { p_cible: cible }, 'consulter:' + cible.toLowerCase());
+  if (!v) return;
+  if (v.ok !== true) { showToast(provT('tConsult'), provMotif(v), false); return; }
+  const centre = PROV_CENTRES[v.centre] || v.centre;
+  if (v.nb > 0) showToast(provT('tConsult'), provT('consultFound', { n: v.nb, centre }), true);
+  else showToast(provT('tConsult'), provT('consultNone', { cible: provEchapper(v.cible), centre }), false);
+  if (typeof addJournalEntry === 'function') addJournalEntry('Archives d’écoute consultées (' + centre + ') : ' + v.cible + ', ' + v.nb + ' communication(s).', '');
+}
+
+async function ouvrirInterrogatoireRenseignement() {
+  const v = await sbRpcVerdict('renseignement_detenus_interrogatoire', {}).catch(() => null);
+  if (!v || v.ok !== true) { showToast(provT('tInterro'), provMotif(v), false); return; }
+  const detenus = Array.isArray(v.detenus) ? v.detenus : [];
+  const html = '<p>' + provT('interroIntro') + '</p>' + (detenus.length
+    ? detenus.map(d => '<div style="margin:.3rem 0">' + provEchapper(d.nom) + vehBouton(provT('interroGo'), provJs('interrogerDetenuRenseignement', d.nom), true) + '</div>').join('')
+    : '<p class="cpj-note">' + provT('interroNone') + '</p>');
+  provModal(provT('tInterro'), html, ouvrirInterrogatoireRenseignement);
+}
+async function interrogerDetenuRenseignement(nom) {
+  const v = await sbRpcVerdict('renseignement_interroger', { p_detenu: nom }).catch(() => null);
+  if (!v || v.ok !== true) { showToast(provT('tInterro'), provMotif(v), false); return; }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa });
+  if (v.reussi && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('inf', v.inf);
+  showToast(provT('tInterroOk'), provT('interroOk', { nom: provEchapper(v.detenu) }) + (v.reussi ? provT('interroInf') : ''), true);
+  if (typeof addJournalEntry === 'function') addJournalEntry('Interrogatoire de ' + v.detenu + ' à la Direction du Renseignement.', 'event-good');
+  if (typeof updateUI === 'function') updateUI();
+  await ouvrirInterrogatoireRenseignement();
 }
 
 // ---------- MAISONS (hospitalité russe) ----------

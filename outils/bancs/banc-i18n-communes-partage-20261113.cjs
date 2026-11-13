@@ -17,9 +17,10 @@ test(sources.length+' descriptions partagées : réemploi exact des traductions,
 });
 test('paramètres et mécaniques inchangés, repli français et catalogues Sovarka intacts',()=>{
  const c=load();c.locale='unknown';for(const row of sources)assert.equal(c.RPOrderDescriptionsI18n.desc(row[0]),row[0]);c.locale='en';assert.equal(c.RPOrderDescriptionsI18n.desc('Description inédite'),'Description inédite');
- const base=execFileSync('git',['merge-base','HEAD','origin/main'],{cwd:root,encoding:'utf8'}).trim();
- for(const f of ['data.js','plateau-politique.js','plateau-ordres-info.js','i18n/sovarka-infobulles-resources.js','i18n/order-catalogues-config.js'])assert.equal(read(f),execFileSync('git',['show',base+':'+f],{cwd:root,encoding:'utf8',maxBuffer:6e6}),f);
- assert.equal(execFileSync('git',['diff','--name-only',base,'--','api','migrations','supabase'],{cwd:root,encoding:'utf8'}),'');
+ // Preuve figée sur la PR #885 (651448e → b23e794) : ce lot n'a touché ni ces fichiers ni le serveur. La comparer à
+ // merge-base faisait échouer tout chantier ultérieur qui modifie data.js (ex. renseignement de Sovarka, 13/11).
+ const avant='651448e04e0455cc726312073f85e9df61ad762a',apres='b23e79499b6c2fd431a8f8df95402b2ad925b06d';
+ assert.equal(execFileSync('git',['diff','--name-only',avant,apres,'--','data.js','plateau-politique.js','plateau-ordres-info.js','i18n/sovarka-infobulles-resources.js','i18n/order-catalogues-config.js','api','migrations','supabase'],{cwd:root,encoding:'utf8'}),'');
 });
 test('chaque ligne reclassée est une description effectivement affichée dans les deux pays',()=>{
  const c={console,state:{country:'republic'},document:{getElementById:()=>null,querySelector:()=>null,addEventListener(){}},localStorage:{getItem:()=>null}};c.window=c;vm.createContext(c);

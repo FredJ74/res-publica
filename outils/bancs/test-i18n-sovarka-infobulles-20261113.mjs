@@ -45,9 +45,9 @@ function ordresParPays() {
   return { descs: [...sov.descs].filter(d => !rep.descs.has(d)), bientot: [...sov.bientot].filter(d => !rep.bientot.has(d)) };
 }
 
-test('111 lignes de neuf colonnes non vides, sans guillemet droit ni balise', () => {
+test('113 lignes de neuf colonnes non vides, sans guillemet droit ni balise', () => {
   const lignes = I('soviet', 'fr').lignes;
-  assert.equal(lignes.length, 111);
+  assert.equal(lignes.length, 113); // +2 le 13/11 : habilitations et consultation des archives d’écoute
   for (const l of lignes) {
     assert.equal(l.length, 9, l[0]);
     for (const v of l) assert.ok(v.trim(), l[0]);
