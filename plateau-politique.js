@@ -4286,7 +4286,7 @@ function renderRoomActions(room, buildingId, roomId) {
     const riskSpec = [];
     if (ef.dis < 0)   riskSpec.push([String(ef.dis), 'DIS']);
     if (ef.pop < 0)   riskSpec.push([String(ef.pop), 'POP']);
-    const rate = o.successRate || 70;
+    const rate = o.fn === 'se_confesser' ? null : (o.successRate || 70);
     // Infobulle : description (propre à Sovarka : traduite, devise et tarif national réappliqués),
     // gains, risques, réussite. Descripteur gardé sur le bouton pour la bascule de langue.
     const infobulleI18n = (typeof window !== 'undefined' && window.RPSovarkaInfobullesI18n) || null;
@@ -4302,7 +4302,7 @@ function renderRoomActions(room, buildingId, roomId) {
       if (o.desc) tooltipParts.push(o.desc);
       if (gainStr) tooltipParts.push('Gain: ' + gainStr);
       if (riskStr) tooltipParts.push('Risque: ' + riskStr);
-      tooltipParts.push('Reussite: ' + rate + '%');
+      if (rate !== null) tooltipParts.push('Reussite: ' + rate + '%');
       tooltip = tooltipParts.join(' | ');
     }
 
