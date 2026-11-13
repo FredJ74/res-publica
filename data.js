@@ -10511,7 +10511,7 @@ function slugPnjSovarka(nom) {
   const photos = [
     ['commissariat', 'accueil_police', 'Sergent Doubinine (PNJ)', 'Novo_sergent_matrakov_portrait.webp'],
     ['commissariat', 'bureau_commissaire', 'Vassili Ostrovski (PNJ)', 'Novo_vassili_ordonov_portrait.webp'],
-    ['office-notarial', 'accueil_notaire', 'Klara Delounova (PNJ)', 'Novomirsk_notaire_accueil_portrait.webp'],
+    ['office-notarial', 'accueil_notaire', 'Klara Delounova (PNJ)', 'Novo_klara_delounova_portrait.webp'],
     ['office-notarial', 'bureau_successions', 'Boris Bitchov (PNJ)', 'Novomirsk_notaire_successions_portrait.webp'],
     ['office-notarial', 'bureau_contrats', 'Camarade Bâtissov (PNJ)', 'Novomirsk_notaire_cessions_entreprises_portrait.webp'],
     ['office-notarial', 'archives_notariales', 'Daria Tikhonova (PNJ)', 'Novomirsk_notaire_archives_portrait.webp'],
