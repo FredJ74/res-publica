@@ -542,8 +542,77 @@ async function doSeConfeser(pa, cost) {
 // exclusivement personnel, PA et argent tous deux verifies/deduits par le meme mecanisme standard
 // que tous les autres ordres -- coherent pour les 4 empires (fonction partagee, RELIGIONS[pays]).
 
+let donKolkhozeEnCours = false;
+function ouvrirDonKolkhoze() {
+  const title = document.getElementById('postes-modal-title');
+  const body = document.getElementById('postes-body');
+  const modal = document.getElementById('modal-postes');
+  if (!title || !body || !modal) return;
+  title.textContent = 'Donner au Kolkhoze';
+  body.innerHTML = '<div style="padding:1rem">' +
+    '<p style="font-size:1rem;line-height:1.55;margin:0 0 .8rem">Choisissez librement votre don en PSK. Aucun PA requis. ' +
+    'Les gains cumulés de la journée sont plafonnés à +10 piété et +6 popularité : 200 PSK donnent +5 piété et +3 popularité, 400 PSK atteignent le plafond.</p>' +
+    '<label for="kolkhoze-montant" style="display:block;margin-bottom:.35rem">Montant du don (PSK)</label>' +
+    '<input id="kolkhoze-montant" class="cpj-champ" type="number" min="1" max="100000000" step="1" value="200" style="width:100%;font-size:1rem;margin-bottom:1rem">' +
+    '<div style="display:flex;gap:.6rem;flex-wrap:wrap">' +
+    '<button id="kolkhoze-valider" class="cpj-touche cpj-primaire" onclick="confirmerDonKolkhoze()">Donner</button>' +
+        '<button class="cpj-touche" onclick="fermerDonKolkhoze()">Annuler</button>' +
+    '</div></div>';
+  modal.classList.add('open');
+}
+
+function fermerDonKolkhoze() { document.getElementById('modal-postes')?.classList.remove('open'); }
+
+async function confirmerDonKolkhoze() {
+  if (donKolkhozeEnCours) return;
+  const montant = Number(document.getElementById('kolkhoze-montant')?.value);
+  if (!Number.isSafeInteger(montant) || montant < 1 || montant > 100000000) {
+    showToast('Don refusé', 'Indiquez un montant entier de 1 à 100 000 000 PSK.', false);
+    return;
+  }
+  donKolkhozeEnCours = true;
+  const bouton = document.getElementById('kolkhoze-valider');
+  if (bouton) bouton.disabled = true;
+  try {
+    const brut = typeof sbRpc === 'function'
+      ? await sbRpc('kolkhoze_donner', {p_montant: montant}) : null;
+    const v = Array.isArray(brut) ? brut[0] : brut;
+    if (!v || v.ok !== true) {
+      if (v?.raison === 'montant_invalide') {
+        showToast('Don refusé', 'Montant invalide.', false);
+      } else if (v?.raison === 'pas_au_kolkhoze') {
+        showToast('Don refusé', 'Vous devez être dans la Grange Sainte du Kolkhoze.', false);
+      } else if (typeof signalerRefusCout === 'function') {
+        signalerRefusCout(v || {raison:'paiement_indisponible'});
+      }
+      return;
+    }
+    if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
+    if (typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop',v.pop);
+    // La piété nationale sovarkienne utilise encore le registre d'indices hérité.
+    // L'attribution serveur est conservée dans contributions_piete ; le cache est rafraîchi ici.
+    if (Number(v.gain_piete) > 0) modifierIP(Number(v.gain_piete));
+    document.getElementById('modal-postes')?.classList.remove('open');
+    if (typeof updateUI === 'function') updateUI();
+    showToast('Don effectué', montant + ' PSK versés au Kolkhoze. +' +
+      Number(v.gain_piete || 0) + ' piété, +' + Number(v.gain_pop || 0) +
+      ' popularité (plafond quotidien).', true);
+    addJournalEntry('Don au Kolkhoze : ' + montant + ' PSK.', 'event-info');
+  } catch (e) {
+    showToast('Don impossible', 'Le serveur ne confirme pas le versement. Aucun succès annoncé.', false);
+  } finally {
+    donKolkhozeEnCours = false;
+    if (bouton) bouton.disabled = false;
+  }
+}
+
 async function doFaireDon(pa, cost) {
   const pays = state.country || 'republic';
+  if (pays === 'soviet' && state.currentCity === 'capitale'
+      && state.currentBuilding === 'kolkhoze-spirituel') {
+    ouvrirDonKolkhoze();
+    return;
+  }
   // UNE SEULE PORTE POUR TOUS LES EMPIRES (04/11/2026, reste hors #379). religion_agir preleve le
   // don et credite la caisse de l'eglise dans la meme transaction (un don n'est pas taxe), +3
   // popularite, +5 piete (meme pour un excommunie), grade et conquete des charges. Les autres

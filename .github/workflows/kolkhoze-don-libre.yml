@@ -1,0 +1,25 @@
+name: Kolkhoze — don libre et plafonds
+on:
+  pull_request:
+    paths:
+      - 'data.js'
+      - 'plateau-divers.js'
+      - 'migrations/20261113183000_kolkhoze_don_libre.sql'
+      - 'outils/bancs/banc-kolkhoze-don-libre-20261113.cjs'
+      - '.github/workflows/kolkhoze-don-libre.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'data.js'
+      - 'plateau-divers.js'
+      - 'migrations/20261113183000_kolkhoze_don_libre.sql'
+      - 'outils/bancs/banc-kolkhoze-don-libre-20261113.cjs'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test outils/bancs/banc-kolkhoze-don-libre-20261113.cjs
