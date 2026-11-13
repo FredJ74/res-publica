@@ -47,7 +47,12 @@ transparent, guide accepté par son garde d’intégrité, ou description d’or
 reconnue dans les huit langues par le résolveur existant dans son pays. Il sous-estime notamment les annotateurs
 DOM, les clés construites et les adaptateurs narratifs. On ne peut donc pas déduire
 que son complément est entièrement à traduire. Une ressource disponible ne suffit
-jamais à compter un écran comme traduit. Les mots « à traiter/vérifier » regroupent
+jamais à compter un écran comme traduit. Un catalogue doit être chargé par la page
+pour contribuer aux raccordements. Les notifications `showToast` suivies de
+`RPI18nPlateau.markToast` ne sont reconnues que si leurs arguments français sont
+identiques ; leurs branches conditionnelles doivent sélectionner les clés avec
+les mêmes conditions. Les titres sont résolus par la référence déclarée dans
+`RPToastI18n`, sans rapprochement approximatif. Les mots « à traiter/vérifier » regroupent
 traduction, vérification du branchement et cas non reconnus par l’analyse statique.
 
 Les correspondances de ressources ignorent uniquement les espaces et la forme

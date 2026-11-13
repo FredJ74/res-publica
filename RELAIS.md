@@ -35,9 +35,6 @@ Modification en cours : la `salle_reception` du `palais-ambassades-novomirsk` es
 
 ## En cours
 
-### #871 — retours fixes du forum et de la messagerie, Codex, 13/11/2026
-
-Branche `codex/i18n-retours-forum-20261113`, **PR #877**. 43 nouvelles clés, 344 traductions étrangères, 44 points de présentation. 66 contrôles de non-régression verts (dont les 29 du lot) : français exact, AST métier inchangé, Chromium 320/390/1280 et neuf langues (837 rendus, 351 bascules sur gardes réelles), zéro appel serveur ou débit supplémentaire. Mesure avec le même extracteur avant/après : +43 textes uniques entièrement raccordés et +313 mots source par langue étrangère ; corpus inchangé. Tableau de bord régénéré, sept artefacts reproductibles ; CI et déploiement à compléter. Contrat : `outils/audits/I18N-RETOURS-FORUM-871.md`.
 
 
 ### Descriptions tactiles et guillemets HTML — livrés le 13/11/2026
@@ -124,6 +121,8 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - Aide HRP (PR #720) : **non certifiés** — réponses réelles DeepSeek dans les neuf langues, recette authentifiée, essais iPhone/Android. Sur téléphone : questions PA/but, fr→en→ko→fr, arabe RTL, clavier IME.
 
 ## Derniers chantiers
+
+- **#871 — retours fixes du forum/courrier**, PR #877 fusionnée (`e9989c6`), Vercel `dpl_BQV57ujrMBbGZcss1aTqGtHjB7GG` READY et alias public confirmé. Treize fichiers publics identiques ; Chromium forum/répertoire rejoué sur ces fichiers : deux bancs verts (837 rendus, 351 bascules, 162 situations). 344 traductions étrangères nouvelles ; +43 textes/+313 mots source raccordés par langue étrangère. 66 contrôles locaux verts ; CI PR : 40 verts, un contrôle SSM avec trois échecs préexistants reproduits sur main. Aucun effet métier, PA ou serveur ajouté. Compte authentifié, relecture native et appareil physique non vérifiés. Bilan des trois lots : `outils/audits/LIVRAISON-I18N-871.md` (408 traductions étrangères, +50 textes/+352 mots raccordés). Issue #871 ouverte pour la suite.
 
 - **#871 — répertoire/courrier**, PR #876 fusionnée (`c7f197e`), Vercel `dpl_41cY9NbTN6Fvu7Sua2V4tXEi1wsL` READY et alias public confirmé ; dix fichiers servis identiques, banc Chromium rejoué sur ces fichiers vert (162 situations). 64 traductions étrangères, +7 textes/+39 mots raccordés par langue. 26 contrôles ciblés verts ; trois échecs SSM préexistants inchangés. Compte authentifié, relecture native et téléphone physique non vérifiés.
 
