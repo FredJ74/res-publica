@@ -168,3 +168,36 @@ test('toast opaque : titre seul et repli fixe, jamais la raison variable',t=>{
  fs.writeFileSync(path.join(dir,'plateau-test.js'),`function publier(r){showToast('Commande non confirmée',r.raison||'Le serveur a refusé cette commande.',false);window.RPI18nPlateau?.markToast(r.autre?null:'ui.refused',r.raison||'Le serveur a refusé cette commande.',undefined,'Commande non confirmée');}`);
  const wrong=audit.build(dir);assert.notEqual(wrong.entries.find(e=>e.text==='Le serveur a refusé cette commande.').locales.en,'wired-unreviewed');
 });
+test('DOM annoté : même cible, texte et variables exacts, moteur commun chargé ; corpus inchangé',t=>{
+ const resource=Object.fromEntries(audit.LOCALES.map(l=>[l,{translation:{ui:{plain:l==='fr'?'Recherche refusée':l+' Search denied',dynamic:l==='fr'?'Bonjour {{values.name}}':l+' Hello {{values.name}}'}}}]));
+ const setup={'i18n/resources.js':'window.RP_I18N_RESOURCES='+JSON.stringify(resource)+';','i18n/i18n-init.js':fs.readFileSync(path.join(root,'i18n/i18n-init.js'),'utf8'),'index.html':'<script src="i18n/resources.js"></script><script src="i18n/i18n-init.js"></script><script src="plateau-test.js"></script>'};
+ const source=`function render(){el.textContent='Recherche refusée';el.setAttribute('data-i18n','ui.plain');if(typeof appliquerTraductionsRP==='function') appliquerTraductionsRP();el.textContent='Bonjour '+name;el.setAttribute('data-i18n','ui.dynamic');el.setAttribute('data-i18n-values',JSON.stringify({name}));if(typeof appliquerTraductionsRP==='function') appliquerTraductionsRP();}`;
+ const {dir}=fixture(t,{...setup,'plateau-test.js':source}),r=audit.build(dir),before=fixture(t,{...setup,'plateau-test.js':"function render(){el.textContent='Recherche refusée';el.textContent='Bonjour '+name;}"}),b=audit.build(before.dir);
+ for(const e of r.entries.filter(e=>['Recherche refusée','Bonjour {DYNAMIC}'].includes(e.text)))assert.equal(e.locales.en,'wired-unreviewed',e.text);
+ assert.deepEqual(r.entries.map(e=>[e.id,e.text,e.words]),b.entries.map(e=>[e.id,e.text,e.words]));assert.equal(r.perLanguage.en.texts,b.perLanguage.en.texts);assert.equal(r.perLanguage.en.words,b.perLanguage.en.words);assert.equal(r.perLanguage.en.wiredTexts-b.perLanguage.en.wiredTexts,2);
+});
+test('DOM annoté : les fausses liaisons restent non couvertes',t=>{
+ const resources=Object.fromEntries(audit.LOCALES.map(l=>[l,{translation:{ui:{plain:l==='fr'?'Recherche refusée':l+' Search denied',dynamic:l==='fr'?'Bonjour {{values.name}}':l+' Hello {{values.name}}'}}}]));
+ const setup={'i18n/resources.js':'window.RP_I18N_RESOURCES='+JSON.stringify(resources)+';','i18n/i18n-init.js':fs.readFileSync(path.join(root,'i18n/i18n-init.js'),'utf8'),'index.html':'<script src="i18n/resources.js"></script><script src="i18n/i18n-init.js"></script><script src="plateau-test.js"></script>'};
+ const examples=[
+  "const appliquerTraductionsRP=()=>{};el.textContent='Recherche refusée';el.setAttribute('data-i18n','ui.plain');appliquerTraductionsRP();",
+  "appliquerTraductionsRP=()=>{};el.textContent='Recherche refusée';el.setAttribute('data-i18n','ui.plain');appliquerTraductionsRP();",
+  "function inner(appliquerTraductionsRP){el.textContent='Recherche refusée';el.setAttribute('data-i18n','ui.plain');appliquerTraductionsRP();}",
+  "el.textContent='Recherche refusée';other.setAttribute('data-i18n','ui.plain');appliquerTraductionsRP();",
+  "el.textContent='Autre refus';el.setAttribute('data-i18n','ui.plain');appliquerTraductionsRP();",
+  "el.textContent='Recherche refusée';el.setAttribute('data-i18n','ui.absent');appliquerTraductionsRP();",
+  "el.textContent='Recherche refusée';el.setAttribute('data-i18n','ui.plain');autreAction();appliquerTraductionsRP();",
+  "el.textContent='Recherche refusée';el.setAttribute('data-i18n','ui.plain');",
+  "el.textContent='Bonjour '+name;el.setAttribute('data-i18n','ui.dynamic');el.setAttribute('data-i18n-values',JSON.stringify({name:otherName}));appliquerTraductionsRP();",
+  "el.textContent='Bonjour '+name;el.setAttribute('data-i18n','ui.dynamic');other.setAttribute('data-i18n-values',JSON.stringify({name}));appliquerTraductionsRP();",
+  "el.textContent='Bonjour '+name;el.setAttribute('data-i18n','ui.dynamic');el.setAttribute('data-i18n-values',JSON.stringify({name,other:extra}));appliquerTraductionsRP();",
+  "el.textContent='Bonjour '+name;el.setAttribute('data-i18n',flag?'ui.dynamic':'ui.plain');el.setAttribute('data-i18n-values',JSON.stringify({name}));appliquerTraductionsRP();",
+  "el.textContent='Bonjour '+name;el.setAttribute('data-i18n','ui.dynamic');appliquerTraductionsRP();"
+ ];
+ for(const source of examples){const {dir}=fixture(t,{...setup,'plateau-test.js':'function render(){'+source+'}'}),r=audit.build(dir);assert.ok(!r.entries.some(e=>e.locales.en==='wired-unreviewed'),source);}
+ for(const extra of [
+  {'index.html':'<script src="i18n/resources.js"></script><script src="plateau-test.js"></script>','autre.html':'<script src="i18n/i18n-init.js"></script>'},
+  {'index.html':'<script src="i18n/i18n-init.js"></script><script src="plateau-test.js"></script>','autre.html':'<script src="i18n/resources.js"></script>'}
+ ]){const {dir}=fixture(t,{...setup,...extra,'plateau-test.js':"function render(){el.textContent='Recherche refusée';el.setAttribute('data-i18n','ui.plain');appliquerTraductionsRP();}"});assert.ok(!audit.build(dir).entries.some(e=>e.locales.en==='wired-unreviewed'));}
+ for(const engine of [null,"function appliquerTraductionsRP(){return 'français';}","function appliquerTraductionsRP(){const translated=i18next.t(key,{values});el.textContent='Français';}"]){const extra={...setup,'plateau-test.js':"function render(){el.textContent='Recherche refusée';el.setAttribute('data-i18n','ui.plain');appliquerTraductionsRP();}"};if(engine===null)extra['index.html']='<script src="i18n/resources.js"></script><script src="plateau-test.js"></script>';else extra['i18n/i18n-init.js']=engine;const {dir}=fixture(t,extra);assert.ok(!audit.build(dir).entries.some(e=>e.locales.en==='wired-unreviewed'));}
+});

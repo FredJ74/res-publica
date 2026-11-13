@@ -1,6 +1,6 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `3f38c273ab8683176336d85112472644bf6a6ce5`. Empreinte du corpus : `c76d34c2c42ba4aaadacb34dc1718cc16114051536bb92c202b0da52f6a19283`.
+Base analysée : `9d21b7c5203db18c1f71cb61ff98aad7140f8501`. Empreinte du corpus : `98fec2432c16741d11291f794b546c72df2b08c52c0b2d0d9401f3408c0ce46b`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 
@@ -22,14 +22,14 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 | Langue | Corpus | Raccordés prouvés* | Taux textes* | Taux mots* | Ressource disponible** | Mots à traiter/vérifier |
 |---|---:|---:|---:|---:|---:|---:|
 | Français | 7565 | 7565 | 100.00 % | 100.00 % | 7565 | 0 |
-| Anglais | 7565 | 998 | 13.19 % | 23.92 % | 1547 | 38565 |
-| Espagnol | 7565 | 1005 | 13.28 % | 23.94 % | 1563 | 38557 |
-| Chinois traditionnel | 7565 | 1007 | 13.31 % | 23.94 % | 1569 | 38555 |
-| Russe | 7565 | 1007 | 13.31 % | 23.94 % | 1568 | 38555 |
-| Coréen | 7565 | 1007 | 13.31 % | 23.94 % | 1569 | 38555 |
-| Arabe | 7565 | 1007 | 13.31 % | 23.94 % | 1568 | 38555 |
-| Portugais brésilien | 7565 | 1004 | 13.27 % | 23.93 % | 1565 | 38558 |
-| Allemand | 7565 | 1006 | 13.30 % | 23.94 % | 1565 | 38556 |
+| Anglais | 7565 | 1001 | 13.23 % | 24.01 % | 1549 | 38519 |
+| Espagnol | 7565 | 1008 | 13.32 % | 24.03 % | 1565 | 38511 |
+| Chinois traditionnel | 7565 | 1010 | 13.35 % | 24.03 % | 1571 | 38509 |
+| Russe | 7565 | 1010 | 13.35 % | 24.03 % | 1570 | 38509 |
+| Coréen | 7565 | 1010 | 13.35 % | 24.03 % | 1571 | 38509 |
+| Arabe | 7565 | 1010 | 13.35 % | 24.03 % | 1570 | 38509 |
+| Portugais brésilien | 7565 | 1007 | 13.31 % | 24.02 % | 1567 | 38512 |
+| Allemand | 7565 | 1009 | 13.34 % | 24.03 % | 1567 | 38510 |
 
 * Preuve statique stricte : clé explicite de même français, traducteur exporté/wrapper transparent, guide accepté par son garde d’intégrité ou description d’ordre reconnue par le résolveur existant dans son pays, dans chacune des huit langues. C’est un plancher de raccordements identifiés, pas la mesure de toutes les traductions qui fonctionnent. Les valeurs identiques au français restent à vérifier sauf sigles neutres documentés.
 
@@ -41,7 +41,7 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 |---|---:|---:|---:|---:|
 | Bâtiments et pièces | 973 | 701 | 44 | 2082 |
 | Courriers, notifications et journaux | 388 | 104 | 238 | 1217 |
-| Création et connexion | 158 | 91 | 50 | 434 |
+| Création et connexion | 158 | 94 | 48 | 388 |
 | Enquêtes, missions et objectifs | 898 | 0 | 833 | 5136 |
 | Interface générale et autres activités | 1954 | 90 | 1679 | 9803 |
 | Navigation et transports | 139 | 0 | 97 | 706 |
@@ -58,7 +58,7 @@ Les neuf langues et leurs volumes par domaine sont détaillés dans `tableau-de-
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | Bâtiments et pièces | 100.00 % / 100.00 % | 72.05 % / 79.08 % | 72.05 % / 79.08 % | 72.15 % / 79.09 % | 72.15 % / 79.09 % | 72.15 % / 79.09 % | 72.15 % / 79.09 % | 72.05 % / 79.08 % | 72.15 % / 79.09 % |
 | Courriers, notifications et journaux | 100.00 % / 100.00 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % |
-| Création et connexion | 100.00 % / 100.00 % | 57.59 % / 55.89 % | 58.86 % / 56.10 % | 59.49 % / 56.20 % | 59.49 % / 56.20 % | 59.49 % / 56.20 % | 59.49 % / 56.20 % | 58.86 % / 56.10 % | 59.49 % / 56.20 % |
+| Création et connexion | 100.00 % / 100.00 % | 59.49 % / 60.57 % | 60.76 % / 60.77 % | 61.39 % / 60.87 % | 61.39 % / 60.87 % | 61.39 % / 60.87 % | 61.39 % / 60.87 % | 60.76 % / 60.77 % | 61.39 % / 60.87 % |
 | Enquêtes, missions et objectifs | 100.00 % / 100.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % |
 | Interface générale et autres activités | 100.00 % / 100.00 % | 4.61 % / 22.79 % | 4.86 % / 22.83 % | 4.86 % / 22.83 % | 4.86 % / 22.83 % | 4.86 % / 22.83 % | 4.86 % / 22.83 % | 4.81 % / 22.83 % | 4.81 % / 22.83 % |
 | Navigation et transports | 100.00 % / 100.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % |
@@ -98,7 +98,7 @@ Le catalogue central expose **3490 clés françaises**. Les tables locales, guid
 
 | Priorité | Textes candidats non entièrement prouvés | Usage |
 |---|---:|---|
-| 1 | 183 | Compréhension d’un ordre, d’un refus ou entrée dans le jeu |
+| 1 | 180 | Compréhension d’un ordre, d’un refus ou entrée dans le jeu |
 | 2 | 9907 | Commandes et messages de gameplay |
 | 3 | 2937 | Compréhension d’une mission ou interaction narrative |
 | 4 | 2067 | Description ou repère de lieu |
@@ -117,8 +117,8 @@ Classement automatique à confirmer en jeu. `inventaire.json.gz` fournit texte, 
 - Priorité 3 — Thibault ? Ah oui, le père Thibault ! Bien sûr que je m'en souviens, on se croisait tout le temps au marché, avant. Une belle terr — `plateau-pnj.js:1636` (102 mots source ; identifiant `1c46f876a3c222deb97c`).
 - Priorité 3 — Ah, mes années à l'école... j'en ai vu passer, des enfants ! Thibault... Thibault... Attendez, laissez-moi réfléchir. Oui ! Une pe — `plateau-pnj.js:1626` (84 mots source ; identifiant `3b7ab222f61ad1d6e329`).
 - Priorité 4 — Je confirme disposer des droits nécessaires sur les images fournies, y compris les autorisations des personnes représentées, et ac — `plateau-commerce-pj.js:2429` (25 mots source ; identifiant `846851839ae60f450ae4`).
-- Priorité 4 — Acheter ce terrain (4 200 m² — 50 400 FR) — `data.js:6235` (9 mots source ; identifiant `3f38fd58b36e4f5a56b8`).
-- Priorité 4 — Acheter ce terrain (2 200 m² — 26 400 FR) — `data.js:6186` (9 mots source ; identifiant `649cad5cdcaf3717a419`).
+- Priorité 4 — Acheter ce terrain (4 200 m² — 50 400 FR) — `data.js:6241` (9 mots source ; identifiant `3f38fd58b36e4f5a56b8`).
+- Priorité 4 — Acheter ce terrain (2 200 m² — 26 400 FR) — `data.js:6192` (9 mots source ; identifiant `649cad5cdcaf3717a419`).
 
 ## Données serveur et limites
 

@@ -1,0 +1,10 @@
+{
+  "baseCommit": "d892b991309c18a7d4d881bb4770571d49b24cf6",
+  "codeCommit": "9d21b7c5203db18c1f71cb61ff98aad7140f8501",
+  "gameFilesChanged": [],
+  "newForeignTranslations": 0,
+  "extractorTests": 26,
+  "negativeExamples": 18,
+  "targetedNodeTests": 35,
+  "sameSourceTreeForMethodComparison": true
+}

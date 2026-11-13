@@ -99,3 +99,7 @@ La CI vérifie l’extracteur sur des contre-exemples, régénère l’inventair
 les artefacts. Elle ne doit pas échouer parce qu’un texte français manque encore
 de traduction : son rôle est de rendre cette dette visible. Une erreur de parsing
 ou de chargement est en revanche bloquante et n’est jamais silencieusement ignorée.
+
+### Annotations DOM après un texte fixe ou assemblé
+
+L’analyse reconnaît une affectation à `textContent`, suivie d’une clé `data-i18n` sur le même élément, des valeurs JSON exactement identiques aux expressions du texte et de l’appel au moteur et du catalogue chargés sur la même page. Le français symbolique et les identifiants du corpus restent inchangés ; la liaison au catalogue est explicite. Une autre cible, un appel intercalé, une variable différente, un moteur masqué ou non traduisant, ou une clé conditionnelle restent non confirmés. Le gain d’une nouvelle reconnaissance est un gain de méthode, pas un nouveau lot traduit.
