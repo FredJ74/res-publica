@@ -27,10 +27,16 @@ test('les consignes et les objectifs réels sont tous couverts sans changer leur
  const objectives=[...s.matchAll(/return "([^"]+)"/g)].map(m=>m[1]);assert.equal(objectives.length,9);for(const v of objectives)assert.ok(values.has(v),v);
 });
 test('seuls trois appels de présentation ajoutés aux modules métier ; aucun autre changement',()=>{
- const base=execFileSync('git',['merge-base','origin/main','HEAD'],{cwd:root,encoding:'utf8'}).trim();
- const strip=s=>s.replace(/^\s*globalThis\.RPPlayerMissionsI18n\?\.apply\(\);\n/gm,'');
- for(const p of ['plateau-politique.js','plateau-enigme-portrait.js'])assert.equal(strip(read(p)),strip(execFileSync('git',['show',base+':'+p],{cwd:root,encoding:'utf8',maxBuffer:8*1024*1024})),p);
- assert.equal(execFileSync('git',['diff','--name-only',base,'--','api','migrations','baseline','data.js','plateau-pnj.js','plateau-quete-accueil.js','plateau-organisations-quetes.js','plateau-enigme-tresor-tsars.js'],{cwd:root,encoding:'utf8'}).trim(),'');
+ // Preuve figée sur la PR #852 elle-même (13/11, Claude) : avant = 7cf66d5, après fusion = c9f8226.
+ // L'ancienne comparaison à merge-base(origin/main, HEAD) refusait toute PR ultérieure touchant
+ // plateau-politique.js ou data.js. Fichiers actuels : les trois appels doivent rester présents.
+ const base='7cf66d5f2d6e399232d67b84146e64507b2ab775',tete='c9f8226dd176dc1390e270d6bbeefeccb5ddbb2b';
+ const show=(c,p)=>execFileSync('git',['show',c+':'+p],{cwd:root,encoding:'utf8',maxBuffer:8*1024*1024});
+ const appel=/^\s*globalThis\.RPPlayerMissionsI18n\?\.apply\(\);\n/gm;
+ const strip=s=>s.replace(appel,'');
+ for(const p of ['plateau-politique.js','plateau-enigme-portrait.js'])assert.equal(strip(show(tete,p)),strip(show(base,p)),p);
+ assert.equal(['plateau-politique.js','plateau-enigme-portrait.js'].reduce((n,p)=>n+(read(p).match(appel)||[]).length,0),3);
+ assert.equal(execFileSync('git',['diff','--name-only',base,tete,'--','api','migrations','baseline','data.js','plateau-pnj.js','plateau-quete-accueil.js','plateau-organisations-quetes.js','plateau-enigme-tresor-tsars.js'],{cwd:root,encoding:'utf8'}).trim(),'');
  const s=read('i18n/player-missions-resources.js');assert.doesNotMatch(s,/fetch\(|sbRpc|sbSave|state\.|verifierObjectifs\(|afficherObjectifsSecrets\(|enigme1AfficherCalepin\(/);
  assert.match(s,/RPI18nPlateau\?\.apply/,'le moteur commun traduit les nœuds balisés');
  assert.ok(!s.includes('new I18n'));

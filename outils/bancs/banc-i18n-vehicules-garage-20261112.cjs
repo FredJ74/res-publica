@@ -97,7 +97,7 @@ test('bascule de langue ouverte : aucun RPC, valeurs saisies préservées',async
 });
 test('audit éditorial et version HTML, moteurs et RPC inchangés',()=>{
  assert.match(html,/i18n\/vehicle-garage-resources\.js\?v=20261112/);
- assert.match(html,/plateau-vehicules\.js\?v=i18n-garage-station-20261112/);
+ assert.match(html,/plateau-vehicules\.js\?v=i18n-(garage-station|vehicules-complet)-20261112/);
  assert.match(read('outils/audits/audit-i18n-editorial.cjs'),/'vehicle-garage-resources\.js'/);
  assert.match(source,/sbRpcVerdict\('vehicules_lire'/);
  assert.match(source,/sbRpcVerdict\('vehicule_acte'/);

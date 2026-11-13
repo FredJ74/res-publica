@@ -90,6 +90,32 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **i18n Sovarka : infobulles des ordres, cadre de l'infobulle, salon de coiffure, salles du musée (Claude, 13/11 vers 3 h, mission i18n complémentaire de Fred, branche `claude/i18n-sovarka-infobulles-20261113`, PR #853)**. **Audit** (data.js et catalogues réels chargés hors navigateur) : les 307 descriptions d'ordres affichées en Sovarka n'avaient aucune traduction. 102 sont propres à Sovarka et 205 viennent du gabarit commun. S'y ajoutaient 2 mentions « Bientôt disponible » propres à Sovarka, le cadre de l'infobulle, la fenêtre du salon de coiffure (aucun catalogue) et 2 descriptions de salles du musée de Novomirsk ajoutées le 12/11 (#827) sans traduction. Garage, station, logements sociaux et noms de pièces communes : déjà traduits (ChatGPT). **Codé** :
+  - nouveau catalogue `i18n/sovarka-infobulles-resources.js` (`RPSovarkaInfobullesI18n`), en neuf langues : **104 textes** (102 descriptions + 2 « Bientôt »), plus **5 mots du cadre** (Gain, Risque, Reussite, Sante, Moral) et **15 textes du salon**. Soit 124 clés, 1 116 entrées, 992 traductions nouvelles ;
+  - **+2 descriptions** (Bataille du Fleuve, Grand Incendie) dans `i18n/sovarka-descriptions-resources.js` ;
+  - descriptions : en Sovarka seulement et sur texte exact de data.js ; devise et tarif national réappliqués après traduction (`descOrdre`). Cadre : partout ;
+  - `plateau-politique.js` : infobulle et badge de gain construits par le catalogue, descripteur `data-rp-tip` sur le bouton (repeint au changement de langue, sans rendu ni requête). « Bientôt » : texte seul traduit, `needsBientot` toujours décidé par `o.bientot`. Texte passé à `doOrder` inchangé ;
+  - `plateau-salon.js` : textes traduits, fenêtre repeinte depuis le dernier `salon_lire` (aucune requête).
+
+  Français identique, sans migration, aucune règle, aucun coût ni verdict modifié. **Testé** :
+  - `test-i18n-sovarka-infobulles-20261113.mjs` (10 tests : couverture des textes affichés par le jeu, nombres et sigles conservés dans les 8 traductions, rendu français du salon identique au témoin de main `fixtures/salon-coiffure-temoin-517a425.js`, infobulle française identique à l'ancienne construction, bascule sans requête) ;
+  - Chromium `banc-i18n-sovarka-infobulles-navigateur.cjs`, 320/390/1280 px × 9 langues : arabe en RTL, russe et allemand sans débordement, train à 40 PSK conservé, une seule requête `salon_lire` ;
+  - CI dédiée `.github/workflows/i18n-sovarka-infobulles.yml`. Sur tous les `test-*.mjs` : aucun échec nouveau, et 2 échecs de main **réparés** (descriptions : les 2 salles ; rôles : le compte ignorait la carte d'Ilia, #830). Les 5 autres échecs existent aussi sur main (audit global Républia, vitrines, déclaration dérivée, RPC du lot, succession). Les 33 bancs `.cjs/.js` rouges liés aux fichiers touchés le sont aussi sur main, à l'identique.
+  - **Deux bancs d'autres chantiers corrigés pour ne plus bloquer les PR suivantes** :
+    - `banc-i18n-player-missions-20261113.cjs` (Codex, #852) comparait `plateau-politique.js` et `data.js` à merge-base(origin/main) et refusait donc toute PR ultérieure qui touche ces fichiers. Sa preuve est désormais figée sur la PR #852 elle-même (7cf66d5 → c9f8226), et le banc vérifie que les 3 appels de présentation restent présents ;
+    - `banc-i18n-vehicules-garage-20261112.cjs` attendait l'ancienne version du script véhicules dans `plateau.html` (rouge sur main) : il accepte maintenant la version actuelle `i18n-vehicules-complet-20261112`.
+  - **Rouges sur main, laissés en l'état** : `test-montrouge-ssm-rendezvous.cjs` (3 échecs identiques sur main, déjà signalés par Codex) et `bancs-hors-production`.
+
+  **Non vérifié** : partie réelle connectée, téléphone physique, relecture native. Sur téléphone, l'infobulle (attribut `title`) ne s'affiche de toute façon pas. **Restent en français (module commun, ChatGPT / Codex)** :
+  - les 205 descriptions d'ordres du gabarit commun (dans toutes les langues, Républia comprise) ;
+  - « PA » du badge de coût ;
+  - infobulles des ordres bloqués (grève de police, licence, suite, période électorale, chambre de patient) ;
+  - bulle des bâtiments du plan (« Actions : », « Fermé à clé », « personne(s) ») ;
+  - rapports de surveillance et d'écoute, annonces de lois, journal ;
+  - messages de la PR #636 (à sa reprise).
+
+  **À constater en jeu** : en anglais ou en russe en Sovarka, survoler un ordre (Palais du Gouvernement, Résidence, gare), changer de langue pièce ouverte, ouvrir le salon de coiffure de Novomirsk, visiter les salles Bataille du Fleuve et Grand Incendie.
+
 - **Objectifs, missions et calepin — i18n (Codex, 13/11, [PR #852](https://github.com/FredJ74/res-publica/pull/852))** : 67 textes dans neuf langues, 536 traductions nouvelles ; 21 étapes d’accueil, 9 missions de carrière, 24 objectifs secrets, archétypes, titres/score et rubriques du calepin de Luthécia. Français strictement identique, moteur i18n commun, trois raccordements d’affichage ; aucune mécanique, donnée PJ, RPC ou migration modifiée. 45 tests ciblés + 2 bancs Chromium verts (38 situations × 9 langues × 320/390 px et bureau). Comparaison main/branche : 291/298 verts et sept échecs identiques ; les quatre échecs des deux suites CI garage/SSM sont également reproduits sur main. Audit et preuves : `outils/audits/I18N-OBJECTIFS-CARNET-20261113.md`, JSON associé. Code validé ; le résultat de la fusion et de la vérification Vercel est suivi dans la PR. Pour essayer : changer de langue dans « Mes objectifs » puis le calepin ouvert, sans nouvelle progression ni coût. Récits, dialogues Jodie/Valérie, archives et notifications hors lot ; Sovarka/Claude intact.
 
 - **Ilia Krioukov, neuf langues — terminé (PR #849, fusion `787f256`, 13/11)** : fusion vérifiée sur GitHub ; banc SQL des Tsars validé sur Supabase selon la confirmation explicite de Fred dans la mission suivante. Ancien blocage de confirmation caduc ; aucune migration à rejouer.

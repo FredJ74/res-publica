@@ -4095,7 +4095,9 @@ function renderRoomActions(room, buildingId, roomId) {
     // DECLARATIF, comme `requiresRole` : aucun `o.fn` n'est nomme ici, donc le prochain ordre
     // differe n'aura pas besoin d'une ligne de plus dans ce fichier.
     let needsBientot = false;
-    const bientotTooltip = typeof o.bientot === 'string' ? o.bientot : '';
+    // Texte seul traduit (mentions propres à Sovarka) ; needsBientot reste décidé par o.bientot.
+    const bientotTooltip = typeof o.bientot === 'string'
+      ? ((typeof window !== 'undefined' && window.RPSovarkaInfobullesI18n) ? window.RPSovarkaInfobullesI18n.desc(o.bientot) : o.bientot) : '';
     if (o.bientot) needsBientot = true;
     // Verifier requiresSquatteurs (negocier_squatteurs) : le flag existe dans data.js depuis
     // le debut mais n'etait lu par aucun code -- le bouton restait affiche/cliquable meme sans
@@ -4273,24 +4275,36 @@ function renderRoomActions(room, buildingId, roomId) {
       costDisplay = '+' + SALAIRE_PRODUCTION_ARMURERIE.toLocaleString('fr-FR') + ' ' + cur;
     }
     const ef = ORDER_EFFECTS[o.fn] || {};
-    const gainParts = [];
-    if (ef.hp > 0)    gainParts.push('+' + ef.hp + ' Sante');
-    if (ef.moral > 0) gainParts.push('+' + ef.moral + ' Moral');
-    if (ef.inf > 0)   gainParts.push('+' + ef.inf + ' INF');
-    if (ef.pop > 0)   gainParts.push('+' + ef.pop + ' POP');
-    if (ef.arg > 0)   gainParts.push('+' + ef.arg + ' ' + cur);
-    const gainStr = gainParts.join(' · ');
-    const riskParts = [];
-    if (ef.dis < 0)   riskParts.push(ef.dis + ' DIS');
-    if (ef.pop < 0)   riskParts.push(ef.pop + ' POP');
-    const riskStr = riskParts.join(' · ');
+    // Gains et risques en [valeur, clé] (13/11/2026) : « Sante » et « Moral » traduits à
+    // l'affichage (RPSovarkaInfobullesI18n), sigles et devise recopiés. Français inchangé.
+    const gainSpec = [];
+    if (ef.hp > 0)    gainSpec.push(['+' + ef.hp, 'sante']);
+    if (ef.moral > 0) gainSpec.push(['+' + ef.moral, 'moral']);
+    if (ef.inf > 0)   gainSpec.push(['+' + ef.inf, 'INF']);
+    if (ef.pop > 0)   gainSpec.push(['+' + ef.pop, 'POP']);
+    if (ef.arg > 0)   gainSpec.push(['+' + ef.arg, cur]);
+    const riskSpec = [];
+    if (ef.dis < 0)   riskSpec.push([String(ef.dis), 'DIS']);
+    if (ef.pop < 0)   riskSpec.push([String(ef.pop), 'POP']);
     const rate = o.successRate || 70;
-    const tooltipParts = [];
-    if (o.desc) tooltipParts.push(o.desc);
-    if (gainStr) tooltipParts.push('Gain: ' + gainStr);
-    if (riskStr) tooltipParts.push('Risque: ' + riskStr);
-    tooltipParts.push('Reussite: ' + rate + '%');
-    const tooltip = tooltipParts.join(' | ');
+    // Infobulle : description (propre à Sovarka : traduite, devise et tarif national réappliqués),
+    // gains, risques, réussite. Descripteur gardé sur le bouton pour la bascule de langue.
+    const infobulleI18n = (typeof window !== 'undefined' && window.RPSovarkaInfobullesI18n) || null;
+    const tipSpec = { d: ordreSource.desc || '', a: o.desc || '', c: ordreSource.cost, p: ordreSource.pa, v: deviseOrdre,
+      n: tarifNational ? { cost: tarifNational.cost, pa: tarifNational.pa } : null, g: gainSpec, r: riskSpec, s: rate };
+    const gainStr = infobulleI18n ? infobulleI18n.gains(gainSpec)
+      : gainSpec.map(e => e[0] + ' ' + (e[1] === 'sante' ? 'Sante' : e[1] === 'moral' ? 'Moral' : e[1])).join(' · ');
+    let tooltip;
+    if (infobulleI18n) tooltip = infobulleI18n.infobulle(tipSpec);
+    else {
+      const riskStr = riskSpec.map(e => e[0] + ' ' + e[1]).join(' · ');
+      const tooltipParts = [];
+      if (o.desc) tooltipParts.push(o.desc);
+      if (gainStr) tooltipParts.push('Gain: ' + gainStr);
+      if (riskStr) tooltipParts.push('Risque: ' + riskStr);
+      tooltipParts.push('Reussite: ' + rate + '%');
+      tooltip = tooltipParts.join(' | ');
+    }
 
     let onclickFn = '';
     if (needsBientot) {
@@ -4360,7 +4374,9 @@ function renderRoomActions(room, buildingId, roomId) {
     const blockedCls = (needsBientot || needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsPoliceIndisponible || needsLicenceIndisponible || needsSuiteIndisponible || needsElectionIndisponible || needsPatientChambre || needsRoleLocal) ? ' blocked' : '';
     const coutJoint = [costDisplay, paDisplay].filter(Boolean).join(' · ');
     const tooltipFinal = needsBientot ? bientotTooltip.replace(/"/g, '&quot;') : (needsPoliceIndisponible ? policeTooltip.replace(/"/g, '&quot;') : (needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : (needsElectionIndisponible ? electionTooltip.replace(/"/g, '&quot;') : (needsPatientChambre ? patientChambreTooltip.replace(/"/g, '&quot;') : (needsRoleLocal ? roleLocalTooltip.replace(/"/g, '&quot;') : tooltip))))));
-    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn.replace(/"/g, '&quot;') + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + libelleMarque + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
+    const tipDescripteur = needsBientot ? { k: 'bientot', t: o.bientot } : (tooltipFinal === tooltip ? tipSpec : { k: 'badge', g: gainSpec });
+    const tipAttr = infobulleI18n ? ' data-rp-tip="' + encodeURIComponent(JSON.stringify(tipDescripteur)) + '"' : '';
+    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn.replace(/"/g, '&quot;') + '" title="' + tooltipFinal + '"' + tipAttr + '><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + libelleMarque + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 
   // #57 — groupes de commandes des cinq terrains, sans fabriquer de nouveaux handlers.
