@@ -269,8 +269,19 @@ function build(root=ROOT, options={}) {
       }
     }catch(e){errors.push({file:'data.js',error:'active-world: '+e.message});}
   }
+  // Le moteur commun est validé une fois, sans exécuter le code de la page.
+  const commonInit=loaded.has('i18n/i18n-init.js')?trees.get('i18n/i18n-init.js'):null;
+  const apply=commonInit?.body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='appliquerTraductionsRP');
+  const translatedVars=new Set();let engineFlow=false,rootValues=false;
+  walk(apply,n=>{
+    if(n.type==='VariableDeclarator'&&n.init?.type==='CallExpression'&&n.init.callee.object?.name==='i18next'&&prop(n.init.callee.property)==='t'&&n.init.arguments[0]?.name==='key'){
+      translatedVars.add(n.id.name);
+      rootValues ||= n.init.arguments[1]?.properties?.some(p=>prop(p.key)==='replace'&&p.value.type==='ObjectExpression'&&p.value.properties.some(q=>q.type==='SpreadElement'&&q.argument.name==='values'))||false;
+    }
+    if(n.type==='AssignmentExpression'&&prop(n.left.property)==='textContent'&&n.right.type==='ConditionalExpression'&&translatedVars.has(n.right.consequent?.name))engineFlow=true;
+  });
   function scanJS(file,source,tree,lineOffset=0){
-    const markedToasts=new Map();
+    const markedMessages=new Map();
     const expression=s=>s?.expression?.type==='ChainExpression'?s.expression.expression:s?.expression;
     const shape=n=>JSON.stringify(n,(k,v)=>['start','end','loc','raw'].includes(k)?undefined:v);
     function bindMessage(original,marked,keyNode){
@@ -282,7 +293,7 @@ function build(root=ROOT, options={}) {
         return bindMessage(original.right,marked.right,keyNode.alternate);
       }
       const r=byKey.get(staticValue(keyNode));if(!r||normalize(symbolic(original))!==normalize(r.fr.replace(/\{\{[^}]+\}\}/g,'{DYNAMIC}')))return false;
-      markedToasts.set(original.start,r);markedToasts.set(marked.start,r);return true;
+      markedMessages.set(original.start,r);markedMessages.set(marked.start,r);return true;
     }
     walk(tree,block=>{if(block.type!=='BlockStatement')return;
       for(let i=1;i<block.body.length;i++){
@@ -293,8 +304,41 @@ function build(root=ROOT, options={}) {
         const titleOnly=next.arguments[0]?.type==='Literal'&&next.arguments[0].value===null;
         if((bodyBound||titleOnly)&&shape(first.arguments[0])===shape(next.arguments[3])){
           const titleKey=sandbox.RPToastI18n?.key?.(staticValue(next.arguments[3])),r=byKey.get(titleKey);
-          if(r&&r.fr===staticValue(first.arguments[0])){markedToasts.set(first.arguments[0].start,r);markedToasts.set(next.arguments[3].start,r);}
+          if(r&&r.fr===staticValue(first.arguments[0])){markedMessages.set(first.arguments[0].start,r);markedMessages.set(next.arguments[3].start,r);}
         }
+      }
+    });
+    // Convention DOM commune : texte -> clé du même élément -> valeurs -> application.
+    // Pas de propagation à travers un appel métier, une autre cible ou une clé conditionnelle.
+    const attribute=(node,target,name)=>node?.type==='CallExpression'&&prop(node.callee.property)==='setAttribute'&&shape(node.callee.object)===shape(target)&&staticValue(node.arguments[0])===name&&node.arguments.length===2;
+    const applies=node=>{
+      const call=node?.type==='IfStatement'?expression(node.consequent):expression(node);
+      if(call?.type!=='CallExpression'||call.callee.name!=='appliquerTraductionsRP'||call.arguments.length)return false;
+      return node.type!=='IfStatement'||shape(node.test)===shape(parse("if(typeof appliquerTraductionsRP==='function') appliquerTraductionsRP();").body[0].test);
+    };
+    let commonShadowed=false;
+    const shadows=n=>{let found=false;walk(n,x=>{if(x.type==='Identifier'&&x.name==='appliquerTraductionsRP')found=true;});return found;};
+    walk(tree,n=>{
+      if(n.type==='VariableDeclarator'&&shadows(n.id)||/Function|ArrowFunction/.test(n.type)&&(n.id?.name==='appliquerTraductionsRP'||n.params.some(shadows))||n.type==='ImportSpecifier'&&n.local.name==='appliquerTraductionsRP')commonShadowed=true;
+      if(n.type==='AssignmentExpression'&&(n.left.name==='appliquerTraductionsRP'||prop(n.left.property)==='appliquerTraductionsRP'))commonShadowed=true;
+    });
+    if(engineFlow&&!commonShadowed)walk(tree,block=>{if(block.type!=='BlockStatement')return;
+      for(let i=0;i<block.body.length-2;i++){
+        const first=expression(block.body[i]),next=expression(block.body[i+1]);
+        if(first?.type!=='AssignmentExpression'||first.operator!=='='||prop(first.left.property)!=='textContent'||!attribute(next,first.left.object,'data-i18n'))continue;
+        const r=byKey.get(staticValue(next.arguments[1]));if(!r||!r.loaded||normalize(symbolic(first.right))!==normalize(r.fr.replace(/\{\{[^}]+\}\}/g,'{DYNAMIC}')))continue;
+        let j=i+2,valuesNode=expression(block.body[j]),values=null;
+        if(attribute(valuesNode,first.left.object,'data-i18n-values')){
+          const json=valuesNode.arguments[1];if(json?.type!=='CallExpression'||json.callee.object?.name!=='JSON'||prop(json.callee.property)!=='stringify'||json.arguments.length!==1||json.arguments[0]?.type!=='ObjectExpression')continue;
+          values=new Map();let valid=true;for(const p of json.arguments[0].properties){const key=prop(p.key);if(p.type!=='Property'||p.computed||p.kind!=='init'||values.has(key)){valid=false;break;}values.set(key,p.value);}if(!valid)continue;j++;
+        }
+        if(!applies(block.body[j]))continue;
+        const tokens=[...r.fr.matchAll(/\{\{([^}]+)\}\}/g)].map(m=>m[1].trim()),params=tokens.map(k=>k.startsWith('values.')?k.slice(7):rootValues?k:null);
+        if(params.some(k=>!k||!/^[A-Za-z][A-Za-z0-9_]*$/.test(k)||['constructor','prototype'].includes(k)))continue;
+        const dynamic=[];function variables(n){if(n?.type==='BinaryExpression'&&n.operator==='+'){variables(n.left);variables(n.right);}else if(n?.type==='TemplateLiteral')dynamic.push(...n.expressions);else if(!(n?.type==='Literal'&&typeof n.value==='string'))dynamic.push(n);}
+        variables(first.right);
+        if(dynamic.length!==params.length||new Set(params).size!==(values?.size||0)||params.some((k,index)=>shape(values?.get(k))!==shape(dynamic[index])))continue;
+        markedMessages.set(first.right.start,{...r,sourceFr:symbolic(first.right),kind:'annotated-dom'});
       }
     });
     walk(tree,(n,parents)=>{
@@ -309,8 +353,8 @@ function build(root=ROOT, options={}) {
       const line=n.loc.start.line+lineOffset;
       if(templated)dynamic.push({file,line,kind:'template-interpolated',expressions:n.expressions?.length??null});
       if(file.startsWith('i18n/'))return;
-      const toast=markedToasts.get(n.start);
-      if(toast){record(toast.fr,{file,line,kind:'annotated-toast',certainty:loaded.has(file)?'static-render-path':'candidate-review',domain:domain(file),key:toast.key});return;}
+      const annotated=markedMessages.get(n.start);
+      if(annotated){record(annotated.sourceFr??annotated.fr,{file,line,kind:annotated.kind||'annotated-toast',certainty:loaded.has(file)?'static-render-path':'candidate-review',domain:domain(file),key:annotated.key,binding:annotated.kind==='annotated-dom'?annotated.id:undefined});return;}
       const ancestors=[...parents].reverse();
       const property=parent?.type==='Property'?prop(parent.key):null;
       const call=ancestors.slice(0,5).find(p=>p.type==='CallExpression');

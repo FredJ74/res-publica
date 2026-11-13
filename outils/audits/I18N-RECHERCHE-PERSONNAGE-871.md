@@ -41,3 +41,7 @@ Même extracteur avant/après main `a2f43e0` : corpus inchangé (7 565 textes / 
 
 CI et production à compléter avant livraison.
 Session PJ réelle, téléphone physique et revue native non réalisés.
+
+## Livraison vérifiée
+
+PR #909 fusionnée : `d892b991309c18a7d4d881bb4770571d49b24cf6`. Sept contrôles verts ; deux rouges reproduits sur main : SSM (3 échecs historiques) et garde du payload (PNG étranger ajouté entre-temps, main 982dbfb). La branche de traduction seule passe la garde (311,9 Mo) ; main et merge CI signalent le même PNG de 3,1 Mo (315,7 Mo, plafond 330 Mo). Aucun asset ni plafond modifié. Vercel `dpl_3fTn7iPL6vZDv3xWyU3CK3FMRbin` READY, alias confirmé ; sept fichiers publics identiques. Deux bancs rejoués sur ces fichiers : 324 bascules de recherche et 108 arrivées/972 bascules de confirmation, verts.

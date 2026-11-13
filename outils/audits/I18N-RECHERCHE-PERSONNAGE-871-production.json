@@ -1,0 +1,49 @@
+{
+  "commit": "d892b991309c18a7d4d881bb4770571d49b24cf6",
+  "deployment": "dpl_3fTn7iPL6vZDv3xWyU3CK3FMRbin",
+  "files": [
+    {
+      "file": "index.html",
+      "sha256": "4322dd3337fa73af895d7b41875a336c5a188f2e6b22159f4abb826ca7a518fd",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "e1db97c535d9566a304b88abc054b074a93b20258c23931c578d13747171c588",
+      "identical": true
+    },
+    {
+      "file": "creation.js",
+      "sha256": "4df8f0fb780265ca113b13ecf0aab0ab6b6b6dccfde5bc4543d793728b59013e",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "identical": true
+    },
+    {
+      "file": "i18n/connection-resources.js",
+      "sha256": "5ca167a301173322af94d30fecebd1d488721b25b391b1645ee719201e50adc8",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18n-init.js",
+      "sha256": "a76e8bd4f14036e5c9cbbaf2b1360beda33233a2c4353a1113e01585c4325304",
+      "identical": true
+    }
+  ],
+  "ready": true,
+  "aliasVerified": true,
+  "browserTests": {
+    "passed": 2,
+    "recoverySwitches": 324,
+    "confirmationArrivals": 108,
+    "confirmationSwitches": 972
+  }
+}
