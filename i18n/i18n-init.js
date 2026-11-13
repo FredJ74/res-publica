@@ -106,7 +106,8 @@ function appliquerTraductionsRP() {
         }
       }catch(_){if(source!==null)el.textContent=source;return;}
     }
-    const translated=i18next.t(key,{values});
+    // i18next replace fournit les variables historiques {{name}} et les nouvelles {{values.name}}, sans en faire des options moteur.
+    const translated=i18next.t(key,{values,replace:{...values,values}});
     el.textContent=typeof translated==='string'&&translated!==key&&!/\{\{[^}]+\}\}/.test(translated)
       ? translated : source!==null?source:el.textContent;
   });

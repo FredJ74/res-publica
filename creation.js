@@ -212,15 +212,26 @@ function retrouverPersonnage() {
 async function chargerPersonnageParNom() {
   const nom = document.getElementById('retrouver-nom')?.value?.trim();
   const msg = document.getElementById('retrouver-msg');
-  if (!nom) { msg.textContent = t('home.findCharacterEnterName'); return; }
+  msg.removeAttribute('data-i18n');
+  msg.removeAttribute('data-i18n-values');
+  if (!nom) {
+    msg.textContent = t('home.findCharacterEnterName');
+    msg.setAttribute('data-i18n',"home.findCharacterEnterName");
+    if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
+    return;
+  }
 
   msg.style.color = '#8a8060';
   msg.textContent = t('home.findCharacterSearching');
+  msg.setAttribute('data-i18n',"home.findCharacterSearching");
+  if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
 
   // Chercher dans Supabase
   if (typeof sbLoadPersonnage !== 'function') {
     msg.style.color = '#8a3a2a';
     msg.textContent = t('home.findCharacterUnavailable');
+    msg.setAttribute('data-i18n',"home.findCharacterUnavailable");
+    if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
     return;
   }
 
@@ -229,6 +240,8 @@ async function chargerPersonnageParNom() {
     if (!sbState) {
       msg.style.color = '#8a3a2a';
       msg.textContent = t('home.findCharacterNotFound');
+      msg.setAttribute('data-i18n',"home.findCharacterNotFound");
+      if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
       return;
     }
 
@@ -247,9 +260,14 @@ async function chargerPersonnageParNom() {
           if (verdict.raison === 'personnage_deja_possede') {
             msg.textContent = 'Ce personnage appartient deja a un autre compte. '
               + 'Si c\'est le votre, reconnectez-vous depuis l\'appareil ou le compte d\'origine.';
+            msg.setAttribute('data-i18n','connectionUi.recoveryOwnedElsewhere');
+            if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
           } else if (verdict.raison === 'compte_deja_pourvu') {
             msg.textContent = 'Ce navigateur possede deja le personnage « ' + (verdict.personnage || '') + ' ». '
               + 'Un compte ne peut porter qu\'un seul personnage.';
+            msg.setAttribute('data-i18n','connectionUi.recoveryAlreadyOwns');
+            msg.setAttribute('data-i18n-values',JSON.stringify({name:verdict.personnage||''}));
+            if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
           } else if (/^http_/.test(verdict.raison || '')) {
             // PANNE DE LA VERIFICATION, PAS UN VERDICT DE PROPRIETE (incident du 15 septembre
             // 2026). La RPC rattacher_personnage n'avait jamais ete creee en base : PostgREST
@@ -261,8 +279,14 @@ async function chargerPersonnageParNom() {
             // fait plus passer une indisponibilite pour un refus d'acces.
             msg.textContent = 'Vérification de propriété momentanément indisponible ('
               + verdict.raison + '). Votre personnage est intact, réessayez dans un instant.';
+            msg.setAttribute('data-i18n','connectionUi.recoveryOwnershipUnavailable');
+            msg.setAttribute('data-i18n-values',JSON.stringify({reason:verdict.raison}));
+            if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
           } else {
             msg.textContent = 'Acces refuse (' + (verdict.raison || 'inconnu') + ').';
+            msg.setAttribute('data-i18n',verdict.raison?'connectionUi.recoveryAccessDenied':'connectionUi.recoveryAccessUnknown');
+            msg.setAttribute('data-i18n-values',JSON.stringify({reason:verdict.raison||'inconnu'}));
+            if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
           }
           return;
         }
@@ -292,12 +316,17 @@ async function chargerPersonnageParNom() {
 
     msg.style.color = '#4a8a4a';
     msg.textContent = t('home.findCharacterFound', { name: nom });
+    msg.setAttribute('data-i18n','home.findCharacterFound');
+    msg.setAttribute('data-i18n-values',JSON.stringify({name:nom}));
+    if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
 
     setTimeout(() => { window.location.href = 'plateau.html'; }, 1000);
 
   } catch(e) {
     msg.style.color = '#8a3a2a';
     msg.textContent = t('home.findCharacterConnectionError');
+    msg.setAttribute('data-i18n',"home.findCharacterConnectionError");
+    if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
   }
 }
 

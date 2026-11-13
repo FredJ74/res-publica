@@ -1,10 +1,10 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `8146250c11a74417ac6d77d8b0b6e74856a31640`. Empreinte du corpus : `f732854a13feeb038932e7242834c73eec63086e5babc66d03de4078b5592a03`.
+Base analysée : `3f38c273ab8683176336d85112472644bf6a6ce5`. Empreinte du corpus : `c76d34c2c42ba4aaadacb34dc1718cc16114051536bb92c202b0da52f6a19283`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 
-**17380 textes distincts repérés**, 30741 occurrences dans les sources. 223 fichiers JS/HTML et 514 fichiers SQL analysés.
+**17383 textes distincts repérés**, 30744 occurrences dans les sources. 223 fichiers JS/HTML et 515 fichiers SQL analysés.
 
 ## Périmètre et certitude
 
@@ -12,7 +12,7 @@ Base analysée : `8146250c11a74417ac6d77d8b0b6e74856a31640`. Empreinte du corpus
 |---|---:|---:|
 | static-render-path | 7565 | 50690 |
 | candidate-review | 7617 | 63726 |
-| server-source-review | 905 | 13550 |
+| server-source-review | 908 | 13567 |
 | ai-context-not-output | 1293 | 54765 |
 
 Les taux suivants portent seulement sur `static-render-path` : un chemin de rendu est identifié, sans preuve que chaque état soit accessible en session. Les autres classes restent visibles, hors dénominateur. Une même chaîne est dédupliquée globalement ; ses occurrences gardent leur contexte. Une seule occurrence non prouvée suffit à empêcher sa certification complète.
@@ -22,14 +22,14 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 | Langue | Corpus | Raccordés prouvés* | Taux textes* | Taux mots* | Ressource disponible** | Mots à traiter/vérifier |
 |---|---:|---:|---:|---:|---:|---:|
 | Français | 7565 | 7565 | 100.00 % | 100.00 % | 7565 | 0 |
-| Anglais | 7565 | 998 | 13.19 % | 23.92 % | 1546 | 38565 |
-| Espagnol | 7565 | 1005 | 13.28 % | 23.94 % | 1562 | 38557 |
-| Chinois traditionnel | 7565 | 1007 | 13.31 % | 23.94 % | 1568 | 38555 |
-| Russe | 7565 | 1007 | 13.31 % | 23.94 % | 1567 | 38555 |
-| Coréen | 7565 | 1007 | 13.31 % | 23.94 % | 1568 | 38555 |
-| Arabe | 7565 | 1007 | 13.31 % | 23.94 % | 1567 | 38555 |
-| Portugais brésilien | 7565 | 1004 | 13.27 % | 23.93 % | 1564 | 38558 |
-| Allemand | 7565 | 1006 | 13.30 % | 23.94 % | 1564 | 38556 |
+| Anglais | 7565 | 998 | 13.19 % | 23.92 % | 1547 | 38565 |
+| Espagnol | 7565 | 1005 | 13.28 % | 23.94 % | 1563 | 38557 |
+| Chinois traditionnel | 7565 | 1007 | 13.31 % | 23.94 % | 1569 | 38555 |
+| Russe | 7565 | 1007 | 13.31 % | 23.94 % | 1568 | 38555 |
+| Coréen | 7565 | 1007 | 13.31 % | 23.94 % | 1569 | 38555 |
+| Arabe | 7565 | 1007 | 13.31 % | 23.94 % | 1568 | 38555 |
+| Portugais brésilien | 7565 | 1004 | 13.27 % | 23.93 % | 1565 | 38558 |
+| Allemand | 7565 | 1006 | 13.30 % | 23.94 % | 1565 | 38556 |
 
 * Preuve statique stricte : clé explicite de même français, traducteur exporté/wrapper transparent, guide accepté par son garde d’intégrité ou description d’ordre reconnue par le résolveur existant dans son pays, dans chacune des huit langues. C’est un plancher de raccordements identifiés, pas la mesure de toutes les traductions qui fonctionnent. Les valeurs identiques au français restent à vérifier sauf sigles neutres documentés.
 
@@ -41,7 +41,7 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 |---|---:|---:|---:|---:|
 | Bâtiments et pièces | 973 | 701 | 44 | 2082 |
 | Courriers, notifications et journaux | 388 | 104 | 238 | 1217 |
-| Création et connexion | 158 | 91 | 51 | 434 |
+| Création et connexion | 158 | 91 | 50 | 434 |
 | Enquêtes, missions et objectifs | 898 | 0 | 833 | 5136 |
 | Interface générale et autres activités | 1954 | 90 | 1679 | 9803 |
 | Navigation et transports | 139 | 0 | 97 | 706 |
@@ -80,7 +80,7 @@ Les descriptions communes sont présentes dans plusieurs empires : ne pas additi
 
 ## Catalogue central et autres ressources
 
-Le catalogue central expose **3485 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4436 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
+Le catalogue central expose **3490 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4441 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
 
 | Langue | Clés absentes | Variables incohérentes |
 |---|---:|---:|
@@ -99,7 +99,7 @@ Le catalogue central expose **3485 clés françaises**. Les tables locales, guid
 | Priorité | Textes candidats non entièrement prouvés | Usage |
 |---|---:|---|
 | 1 | 183 | Compréhension d’un ordre, d’un refus ou entrée dans le jeu |
-| 2 | 9904 | Commandes et messages de gameplay |
+| 2 | 9907 | Commandes et messages de gameplay |
 | 3 | 2937 | Compréhension d’une mission ou interaction narrative |
 | 4 | 2067 | Description ou repère de lieu |
 
@@ -107,9 +107,9 @@ Classement automatique à confirmer en jeu. `inventaire.json.gz` fournit texte, 
 
 ### Exemples de cibles sans ressource confirmée (à vérifier avant traduction)
 
-- Priorité 1 — La session de ce navigateur n'est plus reconnue par le serveur. Rechargez la page : une nouvelle session sera ouverte et la creati — `creation.js:1227` (23 mots source ; identifiant `0992d6e654559b672aa6`).
-- Priorité 1 — Si ce personnage est le votre et que vous avez perdu l'acces, utilisez « Retrouver mon personnage » depuis l'accueil plutot que d' — `creation.js:1211` (23 mots source ; identifiant `c736a3a6c07b70a9d058`).
-- Priorité 1 — Retournez a l'accueil pour le reprendre. Pour en creer un autre, il faut d'abord detruire celui que vous possedez, depuis sa fiche — `creation.js:1217` (22 mots source ; identifiant `cc7faa7b891a4a7bedc5`).
+- Priorité 1 — La session de ce navigateur n'est plus reconnue par le serveur. Rechargez la page : une nouvelle session sera ouverte et la creati — `creation.js:1256` (23 mots source ; identifiant `0992d6e654559b672aa6`).
+- Priorité 1 — Si ce personnage est le votre et que vous avez perdu l'acces, utilisez « Retrouver mon personnage » depuis l'accueil plutot que d' — `creation.js:1240` (23 mots source ; identifiant `c736a3a6c07b70a9d058`).
+- Priorité 1 — Retournez a l'accueil pour le reprendre. Pour en creer un autre, il faut d'abord detruire celui que vous possedez, depuis sa fiche — `creation.js:1246` (22 mots source ; identifiant `cc7faa7b891a4a7bedc5`).
 - Priorité 2 — Sans déclaration préalable. Il faut être le chef d'un groupe d'au moins 10 PJ présents sur la place. Chaque participant fait gagne — `plateau-communication.js:2687` (68 mots source ; identifiant `3aa1f0b09eca4a8dcd9c`).
 - Priorité 2 — Vous engagez la responsabilité de votre gouvernement devant l'Assemblée Nationale (9 sièges de députés). Vote sous 48h réelles. En — `plateau-politique.js:10324` (59 mots source ; identifiant `05e32526bf0eeb1365bf`).
 - Priorité 2 — ACTE ILLEGAL. 300 FR et 3 PA sont preleves A LA TENTATIVE, reussie ou non. Si la corruption est decouverte, vous n'obtenez rien et — `plateau-justice-economie.js:14494` (54 mots source ; identifiant `fea7c948803a7ffe7803`).

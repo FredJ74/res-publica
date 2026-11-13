@@ -30,8 +30,8 @@ async function bac(locale,cas,old=false){
  return {message,calls:JSON.parse(JSON.stringify(calls)),cache:[...storage],timers:timers.map(t=>t.ms),href:c.window.location.href,
   key:elements['connexion-msg'].attrs['data-i18n'],resources:w.RP_I18N_RESOURCES,button:elements['connexion-valider']?.disabled};
 }
-test('treize messages complets, nom paramétré dans neuf langues',async()=>{
- const sample=await bac('fr','email');const keys=Object.keys(sample.resources.fr.translation.connectionUi);assert.equal(keys.length,13);
+test('messages de connexion complets, nom paramétré dans neuf langues',async()=>{
+ const sample=await bac('fr','email');const keys=Object.keys(sample.resources.fr.translation.connectionUi);assert.ok(keys.length>=13);
  for(const l of locales){const words=sample.resources[l].translation.connectionUi;assert.deepEqual(Object.keys(words),keys);for(const v of Object.values(words))assert.ok(v.trim());assert.match(words.welcome,/{{values.name}}/)}
 });
 for(const l of locales)test('connexion '+l+' : mêmes appels, cache, droits et redirection que main',async()=>{

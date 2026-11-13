@@ -1,0 +1,9 @@
+{
+  "baseCommit": "a2f43e034e97d9f6ea8523bd3238bb921bf70b23",
+  "codeCommit": "3f38c273ab8683176336d85112472644bf6a6ce5",
+  "newKeys": 5,
+  "newForeignTranslations": 40,
+  "reusedKeys": 6,
+  "reusedForeignTranslations": 48,
+  "businessAstIdentical": true
+}

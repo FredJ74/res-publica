@@ -16,7 +16,12 @@
     "confirmationExpiredTitle": "Ce lien de confirmation n'est plus valable.",
     "confirmationExpiredBody": "Il a expiré, ou une adresse plus récente l'a remplacé. Rouvrez votre personnage sur l'appareil où vous jouez et demandez un nouveau courriel.",
     "confirmationSuccessTitle": "Votre adresse e-mail est confirmée.",
-    "confirmationSuccessBody": "Votre personnage est désormais rattaché à votre compte. Connectez-vous ci-dessous avec cette adresse et votre mot de passe pour le retrouver, sur cet appareil ou sur n'importe quel autre."
+    "confirmationSuccessBody": "Votre personnage est désormais rattaché à votre compte. Connectez-vous ci-dessous avec cette adresse et votre mot de passe pour le retrouver, sur cet appareil ou sur n'importe quel autre.",
+    "recoveryOwnedElsewhere": "Ce personnage appartient deja a un autre compte. Si c'est le votre, reconnectez-vous depuis l'appareil ou le compte d'origine.",
+    "recoveryAlreadyOwns": "Ce navigateur possede deja le personnage « {{values.name}} ». Un compte ne peut porter qu'un seul personnage.",
+    "recoveryOwnershipUnavailable": "Vérification de propriété momentanément indisponible ({{values.reason}}). Votre personnage est intact, réessayez dans un instant.",
+    "recoveryAccessDenied": "Acces refuse ({{values.reason}}).",
+    "recoveryAccessUnknown": "Acces refuse (inconnu)."
   },
   "en": {
     "invalidEmail": "This address is not valid.",
@@ -31,7 +36,12 @@
     "confirmationExpiredTitle": "This confirmation link is no longer valid.",
     "confirmationExpiredBody": "It has expired, or a more recent address has replaced it. Open your character again on the device you play on and request a new email.",
     "confirmationSuccessTitle": "Your email address is confirmed.",
-    "confirmationSuccessBody": "Your character is now linked to your account. Sign in below with this address and your password to access your character on this device or any other."
+    "confirmationSuccessBody": "Your character is now linked to your account. Sign in below with this address and your password to access your character on this device or any other.",
+    "recoveryOwnedElsewhere": "This character already belongs to another account. If it is yours, sign in again from the original device or account.",
+    "recoveryAlreadyOwns": "This browser already has the character « {{values.name}} ». An account can have only one character.",
+    "recoveryOwnershipUnavailable": "Ownership verification is temporarily unavailable ({{values.reason}}). Your character is intact; try again shortly.",
+    "recoveryAccessDenied": "Access denied ({{values.reason}}).",
+    "recoveryAccessUnknown": "Access denied (unknown)."
   },
   "es": {
     "invalidEmail": "Esta dirección no es válida.",
@@ -46,7 +56,12 @@
     "confirmationExpiredTitle": "Este enlace de confirmación ya no es válido.",
     "confirmationExpiredBody": "Ha caducado o una dirección más reciente lo ha sustituido. Vuelve a abrir tu personaje en el dispositivo en el que juegas y solicita un nuevo correo.",
     "confirmationSuccessTitle": "Tu dirección de correo electrónico está confirmada.",
-    "confirmationSuccessBody": "Tu personaje ya está vinculado a tu cuenta. Inicia sesión a continuación con esta dirección y tu contraseña para acceder a él desde este dispositivo o cualquier otro."
+    "confirmationSuccessBody": "Tu personaje ya está vinculado a tu cuenta. Inicia sesión a continuación con esta dirección y tu contraseña para acceder a él desde este dispositivo o cualquier otro.",
+    "recoveryOwnedElsewhere": "Este personaje ya pertenece a otra cuenta. Si es tuyo, vuelve a iniciar sesión desde el dispositivo o la cuenta original.",
+    "recoveryAlreadyOwns": "Este navegador ya tiene el personaje « {{values.name}} ». Una cuenta solo puede tener un personaje.",
+    "recoveryOwnershipUnavailable": "La verificación de propiedad no está disponible temporalmente ({{values.reason}}). Tu personaje está intacto; vuelve a intentarlo en un momento.",
+    "recoveryAccessDenied": "Acceso denegado ({{values.reason}}).",
+    "recoveryAccessUnknown": "Acceso denegado (desconocido)."
   },
   "zh-TW": {
     "invalidEmail": "這個地址無效。",
@@ -61,7 +76,12 @@
     "confirmationExpiredTitle": "此確認連結已失效。",
     "confirmationExpiredBody": "連結已過期，或已由較新的地址取代。請在你遊玩的裝置上重新開啟角色，並要求寄送新的電子郵件。",
     "confirmationSuccessTitle": "你的電子郵件地址已確認。",
-    "confirmationSuccessBody": "你的角色現已連結至你的帳號。請在下方使用此地址和密碼登入，即可在這台或任何其他裝置上存取角色。"
+    "confirmationSuccessBody": "你的角色現已連結至你的帳號。請在下方使用此地址和密碼登入，即可在這台或任何其他裝置上存取角色。",
+    "recoveryOwnedElsewhere": "此角色已屬於另一個帳號。如果是你的角色，請從原本的裝置或帳號重新登入。",
+    "recoveryAlreadyOwns": "此瀏覽器已擁有角色「{{values.name}}」。每個帳號只能擁有一個角色。",
+    "recoveryOwnershipUnavailable": "暫時無法驗證角色歸屬（{{values.reason}}）。你的角色完好無損，請稍後再試。",
+    "recoveryAccessDenied": "存取遭拒（{{values.reason}}）。",
+    "recoveryAccessUnknown": "存取遭拒（未知）。"
   },
   "ru": {
     "invalidEmail": "Этот адрес недействителен.",
@@ -76,7 +96,12 @@
     "confirmationExpiredTitle": "Эта ссылка для подтверждения больше недействительна.",
     "confirmationExpiredBody": "Срок её действия истёк, или её заменил более новый адрес. Снова откройте своего персонажа на устройстве, на котором играете, и запросите новое письмо.",
     "confirmationSuccessTitle": "Ваш адрес электронной почты подтверждён.",
-    "confirmationSuccessBody": "Теперь ваш персонаж связан с вашей учётной записью. Войдите ниже с этим адресом и своим паролем, чтобы получить доступ к персонажу на этом или любом другом устройстве."
+    "confirmationSuccessBody": "Теперь ваш персонаж связан с вашей учётной записью. Войдите ниже с этим адресом и своим паролем, чтобы получить доступ к персонажу на этом или любом другом устройстве.",
+    "recoveryOwnedElsewhere": "Этот персонаж уже принадлежит другой учётной записи. Если это ваш персонаж, снова войдите с исходного устройства или учётной записи.",
+    "recoveryAlreadyOwns": "В этом браузере уже есть персонаж « {{values.name}} ». У одной учётной записи может быть только один персонаж.",
+    "recoveryOwnershipUnavailable": "Проверка принадлежности временно недоступна ({{values.reason}}). Ваш персонаж в сохранности, повторите попытку через некоторое время.",
+    "recoveryAccessDenied": "Доступ запрещён ({{values.reason}}).",
+    "recoveryAccessUnknown": "Доступ запрещён (неизвестно)."
   },
   "ko": {
     "invalidEmail": "유효하지 않은 주소입니다.",
@@ -91,7 +116,12 @@
     "confirmationExpiredTitle": "이 확인 링크는 더 이상 유효하지 않습니다.",
     "confirmationExpiredBody": "링크가 만료되었거나 더 최근의 주소로 대체되었습니다. 플레이하는 기기에서 캐릭터를 다시 열고 새 이메일을 요청하세요.",
     "confirmationSuccessTitle": "이메일 주소가 확인되었습니다.",
-    "confirmationSuccessBody": "이제 캐릭터가 계정에 연결되었습니다. 아래에서 이 이메일 주소와 비밀번호로 로그인하면 이 기기나 다른 기기에서 캐릭터에 접속할 수 있습니다."
+    "confirmationSuccessBody": "이제 캐릭터가 계정에 연결되었습니다. 아래에서 이 이메일 주소와 비밀번호로 로그인하면 이 기기나 다른 기기에서 캐릭터에 접속할 수 있습니다.",
+    "recoveryOwnedElsewhere": "이 캐릭터는 이미 다른 계정에 속해 있습니다. 본인의 캐릭터라면 원래 기기나 계정에서 다시 로그인하세요.",
+    "recoveryAlreadyOwns": "이 브라우저에는 이미 캐릭터 « {{values.name}} »이(가) 있습니다. 한 계정에는 캐릭터를 하나만 둘 수 있습니다.",
+    "recoveryOwnershipUnavailable": "소유권 확인을 일시적으로 사용할 수 없습니다 ({{values.reason}}). 캐릭터는 그대로 보존되어 있으니 잠시 후 다시 시도하세요.",
+    "recoveryAccessDenied": "접근이 거부되었습니다 ({{values.reason}}).",
+    "recoveryAccessUnknown": "접근이 거부되었습니다 (알 수 없음)."
   },
   "ar": {
     "invalidEmail": "هذا العنوان غير صالح.",
@@ -106,7 +136,12 @@
     "confirmationExpiredTitle": "لم يعد رابط التأكيد هذا صالحًا.",
     "confirmationExpiredBody": "انتهت صلاحيته، أو حلّ محله عنوان أحدث. افتح شخصيتك مجددًا على الجهاز الذي تلعب عليه واطلب رسالة بريد إلكتروني جديدة.",
     "confirmationSuccessTitle": "تم تأكيد عنوان بريدك الإلكتروني.",
-    "confirmationSuccessBody": "أصبحت شخصيتك الآن مرتبطة بحسابك. سجّل الدخول أدناه باستخدام هذا العنوان وكلمة مرورك للوصول إليها على هذا الجهاز أو أي جهاز آخر."
+    "confirmationSuccessBody": "أصبحت شخصيتك الآن مرتبطة بحسابك. سجّل الدخول أدناه باستخدام هذا العنوان وكلمة مرورك للوصول إليها على هذا الجهاز أو أي جهاز آخر.",
+    "recoveryOwnedElsewhere": "هذه الشخصية تابعة بالفعل لحساب آخر. إذا كانت شخصيتك، فسجّل الدخول مجددًا من الجهاز أو الحساب الأصلي.",
+    "recoveryAlreadyOwns": "هذا المتصفح مرتبط بالفعل بالشخصية « {{values.name}} ». لا يمكن أن يضم الحساب أكثر من شخصية واحدة.",
+    "recoveryOwnershipUnavailable": "التحقق من الملكية غير متاح مؤقتًا ({{values.reason}}). شخصيتك سليمة؛ حاول مجددًا بعد قليل.",
+    "recoveryAccessDenied": "تم رفض الوصول ({{values.reason}}).",
+    "recoveryAccessUnknown": "تم رفض الوصول (غير معروف)."
   },
   "pt-BR": {
     "invalidEmail": "Este endereço não é válido.",
@@ -121,7 +156,12 @@
     "confirmationExpiredTitle": "Este link de confirmação não é mais válido.",
     "confirmationExpiredBody": "Ele expirou ou foi substituído por um endereço mais recente. Abra seu personagem novamente no aparelho em que você joga e solicite um novo e-mail.",
     "confirmationSuccessTitle": "Seu endereço de e-mail está confirmado.",
-    "confirmationSuccessBody": "Seu personagem agora está vinculado à sua conta. Entre abaixo com esse endereço e sua senha para acessá-lo neste aparelho ou em qualquer outro."
+    "confirmationSuccessBody": "Seu personagem agora está vinculado à sua conta. Entre abaixo com esse endereço e sua senha para acessá-lo neste aparelho ou em qualquer outro.",
+    "recoveryOwnedElsewhere": "Este personagem já pertence a outra conta. Se ele for seu, entre novamente pelo aparelho ou pela conta original.",
+    "recoveryAlreadyOwns": "Este navegador já tem o personagem « {{values.name}} ». Uma conta só pode ter um personagem.",
+    "recoveryOwnershipUnavailable": "A verificação de propriedade está temporariamente indisponível ({{values.reason}}). Seu personagem está intacto; tente novamente daqui a pouco.",
+    "recoveryAccessDenied": "Acesso negado ({{values.reason}}).",
+    "recoveryAccessUnknown": "Acesso negado (desconhecido)."
   },
   "de": {
     "invalidEmail": "Diese Adresse ist ungültig.",
@@ -136,7 +176,12 @@
     "confirmationExpiredTitle": "Dieser Bestätigungslink ist nicht mehr gültig.",
     "confirmationExpiredBody": "Er ist abgelaufen oder wurde durch eine neuere Adresse ersetzt. Öffne deinen Charakter erneut auf dem Gerät, auf dem du spielst, und fordere eine neue E-Mail an.",
     "confirmationSuccessTitle": "Deine E-Mail-Adresse ist bestätigt.",
-    "confirmationSuccessBody": "Dein Charakter ist jetzt mit deinem Konto verknüpft. Melde dich unten mit dieser Adresse und deinem Passwort an, um auf diesem oder jedem anderen Gerät auf ihn zuzugreifen."
+    "confirmationSuccessBody": "Dein Charakter ist jetzt mit deinem Konto verknüpft. Melde dich unten mit dieser Adresse und deinem Passwort an, um auf diesem oder jedem anderen Gerät auf ihn zuzugreifen.",
+    "recoveryOwnedElsewhere": "Dieser Charakter gehört bereits zu einem anderen Konto. Wenn er dir gehört, melde dich über das ursprüngliche Gerät oder Konto erneut an.",
+    "recoveryAlreadyOwns": "Dieser Browser hat bereits den Charakter « {{values.name}} ». Ein Konto kann nur einen Charakter haben.",
+    "recoveryOwnershipUnavailable": "Die Eigentumsprüfung ist vorübergehend nicht verfügbar ({{values.reason}}). Dein Charakter ist unversehrt. Versuche es gleich noch einmal.",
+    "recoveryAccessDenied": "Zugriff verweigert ({{values.reason}}).",
+    "recoveryAccessUnknown": "Zugriff verweigert (unbekannt)."
   }
 };
  for(const [locale,strings]of Object.entries(words))
