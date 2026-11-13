@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const src=fs.readFileSync(path.join(__dirname,'../../plateau-politique.js'),'utf8');
 test('La valeur title des ordres échappe les guillemets sans tronquer la description',()=>{
  assert.match(src,/const tooltipAttribut = tooltipFinal === tooltip \? tooltipFinal\.replace\(\/"\/[g], '&quot;'\) : tooltipFinal/);
- assert.match(src,/title="' \+ tooltipAttribut \+ '"'/);
+ assert.ok(src.includes("' title=\"' + tooltipAttribut + '\"' + tipAttr"));
  const tooltip='Permet de contester une licence de "football" sans payer';
  const tooltipAttribut=tooltip.replace(/"/g,'&quot;');
  const html='<button title="'+tooltipAttribut+'" data-rp-tip="test"></button>';
