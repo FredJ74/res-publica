@@ -1,0 +1,84 @@
+{
+  "deployment": "dpl_BQV57ujrMBbGZcss1aTqGtHjB7GG",
+  "commit": "e9989c6e35a35619ff5ae762799754f5d6065ee2",
+  "files": [
+    {
+      "file": "plateau.html",
+      "sha256": "b4576895d0312937392c2c810ba3b6859fe1c3bc00d2533e4a1c0f59eff9644d",
+      "bytes": 75431,
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "57ff1fda7689cd3f18f28f5d2daffbf23e91486a7c38cd462eba39544a04eed0",
+      "bytes": 165381,
+      "identical": true
+    },
+    {
+      "file": "forum.js",
+      "sha256": "4d40fdd0ce0c70efcf63c3718f733bb9bb8ed598785c9656f741f160ac2685e1",
+      "bytes": 187244,
+      "identical": true
+    },
+    {
+      "file": "plateau-core.js",
+      "sha256": "d52251e01c7c71d6f4b1327a2e5607a54e2406209c8ae08c4f36cbef2cb89c73",
+      "bytes": 230457,
+      "identical": true
+    },
+    {
+      "file": "plateau-communication.js",
+      "sha256": "fb37985f77d53d65705951137e92f589cb098844ba8883579c0e74b327b258d1",
+      "bytes": 175923,
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "bytes": 43696,
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "bytes": 160535,
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-resources.js",
+      "sha256": "5ab8d40c41eb8e1e60f30416019e7c2b3fb6ce8ab3725026cd9d1ccde96f55f0",
+      "bytes": 31260,
+      "identical": true
+    },
+    {
+      "file": "i18n/inventory-ui-resources.js",
+      "sha256": "7d28cf78d2c8538818c138324a24ca371f6f1b5bd04a256dc13b891dbae784ac",
+      "bytes": 20605,
+      "identical": true
+    },
+    {
+      "file": "i18n/player-directory-resources.js",
+      "sha256": "69a7f951ab5766afadcb280a492822778d3c58f0cc4740b17df8ccfdebc26f54",
+      "bytes": 5022,
+      "identical": true
+    },
+    {
+      "file": "i18n/toast-resources.js",
+      "sha256": "8a57409e44396e0a59163dcb86b9f9d995cbf507d88ed82f56df7fc6c9bcc96e",
+      "bytes": 57031,
+      "identical": true
+    },
+    {
+      "file": "i18n/forum-feedback-resources.js",
+      "sha256": "714f8533d67cbac03d5403f2d70eb3c9bbf3f596985f12c3dcdda34fc4b06c9f",
+      "bytes": 23158,
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-init.js",
+      "sha256": "bc01b4d14b0d2dc5b20a4e88a40b222c32b3534af6f0d67ae081653560aa0bc1",
+      "bytes": 11426,
+      "identical": true
+    }
+  ]
+}
