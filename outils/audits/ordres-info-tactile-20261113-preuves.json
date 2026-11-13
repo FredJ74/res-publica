@@ -1,0 +1,141 @@
+{
+  "base": "4d442226de8b92b8bdab2eb7ca923863406319e0",
+  "command": "node --test outils/bancs/test-*.mjs outils/bancs/banc-i18n-vehicules-garage-20261112.cjs",
+  "results": {
+    "main": {
+      "tests": 308,
+      "pass": 304,
+      "fail": 4,
+      "failures": [
+        "outils/bancs/test-audit-global-republia.mjs:41:1",
+        "outils/bancs/test-galeries-novomirsk-20261106.mjs:81:1",
+        "outils/bancs/test-musees-province-personnalites.mjs:1:1",
+        "outils/bancs/test-rpc-apres-lot-219.mjs:32:1"
+      ]
+    },
+    "branch": {
+      "tests": 308,
+      "pass": 304,
+      "fail": 4,
+      "failures": [
+        "outils/bancs/test-audit-global-republia.mjs:41:1",
+        "outils/bancs/test-galeries-novomirsk-20261106.mjs:81:1",
+        "outils/bancs/test-musees-province-personnalites.mjs:1:1",
+        "outils/bancs/test-rpc-apres-lot-219.mjs:32:1"
+      ]
+    }
+  },
+  "new_failures": [],
+  "supplementary": {
+    "coque": {
+      "main": {
+        "tests": 21,
+        "pass": 19,
+        "fail": 2,
+        "failures": [
+          "outils/bancs/banc-mobile-coque.cjs:4:1",
+          "outils/bancs/banc-mobile-coque.cjs:67:1"
+        ]
+      },
+      "branch": {
+        "tests": 21,
+        "pass": 19,
+        "fail": 2,
+        "failures": [
+          "outils/bancs/banc-mobile-coque.cjs:4:1",
+          "outils/bancs/banc-mobile-coque.cjs:67:1"
+        ]
+      }
+    },
+    "commerce": {
+      "main": {
+        "tests": 34,
+        "pass": 19,
+        "fail": 15,
+        "failures": [
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:30:33",
+          "outils/bancs/banc-commerce-unifie.cjs:30:33",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3"
+        ]
+      },
+      "branch": {
+        "tests": 34,
+        "pass": 19,
+        "fail": 15,
+        "failures": [
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:30:33",
+          "outils/bancs/banc-commerce-unifie.cjs:30:33",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3"
+        ]
+      }
+    }
+  },
+  "rebased_on": "8d9dc2246fd24bdd06a12f81c691328df2b4c901",
+  "tested_code_commit": "d02c58abf819cb37ee3570447ce90f2a6931cabc",
+  "joint_validation": {
+    "base": "8d9dc2246fd24bdd06a12f81c691328df2b4c901",
+    "results": {
+      "main": {
+        "tests": 316,
+        "pass": 312,
+        "fail": 4,
+        "failures": [
+          "outils/bancs/test-audit-global-republia.mjs:41:1",
+          "outils/bancs/test-galeries-novomirsk-20261106.mjs:81:1",
+          "outils/bancs/test-musees-province-personnalites.mjs:1:1",
+          "outils/bancs/test-rpc-apres-lot-219.mjs:32:1"
+        ]
+      },
+      "branch": {
+        "tests": 316,
+        "pass": 312,
+        "fail": 4,
+        "failures": [
+          "outils/bancs/test-audit-global-republia.mjs:41:1",
+          "outils/bancs/test-galeries-novomirsk-20261106.mjs:81:1",
+          "outils/bancs/test-musees-province-personnalites.mjs:1:1",
+          "outils/bancs/test-rpc-apres-lot-219.mjs:32:1"
+        ]
+      }
+    }
+  },
+  "delivery_block": {
+    "pr": 855,
+    "tested_head": "737e58617d4ac448597c2f6cd364d6d555172baf",
+    "ci": "https://github.com/FredJ74/res-publica/actions/runs/43407679295",
+    "checks_success": 36,
+    "checks_failed": [
+      "bancs-hors-production (SSM, trois échecs hérités)"
+    ],
+    "branch_protected": false,
+    "required_status_checks": [],
+    "branch_rules": [],
+    "approval_review": "Deux refus de fusion, réautorisation explicite exigée en présence de la suite CI rouge",
+    "merged": false,
+    "deployed": false
+  }
+}

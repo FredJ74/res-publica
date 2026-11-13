@@ -4307,6 +4307,7 @@ function renderRoomActions(room, buildingId, roomId) {
     }
 
     let onclickFn = '';
+    let infoBlocage = ''; // Présentation tactile seulement : aucun appel au handler de refus.
     if (needsBientot) {
       // CE CLIC N'APPELLE RIEN. Pas de doOrder, donc pas de deduireCoutOrdre, donc aucun PA et
       // aucun FR : la desactivation est reelle, et elle passe avant toutes les autres gardes.
@@ -4333,12 +4334,16 @@ function renderRoomActions(room, buildingId, roomId) {
       const posteRequisNom = o.requiresPost === true ? 'un poste institutionnel'
         : Array.isArray(o.requiresPost) ? o.requiresPost.map(p => postesNoms[p] || p).join(' ou ')
         : (postesNoms[o.requiresPost] || o.requiresPost);
+      infoBlocage = 'Cette action est réservée à : ' + posteRequisNom + '.';
       onclickFn = 'showPostRequired(' + JSON.stringify(posteRequisNom) + ')';
     } else if (needsSquat) {
+      infoBlocage = "Aucun squatteur a negocier sur ce terrain pour l'instant.";
       onclickFn = "showToast('Aucun squatteur', 'Aucun squatteur a negocier sur ce terrain pour l\\'instant.', false)";
     } else if (needsCadavre) {
+      infoBlocage = "Aucun cadavre a dissimuler sur ce terrain pour l'instant.";
       onclickFn = "showToast('Aucun cadavre', 'Aucun cadavre a dissimuler sur ce terrain pour l\\'instant.', false)";
     } else if (needsChefSyndicat) {
+      infoBlocage = 'Seul le chef du Syndicat des Dockers peut declencher un blocus portuaire.';
       onclickFn = "showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut declencher un blocus portuaire.', false)";
     } else if (needsPoliceIndisponible) {
       onclickFn = "showToast('Répression impossible', " + JSON.stringify(policeTooltip) + ", false)";
@@ -4374,7 +4379,8 @@ function renderRoomActions(room, buildingId, roomId) {
     const blockedCls = (needsBientot || needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsPoliceIndisponible || needsLicenceIndisponible || needsSuiteIndisponible || needsElectionIndisponible || needsPatientChambre || needsRoleLocal) ? ' blocked' : '';
     const coutJoint = [costDisplay, paDisplay].filter(Boolean).join(' · ');
     const tooltipFinal = needsBientot ? bientotTooltip.replace(/"/g, '&quot;') : (needsPoliceIndisponible ? policeTooltip.replace(/"/g, '&quot;') : (needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : (needsElectionIndisponible ? electionTooltip.replace(/"/g, '&quot;') : (needsPatientChambre ? patientChambreTooltip.replace(/"/g, '&quot;') : (needsRoleLocal ? roleLocalTooltip.replace(/"/g, '&quot;') : tooltip))))));
-    const tipDescripteur = needsBientot ? { k: 'bientot', t: o.bientot } : (tooltipFinal === tooltip ? tipSpec : { k: 'badge', g: gainSpec });
+    const tipDescripteur = needsBientot ? { k: 'bientot', t: o.bientot, details: tipSpec } : (tooltipFinal === tooltip ? tipSpec : { k: 'badge', g: gainSpec, details: tipSpec });
+    if (infoBlocage) tipDescripteur.blocage = infoBlocage;
     const tipAttr = infobulleI18n ? ' data-rp-tip="' + encodeURIComponent(JSON.stringify(tipDescripteur)) + '"' : '';
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn.replace(/"/g, '&quot;') + '" title="' + tooltipFinal + '"' + tipAttr + '><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + libelleMarque + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });

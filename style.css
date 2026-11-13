@@ -2486,3 +2486,18 @@ body.plateau-body .top-right {
 .guide-musee-questions { clear: both; margin-top: 1.2rem; padding-top: .9rem; border-top: 1px solid #a98d56; }
 .guide-musee-questions h4 { margin: 0 0 .6rem; color: #e5c477; }
 .guide-musee-questions textarea { margin: .4rem 0; font-size: 1.05rem; }
+
+/* Descriptions tactiles : bouton frère, sans modifier le bouton métier. */
+@media(any-pointer:coarse){
+  .rp-order-info-row{display:flex;gap:4px;min-width:0;max-width:100%;align-items:stretch}
+  .rp-order-info-row>.action-btn{flex:1 1 auto;min-width:0;white-space:normal;overflow-wrap:anywhere;text-align:start;justify-content:flex-start;line-height:1.25;box-sizing:border-box}
+  .rp-order-info-row>.action-btn [data-rp-order-fn]{min-width:0;overflow-wrap:anywhere}
+  .rp-order-info-row>.action-btn .pa-cost{margin-inline-start:auto;flex-shrink:0}
+  .rp-order-info-button{flex:0 0 44px;min-width:44px;min-height:44px;padding:0;font-size:1.1rem;margin:0}
+}
+.rp-order-info-dialog{position:fixed;inset:0;margin:auto;padding:1rem;box-sizing:border-box;width:calc(100% - 24px);max-width:480px;max-height:85dvh;overflow:auto;overscroll-behavior:contain;overflow-wrap:anywhere}
+.rp-order-info-dialog::backdrop{background:rgba(0,0,0,.75)}
+.rp-order-info-dialog .modal-title{margin:0 0 .8rem;white-space:normal}
+.rp-order-info-content{white-space:pre-line;line-height:1.55;margin-bottom:1rem}
+.rp-order-info-dialog:not([open]){display:none}
+.rp-order-info-dialog button:focus-visible,.rp-order-info-button:focus-visible{outline:2px solid var(--gold-light);outline-offset:2px}
