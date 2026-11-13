@@ -64,3 +64,11 @@ En anglais, 968 → 985 textes et 11 829 → 11 971 mots raccordés ; taux mots
 70 contrôles Node de non-régression et un banc Chromium verts. Le JSON `-preuve.json`
 référence le commit du code dont l’AST est comparé intégralement à l’original ; les
 futurs travaux métier ne sont pas interdits par une comparaison figée au code courant.
+
+## Livraison vérifiée
+
+PR #896 fusionnée, `2c2de64ce48aa2b9e7d1d49e7f9cb75d58de2fb7`. 40 contrôles PR
+verts et les échecs SSM préexistants dans un contrôle. Vercel
+`dpl_8DcTgxPRBwn4CvzvuzKBgksqaBcr` READY, alias public confirmé. Dix fichiers publics
+identiques au commit ; banc rejoué avec ces fichiers : vert (270 rendus et 270
+bascules sur les dix chemins réels). Empreintes dans le JSON `-production.json`.

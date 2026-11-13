@@ -39,6 +39,8 @@ Les fenêtres se raccordent au moteur commun par `data-i18n`. Une notification
 locale à texte fixe peut être marquée après affichage avec
 `RPI18nPlateau.markToast` ; ses variables restent des données, et le prochain
 message supprime naturellement le marqueur. Aucun appel métier n’est rejoué.
+Une clé `null` marque seulement le titre fixe ; le corps opaque (réponse serveur
+ou texte libre) reste intégralement intact, sans traduction automatique.
 Les nouveaux titres peuvent être reliés à leurs ressources par
 `RPToastI18n.registerTitle`, sans modifier les anciens alias ni créer de moteur.
 

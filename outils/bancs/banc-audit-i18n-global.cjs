@@ -157,3 +157,14 @@ const WORLD = {republic:{ville:{buildings:['site'],buildingContext:{site:{roomsE
  const active=r.entries.filter(e=>e.occurrences.some(o=>o.kind==='active-order-desc')).map(e=>e.text).sort();
  assert.deepEqual(active,['Description héritée','Description du contexte','Description ajoutée','Description supplémentaire'].sort(),JSON.stringify({sources:r.sourceFiles,entries:r.entries.map(e=>({text:e.text,kinds:e.occurrences.map(o=>o.kind)}))}));
 });
+test('toast opaque : titre seul et repli fixe, jamais la raison variable',t=>{
+ const extra=`for(const lang of ['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de']){const ui=window.RP_I18N_RESOURCES[lang].translation.ui;ui.pending=lang==='fr'?'Commande non confirmée':lang+' Pending';ui.refused=lang==='fr'?'Le serveur a refusé cette commande.':lang+' Refused';}`;
+ const {dir}=fixture(t,{'i18n/extra-resources.js':extra,'i18n/toast-resources.js':`window.RPToastI18n={key:fr=>fr==='Commande non confirmée'?'ui.pending':null};`,
+ 'index.html':'<script src="i18n/resources.js"></script><script src="i18n/extra-resources.js"></script><script src="i18n/toast-resources.js"></script><script src="plateau-test.js"></script>',
+ 'plateau-test.js':`function publier(r){showToast('Commande non confirmée',r.raison||'Le serveur a refusé cette commande.',false);window.RPI18nPlateau?.markToast(r.raison?null:'ui.refused',r.raison||'Le serveur a refusé cette commande.',undefined,'Commande non confirmée');} function opaque(){showToast('Commande non confirmée','Contenu libre conservé',false);window.RPI18nPlateau?.markToast(null,'Contenu libre conservé',undefined,'Commande non confirmée');}`});
+ const r=audit.build(dir);assert.deepEqual(r.extractionErrors,[]);
+ for(const text of ['Commande non confirmée','Le serveur a refusé cette commande.'])assert.equal(r.entries.find(e=>e.text===text).locales.en,'wired-unreviewed',text);
+ assert.notEqual(r.entries.find(e=>e.text==='Contenu libre conservé').locales.en,'wired-unreviewed');
+ fs.writeFileSync(path.join(dir,'plateau-test.js'),`function publier(r){showToast('Commande non confirmée',r.raison||'Le serveur a refusé cette commande.',false);window.RPI18nPlateau?.markToast(r.autre?null:'ui.refused',r.raison||'Le serveur a refusé cette commande.',undefined,'Commande non confirmée');}`);
+ const wrong=audit.build(dir);assert.notEqual(wrong.entries.find(e=>e.text==='Le serveur a refusé cette commande.').locales.en,'wired-unreviewed');
+});

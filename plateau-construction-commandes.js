@@ -27,7 +27,7 @@ async function constructionExecuterCommande(action,parametres={}){
     if(!r?.ok){
       // Ne pas perdre l'intention sur une erreur HTTP/transport dont le resultat est inconnu.
       if(r&&!r.transport)sessionStorage.removeItem(cle);
-      showToast('Commande non confirmée',r?.transport||!r?'La réponse est incertaine. Reprenez la même commande pour vérifier son résultat sans second traitement.':(r.raison||'Le serveur a refusé cette commande.'),false);return null;
+      showToast('Commande non confirmée',r?.transport||!r?'La réponse est incertaine. Reprenez la même commande pour vérifier son résultat sans second traitement.':(r.raison||'Le serveur a refusé cette commande.'),false);window.RPI18nPlateau?.markToast(r?.transport||!r?'constructionFeedback.uncertain':(r.raison?null:'constructionFeedback.serverRefusal'),r?.transport||!r?'La réponse est incertaine. Reprenez la même commande pour vérifier son résultat sans second traitement.':(r.raison||'Le serveur a refusé cette commande.'),undefined,'Commande non confirmée');return null;
     }
     // Le recu peut etre ancien : relire le terrain et les finances, jamais adopter son snapshot.
     const frais=await chargerTerrainState(id,true);
