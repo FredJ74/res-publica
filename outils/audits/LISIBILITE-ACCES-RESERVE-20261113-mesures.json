@@ -1,0 +1,117 @@
+{
+  "base": "616122e",
+  "proofs": [
+    {
+      "width": 320,
+      "height": 640,
+      "before": {
+        "title": "16px",
+        "body": "13.12px",
+        "line": "18.368px",
+        "note": "13.12px",
+        "button": "13.12px",
+        "background": "rgb(32, 42, 54)",
+        "border": "rgb(169, 141, 86)",
+        "font": "\"Playfair Display\", serif",
+        "width": 300,
+        "height": 379.890625
+      },
+      "after": {
+        "title": "30.4px",
+        "body": "17.92px",
+        "line": "28.672px",
+        "note": "17.92px",
+        "button": "16px",
+        "background": "rgb(32, 42, 54)",
+        "border": "rgb(169, 141, 86)",
+        "font": "\"Playfair Display\", serif",
+        "width": 304,
+        "height": 624
+      }
+    },
+    {
+      "width": 390,
+      "height": 780,
+      "before": {
+        "title": "16px",
+        "body": "13.12px",
+        "line": "18.368px",
+        "note": "13.12px",
+        "button": "13.12px",
+        "background": "rgb(32, 42, 54)",
+        "border": "rgb(169, 141, 86)",
+        "font": "\"Playfair Display\", serif",
+        "width": 370,
+        "height": 343.140625
+      },
+      "after": {
+        "title": "30.4px",
+        "body": "17.92px",
+        "line": "28.672px",
+        "note": "17.92px",
+        "button": "16px",
+        "background": "rgb(32, 42, 54)",
+        "border": "rgb(169, 141, 86)",
+        "font": "\"Playfair Display\", serif",
+        "width": 374,
+        "height": 536.046875
+      }
+    },
+    {
+      "width": 1280,
+      "height": 900,
+      "before": {
+        "title": "16px",
+        "body": "13.12px",
+        "line": "18.368px",
+        "note": "13.12px",
+        "button": "13.12px",
+        "background": "rgb(32, 42, 54)",
+        "border": "rgb(169, 141, 86)",
+        "font": "\"Playfair Display\", serif",
+        "width": 480,
+        "height": 281.984375
+      },
+      "after": {
+        "title": "30.4px",
+        "body": "17.92px",
+        "line": "28.672px",
+        "note": "17.92px",
+        "button": "16px",
+        "background": "rgb(32, 42, 54)",
+        "border": "rgb(169, 141, 86)",
+        "font": "\"Playfair Display\", serif",
+        "width": 720,
+        "height": 437.359375
+      }
+    },
+    {
+      "width": 390,
+      "height": 360,
+      "before": {
+        "title": "16px",
+        "body": "13.12px",
+        "line": "18.368px",
+        "note": "13.12px",
+        "button": "13.12px",
+        "background": "rgb(32, 42, 54)",
+        "border": "rgb(169, 141, 86)",
+        "font": "\"Playfair Display\", serif",
+        "width": 370,
+        "height": 343.140625
+      },
+      "after": {
+        "title": "30.4px",
+        "body": "17.92px",
+        "line": "28.672px",
+        "note": "17.92px",
+        "button": "16px",
+        "background": "rgb(32, 42, 54)",
+        "border": "rgb(169, 141, 86)",
+        "font": "\"Playfair Display\", serif",
+        "width": 374,
+        "height": 344
+      }
+    }
+  ]
+}

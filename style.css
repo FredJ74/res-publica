@@ -2503,3 +2503,37 @@ body.plateau-body .top-right {
 .rp-order-info-dialog button:focus-visible,.rp-order-info-button:focus-visible{outline:2px solid var(--gold-light);outline-offset:2px}
 /* Répertoire : noms propres et postes longs, sans élargir les fenêtres mobiles. */
 .player-directory-list [data-directory-person] { min-width: 0; overflow-wrap: anywhere; }
+
+/* Accès réservé : typographie propre au module, sans modifier les autres modales partagées. */
+#modal-postes .modal-box:has(.acces-reserve-dialogue){
+  width:calc(100% - 32px);max-width:720px;
+  max-height:90vh;max-height:90dvh;overflow-y:auto;
+}
+#modal-postes .modal-box:has(.acces-reserve-dialogue) .modal-header{
+  padding:1.1rem 1.35rem;gap:1rem;align-items:flex-start;
+}
+#modal-postes .modal-box:has(.acces-reserve-dialogue) .modal-title{
+  font-size:1.9rem;line-height:1.25;min-width:0;overflow-wrap:anywhere;
+}
+#modal-postes .modal-box:has(.acces-reserve-dialogue) .modal-close{
+  min-width:44px;min-height:44px;flex-shrink:0;
+}
+.acces-reserve-dialogue{
+  padding:.35rem;min-width:0;font-size:1.12rem;line-height:1.6;overflow-wrap:anywhere;
+}
+/* La règle historique de #modal-postes impose .82rem !important aux paragraphes et boutons. */
+#modal-postes .acces-reserve-dialogue :is(p,li,label){font-size:1.12rem!important;line-height:1.6}
+.acces-reserve-dialogue p{margin:0 0 1rem}
+.acces-reserve-dialogue p:last-child{margin-bottom:0}
+.acces-reserve-dialogue .cpj-note{font-size:inherit;line-height:inherit;margin-top:1rem}
+#modal-postes .acces-reserve-dialogue .cpj-touche{
+  min-height:44px;max-width:calc(100% - .4rem);padding:.65rem .9rem;
+  font-size:1rem!important;line-height:1.5;white-space:normal;overflow-wrap:anywhere;
+}
+@media(max-width:720px){
+  #modal-postes .modal-box:has(.acces-reserve-dialogue){
+    width:100%;max-height:calc(var(--hg-visible,100dvh) - 16px);
+  }
+  #modal-postes .modal-box:has(.acces-reserve-dialogue) .modal-header{padding:.8rem;gap:.5rem}
+  .acces-reserve-dialogue{padding:.15rem}
+}

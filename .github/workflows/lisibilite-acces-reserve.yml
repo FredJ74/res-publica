@@ -1,0 +1,30 @@
+name: Lisibilité des fenêtres d’accès réservé
+on:
+  pull_request:
+    paths: ['style.css', 'plateau.html', 'plateau-acces-reserve.js', 'plateau-vehicules.js', 'plateau-sovarka-droits.js', 'outils/bancs/banc-lisibilite-acces-reserve-20261113.cjs', '.github/workflows/lisibilite-acces-reserve.yml']
+  push:
+    branches: [main]
+    paths: ['style.css', 'plateau.html', 'plateau-acces-reserve.js', 'plateau-vehicules.js', 'plateau-sovarka-droits.js', 'outils/bancs/banc-lisibilite-acces-reserve-20261113.cjs', '.github/workflows/lisibilite-acces-reserve.yml']
+permissions:
+  contents: read
+jobs:
+  lisibilite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node outils/bancs/banc-acces-reserve-20261112.cjs
+      - run: npm install --ignore-scripts --no-package-lock --prefix "$RUNNER_TEMP/access-browser" playwright@1.62.1
+      - name: Chromium — comparaison main, 320/390/1280, hauteur réduite et autres modales
+        run: NODE_PATH="$RUNNER_TEMP/access-browser/node_modules" CHROMIUM_PATH=/usr/bin/google-chrome ACCESS_SCREENSHOTS="$RUNNER_TEMP/access-captures" node --test outils/bancs/banc-lisibilite-acces-reserve-20261113.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: acces-reserve-avant-apres
+          path: ${{ runner.temp }}/access-captures
+          if-no-files-found: ignore
