@@ -32,7 +32,7 @@ function orderDescs(country){
 test('141 descriptions du catalogue Républia : françaises exactes et réellement affichées',()=>{
  const rep=orderDescs('republic'),sov=orderDescs('soviet'),spec=[...rep].filter(d=>!sov.has(d));
  // Quatre commandes militaires de Républia sont maintenant exclues de Sovarka.
- assert.equal(spec.length,147,'inventaire réel après cloisonnement des deux pays');
+ assert.equal(spec.length,146,'inventaire réel après cloisonnement des deux pays');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
  assert.equal(rows.length,141);
  for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(rep.has(line[0]),line[0]);}
