@@ -1140,6 +1140,11 @@ function celluleDeDetention(detention) {
   if (d.qhs === true) {
     return { city: 'qhs', buildingId: 'qhs-prison', roomId: 'cellules_qhs' };
   }
+  // Voleur d'archives arrete a Novomirsk (Fred, 13/11/2026) : detenu en salle d'interrogatoire jusqu'a son
+  // interrogatoire ou la fin de sa peine. Le lieu vient du serveur (est_emprisonne.interrogatoire).
+  if (d.interrogatoire && typeof d.interrogatoire.batiment === 'string' && typeof d.interrogatoire.piece === 'string') {
+    return { city: d.city || state.currentCity, buildingId: d.interrogatoire.batiment, roomId: d.interrogatoire.piece };
+  }
   const ville = d.city || state.currentCity;
   const buildingId = (typeof getBuildingIdCommissariatNavigation === 'function')
     ? getBuildingIdCommissariatNavigation(ville) : 'commissariat';

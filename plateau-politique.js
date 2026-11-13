@@ -8649,7 +8649,7 @@ function ouvrirRenseignementMilitaire() {
   if (!peutDirigerRenseignement()) { showToast('Réservé aux ministres habilités au renseignement', '', false); return; }
   ouvrirPanneauFonction('Renseignement militaire', [
     { label: 'Lancer une opération de renseignement', pa: 3,
-      desc: 'Convoquer les quatre agents sous une couverture de votre choix. 3 PA et 500 unités monétaires prélevées sur la caisse de votre ministère.',
+      desc: 'Convoquer les quatre agents de votre ministère sous une couverture de votre choix. 3 PA et ' + (state.country === 'soviet' ? '250 PSK' : '500 FR') + ' prélevés sur la caisse de votre ministère. Une seule opération à la fois par équipe.',
       onclick: 'ouvrirConvocationRenseignement()' },
     { label: 'Suivre une opération', pa: 0,
       desc: 'Où sont vos agents, sous quelle couverture, combien de temps reste-t-il, et y mettre fin.',
@@ -8763,7 +8763,9 @@ function ouvrirModalRenseignement(pa, cost) {
 // Refus typés rendus tels quels : le serveur dit POURQUOI, on ne devine pas.
 const CELLULE_REFUS = {
   acteur_non_authentifie:        'Session expirée.',
-  autorite_insuffisante:         'Réservé au Ministre de la Défense.',
+  autorite_insuffisante:         'Réservé aux ministres habilités au renseignement.',
+  equipe_deja_en_mission:        'L\'équipe de votre ministère mène déjà une opération : attendez sa fin ou mettez-y fin.',
+  cellule_d_un_autre_ministere:  'Cette opération appartient à l\'autre ministère.',
   cible_est_mon_pays:            'On n\'ouvre pas une cellule chez soi.',
   identites_reelles_incompletes: 'Les agents ne sont pas encore tous recrutés.',
   pool_couvertures_insuffisant:  'Pas assez d\'identités de couverture disponibles dans cet empire.',

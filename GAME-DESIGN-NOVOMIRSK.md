@@ -946,3 +946,11 @@ Le pays du mandat n'est pas le pays du voyage : tous les postes, élus et nommé
   - Garde-fous (Fred, 22 h 11) : une tentative de vol vaut **1 jour de prison** ; le PJ peut être maintenu en salle d'interrogatoire **au maximum la durée de sa peine (1 jour)**, temps compté dans la peine ; ensuite transfert automatique en cellule, interrogé ou non. Proposition de Claude non contestée : un seul interrogatoire (puis départ immédiat en cellule), courrier et forum permis comme en cellule.
   - Le ministre de la Sécurité du Peuple **ne peut pas s'habiliter lui-même** ; il **voit la liste** des PJ qu'il a habilités (Fred, 22 h 14).
 - **Feu vert de codage de l'ensemble : Fred, 13/11/2026, 22 h 14.**
+
+### Ce qui est codé (13/11/2026, branche `claude/renseignement-sovarka-20261113`)
+- **Équipes** : identités réelles par équipe `<pays>-<poste>` (Républia `republic-min_def` inchangée, mêmes PNJ) ; 8 PNJ de Sovarka (`agent-soviet-min_int-*`, `agent-soviet-min_def-*`). Choix d'interprétation (Claude) : **une équipe ne mène qu'une opération à la fois** (ses quatre agents sont des PNJ uniques) ; vaut aussi pour la Républia, qui n'a qu'une équipe.
+- **Cloisonnement** : opérations, rapports, alertes et fin d'opération au ministère propriétaire (`cellules_renseignement.ministere`) ; le successeur hérite.
+- **Prix** : 250 PSK en Sovarka, 500 FR ailleurs.
+- **Écoutes** : le ministre de la Défense lit les rapports depuis son bureau seulement. **Habilitations** : ordre « Habilitations aux archives d'écoute » au bureau du ministre de la Sécurité du Peuple (accorder, retirer, liste) ; ordre « Consulter les archives (habilitation) » dans les trois salles d'écoute (1 PA, recherche par nom, résultats par courrier).
+- **Vol raté** : 1 jour de prison (le barème générique donnait 2 jours, écart corrigé pour les trois centres) ; à Novomirsk, détention en salle d'interrogatoire jusqu'à l'interrogatoire ou la fin de la peine ; « Interroger un détenu » vise un détenu présent (2 PA, 75 %, +5 INF), un seul interrogatoire puis la cellule.
+- **Limites** : les deux équipes de Sovarka partagent les portraits « soviet » du socle (portraits propres à fournir) ; courriers traduits (habilitation, retrait, fin d'interrogatoire), mais la compilation des archives consultées reste en français comme les rapports d'écoute.

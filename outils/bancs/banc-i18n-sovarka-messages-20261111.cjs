@@ -224,7 +224,7 @@ test('courriers : chaque sujet fixe des migrations Sovarka a son modèle dans le
   }
   // Restent en français (listés au relais) : cotisation (module commun des organisations) ; rapports de
   // surveillance et d'écoute, dont le corps reprend des déplacements et des courriers interceptés.
-  const ignores = ['Fin d\'adhésion — cotisation non renouvelée', 'Rapport de surveillance — ', 'Rapport d\'écoute — ', 'Rapport d\'écoute dérobé — '];
+  const ignores = ['Fin d\'adhésion — cotisation non renouvelée', 'Rapport de surveillance — ', 'Rapport d\'écoute — ', 'Rapport d\'écoute dérobé — ', 'Archives consultées — '];
   for (const s of sujets) {
     if (ignores.some(i => s.startsWith(i))) continue;
     assert.ok([...sujetsFr].some(p => s.startsWith(p)), 'sujet sans modèle : ' + s);

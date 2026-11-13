@@ -2195,6 +2195,9 @@ const WORLD = {
                               // Registre de la cellule Balatov lisible par la Sécurité du Peuple (Fred, 08/11/2026).
                               // Surveillance d'un citoyen (Fred, 08/11/2026) : 4 jours, 2 PA, 150 PSK sur la caisse du ministère.
                               orders: [{ fn: 'renseignement_militaire', label: 'Renseignement militaire', pa: 0, cost: 0, type: 'grey', icon: 'ti-spy', successRate: 100, requiresPost: 'min_int', desc: "Convoquer une equipe sous couverture, ou suivre une operation en cours." },
+                                       // Habilitations aux archives d'ecoute (Fred, 13/11/2026) : le ministre de la Securite du Peuple
+                                       // accorde ou retire l'acces legal aux archives des centres d'ecoute (qui appartiennent a la Defense).
+                                       { fn: 'sovarka_habilitations', label: 'Habilitations aux archives d’écoute', pa: 0, cost: 0, type: 'legal', icon: 'ti-id-badge', successRate: 100, requiresPost: 'min_int', desc: "Accorder ou retirer à un personnage l'habilitation à consulter les archives des centres d'écoute. Vous ne pouvez pas vous habiliter vous-même." },
                                        { fn: 'sovarka_signalements', label: 'Registre des signalements', pa: 0, cost: 0, type: 'legal', icon: 'ti-file-alert', successRate: 100, requiresPost: ['pm','min_int'], desc: "Le registre de la cellule de surveillance des partis du Capitaine Balatov : les députés signalés pour abstention. Aucun effet automatique : à vous d'en faire usage." },
                                        { fn: 'sovarka_surveiller', label: 'Placer sous surveillance', pa: 2, cost: 0, type: 'legal', icon: 'ti-eye', successRate: 100, requiresPost: 'min_int', desc: "Faire suivre un citoyen pendant 4 jours : chaque matin, un rapport de tous ses déplacements et des personnes croisées. 150 PSK prélevés sur la caisse du ministère. La cible peut s'en rendre compte. Trois surveillances au plus en même temps." }] },
             bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_economie.webp',
@@ -2353,9 +2356,16 @@ const WORLD = {
                 fn: 'voler_archives_ecoute', label: 'Voler un rapport dans les archives',
                 pa: 2, cost: 0, type: 'illegal', icon: 'ti-file-search', successRate: 45,
                 desc: 'Dérober un rapport d’écoute au hasard parmi ceux des 30 derniers jours. Acte illégal : en cas d’échec, bagarre avec l’opérateur puis prison ; en cas de réussite, vous laissez une trace.'
-              }]
+              }, { fn: 'consulter_archives_ecoute', label: 'Consulter les archives (habilitation)', pa: 1, cost: 0, type: 'legal', icon: 'ti-search', successRate: 100,
+          desc: 'Réservé aux personnages habilités par le ministre de la Sécurité du Peuple : chercher un nom de personnage dans les archives de ce centre (30 derniers jours). Les communications trouvées arrivent dans votre courrier.' }]
             },
-            salle_interrogatoire_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_interrogatoire.webp' }
+            salle_interrogatoire_renseignement: {
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_interrogatoire.webp',
+              // Voleur d'archives arrete a Novomirsk : detenu ici jusqu'a son interrogatoire (Fred, 13/11/2026).
+              // Ministre de la Defense ou de la Securite du Peuple ; le serveur verifie (renseignement_interroger).
+              excludeOrders: ['interroger_renseignement'],
+              orders: [{fn:'interroger_renseignement', label:'Interroger un detenu', pa:2, cost:0, type:'legal', icon:'ti-message-circle', successRate:75, desc:'Obtenir des informations. +INF si succes.'}]
+            }
           }
         },
         // Caserne centrale de Novomirsk (vues 11 et 12) : la caserne du socle (BUILDINGS['caserne-militaire']),
@@ -11183,7 +11193,9 @@ BUILDINGS['locaux-starovka'] = {
         name: 'Salle d’écoute', imageBg: 'linear-gradient(135deg,#101418,#18202a)', desc: pieceDesc,
         persons: [{ name: pnj + ' (PNJ)', role, rel: 'neutral', job: 'militaire' }],
         orders: [{ fn: 'voler_archives_ecoute', label: 'Voler un rapport dans les archives', pa: 2, cost: 0, type: 'illegal', icon: 'ti-file-search', successRate: 45,
-          desc: 'Dérober un rapport d’écoute au hasard parmi ceux des 30 derniers jours. Acte illégal : en cas d’échec, bagarre avec l’opérateur puis prison ; en cas de réussite, vous laissez une trace.' }]
+          desc: 'Dérober un rapport d’écoute au hasard parmi ceux des 30 derniers jours. Acte illégal : en cas d’échec, bagarre avec l’opérateur puis prison ; en cas de réussite, vous laissez une trace.' },
+          { fn: 'consulter_archives_ecoute', label: 'Consulter les archives (habilitation)', pa: 1, cost: 0, type: 'legal', icon: 'ti-search', successRate: 100,
+          desc: 'Réservé aux personnages habilités par le ministre de la Sécurité du Peuple : chercher un nom de personnage dans les archives de ce centre (30 derniers jours). Les communications trouvées arrivent dans votre courrier.' }]
       } }
     };
   };

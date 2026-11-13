@@ -58,9 +58,8 @@ BEGIN
   SELECT name, country, current_city, est_emprisonne INTO d FROM public.personnages_donnees
    WHERE name = btrim(p_detenu) FOR UPDATE;
   IF d.name IS NULL OR jsonb_typeof(d.est_emprisonne) IS DISTINCT FROM 'object' OR NOT (d.est_emprisonne ? 'interrogatoire')
-     OR d.country IS DISTINCT FROM v_pays THEN
+     OR d.country IS DISTINCT FROM v_pays OR d.name = v_nom THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'pas_en_interrogatoire'); END IF;
-  IF d.name = v_nom THEN RETURN jsonb_build_object('ok', false, 'raison', 'pas_en_interrogatoire'); END IF;
   v_paie := public.payer_ordre(v_nom, 'interroger_renseignement', 2, 0);
   IF coalesce((v_paie->>'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
   v_jet := floor(random() * 100)::integer + 1;

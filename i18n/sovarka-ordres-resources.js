@@ -20,7 +20,7 @@
    "acces_reserve_info":"Demander l'accès aux salons","pavillon_reception":"Réserver la réception (1 500 PSK/jour)",
    "escort_standard":"Appel à un(e) escort","service_etage_carte":"Service d’étage",
    "residence_reserver":"Réserver un appartement (3 nuits)","residence_minibar":"Mini-bar","residence_location":"Ma location",
-   "voler_archives_ecoute":"Voler un rapport dans les archives","maison_habitant":"Parler à l’habitant",
+   "voler_archives_ecoute":"Voler un rapport dans les archives","consulter_archives_ecoute":"Consulter les archives (habilitation)","sovarka_habilitations":"Habilitations aux archives d’écoute","maison_habitant":"Parler à l’habitant",
    "trinquer_habitant":"Trinquer avec l’habitant","ferme_renne":"Abattre et dépecer un renne","ferme_traire":"Traire les rennes",
    "foret_enfoncer":"S’enfoncer dans la forêt","foret_couper":"Couper du bois","foret_revenir":"Revenir à l’entrée de la forêt",
    "ferme_legumes":"Extraire des légumes","ferme_oeufs":"Ramasser les œufs","ferme_poulet":"Abattre un poulet","ferme_lapin":"Abattre un lapin"
@@ -35,7 +35,7 @@
    "acces_reserve_info":"Request access to the lounges","pavillon_reception":"Book the reception (1 500 PSK/day)",
    "escort_standard":"Call an escort","service_etage_carte":"Room service",
    "residence_reserver":"Book an apartment (3 nights)","residence_minibar":"Minibar","residence_location":"My rental",
-   "voler_archives_ecoute":"Steal a report from the archives","maison_habitant":"Talk to the resident",
+   "voler_archives_ecoute":"Steal a report from the archives","consulter_archives_ecoute":"Consult the archives (clearance)","sovarka_habilitations":"Clearances for the listening archives","maison_habitant":"Talk to the resident",
    "trinquer_habitant":"Drink with the resident","ferme_renne":"Slaughter and skin a reindeer","ferme_traire":"Milk the reindeer",
    "foret_enfoncer":"Venture deeper into the forest","foret_couper":"Cut wood","foret_revenir":"Return to the forest edge",
    "ferme_legumes":"Dig up vegetables","ferme_oeufs":"Collect the eggs","ferme_poulet":"Slaughter a chicken","ferme_lapin":"Slaughter a rabbit"
@@ -50,7 +50,7 @@
    "acces_reserve_info":"Pedir acceso a los salones","pavillon_reception":"Reservar la recepción (1 500 PSK/día)",
    "escort_standard":"Llamar a un(a) acompañante","service_etage_carte":"Servicio de habitaciones",
    "residence_reserver":"Reservar un apartamento (3 noches)","residence_minibar":"Minibar","residence_location":"Mi alquiler",
-   "voler_archives_ecoute":"Robar un informe de los archivos","maison_habitant":"Hablar con el habitante",
+   "voler_archives_ecoute":"Robar un informe de los archivos","consulter_archives_ecoute":"Consultar los archivos (habilitación)","sovarka_habilitations":"Habilitaciones para los archivos de escucha","maison_habitant":"Hablar con el habitante",
    "trinquer_habitant":"Brindar con el habitante","ferme_renne":"Sacrificar y desollar un reno","ferme_traire":"Ordeñar los renos",
    "foret_enfoncer":"Adentrarse en el bosque","foret_couper":"Cortar leña","foret_revenir":"Volver a la entrada del bosque",
    "ferme_legumes":"Sacar verduras","ferme_oeufs":"Recoger los huevos","ferme_poulet":"Sacrificar un pollo","ferme_lapin":"Sacrificar un conejo"
@@ -65,7 +65,7 @@
    "acces_reserve_info":"申請進入貴賓廳","pavillon_reception":"預訂接待廳（每日 1 500 PSK）",
    "escort_standard":"召喚伴遊","service_etage_carte":"客房服務",
    "residence_reserver":"預訂公寓（3 晚）","residence_minibar":"迷你吧","residence_location":"我的租約",
-   "voler_archives_ecoute":"從檔案室偷一份報告","maison_habitant":"與住戶交談",
+   "voler_archives_ecoute":"從檔案室偷一份報告","consulter_archives_ecoute":"查閱檔案（許可）","sovarka_habilitations":"監聽檔案查閱許可","maison_habitant":"與住戶交談",
    "trinquer_habitant":"與住戶乾杯","ferme_renne":"宰殺並剝皮一頭馴鹿","ferme_traire":"擠馴鹿奶",
    "foret_enfoncer":"深入森林","foret_couper":"砍柴","foret_revenir":"回到森林入口",
    "ferme_legumes":"採收蔬菜","ferme_oeufs":"撿雞蛋","ferme_poulet":"宰一隻雞","ferme_lapin":"宰一隻兔子"
@@ -80,7 +80,7 @@
    "acces_reserve_info":"Попросить доступ в салоны","pavillon_reception":"Забронировать приём (1 500 PSK/день)",
    "escort_standard":"Вызвать эскорт","service_etage_carte":"Обслуживание номеров",
    "residence_reserver":"Забронировать апартаменты (3 ночи)","residence_minibar":"Мини-бар","residence_location":"Моя аренда",
-   "voler_archives_ecoute":"Украсть отчёт из архива","maison_habitant":"Поговорить с жильцом",
+   "voler_archives_ecoute":"Украсть отчёт из архива","consulter_archives_ecoute":"Изучить архивы (допуск)","sovarka_habilitations":"Допуски к архивам прослушки","maison_habitant":"Поговорить с жильцом",
    "trinquer_habitant":"Выпить с жильцом","ferme_renne":"Забить и освежевать оленя","ferme_traire":"Подоить оленей",
    "foret_enfoncer":"Углубиться в лес","foret_couper":"Нарубить дров","foret_revenir":"Вернуться к опушке леса",
    "ferme_legumes":"Собрать овощи","ferme_oeufs":"Собрать яйца","ferme_poulet":"Забить курицу","ferme_lapin":"Забить кролика"
@@ -95,7 +95,7 @@
    "acces_reserve_info":"라운지 출입 요청","pavillon_reception":"리셉션 예약 (하루 1 500 PSK)",
    "escort_standard":"에스코트 부르기","service_etage_carte":"룸서비스",
    "residence_reserver":"아파트 예약 (3박)","residence_minibar":"미니바","residence_location":"내 임대",
-   "voler_archives_ecoute":"기록보관소에서 보고서 훔치기","maison_habitant":"주민과 이야기하기",
+   "voler_archives_ecoute":"기록보관소에서 보고서 훔치기","consulter_archives_ecoute":"기록 열람 (허가)","sovarka_habilitations":"감청 기록 열람 허가","maison_habitant":"주민과 이야기하기",
    "trinquer_habitant":"주민과 건배하기","ferme_renne":"순록을 도축하고 가죽 벗기기","ferme_traire":"순록 젖 짜기",
    "foret_enfoncer":"숲 깊이 들어가기","foret_couper":"나무 베기","foret_revenir":"숲 입구로 돌아가기",
    "ferme_legumes":"채소 캐기","ferme_oeufs":"달걀 줍기","ferme_poulet":"닭 잡기","ferme_lapin":"토끼 잡기"
@@ -110,7 +110,7 @@
    "acces_reserve_info":"طلب الدخول إلى الصالونات","pavillon_reception":"حجز حفل الاستقبال (1 500 PSK/يوم)",
    "escort_standard":"طلب مرافق(ة)","service_etage_carte":"خدمة الغرف",
    "residence_reserver":"حجز شقة (3 ليالٍ)","residence_minibar":"الميني بار","residence_location":"إيجاري",
-   "voler_archives_ecoute":"سرقة تقرير من الأرشيف","maison_habitant":"التحدث إلى الساكن",
+   "voler_archives_ecoute":"سرقة تقرير من الأرشيف","consulter_archives_ecoute":"الاطلاع على الأرشيف (تصريح)","sovarka_habilitations":"تصاريح أرشيف التنصت","maison_habitant":"التحدث إلى الساكن",
    "trinquer_habitant":"شرب نخب مع الساكن","ferme_renne":"ذبح رنّة وسلخها","ferme_traire":"حلب الرنّة",
    "foret_enfoncer":"التوغل في الغابة","foret_couper":"قطع الحطب","foret_revenir":"العودة إلى مدخل الغابة",
    "ferme_legumes":"قلع الخضروات","ferme_oeufs":"جمع البيض","ferme_poulet":"ذبح دجاجة","ferme_lapin":"ذبح أرنب"
@@ -125,7 +125,7 @@
    "acces_reserve_info":"Pedir acesso aos salões","pavillon_reception":"Reservar a recepção (1 500 PSK/dia)",
    "escort_standard":"Chamar um(a) acompanhante","service_etage_carte":"Serviço de quarto",
    "residence_reserver":"Reservar um apartamento (3 noites)","residence_minibar":"Frigobar","residence_location":"Minha locação",
-   "voler_archives_ecoute":"Roubar um relatório dos arquivos","maison_habitant":"Falar com o morador",
+   "voler_archives_ecoute":"Roubar um relatório dos arquivos","consulter_archives_ecoute":"Consultar os arquivos (habilitação)","sovarka_habilitations":"Habilitações aos arquivos de escuta","maison_habitant":"Falar com o morador",
    "trinquer_habitant":"Brindar com o morador","ferme_renne":"Abater e esfolar uma rena","ferme_traire":"Ordenhar as renas",
    "foret_enfoncer":"Embrenhar-se na floresta","foret_couper":"Cortar lenha","foret_revenir":"Voltar à entrada da floresta",
    "ferme_legumes":"Colher legumes","ferme_oeufs":"Recolher os ovos","ferme_poulet":"Abater uma galinha","ferme_lapin":"Abater um coelho"
@@ -140,7 +140,7 @@
    "acces_reserve_info":"Zugang zu den Salons erbitten","pavillon_reception":"Den Empfang buchen (1 500 PSK/Tag)",
    "escort_standard":"Eine Begleitung rufen","service_etage_carte":"Zimmerservice",
    "residence_reserver":"Eine Wohnung buchen (3 Nächte)","residence_minibar":"Minibar","residence_location":"Meine Miete",
-   "voler_archives_ecoute":"Einen Bericht aus dem Archiv stehlen","maison_habitant":"Mit dem Bewohner sprechen",
+   "voler_archives_ecoute":"Einen Bericht aus dem Archiv stehlen","consulter_archives_ecoute":"Archive einsehen (Freigabe)","sovarka_habilitations":"Freigaben für die Abhörarchive","maison_habitant":"Mit dem Bewohner sprechen",
    "trinquer_habitant":"Mit dem Bewohner anstoßen","ferme_renne":"Ein Rentier schlachten und häuten","ferme_traire":"Die Rentiere melken",
    "foret_enfoncer":"Tiefer in den Wald gehen","foret_couper":"Holz hacken","foret_revenir":"Zum Waldrand zurückkehren",
    "ferme_legumes":"Gemüse ernten","ferme_oeufs":"Die Eier einsammeln","ferme_poulet":"Ein Huhn schlachten","ferme_lapin":"Ein Kaninchen schlachten"
