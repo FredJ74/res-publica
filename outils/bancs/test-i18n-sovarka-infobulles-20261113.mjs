@@ -45,9 +45,9 @@ function ordresParPays() {
   return { descs: [...sov.descs].filter(d => !rep.descs.has(d)), bientot: [...sov.bientot].filter(d => !rep.bientot.has(d)) };
 }
 
-test('109 lignes de neuf colonnes non vides, sans guillemet droit ni balise', () => {
+test('110 lignes de neuf colonnes non vides, sans guillemet droit ni balise', () => {
   const lignes = I('soviet', 'fr').lignes;
-  assert.equal(lignes.length, 109);
+  assert.equal(lignes.length, 110);
   for (const l of lignes) {
     assert.equal(l.length, 9, l[0]);
     for (const v of l) assert.ok(v.trim(), l[0]);
