@@ -59,6 +59,19 @@ Une fenêtre voisine réutilisant le conteneur retrouve exactement ses dimension
 sa typographie initiales. La voie sans `sovModal` est également vérifiée.
 Les appels sont simulés : aucun joueur ni paiement réel, aucun combat réel.
 
+Résultat local : deux tests du nouveau banc verts, banc historique d’accès réservé
+vert, six tests du Palais des Ambassades verts et banc des six illustrations WebP
+de la Résidence vert. Mesures calculées : titre 16 → 30,4px, paragraphes/notes
+13,12 → 17,92px, boutons 13,12 → 16px. Voir le JSON `-mesures.json` associé.
+Tous les boutons sont activés au clavier avec les mêmes destinataires et arguments
+que main et une seule invocation par activation, sans débit sur la fixture.
+
+Comparaison des contrôles transversaux : les 14 tests SSM reproduisent les mêmes
+11 succès et 3 échecs sur `616122e` et la branche. Le run main initial
+`43465910660` échoue déjà sur quatre tests du calendrier global (312/316 verts :
+raccordements profils/routes, géométrie des vitrines, personnalités des musées de
+province, contrat RPC). Ces chantiers étrangers ne sont pas modifiés.
+
 Captures avant/après et mesures produites par `ACCESS_SCREENSHOTS`, conservées comme
 artefact de CI. Recette avec compte authentifié et téléphone physique non réalisée.
 CI, fusion et déploiement : statut vivant dans la PR et `RELAIS.md`.
