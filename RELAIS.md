@@ -6,6 +6,9 @@ Règles : voir `AGENTS.md`.
 
 > **Rangé le 11/11/2026 (Claude)** : les chantiers terminés ont été déplacés mot pour mot dans [`RELAIS-ARCHIVE-2026-11.md`](RELAIS-ARCHIVE-2026-11.md) (chercher par mot-clé : branche, PR, migration). Garder ici seulement ce qui est en cours, attendu ou à vérifier ; un chantier fusionné passe en une ligne dans « Derniers chantiers ».
 
+### Camion militaire de Novomirsk NAZ-66 « Bourlak » (Claude, 13/11/2026, nuit)
+Branche `claude/camion-novomirsk-code-20261113`. Migration `20261113232000_camion_militaire_novomirsk` **appliquée** (données seules : camion `camion-soviet-caserne-novomirsk-1` au corps de garde de la caserne de Novomirsk, 25 places ; destinations Starovka / Poste de Vigilance Glaciale et Krasnov / station radar). Images WebP `images/Sovarka/Novomirsk/Novomirsk_camion_NAZ66_{interieur,exterieur}.webp`. Goulag : destination à ajouter à la fin de Sovarka. **À vérifier en jeu** : un lieutenant ou capitaine de Sovarka monte au corps de garde de la caserne de Novomirsk, part vers Starovka ou Krasnov, revient.
+
 ### Portraits des agents de Sovarka et camion de Novomirsk (Claude, 13/11/2026, nuit)
 Branche `claude/camion-novomirsk-20261113`. 32 portraits découpés des deux planches de Fred (`images/Sovarka/agents/agent-<equipe>-<role>-<pays>.webp`) ; migration `20261113231000_renseignement_portraits_equipes_sovarka` **appliquée** (`agent_portrait_chemin(equipe, role, pays)`, 4 appelants patchés ; la Républia garde ses portraits). Décision consignée, **non codée** : camion militaire NAZ-66 « Bourlak » à la caserne de Novomirsk (socle du camion de Républia ; destinations et capacité à trancher avec Fred).
 
