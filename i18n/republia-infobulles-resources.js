@@ -523,7 +523,7 @@ window.RP_INFOBULLES_REPUBLIA = [
   [
     "+6 POP +2 INF.",
     "+6 POP and +2 INF.",
-    "+6 POP y +2 INF。",
+    "+6 POP y +2 INF.",
     "+6 POP、+2 INF。",
     "+6 POP и +2 INF.",
     "POP +6, INF +2.",
