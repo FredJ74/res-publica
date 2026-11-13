@@ -2963,6 +2963,7 @@ async function afficherObjectifsSecrets() {
       '</div>' +
       '</div>';
     document.getElementById('modal-postes').classList.add('open');
+    globalThis.RPPlayerMissionsI18n?.apply();
     return;
   }
 
@@ -2998,6 +2999,7 @@ async function afficherObjectifsSecrets() {
     '<div style="font-size:.85rem;color:#8a7050;margin-top:.6rem;font-style:italic">Ces objectifs sont secrets — les autres joueurs ne les voient pas.</div>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
+  globalThis.RPPlayerMissionsI18n?.apply();
 }
 
 // Vérifier objectifs à chaque updateUI
