@@ -25,3 +25,7 @@ Relecture native, session PJ authentifiée et téléphone physique non réalisé
 Même extracteur avant/après le lot précédent (fusion `69a1c03`, forum identique au code mesuré `3a8a954`) : corpus inchangé, 7 565 textes / 50 690 mots. +2 textes / +4 mots source raccordés par langue étrangère, +2 ressources / +4 mots. Anglais : 994 textes / 12 061 mots raccordés, 23,79 % des mots identifiés (taux arrondi). 31 tests Node finaux et deux bancs Chromium verts. Contrôles distants et vérification publique à compléter avant livraison.
 
 Correction de la preuve après rebasage : commit de code joignable dans la branche publiée et base de fusion #902, au lieu du premier commit local remplacé. Aucun code de jeu changé.
+
+## Livraison vérifiée
+
+PR #904 fusionnée : `196af01ddc4bf65dd0421f5754ea34856eb4eebf`. 40 contrôles verts, seul rouge SSM (3 échecs identiques sur main eb089ff). Vercel `dpl_93CfQ1mhf1k5abxw5a5fyNRKpYWk` READY, alias vérifié ; 11 fichiers publics identiques. Deux bancs Chromium rejoués sur ces fichiers : 54 bascules supplémentaires et 837 rendus existants, verts. Complément transversal missions/musées : 35 tests Node verts.
