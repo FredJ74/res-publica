@@ -91,6 +91,7 @@ function enigme1AfficherCalepin(idx) {
   document.getElementById('postes-modal-title').textContent = "Calepin de l'enquête";
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+  globalThis.RPPlayerMissionsI18n?.apply();
 }
 
 function enigme1EtapeActive() {

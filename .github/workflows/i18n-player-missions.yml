@@ -1,0 +1,44 @@
+name: Objectifs et calepin — neuf langues
+on:
+  pull_request:
+    paths:
+      - plateau-politique.js
+      - plateau-enigme-portrait.js
+      - i18n/player-missions-resources.js
+      - outils/bancs/*player-missions*20261113.cjs
+      - outils/bancs/fixtures/player-missions-*.json
+      - .github/workflows/i18n-player-missions.yml
+  push:
+    branches: [main, codex/i18n-objectifs-carnet-20261113]
+    paths:
+      - plateau-politique.js
+      - plateau-enigme-portrait.js
+      - i18n/player-missions-resources.js
+      - outils/bancs/*player-missions*20261113.cjs
+      - outils/bancs/fixtures/player-missions-*.json
+      - .github/workflows/i18n-player-missions.yml
+permissions:
+  contents: read
+jobs:
+  objectifs-calepin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Dépendances verrouillées des bancs existants
+        run: npm ci --prefix outils/vercel --ignore-scripts --no-audit --no-fund
+      - name: Français, ressources, progression, autres missions et enquêtes
+        run: |
+          node --check plateau-politique.js
+          node --check plateau-enigme-portrait.js
+          node --check i18n/player-missions-resources.js
+          node --test outils/bancs/banc-i18n-player-missions-20261113.cjs outils/bancs/banc-objectifs-secrets-379.cjs outils/bancs/banc-archives-musee.cjs outils/bancs/test-enigme1-musee-depart-20261113.mjs outils/bancs/test-jodie-enquete-musee.mjs outils/bancs/test-quete-accueil-fiche-20261109.mjs outils/bancs/banc-i18n-quete-carriere.cjs outils/bancs/banc-i18n-panneau-personnel.cjs outils/bancs/banc-i18n-editorial.cjs outils/bancs/banc-vercel-douze-fonctions-20261111.cjs outils/bancs/banc-universite-missions-medecin.js outils/bancs/banc-universite-missions-autres.js
+      - name: Playwright épinglé et isolé
+        run: npm install --prefix "$RUNNER_TEMP/missions-browser" --no-package-lock --ignore-scripts playwright@1.56.1
+      - name: Chrome, 320/390 px et bureau, 38 situations × neuf langues
+        run: NODE_PATH="$RUNNER_TEMP/missions-browser/node_modules" CHROMIUM_PATH=/usr/bin/google-chrome node --test outils/bancs/banc-i18n-player-missions-mobile-20261113.cjs

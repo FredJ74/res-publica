@@ -1,0 +1,65 @@
+{
+  "base": "7cf66d5f2d6e399232d67b84146e64507b2ab775",
+  "tested_code_commit": "4fdb96881e4b64a9371eeed6d1be483703501275",
+  "command": "node --test outils/bancs/test-*.mjs outils/bancs/banc-i18n-vehicules-garage-20261112.cjs",
+  "environment": {
+    "node": "24.22.1",
+    "pglast": "7.21",
+    "dependencies": "outils/vercel/package-lock.json, installation identique partagée en lecture par les deux checkouts"
+  },
+  "results": {
+    "main": {
+      "tests": 298,
+      "pass": 291,
+      "fail": 7,
+      "failures": [
+        "outils/bancs/banc-i18n-vehicules-garage-20261112.cjs:98:1",
+        "outils/bancs/test-audit-global-republia.mjs:41:1",
+        "outils/bancs/test-galeries-novomirsk-20261106.mjs:81:1",
+        "outils/bancs/test-i18n-sovarka-descriptions-20261112.mjs:33:1",
+        "outils/bancs/test-i18n-sovarka-roles-20261112.mjs:31:1",
+        "outils/bancs/test-musees-province-personnalites.mjs:1:1",
+        "outils/bancs/test-rpc-apres-lot-219.mjs:32:1"
+      ]
+    },
+    "branch": {
+      "tests": 298,
+      "pass": 291,
+      "fail": 7,
+      "failures": [
+        "outils/bancs/banc-i18n-vehicules-garage-20261112.cjs:98:1",
+        "outils/bancs/test-audit-global-republia.mjs:41:1",
+        "outils/bancs/test-galeries-novomirsk-20261106.mjs:81:1",
+        "outils/bancs/test-i18n-sovarka-descriptions-20261112.mjs:33:1",
+        "outils/bancs/test-i18n-sovarka-roles-20261112.mjs:31:1",
+        "outils/bancs/test-musees-province-personnalites.mjs:1:1",
+        "outils/bancs/test-rpc-apres-lot-219.mjs:32:1"
+      ]
+    }
+  },
+  "new_failures": [],
+  "ci_known_failures": {
+    "branch": {
+      "tests": 13,
+      "pass": 9,
+      "fail": 4,
+      "failures": [
+        "outils/bancs/banc-i18n-vehicules-garage-20261112.cjs:98:1",
+        "outils/bancs/test-montrouge-ssm-rendezvous.cjs:61:1",
+        "outils/bancs/test-montrouge-ssm-rendezvous.cjs:68:1",
+        "outils/bancs/test-montrouge-ssm-rendezvous.cjs:100:1"
+      ]
+    },
+    "main": {
+      "tests": 13,
+      "pass": 9,
+      "fail": 4,
+      "failures": [
+        "outils/bancs/banc-i18n-vehicules-garage-20261112.cjs:98:1",
+        "outils/bancs/test-montrouge-ssm-rendezvous.cjs:61:1",
+        "outils/bancs/test-montrouge-ssm-rendezvous.cjs:68:1",
+        "outils/bancs/test-montrouge-ssm-rendezvous.cjs:100:1"
+      ]
+    }
+  }
+}
