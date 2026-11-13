@@ -49,3 +49,18 @@ conservation du brouillon, progression, PA et argent. Aucune RPC ou dépense ajo
 Relecture native, compte authentifié et téléphone physique non vérifiés. Les textes
 sont repris des traductions existantes ; leur réutilisation ne constitue pas une
 nouvelle certification linguistique. CI, production et mesures : relais et PR.
+
+## Mesure contrôlée
+
+Même extracteur sur `651448e` et le code du lot : corpus **inchangé**, 7 557 textes
+et 50 565 mots source. Dans chacune des huit langues étrangères : **+18 textes
+uniques entièrement raccordés, +225 mots source**, aucune ressource nouvelle.
+C’est un gain de raccordement, pas de création de traductions. En anglais :
+921 → 939 textes, 11 207 → 11 432 mots raccordés ; taux mots 22,16 → 22,61 % du
+corpus statique identifié. Les autres langues gardent leurs écarts antérieurs.
+Erreurs d’extraction : zéro. Le nouveau périmètre d’inventaire est appliqué aux
+deux états ; aucune variation de méthode n’est ajoutée au gain. Voir le JSON
+`I18N-COMMUNES-ECONOMIE-871-mesures.json` et le tableau de bord régénéré.
+
+51 contrôles Node et le banc Chromium sont verts localement. Les essais authentifiés,
+physiques et natifs restent non vérifiés. Statut CI/production : PR et relais.
