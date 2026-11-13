@@ -35,6 +35,10 @@ est sélectionné avec ces mêmes booléens locaux.
 
 ## Vérifications
 
+66 contrôles locaux regroupant le socle, les catalogues historiques, les descriptions
+tactiles, le répertoire et le forum : tous verts. Les 14 contrôles SSM reproduisent
+les mêmes trois échecs sur la référence main et la branche (11 succès, 3 échecs).
+
 - 43 références françaises exactes retrouvées dans le code d’origine ; neuf
   langues, aucun manque et nom de forum préservé.
 - Titres existants, refus d’enregistrement concurrent et repli français testés.

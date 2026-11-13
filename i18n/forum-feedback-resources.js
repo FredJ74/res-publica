@@ -526,4 +526,3 @@
   global.RP_I18N_RESOURCES[lang].translation.forumFeedback=Object.fromEntries([...bodies,...titles].map(row=>[row[0],row[i+1]]));
  for(const row of titles)global.RPToastI18n?.registerTitle?.(row[1],'forumFeedback.'+row[0]);
 })(window);
-
