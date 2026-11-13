@@ -12,8 +12,7 @@ test('seule la présentation du renderer change ; fonctions métier et catalogue
  const changed=execFileSync('git',['diff','--name-only',base,'--','api','migrations','baseline','data.js','plateau-router.js','plateau-core.js','plateau-mobile.js','i18n'],{cwd:root,encoding:'utf8'}).trim();
  // Les catalogues de présentation i18n peuvent évoluer indépendamment du bouton tactile.
  const allowed=new Set(['i18n/republia-infobulles-resources.js','i18n/sovarka-infobulles-resources.js']);
- assert.deepEqual(changed?changed.split('\
-').filter(x=>!allowed.has(x)):[],[]);
+ assert.deepEqual(changed?changed.split('\n').filter(x=>!allowed.has(x)):[],[]);
  const s=read('plateau-ordres-info.js');assert.doesNotMatch(s,/fetch\(|sbRpc|sbSave|doOrder\(|deduireCout|payer_ordre|state\./);
  assert.doesNotMatch(s,/longpress|touchstart|setTimeout|eval\(|new Function/);
  assert.match(s,/RPSovarkaInfobullesI18n\.infobulle\(p\.details\)/);
