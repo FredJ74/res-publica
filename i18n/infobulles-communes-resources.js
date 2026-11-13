@@ -410,7 +410,7 @@ window.RP_INFOBULLES_COMMUNES = [
     "Vender à fábrica, do seu inventário, as matérias-primas necessárias às linhas de produção.",
     "Der Fabrik Rohstoffe aus Ihrem Inventar verkaufen, die ihre Produktionslinien benötigen."
   ],
-  // Fonctions publiques et police : réemploi exact des traductions déjà livrées.
+  // Fonctions publiques et police : traductions existantes, ordres militaires exclus conservés au pays.
 [
     "0 PA. Aucun indice. Message automatique transmis au President par mail. Il vous repondra directement.",
     "0 AP. No clue required. An automatic email is sent to the President, who will reply to you directly.",
@@ -509,39 +509,6 @@ window.RP_INFOBULLES_COMMUNES = [
     "القاضي الحالي، والترشيحات الواردة، والتعيين والعزل.",
     "Magistrado atual, candidaturas recebidas, nomeação e destituição.",
     "Amtierender Richter, eingegangene Bewerbungen, Ernennung und Abberufung."
-  ],
-[
-    "Mobiliser l'armee (4 PA), requisitionner des civils (3 PA), demobiliser (2 PA).",
-    "Mobilize the army (4 AP), requisition civilians (3 AP), or demobilize (2 AP).",
-    "Movilizar al ejército (4 PA), requisar civiles (3 PA) o desmovilizar (2 PA).",
-    "動員軍隊（4 行動點）、徵用平民（3 行動點）或解除動員（2 行動點）。",
-    "Мобилизовать армию (4 ОД), реквизировать гражданских (3 ОД), провести демобилизацию (2 ОД).",
-    "군대 동원(행동력 4), 민간인 징발(행동력 3), 동원 해제(행동력 2).",
-    "تعبئة الجيش (4 نقاط عمل)، أو تسخير مدنيين (3 نقاط عمل)، أو إنهاء التعبئة (2 نقاط عمل).",
-    "Mobilizar o exército (4 PA), requisitar civis (3 PA) ou desmobilizar (2 PA).",
-    "Armee mobilisieren (4 AP), Zivilisten verpflichten (3 AP) oder demobilisieren (2 AP)."
-  ],
-[
-    "Activer une treve deja negociee par la diplomatie. Chaque camp doit le faire de son cote.",
-    "Activate a truce already negotiated through diplomacy. Each side must activate it independently.",
-    "Activar una tregua ya negociada por vía diplomática. Cada bando debe hacerlo por su cuenta.",
-    "啟動已透過外交談判達成的停戰協議。雙方都必須各自啟動。",
-    "Ввести в действие перемирие, уже согласованное дипломатами. Каждая сторона должна сделать это самостоятельно.",
-    "외교적으로 합의한 휴전을 발효합니다. 양측이 각각 별도로 발효해야 합니다.",
-    "تفعيل هدنة سبق التفاوض عليها دبلوماسيًا. يجب أن يفعّلها كل طرف على حدة.",
-    "Ativar uma trégua já negociada diplomaticamente. Cada lado deve fazê-lo por conta própria.",
-    "Einen bereits diplomatisch ausgehandelten Waffenstillstand aktivieren. Jede Seite muss ihn selbst aktivieren."
-  ],
-[
-    "Commandement de la caserne (candidatures, nomination, révocation) et budget militaire.",
-    "Barracks command (applications, appointment and dismissal) and military budget.",
-    "Mando del cuartel (candidaturas, nombramiento y destitución) y presupuesto militar.",
-    "軍營指揮職務（申請、任命、免職）與軍事預算。",
-    "Командование казармой (заявки, назначение, снятие с должности) и военный бюджет.",
-    "병영 지휘권(지원, 임명, 해임)과 군사 예산.",
-    "قيادة الثكنة (الترشيحات والتعيين والعزل) والميزانية العسكرية.",
-    "Comando do quartel (candidaturas, nomeação e destituição) e orçamento militar.",
-    "Kasernenkommando (Bewerbungen, Ernennung, Abberufung) und Militärhaushalt."
   ],
 [
     "Influencer massivement l'opinion publique. +POP.",
@@ -762,17 +729,6 @@ window.RP_INFOBULLES_COMMUNES = [
     "قائمة معتقلي QHS. نقلهم أو تحسين ظروفهم أو إصدار أمر بتعذيبهم. أصبح تمويل QHS من اختصاص وزارة الداخلية منذ 7 أكتوبر 2026.",
     "Lista de detidos do QHS. Transferir, melhorar condições ou ordenar tortura. O FINANCIAMENTO do QHS é responsabilidade do Ministério do Interior desde 7 de outubro de 2026.",
     "Liste der QHS-Häftlinge. Verlegen, Haftbedingungen verbessern oder Folter anordnen. Die FINANZIERUNG des QHS liegt seit dem 7. Oktober 2026 beim Innenministerium."
-  ],
-[
-    "Renforcer la Garde des trois palais nationaux pendant 24 h : x2 a x5, 50 FR par garde supplementaire sur la caisse du Ministere.",
-    "Reinforce the guards at the three national palaces for 24 h: x2 to x5, costing 50 FR per additional guard from the Ministry treasury.",
-    "Reforzar la guardia de los tres palacios nacionales durante 24 h: de x2 a x5, por 50 FR por guardia adicional pagados desde la caja del Ministerio.",
-    "為三座國家宮殿增派守衛，持續 24 h：增至 x2 至 x5，每位額外守衛費用 50 FR，由部會金庫支付。",
-    "Усилить охрану трёх национальных дворцов на 24 h: от x2 до x5, по 50 FR за дополнительного охранника из кассы министерства.",
-    "3개 국립 궁전의 경비를 24 h 동안 x2~x5로 증강합니다. 추가 경비원 1명당 50 FR를 부처 금고에서 지급합니다.",
-    "تعزيز حرس القصور الوطنية الثلاثة لمدة 24 h: من x2 إلى x5، بتكلفة 50 FR لكل حارس إضافي من خزينة الوزارة.",
-    "Reforçar a guarda dos três palácios nacionais durante 24 h: de x2 a x5, por 50 FR por guarda adicional do caixa do Ministério.",
-    "Die Wachen der drei Nationalpaläste für 24 h verstärken: x2 bis x5, je 50 FR pro zusätzlichem Wachmann aus der Ministeriumskasse."
   ],
 [
     "Ouvrir l'audience d'une affaire dont vous etes saisi, citer un temoin, et donner ou retirer la parole. L'ouverture verrouille la defense : plus de revocation ni de changement d'avocat.",

@@ -29,16 +29,16 @@ function orderDescs(country){
  }
  return d;
 }
-test('137 descriptions du catalogue Républia : françaises exactes et réellement affichées',()=>{
+test('141 descriptions du catalogue Républia : françaises exactes et réellement affichées',()=>{
  const rep=orderDescs('republic'),sov=orderDescs('soviet'),spec=[...rep].filter(d=>!sov.has(d));
  // Quatre commandes militaires de Républia sont maintenant exclues de Sovarka.
  assert.equal(spec.length,147,'inventaire réel après cloisonnement des deux pays');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
- assert.equal(rows.length,137);
+ assert.equal(rows.length,141);
  for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(rep.has(line[0]),line[0]);}
- assert.equal(new Set(rows.map(l=>l[0])).size,137);
+ assert.equal(new Set(rows.map(l=>l[0])).size,141);
 });
-test('Les 137 lignes sont présentes en neuf langues, sans perte de chiffres, devises ou sigles',()=>{
+test('Les 141 lignes sont présentes en neuf langues, sans perte de chiffres, devises ou sigles',()=>{
  const rows=setup('republic','en').RP_INFOBULLES_REPUBLIA;
  for(const line of rows){
   for(let i=1;i<line.length;i++){

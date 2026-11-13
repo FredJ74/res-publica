@@ -1,4 +1,4 @@
-/* Républia — catalogue complet des 137 descriptions du catalogue national (13/11/2026).
+/* Républia — catalogue complet des 141 descriptions du catalogue national (13/11/2026).
  * Texte original strictement issu de data.js ; colonnes fr,en,es,zh-TW,ru,ko,ar,pt-BR,de.
  * Données d'affichage seules : ni cout, ni PA, ni RPC ne sont modifiés.
  */
@@ -156,6 +156,39 @@ window.RP_INFOBULLES_REPUBLIA = [
     "القوانين التي أقرتها الجمعية وتنتظر التنفيذ، والقوانين التي نُفّذت بالفعل. مهلة 36 ساعة قبل فرض عقوبات على الحكومة.",
     "Leis aprovadas pela Assembleia aguardando aplicação e leis já aplicadas. Prazo de 36 horas antes de sanções ao governo.",
     "Von der Versammlung verabschiedete Gesetze, die noch umzusetzen sind, und bereits geltende Gesetze. Frist von 36 Stunden vor Sanktionen gegen die Regierung."
+  ],
+  [
+    "Mobiliser l'armee (4 PA), requisitionner des civils (3 PA), demobiliser (2 PA).",
+    "Mobilize the army (4 AP), requisition civilians (3 AP), or demobilize (2 AP).",
+    "Movilizar al ejército (4 PA), requisar civiles (3 PA) o desmovilizar (2 PA).",
+    "動員軍隊（4 行動點）、徵用平民（3 行動點）或解除動員（2 行動點）。",
+    "Мобилизовать армию (4 ОД), реквизировать гражданских (3 ОД), провести демобилизацию (2 ОД).",
+    "군대 동원(행동력 4), 민간인 징발(행동력 3), 동원 해제(행동력 2).",
+    "تعبئة الجيش (4 نقاط عمل)، أو تسخير مدنيين (3 نقاط عمل)، أو إنهاء التعبئة (2 نقاط عمل).",
+    "Mobilizar o exército (4 PA), requisitar civis (3 PA) ou desmobilizar (2 PA).",
+    "Armee mobilisieren (4 AP), Zivilisten verpflichten (3 AP) oder demobilisieren (2 AP)."
+  ],
+  [
+    "Activer une treve deja negociee par la diplomatie. Chaque camp doit le faire de son cote.",
+    "Activate a truce already negotiated through diplomacy. Each side must activate it independently.",
+    "Activar una tregua ya negociada por vía diplomática. Cada bando debe hacerlo por su cuenta.",
+    "啟動已透過外交談判達成的停戰協議。雙方都必須各自啟動。",
+    "Ввести в действие перемирие, уже согласованное дипломатами. Каждая сторона должна сделать это самостоятельно.",
+    "외교적으로 합의한 휴전을 발효합니다. 양측이 각각 별도로 발효해야 합니다.",
+    "تفعيل هدنة سبق التفاوض عليها دبلوماسيًا. يجب أن يفعّلها كل طرف على حدة.",
+    "Ativar uma trégua já negociada diplomaticamente. Cada lado deve fazê-lo por conta própria.",
+    "Einen bereits diplomatisch ausgehandelten Waffenstillstand aktivieren. Jede Seite muss ihn selbst aktivieren."
+  ],
+  [
+    "Commandement de la caserne (candidatures, nomination, révocation) et budget militaire.",
+    "Barracks command (applications, appointment and dismissal) and military budget.",
+    "Mando del cuartel (candidaturas, nombramiento y destitución) y presupuesto militar.",
+    "軍營指揮職務（申請、任命、免職）與軍事預算。",
+    "Командование казармой (заявки, назначение, снятие с должности) и военный бюджет.",
+    "병영 지휘권(지원, 임명, 해임)과 군사 예산.",
+    "قيادة الثكنة (الترشيحات والتعيين والعزل) والميزانية العسكرية.",
+    "Comando do quartel (candidaturas, nomeação e destituição) e orçamento militar.",
+    "Kasernenkommando (Bewerbungen, Ernennung, Abberufung) und Militärhaushalt."
   ],
   [
     "Suivre la séance depuis le hall. Un député sorti en signe de protestation y revient par cet écran.",
@@ -1322,6 +1355,17 @@ window.RP_INFOBULLES_REPUBLIA = [
     "مقالات قدمتها الصحافة قبل النشر (للموافقة أو التأجيل)، وأسرار جُمعت وملفات نسخها مرافقو Novomirsk.",
     "Artigos enviados pela imprensa antes da publicação (aprovar ou deixar em espera), confidências recolhidas e dossiês copiados por acompanhantes de Novomirsk.",
     "Von der Presse vor Veröffentlichung eingereichte Artikel (freigeben oder zurückstellen), gesammelte Vertraulichkeiten und von Escorts aus Novomirsk kopierte Akten."
+  ],
+  [
+    "Renforcer la Garde des trois palais nationaux pendant 24 h : x2 a x5, 50 FR par garde supplementaire sur la caisse du Ministere.",
+    "Reinforce the guards at the three national palaces for 24 h: x2 to x5, costing 50 FR per additional guard from the Ministry treasury.",
+    "Reforzar la guardia de los tres palacios nacionales durante 24 h: de x2 a x5, por 50 FR por guardia adicional pagados desde la caja del Ministerio.",
+    "為三座國家宮殿增派守衛，持續 24 h：增至 x2 至 x5，每位額外守衛費用 50 FR，由部會金庫支付。",
+    "Усилить охрану трёх национальных дворцов на 24 h: от x2 до x5, по 50 FR за дополнительного охранника из кассы министерства.",
+    "3개 국립 궁전의 경비를 24 h 동안 x2~x5로 증강합니다. 추가 경비원 1명당 50 FR를 부처 금고에서 지급합니다.",
+    "تعزيز حرس القصور الوطنية الثلاثة لمدة 24 h: من x2 إلى x5، بتكلفة 50 FR لكل حارس إضافي من خزينة الوزارة.",
+    "Reforçar a guarda dos três palácios nacionais durante 24 h: de x2 a x5, por 50 FR por guarda adicional do caixa do Ministério.",
+    "Die Wachen der drei Nationalpaläste für 24 h verstärken: x2 bis x5, je 50 FR pro zusätzlichem Wachmann aus der Ministeriumskasse."
   ],
   [
     "Le débat en cours, la file des demandes de parole, et les prérogatives du Président. Les députés peuvent demander la parole, intervenir, ou quitter l'hémicycle en signe de protestation.",

@@ -70,3 +70,13 @@ interdisait ainsi toute extension future du catalogue commun. Il conserve désor
 l’égalité exacte de toutes les traductions livrées et accepte seulement, pour un
 ancien repli, la traduction explicitement déclarée dans le catalogue partagé.
 La preuve séparée d’égalité intégrale des 394 lignes empêche toute réécriture.
+
+## Livraison vérifiée
+
+PR #885 fusionnée, `c9e4ca786fb60ad9bd89630261d33aa8b7fe213a` ; 41 contrôles PR
+verts, trois échecs SSM préexistants dans un contrôle. Vercel READY. La recette a
+suivi le main partagé jusqu’à `d6d2f08`, déploiement `dpl_8EsfTvJrAKr8Y6QPowCsrsuc1bHN`
+READY et alias public confirmé : descendant de la fusion, deux catalogues du lot
+strictement identiques. Seize fichiers publics correspondent à ce déploiement ;
+banc Chromium rejoué avec ces fichiers : vert (1 458 descriptions, 972 dialogues).
+Empreintes dans `I18N-COMMUNES-ECONOMIE-871-production.json`.
