@@ -39,9 +39,10 @@ test('Sovarka Defense ne propose pas la garde republicaine et exige son propre m
  const defs=world(`ordresDeclaresDeLaPiece(BUILDINGS['palais-gouvernement'].rooms.bureau_min_def,
  WORLD.soviet.capitale.buildingContext['palais-gouvernement'],'bureau_min_def')`);
  const fns=Array.from(defs,x=>x.fn);
- for(const fn of ['garde_republicaine','mobilisation_nationale','activer_cessez_le_feu','gestion_caserne'])
+ for(const fn of ['garde_republicaine','mobilisation_nationale','activer_cessez_le_feu'])
   assert.equal(fns.includes(fn),false,fn);
  assert.ok(fns.includes('sovarka_conscription'));
+ assert.ok(fns.includes('gestion_caserne'), 'La gestion de la caserne appartient au ministre sovarkien comme au républicain');
  assert.ok(fns.includes('renseignement_militaire'));
  assert.equal(defs.find(x=>x.fn==='sovarka_conscription').requiresPost,'min_def');
 });

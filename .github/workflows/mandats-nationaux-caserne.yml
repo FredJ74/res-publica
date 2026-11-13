@@ -1,0 +1,30 @@
+name: Mandats nationaux et casernes de tous les empires
+on:
+  pull_request:
+    paths:
+      - 'data.js'
+      - 'migrations/20261113221500_mandats_postes_pays_serveur.sql'
+      - 'outils/bancs/banc-mandats-nationaux-caserne-20261113.cjs'
+      - '.github/workflows/mandats-nationaux-caserne.yml'
+      - 'outils/bancs/banc-dotation-cloisonnement-sovarka-20261113.cjs'
+      - 'outils/bancs/test-i18n-infobulles-communes-20261113.mjs'
+      - 'outils/bancs/test-i18n-republia-infobulles-politiques-20261113.cjs'
+  push:
+    branches: [main]
+    paths:
+      - 'data.js'
+      - 'migrations/20261113221500_mandats_postes_pays_serveur.sql'
+      - 'outils/bancs/banc-mandats-nationaux-caserne-20261113.cjs'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check data.js && node --check plateau-politique.js && node --check plateau-router.js
+      - run: node --test outils/bancs/banc-mandats-nationaux-caserne-20261113.cjs
+      - run: node --test outils/bancs/banc-dotation-cloisonnement-sovarka-20261113.cjs
+      - run: node --test outils/bancs/test-i18n-infobulles-communes-20261113.mjs
+      - run: node --test outils/bancs/test-i18n-republia-infobulles-politiques-20261113.cjs
