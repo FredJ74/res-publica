@@ -32,6 +32,11 @@ Après #861, #863, #865 et #866 (99 descriptions propres à Républia), ajout de
 
 ## En cours
 
+### #871 — socle i18n des ordres, Codex, 13/11/2026
+
+Branche `codex/i18n-socle-ordres-20261113`, PR à ouvrir. Généralisation du seul résolveur existant par catalogues déclaratifs, alias API `RPOrderDescriptionsI18n`, `descriptionKey` stable et ancien français exact conservés. Aucun texte de catalogue, pays, bâtiment, carte, PNJ, PA, coût ou RPC modifié. Seul le descripteur du renderer transporte la clé. Contrat : `outils/audits/SOCLE-I18N-ORDRES-871.md`. **52 tests Node + 3 Chromium verts** (320/390/1280, neuf langues et troisième pays fictif) avant intégration. Audit au même extracteur : zéro traduction/raccordement ajouté par ce lot d’architecture ; les lots d’interface suivront. CI distante, fusion et déploiement à vérifier. Zones Sovarka et Aide HRP métier hors périmètre.
+
+
 ### Descriptions tactiles et guillemets HTML — livrés le 13/11/2026
 **PR #855 fusionnée après autorisation expresse de Fred** malgré le contrôle SSM/Montrouge déjà rouge sur main, commit `d05740dd24b1c04225c06a70810d6fd28e26a2ac`. Vercel production `dpl_2Ny4NphzGNtVNQJR9gXhNva2bxC9` **READY** sur le même commit. Bouton ⓘ tactile de consultation des ordres, sans action/PA ni requête, contenu multilingue fourni par les catalogues #853 et #856. Suite ciblée et Chromium vertes avant fusion ; revue réelle PJ authentifiée et téléphone physique non faits.
 **PR #857 fusionnée**, commit `a14fd38ac17911c5bcdbbbced6c0e825af7f9969` ; Vercel production `dpl_9xe83C3dm1XAxMXCCA4mvQ42QxqU` **READY**. Correction de l'attribut HTML `title` qui tronquait deux descriptions contenant des guillemets droits ; messages bloqués inchangés, descripteur `data-rp-tip` intact, aucune modification métier. CI guillemets verte, CI descriptions tactiles verte avec Chromium 320/390/1280 et neuf langues, échec transverse SSM préexistant inchangé. Recette authentifiée, appareil physique et relecture native non faits. Audit : `outils/audits/ORDRES-INFO-TACTILE-20261113.md`.

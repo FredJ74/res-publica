@@ -1,0 +1,26 @@
+name: Socle des ordres multi-empires — issue 871
+on:
+  pull_request:
+    paths: ['i18n/**', 'plateau-politique.js', 'plateau-ordres-info.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*socle-ordres*', '.github/workflows/i18n-socle-ordres.yml']
+  push:
+    branches: [main]
+    paths: ['i18n/**', 'plateau-politique.js', 'plateau-ordres-info.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*socle-ordres*', '.github/workflows/i18n-socle-ordres.yml']
+permissions:
+  contents: read
+jobs:
+  socle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - name: Compatibilité, troisième pays et mesures
+        run: node --test outils/bancs/banc-i18n-socle-ordres.cjs outils/bancs/banc-audit-i18n-global.cjs outils/bancs/test-i18n-sovarka-infobulles-20261113.mjs outils/bancs/test-i18n-infobulles-communes-20261113.mjs outils/bancs/test-i18n-republia-infobulles-politiques-20261113.cjs outils/bancs/banc-ordres-info-tactile-20261113.cjs outils/bancs/banc-i18n-editorial.cjs
+      - run: npm install --ignore-scripts --no-package-lock --prefix "$RUNNER_TEMP/socle-browser" playwright@1.62.1
+      - name: Chromium réel — neuf langues, 320/390/1280 et clic normal
+        run: NODE_PATH="$RUNNER_TEMP/socle-browser/node_modules" CHROMIUM_PATH=/usr/bin/google-chrome node --test outils/bancs/banc-i18n-socle-ordres-navigateur.cjs outils/bancs/banc-ordres-info-tactile-navigateur-20261113.cjs

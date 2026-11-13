@@ -65,6 +65,11 @@ test('les tables par langue hors du catalogue central sont recensées',t=>{
   const {dir}=fixture(t,{'i18n/local-resources.js':'const labels='+JSON.stringify(map)+';'});
   const r=audit.build(dir);assert.ok(r.registrations.some(x=>x.fr==='Salut camarade'&&x.status.ko==='available-unreviewed'));assert.equal(r.registrations.find(x=>x.fr==='Salut camarade').loaded,false);
 });
+test('entrées à identifiants stables : français et neuf langues recensés sans moteur supplémentaire',t=>{
+  const entry={id:'orders.description.fixture',...Object.fromEntries(audit.LOCALES.map(l=>[l,l==='fr'?'Un ordre stable':l+' A stable order']))};
+  const {dir}=fixture(t,{'i18n/nouveau-resources.js':'const rows='+JSON.stringify([entry])+';'});
+  const r=audit.build(dir),e=r.registrations.find(r=>r.key===entry.id);assert.ok(e);assert.equal(e.status.ru,'available-unreviewed');assert.equal(e.fr,entry.fr);
+});
 test('la liste technique des neuf codes de langue n’est pas une matrice de textes',t=>{
   const {dir}=fixture(t,{'i18n/local-resources.js':'const LANGUES='+JSON.stringify(audit.LOCALES)+';'});
   const r=audit.build(dir);assert.ok(!r.registrations.some(r=>r.fr==='fr'));
