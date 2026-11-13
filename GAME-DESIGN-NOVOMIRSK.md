@@ -953,7 +953,8 @@ Le pays du mandat n'est pas le pays du voyage : tous les postes, élus et nommé
 - **Prix** : 250 PSK en Sovarka, 500 FR ailleurs.
 - **Écoutes** : le ministre de la Défense lit les rapports depuis son bureau seulement. **Habilitations** : ordre « Habilitations aux archives d'écoute » au bureau du ministre de la Sécurité du Peuple (accorder, retirer, liste) ; ordre « Consulter les archives (habilitation) » dans les trois salles d'écoute (1 PA, recherche par nom, résultats par courrier).
 - **Vol raté** : 1 jour de prison (le barème générique donnait 2 jours, écart corrigé pour les trois centres) ; à Novomirsk, détention en salle d'interrogatoire jusqu'à l'interrogatoire ou la fin de la peine ; « Interroger un détenu » vise un détenu présent (2 PA, 75 %, +5 INF), un seul interrogatoire puis la cellule.
-- **Limites** : les deux équipes de Sovarka partagent les portraits « soviet » du socle (portraits propres à fournir) ; courriers traduits (habilitation, retrait, fin d'interrogatoire), mais la compilation des archives consultées reste en français comme les rapports d'écoute.
+- **Portraits** (planches de Fred, 13/11, 23 h 24) : chaque agent des deux équipes de Sovarka a son portrait dans les quatre tenues de couverture (`images/Sovarka/agents/`, migration `20261113231000`). Interprétation (Claude) : la planche aux traits décrits dans le prompt (coordinateur grisonnant, conseillère au chignon, garde au crâne rasé) est celle de la Défense, l'autre celle de la Sécurité du Peuple.
+- **Limites** : courriers traduits (habilitation, retrait, fin d'interrogatoire), mais la compilation des archives consultées reste en français comme les rapports d'écoute.
 
 ## Caserne centrale de Novomirsk — audit d'ergonomie du 13/11/2026 (PR #900)
 
@@ -965,3 +966,8 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 
 **Vérification :** banc `outils/bancs/banc-caserne-parite-menus-20261113.cjs` (inventaire des sept pièces, existence des images, parité de chaque ordre et de ses coûts, couverture sans perte ni doublon, préservation de la conscription, traductions). Recette visuelle avec un personnage connecté non réalisée à ce stade.
 
+
+## Camion militaire de Novomirsk (Fred, 13/11/2026, 23 h 18 – 23 h 23) — PAS de feu vert de codage
+- Même socle que le camion militaire de Républia (aucune mécanique nouvelle) : un camion de l'armée de Sovarka, garé dans la première pièce de la caserne de Novomirsk (la caserne est en ville en Sovarka).
+- Modèle retenu par Fred : **NAZ-66 « Bourlak »** (NAZ = Usine automobile de Novomirsk ; le *bourlak* est le haleur de la Volga). Image générée par Fred (camion de transport de troupes soviétique 6×6).
+- Restent à décider : destinations, capacité (25 places en Républia).
