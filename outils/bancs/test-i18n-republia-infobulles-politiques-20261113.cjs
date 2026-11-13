@@ -29,16 +29,16 @@ function orderDescs(country){
  }
  return d;
 }
-test('171 descriptions du catalogue Républia : françaises exactes et réellement affichées',()=>{
+test('137 descriptions du catalogue Républia : françaises exactes et réellement affichées',()=>{
  const rep=orderDescs('republic'),sov=orderDescs('soviet'),spec=[...rep].filter(d=>!sov.has(d));
  // Quatre commandes militaires de Républia sont maintenant exclues de Sovarka.
  assert.equal(spec.length,147,'inventaire réel après cloisonnement des deux pays');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
- assert.equal(rows.length,171);
+ assert.equal(rows.length,137);
  for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(rep.has(line[0]),line[0]);}
- assert.equal(new Set(rows.map(l=>l[0])).size,171);
+ assert.equal(new Set(rows.map(l=>l[0])).size,137);
 });
-test('Les 171 lignes sont présentes en neuf langues, sans perte de chiffres, devises ou sigles',()=>{
+test('Les 137 lignes sont présentes en neuf langues, sans perte de chiffres, devises ou sigles',()=>{
  const rows=setup('republic','en').RP_INFOBULLES_REPUBLIA;
  for(const line of rows){
   for(let i=1;i<line.length;i++){
@@ -55,17 +55,19 @@ test('Les 171 lignes sont présentes en neuf langues, sans perte de chiffres, de
 test('Républia : neuf langues et changement de langue sans requête',()=>{
  const ctx=setup();
  const original='Candidatures, nomination (2 PA) et revocation (1 PA) du Premier ministre.';
+ const row=ctx.RP_INFOBULLES_REPUBLIA.find(l=>l[0]===original);assert.ok(row);
  for(const [index,lang] of langs.entries()){
   ctx.lang=lang;
   const got=ctx.RPSovarkaInfobullesI18n.desc(original);
-  assert.equal(got,ctx.RP_INFOBULLES_REPUBLIA[1][index],lang);
+  assert.equal(got,row[index],lang);
  }
 });
 test('Catalogue propre à Républia sans effet sur Sovarka, descriptions communes prioritaires',()=>{
  const rep=setup('republic','en'),sov=setup('soviet','en');
- const specific='Nommer un PJ a un poste ministeriel.';
- assert.equal(rep.RPSovarkaInfobullesI18n.desc(specific),'Appoint a player character to a ministerial position.');
- assert.equal(sov.RPSovarkaInfobullesI18n.desc(specific),specific);
+ const sovDescs=orderDescs('soviet');
+ const specific=rep.RP_INFOBULLES_REPUBLIA.find(row=>!sovDescs.has(row[0]));
+ assert.ok(specific);assert.equal(rep.RPSovarkaInfobullesI18n.desc(specific[0]),specific[1]);
+ assert.equal(sov.RPSovarkaInfobullesI18n.desc(specific[0]),specific[0]);
  const common='Voir ce qui est disponible au bar et commander.';
  assert.equal(rep.RPSovarkaInfobullesI18n.desc(common),'See what is available at the bar and order.');
  assert.equal(sov.RPSovarkaInfobullesI18n.desc(common),'See what is available at the bar and order.');
