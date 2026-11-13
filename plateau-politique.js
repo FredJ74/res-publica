@@ -3836,6 +3836,16 @@ function deviseDansTexte(texte, devise) {
   return texte.replace(/\bFR\b/g, devise);
 }
 
+// Le pays du mandat prime sur la position actuelle du voyageur.
+// Les fiches anciennes ne portent pas toujours poste.country : la domiciliation
+// d'origine, puis le pays de creation, servent de repli d'affichage uniquement.
+// Les actes sensibles sont controles a nouveau cote serveur.
+function paysMandatPourOrdre() {
+  return state.poste?.country || state.poste?.pays ||
+    state.char?.domicile?.country || state.domicile?.country ||
+    state.char?.country || state.country;
+}
+
 function renderRoomActions(room, buildingId, roomId) {
   // La liste des PNJ et l'interdiction d'achat doivent refléter le même état confirmé.
   // Le chargement d'occupation, auparavant déclenché seulement par « Vérifier le terrain »,
@@ -4082,6 +4092,12 @@ function renderRoomActions(room, buildingId, roomId) {
         else if (reqPost === 'maire') needsPost = !estPosteMaire(posteId); // exclut maire_adjoint (correctif Lot 4.3)
         else needsPost = posteId !== reqPost;
       }
+    }
+    // Un mandat appartient a son pays, pas a tous les empires portant le meme
+    // identifiant de poste. Un ministre de Republia visitant Novomirsk ne devient
+    // jamais ministre de Sovarka. La garde serveur tranche l'autorite reelle.
+    if (o.requiresPost && !needsPost && paysMandatPourOrdre() !== state.country) {
+      needsPost = true;
     }
     // DEUX DRAPEAUX DECLARATIFS AJOUTES LE 13 OCTOBRE 2026, et ils ne nomment aucun ordre.
     //
