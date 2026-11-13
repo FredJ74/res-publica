@@ -51,24 +51,24 @@ function champ(html, cle) {
 }
 test('JSONB objet de Novomirsk : les quantités en stock sont saisissables', async () => {
   const html = await rendre({ entrepot: { stock: { bois: 200, metal: 0, charbon: 400 } } });
-  assert.doesNotMatch(champ(html, 'bois'), /\\bdisabled\\b/);
+  assert.doesNotMatch(champ(html, 'bois'), /\bdisabled\b/);
   assert.match(champ(html, 'bois'), /max="200"/);
-  assert.doesNotMatch(champ(html, 'charbon'), /\\bdisabled\\b/);
-  assert.match(champ(html, 'metal'), /\\bdisabled\\b/);
+  assert.doesNotMatch(champ(html, 'charbon'), /\bdisabled\b/);
+  assert.match(champ(html, 'metal'), /\bdisabled\b/);
 });
 test('ancien entrepôt JSON en chaîne : quantités toujours saisissables', async () => {
   const donnees = { entrepot: { stock: { bois: 12, metal: 0 } } };
   for (const data of [JSON.stringify(donnees), JSON.stringify(JSON.stringify(donnees))]) {
     const html = await rendre(data);
-    assert.doesNotMatch(champ(html, 'bois'), /\\bdisabled\\b/);
+    assert.doesNotMatch(champ(html, 'bois'), /\bdisabled\b/);
     assert.match(champ(html, 'bois'), /max="12"/);
   }
 });
 test('un vrai stock vide interdit toujours la quantité, sans inventer de stock', async () => {
   const html = await rendre({ entrepot: { stock: { bois: 0, metal: 0, charbon: 0 } } });
-  assert.match(champ(html, 'bois'), /\\bdisabled\\b/);
+  assert.match(champ(html, 'bois'), /\bdisabled\b/);
 });
 test('JSON invalide ne doit jamais fabriquer du stock', async () => {
   const html = await rendre('{json cassé');
-  assert.match(champ(html, 'bois'), /\\bdisabled\\b/);
+  assert.match(champ(html, 'bois'), /\bdisabled\b/);
 });
