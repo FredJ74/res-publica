@@ -2490,6 +2490,12 @@ const WORLD = {
           name: "Commissariat de Krasnov",
           desc: "La police locale de Krasnov, installée face au stade."
         },
+        // Decor du marche interieur de Krasnov, distinct de la facade de rue.
+        'marche': {
+          roomOverrides: {
+            marche_ext: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp' }
+          }
+        },
         // Mêmes six pièces et tous les ordres sportifs du gabarit stade partagé.
         'stade': {
           name: "Stade Étoile Rouge de Krasnov",
