@@ -2484,6 +2484,43 @@ const WORLD = {
             }
           }
         },
+        // Krasnov : atelier commun, 3 box equivalentes. Attribution a la mairie
+        // (meme contrat que Novomirsk), sans location privee directe.
+        'centre-artisanal': {
+          name: 'Centre artisanal de Krasnov',
+          desc: 'Atelier partage de la commune. Trois box identiques attribues par la mairie.',
+          roomOverrides: {
+            travees: {
+              name: 'Accueil — atelier partagé',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_artisanal_accueil.webp',
+              desc: 'Machines a bois, scie circulaire, deligneuse et poste de soudure partages.',
+              persons: [
+                {name:'Stas Mironov (PNJ)', role:'Ébéniste', rel:'neutral', job:'commercant'}
+              ]
+            },
+            echoppe_facade: {
+              name: 'Box à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_artisanal_box.webp',
+              desc: 'Box artisanal à louer, 15 PSK par jour. Demande à déposer à la mairie de Krasnov ; attribution à signer chez le notaire. Personnalisation possible via Commerce Premium.',
+              locationData: { prix:15, bonusPOP:0, bonusINF:0, bonusDIS:0, label:'Box 1', tier:3 },
+              persons: []
+            },
+            atelier_milieu: {
+              name: 'Box à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_artisanal_box.webp',
+              desc: 'Box artisanal à louer, 15 PSK par jour. Demande à déposer à la mairie de Krasnov ; attribution à signer chez le notaire. Personnalisation possible via Commerce Premium.',
+              locationData: { prix:15, bonusPOP:0, bonusINF:0, bonusDIS:0, label:'Box 2', tier:3 },
+              persons: []
+            },
+            reserve_arriere: {
+              name: 'Box à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_artisanal_box.webp',
+              desc: 'Box artisanal à louer, 15 PSK par jour. Demande à déposer à la mairie de Krasnov ; attribution à signer chez le notaire. Personnalisation possible via Commerce Premium.',
+              locationData: { prix:15, bonusPOP:0, bonusINF:0, bonusDIS:0, label:'Box 3', tier:3 },
+              persons: []
+            }
+          }
+        },
         // Le commissariat de Krasnov hérite intégralement des pièces et ordres
         // du commissariat-local commun à Montrouge et Port-Sainte-Marie.
         'commissariat-local': {
