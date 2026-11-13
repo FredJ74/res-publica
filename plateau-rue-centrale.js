@@ -1241,17 +1241,19 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     // V5 — Seconde entree du Grand Hotel, et centre d'affaires.
-    // La liaison haute conduit a V3 ; pas de sortie gauche (ambassades V6 par la V7).
+    // La liaison haute conduit aux ambassades et a l'armurerie (V6) ; pas de sortie gauche.
     'novomirsk-vue-5': {
       image: 'images/rue-hotel-centre-affaires-novomirsk.webp',
       zones: [
         { xPct: [0, 25],   yPct: [8, 74], nom: 'Centre d\'affaires de Novomirsk', type: 'batiment', buildingId: 'centre-affaires' },
         { xPct: [75, 100], yPct: [0, 74], nom: 'Grand Hôtel de Sovarka', type: 'batiment', buildingId: 'hotel-republica', sortieNoeudId: 'novomirsk-vue-4' }
       ],
-      // Carrefour : en face, la rue du notaire/commissariat (V3).
-      // Pas de fleche gauche (Fred, 12/11/2026 : elle n'avait aucun sens sur cette vue). Les
-      // ambassades (V6) restent accessibles par la V7 ; l'hotel (V4) par la droite.
-      liens: { toutDroit: 'novomirsk-vue-3', droite: 'novomirsk-vue-4' },
+      // En face : les ambassades et l'armurerie (V6) (Fred, 13/11/2026 ; avant : la rue du notaire,
+      // qui reste accessible depuis la V4). Pas de fleche gauche (Fred, 12/11/2026). L'hotel (V4)
+      // par la droite. Serveur : migration 20261113113500.
+      liens: { toutDroit: 'novomirsk-vue-6', droite: 'novomirsk-vue-4' },
+      // Meme carrefour que la V4 (deux photos d'un seul point) : un seul point sur le plan des rues.
+      memeCarrefour: 'novomirsk-vue-4',
       flechesStyle: { toutDroit: RC_FLECHE_HAUT }
     },
 
@@ -1264,9 +1266,8 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [0, 30],   yPct: [0, 72],  nom: 'Palais des Ambassades', type: 'batiment', buildingId: 'palais-ambassades-novomirsk' },
         { xPct: [79, 100], yPct: [14, 78], nom: 'Armurerie de Novomirsk', type: 'batiment', buildingId: 'armurerie' }
       ],
-      // Pas de retour vers V5 (Fred, 12/11/2026) : V5 est un carrefour en T sans rue a gauche.
-      // Les ambassades se rejoignent par la V7, dans les deux sens.
-      liens: { toutDroit: 'novomirsk-vue-7' },
+      // Retour vers V5 par la fleche du bas (Fred, 13/11/2026) ; en face, la V7.
+      liens: { toutDroit: 'novomirsk-vue-7', arriere: 'novomirsk-vue-5' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
     },
 

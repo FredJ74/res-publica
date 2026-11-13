@@ -96,6 +96,16 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **Novomirsk V5 : flèche du haut vers les Ambassades et l'Armurerie (Claude, 13/11 vers 11 h 45, signalement de Fred, branche `claude/novomirsk-fleche-haut-20261113`)**. La flèche du haut de la vue Centre d'affaires/Grand Hôtel (V5) menait à la rue du notaire (V3).
+  - **Décision de Fred (13/11)** : en haut, V6 (Ambassades/Armurerie) ; retour de V6 vers V5 par la flèche du bas. La rue du notaire reste accessible depuis le Grand Hôtel/Galeries (V4). La décision du 12/11 « pas de retour V6→V5 » est remplacée.
+  - **Écran** (`plateau-rue-centrale.js`) : V5 `toutDroit: V6`, `droite: V4` ; V6 `toutDroit: V7`, `arriere: V5`.
+  - **Serveur** : migration `20261113113500_novomirsk_v5_haut_vers_v6.sql` (V5 : V4, V6 ; V6 : V5, V7 ; V3 sans V5 ; contrôle intégré). Elle corrige au passage l'anomalie de production V6→V5 sans réciproque.
+  - **Plan des rues** : V4/V5 n'étaient reconnues comme un seul carrefour que grâce au lien sans retour V5→V3. D'où le champ explicite `memeCarrefour: 'novomirsk-vue-4'` sur V5, que `plateau-plan-rues.js` honore : un seul point, et une orientation de rotation sur place, pas de rue. Résultat : 0 anomalie dans les 8 villes, les autres plans sont inchangés.
+  - **Bancs** : `test-novomirsk-v5-haut-v6-20261113.mjs` remplace celui du 12/11. Aucun échec nouveau (tous les `test-*.mjs` et les 21 bancs de navigation comparés à main).
+  - **Banc de Codex corrigé** : `banc-ordres-info-tactile-20261113.cjs` (#855) comparait au point de branche et refusait toute migration ou tout changement de `plateau-politique.js`, `data.js` ou `i18n` dans une PR ultérieure. Sa preuve est désormais figée sur #855 et #857 (8d9dc22 → a14fd38), et le banc vérifie que la présentation reste branchée.
+  - **Reste signalé** :
+    - l'anomalie de production `retour_absent` V15→V16 (Novomirsk), hors de ce chantier ;
+    - `banc-i18n-ilia-20261113.cjs` a la même comparaison au point de branche sur ses fichiers protégés : à figer de la même manière s'il bloque une PR.
 
 - **i18n : 205 descriptions d'ordres communes Républia/Sovarka (Claude, 13/11 matin, priorité 2 de Fred, branche `claude/i18n-infobulles-communes-20261113`)**.
   - **Inventaire** (data.js réel, pièces affichées) : il y a bien **205 descriptions communes** (affichées dans les deux pays), en plus des 104 propres à Sovarka (lot #853) et de **189 propres à la Républia, non traitées** (hors mission, toujours en français).
