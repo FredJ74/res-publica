@@ -1,7 +1,8 @@
 # #871 — reprise de commande et titres sur corps opaque
 
-Complément du lot #896 : **deux messages fixes et un titre**, neuf langues,
-**24 nouvelles traductions étrangères**. La réponse incertaine explique de reprendre
+Complément du lot #896 : **deux nouveaux messages fixes**, neuf langues,
+**16 nouvelles traductions étrangères**. Le titre existant `naval.notConfirmed`
+et ses huit traductions étrangères sont réutilisés sans modification ni copie. La réponse incertaine explique de reprendre
 la même commande sans second traitement ; le refus générique et le titre sont
 également disponibles. Les français sont ceux du programme d’origine.
 

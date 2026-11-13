@@ -24,7 +24,7 @@ test(reprise?'reprise : 81 rendus et bascules, corps opaque intact et titres en 
    const set=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(failStorage)throw Error('Quota');return set.call(this,k,v);};
    window.snapshot=()=>JSON.stringify({state,calls,incidents,storage:Object.keys(sessionStorage).sort().map(k=>[k,sessionStorage.getItem(k)]),locks:[constructionCommandeEnCours,constructionPrixEnCours,constructionTauxEnCours,constructionRepriseEnCours],timer:window._toastTimer,fields:[...document.querySelectorAll('input')].map(e=>[e.id,e.value]),focus:document.activeElement.id,start:document.getElementById('draft').selectionStart,end:document.getElementById('draft').selectionEnd});
   });
-  for(const f of ['i18n/resources.js','i18n/plateau-resources.js','i18n/toast-resources.js','i18n/construction-feedback-resources.js','i18n/plateau-init.js'])await page.addScriptTag({content:read(f)});
+  for(const f of ['i18n/resources.js','i18n/plateau-resources.js','i18n/naval-resources.js','i18n/toast-resources.js','i18n/construction-feedback-resources.js','i18n/plateau-init.js'])await page.addScriptTag({content:read(f)});
   await page.addScriptTag({content:fn(read('plateau-core.js'),'showToast')+'\n'+read('plateau-construction-commandes.js')+'\n'+examples()});
   await page.evaluate(()=>{document.getElementById('draft').focus();document.getElementById('draft').setSelectionRange(3,8);});
   for(let i=0;i<(reprise?3:10);i++){
