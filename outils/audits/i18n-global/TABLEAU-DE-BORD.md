@@ -1,10 +1,10 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `1df8f8458815f28bbd4f53d495a02ca692e10a8e`. Empreinte du corpus : `0aabbf94c8ae9b9b12516998b497dbd07fa4cc7212aea1abe9732f345bb71a6c`.
+Base analysée : `643f9ba7e0fbbacf015eb4e9571aade6f26f6c4d`. Empreinte du corpus : `63d31e8aba93e40bed147f349f4accc6b28776cce0a8e2ab9bb15f66d255ddc4`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 
-**17347 textes distincts repérés**, 30680 occurrences dans les sources. 222 fichiers JS/HTML et 506 fichiers SQL analysés.
+**17348 textes distincts repérés**, 30695 occurrences dans les sources. 223 fichiers JS/HTML et 507 fichiers SQL analysés.
 
 ## Périmètre et certitude
 
@@ -12,7 +12,7 @@ Base analysée : `1df8f8458815f28bbd4f53d495a02ca692e10a8e`. Empreinte du corpus
 |---|---:|---:|
 | static-render-path | 7561 | 50628 |
 | candidate-review | 7605 | 63657 |
-| server-source-review | 888 | 13477 |
+| server-source-review | 889 | 13486 |
 | ai-context-not-output | 1293 | 54765 |
 
 Les taux suivants portent seulement sur `static-render-path` : un chemin de rendu est identifié, sans preuve que chaque état soit accessible en session. Les autres classes restent visibles, hors dénominateur. Une même chaîne est dédupliquée globalement ; ses occurrences gardent leur contexte. Une seule occurrence non prouvée suffit à empêcher sa certification complète.
@@ -22,14 +22,14 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 | Langue | Corpus | Raccordés prouvés* | Taux textes* | Taux mots* | Ressource disponible** | Mots à traiter/vérifier |
 |---|---:|---:|---:|---:|---:|---:|
 | Français | 7561 | 7561 | 100.00 % | 100.00 % | 7561 | 0 |
-| Anglais | 7561 | 968 | 12.80 % | 23.36 % | 1516 | 38799 |
-| Espagnol | 7561 | 975 | 12.90 % | 23.38 % | 1532 | 38791 |
-| Chinois traditionnel | 7561 | 977 | 12.92 % | 23.38 % | 1538 | 38789 |
-| Russe | 7561 | 977 | 12.92 % | 23.38 % | 1537 | 38789 |
-| Coréen | 7561 | 977 | 12.92 % | 23.38 % | 1538 | 38789 |
-| Arabe | 7561 | 977 | 12.92 % | 23.38 % | 1537 | 38789 |
-| Portugais brésilien | 7561 | 974 | 12.88 % | 23.38 % | 1534 | 38792 |
-| Allemand | 7561 | 976 | 12.91 % | 23.38 % | 1534 | 38790 |
+| Anglais | 7561 | 985 | 13.03 % | 23.65 % | 1534 | 38657 |
+| Espagnol | 7561 | 992 | 13.12 % | 23.66 % | 1550 | 38649 |
+| Chinois traditionnel | 7561 | 994 | 13.15 % | 23.66 % | 1556 | 38647 |
+| Russe | 7561 | 994 | 13.15 % | 23.66 % | 1555 | 38647 |
+| Coréen | 7561 | 994 | 13.15 % | 23.66 % | 1556 | 38647 |
+| Arabe | 7561 | 994 | 13.15 % | 23.66 % | 1555 | 38647 |
+| Portugais brésilien | 7561 | 991 | 13.11 % | 23.66 % | 1552 | 38650 |
+| Allemand | 7561 | 993 | 13.13 % | 23.66 % | 1552 | 38648 |
 
 * Preuve statique stricte : clé explicite de même français, traducteur exporté/wrapper transparent, guide accepté par son garde d’intégrité ou description d’ordre reconnue par le résolveur existant dans son pays, dans chacune des huit langues. C’est un plancher de raccordements identifiés, pas la mesure de toutes les traductions qui fonctionnent. Les valeurs identiques au français restent à vérifier sauf sigles neutres documentés.
 
@@ -43,12 +43,12 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 | Courriers, notifications et journaux | 388 | 102 | 240 | 1221 |
 | Création et connexion | 158 | 87 | 55 | 498 |
 | Enquêtes, missions et objectifs | 898 | 0 | 833 | 5136 |
-| Interface générale et autres activités | 1954 | 70 | 1699 | 9969 |
+| Interface générale et autres activités | 1954 | 87 | 1681 | 9827 |
 | Navigation et transports | 139 | 0 | 97 | 706 |
 | Ordres et descriptions | 983 | 714 | 50 | 2104 |
 | PNJ, guides et récits | 508 | 23 | 456 | 3318 |
 | Politique, justice et administration | 1323 | 2 | 1210 | 7210 |
-| Économie et commerces | 1855 | 7 | 1731 | 10221 |
+| Économie et commerces | 1856 | 8 | 1730 | 10221 |
 
 Les neuf langues et leurs volumes par domaine sont détaillés dans `tableau-de-bord.json` → `domains`. Aucun domaine n’est déclaré complet sur la seule présence de clés.
 
@@ -60,12 +60,12 @@ Les neuf langues et leurs volumes par domaine sont détaillés dans `tableau-de-
 | Courriers, notifications et journaux | 100.00 % / 100.00 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % | 26.29 % / 34.57 % |
 | Création et connexion | 100.00 % / 100.00 % | 55.06 % / 49.39 % | 56.33 % / 49.59 % | 56.96 % / 49.70 % | 56.96 % / 49.70 % | 56.96 % / 49.70 % | 56.96 % / 49.70 % | 56.33 % / 49.59 % | 56.96 % / 49.70 % |
 | Enquêtes, missions et objectifs | 100.00 % / 100.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % |
-| Interface générale et autres activités | 100.00 % / 100.00 % | 3.58 % / 21.48 % | 3.84 % / 21.53 % | 3.84 % / 21.53 % | 3.84 % / 21.53 % | 3.84 % / 21.53 % | 3.84 % / 21.53 % | 3.79 % / 21.52 % | 3.79 % / 21.52 % |
+| Interface générale et autres activités | 100.00 % / 100.00 % | 4.45 % / 22.60 % | 4.71 % / 22.64 % | 4.71 % / 22.64 % | 4.71 % / 22.64 % | 4.71 % / 22.64 % | 4.71 % / 22.64 % | 4.66 % / 22.64 % | 4.66 % / 22.64 % |
 | Navigation et transports | 100.00 % / 100.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % |
 | Ordres et descriptions | 100.00 % / 100.00 % | 72.63 % / 79.19 % | 72.63 % / 79.19 % | 72.74 % / 79.20 % | 72.74 % / 79.20 % | 72.74 % / 79.20 % | 72.74 % / 79.20 % | 72.63 % / 79.19 % | 72.74 % / 79.20 % |
 | PNJ, guides et récits | 100.00 % / 100.00 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % |
 | Politique, justice et administration | 100.00 % / 100.00 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % |
-| Économie et commerces | 100.00 % / 100.00 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % | 0.38 % / 0.30 % |
+| Économie et commerces | 100.00 % / 100.00 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % |
 
 ## Descriptions d’ordres par empire
 
@@ -74,13 +74,13 @@ Les neuf langues et leurs volumes par domaine sont détaillés dans `tableau-de-
 | khalija | 313 | 310 | 310 | 229 |
 | narco | 312 | 311 | 310 | 229 |
 | republic | 397 | 395 | 395 | 394 |
-| soviet | 355 | 355 | 355 | 354 |
+| soviet | 356 | 356 | 356 | 354 |
 
 Les descriptions communes sont présentes dans plusieurs empires : ne pas additionner ces lignes. Une formule chiffrée inchangée peut être légitimement identique ; elle reste à vérifier si elle ne figure pas dans les sigles neutres. Chaque langue est détaillée dans le JSON.
 
 ## Catalogue central et autres ressources
 
-Le catalogue central expose **3410 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4359 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
+Le catalogue central expose **3428 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4377 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
 
 | Langue | Clés absentes | Variables incohérentes |
 |---|---:|---:|
@@ -99,7 +99,7 @@ Le catalogue central expose **3410 clés françaises**. Les tables locales, guid
 | Priorité | Textes candidats non entièrement prouvés | Usage |
 |---|---:|---|
 | 1 | 187 | Compréhension d’un ordre, d’un refus ou entrée dans le jeu |
-| 2 | 9898 | Commandes et messages de gameplay |
+| 2 | 9882 | Commandes et messages de gameplay |
 | 3 | 2936 | Compréhension d’une mission ou interaction narrative |
 | 4 | 2067 | Description ou repère de lieu |
 

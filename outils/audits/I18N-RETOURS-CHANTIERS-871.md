@@ -50,3 +50,17 @@ Les réponses serveur variables (y compris la notification conditionnelle
 sont pas déclarés traduits par ce lot. Les règles de reprise existantes ne sont ni
 corrigées ni réinterprétées. Compte authentifié, téléphone physique et relecture
 linguistique native non vérifiés. Mesures, CI et production : relais et PR.
+
+## Mesure contrôlée
+
+Même extracteur sur main `2c199d5` et le code du lot : corpus inchangé, **7 561
+textes et 50 628 mots source**, zéro erreur d’extraction. Dans chacune des huit
+langues étrangères : **+17 textes uniques et +142 mots source entièrement
+raccordés** ; **18 ressources nouvelles / 144 mots source**. Une ressource présente
+n’est pas assimilée à une preuve globale de raccordement de toutes ses occurrences.
+En anglais, 968 → 985 textes et 11 829 → 11 971 mots raccordés ; taux mots
+23,36 → 23,65 % du corpus statique, pas de tout le jeu.
+
+70 contrôles Node de non-régression et un banc Chromium verts. Le JSON `-preuve.json`
+référence le commit du code dont l’AST est comparé intégralement à l’original ; les
+futurs travaux métier ne sont pas interdits par une comparaison figée au code courant.
