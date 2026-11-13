@@ -6981,6 +6981,7 @@ const BUILDINGS = {
       salle_reception: {
         name: "Salle de Réception",
         imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
+        imageUrl: "images/ambassades-salle-reception.webp",
         desc: "Une salle commune aux trois ambassades, réservée aux réceptions diplomatiques organisées par les ambassadeurs.",
         persons: [],
         orders: []
