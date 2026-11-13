@@ -23,7 +23,7 @@
    "voler_archives_ecoute":"Voler un rapport dans les archives","consulter_archives_ecoute":"Consulter les archives (habilitation)","sovarka_habilitations":"Habilitations aux archives d’écoute","maison_habitant":"Parler à l’habitant",
    "trinquer_habitant":"Trinquer avec l’habitant","ferme_renne":"Abattre et dépecer un renne","ferme_traire":"Traire les rennes",
    "foret_enfoncer":"S’enfoncer dans la forêt","foret_couper":"Couper du bois","foret_revenir":"Revenir à l’entrée de la forêt",
-   "ferme_legumes":"Extraire des légumes","ferme_oeufs":"Ramasser les œufs","ferme_poulet":"Abattre un poulet","ferme_lapin":"Abattre un lapin"
+   "ferme_legumes":"Extraire des légumes","ferme_oeufs":"Ramasser les œufs","ferme_vaches":"Traire les vaches","kolkhoze_caisse":"Caisse commune","ferme_poulet":"Abattre un poulet","ferme_lapin":"Abattre un lapin"
   },
   "en":{
    "dormir":"Sleep","tresor_ecouter_guide":"Listen to the guide",
@@ -38,7 +38,7 @@
    "voler_archives_ecoute":"Steal a report from the archives","consulter_archives_ecoute":"Consult the archives (clearance)","sovarka_habilitations":"Clearances for the listening archives","maison_habitant":"Talk to the resident",
    "trinquer_habitant":"Drink with the resident","ferme_renne":"Slaughter and skin a reindeer","ferme_traire":"Milk the reindeer",
    "foret_enfoncer":"Venture deeper into the forest","foret_couper":"Cut wood","foret_revenir":"Return to the forest edge",
-   "ferme_legumes":"Dig up vegetables","ferme_oeufs":"Collect the eggs","ferme_poulet":"Slaughter a chicken","ferme_lapin":"Slaughter a rabbit"
+   "ferme_legumes":"Dig up vegetables","ferme_oeufs":"Collect the eggs","ferme_vaches":"Milk the cows","kolkhoze_caisse":"Common box","ferme_poulet":"Slaughter a chicken","ferme_lapin":"Slaughter a rabbit"
   },
   "es":{
    "dormir":"Dormir","tresor_ecouter_guide":"Escuchar al guía",
@@ -53,7 +53,7 @@
    "voler_archives_ecoute":"Robar un informe de los archivos","consulter_archives_ecoute":"Consultar los archivos (habilitación)","sovarka_habilitations":"Habilitaciones para los archivos de escucha","maison_habitant":"Hablar con el habitante",
    "trinquer_habitant":"Brindar con el habitante","ferme_renne":"Sacrificar y desollar un reno","ferme_traire":"Ordeñar los renos",
    "foret_enfoncer":"Adentrarse en el bosque","foret_couper":"Cortar leña","foret_revenir":"Volver a la entrada del bosque",
-   "ferme_legumes":"Sacar verduras","ferme_oeufs":"Recoger los huevos","ferme_poulet":"Sacrificar un pollo","ferme_lapin":"Sacrificar un conejo"
+   "ferme_legumes":"Sacar verduras","ferme_oeufs":"Recoger los huevos","ferme_vaches":"Ordeñar las vacas","kolkhoze_caisse":"Caja común","ferme_poulet":"Sacrificar un pollo","ferme_lapin":"Sacrificar un conejo"
   },
   "zh-TW":{
    "dormir":"睡覺","tresor_ecouter_guide":"聆聽導覽員",
@@ -68,7 +68,7 @@
    "voler_archives_ecoute":"從檔案室偷一份報告","consulter_archives_ecoute":"查閱檔案（許可）","sovarka_habilitations":"監聽檔案查閱許可","maison_habitant":"與住戶交談",
    "trinquer_habitant":"與住戶乾杯","ferme_renne":"宰殺並剝皮一頭馴鹿","ferme_traire":"擠馴鹿奶",
    "foret_enfoncer":"深入森林","foret_couper":"砍柴","foret_revenir":"回到森林入口",
-   "ferme_legumes":"採收蔬菜","ferme_oeufs":"撿雞蛋","ferme_poulet":"宰一隻雞","ferme_lapin":"宰一隻兔子"
+   "ferme_legumes":"採收蔬菜","ferme_oeufs":"撿雞蛋","ferme_vaches":"擠牛奶","kolkhoze_caisse":"公共儲物箱","ferme_poulet":"宰一隻雞","ferme_lapin":"宰一隻兔子"
   },
   "ru":{
    "dormir":"Спать","tresor_ecouter_guide":"Послушать экскурсовода",
@@ -83,7 +83,7 @@
    "voler_archives_ecoute":"Украсть отчёт из архива","consulter_archives_ecoute":"Изучить архивы (допуск)","sovarka_habilitations":"Допуски к архивам прослушки","maison_habitant":"Поговорить с жильцом",
    "trinquer_habitant":"Выпить с жильцом","ferme_renne":"Забить и освежевать оленя","ferme_traire":"Подоить оленей",
    "foret_enfoncer":"Углубиться в лес","foret_couper":"Нарубить дров","foret_revenir":"Вернуться к опушке леса",
-   "ferme_legumes":"Собрать овощи","ferme_oeufs":"Собрать яйца","ferme_poulet":"Забить курицу","ferme_lapin":"Забить кролика"
+   "ferme_legumes":"Собрать овощи","ferme_oeufs":"Собрать яйца","ferme_vaches":"Подоить коров","kolkhoze_caisse":"Общий ящик","ferme_poulet":"Забить курицу","ferme_lapin":"Забить кролика"
   },
   "ko":{
    "dormir":"잠자기","tresor_ecouter_guide":"해설사 이야기 듣기",
@@ -98,7 +98,7 @@
    "voler_archives_ecoute":"기록보관소에서 보고서 훔치기","consulter_archives_ecoute":"기록 열람 (허가)","sovarka_habilitations":"감청 기록 열람 허가","maison_habitant":"주민과 이야기하기",
    "trinquer_habitant":"주민과 건배하기","ferme_renne":"순록을 도축하고 가죽 벗기기","ferme_traire":"순록 젖 짜기",
    "foret_enfoncer":"숲 깊이 들어가기","foret_couper":"나무 베기","foret_revenir":"숲 입구로 돌아가기",
-   "ferme_legumes":"채소 캐기","ferme_oeufs":"달걀 줍기","ferme_poulet":"닭 잡기","ferme_lapin":"토끼 잡기"
+   "ferme_legumes":"채소 캐기","ferme_oeufs":"달걀 줍기","ferme_vaches":"소 젖 짜기","kolkhoze_caisse":"공동 상자","ferme_poulet":"닭 잡기","ferme_lapin":"토끼 잡기"
   },
   "ar":{
    "dormir":"النوم","tresor_ecouter_guide":"الاستماع إلى المرشد",
@@ -113,7 +113,7 @@
    "voler_archives_ecoute":"سرقة تقرير من الأرشيف","consulter_archives_ecoute":"الاطلاع على الأرشيف (تصريح)","sovarka_habilitations":"تصاريح أرشيف التنصت","maison_habitant":"التحدث إلى الساكن",
    "trinquer_habitant":"شرب نخب مع الساكن","ferme_renne":"ذبح رنّة وسلخها","ferme_traire":"حلب الرنّة",
    "foret_enfoncer":"التوغل في الغابة","foret_couper":"قطع الحطب","foret_revenir":"العودة إلى مدخل الغابة",
-   "ferme_legumes":"قلع الخضروات","ferme_oeufs":"جمع البيض","ferme_poulet":"ذبح دجاجة","ferme_lapin":"ذبح أرنب"
+   "ferme_legumes":"قلع الخضروات","ferme_oeufs":"جمع البيض","ferme_vaches":"حلب الأبقار","kolkhoze_caisse":"الصندوق المشترك","ferme_poulet":"ذبح دجاجة","ferme_lapin":"ذبح أرنب"
   },
   "pt-BR":{
    "dormir":"Dormir","tresor_ecouter_guide":"Ouvir o guia",
@@ -128,7 +128,7 @@
    "voler_archives_ecoute":"Roubar um relatório dos arquivos","consulter_archives_ecoute":"Consultar os arquivos (habilitação)","sovarka_habilitations":"Habilitações aos arquivos de escuta","maison_habitant":"Falar com o morador",
    "trinquer_habitant":"Brindar com o morador","ferme_renne":"Abater e esfolar uma rena","ferme_traire":"Ordenhar as renas",
    "foret_enfoncer":"Embrenhar-se na floresta","foret_couper":"Cortar lenha","foret_revenir":"Voltar à entrada da floresta",
-   "ferme_legumes":"Colher legumes","ferme_oeufs":"Recolher os ovos","ferme_poulet":"Abater uma galinha","ferme_lapin":"Abater um coelho"
+   "ferme_legumes":"Colher legumes","ferme_oeufs":"Recolher os ovos","ferme_vaches":"Ordenhar as vacas","kolkhoze_caisse":"Caixa comum","ferme_poulet":"Abater uma galinha","ferme_lapin":"Abater um coelho"
   },
   "de":{
    "dormir":"Schlafen","tresor_ecouter_guide":"Dem Führer zuhören",
@@ -143,7 +143,7 @@
    "voler_archives_ecoute":"Einen Bericht aus dem Archiv stehlen","consulter_archives_ecoute":"Archive einsehen (Freigabe)","sovarka_habilitations":"Freigaben für die Abhörarchive","maison_habitant":"Mit dem Bewohner sprechen",
    "trinquer_habitant":"Mit dem Bewohner anstoßen","ferme_renne":"Ein Rentier schlachten und häuten","ferme_traire":"Die Rentiere melken",
    "foret_enfoncer":"Tiefer in den Wald gehen","foret_couper":"Holz hacken","foret_revenir":"Zum Waldrand zurückkehren",
-   "ferme_legumes":"Gemüse ernten","ferme_oeufs":"Die Eier einsammeln","ferme_poulet":"Ein Huhn schlachten","ferme_lapin":"Ein Kaninchen schlachten"
+   "ferme_legumes":"Gemüse ernten","ferme_oeufs":"Die Eier einsammeln","ferme_vaches":"Die Kühe melken","kolkhoze_caisse":"Gemeinschaftskiste","ferme_poulet":"Ein Huhn schlachten","ferme_lapin":"Ein Kaninchen schlachten"
   }
  };
  const variants={

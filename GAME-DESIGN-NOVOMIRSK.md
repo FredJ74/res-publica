@@ -977,3 +977,9 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 
 ## Maisons : durée du service demandé (Fred, 14/11/2026, 00 h 10) — codé
 - Le service que l'habitant demande à un PJ **reste valable 24 heures** pour ce PJ, à partir de sa première visite (même si le service du jour change à minuit pour les autres). Une fois rendu, la demande est effacée. Une hospitalité par jour, inchangé. Migration `20261114001500_sovarka_maison_demande_24h` (registre `sovarka_maison_demande_24h_20261114`), appliquée.
+
+## Kolkhoze S. M. Kirov de Krasnov (Fred, 14/11/2026, 00 h 21 – 00 h 31) — codé (feu vert 00 h 31)
+- Bâtiment existant `ferme-krasnov` (présidente PNJ Galina Belova) repris ; image de Fred pour la cour (poulailler, clapiers, potager, serre, étable « Колхоз им. С. М. Кирова »). Même mécanique que les jardins ouvriers : on travaille, on ne gagne pas d'argent mais des matières premières, et une caisse commune où donner et prendre.
+- **Travaux, 1 PA chacun, sans limite par jour** : ramasser les œufs (**2 unités = 2 × 3 œufs**) ; traire les vaches (**2 laitages**, nouveau) ; ramasser les légumes (**5 fruits et légumes**) — quantités corrigées par Fred à 00 h 30 ; tuer un lapin (1 viande + 1 tissus et peaux) ; **abattre un poulet gardé, passé à 1 PA** (2 viandes).
+- **Caisse commune** : on peut y déposer et y prendre **toute matière première**. Chaque article donné rapporte **+2 popularité**, **plafonné à +6 par jour et par joueur** (contre le va-et-vient donner/reprendre). Tout PJ présent peut se servir, **5 articles par jour au plus**.
+- **Codé le 14/11/2026** : migration `20261114004000_kolkhoze_krasnov_caisse` (registre `kolkhoze_krasnov_caisse_20261114`) ; caisse `kolkhoze_caisse` (matières de `ressources_economie` de source « livraison », plus les œufs) et quotas `kolkhoze_caisse_quotas` par jour de Sovarka ; RPC `kolkhoze_caisse_lire`, `kolkhoze_caisse_agir`. Ordre « Caisse commune » (0 PA) dans la cour.

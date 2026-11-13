@@ -47,7 +47,7 @@ function ordresParPays() {
 
 test('113 lignes de neuf colonnes non vides, sans guillemet droit ni balise', () => {
   const lignes = I('soviet', 'fr').lignes;
-  assert.equal(lignes.length, 113); // +2 le 13/11 : habilitations et consultation des archives d’écoute
+  assert.equal(lignes.length, 117); // +2 le 13/11 : habilitations et consultation des archives d’écoute ; +4 le 14/11 : kolkhoze
   for (const l of lignes) {
     assert.equal(l.length, 9, l[0]);
     for (const v of l) assert.ok(v.trim(), l[0]);

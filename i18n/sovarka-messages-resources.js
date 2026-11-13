@@ -163,6 +163,7 @@ const texts={
     "ft_traire": "Traire les rennes",
     "ft_legumes": "Extraire des légumes",
     "ft_oeufs": "Ramasser les œufs",
+    "ft_vaches": "Traire les vaches",
     "ft_poulet": "Abattre un poulet",
     "ft_lapin": "Abattre un lapin"
   },
@@ -323,6 +324,7 @@ const texts={
     "ft_traire": "Milk the reindeer",
     "ft_legumes": "Harvest vegetables",
     "ft_oeufs": "Collect the eggs",
+    "ft_vaches": "Milk the cows",
     "ft_poulet": "Slaughter a chicken",
     "ft_lapin": "Slaughter a rabbit"
   },
@@ -483,6 +485,7 @@ const texts={
     "ft_traire": "Ordeñar los renos",
     "ft_legumes": "Cosechar verduras",
     "ft_oeufs": "Recoger los huevos",
+    "ft_vaches": "Ordeñar las vacas",
     "ft_poulet": "Sacrificar un pollo",
     "ft_lapin": "Sacrificar un conejo"
   },
@@ -643,6 +646,7 @@ const texts={
     "ft_traire": "擠馴鹿奶",
     "ft_legumes": "採收蔬菜",
     "ft_oeufs": "撿雞蛋",
+    "ft_vaches": "擠牛奶",
     "ft_poulet": "宰一隻雞",
     "ft_lapin": "宰一隻兔子"
   },
@@ -803,6 +807,7 @@ const texts={
     "ft_traire": "Подоить оленей",
     "ft_legumes": "Собрать овощи",
     "ft_oeufs": "Собрать яйца",
+    "ft_vaches": "Подоить коров",
     "ft_poulet": "Забить курицу",
     "ft_lapin": "Забить кролика"
   },
@@ -963,6 +968,7 @@ const texts={
     "ft_traire": "순록 젖 짜기",
     "ft_legumes": "채소 수확하기",
     "ft_oeufs": "달걀 줍기",
+    "ft_vaches": "소 젖 짜기",
     "ft_poulet": "닭 잡기",
     "ft_lapin": "토끼 잡기"
   },
@@ -1123,6 +1129,7 @@ const texts={
     "ft_traire": "حلب الرنة",
     "ft_legumes": "جني الخضار",
     "ft_oeufs": "جمع البيض",
+    "ft_vaches": "حلب الأبقار",
     "ft_poulet": "ذبح دجاجة",
     "ft_lapin": "ذبح أرنب"
   },
@@ -1283,6 +1290,7 @@ const texts={
     "ft_traire": "Ordenhar as renas",
     "ft_legumes": "Colher legumes",
     "ft_oeufs": "Recolher os ovos",
+    "ft_vaches": "Ordenhar as vacas",
     "ft_poulet": "Abater um frango",
     "ft_lapin": "Abater um coelho"
   },
@@ -1443,6 +1451,7 @@ const texts={
     "ft_traire": "Die Rentiere melken",
     "ft_legumes": "Gemüse ernten",
     "ft_oeufs": "Die Eier einsammeln",
+    "ft_vaches": "Die Kühe melken",
     "ft_poulet": "Ein Huhn schlachten",
     "ft_lapin": "Ein Kaninchen schlachten"
   }
