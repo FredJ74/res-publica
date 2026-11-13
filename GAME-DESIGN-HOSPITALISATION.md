@@ -84,3 +84,11 @@ Correctif serveur : `migrations/20261101171000_hospitalisation_pa0.sql`
 ## Soins sans trace — décision du 13 novembre 2026
 
 Le soin `soins_discrets` en clinique privée est une prestation confidentielle : son objet est de ne laisser **aucun dossier médical exploitable** ni de **fuite automatique vers la presse**. Fred a explicitement décidé de **supprimer le malus de −2 Discrétion**, contradictoire avec cette prestation. Le reste est inchangé : **1 PA, 800 FR/PSK, taux serveur 95 %, effet de base +30 Santé** (variations liées au moteur de succès). La modification serveur supprime uniquement la clé `dis` dans `public.ordres_generiques.effets`, sans altérer le moteur de résultat ni les événements médicaux. Elle ne crée pas de mécanisme de confidentialité supplémentaire : toute future création d'un dossier médical ou source de fuite doit respecter cette interdiction.
+
+## Chambres des hôpitaux de Sovarka (décision de Fred, 13/11/2026)
+
+- Les hôpitaux publics de Sovarka (Novomirsk, Starovka, Krasnov) ont une **chambre**. Le patient hospitalisé y est conduit directement : il arrive à 0 PA et ne peut pas bouger.
+- Dans la chambre : **Dormir** (récupération selon les règles ci-dessus) et **Prendre le repas de l'hôpital** (1 PA, +2 PA au prochain sommeil, à partir de J1).
+- Starovka et Krasnov utilisent pour l'instant l'image de la chambre de Novomirsk.
+- **Pas encore en Républia** : Fred veut être présent quand on le fera.
+- Migration `20261113020000_hopitaux_sovarka_chambre` (registre `hopitaux_sovarka_chambre_20261113020000`).

@@ -2089,7 +2089,9 @@ const WORLD = {
               desc: "Une chambre modeste, propre et chauffée. Le mobilier est ancien, mais les draps sont impeccables.",
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_chambre.webp',
               persons: [],
-              orders: []
+              // Le patient hospitalisé arrive ici (à 0 PA il ne peut pas bouger) : Dormir et repas
+              // sur place (décision de Fred, 13/11/2026). Mêmes ordres et règles que le socle.
+              orders: CHAMBRE_HOPITAL_ORDRES_SOVARKA()
             }
           }
         },
@@ -10808,6 +10810,35 @@ function montantDansTexte(texte, ancien, nouveau) {
   if (typeof texte !== 'string' || ancien === nouveau) return texte;
   return texte.replace(new RegExp('\\b' + ancien + '\\b', 'g'), String(nouveau));
 }
+
+// CHAMBRES DES HÔPITAUX DE SOVARKA (décision de Fred, 13/11/2026) : le patient hospitalisé est conduit
+// dans la chambre (migration 20261113020000) et y trouve Dormir et le repas de l'hôpital. Novomirsk
+// (pièce ajoutée le 12/11) ; Starovka et Krasnov reçoivent la même chambre, image de Novomirsk.
+// Pas en Républia pour le moment (Fred veut être présent).
+function CHAMBRE_HOPITAL_ORDRES_SOVARKA() {
+  return [
+    {fn:'dormir', label:'Dormir', pa:0, cost:0, type:'legal', icon:'ti-moon', successRate:100, desc:'Dormir dans votre lit d\'hôpital. La récupération suit les règles de l\'hospitalisation.'},
+    {fn:'repas_hopital', label:'Prendre le repas de l\'hôpital', pa:1, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Réservé aux patients hospitalisés, une fois par jour. +2 PA à votre prochain sommeil.'}
+  ];
+}
+(function () {
+  for (const ville of ['ville_a', 'ville_b']) {
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    if (!cite) continue;
+    cite.buildingContext = cite.buildingContext || {};
+    const ctx = cite.buildingContext['dispensaire-public-v'] = cite.buildingContext['dispensaire-public-v'] || {};
+    ctx.roomsExtra = ctx.roomsExtra || {};
+    ctx.roomsExtra.chambre = {
+      name: "Chambre d'hôpital",
+      image: '🛏️',
+      imageBg: 'linear-gradient(135deg,#13201e,#29352f)',
+      desc: "Une chambre modeste, propre et chauffée. Le mobilier est ancien, mais les draps sont impeccables.",
+      imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_chambre.webp',
+      persons: [],
+      orders: CHAMBRE_HOPITAL_ORDRES_SOVARKA()
+    };
+  }
+})();
 
 // STAROVKA ET KRASNOV : TEXTES DU GABARIT DE MONTROUGE (Claude, 09/11/2026, audit des deux villes).
 // Les batiments copies de Montrouge affichaient encore « de Montrouge », « Vers Luthecia ou
