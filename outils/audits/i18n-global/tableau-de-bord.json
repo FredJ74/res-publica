@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "baseCommit": "c299c4c611ca86bced10e3857e6e8e8bde193e9d",
-  "methodHash": "0e38b6ff007f6746e8f12195ba3aa1dea8f656c8aff07c87b57fbacb0dbf59c0",
-  "corpusHash": "cb75f5fb168570af0816151346a7c4261435317652f8d111f3d6acf2c9232b68",
+  "baseCommit": "a1ee1a163eb5d10cc6b3a4425284345847f8205c",
+  "methodHash": "39486c01ce22ff8686c2152151e68ad709561279617269a94afe5c5f9a284fb5",
+  "corpusHash": "532d1a1541000139ca4f946959c634861eea04b7ea67e4ea121978d8dbf4e2fe",
   "locales": [
     "fr",
     "en",
@@ -140,8 +140,8 @@
       "words": 63551
     },
     "server-source-review": {
-      "texts": 867,
-      "words": 13213
+      "texts": 868,
+      "words": 13221
     },
     "ai-context-not-output": {
       "texts": 1279,
@@ -149,8 +149,8 @@
     }
   },
   "measuredScope": "Textes uniques des chemins de rendu statiques identifiés ; ni exhaustivité des états du jeu ni validation linguistique.",
-  "identifiedUniqueTexts": 17403,
-  "occurrences": 32274,
+  "identifiedUniqueTexts": 17404,
+  "occurrences": 32275,
   "perLanguage": {
     "fr": {
       "texts": 7666,
@@ -2054,7 +2054,7 @@
   ],
   "files": {
     "javascriptHTML": 215,
-    "sql": 495,
+    "sql": 496,
     "dynamicSites": 8710
   },
   "artifacts": [

@@ -1,10 +1,10 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `c299c4c611ca86bced10e3857e6e8e8bde193e9d`. Empreinte du corpus : `cb75f5fb168570af0816151346a7c4261435317652f8d111f3d6acf2c9232b68`.
+Base analysée : `a1ee1a163eb5d10cc6b3a4425284345847f8205c`. Empreinte du corpus : `532d1a1541000139ca4f946959c634861eea04b7ea67e4ea121978d8dbf4e2fe`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 
-**17403 textes distincts repérés**, 32274 occurrences dans les sources. 215 fichiers JS/HTML et 495 fichiers SQL analysés.
+**17404 textes distincts repérés**, 32275 occurrences dans les sources. 215 fichiers JS/HTML et 496 fichiers SQL analysés.
 
 ## Périmètre et certitude
 
@@ -12,7 +12,7 @@ Base analysée : `c299c4c611ca86bced10e3857e6e8e8bde193e9d`. Empreinte du corpus
 |---|---:|---:|
 | static-render-path | 7666 | 50334 |
 | candidate-review | 7591 | 63551 |
-| server-source-review | 867 | 13213 |
+| server-source-review | 868 | 13221 |
 | ai-context-not-output | 1279 | 53942 |
 
 Les taux suivants portent seulement sur `static-render-path` : un chemin de rendu est identifié, sans preuve que chaque état soit accessible en session. Les autres classes restent visibles, hors dénominateur. Une même chaîne est dédupliquée globalement ; ses occurrences gardent leur contexte. Une seule occurrence non prouvée suffit à empêcher sa certification complète.
@@ -99,7 +99,7 @@ Le catalogue central expose **3285 clés françaises**. Les tables locales, guid
 | Priorité | Textes candidats non entièrement prouvés | Usage |
 |---|---:|---|
 | 1 | 312 | Compréhension d’un ordre, d’un refus ou entrée dans le jeu |
-| 2 | 9997 | Commandes et messages de gameplay |
+| 2 | 9998 | Commandes et messages de gameplay |
 | 3 | 2963 | Compréhension d’une mission ou interaction narrative |
 | 4 | 2051 | Description ou repère de lieu |
 

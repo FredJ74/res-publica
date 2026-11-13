@@ -169,6 +169,8 @@ function build(root=ROOT, options={}) {
   const byText=new Map();for(const r of regs){const k=normalize(r.fr);if(!byText.has(k))byText.set(k,[]);byText.get(k).push(r);}
   const byKey=new Map();for(const r of regs.filter(r=>r.format==='central'))byKey.set(r.key,r);
   const helperKeys=new Map();
+  sandbox.RP_I18N_GAME_ENABLED=true;
+  sandbox.RPPlateauI18n={language:()=>sandbox.__auditLocale||'fr'};
   for(const file of catalogFiles){
     const localKeys=new Map();
     walk(trees.get(file),n=>{if(n.type!=='ObjectExpression')return;
@@ -179,8 +181,25 @@ function build(root=ROOT, options={}) {
       }
     });
     // Only exported translator functions which read the French map by key qualify.
-    const functions=new Set();walk(trees.get(file),n=>{if(n.type==='FunctionDeclaration'&&/\.fr\s*\[\s*(?:key|cle)\s*\]/.test(contents.get(file).slice(n.start,n.end)))functions.add(n.id?.name);});
-    walk(trees.get(file),n=>{if(n.type==='AssignmentExpression'&&n.left.type==='MemberExpression'&&/^texte/i.test(prop(n.left.property)||'')&&functions.has(n.right.name)&&localKeys.size)helperKeys.set(prop(n.left.property),localKeys);});
+    const functions=new Set();walk(trees.get(file),n=>{if(n.type!=='FunctionDeclaration')return;
+      const body=contents.get(file).slice(n.start,n.end);
+      if(/\.fr\s*\[\s*(?:key|cle)\s*\]/.test(body)&&/\[(?:locale|lang|langue)\]\??\.?\[\s*(?:key|cle)\s*\]/.test(body)&&/language\s*\?*\.?\(/.test(body))functions.add(n.id?.name);
+    });
+    walk(trees.get(file),n=>{if(n.type!=='AssignmentExpression'||n.left.type!=='MemberExpression'||!/^texte/i.test(prop(n.left.property)||'')||!functions.has(n.right.name)||!localKeys.size)return;
+      const name=prop(n.left.property),verified=new Map();
+      if(typeof sandbox[name]!=='function')return;
+      for(const [key,r]of localKeys){const bindings={};
+        sandbox.__auditHelper=name;sandbox.__auditKey=key;
+        sandbox.__auditVars=Object.fromEntries([...r.fr.matchAll(/\{\{\s*(\w+)\s*\}\}|\{(\w+)\}/g)].map(m=>[m[1]||m[2],m[0]]));
+        for(const l of LOCALES.slice(1)){sandbox.__auditLocale=l;
+          try{const actual=vm.runInContext('window[window.__auditHelper](window.__auditKey,window.__auditVars)',context,{timeout:1000});
+            if(actual===r.translations[l]&&actual!==r.fr)bindings[l]=r.id;
+          }catch{/* Not a verified output for this locale. Keep the resource as a candidate. */}
+        }
+        verified.set(key,{registration:r,bindings});
+      }
+      helperKeys.set(name,verified);
+    });
   }
   // Recognize transparent presentation wrappers without executing them.
   let helperChanged=true;
@@ -267,8 +286,8 @@ function build(root=ROOT, options={}) {
       // Key usages add a source occurrence directly; a literal key is never an untranslated text.
       const reg=byKey.get(raw);
       if(reg&&translated&&call?.arguments?.[0]===n){record(reg.fr,{file,line,kind:'explicit-key',certainty:loaded.has(file)?'static-render-path':'unlinked-source',domain:domain(file,reg.key),key:raw});return;}
-      const helperReg=helperKeys.get(callName)?.get(raw);
-      if(helperReg&&call?.arguments?.[0]===n){record(helperReg.fr,{file,line,kind:'explicit-helper-key',certainty:loaded.has(file)?'static-render-path':'unlinked-source',domain:domain(file,helperReg.key),key:null,binding:helperReg.id});return;}
+      const helper=helperKeys.get(callName)?.get(raw),helperReg=helper?.registration;
+      if(helperReg&&call?.arguments?.[0]===n){record(helperReg.fr,{file,line,kind:'explicit-helper-key',certainty:loaded.has(file)?'static-render-path':'unlinked-source',domain:domain(file,helperReg.key),key:null,bindings:helper.bindings});return;}
       if(/console\.(log|warn|error|info|debug)/.test(source.slice(call?.start||0,call?.callee?.end||0)))return;
       if(!visibleField&&!sink&&!/[<][a-z]/i.test(raw)&&!(human(raw)&&words(raw)>=4&&/[ àâäéèêëîïôöùûüç’']/i.test(raw)))return;
       const server=file.startsWith('api/');
@@ -314,7 +333,7 @@ function build(root=ROOT, options={}) {
       const visible=e.occurrences.filter(o=>o.certainty==='static-render-path');
       const usable=r=>r&&['available-unreviewed','neutral','source'].includes(r.status[l]);
       const available=visible.some(o=>o.resources.some(id=>usable(regById.get(id)))) || e.occurrences.some(o=>o.resources.some(id=>usable(regById.get(id))));
-      const wired=visible.length>0&&visible.every(o=>usable(regById.get(o.resolverBindings?.[l]||o.binding)));
+      const wired=visible.length>0&&visible.every(o=>usable(regById.get(o.resolverBindings?.[l]||o.bindings?.[l]||o.binding)));
       e.locales[l]=l==='fr'?'source':wired?'wired-unreviewed':available?'resource-review-binding':'no-confirmed-resource';
     }
   }

@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-13",
+  "mainInitial": "c299c4c611ca86bced10e3857e6e8e8bde193e9d",
+  "mainRebase": "36bdfa46d97726d2698b624bc0f24e10e343fbd4",
+  "tests": {
+    "extracteur": {
+      "tests": 16,
+      "pass": 16,
+      "fail": 0
+    },
+    "existantsBranche": {
+      "tests": 15,
+      "pass": 15,
+      "fail": 0
+    },
+    "existantsMainInitialEtRebase": {
+      "tests": 15,
+      "pass": 15,
+      "fail": 0
+    },
+    "ssmMainEtBranche": {
+      "tests": 8,
+      "pass": 5,
+      "fail": 3,
+      "sameFailures": [
+        "les quatre scripts SSM restent versionnés après les autres chantiers",
+        "écran : succès uniquement si serveur confirme ; aucun mail inventé en cas de refus",
+        "Besoin d’aide : orientation libre, quatre rubriques et portrait récupéré depuis le PNJ"
+      ]
+    }
+  },
+  "reproductibilite": {
+    "artefactsIdentiques": 7,
+    "variationsNulles": true
+  },
+  "supabase": "SELECT agrégats uniquement, aucun contenu privé",
+  "perimetre": "Aucun fichier métier, catalogue, migration ou asset modifié",
+  "nonVerifie": [
+    "Parcours exhaustifs en session authentifiée",
+    "Relecture linguistique native",
+    "Texte incrusté dans les images",
+    "Volumes de réponses IA et de contenus libres"
+  ]
+}

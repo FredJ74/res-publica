@@ -67,10 +67,17 @@ test('les tables par langue hors du catalogue central sont recensées',t=>{
 });
 test('traducteur exporté et wrapper transparents reconnus sans importer le métier',t=>{
   const map=Object.fromEntries(audit.LOCALES.map(l=>[l,{hello:l==='fr'?'Un guide très bavard':l+' A talkative guide'}]));
-  const {dir}=fixture(t,{'i18n/guide-resources.js':`(function(global){const texts=${JSON.stringify(map)}; function text(key){return texts.fr[key];} global.texteGuide=text;})(window);`,
+  const {dir}=fixture(t,{'i18n/guide-resources.js':`(function(global){const texts=${JSON.stringify(map)}; function text(key){const original=texts.fr[key];const locale=global.RPPlateauI18n?.language?.()||'fr';return texts[locale]?.[key]||original;} global.texteGuide=text;})(window);`,
     'index.html':'<script src="i18n/resources.js"></script><script src="i18n/guide-resources.js"></script><script src="plateau-test.js"></script>',
     'plateau-test.js':"function guideTexte(key){return texteGuide(key);} el.textContent=guideTexte('hello');"});
   const r=audit.build(dir);assert.equal(r.entries.find(e=>e.text==='Un guide très bavard').locales.ru,'wired-unreviewed');
+});
+test('un faux traducteur renvoyant toujours le français ne constitue pas une preuve',t=>{
+  const map=Object.fromEntries(audit.LOCALES.map(l=>[l,{hello:l==='fr'?'Un guide très bavard':l+' A talkative guide'}]));
+  const {dir}=fixture(t,{'i18n/guide-resources.js':`(function(global){const texts=${JSON.stringify(map)}; function text(key){return texts.fr[key];} global.texteGuide=text;})(window);`,
+    'index.html':'<script src="i18n/resources.js"></script><script src="i18n/guide-resources.js"></script><script src="plateau-test.js"></script>',
+    'plateau-test.js':"el.textContent=texteGuide('hello');"});
+  const r=audit.build(dir);assert.ok(!r.entries.some(e=>e.text==='Un guide très bavard'&&e.locales.en==='wired-unreviewed'));
 });
 test('HTML concaténé : texte et accessibilité conservés, balises/CSS exclus',t=>{
   const {dir}=fixture(t,{'plateau-test.js':`el.innerHTML='<button title="Détails">' + nom + ' Payer</button>'; el.textContent='padding:2px;color:red';`});
