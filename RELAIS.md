@@ -15,6 +15,9 @@ Branche `chatgpt/i18n-republia-politiques-main-20261113` sur `main` incluant la 
 ### Républia — institutions, Parlement et justice, ChatGPT, 13/11/2026 (lot 2)
 Après #861 (19 descriptions politiques fusionnées et déployées), ajout de **20 descriptions supplémentaires**, soit 160 traductions étrangères nouvelles, dans le même `i18n/republia-infobulles-resources.js` (39 descriptions propres à Républia au total). Ordres nationaux, armée, élections, Assemblée, greffe, état civil et enquête. Aucun changement des mécaniques, des prix, de la localisation de Sovarka ou du moteur de rendu. Le banc existant couvre désormais les 39 sources françaises exactes de `data.js` et vérifie les neuf colonnes ainsi que la séparation des pays. **150 descriptions propres à Républia restent** après ce lot. Tests, PR, production et recette à vérifier.
 
+### Républia — locaux, services et diplomatie (ChatGPT, 13/11/2026, lot 3)
+Après #861 (19) et #863 (+20), **31 autres descriptions** exclusivement républicaines traduites dans les neuf langues, soit 248 traductions supplémentaires. Catalogue `i18n/republia-infobulles-resources.js` : **70 lignes au total** ; source exacte `data.js` préservée. Ordres des logements, entreprises et bureaux, diplomatie, municipalités, rendez-vous administratifs. Moteur, coûts, PA et RPC inchangés ; aucune incidence sur Sovarka. Banc existant élargi à 70 lignes, audit éditorial et CI dédiés. **119 descriptions propres à Républia restent à traduire** après ce lot. Tests/fusion/déploiement et recette authentifiée à vérifier.
+
 ## En cours
 
 ### Audit global de l’internationalisation — Codex, 13/11/2026
