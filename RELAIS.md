@@ -6,6 +6,9 @@ Règles : voir `AGENTS.md`.
 
 > **Rangé le 11/11/2026 (Claude)** : les chantiers terminés ont été déplacés mot pour mot dans [`RELAIS-ARCHIVE-2026-11.md`](RELAIS-ARCHIVE-2026-11.md) (chercher par mot-clé : branche, PR, migration). Garder ici seulement ce qui est en cours, attendu ou à vérifier ; un chantier fusionné passe en une ligne dans « Derniers chantiers ».
 
+### Krasnov : images de la maison de Stepan et des terrains à bâtir (Claude, 13/11/2026, nuit)
+Branche `claude/krasnov-images-maison-terrains-20261113`. Fred passe à Krasnov (Novomirsk terminé). Deux images de Fred en WebP : `images/Sovarka/Krasnov/Krasnov_maison_stepan_interieur.webp` (pièce commune de `maison-krasnov`, `imageUrl` de la pièce) et `Krasnov_terrain_a_batir.webp` (surcharge `roomOverrides.terrain.imageUrl` des terrains municipaux de `ville_b`, même illustration pour chaque terrain tant qu'il n'est pas construit ; l'image de chantier garde la priorité). Écran seul, aucune migration, aucun ordre modifié. `banc-deploiement-sobre.cjs` vert. **À vérifier en jeu** : entrer chez Stepan et sur le terrain municipal de Krasnov.
+
 ### Camion militaire de Novomirsk NAZ-66 « Bourlak » (Claude, 13/11/2026, nuit)
 Branche `claude/camion-novomirsk-code-20261113`. Migration `20261113232000_camion_militaire_novomirsk` **appliquée** (données seules : camion `camion-soviet-caserne-novomirsk-1` au corps de garde de la caserne de Novomirsk, 25 places ; destinations Starovka / Poste de Vigilance Glaciale et Krasnov / station radar). Images WebP `images/Sovarka/Novomirsk/Novomirsk_camion_NAZ66_{interieur,exterieur}.webp`. Goulag : destination à ajouter à la fin de Sovarka. **À vérifier en jeu** : un lieutenant ou capitaine de Sovarka monte au corps de garde de la caserne de Novomirsk, part vers Starovka ou Krasnov, revient.
 

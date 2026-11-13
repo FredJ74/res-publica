@@ -10709,6 +10709,8 @@ function slugPnjSovarka(nom) {
   for (const [ville, terrains] of Object.entries({ capitale: [1, 4, 5, 6, 7], ville_a: [3], ville_b: [2] })) {
     for (const n of terrains) {
       const o = surcharge(ville, 'terrain-a-batir-' + n, 'terrain');
+      // Image de Fred (13/11/2026) : même illustration pour chaque terrain de Krasnov tant qu'il n'est pas construit.
+      if (ville === 'ville_b') o.imageUrl = 'images/Sovarka/Krasnov/Krasnov_terrain_a_batir.webp';
       o.desc = 'Terrain de la commune. La mairie y fait construire, à ses frais, un immeuble collectif quand des dossiers de commerce attendent un local.';
       ajouter(o, [ordre('sovarka_terrain_municipal', 'Terrain municipal', 0, 'ti-building-community',
         'Voir l\'état du terrain : libre, immeuble en chantier ou immeuble livré.')], ordresTerrain);
@@ -11214,11 +11216,12 @@ BUILDINGS['locaux-starovka'] = {
 // accueillant offre le gite et le couvert contre un service tire chaque jour ; on peut aussi trinquer avec lui
 // (« secret contre secret », nid a ragots). Habitants proposes par Claude, a valider par Fred.
 (function () {
-  const maison = (id, nom, habitant, role, desc, pieceDesc) => {
+  const maison = (id, nom, habitant, role, desc, pieceDesc, imageUrl) => {
     BUILDINGS[id] = {
       name: nom, shortName: 'Maison', cat: 'Social', icon: 'ti-home-heart', bgColor: '#16110c', desc, imagesAVenir: true,
       rooms: { piece_maison: {
         name: 'La pièce commune', imageBg: 'linear-gradient(135deg,#16110c,#221a12)', desc: pieceDesc,
+        ...(imageUrl ? { imageUrl } : {}),
         persons: [{ name: habitant + ' (PNJ)', role, rel: 'friendly', job: 'habitant' }],
         orders: [
           { fn: 'maison_habitant', label: 'Parler à l’habitant', pa: 0, cost: 0, type: 'legal', icon: 'ti-home-heart', successRate: 100,
@@ -11236,7 +11239,9 @@ BUILDINGS['locaux-starovka'] = {
     'Un poêle ronflant, du thé au beurre sur le feu et une vieille dame bouriate qui vous fait signe de vous asseoir.');
   maison('maison-krasnov', 'Maison de Stepan', 'Stepan Kouznetsov', 'Habitant de Krasnov',
     'La maison d’un vieux kolkhozien, ses bocaux alignés sur le rebord de la fenêtre.',
-    'Une table couverte d’une toile cirée, des cornichons, du pain noir et un vieil homme ravi d’avoir de la compagnie.');
+    'Une table couverte d’une toile cirée, des cornichons, du pain noir et un vieil homme ravi d’avoir de la compagnie.',
+    // Image de Fred (13/11/2026) : la cuisine de Stepan, poêle, bocaux d'herbes et fusil au mur.
+    'images/Sovarka/Krasnov/Krasnov_maison_stepan_interieur.webp');
   const cite = v => WORLD.soviet && WORLD.soviet[v];
   if (cite('ville_a') && !cite('ville_a').buildings.includes('maison-starovka')) cite('ville_a').buildings.push('maison-starovka');
   if (cite('ville_b') && !cite('ville_b').buildings.includes('maison-krasnov')) cite('ville_b').buildings.push('maison-krasnov');
