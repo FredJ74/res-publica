@@ -72,7 +72,10 @@ function calculerPlanRues(noeudsPays, depart, options) {
       if (!dans.has(b)) continue;
       const retour = planRuesLiens(noeuds[b]).find(([, x]) => x === a);
       const sens = (regard[a] + rA) % 4;
-      const attendu = retour ? (sens + 2 - retour[0] + 8) % 4 : sens;
+      // Carrefour déclaré (`memeCarrefour`, 13/11/2026) : la seconde photo est prise du même point,
+      // appareil tourné ; elle regarde donc dans la direction du lien, ce n'est pas une rue.
+      const rotation = noeuds[a].memeCarrefour === b || noeuds[b].memeCarrefour === a;
+      const attendu = rotation ? sens : retour ? (sens + 2 - retour[0] + 8) % 4 : sens;
       if (!retour) suppose.add(b);
       if (regard[b] === undefined) { regard[b] = attendu; file.push(b); }
       else if (regard[b] !== attendu && retour) {
@@ -106,6 +109,11 @@ function calculerPlanRues(noeudsPays, depart, options) {
           }
         }
       }
+      // Déclaration explicite (13/11/2026) : la vue porte `memeCarrefour: <autre vue>` quand plus
+      // aucun lien sans retour ne permet de deviner le carrefour photographié deux fois (Novomirsk
+      // V5, dont la flèche du haut mène désormais aux Ambassades, avec retour).
+      const declare = noeuds[a] && noeuds[a].memeCarrefour === b && dans.has(b);
+      if (declare && !fusionCle.has(cleFusion(a, b))) { fusionCle.add(cleFusion(a, b)); fusions.push([b, a]); }
       if (!retour && !memeCarrefour) anomalies.push({ type: 'sans_retour', noeuds: [a, b], texte: `La rue « ${a} » mene a « ${b} », mais « ${b} » n'a pas de fleche pour revenir.` });
       const k = a < b ? a + '|' + b : b + '|' + a;
       if (cles.has(k)) continue;
