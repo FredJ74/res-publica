@@ -94,7 +94,7 @@ CI, fusion et déploiement : statut vivant dans la PR et `RELAIS.md`.
   **deux tests verts**, dont les **288 rendus**. Les essais restent isolés, sans
   compte joueur, accès réel, dépense, combat ni écriture serveur.
 - CI du commit fusionné terminée : vérifications dédiées vertes ; le banc global
-  conserve les quatre échecs initiaux, 312/316 verts. Runs comparés :
+  conserve les quatre échecs initiaux, **320/324 verts** (avant : 312/316). Runs comparés :
   `43465910660` (avant) et `43470328981` (après), mêmes intitulés d’échec.
 
 ### Fichiers modifiés
