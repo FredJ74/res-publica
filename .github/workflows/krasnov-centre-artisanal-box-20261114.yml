@@ -1,0 +1,129 @@
+name: Krasnov - atelier partage et trois box WebP
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/krasnov-centre-artisanal-box-20261114.yml'
+permissions:
+  contents: write
+jobs:
+  integrer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Convertir les deux dessins, supprimer leurs sources et raccorder les salles
+        run: |
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          root=Path('images/Sovarka/Krasnov')
+          sources=[
+            ('Atelier artisanal sovie', 'Krasnov_centre_artisanal_accueil.webp'),
+            ('Atelier industriel chaleureux', 'Krasnov_centre_artisanal_box.webp')
+          ]
+          original=[]
+          for prefix,dest in sources:
+            matches=[p for p in root.glob('*.png') if p.name.startswith(prefix)]
+            assert len(matches)==1, f'Image introuvable/ambigue {prefix}: {matches}'
+            assert not (root/dest).exists(), f'Destination deja presente: {dest}'
+            original.append((matches[0],root/dest))
+          for src,dst in original:
+            with Image.open(src) as im:
+              assert im.width >= 1200 and im.height >= 650, (src,im.size)
+              im.convert('RGB').save(dst,'WEBP',quality=92,method=6)
+              size=im.size
+            with Image.open(dst) as im:
+              assert im.format=='WEBP' and im.size==size
+            src.unlink()
+            print(f'{src.name} -> {dst.name} ({dst.stat().st_size} octets)')
+          path=Path('data.js')
+          code=path.read_text(encoding='utf-8')
+          start=code.index("    ville_b: {\n      name:'Krasnov'")
+          end=code.index('    // ZONE HISTORIQUE, PLUS DESSERVIE.',start)
+          ville=code[start:end]
+          needle="""        // Le commissariat de Krasnov hérite intégralement des pièces et ordres"""
+          assert ville.count(needle)==1
+          # Les identifiants des trois salles demeurent inchanges pour les attributions
+          # municipales existantes et les liens du moteur.
+          addition="""        // Krasnov : atelier commun, 3 box equivalentes. Attribution a la mairie
+        // (meme contrat que Novomirsk), sans location privee directe.
+        'centre-artisanal': {
+          name: 'Centre artisanal de Krasnov',
+          desc: 'Atelier partage de la commune. Trois box identiques attribues par la mairie.',
+          roomOverrides: {
+            travees: {
+              name: 'Accueil — atelier partagé',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_artisanal_accueil.webp',
+              desc: 'Machines a bois, scie circulaire, deligneuse et poste de soudure partages.',
+              persons: [
+                {name:'Stas Mironov (PNJ)', role:'Ébéniste', rel:'neutral', job:'commercant'}
+              ]
+            },
+            echoppe_facade: {
+              name: 'Box à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_artisanal_box.webp',
+              desc: 'Box artisanal à louer, 15 PSK par jour. Demande à déposer à la mairie de Krasnov ; attribution à signer chez le notaire. Personnalisation possible via Commerce Premium.',
+              locationData: { prix:15, bonusPOP:0, bonusINF:0, bonusDIS:0, label:'Box 1', tier:3 },
+              persons: []
+            },
+            atelier_milieu: {
+              name: 'Box à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_artisanal_box.webp',
+              desc: 'Box artisanal à louer, 15 PSK par jour. Demande à déposer à la mairie de Krasnov ; attribution à signer chez le notaire. Personnalisation possible via Commerce Premium.',
+              locationData: { prix:15, bonusPOP:0, bonusINF:0, bonusDIS:0, label:'Box 2', tier:3 },
+              persons: []
+            },
+            reserve_arriere: {
+              name: 'Box à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_artisanal_box.webp',
+              desc: 'Box artisanal à louer, 15 PSK par jour. Demande à déposer à la mairie de Krasnov ; attribution à signer chez le notaire. Personnalisation possible via Commerce Premium.',
+              locationData: { prix:15, bonusPOP:0, bonusINF:0, bonusDIS:0, label:'Box 3', tier:3 },
+              persons: []
+            }
+          }
+        },
+"""
+          ville=ville.replace(needle,addition+needle,1)
+          code=code[:start]+ville+code[end:]
+          path.write_text(code,encoding='utf-8')
+          PY
+      - name: Controle statique des images et du parcours local
+        run: |
+          node --check data.js
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          code=Path('data.js').read_text(encoding='utf8')
+          a=code.index("    ville_b: {\n      name:'Krasnov'")
+          b=code.index('    // ZONE HISTORIQUE, PLUS DESSERVIE.',a)
+          ville=code[a:b]
+          assert ville.count("'centre-artisanal': {")==1
+          assert ville.count("name: 'Box à louer'")==3
+          assert ville.count("imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_artisanal_box.webp'")==3
+          assert ville.count("prix:15, bonusPOP:0, bonusINF:0, bonusDIS:0")==3
+          assert ville.count("name:'Stas Mironov (PNJ)'")==1
+          for p in ['Krasnov_centre_artisanal_accueil.webp','Krasnov_centre_artisanal_box.webp']:
+            f=Path('images/Sovarka/Krasnov')/p
+            assert f.exists()
+            with Image.open(f) as im: assert im.format=='WEBP'
+          assert not list(Path('images/Sovarka/Krasnov').glob('Atelier artisanal sovie*.png'))
+          assert not list(Path('images/Sovarka/Krasnov').glob('Atelier industriel chaleureux*.png'))
+          assert Path('images/Sovarka/Krasnov/Krasnov centre artisanal.webp').exists(), 'Ne pas supprimer la facade'
+          # Le parcours commun provincial existant garde la demande en mairie, pas 'louer_local'.
+          assert "for (const [batiment, pieces] of Object.entries(locaux))" in code
+          assert "ordre('sovarka_demande_location', 'Demande de location'" in code
+          print('OK : image partagee, 3 box, unique PNJ, location municipale preservee')
+          PY
+          git diff --check
+      - name: Commit sur main
+        run: |
+          git add data.js images/Sovarka/Krasnov
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Krasnov : atelier partage, Stas Mironov et trois box identiques'
+            git push
+          fi
