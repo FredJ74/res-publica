@@ -20,6 +20,8 @@ jobs:
           node-version: '22'
       - name: Syntaxe et tests de non-régression
         run: |
+          npm install --no-save --prefix /tmp/hg-test-deps acorn@8.15.0
+          export NODE_PATH=/tmp/hg-test-deps/node_modules
           mkdir -p outils/audits
           for test_file in outils/bancs/banc-clinique-repas-nuitee.cjs outils/bancs/banc-clinique-nuitee-client.cjs outils/bancs/banc-hospitalisation-client.cjs; do
             node --test "$test_file" > /tmp/clinique-resultat.log 2>&1 || {
