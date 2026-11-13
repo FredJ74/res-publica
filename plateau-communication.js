@@ -1867,6 +1867,15 @@ async function jodiePortraitVerifierProposition() {
   const dejaContacte = mails.some(m => m.from_player === 'Jodie Moitout' &&
     (m.subject === JODIE_PORTRAIT_SUJET_PROPOSITION || m.subject === JODIE_PORTRAIT_SUJET_REFUS));
   if (dejaContacte) return;
+  // Le mail de proposition est purgé au bout de 14 jours : sans ce contrôle, un PJ déjà interviewé
+  // recevait une nouvelle proposition (signalé par Fred le 14/11/2026). Le portrait publié au forum
+  // Presse n'est jamais purgé : c'est lui qui fait foi. Échec réseau : on n'envoie rien.
+  const dejaPublie = await (async () => {
+    const titre = JODIE_PORTRAIT_TITRE_PREFIXE + state.char.name;
+    const t = await sbGet('forum_topics', `forum_id=eq.presse&author=eq.${encodeURIComponent('Jodie Moitout')}&title=eq.${encodeURIComponent(titre)}`).catch(() => null);
+    return t === null ? null : t.length > 0;
+  })();
+  if (dejaPublie !== false) return;
 
   const corps = "Bonjour,<br><br>" +
     "Jodie Moitout, journaliste à <em>L'Autruche Entravée</em> — le petit dernier du groupe La Tribune, celui qui pose les questions que les autres n'osent pas.<br><br>" +
