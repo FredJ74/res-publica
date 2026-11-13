@@ -1,10 +1,10 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `a1ee1a163eb5d10cc6b3a4425284345847f8205c`. Empreinte du corpus : `532d1a1541000139ca4f946959c634861eea04b7ea67e4ea121978d8dbf4e2fe`.
+Base analysée : `2d673bc11d59eeedfd06aba25a16c77017a0bf61`. Empreinte du corpus : `d31ca07fa12e57820ca66470d6b1c3ef3fed5a5455f55b19dfe34671abadc488`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 
-**17404 textes distincts repérés**, 32275 occurrences dans les sources. 215 fichiers JS/HTML et 496 fichiers SQL analysés.
+**17404 textes distincts repérés**, 32275 occurrences dans les sources. 216 fichiers JS/HTML et 496 fichiers SQL analysés.
 
 ## Périmètre et certitude
 
@@ -22,14 +22,14 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 | Langue | Corpus | Raccordés prouvés* | Taux textes* | Taux mots* | Ressource disponible** | Mots à traiter/vérifier |
 |---|---:|---:|---:|---:|---:|---:|
 | Français | 7666 | 7666 | 100.00 % | 100.00 % | 7666 | 0 |
-| Anglais | 7666 | 803 | 10.47 % | 19.16 % | 1270 | 40688 |
-| Espagnol | 7666 | 810 | 10.57 % | 19.18 % | 1286 | 40680 |
-| Chinois traditionnel | 7666 | 812 | 10.59 % | 19.18 % | 1292 | 40678 |
-| Russe | 7666 | 812 | 10.59 % | 19.18 % | 1291 | 40678 |
-| Coréen | 7666 | 812 | 10.59 % | 19.18 % | 1292 | 40678 |
-| Arabe | 7666 | 812 | 10.59 % | 19.18 % | 1291 | 40678 |
-| Portugais brésilien | 7666 | 809 | 10.55 % | 19.18 % | 1288 | 40681 |
-| Allemand | 7666 | 811 | 10.58 % | 19.18 % | 1288 | 40679 |
+| Anglais | 7666 | 803 | 10.47 % | 19.16 % | 1289 | 40688 |
+| Espagnol | 7666 | 810 | 10.57 % | 19.18 % | 1305 | 40680 |
+| Chinois traditionnel | 7666 | 812 | 10.59 % | 19.18 % | 1311 | 40678 |
+| Russe | 7666 | 812 | 10.59 % | 19.18 % | 1310 | 40678 |
+| Coréen | 7666 | 812 | 10.59 % | 19.18 % | 1311 | 40678 |
+| Arabe | 7666 | 812 | 10.59 % | 19.18 % | 1310 | 40678 |
+| Portugais brésilien | 7666 | 809 | 10.55 % | 19.18 % | 1307 | 40681 |
+| Allemand | 7666 | 811 | 10.58 % | 19.18 % | 1307 | 40679 |
 
 * Preuve statique stricte : clé explicite de même français, traducteur exporté/wrapper transparent, guide accepté par son garde d’intégrité ou description d’ordre reconnue par le résolveur existant dans son pays, dans chacune des huit langues. C’est un plancher de raccordements identifiés, pas la mesure de toutes les traductions qui fonctionnent. Les valeurs identiques au français restent à vérifier sauf sigles neutres documentés.
 
@@ -39,13 +39,13 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 
 | Domaine | Textes du corpus | EN raccordés | EN sans ressource | EN mots à traiter/vérifier |
 |---|---:|---:|---:|---:|
-| Bâtiments et pièces | 964 | 578 | 236 | 3748 |
+| Bâtiments et pièces | 964 | 578 | 217 | 3748 |
 | Courriers, notifications et journaux | 277 | 53 | 181 | 889 |
 | Création et connexion | 169 | 83 | 70 | 500 |
 | Enquêtes, missions et objectifs | 927 | 0 | 863 | 5137 |
 | Interface générale et autres activités | 2112 | 69 | 1856 | 10523 |
 | Navigation et transports | 153 | 0 | 111 | 706 |
-| Ordres et descriptions | 978 | 595 | 242 | 3795 |
+| Ordres et descriptions | 978 | 595 | 223 | 3795 |
 | PNJ, guides et récits | 526 | 27 | 472 | 3298 |
 | Politique, justice et administration | 1362 | 2 | 1250 | 7205 |
 | Économie et commerces | 1901 | 7 | 1778 | 10221 |
@@ -69,18 +69,18 @@ Les neuf langues et leurs volumes par domaine sont détaillés dans `tableau-de-
 
 ## Descriptions d’ordres par empire
 
-| Empire (identifiant interne) | Descriptions distinctes | Ressources EN présentes | EN différentes du français ou neutres |
-|---|---:|---:|---:|
-| khalija | 315 | 187 | 187 |
-| narco | 314 | 188 | 187 |
-| republic | 394 | 205 | 205 |
-| soviet | 307 | 307 | 306 |
+| Empire (identifiant interne) | Descriptions distinctes | Ressources EN présentes | EN différentes du français ou neutres | EN reconnues par le résolveur du pays |
+|---|---:|---:|---:|---:|
+| khalija | 315 | 206 | 206 | 184 |
+| narco | 314 | 207 | 206 | 184 |
+| republic | 394 | 224 | 224 | 224 |
+| soviet | 307 | 307 | 306 | 306 |
 
 Les descriptions communes sont présentes dans plusieurs empires : ne pas additionner ces lignes. Une formule chiffrée inchangée peut être légitimement identique ; elle reste à vérifier si elle ne figure pas dans les sigles neutres. Chaque langue est détaillée dans le JSON.
 
 ## Catalogue central et autres ressources
 
-Le catalogue central expose **3285 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4043 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
+Le catalogue central expose **3285 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4062 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
 
 | Langue | Clés absentes | Variables incohérentes |
 |---|---:|---:|

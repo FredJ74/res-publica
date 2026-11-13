@@ -232,9 +232,8 @@ function build(root=ROOT, options={}) {
     dataContext.window=dataContext;vm.createContext(dataContext,{codeGeneration:{strings:false,wasm:false}});
     try{
       vm.runInContext(contents.get('data.js').replace(/^const (WORLD|BUILDINGS) =/mg,'var $1 ='),dataContext,{timeout:3000});
-      let tooltipLanguage='en';
-      const tooltipSandbox={RP_I18N_GAME_ENABLED:true,RPPlateauI18n:{language:()=> tooltipLanguage}};tooltipSandbox.window=tooltipSandbox;vm.createContext(tooltipSandbox);
-      for(const f of ['i18n/infobulles-communes-resources.js','i18n/sovarka-infobulles-resources.js'])if(contents.has(f))vm.runInContext(contents.get(f),tooltipSandbox,{timeout:1000});
+      // Reuse all discovered catalogues in page order, including future country-specific tables.
+      const tooltipSandbox=sandbox;
       for(const [country,cities] of Object.entries(dataContext.WORLD||{}))for(const [city,cityData] of Object.entries(cities))for(const b of cityData.buildings||[]){
         const c=cityData.buildingContext?.[b]||{};
         for(const [roomId,room] of Object.entries({...dataContext.BUILDINGS?.[b]?.rooms,...c.roomsExtra})){
@@ -246,15 +245,15 @@ function build(root=ROOT, options={}) {
               const occ={file:'data.js',line:dataLines.get(text)||null,kind:'active-order-'+field,certainty:'static-render-path',domain:'Ordres et descriptions',country,city,building:b,room:roomId,order:order.fn||null,key};
               // Description lookup is verified per country through the EXISTING pure resolver, never an order.
               if(field==='desc'){
-                tooltipSandbox.state={country};vm.runInContext('var state=window.state;',tooltipSandbox);
+                tooltipSandbox.state={country};vm.runInContext('var state=window.state;',context);
                 const api=tooltipSandbox.RPSovarkaInfobullesI18n;
                 occ.resolverBindings={};
-                for(const l of LOCALES.slice(1)){tooltipLanguage=l;const rendered=api?.desc(text);
+                for(const l of LOCALES.slice(1)){sandbox.__auditLocale=l;const rendered=api?.desc(text);
                   const match=(byText.get(normalize(text))||[]).find(r=>r.loaded&&r.translations[l]===rendered);
                   if(match&&rendered!==text)occ.resolverBindings[l]=match.id;
                 }
               }
-              activeOrders.push({country,field,text});record(text,occ);
+              activeOrders.push({country,field,text,bindings:occ.resolverBindings});record(text,occ);
             }
           }
         }
@@ -353,7 +352,9 @@ function build(root=ROOT, options={}) {
     missingResources:LOCALES.slice(1).filter(l=>e.locales[l]==='no-confirmed-resource'),bindingReview:LOCALES.slice(1).filter(l=>e.locales[l]==='resource-review-binding')})).sort((a,b)=>a.priority-b.priority||b.words-a.words||(a.id<b.id?-1:1));
   const orderDescriptions={};for(const country of sort([...new Set(activeOrders.map(o=>o.country))])){
     const ds=[...new Set(activeOrders.filter(o=>o.country===country&&o.field==='desc').map(o=>normalize(o.text)))];
-    orderDescriptions[country]={texts:ds.length,locales:Object.fromEntries(LOCALES.map(l=>[l,{resourcePresent:ds.filter(t=>l==='fr'||(byText.get(t)||[]).some(r=>r.loaded&&typeof r.translations[l]==='string'&&r.translations[l].trim())).length,resourceAvailable:ds.filter(t=>l==='fr'||(byText.get(t)||[]).some(r=>r.loaded&&['available-unreviewed','neutral'].includes(r.status[l]))).length}]))};
+    orderDescriptions[country]={texts:ds.length,locales:Object.fromEntries(LOCALES.map(l=>[l,{resourcePresent:ds.filter(t=>l==='fr'||(byText.get(t)||[]).some(r=>r.loaded&&typeof r.translations[l]==='string'&&r.translations[l].trim())).length,resourceAvailable:ds.filter(t=>l==='fr'||(byText.get(t)||[]).some(r=>r.loaded&&['available-unreviewed','neutral'].includes(r.status[l]))).length,
+      wired:ds.filter(t=>l==='fr'||activeOrders.filter(o=>o.country===country&&o.field==='desc'&&normalize(o.text)===t).every(o=>{const reg=regById.get(o.bindings?.[l]);return reg&&['available-unreviewed','neutral'].includes(reg.status[l]);})).length
+    }]))};
   }
   const snapshotPath=path.join(root,'outils/audits/i18n-global/serveur-agregats.json');
   const serverSnapshot=fs.existsSync(snapshotPath)?JSON.parse(fs.readFileSync(snapshotPath,'utf8')):null;
@@ -402,8 +403,8 @@ function markdown(r){
     '', 'Les neuf langues et leurs volumes par domaine sont détaillés dans `tableau-de-bord.json` → `domains`. Aucun domaine n’est déclaré complet sur la seule présence de clés.',
     '', '### Planchers de preuves par domaine et langue (textes / mots)','', '| Domaine | '+LOCALES.join(' | ')+' |', '|---|'+LOCALES.map(()=>'---:').join('|')+'|',
     ...r.domains.map(d=>'| '+d.name+' | '+LOCALES.map(l=>`${pct(d.locales[l].wiredTextPercent)} / ${pct(d.locales[l].wiredWordPercent)}`).join(' | ')+' |'),
-    '', '## Descriptions d’ordres par empire','', '| Empire (identifiant interne) | Descriptions distinctes | Ressources EN présentes | EN différentes du français ou neutres |','|---|---:|---:|---:|',
-    ...Object.entries(r.orderDescriptions).map(([c,m])=>`| ${c} | ${m.texts} | ${m.locales.en.resourcePresent} | ${m.locales.en.resourceAvailable} |`),
+    '', '## Descriptions d’ordres par empire','', '| Empire (identifiant interne) | Descriptions distinctes | Ressources EN présentes | EN différentes du français ou neutres | EN reconnues par le résolveur du pays |','|---|---:|---:|---:|---:|',
+    ...Object.entries(r.orderDescriptions).map(([c,m])=>`| ${c} | ${m.texts} | ${m.locales.en.resourcePresent} | ${m.locales.en.resourceAvailable} | ${m.locales.en.wired} |`),
     '', 'Les descriptions communes sont présentes dans plusieurs empires : ne pas additionner ces lignes. Une formule chiffrée inchangée peut être légitimement identique ; elle reste à vérifier si elle ne figure pas dans les sigles neutres. Chaque langue est détaillée dans le JSON.',
     '', '## Catalogue central et autres ressources','',`Le catalogue central expose **${r.central.frenchKeys} clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (${r.registrations.length} enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.`,
     '', '| Langue | Clés absentes | Variables incohérentes |','|---|---:|---:|',...LOCALES.map(l=>`| ${l} | ${r.central.perLocale[l].missing.length} | ${r.central.perLocale[l].placeholderMismatch.length} |`),

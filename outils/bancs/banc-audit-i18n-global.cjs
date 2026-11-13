@@ -94,6 +94,17 @@ test('garde des guides : aucune traduction prouvée si la référence française
     'i18n/guide-integrity.js':'window.RPGuideIntegrity={valid:()=>false};'});
   const r=audit.build(dir);assert.ok(r.registrations.some(r=>r.format==='guide-source'));assert.ok(r.entries.filter(e=>['Un guide','Un récit de référence'].includes(e.text)).every(e=>e.locales.en!=='wired-unreviewed'));
 });
+test('un nouveau catalogue de pays est découvert et pris en compte par le résolveur',t=>{
+  const row=audit.LOCALES.map(l=>l==='fr'?'Un ordre à découvrir':l+' Discover an order');
+  const {dir}=fixture(t,{
+    'index.html':'<script src="i18n/resources.js"></script><script src="i18n/nouveau-pays-resources.js"></script><script src="i18n/sovarka-infobulles-resources.js"></script><script src="data.js"></script>',
+    'i18n/nouveau-pays-resources.js':'window.RP_EXTRA='+JSON.stringify([row])+';',
+    'i18n/sovarka-infobulles-resources.js':`window.RPSovarkaInfobullesI18n={desc(text){const row=window.RP_EXTRA.find(r=>r[0]===text);return row?row[${JSON.stringify(audit.LOCALES)}.indexOf(window.RPPlateauI18n.language())]:text;}};`,
+    'data.js':"const WORLD = {republic:{capitale:{buildings:['test']}}};\nconst BUILDINGS = {test:{rooms:{hall:{orders:[{fn:'demo',label:'Agir',desc:'Un ordre à découvrir'}]}}}};"
+  });
+  const r=audit.build(dir);assert.deepEqual(r.extractionErrors,[]);
+  const e=r.entries.find(e=>e.text==='Un ordre à découvrir');for(const l of audit.LOCALES.slice(1))assert.equal(e.locales[l],'wired-unreviewed');
+});
 test('français absent du catalogue et instructions IA restent des périmètres explicites',t=>{
   const {dir}=fixture(t,{'api/_pnj-profils.js':"const prompt = 'Vous êtes un guide très bavard';",'plateau-inactif.js':"const texte = 'Une quête inconnue reste ici';"});
   const r=audit.build(dir);assert.ok(r.entries.some(e=>e.certainty==='ai-context-not-output'));assert.ok(r.entries.some(e=>e.certainty==='candidate-review'));
