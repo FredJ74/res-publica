@@ -11,7 +11,7 @@
   const T = (k, v) => cat().text(k, v);
   const NOMBRE = '-?\\d+(?:[.,]\\d+)?';
   const MOTIFS_VAR = {
-    loyer: NOMBRE, prix: NOMBRE, montant: NOMBRE, du: NOMBRE, taux: NOMBRE,
+    loyer: NOMBRE, prix: NOMBRE, points: NOMBRE, debut: '\\d{2}/\\d{2}/\\d{4}', fin: '\\d{2}/\\d{2}/\\d{4}', montant: NOMBRE, du: NOMBRE, taux: NOMBRE,
     devise: 'PSK|FR', date: '\\d{2}/\\d{2}', carac: 'CHA|DUP|ENT|INT|PER|VOL',
     creature: 'Loup solitaire|Meute de loups|Ours'
   };
@@ -45,7 +45,10 @@
     ['cs_indemnite', ['cr_indemnite'], 'Secrétariat du Conseil du Peuple'],
     ['cs_pressentiment', ['cr_pressentiment'], 'Pressentiment'],
     ['cs_bon_rembourse', ['cr_bon_planche', 'cr_bon'], 'Banque de Sovarka'],
-    ['cs_foret', ['cr_foret_victoire_ours', 'cr_foret_victoire'], 'Événement']
+    ['cs_foret', ['cr_foret_victoire_ours', 'cr_foret_victoire'], 'Événement'],
+    // Héros du Travail (13/11/2026) : classement (avec ou sans record en attente) et décoration.
+    ['cs_heros_classement', ['cr_heros_classement_record', 'cr_heros_classement'], "Ministère de l'Économie collective"],
+    ['cs_heros_decore', ['cr_heros_decore'], "Ministère de l'Économie collective"]
   ];
   const echapperRegex = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const cache = {};

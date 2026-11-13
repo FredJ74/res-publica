@@ -3,16 +3,16 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const report=require('../audits/etat-i18n-ordres.cjs');
 
-test('couverture des 416 identifiants sans faux positifs de source',()=>{
+test('couverture des 420 identifiants sans faux positifs de source',()=>{
  assert.equal(report.locales.length,9);
- assert.equal(report.catalogueFrenchKeys,416);
- assert.equal(report.canonicalMatches,416);
+ assert.equal(report.catalogueFrenchKeys,420);
+ assert.equal(report.canonicalMatches,420);
  assert.equal(report.obsoleteCanonical.length,0);
  assert.ok(!report.obsoleteCanonical.some(item => item.fn === 'sovarka_soviet_deputes'));
  assert.ok(report.missingStable.every(item => item.fn !== 'sovarka_soviet_deputes'));
 
  for(const [locale,data] of Object.entries(report.perLocale)){
-  assert.equal(data.keys,416,locale);
+  assert.equal(data.keys,420,locale);
   assert.deepEqual(data.missing,[],locale);
   assert.deepEqual(data.extra,[],locale);
  }
