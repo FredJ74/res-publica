@@ -8,12 +8,6 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### Objectifs, missions et calepin — internationalisation (Codex, 13/11/2026)
-Branche `codex/i18n-objectifs-carnet-20261113`, base `main` `517a425a`, rebasée sur `7cf66d5f` ; PR [#852](https://github.com/FredJ74/res-publica/pull/852). Lot borné après audit : **67 clés × 9 langues (536 traductions nouvelles)** pour les 21 étapes d’accueil (18 consignes distinctes), 9 objectifs de carrière, 24 objectifs secrets et 6 archétypes, titres/score/confidentialité et rubriques du calepin du musée de Luthécia. Aucune refonte de « Mes objectifs », aucun dialogue ou récit ajouté. Les autres chantiers i18n (Jérémy, Jodie/musées, Aide HRP, Sovarka/Claude) restent isolés.
-Catalogue `i18n/player-missions-resources.js`, attributs du moteur commun `RPI18nPlateau.apply` : trois raccordements de présentation seulement dans `plateau-politique.js` et `plateau-enigme-portrait.js`. Aucun changement aux états, RPC, coûts, récompenses, données personnages ou migrations. La bascule traduit les mêmes nœuds et ne rappelle aucune fonction métier.
-Tests locaux : **45 tests ciblés + 2 bancs Chromium verts**, 38 situations × 9 langues × 3 formats (320/390 px et bureau), français comparé à main, progression/PA/appels/récompenses inchangés, RTL et repli français. Comparaison transversale finalisée : **291/298 verts, sept échecs identiques sur main et la branche, zéro régression nouvelle**, preuves JSON versionnées. Première CI dédiée `.github/workflows/i18n-player-missions.yml` verte ([exécution](https://github.com/FredJ74/res-publica/actions/runs/43346422292)) ; contrôles post-rebasage à confirmer avant fusion. Rapport : `outils/audits/I18N-OBJECTIFS-CARNET-20261113.md`. Fusion et déploiement non encore réalisés ; poursuivre jusqu’à leur vérification si les contrôles obligatoires sont satisfaits.
-
-
 
 ### Pavillon des Ambassadeurs — baux diplomatiques (ChatGPT, 11/11, PR #764, EN TEST)
 Issue [#753](https://github.com/FredJ74/res-publica/issues/753). **Décision supplémentaire de Fred : 1 PSK = 1 FR, sans frais de change**, uniquement pour les paiements du Pavillon ; enregistrée dans `GAME-DESIGN-NOVOMIRSK.md`.
@@ -95,6 +89,8 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - Aide HRP (PR #720) : **non certifiés** — réponses réelles DeepSeek dans les neuf langues, recette authentifiée, essais iPhone/Android. Sur téléphone : questions PA/but, fr→en→ko→fr, arabe RTL, clavier IME.
 
 ## Derniers chantiers
+
+- **Objectifs, missions et calepin — i18n (Codex, 13/11, [PR #852](https://github.com/FredJ74/res-publica/pull/852))** : 67 textes dans neuf langues, 536 traductions nouvelles ; 21 étapes d’accueil, 9 missions de carrière, 24 objectifs secrets, archétypes, titres/score et rubriques du calepin de Luthécia. Français strictement identique, moteur i18n commun, trois raccordements d’affichage ; aucune mécanique, donnée PJ, RPC ou migration modifiée. 45 tests ciblés + 2 bancs Chromium verts (38 situations × 9 langues × 320/390 px et bureau). Comparaison main/branche : 291/298 verts et sept échecs identiques ; les quatre échecs des deux suites CI garage/SSM sont également reproduits sur main. Audit et preuves : `outils/audits/I18N-OBJECTIFS-CARNET-20261113.md`, JSON associé. Code validé ; le résultat de la fusion et de la vérification Vercel est suivi dans la PR. Pour essayer : changer de langue dans « Mes objectifs » puis le calepin ouvert, sans nouvelle progression ni coût. Récits, dialogues Jodie/Valérie, archives et notifications hors lot ; Sovarka/Claude intact.
 
 - **Ilia Krioukov, neuf langues — terminé (PR #849, fusion `787f256`, 13/11)** : fusion vérifiée sur GitHub ; banc SQL des Tsars validé sur Supabase selon la confirmation explicite de Fred dans la mission suivante. Ancien blocage de confirmation caduc ; aucune migration à rejouer.
 

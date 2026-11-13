@@ -1,7 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{execFileSync}=require('node:child_process');
 const {chromium}=require('playwright');
-const root=path.resolve(__dirname,'../..'),read=p=>fs.readFileSync(path.join(root,p),'utf8');
+const root=path.resolve(__dirname,'../..'),assets=process.env.MISSIONS_ASSET_DIR||root,read=p=>fs.readFileSync(path.join(assets,p),'utf8');
 const langs=['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de'];
 const base=execFileSync('git',['merge-base','origin/main','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const baseline=p=>execFileSync('git',['show',base+':'+p],{cwd:root,encoding:'utf8',maxBuffer:8*1024*1024});
@@ -11,7 +11,7 @@ async function setup(page,original=false){
  const html=read('plateau.html'),start=html.indexOf('<div id="modal-postes"');
  await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>'+html.slice(start,html.indexOf('<!-- MODAL RESOLUTION',start))+'</body></html>');
  await page.addStyleTag({content:read('style.css')});
- await page.addScriptTag({path:path.join(root,'i18n/i18next.min.js')});
+ await page.addScriptTag({path:path.join(assets,'i18n/i18next.min.js')});
  await page.evaluate(langs=>{
   window.RP_I18N_GAME_ENABLED=true;window.RP_I18N_LANGUAGES=Object.fromEntries(langs.map(l=>[l,{}]));window.RP_I18N_RESOURCES=Object.fromEntries(langs.map(l=>[l,{translation:{}}]));
   window.RPPlateauI18n={language:()=>i18next.language||'fr'};
@@ -27,8 +27,8 @@ async function setup(page,original=false){
  s=source('plateau-quete-accueil.js');await page.addScriptTag({content:s.slice(s.indexOf('const QUETE_ACCUEIL_OBJECTIFS ='),s.indexOf('// RAPPEL DE L\'ETAPE EN COURS'))+';window.welcomeSteps=Object.keys(QUETE_ACCUEIL_OBJECTIFS);'});
  s=source('plateau-pnj.js');await page.addScriptTag({content:fn(s,'queteCarriereObjectifActuel')});
  await page.addScriptTag({content:source('plateau-enigme-portrait.js')});
- if(!original)await page.addScriptTag({path:path.join(root,'i18n/player-missions-resources.js')});
- await page.addScriptTag({path:path.join(root,'i18n/plateau-init.js')});
+ if(!original)await page.addScriptTag({path:path.join(assets,'i18n/player-missions-resources.js')});
+ await page.addScriptTag({path:path.join(assets,'i18n/plateau-init.js')});
  await page.evaluate(()=>{
   window.scenarios=[...welcomeSteps.map(etape=>({kind:'welcome',etape})),
    ...Object.entries({criminel:['a_rencontrer','colis_recu','colis_livre'],politique:['a_rencontrer','tracts_recus','tracts_termines'],entrepreneurial:['a_rencontrer','negociation_demandee','negociation_obtenue']}).flatMap(([ambition,steps])=>steps.map(etape=>({kind:'career',ambition,etape}))),

@@ -51,8 +51,10 @@ Sur deux checkouts isolés et avec les mêmes dépendances (dont pglast 7.21), e
 
 Sept tests préexistants concernés : version HTML du garage, raccordements de l’audit global Républia, géométrie des galeries, couverture des descriptions Sovarka, assertion des rôles Sovarka, banc des personnalités des musées de province (depuis #851), RPC après lot 219. Aucun de ces chantiers modifié. Une première exécution sans pglast produisait des erreurs de dépendance ; seules les mesures après installation et alignement des dépendances font foi.
 
+Les deux suites GitHub transversales rouges (garage et services sociaux Montrouge) ont aussi été rejouées séparément sur la branche et le même main : 13 tests, 9 réussites, quatre échecs identiques. Le détail est ajouté au JSON de preuves. Elles ne constituent pas une régression du lot.
+
 Garde du payload Vercel : 310,0 Mo, plafond 330,0 Mo, verte.
 
 ## Livraison et contrôles restants
 
-Première [CI dédiée](https://github.com/FredJ74/res-publica/actions/runs/43346422292) verte ; 45 tests catalogue/régression puis 2 bancs Chromium. Rebasage retesté (catalogue, Chromium et audit éditorial verts). PR #852 à sortir du brouillon après confirmation distante. Fusion, publication et vérification du commit réellement servi encore à effectuer ; aucun déploiement de ce lot annoncé à ce stade.
+Première [CI dédiée](https://github.com/FredJ74/res-publica/actions/runs/43346422292) verte ; 45 tests catalogue/régression puis 2 bancs Chromium. Rebasage retesté (catalogue, Chromium et audit éditorial verts). PR #852 sortie du brouillon. Résultats finaux de CI, fusion et publication suivis dans la description de la PR, avec SHA et état Vercel. La recette de publication réutilise le banc Chromium sur une copie des fichiers réellement servis, via `MISSIONS_ASSET_DIR`, sans appel métier. Aucun déploiement n’est déduit du seul succès d’un commit.

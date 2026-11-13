@@ -37,5 +37,29 @@
       ]
     }
   },
-  "new_failures": []
+  "new_failures": [],
+  "ci_known_failures": {
+    "branch": {
+      "tests": 13,
+      "pass": 9,
+      "fail": 4,
+      "failures": [
+        "outils/bancs/banc-i18n-vehicules-garage-20261112.cjs:98:1",
+        "outils/bancs/test-montrouge-ssm-rendezvous.cjs:61:1",
+        "outils/bancs/test-montrouge-ssm-rendezvous.cjs:68:1",
+        "outils/bancs/test-montrouge-ssm-rendezvous.cjs:100:1"
+      ]
+    },
+    "main": {
+      "tests": 13,
+      "pass": 9,
+      "fail": 4,
+      "failures": [
+        "outils/bancs/banc-i18n-vehicules-garage-20261112.cjs:98:1",
+        "outils/bancs/test-montrouge-ssm-rendezvous.cjs:61:1",
+        "outils/bancs/test-montrouge-ssm-rendezvous.cjs:68:1",
+        "outils/bancs/test-montrouge-ssm-rendezvous.cjs:100:1"
+      ]
+    }
+  }
 }
