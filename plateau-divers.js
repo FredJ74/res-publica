@@ -513,26 +513,43 @@ async function doPrier(pa, cost) {
   addJournalEntry('Prière au ' + (religion?.temple || 'temple'), 'event-info');
 }
 
+let confessionEnCours = false;
 async function doSeConfeser(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const pays = state.country || 'republic';
-  const religion = RELIGIONS[pays];
-  state.moral = Math.min(100, state.moral + 5);
-  updateUI();
-  // Le pretre apprend des informations (simulation)
-  const secrets = [
-    'Vous avouez avoir corrompu un fonctionnaire. Le ' + religion?.grandPretre + ' note soigneusement.',
-    'Vous confessez vos activités illégales. Le ' + religion?.grandPretre + ' hoche la tête d\'un air entendu.',
-    'Vous révélez vos plans politiques secrets. "Intéressant", dit le ' + religion?.grandPretre + '.',
-    'Vous avouez n\'avoir jamais rempli tous vos formulaires. Le ' + religion?.grandPretre + ' est scandalisé.'
-  ];
-  const secret = secrets[Math.floor(Math.random() * secrets.length)];
-  showToast('Confession', secret + ' +5 Moral.', true);
-  addJournalEntry('Confession au ' + (religion?.temple || 'temple') + '. +5 Moral.', 'event-info');
-  // Risque de fuite (20%)
-  if (Math.random() < 0.2) {
-    setTimeout(() => addExternalEvent('RUMEUR : Des confidences faites au ' + (religion?.temple||'temple') + ' auraient été divulguées...'), 2000);
+  // Le taux, l'acte aléatoire et le paiement sont déterminés ensemble au serveur.
+  // Aucun débit ni suppression de trace depuis le navigateur.
+  if (confessionEnCours) return;
+  confessionEnCours = true;
+  try {
+    const brut = typeof sbRpc === 'function'
+      ? await sbRpc('confession_tenter', {}) : null;
+    const v = Array.isArray(brut) ? brut[0] : brut;
+    if (!v || v.ok !== true) {
+      if (v?.raison === 'aucune_trace_eligible') {
+        showToast('Rien à confesser', 'Aucun acte illégal réussi ne possède encore de trace effaçable. Aucun PA dépensé.', false);
+      } else if (v?.raison === 'confession_lieu_invalide') {
+        showToast('Confession impossible', 'Présentez-vous auprès d’un religieux dans une salle de culte habilitée.', false);
+      } else if (typeof signalerRefusCout === 'function') {
+        signalerRefusCout(v || {raison:'service_indisponible'});
+      } else {
+        showToast('Confession impossible', 'Le serveur ne confirme pas la confession.', false);
+      }
+      return;
+    }
+    if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
+    if (typeof updateUI === 'function') updateUI();
+    const taux = Number(v.taux) || 0;
+    if (v.reussi === true) {
+      const acte = String(v.acte || 'acte illégal').replace(/_/g,' ');
+      showToast('Confession réussie', 'Une trace de « ' + acte + ' » a été effacée. Réussite : ' + taux + ' %.', true);
+      addJournalEntry('Confession réussie : une trace effacée.', 'event-good');
+    } else {
+      showToast('Confession refusée', 'Le confesseur n’a pas accordé l’absolution. Aucune trace effacée. Réussite : ' + taux + ' %.', false);
+      addJournalEntry('Confession sans absolution : 2 PA dépensés.', 'event-info');
+    }
+  } catch (e) {
+    showToast('Confession non confirmée', 'Réponse serveur indisponible. Vérifiez vos PA avant de réessayer.', false);
+  } finally {
+    confessionEnCours = false;
   }
 }
 
@@ -710,44 +727,8 @@ async function doPelerin(pa, cost) {
 // eligible. Si plusieurs traces sont eligibles, le joueur choisit laquelle confesser (liste
 // simple, meme gabarit que les autres modales de choix du jeu) plutot qu'un tirage au hasard.
 async function doSeConfeserContact(pnjNom) {
-  if (typeof sbGetActionsTracables !== 'function' || !state.char?.name) return;
-  const toutes = await sbGetActionsTracables(state.country || 'republic', state.currentCity, state.day || 1).catch(() => []);
-  const eligibles = (toutes || []).filter(a => a.auteur === state.char.name && !a.decouvert);
   document.getElementById('modal-pnj')?.classList.remove('open');
-  if (eligibles.length === 0) {
-    showToast('Rien à confesser', "Vous n'avez rien de compromettant à avouer pour l'instant.", true);
-    return;
-  }
-  if (eligibles.length === 1) {
-    await confirmerConfession(pnjNom, eligibles[0].id);
-    return;
-  }
-  ouvrirModalChoixConfession(pnjNom, eligibles);
-}
-
-function ouvrirModalChoixConfession(pnjNom, eligibles) {
-  document.getElementById('postes-modal-title').textContent = 'Confession';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">Que souhaitez-vous confesser ?</div>';
-  eligibles.forEach(a => {
-    const label = (typeof ACTES_ILLEGAUX !== 'undefined' && ACTES_ILLEGAUX[a.type_action]?.label) || (a.type_action || 'Acte').replace(/_/g, ' ');
-    html += '<div onclick="confirmerConfession(\'' + pnjNom.replace(/'/g, '') + '\',\'' + a.id + '\')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;font-size:.82rem;color:#c0b090">' + label + '</div>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerConfession(pnjNom, actionId) {
-  document.getElementById('modal-postes')?.classList.remove('open');
-  const r = await deduireCoutOrdre({ pa: 2, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  if (typeof sbDelete === 'function') {
-    await sbDelete('actions_tracables', 'id=eq.' + encodeURIComponent(actionId)).catch(() => {});
-  }
-  updateUI();
-  showToast('Confession entendue', pnjNom + ' vous absout.', true, true);
-  addJournalEntry('Confession auprès de ' + pnjNom + '.', 'event-good');
+  return doSeConfeser(2, 0);
 }
 
 // Benediction en contact : reprend le mecanisme utile existant (state.char.benediction,
