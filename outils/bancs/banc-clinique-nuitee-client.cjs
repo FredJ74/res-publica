@@ -111,9 +111,9 @@ test('présentation sovarkienne : popup intégrée et prix en PSK, jamais boîte
 test('les deux raccordements d’ordres et la chaîne Dormir sont présents',()=>{
  assert.match(router,/fn === 'clinique_reserver_nuit'/);
  assert.match(router,/fn === 'clinique_dormir'/);
- assert.match(router,/fn === 'clinique_verifier_bonus'/);
+ assert.doesNotMatch(router,/clinique_verifier_bonus/,'plus de vérification manuelle : le serveur crédite la nuit');
  assert.match(perso,/consommerNuiteeCliniqueApresDormir/);
  assert.match(perso,/if \(retourActif\(\) && pieceInitialRepos/);
  assert.match(perso,/ORDRES_MEDICAUX_CHAMBRE_CLINIQUE[\s\S]*'clinique_dormir'/);
- assert.match(html,/plateau-clinique-nuitee\.js\?v=clinique-i18n-20261112/);
+ assert.match(html,/plateau-clinique-nuitee\.js\?v=clinique-escorts-20261113/);
 });

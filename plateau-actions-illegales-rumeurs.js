@@ -418,7 +418,7 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   // Pavillon et Résidence de Novomirsk (Fred, 12/11/2026) : c = « lieu|intitulé du poste », écrit par le serveur.
   appel_escort:           (a, c) => { const [lieu, poste] = String(c || '').split('|');
     return 'On raconte que l\'agence Roxane Velours a fait livrer de la compagnie '
-      + (lieu === 'residence' ? 'à la Résidence impériale' : 'au Pavillon des Ambassadeurs') + ', chez ' + a
+      + (lieu === 'residence' ? 'à la Résidence impériale' : lieu === 'clinique' ? 'dans une chambre de la clinique privée' : 'au Pavillon des Ambassadeurs') + ', chez ' + a
       + (poste ? ', ' + poste : '') + '. Et pas pour parler politique.'; },
   plainte_confirmee:      (a, c) => 'La rumeur veut que ' + c + ' ait ete place en garde a vue suite a une plainte de ' + a + '.',
   cellules_fragilisees:   (a, c) => 'On raconte que les cellules de garde a vue de ' + c + ' se fragiliseraient, suite a des incidents recents.',
