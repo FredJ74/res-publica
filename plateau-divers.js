@@ -1171,8 +1171,8 @@ function renderInventory() {
       '<div style="display:flex;align-items:center;gap:.4rem;flex:1;min-width:0;cursor:pointer" onclick="ouvrirDetailObjetInventaire(' + idx + ')">' +
         '<i class="ti ' + (item.icon||'ti-package') + '" style="font-size:.85rem;color:#8a6a20;flex-shrink:0"></i>' +
         '<div style="min-width:0">' +
-          '<div style="font-size:.78rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + qtyBadge + legal + '</div>' +
-          (item.desc ? '<div style="font-size:.82rem;color:#9a8a68;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.desc.substring(0,60) + (item.desc.length>60?'...':'') + '</div>' : '') +
+          '<div style="font-size:.78rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name) + qtyBadge + legal + '</div>' +
+          (item.desc ? (d => '<div style="font-size:.82rem;color:#9a8a68;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + d.substring(0,60) + (d.length>60?'...':'') + '</div>')(String(typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'desc') : item.desc)) : '') +
           expiry +
         '</div>' +
       '</div>' +

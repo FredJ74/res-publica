@@ -874,3 +874,21 @@ Décision de Fred après essai en jeu : **ne plus afficher le long récit histor
 Même règle de questions que la guide Ouliana du musée national : **1 PA ouvre 3 questions par salle et par jour**, comptées par le serveur. L'ordre de la Salle des Origines reste `tresor_ecouter_guide` et continue d'appeler la RPC `tresor_tsars_guide` avant la fenêtre ; **aucune modification** des fonctions serveur de l'énigme des Tsars ou de la fouille. Les autres salles et le hall utilisent `ilia_ecouter_guide`. Le corpus IA d'Ilia sait expliquer les cinq personnalités et les deux événements locaux sans inventer de récompense ni dévoiler les secrets de l'énigme.
 
 **Statut technique au 12/11** : PR #830 fusionnée ; CI du guide et de l'énigme réussie ; migration `ilia_questions_musee_municipal_20261112` enregistrée et vérifiée sur Supabase ; Vercel production READY sur `87dc83a8`. La visite connectée et les réponses DeepSeek réelles restent à essayer. Les cinq nouveaux récits fixes sont en français pour le moment, avec un repli français dans les autres langues bêta.
+
+## Héros du Travail (Fred, 13/11/2026 après-midi) — CODÉ le 13/11/2026 (feu vert de Fred)
+- **Points** : les PA dépensés en ordres de production en Sovarka (usines, commerces, récoltes, ferme, forêt, garage, chantiers), par **tout personnage présent en Sovarka, étrangers compris** (un chasseur de médailles comme Vince peut venir la gagner).
+- **Semaine** : du lundi 0 h au dimanche 24 h, heure de Paris.
+- **Classement** : envoyé par courrier à minuit, la nuit de dimanche à lundi, au **ministre de l'Économie collective** ; sans ministre, au **Président du Conseil du Peuple**.
+- **Attribution non automatique** : le ministre décide, dans son bureau du Palais du Gouvernement (« Héros du Travail »).
+- **Record en attente** : il ne peut pas décorer quelqu'un qui a moins de points que le meilleur record non décoré, toutes semaines confondues (20 points non décorés bloquent un 17 la semaine suivante). À égalité, il choisit.
+- **Médaille** : objet d'inventaire avec l'image de la plaque, gravé au nom du décoré (semaine, points). Installable (déposer / reprendre) dans un logement dont on a la jouissance : **+3 Moral à quiconque y dort**, sans cumul. Donnable, vendable, volable, transmise par succession.
+- **Publicité** : liste des décorés à l'**accueil** des trois mairies ; décorations affichées dans la fenêtre d'interaction d'un personnage ; annonce au journal du matin. **Aucun bonus de POP.**
+- Choix d'interprétation (Claude) : une seule décoration par semaine.
+
+## Boîte aux lettres du Parti (Fred, 13/11/2026 après-midi) — CODÉ le 13/11/2026 (feu vert de Fred)
+- Une boîte par parti, dans la **salle des partis** des trois mairies.
+- Bouton vert « **Poster une dénonciation** » : fenêtre « Dans quelle boîte aux lettres de parti voulez-vous poster votre dénonciation anonyme ? », menu déroulant des partis, **texte libre**, aucune vérification, aucune liste de cibles. **1 PA**, pas d'argent.
+- **Anonymat total** : l'auteur n'est enregistré nulle part.
+- **Registre** : tout y est consigné. Le **chef du parti** désigne qui y a accès ; **seul le chef** supprime une dénonciation.
+- **Information pure** : la suite appartient aux joueurs.
+- Choix d'interprétation (Claude) : registre lu dans la salle des partis ; 2 000 caractères au plus ; le chef peut désigner n'importe quel personnage.

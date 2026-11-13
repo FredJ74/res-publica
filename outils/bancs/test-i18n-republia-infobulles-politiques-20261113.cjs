@@ -31,7 +31,10 @@ function orderDescs(country){
 }
 test('189 descriptions républicaines originales, prises dans les 189 descriptions propres à Républia',()=>{
  const rep=orderDescs('republic'),sov=orderDescs('soviet'),spec=[...rep].filter(d=>!sov.has(d));
- assert.equal(spec.length,189,'référence du lot restant');
+ // 190 depuis le 13/11 (Héros du Travail) : la liste du bureau du ministre de l'Économie collective est
+ // désormais explicite, donc « préempter une entreprise », exclu en Sovarka, compte comme propre à Républia ;
+ // sa traduction est dans le catalogue commun, les 189 lignes républicaines restent toutes dans cette liste.
+ assert.equal(spec.length,190,'référence du lot restant');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
  assert.equal(rows.length,189);
  for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(spec.includes(line[0]),line[0]);}

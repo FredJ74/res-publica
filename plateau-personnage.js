@@ -3352,14 +3352,16 @@ async function ouvrirDetailObjetInventaire(idx) {
     return;
   }
 
-  document.getElementById('postes-modal-title').textContent = item.name;
+  document.getElementById('postes-modal-title').textContent = typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic"><span data-i18n="inventoryUi.loading">Chargement...</span></div>';
   document.getElementById('modal-postes').classList.add('open');
   if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('postes-body'));
 
   const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.72rem" data-i18n="inventoryUi.illegalObject"> ⚠ Objet illégal / compromettant</span>' : '';
-  const imageHtml = item.imageUrl
-    ? '<img src="' + item.imageUrl + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:220px;object-fit:cover"/>'
+  // Médaille de Héros du Travail (13/11/2026) : la plaque gravée.
+  const imageSrc = item.imageUrl || (item.generique_id === 'medaille_heros_travail' && /^images\/[\w.-]+\.webp$/.test(item.image || '') ? item.image : '');
+  const imageHtml = imageSrc
+    ? '<img src="' + imageSrc + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:220px;object-fit:cover"/>'
     : '';
 
   // Charger les vrais joueurs presents pour l'option "donner"
@@ -3398,7 +3400,7 @@ async function ouvrirDetailObjetInventaire(idx) {
 
   let html = '<div style="padding:1rem">';
   html += imageHtml;
-  html += '<div style="font-size:.85rem;color:#a0a080;line-height:1.6;margin-bottom:.8rem">' + ((typeof texteTresorTsarsObjet === 'function' && texteTresorTsarsObjet(item)) || item.desc || '') + legal + '</div>';
+  html += '<div style="font-size:.85rem;color:#a0a080;line-height:1.6;margin-bottom:.8rem">' + ((typeof texteTresorTsarsObjet === 'function' && texteTresorTsarsObjet(item)) || (typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'desc') : item.desc) || '') + legal + '</div>';
   if (documentHtml) html += documentHtml + '<div style="height:.8rem"></div>';
   if (ficheHtml) html += ficheHtml + '<div style="height:.8rem"></div>';
 

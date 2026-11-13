@@ -4389,6 +4389,64 @@
     }
   };
   for(const [locale,labels] of Object.entries(sovarkaRecent)) Object.assign(words[locale],labels);
+  // 13/11/2026 — Héros du Travail et boîte aux lettres du Parti (Sovarka).
+  const sovarkaHerosBoite = {
+    "fr": {
+      "heros_travail_tableau": "Héros du Travail",
+      "heros_travail_classement": "Héros du Travail",
+      "parti_denoncer": "Poster une dénonciation",
+      "parti_boite_registre": "Registre des dénonciations"
+    },
+    "en": {
+      "heros_travail_tableau": "Heroes of Labour",
+      "heros_travail_classement": "Heroes of Labour",
+      "parti_denoncer": "Post a denunciation",
+      "parti_boite_registre": "Denunciation register"
+    },
+    "es": {
+      "heros_travail_tableau": "Héroes del Trabajo",
+      "heros_travail_classement": "Héroes del Trabajo",
+      "parti_denoncer": "Enviar una denuncia",
+      "parti_boite_registre": "Registro de denuncias"
+    },
+    "zh-TW": {
+      "heros_travail_tableau": "勞動英雄",
+      "heros_travail_classement": "勞動英雄",
+      "parti_denoncer": "投遞檢舉信",
+      "parti_boite_registre": "檢舉登記簿"
+    },
+    "ru": {
+      "heros_travail_tableau": "Герои Труда",
+      "heros_travail_classement": "Герои Труда",
+      "parti_denoncer": "Отправить донос",
+      "parti_boite_registre": "Реестр доносов"
+    },
+    "ko": {
+      "heros_travail_tableau": "노동 영웅",
+      "heros_travail_classement": "노동 영웅",
+      "parti_denoncer": "고발장 넣기",
+      "parti_boite_registre": "고발 등록부"
+    },
+    "ar": {
+      "heros_travail_tableau": "أبطال العمل",
+      "heros_travail_classement": "أبطال العمل",
+      "parti_denoncer": "إيداع وشاية",
+      "parti_boite_registre": "سجل الوشايات"
+    },
+    "pt-BR": {
+      "heros_travail_tableau": "Heróis do Trabalho",
+      "heros_travail_classement": "Heróis do Trabalho",
+      "parti_denoncer": "Postar uma denúncia",
+      "parti_boite_registre": "Registro de denúncias"
+    },
+    "de": {
+      "heros_travail_tableau": "Helden der Arbeit",
+      "heros_travail_classement": "Helden der Arbeit",
+      "parti_denoncer": "Eine Denunziation einwerfen",
+      "parti_boite_registre": "Denunziationsregister"
+    }
+  };
+  for(const [locale,labels] of Object.entries(sovarkaHerosBoite)) Object.assign(words[locale],labels);
   // Ordres stables de fenêtres dynamiques : état civil, nominations et chantiers.
   // Les identifiants, droits, tarifs et libellés originaux restent dans les modules métier.
   const modalOrders = {
