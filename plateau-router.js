@@ -283,7 +283,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'clinique_reserver_nuit') { reserverNuiteeClinique(); return; }
   if (fn === 'clinique_dormir') { doDormir(); return; }
   if (fn === 'reserver_chambre_hotel') { doReserverChambreHotel(pa); return; }
-  if (fn === 'dormir_chambre') { doDormirChambre(); return; }
+  if (fn === 'dormir_chambre') { if (String(state.currentBuilding || '').startsWith('maison-') && typeof dormirChezHabitant === 'function') dormirChezHabitant(); else doDormirChambre(); return; }
   if (fn === 'dormir') { doDormir(); return; }
   if (fn === 'service_etage') { doServiceEtage(pa); return; }
   if (fn === 'consulter_classement_joueurs_club') { doConsulterClassementBookmaker(pa, cost); return; }

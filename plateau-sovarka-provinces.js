@@ -212,7 +212,8 @@ async function ouvrirMaisonHabitant(cache) {
   if (v.heberge) {
     html = '<p>' + provT('hHome') + '</p>' +
       (v.mange ? '<p class="cpj-note">' + provT('hAte') + '</p>'
-               : vehBouton(provT('shareMeal'), 'agirMaisonHabitant(\'manger\')', true) + '<p class="cpj-note">' + provT('mealNote') + '</p>');
+               : vehBouton(provT('shareMeal'), 'agirMaisonHabitant(\'manger\')', true) + '<p class="cpj-note">' + provT('mealNote') + '</p>') +
+      vehBouton(provT('sleepHere'), 'dormirChezHabitant()', true);
   } else if (v.heberge_ailleurs) {
     html = '<p>' + provT('hElsewhere') + '</p>';
   } else if (!v.service) {
@@ -235,19 +236,34 @@ async function agirMaisonHabitant(action) {
   await ouvrirMaisonHabitant();
 }
 
+// Dormir chez l'habitant (Fred, 14/11/2026) : ce n'est pas une nuit d'hôtel réservée. Le lit se débloque en rendant le
+// service du jour ; le serveur a alors inscrit la nuit gratuite (hotel_nuitees) et la consomme au sommeil.
+async function dormirChezHabitant() {
+  const v = await sbRpcVerdict('sovarka_maison_lire', {}).catch(() => null);
+  if (!v || v.ok !== true) { showToast(provT('tHouse'), provMotif(v), false); return; }
+  const nom = provEchapper(v.habitant);
+  if (!v.heberge) {
+    const texte = v.heberge_ailleurs ? provT('hElsewhere')
+      : v.service ? provT('sleepNo', { nom, objet: provEchapper(provService(v.service)) }) : provT('hNothing');
+    showToast(provT('tSleepNo'), texte, false);
+    return;
+  }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof doDormirChambre === 'function') await doDormirChambre({ habitant: nom });
+}
+
 async function trinquerHabitant() {
   const v = await provActe('sovarka_maison_agir', { p_action: 'trinquer' }, 'trinquer');
   if (!v) return;
   if (v.ok !== true) { if (typeof signalerRefusCout === 'function' && !PROV_MOTIFS[v.raison]) signalerRefusCout(v); else showToast(provT('tToast'), provMotif(v), false); return; }
-  // Réaction écrite par DeepSeek (Fred, 13/11/2026) : la phrase fixe s'affiche d'abord, puis la réplique de
-  // l'habitant la remplace si elle arrive. Un seul appel par bouteille (le serveur le garantit).
-  let reactionIA = null;
+  // Réaction écrite par DeepSeek (Fred, 13/11/2026). Une seule fenêtre (Fred, 14/11/2026) : on attend la réplique de
+  // l'habitant (8 s au plus) avant d'ouvrir la fenêtre, sinon la phrase fixe. Un seul appel par bouteille (serveur).
+  const reactionIA = await Promise.race([provReactionIA(v._requete), new Promise(r => setTimeout(() => r(null), 8000))]).catch(() => null);
   const fenetre = () => provModal(provT('titleToast'), '<p>« ' + provEchapper(reactionIA || provServeur(PROV_REACTIONS, v.reaction)) + ' »</p>' +
     vehSection(provT('learn'), '<p>« ' + provEchapper(provRagot(v.secret_recu)) + ' »</p>') +
     vehSection(provT('slip'), '<p class="cpj-note">' + provT('slipNote', { secret: provEchapper(provRagot(v.secret_livre)) }) + '</p>') +
     vehBouton(provT('another'), 'trinquerHabitant()', false), fenetre);
   fenetre();
-  provReactionIA(v._requete).then(t => { if (t) { reactionIA = t; if (window.sovFenetreCourante === fenetre && document.getElementById('modal-postes')?.classList.contains('open')) fenetre(); } });
   if (typeof addJournalEntry === 'function') addJournalEntry('Trinqué avec ' + v.habitant + ' : « ' + v.secret_recu + ' »', 'event-neutral');
 }
 
