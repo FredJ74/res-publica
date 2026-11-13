@@ -32,3 +32,7 @@ Vérification par simulation uniquement, aucun compte réel créé ou connecté.
 Relecture native et téléphone physique non réalisés. Même extracteur avant/après main `196af01` : corpus 7 565 textes / 50 690 mots inchangé ; +4 textes / +64 mots source raccordés par langue étrangère, autant de ressources. Anglais : 998 textes et 12 125 mots raccordés (23,92 % des mots identifiés). 31 tests Node finaux verts. CI et production à compléter avant livraison.
 
 La garde de périmètre compare base et commit de code du lot, pas le merge temporaire GitHub (qui inclut les migrations étrangères ajoutées entre-temps sur main, telle #905). La preuve AST porte toujours sur le programme entier du lot.
+
+## Livraison vérifiée
+
+PR #906 fusionnée : `a2f43e034e97d9f6ea8523bd3238bb921bf70b23`. Huit contrôles verts, seul rouge SSM préexistant (trois échecs reproduits). Vercel `dpl_AheGTHnDSQJCEFjcFFQ7uNYAbP9b` READY sur ce SHA, alias confirmé ; sept fichiers publics identiques. Banc rejoué sur ces fichiers : 108 arrivées / 972 bascules, vert. Manifeste de production versionné.
