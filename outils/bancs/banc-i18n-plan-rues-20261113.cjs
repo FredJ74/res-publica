@@ -25,7 +25,7 @@ function fixture(language='fr'){
  ctx.window=ctx;vm.createContext(ctx);
  for(const p of ['data.js','plateau-rue-centrale.js','i18n/navigation-resources.js','plateau-plan-rues.js'])
   vm.runInContext(src(p),ctx,{filename:p});
- vm.runInContext('var rueCentraleNoeudActuel = RUE_CENTRALE_DEPART.soviet.capitale',ctx);
+ vm.runInContext('rueCentraleNoeudActuel = RUE_CENTRALE_DEPART.soviet.capitale',ctx);
  return {ctx,elements,setLang:l=>{current=l},rpc:()=>rpcCalls};
 }
 test('Les 5 libellés du plan existent en neuf langues et le français reste canonique',()=>{
