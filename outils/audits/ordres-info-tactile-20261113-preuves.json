@@ -25,5 +25,74 @@
       ]
     }
   },
-  "new_failures": []
+  "new_failures": [],
+  "supplementary": {
+    "coque": {
+      "main": {
+        "tests": 21,
+        "pass": 19,
+        "fail": 2,
+        "failures": [
+          "outils/bancs/banc-mobile-coque.cjs:4:1",
+          "outils/bancs/banc-mobile-coque.cjs:67:1"
+        ]
+      },
+      "branch": {
+        "tests": 21,
+        "pass": 19,
+        "fail": 2,
+        "failures": [
+          "outils/bancs/banc-mobile-coque.cjs:4:1",
+          "outils/bancs/banc-mobile-coque.cjs:67:1"
+        ]
+      }
+    },
+    "commerce": {
+      "main": {
+        "tests": 34,
+        "pass": 19,
+        "fail": 15,
+        "failures": [
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:30:33",
+          "outils/bancs/banc-commerce-unifie.cjs:30:33",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3"
+        ]
+      },
+      "branch": {
+        "tests": 34,
+        "pass": 19,
+        "fail": 15,
+        "failures": [
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:15:93",
+          "outils/bancs/banc-commerce-unifie.cjs:30:33",
+          "outils/bancs/banc-commerce-unifie.cjs:30:33",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3",
+          "outils/bancs/banc-commerce-unifie.cjs:34:3"
+        ]
+      }
+    }
+  },
+  "rebased_on": "3a6ecd231b466db630abb6d4f6b4f243c48050d6"
 }

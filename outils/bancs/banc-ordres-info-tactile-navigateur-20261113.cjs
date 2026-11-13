@@ -52,6 +52,7 @@ test('Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/pay
   const page=await browser.newPage({viewport:{width,height:700},hasTouch:true,isMobile:true});const errors=[];page.on('pageerror',e=>errors.push(String(e)));await setup(page);
   await page.waitForFunction(()=>document.querySelectorAll('.rp-order-info-button').length===8);
   assert.equal(await page.evaluate(()=>originalButtons.every(b=>b===document.querySelectorAll('.action-btn')[[...originalButtons].indexOf(b)])),true);
+  await page.evaluate(()=>{window.outsideInfo=0;document.addEventListener('pointerdown',e=>{if(e.target.closest('.rp-order-info-button,.rp-order-info-dialog'))outsideInfo++;},true);document.addEventListener('click',e=>{if(e.target.closest('.rp-order-info-button,.rp-order-info-dialog'))outsideInfo++;});});
   const before=await page.evaluate(()=>snapshot());
   for(const lang of langs){
    await page.evaluate(l=>i18next.changeLanguage(l),lang);
@@ -71,6 +72,7 @@ test('Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/pay
    }
   }
   assert.equal(await page.evaluate(()=>snapshot()),before,'aucun ordre, RPC, PA, paiement ni refus exécuté');
+  assert.equal(await page.evaluate(()=>outsideInfo),0,'aucune fermeture globale ni lecture auxiliaire');
   // Fenêtre et brouillon sous le dialogue : ni remplacement ni fermeture.
   await page.evaluate(()=>{const m=document.getElementById('modal-postes');m.classList.add('open');document.getElementById('postes-body').innerHTML='<textarea id="draft">Brouillon intact</textarea><div class="actions-row" id="nested"></div><div style="height:900px"></div>';document.getElementById('nested').append(originalButtons[0].parentElement);m.querySelector('.modal-box').scrollTop=30;});
   await page.locator('#nested .rp-order-info-button').tap();
@@ -90,6 +92,12 @@ test('Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/pay
   const count=await page.locator('.rp-order-info-button').count();await page.evaluate(()=>renderRoomActions(room,'fixture','salle'));await page.waitForTimeout(20);assert.equal(await page.locator('.rp-order-info-button').count(),8);
   // Source remplacée pendant la lecture : fermer la description périmée.
   await page.locator('.rp-order-info-button').first().tap();await page.evaluate(()=>renderRoomActions(room,'fixture','salle'));await page.waitForFunction(()=>!document.querySelector('dialog[open]'));
+  // Reprise suspendue : l'information ne lance pas de réconciliation serveur.
+  await page.evaluate(()=>{window.resumes=0;window.loadCharacter=async()=>{resumes++;return true;};window.dispatchEvent(new Event('pagehide'));});
+  await page.locator('.rp-order-info-button').first().tap();await page.locator('dialog button').click();
+  assert.equal(await page.evaluate(()=>resumes),0);
+  const oldCalls=await page.evaluate(()=>calls.length);await page.locator('.action-btn').filter({hasText:'Consulter librement'}).tap();
+  await page.waitForFunction(()=>resumes===1);assert.equal(await page.evaluate(()=>calls.length),oldCalls,'le garde de reprise reste actif sur le bouton principal');
   assert.deepEqual(errors,[]);await page.close();
  }}finally{await browser.close();}
 });

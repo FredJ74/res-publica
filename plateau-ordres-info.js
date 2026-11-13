@@ -45,7 +45,6 @@
     content=doc.createElement('div');content.className='rp-order-info-content';content.id='rp-order-info-content';
     dialog.setAttribute('aria-describedby',content.id);
     closeButton=doc.createElement('button');closeButton.type='button';closeButton.className='cpj-touche';
-    closeButton.addEventListener('click',()=>dialog.close());
     dialog.append(heading,content,closeButton);doc.body.append(dialog);
     dialog.addEventListener('close',()=>{
       const previous=origin;origin=null;
@@ -53,11 +52,7 @@
       scrollers=[];
       if(previous?.isConnected)previous.focus({preventScroll:true});
     });
-    dialog.addEventListener('click',event=>{
-      if(event.target!==dialog)return;
-      const r=dialog.getBoundingClientRect();
-      if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();
-    });
+
   }
   function open(info){
     if(!tactile.matches||dialog?.open)return;
@@ -88,11 +83,31 @@
       info.setAttribute('aria-label',label('description')+' — '+orderName(button));
       sources.set(info,button);
       // Un vrai bouton frère : il reste disponible même si l'ordre est disabled.
-      info.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();open(info);});
       button.before(row);row.append(button,info);
     }
     refreshOpen();
   }
+  function infoTarget(event){return event.target?.closest?.('.rp-order-info-button');}
+  // Isoler au niveau window AVANT les gardes de reprise et les fermetures
+  // déléguées du document. Aucune exemption n'est ajoutée au routeur métier.
+  global.addEventListener('click',event=>{
+    const info=infoTarget(event);
+    if(info&&sources.has(info)){
+      event.preventDefault();event.stopImmediatePropagation();open(info);return;
+    }
+    if(!dialog?.open||!dialog.contains(event.target))return;
+    event.stopImmediatePropagation();
+    if(event.target.closest('button')===closeButton){event.preventDefault();dialog.close();return;}
+    if(event.target===dialog){
+      const r=dialog.getBoundingClientRect();
+      if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();
+    }
+  },true);
+  // Ce n'est pas un appui long : aucun geste ni délai ; empêcher seulement
+  // les menus sous-jacents de se fermer avant le clic dans notre dialogue.
+  global.addEventListener('pointerdown',event=>{
+    if((infoTarget(event)&&sources.has(infoTarget(event)))||(dialog?.open&&dialog.contains(event.target)))event.stopImmediatePropagation();
+  },{capture:true,passive:true});
   const observer=new MutationObserver(records=>{
     if(!tactile.matches||scheduled||records.every(r=>dialog?.contains(r.target)))return;
     scheduled=true;global.queueMicrotask(enhance);

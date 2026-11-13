@@ -7,7 +7,7 @@ test('seule la présentation du renderer change ; fonctions métier et catalogue
  assert.equal(clean(read('plateau-politique.js')),clean(execFileSync('git',['show',base+':plateau-politique.js'],{cwd:root,encoding:'utf8',maxBuffer:8*1024*1024})));
  const changed=execFileSync('git',['diff','--name-only',base,'--','api','migrations','baseline','data.js','plateau-router.js','plateau-core.js','plateau-mobile.js','i18n'],{cwd:root,encoding:'utf8'}).trim();assert.equal(changed,'');
  const s=read('plateau-ordres-info.js');assert.doesNotMatch(s,/fetch\(|sbRpc|sbSave|doOrder\(|deduireCout|payer_ordre|state\./);
- assert.doesNotMatch(s,/longpress|touchstart|pointerdown|eval\(|new Function/);
+ assert.doesNotMatch(s,/longpress|touchstart|setTimeout|eval\(|new Function/);
  assert.match(s,/RPSovarkaInfobullesI18n\.infobulle\(p\.details\)/);
  assert.match(s,/label\('closeButton'\)/);assert.match(s,/\.showModal\(\)/);
  assert.ok(read('plateau.html').includes('plateau-ordres-info.js'));
