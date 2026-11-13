@@ -907,3 +907,13 @@ Même règle de questions que la guide Ouliana du musée national : **1 PA ouvre
 - **Registre** : tout y est consigné. Le **chef du parti** désigne qui y a accès ; **seul le chef** supprime une dénonciation.
 - **Information pure** : la suite appartient aux joueurs.
 - Choix d'interprétation (Claude) : registre lu dans la salle des partis ; 2 000 caractères au plus ; le chef peut désigner n'importe quel personnage.
+
+
+## Direction du Renseignement — décisions du 13/11/2026
+
+- **Lieu** : Direction du Renseignement de Sovarka, Novomirsk, bâtiment `siege-renseignement`. Il n'existe pas en Républia.
+- **Accueil** : le sergent Viktor Muetov reste présent ; Elena Diamentevia est ajoutée à l'accueil. Les deux PNJ ont des personnalités distinctes et répondent aux questions générales sur la vocation nationale du renseignement sovarkien ; toute question intrusive sur les méthodes, dossiers, agents, interceptions ou opérations reçoit un refus d'habilitation. Ils vantent Sovarka comme pays à la pointe du renseignement sur tout son territoire. La phrase RP inquiétante « Nous connaissons vos secrets » est permise mais ne signifie pas que l'IA peut inventer ou divulguer des secrets des PJ.
+- **Salle des écoutes** : l'ordre `renseignement_militaire` y est retiré. Elle propose à la place le vol illégal d'un rapport d'écoute des **30 derniers jours**, tiré au hasard par le serveur, via le même ordre `voler_archives_ecoute` que dans les deux autres villes. Même coût **2 PA**, même formule de réussite et mêmes suites judiciaires ; les rapports du centre de **Novomirsk** existent dans le registre national.
+- **Ministères** : l'ordre « Renseignement militaire » reste dans le bureau du ministre de la Défense et est disponible dans celui du ministre de l'Intérieur (Sécurité du Peuple) **de Sovarka uniquement**. Opérations lancées depuis le bureau du ministre compétent, payées sur la caisse de son ministère. Les permissions des autres empires ne changent pas.
+- **Salle d'interrogatoire** : inchangée.
+- **Propositions NON validées** (à arbitrer séparément) : ordre de signalement d'un comportement suspect depuis l'accueil ; consultation officielle d'archives sous habilitation ; surveillance ciblée d'un PJ dans la salle des écoutes. Aucun de ces ordres n'est créé tant que ses droits, conséquences, risques et coûts ne sont pas décidés.
