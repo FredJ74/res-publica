@@ -987,3 +987,9 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 ## Décisions de Fred du 13/11/2026 (23 h 44 – 23 h 50) — PAS de feu vert de codage
 - **Prénom de Nadejda Tenkova conservé**, même si la lieutenante Nadejda Sokolova de Krasnov porte le même prénom.
 - **Approvisionnement de nuit des entrepôts de Sovarka** : le port de Sovarka fonctionne **exactement comme celui de Républia** (le port de PSM nourrit chaque nuit les entrepôts de Républia ; celui de Sovarka nourrit ceux de Sovarka). Novomirsk terminé selon Fred ; on passe à Krasnov.
+
+## Maisonnettes de Krasnov (Fred, 14/11/2026)
+
+- Décision de Fred : chaque maisonnette en bois visible dans les vues de rue de Krasnov est cliquable et abrite **un habitant**, sur le modèle de la maison de Stepan (service du jour, repas, lit, trinquer). Migration `20261114180000_krasnov_maisonnettes`.
+- Cinq maisons repérées par Claude : maison bleue en face du centre d'affaires (`krasnov-rue-bureaux`), maison rouge et maison bleue de la rue descendante, maison brune près de l'église, maison au bord droit des terrains.
+- Habitants **proposés par Claude, à valider par Fred** : Antonina Merkoulova (couturière retraitée), Matveï Rybakov (ancien bûcheron), Praskovia Pakhomova (apicultrice), Kouzma Lapchine (ancien sonneur de cloches), Ignat Lykov (vieux trappeur). Services tirés parmi les matières existantes (bois, fruits et légumes, laitages, textile, viande, alcool, carburant, plantes, céréales, poisson). Images d'intérieur à venir.

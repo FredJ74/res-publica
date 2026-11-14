@@ -3950,6 +3950,10 @@ function renderRoomActions(room, buildingId, roomId) {
       ['declenchee', 'relancee'].includes(state.char?.enigme1?.etape) &&
       !state.char?.enigme1?.autorisationCoffre
     ))
+    // Forêt profonde de Krasnov (14/11/2026) : perdu, « Revenir » cède la place à « Retrouver son chemin ».
+    // L'état vient du serveur (sovarka_foret_aller / _lire) ; inconnu, on montre « Revenir », que le serveur refuse si l'on est perdu.
+    .filter(o => o.fn !== 'foret_revenir' || !(typeof foretEstPerdu === 'function' && foretEstPerdu()))
+    .filter(o => o.fn !== 'foret_retrouver' || (typeof foretEstPerdu === 'function' && foretEstPerdu()))
     .filter(o => !['produire_commerce','produire_arme'].includes(o.fn))
     .filter(o => o.fn !== 'gerer_commerce' || (typeof commerceDroitsPiece === 'function' && commerceDroitsPiece(buildingId, roomId)))
     .filter(o => !dynOrders.some(d => d.fn === o.fn))
@@ -7662,14 +7666,20 @@ async function confirmerPropositionGrace(idx, pa, cost) {
     return;
   }
 
-  const presidentInfoGrace = await getTitulaireActuel('president');
-  const presidentNom = presidentInfoGrace?.estPJ ? presidentInfoGrace.nom : null;
-  if (presidentNom && typeof sbSendMail === 'function') {
-    await sbSendMail('Ministère de la Justice', presidentNom, 'Recommandation de grâce',
-      'Le Ministre de la Justice recommande la grâce de ' + condamne.nom + ' (' + condamne.raison + '). Rendez-vous au palais pour traiter les demandes.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+  // En Sovarka, le dossier doit d'abord être transmis par le Président du Conseil.
+  const sovGrace = pays === 'soviet';
+  const destInfoGrace = await getTitulaireActuel(sovGrace ? 'pm' : 'president');
+  const destNom = destInfoGrace?.estPJ ? destInfoGrace.nom : null;
+  if (destNom && typeof sbSendMail === 'function') {
+    await sbSendMail('Ministère de la Justice', destNom,
+      sovGrace ? 'Grâce à transmettre' : 'Recommandation de grâce',
+      'Le Ministre de la Justice recommande la grâce de ' + condamne.nom + ' (' + condamne.raison + '). '
+      + (sovGrace ? 'Décidez depuis votre bureau si vous la transmettez au Président.' : 'Rendez-vous au palais pour traiter les demandes.'),
+      typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
   }
-  showToast('Recommandation envoyée', 'Le Président a été notifié. -' + cout + ' FR (frais de dossier).', true, true);
-  addJournalEntry('Grâce de ' + condamne.nom + ' recommandée au Président.', 'event-info');
+  showToast('Recommandation envoyée', (sovGrace ? 'Le Président du Conseil doit décider de la transmettre.' : 'Le Président a été notifié.')
+    + ' -' + cout + ' ' + (sovGrace ? 'PSK' : 'FR') + ' (frais de dossier).', true, true);
+  addJournalEntry('Grâce de ' + condamne.nom + (sovGrace ? ' en attente du Président du Conseil.' : ' recommandée au Président.'), 'event-info');
 }
 
 async function ouvrirModalGracier(pa, cost) {
@@ -12024,7 +12034,59 @@ async function reprendreCombatConfirme() {
   return true;
 }
 
-async function ouvrirPanneauCombat(batailleId) {
+// Libellés du panneau de combat : jamais de clé technique (ville_b, zone-production, victoire_acteur).
+// Le lieu se lit dans les données du plateau ; à défaut de nom connu, on n'affiche rien plutôt qu'une clé.
+function libelleLieuCombat(lieu) {
+  if (!lieu) return '';
+  const bat = (typeof BUILDINGS !== 'undefined' && lieu.batiment) ? BUILDINGS[lieu.batiment] : null;
+  const piece = bat && lieu.piece ? (bat.rooms?.[lieu.piece]?.name || '') : '';
+  const nomBat = bat ? (bat.shortName || bat.name || '') : '';
+  const ville = (typeof WORLD !== 'undefined' && lieu.ville) ? (WORLD[state.country]?.[lieu.ville]?.name || '') : '';
+  const ou = piece || nomBat;
+  return [ou, ville].filter(Boolean).join(' · ');
+}
+
+// Une bête ou un garde est nommé ; une troupe garde son estimation dégradée par le serveur.
+function libelleAdversaireDebout(b, dernier) {
+  const est = dernier?.adversaire_estime || {};
+  if (b?.adversaire_nom) {
+    const debout = Number(est.effectif_max) > 0 || Number(est.effectif_min) > 0;
+    return debout ? b.adversaire_nom : 'plus aucun adversaire debout';
+  }
+  return est.libelle || '—';
+}
+
+function libelleIssueCombat(b) {
+  const nom = b?.adversaire_nom || 'L’adversaire';
+  if (b?.type === 'faune' && b.resultat) {
+    const fins = { tues: nom + ' est abattu. Victoire.', neutralises: nom + ' est hors de combat. Victoire.',
+      fuite: nom + ' rompt le combat et s’enfuit entre les arbres : ni peau ni viande.',
+      defaite: 'Vous êtes hors de combat.' };
+    if (fins[b.resultat]) return fins[b.resultat];
+  }
+  const issue = String(b?.issue || '');
+  if (issue && b?.mon_camp && issue === 'victoire_' + b.mon_camp) return 'Victoire.';
+  if (issue.startsWith('victoire_')) return 'Défaite.';
+  if (issue === 'aneantissement_mutuel') return 'Les deux camps sont hors de combat.';
+  if (b?.mon_groupe_replie) return 'Votre groupe a quitté l’affrontement.';
+  return 'Combat terminé.';
+}
+
+// L'issue d'un combat s'écrit dans le journal d'événements, une seule fois, quand un ordre du joueur
+// le termine (Fred, 14/11/2026 : le journal plutôt que la boîte mail). Relire un rapport n'écrit rien.
+const combatsJournalises = new Set();
+function journaliserFinCombat(b) {
+  if (!b || b.statut === 'en_cours' || combatsJournalises.has(b.id) || typeof addJournalEntry !== 'function') return;
+  combatsJournalises.add(b.id);
+  const lieu = libelleLieuCombat(b.lieu);
+  let texte = (lieu ? lieu + ' : ' : 'Combat : ') + libelleIssueCombat(b);
+  const butin = Array.isArray(b.butin) ? b.butin.filter(o => o && o.nom && Number(o.qte) > 0) : [];
+  if (butin.length) texte += ' Butin : ' + butin.map(o => o.nom + ' ×' + Number(o.qte)).join(', ') + '.';
+  const gagne = (b.type === 'faune' && b.resultat) ? (b.resultat === 'tues' || b.resultat === 'neutralises') : (!!b.issue && b.issue === 'victoire_' + b.mon_camp);
+  addJournalEntry(escapeHtmlText(texte), gagne ? 'event-good' : 'event-bad');
+}
+
+async function ouvrirPanneauCombat(batailleId, options) {
   const contexte = contexteGroupePj();
   const e = await sbMilitaireBatailleEtat(batailleId || null);
   if (!contexteGroupePjValide(contexte)) return;
@@ -12045,8 +12107,9 @@ async function ouvrirPanneauCombat(batailleId) {
   }
 
   const fini = (b.statut !== 'en_cours');
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">' +
-          escapeHtmlText(b.lieu?.ville || '') + ' — ' + escapeHtmlText(b.lieu?.batiment || '') + '</div>';
+  if (fini && options?.journaliser) journaliserFinCombat(b);
+  const lieuCombat = libelleLieuCombat(b.lieu);
+  if (lieuCombat) html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">' + escapeHtmlText(lieuCombat) + '</div>';
   html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.8rem">Round ' + b.round_courant +
           ' · vos combattants : ' + b.mon_effectif_actuel + ' sur ' + b.mon_effectif_initial +
           (fini ? ' · <strong style="color:#cc6a44">combat terminé</strong>' : '') + '</div>';
@@ -12061,14 +12124,14 @@ async function ouvrirPanneauCombat(batailleId) {
     if (dernier.mes_morts_pnj > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_morts_pnj + ' PNJ tué(s).</div>';
     if (dernier.mes_pj_neutralises > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_pj_neutralises + ' des vôtres hors de combat ; leur situation est confirmée par le serveur.</div>';
     html += '<div style="font-size:.76rem;color:#8ac05a;margin-top:.3rem">En face : ' + (dernier.adversaires_tombes || 0) + ' adversaire(s) tombé(s) sous vos yeux.</div>';
-    html += '<div style="font-size:.74rem;color:#8a8060">Encore debout : ' + escapeHtmlText(dernier.adversaire_estime?.libelle || '—') + '.</div>';
+    html += '<div style="font-size:.74rem;color:#8a8060">Encore debout : ' + escapeHtmlText(libelleAdversaireDebout(b, dernier)) + '.</div>';
     html += '</div>';
   }
 
   if (!fini) {
     html += htmlDecisionsCombat(b);
-  } else if (b.issue) {
-    html += '<div style="font-size:.8rem;color:#C9A84C;text-align:center;padding:.5rem">Issue : ' + escapeHtmlText(b.issue) + '</div>';
+  } else {
+    html += '<div style="font-size:.8rem;color:#C9A84C;text-align:center;padding:.5rem">' + escapeHtmlText(libelleIssueCombat(b)) + '</div>';
   }
 
   html += '</div>';
@@ -12135,7 +12198,8 @@ function messageRefusCombat(r) {
   return raisons[r?.raison] || 'Le résultat reste à confirmer. Réessayez avec le même reçu.';
 }
 
-async function deciderCombat(batailleId, decision) {
+async function deciderCombat(batailleId, decision) { return avecVerrouCombat(() => deciderCombatInterne(batailleId, decision)); }
+async function deciderCombatInterne(batailleId, decision) {
   const contexte = contexteGroupePj();
   const r = await sbMilitaireBatailleDecider(batailleId, decision);
   if (!contexteGroupePjValide(contexte)) return;
@@ -12148,7 +12212,21 @@ async function deciderCombat(batailleId, decision) {
   await rafraichirApresRound(batailleId);
 }
 
-async function poursuivreCombat(batailleId) {
+// Un seul ordre de combat à la fois : un clic répété pendant la résolution d'un round ne doit pas
+// en jouer un second (constat du 14/11/2026 : trois clics, trois rounds en trois secondes).
+let commandeCombatEnCours = false;
+function verrouillerCommandesCombat(actif) {
+  commandeCombatEnCours = actif;
+  if (typeof document !== 'undefined' && document.querySelectorAll) document.querySelectorAll('#postes-body .cpj-touche').forEach(el => { el.disabled = actif; el.style.opacity = actif ? '.5' : ''; });
+}
+async function avecVerrouCombat(fn) {
+  if (commandeCombatEnCours) return;
+  verrouillerCommandesCombat(true);
+  try { await fn(); } finally { verrouillerCommandesCombat(false); }
+}
+
+async function poursuivreCombat(batailleId) { return avecVerrouCombat(() => poursuivreCombatInterne(batailleId)); }
+async function poursuivreCombatInterne(batailleId) {
   const contexte = contexteGroupePj();
   const r = await sbMilitaireBataillePoursuivre(batailleId);
   if (!contexteGroupePjValide(contexte)) return;
@@ -12203,7 +12281,7 @@ async function rafraichirApresRound(batailleId) {
     } else if (typeof sbGetTerrainState==='function') showToast('Occupation non confirmée','Le combat est enregistré ; la situation du terrain doit encore être relue.',false);
   }
   updateUI();
-  await ouvrirPanneauCombat(batailleId);
+  await ouvrirPanneauCombat(batailleId, { journaliser: true });
   return true;
 }
 
@@ -14071,13 +14149,18 @@ async function ouvrirGardeRepublicaine() {
   if (state.poste?.id !== 'min_def') {
     showToast('Réservé au Ministre de la Défense', '', false); return;
   }
+  const sovGarde = state.country === 'soviet';
+  const gardeMonnaie = sovGarde ? 'PSK' : 'FR';
+  const tarifGarde = sovGarde ? 15 : 50;
   const etat = (typeof sbGardePiece === 'function')
-    ? await sbGardePiece('palais-presidentiel', 'accueil_elysee').catch(() => null) : null;
+    ? await (sovGarde ? sbGardePiece('palais-gouvernement', 'hall')
+                      : sbGardePiece('palais-presidentiel', 'accueil_elysee')).catch(() => null) : null;
 
-  document.getElementById('postes-modal-title').textContent = 'Garde républicaine';
+  document.getElementById('postes-modal-title').textContent = sovGarde ? 'Garde de la Patrie' : 'Garde républicaine';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.7rem">La Garde tient trois postes '
-        + 'nationaux : le Palais présidentiel, le Palais du Gouvernement et l\'Assemblée. '
+  html += '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.7rem">' + (sovGarde
+        ? 'La Garde de la Patrie tient le Palais du Gouvernement. '
+        : "La Garde tient trois postes nationaux : le Palais présidentiel, le Palais du Gouvernement et l'Assemblée. ")
         + 'Un garde permanent y est en faction gratuitement.</div>';
   if (etat && etat.renfort_actif === true) {
     html += '<div style="font-size:.8rem;color:#C9A84C;margin-bottom:.7rem">Un renfort est déjà en '
@@ -14091,7 +14174,7 @@ async function ouvrirGardeRepublicaine() {
     html += '<button onclick="confirmerGardeRenfort(' + f + ')" style="width:100%;font-family:Bebas Neue,sans-serif;'
           + 'font-size:.75rem;letter-spacing:.06em;padding:.5rem;border:1px solid #8a6a20;background:transparent;'
           + 'color:#C9A84C;cursor:pointer;margin-bottom:.35rem">×' + f + ' — ' + sup
-          + ' gardes de plus — ' + (sup * 50).toLocaleString('fr-FR') + ' FR</button>';
+          + ' gardes de plus — ' + (sup * tarifGarde).toLocaleString('fr-FR') + ' ' + gardeMonnaie + '</button>';
   }
   html += '<div style="font-size:.72rem;color:#8a8060;margin-top:.6rem;font-style:italic">Prélevé sur la '
         + 'caisse du Ministère. Un garde mis hors de combat n\'est pas remplacé ; seul le garde '
@@ -14108,13 +14191,16 @@ async function confirmerGardeRenfort(facteur) {
   // AUCUNE VERIFICATION DE CAISSE ICI, pour la meme raison qu'au reversement de la caserne : le
   // serveur verrouille, compare et refuse sans rien ecrire. Deux sources de verite sur un meme
   // solde finissent toujours par diverger.
+  const sovGarde = state.country === 'soviet';
+  const monnaieGarde = sovGarde ? 'PSK' : 'FR';
+  const nomGarde = sovGarde ? 'Garde de la Patrie' : 'Garde républicaine';
   const r = await sbGardeRenfortNational(facteur).catch(() => null);
   if (!r || r.ok !== true) {
     const raison = r && r.raison;
     showToast('Renfort refusé',
       raison === 'caisse_defense_insuffisante'
         ? 'La caisse du Ministère ne couvre pas ' + Number(r.requis || 0).toLocaleString('fr-FR')
-          + ' FR (solde : ' + Number(r.solde || 0).toLocaleString('fr-FR') + ' FR).'
+          + ' ' + monnaieGarde + ' (solde : ' + Number(r.solde || 0).toLocaleString('fr-FR') + ' ' + monnaieGarde + ').'
       : raison === 'facteur_hors_bornes' ? 'Le renfort va de ×2 à ×5.'
       : raison === 'aucun_poste_de_garde' ? 'Aucun poste de garde dans ce pays.'
       : 'Réservé au Ministre de la Défense en exercice.', false);
@@ -14122,10 +14208,10 @@ async function confirmerGardeRenfort(facteur) {
   }
   showToast('Garde renforcée',
     '×' + r.facteur + ' pendant 24 h — ' + r.gardes_supplementaires + ' gardes, '
-    + Number(r.cout).toLocaleString('fr-FR') + ' FR.', true, true);
-  addJournalEntry('Garde républicaine renforcée ×' + r.facteur + ' sur les ' + r.postes
+    + Number(r.cout).toLocaleString('fr-FR') + ' ' + monnaieGarde + '.', true, true);
+  addJournalEntry(nomGarde + ' renforcée ×' + r.facteur + ' sur les ' + r.postes
     + ' postes nationaux pour 24 heures — ' + Number(r.cout).toLocaleString('fr-FR')
-    + ' FR prélevés sur la caisse du Ministère de la Défense.', 'event-info');
+    + ' ' + monnaieGarde + ' prélevés sur la caisse du Ministère de la Défense.', 'event-info');
 }
 
 // Retourne le coefficient de tir actuel d'une arme pour un pays (defaut + ameliorations acquises)

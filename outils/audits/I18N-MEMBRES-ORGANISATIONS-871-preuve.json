@@ -1,0 +1,24 @@
+{
+  "baseCommit": "1a5651a06fbb38600c3b453908b3bcbc832467fc",
+  "codeCommit": "d11e2e31e7f938c34cc540254619f6c71262392b",
+  "newKeys": 4,
+  "newForeignTranslations": 32,
+  "reusedKey": "sovarkaPartis.secMembers",
+  "reusedForeignTranslations": 8,
+  "nodeTestsPassed": 121,
+  "baselineExistingTestsPassed": 119,
+  "browserStates": 9,
+  "browserLanguageSwitches": 243,
+  "creationRegressionSwitches": 756,
+  "directoryRegressionSwitches": 999,
+  "businessFunctionsUnchanged": true,
+  "rightsAndCommandTargetsComparedWithMain": true,
+  "preexistingComparison": {
+    "tests": 31,
+    "passed": 28,
+    "failed": 3,
+    "sameOnMainAndBranch": true,
+    "failures": "SSM préexistants"
+  },
+  "realCommandsExecuted": false
+}

@@ -1236,7 +1236,23 @@ const WORLD = {
         'raffinerie-montrouge':         { name: "Raffinerie de Montrouge" },
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
         'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },
-        'dispensaire-public-v':         { name: "Hôpital de Montrouge", persons: [{name:'Agnès Thésie (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}] },
+        'dispensaire-public-v': {
+          name: "Hôpital de Montrouge",
+          persons: [{name:'Agnès Thésie (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}],
+          // Salle propre à Montrouge : ne pas l'ajouter au gabarit partagé avec PSM et Sovarka.
+          roomsExtra: {
+            chambre: {
+              name: "Chambre d'hôpital",
+              image: '🛏️',
+              imageBg: 'linear-gradient(135deg,#d8dfd8,#a3b6ae)',
+              desc: "Une chambre d'hôpital lumineuse, propre et parfaitement entretenue, avec vue sur les immeubles de Montrouge.",
+              imageUrl: 'images/montrouge/montrouge-hopital-chambre.webp',
+              persons: [],
+              // Ordres communs à toutes les chambres d'hôpital public (Fred, 14/11/2026).
+              orders: CHAMBRE_HOPITAL_ORDRES()
+            }
+          }
+        },
         'centre-commercial': {
           name: "Centre commercial de Montrouge",
           roomOverrides: {
@@ -2183,7 +2199,8 @@ const WORLD = {
                               // Décisions de Fred (08/11/2026) : pas de vote de confiance, l'autocritique publique le remplace ;
                               // le Président du Conseil tranche seul les projets de loi des partis.
                               excludeOrders: ['declencher_vote_confiance'],
-                              orders: [{ fn: 'sovarka_lois_examen', label: 'Projets de loi à trancher', pa: 0, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, requiresPost: 'pm', desc: "Les projets déposés par les partis. Vous tranchez seul ; une loi acceptée est promulguée aussitôt." },
+                              orders: [{ fn: 'sovarka_lois_examen', label: 'Projets de loi à trancher', pa: 0, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, requiresPost: 'pm', desc: "Les projets déposés par les partis. Vous tranchez seul (1 PA par projet) ; une loi acceptée est promulguée aussitôt." },
+                                       { fn: 'sovarka_graces', label: 'Grâces à transmettre', pa: 0, cost: 0, type: 'legal', icon: 'ti-heart-handshake', successRate: 100, requiresPost: 'pm', desc: "Décider de transmettre au Président les grâces proposées par le ministre de la Justice (1 PA par dossier)." },
                                        { fn: 'sovarka_autocritique', label: 'Autocritique publique', pa: 1, cost: 0, type: 'legal', icon: 'ti-speakerphone', successRate: 100, requiresPost: 'pm', desc: "Contraindre un ministre à une autocritique publiée dans la presse : il perd 5 POP, vous en gagnez 2. Une fois par ministre et par semaine." },
                                        { fn: 'sovarka_signalements', label: 'Registre des signalements', pa: 0, cost: 0, type: 'legal', icon: 'ti-file-alert', successRate: 100, requiresPost: ['pm','min_int'], desc: "Le registre de la cellule de surveillance des partis du Capitaine Balatov : les députés signalés pour abstention. Aucun effet automatique : à vous d'en faire usage." }] },
             salle_conseil:  { name: 'Salle du Conseil du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_conseil.webp',
@@ -2191,7 +2208,7 @@ const WORLD = {
             salle_presse:   { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_presse.webp' },
             archives_gouv:  { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_archives.webp' },
             bureau_min_int: { name: 'Bureau - Ministre de la Sécurité du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_securite.webp',
-                              excludeOrders: ['lois_votees_an'],
+                              excludeOrders: ['lois_votees_an','gestion_manifestations'],
                               // Registre de la cellule Balatov lisible par la Sécurité du Peuple (Fred, 08/11/2026).
                               // Surveillance d'un citoyen (Fred, 08/11/2026) : 4 jours, 2 PA, 150 PSK sur la caisse du ministère.
                               orders: [{ fn: 'renseignement_militaire', label: 'Renseignement militaire', pa: 0, cost: 0, type: 'grey', icon: 'ti-spy', successRate: 100, requiresPost: 'min_int', desc: "Convoquer une equipe sous couverture, ou suivre une operation en cours." },
@@ -2199,21 +2216,29 @@ const WORLD = {
                                        // accorde ou retire l'acces legal aux archives des centres d'ecoute (qui appartiennent a la Defense).
                                        { fn: 'sovarka_habilitations', label: 'Habilitations aux archives d’écoute', pa: 0, cost: 0, type: 'legal', icon: 'ti-id-badge', successRate: 100, requiresPost: 'min_int', desc: "Accorder ou retirer à un personnage l'habilitation à consulter les archives des centres d'écoute. Vous ne pouvez pas vous habiliter vous-même." },
                                        { fn: 'sovarka_signalements', label: 'Registre des signalements', pa: 0, cost: 0, type: 'legal', icon: 'ti-file-alert', successRate: 100, requiresPost: ['pm','min_int'], desc: "Le registre de la cellule de surveillance des partis du Capitaine Balatov : les députés signalés pour abstention. Aucun effet automatique : à vous d'en faire usage." },
-                                       { fn: 'sovarka_surveiller', label: 'Placer sous surveillance', pa: 2, cost: 0, type: 'legal', icon: 'ti-eye', successRate: 100, requiresPost: 'min_int', desc: "Faire suivre un citoyen pendant 4 jours : chaque matin, un rapport de tous ses déplacements et des personnes croisées. 150 PSK prélevés sur la caisse du ministère. La cible peut s'en rendre compte. Trois surveillances au plus en même temps." }] },
+                                       { fn: 'sovarka_surveiller', label: 'Placer sous surveillance', pa: 2, cost: 0, type: 'legal', icon: 'ti-eye', successRate: 100, requiresPost: 'min_int', desc: "Faire suivre un citoyen pendant 4 jours : chaque matin, un rapport de tous ses déplacements et des personnes croisées. 150 PSK prélevés sur la caisse du ministère. La cible peut s'en rendre compte. Trois surveillances au plus en même temps." },
+                                       { fn: 'sovarka_manifs_gerer', label: 'Gérer les manifestations', pa: 0, cost: 0, type: 'legal', icon: 'ti-users-group', successRate: 100, requiresPost: 'min_int', desc: "Accepter ou refuser une demande de manifestation de soutien (1 PA) ; réprimer une manifestation autorisée (3 PA)." }] },
             bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_economie.webp',
-                              excludeOrders: ['preempter_entreprise'] },
+                              excludeOrders: ['preempter_entreprise','bne_caisse_prelever','subvention'],
+                              orders: [{ fn: 'subvention', label: 'Accorder une subvention', pa: 2, cost: 0, type: 'legal', icon: 'ti-coins', successRate: 100, requiresPost: 'min_fin', desc: "Subventionner un citoyen, un club, une organisation ou une entreprise (maximum 150 PSK)." }] },
             bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_justice.webp',
                               orders: [{ fn: 'sovarka_saisir_juge', label: 'Saisir le juge', pa: 1, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, requiresPost: 'min_just', desc: "Vous seul saisissez le juge pour retirer un droit d'exploiter. Juge PNJ : retrait automatique ; juge PJ : décision libre." },
                                        // Justice de Sovarka (Fred, 08/11/2026) : pas de procureur ; le ministre saisit le juge ou enterre, et donne ses consignes.
-                                       { fn: 'sovarka_registre_plaintes', label: 'Affaires judiciaires', pa: 0, cost: 0, type: 'legal', icon: 'ti-scale', successRate: 100, requiresPost: 'min_just', desc: "Toutes les plaintes de Sovarka : saisir le juge ou enterrer l'affaire, et envoyer au juge vos consignes (condamner sévèrement, légèrement, relaxer, ou libre à lui) jusqu'à la veille du procès." }] },
+                                       { fn: 'sovarka_registre_plaintes', label: 'Affaires judiciaires', pa: 0, cost: 0, type: 'legal', icon: 'ti-scale', successRate: 100, requiresPost: 'min_just', desc: "Toutes les plaintes de Sovarka : saisir le juge ou enterrer l'affaire, et envoyer au juge vos consignes (condamner sévèrement, légèrement, relaxer, ou libre à lui) jusqu'à la veille du procès." },
+                                       // Ne jamais réutiliser les ordres QHS de Républia : le goulag de Starovka exige son propre raccordement.
+                                       { fn: 'sovarka_goulag_gestion', label: 'Gestion du goulag', pa: 0, cost: 0, type: 'grey', icon: 'ti-building-fortress', successRate: 100, requiresPost: 'min_just', bientot: 'Le goulag de Starovka doit encore être raccordé. Aucun dossier de détenu ni pouvoir pénitentiaire ne peut être traité ici.', desc: 'Le goulag de Sovarka sera géré par la Justice prolétarienne lorsque son bâtiment et ses données seront opérationnels.' }] },
             bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_defense.webp',
                               // Exclure les pouvoirs propres a l'armee de Republia.
                               excludeOrders: ['mobilisation_nationale','activer_cessez_le_feu','garde_republicaine'],
                               orders: [{ fn: 'sovarka_conscription', label: 'Conscription', pa: 0, cost: 0, type: 'legal', icon: 'ti-military-rank', successRate: 100, requiresPost: 'min_def', desc: "Décréter ou lever la conscription des citoyens sans poste : 48 heures pour se présenter, sinon réfractaires et recherchés." },
                                        // Centres d'écoute (Fred, 10/11/2026) : le ministre demande à distance le rapport du jour qu'il veut, reçu par mail.
-                                       { fn: 'sovarka_ecoutes', label: 'Rapports des centres d’écoute', pa: 0, cost: 0, type: 'legal', icon: 'ti-antenna', successRate: 100, requiresPost: 'min_def', desc: "Les cellules d'écoute de Novomirsk, Starovka et Krasnov interceptent chaque jour une partie des mails. Demandez le rapport du jour que vous voulez : il vous arrive par mail." }] },
+                                       { fn: 'sovarka_ecoutes', label: 'Rapports des centres d’écoute', pa: 0, cost: 0, type: 'legal', icon: 'ti-antenna', successRate: 100, requiresPost: 'min_def', desc: "Les cellules d'écoute de Novomirsk, Starovka et Krasnov interceptent chaque jour une partie des mails. Demandez le rapport du jour que vous voulez : il vous arrive par mail." },
+                                       { fn: 'garde_republicaine', label: 'Garde de la Patrie', pa: 0, cost: 0, type: 'legal', icon: 'ti-shield-lock', successRate: 100, requiresPost: 'min_def', desc: "Renforcer les gardes au Palais du Gouvernement pendant 24 h : 15 PSK par garde supplémentaire." }] },
             bureau_min_info:{ name: 'Bureau - Ministre de la Vérité officielle', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_information.webp',
-                              orders: [{ fn: 'sovarka_sondages', label: 'Sondages en attente', pa: 0, cost: 0, type: 'legal', icon: 'ti-chart-bar', successRate: 100, requiresPost: 'min_info', desc: "Les sondages reçus : publier tel quel, publier faussé ou enterrer." }] },
+                              excludeOrders: ['propagande_etat','commanditer_sondage'],
+                              orders: [{ fn: 'propagande_etat', label: 'Campagne de propagande', pa: 3, cost: 150, type: 'legal', icon: 'ti-speakerphone', successRate: 100, requiresPost: 'min_info', desc: 'Campagne nationale de propagande : 150 PSK.' },
+                                       { fn: 'commanditer_sondage', label: 'Commanditer un sondage', pa: 1, cost: 60, type: 'legal', icon: 'ti-chart-pie', successRate: 100, requiresPost: 'min_info', desc: 'Sondage réel sur la popularité des partis : 60 PSK.' },
+                                       { fn: 'sovarka_sondages', label: 'Sondages en attente', pa: 0, cost: 0, type: 'legal', icon: 'ti-chart-bar', successRate: 100, requiresPost: 'min_info', desc: "Les sondages reçus : publier tel quel, publier faussé ou enterrer." }] },
             bureau_min_ae:  { name: "Bureau - Ministre de l'Amitié entre les Peuples", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_diplomatie.webp' }
           },
           persons: []
@@ -2469,8 +2494,61 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
       desc:'Le kolkhoze collectif numéro 7. Production agricole pour la gloire du Parti.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','stade','zone-production','entrepot-logistique-krasnov','station-service-krasnov'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','logements-novomirsk','logements-krasnov-place-ours','terrain-a-batir-2','stade','zone-production','entrepot-logistique-krasnov','station-service-krasnov'],
       buildingContext: {
+        // Immeuble social face à l'Universam : gabarit de logements collectifs
+        // de Novomirsk, images distinctes, attribution communale inchangée.
+        'logements-novomirsk': {
+          name: 'Immeuble collectif du centre commercial',
+          desc: "Logements populaires en face du centre commercial de Krasnov, attribués par la mairie.",
+          roomOverrides: {
+            salle: { name: "Hall d'immeuble", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_hall.webp' },
+            petit_appartement_1: { name: "Appartement une chambre n°1", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_1_chambre.webp' },
+            petit_appartement_2: { name: "Appartement une chambre n°2", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_1_chambre.webp' },
+            petit_appartement_3: { name: "Appartement une chambre n°3", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_1_chambre.webp' },
+            petit_appartement_4: { name: "Appartement une chambre n°4", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_1_chambre.webp' },
+            grand_appartement_1: { name: "Appartement deux chambres n°1", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_2_chambres.webp' },
+            grand_appartement_2: { name: "Appartement deux chambres n°2", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_2_chambres.webp' },
+            grand_appartement_3: { name: "Appartement deux chambres n°3", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_2_chambres.webp' },
+            grand_appartement_4: { name: "Appartement deux chambres n°4", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_2_chambres.webp' },
+          }
+        },
+        // Hôtel de ville de Krasnov : illustrations des cinq pièces.
+        // Les ordres et les mandats existants restent ceux du gabarit partagé.
+        'mairie': {
+          name: 'Mairie de Krasnov',
+          roomOverrides: {
+            accueil_mairie: {
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_accueil.webp',
+              persons: [{name:'Secrétaire municipale de Krasnov (PNJ)', role:'Accueil administratif', rel:'neutral', job:'secretaire'}]
+            },
+            bureau_maire_local: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_bureau_maire.webp' },
+            bureau_maire_adjoint: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_bureau_adjoint.webp' },
+            salle_partis: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_salle_partis.webp' }
+          },
+          roomsExtra: {
+            salle_elections: {
+              name: 'Salle des élections',
+              imageBg: 'linear-gradient(135deg,#181713,#2a2119)',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_salle_elections.webp',
+              desc: 'Petit bureau de vote municipal doté de deux isoloirs.',
+              persons: [],
+              orders: [
+                {fn:'consulter_elections', label:'Voir les candidats', pa:0, cost:0, type:'legal', icon:'ti-list', successRate:100, desc:'Consulter les candidats et les scrutins de la ville.'},
+                {fn:'voter_election', label:'Voter', pa:0, cost:0, type:'legal', icon:'ti-checkbox', successRate:100, desc:'Voter si un scrutin est ouvert et si vous êtes électeur habilité.'}
+              ]
+            }
+          }
+        },
+        // Décors de l'hôpital municipal de Krasnov (automne) : les salles et les
+        // ordres restent ceux du gabarit partagé. Ne pas dupliquer la logique métier.
+        'dispensaire-public-v': {
+          name: 'Hôpital municipal de Krasnov',
+          roomOverrides: {
+            attente: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_hopital_accueil.webp' },
+            ehpad: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_hopital_EPHAD.webp' }
+          }
+        },
         // Krasnov conserve les ordres de transport du socle, mais possède son propre hall.
         'centre-multinodal-montrouge': {
           name: "Gare de Krasnov",
@@ -2481,6 +2559,37 @@ const WORLD = {
               desc: "Une gare soviétique modeste : guichet, bancs de bois, horaires et accès aux quais.",
               imageUrl: "images/Sovarka/Krasnov/Krasnov_gare_hall.webp",
               personsVides: true
+            }
+          }
+        },
+        // Centre commercial de Krasnov : quatre locaux de meme apparence,
+        // visuels de location choisis dynamiquement dans PIECE_VARIANTES.
+        // Les baux et ordres du socle commercial ne sont pas modifies.
+        'centre-commercial': {
+          name: 'Centre commercial de Krasnov',
+          desc: 'Galerie commerçante couverte de Krasnov et quatre box de vente.',
+          roomOverrides: {
+            hall: {
+              name: 'Galerie marchande',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_commercial_hall.webp',
+              desc: 'Une galerie marchande populaire, avec quatre commerces accessibles.',
+              persons: []
+            },
+            vitrine_principale: {
+              name: 'Box commercial 1 — Local à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_commercial_box_1_libre.webp'
+            },
+            boutique_milieu: {
+              name: 'Box commercial 2 — Local à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_commercial_box_2_libre.webp'
+            },
+            arriere_boutique: {
+              name: 'Box commercial 3 — Local à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_commercial_box_3_libre.webp'
+            },
+            cave_reserve: {
+              name: 'Box commercial 4 — Local à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_commercial_box_4_libre.webp'
             }
           }
         },
@@ -7377,6 +7486,27 @@ const BUILDINGS = {
       }
     }
   },
+  // Krasnov : immeuble à écriteaux visible depuis la rue de la mairie.
+  // Seul le hall est prêt : les appartements seront définis avec leurs images
+  // lors de la prochaine étape. Ne jamais réutiliser les baux de Novomirsk.
+  'logements-krasnov-place-ours': {
+    name: 'Immeuble de la place de l’Ours',
+    shortName: 'Logements',
+    cat: 'Habitat',
+    icon: 'ti-building-community',
+    bgColor: '#181a1c',
+    desc: 'Immeuble collectif de Krasnov, face à la place de l’Ours. Les logements seront proposés prochainement.',
+    rooms: {
+      hall: {
+        name: "Hall d'immeuble",
+        imageBg: 'linear-gradient(135deg,#252321,#36322e)',
+        desc: 'L’entrée de l’immeuble. Les appartements seront accessibles après leur aménagement.',
+        persons: [],
+        orders: []
+      }
+    }
+  },
+
   // LOGEMENTS DE NOVOMIRSK (vue 14), decisions de Fred du 06/11/2026 : en Sovarka, tous les
   // logements hors suites sont sociaux, mecanique de Montrouge (demande a la mairie, attribution
   // par l'adjoint au maire, loyer a la commune). 4 petits a 10 PSK et 4 grands a 20 PSK ; serveur :
@@ -10976,12 +11106,19 @@ function montantDansTexte(texte, ancien, nouveau) {
 // dans la chambre (migration 20261113020000) et y trouve Dormir et le repas de l'hôpital. Novomirsk
 // (pièce ajoutée le 12/11) ; Starovka et Krasnov reçoivent la même chambre, image de Novomirsk.
 // Pas en Républia pour le moment (Fred veut être présent).
-function CHAMBRE_HOPITAL_ORDRES_SOVARKA() {
+// Uniformisation (Fred, 14/11/2026) : toutes les chambres d'hôpital public (Républia et Sovarka) ont
+// les trois mêmes ordres de pièce : Dormir, repas de l'hôpital, transfert en clinique privée. Le serveur y
+// conduit tout personnage tombé à 0 PA (hospitalisation_lieu_rejoindre_interne, pièce 'chambre').
+// Textes repris du socle du dispensaire (déjà traduits) ; le tarif national s'applique au transfert.
+function CHAMBRE_HOPITAL_ORDRES() {
   return [
     {fn:'dormir', label:'Dormir', pa:0, cost:0, type:'legal', icon:'ti-moon', successRate:100, desc:'Dormir dans votre lit d\'hôpital. La récupération suit les règles de l\'hospitalisation.'},
-    {fn:'repas_hopital', label:'Prendre le repas de l\'hôpital', pa:1, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Réservé aux patients hospitalisés, une fois par jour. +2 PA à votre prochain sommeil.'}
+    {fn:'repas_hopital', label:'Prendre le repas de l\'hôpital', pa:1, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Réservé aux patients hospitalisés, une fois par jour. +2 PA à votre prochain sommeil.'},
+    {fn:'transfert_clinique_privee', label:'Être transféré en clinique privée', pa:0, cost:1000, type:'legal', icon:'ti-ambulance', successRate:100, desc:'Meilleure prise en charge, convalescence plus rapide. 1000 FR.'}
   ];
 }
+// Ancien nom (13/11/2026), gardé pour les appels existants.
+function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
 (function () {
   for (const ville of ['ville_a', 'ville_b']) {
     const cite = WORLD.soviet && WORLD.soviet[ville];
@@ -10994,11 +11131,38 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() {
       image: '🛏️',
       imageBg: 'linear-gradient(135deg,#13201e,#29352f)',
       desc: "Une chambre modeste, propre et chauffée. Le mobilier est ancien, mais les draps sont impeccables.",
-      imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_chambre.webp',
+      imageUrl: ville === 'ville_b'
+        ? 'images/Sovarka/Krasnov/Krasnov_hopital_chambre.webp'
+        : 'images/Sovarka/Novomirsk/Novomirsk_hopital_chambre.webp',
       persons: [],
       orders: CHAMBRE_HOPITAL_ORDRES_SOVARKA()
     };
   }
+})();
+
+// CHAMBRES D'HÔPITAL DE LUTHÉCIA ET DE PORT-SAINTE-MARIE (Fred, 14/11/2026) : même pièce que Montrouge et
+// Sovarka (migration 20261114130000). Image provisoire de Montrouge, en attendant celles de Fred.
+(function () {
+  const chambres = {
+    capitale: ['dispensaire-public', "Une chambre d'hôpital propre et calme, au bout du couloir du dispensaire. Le Docteur Aspirine y prescrit, évidemment, du repos."],
+    ville_a: ['dispensaire-public-v', "Une petite chambre blanche qui sent l'iode et le linge propre. Par la fenêtre, on aperçoit les mâts du port."]
+  };
+  Object.entries(chambres).forEach(([ville, [batiment, desc]]) => {
+    const cite = WORLD.republic && WORLD.republic[ville];
+    if (!cite) return;
+    cite.buildingContext = cite.buildingContext || {};
+    const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+    ctx.roomsExtra = ctx.roomsExtra || {};
+    ctx.roomsExtra.chambre = {
+      name: "Chambre d'hôpital",
+      image: '🛏️',
+      imageBg: 'linear-gradient(135deg,#d8dfd8,#a3b6ae)',
+      desc,
+      imageUrl: 'images/montrouge/montrouge-hopital-chambre.webp',
+      persons: [],
+      orders: CHAMBRE_HOPITAL_ORDRES()
+    };
+  });
 })();
 
 // STAROVKA ET KRASNOV : TEXTES DU GABARIT DE MONTROUGE (Claude, 09/11/2026, audit des deux villes).
@@ -11226,7 +11390,11 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() {
   // Seule PNJ de la classe (Fred, 14/11/2026) : l'institutrice de l'image, nom proposé par Claude (« gramota », savoir lire et écrire).
   Object.assign(piece(contexte('ville_b', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Alevtina Gramotova', 'Institutrice', 'professeur')],
     imageUrl: 'images/Sovarka/Krasnov/Krasnov_ecole_salle_classe.webp' }); // image de Fred (14/11/2026) ; mécanique de l'école à décider
-  Object.assign(contexte('ville_b', 'kolkhoze-spirituel'), { name: 'Église du Tractorisme de Krasnov', desc: 'Une église aux bulbes dorés, consacrée au Tractorisme : on y prie pour la récolte et la santé des moteurs.' });
+  Object.assign(contexte('ville_b', 'kolkhoze-spirituel'), { name: 'Église du Tractorisme de Krasnov', desc: 'Une église aux bulbes dorés, consacrée au Tractorisme : on y prie pour la récolte et la santé des moteurs.',
+    // Fred (14/11/2026) : à Krasnov, c'est une église, pas un kolkhoze ; même ordre (faire_don), seul le libellé change.
+    roomOverrides: { grange_sainte: { excludeOrders: ['faire_don'], orders: [
+      {fn:'faire_don', label:'Donner à l’Église', pa:0, cost:0, type:'legal', icon:'ti-coins', successRate:100, desc:'Don libre en PSK. Sans PA. Bonus proportionnels, plafonnés à +10 piété et +6 popularité par jour.'}
+    ] } } });
   const musee = contexte('ville_b', 'musee-novomirsk');
   Object.assign(musee, { name: 'Musée de Krasnov', desc: 'Le musée du kolkhoze : machines agricoles d\'époque, records de récolte et portraits des tractoristes émérites.' });
   ['hall', 'salle_criminels', 'salle_maires', 'salle_personnalites', 'salle_entrepreneurs', 'salle_organisations', 'salle_plumes', 'salle_honneur_militaire', 'salle_unions', 'salle_scandales']
@@ -11304,9 +11472,17 @@ BUILDINGS['locaux-starovka'] = {
   centre('poste-vigilance-glaciale', 'Poste de Vigilance Glaciale', 'Poste militaire', 'Sergent Bair Dorjiev', 'Opérateur d’écoute',
     'Un poste militaire planté dans la glace, hérissé d’antennes : il écoute la ville et, au-delà de l’océan, El Estado.',
     'Des casques, des bandes magnétiques, un poêle et des classeurs alignés : le sergent Dorjiev écoute en silence.');
-  centre('station-radar-krasnov', 'Station radar de Krasnov', 'Station radar', 'Lieutenante Nadejda Sokolova', 'Opératrice d’écoute',
+  centre('station-radar-krasnov', 'Station radar de Krasnov', 'Station radar', 'Colonel Gleb Voronov', 'Chef du centre d’écoute',
     'La station radar du kolkhoze : sa grande parabole tourne vers le sud, vers Al-Khalija, et écoute aussi Krasnov.',
-    'Des consoles qui grésillent et des archives tenues en triple exemplaire par la lieutenante Sokolova.');
+    'Quatre téléphones, un par pays étranger, et un cinquième, rouge, pour Novomirsk. Le colonel Voronov tend l’oreille ; le caporal Sorokine branche les fiches du standard.');
+  // Décor propre au poste d'écoute de Krasnov : ne modifie pas Starovka.
+  BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute.imageUrl =
+    'images/Sovarka/Krasnov/Krasnov_centre_ecoute_salle.webp';
+  // Personnel accordé à l'image de Fred (14/11/2026) : un colonel à son bureau aux quatre téléphones (il remplace la
+  // lieutenante Sokolova) et un opérateur casqué au standard, celui qu'on affronte si le vol des archives échoue.
+  BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute.persons.push(
+    { name: 'Caporal Ilia Sorokine (PNJ)', role: 'Opérateur d’écoute', rel: 'neutral', job: 'militaire' });
+  BUILDINGS['station-radar-krasnov'].imagesAVenir = false;
   const cite = v => WORLD.soviet && WORLD.soviet[v];
   if (cite('ville_a') && !cite('ville_a').buildings.includes('poste-vigilance-glaciale')) cite('ville_a').buildings.push('poste-vigilance-glaciale');
   if (cite('ville_b') && !cite('ville_b').buildings.includes('station-radar-krasnov')) cite('ville_b').buildings.push('station-radar-krasnov');
@@ -11342,9 +11518,31 @@ BUILDINGS['locaux-starovka'] = {
     'Une table couverte d’une toile cirée, des cornichons, du pain noir et un vieil homme ravi d’avoir de la compagnie.',
     // Image de Fred (13/11/2026) : la cuisine de Stepan, poêle, bocaux d'herbes et fusil au mur.
     'images/Sovarka/Krasnov/Krasnov_maison_stepan_interieur.webp');
+  // Maisonnettes en bois des vues de rue de Krasnov (Fred, 14/11/2026 : « un habitant chacune » ; migration
+  // 20261114180000). Habitants proposés par Claude, à valider par Fred ; images d'intérieur à venir.
+  const MAISONNETTES_KRASNOV = [
+    ['maison-krasnov-bureaux', 'Maison d’Antonina', 'Antonina Merkoulova', 'Habitante de Krasnov',
+      'Une maison de bois bleue aux fenêtres ourlées de dentelle de bois, face au centre d’affaires.',
+      'Une machine à coudre à pédale, des coupons de tissu pliés sur le divan et une couturière à la retraite qui met déjà la bouilloire en route.'],
+    ['maison-krasnov-rouge', 'Maison de Matveï', 'Matveï Rybakov', 'Habitant de Krasnov',
+      'Une isba rouge au toit de tôle, la cheminée qui fume en toute saison.',
+      'Une hache accrochée près du poêle, des bûches empilées jusqu’au plafond et un ancien bûcheron au dos voûté qui vous tend un tabouret.'],
+    ['maison-krasnov-bleue', 'Maison de Praskovia', 'Praskovia Pakhomova', 'Habitante de Krasnov',
+      'Une petite maison bleue derrière sa palissade, des ruches alignées au fond du jardin.',
+      'Des pots de miel sur chaque étagère, des bouquets d’herbes qui sèchent au plafond et une apicultrice qui sent la cire et le tilleul.'],
+    ['maison-krasnov-eglise', 'Maison de Kouzma', 'Kouzma Lapchine', 'Habitant de Krasnov',
+      'Une maison de bois brun à l’ombre des bulbes dorés de l’église.',
+      'Des icônes dans le coin rouge, une cloche miniature sur la table et un ancien sonneur de cloches, un peu sourd, qui parle très fort.'],
+    ['maison-krasnov-terrains', 'Maison d’Ignat', 'Ignat Lykov', 'Habitant de Krasnov',
+      'Une vieille maison de bois au bord des terrains vagues, des peaux tendues sous l’auvent.',
+      'Des pièges pendus aux poutres, un samovar cabossé et un vieux trappeur taiseux qui vous observe longuement avant de sourire.']
+  ];
+  MAISONNETTES_KRASNOV.forEach(m => maison(...m));
   const cite = v => WORLD.soviet && WORLD.soviet[v];
   if (cite('ville_a') && !cite('ville_a').buildings.includes('maison-starovka')) cite('ville_a').buildings.push('maison-starovka');
-  if (cite('ville_b') && !cite('ville_b').buildings.includes('maison-krasnov')) cite('ville_b').buildings.push('maison-krasnov');
+  ['maison-krasnov', ...MAISONNETTES_KRASNOV.map(m => m[0])].forEach(id => {
+    if (cite('ville_b') && !cite('ville_b').buildings.includes(id)) cite('ville_b').buildings.push(id);
+  });
 })();
 
 // FERMES, DISTILLERIE ET FOURREUR DE SOVARKA (Fred, 10/11/2026 a midi ; migration 20261110123000). Une ferme ne consomme
@@ -11402,6 +11600,40 @@ BUILDINGS['locaux-starovka'] = {
     'L’usine de liqueurs et de vodka de Krasnov (« ликёро-водочный завод ») : « Traditions de qualité pour le peuple ».',
     'atelier_distillerie', 'L’atelier de distillation',
     'Des alambics de cuivre, des fûts empilés et l’odeur sucrée de la betterave. L’exploitant y tire vodka, slivovitz, samogon et sucre (commerce de type « Distillerie »).', 30);
+  // Krasnov : trois salles illustrées (images de Fred, 14/11/2026). Le local loué est la salle des ventes, où le
+  // client achète : migration 20261114180000 (le local n'avait ni bail ni demande). L'atelier et le bureau sont décor
+  // et personnel de l'usine, sans ordre.
+  {
+    const dist = BUILDINGS['distillerie-krasnov'];
+    const ordresLocal = dist.rooms.atelier_distillerie.orders;
+    dist.imagesAVenir = false;
+    dist.rooms = {
+      salle_ventes: {
+        name: 'Salle des ventes',
+        imageBg: 'linear-gradient(135deg,#231a13,#4b3021)',
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_distillerie_salle_ventes.webp',
+        desc: 'Le magasin de l’usine : bouteilles alignées derrière le comptoir, caisse enregistreuse et tarifs à la craie. L’exploitant y vend vodka, slivovitz, samogon et sucre (commerce de type « Distillerie »).',
+        persons: [],
+        orders: ordresLocal
+      },
+      bureau_direction: {
+        name: 'Bureau de direction',
+        imageBg: 'linear-gradient(135deg,#22180f,#403324)',
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_distillerie_bureau_direction.webp',
+        desc: 'Diplômes d’honneur au mur, plan rempli à 104,7 % et une carafe de vodka « pour les inspections » : le directeur Pokhmelkine y signe les bilans de production.',
+        persons: [{ name: 'Anatoli Pokhmelkine (PNJ)', role: 'Directeur de la distillerie', rel: 'neutral', job: 'directeur' }],
+        orders: []
+      },
+      atelier_distillerie: {
+        name: 'L’atelier de distillation',
+        imageBg: 'linear-gradient(135deg,#141210,#1e1a16)',
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_distillerie_atelier.webp',
+        desc: 'Des alambics de cuivre, des cuves d’alcool à 96,6 % et des fûts de chêne alignés. Vassili Gradousov surveille la colonne, son carnet de dégustation à la main.',
+        persons: [{ name: 'Vassili Gradousov (PNJ)', role: 'Maître distillateur', rel: 'friendly', job: 'artisan' }],
+        orders: []
+      }
+    };
+  }
   local('fourreur-starovka', 'Fourreur « La Fourrure chaude »', 'Fourreur', 'ti-hanger',
     'La boutique du fourreur de Starovka (« Тёплый мех ») : chapkas, manteaux et bottes fourrées, indispensables à neuf mois d’hiver.',
     'boutique_fourreur', 'La boutique',
@@ -11443,8 +11675,14 @@ BUILDINGS['locaux-starovka'] = {
       orders: [
         { fn: 'foret_couper', label: 'Couper du bois', pa: 2, cost: 0, type: 'legal', icon: 'ti-axe', successRate: 100,
           desc: 'Le bois de la forêt profonde : une coupe rapporte le double d’une récolte. Combien de fois avant que quelque chose ne bouge dans les fourrés ?' },
+        // Retour de Fred (14/11/2026) : on peut s'enfoncer encore depuis une vue profonde (vers une autre vue), sans repasser par l'entrée.
+        { fn: 'foret_enfoncer', label: 'S’enfoncer dans la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-trees', successRate: 100,
+          desc: 'Plus loin, le bois est plus beau : chaque coupe rapporte le double. Mais on dit que les loups et l’ours rôdent sous les arbres… et qu’on s’y perd facilement.' },
         { fn: 'foret_revenir', label: 'Revenir à l’entrée de la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-arrow-back-up', successRate: 100,
-          desc: 'Retrouver le chemin de l’entrée… si l’on ne se perd pas en route.' }
+          desc: 'Retrouver le chemin de l’entrée… si l’on ne se perd pas en route.' },
+        // Perdu (état serveur sovarka_foret_perdus) : « Revenir » est masqué et remplacé par cet ordre (renderRoomActions).
+        { fn: 'foret_retrouver', label: 'Retrouver son chemin', pa: 1, cost: 0, type: 'legal', icon: 'ti-compass', successRate: 100,
+          desc: 'Chercher la sortie à l’instinct, entre des troncs qui se ressemblent tous (1 PA). Peut-être l’entrée de la forêt… peut-être plus loin encore.' }
       ]
     };
   });

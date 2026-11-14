@@ -92,3 +92,7 @@ Le soin `soins_discrets` en clinique privée est une prestation confidentielle :
 - Starovka et Krasnov utilisent pour l'instant l'image de la chambre de Novomirsk.
 - **Pas encore en Républia** : Fred veut être présent quand on le fera.
 - Migration `20261113020000_hopitaux_sovarka_chambre` (registre `hopitaux_sovarka_chambre_20261113020000`).
+
+## Avertissement avant 0 PA : durée annoncée (Fred, 14/11/2026)
+
+- La fenêtre de confirmation affichée avant un ordre qui laisserait le PJ à 0 PA précise désormais qu'il sera transféré à l'hôpital **et immobilisé 2 à 3 jours**. Texte traduit dans les 9 langues (`i18n/room-actions-resources.js`), libellé de l'ordre dans la langue du joueur. Vérifié sur mobile (pop-up au premier plan, boutons de 44 px).

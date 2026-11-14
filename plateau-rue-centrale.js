@@ -1026,7 +1026,9 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/Sovarka/Krasnov/Krasnov rue terrains.webp',
       // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
-        { xPct: [10, 58], yPct: [40, 64], nom: 'Terrain municipal', type: 'batiment', buildingId: 'terrain-a-batir-2' }
+        { xPct: [10, 58], yPct: [40, 64], nom: 'Terrain municipal', type: 'batiment', buildingId: 'terrain-a-batir-2' },
+        // 14/11/2026 : maisonnette au bord droit (hospitalité, migration 20261114180000).
+        { xPct: [91, 100], yPct: [28, 58], nom: 'Maison d’Ignat', type: 'batiment', buildingId: 'maison-krasnov-terrains' }
       ],
       liens: { gauche: 'krasnov-rue-maison', toutDroit: 'krasnov-rue-eglise', droite: 'krasnov-rue-marche-ferme' },
       flechesStyle: {
@@ -1103,7 +1105,8 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/Sovarka/Krasnov/Krasnov rue immeubles centre commercial.webp',
       // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
-        { xPct: [0, 36], yPct: [12, 62], nom: 'Centre commercial de Krasnov', type: 'batiment', buildingId: 'centre-commercial' }
+        { xPct: [0, 36], yPct: [12, 62], nom: 'Centre commercial de Krasnov', type: 'batiment', buildingId: 'centre-commercial' },
+        { xPct: [72, 100], yPct: [12, 77], nom: 'Immeuble collectif de Krasnov', type: 'batiment', buildingId: 'logements-novomirsk' }
       ],
       liens: { arriere: 'krasnov-rue-distillerie-radar', toutDroit: 'krasnov-rue-mairie-place' },
       flechesStyle: {
@@ -1112,18 +1115,32 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
-    // Place de la mairie : retour centre commercial et suite vers la rue tabac-bar.
+    // Rue de la mairie : la place de l'Ours est à gauche.
+    // L'immeuble à écriteaux (au centre, derrière la statue) est distinct de
+    // celui qui fait face au centre commercial : ses futurs baux le seront aussi.
     'krasnov-rue-mairie-place': {
       image: 'images/Sovarka/Krasnov/Krasnov rue mairie place.webp',
-      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
-        { xPct: [72, 100], yPct: [8, 68], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' }
+        { xPct: [72, 100], yPct: [8, 68], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' },
+        { xPct: [54, 71], yPct: [19, 55], nom: "Immeuble de la place de l'Ours", type: 'batiment', buildingId: 'logements-krasnov-place-ours' }
       ],
-      liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar' },
+      liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar', gauche: 'krasnov-place-ours' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
-        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);',
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);'
       }
+    },
+
+    // Place de l'Ours : vue sur la façade de la mairie, retour vers la rue
+    // par la flèche basse ; aucun changement aux deux autres sorties.
+    'krasnov-place-ours': {
+      image: 'images/Sovarka/Krasnov/Krasnov_place_ours.webp',
+      zones: [
+        { xPct: [49, 100], yPct: [9, 77], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' }
+      ],
+      liens: { arriere: 'krasnov-rue-mairie-place' },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
     },
 
     // Rue du tabac/bar : retour à la mairie et progression vers station/musée.
@@ -1156,19 +1173,37 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/Sovarka/Krasnov/Krasnov_rue_bureaux.webp',
       // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
-        { xPct: [45, 90], yPct: [18, 58], nom: "Centre d'affaires de Krasnov", type: 'batiment', buildingId: 'centre-affaires' }
+        { xPct: [45, 90], yPct: [18, 58], nom: "Centre d'affaires de Krasnov", type: 'batiment', buildingId: 'centre-affaires' },
+        // 14/11/2026 : maison bleue en face du centre d'affaires (hospitalité, migration 20261114180000).
+        { xPct: [0, 24], yPct: [12, 66], nom: 'Maison d’Antonina', type: 'batiment', buildingId: 'maison-krasnov-bureaux' }
       ],
-      liens: { arriere: 'krasnov-rue-station-musee', toutDroit: 'krasnov-rue-descendante' },
+      // La rue de l'hôpital part à DROITE depuis cette vue (décision de Fred).
+      liens: { arriere: 'krasnov-rue-station-musee', toutDroit: 'krasnov-rue-descendante', droite: 'krasnov-rue-hopital' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
-        toutDroit: 'top:10px; left:43%; transform:translateX(-50%);'
+        toutDroit: 'top:10px; left:43%; transform:translateX(-50%);',
+        droite: 'top:50%; right:10px; transform:translateY(-50%);'
       }
+    },
+
+    // Rue de l'hôpital : retour par la flèche du BAS à la rue du centre d'affaires.
+    'krasnov-rue-hopital': {
+      image: 'images/Sovarka/Krasnov/Krasnov_hopital_rue.webp',
+      zones: [
+        { xPct: [40, 100], yPct: [6, 85], nom: 'Hôpital public de Krasnov', type: 'batiment', buildingId: 'dispensaire-public-v' }
+      ],
+      liens: { arriere: 'krasnov-rue-bureaux' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
     },
 
     // Rue descendante : raccordement de la boucle jusqu'à l'église.
     'krasnov-rue-descendante': {
       image: 'images/Sovarka/Krasnov/Krasnov_rue_descendante.webp',
-      zones: [],
+      // 14/11/2026 : maison rouge à gauche, maison bleue à droite (hospitalité, migration 20261114180000).
+      zones: [
+        { xPct: [0, 27], yPct: [6, 70], nom: 'Maison de Matveï', type: 'batiment', buildingId: 'maison-krasnov-rouge' },
+        { xPct: [82, 100], yPct: [28, 68], nom: 'Maison de Praskovia', type: 'batiment', buildingId: 'maison-krasnov-bleue' }
+      ],
       liens: { arriere: 'krasnov-rue-bureaux', toutDroit: 'krasnov-rue-eglise' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
@@ -1179,7 +1214,10 @@ const RUE_CENTRALE_NOEUDS = {
     // Église : l'ancienne flèche droite en attente boucle vers la rue descendante.
     'krasnov-rue-eglise': {
       image: 'images/Sovarka/Krasnov/Krasnov rue église.webp',
-      zones: [],
+      // 14/11/2026 : maison brune à droite de l'église (hospitalité, migration 20261114180000).
+      zones: [
+        { xPct: [71, 97], yPct: [38, 62], nom: 'Maison de Kouzma', type: 'batiment', buildingId: 'maison-krasnov-eglise' }
+      ],
       liens: { arriere: 'krasnov-rue-terrains', droite: 'krasnov-rue-descendante' },
       flechesStyle: {
         arriere: 'bottom:10px; left:43%; transform:translateX(-50%);',

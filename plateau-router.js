@@ -93,7 +93,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // à l'hôpital (GAME-DESIGN-HOSPITALISATION.md). Toujours affiché, non désactivable, et
   // seulement si le coût annoncé laisse exactement 0 PA. Aide d'écran : le serveur décide seul.
   if (!TEST_MODE && pa > 0 && state.pa - pa === 0 && state._zeroPaConfirme !== fn) {
-    avertirZeroPa(() => { state._zeroPaConfirme = fn; doOrder(fn, pa, cost, label, desc, successRate); }, label);
+    avertirZeroPa(() => { state._zeroPaConfirme = fn; doOrder(fn, pa, cost, label, desc, successRate); }, label, fn);
     return;
   }
   if (typeof state !== 'undefined') state._zeroPaConfirme = null;
@@ -220,6 +220,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'kolkhoze_caisse') { ouvrirCaisseKolkhoze(); return; }
   if (fn === 'foret_enfoncer') { foretAller('enfoncer'); return; }
   if (fn === 'foret_revenir') { foretAller('revenir'); return; }
+  if (fn === 'foret_retrouver') { foretAller('retrouver'); return; }
   if (fn === 'foret_couper') { foretCouper(); return; }
   // Jardins ouvriers de Montrouge (01/11/2026) : plateau-logements-montrouge.js.
   if (fn === 'travailler_jardins') { doTravaillerJardins(); return; }
@@ -467,6 +468,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Ministères de Sovarka (Fred, 08/11/2026)
   if (fn === 'sovarka_lois_examen')        { ouvrirSovarkaLoisExamen(); return; }
   if (fn === 'sovarka_autocritique')       { ouvrirSovarkaAutocritique(); return; }
+  if (fn === 'sovarka_graces')             { ouvrirSovarkaGraces(); return; }
+  if (fn === 'sovarka_manifs_gerer')       { ouvrirSovarkaManifsGerer(); return; }
   if (fn === 'sovarka_signalements')       { ouvrirSovarkaSignalements(); return; }
   if (fn === 'sovarka_surveiller')          { ouvrirSovarkaSurveillance(); return; }
   if (fn === 'sovarka_seance')             { ouvrirSovarkaSeance(); return; }
@@ -950,7 +953,17 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
 
 // Fenêtre de confirmation avant un ordre qui laisserait 0 PA (décision de Fred, 04/11/2026).
 // Fermer la fenêtre ou « Annuler » n'engage rien : l'ordre n'est jamais envoyé.
-function avertirZeroPa(confirmer, label) {
+// Textes : catalogue i18n/room-actions-resources.js (9 langues, français de repli). Durée d'hospitalisation
+// annoncée à la demande de Fred (14/11/2026) : immobilisé 2 à 3 jours (GAME-DESIGN-HOSPITALISATION.md).
+const ZERO_PA_FR = {
+  zeroPaTitle: 'Attention : 0 PA',
+  zeroPaOrder: '« {label} » vous laissera à 0 PA : vous serez transféré(e) à l\'hôpital et immobilisé(e) 2 à 3 jours. Continuer ?',
+  zeroPaGeneric: 'Cet ordre vous laissera à 0 PA : vous serez transféré(e) à l\'hôpital et immobilisé(e) 2 à 3 jours. Continuer ?',
+  zeroPaConfirm: 'Confirmer',
+  zeroPaCancel: 'Annuler'
+};
+const zeroPaT = k => (window.RPRoomActionsI18n?.label?.(k, ZERO_PA_FR[k])) || ZERO_PA_FR[k];
+function avertirZeroPa(confirmer, label, fn) {
   const modal = document.getElementById('modal-postes');
   const titre = document.getElementById('postes-modal-title');
   const corps = document.getElementById('postes-body');
@@ -958,22 +971,27 @@ function avertirZeroPa(confirmer, label) {
     showToast('Ordre suspendu', 'Cet ordre vous laisserait à 0 PA : la confirmation n\'a pas pu s\'afficher.', false);
     return;
   }
-  titre.textContent = 'Attention : 0 PA';
+  titre.textContent = zeroPaT('zeroPaTitle');
   const boite = document.createElement('div');
   boite.className = 'cpj-dialogue';
   boite.style.padding = '1rem';
   const texte = document.createElement('p');
   texte.className = 'cpj-note';
-  texte.textContent = (label ? '« ' + label + ' » vous laissera' : 'Cet ordre vous laissera') +
-    ' à 0 PA : vous serez transféré(e) à l\'hôpital. Continuer ?';
+  // Libellé de l'ordre dans la langue du joueur (même traduction que le bouton), texte brut : aucun HTML.
+  let nomOrdre = label;
+  try {
+    if (label && fn && window.RPOrderI18n?.label && window.RPPlateauI18n?.language)
+      nomOrdre = window.RPOrderI18n.label({ fn, label }, window.i18next, window.RPPlateauI18n.language()) || label;
+  } catch (e) { nomOrdre = label; }
+  texte.textContent = label ? zeroPaT('zeroPaOrder').split('{label}').join(nomOrdre) : zeroPaT('zeroPaGeneric');
   const actions = document.createElement('div');
   actions.className = 'cpj-actions';
   const oui = document.createElement('button');
   oui.className = 'cpj-touche cpj-primaire';
-  oui.textContent = 'Confirmer';
+  oui.textContent = zeroPaT('zeroPaConfirm');
   const non = document.createElement('button');
   non.className = 'cpj-touche';
-  non.textContent = 'Annuler';
+  non.textContent = zeroPaT('zeroPaCancel');
   let fait = false;
   oui.onclick = () => { if (fait) return; fait = true; modal.classList.remove('open'); confirmer(); };
   non.onclick = () => { fait = true; modal.classList.remove('open'); };

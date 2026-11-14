@@ -1,0 +1,13 @@
+{
+  "baseCommit": "d6644047eb7ed130e76f9069b8b91cf7a99d291d",
+  "codeCommit": "d7c032f35a411628ac33820b72ef83c0ee23d016",
+  "newBodyFragments": 11,
+  "newForeignTranslations": 88,
+  "completeMessageVariants": 6,
+  "businessAstIdentical": true,
+  "nodeTestsPassed": 43,
+  "bodyLanguageSwitches": 270,
+  "workingAndTitleSwitches": 432,
+  "realSelectorSwitches": 54,
+  "realAccountsUsed": false
+}

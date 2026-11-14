@@ -1,0 +1,46 @@
+{
+  "baseCommit": "38b697844e1c3ecb9b8beeda0d58189c3b232a67",
+  "codeCommit": "8c6033c9c7e58052d41538ba7d0caf14f4926ed7",
+  "newKeys": 15,
+  "newForeignTranslations": 120,
+  "identicalButValidTranslations": {
+    "pt-BR": {
+      "or": "— ou —"
+    }
+  },
+  "nodeTestsPassed": 125,
+  "baselineExistingTestsPassed": 123,
+  "browserStates": 14,
+  "browserLanguageSwitchesIncludingDraftAndFile": 432,
+  "regressionLanguageSwitches": 2511,
+  "allBrowserSwitches": 2943,
+  "allKeysExercisedInChromium": 15,
+  "businessFunctionsUnchanged": true,
+  "originalFileObjectAndInputPreserved": true,
+  "realSavesOrUploadsExecuted": false,
+  "preexistingComparison": {
+    "mainCommit": "38b697844e1c3ecb9b8beeda0d58189c3b232a67",
+    "tests": 31,
+    "passed": 27,
+    "failed": 4,
+    "sameOnMainAndBranch": true,
+    "causes": [
+      "3 SSM",
+      "2 descriptions salle électorale Krasnov absentes du catalogue Sovarka"
+    ]
+  },
+  "payloadComparison": {
+    "before": {
+      "bytes": 348380191,
+      "files": 1221
+    },
+    "after": {
+      "bytes": 348386316,
+      "files": 1222
+    },
+    "ownIncreaseBytes": 6125,
+    "limitBytes": 346030080,
+    "failurePresentOnMain": true,
+    "imagesAndLimitUnchanged": true
+  }
+}

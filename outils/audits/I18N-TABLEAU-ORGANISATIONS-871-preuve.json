@@ -1,0 +1,28 @@
+{
+  "baseCommit": "a7ce1e08d59317bbd7aa02c1fbdfbf4f95cc1afe",
+  "codeCommit": "dee38c0d6b7da59d0dad6138895aabb8197721b1",
+  "newKeys": 15,
+  "newForeignTranslations": 120,
+  "canonicalOrganizationTypes": 9,
+  "businessAstIdenticalOutsidePresentation": true,
+  "stateAndSecretConditionsUnchanged": true,
+  "browserStates": 37,
+  "browserLanguageSwitches": 999,
+  "widths": [
+    320,
+    390,
+    1280
+  ],
+  "nativeReviewPerformed": false,
+  "realPlayerSessionUsed": false,
+  "nodeTestsPassed": 116,
+  "baselineExistingTestsPassed": 114,
+  "baselineAdditionalChecks": {
+    "baseCommit": "a7ce1e08d59317bbd7aa02c1fbdfbf4f95cc1afe",
+    "tests": 37,
+    "passed": 34,
+    "failed": 3,
+    "sameFailuresOnBranch": true,
+    "failures": "SSM préexistants"
+  }
+}

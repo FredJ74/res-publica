@@ -1,0 +1,27 @@
+name: Krasnov - hospitalisation et images
+on:
+  push:
+    branches: [fix/krasnov-hopital-depuis-bureaux-20261114]
+  pull_request:
+    paths:
+      - 'data.js'
+      - 'plateau-rue-centrale.js'
+      - 'images/Sovarka/Krasnov/Krasnov_hopital_*.webp'
+      - 'migrations/20261114115500_krasnov_hopital_acces_rue.sql'
+      - 'outils/bancs/test-krasnov-hopital-acces-rue-20261114.mjs'
+permissions:
+  contents: read
+jobs:
+  verifications:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe
+        run: |
+          node --check data.js
+          node --check plateau-rue-centrale.js
+      - name: Parcours, pièces et existence des images
+        run: node outils/bancs/test-krasnov-hopital-acces-rue-20261114.mjs

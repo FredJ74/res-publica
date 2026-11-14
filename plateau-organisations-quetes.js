@@ -138,6 +138,15 @@ async function remettreRecompenseQuete() { return null; }
 // visibilite, pas existence) : seuls son chef et son siege sont masques pour un visiteur
 // qui n'en est pas membre. Un membre (y compris non-chef) garde l'acces complet.
 function ouvrirTableauOrganisations() {
+  // Valeurs opaques : aucun nom de joueur/organisation/lieu ne devient du HTML ou une clé.
+  const _rpOrgText = value => String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  // Les lieux canoniques utilisent parfois des entités HTML (ex. Chasse &amp; Pêche).
+  const _rpOrgPlaceText = value => {
+    const text = document.createElement('textarea');
+    const escaped = String(value).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    text.innerHTML = escaped;
+    return _rpOrgText(text.value);
+  };
   const toutes = state.organisations || [];
   const suisMembreDe = (o) => (o.membres || []).some(m => m.nom === state.char?.name);
 
@@ -149,24 +158,38 @@ function ouvrirTableauOrganisations() {
   });
 
   document.getElementById('postes-modal-title').textContent = 'Tableau des organisations';
+  const _rpOrgHeading = document.getElementById('postes-modal-title');
+  const _rpOrgHeadingText = document.createElement('span');
+  _rpOrgHeadingText.textContent = _rpOrgHeading.textContent;
+  _rpOrgHeadingText.setAttribute('data-i18n','organizationDirectory.title');
+  _rpOrgHeading.replaceChildren(_rpOrgHeadingText);
   let html = '<div class="hg-organisations" style="padding:1rem">';
 
   const empireIds = Object.keys(parEmpire);
   if (empireIds.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune organisation connue pour l\'instant.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic" data-i18n="organizationDirectory.empty">Aucune organisation connue pour l\'instant.</div>';
   } else {
     empireIds.forEach(emp => {
       const empireNom = COUNTRIES[emp]?.n || emp;
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.12em;color:#C9A84C;margin:.8rem 0 .5rem;border-bottom:1px solid #2a2010;padding-bottom:.3rem">' + empireNom + '</div>';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.12em;color:#C9A84C;margin:.8rem 0 .5rem;border-bottom:1px solid #2a2010;padding-bottom:.3rem">' + _rpOrgPlaceText(empireNom) + '</div>';
       parEmpire[emp].forEach(o => {
         const typeDef = TYPES_ORGANISATIONS[o.type] || {};
         const typeLabel = typeDef.label || o.type;
+        const _rpOrgTypeKey = {
+          politique:'type_politique',religieuse:'type_religieuse',syndicale:'type_syndicale',
+          economique:'type_economique',criminelle:'type_criminelle',loge:'type_loge',
+          mediatique:'type_mediatique',sportive:'type_sportive',supporters:'type_supporters'
+        }[o.type];
+        const _rpOrgTypeMarker = typeof _rpOrgTypeKey==='string' &&
+          globalThis.RP_I18N_RESOURCES?.fr?.translation?.organizationDirectory?.[_rpOrgTypeKey]===typeLabel
+          ? ' data-i18n="organizationDirectory.'+_rpOrgTypeKey+'"' : '';
         const masquer = !o.visible && !suisMembreDe(o);
         let infoLigne;
         if (masquer) {
-          infoLigne = 'Chef : non communiqué · Siège : non communiqué';
+          infoLigne = '<span data-i18n="organizationDirectory.privateDetails">Chef : non communiqué · Siège : non communiqué</span>';
         } else {
           let buildingNom, roomNom;
+          let _rpOrgUnknownSeat = false;
           if (o.type === 'supporters') {
             const villeCtx = WORLD[o.country_origine || o.country]?.[o.city]?.buildingContext?.['stade'];
             buildingNom = BUILDINGS['stade']?.shortName || BUILDINGS['stade']?.name || 'Stade';
@@ -174,15 +197,18 @@ function ouvrirTableauOrganisations() {
           } else {
             const buildingId = (o.localId || '').split(':')[0];
             const roomId = (o.localId || '').split(':')[1];
+            _rpOrgUnknownSeat = !buildingId;
             buildingNom = BUILDINGS[buildingId]?.shortName || BUILDINGS[buildingId]?.name || buildingId || 'Siège inconnu';
             roomNom = BUILDINGS[buildingId]?.rooms?.[roomId]?.name || '';
           }
-          infoLigne = 'Chef : ' + (o.chef || o.fondateur || '?') + ' · Siège : ' + buildingNom + (roomNom ? ' (' + roomNom + ')' : '');
+          infoLigne = '<span data-i18n="organizationDirectory.leaderPrefix">Chef : </span>' + _rpOrgText(o.chef || o.fondateur || '?') + ' · <span data-i18n="organizationDirectory.seatPrefix">Siège : </span>' +
+            (_rpOrgUnknownSeat ? '<span data-i18n="organizationDirectory.unknownSeat">Siège inconnu</span>' : _rpOrgPlaceText(buildingNom)) +
+            (roomNom ? ' (' + _rpOrgPlaceText(roomNom) + ')' : '');
         }
         html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.5rem">' +
           '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
-          '<span style="font-family:Playfair Display,serif;font-size:.95rem;color:#e0d5b8">' + o.nom + (o.visible ? '' : ' 🔒') + '</span>' +
-          '<span style="font-size:.7rem;color:#8a6a20">' + typeLabel + '</span>' +
+          '<span style="font-family:Playfair Display,serif;font-size:.95rem;color:#e0d5b8">' + _rpOrgText(o.nom) + (o.visible ? '' : ' 🔒') + '</span>' +
+          '<span style="font-size:.7rem;color:#8a6a20"' + _rpOrgTypeMarker + '>' + _rpOrgText(typeLabel) + '</span>' +
           '</div>' +
           '<div style="font-size:.75rem;color:#8a8060;margin-top:.2rem">' + infoLigne + '</div>' +
           '</div>';
@@ -192,6 +218,7 @@ function ouvrirTableauOrganisations() {
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+  globalThis.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
 }
 
 function getMesOrgasPays(country) {
@@ -328,6 +355,44 @@ function libelleTypeOrgaLocalLoue(type, def) {
   return LIBELLES_TYPE_ORGA_LOCAL_LOUE[type] || def.label;
 }
 
+// Marqueurs de présentation : les types/valeurs ne changent jamais de sens métier.
+function orgaCreationTypeHtml(type, label) {
+  const text = String(label), resources = globalThis.RP_I18N_RESOURCES?.fr?.translation;
+  for (const [namespace,key] of [['organizationCreation','localType_'+type],['organizationDirectory','type_'+type]]) {
+    if (resources?.[namespace]?.[key]===text)
+      return '<span data-i18n="'+escapeHtmlText(namespace+'.'+key)+'">'+escapeHtmlText(text)+'</span>';
+  }
+  return escapeHtmlText(text);
+}
+function orgaCreationRequisHtml(requis) {
+  const text = formatReqOrga(requis);
+  return text==='Aucun' ? '<span data-i18n="organizationCreation.noneRequirement">Aucun</span>' : escapeHtmlText(text);
+}
+function orgaCreationTitre(type) {
+  const node = document.getElementById('postes-modal-title');
+  if (!node) return;
+  if (type===undefined) {
+    if (node.textContent!=='🏛 Créer une Organisation') return;
+    const span=document.createElement('span');span.textContent=node.textContent;
+    span.setAttribute('data-i18n','organizationCreation.createTitle');node.replaceChildren(span);
+  } else {
+    const prefix='Fonder : ';
+    if (!node.textContent.startsWith(prefix)) return;
+    const label=node.textContent.slice(prefix.length);
+    node.innerHTML='<span data-i18n="organizationCreation.foundPrefix">Fonder : </span>'+orgaCreationTypeHtml(type,label);
+  }
+}
+function orgaCreationOptionAttribut(id,label) {
+  const key=id===''?'tradeGeneric':id==='police'?'tradePolice':null;
+  return key && globalThis.RP_I18N_RESOURCES?.fr?.translation?.organizationCreation?.[key]===label
+    ? ' data-i18n="organizationCreation.'+key+'"' : '';
+}
+function orgaCreationBlocageHtml(text,meta) {
+  if (!meta) return escapeHtmlText(String(text));
+  return '<span data-i18n="organizationCreation.'+meta.key+'" data-i18n-values="'+
+    escapeHtmlText(JSON.stringify(meta.values))+'">'+escapeHtmlText(String(text))+'</span>';
+}
+
 function ouvrirCreerOrga() {
   const mesOrgas = getMesOrgasPays();
   const typesDispos = Object.entries(TYPES_ORGANISATIONS).filter(([type, def]) => {
@@ -342,20 +407,22 @@ function ouvrirCreerOrga() {
   }
 
   document.getElementById('postes-modal-title').textContent = '🏛 Créer une Organisation';
+  orgaCreationTitre();
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.8rem 1rem">' +
-    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisissez le type d\'organisation à fonder. Vous ne pouvez fonder qu\'une organisation de chaque type.</div>' +
+    '<div class="hg-organisations" style="padding:.8rem 1rem">' +
+    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem" data-i18n="organizationCreation.chooseHelp">Choisissez le type d\'organisation à fonder. Vous ne pouvez fonder qu\'une organisation de chaque type.</div>' +
     typesDispos.map(([type, def]) =>
       '<div onclick="ouvrirFormulaireOrga(\'' + type + '\')" style="display:flex;align-items:center;gap:.8rem;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
         '<i class="ti ' + def.icon + '" style="font-size:1.1rem;color:#C9A84C;flex-shrink:0"></i>' +
         '<div>' +
-          '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:#E8C97A;letter-spacing:.06em">' + libelleTypeOrgaLocalLoue(type, def) + '</div>' +
-          '<div style="font-size:.68rem;color:#9a8a68">' + (def.secret ? '🔒 Secrète · ' : '') + 'Requis : ' + formatReqOrga(def.requis) + '</div>' +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:#E8C97A;letter-spacing:.06em">' + orgaCreationTypeHtml(type, libelleTypeOrgaLocalLoue(type, def)) + '</div>' +
+          '<div style="font-size:.68rem;color:#9a8a68">' + (def.secret ? '🔒 <span data-i18n="organizationCreation.secretBadge">Secrète</span> · ' : '') + '<span data-i18n="organizationCreation.requirementsPrefix">Requis : </span>' + orgaCreationRequisHtml(def.requis) + '</div>' +
         '</div>' +
       '</div>'
     ).join('') +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
+  globalThis.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
 }
 
 function formatReqOrga(requis) {
@@ -374,34 +441,45 @@ function ouvrirFormulaireOrga(type) {
   // Vérifier conditions
   const requis = def.requis || {};
   let blocage = null;
-  if (requis.pop && (state.pop || 0) < requis.pop) blocage = 'POP insuffisante (' + (state.pop||0) + '/' + requis.pop + ')';
-  if (requis.inf && (state.inf || 0) < requis.inf) blocage = 'INF insuffisante (' + (state.inf||0) + '/' + requis.inf + ')';
-  if (requis.dis && (state.dis || 0) < requis.dis) blocage = 'DIS insuffisante (' + (state.dis||0) + '/' + requis.dis + ')';
-  if (requis.arg && state.arg < requis.arg) blocage = 'Fonds insuffisants (' + state.arg.toLocaleString('fr-FR') + '/' + requis.arg.toLocaleString('fr-FR') + ' ' + cur + ')';
+  let _rpOrgaBlocage = null;
+  if (requis.pop && (state.pop || 0) < requis.pop) { blocage = 'POP insuffisante (' + (state.pop||0) + '/' + requis.pop + ')';
+    _rpOrgaBlocage = {key:'blockingPop',values:{current:state.pop||0,required:requis.pop}};
+  }
+  if (requis.inf && (state.inf || 0) < requis.inf) { blocage = 'INF insuffisante (' + (state.inf||0) + '/' + requis.inf + ')';
+    _rpOrgaBlocage = {key:'blockingInf',values:{current:state.inf||0,required:requis.inf}};
+  }
+  if (requis.dis && (state.dis || 0) < requis.dis) { blocage = 'DIS insuffisante (' + (state.dis||0) + '/' + requis.dis + ')';
+    _rpOrgaBlocage = {key:'blockingDis',values:{current:state.dis||0,required:requis.dis}};
+  }
+  if (requis.arg && state.arg < requis.arg) { blocage = 'Fonds insuffisants (' + state.arg.toLocaleString('fr-FR') + '/' + requis.arg.toLocaleString('fr-FR') + ' ' + cur + ')';
+    _rpOrgaBlocage = {key:'blockingFunds',values:{current:state.arg.toLocaleString('fr-FR'),required:requis.arg.toLocaleString('fr-FR'),currency:cur}};
+  }
 
   document.getElementById('postes-modal-title').textContent = 'Fonder : ' + libelleTypeOrgaLocalLoue(type, def);
+  orgaCreationTitre(type);
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.8rem 1rem">' +
-    (blocage ? '<div style="background:#1a0808;border:1px solid #5a1a1a;padding:.6rem;margin-bottom:.7rem;font-size:.78rem;color:#cc4444">⛔ ' + blocage + '</div>' : '') +
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">NOM DE L\'ORGANISATION</div>' +
-    '<input id="orga-nom-input" type="text" maxlength="40" placeholder="Ex: Loge du Grand Nord, Parti du Progrès..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">DESCRIPTION (optionnel)</div>' +
-    '<textarea id="orga-desc-input" maxlength="200" placeholder="Décrivez votre organisation en quelques mots..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;resize:none;height:60px;margin-bottom:.7rem"></textarea>' +
-    (def.secret ? '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.7rem">🔒 Confidentialité automatique : chef, siège et membres resteront cachés au public. L\'adhésion se fera uniquement sur invitation.</div>' : '') +
+    '<div class="hg-organisations" style="padding:.8rem 1rem">' +
+    (blocage ? '<div style="background:#1a0808;border:1px solid #5a1a1a;padding:.6rem;margin-bottom:.7rem;font-size:.78rem;color:#cc4444">⛔ ' + orgaCreationBlocageHtml(blocage,_rpOrgaBlocage) + '</div>' : '') +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationCreation.nameLabel">NOM DE L\'ORGANISATION</div>' +
+    '<input id="orga-nom-input" type="text" maxlength="40" dir="auto" data-i18n-placeholder="organizationCreation.namePlaceholder" placeholder="Ex: Loge du Grand Nord, Parti du Progrès..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationCreation.descriptionLabel">DESCRIPTION (optionnel)</div>' +
+    '<textarea id="orga-desc-input" maxlength="200" dir="auto" data-i18n-placeholder="organizationCreation.descriptionPlaceholder" placeholder="Décrivez votre organisation en quelques mots..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;resize:none;height:60px;margin-bottom:.7rem"></textarea>' +
+    (def.secret ? '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.7rem" data-i18n="organizationCreation.confidentiality">🔒 Confidentialité automatique : chef, siège et membres resteront cachés au public. L\'adhésion se fera uniquement sur invitation.</div>' : '') +
     // corpsMetier (greves, 3 septembre 2026) : tag structurel optionnel, uniquement pour les
     // syndicats -- §9 du cahier des charges ("ne jamais hardcoder un nom du type Syndicat des
     // policiers"). Liste FERMEE (GREVE_CORPS_METIER_OPTIONS, data.js), jamais du texte libre :
     // la consequence mecanique (blocage de la repression policiere) doit rester un choix
     // deliberement assume a la creation, jamais un hasard de nommage.
     (type === 'syndicale' ? (
-      '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">CORPS DE MÉTIER REPRÉSENTÉ (optionnel)</div>' +
-      '<select id="orga-corps-metier-select" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.7rem">' +
-      GREVE_CORPS_METIER_OPTIONS.map(o => '<option value="' + o.id + '">' + escapeHtmlText(o.label) + '</option>').join('') +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationCreation.tradeLabel">CORPS DE MÉTIER REPRÉSENTÉ (optionnel)</div>' +
+      '<select id="orga-corps-metier-select" dir="auto" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.7rem">' +
+      GREVE_CORPS_METIER_OPTIONS.map(o => '<option value="' + o.id + '"' + orgaCreationOptionAttribut(o.id,o.label) + '>' + escapeHtmlText(o.label) + '</option>').join('') +
       '</select>'
     ) : '') +
-    '<button onclick="confirmerCreationOrga(\'' + type + '\')" ' + (blocage ? 'disabled style="opacity:.4;cursor:not-allowed"' : '') + ' style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">🏛 Fonder cette organisation</button>' +
+    '<button onclick="confirmerCreationOrga(\'' + type + '\')" ' + (blocage ? 'disabled style="opacity:.4;cursor:not-allowed"' : '') + ' style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">🏛 <span data-i18n="organizationCreation.foundButton">Fonder cette organisation</span></button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
+  globalThis.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
 }
 
 async function confirmerCreationOrga(type) {
@@ -490,12 +568,17 @@ function renderOngletOrgas() {
     o.membres?.some(m => m.nom === state.char?.name)
   );
   const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const _rpOrgaPanelTexte = value => escapeHtmlText(String(value));
+  const _rpOrgaPanelAction = (action, args) => _rpOrgaPanelTexte(action + '(' + args.map(value => JSON.stringify(String(value))).join(',') + ')');
+  const _rpOrgaPanelMembres = count => '<span data-i18n="organizationPanel.memberCount" data-i18n-values="' + _rpOrgaPanelTexte(JSON.stringify({count})) + '">' + _rpOrgaPanelTexte(count) + ' membres</span>';
+  const _rpOrgaPanelDemandes = count => '<span data-i18n="organizationPanel.applicationCount" data-i18n-values="' + _rpOrgaPanelTexte(JSON.stringify({count})) + '">Candidatures (' + _rpOrgaPanelTexte(count) + ')</span>';
+
 
   if (mesOrgas.length === 0) {
-    return '<div style="padding:1.5rem;text-align:center;color:#9a8a68;font-style:italic;font-size:.85rem">' +
+    return '<div class="hg-organisations" style="padding:1.5rem;text-align:center;color:#9a8a68;font-style:italic;font-size:.85rem">' +
       '<i class="ti ti-building-community" style="font-size:2rem;color:#2a2010;display:block;margin-bottom:.8rem"></i>' +
-      'Vous n\'appartenez a aucune organisation.<br>' +
-      '<span style="font-size:.75rem">Louez un local et creez votre organisation depuis "Gerer mon local".</span>' +
+      '<span data-i18n="organizationPanel.empty">Vous n\'appartenez a aucune organisation.</span><br>' +
+      '<span style="font-size:.75rem" data-i18n="organizationPanel.emptyHelp">Louez un local et creez votre organisation depuis "Gerer mon local".</span>' +
       '</div>';
   }
 
@@ -510,60 +593,60 @@ function renderOngletOrgas() {
       ? getAvatarHtmlPost(true, orga.avatar || def.icon || null, orga.nom, 36)
       : '<div style="width:36px;height:36px;border-radius:50%;background:#1a1208;display:flex;align-items:center;justify-content:center"><i class="ti ' + (def.icon||'ti-users') + '" style="font-size:1rem;color:#C9A84C"></i></div>';
 
-    return '<div style="border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem">' +
+    return '<div class="hg-organisations" style="border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem">' +
 
       '<div style="padding:.8rem 1rem;border-bottom:1px solid #1a1208;display:flex;align-items:center;gap:.7rem">' +
         avatarHtml +
         '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:Bebas Neue,sans-serif;font-size:.92rem;color:#E8C97A;letter-spacing:.06em">' + orga.nom + '</div>' +
-          '<div style="font-size:.72rem;color:#8a8060">' + (def.label||'') + ' · ' + (monMembre?.grade||'') + (estChef ? ' 👑' : '') + ' · ' + (orga.membres?.length||0) + ' membres</div>' +
-          (orga.devise ? '<div style="font-size:.85rem;color:#9a8a68;font-style:italic">"' + orga.devise + '"</div>' : '') +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:.92rem;color:#E8C97A;letter-spacing:.06em">' + _rpOrgaPanelTexte(orga.nom) + '</div>' +
+          '<div style="font-size:.72rem;color:#8a8060">' + orgaCreationTypeHtml(orga.type, def.label||'') + ' · ' + _rpOrgaPanelTexte(monMembre?.grade||'') + (estChef ? ' 👑' : '') + ' · ' + _rpOrgaPanelMembres(orga.membres?.length||0) + '</div>' +
+          (orga.devise ? '<div style="font-size:.85rem;color:#9a8a68;font-style:italic">"' + _rpOrgaPanelTexte(orga.devise) + '"</div>' : '') +
         '</div>' +
         '<div style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#C9A84C">' + (orga.caisse||0).toLocaleString('fr-FR') + ' ' + cur + '</div>' +
       '</div>' +
 
       '<div style="padding:.5rem .8rem;display:flex;flex-wrap:wrap;gap:.35rem;border-bottom:1px solid #1a1208">' +
-        '<button onclick="ouvrirForumDepuisOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #1a3a1a;background:transparent;color:#4a7a4a;cursor:pointer">📋 Forum</button>' +
-        '<button onclick="ouvrirMailOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #1a2a3a;background:transparent;color:#4a6a8a;cursor:pointer">✉️ Courrier</button>' +
-        '<button onclick="ouvrirOrdresOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a2a3a;background:transparent;color:#6a6aaa;cursor:pointer">⚡ Actions</button>' +
+        '<button onclick="' + _rpOrgaPanelAction('ouvrirForumDepuisOrga', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #1a3a1a;background:transparent;color:#4a7a4a;cursor:pointer">📋 <span data-i18n="plateau.forum">Forum</span></button>' +
+        '<button onclick="' + _rpOrgaPanelAction('ouvrirMailOrga', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #1a2a3a;background:transparent;color:#4a6a8a;cursor:pointer">✉️ <span data-i18n="organizationPanel.mail">Courrier</span></button>' +
+        '<button onclick="' + _rpOrgaPanelAction('ouvrirOrdresOrga', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a2a3a;background:transparent;color:#6a6aaa;cursor:pointer">⚡ <span data-i18n="organizationPanel.actions">Actions</span></button>' +
       '</div>' +
 
       (estChef ?
         '<div style="padding:.5rem .8rem;display:flex;flex-wrap:wrap;gap:.35rem;border-bottom:1px solid #1a1208">' +
-          '<button type="button" data-organisation="' + commercePjEchapper(orga.id) + '" disabled title="Service serveur non activé">Équipements — indisponibles</button>' +
-          '<button onclick="ouvrirGestionMembres(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a3a2a;background:transparent;color:#6a9a6a;cursor:pointer">👥 Membres</button>' +
+          '<button type="button" data-organisation="' + commercePjEchapper(orga.id) + '" disabled title="Service serveur non activé" data-i18n-title="organizationPanel.serviceInactive"><span data-i18n="organizationPanel.equipmentUnavailable">Équipements — indisponibles</span></button>' +
+          '<button onclick="' + _rpOrgaPanelAction('ouvrirGestionMembres', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a3a2a;background:transparent;color:#6a9a6a;cursor:pointer">👥 <span data-i18n="sovarkaPartis.secMembers">Membres</span></button>' +
           (!orga.visible ?
             // Organisation secrete : adhesion uniquement sur invitation, pas de candidature publique.
-            '<button onclick="ouvrirInviterMembreOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">✉️ Inviter</button>' :
+            '<button onclick="' + _rpOrgaPanelAction('ouvrirInviterMembreOrga', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">✉️ <span data-i18n="organizationAdmissions.invite">Inviter</span></button>' :
             (demandesCount > 0 ?
-              '<button onclick="ouvrirDemandesAdhesion(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">📨 Candidatures (' + demandesCount + ')</button>' :
-              '<button disabled style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.3rem .6rem;border:1px solid #1a1a10;background:transparent;color:#9a8a68;cursor:not-allowed">📨 Aucune candidature</button>'
+              '<button onclick="' + _rpOrgaPanelAction('ouvrirDemandesAdhesion', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">📨 ' + _rpOrgaPanelDemandes(demandesCount) + '</button>' :
+              '<button disabled style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.3rem .6rem;border:1px solid #1a1a10;background:transparent;color:#9a8a68;cursor:not-allowed">📨 <span data-i18n="organizationPanel.noApplications">Aucune candidature</span></button>'
             )
           ) +
-          '<button onclick="ouvrirOptionsOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#8a6a20;cursor:pointer">⚙️ Parametres</button>' +
+          '<button onclick="' + _rpOrgaPanelAction('ouvrirOptionsOrga', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#8a6a20;cursor:pointer">⚙️ <span data-i18n="organizationSettings.title">Parametres</span></button>' +
         '</div>'
       : '') +
 
       (!estChef ?
         '<div style="padding:.4rem .8rem">' +
-           '<button onclick="quitterOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #6a3a2a;background:transparent;color:#cc6a44;cursor:pointer">Quitter cette organisation</button>' +
+           '<button onclick="' + _rpOrgaPanelAction('quitterOrga', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #6a3a2a;background:transparent;color:#cc6a44;cursor:pointer"><span data-i18n="organizationPanel.leave">Quitter cette organisation</span></button>' +
         '</div>'
       : '') +
 
       ((orga.type === 'sportive' || orga.type === 'supporters') ? (
         orga.election?.enCours ? (
           '<div style="padding:.6rem .8rem;border-top:1px solid #1a1208;background:#0c0a06">' +
-          '<div style="font-size:.7rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;margin-bottom:.3rem">ÉLECTION — ' + (orga.election.phase === 'candidatures' ? 'Candidatures ouvertes' : 'Vote en cours') + '</div>' +
+          '<div style="font-size:.7rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;margin-bottom:.3rem"><span data-i18n="organizationPanel.electionPrefix">ÉLECTION — </span>' + (orga.election.phase === 'candidatures' ? '<span data-i18n="organizationPanel.candidaciesOpen">Candidatures ouvertes</span>' : '<span data-i18n="organizationPanel.voteOpen">Vote en cours</span>') + '</div>' +
           (orga.election.phase === 'candidatures' && !orga.election.candidats.some(c => c.nom === state.char?.name)
-            ? '<button onclick="seProsenterCandidat(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">Se présenter</button>'
+            ? '<button onclick="' + _rpOrgaPanelAction('seProsenterCandidat', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer"><span data-i18n="organizationPanel.stand">Se présenter</span></button>'
             : '') +
           (orga.election.phase === 'vote'
-            ? orga.election.candidats.map(c => '<button onclick="voterElectionOrganisation(\'' + orga.id + '\',\'' + c.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;border:1px solid ' + (orga.election.votes[state.char?.name] === c.nom ? '#C9A84C' : '#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer">' + c.nom + '</button>').join('')
+            ? orga.election.candidats.map(c => '<button onclick="' + _rpOrgaPanelAction('voterElectionOrganisation', [orga.id, c.nom]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;border:1px solid ' + (orga.election.votes[state.char?.name] === c.nom ? '#C9A84C' : '#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer">' + _rpOrgaPanelTexte(c.nom) + '</button>').join('')
             : '') +
           '</div>'
         ) : (
           '<div style="padding:.5rem .8rem;border-top:1px solid #1a1208">' +
-          '<button onclick="doDeclencherElectionClub(1,0)" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">🗳 Déclencher une élection</button>' +
+          '<button onclick="doDeclencherElectionClub(1,0)" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">🗳 <span data-i18n="orders.declencher_election_club">Déclencher une élection</span></button>' +
           '</div>'
         )
       ) : '') +
@@ -581,26 +664,35 @@ function ouvrirGestionMembres(orgaId) {
   const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
   const estChef = orga.chef === state.char?.name;
 
-  document.getElementById('postes-modal-title').textContent = '👥 ' + orga.nom + ' — Membres';
+  // Les données des joueurs restent du texte opaque pour le moteur commun.
+  const _rpMembreTexte = value => escapeHtmlText(String(value));
+  const _rpMembreAction = (action, nom) => _rpMembreTexte(action + '(' + JSON.stringify(orgaId) + ',' + JSON.stringify(nom) + ')');
+  const titre = document.getElementById('postes-modal-title');
+  titre.textContent = '👥 ' + orga.nom + ' — ';
+  const suffixe = document.createElement('span');
+  suffixe.dataset.i18n = 'sovarkaPartis.secMembers';
+  suffixe.textContent = 'Membres';
+  titre.appendChild(suffixe);
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.6rem 1rem">' +
+    '<div style="padding:.6rem 1rem" class="hg-organisations">' +
     orga.membres.map(m =>
       '<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid #1a1208">' +
         '<i class="ti ti-user" style="font-size:.9rem;color:#8a6a20;flex-shrink:0"></i>' +
-        '<div style="flex:1">' +
-          '<div style="font-size:.82rem;color:#c0b090">' + m.nom + (m.nom === orga.chef ? ' 👑' : '') + '</div>' +
-          '<div style="font-size:.85rem;color:#6a5a30">' + m.grade + ' · Depuis Jour ' + m.rejointLe + '</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:.82rem;color:#c0b090">' + _rpMembreTexte(m.nom) + (m.nom === orga.chef ? ' 👑' : '') + '</div>' +
+          '<div style="font-size:.85rem;color:#6a5a30">' + _rpMembreTexte(m.grade) + ' · <span data-i18n="organizationMembers.sinceDay">Depuis Jour </span>' + _rpMembreTexte(m.rejointLe) + '</div>' +
         '</div>' +
         (estChef && m.nom !== state.char?.name ?
           '<div style="display:flex;gap:.3rem">' +
-            '<button onclick="monterGrade(\'' + orgaId + '\',\'' + m.nom + '\')" title="Monter en grade" style="background:none;border:1px solid #2a3a2a;color:#4a8a4a;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">▲</button>' +
-            '<button onclick="descendreGrade(\'' + orgaId + '\',\'' + m.nom + '\')" title="Descendre en grade" style="background:none;border:1px solid #3a2a1a;color:#8a4a2a;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">▼</button>' +
-            '<button onclick="exclureMembre(\'' + orgaId + '\',\'' + m.nom + '\')" title="Exclure" style="background:none;border:1px solid #3a1a1a;color:#cc4444;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">✕</button>' +
+            '<button onclick="' + _rpMembreAction('monterGrade', m.nom) + '" title="Monter en grade" aria-label="Monter en grade" data-i18n-title="organizationMembers.promote" data-i18n-aria-label="organizationMembers.promote" style="background:none;border:1px solid #2a3a2a;color:#4a8a4a;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">▲</button>' +
+            '<button onclick="' + _rpMembreAction('descendreGrade', m.nom) + '" title="Descendre en grade" aria-label="Descendre en grade" data-i18n-title="organizationMembers.demote" data-i18n-aria-label="organizationMembers.demote" style="background:none;border:1px solid #3a2a1a;color:#8a4a2a;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">▼</button>' +
+            '<button onclick="' + _rpMembreAction('exclureMembre', m.nom) + '" title="Exclure" aria-label="Exclure" data-i18n-title="organizationMembers.exclude" data-i18n-aria-label="organizationMembers.exclude" style="background:none;border:1px solid #3a1a1a;color:#cc4444;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">✕</button>' +
           '</div>'
         : '') +
       '</div>'
     ).join('') +
     '</div>';
+  globalThis.RPI18nPlateau?.apply(document.getElementById('modal-postes'));
   document.getElementById('modal-postes').classList.add('open');
 }
 
@@ -683,21 +775,29 @@ function ouvrirDemandesAdhesion(orgaId) {
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const grades = def.grades?.[state.country] || ['Membre'];
 
-  document.getElementById('postes-modal-title').textContent = '📨 Demandes — ' + orga.nom;
+  const _rpAdhesionTexte = value => escapeHtmlText(String(value));
+  const _rpAdhesionAction = (action, nom) => _rpAdhesionTexte(action + '(' + JSON.stringify(orgaId) + ',' + JSON.stringify(nom) + ')');
+  const titre = document.getElementById('postes-modal-title');
+  titre.textContent = '📨 ';
+  const prefixe = document.createElement('span');
+  prefixe.dataset.i18n = 'sovarkaDroits.requests';
+  prefixe.textContent = 'Demandes';
+  titre.append(prefixe, document.createTextNode(' — ' + orga.nom));
   const demandes = orga.demandesAdhesion || [];
 
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.6rem 1rem">' +
-    (demandes.length === 0 ? '<div style="color:#9a8a68;font-style:italic;font-size:.82rem">Aucune demande en attente.</div>' :
+    '<div style="padding:.6rem 1rem" class="hg-organisations">' +
+    (demandes.length === 0 ? '<div style="color:#9a8a68;font-style:italic;font-size:.82rem" data-i18n="sovarkaPartis.noRequest">Aucune demande en attente.</div>' :
       demandes.map(d =>
         '<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid #1a1208">' +
-          '<div style="flex:1"><div style="font-size:.82rem;color:#c0b090">' + d.nom + '</div><div style="font-size:.85rem;color:#9a8a68">Demande du Jour ' + d.date + '</div></div>' +
-          '<button onclick="accepterAdhesion(\'' + orgaId + '\',\'' + d.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #2a4a2a;background:transparent;color:#4a8a4a;cursor:pointer;margin-right:.3rem">✓ Accepter</button>' +
-          '<button onclick="refuserAdhesion(\'' + orgaId + '\',\'' + d.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #3a1a1a;background:transparent;color:#aa4444;cursor:pointer">✕ Refuser</button>' +
+          '<div style="flex:1;min-width:0"><div style="font-size:.82rem;color:#c0b090">' + _rpAdhesionTexte(d.nom) + '</div><div style="font-size:.85rem;color:#9a8a68"><span data-i18n="organizationAdmissions.requestDay">Demande du Jour </span>' + _rpAdhesionTexte(d.date) + '</div></div>' +
+          '<button onclick="' + _rpAdhesionAction('accepterAdhesion', d.nom) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #2a4a2a;background:transparent;color:#4a8a4a;cursor:pointer;margin-right:.3rem">✓ <span data-i18n="sovarkaPartis.accept">Accepter</span></button>' +
+          '<button onclick="' + _rpAdhesionAction('refuserAdhesion', d.nom) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #3a1a1a;background:transparent;color:#aa4444;cursor:pointer">✕ <span data-i18n="sovarkaDroits.refuse">Refuser</span></button>' +
         '</div>'
       ).join('')
     ) +
     '</div>';
+  globalThis.RPI18nPlateau?.apply(document.getElementById('modal-postes'));
   document.getElementById('modal-postes').classList.add('open');
 }
 
@@ -740,8 +840,15 @@ async function ouvrirInviterMembreOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga || orga.chef !== state.char?.name || orga.visible) return;
 
-  document.getElementById('postes-modal-title').textContent = '✉️ Inviter — ' + orga.nom;
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Recherche des personnages...</div>';
+  const _rpInvitationTexte = value => escapeHtmlText(String(value));
+  const titre = document.getElementById('postes-modal-title');
+  titre.textContent = '✉️ ';
+  const prefixe = document.createElement('span');
+  prefixe.dataset.i18n = 'organizationAdmissions.invite';
+  prefixe.textContent = 'Inviter';
+  titre.append(prefixe, document.createTextNode(' — ' + orga.nom));
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic" data-i18n="organizationAdmissions.searching">Recherche des personnages...</div>';
+  globalThis.RPI18nPlateau?.apply(document.getElementById('modal-postes'));
   document.getElementById('modal-postes').classList.add('open');
 
   const tous = typeof sbListPersonnages === 'function' ? await sbListPersonnages().catch(() => []) : [];
@@ -752,18 +859,21 @@ async function ouvrirInviterMembreOrga(orgaId) {
   );
 
   if (eligibles.length === 0) {
-    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Aucun personnage disponible à inviter.</div>';
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic" data-i18n="organizationAdmissions.noInvitee">Aucun personnage disponible à inviter.</div>';
+    globalThis.RPI18nPlateau?.apply(document.getElementById('postes-body'));
     return;
   }
 
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.6rem">L\'invitation est privée : seul(e) le/la destinataire en a connaissance.</div>';
-  html += '<select id="invite-orga-select" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
-  eligibles.forEach(j => { html += '<option value="' + j.name + '">' + j.name + '</option>'; });
+  let html = '<div class="hg-organisations" style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.6rem" data-i18n="organizationAdmissions.privacy">L\'invitation est privée : seul(e) le/la destinataire en a connaissance.</div>';
+  html += '<select dir="auto" id="invite-orga-select" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+  eligibles.forEach(j => { html += '<option value="' + _rpInvitationTexte(j.name) + '">' + _rpInvitationTexte(j.name) + '</option>'; });
   html += '</select>';
-  html += '<button onclick="envoyerInvitationOrga(\'' + orgaId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Envoyer l\'invitation</button>';
+  html += '<button onclick="' + _rpInvitationTexte('envoyerInvitationOrga(' + JSON.stringify(orgaId) + ')') + '" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer" data-i18n="organizationAdmissions.send">Envoyer l\'invitation</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+  globalThis.RPI18nPlateau?.apply(document.getElementById('postes-modal-title'));
+  globalThis.RPI18nPlateau?.apply(document.getElementById('postes-body'));
 }
 
 // Envoie l'invitation par mail prive, avec deux boutons integres au corps du message (identique
@@ -1166,42 +1276,48 @@ function ouvrirOptionsOrga(orgaId) {
   const nomEchap = escapeHtmlText(orga.nom);
   const icone = orga.avatar || (TYPES_ORGANISATIONS[orga.type]?.icon) || null;
 
-  document.getElementById('postes-modal-title').textContent = 'Parametres — ' + orga.nom;
+  const titre = document.getElementById('postes-modal-title');
+  titre.textContent = '';
+  const prefixe = document.createElement('span');
+  prefixe.dataset.i18n = 'organizationSettings.title';
+  prefixe.textContent = 'Parametres';
+  titre.append(prefixe, document.createTextNode(' — ' + orga.nom));
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.8rem 1rem">' +
+    '<div style="padding:.8rem 1rem" class="hg-organisations">' +
 
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">NOM</div>' +
-    '<input id="orga-rename-input" type="text" maxlength="40" value="' + nomEchap + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.5rem"/>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationSettings.nameLabel">NOM</div>' +
+    '<input dir="auto" id="orga-rename-input" type="text" maxlength="40" value="' + nomEchap + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.5rem"/>' +
 
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">DEVISE</div>' +
-    '<input id="orga-devise-input" type="text" maxlength="80" placeholder="Ex: La force dans l\'union..." value="' + escapeHtmlText(orga.devise||'') + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.5rem"/>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationSettings.mottoLabel">DEVISE</div>' +
+    '<input dir="auto" id="orga-devise-input" data-i18n-placeholder="organizationSettings.mottoPlaceholder" type="text" maxlength="80" placeholder="Ex: La force dans l\'union..." value="' + escapeHtmlText(orga.devise||'') + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.5rem"/>' +
 
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">AVATAR DE L\'ORGANISATION</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationSettings.avatarLabel">AVATAR DE L\'ORGANISATION</div>' +
     '<div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.5rem">' +
       '<div id="orga-avatar-preview">' + renderApercuAvatarOrgaHtml(orga.nom, icone) + '</div>' +
-      '<div style="font-size:.68rem;color:#8a8060;flex:1">Aperçu — mis à jour à chaque changement, avant sauvegarde.</div>' +
+      '<div style="font-size:.68rem;color:#8a8060;flex:1" data-i18n="organizationSettings.previewHelp">Aperçu — mis à jour à chaque changement, avant sauvegarde.</div>' +
     '</div>' +
-    '<div style="font-size:.72rem;color:#8a6a20;margin-bottom:.2rem">URL de l\'image</div>' +
-    '<input id="orga-avatar-input" type="text" maxlength="300" placeholder="https://..." value="' + escapeHtmlText(orga.avatar||'') + '" oninput="mettreAJourApercuAvatarOrga(\'' + nomEchap.replace(/'/g,"\\'") + '\',\'' + orga.type + '\')" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.4rem"/>' +
-    '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.2rem">— ou —</div>' +
+    '<div style="font-size:.72rem;color:#8a6a20;margin-bottom:.2rem" data-i18n="organizationSettings.imageUrl">URL de l\'image</div>' +
+    '<input dir="auto" id="orga-avatar-input" type="text" maxlength="300" placeholder="https://..." value="' + escapeHtmlText(orga.avatar||'') + '" oninput="mettreAJourApercuAvatarOrga(\'' + nomEchap.replace(/'/g,"\\'") + '\',\'' + orga.type + '\')" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.4rem"/>' +
+    '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.2rem" data-i18n="organizationSettings.or">— ou —</div>' +
     '<label style="display:inline-block;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer;margin-bottom:.3rem">' +
-      '<i class="ti ti-upload"></i> Importer une image depuis mon ordinateur' +
+      '<i class="ti ti-upload"></i> <span data-i18n="organizationSettings.importImage">Importer une image depuis mon ordinateur</span>' +
       '<input type="file" accept="image/png,image/jpeg,image/webp" onchange="handleOrgaAvatarFileChange(event)" style="display:none"/>' +
     '</label>' +
-    '<div style="font-size:.65rem;color:#6a5a30;margin-bottom:.6rem">PNG (transparence supportée), JPG/JPEG ou WEBP — 2 Mo maximum.</div>' +
+    '<div style="font-size:.65rem;color:#6a5a30;margin-bottom:.6rem" data-i18n="organizationSettings.imageFormats">PNG (transparence supportée), JPG/JPEG ou WEBP — 2 Mo maximum.</div>' +
 
-    '<button onclick="sauvegarderOptionsOrga(\'' + orgaId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-bottom:.8rem">Sauvegarder</button>' +
+    '<button onclick="sauvegarderOptionsOrga(\'' + orgaId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-bottom:.8rem" data-i18n="organizationSettings.save">Sauvegarder</button>' +
 
     // Bascule de visibilite reservee au type "criminelle" (Organisation Secrete) : les 6 autres
     // types restent toujours publics dans ce game design (26 aout 2026), aucune bascule proposee.
     (orga.type === 'criminelle' ?
-      '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">VISIBILITE</div>' +
-      '<button onclick="toggleVisibiliteOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #3a4a5a;background:transparent;color:#6a8aaa;cursor:pointer;margin-bottom:.8rem">' + (orga.visible ? '👁 Rendre secrete' : '👁 Rendre visible') + '</button>'
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationSettings.visibility">VISIBILITE</div>' +
+      '<button onclick="toggleVisibiliteOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #3a4a5a;background:transparent;color:#6a8aaa;cursor:pointer;margin-bottom:.8rem">' + (orga.visible ? '👁 <span data-i18n="organizationSettings.makeSecret">Rendre secrete</span>' : '👁 <span data-i18n="organizationSettings.makeVisible">Rendre visible</span>') + '</button>'
     : '') +
 
     '<div style="margin-top:.4rem;border-top:1px solid #1a1208;padding-top:.6rem">' +
-    '<button onclick="dissoudreOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #5a1a1a;background:transparent;color:#cc4444;cursor:pointer">Dissoudre</button>' +
+    '<button onclick="dissoudreOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #5a1a1a;background:transparent;color:#cc4444;cursor:pointer" data-i18n="organizationSettings.dissolve">Dissoudre</button>' +
     '</div></div>';
+  globalThis.RPI18nPlateau?.apply(document.getElementById('modal-postes'));
   document.getElementById('modal-postes').classList.add('open');
 }
 

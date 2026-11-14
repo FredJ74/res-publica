@@ -1,0 +1,26 @@
+name: Refus communs d’action — neuf langues sans dépense
+on:
+  pull_request:
+    paths: ['plateau-core.js', 'plateau.html', 'i18n/plateau-init.js', 'i18n/action-feedback-resources.js', 'outils/bancs/*refus-actions*', 'outils/bancs/fixtures/refus-actions*', 'outils/audits/I18N-REFUS-ACTIONS*', '.github/workflows/i18n-refus-actions.yml']
+  push:
+    branches: [main]
+    paths: ['plateau-core.js', 'i18n/plateau-init.js', 'i18n/action-feedback-resources.js', 'outils/bancs/*refus-actions*', '.github/workflows/i18n-refus-actions.yml']
+permissions:
+  contents: read
+jobs:
+  refus-actions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - run: npm ci --ignore-scripts --prefix outils/e2e
+      - name: Français, neuf langues, AST métier et régressions du moteur commun
+        run: node --test outils/bancs/banc-i18n-refus-actions-20261113.cjs outils/bancs/banc-audit-i18n-global.cjs outils/bancs/banc-i18n-editorial.cjs outils/bancs/banc-i18n-reprise-commandes-20261113.cjs outils/bancs/banc-i18n-retours-chantiers-20261113.cjs outils/bancs/banc-i18n-retours-forum.cjs outils/bancs/banc-generateur-couts-serveur.cjs
+      - name: Chromium — 320/390/1280, RTL, compatibilité des corps fixes et aucune dépense
+        run: NODE_PATH="$GITHUB_WORKSPACE/outils/e2e/node_modules" CHROMIUM_PATH=/usr/bin/google-chrome node --test outils/bancs/banc-i18n-refus-actions-navigateur-20261113.cjs outils/bancs/banc-i18n-retours-chantiers-navigateur-20261113.cjs outils/bancs/banc-i18n-reprise-commandes-navigateur-20261113.cjs outils/bancs/banc-i18n-retours-forum-navigateur.cjs

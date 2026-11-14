@@ -740,5 +740,7 @@ window.RP_INFOBULLES_COMMUNES = [
     "افتتاح جلسة قضية محالة إليك، واستدعاء شاهد، ومنح الكلام أو سحبه. عند الافتتاح يُثبّت الدفاع: لا إلغاء ولا تغيير للمحامي بعد ذلك.",
     "Abrir a audiência de um caso atribuído a você, convocar testemunha e conceder ou retirar a palavra. A abertura fixa a defesa: não é mais possível revogar ou trocar advogado.",
     "Eine Verhandlung in einem zugewiesenen Fall eröffnen, Zeugen laden, Rederecht erteilen oder entziehen. Bei Eröffnung wird die Verteidigung fixiert: keine Abberufung und kein Anwaltswechsel mehr."
-  ]
+  ],
+  // Chambres d’hôpital uniformes (14/11/2026) : Dormir, traduction reprise du catalogue de Sovarka.
+  ["Dormir dans votre lit d'hôpital. La récupération suit les règles de l'hospitalisation.","Sleep in your hospital bed. Recovery follows the hospitalisation rules.","Dormir en su cama de hospital. La recuperación sigue las reglas de la hospitalización.","睡在您的病床上。恢復依照住院規則。","Спать на больничной койке. Восстановление идёт по правилам госпитализации.","병원 침대에서 잠을 잡니다. 회복은 입원 규칙을 따릅니다.","النوم في سريرك بالمستشفى. يخضع التعافي لقواعد الاستشفاء.","Dormir no seu leito de hospital. A recuperação segue as regras da internação.","In Ihrem Krankenhausbett schlafen. Die Erholung folgt den Regeln des Krankenhausaufenthalts."]
 ];

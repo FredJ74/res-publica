@@ -34,3 +34,7 @@ Même extracteur avant/après main `b656d95` : corpus et couverture inchangés,
 traductions existantes ; aucun gain artificiel de texte, ressource ou couverture.
 CI et production à compléter avant livraison. Relecture native, PJ réel et téléphone physique non
 réalisés. Aucune modification Supabase, migration, RPC ou réglage Auth.
+
+## Livraison vérifiée
+
+PR #913 fusionnée : `52ef29d5834c8eeed5def76688457390b44f3706`. Sept contrôles verts, seul rouge SSM préexistant (trois échecs reproduits). Vercel `dpl_BW9yu9LaWfSr8h1uo38CWcWUoQmo` READY sur ce SHA, alias confirmé, sept fichiers publics identiques. Trois bancs rejoués sur ces fichiers : compte 351 bascules, recherche 324 bascules et confirmation 108 arrivées/972 bascules, verts. Aucun compte réel créé ou connecté.

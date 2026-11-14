@@ -1,0 +1,15 @@
+# #871 — liste des membres d’organisation
+
+PR #942. Quatre textes fixes ajoutés au catalogue commun : Depuis Jour (espace final conservé), Monter en grade, Descendre en grade et Exclure ; 32 traductions étrangères. Le mot Membres réutilise la clé déjà chargée sovarkaPartis.secMembers (8 traductions). Aucun grade RP traduit dans ce lot : cette nomenclature et les noms des joueurs restent opaques.
+
+Seule ouvrirGestionMembres change. Les fonctions d’exécution, conditions, données et commandes sont intégralement identiques. Le titre utilise un span détruit lorsqu’une autre fenêtre remplace son texte. Les intitulés des boutons sont traduits pour le survol et les lecteurs d’écran, sans toucher leurs icônes. Les noms et arguments des handlers sont encodés pour garder leur valeur exacte, y compris apostrophes/guillemets : aucune injection de marqueur ou traduction automatique de contenu joueur. Aucune nouvelle requête, dépense ou sauvegarde. Classe mobile existante et min-width:0 sur la colonne de texte ; pas de CSS global ajouté.
+
+## Vérifications
+
+121 tests Node ciblés verts ; 119 anciens correspondants verts sur main. AST du fichier entier identique hors fonction de présentation ; premières instructions métier identiques, conditions chef et couronne conservées. Quatre français exacts et neuf langues, catalogue chargé avant moteur. Chromium : neuf états × neuf langues × trois largeurs (320/390/1280), soit 243 bascules. Comparaison du français entier, droits, boutons, état et lectures avec main ; titres/aria-label traduits, RTL, aucun débordement. Noms/grades/jours conservés, noms hostiles traités comme texte, même élément et position dans une liste longue, focus conservé, clic et Entrée transmettant une seule fois les mêmes paramètres, fermetures répétées, fenêtre voisine et repli français testés. Les handlers métier sont remplacés par des espions : aucune commande réelle exécutée. Régressions formulaires (756 bascules) et tableau (999) vertes, soit 1 998 bascules au total.
+
+31 contrôles descriptions/SSM comparés : mêmes 28 verts et trois SSM rouges sur main et branche. Aucun nouvel échec observé. CI finale, fusion et production à vérifier. Pas de recette PJ authentifié, téléphone physique ou relecture native.
+
+## Mesure à extracteur identique
+
+Base 1a5651a0, code d11e2e31. À corpus commun (7 587 textes / 50 899 mots), +3 textes / +7 mots raccordés dans chaque langue étrangère, mêmes gains de ressources. Depuis Jour devient un fragment statique propre (2 mots). Deux entrées concaténées antérieures sont resegmentées : titre dynamique et repère de jour ; le contenu français reste intégralement présent, démontré par Chromium. La fusion avec le mot Membres déjà présent explique le nombre inférieur d’entrées uniques, sans suppression visible. Corpus 7 590/50 903 → 7 588/50 901. Anglais : 1 040 textes / 12 481 mots raccordés, 24,52 % des mots statiques identifiés, pas un taux exhaustif du jeu. Zéro erreur d’extraction. Les JSON distinguent les gains sur corpus commun de la segmentation.

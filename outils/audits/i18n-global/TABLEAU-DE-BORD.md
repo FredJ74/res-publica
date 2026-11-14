@@ -1,19 +1,19 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `eaec619775a1d05ea8fa73e0df782a40ef66d81d`. Empreinte du corpus : `ee8465814fc01c3a076030d4e886bbdbe98eabb4348fd2eeae89e024f6d60d97`.
+Base analysée : `66cdd698e6824cd092d0ef4cfaa49db09753f74a`. Empreinte du corpus : `430f41b676239b5514477e59c03df00fc5868b1959522e34407577b8ab5be0f4`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 
-**17394 textes distincts repérés**, 30756 occurrences dans les sources. 223 fichiers JS/HTML et 516 fichiers SQL analysés.
+**17592 textes distincts repérés**, 31162 occurrences dans les sources. 230 fichiers JS/HTML et 532 fichiers SQL analysés.
 
 ## Périmètre et certitude
 
 | Classe | Textes uniques | Mots source |
 |---|---:|---:|
-| static-render-path | 7565 | 50690 |
-| candidate-review | 7620 | 63736 |
-| server-source-review | 911 | 13584 |
-| ai-context-not-output | 1298 | 55135 |
+| static-render-path | 7589 | 50910 |
+| candidate-review | 7738 | 64735 |
+| server-source-review | 952 | 14070 |
+| ai-context-not-output | 1313 | 55605 |
 
 Les taux suivants portent seulement sur `static-render-path` : un chemin de rendu est identifié, sans preuve que chaque état soit accessible en session. Les autres classes restent visibles, hors dénominateur. Une même chaîne est dédupliquée globalement ; ses occurrences gardent leur contexte. Une seule occurrence non prouvée suffit à empêcher sa certification complète.
 
@@ -21,15 +21,15 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 
 | Langue | Corpus | Raccordés prouvés* | Taux textes* | Taux mots* | Ressource disponible** | Mots à traiter/vérifier |
 |---|---:|---:|---:|---:|---:|---:|
-| Français | 7565 | 7565 | 100.00 % | 100.00 % | 7565 | 0 |
-| Anglais | 7565 | 1001 | 13.23 % | 24.01 % | 1549 | 38519 |
-| Espagnol | 7565 | 1008 | 13.32 % | 24.03 % | 1565 | 38511 |
-| Chinois traditionnel | 7565 | 1010 | 13.35 % | 24.03 % | 1571 | 38509 |
-| Russe | 7565 | 1010 | 13.35 % | 24.03 % | 1570 | 38509 |
-| Coréen | 7565 | 1010 | 13.35 % | 24.03 % | 1571 | 38509 |
-| Arabe | 7565 | 1010 | 13.35 % | 24.03 % | 1570 | 38509 |
-| Portugais brésilien | 7565 | 1007 | 13.31 % | 24.02 % | 1567 | 38512 |
-| Allemand | 7565 | 1009 | 13.34 % | 24.03 % | 1567 | 38510 |
+| Français | 7589 | 7589 | 100.00 % | 100.00 % | 7589 | 0 |
+| Anglais | 7589 | 1070 | 14.10 % | 24.72 % | 1635 | 38323 |
+| Espagnol | 7589 | 1078 | 14.20 % | 24.74 % | 1652 | 38314 |
+| Chinois traditionnel | 7589 | 1080 | 14.23 % | 24.75 % | 1658 | 38312 |
+| Russe | 7589 | 1080 | 14.23 % | 24.75 % | 1657 | 38312 |
+| Coréen | 7589 | 1080 | 14.23 % | 24.75 % | 1658 | 38312 |
+| Arabe | 7589 | 1080 | 14.23 % | 24.75 % | 1657 | 38312 |
+| Portugais brésilien | 7589 | 1076 | 14.18 % | 24.74 % | 1653 | 38316 |
+| Allemand | 7589 | 1079 | 14.22 % | 24.74 % | 1654 | 38313 |
 
 * Preuve statique stricte : clé explicite de même français, traducteur exporté/wrapper transparent, guide accepté par son garde d’intégrité ou description d’ordre reconnue par le résolveur existant dans son pays, dans chacune des huit langues. C’est un plancher de raccordements identifiés, pas la mesure de toutes les traductions qui fonctionnent. Les valeurs identiques au français restent à vérifier sauf sigles neutres documentés.
 
@@ -39,16 +39,16 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 
 | Domaine | Textes du corpus | EN raccordés | EN sans ressource | EN mots à traiter/vérifier |
 |---|---:|---:|---:|---:|
-| Bâtiments et pièces | 973 | 701 | 44 | 2082 |
-| Courriers, notifications et journaux | 388 | 104 | 238 | 1217 |
-| Création et connexion | 158 | 94 | 48 | 388 |
-| Enquêtes, missions et objectifs | 898 | 0 | 833 | 5136 |
-| Interface générale et autres activités | 1954 | 90 | 1679 | 9803 |
+| Bâtiments et pièces | 992 | 713 | 50 | 2119 |
+| Courriers, notifications et journaux | 387 | 104 | 238 | 1216 |
+| Création et connexion | 158 | 94 | 39 | 388 |
+| Enquêtes, missions et objectifs | 902 | 49 | 782 | 4963 |
+| Interface générale et autres activités | 1955 | 96 | 1672 | 9732 |
 | Navigation et transports | 139 | 0 | 97 | 706 |
-| Ordres et descriptions | 987 | 718 | 50 | 2104 |
-| PNJ, guides et récits | 508 | 23 | 456 | 3318 |
-| Politique, justice et administration | 1323 | 2 | 1210 | 7210 |
-| Économie et commerces | 1856 | 8 | 1730 | 10221 |
+| Ordres et descriptions | 1008 | 732 | 56 | 2141 |
+| PNJ, guides et récits | 508 | 23 | 455 | 3318 |
+| Politique, justice et administration | 1330 | 2 | 1216 | 7268 |
+| Économie et commerces | 1848 | 8 | 1723 | 10171 |
 
 Les neuf langues et leurs volumes par domaine sont détaillés dans `tableau-de-bord.json` → `domains`. Aucun domaine n’est déclaré complet sur la seule présence de clés.
 
@@ -56,13 +56,13 @@ Les neuf langues et leurs volumes par domaine sont détaillés dans `tableau-de-
 
 | Domaine | fr | en | es | zh-TW | ru | ko | ar | pt-BR | de |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Bâtiments et pièces | 100.00 % / 100.00 % | 72.05 % / 79.08 % | 72.05 % / 79.08 % | 72.15 % / 79.09 % | 72.15 % / 79.09 % | 72.15 % / 79.09 % | 72.15 % / 79.09 % | 72.05 % / 79.08 % | 72.15 % / 79.09 % |
-| Courriers, notifications et journaux | 100.00 % / 100.00 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % | 26.80 % / 34.78 % |
+| Bâtiments et pièces | 100.00 % / 100.00 % | 71.88 % / 79.14 % | 71.88 % / 79.14 % | 71.98 % / 79.15 % | 71.98 % / 79.15 % | 71.98 % / 79.15 % | 71.98 % / 79.15 % | 71.88 % / 79.14 % | 71.98 % / 79.15 % |
+| Courriers, notifications et journaux | 100.00 % / 100.00 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % |
 | Création et connexion | 100.00 % / 100.00 % | 59.49 % / 60.57 % | 60.76 % / 60.77 % | 61.39 % / 60.87 % | 61.39 % / 60.87 % | 61.39 % / 60.87 % | 61.39 % / 60.87 % | 60.76 % / 60.77 % | 61.39 % / 60.87 % |
-| Enquêtes, missions et objectifs | 100.00 % / 100.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % |
-| Interface générale et autres activités | 100.00 % / 100.00 % | 4.61 % / 22.79 % | 4.86 % / 22.83 % | 4.86 % / 22.83 % | 4.86 % / 22.83 % | 4.86 % / 22.83 % | 4.86 % / 22.83 % | 4.81 % / 22.83 % | 4.81 % / 22.83 % |
+| Enquêtes, missions et objectifs | 100.00 % / 100.00 % | 5.43 % / 3.61 % | 5.54 % / 3.63 % | 5.54 % / 3.63 % | 5.54 % / 3.63 % | 5.54 % / 3.63 % | 5.54 % / 3.63 % | 5.43 % / 3.61 % | 5.54 % / 3.63 % |
+| Interface générale et autres activités | 100.00 % / 100.00 % | 4.91 % / 23.26 % | 5.17 % / 23.30 % | 5.17 % / 23.30 % | 5.17 % / 23.30 % | 5.17 % / 23.30 % | 5.17 % / 23.30 % | 5.12 % / 23.29 % | 5.12 % / 23.29 % |
 | Navigation et transports | 100.00 % / 100.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % |
-| Ordres et descriptions | 100.00 % / 100.00 % | 72.75 % / 79.31 % | 72.75 % / 79.31 % | 72.85 % / 79.32 % | 72.85 % / 79.32 % | 72.85 % / 79.32 % | 72.85 % / 79.32 % | 72.75 % / 79.31 % | 72.85 % / 79.32 % |
+| Ordres et descriptions | 100.00 % / 100.00 % | 72.62 % / 79.38 % | 72.62 % / 79.38 % | 72.72 % / 79.39 % | 72.72 % / 79.39 % | 72.72 % / 79.39 % | 72.72 % / 79.39 % | 72.62 % / 79.38 % | 72.72 % / 79.39 % |
 | PNJ, guides et récits | 100.00 % / 100.00 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % | 4.53 % / 43.73 % |
 | Politique, justice et administration | 100.00 % / 100.00 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % | 0.15 % / 0.06 % |
 | Économie et commerces | 100.00 % / 100.00 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % | 0.43 % / 0.41 % |
@@ -73,14 +73,14 @@ Les neuf langues et leurs volumes par domaine sont détaillés dans `tableau-de-
 |---|---:|---:|---:|---:|
 | khalija | 313 | 310 | 310 | 229 |
 | narco | 312 | 311 | 310 | 229 |
-| republic | 397 | 395 | 395 | 394 |
-| soviet | 358 | 358 | 358 | 356 |
+| republic | 398 | 396 | 396 | 395 |
+| soviet | 366 | 364 | 364 | 362 |
 
 Les descriptions communes sont présentes dans plusieurs empires : ne pas additionner ces lignes. Une formule chiffrée inchangée peut être légitimement identique ; elle reste à vérifier si elle ne figure pas dans les sigles neutres. Chaque langue est détaillée dans le JSON.
 
 ## Catalogue central et autres ressources
 
-Le catalogue central expose **3496 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4447 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
+Le catalogue central expose **3634 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4623 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
 
 | Langue | Clés absentes | Variables incohérentes |
 |---|---:|---:|
@@ -98,27 +98,27 @@ Le catalogue central expose **3496 clés françaises**. Les tables locales, guid
 
 | Priorité | Textes candidats non entièrement prouvés | Usage |
 |---|---:|---|
-| 1 | 180 | Compréhension d’un ordre, d’un refus ou entrée dans le jeu |
-| 2 | 9911 | Commandes et messages de gameplay |
-| 3 | 2937 | Compréhension d’une mission ou interaction narrative |
-| 4 | 2069 | Description ou repère de lieu |
+| 1 | 182 | Compréhension d’un ordre, d’un refus ou entrée dans le jeu |
+| 2 | 9982 | Commandes et messages de gameplay |
+| 3 | 2905 | Compréhension d’une mission ou interaction narrative |
+| 4 | 2143 | Description ou repère de lieu |
 
 Classement automatique à confirmer en jeu. `inventaire.json.gz` fournit texte, identifiant, fichier, ligne, pays et ressources candidates ; `priorites.json.gz` fournit les langues manquantes et les branchements à vérifier. Les descriptions Républia restantes ne sont pas traduites par cet audit.
 
 ### Exemples de cibles sans ressource confirmée (à vérifier avant traduction)
 
-- Priorité 1 — La session de ce navigateur n'est plus reconnue par le serveur. Rechargez la page : une nouvelle session sera ouverte et la creati — `creation.js:1267` (23 mots source ; identifiant `0992d6e654559b672aa6`).
-- Priorité 1 — Si ce personnage est le votre et que vous avez perdu l'acces, utilisez « Retrouver mon personnage » depuis l'accueil plutot que d' — `creation.js:1251` (23 mots source ; identifiant `c736a3a6c07b70a9d058`).
-- Priorité 1 — Retournez a l'accueil pour le reprendre. Pour en creer un autre, il faut d'abord detruire celui que vous possedez, depuis sa fiche — `creation.js:1257` (22 mots source ; identifiant `cc7faa7b891a4a7bedc5`).
-- Priorité 2 — Sans déclaration préalable. Il faut être le chef d'un groupe d'au moins 10 PJ présents sur la place. Chaque participant fait gagne — `plateau-communication.js:2687` (68 mots source ; identifiant `3aa1f0b09eca4a8dcd9c`).
-- Priorité 2 — Vous engagez la responsabilité de votre gouvernement devant l'Assemblée Nationale (9 sièges de députés). Vote sous 48h réelles. En — `plateau-politique.js:10324` (59 mots source ; identifiant `05e32526bf0eeb1365bf`).
+- Priorité 1 — Un personnage nomme « {DYNAMIC} » existe deja dans Republia. Choisissez un autre nom : revenez a l'etape precedente pour le modifi — `creation.js:1311` (18 mots source ; identifiant `bf490625c1117307fd06`).
+- Priorité 1 — Explosifs et le poison local, sous le comptoir de la quincaillerie. Rien de tout cela n'est enregistré. — `data.js:1226` (17 mots source ; identifiant `6fa97f57ff99afd31bd3`).
+- Priorité 1 — Ce compte possede deja « {DYNAMIC} » : Republia n'en autorise qu'un seul par compte. Changer de nom n'y changera rien. — `creation.js:1297` (17 mots source ; identifiant `d022f3461ec3deffc8a7`).
+- Priorité 2 — Sans déclaration préalable. Il faut être le chef d'un groupe d'au moins 10 PJ présents sur la place. Chaque participant fait gagne — `plateau-communication.js:2696` (68 mots source ; identifiant `3aa1f0b09eca4a8dcd9c`).
+- Priorité 2 — Vous engagez la responsabilité de votre gouvernement devant l'Assemblée Nationale (9 sièges de députés). Vote sous 48h réelles. En — `plateau-politique.js:10334` (59 mots source ; identifiant `05e32526bf0eeb1365bf`).
 - Priorité 2 — ACTE ILLEGAL. 300 FR et 3 PA sont preleves A LA TENTATIVE, reussie ou non. Si la corruption est decouverte, vous n'obtenez rien et — `plateau-justice-economie.js:14494` (54 mots source ; identifiant `fea7c948803a7ffe7803`).
 - Priorité 3 — Caillon... oh que oui ce nom me dit quelque chose, forcément, j'ai fait trente ans dans la police. Une drôle d'affaire, à l'époque — `plateau-pnj.js:1631` (132 mots source ; identifiant `3ccfb4caa7866bb5e00b`).
 - Priorité 3 — Thibault ? Ah oui, le père Thibault ! Bien sûr que je m'en souviens, on se croisait tout le temps au marché, avant. Une belle terr — `plateau-pnj.js:1636` (102 mots source ; identifiant `1c46f876a3c222deb97c`).
 - Priorité 3 — Ah, mes années à l'école... j'en ai vu passer, des enfants ! Thibault... Thibault... Attendez, laissez-moi réfléchir. Oui ! Une pe — `plateau-pnj.js:1626` (84 mots source ; identifiant `3b7ab222f61ad1d6e329`).
-- Priorité 4 — Je confirme disposer des droits nécessaires sur les images fournies, y compris les autorisations des personnes représentées, et ac — `plateau-commerce-pj.js:2429` (25 mots source ; identifiant `846851839ae60f450ae4`).
-- Priorité 4 — Acheter ce terrain (4 200 m² — 50 400 FR) — `data.js:6248` (9 mots source ; identifiant `3f38fd58b36e4f5a56b8`).
-- Priorité 4 — Acheter ce terrain (2 200 m² — 26 400 FR) — `data.js:6199` (9 mots source ; identifiant `649cad5cdcaf3717a419`).
+- Priorité 4 — Je confirme disposer des droits nécessaires sur les images fournies, y compris les autorisations des personnes représentées, et ac — `plateau-commerce-pj.js:2413` (25 mots source ; identifiant `846851839ae60f450ae4`).
+- Priorité 4 — Acheter ce terrain (4 200 m² — 50 400 FR) — `data.js:6436` (9 mots source ; identifiant `3f38fd58b36e4f5a56b8`).
+- Priorité 4 — Acheter ce terrain (2 200 m² — 26 400 FR) — `data.js:6387` (9 mots source ; identifiant `649cad5cdcaf3717a419`).
 
 ## Données serveur et limites
 

@@ -1,0 +1,68 @@
+{
+  "baseCommit": "d6d33427c8dc6bd362e942d14ed71fce2c24e6f5",
+  "rows": [
+    [
+      "title",
+      "Tableau des organisations"
+    ],
+    [
+      "empty",
+      "Aucune organisation connue pour l'instant."
+    ],
+    [
+      "privateDetails",
+      "Chef : non communiqué · Siège : non communiqué"
+    ],
+    [
+      "leaderPrefix",
+      "Chef : "
+    ],
+    [
+      "seatPrefix",
+      "Siège : "
+    ],
+    [
+      "unknownSeat",
+      "Siège inconnu"
+    ],
+    [
+      "type_politique",
+      "Organisation Politique"
+    ],
+    [
+      "type_religieuse",
+      "Organisation Religieuse"
+    ],
+    [
+      "type_syndicale",
+      "Organisation Syndicale"
+    ],
+    [
+      "type_economique",
+      "Organisation Economique"
+    ],
+    [
+      "type_criminelle",
+      "Organisation Criminelle"
+    ],
+    [
+      "type_loge",
+      "Loge Maconnique"
+    ],
+    [
+      "type_mediatique",
+      "Organisation Mediatique"
+    ],
+    [
+      "type_sportive",
+      "Club Sportif"
+    ],
+    [
+      "type_supporters",
+      "Club de Supporters"
+    ]
+  ],
+  "newKeys": 15,
+  "newForeignTranslations": 120,
+  "playerTextTranslation": false
+}
