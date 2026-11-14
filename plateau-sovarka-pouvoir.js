@@ -228,12 +228,12 @@ async function ouvrirSovarkaLoisExamen(cache) {
   const l = await sovPouvoirLire(cache); if (!l) return;
   if (!l.pm) { powModal(powT('titleBills'), '<p>' + powT('pm_reserve_president_du_conseil') + '</p>', ouvrirSovarkaLoisExamen); return; }
   const examen = (l.lois || []).filter(x => x.statut === 'examen');
-  const html = '<p class="cpj-note">' + powT('examIntro') + '</p>'
+  const html = '<p class="cpj-note">' + powT('examIntro') + ' (1 PA par projet)</p>'
     + (examen.length ? examen.map(x => vehSection(sovEchapper(x.titre),
         '<p class="cpj-note">' + powT('partyLine', { parti: sovEchapper(x.parti_nom || '—'), auteur: sovEchapper(x.auteur) }) + '</p>'
         + '<p style="white-space:pre-wrap">' + sovEchapper(x.texte) + '</p>'
-        + vehBouton(powT('promulgate'), 'sovarkaTrancherLoi(' + sovJsArg(x.id) + ',true)', true)
-        + vehBouton(powT('refuse'), 'sovarkaTrancherLoi(' + sovJsArg(x.id) + ',false)', false))).join('')
+        + vehBouton(powT('promulgate') + ' (1 PA)', 'sovarkaTrancherLoi(' + sovJsArg(x.id) + ',true)', true)
+        + vehBouton(powT('refuse') + ' (1 PA)', 'sovarkaTrancherLoi(' + sovJsArg(x.id) + ',false)', false))).join('')
       : '<p>' + powT('noBill') + '</p>');
   powModal(powT('titleBillsDecide'), html, ouvrirSovarkaLoisExamen);
 }
@@ -273,6 +273,98 @@ function sovarkaManifSoutien() {
   sovPouvoirActe('manif_soutien', {}, powT('tRally'),
     v => powT('rallyOk', { n: v.participants }),
     () => document.getElementById('modal-postes')?.classList.remove('open'));
+}
+
+const SOV_MIN_REFUS = {
+  manif_non_autorisee: 'Aucune manifestation autorisée dans cette ville : demandez-la au ministre.',
+  demande_deja_en_cours: 'Une demande de votre parti est déjà en cours dans cette ville.',
+  demande_introuvable: 'Cette demande n’est plus en attente.',
+  rien_a_reprimer: 'Rien à réprimer pour cette manifestation.',
+  salle_des_partis_requise: 'Rendez-vous dans la salle des partis de la mairie.',
+  grace_introuvable: 'Ce dossier de grâce n’est plus en attente.',
+  champs_requis: 'Choix manquant.',
+  reserve_president_du_conseil: 'Réservé au Président du Conseil du Peuple.',
+  reserve_chef_de_parti: 'Réservé au chef de parti.',
+  bureau_du_president_du_conseil_requis: 'Rendez-vous au bureau du Président du Conseil du Peuple.',
+  conscription_en_sovarka: 'En Sovarka, la conscription remplace la réquisition civile.'
+};
+const sovMinMotif = v => SOV_MIN_REFUS[v?.raison] || sovPMotif(v);
+
+// Demande au ministre de la Sécurité du Peuple (Fred, 08/11/2026) ; sans ministre PJ, acceptée d'office.
+async function sovMinActe(action, params, titre, succes, rouvrir) {
+  if (sovPouvoirEnCours) return null;
+  sovPouvoirEnCours = true;
+  try {
+    const v = await sbRpcVerdict('sovarka_ministeres_commande',
+      { p_requete: crypto.randomUUID(), p_action: action, p_params: params || {} }).catch(() => null);
+    if (!v || v.ok !== true) { showToast(titre, sovMinMotif(v), false); return null; }
+    if (typeof appliquerPaiementServeur === 'function' && (v.pa !== undefined || v.liquide !== undefined))
+      appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+    if (typeof updateHeader === 'function') updateHeader();
+    if (succes) showToast(titre, typeof succes === 'function' ? succes(v) : succes, true);
+    if (typeof rouvrir === 'function') rouvrir(v);
+    return v;
+  } finally { sovPouvoirEnCours = false; }
+}
+async function sovMinLire() {
+  const v = await sbRpcVerdict('sovarka_ministeres_lire', {}).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Sovarka', sovMinMotif(v), false); return null; }
+  return v;
+}
+function sovarkaManifDemander() {
+  sovMinActe('manif_demander', {}, 'Manifestation de soutien',
+    v => v.statut === 'acceptee' ? 'Autorisée d’office jusqu’à demain soir : organisez-la depuis la salle des partis.'
+                                 : 'Demande transmise au ministre de la Sécurité du Peuple.',
+    () => document.getElementById('modal-postes')?.classList.remove('open'));
+}
+
+// ---------------------------------------------------------------- Sécurité du Peuple : manifestations
+const SOV_MANIF_STATUTS = { demande: 'Demande en attente', acceptee: 'Autorisée', faite: 'A eu lieu aujourd’hui' };
+const SOV_MIN_VILLES = { capitale: 'Novomirsk', ville_a: 'Starovka', ville_b: 'Krasnov' };
+async function ouvrirSovarkaManifsGerer() {
+  const l = await sovMinLire(); if (!l) return;
+  if (!l.min_int) { vehModal('Gérer les manifestations', '<p>' + SOV_POUVOIR_MOTIFS.poste_requis + '</p>'); return; }
+  const liste = l.manifs || [];
+  const html = '<p class="cpj-note">En Sovarka, seules les manifestations de soutien au gouvernement existent. '
+    + 'Vous acceptez ou refusez chaque demande (1 PA) ; une fois autorisée, une manifestation ne s’interdit plus : '
+    + 'elle ne peut qu’être réprimée (3 PA), même si elle vient de votre propre parti.</p>'
+    + (liste.length ? liste.map(x => vehSection(sovEchapper(x.parti) + ' — ' + sovEchapper(SOV_MIN_VILLES[x.ville] || x.ville),
+        '<p class="cpj-note">' + sovEchapper(SOV_MANIF_STATUTS[x.statut] || x.statut) + ' · chef : ' + sovEchapper(x.chef) + '</p>'
+        + (x.statut === 'demande'
+          ? vehBouton('Accepter (1 PA)', 'sovarkaManifDecider(' + Number(x.id) + ',true)', true)
+            + vehBouton('Refuser (1 PA)', 'sovarkaManifDecider(' + Number(x.id) + ',false)', false)
+          : vehBouton('Réprimer (3 PA)', 'sovarkaManifReprimer(' + Number(x.id) + ')', false)))).join('')
+      : '<p>Aucune demande ni manifestation en cours.</p>');
+  vehModal('Gérer les manifestations', html);
+}
+function sovarkaManifDecider(id, accepter) {
+  sovMinActe('manif_decider', { demande: id, accepter }, 'Manifestations',
+    accepter ? 'Manifestation autorisée.' : 'Manifestation refusée.', ouvrirSovarkaManifsGerer);
+}
+function sovarkaManifReprimer(id) {
+  sovMinActe('manif_reprimer', { demande: id }, 'Répression',
+    v => v.pop_annulee > 0 ? 'Manifestation dispersée : ses ' + v.pop_annulee + ' POP sont annulés.' : 'Manifestation dispersée.',
+    ouvrirSovarkaManifsGerer);
+}
+
+// ---------------------------------------------------------------- Président du Conseil : grâces à transmettre
+async function ouvrirSovarkaGraces() {
+  const l = await sovMinLire(); if (!l) return;
+  if (!l.pm) { vehModal('Grâces à transmettre', '<p>' + SOV_POUVOIR_MOTIFS.reserve_president_du_conseil + '</p>'); return; }
+  const g = l.graces || [];
+  const html = '<p class="cpj-note">Les grâces proposées par le ministre de la Justice prolétarienne passent par vous avant '
+    + 'd’atteindre le Président de la République. Chaque décision vous coûte 1 PA.</p>'
+    + (g.length ? g.map(x => vehSection(sovEchapper(x.condamne),
+        '<p class="cpj-note">' + sovEchapper(x.raison || '') + ' · proposée par ' + sovEchapper(x.propose_par || '—') + '</p>'
+        + vehBouton('Transmettre au Président (1 PA)', 'sovarkaGraceTransmettre(' + sovJsArg(x.id) + ',true)', true)
+        + vehBouton('Ne pas transmettre (1 PA)', 'sovarkaGraceTransmettre(' + sovJsArg(x.id) + ',false)', false))).join('')
+      : '<p>Aucune grâce en attente.</p>');
+  vehModal('Grâces à transmettre', html);
+}
+function sovarkaGraceTransmettre(id, transmettre) {
+  sovMinActe('grace_transmettre', { grace: id, transmettre }, 'Grâce',
+    v => (transmettre ? 'Grâce de ' : 'Grâce non transmise : ') + v.condamne + (transmettre ? ' transmise au Président.' : '.'),
+    ouvrirSovarkaGraces);
 }
 
 // ---------------------------------------------------------------- Économie collective : trois taux
