@@ -6921,7 +6921,7 @@ export const SCENES_PNJ = {
     "batiment": "École de Krasnov",
     "piece": "Salle de classe",
     "personnes": [
-      "Pavel Smirnov"
+      "Alevtina Gramotova"
     ]
   },
   "[\"soviet\",\"ville_b\",\"universite\",\"salle_reunion\"]": {

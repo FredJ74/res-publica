@@ -11223,7 +11223,8 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() {
   // Krasnov.
   Object.assign(contexte('ville_b', 'marche'), { name: 'Marché de Krasnov', desc: 'Les étals du kolkhoze : pommes, choux, miel et conserves maison, vendus sous les tilleuls.', persons: [pnj('Nina Gorbounova', 'Marchande', 'commercant')] });
   Object.assign(contexte('ville_b', 'universite'), { name: 'École de Krasnov', desc: 'L\'école du kolkhoze : on y apprend à lire, à compter et à réciter les rendements de la récolte.' });
-  Object.assign(piece(contexte('ville_b', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Pavel Smirnov', 'Directeur de l\'école', 'professeur')],
+  // Seule PNJ de la classe (Fred, 14/11/2026) : l'institutrice de l'image, nom proposé par Claude (« gramota », savoir lire et écrire).
+  Object.assign(piece(contexte('ville_b', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Alevtina Gramotova', 'Institutrice', 'professeur')],
     imageUrl: 'images/Sovarka/Krasnov/Krasnov_ecole_salle_classe.webp' }); // image de Fred (14/11/2026) ; mécanique de l'école à décider
   Object.assign(contexte('ville_b', 'kolkhoze-spirituel'), { name: 'Église du Tractorisme de Krasnov', desc: 'Une église aux bulbes dorés, consacrée au Tractorisme : on y prie pour la récolte et la santé des moteurs.' });
   const musee = contexte('ville_b', 'musee-novomirsk');
@@ -11422,6 +11423,9 @@ BUILDINGS['locaux-starovka'] = {
   ctx.roomOverrides = ctx.roomOverrides || {};
   const entree = ctx.roomOverrides.zone_recolte = ctx.roomOverrides.zone_recolte || {};
   entree.name = 'Entrée de la forêt';
+  // Images de Fred (14/11/2026, converties par ChatGPT) : la cour de l'exploitation à l'entrée ; en forêt profonde, la
+  // clairière (vue 2) montre la forêt exploitée, les trois autres vues la forêt dense et intacte.
+  entree.imageUrl = 'images/Sovarka/Krasnov/Krasnov_exploitation_forestiere_cour.webp';
   entree.orders = [...(entree.orders || []).filter(o => o.fn !== 'foret_enfoncer'),
     { fn: 'foret_enfoncer', label: 'S’enfoncer dans la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-trees', successRate: 100,
       desc: 'Plus loin, le bois est plus beau : chaque coupe rapporte le double. Mais on dit que les loups et l’ours rôdent sous les arbres… et qu’on s’y perd facilement.' }];
@@ -11435,7 +11439,7 @@ BUILDINGS['locaux-starovka'] = {
   Object.keys(vues).forEach(n => {
     ctx.roomsExtra['foret_vue_' + n] = {
       name: 'Forêt profonde — ' + vues[n][0], imageBg: 'linear-gradient(135deg,#0a120c,#132016)', desc: vues[n][1], persons: [],
-      imagesAVenir: true,
+      imageUrl: 'images/Sovarka/Krasnov/' + (n === '2' ? 'Krasnov_foret_coupe.webp' : 'Krasnov_foret_profonde.webp'),
       orders: [
         { fn: 'foret_couper', label: 'Couper du bois', pa: 2, cost: 0, type: 'legal', icon: 'ti-axe', successRate: 100,
           desc: 'Le bois de la forêt profonde : une coupe rapporte le double d’une récolte. Combien de fois avant que quelque chose ne bouge dans les fourrés ?' },

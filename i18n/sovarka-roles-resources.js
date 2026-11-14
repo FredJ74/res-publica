@@ -86,6 +86,7 @@
   ["Tenancière de la buvette","Kiosk keeper","Encargada del quiosco","小賣部老闆娘","Хозяйка буфета","매점 주인","صاحبة الكشك","Dona do quiosque","Kioskwirtin"],
   ["Guichetier du Bureau d'État des pronostics","Clerk of the State Forecasting Bureau","Taquillero de la Oficina Estatal de Pronósticos","國家預測局櫃員","Кассир Государственного бюро прогнозов","국가 예측국 창구 직원","موظف شباك مكتب الدولة للتوقعات","Atendente do Escritório Estatal de Prognósticos","Schalterbeamter des Staatlichen Prognosebüros"],
   ["Meneur des supporters","Supporters' leader","Líder de los aficionados","球迷領袖","Заводила болельщиков","서포터즈 리더","قائد المشجعين","Líder da torcida","Anführer der Fans"],
+  ["Institutrice","Schoolteacher","Maestra","女教師","Учительница","여교사","معلّمة","Professora","Lehrerin"],
   ["Libraire-imprimeuse du Parti","Party bookseller and printer","Librera e impresora del Partido","黨的書商兼印刷商","Книготорговка и печатница Партии","당 서점 겸 인쇄업자","بائعة كتب وطابعة الحزب","Livreira e impressora do Partido","Buchhändlerin und Druckerin der Partei"],
   ["Typographe","Typesetter","Tipógrafo","排字工","Наборщик","식자공","منضد الحروف","Tipógrafo","Schriftsetzer"],
   ["Responsable de salle","Floor manager","Encargado de sala","廳面主管","Администратор зала","홀 매니저","مسؤول القاعة","Gerente de salão","Saalleiter"],
