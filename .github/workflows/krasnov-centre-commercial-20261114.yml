@@ -1,0 +1,74 @@
+name: Krasnov conversion centre commercial
+on:
+  push:
+    branches: [feat/krasnov-centre-commercial-images-20261114]
+    paths:
+      - 'data.js'
+      - 'plateau-variantes-pieces.js'
+      - 'outils/bancs/test-krasnov-centre-commercial-images-20261114.mjs'
+      - '.github/workflows/krasnov-centre-commercial-20261114.yml'
+permissions:
+  contents: write
+jobs:
+  conversion-controle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: WebP et retrait des PNG
+        run: |
+          python -m pip install --quiet Pillow
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageDraw
+          d=Path('images/Sovarka/Krasnov')
+          hall=list(d.glob('Galerie commerciale*.png'))
+          occupied=[p for p in d.glob('*.png') if 'picerie sovi' in p.name]
+          empty=sorted(d.glob('Image ChatGPT 14 nov. 2026, 16_57_*.png'))
+          assert len(hall)==len(occupied)==1 and len(empty)==4, (hall,occupied,empty)
+          destinations=[
+            (hall[0],'Krasnov_centre_commercial_hall.webp',False),
+            *[(p,f'Krasnov_centre_commercial_box_{i+1}_libre.webp',False) for i,p in enumerate(empty)],
+            (occupied[0],'Krasnov_centre_commercial_box_occupe_freemium.webp',True)
+          ]
+          for src,name,clear_occupied_sign in destinations:
+            dst=d/name
+            assert not dst.exists(),f'Image déjà présente : {dst}'
+            with Image.open(src) as im:
+              assert im.width>=1000 and im.height>=700,(src,im.size)
+              im=im.convert('RGB')
+              if clear_occupied_sign:
+                # Le fronton porte un nom généré : remplacer seulement son texte
+                # par le rouge uni du bandeau, afin de poser l'enseigne du PJ.
+                dr=ImageDraw.Draw(im)
+                w,h=im.size
+                for y in range(round(h*.023),round(h*.132)):
+                  c=im.getpixel((round(w*.202),y))
+                  dr.line((round(w*.270),y,round(w*.815),y),fill=c,width=1)
+              im.save(dst,'WEBP',quality=86,method=6)
+            with Image.open(dst) as check:
+              assert check.format=='WEBP'
+            print(src.name,'=>',dst.name,src.stat().st_size,'=>',dst.stat().st_size)
+            src.unlink()
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Vérifications
+        run: |
+          node --check data.js
+          node --check plateau-variantes-pieces.js
+          node outils/bancs/test-krasnov-centre-commercial-images-20261114.mjs
+      - name: Commit des images
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- images/Sovarka/Krasnov
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets(krasnov): images du centre commercial en WebP'
+            git push
+          fi
