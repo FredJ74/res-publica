@@ -45,9 +45,9 @@ function ordresParPays() {
   return { descs: [...sov.descs].filter(d => !rep.descs.has(d)), bientot: [...sov.bientot].filter(d => !rep.bientot.has(d)) };
 }
 
-test('113 lignes de neuf colonnes non vides, sans guillemet droit ni balise', () => {
+test('127 lignes de neuf colonnes non vides, sans guillemet droit ni balise', () => {
   const lignes = I('soviet', 'fr').lignes;
-  assert.equal(lignes.length, 118); // +2 le 13/11 : habilitations et consultation des archives d’écoute ; +4 le 14/11 : kolkhoze ; +1 boutique de l’Étoile Rouge
+  assert.equal(lignes.length, 127); // +2 le 13/11 : habilitations et consultation des archives d’écoute ; +4 le 14/11 : kolkhoze ; +1 boutique de l’Étoile Rouge
   for (const l of lignes) {
     assert.equal(l.length, 9, l[0]);
     for (const v of l) assert.ok(v.trim(), l[0]);

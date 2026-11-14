@@ -1,0 +1,37 @@
+name: Sovarka - controle des descriptions et des ordres i18n
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sovarka-infobulles-regression-20261114.yml'
+      - 'i18n/sovarka-infobulles-resources.js'
+      - 'outils/bancs/test-i18n-infobulles-communes-20261113.mjs'
+      - 'outils/bancs/test-i18n-sovarka-infobulles-20261113.mjs'
+      - 'data.js'
+  pull_request:
+    paths:
+      - 'i18n/sovarka-infobulles-resources.js'
+      - 'outils/bancs/test-i18n-infobulles-communes-20261113.mjs'
+      - 'outils/bancs/test-i18n-sovarka-infobulles-20261113.mjs'
+      - 'data.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe
+        run: |
+          node --check data.js
+          node --check i18n/sovarka-infobulles-resources.js
+      - name: Inventaire, traductions, montants et non-regressions
+        run: |
+          node --test outils/bancs/test-i18n-infobulles-communes-20261113.mjs outils/bancs/test-i18n-sovarka-infobulles-20261113.mjs
+      - name: Diff propre
+        run: git diff --check
