@@ -22,9 +22,15 @@ const originals={
  caserneRecrutement:'Gestion des engagements',
  caserneCommandement:'Commandement et effectifs',
  caserneSection:'Ma section',
- caserneBudget:'Budget et stratégie'
+ caserneBudget:'Budget et stratégie',
+ // Avertissement avant 0 PA (14/11/2026), avec la durée d'hospitalisation.
+ zeroPaTitle:'Attention : 0 PA',
+ zeroPaOrder:"« {label} » vous laissera à 0 PA : vous serez transféré(e) à l'hôpital et immobilisé(e) 2 à 3 jours. Continuer ?",
+ zeroPaGeneric:"Cet ordre vous laissera à 0 PA : vous serez transféré(e) à l'hôpital et immobilisé(e) 2 à 3 jours. Continuer ?",
+ zeroPaConfirm:'Confirmer',
+ zeroPaCancel:'Annuler'
 };
-test('dix libellés des salles, audioguides et menus de caserne dans les neuf langues',()=>{
+test('dix libellés des salles, audioguides et menus de caserne, et l’avertissement 0 PA, dans les neuf langues',()=>{
  assert.deepEqual(Object.keys(win.RP_I18N_LANGUAGES),langs);
  for(const lang of langs){
   win.RPPlateauI18n={language:()=>lang};
@@ -36,6 +42,7 @@ test('dix libellés des salles, audioguides et menus de caserne dans les neuf la
    assert.equal(win.RPRoomActionsI18n.label(key,'Texte métier différent'),'Texte métier différent');
   }
   assert.ok(texts.audioCost.includes('0 PA'),lang+': PA non modifiés');
+  assert.ok(texts.zeroPaOrder.includes('{label}')&&texts.zeroPaOrder.includes('0 PA')&&/[23]/.test(texts.zeroPaOrder),lang+': avertissement 0 PA');
   assert.equal(win.RPRoomActionsI18n.labelHtml('audioTooltip',originals.audioTooltip)
     .includes('<script>'),false);
  }
