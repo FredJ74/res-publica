@@ -2518,6 +2518,37 @@ const WORLD = {
             }
           }
         },
+        // Centre commercial de Krasnov : quatre locaux de meme apparence,
+        // visuels de location choisis dynamiquement dans PIECE_VARIANTES.
+        // Les baux et ordres du socle commercial ne sont pas modifies.
+        'centre-commercial': {
+          name: 'Centre commercial de Krasnov',
+          desc: 'Galerie commerçante couverte de Krasnov et quatre box de vente.',
+          roomOverrides: {
+            hall: {
+              name: 'Galerie marchande',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_commercial_hall.webp',
+              desc: 'Une galerie marchande populaire, avec quatre commerces accessibles.',
+              persons: []
+            },
+            vitrine_principale: {
+              name: 'Box commercial 1 — Local à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_commercial_box_1_libre.webp'
+            },
+            boutique_milieu: {
+              name: 'Box commercial 2 — Local à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_commercial_box_2_libre.webp'
+            },
+            arriere_boutique: {
+              name: 'Box commercial 3 — Local à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_commercial_box_3_libre.webp'
+            },
+            cave_reserve: {
+              name: 'Box commercial 4 — Local à louer',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_commercial_box_4_libre.webp'
+            }
+          }
+        },
         // Krasnov : atelier commun, 3 box equivalentes. Attribution a la mairie
         // (meme contrat que Novomirsk), sans location privee directe.
         'centre-artisanal': {
