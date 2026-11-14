@@ -6,6 +6,9 @@ Règles : voir `AGENTS.md`.
 
 > **Rangé le 11/11/2026 (Claude)** : les chantiers terminés ont été déplacés mot pour mot dans [`RELAIS-ARCHIVE-2026-11.md`](RELAIS-ARCHIVE-2026-11.md) (chercher par mot-clé : branche, PR, migration). Garder ici seulement ce qui est en cours, attendu ou à vérifier ; un chantier fusionné passe en une ligne dans « Derniers chantiers ».
 
+### Plan de Krasnov avec l'hôpital : repères hors des rues (Claude, 14/11/2026)
+Branche `claude/plan-krasnov-hopital-20261114`. Demande de Fred : refaire le plan de Krasnov avec l'hôpital. Le plan étant déduit des rues, la rue de l'hôpital y figurait déjà (impasse au nord de la vue du centre d'affaires), mais le repère du centre d'affaires tombait dessus (même côté de la vue). `dessinerPlanRues` (`plateau-plan-rues.js`) écarte désormais tout repère de la chaussée ; vaut pour les six villes (Luthécia avait aussi un repère sur une rue). Garde ajoutée à `test-plan-rues-20261109.mjs` (9/9). **À vérifier en jeu** : plan de Krasnov.
+
 ### Salle électorale de Krasnov : deux descriptions traduites (Claude, 14/11/2026)
 Branche `claude/i18n-krasnov-scrutins-20261114`. Le commit fb2f05f (salle électorale de la mairie de Krasnov) avait laissé deux descriptions propres à Sovarka sans traduction (« Consulter les candidats et les scrutins de la ville. », « Voter si un scrutin est ouvert et si vous êtes électeur habilité. ») : `test-i18n-sovarka-infobulles-20261113.mjs` était rouge sur `main`. Ajoutées en 9 langues à `i18n/sovarka-infobulles-resources.js` ; comptes figés 127 → 129 dans ce banc et dans `test-i18n-infobulles-communes-20261113.mjs`. Même branche : 9 descriptions de pièces de Krasnov non traduites (bureau de vote, galerie, logements populaires et entrée d'immeuble, intérieurs des cinq maisonnettes de #940) ajoutées à `i18n/sovarka-descriptions-resources.js` ; `test-i18n-sovarka-descriptions-20261112.mjs` vert.
 
