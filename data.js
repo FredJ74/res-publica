@@ -7645,9 +7645,10 @@ const BUILDINGS = {
         name: 'Boutique',
         imageUrl: 'images/Sovarka/Krasnov/Krasnov_tabac_presse_boutique.webp',
         desc: 'Comptoir et étagères de tabac, revues, loteries et paris sportifs, dans une échoppe rétro.',
+        // Buraliste validée par Fred le 15/11/2026 : Valentina Makhorkina (de « makhorka », le tabac du kolkhoze). Portrait à venir.
         // Quatre articles (14/11/2026, demande de Fred) : moteur commun des commerces PNJ, type 'tabac-presse'
         // (BUILDING_COMMERCE_TYPE), migration 20261114220000. Pas de rachat direct : droit d'exploiter (notaire).
-        persons: [], orders: [
+        persons: [{name:'Valentina Makhorkina (PNJ)', role:'Buraliste de Krasnov', rel:'neutral', job:'buraliste'}], orders: [
           {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:"Papirossy, billets du Loto du Plan, revue locale et cartes postales."},
           // Prise de paris du bookmaker des stades (Fred, 14/11/2026, 22 h 04) : même ordre, même moteur
           // (football_pari_engager), copié à l'identique du guichet de paris du stade.
