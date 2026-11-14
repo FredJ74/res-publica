@@ -27,7 +27,7 @@ BEGIN
   INSERT INTO public.sovarka_foret_rencontres (bucheron, vue, creature, statut) VALUES (v_pj, 3, 'ours', 'en_attente') RETURNING id INTO v_rid;
   v_pnj := 'faune:krasnov:' || v_rid;
   INSERT INTO public.pnj_membres (id, famille, nom, pays, ville, building_id, room_id, classe, pa, proprietaire_institution, proprietaire_perimetre, car_int, car_cha, car_vol, car_per, car_dup, car_ent)
-  VALUES (v_pnj, 'employe', 'Ours', 'soviet', 'ville_b', 'zone-production', 'foret_vue_3', 'beta', 12, 'faune', 'soviet:ville_b:foret', 4, 4, 16, 12, 6, 4);
+  VALUES (v_pnj, 'employe', 'Ours', 'soviet', 'ville_b', 'zone-production', 'foret_vue_3', 'beta', 36, 'faune', 'soviet:ville_b:foret', 4, 4, 26, 12, 12, 4);
   UPDATE public.sovarka_foret_rencontres SET pnj_id = v_pnj WHERE id = v_rid;
 
   o := public.combat_ouvrir(v_pnj, 'mains', gen_random_uuid());
@@ -37,6 +37,9 @@ BEGIN
   IF b.contexte->>'type' <> 'faune' THEN RAISE EXCEPTION 'BANC_ECHEC type %', b.contexte->>'type'; END IF;
   IF coalesce(array_length(public.militaire_camps_hostiles(v_id, b.camp_a), 1), 0) <> 1 THEN RAISE EXCEPTION 'BANC_ECHEC camp hostile absent'; END IF;
   IF (SELECT count(*) FROM public.militaire_bataille_combattants(v_id, b.camp_b)) <> 1 THEN RAISE EXCEPTION 'BANC_ECHEC ours non combattant'; END IF;
+  IF (SELECT bonus_arme FROM public.militaire_bataille_combattants(v_id, b.camp_b)) <> 12 THEN RAISE EXCEPTION 'BANC_ECHEC griffes absentes'; END IF;
+  IF EXISTS (SELECT 1 FROM public.mails WHERE to_player = v_pj AND subject = 'Affrontement' AND body LIKE '%Référence : ' || v_id || '.%') THEN
+    RAISE EXCEPTION 'BANC_ECHEC mail Affrontement envoye pour une bete'; END IF;
   e := public.militaire_bataille_etat(v_id);
   IF e->'bataille'->>'type' <> 'faune' OR e->'bataille'->>'adversaire_nom' <> 'Ours' THEN RAISE EXCEPTION 'BANC_ECHEC etat %', e; END IF;
 

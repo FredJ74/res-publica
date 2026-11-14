@@ -15,6 +15,14 @@
 --   6. sovarka_foret_issue_combat_interne : la fuite de la bête laisse le bois de la seconde coupe, sans butin.
 --   7. militaire_bataille_etat : expose le type de combat, le nom de l'adversaire PNJ et l'issue civile,
 --      pour que le panneau n'affiche ni « soldats » ni clé technique.
+--   8. Décisions de Fred (14/11, 15 h 51) :
+--      - pas de mail « Affrontement » pour un combat contre une bête ;
+--      - les bêtes sont plus fortes : endurance (PA) et griffes (bonus d'arme naturel, jamais déposé au sol),
+--        caractéristiques relevées. Simulation du moteur (20 000 combats, PJ à 12 PA, gagne/perd/fuite) :
+--          loup  : mains nues moyen 33/52/15, baïonnette costaud 45/42/13, Kalachnikov 50/43/7
+--          meute : 16/67/17, 28/57/15, 36/55/9
+--          ours  : 7/79/14, 18/67/15, 29/63/8
+--      - la bête qui tient encore au 5e round s'enfuit (inchangé).
 BEGIN;
 
 DO $patch$
@@ -129,6 +137,48 @@ BEGIN
 END $$;
 REVOKE ALL ON FUNCTION public.sovarka_foret_issue_combat_interne(text, text, text) FROM PUBLIC, anon, authenticated;
 
+-- 8a. Les bêtes : caractéristiques, endurance et griffes.
+CREATE OR REPLACE FUNCTION public.sovarka_foret_creature_interne(p_type text)
+RETURNS jsonb LANGUAGE sql IMMUTABLE AS $$
+  -- combat_faune_hostilite_v1 : bêtes renforcées (Fred, 14/11/2026).
+  SELECT CASE p_type
+    WHEN 'loup'  THEN '{"nom":"Loup solitaire","vol":12,"per":10,"dup":10,"pa":14,"griffes":4,"butin":[{"cle":"textile","qte":3},{"cle":"viande","qte":3}]}'::jsonb
+    WHEN 'meute' THEN '{"nom":"Meute de loups","vol":18,"per":12,"dup":12,"pa":24,"griffes":8,"butin":[{"cle":"textile","qte":9},{"cle":"viande","qte":6}]}'::jsonb
+    WHEN 'ours'  THEN '{"nom":"Ours","vol":26,"per":12,"dup":12,"pa":36,"griffes":12,"butin":[{"cle":"textile","qte":10},{"cle":"viande","qte":9}],"dents":2}'::jsonb
+  END;
+$$;
+
+DO $patch8$
+DECLARE d text; avant text; apres text;
+BEGIN
+  -- Endurance propre à chaque bête au lieu du plafond commun des PNJ.
+  d := pg_get_functiondef('public.sovarka_foret_couper(uuid)'::regprocedure);
+  IF position('combat_faune_hostilite_v1' IN d) = 0 THEN
+    avant := E'''beta'', public.pnj_pa_max(), ''faune''';
+    apres := E'''beta'', coalesce((c->>''pa'')::integer, public.pnj_pa_max()) /* combat_faune_hostilite_v1 */, ''faune''';
+    IF (length(d) - length(replace(d, avant, ''))) / length(avant) <> 1 THEN RAISE EXCEPTION 'sovarka_foret_couper : ancrage introuvable'; END IF;
+    EXECUTE replace(d, avant, apres);
+  END IF;
+
+  -- Griffes : bonus d'arme naturel lu dans la fiche de la bête (aucun objet, donc rien ne tombe au sol).
+  d := pg_get_functiondef('public.militaire_bataille_combattants(bigint,text)'::regprocedure);
+  IF position('combat_faune_griffes_v1' IN d) = 0 THEN
+    avant := 'coalesce(af.bonus,ac.bonus,0)';
+    apres := 'coalesce(af.bonus,ac.bonus,CASE WHEN m.id LIKE ''faune:%'' /* combat_faune_griffes_v1 */ THEN coalesce((public.sovarka_foret_creature_interne((SELECT r.creature FROM public.sovarka_foret_rencontres r WHERE r.pnj_id=m.id LIMIT 1))->>''griffes'')::integer,0) ELSE 0 END)';
+    IF (length(d) - length(replace(d, avant, ''))) / length(avant) <> 1 THEN RAISE EXCEPTION 'militaire_bataille_combattants : ancrage griffes introuvable'; END IF;
+    EXECUTE replace(d, avant, apres);
+  END IF;
+
+  -- Pas de mail « Affrontement » contre une bête : la fenêtre de combat suffit.
+  d := pg_get_functiondef('public.combat_ouvrir_interne(text,text,uuid)'::regprocedure);
+  IF position('combat_faune_hostilite_v1' IN d) = 0 THEN
+    avant := 'WHERE bataille_id=b_id AND personnage IS NOT NULL ORDER BY personnage LOOP';
+    apres := 'WHERE bataille_id=b_id AND personnage IS NOT NULL AND p_cible NOT LIKE ''faune:%'' /* combat_faune_hostilite_v1 */ ORDER BY personnage LOOP';
+    IF (length(d) - length(replace(d, avant, ''))) / length(avant) <> 1 THEN RAISE EXCEPTION 'combat_ouvrir_interne : ancrage mail introuvable'; END IF;
+    EXECUTE replace(d, avant, apres);
+  END IF;
+END $patch8$;
+
 -- Contrôles structurels.
 DO $$
 BEGIN
@@ -140,6 +190,10 @@ BEGIN
      OR position('combat_faune_hostilite_v1' IN pg_get_functiondef('public.militaire_bataille_etat(bigint)'::regprocedure)) = 0
      OR position('combat_faune_hostilite_v1' IN pg_get_functiondef('public.sovarka_foret_issue_combat_interne(text,text,text)'::regprocedure)) = 0
      OR position('sovarka_foret_faune_v1' IN pg_get_functiondef('public.combat_finaliser_interne(bigint)'::regprocedure)) = 0
+     OR position('combat_faune_griffes_v1' IN pg_get_functiondef('public.militaire_bataille_combattants(bigint,text)'::regprocedure)) = 0
+     OR position('combat_faune_hostilite_v1' IN pg_get_functiondef('public.sovarka_foret_couper(uuid)'::regprocedure)) = 0
+     OR position('combat_faune_hostilite_v1' IN pg_get_functiondef('public.combat_ouvrir_interne(text,text,uuid)'::regprocedure)) = 0
+     OR (public.sovarka_foret_creature_interne('ours')->>'griffes')::integer <> 12
      OR position('bataille_sorties_indisponibles_v1' IN pg_get_functiondef('public.militaire_bataille_round(bigint)'::regprocedure)) = 0 THEN
     RAISE EXCEPTION 'combat_faune_hostilite : contrôle structurel en échec';
   END IF;
