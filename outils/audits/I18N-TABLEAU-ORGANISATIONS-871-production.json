@@ -1,0 +1,56 @@
+{
+  "commit": "f4d627036bb2bd6ff655a5a6f12262064e4174fa",
+  "deployment": "dpl_72YbvBwEsH45EKGVwDDWi59ro9jD",
+  "files": [
+    {
+      "file": "plateau.html",
+      "sha256": "a67f87da841de68710fd49e8bd7463578da728e3119f60bc408efe11102c8dc5",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "e1db97c535d9566a304b88abc054b074a93b20258c23931c578d13747171c588",
+      "identical": true
+    },
+    {
+      "file": "plateau-core.js",
+      "sha256": "3bc807f2b021cd967bac36fb21f6530bc20ed304800211057765d96212450531",
+      "identical": true
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "sha256": "432f8d91dfd4a03c6db0f4fcf54438f8d8edb13fc66d58b5730da1ea13f66d1d",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-resources.js",
+      "sha256": "5ab8d40c41eb8e1e60f30416019e7c2b3fb6ce8ab3725026cd9d1ccde96f55f0",
+      "identical": true
+    },
+    {
+      "file": "i18n/toast-resources.js",
+      "sha256": "8a57409e44396e0a59163dcb86b9f9d995cbf507d88ed82f56df7fc6c9bcc96e",
+      "identical": true
+    },
+    {
+      "file": "i18n/organization-directory-resources.js",
+      "sha256": "0d08bb899b3636640cd697fcad1226710cc3a1ff15105b35428aa6518cfb76c0",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-init.js",
+      "sha256": "0fbd1edb1d94a175168e068c72991b5dc4b86e7d400202c20a6c6bcfc20bb160",
+      "identical": true
+    }
+  ]
+}

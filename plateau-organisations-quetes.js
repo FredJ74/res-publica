@@ -355,6 +355,44 @@ function libelleTypeOrgaLocalLoue(type, def) {
   return LIBELLES_TYPE_ORGA_LOCAL_LOUE[type] || def.label;
 }
 
+// Marqueurs de présentation : les types/valeurs ne changent jamais de sens métier.
+function orgaCreationTypeHtml(type, label) {
+  const text = String(label), resources = globalThis.RP_I18N_RESOURCES?.fr?.translation;
+  for (const [namespace,key] of [['organizationCreation','localType_'+type],['organizationDirectory','type_'+type]]) {
+    if (resources?.[namespace]?.[key]===text)
+      return '<span data-i18n="'+escapeHtmlText(namespace+'.'+key)+'">'+escapeHtmlText(text)+'</span>';
+  }
+  return escapeHtmlText(text);
+}
+function orgaCreationRequisHtml(requis) {
+  const text = formatReqOrga(requis);
+  return text==='Aucun' ? '<span data-i18n="organizationCreation.noneRequirement">Aucun</span>' : escapeHtmlText(text);
+}
+function orgaCreationTitre(type) {
+  const node = document.getElementById('postes-modal-title');
+  if (!node) return;
+  if (type===undefined) {
+    if (node.textContent!=='🏛 Créer une Organisation') return;
+    const span=document.createElement('span');span.textContent=node.textContent;
+    span.setAttribute('data-i18n','organizationCreation.createTitle');node.replaceChildren(span);
+  } else {
+    const prefix='Fonder : ';
+    if (!node.textContent.startsWith(prefix)) return;
+    const label=node.textContent.slice(prefix.length);
+    node.innerHTML='<span data-i18n="organizationCreation.foundPrefix">Fonder : </span>'+orgaCreationTypeHtml(type,label);
+  }
+}
+function orgaCreationOptionAttribut(id,label) {
+  const key=id===''?'tradeGeneric':id==='police'?'tradePolice':null;
+  return key && globalThis.RP_I18N_RESOURCES?.fr?.translation?.organizationCreation?.[key]===label
+    ? ' data-i18n="organizationCreation.'+key+'"' : '';
+}
+function orgaCreationBlocageHtml(text,meta) {
+  if (!meta) return escapeHtmlText(String(text));
+  return '<span data-i18n="organizationCreation.'+meta.key+'" data-i18n-values="'+
+    escapeHtmlText(JSON.stringify(meta.values))+'">'+escapeHtmlText(String(text))+'</span>';
+}
+
 function ouvrirCreerOrga() {
   const mesOrgas = getMesOrgasPays();
   const typesDispos = Object.entries(TYPES_ORGANISATIONS).filter(([type, def]) => {
@@ -369,20 +407,22 @@ function ouvrirCreerOrga() {
   }
 
   document.getElementById('postes-modal-title').textContent = '🏛 Créer une Organisation';
+  orgaCreationTitre();
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.8rem 1rem">' +
-    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisissez le type d\'organisation à fonder. Vous ne pouvez fonder qu\'une organisation de chaque type.</div>' +
+    '<div class="hg-organisations" style="padding:.8rem 1rem">' +
+    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem" data-i18n="organizationCreation.chooseHelp">Choisissez le type d\'organisation à fonder. Vous ne pouvez fonder qu\'une organisation de chaque type.</div>' +
     typesDispos.map(([type, def]) =>
       '<div onclick="ouvrirFormulaireOrga(\'' + type + '\')" style="display:flex;align-items:center;gap:.8rem;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
         '<i class="ti ' + def.icon + '" style="font-size:1.1rem;color:#C9A84C;flex-shrink:0"></i>' +
         '<div>' +
-          '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:#E8C97A;letter-spacing:.06em">' + libelleTypeOrgaLocalLoue(type, def) + '</div>' +
-          '<div style="font-size:.68rem;color:#9a8a68">' + (def.secret ? '🔒 Secrète · ' : '') + 'Requis : ' + formatReqOrga(def.requis) + '</div>' +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:#E8C97A;letter-spacing:.06em">' + orgaCreationTypeHtml(type, libelleTypeOrgaLocalLoue(type, def)) + '</div>' +
+          '<div style="font-size:.68rem;color:#9a8a68">' + (def.secret ? '🔒 <span data-i18n="organizationCreation.secretBadge">Secrète</span> · ' : '') + '<span data-i18n="organizationCreation.requirementsPrefix">Requis : </span>' + orgaCreationRequisHtml(def.requis) + '</div>' +
         '</div>' +
       '</div>'
     ).join('') +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
+  globalThis.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
 }
 
 function formatReqOrga(requis) {
@@ -401,34 +441,45 @@ function ouvrirFormulaireOrga(type) {
   // Vérifier conditions
   const requis = def.requis || {};
   let blocage = null;
-  if (requis.pop && (state.pop || 0) < requis.pop) blocage = 'POP insuffisante (' + (state.pop||0) + '/' + requis.pop + ')';
-  if (requis.inf && (state.inf || 0) < requis.inf) blocage = 'INF insuffisante (' + (state.inf||0) + '/' + requis.inf + ')';
-  if (requis.dis && (state.dis || 0) < requis.dis) blocage = 'DIS insuffisante (' + (state.dis||0) + '/' + requis.dis + ')';
-  if (requis.arg && state.arg < requis.arg) blocage = 'Fonds insuffisants (' + state.arg.toLocaleString('fr-FR') + '/' + requis.arg.toLocaleString('fr-FR') + ' ' + cur + ')';
+  let _rpOrgaBlocage = null;
+  if (requis.pop && (state.pop || 0) < requis.pop) { blocage = 'POP insuffisante (' + (state.pop||0) + '/' + requis.pop + ')';
+    _rpOrgaBlocage = {key:'blockingPop',values:{current:state.pop||0,required:requis.pop}};
+  }
+  if (requis.inf && (state.inf || 0) < requis.inf) { blocage = 'INF insuffisante (' + (state.inf||0) + '/' + requis.inf + ')';
+    _rpOrgaBlocage = {key:'blockingInf',values:{current:state.inf||0,required:requis.inf}};
+  }
+  if (requis.dis && (state.dis || 0) < requis.dis) { blocage = 'DIS insuffisante (' + (state.dis||0) + '/' + requis.dis + ')';
+    _rpOrgaBlocage = {key:'blockingDis',values:{current:state.dis||0,required:requis.dis}};
+  }
+  if (requis.arg && state.arg < requis.arg) { blocage = 'Fonds insuffisants (' + state.arg.toLocaleString('fr-FR') + '/' + requis.arg.toLocaleString('fr-FR') + ' ' + cur + ')';
+    _rpOrgaBlocage = {key:'blockingFunds',values:{current:state.arg.toLocaleString('fr-FR'),required:requis.arg.toLocaleString('fr-FR'),currency:cur}};
+  }
 
   document.getElementById('postes-modal-title').textContent = 'Fonder : ' + libelleTypeOrgaLocalLoue(type, def);
+  orgaCreationTitre(type);
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.8rem 1rem">' +
-    (blocage ? '<div style="background:#1a0808;border:1px solid #5a1a1a;padding:.6rem;margin-bottom:.7rem;font-size:.78rem;color:#cc4444">⛔ ' + blocage + '</div>' : '') +
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">NOM DE L\'ORGANISATION</div>' +
-    '<input id="orga-nom-input" type="text" maxlength="40" placeholder="Ex: Loge du Grand Nord, Parti du Progrès..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">DESCRIPTION (optionnel)</div>' +
-    '<textarea id="orga-desc-input" maxlength="200" placeholder="Décrivez votre organisation en quelques mots..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;resize:none;height:60px;margin-bottom:.7rem"></textarea>' +
-    (def.secret ? '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.7rem">🔒 Confidentialité automatique : chef, siège et membres resteront cachés au public. L\'adhésion se fera uniquement sur invitation.</div>' : '') +
+    '<div class="hg-organisations" style="padding:.8rem 1rem">' +
+    (blocage ? '<div style="background:#1a0808;border:1px solid #5a1a1a;padding:.6rem;margin-bottom:.7rem;font-size:.78rem;color:#cc4444">⛔ ' + orgaCreationBlocageHtml(blocage,_rpOrgaBlocage) + '</div>' : '') +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationCreation.nameLabel">NOM DE L\'ORGANISATION</div>' +
+    '<input id="orga-nom-input" type="text" maxlength="40" dir="auto" data-i18n-placeholder="organizationCreation.namePlaceholder" placeholder="Ex: Loge du Grand Nord, Parti du Progrès..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationCreation.descriptionLabel">DESCRIPTION (optionnel)</div>' +
+    '<textarea id="orga-desc-input" maxlength="200" dir="auto" data-i18n-placeholder="organizationCreation.descriptionPlaceholder" placeholder="Décrivez votre organisation en quelques mots..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;resize:none;height:60px;margin-bottom:.7rem"></textarea>' +
+    (def.secret ? '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.7rem" data-i18n="organizationCreation.confidentiality">🔒 Confidentialité automatique : chef, siège et membres resteront cachés au public. L\'adhésion se fera uniquement sur invitation.</div>' : '') +
     // corpsMetier (greves, 3 septembre 2026) : tag structurel optionnel, uniquement pour les
     // syndicats -- §9 du cahier des charges ("ne jamais hardcoder un nom du type Syndicat des
     // policiers"). Liste FERMEE (GREVE_CORPS_METIER_OPTIONS, data.js), jamais du texte libre :
     // la consequence mecanique (blocage de la repression policiere) doit rester un choix
     // deliberement assume a la creation, jamais un hasard de nommage.
     (type === 'syndicale' ? (
-      '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">CORPS DE MÉTIER REPRÉSENTÉ (optionnel)</div>' +
-      '<select id="orga-corps-metier-select" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.7rem">' +
-      GREVE_CORPS_METIER_OPTIONS.map(o => '<option value="' + o.id + '">' + escapeHtmlText(o.label) + '</option>').join('') +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationCreation.tradeLabel">CORPS DE MÉTIER REPRÉSENTÉ (optionnel)</div>' +
+      '<select id="orga-corps-metier-select" dir="auto" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.7rem">' +
+      GREVE_CORPS_METIER_OPTIONS.map(o => '<option value="' + o.id + '"' + orgaCreationOptionAttribut(o.id,o.label) + '>' + escapeHtmlText(o.label) + '</option>').join('') +
       '</select>'
     ) : '') +
-    '<button onclick="confirmerCreationOrga(\'' + type + '\')" ' + (blocage ? 'disabled style="opacity:.4;cursor:not-allowed"' : '') + ' style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">🏛 Fonder cette organisation</button>' +
+    '<button onclick="confirmerCreationOrga(\'' + type + '\')" ' + (blocage ? 'disabled style="opacity:.4;cursor:not-allowed"' : '') + ' style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">🏛 <span data-i18n="organizationCreation.foundButton">Fonder cette organisation</span></button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
+  globalThis.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
 }
 
 async function confirmerCreationOrga(type) {

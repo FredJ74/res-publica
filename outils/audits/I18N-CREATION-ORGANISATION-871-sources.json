@@ -1,0 +1,117 @@
+{
+  "baseCommit": "f4d627036bb2bd6ff655a5a6f12262064e4174fa",
+  "rows": [
+    [
+      "createTitle",
+      "🏛 Créer une Organisation"
+    ],
+    [
+      "chooseHelp",
+      "Choisissez le type d'organisation à fonder. Vous ne pouvez fonder qu'une organisation de chaque type."
+    ],
+    [
+      "secretBadge",
+      "Secrète"
+    ],
+    [
+      "requirementsPrefix",
+      "Requis : "
+    ],
+    [
+      "noneRequirement",
+      "Aucun"
+    ],
+    [
+      "foundPrefix",
+      "Fonder : "
+    ],
+    [
+      "localType_criminelle",
+      "Organisation Secrète"
+    ],
+    [
+      "localType_mediatique",
+      "Organisation de presse"
+    ],
+    [
+      "localType_economique",
+      "Organisation commerciale"
+    ],
+    [
+      "blockingPop",
+      "POP insuffisante ({{values.current}}/{{values.required}})"
+    ],
+    [
+      "blockingInf",
+      "INF insuffisante ({{values.current}}/{{values.required}})"
+    ],
+    [
+      "blockingDis",
+      "DIS insuffisante ({{values.current}}/{{values.required}})"
+    ],
+    [
+      "blockingFunds",
+      "Fonds insuffisants ({{values.current}}/{{values.required}} {{values.currency}})"
+    ],
+    [
+      "nameLabel",
+      "NOM DE L'ORGANISATION"
+    ],
+    [
+      "namePlaceholder",
+      "Ex: Loge du Grand Nord, Parti du Progrès..."
+    ],
+    [
+      "descriptionLabel",
+      "DESCRIPTION (optionnel)"
+    ],
+    [
+      "descriptionPlaceholder",
+      "Décrivez votre organisation en quelques mots..."
+    ],
+    [
+      "confidentiality",
+      "🔒 Confidentialité automatique : chef, siège et membres resteront cachés au public. L'adhésion se fera uniquement sur invitation."
+    ],
+    [
+      "tradeLabel",
+      "CORPS DE MÉTIER REPRÉSENTÉ (optionnel)"
+    ],
+    [
+      "tradeGeneric",
+      "Aucun (générique)"
+    ],
+    [
+      "tradePolice",
+      "Forces de l'ordre (bloque la répression policière en cas de grève de ce syndicat)"
+    ],
+    [
+      "foundButton",
+      "Fonder cette organisation"
+    ]
+  ],
+  "newKeys": 22,
+  "newForeignTranslations": 176,
+  "reusedTypes": [
+    "politique",
+    "religieuse",
+    "syndicale",
+    "loge",
+    "sportive",
+    "supporters"
+  ],
+  "reusedForeignTranslations": 48,
+  "maximumToastExcludedCoveredByPullRequest": 924,
+  "implementationBaseCommit": "88133709483fe017075fadc0a7baacf3980ca9b9",
+  "normalFlowReusedTypes": [
+    "politique",
+    "religieuse",
+    "syndicale",
+    "loge"
+  ],
+  "normalFlowReusedForeignTranslations": 32,
+  "excludedDirectCallReusedTypes": [
+    "sportive",
+    "supporters"
+  ]
+}

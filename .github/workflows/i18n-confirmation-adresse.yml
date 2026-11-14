@@ -27,4 +27,4 @@ jobs:
           NODE_PATH: ./outils/e2e/node_modules
           HG_CHROMIUM: /usr/bin/google-chrome
           CHROMIUM_PATH: /usr/bin/google-chrome
-        run: node --test outils/bancs/banc-i18n-explications-creation-20261114.cjs outils/bancs/banc-i18n-titres-creation-20261114.cjs outils/bancs/banc-i18n-retours-compte-navigateur-20261113.cjs outils/bancs/banc-i18n-recherche-personnage-navigateur-20261113.cjs outils/bancs/banc-i18n-confirmation-adresse-navigateur-20261113.cjs outils/bancs/banc-i18n-connexion-ui.cjs
+        run: node --test outils/bancs/banc-i18n-explications-creation-navigateur-20261114.cjs outils/bancs/banc-i18n-titres-creation-navigateur-20261114.cjs outils/bancs/banc-i18n-retours-compte-navigateur-20261113.cjs outils/bancs/banc-i18n-recherche-personnage-navigateur-20261113.cjs outils/bancs/banc-i18n-confirmation-adresse-navigateur-20261113.cjs outils/bancs/banc-i18n-connexion-ui.cjs
