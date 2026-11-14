@@ -1,0 +1,91 @@
+{
+  "otherPullRequest": 924,
+  "otherHead": "db7cc52676d3aebb20f1878bc4d9d6d3434fb7a1",
+  "ownedBodyKeys": [
+    "postNamed",
+    "fundsRequired",
+    "cashboxRequired",
+    "actionNotRecorded",
+    "apRequired"
+  ],
+  "reusedBodies": [
+    {
+      "sourceKey": "postMissing",
+      "fr": "Cette action est réservée à un poste que vous n'occupez pas.",
+      "key": "toastBodies.bdc4265eb"
+    },
+    {
+      "sourceKey": "characterNotLoaded",
+      "fr": "Votre personnage n'est pas chargé : cette action n'a pas été enregistrée. Rechargez la page.",
+      "key": "toastBodies.b595a8f29"
+    },
+    {
+      "sourceKey": "blockade",
+      "fr": "Un blocus syndical rend les démarches de ce bâtiment inaccessibles.",
+      "key": "toastBodies.be775e43e"
+    },
+    {
+      "sourceKey": "fundsMissing",
+      "fr": "Vos fonds ne couvrent pas cette action.",
+      "key": "toastBodies.b4af8f12f"
+    },
+    {
+      "sourceKey": "cashboxMissing",
+      "fr": "La caisse institutionnelle ne couvre pas cette action.",
+      "key": "toastBodies.ba706c4c8"
+    },
+    {
+      "sourceKey": "characterUnrecognized",
+      "fr": "Votre personnage n'est plus enregistré sur le serveur. Rechargez la page pour en recréer un.",
+      "key": "toastBodies.b419741e8"
+    },
+    {
+      "sourceKey": "costUnknown",
+      "fr": "Le coût de cette action n'est pas reconnu par le serveur. Rien ne vous a été prélevé.",
+      "key": "toastBodies.bdc895072"
+    },
+    {
+      "sourceKey": "sessionExpired",
+      "fr": "Votre connexion de joueur doit être rétablie avant de publier. Votre brouillon reste ouvert. Reconnectez-vous puis réessayez.",
+      "key": "toastBodies.b3f1db3a4"
+    },
+    {
+      "sourceKey": "serverUnavailable",
+      "fr": "La publication n’est pas confirmée. Conservez votre brouillon et réessayez lorsque le serveur répond. La même demande est protégée contre les doublons.",
+      "key": "toastBodies.b72b8c158"
+    },
+    {
+      "sourceKey": "localForumInaccessible",
+      "fr": "Le serveur ne vous situe pas dans la ville de ce forum. Vérifiez votre position et rouvrez le forum local.",
+      "key": "toastBodies.b8d84f32f"
+    },
+    {
+      "sourceKey": "forumNotFound",
+      "fr": "Cette rubrique ne correspond plus à votre ville actuelle. Rouvrez le forum local de votre ville.",
+      "key": "toastBodies.b817e12c1"
+    },
+    {
+      "sourceKey": "publicationIncomplete",
+      "fr": "Le serveur n’a pas reçu de titre ou de texte exploitable. Vérifiez le contenu de votre brouillon avant de réessayer.",
+      "key": "toastBodies.b8d6ae44c"
+    },
+    {
+      "sourceKey": "publicationDenied",
+      "fr": "Le serveur a refusé l’enregistrement du sujet. Aucune publication n’est confirmée ; conservez votre brouillon.",
+      "key": "toastBodies.b37958c56"
+    },
+    {
+      "sourceKey": "actionImpossible",
+      "fr": "Cette action n'a pas pu être effectuée.",
+      "key": "toastBodies.b5fc4a80a"
+    },
+    {
+      "sourceKey": "apMissing",
+      "fr": "Vous n'avez pas assez de PA pour cette action.",
+      "key": "toastBodies.b9e7437b2"
+    }
+  ],
+  "newKeys": 6,
+  "newForeignTranslations": 48,
+  "reusedTitleCount": 15
+}

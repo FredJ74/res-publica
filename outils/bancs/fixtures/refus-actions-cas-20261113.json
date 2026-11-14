@@ -1,0 +1,333 @@
+[
+  {
+    "id": "post_named",
+    "function": "showPostRequired",
+    "args": [
+      "Ministre <img src=x> & اسم"
+    ],
+    "key": "postNamed"
+  },
+  {
+    "id": "post_missing",
+    "function": "showPostRequired",
+    "args": [
+      ""
+    ],
+    "key": "postMissing"
+  },
+  {
+    "id": "post_invalid",
+    "function": "showPostRequired",
+    "args": [
+      null
+    ],
+    "key": "postMissing"
+  },
+  {
+    "id": "not_loaded",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "personnage_non_charge"
+      }
+    ],
+    "key": "characterNotLoaded"
+  },
+  {
+    "id": "blockade",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "blocus_syndical"
+      }
+    ],
+    "key": "blockade"
+  },
+  {
+    "id": "funds_given",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "fonds_insuffisants",
+        "cost": 1250,
+        "fondsDisponibles": 20
+      }
+    ],
+    "key": "fundsRequired"
+  },
+  {
+    "id": "funds_helper",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "fonds_insuffisants",
+        "cost": 2000
+      }
+    ],
+    "key": "fundsRequired",
+    "country": "soviet",
+    "funds": 45.5
+  },
+  {
+    "id": "funds_state",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "fonds_insuffisants",
+        "cost": 1200
+      }
+    ],
+    "key": "fundsRequired",
+    "country": "soviet",
+    "withoutFundsHelper": true
+  },
+  {
+    "id": "funds_zero",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "fonds_insuffisants",
+        "cost": 0
+      }
+    ],
+    "key": "fundsMissing"
+  },
+  {
+    "id": "cash_positive",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "caisse_institution_insuffisante",
+        "cost": 1250
+      }
+    ],
+    "key": "cashboxRequired"
+  },
+  {
+    "id": "cash_zero",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "caisse_institution_insuffisante",
+        "cost": 0
+      }
+    ],
+    "key": "cashboxMissing"
+  },
+  {
+    "id": "pa_delegated",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "pa_insuffisants",
+        "pa": 8
+      }
+    ],
+    "key": "apRequired"
+  },
+  {
+    "id": "pa_delegated_zero",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "pa_insuffisants",
+        "pa": 0
+      }
+    ],
+    "key": "apMissing"
+  },
+  {
+    "id": "personnage_introuvable",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "personnage_introuvable"
+      }
+    ],
+    "key": "characterUnrecognized"
+  },
+  {
+    "id": "acteur_non_authentifie",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "acteur_non_authentifie"
+      }
+    ],
+    "key": "characterUnrecognized"
+  },
+  {
+    "id": "ordre_inconnu",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "ordre_inconnu"
+      }
+    ],
+    "key": "costUnknown"
+  },
+  {
+    "id": "cout_non_declare",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "cout_non_declare"
+      }
+    ],
+    "key": "costUnknown"
+  },
+  {
+    "id": "payment",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "paiement_indisponible"
+      }
+    ],
+    "key": "actionNotRecorded"
+  },
+  {
+    "id": "session_reason",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "session_perdue"
+      }
+    ],
+    "key": "sessionExpired"
+  },
+  {
+    "id": "session_transport",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "autre",
+        "transport": {
+          "etat": "session_perdue"
+        }
+      }
+    ],
+    "key": "sessionExpired"
+  },
+  {
+    "id": "network",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "autre",
+        "transport": {
+          "etat": "reseau"
+        }
+      }
+    ],
+    "key": "serverUnavailable"
+  },
+  {
+    "id": "http",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "autre",
+        "transport": {
+          "etat": "timeout",
+          "http": 503
+        }
+      }
+    ],
+    "key": "serverUnavailable"
+  },
+  {
+    "id": "forum_inaccessible",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "forum_inaccessible"
+      }
+    ],
+    "key": "localForumInaccessible"
+  },
+  {
+    "id": "territoire_invalide",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "territoire_invalide"
+      }
+    ],
+    "key": "localForumInaccessible"
+  },
+  {
+    "id": "forum_missing",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "forum_inconnu"
+      }
+    ],
+    "key": "forumNotFound"
+  },
+  {
+    "id": "publication_vide",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "publication_vide"
+      }
+    ],
+    "key": "publicationIncomplete"
+  },
+  {
+    "id": "titre_vide",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "titre_vide"
+      }
+    ],
+    "key": "publicationIncomplete"
+  },
+  {
+    "id": "publication_denied",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "publication_refusee"
+      }
+    ],
+    "key": "publicationDenied"
+  },
+  {
+    "id": "unknown",
+    "function": "signalerRefusCout",
+    "args": [
+      {
+        "raison": "motif_libre <à conserver>"
+      }
+    ],
+    "key": "actionImpossible"
+  },
+  {
+    "id": "null",
+    "function": "signalerRefusCout",
+    "args": [
+      null
+    ],
+    "key": "actionImpossible"
+  },
+  {
+    "id": "pa_direct",
+    "function": "signalerRefusPa",
+    "args": [
+      12
+    ],
+    "key": "apRequired"
+  },
+  {
+    "id": "pa_direct_zero",
+    "function": "signalerRefusPa",
+    "args": [
+      0
+    ],
+    "key": "apMissing"
+  }
+]

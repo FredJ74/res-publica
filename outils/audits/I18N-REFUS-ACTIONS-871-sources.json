@@ -1,0 +1,122 @@
+[
+  {
+    "key": "postNamed",
+    "fr": "Cette action est réservée à : {{values.post}}.",
+    "function": "showPostRequired",
+    "title": "Action réservée"
+  },
+  {
+    "key": "postMissing",
+    "fr": "Cette action est réservée à un poste que vous n'occupez pas.",
+    "function": "showPostRequired",
+    "title": "Action réservée"
+  },
+  {
+    "key": "characterNotLoaded",
+    "fr": "Votre personnage n'est pas chargé : cette action n'a pas été enregistrée. Rechargez la page.",
+    "function": "signalerRefusCout",
+    "title": "Personnage non chargé"
+  },
+  {
+    "key": "blockade",
+    "fr": "Un blocus syndical rend les démarches de ce bâtiment inaccessibles.",
+    "function": "signalerRefusCout",
+    "title": "Bloqué"
+  },
+  {
+    "key": "fundsRequired",
+    "fr": "{{values.required}} {{values.currency}} requis — vous disposez de {{values.available}} {{values.currency}}.",
+    "function": "signalerRefusCout",
+    "title": "Fonds insuffisants"
+  },
+  {
+    "key": "fundsMissing",
+    "fr": "Vos fonds ne couvrent pas cette action.",
+    "function": "signalerRefusCout",
+    "title": "Fonds insuffisants"
+  },
+  {
+    "key": "cashboxRequired",
+    "fr": "Cette action est financée par une caisse institutionnelle, qui ne couvre pas les {{values.required}} {{values.currency}} nécessaires.",
+    "function": "signalerRefusCout",
+    "title": "Caisse insuffisante"
+  },
+  {
+    "key": "cashboxMissing",
+    "fr": "La caisse institutionnelle ne couvre pas cette action.",
+    "function": "signalerRefusCout",
+    "title": "Caisse insuffisante"
+  },
+  {
+    "key": "characterUnrecognized",
+    "fr": "Votre personnage n'est plus enregistré sur le serveur. Rechargez la page pour en recréer un.",
+    "function": "signalerRefusCout",
+    "title": "Personnage non reconnu"
+  },
+  {
+    "key": "costUnknown",
+    "fr": "Le coût de cette action n'est pas reconnu par le serveur. Rien ne vous a été prélevé.",
+    "function": "signalerRefusCout",
+    "title": "Action indisponible"
+  },
+  {
+    "key": "actionNotRecorded",
+    "fr": "Le serveur n'a pas pu enregistrer cette action : rien ne vous a été prélevé. Réessayez dans un instant ; si cela persiste, rechargez la page.",
+    "function": "signalerRefusCout",
+    "title": "Action non enregistrée"
+  },
+  {
+    "key": "sessionExpired",
+    "fr": "Votre connexion de joueur doit être rétablie avant de publier. Votre brouillon reste ouvert. Reconnectez-vous puis réessayez.",
+    "function": "signalerRefusCout",
+    "title": "Session expirée"
+  },
+  {
+    "key": "serverUnavailable",
+    "fr": "La publication n’est pas confirmée. Conservez votre brouillon et réessayez lorsque le serveur répond. La même demande est protégée contre les doublons.",
+    "function": "signalerRefusCout",
+    "title": "Serveur temporairement indisponible"
+  },
+  {
+    "key": "localForumInaccessible",
+    "fr": "Le serveur ne vous situe pas dans la ville de ce forum. Vérifiez votre position et rouvrez le forum local.",
+    "function": "signalerRefusCout",
+    "title": "Forum local non accessible"
+  },
+  {
+    "key": "forumNotFound",
+    "fr": "Cette rubrique ne correspond plus à votre ville actuelle. Rouvrez le forum local de votre ville.",
+    "function": "signalerRefusCout",
+    "title": "Forum introuvable"
+  },
+  {
+    "key": "publicationIncomplete",
+    "fr": "Le serveur n’a pas reçu de titre ou de texte exploitable. Vérifiez le contenu de votre brouillon avant de réessayer.",
+    "function": "signalerRefusCout",
+    "title": "Publication incomplète"
+  },
+  {
+    "key": "publicationDenied",
+    "fr": "Le serveur a refusé l’enregistrement du sujet. Aucune publication n’est confirmée ; conservez votre brouillon.",
+    "function": "signalerRefusCout",
+    "title": "Publication refusée"
+  },
+  {
+    "key": "actionImpossible",
+    "fr": "Cette action n'a pas pu être effectuée.",
+    "function": "signalerRefusCout",
+    "title": "Action impossible"
+  },
+  {
+    "key": "apRequired",
+    "fr": "{{values.required}} PA requis — il vous en reste {{values.available}}.",
+    "function": "signalerRefusPa",
+    "title": "PA insuffisants"
+  },
+  {
+    "key": "apMissing",
+    "fr": "Vous n'avez pas assez de PA pour cette action.",
+    "function": "signalerRefusPa",
+    "title": "PA insuffisants"
+  }
+]

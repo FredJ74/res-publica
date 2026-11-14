@@ -2936,6 +2936,8 @@ function showPostRequired(posteRequisNom) {
         : 'Cette action est réservée à un poste que vous n\'occupez pas.',
     false
   );
+  globalThis.RPI18nPlateau?.markToast?.(nom?("actionFeedback.postNamed"):("toastBodies.bdc4265eb"), nom ? ('Cette action est réservée à : ' + nom + '.')
+        : 'Cette action est réservée à un poste que vous n\'occupez pas.', {post:nom}, "Action réservée");
 }
 
 // Traduit un echec de deduireCoutOrdre() en message JUSTE. Auparavant, 170 sites affichaient tous
@@ -3071,10 +3073,12 @@ function signalerRefusCout(resultat) {
   if (r.raison === 'personnage_non_charge') {
     showToast('Personnage non chargé',
       "Votre personnage n'est pas chargé : cette action n'a pas été enregistrée. Rechargez la page.", false);
+    globalThis.RPI18nPlateau?.markToast?.("toastBodies.b595a8f29", "Votre personnage n'est pas chargé : cette action n'a pas été enregistrée. Rechargez la page.", undefined, "Personnage non chargé");
     return;
   }
   if (r.raison === 'blocus_syndical') {
     showToast('Bloqué', 'Un blocus syndical rend les démarches de ce bâtiment inaccessibles.', false);
+    globalThis.RPI18nPlateau?.markToast?.("toastBodies.be775e43e", 'Un blocus syndical rend les démarches de ce bâtiment inaccessibles.', undefined, "Bloqué");
     return;
   }
   if (r.raison === 'fonds_insuffisants') {
@@ -3084,6 +3088,8 @@ function signalerRefusCout(resultat) {
     showToast('Fonds insuffisants',
       requis > 0 ? (fmt(requis) + ' ' + cur + ' requis — vous disposez de ' + fmt(dispo) + ' ' + cur + '.')
                  : 'Vos fonds ne couvrent pas cette action.', false);
+    globalThis.RPI18nPlateau?.markToast?.(requis > 0?("actionFeedback.fundsRequired"):("toastBodies.b4af8f12f"), requis > 0 ? (fmt(requis) + ' ' + cur + ' requis — vous disposez de ' + fmt(dispo) + ' ' + cur + '.')
+                 : 'Vos fonds ne couvrent pas cette action.', {required:fmt(requis),available:fmt(dispo),currency:cur}, "Fonds insuffisants");
     return;
   }
   if (r.raison === 'caisse_institution_insuffisante') {
@@ -3091,6 +3097,8 @@ function signalerRefusCout(resultat) {
     showToast('Caisse insuffisante',
       requis > 0 ? ('Cette action est financée par une caisse institutionnelle, qui ne couvre pas les ' + fmt(requis) + ' ' + cur + ' nécessaires.')
                  : 'La caisse institutionnelle ne couvre pas cette action.', false);
+    globalThis.RPI18nPlateau?.markToast?.(requis > 0?("actionFeedback.cashboxRequired"):("toastBodies.ba706c4c8"), requis > 0 ? ('Cette action est financée par une caisse institutionnelle, qui ne couvre pas les ' + fmt(requis) + ' ' + cur + ' nécessaires.')
+                 : 'La caisse institutionnelle ne couvre pas cette action.', {required:fmt(requis),currency:cur}, "Caisse insuffisante");
     return;
   }
   if (r.raison === 'pa_insuffisants') {
@@ -3104,12 +3112,14 @@ function signalerRefusCout(resultat) {
     showToast('Personnage non reconnu',
       'Votre personnage n\'est plus enregistré sur le serveur. Rechargez la page pour en recréer un.',
       false, true);
+    globalThis.RPI18nPlateau?.markToast?.("toastBodies.b419741e8", 'Votre personnage n\'est plus enregistré sur le serveur. Rechargez la page pour en recréer un.', undefined, "Personnage non reconnu");
     return;
   }
   if (r.raison === 'ordre_inconnu' || r.raison === 'cout_non_declare') {
     showToast('Action indisponible',
       'Le coût de cette action n\'est pas reconnu par le serveur. Rien ne vous a été prélevé.',
       false, true);
+    globalThis.RPI18nPlateau?.markToast?.("toastBodies.bdc895072", 'Le coût de cette action n\'est pas reconnu par le serveur. Rien ne vous a été prélevé.', undefined, "Action indisponible");
     console.error('Refus de cout serveur :', r.raison, r);
     return;
   }
@@ -3128,6 +3138,8 @@ function signalerRefusCout(resultat) {
     showToast('Action non enregistrée',
       "Le serveur n'a pas pu enregistrer cette action : rien ne vous a été prélevé. "
       + 'Réessayez dans un instant ; si cela persiste, rechargez la page.', false, true);
+    globalThis.RPI18nPlateau?.markToast?.("actionFeedback.actionNotRecorded", "Le serveur n'a pas pu enregistrer cette action : rien ne vous a été prélevé. "
+      + 'Réessayez dans un instant ; si cela persiste, rechargez la page.', undefined, "Action non enregistrée");
     console.warn('[cout] appel au serveur non abouti — action refusee, aucun prelevement.');
     return;
   }
@@ -3139,40 +3151,47 @@ function signalerRefusCout(resultat) {
     showToast('Session expirée',
       'Votre connexion de joueur doit être rétablie avant de publier. Votre brouillon reste ouvert. Reconnectez-vous puis réessayez.',
       false, true);
+    globalThis.RPI18nPlateau?.markToast?.("toastBodies.b3f1db3a4", 'Votre connexion de joueur doit être rétablie avant de publier. Votre brouillon reste ouvert. Reconnectez-vous puis réessayez.', undefined, "Session expirée");
     return;
   }
   if (r.transport && (r.transport.etat === 'reseau' || Number(r.transport.http) >= 500)) {
     showToast('Serveur temporairement indisponible',
       'La publication n’est pas confirmée. Conservez votre brouillon et réessayez lorsque le serveur répond. La même demande est protégée contre les doublons.',
       false, true);
+    globalThis.RPI18nPlateau?.markToast?.("toastBodies.b72b8c158", 'La publication n’est pas confirmée. Conservez votre brouillon et réessayez lorsque le serveur répond. La même demande est protégée contre les doublons.', undefined, "Serveur temporairement indisponible");
     return;
   }
   if (r.raison === 'forum_inaccessible' || r.raison === 'territoire_invalide') {
     showToast('Forum local non accessible',
       'Le serveur ne vous situe pas dans la ville de ce forum. Vérifiez votre position et rouvrez le forum local.',
       false);
+    globalThis.RPI18nPlateau?.markToast?.("toastBodies.b8d84f32f", 'Le serveur ne vous situe pas dans la ville de ce forum. Vérifiez votre position et rouvrez le forum local.', undefined, "Forum local non accessible");
     return;
   }
   if (r.raison === 'forum_inconnu') {
     showToast('Forum introuvable',
       'Cette rubrique ne correspond plus à votre ville actuelle. Rouvrez le forum local de votre ville.',
       false);
+    globalThis.RPI18nPlateau?.markToast?.("toastBodies.b817e12c1", 'Cette rubrique ne correspond plus à votre ville actuelle. Rouvrez le forum local de votre ville.', undefined, "Forum introuvable");
     return;
   }
   if (r.raison === 'publication_vide' || r.raison === 'titre_vide') {
     showToast('Publication incomplète',
       'Le serveur n’a pas reçu de titre ou de texte exploitable. Vérifiez le contenu de votre brouillon avant de réessayer.',
       false);
+    globalThis.RPI18nPlateau?.markToast?.("toastBodies.b8d6ae44c", 'Le serveur n’a pas reçu de titre ou de texte exploitable. Vérifiez le contenu de votre brouillon avant de réessayer.', undefined, "Publication incomplète");
     return;
   }
   if (r.raison === 'publication_refusee') {
     showToast('Publication refusée',
       'Le serveur a refusé l’enregistrement du sujet. Aucune publication n’est confirmée ; conservez votre brouillon.',
       false);
+    globalThis.RPI18nPlateau?.markToast?.("toastBodies.b37958c56", 'Le serveur a refusé l’enregistrement du sujet. Aucune publication n’est confirmée ; conservez votre brouillon.', undefined, "Publication refusée");
     return;
   }
   // Raison absente/inconnue : on ne fabrique aucun chiffre.
   showToast('Action impossible', 'Cette action n\'a pas pu être effectuée.', false);
+  globalThis.RPI18nPlateau?.markToast?.("toastBodies.b5fc4a80a", 'Cette action n\'a pas pu être effectuée.', undefined, "Action impossible");
 }
 
 // Manque de PA verifie directement par un appelant (sans passer par deduireCoutOrdre).
@@ -3182,6 +3201,8 @@ function signalerRefusPa(paRequis) {
   showToast('PA insuffisants',
     requis > 0 ? (requis + ' PA requis — il vous en reste ' + dispo + '.')
                : 'Vous n\'avez pas assez de PA pour cette action.', false);
+  globalThis.RPI18nPlateau?.markToast?.(requis > 0?("actionFeedback.apRequired"):("toastBodies.b9e7437b2"), requis > 0 ? (requis + ' PA requis — il vous en reste ' + dispo + '.')
+               : 'Vous n\'avez pas assez de PA pour cette action.', {required:requis,available:dispo}, "PA insuffisants");
 }
 
 const MOIS_FR_JOURNAL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
