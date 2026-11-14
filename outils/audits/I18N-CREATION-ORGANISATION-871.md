@@ -38,6 +38,21 @@ locaux et publics des lots précédents, mais n’étaient pas exécutés automa
 Les commandes des workflows comptes et organisations sont corrigées ; un test
 vérifie les fichiers effectivement présents dans `run: node --test`.
 
-Mesures, CI finale et production à terminer. Aucune donnée réelle lue ou modifiée,
+## Mesure à périmètre commun
+
+Même extracteur sur main 8813370 et code fc8b176 : à corpus commun constant,
++7 textes/+55 mots source raccordés par langue étrangère, +9 ressources/+59 mots.
+Quatre fragments supplémentaires sont identifiés (six mots) ; deux anciennes
+entrées sont segmentées autrement (icône du bouton et préfixe Requis), sans
+retrait de français visible, comme le démontrent les comparaisons navigateur.
+Corpus global : 7 588/50 901 → 7 590/50 903 ; raccordements +11/+61 au total.
+Anglais : 1 036 textes/12 472 mots raccordés, 24,50 % des mots statiques identifiés,
+pas de tout le jeu. Zéro erreur d’extraction ; variations de périmètre détaillées
+dans le JSON, pas assimilées à des suppressions de contenu.
+
+CI Chromium corrigée vérifiée dans les journaux des runs 43599193510 (comptes,
+dont les nouveaux bancs 270/432/54) et 43599193590 (organisations, 756/999).
+Bancs étrangers comparés : mêmes 34/37 main/branche, trois SSM habituels rouges.
+CI du dernier push, fusion et production à terminer. Aucune donnée réelle lue ou modifiée,
 aucune organisation créée réellement, aucune migration ou fonction serveur changée.
 Pas de session PJ authentifiée, téléphone physique ni relecture native.

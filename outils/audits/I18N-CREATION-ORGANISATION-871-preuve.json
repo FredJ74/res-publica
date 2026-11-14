@@ -13,5 +13,16 @@
   "browserLanguageSwitches": 756,
   "directoryRegressionLanguageSwitches": 999,
   "ciBrowserCommandsCorrected": true,
-  "realOrganizationsCreated": false
+  "realOrganizationsCreated": false,
+  "preexistingComparison": {
+    "tests": 37,
+    "passed": 34,
+    "failed": 3,
+    "sameOnMainAndBranch": true,
+    "failures": "SSM préexistants"
+  },
+  "ciConfirmedBrowserRuns": {
+    "accounts": 43599193510,
+    "organizations": 43599193590
+  }
 }
