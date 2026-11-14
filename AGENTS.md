@@ -133,3 +133,14 @@ Après une fusion, vérifier que le statut Vercel de `main` est vert.
   `#8a8060`, `#2a2010`…) ne doit plus être recopiée.
 - Pas de campagne de reprise des anciennes fenêtres : `style.css` les habille déjà en
   bleu-gris ; on corrige une fenêtre seulement quand on y travaille ou si elle s'affiche mal.
+
+## Catalogues i18n et livraison statique
+
+Les fichiers `i18n/*resources.js` restent les sources originales lisibles. Après
+chaque ajout/modification de catalogue, lancer
+`node outils/generateurs/compresser-catalogues-i18n.cjs` et committer les paquets
+`i18n/packed/*.js.br` avec `outils/audits/I18N-CATALOGUES-TRANSPORT.json`.
+`--check` vérifie que chaque paquet restitue exactement sa source. Les URL JS
+canoniques et le moteur i18next restent inchangés : Vercel sert la compression
+HTTP native via `vercel.json`. Ne pas relever le plafond de payload pour une
+traduction et ne pas modifier d’images pour contourner le contrôle.

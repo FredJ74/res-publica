@@ -1,0 +1,38 @@
+{
+  "methodChanged": false,
+  "baseCommit": "c1afd03184360b6c7afa04fe6b4c3a38e265e080",
+  "afterCommit": "8db5c80842f7bfe3dfb822c9316f2259847f7345",
+  "beforeEnglish": {
+    "texts": 7589,
+    "words": 50910,
+    "wiredTexts": 1072,
+    "wiredWords": 12608,
+    "resourceTexts": 1637,
+    "resourceWords": 15403,
+    "unconfirmedTexts": 6517,
+    "unconfirmedWords": 38302,
+    "withoutResourceTexts": 5952,
+    "withoutResourceWords": 35507,
+    "wiredTextPercent": 14.13,
+    "wiredWordPercent": 24.77,
+    "resourceTextPercent": 21.57,
+    "resourceWordPercent": 30.26
+  },
+  "afterEnglish": {
+    "texts": 7590,
+    "words": 50911,
+    "wiredTexts": 1092,
+    "wiredWords": 12821,
+    "resourceTexts": 2663,
+    "resourceWords": 24328,
+    "unconfirmedTexts": 6498,
+    "unconfirmedWords": 38090,
+    "withoutResourceTexts": 4927,
+    "withoutResourceWords": 26583,
+    "wiredTextPercent": 14.39,
+    "wiredWordPercent": 25.18,
+    "resourceTextPercent": 35.09,
+    "resourceWordPercent": 47.79
+  },
+  "note": "Plancher des textes statiques reconnus, pas pourcentage de tout le jeu ; 1429 phrases préparées par Claude, aucune nouvelle traduction rédigée par Codex pour ce lot. Les occurrences showToast non annotées ne sont pas comptées raccordées par cet extracteur."
+}

@@ -8533,7 +8533,7 @@ async function executerOrdreTexte(action) {
     updateUI();
     if(!r.rejeu)showToast('Sondage publié','Le sondage est enregistré dans le forum national. +'+r.gain_inf+' INF.',true);
   } else {
-    showToast(action, texte, true);
+    showToast(action, texte, true, undefined, { bodySource: 'player' });
     addJournalEntry(action + ' : ' + texte, 'event-info');
   }
 }

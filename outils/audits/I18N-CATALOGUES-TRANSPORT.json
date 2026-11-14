@@ -1,0 +1,679 @@
+{
+  "schemaVersion": 1,
+  "encoding": "br",
+  "quality": 11,
+  "files": [
+    {
+      "source": "i18n/action-feedback-resources.js",
+      "packed": "i18n/packed/action-feedback-resources.js.br",
+      "sourceBytes": 6332,
+      "packedBytes": 2165,
+      "sourceSha256": "99e4167725d4a3868880d39a40b42a57af463652f365bee0931ad03b240ae2b9",
+      "packedSha256": "609162a2b5db350710857693eab85c91d1cb5c84a236604474114a41abf516b8"
+    },
+    {
+      "source": "i18n/administration-economy-resources.js",
+      "packed": "i18n/packed/administration-economy-resources.js.br",
+      "sourceBytes": 13651,
+      "packedBytes": 3833,
+      "sourceSha256": "8983ec67b9ad374a8c82d1e192821c6328a91ab110c5ac4a6826978d7403585d",
+      "packedSha256": "547cb602c5c0963ef6b921fd11e52651f2bb8f82e7d1756507fb87d75e169b11"
+    },
+    {
+      "source": "i18n/appartements-resources.js",
+      "packed": "i18n/packed/appartements-resources.js.br",
+      "sourceBytes": 55314,
+      "packedBytes": 17137,
+      "sourceSha256": "3c722afc1f71c9552645ec0e3ad5296a9a86f74b3381e8a46802f16b29e69c91",
+      "packedSha256": "6b94c467f5e2b66a1b79d87de1d9a736f0c696046e09ade81ce0afd43f9c86a1"
+    },
+    {
+      "source": "i18n/character-sheet-resources.js",
+      "packed": "i18n/packed/character-sheet-resources.js.br",
+      "sourceBytes": 15357,
+      "packedBytes": 4307,
+      "sourceSha256": "a78969ec47c78de6c03f284e6d60bc10af6072f3715ed7a79efb88d32caf6eba",
+      "packedSha256": "f3a2322e97c9634e7b0d5cf346b0a8b2a189f49f23fc911837b506816b6e22fd"
+    },
+    {
+      "source": "i18n/civil-registry-resources.js",
+      "packed": "i18n/packed/civil-registry-resources.js.br",
+      "sourceBytes": 12421,
+      "packedBytes": 3297,
+      "sourceSha256": "7f3d53b295882326b6c99266b99c90cc93173c385042f016e08c544034291907",
+      "packedSha256": "3e740e0dad461eb0d423d098ace73e56e002d7092390c5f24cf395c911183194"
+    },
+    {
+      "source": "i18n/clinic-stay-resources.js",
+      "packed": "i18n/packed/clinic-stay-resources.js.br",
+      "sourceBytes": 19932,
+      "packedBytes": 5947,
+      "sourceSha256": "9326db2a3bd76fb48fb162587641a9670e41fda3eb8a65920d6d28f8f1d2b18d",
+      "packedSha256": "e61aadc4e5b14ffec0d89e28e4c71cd7bab13f2deac8a3f5fa3b931f6fc77869"
+    },
+    {
+      "source": "i18n/commerce-management-resources.js",
+      "packed": "i18n/packed/commerce-management-resources.js.br",
+      "sourceBytes": 26643,
+      "packedBytes": 5994,
+      "sourceSha256": "1807e107606881c2a11f95b8e909731f67bf01cb5e2776aaf1ae63a11938af8e",
+      "packedSha256": "7487e8ae7e847fb56490d93783530ffce1409f2a21bc858a7758cc6745cd0b73"
+    },
+    {
+      "source": "i18n/commerce-menu-resources.js",
+      "packed": "i18n/packed/commerce-menu-resources.js.br",
+      "sourceBytes": 12795,
+      "packedBytes": 3423,
+      "sourceSha256": "f98ae3340cf2a95d9c6f3d3235c7f64b320558740767150560a9a51e4f845ae7",
+      "packedSha256": "2b6e820c9641ac9685b07f01f3cdf57135d1051f403a5a036731ad33fb64a5d8"
+    },
+    {
+      "source": "i18n/commerce-production-resources.js",
+      "packed": "i18n/packed/commerce-production-resources.js.br",
+      "sourceBytes": 7253,
+      "packedBytes": 2334,
+      "sourceSha256": "b740cf751d9568f3e8a7ebde813380486c65c40d24e7ac5e4178e91c9dacb777",
+      "packedSha256": "ff1f4c7e570554ffa4df18ddbd4f24340693991fe062df8d5027f9bd12c4fafc"
+    },
+    {
+      "source": "i18n/common-room-resources.js",
+      "packed": "i18n/packed/common-room-resources.js.br",
+      "sourceBytes": 99018,
+      "packedBytes": 17529,
+      "sourceSha256": "299764a6adee37c7c1df5187250e33c9bebf03eb5ddf6c1cecaf4c77cb9086bd",
+      "packedSha256": "2fb4f6d536976672a07aa92bd49a1ef63c0c7ddb0e6faf5c1ae8694ce12f9969"
+    },
+    {
+      "source": "i18n/connection-resources.js",
+      "packed": "i18n/packed/connection-resources.js.br",
+      "sourceBytes": 37441,
+      "packedBytes": 9358,
+      "sourceSha256": "079f5d4667c8db9c6ccfe68c5ad1e2d8e22b44664e6cab45bb17ca1feebe08d6",
+      "packedSha256": "56dec59c9ea0d6a7fa14b2b699ab06881a2eb1070b5ac344bf07a35212ce0864"
+    },
+    {
+      "source": "i18n/construction-feedback-resources.js",
+      "packed": "i18n/packed/construction-feedback-resources.js.br",
+      "sourceBytes": 13988,
+      "packedBytes": 5091,
+      "sourceSha256": "58b68b256bc10b1ef6413126a24e28ff0f5b2e74a378b4f29de69990b6e65043",
+      "packedSha256": "4c6df47794c6ea2a7ac81cdcb3593a9bd304ae0c5c3c674f8454c879e5d89c08"
+    },
+    {
+      "source": "i18n/contact-organization-resources.js",
+      "packed": "i18n/packed/contact-organization-resources.js.br",
+      "sourceBytes": 9772,
+      "packedBytes": 3408,
+      "sourceSha256": "9dec73e1096bb09984cf55ce330ab4467a84c254e53e0a094c96c1f57b35f349",
+      "packedSha256": "a28ae609c847d3bbfbb370196b74eb84a908201811d64f8d055ed0a81fe50a7c"
+    },
+    {
+      "source": "i18n/dealer-resources.js",
+      "packed": "i18n/packed/dealer-resources.js.br",
+      "sourceBytes": 17627,
+      "packedBytes": 5188,
+      "sourceSha256": "ced316bd08c05569688661cccd91c984135da8baf2c5960bbc4c0bedaaf8a134",
+      "packedSha256": "89cc897e236a1e095ec006a2c90a00a7cfae16f3f83677d36f0de7ab7105b3ff"
+    },
+    {
+      "source": "i18n/economic-catalog-resources.js",
+      "packed": "i18n/packed/economic-catalog-resources.js.br",
+      "sourceBytes": 42896,
+      "packedBytes": 8924,
+      "sourceSha256": "d916cc1bdbceb733c6adcda925319d77808d5df9106c9b195c67eebe98656442",
+      "packedSha256": "02b604905c53809fdccfd4846b4991d950766335ae41d6fd51e23587b6485d53"
+    },
+    {
+      "source": "i18n/employment-agency-resources.js",
+      "packed": "i18n/packed/employment-agency-resources.js.br",
+      "sourceBytes": 21223,
+      "packedBytes": 5398,
+      "sourceSha256": "c1094d266b9b1e8147a767e2550e71eca43095eee25efc38fbb528952e896810",
+      "packedSha256": "8f7d7da72219701f0472215ce79e4de4158265df9d6ff331cc9666ba1ffcaa00"
+    },
+    {
+      "source": "i18n/equipements-resources.js",
+      "packed": "i18n/packed/equipements-resources.js.br",
+      "sourceBytes": 147005,
+      "packedBytes": 42622,
+      "sourceSha256": "d705d2084426dc0b5cc78b86f4e11b3e4bd50dfef847d4ea033d88dbfeb55998",
+      "packedSha256": "2833bfa0db077b05920c5710b3925d2a3239f87465b8d9379b4d57d453a73989"
+    },
+    {
+      "source": "i18n/finance135-resources.js",
+      "packed": "i18n/packed/finance135-resources.js.br",
+      "sourceBytes": 31288,
+      "packedBytes": 8629,
+      "sourceSha256": "09ced3e73b07721391d324fe38f95d8613c351023874af2c9c08446a15f77ae3",
+      "packedSha256": "4740a7cf7d5608fd79873f99ed273b4f6206c0025b48eb9797ed0f5f1ad6c459"
+    },
+    {
+      "source": "i18n/forum-feedback-resources.js",
+      "packed": "i18n/packed/forum-feedback-resources.js.br",
+      "sourceBytes": 23611,
+      "packedBytes": 6644,
+      "sourceSha256": "8bea83d82bd231d8acbabbc8b790d5bfc1c0f87085f268a915b55f52fe9c70f3",
+      "packedSha256": "cdaf5bd786c49274f8aee489d240ec06afefca65f9ac74234b2d2d3a791f2495"
+    },
+    {
+      "source": "i18n/guard-welcome-resources.js",
+      "packed": "i18n/packed/guard-welcome-resources.js.br",
+      "sourceBytes": 9113,
+      "packedBytes": 3535,
+      "sourceSha256": "dc6327e6f7967e1777cab0f2207c65cea167c11d1b55c6a8ef7130481fb2cfa8",
+      "packedSha256": "926f38b4d4b240476c55bfdfba575185a7ba773bba14003e26e726f5754bb11a"
+    },
+    {
+      "source": "i18n/guide-economie-resources.js",
+      "packed": "i18n/packed/guide-economie-resources.js.br",
+      "sourceBytes": 14805,
+      "packedBytes": 6068,
+      "sourceSha256": "61960522df3fa5f2ebf3055ee644323dec8a005dc01d88d8d39827a3c38da047",
+      "packedSha256": "568ce599b7cffea586d5d770507c2c063c84540e7aae65266cc5f11ed9033cf8"
+    },
+    {
+      "source": "i18n/guide-ilia-resources.js",
+      "packed": "i18n/packed/guide-ilia-resources.js.br",
+      "sourceBytes": 55424,
+      "packedBytes": 20614,
+      "sourceSha256": "6378ec1c15b9bdfb561fc025772016e020f57ac593bc1f868d52b186997c3b3f",
+      "packedSha256": "00d3fe31a26701e22624bd93e7653c97e0b140f7ef71eba4f5401768e37c5277"
+    },
+    {
+      "source": "i18n/guide-interactions-resources.js",
+      "packed": "i18n/packed/guide-interactions-resources.js.br",
+      "sourceBytes": 8627,
+      "packedBytes": 3703,
+      "sourceSha256": "796ce2bf7410e95a2379b8a4b94e33d9ab19c076bfd91b6c07cd726c23542135",
+      "packedSha256": "adb2d5976e6937366de1ebc17b37b9bd2ebaac6bb5f130d608be24c260a31dd0"
+    },
+    {
+      "source": "i18n/guide-musee-novomirsk-resources.js",
+      "packed": "i18n/packed/guide-musee-novomirsk-resources.js.br",
+      "sourceBytes": 142631,
+      "packedBytes": 48093,
+      "sourceSha256": "6b1584ccacbe4526b5015c0ab6d8eecb64a8f03e8b9ef9ad2d137f3da540d67e",
+      "packedSha256": "c5495bfbeb7878cd8ade0c425cd9d75f47943be7707183b4ced9ad608505a929"
+    },
+    {
+      "source": "i18n/guide-plateau-resources.js",
+      "packed": "i18n/packed/guide-plateau-resources.js.br",
+      "sourceBytes": 7865,
+      "packedBytes": 3410,
+      "sourceSha256": "99124966ecabaa3c8e2e358d586c04dcad850dca3fb6ba6707c4b6168d7154a8",
+      "packedSha256": "34fb4b15595bd95676fdede975865b32b23f44e62f71c45636a615c5269646d7"
+    },
+    {
+      "source": "i18n/guide-politique-resources.js",
+      "packed": "i18n/packed/guide-politique-resources.js.br",
+      "sourceBytes": 8913,
+      "packedBytes": 3785,
+      "sourceSha256": "efac28289e33c98c7715b042228582e093abdb2987c6a53f730492d4a7c51b4a",
+      "packedSha256": "f01fa6d4138879662aa0bb190ef7c1e6b7f9e4f5adbbd10bf8c08e7d1cd86d30"
+    },
+    {
+      "source": "i18n/guide-religion-resources.js",
+      "packed": "i18n/packed/guide-religion-resources.js.br",
+      "sourceBytes": 30427,
+      "packedBytes": 11268,
+      "sourceSha256": "3eb1f172e416fa16ced632f02703226575716428074569f9a84cb88d2ae69990",
+      "packedSha256": "f54e063464b60c4c446cdb7c876bc44c20c3544394a468df7f28016a9d4adc6a"
+    },
+    {
+      "source": "i18n/guide-resources.js",
+      "packed": "i18n/packed/guide-resources.js.br",
+      "sourceBytes": 41930,
+      "packedBytes": 13475,
+      "sourceSha256": "af453ccbd40d1e9f7d2328f5db20455de7d7a9c8b291bc8b5174baa79ec1fa3e",
+      "packedSha256": "8b2de534c0705e8b1f027dd7f06bde78a9b4f208c8e8a7796479616236faf294"
+    },
+    {
+      "source": "i18n/guide-sport-resources.js",
+      "packed": "i18n/packed/guide-sport-resources.js.br",
+      "sourceBytes": 12225,
+      "packedBytes": 5096,
+      "sourceSha256": "1fc9c16e715f5931a8ae941bd20250da4cd95c4633bbf6877f7f4669552be64e",
+      "packedSha256": "f443321ccc7ddb0b024e07b7e80bef79c3ab0b6e9020d0b252d686bf49d5b360"
+    },
+    {
+      "source": "i18n/infobulles-communes-resources.js",
+      "packed": "i18n/packed/infobulles-communes-resources.js.br",
+      "sourceBytes": 254407,
+      "packedBytes": 85475,
+      "sourceSha256": "6d4289ad7da2136034b03e447cd61b496c545482704be08997ca765afc06aa8c",
+      "packedSha256": "67207b6f5f2f710a0c53ad46b297a7d0e1bf5ba6fbedfdb187f749fb206919a7"
+    },
+    {
+      "source": "i18n/inventory-ui-resources.js",
+      "packed": "i18n/packed/inventory-ui-resources.js.br",
+      "sourceBytes": 20605,
+      "packedBytes": 5355,
+      "sourceSha256": "7d28cf78d2c8538818c138324a24ca371f6f1b5bd04a256dc13b891dbae784ac",
+      "packedSha256": "22f76517cdd10acd5218b61efe594927f093289fea2df0da6111877bbe097ad1"
+    },
+    {
+      "source": "i18n/jeremy-scenes-resources.js",
+      "packed": "i18n/packed/jeremy-scenes-resources.js.br",
+      "sourceBytes": 81753,
+      "packedBytes": 25072,
+      "sourceSha256": "4d32861e25a8e63be67a8775b4abe381cb1a2e626ab3b0e5cbcac74231f7c050",
+      "packedSha256": "0102332d72a50c16de475a3f9115d764f8cfb663d1d519b82112d7a8736d7e5e"
+    },
+    {
+      "source": "i18n/material-trade-resources.js",
+      "packed": "i18n/packed/material-trade-resources.js.br",
+      "sourceBytes": 43640,
+      "packedBytes": 8342,
+      "sourceSha256": "abb9349bfff754b48ddc50e5e754c65f228664852b32998bb3d01e9cce4cc0ee",
+      "packedSha256": "d01f928a5ccfe61117e629c5d84398f14e25ac4fe12600222142dec3965f1c6b"
+    },
+    {
+      "source": "i18n/municipal-ui-resources.js",
+      "packed": "i18n/packed/municipal-ui-resources.js.br",
+      "sourceBytes": 5195,
+      "packedBytes": 1736,
+      "sourceSha256": "f163014f5cdd746ff1a323994e484b3d1243e1da1cce13e0290f1d1e200372de",
+      "packedSha256": "1ec403ca983ab051cc9b0aba9d9b63c97c96f9af107910a2629946c867ee50da"
+    },
+    {
+      "source": "i18n/musee-sovarka-resources.js",
+      "packed": "i18n/packed/musee-sovarka-resources.js.br",
+      "sourceBytes": 64260,
+      "packedBytes": 26528,
+      "sourceSha256": "917a17066ab6b768e7334b120d129479436b65e7778a9661be45566ef7cce160",
+      "packedSha256": "1f6130bdfd7383805ccfadafda02492fe8267d62c270e4d70d5dc788543130ba"
+    },
+    {
+      "source": "i18n/museum-national-bios-resources.js",
+      "packed": "i18n/packed/museum-national-bios-resources.js.br",
+      "sourceBytes": 13775,
+      "packedBytes": 4473,
+      "sourceSha256": "2851665c4c1a6ebfbc210146b3dea81b491d180786b4552c90021c0eafe2c203",
+      "packedSha256": "b723c64e77c3fedda37829e82031f9389b91b755ecf8bbf784ed9e435fedf96c"
+    },
+    {
+      "source": "i18n/naval-resources.js",
+      "packed": "i18n/packed/naval-resources.js.br",
+      "sourceBytes": 24352,
+      "packedBytes": 6851,
+      "sourceSha256": "18b06f0d18149d2bd20d596c84b512e044dcc19b8accee7af92cafff5116adbe",
+      "packedSha256": "42828066b525b3fbf7dcbe768566695a9a7b4ea40c2e591c718d222806487f37"
+    },
+    {
+      "source": "i18n/navigation-resources.js",
+      "packed": "i18n/packed/navigation-resources.js.br",
+      "sourceBytes": 17532,
+      "packedBytes": 5037,
+      "sourceSha256": "5245a7dbab6e2ddc9126bcb2f197b3c27e5b009326a0414368363cb931e59458",
+      "packedSha256": "074eb102c0a54c037052d4e681a4516aeaab00b2abf78b72ac26c6a80c784d59"
+    },
+    {
+      "source": "i18n/occupation-resources.js",
+      "packed": "i18n/packed/occupation-resources.js.br",
+      "sourceBytes": 14801,
+      "packedBytes": 4352,
+      "sourceSha256": "851f213f6b627065443c9bffda02f2ae8c109a2ed0d3343cd2d8ccd72482f7b5",
+      "packedSha256": "5ceccb577f20b7b08d6ecb56e94c82e727f441332e346dfbff5ab653483b1427"
+    },
+    {
+      "source": "i18n/open-space-resources.js",
+      "packed": "i18n/packed/open-space-resources.js.br",
+      "sourceBytes": 2567,
+      "packedBytes": 783,
+      "sourceSha256": "4a25b943fb1d4d6587be49ec800fb5cbd860d926a8658519d10d663c7102fb8f",
+      "packedSha256": "e50f1aef5990c277207aae37bd6af101b47ed41343d0ad01525527dde40a0afc"
+    },
+    {
+      "source": "i18n/order-templates-resources.js",
+      "packed": "i18n/packed/order-templates-resources.js.br",
+      "sourceBytes": 5200,
+      "packedBytes": 1230,
+      "sourceSha256": "c746035263b2a5ce2f1ca5721aa3a3d5fe1a7c75c17396ea9b986fc73b07dfa5",
+      "packedSha256": "c522cb1713ab6adda68db42332303dee244ae1b347fe015d6fc0cd62ce9fe9e7"
+    },
+    {
+      "source": "i18n/order-variants-resources.js",
+      "packed": "i18n/packed/order-variants-resources.js.br",
+      "sourceBytes": 24348,
+      "packedBytes": 5521,
+      "sourceSha256": "0e67e7d2bee164daf0dbf13a37f9100155d1c7b1bc11a077fb397055bd6f7931",
+      "packedSha256": "65f14a90ab313e52325487004579700cc752e3ebfc11d5fbbf25813b1c72d61b"
+    },
+    {
+      "source": "i18n/orders-resources.js",
+      "packed": "i18n/packed/orders-resources.js.br",
+      "sourceBytes": 250796,
+      "packedBytes": 48719,
+      "sourceSha256": "94afc3d7da42cfbf4026ea4ff256ce2aa2ebac33e489af59fbd50937c878065d",
+      "packedSha256": "aab5617db429f8ae5127d71cde64671152b5167f8cd69aae36b87d5bceea574d"
+    },
+    {
+      "source": "i18n/organization-admissions-resources.js",
+      "packed": "i18n/packed/organization-admissions-resources.js.br",
+      "sourceBytes": 2727,
+      "packedBytes": 1192,
+      "sourceSha256": "77e0a5b2d903a2bcb1a0579313c8efa3f29b353b4d84053b06be4b45bc679e9f",
+      "packedSha256": "4aa83055816ff24bfec2485e94487af8ad528cc4f1ab19254c7ab67451a279ae"
+    },
+    {
+      "source": "i18n/organization-creation-resources.js",
+      "packed": "i18n/packed/organization-creation-resources.js.br",
+      "sourceBytes": 11476,
+      "packedBytes": 3562,
+      "sourceSha256": "e6ffac9c22f28f73709ffaf7e840c3ad8e444b10c5907ad9d4ab56c949f353af",
+      "packedSha256": "956407225a07d32414ef677929fd65a1814be974a49007f4c9d76f1e03436795"
+    },
+    {
+      "source": "i18n/organization-directory-resources.js",
+      "packed": "i18n/packed/organization-directory-resources.js.br",
+      "sourceBytes": 5061,
+      "packedBytes": 1649,
+      "sourceSha256": "0d08bb899b3636640cd697fcad1226710cc3a1ff15105b35428aa6518cfb76c0",
+      "packedSha256": "83328eb614c373dd81d5302daec6566c838524e6fa65e0c72631f17b393e4a4b"
+    },
+    {
+      "source": "i18n/organization-members-resources.js",
+      "packed": "i18n/packed/organization-members-resources.js.br",
+      "sourceBytes": 1227,
+      "packedBytes": 600,
+      "sourceSha256": "3215324886554a4b0d8dcc9d7b82bc3aaf3b6f3e7fe81c1f6e2d727802944026",
+      "packedSha256": "944daf805eae0b54e1879771a3bc2dbb066a1f14ec0990ea1ccfca85adfbb658"
+    },
+    {
+      "source": "i18n/organization-panel-resources.js",
+      "packed": "i18n/packed/organization-panel-resources.js.br",
+      "sourceBytes": 5535,
+      "packedBytes": 2001,
+      "sourceSha256": "f0b53c07c2294e687977f50e75e687b954849b91caa28870fe6306d66e13e5c9",
+      "packedSha256": "008127635a92e4e6c5c4f4954ec373c8b73878787f1a03da75f16a695b508ea9"
+    },
+    {
+      "source": "i18n/organization-settings-resources.js",
+      "packed": "i18n/packed/organization-settings-resources.js.br",
+      "sourceBytes": 5031,
+      "packedBytes": 2072,
+      "sourceSha256": "a38665aa3837a7cc6d4eda47ae991e0911e0905107f856c3b3f88b39cd1fe1d9",
+      "packedSha256": "1102c5ac6662383b8dca8130bb9490597ba33843d9676f57e916bc5633a3a41a"
+    },
+    {
+      "source": "i18n/petit-accueil-resources.js",
+      "packed": "i18n/packed/petit-accueil-resources.js.br",
+      "sourceBytes": 6994,
+      "packedBytes": 3249,
+      "sourceSha256": "d0f75e3266088c6ad7ab581d50554c14726f07f30bf250cb584a3b05d0005cdd",
+      "packedSha256": "a10bb6b3db4ac6209921e2edb6a8bfa473b06783d38d836a9f765c9622b54644"
+    },
+    {
+      "source": "i18n/plateau-resources.js",
+      "packed": "i18n/packed/plateau-resources.js.br",
+      "sourceBytes": 31260,
+      "packedBytes": 7086,
+      "sourceSha256": "5ab8d40c41eb8e1e60f30416019e7c2b3fb6ce8ab3725026cd9d1ccde96f55f0",
+      "packedSha256": "453ce61d3f3ef3bd14d88ac3c1b6215b01d4abe155abad43f8d04d639f27b010"
+    },
+    {
+      "source": "i18n/player-directory-resources.js",
+      "packed": "i18n/packed/player-directory-resources.js.br",
+      "sourceBytes": 5022,
+      "packedBytes": 2085,
+      "sourceSha256": "69a7f951ab5766afadcb280a492822778d3c58f0cc4740b17df8ccfdebc26f54",
+      "packedSha256": "9e66f351eccc1f155f83fd4326288aad0a5107db49615e04b3606d1287c68a16"
+    },
+    {
+      "source": "i18n/player-missions-resources.js",
+      "packed": "i18n/packed/player-missions-resources.js.br",
+      "sourceBytes": 43193,
+      "packedBytes": 10801,
+      "sourceSha256": "fdbe6f9aec03586eaad74df9c50c2f2f52670f433fdf98d5e88362f0abdaaeff",
+      "packedSha256": "ef8f0965e0087faa75644eb4ae6ffc809de44c7d3502ef84e5e4a26ce7072967"
+    },
+    {
+      "source": "i18n/pnj-status-resources.js",
+      "packed": "i18n/packed/pnj-status-resources.js.br",
+      "sourceBytes": 4407,
+      "packedBytes": 1738,
+      "sourceSha256": "3c69c26e57e67609783c00c1c3b6601ffb9ea2c38245bcc3bb5bde37b810886e",
+      "packedSha256": "273e7c540bd74de94fd9de9a07df6d6e58d5c8a880354f8bd9f89654cdd34050"
+    },
+    {
+      "source": "i18n/port-customs-ui-resources.js",
+      "packed": "i18n/packed/port-customs-ui-resources.js.br",
+      "sourceBytes": 15079,
+      "packedBytes": 4071,
+      "sourceSha256": "944fa7ff251812c60b9605f99fbcc5467a29dd466021bee05eac75edc676e823",
+      "packedSha256": "425fd953e75436d902214d4c56d07d48b66512491f13b8d16bd8c294114f136d"
+    },
+    {
+      "source": "i18n/premium-ads-resources.js",
+      "packed": "i18n/packed/premium-ads-resources.js.br",
+      "sourceBytes": 25582,
+      "packedBytes": 7512,
+      "sourceSha256": "07d0f7c8d0fc29b8e9e31c0138d4fceea210060ba265c93a977d7e0f378a15de",
+      "packedSha256": "567eacc53dc9da2bb5005664d3c8bdfd3199bab4ec7a80e5b13d250f8fa32cb4"
+    },
+    {
+      "source": "i18n/product-sheet-resources.js",
+      "packed": "i18n/packed/product-sheet-resources.js.br",
+      "sourceBytes": 34301,
+      "packedBytes": 7453,
+      "sourceSha256": "f2f42d24c4bdc27acdf84b1ecaf65147af90bc2fe3cdc4d0a474bb81a49b8ba2",
+      "packedSha256": "0bccc26b262362c80984798cadd54783678cde8c7abf86a2b349b380c5dba72e"
+    },
+    {
+      "source": "i18n/republia-infobulles-resources.js",
+      "packed": "i18n/packed/republia-infobulles-resources.js.br",
+      "sourceBytes": 155724,
+      "packedBytes": 51643,
+      "sourceSha256": "6478e7381ce2a3b6454c1cf6fba1e9f659853b9934fd7b67b5cb03767afee1cc",
+      "packedSha256": "2d03895a88ca5e802a8c45e5078e50c8e1ecd9226636a3d73bc5f63ac3c70725"
+    },
+    {
+      "source": "i18n/resources.js",
+      "packed": "i18n/packed/resources.js.br",
+      "sourceBytes": 160535,
+      "packedBytes": 44575,
+      "sourceSha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "packedSha256": "a2758bea21acdfb50c268e66690527d1a5645ba85ac64ef45194a546df3d6e93"
+    },
+    {
+      "source": "i18n/room-actions-resources.js",
+      "packed": "i18n/packed/room-actions-resources.js.br",
+      "sourceBytes": 9431,
+      "packedBytes": 2677,
+      "sourceSha256": "2979c58e042360004c375934b033ddb21c1fbd5cf83786ec3079ab147a8356dc",
+      "packedSha256": "38b7810170453e30aeb020228611736f53877f8c13ecbfb3211478191b4bbc3e"
+    },
+    {
+      "source": "i18n/room-resources.js",
+      "packed": "i18n/packed/room-resources.js.br",
+      "sourceBytes": 39325,
+      "packedBytes": 9197,
+      "sourceSha256": "24880a6eb10f44195de36c7a19f598282f737759cf371456be1cb5ffd1587b20",
+      "packedSha256": "f172453d3e7ae3171bb9654e9ef3226e23f7c9f2ff8f0b6d39b799fc3f1ae97c"
+    },
+    {
+      "source": "i18n/shared-sales-dinner-resources.js",
+      "packed": "i18n/packed/shared-sales-dinner-resources.js.br",
+      "sourceBytes": 19587,
+      "packedBytes": 5778,
+      "sourceSha256": "021dbc91e7ed9177ef702e2242c3c92e2d6a400fcff9d09a14dce64c419c2459",
+      "packedSha256": "9640dfd36193eae2d4bc132474e87fc35bd33ac5e9a7ca74d7cd6e9fac573734"
+    },
+    {
+      "source": "i18n/social-agency-resources.js",
+      "packed": "i18n/packed/social-agency-resources.js.br",
+      "sourceBytes": 14824,
+      "packedBytes": 4395,
+      "sourceSha256": "c70031eafdb9fdb894a248f9d5dcad26f26e88afc4b2b7845ea0d2db6b6d0c32",
+      "packedSha256": "b12f5271e589b8172ce2661fe21682800a4cb85b7f49911aa7145856a1601cc9"
+    },
+    {
+      "source": "i18n/social-housing-resources.js",
+      "packed": "i18n/packed/social-housing-resources.js.br",
+      "sourceBytes": 26965,
+      "packedBytes": 6807,
+      "sourceSha256": "8e62bbe0e3a5e321cbf9a2df06893c3d316661890390c08e7bfb0225b33815e6",
+      "packedSha256": "153bd81d26ef2ca55b9fee73b3fd2acfacd7b8bc55e2efd4767decda03abc982"
+    },
+    {
+      "source": "i18n/social-pnj-resources.js",
+      "packed": "i18n/packed/social-pnj-resources.js.br",
+      "sourceBytes": 4016,
+      "packedBytes": 1853,
+      "sourceSha256": "3ba18d2bb0d9e4f1849769b3de6e11cb3d14702993f6be17b6aaaa4fb099eea8",
+      "packedSha256": "db8f0961d1d838dc70e30ab4d292e0fa290fc866c7ea98575a8a8fb2f5d5fd1b"
+    },
+    {
+      "source": "i18n/sovarka-descriptions-resources.js",
+      "packed": "i18n/packed/sovarka-descriptions-resources.js.br",
+      "sourceBytes": 178379,
+      "packedBytes": 67179,
+      "sourceSha256": "7d2254b3186c45806825b728e1404a61bec1c56bde340bb21a6d794dc18e8d78",
+      "packedSha256": "697522ad7332cdc1dd7d91f544656473c82808c8457686d0fbcf85c2e9ed002e"
+    },
+    {
+      "source": "i18n/sovarka-droits-resources.js",
+      "packed": "i18n/packed/sovarka-droits-resources.js.br",
+      "sourceBytes": 90890,
+      "packedBytes": 21878,
+      "sourceSha256": "727f43e2f414fd52b49e6c761ffa9de1a325352f087bed583002615cb5401301",
+      "packedSha256": "11ef720248f87d2ba9735809aac3a4c0efe56975dc0c5171ea253b80c29d3d05"
+    },
+    {
+      "source": "i18n/sovarka-heros-boite-resources.js",
+      "packed": "i18n/packed/sovarka-heros-boite-resources.js.br",
+      "sourceBytes": 39612,
+      "packedBytes": 10676,
+      "sourceSha256": "90150d476d673ccae09b7fc4d35cefdb0618df77661d558f345dbca0d2f478ff",
+      "packedSha256": "0647e389c2bcf2a85b1d73df0e907f8e77e47d967d07cffc46fd5de08496bbf2"
+    },
+    {
+      "source": "i18n/sovarka-infobulles-resources.js",
+      "packed": "i18n/packed/sovarka-infobulles-resources.js.br",
+      "sourceBytes": 160037,
+      "packedBytes": 53559,
+      "sourceSha256": "821192f5229b0d4541180fb242616b0e5ef3d9644443fa1d60b765fa647ba54e",
+      "packedSha256": "fc591c006e0dd7eb217482ac4af5efd78384b942b9e43ce601b67a28bea75e08"
+    },
+    {
+      "source": "i18n/sovarka-justice-resources.js",
+      "packed": "i18n/packed/sovarka-justice-resources.js.br",
+      "sourceBytes": 45475,
+      "packedBytes": 11767,
+      "sourceSha256": "9a460ac67dcc1722e51ade8010e3db568acf09efc969a88799eb3a978a68d4c9",
+      "packedSha256": "145a2b2af27d0d854ea4004d26194d38474d4d6ec1c43421aaa50a1f5c260b0b"
+    },
+    {
+      "source": "i18n/sovarka-messages-resources.js",
+      "packed": "i18n/packed/sovarka-messages-resources.js.br",
+      "sourceBytes": 136351,
+      "packedBytes": 34058,
+      "sourceSha256": "889e47c7492d23fb95866c089f4f89cdd0e71923cc34889b5df4f1f9362044a0",
+      "packedSha256": "3bc69b5750fc613c13a243be1eac600da0d7c1f367e1dc3335e2715798da4c20"
+    },
+    {
+      "source": "i18n/sovarka-ordres-resources.js",
+      "packed": "i18n/packed/sovarka-ordres-resources.js.br",
+      "sourceBytes": 20558,
+      "packedBytes": 5671,
+      "sourceSha256": "e501b3be9db1c55c91c46b93dab0b4f5d68fcf7f01c2c5a35d4b0036c44af41f",
+      "packedSha256": "aa5dcd1093342073a63d4e2c8e1caab121a44a38f0f98da95d276dca5044ac1d"
+    },
+    {
+      "source": "i18n/sovarka-partis-resources.js",
+      "packed": "i18n/packed/sovarka-partis-resources.js.br",
+      "sourceBytes": 54932,
+      "packedBytes": 13646,
+      "sourceSha256": "a43c454a49ace976682ce3ff3a505e102205217c68c2673ac514e97449b21e0d",
+      "packedSha256": "7026f36a555e33ab830f74662c9bbbe94efc4f49cfa3187b806838424485593c"
+    },
+    {
+      "source": "i18n/sovarka-pieces-resources.js",
+      "packed": "i18n/packed/sovarka-pieces-resources.js.br",
+      "sourceBytes": 29570,
+      "packedBytes": 7350,
+      "sourceSha256": "578a2e752e8c5b301aaf10978055c0b85f8ae5358a24dd48d36891b7f7cbcf5b",
+      "packedSha256": "979ccd7a5bd2ceb65f1ec0975bdc0f6c6d2c64b60639f02efe043ffc3b4acf5b"
+    },
+    {
+      "source": "i18n/sovarka-pouvoir-resources.js",
+      "packed": "i18n/packed/sovarka-pouvoir-resources.js.br",
+      "sourceBytes": 142016,
+      "packedBytes": 33992,
+      "sourceSha256": "0816118d5e7d96906946dec0519e6fb3b39fd5bd6a37e3dbbf98ce509607a789",
+      "packedSha256": "714d0e8f44481f3ea156a9deedba0d00a8cf652cc2d1cb21174f5ddba5310a34"
+    },
+    {
+      "source": "i18n/sovarka-provinces-resources.js",
+      "packed": "i18n/packed/sovarka-provinces-resources.js.br",
+      "sourceBytes": 124588,
+      "packedBytes": 34305,
+      "sourceSha256": "2ac425352ea36213784f12edf34eb4c3abd43c00f2f8bf83e23c223f8f44e0f6",
+      "packedSha256": "9897b258debd758983a2d1d5531f5b4b380045c094a47f8f368f0da80abe2607"
+    },
+    {
+      "source": "i18n/sovarka-roles-resources.js",
+      "packed": "i18n/packed/sovarka-roles-resources.js.br",
+      "sourceBytes": 33406,
+      "packedBytes": 11668,
+      "sourceSha256": "eca0edc6e10f019df76470ee86a59d2d15a352112ced2bf0430d6e475e0589d5",
+      "packedSha256": "bcd72f4dd8ffa3594de2a713749627269df432e65b6ceda201a8185ef2f08258"
+    },
+    {
+      "source": "i18n/sport-bets-resources.js",
+      "packed": "i18n/packed/sport-bets-resources.js.br",
+      "sourceBytes": 13850,
+      "packedBytes": 4133,
+      "sourceSha256": "ae80182f379b8427ff26763f1c0a9c6887275503e73fa62a5d25fcdcf1818c92",
+      "packedSha256": "e7e2d5aaf2e01e62fc75f4160348db1c1ab6c1b358e82f1aec07ff50212448a6"
+    },
+    {
+      "source": "i18n/toast-bodies-resources.js",
+      "packed": "i18n/packed/toast-bodies-resources.js.br",
+      "sourceBytes": 778378,
+      "packedBytes": 195267,
+      "sourceSha256": "23c221534e0a5ecfd009195cb892b700a609f8a22533f907309673cb8ef256e4",
+      "packedSha256": "3cf6eda95b89f629837f872ee61c8aac6474866e3a5e0781b51be5ee28c44b5f"
+    },
+    {
+      "source": "i18n/toast-resources.js",
+      "packed": "i18n/packed/toast-resources.js.br",
+      "sourceBytes": 57031,
+      "packedBytes": 11426,
+      "sourceSha256": "8a57409e44396e0a59163dcb86b9f9d995cbf507d88ed82f56df7fc6c9bcc96e",
+      "packedSha256": "7a31f25b9ee96521f5ab242acefc3f1c207101dd9cc0463444bfa3871b2ccc4a"
+    },
+    {
+      "source": "i18n/tracts-resources.js",
+      "packed": "i18n/packed/tracts-resources.js.br",
+      "sourceBytes": 45720,
+      "packedBytes": 10359,
+      "sourceSha256": "eec5aaf5ad8c5648bf531ca9b391c146434cea09218ac819c5d6148c2d26054c",
+      "packedSha256": "522e66af80f923ecf1332f24890d87b2c9682a6f911d0127251f906581949064"
+    },
+    {
+      "source": "i18n/tresor-tsars-resources.js",
+      "packed": "i18n/packed/tresor-tsars-resources.js.br",
+      "sourceBytes": 43569,
+      "packedBytes": 17136,
+      "sourceSha256": "416efcbd4ce838e347990af4a3e4639165ff952c4f1ca9826426ac8587e5821a",
+      "packedSha256": "b3faad440e5caf9cd1d65e6b0553d64c86188c397829ac1dd0c350b788a524cc"
+    },
+    {
+      "source": "i18n/vehicle-garage-resources.js",
+      "packed": "i18n/packed/vehicle-garage-resources.js.br",
+      "sourceBytes": 22230,
+      "packedBytes": 6745,
+      "sourceSha256": "97441ea295e88e8f091e6e2ed780432bc1d40decef61df915e566e2ae7c220f8",
+      "packedSha256": "df466f7160d0ddf26c7eeaa05d88424e7533de334abe2bde4d6440d37b15d1a2"
+    },
+    {
+      "source": "i18n/vehicle-travel-resources.js",
+      "packed": "i18n/packed/vehicle-travel-resources.js.br",
+      "sourceBytes": 23796,
+      "packedBytes": 6640,
+      "sourceSha256": "9951f4689518bd9dfb146bd1451b8c3d5bff4759e6d326a548622c7a4d9fdcbd",
+      "packedSha256": "e922005ad23a7869e231ec996c60d346d77d3d65a27176f977ce791b4815893d"
+    }
+  ]
+}

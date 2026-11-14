@@ -1,0 +1,53 @@
+name: I18N - corps des notifications
+on:
+  pull_request:
+    paths:
+      - 'plateau-core.js'
+      - 'plateau-politique.js'
+      - 'i18n/*resources.js'
+      - 'i18n/packed/**'
+      - 'vercel.json'
+      - '.vercelignore'
+      - 'outils/generateurs/compresser-catalogues-i18n.cjs'
+      - 'outils/audits/I18N-CATALOGUES-TRANSPORT.json'
+      - 'outils/bancs/banc-i18n-transport-catalogues-20261114.cjs'
+      - 'outils/bancs/banc-i18n-corps-integrite-20261114.cjs'
+      - 'i18n/toast-bodies-resources.js'
+      - 'outils/bancs/banc-i18n-corps-notifications-20261114.cjs'
+      - 'outils/bancs/banc-i18n-notifications.cjs'
+      - 'outils/bancs/banc-i18n-alertes-navigation.cjs'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'plateau.html'
+      - '.github/workflows/i18n-corps-notifications.yml'
+  push:
+    branches: [main]
+    paths: ['plateau-core.js', 'plateau-politique.js', 'plateau.html', 'i18n/*resources.js', 'i18n/packed/**', 'vercel.json', '.vercelignore', 'outils/generateurs/compresser-catalogues-i18n.cjs', 'outils/audits/I18N-CATALOGUES-TRANSPORT.json', 'outils/bancs/*corps*notifications*', 'outils/bancs/*transport-catalogues*']
+permissions:
+  contents: read
+jobs:
+  corps-notifications:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-core.js && node --check i18n/toast-bodies-resources.js
+      - run: npm ci --ignore-scripts --prefix outils/e2e
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - run: node outils/generateurs/compresser-catalogues-i18n.cjs --check
+      - name: Corps, contenu joueur, RTL et transport HTTP natif dans Chromium
+        env:
+          NODE_PATH: ./outils/e2e/node_modules
+          CHROMIUM_PATH: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-i18n-corps-notifications-20261114.cjs outils/bancs/banc-i18n-transport-catalogues-20261114.cjs
+      - run: node --test outils/bancs/banc-i18n-corps-integrite-20261114.cjs outils/bancs/banc-i18n-notifications.cjs outils/bancs/banc-i18n-alertes-navigation.cjs outils/bancs/banc-i18n-editorial.cjs
+      - name: Refus existants avec le vrai catalogue — 1728 bascules
+        env:
+          NODE_PATH: ./outils/e2e/node_modules
+          CHROMIUM_PATH: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-i18n-refus-actions-navigateur-20261113.cjs
+      - run: git diff --check

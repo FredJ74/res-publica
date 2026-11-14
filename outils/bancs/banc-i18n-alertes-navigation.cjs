@@ -49,13 +49,14 @@ test('aucune notification dynamique, accusé serveur, montant ou incident retrad
   'Client : <script>alert(1)</script>','Titre d un joueur',''
  ])assert.equal(win.RPToastI18n.label(title),title);
  const core=read('plateau-core.js');
- const from=core.indexOf('function showToast(result, msg, success, isCrit)');
+ const from=core.indexOf('function showToast(');
  const to=core.indexOf('// =====================',from);
  assert.ok(from>=0&&to>from);
  const body=core.slice(from,to);
  assert.ok(body.includes("noterIncidentSession('notification', result)"));
  assert.ok(body.includes('toast-sub').valueOf());
- assert.match(body,/textContent = msg/);
+ // Depuis le 14/11/2026 (#871), le corps passe par le catalogue exact toastBodies ; une phrase inconnue reste intacte.
+ assert.match(body,/textContent = !corpsJoueur && \(typeof RPToastBodyI18n !== 'undefined'\) \? RPToastBodyI18n\.label\(msg\) : msg/);
  assert.match(body,/RPToastI18n\.label\(result\)/);
  assert.ok(!body.includes('innerHTML'));
 });

@@ -2904,13 +2904,21 @@ function ouvrirIncidentsSession() {
   document.getElementById('modal-postes')?.classList.add('open');
 }
 
-function showToast(result, msg, success, isCrit) {
+function showToast(result, msg, success, isCrit, presentation) {
+  // Un texte rédigé par un joueur reste opaque, même s’il correspond mot pour mot
+  // à une phrase fixe du catalogue. Ce marqueur n’intervient que dans le rendu.
+  const corpsJoueur = presentation?.bodySource === 'player';
   if (success === false) noterIncidentSession('notification', result);
   const t = document.getElementById('result-toast');
   t.className = isCrit ? 'toast-crit' : success ? 'toast-success' : 'toast-fail';
   // Titre traduit uniquement à l'écran : le signalement d'incident conserve `result` original.
   document.getElementById('toast-result').textContent = (typeof RPToastI18n !== 'undefined') ? RPToastI18n.label(result) : result;
-  document.getElementById('toast-sub').textContent = msg;
+  // Corps fixe traduit uniquement à l'écran (catalogue toastBodies, #871) ; le français reste mémorisé
+  // pour repeindre la notification si la langue change pendant son affichage.
+  const sub = document.getElementById('toast-sub');
+  sub.textContent = !corpsJoueur && (typeof RPToastBodyI18n !== 'undefined') ? RPToastBodyI18n.label(msg) : msg;
+  sub.dir = corpsJoueur ? 'auto' : (globalThis.RPToastBodyI18n?.direction?.(msg, sub.textContent) || 'auto');
+  if (sub.dataset) sub.dataset.rpFr = !corpsJoueur && typeof msg === 'string' ? msg : '';
   t.style.display = 'block';
   clearTimeout(window._toastTimer);
   window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3800);

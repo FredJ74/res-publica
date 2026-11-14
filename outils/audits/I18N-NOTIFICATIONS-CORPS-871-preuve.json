@@ -1,0 +1,32 @@
+{
+  "baseCommit": "ca0b6885dde4806aaefa59498625a05fd5244ac0",
+  "codeCommit": "03f33cea0a27b5a21ae0d5a173d6d3a6e0211f1e",
+  "preparedBy": "Claude",
+  "integrationBy": "Codex",
+  "existingPhrases": 1429,
+  "existingForeignValues": 11432,
+  "initialToastTestsPassed": 16,
+  "initialTransportTestsPassed": 3,
+  "catalogsLosslesslyPacked": 84,
+  "sourceCatalogBytes": 4436092,
+  "packedCatalogBytes": 1249154,
+  "playerInputOpaque": true,
+  "integrationOngoing": true,
+  "previewVerified": true,
+  "merged": false,
+  "deployed": false,
+  "integrationMainCommit": "c1afd03184360b6c7afa04fe6b4c3a38e265e080",
+  "integrationNodePassed": 128,
+  "organizationBrowserBanksPassed": 6,
+  "organizationMainLanguageSwitches": 4077,
+  "refusalBrowserLanguageSwitches": 1728,
+  "previewVerification": "84 decoded sources and HTTP headers, Vercel authenticated fetch; native Chromium decoding tested locally",
+  "directPreviewChromium": false,
+  "preexistingZeroPaBank": {
+    "mainPassed": 2,
+    "mainFailed": 3,
+    "branchPassed": 2,
+    "branchFailed": 3,
+    "reason": "zeroPaT absent de la simulation du banc"
+  }
+}

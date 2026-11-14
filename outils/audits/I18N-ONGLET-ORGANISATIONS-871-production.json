@@ -1,0 +1,148 @@
+{
+  "commit": "ca0b6885dde4806aaefa59498625a05fd5244ac0",
+  "deployment": "dpl_HBiroqE9pJLxNCFGHboU2mwGjf5h",
+  "files": [
+    {
+      "file": "plateau.html",
+      "sha256": "e945697bc62b953ca6b468b08586771f5f28f9bc2d5eb8d158e29c47403ba09b",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "e1db97c535d9566a304b88abc054b074a93b20258c23931c578d13747171c588",
+      "identical": true
+    },
+    {
+      "file": "data.js",
+      "sha256": "cbb331181cc91b5a5391ab114888626938c9ba1cccaac072968d419a7cdc22ac",
+      "identical": true
+    },
+    {
+      "file": "forum.js",
+      "sha256": "1917728e3e296b62e4b7cec5d42842b58a2792d7fbc9b2800bd5904db4a44c30",
+      "identical": true
+    },
+    {
+      "file": "plateau-core.js",
+      "sha256": "3bc807f2b021cd967bac36fb21f6530bc20ed304800211057765d96212450531",
+      "identical": true
+    },
+    {
+      "file": "plateau-personnage.js",
+      "sha256": "1edb70b82739f74e0fc9fd333c492a652ba46c3f676b2e604c19aaaf25ecec48",
+      "identical": true
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "sha256": "c1ca9a4594c6c95274c44aabd2df91bfc1c7824ffa8e533269687ffa923bf6f2",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-resources.js",
+      "sha256": "5ab8d40c41eb8e1e60f30416019e7c2b3fb6ce8ab3725026cd9d1ccde96f55f0",
+      "identical": true
+    },
+    {
+      "file": "i18n/toast-resources.js",
+      "sha256": "8a57409e44396e0a59163dcb86b9f9d995cbf507d88ed82f56df7fc6c9bcc96e",
+      "identical": true
+    },
+    {
+      "file": "i18n/orders-resources.js",
+      "sha256": "94afc3d7da42cfbf4026ea4ff256ce2aa2ebac33e489af59fbd50937c878065d",
+      "identical": true
+    },
+    {
+      "file": "i18n/order-variants-resources.js",
+      "sha256": "0e67e7d2bee164daf0dbf13a37f9100155d1c7b1bc11a077fb397055bd6f7931",
+      "identical": true
+    },
+    {
+      "file": "i18n/organization-directory-resources.js",
+      "sha256": "0d08bb899b3636640cd697fcad1226710cc3a1ff15105b35428aa6518cfb76c0",
+      "identical": true
+    },
+    {
+      "file": "i18n/organization-creation-resources.js",
+      "sha256": "e6ffac9c22f28f73709ffaf7e840c3ad8e444b10c5907ad9d4ab56c949f353af",
+      "identical": true
+    },
+    {
+      "file": "i18n/organization-members-resources.js",
+      "sha256": "3215324886554a4b0d8dcc9d7b82bc3aaf3b6f3e7fe81c1f6e2d727802944026",
+      "identical": true
+    },
+    {
+      "file": "i18n/organization-admissions-resources.js",
+      "sha256": "77e0a5b2d903a2bcb1a0579313c8efa3f29b353b4d84053b06be4b45bc679e9f",
+      "identical": true
+    },
+    {
+      "file": "i18n/organization-settings-resources.js",
+      "sha256": "a38665aa3837a7cc6d4eda47ae991e0911e0905107f856c3b3f88b39cd1fe1d9",
+      "identical": true
+    },
+    {
+      "file": "i18n/organization-panel-resources.js",
+      "sha256": "f0b53c07c2294e687977f50e75e687b954849b91caa28870fe6306d66e13e5c9",
+      "identical": true
+    },
+    {
+      "file": "i18n/sovarka-partis-resources.js",
+      "sha256": "a43c454a49ace976682ce3ff3a505e102205217c68c2673ac514e97449b21e0d",
+      "identical": true
+    },
+    {
+      "file": "i18n/sovarka-droits-resources.js",
+      "sha256": "727f43e2f414fd52b49e6c761ffa9de1a325352f087bed583002615cb5401301",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-init.js",
+      "sha256": "0fbd1edb1d94a175168e068c72991b5dc4b86e7d400202c20a6c6bcfc20bb160",
+      "identical": true
+    }
+  ],
+  "mergedCommit": "cb004ce38624b78d9cc428246b8cc037276a012e",
+  "descendantVerified": true,
+  "readyState": "READY",
+  "aliasConfirmed": true,
+  "browser": {
+    "tests": 6,
+    "passed": 6,
+    "languageSwitches": 4077,
+    "widths": [
+      320,
+      390,
+      1280
+    ],
+    "locales": 9
+  },
+  "ci": {
+    "success": 41,
+    "failedJobs": 1,
+    "onlyPreexistingSSMFailures": 3,
+    "mainCommit": "6e6e9124b9770819f0c94a42328b2acdd393fb96",
+    "comparison": {
+      "tests": 31,
+      "passed": 28,
+      "failed": 3
+    },
+    "organizationsRun": 43625812070
+  },
+  "notVerified": [
+    "session PJ authentifiée",
+    "téléphone physique",
+    "relecture native"
+  ]
+}
