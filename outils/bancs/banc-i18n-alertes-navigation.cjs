@@ -55,7 +55,8 @@ test('aucune notification dynamique, accusé serveur, montant ou incident retrad
  const body=core.slice(from,to);
  assert.ok(body.includes("noterIncidentSession('notification', result)"));
  assert.ok(body.includes('toast-sub').valueOf());
- assert.match(body,/textContent = msg/);
+ // Depuis le 14/11/2026 (#871), le corps passe par le catalogue exact toastBodies ; une phrase inconnue reste intacte.
+ assert.match(body,/textContent = \(typeof RPToastBodyI18n !== 'undefined'\) \? RPToastBodyI18n\.label\(msg\) : msg/);
  assert.match(body,/RPToastI18n\.label\(result\)/);
  assert.ok(!body.includes('innerHTML'));
 });

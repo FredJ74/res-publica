@@ -2910,7 +2910,11 @@ function showToast(result, msg, success, isCrit) {
   t.className = isCrit ? 'toast-crit' : success ? 'toast-success' : 'toast-fail';
   // Titre traduit uniquement à l'écran : le signalement d'incident conserve `result` original.
   document.getElementById('toast-result').textContent = (typeof RPToastI18n !== 'undefined') ? RPToastI18n.label(result) : result;
-  document.getElementById('toast-sub').textContent = msg;
+  // Corps fixe traduit uniquement à l'écran (catalogue toastBodies, #871) ; le français reste mémorisé
+  // pour repeindre la notification si la langue change pendant son affichage.
+  const sub = document.getElementById('toast-sub');
+  sub.textContent = (typeof RPToastBodyI18n !== 'undefined') ? RPToastBodyI18n.label(msg) : msg;
+  if (sub.dataset) sub.dataset.rpFr = typeof msg === 'string' ? msg : '';
   t.style.display = 'block';
   clearTimeout(window._toastTimer);
   window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3800);
