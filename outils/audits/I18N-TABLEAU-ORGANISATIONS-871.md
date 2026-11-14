@@ -28,7 +28,8 @@ requête, état/brouillon/focus/sélection conservés, aucun débordement. Liste
 même organisation visible et même nœud après bascule, pas de retour au début.
 Noms contenant des marqueurs ou un texte UI conservés comme texte, type modifié
 non traduit, repli français, fermeture/réouverture et fenêtre voisine vérifiés.
-115 tests Node ciblés et l’ancien banc des rumeurs secrètes passent. Pas de CSS
+116 tests Node ciblés passent ; les 114 tests existants correspondants passent
+aussi sur main, dont les anciens bancs d’ordres, membres, événements et rumeurs. Pas de CSS
 modifié ; les adaptations mobiles communes suffisent dans ces essais.
 
 Comparaison main, mesures, CI et production à terminer. Aucune session PJ réelle,
