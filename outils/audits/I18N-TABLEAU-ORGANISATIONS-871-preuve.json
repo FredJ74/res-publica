@@ -1,0 +1,18 @@
+{
+  "baseCommit": "a7ce1e08d59317bbd7aa02c1fbdfbf4f95cc1afe",
+  "codeCommit": "1171c5cc652b1b7ed917f2e9c5ac103807ef9425",
+  "newKeys": 15,
+  "newForeignTranslations": 120,
+  "canonicalOrganizationTypes": 9,
+  "businessAstIdenticalOutsidePresentation": true,
+  "stateAndSecretConditionsUnchanged": true,
+  "browserStates": 37,
+  "browserLanguageSwitches": 999,
+  "widths": [
+    320,
+    390,
+    1280
+  ],
+  "nativeReviewPerformed": false,
+  "realPlayerSessionUsed": false
+}
