@@ -2494,7 +2494,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
       desc:'Le kolkhoze collectif numéro 7. Production agricole pour la gloire du Parti.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','logements-novomirsk','logements-krasnov-place-ours','terrain-a-batir-2','stade','zone-production','entrepot-logistique-krasnov','station-service-krasnov'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','logements-novomirsk','logements-krasnov-place-ours','logements-krasnov-rue-tabac','tabac-presse-krasnov','terrain-a-batir-2','stade','zone-production','entrepot-logistique-krasnov','station-service-krasnov'],
       buildingContext: {
         // Immeuble social face à l'Universam : gabarit de logements collectifs
         // de Novomirsk, images distinctes, attribution communale inchangée.
@@ -7604,6 +7604,137 @@ const BUILDINGS = {
     }
   },
 
+  // Tabac/Presse de Krasnov : boutique distincte du Bar Sever. 
+  // Les jeux et paris sont ici une enseigne et non des ordres non validés.
+  'tabac-presse-krasnov': {
+    name: 'Tabac/Presse de Krasnov', shortName: 'Tabac/Presse',
+    cat: 'Commerce', icon: 'ti-news', bgColor: '#22170e',
+    desc: 'Tabac, revues de chasse, pêche, automobile, bricolage, presse et jeux de hasard.',
+    rooms: {
+      boutique: {
+        name: 'Boutique',
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_tabac_presse_boutique.webp',
+        desc: 'Comptoir et étagères de tabac, revues, loteries et paris sportifs, dans une échoppe rétro.',
+        persons: [], orders: []
+      }
+    }
+  },
+
+  'logements-krasnov-rue-tabac': {
+    name: "Immeuble de la rue du Tabac",
+    shortName: "Logements",
+    cat: "Habitat",
+    icon: "ti-building-community",
+    bgColor: "#121418",
+    desc: "Immeuble de Krasnov à droite de la devanture Tabac/Presse. Appartements populaires attribués par la commune.",
+    rooms: {
+      hall: {
+        name: "Hall d'immeuble",
+        desc: "Hall ancien et propre, boîtes aux lettres métalliques, escalier en béton et porte donnant sur la route.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_hall.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        persons: [],
+        orders: []
+      },
+      petit_appartement_1: {
+        name: "Appartement une chambre n°1",
+        desc: "Petit logement populaire au décor ancien, donnant sur les immeubles de l'autre côté de la route.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_petit_1.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement une chambre n°1', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      petit_appartement_2: {
+        name: "Appartement une chambre n°2",
+        desc: "Petit logement populaire au décor ancien, donnant sur les immeubles de l'autre côté de la route.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_petit_2.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement une chambre n°2', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      petit_appartement_3: {
+        name: "Appartement une chambre n°3",
+        desc: "Petit logement populaire au décor ancien, donnant sur les immeubles de l'autre côté de la route.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_petit_1.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement une chambre n°3', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      petit_appartement_4: {
+        name: "Appartement une chambre n°4",
+        desc: "Petit logement populaire au décor ancien, donnant sur les immeubles de l'autre côté de la route.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_petit_2.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement une chambre n°4', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_1: {
+        name: "Appartement deux chambres n°1",
+        desc: "Logement populaire de deux chambres, décor ancien, vue plongeante sur la route et les immeubles d'en face.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_grand_1.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement deux chambres n°1', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_2: {
+        name: "Appartement deux chambres n°2",
+        desc: "Logement populaire de deux chambres, décor ancien, vue plongeante sur la route et les immeubles d'en face.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_grand_2.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement deux chambres n°2', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_3: {
+        name: "Appartement deux chambres n°3",
+        desc: "Logement populaire de deux chambres, décor ancien, vue plongeante sur la route et les immeubles d'en face.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_grand_1.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement deux chambres n°3', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_4: {
+        name: "Appartement deux chambres n°4",
+        desc: "Logement populaire de deux chambres, décor ancien, vue plongeante sur la route et les immeubles d'en face.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_grand_2.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement deux chambres n°4', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      }
+    }
+  },
+
   // LOGEMENTS DE NOVOMIRSK (vue 14), decisions de Fred du 06/11/2026 : en Sovarka, tous les
   // logements hors suites sont sociaux, mecanique de Montrouge (demande a la mairie, attribution
   // par l'adjoint au maire, loyer a la commune). 4 petits a 10 PSK et 4 grands a 20 PSK ; serveur :
@@ -11500,6 +11631,7 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   Object.assign(piece(musee, 'hall'), { personsVides: false, persons: [pnj('Vera Lebedeva', 'Guide du musée', 'guide')] });
   Object.assign(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), { name: 'Bar Sever', desc: 'Le bar-tabac de Krasnov (« Бар Север ») : vodka, cigarettes, journaux du Parti et le match à la radio.' });
   Object.assign(piece(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), 'salle'), { persons: [pnj('Grigori Zaitsev', 'Patron du bar', 'serveur')] });
+  Object.assign(piece(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), 'salle'), { imageUrl: 'images/Sovarka/Krasnov/Krasnov_bar_sever_salle.webp' });
   Object.assign(contexte('ville_b', 'zone-production'), { name: 'Exploitation forestière de Krasnov', desc: 'L\'entrée de la grande forêt de Krasnov : ici, on coupe le bois en sécurité. Plus loin, sous les arbres, c\'est une autre affaire.' });
 })();
 
