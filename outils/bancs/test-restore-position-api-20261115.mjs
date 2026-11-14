@@ -11,6 +11,7 @@ function scenario(reponses,{groupe=false,auth='ok'}={}){
   const ctx={
     state,window:{}, console,Promise,
     rueCentraleLecturePosition:0,
+    WORLD:{soviet:{ville_b:{}}}, BUILDINGS:{},
     RUE_CENTRALE_NOEUDS:{soviet:{'krasnov-rue-station-musee':{}}},
     RUE_CENTRALE_DEPART:{soviet:{ville_b:'krasnov-rue-gare'}},
     rueCentraleServeur:()=>true,
