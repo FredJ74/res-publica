@@ -21,6 +21,13 @@ const provRagot = s => (typeof RPCourriersSovarka === 'object' && RPCourriersSov
 const PROV_REACTIONS = ['hb_vodka', 'hb_slivovitz', 'hb_samogon', 'hb_alcool'];
 const PROV_CREATURES = ['cf_loup', 'cf_meute', 'cf_ours'];
 const PROV_ALERTES = ['fa_1', 'fa_2', 'fa_3', 'fa_4', 'fa_5'];
+// Illustrations des rencontres de la forêt profonde (images de Fred, 14/11/2026).
+const PROV_FORET_IMAGES = { cf_loup: 'Krasnov_foret_loup_attaque.webp', cf_meute: 'Krasnov_foret_meute_loups.webp', cf_ours: 'Krasnov_foret_ours_attaque.webp', olga: 'Krasnov_foret_olga_panier.webp' };
+const provForetImage = cle => PROV_FORET_IMAGES[cle]
+  ? '<img src="images/Sovarka/Krasnov/' + PROV_FORET_IMAGES[cle] + '" alt="" style="display:block;width:100%;max-height:42vh;object-fit:cover;border-radius:6px;margin-bottom:.6rem">' : '';
+// Le serveur nomme la créature en français ; on retrouve sa clé dans le catalogue des messages.
+const provCreatureCle = nom => PROV_CREATURES.find(k => typeof RPCourriersSovarka === 'object' && RPCourriersSovarka.phrase([k], nom) && RPCourriersSovarka.phrase([k], nom) !== nom)
+  || ({ 'Loup solitaire': 'cf_loup', 'Meute de loups': 'cf_meute', 'Ours': 'cf_ours' })[nom] || null;
 const PROV_SERVICES = ['bois', 'fruits_legumes', 'oeufs', 'vodka', 'poisson', 'carburant', 'viande', 'viande_renne'];
 // Service demandé : en français le libellé du serveur ; ailleurs, la quantité et l'objet exigés par le serveur.
 function provService(s) {
@@ -393,7 +400,7 @@ async function foretCouper() {
   if (v.ok !== true) { if (v.raison === 'rencontre_en_cours') { await foretReprendreRencontre(); return; } provRefus(provT('tForest'), v); return; }
   if (v.rencontre === 'olga') {
     const nourris = Array.isArray(v.nourris) ? v.nourris.length : 1;
-    const fenetre = () => provModal(provT('titleNoise'), '<p>' + provT('olga1') + '</p>' +
+    const fenetre = () => provModal(provT('titleNoise'), provForetImage('olga') + '<p>' + provT('olga1') + '</p>' +
       '<p>' + provT('olga2') + '</p>' +
       '<p class="cpj-note">' + (nourris > 1 ? provT('olgaMealGroup', { bonus: v.bonus, n: nourris }) : provT('olgaMeal', { bonus: v.bonus })) + '</p>' +
       (v.quantite ? '<p class="cpj-note">' + provT('woodToo', { n: v.quantite }) + '</p>' : ''), fenetre);
@@ -420,7 +427,7 @@ async function foretReprendreRencontre() {
 
 function foretAfficherRencontre(nom, pnj) {
   const js = s => JSON.stringify(String(s)).replace(/"/g, '&quot;');
-  let html = '<p>' + provT('enc1') + '</p>' +
+  let html = provForetImage(provCreatureCle(nom)) + '<p>' + provT('enc1') + '</p>' +
     '<p>' + provT('enc2', { nom: provEchapper(provServeur(PROV_CREATURES, nom)) }) + '</p>';
   const modes = (typeof NEUTRALISER_MODES === 'object' && NEUTRALISER_MODES) ? NEUTRALISER_MODES : { mains: { label: provT('bare') } };
   html += vehSection(provT('fight'), Object.keys(modes).map(m => {
