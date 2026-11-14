@@ -36,7 +36,7 @@ test('Fermes : ordres et PA décidés par Fred, façades sur les enseignes', () 
 
 test('Distillerie et fourreur : locaux demandés à la mairie, puis commerce', () => {
   const ctx = charger('ville_b');
-  const fns = vm.runInContext(`[BUILDINGS['distillerie-krasnov'].rooms.atelier_distillerie, BUILDINGS['fourreur-starovka'].rooms.boutique_fourreur]
+  const fns = vm.runInContext(`[BUILDINGS['distillerie-krasnov'].rooms.salle_ventes, BUILDINGS['fourreur-starovka'].rooms.boutique_fourreur]
     .map(p => p.orders.map(o => o.fn).join()).join('|')`, ctx);
   assert.equal(fns, 'sovarka_demande_location,commerce_pj|sovarka_demande_location,commerce_pj');
 });
