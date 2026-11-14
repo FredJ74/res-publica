@@ -19,3 +19,5 @@ BEGIN
    AND pieces ? 'chambre';
  IF n <> 1 THEN RAISE EXCEPTION 'Chambre de Montrouge : entrée de navigation absente ou multiple (%)', n; END IF;
 END $$;
+
+-- Validation côté client : outils/bancs/test-montrouge-hopital-chambre-20261114.mjs
