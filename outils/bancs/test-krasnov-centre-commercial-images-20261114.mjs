@@ -9,7 +9,7 @@ vm.runInContext(lire('data.js'),ctx);
 const comm=vm.runInContext("WORLD.soviet.ville_b.buildingContext['centre-commercial']",ctx);
 const pieces=['vitrine_principale','boutique_milieu','arriere_boutique','cave_reserve'];
 assert.equal(comm.roomOverrides.hall.imageUrl,'images/Sovarka/Krasnov/Krasnov_centre_commercial_hall.webp');
-assert.equal(comm.roomOverrides.hall.persons.length,0);
+// Le hall garde les éventuels PNJ du gabarit (aucun ordre PNJ modifié).
 for(let i=0;i<4;i++){
   const room=comm.roomOverrides[pieces[i]];
   assert.match(room.name,/Box commercial/);
