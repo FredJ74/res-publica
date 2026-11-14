@@ -1,0 +1,54 @@
+{
+  "baseCommit": "431d69ec9c44a8b8383e9752660de93cf8c17dbe",
+  "codeCommit": "f3356f7bcd12dfc4a62e5163b39b843a862950ae",
+  "newFrenchTexts": 10,
+  "newForeignValues": 80,
+  "mechanicsChanged": false,
+  "productionDeployed": false,
+  "merged": false,
+  "blockedByPreexistingPayload": true,
+  "targetedTestsPassed": 9,
+  "chromiumLanguageSwitches": 270,
+  "viewports": [
+    320,
+    390,
+    1280
+  ],
+  "regressionTests": {
+    "mainPassed": 42,
+    "mainFailed": 1,
+    "branchPassed": 42,
+    "branchFailed": 1,
+    "failure": "Corps de notification retiré des sources par les correctifs de position de main : Impossible de restaurer la position depuis le serveur."
+  },
+  "baselineDescriptionsBank": {
+    "passed": 4,
+    "failed": 1,
+    "missingTexts": 10
+  },
+  "branchDescriptionsBank": {
+    "passed": 5,
+    "failed": 0,
+    "missingTexts": 0
+  },
+  "payload": {
+    "mainBytes": 347905696,
+    "branchBytes": 347910317,
+    "deltaBytes": 4621,
+    "limitBytes": 346030080,
+    "bothOverLimit": true,
+    "limitUnchanged": true
+  },
+  "audit": {
+    "methodChanged": false,
+    "identifiedTextsIdentical": true,
+    "sourceFilesHashChanged": true,
+    "englishStaticWordsFloorBefore": 25.21,
+    "englishStaticWordsFloorAfter": 25.21,
+    "extractorDoesNotRecognizeNewRoomBindings": true,
+    "notWholeGamePercentage": true
+  },
+  "authenticatedPlayerTest": false,
+  "physicalPhoneTest": false,
+  "nativeLinguisticReview": false
+}
