@@ -324,6 +324,7 @@ function dessinerPlanRues(plan, options) {
   });
   // Ecarter les reperes qui se touchent, et ceux qui tombent sur une vue.
   const vues = ids.map(P);
+  const segments = plan.rues.map(r => P(r.de).concat(P(r.vers)));
   for (let tour = 0; tour < 120; tour++) {
     let bouge = false;
     for (let i = 0; i < reperes.length; i++) {
@@ -334,6 +335,18 @@ function dessinerPlanRues(plan, options) {
       for (const [vx, vy] of vues) {
         const a = reperes[i], dx = a.x - vx, dy = a.y - vy, d = Math.hypot(dx, dy), min = 1.8 * R;
         if (d < min) { const ux = d ? dx / d : 0, uy = d ? dy / d : 1; a.x += ux * (min - d); a.y += uy * (min - d); bouge = true; }
+      }
+      // Un repere ne se pose jamais sur une rue (14/11/2026 : a Krasnov, le centre d'affaires tombait sur
+      // la rue de l'hopital, partie du meme cote de la vue) : il glisse hors de la chaussee.
+      for (const s of segments) {
+        const a = reperes[i], ex = s[2] - s[0], ey = s[3] - s[1], l2 = ex * ex + ey * ey || 1;
+        const t = Math.max(0, Math.min(1, ((a.x - s[0]) * ex + (a.y - s[1]) * ey) / l2));
+        const qx = s[0] + t * ex, qy = s[1] + t * ey, dx = a.x - qx, dy = a.y - qy, d = Math.hypot(dx, dy), min = 1.75 * R;
+        if (d < min) {
+          // Sur l'axe meme : on sort du cote de la rue qui suit le sens de lecture (droite de la rue).
+          const l = Math.sqrt(l2), ux = d > 0.5 ? dx / d : -ey / l, uy = d > 0.5 ? dy / d : ex / l;
+          a.x += ux * (min - d); a.y += uy * (min - d); bouge = true;
+        }
       }
     }
     if (!bouge) break;
