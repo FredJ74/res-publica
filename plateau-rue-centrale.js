@@ -1158,11 +1158,23 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [
         { xPct: [45, 90], yPct: [18, 58], nom: "Centre d'affaires de Krasnov", type: 'batiment', buildingId: 'centre-affaires' }
       ],
-      liens: { arriere: 'krasnov-rue-station-musee', toutDroit: 'krasnov-rue-descendante' },
+      // La rue de l'hôpital part à DROITE depuis cette vue (décision de Fred).
+      liens: { arriere: 'krasnov-rue-station-musee', toutDroit: 'krasnov-rue-descendante', droite: 'krasnov-rue-hopital' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
-        toutDroit: 'top:10px; left:43%; transform:translateX(-50%);'
+        toutDroit: 'top:10px; left:43%; transform:translateX(-50%);',
+        droite: 'top:50%; right:10px; transform:translateY(-50%);'
       }
+    },
+
+    // Rue de l'hôpital : retour par la flèche du BAS à la rue du centre d'affaires.
+    'krasnov-rue-hopital': {
+      image: 'images/Sovarka/Krasnov/Krasnov_hopital_rue.webp',
+      zones: [
+        { xPct: [40, 100], yPct: [6, 85], nom: 'Hôpital public de Krasnov', type: 'batiment', buildingId: 'dispensaire-public-v' }
+      ],
+      liens: { arriere: 'krasnov-rue-bureaux' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
     },
 
     // Rue descendante : raccordement de la boucle jusqu'à l'église.
