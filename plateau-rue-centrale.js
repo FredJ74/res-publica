@@ -1135,6 +1135,8 @@ const RUE_CENTRALE_NOEUDS = {
     // Place de l'Ours : vue sur la façade de la mairie, retour vers la rue
     // par la flèche basse ; aucun changement aux deux autres sorties.
     'krasnov-place-ours': {
+      // La place n'est pas un bâtiment : elle figure au plan sous ce nom (14/11/2026, Fred).
+      nomLieu: "Place de l'Ours",
       image: 'images/Sovarka/Krasnov/Krasnov_place_ours.webp',
       zones: [
         { xPct: [49, 100], yPct: [9, 77], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' }
