@@ -56,5 +56,18 @@
     }
   ],
   "newKeys": 11,
-  "newForeignTranslations": 88
+  "newForeignTranslations": 88,
+  "resourceKeys": [
+    "characterCreationOtherOwnedBody",
+    "characterCreationOtherOwnedHint",
+    "characterCreationNameTakenBody",
+    "characterCreationNameTakenHint",
+    "characterCreationAccountOwnedBody",
+    "characterCreationAccountOwnedHint",
+    "characterCreationGenderMissingBody",
+    "characterCreationGenderMissingHint",
+    "characterCreationSessionExpiredBody",
+    "characterCreationSessionExpiredHint",
+    "characterCreationGenericBody"
+  ]
 }

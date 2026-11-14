@@ -27,7 +27,18 @@
     "characterCreationNameTakenTitle": "Ce nom est deja porte",
     "characterCreationGenderTitle": "Genre manquant",
     "characterCreationSessionTitle": "Session expiree",
-    "characterCreationFailedTitle": "Creation impossible"
+    "characterCreationFailedTitle": "Creation impossible",
+    "characterCreationOtherOwnedBody": "Ce compte possede deja « {{values.name}} » : Republia n'en autorise qu'un seul par compte. Changer de nom n'y changera rien.",
+    "characterCreationOtherOwnedHint": "Retournez a l'accueil pour le reprendre.",
+    "characterCreationNameTakenBody": "Un personnage nomme « {{values.name}} » existe deja dans Republia. Choisissez un autre nom : revenez a l'etape precedente pour le modifier.",
+    "characterCreationNameTakenHint": "Si ce personnage est le votre et que vous avez perdu l'acces, utilisez « Retrouver mon personnage » depuis l'accueil plutot que d'en recreer un.",
+    "characterCreationAccountOwnedBody": "Ce navigateur est deja lie a un personnage : Republia n'en autorise qu'un seul par compte. Changer de nom n'y changera rien.",
+    "characterCreationAccountOwnedHint": "Retournez a l'accueil pour le reprendre. Pour en creer un autre, il faut d'abord detruire celui que vous possedez, depuis sa fiche.",
+    "characterCreationGenderMissingBody": "Le genre de votre personnage est obligatoire. Revenez a l'etape de l'identite pour le choisir, puis validez de nouveau.",
+    "characterCreationGenderMissingHint": "Rien n'a ete perdu.",
+    "characterCreationSessionExpiredBody": "La session de ce navigateur n'est plus reconnue par le serveur. Rechargez la page : une nouvelle session sera ouverte et la creation fonctionnera.",
+    "characterCreationSessionExpiredHint": "Aucun nom n'est en cause — inutile d'en changer.",
+    "characterCreationGenericBody": "Votre personnage n'a pas pu etre enregistre ({{values.reason}}). Verifiez votre connexion et reessayez ; rien n'a ete perdu."
   },
   "en": {
     "invalidEmail": "This address is not valid.",
@@ -53,7 +64,18 @@
     "characterCreationNameTakenTitle": "This name is already taken",
     "characterCreationGenderTitle": "Gender missing",
     "characterCreationSessionTitle": "Session expired",
-    "characterCreationFailedTitle": "Unable to create character"
+    "characterCreationFailedTitle": "Unable to create character",
+    "characterCreationOtherOwnedBody": "This account already has « {{values.name}} »: Republia allows only one character per account. Changing the name will not change that.",
+    "characterCreationOtherOwnedHint": "Return to the home page to resume playing that character.",
+    "characterCreationNameTakenBody": "A character named « {{values.name}} » already exists in Republia. Choose another name: return to the previous step to change it.",
+    "characterCreationNameTakenHint": "If this is your character and you have lost access, use « Find My Character » on the home page instead of creating a new one.",
+    "characterCreationAccountOwnedBody": "This browser is already linked to a character: Republia allows only one per account. Changing the name will not change that.",
+    "characterCreationAccountOwnedHint": "Return to the home page to resume playing that character. To create another, you must first destroy the one you own, from its character sheet.",
+    "characterCreationGenderMissingBody": "Your character’s gender is required. Return to the identity step to choose it, then confirm again.",
+    "characterCreationGenderMissingHint": "Nothing has been lost.",
+    "characterCreationSessionExpiredBody": "The server no longer recognises this browser’s session. Reload the page: a new session will open and character creation will work.",
+    "characterCreationSessionExpiredHint": "No name is at fault — there is no need to change it.",
+    "characterCreationGenericBody": "Your character could not be saved ({{values.reason}}). Check your connection and try again; nothing has been lost."
   },
   "es": {
     "invalidEmail": "Esta dirección no es válida.",
@@ -79,7 +101,18 @@
     "characterCreationNameTakenTitle": "Este nombre ya está en uso",
     "characterCreationGenderTitle": "Falta el género",
     "characterCreationSessionTitle": "Sesión caducada",
-    "characterCreationFailedTitle": "No se puede crear el personaje"
+    "characterCreationFailedTitle": "No se puede crear el personaje",
+    "characterCreationOtherOwnedBody": "Esta cuenta ya tiene a « {{values.name}} »: Republia solo permite un personaje por cuenta. Cambiar de nombre no cambiará eso.",
+    "characterCreationOtherOwnedHint": "Vuelve al inicio para retomar ese personaje.",
+    "characterCreationNameTakenBody": "Ya existe un personaje llamado « {{values.name}} » en Republia. Elige otro nombre: vuelve al paso anterior para modificarlo.",
+    "characterCreationNameTakenHint": "Si este personaje es tuyo y has perdido el acceso, utiliza « Recuperar mi personaje » desde el inicio en lugar de crear otro.",
+    "characterCreationAccountOwnedBody": "Este navegador ya está vinculado a un personaje: Republia solo permite uno por cuenta. Cambiar de nombre no cambiará eso.",
+    "characterCreationAccountOwnedHint": "Vuelve al inicio para retomar ese personaje. Para crear otro, primero debes destruir el que posees, desde su ficha.",
+    "characterCreationGenderMissingBody": "El género de tu personaje es obligatorio. Vuelve al paso de identidad para elegirlo y confirma de nuevo.",
+    "characterCreationGenderMissingHint": "No se ha perdido nada.",
+    "characterCreationSessionExpiredBody": "El servidor ya no reconoce la sesión de este navegador. Recarga la página: se abrirá una nueva sesión y podrás crear el personaje.",
+    "characterCreationSessionExpiredHint": "El nombre no tiene nada que ver — no hace falta cambiarlo.",
+    "characterCreationGenericBody": "No se ha podido guardar tu personaje ({{values.reason}}). Comprueba tu conexión e inténtalo de nuevo; no se ha perdido nada."
   },
   "zh-TW": {
     "invalidEmail": "這個地址無效。",
@@ -105,7 +138,18 @@
     "characterCreationNameTakenTitle": "此名稱已有人使用",
     "characterCreationGenderTitle": "尚未選擇性別",
     "characterCreationSessionTitle": "工作階段已過期",
-    "characterCreationFailedTitle": "無法建立角色"
+    "characterCreationFailedTitle": "無法建立角色",
+    "characterCreationOtherOwnedBody": "此帳號已擁有「{{values.name}}」：Republia 每個帳號只允許一個角色。更改名稱也無法改變這一點。",
+    "characterCreationOtherOwnedHint": "請返回首頁，繼續使用該角色。",
+    "characterCreationNameTakenBody": "Republia 已有一個名為「{{values.name}}」的角色。請選擇其他名稱：返回上一步即可修改。",
+    "characterCreationNameTakenHint": "若這是你的角色，而你已無法存取，請使用首頁的「找回我的角色」，而不是再建立一個。",
+    "characterCreationAccountOwnedBody": "此瀏覽器已連結到一個角色：Republia 每個帳號只允許一個角色。更改名稱也無法改變這一點。",
+    "characterCreationAccountOwnedHint": "請返回首頁，繼續使用該角色。若要建立另一個角色，必須先在角色資料頁中銷毀目前擁有的角色。",
+    "characterCreationGenderMissingBody": "你必須選擇角色的性別。請返回身分步驟進行選擇，再次確認。",
+    "characterCreationGenderMissingHint": "沒有任何資料遺失。",
+    "characterCreationSessionExpiredBody": "伺服器已無法辨識此瀏覽器的工作階段。請重新載入頁面：系統會開啟新的工作階段，之後即可建立角色。",
+    "characterCreationSessionExpiredHint": "問題與名稱無關——不必更改名稱。",
+    "characterCreationGenericBody": "無法儲存你的角色（{{values.reason}}）。請檢查連線並重試；沒有任何資料遺失。"
   },
   "ru": {
     "invalidEmail": "Этот адрес недействителен.",
@@ -131,7 +175,18 @@
     "characterCreationNameTakenTitle": "Это имя уже занято",
     "characterCreationGenderTitle": "Пол не указан",
     "characterCreationSessionTitle": "Сессия истекла",
-    "characterCreationFailedTitle": "Не удалось создать персонажа"
+    "characterCreationFailedTitle": "Не удалось создать персонажа",
+    "characterCreationOtherOwnedBody": "У этой учётной записи уже есть « {{values.name}} »: Republia разрешает только одного персонажа на учётную запись. Смена имени ничего не изменит.",
+    "characterCreationOtherOwnedHint": "Вернитесь на главную страницу, чтобы продолжить игру этим персонажем.",
+    "characterCreationNameTakenBody": "В Republia уже есть персонаж по имени « {{values.name}} ». Выберите другое имя: вернитесь к предыдущему шагу, чтобы изменить его.",
+    "characterCreationNameTakenHint": "Если это ваш персонаж и вы потеряли доступ, воспользуйтесь пунктом « Найти своего персонажа » на главной странице, а не создавайте нового.",
+    "characterCreationAccountOwnedBody": "Этот браузер уже связан с персонажем: Republia разрешает только одного на учётную запись. Смена имени ничего не изменит.",
+    "characterCreationAccountOwnedHint": "Вернитесь на главную страницу, чтобы продолжить игру этим персонажем. Чтобы создать другого, сначала уничтожьте имеющегося через его карточку.",
+    "characterCreationGenderMissingBody": "Пол персонажа обязателен. Вернитесь к шагу выбора личности, укажите его и подтвердите снова.",
+    "characterCreationGenderMissingHint": "Ничего не потеряно.",
+    "characterCreationSessionExpiredBody": "Сервер больше не распознаёт сессию этого браузера. Перезагрузите страницу: откроется новая сессия, и создание персонажа заработает.",
+    "characterCreationSessionExpiredHint": "Имя ни при чём — менять его не нужно.",
+    "characterCreationGenericBody": "Не удалось сохранить вашего персонажа ({{values.reason}}). Проверьте соединение и повторите попытку; ничего не потеряно."
   },
   "ko": {
     "invalidEmail": "유효하지 않은 주소입니다.",
@@ -157,7 +212,18 @@
     "characterCreationNameTakenTitle": "이미 사용 중인 이름입니다",
     "characterCreationGenderTitle": "성별을 선택하지 않았습니다",
     "characterCreationSessionTitle": "세션이 만료되었습니다",
-    "characterCreationFailedTitle": "캐릭터를 생성할 수 없습니다"
+    "characterCreationFailedTitle": "캐릭터를 생성할 수 없습니다",
+    "characterCreationOtherOwnedBody": "이 계정에는 이미 « {{values.name}} » 캐릭터가 있습니다. Republia에서는 계정당 캐릭터 하나만 허용합니다. 이름을 바꿔도 달라지지 않습니다.",
+    "characterCreationOtherOwnedHint": "홈 화면으로 돌아가 해당 캐릭터로 계속 플레이하세요.",
+    "characterCreationNameTakenBody": "Republia에 « {{values.name}} » 이름의 캐릭터가 이미 있습니다. 다른 이름을 선택하세요. 이전 단계로 돌아가면 수정할 수 있습니다.",
+    "characterCreationNameTakenHint": "본인의 캐릭터인데 접근 권한을 잃었다면 새로 만들지 말고 홈 화면에서 « 캐릭터 찾기 »를 이용하세요.",
+    "characterCreationAccountOwnedBody": "이 브라우저는 이미 캐릭터와 연결되어 있습니다. Republia에서는 계정당 하나만 허용합니다. 이름을 바꿔도 달라지지 않습니다.",
+    "characterCreationAccountOwnedHint": "홈 화면으로 돌아가 해당 캐릭터로 계속 플레이하세요. 다른 캐릭터를 만들려면 먼저 현재 캐릭터의 정보 화면에서 해당 캐릭터를 삭제해야 합니다.",
+    "characterCreationGenderMissingBody": "캐릭터의 성별은 필수입니다. 신원 단계로 돌아가 선택한 후 다시 확인하세요.",
+    "characterCreationGenderMissingHint": "손실된 내용은 없습니다.",
+    "characterCreationSessionExpiredBody": "서버에서 이 브라우저의 세션을 더 이상 인식하지 못합니다. 페이지를 새로고침하면 새 세션이 열리고 캐릭터를 생성할 수 있습니다.",
+    "characterCreationSessionExpiredHint": "이름은 문제가 아닙니다. 바꿀 필요가 없습니다.",
+    "characterCreationGenericBody": "캐릭터를 저장하지 못했습니다({{values.reason}}). 연결 상태를 확인한 후 다시 시도하세요. 손실된 내용은 없습니다."
   },
   "ar": {
     "invalidEmail": "هذا العنوان غير صالح.",
@@ -183,7 +249,18 @@
     "characterCreationNameTakenTitle": "هذا الاسم مستخدم بالفعل",
     "characterCreationGenderTitle": "لم يُحدَّد الجنس",
     "characterCreationSessionTitle": "انتهت صلاحية الجلسة",
-    "characterCreationFailedTitle": "تعذّر إنشاء الشخصية"
+    "characterCreationFailedTitle": "تعذّر إنشاء الشخصية",
+    "characterCreationOtherOwnedBody": "هذا الحساب يملك بالفعل « {{values.name}} »: تسمح Republia بشخصية واحدة فقط لكل حساب. تغيير الاسم لن يغيّر ذلك.",
+    "characterCreationOtherOwnedHint": "عُد إلى الصفحة الرئيسية لاستئناف اللعب بهذه الشخصية.",
+    "characterCreationNameTakenBody": "توجد بالفعل شخصية باسم « {{values.name}} » في Republia. اختر اسمًا آخر: عُد إلى الخطوة السابقة لتعديله.",
+    "characterCreationNameTakenHint": "إذا كانت هذه شخصيتك وفقدت إمكانية الوصول إليها، فاستخدم « العثور على شخصيتي » من الصفحة الرئيسية بدلًا من إنشاء شخصية جديدة.",
+    "characterCreationAccountOwnedBody": "هذا المتصفح مرتبط بالفعل بشخصية: تسمح Republia بشخصية واحدة فقط لكل حساب. تغيير الاسم لن يغيّر ذلك.",
+    "characterCreationAccountOwnedHint": "عُد إلى الصفحة الرئيسية لاستئناف اللعب بهذه الشخصية. لإنشاء شخصية أخرى، يجب أولًا تدمير الشخصية التي تملكها من خلال بطاقتها.",
+    "characterCreationGenderMissingBody": "تحديد جنس شخصيتك إلزامي. عُد إلى خطوة الهوية لاختياره، ثم أكّد مجددًا.",
+    "characterCreationGenderMissingHint": "لم يُفقد شيء.",
+    "characterCreationSessionExpiredBody": "لم يعد الخادم يتعرّف على جلسة هذا المتصفح. أعد تحميل الصفحة: ستُفتح جلسة جديدة وسيعمل إنشاء الشخصية.",
+    "characterCreationSessionExpiredHint": "الاسم ليس سبب المشكلة — لا داعي لتغييره.",
+    "characterCreationGenericBody": "تعذّر حفظ شخصيتك ({{values.reason}}). تحقّق من اتصالك وحاول مجددًا؛ لم يُفقد شيء."
   },
   "pt-BR": {
     "invalidEmail": "Este endereço não é válido.",
@@ -209,7 +286,18 @@
     "characterCreationNameTakenTitle": "Este nome já está em uso",
     "characterCreationGenderTitle": "Gênero não informado",
     "characterCreationSessionTitle": "Sessão expirada",
-    "characterCreationFailedTitle": "Não foi possível criar o personagem"
+    "characterCreationFailedTitle": "Não foi possível criar o personagem",
+    "characterCreationOtherOwnedBody": "Esta conta já possui « {{values.name}} »: Republia permite apenas um personagem por conta. Mudar o nome não vai alterar isso.",
+    "characterCreationOtherOwnedHint": "Volte à página inicial para retomar esse personagem.",
+    "characterCreationNameTakenBody": "Já existe um personagem chamado « {{values.name}} » em Republia. Escolha outro nome: volte à etapa anterior para alterá-lo.",
+    "characterCreationNameTakenHint": "Se esse personagem é seu e você perdeu o acesso, use « Encontrar meu personagem » na página inicial em vez de criar outro.",
+    "characterCreationAccountOwnedBody": "Este navegador já está vinculado a um personagem: Republia permite apenas um por conta. Mudar o nome não vai alterar isso.",
+    "characterCreationAccountOwnedHint": "Volte à página inicial para retomar esse personagem. Para criar outro, primeiro é preciso destruir o personagem que você possui, pela ficha dele.",
+    "characterCreationGenderMissingBody": "O gênero do seu personagem é obrigatório. Volte à etapa de identidade para escolhê-lo e confirme novamente.",
+    "characterCreationGenderMissingHint": "Nada foi perdido.",
+    "characterCreationSessionExpiredBody": "O servidor não reconhece mais a sessão deste navegador. Recarregue a página: uma nova sessão será aberta e a criação do personagem funcionará.",
+    "characterCreationSessionExpiredHint": "O nome não é o problema — não é preciso alterá-lo.",
+    "characterCreationGenericBody": "Não foi possível salvar seu personagem ({{values.reason}}). Verifique sua conexão e tente novamente; nada foi perdido."
   },
   "de": {
     "invalidEmail": "Diese Adresse ist ungültig.",
@@ -235,7 +323,18 @@
     "characterCreationNameTakenTitle": "Dieser Name ist bereits vergeben",
     "characterCreationGenderTitle": "Geschlecht fehlt",
     "characterCreationSessionTitle": "Sitzung abgelaufen",
-    "characterCreationFailedTitle": "Charakter konnte nicht erstellt werden"
+    "characterCreationFailedTitle": "Charakter konnte nicht erstellt werden",
+    "characterCreationOtherOwnedBody": "Dieses Konto besitzt bereits « {{values.name}} »: Republia erlaubt nur einen Charakter pro Konto. Ein anderer Name ändert daran nichts.",
+    "characterCreationOtherOwnedHint": "Kehre zur Startseite zurück, um mit diesem Charakter weiterzuspielen.",
+    "characterCreationNameTakenBody": "In Republia gibt es bereits einen Charakter namens « {{values.name}} ». Wähle einen anderen Namen: Kehre zum vorherigen Schritt zurück, um ihn zu ändern.",
+    "characterCreationNameTakenHint": "Wenn dies dein Charakter ist und du den Zugang verloren hast, nutze auf der Startseite « Charakter wiederfinden », statt einen neuen zu erstellen.",
+    "characterCreationAccountOwnedBody": "Dieser Browser ist bereits mit einem Charakter verknüpft: Republia erlaubt nur einen pro Konto. Ein anderer Name ändert daran nichts.",
+    "characterCreationAccountOwnedHint": "Kehre zur Startseite zurück, um mit diesem Charakter weiterzuspielen. Um einen anderen zu erstellen, musst du zuerst deinen bisherigen Charakter über dessen Charakterbogen vernichten.",
+    "characterCreationGenderMissingBody": "Das Geschlecht deines Charakters ist erforderlich. Kehre zum Schritt für die Identität zurück, wähle es aus und bestätige erneut.",
+    "characterCreationGenderMissingHint": "Es ist nichts verloren gegangen.",
+    "characterCreationSessionExpiredBody": "Der Server erkennt die Sitzung dieses Browsers nicht mehr. Lade die Seite neu: Eine neue Sitzung wird geöffnet und die Charaktererstellung funktioniert wieder.",
+    "characterCreationSessionExpiredHint": "Der Name ist nicht die Ursache — du musst ihn nicht ändern.",
+    "characterCreationGenericBody": "Dein Charakter konnte nicht gespeichert werden ({{values.reason}}). Prüfe deine Verbindung und versuche es erneut; es ist nichts verloren gegangen."
   }
 };
  for(const [locale,strings]of Object.entries(words))
