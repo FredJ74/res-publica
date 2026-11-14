@@ -24,7 +24,7 @@ for(const [room,name] of Object.entries(names)){
  assert.equal(buffer.toString('ascii',8,12),'WEBP',path);
 }
 assert.deepEqual(mairie.roomOverrides.accueil_mairie.persons.length,1);
-assert.deepEqual(mairie.roomsExtra.salle_elections.orders.map(o=>o.fn),['consulter_elections','voter_election']);
+assert.deepEqual(Array.from(mairie.roomsExtra.salle_elections.orders,o=>o.fn),['consulter_elections','voter_election']);
 assert.ok(mairie.roomsExtra.salle_partis.orders.some(o=>o.fn==='sovarka_parti_fonder'),'partis restent fonctionnels');
 assert.ok(vm.runInContext("BUILDINGS.mairie.rooms.bureau_maire_local.orders.some(o=>o.fn==='fixer_impots_locaux')",ctx));
 assert.ok(vm.runInContext("BUILDINGS.mairie.rooms.bureau_maire_adjoint.orders.some(o=>o.fn==='traiter_demandes_permis')",ctx));
