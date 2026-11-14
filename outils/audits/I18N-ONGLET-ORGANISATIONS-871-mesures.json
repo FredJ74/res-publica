@@ -1,0 +1,647 @@
+{
+  "baseCommit": "bacf59770609772ea1f4a6e03b7f7afa966bc88a",
+  "codeCommit": "66cdd698e6824cd092d0ef4cfaa49db09753f74a",
+  "before": {
+    "fr": {
+      "texts": 7592,
+      "words": 50912,
+      "wiredTexts": 7592,
+      "wiredWords": 50912,
+      "resourceTexts": 7592,
+      "resourceWords": 50912,
+      "unconfirmedTexts": 0,
+      "unconfirmedWords": 0,
+      "withoutResourceTexts": 0,
+      "withoutResourceWords": 0,
+      "wiredTextPercent": 100,
+      "wiredWordPercent": 100,
+      "resourceTextPercent": 100,
+      "resourceWordPercent": 100
+    },
+    "en": {
+      "texts": 7592,
+      "words": 50912,
+      "wiredTexts": 1059,
+      "wiredWords": 12551,
+      "resourceTexts": 1624,
+      "resourceWords": 15346,
+      "unconfirmedTexts": 6533,
+      "unconfirmedWords": 38361,
+      "withoutResourceTexts": 5968,
+      "withoutResourceWords": 35566,
+      "wiredTextPercent": 13.95,
+      "wiredWordPercent": 24.65,
+      "resourceTextPercent": 21.39,
+      "resourceWordPercent": 30.14
+    },
+    "es": {
+      "texts": 7592,
+      "words": 50912,
+      "wiredTexts": 1066,
+      "wiredWords": 12559,
+      "resourceTexts": 1640,
+      "resourceWords": 15364,
+      "unconfirmedTexts": 6526,
+      "unconfirmedWords": 38353,
+      "withoutResourceTexts": 5952,
+      "withoutResourceWords": 35548,
+      "wiredTextPercent": 14.04,
+      "wiredWordPercent": 24.67,
+      "resourceTextPercent": 21.6,
+      "resourceWordPercent": 30.18
+    },
+    "zh-TW": {
+      "texts": 7592,
+      "words": 50912,
+      "wiredTexts": 1068,
+      "wiredWords": 12561,
+      "resourceTexts": 1646,
+      "resourceWords": 15373,
+      "unconfirmedTexts": 6524,
+      "unconfirmedWords": 38351,
+      "withoutResourceTexts": 5946,
+      "withoutResourceWords": 35539,
+      "wiredTextPercent": 14.07,
+      "wiredWordPercent": 24.67,
+      "resourceTextPercent": 21.68,
+      "resourceWordPercent": 30.2
+    },
+    "ru": {
+      "texts": 7592,
+      "words": 50912,
+      "wiredTexts": 1068,
+      "wiredWords": 12561,
+      "resourceTexts": 1645,
+      "resourceWords": 15369,
+      "unconfirmedTexts": 6524,
+      "unconfirmedWords": 38351,
+      "withoutResourceTexts": 5947,
+      "withoutResourceWords": 35543,
+      "wiredTextPercent": 14.07,
+      "wiredWordPercent": 24.67,
+      "resourceTextPercent": 21.67,
+      "resourceWordPercent": 30.19
+    },
+    "ko": {
+      "texts": 7592,
+      "words": 50912,
+      "wiredTexts": 1068,
+      "wiredWords": 12561,
+      "resourceTexts": 1646,
+      "resourceWords": 15373,
+      "unconfirmedTexts": 6524,
+      "unconfirmedWords": 38351,
+      "withoutResourceTexts": 5946,
+      "withoutResourceWords": 35539,
+      "wiredTextPercent": 14.07,
+      "wiredWordPercent": 24.67,
+      "resourceTextPercent": 21.68,
+      "resourceWordPercent": 30.2
+    },
+    "ar": {
+      "texts": 7592,
+      "words": 50912,
+      "wiredTexts": 1068,
+      "wiredWords": 12561,
+      "resourceTexts": 1645,
+      "resourceWords": 15369,
+      "unconfirmedTexts": 6524,
+      "unconfirmedWords": 38351,
+      "withoutResourceTexts": 5947,
+      "withoutResourceWords": 35543,
+      "wiredTextPercent": 14.07,
+      "wiredWordPercent": 24.67,
+      "resourceTextPercent": 21.67,
+      "resourceWordPercent": 30.19
+    },
+    "pt-BR": {
+      "texts": 7592,
+      "words": 50912,
+      "wiredTexts": 1064,
+      "wiredWords": 12557,
+      "resourceTexts": 1641,
+      "resourceWords": 15365,
+      "unconfirmedTexts": 6528,
+      "unconfirmedWords": 38355,
+      "withoutResourceTexts": 5951,
+      "withoutResourceWords": 35547,
+      "wiredTextPercent": 14.01,
+      "wiredWordPercent": 24.66,
+      "resourceTextPercent": 21.61,
+      "resourceWordPercent": 30.18
+    },
+    "de": {
+      "texts": 7592,
+      "words": 50912,
+      "wiredTexts": 1067,
+      "wiredWords": 12560,
+      "resourceTexts": 1642,
+      "resourceWords": 15366,
+      "unconfirmedTexts": 6525,
+      "unconfirmedWords": 38352,
+      "withoutResourceTexts": 5950,
+      "withoutResourceWords": 35546,
+      "wiredTextPercent": 14.05,
+      "wiredWordPercent": 24.67,
+      "resourceTextPercent": 21.63,
+      "resourceWordPercent": 30.18
+    }
+  },
+  "after": {
+    "fr": {
+      "texts": 7589,
+      "words": 50910,
+      "wiredTexts": 7589,
+      "wiredWords": 50910,
+      "resourceTexts": 7589,
+      "resourceWords": 50910,
+      "unconfirmedTexts": 0,
+      "unconfirmedWords": 0,
+      "withoutResourceTexts": 0,
+      "withoutResourceWords": 0,
+      "wiredTextPercent": 100,
+      "wiredWordPercent": 100,
+      "resourceTextPercent": 100,
+      "resourceWordPercent": 100
+    },
+    "en": {
+      "texts": 7589,
+      "words": 50910,
+      "wiredTexts": 1070,
+      "wiredWords": 12587,
+      "resourceTexts": 1635,
+      "resourceWords": 15382,
+      "unconfirmedTexts": 6519,
+      "unconfirmedWords": 38323,
+      "withoutResourceTexts": 5954,
+      "withoutResourceWords": 35528,
+      "wiredTextPercent": 14.1,
+      "wiredWordPercent": 24.72,
+      "resourceTextPercent": 21.54,
+      "resourceWordPercent": 30.21
+    },
+    "es": {
+      "texts": 7589,
+      "words": 50910,
+      "wiredTexts": 1078,
+      "wiredWords": 12596,
+      "resourceTexts": 1652,
+      "resourceWords": 15401,
+      "unconfirmedTexts": 6511,
+      "unconfirmedWords": 38314,
+      "withoutResourceTexts": 5937,
+      "withoutResourceWords": 35509,
+      "wiredTextPercent": 14.2,
+      "wiredWordPercent": 24.74,
+      "resourceTextPercent": 21.77,
+      "resourceWordPercent": 30.25
+    },
+    "zh-TW": {
+      "texts": 7589,
+      "words": 50910,
+      "wiredTexts": 1080,
+      "wiredWords": 12598,
+      "resourceTexts": 1658,
+      "resourceWords": 15410,
+      "unconfirmedTexts": 6509,
+      "unconfirmedWords": 38312,
+      "withoutResourceTexts": 5931,
+      "withoutResourceWords": 35500,
+      "wiredTextPercent": 14.23,
+      "wiredWordPercent": 24.75,
+      "resourceTextPercent": 21.85,
+      "resourceWordPercent": 30.27
+    },
+    "ru": {
+      "texts": 7589,
+      "words": 50910,
+      "wiredTexts": 1080,
+      "wiredWords": 12598,
+      "resourceTexts": 1657,
+      "resourceWords": 15406,
+      "unconfirmedTexts": 6509,
+      "unconfirmedWords": 38312,
+      "withoutResourceTexts": 5932,
+      "withoutResourceWords": 35504,
+      "wiredTextPercent": 14.23,
+      "wiredWordPercent": 24.75,
+      "resourceTextPercent": 21.83,
+      "resourceWordPercent": 30.26
+    },
+    "ko": {
+      "texts": 7589,
+      "words": 50910,
+      "wiredTexts": 1080,
+      "wiredWords": 12598,
+      "resourceTexts": 1658,
+      "resourceWords": 15410,
+      "unconfirmedTexts": 6509,
+      "unconfirmedWords": 38312,
+      "withoutResourceTexts": 5931,
+      "withoutResourceWords": 35500,
+      "wiredTextPercent": 14.23,
+      "wiredWordPercent": 24.75,
+      "resourceTextPercent": 21.85,
+      "resourceWordPercent": 30.27
+    },
+    "ar": {
+      "texts": 7589,
+      "words": 50910,
+      "wiredTexts": 1080,
+      "wiredWords": 12598,
+      "resourceTexts": 1657,
+      "resourceWords": 15406,
+      "unconfirmedTexts": 6509,
+      "unconfirmedWords": 38312,
+      "withoutResourceTexts": 5932,
+      "withoutResourceWords": 35504,
+      "wiredTextPercent": 14.23,
+      "wiredWordPercent": 24.75,
+      "resourceTextPercent": 21.83,
+      "resourceWordPercent": 30.26
+    },
+    "pt-BR": {
+      "texts": 7589,
+      "words": 50910,
+      "wiredTexts": 1076,
+      "wiredWords": 12594,
+      "resourceTexts": 1653,
+      "resourceWords": 15402,
+      "unconfirmedTexts": 6513,
+      "unconfirmedWords": 38316,
+      "withoutResourceTexts": 5936,
+      "withoutResourceWords": 35508,
+      "wiredTextPercent": 14.18,
+      "wiredWordPercent": 24.74,
+      "resourceTextPercent": 21.78,
+      "resourceWordPercent": 30.25
+    },
+    "de": {
+      "texts": 7589,
+      "words": 50910,
+      "wiredTexts": 1079,
+      "wiredWords": 12597,
+      "resourceTexts": 1654,
+      "resourceWords": 15403,
+      "unconfirmedTexts": 6510,
+      "unconfirmedWords": 38313,
+      "withoutResourceTexts": 5935,
+      "withoutResourceWords": 35507,
+      "wiredTextPercent": 14.22,
+      "wiredWordPercent": 24.74,
+      "resourceTextPercent": 21.79,
+      "resourceWordPercent": 30.26
+    }
+  },
+  "variation": {
+    "beforeHash": "9db4466abed55fd8797bd830d1bc9859d458c9cb49b052fbc4bf285cd204709b",
+    "afterHash": "430f41b676239b5514477e59c03df00fc5868b1959522e34407577b8ab5be0f4",
+    "sameMethod": true,
+    "sameScope": true,
+    "added": [
+      "100a28bba5eaaadb2bc3",
+      "12bcde3c7b1b1e7c72eb",
+      "16cf2224b0501830466d",
+      "33f1c47a1dcb1e3f5463",
+      "8b23282698e977ea1e7e",
+      "8d8fed0e3237646f4891",
+      "dafdf00929285aab730d",
+      "ff8059dc6752afdd30d2"
+    ],
+    "removed": [
+      "031c3515b2a312be138c",
+      "33836acecece881bd958",
+      "3e028b2fa85afd1c1201",
+      "a5fef444bc785121a346",
+      "ac0d557b47070d080802",
+      "b8d1bf70a95719d18502",
+      "ce549fd046fb22b4a51a",
+      "d85a6e8386a2088eb12e",
+      "e594582fab0e9ffa5212",
+      "ee9ac46ce2d127c04bea",
+      "fdae98e1f7b65087e4da"
+    ],
+    "changed": [
+      "2fa1b8dde801c9911cbf",
+      "3647e4b2bf1c3ca0d837",
+      "47955ffdab5e3e53cc20",
+      "95e25878b5cd84e89468",
+      "bb4813e425a4296583d5",
+      "c9d43f9aa14f667d428b"
+    ],
+    "locales": {
+      "fr": {
+        "wiredTexts": -3,
+        "resourceTexts": -3,
+        "unconfirmedWords": 0
+      },
+      "en": {
+        "wiredTexts": 11,
+        "resourceTexts": 11,
+        "unconfirmedWords": -38
+      },
+      "es": {
+        "wiredTexts": 12,
+        "resourceTexts": 12,
+        "unconfirmedWords": -39
+      },
+      "zh-TW": {
+        "wiredTexts": 12,
+        "resourceTexts": 12,
+        "unconfirmedWords": -39
+      },
+      "ru": {
+        "wiredTexts": 12,
+        "resourceTexts": 12,
+        "unconfirmedWords": -39
+      },
+      "ko": {
+        "wiredTexts": 12,
+        "resourceTexts": 12,
+        "unconfirmedWords": -39
+      },
+      "ar": {
+        "wiredTexts": 12,
+        "resourceTexts": 12,
+        "unconfirmedWords": -39
+      },
+      "pt-BR": {
+        "wiredTexts": 12,
+        "resourceTexts": 12,
+        "unconfirmedWords": -39
+      },
+      "de": {
+        "wiredTexts": 12,
+        "resourceTexts": 12,
+        "unconfirmedWords": -39
+      }
+    }
+  },
+  "commonStaticCorpus": {
+    "fr": {
+      "before": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 7581,
+        "wiredWords": 50898,
+        "resourceTexts": 7581,
+        "resourceWords": 50898
+      },
+      "after": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 7581,
+        "wiredWords": 50898,
+        "resourceTexts": 7581,
+        "resourceWords": 50898
+      }
+    },
+    "en": {
+      "before": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1059,
+        "wiredWords": 12551,
+        "resourceTexts": 1624,
+        "resourceWords": 15346
+      },
+      "after": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1065,
+        "wiredWords": 12578,
+        "resourceTexts": 1630,
+        "resourceWords": 15373
+      }
+    },
+    "es": {
+      "before": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1066,
+        "wiredWords": 12559,
+        "resourceTexts": 1640,
+        "resourceWords": 15364
+      },
+      "after": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1072,
+        "wiredWords": 12586,
+        "resourceTexts": 1646,
+        "resourceWords": 15391
+      }
+    },
+    "zh-TW": {
+      "before": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1068,
+        "wiredWords": 12561,
+        "resourceTexts": 1646,
+        "resourceWords": 15373
+      },
+      "after": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1074,
+        "wiredWords": 12588,
+        "resourceTexts": 1652,
+        "resourceWords": 15400
+      }
+    },
+    "ru": {
+      "before": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1068,
+        "wiredWords": 12561,
+        "resourceTexts": 1645,
+        "resourceWords": 15369
+      },
+      "after": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1074,
+        "wiredWords": 12588,
+        "resourceTexts": 1651,
+        "resourceWords": 15396
+      }
+    },
+    "ko": {
+      "before": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1068,
+        "wiredWords": 12561,
+        "resourceTexts": 1646,
+        "resourceWords": 15373
+      },
+      "after": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1074,
+        "wiredWords": 12588,
+        "resourceTexts": 1652,
+        "resourceWords": 15400
+      }
+    },
+    "ar": {
+      "before": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1068,
+        "wiredWords": 12561,
+        "resourceTexts": 1645,
+        "resourceWords": 15369
+      },
+      "after": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1074,
+        "wiredWords": 12588,
+        "resourceTexts": 1651,
+        "resourceWords": 15396
+      }
+    },
+    "pt-BR": {
+      "before": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1064,
+        "wiredWords": 12557,
+        "resourceTexts": 1641,
+        "resourceWords": 15365
+      },
+      "after": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1070,
+        "wiredWords": 12584,
+        "resourceTexts": 1647,
+        "resourceWords": 15392
+      }
+    },
+    "de": {
+      "before": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1067,
+        "wiredWords": 12560,
+        "resourceTexts": 1642,
+        "resourceWords": 15366
+      },
+      "after": {
+        "texts": 7581,
+        "words": 50898,
+        "wiredTexts": 1073,
+        "wiredWords": 12587,
+        "resourceTexts": 1648,
+        "resourceWords": 15393
+      }
+    }
+  },
+  "newStatic": [
+    {
+      "id": "100a28bba5eaaadb2bc3",
+      "text": "Aucune candidature",
+      "words": 2
+    },
+    {
+      "id": "12bcde3c7b1b1e7c72eb",
+      "text": "Vote en cours",
+      "words": 3
+    },
+    {
+      "id": "16cf2224b0501830466d",
+      "text": "Courrier",
+      "words": 1
+    },
+    {
+      "id": "33f1c47a1dcb1e3f5463",
+      "text": "{DYNAMIC} membres",
+      "words": 1
+    },
+    {
+      "id": "8b23282698e977ea1e7e",
+      "text": "Candidatures ouvertes",
+      "words": 2
+    },
+    {
+      "id": "8d8fed0e3237646f4891",
+      "text": "Candidatures ({DYNAMIC})",
+      "words": 1
+    },
+    {
+      "id": "dafdf00929285aab730d",
+      "text": "ÉLECTION —",
+      "words": 1
+    },
+    {
+      "id": "ff8059dc6752afdd30d2",
+      "text": "Actions",
+      "words": 1
+    }
+  ],
+  "removedStatic": [
+    {
+      "id": "031c3515b2a312be138c",
+      "text": "📋 Forum",
+      "words": 1
+    },
+    {
+      "id": "33836acecece881bd958",
+      "text": "⚡ Actions",
+      "words": 1
+    },
+    {
+      "id": "3e028b2fa85afd1c1201",
+      "text": "ÉLECTION — {DYNAMIC}",
+      "words": 1
+    },
+    {
+      "id": "a5fef444bc785121a346",
+      "text": "✉️ Inviter",
+      "words": 1
+    },
+    {
+      "id": "ac0d557b47070d080802",
+      "text": "🗳 Déclencher une élection",
+      "words": 3
+    },
+    {
+      "id": "b8d1bf70a95719d18502",
+      "text": "{DYNAMIC} · {DYNAMIC}{DYNAMIC} · {DYNAMIC} membres",
+      "words": 1
+    },
+    {
+      "id": "ce549fd046fb22b4a51a",
+      "text": "👥 Membres",
+      "words": 1
+    },
+    {
+      "id": "d85a6e8386a2088eb12e",
+      "text": "⚙️ Parametres",
+      "words": 1
+    },
+    {
+      "id": "e594582fab0e9ffa5212",
+      "text": "📨 Candidatures ({DYNAMIC})",
+      "words": 1
+    },
+    {
+      "id": "ee9ac46ce2d127c04bea",
+      "text": "✉️ Courrier",
+      "words": 1
+    },
+    {
+      "id": "fdae98e1f7b65087e4da",
+      "text": "📨 Aucune candidature",
+      "words": 2
+    }
+  ],
+  "extractionErrors": {
+    "before": [],
+    "after": []
+  }
+}

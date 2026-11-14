@@ -1,18 +1,18 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `8c6033c9c7e58052d41538ba7d0caf14f4926ed7`. Empreinte du corpus : `e47802b5c74cbc6586a97c18fcdf61d1adc5896aaa5a0c7b8901a600091f2f0f`.
+Base analysée : `66cdd698e6824cd092d0ef4cfaa49db09753f74a`. Empreinte du corpus : `430f41b676239b5514477e59c03df00fc5868b1959522e34407577b8ab5be0f4`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 
-**17587 textes distincts repérés**, 31148 occurrences dans les sources. 229 fichiers JS/HTML et 531 fichiers SQL analysés.
+**17592 textes distincts repérés**, 31162 occurrences dans les sources. 230 fichiers JS/HTML et 532 fichiers SQL analysés.
 
 ## Périmètre et certitude
 
 | Classe | Textes uniques | Mots source |
 |---|---:|---:|
-| static-render-path | 7592 | 50912 |
-| candidate-review | 7734 | 64698 |
-| server-source-review | 948 | 14043 |
+| static-render-path | 7589 | 50910 |
+| candidate-review | 7738 | 64735 |
+| server-source-review | 952 | 14070 |
 | ai-context-not-output | 1313 | 55605 |
 
 Les taux suivants portent seulement sur `static-render-path` : un chemin de rendu est identifié, sans preuve que chaque état soit accessible en session. Les autres classes restent visibles, hors dénominateur. Une même chaîne est dédupliquée globalement ; ses occurrences gardent leur contexte. Une seule occurrence non prouvée suffit à empêcher sa certification complète.
@@ -21,15 +21,15 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 
 | Langue | Corpus | Raccordés prouvés* | Taux textes* | Taux mots* | Ressource disponible** | Mots à traiter/vérifier |
 |---|---:|---:|---:|---:|---:|---:|
-| Français | 7592 | 7592 | 100.00 % | 100.00 % | 7592 | 0 |
-| Anglais | 7592 | 1059 | 13.95 % | 24.65 % | 1624 | 38361 |
-| Espagnol | 7592 | 1066 | 14.04 % | 24.67 % | 1640 | 38353 |
-| Chinois traditionnel | 7592 | 1068 | 14.07 % | 24.67 % | 1646 | 38351 |
-| Russe | 7592 | 1068 | 14.07 % | 24.67 % | 1645 | 38351 |
-| Coréen | 7592 | 1068 | 14.07 % | 24.67 % | 1646 | 38351 |
-| Arabe | 7592 | 1068 | 14.07 % | 24.67 % | 1645 | 38351 |
-| Portugais brésilien | 7592 | 1064 | 14.01 % | 24.66 % | 1641 | 38355 |
-| Allemand | 7592 | 1067 | 14.05 % | 24.67 % | 1642 | 38352 |
+| Français | 7589 | 7589 | 100.00 % | 100.00 % | 7589 | 0 |
+| Anglais | 7589 | 1070 | 14.10 % | 24.72 % | 1635 | 38323 |
+| Espagnol | 7589 | 1078 | 14.20 % | 24.74 % | 1652 | 38314 |
+| Chinois traditionnel | 7589 | 1080 | 14.23 % | 24.75 % | 1658 | 38312 |
+| Russe | 7589 | 1080 | 14.23 % | 24.75 % | 1657 | 38312 |
+| Coréen | 7589 | 1080 | 14.23 % | 24.75 % | 1658 | 38312 |
+| Arabe | 7589 | 1080 | 14.23 % | 24.75 % | 1657 | 38312 |
+| Portugais brésilien | 7589 | 1076 | 14.18 % | 24.74 % | 1653 | 38316 |
+| Allemand | 7589 | 1079 | 14.22 % | 24.74 % | 1654 | 38313 |
 
 * Preuve statique stricte : clé explicite de même français, traducteur exporté/wrapper transparent, guide accepté par son garde d’intégrité ou description d’ordre reconnue par le résolveur existant dans son pays, dans chacune des huit langues. C’est un plancher de raccordements identifiés, pas la mesure de toutes les traductions qui fonctionnent. Les valeurs identiques au français restent à vérifier sauf sigles neutres documentés.
 
@@ -42,7 +42,7 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 | Bâtiments et pièces | 992 | 713 | 50 | 2119 |
 | Courriers, notifications et journaux | 387 | 104 | 238 | 1216 |
 | Création et connexion | 158 | 94 | 39 | 388 |
-| Enquêtes, missions et objectifs | 904 | 38 | 795 | 5000 |
+| Enquêtes, missions et objectifs | 902 | 49 | 782 | 4963 |
 | Interface générale et autres activités | 1955 | 96 | 1672 | 9732 |
 | Navigation et transports | 139 | 0 | 97 | 706 |
 | Ordres et descriptions | 1008 | 732 | 56 | 2141 |
@@ -59,7 +59,7 @@ Les neuf langues et leurs volumes par domaine sont détaillés dans `tableau-de-
 | Bâtiments et pièces | 100.00 % / 100.00 % | 71.88 % / 79.14 % | 71.88 % / 79.14 % | 71.98 % / 79.15 % | 71.98 % / 79.15 % | 71.98 % / 79.15 % | 71.98 % / 79.15 % | 71.88 % / 79.14 % | 71.98 % / 79.15 % |
 | Courriers, notifications et journaux | 100.00 % / 100.00 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % | 26.87 % / 34.80 % |
 | Création et connexion | 100.00 % / 100.00 % | 59.49 % / 60.57 % | 60.76 % / 60.77 % | 61.39 % / 60.87 % | 61.39 % / 60.87 % | 61.39 % / 60.87 % | 61.39 % / 60.87 % | 60.76 % / 60.77 % | 61.39 % / 60.87 % |
-| Enquêtes, missions et objectifs | 100.00 % / 100.00 % | 4.20 % / 2.91 % | 4.20 % / 2.91 % | 4.20 % / 2.91 % | 4.20 % / 2.91 % | 4.20 % / 2.91 % | 4.20 % / 2.91 % | 4.09 % / 2.89 % | 4.20 % / 2.91 % |
+| Enquêtes, missions et objectifs | 100.00 % / 100.00 % | 5.43 % / 3.61 % | 5.54 % / 3.63 % | 5.54 % / 3.63 % | 5.54 % / 3.63 % | 5.54 % / 3.63 % | 5.54 % / 3.63 % | 5.43 % / 3.61 % | 5.54 % / 3.63 % |
 | Interface générale et autres activités | 100.00 % / 100.00 % | 4.91 % / 23.26 % | 5.17 % / 23.30 % | 5.17 % / 23.30 % | 5.17 % / 23.30 % | 5.17 % / 23.30 % | 5.17 % / 23.30 % | 5.12 % / 23.29 % | 5.12 % / 23.29 % |
 | Navigation et transports | 100.00 % / 100.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % | 0.00 % / 0.00 % |
 | Ordres et descriptions | 100.00 % / 100.00 % | 72.62 % / 79.38 % | 72.62 % / 79.38 % | 72.72 % / 79.39 % | 72.72 % / 79.39 % | 72.72 % / 79.39 % | 72.72 % / 79.39 % | 72.62 % / 79.38 % | 72.72 % / 79.39 % |
@@ -80,7 +80,7 @@ Les descriptions communes sont présentes dans plusieurs empires : ne pas additi
 
 ## Catalogue central et autres ressources
 
-Le catalogue central expose **3620 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4609 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
+Le catalogue central expose **3634 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4623 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
 
 | Langue | Clés absentes | Variables incohérentes |
 |---|---:|---:|
@@ -99,9 +99,9 @@ Le catalogue central expose **3620 clés françaises**. Les tables locales, guid
 | Priorité | Textes candidats non entièrement prouvés | Usage |
 |---|---:|---|
 | 1 | 182 | Compréhension d’un ordre, d’un refus ou entrée dans le jeu |
-| 2 | 9978 | Commandes et messages de gameplay |
-| 3 | 2918 | Compréhension d’une mission ou interaction narrative |
-| 4 | 2140 | Description ou repère de lieu |
+| 2 | 9982 | Commandes et messages de gameplay |
+| 3 | 2905 | Compréhension d’une mission ou interaction narrative |
+| 4 | 2143 | Description ou repère de lieu |
 
 Classement automatique à confirmer en jeu. `inventaire.json.gz` fournit texte, identifiant, fichier, ligne, pays et ressources candidates ; `priorites.json.gz` fournit les langues manquantes et les branchements à vérifier. Les descriptions Républia restantes ne sont pas traduites par cet audit.
 
