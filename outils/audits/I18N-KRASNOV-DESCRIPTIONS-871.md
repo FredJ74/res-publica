@@ -16,7 +16,7 @@ PR [#969](https://github.com/FredJ74/res-publica/pull/969) en brouillon. Commits
 
 ## Blocage de livraison
 
-Main contient 347 905 757 octets de payload simulé (331,8 Mo) pour un plafond de 346 030 080 octets (330 Mo), dépassé depuis les images du musée. La branche contient 347 910 378 octets, soit +4 621 octets. Le plafond et les images sont inchangés. La garde de déploiement est donc rouge sur les deux versions. Ne pas fusionner ou annoncer ce lot déployé tant que le budget de main n’est pas rétabli ou explicitement arbitré. Aucune recette PJ authentifié, téléphone physique ou relecture native effectuée.
+Main contient 347 905 991 octets de payload simulé (331,8 Mo) pour un plafond de 346 030 080 octets (330 Mo), dépassé depuis les images du musée. La branche contient 347 910 612 octets, soit +4 621 octets. Le plafond et les images sont inchangés. La garde de déploiement est donc rouge sur les deux versions. Ne pas fusionner ou annoncer ce lot déployé tant que le budget de main n’est pas rétabli ou explicitement arbitré. Aucune recette PJ authentifié, téléphone physique ou relecture native effectuée.
 
 Les migrations et images arrivées par intégration de main sont celles des autres chantiers ; aucune migration n’a été exécutée dans cette mission.
 
