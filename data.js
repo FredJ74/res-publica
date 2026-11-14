@@ -2496,6 +2496,15 @@ const WORLD = {
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','stade','zone-production','entrepot-logistique-krasnov','station-service-krasnov'],
       buildingContext: {
+        // Décors de l'hôpital municipal de Krasnov (automne) : les salles et les
+        // ordres restent ceux du gabarit partagé. Ne pas dupliquer la logique métier.
+        'dispensaire-public-v': {
+          name: 'Hôpital municipal de Krasnov',
+          roomOverrides: {
+            attente: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_hopital_accueil.webp' },
+            ehpad: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_hopital_EPHAD.webp' }
+          }
+        },
         // Krasnov conserve les ordres de transport du socle, mais possède son propre hall.
         'centre-multinodal-montrouge': {
           name: "Gare de Krasnov",
@@ -11026,7 +11035,9 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
       image: '🛏️',
       imageBg: 'linear-gradient(135deg,#13201e,#29352f)',
       desc: "Une chambre modeste, propre et chauffée. Le mobilier est ancien, mais les draps sont impeccables.",
-      imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_chambre.webp',
+      imageUrl: ville === 'ville_b'
+        ? 'images/Sovarka/Krasnov/Krasnov_hopital_chambre.webp'
+        : 'images/Sovarka/Novomirsk/Novomirsk_hopital_chambre.webp',
       persons: [],
       orders: CHAMBRE_HOPITAL_ORDRES_SOVARKA()
     };
