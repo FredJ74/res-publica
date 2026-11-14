@@ -591,6 +591,59 @@ PIECE_VARIANTES.soviet = {
   }
 };
 
+/* Trois box identiques à Krasnov : image d'origine tant que le local est libre.
+   Le bail municipal fait foi pour déclencher l'image louée et les inscriptions.
+   La planche (commerce) et l'ardoise (locataire) sont des zones distinctes. */
+PIECE_FAMILLES_ETAT.krasnovBox = {
+  etat: PIECE_FAMILLES_ETAT.location.etat,
+  enseigne: function (buildingId, roomId, ville) {
+    if (typeof getLocationPourRoom !== 'function') return null;
+    const bail = getLocationPourRoom(buildingId, roomId, ville);
+    if (!bail) return null;
+    const nomLocataire = String(bail.locataire || '').trim();
+    const repli = nomLocataire ? { mode:'texte', texte:nomLocataire } : null;
+    if (!bail.fondsId || typeof sbGetFonds !== 'function') return repli;
+    return sbGetFonds(bail.fondsId).then(function (fonds) {
+      const actif = typeof fondsEstActif === 'function' ? fondsEstActif(fonds) : !!fonds;
+      const nom = actif && typeof fonds?.enseigne === 'string' ? fonds.enseigne.trim() : '';
+      return nom ? { mode:'texte', texte:nom } : repli;
+    }).catch(function () { return repli; });
+  }
+};
+
+const KRASNOV_BOX_PLANche = {
+  mode:'texte', etats:['occupee'],
+  // Gravure au fer sur la planche brute : traits brun noir, bord chaud
+  // et léger reflet de la fibre soulevée, sans cartouche ni fond opaque.
+  zone:{ x:.192, y:.148, w:.477, h:.085 },
+  texte:{ align:'center', casse:'aucune', couleur:'#342015', ombre:false,
+    pyrogravure:true, graisse:700, police:"Georgia,serif", interLettre:'.045em' }
+};
+const KRASNOV_BOX_ARDOISE = {
+  mode:'texte', etats:['occupee'],
+  // Zone intérieure de l'ardoise sur pied, à droite de l'entrée.
+  zone:{ x:.627, y:.587, w:.105, h:.157 },
+  texte:{ align:'center', casse:'aucune', couleur:'#f1eee8', ombre:false,
+    graisse:500, police:"'Playfair Display',Georgia,serif" }
+};
+PIECE_VARIANTES.soviet.ville_b = {
+  'centre-artisanal': Object.fromEntries(
+    ['echoppe_facade','atelier_milieu','reserve_arriere'].map(function (piece) {
+      return [piece, {
+        famille:'krasnovBox', ancrage:'centre',
+        nom:{ occupee:'Box artisanal' },
+        desc:{ occupee:'Box artisanal attribué par la mairie de Krasnov.' },
+        images:{
+          libre:'images/Sovarka/Krasnov/Krasnov_centre_artisanal_box.webp',
+          occupee:'images/Sovarka/Krasnov/Krasnov_centre_artisanal_box_attribue.webp'
+        },
+        enseigne:KRASNOV_BOX_PLANche,
+        ardoise:KRASNOV_BOX_ARDOISE
+      }];
+    })
+  )
+};
+
 /* ---------------------------------------------------------------------------
    3. LE MOTEUR
    --------------------------------------------------------------------------- */
@@ -1014,8 +1067,7 @@ function varianteJeton(buildingId, roomId, ville) {
 }
 
 function varianteRetirerEnseigne(cadre) {
-  const vieille = cadre.querySelector('.piece-enseigne');
-  if (vieille) vieille.remove();
+  cadre.querySelectorAll('.piece-enseigne').forEach(function (vieille) { vieille.remove(); });
 }
 
 /* Normalise ce que rend une famille. Trois formes acceptees, pour que la
@@ -1036,9 +1088,12 @@ function varianteNormaliserEnseigne(brut, modeParDefaut) {
 }
 
 /* Pose (ou repositionne) l'element d'enseigne, selon le mode retenu. */
-function varianteDessinerEnseigne(cadre, decl, contenu) {
-  const conf = decl.enseigne;
-  varianteRetirerEnseigne(cadre);
+function varianteDessinerEnseigne(cadre, decl, contenu, secondaire) {
+  const conf = secondaire ? decl.ardoise : decl.enseigne;
+  if (!secondaire) {
+    const ancien = cadre.querySelector('.piece-enseigne:not(.piece-enseigne-secondaire)');
+    if (ancien) ancien.remove();
+  }
   if (!conf || !contenu) return;
   if (conf.mode === 'aucune') return;            // le lieu refuse toute enseigne
 
@@ -1047,6 +1102,7 @@ function varianteDessinerEnseigne(cadre, decl, contenu) {
 
   const el = document.createElement('div');
   el.className = 'piece-enseigne';
+  if (secondaire) el.classList.add('piece-enseigne-secondaire');
   el.classList.add('mode-' + contenu.mode);
 
   if (contenu.mode === 'image') {
@@ -1090,7 +1146,13 @@ function varianteDessinerEnseigne(cadre, decl, contenu) {
     el.style.fontFamily = t.police || "'Playfair Display',Georgia,serif";
     el.style.fontWeight = String(t.graisse || 700);
     if (t.interLettre) el.style.letterSpacing = t.interLettre;
-    if (t.ombre) el.style.textShadow = '0 1px 2px rgba(0,0,0,.75), 0 0 10px rgba(0,0,0,.45)';
+    if (t.pyrogravure) {
+      // Ombres sèches encre/charbon et léger filet chaud : effet de bois brûlé.
+      // Ne change pas le rendu des enseignes ordinaires ni de l'ardoise.
+      el.style.textShadow = '0 1px 0 rgba(30,12,3,.88), 1px 1px 1px rgba(65,24,5,.64), -1px -1px 0 rgba(209,127,60,.35), 0 0 2px rgba(85,37,8,.50)';
+    } else if (t.ombre) {
+      el.style.textShadow = '0 1px 2px rgba(0,0,0,.75), 0 0 10px rgba(0,0,0,.45)';
+    }
     el.title = String(contenu.texte);
   }
 
@@ -1182,12 +1244,14 @@ let varianteObservateur = null;
 function varianteInstallerObservateur(cadre) {
   if (varianteObservateur || typeof ResizeObserver === 'undefined') return;
   varianteObservateur = new ResizeObserver(function () {
-    const el = cadre.querySelector('.piece-enseigne');
-    if (!el) return;
     const decl = varianteDePiece(cadre.dataset.varBat, cadre.dataset.varPiece);
     if (!decl || !decl.enseigne) return;
     const url = decl.images[varianteEtatPiece(cadre.dataset.varBat, cadre.dataset.varPiece)];
-    if (url) variantePositionnerEnseigne(cadre, decl.enseigne, url, el, decl.ancrage);
+    if (!url) return;
+    cadre.querySelectorAll('.piece-enseigne').forEach(function (el) {
+      const conf = el.classList.contains('piece-enseigne-secondaire') ? decl.ardoise : decl.enseigne;
+      if (conf) variantePositionnerEnseigne(cadre, conf, url, el, decl.ancrage);
+    });
   });
   varianteObservateur.observe(cadre);
 }
@@ -1213,6 +1277,16 @@ function varianteAppliquerEnseigne(buildingId, roomId, ville) {
   if (etatsAffiches.indexOf(etat) === -1) return;
 
   varianteInstallerObservateur(cadre);
+
+  // Le nom civil appartient au bail signé : il s'affiche sur l'ardoise
+  // dès l'attribution, sans attendre la création ou le nom du commerce.
+  if (decl.ardoise && etat === 'occupee' && typeof getLocationPourRoom === 'function') {
+    const bail = getLocationPourRoom(buildingId, roomId, ville || state.currentCity);
+    const locataire = String(bail?.locataire || '').trim();
+    if (locataire) {
+      varianteDessinerEnseigne(cadre, decl, { mode:'texte', texte:locataire }, true);
+    }
+  }
 
   if (decl.enseigne.mode === 'aucune') return;   // le lieu refuse toute enseigne
 

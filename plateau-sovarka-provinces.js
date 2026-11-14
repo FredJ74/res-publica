@@ -21,6 +21,13 @@ const provRagot = s => (typeof RPCourriersSovarka === 'object' && RPCourriersSov
 const PROV_REACTIONS = ['hb_vodka', 'hb_slivovitz', 'hb_samogon', 'hb_alcool'];
 const PROV_CREATURES = ['cf_loup', 'cf_meute', 'cf_ours'];
 const PROV_ALERTES = ['fa_1', 'fa_2', 'fa_3', 'fa_4', 'fa_5'];
+// Illustrations des rencontres de la forêt profonde (images de Fred, 14/11/2026).
+const PROV_FORET_IMAGES = { cf_loup: 'Krasnov_foret_loup_attaque.webp', cf_meute: 'Krasnov_foret_meute_loups.webp', cf_ours: 'Krasnov_foret_ours_attaque.webp', olga: 'Krasnov_foret_olga_panier.webp' };
+const provForetImage = cle => PROV_FORET_IMAGES[cle]
+  ? '<img src="images/Sovarka/Krasnov/' + PROV_FORET_IMAGES[cle] + '" alt="" style="display:block;width:100%;max-height:42vh;object-fit:cover;border-radius:6px;margin-bottom:.6rem">' : '';
+// Le serveur nomme la créature en français ; on retrouve sa clé dans le catalogue des messages.
+const provCreatureCle = nom => PROV_CREATURES.find(k => typeof RPCourriersSovarka === 'object' && RPCourriersSovarka.phrase([k], nom) && RPCourriersSovarka.phrase([k], nom) !== nom)
+  || ({ 'Loup solitaire': 'cf_loup', 'Meute de loups': 'cf_meute', 'Ours': 'cf_ours' })[nom] || null;
 const PROV_SERVICES = ['bois', 'fruits_legumes', 'oeufs', 'vodka', 'poisson', 'carburant', 'viande', 'viande_renne'];
 // Service demandé : en français le libellé du serveur ; ailleurs, la quantité et l'objet exigés par le serveur.
 function provService(s) {
@@ -285,8 +292,8 @@ async function provReactionIA(requete) {
 // ---------- FERMES (Fred, 10/11/2026 à midi) ----------
 // Une ferme ne consomme que du travail : le serveur paie les PA et dépose les produits dans l'inventaire.
 Object.assign(PROV_MOTIFS, provRaisons(['inventaire_plein', 'pas_d_oeufs']));
-const PROV_FERME_LABELS = ['ft_renne', 'ft_traire', 'ft_legumes', 'ft_oeufs', 'ft_poulet', 'ft_lapin'];
-const PROV_FERME_TRAVAUX = { ferme_renne: 'renne', ferme_traire: 'traire', ferme_legumes: 'legumes', ferme_oeufs: 'oeufs', ferme_poulet: 'poulet', ferme_lapin: 'lapin' };
+const PROV_FERME_LABELS = ['ft_renne', 'ft_traire', 'ft_legumes', 'ft_oeufs', 'ft_vaches', 'ft_poulet', 'ft_lapin'];
+const PROV_FERME_TRAVAUX = { ferme_renne: 'renne', ferme_traire: 'traire', ferme_legumes: 'legumes', ferme_oeufs: 'oeufs', ferme_vaches: 'vaches', ferme_poulet: 'poulet', ferme_lapin: 'lapin' };
 const PROV_MATIERES = ['viande', 'textile', 'bois', 'laitages', 'fruits_legumes', 'oeufs'];
 const provProduits = l => (Array.isArray(l) ? l : []).map(p => p.qte + ' ' + (PROV_MATIERES.includes(p.cle) ? provT('mat_' + p.cle) : p.cle)).join(', ');
 const provRefus = (titre, v) => { if (typeof signalerRefusCout === 'function' && !PROV_MOTIFS[v?.raison] && v?.raison) signalerRefusCout(v); else showToast(titre, provMotif(v), false); };
@@ -310,6 +317,57 @@ async function mangerOeufs() {
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast(provT('tEggsEaten'), provT('bonusSleep', { bonus: v.bonus }), true, true);
   if (typeof addJournalEntry === 'function') addJournalEntry('Vous mangez trois œufs : +' + v.bonus + ' PA au prochain sommeil.', 'event-good');
+}
+
+// ---------- CAISSE COMMUNE DU KOLKHOZE (Fred, 14/11/2026 ; migration 20261114004000) ----------
+// Toute matière première ; don : +2 popularité par article, +6 par jour au plus ; prise : 5 articles par jour au plus.
+// Le serveur décide de tout (quotas, matières admises, inventaire) ; l'écran ne fait que proposer.
+Object.assign(PROV_MOTIFS, provRaisons(['matiere_refusee', 'stock_insuffisant', 'reserve_insuffisante', 'quota_caisse', 'quantite_invalide']));
+const PROV_KOLKHOZE_ADMISES = ['cereales', 'poisson', 'viande', 'bois', 'charbon', 'petrole', 'minerai', 'metal', 'plantes',
+  'fruits_legumes', 'produits_exotiques', 'textile', 'laitages', 'oeufs'];
+let provKolkhozeDernier = null;
+
+async function ouvrirCaisseKolkhoze(cache) {
+  const v = (cache === true && provKolkhozeDernier) || await sbRpcVerdict('kolkhoze_caisse_lire', {}).catch(() => null);
+  if (!v || v.ok !== true) { showToast(provT('tKolkhoze'), provMotif(v), false); return; }
+  provKolkhozeDernier = v;
+  const caisse = Array.isArray(v.caisse) ? v.caisse : [];
+  const champ = id => '<input id="' + id + '" type="number" min="1" max="99" value="1" class="cpj-champ" style="width:4.2rem">';
+  const contenu = caisse.length
+    ? caisse.map(c => '<div style="margin:.3rem 0"><i class="ti ' + provEchapper(c.icon || 'ti-package') + '"></i> ' + provEchapper(c.nom) + ' : ' + c.qte + ' ' +
+        champ('kol-p-' + c.cle) + vehBouton(provT('kolTake'), provJs('agirCaisseKolkhoze', 'prendre:' + c.cle), false) + '</div>').join('')
+    : '<p class="cpj-note">' + provT('kolEmpty') + '</p>';
+  const miennes = (Array.isArray(state.inventory) ? state.inventory : [])
+    .filter(o => o && o.stackable && PROV_KOLKHOZE_ADMISES.includes(o.stackKey) && Number(o.qty) >= 1);
+  const dons = miennes.length
+    ? miennes.map(o => '<div style="margin:.3rem 0"><i class="ti ' + provEchapper(o.icon || 'ti-package') + '"></i> ' + provEchapper(o.name) + ' : ' + Math.floor(Number(o.qty)) + ' ' +
+        champ('kol-d-' + o.stackKey) + vehBouton(provT('kolGive'), provJs('agirCaisseKolkhoze', 'donner:' + o.stackKey), true) + '</div>').join('')
+    : '<p class="cpj-note">' + provT('kolNothing') + '</p>';
+  provModal(provT('tKolkhoze'),
+    vehSection(provT('kolBox'), contenu + '<p class="cpj-note">' + provT('kolTakeLeft', { n: Math.max(0, v.pris_restant) }) + '</p>') +
+    vehSection(provT('kolMine'), dons + '<p class="cpj-note">' + provT('kolPopLeft', { n: Math.max(0, v.pop_restante) }) + '</p>'),
+    ouvrirCaisseKolkhoze);
+}
+
+async function agirCaisseKolkhoze(geste) {
+  const [action, cle] = String(geste).split(':');
+  const qte = Math.floor(Number(document.getElementById((action === 'donner' ? 'kol-d-' : 'kol-p-') + cle)?.value || 0));
+  if (!(qte >= 1)) { showToast(provT('tKolkhoze'), provT('m_quantite_invalide'), false); return; }
+  const v = await provActe('kolkhoze_caisse_agir', { p_action: action, p_cle: cle, p_qte: qte }, action + ':' + cle + ':' + qte);
+  if (!v) return;
+  if (v.ok !== true) { showToast(provT('tKolkhoze'), provMotif(v), false); return; }
+  if (v.jauges && typeof v.jauges.pop !== 'undefined' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', v.jauges.pop);
+  if (typeof updateUI === 'function') updateUI();
+  const nom = provEchapper(v.nom || cle);
+  if (action === 'donner') {
+    showToast(provT('tKolGiven'), provT('kolGiven', { n: v.quantite, nom }) + (v.gain_pop > 0 ? ' ' + provT('kolPop', { n: v.gain_pop }) : ''), true);
+    if (typeof addJournalEntry === 'function') addJournalEntry('Don au kolkhoze de Krasnov : ' + v.quantite + ' ' + (v.nom || cle) + (v.gain_pop > 0 ? ' (+' + v.gain_pop + ' popularité).' : '.'), 'event-good');
+  } else {
+    showToast(provT('tKolTaken'), provT('kolTaken', { n: v.quantite, nom }), true);
+    if (typeof addJournalEntry === 'function') addJournalEntry('Pris dans la caisse du kolkhoze : ' + v.quantite + ' ' + (v.nom || cle) + '.', 'event-neutral');
+  }
+  provKolkhozeDernier = v;
+  await ouvrirCaisseKolkhoze(true);
 }
 
 // ---------- FORÊT PROFONDE DE KRASNOV (Fred, 09-10/11/2026, issue #72) ----------
@@ -342,7 +400,7 @@ async function foretCouper() {
   if (v.ok !== true) { if (v.raison === 'rencontre_en_cours') { await foretReprendreRencontre(); return; } provRefus(provT('tForest'), v); return; }
   if (v.rencontre === 'olga') {
     const nourris = Array.isArray(v.nourris) ? v.nourris.length : 1;
-    const fenetre = () => provModal(provT('titleNoise'), '<p>' + provT('olga1') + '</p>' +
+    const fenetre = () => provModal(provT('titleNoise'), provForetImage('olga') + '<p>' + provT('olga1') + '</p>' +
       '<p>' + provT('olga2') + '</p>' +
       '<p class="cpj-note">' + (nourris > 1 ? provT('olgaMealGroup', { bonus: v.bonus, n: nourris }) : provT('olgaMeal', { bonus: v.bonus })) + '</p>' +
       (v.quantite ? '<p class="cpj-note">' + provT('woodToo', { n: v.quantite }) + '</p>' : ''), fenetre);
@@ -369,7 +427,7 @@ async function foretReprendreRencontre() {
 
 function foretAfficherRencontre(nom, pnj) {
   const js = s => JSON.stringify(String(s)).replace(/"/g, '&quot;');
-  let html = '<p>' + provT('enc1') + '</p>' +
+  let html = provForetImage(provCreatureCle(nom)) + '<p>' + provT('enc1') + '</p>' +
     '<p>' + provT('enc2', { nom: provEchapper(provServeur(PROV_CREATURES, nom)) }) + '</p>';
   const modes = (typeof NEUTRALISER_MODES === 'object' && NEUTRALISER_MODES) ? NEUTRALISER_MODES : { mains: { label: provT('bare') } };
   html += vehSection(provT('fight'), Object.keys(modes).map(m => {

@@ -334,7 +334,7 @@ test('forêt et fermes : fausses alertes, créatures et travaux traduits ; texte
 
 test('forêt et fermes : les textes du catalogue reproduisent ceux des migrations', () => {
   const { t } = catalogue('i18n/sovarka-messages-resources.js', 'RPSovarkaMessagesI18n', 'fr');
-  const sql = ['20261110124500_sovarka_foret_profonde_krasnov.sql', '20261110123000_sovarka_fermes_distillerie_fourreur.sql', '20261110094500_sovarka_maisons_hospitalite.sql']
+  const sql = ['20261110124500_sovarka_foret_profonde_krasnov.sql', '20261110123000_sovarka_fermes_distillerie_fourreur.sql', '20261110094500_sovarka_maisons_hospitalite.sql', '20261114004000_kolkhoze_krasnov_caisse.sql']
     .map(f => lire('migrations/' + f).replace(/''/g, '\'')).join('\n');
   for (const k of t.cles.filter(c => /^(fa_|ft_|hb_|cf_)/.test(c))) assert.ok(sql.includes(t.fr(k)), k + ' absent des migrations');
 });

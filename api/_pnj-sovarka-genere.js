@@ -506,6 +506,46 @@ export const PNJ_SOVARKA_RENOMMES = [
  },
  {
   "ville": "Krasnov",
+  "ancien": "Bookmaker Officiel",
+  "nouveau": "Iossif Borissov",
+  "role": "Guichetier du Bureau d'État des pronostics",
+  "id": "sovarka_iossif_borissov",
+  "source": "bookmaker_officiel"
+ },
+ {
+  "ville": "Krasnov",
+  "ancien": "Tenancier de Buvette",
+  "nouveau": "Avdotia Doubova",
+  "role": "Tenancière de la buvette",
+  "id": "sovarka_avdotia_doubova",
+  "source": "tenancier_de_buvette"
+ },
+ {
+  "ville": "Krasnov",
+  "ancien": "Entraineur Local",
+  "nouveau": "Vsevolod Fedotov",
+  "role": "Entraîneur de l'Étoile Rouge",
+  "id": "sovarka_vsevolod_fedotov",
+  "source": "entraineur_local"
+ },
+ {
+  "ville": "Krasnov",
+  "ancien": "Commentateur Sportif",
+  "nouveau": "Semione Klimov",
+  "role": "Commentateur de la radio du kolkhoze",
+  "id": "sovarka_semione_klimov",
+  "source": "commentateur_sportif"
+ },
+ {
+  "ville": "Krasnov",
+  "ancien": "Meneur des Supporters",
+  "nouveau": "Stiopa « le Tambour » Ossipov",
+  "role": "Meneur des supporters",
+  "id": "sovarka_stiopa_le_tambour_ossipov",
+  "source": "meneur_des_supporters"
+ },
+ {
+  "ville": "Krasnov",
   "ancien": "Delegue Morel",
   "nouveau": "Délégué Prokofi Panov",
   "role": null,

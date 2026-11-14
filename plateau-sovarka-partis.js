@@ -126,7 +126,8 @@ async function ouvrirSovarkaMonParti(cache) {
       vehBouton(partiT('seats'), 'ouvrirSovietSupreme()', false));
     html += vehSection(partiT('secLaws'), '<p class="cpj-note">' + partiT('lawsNote') + '</p>'
       + vehBouton(partiT('bill'), 'ouvrirSovarkaDeposerLoi()', true)
-      + vehBouton(partiT('rally'), 'sovarkaManifSoutien()', false));
+      + vehBouton(partiT('rallyRequest'), 'sovarkaManifDemander()', false)
+      + vehBouton(partiT('rallyAuthorized'), 'sovarkaManifSoutien()', false));
     html += vehSection(partiT('secFee'), '<input id="parti-prix" class="cpj-champ" type="number" min="0" step="1" value="' + m.prix + '"> PSK ' +
       vehBouton(partiT('set'), 'partiFixerPrix()', false));
   }

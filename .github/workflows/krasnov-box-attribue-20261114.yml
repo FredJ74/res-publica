@@ -1,0 +1,88 @@
+name: Krasnov - convertir decor des box attribues et verifier variantes
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/krasnov-box-attribue-20261114.yml'
+permissions:
+  contents: write
+jobs:
+  livrer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Convertir le decor loue
+        run: |
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          root=Path('images/Sovarka/Krasnov')
+          src=root/'Atelier chaleureux sans enseignes textuelles.png'
+          assert src.exists(), 'Nouvelle image source manquante'
+          dst=root/'Krasnov_centre_artisanal_box_attribue.webp'
+          assert not dst.exists(), 'Ne pas ecraser un decor deja livre'
+          with Image.open(src) as im:
+              assert im.width>=1200 and im.height>=800, im.size
+              im.convert('RGB').save(dst,'WEBP',quality=92,method=6)
+              dims=im.size
+          with Image.open(dst) as im:
+              assert im.format=='WEBP' and im.size==dims
+          src.unlink()
+          print(f'WebP {dst}: {dst.stat().st_size} octets; PNG supprime')
+          PY
+      - name: Verifier les variantes et le comportement
+        run: |
+          node --check plateau-variantes-pieces.js
+          node --check data.js
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';
+          import vm from 'node:vm';
+          import assert from 'node:assert/strict';
+          const script=fs.readFileSync('plateau-variantes-pieces.js','utf8');
+          const state={country:'soviet',currentCity:'ville_b'};
+          let bail=null, fonds=null, requests=0;
+          const room = {imageUrl:'images/Sovarka/Krasnov/Krasnov_centre_artisanal_box.webp'};
+          const centre={buildingContext:{'centre-commercial':{roomOverrides:{vitrine_principale:room,boutique_milieu:room,arriere_boutique:room,cave_reserve:room}}}}; const world={republic:{ville_a:centre},soviet:{capitale:centre}};
+          const ctx={state, WORLD:world, getLocationPourRoom:(b,r,v)=>v==='ville_b'&&b==='centre-artisanal'?bail:null,
+            sbGetFonds:async ()=>{requests++;return fonds;},fondsEstActif:f=>f?.statut==='actif'};
+          vm.createContext(ctx);
+          vm.runInContext(script,ctx);
+          const image=(p)=>vm.runInContext("varianteImagePiece('centre-artisanal','"+p+"','ville_b')",ctx);
+          const enseigne=(p)=>vm.runInContext("PIECE_FAMILLES_ETAT.krasnovBox.enseigne('centre-artisanal','"+p+"','ville_b')",ctx);
+          for(const p of ['echoppe_facade','atelier_milieu','reserve_arriere']) {
+            assert.match(image(p),/Krasnov_centre_artisanal_box.webp$/);
+            assert.equal(enseigne(p),null);
+          }
+          bail={locataire:'Arnie',fondsId:null};
+          for(const p of ['echoppe_facade','atelier_milieu','reserve_arriere']){
+            assert.match(image(p),/Krasnov_centre_artisanal_box_attribue.webp$/);
+            assert.equal(enseigne(p).texte,'Arnie');
+          }
+          bail={locataire:'Arnie',fondsId:'fonds-test'};
+          fonds={statut:'actif',enseigne:'Bois du Nord'};
+          assert.equal((await enseigne('echoppe_facade')).texte,'Bois du Nord');
+          fonds={statut:'actif',enseigne:' '};
+          assert.equal((await enseigne('echoppe_facade')).texte,'Arnie');
+          fonds=null;
+          assert.equal((await enseigne('echoppe_facade')).texte,'Arnie');
+          bail=null;
+          assert.match(image('echoppe_facade'),/Krasnov_centre_artisanal_box.webp$/);
+          assert.ok(script.includes('piece-enseigne-secondaire'));
+          assert.ok(script.includes('bail?.locataire'));
+          assert.ok(fs.existsSync('images/Sovarka/Krasnov/Krasnov_centre_artisanal_box.webp'));
+          assert.ok(fs.existsSync('images/Sovarka/Krasnov/Krasnov_centre_artisanal_box_attribue.webp'));
+          console.log('OK : libre, occupe sans commerce, enseigne choisie, enseigne manquante, bail resilie');
+          JS
+          git diff --check
+      - name: Commit du decor WebP
+        run: |
+          git add images/Sovarka/Krasnov
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Krasnov : image WebP des box attribues sans texte incruste'
+            git push
+          fi

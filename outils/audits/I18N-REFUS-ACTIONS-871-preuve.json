@@ -1,0 +1,14 @@
+{
+  "baseCommit": "d16f771d734f3273bd4ae0f3ef8610f295df07c9",
+  "codeCommit": "fa52c5e9a332b1bcf191b7cb0367acf9b5533917",
+  "corePresentationAnnotations": 16,
+  "newBodyKeys": 5,
+  "newTitleKeys": 1,
+  "newForeignTranslations": 48,
+  "reusedExistingTitleTranslations": 120,
+  "pendingSharedBodyKeys": 15,
+  "sharedBodyPullRequest": 924,
+  "businessAstIdentical": true,
+  "engineChangedOnlyInMarkToast": true,
+  "verificationUsedRealAccounts": false
+}

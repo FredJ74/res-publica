@@ -2183,7 +2183,8 @@ const WORLD = {
                               // Décisions de Fred (08/11/2026) : pas de vote de confiance, l'autocritique publique le remplace ;
                               // le Président du Conseil tranche seul les projets de loi des partis.
                               excludeOrders: ['declencher_vote_confiance'],
-                              orders: [{ fn: 'sovarka_lois_examen', label: 'Projets de loi à trancher', pa: 0, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, requiresPost: 'pm', desc: "Les projets déposés par les partis. Vous tranchez seul ; une loi acceptée est promulguée aussitôt." },
+                              orders: [{ fn: 'sovarka_lois_examen', label: 'Projets de loi à trancher', pa: 0, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, requiresPost: 'pm', desc: "Les projets déposés par les partis. Vous tranchez seul (1 PA par projet) ; une loi acceptée est promulguée aussitôt." },
+                                       { fn: 'sovarka_graces', label: 'Grâces à transmettre', pa: 0, cost: 0, type: 'legal', icon: 'ti-heart-handshake', successRate: 100, requiresPost: 'pm', desc: "Décider de transmettre au Président les grâces proposées par le ministre de la Justice (1 PA par dossier)." },
                                        { fn: 'sovarka_autocritique', label: 'Autocritique publique', pa: 1, cost: 0, type: 'legal', icon: 'ti-speakerphone', successRate: 100, requiresPost: 'pm', desc: "Contraindre un ministre à une autocritique publiée dans la presse : il perd 5 POP, vous en gagnez 2. Une fois par ministre et par semaine." },
                                        { fn: 'sovarka_signalements', label: 'Registre des signalements', pa: 0, cost: 0, type: 'legal', icon: 'ti-file-alert', successRate: 100, requiresPost: ['pm','min_int'], desc: "Le registre de la cellule de surveillance des partis du Capitaine Balatov : les députés signalés pour abstention. Aucun effet automatique : à vous d'en faire usage." }] },
             salle_conseil:  { name: 'Salle du Conseil du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_conseil.webp',
@@ -2191,7 +2192,7 @@ const WORLD = {
             salle_presse:   { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_salle_presse.webp' },
             archives_gouv:  { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_archives.webp' },
             bureau_min_int: { name: 'Bureau - Ministre de la Sécurité du Peuple', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_securite.webp',
-                              excludeOrders: ['lois_votees_an'],
+                              excludeOrders: ['lois_votees_an','gestion_manifestations'],
                               // Registre de la cellule Balatov lisible par la Sécurité du Peuple (Fred, 08/11/2026).
                               // Surveillance d'un citoyen (Fred, 08/11/2026) : 4 jours, 2 PA, 150 PSK sur la caisse du ministère.
                               orders: [{ fn: 'renseignement_militaire', label: 'Renseignement militaire', pa: 0, cost: 0, type: 'grey', icon: 'ti-spy', successRate: 100, requiresPost: 'min_int', desc: "Convoquer une equipe sous couverture, ou suivre une operation en cours." },
@@ -2199,21 +2200,29 @@ const WORLD = {
                                        // accorde ou retire l'acces legal aux archives des centres d'ecoute (qui appartiennent a la Defense).
                                        { fn: 'sovarka_habilitations', label: 'Habilitations aux archives d’écoute', pa: 0, cost: 0, type: 'legal', icon: 'ti-id-badge', successRate: 100, requiresPost: 'min_int', desc: "Accorder ou retirer à un personnage l'habilitation à consulter les archives des centres d'écoute. Vous ne pouvez pas vous habiliter vous-même." },
                                        { fn: 'sovarka_signalements', label: 'Registre des signalements', pa: 0, cost: 0, type: 'legal', icon: 'ti-file-alert', successRate: 100, requiresPost: ['pm','min_int'], desc: "Le registre de la cellule de surveillance des partis du Capitaine Balatov : les députés signalés pour abstention. Aucun effet automatique : à vous d'en faire usage." },
-                                       { fn: 'sovarka_surveiller', label: 'Placer sous surveillance', pa: 2, cost: 0, type: 'legal', icon: 'ti-eye', successRate: 100, requiresPost: 'min_int', desc: "Faire suivre un citoyen pendant 4 jours : chaque matin, un rapport de tous ses déplacements et des personnes croisées. 150 PSK prélevés sur la caisse du ministère. La cible peut s'en rendre compte. Trois surveillances au plus en même temps." }] },
+                                       { fn: 'sovarka_surveiller', label: 'Placer sous surveillance', pa: 2, cost: 0, type: 'legal', icon: 'ti-eye', successRate: 100, requiresPost: 'min_int', desc: "Faire suivre un citoyen pendant 4 jours : chaque matin, un rapport de tous ses déplacements et des personnes croisées. 150 PSK prélevés sur la caisse du ministère. La cible peut s'en rendre compte. Trois surveillances au plus en même temps." },
+                                       { fn: 'sovarka_manifs_gerer', label: 'Gérer les manifestations', pa: 0, cost: 0, type: 'legal', icon: 'ti-users-group', successRate: 100, requiresPost: 'min_int', desc: "Accepter ou refuser une demande de manifestation de soutien (1 PA) ; réprimer une manifestation autorisée (3 PA)." }] },
             bureau_min_fin: { name: "Bureau - Ministre de l'Économie collective", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_economie.webp',
-                              excludeOrders: ['preempter_entreprise'] },
+                              excludeOrders: ['preempter_entreprise','bne_caisse_prelever','subvention'],
+                              orders: [{ fn: 'subvention', label: 'Accorder une subvention', pa: 2, cost: 0, type: 'legal', icon: 'ti-coins', successRate: 100, requiresPost: 'min_fin', desc: "Subventionner un citoyen, un club, une organisation ou une entreprise (maximum 150 PSK)." }] },
             bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_justice.webp',
                               orders: [{ fn: 'sovarka_saisir_juge', label: 'Saisir le juge', pa: 1, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, requiresPost: 'min_just', desc: "Vous seul saisissez le juge pour retirer un droit d'exploiter. Juge PNJ : retrait automatique ; juge PJ : décision libre." },
                                        // Justice de Sovarka (Fred, 08/11/2026) : pas de procureur ; le ministre saisit le juge ou enterre, et donne ses consignes.
-                                       { fn: 'sovarka_registre_plaintes', label: 'Affaires judiciaires', pa: 0, cost: 0, type: 'legal', icon: 'ti-scale', successRate: 100, requiresPost: 'min_just', desc: "Toutes les plaintes de Sovarka : saisir le juge ou enterrer l'affaire, et envoyer au juge vos consignes (condamner sévèrement, légèrement, relaxer, ou libre à lui) jusqu'à la veille du procès." }] },
+                                       { fn: 'sovarka_registre_plaintes', label: 'Affaires judiciaires', pa: 0, cost: 0, type: 'legal', icon: 'ti-scale', successRate: 100, requiresPost: 'min_just', desc: "Toutes les plaintes de Sovarka : saisir le juge ou enterrer l'affaire, et envoyer au juge vos consignes (condamner sévèrement, légèrement, relaxer, ou libre à lui) jusqu'à la veille du procès." },
+                                       // Ne jamais réutiliser les ordres QHS de Républia : le goulag de Starovka exige son propre raccordement.
+                                       { fn: 'sovarka_goulag_gestion', label: 'Gestion du goulag', pa: 0, cost: 0, type: 'grey', icon: 'ti-building-fortress', successRate: 100, requiresPost: 'min_just', bientot: 'Le goulag de Starovka doit encore être raccordé. Aucun dossier de détenu ni pouvoir pénitentiaire ne peut être traité ici.', desc: 'Le goulag de Sovarka sera géré par la Justice prolétarienne lorsque son bâtiment et ses données seront opérationnels.' }] },
             bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_defense.webp',
                               // Exclure les pouvoirs propres a l'armee de Republia.
                               excludeOrders: ['mobilisation_nationale','activer_cessez_le_feu','garde_republicaine'],
                               orders: [{ fn: 'sovarka_conscription', label: 'Conscription', pa: 0, cost: 0, type: 'legal', icon: 'ti-military-rank', successRate: 100, requiresPost: 'min_def', desc: "Décréter ou lever la conscription des citoyens sans poste : 48 heures pour se présenter, sinon réfractaires et recherchés." },
                                        // Centres d'écoute (Fred, 10/11/2026) : le ministre demande à distance le rapport du jour qu'il veut, reçu par mail.
-                                       { fn: 'sovarka_ecoutes', label: 'Rapports des centres d’écoute', pa: 0, cost: 0, type: 'legal', icon: 'ti-antenna', successRate: 100, requiresPost: 'min_def', desc: "Les cellules d'écoute de Novomirsk, Starovka et Krasnov interceptent chaque jour une partie des mails. Demandez le rapport du jour que vous voulez : il vous arrive par mail." }] },
+                                       { fn: 'sovarka_ecoutes', label: 'Rapports des centres d’écoute', pa: 0, cost: 0, type: 'legal', icon: 'ti-antenna', successRate: 100, requiresPost: 'min_def', desc: "Les cellules d'écoute de Novomirsk, Starovka et Krasnov interceptent chaque jour une partie des mails. Demandez le rapport du jour que vous voulez : il vous arrive par mail." },
+                                       { fn: 'garde_republicaine', label: 'Garde de la Patrie', pa: 0, cost: 0, type: 'legal', icon: 'ti-shield-lock', successRate: 100, requiresPost: 'min_def', desc: "Renforcer les gardes au Palais du Gouvernement pendant 24 h : 15 PSK par garde supplémentaire." }] },
             bureau_min_info:{ name: 'Bureau - Ministre de la Vérité officielle', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_information.webp',
-                              orders: [{ fn: 'sovarka_sondages', label: 'Sondages en attente', pa: 0, cost: 0, type: 'legal', icon: 'ti-chart-bar', successRate: 100, requiresPost: 'min_info', desc: "Les sondages reçus : publier tel quel, publier faussé ou enterrer." }] },
+                              excludeOrders: ['propagande_etat','commanditer_sondage'],
+                              orders: [{ fn: 'propagande_etat', label: 'Campagne de propagande', pa: 3, cost: 150, type: 'legal', icon: 'ti-speakerphone', successRate: 100, requiresPost: 'min_info', desc: 'Campagne nationale de propagande : 150 PSK.' },
+                                       { fn: 'commanditer_sondage', label: 'Commanditer un sondage', pa: 1, cost: 60, type: 'legal', icon: 'ti-chart-pie', successRate: 100, requiresPost: 'min_info', desc: 'Sondage réel sur la popularité des partis : 60 PSK.' },
+                                       { fn: 'sovarka_sondages', label: 'Sondages en attente', pa: 0, cost: 0, type: 'legal', icon: 'ti-chart-bar', successRate: 100, requiresPost: 'min_info', desc: "Les sondages reçus : publier tel quel, publier faussé ou enterrer." }] },
             bureau_min_ae:  { name: "Bureau - Ministre de l'Amitié entre les Peuples", imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_diplomatie.webp' }
           },
           persons: []
@@ -2525,7 +2534,13 @@ const WORLD = {
         // du commissariat-local commun à Montrouge et Port-Sainte-Marie.
         'commissariat-local': {
           name: "Commissariat de Krasnov",
-          desc: "La police locale de Krasnov, installée face au stade."
+          desc: "La police locale de Krasnov, installée face au stade.",
+          // Images de Fred (14/11/2026) : accueil (cartes et affiche de l'Étoile Rouge), bureau du commissaire, geôles.
+          roomOverrides: {
+            accueil_loc: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_commissariat_accueil.webp' },
+            bureau_commissaire: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_commissariat_bureau_commissaire.webp' },
+            geoles: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_commissariat_geoles.webp' }
+          }
         },
         // Decor du marche interieur de Krasnov, distinct de la facade de rue.
         'marche': {
@@ -2543,7 +2558,43 @@ const WORLD = {
         // Mêmes six pièces et tous les ordres sportifs du gabarit stade partagé.
         'stade': {
           name: "Stade Étoile Rouge de Krasnov",
-          desc: "Le stade de football de Krasnov, face au commissariat."
+          desc: "Le stade de football de Krasnov, face au commissariat.",
+          // Images de Fred (14/11/2026). L'entraîneur et le commentateur sont déclarés sous leur nom de
+          // Krasnov (PNJ_SOVARKA.ville_b retire les portraits des noms génériques) avec leurs portraits cadrés dans l'image du terrain.
+          roomOverrides: {
+            terrain: { name: 'Terrain — Étoile Rouge de Krasnov', imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_terrain.webp',
+              persons: [
+                {name:'Vsevolod Fedotov (PNJ)', role:'Entraîneur de l\'Étoile Rouge', rel:'neutral', job:'entraineur', profilId:'sovarka_vsevolod_fedotov', photoUrl:'images/Sovarka/Krasnov/Krasnov_stade_entraineur_portrait.webp', photoPos:'50% 25%'},
+                {name:'Semione Klimov (PNJ)', role:'Commentateur de la radio du kolkhoze', rel:'neutral', job:'commentateur', profilId:'sovarka_semione_klimov', photoUrl:'images/Sovarka/Krasnov/Krasnov_stade_commentateur_portrait.webp', photoPos:'50% 25%'}
+              ] },
+            vestiaires: { name: 'Vestiaires — Étoile Rouge de Krasnov', imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_vestiaires.webp',
+              persons: [
+                {name:'Vsevolod Fedotov (PNJ)', role:'Entraîneur de l\'Étoile Rouge', rel:'neutral', job:'entraineur', profilId:'sovarka_vsevolod_fedotov', photoUrl:'images/Sovarka/Krasnov/Krasnov_stade_entraineur_portrait.webp', photoPos:'50% 25%'}
+              ] },
+            // Les accessoires se vendent à la boutique du club (pièce ajoutée ci-dessous, comme au Dynamo).
+            buvette: { name: 'Buvette des tribunes', imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_buvette.webp',
+              excludeOrders: ['choisir_accessoire_club','acheter_accessoire_personnalise'] },
+            guichet_paris: { name: 'Bookmaker de l’Étoile Rouge', imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_bookmaker.webp' },
+            siege_supporters: { name: 'Club des supporters de l’Étoile Rouge', imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_club_supporters.webp' },
+            bureau_president: { name: 'Bureau du président de l’Étoile Rouge', imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_bureau_president.webp' }
+          },
+          // Boutique du club (Fred, 14/11/2026 ; migration 20261114013500) : même salle que la boutique du Dynamo.
+          roomsExtra: {
+            boutique: {
+              name: 'Boutique de l’Étoile Rouge',
+              image: '🧣',
+              imageBg: 'linear-gradient(135deg,#25100f,#4a2025)',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_boutique.webp',
+              desc: 'Maillots, écharpes et casquettes aux couleurs de l’Étoile Rouge.',
+              persons: [
+                {name:'Oxana Zvezdina (PNJ)', role:'Vente des accessoires', rel:'neutral', job:'vendeur'} // nom validé par Fred le 14/11/2026
+              ],
+              orders: [
+                {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa:0, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Écharpe, casquette ou maillot de l’Étoile Rouge, à choisir.'},
+                {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-lock', successRate:100, desc:'Personnalisation premium à venir.'}
+              ]
+            }
+          }
         }
       }
     },
@@ -10491,6 +10542,12 @@ const PNJ_SOVARKA = {
     'Harry Cover': 'Dorji Filatov'
   }),
   ville_b: Object.assign({}, PNJ_SOVARKA_GENERIQUES, { // Krasnov
+    // Stade Étoile Rouge de Krasnov (noms proposés par Claude, validés par Fred le 14/11/2026).
+    'Entraineur Local (PNJ)': ['Vsevolod Fedotov (PNJ)', 'Entraîneur de l\'Étoile Rouge'],
+    'Commentateur Sportif (PNJ)': ['Semione Klimov (PNJ)', 'Commentateur de la radio du kolkhoze'],
+    'Tenancier de Buvette (PNJ)': ['Avdotia Doubova (PNJ)', 'Tenancière de la buvette'],
+    'Bookmaker Officiel (PNJ)': ['Iossif Borissov (PNJ)', 'Guichetier du Bureau d\'État des pronostics'],
+    'Meneur des Supporters (PNJ)': ['Stiopa « le Tambour » Ossipov (PNJ)', 'Meneur des supporters'],
     'Delegue Morel (PNJ)': 'Délégué Prokofi Panov (PNJ)',
     'Directeur Fabre (PNJ)': 'Directeur Platon Iermakov (PNJ)',
     'Francisca Brel': 'Varvara Kozlova',
@@ -11175,7 +11232,9 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() {
   // Krasnov.
   Object.assign(contexte('ville_b', 'marche'), { name: 'Marché de Krasnov', desc: 'Les étals du kolkhoze : pommes, choux, miel et conserves maison, vendus sous les tilleuls.', persons: [pnj('Nina Gorbounova', 'Marchande', 'commercant')] });
   Object.assign(contexte('ville_b', 'universite'), { name: 'École de Krasnov', desc: 'L\'école du kolkhoze : on y apprend à lire, à compter et à réciter les rendements de la récolte.' });
-  Object.assign(piece(contexte('ville_b', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Pavel Smirnov', 'Directeur de l\'école', 'professeur')] });
+  // Seule PNJ de la classe (Fred, 14/11/2026) : l'institutrice de l'image, nom proposé par Claude (« gramota », savoir lire et écrire).
+  Object.assign(piece(contexte('ville_b', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Alevtina Gramotova', 'Institutrice', 'professeur')],
+    imageUrl: 'images/Sovarka/Krasnov/Krasnov_ecole_salle_classe.webp' }); // image de Fred (14/11/2026) ; mécanique de l'école à décider
   Object.assign(contexte('ville_b', 'kolkhoze-spirituel'), { name: 'Église du Tractorisme de Krasnov', desc: 'Une église aux bulbes dorés, consacrée au Tractorisme : on y prie pour la récolte et la santé des moteurs.' });
   const musee = contexte('ville_b', 'musee-novomirsk');
   Object.assign(musee, { name: 'Musée de Krasnov', desc: 'Le musée du kolkhoze : machines agricoles d\'époque, records de récolte et portraits des tractoristes émérites.' });
@@ -11304,11 +11363,12 @@ BUILDINGS['locaux-starovka'] = {
 // fourreur, qui nomme lui-meme ses articles).
 (function () {
   const ordreFerme = (fn, label, pa, icon, desc) => ({ fn, label, pa, cost: 0, type: 'legal', icon, successRate: 100, desc });
-  const ferme = (id, nom, court, desc, pieceDesc, pnj, role, ordres) => {
+  const ferme = (id, nom, court, desc, pieceDesc, pnj, role, ordres, imageUrl) => {
     BUILDINGS[id] = {
       name: nom, shortName: court, cat: 'Économie', icon: 'ti-tractor', bgColor: '#12140e', desc, imagesAVenir: true,
       rooms: { cour_ferme: {
         name: 'La cour de la ferme', imageBg: 'linear-gradient(135deg,#12140e,#1c2014)', desc: pieceDesc,
+        ...(imageUrl ? { imageUrl } : {}),
         persons: [{ name: pnj + ' (PNJ)', role, rel: 'friendly', job: 'fermier' }],
         orders: ordres
       } }
@@ -11325,11 +11385,14 @@ BUILDINGS['locaux-starovka'] = {
     'Le kolkhoze de Krasnov (« Колхоз им. С. М. Кирова ») : champs, poulailler et clapiers, ouverts aux bras volontaires.',
     'Une cour boueuse, des poules qui picorent entre les roues du tracteur et des clapiers alignés contre la grange.',
     'Galina Belova', 'Présidente du kolkhoze', [
-      ordreFerme('ferme_legumes', 'Extraire des légumes', 1, 'ti-carrot', 'Un fruits et légumes, tiré de la terre du kolkhoze.'),
-      ordreFerme('ferme_oeufs', 'Ramasser les œufs', 1, 'ti-egg', 'Trois œufs (une unité). À manger quand vous voulez : +2 PA au prochain Dormir.'),
-      ordreFerme('ferme_poulet', 'Abattre un poulet', 2, 'ti-meat', 'Deux poulets (2 viandes).'),
-      ordreFerme('ferme_lapin', 'Abattre un lapin', 2, 'ti-meat', 'Un lapin (1 viande) et sa peau (tissus et peaux).')
-    ]);
+      // Kolkhoze (Fred, 14/11/2026 ; migration 20261114004000) : tout à 1 PA, sans limite ; caisse commune.
+      ordreFerme('ferme_legumes', 'Extraire des légumes', 1, 'ti-carrot', 'Cinq fruits et légumes, tirés de la terre du kolkhoze.'),
+      ordreFerme('ferme_oeufs', 'Ramasser les œufs', 1, 'ti-egg', 'Six œufs (deux unités de trois). Une unité mangée : +2 PA au prochain Dormir.'),
+      ordreFerme('ferme_vaches', 'Traire les vaches', 1, 'ti-milk', 'Deux laitages, tirés à la main dans l’étable du kolkhoze.'),
+      ordreFerme('ferme_poulet', 'Abattre un poulet', 1, 'ti-meat', 'Deux poulets (2 viandes).'),
+      ordreFerme('ferme_lapin', 'Abattre un lapin', 1, 'ti-meat', 'Un lapin (1 viande) et sa peau (tissus et peaux).'),
+      ordreFerme('kolkhoze_caisse', 'Caisse commune', 0, 'ti-heart-handshake', 'Donner des matières premières au kolkhoze (+2 popularité par article, +6 par jour au plus) ou en prendre (5 articles par jour au plus).')
+    ], 'images/Sovarka/Krasnov/Krasnov_kolkhoze_cour.webp');
 
   const local = (id, nom, court, icon, desc, pieceId, pieceNom, pieceDesc, plafond) => {
     BUILDINGS[id] = {
@@ -11369,6 +11432,9 @@ BUILDINGS['locaux-starovka'] = {
   ctx.roomOverrides = ctx.roomOverrides || {};
   const entree = ctx.roomOverrides.zone_recolte = ctx.roomOverrides.zone_recolte || {};
   entree.name = 'Entrée de la forêt';
+  // Images de Fred (14/11/2026, converties par ChatGPT) : la cour de l'exploitation à l'entrée ; en forêt profonde, les
+  // vues 1 et 2 (deux coupes, fausses alertes) montrent la forêt exploitée, les vues 3 et 4 (ours, Olga) la forêt dense et intacte.
+  entree.imageUrl = 'images/Sovarka/Krasnov/Krasnov_exploitation_forestiere_cour.webp';
   entree.orders = [...(entree.orders || []).filter(o => o.fn !== 'foret_enfoncer'),
     { fn: 'foret_enfoncer', label: 'S’enfoncer dans la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-trees', successRate: 100,
       desc: 'Plus loin, le bois est plus beau : chaque coupe rapporte le double. Mais on dit que les loups et l’ours rôdent sous les arbres… et qu’on s’y perd facilement.' }];
@@ -11382,7 +11448,7 @@ BUILDINGS['locaux-starovka'] = {
   Object.keys(vues).forEach(n => {
     ctx.roomsExtra['foret_vue_' + n] = {
       name: 'Forêt profonde — ' + vues[n][0], imageBg: 'linear-gradient(135deg,#0a120c,#132016)', desc: vues[n][1], persons: [],
-      imagesAVenir: true,
+      imageUrl: 'images/Sovarka/Krasnov/' + (n === '1' || n === '2' ? 'Krasnov_foret_coupe.webp' : 'Krasnov_foret_profonde.webp'),
       orders: [
         { fn: 'foret_couper', label: 'Couper du bois', pa: 2, cost: 0, type: 'legal', icon: 'ti-axe', successRate: 100,
           desc: 'Le bois de la forêt profonde : une coupe rapporte le double d’une récolte. Combien de fois avant que quelque chose ne bouge dans les fourrés ?' },
