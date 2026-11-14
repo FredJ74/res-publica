@@ -995,7 +995,7 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 
 - Décision de Fred : chaque maisonnette en bois visible dans les vues de rue de Krasnov est cliquable et abrite **un habitant**, sur le modèle de la maison de Stepan (service du jour, repas, lit, trinquer). Migration `20261114180000_krasnov_maisonnettes`.
 - Cinq maisons repérées par Claude : maison bleue en face du centre d'affaires (`krasnov-rue-bureaux`), maison rouge et maison bleue de la rue descendante, maison brune près de l'église, maison au bord droit des terrains.
-- Habitants **proposés par Claude, à valider par Fred** : Antonina Merkoulova (couturière retraitée), Matveï Rybakov (ancien bûcheron), Praskovia Pakhomova (apicultrice), Kouzma Lapchine (ancien sonneur de cloches), Ignat Lykov (vieux trappeur). Services tirés parmi les matières existantes (bois, fruits et légumes, laitages, textile, viande, alcool, carburant, plantes, céréales, poisson). Images d'intérieur à venir.
+- Habitants proposés par Claude, **validés par Fred (15/11/2026, 0 h 52)** : Antonina Merkoulova (couturière retraitée), Matveï Rybakov (ancien bûcheron), Praskovia Pakhomova (apicultrice), Kouzma Lapchine (ancien sonneur de cloches), Ignat Lykov (vieux trappeur). Services tirés parmi les matières existantes (bois, fruits et légumes, laitages, textile, viande, alcool, carburant, plantes, céréales, poisson). Images d'intérieur à venir.
 
 ## Tabac/Presse de Krasnov : quatre articles (Fred, 14/11/2026)
 - Demande de Fred (21 h 52) : « 4 articles, à ta convenance ». Choix de Claude, sur la règle des commerces (2 familles, 4 articles en freemium) :
@@ -1004,3 +1004,13 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 - En plus (Fred, 22 h 04) : la prise de paris du bookmaker des stades est dupliquée au Tabac/Presse (même ordre « Parier sur un match »).
 - Prix PNJ par la formule commune (2 × coût de revient, PA à 15 PSK). Commerce PNJ de type `tabac-presse`, caisse autonome, ouvert avec 10 exemplaires de chaque article. Buraliste validée par Fred le 15/11 : Valentina Makhorkina (« Buraliste de Krasnov »).
 - Migration `20261114220000_krasnov_tabac_presse_articles` (registre `krasnov_tabac_presse_articles_20261114`).
+
+## Approvisionnement et échanges des entrepôts de Sovarka (Fred, 15/11/2026, 0 h 52)
+- **Port de Sovarka (Starovka) : validé.** Il nourrit chaque nuit les entrepôts de Sovarka exactement comme celui de PSM nourrit ceux de Républia (décision du 13/11, confirmée).
+- **Échanges entre entrepôts, à valeurs égales** : chaque entrepôt envoie aux autres les matières de sa ville.
+  - **Krasnov** : bois, poisson, laitages, viande.
+  - **Starovka** : pétrole, viande, poisson, lait et laitages.
+  - **Novomirsk** : métal, tissu (`textile`), composants électroniques.
+- **Exportations vers le port** : les entrepôts envoient des matières premières au port pour l'export vers les autres pays. Déjà codé le 06/11 (`exportations_sovarka_executer`, migration `20261106103000_exportations_sovarka` : minerai et métal vers tous les pays, pétrole vers la Républia, viande et céréales vers Al-Khalija, prélevés sur le stock réel des trois entrepôts et payés au prix de base).
+- **Questions ouvertes, posées à Fred une à une** : composants électroniques (aucune matière première de ce nom n'existe) ; rythme et volume des échanges, sens de « valeurs égales » ; « lait » confondu avec « laitages » (une seule matière).
+- **Pas encore de feu vert de codage** : Fred tranche d'abord les questions ouvertes.
