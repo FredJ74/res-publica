@@ -24,6 +24,23 @@ const ctx=vm.createContext({});
 vm.runInContext(lire('data.js'),ctx);
 const ch=vm.runInContext("WORLD.soviet.ville_b.buildingContext['dispensaire-public-v'].roomsExtra.chambre",ctx);
 assert.ok(ch && ch.orders.some(o=>o.fn==='dormir') && ch.orders.some(o=>o.fn==='repas_hopital'));
-assert.ok(fs.existsSync(new URL('../../images/Sovarka/Krasnov/Krasnov_hopital_rue.webp',import.meta.url)),
- 'Image hôpital de Krasnov WebP absente : ne pas fusionner');
-console.log('Krasnov : parcours et image conformes');
+const kr=vm.runInContext("WORLD.soviet.ville_b.buildingContext['dispensaire-public-v']",ctx);
+assert.equal(kr.roomOverrides.attente.imageUrl,'images/Sovarka/Krasnov/Krasnov_hopital_accueil.webp');
+assert.equal(kr.roomOverrides.ehpad.imageUrl,'images/Sovarka/Krasnov/Krasnov_hopital_EPHAD.webp');
+assert.equal(ch.imageUrl,'images/Sovarka/Krasnov/Krasnov_hopital_chambre.webp');
+const starovka=vm.runInContext("WORLD.soviet.ville_a.buildingContext['dispensaire-public-v'].roomsExtra.chambre",ctx);
+assert.notEqual(starovka.imageUrl,ch.imageUrl,'Starovka conserve sa chambre');
+const images=[
+  'images/Sovarka/Krasnov/Krasnov_hopital_rue.webp',
+  kr.roomOverrides.attente.imageUrl,
+  ch.imageUrl,
+  kr.roomOverrides.ehpad.imageUrl
+];
+for(const path of images) {
+  const file=new URL('../../'+path,import.meta.url);
+  assert.ok(fs.existsSync(file),'Asset WebP absent : '+path);
+  const header=fs.readFileSync(file).subarray(0,12);
+  assert.equal(header.toString('ascii',0,4),'RIFF',path+' : conteneur RIFF');
+  assert.equal(header.toString('ascii',8,12),'WEBP',path+' : conteneur WebP');
+}
+console.log('Krasnov : parcours et quatre images WebP conformes');
