@@ -14088,7 +14088,7 @@ async function ouvrirGardeRepublicaine() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.7rem">' + (sovGarde
         ? 'La Garde de la Patrie tient le Palais du Gouvernement. '
-        : 'La Garde tient trois postes nationaux : le Palais présidentiel, le Palais du Gouvernement et l\'Assemblée. '.replace('\', ''))
+        : "La Garde tient trois postes nationaux : le Palais présidentiel, le Palais du Gouvernement et l'Assemblée. ")
         + 'Un garde permanent y est en faction gratuitement.</div>';
   if (etat && etat.renfort_actif === true) {
     html += '<div style="font-size:.8rem;color:#C9A84C;margin-bottom:.7rem">Un renfort est déjà en '
