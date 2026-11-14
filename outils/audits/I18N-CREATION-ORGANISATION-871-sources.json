@@ -101,5 +101,17 @@
     "supporters"
   ],
   "reusedForeignTranslations": 48,
-  "maximumToastExcludedCoveredByPullRequest": 924
+  "maximumToastExcludedCoveredByPullRequest": 924,
+  "implementationBaseCommit": "88133709483fe017075fadc0a7baacf3980ca9b9",
+  "normalFlowReusedTypes": [
+    "politique",
+    "religieuse",
+    "syndicale",
+    "loge"
+  ],
+  "normalFlowReusedForeignTranslations": 32,
+  "excludedDirectCallReusedTypes": [
+    "sportive",
+    "supporters"
+  ]
 }
