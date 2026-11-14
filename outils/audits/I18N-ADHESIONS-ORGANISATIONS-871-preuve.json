@@ -1,0 +1,32 @@
+{
+  "baseCommit": "7a52048ef85fc931f3fececa25af5fee2ee35778",
+  "codeCommit": "cfd65b0cd04b5a7478774e90d0845ee4e5a187e9",
+  "newKeys": 6,
+  "newForeignTranslations": 48,
+  "reusedForeignTranslations": 32,
+  "nodeTestsPassed": 123,
+  "baselineExistingTestsPassed": 121,
+  "browserStates": 18,
+  "browserLanguageSwitchesIncludingLoading": 513,
+  "regressionLanguageSwitches": 1998,
+  "allBrowserSwitches": 2511,
+  "businessFunctionsAndFiltersUnchanged": true,
+  "initialQueryUnchanged": true,
+  "languageSwitchQueries": 0,
+  "realCommandsExecuted": false,
+  "preexistingSSMComparison": {
+    "tests": 8,
+    "passed": 5,
+    "failed": 3,
+    "sameOnMainAndBranch": true
+  },
+  "payloadComparison": {
+    "sourceBranchMiB": 328.0,
+    "currentMainCommit": "221e919fe217d6270644a1511b709cda17538bc7",
+    "currentMainMiB": 341.0,
+    "declaredLimitMiB": 330.0,
+    "mainFailureReproduced": true,
+    "foreignUploadedPNGs": 5,
+    "limitAndImagesUnchanged": true
+  }
+}

@@ -1,0 +1,19 @@
+# #871 — demandes et invitations des organisations
+
+PR #944. Deux fenêtres d’affichage seulement : ouvrirDemandesAdhesion et ouvrirInviterMembreOrga. Six clés/48 traductions étrangères nouvelles : repère du jour, Inviter, recherche, absence de destinataire, confidentialité et envoi. Quatre clés existantes réutilisées (32 traductions) : Demandes, aucune demande, Accepter et Refuser. Catalogues Sovarka utilisés en lecture, jamais modifiés. Noms, dates, IDs et grades RP restent opaques ; aucune traduction automatique de contenu joueur.
+
+Les commandes d’acceptation, refus et invitation, leurs courriers et notifications restent intégralement identiques. Conditions de l’invitation, pays, exclusions des membres/destinataires déjà invités et ordre de sélection conservés. Aucun nouveau contrôle d’accès ajouté à l’affichage des demandes. Une recherche initiale identique à main ; changer la langue applique les marqueurs sans relire les personnages. Les options et leur valeur sélectionnée ne sont jamais reconstruites lors des bascules. Noms et paramètres encodés en texte/arguments sûrs, mêmes cibles ; classe mobile existante, colonne min-width:0, select dir:auto. Aucun CSS global ni moteur ajouté.
+
+## Tests
+
+123 tests Node ciblés verts ; 121 anciens correspondants verts sur main 7a52048e. Fichier entier comparé par AST hors deux fonctions de présentation ; variables métier, requête et filtre identiques à l’intérieur. Six français exacts/neuf langues et quatre réemplois vérifiés. Chromium : 18 états et phase d’attente, 513 bascules en neuf langues et 320/390/1280. Français entier, contrôles, droits, filtre et lectures comparés à main ; sélection préservée en attente et après résultat ; erreurs réseau/absence de helper/candidats tous exclus. Clic et clavier mêmes commandes une seule fois, données opaques même avec apostrophes/guillemets/balises, RTL, aucun débordement, liste longue/position, fermeture, autre fenêtre, repli français. Espions sur les commandes, aucune exécution réelle. Régressions membres 243/formulaires 756/tableau 999 vertes, soit 2 511 bascules au total.
+
+SSM : mêmes 5/8 verts et trois rouges sur main/branche. La première CI du brouillon a aussi inclus les modifications data.js de main dans son contrôle de périmètre : preuve figée sur les commits propres base 7a52048e/code cfd65b0c pour distinguer ces travaux étrangers. Les autres bancs et Chromium vérifient toujours le code réellement exécuté.
+
+Un nouveau rouge de payload est reproduit sur main 221e919 : cinq PNG téléversés hors lot portent le contenu à 341 Mo, plafond déclaré 330 Mo. La branche propre est à 328 Mo et passe. Ni les images ni le plafond ne sont modifiés ici. Ce constat ne vaut pas validation du déploiement : Vercel et les fichiers publics restent à vérifier après fusion.
+
+## Mesure
+
+Même extracteur, base 7a52048e/code cfd65b0c. Corpus commun : 7 583 textes/50 894 mots ; +4 textes/+21 mots raccordés par langue étrangère et mêmes gains de ressources. Trois fragments statiques nouvellement isolés : Demandes, Demande du Jour, Inviter. Cinq anciennes entrées concaténées ou avec icônes se retrouvent dans ces fragments et les clés Accepter/Refuser déjà présentes, sans retrait de français (comparaison Chromium). Corpus global 7 588/50 901 → 7 586/50 899 ; anglais 1 045 textes/12 505 mots raccordés, 24,57 % des mots statiques identifiés, pas du jeu entier. Zéro erreur d’extraction ; JSON détaillant gain à périmètre commun et segmentation.
+
+CI finale, fusion et production à terminer. Aucune donnée réelle lue/modifiée, aucune migration ; pas de recette PJ authentifié, téléphone physique ni revue native.

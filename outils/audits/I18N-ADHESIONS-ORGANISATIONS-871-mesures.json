@@ -1,0 +1,578 @@
+{
+  "baseCommit": "7a52048ef85fc931f3fececa25af5fee2ee35778",
+  "codeCommit": "cfd65b0cd04b5a7478774e90d0845ee4e5a187e9",
+  "before": {
+    "fr": {
+      "texts": 7588,
+      "words": 50901,
+      "wiredTexts": 7588,
+      "wiredWords": 50901,
+      "resourceTexts": 7588,
+      "resourceWords": 50901,
+      "unconfirmedTexts": 0,
+      "unconfirmedWords": 0,
+      "withoutResourceTexts": 0,
+      "withoutResourceWords": 0,
+      "wiredTextPercent": 100,
+      "wiredWordPercent": 100,
+      "resourceTextPercent": 100,
+      "resourceWordPercent": 100
+    },
+    "en": {
+      "texts": 7588,
+      "words": 50901,
+      "wiredTexts": 1040,
+      "wiredWords": 12481,
+      "resourceTexts": 1601,
+      "resourceWords": 15270,
+      "unconfirmedTexts": 6548,
+      "unconfirmedWords": 38420,
+      "withoutResourceTexts": 5987,
+      "withoutResourceWords": 35631,
+      "wiredTextPercent": 13.71,
+      "wiredWordPercent": 24.52,
+      "resourceTextPercent": 21.1,
+      "resourceWordPercent": 30
+    },
+    "es": {
+      "texts": 7588,
+      "words": 50901,
+      "wiredTexts": 1047,
+      "wiredWords": 12489,
+      "resourceTexts": 1617,
+      "resourceWords": 15288,
+      "unconfirmedTexts": 6541,
+      "unconfirmedWords": 38412,
+      "withoutResourceTexts": 5971,
+      "withoutResourceWords": 35613,
+      "wiredTextPercent": 13.8,
+      "wiredWordPercent": 24.54,
+      "resourceTextPercent": 21.31,
+      "resourceWordPercent": 30.03
+    },
+    "zh-TW": {
+      "texts": 7588,
+      "words": 50901,
+      "wiredTexts": 1049,
+      "wiredWords": 12491,
+      "resourceTexts": 1623,
+      "resourceWords": 15297,
+      "unconfirmedTexts": 6539,
+      "unconfirmedWords": 38410,
+      "withoutResourceTexts": 5965,
+      "withoutResourceWords": 35604,
+      "wiredTextPercent": 13.82,
+      "wiredWordPercent": 24.54,
+      "resourceTextPercent": 21.39,
+      "resourceWordPercent": 30.05
+    },
+    "ru": {
+      "texts": 7588,
+      "words": 50901,
+      "wiredTexts": 1049,
+      "wiredWords": 12491,
+      "resourceTexts": 1622,
+      "resourceWords": 15293,
+      "unconfirmedTexts": 6539,
+      "unconfirmedWords": 38410,
+      "withoutResourceTexts": 5966,
+      "withoutResourceWords": 35608,
+      "wiredTextPercent": 13.82,
+      "wiredWordPercent": 24.54,
+      "resourceTextPercent": 21.38,
+      "resourceWordPercent": 30.04
+    },
+    "ko": {
+      "texts": 7588,
+      "words": 50901,
+      "wiredTexts": 1049,
+      "wiredWords": 12491,
+      "resourceTexts": 1623,
+      "resourceWords": 15297,
+      "unconfirmedTexts": 6539,
+      "unconfirmedWords": 38410,
+      "withoutResourceTexts": 5965,
+      "withoutResourceWords": 35604,
+      "wiredTextPercent": 13.82,
+      "wiredWordPercent": 24.54,
+      "resourceTextPercent": 21.39,
+      "resourceWordPercent": 30.05
+    },
+    "ar": {
+      "texts": 7588,
+      "words": 50901,
+      "wiredTexts": 1049,
+      "wiredWords": 12491,
+      "resourceTexts": 1622,
+      "resourceWords": 15293,
+      "unconfirmedTexts": 6539,
+      "unconfirmedWords": 38410,
+      "withoutResourceTexts": 5966,
+      "withoutResourceWords": 35608,
+      "wiredTextPercent": 13.82,
+      "wiredWordPercent": 24.54,
+      "resourceTextPercent": 21.38,
+      "resourceWordPercent": 30.04
+    },
+    "pt-BR": {
+      "texts": 7588,
+      "words": 50901,
+      "wiredTexts": 1046,
+      "wiredWords": 12488,
+      "resourceTexts": 1619,
+      "resourceWords": 15290,
+      "unconfirmedTexts": 6542,
+      "unconfirmedWords": 38413,
+      "withoutResourceTexts": 5969,
+      "withoutResourceWords": 35611,
+      "wiredTextPercent": 13.78,
+      "wiredWordPercent": 24.53,
+      "resourceTextPercent": 21.34,
+      "resourceWordPercent": 30.04
+    },
+    "de": {
+      "texts": 7588,
+      "words": 50901,
+      "wiredTexts": 1048,
+      "wiredWords": 12490,
+      "resourceTexts": 1619,
+      "resourceWords": 15290,
+      "unconfirmedTexts": 6540,
+      "unconfirmedWords": 38411,
+      "withoutResourceTexts": 5969,
+      "withoutResourceWords": 35611,
+      "wiredTextPercent": 13.81,
+      "wiredWordPercent": 24.54,
+      "resourceTextPercent": 21.34,
+      "resourceWordPercent": 30.04
+    }
+  },
+  "after": {
+    "fr": {
+      "texts": 7586,
+      "words": 50899,
+      "wiredTexts": 7586,
+      "wiredWords": 50899,
+      "resourceTexts": 7586,
+      "resourceWords": 50899,
+      "unconfirmedTexts": 0,
+      "unconfirmedWords": 0,
+      "withoutResourceTexts": 0,
+      "withoutResourceWords": 0,
+      "wiredTextPercent": 100,
+      "wiredWordPercent": 100,
+      "resourceTextPercent": 100,
+      "resourceWordPercent": 100
+    },
+    "en": {
+      "texts": 7586,
+      "words": 50899,
+      "wiredTexts": 1045,
+      "wiredWords": 12505,
+      "resourceTexts": 1607,
+      "resourceWords": 15295,
+      "unconfirmedTexts": 6541,
+      "unconfirmedWords": 38394,
+      "withoutResourceTexts": 5979,
+      "withoutResourceWords": 35604,
+      "wiredTextPercent": 13.78,
+      "wiredWordPercent": 24.57,
+      "resourceTextPercent": 21.18,
+      "resourceWordPercent": 30.05
+    },
+    "es": {
+      "texts": 7586,
+      "words": 50899,
+      "wiredTexts": 1052,
+      "wiredWords": 12513,
+      "resourceTexts": 1623,
+      "resourceWords": 15313,
+      "unconfirmedTexts": 6534,
+      "unconfirmedWords": 38386,
+      "withoutResourceTexts": 5963,
+      "withoutResourceWords": 35586,
+      "wiredTextPercent": 13.87,
+      "wiredWordPercent": 24.58,
+      "resourceTextPercent": 21.39,
+      "resourceWordPercent": 30.09
+    },
+    "zh-TW": {
+      "texts": 7586,
+      "words": 50899,
+      "wiredTexts": 1054,
+      "wiredWords": 12515,
+      "resourceTexts": 1629,
+      "resourceWords": 15322,
+      "unconfirmedTexts": 6532,
+      "unconfirmedWords": 38384,
+      "withoutResourceTexts": 5957,
+      "withoutResourceWords": 35577,
+      "wiredTextPercent": 13.89,
+      "wiredWordPercent": 24.59,
+      "resourceTextPercent": 21.47,
+      "resourceWordPercent": 30.1
+    },
+    "ru": {
+      "texts": 7586,
+      "words": 50899,
+      "wiredTexts": 1054,
+      "wiredWords": 12515,
+      "resourceTexts": 1628,
+      "resourceWords": 15318,
+      "unconfirmedTexts": 6532,
+      "unconfirmedWords": 38384,
+      "withoutResourceTexts": 5958,
+      "withoutResourceWords": 35581,
+      "wiredTextPercent": 13.89,
+      "wiredWordPercent": 24.59,
+      "resourceTextPercent": 21.46,
+      "resourceWordPercent": 30.09
+    },
+    "ko": {
+      "texts": 7586,
+      "words": 50899,
+      "wiredTexts": 1054,
+      "wiredWords": 12515,
+      "resourceTexts": 1629,
+      "resourceWords": 15322,
+      "unconfirmedTexts": 6532,
+      "unconfirmedWords": 38384,
+      "withoutResourceTexts": 5957,
+      "withoutResourceWords": 35577,
+      "wiredTextPercent": 13.89,
+      "wiredWordPercent": 24.59,
+      "resourceTextPercent": 21.47,
+      "resourceWordPercent": 30.1
+    },
+    "ar": {
+      "texts": 7586,
+      "words": 50899,
+      "wiredTexts": 1054,
+      "wiredWords": 12515,
+      "resourceTexts": 1628,
+      "resourceWords": 15318,
+      "unconfirmedTexts": 6532,
+      "unconfirmedWords": 38384,
+      "withoutResourceTexts": 5958,
+      "withoutResourceWords": 35581,
+      "wiredTextPercent": 13.89,
+      "wiredWordPercent": 24.59,
+      "resourceTextPercent": 21.46,
+      "resourceWordPercent": 30.09
+    },
+    "pt-BR": {
+      "texts": 7586,
+      "words": 50899,
+      "wiredTexts": 1051,
+      "wiredWords": 12512,
+      "resourceTexts": 1625,
+      "resourceWords": 15315,
+      "unconfirmedTexts": 6535,
+      "unconfirmedWords": 38387,
+      "withoutResourceTexts": 5961,
+      "withoutResourceWords": 35584,
+      "wiredTextPercent": 13.85,
+      "wiredWordPercent": 24.58,
+      "resourceTextPercent": 21.42,
+      "resourceWordPercent": 30.09
+    },
+    "de": {
+      "texts": 7586,
+      "words": 50899,
+      "wiredTexts": 1053,
+      "wiredWords": 12514,
+      "resourceTexts": 1625,
+      "resourceWords": 15315,
+      "unconfirmedTexts": 6533,
+      "unconfirmedWords": 38385,
+      "withoutResourceTexts": 5961,
+      "withoutResourceWords": 35584,
+      "wiredTextPercent": 13.88,
+      "wiredWordPercent": 24.59,
+      "resourceTextPercent": 21.42,
+      "resourceWordPercent": 30.09
+    }
+  },
+  "variation": {
+    "beforeHash": "5095b6f92df64f76181048c3b0a9315845bf42649cab3653eaef9426a9ad2a64",
+    "afterHash": "b72a853e71f25d498bf1bdaa5c2578f4536b85bdfc2dc2a28fc1e3a6350fcfa8",
+    "sameMethod": true,
+    "sameScope": true,
+    "added": [
+      "32965a3c3ca0998165ca",
+      "6323e1e4801e2540884a",
+      "e34c091ea60303193f5f"
+    ],
+    "removed": [
+      "08bda1db2243428336f8",
+      "205b6620702b074a079f",
+      "4e7a110d8be24b88945c",
+      "ae0d835539ead23d24c7"
+    ],
+    "changed": [
+      "98adf6fc4c470adc9860",
+      "cf097655adca81a367cc",
+      "edc89780cce4ac9e534b",
+      "fac0c204df83a2360ba2"
+    ],
+    "locales": {
+      "fr": {
+        "wiredTexts": -2,
+        "resourceTexts": -2,
+        "unconfirmedWords": 0
+      },
+      "en": {
+        "wiredTexts": 5,
+        "resourceTexts": 6,
+        "unconfirmedWords": -26
+      },
+      "es": {
+        "wiredTexts": 5,
+        "resourceTexts": 6,
+        "unconfirmedWords": -26
+      },
+      "zh-TW": {
+        "wiredTexts": 5,
+        "resourceTexts": 6,
+        "unconfirmedWords": -26
+      },
+      "ru": {
+        "wiredTexts": 5,
+        "resourceTexts": 6,
+        "unconfirmedWords": -26
+      },
+      "ko": {
+        "wiredTexts": 5,
+        "resourceTexts": 6,
+        "unconfirmedWords": -26
+      },
+      "ar": {
+        "wiredTexts": 5,
+        "resourceTexts": 6,
+        "unconfirmedWords": -26
+      },
+      "pt-BR": {
+        "wiredTexts": 5,
+        "resourceTexts": 6,
+        "unconfirmedWords": -26
+      },
+      "de": {
+        "wiredTexts": 5,
+        "resourceTexts": 6,
+        "unconfirmedWords": -26
+      }
+    }
+  },
+  "commonStaticCorpus": {
+    "fr": {
+      "before": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 7583,
+        "wiredWords": 50894,
+        "resourceTexts": 7583,
+        "resourceWords": 50894
+      },
+      "after": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 7583,
+        "wiredWords": 50894,
+        "resourceTexts": 7583,
+        "resourceWords": 50894
+      }
+    },
+    "en": {
+      "before": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1040,
+        "wiredWords": 12481,
+        "resourceTexts": 1600,
+        "resourceWords": 15269
+      },
+      "after": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1044,
+        "wiredWords": 12502,
+        "resourceTexts": 1604,
+        "resourceWords": 15290
+      }
+    },
+    "es": {
+      "before": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1047,
+        "wiredWords": 12489,
+        "resourceTexts": 1616,
+        "resourceWords": 15287
+      },
+      "after": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1051,
+        "wiredWords": 12510,
+        "resourceTexts": 1620,
+        "resourceWords": 15308
+      }
+    },
+    "zh-TW": {
+      "before": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1049,
+        "wiredWords": 12491,
+        "resourceTexts": 1622,
+        "resourceWords": 15296
+      },
+      "after": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1053,
+        "wiredWords": 12512,
+        "resourceTexts": 1626,
+        "resourceWords": 15317
+      }
+    },
+    "ru": {
+      "before": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1049,
+        "wiredWords": 12491,
+        "resourceTexts": 1621,
+        "resourceWords": 15292
+      },
+      "after": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1053,
+        "wiredWords": 12512,
+        "resourceTexts": 1625,
+        "resourceWords": 15313
+      }
+    },
+    "ko": {
+      "before": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1049,
+        "wiredWords": 12491,
+        "resourceTexts": 1622,
+        "resourceWords": 15296
+      },
+      "after": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1053,
+        "wiredWords": 12512,
+        "resourceTexts": 1626,
+        "resourceWords": 15317
+      }
+    },
+    "ar": {
+      "before": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1049,
+        "wiredWords": 12491,
+        "resourceTexts": 1621,
+        "resourceWords": 15292
+      },
+      "after": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1053,
+        "wiredWords": 12512,
+        "resourceTexts": 1625,
+        "resourceWords": 15313
+      }
+    },
+    "pt-BR": {
+      "before": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1046,
+        "wiredWords": 12488,
+        "resourceTexts": 1618,
+        "resourceWords": 15289
+      },
+      "after": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1050,
+        "wiredWords": 12509,
+        "resourceTexts": 1622,
+        "resourceWords": 15310
+      }
+    },
+    "de": {
+      "before": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1048,
+        "wiredWords": 12490,
+        "resourceTexts": 1618,
+        "resourceWords": 15289
+      },
+      "after": {
+        "texts": 7583,
+        "words": 50894,
+        "wiredTexts": 1052,
+        "wiredWords": 12511,
+        "resourceTexts": 1622,
+        "resourceWords": 15310
+      }
+    }
+  },
+  "newStatic": [
+    {
+      "id": "32965a3c3ca0998165ca",
+      "text": "Demandes",
+      "words": 1
+    },
+    {
+      "id": "6323e1e4801e2540884a",
+      "text": "Demande du Jour",
+      "words": 3
+    },
+    {
+      "id": "e34c091ea60303193f5f",
+      "text": "Inviter",
+      "words": 1
+    }
+  ],
+  "removedStatic": [
+    {
+      "id": "08bda1db2243428336f8",
+      "text": "Demande du Jour {DYNAMIC}",
+      "words": 3
+    },
+    {
+      "id": "205b6620702b074a079f",
+      "text": "✕ Refuser",
+      "words": 1
+    },
+    {
+      "id": "4e7a110d8be24b88945c",
+      "text": "✉️ Inviter — {DYNAMIC}",
+      "words": 1
+    },
+    {
+      "id": "ae0d835539ead23d24c7",
+      "text": "📨 Demandes — {DYNAMIC}",
+      "words": 1
+    },
+    {
+      "id": "cbe14eaccb16371c73b1",
+      "text": "✓ Accepter",
+      "words": 1
+    }
+  ],
+  "extractionErrors": {
+    "before": [],
+    "after": []
+  }
+}
