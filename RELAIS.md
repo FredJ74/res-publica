@@ -6,6 +6,9 @@ Règles : voir `AGENTS.md`.
 
 > **Rangé le 11/11/2026 (Claude)** : les chantiers terminés ont été déplacés mot pour mot dans [`RELAIS-ARCHIVE-2026-11.md`](RELAIS-ARCHIVE-2026-11.md) (chercher par mot-clé : branche, PR, migration). Garder ici seulement ce qui est en cours, attendu ou à vérifier ; un chantier fusionné passe en une ligne dans « Derniers chantiers ».
 
+### Avertissement 0 PA : traduit et durée d'hospitalisation annoncée (Claude, 14/11/2026)
+Branche `claude/zero-pa-i18n-20261114`. Demande de Fred : vérifier la pop-up sur mobile (vérifiée : premier plan au-dessus des panneaux mobiles, boutons de 44 px, en portrait 390/360 px et en paysage), la traduire et préciser « immobilisé(e) 2 à 3 jours ». `avertirZeroPa` (`plateau-router.js`) lit 5 textes de `i18n/room-actions-resources.js` (9 langues, français de repli) et traduit le libellé de l'ordre par `RPOrderI18n.label`. `banc-i18n-room-actions.cjs` : 10 → 15 clés. Versions de cache de `plateau.html` mises à jour. Décision consignée dans `GAME-DESIGN-HOSPITALISATION.md`. Limite connue : les actions lancées depuis une fenêtre (caisse du kolkhoze, etc.) ne passent pas par cet avertissement.
+
 ### Église du Tractorisme de Krasnov : « Donner à l'Église » (Claude, 14/11/2026)
 Branche `claude/krasnov-eglise-ordres-20261114`. Demande de Fred : remplacer « Kolkhoze » par « Église » dans les ordres de l'église de Krasnov. Seul ordre concerné : « Donner au Kolkhoze » → **« Donner à l'Église »** (même `faire_don`, mêmes effets), par surcharge de la pièce à Krasnov (`roomOverrides.grange_sainte`, `data.js`). Le « Kolkhoze Spirituel » de Novomirsk garde son libellé. Variante `don_eglise_tractorisme` en 9 langues (`i18n/order-variants-resources.js`, `i18n/ordres.js`) ; `banc-i18n-variantes-hotel.cjs` 48 → 49 variantes. **À vérifier en jeu** : l'ordre dans l'église de Krasnov.
 
