@@ -1236,7 +1236,26 @@ const WORLD = {
         'raffinerie-montrouge':         { name: "Raffinerie de Montrouge" },
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
         'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },
-        'dispensaire-public-v':         { name: "Hôpital de Montrouge", persons: [{name:'Agnès Thésie (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}] },
+        'dispensaire-public-v': {
+          name: "Hôpital de Montrouge",
+          persons: [{name:'Agnès Thésie (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}],
+          // Salle propre à Montrouge : ne pas l'ajouter au gabarit partagé avec PSM et Sovarka.
+          roomsExtra: {
+            chambre: {
+              name: "Chambre d'hôpital",
+              image: '🛏️',
+              imageBg: 'linear-gradient(135deg,#d8dfd8,#a3b6ae)',
+              desc: "Une chambre d'hôpital lumineuse, propre et parfaitement entretenue, avec vue sur les immeubles de Montrouge.",
+              imageUrl: 'images/montrouge/montrouge-hopital-chambre.webp',
+              persons: [],
+              orders: [
+                {fn:'dormir', label:'Dormir', pa:0, cost:0, type:'legal', icon:'ti-moon', successRate:100, desc:"Dormir dans votre lit d'hôpital. La récupération suit les règles de l'hospitalisation."},
+                {fn:'repas_hopital', label:"Prendre le repas de l'hôpital", pa:1, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Réservé aux patients hospitalisés, une fois par jour. +2 PA au prochain sommeil.'},
+                {fn:'transfert_clinique_privee', label:'Demander le transfert en clinique privée', pa:0, cost:1000, type:'legal', icon:'ti-ambulance', successRate:100, desc:'Transfert en ambulance vers la clinique privée, possible dès J0. 1 000 FR.'}
+              ]
+            }
+          }
+        },
         'centre-commercial': {
           name: "Centre commercial de Montrouge",
           roomOverrides: {
