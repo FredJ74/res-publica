@@ -644,6 +644,30 @@ PIECE_VARIANTES.soviet.ville_b = {
   )
 };
 
+/* Krasnov : quatre commerces de même volume. L'image change exclusivement selon
+   le bail municipal. Un commerce loué montre l'étalage freemium et reçoit le nom
+   de son commerce dans le fronton bordeaux désormais vidé du texte généré.
+   Aucun tarif ni identifiant de location n'est modifié. */
+PIECE_VARIANTES.soviet.ville_b['centre-commercial'] = Object.fromEntries(
+  ['vitrine_principale','boutique_milieu','arriere_boutique','cave_reserve']
+    .map(function (piece, idx) {
+      const libre = WORLD.soviet.ville_b.buildingContext['centre-commercial'].roomOverrides[piece].imageUrl;
+      return [piece, {
+        famille: 'location',
+        ancrage: 'centre',
+        nom: NOM_LOCAL_LOUABLE,
+        desc: { occupee: 'Commerce ouvert dans la galerie marchande de Krasnov.' },
+        images: {
+          libre,
+          occupee: 'images/Sovarka/Krasnov/Krasnov_centre_commercial_box_occupe_freemium.webp'
+        },
+        enseigne: Object.assign({}, ENSEIGNE_FRONTON_LUTHECIA, {
+          zone: { x: 0.245, y: 0.030, w: 0.52, h: 0.095 }
+        })
+      }];
+    })
+);
+
 /* ---------------------------------------------------------------------------
    3. LE MOTEUR
    --------------------------------------------------------------------------- */
