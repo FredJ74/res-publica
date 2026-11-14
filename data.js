@@ -2494,8 +2494,25 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
       desc:'Le kolkhoze collectif numéro 7. Production agricole pour la gloire du Parti.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','stade','zone-production','entrepot-logistique-krasnov','station-service-krasnov'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','logements-novomirsk','terrain-a-batir-2','stade','zone-production','entrepot-logistique-krasnov','station-service-krasnov'],
       buildingContext: {
+        // Immeuble social face à l'Universam : gabarit de logements collectifs
+        // de Novomirsk, images distinctes, attribution communale inchangée.
+        'logements-novomirsk': {
+          name: 'Immeuble collectif du centre commercial',
+          desc: "Logements populaires en face du centre commercial de Krasnov, attribués par la mairie.",
+          roomOverrides: {
+            salle: { name: "Hall d'immeuble", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_hall.webp' },
+            petit_appartement_1: { name: "Appartement une chambre n°1", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_1_chambre.webp' },
+            petit_appartement_2: { name: "Appartement une chambre n°2", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_1_chambre.webp' },
+            petit_appartement_3: { name: "Appartement une chambre n°3", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_1_chambre.webp' },
+            petit_appartement_4: { name: "Appartement une chambre n°4", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_1_chambre.webp' },
+            grand_appartement_1: { name: "Appartement deux chambres n°1", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_2_chambres.webp' },
+            grand_appartement_2: { name: "Appartement deux chambres n°2", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_2_chambres.webp' },
+            grand_appartement_3: { name: "Appartement deux chambres n°3", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_2_chambres.webp' },
+            grand_appartement_4: { name: "Appartement deux chambres n°4", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_2_chambres.webp' },
+          }
+        },
         // Décors de l'hôpital municipal de Krasnov (automne) : les salles et les
         // ordres restent ceux du gabarit partagé. Ne pas dupliquer la logique métier.
         'dispensaire-public-v': {
