@@ -26,4 +26,18 @@ bouton personnalisé et ressource allemande absente également vérifiés.
 
 Les opérations serveur sont simulées : aucun compte ni personnage réel créé,
 aucune donnée de joueur lue ou modifiée. Pas de revue native ni téléphone physique.
-Mesures, CI et production à terminer.
+41 tests Node ciblés, 12 tests de connexion (dont deux navigateur) et quatre
+bancs Chromium verts. Les bancs étrangers comparés à main fb25f0e retrouvent
+les mêmes 32/37 : deux inventaires de descriptions (247/246, 153/151) et trois
+SSM connus, aucune régression nouvelle.
+
+Mesure avec le même extracteur : corpus inchangé 7 587 textes/50 923 mots,
+zéro raccordement statique supplémentaire reconnu ; les marqueurs de titres
+choisis par table et le bouton conditionnel ne sont pas reconnus par cet
+extracteur strict. Le rendu des six textes est vérifié en Chromium, sans gonfler
+le taux. Une ressource supplémentaire / trois mots source sont reconnue dans
+le corpus statique ; les autres titres y figurent hors dénominateur strict.
+Anglais : 24,33 % des mots statiques identifiés, pas de tout le jeu.
+Zéro erreur d’extraction. Mesures complètes dans le JSON associé.
+
+CI finale, fusion et production à terminer.
