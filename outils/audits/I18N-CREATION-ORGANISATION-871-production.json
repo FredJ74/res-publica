@@ -1,0 +1,84 @@
+{
+  "commit": "b660631071ebd715fb055e28f472f12512c5a588",
+  "deployment": "dpl_GuNcRrYFy9eMyjWAFoqrMNBAFR6H",
+  "files": [
+    {
+      "file": "plateau.html",
+      "sha256": "8fd1cab6bc9c4ebb29603c070dc3236035a790aab29f1cfc2711e19591a021e7",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "e1db97c535d9566a304b88abc054b074a93b20258c23931c578d13747171c588",
+      "identical": true
+    },
+    {
+      "file": "forum.js",
+      "sha256": "1917728e3e296b62e4b7cec5d42842b58a2792d7fbc9b2800bd5904db4a44c30",
+      "identical": true
+    },
+    {
+      "file": "plateau-core.js",
+      "sha256": "3bc807f2b021cd967bac36fb21f6530bc20ed304800211057765d96212450531",
+      "identical": true
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "sha256": "efce1b93110a39b9db2cea072f0f1e081bb64a7997edeed624a915072534a200",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-resources.js",
+      "sha256": "5ab8d40c41eb8e1e60f30416019e7c2b3fb6ce8ab3725026cd9d1ccde96f55f0",
+      "identical": true
+    },
+    {
+      "file": "i18n/toast-resources.js",
+      "sha256": "8a57409e44396e0a59163dcb86b9f9d995cbf507d88ed82f56df7fc6c9bcc96e",
+      "identical": true
+    },
+    {
+      "file": "i18n/organization-directory-resources.js",
+      "sha256": "0d08bb899b3636640cd697fcad1226710cc3a1ff15105b35428aa6518cfb76c0",
+      "identical": true
+    },
+    {
+      "file": "i18n/organization-creation-resources.js",
+      "sha256": "e6ffac9c22f28f73709ffaf7e840c3ad8e444b10c5907ad9d4ab56c949f353af",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-init.js",
+      "sha256": "0fbd1edb1d94a175168e068c72991b5dc4b86e7d400202c20a6c6bcfc20bb160",
+      "identical": true
+    }
+  ],
+  "mergedCommit": "f4c6b3814dfda2ecd04d4a6273bd19d1ad821ee6",
+  "descendantVerified": true,
+  "browser": {
+    "tests": 2,
+    "passed": 2,
+    "languageSwitches": 1755,
+    "widths": [
+      320,
+      390,
+      1280
+    ],
+    "locales": 9
+  },
+  "notVerified": [
+    "session PJ authentifiée",
+    "téléphone physique",
+    "revue linguistique native"
+  ]
+}
