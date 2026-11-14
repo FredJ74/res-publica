@@ -8,12 +8,12 @@ const city=vm.runInContext("WORLD.soviet.ville_b",ctx);
 const source=vm.runInContext("BUILDINGS['musee-novomirsk']",ctx);
 const c=city.buildingContext['musee-novomirsk'];
 const expected=['hall','faune_sauvage','flore_sauvage','exploitation_bois','kolkhozes','ecoute_spatiale'];
-assert.deepEqual(Object.keys(c.roomsExtra),expected.slice(1));
+assert.deepEqual(Array.from(Object.keys(c.roomsExtra)),expected.slice(1));
 assert.equal(c.roomsExclues.length,13);
 assert.ok(!c.roomsExclues.includes('hall'));
 assert.equal(c.roomOverrides.hall.name,'Accueil du musée de Krasnov');
 assert.equal(c.roomOverrides.hall.persons.length,2);
-assert.deepEqual(c.roomOverrides.hall.excludeOrders,['ilia_ecouter_guide']);
+assert.deepEqual(Array.from(c.roomOverrides.hall.excludeOrders),['ilia_ecouter_guide']);
 assert.equal(c.roomOverrides.hall.orders.length,0);
 for(const p of c.roomOverrides.hall.persons)assert.ok(p.photoUrl.includes('Krasnov_musee_accueil_'));
 const paths=[
