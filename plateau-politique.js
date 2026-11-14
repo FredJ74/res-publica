@@ -554,7 +554,7 @@ async function ouvrirCalendrierElectoral() {
     ...POSTES_ELECTIFS.national,
     ...POSTES_ELECTIFS.departemental,
     ...POSTES_ELECTIFS.local
-  ].filter(p => !estElectionInterneOrganisation(p.id));
+  ].filter(p => !estElectionInterneOrganisation(p.id) && !scrutinAbsentDuPays(p.id, country));
 
   // Initialiser les cycles manquants (seulement s'ils n'existent vraiment nulle part, ni localement ni sur Supabase)
   if (!CYCLES_ELECTORAUX[country]) CYCLES_ELECTORAUX[country] = {};
@@ -2198,6 +2198,13 @@ function consulterResultatsInformateur(posteId, country, city) {
 // electoral existant (CYCLES_ELECTORAUX/getPhaseActuelle/ouvrirBureauDeVote/deposerCandidature) --
 // aucun systeme parallele. Le referendum n'est PAS implemente ici (arbitrage separe a venir).
 // =====================
+// Sovarka n'a pas de législatives (Fred, 07/11/2026) : les chefs de parti désignent les députés
+// après la semaine à la gloire. Ni salle des élections ni calendrier ne proposent ce scrutin, et
+// le serveur refuse d'en créer le cycle (migration 20261114201500).
+function scrutinAbsentDuPays(posteId, country) {
+  return country === 'soviet' && posteId === 'depute';
+}
+
 const ENTREES_SALLE_ELECTIONS = [
   { posteId: 'president', local: false, label: 'Présidentielle' },
   { posteId: 'depute',    local: true,  label: 'Législatives' },
@@ -2217,6 +2224,7 @@ async function ouvrirVoterElection() {
 
   let html = '<div style="padding:.4rem 0">';
   for (const e of ENTREES_SALLE_ELECTIONS) {
+    if (scrutinAbsentDuPays(e.posteId, country)) continue;
     const city = e.local ? ville : null;
     const cle = getCleCycle(e.posteId, city);
     if (!CYCLES_ELECTORAUX[country][cle]) await initCycleElectoral(country, e.posteId, city);
@@ -2258,6 +2266,7 @@ async function ouvrirSePorterCandidat() {
 
   let html = '<div style="padding:.4rem 0">';
   for (const e of ENTREES_SALLE_ELECTIONS) {
+    if (scrutinAbsentDuPays(e.posteId, country)) continue;
     const city = e.local ? ville : null;
     const cle = getCleCycle(e.posteId, city);
     if (!CYCLES_ELECTORAUX[country][cle]) await initCycleElectoral(country, e.posteId, city);
@@ -2434,6 +2443,7 @@ async function listerScrutinsPourFraude(filtrePoste) {
   if (!CYCLES_ELECTORAUX[country]) CYCLES_ELECTORAUX[country] = {};
   const out = [];
   for (const e of ENTREES_SALLE_ELECTIONS) {
+    if (scrutinAbsentDuPays(e.posteId, country)) continue;
     if (filtrePoste && !filtrePoste(e.posteId)) continue;
     const city = e.local ? ville : null;
     const cle = getCleCycle(e.posteId, city);
@@ -2768,7 +2778,7 @@ async function ouvrirTableauElectoral() {
 
   if (typeof syncCyclesDepuisSupabase === 'function') await syncCyclesDepuisSupabase();
 
-  const postesTous = [...POSTES_ELECTIFS.national, ...POSTES_ELECTIFS.departemental, ...POSTES_ELECTIFS.local];
+  const postesTous = [...POSTES_ELECTIFS.national, ...POSTES_ELECTIFS.departemental, ...POSTES_ELECTIFS.local].filter(p => !scrutinAbsentDuPays(p.id, country));
   if (!CYCLES_ELECTORAUX[country]) CYCLES_ELECTORAUX[country] = {};
   for (const p of postesTous) {
     const city = posteEstLocal(p.id) ? villeCourante : null;
@@ -2776,7 +2786,7 @@ async function ouvrirTableauElectoral() {
     if (!CYCLES_ELECTORAUX[country][cle]) await initCycleElectoral(country, p.id, city);
   }
 
-  const postes = [...POSTES_ELECTIFS.national, ...POSTES_ELECTIFS.departemental, ...POSTES_ELECTIFS.local];
+  const postes = [...POSTES_ELECTIFS.national, ...POSTES_ELECTIFS.departemental, ...POSTES_ELECTIFS.local].filter(p => !scrutinAbsentDuPays(p.id, country));
   const html = postes.map(p => {
     const estLocal = posteEstLocal(p.id);
     const city = estLocal ? villeCourante : null;

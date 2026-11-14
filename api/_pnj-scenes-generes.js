@@ -5985,6 +5985,13 @@ export const SCENES_PNJ = {
     "piece": "Bureau du Maire Adjoint",
     "personnes": []
   },
+  "[\"soviet\",\"ville_a\",\"mairie\",\"salle_elections\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Mairie",
+    "piece": "Salle des élections",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_a\",\"mairie\",\"salle_partis\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
@@ -6564,16 +6571,16 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"mairie\",\"accueil_mairie\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Mairie",
+    "batiment": "Mairie de Krasnov",
     "piece": "Accueil",
     "personnes": [
-      "Secretaire Municipal"
+      "Secrétaire municipale de Krasnov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"mairie\",\"bureau_maire_local\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Mairie",
+    "batiment": "Mairie de Krasnov",
     "piece": "Bureau du Maire",
     "personnes": [
       "Le Maire"
@@ -6582,16 +6589,27 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"mairie\",\"bureau_maire_adjoint\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Mairie",
+    "batiment": "Mairie de Krasnov",
     "piece": "Bureau du Maire Adjoint",
     "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"mairie\",\"salle_elections\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Mairie de Krasnov",
+    "piece": "Salle des élections",
+    "personnes": [
+      "Zinaïda Izbirkova"
+    ]
   },
   "[\"soviet\",\"ville_b\",\"mairie\",\"salle_partis\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Mairie",
-    "piece": "Salle des partis",
-    "personnes": []
+    "batiment": "Mairie de Krasnov",
+    "piece": "salle_partis",
+    "personnes": [
+      "Lieutenant Fiodor Doznaïev"
+    ]
   },
   "[\"soviet\",\"ville_b\",\"banque-locale\",\"guichet\"]": {
     "pays": "Sovarka",
@@ -6692,8 +6710,8 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"centre-commercial\",\"hall\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre Commercial",
-    "piece": "Hall d'Entrée",
+    "batiment": "Centre commercial de Krasnov",
+    "piece": "Galerie marchande",
     "personnes": [
       "Varvara Kozlova",
       "Efim Iakovlev"
@@ -6702,29 +6720,29 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"centre-commercial\",\"vitrine_principale\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre Commercial",
-    "piece": "Vitrine Principale — Local à louer",
+    "batiment": "Centre commercial de Krasnov",
+    "piece": "Box commercial 1 — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"centre-commercial\",\"boutique_milieu\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre Commercial",
-    "piece": "Boutique Milieu — Local à louer",
+    "batiment": "Centre commercial de Krasnov",
+    "piece": "Box commercial 2 — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"centre-commercial\",\"arriere_boutique\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre Commercial",
-    "piece": "Arrière-Boutique — Local à louer",
+    "batiment": "Centre commercial de Krasnov",
+    "piece": "Box commercial 3 — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"centre-commercial\",\"cave_reserve\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre Commercial",
-    "piece": "Cave / Réserve — Local à louer",
+    "batiment": "Centre commercial de Krasnov",
+    "piece": "Box commercial 4 — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"centre-artisanal\",\"travees\"]": {
@@ -6797,6 +6815,286 @@ export const SCENES_PNJ = {
     "personnes": [
       "Anatoli Kolosov"
     ]
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"salle\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Hall d'immeuble",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"petit_appartement_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Appartement une chambre n°1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"petit_appartement_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Appartement une chambre n°2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"petit_appartement_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Appartement une chambre n°3",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"petit_appartement_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Appartement une chambre n°4",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"grand_appartement_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Appartement deux chambres n°1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"grand_appartement_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Appartement deux chambres n°2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"grand_appartement_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Appartement deux chambres n°3",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"grand_appartement_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Appartement deux chambres n°4",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"petit_appartement_1_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"petit_appartement_2_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"petit_appartement_3_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"petit_appartement_4_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Chambre",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"grand_appartement_1_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"grand_appartement_1_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"grand_appartement_2_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"grand_appartement_2_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"grand_appartement_3_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"grand_appartement_3_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"grand_appartement_4_chambre_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Chambre 1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"grand_appartement_4_chambre_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble collectif du centre commercial",
+    "piece": "Chambre 2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-place-ours\",\"hall\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la place de l’Ours",
+    "piece": "Hall d'immeuble",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-place-ours\",\"petit_appartement_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la place de l’Ours",
+    "piece": "Appartement une chambre n°1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-place-ours\",\"petit_appartement_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la place de l’Ours",
+    "piece": "Appartement une chambre n°2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-place-ours\",\"petit_appartement_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la place de l’Ours",
+    "piece": "Appartement une chambre n°3",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-place-ours\",\"petit_appartement_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la place de l’Ours",
+    "piece": "Appartement une chambre n°4",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-place-ours\",\"grand_appartement_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la place de l’Ours",
+    "piece": "Appartement deux chambres n°1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-place-ours\",\"grand_appartement_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la place de l’Ours",
+    "piece": "Appartement deux chambres n°2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-place-ours\",\"grand_appartement_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la place de l’Ours",
+    "piece": "Appartement deux chambres n°3",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-place-ours\",\"grand_appartement_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la place de l’Ours",
+    "piece": "Appartement deux chambres n°4",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-rue-tabac\",\"hall\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la rue du Tabac",
+    "piece": "Hall d'immeuble",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-rue-tabac\",\"petit_appartement_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la rue du Tabac",
+    "piece": "Appartement une chambre n°1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-rue-tabac\",\"petit_appartement_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la rue du Tabac",
+    "piece": "Appartement une chambre n°2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-rue-tabac\",\"petit_appartement_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la rue du Tabac",
+    "piece": "Appartement une chambre n°3",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-rue-tabac\",\"petit_appartement_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la rue du Tabac",
+    "piece": "Appartement une chambre n°4",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-rue-tabac\",\"grand_appartement_1\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la rue du Tabac",
+    "piece": "Appartement deux chambres n°1",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-rue-tabac\",\"grand_appartement_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la rue du Tabac",
+    "piece": "Appartement deux chambres n°2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-rue-tabac\",\"grand_appartement_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la rue du Tabac",
+    "piece": "Appartement deux chambres n°3",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"logements-krasnov-rue-tabac\",\"grand_appartement_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Immeuble de la rue du Tabac",
+    "piece": "Appartement deux chambres n°4",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"tabac-presse-krasnov\",\"boutique\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Tabac/Presse de Krasnov",
+    "piece": "Boutique",
+    "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"terrain-a-batir-2\",\"terrain\"]": {
     "pays": "Sovarka",

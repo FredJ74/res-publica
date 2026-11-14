@@ -1,0 +1,21 @@
+name: "Krasnov — zones distinctes immeuble et tabac"
+on:
+  push:
+    branches:
+      - chatgpt/krasnov-tabac-hitboxes-20261114
+    paths:
+      - .github/workflows/krasnov-tabac-hitboxes-20261114.yml
+permissions:
+  contents: read
+jobs:
+  targeted-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Vérifier la syntaxe et les zones cliquables
+        run: |
+          node --check plateau-rue-centrale.js
+          node --test outils/bancs/test-krasnov-bar-tabac-immeuble-20261114.mjs
+          node --test outils/bancs/test-krasnov-place-ours-20261114.mjs
+          node --test outils/bancs/test-krasnov-place-ours-appartements-20261114.mjs

@@ -30,6 +30,19 @@ const street=rue.slice(rue.indexOf("Z('krasnov-rue-tabac-bar'"),rue.indexOf("// 
 assert.match(street,/Bar Sever/);
 assert.match(street,/Tabac\/Presse de Krasnov/);
 assert.match(street,/logements-krasnov-rue-tabac/);
+const hitboxes=Array.from(street.matchAll(/Z\('krasnov-rue-tabac-bar', \[(\d+), (\d+)\], '([^']+)', '([^']+)'(?:, \[(\d+), (\d+)\])?\);/g))
+  .map(m=>({xMin:Number(m[1]),xMax:Number(m[2]),name:m[3],id:m[4],yMin:Number(m[5]??8),yMax:Number(m[6]??76)}));
+const building=hitboxes.find(h=>h.id==='logements-krasnov-rue-tabac');
+const tabac=hitboxes.find(h=>h.id==='tabac-presse-krasnov');
+const bar=hitboxes.find(h=>h.id==='cafe-tabac-cheminots-montrouge');
+assert.ok(building&&tabac&&bar);
+assert.deepEqual([building.xMin,building.xMax],[58,78]);
+assert.deepEqual([tabac.xMin,tabac.xMax],[79,100]);
+assert.ok(bar.xMax < building.xMin,'Le bar ne doit pas masquer l immeuble');
+assert.ok(building.xMax < tabac.xMin,'Le tabac ne doit pas être masqué par l immeuble');
+assert.ok(building.yMin<=25 && building.yMax>=65,'La façade peinte doit être cliquable');
+assert.ok(tabac.yMin<=40 && tabac.yMax>=70,'La devanture doit être cliquable');
+
 const sql=read('migrations/20261114210000_krasnov_tabac_presse_immeuble.sql');
 assert.match(sql,/logements-krasnov-rue-tabac/);
 assert.doesNotMatch(sql,/DELETE FROM|TRUNCATE|DROP TABLE/i);
