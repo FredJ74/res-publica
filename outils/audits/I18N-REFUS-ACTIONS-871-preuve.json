@@ -10,5 +10,11 @@
   "sharedBodyPullRequest": 924,
   "businessAstIdentical": true,
   "engineChangedOnlyInMarkToast": true,
-  "verificationUsedRealAccounts": false
+  "verificationUsedRealAccounts": false,
+  "sharedCatalogBlob": "e0043ea02bb70cd435c317cf4c5917851d20f5b9",
+  "sharedCatalogHead": "db7cc52676d3aebb20f1878bc4d9d6d3434fb7a1",
+  "nodeTestsPassed": 46,
+  "chromiumSuiteTestsPassed": 4,
+  "chromiumRefusalSwitches": 1728,
+  "realSharedCatalogSwitchesPassed": 1728
 }

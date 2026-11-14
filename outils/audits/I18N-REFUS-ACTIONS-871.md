@@ -30,7 +30,7 @@ corps marqué est laissé à l’application commune ; le repeint automatique de
 s’abstient lorsqu’un marqueur est présent. Sans #924, le repli français habituel
 continue de fonctionner, jamais une clé technique visible.
 
-## Vérifications en cours
+## Vérifications
 
 - AST entier de `plateau-core.js` inchangé hors seize annotations. Reste du moteur
   commun inchangé hors fonction de présentation `markToast`.
@@ -44,6 +44,22 @@ continue de fonctionner, jamais une clé technique visible.
   échoue faute de `window`. Les trois tests de refus de coût et cinq tests de
   générateur passent. Aucun échec nouveau masqué, aucun test étranger modifié.
 
-Compatibilité avec le vrai catalogue #924, autres bancs, mesures, CI et production
-à terminer. Pas de session PJ authentifiée, téléphone physique ou revue native.
+46 tests Node et quatre bancs Chromium passent (refus, chantiers, reprise et forum).
+Le vrai catalogue de #924 a aussi été vérifié : 1 728 bascules réussies,
+blob `e0043ea02bb70cd435c317cf4c5917851d20f5b9` au commit
+`db7cc52676d3aebb20f1878bc4d9d6d3434fb7a1`. Ce test de compatibilité
+ne certifie pas la qualité linguistique des traductions de cette autre PR.
+
+## Mesure à méthode identique
+
+Base `e9757bc`, code `4bd3e75` : même extracteur, même corpus de 7 582 textes
+et 50 865 mots. Chaque langue étrangère gagne six raccordements prouvés et
+56 mots source raccordés ; six ressources supplémentaires représentent 55 mots
+source (les représentations dynamiques de la source et du catalogue diffèrent).
+En anglais : 1 019 textes / 12 375 mots raccordés, soit 24,33 % des mots du
+corpus statique identifié. Ce plancher ne mesure pas l’ensemble du jeu. Les
+quinze corps de #924 ne sont pas comptés comme traduits dans cette livraison.
+Zéro erreur d’extraction. Mesures complètes dans le JSON associé.
+
+CI, fusion et production à terminer. Pas de session PJ authentifiée, téléphone physique ou revue native.
 Aucune migration, fonction serveur ou mécanique des Tsars modifiée.
