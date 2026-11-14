@@ -148,6 +148,7 @@
   ["Patron du bar","Bar owner","Dueño del bar","酒吧老闆","Хозяин бара","바 주인","صاحب البار","Dono do bar","Barbesitzer"],
   ["Opératrice d’écoute","Listening operator","Operadora de escuchas","女監聽員","Оператор прослушивания","감청 요원","عاملة التنصت","Operadora de escuta","Abhörbeamtin"],
   ["Habitant de Krasnov","Krasnov resident","Habitante de Krasnov","克拉斯諾夫居民","Житель Краснова","크라스노프 주민","ساكن من كراسنوف","Morador de Krasnov","Einwohner von Krasnov"],
+  ["Habitante de Krasnov","Krasnov resident","Habitante de Krasnov","克拉斯諾夫居民","Жительница Краснова","크라스노프 주민","ساكنة من كراسنوف","Moradora de Krasnov","Einwohnerin von Krasnov"],
   ["Présidente du kolkhoze","Kolkhoz chairwoman","Presidenta del koljós","集體農莊主席","Председательница колхоза","콜호스 의장","رئيسة الكولخوز","Presidente do colcoz","Kolchosvorsitzende"],
   ["Directeur du QHS","Director of the QHS","Director del QHS","QHS 主任","Директор QHS","QHS 소장","مدير QHS","Diretor do QHS","Direktor des QHS"],
   ["Gardien Chef","Head guard","Jefe de guardias","看守長","Старший надзиратель","간수장","كبير الحراس","Carcereiro-chefe","Oberaufseher"],

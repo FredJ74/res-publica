@@ -7062,6 +7062,51 @@ export const SCENES_PNJ = {
       "Stepan Kouznetsov"
     ]
   },
+  "[\"soviet\",\"ville_b\",\"maison-krasnov-bureaux\",\"piece_maison\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Maison d’Antonina",
+    "piece": "La pièce commune",
+    "personnes": [
+      "Antonina Merkoulova"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"maison-krasnov-rouge\",\"piece_maison\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Maison de Matveï",
+    "piece": "La pièce commune",
+    "personnes": [
+      "Matveï Rybakov"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"maison-krasnov-bleue\",\"piece_maison\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Maison de Praskovia",
+    "piece": "La pièce commune",
+    "personnes": [
+      "Praskovia Pakhomova"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"maison-krasnov-eglise\",\"piece_maison\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Maison de Kouzma",
+    "piece": "La pièce commune",
+    "personnes": [
+      "Kouzma Lapchine"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"maison-krasnov-terrains\",\"piece_maison\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Maison d’Ignat",
+    "piece": "La pièce commune",
+    "personnes": [
+      "Ignat Lykov"
+    ]
+  },
   "[\"soviet\",\"ville_b\",\"ferme-krasnov\",\"cour_ferme\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",

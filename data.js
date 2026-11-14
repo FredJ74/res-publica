@@ -11449,9 +11449,31 @@ BUILDINGS['locaux-starovka'] = {
     'Une table couverte d’une toile cirée, des cornichons, du pain noir et un vieil homme ravi d’avoir de la compagnie.',
     // Image de Fred (13/11/2026) : la cuisine de Stepan, poêle, bocaux d'herbes et fusil au mur.
     'images/Sovarka/Krasnov/Krasnov_maison_stepan_interieur.webp');
+  // Maisonnettes en bois des vues de rue de Krasnov (Fred, 14/11/2026 : « un habitant chacune » ; migration
+  // 20261114180000). Habitants proposés par Claude, à valider par Fred ; images d'intérieur à venir.
+  const MAISONNETTES_KRASNOV = [
+    ['maison-krasnov-bureaux', 'Maison d’Antonina', 'Antonina Merkoulova', 'Habitante de Krasnov',
+      'Une maison de bois bleue aux fenêtres ourlées de dentelle de bois, face au centre d’affaires.',
+      'Une machine à coudre à pédale, des coupons de tissu pliés sur le divan et une couturière à la retraite qui met déjà la bouilloire en route.'],
+    ['maison-krasnov-rouge', 'Maison de Matveï', 'Matveï Rybakov', 'Habitant de Krasnov',
+      'Une isba rouge au toit de tôle, la cheminée qui fume en toute saison.',
+      'Une hache accrochée près du poêle, des bûches empilées jusqu’au plafond et un ancien bûcheron au dos voûté qui vous tend un tabouret.'],
+    ['maison-krasnov-bleue', 'Maison de Praskovia', 'Praskovia Pakhomova', 'Habitante de Krasnov',
+      'Une petite maison bleue derrière sa palissade, des ruches alignées au fond du jardin.',
+      'Des pots de miel sur chaque étagère, des bouquets d’herbes qui sèchent au plafond et une apicultrice qui sent la cire et le tilleul.'],
+    ['maison-krasnov-eglise', 'Maison de Kouzma', 'Kouzma Lapchine', 'Habitant de Krasnov',
+      'Une maison de bois brun à l’ombre des bulbes dorés de l’église.',
+      'Des icônes dans le coin rouge, une cloche miniature sur la table et un ancien sonneur de cloches, un peu sourd, qui parle très fort.'],
+    ['maison-krasnov-terrains', 'Maison d’Ignat', 'Ignat Lykov', 'Habitant de Krasnov',
+      'Une vieille maison de bois au bord des terrains vagues, des peaux tendues sous l’auvent.',
+      'Des pièges pendus aux poutres, un samovar cabossé et un vieux trappeur taiseux qui vous observe longuement avant de sourire.']
+  ];
+  MAISONNETTES_KRASNOV.forEach(m => maison(...m));
   const cite = v => WORLD.soviet && WORLD.soviet[v];
   if (cite('ville_a') && !cite('ville_a').buildings.includes('maison-starovka')) cite('ville_a').buildings.push('maison-starovka');
-  if (cite('ville_b') && !cite('ville_b').buildings.includes('maison-krasnov')) cite('ville_b').buildings.push('maison-krasnov');
+  ['maison-krasnov', ...MAISONNETTES_KRASNOV.map(m => m[0])].forEach(id => {
+    if (cite('ville_b') && !cite('ville_b').buildings.includes(id)) cite('ville_b').buildings.push(id);
+  });
 })();
 
 // FERMES, DISTILLERIE ET FOURREUR DE SOVARKA (Fred, 10/11/2026 a midi ; migration 20261110123000). Une ferme ne consomme
