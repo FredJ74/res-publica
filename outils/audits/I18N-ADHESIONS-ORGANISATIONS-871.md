@@ -10,7 +10,7 @@ Les commandes d’acceptation, refus et invitation, leurs courriers et notificat
 
 SSM : mêmes 5/8 verts et trois rouges sur main/branche. La première CI du brouillon a aussi inclus les modifications data.js de main dans son contrôle de périmètre : preuve figée sur les commits propres base 7a52048e/code cfd65b0c pour distinguer ces travaux étrangers. Les autres bancs et Chromium vérifient toujours le code réellement exécuté.
 
-Un nouveau rouge de payload est reproduit sur main 221e919 : cinq PNG téléversés hors lot portent le contenu à 341 Mo, plafond déclaré 330 Mo. La branche propre est à 328 Mo et passe. Ni les images ni le plafond ne sont modifiés ici. Ce constat ne vaut pas validation du déploiement : Vercel et les fichiers publics restent à vérifier après fusion.
+Un nouveau rouge de payload est reproduit sur main 221e919 : cinq PNG téléversés hors lot portent le contenu à 341 Mo, plafond déclaré 330 Mo. La branche propre est à 328 Mo et passe. Ni les images ni le plafond ne sont modifiés ici. Main fb2f05f a ensuite remplacé ces PNG par cinq WebP dans le chantier étranger. Cette version est intégrée : garde verte sur main et branche fusionnée, 329,5 Mo (apport propre du lot : 4 442 octets). Nouvelle CI à vérifier ; Vercel et les fichiers publics restent à vérifier après fusion.
 
 ## Mesure
 

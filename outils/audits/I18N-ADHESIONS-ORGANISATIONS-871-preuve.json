@@ -27,6 +27,10 @@
     "declaredLimitMiB": 330.0,
     "mainFailureReproduced": true,
     "foreignUploadedPNGs": 5,
-    "limitAndImagesUnchanged": true
+    "limitAndImagesUnchanged": true,
+    "resolvedByMainCommit": "fb2f05fd92d7a8d3bac7c8cb63629a678aa567c6",
+    "latestMainAndMergedBranchGuardPassed": true,
+    "mergedBranchMiB": 329.5,
+    "ownPayloadIncreaseBytes": 4442
   }
 }
