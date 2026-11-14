@@ -659,26 +659,35 @@ function ouvrirGestionMembres(orgaId) {
   const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
   const estChef = orga.chef === state.char?.name;
 
-  document.getElementById('postes-modal-title').textContent = '👥 ' + orga.nom + ' — Membres';
+  // Les données des joueurs restent du texte opaque pour le moteur commun.
+  const _rpMembreTexte = value => escapeHtmlText(String(value));
+  const _rpMembreAction = (action, nom) => _rpMembreTexte(action + '(' + JSON.stringify(orgaId) + ',' + JSON.stringify(nom) + ')');
+  const titre = document.getElementById('postes-modal-title');
+  titre.textContent = '👥 ' + orga.nom + ' — ';
+  const suffixe = document.createElement('span');
+  suffixe.dataset.i18n = 'sovarkaPartis.secMembers';
+  suffixe.textContent = 'Membres';
+  titre.appendChild(suffixe);
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.6rem 1rem">' +
+    '<div style="padding:.6rem 1rem" class="hg-organisations">' +
     orga.membres.map(m =>
       '<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid #1a1208">' +
         '<i class="ti ti-user" style="font-size:.9rem;color:#8a6a20;flex-shrink:0"></i>' +
-        '<div style="flex:1">' +
-          '<div style="font-size:.82rem;color:#c0b090">' + m.nom + (m.nom === orga.chef ? ' 👑' : '') + '</div>' +
-          '<div style="font-size:.85rem;color:#6a5a30">' + m.grade + ' · Depuis Jour ' + m.rejointLe + '</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:.82rem;color:#c0b090">' + _rpMembreTexte(m.nom) + (m.nom === orga.chef ? ' 👑' : '') + '</div>' +
+          '<div style="font-size:.85rem;color:#6a5a30">' + _rpMembreTexte(m.grade) + ' · <span data-i18n="organizationMembers.sinceDay">Depuis Jour </span>' + _rpMembreTexte(m.rejointLe) + '</div>' +
         '</div>' +
         (estChef && m.nom !== state.char?.name ?
           '<div style="display:flex;gap:.3rem">' +
-            '<button onclick="monterGrade(\'' + orgaId + '\',\'' + m.nom + '\')" title="Monter en grade" style="background:none;border:1px solid #2a3a2a;color:#4a8a4a;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">▲</button>' +
-            '<button onclick="descendreGrade(\'' + orgaId + '\',\'' + m.nom + '\')" title="Descendre en grade" style="background:none;border:1px solid #3a2a1a;color:#8a4a2a;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">▼</button>' +
-            '<button onclick="exclureMembre(\'' + orgaId + '\',\'' + m.nom + '\')" title="Exclure" style="background:none;border:1px solid #3a1a1a;color:#cc4444;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">✕</button>' +
+            '<button onclick="' + _rpMembreAction('monterGrade', m.nom) + '" title="Monter en grade" aria-label="Monter en grade" data-i18n-title="organizationMembers.promote" data-i18n-aria-label="organizationMembers.promote" style="background:none;border:1px solid #2a3a2a;color:#4a8a4a;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">▲</button>' +
+            '<button onclick="' + _rpMembreAction('descendreGrade', m.nom) + '" title="Descendre en grade" aria-label="Descendre en grade" data-i18n-title="organizationMembers.demote" data-i18n-aria-label="organizationMembers.demote" style="background:none;border:1px solid #3a2a1a;color:#8a4a2a;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">▼</button>' +
+            '<button onclick="' + _rpMembreAction('exclureMembre', m.nom) + '" title="Exclure" aria-label="Exclure" data-i18n-title="organizationMembers.exclude" data-i18n-aria-label="organizationMembers.exclude" style="background:none;border:1px solid #3a1a1a;color:#cc4444;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">✕</button>' +
           '</div>'
         : '') +
       '</div>'
     ).join('') +
     '</div>';
+  globalThis.RPI18nPlateau?.apply(document.getElementById('modal-postes'));
   document.getElementById('modal-postes').classList.add('open');
 }
 

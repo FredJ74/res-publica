@@ -117,7 +117,7 @@ Claude passe à l'internationalisation ; Codex n'a plus de quota cette nuit. Rel
 
 
 ### #871 — textes fixes de la liste des membres (Codex, 14/11/2026)
-Branche `codex/i18n-membres-organisations-20261114`, base `1a5651a0`. Audit en cours de la seule fenêtre ouvrirGestionMembres : titre, repère du jour et trois boutons. Noms, grades RP, identifiants, droits et commandes métier hors modification. Éviter le chantier notifications #924 de Claude. Lot précédent #934 livré, voir Derniers chantiers.
+Branche `codex/i18n-membres-organisations-20261114`, base `1a5651a0`. PR #942. Seule fenêtre ouvrirGestionMembres : quatre clés/32 traductions étrangères ajoutées, mot Membres existant réutilisé (8 traductions). Titres/aria-label des trois commandes traduits ; noms et paramètres encodés pour rester opaques, mêmes cibles et conditions. 121 tests Node verts, 119 anciens verts sur main ; premier Chromium vert (243 bascules, neuf langues, 320/390/1280). Régressions formulaires/tableau et mesure en cours. Noms, grades RP, identifiants, droits et commandes métier hors modification. Éviter le chantier notifications #924 de Claude. Lot précédent #934 livré, voir Derniers chantiers.
 
 ### Descriptions tactiles et guillemets HTML — livrés le 13/11/2026
 **PR #855 fusionnée après autorisation expresse de Fred** malgré le contrôle SSM/Montrouge déjà rouge sur main, commit `d05740dd24b1c04225c06a70810d6fd28e26a2ac`. Vercel production `dpl_2Ny4NphzGNtVNQJR9gXhNva2bxC9` **READY** sur le même commit. Bouton ⓘ tactile de consultation des ordres, sans action/PA ni requête, contenu multilingue fourni par les catalogues #853 et #856. Suite ciblée et Chromium vertes avant fusion ; revue réelle PJ authentifiée et téléphone physique non faits.
