@@ -14119,13 +14119,16 @@ async function confirmerGardeRenfort(facteur) {
   // AUCUNE VERIFICATION DE CAISSE ICI, pour la meme raison qu'au reversement de la caserne : le
   // serveur verrouille, compare et refuse sans rien ecrire. Deux sources de verite sur un meme
   // solde finissent toujours par diverger.
+  const sovGarde = state.country === 'soviet';
+  const monnaieGarde = sovGarde ? 'PSK' : 'FR';
+  const nomGarde = sovGarde ? 'Garde de la Patrie' : 'Garde républicaine';
   const r = await sbGardeRenfortNational(facteur).catch(() => null);
   if (!r || r.ok !== true) {
     const raison = r && r.raison;
     showToast('Renfort refusé',
       raison === 'caisse_defense_insuffisante'
         ? 'La caisse du Ministère ne couvre pas ' + Number(r.requis || 0).toLocaleString('fr-FR')
-          + ' FR (solde : ' + Number(r.solde || 0).toLocaleString('fr-FR') + ' FR).'
+          + ' ' + monnaieGarde + ' (solde : ' + Number(r.solde || 0).toLocaleString('fr-FR') + ' ' + monnaieGarde + ').'
       : raison === 'facteur_hors_bornes' ? 'Le renfort va de ×2 à ×5.'
       : raison === 'aucun_poste_de_garde' ? 'Aucun poste de garde dans ce pays.'
       : 'Réservé au Ministre de la Défense en exercice.', false);
@@ -14133,10 +14136,10 @@ async function confirmerGardeRenfort(facteur) {
   }
   showToast('Garde renforcée',
     '×' + r.facteur + ' pendant 24 h — ' + r.gardes_supplementaires + ' gardes, '
-    + Number(r.cout).toLocaleString('fr-FR') + ' FR.', true, true);
-  addJournalEntry('Garde républicaine renforcée ×' + r.facteur + ' sur les ' + r.postes
+    + Number(r.cout).toLocaleString('fr-FR') + ' ' + monnaieGarde + '.', true, true);
+  addJournalEntry(nomGarde + ' renforcée ×' + r.facteur + ' sur les ' + r.postes
     + ' postes nationaux pour 24 heures — ' + Number(r.cout).toLocaleString('fr-FR')
-    + ' FR prélevés sur la caisse du Ministère de la Défense.', 'event-info');
+    + ' ' + monnaieGarde + ' prélevés sur la caisse du Ministère de la Défense.', 'event-info');
 }
 
 // Retourne le coefficient de tir actuel d'une arme pour un pays (defaut + ameliorations acquises)
