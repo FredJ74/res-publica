@@ -1,0 +1,60 @@
+{
+  "baseCommit": "d6644047eb7ed130e76f9069b8b91cf7a99d291d",
+  "rows": [
+    {
+      "title": "Vous avez deja un personnage",
+      "html": "Ce compte possede deja « {{values.name}} » : Republia n'en autorise qu'un seul par compte. Changer de nom n'y changera rien.<br><br><em>Retournez a l'accueil pour le reprendre.</em>",
+      "parts": [
+        "Ce compte possede deja « {{values.name}} » : Republia n'en autorise qu'un seul par compte. Changer de nom n'y changera rien.",
+        "Retournez a l'accueil pour le reprendre."
+      ],
+      "key": "otherOwned"
+    },
+    {
+      "title": "Ce nom est deja porte",
+      "html": "Un personnage nomme « {{values.name}} » existe deja dans Republia. Choisissez un autre nom : revenez a l'etape precedente pour le modifier.<br><br><em>Si ce personnage est le votre et que vous avez perdu l'acces, utilisez « Retrouver mon personnage » depuis l'accueil plutot que d'en recreer un.</em>",
+      "parts": [
+        "Un personnage nomme « {{values.name}} » existe deja dans Republia. Choisissez un autre nom : revenez a l'etape precedente pour le modifier.",
+        "Si ce personnage est le votre et que vous avez perdu l'acces, utilisez « Retrouver mon personnage » depuis l'accueil plutot que d'en recreer un."
+      ],
+      "key": "nameTaken"
+    },
+    {
+      "title": "Vous avez deja un personnage",
+      "html": "Ce navigateur est deja lie a un personnage : Republia n'en autorise qu'un seul par compte. Changer de nom n'y changera rien.<br><br><em>Retournez a l'accueil pour le reprendre. Pour en creer un autre, il faut d'abord detruire celui que vous possedez, depuis sa fiche.</em>",
+      "parts": [
+        "Ce navigateur est deja lie a un personnage : Republia n'en autorise qu'un seul par compte. Changer de nom n'y changera rien.",
+        "Retournez a l'accueil pour le reprendre. Pour en creer un autre, il faut d'abord detruire celui que vous possedez, depuis sa fiche."
+      ],
+      "key": "accountOwned"
+    },
+    {
+      "title": "Genre manquant",
+      "html": "Le genre de votre personnage est obligatoire. Revenez a l'etape de l'identite pour le choisir, puis validez de nouveau.<br><br><em>Rien n'a ete perdu.</em>",
+      "parts": [
+        "Le genre de votre personnage est obligatoire. Revenez a l'etape de l'identite pour le choisir, puis validez de nouveau.",
+        "Rien n'a ete perdu."
+      ],
+      "key": "genderMissing"
+    },
+    {
+      "title": "Session expiree",
+      "html": "La session de ce navigateur n'est plus reconnue par le serveur. Rechargez la page : une nouvelle session sera ouverte et la creation fonctionnera.<br><br><em>Aucun nom n'est en cause — inutile d'en changer.</em>",
+      "parts": [
+        "La session de ce navigateur n'est plus reconnue par le serveur. Rechargez la page : une nouvelle session sera ouverte et la creation fonctionnera.",
+        "Aucun nom n'est en cause — inutile d'en changer."
+      ],
+      "key": "sessionExpired"
+    },
+    {
+      "title": "Creation impossible",
+      "html": "Votre personnage n'a pas pu etre enregistre ({{values.reason}}). Verifiez votre connexion et reessayez ; rien n'a ete perdu.",
+      "parts": [
+        "Votre personnage n'a pas pu etre enregistre ({{values.reason}}). Verifiez votre connexion et reessayez ; rien n'a ete perdu."
+      ],
+      "key": "generic"
+    }
+  ],
+  "newKeys": 11,
+  "newForeignTranslations": 88
+}

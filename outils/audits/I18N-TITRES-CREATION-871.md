@@ -43,4 +43,9 @@ source dans le corpus statique ; les autres titres y figurent hors dénominateur
 Anglais : 24,33 % des mots statiques identifiés, pas de tout le jeu.
 Zéro erreur d’extraction. Mesures complètes dans le JSON associé.
 
-CI finale, fusion et production à terminer.
+PR #928 fusionnée : `d6644047eb7ed130e76f9069b8b91cf7a99d291d`.
+Huit contrôles verts, deux rouges préexistants reproduits sur main (SSM et
+inventaires du socle). Vercel `dpl_864wZNLE8ioxyadb2fgLwUnhxPTH` READY sur
+ce commit, alias confirmé, sept fichiers publics identiques. Les deux tests
+navigateur sont rejoués verts sur ces fichiers : 432 bascules + 54 par le vrai
+sélecteur et le rafraîchissement du récapitulatif.
