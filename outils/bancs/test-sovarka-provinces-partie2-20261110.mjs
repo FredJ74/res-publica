@@ -54,13 +54,13 @@ test('Forêt de Krasnov : entrée, 4 vues masquées, coupe 2 PA, retour', () => 
   assert.equal(r.entree, 'recolter_matiere,foret_enfoncer');
   assert.equal(r.vues, 'foret_vue_1,foret_vue_2,foret_vue_3,foret_vue_4');
   assert.equal(r.masquees, 4);
-  assert.equal(r.ordres, 'foret_couper:2,foret_revenir:0');
+  assert.equal(r.ordres, 'foret_couper:2,foret_enfoncer:0,foret_revenir:0,foret_retrouver:1');
   assert.ok(r.ailleurs, 'la forêt profonde ne doit exister qu’à Krasnov');
 });
 
 test('Écran : routeur, œufs, texte de l’hôpital', () => {
   const routeur = lire('plateau-router.js');
-  for (const s of ["foretAller('enfoncer')", "foretAller('revenir')", 'foretCouper()', 'travaillerFerme(fn)']) assert.ok(routeur.includes(s), s);
+  for (const s of ["foretAller('enfoncer')", "foretAller('revenir')", "foretAller('retrouver')", 'foretCouper()', 'travaillerFerme(fn)']) assert.ok(routeur.includes(s), s);
   const prov = lire('plateau-sovarka-provinces.js');
   for (const rpc of ['sovarka_ferme_travailler', 'sovarka_oeufs_manger', 'sovarka_foret_aller', 'sovarka_foret_couper', 'sovarka_foret_rencontre', 'sovarka_foret_lire'])
     assert.ok(prov.includes("'" + rpc + "'"), rpc);
