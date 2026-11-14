@@ -11375,6 +11375,10 @@ BUILDINGS['locaux-starovka'] = {
   centre('station-radar-krasnov', 'Station radar de Krasnov', 'Station radar', 'Lieutenante Nadejda Sokolova', 'Opératrice d’écoute',
     'La station radar du kolkhoze : sa grande parabole tourne vers le sud, vers Al-Khalija, et écoute aussi Krasnov.',
     'Des consoles qui grésillent et des archives tenues en triple exemplaire par la lieutenante Sokolova.');
+  // Décor propre au poste d'écoute de Krasnov : ne modifie pas Starovka.
+  BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute.imageUrl =
+    'images/Sovarka/Krasnov/Krasnov_centre_ecoute_salle.webp';
+  BUILDINGS['station-radar-krasnov'].imagesAVenir = false;
   const cite = v => WORLD.soviet && WORLD.soviet[v];
   if (cite('ville_a') && !cite('ville_a').buildings.includes('poste-vigilance-glaciale')) cite('ville_a').buildings.push('poste-vigilance-glaciale');
   if (cite('ville_b') && !cite('ville_b').buildings.includes('station-radar-krasnov')) cite('ville_b').buildings.push('station-radar-krasnov');
@@ -11470,6 +11474,34 @@ BUILDINGS['locaux-starovka'] = {
     'L’usine de liqueurs et de vodka de Krasnov (« ликёро-водочный завод ») : « Traditions de qualité pour le peuple ».',
     'atelier_distillerie', 'L’atelier de distillation',
     'Des alambics de cuivre, des fûts empilés et l’odeur sucrée de la betterave. L’exploitant y tire vodka, slivovitz, samogon et sucre (commerce de type « Distillerie »).', 30);
+  // Krasnov : trois salles distinctes, mais le bail commercial existant continue
+  // de référencer atelier_distillerie (contrat métier inchangé).
+  {
+    const dist = BUILDINGS['distillerie-krasnov'];
+    const atelier = dist.rooms.atelier_distillerie;
+    atelier.imageUrl = 'images/Sovarka/Krasnov/Krasnov_distillerie_atelier.webp';
+    dist.imagesAVenir = false;
+    dist.rooms = {
+      salle_ventes: {
+        name: 'Salle des ventes',
+        imageBg: 'linear-gradient(135deg,#231a13,#4b3021)',
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_distillerie_salle_ventes.webp',
+        desc: 'Comptoir de vente de la distillerie : vodka, slivovitz et samogon de Krasnov.',
+        persons: [],
+        // Les ordres du local sont également disponibles depuis l’accueil.
+        orders: atelier.orders.map(o => ({...o}))
+      },
+      bureau_direction: {
+        name: 'Bureau de direction',
+        imageBg: 'linear-gradient(135deg,#22180f,#403324)',
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_distillerie_bureau_direction.webp',
+        desc: 'Le bureau du directeur de la distillerie de Krasnov, registres et bilans de production.',
+        persons: [],
+        orders: []
+      },
+      atelier_distillerie: atelier
+    };
+  }
   local('fourreur-starovka', 'Fourreur « La Fourrure chaude »', 'Fourreur', 'ti-hanger',
     'La boutique du fourreur de Starovka (« Тёплый мех ») : chapkas, manteaux et bottes fourrées, indispensables à neuf mois d’hiver.',
     'boutique_fourreur', 'La boutique',
