@@ -1115,18 +1115,32 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
-    // Place de la mairie : retour centre commercial et suite vers la rue tabac-bar.
+    // Rue de la mairie : la place de l'Ours est à gauche.
+    // L'immeuble à écriteaux (au centre, derrière la statue) est distinct de
+    // celui qui fait face au centre commercial : ses futurs baux le seront aussi.
     'krasnov-rue-mairie-place': {
       image: 'images/Sovarka/Krasnov/Krasnov rue mairie place.webp',
-      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
-        { xPct: [72, 100], yPct: [8, 68], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' }
+        { xPct: [72, 100], yPct: [8, 68], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' },
+        { xPct: [54, 71], yPct: [19, 55], nom: "Immeuble de la place de l'Ours", type: 'batiment', buildingId: 'logements-krasnov-place-ours' }
       ],
-      liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar' },
+      liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar', gauche: 'krasnov-place-ours' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
-        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);',
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);'
       }
+    },
+
+    // Place de l'Ours : vue sur la façade de la mairie, retour vers la rue
+    // par la flèche basse ; aucun changement aux deux autres sorties.
+    'krasnov-place-ours': {
+      image: 'images/Sovarka/Krasnov/Krasnov_place_ours.webp',
+      zones: [
+        { xPct: [49, 100], yPct: [9, 77], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' }
+      ],
+      liens: { arriere: 'krasnov-rue-mairie-place' },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
     },
 
     // Rue du tabac/bar : retour à la mairie et progression vers station/musée.
