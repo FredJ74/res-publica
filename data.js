@@ -2578,7 +2578,7 @@ const WORLD = {
               imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_boutique.webp',
               desc: 'Maillots, écharpes et casquettes aux couleurs de l’Étoile Rouge.',
               persons: [
-                {name:'Vendeuse de l’Étoile Rouge (PNJ)', role:'Vente des accessoires', rel:'neutral', job:'vendeur'}
+                {name:'Oxana Zvezdina (PNJ)', role:'Vente des accessoires', rel:'neutral', job:'vendeur'} // nom validé par Fred le 14/11/2026
               ],
               orders: [
                 {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa:0, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Écharpe, casquette ou maillot de l’Étoile Rouge, à choisir.'},

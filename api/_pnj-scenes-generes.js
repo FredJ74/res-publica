@@ -6843,7 +6843,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade Étoile Rouge de Krasnov",
     "piece": "Boutique de l’Étoile Rouge",
     "personnes": [
-      "Vendeuse de l’Étoile Rouge"
+      "Oxana Zvezdina"
     ]
   },
   "[\"soviet\",\"ville_b\",\"zone-production\",\"zone_recolte\"]": {
