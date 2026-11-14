@@ -47,6 +47,10 @@ pas de tout le jeu. La comparaison détaillée versionne aussi le corpus commun.
 
 Bancs étrangers : mêmes 34/37 sur main et branche ; seuls les trois SSM habituels
 échouent. Les inventaires de descriptions sont désormais verts sur cette base.
-CI finale, fusion et production à terminer. Aucune session PJ réelle,
+PR #932 fusionnée : `f4d627036bb2bd6ff655a5a6f12262064e4174fa`.
+41 contrôles verts ; seul rouge SSM, trois échecs préexistants reproduits sur main.
+Vercel `dpl_72YbvBwEsH45EKGVwDDWi59ro9jD` READY sur ce commit, alias confirmé,
+dix fichiers publics identiques. Les 999 bascules sont rejouées vertes sur ces
+fichiers, y compris confidentialité, noms opaques, liste longue et fenêtre voisine. Aucune session PJ réelle,
 aucun téléphone physique ni revue native. Les opérations métier des bancs sont
 simulées ; aucune donnée de joueur lue ou écrite.
