@@ -11372,12 +11372,16 @@ BUILDINGS['locaux-starovka'] = {
   centre('poste-vigilance-glaciale', 'Poste de Vigilance Glaciale', 'Poste militaire', 'Sergent Bair Dorjiev', 'Opérateur d’écoute',
     'Un poste militaire planté dans la glace, hérissé d’antennes : il écoute la ville et, au-delà de l’océan, El Estado.',
     'Des casques, des bandes magnétiques, un poêle et des classeurs alignés : le sergent Dorjiev écoute en silence.');
-  centre('station-radar-krasnov', 'Station radar de Krasnov', 'Station radar', 'Lieutenante Nadejda Sokolova', 'Opératrice d’écoute',
+  centre('station-radar-krasnov', 'Station radar de Krasnov', 'Station radar', 'Colonel Gleb Voronov', 'Chef du centre d’écoute',
     'La station radar du kolkhoze : sa grande parabole tourne vers le sud, vers Al-Khalija, et écoute aussi Krasnov.',
-    'Des consoles qui grésillent et des archives tenues en triple exemplaire par la lieutenante Sokolova.');
+    'Quatre téléphones, un par pays étranger, et un cinquième, rouge, pour Novomirsk. Le colonel Voronov tend l’oreille ; le caporal Sorokine branche les fiches du standard.');
   // Décor propre au poste d'écoute de Krasnov : ne modifie pas Starovka.
   BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute.imageUrl =
     'images/Sovarka/Krasnov/Krasnov_centre_ecoute_salle.webp';
+  // Personnel accordé à l'image de Fred (14/11/2026) : un colonel à son bureau aux quatre téléphones (il remplace la
+  // lieutenante Sokolova) et un opérateur casqué au standard, celui qu'on affronte si le vol des archives échoue.
+  BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute.persons.push(
+    { name: 'Caporal Ilia Sorokine (PNJ)', role: 'Opérateur d’écoute', rel: 'neutral', job: 'militaire' });
   BUILDINGS['station-radar-krasnov'].imagesAVenir = false;
   const cite = v => WORLD.soviet && WORLD.soviet[v];
   if (cite('ville_a') && !cite('ville_a').buildings.includes('poste-vigilance-glaciale')) cite('ville_a').buildings.push('poste-vigilance-glaciale');
@@ -11474,32 +11478,38 @@ BUILDINGS['locaux-starovka'] = {
     'L’usine de liqueurs et de vodka de Krasnov (« ликёро-водочный завод ») : « Traditions de qualité pour le peuple ».',
     'atelier_distillerie', 'L’atelier de distillation',
     'Des alambics de cuivre, des fûts empilés et l’odeur sucrée de la betterave. L’exploitant y tire vodka, slivovitz, samogon et sucre (commerce de type « Distillerie »).', 30);
-  // Krasnov : trois salles distinctes, mais le bail commercial existant continue
-  // de référencer atelier_distillerie (contrat métier inchangé).
+  // Krasnov : trois salles illustrées (images de Fred, 14/11/2026). Le local loué est la salle des ventes, où le
+  // client achète : migration 20261114180000 (le local n'avait ni bail ni demande). L'atelier et le bureau sont décor
+  // et personnel de l'usine, sans ordre.
   {
     const dist = BUILDINGS['distillerie-krasnov'];
-    const atelier = dist.rooms.atelier_distillerie;
-    atelier.imageUrl = 'images/Sovarka/Krasnov/Krasnov_distillerie_atelier.webp';
+    const ordresLocal = dist.rooms.atelier_distillerie.orders;
     dist.imagesAVenir = false;
     dist.rooms = {
       salle_ventes: {
         name: 'Salle des ventes',
         imageBg: 'linear-gradient(135deg,#231a13,#4b3021)',
         imageUrl: 'images/Sovarka/Krasnov/Krasnov_distillerie_salle_ventes.webp',
-        desc: 'Comptoir de vente de la distillerie : vodka, slivovitz et samogon de Krasnov.',
+        desc: 'Le magasin de l’usine : bouteilles alignées derrière le comptoir, caisse enregistreuse et tarifs à la craie. L’exploitant y vend vodka, slivovitz, samogon et sucre (commerce de type « Distillerie »).',
         persons: [],
-        // Les ordres du local sont également disponibles depuis l’accueil.
-        orders: atelier.orders.map(o => ({...o}))
+        orders: ordresLocal
       },
       bureau_direction: {
         name: 'Bureau de direction',
         imageBg: 'linear-gradient(135deg,#22180f,#403324)',
         imageUrl: 'images/Sovarka/Krasnov/Krasnov_distillerie_bureau_direction.webp',
-        desc: 'Le bureau du directeur de la distillerie de Krasnov, registres et bilans de production.',
-        persons: [],
+        desc: 'Diplômes d’honneur au mur, plan rempli à 104,7 % et une carafe de vodka « pour les inspections » : le directeur Pokhmelkine y signe les bilans de production.',
+        persons: [{ name: 'Anatoli Pokhmelkine (PNJ)', role: 'Directeur de la distillerie', rel: 'neutral', job: 'directeur' }],
         orders: []
       },
-      atelier_distillerie: atelier
+      atelier_distillerie: {
+        name: 'L’atelier de distillation',
+        imageBg: 'linear-gradient(135deg,#141210,#1e1a16)',
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_distillerie_atelier.webp',
+        desc: 'Des alambics de cuivre, des cuves d’alcool à 96,6 % et des fûts de chêne alignés. Vassili Gradousov surveille la colonne, son carnet de dégustation à la main.',
+        persons: [{ name: 'Vassili Gradousov (PNJ)', role: 'Maître distillateur', rel: 'friendly', job: 'artisan' }],
+        orders: []
+      }
     };
   }
   local('fourreur-starovka', 'Fourreur « La Fourrure chaude »', 'Fourreur', 'ti-hanger',

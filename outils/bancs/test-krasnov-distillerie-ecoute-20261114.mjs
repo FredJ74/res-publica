@@ -5,13 +5,20 @@ import vm from 'node:vm';
 const root = new URL('../../', import.meta.url);
 const ctx = vm.createContext({});
 vm.runInContext(fs.readFileSync(new URL('data.js',root),'utf8'),ctx);
-const dist = vm.runInContext("BUILDINGS['distillerie-krasnov']",ctx);
-const radar = vm.runInContext("BUILDINGS['station-radar-krasnov']",ctx);
+const dist = JSON.parse(JSON.stringify(vm.runInContext("BUILDINGS['distillerie-krasnov']",ctx)));
+const radar = JSON.parse(JSON.stringify(vm.runInContext("BUILDINGS['station-radar-krasnov']",ctx)));
 assert.deepEqual(Object.keys(dist.rooms),['salle_ventes','bureau_direction','atelier_distillerie']);
-assert.ok(dist.rooms.atelier_distillerie.orders.some(o=>o.fn==='sovarka_demande_location'));
-assert.ok(dist.rooms.atelier_distillerie.orders.some(o=>o.fn==='commerce_pj'));
-assert.ok(dist.rooms.salle_ventes.orders.some(o=>o.fn==='commerce_pj'));
+// Le local loué est la salle des ventes (migration 20261114180000) : ses deux ordres n'existent qu'ici.
+assert.deepEqual(dist.rooms.salle_ventes.orders.map(o=>o.fn),['sovarka_demande_location','commerce_pj']);
+assert.equal(dist.rooms.atelier_distillerie.orders.length,0);
 assert.equal(dist.rooms.bureau_direction.orders.length,0);
+assert.deepEqual(dist.rooms.bureau_direction.persons.map(p=>p.name),['Anatoli Pokhmelkine (PNJ)']);
+assert.deepEqual(dist.rooms.atelier_distillerie.persons.map(p=>p.name),['Vassili Gradousov (PNJ)']);
+assert.deepEqual(radar.rooms.salle_ecoute.persons.map(p=>p.name),['Colonel Gleb Voronov (PNJ)','Caporal Ilia Sorokine (PNJ)']);
+assert.doesNotMatch(JSON.stringify(radar),/Sokolova/);
+assert.equal(vm.runInContext("BUILDINGS['poste-vigilance-glaciale'].rooms.salle_ecoute.persons[0].name",ctx),'Sergent Bair Dorjiev (PNJ)');
+const local=fs.readFileSync(new URL('migrations/20261114180000_krasnov_distillerie_comptoir.sql',root),'utf8');
+assert.match(local,/SET piece = 'salle_ventes'/);
 assert.ok(radar.rooms.salle_ecoute.orders.some(o=>o.fn==='voler_archives_ecoute'));
 assert.ok(radar.rooms.salle_ecoute.orders.some(o=>o.fn==='consulter_archives_ecoute'));
 for(const path of [

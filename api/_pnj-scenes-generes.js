@@ -384,6 +384,13 @@ export const SCENES_PNJ = {
       "Noël Chauchay"
     ]
   },
+  "[\"republic\",\"capitale\",\"dispensaire-public\",\"chambre\"]": {
+    "pays": "Republia",
+    "ville": "Luthécia",
+    "batiment": "Dispensaire Public de Luthecia",
+    "piece": "Chambre d'hôpital",
+    "personnes": []
+  },
   "[\"republic\",\"capitale\",\"commissariat\",\"accueil_police\"]": {
     "pays": "Republia",
     "ville": "Luthécia",
@@ -1247,6 +1254,13 @@ export const SCENES_PNJ = {
     "piece": "Résidence des Embruns",
     "personnes": []
   },
+  "[\"republic\",\"ville_a\",\"dispensaire-public-v\",\"chambre\"]": {
+    "pays": "Republia",
+    "ville": "Port-Sainte-Marie",
+    "batiment": "Dispensaire Public",
+    "piece": "Chambre d'hôpital",
+    "personnes": []
+  },
   "[\"republic\",\"ville_a\",\"commissariat-local\",\"accueil_loc\"]": {
     "pays": "Republia",
     "ville": "Port-Sainte-Marie",
@@ -1957,6 +1971,13 @@ export const SCENES_PNJ = {
     "ville": "Montrouge",
     "batiment": "Hôpital de Montrouge",
     "piece": "EHPAD de Montrouge",
+    "personnes": []
+  },
+  "[\"republic\",\"ville_b\",\"dispensaire-public-v\",\"chambre\"]": {
+    "pays": "Republia",
+    "ville": "Montrouge",
+    "batiment": "Hôpital de Montrouge",
+    "piece": "Chambre d'hôpital",
     "personnes": []
   },
   "[\"republic\",\"ville_b\",\"commissariat-local\",\"accueil_loc\"]": {
@@ -6584,7 +6605,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"dispensaire-public-v\",\"attente\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Dispensaire Public",
+    "batiment": "Hôpital municipal de Krasnov",
     "piece": "Salle d'attente",
     "personnes": [
       "Infirmiere"
@@ -6593,14 +6614,14 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"dispensaire-public-v\",\"ehpad\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Dispensaire Public",
+    "batiment": "Hôpital municipal de Krasnov",
     "piece": "EHPAD de Krasnov",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"dispensaire-public-v\",\"chambre\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Dispensaire Public",
+    "batiment": "Hôpital municipal de Krasnov",
     "piece": "Chambre d'hôpital",
     "personnes": []
   },
@@ -7028,7 +7049,8 @@ export const SCENES_PNJ = {
     "batiment": "Station radar de Krasnov",
     "piece": "Salle d’écoute",
     "personnes": [
-      "Lieutenante Nadejda Sokolova"
+      "Colonel Gleb Voronov",
+      "Caporal Ilia Sorokine"
     ]
   },
   "[\"soviet\",\"ville_b\",\"maison-krasnov\",\"piece_maison\"]": {
@@ -7049,12 +7071,30 @@ export const SCENES_PNJ = {
       "Galina Belova"
     ]
   },
+  "[\"soviet\",\"ville_b\",\"distillerie-krasnov\",\"salle_ventes\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Distillerie de Krasnov",
+    "piece": "Salle des ventes",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"distillerie-krasnov\",\"bureau_direction\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Distillerie de Krasnov",
+    "piece": "Bureau de direction",
+    "personnes": [
+      "Anatoli Pokhmelkine"
+    ]
+  },
   "[\"soviet\",\"ville_b\",\"distillerie-krasnov\",\"atelier_distillerie\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Distillerie de Krasnov",
     "piece": "L’atelier de distillation",
-    "personnes": []
+    "personnes": [
+      "Vassili Gradousov"
+    ]
   },
   "[\"soviet\",\"caserne\",\"caserne-militaire\",\"corps_garde\"]": {
     "pays": "Sovarka",

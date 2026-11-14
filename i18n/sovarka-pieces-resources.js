@@ -111,6 +111,8 @@
   ["Forêt profonde — Le ravin noir","Deep forest — The black ravine","Bosque profundo — El barranco negro","密林深處 — 黑色峽谷","Глухой лес — Чёрный овраг","깊은 숲 — 검은 협곡","الغابة العميقة — الوادي الأسود","Floresta profunda — A ravina negra","Tiefer Wald — Die schwarze Schlucht"],
   ["Forêt profonde — Près de la vieille isba","Deep forest — Near the old isba","Bosque profundo — Junto a la vieja isba","密林深處 — 老木屋旁","Глухой лес — У старой избы","깊은 숲 — 오래된 통나무집 근처","الغابة العميقة — قرب الكوخ الخشبي القديم","Floresta profunda — Perto da velha isbá","Tiefer Wald — Bei der alten Isba"],
   ["L’atelier de distillation","The distilling workshop","El taller de destilación","蒸餾工坊","Винокурня","증류 작업장","ورشة التقطير","A oficina de destilação","Die Brennerei"],
+  ["Salle des ventes", "Sales room", "Sala de ventas", "門市", "Торговый зал", "판매장", "صالة البيع", "Sala de vendas", "Verkaufsraum"],
+  ["Bureau de direction", "Director's office", "Despacho de dirección", "廠長辦公室", "Кабинет директора", "공장장실", "مكتب المدير", "Gabinete da direção", "Direktionsbüro"],
   ["Salle des Origines", "Hall of Origins", "Sala de los Orígenes", "起源廳", "Зал истоков", "기원의 전시실", "قاعة الأصول", "Sala das Origens", "Saal der Ursprünge"],
   ["Salle des Personnalités discrètes", "Hall of Discreet Figures", "Sala de las Personalidades discretas", "低調名人廳", "Зал скромных знаменитостей", "숨은 인물들의 전시실", "قاعة الشخصيات المتوارية", "Sala das Personalidades discretas", "Saal der stillen Persönlichkeiten"],
   ["Salle de la Bataille du Fleuve", "Battle of the River Hall", "Sala de la Batalla del Río", "河流戰役廳", "Зал битвы на реке", "강 전투 전시실", "قاعة معركة النهر", "Sala da Batalha do Rio", "Saal der Flussschlacht"],
