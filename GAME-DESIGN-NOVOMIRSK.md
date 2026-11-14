@@ -1012,5 +1012,7 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
   - **Starovka** : pétrole, viande, poisson, lait et laitages.
   - **Novomirsk** : métal, tissu (`textile`), composants électroniques.
 - **Exportations vers le port** : les entrepôts envoient des matières premières au port pour l'export vers les autres pays. Déjà codé le 06/11 (`exportations_sovarka_executer`, migration `20261106103000_exportations_sovarka` : minerai et métal vers tous les pays, pétrole vers la Républia, viande et céréales vers Al-Khalija, prélevés sur le stock réel des trois entrepôts et payés au prix de base).
-- **Questions ouvertes, posées à Fred une à une** : composants électroniques (aucune matière première de ce nom n'existe) ; rythme et volume des échanges, sens de « valeurs égales » ; « lait » confondu avec « laitages » (une seule matière).
+- **Composants électroniques laissés de côté** (Fred, 15/11) : aucune matière de ce nom n'existe ; Novomirsk n'envoie que métal et tissu pour l'instant.
+- **« Lait » = « laitages »** : une seule matière dans le jeu.
+- **Questions ouvertes, posées à Fred une à une** : rythme et volume des échanges, sens de « valeurs égales ».
 - **Pas encore de feu vert de codage** : Fred tranche d'abord les questions ouvertes.
