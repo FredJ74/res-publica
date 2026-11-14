@@ -5,6 +5,7 @@ on:
       - chatgpt/krasnov-musee-six-images-20261114
     paths:
       - .github/workflows/krasnov-musee-20261114.yml
+      - outils/bancs/test-krasnov-musee-20261114.mjs
 permissions:
   contents: write
 jobs:
