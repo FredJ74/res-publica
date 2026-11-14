@@ -1,0 +1,59 @@
+name: Montrouge — convertir la chambre en WebP
+on:
+  push:
+    branches: [feat/montrouge-hopital-chambre-20261114]
+    paths:
+      - 'data.js'
+      - 'migrations/20261114090000_montrouge_hopital_chambre.sql'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  conversion-et-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Convertir le PNG importe
+        run: |
+          python -m pip install --quiet Pillow
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import hashlib
+          source = next(iter(Path('images/montrouge').glob('Dispensaire de Montrouge re*nove*.png')), None)
+          if source is None:
+              sources=[x for x in Path('images/montrouge').glob('*.png') if 'Dispensaire de Montrouge' in x.name]
+              assert len(sources)==1, f'PNG source absent ou ambigu: {sources}'
+              source=sources[0]
+          output=Path('images/montrouge/montrouge-hopital-chambre.webp')
+          with Image.open(source) as im:
+              im.convert('RGB').save(output,'WEBP',quality=84,method=6)
+          with Image.open(output) as im:
+              assert im.format=='WEBP' and im.width>=1000
+          print('PNG source:',source,'taille:',source.stat().st_size)
+          print('WebP produit:',output,'taille:',output.stat().st_size)
+          source.unlink()
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verifier la chambre et les autres hôpitaux
+        run: |
+          node --check data.js
+          node outils/bancs/test-montrouge-hopital-chambre-20261114.mjs
+          node outils/bancs/test-hopitaux-sovarka-chambre-20261113.mjs
+      - name: Commit image optimisée
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- 'images/montrouge/Dispensaire de Montrouge rénové.png' 'images/montrouge/montrouge-hopital-chambre.webp'
+          git add -u -- images/montrouge/
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: convertir la chambre du dispensaire de Montrouge en WebP'
+            git push
+          fi
