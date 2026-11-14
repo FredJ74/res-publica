@@ -42,7 +42,7 @@ test('routes et écrans emploient les nouvelles décisions du serveur',()=>{
  const partis=lire('plateau-sovarka-partis.js'),politique=lire('plateau-politique.js');
  const gouv=lire('plateau-gouvernement.js');
  for(const name of ['ouvrirSovarkaGraces','ouvrirSovarkaManifsGerer'])assert.match(router,new RegExp(name));
- for(const name of ['sovMinActe','sovarkaManifDemander','sovarkaManifDecider','sovarkaManifReprimer','sovarkaGraceTransmettre'])assert.match(pouvoir,new RegExp('function '+name+'\('));
+ for(const name of ['sovMinActe','sovarkaManifDemander','sovarkaManifDecider','sovarkaManifReprimer','sovarkaGraceTransmettre'])assert.ok(pouvoir.includes('function '+name+'('),name);
  assert.match(pouvoir,/sbRpcVerdict\('sovarka_ministeres_commande'/);
  assert.match(pouvoir,/sbRpcVerdict\('sovarka_ministeres_lire'/);
  assert.match(partis,/sovarkaManifDemander\(\)/);
