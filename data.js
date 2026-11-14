@@ -7490,19 +7490,116 @@ const BUILDINGS = {
   // Seul le hall est prêt : les appartements seront définis avec leurs images
   // lors de la prochaine étape. Ne jamais réutiliser les baux de Novomirsk.
   'logements-krasnov-place-ours': {
-    name: 'Immeuble de la place de l’Ours',
-    shortName: 'Logements',
-    cat: 'Habitat',
-    icon: 'ti-building-community',
-    bgColor: '#181a1c',
-    desc: 'Immeuble collectif de Krasnov, face à la place de l’Ours. Les logements seront proposés prochainement.',
+    name: "Immeuble de la place de l’Ours",
+    shortName: "Logements",
+    cat: "Habitat",
+    icon: "ti-building-community",
+    bgColor: "#121418",
+    desc: "Immeuble de Krasnov donnant sur la rue de la mairie. Appartements populaires attribués par la commune.",
     rooms: {
       hall: {
         name: "Hall d'immeuble",
-        imageBg: 'linear-gradient(135deg,#252321,#36322e)',
-        desc: 'L’entrée de l’immeuble. Les appartements seront accessibles après leur aménagement.',
+        desc: "Hall ancien et propre, boîtes aux lettres métalliques, escalier en béton et porte donnant sur la route.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_hall.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
         persons: [],
         orders: []
+      },
+      petit_appartement_1: {
+        name: "Appartement une chambre n°1",
+        desc: "Petit logement populaire au décor ancien, donnant sur les immeubles de l'autre côté de la route.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_petit_1.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement une chambre n°1', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      petit_appartement_2: {
+        name: "Appartement une chambre n°2",
+        desc: "Petit logement populaire au décor ancien, donnant sur les immeubles de l'autre côté de la route.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_petit_2.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement une chambre n°2', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      petit_appartement_3: {
+        name: "Appartement une chambre n°3",
+        desc: "Petit logement populaire au décor ancien, donnant sur les immeubles de l'autre côté de la route.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_petit_1.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement une chambre n°3', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      petit_appartement_4: {
+        name: "Appartement une chambre n°4",
+        desc: "Petit logement populaire au décor ancien, donnant sur les immeubles de l'autre côté de la route.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_petit_2.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 10, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement une chambre n°4', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_1: {
+        name: "Appartement deux chambres n°1",
+        desc: "Logement populaire de deux chambres, décor ancien, vue plongeante sur la route et les immeubles d'en face.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_grand_1.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement deux chambres n°1', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_2: {
+        name: "Appartement deux chambres n°2",
+        desc: "Logement populaire de deux chambres, décor ancien, vue plongeante sur la route et les immeubles d'en face.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_grand_2.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement deux chambres n°2', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_3: {
+        name: "Appartement deux chambres n°3",
+        desc: "Logement populaire de deux chambres, décor ancien, vue plongeante sur la route et les immeubles d'en face.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_grand_1.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement deux chambres n°3', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_4: {
+        name: "Appartement deux chambres n°4",
+        desc: "Logement populaire de deux chambres, décor ancien, vue plongeante sur la route et les immeubles d'en face.",
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_place_ours_grand_2.webp',
+        imageBg: "linear-gradient(135deg,#121418,#1a1d22)",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 20, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Appartement deux chambres n°4', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
       }
     }
   },
