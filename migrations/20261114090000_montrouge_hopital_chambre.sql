@@ -21,3 +21,5 @@ BEGIN
 END $$;
 
 -- Validation côté client : outils/bancs/test-montrouge-hopital-chambre-20261114.mjs
+
+-- Compatibilité vérifiée avec les chambres des trois villes de Sovarka.
