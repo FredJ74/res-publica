@@ -1115,18 +1115,26 @@ const RUE_CENTRALE_NOEUDS = {
     // Place de la mairie : retour centre commercial et suite vers la rue tabac-bar.
     'krasnov-rue-mairie-place': {
       image: 'images/Sovarka/Krasnov/Krasnov rue mairie place.webp',
-      // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
+      // Place de la mairie inchangée : l'hôpital dispose de sa propre scène en bifurcation.
       zones: [
-        // Accès provisoire depuis la place publique : le décor extérieur spécifique de l'hôpital
-        // n'a pas encore été créé. On utilise une zone distincte, sans masquer la mairie.
-        { xPct: [0, 27], yPct: [8, 68], nom: 'Hôpital public de Krasnov', type: 'batiment', buildingId: 'dispensaire-public-v' },
         { xPct: [72, 100], yPct: [8, 68], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' }
       ],
-      liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar' },
+      liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar', gauche: 'krasnov-rue-hopital' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
         toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
       }
+    },
+
+    // Hôpital de Krasnov : rue distincte de la mairie, image spécifique à déposer dans
+    // images/Sovarka/Krasnov/ avant fusion. Entrée et retour sont validés par Supabase.
+    'krasnov-rue-hopital': {
+      image: 'images/Sovarka/Krasnov/Krasnov_hopital_rue.webp',
+      zones: [
+        { xPct: [11, 78], yPct: [5, 83], nom: 'Hôpital public de Krasnov', type: 'batiment', buildingId: 'dispensaire-public-v' }
+      ],
+      liens: { arriere: 'krasnov-rue-mairie-place' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
     },
 
     // Rue du tabac/bar : retour à la mairie et progression vers station/musée.
