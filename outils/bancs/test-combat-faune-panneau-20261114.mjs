@@ -30,7 +30,9 @@ function contexte() {
   };
   vm.createContext(c);
   vm.runInContext('let commandeCombatEnCours=false;\n' + fonctions('plateau-politique.js',
-    ['libelleLieuCombat', 'libelleAdversaireDebout', 'libelleIssueCombat', 'verrouillerCommandesCombat', 'avecVerrouCombat']), c);
+    ['libelleLieuCombat', 'libelleAdversaireDebout', 'libelleIssueCombat', 'verrouillerCommandesCombat', 'avecVerrouCombat', 'journaliserFinCombat'])
+    + '\nconst combatsJournalises = new Set();', c);
+  c.journal = []; c.addJournalEntry = (t, cls) => c.journal.push([t, cls]); c.escapeHtmlText = t => String(t);
   return c;
 }
 
@@ -54,7 +56,7 @@ test("l'issue est une phrase, jamais une clé comme victoire_acteur", () => {
   const faune = r => c.libelleIssueCombat({ type: 'faune', adversaire_nom: 'Ours', resultat: r, issue: 'victoire_acteur', mon_camp: 'acteur' });
   assert.match(faune('tues'), /Ours est abattu/);
   assert.match(faune('fuite'), /s’enfuit/);
-  assert.match(faune('fuite'), /Pas de butin/);
+  assert.match(faune('fuite'), /ni peau ni viande/);
   assert.match(faune('defaite'), /hors de combat/);
   assert.equal(c.libelleIssueCombat({ issue: 'victoire_acteur', mon_camp: 'acteur' }), 'Victoire.');
   assert.equal(c.libelleIssueCombat({ issue: 'victoire_defenseur', mon_camp: 'acteur' }), 'Défaite.');
@@ -94,4 +96,29 @@ test('les images des rencontres sont préchargées pendant la coupe et en forêt
   vm.runInContext('let foretImagesPrechargees=false;\n' + fonctions('plateau-sovarka-provinces.js', ['foretPrechargerImages']) + '\nforetPrechargerImages();foretPrechargerImages();', c);
   assert.deepEqual(c.charges, ['images/Sovarka/Krasnov/Krasnov_foret_ours_attaque.webp', 'images/Sovarka/Krasnov/Krasnov_foret_olga_panier.webp']);
   for (const f of c.charges) assert.ok(fs.existsSync(new URL(f, racine)), f);
+});
+
+test("l'issue d'un combat contre une bête va au journal, une seule fois, avec le butin", () => {
+  const c = contexte();
+  const b = { id: 7, statut: 'terminee', type: 'faune', adversaire_nom: 'Ours', resultat: 'tues', issue: 'victoire_acteur', mon_camp: 'acteur',
+    lieu: { ville: 'ville_b', batiment: 'zone-production', piece: 'foret_vue_3' },
+    butin: [{ nom: 'Tissus et peaux', qte: 10 }, { nom: 'Viande', qte: 9 }, { nom: 'Bois', qte: 4 }, { nom: "Dent d'ours", qte: 2 }] };
+  c.journaliserFinCombat(b); c.journaliserFinCombat(b);
+  assert.equal(c.journal.length, 1);
+  assert.equal(c.journal[0][1], 'event-good');
+  assert.match(c.journal[0][0], /^Forêt profonde — Le ravin noir · Krasnov : Ours est abattu\. Victoire\. Butin : Tissus et peaux ×10, Viande ×9, Bois ×4, Dent d'ours ×2\.$/);
+  c.journaliserFinCombat({ ...b, id: 8, resultat: 'fuite', butin: [{ nom: 'Bois', qte: 2 }] });
+  assert.match(c.journal[1][0], /s’enfuit.*Butin : Bois ×2\./);
+  assert.equal(c.journal[1][1], 'event-bad');
+  c.journaliserFinCombat({ ...b, id: 9, statut: 'en_cours' });
+  assert.equal(c.journal.length, 2);
+});
+
+test('seul un ordre du joueur écrit au journal, pas la relecture d’un rapport', () => {
+  const src = lire('plateau-politique.js');
+  assert.match(src, /await ouvrirPanneauCombat\(batailleId, \{ journaliser: true \}\);/);
+  assert.match(src, /if \(fini && options\?\.journaliser\) journaliserFinCombat\(b\);/);
+  const mig = lire('migrations/20261114153000_foret_combat_journal.sql');
+  const fn = mig.slice(mig.indexOf('CREATE OR REPLACE FUNCTION public.sovarka_foret_issue_combat_interne'), mig.indexOf('REVOKE ALL'));
+  assert.doesNotMatch(fn, /mail_systeme_poser_interne/);
 });
