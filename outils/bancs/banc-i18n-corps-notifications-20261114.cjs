@@ -39,7 +39,7 @@ test('catalogue : neuf colonnes remplies, différentes du français, nombres et 
   for(let i=1;i<9;i++){
    assert.ok(typeof r[i]==='string'&&r[i].trim(),L[i]+' vide : '+r[0]);
    // Identité admise seulement pour une variation de jauge seule (« +5 DIS. », « +2 Moral. » en es/pt-BR/de).
-   if(!/^([+\-−]?\d+ (DIS|INF|POP|IP|Moral)\s*)+\.?$/.test(r[0]))assert.notEqual(r[i],r[0],L[i]+' identique au français : '+r[0]);
+   if(!/^([+\-−]?\d+ (DIS|INF|POP|IP|ID|Moral)\s*)+\.?$/.test(r[0]))assert.notEqual(r[i],r[0],L[i]+' identique au français : '+r[0]);
    assert.equal(nombres(r[i]),nombres(r[0]),L[i]+' nombres : '+r[0]);
    for(const s of r[0].match(/\b(FR|PSK|INF|DIS|IP|POP|F5)\b/g)||[])assert.match(r[i],new RegExp('\\b'+s+'\\b'),L[i]+' sigle '+s+' : '+r[0]);
    assert.doesNotMatch(r[i],/\{\{|\}\}|toastBodies\./,L[i]+' marqueur technique : '+r[0]);
