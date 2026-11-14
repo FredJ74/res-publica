@@ -21,7 +21,13 @@
     "recoveryAlreadyOwns": "Ce navigateur possede deja le personnage « {{values.name}} ». Un compte ne peut porter qu'un seul personnage.",
     "recoveryOwnershipUnavailable": "Vérification de propriété momentanément indisponible ({{values.reason}}). Votre personnage est intact, réessayez dans un instant.",
     "recoveryAccessDenied": "Acces refuse ({{values.reason}}).",
-    "recoveryAccessUnknown": "Acces refuse (inconnu)."
+    "recoveryAccessUnknown": "Acces refuse (inconnu).",
+    "characterCreationWorking": "Creation en cours...",
+    "characterCreationOwnedTitle": "Vous avez deja un personnage",
+    "characterCreationNameTakenTitle": "Ce nom est deja porte",
+    "characterCreationGenderTitle": "Genre manquant",
+    "characterCreationSessionTitle": "Session expiree",
+    "characterCreationFailedTitle": "Creation impossible"
   },
   "en": {
     "invalidEmail": "This address is not valid.",
@@ -41,7 +47,13 @@
     "recoveryAlreadyOwns": "This browser already has the character « {{values.name}} ». An account can have only one character.",
     "recoveryOwnershipUnavailable": "Ownership verification is temporarily unavailable ({{values.reason}}). Your character is intact; try again shortly.",
     "recoveryAccessDenied": "Access denied ({{values.reason}}).",
-    "recoveryAccessUnknown": "Access denied (unknown)."
+    "recoveryAccessUnknown": "Access denied (unknown).",
+    "characterCreationWorking": "Creating character...",
+    "characterCreationOwnedTitle": "You already have a character",
+    "characterCreationNameTakenTitle": "This name is already taken",
+    "characterCreationGenderTitle": "Gender missing",
+    "characterCreationSessionTitle": "Session expired",
+    "characterCreationFailedTitle": "Unable to create character"
   },
   "es": {
     "invalidEmail": "Esta dirección no es válida.",
@@ -61,7 +73,13 @@
     "recoveryAlreadyOwns": "Este navegador ya tiene el personaje « {{values.name}} ». Una cuenta solo puede tener un personaje.",
     "recoveryOwnershipUnavailable": "La verificación de propiedad no está disponible temporalmente ({{values.reason}}). Tu personaje está intacto; vuelve a intentarlo en un momento.",
     "recoveryAccessDenied": "Acceso denegado ({{values.reason}}).",
-    "recoveryAccessUnknown": "Acceso denegado (desconocido)."
+    "recoveryAccessUnknown": "Acceso denegado (desconocido).",
+    "characterCreationWorking": "Creando personaje...",
+    "characterCreationOwnedTitle": "Ya tienes un personaje",
+    "characterCreationNameTakenTitle": "Este nombre ya está en uso",
+    "characterCreationGenderTitle": "Falta el género",
+    "characterCreationSessionTitle": "Sesión caducada",
+    "characterCreationFailedTitle": "No se puede crear el personaje"
   },
   "zh-TW": {
     "invalidEmail": "這個地址無效。",
@@ -81,7 +99,13 @@
     "recoveryAlreadyOwns": "此瀏覽器已擁有角色「{{values.name}}」。每個帳號只能擁有一個角色。",
     "recoveryOwnershipUnavailable": "暫時無法驗證角色歸屬（{{values.reason}}）。你的角色完好無損，請稍後再試。",
     "recoveryAccessDenied": "存取遭拒（{{values.reason}}）。",
-    "recoveryAccessUnknown": "存取遭拒（未知）。"
+    "recoveryAccessUnknown": "存取遭拒（未知）。",
+    "characterCreationWorking": "正在建立角色...",
+    "characterCreationOwnedTitle": "你已經擁有一個角色",
+    "characterCreationNameTakenTitle": "此名稱已有人使用",
+    "characterCreationGenderTitle": "尚未選擇性別",
+    "characterCreationSessionTitle": "工作階段已過期",
+    "characterCreationFailedTitle": "無法建立角色"
   },
   "ru": {
     "invalidEmail": "Этот адрес недействителен.",
@@ -101,7 +125,13 @@
     "recoveryAlreadyOwns": "В этом браузере уже есть персонаж « {{values.name}} ». У одной учётной записи может быть только один персонаж.",
     "recoveryOwnershipUnavailable": "Проверка принадлежности временно недоступна ({{values.reason}}). Ваш персонаж в сохранности, повторите попытку через некоторое время.",
     "recoveryAccessDenied": "Доступ запрещён ({{values.reason}}).",
-    "recoveryAccessUnknown": "Доступ запрещён (неизвестно)."
+    "recoveryAccessUnknown": "Доступ запрещён (неизвестно).",
+    "characterCreationWorking": "Создание персонажа...",
+    "characterCreationOwnedTitle": "У вас уже есть персонаж",
+    "characterCreationNameTakenTitle": "Это имя уже занято",
+    "characterCreationGenderTitle": "Пол не указан",
+    "characterCreationSessionTitle": "Сессия истекла",
+    "characterCreationFailedTitle": "Не удалось создать персонажа"
   },
   "ko": {
     "invalidEmail": "유효하지 않은 주소입니다.",
@@ -121,7 +151,13 @@
     "recoveryAlreadyOwns": "이 브라우저에는 이미 캐릭터 « {{values.name}} »이(가) 있습니다. 한 계정에는 캐릭터를 하나만 둘 수 있습니다.",
     "recoveryOwnershipUnavailable": "소유권 확인을 일시적으로 사용할 수 없습니다 ({{values.reason}}). 캐릭터는 그대로 보존되어 있으니 잠시 후 다시 시도하세요.",
     "recoveryAccessDenied": "접근이 거부되었습니다 ({{values.reason}}).",
-    "recoveryAccessUnknown": "접근이 거부되었습니다 (알 수 없음)."
+    "recoveryAccessUnknown": "접근이 거부되었습니다 (알 수 없음).",
+    "characterCreationWorking": "캐릭터 생성 중...",
+    "characterCreationOwnedTitle": "이미 캐릭터가 있습니다",
+    "characterCreationNameTakenTitle": "이미 사용 중인 이름입니다",
+    "characterCreationGenderTitle": "성별을 선택하지 않았습니다",
+    "characterCreationSessionTitle": "세션이 만료되었습니다",
+    "characterCreationFailedTitle": "캐릭터를 생성할 수 없습니다"
   },
   "ar": {
     "invalidEmail": "هذا العنوان غير صالح.",
@@ -141,7 +177,13 @@
     "recoveryAlreadyOwns": "هذا المتصفح مرتبط بالفعل بالشخصية « {{values.name}} ». لا يمكن أن يضم الحساب أكثر من شخصية واحدة.",
     "recoveryOwnershipUnavailable": "التحقق من الملكية غير متاح مؤقتًا ({{values.reason}}). شخصيتك سليمة؛ حاول مجددًا بعد قليل.",
     "recoveryAccessDenied": "تم رفض الوصول ({{values.reason}}).",
-    "recoveryAccessUnknown": "تم رفض الوصول (غير معروف)."
+    "recoveryAccessUnknown": "تم رفض الوصول (غير معروف).",
+    "characterCreationWorking": "جارٍ إنشاء الشخصية...",
+    "characterCreationOwnedTitle": "لديك شخصية بالفعل",
+    "characterCreationNameTakenTitle": "هذا الاسم مستخدم بالفعل",
+    "characterCreationGenderTitle": "لم يُحدَّد الجنس",
+    "characterCreationSessionTitle": "انتهت صلاحية الجلسة",
+    "characterCreationFailedTitle": "تعذّر إنشاء الشخصية"
   },
   "pt-BR": {
     "invalidEmail": "Este endereço não é válido.",
@@ -161,7 +203,13 @@
     "recoveryAlreadyOwns": "Este navegador já tem o personagem « {{values.name}} ». Uma conta só pode ter um personagem.",
     "recoveryOwnershipUnavailable": "A verificação de propriedade está temporariamente indisponível ({{values.reason}}). Seu personagem está intacto; tente novamente daqui a pouco.",
     "recoveryAccessDenied": "Acesso negado ({{values.reason}}).",
-    "recoveryAccessUnknown": "Acesso negado (desconhecido)."
+    "recoveryAccessUnknown": "Acesso negado (desconhecido).",
+    "characterCreationWorking": "Criando personagem...",
+    "characterCreationOwnedTitle": "Você já tem um personagem",
+    "characterCreationNameTakenTitle": "Este nome já está em uso",
+    "characterCreationGenderTitle": "Gênero não informado",
+    "characterCreationSessionTitle": "Sessão expirada",
+    "characterCreationFailedTitle": "Não foi possível criar o personagem"
   },
   "de": {
     "invalidEmail": "Diese Adresse ist ungültig.",
@@ -181,7 +229,13 @@
     "recoveryAlreadyOwns": "Dieser Browser hat bereits den Charakter « {{values.name}} ». Ein Konto kann nur einen Charakter haben.",
     "recoveryOwnershipUnavailable": "Die Eigentumsprüfung ist vorübergehend nicht verfügbar ({{values.reason}}). Dein Charakter ist unversehrt. Versuche es gleich noch einmal.",
     "recoveryAccessDenied": "Zugriff verweigert ({{values.reason}}).",
-    "recoveryAccessUnknown": "Zugriff verweigert (unbekannt)."
+    "recoveryAccessUnknown": "Zugriff verweigert (unbekannt).",
+    "characterCreationWorking": "Charakter wird erstellt...",
+    "characterCreationOwnedTitle": "Du hast bereits einen Charakter",
+    "characterCreationNameTakenTitle": "Dieser Name ist bereits vergeben",
+    "characterCreationGenderTitle": "Geschlecht fehlt",
+    "characterCreationSessionTitle": "Sitzung abgelaufen",
+    "characterCreationFailedTitle": "Charakter konnte nicht erstellt werden"
   }
 };
  for(const [locale,strings]of Object.entries(words))

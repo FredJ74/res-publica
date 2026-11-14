@@ -1088,12 +1088,16 @@ async function validateChar(){
   // Le libelle est pose par i18n : on le memorise pour le restaurer a l'identique, plutot que
   // d'ecrire un « Valider » en dur qui ecraserait la traduction.
   const libelleInitial = boutonValider ? boutonValider.textContent : null;
+  const _rpCleValidation = boutonValider?.getAttribute('data-i18n') ?? null;
   const rendreLaMain = function () {
     CREATION_EN_COURS = false;
     if (boutonValider) {
       boutonValider.disabled = false;
       if (libelleInitial !== null) boutonValider.textContent = libelleInitial;
+      if (_rpCleValidation !== null) boutonValider.setAttribute('data-i18n',_rpCleValidation);
+      else boutonValider.removeAttribute('data-i18n');
     }
+    if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
   };
   const afficherErreurCreation = function (titre, message) {
     let zone = document.getElementById('creation-erreur');
@@ -1106,11 +1110,29 @@ async function validateChar(){
       hote.insertBefore(zone, hote.firstChild);
     }
     zone.innerHTML = '<strong>' + titre + '</strong><br>' + message;
+    // Seul le titre fixe est marqué ; le corps et ses valeurs restent intacts.
+    const _rpTitreCreation = zone.querySelector('strong');
+    const _rpCleTitreCreation = {
+      'Vous avez deja un personnage':'characterCreationOwnedTitle',
+      'Ce nom est deja porte':'characterCreationNameTakenTitle',
+      'Genre manquant':'characterCreationGenderTitle',
+      'Session expiree':'characterCreationSessionTitle',
+      'Creation impossible':'characterCreationFailedTitle'
+    }[titre];
+    if (_rpTitreCreation && _rpCleTitreCreation) {
+      _rpTitreCreation.setAttribute('data-i18n','connectionUi.'+_rpCleTitreCreation);
+      _rpTitreCreation.setAttribute('data-i18n-fallback',titre);
+    }
+
     zone.scrollIntoView({ behavior: 'smooth', block: 'center' });
     // LA MAIN N'EST RENDUE QU'ICI : sur un echec reel, ou le joueur doit corriger et recommencer.
     rendreLaMain();
   };
   if (boutonValider) { boutonValider.disabled = true; boutonValider.textContent = 'Creation en cours...'; }
+  if (boutonValider) {
+    boutonValider.setAttribute('data-i18n','connectionUi.characterCreationWorking');
+    if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
+  }
 
   // Sauvegarde du personnage en localStorage pour le plateau
   const char={
