@@ -7645,7 +7645,17 @@ const BUILDINGS = {
         name: 'Boutique',
         imageUrl: 'images/Sovarka/Krasnov/Krasnov_tabac_presse_boutique.webp',
         desc: 'Comptoir et étagères de tabac, revues, loteries et paris sportifs, dans une échoppe rétro.',
-        persons: [], orders: []
+        // Quatre articles (14/11/2026, demande de Fred) : moteur commun des commerces PNJ, type 'tabac-presse'
+        // (BUILDING_COMMERCE_TYPE), migration 20261114220000. Pas de rachat direct : droit d'exploiter (notaire).
+        persons: [], orders: [
+          {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:"Papirossy, billets du Loto du Plan, revue locale et cartes postales."},
+          // Prise de paris du bookmaker des stades (Fred, 14/11/2026, 22 h 04) : même ordre, même moteur
+          // (football_pari_engager), copié à l'identique du guichet de paris du stade.
+          {fn:'parier_match', label:'Parier sur un match', pa:1, cost:0, type:'legal', icon:'ti-coin', successRate:100, desc:'Consultation gratuite -- vous choisirez ensuite votre mise (100 FR minimum).'},
+          {fn:'produire_commerce', label:'Produire', i18nKey:'variant.commerce_produce', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:"Préparer les articles en vente (consomme les matières en stock, rémunéré par la caisse du commerce)."},
+          {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
+        ]
       }
     }
   },
