@@ -1,0 +1,45 @@
+{
+  "baseCommit": "bacf59770609772ea1f4a6e03b7f7afa966bc88a",
+  "codeCommit": "dc909f0d655a1ae82873198514b57ff67d125c54",
+  "newKeys": 14,
+  "newForeignValues": 112,
+  "reusedKeys": 15,
+  "reusedForeignValues": 120,
+  "nativeI18nextNesting": [
+    "emptyHelp",
+    "memberCount"
+  ],
+  "identicalButValidTranslation": {
+    "en": {
+      "actions": "Actions"
+    }
+  },
+  "nodeTestsPassed": 128,
+  "baselineExistingTestsPassed": 125,
+  "browserStates": 42,
+  "browserLanguageSwitches": 1134,
+  "regressionLanguageSwitches": 2943,
+  "allBrowserSwitches": 4077,
+  "browserTestsPassed": 6,
+  "businessConditionsAndCommandsUnchanged": true,
+  "otherCharacterTabsUnchanged": true,
+  "newServerCallsOrPaymentsOnLanguageSwitch": 0,
+  "realOrdersExecuted": false,
+  "preexistingComparison": {
+    "tests": 31,
+    "passed": 27,
+    "failed": 4,
+    "sameOnMainAndBranch": true,
+    "causes": [
+      "3 SSM",
+      "2 descriptions électorales Krasnov hors catalogue Sovarka"
+    ]
+  },
+  "payload": {
+    "beforeBytes": 345886603,
+    "afterBytes": 345894167,
+    "ownIncreaseBytes": 7564,
+    "limitBytes": 346030080,
+    "passed": true
+  }
+}

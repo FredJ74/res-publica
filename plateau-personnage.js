@@ -667,6 +667,7 @@ function switchSelfTab(tab, el) {
 
   } else if (tab === 'orgas') {
     content.innerHTML = '<div style="padding:.8rem 1rem">' + renderOngletOrgas() + '</div>';
+    globalThis.RPI18nPlateau?.apply(content);
 
   } else if (tab === 'identite') {
     const char = state.char;

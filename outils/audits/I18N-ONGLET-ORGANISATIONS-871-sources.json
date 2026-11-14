@@ -1,0 +1,94 @@
+{
+  "baseCommit": "bacf59770609772ea1f4a6e03b7f7afa966bc88a",
+  "rows": [
+    [
+      "empty",
+      "Vous n'appartenez a aucune organisation."
+    ],
+    [
+      "emptyHelp",
+      "Louez un local et creez votre organisation depuis \"Gerer mon local\"."
+    ],
+    [
+      "memberCount",
+      "{{values.count}} membres"
+    ],
+    [
+      "mail",
+      "Courrier"
+    ],
+    [
+      "actions",
+      "Actions"
+    ],
+    [
+      "serviceInactive",
+      "Service serveur non activé"
+    ],
+    [
+      "equipmentUnavailable",
+      "Équipements — indisponibles"
+    ],
+    [
+      "applicationCount",
+      "Candidatures ({{values.count}})"
+    ],
+    [
+      "noApplications",
+      "Aucune candidature"
+    ],
+    [
+      "leave",
+      "Quitter cette organisation"
+    ],
+    [
+      "electionPrefix",
+      "ÉLECTION — "
+    ],
+    [
+      "candidaciesOpen",
+      "Candidatures ouvertes"
+    ],
+    [
+      "voteOpen",
+      "Vote en cours"
+    ],
+    [
+      "stand",
+      "Se présenter"
+    ]
+  ],
+  "newForeignValues": 112,
+  "reusedKeys": [
+    "plateau.forum",
+    "sovarkaPartis.secMembers",
+    "organizationAdmissions.invite",
+    "organizationSettings.title",
+    "orders.declencher_election_club",
+    "orderVariants.local_manage",
+    "organizationDirectory.type_politique",
+    "organizationDirectory.type_religieuse",
+    "organizationDirectory.type_syndicale",
+    "organizationDirectory.type_economique",
+    "organizationDirectory.type_criminelle",
+    "organizationDirectory.type_loge",
+    "organizationDirectory.type_mediatique",
+    "organizationDirectory.type_sportive",
+    "organizationDirectory.type_supporters"
+  ],
+  "reusedForeignValues": 120,
+  "identicalButValidTranslations": {
+    "en": [
+      "actions"
+    ]
+  },
+  "nativeI18nextNesting": [
+    "emptyHelp",
+    "memberCount"
+  ],
+  "excluded": [
+    "grades RP",
+    "élections et commandes",
+    "notifications #924"
+  ]
+}
