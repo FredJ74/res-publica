@@ -152,3 +152,95 @@ plateau-football-realisateur-tests.js
 # Krasnov : decors non actifs. Conserver en Git, exclure du deploy Vercel.
 # Retirer cette exclusion lorsque les lieux de Sovarka seront effectivement raccordes.
 images/krasnov/
+
+# --- CATALOGUES I18N : TRANSPORT HTTP COMPRESSE (#871) -------------------
+# Les sources lisibles restent dans Git et servent aux tests. Vercel sert les
+# mêmes octets décompressés par le navigateur via la réécriture canonique
+# déclarée dans vercel.json, depuis i18n/packed/*.js.br. Aucun moteur nouveau.
+# Régénérer les paquets après chaque changement de catalogue (voir AGENTS.md).
+# BEGIN RP_I18N_PACKED_SOURCES
+i18n/action-feedback-resources.js
+i18n/administration-economy-resources.js
+i18n/appartements-resources.js
+i18n/character-sheet-resources.js
+i18n/civil-registry-resources.js
+i18n/clinic-stay-resources.js
+i18n/commerce-management-resources.js
+i18n/commerce-menu-resources.js
+i18n/commerce-production-resources.js
+i18n/common-room-resources.js
+i18n/connection-resources.js
+i18n/construction-feedback-resources.js
+i18n/contact-organization-resources.js
+i18n/dealer-resources.js
+i18n/economic-catalog-resources.js
+i18n/employment-agency-resources.js
+i18n/equipements-resources.js
+i18n/finance135-resources.js
+i18n/forum-feedback-resources.js
+i18n/guard-welcome-resources.js
+i18n/guide-economie-resources.js
+i18n/guide-ilia-resources.js
+i18n/guide-interactions-resources.js
+i18n/guide-musee-novomirsk-resources.js
+i18n/guide-plateau-resources.js
+i18n/guide-politique-resources.js
+i18n/guide-religion-resources.js
+i18n/guide-resources.js
+i18n/guide-sport-resources.js
+i18n/infobulles-communes-resources.js
+i18n/inventory-ui-resources.js
+i18n/jeremy-scenes-resources.js
+i18n/material-trade-resources.js
+i18n/municipal-ui-resources.js
+i18n/musee-sovarka-resources.js
+i18n/museum-national-bios-resources.js
+i18n/naval-resources.js
+i18n/navigation-resources.js
+i18n/occupation-resources.js
+i18n/open-space-resources.js
+i18n/order-templates-resources.js
+i18n/order-variants-resources.js
+i18n/orders-resources.js
+i18n/organization-admissions-resources.js
+i18n/organization-creation-resources.js
+i18n/organization-directory-resources.js
+i18n/organization-members-resources.js
+i18n/organization-panel-resources.js
+i18n/organization-settings-resources.js
+i18n/petit-accueil-resources.js
+i18n/plateau-resources.js
+i18n/player-directory-resources.js
+i18n/player-missions-resources.js
+i18n/pnj-status-resources.js
+i18n/port-customs-ui-resources.js
+i18n/premium-ads-resources.js
+i18n/product-sheet-resources.js
+i18n/republia-infobulles-resources.js
+i18n/resources.js
+i18n/room-actions-resources.js
+i18n/room-resources.js
+i18n/shared-sales-dinner-resources.js
+i18n/social-agency-resources.js
+i18n/social-housing-resources.js
+i18n/social-pnj-resources.js
+i18n/sovarka-descriptions-resources.js
+i18n/sovarka-droits-resources.js
+i18n/sovarka-heros-boite-resources.js
+i18n/sovarka-infobulles-resources.js
+i18n/sovarka-justice-resources.js
+i18n/sovarka-messages-resources.js
+i18n/sovarka-ordres-resources.js
+i18n/sovarka-partis-resources.js
+i18n/sovarka-pieces-resources.js
+i18n/sovarka-pouvoir-resources.js
+i18n/sovarka-provinces-resources.js
+i18n/sovarka-roles-resources.js
+i18n/sport-bets-resources.js
+i18n/toast-bodies-resources.js
+i18n/toast-resources.js
+i18n/tracts-resources.js
+i18n/tresor-tsars-resources.js
+i18n/vehicle-garage-resources.js
+i18n/vehicle-travel-resources.js
+# END RP_I18N_PACKED_SOURCES

@@ -8,7 +8,7 @@ const L=['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de'];
 const catalogueSrc=read('i18n/toast-bodies-resources.js');
 const rows=JSON.parse(catalogueSrc.match(/\/\*ROWS\*\/([\s\S]*?)\/\*FIN\*\//)[1]);
 const coreSrc=read('plateau-core.js');
-function fn(s,name){const a=s.indexOf('function '+name+'(');assert.ok(a>=0,name);return s.slice(a,s.indexOf('\n}',a)+2)}
+function fn(s,name){const a=s.indexOf('function '+name+'(');assert.ok(a>=0,name);return s.slice(s.slice(a-6,a)==='async '?a-6:a,s.indexOf('\n}',a)+2)}
 const showToastSrc=fn(coreSrc,'showToast');
 
 // Corps littéraux passés à showToast dans les sources du plateau (même règle que l'extraction du lot).
@@ -137,4 +137,32 @@ test('navigateur : neuf langues, 320/390/1280, aucun débordement, saisie conser
   assert.equal(await page.inputValue('#saisie'),'brouillon conservé 42');
   assert.deepEqual(errors,[]);await page.close();
  }}finally{await browser.close()}
+});
+
+
+test('contenu joueur : texte libre intact même identique à une phrase fixe, ordre/journal/PA inchangés',async()=>{
+ const fr=rows.find(r=>r[0]!==r[1]&&r[0].includes(' '))[0];
+ for(const l of L){
+  const s=sandbox(l),ctx=s.ctx;ctx.state={pa:9,arg:500,progression:{etape:4}};ctx.journal=[];ctx.rpcCalls=[];
+  s.nodes['texte-libre-input']={value:fr};s.nodes['modal-postes']={classList:{remove(){}}};
+  ctx.addJournalEntry=(...args)=>ctx.journal.push(args);ctx.sbRpc=(...args)=>{ctx.rpcCalls.push(args);throw Error('RPC interdit');};
+  vm.runInContext(fn(read('plateau-politique.js'),'executerOrdreTexte'),ctx);
+  const before=JSON.stringify(ctx.state);await ctx.executerOrdreTexte('texte_fixture');
+  assert.equal(s.nodes['toast-sub'].textContent,fr);assert.equal(s.nodes['toast-sub'].dir,'auto');assert.equal(s.nodes['toast-sub'].dataset.rpFr,'');
+  assert.deepEqual(JSON.parse(JSON.stringify(ctx.journal)),[['texte_fixture : '+fr,'event-info']]);
+  for(const next of L){s.set(next);assert.equal(s.nodes['toast-sub'].textContent,fr);assert.equal(s.nodes['texte-libre-input'].value,fr);}
+  assert.equal(JSON.stringify(ctx.state),before);assert.equal(ctx.rpcCalls.length,0);
+  // Une notification fixe suivante est de nouveau traduite normalement.
+  s.set('en');ctx.showToast('Info',fr,true);assert.equal(s.nodes['toast-sub'].textContent,rows.find(r=>r[0]===fr)[1]);
+ }
+});
+
+
+test('direction : arabe RTL, jauges LTR et balisage spécialisé conservé',()=>{
+ const row=rows.find(r=>/^[A-Za-zÀ-ÿ]/.test(r[0])&&/[\u0600-\u06ff]/.test(r[6])&&r[0]!==r[6]);assert.ok(row);
+ const s=sandbox('ar');s.ctx.showToast('Info',row[0],true);assert.equal(s.nodes['toast-sub'].dir,'rtl');
+ s.set('de');assert.equal(s.nodes['toast-sub'].dir,'auto');
+ assert.equal(s.ctx.RPToastBodyI18n.direction('+5 DIS.','+5 DIS.'),'ltr');
+ s.set('ar');s.nodes['toast-sub'].childElementCount=1;s.nodes['toast-sub'].textContent='Balisage propre conservé';s.set('de');
+ assert.equal(s.nodes['toast-sub'].textContent,'Balisage propre conservé');assert.equal(s.nodes['toast-sub'].dir,'auto');
 });

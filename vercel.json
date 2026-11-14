@@ -29,6 +29,10 @@
   ],
   "rewrites": [
     {
+      "source": "/i18n/:catalog([A-Za-z0-9_-]*resources).js",
+      "destination": "/i18n/packed/:catalog.js.br"
+    },
+    {
       "source": "/api/aide",
       "destination": "/api/chat?mode=aide"
     },
@@ -160,6 +164,23 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/i18n/:catalog([A-Za-z0-9_-]*resources).js",
+      "headers": [
+        {
+          "key": "Content-Encoding",
+          "value": "br"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        },
+        {
+          "key": "Vary",
+          "value": "Accept-Encoding"
         }
       ]
     }

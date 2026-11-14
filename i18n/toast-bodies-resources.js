@@ -1458,14 +1458,21 @@
   const output=global.i18next?.t?.(resourceKey,{lng,defaultValue:original});
   return typeof output==='string'&&output.trim()&&output!==resourceKey?output:original;
  }
+ function direction(original,translated){
+  // Les variations de jauge gardent leur signe devant le nombre, même en arabe.
+  if(typeof original==='string'&&/^([+\-−]?\d+ (DIS|INF|POP|IP|ID|Moral)\s*)+\.?$/.test(original))return 'ltr';
+  return key(original)&&translated!==original&&global.RPPlateauI18n?.language?.()==='ar'?'rtl':'auto';
+ }
  // Notification encore affichée lors d'un changement de langue : repeindre son corps depuis le français
  // mémorisé, sauf si un autre catalogue l'a déjà balisée (markToast).
  function repeindre(){
   const node=global.document?.getElementById?.('toast-sub');
   const fr=node?.dataset?.rpFr;
-  if(!node||!fr||!key(fr)||node.childElementCount)return;
+  if(!node||!fr||!key(fr))return;
+  if(node.childElementCount){node.dir='auto';return;}
   node.textContent=label(fr);
+  node.dir=direction(fr,node.textContent);
  }
  (global.RP_I18N_CHANGE_CALLBACKS=global.RP_I18N_CHANGE_CALLBACKS||[]).push(repeindre);
- global.RPToastBodyI18n=Object.freeze({label,key,size:()=>keys.size});
+ global.RPToastBodyI18n=Object.freeze({label,key,direction,size:()=>keys.size});
 })(window);
