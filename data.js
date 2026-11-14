@@ -11223,7 +11223,8 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() {
   // Krasnov.
   Object.assign(contexte('ville_b', 'marche'), { name: 'Marché de Krasnov', desc: 'Les étals du kolkhoze : pommes, choux, miel et conserves maison, vendus sous les tilleuls.', persons: [pnj('Nina Gorbounova', 'Marchande', 'commercant')] });
   Object.assign(contexte('ville_b', 'universite'), { name: 'École de Krasnov', desc: 'L\'école du kolkhoze : on y apprend à lire, à compter et à réciter les rendements de la récolte.' });
-  Object.assign(piece(contexte('ville_b', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Pavel Smirnov', 'Directeur de l\'école', 'professeur')] });
+  Object.assign(piece(contexte('ville_b', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Pavel Smirnov', 'Directeur de l\'école', 'professeur')],
+    imageUrl: 'images/Sovarka/Krasnov/Krasnov_ecole_salle_classe.webp' }); // image de Fred (14/11/2026) ; mécanique de l'école à décider
   Object.assign(contexte('ville_b', 'kolkhoze-spirituel'), { name: 'Église du Tractorisme de Krasnov', desc: 'Une église aux bulbes dorés, consacrée au Tractorisme : on y prie pour la récolte et la santé des moteurs.' });
   const musee = contexte('ville_b', 'musee-novomirsk');
   Object.assign(musee, { name: 'Musée de Krasnov', desc: 'Le musée du kolkhoze : machines agricoles d\'époque, records de récolte et portraits des tractoristes émérites.' });
