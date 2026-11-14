@@ -11452,8 +11452,14 @@ BUILDINGS['locaux-starovka'] = {
       orders: [
         { fn: 'foret_couper', label: 'Couper du bois', pa: 2, cost: 0, type: 'legal', icon: 'ti-axe', successRate: 100,
           desc: 'Le bois de la forêt profonde : une coupe rapporte le double d’une récolte. Combien de fois avant que quelque chose ne bouge dans les fourrés ?' },
+        // Retour de Fred (14/11/2026) : on peut s'enfoncer encore depuis une vue profonde (vers une autre vue), sans repasser par l'entrée.
+        { fn: 'foret_enfoncer', label: 'S’enfoncer dans la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-trees', successRate: 100,
+          desc: 'Plus loin, le bois est plus beau : chaque coupe rapporte le double. Mais on dit que les loups et l’ours rôdent sous les arbres… et qu’on s’y perd facilement.' },
         { fn: 'foret_revenir', label: 'Revenir à l’entrée de la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-arrow-back-up', successRate: 100,
-          desc: 'Retrouver le chemin de l’entrée… si l’on ne se perd pas en route.' }
+          desc: 'Retrouver le chemin de l’entrée… si l’on ne se perd pas en route.' },
+        // Perdu (état serveur sovarka_foret_perdus) : « Revenir » est masqué et remplacé par cet ordre (renderRoomActions).
+        { fn: 'foret_retrouver', label: 'Retrouver son chemin', pa: 1, cost: 0, type: 'legal', icon: 'ti-compass', successRate: 100,
+          desc: 'Chercher la sortie à l’instinct, entre des troncs qui se ressemblent tous (1 PA). Peut-être l’entrée de la forêt… peut-être plus loin encore.' }
       ]
     };
   });

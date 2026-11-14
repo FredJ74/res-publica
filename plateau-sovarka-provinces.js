@@ -373,7 +373,34 @@ async function agirCaisseKolkhoze(geste) {
 // ---------- FORÊT PROFONDE DE KRASNOV (Fred, 09-10/11/2026, issue #72) ----------
 // On n'entre en forêt profonde, on n'y change de vue et on n'en ressort que par ces ordres : le serveur tire la vue.
 Object.assign(PROV_MOTIFS, provRaisons(['deja_en_foret', 'deja_a_l_entree', 'rencontre_en_cours', 'pas_en_foret_profonde', 'coupes_epuisees',
-  'quitter_groupe_pour_couper', 'chef_de_groupe_requis', 'aucune_rencontre', 'combat_en_cours', 'foret_perdu', 'foret_chemin_aleatoire']));
+  'quitter_groupe_pour_couper', 'chef_de_groupe_requis', 'aucune_rencontre', 'combat_en_cours', 'foret_perdu', 'foret_chemin_aleatoire',
+  'foret_pas_perdu']));
+
+// Égarement (retour de Fred, 14/11/2026) : l'état « perdu » est au serveur (sovarka_foret_perdus). Ce reflet ne sert qu'à
+// choisir entre « Revenir à l'entrée » et « Retrouver son chemin » à l'écran ; il est réécrit à chaque réponse du serveur.
+let foretPerduServeur = false;
+let foretPerduLu = false;
+function foretEstPerdu() {
+  const enForet = /^foret_vue_[1-4]$/.test(state.currentRoom || '');
+  // Première vue profonde affichée depuis le chargement : l'état est relu une fois au serveur.
+  if (enForet && !foretPerduLu) { foretPerduLu = true; setTimeout(() => { foretRelirePerdu(); }, 0); }
+  return foretPerduServeur === true && enForet;
+}
+function foretNoterPerdu(v) {
+  if (v && typeof v.perdu === 'boolean') foretPerduLu = true;
+  if (v && typeof v.perdu === 'boolean' && foretPerduServeur !== v.perdu) {
+    foretPerduServeur = v.perdu;
+    return true;
+  }
+  return false;
+}
+// Fenêtre angoissante de l'égarement : le texte varie avec la vue tirée par le serveur.
+function foretFenetrePerdu(titre, vue) {
+  const n = Number.isSafeInteger(Number(vue)) && vue >= 1 && vue <= 4 ? Number(vue) : 1;
+  const fenetre = () => provModal(titre, '<p style="font-style:italic">' + provT('lost_' + n) + '</p>' +
+    '<p class="cpj-note">' + provT('lostHint') + '</p>', fenetre);
+  fenetre();
+}
 
 function provForetRendre(room) {
   if (!room) return;
@@ -387,11 +414,24 @@ function provForetRendre(room) {
 async function foretAller(sens) {
   const v = await provActe('sovarka_foret_aller', { p_sens: sens }, sens);
   if (!v) return;
-  if (v.ok !== true) { if (v.raison === 'rencontre_en_cours') { await foretReprendreRencontre(); return; } provRefus(provT('tForest'), v); return; }
+  if (v.ok !== true) {
+    if (v.raison === 'rencontre_en_cours') { await foretReprendreRencontre(); return; }
+    // L'écran ignorait l'égarement (rechargement) : le serveur le rappelle, on remplace l'ordre et on le dit.
+    if (foretNoterPerdu(v) && /^foret_vue_[1-4]$/.test(state.currentRoom || '')) provForetRendre(state.currentRoom);
+    if (v.raison === 'foret_perdu' && v.perdu === true) { foretFenetrePerdu(provT('tStill'), Number(String(state.currentRoom).slice(-1))); return; }
+    provRefus(provT('tForest'), v); return;
+  }
+  foretNoterPerdu(v);
   provForetRendre(v.room);
-  if (sens === 'enfoncer') showToast(provT('tDeep'), provT('deeper'), true);
-  else if (v.perdu) showToast(provT('tLost'), provT('lost'), false);
-  else showToast(provT('tOut'), provT('out'), true);
+  if (Number(v.vue) === 0) showToast(provT('tOut'), provT(sens === 'retrouver' ? 'found' : 'out'), true);
+  else if (v.egare === true) foretFenetrePerdu(provT(sens === 'retrouver' ? 'tStill' : 'tLost'), v.vue);
+  else showToast(provT('tDeep'), provT('deeper'), true);
+}
+
+// Rechargement ou arrivée en forêt profonde : relire l'égarement au serveur pour afficher le bon ordre.
+async function foretRelirePerdu() {
+  const v = await sbRpcVerdict('sovarka_foret_lire', {}).catch(() => null);
+  if (v?.ok === true && foretNoterPerdu(v) && /^foret_vue_[1-4]$/.test(state.currentRoom || '')) provForetRendre(state.currentRoom);
 }
 
 async function foretCouper() {
