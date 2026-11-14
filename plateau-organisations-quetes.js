@@ -143,7 +143,8 @@ function ouvrirTableauOrganisations() {
   // Les lieux canoniques utilisent parfois des entités HTML (ex. Chasse &amp; Pêche).
   const _rpOrgPlaceText = value => {
     const text = document.createElement('textarea');
-    text.innerHTML = String(value).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const escaped = String(value).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    text.innerHTML = escaped;
     return _rpOrgText(text.value);
   };
   const toutes = state.organisations || [];
