@@ -23,6 +23,9 @@ et navigation que main. 432 bascules pendant l’attente puis après les refus,
 aucune requête/dépense nouvelle, aucun double envoi, brouillon/focus/sélection/position
 conservés, RTL arabe et aucun débordement. Réponse reçue après changement de langue,
 bouton personnalisé et ressource allemande absente également vérifiés.
+54 bascules supplémentaires passent par le vrai sélecteur `changerLangueRP`
+et son rafraîchissement `renderReview` : préférence de langue enregistrée,
+aucune nouvelle création, données, saisies et position conservées.
 
 Les opérations serveur sont simulées : aucun compte ni personnage réel créé,
 aucune donnée de joueur lue ou modifiée. Pas de revue native ni téléphone physique.
@@ -35,8 +38,8 @@ Mesure avec le même extracteur : corpus inchangé 7 587 textes/50 923 mots,
 zéro raccordement statique supplémentaire reconnu ; les marqueurs de titres
 choisis par table et le bouton conditionnel ne sont pas reconnus par cet
 extracteur strict. Le rendu des six textes est vérifié en Chromium, sans gonfler
-le taux. Une ressource supplémentaire / trois mots source sont reconnue dans
-le corpus statique ; les autres titres y figurent hors dénominateur strict.
+le taux. L’extracteur retrouve une ressource supplémentaire, représentant trois mots
+source dans le corpus statique ; les autres titres y figurent hors dénominateur strict.
 Anglais : 24,33 % des mots statiques identifiés, pas de tout le jeu.
 Zéro erreur d’extraction. Mesures complètes dans le JSON associé.
 

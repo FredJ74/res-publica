@@ -5,5 +5,8 @@
   "newForeignTranslations": 48,
   "businessAstIdentical": true,
   "browserLanguageSwitches": 432,
-  "realAccountsUsed": false
+  "realAccountsUsed": false,
+  "realSelectorLanguageSwitches": 54,
+  "nodeTestsPassed": 41,
+  "existingConnectionTestsPassed": 12
 }
