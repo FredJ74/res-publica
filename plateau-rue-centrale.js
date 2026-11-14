@@ -1493,8 +1493,12 @@ const RUE_CENTRALE_NOEUDS = {
   Z('krasnov-rue-eglise', [30, 60], 'Église du Tractorisme', 'kolkhoze-spirituel');
   Z('krasnov-rue-station-musee', [15, 45], 'Musée de Krasnov', 'musee-novomirsk');
   Z('krasnov-rue-tabac-bar', [0, 35], 'Bar Sever', 'cafe-tabac-cheminots-montrouge');
-  Z('krasnov-rue-tabac-bar', [57, 78], 'Tabac/Presse de Krasnov', 'tabac-presse-krasnov', [33, 73]);
-  Z('krasnov-rue-tabac-bar', [79, 100], 'Immeuble de la rue du Tabac', 'logements-krasnov-rue-tabac', [5, 76]);
+  // Façades depuis cette vue : l'immeuble peint « КРАСНОВ ГОРОД ЛЮДЕЙ »
+  // est au CENTRE-DROIT ; la boutique TABAC/PRESSE est à l'extrême droite.
+  // Les deux rectangles ne doivent pas se chevaucher : le tabac ne doit jamais
+  // ouvrir l'immeuble et vice-versa (correction après capture de Fred, 14/11).
+  Z('krasnov-rue-tabac-bar', [58, 78], 'Immeuble de la rue du Tabac', 'logements-krasnov-rue-tabac', [14, 72]);
+  Z('krasnov-rue-tabac-bar', [79, 100], 'Tabac/Presse de Krasnov', 'tabac-presse-krasnov', [32, 75]);
   // Partie 2 du lot (10/11/2026, migration 20261110123000) : fermes, distillerie et fourreur, reperes sur les enseignes.
   Z('starovka-rue-petrole-ferme', [62, 100], 'Ferme de Starovka', 'ferme-starovka', [22, 64]);
   Z('krasnov-rue-marche-ferme', [70, 100], 'Kolkhoze S. M. Kirov', 'ferme-krasnov', [18, 66]);
