@@ -1103,7 +1103,8 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/Sovarka/Krasnov/Krasnov rue immeubles centre commercial.webp',
       // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
-        { xPct: [0, 36], yPct: [12, 62], nom: 'Centre commercial de Krasnov', type: 'batiment', buildingId: 'centre-commercial' }
+        { xPct: [0, 36], yPct: [12, 62], nom: 'Centre commercial de Krasnov', type: 'batiment', buildingId: 'centre-commercial' },
+        { xPct: [72, 100], yPct: [12, 77], nom: 'Immeuble collectif de Krasnov', type: 'batiment', buildingId: 'logements-novomirsk' }
       ],
       liens: { arriere: 'krasnov-rue-distillerie-radar', toutDroit: 'krasnov-rue-mairie-place' },
       flechesStyle: {
