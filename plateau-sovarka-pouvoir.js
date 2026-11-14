@@ -323,7 +323,7 @@ const SOV_MANIF_STATUTS = { demande: 'Demande en attente', acceptee: 'Autorisée
 const SOV_MIN_VILLES = { capitale: 'Novomirsk', ville_a: 'Starovka', ville_b: 'Krasnov' };
 async function ouvrirSovarkaManifsGerer() {
   const l = await sovMinLire(); if (!l) return;
-  if (!l.min_int) { vehModal('Gérer les manifestations', '<p>' + SOV_POUVOIR_MOTIFS.poste_requis + '</p>'); return; }
+  if (!l.min_int) { vehModal('Gérer les manifestations', '<p>' + SOV_MIN_REFUS.poste_requis + '</p>'); return; }
   const liste = l.manifs || [];
   const html = '<p class="cpj-note">En Sovarka, seules les manifestations de soutien au gouvernement existent. '
     + 'Vous acceptez ou refusez chaque demande (1 PA) ; une fois autorisée, une manifestation ne s’interdit plus : '
@@ -350,7 +350,7 @@ function sovarkaManifReprimer(id) {
 // ---------------------------------------------------------------- Président du Conseil : grâces à transmettre
 async function ouvrirSovarkaGraces() {
   const l = await sovMinLire(); if (!l) return;
-  if (!l.pm) { vehModal('Grâces à transmettre', '<p>' + SOV_POUVOIR_MOTIFS.reserve_president_du_conseil + '</p>'); return; }
+  if (!l.pm) { vehModal('Grâces à transmettre', '<p>' + SOV_MIN_REFUS.reserve_president_du_conseil + '</p>'); return; }
   const g = l.graces || [];
   const html = '<p class="cpj-note">Les grâces proposées par le ministre de la Justice prolétarienne passent par vous avant '
     + 'd’atteindre le Président de la République. Chaque décision vous coûte 1 PA.</p>'
