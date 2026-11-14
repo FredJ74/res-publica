@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const css=fs.readFileSync('style.css','utf8');
 const html=fs.readFileSync('plateau.html','utf8');
 const readStyle=name=>{
- const re=new RegExp('\\.'+name+'\\s*\\{([^}]*)\\}', 'g');
+ const re=new RegExp('^\\.'+name+'\\s*\\{([^}]*)\\}', 'gm');
  const blocks=[...css.matchAll(re)];
  assert.equal(blocks.length,1,name+' : une seule règle pour éviter les conflits');
  return blocks[0][1];
