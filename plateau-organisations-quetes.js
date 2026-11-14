@@ -138,6 +138,14 @@ async function remettreRecompenseQuete() { return null; }
 // visibilite, pas existence) : seuls son chef et son siege sont masques pour un visiteur
 // qui n'en est pas membre. Un membre (y compris non-chef) garde l'acces complet.
 function ouvrirTableauOrganisations() {
+  // Valeurs opaques : aucun nom de joueur/organisation/lieu ne devient du HTML ou une clé.
+  const _rpOrgText = value => String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  // Les lieux canoniques utilisent parfois des entités HTML (ex. Chasse &amp; Pêche).
+  const _rpOrgPlaceText = value => {
+    const text = document.createElement('textarea');
+    text.innerHTML = String(value).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return _rpOrgText(text.value);
+  };
   const toutes = state.organisations || [];
   const suisMembreDe = (o) => (o.membres || []).some(m => m.nom === state.char?.name);
 
@@ -149,24 +157,38 @@ function ouvrirTableauOrganisations() {
   });
 
   document.getElementById('postes-modal-title').textContent = 'Tableau des organisations';
+  const _rpOrgHeading = document.getElementById('postes-modal-title');
+  const _rpOrgHeadingText = document.createElement('span');
+  _rpOrgHeadingText.textContent = _rpOrgHeading.textContent;
+  _rpOrgHeadingText.setAttribute('data-i18n','organizationDirectory.title');
+  _rpOrgHeading.replaceChildren(_rpOrgHeadingText);
   let html = '<div class="hg-organisations" style="padding:1rem">';
 
   const empireIds = Object.keys(parEmpire);
   if (empireIds.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune organisation connue pour l\'instant.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic" data-i18n="organizationDirectory.empty">Aucune organisation connue pour l\'instant.</div>';
   } else {
     empireIds.forEach(emp => {
       const empireNom = COUNTRIES[emp]?.n || emp;
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.12em;color:#C9A84C;margin:.8rem 0 .5rem;border-bottom:1px solid #2a2010;padding-bottom:.3rem">' + empireNom + '</div>';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.12em;color:#C9A84C;margin:.8rem 0 .5rem;border-bottom:1px solid #2a2010;padding-bottom:.3rem">' + _rpOrgPlaceText(empireNom) + '</div>';
       parEmpire[emp].forEach(o => {
         const typeDef = TYPES_ORGANISATIONS[o.type] || {};
         const typeLabel = typeDef.label || o.type;
+        const _rpOrgTypeKey = {
+          politique:'type_politique',religieuse:'type_religieuse',syndicale:'type_syndicale',
+          economique:'type_economique',criminelle:'type_criminelle',loge:'type_loge',
+          mediatique:'type_mediatique',sportive:'type_sportive',supporters:'type_supporters'
+        }[o.type];
+        const _rpOrgTypeMarker = typeof _rpOrgTypeKey==='string' &&
+          globalThis.RP_I18N_RESOURCES?.fr?.translation?.organizationDirectory?.[_rpOrgTypeKey]===typeLabel
+          ? ' data-i18n="organizationDirectory.'+_rpOrgTypeKey+'"' : '';
         const masquer = !o.visible && !suisMembreDe(o);
         let infoLigne;
         if (masquer) {
-          infoLigne = 'Chef : non communiqué · Siège : non communiqué';
+          infoLigne = '<span data-i18n="organizationDirectory.privateDetails">Chef : non communiqué · Siège : non communiqué</span>';
         } else {
           let buildingNom, roomNom;
+          let _rpOrgUnknownSeat = false;
           if (o.type === 'supporters') {
             const villeCtx = WORLD[o.country_origine || o.country]?.[o.city]?.buildingContext?.['stade'];
             buildingNom = BUILDINGS['stade']?.shortName || BUILDINGS['stade']?.name || 'Stade';
@@ -174,15 +196,18 @@ function ouvrirTableauOrganisations() {
           } else {
             const buildingId = (o.localId || '').split(':')[0];
             const roomId = (o.localId || '').split(':')[1];
+            _rpOrgUnknownSeat = !buildingId;
             buildingNom = BUILDINGS[buildingId]?.shortName || BUILDINGS[buildingId]?.name || buildingId || 'Siège inconnu';
             roomNom = BUILDINGS[buildingId]?.rooms?.[roomId]?.name || '';
           }
-          infoLigne = 'Chef : ' + (o.chef || o.fondateur || '?') + ' · Siège : ' + buildingNom + (roomNom ? ' (' + roomNom + ')' : '');
+          infoLigne = '<span data-i18n="organizationDirectory.leaderPrefix">Chef : </span>' + _rpOrgText(o.chef || o.fondateur || '?') + ' · <span data-i18n="organizationDirectory.seatPrefix">Siège : </span>' +
+            (_rpOrgUnknownSeat ? '<span data-i18n="organizationDirectory.unknownSeat">Siège inconnu</span>' : _rpOrgPlaceText(buildingNom)) +
+            (roomNom ? ' (' + _rpOrgPlaceText(roomNom) + ')' : '');
         }
         html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.5rem">' +
           '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
-          '<span style="font-family:Playfair Display,serif;font-size:.95rem;color:#e0d5b8">' + o.nom + (o.visible ? '' : ' 🔒') + '</span>' +
-          '<span style="font-size:.7rem;color:#8a6a20">' + typeLabel + '</span>' +
+          '<span style="font-family:Playfair Display,serif;font-size:.95rem;color:#e0d5b8">' + _rpOrgText(o.nom) + (o.visible ? '' : ' 🔒') + '</span>' +
+          '<span style="font-size:.7rem;color:#8a6a20"' + _rpOrgTypeMarker + '>' + _rpOrgText(typeLabel) + '</span>' +
           '</div>' +
           '<div style="font-size:.75rem;color:#8a8060;margin-top:.2rem">' + infoLigne + '</div>' +
           '</div>';
@@ -192,6 +217,7 @@ function ouvrirTableauOrganisations() {
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+  globalThis.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
 }
 
 function getMesOrgasPays(country) {
