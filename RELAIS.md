@@ -192,6 +192,8 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ### Consignes durables pour tous les agents (reprises des chantiers des 26-30/10)
 
+- **Partage du travail (Fred, 14/11/2026, 19 h 06)** : tant que Sovarka n'est pas terminée, la traduction relève de Codex. Claude ne prend pas les chantiers de traduction (bancs i18n rouges compris) ; il continue de traduire seulement les textes qu'il ajoute lui-même.
+
 - Popularité ou influence rendue par une RPC : `adopterJaugeServeur('pop'|'inf', valeur)`, jamais `state.pop = v.pop` (double comptage à la sauvegarde suivante).
 - Réponse serveur qui change l'inventaire : elle rend `inventory` et `revision`, l'écran l'adopte par `sbAdopterInventaireServeur(v)`. Tout nouvel objet est déposé par le serveur (`inventaire_deposer_interne`).
 - Acte illégal : détection tirée dans sa fonction serveur (`crime_detecter_interne`), trace par `crime_tracer_interne`, jamais `checkDetection` à l'écran. Un dégât ou une fermeture se pose dans la fonction serveur de l'acte.
