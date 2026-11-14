@@ -25,3 +25,5 @@ vm.runInContext(lire('data.js'),ctx);
 const ch=vm.runInContext("WORLD.soviet.ville_b.buildingContext['dispensaire-public-v'].roomsExtra.chambre",ctx);
 assert.ok(ch && ch.orders.some(o=>o.fn==='dormir') && ch.orders.some(o=>o.fn==='repas_hopital'));
 console.log('Krasnov hôpital : scènes, accès et chambre conformes (image à livrer)');
+
+// Scène prête à recevoir son illustration WebP spécifique après validation.
