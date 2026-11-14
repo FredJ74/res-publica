@@ -1026,7 +1026,9 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/Sovarka/Krasnov/Krasnov rue terrains.webp',
       // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
-        { xPct: [10, 58], yPct: [40, 64], nom: 'Terrain municipal', type: 'batiment', buildingId: 'terrain-a-batir-2' }
+        { xPct: [10, 58], yPct: [40, 64], nom: 'Terrain municipal', type: 'batiment', buildingId: 'terrain-a-batir-2' },
+        // 14/11/2026 : maisonnette au bord droit (hospitalité, migration 20261114180000).
+        { xPct: [91, 100], yPct: [28, 58], nom: 'Maison d’Ignat', type: 'batiment', buildingId: 'maison-krasnov-terrains' }
       ],
       liens: { gauche: 'krasnov-rue-maison', toutDroit: 'krasnov-rue-eglise', droite: 'krasnov-rue-marche-ferme' },
       flechesStyle: {
@@ -1156,7 +1158,9 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/Sovarka/Krasnov/Krasnov_rue_bureaux.webp',
       // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
-        { xPct: [45, 90], yPct: [18, 58], nom: "Centre d'affaires de Krasnov", type: 'batiment', buildingId: 'centre-affaires' }
+        { xPct: [45, 90], yPct: [18, 58], nom: "Centre d'affaires de Krasnov", type: 'batiment', buildingId: 'centre-affaires' },
+        // 14/11/2026 : maison bleue en face du centre d'affaires (hospitalité, migration 20261114180000).
+        { xPct: [0, 24], yPct: [12, 66], nom: 'Maison d’Antonina', type: 'batiment', buildingId: 'maison-krasnov-bureaux' }
       ],
       // La rue de l'hôpital part à DROITE depuis cette vue (décision de Fred).
       liens: { arriere: 'krasnov-rue-station-musee', toutDroit: 'krasnov-rue-descendante', droite: 'krasnov-rue-hopital' },
@@ -1180,7 +1184,11 @@ const RUE_CENTRALE_NOEUDS = {
     // Rue descendante : raccordement de la boucle jusqu'à l'église.
     'krasnov-rue-descendante': {
       image: 'images/Sovarka/Krasnov/Krasnov_rue_descendante.webp',
-      zones: [],
+      // 14/11/2026 : maison rouge à gauche, maison bleue à droite (hospitalité, migration 20261114180000).
+      zones: [
+        { xPct: [0, 27], yPct: [6, 70], nom: 'Maison de Matveï', type: 'batiment', buildingId: 'maison-krasnov-rouge' },
+        { xPct: [82, 100], yPct: [28, 68], nom: 'Maison de Praskovia', type: 'batiment', buildingId: 'maison-krasnov-bleue' }
+      ],
       liens: { arriere: 'krasnov-rue-bureaux', toutDroit: 'krasnov-rue-eglise' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
@@ -1191,7 +1199,10 @@ const RUE_CENTRALE_NOEUDS = {
     // Église : l'ancienne flèche droite en attente boucle vers la rue descendante.
     'krasnov-rue-eglise': {
       image: 'images/Sovarka/Krasnov/Krasnov rue église.webp',
-      zones: [],
+      // 14/11/2026 : maison brune à droite de l'église (hospitalité, migration 20261114180000).
+      zones: [
+        { xPct: [71, 97], yPct: [38, 62], nom: 'Maison de Kouzma', type: 'batiment', buildingId: 'maison-krasnov-eglise' }
+      ],
       liens: { arriere: 'krasnov-rue-terrains', droite: 'krasnov-rue-descendante' },
       flechesStyle: {
         arriere: 'bottom:10px; left:43%; transform:translateX(-50%);',
