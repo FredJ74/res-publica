@@ -15,7 +15,7 @@ for(const pays of ['soviet','narco','khalija']) {
   const nom=vm.runInContext(`WORLD.${pays}.ville_b.buildingContext?.['dispensaire-public-v']?.roomsExtra?.chambre?.imageUrl`,ctx);
   assert.notEqual(nom,ch.imageUrl,pays+' non modifié');
 }
-assert.equal(vm.runInContext("WORLD.republic.ville_a.buildingContext['dispensaire-public-v'].roomsExtra?.chambre",ctx),undefined,'PSM non modifié');
+// Depuis le 14/11 (uniformisation), PSM et Luthécia ont la même chambre : voir test-hopitaux-chambre-partout-20261114.mjs.
 const sql=lire('migrations/20261114090000_montrouge_hopital_chambre.sql');
 assert.match(sql,/pays = 'republic'/);
 assert.match(sql,/ville = 'ville_b'/);
