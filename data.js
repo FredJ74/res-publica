@@ -10491,6 +10491,12 @@ const PNJ_SOVARKA = {
     'Harry Cover': 'Dorji Filatov'
   }),
   ville_b: Object.assign({}, PNJ_SOVARKA_GENERIQUES, { // Krasnov
+    // Stade Étoile Rouge de Krasnov (noms proposés par Claude, validés par Fred le 14/11/2026).
+    'Entraineur Local (PNJ)': ['Vsevolod Fedotov (PNJ)', 'Entraîneur de l\'Étoile Rouge'],
+    'Commentateur Sportif (PNJ)': ['Semione Klimov (PNJ)', 'Commentateur de la radio du kolkhoze'],
+    'Tenancier de Buvette (PNJ)': ['Avdotia Doubova (PNJ)', 'Tenancière de la buvette'],
+    'Bookmaker Officiel (PNJ)': ['Iossif Borissov (PNJ)', 'Guichetier du Bureau d\'État des pronostics'],
+    'Meneur des Supporters (PNJ)': ['Stiopa « le Tambour » Ossipov (PNJ)', 'Meneur des supporters'],
     'Delegue Morel (PNJ)': 'Délégué Prokofi Panov (PNJ)',
     'Directeur Fabre (PNJ)': 'Directeur Platon Iermakov (PNJ)',
     'Francisca Brel': 'Varvara Kozlova',

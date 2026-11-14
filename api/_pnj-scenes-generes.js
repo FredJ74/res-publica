@@ -4947,7 +4947,7 @@ export const SCENES_PNJ = {
     "batiment": "Office Notarial",
     "piece": "Bureau des Successions",
     "personnes": [
-      "Klara Delounova"
+      "Boris Bitchov"
     ]
   },
   "[\"soviet\",\"capitale\",\"office-notarial\",\"bureau_contrats\"]": {
@@ -4965,7 +4965,7 @@ export const SCENES_PNJ = {
     "batiment": "Office Notarial",
     "piece": "Archives Notariales",
     "personnes": [
-      "Archiviste Notarial"
+      "Daria Tikhonova"
     ]
   },
   "[\"soviet\",\"capitale\",\"stade\",\"terrain\"]": {
@@ -5114,13 +5114,6 @@ export const SCENES_PNJ = {
       "Agent de Sécurité"
     ]
   },
-  "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"salle_reception\"]": {
-    "pays": "Sovarka",
-    "ville": "Novomirsk",
-    "batiment": "Palais des Ambassades",
-    "piece": "Salle de Réception",
-    "personnes": []
-  },
   "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"bureau_republia_novomirsk\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
@@ -5170,7 +5163,8 @@ export const SCENES_PNJ = {
     "batiment": "Direction du Renseignement de Sovarka",
     "piece": "Accueil",
     "personnes": [
-      "Sergent Viktor Muetov"
+      "Sergent Viktor Muetov",
+      "Elena Diamentevia"
     ]
   },
   "[\"soviet\",\"capitale\",\"siege-renseignement\",\"salle_ecoutes\"]": {
@@ -6002,6 +5996,13 @@ export const SCENES_PNJ = {
     "piece": "EHPAD de Starovka",
     "personnes": []
   },
+  "[\"soviet\",\"ville_a\",\"dispensaire-public-v\",\"chambre\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Dispensaire Public",
+    "piece": "Chambre d'hôpital",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_a\",\"commissariat-local\",\"accueil_loc\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
@@ -6596,6 +6597,13 @@ export const SCENES_PNJ = {
     "piece": "EHPAD de Krasnov",
     "personnes": []
   },
+  "[\"soviet\",\"ville_b\",\"dispensaire-public-v\",\"chambre\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Dispensaire Public",
+    "piece": "Chambre d'hôpital",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_b\",\"commissariat-local\",\"accueil_loc\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
@@ -6782,8 +6790,8 @@ export const SCENES_PNJ = {
     "batiment": "Stade Étoile Rouge de Krasnov",
     "piece": "Terrain",
     "personnes": [
-      "Entraineur Local",
-      "Commentateur Sportif"
+      "Vsevolod Fedotov",
+      "Semione Klimov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"stade\",\"vestiaires\"]": {
@@ -6792,7 +6800,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade Étoile Rouge de Krasnov",
     "piece": "Vestiaires",
     "personnes": [
-      "Entraineur Local"
+      "Vsevolod Fedotov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"stade\",\"buvette\"]": {
@@ -6801,7 +6809,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade Étoile Rouge de Krasnov",
     "piece": "Buvette",
     "personnes": [
-      "Tenancier de Buvette"
+      "Avdotia Doubova"
     ]
   },
   "[\"soviet\",\"ville_b\",\"stade\",\"guichet_paris\"]": {
@@ -6810,7 +6818,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade Étoile Rouge de Krasnov",
     "piece": "Guichet de Paris",
     "personnes": [
-      "Bookmaker Officiel"
+      "Iossif Borissov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"stade\",\"siege_supporters\"]": {
@@ -6819,7 +6827,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade Étoile Rouge de Krasnov",
     "piece": "Siege des Supporters",
     "personnes": [
-      "Meneur des Supporters"
+      "Stiopa « le Tambour » Ossipov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"stade\",\"bureau_president\"]": {
