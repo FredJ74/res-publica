@@ -7,7 +7,9 @@ const rue=read('plateau-rue-centrale.js');
 const start=rue.indexOf("'krasnov-rue-mairie-place':"),end=rue.indexOf("'krasnov-rue-tabac-bar':",start);
 assert.ok(start>=0&&end>start);
 const scene=rue.slice(start,end);
-assert.match(scene,/gauche: 'krasnov-place-ours'/);
+// 14/11/2026 (Fred) : plus de flèche vers la place, on y entre en cliquant l'image.
+assert.doesNotMatch(scene,/gauche: 'krasnov-place-ours'/);
+assert.match(scene,/nom: "Place de l'Ours", type: 'noeud', noeudId: 'krasnov-place-ours'/);
 assert.match(scene,/arriere: 'krasnov-rue-immeubles-centre-commercial'/);
 assert.match(scene,/toutDroit: 'krasnov-rue-tabac-bar'/);
 assert.match(scene,/buildingId: 'logements-krasnov-place-ours'/);
@@ -23,7 +25,7 @@ assert.equal(fs.readdirSync(new URL('images/',root)).filter(x=>x.startsWith('Pla
 const ctx=vm.createContext({});
 vm.runInContext(read('data.js'),ctx);
 assert.ok(vm.runInContext("WORLD.soviet.ville_b.buildings.includes('logements-krasnov-place-ours')",ctx));
-assert.equal(vm.runInContext("Object.keys(BUILDINGS['logements-krasnov-place-ours'].rooms).join(',')",ctx),'hall');
+assert.equal(vm.runInContext("Object.keys(BUILDINGS['logements-krasnov-place-ours'].rooms).length",ctx),9);
 assert.equal(vm.runInContext("BUILDINGS['logements-krasnov-place-ours'].rooms.hall.orders.length",ctx),0);
 const sql=read('migrations/20261114194500_krasnov_place_ours_immeuble.sql');
 assert.match(sql,/INSERT INTO public.rue_noeuds_serveur/);

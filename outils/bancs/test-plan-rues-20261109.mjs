@@ -51,7 +51,10 @@ test('Plan déduit des rues : chaque bâtiment visible en rue figure une seule f
       const noeuds = RUE_CENTRALE_NOEUDS['${p}'];
       const plan = calculerPlanRues(noeuds, depart);
       const attendus = new Set();
-      for (const id of Object.keys(plan.noeuds)) for (const z of noeuds[id].zones || []) if (z.buildingId) attendus.add(z.buildingId);
+      for (const id of Object.keys(plan.noeuds)) {
+        for (const z of noeuds[id].zones || []) if (z.buildingId) attendus.add(z.buildingId);
+        if (noeuds[id].nomLieu) attendus.add('lieu:' + id);
+      }
       const d = dessinerPlanRues(plan, {});
       return { attendus: [...attendus], legende: d.legende, svg: d.svg };
     })()`, ctx);
@@ -131,4 +134,29 @@ test('Plan déduit des rues : aucune rue n’en croise une autre hors d’un car
       return JSON.stringify(out); })()`, ctx));
     assert.deepEqual(out, [], p + '/' + v + ' : rues croisées sans carrefour');
   }
+});
+
+test('Aucun repère de bâtiment posé sur une rue (14/11/2026, hôpital de Krasnov)', () => {
+  const { ctx } = charger();
+  for (const [p, v] of VILLES) {
+    const r = vm.runInContext(`(() => {
+      const plan = calculerPlanRues(RUE_CENTRALE_NOEUDS['${p}'], RUE_CENTRALE_DEPART['${p}']['${v}']);
+      const svg = dessinerPlanRues(plan, {}).svg;
+      const rects = [...svg.matchAll(/<rect x="([-\\d.]+)" y="([-\\d.]+)" width="22"/g)].map(m => [+m[1] + 11, +m[2] + 11]);
+      const lignes = [...svg.matchAll(/<line x1="([-\\d.]+)" y1="([-\\d.]+)" x2="([-\\d.]+)" y2="([-\\d.]+)" stroke="#3a4a5d"/g)].map(m => m.slice(1, 5).map(Number));
+      let min = Infinity;
+      for (const [x, y] of rects) for (const [a, b, c, d] of lignes) {
+        const ex = c - a, ey = d - b, l2 = ex * ex + ey * ey || 1, t = Math.max(0, Math.min(1, ((x - a) * ex + (y - b) * ey) / l2));
+        min = Math.min(min, Math.hypot(x - a - t * ex, y - b - t * ey));
+      }
+      return min;
+    })()`, ctx);
+    assert.ok(r > 14, `${p}/${v} : un repère touche une rue (${r.toFixed(1)} px)`);
+  }
+});
+
+test('Krasnov : la place de l’Ours figure au plan (14/11/2026)', () => {
+  const { ctx } = charger();
+  const l = vm.runInContext(`dessinerPlanRues(calculerPlanRues(RUE_CENTRALE_NOEUDS.soviet, RUE_CENTRALE_DEPART.soviet.ville_b), {}).legende`, ctx);
+  assert.ok(l.some(x => x.nom === "Place de l'Ours" && x.noeud === 'krasnov-place-ours'), 'repère « Place de l’Ours » dans la légende');
 });

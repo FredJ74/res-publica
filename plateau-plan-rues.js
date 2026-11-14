@@ -39,14 +39,24 @@ function planRuesComposante(noeuds, depart) {
     for (const l of cibles) for (const dst of Object.values(l || {})) {
       if (dst && noeuds[dst] && !vus.has(dst)) file.push(dst);
     }
+    for (const [, dst] of planRuesLiens(n, noeuds)) if (!vus.has(dst)) file.push(dst);
   }
   return ordre;
 }
 
-function planRuesLiens(n) {
+function planRuesLiens(n, noeuds) {
   const out = [];
   for (const [rel, dst] of Object.entries(n.liens || {})) {
     if (dst && rel in PLAN_RUES_RELATIF) out.push([PLAN_RUES_RELATIF[rel], dst]);
+  }
+  // Lieu nommé où l'on entre en cliquant l'image, sans flèche (14/11/2026, place de l'Ours de
+  // Krasnov) : la zone vaut une rue, du côté où l'image la montre. Les autres zones « noeud »
+  // (lots des terrains) restent des sous-vues hors du plan.
+  for (const z of n.zones || []) {
+    if (!z || z.type !== 'noeud' || !noeuds || !noeuds[z.noeudId] || !noeuds[z.noeudId].nomLieu) continue;
+    if (out.some(([, d]) => d === z.noeudId)) continue;
+    const [x0, x1] = Array.isArray(z.xPct) ? z.xPct : [40, 60], m = (x0 + x1) / 2;
+    out.push([m < 40 ? 3 : m > 60 ? 1 : 0, z.noeudId]);
   }
   return out;
 }
@@ -68,9 +78,9 @@ function calculerPlanRues(noeudsPays, depart, options) {
     const a = file.shift();
     if (deja.has(a)) continue;
     deja.add(a);
-    for (const [rA, b] of planRuesLiens(noeuds[a])) {
+    for (const [rA, b] of planRuesLiens(noeuds[a], noeuds)) {
       if (!dans.has(b)) continue;
-      const retour = planRuesLiens(noeuds[b]).find(([, x]) => x === a);
+      const retour = planRuesLiens(noeuds[b], noeuds).find(([, x]) => x === a);
       const sens = (regard[a] + rA) % 4;
       // Carrefour déclaré (`memeCarrefour`, 13/11/2026) : la seconde photo est prise du même point,
       // appareil tourné ; elle regarde donc dans la direction du lien, ce n'est pas une rue.
@@ -92,19 +102,19 @@ function calculerPlanRues(noeudsPays, depart, options) {
   const fusions = [], fusionCle = new Set();
   const cleFusion = (x, y) => (x < y ? x + '|' + y : y + '|' + x);
   for (const a of ids) {
-    for (const [rA, b] of planRuesLiens(noeuds[a])) {
+    for (const [rA, b] of planRuesLiens(noeuds[a], noeuds)) {
       if (!dans.has(b)) continue;
-      const retour = planRuesLiens(noeuds[b]).some(([, x]) => x === a);
+      const retour = planRuesLiens(noeuds[b], noeuds).some(([, x]) => x === a);
       // Carrefour photographie deux fois (Novomirsk V4/V5, V14/V15) : A et C sont deux images du
       // meme carrefour, reliees entre elles ; depuis B, le retour ramene a C. Voulu par la
       // navigation (migration 20261105011000) : ce n'est pas une rue a corriger.
-      const memeCarrefour = !retour && planRuesLiens(noeuds[b]).some(([, c]) =>
-        dans.has(c) && planRuesLiens(noeuds[a]).some(([, x]) => x === c)
-        && planRuesLiens(noeuds[c]).some(([, x]) => x === a));
+      const memeCarrefour = !retour && planRuesLiens(noeuds[b], noeuds).some(([, c]) =>
+        dans.has(c) && planRuesLiens(noeuds[a], noeuds).some(([, x]) => x === c)
+        && planRuesLiens(noeuds[c], noeuds).some(([, x]) => x === a));
       if (memeCarrefour) {
-        for (const [, c] of planRuesLiens(noeuds[b])) {
-          if (dans.has(c) && planRuesLiens(noeuds[a]).some(([, x]) => x === c)
-            && planRuesLiens(noeuds[c]).some(([, x]) => x === a) && !fusionCle.has(cleFusion(a, c))) {
+        for (const [, c] of planRuesLiens(noeuds[b], noeuds)) {
+          if (dans.has(c) && planRuesLiens(noeuds[a], noeuds).some(([, x]) => x === c)
+            && planRuesLiens(noeuds[c], noeuds).some(([, x]) => x === a) && !fusionCle.has(cleFusion(a, c))) {
             fusionCle.add(cleFusion(a, c)); fusions.push([a, c]);
           }
         }
@@ -136,7 +146,7 @@ function calculerPlanRues(noeudsPays, depart, options) {
       return;
     }
     const [ax, ay] = PLAN_RUES_PAS[r.sens];
-    const retour = planRuesLiens(noeuds[r.vers]).find(([, x]) => x === r.de);
+    const retour = planRuesLiens(noeuds[r.vers], noeuds).find(([, x]) => x === r.de);
     let dx = ax, dy = ay;
     if (retour) {
       const [bx, by] = PLAN_RUES_PAS[(regard[r.vers] + retour[0] + 2) % 4];
@@ -281,6 +291,9 @@ function calculerPlanRues(noeudsPays, depart, options) {
       else cote = 0; // au bout de la rue
       batiments.push({ id: z.buildingId, nom: z.nom || z.buildingId, noeud: id, cote: (regard[id] + cote) % 4, coteRelatif: cote, ordre, lateral });
     });
+    // Lieu nommé qui n'est pas un bâtiment (14/11/2026 : place de l'Ours de Krasnov, simple vue sans
+    // intérieur) : la vue porte `nomLieu` et reçoit son propre repère, posé devant elle.
+    if (n.nomLieu) batiments.push({ id: 'lieu:' + id, nom: n.nomLieu, noeud: id, cote: regard[id], coteRelatif: 0, ordre: 0.5, lateral: true, lieu: true });
   }
 
   const sortie = {};
@@ -324,6 +337,7 @@ function dessinerPlanRues(plan, options) {
   });
   // Ecarter les reperes qui se touchent, et ceux qui tombent sur une vue.
   const vues = ids.map(P);
+  const segments = plan.rues.map(r => P(r.de).concat(P(r.vers)));
   for (let tour = 0; tour < 120; tour++) {
     let bouge = false;
     for (let i = 0; i < reperes.length; i++) {
@@ -334,6 +348,18 @@ function dessinerPlanRues(plan, options) {
       for (const [vx, vy] of vues) {
         const a = reperes[i], dx = a.x - vx, dy = a.y - vy, d = Math.hypot(dx, dy), min = 1.8 * R;
         if (d < min) { const ux = d ? dx / d : 0, uy = d ? dy / d : 1; a.x += ux * (min - d); a.y += uy * (min - d); bouge = true; }
+      }
+      // Un repere ne se pose jamais sur une rue (14/11/2026 : a Krasnov, le centre d'affaires tombait sur
+      // la rue de l'hopital, partie du meme cote de la vue) : il glisse hors de la chaussee.
+      for (const s of segments) {
+        const a = reperes[i], ex = s[2] - s[0], ey = s[3] - s[1], l2 = ex * ex + ey * ey || 1;
+        const t = Math.max(0, Math.min(1, ((a.x - s[0]) * ex + (a.y - s[1]) * ey) / l2));
+        const qx = s[0] + t * ex, qy = s[1] + t * ey, dx = a.x - qx, dy = a.y - qy, d = Math.hypot(dx, dy), min = 1.75 * R;
+        if (d < min) {
+          // Sur l'axe meme : on sort du cote de la rue qui suit le sens de lecture (droite de la rue).
+          const l = Math.sqrt(l2), ux = d > 0.5 ? dx / d : -ey / l, uy = d > 0.5 ? dy / d : ex / l;
+          a.x += ux * (min - d); a.y += uy * (min - d); bouge = true;
+        }
       }
     }
     if (!bouge) break;

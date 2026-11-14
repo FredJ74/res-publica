@@ -1115,26 +1115,29 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
-    // Rue de la mairie : la place de l'Ours est à gauche.
+    // Rue de la mairie : la place de l'Ours est à gauche (zone cliquable, sans flèche).
     // L'immeuble à écriteaux (au centre, derrière la statue) est distinct de
     // celui qui fait face au centre commercial : ses futurs baux le seront aussi.
     'krasnov-rue-mairie-place': {
       image: 'images/Sovarka/Krasnov/Krasnov rue mairie place.webp',
       zones: [
         { xPct: [72, 100], yPct: [8, 68], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' },
-        { xPct: [54, 71], yPct: [19, 55], nom: "Immeuble de la place de l'Ours", type: 'batiment', buildingId: 'logements-krasnov-place-ours' }
+        { xPct: [54, 71], yPct: [19, 55], nom: "Immeuble de la place de l'Ours", type: 'batiment', buildingId: 'logements-krasnov-place-ours' },
+        // Pas de flèche vers la place (Fred, 14/11/2026) : on y entre en cliquant la statue et les bancs.
+        { xPct: [0, 40], yPct: [34, 78], nom: "Place de l'Ours", type: 'noeud', noeudId: 'krasnov-place-ours' }
       ],
-      liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar', gauche: 'krasnov-place-ours' },
+      liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
-        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);',
-        gauche: 'top:50%; left:10px; transform:translateY(-50%);'
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
       }
     },
 
     // Place de l'Ours : vue sur la façade de la mairie, retour vers la rue
     // par la flèche basse ; aucun changement aux deux autres sorties.
     'krasnov-place-ours': {
+      // La place n'est pas un bâtiment : elle figure au plan sous ce nom (14/11/2026, Fred).
+      nomLieu: "Place de l'Ours",
       image: 'images/Sovarka/Krasnov/Krasnov_place_ours.webp',
       zones: [
         { xPct: [49, 100], yPct: [9, 77], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' }
@@ -1490,6 +1493,8 @@ const RUE_CENTRALE_NOEUDS = {
   Z('krasnov-rue-eglise', [30, 60], 'Église du Tractorisme', 'kolkhoze-spirituel');
   Z('krasnov-rue-station-musee', [15, 45], 'Musée de Krasnov', 'musee-novomirsk');
   Z('krasnov-rue-tabac-bar', [0, 35], 'Bar Sever', 'cafe-tabac-cheminots-montrouge');
+  Z('krasnov-rue-tabac-bar', [57, 78], 'Tabac/Presse de Krasnov', 'tabac-presse-krasnov', [33, 73]);
+  Z('krasnov-rue-tabac-bar', [79, 100], 'Immeuble de la rue du Tabac', 'logements-krasnov-rue-tabac', [5, 76]);
   // Partie 2 du lot (10/11/2026, migration 20261110123000) : fermes, distillerie et fourreur, reperes sur les enseignes.
   Z('starovka-rue-petrole-ferme', [62, 100], 'Ferme de Starovka', 'ferme-starovka', [22, 64]);
   Z('krasnov-rue-marche-ferme', [70, 100], 'Kolkhoze S. M. Kirov', 'ferme-krasnov', [18, 66]);
