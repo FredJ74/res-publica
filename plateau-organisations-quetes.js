@@ -568,12 +568,17 @@ function renderOngletOrgas() {
     o.membres?.some(m => m.nom === state.char?.name)
   );
   const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const _rpOrgaPanelTexte = value => escapeHtmlText(String(value));
+  const _rpOrgaPanelAction = (action, args) => _rpOrgaPanelTexte(action + '(' + args.map(value => JSON.stringify(String(value))).join(',') + ')');
+  const _rpOrgaPanelMembres = count => '<span data-i18n="organizationPanel.memberCount" data-i18n-values="' + _rpOrgaPanelTexte(JSON.stringify({count})) + '">' + _rpOrgaPanelTexte(count) + ' membres</span>';
+  const _rpOrgaPanelDemandes = count => '<span data-i18n="organizationPanel.applicationCount" data-i18n-values="' + _rpOrgaPanelTexte(JSON.stringify({count})) + '">Candidatures (' + _rpOrgaPanelTexte(count) + ')</span>';
+
 
   if (mesOrgas.length === 0) {
-    return '<div style="padding:1.5rem;text-align:center;color:#9a8a68;font-style:italic;font-size:.85rem">' +
+    return '<div class="hg-organisations" style="padding:1.5rem;text-align:center;color:#9a8a68;font-style:italic;font-size:.85rem">' +
       '<i class="ti ti-building-community" style="font-size:2rem;color:#2a2010;display:block;margin-bottom:.8rem"></i>' +
-      'Vous n\'appartenez a aucune organisation.<br>' +
-      '<span style="font-size:.75rem">Louez un local et creez votre organisation depuis "Gerer mon local".</span>' +
+      '<span data-i18n="organizationPanel.empty">Vous n\'appartenez a aucune organisation.</span><br>' +
+      '<span style="font-size:.75rem" data-i18n="organizationPanel.emptyHelp">Louez un local et creez votre organisation depuis "Gerer mon local".</span>' +
       '</div>';
   }
 
@@ -588,60 +593,60 @@ function renderOngletOrgas() {
       ? getAvatarHtmlPost(true, orga.avatar || def.icon || null, orga.nom, 36)
       : '<div style="width:36px;height:36px;border-radius:50%;background:#1a1208;display:flex;align-items:center;justify-content:center"><i class="ti ' + (def.icon||'ti-users') + '" style="font-size:1rem;color:#C9A84C"></i></div>';
 
-    return '<div style="border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem">' +
+    return '<div class="hg-organisations" style="border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem">' +
 
       '<div style="padding:.8rem 1rem;border-bottom:1px solid #1a1208;display:flex;align-items:center;gap:.7rem">' +
         avatarHtml +
         '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:Bebas Neue,sans-serif;font-size:.92rem;color:#E8C97A;letter-spacing:.06em">' + orga.nom + '</div>' +
-          '<div style="font-size:.72rem;color:#8a8060">' + (def.label||'') + ' · ' + (monMembre?.grade||'') + (estChef ? ' 👑' : '') + ' · ' + (orga.membres?.length||0) + ' membres</div>' +
-          (orga.devise ? '<div style="font-size:.85rem;color:#9a8a68;font-style:italic">"' + orga.devise + '"</div>' : '') +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:.92rem;color:#E8C97A;letter-spacing:.06em">' + _rpOrgaPanelTexte(orga.nom) + '</div>' +
+          '<div style="font-size:.72rem;color:#8a8060">' + orgaCreationTypeHtml(orga.type, def.label||'') + ' · ' + _rpOrgaPanelTexte(monMembre?.grade||'') + (estChef ? ' 👑' : '') + ' · ' + _rpOrgaPanelMembres(orga.membres?.length||0) + '</div>' +
+          (orga.devise ? '<div style="font-size:.85rem;color:#9a8a68;font-style:italic">"' + _rpOrgaPanelTexte(orga.devise) + '"</div>' : '') +
         '</div>' +
         '<div style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#C9A84C">' + (orga.caisse||0).toLocaleString('fr-FR') + ' ' + cur + '</div>' +
       '</div>' +
 
       '<div style="padding:.5rem .8rem;display:flex;flex-wrap:wrap;gap:.35rem;border-bottom:1px solid #1a1208">' +
-        '<button onclick="ouvrirForumDepuisOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #1a3a1a;background:transparent;color:#4a7a4a;cursor:pointer">📋 Forum</button>' +
-        '<button onclick="ouvrirMailOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #1a2a3a;background:transparent;color:#4a6a8a;cursor:pointer">✉️ Courrier</button>' +
-        '<button onclick="ouvrirOrdresOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a2a3a;background:transparent;color:#6a6aaa;cursor:pointer">⚡ Actions</button>' +
+        '<button onclick="' + _rpOrgaPanelAction('ouvrirForumDepuisOrga', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #1a3a1a;background:transparent;color:#4a7a4a;cursor:pointer">📋 <span data-i18n="plateau.forum">Forum</span></button>' +
+        '<button onclick="' + _rpOrgaPanelAction('ouvrirMailOrga', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #1a2a3a;background:transparent;color:#4a6a8a;cursor:pointer">✉️ <span data-i18n="organizationPanel.mail">Courrier</span></button>' +
+        '<button onclick="' + _rpOrgaPanelAction('ouvrirOrdresOrga', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a2a3a;background:transparent;color:#6a6aaa;cursor:pointer">⚡ <span data-i18n="organizationPanel.actions">Actions</span></button>' +
       '</div>' +
 
       (estChef ?
         '<div style="padding:.5rem .8rem;display:flex;flex-wrap:wrap;gap:.35rem;border-bottom:1px solid #1a1208">' +
-          '<button type="button" data-organisation="' + commercePjEchapper(orga.id) + '" disabled title="Service serveur non activé">Équipements — indisponibles</button>' +
-          '<button onclick="ouvrirGestionMembres(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a3a2a;background:transparent;color:#6a9a6a;cursor:pointer">👥 Membres</button>' +
+          '<button type="button" data-organisation="' + commercePjEchapper(orga.id) + '" disabled title="Service serveur non activé" data-i18n-title="organizationPanel.serviceInactive"><span data-i18n="organizationPanel.equipmentUnavailable">Équipements — indisponibles</span></button>' +
+          '<button onclick="' + _rpOrgaPanelAction('ouvrirGestionMembres', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a3a2a;background:transparent;color:#6a9a6a;cursor:pointer">👥 <span data-i18n="sovarkaPartis.secMembers">Membres</span></button>' +
           (!orga.visible ?
             // Organisation secrete : adhesion uniquement sur invitation, pas de candidature publique.
-            '<button onclick="ouvrirInviterMembreOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">✉️ Inviter</button>' :
+            '<button onclick="' + _rpOrgaPanelAction('ouvrirInviterMembreOrga', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">✉️ <span data-i18n="organizationAdmissions.invite">Inviter</span></button>' :
             (demandesCount > 0 ?
-              '<button onclick="ouvrirDemandesAdhesion(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">📨 Candidatures (' + demandesCount + ')</button>' :
-              '<button disabled style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.3rem .6rem;border:1px solid #1a1a10;background:transparent;color:#9a8a68;cursor:not-allowed">📨 Aucune candidature</button>'
+              '<button onclick="' + _rpOrgaPanelAction('ouvrirDemandesAdhesion', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">📨 ' + _rpOrgaPanelDemandes(demandesCount) + '</button>' :
+              '<button disabled style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.3rem .6rem;border:1px solid #1a1a10;background:transparent;color:#9a8a68;cursor:not-allowed">📨 <span data-i18n="organizationPanel.noApplications">Aucune candidature</span></button>'
             )
           ) +
-          '<button onclick="ouvrirOptionsOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#8a6a20;cursor:pointer">⚙️ Parametres</button>' +
+          '<button onclick="' + _rpOrgaPanelAction('ouvrirOptionsOrga', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#8a6a20;cursor:pointer">⚙️ <span data-i18n="organizationSettings.title">Parametres</span></button>' +
         '</div>'
       : '') +
 
       (!estChef ?
         '<div style="padding:.4rem .8rem">' +
-           '<button onclick="quitterOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #6a3a2a;background:transparent;color:#cc6a44;cursor:pointer">Quitter cette organisation</button>' +
+           '<button onclick="' + _rpOrgaPanelAction('quitterOrga', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #6a3a2a;background:transparent;color:#cc6a44;cursor:pointer"><span data-i18n="organizationPanel.leave">Quitter cette organisation</span></button>' +
         '</div>'
       : '') +
 
       ((orga.type === 'sportive' || orga.type === 'supporters') ? (
         orga.election?.enCours ? (
           '<div style="padding:.6rem .8rem;border-top:1px solid #1a1208;background:#0c0a06">' +
-          '<div style="font-size:.7rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;margin-bottom:.3rem">ÉLECTION — ' + (orga.election.phase === 'candidatures' ? 'Candidatures ouvertes' : 'Vote en cours') + '</div>' +
+          '<div style="font-size:.7rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;margin-bottom:.3rem"><span data-i18n="organizationPanel.electionPrefix">ÉLECTION — </span>' + (orga.election.phase === 'candidatures' ? '<span data-i18n="organizationPanel.candidaciesOpen">Candidatures ouvertes</span>' : '<span data-i18n="organizationPanel.voteOpen">Vote en cours</span>') + '</div>' +
           (orga.election.phase === 'candidatures' && !orga.election.candidats.some(c => c.nom === state.char?.name)
-            ? '<button onclick="seProsenterCandidat(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">Se présenter</button>'
+            ? '<button onclick="' + _rpOrgaPanelAction('seProsenterCandidat', [orga.id]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer"><span data-i18n="organizationPanel.stand">Se présenter</span></button>'
             : '') +
           (orga.election.phase === 'vote'
-            ? orga.election.candidats.map(c => '<button onclick="voterElectionOrganisation(\'' + orga.id + '\',\'' + c.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;border:1px solid ' + (orga.election.votes[state.char?.name] === c.nom ? '#C9A84C' : '#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer">' + c.nom + '</button>').join('')
+            ? orga.election.candidats.map(c => '<button onclick="' + _rpOrgaPanelAction('voterElectionOrganisation', [orga.id, c.nom]) + '" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;border:1px solid ' + (orga.election.votes[state.char?.name] === c.nom ? '#C9A84C' : '#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer">' + _rpOrgaPanelTexte(c.nom) + '</button>').join('')
             : '') +
           '</div>'
         ) : (
           '<div style="padding:.5rem .8rem;border-top:1px solid #1a1208">' +
-          '<button onclick="doDeclencherElectionClub(1,0)" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">🗳 Déclencher une élection</button>' +
+          '<button onclick="doDeclencherElectionClub(1,0)" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">🗳 <span data-i18n="orders.declencher_election_club">Déclencher une élection</span></button>' +
           '</div>'
         )
       ) : '') +
