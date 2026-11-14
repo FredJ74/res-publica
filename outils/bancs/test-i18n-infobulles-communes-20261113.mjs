@@ -40,15 +40,15 @@ function descsParPays() {
   return { sov: parPays('soviet'), rep: parPays('republic') };
 }
 
-test('inventaire : 251 descriptions communes affichées, aucune nouvelle hors catalogue, aucune en trop', () => {
+test('inventaire : 246 descriptions communes affichées, aucune nouvelle hors catalogue, aucune en trop', () => {
   const { sov, rep } = descsParPays();
   const communesJeu = [...sov].filter(d => rep.has(d));
   const cat = [...I('republic', 'fr').communes].map(l => l[0]);
-  // Mesuré le 13/11 avec la fusion réelle : 251 descriptions communes affichées (quatre ordres militaires républicains retirés de Sovarka), dont 2 pas encore au
+  // Mesuré le 13/11 avec la fusion réelle : 246 descriptions communes affichées (exclusions des ordres propres à Républia dans les ministères de Sovarka), dont 2 pas encore au
   // catalogue (trou antérieur, chantier de traduction à venir, consigné dans RELAIS.md). Le plafond
   // autorise la seule description de gestion de caserne rétablie à Sovarka ;
   // elle doit rejoindre le catalogue partagé dans le prochain lot i18n.
-  assert.equal(communesJeu.length, 251, 'nombre de descriptions communes affichées');
+  assert.equal(communesJeu.length, 246, 'nombre de descriptions communes affichées après exclusions ministérielles spécifiques à Sovarka');
   assert.ok(communesJeu.filter(d => !cat.includes(d)).length <= 3, 'nouvelles communes absentes du catalogue');
   // Français strictement identique : chaque texte du catalogue est une description exacte de data.js,
   // affichée dans au moins un pays (avec la fusion réelle, quelques-unes ne sont plus visibles qu'en Républia,
@@ -95,7 +95,7 @@ test('traduit dans les deux pays, jamais en français, texte inconnu intact', ()
 
 test('113 textes propres à Sovarka inchangés et prioritaires ; restent limités à Sovarka', () => {
   const avec = I('soviet', 'en'), sans = I('soviet', 'en', { communes: false });
-  assert.equal(avec.lignes.length, 118); // +4 le 14/11 : kolkhoze (légumes et œufs reformulés, anciennes formulations gardées ; traite ; caisse) ; +1 boutique de l’Étoile Rouge
+  assert.equal(avec.lignes.length, 126); // +4 le 14/11 : kolkhoze (légumes et œufs reformulés, anciennes formulations gardées ; traite ; caisse) ; +1 boutique de l’Étoile Rouge
   assert.equal(JSON.stringify(avec.lignes), JSON.stringify(sans.lignes));
   for (const l of avec.lignes) assert.equal(avec.desc(l[0]), sans.desc(l[0]));
   const propre = 'Voir les présidents qui ont marqué Sovarka.';
