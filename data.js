@@ -2513,6 +2513,33 @@ const WORLD = {
             grand_appartement_4: { name: "Appartement deux chambres n°4", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_2_chambres.webp' },
           }
         },
+        // Hôtel de ville de Krasnov : illustrations des cinq pièces.
+        // Les ordres et les mandats existants restent ceux du gabarit partagé.
+        'mairie': {
+          name: 'Mairie de Krasnov',
+          roomOverrides: {
+            accueil_mairie: {
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_accueil.webp',
+              persons: [{name:'Secrétaire municipale de Krasnov (PNJ)', role:'Accueil administratif', rel:'neutral', job:'secretaire'}]
+            },
+            bureau_maire_local: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_bureau_maire.webp' },
+            bureau_maire_adjoint: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_bureau_adjoint.webp' },
+            salle_partis: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_salle_partis.webp' }
+          },
+          roomsExtra: {
+            salle_elections: {
+              name: 'Salle des élections',
+              imageBg: 'linear-gradient(135deg,#181713,#2a2119)',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_salle_elections.webp',
+              desc: 'Petit bureau de vote municipal doté de deux isoloirs.',
+              persons: [],
+              orders: [
+                {fn:'consulter_elections', label:'Voir les candidats', pa:0, cost:0, type:'legal', icon:'ti-list', successRate:100, desc:'Consulter les candidats et les scrutins de la ville.'},
+                {fn:'voter_election', label:'Voter', pa:0, cost:0, type:'legal', icon:'ti-checkbox', successRate:100, desc:'Voter si un scrutin est ouvert et si vous êtes électeur habilité.'}
+              ]
+            }
+          }
+        },
         // Décors de l'hôpital municipal de Krasnov (automne) : les salles et les
         // ordres restent ceux du gabarit partagé. Ne pas dupliquer la logique métier.
         'dispensaire-public-v': {
