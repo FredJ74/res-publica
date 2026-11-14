@@ -12034,6 +12034,44 @@ async function reprendreCombatConfirme() {
   return true;
 }
 
+// Libellés du panneau de combat : jamais de clé technique (ville_b, zone-production, victoire_acteur).
+// Le lieu se lit dans les données du plateau ; à défaut de nom connu, on n'affiche rien plutôt qu'une clé.
+function libelleLieuCombat(lieu) {
+  if (!lieu) return '';
+  const bat = (typeof BUILDINGS !== 'undefined' && lieu.batiment) ? BUILDINGS[lieu.batiment] : null;
+  const piece = bat && lieu.piece ? (bat.rooms?.[lieu.piece]?.name || '') : '';
+  const nomBat = bat ? (bat.shortName || bat.name || '') : '';
+  const ville = (typeof WORLD !== 'undefined' && lieu.ville) ? (WORLD[state.country]?.[lieu.ville]?.name || '') : '';
+  const ou = piece || nomBat;
+  return [ou, ville].filter(Boolean).join(' · ');
+}
+
+// Une bête ou un garde est nommé ; une troupe garde son estimation dégradée par le serveur.
+function libelleAdversaireDebout(b, dernier) {
+  const est = dernier?.adversaire_estime || {};
+  if (b?.adversaire_nom) {
+    const debout = Number(est.effectif_max) > 0 || Number(est.effectif_min) > 0;
+    return debout ? b.adversaire_nom : 'plus aucun adversaire debout';
+  }
+  return est.libelle || '—';
+}
+
+function libelleIssueCombat(b) {
+  const nom = b?.adversaire_nom || 'L’adversaire';
+  if (b?.type === 'faune' && b.resultat) {
+    const fins = { tues: nom + ' est abattu. Victoire.', neutralises: nom + ' est hors de combat. Victoire.',
+      fuite: nom + ' rompt le combat et s’enfuit entre les arbres. Pas de butin.',
+      defaite: 'Vous êtes hors de combat.' };
+    if (fins[b.resultat]) return fins[b.resultat];
+  }
+  const issue = String(b?.issue || '');
+  if (issue && b?.mon_camp && issue === 'victoire_' + b.mon_camp) return 'Victoire.';
+  if (issue.startsWith('victoire_')) return 'Défaite.';
+  if (issue === 'aneantissement_mutuel') return 'Les deux camps sont hors de combat.';
+  if (b?.mon_groupe_replie) return 'Votre groupe a quitté l’affrontement.';
+  return 'Combat terminé.';
+}
+
 async function ouvrirPanneauCombat(batailleId) {
   const contexte = contexteGroupePj();
   const e = await sbMilitaireBatailleEtat(batailleId || null);
@@ -12055,8 +12093,8 @@ async function ouvrirPanneauCombat(batailleId) {
   }
 
   const fini = (b.statut !== 'en_cours');
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">' +
-          escapeHtmlText(b.lieu?.ville || '') + ' — ' + escapeHtmlText(b.lieu?.batiment || '') + '</div>';
+  const lieuCombat = libelleLieuCombat(b.lieu);
+  if (lieuCombat) html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">' + escapeHtmlText(lieuCombat) + '</div>';
   html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.8rem">Round ' + b.round_courant +
           ' · vos combattants : ' + b.mon_effectif_actuel + ' sur ' + b.mon_effectif_initial +
           (fini ? ' · <strong style="color:#cc6a44">combat terminé</strong>' : '') + '</div>';
@@ -12071,14 +12109,14 @@ async function ouvrirPanneauCombat(batailleId) {
     if (dernier.mes_morts_pnj > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_morts_pnj + ' PNJ tué(s).</div>';
     if (dernier.mes_pj_neutralises > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_pj_neutralises + ' des vôtres hors de combat ; leur situation est confirmée par le serveur.</div>';
     html += '<div style="font-size:.76rem;color:#8ac05a;margin-top:.3rem">En face : ' + (dernier.adversaires_tombes || 0) + ' adversaire(s) tombé(s) sous vos yeux.</div>';
-    html += '<div style="font-size:.74rem;color:#8a8060">Encore debout : ' + escapeHtmlText(dernier.adversaire_estime?.libelle || '—') + '.</div>';
+    html += '<div style="font-size:.74rem;color:#8a8060">Encore debout : ' + escapeHtmlText(libelleAdversaireDebout(b, dernier)) + '.</div>';
     html += '</div>';
   }
 
   if (!fini) {
     html += htmlDecisionsCombat(b);
-  } else if (b.issue) {
-    html += '<div style="font-size:.8rem;color:#C9A84C;text-align:center;padding:.5rem">Issue : ' + escapeHtmlText(b.issue) + '</div>';
+  } else {
+    html += '<div style="font-size:.8rem;color:#C9A84C;text-align:center;padding:.5rem">' + escapeHtmlText(libelleIssueCombat(b)) + '</div>';
   }
 
   html += '</div>';
@@ -12145,7 +12183,8 @@ function messageRefusCombat(r) {
   return raisons[r?.raison] || 'Le résultat reste à confirmer. Réessayez avec le même reçu.';
 }
 
-async function deciderCombat(batailleId, decision) {
+async function deciderCombat(batailleId, decision) { return avecVerrouCombat(() => deciderCombatInterne(batailleId, decision)); }
+async function deciderCombatInterne(batailleId, decision) {
   const contexte = contexteGroupePj();
   const r = await sbMilitaireBatailleDecider(batailleId, decision);
   if (!contexteGroupePjValide(contexte)) return;
@@ -12158,7 +12197,21 @@ async function deciderCombat(batailleId, decision) {
   await rafraichirApresRound(batailleId);
 }
 
-async function poursuivreCombat(batailleId) {
+// Un seul ordre de combat à la fois : un clic répété pendant la résolution d'un round ne doit pas
+// en jouer un second (constat du 14/11/2026 : trois clics, trois rounds en trois secondes).
+let commandeCombatEnCours = false;
+function verrouillerCommandesCombat(actif) {
+  commandeCombatEnCours = actif;
+  if (typeof document !== 'undefined' && document.querySelectorAll) document.querySelectorAll('#postes-body .cpj-touche').forEach(el => { el.disabled = actif; el.style.opacity = actif ? '.5' : ''; });
+}
+async function avecVerrouCombat(fn) {
+  if (commandeCombatEnCours) return;
+  verrouillerCommandesCombat(true);
+  try { await fn(); } finally { verrouillerCommandesCombat(false); }
+}
+
+async function poursuivreCombat(batailleId) { return avecVerrouCombat(() => poursuivreCombatInterne(batailleId)); }
+async function poursuivreCombatInterne(batailleId) {
   const contexte = contexteGroupePj();
   const r = await sbMilitaireBataillePoursuivre(batailleId);
   if (!contexteGroupePjValide(contexte)) return;

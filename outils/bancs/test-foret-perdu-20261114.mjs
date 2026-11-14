@@ -17,7 +17,7 @@ function bac(room, reponses) {
     provT: (k, v) => k, provRefus: (t, v) => toasts.push(['refus', v.raison]),
     showToast: (t, m, ok) => toasts.push([t, m, ok]), provModal: (t, h) => modales.push([t, h]),
     provForetRendre: r => { rendus.push(r); ctx.state.currentRoom = r; },
-    foretReprendreRencontre: async () => {},
+    foretReprendreRencontre: async () => {}, foretPrechargerImages: () => {},
     provActe: async (rpc, p) => { appels.push([rpc, p.p_sens]); return reponses.shift(); },
     sbRpcVerdict: async () => reponses.shift() };
   vm.createContext(ctx);
