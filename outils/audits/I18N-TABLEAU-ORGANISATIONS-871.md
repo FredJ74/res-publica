@@ -32,6 +32,21 @@ non traduit, repli français, fermeture/réouverture et fenêtre voisine vérifi
 aussi sur main, dont les anciens bancs d’ordres, membres, événements et rumeurs. Pas de CSS
 modifié ; les adaptations mobiles communes suffisent dans ces essais.
 
-Comparaison main, mesures, CI et production à terminer. Aucune session PJ réelle,
+## Mesure et comparaison
+
+Même extracteur sur main a7ce1e0 et code ebaca20. Le périmètre statique enrichi
+par les marqueurs passe de 7 584 textes/50 891 mots à 7 588/50 901 : quatre
+fragments de rendu supplémentaires sont identifiés et raccordés (Chef/Siège,
+siège inconnu et détails masqués), dix mots source. À périmètre commun strictement
+identique : zéro raccordement supplémentaire reconnu, deux ressources / huit
+mots source supplémentaires disponibles. Au total : +6 ressources/+18 mots source.
+Les quinze libellés sont vérifiés en navigateur ; le tableau de bord n’en déduit
+pas quinze raccordements. Aucun texte statique retiré, zéro erreur d’extraction.
+Anglais : 1 025 textes/12 411 mots raccordés, 24,38 % des mots statiques identifiés,
+pas de tout le jeu. La comparaison détaillée versionne aussi le corpus commun.
+
+Bancs étrangers : mêmes 34/37 sur main et branche ; seuls les trois SSM habituels
+échouent. Les inventaires de descriptions sont désormais verts sur cette base.
+CI finale, fusion et production à terminer. Aucune session PJ réelle,
 aucun téléphone physique ni revue native. Les opérations métier des bancs sont
 simulées ; aucune donnée de joueur lue ou écrite.
