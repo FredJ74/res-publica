@@ -1,0 +1,23 @@
+name: Krasnov - verification rue hopital
+on:
+  push:
+    branches: [fix/krasnov-hopital-acces-rue-20261114]
+    paths:
+      - 'plateau-rue-centrale.js'
+      - 'data.js'
+      - 'outils/bancs/test-krasnov-hopital-acces-rue-20261114.mjs'
+      - 'migrations/20261114115500_krasnov_hopital_acces_rue.sql'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check plateau-rue-centrale.js
+          node --check data.js
+          node outils/bancs/test-krasnov-hopital-acces-rue-20261114.mjs
