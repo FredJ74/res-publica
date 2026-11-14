@@ -1,0 +1,91 @@
+name: Krasnov - convertir sept nouveaux decors forestiers en WebP
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/krasnov-foret-webp-20261114.yml'
+permissions:
+  contents: write
+jobs:
+  convertir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Conversion avec validation des sept sources
+        run: |
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import unicodedata
+          root = Path('images/Sovarka/Krasnov')
+          mapping = [
+            ('Femme rustique au panier d', 'Krasnov_foret_olga_panier.webp'),
+            ('Grizzly rugissant dans la', 'Krasnov_foret_ours_attaque.webp'),
+            ('Loup menac', 'Krasnov_foret_loup_attaque.webp'),
+            ('Meute de loups grondant', 'Krasnov_foret_meute_loups.webp'),
+            ('Pause automnale dans un camp forestier', 'Krasnov_exploitation_forestiere_cour.webp'),
+            ('Sentier forestier baign', 'Krasnov_foret_profonde.webp'),
+            ('Sous-bois automnal apr', 'Krasnov_foret_coupe.webp'),
+          ]
+          def normaliser(texte):
+              return unicodedata.normalize('NFKD', texte).encode('ascii','ignore').decode('ascii').lower()
+          originals=list(root.iterdir())
+          pngs=[p for p in originals if p.is_file() and p.suffix.lower()=='.png']
+          assert len(pngs)==len(mapping), f'Nombre de PNG inattendu ({len(pngs)}): {[p.name for p in pngs]}'
+          operations=[]
+          for prefix,filename in mapping:
+              norm_prefix=normaliser(prefix)
+              matches=[p for p in pngs if normaliser(p.stem).startswith(norm_prefix)]
+              assert len(matches)==1, f'Source absente ou ambigue {prefix}: {matches}'
+              src=matches[0]; dst=root/filename
+              assert not dst.exists(), f'La cible existe deja: {dst}'
+              assert dst.name.startswith('Krasnov_') and dst.suffix=='.webp'
+              operations.append((src,dst))
+          assert len({a for a,b in operations})==len(mapping)
+          for src,dst in operations:
+              with Image.open(src) as im:
+                  im.load()
+                  assert im.width>=1200 and im.height>=650, f'{src}: {im.size}'
+                  size=im.size
+                  im.convert('RGB').save(dst, 'WEBP', quality=92, method=6)
+              with Image.open(dst) as check:
+                  check.load()
+                  assert check.format=='WEBP' and check.size==size
+              assert dst.stat().st_size>50000
+              print(f'{src.name} -> {dst.name} ({dst.stat().st_size} bytes)')
+          for src,dst in operations:
+              src.unlink()
+          assert not any(root.glob('*.png')), 'PNG residuel: nettoyage incomplet'
+          assert all(dst.is_file() for src,dst in operations)
+          print('OK : 7 WebP valides, 7 PNG originaux supprimes')
+          PY
+      - name: Verification du depot
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          root=Path('images/Sovarka/Krasnov')
+          names=['Krasnov_foret_olga_panier.webp','Krasnov_foret_ours_attaque.webp',
+            'Krasnov_foret_loup_attaque.webp','Krasnov_foret_meute_loups.webp',
+            'Krasnov_exploitation_forestiere_cour.webp','Krasnov_foret_profonde.webp',
+            'Krasnov_foret_coupe.webp']
+          assert len(set(names))==7
+          for name in names:
+              with Image.open(root/name) as im:
+                  assert im.format=='WEBP' and im.width>=1200 and im.height>=650
+          assert not list(root.glob('*.png'))
+          print('Verification des sept images : OK')
+          PY
+          git diff --check
+      - name: Commit conversion et suppression des originaux
+        run: |
+          git add images/Sovarka/Krasnov
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Krasnov : sept nouveaux visuels forestiers en WebP'
+            git push
+          fi
