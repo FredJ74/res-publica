@@ -1236,7 +1236,26 @@ const WORLD = {
         'raffinerie-montrouge':         { name: "Raffinerie de Montrouge" },
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
         'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },
-        'dispensaire-public-v':         { name: "Hôpital de Montrouge", persons: [{name:'Agnès Thésie (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}] },
+        'dispensaire-public-v': {
+          name: "Hôpital de Montrouge",
+          persons: [{name:'Agnès Thésie (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}],
+          // Salle propre à Montrouge : ne pas l'ajouter au gabarit partagé avec PSM et Sovarka.
+          roomsExtra: {
+            chambre: {
+              name: "Chambre d'hôpital",
+              image: '🛏️',
+              imageBg: 'linear-gradient(135deg,#d8dfd8,#a3b6ae)',
+              desc: "Une chambre d'hôpital lumineuse, propre et parfaitement entretenue, avec vue sur les immeubles de Montrouge.",
+              imageUrl: 'images/montrouge/montrouge-hopital-chambre.webp',
+              persons: [],
+              orders: [
+                {fn:'dormir', label:'Dormir', pa:0, cost:0, type:'legal', icon:'ti-moon', successRate:100, desc:"Dormir dans votre lit d'hôpital. La récupération suit les règles de l'hospitalisation."},
+                {fn:'repas_hopital', label:"Prendre le repas de l'hôpital", pa:1, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Réservé aux patients hospitalisés, une fois par jour. +2 PA au prochain sommeil.'},
+                {fn:'transfert_clinique_privee', label:'Demander le transfert en clinique privée', pa:0, cost:1000, type:'legal', icon:'ti-ambulance', successRate:100, desc:'Transfert en ambulance vers la clinique privée, possible dès J0. 1 000 FR.'}
+              ]
+            }
+          }
+        },
         'centre-commercial': {
           name: "Centre commercial de Montrouge",
           roomOverrides: {
@@ -11452,8 +11471,14 @@ BUILDINGS['locaux-starovka'] = {
       orders: [
         { fn: 'foret_couper', label: 'Couper du bois', pa: 2, cost: 0, type: 'legal', icon: 'ti-axe', successRate: 100,
           desc: 'Le bois de la forêt profonde : une coupe rapporte le double d’une récolte. Combien de fois avant que quelque chose ne bouge dans les fourrés ?' },
+        // Retour de Fred (14/11/2026) : on peut s'enfoncer encore depuis une vue profonde (vers une autre vue), sans repasser par l'entrée.
+        { fn: 'foret_enfoncer', label: 'S’enfoncer dans la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-trees', successRate: 100,
+          desc: 'Plus loin, le bois est plus beau : chaque coupe rapporte le double. Mais on dit que les loups et l’ours rôdent sous les arbres… et qu’on s’y perd facilement.' },
         { fn: 'foret_revenir', label: 'Revenir à l’entrée de la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-arrow-back-up', successRate: 100,
-          desc: 'Retrouver le chemin de l’entrée… si l’on ne se perd pas en route.' }
+          desc: 'Retrouver le chemin de l’entrée… si l’on ne se perd pas en route.' },
+        // Perdu (état serveur sovarka_foret_perdus) : « Revenir » est masqué et remplacé par cet ordre (renderRoomActions).
+        { fn: 'foret_retrouver', label: 'Retrouver son chemin', pa: 1, cost: 0, type: 'legal', icon: 'ti-compass', successRate: 100,
+          desc: 'Chercher la sortie à l’instinct, entre des troncs qui se ressemblent tous (1 PA). Peut-être l’entrée de la forêt… peut-être plus loin encore.' }
       ]
     };
   });

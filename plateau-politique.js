@@ -3950,6 +3950,10 @@ function renderRoomActions(room, buildingId, roomId) {
       ['declenchee', 'relancee'].includes(state.char?.enigme1?.etape) &&
       !state.char?.enigme1?.autorisationCoffre
     ))
+    // Forêt profonde de Krasnov (14/11/2026) : perdu, « Revenir » cède la place à « Retrouver son chemin ».
+    // L'état vient du serveur (sovarka_foret_aller / _lire) ; inconnu, on montre « Revenir », que le serveur refuse si l'on est perdu.
+    .filter(o => o.fn !== 'foret_revenir' || !(typeof foretEstPerdu === 'function' && foretEstPerdu()))
+    .filter(o => o.fn !== 'foret_retrouver' || (typeof foretEstPerdu === 'function' && foretEstPerdu()))
     .filter(o => !['produire_commerce','produire_arme'].includes(o.fn))
     .filter(o => o.fn !== 'gerer_commerce' || (typeof commerceDroitsPiece === 'function' && commerceDroitsPiece(buildingId, roomId)))
     .filter(o => !dynOrders.some(d => d.fn === o.fn))

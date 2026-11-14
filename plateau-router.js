@@ -220,6 +220,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'kolkhoze_caisse') { ouvrirCaisseKolkhoze(); return; }
   if (fn === 'foret_enfoncer') { foretAller('enfoncer'); return; }
   if (fn === 'foret_revenir') { foretAller('revenir'); return; }
+  if (fn === 'foret_retrouver') { foretAller('retrouver'); return; }
   if (fn === 'foret_couper') { foretCouper(); return; }
   // Jardins ouvriers de Montrouge (01/11/2026) : plateau-logements-montrouge.js.
   if (fn === 'travailler_jardins') { doTravaillerJardins(); return; }
