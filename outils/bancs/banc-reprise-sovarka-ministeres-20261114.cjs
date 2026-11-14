@@ -11,7 +11,7 @@ const contenu=lire('data.js');
 function salle(debut,fin){const a=contenu.indexOf('            '+debut+':');const b=contenu.indexOf('            '+fin+':',a+1);assert.ok(a>=0&&b>a,debut+' missing');return contenu.slice(a,b);}
 test('la reprise ne modifie pas la répartition budgétaire ni les caisses',()=>{
  const sql=lire('migrations/20261114040000_sovarka_ministeres_lot2_sans_budget_obsolete.sql');
- assert.doesNotMatch(sql,/INSERT INTO public\\.repartitions_budgetaires|UPDATE public\\.caisses_batiments|INSERT INTO public\\.dotations_amorcage_caisses/);
+ assert.doesNotMatch(sql,/INSERT INTO public\.repartitions_budgetaires|UPDATE public\.caisses_batiments|INSERT INTO public\.dotations_amorcage_caisses/);
  assert.match(sql,/sovarka_ministeres_commande/);
  assert.match(sql,/sovarka_loi_trancher/);
  assert.match(sql,/sovarka_grace_garder/);
@@ -42,20 +42,20 @@ test('routes et écrans emploient les nouvelles décisions du serveur',()=>{
  const partis=lire('plateau-sovarka-partis.js'),politique=lire('plateau-politique.js');
  const gouv=lire('plateau-gouvernement.js');
  for(const name of ['ouvrirSovarkaGraces','ouvrirSovarkaManifsGerer'])assert.match(router,new RegExp(name));
- for(const name of ['sovMinActe','sovarkaManifDemander','sovarkaManifDecider','sovarkaManifReprimer','sovarkaGraceTransmettre'])assert.match(pouvoir,new RegExp('function '+name+'\\('));
- assert.match(pouvoir,/sbRpcVerdict\\('sovarka_ministeres_commande'/);
- assert.match(pouvoir,/sbRpcVerdict\\('sovarka_ministeres_lire'/);
- assert.match(partis,/sovarkaManifDemander\\(\\)/);
- assert.match(partis,/sovarkaManifSoutien\\(\\)/);
+ for(const name of ['sovMinActe','sovarkaManifDemander','sovarkaManifDecider','sovarkaManifReprimer','sovarkaGraceTransmettre'])assert.match(pouvoir,new RegExp('function '+name+'\('));
+ assert.match(pouvoir,/sbRpcVerdict\('sovarka_ministeres_commande'/);
+ assert.match(pouvoir,/sbRpcVerdict\('sovarka_ministeres_lire'/);
+ assert.match(partis,/sovarkaManifDemander\(\)/);
+ assert.match(partis,/sovarkaManifSoutien\(\)/);
  assert.match(politique,/sovGrace \? 'pm' : 'president'/);
- assert.match(politique,/sovGarde \? sbGardePiece\\('palais-gouvernement', 'hall'\\)/);
+ assert.match(politique,/sovGarde \? sbGardePiece\('palais-gouvernement', 'hall'\)/);
  assert.match(gouv,/state.country === 'soviet' && e.cle === 'requisition'/);
 });
 test('les neuf langues sont servies pour la demande de manifestation',()=>{
  const src=lire('i18n/sovarka-partis-resources.js');
  for(const langue of ['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de']){
   const i=src.indexOf('  "'+langue+'": {');assert.ok(i>=0,langue);
-  const j=src.indexOf('\\n  "',i+1);
+  const j=src.indexOf('\n  "',i+1);
   const block=src.slice(i,j<0?src.length:j);
   for(const key of ['lawsNote','rallyRequest','rallyAuthorized'])assert.match(block,new RegExp('"'+key+'":'));
  }
