@@ -11423,8 +11423,8 @@ BUILDINGS['locaux-starovka'] = {
   ctx.roomOverrides = ctx.roomOverrides || {};
   const entree = ctx.roomOverrides.zone_recolte = ctx.roomOverrides.zone_recolte || {};
   entree.name = 'Entrée de la forêt';
-  // Images de Fred (14/11/2026, converties par ChatGPT) : la cour de l'exploitation à l'entrée ; en forêt profonde, la
-  // clairière (vue 2) montre la forêt exploitée, les trois autres vues la forêt dense et intacte.
+  // Images de Fred (14/11/2026, converties par ChatGPT) : la cour de l'exploitation à l'entrée ; en forêt profonde, les
+  // vues 1 et 2 (deux coupes, fausses alertes) montrent la forêt exploitée, les vues 3 et 4 (ours, Olga) la forêt dense et intacte.
   entree.imageUrl = 'images/Sovarka/Krasnov/Krasnov_exploitation_forestiere_cour.webp';
   entree.orders = [...(entree.orders || []).filter(o => o.fn !== 'foret_enfoncer'),
     { fn: 'foret_enfoncer', label: 'S’enfoncer dans la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-trees', successRate: 100,
@@ -11439,7 +11439,7 @@ BUILDINGS['locaux-starovka'] = {
   Object.keys(vues).forEach(n => {
     ctx.roomsExtra['foret_vue_' + n] = {
       name: 'Forêt profonde — ' + vues[n][0], imageBg: 'linear-gradient(135deg,#0a120c,#132016)', desc: vues[n][1], persons: [],
-      imageUrl: 'images/Sovarka/Krasnov/' + (n === '2' ? 'Krasnov_foret_coupe.webp' : 'Krasnov_foret_profonde.webp'),
+      imageUrl: 'images/Sovarka/Krasnov/' + (n === '1' || n === '2' ? 'Krasnov_foret_coupe.webp' : 'Krasnov_foret_profonde.webp'),
       orders: [
         { fn: 'foret_couper', label: 'Couper du bois', pa: 2, cost: 0, type: 'legal', icon: 'ti-axe', successRate: 100,
           desc: 'Le bois de la forêt profonde : une coupe rapporte le double d’une récolte. Combien de fois avant que quelque chose ne bouge dans les fourrés ?' },
