@@ -74,5 +74,9 @@ Ces chantiers étrangers ne sont pas modifiés pour rendre la CI verte.
 Aucune régression nouvelle identifiée. Main 406d578 intégré sans modifier ses
 fichiers métier ; les preuves de périmètre restent figées au commit propre fa52c5e.
 
-Fusion et production à terminer. Pas de session PJ authentifiée, téléphone physique ou revue native.
+PR #914 fusionnée : `fb25f0ec4608e7fda14d36ba1edcfbd235dc5ce9`.
+46 contrôles verts ; quatre rouges étrangers reproduits sur main (voir ci-dessus).
+Vercel `dpl_76YccY2EtsYzfM9dFFi3QcwZ5B6n` READY sur ce commit ; alias
+confirmé, neuf fichiers publics identiques, 1 728 bascules rejouées vertes sur ces
+fichiers. Les quinze corps de #924 gardent leur français de repli avant sa livraison. Pas de session PJ authentifiée, téléphone physique ou revue native.
 Aucune migration, fonction serveur ou mécanique des Tsars modifiée.

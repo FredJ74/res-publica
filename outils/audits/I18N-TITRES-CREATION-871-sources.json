@@ -1,0 +1,14 @@
+{
+  "baseCommit": "fb25f0ec4608e7fda14d36ba1edcfbd235dc5ce9",
+  "scope": [
+    "Creation en cours...",
+    "Vous avez deja un personnage",
+    "Ce nom est deja porte",
+    "Genre manquant",
+    "Session expiree",
+    "Creation impossible"
+  ],
+  "newKeys": 6,
+  "newForeignTranslations": 48,
+  "longErrorBodiesIncluded": false
+}
