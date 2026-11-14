@@ -1248,11 +1248,8 @@ const WORLD = {
               desc: "Une chambre d'hôpital lumineuse, propre et parfaitement entretenue, avec vue sur les immeubles de Montrouge.",
               imageUrl: 'images/montrouge/montrouge-hopital-chambre.webp',
               persons: [],
-              orders: [
-                {fn:'dormir', label:'Dormir', pa:0, cost:0, type:'legal', icon:'ti-moon', successRate:100, desc:"Dormir dans votre lit d'hôpital. La récupération suit les règles de l'hospitalisation."},
-                {fn:'repas_hopital', label:"Prendre le repas de l'hôpital", pa:1, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Réservé aux patients hospitalisés, une fois par jour. +2 PA au prochain sommeil.'},
-                {fn:'transfert_clinique_privee', label:'Demander le transfert en clinique privée', pa:0, cost:1000, type:'legal', icon:'ti-ambulance', successRate:100, desc:'Transfert en ambulance vers la clinique privée, possible dès J0. 1 000 FR.'}
-              ]
+              // Ordres communs à toutes les chambres d'hôpital public (Fred, 14/11/2026).
+              orders: CHAMBRE_HOPITAL_ORDRES()
             }
           }
         },
@@ -11004,12 +11001,19 @@ function montantDansTexte(texte, ancien, nouveau) {
 // dans la chambre (migration 20261113020000) et y trouve Dormir et le repas de l'hôpital. Novomirsk
 // (pièce ajoutée le 12/11) ; Starovka et Krasnov reçoivent la même chambre, image de Novomirsk.
 // Pas en Républia pour le moment (Fred veut être présent).
-function CHAMBRE_HOPITAL_ORDRES_SOVARKA() {
+// Uniformisation (Fred, 14/11/2026) : toutes les chambres d'hôpital public (Républia et Sovarka) ont
+// les trois mêmes ordres de pièce : Dormir, repas de l'hôpital, transfert en clinique privée. Le serveur y
+// conduit tout personnage tombé à 0 PA (hospitalisation_lieu_rejoindre_interne, pièce 'chambre').
+// Textes repris du socle du dispensaire (déjà traduits) ; le tarif national s'applique au transfert.
+function CHAMBRE_HOPITAL_ORDRES() {
   return [
     {fn:'dormir', label:'Dormir', pa:0, cost:0, type:'legal', icon:'ti-moon', successRate:100, desc:'Dormir dans votre lit d\'hôpital. La récupération suit les règles de l\'hospitalisation.'},
-    {fn:'repas_hopital', label:'Prendre le repas de l\'hôpital', pa:1, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Réservé aux patients hospitalisés, une fois par jour. +2 PA à votre prochain sommeil.'}
+    {fn:'repas_hopital', label:'Prendre le repas de l\'hôpital', pa:1, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Réservé aux patients hospitalisés, une fois par jour. +2 PA à votre prochain sommeil.'},
+    {fn:'transfert_clinique_privee', label:'Être transféré en clinique privée', pa:0, cost:1000, type:'legal', icon:'ti-ambulance', successRate:100, desc:'Meilleure prise en charge, convalescence plus rapide. 1000 FR.'}
   ];
 }
+// Ancien nom (13/11/2026), gardé pour les appels existants.
+function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
 (function () {
   for (const ville of ['ville_a', 'ville_b']) {
     const cite = WORLD.soviet && WORLD.soviet[ville];
@@ -11027,6 +11031,31 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() {
       orders: CHAMBRE_HOPITAL_ORDRES_SOVARKA()
     };
   }
+})();
+
+// CHAMBRES D'HÔPITAL DE LUTHÉCIA ET DE PORT-SAINTE-MARIE (Fred, 14/11/2026) : même pièce que Montrouge et
+// Sovarka (migration 20261114130000). Image provisoire de Montrouge, en attendant celles de Fred.
+(function () {
+  const chambres = {
+    capitale: ['dispensaire-public', "Une chambre d'hôpital propre et calme, au bout du couloir du dispensaire. Le Docteur Aspirine y prescrit, évidemment, du repos."],
+    ville_a: ['dispensaire-public-v', "Une petite chambre blanche qui sent l'iode et le linge propre. Par la fenêtre, on aperçoit les mâts du port."]
+  };
+  Object.entries(chambres).forEach(([ville, [batiment, desc]]) => {
+    const cite = WORLD.republic && WORLD.republic[ville];
+    if (!cite) return;
+    cite.buildingContext = cite.buildingContext || {};
+    const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+    ctx.roomsExtra = ctx.roomsExtra || {};
+    ctx.roomsExtra.chambre = {
+      name: "Chambre d'hôpital",
+      image: '🛏️',
+      imageBg: 'linear-gradient(135deg,#d8dfd8,#a3b6ae)',
+      desc,
+      imageUrl: 'images/montrouge/montrouge-hopital-chambre.webp',
+      persons: [],
+      orders: CHAMBRE_HOPITAL_ORDRES()
+    };
+  });
 })();
 
 // STAROVKA ET KRASNOV : TEXTES DU GABARIT DE MONTROUGE (Claude, 09/11/2026, audit des deux villes).
