@@ -1,0 +1,17 @@
+{
+  "baseCommit": "88133709483fe017075fadc0a7baacf3980ca9b9",
+  "codeCommit": "95bdde88e107bfd45cc5b09785a05155ff85d7e2",
+  "newKeys": 22,
+  "newForeignTranslations": 176,
+  "normalFlowReusedForeignTranslations": 32,
+  "directCallCompatibilityReusedForeignTranslations": 16,
+  "businessAstIdenticalOutsidePresentation": true,
+  "confirmationUnchanged": true,
+  "nodeTestsPassed": 119,
+  "baselineExistingTestsPassed": 116,
+  "browserStates": 28,
+  "browserLanguageSwitches": 756,
+  "directoryRegressionLanguageSwitches": 999,
+  "ciBrowserCommandsCorrected": true,
+  "realOrganizationsCreated": false
+}
