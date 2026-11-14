@@ -1115,20 +1115,21 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
-    // Rue de la mairie : la place de l'Ours est à gauche.
+    // Rue de la mairie : la place de l'Ours est à gauche (zone cliquable, sans flèche).
     // L'immeuble à écriteaux (au centre, derrière la statue) est distinct de
     // celui qui fait face au centre commercial : ses futurs baux le seront aussi.
     'krasnov-rue-mairie-place': {
       image: 'images/Sovarka/Krasnov/Krasnov rue mairie place.webp',
       zones: [
         { xPct: [72, 100], yPct: [8, 68], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' },
-        { xPct: [54, 71], yPct: [19, 55], nom: "Immeuble de la place de l'Ours", type: 'batiment', buildingId: 'logements-krasnov-place-ours' }
+        { xPct: [54, 71], yPct: [19, 55], nom: "Immeuble de la place de l'Ours", type: 'batiment', buildingId: 'logements-krasnov-place-ours' },
+        // Pas de flèche vers la place (Fred, 14/11/2026) : on y entre en cliquant la statue et les bancs.
+        { xPct: [0, 40], yPct: [34, 78], nom: "Place de l'Ours", type: 'noeud', noeudId: 'krasnov-place-ours' }
       ],
-      liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar', gauche: 'krasnov-place-ours' },
+      liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
-        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);',
-        gauche: 'top:50%; left:10px; transform:translateY(-50%);'
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
       }
     },
 

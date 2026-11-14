@@ -7,7 +7,9 @@ const rue=read('plateau-rue-centrale.js');
 const start=rue.indexOf("'krasnov-rue-mairie-place':"),end=rue.indexOf("'krasnov-rue-tabac-bar':",start);
 assert.ok(start>=0&&end>start);
 const scene=rue.slice(start,end);
-assert.match(scene,/gauche: 'krasnov-place-ours'/);
+// 14/11/2026 (Fred) : plus de flèche vers la place, on y entre en cliquant l'image.
+assert.doesNotMatch(scene,/gauche: 'krasnov-place-ours'/);
+assert.match(scene,/nom: "Place de l'Ours", type: 'noeud', noeudId: 'krasnov-place-ours'/);
 assert.match(scene,/arriere: 'krasnov-rue-immeubles-centre-commercial'/);
 assert.match(scene,/toutDroit: 'krasnov-rue-tabac-bar'/);
 assert.match(scene,/buildingId: 'logements-krasnov-place-ours'/);

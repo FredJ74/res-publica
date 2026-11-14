@@ -6,6 +6,9 @@ Règles : voir `AGENTS.md`.
 
 > **Rangé le 11/11/2026 (Claude)** : les chantiers terminés ont été déplacés mot pour mot dans [`RELAIS-ARCHIVE-2026-11.md`](RELAIS-ARCHIVE-2026-11.md) (chercher par mot-clé : branche, PR, migration). Garder ici seulement ce qui est en cours, attendu ou à vérifier ; un chantier fusionné passe en une ligne dans « Derniers chantiers ».
 
+### Krasnov : place de l'Ours cliquable, flèche retirée (Claude, 14/11/2026)
+Branche `claude/place-ours-clic-20261114`. Retour de Fred : il n'a jamais demandé de flèche vers la place de l'Ours ; la place doit être cliquable pour y entrer. Vue `krasnov-rue-mairie-place` : flèche `gauche` retirée, zone `type: 'noeud'` « Place de l'Ours » (statue et bancs, x 0-40 %, y 34-78 %). Serveur inchangé (`rue_noeuds_serveur` liste des voisins, sans direction : le passage reste validé). Le plan suit désormais une zone « noeud » quand la vue visée porte `nomLieu` (`planRuesLiens`), du côté où l'image la montre ; les lots des terrains restent hors plan. Bancs : plan-rues 10/10, navigation-rues 21/21, `test-krasnov-place-ours-20261114.mjs` adapté ; `test-krasnov-gare-rue-20261105.mjs` rouge comme sur `main`. **À vérifier en jeu** : cliquer la statue depuis la rue de la mairie, revenir, ouvrir le plan.
+
 ### Plan de Krasnov : la place de l'Ours y figure (Claude, 14/11/2026)
 Branche `claude/plan-place-ours-20261114`. Signalé par Fred : la place de l'Ours n'apparaissait pas au plan. Ce n'est pas un bâtiment (simple vue `krasnov-place-ours`, sans intérieur), or le plan ne posait que des bâtiments. Une vue peut désormais porter `nomLieu` (`plateau-rue-centrale.js`) : `calculerPlanRues` lui donne son propre repère et une ligne de légende (id `lieu:<vue>`). Écran seul. Banc `test-plan-rues-20261109.mjs` 10/10 (garde ajoutée). **À vérifier en jeu** : plan de Krasnov.
 
