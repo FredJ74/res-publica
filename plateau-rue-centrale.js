@@ -1117,6 +1117,9 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/Sovarka/Krasnov/Krasnov rue mairie place.webp',
       // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
+        // Accès provisoire depuis la place publique : le décor extérieur spécifique de l'hôpital
+        // n'a pas encore été créé. On utilise une zone distincte, sans masquer la mairie.
+        { xPct: [0, 27], yPct: [8, 68], nom: 'Hôpital public de Krasnov', type: 'batiment', buildingId: 'dispensaire-public-v' },
         { xPct: [72, 100], yPct: [8, 68], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' }
       ],
       liens: { arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar' },
