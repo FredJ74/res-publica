@@ -1,0 +1,22 @@
+// Krasnov : la place de la mairie donne un accès hospitalier réel et isolé.
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const lire=p=>fs.readFileSync(new URL('../../'+p,import.meta.url),'utf8');
+const s=lire('plateau-rue-centrale.js');
+const start=s.indexOf("'krasnov-rue-mairie-place':");
+assert.ok(start>=0);
+const scene=s.slice(start,s.indexOf("'krasnov-rue-tabac-bar':",start));
+assert.match(scene,/nom: 'Hôpital public de Krasnov', type: 'batiment', buildingId: 'dispensaire-public-v'/);
+assert.match(scene,/nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie'/);
+assert.match(scene,/arriere: 'krasnov-rue-immeubles-centre-commercial', toutDroit: 'krasnov-rue-tabac-bar'/);
+assert.equal((scene.match(/buildingId: 'dispensaire-public-v'/g)||[]).length,1);
+const sql=lire('migrations/20261114115500_krasnov_hopital_acces_rue.sql');
+assert.match(sql,/country='soviet' AND city='ville_b'/);
+assert.match(sql,/pays='soviet' AND ville='ville_b'/);
+assert.match(sql,/VALUES \('soviet','ville_b','krasnov-rue-mairie-place','dispensaire-public-v'\)/);
+const ctx=vm.createContext({});
+vm.runInContext(lire('data.js'),ctx);
+const ch=vm.runInContext("WORLD.soviet.ville_b.buildingContext['dispensaire-public-v'].roomsExtra.chambre",ctx);
+assert.ok(ch && ch.orders.some(o=>o.fn==='dormir') && ch.orders.some(o=>o.fn==='repas_hopital'));
+console.log('Krasnov hôpital : entrée rue et chambre vérifiées');
