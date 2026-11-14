@@ -1,0 +1,33 @@
+name: I18N - corps des notifications
+on:
+  pull_request:
+    paths:
+      - 'plateau-core.js'
+      - 'i18n/toast-bodies-resources.js'
+      - 'outils/bancs/banc-i18n-corps-notifications-20261114.cjs'
+      - 'outils/bancs/banc-i18n-notifications.cjs'
+      - 'outils/bancs/banc-i18n-alertes-navigation.cjs'
+      - 'outils/audits/audit-i18n-editorial.cjs'
+      - 'plateau.html'
+      - '.github/workflows/i18n-corps-notifications.yml'
+permissions:
+  contents: read
+jobs:
+  corps-notifications:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-core.js && node --check i18n/toast-bodies-resources.js
+      - run: |
+          npm install --prefix /tmp/hg-i18n-browser --no-package-lock --no-audit --no-fund playwright@1.56.1
+          /tmp/hg-i18n-browser/node_modules/.bin/playwright install --with-deps chromium
+      - run: |
+          export NODE_PATH=/tmp/hg-i18n-browser/node_modules
+          export CHROMIUM_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")"
+          node --test outils/bancs/banc-i18n-corps-notifications-20261114.cjs
+      - run: node --test outils/bancs/banc-i18n-notifications.cjs outils/bancs/banc-i18n-alertes-navigation.cjs outils/bancs/banc-i18n-editorial.cjs
+      - run: git diff --check

@@ -54,7 +54,8 @@ test('incident et sous-message non modifiés, titre non injecté en HTML',()=>{
  assert.ok(start>=0&&end>start);
  const body=core.slice(start,end);
  assert.ok(body.includes("noterIncidentSession('notification', result)"));
- assert.ok(body.includes("document.getElementById('toast-sub').textContent = msg"));
+ // Depuis le 14/11/2026 (#871), le corps fixe passe par le catalogue exact toastBodies ; l'incident garde le titre original.
+ assert.ok(body.includes("sub.textContent = (typeof RPToastBodyI18n !== 'undefined') ? RPToastBodyI18n.label(msg) : msg"));
  assert.ok(body.includes("RPToastI18n.label(result)"));
  assert.ok(body.includes("document.getElementById('toast-result').textContent ="));
  assert.ok(!body.includes('innerHTML'));
