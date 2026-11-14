@@ -894,7 +894,10 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 }
 .tribune-contenu{padding:1.2rem 1.3rem 2rem}
 .tribune-une{padding-bottom:1.1rem;margin-bottom:1.1rem;border-bottom:3px double var(--tr-ink)}
-.tribune-une-image{width:100%;max-height:220px;object-fit:cover;margin-bottom:.8rem;border:1px solid var(--tr-rule)}
+/* Les photos du journal ne doivent jamais rogner un portrait ou une scène :
+   l'ancienne hauteur plafonnée avec object-fit:cover coupait les visages sur mobile.
+   Conserver le ratio réel et afficher l'image entière, même si des marges apparaissent. */
+.tribune-une-image{display:block;width:100%;height:auto;max-height:360px;object-fit:contain;object-position:center center;background:var(--tr-bg);margin:0 auto .8rem;border:1px solid var(--tr-rule)}
 .tribune-une-titre{font-family:'Playfair Display',serif;font-weight:700;font-size:1.9rem;line-height:1.15;margin:0 0 .5rem;color:var(--tr-ink)}
 .tribune-une-chapeau{font-size:1.05rem;color:var(--tr-ink2);font-style:italic;margin:0 0 .7rem}
 .tribune-une-accroches{margin:0;padding-left:1.1rem}
@@ -908,7 +911,7 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .tribune-rubrique{margin-top:1.6rem}
 .tribune-rubrique-titre{font-family:'Playfair Display',serif;font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--tr-accent);border-bottom:1px solid var(--tr-rule);padding-bottom:.3rem;margin-bottom:.9rem}
 .tribune-article{margin-bottom:1.3rem}
-.tribune-article-image{width:100%;max-height:160px;object-fit:cover;margin-bottom:.5rem;border:1px solid var(--tr-rule)}
+.tribune-article-image{display:block;width:100%;height:auto;max-height:260px;object-fit:contain;object-position:center center;background:var(--tr-bg);margin:0 auto .5rem;border:1px solid var(--tr-rule)}
 .tribune-article-ville{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--tr-ink3);margin-bottom:.15rem}
 .tribune-article-titre{font-family:'Playfair Display',serif;font-weight:700;font-size:1.15rem;margin:0 0 .35rem;color:var(--tr-ink)}
 .tribune-article p{margin:0 0 .85rem;color:var(--tr-ink)}
