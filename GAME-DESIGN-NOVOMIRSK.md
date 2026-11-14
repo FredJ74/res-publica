@@ -983,3 +983,7 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 - **Travaux, 1 PA chacun, sans limite par jour** : ramasser les œufs (**2 unités = 2 × 3 œufs**) ; traire les vaches (**2 laitages**, nouveau) ; ramasser les légumes (**5 fruits et légumes**) — quantités corrigées par Fred à 00 h 30 ; tuer un lapin (1 viande + 1 tissus et peaux) ; **abattre un poulet gardé, passé à 1 PA** (2 viandes).
 - **Caisse commune** : on peut y déposer et y prendre **toute matière première**. Chaque article donné rapporte **+2 popularité**, **plafonné à +6 par jour et par joueur** (contre le va-et-vient donner/reprendre). Tout PJ présent peut se servir, **5 articles par jour au plus**.
 - **Codé le 14/11/2026** : migration `20261114004000_kolkhoze_krasnov_caisse` (registre `kolkhoze_krasnov_caisse_20261114`) ; caisse `kolkhoze_caisse` (matières de `ressources_economie` de source « livraison », plus les œufs) et quotas `kolkhoze_caisse_quotas` par jour de Sovarka ; RPC `kolkhoze_caisse_lire`, `kolkhoze_caisse_agir`. Ordre « Caisse commune » (0 PA) dans la cour.
+
+## Décisions de Fred du 13/11/2026 (23 h 44 – 23 h 50) — PAS de feu vert de codage
+- **Prénom de Nadejda Tenkova conservé**, même si la lieutenante Nadejda Sokolova de Krasnov porte le même prénom.
+- **Approvisionnement de nuit des entrepôts de Sovarka** : le port de Sovarka fonctionne **exactement comme celui de Républia** (le port de PSM nourrit chaque nuit les entrepôts de Républia ; celui de Sovarka nourrit ceux de Sovarka). Novomirsk terminé selon Fred ; on passe à Krasnov.
