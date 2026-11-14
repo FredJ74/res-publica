@@ -2535,7 +2535,13 @@ const WORLD = {
               persons: [],
               orders: [
                 {fn:'consulter_elections', label:'Voir les candidats', pa:0, cost:0, type:'legal', icon:'ti-list', successRate:100, desc:'Consulter les candidats et les scrutins de la ville.'},
-                {fn:'voter_election', label:'Voter', pa:0, cost:0, type:'legal', icon:'ti-checkbox', successRate:100, desc:'Voter si un scrutin est ouvert et si vous êtes électeur habilité.'}
+                {fn:'voter_election', label:'Voter', pa:0, cost:0, type:'legal', icon:'ti-checkbox', successRate:100, desc:'Voter si un scrutin est ouvert et si vous êtes électeur habilité.'},
+                // Mêmes ordres que la salle de Novomirsk (audit du 14/11/2026) : contestation et fraudes
+                // passent par les fonctions serveur communes, qui lisent la ville et le scrutin.
+                {fn:'contester_resultats',  label:'Contester des resultats',    pa:2, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:60,  desc:'Dans les 24h suivant la proclamation, pour tout electeur habilite pour ce scrutin. Peut reveler une fraude.'},
+                {fn:'falsifier_listes_electorales', label:'Falsifier les listes electorales', pa:2, cost:0, type:'illegal', icon:'ti-file-x', successRate:70, desc:'Reserve au maire ou a l\'adjoint au maire sortant de cette ville. Ajoute 1 a 10 voix frauduleuses a un candidat.'},
+                {fn:'bourrer_urnes',        label:'Bourrer les urnes',          pa:1, cost:0,    type:'illegal', icon:'ti-ballot',        successRate:60, desc:'Pendant les 24h de vote, pour tout electeur inscrit sur ce scrutin. Ajoute 1 a 3 voix frauduleuses.'},
+                {fn:'truquer_depouillement', label:'Truquer le depouillement',  pa:2, cost:0,    type:'illegal', icon:'ti-scale',         successRate:75, desc:'Reserve au commissaire ou au juge. Ajoute ou retire 1 a 10 voix a un candidat.'}
               ]
             }
           }
