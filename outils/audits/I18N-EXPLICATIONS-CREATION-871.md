@@ -41,8 +41,11 @@ sans gonfler le taux. Anglais : 24,33 % des mots statiques identifiés, pas de t
 le jeu ; 29,81 % des mots disposent d’une ressource, raccordement à vérifier.
 Zéro erreur d’extraction.
 
-CI du code : huit contrôles verts, deux rouges étrangers déjà reproduits sur main
-(SSM et inventaires du socle). Contrôles du dernier push, fusion et production
-restent à vérifier. Aucun compte ou
+PR #929 fusionnée : `d6d33427c8dc6bd362e942d14ed71fce2c24e6f5`.
+Sept contrôles verts ; deux rouges étrangers reproduits sur main et branche
+(SSM et inventaires du socle, mêmes 32/37). Vercel
+`dpl_FWcXAkF4gzbK23wDTYMPpFiUafKE` READY sur ce commit, alias confirmé,
+sept fichiers publics identiques. Trois tests navigateur rejoués verts sur ces
+fichiers : 270 + 432 + 54 bascules, soit 756. Aucun compte ou
 personnage réel créé, aucune donnée réelle lue/modifiée, aucune migration ou RPC
 modifiée. Pas de revue native ni téléphone physique.

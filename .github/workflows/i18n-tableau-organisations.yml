@@ -1,0 +1,30 @@
+name: Tableau des organisations — langues et confidentialité
+on:
+  pull_request:
+    paths: ['plateau-organisations-quetes.js', 'plateau.html', 'i18n/organization-directory-resources.js', 'i18n/plateau-init.js', 'outils/bancs/*tableau-organisations*', '.github/workflows/i18n-tableau-organisations.yml']
+  push:
+    branches: [main]
+    paths: ['plateau-organisations-quetes.js', 'i18n/organization-directory-resources.js', 'outils/bancs/*tableau-organisations*', '.github/workflows/i18n-tableau-organisations.yml']
+permissions:
+  contents: read
+jobs:
+  organisations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - run: npm ci --ignore-scripts --prefix outils/e2e
+      - run: npm ci --ignore-scripts --prefix outils/vercel
+      - name: Français et neuf langues, AST métier et anciens bancs des organisations
+        run: node --test outils/bancs/banc-i18n-tableau-organisations-20261114.cjs outils/bancs/banc-audit-i18n-global.cjs outils/bancs/banc-i18n-editorial.cjs outils/bancs/banc-i18n-bookmaker.cjs outils/bancs/banc-i18n-catalogue-ordres.cjs outils/bancs/banc-organisations-activation-client.cjs outils/bancs/banc-organisations-commandes-client.cjs outils/bancs/banc-organisations-membres-client.cjs outils/bancs/banc-organisations-evenements-client.cjs outils/bancs/banc-coherence-organisations.cjs outils/bancs/banc-rumeur-organisations-secretes.cjs
+      - name: Chromium — 999 bascules, 320/390/1280, RTL, secrets, position, noms et zéro dépense
+        env:
+          NODE_PATH: ./outils/e2e/node_modules
+          CHROMIUM_PATH: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-i18n-tableau-organisations-navigateur-20261114.cjs
