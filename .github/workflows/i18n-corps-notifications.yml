@@ -45,4 +45,9 @@ jobs:
           CHROMIUM_PATH: /usr/bin/google-chrome
         run: node --test outils/bancs/banc-i18n-corps-notifications-20261114.cjs outils/bancs/banc-i18n-transport-catalogues-20261114.cjs
       - run: node --test outils/bancs/banc-i18n-corps-integrite-20261114.cjs outils/bancs/banc-i18n-notifications.cjs outils/bancs/banc-i18n-alertes-navigation.cjs outils/bancs/banc-i18n-editorial.cjs
+      - name: Refus existants avec le vrai catalogue — 1728 bascules
+        env:
+          NODE_PATH: ./outils/e2e/node_modules
+          CHROMIUM_PATH: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-i18n-refus-actions-navigateur-20261113.cjs
       - run: git diff --check

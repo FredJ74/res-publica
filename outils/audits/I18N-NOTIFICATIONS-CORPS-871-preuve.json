@@ -12,7 +12,21 @@
   "packedCatalogBytes": 1249154,
   "playerInputOpaque": true,
   "integrationOngoing": true,
-  "previewVerified": false,
+  "previewVerified": true,
   "merged": false,
-  "deployed": false
+  "deployed": false,
+  "integrationMainCommit": "c1afd03184360b6c7afa04fe6b4c3a38e265e080",
+  "integrationNodePassed": 128,
+  "organizationBrowserBanksPassed": 6,
+  "organizationMainLanguageSwitches": 4077,
+  "refusalBrowserLanguageSwitches": 1728,
+  "previewVerification": "84 decoded sources and HTTP headers, Vercel authenticated fetch; native Chromium decoding tested locally",
+  "directPreviewChromium": false,
+  "preexistingZeroPaBank": {
+    "mainPassed": 2,
+    "mainFailed": 3,
+    "branchPassed": 2,
+    "branchFailed": 3,
+    "reason": "zeroPaT absent de la simulation du banc"
+  }
 }
