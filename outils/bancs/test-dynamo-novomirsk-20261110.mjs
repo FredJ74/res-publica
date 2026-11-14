@@ -10,8 +10,9 @@ const ctx = vm.createContext({ console, window: {} });
 vm.runInContext(read('data.js'), ctx);
 const context = vm.runInContext('WORLD.soviet.capitale.buildingContext.stade', ctx);
 const room = vm.runInContext('BUILDINGS.stade.rooms', ctx);
+// Krasnov a reçu sa propre boutique de l'Étoile Rouge le 14/11/2026 (migration 20261114013500) : hors de ce contrôle.
 const inOtherCities = vm.runInContext(
-  "[WORLD.republic.capitale, WORLD.republic.ville_a, WORLD.republic.ville_b, WORLD.soviet.ville_a, WORLD.soviet.ville_b].map(v=>v.buildingContext?.stade?.roomsExtra?.boutique?.imageUrl)", ctx);
+  "[WORLD.republic.capitale, WORLD.republic.ville_a, WORLD.republic.ville_b, WORLD.soviet.ville_a].map(v=>v.buildingContext?.stade?.roomsExtra?.boutique?.imageUrl)", ctx);
 
 const scenes = {
   terrain: 'terrain',

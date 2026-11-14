@@ -6788,7 +6788,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Stade Étoile Rouge de Krasnov",
-    "piece": "Terrain",
+    "piece": "Terrain — Étoile Rouge de Krasnov",
     "personnes": [
       "Vsevolod Fedotov",
       "Semione Klimov"
@@ -6798,7 +6798,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Stade Étoile Rouge de Krasnov",
-    "piece": "Vestiaires",
+    "piece": "Vestiaires — Étoile Rouge de Krasnov",
     "personnes": [
       "Vsevolod Fedotov"
     ]
@@ -6807,7 +6807,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Stade Étoile Rouge de Krasnov",
-    "piece": "Buvette",
+    "piece": "Buvette des tribunes",
     "personnes": [
       "Avdotia Doubova"
     ]
@@ -6816,7 +6816,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Stade Étoile Rouge de Krasnov",
-    "piece": "Guichet de Paris",
+    "piece": "Bookmaker de l’Étoile Rouge",
     "personnes": [
       "Iossif Borissov"
     ]
@@ -6825,7 +6825,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Stade Étoile Rouge de Krasnov",
-    "piece": "Siege des Supporters",
+    "piece": "Club des supporters de l’Étoile Rouge",
     "personnes": [
       "Stiopa « le Tambour » Ossipov"
     ]
@@ -6834,8 +6834,17 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Stade Étoile Rouge de Krasnov",
-    "piece": "Bureau du Président",
+    "piece": "Bureau du président de l’Étoile Rouge",
     "personnes": []
+  },
+  "[\"soviet\",\"ville_b\",\"stade\",\"boutique\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Stade Étoile Rouge de Krasnov",
+    "piece": "Boutique de l’Étoile Rouge",
+    "personnes": [
+      "Vendeuse de l’Étoile Rouge"
+    ]
   },
   "[\"soviet\",\"ville_b\",\"zone-production\",\"zone_recolte\"]": {
     "pays": "Sovarka",

@@ -2549,7 +2549,43 @@ const WORLD = {
         // Mêmes six pièces et tous les ordres sportifs du gabarit stade partagé.
         'stade': {
           name: "Stade Étoile Rouge de Krasnov",
-          desc: "Le stade de football de Krasnov, face au commissariat."
+          desc: "Le stade de football de Krasnov, face au commissariat.",
+          // Images de Fred (14/11/2026). L'entraîneur et le commentateur sont déclarés sous leur nom de
+          // Krasnov (PNJ_SOVARKA.ville_b retire les portraits des noms génériques) avec leurs portraits cadrés dans l'image du terrain.
+          roomOverrides: {
+            terrain: { name: 'Terrain — Étoile Rouge de Krasnov', imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_terrain.webp',
+              persons: [
+                {name:'Vsevolod Fedotov (PNJ)', role:'Entraîneur de l\'Étoile Rouge', rel:'neutral', job:'entraineur', profilId:'sovarka_vsevolod_fedotov', photoUrl:'images/Sovarka/Krasnov/Krasnov_stade_entraineur_portrait.webp', photoPos:'50% 25%'},
+                {name:'Semione Klimov (PNJ)', role:'Commentateur de la radio du kolkhoze', rel:'neutral', job:'commentateur', profilId:'sovarka_semione_klimov', photoUrl:'images/Sovarka/Krasnov/Krasnov_stade_commentateur_portrait.webp', photoPos:'50% 25%'}
+              ] },
+            vestiaires: { name: 'Vestiaires — Étoile Rouge de Krasnov', imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_vestiaires.webp',
+              persons: [
+                {name:'Vsevolod Fedotov (PNJ)', role:'Entraîneur de l\'Étoile Rouge', rel:'neutral', job:'entraineur', profilId:'sovarka_vsevolod_fedotov', photoUrl:'images/Sovarka/Krasnov/Krasnov_stade_entraineur_portrait.webp', photoPos:'50% 25%'}
+              ] },
+            // Les accessoires se vendent à la boutique du club (pièce ajoutée ci-dessous, comme au Dynamo).
+            buvette: { name: 'Buvette des tribunes', imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_buvette.webp',
+              excludeOrders: ['choisir_accessoire_club','acheter_accessoire_personnalise'] },
+            guichet_paris: { name: 'Bookmaker de l’Étoile Rouge', imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_bookmaker.webp' },
+            siege_supporters: { name: 'Club des supporters de l’Étoile Rouge', imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_club_supporters.webp' },
+            bureau_president: { name: 'Bureau du président de l’Étoile Rouge', imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_bureau_president.webp' }
+          },
+          // Boutique du club (Fred, 14/11/2026 ; migration 20261114013500) : même salle que la boutique du Dynamo.
+          roomsExtra: {
+            boutique: {
+              name: 'Boutique de l’Étoile Rouge',
+              image: '🧣',
+              imageBg: 'linear-gradient(135deg,#25100f,#4a2025)',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_stade_boutique.webp',
+              desc: 'Maillots, écharpes et casquettes aux couleurs de l’Étoile Rouge.',
+              persons: [
+                {name:'Vendeuse de l’Étoile Rouge (PNJ)', role:'Vente des accessoires', rel:'neutral', job:'vendeur'}
+              ],
+              orders: [
+                {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa:0, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Écharpe, casquette ou maillot de l’Étoile Rouge, à choisir.'},
+                {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-lock', successRate:100, desc:'Personnalisation premium à venir.'}
+              ]
+            }
+          }
         }
       }
     },

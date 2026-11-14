@@ -6,6 +6,9 @@ Règles : voir `AGENTS.md`.
 
 > **Rangé le 11/11/2026 (Claude)** : les chantiers terminés ont été déplacés mot pour mot dans [`RELAIS-ARCHIVE-2026-11.md`](RELAIS-ARCHIVE-2026-11.md) (chercher par mot-clé : branche, PR, migration). Garder ici seulement ce qui est en cours, attendu ou à vérifier ; un chantier fusionné passe en une ligne dans « Derniers chantiers ».
 
+### Stade Étoile Rouge de Krasnov : sept images, boutique du club, portraits (Claude, 14/11/2026, nuit)
+Branche `claude/stade-krasnov-images-20261114`. Images de Fred (WebP) pour les six pièces du stade et la nouvelle **boutique du club** (`roomsExtra.boutique`, copie de la boutique du Dynamo ; accessoires retirés de la buvette de Krasnov). Portraits de l'entraîneur Vsevolod Fedotov et du commentateur Semione Klimov cadrés dans l'image du terrain (déclarés sous leur nom de Krasnov dans `roomOverrides`, car `PNJ_SOVARKA` retire les portraits des noms génériques). Migration `20261114013500_krasnov_stade_boutique` **appliquée** (registre `krasnov_stade_boutique_20261114`) : pièce `boutique` au graphe de navigation du stade de Krasnov, `club_accessoire_acheter` accepte `ville_b`. Textes 9 langues (pièces, description, infobulle 118 lignes, rôles des PNJ du stade). Scènes PNJ régénérées. `test-dynamo-novomirsk` : Krasnov sorti du contrôle « boutique du seul Dynamo ». Suite Node : aucun nouvel échec. Vendeuse générique « Vendeuse de l'Étoile Rouge » (nom à proposer à Fred si souhaité).
+
 ### Commissariat de Krasnov : trois images (Claude, 14/11/2026, nuit)
 Branche `claude/commissariat-krasnov-images-20261114`. Images de Fred (générées par ChatGPT) en WebP : `images/Sovarka/Krasnov/Krasnov_commissariat_{accueil,bureau_commissaire,geoles}.webp`, déclarées dans `WORLD.soviet.ville_b.buildingContext['commissariat-local'].roomOverrides` (PNJ et ordres existants conservés). Écran seul. **À vérifier en jeu** : les trois pièces du commissariat de Krasnov.
 
