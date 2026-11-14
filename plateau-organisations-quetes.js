@@ -770,21 +770,29 @@ function ouvrirDemandesAdhesion(orgaId) {
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const grades = def.grades?.[state.country] || ['Membre'];
 
-  document.getElementById('postes-modal-title').textContent = '📨 Demandes — ' + orga.nom;
+  const _rpAdhesionTexte = value => escapeHtmlText(String(value));
+  const _rpAdhesionAction = (action, nom) => _rpAdhesionTexte(action + '(' + JSON.stringify(orgaId) + ',' + JSON.stringify(nom) + ')');
+  const titre = document.getElementById('postes-modal-title');
+  titre.textContent = '📨 ';
+  const prefixe = document.createElement('span');
+  prefixe.dataset.i18n = 'sovarkaDroits.requests';
+  prefixe.textContent = 'Demandes';
+  titre.append(prefixe, document.createTextNode(' — ' + orga.nom));
   const demandes = orga.demandesAdhesion || [];
 
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.6rem 1rem">' +
-    (demandes.length === 0 ? '<div style="color:#9a8a68;font-style:italic;font-size:.82rem">Aucune demande en attente.</div>' :
+    '<div style="padding:.6rem 1rem" class="hg-organisations">' +
+    (demandes.length === 0 ? '<div style="color:#9a8a68;font-style:italic;font-size:.82rem" data-i18n="sovarkaPartis.noRequest">Aucune demande en attente.</div>' :
       demandes.map(d =>
         '<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid #1a1208">' +
-          '<div style="flex:1"><div style="font-size:.82rem;color:#c0b090">' + d.nom + '</div><div style="font-size:.85rem;color:#9a8a68">Demande du Jour ' + d.date + '</div></div>' +
-          '<button onclick="accepterAdhesion(\'' + orgaId + '\',\'' + d.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #2a4a2a;background:transparent;color:#4a8a4a;cursor:pointer;margin-right:.3rem">✓ Accepter</button>' +
-          '<button onclick="refuserAdhesion(\'' + orgaId + '\',\'' + d.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #3a1a1a;background:transparent;color:#aa4444;cursor:pointer">✕ Refuser</button>' +
+          '<div style="flex:1;min-width:0"><div style="font-size:.82rem;color:#c0b090">' + _rpAdhesionTexte(d.nom) + '</div><div style="font-size:.85rem;color:#9a8a68"><span data-i18n="organizationAdmissions.requestDay">Demande du Jour </span>' + _rpAdhesionTexte(d.date) + '</div></div>' +
+          '<button onclick="' + _rpAdhesionAction('accepterAdhesion', d.nom) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #2a4a2a;background:transparent;color:#4a8a4a;cursor:pointer;margin-right:.3rem">✓ <span data-i18n="sovarkaPartis.accept">Accepter</span></button>' +
+          '<button onclick="' + _rpAdhesionAction('refuserAdhesion', d.nom) + '" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #3a1a1a;background:transparent;color:#aa4444;cursor:pointer">✕ <span data-i18n="sovarkaDroits.refuse">Refuser</span></button>' +
         '</div>'
       ).join('')
     ) +
     '</div>';
+  globalThis.RPI18nPlateau?.apply(document.getElementById('modal-postes'));
   document.getElementById('modal-postes').classList.add('open');
 }
 
@@ -827,8 +835,15 @@ async function ouvrirInviterMembreOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga || orga.chef !== state.char?.name || orga.visible) return;
 
-  document.getElementById('postes-modal-title').textContent = '✉️ Inviter — ' + orga.nom;
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Recherche des personnages...</div>';
+  const _rpInvitationTexte = value => escapeHtmlText(String(value));
+  const titre = document.getElementById('postes-modal-title');
+  titre.textContent = '✉️ ';
+  const prefixe = document.createElement('span');
+  prefixe.dataset.i18n = 'organizationAdmissions.invite';
+  prefixe.textContent = 'Inviter';
+  titre.append(prefixe, document.createTextNode(' — ' + orga.nom));
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic" data-i18n="organizationAdmissions.searching">Recherche des personnages...</div>';
+  globalThis.RPI18nPlateau?.apply(document.getElementById('modal-postes'));
   document.getElementById('modal-postes').classList.add('open');
 
   const tous = typeof sbListPersonnages === 'function' ? await sbListPersonnages().catch(() => []) : [];
@@ -839,18 +854,21 @@ async function ouvrirInviterMembreOrga(orgaId) {
   );
 
   if (eligibles.length === 0) {
-    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Aucun personnage disponible à inviter.</div>';
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic" data-i18n="organizationAdmissions.noInvitee">Aucun personnage disponible à inviter.</div>';
+    globalThis.RPI18nPlateau?.apply(document.getElementById('postes-body'));
     return;
   }
 
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.6rem">L\'invitation est privée : seul(e) le/la destinataire en a connaissance.</div>';
-  html += '<select id="invite-orga-select" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
-  eligibles.forEach(j => { html += '<option value="' + j.name + '">' + j.name + '</option>'; });
+  let html = '<div class="hg-organisations" style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.6rem" data-i18n="organizationAdmissions.privacy">L\'invitation est privée : seul(e) le/la destinataire en a connaissance.</div>';
+  html += '<select dir="auto" id="invite-orga-select" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+  eligibles.forEach(j => { html += '<option value="' + _rpInvitationTexte(j.name) + '">' + _rpInvitationTexte(j.name) + '</option>'; });
   html += '</select>';
-  html += '<button onclick="envoyerInvitationOrga(\'' + orgaId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Envoyer l\'invitation</button>';
+  html += '<button onclick="' + _rpInvitationTexte('envoyerInvitationOrga(' + JSON.stringify(orgaId) + ')') + '" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer" data-i18n="organizationAdmissions.send">Envoyer l\'invitation</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+  globalThis.RPI18nPlateau?.apply(document.getElementById('postes-modal-title'));
+  globalThis.RPI18nPlateau?.apply(document.getElementById('postes-body'));
 }
 
 // Envoie l'invitation par mail prive, avec deux boutons integres au corps du message (identique

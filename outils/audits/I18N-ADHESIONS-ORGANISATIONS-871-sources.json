@@ -1,0 +1,42 @@
+{
+  "baseCommit": "7a52048ef85fc931f3fececa25af5fee2ee35778",
+  "rows": [
+    [
+      "requestDay",
+      "Demande du Jour "
+    ],
+    [
+      "invite",
+      "Inviter"
+    ],
+    [
+      "searching",
+      "Recherche des personnages..."
+    ],
+    [
+      "noInvitee",
+      "Aucun personnage disponible à inviter."
+    ],
+    [
+      "privacy",
+      "L'invitation est privée : seul(e) le/la destinataire en a connaissance."
+    ],
+    [
+      "send",
+      "Envoyer l'invitation"
+    ]
+  ],
+  "reusedKeys": [
+    "sovarkaDroits.requests",
+    "sovarkaPartis.noRequest",
+    "sovarkaPartis.accept",
+    "sovarkaDroits.refuse"
+  ],
+  "newForeignTranslations": 48,
+  "reusedForeignTranslations": 32,
+  "excluded": [
+    "grades RP",
+    "commandes métier",
+    "notifications #924"
+  ]
+}
