@@ -96,7 +96,7 @@ test('traduit dans les deux pays, jamais en français, texte inconnu intact', ()
 
 test('113 textes propres à Sovarka inchangés et prioritaires ; restent limités à Sovarka', () => {
   const avec = I('soviet', 'en'), sans = I('soviet', 'en', { communes: false });
-  assert.equal(avec.lignes.length, 129); // +2 le 14/11 : salle électorale de la mairie de Krasnov ; -1 le 14/11 : « Dormir » de la chambre devenu commun ; +1 le 14/11 : « Retrouver son chemin » (forêt de Krasnov) ; +4 le 14/11 : kolkhoze (légumes et œufs reformulés, anciennes formulations gardées ; traite ; caisse) ; +1 boutique de l’Étoile Rouge
+  assert.equal(avec.lignes.length, 131); // +2 le 14/11 : Tabac/Presse de Krasnov ; +2 le 14/11 : salle électorale de la mairie de Krasnov ; -1 le 14/11 : « Dormir » de la chambre devenu commun ; +1 le 14/11 : « Retrouver son chemin » (forêt de Krasnov) ; +4 le 14/11 : kolkhoze (légumes et œufs reformulés, anciennes formulations gardées ; traite ; caisse) ; +1 boutique de l’Étoile Rouge
   assert.equal(JSON.stringify(avec.lignes), JSON.stringify(sans.lignes));
   for (const l of avec.lignes) assert.equal(avec.desc(l[0]), sans.desc(l[0]));
   const propre = 'Voir les présidents qui ont marqué Sovarka.';
