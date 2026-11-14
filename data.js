@@ -2486,6 +2486,27 @@ const WORLD = {
               personsVides: true
             }
           }
+        },
+        // Salle des élections de Starovka (Fred, 14/11/2026) : les habitants n'avaient nulle part où voter
+        // aux municipales. Mêmes ordres que Novomirsk et Krasnov ; image, PNJ et textes propres viendront
+        // avec le tour de Starovka (Fred).
+        'mairie': {
+          roomsExtra: {
+            salle_elections: {
+              name: 'Salle des élections',
+              imageBg: 'linear-gradient(135deg,#141a20,#222a33)',
+              desc: 'Petit bureau de vote municipal doté de deux isoloirs.',
+              persons: [],
+              orders: [
+                {fn:'consulter_elections', label:'Voir les candidats', pa:0, cost:0, type:'legal', icon:'ti-list', successRate:100, desc:'Consulter les candidats et les scrutins de la ville.'},
+                {fn:'voter_election', label:'Voter', pa:0, cost:0, type:'legal', icon:'ti-checkbox', successRate:100, desc:'Voter si un scrutin est ouvert et si vous êtes électeur habilité.'},
+                {fn:'contester_resultats',  label:'Contester des resultats',    pa:2, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:60,  desc:'Dans les 24h suivant la proclamation, pour tout electeur habilite pour ce scrutin. Peut reveler une fraude.'},
+                {fn:'falsifier_listes_electorales', label:'Falsifier les listes electorales', pa:2, cost:0, type:'illegal', icon:'ti-file-x', successRate:70, desc:'Reserve au maire ou a l\'adjoint au maire sortant de cette ville. Ajoute 1 a 10 voix frauduleuses a un candidat.'},
+                {fn:'bourrer_urnes',        label:'Bourrer les urnes',          pa:1, cost:0,    type:'illegal', icon:'ti-ballot',        successRate:60, desc:'Pendant les 24h de vote, pour tout electeur inscrit sur ce scrutin. Ajoute 1 a 3 voix frauduleuses.'},
+                {fn:'truquer_depouillement', label:'Truquer le depouillement',  pa:2, cost:0,    type:'illegal', icon:'ti-scale',         successRate:75, desc:'Reserve au commissaire ou au juge. Ajoute ou retire 1 a 10 voix a un candidat.'}
+              ]
+            }
+          }
         }
       }
     },
@@ -2524,7 +2545,9 @@ const WORLD = {
             },
             bureau_maire_local: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_bureau_maire.webp' },
             bureau_maire_adjoint: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_bureau_adjoint.webp' },
-            salle_partis: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_salle_partis.webp' }
+            // Chef de cellule validé par Fred le 14/11/2026 (« doznanie » : enquête), homologue de Balatov.
+            salle_partis: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_salle_partis.webp',
+              persons: [{name:'Lieutenant Fiodor Doznaïev (PNJ)', role:'Chef de la cellule de validation et surveillance des partis', rel:'neutral', job:'responsable_election'}] }
           },
           roomsExtra: {
             salle_elections: {
@@ -2532,7 +2555,8 @@ const WORLD = {
               imageBg: 'linear-gradient(135deg,#181713,#2a2119)',
               imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_salle_elections.webp',
               desc: 'Petit bureau de vote municipal doté de deux isoloirs.',
-              persons: [],
+              // Nom proposé par Claude, validé par Fred le 14/11/2026 (« izbirkom » : commission électorale).
+              persons: [{name:'Zinaïda Izbirkova (PNJ)', role:'Responsable électorale de Krasnov', rel:'neutral', job:'responsable_election'}],
               orders: [
                 {fn:'consulter_elections', label:'Voir les candidats', pa:0, cost:0, type:'legal', icon:'ti-list', successRate:100, desc:'Consulter les candidats et les scrutins de la ville.'},
                 {fn:'voter_election', label:'Voter', pa:0, cost:0, type:'legal', icon:'ti-checkbox', successRate:100, desc:'Voter si un scrutin est ouvert et si vous êtes électeur habilité.'},
