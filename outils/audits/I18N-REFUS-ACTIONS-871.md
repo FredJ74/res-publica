@@ -61,5 +61,18 @@ corpus statique identifié. Ce plancher ne mesure pas l’ensemble du jeu. Les
 quinze corps de #924 ne sont pas comptés comme traduits dans cette livraison.
 Zéro erreur d’extraction. Mesures complètes dans le JSON associé.
 
-CI, fusion et production à terminer. Pas de session PJ authentifiée, téléphone physique ou revue native.
+## Contrôles de livraison
+
+La CI dédiée et les tests de non-régression du moteur passent. Les contrôles
+`republia`, `socle` et `descriptions-tactiles` retrouvent deux inventaires devenus
+périmés après les nouveaux ordres d’hôpital arrivés sur main pendant les essais
+(247 au lieu de 246, 153 au lieu de 151). Reproduction indépendante sur main
+`406d578` : 21/23, mêmes deux échecs. Le contrôle SSM habituel retrouve ses trois
+échecs connus ; le banc tribunal supplémentaire ajoute une attente PNG alors
+que main utilise WebP : ensemble 14/18 sur main comme sur la branche.
+Ces chantiers étrangers ne sont pas modifiés pour rendre la CI verte.
+Aucune régression nouvelle identifiée. Main 406d578 intégré sans modifier ses
+fichiers métier ; les preuves de périmètre restent figées au commit propre fa52c5e.
+
+Fusion et production à terminer. Pas de session PJ authentifiée, téléphone physique ou revue native.
 Aucune migration, fonction serveur ou mécanique des Tsars modifiée.

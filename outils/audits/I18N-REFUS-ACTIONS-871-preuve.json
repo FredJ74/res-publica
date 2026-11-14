@@ -16,5 +16,29 @@
   "nodeTestsPassed": 46,
   "chromiumSuiteTestsPassed": 4,
   "chromiumRefusalSwitches": 1728,
-  "realSharedCatalogSwitchesPassed": 1728
+  "realSharedCatalogSwitchesPassed": 1728,
+  "baselineAdditionalFailures": {
+    "reference": "406d578",
+    "descriptionSuite": {
+      "tests": 23,
+      "passed": 21,
+      "failed": 2,
+      "messages": [
+        "247 !== 246",
+        "153 !== 151"
+      ]
+    },
+    "ssmSuite": {
+      "tests": 18,
+      "passed": 14,
+      "failed": 4,
+      "sameOnBranch": true
+    },
+    "legacyCostsForum": {
+      "tests": 10,
+      "passed": 9,
+      "failed": 1,
+      "sameOnBranch": true
+    }
+  }
 }
