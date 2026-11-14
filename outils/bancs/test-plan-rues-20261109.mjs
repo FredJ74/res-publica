@@ -51,7 +51,10 @@ test('Plan déduit des rues : chaque bâtiment visible en rue figure une seule f
       const noeuds = RUE_CENTRALE_NOEUDS['${p}'];
       const plan = calculerPlanRues(noeuds, depart);
       const attendus = new Set();
-      for (const id of Object.keys(plan.noeuds)) for (const z of noeuds[id].zones || []) if (z.buildingId) attendus.add(z.buildingId);
+      for (const id of Object.keys(plan.noeuds)) {
+        for (const z of noeuds[id].zones || []) if (z.buildingId) attendus.add(z.buildingId);
+        if (noeuds[id].nomLieu) attendus.add('lieu:' + id);
+      }
       const d = dessinerPlanRues(plan, {});
       return { attendus: [...attendus], legende: d.legende, svg: d.svg };
     })()`, ctx);
@@ -150,4 +153,10 @@ test('Aucun repère de bâtiment posé sur une rue (14/11/2026, hôpital de Kras
     })()`, ctx);
     assert.ok(r > 14, `${p}/${v} : un repère touche une rue (${r.toFixed(1)} px)`);
   }
+});
+
+test('Krasnov : la place de l’Ours figure au plan (14/11/2026)', () => {
+  const { ctx } = charger();
+  const l = vm.runInContext(`dessinerPlanRues(calculerPlanRues(RUE_CENTRALE_NOEUDS.soviet, RUE_CENTRALE_DEPART.soviet.ville_b), {}).legende`, ctx);
+  assert.ok(l.some(x => x.nom === "Place de l'Ours" && x.noeud === 'krasnov-place-ours'), 'repère « Place de l’Ours » dans la légende');
 });

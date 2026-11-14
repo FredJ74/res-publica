@@ -281,6 +281,9 @@ function calculerPlanRues(noeudsPays, depart, options) {
       else cote = 0; // au bout de la rue
       batiments.push({ id: z.buildingId, nom: z.nom || z.buildingId, noeud: id, cote: (regard[id] + cote) % 4, coteRelatif: cote, ordre, lateral });
     });
+    // Lieu nommé qui n'est pas un bâtiment (14/11/2026 : place de l'Ours de Krasnov, simple vue sans
+    // intérieur) : la vue porte `nomLieu` et reçoit son propre repère, posé devant elle.
+    if (n.nomLieu) batiments.push({ id: 'lieu:' + id, nom: n.nomLieu, noeud: id, cote: regard[id], coteRelatif: 0, ordre: 0.5, lateral: true, lieu: true });
   }
 
   const sortie = {};

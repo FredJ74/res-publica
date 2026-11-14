@@ -6,6 +6,9 @@ Règles : voir `AGENTS.md`.
 
 > **Rangé le 11/11/2026 (Claude)** : les chantiers terminés ont été déplacés mot pour mot dans [`RELAIS-ARCHIVE-2026-11.md`](RELAIS-ARCHIVE-2026-11.md) (chercher par mot-clé : branche, PR, migration). Garder ici seulement ce qui est en cours, attendu ou à vérifier ; un chantier fusionné passe en une ligne dans « Derniers chantiers ».
 
+### Plan de Krasnov : la place de l'Ours y figure (Claude, 14/11/2026)
+Branche `claude/plan-place-ours-20261114`. Signalé par Fred : la place de l'Ours n'apparaissait pas au plan. Ce n'est pas un bâtiment (simple vue `krasnov-place-ours`, sans intérieur), or le plan ne posait que des bâtiments. Une vue peut désormais porter `nomLieu` (`plateau-rue-centrale.js`) : `calculerPlanRues` lui donne son propre repère et une ligne de légende (id `lieu:<vue>`). Écran seul. Banc `test-plan-rues-20261109.mjs` 10/10 (garde ajoutée). **À vérifier en jeu** : plan de Krasnov.
+
 ### Plan de Krasnov avec l'hôpital : repères hors des rues (Claude, 14/11/2026)
 Branche `claude/plan-krasnov-hopital-20261114`. Demande de Fred : refaire le plan de Krasnov avec l'hôpital. Le plan étant déduit des rues, la rue de l'hôpital y figurait déjà (impasse au nord de la vue du centre d'affaires), mais le repère du centre d'affaires tombait dessus (même côté de la vue). `dessinerPlanRues` (`plateau-plan-rues.js`) écarte désormais tout repère de la chaussée ; vaut pour les six villes (Luthécia avait aussi un repère sur une rue). Garde ajoutée à `test-plan-rues-20261109.mjs` (9/9). **À vérifier en jeu** : plan de Krasnov.
 
