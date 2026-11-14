@@ -1058,6 +1058,40 @@ async function validerIdentifiants() {
   }
 }
 
+// Corps fixes de création : uniquement des marqueurs pour le moteur existant.
+// Les valeurs (nom/motif) sont du texte, jamais du HTML ni une clé de traduction.
+function rpAnnoterCorpsErreurCreation(zone, texteTitre, cle, values) {
+  const parties = {
+    otherOwned:['OtherOwnedBody','OtherOwnedHint'],
+    nameTaken:['NameTakenBody','NameTakenHint'],
+    accountOwned:['AccountOwnedBody','AccountOwnedHint'],
+    genderMissing:['GenderMissingBody','GenderMissingHint'],
+    sessionExpired:['SessionExpiredBody','SessionExpiredHint'],
+    generic:['GenericBody']
+  }[cle];
+  if (!zone || !Array.isArray(parties) || typeof i18next === 'undefined' || typeof i18next.t !== 'function') return false;
+  const titre = document.createElement('strong');titre.textContent = texteTitre;
+  const keys = parties.map(k => 'connectionUi.characterCreation' + k);
+  const french = keys.map(key => i18next.t(key, {lng:'fr',defaultValue:null,values,replace:{...values,values}}));
+  if (french.some((text,i) => typeof text !== 'string' || text === keys[i] || /\{\{[^}]+\}\}/.test(text))) return false;
+  const fragment = document.createDocumentFragment();
+  fragment.append(titre,document.createElement('br'));
+  for (let i=0;i<keys.length;i++) {
+    const span = document.createElement('span');
+    span.textContent = french[i];
+    span.setAttribute('data-i18n',keys[i]);
+    span.setAttribute('data-i18n-fallback',french[i]);
+    if (values) span.setAttribute('data-i18n-values',JSON.stringify(values));
+    if (i===0) fragment.append(span);
+    else {
+      const em = document.createElement('em');em.append(span);
+      fragment.append(document.createElement('br'),document.createElement('br'),em);
+    }
+  }
+  zone.replaceChildren(fragment);
+  return true;
+}
+
 async function validateChar(){
   // CREATION NON DESTRUCTRICE (chantier B, 14 septembre 2026).
   // Jusqu'ici cette fonction ecrivait le personnage sans attendre le resultat, par un chemin
@@ -1099,7 +1133,7 @@ async function validateChar(){
     }
     if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
   };
-  const afficherErreurCreation = function (titre, message) {
+  const afficherErreurCreation = function (titre, message, _rpCorpsCle, _rpCorpsValeurs) {
     let zone = document.getElementById('creation-erreur');
     if (!zone) {
       zone = document.createElement('div');
@@ -1109,7 +1143,11 @@ async function validateChar(){
       const hote = ecranCreation || document.body;
       hote.insertBefore(zone, hote.firstChild);
     }
-    zone.innerHTML = '<strong>' + titre + '</strong><br>' + message;
+    const _rpCorpsRendu = typeof rpAnnoterCorpsErreurCreation === 'function' &&
+      rpAnnoterCorpsErreurCreation(zone, titre, _rpCorpsCle, _rpCorpsValeurs);
+    if (!_rpCorpsRendu) {
+      zone.innerHTML = '<strong>' + titre + '</strong><br>' + message;
+    }
     // Seul le titre fixe est marqué ; le corps et ses valeurs restent intacts.
     const _rpTitreCreation = zone.querySelector('strong');
     const _rpCleTitreCreation = {
@@ -1258,7 +1296,7 @@ async function validateChar(){
           afficherErreurCreation('Vous avez deja un personnage',
             'Ce compte possede deja « ' + personnageDuCompte + ' » : Republia n\'en autorise ' +
             'qu\'un seul par compte. Changer de nom n\'y changera rien.<br><br>' +
-            '<em>Retournez a l\'accueil pour le reprendre.</em>');
+            '<em>Retournez a l\'accueil pour le reprendre.</em>', 'otherOwned', {name:personnageDuCompte});
           return;
         }
 
@@ -1273,26 +1311,26 @@ async function validateChar(){
             'Un personnage nomme « ' + char.name + ' » existe deja dans Republia. ' +
             'Choisissez un autre nom : revenez a l\'etape precedente pour le modifier.<br><br>' +
             '<em>Si ce personnage est le votre et que vous avez perdu l\'acces, utilisez ' +
-            '« Retrouver mon personnage » depuis l\'accueil plutot que d\'en recreer un.</em>');
+            '« Retrouver mon personnage » depuis l\'accueil plutot que d\'en recreer un.</em>', 'nameTaken', {name:char.name});
         } else if (creation.raison === 'compte_a_deja_un_personnage') {
           afficherErreurCreation('Vous avez deja un personnage',
             'Ce navigateur est deja lie a un personnage : Republia n\'en autorise qu\'un seul par ' +
             'compte. Changer de nom n\'y changera rien.<br><br>' +
             '<em>Retournez a l\'accueil pour le reprendre. Pour en creer un autre, il faut ' +
-            'd\'abord detruire celui que vous possedez, depuis sa fiche.</em>');
+            'd\'abord detruire celui que vous possedez, depuis sa fiche.</em>', 'accountOwned');
         } else if (creation.raison === 'genre_requis') {
           afficherErreurCreation('Genre manquant',
             'Le genre de votre personnage est obligatoire. Revenez a l\'etape de l\'identite pour ' +
-            'le choisir, puis validez de nouveau.<br><br><em>Rien n\'a ete perdu.</em>');
+            'le choisir, puis validez de nouveau.<br><br><em>Rien n\'a ete perdu.</em>', 'genderMissing');
         } else if (creation.raison === 'session_perimee') {
           afficherErreurCreation('Session expiree',
             'La session de ce navigateur n\'est plus reconnue par le serveur. Rechargez la page : ' +
             'une nouvelle session sera ouverte et la creation fonctionnera.<br><br>' +
-            '<em>Aucun nom n\'est en cause — inutile d\'en changer.</em>');
+            '<em>Aucun nom n\'est en cause — inutile d\'en changer.</em>', 'sessionExpired');
         } else {
           afficherErreurCreation('Creation impossible',
             'Votre personnage n\'a pas pu etre enregistre (' + (creation.raison || 'erreur inconnue') + '). ' +
-            'Verifiez votre connexion et reessayez ; rien n\'a ete perdu.');
+            'Verifiez votre connexion et reessayez ; rien n\'a ete perdu.', 'generic', {reason:creation.raison || 'erreur inconnue'});
         }
         // On NE quitte PAS cet ecran : le joueur corrige et revalide.
         // Le cache local a ete ecrit plus haut, avant l'aller-retour reseau : on le retire
