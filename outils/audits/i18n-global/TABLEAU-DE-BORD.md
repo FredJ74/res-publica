@@ -1,6 +1,6 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `3304434271ffd988d46a604327146fa8b47f49da`. Empreinte du corpus : `dc517203a19de54cd8940d0500c7cbdedd989f9ff33f79ab658a8ee17d9e5285`.
+Base analysée : `1405fcdf86c4b5f7a0e0f8e77143d884bd50709d`. Empreinte du corpus : `33afc4b0a79be0b1645e82ff7fe5a6142db0dde77431f3e1024e9584cc04012a`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 
@@ -22,14 +22,14 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 | Langue | Corpus | Raccordés prouvés* | Taux textes* | Taux mots* | Ressource disponible** | Mots à traiter/vérifier |
 |---|---:|---:|---:|---:|---:|---:|
 | Français | 7587 | 7587 | 100.00 % | 100.00 % | 7587 | 0 |
-| Anglais | 7587 | 1020 | 13.44 % | 24.33 % | 1570 | 38534 |
-| Espagnol | 7587 | 1027 | 13.54 % | 24.34 % | 1586 | 38526 |
-| Chinois traditionnel | 7587 | 1029 | 13.56 % | 24.35 % | 1592 | 38524 |
-| Russe | 7587 | 1029 | 13.56 % | 24.35 % | 1591 | 38524 |
-| Coréen | 7587 | 1029 | 13.56 % | 24.35 % | 1592 | 38524 |
-| Arabe | 7587 | 1029 | 13.56 % | 24.35 % | 1591 | 38524 |
-| Portugais brésilien | 7587 | 1026 | 13.52 % | 24.34 % | 1588 | 38527 |
-| Allemand | 7587 | 1028 | 13.55 % | 24.35 % | 1588 | 38525 |
+| Anglais | 7587 | 1020 | 13.44 % | 24.33 % | 1578 | 38534 |
+| Espagnol | 7587 | 1027 | 13.54 % | 24.34 % | 1594 | 38526 |
+| Chinois traditionnel | 7587 | 1029 | 13.56 % | 24.35 % | 1600 | 38524 |
+| Russe | 7587 | 1029 | 13.56 % | 24.35 % | 1599 | 38524 |
+| Coréen | 7587 | 1029 | 13.56 % | 24.35 % | 1600 | 38524 |
+| Arabe | 7587 | 1029 | 13.56 % | 24.35 % | 1599 | 38524 |
+| Portugais brésilien | 7587 | 1026 | 13.52 % | 24.34 % | 1596 | 38527 |
+| Allemand | 7587 | 1028 | 13.55 % | 24.35 % | 1596 | 38525 |
 
 * Preuve statique stricte : clé explicite de même français, traducteur exporté/wrapper transparent, guide accepté par son garde d’intégrité ou description d’ordre reconnue par le résolveur existant dans son pays, dans chacune des huit langues. C’est un plancher de raccordements identifiés, pas la mesure de toutes les traductions qui fonctionnent. Les valeurs identiques au français restent à vérifier sauf sigles neutres documentés.
 
@@ -41,7 +41,7 @@ Les taux suivants portent seulement sur `static-render-path` : un chemin de rend
 |---|---:|---:|---:|---:|
 | Bâtiments et pièces | 993 | 713 | 51 | 2139 |
 | Courriers, notifications et journaux | 388 | 104 | 238 | 1217 |
-| Création et connexion | 158 | 94 | 47 | 388 |
+| Création et connexion | 158 | 94 | 39 | 388 |
 | Enquêtes, missions et objectifs | 898 | 0 | 833 | 5136 |
 | Interface générale et autres activités | 1954 | 96 | 1673 | 9747 |
 | Navigation et transports | 139 | 0 | 97 | 706 |
@@ -80,7 +80,7 @@ Les descriptions communes sont présentes dans plusieurs empires : ne pas additi
 
 ## Catalogue central et autres ressources
 
-Le catalogue central expose **3541 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4522 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
+Le catalogue central expose **3552 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (4533 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
 
 | Langue | Clés absentes | Variables incohérentes |
 |---|---:|---:|
@@ -107,9 +107,9 @@ Classement automatique à confirmer en jeu. `inventaire.json.gz` fournit texte, 
 
 ### Exemples de cibles sans ressource confirmée (à vérifier avant traduction)
 
-- Priorité 1 — La session de ce navigateur n'est plus reconnue par le serveur. Rechargez la page : une nouvelle session sera ouverte et la creati — `creation.js:1289` (23 mots source ; identifiant `0992d6e654559b672aa6`).
-- Priorité 1 — Si ce personnage est le votre et que vous avez perdu l'acces, utilisez « Retrouver mon personnage » depuis l'accueil plutot que d' — `creation.js:1273` (23 mots source ; identifiant `c736a3a6c07b70a9d058`).
-- Priorité 1 — Retournez a l'accueil pour le reprendre. Pour en creer un autre, il faut d'abord detruire celui que vous possedez, depuis sa fiche — `creation.js:1279` (22 mots source ; identifiant `cc7faa7b891a4a7bedc5`).
+- Priorité 1 — Un personnage nomme « {DYNAMIC} » existe deja dans Republia. Choisissez un autre nom : revenez a l'etape precedente pour le modifi — `creation.js:1311` (18 mots source ; identifiant `bf490625c1117307fd06`).
+- Priorité 1 — Explosifs et le poison local, sous le comptoir de la quincaillerie. Rien de tout cela n'est enregistré. — `data.js:1226` (17 mots source ; identifiant `6fa97f57ff99afd31bd3`).
+- Priorité 1 — Ce compte possede deja « {DYNAMIC} » : Republia n'en autorise qu'un seul par compte. Changer de nom n'y changera rien. — `creation.js:1297` (17 mots source ; identifiant `d022f3461ec3deffc8a7`).
 - Priorité 2 — Sans déclaration préalable. Il faut être le chef d'un groupe d'au moins 10 PJ présents sur la place. Chaque participant fait gagne — `plateau-communication.js:2696` (68 mots source ; identifiant `3aa1f0b09eca4a8dcd9c`).
 - Priorité 2 — Vous engagez la responsabilité de votre gouvernement devant l'Assemblée Nationale (9 sièges de députés). Vote sous 48h réelles. En — `plateau-politique.js:10334` (59 mots source ; identifiant `05e32526bf0eeb1365bf`).
 - Priorité 2 — ACTE ILLEGAL. 300 FR et 3 PA sont preleves A LA TENTATIVE, reussie ou non. Si la corruption est decouverte, vous n'obtenez rien et — `plateau-justice-economie.js:14494` (54 mots source ; identifiant `fea7c948803a7ffe7803`).

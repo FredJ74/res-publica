@@ -31,6 +31,18 @@ Replis sans traduction allemande, sans source française et sans moteur vérifi�
 432 bascules d’attente/titres et 54 par le vrai sélecteur/récapitulatif passent aussi
 avec les nouveaux corps. 43 tests Node ciblés verts.
 
-Bancs complémentaires, mesures, CI et production à terminer. Aucun compte ou
+Les six bancs complémentaires (explications, titres, compte, recherche, confirmation
+et connexion) passent : 18 tests au total, dont les vérifications navigateur.
+Mesure même extracteur sur main ccad268 et code 1405fcd : corpus inchangé
+7 587 textes/50 923 mots ; huit ressources supplémentaires / 126 mots source
+dans chaque langue étrangère. Aucun raccordement statique supplémentaire reconnu
+pour ces clés choisies par table ; les onze fragments sont prouvés en navigateur,
+sans gonfler le taux. Anglais : 24,33 % des mots statiques identifiés, pas de tout
+le jeu ; 29,81 % des mots disposent d’une ressource, raccordement à vérifier.
+Zéro erreur d’extraction.
+
+CI du code : huit contrôles verts, deux rouges étrangers déjà reproduits sur main
+(SSM et inventaires du socle). Contrôles du dernier push, fusion et production
+restent à vérifier. Aucun compte ou
 personnage réel créé, aucune donnée réelle lue/modifiée, aucune migration ou RPC
 modifiée. Pas de revue native ni téléphone physique.
