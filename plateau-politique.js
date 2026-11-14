@@ -12060,7 +12060,7 @@ function libelleIssueCombat(b) {
   const nom = b?.adversaire_nom || 'L’adversaire';
   if (b?.type === 'faune' && b.resultat) {
     const fins = { tues: nom + ' est abattu. Victoire.', neutralises: nom + ' est hors de combat. Victoire.',
-      fuite: nom + ' rompt le combat et s’enfuit entre les arbres. Pas de butin.',
+      fuite: nom + ' rompt le combat et s’enfuit entre les arbres : ni peau ni viande.',
       defaite: 'Vous êtes hors de combat.' };
     if (fins[b.resultat]) return fins[b.resultat];
   }
@@ -12072,7 +12072,21 @@ function libelleIssueCombat(b) {
   return 'Combat terminé.';
 }
 
-async function ouvrirPanneauCombat(batailleId) {
+// L'issue d'un combat s'écrit dans le journal d'événements, une seule fois, quand un ordre du joueur
+// le termine (Fred, 14/11/2026 : le journal plutôt que la boîte mail). Relire un rapport n'écrit rien.
+const combatsJournalises = new Set();
+function journaliserFinCombat(b) {
+  if (!b || b.statut === 'en_cours' || combatsJournalises.has(b.id) || typeof addJournalEntry !== 'function') return;
+  combatsJournalises.add(b.id);
+  const lieu = libelleLieuCombat(b.lieu);
+  let texte = (lieu ? lieu + ' : ' : 'Combat : ') + libelleIssueCombat(b);
+  const butin = Array.isArray(b.butin) ? b.butin.filter(o => o && o.nom && Number(o.qte) > 0) : [];
+  if (butin.length) texte += ' Butin : ' + butin.map(o => o.nom + ' ×' + Number(o.qte)).join(', ') + '.';
+  const gagne = (b.type === 'faune' && b.resultat) ? (b.resultat === 'tues' || b.resultat === 'neutralises') : (!!b.issue && b.issue === 'victoire_' + b.mon_camp);
+  addJournalEntry(escapeHtmlText(texte), gagne ? 'event-good' : 'event-bad');
+}
+
+async function ouvrirPanneauCombat(batailleId, options) {
   const contexte = contexteGroupePj();
   const e = await sbMilitaireBatailleEtat(batailleId || null);
   if (!contexteGroupePjValide(contexte)) return;
@@ -12093,6 +12107,7 @@ async function ouvrirPanneauCombat(batailleId) {
   }
 
   const fini = (b.statut !== 'en_cours');
+  if (fini && options?.journaliser) journaliserFinCombat(b);
   const lieuCombat = libelleLieuCombat(b.lieu);
   if (lieuCombat) html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">' + escapeHtmlText(lieuCombat) + '</div>';
   html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.8rem">Round ' + b.round_courant +
@@ -12266,7 +12281,7 @@ async function rafraichirApresRound(batailleId) {
     } else if (typeof sbGetTerrainState==='function') showToast('Occupation non confirmée','Le combat est enregistré ; la situation du terrain doit encore être relue.',false);
   }
   updateUI();
-  await ouvrirPanneauCombat(batailleId);
+  await ouvrirPanneauCombat(batailleId, { journaliser: true });
   return true;
 }
 
