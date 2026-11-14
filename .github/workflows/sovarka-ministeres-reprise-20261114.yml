@@ -1,0 +1,41 @@
+name: Sovarka - verification des ministeres lot 2 compatible
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sovarka-ministeres-reprise-20261114.yml'
+      - 'outils/bancs/banc-reprise-sovarka-ministeres-20261114.cjs'
+      - 'data.js'
+      - 'plateau-politique.js'
+      - 'plateau-gouvernement.js'
+      - 'plateau-sovarka-pouvoir.js'
+      - 'plateau-sovarka-partis.js'
+      - 'plateau-router.js'
+      - 'i18n/sovarka-partis-resources.js'
+      - 'migrations/20261114040000_sovarka_ministeres_lot2_sans_budget_obsolete.sql'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe du plateau
+        run: |
+          node --check data.js
+          node --check plateau-politique.js
+          node --check plateau-gouvernement.js
+          node --check plateau-sovarka-pouvoir.js
+          node --check plateau-sovarka-partis.js
+          node --check plateau-router.js
+          node --check i18n/sovarka-partis-resources.js
+      - name: Bancs de reprise et de traduction
+        run: |
+          node --test outils/bancs/banc-reprise-sovarka-ministeres-20261114.cjs outils/bancs/banc-i18n-sovarka-pouvoir-20261111.cjs outils/bancs/banc-i18n-sovarka-partis-20261111.cjs outils/bancs/banc-intitules-ministeres-empires.cjs
+      - name: Verification du diff
+        run: git diff --check
