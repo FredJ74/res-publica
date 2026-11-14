@@ -11342,7 +11342,11 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   // Seule PNJ de la classe (Fred, 14/11/2026) : l'institutrice de l'image, nom proposé par Claude (« gramota », savoir lire et écrire).
   Object.assign(piece(contexte('ville_b', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Alevtina Gramotova', 'Institutrice', 'professeur')],
     imageUrl: 'images/Sovarka/Krasnov/Krasnov_ecole_salle_classe.webp' }); // image de Fred (14/11/2026) ; mécanique de l'école à décider
-  Object.assign(contexte('ville_b', 'kolkhoze-spirituel'), { name: 'Église du Tractorisme de Krasnov', desc: 'Une église aux bulbes dorés, consacrée au Tractorisme : on y prie pour la récolte et la santé des moteurs.' });
+  Object.assign(contexte('ville_b', 'kolkhoze-spirituel'), { name: 'Église du Tractorisme de Krasnov', desc: 'Une église aux bulbes dorés, consacrée au Tractorisme : on y prie pour la récolte et la santé des moteurs.',
+    // Fred (14/11/2026) : à Krasnov, c'est une église, pas un kolkhoze ; même ordre (faire_don), seul le libellé change.
+    roomOverrides: { grange_sainte: { excludeOrders: ['faire_don'], orders: [
+      {fn:'faire_don', label:'Donner à l’Église', pa:0, cost:0, type:'legal', icon:'ti-coins', successRate:100, desc:'Don libre en PSK. Sans PA. Bonus proportionnels, plafonnés à +10 piété et +6 popularité par jour.'}
+    ] } } });
   const musee = contexte('ville_b', 'musee-novomirsk');
   Object.assign(musee, { name: 'Musée de Krasnov', desc: 'Le musée du kolkhoze : machines agricoles d\'époque, records de récolte et portraits des tractoristes émérites.' });
   ['hall', 'salle_criminels', 'salle_maires', 'salle_personnalites', 'salle_entrepreneurs', 'salle_organisations', 'salle_plumes', 'salle_honneur_militaire', 'salle_unions', 'salle_scandales']
