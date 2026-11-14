@@ -988,6 +988,9 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 - **Prénom de Nadejda Tenkova conservé**, même si la lieutenante Nadejda Sokolova de Krasnov porte le même prénom.
 - **Approvisionnement de nuit des entrepôts de Sovarka** : le port de Sovarka fonctionne **exactement comme celui de Républia** (le port de PSM nourrit chaque nuit les entrepôts de Républia ; celui de Sovarka nourrit ceux de Sovarka). Novomirsk terminé selon Fred ; on passe à Krasnov.
 
+## Centre commercial de Krasnov : quatre box à 20 PSK (Fred, 14/11/2026)
+- Les quatre box du centre commercial sont identiques : **plafond de loyer 20 PSK/jour chacun** (au lieu de 100 / 50 / 19 / 10 hérités du gabarit). Libellés « Box commercial 1 » à 4. Codé : migration `20261114204000_krasnov_centre_commercial_quatre_box_20_psk` (registre `krasnov_centre_commercial_quatre_box_20_psk_20261114`).
+
 ## Maisonnettes de Krasnov (Fred, 14/11/2026)
 
 - Décision de Fred : chaque maisonnette en bois visible dans les vues de rue de Krasnov est cliquable et abrite **un habitant**, sur le modèle de la maison de Stepan (service du jour, repas, lit, trinquer). Migration `20261114180000_krasnov_maisonnettes`.
