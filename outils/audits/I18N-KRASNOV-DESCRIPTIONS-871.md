@@ -8,13 +8,15 @@ Le résolveur existant et le rafraîchissement de la pièce ouverte sont inchang
 
 - 9 tests ciblés verts, dont 270 bascules Chromium, neuf langues et largeurs 320/390/1280. Texte français, suffixes dynamiques, saisie, sélection, focus, position, progression, inventaire, PA et argent conservés ; aucun appel métier supplémentaire. Repli français vérifié quand une traduction manque.
 - Ancien banc des descriptions : main 431d69e = 4 réussites/1 échec (10 descriptions manquantes), branche = 5/5.
-- 43 contrôles de non-régression : mêmes 42 réussites/1 échec sur main et branche. L’ancienne phrase « Impossible de restaurer la position depuis le serveur. » a été retirée des sources par les correctifs de navigation de main ; le contrôle des corps de notifications la détecte désormais comme obsolète. Ce lot ne modifie ni ce catalogue ni les correctifs.
+- 43 contrôles de non-régression : mêmes 42 réussites/1 échec sur main 354b728 et branche. L’ancienne phrase « Impossible de restaurer la position depuis le serveur. » a été retirée des sources par les correctifs de navigation de main ; le contrôle des corps de notifications la détecte désormais comme obsolète. Ce lot ne modifie ni ce catalogue ni les correctifs.
 - Compression déterministe des 84 catalogues, restitution exacte des sources, transport HTTP natif Chromium et intégrité des mécanismes vérifiés parmi ces contrôles.
-- Audit global sans erreur d’extraction, même méthode et mêmes 17 655 textes identifiés. Le plancher anglais reste 25,21 % des mots statiques reconnus : l’extracteur ne reconnaît pas les nouveaux raccordements de descriptions de pièces. Ce chiffre ne mesure pas tout le jeu. Les dix descriptions sont vérifiées séparément dans le navigateur.
+- Audit global sans erreur d’extraction, même méthode et mêmes 17 657 textes identifiés. Le plancher anglais reste 25,21 % des mots statiques reconnus : l’extracteur ne reconnaît pas les nouveaux raccordements de descriptions de pièces. Ce chiffre ne mesure pas tout le jeu. Les dix descriptions sont vérifiées séparément dans le navigateur.
+
+PR [#969](https://github.com/FredJ74/res-publica/pull/969) en brouillon. Commits de code `fa0232c` puis `f3356f7`, intégration de main `bb30797`. Les derniers commits suivants portent les tests et les preuves.
 
 ## Blocage de livraison
 
-Main contient 347 905 696 octets de payload simulé (331,8 Mo) pour un plafond de 346 030 080 octets (330 Mo), dépassé depuis les images du musée. La branche contient 347 910 317 octets, soit +4 621 octets. Le plafond et les images sont inchangés. La garde de déploiement est donc rouge sur les deux versions. Ne pas fusionner ou annoncer ce lot déployé tant que le budget de main n’est pas rétabli ou explicitement arbitré. Aucune recette PJ authentifié, téléphone physique ou relecture native effectuée.
+Main contient 347 905 757 octets de payload simulé (331,8 Mo) pour un plafond de 346 030 080 octets (330 Mo), dépassé depuis les images du musée. La branche contient 347 910 378 octets, soit +4 621 octets. Le plafond et les images sont inchangés. La garde de déploiement est donc rouge sur les deux versions. Ne pas fusionner ou annoncer ce lot déployé tant que le budget de main n’est pas rétabli ou explicitement arbitré. Aucune recette PJ authentifié, téléphone physique ou relecture native effectuée.
 
 Les migrations et images arrivées par intégration de main sont celles des autres chantiers ; aucune migration n’a été exécutée dans cette mission.
 

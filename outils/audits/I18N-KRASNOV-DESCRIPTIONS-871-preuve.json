@@ -19,7 +19,8 @@
     "mainFailed": 1,
     "branchPassed": 42,
     "branchFailed": 1,
-    "failure": "Corps de notification retiré des sources par les correctifs de position de main : Impossible de restaurer la position depuis le serveur."
+    "failure": "Corps de notification retiré des sources par les correctifs de position de main : Impossible de restaurer la position depuis le serveur.",
+    "baseCommit": "354b7286c57366719b38dbd6b56e1d10938bfa6e"
   },
   "baselineDescriptionsBank": {
     "passed": 4,
@@ -32,8 +33,8 @@
     "missingTexts": 0
   },
   "payload": {
-    "mainBytes": 347905696,
-    "branchBytes": 347910317,
+    "mainBytes": 347905991,
+    "branchBytes": 347910612,
     "deltaBytes": 4621,
     "limitBytes": 346030080,
     "bothOverLimit": true,
@@ -50,5 +51,8 @@
   },
   "authenticatedPlayerTest": false,
   "physicalPhoneTest": false,
-  "nativeLinguisticReview": false
+  "nativeLinguisticReview": false,
+  "integrationMainCommit": "354b7286c57366719b38dbd6b56e1d10938bfa6e",
+  "integrationCodeCommit": "bb3079761c882f90f05a8d2ebdd19486383af65d",
+  "pr": 969
 }

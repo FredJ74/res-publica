@@ -1,17 +1,17 @@
 # Tableau de bord internationalisation — Human Gambit
 
-Base analysée : `f3356f7bcd12dfc4a62e5163b39b843a862950ae`. Empreinte du corpus : `55a44eb290a09221623e488120dda488d413824285bec7f9dae091438ae1154a`.
+Base analysée : `bb3079761c882f90f05a8d2ebdd19486383af65d`. Empreinte du corpus : `fc9e8be93848a8ef5041d2047aa33eeb1a40b770a41407376fec48d50eb7810c`.
 
 **Mesure technique du corpus identifié, pas pourcentage certifié de tout le jeu.** Le français est la référence, pas une traduction. Aucune qualité linguistique native certifiée.
 
-**17655 textes distincts repérés**, 31479 occurrences dans les sources. 231 fichiers JS/HTML et 539 fichiers SQL analysés.
+**17657 textes distincts repérés**, 31481 occurrences dans les sources. 231 fichiers JS/HTML et 539 fichiers SQL analysés.
 
 ## Périmètre et certitude
 
 | Classe | Textes uniques | Mots source |
 |---|---:|---:|
 | static-render-path | 7594 | 50963 |
-| candidate-review | 7773 | 65110 |
+| candidate-review | 7775 | 65116 |
 | server-source-review | 966 | 14173 |
 | ai-context-not-output | 1322 | 55855 |
 
@@ -80,7 +80,7 @@ Les descriptions communes sont présentes dans plusieurs empires : ne pas additi
 
 ## Catalogue central et autres ressources
 
-Le catalogue central expose **5063 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (6076 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
+Le catalogue central expose **5063 clés françaises**. Les tables locales, guides et matrices sont inventoriés séparément (6077 enregistrements après déduplication structurelle). Les traductions supplémentaires sans français de référence ne sont pas artificiellement ajoutées au dénominateur.
 
 | Langue | Clés absentes | Variables incohérentes |
 |---|---:|---:|
@@ -101,7 +101,7 @@ Le catalogue central expose **5063 clés françaises**. Les tables locales, guid
 | 1 | 180 | Compréhension d’un ordre, d’un refus ou entrée dans le jeu |
 | 2 | 9983 | Commandes et messages de gameplay |
 | 3 | 2925 | Compréhension d’une mission ou interaction narrative |
-| 4 | 2154 | Description ou repère de lieu |
+| 4 | 2156 | Description ou repère de lieu |
 
 Classement automatique à confirmer en jeu. `inventaire.json.gz` fournit texte, identifiant, fichier, ligne, pays et ressources candidates ; `priorites.json.gz` fournit les langues manquantes et les branchements à vérifier. Les descriptions Républia restantes ne sont pas traduites par cet audit.
 
