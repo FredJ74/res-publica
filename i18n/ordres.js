@@ -27,6 +27,7 @@
    "Faire un don a l'Eglise":'don_eglise',
    'Faire une offrande':'don_offrande',
    'Donner au Kolkhoze':'don_kolkhoze',
+   'Donner à l’Église':'don_eglise_tractorisme',
    'Offrir des loukoums':'don_loukoums'
   }),
   propagande_etat:Object.freeze({

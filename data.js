@@ -2513,6 +2513,33 @@ const WORLD = {
             grand_appartement_4: { name: "Appartement deux chambres n°4", imageUrl: 'images/Sovarka/Krasnov/Krasnov_immeuble_commercial_appartement_2_chambres.webp' },
           }
         },
+        // Hôtel de ville de Krasnov : illustrations des cinq pièces.
+        // Les ordres et les mandats existants restent ceux du gabarit partagé.
+        'mairie': {
+          name: 'Mairie de Krasnov',
+          roomOverrides: {
+            accueil_mairie: {
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_accueil.webp',
+              persons: [{name:'Secrétaire municipale de Krasnov (PNJ)', role:'Accueil administratif', rel:'neutral', job:'secretaire'}]
+            },
+            bureau_maire_local: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_bureau_maire.webp' },
+            bureau_maire_adjoint: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_bureau_adjoint.webp' },
+            salle_partis: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_salle_partis.webp' }
+          },
+          roomsExtra: {
+            salle_elections: {
+              name: 'Salle des élections',
+              imageBg: 'linear-gradient(135deg,#181713,#2a2119)',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_salle_elections.webp',
+              desc: 'Petit bureau de vote municipal doté de deux isoloirs.',
+              persons: [],
+              orders: [
+                {fn:'consulter_elections', label:'Voir les candidats', pa:0, cost:0, type:'legal', icon:'ti-list', successRate:100, desc:'Consulter les candidats et les scrutins de la ville.'},
+                {fn:'voter_election', label:'Voter', pa:0, cost:0, type:'legal', icon:'ti-checkbox', successRate:100, desc:'Voter si un scrutin est ouvert et si vous êtes électeur habilité.'}
+              ]
+            }
+          }
+        },
         // Décors de l'hôpital municipal de Krasnov (automne) : les salles et les
         // ordres restent ceux du gabarit partagé. Ne pas dupliquer la logique métier.
         'dispensaire-public-v': {
@@ -11342,7 +11369,11 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   // Seule PNJ de la classe (Fred, 14/11/2026) : l'institutrice de l'image, nom proposé par Claude (« gramota », savoir lire et écrire).
   Object.assign(piece(contexte('ville_b', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Alevtina Gramotova', 'Institutrice', 'professeur')],
     imageUrl: 'images/Sovarka/Krasnov/Krasnov_ecole_salle_classe.webp' }); // image de Fred (14/11/2026) ; mécanique de l'école à décider
-  Object.assign(contexte('ville_b', 'kolkhoze-spirituel'), { name: 'Église du Tractorisme de Krasnov', desc: 'Une église aux bulbes dorés, consacrée au Tractorisme : on y prie pour la récolte et la santé des moteurs.' });
+  Object.assign(contexte('ville_b', 'kolkhoze-spirituel'), { name: 'Église du Tractorisme de Krasnov', desc: 'Une église aux bulbes dorés, consacrée au Tractorisme : on y prie pour la récolte et la santé des moteurs.',
+    // Fred (14/11/2026) : à Krasnov, c'est une église, pas un kolkhoze ; même ordre (faire_don), seul le libellé change.
+    roomOverrides: { grange_sainte: { excludeOrders: ['faire_don'], orders: [
+      {fn:'faire_don', label:'Donner à l’Église', pa:0, cost:0, type:'legal', icon:'ti-coins', successRate:100, desc:'Don libre en PSK. Sans PA. Bonus proportionnels, plafonnés à +10 piété et +6 popularité par jour.'}
+    ] } } });
   const musee = contexte('ville_b', 'musee-novomirsk');
   Object.assign(musee, { name: 'Musée de Krasnov', desc: 'Le musée du kolkhoze : machines agricoles d\'époque, records de récolte et portraits des tractoristes émérites.' });
   ['hall', 'salle_criminels', 'salle_maires', 'salle_personnalites', 'salle_entrepreneurs', 'salle_organisations', 'salle_plumes', 'salle_honneur_militaire', 'salle_unions', 'salle_scandales']
