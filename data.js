@@ -2494,7 +2494,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
       desc:'Le kolkhoze collectif numéro 7. Production agricole pour la gloire du Parti.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','logements-novomirsk','terrain-a-batir-2','stade','zone-production','entrepot-logistique-krasnov','station-service-krasnov'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','logements-novomirsk','logements-krasnov-place-ours','terrain-a-batir-2','stade','zone-production','entrepot-logistique-krasnov','station-service-krasnov'],
       buildingContext: {
         // Immeuble social face à l'Universam : gabarit de logements collectifs
         // de Novomirsk, images distinctes, attribution communale inchangée.
@@ -7486,6 +7486,27 @@ const BUILDINGS = {
       }
     }
   },
+  // Krasnov : immeuble à écriteaux visible depuis la rue de la mairie.
+  // Seul le hall est prêt : les appartements seront définis avec leurs images
+  // lors de la prochaine étape. Ne jamais réutiliser les baux de Novomirsk.
+  'logements-krasnov-place-ours': {
+    name: 'Immeuble de la place de l’Ours',
+    shortName: 'Logements',
+    cat: 'Habitat',
+    icon: 'ti-building-community',
+    bgColor: '#181a1c',
+    desc: 'Immeuble collectif de Krasnov, face à la place de l’Ours. Les logements seront proposés prochainement.',
+    rooms: {
+      hall: {
+        name: "Hall d'immeuble",
+        imageBg: 'linear-gradient(135deg,#252321,#36322e)',
+        desc: 'L’entrée de l’immeuble. Les appartements seront accessibles après leur aménagement.',
+        persons: [],
+        orders: []
+      }
+    }
+  },
+
   // LOGEMENTS DE NOVOMIRSK (vue 14), decisions de Fred du 06/11/2026 : en Sovarka, tous les
   // logements hors suites sont sociaux, mecanique de Montrouge (demande a la mairie, attribution
   // par l'adjoint au maire, loyer a la commune). 4 petits a 10 PSK et 4 grands a 20 PSK ; serveur :
