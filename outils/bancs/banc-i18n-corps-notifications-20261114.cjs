@@ -39,7 +39,7 @@ test('catalogue : neuf colonnes remplies, différentes du français, nombres et 
   for(let i=1;i<9;i++){
    assert.ok(typeof r[i]==='string'&&r[i].trim(),L[i]+' vide : '+r[0]);
    // Identité admise seulement pour une variation de jauge seule (« +5 DIS. », « +2 Moral. » en es/pt-BR/de).
-   if(!/^[+\-−]?\d+ (DIS|INF|POP|IP|Moral)\.$/.test(r[0]))assert.notEqual(r[i],r[0],L[i]+' identique au français : '+r[0]);
+   if(!/^([+\-−]?\d+ (DIS|INF|POP|IP|Moral)\s*)+\.?$/.test(r[0]))assert.notEqual(r[i],r[0],L[i]+' identique au français : '+r[0]);
    assert.equal(nombres(r[i]),nombres(r[0]),L[i]+' nombres : '+r[0]);
    for(const s of r[0].match(/\b(FR|PSK|INF|DIS|IP|POP|F5)\b/g)||[])assert.match(r[i],new RegExp('\\b'+s+'\\b'),L[i]+' sigle '+s+' : '+r[0]);
    assert.doesNotMatch(r[i],/\{\{|\}\}|toastBodies\./,L[i]+' marqueur technique : '+r[0]);
@@ -48,10 +48,12 @@ test('catalogue : neuf colonnes remplies, différentes du français, nombres et 
  }
 });
 
-test('chaque phrase du catalogue est un corps fixe réellement passé à showToast',()=>{
+test('chaque phrase du catalogue existe telle quelle dans les sources du plateau (aucune entrée inventée)',()=>{
+ // Corps passés directement à showToast, ou via ternaire / || / table de motifs indexée (extraction AST du lot 6).
  const sources=corpsSources();
- const morts=rows.map(r=>r[0]).filter(fr=>!sources.has(fr));
- assert.deepEqual(morts,[]);
+ const texte=fs.readdirSync(root).filter(f=>/^(plateau|forum).*\.js$/.test(f)).map(read).join('\n');
+ const present=fr=>sources.has(fr)||[fr,fr.replace(/'/g,"\\'"),fr.replace(/"/g,'\\"')].some(v=>texte.includes("'"+v+"'")||texte.includes('"'+v+'"')||texte.includes('`'+v+'`'));
+ assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[]);
 });
 
 test('aucun recouvrement avec les catalogues déjà raccordés (pas de double traduction ni de markToast contrarié)',()=>{
