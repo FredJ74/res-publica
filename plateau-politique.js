@@ -7662,14 +7662,20 @@ async function confirmerPropositionGrace(idx, pa, cost) {
     return;
   }
 
-  const presidentInfoGrace = await getTitulaireActuel('president');
-  const presidentNom = presidentInfoGrace?.estPJ ? presidentInfoGrace.nom : null;
-  if (presidentNom && typeof sbSendMail === 'function') {
-    await sbSendMail('Ministère de la Justice', presidentNom, 'Recommandation de grâce',
-      'Le Ministre de la Justice recommande la grâce de ' + condamne.nom + ' (' + condamne.raison + '). Rendez-vous au palais pour traiter les demandes.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+  // En Sovarka, le dossier doit d'abord être transmis par le Président du Conseil.
+  const sovGrace = pays === 'soviet';
+  const destInfoGrace = await getTitulaireActuel(sovGrace ? 'pm' : 'president');
+  const destNom = destInfoGrace?.estPJ ? destInfoGrace.nom : null;
+  if (destNom && typeof sbSendMail === 'function') {
+    await sbSendMail('Ministère de la Justice', destNom,
+      sovGrace ? 'Grâce à transmettre' : 'Recommandation de grâce',
+      'Le Ministre de la Justice recommande la grâce de ' + condamne.nom + ' (' + condamne.raison + '). '
+      + (sovGrace ? 'Décidez depuis votre bureau si vous la transmettez au Président.' : 'Rendez-vous au palais pour traiter les demandes.'),
+      typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
   }
-  showToast('Recommandation envoyée', 'Le Président a été notifié. -' + cout + ' FR (frais de dossier).', true, true);
-  addJournalEntry('Grâce de ' + condamne.nom + ' recommandée au Président.', 'event-info');
+  showToast('Recommandation envoyée', (sovGrace ? 'Le Président du Conseil doit décider de la transmettre.' : 'Le Président a été notifié.')
+    + ' -' + cout + ' ' + (sovGrace ? 'PSK' : 'FR') + ' (frais de dossier).', true, true);
+  addJournalEntry('Grâce de ' + condamne.nom + (sovGrace ? ' en attente du Président du Conseil.' : ' recommandée au Président.'), 'event-info');
 }
 
 async function ouvrirModalGracier(pa, cost) {
@@ -14071,13 +14077,18 @@ async function ouvrirGardeRepublicaine() {
   if (state.poste?.id !== 'min_def') {
     showToast('Réservé au Ministre de la Défense', '', false); return;
   }
+  const sovGarde = state.country === 'soviet';
+  const gardeMonnaie = sovGarde ? 'PSK' : 'FR';
+  const tarifGarde = sovGarde ? 15 : 50;
   const etat = (typeof sbGardePiece === 'function')
-    ? await sbGardePiece('palais-presidentiel', 'accueil_elysee').catch(() => null) : null;
+    ? await (sovGarde ? sbGardePiece('palais-gouvernement', 'hall')
+                      : sbGardePiece('palais-presidentiel', 'accueil_elysee')).catch(() => null) : null;
 
-  document.getElementById('postes-modal-title').textContent = 'Garde républicaine';
+  document.getElementById('postes-modal-title').textContent = sovGarde ? 'Garde de la Patrie' : 'Garde républicaine';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.7rem">La Garde tient trois postes '
-        + 'nationaux : le Palais présidentiel, le Palais du Gouvernement et l\'Assemblée. '
+  html += '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.7rem">' + (sovGarde
+        ? 'La Garde de la Patrie tient le Palais du Gouvernement. '
+        : 'La Garde tient trois postes nationaux : le Palais présidentiel, le Palais du Gouvernement et l\'Assemblée. '.replace('\', ''))
         + 'Un garde permanent y est en faction gratuitement.</div>';
   if (etat && etat.renfort_actif === true) {
     html += '<div style="font-size:.8rem;color:#C9A84C;margin-bottom:.7rem">Un renfort est déjà en '
@@ -14091,7 +14102,7 @@ async function ouvrirGardeRepublicaine() {
     html += '<button onclick="confirmerGardeRenfort(' + f + ')" style="width:100%;font-family:Bebas Neue,sans-serif;'
           + 'font-size:.75rem;letter-spacing:.06em;padding:.5rem;border:1px solid #8a6a20;background:transparent;'
           + 'color:#C9A84C;cursor:pointer;margin-bottom:.35rem">×' + f + ' — ' + sup
-          + ' gardes de plus — ' + (sup * 50).toLocaleString('fr-FR') + ' FR</button>';
+          + ' gardes de plus — ' + (sup * tarifGarde).toLocaleString('fr-FR') + ' ' + gardeMonnaie + '</button>';
   }
   html += '<div style="font-size:.72rem;color:#8a8060;margin-top:.6rem;font-style:italic">Prélevé sur la '
         + 'caisse du Ministère. Un garde mis hors de combat n\'est pas remplacé ; seul le garde '
