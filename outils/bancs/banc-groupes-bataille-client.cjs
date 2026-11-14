@@ -8,7 +8,7 @@ function jeu(){
  c.localStorage={getItem:k=>c.storage.get(k),setItem:(k,v)=>c.storage.set(k,v),removeItem:k=>c.storage.delete(k)};
  c.sbMilitaireBatailleEtat=async()=>{c.lus++;return {ok:true,bataille:{round_courant:3}};};
  c.sbRpcVerdict=async(fn,p)=>{c.rpc.push([fn,p]);return {ok:true,round:4};};
- vm.runInContext(fonctions('plateau-multijoueur.js',['contexteGroupePj','contexteGroupePjValide'])+'\nlet SB_BATAILLE_COMMANDE_EN_COURS=null;\n'+fonctions('supabase.js',['sbCombatOuvrir','sbMilitaireCommande','sbMilitaireBatailleEngager','sbMilitaireBataillePoursuivre','sbMilitaireBatailleDecider'])+'\n'+fonctions('plateau-politique.js',['rafraichirApresRound','poursuivreCombat','messageRefusCombat']),c);
+ vm.runInContext(fonctions('plateau-multijoueur.js',['contexteGroupePj','contexteGroupePjValide'])+'\nlet SB_BATAILLE_COMMANDE_EN_COURS=null;\n'+fonctions('supabase.js',['sbCombatOuvrir','sbMilitaireCommande','sbMilitaireBatailleEngager','sbMilitaireBataillePoursuivre','sbMilitaireBatailleDecider'])+'\n'+'\nlet commandeCombatEnCours=false;\n'+fonctions('plateau-politique.js',['rafraichirApresRound','verrouillerCommandesCombat','avecVerrouCombat','poursuivreCombat','poursuivreCombatInterne','messageRefusCombat']),c);
  c.showToast=(...v)=>c.messages.push(v);c.updateUI=()=>{};c.ouvrirPanneauCombat=async()=>{};
  c.sbLoadPersonnage=async()=>({userId:'uid',pa:7,country:'republic',currentCity:'capitale',currentBuilding:'mairie',currentRoom:'accueil',group:null});
  c.sbInventaireReceptionEtat=async()=>null;

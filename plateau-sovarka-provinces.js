@@ -426,6 +426,7 @@ async function foretAller(sens) {
   if (Number(v.vue) === 0) showToast(provT('tOut'), provT(sens === 'retrouver' ? 'found' : 'out'), true);
   else if (v.egare === true) foretFenetrePerdu(provT(sens === 'retrouver' ? 'tStill' : 'tLost'), v.vue);
   else showToast(provT('tDeep'), provT('deeper'), true);
+  if (Number(v.vue) > 0) foretPrechargerImages();
 }
 
 // Rechargement ou arrivée en forêt profonde : relire l'égarement au serveur pour afficher le bon ordre.
@@ -434,7 +435,17 @@ async function foretRelirePerdu() {
   if (v?.ok === true && foretNoterPerdu(v) && /^foret_vue_[1-4]$/.test(state.currentRoom || '')) provForetRendre(state.currentRoom);
 }
 
+// Les illustrations des rencontres pèsent 300 à 360 Ko : on les charge pendant la coupe pour que la fenêtre
+// de la rencontre s'ouvre avec son image, au lieu d'un cadre vide le temps du téléchargement.
+let foretImagesPrechargees = false;
+function foretPrechargerImages() {
+  if (foretImagesPrechargees || typeof Image !== 'function') return;
+  foretImagesPrechargees = true;
+  Object.values(PROV_FORET_IMAGES).forEach(f => { const i = new Image(); i.decoding = 'async'; i.src = 'images/Sovarka/Krasnov/' + f; });
+}
+
 async function foretCouper() {
+  foretPrechargerImages();
   const v = await provActe('sovarka_foret_couper', {}, 'couper');
   if (!v) return;
   if (v.ok !== true) { if (v.raison === 'rencontre_en_cours') { await foretReprendreRencontre(); return; } provRefus(provT('tForest'), v); return; }
