@@ -6,6 +6,7 @@ on:
       - .github/workflows/position-authoritative-country-20261115.yml
       - plateau-rue-centrale.js
       - outils/bancs/test-position-authoritative-country-20261115.mjs
+      - outils/bancs/test-restore-position-api-20261115.mjs
 permissions:
   contents: read
 jobs:
