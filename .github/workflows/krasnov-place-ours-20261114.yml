@@ -1,0 +1,59 @@
+name: Krasnov place de l'Ours — conversion et vérifications
+on:
+  push:
+    branches: [feat/krasnov-place-ours-immeuble-20261114]
+    paths:
+      - 'data.js'
+      - 'plateau-rue-centrale.js'
+      - 'migrations/20261114194500_krasnov_place_ours_immeuble.sql'
+      - 'outils/bancs/test-krasnov-place-ours-20261114.mjs'
+      - '.github/workflows/krasnov-place-ours-20261114.yml'
+permissions:
+  contents: write
+jobs:
+  conversion-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Convertir le PNG et déplacer le WebP dans Krasnov
+        run: |
+          python -m pip install --quiet Pillow
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          d=Path('images')
+          sources=list(d.glob('Place sovi*.png'))
+          assert len(sources)==1,f'Image source unique attendue : {sources}'
+          src=sources[0]
+          target=d/'Sovarka'/'Krasnov'/'Krasnov_place_ours.webp'
+          assert not target.exists(),f'Cible déjà présente : {target}'
+          with Image.open(src) as im:
+            assert im.width>=1000 and im.height>=700,(src,im.size)
+            im.convert('RGB').save(target,'WEBP',quality=86,method=6)
+          with Image.open(target) as im:
+            assert im.format=='WEBP'
+          print(src,src.stat().st_size,'=>',target,target.stat().st_size)
+          src.unlink()
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Tests ciblés Krasnov
+        run: |
+          node --check data.js
+          node --check plateau-rue-centrale.js
+          node outils/bancs/test-krasnov-place-ours-20261114.mjs
+      - name: Versionner le décor
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- images
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets(krasnov): place de l Ours en WebP'
+            git push
+          fi
