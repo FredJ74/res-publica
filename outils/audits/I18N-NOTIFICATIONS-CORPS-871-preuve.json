@@ -1,0 +1,18 @@
+{
+  "baseCommit": "ca0b6885dde4806aaefa59498625a05fd5244ac0",
+  "codeCommit": "03f33cea0a27b5a21ae0d5a173d6d3a6e0211f1e",
+  "preparedBy": "Claude",
+  "integrationBy": "Codex",
+  "existingPhrases": 1429,
+  "existingForeignValues": 11432,
+  "initialToastTestsPassed": 16,
+  "initialTransportTestsPassed": 3,
+  "catalogsLosslesslyPacked": 84,
+  "sourceCatalogBytes": 4436092,
+  "packedCatalogBytes": 1249154,
+  "playerInputOpaque": true,
+  "integrationOngoing": true,
+  "previewVerified": false,
+  "merged": false,
+  "deployed": false
+}
