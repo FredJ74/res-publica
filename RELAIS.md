@@ -6,6 +6,9 @@ Règles : voir `AGENTS.md`.
 
 > **Rangé le 11/11/2026 (Claude)** : les chantiers terminés ont été déplacés mot pour mot dans [`RELAIS-ARCHIVE-2026-11.md`](RELAIS-ARCHIVE-2026-11.md) (chercher par mot-clé : branche, PR, migration). Garder ici seulement ce qui est en cours, attendu ou à vérifier ; un chantier fusionné passe en une ligne dans « Derniers chantiers ».
 
+### Commissariat de Krasnov : trois images (Claude, 14/11/2026, nuit)
+Branche `claude/commissariat-krasnov-images-20261114`. Images de Fred (générées par ChatGPT) en WebP : `images/Sovarka/Krasnov/Krasnov_commissariat_{accueil,bureau_commissaire,geoles}.webp`, déclarées dans `WORLD.soviet.ville_b.buildingContext['commissariat-local'].roomOverrides` (PNJ et ordres existants conservés). Écran seul. **À vérifier en jeu** : les trois pièces du commissariat de Krasnov.
+
 ### Stade Étoile Rouge de Krasnov : noms des PNJ (Claude, 14/11/2026, nuit)
 Branche `claude/stade-krasnov-pnj-20261114`. Noms proposés par Claude, validés par Fred (01 h 01), dans `PNJ_SOVARKA.ville_b` (`data.js`) : entraîneur Vsevolod Fedotov, commentateur Semione Klimov, buvette Avdotia Doubova, bookmaker Iossif Borissov, meneur des supporters Stiopa « le Tambour » Ossipov. `api/_pnj-sovarka-genere.js` et `api/_pnj-scenes-generes.js` régénérés (le second rattrape aussi des écarts antérieurs d'autres chantiers : Palais des Ambassades sans salle de réception, chambres des dispensaires, quelques PNJ renommés). Bancs PNJ verts.
 

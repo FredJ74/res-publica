@@ -2525,7 +2525,13 @@ const WORLD = {
         // du commissariat-local commun à Montrouge et Port-Sainte-Marie.
         'commissariat-local': {
           name: "Commissariat de Krasnov",
-          desc: "La police locale de Krasnov, installée face au stade."
+          desc: "La police locale de Krasnov, installée face au stade.",
+          // Images de Fred (14/11/2026) : accueil (cartes et affiche de l'Étoile Rouge), bureau du commissaire, geôles.
+          roomOverrides: {
+            accueil_loc: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_commissariat_accueil.webp' },
+            bureau_commissaire: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_commissariat_bureau_commissaire.webp' },
+            geoles: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_commissariat_geoles.webp' }
+          }
         },
         // Decor du marche interieur de Krasnov, distinct de la facade de rue.
         'marche': {
