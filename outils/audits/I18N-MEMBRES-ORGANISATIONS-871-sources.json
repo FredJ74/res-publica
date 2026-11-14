@@ -1,0 +1,30 @@
+{
+  "baseCommit": "1a5651a06fbb38600c3b453908b3bcbc832467fc",
+  "rows": [
+    [
+      "sinceDay",
+      "Depuis Jour "
+    ],
+    [
+      "promote",
+      "Monter en grade"
+    ],
+    [
+      "demote",
+      "Descendre en grade"
+    ],
+    [
+      "exclude",
+      "Exclure"
+    ]
+  ],
+  "reusedKey": "sovarkaPartis.secMembers",
+  "newForeignTranslations": 32,
+  "reusedForeignTranslations": 8,
+  "excluded": [
+    "grades RP",
+    "noms des joueurs",
+    "fonctions métier",
+    "notifications #924"
+  ]
+}
