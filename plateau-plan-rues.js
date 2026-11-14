@@ -39,14 +39,24 @@ function planRuesComposante(noeuds, depart) {
     for (const l of cibles) for (const dst of Object.values(l || {})) {
       if (dst && noeuds[dst] && !vus.has(dst)) file.push(dst);
     }
+    for (const [, dst] of planRuesLiens(n, noeuds)) if (!vus.has(dst)) file.push(dst);
   }
   return ordre;
 }
 
-function planRuesLiens(n) {
+function planRuesLiens(n, noeuds) {
   const out = [];
   for (const [rel, dst] of Object.entries(n.liens || {})) {
     if (dst && rel in PLAN_RUES_RELATIF) out.push([PLAN_RUES_RELATIF[rel], dst]);
+  }
+  // Lieu nommé où l'on entre en cliquant l'image, sans flèche (14/11/2026, place de l'Ours de
+  // Krasnov) : la zone vaut une rue, du côté où l'image la montre. Les autres zones « noeud »
+  // (lots des terrains) restent des sous-vues hors du plan.
+  for (const z of n.zones || []) {
+    if (!z || z.type !== 'noeud' || !noeuds || !noeuds[z.noeudId] || !noeuds[z.noeudId].nomLieu) continue;
+    if (out.some(([, d]) => d === z.noeudId)) continue;
+    const [x0, x1] = Array.isArray(z.xPct) ? z.xPct : [40, 60], m = (x0 + x1) / 2;
+    out.push([m < 40 ? 3 : m > 60 ? 1 : 0, z.noeudId]);
   }
   return out;
 }
@@ -68,9 +78,9 @@ function calculerPlanRues(noeudsPays, depart, options) {
     const a = file.shift();
     if (deja.has(a)) continue;
     deja.add(a);
-    for (const [rA, b] of planRuesLiens(noeuds[a])) {
+    for (const [rA, b] of planRuesLiens(noeuds[a], noeuds)) {
       if (!dans.has(b)) continue;
-      const retour = planRuesLiens(noeuds[b]).find(([, x]) => x === a);
+      const retour = planRuesLiens(noeuds[b], noeuds).find(([, x]) => x === a);
       const sens = (regard[a] + rA) % 4;
       // Carrefour déclaré (`memeCarrefour`, 13/11/2026) : la seconde photo est prise du même point,
       // appareil tourné ; elle regarde donc dans la direction du lien, ce n'est pas une rue.
@@ -92,19 +102,19 @@ function calculerPlanRues(noeudsPays, depart, options) {
   const fusions = [], fusionCle = new Set();
   const cleFusion = (x, y) => (x < y ? x + '|' + y : y + '|' + x);
   for (const a of ids) {
-    for (const [rA, b] of planRuesLiens(noeuds[a])) {
+    for (const [rA, b] of planRuesLiens(noeuds[a], noeuds)) {
       if (!dans.has(b)) continue;
-      const retour = planRuesLiens(noeuds[b]).some(([, x]) => x === a);
+      const retour = planRuesLiens(noeuds[b], noeuds).some(([, x]) => x === a);
       // Carrefour photographie deux fois (Novomirsk V4/V5, V14/V15) : A et C sont deux images du
       // meme carrefour, reliees entre elles ; depuis B, le retour ramene a C. Voulu par la
       // navigation (migration 20261105011000) : ce n'est pas une rue a corriger.
-      const memeCarrefour = !retour && planRuesLiens(noeuds[b]).some(([, c]) =>
-        dans.has(c) && planRuesLiens(noeuds[a]).some(([, x]) => x === c)
-        && planRuesLiens(noeuds[c]).some(([, x]) => x === a));
+      const memeCarrefour = !retour && planRuesLiens(noeuds[b], noeuds).some(([, c]) =>
+        dans.has(c) && planRuesLiens(noeuds[a], noeuds).some(([, x]) => x === c)
+        && planRuesLiens(noeuds[c], noeuds).some(([, x]) => x === a));
       if (memeCarrefour) {
-        for (const [, c] of planRuesLiens(noeuds[b])) {
-          if (dans.has(c) && planRuesLiens(noeuds[a]).some(([, x]) => x === c)
-            && planRuesLiens(noeuds[c]).some(([, x]) => x === a) && !fusionCle.has(cleFusion(a, c))) {
+        for (const [, c] of planRuesLiens(noeuds[b], noeuds)) {
+          if (dans.has(c) && planRuesLiens(noeuds[a], noeuds).some(([, x]) => x === c)
+            && planRuesLiens(noeuds[c], noeuds).some(([, x]) => x === a) && !fusionCle.has(cleFusion(a, c))) {
             fusionCle.add(cleFusion(a, c)); fusions.push([a, c]);
           }
         }
@@ -136,7 +146,7 @@ function calculerPlanRues(noeudsPays, depart, options) {
       return;
     }
     const [ax, ay] = PLAN_RUES_PAS[r.sens];
-    const retour = planRuesLiens(noeuds[r.vers]).find(([, x]) => x === r.de);
+    const retour = planRuesLiens(noeuds[r.vers], noeuds).find(([, x]) => x === r.de);
     let dx = ax, dy = ay;
     if (retour) {
       const [bx, by] = PLAN_RUES_PAS[(regard[r.vers] + retour[0] + 2) % 4];
