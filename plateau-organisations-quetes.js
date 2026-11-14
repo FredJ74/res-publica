@@ -1271,42 +1271,48 @@ function ouvrirOptionsOrga(orgaId) {
   const nomEchap = escapeHtmlText(orga.nom);
   const icone = orga.avatar || (TYPES_ORGANISATIONS[orga.type]?.icon) || null;
 
-  document.getElementById('postes-modal-title').textContent = 'Parametres — ' + orga.nom;
+  const titre = document.getElementById('postes-modal-title');
+  titre.textContent = '';
+  const prefixe = document.createElement('span');
+  prefixe.dataset.i18n = 'organizationSettings.title';
+  prefixe.textContent = 'Parametres';
+  titre.append(prefixe, document.createTextNode(' — ' + orga.nom));
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.8rem 1rem">' +
+    '<div style="padding:.8rem 1rem" class="hg-organisations">' +
 
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">NOM</div>' +
-    '<input id="orga-rename-input" type="text" maxlength="40" value="' + nomEchap + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.5rem"/>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationSettings.nameLabel">NOM</div>' +
+    '<input dir="auto" id="orga-rename-input" type="text" maxlength="40" value="' + nomEchap + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.5rem"/>' +
 
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">DEVISE</div>' +
-    '<input id="orga-devise-input" type="text" maxlength="80" placeholder="Ex: La force dans l\'union..." value="' + escapeHtmlText(orga.devise||'') + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.5rem"/>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationSettings.mottoLabel">DEVISE</div>' +
+    '<input dir="auto" id="orga-devise-input" data-i18n-placeholder="organizationSettings.mottoPlaceholder" type="text" maxlength="80" placeholder="Ex: La force dans l\'union..." value="' + escapeHtmlText(orga.devise||'') + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.5rem"/>' +
 
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">AVATAR DE L\'ORGANISATION</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationSettings.avatarLabel">AVATAR DE L\'ORGANISATION</div>' +
     '<div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.5rem">' +
       '<div id="orga-avatar-preview">' + renderApercuAvatarOrgaHtml(orga.nom, icone) + '</div>' +
-      '<div style="font-size:.68rem;color:#8a8060;flex:1">Aperçu — mis à jour à chaque changement, avant sauvegarde.</div>' +
+      '<div style="font-size:.68rem;color:#8a8060;flex:1" data-i18n="organizationSettings.previewHelp">Aperçu — mis à jour à chaque changement, avant sauvegarde.</div>' +
     '</div>' +
-    '<div style="font-size:.72rem;color:#8a6a20;margin-bottom:.2rem">URL de l\'image</div>' +
-    '<input id="orga-avatar-input" type="text" maxlength="300" placeholder="https://..." value="' + escapeHtmlText(orga.avatar||'') + '" oninput="mettreAJourApercuAvatarOrga(\'' + nomEchap.replace(/'/g,"\\'") + '\',\'' + orga.type + '\')" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.4rem"/>' +
-    '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.2rem">— ou —</div>' +
+    '<div style="font-size:.72rem;color:#8a6a20;margin-bottom:.2rem" data-i18n="organizationSettings.imageUrl">URL de l\'image</div>' +
+    '<input dir="auto" id="orga-avatar-input" type="text" maxlength="300" placeholder="https://..." value="' + escapeHtmlText(orga.avatar||'') + '" oninput="mettreAJourApercuAvatarOrga(\'' + nomEchap.replace(/'/g,"\\'") + '\',\'' + orga.type + '\')" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.4rem"/>' +
+    '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.2rem" data-i18n="organizationSettings.or">— ou —</div>' +
     '<label style="display:inline-block;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer;margin-bottom:.3rem">' +
-      '<i class="ti ti-upload"></i> Importer une image depuis mon ordinateur' +
+      '<i class="ti ti-upload"></i> <span data-i18n="organizationSettings.importImage">Importer une image depuis mon ordinateur</span>' +
       '<input type="file" accept="image/png,image/jpeg,image/webp" onchange="handleOrgaAvatarFileChange(event)" style="display:none"/>' +
     '</label>' +
-    '<div style="font-size:.65rem;color:#6a5a30;margin-bottom:.6rem">PNG (transparence supportée), JPG/JPEG ou WEBP — 2 Mo maximum.</div>' +
+    '<div style="font-size:.65rem;color:#6a5a30;margin-bottom:.6rem" data-i18n="organizationSettings.imageFormats">PNG (transparence supportée), JPG/JPEG ou WEBP — 2 Mo maximum.</div>' +
 
-    '<button onclick="sauvegarderOptionsOrga(\'' + orgaId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-bottom:.8rem">Sauvegarder</button>' +
+    '<button onclick="sauvegarderOptionsOrga(\'' + orgaId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-bottom:.8rem" data-i18n="organizationSettings.save">Sauvegarder</button>' +
 
     // Bascule de visibilite reservee au type "criminelle" (Organisation Secrete) : les 6 autres
     // types restent toujours publics dans ce game design (26 aout 2026), aucune bascule proposee.
     (orga.type === 'criminelle' ?
-      '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">VISIBILITE</div>' +
-      '<button onclick="toggleVisibiliteOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #3a4a5a;background:transparent;color:#6a8aaa;cursor:pointer;margin-bottom:.8rem">' + (orga.visible ? '👁 Rendre secrete' : '👁 Rendre visible') + '</button>'
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationSettings.visibility">VISIBILITE</div>' +
+      '<button onclick="toggleVisibiliteOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #3a4a5a;background:transparent;color:#6a8aaa;cursor:pointer;margin-bottom:.8rem">' + (orga.visible ? '👁 <span data-i18n="organizationSettings.makeSecret">Rendre secrete</span>' : '👁 <span data-i18n="organizationSettings.makeVisible">Rendre visible</span>') + '</button>'
     : '') +
 
     '<div style="margin-top:.4rem;border-top:1px solid #1a1208;padding-top:.6rem">' +
-    '<button onclick="dissoudreOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #5a1a1a;background:transparent;color:#cc4444;cursor:pointer">Dissoudre</button>' +
+    '<button onclick="dissoudreOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #5a1a1a;background:transparent;color:#cc4444;cursor:pointer" data-i18n="organizationSettings.dissolve">Dissoudre</button>' +
     '</div></div>';
+  globalThis.RPI18nPlateau?.apply(document.getElementById('modal-postes'));
   document.getElementById('modal-postes').classList.add('open');
 }
 

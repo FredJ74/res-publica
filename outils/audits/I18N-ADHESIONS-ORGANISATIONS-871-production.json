@@ -1,0 +1,122 @@
+{
+  "commit": "035a5ef116525b3db6375e068cc6ae0f4c597afa",
+  "deployment": "dpl_DrW8zmvBMNdKCzyRLErE1QZkLjyi",
+  "files": [
+    {
+      "file": "plateau.html",
+      "sha256": "de5f84e183165b25865dcaf6dbaff094b34927f38f63732a10f6679fcf46b5dd",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "e1db97c535d9566a304b88abc054b074a93b20258c23931c578d13747171c588",
+      "identical": true
+    },
+    {
+      "file": "forum.js",
+      "sha256": "1917728e3e296b62e4b7cec5d42842b58a2792d7fbc9b2800bd5904db4a44c30",
+      "identical": true
+    },
+    {
+      "file": "plateau-core.js",
+      "sha256": "3bc807f2b021cd967bac36fb21f6530bc20ed304800211057765d96212450531",
+      "identical": true
+    },
+    {
+      "file": "plateau-organisations-quetes.js",
+      "sha256": "b2aa3031a7fcf6e661261a445441a02f9c8f2c698c1e60dd1fea5b5a48575df9",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-resources.js",
+      "sha256": "5ab8d40c41eb8e1e60f30416019e7c2b3fb6ce8ab3725026cd9d1ccde96f55f0",
+      "identical": true
+    },
+    {
+      "file": "i18n/toast-resources.js",
+      "sha256": "8a57409e44396e0a59163dcb86b9f9d995cbf507d88ed82f56df7fc6c9bcc96e",
+      "identical": true
+    },
+    {
+      "file": "i18n/organization-directory-resources.js",
+      "sha256": "0d08bb899b3636640cd697fcad1226710cc3a1ff15105b35428aa6518cfb76c0",
+      "identical": true
+    },
+    {
+      "file": "i18n/organization-creation-resources.js",
+      "sha256": "e6ffac9c22f28f73709ffaf7e840c3ad8e444b10c5907ad9d4ab56c949f353af",
+      "identical": true
+    },
+    {
+      "file": "i18n/organization-members-resources.js",
+      "sha256": "3215324886554a4b0d8dcc9d7b82bc3aaf3b6f3e7fe81c1f6e2d727802944026",
+      "identical": true
+    },
+    {
+      "file": "i18n/organization-admissions-resources.js",
+      "sha256": "77e0a5b2d903a2bcb1a0579313c8efa3f29b353b4d84053b06be4b45bc679e9f",
+      "identical": true
+    },
+    {
+      "file": "i18n/sovarka-partis-resources.js",
+      "sha256": "a43c454a49ace976682ce3ff3a505e102205217c68c2673ac514e97449b21e0d",
+      "identical": true
+    },
+    {
+      "file": "i18n/sovarka-droits-resources.js",
+      "sha256": "727f43e2f414fd52b49e6c761ffa9de1a325352f087bed583002615cb5401301",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-init.js",
+      "sha256": "0fbd1edb1d94a175168e068c72991b5dc4b86e7d400202c20a6c6bcfc20bb160",
+      "identical": true
+    }
+  ],
+  "mergedCommit": "ccfaa228d66797672928b926812d70091ddaf64e",
+  "descendantVerified": true,
+  "readyState": "READY",
+  "aliasConfirmed": true,
+  "browser": {
+    "tests": 4,
+    "passed": 4,
+    "languageSwitches": 2511,
+    "widths": [
+      320,
+      390,
+      1280
+    ],
+    "locales": 9
+  },
+  "ci": {
+    "success": 38,
+    "failedJobs": 4,
+    "allFailuresReproducedOnMain": true,
+    "comparison": {
+      "mainCommit": "fb2f05fd92d7a8d3bac7c8cb63629a678aa567c6",
+      "tests": 31,
+      "passed": 27,
+      "failed": 4,
+      "causes": [
+        "3 SSM préexistants",
+        "2 descriptions salle électorale Krasnov hors catalogue Sovarka"
+      ]
+    },
+    "organizationsRun": 43621155482
+  },
+  "notVerified": [
+    "session PJ authentifiée",
+    "téléphone physique",
+    "relecture native"
+  ]
+}

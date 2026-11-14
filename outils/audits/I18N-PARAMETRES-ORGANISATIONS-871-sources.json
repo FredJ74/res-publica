@@ -1,0 +1,78 @@
+{
+  "baseCommit": "38b697844e1c3ecb9b8beeda0d58189c3b232a67",
+  "rows": [
+    [
+      "title",
+      "Parametres"
+    ],
+    [
+      "nameLabel",
+      "NOM"
+    ],
+    [
+      "mottoLabel",
+      "DEVISE"
+    ],
+    [
+      "mottoPlaceholder",
+      "Ex: La force dans l'union..."
+    ],
+    [
+      "avatarLabel",
+      "AVATAR DE L'ORGANISATION"
+    ],
+    [
+      "previewHelp",
+      "Aperçu — mis à jour à chaque changement, avant sauvegarde."
+    ],
+    [
+      "imageUrl",
+      "URL de l'image"
+    ],
+    [
+      "or",
+      "— ou —"
+    ],
+    [
+      "importImage",
+      "Importer une image depuis mon ordinateur"
+    ],
+    [
+      "imageFormats",
+      "PNG (transparence supportée), JPG/JPEG ou WEBP — 2 Mo maximum."
+    ],
+    [
+      "save",
+      "Sauvegarder"
+    ],
+    [
+      "visibility",
+      "VISIBILITE"
+    ],
+    [
+      "makeSecret",
+      "Rendre secrete"
+    ],
+    [
+      "makeVisible",
+      "Rendre visible"
+    ],
+    [
+      "dissolve",
+      "Dissoudre"
+    ]
+  ],
+  "newForeignTranslations": 120,
+  "reusedForeignTranslations": 0,
+  "identicalTranslations": {
+    "pt-BR": [
+      "or"
+    ]
+  },
+  "excluded": [
+    "sauvegarde",
+    "upload et validation de fichier",
+    "visibilité et dissolution",
+    "notifications #924"
+  ]
+}
