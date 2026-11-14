@@ -6,6 +6,9 @@ Règles : voir `AGENTS.md`.
 
 > **Rangé le 11/11/2026 (Claude)** : les chantiers terminés ont été déplacés mot pour mot dans [`RELAIS-ARCHIVE-2026-11.md`](RELAIS-ARCHIVE-2026-11.md) (chercher par mot-clé : branche, PR, migration). Garder ici seulement ce qui est en cours, attendu ou à vérifier ; un chantier fusionné passe en une ligne dans « Derniers chantiers ».
 
+### Stade Étoile Rouge de Krasnov : noms des PNJ (Claude, 14/11/2026, nuit)
+Branche `claude/stade-krasnov-pnj-20261114`. Noms proposés par Claude, validés par Fred (01 h 01), dans `PNJ_SOVARKA.ville_b` (`data.js`) : entraîneur Vsevolod Fedotov, commentateur Semione Klimov, buvette Avdotia Doubova, bookmaker Iossif Borissov, meneur des supporters Stiopa « le Tambour » Ossipov. `api/_pnj-sovarka-genere.js` et `api/_pnj-scenes-generes.js` régénérés (le second rattrape aussi des écarts antérieurs d'autres chantiers : Palais des Ambassades sans salle de réception, chambres des dispensaires, quelques PNJ renommés). Bancs PNJ verts.
+
 ### Jodie Moitout : plus de nouvelle proposition d'interview après un portrait publié (Claude, 14/11/2026, nuit)
 Branche `claude/interview-moitout-20261114`. Signalé par Fred : Arnie, portrait déjà publié, a reçu une nouvelle proposition le 13/11 à 23 h 44. Cause : `jodiePortraitVerifierProposition` (`plateau-communication.js`) ne regardait que les mails de proposition/refus, or le mail de proposition est purgé au bout de 14 jours. Correctif : le portrait publié au forum Presse (jamais purgé) bloque aussi l'envoi ; échec réseau = rien n'est envoyé. Le mail parasite d'Arnie est laissé en place (les boutons y affichent déjà « portrait publié »).
 
