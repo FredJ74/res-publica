@@ -7645,7 +7645,17 @@ const BUILDINGS = {
         name: 'Boutique',
         imageUrl: 'images/Sovarka/Krasnov/Krasnov_tabac_presse_boutique.webp',
         desc: 'Comptoir et étagères de tabac, revues, loteries et paris sportifs, dans une échoppe rétro.',
-        persons: [], orders: []
+        // Quatre articles (14/11/2026, demande de Fred) : moteur commun des commerces PNJ, type 'tabac-presse'
+        // (BUILDING_COMMERCE_TYPE), migration 20261114220000. Pas de rachat direct : droit d'exploiter (notaire).
+        persons: [], orders: [
+          {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:"Papirossy, billets du Loto du Plan, revue locale et cartes postales."},
+          // Prise de paris du bookmaker des stades (Fred, 14/11/2026, 22 h 04) : même ordre, même moteur
+          // (football_pari_engager), copié à l'identique du guichet de paris du stade.
+          {fn:'parier_match', label:'Parier sur un match', pa:1, cost:0, type:'legal', icon:'ti-coin', successRate:100, desc:'Consultation gratuite -- vous choisirez ensuite votre mise (100 FR minimum).'},
+          {fn:'produire_commerce', label:'Produire', i18nKey:'variant.commerce_produce', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:"Préparer les articles en vente (consomme les matières en stock, rémunéré par la caisse du commerce)."},
+          {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
+        ]
       }
     }
   },
@@ -11653,12 +11663,65 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
     roomOverrides: { grange_sainte: { excludeOrders: ['faire_don'], orders: [
       {fn:'faire_don', label:'Donner à l’Église', pa:0, cost:0, type:'legal', icon:'ti-coins', successRate:100, desc:'Don libre en PSK. Sans PA. Bonus proportionnels, plafonnés à +10 piété et +6 popularité par jour.'}
     ] } } });
+  // Krasnov : musée provincial autonome dans le gabarit partagé de Novomirsk.
+  // Les neuf anciennes salles de portraits sont remplacées UNIQUEMENT ici par cinq
+  // salles documentaires. Aucun ordre serveur (dont le trésor des Tsars) n'est touché.
   const musee = contexte('ville_b', 'musee-novomirsk');
-  Object.assign(musee, { name: 'Musée de Krasnov', desc: 'Le musée du kolkhoze : machines agricoles d\'époque, records de récolte et portraits des tractoristes émérites.' });
-  ['hall', 'salle_criminels', 'salle_maires', 'salle_personnalites', 'salle_entrepreneurs', 'salle_organisations', 'salle_plumes', 'salle_honneur_militaire', 'salle_unions', 'salle_scandales']
-    .forEach(id => { piece(musee, id).personsVides = true; });
-  musee.roomsExclues = (musee.roomsExclues || []).concat(['salle_origines', 'salle_personnalites_discretes', 'salle_bataille_fleuve', 'salle_grand_incendie']);
-  Object.assign(piece(musee, 'hall'), { personsVides: false, persons: [pnj('Vera Lebedeva', 'Guide du musée', 'guide')] });
+  Object.assign(musee, {
+    name: 'Musée de Krasnov',
+    desc: 'Les paysages, la faune, la flore, la forêt, les kolkhozes et le mystérieux centre d’écoute spatiale de Krasnov.',
+    roomsExclues: [
+      'salle_origines', 'salle_personnalites_discretes', 'salle_bataille_fleuve', 'salle_grand_incendie',
+      'salle_criminels', 'salle_maires', 'salle_personnalites', 'salle_entrepreneurs',
+      'salle_organisations', 'salle_plumes', 'salle_honneur_militaire', 'salle_unions', 'salle_scandales'
+    ],
+    roomsExtra: {
+      faune_sauvage: {
+        name: 'Faune sauvage de Krasnov',
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_musee_faune_sauvage.webp',
+        desc: 'Un ours brun immense dressé sur ses pattes, puis un loup, un lynx, un aigle et un glouton naturalisés dans leurs milieux.',
+        persons: [], orders: []
+      },
+      flore_sauvage: {
+        name: 'Flore sauvage de Krasnov',
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_musee_flore_sauvage.webp',
+        desc: 'Myrtilles, canneberges, droséras, fougères, essences locales et une mare reconstituée au milieu des bouleaux.',
+        persons: [], orders: []
+      },
+      exploitation_bois: {
+        name: 'Le bois et les bûcherons de Krasnov',
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_musee_exploitation_bois.webp',
+        desc: 'Essences forestières, usages du bois, vie des bûcherons et savoirs traditionnels sur la coupe selon les phases de la Lune.',
+        persons: [], orders: []
+      },
+      kolkhozes: {
+        name: 'Kolkhozes et économie collective',
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_musee_kolkhozes.webp',
+        desc: 'Maquette, outils et panneaux expliquent la mutualisation des terres, du matériel, des récoltes et l’organisation du travail collectif.',
+        persons: [], orders: []
+      },
+      ecoute_spatiale: {
+        name: 'Krasnov à l’écoute de l’espace',
+        imageUrl: 'images/Sovarka/Krasnov/Krasnov_musee_ecoute_spatiale.webp',
+        desc: 'Grandes paraboles, antennes, représentation de la Terre et propagation d’ondes venues de l’espace : une science impressionnante et mystérieuse.',
+        persons: [], orders: []
+      }
+    }
+  });
+  // Les portraits sont des recadrages du décor central ; aucun personnage inventé
+  // dans les images des cinq salles. L'écoute du guide d'Ilia est propre à Novomirsk.
+  Object.assign(piece(musee, 'hall'), {
+    name: 'Accueil du musée de Krasnov',
+    imageUrl: 'images/Sovarka/Krasnov/Krasnov_musee_accueil.webp',
+    desc: 'Au guichet, une hôtesse accueille les visiteurs. Un guide âgé, mince et dégarni, vêtu d’un costume usé et d’un pull à carreaux sur col roulé, présente les collections.',
+    personsVides: false,
+    persons: [
+      {name:'Hôtesse du musée de Krasnov (PNJ)', role:'Accueil du musée', rel:'neutral', job:'hotesse', photoUrl:'images/Sovarka/Krasnov/Krasnov_musee_accueil_hotesse.webp'},
+      {name:'Guide du musée de Krasnov (PNJ)', role:'Guide du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Krasnov/Krasnov_musee_accueil_guide.webp'}
+    ],
+    excludeOrders: ['ilia_ecouter_guide'],
+    orders: []
+  });
   Object.assign(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), { name: 'Bar Sever', desc: 'Le bar-tabac de Krasnov (« Бар Север ») : vodka, cigarettes, journaux du Parti et le match à la radio.' });
   Object.assign(piece(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), 'salle'), { persons: [pnj('Grigori Zaitsev', 'Patron du bar', 'serveur')] });
   Object.assign(piece(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), 'salle'), { imageUrl: 'images/Sovarka/Krasnov/Krasnov_bar_sever_salle.webp' });

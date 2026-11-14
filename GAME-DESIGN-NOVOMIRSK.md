@@ -996,3 +996,11 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 - Décision de Fred : chaque maisonnette en bois visible dans les vues de rue de Krasnov est cliquable et abrite **un habitant**, sur le modèle de la maison de Stepan (service du jour, repas, lit, trinquer). Migration `20261114180000_krasnov_maisonnettes`.
 - Cinq maisons repérées par Claude : maison bleue en face du centre d'affaires (`krasnov-rue-bureaux`), maison rouge et maison bleue de la rue descendante, maison brune près de l'église, maison au bord droit des terrains.
 - Habitants **proposés par Claude, à valider par Fred** : Antonina Merkoulova (couturière retraitée), Matveï Rybakov (ancien bûcheron), Praskovia Pakhomova (apicultrice), Kouzma Lapchine (ancien sonneur de cloches), Ignat Lykov (vieux trappeur). Services tirés parmi les matières existantes (bois, fruits et légumes, laitages, textile, viande, alcool, carburant, plantes, céréales, poisson). Images d'intérieur à venir.
+
+## Tabac/Presse de Krasnov : quatre articles (Fred, 14/11/2026)
+- Demande de Fred (21 h 52) : « 4 articles, à ta convenance ». Choix de Claude, sur la règle des commerces (2 familles, 4 articles en freemium) :
+  - **Tabac & loterie** (consommés au comptoir) : papirossy « Étoile du Nord » (makhorka du kolkhoze, +2 moral, 2 PSK) ; billet du Loto du Plan (« Le Plan a gagné », +1 moral, 2 PSK).
+  - **Presse & papeterie** (déposés en inventaire) : carte postale « Krasnov, la place de l'Ours » (à écrire et envoyer, 2 PSK) ; revue « Chasse, Pêche & Tracteurs » (intégration locale, +1 ENT à Krasnov, non cumulable avec la chemise de bûcheron, 5 PSK).
+- En plus (Fred, 22 h 04) : la prise de paris du bookmaker des stades est dupliquée au Tabac/Presse (même ordre « Parier sur un match »).
+- Prix PNJ par la formule commune (2 × coût de revient, PA à 15 PSK). Commerce PNJ de type `tabac-presse`, caisse autonome, ouvert avec 10 exemplaires de chaque article. Pas de vendeur PNJ nommé pour l'instant.
+- Migration `20261114220000_krasnov_tabac_presse_articles` (registre `krasnov_tabac_presse_articles_20261114`).

@@ -1,0 +1,22 @@
+name: "Position serveur multi-empire — restauration"
+on:
+  push:
+    branches: [chatgpt/position-authoritative-country-20261115]
+    paths:
+      - .github/workflows/position-authoritative-country-20261115.yml
+      - plateau-rue-centrale.js
+      - outils/bancs/test-position-authoritative-country-20261115.mjs
+      - outils/bancs/test-restore-position-api-20261115.mjs
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          node --check plateau-rue-centrale.js
+          node --test outils/bancs/test-position-authoritative-country-20261115.mjs
+          node --test outils/bancs/test-restore-position-api-20261115.mjs
+          node --test outils/bancs/test-restauration-pieces-ville-20261112.mjs

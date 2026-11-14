@@ -3490,6 +3490,26 @@ const RECETTES_ALIMENTAIRES = {
     effets: { moral: 2 },
     typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['cafe-tabac-cheminots-montrouge']
   },
+  // Tabac/Presse de Krasnov (14/11/2026, demande de Fred : 4 articles au choix de Claude) : famille
+  // « Tabac & loterie », consommes au comptoir. Prix PNJ 2 x cout de revient (echelle de Sovarka).
+  krasnov_papirossy: {
+    id: 'krasnov_papirossy',
+    label: 'Papirossy « Étoile du Nord »',
+    desc: 'Cigarettes à bout de carton roulées avec la makhorka du kolkhoze. On les fume sur le pas de la porte, en regardant passer les tracteurs.',
+    categorie: 'snack', image: null, icon: 'ti-smoking',
+    materiaux: { plantes: 1 }, pa: 1, portions: 15,
+    effets: { moral: 2 },
+    typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['tabac-presse-krasnov']
+  },
+  krasnov_loto_plan: {
+    id: 'krasnov_loto_plan',
+    label: 'Billet du Loto du Plan',
+    desc: 'On gratte, on lit « Le Plan a gagné ». Personne n\'a jamais gagné, mais l\'espoir fait vivre.',
+    categorie: 'snack', image: null, icon: 'ti-ticket',
+    materiaux: { bois: 1 }, pa: 1, portions: 20,
+    effets: { moral: 1 },
+    typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['tabac-presse-krasnov']
+  },
   grand_hotel_zakouski: {
     id: 'grand_hotel_zakouski',
     label: 'Zakouski (cornichons, harengs, œufs de saumon)',
@@ -3750,6 +3770,23 @@ const PRODUITS_MARCHE = {
     bonusIntegrationVille: 'soviet.ville_b',
     typesAutorises: ['marche'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
+  // Tabac/Presse de Krasnov (14/11/2026) : famille « Presse & papeterie », objets deposes en inventaire
+  // par la vente (carte postale a ecrire ; revue d'integration locale, +1 ENT a Krasnov, non cumulable).
+  carte_krasnov_place_ours: {
+    id: 'carte_krasnov_place_ours', label: 'Carte postale — Krasnov, la place de l\'Ours', familleProduitMarche: 'carte_postale',
+    desc: 'La statue de l\'Ours, ses bancs et la mairie, sous la neige. À écrire et à envoyer.',
+    categorie: 'objet', image: 'images/Sovarka/Krasnov/Krasnov_place_ours.webp', icon: 'ti-mail',
+    materiaux: { bois: 1 }, pa: 1, portions: 16,
+    typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['tabac-presse-krasnov']
+  },
+  revue_chasse_peche_tracteurs: {
+    id: 'revue_chasse_peche_tracteurs', label: 'Revue « Chasse, Pêche & Tracteurs »', familleProduitMarche: 'integration_locale',
+    desc: 'Le mensuel des forestiers de Krasnov : le brochet record, le nouveau modèle de tracteur, et les petites annonces du kolkhoze.',
+    categorie: 'objet', image: null, icon: 'ti-news',
+    materiaux: { bois: 1 }, pa: 1, portions: 6,
+    bonusIntegrationVille: 'soviet.ville_b',
+    typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['tabac-presse-krasnov']
+  },
   casse_croute_cheminot: {
     id: 'casse_croute_cheminot', label: 'Casse-croûte du Cheminot', familleProduitMarche: 'aliment',
     categorie: 'objet', image: 'images/montrouge/montrouge-marche-casse-croute.webp', icon: 'ti-meat',
@@ -3962,7 +3999,10 @@ const BUILDING_COMMERCE_TYPE = {
   // Bar du Pavillon des Ambassadeurs (Novomirsk, 04/11/2026, decision de Fred : copie du Bar du
   // Republica) : type 'bar', meme moteur que le Bar des Pecheurs, caisse autonome. Cle
   // room-scopee (le Pavillon a aussi des suites et une salle de reception sans commerce).
-  'pavillon-ambassadeurs-novomirsk|bar': 'bar'
+  'pavillon-ambassadeurs-novomirsk|bar': 'bar',
+  // Tabac/Presse de Krasnov (14/11/2026, demande de Fred) : type 'tabac-presse', caisse autonome, cle
+  // buildingId seule (une piece). Serveur : migration 20261114220000_krasnov_tabac_presse_articles.
+  'tabac-presse-krasnov': 'tabac-presse'
 };
 
 // Types de commerce sans caisse autonome (paiement client/salaire de production routes vers la
@@ -4915,7 +4955,7 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   if (!data) { showToast(texteCommerceMenu('unavailable','Indisponible'), '', false); return; }
 
-  document.getElementById('postes-modal-title').textContent = commerceType === 'marche' ? texteCommerceMenu('products','Produits') : texteCommerceMenu('card','Carte');
+  document.getElementById('postes-modal-title').textContent = (commerceType === 'marche' || commerceType === 'tabac-presse') ? texteCommerceMenu('products','Produits') : texteCommerceMenu('card','Carte');
   let html = '<div style="padding:1rem;background:#151A21;color:#e0e6ed">';
   const carte = data.carte || [];
   const carteValide = carte.filter(id => resoudreProduitCommerce(id));

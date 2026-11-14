@@ -1631,30 +1631,72 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
     // Le cache ne sert qu'a choisir l'orientation de la scene, pas le lieu.
     if (typeof sbRpc !== 'function') return;
     let position;
+    // Les erreurs temporaires de PostgREST (timeout / réponse réseau perdue)
+    // ne doivent pas bloquer définitivement la reprise d'une rue déjà enregistrée.
+    // Lecture SEULEMENT : aucune RPC de déplacement, aucune sauvegarde locale ou serveur.
+    // Deux nouvelles tentatives courtes au maximum ; abandon dès changement d'identité
+    // ou de position, sans jamais appliquer une ancienne réponse à un autre personnage.
+    const lirePositionCanonique = async () => {
+      for (let tentative=0; tentative<3; tentative++) {
+        if (!contexteNavigationRueValide(contexte) || lecture!==rueCentraleLecturePosition) return null;
+        if (tentative) await new Promise(resolve=>setTimeout(resolve,tentative===1?350:900));
+        if (!contexteNavigationRueValide(contexte) || lecture!==rueCentraleLecturePosition) return null;
+        const reponse=await sbRpc('rue_position_lire',{})
+          .then(rows=>Array.isArray(rows)?rows[0]:rows).catch(()=>null);
+        if (!contexteNavigationRueValide(contexte) || lecture!==rueCentraleLecturePosition) return null;
+        // Un refus explicite d'authentification n'est pas une panne réseau : ne pas insister.
+        if (reponse !== null && reponse !== undefined) return reponse;
+      }
+      return null;
+    };
     if(state._navigationServeur===true && typeof sbGroupePjLire==='function' && typeof sbPositionNavigationConfirmee==='function') {
       const groupe=await sbGroupePjLire().catch(()=>null);
+      if (!contexteNavigationRueValide(contexte) || lecture!==rueCentraleLecturePosition) return;
       position=sbPositionNavigationConfirmee(groupe,state.char?.name);
-      // La lecture du groupe peut être indisponible ou encore dépourvue de
-      // position_personnelle. Reprendre alors UNIQUEMENT la lecture canonique
-      // authentifiée du serveur, sans cache client ni déplacement automatique.
-      if(position?.ok!==true || position.country!==pays || position.city!==state.currentCity)
-        position=await sbRpc('rue_position_lire',{}).then(rows=>Array.isArray(rows)?rows[0]:rows).catch(()=>null);
-    } else position = await sbRpc('rue_position_lire', {})
-      .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+      // La vue de groupe peut manquer la rue personnelle. La position canonique
+      // authentifiée fait foi ; jamais la position mémorisée en localStorage.
+      if(position?.ok!==true || position.country!==pays || position.city!==state.currentCity ||
+         (!position.building && !position.street))
+        position=await lirePositionCanonique();
+    } else position=await lirePositionCanonique();
     if(!contexteNavigationRueValide(contexte)||lecture!==rueCentraleLecturePosition)return;
-    // La ville mémorisée côté client ne fait pas autorité sur la position du PJ.
-    // Réalignement uniquement après réponse serveur authentifiée, sans téléportation.
-    if (position?.ok===true && position.country===pays &&
-        position.city!==state.currentCity &&
-        ['capitale','ville_a','ville_b','caserne','qhs'].includes(position.city) &&
-        (position.building || (position.street && RUE_CENTRALE_NOEUDS[pays]?.[position.street]))) {
-      state.currentCity=position.city;
-      if (state.char) state.char.currentCity=position.city;
+    // La réponse canonique authentifiée est aussi l'autorité sur l'EMPIRE et la
+    // VILLE. Un cache ancien (ex. République alors qu'Arnie se trouve à Krasnov)
+    // ne doit pas faire rejeter une rue valide avec « Position indisponible ».
+    // N'aligner que des destinations réellement déclarées et connues du graphe :
+    // jamais de changement de pays sur une réponse vide, invalide ou non authentifiée.
+    const lieuServeurValide = position?.ok===true &&
+      typeof position.country==='string' && typeof position.city==='string' &&
+      !!WORLD?.[position.country]?.[position.city] &&
+      !!RUE_CENTRALE_DEPART[position.country]?.[position.city] &&
+      (position.building
+        ? !!BUILDINGS?.[position.building]
+        : !!(position.street && RUE_CENTRALE_NOEUDS[position.country]?.[position.street]));
+    if (lieuServeurValide &&
+        (position.country!==state.country || position.city!==state.currentCity)) {
+      const paysServeur=position.country, villeServeur=position.city;
+      state.country=paysServeur;
+      state.currentCity=villeServeur;
+      if (state.char) {
+        state.char.country=paysServeur;
+        state.char.currentCity=villeServeur;
+      }
+      // showVueRue relance une lecture authentifiée dans le bon contexte ; la
+      // présente lecture devient caduque. Aucune sauvegarde ni RPC de déplacement.
+      // Si le personnage est dans un bâtiment, son rendu est déjà pris en charge
+      // par la restauration de bâtiment après chargement de fiche.
+      if (!position.building && typeof forceRenderCity==='function')
+        forceRenderCity(villeServeur);
+      return;
     }
     if (position?.ok !== true || position.country !== pays ||
         position.city !== state.currentCity) {
       if (typeof showToast === 'function') showToast('Position indisponible',
-        'Impossible de restaurer la position depuis le serveur.', false);
+        position?.raison==='non_authentifie'||position?.raison==='session_perdue'
+          ? 'La session a expiré. Reconnectez-vous pour retrouver votre position enregistrée.'
+          : position?.ok===true
+            ? 'Le lieu enregistré est inconnu du parcours actuel. Aucun déplacement effectué.'
+            : 'Lecture de position momentanément indisponible. Votre position reste enregistrée ; réessayez la reconnexion.', false);
       return;
     }
     if (position.street && !position.building) {

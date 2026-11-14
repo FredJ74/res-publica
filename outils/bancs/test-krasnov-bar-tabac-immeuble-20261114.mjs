@@ -12,7 +12,8 @@ assert.ok(city.buildings.includes('logements-krasnov-rue-tabac'));
 assert.match(source,/imageUrl: 'images\/Sovarka\/Krasnov\/Krasnov_bar_sever_salle.webp'/);
 assert.ok(city.buildingContext?.['cafe-tabac-cheminots-montrouge'] || source.includes("contexte('ville_b', 'cafe-tabac-cheminots-montrouge')"));
 assert.equal(Object.keys(b['tabac-presse-krasnov'].rooms).join(','),'boutique');
-assert.equal(b['tabac-presse-krasnov'].rooms.boutique.orders.length,0);
+// 14/11/2026 : quatre articles en vente (migration 20261114220000), ordres du moteur commun des commerces.
+assert.equal(b['tabac-presse-krasnov'].rooms.boutique.orders.map(o=>o.fn).join(','),'faire_achats_marche,parier_match,produire_commerce,gerer_commerce,vendre_matiere_commerce');
 const sourceBuilding=b['logements-krasnov-place-ours'],target=b['logements-krasnov-rue-tabac'];
 assert.notEqual(sourceBuilding,target);
 assert.equal(Object.keys(target.rooms).length,9);

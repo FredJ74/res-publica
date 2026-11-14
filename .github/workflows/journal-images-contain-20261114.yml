@@ -1,0 +1,20 @@
+name: "Journal — cadrage sans rognage des photos"
+on:
+  push:
+    branches:
+      - chatgpt/journal-images-contain-20261114
+    paths:
+      - .github/workflows/journal-images-contain-20261114.yml
+      - style.css
+      - plateau.html
+      - outils/bancs/test-journal-images-contain-20261114.mjs
+permissions:
+  contents: read
+jobs:
+  cadre-journal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Vérifier les deux types de photos du journal
+        run: node --test outils/bancs/test-journal-images-contain-20261114.mjs
