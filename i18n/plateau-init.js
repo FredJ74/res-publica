@@ -148,7 +148,18 @@
   // Le prochain showToast écrit textContent et supprime ce span, sans ancien marqueur persistant.
   function markToast(key,fr,values,titleFr) {
     const node=global.document?.getElementById('toast-sub');
-    if(!node||(key!==null&&typeof key!=='string')||node.textContent!==fr)return false;
+    if(!node||(key!==null&&typeof key!=='string'))return false;
+    if(node.textContent!==fr){
+      // Un corps fixe peut déjà être traduit par le catalogue commun (#924).
+      // Réutiliser sa source exacte, sans accepter une notification périmée.
+      const bodies=global.RPToastBodyI18n,bodyKey=bodies?.key?.(fr);
+      if(!bodyKey||node.childElementCount||node.dataset?.rpFr!==fr||
+         typeof bodies.label!=='function'||node.textContent!==bodies.label(fr))return false;
+      if(key!==null&&key!==bodyKey){
+        try{if(engine.t(key,{lng:'fr',defaultValue:null,values})!==fr)return false;}
+        catch(_){return false;}
+      }
+    }
     // Une clé nulle marque seulement le titre fixe : le corps opaque reste intégralement intact.
     let marked=false;
     if(key!==null){
