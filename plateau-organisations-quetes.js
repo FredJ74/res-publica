@@ -3669,6 +3669,7 @@ function doSeRenseigner() {
       // Scope ville ajoute le 2026-08-16 (locations sans city toutes migrees)
       const location = (state.locationsActives || []).find(l =>
         l.buildingId === state.currentBuilding && l.roomId === roomId && l.city === state.currentCity
+        && (l.country || 'republic') === state.country
       );
       html += '<div style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
       html += '<div style="display:flex;justify-content:space-between;align-items:center">';
