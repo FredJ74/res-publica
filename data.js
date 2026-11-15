@@ -11877,7 +11877,7 @@ BUILDINGS['locaux-starovka'] = {
 (function () {
   const maison = (id, nom, habitant, role, desc, pieceDesc, imageUrl) => {
     BUILDINGS[id] = {
-      name: nom, shortName: 'Maison', cat: 'Social', icon: 'ti-home-heart', bgColor: '#16110c', desc, imagesAVenir: true,
+      name: nom, shortName: 'Maison', cat: 'Social', icon: 'ti-home-heart', bgColor: '#16110c', desc, imagesAVenir: !imageUrl,
       rooms: { piece_maison: {
         name: 'La pièce commune', imageBg: 'linear-gradient(135deg,#16110c,#221a12)', desc: pieceDesc,
         ...(imageUrl ? { imageUrl } : {}),
@@ -11909,10 +11909,12 @@ BUILDINGS['locaux-starovka'] = {
       'Une machine à coudre à pédale, des coupons de tissu pliés sur le divan et une couturière à la retraite qui met déjà la bouilloire en route.'],
     ['maison-krasnov-rouge', 'Maison de Matveï', 'Matveï Rybakov', 'Habitant de Krasnov',
       'Une isba rouge au toit de tôle, la cheminée qui fume en toute saison.',
-      'Une hache accrochée près du poêle, des bûches empilées jusqu’au plafond et un ancien bûcheron au dos voûté qui vous tend un tabouret.'],
+      'Un vieux poêle à bois, un fusil de chasse au mur, une peau de fouine et trois bouteilles de vodka vides sur la table.',
+      'images/Sovarka/Krasnov/Krasnov_maison_rouge_interieur.webp'],
     ['maison-krasnov-bleue', 'Maison de Praskovia', 'Praskovia Pakhomova', 'Habitante de Krasnov',
       'Une petite maison bleue derrière sa palissade, des ruches alignées au fond du jardin.',
-      'Des pots de miel sur chaque étagère, des bouquets d’herbes qui sèchent au plafond et une apicultrice qui sent la cire et le tilleul.'],
+      'Une pièce minuscule et soignée, un poêle vert sapin, des fleurs, une aquarelle de rivière et un coin d’icônes sous un rouchnik.',
+      'images/Sovarka/Krasnov/Krasnov_maison_bleue_interieur.webp'],
     ['maison-krasnov-eglise', 'Maison de Kouzma', 'Kouzma Lapchine', 'Habitant de Krasnov',
       'Une maison de bois brun à l’ombre des bulbes dorés de l’église.',
       'Des icônes dans le coin rouge, une cloche miniature sur la table et un ancien sonneur de cloches, un peu sourd, qui parle très fort.'],
