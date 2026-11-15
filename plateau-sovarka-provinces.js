@@ -319,6 +319,20 @@ async function mangerOeufs() {
   if (typeof addJournalEntry === 'function') addJournalEntry('Vous mangez trois œufs : +' + v.bonus + ' PA au prochain sommeil.', 'event-good');
 }
 
+// ---------- GUIDE DES BAIES SAUVAGES (Fred, 15/11/2026 ; migration 20261115103000) ----------
+// 2 PA, +1 INT pendant 24 h, sans cumul ; le guide reste dans l'inventaire. Le serveur décide de tout.
+Object.assign(PROV_MOTIFS, provRaisons(['pas_de_guide', 'effet_deja_actif']));
+async function lireGuideBaies() {
+  const v = await provActe('guide_baies_lire', {}, 'lire');
+  if (!v) return;
+  if (v.ok !== true) { provRefus(provT('tGuide'), v); return; }
+  if (Array.isArray(v.effets_actifs)) state.effetsActifs = v.effets_actifs;
+  if (typeof updateUI === 'function') updateUI();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast(provT('tGuide'), provT('guideRead', { bonus: v.bonusInt }), true, true);
+  if (typeof addJournalEntry === 'function') addJournalEntry('Vous lisez le guide des baies sauvages : +' + v.bonusInt + ' INT pendant 24 heures.', 'event-good');
+}
+
 // ---------- CAISSE COMMUNE DU KOLKHOZE (Fred, 14/11/2026 ; migration 20261114004000) ----------
 // Toute matière première ; don : +2 popularité par article, +6 par jour au plus ; prise : 5 articles par jour au plus.
 // Le serveur décide de tout (quotas, matières admises, inventaire) ; l'écran ne fait que proposer.

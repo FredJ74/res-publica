@@ -606,18 +606,18 @@
     {
       "source": "i18n/sovarka-provinces-resources.js",
       "packed": "i18n/packed/sovarka-provinces-resources.js.br",
-      "sourceBytes": 124588,
-      "packedBytes": 34305,
-      "sourceSha256": "2ac425352ea36213784f12edf34eb4c3abd43c00f2f8bf83e23c223f8f44e0f6",
-      "packedSha256": "9897b258debd758983a2d1d5531f5b4b380045c094a47f8f368f0da80abe2607"
+      "sourceBytes": 127767,
+      "packedBytes": 35224,
+      "sourceSha256": "3551fe288a5a2f9716bde24bfff382dc5231685e828bb635b1fd86227f0b04ea",
+      "packedSha256": "54a986d7c9b335b8b0d661c7f497a34bce9c01d94c19feab2750f993c3f04d21"
     },
     {
       "source": "i18n/sovarka-roles-resources.js",
       "packed": "i18n/packed/sovarka-roles-resources.js.br",
-      "sourceBytes": 33703,
-      "packedBytes": 11729,
-      "sourceSha256": "588ca77dd746019923c22148dcf6b6c9d3139e287d7dfc5f0e45661085bfdaf2",
-      "packedSha256": "0a6578913e7193cdf904c330c3ce6c8ca96b7e6ccdd6948bc1138090646a7e15"
+      "sourceBytes": 34050,
+      "packedBytes": 11813,
+      "sourceSha256": "63e492166d6f5664f4042dd107e88a8a21291fdb1211a526474d07a704f3035d",
+      "packedSha256": "80db9ae5d7f1a5af53fc5bdd9e5c84e00e328537db0351b87bfc35da2b4304b2"
     },
     {
       "source": "i18n/sport-bets-resources.js",

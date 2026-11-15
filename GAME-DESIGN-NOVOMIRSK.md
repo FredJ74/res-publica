@@ -575,6 +575,28 @@ Le marché vend **une portion de goulash, un guide des baies sauvages de Krasnov
 des objets de Montrouge). Choix techniques : goulash = aliment ; chemise = objet d'intégration locale (+1 ENT à Krasnov,
 cible `soviet.ville_b`) ; guide = objet simple ; prix PNJ 4, 3 et 6 PSK (formule commune). Images à faire par Fred.
 
+**Guide des baies sauvages : décisions de Fred du 15/11/2026 (11 h 12 – 11 h 14), codées le 15/11.** Le guide était payé puis
+« consommé » sans effet ni objet. Désormais : il arrive dans l'inventaire ; **le lire coûte 2 PA et donne +1 INT pendant 24 heures** ;
+**il reste dans l'inventaire** ; **il se lit n'importe où** (« l'intelligence n'a pas de frontière ») ; **pas de cumul** : on ne le
+relit qu'une fois l'effet dissipé. Comme tout objet d'inventaire, il se donne ou s'abandonne. Code : migration
+`20261115103000_guide_baies_lecture` (famille de produit `livre`, `guide_baies_lire`, coût `lire_guide_baies` 2 PA), bouton
+« Lire » de l'inventaire (`lireGuideBaies`, `plateau-sovarka-provinces.js`). Comme la coupe du salon, le +1 vaut pour l'affichage
+et les calculs de l'écran ; les tirages serveur lisent encore la caractéristique brute.
+
+### Fonctionnaires de Sovarka : ambiance de soupçon (Fred, 15/11/2026, 11 h 16 – 11 h 18)
+
+**Tout fonctionnaire de Sovarka est potentiellement un agent de renseignement** qui fait remonter ce qu'il trouve anormal ;
+c'est ainsi qu'il doit être **perçu**. C'est une **ambiance**, sans mécanique, **sauf décision de Fred pour certains PNJ**.
+Pour la renforcer, les PNJ fonctionnaires posent **parfois** aux PJ des questions absurdes et parodiques (« Êtes-vous un agent
+étranger ? Si oui, vous devez vous signaler au ministère de la Sécurité du Peuple »). Cela vaut pour **tous** les fonctionnaires
+PNJ de Sovarka, déjà en place compris. Le ministère garde son nom : **ministère de la Sécurité du Peuple** (Fred).
+Choix de Claude : environ une conversation sur quatre (tirage serveur stable par joueur, PNJ et jour), une seule question par
+conversation ; ne sont pas fonctionnaires les habitants, retraités, détenus, métiers privés et de l'ombre, lobbyistes, cultes,
+Loge, supporters et étrangers (`api/_pnj-fonctionnaires-sovarka.js`).
+
+**Secrétaire de mairie de Krasnov (Fred, 15/11/2026)** : **Galina Dokladova** (nom proposé par Claude, « doklad » : le rapport ;
+Fred laisse les noms à Claude), **aimable mais méfiante**. Fiche dans `api/_pnj-personnalites.js`, **à relire par Fred**.
+
 ### Guide du Musée de la République (Fred, 11/11/2026, 9 h 35 – 9 h 44) — décisions en cours, PAS de feu vert de codage
 
 - **Principe** : une guide (PNJ) présente dans **toutes les salles du Musée de la République** de Novomirsk (pièces créées par

@@ -59,6 +59,7 @@
   ["Service des objets trouves","Lost property office","Oficina de objetos perdidos","失物招領處","Бюро находок","분실물 센터","مكتب المفقودات","Achados e perdidos","Fundbüro"],
   ["Maire de la Capitale","Mayor of the Capital","Alcalde de la Capital","首都市長","Мэр столицы","수도 시장","عمدة العاصمة","Prefeito da Capital","Bürgermeister der Hauptstadt"],
   ["Buraliste de Krasnov","Krasnov tobacconist","Estanquera de Krasnov","克拉斯諾夫菸報攤老闆娘","Табачница из Краснова","크라스노프 담배 가게 주인","بائعة التبغ في كراسنوف","Dona da tabacaria de Krasnov","Tabakhändlerin von Krasnow"],
+  ["Secrétaire de mairie de Krasnov","Krasnov town hall secretary","Secretaria del ayuntamiento de Krasnov","克拉斯諾夫市政府秘書","Секретарь мэрии Краснова","크라스노프 시청 비서","سكرتيرة بلدية كراسنوف","Secretária da prefeitura de Krasnov","Sekretärin des Rathauses von Krasnow"],
   ["Responsable électorale de Krasnov","Krasnov electoral officer","Responsable electoral de Krasnov","克拉斯諾夫選務主管","Ответственная за выборы в Краснове","크라스노프 선거 담당관","مسؤولة الانتخابات في كراسنوف","Responsável eleitoral de Krasnov","Wahlleiterin von Krasnow"],
   ["Responsable électoral de Novomirsk","Novomirsk electoral officer","Responsable electoral de Novomirsk","新米爾斯克選務主管","Ответственный за выборы в Новомирске","노보미르스크 선거 담당관","مسؤول الانتخابات في نوفوميرسك","Responsável eleitoral de Novomirsk","Wahlleiter von Novomirsk"],
   ["Archiviste Municipal","Municipal archivist","Archivero municipal","市立檔案管理員","Городской архивист","시 기록관","أمين الأرشيف البلدي","Arquivista municipal","Stadtarchivar"],

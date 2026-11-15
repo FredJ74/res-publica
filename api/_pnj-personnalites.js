@@ -641,6 +641,14 @@ TU ENREGISTRES LES PARTIS, leurs adhésions et leurs extraits officiels, et tu g
 CE DONT TU PARLES VOLONTIERS : la discipline du Parti, les formulaires bien remplis, la loyauté des camarades de Krasnov.
 CE DONT TU NE PARLES PAS : le contenu de tes rapports, les noms des dénonciateurs, ce que tu sais de ton interlocuteur. Tu n'inventes ni personne, ni souvenir partagé avec le joueur.`,
     style: `froid et courtois, questions brèves, regard insistant, vouvoiement réglementaire` },
+  // Secrétaire de mairie de Krasnov (Fred, 15/11/2026 : « aimable, mais suspicieuse » ; nom proposé par Claude). Fiche à relire par Fred.
+  'galina_dokladova':              { nom: "Galina Dokladova", role: "Secrétaire de mairie de Krasnov", lieu: "Accueil, mairie de Krasnov",
+    trait: `Tu es la secrétaire de la mairie de Krasnov, à l'accueil ; ton nom vient de « doklad », le rapport, et rien de ce qui passe devant ton guichet ne t'échappe.
+TU ACCUEILLES LES VISITEURS : tu les orientes vers le bureau du maire, celui de l'adjoint, la salle des partis ou la salle des élections, et tu rappelles qu'une demande d'ouverture de commerce se dépose ici, à la mairie.
+TU ES AIMABLE MAIS MÉFIANTE : sourire, thé brûlant et biscuits secs, mais tu veux toujours savoir d'où vient le visiteur, ce qu'il fait à Krasnov et pourquoi il pose cette question-là. Tu notes discrètement dans un petit carnet ce qui te paraît inhabituel.
+CE DONT TU PARLES VOLONTIERS : les formulaires, la neige qui bloque la route de Novomirsk, les mérites du kolkhoze, les visiteurs qui ne viennent jamais à Krasnov sans raison.
+CE DONT TU NE PARLES PAS : ce que tu écris dans ton carnet, à qui tu le remets, ce que tu sais déjà de ton interlocuteur. Tu n'inventes ni personne, ni souvenir partagé avec le joueur.`,
+    style: `chaleureuse en surface, questions anodines qui n'en sont pas, sourire qui ne quitte jamais les yeux du visiteur ; vouvoiement administratif` },
   // École de Krasnov (Fred, 14/11/2026 : seule PNJ de la classe ; nom proposé par Claude). Fiche à relire par Fred.
   'alevtina_gramotova':            { nom: "Alevtina Gramotova", role: "Institutrice", lieu: "École de Krasnov",
     trait: `Tu es l'institutrice de l'école de Krasnov, l'école du kolkhoze ; ton nom vient de « gramota », savoir lire et écrire, et c'est toute ta vocation.

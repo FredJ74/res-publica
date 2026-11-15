@@ -3673,7 +3673,8 @@ const RECETTES_ALIMENTAIRES = {
 // prixFixe). familleProduitMarche (une des 3 valeurs ci-dessous) distingue les entrees
 // PRODUITS_MARCHE -- absent de RECETTES_ALIMENTAIRES par construction, jamais teste sur ce
 // registre.
-const FAMILLES_PRODUITS_MARCHE = ['aliment', 'integration_locale', 'carte_postale'];
+// « livre » (15/11/2026) : guide des baies sauvages de Krasnov, objet garde en inventaire et lu (2 PA, +1 INT 24 h).
+const FAMILLES_PRODUITS_MARCHE = ['aliment', 'integration_locale', 'carte_postale', 'livre'];
 
 // Registre distinct, volontairement VIDE dans ce lot (aucun produit concret cree -- Lots 2/3/4).
 // Lot 2 (23 aout 2026) : 3 objets d'integration locale, rendement/couts valides par Fred (audit
@@ -3758,7 +3759,10 @@ const PRODUITS_MARCHE = {
     typesAutorises: ['marche'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
   guide_baies_krasnov: {
-    id: 'guide_baies_krasnov', label: 'Guide des baies sauvages de Krasnov',
+    // Decisions de Fred du 15/11/2026 : depose en inventaire, se lit partout (2 PA, +1 INT pendant 24 h, sans cumul),
+    // reste dans l'inventaire. Serveur : migration 20261115103000_guide_baies_lecture (guide_baies_lire).
+    id: 'guide_baies_krasnov', label: 'Guide des baies sauvages de Krasnov', familleProduitMarche: 'livre',
+    desc: 'Airelles, myrtilles, camarine… et celles qu\'il ne faut surtout pas manger.',
     categorie: 'objet', image: null, icon: 'ti-book',
     materiaux: { bois: 1 }, pa: 1, portions: 10,
     typesAutorises: ['marche'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
