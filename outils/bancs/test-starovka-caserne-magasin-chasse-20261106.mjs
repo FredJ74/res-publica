@@ -11,7 +11,8 @@ test('Starovka : flèche haute à gauche vers magasin de chasse, retour en bas',
   vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8'),ctx);
   vm.runInContext(fs.readFileSync(path.join(root,'plateau-rue-centrale.js'),'utf8'),ctx);
   const n=vm.runInContext("({caserne:RUE_CENTRALE_NOEUDS.soviet['starovka-rue-bureaux-caserne'],chasse:RUE_CENTRALE_NOEUDS.soviet['starovka-rue-magasin-chasse'],bas:RC_FLECHE_BAS})",ctx);
-  assert.equal(n.caserne.liens.droite,'starovka-rue-lycee-commissariat');
+  // Fred 15/11 : le tribunal et le centre artisanal s'intercalent désormais avant le lycée.
+  assert.equal(n.caserne.liens.droite,'starovka-rue-tribunal-artisanal');
   assert.equal(n.caserne.liens.toutDroit,'starovka-rue-magasin-chasse');
   assert.match(n.caserne.flechesStyle.toutDroit,/top:10px/);
   assert.match(n.caserne.flechesStyle.toutDroit,/left:43%/);
