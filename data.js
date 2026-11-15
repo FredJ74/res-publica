@@ -2487,6 +2487,41 @@ const WORLD = {
             }
           }
         },
+        // Raffinerie de Starovka : trois salles, illustrations de Fred (15/11/2026).
+        // Ne modifie pas le gabarit de l'usine des autres villes ni ses ordres.
+        'usine-principale': {
+          name: 'Raffinerie de Starovka',
+          desc: 'Raffinerie publique de Starovka : carburants et dérivés pétrochimiques, dont les plastiques. Locaux et équipements entretenus avec soin.',
+          roomOverrides: {
+            direction_usine: {
+              name: 'Bureau du directeur',
+              desc: 'Bureau de direction à l’étage, avec vue plongeante sur les entrepôts et les installations de raffinage enneigées.',
+              imageUrl: 'images/Sovarka/Starovka/Starovka_raffinerie_bureau_directeur.webp',
+              // Directeur Fabre appartient au décor de Montrouge et ne doit pas apparaître à Starovka.
+              // Un tableau vide seul ne neutralise pas les PNJ hérités du gabarit partagé.
+              personsVides: true,
+              persons: []
+            }
+          },
+          roomsExtra: {
+            salle_ventes_raffinerie: {
+              name: 'Salle des ventes',
+              imageBg: 'linear-gradient(135deg,#18242a,#26313a)',
+              desc: 'Accueil commercial impeccable, dédié au carburant et aux produits pétrochimiques, notamment les plastiques. Les entrepôts et la raffinerie sont visibles à travers les fenêtres.',
+              imageUrl: 'images/Sovarka/Starovka/Starovka_raffinerie_salle_ventes.webp',
+              persons: [],
+              orders: []
+            },
+            interieur_raffinerie: {
+              name: 'Atelier de raffinage',
+              imageBg: 'linear-gradient(135deg,#18242a,#26313a)',
+              desc: 'Grande salle de production parfaitement entretenue, équipée de colonnes, de tuyauteries, de passerelles et de cuves de transformation pétrochimique.',
+              imageUrl: 'images/Sovarka/Starovka/Starovka_raffinerie_interieur_usine.webp',
+              persons: [],
+              orders: []
+            }
+          }
+        },
         // Salle des élections de Starovka (Fred, 14/11/2026) : les habitants n'avaient nulle part où voter
         // aux municipales. Mêmes ordres que Novomirsk et Krasnov ; image, PNJ et textes propres viendront
         // avec le tour de Starovka (Fred).
