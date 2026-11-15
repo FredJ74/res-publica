@@ -30,6 +30,12 @@ test('chaque ligne reclassée est une description effectivement affichée dans l
    for(const [id,room]of Object.entries({...c.BUILDINGS[b]?.rooms,...ctx.roomsExtra})){if(ctx.roomsExclues?.includes(id))continue;
     for(const o of [...c.ordresDeclaresDeLaPiece(room,ctx,id),...(ctx.roomOverrides?.[id]?.ordersExtra||[])])if(o?.desc)descs.add(o.desc);
    }}
-  for(const row of sources)assert.ok(descs.has(row[0]),country+': '+row[0]);
+  // Sovarka remplace certains ordres communs par les siens et les retire par excludeOrders (manifestations de soutien
+  // seulement, propagande et sondages de la Vérité officielle : décisions de Fred des 08 et 14/11). Une ligne dont tous
+  // les ordres sont ainsi exclus en Sovarka n'y est plus affichée ; sa traduction reste utile en Républia.
+  const exclusSovarka=new Set();for(const city of Object.values(c.WORLD.soviet||{}))for(const ctx of Object.values(city.buildingContext||{})){
+   for(const fn of ctx.excludeOrders||[])exclusSovarka.add(fn);for(const ov of Object.values(ctx.roomOverrides||{}))for(const fn of ov?.excludeOrders||[])exclusSovarka.add(fn);}
+  const fnsDe=d=>{const f=new Set();for(const b of Object.values(c.BUILDINGS))for(const r of Object.values(b.rooms||{}))for(const o of r.orders||[])if(o?.desc===d)f.add(o.fn);return [...f];};
+  for(const row of sources){const fns=fnsDe(row[0]);if(country==='soviet'&&fns.length&&fns.every(fn=>exclusSovarka.has(fn)))continue;assert.ok(descs.has(row[0]),country+': '+row[0]);}
  }
 });

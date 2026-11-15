@@ -7,9 +7,10 @@ const rows=s=>[...s.matchAll(/^\s*\[("[^\n]+")\],?$/gm)].map(m=>JSON.parse('['+m
 function api(source,language='fr',country='soviet',enabled=true){const c={state:{country},RP_I18N_GAME_ENABLED:enabled,RPPlateauI18n:{language:()=>language}};c.window=c;vm.createContext(c);vm.runInContext(source,c);return c.RPSovarkaDescI18n;}
 test('Krasnov : dix ajouts, neuf langues, français exact et toutes les anciennes traductions conservées',()=>{
  const before=rows(original('i18n/sovarka-descriptions-resources.js')),after=rows(read('i18n/sovarka-descriptions-resources.js'));
- assert.equal(after.length,before.length+10);assert.deepEqual(after.slice(0,before.length),before);
- assert.deepEqual(after.slice(before.length).map(r=>r[0]),sources);assert.equal(new Set(after.map(r=>r[0])).size,after.length);
- for(const row of after.slice(before.length)){assert.equal(row.length,9);for(const [i,lang]of languages.entries()){assert.ok(row[i].trim());if(i)assert.notEqual(row[i],row[0]);assert.equal(api(read('i18n/sovarka-descriptions-resources.js'),lang).desc(row[0]),row[i]);}assert.equal(api(read('i18n/sovarka-descriptions-resources.js'),'ar','republic').desc(row[0]),row[0]);assert.equal(api(read('i18n/sovarka-descriptions-resources.js'),'de','soviet',false).desc(row[0]),row[0]);}
+ // Lots suivants permis à la suite (15/11 : quatre descriptions de Krasnov par Claude) : ces dix lignes restent en place.
+ assert.ok(after.length>=before.length+10);assert.deepEqual(after.slice(0,before.length),before);
+ assert.deepEqual(after.slice(before.length,before.length+10).map(r=>r[0]),sources);assert.equal(new Set(after.map(r=>r[0])).size,after.length);
+ for(const row of after.slice(before.length,before.length+10)){assert.equal(row.length,9);for(const [i,lang]of languages.entries()){assert.ok(row[i].trim());if(i)assert.notEqual(row[i],row[0]);assert.equal(api(read('i18n/sovarka-descriptions-resources.js'),lang).desc(row[0]),row[i]);}assert.equal(api(read('i18n/sovarka-descriptions-resources.js'),'ar','republic').desc(row[0]),row[0]);assert.equal(api(read('i18n/sovarka-descriptions-resources.js'),'de','soviet',false).desc(row[0]),row[0]);}
  const missing=read('i18n/sovarka-descriptions-resources.js').replace(JSON.stringify(after[before.length][8]),'""');assert.notEqual(missing,read('i18n/sovarka-descriptions-resources.js'));assert.equal(api(missing,'de').desc(sources[0]),sources[0]);
  assert.equal(api(read('i18n/sovarka-descriptions-resources.js'),'inconnue').desc(sources[0]),sources[0]);
  assert.equal(api(read('i18n/sovarka-descriptions-resources.js'),'de').desc('Texte joueur <intact>'), 'Texte joueur <intact>');
