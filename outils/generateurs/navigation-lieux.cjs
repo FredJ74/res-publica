@@ -28,7 +28,7 @@ const rows=vm.runInContext(`Object.entries(WORLD).flatMap(([pays,villes])=>Objec
 for(const x of rows)if(x.pays==='soviet'&&x.ville==='capitale'&&x.id==='centre-affaires')x.rooms=["hall", "bureau_prestige", "bureau_standard", "open_space", "tribune_republia"];
 // Ajouts postérieurs au 31/10, posés par leurs migrations et exclus de cette génération HISTORIQUE (15/11/2026) :
 // chambres d'hôpital des dispensaires (13-14/11), chambres des appartements (relecture du 13/11), salle des
-// élections des mairies de Starovka et Krasnov (14/11), boutique du stade de Krasnov (14/11), immeubles,
+// élections des mairies de Starovka et Krasnov (14/11), boutique du stade de Krasnov (14/11) et de Starovka (15/11), salles de la raffinerie de Starovka (15/11), immeubles,
 // logements et Tabac/Presse de Krasnov et de Novomirsk (12-14/11), quatre bureaux du centre d'affaires de Krasnov (15/11).
 const EXCLUS_APRES_3110={soviet:{capitale:['logements-novomirsk-marche','logements-novomirsk-quais'],ville_b:['logements-krasnov-place-ours','logements-krasnov-rue-tabac','logements-novomirsk','tabac-presse-krasnov']}};
 for(let i=rows.length-1;i>=0;i--)if(EXCLUS_APRES_3110[rows[i].pays]?.[rows[i].ville]?.includes(rows[i].id))rows.splice(i,1);
@@ -36,7 +36,9 @@ for(const x of rows){
  if(/^dispensaire-public/.test(x.id))x.rooms=x.rooms.filter(r=>r!=='chambre');
  x.rooms=x.rooms.filter(r=>!/_chambre_\d+$/.test(r));
  if(x.pays==='soviet'&&x.id==='mairie')x.rooms=x.rooms.filter(r=>r!=='salle_elections');
- if(x.pays==='soviet'&&x.ville==='ville_b'&&x.id==='stade')x.rooms=x.rooms.filter(r=>r!=='boutique');
+ if(x.pays==='soviet'&&(x.ville==='ville_b'||x.ville==='ville_a')&&x.id==='stade')x.rooms=x.rooms.filter(r=>r!=='boutique');
+ // Raffinerie de Starovka (15/11) : deux salles ajoutées par 20261115192000, hors de la référence du 31/10.
+ if(x.pays==='soviet'&&x.ville==='ville_a'&&x.id==='usine-principale')x.rooms=x.rooms.filter(r=>r!=='salle_ventes_raffinerie'&&r!=='interieur_raffinerie');
  if(x.pays==='soviet'&&x.ville==='ville_b'&&x.id==='centre-affaires')x.rooms=["hall","bureau_prestige","bureau_standard","open_space","tribune_republia"];
 }
 const quote=x=>x===null?'NULL':"'"+String(x).replace(/'/g,"''")+"'";
