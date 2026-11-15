@@ -8,6 +8,9 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Correction urgente — ordre des rues de Starovka (Fred, 15/11/2026)
+Le trajet livré dans #999 était erroné : raffinerie placée avant les terrains. **Ordre correct décidé par Fred : pétrole-ferme ↔ terrains à bâtir ↔ raffinerie ↔ logements collectifs**. Branche `chatgpt/fix-starovka-raffinerie-position-20261115`, migration `20261115181000_starovka_raffinerie_position_corrective.sql`. Modifications client `plateau-rue-centrale.js`, quatre bancs révisés, toutes les sorties verticales et les clics de façades conservés. Essai SQL avec ROLLBACK réussi. Fusion, application Supabase et Vercel à vérifier puis mentionner preuves.
+
 
 ### Tour de Starovka — décisions de Fred (15/11/2026, après-midi)
 Krasnov terminée ; tour de Starovka lancé (navigation dans tous les bâtiments avant les détails). Décisions consignées dans `GAME-DESIGN-NOVOMIRSK.md`, « Tour de Starovka » : nouvelles vues de rue dessinées par Fred (hôpital, tribunal, usine, centre commercial, centre artisanal) ; **hôpital et tribunal/centre artisanal livrés par #997, raffinerie par #999**, autres rues à poursuivre ; **plus de banques en Sovarka**, bons d'État au guichet des mairies ; **goulag = QHS de Sovarka, hors de la ville**, train ou taxi/bus, habilitations par la Justice ou les juges, ordres après Starovka. **Hôpital et tribunal/centre artisanal livrés** (#997) ; autres sujets à traiter séparément selon les décisions de Fred.

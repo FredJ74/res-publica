@@ -16,12 +16,12 @@ test('Starovka : trois flèches actives depuis le carrefour pétrole-ferme',()=>
   haut:RC_FLECHE_HAUT,bas:RC_FLECHE_BAS
  })`,ctx);
  assert.equal(x.petrole.liens.toutDroit,'starovka-maisons-ferme');
- assert.equal(x.petrole.liens.droite,'starovka-rue-raffinerie');
+ assert.equal(x.petrole.liens.droite,'starovka-rue-terrains');
  assert.equal(x.petrole.liens.arriere,'starovka-rue-locaux-a-louer');
  assert.equal(x.petrole.liensEnAttente?.arriere,undefined);
  assert.equal(x.petrole.flechesStyle.arriere,x.bas);
  assert.match(x.petrole.flechesStyle.droite,/right:10px/);
- assert.equal(x.terrains.liens.gauche,'starovka-rue-raffinerie');
+ assert.equal(x.terrains.liens.gauche,'starovka-rue-petrole-ferme');
  assert.equal(x.terrains.liens.arriere,undefined);
  assert.equal(x.terrains.image,'images/Sovarka/Starovka/Starovka_rue_terrains.webp');
  assert.ok(fs.statSync(path.join(root,x.terrains.image)).size>100);

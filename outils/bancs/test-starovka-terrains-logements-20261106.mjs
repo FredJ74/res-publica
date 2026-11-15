@@ -10,9 +10,9 @@ test('Starovka : terrains vers logements collectifs et retour',()=>{
   vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8'),ctx);
   vm.runInContext(fs.readFileSync(path.join(root,'plateau-rue-centrale.js'),'utf8'),ctx);
   const x=vm.runInContext(`({terrains:RUE_CENTRALE_NOEUDS.soviet['starovka-rue-terrains'],logements:RUE_CENTRALE_NOEUDS.soviet['starovka-rue-logements-collectifs']})`,ctx);
-  assert.equal(x.terrains.liens.gauche,'starovka-rue-raffinerie');
-  assert.equal(x.terrains.liens.droite,'starovka-rue-logements-collectifs');
-  assert.equal(x.logements.liens.gauche,'starovka-rue-terrains');
+  assert.equal(x.terrains.liens.gauche,'starovka-rue-petrole-ferme');
+  assert.equal(x.terrains.liens.droite,'starovka-rue-raffinerie');
+  assert.equal(x.logements.liens.gauche,'starovka-rue-raffinerie');
   assert.match(x.terrains.flechesStyle.droite,/right:10px/);
   assert.equal(x.logements.image,'images/Sovarka/Starovka/Starovka_rue_logements collectifs.webp');
   assert.ok(fs.statSync(path.join(root,x.logements.image)).size>100);
