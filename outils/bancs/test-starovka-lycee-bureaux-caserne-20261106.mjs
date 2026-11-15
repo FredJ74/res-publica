@@ -11,7 +11,8 @@ test('Starovka : deux flèches à mi-hauteur sur le lycée et retour caserne',()
  vm.runInContext(fs.readFileSync(path.join(root,'plateau-rue-centrale.js'),'utf8'),ctx);
  const n=vm.runInContext("({lycee:RUE_CENTRALE_NOEUDS.soviet['starovka-rue-lycee-commissariat'],caserne:RUE_CENTRALE_NOEUDS.soviet['starovka-rue-bureaux-caserne']})",ctx);
  assert.equal(n.lycee.liens.droite,'starovka-rue-mairie-marche');
- assert.equal(n.lycee.liens.gauche,'starovka-rue-bureaux-caserne');
+ // Fred 15/11 : la rue de l'hôpital remplace l'ancien raccourci vers la caserne.
+ assert.equal(n.lycee.liens.gauche,'starovka-rue-hopital');
  assert.match(n.lycee.flechesStyle.droite,/top:50%/);
  assert.match(n.lycee.flechesStyle.droite,/right:10px/);
  assert.match(n.lycee.flechesStyle.gauche,/top:50%/);
