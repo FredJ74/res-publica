@@ -2498,6 +2498,8 @@ const WORLD = {
               desc: 'Bureau de direction à l’étage, avec vue plongeante sur les entrepôts et les installations de raffinage enneigées.',
               imageUrl: 'images/Sovarka/Starovka/Starovka_raffinerie_bureau_directeur.webp',
               // Directeur Fabre appartient au décor de Montrouge et ne doit pas apparaître à Starovka.
+              // Un tableau vide seul ne neutralise pas les PNJ hérités du gabarit partagé.
+              personsVides: true,
               persons: []
             }
           },
