@@ -12,7 +12,7 @@ test('Starovka : flèche droite logements vers stade et retour gauche',()=>{
  vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8'),ctx);
  vm.runInContext(fs.readFileSync(path.join(root,'plateau-rue-centrale.js'),'utf8'),ctx);
  const n=vm.runInContext("({logements:RUE_CENTRALE_NOEUDS.soviet['starovka-rue-logements-collectifs'],stade:RUE_CENTRALE_NOEUDS.soviet['starovka-rue-stade']})",ctx);
- assert.equal(n.logements.liens.gauche,'starovka-rue-terrains');
+ assert.equal(n.logements.liens.gauche,'starovka-rue-raffinerie');
  assert.equal(n.logements.liens.arriere,'starovka-rue-restaurant-boutique');
  assert.equal(n.logements.liens.droite,'starovka-rue-stade');
  assert.match(n.logements.flechesStyle.droite,/right:10px/);
