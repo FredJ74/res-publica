@@ -21,6 +21,7 @@ async function scenario(largeur,ancien=false){
    function extraireActionsMail(corps){return {corps,actions:[]};} function boutonsActionMail(){return '';}
    function sanitizeRichHtml(x){return x;} function formatDateAffichage(){return 'date de fixture';}
    function renderEnvoyerMailEnTantQue(){return '';}
+   function mailVuTraduit(m){return m;} function getAvatarHtmlPost(){return '';} // présentation traduite et avatar (depuis le 12/11), neutres ici
    function renderRichEditor(id){return '<div id="'+id+'" contenteditable="true" style="min-height:1800px">Réponse longue de fixture</div>';}
    function submitMail(){envois++;}
    ${ancien?code.replace("modalForumEl.classList.toggle('forum-mail-scroll', forumView === 'mail');",'// Ancien défaut : classe de défilement absente.'):code}

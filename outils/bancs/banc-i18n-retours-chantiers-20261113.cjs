@@ -22,5 +22,9 @@ test('dix seuls marqueurs de présentation : AST métier intégralement identiqu
  assert.deepEqual(canonical(parse(source)),canonical(parse(previous)));
  const baselineKeys=new Set(),currentKeys=new Set();let frozenCount=0;walk(parse(source),n=>{if(marker(n)){frozenCount++;const e=n.expression.type==='ChainExpression'?n.expression.expression:n.expression;if(e.arguments[0].type==='Literal')baselineKeys.add(e.arguments[0].value);}});assert.equal(frozenCount,10);walk(parse(read('plateau-construction-commandes.js')),n=>{if(marker(n)){const e=n.expression.type==='ChainExpression'?n.expression.expression:n.expression;if(e.arguments[0].type==='Literal')currentKeys.add(e.arguments[0].value);}});for(const key of baselineKeys)assert.ok(currentKeys.has(key),key);
  assert.ok(read('plateau.html').indexOf('i18n/toast-resources.js')<read('plateau.html').indexOf('i18n/construction-feedback-resources.js'));
- const base=execFileSync('git',['merge-base','HEAD','origin/main'],{cwd:root,encoding:'utf8'}).trim();assert.equal(execFileSync('git',['diff','--name-only',base,'--','api','migrations','supabase','data.js','plateau-construction.js'],{cwd:root,encoding:'utf8'}),'');
+ // Preuve figée sur la PR d'origine quand le manifeste existe (15/11) : comparer à merge-base faisait échouer tout
+ // chantier ultérieur qui touche api/ ou migrations/ (même règle que banc-i18n-communes-partage).
+ const preuveLot=JSON.parse(read('outils/audits/I18N-RETOURS-CHANTIERS-871-preuve.json'));
+ const base=preuveLot.baseCommit||execFileSync('git',['merge-base','HEAD','origin/main'],{cwd:root,encoding:'utf8'}).trim(),bout=preuveLot.codeCommit||null;
+ assert.equal(execFileSync('git',['diff','--name-only',base,...(bout?[bout]:[]),'--','api','migrations','supabase','data.js','plateau-construction.js'],{cwd:root,encoding:'utf8'}),'');
 });

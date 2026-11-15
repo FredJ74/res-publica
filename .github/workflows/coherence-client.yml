@@ -31,19 +31,14 @@ jobs:
         with:
           python-version: '3.12'
       - name: Dépendances du PostgreSQL jetable
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
       - name: Syntaxe des fonctions API, sans appel distant
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/verifier-syntaxe-api.py
       - name: "Portraits Jodie dans le journal quotidien"
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-jodie-portraits-journal.cjs
       - name: "Portrait Jodie — autorisation, contenu signé, anti-doublons"
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-jodie-portrait-api.cjs
       - name: "Enquête du musée — appels de Jodie, mémoire sociale et migration"
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: |
           node --check plateau-enigme-portrait.js
           node --check plateau-social-pnj.js
@@ -51,21 +46,17 @@ jobs:
           node --test outils/bancs/test-jodie-enquete-musee.mjs
           python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261109221000_jodie_enquete_sociale.sql').read_text()); print('SQL Jodie : syntaxe valide')"
       - name: Constructeur Vercel épinglé pour la régression de chargement
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: npm ci --prefix outils/vercel --no-audit --no-fund
       - name: Installer les dépendances du pilote navigateur avant les bancs client
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
-      # Joué aussi sur les PR depuis le 15/11/2026 : réservé à main, il ne voyait les bancs cassés qu'après fusion,
-      # et les échecs s'empilaient sans que personne ne les voie avant (15 bancs rouges au 15/11).
       - name: Dépendances de l'audit i18n (acorn, parse5) avant les bancs client
         run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      # Joué aussi sur les PR depuis le 15/11/2026 : réservé à main, il ne voyait les bancs cassés qu'après fusion,
+      # et les échecs s'empilaient sans que personne ne les voie avant (15 bancs rouges au 15/11).
       - name: Calendrier et bancs Node test-*.mjs (main et PR)
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node --test outils/bancs/test-*.mjs
 
       - name: Tracts — plafond commun de 100 unités avant toute impression
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: |
           node --check plateau-divers.js
           node --check plateau-communication.js
@@ -73,173 +64,122 @@ jobs:
           python3 -c "from pathlib import Path; from pglast import parse_sql; sql=Path('migrations/20261104164500_tracts_imprimer_plafond_inventaire.sql').read_text(); assert len(parse_sql(sql))==1; print('Migration plafond tracts : syntaxe PostgreSQL valide')"
 
       - name: Services sociaux Montrouge — rendez-vous, courrier et logements (hors production)
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: |
           node --test outils/bancs/test-montrouge-ssm-rendezvous.cjs outils/bancs/test-montrouge-ssm-pnj.cjs
           python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261103023000_ssm_rendezvous_logements.sql').read_text()); print('SQL SSM : syntaxe PostgreSQL valide')"
       - name: Publication forum PSM — session, territoire et panne réseau
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node --test outils/bancs/test-forum-publication-psm-20261104.cjs
 
       - name: Forums — pays, villes et adhésions, aucune requête production
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: |
           node outils/bancs/banc-forums-territoires-adhesions-20261103.cjs
           python3 outils/bancs/banc-forums-territoires-local.py
           python3 outils/bancs/test-collecte-forums422.py
           python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261103222000_forums_territoires_et_adhesions.sql').read_text()); print('SQL forums : syntaxe PostgreSQL valide')"
       - name: Commerces, usines et armureries — vente de matières et stocks visibles
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-commerces-stock-unique-20261104.cjs
       - name: Catalogue manufacturé commun — produire et acheter depuis la même carte
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node --test outils/bancs/banc-catalogue-manufactures-20261104.cjs
       - name: Football — entraînement sans blessure navigateur, indisponibilité 3 jours maximum
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: |
           node --test outils/bancs/banc-football-blessures-entrainement-3j.cjs
           python3 -c "from pathlib import Path; from pglast import parse_sql; parse_sql(Path('migrations/20261103232759_football_entrainement_blessure_serveur_3j.sql').read_text()); print('Football SQL syntaxe OK')"
       - name: Trois correctifs prêts — tarifs hôtels, service d'étage et contacts ambassade
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node --test outils/bancs/banc-livraison-hotels-ambassade-20261104.cjs
       - name: Commerce Premium PSM après lecture des baux
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-psm-premium-bail.cjs
       - name: Boutiques PSM — mêmes ordres et variantes que Luthécia
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-psm-boutiques-location.cjs
       - name: Garde du pays et de la ville serveur après F5
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-position-ville-serveur-f5.cjs
       - name: Rumeurs contre organisations secrètes — confidentialité
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-rumeur-organisations-secretes.cjs
       - name: Chantier naval PSM — moteur transactionnel sur PostgreSQL jetable
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-chantier-naval-local.py
       - name: Chantier naval PSM — deux devis et garde serveur
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node --test outils/bancs/test-chantier-naval.mjs
       - name: Bancs JavaScript, transports simulés
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         # Les bancs navigateur cherchent playwright depuis outils/bancs : on leur donne celui d'outils/e2e.
         env:
           NODE_PATH: ${{ github.workspace }}/outils/e2e/node_modules
         run: python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs
       - name: Destinations du centre multimodal
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-destinations-multimodal-20261028.cjs
       - name: Signature chez le notaire, solde encaissé par le serveur seul
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-acte-notaire-solde.cjs
       - name: Squatteurs et cadavres, police et dissimulation décidées par le serveur
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node --test outils/bancs/banc-occupation-actions-client.cjs
       - name: Caisses communales à l'accueil, ordre de l'Hôtel de Ville retiré
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-caisses-accueil-communal.cjs
       - name: Publications forum institutionnelles acceptées par la base (sondage, affaire, retrait)
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-forum-auteur-institutionnel.cjs
       - name: Avis personnels signés d'expéditeurs déclarés
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node --test outils/bancs/banc-avis-personnels-expediteurs.mjs
       - name: Purge certifiée et manifeste 95 migrations avant livraison
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/test-purge-migrations-219.mjs
       - name: Caisses des clubs et organisations tenues par le serveur (écran, #295)
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-caisses-collectives-client.cjs
       - name: Caisses entières, dialogues lisibles et genre non supposé
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-caisses-dialogue-lisibilite-20261031.cjs
       - name: Fiche PJ jamais autoritaire (fusion à trois voies, double clic, réponse perdue)
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-fiche-verite-serveur-20261030.cjs
       - name: Création de personnage après réponse réseau perdue
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-creation-personnage-reseau-20261028.cjs
       - name: Genre du personnage dans les dialogues PNJ (handler réel, IA simulée)
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node --test outils/bancs/banc-genre-pnj-dialogue.mjs
       - name: Régression de sortie de bâtiment avec réponse perdue
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-sortie-reponse-perdue-20261028.cjs
       - name: Refus serveur des ajouts d'inventaire et reprise client sans écrasement
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-verrou-inventaire-client-20261031.cjs
       - name: Pilote joueur, fixtures locales sans compte ni Supabase
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: npm test --prefix outils/e2e
       - name: Collecte SQL Editor identique et plan 95 puis 318 et 324
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: |
           python3 outils/livraison/export-sql-editor-219.py --verifier-sql
           python3 outils/bancs/test-plan-recette97-219.py
       - name: Exports canoniques complets et reconstruction des séquences, PostgreSQL jetable
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/test-catalogue-reconstruction.py
       - name: Manifeste de collecte privé, SELECT et contre-épreuves
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/test-manifeste-collecte-219.py
       - name: Cinq commandes organisations, paiements protégés et rollback indivisible
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-organisations-paquet-219-local.py
       - name: Réconciliation des tarifs et refus du couple gilet 0 PA/600 FR
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-couts-reconciliation-219-local.py
       - name: Relais canonique exact, snapshot et exclusion des fichiers privés
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/test-relais-canonique-219.py
       - name: Caisses collectives sur PostgreSQL jetable, contre-épreuve et fermeture (#295)
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-caisses-collectives-local.py --local-jetable
       - name: Verrou final inventaire sur PostgreSQL jetable, données fictives
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-verrou-inventaire-local.py
       - name: Audit Arnie sur PostgreSQL jetable, aucune identite reelle
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/e2e/test-prevol-arnie-local.py --local-jetable
       - name: Groupes et batailles mixtes sur PostgreSQL jetable
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-groupes-squatteurs-contrat-local.py
       - name: Contrôles policiers ordinaires et sanctions atomiques sur PostgreSQL jetable
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-groupes-controles-ordinaires-local.py
       - name: Cinq rounds, commandement et fuites directionnelles sur PostgreSQL jetable
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-groupes-fuite-directions-local.py
       - name: Replis, calendrier et anciens camions sur les corps SQL communiqués
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-groupes-camions-local.py --catalogue-20261029
       - name: Combats civils et squatteurs dans les mêmes rounds, PostgreSQL jetable
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         env:
           HG219_RAPPORT_JSON: /tmp/hg-bancs/combat-civil-squatteurs.json
         run: python3 outils/bancs/banc-combat-civil-universel-local.py --catalogue-20261029 --fixture-roster-mort
       - name: Audit securite privee et groupes sur PostgreSQL jetable
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-audit-securite-135-local.py
       - name: Achat sur PostgreSQL local, sans identifiant Supabase
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-achat-commerce-local.py --local-jetable
       - name: Caisses uniques des entrepôts et ravitaillement, PostgreSQL jetable
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-caisses-entrepots-local.py
       - name: Restaurant gastronomique sur PostgreSQL local, sans identifiant Supabase
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-restaurant-luthecia-local.py --local-jetable --correctif-reservation
       - name: Reservation Republica, accueil et persistance atomique hors production
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-reservation-republica-local.py --local-jetable
       - name: Catalogue et tournée sur PostgreSQL local, sans identifiant Supabase
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-offrir-boire-local.py --local-jetable
       - name: Réception atomique sur PostgreSQL local, sans identifiant Supabase
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-reception-atomique-local.py --local-jetable
       - name: Receptions inventaire au role authenticated, PostgreSQL jetable
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: |
           python3 outils/bancs/banc-inventaire-receptions-local.py
           python3 outils/bancs/banc-inventaire-fret-local.py
@@ -252,72 +192,50 @@ jobs:
           python3 outils/bancs/banc-inventaire-concurrence-local.py
           python3 outils/bancs/contre-epreuves-inventaire-local.py
       - name: Assemblage electronique sur PostgreSQL local
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-assemblage-electronique-local.py
       - name: Publications Jodie sur PostgreSQL local
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-jodie-publications-local.py
       - name: "Reliquats #379, effets atomiques et contrats versionnes sur PostgreSQL jetable"
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-reliquats-379-local.py
       - name: Jauges, forum, objectifs et organisations transactionnels, PostgreSQL jetable
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-jauges-ordres-379-local.py
       - name: Commandes administratives organisations sur PostgreSQL local
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-organisations-commandes-local.py
       - name: Adhesions et grades organisations sur PostgreSQL local
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-organisations-membres-local.py
       - name: Invitations et elections avec paiement reel sur PostgreSQL local
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-organisations-evenements-local.py
       - name: Coherence rues et sorties sur PostgreSQL local
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-coherence-rues-local.py
       - name: Equipements collectifs sur PostgreSQL local
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-equipements-collectifs-local.py
       - name: Fontaine de chocolat, garde serveur sur PostgreSQL jetable
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-fontaine-110-local.py
       - name: Placements nationaux atomiques et idempotents sur PostgreSQL local
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-placement-national-local.py
       - name: Journal des ventes prive, PostgreSQL jetable
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-journal-ventes-local.py
       - name: Depot de permis indivisible sur PostgreSQL local
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-permis-depot-local.py
       - name: Negociation des squatteurs atomique sur PostgreSQL local
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-negociation-squatteurs-local.py
       - name: Achat Ced atomique et quota football au jour commun sur PostgreSQL local
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-ced-football-local.py
       - name: Occupation persistante des terrains sur PostgreSQL local
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-terrain-occupation-local.py
       - name: Construction et materiaux atomiques sur PostgreSQL local
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: |
           python3 outils/bancs/banc-construction-taux-135-local.py
           python3 outils/bancs/banc-construction-materiaux-local.py
       - name: Chaîne immobilière complète sur PostgreSQL jetable, cinq terrains
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-parcours-terrain-construction-135-local.py
       - name: Prime de signature adoptée du serveur (écran, double clic, réponse perdue)
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: node outils/bancs/banc-prime-signature-client.cjs
       - name: Prime de signature sur PostgreSQL jetable, contre-épreuve (20261031220000)
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-prime-signature-local.py --local-jetable
       - name: Organisations, étape A préparée sur PostgreSQL jetable (20261031230000, non appliquée)
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         run: python3 outils/bancs/banc-organisations-champs-commandes-local.py --local-jetable
       - name: Conserver les résultats des bancs
-        continue-on-error: true  # TEMPORAIRE : relevé complet
         if: always()
         uses: actions/upload-artifact@v4
         with:

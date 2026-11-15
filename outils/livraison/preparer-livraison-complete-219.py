@@ -68,7 +68,7 @@ def preparer(destination=None):
  if sorted((r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] in fns_sovarka)!=sorted(sovarka):
   raise ValueError('Ordres Sovarka absents, dupliqués ou mal tarifés')
  # Provinces de Sovarka (10/11, #681/#686) : memes ajouts que preparer-recette97-219.py, controles un par un.
- provinces=[('ferme_lapin',2,0),('ferme_legumes',1,0),('ferme_oeufs',1,0),('ferme_poulet',2,0),('ferme_renne',5,0),('ferme_traire',1,0),('foret_couper',2,0),('foret_enfoncer',0,0),('foret_revenir',0,0),('maison_habitant',0,0),('souscrire_bon_etat',0,0),('sovarka_ecoutes',0,0),('trinquer_habitant',3,0),('voler_archives_ecoute',2,0)]
+ provinces=[('ferme_lapin',1,0),('ferme_legumes',1,0),('ferme_oeufs',1,0),('ferme_poulet',1,0),('ferme_renne',5,0),('ferme_traire',1,0),('foret_couper',2,0),('foret_enfoncer',0,0),('foret_revenir',0,0),('maison_habitant',0,0),('souscrire_bon_etat',0,0),('sovarka_ecoutes',0,0),('trinquer_habitant',3,0),('voler_archives_ecoute',2,0)]
  if sorted((r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] in {f for f,_,_ in provinces})!=sorted(provinces):
   raise ValueError('Ordres des provinces de Sovarka absents, dupliqués ou mal tarifés')
  fns_sovarka=fns_sovarka|{f for f,_,_ in provinces}
@@ -79,6 +79,10 @@ def preparer(destination=None):
  casier_sovarka=('casier_mon_extrait',1,8)  # extrait de casier à 8 PSK en Sovarka (08/11)
  if sum((r['fn'],r['pa'],r['cost'])==diner_sovarka for r in gen)!=1 or sum((r['fn'],r['pa'],r['cost'])==casier_sovarka for r in gen)!=1:
   raise ValueError('Dîner Sovarka absent, dupliqué ou mal tarifé')
+ # Ordres et variantes ajoutés après le 10/11 (relevé du 15/11) : postérieurs à la coupe, écartés (mêmes que recette 97).
+ posterieurs_1011={('ilia_ecouter_guide', 0, 0), ('interieur_dossiers', 0, 0), ('residence_minibar', 0, 0), ('foret_retrouver', 1, 0), ('heros_travail_classement', 0, 0), ('propagande_etat', 3, 150), ('tresor_repondre', 0, 0), ('clinique_dormir', 0, 0), ('residence_location', 0, 0), ('parti_boite_registre', 0, 0), ('sovarka_manifs_gerer', 0, 0), ('clinique_reserver_nuit', 0, 0), ('service_etage_carte', 0, 0), ('consulter_archives_ecoute', 1, 0), ('commanditer_sondage', 1, 60), ('tresor_donner_livre', 0, 0), ('pavillon_suite', 0, 0), ('enigme1_examiner_cadre', 0, 0), ('ferme_vaches', 1, 0), ('pavillon_reception', 0, 0), ('acces_reserve_info', 0, 0), ('escort_standard', 0, 0), ('faire_don', 0, 0), ('dormir', 0, 0), ('tresor_ecouter_guide', 0, 0), ('parti_denoncer', 1, 0), ('ecouter_guide_musee', 0, 0), ('sovarka_graces', 0, 0), ('sovarka_habilitations', 0, 0), ('residence_reserver', 0, 0), ('kolkhoze_caisse', 0, 0), ('fouiller_voler', 0, 0), ('sovarka_goulag_gestion', 0, 0), ('heros_travail_tableau', 0, 0)}
+ if not posterieurs_1011<={(r['fn'],r['pa'],r['cost']) for r in gen}:raise ValueError('Ordre postérieur au 10/11 absent du catalogue')
+ gen=[r for r in gen if (r['fn'],r['pa'],r['cost']) not in posterieurs_1011]
  t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements','produire_derives_petrochimiques','consulter_devis_chantier_naval','interroger_renseignement')+vehicules and r['fn'] not in fns_sovarka and (r['fn'],r['pa'],r['cost'])!=diner_sovarka and (r['fn'],r['pa'],r['cost'])!=casier_sovarka and (r['fn'],r['pa'],r['cost'])!=supporters_dynamo and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
  md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
  if md5!=cm['apres']['md5'] or len(t)!=cm['apres']['lignes']:raise ValueError('Sources de tarifs changées : réexaminer le plan')

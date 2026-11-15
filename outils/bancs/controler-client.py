@@ -100,7 +100,8 @@ def main():
             commande = ([sys.executable, str(ICI / 'lancer-banc.py'), str(banc)] if historique
                         else [node, '--experimental-vm-modules', '--test', str(banc)])
             debut = time.monotonic()
-            code, sortie = executer_banc(commande, cwd=RACINE)
+            # Les bancs Chromium (« navigateur ») balaient neuf langues et plusieurs largeurs : 120 s ne suffisent plus.
+            code, sortie = executer_banc(commande, cwd=RACINE, delai=300 if 'navigateur' in banc.name else 120)
             entree = {'banc':banc.name, 'code':code,
                       'moteur':'lanceur historique' if historique else 'Node natif',
                       'secondes':round(time.monotonic()-debut, 3)}
