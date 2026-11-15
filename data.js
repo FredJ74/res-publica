@@ -11924,9 +11924,11 @@ BUILDINGS['locaux-starovka'] = {
       'Une grande maison de bois brun à l’ombre des bulbes dorés de l’église, bâtie pour un prêtre et sa famille.',
       'Des icônes dans le coin rouge, une longue table faite pour une famille nombreuse, et le batiouchka Kouzma, un peu sourd, qui y vit seul et parle très fort.',
       'images/Sovarka/Krasnov/Krasnov_maison_kouzma_interieur.webp', 'images/Sovarka/Krasnov/Kouzma.webp'],
-    ['maison-krasnov-terrains', 'Maison d’Ignat', 'Ignat Lykov', 'Habitant de Krasnov',
-      'Une vieille maison de bois au bord des terrains vagues, des peaux tendues sous l’auvent.',
-      'Des pièges pendus aux poutres, un samovar cabossé et un vieux trappeur taiseux qui vous observe longuement avant de sourire.']
+    // Fred (15/11/2026) : Ignat Lykov est un fonctionnaire retraité, idéaliste convaincu du collectivisme.
+    ['maison-krasnov-terrains', 'Maison d’Ignat', 'Ignat Lykov', 'Fonctionnaire à la retraite',
+      'Une maison de bois à l’angle de la rue, au bord des terrains, habitée par un ancien fonctionnaire fidèle aux idéaux de Sovarka.',
+      'Portraits et affiches collectivistes ornent les murs. Une photographie montre Ignat inspectant la moisson au côté des agriculteurs du kolkhoze, près d’une moissonneuse et d’un tracteur tirant une benne de blé.',
+      'images/Sovarka/Krasnov/Krasnov_maison_ignat_interieur.webp', 'images/Sovarka/Krasnov/Ignat.webp']
   ];
   MAISONNETTES_KRASNOV.forEach(m => maison(...m));
   const cite = v => WORLD.soviet && WORLD.soviet[v];
