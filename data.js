@@ -11753,6 +11753,12 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
     });
   };
   voix('ville_a', 'Starovka', 'Saran Batbayar');
+  // STAROVKA_IMAGES_IMPRIMERIE_LOCAL_20261116 — visuel local du journal Metel.
+  // Ne modifie ni les journalistes ni les ordres de l'antenne.
+  Object.assign(piece(contexte('ville_a', 'centre-affaires'), 'tribune_republia'), {
+    imageUrl: 'images/Sovarka/Starovka/Starovka_centre-affaires_tribune_republia.webp'
+  });
+
   voix('ville_b', 'Krasnov', 'Anatoli Kolosov');
   const agence = contexte('capitale', 'la-tribune');
   if (agence) Object.assign(agence, { name: 'La Voix de Sovarka', desc: 'L\'agence officielle de La Voix de Sovarka, le journal du pays : nouvelles de la production, communiqués du Parti et censure à l\'étage.' });
@@ -11941,6 +11947,12 @@ BUILDINGS['locaux-starovka'] = {
     ]
   }]))
 };
+// Local commercial n°1, boutique vide face à l'imprimerie du journal Metel.
+// Le local n°2 reste sans nouveau décor ; commandes et baux inchangés.
+BUILDINGS['locaux-starovka'].rooms.local_1.imageUrl =
+  'images/Sovarka/Starovka/Starovka_locaux-starovka_local_1.webp';
+BUILDINGS['locaux-starovka'].imagesAVenir = false;
+
 
 // BONS D'ETAT DE SOVARKA (reponse 1 de Fred, 09/11/2026 ; lieu change le 15/11/2026) : ni placements prives ni
 // prets. Plus de banques en Sovarka (presque tout l'argent y est liquide) : les bons d'Etat
