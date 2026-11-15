@@ -31,8 +31,8 @@ jobs:
             'interieur orthodoxe dore et solennel':'Krasnov_eglise_sainte_moisson_interieur.webp',
           }
           def norm(s):
-              s=unicodedata.normalize('NFKD',s).encode('ascii','ignore').decode('ascii').lower()
               s=s.replace('’',' ').replace("'",' ')
+              s=unicodedata.normalize('NFKD',s).encode('ascii','ignore').decode('ascii').lower()
               return ' '.join(s.split())
           candidates=[p for p in source.iterdir() if p.is_file() and p.suffix.lower()=='.png']
           for key,name in mapping.items():
