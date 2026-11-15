@@ -9,6 +9,9 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Starovka — nouvelles rues hôpital, tribunal, centre artisanal (ChatGPT, 15/11/2026)
+Branche `chatgpt/starovka-hopital-tribunal-artisanal-20261115`, PR #997. Deux PNG fournis par Fred (commit `d956400`) convertis en WebP avec perte qualité 85, PNG supprimés, images renommées `Starovka_rue_hopital.webp` et `Starovka_rue_tribunal_centre_artisanal.webp` ; script de conversion versionné. Client `plateau-rue-centrale.js` : **lycée/commissariat ↔ hôpital ↔ tribunal/centre artisanal ↔ bureaux/poste militaire**, accès par façades hôpital, tribunal, centre artisanal. Migration `20261115163000_starovka_hopital_tribunal_artisanal_rues.sql` : deux nœuds, accès serveur existants et remplacement des deux raccourcis. Banc `banc-starovka-rues-hopital-tribunal-20261115.cjs`. Essai Supabase en transaction annulée réussi. **Application production, fusion, Vercel, vérification finale à confirmer** ; aucune mécanique ni ordre nouveau.
+
 ### Tour de Starovka — décisions de Fred (15/11/2026, après-midi)
 Krasnov terminée ; tour de Starovka lancé (navigation dans tous les bâtiments avant les détails). Décisions consignées dans `GAME-DESIGN-NOVOMIRSK.md`, « Tour de Starovka » : nouvelles vues de rue dessinées par Fred (hôpital, tribunal, usine, centre commercial, centre artisanal) ; **plus de banques en Sovarka**, bons d'État au guichet des mairies ; **goulag = QHS de Sovarka, hors de la ville**, train ou taxi/bus, habilitations par la Justice ou les juges, ordres après Starovka. **Rien de codé** : attendre les images et le feu vert de Fred.
 
