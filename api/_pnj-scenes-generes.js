@@ -6574,7 +6574,7 @@ export const SCENES_PNJ = {
     "batiment": "Mairie de Krasnov",
     "piece": "Accueil",
     "personnes": [
-      "Secrétaire municipale de Krasnov"
+      "Galina Dokladova"
     ]
   },
   "[\"soviet\",\"ville_b\",\"mairie\",\"bureau_maire_local\"]": {

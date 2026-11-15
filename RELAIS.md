@@ -25,8 +25,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ### Décisions attendues de Fred
 
-- **Guide des baies sauvages (marché de Krasnov)** : payé puis « consommé » sans effet ni objet (aucune famille de produit de marché). Quel effet ou quel objet lui donner ? (constat du 14/11, laissé à Fred le 15/11)
-- **Secrétaire de mairie de Krasnov** : toujours sans nom ni fiche (constat de l'audit du 14/11, laissé à Fred le 15/11).
+- **Fiche de Galina Dokladova** (secrétaire de mairie de Krasnov, 15/11) : à relire par Fred (`api/_pnj-personnalites.js`).
 - **Armoire à souvenirs (Fred, 13/11)** : collection complète = **+1 PA** au sommeil en présence de son armoire, sans cumul entre armoires mais cumulable avec le +1 PA de l'appartement ; l'armoire ne prend plus qu'1 place dans l'inventaire (au lieu de 3) ; dépôt et retrait des souvenirs gratuits ; retrait par un visiteur (armoire ouverte) légal, mais plainte pour vol possible, jugée par le juge PJ (`GAME-DESIGN-APPARTEMENTS.md`). **Ne pas coder** avant que les douze villes de la liste existent (décision de Fred) ; décisions consignées seulement.
 - **Relecture de Fred du 13/11 au soir : codée et livrée** (voir le chantier en tête de ce fichier).
 - **Question ouverte (Fred y réfléchit)** : étendre le plafond de −33 des malus de sécurité à tous les actes illégaux ?
@@ -71,6 +70,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ### À vérifier en jeu (Fred, Angie, Vince)
 
+- Guide des baies, Galina Dokladova, questions des fonctionnaires (Claude, 15/11/2026) : acheter le guide au marché de Krasnov, il arrive dans l'inventaire ; « Lire (2 PA) » donne +1 INT (fiche) pendant 24 h, relire refusé tant que l'effet dure ; Galina Dokladova à l'accueil de la mairie de Krasnov ; parler à plusieurs fonctionnaires de Sovarka : une conversation sur quatre environ glisse une question absurde de vigilance.
 - Sovarka : « Se renseigner » lit les locaux de Sovarka (Claude, 15/11/2026, nuit) : « Se renseigner » au hall des Galeries de Novomirsk et du centre commercial de Krasnov.
 - Sovarka : la semaine à la gloire au calendrier électoral (Claude, 15/11/2026, nuit) : calendrier électoral d'une mairie de Sovarka.
 - Maisons de Sovarka : œufs et vodka rattachés (Claude, 15/11/2026, nuit) : rendre « 1 bouteille de vodka » à Stepan avec l'alcool de l'entrepôt.
@@ -101,6 +101,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **Guide des baies, Galina Dokladova, questions parodiques des fonctionnaires de Sovarka (Claude, 15/11/2026)** (branche `claude/guide-dokladova-soupcon-20261115`) : décisions de Fred du matin (`GAME-DESIGN-NOVOMIRSK.md`, « Marché de Krasnov » et « Fonctionnaires de Sovarka »). Migration `20261115103000_guide_baies_lecture` **appliquée** (registre `guide_baies_lecture_20261115103000`) après banc annulé `outils/bancs/banc-guide-baies-20261115.sql` (sans guide : refus ; 12 → 10 PA, +1 INT 24 h ; seconde lecture `effet_deja_actif` ; guide gardé). Questions : consigne ajoutée au prompt par `api/_pnj-fonctionnaires-sovarka.js` (tirage serveur ~1/4, stable par joueur, PNJ et jour ; liste des non-fonctionnaires). Textes ajoutés traduits en 9 langues. Test `test-sovarka-guide-secretaire-soupcon-20261115.mjs` ; `banc-pop-inf-cache-379` rouge comme sur `main`.
 - **Sovarka : « Se renseigner » lit les locaux de Sovarka (Claude, 15/11/2026, nuit)** (PR #978) : terminé ; détail dans l'archive.
 - **Sovarka : la semaine à la gloire au calendrier électoral (Claude, 15/11/2026, nuit)** (PR #980) : terminé ; détail dans l'archive.
 - **Contrôle « bancs-hors-production » : cause trouvée, remis au vert (Claude, 15/11/2026, nuit)** (PR #977) : terminé ; détail dans l'archive.

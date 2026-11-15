@@ -3434,6 +3434,10 @@ async function ouvrirDetailObjetInventaire(idx) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> <span data-i18n="inventoryUi.consume">Consommer</span></button>';
   }
 
+  // Guide des baies sauvages de Krasnov (Fred, 15/11/2026) : se lit partout, 2 PA, +1 INT 24 h, sans cumul ; reste dans l'inventaire.
+  if (item.type === 'guide_baies_krasnov' && typeof lireGuideBaies === 'function') {
+    html += '<button onclick="lireGuideBaies()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-book-2"></i> <span data-i18n="inventoryUi.read">Lire</span> (2 PA)</button>';
+  }
   // Carte postale (Lot 4, 23 aout 2026) : bouton toujours affiche independamment de la
   // protection "objet de quete" (ni un transfert entre joueurs, ni un abandon). etatCarte
   // 'vierge' -> ouvre la composition ; 'ecrite' -> ouvre la lecture (jamais l'inverse, une carte

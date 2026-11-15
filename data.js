@@ -2578,7 +2578,8 @@ const WORLD = {
           roomOverrides: {
             accueil_mairie: {
               imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_accueil.webp',
-              persons: [{name:'Secrétaire municipale de Krasnov (PNJ)', role:'Accueil administratif', rel:'neutral', job:'secretaire'}]
+              // Nom proposé par Claude le 15/11/2026 (Fred : « les noms, je te laisse les trouver ») ; « doklad » : le rapport.
+              persons: [{name:'Galina Dokladova (PNJ)', role:'Secrétaire de mairie de Krasnov', rel:'neutral', job:'secretaire'}]
             },
             bureau_maire_local: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_bureau_maire.webp' },
             bureau_maire_adjoint: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_mairie_bureau_adjoint.webp' },

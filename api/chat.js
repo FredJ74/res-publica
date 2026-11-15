@@ -21,12 +21,13 @@
 //
 // LA CLE D'API N'EST JAMAIS TRANSMISE AU NAVIGATEUR, ni journalisee, ni renvoyee dans une erreur.
 
-import { construirePromptSysteme, profilExiste, maxTokensProfil, filtrerReponseSquatteur, langueDialogueAutorisee } from './_pnj-profils.js';
+import { construirePromptSysteme, profilExiste, maxTokensProfil, filtrerReponseSquatteur, langueDialogueAutorisee, TOUS_PROFILS } from './_pnj-profils.js';
 import { handlerAide } from './_aide.js';
 import { handlerReactionHabitant } from './_reaction-habitant.js';
 import { appelDeepSeek, joueurAuthentifie, classerEchecFournisseur } from './_deepseek.js';
 import { sbTransport } from './_supabase.js';
 import { sceneDialogue } from './_pnj-localisation.js';
+import { consigneSoupconSovarka } from './_pnj-fonctionnaires-sovarka.js';
 import { PNJ_TRESOR_TSARS, contientMotCle, repliqueTresorTsars } from './_enigme-tresor-tsars.js';
 import { PROFILS_MUNICIPAUX_LUTHECIA, lireTitulaireMunicipal, contexteMunicipal } from '../continuite-municipale.js';
 
@@ -361,9 +362,14 @@ export default async function handler(req, res) {
     etatEnqueteJodie(req.body.profil, utilisateur.jeton)
   ]);
   const langueAutorisee = langueDialogueAutorisee(req.body.lang);
-  const systeme = construirePromptSysteme(
-    req.body.profil, langueAutorisee, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, sceneDialogue(position), enqueteJodie);
-  if (!systeme) return res.status(400).json({ error: 'Profil inconnu.' });
+  const scene = sceneDialogue(position);
+  const systemeBase = construirePromptSysteme(
+    req.body.profil, langueAutorisee, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, scene, enqueteJodie);
+  if (!systemeBase) return res.status(400).json({ error: 'Profil inconnu.' });
+  // Fonctionnaires de Sovarka (Fred, 15/11/2026) : une question absurde de vigilance d'État, environ une
+  // conversation sur quatre ; tirage au serveur, stable par joueur, PNJ et jour.
+  const soupcon = consigneSoupconSovarka(req.body.profil, TOUS_PROFILS[req.body.profil], position, scene, utilisateur.id);
+  const systeme = soupcon ? systemeBase + '\n' + soupcon : systemeBase;
 
   const messages = [];
   for (const m of (req.body.historique || [])) messages.push({ role: m.role, content: m.content });
