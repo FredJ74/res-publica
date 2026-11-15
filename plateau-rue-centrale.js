@@ -926,7 +926,7 @@ const RUE_CENTRALE_NOEUDS = {
       // Les deux sorties réutilisent des bâtiments existants sans recréer de commerce.
       zones: [
         { xPct: [0, 35], yPct: [29, 77], nom: 'Local commercial à louer', type: 'batiment', buildingId: 'locaux-starovka' },
-        { xPct: [65, 100], yPct: [29, 76], nom: 'Imprimerie du journal Metel', type: 'batiment', buildingId: 'centre-affaires' }
+        { xPct: [65, 100], yPct: [29, 76], nom: 'Presse du journal Metel', type: 'batiment', buildingId: 'presse-starovka' }
       ],
       liens: { toutDroit: 'starovka-rue-restaurant-boutique', arriere: 'starovka-rue-mairie-marche' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
