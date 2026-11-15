@@ -16,7 +16,16 @@ Dernier main b89a264 intégré sans conflit ; optimisation #972 conservée, aucu
 
 ## Livraison
 
-PR #969 existante conservée. Le blocage du payload est levé : 264,7 Mo pour 330 Mo, environ 65,3 Mo de marge. Fusion et vérification de production en cours ; les preuves de production préciseront le SHA et le déploiement réellement contrôlés. Aucun PJ authentifié, téléphone physique ou contrôle linguistique natif testé.
+PR #969 fusionnée : `b98641644d2a33c422bf7dbbe80506e3dd74b79a`. Vercel `dpl_EKG4T3qkqksuvSSoYNGzs8siuKMx` **READY**, cible production, alias `https://res-publica.vercel.app` confirmé sur ce SHA.
+
+- Treize fichiers publics identiques au Git après décodage HTTP, dont le catalogue, le rendu, les URL de cache et les quatre images du centre d’affaires.
+- Trois tests de rendu public verts, dont 270 bascules neuf langues/320/390/1280 et les 80 traductions vérifiées à partir de la ressource publiée.
+- Trois tests de transport public verts : 84 catalogues chargés directement par Chromium et décompression HTTP native exacte, aucune requête supplémentaire par changement de langue.
+- Deux tests du centre d’affaires rejoués sur les fichiers publics : accueil, images autonomes, noms de cache et quatre bureaux préservés.
+- Quatorze tests rejoués après fusion, y compris le dernier correctif de cloisonnement des baux #981 : verts.
+- CI avant fusion : 45 verts, huit jobs rouges préexistants. Comparaisons enregistrées dans `I18N-KRASNOV-DESCRIPTIONS-871-ci.json`, aucun nouveau défaut masqué. Les lacunes hors lot demeurent signalées.
+
+Le blocage de budget est levé : 264,7 Mo / 330 Mo, plafond et images inchangés par ce lot. Aucun PJ authentifié, téléphone physique ou contrôle linguistique natif testé. Preuve finale : `I18N-KRASNOV-DESCRIPTIONS-871-production.json`. Aucun nouveau lot engagé.
 
 Les migrations et images arrivées par intégration de main appartiennent aux autres chantiers ; aucune migration n’a été exécutée dans cette mission.
 

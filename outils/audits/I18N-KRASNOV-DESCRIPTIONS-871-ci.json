@@ -1,0 +1,387 @@
+{
+  "head": "a287c10da5b73a12c177236f2d95a56dedc23e89",
+  "checks": [
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172425/job/132656739554",
+      "name": "mesurer-le-payload",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172413/job/132656739503",
+      "name": "verifier",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172449/job/132656739502",
+      "name": "repertoire",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172412/job/132656739473",
+      "name": "avertissement",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172427/job/132656739447",
+      "name": "vehicules-garage",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172439/job/132656739426",
+      "name": "open-space",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172342/job/132656739422",
+      "name": "parcours-immobilier",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172420/job/132656739413",
+      "name": "ventes-diners",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172421/job/132656739402",
+      "name": "plan-traduit",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172416/job/132656739391",
+      "name": "lisibilite",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172415/job/132656739377",
+      "name": "republia",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172411/job/132656739364",
+      "name": "verifier",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172409/job/132656739285",
+      "name": "pavillon",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172384/job/132656739225",
+      "name": "agence-sociale",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172351/job/132656739200",
+      "name": "dealer",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172368/job/132656739190",
+      "name": "registre",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172343/job/132656739188",
+      "name": "descriptions-krasnov",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172360/job/132656739172",
+      "name": "logements",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172354/job/132656739164",
+      "name": "passeur-i18n",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172316/job/132656739133",
+      "name": "controle",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172285/job/132656739121",
+      "name": "verifier",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172335/job/132656739117",
+      "name": "occupation",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172306/job/132656739110",
+      "name": "coherence",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172336/job/132656739090",
+      "name": "salles",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172324/job/132656739089",
+      "name": "organisations",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172388/job/132656739085",
+      "name": "verifier",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172329/job/132656739083",
+      "name": "parcours-statique",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172344/job/132656739048",
+      "name": "corps-notifications",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172296/job/132656739023",
+      "name": "verifier",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172326/job/132656739019",
+      "name": "descriptions-tactiles",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172327/job/132656738994",
+      "name": "verification",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172359/job/132656738992",
+      "name": "images-et-pieces",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172302/job/132656738969",
+      "name": "recrutement-i18n",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172283/job/132656738940",
+      "name": "pieces-communes",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172299/job/132656738933",
+      "name": "refus-actions",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172317/job/132656738927",
+      "name": "vehicules",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172281/job/132656738825",
+      "name": "coherence",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172221/job/132656738621",
+      "name": "verify",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172142/job/132656738594",
+      "name": "socle",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172111/job/132656738555",
+      "name": "audit",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172133/job/132656738552",
+      "name": "aide",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172121/job/132656738528",
+      "name": "bancs-hors-production",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172100/job/132656738508",
+      "name": "clinic",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172119/job/132656738506",
+      "name": "biographies",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172123/job/132656738451",
+      "name": "naval",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172063/job/132656738401",
+      "name": "reservation-et-repos",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172060/job/132656738271",
+      "name": "navigation",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663172067/job/132656738270",
+      "name": "i18n-publicite",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663166082/job/132656720358",
+      "name": "salles",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663166072/job/132656720240",
+      "name": "verifier",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663166032/job/132656720065",
+      "name": "avertissement",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663166027/job/132656720058",
+      "name": "navigation",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "html_url": "https://github.com/FredJ74/res-publica/actions/runs/43663166023/job/132656719968",
+      "name": "coherence",
+      "status": "completed"
+    }
+  ],
+  "preexistingComparisons": [
+    {
+      "group": "SSM et caserne",
+      "main": {
+        "tests": 20,
+        "passed": 15,
+        "failed": 5,
+        "failures": [
+          "Sovarka Defense ne propose pas la garde republicaine et exige son propre ministre",
+          "la gestion de caserne est commune aux ministres de Défense de Républia et Sovarka",
+          "les quatre scripts SSM restent versionnés après les autres chantiers",
+          "écran : succès uniquement si serveur confirme ; aucun mail inventé en cas de refus",
+          "Besoin d’aide : orientation libre, quatre rubriques et portrait récupéré depuis le PNJ"
+        ]
+      },
+      "branch": {
+        "tests": 20,
+        "passed": 15,
+        "failed": 5,
+        "failures": [
+          "Sovarka Defense ne propose pas la garde republicaine et exige son propre ministre",
+          "la gestion de caserne est commune aux ministres de Défense de Républia et Sovarka",
+          "les quatre scripts SSM restent versionnés après les autres chantiers",
+          "écran : succès uniquement si serveur confirme ; aucun mail inventé en cas de refus",
+          "Besoin d’aide : orientation libre, quatre rubriques et portrait récupéré depuis le PNJ"
+        ]
+      },
+      "identical": true
+    },
+    {
+      "group": "courriers Sovarka et inventaire Républia",
+      "main": {
+        "tests": 24,
+        "passed": 22,
+        "failed": 2,
+        "failures": [
+          "courriers : chaque sujet fixe des migrations Sovarka a son modèle dans le catalogue",
+          "141 descriptions du catalogue Républia : françaises exactes et réellement affichées"
+        ]
+      },
+      "branch": {
+        "tests": 24,
+        "passed": 22,
+        "failed": 2,
+        "failures": [
+          "courriers : chaque sujet fixe des migrations Sovarka a son modèle dans le catalogue",
+          "141 descriptions du catalogue Républia : françaises exactes et réellement affichées"
+        ]
+      },
+      "identical": true
+    }
+  ],
+  "otherKnownGaps": {
+    "roomDescriptions": {
+      "mainMissing": 14,
+      "branchMissing": 4,
+      "exactTenCorrected": true
+    },
+    "commonOrderDescriptions": {
+      "missingOnMainAndBranch": 4,
+      "originalLimit3Preserved": true,
+      "countCorrected247To248": true
+    }
+  }
+}
