@@ -46,12 +46,10 @@ if 'STAROVKA_COMMERCES_DEUX_WEBP_20261116' not in data:
     anchor3="  const cite = v => WORLD.soviet && WORLD.soviet[v];"
     pos=data.index(anchor3,data.index(anchor2))
     data=data[:pos]+"""  // Décor de la boutique du fourreur de Starovka, sans changer sa mécanique.
-  const fourreurStarovka = WORLD.soviet?.ville_a?.buildingContext?.['fourreur-starovka'];
-  if (!fourreurStarovka) throw new Error('Contexte fourreur de Starovka absent');
-  fourreurStarovka.roomOverrides = fourreurStarovka.roomOverrides || {};
-  Object.assign(fourreurStarovka.roomOverrides.boutique_fourreur = fourreurStarovka.roomOverrides.boutique_fourreur || {}, {
-    imageUrl: 'images/Sovarka/Starovka/Starovka_fourreur_boutique_fourreur.webp'
-  });
+  const fourreurStarovka = BUILDINGS['fourreur-starovka'];
+  if (!fourreurStarovka?.rooms?.boutique_fourreur) throw new Error('Salle fourreur de Starovka absente');
+  fourreurStarovka.imagesAVenir = false;
+  fourreurStarovka.rooms.boutique_fourreur.imageUrl = 'images/Sovarka/Starovka/Starovka_fourreur_boutique_fourreur.webp';
 
 """+data[pos:]
     path.write_text(data,encoding='utf8')
