@@ -44,3 +44,28 @@ test('Serveur et IA : chaque maison déclarée dans la migration et dans les por
   }
   assert.ok(sql.includes('sovarka_maison_interne(p.current_city,p.current_building) IS NOT NULL'), 'lit de la maison');
 });
+
+test('Maisons rouge et bleue : deux WebP distincts, avec perte, raccordés sans image provisoire', () => {
+  const ctx=vm.createContext({console,state:{country:'soviet',currentCity:'ville_b'}});
+  vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8'),ctx);
+  const targets=[
+    ['maison-krasnov-rouge','Krasnov_maison_rouge_interieur.webp'],
+    ['maison-krasnov-bleue','Krasnov_maison_bleue_interieur.webp']
+  ];
+  for (const [building,name] of targets) {
+    const value=vm.runInContext(`({
+      url: BUILDINGS[${JSON.stringify(building)}].rooms.piece_maison.imageUrl,
+      provisoire: BUILDINGS[${JSON.stringify(building)}].imagesAVenir
+    })`,ctx);
+    assert.equal(value.url,'images/Sovarka/Krasnov/'+name);
+    assert.equal(value.provisoire,false,building+' : image encore provisoire');
+    const file=fs.readFileSync(path.join(root,value.url));
+    assert.equal(file.toString('ascii',0,4),'RIFF');
+    assert.equal(file.toString('ascii',8,12),'WEBP');
+    assert.equal(file.toString('ascii',12,16),'VP8 ','WebP sans perte interdit');
+  }
+  for (const obsolete of ['Intérieur rustique soviétique au poêle à bois.png','Intérieur rustique russe chaleureux et fleuri.png']) {
+    const normalized=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    assert.ok(!fs.readdirSync(path.join(root,'images/Sovarka/Krasnov')).some(n=>normalized(n)===normalized(obsolete)), obsolete+' non supprimé');
+  }
+});
