@@ -5982,8 +5982,25 @@ const CHAINES_PRODUCTION_USINE = {
   desinfectant: { buildingId: 'usine-pharmaceutique-luthecia', city: 'capitale', matiere: 'alcool',   salairePA: 70 }
 };
 
+// CHAINES PAR PAYS (15/11/2026, Fred) : chaque pays a ses trois usines, une par ville. Miroir de la table
+// serveur chaines_production_pays (migration 20261115213000), qui seule decide ; un pays absent garde le
+// gabarit ci-dessus. Sovarka : distillerie a Krasnov (fruits et legumes, decision du 10/11), raffinerie
+// a Starovka, Pharmanov a Novomirsk.
+const CHAINES_PRODUCTION_PAYS = {
+  soviet: {
+    alcool:                 { buildingId: 'distillerie-krasnov',           city: 'ville_b',  matiere: 'fruits_legumes', salairePA: 15 },
+    carburant:              { buildingId: 'usine-principale',              city: 'ville_a',  matiere: 'petrole',        salairePA: 15 },
+    derives_petrochimiques: { buildingId: 'usine-principale',              city: 'ville_a',  matiere: 'petrole',        salairePA: 15 },
+    medicaments:            { buildingId: 'usine-pharmaceutique-luthecia', city: 'capitale', matiere: 'plantes',        salairePA: 18 },
+    desinfectant:           { buildingId: 'usine-pharmaceutique-luthecia', city: 'capitale', matiere: 'alcool',         salairePA: 15 }
+  }
+};
+function chainesUsinePays(pays) {
+  return CHAINES_PRODUCTION_PAYS[pays || (typeof state !== 'undefined' && state && state.country) || 'republic'] || CHAINES_PRODUCTION_USINE;
+}
+
 async function doProduireUsine(produitId) {
-  const c = CHAINES_PRODUCTION_USINE[produitId];
+  const c = chainesUsinePays(state.country)[produitId];
   if (!c) { showToast('Indisponible', '', false); return; }
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, c.city, c.buildingId).catch(() => null) : null;
@@ -6020,7 +6037,7 @@ async function confirmerProductionUsine(produitId) {
   // desormais les memes regles, mais cote serveur et sous verrou : 5 de matiere consommee,
   // 10 produits par PA plafonnes par la place restante (50 max), salaire prelevé sur la caisse
   // de l'usine et verse en liquide -- aucune valeur creee.
-  const c = CHAINES_PRODUCTION_USINE[produitId];
+  const c = chainesUsinePays(state.country)[produitId];
   if (!c) { document.getElementById('modal-postes')?.classList.remove('open'); return; }
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
 
@@ -6038,6 +6055,7 @@ async function confirmerProductionUsine(produitId) {
       matiere_insuffisante: 'Il manque du ' + (RESSOURCES_ECONOMIE[c.matiere]?.label || c.matiere) + ' en stock.',
       caisse_insuffisante: "L'usine ne peut pas payer ce travail actuellement.",
       stock_plein: 'Le stock local de ce produit est au maximum.',
+      pas_sur_place: 'Il faut être dans l\'usine pour y travailler.',
       chaine_inconnue: 'Production indisponible.'
     };
     showToast(raison === 'stock_plein' ? 'Stock plein' : 'Production impossible',
@@ -6264,7 +6282,7 @@ function creerExemplaireArmoireSouvenirs() {
 // (les 3 usines de transformation) n'est affecte, MATIERES_HORS_CHAINE_PAR_BATIMENT ne les
 // concerne pas.
 function matieresAccepteesParUsine(buildingId, pays, ville) {
-  const parChaine = Object.values(CHAINES_PRODUCTION_USINE)
+  const parChaine = Object.values(chainesUsinePays(pays))
     .filter(c => c.buildingId === buildingId)
     .map(c => c.matiere);
   const cleHorsChaine = (pays || 'republic') + '|' + (ville || '') + '|' + buildingId;
@@ -6282,8 +6300,9 @@ function matieresAccepteesParUsine(buildingId, pays, ville) {
 // chaine existe deja dans la config. Generique pour toute usine/chaine future, jamais un id
 // code en dur.
 function produitsUsine(buildingId) {
-  return Object.keys(CHAINES_PRODUCTION_USINE)
-    .filter(id => CHAINES_PRODUCTION_USINE[id].buildingId === buildingId);
+  const chaines = chainesUsinePays(state.country);
+  return Object.keys(chaines)
+    .filter(id => chaines[id].buildingId === buildingId);
 }
 
 async function vendreMatierePremiereUsine(buildingId, pays, ville, matiere, qte) {
@@ -6669,6 +6688,19 @@ const DIRECTEUR_USINE_INFO = {
   directeur_tabac_alcools: { city: 'ville_a',   buildingId: 'pole-tabac-alcools-psm',        produits: ['alcool', 'tabac'] },
   directeur_raffinerie:    { city: 'ville_b',   buildingId: 'raffinerie-montrouge',          produits: ['carburant'] }
 };
+// Par pays (15/11/2026) : miroir de directeurs_usine_pays (serveur). Sovarka : Pharmanov, distillerie de
+// Krasnov, Raffinerie d'Etat du Grand Nord. Un pays absent garde la table ci-dessus.
+const DIRECTEUR_USINE_INFO_PAYS = {
+  soviet: {
+    directeur_pharma:        { city: 'capitale', buildingId: 'usine-pharmaceutique-luthecia', produits: ['medicaments', 'desinfectant'] },
+    directeur_tabac_alcools: { city: 'ville_b',  buildingId: 'distillerie-krasnov',           produits: ['alcool'] },
+    directeur_raffinerie:    { city: 'ville_a',  buildingId: 'usine-principale',              produits: ['carburant', 'derives_petrochimiques'] }
+  }
+};
+function directeurUsineInfo(posteId, pays) {
+  const t = DIRECTEUR_USINE_INFO_PAYS[pays || (typeof state !== 'undefined' && state && state.country) || 'republic'];
+  return t ? t[posteId] : DIRECTEUR_USINE_INFO[posteId];
+}
 
 // =====================
 // VIREMENT USINE -> MINISTERE (lot du 24 aout 2026) — le directeur ne peut jamais prelever dans
@@ -6680,7 +6712,7 @@ const DIRECTEUR_USINE_INFO = {
 // crediterCaisseBatiment, ci-dessus).
 // =====================
 function doOuvrirVirementUsineMinistere(pa, cost) {
-  const cfg = DIRECTEUR_USINE_INFO[state.poste?.id];
+  const cfg = directeurUsineInfo(state.poste?.id);
   if (!cfg || state.currentBuilding !== cfg.buildingId) {
     showToast('Accès refusé', 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', false);
     return;
@@ -6699,7 +6731,7 @@ function doOuvrirVirementUsineMinistere(pa, cost) {
 async function confirmerVirementUsineMinistere(pa, cost) {
   // Re-verification complete du poste ET du batiment courant (pas seulement a l'ouverture du
   // modal) : c'est ici, a la confirmation, que la mutation reelle a lieu.
-  const cfg = DIRECTEUR_USINE_INFO[state.poste?.id];
+  const cfg = directeurUsineInfo(state.poste?.id);
   if (!cfg || state.currentBuilding !== cfg.buildingId) {
     showToast('Accès refusé', 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', false);
     return;
@@ -6730,7 +6762,7 @@ async function confirmerVirementUsineMinistere(pa, cost) {
 
 async function doOuvrirFixerPrixVenteDirecte(pa, cost) {
   const posteId = state.poste?.id;
-  const cfg = DIRECTEUR_USINE_INFO[posteId];
+  const cfg = directeurUsineInfo(posteId);
   if (!cfg || state.currentBuilding !== cfg.buildingId) {
     showToast('Accès refusé', 'Seul le directeur en poste peut fixer les prix de cette usine.', false);
     return;
@@ -6774,7 +6806,7 @@ async function doOuvrirFixerPrixVenteDirecte(pa, cost) {
 async function confirmerFixerPrixVenteDirecte(buildingId, pa, cost) {
   // CHANTIER C / PHASE 2 : meme bascule d'autorite. La fourchette +/-40 % du prix de base est
   // conservee a l'identique, et revalidee au serveur.
-  const cfg = DIRECTEUR_USINE_INFO[state.poste?.id];
+  const cfg = directeurUsineInfo(state.poste?.id);
   if (!cfg) return;
   const prix = {};
   for (const cle of cfg.produits) {
@@ -6810,7 +6842,7 @@ async function confirmerFixerPrixVenteDirecte(buildingId, pa, cost) {
 
 async function doOuvrirFixerRepartitionProduction(pa, cost) {
   const posteId = state.poste?.id;
-  const cfg = DIRECTEUR_USINE_INFO[posteId];
+  const cfg = directeurUsineInfo(posteId);
   if (!cfg || state.currentBuilding !== cfg.buildingId) {
     showToast('Accès refusé', 'Seul le directeur en poste peut répartir la production de cette usine.', false);
     return;
@@ -6881,7 +6913,7 @@ async function debiterCaisseUsinePlafonne(pays, city, buildingId, montantVise, p
 
 async function verifierSalaireDirecteur() {
   const posteId = state.poste?.id;
-  const cfg = DIRECTEUR_USINE_INFO[posteId];
+  const cfg = directeurUsineInfo(posteId);
   if (!cfg) return;
   const jour = jourPartageISO();
   if (!state.char) return;

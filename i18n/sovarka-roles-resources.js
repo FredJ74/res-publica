@@ -141,6 +141,7 @@
   ["Opérateur d’écoute","Listening operator","Operador de escuchas","監聽員","Оператор прослушивания","감청 요원","عامل التنصت","Operador de escuta","Abhörbeamter"],
   ["Chef du centre d’écoute", "Head of the listening centre", "Jefe del centro de escuchas", "監聽中心主任", "Начальник центра прослушивания", "감청소장", "رئيس مركز التنصت", "Chefe do centro de escuta", "Leiter der Abhörzentrale"],
   ["Directeur de la distillerie", "Distillery director", "Director de la destilería", "蒸餾廠廠長", "Директор ликёро-водочного завода", "증류소 소장", "مدير معمل التقطير", "Diretor da destilaria", "Direktor der Brennerei"],
+  ["Directeur de la raffinerie", "Refinery director", "Director de la refinería", "煉油廠廠長", "Директор нефтеперерабатывающего завода", "정유소 소장", "مدير المصفاة", "Diretor da refinaria", "Raffineriedirektor"],
   ["Maître distillateur", "Master distiller", "Maestro destilador", "首席蒸餾師", "Главный винокур", "수석 증류사", "كبير المقطّرين", "Mestre destilador", "Brennmeister"],
   ["Habitante de Starovka","Starovka resident","Habitante de Starovka","斯塔羅夫卡居民","Жительница Старовки","스타로프카 주민","ساكنة من ستاروفكا","Moradora de Starovka","Einwohnerin von Starovka"],
   ["Éleveur de rennes","Reindeer herder","Criador de renos","馴鹿牧民","Оленевод","순록 목동","مربي الرنّة","Criador de renas","Rentierzüchter"],

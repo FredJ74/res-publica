@@ -550,10 +550,10 @@
     {
       "source": "i18n/sovarka-infobulles-resources.js",
       "packed": "i18n/packed/sovarka-infobulles-resources.js.br",
-      "sourceBytes": 161718,
-      "packedBytes": 54204,
-      "sourceSha256": "ca44704193a1e820934bfbeac19f050a47166b043bcb545c8c2ab1a3509adff3",
-      "packedSha256": "b336da10eed1ba6338a6ada3874fe58ac3339c515916963db89696e94d2c864a"
+      "sourceBytes": 165726,
+      "packedBytes": 54592,
+      "sourceSha256": "856c62dc5c2353dbb1fe0875a1332489ef32d9664cdcedcc31207ca61a81afca",
+      "packedSha256": "b93deed944f130c7f26f17a57aba64fa9682be245e5370eae93286b88217e9e6"
     },
     {
       "source": "i18n/sovarka-justice-resources.js",
@@ -614,10 +614,10 @@
     {
       "source": "i18n/sovarka-roles-resources.js",
       "packed": "i18n/packed/sovarka-roles-resources.js.br",
-      "sourceBytes": 34482,
-      "packedBytes": 12020,
-      "sourceSha256": "93cf2d0e1c7beff669f4a7e54352b33c59dc8e0698bb3405d18d23c00f46f3bb",
-      "packedSha256": "c76035cd336273fd97ac8be35ff39527622d42eb8e08e86869021a3094c72a21"
+      "sourceBytes": 34756,
+      "packedBytes": 12086,
+      "sourceSha256": "cb78f7d3fcb6175ebbd2dbf64c610c3ca9ad60266298c4e4a40a6dc51e5841fc",
+      "packedSha256": "9d5de07c64a10b2c8043c0ea23a4d035b815d6389c351bf181b8eca0f85f92a0"
     },
     {
       "source": "i18n/sport-bets-resources.js",

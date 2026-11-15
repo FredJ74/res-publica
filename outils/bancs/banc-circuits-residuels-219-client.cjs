@@ -9,7 +9,8 @@ function fonctions(file,names){const s=lire(file);const t=acorn.parse(s,{ecmaVer
  for(const n of t){if(n.type==='FunctionDeclaration'&&names.includes(n.id.name))out.push(s.slice(n.start,n.end));
   if(n.type==='VariableDeclaration'&&n.declarations.some(d=>names.includes(d.id.name)))out.push(s.slice(n.start,n.end).replace(/^const /,'var '));}
  return out.join('\n');}
-const NAV=['representerPositionServeur','adopterPositionServeurRelue','enterBuilding','enterRoom'];
+// piecesOrdonneesBatiment : appelee par enterBuilding depuis l'ordre des salles (roomOrder, 15/11/2026).
+const NAV=['representerPositionServeur','adopterPositionServeurRelue','enterBuilding','enterRoom','piecesOrdonneesBatiment'];
 function jeu(opts={}){
  const journal=[];const c={console,journal,toasts:[],JSON,Promise,Array,Object,
   state:{char:{name:'A'},country:'republic',currentCity:'capitale',currentBuilding:'caserne-militaire',currentRoom:'corps_garde',_navigationServeur:true},

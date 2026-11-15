@@ -2647,12 +2647,24 @@ const NB_ARRIVAGES_CONSERVES = 10; // historique court pour le Commandant/Marcel
 // (plafond 100 -> 100/jour), alcool 0.5 ville (plafond 100 -> 50/jour). Meme moteur : preleve sur
 // le stock reel des 3 entrepots, recette au prix_base pour chaque entrepot fournisseur, matiere
 // interdite jamais exportee. Sovarka n'est represente par aucune caisse ici, comme Al-Khalija.
+// 15/11/2026 (Fred) : la Republia n'envoie plus que 25 medicaments par nuit a Sovarka ; un peu d'alcool
+// (50, inchange) ; des plantes arrivent au port de Starovka, de Republia et d'El Estado (part de la
+// Republia : 38, proposee par Claude = moitie de la consommation de Pharmanov). `quantite` fixe le
+// contrat en unites quand il n'est pas exprime en villes equivalentes. Prix : celui du pays d'origine
+// (prix de base de la Republia, inchange).
 const EXPORTATIONS_PORT = {
   cereales:    { equivalentVilles: 1.5, destination: 'khalija' },
   viande:      { equivalentVilles: 1,   destination: 'khalija' },
-  medicaments: { equivalentVilles: 1,   destination: 'soviet' },
-  alcool:      { equivalentVilles: 0.5, destination: 'soviet' }
+  medicaments: { quantite: 25,          destination: 'soviet' },
+  alcool:      { equivalentVilles: 0.5, destination: 'soviet' },
+  plantes:     { quantite: 38,          destination: 'soviet' }
 };
+
+// IMPORTATIONS DE SOVARKA EN PROVENANCE D'EL ESTADO (15/11/2026, Fred) : plantes et tabac arrivent au port
+// de Starovka. El Estado n'a ni entrepot ni caisse : l'entrepot de Starovka paie au prix du pays d'origine
+// (prix de base, faute de marche d'El Estado), repartit la cargaison en trois et personne n'encaisse en
+// face. Volumes proposes par Claude, a relire par Fred : plantes 37 (l'autre moitie de Pharmanov), tabac 50.
+const IMPORTATIONS_SOVARKA_EL_ESTADO = { plantes: 37, tabac: 50 };
 
 // EXPORTATIONS DE SOVARKA (06/11/2026, decision de Fred) : minerai et metal vers tous les pays, petrole
 // vers la Republia, viande et cereales vers Al-Khalija. Volumes proposes par Claude (meme regle de
@@ -2673,6 +2685,9 @@ const EXPORTATIONS_SOVARKA = {
 // echanges a valeurs egales entre les trois entrepots (250 PSK par sens et par paire, achat et vente au
 // prix de base). Tout est decide par sovarka_entrepots_passe ; une matiere interdite n'est ni livree ni
 // echangee, et une legalite non verifiable bloque la passe (fail-closed).
+// 15/11/2026 au soir (Fred) : le port de Starovka ne sert plus qu'au commerce exterieur ; la passe ne garde
+// que les echanges entre entrepots (patch « port_exterieur_seulement », migration 20261115215000).
+// Les entrepots sont nourris par traiterProductionSovarkaQuotidien et par les importations.
 async function traiterEntrepotsSovarkaQuotidien() {
   const interdites = await matieresInterditesPays('soviet');
   if (interdites === null) throw new Error('entrepots_sovarka:legalite_non_verifiable');
@@ -2681,6 +2696,34 @@ async function traiterEntrepotsSovarkaQuotidien() {
   const v = Array.isArray(r) ? r[0] : r;
   if (!v || v.ok !== true) throw new Error('entrepots_sovarka:' + ((v && v.raison) || 'verdict_absent'));
   return v;
+}
+
+// PRODUCTION DE SOVARKA (15/11/2026 au soir, decisions de Fred) : volumes fixes par ville livres a l'entrepot
+// de la ville, puis les trois usines d'Etat (priorite sur les contrats et le marche). Tout est decide par
+// sovarka_production_passe (journee revendiquee, une matiere interdite n'est ni produite ni transformee).
+async function traiterProductionSovarkaQuotidien() {
+  const interdites = await matieresInterditesPays('soviet');
+  if (interdites === null) throw new Error('production_sovarka:legalite_non_verifiable');
+  const r = await sbRpc('sovarka_production_passe',
+    { p_jour: jourParisISO(new Date()), p_interdites: [...interdites] }, HEADERS_SERVICE).catch(() => null);
+  const v = Array.isArray(r) ? r[0] : r;
+  if (!v || v.ok !== true) throw new Error('production_sovarka:' + ((v && v.raison) || 'verdict_absent'));
+  return v;
+}
+
+// Importations d'El Estado au port de Starovka (voir IMPORTATIONS_SOVARKA_EL_ESTADO) : une reception par
+// jour et par matiere (exportations_recues), payee par la caisse de l'entrepot de Starovka.
+async function traiterImportationsSovarkaQuotidien() {
+  const interdites = await matieresInterditesPays('soviet');
+  if (interdites === null) throw new Error('importations_sovarka:legalite_non_verifiable');
+  const receptions = {};
+  for (const [cle, quantite] of Object.entries(IMPORTATIONS_SOVARKA_EL_ESTADO)) {
+    if (interdites.has(cle)) { receptions[cle] = { acceptee: 0, raison: 'interdit_par_la_loi' }; continue; }
+    receptions[cle] = await sbRpc('importation_sovarka_recevoir',
+      { p_origine: 'narco', p_jour: jourParisISO(new Date()), p_cle: cle, p_quantite: quantite },
+      HEADERS_SERVICE).catch(() => ({ ok: false, raison: 'rpc_indisponible' }));
+  }
+  return { ok: true, receptions };
 }
 
 async function traiterExportationsSovarkaQuotidien() {
@@ -2832,7 +2875,24 @@ async function produireUneChaine(transfo, chaine, usine, stockMatieres, venteDir
   const volumeJour = Math.max(0, Math.round(VOLUME_MATIERE_PAR_CHAINE_JOUR * coeff));
   if (volumeJour <= 0) return 0;
 
-  const stockDispo = stockMatieres[chaine.matiere] || 0;
+  let stockDispo = stockMatieres[chaine.matiere] || 0;
+  // USINE AFFAMEE (15/11/2026, penurie de medicaments signalee par Fred). La matiere n'arrivait a l'usine
+  // que par 20 % des LIVRAISONS de l'entrepot de sa ville : un entrepot deja plein ne recoit plus rien,
+  // donc l'usine restait vide (Luthecia : 300 plantes en entrepot, 0 a l'usine, 0 medicament produit).
+  // Il manque le volume du jour : l'usine le prend dans l'entrepot de sa ville, sans paiement, comme la
+  // redirection. Les chaines alimentees par un achat inter-usines gardent leur propre circuit.
+  if (stockDispo < volumeJour && !chaineDependDUnAchatInterUsine(transfo.buildingId, chaine.matiere)) {
+    const ent = ENTREPOTS_VILLES.find(e => e.city === transfo.city);
+    const etatE = ent ? await sbGetBatimentEtat('republic', ent.city, ent.buildingId).catch(() => null) : null;
+    const stockE = etatE && etatE.entrepot && etatE.entrepot.stock;
+    const pris = stockE ? Math.min(volumeJour - stockDispo, Math.max(0, stockE[chaine.matiere] || 0)) : 0;
+    if (pris > 0) {
+      const ecrit = await sbSetBatimentEtat('republic', ent.city, ent.buildingId,
+        { ...etatE, entrepot: { ...etatE.entrepot, stock: { ...stockE, [chaine.matiere]: stockE[chaine.matiere] - pris } } })
+        .then(() => true).catch(() => false);
+      if (ecrit) { stockDispo += pris; stockMatieres[chaine.matiere] = stockDispo; }
+    }
+  }
   if (stockDispo < volumeJour) return 0; // pas assez de matiere en stock aujourd'hui
   stockMatieres[chaine.matiere] = stockDispo - volumeJour;
 
@@ -3498,7 +3558,7 @@ async function traiterExportationsPortQuotidien() {
       // "1 ville" reutilise le plafond deja existant de la ressource (RESSOURCES_ECONOMIE_
       // SERVEUR[cle].plafond) -- aucun chiffre invente, voir EXPORTATIONS_PORT plus haut.
       const plafondRes = RESSOURCES_ECONOMIE_SERVEUR[cle].plafond;
-      const contrat = Math.round(plafondRes * cfg.equivalentVilles);
+      const contrat = cfg.quantite != null ? cfg.quantite : Math.round(plafondRes * cfg.equivalentVilles);
 
       const stocksActuels = {};
       let stockTotal = 0;
@@ -6813,6 +6873,10 @@ export default async function handler(req, res) {
     // a deja ecrit les stocks (aucune ecriture concurrente d'un etat d'entrepot).
     // Entrepots de Sovarka (15/11/2026) : approvisionnement par le port de Starovka et echanges entre les
     // trois entrepots, avant les exportations de Sovarka qui prelevent sur ces stocks.
+    // 15/11/2026 au soir : importations d'El Estado (plantes de Pharmanov, tabac), puis production des
+    // villes et des usines de Sovarka, avant les echanges et les exportations qui prelevent sur ces stocks.
+    const importationsSovarka = await tacheQuotidienne('importations_sovarka', traiterImportationsSovarkaQuotidien);
+    const productionSovarka = await tacheQuotidienne('production_sovarka', traiterProductionSovarkaQuotidien);
     const entrepotsSovarka = await tacheQuotidienne('entrepots_sovarka', traiterEntrepotsSovarkaQuotidien);
     const exportationsSovarka = await tacheQuotidienne('exportations_sovarka', traiterExportationsSovarkaQuotidien);
     // Urbanisme de Sovarka (06/11/2026, decisions de Fred) : livraison des immeubles collectifs, chantiers
@@ -6902,7 +6966,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, entrepotsSovarka, exportationsSovarka, urbanismeSovarka, herosTravail, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, importationsSovarka, productionSovarka, entrepotsSovarka, exportationsSovarka, urbanismeSovarka, herosTravail, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

@@ -1063,3 +1063,44 @@ Krasnov est terminée ; priorité de Fred : finir la navigation dans les bâtime
 1. **Bâtiments sans façade** (rappel de la décision 3 du 10/11) : Fred dessine de **nouvelles vues de rue** pour l'hôpital, le tribunal, l'usine, le centre commercial et le centre artisanal de Starovka (fichiers `Starovka_rue_<bâtiments>`). **Premières deux vues validées le 15/11 :** depuis le lycée/commissariat, vers la gauche, **hôpital → tribunal et centre artisanal → poste militaire et bureaux**. Trois façades cliquables, navigation bidirectionnelle ; retour lycée par la droite, chaîne existante vers la mairie conservée. Images fournies en PNG puis converties en WebP qualité 85. Les salles et les ordres restent ceux des bâtiments existants.
 2. **Plus de banques en Sovarka** (Banque nationale de Novomirsk, banques locales de Starovka et Krasnov) : presque tout l'argent y est liquide (salaires faibles, vie peu chère). Les **bons d'État** (décision du 09/11, serveur déjà prêt) se souscrivent à un **guichet de la mairie**, dans les trois villes. Au codage : vérifier que rien d'autre ne dépend de ces banques côté serveur (salaires, indemnités).
 3. **Goulag de Sovarka** = **le QHS de Sovarka** (mêmes détenus, mêmes règles d'envoi) ; **hors de la ville** de Starovka, sur sa propre vue extérieure ; on y va **en train ou en taxi/bus** depuis la gare, comme en Républia ; **habilitations** délivrées par le **ministère de la Justice ou les juges**. Ordres intérieurs (reprise du QHS ou différences propres à Sovarka) : **à décider après Starovka**.
+
+## Production et logistique de Sovarka (Fred, 15/11/2026, 19 h 24 – 22 h 11)
+
+Session de décisions de Fred, avec Claude ; feu vert donné pour un codage pendant la pause de Fred (« tu coderas pendant que je m'arrêterai »). Chantier `claude/sovarka-production-logistique-20261115`.
+
+**Décisions de Fred**
+1. **Al-Khalija et Sovarka ne vendent à la Républia que du pétrole brut** ; la Républia n'importe ni carburant ni dérivés.
+2. **Une raffinerie produit pour son pays.** Pas de contrat d'exportation pour le carburant et les dérivés : leur vente à l'étranger dépend des PJ traders.
+3. **La production automatique d'une usine est fixe.** Pour produire plus, les PJ extraient du pétrole (et travaillent dans les usines, décision 6).
+4. **Pétrole qui manque, directeur PNJ** : la raffinerie et les contrats d'exportation passent en premier ; le reliquat se partage entre les trois entrepôts du pays. Les pénuries intérieures créent du jeu. Un directeur PJ décide.
+5. **Volume automatique de la raffinerie de Starovka** : 25 pétrole par chaîne et par nuit → 50 carburant et 50 dérivés (le triple de la Républia, recommandation de Claude retenue).
+6. **Les PJ peuvent travailler à la raffinerie contre salaire** ; ils peuvent y vendre le pétrole qu'ils ont extrait, puis le transformer.
+7. **Directeur PNJ : Damdin Mazoutov** (nom proposé par Claude, validé) ; poste national nommé par le ministre de l'Économie collective, règles de Montrouge (prix de vente directe, répartition 75 % aux entrepôts, virement).
+8. **Nom : « Raffinerie d'État du Grand Nord »**, nom court « Raffinerie » ; trois salles (salle des ventes, atelier de raffinage, bureau du directeur) sur les images de Fred.
+9. **Contrats d'État : le prix d'exportation de Sovarka est le double de son prix de vente intérieur** (le pétrole brut livré chaque nuit à la Républia).
+10. **Les traders** voient les stocks de tous les entrepôts du monde et commandent à distance au prix local dès qu'il y a du stock : c'est une question de rapidité. Ils passent « en dernier » simplement parce que la nuit sert d'abord les usines et les contrats (aucune règle de plus).
+11. **Un PJ peut extraire de grandes quantités de pétrole et l'expédier en caisses depuis le port industriel, au prix qu'il veut.** Tout est fait pour créer du jeu.
+12. **Le port de Starovka ne sert qu'au commerce extérieur** : n'en part que ce qui va dans les autres pays, n'y arrive que ce qui en vient. Ce qui est produit dans une ville arrive directement dans l'entrepôt de cette ville, puis part de là vers les autres villes de Sovarka.
+13. **La production continue jusqu'à saturation de la capacité de stockage**, puis s'arrête. C'est aux PJ d'organiser le commerce ; un jeu actif doit produire un commerce intense.
+14. **Chaque pays possède trois usines d'État, une par ville** : pharmaceutique, distillerie, raffinerie. En Sovarka : Pharmanov (Novomirsk), distillerie (Krasnov), raffinerie (Starovka). L'alcool est produit localement, à la distillerie de Krasnov.
+15. **Importations au port de Starovka** : plantes de Républia et d'El Estado ; tabac d'El Estado ; un peu d'alcool de Républia.
+16. **Un contrat d'État se paie au prix du pays d'origine** (pas de double prix dans l'autre sens).
+17. **Médicaments de Républia vers Sovarka : 25 par nuit** (au lieu de 100). **La Républia, en pénurie de médicaments, doit en avoir.**
+
+**Décision antérieure appliquée** : la distillerie tire l'alcool des **fruits et légumes** (décision du 10/11, « Distillerie »), et non des céréales comme Claude l'avait évoqué en séance.
+
+**Volumes proposés par Claude, à relire par Fred** (règle : contrats d'État + usines + 20 % des cibles des trois entrepôts par nuit ; table `sovarka_productions_villes`, corrigeable sans code) :
+
+| Ville | Production fixe par nuit, livrée à l'entrepôt de la ville |
+|---|---|
+| Starovka | pétrole 370, charbon 240, viande 69, poisson 38, laitages 45 |
+| Krasnov | bois 450, céréales 165, fruits et légumes 115, viande 69, laitages 45, poisson 37 |
+| Novomirsk | métal 220, minerai 550, tissus et peaux 75 |
+
+Usines d'État de Sovarka : 25 matières par chaîne et par nuit → 50 produits (distillerie : alcool ; raffinerie : carburant, dérivés ; Pharmanov : médicaments, désinfectant), 75 % aux trois entrepôts, le reste en vente directe (50 au plus). Salaires : alcool, carburant, dérivés 15 PSK par PA (fourchette 15-20 PSK de Fred, 06/11). Importations : plantes 38 de Républia et 37 d'El Estado (la consommation de Pharmanov), tabac 50 d'El Estado, alcool 50 de Républia (inchangé), médicaments 25 de Républia. El Estado n'a ni entrepôt ni caisse : Starovka paie au prix de base, personne n'encaisse en face.
+
+**Ordre de la nuit** : importations d'El Estado → production des villes → usines d'État (elles se servent les premières dans l'entrepôt de leur ville) → échanges entre entrepôts (inchangés, 250 PSK par sens et par paire) → exportations (contrats d'État au double du prix). Le fournisseur national qui remplissait les entrepôts de Sovarka par le port est supprimé.
+
+**Pénurie de médicaments en Républia, cause trouvée** : l'usine de Luthécia ne recevait des plantes que par 20 % des **livraisons** de l'entrepôt de la ville ; les trois entrepôts étant pleins de plantes (300), ils ne recevaient plus rien, l'usine restait vide et ne produisait plus (0 médicament dans les trois entrepôts au 15/11). Correctif : quand il manque le volume du jour, une usine de Républia le prend dans l'entrepôt de sa ville, sans paiement, comme la redirection ; plus une dotation unique remettant chaque entrepôt de Républia à 100 médicaments.
+
+**Points laissés à Fred** : les volumes ci-dessus ; la décision 4 pour un directeur PJ (aujourd'hui, la nuit applique toujours la priorité « usines puis contrats ») ; l'intérêt d'un contrat de carburant pour la Républia, dont Montrouge ne couvre pas les besoins (sujet distinct, après Starovka).
