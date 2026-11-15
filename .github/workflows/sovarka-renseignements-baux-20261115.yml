@@ -1,0 +1,20 @@
+name: "Sovarka — isolation des baux par pays"
+on:
+  push:
+    branches:
+      - chatgpt/krasnov-renseignements-baux-20261115
+  pull_request:
+    paths:
+      - plateau-organisations-quetes.js
+      - outils/bancs/test-sovarka-se-renseigner-pays-20261115.mjs
+      - .github/workflows/sovarka-renseignements-baux-20261115.yml
+jobs:
+  cloisonnement:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-organisations-quetes.js
+      - run: node --test outils/bancs/test-sovarka-se-renseigner-pays-20261115.mjs
