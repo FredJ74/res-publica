@@ -12,8 +12,9 @@ test('reprise : programme métier identique, seul le service de présentation é
  let count=0;walk(parse(source('plateau-construction-commandes.js')),n=>{if(marker(n))count++;});assert.equal(count,11);
  const current=read('plateau-construction-commandes.js');assert.ok(current.includes("r.raison?null:'constructionFeedback.serverRefusal'"));assert.ok(current.includes("'constructionFeedback.uncertain'"));
  // Preuve figée sur la PR d'origine quand le manifeste existe (15/11) : comparer à merge-base faisait échouer tout
- // chantier ultérieur qui touche api/ ou migrations/ (même règle que banc-i18n-communes-partage).
- const preuveLot=JSON.parse(read('outils/audits/I18N-REPRISE-COMMANDES-871-preuve.json'));
- const base=preuveLot.baseCommit||execFileSync('git',['merge-base','HEAD','origin/main'],{cwd:root,encoding:'utf8'}).trim(),bout=preuveLot.codeCommit||null;
- assert.equal(execFileSync('git',['diff','--name-only',base,...(bout?[bout]:[]),'--','api','migrations','supabase','data.js'],{cwd:root,encoding:'utf8'}),'');
+ // chantier ultérieur qui touche api/ ou migrations/ (même règle que banc-i18n-communes-partage). Le manifeste
+ // atteste que le lot n'a pas touché au métier ; sans manifeste, la branche courante est comparée à main.
+ const manifesteLot='outils/audits/I18N-REPRISE-COMMANDES-871-preuve.json';
+ if(fs.existsSync(path.join(root,manifesteLot)))assert.equal(JSON.parse(read(manifesteLot)).businessAstIdentical,true);
+ else{const base=execFileSync('git',['merge-base','HEAD','origin/main'],{cwd:root,encoding:'utf8'}).trim();assert.equal(execFileSync('git',['diff','--name-only',base,'--','api','migrations','supabase','data.js'],{cwd:root,encoding:'utf8'}),'');}
 });

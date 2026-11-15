@@ -46,7 +46,8 @@ test(process.env.RP_I18N_KRASNOV_BASELINE ? 'descriptions Sovarka : dix absences
     attendues = manquantesAvant.filter(d => !lot.includes(d));
     t.diagnostic(attendues.length + ' descriptions antérieures hors lot encore non traduites ; contrôle global sans cette option inchangé.');
   }
-  assert.deepEqual(manquantes, attendues);
+  // « Aucune nouvelle lacune » : une lacune antérieure comblée depuis par un autre lot (15/11) est bienvenue.
+  assert.deepEqual(manquantes.filter(d => !attendues.includes(d)), []);
 });
 test('traduit en Sovarka seulement, jamais en français, texte inconnu intact', () => {
   const fr = 'Les verdicts sont décidés avant l\'audience.';
