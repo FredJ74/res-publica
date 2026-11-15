@@ -8,6 +8,10 @@ BEGIN
  WHERE pays='soviet' AND ville='ville_b' AND batiment='centre-affaires' FOR UPDATE;
  IF actuelle IS DISTINCT FROM '["hall","bureau_prestige","bureau_standard","open_space","tribune_republia"]'::jsonb
  THEN RAISE EXCEPTION 'Le parcours du centre d affaires de Krasnov a évolué : migration suspendue'; END IF;
+ IF EXISTS (SELECT 1 FROM public.locations_actives
+   WHERE country='soviet' AND data->>'city'='ville_b' AND data->>'buildingId'='centre-affaires'
+   AND data->>'roomId' IN ('bureau_prestige','bureau_standard','open_space','tribune_republia'))
+ THEN RAISE EXCEPTION 'Baux actifs sur les anciens bureaux : migration suspendue'; END IF;
  IF EXISTS (SELECT 1 FROM public.locations_archives
    WHERE country='soviet' AND city='ville_b' AND building_id='centre-affaires'
    AND room_id IN ('bureau_prestige','bureau_standard','open_space','tribune_republia'))
