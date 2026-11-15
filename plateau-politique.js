@@ -8183,7 +8183,7 @@ async function confirmerVirementMinistereUsine(pa, cost) {
     return;
   }
   const posteCible = document.getElementById('virement-usine-cible')?.value;
-  const cfg = DIRECTEUR_USINE_INFO[posteCible];
+  const cfg = (typeof directeurUsineInfo === 'function') ? directeurUsineInfo(posteCible) : DIRECTEUR_USINE_INFO[posteCible];
   if (!cfg) { showToast('Cible invalide', '', false); return; }
   const montant = Math.floor(Number(document.getElementById('virement-usine-montant')?.value));
   if (!isFinite(montant) || montant <= 0) { showToast('Montant invalide', 'Le montant doit être un nombre entier positif.', false); return; }

@@ -2492,7 +2492,10 @@ const WORLD = {
         'usine-principale': {
           // Cheminement de visite demandé par Fred : entrée commerciale -> atelier -> direction.
           roomOrder: ['salle_ventes_raffinerie', 'interieur_raffinerie', 'direction_usine'],
-          name: 'Raffinerie de Starovka',
+          // Usine d'État de Sovarka (Fred, 15/11/2026 au soir) : nom, directeur PNJ Damdin Mazoutov, règles de
+          // la raffinerie de Montrouge (chaînes et directeurs par pays côté serveur, migration 20261115213000).
+          name: 'Raffinerie d’État du Grand Nord',
+          shortName: 'Raffinerie',
           desc: 'Raffinerie publique de Starovka : carburants et dérivés pétrochimiques, dont les plastiques. Locaux et équipements entretenus avec soin.',
           roomOverrides: {
             direction_usine: {
@@ -2502,7 +2505,13 @@ const WORLD = {
               // Directeur Fabre appartient au décor de Montrouge et ne doit pas apparaître à Starovka.
               // Un tableau vide seul ne neutralise pas les PNJ hérités du gabarit partagé.
               personsVides: true,
-              persons: []
+              persons: [{name: 'Damdin Mazoutov (PNJ)', role: 'Directeur de la raffinerie', rel: 'neutral', job: 'directeur_raffinerie'}],
+              excludeOrders: ['acheter_entreprise'],
+              orders: [
+                {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_raffinerie', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
+                {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_raffinerie', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
+                {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_raffinerie', desc:'Verser un montant depuis la caisse de l\'usine vers la caisse du Ministère des Finances.'}
+              ]
             }
           },
           roomsExtra: {
@@ -2512,7 +2521,10 @@ const WORLD = {
               desc: 'Accueil commercial impeccable, dédié au carburant et aux produits pétrochimiques, notamment les plastiques. Les entrepôts et la raffinerie sont visibles à travers les fenêtres.',
               imageUrl: 'images/Sovarka/Starovka/Starovka_raffinerie_salle_ventes.webp',
               persons: [],
-              orders: []
+              orders: [
+                {fn:'vente_directe_usine', label:'Vente directe', pa:0, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'},
+                {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.'}
+              ]
             },
             interieur_raffinerie: {
               name: 'Atelier de raffinage',
@@ -2520,7 +2532,11 @@ const WORLD = {
               desc: 'Grande salle de production parfaitement entretenue, équipée de colonnes, de tuyauteries, de passerelles et de cuves de transformation pétrochimique.',
               imageUrl: 'images/Sovarka/Starovka/Starovka_raffinerie_interieur_usine.webp',
               persons: [],
-              orders: []
+              orders: [
+                {fn:'produire_carburant', label:'Produire du carburant', pa:1, cost:0, type:'legal', icon:'ti-gas-station', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 pétrole du stock de matières de l\'usine, produit 10 carburants.'},
+                {fn:'produire_derives_petrochimiques', label:'Produire des dérivés pétrochimiques', pa:1, cost:0, type:'legal', icon:'ti-flask', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 pétrole du stock de matières de l\'usine, produit 10 dérivés pétrochimiques.'},
+                {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.'}
+              ]
             }
           }
         },
@@ -12064,15 +12080,24 @@ BUILDINGS['locaux-starovka'] = {
         imageUrl: 'images/Sovarka/Krasnov/Krasnov_distillerie_salle_ventes.webp',
         desc: 'Le magasin de l’usine : bouteilles alignées derrière le comptoir, caisse enregistreuse et tarifs à la craie. L’exploitant y vend vodka, slivovitz, samogon et sucre (commerce de type « Distillerie »).',
         persons: [],
-        orders: ordresLocal
+        // Usine d'État de Sovarka (Fred, 15/11/2026 au soir) : la vente directe de l'usine s'ajoute au
+        // commerce du PJ exploitant, qui reste inchangé.
+        orders: ordresLocal.concat([
+          { fn: 'vente_directe_usine', label: 'Vente directe', pa: 0, cost: 0, type: 'legal', icon: 'ti-cash-register', successRate: 100, desc: 'Acheter la production locale, disponible en quantité limitée.' }
+        ])
       },
       bureau_direction: {
         name: 'Bureau de direction',
         imageBg: 'linear-gradient(135deg,#22180f,#403324)',
         imageUrl: 'images/Sovarka/Krasnov/Krasnov_distillerie_bureau_direction.webp',
         desc: 'Diplômes d’honneur au mur, plan rempli à 104,7 % et une carafe de vodka « pour les inspections » : le directeur Pokhmelkine y signe les bilans de production.',
-        persons: [{ name: 'Anatoli Pokhmelkine (PNJ)', role: 'Directeur de la distillerie', rel: 'neutral', job: 'directeur' }],
-        orders: []
+        persons: [{ name: 'Anatoli Pokhmelkine (PNJ)', role: 'Directeur de la distillerie', rel: 'neutral', job: 'directeur_tabac_alcools' }],
+        // Directeur nommé pour tout le pays par le ministre de l'Économie collective (règles de l'usine de PSM).
+        orders: [
+          { fn: 'fixer_prix_vente_directe', label: 'Fixer les prix de vente', pa: 1, cost: 0, type: 'legal', icon: 'ti-tag', successRate: 100, requiresPost: 'directeur_tabac_alcools', desc: 'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).' },
+          { fn: 'fixer_repartition_production', label: 'Répartir la production', pa: 1, cost: 0, type: 'legal', icon: 'ti-adjustments', successRate: 100, requiresPost: 'directeur_tabac_alcools', desc: 'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).' },
+          { fn: 'virement_usine_ministere', label: 'Virement vers le Ministère', pa: 1, cost: 0, type: 'legal', icon: 'ti-transfer', successRate: 100, requiresPost: 'directeur_tabac_alcools', desc: 'Verser un montant depuis la caisse de l\'usine vers la caisse du Ministère des Finances.' }
+        ]
       },
       atelier_distillerie: {
         name: 'L’atelier de distillation',
@@ -12080,7 +12105,11 @@ BUILDINGS['locaux-starovka'] = {
         imageUrl: 'images/Sovarka/Krasnov/Krasnov_distillerie_atelier.webp',
         desc: 'Des alambics de cuivre, des cuves d’alcool à 96,6 % et des fûts de chêne alignés. Vassili Gradousov surveille la colonne, son carnet de dégustation à la main.',
         persons: [{ name: 'Vassili Gradousov (PNJ)', role: 'Maître distillateur', rel: 'friendly', job: 'artisan' }],
-        orders: []
+        // Alcool tiré des fruits et légumes (décision du 10/11/2026), contre salaire (15 PSK par PA).
+        orders: [
+          { fn: 'produire_alcool', label: 'Produire de l\'alcool', pa: 1, cost: 0, type: 'legal', icon: 'ti-bottle', successRate: 100, desc: 'Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 fruits et légumes du stock de matières de l\'usine, produit 10 alcools.' },
+          { fn: 'vendre_matiere_usine', label: 'Vendre des matières à l\'usine', pa: 0, cost: 0, type: 'legal', icon: 'ti-package-export', successRate: 100, desc: 'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.' }
+        ]
       }
     };
   }

@@ -9,9 +9,10 @@ const dist = JSON.parse(JSON.stringify(vm.runInContext("BUILDINGS['distillerie-k
 const radar = JSON.parse(JSON.stringify(vm.runInContext("BUILDINGS['station-radar-krasnov']",ctx)));
 assert.deepEqual(Object.keys(dist.rooms),['salle_ventes','bureau_direction','atelier_distillerie']);
 // Le local loué est la salle des ventes (migration 20261114180000) : ses deux ordres n'existent qu'ici.
-assert.deepEqual(dist.rooms.salle_ventes.orders.map(o=>o.fn),['sovarka_demande_location','commerce_pj']);
-assert.equal(dist.rooms.atelier_distillerie.orders.length,0);
-assert.equal(dist.rooms.bureau_direction.orders.length,0);
+// 15/11/2026 au soir : la distillerie est aussi l'usine d'État de Sovarka (vente directe, production, directeur).
+assert.deepEqual(dist.rooms.salle_ventes.orders.map(o=>o.fn),['sovarka_demande_location','commerce_pj','vente_directe_usine']);
+assert.deepEqual(dist.rooms.atelier_distillerie.orders.map(o=>o.fn),['produire_alcool','vendre_matiere_usine']);
+assert.equal(dist.rooms.bureau_direction.orders.length,3);
 assert.deepEqual(dist.rooms.bureau_direction.persons.map(p=>p.name),['Anatoli Pokhmelkine (PNJ)']);
 assert.deepEqual(dist.rooms.atelier_distillerie.persons.map(p=>p.name),['Vassili Gradousov (PNJ)']);
 assert.deepEqual(radar.rooms.salle_ecoute.persons.map(p=>p.name),['Colonel Gleb Voronov (PNJ)','Caporal Ilia Sorokine (PNJ)']);

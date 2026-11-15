@@ -577,7 +577,12 @@ function enterBuilding(buildingId, skipAutoRoom) {
     'entrepot-logistique-psm':       { posteId: 'directeur_entrepot', city: 'ville_a' },
     'entrepot-logistique-montrouge': { posteId: 'directeur_entrepot', city: 'ville_b' }
   };
-  const cfgDirecteur = BATIMENTS_DIRECTEUR[buildingId];
+  // Usines d'Etat de Sovarka (15/11/2026) : la raffinerie de Starovka occupe l'usine generique de la ville.
+  const BATIMENTS_DIRECTEUR_SOVARKA = {
+    'usine-principale':    { posteId: 'directeur_raffinerie', city: null },
+    'distillerie-krasnov': { posteId: 'directeur_tabac_alcools', city: null }
+  };
+  const cfgDirecteur = (state.country === 'soviet' && BATIMENTS_DIRECTEUR_SOVARKA[buildingId]) || BATIMENTS_DIRECTEUR[buildingId];
   const elDirecteur = document.getElementById('bat-directeur');
   if (cfgDirecteur && elDirecteur) {
     elDirecteur.style.display = 'block';
@@ -588,7 +593,12 @@ function enterBuilding(buildingId, skipAutoRoom) {
         if (titulaire) {
           elDirecteur.textContent = 'Directeur : ' + titulaire.nom;
         } else {
-          const pnjDefaut = (BUILDINGS[buildingId]?.rooms?.bureau_direction?.persons || []).find(p => p.job === cfgDirecteur.posteId);
+          // PNJ de la ville d'abord (Pharmanov, raffinerie de Starovka : pieces propres a la ville), puis le gabarit.
+          const ctxDir = (typeof getBuildingContext === 'function') ? getBuildingContext(buildingId) : null;
+          const personnesVille = Object.values((ctxDir && ctxDir.roomOverrides) || {})
+            .concat(Object.values((ctxDir && ctxDir.roomsExtra) || {})).flatMap(r => (r && r.persons) || []);
+          const pnjDefaut = personnesVille.find(p => p.job === cfgDirecteur.posteId)
+            || (BUILDINGS[buildingId]?.rooms?.bureau_direction?.persons || []).find(p => p.job === cfgDirecteur.posteId);
           elDirecteur.textContent = 'Directeur : ' + (pnjDefaut ? pnjDefaut.name : 'poste vacant');
         }
       }).catch(() => { elDirecteur.textContent = 'Directeur : indisponible'; });

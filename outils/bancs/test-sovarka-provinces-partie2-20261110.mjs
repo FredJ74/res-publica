@@ -38,7 +38,8 @@ test('Distillerie et fourreur : locaux demandés à la mairie, puis commerce', (
   const ctx = charger('ville_b');
   const fns = vm.runInContext(`[BUILDINGS['distillerie-krasnov'].rooms.salle_ventes, BUILDINGS['fourreur-starovka'].rooms.boutique_fourreur]
     .map(p => p.orders.map(o => o.fn).join()).join('|')`, ctx);
-  assert.equal(fns, 'sovarka_demande_location,commerce_pj|sovarka_demande_location,commerce_pj');
+  // 15/11/2026 au soir : vente directe de l'usine d'État ajoutée à la distillerie, à côté du commerce du PJ.
+  assert.equal(fns, 'sovarka_demande_location,commerce_pj,vente_directe_usine|sovarka_demande_location,commerce_pj');
 });
 
 test('Forêt de Krasnov : entrée, 4 vues masquées, coupe 2 PA, retour', () => {
