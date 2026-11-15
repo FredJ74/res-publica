@@ -6,6 +6,8 @@ on:
       - .github/workflows/krasnov-accueil-image-unique-20261115.yml
       - outils/images/remplacer_accueil_centre_affaires_20261115.py
       - outils/bancs/test-krasnov-accueil-image-unique-20261115.mjs
+      - outils/bancs/test-krasnov-centre-affaires-cadrage-20261115.mjs
+      - outils/bancs/test-krasnov-accueil-sans-vide-20261115.mjs
 permissions:
   contents: write
 jobs:
@@ -27,6 +29,8 @@ jobs:
           node --check data.js
           node --check plateau-navigation.js
           node --test outils/bancs/test-krasnov-accueil-image-unique-20261115.mjs
+          node --test outils/bancs/test-krasnov-centre-affaires-cadrage-20261115.mjs
+          node --test outils/bancs/test-krasnov-accueil-sans-vide-20261115.mjs
           node --test outils/bancs/test-krasnov-station-antonina-affaires-20261115.mjs
       - name: Commiter les assets
         run: |
