@@ -118,7 +118,9 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.station.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.station.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.bureaux.image,'images/Sovarka/Krasnov/Krasnov_rue_bureaux.webp');
-  assert.deepEqual(Object.keys(got.bureaux.liens).sort(),['arriere','toutDroit']);
+  // Rue de l'hôpital ajoutée le 14/11 (plan de Krasnov avec l'hôpital) : impasse à droite de la vue des bureaux.
+  assert.deepEqual(Object.keys(got.bureaux.liens).sort(),['arriere','droite','toutDroit']);
+  assert.equal(got.bureaux.liens.droite,'krasnov-rue-hopital');
   assert.equal(got.bureaux.liens.arriere,'krasnov-rue-station-musee');
   assert.equal(got.bureaux.liens.toutDroit,'krasnov-rue-descendante');
   assert.equal(got.bureaux.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
@@ -137,8 +139,8 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.eglise.liensEnAttente,undefined);
   assert.equal(got.eglise.flechesStyle.droite,'top:33.3333%; right:10px; transform:translateY(-50%);');
   // Terrain municipal raccordé le 09/11/2026 (migration 20261109004500).
-  assert.equal(got.terrains.zones.length,1);
-  assert.equal(got.terrains.zones[0].buildingId,'terrain-a-batir-2');
+  // + maisonnette d'Ignat Lykov au bord droit des terrains (14/11/2026, GAME-DESIGN-NOVOMIRSK.md « Maisonnettes de Krasnov »).
+  assert.deepEqual(Array.from(got.terrains.zones,z=>z.buildingId).sort(),['maison-krasnov-terrains','terrain-a-batir-2']);
   assert.equal(got.maison.zones.length,1); // 10/11/2026 : maison de Stepan (hospitalité)
   assert.equal(got.maison.zones[0].buildingId,'maison-krasnov');
   // L'entrepôt de Krasnov est raccordé (05/11/2026, migration 20261105030000).

@@ -154,6 +154,18 @@ def appliquer(f, chemin):
     return None
 
 
+def migrations_apres_coupe():
+    """migrations/ plus les archives appliquées APRÈS le point de coupe du baseline, dans l'ordre des horodatages.
+    Une migration archivée avant la réextraction du baseline n'y figure pas encore (cas du Pavillon diplomatique,
+    20261111214350, archivé le 11/11 alors que le baseline date du 01/11) : l'ignorer ferait croire ses RPC absentes."""
+    with open(os.path.join(RACINE, 'baseline', 'CONTROLE-GLOBAL.json'), encoding='utf-8') as fh:
+        coupe = re.sub(r'\D', '', json.load(fh)['releve_le'])[:14]
+    chemins = glob.glob(os.path.join(RACINE, 'migrations', '*.sql'))
+    chemins += [c for c in glob.glob(os.path.join(RACINE, 'historique', 'migrations-appliquees', '*.sql'))
+                if re.match(r'\d{14}_', os.path.basename(c)) and os.path.basename(c)[:14] > coupe]
+    return sorted(chemins, key=os.path.basename)
+
+
 def ecarts_apres_lot(appels=None):
     """Écarts des appels du navigateur contre baseline + migrations/ (dans l'ordre)."""
     if appels is None:
@@ -164,7 +176,7 @@ def ecarts_apres_lot(appels=None):
 def calculer(appels):
     f = formes_baseline()
     illisibles = []
-    for chemin in sorted(glob.glob(os.path.join(RACINE, 'migrations', '*.sql'))):
+    for chemin in migrations_apres_coupe():
         e = appliquer(f, chemin)
         if e:
             illisibles.append((os.path.basename(chemin), e))

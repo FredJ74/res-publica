@@ -51,6 +51,7 @@ async function analyserRaccordements(){
   try{parcourir(acorn.parse(lire(f),{ecmaVersion:'latest',sourceType:'module'}),n=>{
    if(n.type==='FunctionDeclaration'&&n.id)declares.add(n.id.name);
    if(n.type==='VariableDeclarator'&&n.id.type==='Identifier')declares.add(n.id.name);
+   if(n.type==='AssignmentExpression'&&n.left.type==='MemberExpression'&&['global','globalThis','window'].includes(n.left.object.name)&&n.left.property.type==='Identifier')declares.add(n.left.property.name);
    if(f==='plateau-router.js'&&n.type==='CallExpression'&&n.callee.type==='Identifier')appels.add(n.callee.name);
   });}catch(e){erreursAnalyse.push({fichier:f,erreur:e.message});}}
  const appelsSansDeclaration=[...appels].filter(n=>!declares.has(n)&&!['Number','String','Boolean','parseInt','parseFloat','setTimeout','setInterval','clearTimeout','clearInterval','fetch'].includes(n));

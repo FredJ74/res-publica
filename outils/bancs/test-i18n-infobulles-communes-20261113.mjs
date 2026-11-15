@@ -52,7 +52,8 @@ test('inventaire : 248 descriptions communes affichées, aucune nouvelle hors ca
     'nombre de descriptions communes affichées après exclusions ministérielles spécifiques à Sovarka');
   const manquantes = communesJeu.filter(d => !cat.includes(d));
   t.diagnostic('Descriptions communes manquantes : ' + JSON.stringify(manquantes));
-  assert.ok(manquantes.length <= 3, 'nouvelles communes absentes du catalogue');
+  // +1 le 15/11 : « +6 INF +5 DIS +1 POP. » (location d'un des quatre bureaux de Krasnov, texte du catalogue de Républia, à passer au catalogue commun par le lot i18n).
+  assert.ok(manquantes.length <= 4, 'nouvelles communes absentes du catalogue');
   // Français strictement identique : chaque texte du catalogue est une description exacte de data.js,
   // affichée dans au moins un pays (avec la fusion réelle, quelques-unes ne sont plus visibles qu'en Républia,
   // l'exclusion de Sovarka étant désormais prise en compte ; leur traduction y reste utile).

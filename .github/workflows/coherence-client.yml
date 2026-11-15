@@ -45,8 +45,9 @@ jobs:
         run: npm ci --prefix outils/vercel --no-audit --no-fund
       - name: Installer les dépendances du pilote navigateur avant les bancs client
         run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
-      - name: Calendrier sur main (PR couvertes par les controles dedies)
-        if: github.event_name == 'push'
+      # Joué aussi sur les PR depuis le 15/11/2026 : réservé à main, il ne voyait les bancs cassés qu'après fusion,
+      # et les échecs s'empilaient sans que personne ne les voie avant (15 bancs rouges au 15/11).
+      - name: Calendrier et bancs Node test-*.mjs (main et PR)
         run: node --test outils/bancs/test-*.mjs
 
       - name: Tracts — plafond commun de 100 unités avant toute impression

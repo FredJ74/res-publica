@@ -48,7 +48,12 @@ function bac(pa) {
   vm.createContext(ctx);
   // doOrder se termine par executerOrdreGenerique : les cas particuliers intermédiaires ne
   // concernent pas les noms d'ordre utilisés ici.
-  vm.runInContext(extraire('doOrder') + '\n' + extraire('avertirZeroPa'), ctx);
+  // Textes de l'avertissement (traduits depuis le 14/11) : le dictionnaire français et zeroPaT.
+  const debutTextes = SRC.indexOf('const ZERO_PA_FR');
+  const finTextes = SRC.indexOf('\n', SRC.indexOf('const zeroPaT'));
+  assert.ok(debutTextes >= 0 && finTextes > debutTextes, 'textes de l\'avertissement introuvables');
+  ctx.window = {};
+  vm.runInContext(SRC.slice(debutTextes, finTextes) + '\n' + extraire('doOrder') + '\n' + extraire('avertirZeroPa'), ctx);
   const boutons = () => corps.enfants[0].enfants[1].enfants;
   return { ctx, modal, corps, envoyes, toasts, boutons };
 }

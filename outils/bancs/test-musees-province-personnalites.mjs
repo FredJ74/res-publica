@@ -8,6 +8,7 @@ import vm from 'node:vm';
 
 const lire = (f) => readFileSync(new URL('../../' + f, import.meta.url), 'utf8');
 const c = { state: {} };
+c.window = c; // plateau-musee-personnalites.js s'abonne au changement de langue (window.RP_I18N_CHANGE_CALLBACKS)
 vm.createContext(c);
 vm.runInContext(lire('data.js').replace(/^const /gm, 'var '), c);
 vm.runInContext(lire('plateau-musee-personnalites.js').replace(/^const /gm, 'var '), c);

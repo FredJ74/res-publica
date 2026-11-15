@@ -34,7 +34,7 @@ test('publication à PSM : un seul appel serveur au forum local_ville_a',async()
  const calls=[],toasts=[],ctx={currentForumId:'local_ville_a',state:{currentCity:'ville_a'},
  idForumLocal:city=>'local_'+city,showToast:(...a)=>toasts.push(a),
  executerOrdreJaugesServeur:async(...a)=>{calls.push(a);return {topic:'sujet-test',post:'message-test'};}};
- vm.createContext(ctx);vm.runInContext(publish,ctx);
+ ctx.window=ctx;vm.createContext(ctx);vm.runInContext(publish,ctx);
  const r=await ctx.forumPublierAvecJauges(null,'Titre','Texte',[],null,{idOrga:null,authorSecret:false,orgIcon:null});
  assert.equal(r.topic,'sujet-test');assert.equal(calls.length,1);
  assert.equal(calls[0][0],'forum_publier');assert.equal(calls[0][1].forum,'local_ville_a');
@@ -44,7 +44,7 @@ test('ville modifiée pendant la composition : aucun RPC ni faux sujet',async()=
  const calls=[],toasts=[],ctx={currentForumId:'local_capitale',state:{currentCity:'ville_a'},
  idForumLocal:city=>'local_'+city,showToast:(...a)=>toasts.push(a),
  executerOrdreJaugesServeur:async(...a)=>{calls.push(a);return {topic:'faux',post:'faux'};}};
- vm.createContext(ctx);vm.runInContext(publish,ctx);
+ ctx.window=ctx;vm.createContext(ctx);vm.runInContext(publish,ctx);
  const r=await ctx.forumPublierAvecJauges(null,'Titre','Texte',[],null,{idOrga:null,authorSecret:false,orgIcon:null});
  assert.equal(r,null);assert.equal(calls.length,0);
  assert.equal(toasts[0][0],'Forum local à rouvrir');

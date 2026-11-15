@@ -25,7 +25,9 @@ test('ordres : tableau à l’accueil des 3 mairies, classement chez le ministre
   const m = ordres('capitale', 'palais-gouvernement', 'bureau_min_fin').map(x => x.fn);
   assert.ok(m.includes('heros_travail_classement'));
   const base = JSON.parse(vm.runInContext(`JSON.stringify((BUILDINGS['palais-gouvernement'].rooms.bureau_min_fin.orders||[]).map(o=>o.fn))`, ctx));
-  const exclus = ['preempter_entreprise'];
+  // Exclusions déclarées par Sovarka pour ce bureau (ordres propres à Républia, cloisonnement des ministères du 13/11).
+  const exclus = JSON.parse(vm.runInContext(`JSON.stringify(WORLD.soviet.capitale.buildingContext['palais-gouvernement'].roomOverrides?.bureau_min_fin?.excludeOrders || [])`, ctx));
+  assert.ok(exclus.includes('preempter_entreprise'));
   for (const fn of base) if (!exclus.includes(fn)) assert.ok(m.includes(fn), 'ordre du gabarit conservé : ' + fn);
   assert.equal(vm.runInContext(`JSON.stringify(WORLD.republic.capitale?.buildingContext?.['mairie-capitale']?.roomOverrides?.hall_mairie?.orders||[]).includes('heros_travail')`, ctx), false, 'Républia inchangée');
 });
@@ -48,7 +50,7 @@ test('routes : les quatre ordres ouvrent le module ; le module expose ses foncti
   assert.ok(html.indexOf('plateau-sovarka-heros-boite.js') < html.indexOf('plateau-router.js'));
   for (const f of ['data.js', 'plateau-router.js', 'plateau-pnj.js', 'plateau-divers.js', 'plateau-personnage.js', 'plateau-equipements.js',
     'i18n/orders-resources.js', 'i18n/sovarka-infobulles-resources.js', 'i18n/equipements-resources.js'])
-    assert.match(html, new RegExp(f.replace(/[.\/]/g, '\\$&') + '\\?v=[^"]*heros-boite-20261113"'), 'cache ' + f);
+    assert.match(html, new RegExp(f.replace(/[.\/]/g, '\\$&') + '\\?v=[^"]*heros-boite-20261113[^"]*"'), 'cache ' + f); // marque présente, pas forcément la dernière
   assert.match(lire('outils/audits/audit-i18n-editorial.cjs'), /'sovarka-heros-boite-resources\.js'/);
 });
 
