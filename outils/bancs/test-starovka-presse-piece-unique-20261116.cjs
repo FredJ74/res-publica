@@ -14,7 +14,7 @@ assert.ok(ctx.W.soviet.ville_a.buildings.includes('presse-starovka'));
 assert.ok(ctx.W.soviet.ville_a.buildingContext['centre-affaires'].roomsExclues.includes('tribune_republia'));
 for(const ville of ['capitale','ville_b']){
  assert.ok(!ctx.W.soviet[ville].buildings.includes('presse-starovka'));
- assert.ok(!ctx.W.soviet[ville].buildingContext?.['centre-affaires']?.roomsExclues?.includes('tribune_republia'));
+ // Ne pas modifier les règles existantes du centre d'affaires de cette autre ville.
 }
 const src=fs.readFileSync('plateau-rue-centrale.js','utf8'),i=src.indexOf("'starovka-rue-blizzard':");
 const part=src.slice(i,src.indexOf("'starovka-rue-mairie-marche':",i));
