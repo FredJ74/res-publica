@@ -933,7 +933,33 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [
         { xPct: [0, 42], yPct: [15, 70], nom: 'Commissariat de Starovka', type: 'batiment', buildingId: 'commissariat-local' }
       ],
-      liens: { droite: 'starovka-rue-mairie-marche', gauche: 'starovka-rue-bureaux-caserne' },
+      liens: { droite: 'starovka-rue-mairie-marche', gauche: 'starovka-rue-hopital' },
+      flechesStyle: {
+        droite: 'top:50%; right:10px; transform:translateY(-50%);',
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);'
+      }
+    },
+
+    // Les deux vues ci-dessous complètent le tronçon à gauche du lycée.
+    'starovka-rue-hopital': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_hopital.webp',
+      zones: [
+        { xPct: [7, 94], yPct: [13, 72], nom: 'Hôpital de Starovka', type: 'batiment', buildingId: 'dispensaire-public-v' }
+      ],
+      liens: { droite: 'starovka-rue-lycee-commissariat', gauche: 'starovka-rue-tribunal-artisanal' },
+      flechesStyle: {
+        droite: 'top:50%; right:10px; transform:translateY(-50%);',
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);'
+      }
+    },
+
+    'starovka-rue-tribunal-artisanal': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_tribunal_centre_artisanal.webp',
+      zones: [
+        { xPct: [19, 49], yPct: [19, 70], nom: 'Centre artisanal de Starovka', type: 'batiment', buildingId: 'centre-artisanal' },
+        { xPct: [51, 100], yPct: [4, 73], nom: 'Tribunal de Starovka', type: 'batiment', buildingId: 'tribunal-local' }
+      ],
+      liens: { droite: 'starovka-rue-hopital', gauche: 'starovka-rue-bureaux-caserne' },
       flechesStyle: {
         droite: 'top:50%; right:10px; transform:translateY(-50%);',
         gauche: 'top:50%; left:10px; transform:translateY(-50%);'
@@ -949,7 +975,7 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [47, 100], yPct: [0, 72], nom: "Centre d'affaires de Starovka", type: 'batiment', buildingId: 'centre-affaires' }
       ],
       liens: {
-        droite: 'starovka-rue-lycee-commissariat',
+        droite: 'starovka-rue-tribunal-artisanal',
         toutDroit: 'starovka-rue-magasin-chasse'
       },
       flechesStyle: {
