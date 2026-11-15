@@ -27,7 +27,7 @@ for(const [id,filename] of Object.entries(files)){
  assert.equal(content.toString('ascii',8,16),'WEBPVP8 ');
  assert.ok(sql.includes(id),'Référencement serveur manquant: '+id);
 }
-assert.equal(world.roomOverrides.direction_usine.persons.length,0,'PNJ de Montrouge absent');
+assert.equal(world.roomOverrides.direction_usine.personsVides,true,'PNJ de Montrouge interdit par la surcharge');
 assert.deepEqual([...world.roomsExtra.salle_ventes_raffinerie.orders],[]);
 assert.deepEqual([...world.roomsExtra.interieur_raffinerie.orders],[]);
 assert.equal(base.rooms.direction_usine.orders.length,1,'Gabarit conservé');
