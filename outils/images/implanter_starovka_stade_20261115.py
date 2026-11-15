@@ -81,8 +81,8 @@ if tag not in data:
       desc: 'Dans les tribunes, le vendeur de vêtements chauds et d’accessoires du Partizan attend ses clients sous la neige.',
       persons: [{name:'Vendeur des accessoires de Starovka (PNJ)',role:'Vendeur des accessoires du club',rel:'neutral',job:'vendeur'}],
       orders: [
-        {fn:'choisir_accessoire_club',label:'Acheter un accessoire',pa:0,cost:0,type:'legal',icon:'ti-shirt',successRate:100,desc:'Écharpe, casquette ou maillot du Partizan de Starovka, à choisir.'},
-        {fn:'acheter_accessoire_personnalise',label:'Acheter un accessoire personnalisé',pa:0,cost:0,type:'legal',icon:'ti-lock',successRate:100,desc:'Personnalisation premium à venir.'}
+        {fn:'choisir_accessoire_club',label:'Acheter un accessoire',pa:0,cost:0,type:'legal',icon:'ti-shirt',successRate:100,desc:'Echarpe, casquette ou maillot du club — a choisir.'},
+        {fn:'acheter_accessoire_personnalise',label:'Acheter un accessoire personnalisé',pa:0,cost:0,type:'legal',icon:'ti-lock',successRate:100,desc:'Personnalisation (nom, numero) — reserve aux comptes premium. Bientot disponible.'}
       ]
     };
   }
