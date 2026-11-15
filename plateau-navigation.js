@@ -1644,6 +1644,19 @@ async function sortirBatiment() {
   if(sortieBatimentEnCours&&contexteNavigationRueValide(sortieBatimentEnCours))return;
   sortieBatimentEnCours=contexteSortie;
   try{
+  // Un patient hospitalisé à 0 PA doit franchir la porte médicale dédiée.
+  // La navigation de rue commune refuse volontairement son hospitalisation encore ouverte :
+  // il faut d'abord la clore atomiquement côté serveur (J2 minimum et >=20 PA).
+  // Ne pas détourner la sortie d'un visiteur, ni celle des autres bâtiments.
+  if (state.hospitalisation?.regime === 'pa0' &&
+      ['dispensaire-public', 'dispensaire-public-v', 'clinique-privee'].includes(state.currentBuilding)) {
+    if (typeof doSortieHopital !== 'function') {
+      showToast('Sortie médicale indisponible', 'Réessayez après avoir rechargé votre session.', false);
+      return;
+    }
+    await doSortieHopital();
+    return;
+  }
   let positionSortieConfirmee=null;
   // Capture AVANT reinitialisation : si on quitte l'un des terrains du sous-lieu "Terrains a
   // batir de Montrouge" (Lot 2D, 19 aout 2026), la sortie doit ramener a l'ecran de selection
