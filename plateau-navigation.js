@@ -1028,6 +1028,9 @@ function enterRoom(buildingId, roomId, tabEl) {
     const ancragePiece = (imgUrl && imgUrl === roomOverride?.imageUrl && roomOverride?.ancrage) || (imgUrl && imgUrl === room.imageUrl && room.ancrage);
     if (ancragePiece) pieceImg.setAttribute('data-ancrage', ancragePiece);
   }
+  // Seul l'accueil panoramique de Krasnov demande un affichage intégral.
+  // Réinitialiser à chaque changement de pièce pour ne pas affecter les autres salles.
+  pieceImg.toggleAttribute('data-cadrage-integral', !!(imgUrl && roomOverride?.cadrageIntegral));
   if (imgUrl) {
     pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {
