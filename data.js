@@ -2490,6 +2490,8 @@ const WORLD = {
         // Raffinerie de Starovka : trois salles, illustrations de Fred (15/11/2026).
         // Ne modifie pas le gabarit de l'usine des autres villes ni ses ordres.
         'usine-principale': {
+          // Cheminement de visite demandé par Fred : entrée commerciale -> atelier -> direction.
+          roomOrder: ['salle_ventes_raffinerie', 'interieur_raffinerie', 'direction_usine'],
           name: 'Raffinerie de Starovka',
           desc: 'Raffinerie publique de Starovka : carburants et dérivés pétrochimiques, dont les plastiques. Locaux et équipements entretenus avec soin.',
           roomOverrides: {

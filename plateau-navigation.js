@@ -377,6 +377,16 @@ async function commanderNavigationInterieure(buildingId,roomId) {
   } finally {if(navigationInterieureEnCours===c)navigationInterieureEnCours=null;}
 }
 
+// Ordre de visite local facultatif : ne modifie jamais l'ordre du gabarit partagé.
+// Sans roomOrder, Object.entries conserve exactement le comportement historique.
+function piecesOrdonneesBatiment(b, ctx) {
+  const pieces = Object.entries({ ...(b?.rooms || {}), ...(ctx?.roomsExtra || {}) });
+  const ordre = ctx?.roomOrder;
+  if (!Array.isArray(ordre) || !ordre.length) return pieces;
+  const indices = new Map(ordre.map((id, i) => [id, i]));
+  return pieces.sort((a, b) => (indices.get(a[0]) ?? Infinity) - (indices.get(b[0]) ?? Infinity));
+}
+
 function enterBuilding(buildingId, skipAutoRoom) {
   // Batiment ferme a cle (decision de Fred du 04/11) : seul un detenteur de cle entre ; le serveur
   // refuse de toute facon (navigation_interieure : porte_fermee_a_cle).
@@ -387,7 +397,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
   if(state._navigationServeur===true&&state.currentBuilding!==buildingId
       &&navigationInterieureRendu?.buildingId!==buildingId){
     const b=BUILDINGS[buildingId],ctx=getBuildingContext(buildingId);
-    const piece=Object.keys({...b?.rooms,...ctx?.roomsExtra}).find(r=>!ctx?.roomsExclues?.includes(r)&&!ctx?.roomsMasquees?.includes(r));
+    const piece=piecesOrdonneesBatiment(b,ctx).map(([id])=>id).find(r=>!ctx?.roomsExclues?.includes(r)&&!ctx?.roomsMasquees?.includes(r));
     if(!piece)return;
     return commanderNavigationInterieure(buildingId,piece);
   }
@@ -624,7 +634,7 @@ function renderOngletsPieces(buildingId, roomActifId) {
   const b = BUILDINGS[buildingId];
   if (!b) return [];
   const ctxForTabs = getBuildingContext(buildingId);
-  const roomsBrutes = Object.entries({ ...(b.rooms || {}), ...(ctxForTabs?.roomsExtra || {}) }).filter(([roomId]) => !(ctxForTabs?.roomsExclues || []).includes(roomId));
+  const roomsBrutes = piecesOrdonneesBatiment(b,ctxForTabs).filter(([roomId]) => !(ctxForTabs?.roomsExclues || []).includes(roomId));
   // Chambres individuelles de la clinique privee (arbitrage UX, 20 aout 2026) : jamais des
   // onglets bruts "Chambre 1"..."Chambre 10" -- acces via le point d'entree unique "Chambres"
   // sur l'accueil (doOuvrirChambresClinique, plateau-personnage.js), qui appelle enterRoom()
