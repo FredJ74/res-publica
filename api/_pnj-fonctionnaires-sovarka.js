@@ -32,7 +32,7 @@ const NON_FONCTIONNAIRES = new Set([
   'sovarka_leonid_orlov', 'sovarka_lobbyiste_pavel_pistonov', 'sovarka_innokenti_partiiev',
   'meneur_des_supporters', 'sovarka_stiopa_le_tambour_ossipov', 'veteran_ilia_krioukov',
   // Loge, Église du Tractorisme, presse étrangère et ambassadeurs étrangers
-  'sovarka_venerable_maitre_dimitri_compassov', 'frere_gardien', 'camarade_pontife_tractorenko', 'frere_kolkhoze',
+  'sovarka_venerable_maitre_dimitri_compassov', 'frere_gardien', 'camarade_pontife_tractorenko', 'frere_kolkhoze', 'kouzma_lapchine', 'praskovia_pakhomova',
   'journalistes_accredites', 'hubert_de_la_courtoisie', 'cheikh_rachid_al_diplomi', 'don_esteban_cortesano'
 ]);
 

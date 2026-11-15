@@ -24,3 +24,9 @@
 ## État
 - **Décision actée**, mise en œuvre **non certifiée** à la date de rédaction.
 - La **PR #987 de Claude** traite actuellement du récit et des deux personnages. Y intégrer les rôles décidés, sans travail concurrent sur ses fichiers ; produire les tests, migration et preuve de publication selon les usages du dépôt.
+
+## État d'implantation (Claude, 15/11/2026, PR #987)
+- **Référents** : lignes `pnj_referents` (`kouzma_lapchine`, religion ; `praskovia_pakhomova`, kolkhoze ; pays `soviet`) et liste `PNJ_REFERENTS` de l'écran ; leurs fiches (`api/_pnj-personnalites.js`) portent les seules règles réelles (« Donner à l'Église » ; travaux et caisse commune du Kolkhoze S. M. Kirov).
+- **Sociaux** : règle de jalon serveur inatteignable pour chacun (comme Jodie) : rencontres, conversations et familiarité tenues, **aucune interpellation automatique** ; lieux sociaux : église et tserkovny dom pour Kouzma, maison bleue pour Praskovia (`plateau-social-pnj.js`).
+- Migration `20261115120500_krasnov_kouzma_praskovia_roles` **appliquée** (registre `krasnov_kouzma_praskovia_roles_20261115120500`) après essai annulé. Test `outils/bancs/test-krasnov-kouzma-praskovia-20261115.mjs`. Recette en jeu non faite.
+

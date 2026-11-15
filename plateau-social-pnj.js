@@ -29,7 +29,13 @@
 const RP_SOCIAL_LIEUX = {
   // ville / batiment / piece -> identifiant du PNJ social qui s'y tient
   'ville_a|bar-des-pecheurs|salle_bar':        'jean_lou_demer',
-  'ville_a|capitaine-sauvage|salle_principale': 'marine_leroux'
+  'ville_a|capitaine-sauvage|salle_principale': 'marine_leroux',
+  // Krasnov (Fred, 15/11/2026) : Kouzma à l'église et au tserkovny dom, Praskovia chez elle. Identifiants
+  // propres à Sovarka (aucun de ces bâtiments n'existe en Républia) ; règle de jalon serveur inatteignable :
+  // relation tenue, aucune interpellation automatique (migration 20261115120500).
+  'ville_b|kolkhoze-spirituel|grange_sainte':     'kouzma_lapchine',
+  'ville_b|maison-krasnov-eglise|piece_maison':   'kouzma_lapchine',
+  'ville_b|maison-krasnov-bleue|piece_maison':    'praskovia_pakhomova'
 };
 
 // Ce que chaque jalon dit, et de qui. Le SERVEUR decide QUAND ; ce fichier sait
