@@ -16,7 +16,7 @@ test('Starovka : trois flèches actives depuis le carrefour pétrole-ferme',()=>
   haut:RC_FLECHE_HAUT,bas:RC_FLECHE_BAS
  })`,ctx);
  assert.equal(x.petrole.liens.toutDroit,'starovka-maisons-ferme');
- assert.equal(x.petrole.liens.droite,'starovka-rue-terrains');
+ assert.equal(x.petrole.liens.droite,'starovka-rue-raffinerie');
  assert.equal(x.petrole.liens.arriere,'starovka-rue-locaux-a-louer');
  assert.equal(x.petrole.liensEnAttente?.arriere,undefined);
  assert.equal(x.petrole.flechesStyle.arriere,x.bas);
