@@ -17,7 +17,7 @@ test('Starovka : les trois salles sont ordonnées ventes, usine, direction',()=>
  const end=nav.indexOf('\nfunction enterBuilding(',begin);
  assert.ok(begin>0&&end>begin,'fonction commune d\'ordre non trouvée');
  vm.runInContext(nav.slice(begin,end)+";globalThis.__ordonner=piecesOrdonneesBatiment;",context);
- const actual=context.__ordonner(common,local).map(([name])=>name);
+ const actual=Array.from(context.__ordonner(common,local),([name])=>name);
  assert.deepEqual(actual,ordre);
 });
 test('client : même ordre pour entrée, onglets et serveur',()=>{
@@ -29,6 +29,6 @@ test('client : même ordre pour entrée, onglets et serveur',()=>{
 test('aucun changement du gabarit des autres villes',()=>{
  const original=Object.keys(common.rooms);
  assert.equal(original[0],'direction_usine');
- assert.deepEqual(context.__ordonner(common,null).map(([n])=>n),original);
- assert.deepEqual(context.__ordonner(common,{roomsExtra:{annexe:{}}}).map(([n])=>n),[...original,'annexe']);
+ assert.deepEqual(Array.from(context.__ordonner(common,null),([n])=>n),original);
+ assert.deepEqual(Array.from(context.__ordonner(common,{roomsExtra:{annexe:{}}}),([n])=>n),[...original,'annexe']);
 });
