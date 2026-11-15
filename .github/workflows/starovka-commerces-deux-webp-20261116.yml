@@ -4,6 +4,8 @@ on:
     branches: [chatgpt/starovka-commerces-deux-webp-20261116]
     paths:
       - .github/workflows/starovka-commerces-deux-webp-20261116.yml
+      - outils/images/implanter_starovka_commerces_20261116.py
+      - outils/bancs/test-starovka-commerces-deux-webp-20261116.cjs
 permissions:
   contents: write
 jobs:
