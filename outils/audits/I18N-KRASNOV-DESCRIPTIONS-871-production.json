@@ -1,0 +1,108 @@
+{
+  "commit": "b98641644d2a33c422bf7dbbe80506e3dd74b79a",
+  "deployment": "dpl_EKG4T3qkqksuvSSoYNGzs8siuKMx",
+  "files": [
+    {
+      "file": "plateau.html",
+      "sha256": "1d8151cfa5bd6d37ee5e5db7aa4290a2bc3c064a9b1e22ada5d53c892d58db93",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "80d0c1fb04fded062e6a4acf5ac76251559f46ceba37850eefcb85158a6fe3e4",
+      "identical": true
+    },
+    {
+      "file": "data.js",
+      "sha256": "70c3841b3a7410ce5404c542c056169aeb5b3fdc57adfaf135d326b1ccc5e70a",
+      "identical": true
+    },
+    {
+      "file": "plateau-navigation.js",
+      "sha256": "d486a3b55e800784c0b7366479b90034d5ef845d675491b0d21269654fc4d4d7",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-init.js",
+      "sha256": "0fbd1edb1d94a175168e068c72991b5dc4b86e7d400202c20a6c6bcfc20bb160",
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "identical": true
+    },
+    {
+      "file": "i18n/room-resources.js",
+      "sha256": "24880a6eb10f44195de36c7a19f598282f737759cf371456be1cb5ffd1587b20",
+      "identical": true
+    },
+    {
+      "file": "i18n/sovarka-descriptions-resources.js",
+      "sha256": "b320115c56e7c33400c60000e0e04cf8863a8f4fde1a1b1715b936686f42ff9d",
+      "identical": true
+    },
+    {
+      "file": "images/Sovarka/Krasnov/Krasnov_centre_affaires_accueil_20261115.webp",
+      "sha256": "51d083e84bec9fbe412212b8921b88cd81db2a8da015acc2ecd03015bd85932c",
+      "identical": true
+    },
+    {
+      "file": "images/Sovarka/Krasnov/Krasnov_centre_affaires_hotesse_20261115.webp",
+      "sha256": "dab637b1ffed22073c8b6a70cb45930f35c8b6f1775df89cb5bf6c3964fa27fa",
+      "identical": true
+    },
+    {
+      "file": "images/Sovarka/Krasnov/Krasnov_centre_affaires_bureau_maison_bleue.webp",
+      "sha256": "0242c412fd3d985ff0b300d39939c754391d79703656332effa0bb9ef7ed05dc",
+      "identical": true
+    },
+    {
+      "file": "images/Sovarka/Krasnov/Krasnov_centre_affaires_bureau_hopital.webp",
+      "sha256": "6d16be7230a67e97159c28a92f9e5cb76d3df297b89713d3a83188294798837d",
+      "identical": true
+    }
+  ],
+  "pr": 969,
+  "deploymentState": "READY",
+  "target": "production",
+  "publicAlias": "https://res-publica.vercel.app",
+  "aliasConfirmed": true,
+  "newFrenchDescriptions": 10,
+  "foreignTranslations": 80,
+  "languages": [
+    "fr",
+    "en",
+    "es",
+    "zh-TW",
+    "ru",
+    "ko",
+    "ar",
+    "pt-BR",
+    "de"
+  ],
+  "viewports": [
+    320,
+    390,
+    1280
+  ],
+  "publicRenderTestsPassed": 3,
+  "publicLanguageSwitches": 270,
+  "publicNativeTransportTestsPassed": 3,
+  "cataloguesLoadedDirectlyByChromium": 84,
+  "publicCentreAffairesTestsPassed": 2,
+  "postMergeTestsPassed": 14,
+  "targetedTestsBeforeMergePassed": 23,
+  "ciPassed": 45,
+  "ciFailedPreexisting": 8,
+  "newRegressions": 0,
+  "authenticatedPlayerTest": false,
+  "physicalPhoneTest": false,
+  "nativeLinguisticReview": false,
+  "networkTrust": "Only the public SPKI of the managed proxy was trusted for the remote Chromium test; no application TLS setting changed."
+}

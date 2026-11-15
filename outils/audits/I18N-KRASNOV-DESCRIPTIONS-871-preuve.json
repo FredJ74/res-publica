@@ -4,8 +4,8 @@
   "newFrenchTexts": 10,
   "newForeignValues": 80,
   "mechanicsChanged": false,
-  "productionDeployed": false,
-  "merged": false,
+  "productionDeployed": true,
+  "merged": true,
   "blockedByPreexistingPayload": false,
   "targetedTestsPassed": 23,
   "chromiumLanguageSwitches": 270,
@@ -20,11 +20,6 @@
     "reason": "Quatre descriptions communes non traduites sur main b89a264 également ; plafond antérieur trois, contrôle conservé rouge.",
     "obsoleteNavigationSourceProvenanceUpdated": true,
     "commonInventoryUpdatedFrom247To248": true
-  },
-  "baselineDescriptionsBank": {
-    "passed": 4,
-    "failed": 1,
-    "missingTexts": 10
   },
   "branchDescriptionsBank": {
     "passedWithFrozenBaseline": 5,
@@ -62,5 +57,14 @@
     "bothOverLimit": true,
     "limitUnchanged": true
   },
-  "readyForMerge": true
+  "readyForMerge": true,
+  "mergeCommit": "b98641644d2a33c422bf7dbbe80506e3dd74b79a",
+  "productionVerified": true,
+  "productionEvidence": "I18N-KRASNOV-DESCRIPTIONS-871-production.json",
+  "initialBaselineDescriptionsBank": {
+    "passed": 4,
+    "failed": 1,
+    "missingTexts": 10
+  },
+  "closureStatus": "Delivered; no new i18n lot started"
 }
