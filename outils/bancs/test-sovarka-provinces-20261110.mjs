@@ -14,16 +14,20 @@ function charger(ville = 'capitale') {
 const ordres = (ctx, ville, b, p) => vm.runInContext(
   `ordresDeclaresDeLaPiece(BUILDINGS[${JSON.stringify(b)}].rooms[${JSON.stringify(p)}], WORLD.soviet[${JSON.stringify(ville)}].buildingContext?.[${JSON.stringify(b)}], ${JSON.stringify(p)}).map(o => o.fn)`, ctx);
 
-test('Banques de Sovarka : bons d’État, ni prêts ni banque privée', () => {
+test('Bons d’État au guichet des mairies ; plus de banques en Sovarka (Fred, 15/11/2026)', () => {
   const ctx = charger();
-  for (const [ville, b, p] of [['capitale', 'banque-nationale', 'accueil_banque'], ['ville_a', 'banque-locale', 'guichet'], ['ville_b', 'banque-locale', 'guichet']]) {
+  for (const [ville, b, p] of [['capitale', 'mairie-capitale', 'hall_mairie'], ['ville_a', 'mairie', 'accueil_mairie'], ['ville_b', 'mairie', 'accueil_mairie']]) {
     const fns = ordres(ctx, ville, b, p);
-    assert.ok(fns.includes('souscrire_bon_etat'), ville + ' : bons absents');
-    assert.ok(!fns.includes('emprunter'), ville + ' : prêt encore proposé');
+    assert.ok(fns.includes('souscrire_bon_etat'), ville + ' : bons absents de la mairie');
+    for (const banque of ['banque-privee', 'banque-nationale', 'banque-locale']) {
+      assert.ok(!vm.runInContext(`WORLD.soviet.${ville}.buildings.includes(${JSON.stringify(banque)})`, ctx), ville + ' : ' + banque + ' encore là');
+    }
   }
-  assert.ok(!vm.runInContext(`WORLD.soviet.capitale.buildings.includes('banque-privee')`, ctx));
   const rep = vm.runInContext(`ordresDeclaresDeLaPiece(BUILDINGS['banque-locale'].rooms.guichet, WORLD.republic.ville_a.buildingContext?.['banque-locale'], 'guichet').map(o => o.fn)`, ctx);
   assert.ok(rep.includes('emprunter') && !rep.includes('souscrire_bon_etat'), 'Républia modifiée');
+  assert.ok(vm.runInContext(`WORLD.republic.capitale.buildings.includes('banque-nationale')`, ctx), 'Banque nationale de Républia retirée');
+  const mairieRep = vm.runInContext(`ordresDeclaresDeLaPiece(BUILDINGS['mairie'].rooms.accueil_mairie, WORLD.republic.ville_a.buildingContext?.['mairie'], 'accueil_mairie').map(o => o.fn)`, ctx);
+  assert.ok(!mairieRep.includes('souscrire_bon_etat'), 'bons apparus dans une mairie de Républia');
 });
 
 test('Extraction : pétrole à Starovka, bois à Krasnov', () => {

@@ -36,6 +36,9 @@ test('chaque ligne reclassée est une description effectivement affichée dans l
   const exclusSovarka=new Set();for(const city of Object.values(c.WORLD.soviet||{}))for(const ctx of Object.values(city.buildingContext||{})){
    for(const fn of ctx.excludeOrders||[])exclusSovarka.add(fn);for(const ov of Object.values(ctx.roomOverrides||{}))for(const fn of ov?.excludeOrders||[])exclusSovarka.add(fn);}
   const fnsDe=d=>{const f=new Set();for(const b of Object.values(c.BUILDINGS))for(const r of Object.values(b.rooms||{}))for(const o of r.orders||[])if(o?.desc===d)f.add(o.fn);return [...f];};
-  for(const row of sources){const fns=fnsDe(row[0]);if(country==='soviet'&&fns.length&&fns.every(fn=>exclusSovarka.has(fn)))continue;assert.ok(descs.has(row[0]),country+': '+row[0]);}
+  // Plus de banques en Sovarka (décision de Fred, 15/11/2026) : une ligne qui n'existe que dans des banques n'y est plus affichée.
+  const batimentsDe=d=>Object.entries(c.BUILDINGS).filter(([,b])=>Object.values(b.rooms||{}).some(r=>(r.orders||[]).some(o=>o?.desc===d))).map(([id])=>id);
+  for(const row of sources){const fns=fnsDe(row[0]);if(country==='soviet'&&fns.length&&fns.every(fn=>exclusSovarka.has(fn)))continue;
+   const bats=batimentsDe(row[0]);if(country==='soviet'&&bats.length&&bats.every(id=>id.startsWith('banque-')))continue;assert.ok(descs.has(row[0]),country+': '+row[0]);}
  }
 });

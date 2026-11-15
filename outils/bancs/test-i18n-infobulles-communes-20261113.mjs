@@ -40,7 +40,7 @@ function descsParPays() {
   return { sov: parPays('soviet'), rep: parPays('republic') };
 }
 
-test('inventaire : 248 descriptions communes affichées, aucune nouvelle hors catalogue, aucune en trop', t => {
+test('inventaire : 244 descriptions communes affichées, aucune nouvelle hors catalogue, aucune en trop', t => {
   const { sov, rep } = descsParPays();
   const communesJeu = [...sov].filter(d => rep.has(d));
   const cat = [...I('republic', 'fr').communes].map(l => l[0]);
@@ -48,7 +48,7 @@ test('inventaire : 248 descriptions communes affichées, aucune nouvelle hors ca
   // catalogue (trou antérieur, chantier de traduction à venir, consigné dans RELAIS.md). Le plafond
   // autorise la seule description de gestion de caserne rétablie à Sovarka ;
   // elle doit rejoindre le catalogue partagé dans le prochain lot i18n.
-  assert.equal(communesJeu.length, 248, // Inventaire réel de main b89a264 le 15/11 ; contrôles des lacunes et du français maintenus.
+  assert.equal(communesJeu.length, 244, // Inventaire réel de main b89a264 le 15/11 (248), puis −4 le 15/11 : plus de banques en Sovarka (décision de Fred), les descriptions des guichets bancaires ne s'y affichent plus ; contrôles des lacunes et du français maintenus.
     'nombre de descriptions communes affichées après exclusions ministérielles spécifiques à Sovarka');
   const manquantes = communesJeu.filter(d => !cat.includes(d));
   t.diagnostic('Descriptions communes manquantes : ' + JSON.stringify(manquantes));

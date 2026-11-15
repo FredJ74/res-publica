@@ -11815,9 +11815,9 @@ BUILDINGS['locaux-starovka'] = {
   }]))
 };
 
-// BANQUES DE SOVARKA (reponse 1 de Fred, 09/11/2026) : ni placements prives ni prets. Les guichets
-// (Banque nationale de Novomirsk, banques locales de Starovka et Krasnov) proposent les bons d'Etat
-// (sovarka_bon_etat_souscrire, migration 20261110085000) ; la banque privee n'existe pas a Novomirsk.
+// BONS D'ETAT DE SOVARKA (reponse 1 de Fred, 09/11/2026 ; lieu change le 15/11/2026) : ni placements prives ni
+// prets. Plus de banques en Sovarka (presque tout l'argent y est liquide) : les bons d'Etat
+// (sovarka_bon_etat_souscrire) se souscrivent au guichet des mairies des trois villes (migration 20261115170000).
 (function () {
   const pays = WORLD.soviet; if (!pays) return;
   const bon = { fn: 'souscrire_bon_etat', label: 'Bons d’État', pa: 0, cost: 0, type: 'legal', icon: 'ti-certificate', successRate: 100,
@@ -11828,13 +11828,15 @@ BUILDINGS['locaux-starovka'] = {
     const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
     ctx.roomOverrides = ctx.roomOverrides || {};
     const p = ctx.roomOverrides[pieceId] = ctx.roomOverrides[pieceId] || {};
-    p.excludeOrders = Array.from(new Set([...(p.excludeOrders || []), 'emprunter']));
     p.orders = [...(p.orders || []).filter(o => o.fn !== bon.fn), bon];
   };
-  regler('capitale', 'banque-nationale', 'accueil_banque');
-  regler('ville_a', 'banque-locale', 'guichet');
-  regler('ville_b', 'banque-locale', 'guichet');
-  if (pays.capitale) pays.capitale.buildings = pays.capitale.buildings.filter(b => b !== 'banque-privee');
+  regler('capitale', 'mairie-capitale', 'hall_mairie');
+  regler('ville_a', 'mairie', 'accueil_mairie');
+  regler('ville_b', 'mairie', 'accueil_mairie');
+  const sansBanque = ['banque-privee', 'banque-nationale', 'banque-locale'];
+  for (const v of ['capitale', 'ville_a', 'ville_b']) {
+    if (pays[v]?.buildings) pays[v].buildings = pays[v].buildings.filter(b => !sansBanque.includes(b));
+  }
 })();
 
 // CENTRES D'ECOUTE DE STAROVKA ET KRASNOV (Fred, 10/11/2026 ; migration 20261110092000). Specialite de Sovarka :

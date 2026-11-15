@@ -4466,22 +4466,6 @@ export const SCENES_PNJ = {
       "Greffier Semion Golovine"
     ]
   },
-  "[\"soviet\",\"capitale\",\"banque-nationale\",\"accueil_banque\"]": {
-    "pays": "Sovarka",
-    "ville": "Novomirsk",
-    "batiment": "Caisse d'État de Stalinova",
-    "piece": "Accueil",
-    "personnes": [
-      "Caissier Méticuleux"
-    ]
-  },
-  "[\"soviet\",\"capitale\",\"banque-nationale\",\"coffre_privatif\"]": {
-    "pays": "Sovarka",
-    "ville": "Novomirsk",
-    "batiment": "Caisse d'État de Stalinova",
-    "piece": "Coffre Privatif — Local à louer",
-    "personnes": []
-  },
   "[\"soviet\",\"capitale\",\"clinique-privee\",\"reception_clinique\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
@@ -5999,15 +5983,6 @@ export const SCENES_PNJ = {
     "piece": "Salle des partis",
     "personnes": []
   },
-  "[\"soviet\",\"ville_a\",\"banque-locale\",\"guichet\"]": {
-    "pays": "Sovarka",
-    "ville": "Starovka",
-    "batiment": "Banque Locale",
-    "piece": "Guichet",
-    "personnes": [
-      "Guichetier"
-    ]
-  },
   "[\"soviet\",\"ville_a\",\"dispensaire-public-v\",\"attente\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
@@ -6609,15 +6584,6 @@ export const SCENES_PNJ = {
     "piece": "salle_partis",
     "personnes": [
       "Lieutenant Fiodor Doznaïev"
-    ]
-  },
-  "[\"soviet\",\"ville_b\",\"banque-locale\",\"guichet\"]": {
-    "pays": "Sovarka",
-    "ville": "Krasnov",
-    "batiment": "Banque Locale",
-    "piece": "Guichet",
-    "personnes": [
-      "Guichetier"
     ]
   },
   "[\"soviet\",\"ville_b\",\"dispensaire-public-v\",\"attente\"]": {
