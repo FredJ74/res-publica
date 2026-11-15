@@ -8,6 +8,9 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Starovka — cinq images des logements collectifs (15/11/2026)
+Branche `chatgpt/starovka-logements-images-20261115`, PR #1006 : cinq PNG déposés par Fred convertis en WebP qualité 85, les PNG supprimés après vérification, hall et quatre variantes (petit/grand x stade/foreuses) raccordés aux pièces de `logements-novomirsk` uniquement en `ville_a` (Starovka), vues stade n°1/3 et foreuses n°2/4 ; chambres premium avec le décor correspondant. Script `outils/images/implanter_starovka_logements_20261115.py`. GitHub Actions #43762551424 terminé en succès (conversion, WebP, `node --check`, assertions). Fusion, Vercel et recette en jeu à vérifier.
+
 ### Starovka — ordre des salles de raffinerie corrigé (15/11/2026)
 Demande de Fred : l'entrée de `usine-principale` doit être la **salle des ventes**, puis l'**atelier de raffinage**, enfin le **bureau du directeur**, et non le bureau en première position. Correction locale `roomOrder` dans `data.js`, utilisée par `piecesOrdonneesBatiment` dans `plateau-navigation.js` à l'entrée (RPC serveur) et dans les onglets, sans modifier le gabarit partagé. Migration `20261115195000_starovka_raffinerie_ordre_salles.sql` réordonne les trois IDs de `navigation_lieux_regles`, sans changement d'ordre ni de permissions ; essai SQL ROLLBACK réussi. Banc dédié `test-starovka-raffinerie-ordre-20261115.mjs`. PR, tests, fusion, migration et Vercel à confirmer.
 

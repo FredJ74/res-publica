@@ -11748,6 +11748,26 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   Object.assign(piece(contexte('ville_a', 'capitaine-sauvage'), 'salle_principale'), { persons: [pnj('Sesegma Badmaeva', 'Serveuse', 'serveur')] });
   Object.assign(contexte('ville_a', 'universite'), { name: 'Lycée de l\'Avenir', desc: 'Le lycée de Starovka (« Лицей будущего ») : on y prépare les cadres du Plan, entre deux tempêtes de neige.' });
   Object.assign(piece(contexte('ville_a', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Darima Zhambalova', 'Directrice du lycée', 'professeur')] });
+  // STAROVKA_LOGEMENTS_CINQ_WEBP — décors exclusifs à la ville_a,
+  // aucune modification des baux, des ordres ou des logements des autres villes.
+  {
+    const logementStarovka = contexte('ville_a', 'logements-novomirsk');
+    const decorLogement = (pieceId, fichier) => {
+      Object.assign(piece(logementStarovka, pieceId), {
+        imageUrl: 'images/Sovarka/Starovka/Starovka_logements_' + fichier + '.webp'
+      });
+    };
+    decorLogement('salle', 'hall');
+    for (let n = 1; n <= 4; n++) {
+      const vue = n % 2 === 1 ? 'stade' : 'foreuses';
+      decorLogement('petit_appartement_' + n, 'petit_' + vue);
+      decorLogement('grand_appartement_' + n, 'grand_' + vue);
+      // Les chambres premium conservent la vue du salon associé.
+      decorLogement('petit_appartement_' + n + '_chambre_1', 'petit_' + vue);
+      decorLogement('grand_appartement_' + n + '_chambre_1', 'grand_' + vue);
+      decorLogement('grand_appartement_' + n + '_chambre_2', 'grand_' + vue);
+    }
+  }
   Object.assign(contexte('ville_a', 'logements-novomirsk'), { name: 'Baraquement Sibirsk-9', desc: 'Les logements collectifs de Starovka : une longue barre de béton où le poêle central chauffe à peine la pièce la plus proche. Attribués par la mairie.' });
   Object.assign(contexte('ville_a', 'zone-production'), { name: 'Compagnie Nationale du Pétrole', desc: 'Les derricks de Starovka pompent sous la glace le pétrole de Sovarka. Les volontaires peuvent y prêter la main pour augmenter la production.' });
 
