@@ -1,0 +1,27 @@
+name: "Sovarka — isolation des baux par pays"
+on:
+  push:
+    branches:
+      - chatgpt/krasnov-renseignements-baux-20261115
+  pull_request:
+    paths:
+      - plateau-organisations-quetes.js
+      - outils/bancs/test-sovarka-se-renseigner-pays-20261115.mjs
+      - .github/workflows/sovarka-renseignements-baux-20261115.yml
+jobs:
+  cloisonnement:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-organisations-quetes.js
+      - run: node --test outils/bancs/test-sovarka-se-renseigner-pays-20261115.mjs
+      - name: Audit des rues, du plan, de la place et des nouveaux intérieurs de Krasnov
+        run: |
+          node --test outils/bancs/test-krasnov-station-antonina-affaires-20261115.mjs
+          node --test outils/bancs/test-krasnov-place-ours-20261114.mjs
+          node --test outils/bancs/test-plan-rues-20261109.mjs
+          # Le banc générique navigation a une dépendance WORLD non simulée
+          # déjà suivie par la PR #977 ; il ne bloque pas cet audit Krasnov.
