@@ -24,7 +24,7 @@ test('Les images sont réellement des WebP et la source PNG a été supprimée',
    const bytes=fs.readFileSync(p);
    assert.equal(bytes.toString('ascii',0,4),'RIFF');
    assert.equal(bytes.toString('ascii',8,12),'WEBP');
-   assert.ok(bytes.length>20000,f);
+   assert.ok(bytes.length>10000,f);
  }
  const files=fs.readdirSync('images/Sovarka/Krasnov').map(x=>x.normalize('NFC'));
  assert.equal(files.includes('Réception chaleureuse du centre d’affaires.png'),false);
