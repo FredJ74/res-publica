@@ -628,6 +628,13 @@ async function ouvrirCalendrierElectoral() {
     return { lignes, prochaine: echeancesFutures[0] || null };
   }
 
+  // SEMAINE A LA GLOIRE DES PARTIS (Sovarka, 15/11/2026, constat de l'audit du 14/11). Son cycle
+  // `gloire_partis` est cree et tenu par le serveur (migration 20261107121500, candidats = partis
+  // resynchronises chaque nuit, decompte par sovarka_gloire_proclamer) et deja charge ci-dessus ; il
+  // manquait seulement a l'affichage. Jamais initialise ici, et sans candidature individuelle.
+  const POSTE_GLOIRE = { id: 'gloire_partis', name: 'Semaine à la gloire des partis', niveau: 'national', gloire: true };
+  const postesAffiches = (country === 'soviet' && CYCLES_ELECTORAUX[country]?.gloire_partis) ? [...postes, POSTE_GLOIRE] : postes;
+
   const phaseLabelCourt = {
     [PHASES_ELECTORALES.MANDAT]:            'Mandat en cours',
     [PHASES_ELECTORALES.CANDIDATURES]:      'Candidatures',
@@ -653,7 +660,7 @@ async function ouvrirCalendrierElectoral() {
     [PHASES_ELECTORALES.VACANT]:            '#8a3a2a',
   };
 
-  const lignes = postes.map(p => {
+  const lignes = postesAffiches.map(p => {
     const estLocal = posteEstLocal(p.id);
     const city = estLocal ? villeCourante : null;
     const cle = getCleCycle(p.id, city);
@@ -663,6 +670,8 @@ async function ouvrirCalendrierElectoral() {
     const titulaire = cycle ? libelleTitulaireCycle(cycle, p.id) : null;
     const labelPoste = p.name + (estLocal ? ' — ' + villeNom : '');
     const detail = cycle ? detailCalendrierCycle(cycle, phase, p.id) : { lignes: [], prochaine: null };
+    // La gloire se decompte en une fois a la proclamation (parti le plus suivi) : pas de second tour.
+    if (p.gloire) detail.lignes = detail.lignes.filter(l => l.label !== 'Second tour éventuel');
 
     const renderLigneDetail = l => {
       const contenu = l.texte ? l.texte : (l.fin ? ('du ' + formatDateHeure(l.debut) + ' au ' + formatDateHeure(l.fin)) : formatDateHeure(l.debut));
@@ -684,18 +693,19 @@ async function ouvrirCalendrierElectoral() {
         '<div>' +
           '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#e0d5b8">' + labelPoste + '</div>' +
           '<div style="font-size:.75rem;color:#a89870">' +
-            (titulaire ? '✦ ' + titulaire : 'Poste vacant') +
+            (p.gloire ? (titulaire ? '✦ Parti vainqueur : ' + titulaire : 'Les partis recrutent leurs partisans par les tracts')
+              : (titulaire ? '✦ ' + titulaire : 'Poste vacant')) +
           '</div>' +
         '</div>' +
         '<div style="text-align:right">' +
           '<div style="font-size:.75rem;font-family:Bebas Neue,sans-serif;color:' + (phaseCouleurCourt[phase] || '#6a5a30') + ';letter-spacing:.06em">' + (phaseLabelCourt[phase] || phase || '?') + '</div>' +
-          '<div style="font-size:.72rem;color:#a89870">' + nbCandidats + ' candidat(s)</div>' +
+          '<div style="font-size:.72rem;color:#a89870">' + nbCandidats + (p.gloire ? ' parti(s)' : ' candidat(s)') + '</div>' +
         '</div>' +
       '</div>' +
       // LE CALENDRIER DEVIENT LE TABLEAU DE BORD DE L'ELECTION (16 septembre 2026) : chaque
       // candidat declare y figure, avec l'acces direct a son programme publie au forum.
       (nbCandidats > 0
-        ? '<div style="font-size:.72rem;color:#c0b090;margin-bottom:.3rem">Candidats : ' +
+        ? '<div style="font-size:.72rem;color:#c0b090;margin-bottom:.3rem">' + (p.gloire ? 'Partis' : 'Candidats') + ' : ' +
           cycle.candidats.map(c => c.nom + (c.topicId
             ? ' <a href="#" onclick="ouvrirProgrammeCandidat(\'' + String(c.topicId).replace(/'/g, '') + '\');return false;" style="color:#8aaaea;text-decoration:none;font-size:.68rem">[voir le programme]</a>'
             : '')).join(' · ') + '</div>'
@@ -707,8 +717,8 @@ async function ouvrirCalendrierElectoral() {
           '</div>'
         : '') +
       prochaineHtml +
-      // Boutons action
-      '<div style="display:flex;gap:.4rem;margin-top:.4rem">' +
+      // Boutons action (aucun pour la gloire : on y soutient un parti par les tracts, pas par un bulletin)
+      (p.gloire ? '' : '<div style="display:flex;gap:.4rem;margin-top:.4rem">' +
         '<button onclick="ouvrirBureauDeVoteBtn(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.7rem;font-family:Bebas Neue,sans-serif;padding:.25rem .6rem;border:1px solid #4a3a20;background:transparent;color:#b0a080;cursor:pointer">Détails →</button>' +
         // « Se porter candidat » vit desormais ICI, et nulle part ailleurs. La condition est celle
         // du jeu (candidaturesOuvertes), pas la seule phase CANDIDATURES -- c'est la meme regle
@@ -716,7 +726,7 @@ async function ouvrirCalendrierElectoral() {
         ((candidaturesOuvertes(cycle) && !(cycle.candidats || []).some(c => c.nom === state.char?.name))
           ? '<button onclick="ouvrirRedactionProgramme(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.7rem;font-family:Bebas Neue,sans-serif;padding:.25rem .6rem;border:1px solid #5a7aca;background:transparent;color:#8aaaea;cursor:pointer">📋 Se porter candidat</button>'
           : '') +
-      '</div>' +
+      '</div>') +
     '</div>';
   }).join('');
 
