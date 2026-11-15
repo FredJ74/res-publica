@@ -738,9 +738,18 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
    La planche a été découpée en bande horizontale : cover rogne l'hôtesse
    et la plaque au lieu de les afficher. Garder le ratio source proche de 10:3,
    peindre le dégradé sur tout le cadre et montrer la photo entière. */
+/* La bande panoramique ne peut remplir verticalement le grand cadre 16:9
+   sans rognage. Réduire la HAUTEUR du conteneur avec elle ; laisser les
+   actions suivre directement au lieu d'une vaste zone vide. */
+.piece-container[data-cadrage-integral]{
+  flex:0 0 auto;
+  min-height:0;
+  grid-template-rows:auto;
+  align-items:stretch;
+}
 .piece-image[data-cadrage-integral]{
   aspect-ratio:10 / 3;
-  min-height:280px;
+  min-height:0;
   background-size:100% 100%, contain!important;
   background-position:center center!important;
   background-repeat:no-repeat!important;
