@@ -221,6 +221,21 @@ function sovarkaDemandeLocationEnvoyer(batiment, piece) {
     v => sovT('sentOk', { local: v.local }), () => document.getElementById('modal-postes')?.classList.remove('open'));
 }
 
+// « Se renseigner » dans un bâtiment de Sovarka (hall des centres commerciaux, 15/11/2026) : les locaux et
+// leur état viennent de sovarka_locaux (sovarka_droits_lire), et non des baux de Républia (state.locationsActives),
+// qui affichaient toujours « Libre ». Même discrétion qu'en Républia : seul le nom de l'exploitant est montré.
+async function ouvrirSovarkaSeRenseigner(cache) {
+  const l = await sovLire(cache);
+  if (!l) { showToast(sovT('infoTitle'), sovT('readFail'), false); return; }
+  const locaux = (l.locaux || []).filter(x => x.ville === state.currentCity && x.batiment === state.currentBuilding);
+  const html = locaux.length ? locaux.map(x =>
+    '<div style="padding:.5rem .7rem;border:1px solid #344354;margin-bottom:.4rem;display:flex;justify-content:space-between;gap:.6rem">' +
+    '<span>' + sovEsc(x.label) + '<br><span class="cpj-note">' + sovLoyer(x) + '</span></span>' +
+    '<span class="cpj-note">' + (x.exploitant ? sovT('exploitedByShort', { nom: sovEsc(x.exploitant) }) : x.reserve ? sovT('reserved') : sovT('free')) + '</span></div>').join('')
+    : '<p class="cpj-note">' + sovT('infoNone') + '</p>';
+  sovModal(sovT('infoTitle'), html, ouvrirSovarkaSeRenseigner);
+}
+
 async function ouvrirSovarkaDossiers(cache) {
   const l = await sovLire(cache);
   if (!l) { showToast(sovT('tFiles'), sovT('readFail'), false); return; }
