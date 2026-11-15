@@ -11724,7 +11724,7 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   Object.assign(contexte('ville_b', 'kolkhoze-spirituel'), { name: 'Église de la Sainte-Moisson-Commune', desc: 'Une église aux bulbes dorés, consacrée au Tractorisme : on y prie pour la récolte et la santé des moteurs.',
     // Fred (14/11/2026) : à Krasnov, c'est une église, pas un kolkhoze ; même ordre (faire_don), seul le libellé change.
     // Le batiouchka Kouzma officie ici et vit au tserkovny dom (Fred, 15/11/2026).
-    roomOverrides: { grange_sainte: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_eglise_sainte_moisson_interieur.webp', persons: [pnj('Kouzma Lapchine', 'Batiouchka de la Sainte-Moisson-Commune', 'pretre')], excludeOrders: ['faire_don'], orders: [
+    roomOverrides: { grange_sainte: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_eglise_sainte_moisson_interieur.webp', persons: [{ ...pnj('Kouzma Lapchine', 'Batiouchka de la Sainte-Moisson-Commune', 'pretre'), photoUrl: 'images/Sovarka/Krasnov/Kouzma.webp' }], excludeOrders: ['faire_don'], orders: [
       {fn:'faire_don', label:'Donner à l’Église', pa:0, cost:0, type:'legal', icon:'ti-coins', successRate:100, desc:'Don libre en PSK. Sans PA. Bonus proportionnels, plafonnés à +10 piété et +6 popularité par jour.'}
     ] } } });
   // Krasnov : musée provincial autonome dans le gabarit partagé de Novomirsk.
@@ -11878,13 +11878,13 @@ BUILDINGS['locaux-starovka'] = {
 // accueillant offre le gite et le couvert contre un service tire chaque jour ; on peut aussi trinquer avec lui
 // (« secret contre secret », nid a ragots). Habitants proposes par Claude, a valider par Fred.
 (function () {
-  const maison = (id, nom, habitant, role, desc, pieceDesc, imageUrl) => {
+  const maison = (id, nom, habitant, role, desc, pieceDesc, imageUrl, photoUrl) => {
     BUILDINGS[id] = {
       name: nom, shortName: 'Maison', cat: 'Social', icon: 'ti-home-heart', bgColor: '#16110c', desc, imagesAVenir: !imageUrl,
       rooms: { piece_maison: {
         name: 'La pièce commune', imageBg: 'linear-gradient(135deg,#16110c,#221a12)', desc: pieceDesc,
         ...(imageUrl ? { imageUrl } : {}),
-        persons: [{ name: habitant + ' (PNJ)', role, rel: 'friendly', job: 'habitant' }],
+        persons: [{ name: habitant + ' (PNJ)', role, rel: 'friendly', job: 'habitant', ...(photoUrl ? { photoUrl } : {}) }],
         orders: [
           { fn: 'maison_habitant', label: 'Parler à l’habitant', pa: 0, cost: 0, type: 'legal', icon: 'ti-home-heart', successRate: 100,
             desc: 'L’habitant vous offre le gîte et le couvert contre un petit service, différent chaque jour. Une hospitalité par jour.' },
@@ -11917,13 +11917,13 @@ BUILDINGS['locaux-starovka'] = {
     ['maison-krasnov-bleue', 'Maison de Praskovia', 'Praskovia Pakhomova', 'Habitante de Krasnov',
       'Une petite maison bleue derrière sa palissade, des ruches alignées au fond du jardin.',
       'Des pots de miel sur chaque étagère, des bouquets d’herbes qui sèchent au plafond et une apicultrice qui sent la cire et le tilleul.',
-      'images/Sovarka/Krasnov/Krasnov_maison_bleue_interieur.webp'],
+      'images/Sovarka/Krasnov/Krasnov_maison_bleue_interieur.webp', 'images/Sovarka/Krasnov/Praskovia.webp'],
     // Fred (15/11/2026) : Kouzma est le batiouchka de la Sainte-Moisson-Commune ; il vit seul dans le tserkovny dom,
     // la grande maison prévue pour le prêtre et sa famille (histoire avec Praskovia : GAME-DESIGN-NOVOMIRSK.md).
     ['maison-krasnov-eglise', 'Tserkovny dom du batiouchka', 'Kouzma Lapchine', 'Batiouchka de la Sainte-Moisson-Commune',
       'Une grande maison de bois brun à l’ombre des bulbes dorés de l’église, bâtie pour un prêtre et sa famille.',
       'Des icônes dans le coin rouge, une longue table faite pour une famille nombreuse, et le batiouchka Kouzma, un peu sourd, qui y vit seul et parle très fort.',
-      'images/Sovarka/Krasnov/Krasnov_maison_kouzma_interieur.webp'],
+      'images/Sovarka/Krasnov/Krasnov_maison_kouzma_interieur.webp', 'images/Sovarka/Krasnov/Kouzma.webp'],
     ['maison-krasnov-terrains', 'Maison d’Ignat', 'Ignat Lykov', 'Habitant de Krasnov',
       'Une vieille maison de bois au bord des terrains vagues, des peaux tendues sous l’auvent.',
       'Des pièges pendus aux poutres, un samovar cabossé et un vieux trappeur taiseux qui vous observe longuement avant de sourire.']
