@@ -2528,7 +2528,6 @@ const WORLD = {
             hall: {
               name: "Accueil",
               imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_affaires_accueil.webp',
-              cadrageIntegral: true, // image panoramique 3:1 : ne jamais rogner l’hôtesse ni le guichet
               desc: "Petite réception et couloir desservant quatre bureaux individuels.",
               persons: [{
                 name: "Hôtesse du centre d'affaires de Krasnov (PNJ)",
