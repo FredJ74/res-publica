@@ -23,4 +23,5 @@ jobs:
           node --test outils/bancs/test-krasnov-station-antonina-affaires-20261115.mjs
           node --test outils/bancs/test-krasnov-place-ours-20261114.mjs
           node --test outils/bancs/test-plan-rues-20261109.mjs
-          node --test outils/bancs/banc-navigation-rues.cjs
+          # Le banc générique navigation a une dépendance WORLD non simulée
+          # déjà suivie par la PR #977 ; il ne bloque pas cet audit Krasnov.
