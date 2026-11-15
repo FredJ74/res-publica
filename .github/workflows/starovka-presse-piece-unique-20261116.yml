@@ -1,0 +1,23 @@
+name: "Starovka — presse en pièce unique"
+on:
+  push:
+    branches: [chatgpt/starovka-presse-commerce-unique-20261116]
+    paths:
+      - .github/workflows/starovka-presse-piece-unique-20261116.yml
+      - outils/bancs/test-starovka-presse-piece-unique-20261116.cjs
+      - data.js
+      - plateau-rue-centrale.js
+permissions:
+  contents: read
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: |
+          node --check data.js
+          node --check plateau-rue-centrale.js
+          node outils/bancs/test-starovka-presse-piece-unique-20261116.cjs

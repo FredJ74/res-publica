@@ -11752,12 +11752,31 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
       persons: [pnj(journaliste, 'Journaliste — correspondant de La Voix de Sovarka', 'journaliste')]
     });
   };
-  voix('ville_a', 'Starovka', 'Saran Batbayar');
-  // STAROVKA_IMAGES_IMPRIMERIE_LOCAL_20261116 — visuel local du journal Metel.
-  // Ne modifie ni les journalistes ni les ordres de l'antenne.
-  Object.assign(piece(contexte('ville_a', 'centre-affaires'), 'tribune_republia'), {
-    imageUrl: 'images/Sovarka/Starovka/Starovka_centre-affaires_tribune_republia.webp'
-  });
+  // La presse de Starovka est une boutique à UNE SEULE pièce.
+  // L'ancien centre d'affaires garde ses bureaux à son autre adresse.
+  {
+    const ville = WORLD.soviet.ville_a;
+    const centre = contexte('ville_a', 'centre-affaires');
+    centre.roomsExclues = [...new Set([...(centre.roomsExclues || []), 'tribune_republia'])];
+    const sallePresse = BUILDINGS['centre-affaires'].rooms.tribune_republia;
+    BUILDINGS['presse-starovka'] = {
+      name: 'Presse de Starovka — Metel',
+      shortName: 'Presse',
+      cat: 'Économie',
+      icon: 'ti-news',
+      bgColor: '#201e1c',
+      desc: 'Commerce de presse du journal Metel, dans la rue de Starovka.',
+      rooms: {
+        presse: {
+          ...sallePresse,
+          name: 'Presse',
+          imageUrl: 'images/Sovarka/Starovka/Starovka_centre-affaires_tribune_republia.webp',
+          persons: [pnj('Saran Batbayar', 'Correspondante de presse', 'journaliste')]
+        }
+      }
+    };
+    if (!ville.buildings.includes('presse-starovka')) ville.buildings.push('presse-starovka');
+  }
 
   voix('ville_b', 'Krasnov', 'Anatoli Kolosov');
   const agence = contexte('capitale', 'la-tribune');
