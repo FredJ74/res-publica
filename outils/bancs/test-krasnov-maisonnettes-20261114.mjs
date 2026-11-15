@@ -65,7 +65,7 @@ test('Maisons rouge et bleue : deux WebP distincts, avec perte, raccordés sans 
     assert.equal(file.toString('ascii',12,16),'VP8 ','WebP sans perte interdit');
   }
   for (const obsolete of ['Intérieur rustique soviétique au poêle à bois.png','Intérieur rustique russe chaleureux et fleuri.png']) {
-    const normalized=s=>s.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
+    const normalized=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     assert.ok(!fs.readdirSync(path.join(root,'images/Sovarka/Krasnov')).some(n=>normalized(n)===normalized(obsolete)), obsolete+' non supprimé');
   }
 });
