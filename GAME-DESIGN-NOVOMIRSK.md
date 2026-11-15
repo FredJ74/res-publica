@@ -1014,5 +1014,6 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 - **Exportations vers le port** : les entrepôts envoient des matières premières au port pour l'export vers les autres pays. Déjà codé le 06/11 (`exportations_sovarka_executer`, migration `20261106103000_exportations_sovarka` : minerai et métal vers tous les pays, pétrole vers la Républia, viande et céréales vers Al-Khalija, prélevés sur le stock réel des trois entrepôts et payés au prix de base).
 - **Composants électroniques laissés de côté** (Fred, 15/11) : aucune matière de ce nom n'existe ; Novomirsk n'envoie que métal et tissu pour l'instant.
 - **« Lait » = « laitages »** : une seule matière dans le jeu.
-- **Questions ouvertes, posées à Fred une à une** : rythme et volume des échanges, sens de « valeurs égales ».
-- **Pas encore de feu vert de codage** : Fred tranche d'abord les questions ouvertes.
+- **Achat et vente, pas troc** (Fred, 15/11) : chaque entrepôt paie ce qu'il reçoit et touche ce qu'il envoie, au prix de base ; les montants s'équilibrent mais passent par les caisses et le journal des entrepôts.
+- **Volume** (Fred, 15/11) : chaque nuit, chaque paire d'entrepôts (Krasnov–Starovka, Krasnov–Novomirsk, Starovka–Novomirsk) échange **250 PSK dans chaque sens**, au prix de base, répartis à parts égales entre les matières de l'expéditeur ; si un entrepôt manque de stock, l'autre envoie moins d'autant pour garder l'égalité des valeurs (cadrage proposé par Claude, accepté avec ce montant).
+- **Toutes les questions sont tranchées ; feu vert de codage attendu de Fred.**
