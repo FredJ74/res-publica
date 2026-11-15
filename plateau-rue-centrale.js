@@ -1526,6 +1526,9 @@ const RUE_CENTRALE_NOEUDS = {
   Z('starovka-rue-hotel', [0, 38], 'Hôtel des Voyageurs', 'hotel-mineur', [0, 72]);
   Z('starovka-rue-petrole-ferme', [0, 22], 'Compagnie Nationale du Pétrole', 'zone-production');
   Z('starovka-rue-logements-collectifs', [55, 100], 'Baraquement Sibirsk-9', 'logements-novomirsk');
+  // Fred (15/11/2026) : à gauche de la même vue, le bâtiment de la Compagnie et les foreuses mènent
+  // aussi au champ de pétrole (sortie serveur : migration 20261115230000).
+  Z('starovka-rue-logements-collectifs', [3, 36], 'Compagnie Nationale du Pétrole', 'zone-production', [36, 64]);
   Z('starovka-rue-restaurant-boutique', [0, 30], 'Restaurant « Entre terre et mer »', 'capitaine-sauvage');
   Z('starovka-rue-mairie-marche', [30, 60], 'Marché de Starovka', 'marche');
   Z('starovka-rue-lycee-commissariat', [60, 95], 'Lycée de l\'Avenir', 'universite');

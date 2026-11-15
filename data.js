@@ -2502,9 +2502,8 @@ const WORLD = {
               name: 'Bureau du directeur',
               desc: 'Bureau de direction à l’étage, avec vue plongeante sur les entrepôts et les installations de raffinage enneigées.',
               imageUrl: 'images/Sovarka/Starovka/Starovka_raffinerie_bureau_directeur.webp',
-              // Directeur Fabre appartient au décor de Montrouge et ne doit pas apparaître à Starovka.
-              // Un tableau vide seul ne neutralise pas les PNJ hérités du gabarit partagé.
-              personsVides: true,
+              // Directeur Fabre appartient au décor de Montrouge et ne doit pas apparaître à Starovka :
+              // la liste non vide ci-dessous remplace celle du gabarit (personsVides masquerait Damdin Mazoutov).
               persons: [{name: 'Damdin Mazoutov (PNJ)', role: 'Directeur de la raffinerie', rel: 'neutral', job: 'directeur_raffinerie'}],
               excludeOrders: ['acheter_entreprise'],
               orders: [
@@ -11865,6 +11864,8 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   }
   Object.assign(contexte('ville_a', 'logements-novomirsk'), { name: 'Baraquement Sibirsk-9', desc: 'Les logements collectifs de Starovka : une longue barre de béton où le poêle central chauffe à peine la pièce la plus proche. Attribués par la mairie.' });
   Object.assign(contexte('ville_a', 'zone-production'), { name: 'Compagnie Nationale du Pétrole', desc: 'Les derricks de Starovka pompent sous la glace le pétrole de Sovarka. Les volontaires peuvent y prêter la main pour augmenter la production.' });
+  // Image de Fred (15/11/2026) : le champ de pétrole enneigé, décor de la zone de récolte de Starovka.
+  piece(contexte('ville_a', 'zone-production'), 'zone_recolte').imageUrl = 'images/Sovarka/Starovka/Starovka_champ_petrole.webp';
 
   // Krasnov.
   Object.assign(contexte('ville_b', 'marche'), { name: 'Marché de Krasnov', desc: 'Les étals du kolkhoze : pommes, choux, miel et conserves maison, vendus sous les tilleuls.', persons: [pnj('Nina Gorbounova', 'Marchande', 'commercant')] });

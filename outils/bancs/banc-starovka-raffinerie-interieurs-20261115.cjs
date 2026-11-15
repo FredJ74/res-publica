@@ -27,7 +27,7 @@ for(const [id,filename] of Object.entries(files)){
  assert.equal(content.toString('ascii',8,16),'WEBPVP8 ');
  assert.ok(sql.includes(id),'Référencement serveur manquant: '+id);
 }
-assert.equal(world.roomOverrides.direction_usine.personsVides,true,'PNJ de Montrouge interdit par la surcharge');
+assert.equal(JSON.stringify(world.roomOverrides.direction_usine.persons.map(p=>p.name)),JSON.stringify(['Damdin Mazoutov (PNJ)']),'seul le directeur de Starovka, pas celui de Montrouge');
 // 15/11/2026 au soir : usine d'État (vente directe, vente de matières, production contre salaire).
 assert.deepEqual(world.roomsExtra.salle_ventes_raffinerie.orders.map(o=>o.fn).join(),'vente_directe_usine,vendre_matiere_usine');
 assert.deepEqual(world.roomsExtra.interieur_raffinerie.orders.map(o=>o.fn).join(),'produire_carburant,produire_derives_petrochimiques,vendre_matiere_usine');
