@@ -1,0 +1,36 @@
+name: Krasnov - recompresser catalogues i18n Ignat
+on:
+  push:
+    branches: [chatgpt/krasnov-ignat-fonctionnaire-20261115]
+    paths:
+      - .github/workflows/krasnov-ignat-pack-i18n-20261115.yml
+      - i18n/sovarka-descriptions-resources.js
+      - i18n/sovarka-roles-resources.js
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  generer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Générer et vérifier les catalogues compressés
+        run: |
+          node outils/generateurs/compresser-catalogues-i18n.cjs
+          node outils/generateurs/compresser-catalogues-i18n.cjs --check
+          node --check i18n/sovarka-descriptions-resources.js
+          node --check i18n/sovarka-roles-resources.js
+          git diff --check
+      - name: Sauvegarder le paquet et son audit
+        run: |
+          git add i18n/packed outils/audits/I18N-CATALOGUES-TRANSPORT.json
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'i18n: recompresser les catalogues pour Ignat'
+            git fetch origin chatgpt/krasnov-ignat-fonctionnaire-20261115
+            git rebase origin/chatgpt/krasnov-ignat-fonctionnaire-20261115
+            git push origin HEAD:chatgpt/krasnov-ignat-fonctionnaire-20261115
+          fi

@@ -1,0 +1,76 @@
+name: Krasnov - maison et portrait Ignat WebP
+on:
+  push:
+    branches: [chatgpt/krasnov-ignat-fonctionnaire-20261115]
+    paths:
+      - '.github/workflows/krasnov-ignat-webp-20261115.yml'
+      - 'images/*.png'
+      - 'images/Sovarka/Krasnov/Ignat.webp'
+      - 'images/Sovarka/Krasnov/Krasnov_maison_ignat_interieur.webp'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  ignat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Convertir les deux images originales de Fred en WebP
+        run: |
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import unicodedata
+          root=Path('images')
+          dest=root/'Sovarka'/'Krasnov'
+          mapping={
+            'salon sovietique nostalgique aux souvenirs d epoqu': 'Krasnov_maison_ignat_interieur.webp',
+            'portrait d un homme age au badge sovietique': 'Ignat.webp',
+          }
+          def key(s):
+              s=unicodedata.normalize('NFKD',s.replace('’',' ').replace("'",' ')).encode('ascii','ignore').decode('ascii').lower()
+              return ' '.join(s.replace('_',' ').split())
+          sources=[p for p in root.iterdir() if p.is_file() and p.suffix.lower()=='.png']
+          for prefix,outname in mapping.items():
+              matches=[p for p in sources if key(p.stem).startswith(prefix)]
+              dst=dest/outname
+              assert len(matches)<=1,('Source Ignat ambiguë',prefix,[x.name for x in matches])
+              if matches:
+                  src=matches[0]
+                  assert not dst.exists(),f'PNG et WebP simultanes : {src}, {dst}'
+                  with Image.open(src) as im:
+                      im.load()
+                      assert im.width>=1024 and im.height>=900,(src,im.size)
+                      wh=im.size
+                      im.convert('RGB').save(dst,'WEBP',quality=85,method=6,lossless=False)
+                  assert 50000<dst.stat().st_size<src.stat().st_size
+                  print(src.name,'->',dst, dst.stat().st_size)
+                  src.unlink()
+              else:
+                  assert dst.is_file(),('Source absente : ni PNG ni WebP',outname)
+              with Image.open(dst) as check:
+                  check.load()
+                  assert check.format=='WEBP' and check.width>=1024 and check.height>=900
+              b=dst.read_bytes()
+              assert b[:4]==b'RIFF' and b[8:12]==b'WEBP' and b[12:16]==b'VP8 '
+              assert len(b)>50000
+              print('WebP valide :', dst, len(b))
+          assert not any(key(p.stem).startswith(k) for p in root.glob('*.png') for k in mapping)
+          PY
+      - name: Tester le raccordement et DeepSeek
+        run: |
+          node --test outils/bancs/test-krasnov-ignat-fonctionnaire-20261115.mjs
+          node --test outils/bancs/test-krasnov-maisonnettes-20261114.mjs
+          git diff --check
+      - name: Commit conversions et suppressions
+        run: |
+          git add images
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Krasnov : convertir portrait et intérieur Ignat en WebP'
+            git push origin HEAD:chatgpt/krasnov-ignat-fonctionnaire-20261115
+          fi

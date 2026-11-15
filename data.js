@@ -11884,7 +11884,7 @@ BUILDINGS['locaux-starovka'] = {
       rooms: { piece_maison: {
         name: 'La pièce commune', imageBg: 'linear-gradient(135deg,#16110c,#221a12)', desc: pieceDesc,
         ...(imageUrl ? { imageUrl } : {}),
-        persons: [{ name: habitant + ' (PNJ)', role, rel: 'friendly', job: 'habitant', ...(photoUrl ? { photoUrl } : {}) }],
+        persons: [{ name: habitant + ' (PNJ)', role, rel: 'friendly', job: 'habitant', ...(photoUrl ? { photoUrl } : {}), ...(id === 'maison-krasnov-terrains' ? { profilId: 'ignat_lykov' } : {}) }],
         orders: [
           { fn: 'maison_habitant', label: 'Parler à l’habitant', pa: 0, cost: 0, type: 'legal', icon: 'ti-home-heart', successRate: 100,
             desc: 'L’habitant vous offre le gîte et le couvert contre un petit service, différent chaque jour. Une hospitalité par jour.' },
@@ -11924,9 +11924,10 @@ BUILDINGS['locaux-starovka'] = {
       'Une grande maison de bois brun à l’ombre des bulbes dorés de l’église, bâtie pour un prêtre et sa famille.',
       'Des icônes dans le coin rouge, une longue table faite pour une famille nombreuse, et le batiouchka Kouzma, un peu sourd, qui y vit seul et parle très fort.',
       'images/Sovarka/Krasnov/Krasnov_maison_kouzma_interieur.webp', 'images/Sovarka/Krasnov/Kouzma.webp'],
-    ['maison-krasnov-terrains', 'Maison d’Ignat', 'Ignat Lykov', 'Habitant de Krasnov',
-      'Une vieille maison de bois au bord des terrains vagues, des peaux tendues sous l’auvent.',
-      'Des pièges pendus aux poutres, un samovar cabossé et un vieux trappeur taiseux qui vous observe longuement avant de sourire.']
+    ['maison-krasnov-terrains', 'Maison d’Ignat', 'Ignat Lykov', 'Fonctionnaire à la retraite',
+      'Une maison de bois à l’angle de la rue, habitée par Ignat Lykov, ancien fonctionnaire de Sovarka, fervent défenseur du collectivisme.',
+      'Affiches collectivistes, photographie de la moisson avec les agriculteurs du kolkhoze, souvenirs de l’administration et uniforme soigneusement conservé : Ignat parle volontiers de la patrie et du bien commun.',
+      'images/Sovarka/Krasnov/Krasnov_maison_ignat_interieur.webp', 'images/Sovarka/Krasnov/Ignat.webp']
   ];
   MAISONNETTES_KRASNOV.forEach(m => maison(...m));
   const cite = v => WORLD.soviet && WORLD.soviet[v];

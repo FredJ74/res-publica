@@ -1,0 +1,29 @@
+name: Krasnov - Ignat profil DeepSeek et maison (sans images)
+on:
+  push:
+    branches: [chatgpt/krasnov-ignat-fonctionnaire-20261115]
+    paths:
+      - '.github/workflows/krasnov-ignat-code-20261115.yml'
+      - 'data.js'
+      - 'api/_pnj-personnalites.js'
+      - 'api/_reaction-habitant.js'
+      - 'outils/bancs/test-krasnov-ignat-fonctionnaire-20261115.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verifications:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Vérifier syntaxe et raccordements fonctionnels (hors assets absents)
+        run: |
+          node --check data.js
+          node --check api/_pnj-personnalites.js
+          node --check api/_reaction-habitant.js
+          node --test --test-name-pattern='^(Ignat|DeepSeek|i18n) :' outils/bancs/test-krasnov-ignat-fonctionnaire-20261115.mjs
+          node --test outils/bancs/test-krasnov-maisonnettes-20261114.mjs
