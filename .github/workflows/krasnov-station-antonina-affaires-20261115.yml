@@ -7,6 +7,7 @@ on:
       - .github/workflows/krasnov-station-antonina-affaires-20261115.yml
       - outils/images/convertir_krasnov_station_antonina_affaires_20261115.py
       - outils/bancs/test-krasnov-station-antonina-affaires-20261115.mjs
+      - data.js
 permissions:
   contents: write
 jobs:
