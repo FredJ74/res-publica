@@ -852,12 +852,25 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [],
       liens: {
         toutDroit: 'starovka-maisons-ferme',
-        droite: 'starovka-rue-terrains',
+        droite: 'starovka-rue-raffinerie',
         arriere: 'starovka-rue-locaux-a-louer'
       },
       flechesStyle: {
         toutDroit: RC_FLECHE_HAUT,
         arriere: RC_FLECHE_BAS,
+        droite: 'top:50%; right:10px; transform:translateY(-50%);'
+      }
+    },
+
+    // Raffinerie située entre la rue pétrolière et les terrains constructibles (Fred, 15/11/2026).
+    'starovka-rue-raffinerie': {
+      image: 'images/Sovarka/Starovka/Starovka_rue_raffinerie.webp',
+      zones: [
+        { xPct: [8, 94], yPct: [13, 66], nom: 'Raffinerie de Starovka', type: 'batiment', buildingId: 'usine-principale' }
+      ],
+      liens: { gauche: 'starovka-rue-petrole-ferme', droite: 'starovka-rue-terrains' },
+      flechesStyle: {
+        gauche: 'top:50%; left:10px; transform:translateY(-50%);',
         droite: 'top:50%; right:10px; transform:translateY(-50%);'
       }
     },
@@ -868,7 +881,7 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [
         { xPct: [36, 70], yPct: [25, 70], nom: 'Terrain municipal', type: 'batiment', buildingId: 'terrain-a-batir-3' }
       ],
-      liens: { gauche: 'starovka-rue-petrole-ferme', droite: 'starovka-rue-logements-collectifs' },
+      liens: { gauche: 'starovka-rue-raffinerie', droite: 'starovka-rue-logements-collectifs' },
       flechesStyle: {
         gauche: 'top:50%; left:10px; transform:translateY(-50%);',
         droite: 'top:50%; right:10px; transform:translateY(-50%);'

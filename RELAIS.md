@@ -9,6 +9,9 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Raffinerie de Starovka — intégration en cours (15/11/2026)
+PR #999, branche `chatgpt/starovka-raffinerie-20261115`. PNG de Fred du commit `522c7fd`, converti en `images/Sovarka/Starovka/Starovka_rue_raffinerie.webp` avec perte qualité 85, original supprimé. Nouvelle rue entre le carrefour pétrolier et les terrains, flèches latérales aller-retour ; zone cliquable vers `usine-principale`, salles existantes conservées. Migration `20261115175000_starovka_raffinerie_navigation.sql` vérifiée avec transaction annulée, à appliquer après CI. Banc dédié `banc-starovka-raffinerie-20261115.cjs`, tests historiques des raccourcis actualisés. Fusion, Supabase, Vercel et recette PJ à vérifier.
+
 ### Tour de Starovka — décisions de Fred (15/11/2026, après-midi)
 Krasnov terminée ; tour de Starovka lancé (navigation dans tous les bâtiments avant les détails). Décisions consignées dans `GAME-DESIGN-NOVOMIRSK.md`, « Tour de Starovka » : nouvelles vues de rue dessinées par Fred (hôpital, tribunal, usine, centre commercial, centre artisanal) ; **hôpital et tribunal/centre artisanal raccordés et livrés par #997**, autres rues à poursuivre ; **plus de banques en Sovarka**, bons d'État au guichet des mairies ; **goulag = QHS de Sovarka, hors de la ville**, train ou taxi/bus, habilitations par la Justice ou les juges, ordres après Starovka. **Hôpital et tribunal/centre artisanal livrés** (#997) ; autres sujets à traiter séparément selon les décisions de Fred.
 
