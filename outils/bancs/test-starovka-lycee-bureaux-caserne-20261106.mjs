@@ -17,7 +17,7 @@ test('Starovka : deux flèches à mi-hauteur sur le lycée et retour caserne',()
  assert.match(n.lycee.flechesStyle.droite,/right:10px/);
  assert.match(n.lycee.flechesStyle.gauche,/top:50%/);
  assert.match(n.lycee.flechesStyle.gauche,/left:10px/);
- assert.equal(n.caserne.liens.droite,'starovka-rue-lycee-commissariat');
+ assert.equal(n.caserne.liens.droite,'starovka-rue-tribunal-artisanal');
  assert.equal(n.caserne.image,'images/Sovarka/Starovka/Starovka_rue_bureaux_caserne.webp');
  assert.ok(fs.statSync(path.join(root,n.caserne.image)).size>100);
  assert.equal(fs.existsSync(path.join(root,'images/Sovarka/Starovka/Starovka_rue_bureaux_caserne.png')),false);
