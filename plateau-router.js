@@ -707,7 +707,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'greve_faim') { doGreveFaim(); return; }
   if (fn === 'tentative_evasion') { doTentativeEvasion(pa, cost); return; }
   if (fn === 'visiter_prisonnier') { ouvrirVisiterPrisonnier(pa, cost); return; }
-  if (fn === 'se_renseigner') { doSeRenseigner(); return; }
+  if (fn === 'se_renseigner') { if (state.country === 'soviet' && typeof ouvrirSovarkaSeRenseigner === 'function') { ouvrirSovarkaSeRenseigner(); return; } doSeRenseigner(); return; }
   // Route 'reserver' SUPPRIMEE le 8 septembre 2026 : doReserver() n'existe dans aucun fichier du
   // depot -- le clic aurait leve une ReferenceError. Aucun ordre ne la declarait plus (seul un
   // ORDER_EFFECTS.reserver vide subsiste dans data.js). La reservation reelle passe par
