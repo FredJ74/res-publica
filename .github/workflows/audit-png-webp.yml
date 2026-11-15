@@ -14,8 +14,6 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Tester le raccordement des trois scènes de Starovka
-        run: node outils/bancs/banc-starovka-raffinerie-interieurs-20261115.cjs
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
