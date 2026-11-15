@@ -79,3 +79,34 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Images: ajouter les WebP et garder les PNG historiques"
           git push origin HEAD:${{ github.head_ref }}
+
+  actualiser-catalogue-raffinerie-starovka:
+    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'chatgpt/starovka-raffinerie-interieurs-20261115' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Régénérer le catalogue Brotli
+        run: |
+          node outils/generateurs/compresser-catalogues-i18n.cjs
+          node outils/generateurs/compresser-catalogues-i18n.cjs --check
+      - name: Enregistrer uniquement le catalogue régénéré
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add i18n/packed/sovarka-descriptions-resources.js.br outils/audits/I18N-CATALOGUES-TRANSPORT.json .vercelignore
+          git diff --cached --check
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m "build(i18n): mettre à jour le Brotli des salles de raffinerie"
+            git push origin "HEAD:${{ github.head_ref }}"
+          fi
