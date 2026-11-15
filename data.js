@@ -11752,12 +11752,39 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
       persons: [pnj(journaliste, 'Journaliste — correspondant de La Voix de Sovarka', 'journaliste')]
     });
   };
-  voix('ville_a', 'Starovka', 'Saran Batbayar');
-  // STAROVKA_IMAGES_IMPRIMERIE_LOCAL_20261116 — visuel local du journal Metel.
-  // Ne modifie ni les journalistes ni les ordres de l'antenne.
-  Object.assign(piece(contexte('ville_a', 'centre-affaires'), 'tribune_republia'), {
-    imageUrl: 'images/Sovarka/Starovka/Starovka_centre-affaires_tribune_republia.webp'
-  });
+  // Presse de Starovka : une boutique commerciale INDEPENDANTE du centre d'affaires.
+  // Le centre d'affaires situé dans l'autre rue conserve ses bureaux, mais n'accueille
+  // plus une deuxième antenne de presse. Le commerce ne possède qu'une pièce.
+  {
+    const ville = WORLD.soviet.ville_a;
+    const centre = contexte('ville_a', 'centre-affaires');
+    centre.roomsExclues = [...new Set([...(centre.roomsExclues || []), 'tribune_republia'])];
+    BUILDINGS['presse-starovka'] = {
+      name: 'Presse de Starovka — Metel',
+      shortName: 'Presse',
+      cat: 'Économie',
+      icon: 'ti-news',
+      bgColor: '#201e1c',
+      desc: 'La presse du journal Metel. Le local peut accueillir le commerce choisi par son exploitant : livres, tracts ou autres articles du catalogue.',
+      rooms: {
+        presse: {
+          name: 'Presse',
+          imageBg: 'linear-gradient(135deg,#241f1b,#35332e)',
+          imageUrl: 'images/Sovarka/Starovka/Starovka_presse-starovka_presse.webp',
+          desc: 'Le comptoir de presse et son imprimerie. Le commerçant choisit librement ses familles de produits et ses références.',
+          persons: [pnj('Saran Batbayar', 'Correspondante de presse', 'journaliste')],
+          isLocationRoom: true,
+          orders: [
+            { fn: 'sovarka_demande_location', label: 'Demande de location', pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
+              desc: 'Demander à la mairie le droit d’exploiter ce local. L’attribution se signe chez le notaire.' },
+            { fn: 'commerce_pj', label: 'Ce commerce', pa: 0, cost: 0, type: 'legal', icon: 'ti-building-store', successRate: 100,
+              desc: 'Gérer votre commerce ou visiter la boutique de son exploitant.' }
+          ]
+        }
+      }
+    };
+    if (!ville.buildings.includes('presse-starovka')) ville.buildings.push('presse-starovka');
+  }
 
   voix('ville_b', 'Krasnov', 'Anatoli Kolosov');
   const agence = contexte('capitale', 'la-tribune');
