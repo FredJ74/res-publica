@@ -26,3 +26,43 @@ for(const depuis of ['psm-carrefour-artisanal-scierie','psm-ecole-phare','psm-tr
 test('socle de rue absent : aucune sortie locale sans serveur',async()=>{const c=jeu();delete c.RUE_CENTRALE_NOEUDS;await c.sortirBatiment();assert.equal(c.state.currentBuilding,'office-notarial');assert.equal(c.appels.length,0);assert.equal(c.messages[0][0],'Réponse du serveur illisible');});
 test('reponse de confirmation tardive pour un autre personnage ignoree',async()=>{const c=jeu(),normal=c.reponse;let finir;c.reponse=fn=>fn==='rue_position_enregistrer'?new Promise(r=>finir=r):normal(fn);const p=c.sortirBatiment();await new Promise(setImmediate);c.state.char={name:'Bob'};finir({ok:true});await p;assert.equal(c.state.currentBuilding,'office-notarial');assert.equal(c.journaux,0);assert.equal(c.vue,undefined);});
 test('confirmation et relecture perdues : position locale conservee, incertitude explicite',async()=>{const c=jeu(),normal=c.reponse;c.reponse=fn=>fn==='rue_sortie_batiment_lire'?normal(fn):Promise.resolve({ok:false,transport:{etat:'reseau'}});await c.sortirBatiment();assert.equal(c.state.currentBuilding,'office-notarial');assert.equal(c.messages[0][0],'Sortie non confirmée');assert.equal(c.appels.filter(x=>x==='rue_position_enregistrer').length,1);});
+
+for (const building of ['dispensaire-public', 'dispensaire-public-v', 'clinique-privee']) {
+ test('patient pa0 dans '+building+' : bouton Sortir utilise uniquement la porte hospitaliere',async()=>{
+  const c=jeu();
+  c.state.currentBuilding=building;c.state.currentCity='ville_b';
+  c.state.currentRoom='chambre';c.state.hospitalisation={regime:'pa0',lieu:'dispensaire',dateDebutParis:'2026-11-12'};
+  let appels=0;
+  c.doSortieHopital=async()=>{appels++;};
+  await c.sortirBatiment();
+  assert.equal(appels,1);
+  assert.equal(c.appels.length,0,'aucune requete rue_sortie_batiment_lire');
+  assert.equal(c.sauvegardes,0);
+  assert.equal(c.state.currentBuilding,building,'pas de sortie locale sans confirmation du serveur');
+ });
+ test('visiteur dans '+building+' : sortie de rue ordinaire conservee',async()=>{
+  const c=jeu();c.state.currentBuilding=building;c.state.currentCity='ville_b';
+  c.doSortieHopital=async()=>{throw Error('Ne doit pas etre appelee pour un visiteur');};
+  await c.sortirBatiment();
+  assert.equal(c.state.currentBuilding,null);
+  assert.deepEqual(c.appels,['rue_sortie_batiment_lire','rue_position_enregistrer']);
+ });
+}
+test('patient pa0 : double clic ne relance pas la porte hospitaliere',async()=>{
+ const c=jeu();c.state.currentBuilding='dispensaire-public-v';
+ c.state.currentCity='ville_b';c.state.hospitalisation={regime:'pa0'};
+ let terminer,appels=0;
+ c.doSortieHopital=()=>{appels++;return new Promise(resolve=>{terminer=resolve;});};
+ const a=c.sortirBatiment();await c.sortirBatiment();
+ assert.equal(appels,1);terminer();await a;
+ assert.equal(c.appels.length,0);
+});
+test('hospitalisation non pa0 : la navigation ne simule pas une guerison',async()=>{
+ const c=jeu();c.state.currentBuilding='dispensaire-public-v';
+ c.state.hospitalisation={regime:'empoisonnement'};
+ c.doSortieHopital=()=>{throw Error('Sortie de regime non pa0 non autorisee');};
+ c.reponse=async()=>({ok:false,raison:'acteur_incapacite'});
+ await c.sortirBatiment();
+ assert.equal(c.state.currentBuilding,'dispensaire-public-v');
+ assert.equal(c.messages[0][0],'Sortie refusée');
+});
