@@ -852,7 +852,7 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [],
       liens: {
         toutDroit: 'starovka-maisons-ferme',
-        droite: 'starovka-rue-raffinerie',
+        droite: 'starovka-rue-terrains',
         arriere: 'starovka-rue-locaux-a-louer'
       },
       flechesStyle: {
@@ -862,13 +862,13 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
-    // Raffinerie située entre la rue pétrolière et les terrains constructibles (Fred, 15/11/2026).
+    // Correction Fred 15/11 : raffinerie située APRÈS les terrains, AVANT les logements collectifs.
     'starovka-rue-raffinerie': {
       image: 'images/Sovarka/Starovka/Starovka_rue_raffinerie.webp',
       zones: [
         { xPct: [8, 94], yPct: [13, 66], nom: 'Raffinerie de Starovka', type: 'batiment', buildingId: 'usine-principale' }
       ],
-      liens: { gauche: 'starovka-rue-petrole-ferme', droite: 'starovka-rue-terrains' },
+      liens: { gauche: 'starovka-rue-terrains', droite: 'starovka-rue-logements-collectifs' },
       flechesStyle: {
         gauche: 'top:50%; left:10px; transform:translateY(-50%);',
         droite: 'top:50%; right:10px; transform:translateY(-50%);'
@@ -881,7 +881,7 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [
         { xPct: [36, 70], yPct: [25, 70], nom: 'Terrain municipal', type: 'batiment', buildingId: 'terrain-a-batir-3' }
       ],
-      liens: { gauche: 'starovka-rue-raffinerie', droite: 'starovka-rue-logements-collectifs' },
+      liens: { gauche: 'starovka-rue-petrole-ferme', droite: 'starovka-rue-raffinerie' },
       flechesStyle: {
         gauche: 'top:50%; left:10px; transform:translateY(-50%);',
         droite: 'top:50%; right:10px; transform:translateY(-50%);'
@@ -892,7 +892,7 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/Sovarka/Starovka/Starovka_rue_logements collectifs.webp',
       zones: [],
       liens: {
-        gauche: 'starovka-rue-terrains',
+        gauche: 'starovka-rue-raffinerie',
         arriere: 'starovka-rue-restaurant-boutique',
         droite: 'starovka-rue-stade'
       },
