@@ -6057,11 +6057,25 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"usine-principale\",\"direction_usine\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Usine Principale",
-    "piece": "Direction",
+    "batiment": "Raffinerie d’État du Grand Nord",
+    "piece": "Bureau du directeur",
     "personnes": [
-      "Directeur Tsyren Badmaïev"
+      "Damdin Mazoutov"
     ]
+  },
+  "[\"soviet\",\"ville_a\",\"usine-principale\",\"salle_ventes_raffinerie\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Raffinerie d’État du Grand Nord",
+    "piece": "Salle des ventes",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"usine-principale\",\"interieur_raffinerie\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Raffinerie d’État du Grand Nord",
+    "piece": "Atelier de raffinage",
+    "personnes": []
   },
   "[\"soviet\",\"ville_a\",\"centre-multinodal-montrouge\",\"hall_gare_montrouge\"]": {
     "pays": "Sovarka",
@@ -6191,7 +6205,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"stade\",\"terrain\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Stade Municipal",
+    "batiment": "Stade de Starovka",
     "piece": "Terrain",
     "personnes": [
       "Entraineur Local",
@@ -6201,7 +6215,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"stade\",\"vestiaires\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Stade Municipal",
+    "batiment": "Stade de Starovka",
     "piece": "Vestiaires",
     "personnes": [
       "Entraineur Local"
@@ -6210,7 +6224,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"stade\",\"buvette\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Stade Municipal",
+    "batiment": "Stade de Starovka",
     "piece": "Buvette",
     "personnes": [
       "Tenancier de Buvette"
@@ -6219,7 +6233,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"stade\",\"guichet_paris\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Stade Municipal",
+    "batiment": "Stade de Starovka",
     "piece": "Guichet de Paris",
     "personnes": [
       "Bookmaker Officiel"
@@ -6228,7 +6242,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"stade\",\"siege_supporters\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Stade Municipal",
+    "batiment": "Stade de Starovka",
     "piece": "Siege des Supporters",
     "personnes": [
       "Meneur des Supporters"
@@ -6237,9 +6251,18 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"stade\",\"bureau_president\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Stade Municipal",
+    "batiment": "Stade de Starovka",
     "piece": "Bureau du Président",
     "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"stade\",\"boutique\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Stade de Starovka",
+    "piece": "Stand des accessoires du Partizan",
+    "personnes": [
+      "Vendeur des accessoires de Starovka"
+    ]
   },
   "[\"soviet\",\"ville_a\",\"zone-production\",\"zone_recolte\"]": {
     "pays": "Sovarka",

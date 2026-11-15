@@ -2502,9 +2502,8 @@ const WORLD = {
               name: 'Bureau du directeur',
               desc: 'Bureau de direction à l’étage, avec vue plongeante sur les entrepôts et les installations de raffinage enneigées.',
               imageUrl: 'images/Sovarka/Starovka/Starovka_raffinerie_bureau_directeur.webp',
-              // Directeur Fabre appartient au décor de Montrouge et ne doit pas apparaître à Starovka.
-              // Un tableau vide seul ne neutralise pas les PNJ hérités du gabarit partagé.
-              personsVides: true,
+              // Directeur Fabre appartient au décor de Montrouge et ne doit pas apparaître à Starovka :
+              // la liste non vide ci-dessous remplace celle du gabarit (personsVides masquerait Damdin Mazoutov).
               persons: [{name: 'Damdin Mazoutov (PNJ)', role: 'Directeur de la raffinerie', rel: 'neutral', job: 'directeur_raffinerie'}],
               excludeOrders: ['acheter_entreprise'],
               orders: [
