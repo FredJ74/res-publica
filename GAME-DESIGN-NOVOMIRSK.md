@@ -594,6 +594,22 @@ Choix de Claude : environ une conversation sur quatre (tirage serveur stable par
 conversation ; ne sont pas fonctionnaires les habitants, retraités, détenus, métiers privés et de l'ombre, lobbyistes, cultes,
 Loge, supporters et étrangers (`api/_pnj-fonctionnaires-sovarka.js`).
 
+### Praskovia et Kouzma : une histoire d'amour (Fred, 15/11/2026, 12 h 27 – 12 h 35)
+
+**Kouzma Lapchine** est le **batiouchka**, le prêtre orthodoxe de Krasnov. **L'Église orthodoxe EST l'Église du Tractorisme**
+(parodie) ; à Krasnov elle s'appelle **l'Église de la Sainte-Moisson-Commune** (nom proposé par Claude, validé par Fred : lien avec
+le kolkhoze, l'entraide, les travaux ruraux). Kouzma habite la maison de bois, le **tserkovny dom du batiouchka**, grande parce
+qu'elle doit accueillir le prêtre et sa famille ; mais il n'a pas d'épouse. Il a aimé **Praskovia Pakhomova** ; ordonné prêtre avant
+de l'épouser, la règle stricte de l'Église leur interdit désormais le mariage ; très pieux tous les deux, ils ont accepté.
+Praskovia vit dans la maison de la vue suivante, Kouzma dans sa grande maison vide. **Quand il trinque**, Kouzma se livre, déplore
+de ne pas avoir pu l'épouser, puis se reprend : elle est toujours restée dans son cœur et près de lui, en habitant juste au-dessus.
+Ils boivent régulièrement le thé ensemble. **Praskovia** est toujours amoureuse de Kouzma, c'est pour cela qu'elle ne s'est jamais
+mariée ; cette proximité l'emplit de joie, et quoi qu'il arrive, elle remercie le ciel de ne pas avoir été séparée de lui, même s'ils
+n'ont pas eu droit à plus. **Kouzma apparaît à l'église et dans sa maison** (Fred). Le reste de leur portrait est gardé (Praskovia
+apicultrice ; Kouzma un peu sourd). Code : fiches de trinquer (`api/_reaction-habitant.js`), fiche de dialogue de Kouzma
+(`api/_pnj-personnalites.js`, à relire par Fred), `data.js` (église, maison, PNJ de l'église). Les deux PNJ hérités de Novomirsk
+dans l'église de Krasnov (Camarade Pontife Tractorenko, Frère Kolkhoze) laissent la place à Kouzma.
+
 **Secrétaire de mairie de Krasnov (Fred, 15/11/2026)** : **Galina Dokladova** (nom proposé par Claude, « doklad » : le rapport ;
 Fred laisse les noms à Claude), **aimable mais méfiante**. Fiche dans `api/_pnj-personnalites.js`, **à relire par Fred**.
 

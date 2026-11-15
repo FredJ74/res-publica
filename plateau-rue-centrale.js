@@ -1219,7 +1219,7 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/Sovarka/Krasnov/Krasnov rue église.webp',
       // 14/11/2026 : maison brune à droite de l'église (hospitalité, migration 20261114180000).
       zones: [
-        { xPct: [71, 97], yPct: [38, 62], nom: 'Maison de Kouzma', type: 'batiment', buildingId: 'maison-krasnov-eglise' }
+        { xPct: [71, 97], yPct: [38, 62], nom: 'Tserkovny dom du batiouchka', type: 'batiment', buildingId: 'maison-krasnov-eglise' }
       ],
       liens: { arriere: 'krasnov-rue-terrains', droite: 'krasnov-rue-descendante' },
       flechesStyle: {
@@ -1490,7 +1490,7 @@ const RUE_CENTRALE_NOEUDS = {
   Z('krasnov-rue-marche-ferme', [0, 50], 'Marché de Krasnov', 'marche');
   Z('krasnov-rue-ecole-foret', [0, 35], 'École de Krasnov', 'universite');
   Z('krasnov-rue-ecole-foret', [75, 100], 'Exploitation forestière de Krasnov', 'zone-production');
-  Z('krasnov-rue-eglise', [30, 60], 'Église du Tractorisme', 'kolkhoze-spirituel');
+  Z('krasnov-rue-eglise', [30, 60], 'Église de la Sainte-Moisson-Commune', 'kolkhoze-spirituel');
   Z('krasnov-rue-station-musee', [15, 45], 'Musée de Krasnov', 'musee-novomirsk');
   Z('krasnov-rue-tabac-bar', [0, 35], 'Bar Sever', 'cafe-tabac-cheminots-montrouge');
   // Façades depuis cette vue : l'immeuble peint « КРАСНОВ ГОРОД ЛЮДЕЙ »

@@ -26,6 +26,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 ### Décisions attendues de Fred
 
 - **Fiche de Galina Dokladova** (secrétaire de mairie de Krasnov, 15/11) : à relire par Fred (`api/_pnj-personnalites.js`).
+- **Fiche du batiouchka Kouzma Lapchine** (15/11) : à relire par Fred (`api/_pnj-personnalites.js`).
 - **Armoire à souvenirs (Fred, 13/11)** : collection complète = **+1 PA** au sommeil en présence de son armoire, sans cumul entre armoires mais cumulable avec le +1 PA de l'appartement ; l'armoire ne prend plus qu'1 place dans l'inventaire (au lieu de 3) ; dépôt et retrait des souvenirs gratuits ; retrait par un visiteur (armoire ouverte) légal, mais plainte pour vol possible, jugée par le juge PJ (`GAME-DESIGN-APPARTEMENTS.md`). **Ne pas coder** avant que les douze villes de la liste existent (décision de Fred) ; décisions consignées seulement.
 - **Relecture de Fred du 13/11 au soir : codée et livrée** (voir le chantier en tête de ce fichier).
 - **Question ouverte (Fred y réfléchit)** : étendre le plafond de −33 des malus de sécurité à tous les actes illégaux ?
@@ -70,6 +71,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ### À vérifier en jeu (Fred, Angie, Vince)
 
+- Praskovia et Kouzma (Claude, 15/11/2026) : l'Église de la Sainte-Moisson-Commune de Krasnov avec le batiouchka Kouzma, à qui l'on parle ; le tserkovny dom ; trinquer avec Kouzma, puis avec Praskovia : chacun évoque l'autre.
 - Maisons de Krasnov (ChatGPT, 15/11, PR #985) : dans la rue descendante, ouvrir la maison rouge de Matveï et la maison bleue de Praskovia ; vérifier les deux décors sans image provisoire et les trois ordres inchangés.
 
 - Guide des baies, Galina Dokladova, questions des fonctionnaires (Claude, 15/11/2026) : acheter le guide au marché de Krasnov, il arrive dans l'inventaire ; « Lire (2 PA) » donne +1 INT (fiche) pendant 24 h, relire refusé tant que l'effet dure ; Galina Dokladova à l'accueil de la mairie de Krasnov ; parler à plusieurs fonctionnaires de Sovarka : une conversation sur quatre environ glisse une question absurde de vigilance.

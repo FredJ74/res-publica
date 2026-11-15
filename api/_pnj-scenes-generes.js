@@ -7251,11 +7251,10 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"kolkhoze-spirituel\",\"grange_sainte\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Église du Tractorisme de Krasnov",
+    "batiment": "Église de la Sainte-Moisson-Commune",
     "piece": "La Grange Sainte",
     "personnes": [
-      "Camarade Pontife Tractorenko",
-      "Frère Kolkhoze"
+      "Kouzma Lapchine"
     ]
   },
   "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"hall\"]": {
@@ -7361,7 +7360,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"maison-krasnov-eglise\",\"piece_maison\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Maison de Kouzma",
+    "batiment": "Tserkovny dom du batiouchka",
     "piece": "La pièce commune",
     "personnes": [
       "Kouzma Lapchine"
