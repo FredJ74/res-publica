@@ -922,7 +922,12 @@ const RUE_CENTRALE_NOEUDS = {
 
     'starovka-rue-blizzard': {
       image: 'images/Sovarka/Starovka/Starovka_rue_blizzard.webp',
-      zones: [],
+      // Deux vitrines de cette rue : à gauche le local louable, à droite l'imprimerie.
+      // Les deux sorties réutilisent des bâtiments existants sans recréer de commerce.
+      zones: [
+        { xPct: [0, 35], yPct: [29, 77], nom: 'Local commercial à louer', type: 'batiment', buildingId: 'locaux-starovka' },
+        { xPct: [65, 100], yPct: [29, 76], nom: 'Imprimerie du journal Metel', type: 'batiment', buildingId: 'centre-affaires' }
+      ],
       liens: { toutDroit: 'starovka-rue-restaurant-boutique', arriere: 'starovka-rue-mairie-marche' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
     },
