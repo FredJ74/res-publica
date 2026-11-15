@@ -1,0 +1,68 @@
+name: Krasnov - portraits Kouzma et Praskovia WebP
+on:
+  push:
+    branches:
+      - chatgpt/krasnov-portraits-kouzma-praskovia-20261115
+    paths:
+      - .github/workflows/krasnov-portraits-webp-20261115.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  convertir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Renommer, convertir en WebP avec perte et supprimer les deux PNG
+        run: |
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import unicodedata
+          root=Path('images')
+          dest=root/'Sovarka'/'Krasnov'
+          def norm(s):
+              s=s.replace('’',' ').replace("'",' ')
+              return ' '.join(unicodedata.normalize('NFKD',s).encode('ascii','ignore').decode('ascii').lower().split())
+          mapping={
+              'portrait chaleureux d un pretre orthodoxe ornee d or-1':'Kouzma.webp',
+              'portrait tendre en foulard fleuri-2':'Praskovia.webp',
+          }
+          srcs=[p for p in root.iterdir() if p.is_file() and p.suffix.lower()=='.png']
+          for key,name in mapping.items():
+              matches=[p for p in srcs if norm(p.stem)==key]
+              assert len(matches)==1,(key,[p.name for p in matches])
+              src=matches[0]; target=dest/name
+              assert not target.exists(), target
+              with Image.open(src) as im:
+                  im.load()
+                  assert im.width>=512 and im.height>=512,(src, im.size)
+                  size=im.size
+                  im.convert('RGB').save(target,'WEBP',quality=85,method=6,lossless=False)
+              with Image.open(target) as out:
+                  out.load()
+                  assert out.format=='WEBP' and out.size==size
+              blob=target.read_bytes()
+              assert blob[:4]==b'RIFF' and blob[8:12]==b'WEBP' and blob[12:16]==b'VP8 '
+              assert 30000<target.stat().st_size<src.stat().st_size
+              print(f'{src.name} => {target} ({target.stat().st_size} bytes)')
+              src.unlink()
+          assert not any(norm(p.stem) in mapping for p in root.glob('*.png'))
+          assert all((dest/n).is_file() for n in mapping.values())
+          PY
+      - name: Tests des portraits et des décors existants
+        run: |
+          node --test outils/bancs/test-krasnov-eglise-maison-kouzma-images-20261115.mjs
+          git diff --check
+      - name: Commit WebP et suppressions sur la branche
+        run: |
+          git add images
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Krasnov : portraits Kouzma et Praskovia en WebP'
+            git push origin HEAD:chatgpt/krasnov-portraits-kouzma-praskovia-20261115
+          fi
