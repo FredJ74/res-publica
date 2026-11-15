@@ -7,13 +7,14 @@ const mapping=[
  ['fourreur-starovka','boutique_fourreur','Starovka_fourreur_boutique_fourreur.webp']
 ];
 for(const [building,room,name] of mapping){
- const c=ctx.W.soviet.ville_a.buildingContext[building];
- assert.equal(c.roomOverrides[room].imageUrl,p+name);
+ const piece=building==='fourreur-starovka' ? ctx.B[building].rooms[room] : ctx.W.soviet.ville_a.buildingContext[building].roomOverrides[room];
+ assert.equal(piece.imageUrl,p+name);
  const bytes=fs.readFileSync(p+name);
  assert.equal(bytes.toString('ascii',0,4),'RIFF');
  assert.equal(bytes.toString('ascii',8,12),'WEBP');
  assert.ok(bytes.length>20000);
  for(const city of ['capitale','ville_b']){
+  if(building==='fourreur-starovka') assert.ok(!ctx.W.soviet[city].buildings.includes(building));
   assert.notEqual(ctx.W.soviet[city].buildingContext?.[building]?.roomOverrides?.[room]?.imageUrl,p+name);
  }
 }
