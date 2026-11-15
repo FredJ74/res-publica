@@ -23,8 +23,6 @@ jobs:
         run: python -m pip install 'Pillow==11.3.0'
       - name: Convertir et supprimer les trois PNG
         run: python outils/images/convertir_starovka_raffinerie_interieurs_20261115.py
-      - name: Installer les dépendances des bancs
-        run: npm ci --prefix outils/vercel
       - name: Vérifier les trois scènes
         run: node outils/bancs/banc-starovka-raffinerie-interieurs-20261115.cjs
       - name: Commit des images
