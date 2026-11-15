@@ -25,8 +25,15 @@ test('Krasnov : deux images WebP avec perte disponibles, PNG des décors supprim
   const norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   assert.ok(!src.some(n=>norm(n).includes('interieur chaleureux d')&&norm(n).endsWith('.png')));
   assert.ok(!src.some(n=>norm(n).includes('interieur orthodoxe dore')&&norm(n).endsWith('.png')));
-  assert.ok(src.some(n=>norm(n).includes('portrait chaleureux d')&&norm(n).endsWith('.png')));
-  assert.ok(src.some(n=>norm(n).includes('portrait tendre en foulard')&&norm(n).endsWith('.png')));
+  for (const name of ['Kouzma.webp','Praskovia.webp']) {
+    const bytes=fs.readFileSync(path.join(dir,name));
+    assert.equal(bytes.toString('ascii',0,4),'RIFF',name);
+    assert.equal(bytes.toString('ascii',8,12),'WEBP',name);
+    assert.equal(bytes.toString('ascii',12,16),'VP8 ',name+' doit être avec perte');
+    assert.ok(bytes.length>30000,name);
+  }
+  assert.ok(!src.some(n=>norm(n).includes('portrait chaleureux d')&&norm(n).endsWith('.png')));
+  assert.ok(!src.some(n=>norm(n).includes('portrait tendre en foulard')&&norm(n).endsWith('.png')));
 });
 test('Krasnov : maison Kouzma et salle de l eglise raccordees, autres villes preservees',()=>{
   const ctx=vm.createContext({console,state:{country:'soviet',currentCity:'ville_b'}});
