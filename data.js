@@ -2527,12 +2527,12 @@ const WORLD = {
           roomOverrides: {
             hall: {
               name: "Accueil",
-              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_affaires_accueil.webp',
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_affaires_accueil_20261115.webp',
               desc: "Petite réception et couloir desservant quatre bureaux individuels.",
               persons: [{
                 name: "Hôtesse du centre d'affaires de Krasnov (PNJ)",
                 role: "Hôtesse d'accueil", rel: "neutral", job: "hotesse",
-                photoUrl: 'images/Sovarka/Krasnov/Krasnov_centre_affaires_hotesse.webp'
+                photoUrl: 'images/Sovarka/Krasnov/Krasnov_centre_affaires_hotesse_20261115.webp'
               }]
             }
           },
