@@ -10,6 +10,7 @@
 -- 2. sovarka_maison_interne : les cinq maisons (besoins tirés des matières existantes) ; Stepan inchangé, sauf le
 --    libellé des œufs aligné sur la quantité réelle (2, depuis 20261114004000).
 -- 3. hotel_nuitee_consommation_interne : toute maison de Sovarka vaut une chambre (patch en place, ancrage vérifié).
+BEGIN;  -- enveloppe annulée (15/11/2026) : rien de ce banc ne peut rester écrit
 
 INSERT INTO public.navigation_lieux_regles(pays, ville, batiment, pieces, ferme, membership) VALUES
   ('soviet', 'ville_b', 'maison-krasnov-bureaux', '["piece_maison"]'::jsonb, false, NULL),
@@ -71,3 +72,4 @@ BEGIN
   r := r || ' nav=' || (SELECT count(*) FROM public.navigation_lieux_regles WHERE batiment LIKE 'maison-krasnov-%')::text;
   RAISE EXCEPTION 'BANC %', r;
 END $t$;
+ROLLBACK;

@@ -30,7 +30,7 @@ test('greffes et commissariats : clics réels dans les trois villes, deux largeu
     await page.route('**/*',route=>route.request().url().startsWith(origine)?route.continue():route.abort());
     try{
      await page.goto(origine);await page.addScriptTag({content:lire('data.js')});
-     await page.addScriptTag({content:fonctions('plateau-politique.js',['renderRoomActions','ouvrirMenuOrdresGreffe','ouvrirMenuOrdresCommissaire'])});
+     await page.addScriptTag({content:fonctions('plateau-politique.js',['renderRoomActions','ouvrirMenuOrdresGreffe','ouvrirMenuOrdresCommissaire','paysMandatPourOrdre'])});
      const attendu=await page.evaluate(({ville,service})=>{
       window.TEST_MODE=false;window.getMalusISN=()=>0;window.clics=[];
       // Ordres capturés : aucun paiement, effet métier ni appel serveur exécuté.

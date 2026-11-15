@@ -35,7 +35,7 @@ test('Écran : façades cliquables, maisons listées à Krasnov, mêmes ordres q
 });
 
 test('Serveur et IA : chaque maison déclarée dans la migration et dans les portraits de trinquer', () => {
-  const sql = fs.readFileSync(path.join(root, 'migrations/20261114180000_krasnov_maisonnettes.sql'), 'utf8');
+  const sql = fs.readFileSync(path.join(root, 'migrations/20261114180001_krasnov_maisonnettes.sql'), 'utf8');
   const ia = fs.readFileSync(path.join(root, 'api/_reaction-habitant.js'), 'utf8');
   for (const [id, [noeud, habitant]] of Object.entries(MAISONS)) {
     assert.ok(sql.includes(`('soviet', 'ville_b', '${noeud}', '${id}')`), id + ' : sortie de rue');

@@ -9,7 +9,7 @@ function jeu(){
   rafraichirRuntimeHelvetia:async()=>{effets.push('finance');return {pa:7};},
   sbRpcVerdict:async(fn,p)=>{appels.push({fn,p});return c.reponse;},reponse:{ok:true},
  };
- vm.createContext(c);vm.runInContext(source,c);return{c,stockage,appels,effets};
+ vm.createContext(Object.assign(c,{window:c}));vm.runInContext(source,c);return{c,stockage,appels,effets};
 }
 test('commande versionnee et relectures : aucun ancien snapshot adopte',async()=>{
  const f=jeu();const r=await f.c.constructionExecuterCommande('lancer',{apport:'10500'});

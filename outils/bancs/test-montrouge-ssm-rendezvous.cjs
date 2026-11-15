@@ -62,14 +62,14 @@ test('les quatre scripts SSM restent versionnés après les autres chantiers',()
  for(const name of ['data.js','plateau-navigation.js','plateau-logements-sociaux.js','plateau-router.js']){
   assert.ok(html.includes(name+'?v='),name+' sans version navigateur');
  }
- assert.ok(html.includes('plateau-logements-sociaux.js?v=ssm-rdv-20261103'));
+ // Version réécrite depuis (i18n-social-20261112) : seule compte la présence d'une version, contrôlée ci-dessus.
 });
 
 test('écran : succès uniquement si serveur confirme ; aucun mail inventé en cas de refus',async()=>{
  const events=[];
  const ctx={console, sbRpcVerdict:async()=>({ok:false,raison:'pas_a_l_accueil'}),
    showToast:(...args)=>events.push(args), addJournalEntry:()=>events.push(['journal'])};
- vm.createContext(ctx);vm.runInContext(housing,ctx);
+ ctx.window=ctx;vm.createContext(ctx);vm.runInContext(housing,ctx);
  await vm.runInContext('demanderRendezVousSsm()',ctx);
  assert.equal(events.length,1);
  assert.match(events[0][1],/Présentez-vous/);
@@ -116,7 +116,7 @@ test('Besoin d’aide : orientation libre, quatre rubriques et portrait récupé
    BUILDINGS:{'services-sociaux-montrouge':{rooms:{accueil:{persons:[{name:'Pascale (PNJ)',photoUrl:'images/personnages/portrait-de-pascale.webp'}]}}}},
    console
  };
- vm.createContext(ctx);vm.runInContext(housing,ctx);
+ ctx.window=ctx;vm.createContext(ctx);vm.runInContext(housing,ctx);
  vm.runInContext('ouvrirAidePascaleSsm()',ctx);
  assert.equal(mockTitle.textContent,'Besoin d’aide ?');
  assert.match(mockBody.innerHTML,/portrait-de-pascale.webp/);

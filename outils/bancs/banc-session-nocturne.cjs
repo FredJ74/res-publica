@@ -4,7 +4,7 @@ function extraire(f,noms){const rue=f==='plateau-rue-centrale.js'&&noms.some(n=>
 function mails(){
  let cache=[];const c=vm.createContext({state:{char:{name:'Alice'}},console,Map,Set,rpAuthUid:()=> 'uid',rpAuthSessionIdentifiant:()=> 'connexion',getMails:()=>cache,saveMails:x=>cache=x,
  getMyMails:()=>cache,mailsRecusVisibles:()=>cache.filter(m=>m.to==='Alice'&&!m.archived),trierMailsRecents:x=>x,escapeHtmlText:s=>s,formatDateAffichage:s=>s||'',renderForumModal(){},rafraichirVoyantsEtCompteursForum(){}});
- vm.runInContext("let mailLectureSequence=0,mailRubrique='recus',mailView='inbox',forumView='mail';const FORUM_VUES_COMPOSITION=['compose-canvas','edit-post','new-topic','reply'];"+extraire('forum.js',['loadMailsFromSB','fusionnerMailsServeur','selectionnerRubriqueMail','switchToMail','forumEstEnCompositionActuellement','renderMailInbox','rpForumLibelle','rpForumCompte']),c);
+ vm.runInContext("let mailLectureSequence=0,mailRubrique='recus',mailView='inbox',forumView='mail';const FORUM_VUES_COMPOSITION=['compose-canvas','edit-post','new-topic','reply'];"+extraire('forum.js',['mailSujetAffiche','mailVuTraduit','loadMailsFromSB','fusionnerMailsServeur','selectionnerRubriqueMail','switchToMail','forumEstEnCompositionActuellement','renderMailInbox','rpForumLibelle','rpForumCompte']),c);
  c.cache=()=>cache;c.rubrique=()=>vm.runInContext('mailRubrique',c);return c;
 }
 test('messagerie : chaque rubrique affiche exclusivement ses messages, y compris organisations',()=>{
@@ -25,5 +25,5 @@ for(const room of ['accueil','bureau'])test(`F5 en ${room} : aucune alerte ni or
  vm.runInContext(extraire('plateau-rue-centrale.js',['initialiserRueCentrale']),c);await c.initialiserRueCentrale('republic','depart',null);assert.deepEqual(appels,['rue_position_lire']);assert.equal(toasts.length,0);
 });
 test('F5 en rue : position serveur affichee sans ecriture ; panne reste signalee',async()=>{
- const toasts=[];let rendu;const c=vm.createContext({state:{currentCity:'capitale'},sbRpc:async()=>({ok:true,country:'republic',city:'capitale',street:'depart'}),showToast:(...a)=>toasts.push(a),RUE_CENTRALE_NOEUDS:{republic:{depart:{}}},afficherNoeudRue:(...a)=>rendu=a});vm.runInContext(extraire('plateau-rue-centrale.js',['initialiserRueCentrale']),c);await c.initialiserRueCentrale('republic','depart',null);assert.equal(rendu[3],true);c.sbRpc=async()=>null;await c.initialiserRueCentrale('republic','depart',null);assert.equal(toasts.length,1);
+ const toasts=[];let rendu;const c=vm.createContext({setTimeout:f=>f(), /* nouvelles tentatives courtes (565c167), immédiates ici */ state:{currentCity:'capitale'},sbRpc:async()=>({ok:true,country:'republic',city:'capitale',street:'depart'}),showToast:(...a)=>toasts.push(a),RUE_CENTRALE_NOEUDS:{republic:{depart:{}}},afficherNoeudRue:(...a)=>rendu=a});vm.runInContext(extraire('plateau-rue-centrale.js',['initialiserRueCentrale']),c);await c.initialiserRueCentrale('republic','depart',null);assert.equal(rendu[3],true);c.sbRpc=async()=>null;await c.initialiserRueCentrale('republic','depart',null);assert.equal(toasts.length,1);
 });

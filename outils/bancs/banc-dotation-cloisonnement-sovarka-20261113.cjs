@@ -39,8 +39,15 @@ test('Sovarka Defense ne propose pas la garde republicaine et exige son propre m
  const defs=world(`ordresDeclaresDeLaPiece(BUILDINGS['palais-gouvernement'].rooms.bureau_min_def,
  WORLD.soviet.capitale.buildingContext['palais-gouvernement'],'bureau_min_def')`);
  const fns=Array.from(defs,x=>x.fn);
- for(const fn of ['garde_republicaine','mobilisation_nationale','activer_cessez_le_feu'])
+ for(const fn of ['mobilisation_nationale','activer_cessez_le_feu'])
   assert.equal(fns.includes(fn),false,fn);
+ // 14/11 (8b4ea29) : la garde républicaine (50 FR, trois palais) reste exclue ; Sovarka a sa propre
+ // « Garde de la Patrie » (même fonction serveur, 15 PSK, Palais du Gouvernement), réservée à son ministre.
+ const gardes=defs.filter(x=>x.fn==='garde_republicaine');
+ assert.equal(gardes.length,1);
+ assert.equal(gardes[0].label,'Garde de la Patrie');
+ assert.equal(gardes[0].requiresPost,'min_def');
+ assert.match(gardes[0].desc,/PSK/);
  assert.ok(fns.includes('sovarka_conscription'));
  assert.ok(fns.includes('gestion_caserne'), 'La gestion de la caserne appartient au ministre sovarkien comme au républicain');
  assert.ok(fns.includes('renseignement_militaire'));

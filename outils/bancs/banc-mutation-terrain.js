@@ -12,6 +12,7 @@ function sbRpcVerdict(nom,args){RPC.push({nom:nom,args:args});return VERDICT==='
 function sbGetTerrainState(){var v=Array.isArray(VERDICT)?VERDICT[0]:VERDICT;return Promise.resolve(v&&v.ok?v.etat:null);}
 function rafraichirRuntimeHelvetia(){return Promise.resolve({pa:7});}function remplacerTerrainState(id,e){CACHE.push(e);}
 var document={getElementById:()=>({classList:{remove(){}}})};
+var window=globalThis; // plateau-pnj.js s'abonne au changement de langue (window.RP_I18N_CHANGE_CALLBACKS)
 function sbSetTerrainState(){ANCIENNES.push('ancien_blob');}function sbEnregistrerVenteTerrain(){ANCIENNES.push('ancienne_archive');}
 eval(pont);eval(bloc('finaliserAchatTerrain'));
 function neuf(v,gele){stock.clear();state={char:{name:'Ben'},country:'republic',currentCity:'capitale',arg:5000};VERDICT=v===undefined?{ok:true,etat:{proprietaire:'Ben',surface:800,valeur_totale:9000,city:'ville_a',permis:{statut:'valide'},zzTemoinServeur:4242}}:v;GELE=!!gele;RPC=[];TOASTS=[];JOURNAL=[];CACHE=[];ANCIENNES=[];}

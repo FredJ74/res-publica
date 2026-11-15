@@ -6778,43 +6778,39 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_b\",\"centre-affaires\",\"hall\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre d'Affaires",
-    "piece": "Hall d'Entrée",
+    "batiment": "Centre d'affaires de Krasnov",
+    "piece": "Accueil",
     "personnes": [
-      "Darina Korneva",
-      "Makar Tchernov",
-      "Afanassi Rogov"
+      "Hôtesse du centre d'affaires de Krasnov"
     ]
   },
-  "[\"soviet\",\"ville_b\",\"centre-affaires\",\"bureau_prestige\"]": {
+  "[\"soviet\",\"ville_b\",\"centre-affaires\",\"bureau_1\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre d'Affaires",
-    "piece": "Bureau Prestige — Local à louer",
+    "batiment": "Centre d'affaires de Krasnov",
+    "piece": "Bureau 1 — Local à louer",
     "personnes": []
   },
-  "[\"soviet\",\"ville_b\",\"centre-affaires\",\"bureau_standard\"]": {
+  "[\"soviet\",\"ville_b\",\"centre-affaires\",\"bureau_2\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre d'Affaires",
-    "piece": "Bureau Standard — Local à louer",
+    "batiment": "Centre d'affaires de Krasnov",
+    "piece": "Bureau 2 — Local à louer",
     "personnes": []
   },
-  "[\"soviet\",\"ville_b\",\"centre-affaires\",\"open_space\"]": {
+  "[\"soviet\",\"ville_b\",\"centre-affaires\",\"bureau_3\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre d'Affaires",
-    "piece": "Open Space — Local à louer",
+    "batiment": "Centre d'affaires de Krasnov",
+    "piece": "Bureau 3 — Local à louer",
     "personnes": []
   },
-  "[\"soviet\",\"ville_b\",\"centre-affaires\",\"tribune_republia\"]": {
+  "[\"soviet\",\"ville_b\",\"centre-affaires\",\"bureau_4\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
-    "batiment": "Centre d'Affaires",
-    "piece": "La Voix de Sovarka — Antenne de Krasnov",
-    "personnes": [
-      "Anatoli Kolosov"
-    ]
+    "batiment": "Centre d'affaires de Krasnov",
+    "piece": "Bureau 4 — Local à louer",
+    "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"logements-novomirsk\",\"salle\"]": {
     "pays": "Sovarka",
@@ -7094,7 +7090,9 @@ export const SCENES_PNJ = {
     "ville": "Krasnov",
     "batiment": "Tabac/Presse de Krasnov",
     "piece": "Boutique",
-    "personnes": []
+    "personnes": [
+      "Valentina Makhorkina"
+    ]
   },
   "[\"soviet\",\"ville_b\",\"terrain-a-batir-2\",\"terrain\"]": {
     "pays": "Sovarka",
@@ -7264,72 +7262,45 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Musée de Krasnov",
-    "piece": "Hall d'accueil",
+    "piece": "Accueil du musée de Krasnov",
     "personnes": [
-      "Vera Lebedeva"
+      "Hôtesse du musée de Krasnov",
+      "Guide du musée de Krasnov"
     ]
   },
-  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_criminels\"]": {
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"faune_sauvage\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Musée de Krasnov",
-    "piece": "Salle des Grands Criminels Novomirskois",
+    "piece": "Faune sauvage de Krasnov",
     "personnes": []
   },
-  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_maires\"]": {
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"flore_sauvage\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Musée de Krasnov",
-    "piece": "Salle des Présidents du Soviet municipal",
+    "piece": "Flore sauvage de Krasnov",
     "personnes": []
   },
-  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_personnalites\"]": {
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"exploitation_bois\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Musée de Krasnov",
-    "piece": "Salle des Héros du Peuple",
+    "piece": "Le bois et les bûcherons de Krasnov",
     "personnes": []
   },
-  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_entrepreneurs\"]": {
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"kolkhozes\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Musée de Krasnov",
-    "piece": "Salle des Grands Bâtisseurs de la Production",
+    "piece": "Kolkhozes et économie collective",
     "personnes": []
   },
-  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_organisations\"]": {
+  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"ecoute_spatiale\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Musée de Krasnov",
-    "piece": "Salle des Organisations Novomirskoises",
-    "personnes": []
-  },
-  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_plumes\"]": {
-    "pays": "Sovarka",
-    "ville": "Krasnov",
-    "batiment": "Musée de Krasnov",
-    "piece": "Salle des Plumes Novomirskoises",
-    "personnes": []
-  },
-  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_honneur_militaire\"]": {
-    "pays": "Sovarka",
-    "ville": "Krasnov",
-    "batiment": "Musée de Krasnov",
-    "piece": "Salle d'Honneur Militaire",
-    "personnes": []
-  },
-  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_unions\"]": {
-    "pays": "Sovarka",
-    "ville": "Krasnov",
-    "batiment": "Musée de Krasnov",
-    "piece": "Salle des Unions Célèbres",
-    "personnes": []
-  },
-  "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"salle_scandales\"]": {
-    "pays": "Sovarka",
-    "ville": "Krasnov",
-    "batiment": "Musée de Krasnov",
-    "piece": "Salle des Scandales et Affaires",
+    "piece": "Krasnov à l’écoute de l’espace",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"cafe-tabac-cheminots-montrouge\",\"salle\"]": {

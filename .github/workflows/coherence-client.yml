@@ -17,9 +17,13 @@ concurrency:
 jobs:
   bancs-hors-production:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 10 minutes ne suffisaient plus : la seule batterie « Bancs JavaScript » en prend environ 9 (15/11/2026).
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Les bancs i18n comparent aux commits de référence (git show <sha>, merge-base) : historique complet.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -45,8 +49,11 @@ jobs:
         run: npm ci --prefix outils/vercel --no-audit --no-fund
       - name: Installer les dépendances du pilote navigateur avant les bancs client
         run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
-      - name: Calendrier sur main (PR couvertes par les controles dedies)
-        if: github.event_name == 'push'
+      - name: Dépendances de l'audit i18n (acorn, parse5) avant les bancs client
+        run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      # Joué aussi sur les PR depuis le 15/11/2026 : réservé à main, il ne voyait les bancs cassés qu'après fusion,
+      # et les échecs s'empilaient sans que personne ne les voie avant (15 bancs rouges au 15/11).
+      - name: Calendrier et bancs Node test-*.mjs (main et PR)
         run: node --test outils/bancs/test-*.mjs
 
       - name: Tracts — plafond commun de 100 unités avant toute impression
@@ -92,6 +99,9 @@ jobs:
       - name: Chantier naval PSM — deux devis et garde serveur
         run: node --test outils/bancs/test-chantier-naval.mjs
       - name: Bancs JavaScript, transports simulés
+        # Les bancs navigateur cherchent playwright depuis outils/bancs : on leur donne celui d'outils/e2e.
+        env:
+          NODE_PATH: ${{ github.workspace }}/outils/e2e/node_modules
         run: python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs
       - name: Destinations du centre multimodal
         run: node outils/bancs/banc-destinations-multimodal-20261028.cjs

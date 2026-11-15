@@ -52,7 +52,7 @@ test('acte officiel : le contenu affiche ne peut pas devenir un objet dicte au s
 });
 test('fiche imprimee par RPC, sans sauvegarde generale ni ajout local',async()=>{
  let fn;const c=vm.createContext({executerReceptionInventaire:async(f)=>{fn=f;return {ok:true,objet:'Fiche serveur'};},updateUI(){},renderInventory(){},showToast(){},sbSavePersonnage:()=>assert.fail('sauvegarde fiche'),state:{inventory:[]}});
- vm.runInContext(fonction('plateau-etat-civil.js','etatCivilImprimerFiche'),c);await c.etatCivilImprimerFiche('Fixture');assert.equal(fn,'etat_civil_document_recevoir');assert.equal(c.state.inventory.length,0);
+ vm.runInContext('var window=globalThis;'+fonction('plateau-etat-civil.js','ecT')+'\n'+fonction('plateau-etat-civil.js','etatCivilImprimerFiche'),c);await c.etatCivilImprimerFiche('Fixture');assert.equal(fn,'etat_civil_document_recevoir');assert.equal(c.state.inventory.length,0);
 });
 test('confirmation d acte attend la reponse sans paiement separe et sans fausse reussite',async()=>{
  let toasts=0;const c=vm.createContext({_acteOfficielChoixCache:[{type:'naissance'}],etatCivilDelivrerActe:async()=>null,deduireCoutOrdre:()=>assert.fail('debit separe'),showToast:()=>toasts++});vm.runInContext(fonction('plateau-justice-economie.js','confirmerActeOfficiel'),c);await c.confirmerActeOfficiel(0,'Fixture',1,100);assert.equal(toasts,0);

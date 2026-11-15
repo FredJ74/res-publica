@@ -29,6 +29,6 @@ const ls = lire('plateau-logements-sociaux.js');
 t('sans logements sociaux, la demande affiche « Il n y a pas de logements sociaux dans la ville. » avant tout cout',
   /fn === 'demander_logement_social'\) \{ demanderLogementSocialCommun\(pa, cost\)/.test(routeur)
   && /aucun_logement_social: "Il n'y a pas de logements sociaux dans la ville\."/.test(ls)
-  && /sbRpcVerdict\('logements_sociaux_offre'[\s\S]{0,160}offre\.offre === false\) \{\s*showToast\('Logements sociaux', LOGEMENTS_SOCIAUX_MOTIFS\.aucun_logement_social/.test(ls));
+  && /sbRpcVerdict\('logements_sociaux_offre'[\s\S]{0,160}offre\.offre === false\) \{\s*showToast\([^\n]*aucun_logement_social/.test(ls)); // message traduit depuis le 12/11 (socialReason)
 t('archives des maires lues pour la ville courante', /sbGetArchivesMandatsMaires\(paysArchives, villeArchives\)/.test(enigme) && !/sbGetArchivesMandatsMaires\('republic', 'capitale'\)/.test(enigme));
 console.log(`\n${n - ko}/${n} tests passes`); process.exit(ko ? 1 : 0);

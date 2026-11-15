@@ -30,6 +30,6 @@ test('plan : aucune anomalie dans les 8 villes, carrefours V4/V5 et V14/V15 chac
 });
 test('cache : versions de la navigation et du plan à jour dans plateau.html (régressées par #861)', () => {
   const html = lire('plateau.html');
-  assert.match(html, /plateau-rue-centrale\.js\?v=[^"]*quai-hopital-20261113"/);
-  assert.match(html, /plateau-plan-rues\.js\?v=[^"]*carrefour-declare-20261113-quai-hopital-20261113"/);
+  assert.match(html, /plateau-rue-centrale\.js\?v=[^"]*quai-hopital-20261113[^"]*"/);
+  assert.match(html, /plateau-plan-rues\.js\?v=[^"]*carrefour-declare-20261113-quai-hopital-20261113[^"]*"/); // marque présente, pas forcément la dernière
 });

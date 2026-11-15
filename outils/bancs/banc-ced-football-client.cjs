@@ -16,7 +16,7 @@ function fixture() {
     showToast(){},addJournalEntry(){},updateUI(){},appliquerPaiementServeur(){},sbAdopterInventaireServeur:r=>{c.state.inventory=r.inventory;return true;},
     sbRpc:async()=>({ok:true,dealer:"Céd' Labone",brume:{stock:30,prix:50},estadine:{stock:10,prix:120}}),
     sbRpcVerdict:async(fn,params)=>{calls.push({fn,params});return {ok:true,nom:'Pochon de Brume',prix:50,inventory:[{name:'Pochon de Brume'}],paiement:{}};}};
-  vm.createContext(c);vm.runInContext(fs.readFileSync(path.join(root,'plateau-ced.js'),'utf8'),c);
+  vm.createContext(Object.assign(c,{window:c}));vm.runInContext(fs.readFileSync(path.join(root,'plateau-ced.js'),'utf8'),c);
   return {c,elements,calls};
 }
 test('Ced : livraison serveur et aucune addition client',async()=>{

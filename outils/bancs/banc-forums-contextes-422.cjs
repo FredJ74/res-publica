@@ -2,7 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
 const source=process.env.HG422_CONTRE?require('node:child_process').execFileSync('git',['show',process.env.HG422_CONTRE+':forum.js'],{encoding:'utf8'}):fs.readFileSync('forum.js','utf8');
 function scene(){
- const timers=new Set();let num=0;const c=vm.createContext({console:{info(){},warn(){},error(){}},Date,state:{country:'republic',currentCity:'capitale',char:{name:'Alice'},organisations:[{id:'club',chef:'Chef',membres:[{nom:'Alice'}]}]},uid:'u1',session:'s1',document:{getElementById:()=>null},localStorage:{getItem:()=>null,setItem(){}},setTimeout:()=>{timers.add(++num);return num;},clearTimeout:id=>timers.delete(id)});
+ const timers=new Set();let num=0;const c=vm.createContext({get window(){return this},console:{info(){},warn(){},error(){}},Date,state:{country:'republic',currentCity:'capitale',char:{name:'Alice'},organisations:[{id:'club',chef:'Chef',membres:[{nom:'Alice'}]}]},uid:'u1',session:'s1',document:{getElementById:()=>null},localStorage:{getItem:()=>null,setItem(){}},setTimeout:()=>{timers.add(++num);return num;},clearTimeout:id=>timers.delete(id)});
  c.rpAuthUid=()=>c.uid;c.rpAuthSessionIdentifiant=()=>c.session;
  vm.runInContext(source,c);c.rafraichirVoyantsEtCompteursForum=()=>{};c.get=x=>vm.runInContext(x,c);c.get('getForums()');c.timers=timers;return c;
 }

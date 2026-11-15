@@ -802,7 +802,7 @@ La règle explicite la plus récente de Fred prévaut sur la ligne du 04/11 : le
 ## Pavillon et Résidence : service d'étage, escorts et espionnage (Fred, 12/11/2026, 0 h 41 – 1 h 23) — CODÉ le 12/11/2026 (feu vert de Fred, 1 h 23)
 
 **Codé (12/11/2026, branche `claude/escorts-pavillon-residence-20261112`, PR #779)** : migrations `20261112005000_escorts_roxane_velours_sovarka`
-et `20261112012000_escort_rumeur_marqueur` **appliquées, NE PAS RÉAPPLIQUER** (banc annulé `outils/bancs/banc-escorts-roxane-velours-20261112.sql`
+et `20261112012001_escort_rumeur_marqueur` (fichier renommé le 15/11 : horodatage en double) **appliquées, NE PAS RÉAPPLIQUER** (banc annulé `outils/bancs/banc-escorts-roxane-velours-20261112.sql`
 vert sur la production avant application) ; écran `plateau-escorts-sovarka.js` (9 langues), banc `banc-escorts-sovarka-20261112.cjs`.
 - Ordres verts **« Appel à un(e) escort »** (`escort_standard`) et **« Service d'étage »** (`service_etage_carte` : `service_etage` est déjà
   l'ordre des hôtels de Républia) dans les 3 suites du Pavillon et les 5 appartements de la Résidence ; le serveur vérifie que l'on est le
@@ -993,7 +993,7 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 
 ## Maisonnettes de Krasnov (Fred, 14/11/2026)
 
-- Décision de Fred : chaque maisonnette en bois visible dans les vues de rue de Krasnov est cliquable et abrite **un habitant**, sur le modèle de la maison de Stepan (service du jour, repas, lit, trinquer). Migration `20261114180000_krasnov_maisonnettes`.
+- Décision de Fred : chaque maisonnette en bois visible dans les vues de rue de Krasnov est cliquable et abrite **un habitant**, sur le modèle de la maison de Stepan (service du jour, repas, lit, trinquer). Migration `20261114180001_krasnov_maisonnettes` (fichier renommé le 15/11 : horodatage en double).
 - Cinq maisons repérées par Claude : maison bleue en face du centre d'affaires (`krasnov-rue-bureaux`), maison rouge et maison bleue de la rue descendante, maison brune près de l'église, maison au bord droit des terrains.
 - Habitants proposés par Claude, **validés par Fred (15/11/2026, 0 h 52)** : Antonina Merkoulova (couturière retraitée), Matveï Rybakov (ancien bûcheron), Praskovia Pakhomova (apicultrice), Kouzma Lapchine (ancien sonneur de cloches), Ignat Lykov (vieux trappeur). Services tirés parmi les matières existantes (bois, fruits et légumes, laitages, textile, viande, alcool, carburant, plantes, céréales, poisson). Images d'intérieur à venir.
 

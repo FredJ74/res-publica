@@ -22,7 +22,8 @@ test('Novomirsk montre seulement le hall et les deux nouvelles salles ; Krasnov 
   const c = monde();
   assert.deepEqual(salles(c, 'capitale'), ['hall', 'salle_origines', 'salle_personnalites_discretes', 'salle_bataille_fleuve', 'salle_grand_incendie']);
   const k = salles(c, 'ville_b');
-  assert.ok(!k.includes('salle_origines') && !k.includes('salle_personnalites_discretes') && k.includes('salle_criminels'));
+  // Krasnov a ses propres salles depuis le 14/11 (accueil et cinq salles thématiques, test-krasnov-musee-20261114.mjs).
+  assert.ok(!k.includes('salle_origines') && !k.includes('salle_personnalites_discretes') && k.includes('faune_sauvage'));
   const r = c.BUILDINGS['musee-novomirsk'].rooms;
   assert.equal(r.salle_origines.name, 'Salle des Origines');
   assert.ok(r.salle_origines.orders.some(o => o.fn === 'tresor_ecouter_guide' && o.pa === 0));

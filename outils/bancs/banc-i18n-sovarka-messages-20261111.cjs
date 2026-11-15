@@ -224,7 +224,10 @@ test('courriers : chaque sujet fixe des migrations Sovarka a son modèle dans le
   }
   // Restent en français (listés au relais) : cotisation (module commun des organisations) ; rapports de
   // surveillance et d'écoute, dont le corps reprend des déplacements et des courriers interceptés.
-  const ignores = ['Fin d\'adhésion — cotisation non renouvelée', 'Rapport de surveillance — ', 'Rapport d\'écoute — ', 'Rapport d\'écoute dérobé — ', 'Archives consultées — '];
+  // Ministères, lot 2 (20261114040000, 14/11) : grâces et manifestations de soutien, en français en attendant le lot
+  // i18n (consigné au relais le 15/11).
+  const ignores = ['Fin d\'adhésion — cotisation non renouvelée', 'Rapport de surveillance — ', 'Rapport d\'écoute — ', 'Rapport d\'écoute dérobé — ', 'Archives consultées — ',
+    'Recommandation de grâce', 'Grâce non transmise', 'Demande de manifestation de soutien', 'Manifestation réprimée'];
   for (const s of sujets) {
     if (ignores.some(i => s.startsWith(i))) continue;
     assert.ok([...sujetsFr].some(p => s.startsWith(p)), 'sujet sans modèle : ' + s);
