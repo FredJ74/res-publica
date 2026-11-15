@@ -1,6 +1,7 @@
 -- Banc d'intégration autonome du Pavillon sur PostgreSQL jetable.
 -- Aucune donnée ni secret de production. Les primitives externes sont simulées,
 -- le code complet du Pavillon est celui de la migration réellement proposée.
+BEGIN;  -- enveloppe annulée (15/11/2026) : rien de ce banc ne peut rester écrit
 CREATE ROLE authenticated NOLOGIN;
 CREATE ROLE anon NOLOGIN;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -175,3 +176,4 @@ BEGIN
   RAISE EXCEPTION 'ancien guichet générique encore ouvert'; END IF;
 END $checks$;
 SELECT 'BANC PAVILLON VERT' AS conclusion;
+ROLLBACK;

@@ -56,6 +56,16 @@ for (const m of sql.matchAll(/\('([a-z-]+)','([a-z0-9_-]+)','([*a-z_]+)',(\d+),(
   serveur[m[1] + '|' + m[2] + '|' + m[3]] = [m[4], m[5], m[6], m[7]].join(',');
 }
 
+// Fermetures posées ensuite par UPDATE (ex. appartements de la Résidence impériale, 20261111232000 :
+// la location de local est remplacée par la réservation à l'accueil) : ces locaux ne sont plus louables.
+for (const f of fs.readdirSync(path.join(racine, 'migrations')).filter(f => f.endsWith('.sql')).sort()) {
+  for (const m of lire('migrations/' + f).matchAll(/UPDATE public\.locaux_loyers_referentiel SET louable = false\s+WHERE batiment = '([a-z-]+)'\s+AND piece IN \(([^)]*)\)/g)) {
+    for (const piece of [...m[2].matchAll(/'([a-z0-9_-]+)'/g)].map(x => x[1])) {
+      for (const k of Object.keys(serveur)) if (k.startsWith(m[1] + '|' + piece + '|')) { delete serveur[k]; nonLouables.push(k); }
+    }
+  }
+}
+
 console.log('1. EQUIVALENCE DU REFERENTIEL SERVEUR');
 const manquants = Object.keys(attendus).filter(k => serveur[k] === undefined);
 const enTrop = Object.keys(serveur).filter(k => attendus[k] === undefined);

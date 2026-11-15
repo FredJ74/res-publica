@@ -23,8 +23,10 @@ test('la gestion de caserne est commune aux ministres de Défense de Républia e
   assert.equal(gestion.requiresPost,'min_def');
  }
  const sov=ordres('soviet','capitale','bureau_min_def');
- for(const fn of ['garde_republicaine','mobilisation_nationale','activer_cessez_le_feu'])
+ for(const fn of ['mobilisation_nationale','activer_cessez_le_feu'])
   assert.ok(!sov.some(o=>o.fn===fn),fn);
+ // 14/11 (8b4ea29) : seule la « Garde de la Patrie » de Sovarka (15 PSK) remplace la garde républicaine.
+ assert.deepEqual(sov.filter(o=>o.fn==='garde_republicaine').map(o=>o.label),['Garde de la Patrie']);
 });
 test('le bureau sovarkien des ministres limite chaque pouvoir à son propre poste',()=>{
  for(const [room,fn,id] of [

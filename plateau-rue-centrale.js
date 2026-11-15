@@ -1667,10 +1667,10 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
     // jamais de changement de pays sur une réponse vide, invalide ou non authentifiée.
     const lieuServeurValide = position?.ok===true &&
       typeof position.country==='string' && typeof position.city==='string' &&
-      !!WORLD?.[position.country]?.[position.city] &&
+      typeof WORLD!=='undefined' && !!WORLD?.[position.country]?.[position.city] &&
       !!RUE_CENTRALE_DEPART[position.country]?.[position.city] &&
       (position.building
-        ? !!BUILDINGS?.[position.building]
+        ? (typeof BUILDINGS!=='undefined' && !!BUILDINGS?.[position.building])
         : !!(position.street && RUE_CENTRALE_NOEUDS[position.country]?.[position.street]));
     if (lieuServeurValide &&
         (position.country!==state.country || position.city!==state.currentCity)) {

@@ -104,7 +104,7 @@ test('sortie : refus nommé sous 20 PA ; acceptée, l’hospitalisation est lev�
 test('catalogue : ordres présents aux trois lieux de soins, coût du repas identique au miroir serveur, routage',()=>{
  const data=lire('data.js'),routeur=lire('plateau-router.js'),sql=lire('migrations/20261101171000_hospitalisation_pa0.sql');
  const repas=[...data.matchAll(/\{fn:'repas_hopital'[^}]*\}/g)].map(m=>m[0]);
- assert.equal(repas.length,2,'salle d’attente de Luthécia, gabarit de province');
+ assert.equal(repas.length,3,'salle d’attente de Luthécia, gabarit de province, chambres d’hôpital uniformes (CHAMBRE_HOPITAL_ORDRES, 14/11)');
  for(const r of repas)assert.match(r,/pa:1, cost:0/);
  const clinique=[...data.matchAll(/\{fn:'repas_clinique'[^}]*\}/g)].map(m=>m[0]);
  assert.equal(clinique.length,10,'les 10 chambres de la clinique');

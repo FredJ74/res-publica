@@ -50,13 +50,16 @@ function rue(ville,groupes){
  c.sbRpc=(fn)=>{c.appels.push(fn);assert.equal(fn,'rue_position_lire','aucun ordre de déplacement au rechargement');return new Promise(r=>{c.finir=()=>r(c.reponse);});};
  c.reponse={ok:true,country:'republic',city:ville,street:noeud,building:null,room:null};
  c.afficherNoeudRue=async(...a)=>c.affichages.push(a);c.showToast=(...a)=>c.toasts.push(a);
+ // Depuis le 15/11 (431d69e) : la ville canonique differente est realignee puis la ville est redessinee
+ // (forceRenderCity), qui relance une lecture dans le bon contexte. WORLD : villes connues du jeu.
+ c.WORLD={republic:{capitale:{},ville_a:{},ville_b:{}}};c.rendusVille=[];c.forceRenderCity=v=>c.rendusVille.push(v);
  return {c,noeud};
 }
 for(const ville of ['capitale','ville_a','ville_b'])for(const groupes of [false,true])test('rue #366 / '+ville+' / groupes '+groupes,async()=>{
  const {c,noeud}=rue(ville,groupes),p=c.initialiserRueCentrale('republic','ancien-noeud',null);
  await new Promise(r=>setImmediate(r));c.finir();await p;
  assert.equal(c.state.currentCity,ville);assert.equal(c.state.char.currentCity,ville);
- assert.deepEqual([...c.appels],['rue_position_lire']);assert.deepEqual(c.affichages,[['republic',noeud,null,true]]);assert.equal(c.toasts.length,0);
+ assert.deepEqual([...c.appels],['rue_position_lire']);assert.deepEqual([...c.rendusVille],[ville]);assert.deepEqual(c.affichages,[]);assert.equal(c.toasts.length,0);
 });
 for(const changement of ['session','personnage','refus','rue-inconnue'])test('rue #366 : '+changement+' ne restaure pas de position inventée',async()=>{
  const {c}=rue('ville_a',false),ancienne=c.state.currentCity,p=c.initialiserRueCentrale('republic','ancien-noeud',null);

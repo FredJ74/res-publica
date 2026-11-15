@@ -4,7 +4,7 @@ function jeu(stock=new Map()){
  const c={state:{country:'republic',char:{name:'Fixture',pa:9},pa:9},crypto:{randomUUID:()=> '12345678-0000-4000-8000-123456789abc'},sessionStorage:{getItem:k=>stock.get(k)||null,setItem:(k,v)=>stock.set(k,v),removeItem:k=>stock.delete(k),key:n=>[...stock.keys()][n],get length(){return stock.size;}},appels:[],toasts:[],stock,relire:true,terrain:{proprietaire:'Fixture'},updateUI(){},showToast(...x){c.toasts.push(x)},constructionFenetre(){},constructionBouton(){},remplacerTerrainState(k,v){c.cache=v},rafraichirRuntimeHelvetia:async()=>c.relire?{pa:7}:null,sbGetTerrainState:async()=>c.terrain};
  c.contexteNavigationRue=()=>({uid:'fixture',nom:c.state.char.name,char:c.state.char});c.contexteNavigationRueValide=x=>x.char===c.state.char;
  c.sbRpcVerdict=async(n,p)=>{c.appels.push({n,p});return c.verdict?c.verdict(n,p):{ok:true}};
- vm.createContext(c);vm.runInContext(source,c);return c;
+ vm.createContext(Object.assign(c,{window:c}));vm.runInContext(source,c);return c;
 }
 const params={p_terrain:'terrain',p_action:'depot',p_parametres:{occupation:'1:'}};
 test('réponse perdue et F5 : même UUID, aucune compensation ni delta financier',async()=>{const c=jeu();c.verdict=async()=>{throw Error('réponse perdue après commit')};assert.equal(await c.finance135Executer('acquisition','terrain',params),null);assert.equal(c.stock.size,1);const d=jeu(c.stock);assert.ok(await d.finance135Executer('acquisition','terrain',params));assert.equal(c.appels[0].p.p_requete,d.appels[0].p.p_requete);assert.equal(d.stock.size,0);assert.equal(d.state.pa,7);assert.equal(d.state.arg,undefined);assert.equal(d.cache,d.terrain);});
