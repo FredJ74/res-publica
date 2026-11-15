@@ -6,8 +6,8 @@
   "mechanicsChanged": false,
   "productionDeployed": false,
   "merged": false,
-  "blockedByPreexistingPayload": true,
-  "targetedTestsPassed": 9,
+  "blockedByPreexistingPayload": false,
+  "targetedTestsPassed": 23,
   "chromiumLanguageSwitches": 270,
   "viewports": [
     320,
@@ -15,12 +15,11 @@
     1280
   ],
   "regressionTests": {
-    "mainPassed": 42,
-    "mainFailed": 1,
-    "branchPassed": 42,
-    "branchFailed": 1,
-    "failure": "Corps de notification retiré des sources par les correctifs de position de main : Impossible de restaurer la position depuis le serveur.",
-    "baseCommit": "354b7286c57366719b38dbd6b56e1d10938bfa6e"
+    "passed": 42,
+    "failed": 1,
+    "reason": "Quatre descriptions communes non traduites sur main b89a264 également ; plafond antérieur trois, contrôle conservé rouge.",
+    "obsoleteNavigationSourceProvenanceUpdated": true,
+    "commonInventoryUpdatedFrom247To248": true
   },
   "baselineDescriptionsBank": {
     "passed": 4,
@@ -28,17 +27,17 @@
     "missingTexts": 10
   },
   "branchDescriptionsBank": {
-    "passed": 5,
-    "failed": 0,
-    "missingTexts": 0
+    "passedWithFrozenBaseline": 5,
+    "newMissingTexts": 0,
+    "preexistingMissingTextsOutsideLot": 4,
+    "strictGlobalStillReportsTheseGaps": true
   },
   "payload": {
-    "mainBytes": 347905991,
-    "branchBytes": 347910612,
-    "deltaBytes": 4621,
+    "branchBytes": 277530738,
     "limitBytes": 346030080,
-    "bothOverLimit": true,
-    "limitUnchanged": true
+    "withinLimit": true,
+    "limitUnchanged": true,
+    "imagesUnchangedAgainstIntegratedMain": true
   },
   "audit": {
     "methodChanged": false,
@@ -52,7 +51,16 @@
   "authenticatedPlayerTest": false,
   "physicalPhoneTest": false,
   "nativeLinguisticReview": false,
-  "integrationMainCommit": "354b7286c57366719b38dbd6b56e1d10938bfa6e",
-  "integrationCodeCommit": "bb3079761c882f90f05a8d2ebdd19486383af65d",
-  "pr": 969
+  "integrationMainCommit": "b89a264eb24a6059443de6abf328c413d4bcfff0",
+  "integrationCodeCommit": "2e47fd71f1bf332336c7dfb3eb019a7c43f13095",
+  "pr": 969,
+  "historicalPayload": {
+    "mainBytes": 347905991,
+    "branchBytes": 347910612,
+    "deltaBytes": 4621,
+    "limitBytes": 346030080,
+    "bothOverLimit": true,
+    "limitUnchanged": true
+  },
+  "readyForMerge": true
 }

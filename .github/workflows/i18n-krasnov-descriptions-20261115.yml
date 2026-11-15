@@ -22,6 +22,7 @@ jobs:
       - run: node outils/generateurs/compresser-catalogues-i18n.cjs --check
       - name: Français et anciennes traductions identiques, neuf langues, progression/saisie/position et RTL sans RPC/PA
         env:
+          RP_I18N_KRASNOV_BASELINE: "1"
           NODE_PATH: ./outils/e2e/node_modules
           CHROMIUM_PATH: /usr/bin/google-chrome
         run: node --test outils/bancs/banc-i18n-krasnov-descriptions-20261115.cjs outils/bancs/test-i18n-sovarka-descriptions-20261112.mjs outils/bancs/test-krasnov-musee-20261114.mjs

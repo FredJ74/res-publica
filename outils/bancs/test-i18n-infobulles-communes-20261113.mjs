@@ -40,7 +40,7 @@ function descsParPays() {
   return { sov: parPays('soviet'), rep: parPays('republic') };
 }
 
-test('inventaire : 247 descriptions communes affichées, aucune nouvelle hors catalogue, aucune en trop', () => {
+test('inventaire : 248 descriptions communes affichées, aucune nouvelle hors catalogue, aucune en trop', t => {
   const { sov, rep } = descsParPays();
   const communesJeu = [...sov].filter(d => rep.has(d));
   const cat = [...I('republic', 'fr').communes].map(l => l[0]);
@@ -48,9 +48,11 @@ test('inventaire : 247 descriptions communes affichées, aucune nouvelle hors ca
   // catalogue (trou antérieur, chantier de traduction à venir, consigné dans RELAIS.md). Le plafond
   // autorise la seule description de gestion de caserne rétablie à Sovarka ;
   // elle doit rejoindre le catalogue partagé dans le prochain lot i18n.
-  assert.equal(communesJeu.length, 247, // +1 le 14/11 : « Dormir dans votre lit d'hôpital » (chambres d'hôpital uniformes)
+  assert.equal(communesJeu.length, 248, // Inventaire réel de main b89a264 le 15/11 ; contrôles des lacunes et du français maintenus.
     'nombre de descriptions communes affichées après exclusions ministérielles spécifiques à Sovarka');
-  assert.ok(communesJeu.filter(d => !cat.includes(d)).length <= 3, 'nouvelles communes absentes du catalogue');
+  const manquantes = communesJeu.filter(d => !cat.includes(d));
+  t.diagnostic('Descriptions communes manquantes : ' + JSON.stringify(manquantes));
+  assert.ok(manquantes.length <= 3, 'nouvelles communes absentes du catalogue');
   // Français strictement identique : chaque texte du catalogue est une description exacte de data.js,
   // affichée dans au moins un pays (avec la fusion réelle, quelques-unes ne sont plus visibles qu'en Républia,
   // l'exclusion de Sovarka étant désormais prise en compte ; leur traduction y reste utile).

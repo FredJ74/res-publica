@@ -10,16 +10,16 @@ const context=vm.createContext({});
 vm.runInContext(data,context);
 const center=vm.runInContext("WORLD.soviet.ville_b.buildingContext['centre-affaires']",context);
 test('Accueil autonome, sans traitement panoramique ni changement des quatre bureaux',()=>{
- assert.equal(center.roomOverrides.hall.imageUrl,'images/Sovarka/Krasnov/Krasnov_centre_affaires_accueil.webp');
+ assert.equal(center.roomOverrides.hall.imageUrl,'images/Sovarka/Krasnov/Krasnov_centre_affaires_accueil_20261115.webp');
  assert.equal(center.roomOverrides.hall.cadrageIntegral,undefined);
- assert.equal(center.roomOverrides.hall.persons[0].photoUrl,'images/Sovarka/Krasnov/Krasnov_centre_affaires_hotesse.webp');
+ assert.equal(center.roomOverrides.hall.persons[0].photoUrl,'images/Sovarka/Krasnov/Krasnov_centre_affaires_hotesse_20261115.webp');
  assert.equal(Object.keys(center.roomsExtra).length,4);
  assert.doesNotMatch(css,/data-cadrage-integral/);
  assert.doesNotMatch(nav,/data-cadrage-integral/);
  assert.doesNotMatch(data,/cadrageIntegral:\s*true/);
 });
 test('Les images sont réellement des WebP et la source PNG a été supprimée',()=>{
- for(const f of ['Krasnov_centre_affaires_accueil.webp','Krasnov_centre_affaires_hotesse.webp']){
+ for(const f of ['Krasnov_centre_affaires_accueil_20261115.webp','Krasnov_centre_affaires_hotesse_20261115.webp']){
    const p='images/Sovarka/Krasnov/'+f;
    const bytes=fs.readFileSync(p);
    assert.equal(bytes.toString('ascii',0,4),'RIFF');
