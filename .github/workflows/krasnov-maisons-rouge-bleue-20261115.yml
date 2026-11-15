@@ -1,0 +1,69 @@
+name: Krasnov - deux interieurs maisonnettes WebP
+on:
+  push:
+    branches:
+      - chatgpt/krasnov-maisons-rouge-bleue-images-20261115
+    paths:
+      - '.github/workflows/krasnov-maisons-rouge-bleue-20261115.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  convertir-et-verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Convertir et supprimer uniquement les deux PNG de maisons
+        run: |
+          python -m pip install Pillow==11.3.0
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import unicodedata
+          root=Path('images/Sovarka/Krasnov')
+          def normaliser(s):
+              return unicodedata.normalize('NFKD',s).encode('ascii','ignore').decode('ascii').lower()
+          mapping={
+              'interieur rustique sovietique au poele a bois':'Krasnov_maison_rouge_interieur.webp',
+              'interieur rustique russe chaleureux et fleuri':'Krasnov_maison_bleue_interieur.webp',
+          }
+          pngs=[p for p in root.iterdir() if p.is_file() and p.suffix.lower()=='.png']
+          for key,target in mapping.items():
+              srcs=[p for p in pngs if normaliser(p.stem)==key]
+              assert len(srcs)==1,(key,[p.name for p in srcs])
+              src=srcs[0]
+              dst=root/target
+              assert not dst.exists(),f'Fichier deja present: {dst}'
+              with Image.open(src) as image:
+                  image.load()
+                  assert image.width>=1200 and image.height>=900, (src,image.size)
+                  image.convert('RGB').save(dst,'WEBP',quality=85,method=6,lossless=False)
+                  size=image.size
+              with Image.open(dst) as check:
+                  check.load()
+                  assert check.format=='WEBP' and check.size==size
+              data=dst.read_bytes()
+              assert data[:4]==b'RIFF' and data[8:12]==b'WEBP' and data[12:16]==b'VP8 ', 'Format avec perte requis'
+              assert 50000<dst.stat().st_size<src.stat().st_size,(src,src.stat().st_size,dst.stat().st_size)
+              src.unlink()
+              print(f'{src.name} -> {dst.name} : {len(data)} octets, 85 avec perte')
+          assert all((root/n).exists() for n in mapping.values())
+          assert not any(normaliser(p.stem) in mapping for p in root.glob('*.png'))
+          PY
+      - name: Tester les maisonnettes et leurs images
+        run: |
+          node --test outils/bancs/test-krasnov-maisonnettes-20261114.mjs
+          git diff --check
+      - name: Commit des WebP et suppressions sur la branche
+        run: |
+          git add images/Sovarka/Krasnov
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Krasnov : convertir deux interieurs de maisonnettes en WebP qualite 85'
+            git push origin HEAD:chatgpt/krasnov-maisons-rouge-bleue-images-20261115
+          fi
