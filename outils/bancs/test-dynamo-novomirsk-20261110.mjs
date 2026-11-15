@@ -10,9 +10,9 @@ const ctx = vm.createContext({ console, window: {} });
 vm.runInContext(read('data.js'), ctx);
 const context = vm.runInContext('WORLD.soviet.capitale.buildingContext.stade', ctx);
 const room = vm.runInContext('BUILDINGS.stade.rooms', ctx);
-// Krasnov a reçu sa propre boutique de l'Étoile Rouge le 14/11/2026 (migration 20261114013500) : hors de ce contrôle.
+// Krasnov et Starovka ont chacun leur propre boutique (14 et 15/11/2026) : hors de ce contrôle Dynamo.
 const inOtherCities = vm.runInContext(
-  "[WORLD.republic.capitale, WORLD.republic.ville_a, WORLD.republic.ville_b, WORLD.soviet.ville_a].map(v=>v.buildingContext?.stade?.roomsExtra?.boutique?.imageUrl)", ctx);
+  "[WORLD.republic.capitale, WORLD.republic.ville_a, WORLD.republic.ville_b].map(v=>v.buildingContext?.stade?.roomsExtra?.boutique?.imageUrl)", ctx);
 
 const scenes = {
   terrain: 'terrain',
@@ -52,7 +52,7 @@ test('bureau du président : illustration unique du Dynamo, conversion contrôl�
     'images/bureau-president-luthecia.webp', 'Le bureau de Luthécia doit rester inchangé');
 });
 
-test('boutique uniquement pour le Dynamo, achats du socle et pas de copie dans les autres villes', () => {
+test('boutique du Dynamo isolée des trois villes de Républia, achats du socle préservés', () => {
   assert.ok(context.roomsExtra?.boutique);
   assert.deepEqual([...context.roomsExtra.boutique.orders.map(v=>v.fn)], [
     'choisir_accessoire_club', 'acheter_accessoire_personnalise'
