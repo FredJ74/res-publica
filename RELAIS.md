@@ -9,6 +9,11 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Krasnov — Ignat Lykov : maison et personnalité (ChatGPT, 15/11/2026)
+
+Branche `chatgpt/krasnov-maison-ignat-20261115`. Deux WebP envoyés par Fred dans le commit `591386c`, déplacés de la racine vers `images/Sovarka/Krasnov/` (aucun PNG à convertir ; images déjà VP8 avec perte). La maison `maison-krasnov-terrains` conserve l'Ignat Lykov existant ; ancienne description de trappeur remplacée par fonctionnaire retraité collectiviste. Image intérieure et portrait raccordés dans `data.js`, dialogue DeepSeek dans `api/_pnj-personnalites.js`, trinquer dans `api/_reaction-habitant.js`. Décision : `GAME-DESIGN-KRASNOV-IGNAT.md`. Banc ciblé : `node outils/bancs/banc-krasnov-ignat-20261115.cjs`. Recette connectée et production à vérifier ; aucune mécanique serveur modifiée.
+
+
 ### Décision du game designer — Kouzma et Praskovia (15/11/2026)
 Document de référence : `GAME-DESIGN-KRASNOV-KOUZMA-PRASKOVIA.md`. **Kouzma Lapchine : référent religion ET PNJ social. Praskovia Pakhomova : référente kolkhoze ET PNJ social.** Conserver deux mémoires distinctes (pédagogique et relationnelle), sans nouvelle mécanique ni indiscrétion automatique sur leur histoire. **PR #987 de Claude** déjà ouverte pour leur histoire : ne pas créer d'implémentation concurrente sur ses fichiers ; lui transmettre ces rôles et réclamer tests/recette sur le même chantier. Les rôles ne sont pas encore attestés comme implantés, testés ou déployés.
 
