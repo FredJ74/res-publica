@@ -1,0 +1,22 @@
+name: "Krasnov — panorama sans vide"
+on:
+  push:
+    branches: [chatgpt/krasnov-accueil-supprimer-vide-20261115]
+    paths:
+      - .github/workflows/krasnov-accueil-sans-vide-20261115.yml
+      - style.css
+      - plateau-navigation.js
+      - plateau.html
+      - outils/bancs/test-krasnov-accueil-sans-vide-20261115.mjs
+permissions:
+  contents: read
+jobs:
+  targeted:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          node --check plateau-navigation.js
+          node --test outils/bancs/test-krasnov-accueil-sans-vide-20261115.mjs
+          node --test outils/bancs/test-krasnov-centre-affaires-cadrage-20261115.mjs
+          node --test outils/bancs/test-krasnov-station-antonina-affaires-20261115.mjs
