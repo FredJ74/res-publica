@@ -2536,24 +2536,7 @@ const WORLD = {
               }]
             }
           },
-          roomsExtra: Object.fromEntries(Array.from({length:4}, (_, i) => {
-            const n=i+1, maisonBleue=n<=2;
-            const standard=BUILDINGS['centre-affaires'].rooms.bureau_standard;
-            return ['bureau_'+n, {
-              ...standard,
-              name: 'Bureau '+n+' — Local à louer',
-              desc: maisonBleue
-                ? "Bureau indépendant donnant sur la maison bleue d’Antonina, en face du centre d’affaires."
-                : "Bureau indépendant donnant sur la rue de l’hôpital.",
-              imageUrl: maisonBleue
-                ? 'images/Sovarka/Krasnov/Krasnov_centre_affaires_bureau_maison_bleue.webp'
-                : 'images/Sovarka/Krasnov/Krasnov_centre_affaires_bureau_hopital.webp',
-              locationData: {...standard.locationData,label:'Bureau '+n},
-              persons: [],
-              orders: standard.orders.map(o => o.fn==='louer_local'
-                ? {...o,label:'Louer ce bureau (500 PSK/jour)'} : {...o})
-            }];
-          }))
+
         },
         // Station et maison : seules leurs illustrations changent.
         'station-service-krasnov': {
@@ -11559,6 +11542,29 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
         { fn: 'sovarka_demande_location', label: 'Demande de location', pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
           desc: 'Écrire à la mairie pour demander ce bureau (loyer fixé par le maire, ' + plafond + ' PSK par jour au plus). Votre lettre rejoint les dossiers du maire ; l\'attribution se signe ensuite chez le notaire.' }]);
     }
+  }
+  // À cette étape BUILDINGS est initialisé : produire les quatre bureaux à partir
+  // du modèle existant sans faire référence au catalogue depuis WORLD au bootstrap.
+  const centreKrasnov=contexte('ville_b','centre-affaires');
+  if (centreKrasnov) {
+    centreKrasnov.roomsExtra = Object.fromEntries(Array.from({length:4}, (_, i) => {
+      const n=i+1, maisonBleue=n<=2;
+      const standard=BUILDINGS['centre-affaires'].rooms.bureau_standard;
+      return ['bureau_'+n, {
+        ...standard,
+        name: 'Bureau '+n+' — Local à louer',
+        desc: maisonBleue
+          ? "Bureau indépendant donnant sur la maison bleue d’Antonina, en face du centre d’affaires."
+          : "Bureau indépendant donnant sur la rue de l’hôpital.",
+        imageUrl: maisonBleue
+          ? 'images/Sovarka/Krasnov/Krasnov_centre_affaires_bureau_maison_bleue.webp'
+          : 'images/Sovarka/Krasnov/Krasnov_centre_affaires_bureau_hopital.webp',
+        locationData: {...standard.locationData,label:'Bureau '+n},
+        persons: [],
+        orders: standard.orders.map(o => o.fn==='louer_local'
+          ? {...o,label:'Louer ce bureau (500 PSK/jour)'} : {...o})
+      }];
+    }));
   }
   // Bureau des magistrats des trois villes : pas de parquet en Sovarka (Fred, 08/11/2026).
   for (const [ville, batiment] of [['capitale', 'tribunal'], ['ville_a', 'tribunal-local'], ['ville_b', 'tribunal-local']]) {
