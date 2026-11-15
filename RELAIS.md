@@ -9,6 +9,9 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Tour de Starovka — décisions de Fred (15/11/2026, après-midi)
+Krasnov terminée ; tour de Starovka lancé (navigation dans tous les bâtiments avant les détails). Décisions consignées dans `GAME-DESIGN-NOVOMIRSK.md`, « Tour de Starovka » : nouvelles vues de rue dessinées par Fred (hôpital, tribunal, usine, centre commercial, centre artisanal) ; **plus de banques en Sovarka**, bons d'État au guichet des mairies ; **goulag = QHS de Sovarka, hors de la ville**, train ou taxi/bus, habilitations par la Justice ou les juges, ordres après Starovka. **Rien de codé** : attendre les images et le feu vert de Fred.
+
 ### Décision du game designer — Kouzma et Praskovia (15/11/2026)
 Document de référence : `GAME-DESIGN-KRASNOV-KOUZMA-PRASKOVIA.md`. **Kouzma Lapchine : référent religion ET PNJ social. Praskovia Pakhomova : référente kolkhoze ET PNJ social.** Conserver deux mémoires distinctes (pédagogique et relationnelle), sans nouvelle mécanique ni indiscrétion automatique sur leur histoire. **PR #987 de Claude** déjà ouverte pour leur histoire : ne pas créer d'implémentation concurrente sur ses fichiers ; lui transmettre ces rôles et réclamer tests/recette sur le même chantier. Les rôles ne sont pas encore attestés comme implantés, testés ou déployés.
 
