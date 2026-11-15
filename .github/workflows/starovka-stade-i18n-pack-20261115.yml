@@ -1,0 +1,32 @@
+name: "Starovka stade — regénérer les catalogues Brotli"
+on:
+  push:
+    branches: [chatgpt/starovka-stade-six-scenes-20261115]
+    paths:
+      - .github/workflows/starovka-stade-i18n-pack-20261115.yml
+permissions:
+  contents: write
+jobs:
+  paquet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Générer et vérifier les paquets i18n
+        run: |
+          node outils/generateurs/compresser-catalogues-i18n.cjs
+          node outils/generateurs/compresser-catalogues-i18n.cjs --check
+          node --test outils/bancs/test-i18n-sovarka-descriptions-20261112.mjs
+      - name: Conserver les paquets et le manifeste
+        run: |
+          git config user.name "ChatGPT (GitHub Actions)"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add i18n/packed/ outils/audits/I18N-CATALOGUES-TRANSPORT.json .vercelignore
+          git diff --cached --check
+          git commit -m "Starovka stade : synchroniser les catalogues Brotli"
+          git push origin HEAD:chatgpt/starovka-stade-six-scenes-20261115
