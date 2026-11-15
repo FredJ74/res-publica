@@ -11794,6 +11794,10 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
       name: 'Stade de Starovka',
       desc: 'Le stade du Partizan de Starovka, ouvert au vent glacial. Une seule tribune abrite les vestiaires, la buvette et les locaux du club.'
     });
+    // Terrain de Starovka : illustration propre à la ville, sans changer les ordres sportifs.
+    Object.assign(piece(stadeStarovka,'terrain'), {
+      imageUrl: fondStade('terrain')
+    });
     Object.assign(piece(stadeStarovka,'vestiaires'), {
       imageUrl: fondStade('vestiaires'),
       desc: 'Vestiaires propres, dépouillés, aménagés sous la tribune, avec des douches chaudes fumantes.'
