@@ -11768,6 +11768,51 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
       decorLogement('grand_appartement_' + n + '_chambre_2', 'grand_' + vue);
     }
   }
+  // STAROVKA_STADE_SIX_DECORS_20261115 — images spécifiques à Starovka.
+  // Conserver les ordres existants et le gabarit partagé, hormis la boutique du club
+  // créée comme à Novomirsk et Krasnov, avec les commandes existantes.
+  {
+    const stadeStarovka = contexte('ville_a', 'stade');
+    const fondStade = nom => 'images/Sovarka/Starovka/Starovka_stade_' + nom + '.webp';
+    Object.assign(stadeStarovka, {
+      name: 'Stade de Starovka',
+      desc: 'Le stade du Partizan de Starovka, ouvert au vent glacial. Une seule tribune abrite les vestiaires, la buvette et les locaux du club.'
+    });
+    Object.assign(piece(stadeStarovka,'vestiaires'), {
+      imageUrl: fondStade('vestiaires'),
+      desc: 'Vestiaires propres, dépouillés, aménagés sous la tribune, avec des douches chaudes fumantes.'
+    });
+    Object.assign(piece(stadeStarovka,'bureau_president'), {
+      imageUrl: fondStade('bureau_president'),
+      desc: 'Bureau vitré du président, en haut des gradins. Une coupe trône dans sa vitrine, au-dessus du terrain et de la ville enneigée.'
+    });
+    Object.assign(piece(stadeStarovka,'siege_supporters'), {
+      imageUrl: fondStade('club_supporters'),
+      desc: 'Local vitré des supporters, au sommet de la tribune, donnant directement sur le centre du terrain.'
+    });
+    Object.assign(piece(stadeStarovka,'buvette'), {
+      imageUrl: fondStade('buvette'),
+      desc: 'Stand extérieur sous les tribunes, où une vendeuse emmitouflée sert des boissons chaudes et de la vodka.',
+      excludeOrders: ['choisir_accessoire_club','acheter_accessoire_personnalise']
+    });
+    Object.assign(piece(stadeStarovka,'guichet_paris'), {
+      imageUrl: fondStade('bookmaker'),
+      desc: 'Sous les tribunes, un jeune bookmaker bouriate reçoit les paris des spectateurs frigorifiés.'
+    });
+    stadeStarovka.roomsExtra = stadeStarovka.roomsExtra || {};
+    stadeStarovka.roomsExtra.boutique = {
+      name: 'Stand des accessoires du Partizan',
+      image: '🧣',
+      imageBg: 'linear-gradient(135deg,#1c2025,#2d2526)',
+      imageUrl: fondStade('boutique'),
+      desc: 'Dans les tribunes, le vendeur de vêtements chauds et d’accessoires du Partizan attend ses clients sous la neige.',
+      persons: [{name:'Vendeur des accessoires de Starovka (PNJ)',role:'Vendeur des accessoires du club',rel:'neutral',job:'vendeur'}],
+      orders: [
+        {fn:'choisir_accessoire_club',label:'Acheter un accessoire',pa:0,cost:0,type:'legal',icon:'ti-shirt',successRate:100,desc:'Écharpe, casquette ou maillot du Partizan de Starovka, à choisir.'},
+        {fn:'acheter_accessoire_personnalise',label:'Acheter un accessoire personnalisé',pa:0,cost:0,type:'legal',icon:'ti-lock',successRate:100,desc:'Personnalisation premium à venir.'}
+      ]
+    };
+  }
   Object.assign(contexte('ville_a', 'logements-novomirsk'), { name: 'Baraquement Sibirsk-9', desc: 'Les logements collectifs de Starovka : une longue barre de béton où le poêle central chauffe à peine la pièce la plus proche. Attribués par la mairie.' });
   Object.assign(contexte('ville_a', 'zone-production'), { name: 'Compagnie Nationale du Pétrole', desc: 'Les derricks de Starovka pompent sous la glace le pétrole de Sovarka. Les volontaires peuvent y prêter la main pour augmenter la production.' });
 
