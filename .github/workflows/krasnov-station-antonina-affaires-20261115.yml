@@ -1,0 +1,38 @@
+name: "Krasnov — station, Antonina, centre affaires WebP"
+on:
+  push:
+    branches:
+      - chatgpt/krasnov-station-antonina-affaires-20261115
+    paths:
+      - .github/workflows/krasnov-station-antonina-affaires-20261115.yml
+      - outils/images/convertir_krasnov_station_antonina_affaires_20261115.py
+      - outils/bancs/test-krasnov-station-antonina-affaires-20261115.mjs
+permissions:
+  contents: write
+jobs:
+  convertir-verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow
+      - name: Conversion, découpe, retrait des PNG
+        run: python outils/images/convertir_krasnov_station_antonina_affaires_20261115.py
+      - name: Tests
+        run: |
+          node --check data.js
+          node --test outils/bancs/test-krasnov-station-antonina-affaires-20261115.mjs
+          node --test outils/bancs/test-krasnov-musee-20261114.mjs
+      - name: Publier les images et suppressions
+        run: |
+          git config user.name "ChatGPT (GitHub Actions)"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A images/Sovarka/Krasnov/
+          git diff --cached --check
+          git commit -m "assets(krasnov): station, Antonina et trois vues du centre d'affaires en WebP"
+          git push origin HEAD:chatgpt/krasnov-station-antonina-affaires-20261115
