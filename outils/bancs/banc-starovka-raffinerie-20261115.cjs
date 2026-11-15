@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const rue = fs.readFileSync(path.join(root,'plateau-rue-centrale.js'),'utf8');
+const sql = fs.readFileSync(path.join(root,'migrations/20261115175000_starovka_raffinerie_navigation.sql'),'utf8');
+const nodes = ['starovka-rue-petrole-ferme','starovka-rue-raffinerie','starovka-rue-terrains'];
+const get = id => {
+  const start=rue.indexOf("    '"+id+"': {");
+  assert.ok(start>=0,id);
+  const end=rue.indexOf("\n    '",start+8);
+  return rue.slice(start,end>0?end:undefined);
+};
+const [a,b,c]=nodes.map(get);
+assert.match(a,/droite: 'starovka-rue-raffinerie'/);
+assert.match(a,/toutDroit: 'starovka-maisons-ferme'/);
+assert.match(a,/arriere: 'starovka-rue-locaux-a-louer'/);
+assert.match(b,/gauche: 'starovka-rue-petrole-ferme'/);
+assert.match(b,/droite: 'starovka-rue-terrains'/);
+assert.match(b,/buildingId: 'usine-principale'/);
+assert.match(b,/Starovka_rue_raffinerie.webp/);
+assert.match(c,/gauche: 'starovka-rue-raffinerie'/);
+assert.match(c,/droite: 'starovka-rue-logements-collectifs'/);
+const f=path.join(root,'images/Sovarka/Starovka/Starovka_rue_raffinerie.webp');
+assert.ok(fs.existsSync(f),f);
+const bytes=fs.readFileSync(f);
+assert.equal(bytes.toString('ascii',0,4),'RIFF');
+assert.equal(bytes.toString('ascii',8,16),'WEBPVP8 ');
+assert.ok(!fs.existsSync(path.join(root,'images/Sovarka/Starovka/Raffinerie enneigée et route industrielle.png')));
+for(const n of nodes) assert.match(sql,new RegExp(n));
+console.log('Raffinerie : flèches aller-retour, sorties conservées, WebP VP8 et liaison usine OK.');
