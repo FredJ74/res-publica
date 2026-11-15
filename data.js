@@ -11722,7 +11722,7 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
     imageUrl: 'images/Sovarka/Krasnov/Krasnov_ecole_salle_classe.webp' }); // image de Fred (14/11/2026) ; mécanique de l'école à décider
   Object.assign(contexte('ville_b', 'kolkhoze-spirituel'), { name: 'Église du Tractorisme de Krasnov', desc: 'Une église aux bulbes dorés, consacrée au Tractorisme : on y prie pour la récolte et la santé des moteurs.',
     // Fred (14/11/2026) : à Krasnov, c'est une église, pas un kolkhoze ; même ordre (faire_don), seul le libellé change.
-    roomOverrides: { grange_sainte: { excludeOrders: ['faire_don'], orders: [
+    roomOverrides: { grange_sainte: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_eglise_sainte_moisson_interieur.webp', excludeOrders: ['faire_don'], orders: [
       {fn:'faire_don', label:'Donner à l’Église', pa:0, cost:0, type:'legal', icon:'ti-coins', successRate:100, desc:'Don libre en PSK. Sans PA. Bonus proportionnels, plafonnés à +10 piété et +6 popularité par jour.'}
     ] } } });
   // Krasnov : musée provincial autonome dans le gabarit partagé de Novomirsk.
@@ -11918,7 +11918,8 @@ BUILDINGS['locaux-starovka'] = {
       'images/Sovarka/Krasnov/Krasnov_maison_bleue_interieur.webp'],
     ['maison-krasnov-eglise', 'Maison de Kouzma', 'Kouzma Lapchine', 'Habitant de Krasnov',
       'Une maison de bois brun à l’ombre des bulbes dorés de l’église.',
-      'Des icônes dans le coin rouge, une cloche miniature sur la table et un ancien sonneur de cloches, un peu sourd, qui parle très fort.'],
+      'Des icônes dans le coin rouge, une cloche miniature sur la table et un ancien sonneur de cloches, un peu sourd, qui parle très fort.',
+      'images/Sovarka/Krasnov/Krasnov_maison_kouzma_interieur.webp'],
     ['maison-krasnov-terrains', 'Maison d’Ignat', 'Ignat Lykov', 'Habitant de Krasnov',
       'Une vieille maison de bois au bord des terrains vagues, des peaux tendues sous l’auvent.',
       'Des pièges pendus aux poutres, un samovar cabossé et un vieux trappeur taiseux qui vous observe longuement avant de sourire.']
