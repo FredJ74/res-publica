@@ -11762,6 +11762,11 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   Object.assign(contexte('ville_a', 'armurerie'), { name: 'Chasse et Pêche', desc: 'Le magasin de chasse de Starovka (« Охота и рыбалка ») : fusils, couteaux, filets et hameçons pour la pêche sous la glace.', persons: [pnj('Bato Tsyrenov', 'Armurier', 'commercant')] });
   Object.assign(contexte('ville_a', 'capitaine-sauvage'), { name: 'Restaurant « Entre terre et mer »', desc: 'Le restaurant de Starovka (« Между землёй и морем ») : poisson de la mer de glace et viande de renne, servis près du poêle.' });
   Object.assign(piece(contexte('ville_a', 'capitaine-sauvage'), 'salle_principale'), { persons: [pnj('Sesegma Badmaeva', 'Serveuse', 'serveur')] });
+  // STAROVKA_COMMERCES_DEUX_WEBP_20261116 — les seules images des commerces de Starovka.
+  Object.assign(piece(contexte('ville_a', 'capitaine-sauvage'), 'salle_principale'), {
+    imageUrl: 'images/Sovarka/Starovka/Starovka_restaurant_entre_terre_mer_salle_principale.webp'
+  });
+
   Object.assign(contexte('ville_a', 'universite'), { name: 'Lycée de l\'Avenir', desc: 'Le lycée de Starovka (« Лицей будущего ») : on y prépare les cadres du Plan, entre deux tempêtes de neige.' });
   Object.assign(piece(contexte('ville_a', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Darima Zhambalova', 'Directrice du lycée', 'professeur')] });
   // STAROVKA_LOGEMENTS_CINQ_WEBP — décors exclusifs à la ville_a,
@@ -12166,6 +12171,12 @@ BUILDINGS['locaux-starovka'] = {
     'La boutique du fourreur de Starovka (« Тёплый мех ») : chapkas, manteaux et bottes fourrées, indispensables à neuf mois d’hiver.',
     'boutique_fourreur', 'La boutique',
     'Des peaux tendues sur des cadres, des chapkas alignées en vitrine. Le commerçant nomme lui-même ses articles (commerce de type « Vêtements »).', 30);
+
+  // Décor de la boutique du fourreur de Starovka, sans changer sa mécanique.
+  const fourreurStarovka = BUILDINGS['fourreur-starovka'];
+  if (!fourreurStarovka?.rooms?.boutique_fourreur) throw new Error('Salle fourreur de Starovka absente');
+  fourreurStarovka.imagesAVenir = false;
+  fourreurStarovka.rooms.boutique_fourreur.imageUrl = 'images/Sovarka/Starovka/Starovka_fourreur_boutique_fourreur.webp';
 
   const cite = v => WORLD.soviet && WORLD.soviet[v];
   [['ville_a', 'ferme-starovka'], ['ville_a', 'fourreur-starovka'], ['ville_b', 'ferme-krasnov'], ['ville_b', 'distillerie-krasnov']]
