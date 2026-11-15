@@ -8,6 +8,9 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Montrouge — Ben bloqué à l'hôpital malgré récupération des PA (15/11/2026)
+Diagnostic sur Supabase : Ben est à Montrouge dans `dispensaire-public-v/chambre`, hospitalisation `pa0` débutée 12/11, J3, 29 PA et 100 santé ; la sortie médicale exige J2 et 20 PA. Le bouton global `Sortir` appelle la navigation générique `rue_sortie_batiment_lire`, interdite tant que `hospitalisation` est active. Correctif client sur `plateau-navigation.js` : si régime `pa0` dans un hôpital/clinique, ce bouton utilise `doSortieHopital()` (porte serveur `hospitalisation_lieu_rejoindre('sortie')`) qui clôt le statut et déplace le personnage atomiquement. Visiteurs et autres bâtiments inchangés ; échecs serveur conservés. Banc `outils/bancs/banc-sorties-batiments.cjs` complété (patients, visiteurs, double clic, régime distinct). **Aucune fiche de PJ modifiée manuellement**. PR, CI, déploiement et recette PJ à vérifier.
+
 ### Tour de Starovka — décisions de Fred (15/11/2026, après-midi)
 Krasnov terminée ; tour de Starovka lancé (navigation dans tous les bâtiments avant les détails). Décisions consignées dans `GAME-DESIGN-NOVOMIRSK.md`, « Tour de Starovka » : nouvelles vues de rue dessinées par Fred (hôpital, tribunal, usine, centre commercial, centre artisanal) ; **hôpital et tribunal/centre artisanal livrés par #997, raffinerie par #999 puis position corrigée par #1001**, autres rues à poursuivre ; **plus de banques en Sovarka**, bons d'État au guichet des mairies ; **goulag = QHS de Sovarka, hors de la ville**, train ou taxi/bus, habilitations par la Justice ou les juges, ordres après Starovka. **Hôpital et tribunal/centre artisanal livrés** (#997) ; autres sujets à traiter séparément selon les décisions de Fred.
 
