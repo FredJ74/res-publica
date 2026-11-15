@@ -10,7 +10,7 @@ test('Starovka : logements → restaurant et retour, terrain préservé',()=>{
  vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8'),ctx);
  vm.runInContext(fs.readFileSync(path.join(root,'plateau-rue-centrale.js'),'utf8'),ctx);
  const x=vm.runInContext(`({logements:RUE_CENTRALE_NOEUDS.soviet['starovka-rue-logements-collectifs'],resto:RUE_CENTRALE_NOEUDS.soviet['starovka-rue-restaurant-boutique'],haut:RC_FLECHE_HAUT,bas:RC_FLECHE_BAS})`,ctx);
- assert.equal(x.logements.liens.gauche,'starovka-rue-terrains');
+ assert.equal(x.logements.liens.gauche,'starovka-rue-raffinerie');
  assert.equal(x.logements.liens.arriere,'starovka-rue-restaurant-boutique');
  assert.equal(x.logements.flechesStyle.arriere,x.bas);
  assert.equal(x.resto.liens.toutDroit,'starovka-rue-logements-collectifs');
