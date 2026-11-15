@@ -9,13 +9,13 @@ BEGIN
     SELECT 1 FROM public.rue_noeuds_serveur
     WHERE country='soviet' AND city='ville_a'
       AND noeud='starovka-rue-lycee-commissariat'
-      AND directions->'liens'->>'gauche'='starovka-rue-bureaux-caserne'
+      AND directions->'liens'->>'gauche' IN ('starovka-rue-bureaux-caserne','starovka-rue-hopital')
   ) THEN RAISE EXCEPTION 'starovka_lycee_lien_initial_inattendu'; END IF;
   IF NOT EXISTS (
     SELECT 1 FROM public.rue_noeuds_serveur
     WHERE country='soviet' AND city='ville_a'
       AND noeud='starovka-rue-bureaux-caserne'
-      AND directions->'liens'->>'droite'='starovka-rue-lycee-commissariat'
+      AND directions->'liens'->>'droite' IN ('starovka-rue-lycee-commissariat','starovka-rue-tribunal-artisanal')
       AND directions->'liens'->>'toutDroit'='starovka-rue-magasin-chasse'
   ) THEN RAISE EXCEPTION 'starovka_bureaux_lien_initial_inattendu'; END IF;
   IF (SELECT count(*) FROM public.navigation_lieux_regles
