@@ -48,12 +48,17 @@ test('catalogue : neuf colonnes remplies, différentes du français, nombres et 
  }
 });
 
-test('chaque phrase du catalogue existe telle quelle dans les sources du plateau (aucune entrée inventée)',()=>{
+test('provenance des phrases actives et de l’unique phrase retirée de navigation',()=>{
  // Corps passés directement à showToast, ou via ternaire / || / table de motifs indexée (extraction AST du lot 6).
  const sources=corpsSources();
  const texte=fs.readdirSync(root).filter(f=>/^(plateau|forum).*\.js$/.test(f)).map(read).join('\n');
  const present=fr=>sources.has(fr)||[fr,fr.replace(/'/g,"\\'"),fr.replace(/"/g,'\\"')].some(v=>texte.includes("'"+v+"'")||texte.includes('"'+v+'"')||texte.includes('`'+v+'`'));
- assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[]);
+ // Source supprimée par les correctifs de navigation : conserver sa provenance,
+ // sans admettre d'autre phrase absente ni modifier le catalogue historique.
+ const retire='Impossible de restaurer la position depuis le serveur.';
+ const ancien=require('node:child_process').execFileSync('git',['show','e688472:plateau-rue-centrale.js'],{cwd:root,encoding:'utf8',maxBuffer:4e6});
+ assert.ok(ancien.includes(retire));assert.equal(present(retire),false);
+ assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire]);
 });
 
 test('aucun recouvrement avec les catalogues déjà raccordés (pas de double traduction ni de markToast contrarié)',()=>{

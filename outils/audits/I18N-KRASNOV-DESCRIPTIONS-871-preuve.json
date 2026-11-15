@@ -1,0 +1,66 @@
+{
+  "baseCommit": "431d69ec9c44a8b8383e9752660de93cf8c17dbe",
+  "codeCommit": "f3356f7bcd12dfc4a62e5163b39b843a862950ae",
+  "newFrenchTexts": 10,
+  "newForeignValues": 80,
+  "mechanicsChanged": false,
+  "productionDeployed": false,
+  "merged": false,
+  "blockedByPreexistingPayload": false,
+  "targetedTestsPassed": 23,
+  "chromiumLanguageSwitches": 270,
+  "viewports": [
+    320,
+    390,
+    1280
+  ],
+  "regressionTests": {
+    "passed": 42,
+    "failed": 1,
+    "reason": "Quatre descriptions communes non traduites sur main b89a264 également ; plafond antérieur trois, contrôle conservé rouge.",
+    "obsoleteNavigationSourceProvenanceUpdated": true,
+    "commonInventoryUpdatedFrom247To248": true
+  },
+  "baselineDescriptionsBank": {
+    "passed": 4,
+    "failed": 1,
+    "missingTexts": 10
+  },
+  "branchDescriptionsBank": {
+    "passedWithFrozenBaseline": 5,
+    "newMissingTexts": 0,
+    "preexistingMissingTextsOutsideLot": 4,
+    "strictGlobalStillReportsTheseGaps": true
+  },
+  "payload": {
+    "branchBytes": 277530738,
+    "limitBytes": 346030080,
+    "withinLimit": true,
+    "limitUnchanged": true,
+    "imagesUnchangedAgainstIntegratedMain": true
+  },
+  "audit": {
+    "methodChanged": false,
+    "identifiedTextsIdentical": true,
+    "sourceFilesHashChanged": true,
+    "englishStaticWordsFloorBefore": 25.21,
+    "englishStaticWordsFloorAfter": 25.21,
+    "extractorDoesNotRecognizeNewRoomBindings": true,
+    "notWholeGamePercentage": true
+  },
+  "authenticatedPlayerTest": false,
+  "physicalPhoneTest": false,
+  "nativeLinguisticReview": false,
+  "integrationMainCommit": "b89a264eb24a6059443de6abf328c413d4bcfff0",
+  "integrationCodeCommit": "2e47fd71f1bf332336c7dfb3eb019a7c43f13095",
+  "pr": 969,
+  "historicalPayload": {
+    "mainBytes": 347905991,
+    "branchBytes": 347910612,
+    "deltaBytes": 4621,
+    "limitBytes": 346030080,
+    "bothOverLimit": true,
+    "limitUnchanged": true
+  },
+  "readyForMerge": true
+}
