@@ -1,0 +1,39 @@
+name: "Krasnov — accueil, cadrage intégral"
+on:
+  push:
+    branches: [chatgpt/krasnov-centre-affaires-cadrage-20261115]
+    paths:
+      - .github/workflows/krasnov-centre-affaires-cadrage-20261115.yml
+      - data.js
+      - style.css
+      - plateau-navigation.js
+      - plateau.html
+      - outils/bancs/test-krasnov-centre-affaires-cadrage-20261115.mjs
+permissions:
+  contents: read
+jobs:
+  verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Contrôler le code et la régression
+        run: |
+          node --check data.js
+          node --check plateau-navigation.js
+          node --test outils/bancs/test-krasnov-centre-affaires-cadrage-20261115.mjs
+          node --test outils/bancs/test-krasnov-station-antonina-affaires-20261115.mjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow
+      - name: Vérifier la géométrie du fichier panoramique
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          img=Image.open('images/Sovarka/Krasnov/Krasnov_centre_affaires_accueil.webp')
+          width,height=img.size
+          print('Image accueil (WebP):',width,height,'rapport',round(width/height,3))
+          assert img.format=='WEBP'
+          assert 2.6<width/height<4.0, 'Cadrage atypique : revoir le ratio CSS'
+          PY

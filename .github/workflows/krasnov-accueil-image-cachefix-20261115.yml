@@ -1,0 +1,36 @@
+name: "Krasnov accueil — corriger le cache image"
+on:
+  push:
+    branches: [chatgpt/krasnov-accueil-image-cache-fix-20261115]
+    paths:
+      - .github/workflows/krasnov-accueil-image-cachefix-20261115.yml
+permissions:
+  contents: write
+jobs:
+  image-et-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Déplacer les deux WebP vers une URL réellement nouvelle
+        run: |
+          if test -f images/Sovarka/Krasnov/Krasnov_centre_affaires_accueil.webp; then
+            git mv images/Sovarka/Krasnov/Krasnov_centre_affaires_accueil.webp images/Sovarka/Krasnov/Krasnov_centre_affaires_accueil_20261115.webp
+            git mv images/Sovarka/Krasnov/Krasnov_centre_affaires_hotesse.webp images/Sovarka/Krasnov/Krasnov_centre_affaires_hotesse_20261115.webp
+          fi
+      - name: Tests de chargement image et régressions
+        run: |
+          node --check data.js
+          node --test outils/bancs/test-krasnov-accueil-cachefix-20261115.mjs
+          node --test outils/bancs/test-krasnov-station-antonina-affaires-20261115.mjs
+      - name: Committer le déplacement sans modifier les pixels
+        run: |
+          git config user.name "ChatGPT (GitHub Actions)"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git diff --cached --check
+          if ! git diff --cached --quiet; then
+            git commit -m "assets(krasnov): renommer accueil et hôtesse pour invalider le cache"
+            git push origin HEAD:chatgpt/krasnov-accueil-image-cache-fix-20261115
+          fi

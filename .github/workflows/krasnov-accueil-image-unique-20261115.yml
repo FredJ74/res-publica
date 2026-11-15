@@ -1,0 +1,49 @@
+name: "Krasnov — remplacer accueil par image unique"
+on:
+  push:
+    branches: [chatgpt/krasnov-accueil-image-unique-20261115]
+    paths:
+      - .github/workflows/krasnov-accueil-image-unique-20261115.yml
+      - outils/images/remplacer_accueil_centre_affaires_20261115.py
+      - outils/bancs/test-krasnov-accueil-image-unique-20261115.mjs
+      - outils/bancs/test-krasnov-centre-affaires-cadrage-20261115.mjs
+      - outils/bancs/test-krasnov-accueil-sans-vide-20261115.mjs
+permissions:
+  contents: write
+jobs:
+  convertir-verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow
+      - name: Remplacer image et portrait WebP, supprimer PNG
+        run: |
+          if find images/Sovarka/Krasnov -maxdepth 1 -type f -name '*ception chaleureuse*' | grep -q .; then
+            python outils/images/remplacer_accueil_centre_affaires_20261115.py
+          else
+            echo 'Conversion déjà committée, contrôle des WebP existants.'
+          fi
+      - name: Tests et syntaxe
+        run: |
+          node --check data.js
+          node --check plateau-navigation.js
+          node --test outils/bancs/test-krasnov-accueil-image-unique-20261115.mjs
+          node --test outils/bancs/test-krasnov-centre-affaires-cadrage-20261115.mjs
+          node --test outils/bancs/test-krasnov-accueil-sans-vide-20261115.mjs
+          node --test outils/bancs/test-krasnov-station-antonina-affaires-20261115.mjs
+      - name: Commiter les assets
+        run: |
+          git config user.name "ChatGPT (GitHub Actions)"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A images/Sovarka/Krasnov/
+          git diff --cached --check
+          if ! git diff --cached --quiet; then
+            git commit -m "assets(krasnov): nouvel accueil non panoramique et portrait WebP"
+            git push origin HEAD:chatgpt/krasnov-accueil-image-unique-20261115
+          fi

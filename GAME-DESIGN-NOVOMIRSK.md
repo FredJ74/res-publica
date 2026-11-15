@@ -995,7 +995,7 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 
 - Décision de Fred : chaque maisonnette en bois visible dans les vues de rue de Krasnov est cliquable et abrite **un habitant**, sur le modèle de la maison de Stepan (service du jour, repas, lit, trinquer). Migration `20261114180000_krasnov_maisonnettes`.
 - Cinq maisons repérées par Claude : maison bleue en face du centre d'affaires (`krasnov-rue-bureaux`), maison rouge et maison bleue de la rue descendante, maison brune près de l'église, maison au bord droit des terrains.
-- Habitants **proposés par Claude, à valider par Fred** : Antonina Merkoulova (couturière retraitée), Matveï Rybakov (ancien bûcheron), Praskovia Pakhomova (apicultrice), Kouzma Lapchine (ancien sonneur de cloches), Ignat Lykov (vieux trappeur). Services tirés parmi les matières existantes (bois, fruits et légumes, laitages, textile, viande, alcool, carburant, plantes, céréales, poisson). Images d'intérieur à venir.
+- Habitants proposés par Claude, **validés par Fred (15/11/2026, 0 h 52)** : Antonina Merkoulova (couturière retraitée), Matveï Rybakov (ancien bûcheron), Praskovia Pakhomova (apicultrice), Kouzma Lapchine (ancien sonneur de cloches), Ignat Lykov (vieux trappeur). Services tirés parmi les matières existantes (bois, fruits et légumes, laitages, textile, viande, alcool, carburant, plantes, céréales, poisson). Images d'intérieur à venir.
 
 ## Tabac/Presse de Krasnov : quatre articles (Fred, 14/11/2026)
 - Demande de Fred (21 h 52) : « 4 articles, à ta convenance ». Choix de Claude, sur la règle des commerces (2 familles, 4 articles en freemium) :
@@ -1004,3 +1004,16 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 - En plus (Fred, 22 h 04) : la prise de paris du bookmaker des stades est dupliquée au Tabac/Presse (même ordre « Parier sur un match »).
 - Prix PNJ par la formule commune (2 × coût de revient, PA à 15 PSK). Commerce PNJ de type `tabac-presse`, caisse autonome, ouvert avec 10 exemplaires de chaque article. Buraliste validée par Fred le 15/11 : Valentina Makhorkina (« Buraliste de Krasnov »).
 - Migration `20261114220000_krasnov_tabac_presse_articles` (registre `krasnov_tabac_presse_articles_20261114`).
+
+## Approvisionnement et échanges des entrepôts de Sovarka (Fred, 15/11/2026, 0 h 52)
+- **Port de Sovarka (Starovka) : validé.** Il nourrit chaque nuit les entrepôts de Sovarka exactement comme celui de PSM nourrit ceux de Républia (décision du 13/11, confirmée).
+- **Échanges entre entrepôts, à valeurs égales** : chaque entrepôt envoie aux autres les matières de sa ville.
+  - **Krasnov** : bois, poisson, laitages, viande.
+  - **Starovka** : pétrole, viande, poisson, lait et laitages.
+  - **Novomirsk** : métal, tissu (`textile`), composants électroniques.
+- **Exportations vers le port** : les entrepôts envoient des matières premières au port pour l'export vers les autres pays. Déjà codé le 06/11 (`exportations_sovarka_executer`, migration `20261106103000_exportations_sovarka` : minerai et métal vers tous les pays, pétrole vers la Républia, viande et céréales vers Al-Khalija, prélevés sur le stock réel des trois entrepôts et payés au prix de base).
+- **Composants électroniques laissés de côté** (Fred, 15/11) : aucune matière de ce nom n'existe ; Novomirsk n'envoie que métal et tissu pour l'instant.
+- **« Lait » = « laitages »** : une seule matière dans le jeu.
+- **Achat et vente, pas troc** (Fred, 15/11) : chaque entrepôt paie ce qu'il reçoit et touche ce qu'il envoie, au prix de base ; les montants s'équilibrent mais passent par les caisses et le journal des entrepôts.
+- **Volume** (Fred, 15/11) : chaque nuit, chaque paire d'entrepôts (Krasnov–Starovka, Krasnov–Novomirsk, Starovka–Novomirsk) échange **250 PSK dans chaque sens**, au prix de base, répartis à parts égales entre les matières de l'expéditeur ; si un entrepôt manque de stock, l'autre envoie moins d'autant pour garder l'égalité des valeurs (cadrage proposé par Claude, accepté avec ce montant).
+- **Feu vert de Fred (15/11, 1 h 03). Codé le 15/11/2026** : migration `20261115013000_sovarka_entrepots_approvisionnement_echanges` (registre `sovarka_entrepots_approvisionnement_echanges_20261115`), RPC `sovarka_entrepots_passe(jour, interdites)` lancée par la tâche de nuit `entrepots_sovarka` (`api/cron-minuit.js`), avant les exportations de Sovarka. Approvisionnement : mêmes règles que la Républia (cible = desideratas du directeur PJ en poste, sinon plafond de la matière ; 800 unités par entrepôt et par nuit ; prix fournisseur ; caisse insuffisante = livraison réduite), journal « Fournisseurs (port de Starovka) ». Seule différence technique avec la Républia : le bois est acheté comme les autres matières (en Républia il arrive à part, par la scierie de PSM et les importations de Sovarka). Échanges : journal « echange_entrepots » des deux côtés ; les valeurs des deux lots sont égales à quelques PSK près (on échange des unités entières : le métal vaut 15 PSK pièce).
