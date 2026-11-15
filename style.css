@@ -734,28 +734,6 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 /* Décors de commerces personnalisés : image entière, sans recadrage sur petits écrans. */
 .piece-image[data-commerce-decor="1"]{background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;background-color:var(--bg)!important}
 .piece-image[data-musee="1"]{min-height:460px;background-size:100% 100%, contain!important;background-position:center!important;background-repeat:no-repeat!important;background-color:var(--bg)!important}
-/* Accueil panoramique du centre d'affaires de Krasnov (une seule pièce).
-   La planche a été découpée en bande horizontale : cover rogne l'hôtesse
-   et la plaque au lieu de les afficher. Garder le ratio source proche de 10:3,
-   peindre le dégradé sur tout le cadre et montrer la photo entière. */
-/* La bande panoramique ne peut remplir verticalement le grand cadre 16:9
-   sans rognage. Réduire la HAUTEUR du conteneur avec elle ; laisser les
-   actions suivre directement au lieu d'une vaste zone vide. */
-.piece-container[data-cadrage-integral]{
-  flex:0 0 auto;
-  min-height:0;
-  grid-template-rows:auto;
-  align-items:stretch;
-}
-.piece-image[data-cadrage-integral]{
-  aspect-ratio:10 / 3;
-  min-height:0;
-  background-size:100% 100%, contain!important;
-  background-position:center center!important;
-  background-repeat:no-repeat!important;
-  background-color:var(--bg)!important;
-}
-
 .piece-emoji{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:6rem;opacity:.12;pointer-events:none}
 /* Enseigne d'une piece a variantes (voir plateau-variantes-pieces.js). Position,
    dimensions et taille de police sont posees EN PIXELS par le JS, qui refait le
