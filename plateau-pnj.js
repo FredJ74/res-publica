@@ -1216,7 +1216,9 @@ const PNJ_REFERENTS = ['marc_hantile', 'martial_bouterin', 'gaspard_ferriere',
                        'raoul_toufaud', 'caporal_alouche', 'eve_toahemarch', 
                        'jean_lou_zeure', 'alain_bordage', 'marcel_ancre', 'pat_hounette', 
                        'alfredo_mifassole', 'pascal_hamar', 'lucas_tenaire', 'laurent_barre',
-  'gretta_delieu'
+  'gretta_delieu',
+  // Krasnov (Fred, 15/11/2026) : référent religion et référente kolkhoze, aussi PNJ sociaux.
+  'kouzma_lapchine', 'praskovia_pakhomova'
 ];
 
 // Note une consultation reellement aboutie aupres d'un referent. No-op partout ailleurs.
