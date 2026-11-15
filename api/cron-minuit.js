@@ -2668,6 +2668,21 @@ const EXPORTATIONS_SOVARKA = {
   cereales: { equivalentVilles: 0.5, destinations: ['khalija'] }
 };
 
+// ENTREPOTS DE SOVARKA (15/11/2026, decisions et feu vert de Fred) : approvisionnement de nuit par le port
+// de Starovka, exactement comme la Republia (stocks cibles, 800 unites par nuit, prix fournisseur), puis
+// echanges a valeurs egales entre les trois entrepots (250 PSK par sens et par paire, achat et vente au
+// prix de base). Tout est decide par sovarka_entrepots_passe ; une matiere interdite n'est ni livree ni
+// echangee, et une legalite non verifiable bloque la passe (fail-closed).
+async function traiterEntrepotsSovarkaQuotidien() {
+  const interdites = await matieresInterditesPays('soviet');
+  if (interdites === null) throw new Error('entrepots_sovarka:legalite_non_verifiable');
+  const r = await sbRpc('sovarka_entrepots_passe',
+    { p_jour: jourParisISO(new Date()), p_interdites: [...interdites] }, HEADERS_SERVICE).catch(() => null);
+  const v = Array.isArray(r) ? r[0] : r;
+  if (!v || v.ok !== true) throw new Error('entrepots_sovarka:' + ((v && v.raison) || 'verdict_absent'));
+  return v;
+}
+
 async function traiterExportationsSovarkaQuotidien() {
   const contrats = {};
   for (const [cle, cfg] of Object.entries(EXPORTATIONS_SOVARKA)) {
@@ -2871,9 +2886,10 @@ async function produireUneChaine(transfo, chaine, usine, stockMatieres, venteDir
 // appelants s'abstiennent alors de vendre ce jour-la (fail-closed). La production, les arrivages
 // gratuits et la redistribution gratuite vers les entrepots ne sont pas des ventes : ils continuent,
 // le stock n'etant jamais supprime (§34).
-async function matieresInterditesRepublia() {
+async function matieresInterditesRepublia() { return matieresInterditesPays('republic'); }
+async function matieresInterditesPays(pays) {
   const cles = Object.keys(RESSOURCES_ECONOMIE_SERVEUR);
-  const rep = await sbRpc('assemblee_verifier_vente', { p_objets: cles.map(c => ({ stackKey: c })), p_country: 'republic' });
+  const rep = await sbRpc('assemblee_verifier_vente', { p_objets: cles.map(c => ({ stackKey: c })), p_country: pays });
   const v = Array.isArray(rep) ? rep[0] : rep;
   if (!v || v.raison || !Array.isArray(v.interdits)) return null;
   return new Set(v.interdits.map(i => cles[i.index]).filter(Boolean));
@@ -6795,6 +6811,9 @@ export default async function handler(req, res) {
     const exportationsPort = await tacheQuotidienne('exportations_port', traiterExportationsPortQuotidien);
     // Apres celles de Republia : la part livree a la Republia passe par PSM, dont la passe ci-dessus
     // a deja ecrit les stocks (aucune ecriture concurrente d'un etat d'entrepot).
+    // Entrepots de Sovarka (15/11/2026) : approvisionnement par le port de Starovka et echanges entre les
+    // trois entrepots, avant les exportations de Sovarka qui prelevent sur ces stocks.
+    const entrepotsSovarka = await tacheQuotidienne('entrepots_sovarka', traiterEntrepotsSovarkaQuotidien);
     const exportationsSovarka = await tacheQuotidienne('exportations_sovarka', traiterExportationsSovarkaQuotidien);
     // Urbanisme de Sovarka (06/11/2026, decisions de Fred) : livraison des immeubles collectifs, chantiers
     // en attente des fonds de la mairie, et le 1er et le 15, lancement d'un immeuble par ville pour les
@@ -6883,7 +6902,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, exportationsSovarka, urbanismeSovarka, herosTravail, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, entrepotsSovarka, exportationsSovarka, urbanismeSovarka, herosTravail, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',
