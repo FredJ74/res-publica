@@ -2517,6 +2517,60 @@ const WORLD = {
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','logements-novomirsk','logements-krasnov-place-ours','logements-krasnov-rue-tabac','tabac-presse-krasnov','terrain-a-batir-2','stade','zone-production','entrepot-logistique-krasnov','station-service-krasnov'],
       buildingContext: {
+        // Centre d'affaires de Krasnov : quatre bureaux individuels de même taille.
+        // Prix/mécaniques : reprend strictement le Bureau Standard du gabarit partagé,
+        // sans les appliquer à d'autres villes ni à d'autres empires.
+        'centre-affaires': {
+          name: "Centre d'affaires de Krasnov",
+          desc: "Un très petit accueil et un couloir desservant quatre bureaux identiques.",
+          roomsExclues: ['bureau_prestige','bureau_standard','open_space','tribune_republia'],
+          roomOverrides: {
+            hall: {
+              name: "Accueil",
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_centre_affaires_accueil.webp',
+              desc: "Petite réception et couloir desservant quatre bureaux individuels.",
+              persons: [{
+                name: "Hôtesse du centre d'affaires de Krasnov (PNJ)",
+                role: "Hôtesse d'accueil", rel: "neutral", job: "hotesse",
+                photoUrl: 'images/Sovarka/Krasnov/Krasnov_centre_affaires_hotesse.webp'
+              }]
+            }
+          },
+          roomsExtra: Object.fromEntries(Array.from({length:4}, (_, i) => {
+            const n=i+1, maisonBleue=n<=2;
+            const standard=BUILDINGS['centre-affaires'].rooms.bureau_standard;
+            return ['bureau_'+n, {
+              ...standard,
+              name: 'Bureau '+n+' — Local à louer',
+              desc: maisonBleue
+                ? "Bureau indépendant donnant sur la maison bleue d’Antonina, en face du centre d’affaires."
+                : "Bureau indépendant donnant sur la rue de l’hôpital.",
+              imageUrl: maisonBleue
+                ? 'images/Sovarka/Krasnov/Krasnov_centre_affaires_bureau_maison_bleue.webp'
+                : 'images/Sovarka/Krasnov/Krasnov_centre_affaires_bureau_hopital.webp',
+              locationData: {...standard.locationData,label:'Bureau '+n},
+              persons: [],
+              orders: standard.orders.map(o => o.fn==='louer_local'
+                ? {...o,label:'Louer ce bureau (500 PSK/jour)'} : {...o})
+            }];
+          }))
+        },
+        // Station et maison : seules leurs illustrations changent.
+        'station-service-krasnov': {
+          roomOverrides: {
+            boutique_station: {
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_station_service_boutique.webp'
+            }
+          }
+        },
+        'maison-krasnov-bureaux': {
+          roomOverrides: {
+            piece_maison: {
+              imageUrl: 'images/Sovarka/Krasnov/Krasnov_maison_antonina_interieur.webp',
+              desc: "Cuisinière à bois, bouilloire, napperon et buffet portant la photo du mariage d’Antonina et le portrait militaire de son fils. La chambre donne derrière la pièce commune."
+            }
+          }
+        },
         // Immeuble social face à l'Universam : gabarit de logements collectifs
         // de Novomirsk, images distinctes, attribution communale inchangée.
         'logements-novomirsk': {
