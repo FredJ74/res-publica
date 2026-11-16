@@ -1,0 +1,29 @@
+/* Human Gambit — mode narratif mobile : présentation des dialogues PNJ.
+   Aucun appel IA, script de conversation, choix ni prompt ne change ici. */
+@media(max-width:1023px){
+  #modal-pnj .modal-box{background:#17222c;border:1px solid #b39867;border-radius:12px;box-shadow:0 15px 38px rgba(0,0,0,.65)}
+  #modal-pnj .modal-header{background:#202e3b;border-bottom:1px solid rgba(201,168,76,.4);padding:11px 13px;gap:10px}
+  #modal-pnj .modal-title{font-family:'Playfair Display',serif;color:#ead09b;font-size:1.22rem;line-height:1.35;overflow-wrap:anywhere}
+  #modal-pnj .modal-close{border-radius:8px;border:1px solid #a98d56;color:#f0dbad;background:#2b3a48;min-width:44px;min-height:44px}
+  #pnj-modal-body{padding:12px 14px 18px;max-width:100%;min-width:0}
+  #modal-pnj #pnj-identite:not(.pnj-identite-terrain){display:flex;align-items:center!important;gap:13px!important;margin-bottom:14px!important;padding:6px 0 13px!important;border-bottom:1px solid rgba(201,168,76,.33)}
+  #modal-pnj #pnj-identite:not(.pnj-identite-terrain) #pnj-avatar-container{width:78px;min-width:78px;flex:0 0 78px;min-height:78px;display:flex;align-items:center;justify-content:center}
+  #modal-pnj #pnj-identite:not(.pnj-identite-terrain) #pnj-avatar-container>*{width:78px!important;height:78px!important;max-width:78px;max-height:78px;object-fit:cover;border-radius:10px!important;overflow:hidden}
+  #modal-pnj #pnj-identite:not(.pnj-identite-terrain) #pnj-avatar-container img{width:100%;height:100%;object-fit:cover}
+  #modal-pnj #pnj-identite>#pnj-avatar-container+div{min-width:0;overflow-wrap:anywhere}
+  #modal-pnj #pnj-role-display{color:#e9cd91!important;font-size:1.03rem!important;line-height:1.4;letter-spacing:.04em}
+  #modal-pnj #pnj-trait-display{color:#d4dbe1!important;font-size:1rem!important;line-height:1.5}
+  #modal-pnj .pnj-speech{padding:14px 15px!important;margin-bottom:13px;background:#253341;border:1px solid rgba(201,168,76,.4);border-left:3px solid #c6a46c;border-radius:9px;color:#f1e9d8;font-family:'Crimson Pro',serif;font-style:normal;font-size:1.07rem!important;line-height:1.65!important;overflow-wrap:anywhere;white-space:pre-wrap}
+  #modal-pnj .pnj-actions{gap:9px;padding-bottom:6px}
+  #modal-pnj .pnj-action-btn{display:block;width:100%;min-height:48px;padding:11px 13px;background:#2a3b4c;border:1px solid #aa9063;border-radius:9px;color:#f1dfbd;font-family:'Crimson Pro',serif;font-size:1.02rem!important;line-height:1.45!important;text-align:left;white-space:normal;overflow-wrap:anywhere}
+  #modal-pnj .pnj-action-btn:focus-visible,#modal-pnj .modal-close:focus-visible{outline:3px solid #f1d592;outline-offset:2px}
+  #modal-pnj textarea,#modal-pnj input{width:100%;max-width:100%;box-sizing:border-box;min-height:46px;background:#13202d;color:#f1e9da;border:1px solid #a98d56;border-radius:8px;padding:10px 12px;font-size:16px!important;line-height:1.5!important}
+  #modal-pnj .pnj-loading{color:#c0cfdd}
+  /* Les portraits de décor entier (.pnj-identite-terrain) gardent leur géométrie actuelle. */
+  #modal-pnj #pnj-identite.pnj-identite-terrain #pnj-avatar-container{width:100%}
+}
+@media(max-width:360px){
+  #modal-pnj #pnj-identite:not(.pnj-identite-terrain) #pnj-avatar-container{width:65px;min-width:65px;flex-basis:65px;min-height:65px}
+  #modal-pnj #pnj-identite:not(.pnj-identite-terrain) #pnj-avatar-container>*{width:65px!important;height:65px!important;max-width:65px;max-height:65px}
+  #pnj-modal-body{padding:10px 11px 16px}
+}
