@@ -57,6 +57,7 @@ erreur(() => agir({ ...sansAbri, pa: 5 }, 'progresser', date(2)), 'pa_insuffisan
 // Le solde à l'arrivée est FORCÉ à 1 même en arrivant avec plus de PA.
 let k = demarrer({ destination: 'krasnov', statut: 'visiteur', pa: 20 });
 for (let j = 1; j <= 10; j++) {
+  k = agir(k, 'abri', date(j));
   k = agir(k, 'progresser', date(j));
   if (j !== 10) k = agir(k, 'dormir', date(j));
   if (j === 8) assert.equal(k.boisGagne, 0);
