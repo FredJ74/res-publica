@@ -8,6 +8,12 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Exploration mobile immersive — PR #1044 (ChatGPT, 16/11/2026)
+- **Décision de Fred** : présentation hybride selon l'activité (exploration immersive, gestion claire, échanges incarnés) ; première capture mobile réelle : rue de Starovka, tribunal et centre artisanal. **Périmètre de cette PR : exploration mobile seulement**, sans refonte des ordres, des dialogues ni des écrans de gestion.
+- Branche `chatgpt/exploration-mobile-20261116`, PR **#1044 en brouillon** : feuilles `plateau-exploration-mobile.css` et script `plateau-exploration-mobile.js`, raccordés après les modules existants dans `plateau.html`. La scène conserve la largeur et son ratio, les zones cliquables et flèches restent celles du moteur. Nouvelle barre de ville/PA/argent lisant les valeurs déjà affichées, onglets tactiles **Lieux visibles / Ordres / Informations** renvoyant vers les lieux/commandes réels, aucune nouvelle action métier ni RPC. Traductions simples intégrées pour les neuf locales.
+- **Contrôles** : neuf inspections statiques directes réussies sur les sources de la branche ; banc `outils/bancs/test-exploration-mobile-20261116.cjs` et workflow dédié `exploration-mobile.yml` ajoutés, résultats CI à confirmer. **Non vérifié :** rendu 320/390/414 sur appareil, navigation d'un PJ connecté, comportement du panneau d'erreur de connexion et déploiement Vercel. **Ne pas annoncer en production avant PR fusionnée + READY**.
+- Après validation : étendre la même grammaire visuelle, par chantiers séparés, aux écrans de gestion et aux dialogues sans altérer les règles du jeu.
+
 ### Musée de Luthécia — accueil de Valérie / enquête Jodie (16/11/2026)
 - **Défaut réel Angie Porcelana diagnostiqué sur Supabase** : enquête `relancee`, invitation Jodie acceptée, ancien champ `accueilValerie=true` alors qu'aucun dialogue ne s'était affiché. L'ancienne RPC consommait le drapeau avant rendu. Le crochet client partait aussi avant l'écriture effective de la position dans le hall (`pas_sur_place` silencieux).
 - **PR #1036 fusionnée** au commit `6a1bf52f` : hall avec description explicite et ordre gratuit permanent **« Parler à Valérie de l'enquête »** ; introduction spontanée après position Supabase confirmée, explication des quatre cadres et du calepin, validation uniquement après clic **« Compris, je commence mon enquête »**. Le nouveau marqueur `accueilValerieConfirme` n'est jamais déduit de l'ancien indicateur ; Angie pourra donc voir le dialogue sans remise à zéro de sa quête.
