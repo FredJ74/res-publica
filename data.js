@@ -12406,3 +12406,24 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     orders: []
   };
 })();
+
+
+// STAROVKA_HOPITAL_TROIS_SALLES_20261116
+// Uniquement les décors de l'hôpital de Starovka : pas de modification des soins, PNJ ni ordres.
+(function () {
+  const ville = WORLD.soviet && WORLD.soviet.ville_a;
+  if (!ville || !ville.buildingContext) throw new Error('Contexte de Starovka absent');
+  const hopital = ville.buildingContext['dispensaire-public-v'];
+  if (!hopital || !hopital.roomsExtra || !hopital.roomsExtra.chambre) {
+    throw new Error("Pièces de l'hôpital de Starovka absentes");
+  }
+  hopital.roomOverrides = hopital.roomOverrides || {};
+  const path = 'images/Sovarka/Starovka/Starovka_hopital_';
+  hopital.roomOverrides.attente = Object.assign(hopital.roomOverrides.attente || {}, {
+    imageUrl: path + 'accueil.webp'
+  });
+  hopital.roomOverrides.ehpad = Object.assign(hopital.roomOverrides.ehpad || {}, {
+    imageUrl: path + 'ehpad.webp'
+  });
+  hopital.roomsExtra.chambre.imageUrl = path + 'chambre.webp';
+})();
