@@ -26,8 +26,7 @@
     root.id = 'goulag-toundra';
     root.setAttribute('role', 'dialog');
     root.setAttribute('aria-label', 'Traversée de la toundra');
-    root.style.cssText = 'position:fixed;inset:0;z-index:15000;background:#14202a;color:#e2e9f1;display:none;overflow-y:auto;padding:clamp(12px,3vw,32px);';
-    root.innerHTML = '<div class="goulag-toundra-interieur" style="width:min(100%,1100px);margin:auto"></div>';
+    root.innerHTML = '<div class="goulag-toundra-interieur"></div>';
     document.body.appendChild(root);
     return root;
   }
@@ -40,16 +39,16 @@
     const avance = Math.min(total, Math.max(0, Number(etat.progressions) || 0));
     const etape = Math.min(total, avance + 1);
     place.innerHTML =
-      '<h2 style="font-size:clamp(1.5rem,3.4vw,2rem);margin:0 0 12px">Traversée de la toundra — '+encode(etat.destination === 'starovka' ? 'Starovka' : 'Krasnov')+'</h2>'+
-      '<p style="line-height:1.6;margin:0 0 14px">Progression : <strong>'+avance+' / '+total+'</strong> · PA : <strong>'+encode(etat.pa)+'</strong> · Bois trouvé : <strong>'+encode(etat.bois_trouve || 0)+'</strong> / 8</p>'+
+      '<h2>Traversée de la toundra — '+encode(etat.destination === 'starovka' ? 'Starovka' : 'Krasnov')+'</h2>'+
+      '<p class="goulag-infos">Progression : <strong>'+avance+' / '+total+'</strong> · PA : <strong>'+encode(etat.pa)+'</strong> · Bois trouvé : <strong>'+encode(etat.bois_trouve || 0)+'</strong> / 8</p>'+
       '<img src="'+imageEtape(etat)+'" alt="Étape '+etape+' de la toundra de Sovarka" '+
       'style="width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:10px;display:block">'+
-      '<p style="line-height:1.6;margin:12px 0 18px">Vous êtes seul dans la toundra. Votre marche ne peut pas être annulée. Une progression par jour ; aucun ordre ne peut vous ramener à zéro PA.</p>'+
-      '<div style="display:flex;gap:12px;flex-wrap:wrap">'+
-      '<button type="button" data-goulag-action="abri" style="min-height:44px;padding:12px 16px">Dresser un abri (−1 PA)</button>'+
+      '<p class="goulag-explique">Vous êtes seul dans la toundra. Votre marche ne peut pas être annulée. Une progression par jour ; aucun ordre ne peut vous ramener à zéro PA.</p>'+
+      '<div class="goulag-actions">'+
+      '<button type="button" data-goulag-action="abri">Dresser un abri (−1 PA)</button>'+
       '<button type="button" data-goulag-action="dormir" style="min-height:44px;padding:12px 16px">Dormir (+3 PA, +3 avec abri)</button>'+
       '<button type="button" data-goulag-action="progresser" style="min-height:44px;padding:12px 16px">Progresser (−5 PA)</button>'+
-      '</div><p id="goulag-toundra-message" role="status" aria-live="polite" style="margin-top:14px">'+encode(message)+'</p>';
+      '</div><p id="goulag-toundra-message" role="status" aria-live="polite">'+encode(message)+'</p>';
     root.style.display = 'block';
     for (const btn of root.querySelectorAll('[data-goulag-action]')) {
       const a=btn.dataset.goulagAction;
