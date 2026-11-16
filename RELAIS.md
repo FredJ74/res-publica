@@ -8,6 +8,13 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Musée de Luthécia — accueil de Valérie / enquête Jodie (16/11/2026)
+- **Défaut réel Angie Porcelana diagnostiqué sur Supabase** : enquête `relancee`, invitation Jodie acceptée, ancien champ `accueilValerie=true` alors qu'aucun dialogue ne s'était affiché. L'ancienne RPC consommait le drapeau avant rendu. Le crochet client partait aussi avant l'écriture effective de la position dans le hall (`pas_sur_place` silencieux).
+- **PR #1036 fusionnée** au commit `6a1bf52f` : hall avec description explicite et ordre gratuit permanent **« Parler à Valérie de l'enquête »** ; introduction spontanée après position Supabase confirmée, explication des quatre cadres et du calepin, validation uniquement après clic **« Compris, je commence mon enquête »**. Le nouveau marqueur `accueilValerieConfirme` n'est jamais déduit de l'ancien indicateur ; Angie pourra donc voir le dialogue sans remise à zéro de sa quête.
+- Migration `20261116180000_musee_valerie_accueil_confirmation.sql` **appliquée en production sur Supabase**, RPC inspectée après application : garde `accueil_confirmer` et marqueur confirmés. Profil Angie non modifié manuellement. Tests JavaScript directs **13/13 réussis** sur le scénario Angie ; compilation SQL `BEGIN/ROLLBACK` validée. Workflow CI dédié en attente de runners GitHub lors du relais.
+- **Cache navigateur** : PR de suivi `chatgpt/musee-valerie-cache-20261116` modifie les versions des trois scripts `plateau-enigme-portrait.js`, `plateau-navigation.js` et `plateau-router.js` pour forcer leur rechargement. Après fusion de cette PR, confirmer Vercel READY et alias public puis tester l'entrée d'Angie (ou d'un PJ ayant la quête active) dans le hall. Le texte des indices, le débarras et la logique de résolution ne sont pas touchés.
+
+
 
 
 
