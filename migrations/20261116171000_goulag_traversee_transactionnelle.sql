@@ -207,7 +207,8 @@ BEGIN
     'pa',v_pa,'bois_gagne',v_gain,
     'inventory',CASE WHEN v_gain>0 THEN v_bois->'inventory' ELSE NULL END,
     'revision',CASE WHEN v_gain>0 THEN v_bois->'revision' ELSE NULL END,
-    'repos_jours',CASE WHEN v_dernier THEN 3 ELSE 0 END);
+    'repos_jours',CASE WHEN v_dernier THEN 3 ELSE 0 END,
+    'statut',tr.statut,'recherche',v_dernier AND tr.statut='detenu');
 END $$;
 REVOKE ALL ON FUNCTION public.goulag_toundra_agir(text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.goulag_toundra_agir(text) TO authenticated;
