@@ -1,0 +1,60 @@
+name: Starovka - Hopital trois salles WebP
+on:
+  push:
+    branches:
+      - chatgpt/starovka-hopital-trois-salles-20261116
+    paths:
+      - 'outils/images/implanter_starovka_hopital_20261116.py'
+      - 'images/Sovarka/Starovka/**'
+      - '.github/workflows/starovka-hopital-trois-salles-20261116.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  conversion-et-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/starovka-hopital-trois-salles-20261116
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Conversion WebP qualite 85, suppression originaux et raccordement
+        run: python outils/images/implanter_starovka_hopital_20261116.py
+      - name: Tests statiques de non-regression des trois salles
+        run: |
+          node --check data.js
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          data=Path('data.js').read_text(encoding='utf8')
+          tag='STAROVKA_HOPITAL_TROIS_SALLES_20261116'
+          assert data.count(tag)==1
+          assert "ville.buildingContext['dispensaire-public-v']" in data[data.index(tag):]
+          assert "hopital.roomOverrides.attente" in data[data.index(tag):]
+          assert "hopital.roomOverrides.ehpad" in data[data.index(tag):]
+          assert "hopital.roomsExtra.chambre.imageUrl" in data[data.index(tag):]
+          directory=Path('images/Sovarka/Starovka')
+          for name in ('accueil','chambre','ehpad'):
+              with Image.open(directory/('Starovka_hopital_'+name+'.webp')) as im:
+                  assert im.format=='WEBP' and im.size==(1448,1086)
+          assert not any(directory.glob('Image ChatGPT 16 nov. 2026, 15_47_*.png'))
+          assert 'CHAMBRE_HOPITAL_ORDRES_SOVARKA()' in data
+          print('Garde Starovka: 3 WebP et 3 pieces, ordres intacts')
+          PY
+      - name: Pousser images et raccordement valides
+        run: |
+          git add -A -- images/Sovarka/Starovka data.js
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "Conversion deja effectuee"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Starovka : trois salles d'hopital en WebP et PNG supprimes"
+          git push origin HEAD:chatgpt/starovka-hopital-trois-salles-20261116
