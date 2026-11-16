@@ -1,0 +1,31 @@
+name: Starovka - resynchroniser les scènes PNJ
+on:
+  push:
+    branches: [chatgpt/starovka-affaires-ecoute-20261116]
+    paths: ['.github/workflows/starovka-scenes-20261116.yml']
+permissions:
+  contents: write
+jobs:
+  scenes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Regenerer les scenes à partir des vrais bâtiments
+        run: node outils/generateurs/generer-pnj-lieux-metiers.cjs --scenes-js > api/_pnj-scenes-generes.js
+      - name: Vérification
+        run: |
+          node --check data.js
+          git diff --check
+      - name: Publier les scènes cohérentes
+        run: |
+          git add api/_pnj-scenes-generes.js
+          git diff --cached --check
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(starovka): synchroniser les scènes PNJ du centre d'affaires"
+          git push origin HEAD:chatgpt/starovka-affaires-ecoute-20261116
