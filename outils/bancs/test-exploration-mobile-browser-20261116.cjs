@@ -29,7 +29,7 @@ const html=`<!doctype html><html lang="fr"><head><meta name="viewport" content="
      await page.evaluate(()=>{window.places=0;window.moves=0;window.orders=0;});
      await page.addStyleTag({path:path.join(root,'plateau-exploration-mobile.css')});
      await page.addScriptTag({path:path.join(root,'plateau-exploration-mobile.js')});
-     await page.waitForSelector('.hg-explore-tabs button');
+     await page.waitForSelector('.hg-explore-tabs button',{state:'attached'});
      const mobile=width<1024;
      assert.equal(await page.locator('.hg-explore-tabs').isVisible(),mobile,'onglets '+width);
      if(mobile){
