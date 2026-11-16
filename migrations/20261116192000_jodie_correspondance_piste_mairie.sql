@@ -18,7 +18,7 @@ BEGIN
   IF NOT FOUND THEN
     RETURN jsonb_build_object('ok',false,'raison','personnage_non_autorise'); END IF;
   e:=CASE WHEN jsonb_typeof(d.enigme1)='object' THEN d.enigme1 ELSE '{}'::jsonb END;
-  IF e->>'etape' NOT IN ('declenchee','relancee') OR d.country<>'republic' THEN
+  IF coalesce(e->>'etape','') NOT IN ('declenchee','relancee') THEN
     RETURN jsonb_build_object('ok',false,'raison','enquete_inactive'); END IF;
   v_cadres:=CASE WHEN jsonb_typeof(e->'cadresVus')='array' THEN e->'cadresVus' ELSE '[]'::jsonb END;
   IF NOT EXISTS (
