@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public.sovarka_goulag_refuges (
   actualise_le timestamptz NOT NULL DEFAULT now()
 );
 ALTER TABLE public.sovarka_goulag_refuges ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.sovarka_goulag_refuges FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON public.sovarka_goulag_refuges FROM PUBLIC,anon,authenticated,service_role;
 
 CREATE OR REPLACE FUNCTION public.sovarka_goulag_refuge_creer_interne(
   p_nom text,p_destination text,p_statut text)
@@ -53,7 +53,7 @@ BEGIN
     'jour',public.sovarka_jour_paris(),'repos_jusqu_au',v_r.arrivee_le+3,
     'termine',v_r.termine);
 END $$;
-REVOKE ALL ON FUNCTION public.sovarka_goulag_refuge_lire() FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.sovarka_goulag_refuge_lire() FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.sovarka_goulag_refuge_lire() TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.sovarka_goulag_refuge_nuit()
@@ -93,7 +93,7 @@ BEGIN
      'bois_total',v_r.bois_paye+v_bois,'inventory',v_inv,
      'revision',(SELECT inventory_revision FROM public.personnages_donnees WHERE name=v_nom));
 END $$;
-REVOKE ALL ON FUNCTION public.sovarka_goulag_refuge_nuit() FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.sovarka_goulag_refuge_nuit() FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.sovarka_goulag_refuge_nuit() TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.sovarka_goulag_refuge_terminer()
@@ -113,5 +113,5 @@ BEGIN
   UPDATE public.sovarka_goulag_refuges SET termine=true,actualise_le=now() WHERE nom=v_nom;
   RETURN jsonb_build_object('ok',true,'termine',true);
 END $$;
-REVOKE ALL ON FUNCTION public.sovarka_goulag_refuge_terminer() FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.sovarka_goulag_refuge_terminer() FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.sovarka_goulag_refuge_terminer() TO authenticated;

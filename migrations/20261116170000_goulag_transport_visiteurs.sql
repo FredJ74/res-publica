@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS public.sovarka_goulag_visites (
  sorti_le timestamptz
 );
 ALTER TABLE public.sovarka_goulag_visites ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.sovarka_goulag_visites FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON public.sovarka_goulag_visites FROM PUBLIC,anon,authenticated,service_role;
 
 CREATE OR REPLACE FUNCTION public.sovarka_goulag_voyager(p_mode text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $$
@@ -81,7 +81,12 @@ BEGIN
   v_dispo:=public.navigation_disponibilite_interne(v_nom);
   IF NOT coalesce((v_dispo->>'ok')::boolean,false) THEN RETURN v_dispo; END IF;
   v_fn:=CASE p_mode WHEN 'train' THEN 'prendre_train' ELSE 'prendre_bus_taxi' END;
-  SELECT fn,pa,cost INTO v_tarif FROM public.ordres_couts WHERE fn=v_fn;
+  -- Même tarif national que payer_ordre_interne, aucun montant nouveau.
+  SELECT fn,pa,cost INTO v_tarif FROM public.ordres_couts_pays
+    WHERE fn=v_fn AND pays='soviet';
+  IF NOT FOUND THEN
+    SELECT fn,pa,cost INTO v_tarif FROM public.ordres_couts WHERE fn=v_fn;
+  END IF;
   IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','tarif_absent'); END IF;
   v_paiement:=public.payer_ordre_interne(v_nom,v_fn,v_tarif.pa,v_tarif.cost,1);
   IF NOT coalesce((v_paiement->>'ok')::boolean,false) THEN RETURN v_paiement; END IF;
@@ -99,7 +104,7 @@ BEGIN
   RETURN jsonb_build_object('ok',true,'ville','qhs','building','qhs-prison',
     'room','entree_qhs','tarif',v_paiement,'statut','visiteur');
 END $$;
-REVOKE ALL ON FUNCTION public.sovarka_goulag_voyager(text) FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.sovarka_goulag_voyager(text) FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.sovarka_goulag_voyager(text) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.sovarka_goulag_visiteur_repartir(p_mode text,p_destination text DEFAULT NULL)
@@ -134,7 +139,12 @@ BEGIN
       AND batiment LIKE 'centre-multinodal-%' ORDER BY batiment LIMIT 1;
   IF v_bat IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','arrivee_non_referencee'); END IF;
   v_fn:=CASE p_mode WHEN 'train' THEN 'prendre_train' ELSE 'prendre_bus_taxi' END;
-  SELECT fn,pa,cost INTO v_t FROM public.ordres_couts WHERE fn=v_fn;
+  -- Même tarif national que payer_ordre_interne, aucun montant nouveau.
+  SELECT fn,pa,cost INTO v_t FROM public.ordres_couts_pays
+    WHERE fn=v_fn AND pays='soviet';
+  IF NOT FOUND THEN
+    SELECT fn,pa,cost INTO v_t FROM public.ordres_couts WHERE fn=v_fn;
+  END IF;
   IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','tarif_absent'); END IF;
   v_paiement:=public.payer_ordre_interne(v_nom,v_fn,v_t.pa,v_t.cost,1);
   IF NOT coalesce((v_paiement->>'ok')::boolean,false) THEN RETURN v_paiement; END IF;
@@ -144,5 +154,5 @@ BEGIN
   UPDATE public.sovarka_goulag_visites SET present=false,sorti_le=now() WHERE nom=v_nom;
   RETURN jsonb_build_object('ok',true,'ville',v_dest,'building',v_bat,'room',v_piece,'tarif',v_paiement);
 END $$;
-REVOKE ALL ON FUNCTION public.sovarka_goulag_visiteur_repartir(text,text) FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.sovarka_goulag_visiteur_repartir(text,text) FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.sovarka_goulag_visiteur_repartir(text,text) TO authenticated;

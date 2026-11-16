@@ -48,5 +48,5 @@ BEGIN
   END;
   RETURN v_res||jsonb_build_object('paiement',v_paiement,'lieu_detention','goulag');
 END $$;
-REVOKE ALL ON FUNCTION public.sovarka_goulag_juger(text,text,integer) FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.sovarka_goulag_juger(text,text,integer) FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.sovarka_goulag_juger(text,text,integer) TO authenticated;

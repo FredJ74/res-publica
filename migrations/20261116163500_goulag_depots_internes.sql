@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS public.sovarka_goulag_depots (
 );
 CREATE INDEX IF NOT EXISTS sovarka_goulag_depots_nom_idx ON public.sovarka_goulag_depots(nom);
 ALTER TABLE public.sovarka_goulag_depots ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.sovarka_goulag_depots FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON public.sovarka_goulag_depots FROM PUBLIC,anon,authenticated,service_role;
 -- Les clés vierges et doubles sont les objets avec type canonique du catalogue
 -- des serrures. Un bloc serrure_cle ne constitue PAS une clé.
 CREATE OR REPLACE FUNCTION public.sovarka_goulag_est_cle_interne(p_objet jsonb)

@@ -5,13 +5,19 @@ on:
       - chatgpt/goulag-moteur-survie-20261116
   pull_request:
     paths:
-      - 'api/_goulag-survie.js'
+      - 'api/_goulag*.js'
+      - 'plateau-goulag*.js'
+      - 'plateau-justice-economie.js'
+      - 'plateau-rue-centrale.js'
+      - 'migrations/*goulag*.sql'
+      - 'outils/bancs/*goulag*'
+      - 'outils/bancs/fixtures/goulag-20261116/**'
       - 'outils/bancs/test-goulag-survie-20261116.cjs'
       - '.github/workflows/goulag-survie-20261116.yml'
 jobs:
   moteur-survie:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
@@ -37,3 +43,16 @@ jobs:
       - run: node outils/bancs/test-goulag-decors-20261116.cjs
       - run: node outils/bancs/test-goulag-decor-runtime-20261116.cjs
       - run: node outils/bancs/test-goulag-ecran-interactif-20261116.cjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
+      - name: PostgreSQL 17.6 local isolé
+        env:
+          HGPG17_PREFIX: ${{ runner.temp }}/goulag-pg17
+        run: |
+          bash outils/bancs/installer-postgresql17-local.sh
+          python3 outils/bancs/test-goulag-postgresql-20261116.py --postgres-bin "$HGPG17_PREFIX/bin"
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: npx --prefix outils/e2e playwright install chromium
+      - run: node outils/bancs/test-goulag-chromium-20261116.cjs

@@ -46,5 +46,5 @@ BEGIN
  WHERE name=v_nom AND user_id=auth.uid();
  RETURN jsonb_build_object('ok',true,'batiment',v_maison,'piece','piece_maison');
 END $$;
-REVOKE ALL ON FUNCTION public.sovarka_goulag_refuge_rejoindre() FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.sovarka_goulag_refuge_rejoindre() FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.sovarka_goulag_refuge_rejoindre() TO authenticated;

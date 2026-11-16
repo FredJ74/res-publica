@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS public.sovarka_goulag_traversees (
   actualise_le timestamptz NOT NULL DEFAULT now()
 );
 ALTER TABLE public.sovarka_goulag_traversees ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.sovarka_goulag_traversees FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.sovarka_goulag_traversees FROM PUBLIC,anon,authenticated,service_role;
 
 -- Porte de départ volontairement FERMÉE tant que les habilitations,
 -- la confiscation, le gel de peine et le retour en ville ne sont pas raccordés.
@@ -39,7 +39,7 @@ BEGIN
   RETURN jsonb_build_object('ok',false,'raison','goulag_non_active');
 END;
 $goulag_demarrer$;
-REVOKE ALL ON FUNCTION public.goulag_toundra_demarrer(text) FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.goulag_toundra_demarrer(text) FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.goulag_toundra_demarrer(text) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.goulag_toundra_lire()
@@ -144,7 +144,7 @@ BEGIN
     'pa',v_pa,'bois_gagne',v_gain_bois);
 END;
 $$;
-REVOKE ALL ON FUNCTION public.goulag_toundra_lire() FROM PUBLIC, anon;
-REVOKE ALL ON FUNCTION public.goulag_toundra_agir(text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.goulag_toundra_lire() FROM PUBLIC,anon,service_role;
+REVOKE ALL ON FUNCTION public.goulag_toundra_agir(text) FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.goulag_toundra_lire() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.goulag_toundra_agir(text) TO authenticated;

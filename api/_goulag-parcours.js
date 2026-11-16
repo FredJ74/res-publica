@@ -7,7 +7,7 @@ class RefusParcours extends Error {
 const refuser = code => {throw new RefusParcours(code);};
 const ENTREE = Object.freeze({
   starovka:Object.freeze({ville:'ville_a',progressions:7,minimumPA:7,noeud:'starovka-rue-stade'}),
-  krasnov:Object.freeze({ville:'ville_b',progressions:10,minimumPA:10,noeud:null})
+  krasnov:Object.freeze({ville:'ville_b',progressions:10,minimumPA:10,noeud:'krasnov-camp-bucherons'})
 });
 const entier = n => Number.isSafeInteger(n) && n>=0;
 const copie = obj => JSON.parse(JSON.stringify(obj));
@@ -69,12 +69,12 @@ function debuterMarche({destination,statut,pa,presenceServeur,peineRestante}) {
     peineGelee:statut==='detenu'?peineRestante:null,
     recherche:statut==='detenu',perteDepot:statut==='detenu'};
 }
-function arriver({marche,paApresProgression,noeudKrasnovVerifie}) {
+function arriver({marche,paApresProgression}) {
   const route=marche && ENTREE[marche.destination];
   if (!route || !marche.irreversible || marche.progressions!==route.progressions
       || !entier(paApresProgression) || paApresProgression<1)
     refuser('arrivee_invalide');
-  const noeud=marche.destination==='starovka'?route.noeud:noeudKrasnovVerifie;
+  const noeud=route.noeud;
   if (typeof noeud!=='string' || !noeud) refuser('arrivee_non_referencee');
   return {pays:'soviet',ville:route.ville,batiment:null,piece:null,
     rue:noeud,pa:1,reposForceJours:3,statut:marche.statut,

@@ -15,7 +15,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS sovarka_goulag_autorisation_demande_active
   ON public.sovarka_goulag_autorisations(nom)
   WHERE etat IN ('demandee','accordee');
 ALTER TABLE public.sovarka_goulag_autorisations ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.sovarka_goulag_autorisations FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON public.sovarka_goulag_autorisations FROM PUBLIC,anon,authenticated,service_role;
 
 -- Ne pas se fier au pays/au poste dans un cache client : acteur_poste_courant
 -- et la fonction de titulature nationale sont côté serveur.
@@ -41,6 +41,8 @@ DECLARE v_nom text:=public.mon_personnage(); v_p record; v_id uuid;
 BEGIN
   IF auth.uid() IS NULL OR v_nom IS NULL THEN
     RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
+  IF NOT EXISTS(SELECT 1 FROM public.sovarka_goulag_configuration WHERE singleton AND active) THEN
+    RETURN jsonb_build_object('ok',false,'raison','goulag_non_active'); END IF;
   SELECT country,current_city,current_building INTO v_p FROM public.personnages_donnees
     WHERE name=v_nom AND user_id=auth.uid() FOR UPDATE;
   IF NOT FOUND OR v_p.country<>'soviet' OR v_p.current_city NOT IN ('capitale','ville_a','ville_b')
@@ -55,7 +57,7 @@ BEGIN
   INSERT INTO public.sovarka_goulag_autorisations(nom) VALUES(v_nom) RETURNING id INTO v_id;
   RETURN jsonb_build_object('ok',true,'demande_id',v_id,'etat','demandee');
 END $$;
-REVOKE ALL ON FUNCTION public.sovarka_goulag_visite_demander() FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.sovarka_goulag_visite_demander() FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.sovarka_goulag_visite_demander() TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.sovarka_goulag_visite_decider(p_id uuid,p_decision text)
@@ -70,6 +72,8 @@ BEGIN
     RETURN jsonb_build_object('ok',false,'raison','reserve_ministre_justice_sovarka'); END IF;
   IF p_decision NOT IN ('accorder','refuser') OR p_decision IS NULL THEN
     RETURN jsonb_build_object('ok',false,'raison','decision_invalide'); END IF;
+  IF NOT EXISTS(SELECT 1 FROM public.sovarka_goulag_configuration WHERE singleton AND active) THEN
+    RETURN jsonb_build_object('ok',false,'raison','goulag_non_active'); END IF;
   SELECT * INTO a FROM public.sovarka_goulag_autorisations WHERE id=p_id FOR UPDATE;
   IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','demande_absente'); END IF;
   IF a.etat<>'demandee' THEN
@@ -80,7 +84,7 @@ BEGIN
   RETURN jsonb_build_object('ok',true,'demande_id',p_id,
      'etat',CASE p_decision WHEN 'accorder' THEN 'accordee' ELSE 'refusee' END);
 END $$;
-REVOKE ALL ON FUNCTION public.sovarka_goulag_visite_decider(uuid,text) FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.sovarka_goulag_visite_decider(uuid,text) FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.sovarka_goulag_visite_decider(uuid,text) TO authenticated;
 
 -- La lecture rend exclusivement ses propres demandes ou les demandes du
@@ -101,5 +105,5 @@ BEGIN
       WHERE a.nom=v_nom OR v_ministre
     ),'[]'::jsonb));
 END $$;
-REVOKE ALL ON FUNCTION public.sovarka_goulag_visite_lire() FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.sovarka_goulag_visite_lire() FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.sovarka_goulag_visite_lire() TO authenticated;

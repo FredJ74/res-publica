@@ -2705,7 +2705,7 @@ async function appliquerSentence(affaireId, type, infraction, joursServeur, amen
   // de l'affaire) : si la personne n'est pas detenue, l'action echoue proprement, l'affaire reste
   // "deposee" (rejugeable plus tard, y compris en prison si la personne est entre-temps
   // recherchee puis arretee) et aucune ligne detentions ni aucune entree recherche n'est creee.
-  if (((type === 'qhs' && state.country !== 'soviet') || type === 'torture') && !(await estActuellementDetenu(affaire.cible))) {
+  if ((type === 'qhs' || type === 'torture') && !(await estActuellementDetenu(affaire.cible))) {
     showToast('Action impossible', affaire.cible + " n'est pas actuellement détenu(e). Le QHS et la torture ne peuvent s'appliquer qu'à une personne déjà sous contrôle.", false);
     return;
   }

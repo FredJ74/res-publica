@@ -34,5 +34,5 @@ BEGIN
   WHERE name=v_nom AND user_id=auth.uid();
  RETURN jsonb_build_object('ok',true,'room','entree_qhs');
 END $$;
-REVOKE ALL ON FUNCTION public.sovarka_goulag_detenu_vers_entree() FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.sovarka_goulag_detenu_vers_entree() FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.sovarka_goulag_detenu_vers_entree() TO authenticated;

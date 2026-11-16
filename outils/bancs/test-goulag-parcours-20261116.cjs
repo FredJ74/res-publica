@@ -40,7 +40,8 @@ t.test('parcours visiteur et détenu, destination géographique, PA et peine',()
    const detenu=g.debuterMarche({destination:dest,statut:'detenu',pa:minimum,presenceServeur:true,peineRestante:.25});
    a.equal(detenu.peineGelee,.25);a.equal(detenu.recherche,true);
    const donnees={...detenu,progressions:g.ENTREE[dest].progressions};
-   if(dest==='krasnov') rejet(()=>g.arriver({marche:donnees,paApresProgression:3}),'arrivee_non_referencee');
+   // Le camp est désormais un nœud réel ; une valeur cliente ne le remplace pas.
+   a.equal(g.arriver({marche:donnees,paApresProgression:3,noeudKrasnovVerifie:'faux-noeud'}).rue,g.ENTREE[dest].noeud);
    const arrivee=g.arriver({marche:donnees,paApresProgression:3,noeudKrasnovVerifie:'krasnov-camp-reel'});
    a.equal(arrivee.pa,1);a.equal(arrivee.reposForceJours,3);
    a.equal(arrivee.ville,g.ENTREE[dest].ville);
