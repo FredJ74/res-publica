@@ -1,0 +1,30 @@
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const d = path.join(root, 'images/Sovarka/Goulag');
+const manifest = JSON.parse(fs.readFileSync(path.join(d, 'manifest.json'), 'utf8'));
+const scenes = Array.from({ length: 10 }, (_, i) => `Sovarka_goulag_toundra_${String(i+1).padStart(2,'0')}.webp`);
+assert.deepEqual(manifest.dimensions, [1448,1086]);
+assert.equal(manifest.vues.length,10);
+for (const [index,file] of scenes.entries()) {
+  const blob = fs.readFileSync(path.join(d, file));
+  assert.equal(blob.toString('ascii',0,4),'RIFF');
+  assert.equal(blob.toString('ascii',8,12),'WEBP');
+  assert.equal(manifest.vues[index].fichier,file);
+  assert.ok(blob.length > 10000 && blob.length < 750000,`poids suspect : ${file}`);
+}
+assert.deepEqual(fs.readdirSync(d).sort(),['manifest.json',...scenes].sort());
+assert.equal(fs.readdirSync(path.join(root,'images/Sovarka')).filter(n => /Image ChatGPT 16 nov. 2026.*\.png/.test(n)).length,0);
+const js = fs.readFileSync(path.join(root,'plateau-goulag-toundra.js'),'utf8');
+assert.match(js,/goulag_toundra_agir/);
+assert.match(js,/goulag_toundra_lire/);
+assert.match(js,/goulag_toundra_demarrer/);
+assert.match(js,/window\.RP_ORDRES_DYNAMIQUES\.push\(ordresGoulagDuLieu\)/);
+const html=fs.readFileSync(path.join(root,'plateau.html'),'utf8');
+assert.match(html,/plateau-goulag-toundra\.js/);
+const router=fs.readFileSync(path.join(root,'plateau-router.js'),'utf8');
+assert.match(router,/goulag_depart_pied/);
+assert.ok(router.indexOf("fn === 'goulag_depart_pied'") < router.indexOf("// PA check"), 'jamais de débit client générique');
+console.log('Goulag : 10 images WebP, poids/dimensions/ordre, suppression PNG, routes et interface vérifiés');
