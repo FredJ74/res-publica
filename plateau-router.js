@@ -24,6 +24,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   }
   // Transport et autorisations du goulag : aucun paiement côté navigateur.
   const ordresVisiteGoulag = {
+    goulag_detenu_entree:'goulagDetenuVersEntree',
     goulag_visite_demander:'goulagAutorisationDemander',
     goulag_voyager:'goulagVoyager',
     goulag_autorisations_gerer:'goulagAutorisationsGerer',
