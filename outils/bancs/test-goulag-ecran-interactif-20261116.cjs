@@ -20,7 +20,7 @@ const contenu = {
 };
 const doc = {
   createElement() {
-    return {style:{},setAttribute(){},querySelector(){return contenu;},innerHTML:''};
+    return {style:{},setAttribute(){},querySelector(){return contenu;},querySelectorAll(){return contenu.querySelectorAll();},innerHTML:''};
   },
   getElementById(id) {return panneaux.get(id)||null;},
   body: {appendChild(node){panneaux.set(node.id,node);}},
