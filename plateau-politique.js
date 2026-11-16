@@ -3172,6 +3172,13 @@ function renderDernierePageJournal(dp) {
     ).join('');
     blocs.push(`<div class="tribune-derniere-bloc"><h4>Indices</h4>${lignes}</div>`);
   }
+  // Balance commerciale du pays (16/11/2026), publique, avec les prix des matieres premieres ci-dessus.
+  if (dp.balance_commerciale && typeof dp.balance_commerciale.solde === 'number') {
+    const b = dp.balance_commerciale;
+    const dev = (typeof COUNTRIES !== 'undefined' && COUNTRIES[b.pays] && COUNTRIES[b.pays].cur) || 'FR';
+    const f = v => (Math.round((Number(v) || 0) * 100) / 100).toLocaleString('fr-FR') + ' ' + dev;
+    blocs.push(`<div class="tribune-derniere-bloc"><h4>Balance commerciale</h4><div class="tribune-indice-ligne"><span>Exportations · importations</span><span>${f(b.exportations)} · ${f(b.importations)}</span></div><div class="tribune-indice-ligne"><span>Solde du ${escapeHtmlText(b.jour || '')}</span><span>${b.solde > 0 ? '+' : ''}${f(b.solde)}</span></div></div>`);
+  }
   if (Array.isArray(dp.arrivees) && dp.arrivees.length > 0) {
     blocs.push(`<div class="tribune-derniere-bloc"><h4>Journal des arrivées</h4><ul>${dp.arrivees.map(t => `<li>${texteArticleHtml(t)}</li>`).join('')}</ul></div>`);
   }

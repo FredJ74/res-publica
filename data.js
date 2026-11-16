@@ -6478,7 +6478,10 @@ const BUILDINGS = {
         desc: "Voiliers et bateaux de plaisance amarres le long du quai, grande ouverture sur la mer.",
         imageUrl: "images/port-sainte-marie-port-plaisance.webp",
         persons: [],
-        orders: []
+        // Lieu de peche de Port-Sainte-Marie (Fred, 16/11/2026) : 10 poissons par PA, regulable par l'adjoint.
+        orders: [
+          {fn:'recolter_matiere', label:'Pêcher', pa:1, cost:0, type:'legal', icon:'ti-fish', successRate:100, desc:'Recolter une matiere premiere locale. La quantite depend de la ressource ; l\'adjoint au maire peut en reguler la production.'}
+        ]
       },
       capitainerie: {
         name: "Capitainerie",
@@ -11255,7 +11258,10 @@ function slugPnjSovarka(nom) {
         imageBg: "linear-gradient(135deg,#0b1016,#16212c)",
         desc: "Le bureau du Commandant du Port, au-dessus des quais. Une carte des routes maritimes couvre un mur, le planning du brise-glace l'autre.",
         persons: [{name:'Commandant Tömör Ochirov (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}],
-        orders: []
+        orders: copie(psm.administration_portuaire.orders).filter(o => o.fn !== 'consulter_manifeste').map(o => Object.assign(o,
+          o.fn === 'consulter_administration_port'
+            ? { desc: 'Caisse du port, balance commerciale, marchandises, contrats de la nuit et registre du port. Consultation publique, gratuite.' }
+            : { desc: 'Réservé au Commandant du Port : fléchage vers les entrepôts, prix de cession et d\'exportation, quotas, taux de douane.' }))
       }
     }
   };
