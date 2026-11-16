@@ -42,7 +42,7 @@ function portRaison(r) {
     repartition_invalide: portT('errSplit', 'Les trois parts doivent faire 100 %.'),
     taux_hors_bornes: portT('errRate', 'Le taux de douane va de 0 à 30 %.'),
     caisse_insuffisante: portT('errFunds', 'La caisse du ministère ne couvre pas ce virement.'),
-    montant_invalide: portT('errAmount', 'Montant invalide.')
+    montant_invalide: portT('errAmount', 'Ce montant n\'est pas accepté.')
   };
   return raisons[r && r.raison] || portT('errGeneric', 'Refusé par le serveur ({{values.r}}).', { r: portEchapper((r && r.raison) || '?') });
 }
@@ -200,7 +200,7 @@ async function portDoter(action) {
   if (portEnCours) return;
   const champ = document.getElementById(action === 'ponctuelle' ? 'port-dot-ponctuelle' : 'port-dot-recurrente');
   const montant = Math.floor(Number(champ && champ.value));
-  if (!isFinite(montant) || montant < 0 || (action === 'ponctuelle' && montant <= 0)) { showToast(portT('refused', 'Refusé'), portT('errAmount', 'Montant invalide.'), false); return; }
+  if (!isFinite(montant) || montant < 0 || (action === 'ponctuelle' && montant <= 0)) { showToast(portT('refused', 'Refusé'), portT('errAmount', 'Ce montant n\'est pas accepté.'), false); return; }
   portEnCours = true;
   const brut = await sbRpc('port_dotation_ministre', { p_action: action, p_montant: montant }).catch(() => null);
   portEnCours = false;

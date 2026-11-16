@@ -6432,7 +6432,7 @@ const BUILDINGS = {
         persons: [],
         // Lieu de peche de Port-Sainte-Marie (Fred, 16/11/2026) : 10 poissons par PA, regulable par l'adjoint.
         orders: [
-          {fn:'recolter_matiere', label:'Pêcher', pa:1, cost:0, type:'legal', icon:'ti-fish', successRate:100, desc:'Pêcher depuis le port de plaisance : 10 poissons par PA. L\'adjoint au maire peut en réguler la production.'}
+          {fn:'recolter_matiere', label:'Pêcher', pa:1, cost:0, type:'legal', icon:'ti-fish', successRate:100, desc:'Recolter une matiere premiere locale. La quantite depend de la ressource ; l\'adjoint au maire peut en reguler la production.'}
         ]
       },
       capitainerie: {
@@ -9151,8 +9151,8 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'consulter_manifeste', label:'Consulter le manifeste', pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:'Registre administratif persistant : cargaisons de fret privé déclarées (sans révéler leur contenu réel) et flux institutionnels du port. Consultation publique, gratuite.'},
-          {fn:'consulter_administration_port', label:'Administration du port', pa:0, cost:0, type:'legal', icon:'ti-anchor', successRate:100, desc:'Caisse du port, balance commerciale, marchandises, contrats de la nuit et registre du port. Consultation publique, gratuite.'},
-          {fn:'gerer_logistique_port', label:'Gérer la logistique nationale', pa:0, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'capitaine_port', desc:'Réservé au Commandant du Port : fléchage vers les entrepôts, prix de cession et d\'exportation, quotas d\'importation et d\'exportation, taux de douane.'}
+          {fn:'consulter_administration_port', label:'Administration du port', pa:0, cost:0, type:'legal', icon:'ti-anchor', successRate:100, desc:'Stock institutionnel, répartition entre Luthécia/Port-Sainte-Marie/Montrouge, arrivages récents, stocks des 3 entrepôts, caisse du port et situation des exportations. Consultation publique, gratuite.'},
+          {fn:'gerer_logistique_port', label:'Gérer la logistique nationale', pa:0, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'capitaine_port', desc:'Réservé au Commandant du Port : modifier la répartition de la logistique nationale entre Luthécia, Port-Sainte-Marie et Montrouge.'}
         ]
       }
     }
@@ -11210,7 +11210,10 @@ function slugPnjSovarka(nom) {
         imageBg: "linear-gradient(135deg,#0b1016,#16212c)",
         desc: "Le bureau du Commandant du Port, au-dessus des quais. Une carte des routes maritimes couvre un mur, le planning du brise-glace l'autre.",
         persons: [{name:'Commandant Tömör Ochirov (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}],
-        orders: copie(psm.administration_portuaire.orders).filter(o => o.fn !== 'consulter_manifeste')
+        orders: copie(psm.administration_portuaire.orders).filter(o => o.fn !== 'consulter_manifeste').map(o => Object.assign(o,
+          o.fn === 'consulter_administration_port'
+            ? { desc: 'Caisse du port, balance commerciale, marchandises, contrats de la nuit et registre du port. Consultation publique, gratuite.' }
+            : { desc: 'Réservé au Commandant du Port : fléchage vers les entrepôts, prix de cession et d\'exportation, quotas, taux de douane.' }))
       }
     }
   };

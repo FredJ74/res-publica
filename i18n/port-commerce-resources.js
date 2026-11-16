@@ -12,7 +12,7 @@
     "errSplit": "Les trois parts doivent faire 100 %.",
     "errRate": "Le taux de douane va de 0 à 30 %.",
     "errFunds": "La caisse du ministère ne couvre pas ce virement.",
-    "errAmount": "Montant invalide.",
+    "errAmount": "Ce montant n'est pas accepté.",
     "errGeneric": "Refusé par le serveur ({{values.r}}).",
     "unavailable": "Indisponible",
     "readFail": "Le registre du port ne répond pas.",
