@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'plateau-enigme-portrait.js'
+      - 'plateau-navigation.js'
       - 'plateau-router.js'
       - 'outils/bancs/test-enigme1-musee-depart-20261113.mjs'
       - 'migrations/20261116180000_musee_valerie_accueil_confirmation.sql'
