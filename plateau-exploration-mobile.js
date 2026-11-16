@@ -22,14 +22,14 @@
   const paView = document.createElement('span');
   const argentView = document.createElement('span');
   stats.append(paView, argentView); head.append(place,stats);
-  const bar = document.createElement('nav');bar.className='hg-explore-tabs';
+  const bar = document.getElementById('hg-explore-primary') || document.createElement('nav');bar.className='hg-explore-tabs';
   const info = document.createElement('section');info.className='hg-explore-info';info.hidden=true;
   info.id='hg-explore-info';info.setAttribute('role','region');
   const infoTitle=document.createElement('strong');
   const infoDesc=document.createElement('div');
   info.append(infoTitle,infoDesc);
   const touches = Array.from({length:3}, (_,i) => {
-    const b=document.createElement('button');b.type='button';
+    const b=bar.querySelector('[data-explore-tab="'+i+'"]') || document.createElement('button');b.type='button';
     b.setAttribute('aria-pressed','false'); b.dataset.exploreTab=String(i);
     b.addEventListener('click', () => {
       if (!mq.matches) return;
@@ -42,11 +42,11 @@
       }else if(i===1){actions.scrollIntoView({block:'nearest',behavior:'smooth'});}
       else info.scrollIntoView({block:'nearest',behavior:'smooth'});
     });
-    bar.append(b);return b;
+    if(!b.isConnected)bar.append(b);return b;
   });
   const scene = vue.querySelector('.rue-container');
   // Le menu doit etre visible AVANT le decor, sans defilement.
-  scene?.before(head,bar,info);
+  if(bar.parentElement!==vue)scene?.before(bar);bar.before(head);bar.after(info);
 
   function traduire(){
     const langue=document.documentElement.lang||'fr';

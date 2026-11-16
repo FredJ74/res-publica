@@ -16,13 +16,13 @@
     ar:['الغرف','الأوامر','معلومات'],pt:['Salas','Ações','Informações'],
     'zh-TW':['房間','操作','資訊']
   };
-  const nav=document.createElement('nav');nav.className='hg-room-tabs';
+  const nav=document.getElementById('hg-room-primary') || document.createElement('nav');nav.className='hg-room-tabs';
   const info=document.createElement('section');info.className='hg-room-info';
   info.id='hg-room-info';info.setAttribute('role','region');info.hidden=true;
   const title=document.createElement('strong');const desc=document.createElement('div');
   info.append(title,desc);
   const buttons=Array.from({length:3},(_,i)=>{
-    const button=document.createElement('button');
+    const button=nav.querySelector('[data-room-tab="'+i+'"]') || document.createElement('button');
     button.type='button';button.dataset.roomTab=String(i);
     button.setAttribute('aria-pressed','false');
     button.addEventListener('click',()=>{
@@ -33,10 +33,10 @@
       if(i===1)actionbar.scrollIntoView({block:'nearest',behavior:'smooth'});
       if(i===2)info.scrollIntoView({block:'nearest',behavior:'smooth'});
     });
-    nav.append(button);return button;
+    if(!button.isConnected)nav.append(button);return button;
   });
   // Afficher les acces des l'entree dans le batiment, pas apres l'image.
-  header.after(nav,info);
+  if(nav.parentElement!==vue)header.after(nav);nav.after(info);
 
   function translate(){
     const lang=document.documentElement.lang||'fr';
