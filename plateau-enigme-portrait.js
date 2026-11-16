@@ -240,7 +240,13 @@ async function enigme1ValerieConfirmer() {
 async function enigme1AccueilHall(buildingId, roomId, explicite = false) {
   if (buildingId !== 'musee-ville-luthecia' || roomId !== 'hall' || !enigme1EtapeActive()) return;
   if (enigme1AccueilEnCours) return;
-  if (!explicite && (state.char.enigme1.accueilValerieConfirme || enigme1AccueilAffiche)) return;
+  // Si le joueur a fermé la fenêtre par X sans confirmer, reproposer
+  // l'introduction lors d'une prochaine visite. Aucun marqueur serveur perdu.
+  const modalValerie = document.getElementById('modal-postes');
+  const presentationEncoreOuverte = enigme1AccueilAffiche
+    && !!modalValerie?.classList?.contains('open');
+  if (!presentationEncoreOuverte) enigme1AccueilAffiche = false;
+  if (!explicite && (state.char.enigme1.accueilValerieConfirme || presentationEncoreOuverte)) return;
   enigme1AccueilEnCours = true;
   try {
     const v = typeof sbRpcVerdict === 'function'
