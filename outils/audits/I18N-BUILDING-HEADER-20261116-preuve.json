@@ -28,8 +28,8 @@
   "serverCallsPerLanguageChange": 0,
   "frenchExactAgainstMain": true,
   "commandsAndParametersIdentical": true,
-  "merged": false,
-  "productionVerified": false,
+  "merged": true,
+  "productionVerified": true,
   "authenticatedPlayerTest": false,
   "physicalPhoneTest": false,
   "nativeLinguisticReview": false,
@@ -55,5 +55,20 @@
     "commit": "702bbadd4e398193730771dfe02765274813a1ab",
     "banks": 383,
     "failures": 0
+  },
+  "mergeCommit": "976aeb0e8680cb002282850f6638ac163f4f3caf",
+  "ciHead": "dfb8dc50284573d2e856060f2286c3a3cfd0ecd5",
+  "ciPassed": 46,
+  "productionDeployment": "dpl_6xV9YvLDbAukzBs1fLCCSd8j7bCv",
+  "publicAlias": "https://res-publica.vercel.app",
+  "publicFilesVerified": 9,
+  "nativeBrotliCatalogsVerified": 84,
+  "productionTargetedPassed": 4,
+  "productionBrowserSwitches": 1080,
+  "historicalNavigationVerifier": {
+    "unchangedMigrations": true,
+    "currentGameRulesUnchanged": true,
+    "historicalBuildingsVerified": 284,
+    "correctionCommit": "dfb8dc50284573d2e856060f2286c3a3cfd0ecd5"
   }
 }
