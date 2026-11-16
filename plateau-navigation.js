@@ -387,6 +387,18 @@ function piecesOrdonneesBatiment(b, ctx) {
   return pieces.sort((a, b) => (indices.get(a[0]) ?? Infinity) - (indices.get(b[0]) ?? Infinity));
 }
 
+// Présentation passive : un span neuf conserve le bon français de repli pour chaque réponse.
+// Le moteur commun repeint les spans existants sans relancer enterBuilding ni ses lectures.
+function rpBuildingHeaderText(node, key, original, values) {
+  if (!node) return;
+  const label = document.createElement('span');
+  label.textContent = original;
+  label.setAttribute('data-i18n', 'plateau.' + key);
+  if (values) label.setAttribute('data-i18n-values', JSON.stringify(values));
+  node.replaceChildren(label);
+  globalThis.RPI18nPlateau?.apply?.(node);
+}
+
 function enterBuilding(buildingId, skipAutoRoom) {
   // Batiment ferme a cle (decision de Fred du 04/11) : seul un detenteur de cle entre ; le serveur
   // refuse de toute facon (navigation_interieure : porte_fermee_a_cle).
@@ -507,7 +519,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
   const cleCaisse = BATIMENTS_CAISSE_VISIBLE[buildingId];
   const elCaisse = document.getElementById('bat-caisse');
   const elStock = document.getElementById('bat-stock');
-  if (elCaisse) { elCaisse.style.display = 'none'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; elCaisse.title = ''; }
+  if (elCaisse) { elCaisse.style.display = 'none'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; elCaisse.title = ''; elCaisse.removeAttribute('data-i18n-title'); }
   if (elStock) { elStock.style.display = 'none'; elStock.onclick = null; elStock.style.cursor = 'default'; elStock.title = ''; }
 
   if (buildingId === 'armurerie') {
@@ -519,16 +531,18 @@ function enterBuilding(buildingId, skipAutoRoom) {
             state.currentCity !== villeRequete) return;
         const estProprietaire = !!data && data.proprietaire === state.char?.name;
         if (!elCaisse || !estProprietaire) return;
-        elCaisse.textContent = 'Gérer mon armurerie';
+        rpBuildingHeaderText(elCaisse, 'buildingArmoryManage', 'Gérer mon armurerie');
         elCaisse.style.display = 'block';
         elCaisse.style.cursor = 'pointer';
         elCaisse.title = 'Accéder à la gestion de mon commerce';
+        elCaisse.setAttribute('data-i18n-title', 'plateau.buildingArmoryTooltip');
+        globalThis.RPI18nPlateau?.apply?.(elCaisse);
         elCaisse.onclick = typeof doGererArmurerie === 'function' ? doGererArmurerie : null;
       }).catch(() => {});
     }
   } else if (cleCaisse && elCaisse) {
     elCaisse.style.display = 'block';
-    elCaisse.textContent = 'Caisse : ...';
+    rpBuildingHeaderText(elCaisse, 'buildingCashLoading', 'Caisse : ...');
     if (typeof sbGetBatimentEtat === 'function') {
       const paysRequete = state.country, villeRequete = state.currentCity;
       sbGetBatimentEtat(paysRequete, villeRequete, buildingId).then(etat => {
@@ -536,8 +550,9 @@ function enterBuilding(buildingId, skipAutoRoom) {
             state.currentCity !== villeRequete) return;
         const solde = etat?.[cleCaisse]?.caisse ?? 0;
         const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
-        elCaisse.textContent = 'Caisse : ' + solde.toLocaleString('fr-FR') + ' ' + cur;
-      }).catch(() => { elCaisse.textContent = 'Caisse : indisponible'; });
+        const rpHeaderAmount = solde.toLocaleString('fr-FR');
+        rpBuildingHeaderText(elCaisse, 'buildingCashAmount', 'Caisse : ' + rpHeaderAmount + ' ' + cur, { amount: rpHeaderAmount, currency: cur });
+      }).catch(() => { rpBuildingHeaderText(elCaisse, 'buildingCashUnavailable', 'Caisse : indisponible'); });
     }
   } else if (buildingId === 'commissariat' || buildingId === 'commissariat-local') {
     // CAISSE DU COMMISSARIAT — AFFICHEE DANS L'EN-TETE, POUR LE SEUL COMMISSAIRE (16 sept. 2026).
@@ -547,7 +562,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
     // element grise, l'element reste simplement masque.
     // Generique aux trois commissariats : le buildingId de navigation est partage, la caisse est
     // resolue par getBuildingIdCommissariat(ville), et c'est le serveur qui tranche l'acces.
-    if (elCaisse) { elCaisse.style.display = 'none'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; elCaisse.title = ''; }
+    if (elCaisse) { elCaisse.style.display = 'none'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; elCaisse.title = ''; elCaisse.removeAttribute('data-i18n-title'); }
     if (elStock) { elStock.style.display = 'none'; elStock.onclick = null; elStock.style.cursor = 'default'; elStock.title = ''; }
     if (typeof lireCaisseCommissariat === 'function' && typeof getBuildingIdCommissariat === 'function') {
       const idCaisseCmr = getBuildingIdCommissariat(state.currentCity);
@@ -556,11 +571,12 @@ function enterBuilding(buildingId, skipAutoRoom) {
         if (!r || r.ok !== true || !elCaisse) return;       // non autorise : on n'affiche rien
         const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
         elCaisse.style.display = 'block';
-        elCaisse.textContent = 'Caisse : ' + Number(r.solde || 0).toLocaleString('fr-FR') + ' ' + cur;
+        const rpHeaderAmount = Number(r.solde || 0).toLocaleString('fr-FR');
+        rpBuildingHeaderText(elCaisse, 'buildingCashAmount', 'Caisse : ' + rpHeaderAmount + ' ' + cur, { amount: rpHeaderAmount, currency: cur });
       }).catch(() => {});
     }
   } else {
-    if (elCaisse) { elCaisse.style.display = 'none'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; elCaisse.title = ''; }
+    if (elCaisse) { elCaisse.style.display = 'none'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; elCaisse.title = ''; elCaisse.removeAttribute('data-i18n-title'); }
     if (elStock) { elStock.style.display = 'none'; elStock.onclick = null; elStock.style.cursor = 'default'; elStock.title = ''; }
   }
 
@@ -586,12 +602,12 @@ function enterBuilding(buildingId, skipAutoRoom) {
   const elDirecteur = document.getElementById('bat-directeur');
   if (cfgDirecteur && elDirecteur) {
     elDirecteur.style.display = 'block';
-    elDirecteur.textContent = 'Directeur : ...';
+    rpBuildingHeaderText(elDirecteur, 'buildingDirectorLoading', 'Directeur : ...');
     if (typeof getTitulaireActuel === 'function') {
       getTitulaireActuel(cfgDirecteur.posteId, cfgDirecteur.city).then(titulaire => {
         if (state.currentBuilding !== buildingId) return; // le joueur a change de batiment entre temps
         if (titulaire) {
-          elDirecteur.textContent = 'Directeur : ' + titulaire.nom;
+          rpBuildingHeaderText(elDirecteur, 'buildingDirectorName', 'Directeur : ' + titulaire.nom, { name: String(titulaire.nom) });
         } else {
           // PNJ de la ville d'abord (Pharmanov, raffinerie de Starovka : pieces propres a la ville), puis le gabarit.
           const ctxDir = (typeof getBuildingContext === 'function') ? getBuildingContext(buildingId) : null;
@@ -599,9 +615,9 @@ function enterBuilding(buildingId, skipAutoRoom) {
             .concat(Object.values((ctxDir && ctxDir.roomsExtra) || {})).flatMap(r => (r && r.persons) || []);
           const pnjDefaut = personnesVille.find(p => p.job === cfgDirecteur.posteId)
             || (BUILDINGS[buildingId]?.rooms?.bureau_direction?.persons || []).find(p => p.job === cfgDirecteur.posteId);
-          elDirecteur.textContent = 'Directeur : ' + (pnjDefaut ? pnjDefaut.name : 'poste vacant');
+          rpBuildingHeaderText(elDirecteur, pnjDefaut ? 'buildingDirectorName' : 'buildingDirectorVacant', 'Directeur : ' + (pnjDefaut ? pnjDefaut.name : 'poste vacant'), pnjDefaut ? { name: String(pnjDefaut.name) } : undefined);
         }
-      }).catch(() => { elDirecteur.textContent = 'Directeur : indisponible'; });
+      }).catch(() => { rpBuildingHeaderText(elDirecteur, 'buildingDirectorUnavailable', 'Directeur : indisponible'); });
     }
   } else if (elDirecteur) {
     elDirecteur.style.display = 'none';

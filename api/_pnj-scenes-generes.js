@@ -6186,15 +6186,6 @@ export const SCENES_PNJ = {
     "piece": "Open Space — Local à louer",
     "personnes": []
   },
-  "[\"soviet\",\"ville_a\",\"centre-affaires\",\"tribune_republia\"]": {
-    "pays": "Sovarka",
-    "ville": "Starovka",
-    "batiment": "Centre d'Affaires",
-    "piece": "La Voix de Sovarka — Antenne de Starovka",
-    "personnes": [
-      "Saran Batbayar"
-    ]
-  },
   "[\"soviet\",\"ville_a\",\"terrain-a-batir-3\",\"terrain\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
@@ -6348,11 +6339,11 @@ export const SCENES_PNJ = {
       "Darima Zhambalova"
     ]
   },
-  "[\"soviet\",\"ville_a\",\"universite\",\"salle_reunion\"]": {
+  "[\"soviet\",\"ville_a\",\"universite\",\"bibliotheque\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
     "batiment": "Lycée de l'Avenir",
-    "piece": "Salle de Réunion",
+    "piece": "Bibliothèque et salle d’étude",
     "personnes": []
   },
   "[\"soviet\",\"ville_a\",\"logements-novomirsk\",\"salle\"]": {
@@ -6516,6 +6507,15 @@ export const SCENES_PNJ = {
     "piece": "Local n°2",
     "personnes": []
   },
+  "[\"soviet\",\"ville_a\",\"presse-starovka\",\"presse\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Presse de Starovka — Metel",
+    "piece": "Presse",
+    "personnes": [
+      "Saran Batbayar"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"poste-vigilance-glaciale\",\"salle_ecoute\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
@@ -6604,7 +6604,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Mairie de Krasnov",
-    "piece": "salle_partis",
+    "piece": "Salle des partis",
     "personnes": [
       "Lieutenant Fiodor Doznaïev"
     ]

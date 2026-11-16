@@ -406,10 +406,10 @@
     {
       "source": "i18n/plateau-resources.js",
       "packed": "i18n/packed/plateau-resources.js.br",
-      "sourceBytes": 31260,
-      "packedBytes": 7086,
-      "sourceSha256": "5ab8d40c41eb8e1e60f30416019e7c2b3fb6ce8ab3725026cd9d1ccde96f55f0",
-      "packedSha256": "453ce61d3f3ef3bd14d88ac3c1b6215b01d4abe155abad43f8d04d639f27b010"
+      "sourceBytes": 36469,
+      "packedBytes": 7984,
+      "sourceSha256": "8609983a838ae27e62735f9fffa7b48e0aa4eb917699ecb5e21cf059d1cb2b64",
+      "packedSha256": "ac0319ff902bb918633307b12555cb474caa7090b0230eb5c09385a2a2c08bc9"
     },
     {
       "source": "i18n/player-directory-resources.js",
