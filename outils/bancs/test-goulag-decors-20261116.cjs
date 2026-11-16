@@ -17,7 +17,7 @@ for (const [index,file] of scenes.entries()) {
 }
 const fichiers=fs.readdirSync(d);
 assert.ok(['manifest.json',...scenes].every(n=>fichiers.includes(n)), 'Les scènes de toundra sont conservées');
-assert.equal(fichiers.filter(n=>/\\.png$/i.test(n)).length,0,'Aucun PNG original dans le dossier');
+assert.equal(fichiers.filter(n=>/\.png$/i.test(n)).length,0,'Aucun PNG original dans le dossier');
 assert.equal(fs.readdirSync(path.join(root,'images/Sovarka')).filter(n => /Image ChatGPT 16 nov. 2026.*\.png/.test(n)).length,0);
 const js = fs.readFileSync(path.join(root,'plateau-goulag-toundra.js'),'utf8');
 assert.match(js,/goulag_toundra_agir/);
