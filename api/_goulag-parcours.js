@@ -27,7 +27,7 @@ function verifierVoyage({acteur,destination,habilitation}) {
       || !acteur.dansCentreMultimodalServeur) refuser('depart_non_autorise');
   if (destination!=='qhs') refuser('destination_invalide');
   if (acteur.detenu) refuser('detenu_transport_interdit');
-  const direct=['min_just','chef_gouv','juge'].includes(acteur.poste)
+  const direct=['min_just','pm','juge'].includes(acteur.poste)
       && acteur.postePays==='soviet' && acteur.posteVerifieServeur===true;
   const autorise=habilitation && habilitation.etat==='accordee'
       && habilitation.personnage===acteur.nom && habilitation.pays==='soviet'
