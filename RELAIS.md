@@ -52,6 +52,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ### Points ouverts transmis (non bloquants)
 
+- **Pour Codex (relevé par Claude le 16/11)** : le contrôle « bancs-hors-production » est rouge sur `main` depuis le goulag (#1025) : `test-i18n-sovarka-descriptions-20261112.mjs` réclame au catalogue les cinq descriptions des pièces du goulag (entrée, dortoir, cachot, bureau du chef, mirador). Traduction = Codex jusqu'à la fin de Sovarka ; Claude n'y touche pas.
 - **Coûts serveur : écart miroir / production VÉRIFIÉ le 11/11 (Claude), aucun ordre bloqué.** 16 triplets du miroir `baseline/seeds/95_a-regenerer/ordres_couts.sql` sont absents de `public.ordres_couts` en production (29 autres n'existent qu'en production ; relevé complet `outils/referentiel/ordres_couts_production_20261111.tsv`). Aucun n'est refusé : 13 sont gratuits (`deduireCoutOrdre` n'appelle `payer_ordre` qu'au-delà de 0 PA et 0) ; `sovarka_cession` et `sovarka_demande_location` passent par leur propre RPC (`sovActe`), sans `payer_ordre` sur ce nom ; `rejoindre_club_supporters` 1 PA / 25 à Sovarka est validé par `payer_ordre_interne` dans `ordres_couts_pays` (soviet 1/25). Pas de correction nécessaire.
 - **Codex (signalé par Claude, 31/10)** : `militaire_entree_zone` a répondu 404 une fois à 17 h 24 (fonction présente en base : probable cache de schéma pendant une migration ; à surveiller). ~~`sbMarquerVolTraite`~~ retirée le 03/11 (voir Derniers chantiers).
 
