@@ -142,7 +142,7 @@ BEGIN
     v_sommeil:=CASE WHEN tr.jour_abri=v_jour THEN 6 ELSE 3 END;
     IF tr.champignons_penalite_en_attente THEN
       -- Une décision de Fred sera exigée avant activation de la configuration.
-      v_sommeil:=greatest(7,v_pa+v_sommeil-c.champignons_malus)-v_pa;
+      v_sommeil:=least(v_pa+v_sommeil,greatest(7,v_pa+v_sommeil-c.champignons_malus))-v_pa;
     END IF;
     v_pa:=v_pa+v_sommeil;
     UPDATE public.sovarka_goulag_traversees
