@@ -42,7 +42,9 @@
     "existingRoomNameRecoveredFromCanonicalData": 1,
     "allPersonNamesPreserved": true,
     "dialogueFunctionsAndProfilesUnchanged": true,
-    "existingPnjTestsPassed": 16
+    "existingPnjTestsPassed": 16,
+    "subsequentMainRoomRemovalPreserved": "Starovka universite/salle_reunion"
   },
-  "maintenanceCodeCommit": "f057f9e7369121d5565657441e191605f0ef6cd1"
+  "maintenanceCodeCommit": "f057f9e7369121d5565657441e191605f0ef6cd1",
+  "integratedMain": "1a26883bdb41819f1821f561ea932b4f6abdf3f6"
 }

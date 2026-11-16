@@ -6339,13 +6339,6 @@ export const SCENES_PNJ = {
       "Darima Zhambalova"
     ]
   },
-  "[\"soviet\",\"ville_a\",\"universite\",\"salle_reunion\"]": {
-    "pays": "Sovarka",
-    "ville": "Starovka",
-    "batiment": "Lycée de l'Avenir",
-    "piece": "Salle de Réunion",
-    "personnes": []
-  },
   "[\"soviet\",\"ville_a\",\"universite\",\"bibliotheque\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
