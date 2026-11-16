@@ -30,7 +30,7 @@ CREATE OR REPLACE FUNCTION public.goulag_toundra_demarrer(p_destination text)
 RETURNS jsonb
 LANGUAGE plpgsql VOLATILE SECURITY DEFINER
 SET search_path TO 'public','pg_temp'
-AS $
+AS $goulag_demarrer$
 BEGIN
   IF auth.uid() IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
   IF p_destination IS NULL OR p_destination NOT IN ('starovka','krasnov') THEN
@@ -38,7 +38,7 @@ BEGIN
   END IF;
   RETURN jsonb_build_object('ok',false,'raison','goulag_non_active');
 END;
-$;
+$goulag_demarrer$;
 REVOKE ALL ON FUNCTION public.goulag_toundra_demarrer(text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.goulag_toundra_demarrer(text) TO authenticated;
 
