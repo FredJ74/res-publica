@@ -25,8 +25,8 @@
       "fr": "Une tour de bois domine les baraquements sous la neige. Deux gardes surveillent le camp."
     }
   ],
-  "merged": false,
-  "productionVerified": false,
+  "merged": true,
+  "productionVerified": true,
   "authenticatedPlayerTest": false,
   "physicalPhoneTest": false,
   "nativeLinguisticReview": false,
@@ -46,5 +46,18 @@
   "nodeMjsMainFailed": 1,
   "nodeMjsBranchPassed": 418,
   "existingPnjPassed": 16,
-  "historicalBuildingsVerified": 284
+  "historicalBuildingsVerified": 284,
+  "mergeCommit": "7f229f59e3e6c3cc5adb764c5fd54f2426495095",
+  "ciHead": "0f907df1ac1957e387fba259eefce82c3be7d6ab",
+  "ciPassed": 49,
+  "productionDeployment": "dpl_3Xj47po3NkNxgL8FUE9AjAqvfTCD",
+  "publicAlias": "https://res-publica.vercel.app",
+  "publicFilesVerified": 14,
+  "publicWebpVerified": 5,
+  "nativeBrotliCatalogsVerified": 86,
+  "productionTargetedPassed": 4,
+  "productionBrowserSwitches": 270,
+  "canonicalGateTestsPassed": 4,
+  "integratedMain": "ba089e4",
+  "portraitsPreservedAtMerge": true
 }
