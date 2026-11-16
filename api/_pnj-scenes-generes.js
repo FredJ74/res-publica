@@ -7473,43 +7473,37 @@ export const SCENES_PNJ = {
   },
   "[\"soviet\",\"qhs\",\"qhs-prison\",\"entree_qhs\"]": {
     "pays": "Sovarka",
-    "ville": "Goulag de Novomirsk",
-    "batiment": "Quartier Haute Securite",
-    "piece": "Entree Securisee",
-    "personnes": [
-      "Directeur Kazimir Sévérov",
-      "Gardien-chef Filipp Grichine"
-    ]
+    "ville": "Camp de rééducation de Sovarka",
+    "batiment": "Camp de rééducation de Sovarka",
+    "piece": "Entrée du camp",
+    "personnes": []
   },
   "[\"soviet\",\"qhs\",\"qhs-prison\",\"cellules_qhs\"]": {
     "pays": "Sovarka",
-    "ville": "Goulag de Novomirsk",
-    "batiment": "Quartier Haute Securite",
-    "piece": "Cellules",
-    "personnes": [
-      "Zakhar Zemlianov",
-      "Pavel Kotov"
-    ]
-  },
-  "[\"soviet\",\"qhs\",\"qhs-prison\",\"salle_interrogatoire\"]": {
-    "pays": "Sovarka",
-    "ville": "Goulag de Novomirsk",
-    "batiment": "Quartier Haute Securite",
-    "piece": "Salle d'Interrogatoire",
+    "ville": "Camp de rééducation de Sovarka",
+    "batiment": "Camp de rééducation de Sovarka",
+    "piece": "Dortoir des prisonniers",
     "personnes": []
   },
-  "[\"soviet\",\"qhs\",\"qhs-prison\",\"promenoir\"]": {
+  "[\"soviet\",\"qhs\",\"qhs-prison\",\"cachot_disciplinaire\"]": {
     "pays": "Sovarka",
-    "ville": "Goulag de Novomirsk",
-    "batiment": "Quartier Haute Securite",
-    "piece": "Promenoir",
+    "ville": "Camp de rééducation de Sovarka",
+    "batiment": "Camp de rééducation de Sovarka",
+    "piece": "Cachot disciplinaire",
     "personnes": []
   },
-  "[\"soviet\",\"qhs\",\"qhs-prison\",\"salle_commune_qhs\"]": {
+  "[\"soviet\",\"qhs\",\"qhs-prison\",\"bureau_chef\"]": {
     "pays": "Sovarka",
-    "ville": "Goulag de Novomirsk",
-    "batiment": "Quartier Haute Securite",
-    "piece": "Salle Commune",
+    "ville": "Camp de rééducation de Sovarka",
+    "batiment": "Camp de rééducation de Sovarka",
+    "piece": "Bureau du chef administratif",
+    "personnes": []
+  },
+  "[\"soviet\",\"qhs\",\"qhs-prison\",\"mirador\"]": {
+    "pays": "Sovarka",
+    "ville": "Camp de rééducation de Sovarka",
+    "batiment": "Camp de rééducation de Sovarka",
+    "piece": "Mirador",
     "personnes": []
   },
   "[\"khalija\",\"capitale\",\"palais-presidentiel\",\"accueil_elysee\"]": {
