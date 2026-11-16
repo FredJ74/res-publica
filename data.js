@@ -2490,17 +2490,20 @@ const WORLD = {
               imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_grand_bureau.webp" },
             bureau_standard: { name:"Petit bureau — Local à louer",
               imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_petit_bureau.webp" },
+            // La vue générale présente les quatre bureaux, chacun cliquable
+            // comme à Luthécia ; le plan est uniquement un lieu de passage.
             open_space: { name:"Open Space", imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_open_space.webp",
               excludeOrders:['commerce_pj','louer_local','gerer_local','installer_equipements'] }
           },
           roomsExtra: Object.fromEntries(Object.entries(bureauxOpenSpaceCentreAffaires()).map(([id,room])=>[id,{
-            ...room, imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_open_space.webp",
+            ...room, imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_poste.webp",
             sortieVers:{buildingId:'centre-affaires',roomId:'open_space',city:'ville_a'},
             orders:(room.orders||[]).map(o=>({...o,desc:o.fn==='louer_local'?undefined:o.desc,label:typeof o.label==='string'?o.label.replace(' FR/jour',' PSK/jour'):o.label}))
           }])),
           roomsExclues:['tribune_republia'],
-          // Les quatre postes sont accessibles par onglets : la vue de Starovka
-          // n'est pas le plan zénithal de Luthécia, pas de zones artificielles.
+          // Les quatre espaces louables s'ouvrent par clic sur leurs bureaux
+          // dans la vue générale, et non depuis la barre des onglets.
+          roomsMasquees:['open_space_a','open_space_b','open_space_c','open_space_d'],
         },
         'centre-multinodal-montrouge': {
           name: "Gare de Starovka",
