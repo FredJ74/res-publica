@@ -16,6 +16,15 @@ test('aucune mécanique, donnée, API, migration, navigation ou style modifié ;
  const norm=s=>s.replace(/sovarka-descriptions-resources\.js\?v=[^"]+/g,'sovarka-descriptions-resources.js?v=VERSION');assert.equal(norm(snapshot(proof.codeCommit,'plateau.html')),norm(old('plateau.html')));
  const strip=s=>s.replace(/const L=\[[\s\S]*?\n \];/,'const L=[];');assert.equal(strip(snapshot(proof.codeCommit,'i18n/sovarka-descriptions-resources.js')),strip(old('i18n/sovarka-descriptions-resources.js')));
 });
+test('références générées exactes : seul le goulag resynchronisé, migrations et données canoniques intactes',()=>{
+ const local=f=>fs.readFileSync(path.join(root,f),'utf8'),table=s=>JSON.parse(s.slice(s.indexOf('{'),s.lastIndexOf('}')+1));
+ const before=table(old('api/_pnj-scenes-generes.js')),after=table(snapshot(proof.maintenanceCommit,'api/_pnj-scenes-generes.js')),scope=k=>JSON.parse(k).slice(0,3).join('/')==='soviet/qhs/qhs-prison';
+ assert.deepEqual(Object.fromEntries(Object.entries(after).filter(([k])=>!scope(k))),Object.fromEntries(Object.entries(before).filter(([k])=>!scope(k))));
+ const camp=Object.entries(after).filter(([k])=>scope(k));assert.deepEqual(camp.map(([k])=>JSON.parse(k)[3]).sort(),proof.rooms.map(r=>r.id).sort());for(const[,room]of camp)assert.deepEqual(room.personnes,[]);
+ assert.equal(execFileSync(process.execPath,['outils/generateurs/generer-pnj-lieux-metiers.cjs','--scenes-js'],{cwd:root,encoding:'utf8',maxBuffer:5e6}),local('api/_pnj-scenes-generes.js'));
+ assert.match(execFileSync(process.execPath,['outils/generateurs/navigation-lieux.cjs','--verifier'],{cwd:root,encoding:'utf8'}),/284 bâtiments conformes/);
+ const changed=execFileSync('git',['diff','--name-only',proof.baseCommit,proof.maintenanceCommit],{cwd:root,encoding:'utf8'}).split('\n');assert.equal(changed.some(f=>f.startsWith('migrations/')||f==='data.js'||f==='api/chat.js'),false);
+});
 test('Chromium : rendu réel des cinq pièces, neuf langues, Républia isolée, 320/390/1280, RTL et aucune requête/dépense par bascule',async()=>{
  const{chromium}=require('playwright'),browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});let switches=0;
  const nav=read('plateau-navigation.js'),renderStart=nav.indexOf('  const descBase = roomOverride?.desc'),renderEnd=nav.indexOf('  const ROOMS_AVEC_CAISSE_SPECIFIQUE',renderStart);assert.ok(renderStart>0&&renderEnd>renderStart);const fragment=nav.slice(renderStart,renderEnd);

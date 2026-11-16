@@ -30,7 +30,7 @@
   "authenticatedPlayerTest": false,
   "physicalPhoneTest": false,
   "nativeLinguisticReview": false,
-  "targetedPassed": 3,
+  "targetedPassed": 4,
   "globalDescriptionsPassed": 5,
   "browserSwitches": 270,
   "viewports": [
@@ -40,5 +40,11 @@
   ],
   "serverCallsPerLanguageChange": 0,
   "frenchSourceAlreadyExisted": true,
-  "baselineMissingDescriptions": 5
+  "baselineMissingDescriptions": 5,
+  "maintenanceCommit": "ee9255e6dd4b3a76dcdc493d2b605d15407f8750",
+  "nodeMjsMainPassed": 417,
+  "nodeMjsMainFailed": 1,
+  "nodeMjsBranchPassed": 418,
+  "existingPnjPassed": 16,
+  "historicalBuildingsVerified": 284
 }
