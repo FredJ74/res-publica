@@ -86,6 +86,7 @@ assert.equal(refus.champignonsRefuses,true);
 erreur(()=>agir(refus,'dormir',date(4)),'malus_champignons_non_arbitre');
 assert.equal(sommeilAvecChampignons(8,6,6),8);
 assert.equal(sommeilAvecChampignons(6,3,3),7);
+assert.equal(sommeilAvecChampignons(2,3,2),5, 'Le malus ne doit jamais créer un gain supérieur au sommeil normal');
 assert.equal(sommeilAvecChampignons(20,6,2),24);
 erreur(()=>sommeilAvecChampignons(20,6,undefined),'malus_champignons_non_arbitre');
 erreur(()=>choisirChampignons({...cinquieme,progressions:4},'manger'),'champignons_indisponibles');
