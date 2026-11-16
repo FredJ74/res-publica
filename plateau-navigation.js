@@ -1610,6 +1610,7 @@ function sortieBatimentMessage(verdict, incertaine = false) {
 function signalerEchecSortie(etape, verdict, incertaine = false) {
   const [titre,message]=sortieBatimentMessage(verdict,incertaine);
   showToast(titre,message,false);
+  globalThis.RPI18nPlateau?.markToast?.(globalThis.RPNavigationI18n?.exitMessageKey?.(message) || null, message, undefined, titre);
   if(['combat_en_cours','combat_membre_pnj'].includes(verdict?.raison)&&typeof reprendreCombatConfirme==='function')reprendreCombatConfirme().catch(()=>false);
   // Une sortie refusée faute de session doit donner accès à la reconnexion
   // directement sur le plateau : aucun F5 ni nouvel ordre de sortie automatique.

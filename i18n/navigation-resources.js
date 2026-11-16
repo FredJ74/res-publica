@@ -305,6 +305,154 @@
   ko:"건물",ar:"المباني","pt-BR":"Edifícios",de:"Gebäude"
  };
  for(const [locale,value] of Object.entries(buildings))catalog[locale].buildings=value;
+ // Notifications de sortie : présentation seule, verdict et diagnostics conservés.
+ const exitFeedback={
+  "fr": {
+    "exitSessionBody": "Votre session n’est plus valide. Reconnectez-vous avant de sortir.",
+    "exitUnconfirmedBody": "La réponse est incertaine et la position serveur n’a pas pu être vérifiée. Réessayez : votre position sera relue avant tout nouvel ordre.",
+    "exitNetworkBody": "La connexion n’a pas permis de joindre le serveur. Réessayez.",
+    "exitForbiddenBody": "Le serveur refuse cet accès. Votre position reste inchangée.",
+    "exitServiceBody": "Le service a retourné une erreur. Réessayez dans un instant.",
+    "exitUnregisteredBody": "La sortie de ce bâtiment n’est pas déclarée sur le serveur.",
+    "exitUnreadableBody": "La sortie n’a pas pu être confirmée. Réessayez.",
+    "exitDeniedBody": "Le serveur n’autorise pas cette sortie dans votre situation actuelle.",
+    "exitUnconfirmedTitle": "Sortie non confirmée",
+    "exitForbiddenTitle": "Sortie non autorisée",
+    "exitServiceTitle": "Service de sortie indisponible",
+    "exitUnregisteredTitle": "Sortie non référencée",
+    "exitUnreadableTitle": "Réponse du serveur illisible",
+    "exitDeniedTitle": "Sortie refusée"
+  },
+  "en": {
+    "exitSessionBody": "Your session is no longer valid. Sign in again before leaving.",
+    "exitUnconfirmedBody": "The response is uncertain and your position on the server could not be verified. Try again: your position will be read again before any new order.",
+    "exitNetworkBody": "The connection could not reach the server. Try again.",
+    "exitForbiddenBody": "The server denies this access. Your position remains unchanged.",
+    "exitServiceBody": "The service returned an error. Try again in a moment.",
+    "exitUnregisteredBody": "This building’s exit is not registered on the server.",
+    "exitUnreadableBody": "Your exit could not be confirmed. Try again.",
+    "exitDeniedBody": "The server does not allow you to leave in your current situation.",
+    "exitUnconfirmedTitle": "Exit not confirmed",
+    "exitForbiddenTitle": "Exit not authorized",
+    "exitServiceTitle": "Exit service unavailable",
+    "exitUnregisteredTitle": "Exit not registered",
+    "exitUnreadableTitle": "Unreadable server response",
+    "exitDeniedTitle": "Exit denied"
+  },
+  "es": {
+    "exitSessionBody": "Tu sesión ya no es válida. Vuelve a iniciar sesión antes de salir.",
+    "exitUnconfirmedBody": "La respuesta es incierta y no se ha podido verificar tu posición en el servidor. Vuelve a intentarlo: se consultará de nuevo tu posición antes de cualquier nueva orden.",
+    "exitNetworkBody": "La conexión no ha permitido contactar con el servidor. Vuelve a intentarlo.",
+    "exitForbiddenBody": "El servidor deniega este acceso. Tu posición no cambia.",
+    "exitServiceBody": "El servicio ha devuelto un error. Vuelve a intentarlo dentro de un momento.",
+    "exitUnregisteredBody": "La salida de este edificio no está registrada en el servidor.",
+    "exitUnreadableBody": "No se ha podido confirmar la salida. Vuelve a intentarlo.",
+    "exitDeniedBody": "El servidor no permite esta salida en tu situación actual.",
+    "exitUnconfirmedTitle": "Salida no confirmada",
+    "exitForbiddenTitle": "Salida no autorizada",
+    "exitServiceTitle": "Servicio de salida no disponible",
+    "exitUnregisteredTitle": "Salida no registrada",
+    "exitUnreadableTitle": "Respuesta del servidor ilegible",
+    "exitDeniedTitle": "Salida denegada"
+  },
+  "zh-TW": {
+    "exitSessionBody": "您的工作階段已失效。請重新登入後再離開。",
+    "exitUnconfirmedBody": "回應不確定，且無法驗證伺服器上的位置。請重試：在執行任何新指令前，系統會重新讀取您的位置。",
+    "exitNetworkBody": "連線無法連接到伺服器。請重試。",
+    "exitForbiddenBody": "伺服器拒絕此存取要求。您的位置保持不變。",
+    "exitServiceBody": "服務傳回錯誤。請稍後重試。",
+    "exitUnregisteredBody": "此建築的出口尚未在伺服器上登記。",
+    "exitUnreadableBody": "無法確認離開操作。請重試。",
+    "exitDeniedBody": "在您目前的情況下，伺服器不允許此離開操作。",
+    "exitUnconfirmedTitle": "離開未確認",
+    "exitForbiddenTitle": "離開未獲授權",
+    "exitServiceTitle": "離開服務無法使用",
+    "exitUnregisteredTitle": "出口未登記",
+    "exitUnreadableTitle": "無法讀取伺服器回應",
+    "exitDeniedTitle": "離開遭拒"
+  },
+  "ru": {
+    "exitSessionBody": "Ваша сессия больше не действительна. Войдите снова, прежде чем выходить.",
+    "exitUnconfirmedBody": "Ответ неоднозначен, и проверить положение на сервере не удалось. Попробуйте ещё раз: перед любым новым приказом ваше положение будет прочитано заново.",
+    "exitNetworkBody": "Соединиться с сервером не удалось. Попробуйте ещё раз.",
+    "exitForbiddenBody": "Сервер запрещает этот доступ. Ваше положение остаётся прежним.",
+    "exitServiceBody": "Сервис вернул ошибку. Попробуйте ещё раз через некоторое время.",
+    "exitUnregisteredBody": "Выход из этого здания не зарегистрирован на сервере.",
+    "exitUnreadableBody": "Подтвердить выход не удалось. Попробуйте ещё раз.",
+    "exitDeniedBody": "В вашем нынешнем положении сервер не разрешает этот выход.",
+    "exitUnconfirmedTitle": "Выход не подтверждён",
+    "exitForbiddenTitle": "Выход не разрешён",
+    "exitServiceTitle": "Сервис выхода недоступен",
+    "exitUnregisteredTitle": "Выход не зарегистрирован",
+    "exitUnreadableTitle": "Нечитаемый ответ сервера",
+    "exitDeniedTitle": "В выходе отказано"
+  },
+  "ko": {
+    "exitSessionBody": "세션이 더 이상 유효하지 않습니다. 나가기 전에 다시 로그인하세요.",
+    "exitUnconfirmedBody": "응답이 불확실하며 서버의 위치 정보를 확인하지 못했습니다. 다시 시도하세요. 새 명령을 내리기 전에 위치 정보를 다시 읽습니다.",
+    "exitNetworkBody": "서버에 연결하지 못했습니다. 다시 시도하세요.",
+    "exitForbiddenBody": "서버가 접근을 거부했습니다. 현재 위치는 바뀌지 않습니다.",
+    "exitServiceBody": "서비스에서 오류를 반환했습니다. 잠시 후 다시 시도하세요.",
+    "exitUnregisteredBody": "이 건물의 출구가 서버에 등록되어 있지 않습니다.",
+    "exitUnreadableBody": "나가기 작업을 확인하지 못했습니다. 다시 시도하세요.",
+    "exitDeniedBody": "현재 상황에서는 서버가 나가기를 허용하지 않습니다.",
+    "exitUnconfirmedTitle": "나가기 확인 안 됨",
+    "exitForbiddenTitle": "나가기 권한 없음",
+    "exitServiceTitle": "나가기 서비스 이용 불가",
+    "exitUnregisteredTitle": "출구 미등록",
+    "exitUnreadableTitle": "서버 응답을 읽을 수 없음",
+    "exitDeniedTitle": "나가기 거부"
+  },
+  "ar": {
+    "exitSessionBody": "لم تعد جلستك صالحة. سجّل الدخول مجددًا قبل الخروج.",
+    "exitUnconfirmedBody": "الرد غير مؤكد وتعذّر التحقق من موقعك على الخادم. حاول مجددًا: ستُقرأ بيانات موقعك مرة أخرى قبل أي أمر جديد.",
+    "exitNetworkBody": "تعذّر الوصول إلى الخادم عبر الاتصال. حاول مجددًا.",
+    "exitForbiddenBody": "يرفض الخادم هذا الوصول. يظل موقعك دون تغيير.",
+    "exitServiceBody": "أعادت الخدمة خطأ. حاول مجددًا بعد قليل.",
+    "exitUnregisteredBody": "مخرج هذا المبنى غير مسجّل على الخادم.",
+    "exitUnreadableBody": "تعذّر تأكيد الخروج. حاول مجددًا.",
+    "exitDeniedBody": "لا يسمح الخادم بهذا الخروج في وضعك الحالي.",
+    "exitUnconfirmedTitle": "الخروج غير مؤكد",
+    "exitForbiddenTitle": "خروج غير مصرّح به",
+    "exitServiceTitle": "خدمة الخروج غير متاحة",
+    "exitUnregisteredTitle": "مخرج غير مسجّل",
+    "exitUnreadableTitle": "رد الخادم غير قابل للقراءة",
+    "exitDeniedTitle": "رُفض الخروج"
+  },
+  "pt-BR": {
+    "exitSessionBody": "Sua sessão não é mais válida. Entre novamente antes de sair.",
+    "exitUnconfirmedBody": "A resposta é incerta e não foi possível verificar sua posição no servidor. Tente novamente: sua posição será consultada de novo antes de qualquer nova ordem.",
+    "exitNetworkBody": "A conexão não permitiu contatar o servidor. Tente novamente.",
+    "exitForbiddenBody": "O servidor recusa esse acesso. Sua posição permanece inalterada.",
+    "exitServiceBody": "O serviço retornou um erro. Tente novamente em instantes.",
+    "exitUnregisteredBody": "A saída deste prédio não está registrada no servidor.",
+    "exitUnreadableBody": "Não foi possível confirmar a saída. Tente novamente.",
+    "exitDeniedBody": "O servidor não permite esta saída na sua situação atual.",
+    "exitUnconfirmedTitle": "Saída não confirmada",
+    "exitForbiddenTitle": "Saída não autorizada",
+    "exitServiceTitle": "Serviço de saída indisponível",
+    "exitUnregisteredTitle": "Saída não registrada",
+    "exitUnreadableTitle": "Resposta do servidor ilegível",
+    "exitDeniedTitle": "Saída recusada"
+  },
+  "de": {
+    "exitSessionBody": "Deine Sitzung ist nicht mehr gültig. Melde dich erneut an, bevor du hinausgehst.",
+    "exitUnconfirmedBody": "Die Antwort ist ungewiss und deine Position auf dem Server konnte nicht überprüft werden. Versuche es erneut: Vor jedem neuen Befehl wird deine Position nochmals gelesen.",
+    "exitNetworkBody": "Der Server konnte über die Verbindung nicht erreicht werden. Versuche es erneut.",
+    "exitForbiddenBody": "Der Server verweigert diesen Zugang. Deine Position bleibt unverändert.",
+    "exitServiceBody": "Der Dienst hat einen Fehler zurückgegeben. Versuche es gleich noch einmal.",
+    "exitUnregisteredBody": "Der Ausgang dieses Gebäudes ist auf dem Server nicht registriert.",
+    "exitUnreadableBody": "Der Ausgang konnte nicht bestätigt werden. Versuche es erneut.",
+    "exitDeniedBody": "In deiner derzeitigen Situation erlaubt der Server diesen Ausgang nicht.",
+    "exitUnconfirmedTitle": "Ausgang nicht bestätigt",
+    "exitForbiddenTitle": "Ausgang nicht erlaubt",
+    "exitServiceTitle": "Ausgangsdienst nicht verfügbar",
+    "exitUnregisteredTitle": "Ausgang nicht registriert",
+    "exitUnreadableTitle": "Unlesbare Serverantwort",
+    "exitDeniedTitle": "Ausgang verweigert"
+  }
+};
+ for(const [locale,words] of Object.entries(exitFeedback))Object.assign(catalog[locale],words);
  for(const [locale,strings] of Object.entries(catalog))
   if(resources[locale]?.translation) resources[locale].translation.navigation={...strings};
  const french=catalog.fr;
@@ -321,5 +469,8 @@
   // Texte uniquement, jamais de HTML interprétable dans SVG, modales ni boutons.
   return translated.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
  }
- global.RPNavigationI18n=Object.freeze({label,labelHtml});
+ const exitBodies=new Map(Object.entries(exitFeedback.fr).filter(([key])=>key.endsWith('Body')).map(([key,fr])=>[fr,'navigation.'+key]));
+ function exitMessageKey(original){return exitBodies.get(original)||null;}
+ for(const [key,fr] of Object.entries(exitFeedback.fr))if(key.endsWith('Title'))global.RPToastI18n?.registerTitle?.(fr,'navigation.'+key);
+ global.RPNavigationI18n=Object.freeze({label,labelHtml,exitMessageKey});
 })(window);
