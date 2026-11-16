@@ -1,0 +1,60 @@
+{
+  "commit": "976aeb0e8680cb002282850f6638ac163f4f3caf",
+  "deployment": "dpl_6xV9YvLDbAukzBs1fLCCSd8j7bCv",
+  "files": [
+    {
+      "file": "plateau.html",
+      "sha256": "ebac5bbad3c361891985d0b528ce5e613aecd266a8e7002d8ef5308b21db76ac",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "80d0c1fb04fded062e6a4acf5ac76251559f46ceba37850eefcb85158a6fe3e4",
+      "identical": true
+    },
+    {
+      "file": "data.js",
+      "sha256": "e00e02a290f05f65a1c886af81cf05a1ea89dc089bfa619c53d1a806592727ae",
+      "identical": true
+    },
+    {
+      "file": "plateau-navigation.js",
+      "sha256": "b0ea38860e773830dd4d9c1fdb0e9ac4d0c8d593edefcfb1e3bd149f98b8feb0",
+      "identical": true
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "sha256": "7db036d17483486075a2d7dc528c2da348c38ca6fa94e84cf696ae476f956b62",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-resources.js",
+      "sha256": "8609983a838ae27e62735f9fffa7b48e0aa4eb917699ecb5e21cf059d1cb2b64",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-init.js",
+      "sha256": "0fbd1edb1d94a175168e068c72991b5dc4b86e7d400202c20a6c6bcfc20bb160",
+      "identical": true
+    }
+  ],
+  "alias": "https://res-publica.vercel.app",
+  "state": "READY",
+  "target": "production",
+  "browserTestsPassed": 4,
+  "browserSwitches": 1080,
+  "nativeBrotliCatalogs": 84,
+  "ciPassed": 46,
+  "authenticatedPlayerTest": false,
+  "physicalPhoneTest": false
+}
