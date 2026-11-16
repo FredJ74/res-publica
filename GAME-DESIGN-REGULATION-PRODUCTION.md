@@ -53,6 +53,47 @@ Contexte : au champ de pétrole de Starovka, « Récolter » est limité à 2 fo
   payées au prix du pays d'origine (pas de taux de change).
 - Écran : `plateau-regulation-production.js`, catalogue `i18n/regulation-production-resources.js`.
 
+## Décisions de Fred du 16/11/2026 (matin)
+
+- **Lieu de pêche de PSM = le Port de Plaisance** (bâtiment déjà existant) : les PJ pêchent depuis le port
+  de plaisance (10 poissons par PA, sans plafond fixe, régulable par l'adjoint). Le poisson débarqué
+  automatiquement chaque jour arrive, lui, par le **Port Industriel** (RP ; approvisionnement de nuit inchangé).
+- **Commandant du Port de Sovarka** (port industriel de Starovka), comme en Républia. Il **fléchit les
+  importations reçues vers les entrepôts** et **les exportations vers les ports industriels des autres
+  pays**. Un **réglage par défaut** existe, que le commandant peut modifier.
+- **Nouvel indicateur envisagé : la balance commerciale** du pays. Son responsable pourrait caler des
+  **quotas d'importation et d'exportation** pour la rééquilibrer si le pays perd trop d'argent.
+  **Décidé : la balance commerciale et les quotas reviennent au Commandant du Port** (pas au ministre de
+  l'Économie), pour que chaque joueur nommé à un poste se sente utile.
+  **Socle commun, tous les empires** (« un basique de gestion ») : le Commandant du Port de Républia
+  reçoit les mêmes leviers.
+- **Un produit, un prix intérieur** : un entrepôt n'a qu'un stock et un prix par ressource ; pas de double
+  prix entre produit local et produit importé (option « exception pour les importés » écartée par Fred :
+  la production de Sovarka sera insuffisante, l'importation comble le manque).
+- **La caisse du port industriel paie la différence** entre le prix d'achat à l'étranger et le prix de
+  cession aux entrepôts. Elle doit **rester positive pour continuer à importer** : c'est le rôle de la
+  balance commerciale, ne pas créer de déficit.
+- Si elle se creuse, le Commandant du Port peut :
+  1. **demander une dotation récurrente au ministre de l'Économie**, qui détient le Trésor ;
+  2. en cas de refus, **revoir les prix de ce qu'il expédie** vers les entrepôts du pays et/ou vers les
+     ports industriels étrangers (le commandant fixe donc ces prix de cession) ;
+  3. jouer sur les quotas d'importation et d'exportation.
+- **Les droits de douane servent aussi à équilibrer** : **droits de douane ET amendes pour fausse
+  déclaration sont versés à la caisse du port industriel** (les amendes ne vont plus au Trésor).
+- **Le taux des droits de douane (10 % aujourd'hui) est fixé par le Commandant du Port.** Il est sous les
+  ordres du ministre de l'Économie, qui peut lui imposer de l'ajuster : **RP seulement, pas de code**.
+  Fourchette réglementaire proposée par Claude : 0 à 30 % (non contestée par Fred).
+- **Dotation du ministre de l'Économie à la caisse du port : les deux formes**, ponctuelle et récurrente
+  (le socle sait déjà faire les deux : virements simples et automatiques de la Banque Nationale,
+  virement journalier du ministre de la Défense vers la caserne, `caserne_virement_journalier_fixer`).
+  Le Commandant du Port de Sovarka est nommé par le ministre de l'Économie (« sous ses ordres ») ;
+  en Républia par le ministre des Finances, comme aujourd'hui.
+- **Balance commerciale publique**, visible de tous ; reprise dans le **journal du jour** avec les prix des
+  matières premières.
+- **Vente à perte assumée** (Fred) : un produit acheté 8 FR en Républia par le port de Sovarka peut être
+  cédé aux entrepôts de Sovarka au prix intérieur (4 PSK) ; la perte reste dans la caisse du port et c'est
+  la balance commerciale qui l'équilibre (douanes, amendes, marges à l'exportation, dotations, quotas).
+
 ## Points relevés pour Fred
 
 - **Port-Sainte-Marie n'a pas de lieu de pêche** : la zone de production de PSM est la Scierie Guy

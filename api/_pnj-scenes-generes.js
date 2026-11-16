@@ -6303,6 +6303,15 @@ export const SCENES_PNJ = {
       "Douanier Sükhbaatar Baïartouïev"
     ]
   },
+  "[\"soviet\",\"ville_a\",\"port-starovka\",\"administration_portuaire\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Port Industriel de Starovka",
+    "piece": "Administration Portuaire",
+    "personnes": [
+      "Commandant Tömör Ochirov"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"marche\",\"marche_ext\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
