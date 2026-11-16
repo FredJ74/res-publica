@@ -319,6 +319,12 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
         </div>
       </div>
       <div style="display:none" id="city-name-display"></div>
+      <!-- Navigation mobile servie directement par HTML : visible avant JS et avant le décor. -->
+      <nav id="hg-explore-primary" class="hg-explore-tabs" aria-label="Navigation de rue">
+        <button type="button" data-explore-tab="0" aria-pressed="false">Lieux visibles</button>
+        <button type="button" data-explore-tab="1" aria-pressed="false">Ordres</button>
+        <button type="button" data-explore-tab="2" aria-pressed="false">Informations</button>
+      </nav>
 
       <!-- Image de rue + mini-carte -->
       <div class="rue-container">
@@ -444,6 +450,12 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
         </div>
         <div class="pieces-tabs" id="pieces-tabs"></div>
       </div>
+      <!-- Navigation des pièces présente dans la page même si le JS n'a pas encore fini. -->
+      <nav id="hg-room-primary" class="hg-room-tabs" aria-label="Navigation du bâtiment">
+        <button type="button" data-room-tab="0" aria-pressed="false">Pièces</button>
+        <button type="button" data-room-tab="1" aria-pressed="false">Ordres</button>
+        <button type="button" data-room-tab="2" aria-pressed="false">Informations</button>
+      </nav>
 
       <!-- Image de la piece -->
       <div class="piece-container">
@@ -1034,8 +1046,8 @@ function signalerEvenementJournal() {
 <script src="plateau-aide.js?v=20261111-neuf-langues-debut-reponse"></script>
 <script src="plateau-ordres-info.js?v=20261113" defer></script>
 <script src="plateau-mobile.js?v=certification-reprise-r2-20261108-piece-20261111" defer></script>
-<script src="plateau-exploration-mobile.js?v=exploration-visible-20261117" defer></script>
-<script src="plateau-interieurs-mobile.js?v=interieurs-visible-20261117" defer></script>
+<script src="plateau-exploration-mobile.js?v=html-nav-visible-r1-20261117" defer></script>
+<script src="plateau-interieurs-mobile.js?v=html-nav-visible-r1-20261117" defer></script>
 </body>
 </html>
 
