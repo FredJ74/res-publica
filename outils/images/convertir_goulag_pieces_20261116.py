@@ -7,6 +7,7 @@ from pathlib import Path
 from PIL import Image
 import hashlib
 import json
+import unicodedata
 
 DOSSIER = Path("images/Sovarka/Goulag")
 SOURCES = {
@@ -18,8 +19,9 @@ SOURCES = {
 }
 TAILLE = (1448,1086)
 details=[]
+sources_reelles={unicodedata.normalize('NFC', p.name): p for p in DOSSIER.iterdir() if p.is_file()}
 for source, destination in SOURCES.items():
-    src=DOSSIER/source
+    src=sources_reelles.get(unicodedata.normalize('NFC', source), DOSSIER/source)
     dst=DOSSIER/destination
     if not src.is_file():
         if not dst.is_file():
