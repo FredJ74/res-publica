@@ -11,6 +11,9 @@ jobs:
   building-categories:
     runs-on: ubuntu-24.04
     timeout-minutes: 6
+    env:
+      NODE_PATH: ./outils/e2e/node_modules
+      CHROMIUM_PATH: /usr/bin/google-chrome
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,9 +25,6 @@ jobs:
       - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
       - run: node --check plateau-navigation.js && node outils/generateurs/compresser-catalogues-i18n.cjs --check
       - name: Français exact, neuf langues, refus, mobile/RTL et aucune répétition métier
-        env:
-          NODE_PATH: ./outils/e2e/node_modules
-          CHROMIUM_PATH: /usr/bin/google-chrome
         run: node --test outils/bancs/banc-i18n-building-categories-20261116.cjs outils/bancs/banc-i18n-transport-catalogues-20261114.cjs
       - run: node --test outils/bancs/banc-i18n-plateau-init.cjs outils/bancs/banc-i18n-plateau-ressources.cjs outils/bancs/banc-i18n-plateau-wiring.cjs outils/bancs/banc-i18n-navigation-transports.cjs
       - run: node --test outils/bancs/banc-i18n-building-header-20261116.cjs outils/bancs/banc-i18n-exit-feedback-20261116.cjs
