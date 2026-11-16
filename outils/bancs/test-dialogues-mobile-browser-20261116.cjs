@@ -35,7 +35,7 @@ body{margin:0;background:#111;color:#eee} .modal-overlay{position:fixed;inset:0;
    assert.ok(viewport.scroll<=viewport.w+1,JSON.stringify(viewport));
   }else{
    const z=await p.locator('#portrait').evaluate(e=>e.getBoundingClientRect().width);
-   assert.equal(z,56,'bureau doit rester inchangé');
+   assert.equal(z,60,'bureau doit garder le portrait 56px et ses bordures 2px');
   }
   await p.locator('#reponse').click();assert.equal(await p.evaluate(()=>window.reponses),1);
   await p.locator('#question').fill('Bonjour !');assert.equal(await p.locator('#question').inputValue(),'Bonjour !');
