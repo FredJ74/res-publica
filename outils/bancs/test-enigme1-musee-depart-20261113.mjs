@@ -128,5 +128,6 @@ assert.match(routeur, /fn === 'enigme1_parler_valerie'/);
 assert.match(routeur, /fn === 'enigme1_examiner_cadre'[^\n]*enigme1ExaminerCadre\(\)/);
 assert.match(navigation, /enigme1SuffixeDescription\(buildingId, roomId\)/);
 assert.match(navigation, /enigme1AccueilHall\(buildingId, roomId\)/);
+assert.match(navigation, /positionEcriteSurLeServeur\.then\(/);
 
 console.log('test-enigme1-musee-depart-20261113 : OK');
