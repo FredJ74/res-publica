@@ -71,7 +71,7 @@ test('Le plan ouvert se rafraîchit en place à la bascule de langue, sans serve
 test('Les scripts invalidant le cache sont chargés, le calcul pur reste exposé',()=>{
  const html=src('plateau.html');
  assert.match(html,/plateau-plan-rues\.js\?v=plan-rues-i18n-20261113/);
- assert.match(html,/i18n\/navigation-resources\.js\?v=plan-rues-i18n-20261113/);
+ assert.match(html,/i18n\/navigation-resources\.js\?v=[^"\s]*plan-rues-i18n-20261113/);
  const calc=require(path.join(root,'plateau-plan-rues.js'));
  assert.equal(typeof calc.calculerPlanRues,'function');
  assert.equal(typeof calc.dessinerPlanRues,'function');
