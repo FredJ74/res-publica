@@ -415,8 +415,8 @@
     }
   ],
   "cognatesAndProperNamesAllowed": true,
-  "merged": false,
-  "productionVerified": false,
+  "merged": true,
+  "productionVerified": true,
   "authenticatedPlayerTest": false,
   "physicalPhoneTest": false,
   "nativeLinguisticReview": false,
@@ -430,5 +430,35 @@
   "lockedFlagTestSimulated": true,
   "serverCallsPerLanguageChange": 0,
   "existingBuildingAndExitTestsPassed": 7,
-  "existingBrowserSwitches": 1539
+  "existingBrowserSwitches": 1539,
+  "mergeCommit": "cf0f218eb27a39acbc29d61bd77d7c5daa1a8eae",
+  "ciHead": "4ed9cf4e753c1962835050292b789c3bbb226d71",
+  "ciPassed": 51,
+  "productionDeployment": "dpl_2Xmkzj65Tv9Ptc5JTnipQHfe3xUT",
+  "publicAlias": "https://res-publica.vercel.app",
+  "publicFilesVerified": 19,
+  "productionCombinedTestsPassed": 14,
+  "productionCombinedSwitches": 3375,
+  "nativeBrotliCatalogsVerified": 86,
+  "nodeMjsBranchPassed": 418,
+  "localClientBanks": {
+    "banks": 386,
+    "initialPassed": 378,
+    "initialFailures": 8,
+    "environmentNoSpaceFailures": 6,
+    "obsoleteCanonicalGateAssertionFixed": 1,
+    "localTimeoutReplayedUnchanged": 1,
+    "retryBanksPassed": 8,
+    "retrySubtestsPassed": 24,
+    "remainingFailures": 0,
+    "rawResultsPreserved": true,
+    "isolatedAccessReplayMilliseconds": 112605
+  },
+  "generalMainCorrectionPassed": {
+    "commit": "7f229f59e3e6c3cc5adb764c5fd54f2426495095",
+    "conclusion": "success",
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/43897217840/job/133403940331"
+  },
+  "realHeaderMarkupAndCardsOverflowVerified": true,
+  "bootAfterResourcesVerified": true
 }
