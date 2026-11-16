@@ -1,0 +1,30 @@
+name: Refonte mobile — rendu réel vérifié
+on:
+  pull_request:
+    paths:
+      - 'plateau.html'
+      - 'plateau-mobile-refonte-visible.css'
+      - 'outils/bancs/test-refonte-visible-browser-20261117.cjs'
+      - '.github/workflows/refonte-mobile-rendu.yml'
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Installer Chromium
+        run: |
+          cd outils/e2e
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Tester la composition mobile en browser
+        run: node outils/bancs/test-refonte-visible-browser-20261117.cjs
+      - name: Captures pour revue visuelle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures-refonte-mobile
+          path: outils/captures-mobile-refonte/*.png
+          if-no-files-found: ignore
