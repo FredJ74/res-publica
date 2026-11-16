@@ -1,0 +1,50 @@
+/* Human Gambit — exploration mobile, couche de presentation autonome.
+   Les commandes, les zones de batiment et les positions serveur restent celles du moteur. */
+.hg-explore-head,.hg-explore-tabs,.hg-explore-info{display:none}
+@media(max-width:1023px){
+  body.plateau-body{background:#121a23;color:#e2e9f1}
+  #topbar{background:#18222d;border-bottom:1px solid #a98d56;padding-block:7px;gap:6px}
+  #topbar .logo{color:#d3b579;font-size:1rem;line-height:1.1}
+  .hg-mobile-acces{background:#263443;border-color:#947b4b;border-radius:9px;color:#e9cf96;font-size:.86rem;padding:8px;min-height:46px}
+  .hg-mobile-acces:focus-visible{outline:2px solid #f3d493;outline-offset:2px}
+  #vue-rue.active{display:flex;flex-direction:column;align-items:stretch;overflow-y:auto;overflow-x:hidden;background:#121a23;scroll-behavior:smooth}
+  #vue-rue .city-header{background:#19232e;padding:7px 12px;border-bottom:1px solid rgba(169,141,86,.3)}
+  #vue-rue .game-time-display{color:#c1b08c;font-size:.85rem}
+  #vue-rue .rue-container{display:flex;flex-direction:column;flex:none;min-height:0;overflow:visible}
+  #vue-rue #rue-image{display:block;flex:none;min-height:0;overflow:visible}
+  #vue-rue #rue-centrale-conteneur{overflow:visible;min-width:0}
+  #vue-rue .rc-scene{border:0;border-radius:0;line-height:0;isolation:isolate}
+  #vue-rue .rc-image{width:100%;height:auto;max-height:none;object-fit:contain}
+  #vue-rue .rc-fleche{width:48px;height:48px;background:rgba(14,21,29,.84);border:1px solid #c8a96e;color:#e5c477;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+  #vue-rue .rc-fleche:focus-visible{outline:3px solid #f3d493;outline-offset:2px}
+  #vue-rue .hg-lieux-tactiles{background:#202c39;border-top:1px solid #a98d56;padding:0 12px 12px}
+  #vue-rue .hg-lieux-tactiles summary{color:#ecd9ad;font-family:'Crimson Pro',serif;font-size:1.08rem}
+  #vue-rue .hg-lieux-tactiles button{border-radius:8px;background:#2b3c4e;text-align:left;font-size:1rem}
+  .hg-explore-head{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:11px 14px;background:#1a2632;border-bottom:1px solid rgba(169,141,86,.36)}
+  .hg-explore-place{min-width:0;color:#e5c477;font-family:'Crimson Pro',serif;font-size:1.12rem;overflow-wrap:anywhere}
+  .hg-explore-place:before{content:'⌖';margin-right:7px;color:#d9bd80}
+  .hg-explore-stats{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;font-size:.82rem;font-variant-numeric:tabular-nums}
+  .hg-explore-stats span{border:1px solid rgba(169,141,86,.35);border-radius:7px;padding:5px 7px;background:#243240;color:#f0dfb5}
+  .hg-explore-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:9px 10px;background:#17222d;border-block:1px solid rgba(169,141,86,.5)}
+  .hg-explore-tabs button{min-width:0;min-height:48px;border-radius:9px;border:1px solid #6e6558;background:#273643;color:#e2e9f1;font:600 clamp(.77rem,3vw,.95rem) 'Crimson Pro',serif;cursor:pointer;padding:8px 4px;white-space:normal}
+  .hg-explore-tabs button[aria-pressed=true]{background:#b59660;color:#14202a;border-color:#ebd7ad}
+  .hg-explore-tabs button:focus-visible{outline:3px solid #f3d493;outline-offset:2px}
+  .hg-explore-info:not([hidden]){display:block;background:#202c39;color:#dce5ee;padding:14px;border-bottom:1px solid #a98d56;font-size:1rem;line-height:1.55}
+  .hg-explore-info strong{display:block;font-family:'Playfair Display',serif;font-size:1.15rem;color:#e5c477;margin-bottom:5px}
+  #vue-rue #actionbar{flex:none;background:#192431;padding:10px;border-top:1px solid rgba(169,141,86,.35)}
+  #vue-rue #actionbar .action-context{color:#d2b77c;font-size:.84rem}
+  #vue-rue #rue-actions-row{gap:8px}
+  #vue-rue #rue-actions-row .action-btn{border-radius:9px;background:#2a3a4a;border-color:#a98d56;color:#ecd8ac;padding:10px}
+  #vue-rue .rue-ambiance{position:static;padding:12px 14px;background:#202c39}
+  #vue-rue .rue-title{font-size:1.1rem}
+  #vue-rue .rue-desc{font-size:1rem;color:#d2dce4}
+  #hg-reprise:not([hidden]){background:#202a36;border-color:#bda270;color:#e2e9f1;border-radius:10px;box-shadow:0 8px 25px rgba(0,0,0,.5);flex-wrap:wrap}
+  #hg-reprise button{border-radius:7px}
+}
+@media(max-width:390px){
+  .hg-explore-head{flex-wrap:wrap;gap:6px}
+  .hg-explore-stats{justify-content:flex-start}
+  #topbar .logo{font-size:.84rem}
+  .hg-mobile-acces{font-size:.76rem;padding:6px}
+}
+@media(prefers-reduced-motion:reduce){#vue-rue.active{scroll-behavior:auto}}
