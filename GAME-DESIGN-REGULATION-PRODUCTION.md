@@ -16,9 +16,9 @@ Contexte : au champ de pétrole de Starovka, « Récolter » est limité à 2 fo
    et par jour**, et/ou un **plafond total de la ville par jour** (premiers arrivés, premiers servis).
 6. **Pas de durée fixe** : une régulation est un acte volontaire, elle reste en vigueur jusqu'à ce que
    l'adjoint la change ou la lève (acte volontaire lui aussi).
-7. **Le ministre de l'Économie** peut **sommer** la ville de limiter l'extraction, mais n'a **pas les
-   commandes**. Proposition de Claude, à confirmer : sommation officielle publique et traçable (courrier
-   au maire et à l'adjoint, visible), pour que la désobéissance ait un coût politique.
+7. **Pas d'ordre de sommation** : le ministre de l'Économie peut exiger une régulation, mais cela se
+   traite en RP (forums), pas par un bouton ; Fred ne veut pas un bouton par interaction possible.
+   Il n'a pas les commandes.
 
 ## À vérifier avant de coder (Claude)
 
@@ -27,7 +27,7 @@ Contexte : au champ de pétrole de Starovka, « Récolter » est limité à 2 fo
 
 ## Questions encore ouvertes
 
-- Forme de la sommation du ministre (proposition de Claude ci-dessus à confirmer).
+- Moyens de coercition des ministres sur les élus locaux (sujet plus large, à traiter plus tard).
 
 ## Idée notée au passage
 
