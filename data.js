@@ -2850,7 +2850,6 @@ const WORLD = {
               imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_entree.webp',
               personsVides:true,
               excludeOrders:['visiter_prisonnier','corrompre_fonct','archives_police']
-            }
             },
             cellules_qhs: {
               // Conserver cet ID : celluleDeDetention() et le régime carcéral le référencent.
