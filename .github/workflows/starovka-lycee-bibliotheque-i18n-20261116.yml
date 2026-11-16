@@ -1,0 +1,34 @@
+name: "Starovka — pack i18n bibliothèque du lycée"
+on:
+  push:
+    branches: [chatgpt/starovka-lycee-bibliotheque-i18n-fix-20261116]
+    paths:
+      - .github/workflows/starovka-lycee-bibliotheque-i18n-20261116.yml
+permissions:
+  contents: write
+jobs:
+  correction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Régénérer les catalogues Brotli
+        run: node outils/generateurs/compresser-catalogues-i18n.cjs
+      - name: Vérifier translations, paquets et images
+        run: |
+          node --test outils/bancs/test-i18n-sovarka-descriptions-20261112.mjs
+          node outils/generateurs/compresser-catalogues-i18n.cjs --check
+          node outils/bancs/test-starovka-commissariat-lycee-20261116.cjs
+      - name: Publier les paquets compilés
+        run: |
+          git config user.name "ChatGPT (GitHub Actions)"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add i18n/packed/ outils/audits/I18N-CATALOGUES-TRANSPORT.json .vercelignore
+          git diff --cached --check
+          git commit -m "i18n : synchroniser paquet Brotli bibliothèque Starovka"
+          git push origin HEAD:chatgpt/starovka-lycee-bibliotheque-i18n-fix-20261116
