@@ -123,6 +123,9 @@
     border-bottom:1px solid #b89a64;
     padding:0;
   }
+  /* L'ancien #vue-rue #rue-image imposait display:block (spec. 2 IDs).
+     Le surcharger explicitement rend l'ordre scene puis cartel effectif. */
+  #vue-rue #rue-image {display:flex;flex-direction:column;align-items:stretch;}
   #vue-rue .rue-image:has(#rue-centrale-conteneur){background:none;}
   #vue-rue .rue-image:not(:has(#rue-centrale-conteneur)){min-height:clamp(210px,54vw,460px);}
   #vue-rue .rue-image::before{display:none;}
