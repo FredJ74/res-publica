@@ -31,6 +31,7 @@ let a = demarrer({ destination: 'starovka', statut: 'visiteur', pa: 7 });
 for (let j = 1; j <= 7; j++) {
   a = agir(a, 'abri', date(j));
   a = agir(a, 'progresser', date(j));
+  if (j === 6) assert.equal(a.boisGagne, 5);
   if (j < 7) {
     assert.equal(a.pa, 1);
     a = agir(a, 'dormir', date(j));
@@ -43,7 +44,6 @@ for (let j = 1; j <= 7; j++) {
     assert.equal(a.reposForceJours, 3);
     assert.equal(a.boisGagne, 3);
   }
-  if (j === 6) assert.equal(a.boisGagne, 5);
 }
 erreur(() => agir(a, 'dormir', date(8)), 'traversee_invalide');
 
@@ -59,9 +59,9 @@ let k = demarrer({ destination: 'krasnov', statut: 'visiteur', pa: 20 });
 for (let j = 1; j <= 10; j++) {
   k = agir(k, 'abri', date(j));
   k = agir(k, 'progresser', date(j));
-  if (j !== 10) k = agir(k, 'dormir', date(j));
   if (j === 8) assert.equal(k.boisGagne, 0);
   if (j === 9) assert.equal(k.boisGagne, 5);
+  if (j !== 10) k = agir(k, 'dormir', date(j));
 }
 assert.equal(k.pa, 1);
 assert.equal(k.arrivee, 'ville_b');
