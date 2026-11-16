@@ -1198,6 +1198,17 @@ async function calculerEvenementsEconomiquesRemarquables(pays, indicateursEcoAct
   return facts;
 }
 
+// Balance commerciale du pays (16/11/2026, Fred : publique, reprise au journal du jour avec les prix des
+// matieres premieres) : derniere journee de commerce enregistree par commerce_international_passe.
+async function collecterIndicateurBalanceCommerciale(pays) {
+  const rows = await sbGet('ports_balance_jours', `pays=eq.${encodeURIComponent(pays)}&order=jour.desc&limit=1&select=jour,exportations,importations`).catch(() => null);
+  const b = rows && rows[0];
+  if (!b) return [];
+  const exp = Number(b.exportations) || 0, imp = Number(b.importations) || 0;
+  return [{ id: idIndicateur(`balance_commerciale_${pays}`), cle: 'balance_commerciale', valeur: Math.round((exp - imp) * 100) / 100,
+            exportations: exp, importations: imp, jour: b.jour, pays, disponible: true }];
+}
+
 async function collecterIndicateursCaisses(pays) {
   const indicateurs = [];
   const rowsNat = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(pays)}&select=data`);
@@ -1627,11 +1638,12 @@ async function construirePaquetFactuel(pays, periode) {
     collecterChroniqueNationale(periode, pays, personnagesConnus)
   ]);
 
-  const [indicPopulation, indicEcoBrut, indicCaisses, indicClassement] = await Promise.all([
+  const [indicPopulation, indicEcoBrut, indicCaisses, indicClassement, indicBalance] = await Promise.all([
     collecterIndicateursPopulation(pays),
     collecterIndicateursEconomiques(pays),
     collecterIndicateursCaisses(pays),
-    collecterIndicateurClassement(pays)
+    collecterIndicateurClassement(pays),
+    collecterIndicateurBalanceCommerciale(pays).catch(() => [])
   ]);
 
   const [economieRemarquable, caissesRemarquables] = await Promise.all([
@@ -1670,7 +1682,8 @@ async function construirePaquetFactuel(pays, periode) {
     { id: idIndicateur(`candidatures_periode_${pays}`), cle: 'candidatures_periode', valeur: compterType('candidature'), pays, disponible: true },
     ...indicEcoBrut,
     ...indicCaisses,
-    ...indicClassement
+    ...indicClassement,
+    ...indicBalance
   ];
 
   return {

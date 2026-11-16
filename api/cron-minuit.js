@@ -2637,48 +2637,8 @@ const BOIS_SCIERIE_JOUR = Math.round(1.5 * BOIS_UNITES_PAR_VILLE_JOUR); // 150 -
 const BOIS_SOVARKA_JOUR = Math.round(1.5 * BOIS_UNITES_PAR_VILLE_JOUR); // 150 -- importations Sovarka
 const NB_ARRIVAGES_CONSERVES = 10; // historique court pour le Commandant/Marcel Ancre, pas de croissance illimitee
 
-// Exportations validees (arbitrage) : la reference "1 ville" reutilise le plafond deja existant
-// de chaque ressource (RESSOURCES_ECONOMIE_SERVEUR[x].plafond) -- pas un chiffre invente, c'est
-// la seule notion de "capacite d'une ville" deja presente dans l'architecture actuelle
-// (identique pour les 3 villes). cereales.plafond=150 -> 1.5 ville = 225 ; viande.plafond=125 ->
-// 1 ville = 125. Destination fixe (Al-Khalija) pour ce lot uniquement.
-// 06/11/2026 (Fred) : la Republia exporte aussi des medicaments vers Sovarka, et un peu d'alcool.
-// Volumes proposes par Claude, meme regle de « villes equivalentes » : medicaments 1 ville
-// (plafond 100 -> 100/jour), alcool 0.5 ville (plafond 100 -> 50/jour). Meme moteur : preleve sur
-// le stock reel des 3 entrepots, recette au prix_base pour chaque entrepot fournisseur, matiere
-// interdite jamais exportee. Sovarka n'est represente par aucune caisse ici, comme Al-Khalija.
-// 15/11/2026 (Fred) : la Republia n'envoie plus que 25 medicaments par nuit a Sovarka ; un peu d'alcool
-// (50, inchange) ; des plantes arrivent au port de Starovka, de Republia et d'El Estado (part de la
-// Republia : 38, proposee par Claude = moitie de la consommation de Pharmanov). `quantite` fixe le
-// contrat en unites quand il n'est pas exprime en villes equivalentes. Prix : celui du pays d'origine
-// (prix de base de la Republia, inchange).
-const EXPORTATIONS_PORT = {
-  cereales:    { equivalentVilles: 1.5, destination: 'khalija' },
-  viande:      { equivalentVilles: 1,   destination: 'khalija' },
-  medicaments: { quantite: 25,          destination: 'soviet' },
-  alcool:      { equivalentVilles: 0.5, destination: 'soviet' },
-  plantes:     { quantite: 38,          destination: 'soviet' }
-};
-
-// IMPORTATIONS DE SOVARKA EN PROVENANCE D'EL ESTADO (15/11/2026, Fred) : plantes et tabac arrivent au port
-// de Starovka. El Estado n'a ni entrepot ni caisse : l'entrepot de Starovka paie au prix du pays d'origine
-// (prix de base, faute de marche d'El Estado), repartit la cargaison en trois et personne n'encaisse en
-// face. Volumes proposes par Claude, a relire par Fred : plantes 37 (l'autre moitie de Pharmanov), tabac 50.
-const IMPORTATIONS_SOVARKA_EL_ESTADO = { plantes: 37, tabac: 50 };
-
-// EXPORTATIONS DE SOVARKA (06/11/2026, decision de Fred) : minerai et metal vers tous les pays, petrole
-// vers la Republia, viande et cereales vers Al-Khalija. Volumes proposes par Claude (meme regle de
-// « villes equivalentes », plafond de la ressource) ; « tous les pays » = parts egales entre les trois
-// autres empires. Execution au serveur (exportations_sovarka_executer) : stock reel des trois entrepots
-// de Sovarka, payes au prix de base ; la part de la Republia est livree (PSM paie et repartit en trois),
-// celles d'Al-Khalija et d'El Estado disparaissent (aucun entrepot, aucune caisse en face).
-const EXPORTATIONS_SOVARKA = {
-  minerai:  { equivalentVilles: 0.5, destinations: ['republic', 'khalija', 'narco'] },
-  metal:    { equivalentVilles: 0.5, destinations: ['republic', 'khalija', 'narco'] },
-  petrole:  { equivalentVilles: 1,   destinations: ['republic'] },
-  viande:   { equivalentVilles: 0.5, destinations: ['khalija'] },
-  cereales: { equivalentVilles: 0.5, destinations: ['khalija'] }
-};
+// Les contrats d'importation et d'exportation (Republia, Sovarka, El Estado, Al-Khalija) vivent desormais
+// dans la table commerce_contrats, executes par commerce_international_passe (16/11/2026).
 
 // ENTREPOTS DE SOVARKA (15/11/2026, decisions et feu vert de Fred) : approvisionnement de nuit par le port
 // de Starovka, exactement comme la Republia (stocks cibles, 800 unites par nuit, prix fournisseur), puis
@@ -2711,36 +2671,21 @@ async function traiterProductionSovarkaQuotidien() {
   return v;
 }
 
-// Importations d'El Estado au port de Starovka (voir IMPORTATIONS_SOVARKA_EL_ESTADO) : une reception par
-// jour et par matiere (exportations_recues), payee par la caisse de l'entrepot de Starovka.
-async function traiterImportationsSovarkaQuotidien() {
-  const interdites = await matieresInterditesPays('soviet');
-  if (interdites === null) throw new Error('importations_sovarka:legalite_non_verifiable');
-  const receptions = {};
-  for (const [cle, quantite] of Object.entries(IMPORTATIONS_SOVARKA_EL_ESTADO)) {
-    if (interdites.has(cle)) { receptions[cle] = { acceptee: 0, raison: 'interdit_par_la_loi' }; continue; }
-    receptions[cle] = await sbRpc('importation_sovarka_recevoir',
-      { p_origine: 'narco', p_jour: jourParisISO(new Date()), p_cle: cle, p_quantite: quantite },
-      HEADERS_SERVICE).catch(() => ({ ok: false, raison: 'rpc_indisponible' }));
+// PORTS ET COMMERCE INTERNATIONAL (16/11/2026, decisions de Fred, GAME-DESIGN-REGULATION-PRODUCTION.md).
+// Tout est decide par commerce_international_passe (journee revendiquee). Les matieres interdites par la loi
+// de Republia ou de Sovarka ne sont ni importees, ni exportees, ni cedees ; legalite non verifiable = rien.
+async function traiterCommerceInternationalQuotidien() {
+  const interdites = {};
+  for (const pays of ['republic', 'soviet']) {
+    const set = await matieresInterditesPays(pays);
+    if (set === null) throw new Error('commerce_international:legalite_non_verifiable:' + pays);
+    interdites[pays] = [...set];
   }
-  return { ok: true, receptions };
-}
-
-async function traiterExportationsSovarkaQuotidien() {
-  const contrats = {};
-  for (const [cle, cfg] of Object.entries(EXPORTATIONS_SOVARKA)) {
-    const res = RESSOURCES_ECONOMIE_SERVEUR[cle];
-    if (!res) continue;
-    const total = Math.round(res.plafond * cfg.equivalentVilles);
-    const n = cfg.destinations.length, base = Math.floor(total / n);
-    contrats[cle] = {};
-    cfg.destinations.forEach((pays, i) => { contrats[cle][pays] = base + (i < total - base * n ? 1 : 0); });
-  }
-  const r = await sbRpc('exportations_sovarka_executer',
-    { p_jour: jourParisISO(new Date()), p_contrats: contrats }, HEADERS_SERVICE).catch(() => null);
+  const r = await sbRpc('commerce_international_passe',
+    { p_jour: jourParisISO(new Date()), p_interdites: interdites }, HEADERS_SERVICE).catch(() => null);
   const v = Array.isArray(r) ? r[0] : r;
-  if (!v || v.ok !== true) throw new Error('exportations_sovarka:' + ((v && v.raison) || 'verdict_absent'));
-  return { contrats, exportations: v.exportations };
+  if (!v || v.ok !== true) throw new Error('commerce_international:' + ((v && v.raison) || 'verdict_absent'));
+  return v;
 }
 
 // Héros du Travail (13/11/2026, décisions de Fred) : clôture des semaines révolues ; le ministre de
@@ -3106,7 +3051,6 @@ async function livrerEntrepotsQuotidien() {
   // bois/petrole/produits_exotiques desormais reroutee vers le port plutot que creditee
   // directement a l'entrepot d'origine du tirage. Ecrit une seule fois a la fin de cette
   // fonction, dans etat.port.stock du batiment 'port-sainte-marie'.
-  const portAccumulation = {};
   try {
     // 'bois' explicitement exclu (lot Scierie Guy Tarembois, 25 aout 2026, correctif dedie) :
     // ne participe plus jamais a ce tirage RNG partage avec les 10 autres ressources livrees --
@@ -3319,10 +3263,10 @@ async function livrerEntrepotsQuotidien() {
           // local, c'est un import national). Le bois n'apparait plus jamais ici (exclu de
           // ressourcesLivrables ci-dessus, voir lot Scierie Guy Tarembois du 25 aout 2026) :
           // cette branche ne concerne donc plus que petrole/produits_exotiques desormais.
-          if (RESSOURCES_REROUTEES_PORT.includes(cle)) {
-            portAccumulation[cle] = (portAccumulation[cle] || 0) + qteRestante;
-            qteRestante = 0;
-          }
+          // PORTS ET COMMERCE INTERNATIONAL (16/11/2026, Fred) : petrole et produits exotiques n'arrivent
+          // plus en Republia que par les contrats d'importation du port (commerce_international_passe), payes
+          // au pays d'origine. Seule la part redirigee vers l'usine locale ci-dessus reste servie ici.
+          if (RESSOURCES_REROUTEES_PORT.includes(cle)) qteRestante = 0;
           if (qteRestante <= 0) return;
 
           // ANOMALIE CORRIGEE (audit du 14 septembre 2026). L'ancien code calculait le cout sur
@@ -3409,85 +3353,8 @@ async function livrerEntrepotsQuotidien() {
     // Cette passe ne touche plus un seul centime de budget municipal : l'entrepot est finance par
     // la cascade, qui debite la caisse de la mairie par la primitive verrouillee.
 
-    // Production nationale de bois (lot Scierie Guy Tarembois, 25 aout 2026, correctif dedie) :
-    // deux flux reels et deterministes, totalement independants du tirage RNG ci-dessus (voir
-    // BOIS_SCIERIE_JOUR/BOIS_SOVARKA_JOUR plus haut dans ce fichier). Rejoint le meme
-    // accumulateur portAccumulation.bois que le reste de ce lot portuaire -- aucun cout entrepot
-    // (dotation publique/import national, meme doctrine que petrole/produits_exotiques
-    // ci-dessus), distribue par le meme mecanisme unique juste en dessous (repartirSelonPourcentages/
-    // Hamilton, plafond par entrepot, reliquat conserve).
-    portAccumulation.bois = (portAccumulation.bois || 0) + BOIS_SCIERIE_JOUR + BOIS_SOVARKA_JOUR;
-
-    // Credit + distribution du stock portuaire (lot logistique portuaire, 25 aout 2026).
-    // Aucun cout : ce n'est pas un achat, c'est l'arrivee physique d'un import deja "paye" par
-    // construction (aucune caisse n'existait pour cette part avant ce lot non plus -- voir
-    // commentaire ORIGINE_IMPORTS_PORT). Respecte le plafond de chaque entrepot ; le reliquat
-    // non distribuable (entrepot plein) reste dans etat.port.stock, jamais perdu ni detruit.
-    const ressourcesArrivees = Object.entries(portAccumulation).filter(([, q]) => q > 0);
-    if (ressourcesArrivees.length > 0) {
-      const etatPort = await sbGetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM).catch(() => ({}));
-      const port = (etatPort && etatPort.port) || { stock: {}, repartition: {}, arrivages: [], exportations: {} };
-      const stockPort = port.stock || {};
-      const villesIds = ENTREPOTS_VILLES.map(e => e.city);
-      const stocksEntrepots = {};
-      for (const e of ENTREPOTS_VILLES) {
-        const etatE = await sbGetBatimentEtat('republic', e.city, e.buildingId).catch(() => null);
-        stocksEntrepots[e.city] = { etat: etatE, buildingId: e.buildingId };
-      }
-
-      const arrivagesJour = [];
-      for (const [cle, qteArrivee] of ressourcesArrivees) {
-        stockPort[cle] = (stockPort[cle] || 0) + qteArrivee;
-        // Tracabilite des origines pour le bois (retour Fred, 25 aout 2026) : la distribution
-        // reste UNIQUE et mutualisee (aDistribuer/repartirSelonPourcentages ci-dessous portent
-        // toujours sur stockPort['bois'] combine, aucun deuxieme moteur) -- seul l'historique des
-        // arrivages distingue les deux flux reels, pour que la logistique sache que Republia
-        // produit reellement 150 (Scierie Guy Tarembois) et importe reellement 150 (Sovarka),
-        // plutot qu'un seul evenement anonyme de 300.
-        if (cle === 'bois') {
-          const horodatage = new Date().toISOString();
-          arrivagesJour.push({ jour: horodatage, resource: 'bois', qte: BOIS_SCIERIE_JOUR, origine: 'scierie_psm', label: 'Bois — Scierie Guy Tarembois (Républia)' });
-          arrivagesJour.push({ jour: horodatage, resource: 'bois', qte: BOIS_SOVARKA_JOUR, origine: 'sovarka', label: 'Bois — Sovarka' });
-        } else {
-          arrivagesJour.push({ jour: new Date().toISOString(), resource: cle, qte: qteArrivee });
-        }
-
-        // Distribution immediate selon la repartition du Commandant (defaut 1/3-1/3-1/3),
-        // plafonnee par entrepot -- le reliquat non distribuable reste dans stockPort.
-        const pourcentages = (port.repartition && port.repartition[cle]) || REPARTITION_PORT_DEFAUT;
-        const aDistribuer = stockPort[cle];
-        const repartis = repartirSelonPourcentages(aDistribuer, pourcentages, villesIds);
-        let totalReellementDistribue = 0;
-        for (const ville of villesIds) {
-          const vise = repartis[ville];
-          if (vise <= 0) continue;
-          const cible = stocksEntrepots[ville];
-          if (!cible || !cible.etat) continue; // batiment pas encore accessible dans cette ville
-          const entrepotCible = cible.etat.entrepot || { stock: {} };
-          const stockCible = entrepotCible.stock || {};
-          const plafondRes = RESSOURCES_ECONOMIE_SERVEUR[cle].plafond;
-          const placeRestante = Math.max(0, plafondRes - (stockCible[cle] || 0));
-          const qteRecue = Math.min(vise, placeRestante);
-          if (qteRecue > 0) {
-            stockCible[cle] = (stockCible[cle] || 0) + qteRecue;
-            cible.etat = { ...cible.etat, entrepot: { ...entrepotCible, stock: stockCible } };
-            totalReellementDistribue += qteRecue;
-          }
-        }
-        stockPort[cle] = Math.max(0, stockPort[cle] - totalReellementDistribue);
-      }
-
-      for (const e of ENTREPOTS_VILLES) {
-        const cible = stocksEntrepots[e.city];
-        if (cible && cible.etat) await sbSetBatimentEtat('republic', e.city, e.buildingId, cible.etat).catch(() => {});
-      }
-
-      const arrivagesConserves = [...arrivagesJour, ...(port.arrivages || [])].slice(0, NB_ARRIVAGES_CONSERVES);
-      await sbSetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM, {
-        ...(etatPort || {}),
-        port: { ...port, stock: stockPort, arrivages: arrivagesConserves }
-      }).catch(() => {});
-    }
+    // Bois de la Scierie Guy Tarembois, importations (bois de Sovarka, petrole, produits exotiques) et
+    // distribution du stock du port : commerce_international_passe (16/11/2026), plus rien ici.
   } catch(e) { console.error('livrerEntrepotsQuotidien error', e); }
   return resultats;
 }
@@ -3522,139 +3389,6 @@ async function genererArrivagePoissonCriee() {
     resultats.arrivee = qteAjoutee;
     resultats.stockApres = stockCriee.poisson || 0;
   } catch(e) { console.error('genererArrivagePoissonCriee error', e); }
-  return resultats;
-}
-
-// Exportations institutionnelles Republia -> Al-Khalija (lot logistique portuaire, 25 aout
-// 2026). Contrairement aux imports, prelevement REEL sur le stock physique existant des 3
-// entrepots (jamais de matiere creee) : si le stock national est insuffisant, seule la
-// quantite reellement disponible est exportee, le taux de satisfaction est trace pour le
-// Commandant/Marcel Ancre, sans consequence diplomatique automatique (hors perimetre de ce lot).
-async function traiterExportationsPortQuotidien() {
-  const resultats = { exportations: {} };
-  try {
-    const etatPort = await sbGetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM).catch(() => ({}));
-    const port = (etatPort && etatPort.port) || { stock: {}, repartition: {}, arrivages: [], exportations: {} };
-    const exportations = port.exportations || {};
-
-    const stocksEntrepots = {};
-    for (const e of ENTREPOTS_VILLES) {
-      const etatE = await sbGetBatimentEtat('republic', e.city, e.buildingId).catch(() => null);
-      stocksEntrepots[e.city] = { etat: etatE };
-    }
-
-    const recettesParVille = {};
-
-    // Exportation = vente institutionnelle : une matiere interdite n'est plus exportee (le stock reste
-    // en entrepot, §34). Verification impossible -> aucune exportation ce jour (fail-closed).
-    const interdites = await matieresInterditesRepublia();
-    for (const [cle, cfg] of Object.entries(EXPORTATIONS_PORT)) {
-      if (interdites === null || interdites.has(cle)) {
-        exportations[cle] = { destination: cfg.destination, contrat: 0, envoye: 0, satisfactionPct: 0,
-          raison: interdites === null ? 'legalite_non_verifiable' : 'interdit_par_la_loi', jour: new Date().toISOString() };
-        resultats.exportations[cle] = { contrat: 0, envoye: 0, raison: exportations[cle].raison };
-        continue;
-      }
-      // "1 ville" reutilise le plafond deja existant de la ressource (RESSOURCES_ECONOMIE_
-      // SERVEUR[cle].plafond) -- aucun chiffre invente, voir EXPORTATIONS_PORT plus haut.
-      const plafondRes = RESSOURCES_ECONOMIE_SERVEUR[cle].plafond;
-      const contrat = cfg.quantite != null ? cfg.quantite : Math.round(plafondRes * cfg.equivalentVilles);
-
-      const stocksActuels = {};
-      let stockTotal = 0;
-      for (const e of ENTREPOTS_VILLES) {
-        const s = (stocksEntrepots[e.city].etat?.entrepot?.stock?.[cle]) || 0;
-        stocksActuels[e.city] = s;
-        stockTotal += s;
-      }
-
-      let aExporter = Math.min(contrat, stockTotal);
-      // LIVRAISON REELLE EN SOVARKA (06/11/2026, regle de Fred). Al-Khalija n'a ni entrepot ni caisse :
-      // la marchandise y disparait. Sovarka en a : l'entrepot de Starovka paie la cargaison, la repartit
-      // en trois et Novomirsk et Krasnov lui paient leur part (exportation_sovarka_recevoir, une seule
-      // transaction, une seule reception par jour et par matiere). On ne preleve en Republia que la
-      // quantite acceptee ; reception impossible a confirmer -> rien ne part ce jour (fail-closed).
-      let receptionSovarka = null;
-      if (cfg.destination === 'soviet' && aExporter > 0) {
-        receptionSovarka = await sbRpc('exportation_sovarka_recevoir', {
-          p_jour: jourParisISO(new Date()), p_cle: cle, p_quantite: aExporter,
-          p_prix: RESSOURCES_ECONOMIE_SERVEUR[cle].prixBase
-        }, HEADERS_SERVICE).catch(() => null);
-        aExporter = (receptionSovarka && receptionSovarka.ok) ? Math.max(0, Math.min(aExporter, Number(receptionSovarka.acceptee) || 0)) : 0;
-      }
-      // Repartition proportionnelle au stock REEL de chaque ville (pas aux pourcentages du
-      // Commandant, qui pilotent les imports, pas les exports) -- arrondi Hamilton, jamais plus
-      // preleve que ce qui existe reellement dans un entrepot donne.
-      const preleves = {};
-      if (aExporter > 0 && stockTotal > 0) {
-        const villesIds = ENTREPOTS_VILLES.map(e => e.city);
-        const parts = villesIds.map(v => aExporter * (stocksActuels[v] / stockTotal));
-        const planchers = parts.map(p => Math.floor(p));
-        let reliquat = aExporter - planchers.reduce((s, p) => s + p, 0);
-        const ordre = parts.map((p, i) => ({ i, frac: p - planchers[i] })).sort((a, b) => b.frac - a.frac || a.i - b.i);
-        const montants = [...planchers];
-        for (let k = 0; k < ordre.length && reliquat > 0; k++) { montants[ordre[k].i]++; reliquat--; }
-        villesIds.forEach((v, i) => { preleves[v] = montants[i]; });
-      }
-
-      // RECETTE D'EXPORTATION (arbitrage du 14 septembre 2026). Jusqu'a ce lot, l'exportation
-      // etait le SEUL flux du jeu qui retirait du stock sans rien crediter en retour : les
-      // entrepots payaient leurs livraisons et voyaient partir cereales et viande gratuitement,
-      // ce qui les a menes a la faillite et maintenait ces deux ressources a zero.
-      //
-      // Le prix retenu est le prix_base de la ressource, lu dans le MIROIR SERVEUR
-      // (RESSOURCES_ECONOMIE_SERVEUR, la meme source qui fournit deja le plafond du contrat
-      // quelques lignes plus haut) -- jamais une valeur fournie par un client, qui n'intervient
-      // a aucun moment dans ce cron. Meme patron que approvisionner_chantier : prix du miroir,
-      // debit physique du stock, credit de la caisse de l'entrepot fournisseur.
-      //
-      // La repartition financiere suit EXACTEMENT la repartition physique calculee ci-dessus :
-      // chaque entrepot n'encaisse que le produit des marchandises qu'il a reellement fournies.
-      // Rien n'est credite au Port, ni a un budget national, ni a une caisse etrangere -- Al-Khalija
-      // n'est represente par aucune caisse, on n'invente donc aucun debit en face.
-      const prixExport = RESSOURCES_ECONOMIE_SERVEUR[cle].prixBase;
-      let recetteTotale = 0;
-
-      for (const e of ENTREPOTS_VILLES) {
-        const qte = preleves[e.city] || 0;
-        if (qte <= 0) continue;
-        const cible = stocksEntrepots[e.city];
-        if (!cible.etat) continue;
-        const entrepotCible = cible.etat.entrepot || { stock: {} };
-        const stockCible = entrepotCible.stock || {};
-        stockCible[cle] = Math.max(0, (stockCible[cle] || 0) - qte);
-        const recette = Math.round(qte * prixExport * 100) / 100;
-        recetteTotale += recette;
-        // RECETTE A LA CAISSE CANONIQUE (06/11/2026). Elle etait ajoutee a `etat.entrepot.caisse`,
-        // champ que plus rien ne lit depuis le passage des entrepots a caisses_batiments (voir
-        // livrerEntrepotsQuotidien et plateau-entrepots.js) : la recette des exportations se perdait
-        // chaque nuit. Elle est cumulee ici et versee apres l'ecriture des stocks, par la meme porte
-        // serveur verrouillee et journalisee que les livraisons (entrepot_caisse_mouvement).
-        recettesParVille[e.city] = Math.round(((recettesParVille[e.city] || 0) + recette) * 100) / 100;
-        cible.etat = { ...cible.etat, entrepot: { ...entrepotCible, stock: stockCible } };
-      }
-
-      const satisfactionPct = contrat > 0 ? Math.round((aExporter / contrat) * 10000) / 100 : 100;
-      exportations[cle] = { destination: cfg.destination, contrat, envoye: aExporter, satisfactionPct,
-        prixUnitaire: prixExport, recette: recetteTotale, jour: new Date().toISOString(),
-        ...(receptionSovarka ? { reception: receptionSovarka } : {}) };
-      resultats.exportations[cle] = { contrat, envoye: aExporter, satisfactionPct,
-        prixUnitaire: prixExport, recette: recetteTotale };
-    }
-
-    for (const e of ENTREPOTS_VILLES) {
-      const cible = stocksEntrepots[e.city];
-      if (cible.etat) await sbSetBatimentEtat('republic', e.city, e.buildingId, cible.etat).catch(() => {});
-      const recette = recettesParVille[e.city] || 0;
-      if (recette > 0) {
-        const repMvt = await sbRpc('entrepot_caisse_mouvement',
-          { p_entrepot_id: 'republic_' + e.city + '_' + e.buildingId, p_delta: recette }, HEADERS_SERVICE).catch(() => null);
-        const rMvt = Array.isArray(repMvt) ? repMvt[0] : repMvt;
-        if (!rMvt || rMvt.ok !== true) signalerEchec('exportations:caisse_entrepot:' + e.city, (rMvt && rMvt.raison) || 'verdict_absent');
-      }
-    }
-    await sbSetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM, { ...(etatPort || {}), port: { ...port, exportations } }).catch(() => {});
-  } catch(e) { console.error('traiterExportationsPortQuotidien error', e); }
   return resultats;
 }
 
@@ -5408,11 +5142,8 @@ async function verifierPostesVacantsEtAutoPourvoir() {
       // accepterCandidaturePoste, plateau-politique.js) installe le nouveau titulaire PJ sans
       // jamais repasser par une vacance ni par pourvoirPnj() : jamais resetee, comme demande.
       if (posteId === 'capitaine_port') {
-        const etatPort = await sbGetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM).catch(() => ({}));
-        const port = (etatPort && etatPort.port) || {};
-        if (port.repartition && Object.keys(port.repartition).length > 0) {
-          await sbSetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM, { ...(etatPort || {}), port: { ...port, repartition: {} } }).catch(() => {});
-        }
+        // 16/11/2026 : tous les reglages du port (flechage, prix, quotas, douane) reviennent au defaut.
+        await sbRpc('port_reglages_par_defaut', { p_pays: PAYS_CASCADE }, HEADERS_SERVICE).catch(() => null);
       }
     }
 
@@ -6868,17 +6599,19 @@ export default async function handler(req, res) {
     // 12b. Exportations institutionnelles du Port de PSM (lot logistique portuaire, 25 aout
     // 2026) : prelevement reel sur le stock des 3 entrepots, apres que les imports du jour ont
     // ete distribues ci-dessus.
-    const exportationsPort = await tacheQuotidienne('exportations_port', traiterExportationsPortQuotidien);
+    // 12b. PORTS ET COMMERCE INTERNATIONAL (16/11/2026, Fred) : dotations, contrats entre les quatre pays,
+    // cession du stock des ports aux entrepots, balance commerciale. Remplace les exportations de PSM, les
+    // importations d'El Estado a Starovka et les exportations de Sovarka. Apres la production de Sovarka
+    // (deplacee ci-dessous avant cette passe) qui nourrit les stocks exportes.
     // Apres celles de Republia : la part livree a la Republia passe par PSM, dont la passe ci-dessus
     // a deja ecrit les stocks (aucune ecriture concurrente d'un etat d'entrepot).
     // Entrepots de Sovarka (15/11/2026) : approvisionnement par le port de Starovka et echanges entre les
     // trois entrepots, avant les exportations de Sovarka qui prelevent sur ces stocks.
     // 15/11/2026 au soir : importations d'El Estado (plantes de Pharmanov, tabac), puis production des
     // villes et des usines de Sovarka, avant les echanges et les exportations qui prelevent sur ces stocks.
-    const importationsSovarka = await tacheQuotidienne('importations_sovarka', traiterImportationsSovarkaQuotidien);
     const productionSovarka = await tacheQuotidienne('production_sovarka', traiterProductionSovarkaQuotidien);
+    const commerceInternational = await tacheQuotidienne('commerce_international', traiterCommerceInternationalQuotidien);
     const entrepotsSovarka = await tacheQuotidienne('entrepots_sovarka', traiterEntrepotsSovarkaQuotidien);
-    const exportationsSovarka = await tacheQuotidienne('exportations_sovarka', traiterExportationsSovarkaQuotidien);
     // Urbanisme de Sovarka (06/11/2026, decisions de Fred) : livraison des immeubles collectifs, chantiers
     // en attente des fonds de la mairie, et le 1er et le 15, lancement d'un immeuble par ville pour les
     // dossiers de commerce acceptes qui attendent un local. Tout est decide par sovarka_urbanisme_passe.
@@ -6966,7 +6699,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, importationsSovarka, productionSovarka, entrepotsSovarka, exportationsSovarka, urbanismeSovarka, herosTravail, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, productionSovarka, commerceInternational, entrepotsSovarka, urbanismeSovarka, herosTravail, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

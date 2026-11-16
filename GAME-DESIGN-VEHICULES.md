@@ -70,7 +70,7 @@ qui ouvriront les autres (même logique que l'agence Grobras pour la sécurité 
 ## PNJ
 
 - Garage de Novomirsk : **Sergueï Zaptchastov** (*запчасти*, pièces détachées).
-- Station-service de Krasnov : **Lioudmila Zapravkina** (*заправка*, station-service).
+- Station-service de Krasnov : **Leonid Zapravkine** (*заправка*, station-service) ; d'abord Lioudmila Zapravkina, passé au masculin le 16/11/2026 pour coller à l'image (décision de Fred : « on adapte tout à la réalité des images »).
 
 ## Socle technique retenu (choix de l'agent)
 

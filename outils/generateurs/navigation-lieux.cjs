@@ -34,12 +34,16 @@ for(const x of rows)if(x.pays==='soviet'&&x.ville==='capitale'&&x.id==='centre-a
 const EXCLUS_APRES_3110={soviet:{ville_a:['presse-starovka'],capitale:['logements-novomirsk-marche','logements-novomirsk-quais'],ville_b:['logements-krasnov-place-ours','logements-krasnov-rue-tabac','logements-novomirsk','tabac-presse-krasnov']}};
 for(let i=rows.length-1;i>=0;i--)if(EXCLUS_APRES_3110[rows[i].pays]?.[rows[i].ville]?.includes(rows[i].id))rows.splice(i,1);
 for(const x of rows){
+ // Cinq vues du goulag (16/11) : seule la référence historique garde les pièces QHS du 31/10.
+ if(x.pays==='soviet'&&x.ville==='qhs'&&x.id==='qhs-prison')x.rooms=['entree_qhs','cellules_qhs','salle_interrogatoire','promenoir','salle_commune_qhs'];
  if(/^dispensaire-public/.test(x.id))x.rooms=x.rooms.filter(r=>r!=='chambre');
  x.rooms=x.rooms.filter(r=>!/_chambre_\d+$/.test(r));
  if(x.pays==='soviet'&&x.id==='mairie')x.rooms=x.rooms.filter(r=>r!=='salle_elections');
  if(x.pays==='soviet'&&(x.ville==='ville_b'||x.ville==='ville_a')&&x.id==='stade')x.rooms=x.rooms.filter(r=>r!=='boutique');
  // Raffinerie de Starovka (15/11) : deux salles ajoutées par 20261115192000, hors de la référence du 31/10.
  if(x.pays==='soviet'&&x.ville==='ville_a'&&x.id==='usine-principale')x.rooms=x.rooms.filter(r=>r!=='salle_ventes_raffinerie'&&r!=='interieur_raffinerie');
+ // Port de Starovka (16/11) : bureau du Commandant du Port ajouté par 20261116110000, hors de la référence du 31/10.
+ if(x.pays==='soviet'&&x.ville==='ville_a'&&x.id==='port-starovka')x.rooms=x.rooms.filter(r=>r!=='administration_portuaire');
  if(x.pays==='soviet'&&['ville_a','ville_b'].includes(x.ville)&&x.id==='centre-affaires')x.rooms=["hall","bureau_prestige","bureau_standard","open_space","tribune_republia"];
 }
 const quote=x=>x===null?'NULL':"'"+String(x).replace(/'/g,"''")+"'";

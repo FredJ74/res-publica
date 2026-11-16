@@ -39,7 +39,9 @@ test('aucun PNJ nomme de Republia en Sovarka (seuls les intitulés génériques 
 });
 
 test('aucun portrait de Republia sur un PNJ de Sovarka issu du gabarit', () => {
-  const avecPhoto = sovarka.filter(p => republia.has(p.name) && (p.photoUrl || p.photo));
+  // Un portrait tiré d'un décor de Sovarka (images/Sovarka/, 16/11/2026) est propre à la ville : autorisé.
+  const avecPhoto = sovarka.filter(p => republia.has(p.name) && (p.photoUrl || p.photo)
+    && !String(p.photoUrl || p.photo).startsWith('images/Sovarka/'));
   assert.deepEqual(avecPhoto.map(p => p.name), []);
 });
 

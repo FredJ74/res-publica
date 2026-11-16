@@ -40,7 +40,7 @@ function descsParPays() {
   return { sov: parPays('soviet'), rep: parPays('republic') };
 }
 
-test('inventaire : 245 descriptions communes affichées, aucune nouvelle hors catalogue, aucune en trop', t => {
+test('inventaire : 237 descriptions communes affichées après isolation du goulag, aucune nouvelle hors catalogue', t => {
   const { sov, rep } = descsParPays();
   const communesJeu = [...sov].filter(d => rep.has(d));
   const cat = [...I('republic', 'fr').communes].map(l => l[0]);
@@ -48,7 +48,7 @@ test('inventaire : 245 descriptions communes affichées, aucune nouvelle hors ca
   // catalogue (trou antérieur, chantier de traduction à venir, consigné dans RELAIS.md). Le plafond
   // autorise la seule description de gestion de caserne rétablie à Sovarka ;
   // elle doit rejoindre le catalogue partagé dans le prochain lot i18n.
-  assert.equal(communesJeu.length, 245, // +1 le 16/11 : « Régulation de la production » (adjoint au maire, Claude).  Inventaire réel de main b89a264 le 15/11 (248), puis −4 le 15/11 : plus de banques en Sovarka (décision de Fred), les descriptions des guichets bancaires ne s'y affichent plus ; contrôles des lacunes et du français maintenus.
+  assert.equal(communesJeu.length, 237, // Le 16/11 : 245 -> 237 ; les ordres hérités du QHS de Républia disparaissent du goulag de Sovarka (entrée, cellules et salles républicaines), sans retirer leurs traductions encore nécessaires en Républia.
     'nombre de descriptions communes affichées après exclusions ministérielles spécifiques à Sovarka');
   const manquantes = communesJeu.filter(d => !cat.includes(d));
   t.diagnostic('Descriptions communes manquantes : ' + JSON.stringify(manquantes));
@@ -101,7 +101,7 @@ test('traduit dans les deux pays, jamais en français, texte inconnu intact', ()
 
 test('113 textes propres à Sovarka inchangés et prioritaires ; restent limités à Sovarka', () => {
   const avec = I('soviet', 'en'), sans = I('soviet', 'en', { communes: false });
-  assert.equal(avec.lignes.length, 134); // +3 le 15/11 au soir : usines d'État de Sovarka (carburant, dérivés, alcool) ; +2 le 14/11 : Tabac/Presse de Krasnov ; +2 le 14/11 : salle électorale de la mairie de Krasnov ; -1 le 14/11 : « Dormir » de la chambre devenu commun ; +1 le 14/11 : « Retrouver son chemin » (forêt de Krasnov) ; +4 le 14/11 : kolkhoze (légumes et œufs reformulés, anciennes formulations gardées ; traite ; caisse) ; +1 boutique de l’Étoile Rouge
+  assert.equal(avec.lignes.length, 136); // +2 le 16/11 : administration portuaire de Starovka ; +3 le 15/11 au soir : usines d'État de Sovarka (carburant, dérivés, alcool) ; +2 le 14/11 : Tabac/Presse de Krasnov ; +2 le 14/11 : salle électorale de la mairie de Krasnov ; -1 le 14/11 : « Dormir » de la chambre devenu commun ; +1 le 14/11 : « Retrouver son chemin » (forêt de Krasnov) ; +4 le 14/11 : kolkhoze (légumes et œufs reformulés, anciennes formulations gardées ; traite ; caisse) ; +1 boutique de l’Étoile Rouge
   assert.equal(JSON.stringify(avec.lignes), JSON.stringify(sans.lignes));
   for (const l of avec.lignes) assert.equal(avec.desc(l[0]), sans.desc(l[0]));
   const propre = 'Voir les présidents qui ont marqué Sovarka.';

@@ -56,16 +56,18 @@ test('Écran : chaînes et directeurs par pays, gabarit de Républia intact', ()
   }
 });
 
-test('Tâche de minuit : importations, production, échanges, exportations, dans cet ordre', () => {
+test('Tâche de minuit : production, commerce international (ports), échanges, dans cet ordre', () => {
+  // 16/11/2026 : importations et exportations passent par commerce_international_passe (contrats en base).
   const src = lire('api/cron-minuit.js');
-  const ordre = ['importations_sovarka', 'production_sovarka', 'entrepots_sovarka', 'exportations_sovarka']
+  const ordre = ['production_sovarka', 'commerce_international', 'entrepots_sovarka']
     .map(n => src.indexOf(`tacheQuotidienne('${n}'`));
   assert.ok(ordre.every(i => i > 0), 'tâche absente');
   assert.deepEqual([...ordre].sort((a, b) => a - b), ordre, 'ordre des tâches');
-  assert.match(src, /medicaments: \{ quantite: 25,\s+destination: 'soviet' \}/);
-  assert.match(src, /plantes:     \{ quantite: 38,\s+destination: 'soviet' \}/);
-  assert.match(src, /const IMPORTATIONS_SOVARKA_EL_ESTADO = \{ plantes: 37, tabac: 50 \};/);
-  assert.match(src, /cfg\.quantite != null \? cfg\.quantite : Math\.round\(plafondRes \* cfg\.equivalentVilles\)/);
+  const m = lire('migrations/20261116113000_ports_commerce_international.sql');
+  assert.match(m, /\('republic', 'soviet', 'medicaments', 25,/);
+  assert.match(m, /\('republic', 'soviet', 'plantes', 38,/);
+  assert.match(m, /\('narco', 'soviet', 'plantes', 37,/);
+  assert.match(m, /\('narco', 'soviet', 'tabac', 50,/);
   assert.match(src, /USINE AFFAMEE/);
 });
 

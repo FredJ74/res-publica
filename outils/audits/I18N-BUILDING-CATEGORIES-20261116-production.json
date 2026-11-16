@@ -1,0 +1,115 @@
+{
+  "commit": "cf0f218eb27a39acbc29d61bd77d7c5daa1a8eae",
+  "deployment": "dpl_2Xmkzj65Tv9Ptc5JTnipQHfe3xUT",
+  "files": [
+    {
+      "file": "plateau.html",
+      "sha256": "706405847c6d40cc9eb260533979040964bbaf86e8f5fde825f1528cf489e9d6",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "80d0c1fb04fded062e6a4acf5ac76251559f46ceba37850eefcb85158a6fe3e4",
+      "identical": true
+    },
+    {
+      "file": "data.js",
+      "sha256": "1b0fdad548ddd6638c8db4b1a109e91785dfe08bb591e949f729eb55dbe23384",
+      "identical": true
+    },
+    {
+      "file": "plateau-navigation.js",
+      "sha256": "b4599935dd5e92011faff858ddb85c2fb1dbe069f338db456cba50089e6a3ec4",
+      "identical": true
+    },
+    {
+      "file": "plateau-core.js",
+      "sha256": "8e0da450f7edbafbd474e20e65266ca1433e7bdf641dde222e95e756c4b1d702",
+      "identical": true
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "sha256": "b376991cdac963bddd365a48cb8fb1808f1262d42c92bca77baed8584e51b5cb",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-resources.js",
+      "sha256": "8609983a838ae27e62735f9fffa7b48e0aa4eb917699ecb5e21cf059d1cb2b64",
+      "identical": true
+    },
+    {
+      "file": "i18n/toast-resources.js",
+      "sha256": "8a57409e44396e0a59163dcb86b9f9d995cbf507d88ed82f56df7fc6c9bcc96e",
+      "identical": true
+    },
+    {
+      "file": "i18n/toast-bodies-resources.js",
+      "sha256": "84940435f770726027b7c84135122dedbedfed4de2237fbb01f67a369e5fc679",
+      "identical": true
+    },
+    {
+      "file": "i18n/forum-feedback-resources.js",
+      "sha256": "8bea83d82bd231d8acbabbc8b790d5bfc1c0f87085f268a915b55f52fe9c70f3",
+      "identical": true
+    },
+    {
+      "file": "i18n/navigation-resources.js",
+      "sha256": "776b3479a47ab11ecf758428557ada2f9cdf18b24aade7732ea08ecfbc4c57c0",
+      "identical": true
+    },
+    {
+      "file": "i18n/character-sheet-resources.js",
+      "sha256": "a78969ec47c78de6c03f284e6d60bc10af6072f3715ed7a79efb88d32caf6eba",
+      "identical": true
+    },
+    {
+      "file": "i18n/commerce-menu-resources.js",
+      "sha256": "f98ae3340cf2a95d9c6f3d3235c7f64b320558740767150560a9a51e4f845ae7",
+      "identical": true
+    },
+    {
+      "file": "i18n/sovarka-justice-resources.js",
+      "sha256": "9a460ac67dcc1722e51ade8010e3db568acf09efc969a88799eb3a978a68d4c9",
+      "identical": true
+    },
+    {
+      "file": "i18n/room-resources.js",
+      "sha256": "24880a6eb10f44195de36c7a19f598282f737759cf371456be1cb5ffd1587b20",
+      "identical": true
+    },
+    {
+      "file": "i18n/sovarka-descriptions-resources.js",
+      "sha256": "a81681c806fd7377b5ad2f1d8e002e7425f0eb486254ca360fa1afdd654e0ddb",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-init.js",
+      "sha256": "0fbd1edb1d94a175168e068c72991b5dc4b86e7d400202c20a6c6bcfc20bb160",
+      "identical": true
+    }
+  ],
+  "alias": "https://res-publica.vercel.app",
+  "state": "READY",
+  "target": "production",
+  "browserTestsPassed": 14,
+  "browserSwitches": 3375,
+  "categorySwitches": 1566,
+  "goulagSwitches": 270,
+  "buildingHeaderSwitches": 1080,
+  "exitSwitches": 459,
+  "nativeBrotliCatalogs": 86,
+  "ciPassed": 51,
+  "authenticatedPlayerTest": false,
+  "physicalPhoneTest": false,
+  "nativeLinguisticReview": false
+}

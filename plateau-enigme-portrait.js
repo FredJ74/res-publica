@@ -155,12 +155,21 @@ function enigme1Refus(titre, v) {
 
 // Description des quatre salles pendant l'enquête (ajoutée après la description de base).
 function enigme1SuffixeDescription(buildingId, roomId) {
+  if (buildingId === 'musee-ville-luthecia' && roomId === 'hall' && enigme1EtapeActive())
+    return " Valérie Loisillon, l'hôtesse d'accueil, attire votre attention : des portraits ont disparu. Parlez-lui de l'enquête avant de visiter les salles.";
   return enigme1DansSalleCadreVide(buildingId, roomId)
     ? " Parmi les portraits, un cadre vide attire l'œil : seule sa plaque subsiste." : '';
 }
 
 // Ordre gratuit « Examiner le cadre vide » dans les quatre salles, pendant l'enquête.
 function ordresEnigme1Musee(buildingId, roomId) {
+  if (buildingId === 'musee-ville-luthecia' && roomId === 'hall' && enigme1EtapeActive()) {
+    // Toujours visible, même si un ancien appel RPC avait consommé accueilValerie
+    // avant que le navigateur affiche le dialogue : cas d'Angie Porcelana.
+    return [{ fn: 'enigme1_parler_valerie', label: "Parler à Valérie de l'enquête", pa: 0, cost: 0,
+      type: 'legal', icon: 'ti-message-circle', successRate: 100,
+      desc: "L'hôtesse vous explique les portraits disparus et vous indique les salles à examiner." }];
+  }
   if (!enigme1DansSalleCadreVide(buildingId, roomId)) return [];
   return [{ fn: 'enigme1_examiner_cadre', label: 'Examiner le cadre vide', pa: 0, cost: 0, type: 'legal', icon: 'ti-search',
     successRate: 100, desc: 'Regarder de près le cadre dont le portrait a disparu, et noter la plaque dans votre calepin.' }];
@@ -182,26 +191,84 @@ async function enigme1ExaminerCadre() {
   if (typeof renderInventory === 'function') renderInventory();
 }
 
-// Hall : Valérie Loisillon accueille UNE fois le joueur dont l'enquête est ouverte.
-// Ce n'est jamais le gardien, Gérard Poinçon, qui est le coupable démasqué au débarras.
-async function enigme1AccueilHall(buildingId, roomId) {
-  if (buildingId !== 'musee-ville-luthecia' || roomId !== 'hall' || !enigme1EtapeActive()) return;
-  if (state.char.enigme1.accueilValerie) return;
-  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('enigme1_musee', { p_action: 'accueil' }).catch(() => null) : null;
-  if (!v || v.ok !== true) return;
-  enigme1AdopterServeur(v);
-  if (!v.premiere || state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
-  let html = '<div style="padding:1rem;display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap">'
+// Hall : le serveur confirme le dialogue uniquement APRÈS l'affichage et l'action
+// explicite du joueur. L'ancien indicateur accueilValerie ne doit plus masquer
+// la première présentation : il pouvait être enregistré avant l'ouverture du popup.
+let enigme1AccueilEnCours = false;
+let enigme1AccueilAffiche = false;
+function enigme1AfficherValerie() {
+  if (state.currentBuilding !== 'musee-ville-luthecia' || state.currentRoom !== 'hall') return false;
+  const titre = document.getElementById('postes-modal-title');
+  const body = document.getElementById('postes-body');
+  const modal = document.getElementById('modal-postes');
+  if (!titre || !body || !modal) return false;
+  // Ne jamais fermer/écraser une autre fenêtre en cours d'utilisation.
+  if (modal.classList.contains('open') && titre.textContent !== "Valérie Loisillon, hôtesse d'accueil") return false;
+  const html = '<div style="padding:1rem;display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap">'
     + '<img src="images/hall-musee-ville-luthecia.webp" alt="Valérie Loisillon" style="width:104px;height:112px;object-fit:cover;object-position:20% 30%;border-radius:6px;flex-shrink:0">'
     + '<div style="flex:1;min-width:200px;font-size:.9rem;color:#e0d8c0;line-height:1.55">'
     + "<p>Bonjour, et bienvenue au Musée de la Ville de Luthécia. Je dois d'abord vous présenter nos excuses : "
     + 'la visite est un peu amputée en ce moment.</p>'
-    + "<p>Plusieurs portraits ont disparu de nos salles il y a quelques jours, et personne ne sait encore comment. "
-    + "Vous trouverez des cadres vides dans certaines salles. La direction préfère ne pas trop en parler, "
-    + 'mais je trouvais honnête de vous prévenir.</p></div></div>';
-  document.getElementById('postes-modal-title').textContent = "Valérie Loisillon, hôtesse d'accueil";
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+    + " <p>Plusieurs portraits ont disparu de nos salles il y a quelques jours, et personne ne sait encore comment. "
+    + "Vous trouverez des cadres vides dans les salles des Maires, des Criminels, des Entrepreneurs et des Plumes. "
+    + "Je vous conseille de commencer par examiner les plaques : elles pourraient vous mettre sur une piste.</p>"
+    + '<p>Un ordre « Examiner le cadre vide » vous attend dans chacune de ces salles, '
+    + 'et vos observations seront consignées dans votre calepin.</p>'
+    + '<button type="button" class="pnj-action-btn" onclick="enigme1ValerieConfirmer()" '
+    + 'style="min-height:44px;margin-top:.6rem">Compris, je commence mon enquête</button></div></div>';
+  titre.textContent = "Valérie Loisillon, hôtesse d'accueil";
+  body.innerHTML = html;
+  modal.classList.add('open');
+  enigme1AccueilAffiche = true;
+  return true;
+}
+async function enigme1ValerieConfirmer() {
+  if (state.currentBuilding !== 'musee-ville-luthecia' || state.currentRoom !== 'hall') return;
+  const v = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('enigme1_musee', { p_action: 'accueil_confirmer' }).catch(() => null) : null;
+  if (!v || v.ok !== true) {
+    enigme1Refus('Enquête du musée', v || {raison:'serveur_indisponible'});
+    return;
+  }
+  enigme1AdopterServeur(v);
+  enigme1AccueilAffiche = false;
+  if (typeof fermerModalPostes === 'function') fermerModalPostes();
+  else document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof showToast === 'function') showToast('Enquête commencée',
+    'Examinez les quatre cadres vides. Chaque plaque sera notée dans votre calepin.', true);
+}
+async function enigme1AccueilHall(buildingId, roomId, explicite = false) {
+  if (buildingId !== 'musee-ville-luthecia' || roomId !== 'hall' || !enigme1EtapeActive()) return;
+  if (enigme1AccueilEnCours) return;
+  // Si le joueur a fermé la fenêtre par X sans confirmer, reproposer
+  // l'introduction lors d'une prochaine visite. Aucun marqueur serveur perdu.
+  const modalValerie = document.getElementById('modal-postes');
+  const presentationEncoreOuverte = enigme1AccueilAffiche
+    && !!modalValerie?.classList?.contains('open');
+  if (!presentationEncoreOuverte) enigme1AccueilAffiche = false;
+  if (!explicite && (state.char.enigme1.accueilValerieConfirme || presentationEncoreOuverte)) return;
+  enigme1AccueilEnCours = true;
+  try {
+    const v = typeof sbRpcVerdict === 'function'
+      ? await sbRpcVerdict('enigme1_musee', { p_action: 'accueil' }).catch(() => null) : null;
+    if (!v || v.ok !== true) {
+      if (explicite) enigme1Refus('Enquête du musée', v || {raison:'serveur_indisponible'});
+      return;
+    }
+    enigme1AdopterServeur(v);
+    if ((!v.premiere && !explicite)
+      || state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
+    // L'entrée dans une pièce n'a pas fini son rendu au moment du crochet :
+    // différer le popup après le rendu et conserver l'ordre manuel comme secours.
+    const ouvrir = () => enigme1AfficherValerie();
+    if (explicite) ouvrir();
+    else if (typeof window !== 'undefined' && typeof window.setTimeout === 'function')
+      window.setTimeout(ouvrir, 0);
+    else ouvrir();
+  } finally { enigme1AccueilEnCours = false; }
+}
+function enigme1ParlerValerie() {
+  return enigme1AccueilHall(state.currentBuilding, state.currentRoom, true);
 }
 
 // Affiche la pop-up du cadre vide (reutilise le modal generique #modal-postes).

@@ -86,6 +86,7 @@ function renderMinimap(cityId) {
   html += regular.map(id => minimapCard(id)).join('');
 
   grid.innerHTML = html;
+  globalThis.RPI18nPlateau?.apply?.(grid);
 }
 
 function minimapCard(id) {
@@ -106,7 +107,7 @@ function minimapCard(id) {
   const firstRoom = Object.values(b.rooms || {})[0];
   const actions = (firstRoom?.orders || []).slice(0, 3).map(o => o.label).join(' · ');
 
-  const locked = b.locked ? '<span style="font-size:.8rem;color:#5a3020">· Accès restreint</span>' : '';
+  const locked = b.locked ? '<span style="font-size:.8rem;color:#5a3020">· <span data-i18n="toastTitles.restrictedAccess">Accès restreint</span></span>' : '';
 
   const serrureBat = (typeof serrureBatimentEtat === 'function') ? serrureBatimentEtat(id) : null;
   const tooltipData = JSON.stringify({
@@ -121,7 +122,7 @@ function minimapCard(id) {
     '<div class="minimap-bld-icon"><i class="ti ' + b.icon + '" style="font-size:.8rem"></i></div>' +
     '<div class="minimap-bld-info">' +
       '<div class="minimap-bld-name">' + localName + (serrureBat ? ' <i class="ti ' + (serrureBat.fermee ? 'ti-lock' : 'ti-lock-open') + '"></i>' : '') + '</div>' +
-      '<div class="minimap-bld-cat">' + b.cat + ' ' + locked + '</div>' +
+      '<div class="minimap-bld-cat">' + (globalThis.RPNavigationI18n?.categoryMarkup?.(b.cat) ?? b.cat) + ' ' + locked + '</div>' +
       (personCount > 0 ? '<div class="minimap-persons">' + personCount + ' personne' + (personCount > 1 ? 's' : '') + '</div>' : '') +
     '</div>' +
   '</div>';
@@ -508,6 +509,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
   // Header
   document.getElementById('bat-nom').textContent = displayName;
   document.getElementById('bat-cat').textContent = displayCat;
+  globalThis.RPNavigationI18n?.markCategory?.(document.getElementById('bat-cat'),displayCat);
 
   // Pas de transparence sur la caisse des commerces privés ni des usines.
   // Seuls les entrepôts PUBLICS conservent ici leur bandeau institutionnel.
@@ -1123,7 +1125,16 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
   if (typeof enigme1InjecterZoneCliquable === 'function') enigme1InjecterZoneCliquable(buildingId, roomId);
   if (typeof enigme1VerifierDebarras === 'function') enigme1VerifierDebarras(buildingId, roomId);
-  if (typeof enigme1AccueilHall === 'function') enigme1AccueilHall(buildingId, roomId);
+  // Musée de Luthécia : le serveur vérifie le hall réel. Attendre l'écriture
+  // de position avant sa RPC ; autrement une arrivée depuis une autre salle
+  // répond « pas_sur_place » et l'accueil de Valérie peut se perdre.
+  if (typeof enigme1AccueilHall === 'function'
+      && buildingId === 'musee-ville-luthecia' && roomId === 'hall') {
+    positionEcriteSurLeServeur.then(() => {
+      if (state.currentBuilding === buildingId && state.currentRoom === roomId)
+        return enigme1AccueilHall(buildingId, roomId);
+    }).catch(() => {});
+  }
   // Supprimer ancien emoji si present
   const existing = pieceImg.querySelector('.piece-emoji');
   if (existing) existing.remove();

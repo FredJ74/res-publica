@@ -1,0 +1,302 @@
+[
+ {
+  "ville": "Starovka",
+  "bid": "mairie",
+  "rid": "accueil_mairie",
+  "name": "Secretaire Municipal",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_mairie_secretaire-municipal.webp",
+  "crop": [
+   588,
+   362,
+   170
+  ]
+ },
+ {
+  "ville": "Starovka",
+  "bid": "mairie",
+  "rid": "bureau_maire_local",
+  "name": "Le Maire (PNJ)",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_mairie_le-maire.webp",
+  "crop": [
+   740,
+   388,
+   170
+  ]
+ },
+ {
+  "ville": "Starovka",
+  "bid": "dispensaire-public-v",
+  "rid": "attente",
+  "name": "Infirmiere (PNJ)",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_dispensaire-public-v_infirmiere.webp",
+  "crop": [
+   1145,
+   367,
+   170
+  ]
+ },
+ {
+  "ville": "Starovka",
+  "bid": "commissariat-local",
+  "rid": "accueil_loc",
+  "name": "Brigadier Local (PNJ)",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_commissariat-local_brigadier-local.webp",
+  "crop": [
+   986,
+   454,
+   170
+  ]
+ },
+ {
+  "ville": "Starovka",
+  "bid": "commissariat-local",
+  "rid": "bureau_commissaire",
+  "name": "Bato Dashiev (PNJ)",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_commissariat-local_bato-dashiev.webp",
+  "crop": [
+   619,
+   412,
+   209
+  ]
+ },
+ {
+  "ville": "Starovka",
+  "bid": "stade",
+  "rid": "terrain",
+  "name": "Entraineur Local (PNJ)",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_stade_entraineur-local.webp",
+  "crop": [
+   359,
+   375,
+   293
+  ]
+ },
+ {
+  "ville": "Starovka",
+  "bid": "stade",
+  "rid": "terrain",
+  "name": "Commentateur Sportif (PNJ)",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_stade_commentatrice-sportive.webp",
+  "crop": [
+   47,
+   486,
+   251
+  ]
+ },
+ {
+  "ville": "Starovka",
+  "bid": "stade",
+  "rid": "buvette",
+  "name": "Tenancier de Buvette (PNJ)",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_stade_tenanciere-de-buvette.webp",
+  "crop": [
+   722,
+   269,
+   193
+  ]
+ },
+ {
+  "ville": "Starovka",
+  "bid": "stade",
+  "rid": "guichet_paris",
+  "name": "Bookmaker Officiel (PNJ)",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_stade_bookmaker-officiel.webp",
+  "crop": [
+   547,
+   404,
+   242
+  ]
+ },
+ {
+  "ville": "Starovka",
+  "bid": "stade",
+  "rid": "boutique",
+  "name": "Vendeur des accessoires de Starovka (PNJ)",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_stade_vendeur-des-accessoires-de-starovka.webp",
+  "crop": [
+   401,
+   387,
+   266
+  ]
+ },
+ {
+  "ville": "Starovka",
+  "bid": "port-starovka",
+  "rid": "administration_portuaire",
+  "name": "Commandant Tömör Ochirov (PNJ)",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp",
+  "crop": [
+   192,
+   432,
+   251
+  ]
+ },
+ {
+  "ville": "Starovka",
+  "bid": "marche",
+  "rid": "marche_ext",
+  "name": "Tuyana Dashieva (PNJ)",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_marche_tuyana-dashieva.webp",
+  "crop": [
+   1073,
+   323,
+   170
+  ]
+ },
+ {
+  "ville": "Starovka",
+  "bid": "capitaine-sauvage",
+  "rid": "salle_principale",
+  "name": "Sesegma Badmaeva (PNJ)",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_capitaine-sauvage_sesegma-badmaeva.webp",
+  "crop": [
+   937,
+   380,
+   209
+  ]
+ },
+ {
+  "ville": "Starovka",
+  "bid": "universite",
+  "rid": "amphi",
+  "name": "Darima Zhambalova (PNJ)",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_universite_darima-zhambalova.webp",
+  "crop": [
+   1225,
+   135,
+   290
+  ]
+ },
+ {
+  "ville": "Krasnov",
+  "bid": "mairie",
+  "rid": "accueil_mairie",
+  "name": "Galina Dokladova (PNJ)",
+  "photo": "images/Sovarka/Krasnov/Krasnov_portrait_mairie_galina-dokladova.webp",
+  "crop": [
+   581,
+   453,
+   170
+  ]
+ },
+ {
+  "ville": "Krasnov",
+  "bid": "mairie",
+  "rid": "salle_elections",
+  "name": "Zinaïda Izbirkova (PNJ)",
+  "photo": "images/Sovarka/Krasnov/Krasnov_portrait_mairie_zinaida-izbirkova.webp",
+  "crop": [
+   407,
+   475,
+   170
+  ]
+ },
+ {
+  "ville": "Krasnov",
+  "bid": "dispensaire-public-v",
+  "rid": "attente",
+  "name": "Infirmiere (PNJ)",
+  "photo": "images/Sovarka/Krasnov/Krasnov_portrait_dispensaire-public-v_infirmiere.webp",
+  "crop": [
+   114,
+   214,
+   170
+  ]
+ },
+ {
+  "ville": "Krasnov",
+  "bid": "commissariat-local",
+  "rid": "accueil_loc",
+  "name": "Brigadier Local (PNJ)",
+  "photo": "images/Sovarka/Krasnov/Krasnov_portrait_commissariat-local_brigadier-local.webp",
+  "crop": [
+   112,
+   263,
+   242
+  ]
+ },
+ {
+  "ville": "Krasnov",
+  "bid": "stade",
+  "rid": "buvette",
+  "name": "Avdotia Doubova (PNJ)",
+  "photo": "images/Sovarka/Krasnov/Krasnov_portrait_stade_avdotia-doubova.webp",
+  "crop": [
+   600,
+   408,
+   170
+  ]
+ },
+ {
+  "ville": "Krasnov",
+  "bid": "stade",
+  "rid": "guichet_paris",
+  "name": "Iossif Borissov (PNJ)",
+  "photo": "images/Sovarka/Krasnov/Krasnov_portrait_stade_iossif-borissov.webp",
+  "crop": [
+   688,
+   495,
+   193
+  ]
+ },
+ {
+  "ville": "Krasnov",
+  "bid": "stade",
+  "rid": "boutique",
+  "name": "Oxana Zvezdina (PNJ)",
+  "photo": "images/Sovarka/Krasnov/Krasnov_portrait_stade_oxana-zvezdina.webp",
+  "crop": [
+   654,
+   419,
+   193
+  ]
+ },
+ {
+  "ville": "Krasnov",
+  "bid": "marche",
+  "rid": "marche_ext",
+  "name": "Nina Gorbounova (PNJ)",
+  "photo": "images/Sovarka/Krasnov/Krasnov_portrait_marche_nina-gorbounova.webp",
+  "crop": [
+   182,
+   332,
+   170
+  ]
+ },
+ {
+  "ville": "Krasnov",
+  "bid": "universite",
+  "rid": "amphi",
+  "name": "Alevtina Gramotova (PNJ)",
+  "photo": "images/Sovarka/Krasnov/Krasnov_portrait_universite_alevtina-gramotova.webp",
+  "crop": [
+   934,
+   276,
+   170
+  ]
+ },
+ {
+  "ville": "Krasnov",
+  "bid": "cafe-tabac-cheminots-montrouge",
+  "rid": "salle",
+  "name": "Grigori Zaitsev (PNJ)",
+  "photo": "images/Sovarka/Krasnov/Krasnov_portrait_cafe-tabac-cheminots-montrouge_grigori-zaitsev.webp",
+  "crop": [
+   216,
+   223,
+   188
+  ]
+ },
+ {
+  "ville": "Krasnov",
+  "bid": "station-radar-krasnov",
+  "rid": "salle_ecoute",
+  "name": "Colonel Gleb Voronov (PNJ)",
+  "photo": "images/Sovarka/Krasnov/Krasnov_portrait_station-radar-krasnov_colonel-gleb-voronov.webp",
+  "crop": [
+   246,
+   330,
+   230
+  ]
+ }
+]

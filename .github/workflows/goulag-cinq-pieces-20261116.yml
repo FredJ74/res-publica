@@ -1,0 +1,43 @@
+name: Goulag Sovarka - convertir cinq vues WebP
+on:
+  push:
+    branches:
+      - chatgpt/goulag-cinq-pieces-decors-20261116
+    paths:
+      - 'outils/images/convertir_goulag_pieces_20261116.py'
+      - 'images/Sovarka/Goulag/**'
+      - '.github/workflows/goulag-cinq-pieces-20261116.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  convertir-et-verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/goulag-cinq-pieces-decors-20261116
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - name: Convertir et supprimer les cinq PNG d'origine après validation
+        run: python outils/images/convertir_goulag_pieces_20261116.py
+      - name: Valider le référentiel, les cinq pièces et la préservation des vues de toundra
+        run: |
+          node --check data.js
+          node outils/bancs/test-goulag-cinq-pieces-20261116.cjs
+      - name: Vérifier le diff et pousser exclusivement les cinq vues
+        run: |
+          git add -A -- images/Sovarka/Goulag/
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "Images déjà converties"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Goulag : cinq WebP validés et PNG sources supprimés"
+          git push origin HEAD:chatgpt/goulag-cinq-pieces-decors-20261116

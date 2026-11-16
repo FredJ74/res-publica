@@ -6200,7 +6200,7 @@ export const SCENES_PNJ = {
     "piece": "Terrain",
     "personnes": [
       "Entraineur Local",
-      "Commentateur Sportif"
+      "Commentatrice Sportive"
     ]
   },
   "[\"soviet\",\"ville_a\",\"stade\",\"vestiaires\"]": {
@@ -6218,7 +6218,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade de Starovka",
     "piece": "Buvette",
     "personnes": [
-      "Tenancier de Buvette"
+      "Tenancière de Buvette"
     ]
   },
   "[\"soviet\",\"ville_a\",\"stade\",\"guichet_paris\"]": {
@@ -6301,6 +6301,15 @@ export const SCENES_PNJ = {
     "piece": "Douanes",
     "personnes": [
       "Douanier Sükhbaatar Baïartouïev"
+    ]
+  },
+  "[\"soviet\",\"ville_a\",\"port-starovka\",\"administration_portuaire\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Port Industriel de Starovka",
+    "piece": "Administration Portuaire",
+    "personnes": [
+      "Commandant Tömör Ochirov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"marche\",\"marche_ext\"]": {
@@ -7209,7 +7218,7 @@ export const SCENES_PNJ = {
     "batiment": "Station-service de Krasnov",
     "piece": "Boutique",
     "personnes": [
-      "Lioudmila Zapravkina"
+      "Leonid Zapravkine"
     ]
   },
   "[\"soviet\",\"ville_b\",\"marche\",\"marche_ext\"]": {
@@ -7464,43 +7473,37 @@ export const SCENES_PNJ = {
   },
   "[\"soviet\",\"qhs\",\"qhs-prison\",\"entree_qhs\"]": {
     "pays": "Sovarka",
-    "ville": "Goulag de Novomirsk",
-    "batiment": "Quartier Haute Securite",
-    "piece": "Entree Securisee",
-    "personnes": [
-      "Directeur Kazimir Sévérov",
-      "Gardien-chef Filipp Grichine"
-    ]
+    "ville": "Camp de rééducation de Sovarka",
+    "batiment": "Camp de rééducation de Sovarka",
+    "piece": "Entrée du camp",
+    "personnes": []
   },
   "[\"soviet\",\"qhs\",\"qhs-prison\",\"cellules_qhs\"]": {
     "pays": "Sovarka",
-    "ville": "Goulag de Novomirsk",
-    "batiment": "Quartier Haute Securite",
-    "piece": "Cellules",
-    "personnes": [
-      "Zakhar Zemlianov",
-      "Pavel Kotov"
-    ]
-  },
-  "[\"soviet\",\"qhs\",\"qhs-prison\",\"salle_interrogatoire\"]": {
-    "pays": "Sovarka",
-    "ville": "Goulag de Novomirsk",
-    "batiment": "Quartier Haute Securite",
-    "piece": "Salle d'Interrogatoire",
+    "ville": "Camp de rééducation de Sovarka",
+    "batiment": "Camp de rééducation de Sovarka",
+    "piece": "Dortoir des prisonniers",
     "personnes": []
   },
-  "[\"soviet\",\"qhs\",\"qhs-prison\",\"promenoir\"]": {
+  "[\"soviet\",\"qhs\",\"qhs-prison\",\"cachot_disciplinaire\"]": {
     "pays": "Sovarka",
-    "ville": "Goulag de Novomirsk",
-    "batiment": "Quartier Haute Securite",
-    "piece": "Promenoir",
+    "ville": "Camp de rééducation de Sovarka",
+    "batiment": "Camp de rééducation de Sovarka",
+    "piece": "Cachot disciplinaire",
     "personnes": []
   },
-  "[\"soviet\",\"qhs\",\"qhs-prison\",\"salle_commune_qhs\"]": {
+  "[\"soviet\",\"qhs\",\"qhs-prison\",\"bureau_chef\"]": {
     "pays": "Sovarka",
-    "ville": "Goulag de Novomirsk",
-    "batiment": "Quartier Haute Securite",
-    "piece": "Salle Commune",
+    "ville": "Camp de rééducation de Sovarka",
+    "batiment": "Camp de rééducation de Sovarka",
+    "piece": "Bureau du chef administratif",
+    "personnes": []
+  },
+  "[\"soviet\",\"qhs\",\"qhs-prison\",\"mirador\"]": {
+    "pays": "Sovarka",
+    "ville": "Camp de rééducation de Sovarka",
+    "batiment": "Camp de rééducation de Sovarka",
+    "piece": "Mirador",
     "personnes": []
   },
   "[\"khalija\",\"capitale\",\"palais-presidentiel\",\"accueil_elysee\"]": {

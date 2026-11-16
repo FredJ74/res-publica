@@ -2830,11 +2830,59 @@ const WORLD = {
       buildings: ['caserne-militaire']
     },
     qhs: {
-      name:'Goulag de Novomirsk',
-      imageUrl:'https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80',
-      desc:'Le goulag de Sovarka. On y entre facilement.',
+      name:'Camp de rééducation de Sovarka',
+      imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_entree.webp',
+      desc:'Camp de rééducation de Sovarka, situé dans les étendues enneigées hors des villes.',
       isCapitale: false, isSpecial: true, travelCost: 1,
-      buildings: ['qhs-prison']
+      buildings: ['qhs-prison'],
+      buildingContext: {
+        'qhs-prison': {
+          name:'Camp de rééducation de Sovarka',
+          desc:'Un camp de baraquements en bois perdu dans la neige. Derrière la simple palissade, le froid et la discipline.',
+          // Le QHS de Républia est un gabarit de navigation uniquement :
+          // ses pièces et ordres ne sont jamais proposés dans le goulag.
+          roomsExclues:['salle_interrogatoire','promenoir','salle_commune_qhs'],
+          roomOrder:['entree_qhs','cellules_qhs','cachot_disciplinaire','bureau_chef','mirador'],
+          roomOverrides: {
+            entree_qhs: {
+              name:'Entrée du camp',
+              desc:'Une grande ouverture entre deux poteaux de bois accueille les visiteurs, sous un panneau de bois gravé en russe et en français.',
+              imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_entree.webp',
+              personsVides:true,
+              excludeOrders:['visiter_prisonnier','corrompre_fonct','archives_police']
+            },
+            cellules_qhs: {
+              // Conserver cet ID : celluleDeDetention() et le régime carcéral le référencent.
+              name:'Dortoir des prisonniers',
+              desc:'Lits superposés en bois et couvertures pliées. Un simple poêle réchauffe péniblement le baraquement.',
+              imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_dortoir.webp',
+              personsVides:true,
+              excludeOrders:['greve_faim','corrompre_gardien','tentative_evasion']
+            }
+          },
+          // Pièces descriptives sans ordre ; les mécanismes sont définis séparément.
+          roomsExtra: {
+            cachot_disciplinaire: {
+              name:'Cachot disciplinaire',
+              desc:'Un cabanon glacial aux quatre couchettes superposées, privé de tout chauffage.',
+              imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_cachot_disciplinaire.webp',
+              persons:[], orders:[]
+            },
+            bureau_chef: {
+              name:'Bureau du chef administratif',
+              desc:'Un chalet en bois, un bureau encombré de dossiers, un poêle et des objets de discipline inquiétants.',
+              imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_bureau_chef.webp',
+              persons:[], orders:[]
+            },
+            mirador: {
+              name:'Mirador',
+              desc:'Une tour de bois domine les baraquements sous la neige. Deux gardes surveillent le camp.',
+              imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_mirador.webp',
+              persons:[], orders:[]
+            }
+          }
+        }
+      }
     }
   },
 
@@ -6430,7 +6478,10 @@ const BUILDINGS = {
         desc: "Voiliers et bateaux de plaisance amarres le long du quai, grande ouverture sur la mer.",
         imageUrl: "images/port-sainte-marie-port-plaisance.webp",
         persons: [],
-        orders: []
+        // Lieu de peche de Port-Sainte-Marie (Fred, 16/11/2026) : 10 poissons par PA, regulable par l'adjoint.
+        orders: [
+          {fn:'recolter_matiere', label:'Pêcher', pa:1, cost:0, type:'legal', icon:'ti-fish', successRate:100, desc:'Recolter une matiere premiere locale. La quantite depend de la ressource ; l\'adjoint au maire peut en reguler la production.'}
+        ]
       },
       capitainerie: {
         name: "Capitainerie",
@@ -7560,7 +7611,7 @@ const BUILDINGS = {
   // Fred du 05/11/2026, GAME-DESIGN-VEHICULES.md). Seuls commerces PNJ de ce type : ils servent
   // d'exemple, les PJ ouvriront les autres. Commerces serveur garage-soviet-capitale et
   // station-soviet-ville_b (migration 20261105222000) ; tout se decide par vehicule_acte.
-  // PNJ valides par Fred : Sergueï Zaptchastov (garagiste), Lioudmila Zapravkina (station). Images a venir.
+  // PNJ valides par Fred : Sergueï Zaptchastov (garagiste), Lioudmila Zapravkina (station), devenu Leonid Zapravkine le 16/11/2026 pour coller a l'image (homme au comptoir).
   'garage-novomirsk': {
     name: "Garage de Novomirsk",
     shortName: "Garage",
@@ -8042,7 +8093,7 @@ const BUILDINGS = {
         name: "Boutique",
         imageBg: "linear-gradient(135deg,#16120e,#201a14)",
         desc: "Le comptoir de la station : bidons de carburant, huile et cartes routières du Parti.",
-        persons: [{name:'Lioudmila Zapravkina (PNJ)', role:'Gérante de la station-service', rel:'neutral', job:'pompiste'}],
+        persons: [{name:'Leonid Zapravkine (PNJ)', role:'Gérant de la station-service', rel:'neutral', job:'pompiste'}],
         orders: [
           {fn:'station_carburant', label:'Acheter des bidons de carburant', pa:0, cost:0, type:'legal', icon:'ti-gas-station', successRate:100, desc:"1 bidon = 1 unité de carburant. On peut aussi vendre du carburant à la station."},
           {fn:'mes_vehicules', label:'Mes véhicules', pa:0, cost:0, type:'legal', icon:'ti-steering-wheel', successRate:100, desc:"Faire le plein, charger, décharger, prendre la route."}
@@ -11021,6 +11072,10 @@ const PNJ_SOVARKA = {
     'Notaire Fontenelle (PNJ)': 'Camarade Bâtissov (PNJ)'
   }),
   ville_a: Object.assign({}, PNJ_SOVARKA_GENERIQUES, { // Starovka
+    // Décor du stade : une femme à la buvette et au micro (16/11/2026, Fred : « on adapte tout à la
+    // réalité des images »).
+    'Tenancier de Buvette (PNJ)': ['Tenancière de Buvette (PNJ)', 'Tenancière de la buvette'],
+    'Commentateur Sportif (PNJ)': ['Commentatrice Sportive (PNJ)', 'Commentatrice du stade'],
     'Delegue Morel (PNJ)': 'Délégué Batbayar Dachiev (PNJ)',
     'Directeur Fabre (PNJ)': 'Directeur Tsyren Badmaïev (PNJ)',
     'Francisca Brel': 'Tuya Sanjieva',
@@ -11198,6 +11253,20 @@ function slugPnjSovarka(nom) {
         desc: "Le poste de douane du port. Le tampon est lourd, le formulaire en trois exemplaires.",
         persons: [{name:'Douanier Sükhbaatar Baïartouïev (PNJ)', role:'Douanier du port', rel:'neutral', job:'agent_portuaire'}],
         orders: []
+      },
+      // Bureau du Commandant du Port de Sovarka (Fred, 16/11/2026, GAME-DESIGN-REGULATION-PRODUCTION.md) :
+      // piece du port, comme l'administration portuaire de PSM. Image de Fred (16/11/2026). Ordres du
+      // commandant raccordes par le commerce international (#1024) : administration du port, logistique.
+      administration_portuaire: {
+        name: psm.administration_portuaire.name,
+        imageBg: "linear-gradient(135deg,#0b1016,#16212c)",
+        desc: "Le bureau du Commandant du Port, au-dessus des quais. Par la grande baie vitrée, les grues chargent les cargos ; au mur, le plan du port de Starovka. Les douaniers y déposent leurs dossiers.",
+        imageUrl: "images/Sovarka/Starovka/Starovka_port_administration_portuaire.webp",
+        persons: [{name:'Commandant Tömör Ochirov (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}],
+        orders: copie(psm.administration_portuaire.orders).filter(o => o.fn !== 'consulter_manifeste').map(o => Object.assign(o,
+          o.fn === 'consulter_administration_port'
+            ? { desc: 'Caisse du port, balance commerciale, marchandises, contrats de la nuit et registre du port. Consultation publique, gratuite.' }
+            : { desc: 'Réservé au Commandant du Port : fléchage vers les entrepôts, prix de cession et d\'exportation, quotas, taux de douane.' }))
       }
     }
   };
@@ -12341,4 +12410,95 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     persons: [],
     orders: []
   };
+})();
+
+
+// STAROVKA_HOPITAL_TROIS_SALLES_20261116
+// Uniquement les décors de l'hôpital de Starovka : pas de modification des soins, PNJ ni ordres.
+(function () {
+  const ville = WORLD.soviet && WORLD.soviet.ville_a;
+  if (!ville || !ville.buildingContext) throw new Error('Contexte de Starovka absent');
+  const hopital = ville.buildingContext['dispensaire-public-v'];
+  if (!hopital || !hopital.roomsExtra || !hopital.roomsExtra.chambre) {
+    throw new Error("Pièces de l'hôpital de Starovka absentes");
+  }
+  hopital.roomOverrides = hopital.roomOverrides || {};
+  const path = 'images/Sovarka/Starovka/Starovka_hopital_';
+  hopital.roomOverrides.attente = Object.assign(hopital.roomOverrides.attente || {}, {
+    imageUrl: path + 'accueil.webp'
+  });
+  hopital.roomOverrides.ehpad = Object.assign(hopital.roomOverrides.ehpad || {}, {
+    imageUrl: path + 'ehpad.webp'
+  });
+  hopital.roomsExtra.chambre.imageUrl = path + 'chambre.webp';
+})();
+
+// PORTRAITS_PNJ_STAROVKA_KRASNOV_20261116 (demande de Fred, 16/11/2026)
+// Photos de profil recadrées sur le visage du PNJ visible dans le décor de sa pièce
+// (outils/images/portraits-pnj-starovka-krasnov-20261116.json). Seule la ville visée change :
+// la liste de personnes effective de la pièce est copiée dans roomOverrides de cette ville, le
+// gabarit partagé (BUILDINGS) et les autres villes restent intacts. Aucun nom, rôle ni ordre modifié.
+(function () {
+  const portraits = [
+    ['ville_b', 'station-service-krasnov', 'boutique_station', "Leonid Zapravkine (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_station-service-krasnov_leonid-zapravkine.webp'],
+    ['ville_a', 'mairie', 'accueil_mairie', "Secretaire Municipal", 'images/Sovarka/Starovka/Starovka_portrait_mairie_secretaire-municipal.webp'],
+    ['ville_a', 'mairie', 'bureau_maire_local', "Le Maire (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_mairie_le-maire.webp'],
+    ['ville_a', 'dispensaire-public-v', 'attente', "Infirmiere (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_dispensaire-public-v_infirmiere.webp'],
+    ['ville_a', 'commissariat-local', 'accueil_loc', "Brigadier Local (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_commissariat-local_brigadier-local.webp'],
+    ['ville_a', 'commissariat-local', 'bureau_commissaire', "Bato Dashiev (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_commissariat-local_bato-dashiev.webp'],
+    ['ville_a', 'stade', 'terrain', "Entraineur Local (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_entraineur-local.webp'],
+    ['ville_a', 'stade', 'vestiaires', "Entraineur Local (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_entraineur-local.webp'],
+    ['ville_a', 'stade', 'terrain', "Commentatrice Sportive (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_commentatrice-sportive.webp'],
+    ['ville_a', 'stade', 'buvette', "Tenancière de Buvette (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_tenanciere-de-buvette.webp'],
+    ['ville_a', 'stade', 'guichet_paris', "Bookmaker Officiel (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_bookmaker-officiel.webp'],
+    ['ville_a', 'stade', 'boutique', "Vendeur des accessoires de Starovka (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_vendeur-des-accessoires-de-starovka.webp'],
+    ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Tömör Ochirov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
+    ['ville_a', 'marche', 'marche_ext', "Tuyana Dashieva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_marche_tuyana-dashieva.webp'],
+    ['ville_a', 'capitaine-sauvage', 'salle_principale', "Sesegma Badmaeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_capitaine-sauvage_sesegma-badmaeva.webp'],
+    ['ville_a', 'universite', 'amphi', "Darima Zhambalova (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_universite_darima-zhambalova.webp'],
+    ['ville_b', 'mairie', 'accueil_mairie', "Galina Dokladova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_galina-dokladova.webp'],
+    ['ville_b', 'mairie', 'salle_elections', "Zinaïda Izbirkova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_zinaida-izbirkova.webp'],
+    ['ville_b', 'dispensaire-public-v', 'attente', "Infirmiere (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_dispensaire-public-v_infirmiere.webp'],
+    ['ville_b', 'commissariat-local', 'accueil_loc', "Brigadier Local (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_commissariat-local_brigadier-local.webp'],
+    ['ville_b', 'stade', 'buvette', "Avdotia Doubova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_stade_avdotia-doubova.webp'],
+    ['ville_b', 'stade', 'guichet_paris', "Iossif Borissov (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_stade_iossif-borissov.webp'],
+    ['ville_b', 'stade', 'boutique', "Oxana Zvezdina (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_stade_oxana-zvezdina.webp'],
+    ['ville_b', 'marche', 'marche_ext', "Nina Gorbounova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_marche_nina-gorbounova.webp'],
+    ['ville_b', 'universite', 'amphi', "Alevtina Gramotova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_universite_alevtina-gramotova.webp'],
+    ['ville_b', 'cafe-tabac-cheminots-montrouge', 'salle', "Grigori Zaitsev (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_cafe-tabac-cheminots-montrouge_grigori-zaitsev.webp'],
+    ['ville_b', 'station-radar-krasnov', 'salle_ecoute', "Colonel Gleb Voronov (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_station-radar-krasnov_colonel-gleb-voronov.webp'],
+  ];
+  for (const [ville, batiment, piece, nom, photo] of portraits) {
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    const b = BUILDINGS[batiment];
+    if (!cite || !b) throw new Error('Portrait : bâtiment absent ' + ville + '/' + batiment);
+    let ctx = cite.buildingContext && cite.buildingContext[batiment];
+    if (!ctx) {
+      // Bâtiment propre à cette ville (sans contexte) : on vérifie qu'aucune autre ville ne le liste.
+      const ailleurs = Object.entries(WORLD).some(([pays, villes]) => Object.entries(villes || {})
+        .some(([v, c]) => !(pays === 'soviet' && v === ville) && c && Array.isArray(c.buildings) && c.buildings.includes(batiment)));
+      if (ailleurs) throw new Error('Portrait : bâtiment partagé sans contexte ' + batiment);
+      const salle = b.rooms && b.rooms[piece];
+      if (!salle || !(salle.persons || []).some(p => p.name === nom)) throw new Error('Portrait : PNJ absent ' + nom);
+      salle.persons = salle.persons.map(p => p.name === nom ? Object.assign({}, p, { photoUrl: photo, photoPos: '50% 30%' }) : p);
+      continue;
+    }
+    const premiere = Object.keys(b.rooms || {})[0];
+    const ro = ctx.roomOverrides && ctx.roomOverrides[piece];
+    const liste = (ro && ro.persons)
+      || (piece === premiere && ctx.persons && ctx.persons.length ? ctx.persons : null)
+      || (ctx.roomsExtra && ctx.roomsExtra[piece] && ctx.roomsExtra[piece].persons)
+      || (b.rooms && b.rooms[piece] && b.rooms[piece].persons) || [];
+    if (!liste.some(p => p.name === nom)) throw new Error('Portrait : PNJ absent ' + nom + ' (' + ville + '/' + batiment + '/' + piece + ')');
+    const copie = liste.map(p => p.name === nom ? Object.assign({}, p, { photoUrl: photo, photoPos: '50% 30%' }) : Object.assign({}, p));
+    const extra = ctx.roomsExtra && ctx.roomsExtra[piece];
+    if (!(ro && ro.persons) && extra && extra.persons === liste) {
+      // Pièce propre à la ville (roomsExtra) : sa propre liste est remplacée, sans surcharge en plus.
+      ctx.roomsExtra = Object.assign({}, ctx.roomsExtra);
+      ctx.roomsExtra[piece] = Object.assign({}, extra, { persons: copie });
+      continue;
+    }
+    ctx.roomOverrides = Object.assign({}, ctx.roomOverrides);
+    ctx.roomOverrides[piece] = Object.assign({}, ro, { persons: copie });
+  }
 })();

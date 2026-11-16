@@ -1056,6 +1056,11 @@ function assemblerDernierePage(paquet, une, articles) {
       return { ressource, ville: i.ville, stock: i.valeur, prix: prix ? prix.valeur : null };
     });
 
+  const balance = (paquet.INDICATORS || []).find(i => i.cle === 'balance_commerciale' && i.disponible);
+  const balance_commerciale = balance
+    ? { solde: balance.valeur, exportations: balance.exportations, importations: balance.importations, jour: balance.jour, pays: balance.pays }
+    : null;
+
   // Journal des arrivées (chantier refonte, 4 septembre 2026) : jamais "naissance", toujours sa
   // propre rubrique, distincte du carnet -- une arrivee n'est par construction jamais citee dans
   // un article (poids toujours "mineur", voir Lot A), mais le filtre reste explicite par securite.
@@ -1080,7 +1085,7 @@ function assemblerDernierePage(paquet, une, articles) {
     (a.categorie ? `[${a.categorie}] ` : '') + a.texte + (a.ville ? ` — ${a.ville}` : '')
   );
 
-  return { indices_economiques, arrivees, carnet, chiens_ecrases, petites_annonces };
+  return { indices_economiques, balance_commerciale, arrivees, carnet, chiens_ecrases, petites_annonces };
 }
 
 // Les portraits sollicités par mail, publiés dans Presse & Médias, alimentent
