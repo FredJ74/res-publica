@@ -129,5 +129,16 @@
   // Initialisation explicite depuis une entrée validée par le serveur.
   window.goulagToundraChoisirDepart = choisirDepart;
   window.goulagToundraOuvrir = lire;
+  // Reconnexion : attendre la vraie fiche serveur, sans lire le cache local.
+  if (typeof document.addEventListener === 'function') document.addEventListener('DOMContentLoaded', () => {
+    let essais = 0;
+    const minuteur = window.setInterval(() => {
+      essais++;
+      if (typeof state !== 'undefined' && state.personnageChargeDepuisServeur === true) {
+        window.clearInterval(minuteur);
+        if (state.country === 'soviet') Promise.resolve(lire()).catch(() => null);
+      } else if (essais >= 20) window.clearInterval(minuteur);
+    }, 1500);
+  });
   window.goulagToundraImageEtape = imageEtape;
 })();
