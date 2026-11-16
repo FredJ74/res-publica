@@ -9,7 +9,7 @@ body{margin:0;background:#111;color:#eee} .modal-overlay{position:fixed;inset:0;
 .modal-header{display:flex;align-items:center;justify-content:space-between}.modal-close{cursor:pointer}.pnj-actions{display:flex;flex-direction:column;gap:6px}
 </style></head><body class="plateau-body">
 <div class="modal-overlay open" id="modal-pnj"><div class="modal-box">
-<div class="modal-header"><div class="modal-title" id="pnj-modal-title">Praskovia</div><button class="modal-close" id="close" onclick="window.closed++">×</button></div>
+<div class="modal-header"><div class="modal-title" id="pnj-modal-title">Praskovia</div><button class="modal-close" id="close" onclick="window.closeClicks++">×</button></div>
 <div id="pnj-modal-body"><div id="pnj-identite" style="display:flex;gap:.8rem;align-items:flex-start;padding:.6rem 0;margin-bottom:.4rem">
 <div id="pnj-avatar-container"><div id="portrait" style="width:56px;height:56px;border-radius:50%;border:2px solid #c9a84c"></div></div>
 <div style="flex:1"><div id="pnj-role-display">Habitante de Krasnov</div><div id="pnj-trait-display">Généreuse et accueillante</div></div></div>
@@ -23,7 +23,7 @@ body{margin:0;background:#111;color:#eee} .modal-overlay{position:fixed;inset:0;
  const b=await chromium.launch({headless:true});
  try{for(const width of [320,390,414,1280]){
   const p=await b.newPage({viewport:{width,height:800}});
-  await p.setContent(fixture);await p.evaluate(()=>{window.reponses=0;window.closed=0});
+  await p.setContent(fixture);await p.evaluate(()=>{window.reponses=0;window.closeClicks=0});
   await p.addStyleTag({path:path.join(root,'plateau-dialogues-mobile.css')});
   if(width<1024){
    const h=await p.locator('#reponse').evaluate(e=>e.getBoundingClientRect().height);
@@ -39,7 +39,7 @@ body{margin:0;background:#111;color:#eee} .modal-overlay{position:fixed;inset:0;
   }
   await p.locator('#reponse').click();assert.equal(await p.evaluate(()=>window.reponses),1);
   await p.locator('#question').fill('Bonjour !');assert.equal(await p.locator('#question').inputValue(),'Bonjour !');
-  await p.locator('#close').click();assert.equal(await p.evaluate(()=>window.closed),1);
+  await p.locator('#close').click();assert.equal(await p.evaluate(()=>window.closeClicks),1);
   console.log('OK dialogue '+width);await p.close();
  }}finally{await b.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
