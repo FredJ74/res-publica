@@ -1,0 +1,29 @@
+name: I18N — descriptions du goulag
+on:
+  pull_request:
+    paths: ['plateau.html', 'data.js', 'plateau-navigation.js', 'i18n/sovarka-descriptions-resources.js', 'i18n/packed/sovarka-descriptions-resources.js.br', 'outils/audits/I18N-GOULAG-DESCRIPTIONS-20261116*', 'outils/bancs/banc-i18n-goulag-descriptions-20261116.cjs', '.github/workflows/i18n-goulag-descriptions-20261116.yml']
+  push:
+    branches: [main]
+    paths: ['plateau.html', 'data.js', 'plateau-navigation.js', 'i18n/sovarka-descriptions-resources.js', 'outils/bancs/banc-i18n-goulag-descriptions-20261116.cjs', '.github/workflows/i18n-goulag-descriptions-20261116.yml']
+permissions:
+  contents: read
+jobs:
+  descriptions-goulag:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --prefix outils/e2e
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - run: node outils/generateurs/compresser-catalogues-i18n.cjs --check
+      - name: Rendu des pièces, français exact, neuf langues, mobile/RTL, état et aucune requête métier
+        env:
+          NODE_PATH: ./outils/e2e/node_modules
+          CHROMIUM_PATH: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-i18n-goulag-descriptions-20261116.cjs outils/bancs/test-i18n-sovarka-descriptions-20261112.mjs outils/bancs/test-goulag-cinq-pieces-20261116.cjs outils/bancs/banc-i18n-krasnov-descriptions-20261115.cjs outils/bancs/banc-i18n-transport-catalogues-20261114.cjs
+      - run: git diff --check

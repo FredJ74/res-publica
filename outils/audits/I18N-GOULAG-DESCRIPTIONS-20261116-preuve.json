@@ -1,0 +1,44 @@
+{
+  "baseCommit": "ee93360f403ad4606fbbf87923c8ad15a311c772",
+  "codeCommit": "00940998a2899c8dc368976df32bb8085f5d97b5",
+  "frenchTexts": 5,
+  "foreignValues": 40,
+  "rooms": [
+    {
+      "id": "entree_qhs",
+      "fr": "Une grande ouverture entre deux poteaux de bois accueille les visiteurs, sous un panneau de bois gravé en russe et en français."
+    },
+    {
+      "id": "cellules_qhs",
+      "fr": "Lits superposés en bois et couvertures pliées. Un simple poêle réchauffe péniblement le baraquement."
+    },
+    {
+      "id": "cachot_disciplinaire",
+      "fr": "Un cabanon glacial aux quatre couchettes superposées, privé de tout chauffage."
+    },
+    {
+      "id": "bureau_chef",
+      "fr": "Un chalet en bois, un bureau encombré de dossiers, un poêle et des objets de discipline inquiétants."
+    },
+    {
+      "id": "mirador",
+      "fr": "Une tour de bois domine les baraquements sous la neige. Deux gardes surveillent le camp."
+    }
+  ],
+  "merged": false,
+  "productionVerified": false,
+  "authenticatedPlayerTest": false,
+  "physicalPhoneTest": false,
+  "nativeLinguisticReview": false,
+  "targetedPassed": 3,
+  "globalDescriptionsPassed": 5,
+  "browserSwitches": 270,
+  "viewports": [
+    320,
+    390,
+    1280
+  ],
+  "serverCallsPerLanguageChange": 0,
+  "frenchSourceAlreadyExisted": true,
+  "baselineMissingDescriptions": 5
+}
