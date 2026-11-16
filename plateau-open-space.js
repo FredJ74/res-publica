@@ -48,10 +48,10 @@ const OPEN_SPACE_PLAN = {
   'starovka-centre-affaires': {
     image: 'images/Sovarka/Starovka/Starovka_centre_affaires_open_space.webp',
     postes: [
-      { piece: 'open_space_a', nom: 'Open Space A', zone: { x: 0.146, y: 0.440, w: 0.196, h: 0.240 } },
-      { piece: 'open_space_b', nom: 'Open Space B', zone: { x: 0.493, y: 0.440, w: 0.195, h: 0.245 } },
-      { piece: 'open_space_c', nom: 'Open Space C', zone: { x: 0.003, y: 0.635, w: 0.262, h: 0.354 } },
-      { piece: 'open_space_d', nom: 'Open Space D', zone: { x: 0.664, y: 0.615, w: 0.327, h: 0.370 } }
+      { piece: 'open_space_a', nom: 'Open Space A', zone: { x: 0.028, y: 0.454, w: 0.246, h: 0.145 } },
+      { piece: 'open_space_b', nom: 'Open Space B', zone: { x: 0.470, y: 0.455, w: 0.280, h: 0.145 } },
+      { piece: 'open_space_c', nom: 'Open Space C', zone: { x: 0.001, y: 0.605, w: 0.178, h: 0.255 } },
+      { piece: 'open_space_d', nom: 'Open Space D', zone: { x: 0.692, y: 0.605, w: 0.306, h: 0.255 } }
     ]
   }
 };
