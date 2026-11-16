@@ -2500,7 +2500,8 @@ const WORLD = {
             orders:(room.orders||[]).map(o=>({...o,label:typeof o.label==='string'?o.label.replace(' FR/jour',' PSK/jour'):o.label}))
           }])),
           roomsExclues:['tribune_republia'],
-          roomsMasquees:['open_space_a','open_space_b','open_space_c','open_space_d']
+          // Les quatre postes sont accessibles par onglets : la vue de Starovka
+          // n'est pas le plan zénithal de Luthécia, pas de zones artificielles.
         },
         'centre-multinodal-montrouge': {
           name: "Gare de Starovka",
