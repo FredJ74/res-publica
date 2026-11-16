@@ -1,0 +1,87 @@
+{
+  "commit": "7f229f59e3e6c3cc5adb764c5fd54f2426495095",
+  "deployment": "dpl_3Xj47po3NkNxgL8FUE9AjAqvfTCD",
+  "files": [
+    {
+      "file": "plateau.html",
+      "sha256": "ab35c4b4a4a337aa54ff78638e5766fc183a51cca07b748baa6f4c18f8a93f8d",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "80d0c1fb04fded062e6a4acf5ac76251559f46ceba37850eefcb85158a6fe3e4",
+      "identical": true
+    },
+    {
+      "file": "data.js",
+      "sha256": "1b0fdad548ddd6638c8db4b1a109e91785dfe08bb591e949f729eb55dbe23384",
+      "identical": true
+    },
+    {
+      "file": "plateau-navigation.js",
+      "sha256": "a7c1e260a715de535b5d26792851ca8b1b44aa0a3a991797fc633a304eccf4cb",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "identical": true
+    },
+    {
+      "file": "i18n/room-resources.js",
+      "sha256": "24880a6eb10f44195de36c7a19f598282f737759cf371456be1cb5ffd1587b20",
+      "identical": true
+    },
+    {
+      "file": "i18n/sovarka-descriptions-resources.js",
+      "sha256": "a81681c806fd7377b5ad2f1d8e002e7425f0eb486254ca360fa1afdd654e0ddb",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-init.js",
+      "sha256": "0fbd1edb1d94a175168e068c72991b5dc4b86e7d400202c20a6c6bcfc20bb160",
+      "identical": true
+    },
+    {
+      "file": "images/Sovarka/Goulag/Sovarka_goulag_entree.webp",
+      "sha256": "dacbdb6a6782d670ced5dbcfebd8b81c4e04537c59a170d1c04bfd6af8f09d17",
+      "identical": true
+    },
+    {
+      "file": "images/Sovarka/Goulag/Sovarka_goulag_dortoir.webp",
+      "sha256": "e6cc9d8c8b513a0ad43e1c6aa017eea40a6d872620eafda524ea36999a72157d",
+      "identical": true
+    },
+    {
+      "file": "images/Sovarka/Goulag/Sovarka_goulag_cachot_disciplinaire.webp",
+      "sha256": "3ffb678f51c3d1efd7d8d99fcc527962b9cf02a622ecfc9fcbf33c73c74f6ca4",
+      "identical": true
+    },
+    {
+      "file": "images/Sovarka/Goulag/Sovarka_goulag_bureau_chef.webp",
+      "sha256": "94fe52e056d3ff4bb21164a9235fe8c952973b1717072152db47d9b193a11446",
+      "identical": true
+    },
+    {
+      "file": "images/Sovarka/Goulag/Sovarka_goulag_mirador.webp",
+      "sha256": "62acb6c213d33840d1a2d5287844a334ab5820ed1fbe7976375f2a97bb09614c",
+      "identical": true
+    }
+  ],
+  "alias": "https://res-publica.vercel.app",
+  "state": "READY",
+  "target": "production",
+  "browserTestsPassed": 4,
+  "browserSwitches": 270,
+  "nativeBrotliCatalogs": 86,
+  "webpFiles": 5,
+  "ciPassed": 49,
+  "authenticatedPlayerTest": false,
+  "physicalPhoneTest": false,
+  "nativeLinguisticReview": false
+}
