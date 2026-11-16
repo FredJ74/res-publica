@@ -3951,6 +3951,8 @@ function renderRoomActions(room, buildingId, roomId) {
   // militaire ni pour aucune autre source existante.
   const dynMasque = [];
   dynOrders.forEach(d => { (d.masque || []).forEach(fn => dynMasque.push(fn)); });
+  // Appliquer les masques, puis ne plus garder les sentinelles non visibles.
+  dynOrders = dynOrders.filter(d => !d.invisible);
   // La source peut déclarer des masquages sans créer de bouton visible.
   // On les enregistre d'abord, puis on enlève les marqueurs invisibles du rendu.
   dynOrders = dynOrders.filter(d => !d.invisible);
