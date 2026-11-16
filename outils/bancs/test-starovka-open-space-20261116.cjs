@@ -19,7 +19,7 @@ function scene(country,city) {
    remove(){const k=zones.indexOf(this);if(k>=0)zones.splice(k,1);}})
  };
  const ctx={document,state:{country,currentCity:city},window:{},
-   varianteDePiece:()=>true,
+   varianteDePiece:()=>country==='republic'?{}:null,
    varianteTailleNaturelle:async()=>({l:1448,h:1086}),
    varianteZoneEnPixels:(z,c)=>({gauche:z.x*1448,haut:z.y*1086,largeur:z.w*1448,hauteur:z.h*1086}),
    enterRoom:(b,r)=>opened.push([b,r]),
