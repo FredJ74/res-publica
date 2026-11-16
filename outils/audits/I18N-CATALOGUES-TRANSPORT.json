@@ -630,10 +630,10 @@
     {
       "source": "i18n/sovarka-roles-resources.js",
       "packed": "i18n/packed/sovarka-roles-resources.js.br",
-      "sourceBytes": 35257,
-      "packedBytes": 12151,
-      "sourceSha256": "75611c2b07f6a59418b8a7e3dcb78a5dda27e4a5b17c56781bc52eef856510b7",
-      "packedSha256": "74cf0f91e58fbc925cbd1bc52cfbb0873f0f926ec0696eb086a3b29c0aefd640"
+      "sourceBytes": 35430,
+      "packedBytes": 12196,
+      "sourceSha256": "4728a25fb6a952ddf21358d2643743a9d9938226292d8c43df8dbc27d8aa4219",
+      "packedSha256": "6d85fcd94c2b18e0865189c5b801edc08c61a73e59fc3b40becde98f465027b3"
     },
     {
       "source": "i18n/sport-bets-resources.js",
