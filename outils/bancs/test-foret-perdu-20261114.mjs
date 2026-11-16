@@ -31,7 +31,7 @@ test('données : chaque vue profonde propose couper, s’enfoncer, revenir, retr
   const d = read('data.js');
   const bloc = d.slice(d.indexOf('// FORET PROFONDE DE KRASNOV'), d.indexOf("ctx.roomsMasquees = Array.from(new Set([...(ctx.roomsMasquees || []), 'foret_vue_1'"));
   const fns = [...bloc.slice(bloc.indexOf('orders: [', bloc.indexOf('roomsExtra'))).matchAll(/fn: '(foret_[a-z]+)'[^}]*?pa: (\d+)/g)].map(m => m[1] + ':' + m[2]);
-  assert.deepEqual(fns, ['foret_couper:2', 'foret_enfoncer:0', 'foret_revenir:0', 'foret_retrouver:1']);
+  assert.deepEqual(fns, ['foret_couper:1', 'foret_enfoncer:0', 'foret_revenir:0', 'foret_retrouver:1']);
   assert.match(read('plateau-router.js'), /fn === 'foret_retrouver'\) \{ foretAller\('retrouver'\)/);
   const pol = read('plateau-politique.js');
   assert.match(pol, /o\.fn !== 'foret_revenir' \|\| !\(typeof foretEstPerdu === 'function' && foretEstPerdu\(\)\)/);

@@ -332,7 +332,7 @@ function vueMarcheEntrepot(d, cur) {
         libelle: nomEtablissementEntrepot(row.building_id),
         origine: tEntrepot('entrepots.origine.national'),
         dispo: stock[cle],
-        prix: (pm[cle] != null) ? pm[cle] : RESSOURCES_ECONOMIE[cle].prixBase,
+        prix: (pm[cle] != null) ? pm[cle] : prixBasePays(RESSOURCES_ECONOMIE[cle]),
         fret: 0, delai: 'entrepots.delai.j1',
         posteId: 'directeur_entrepot', posteVille: row.city || villeEntrepot(row.building_id), bloque: false
       });
@@ -348,7 +348,7 @@ function vueMarcheEntrepot(d, cur) {
         libelle: tEntrepot('entrepots.origine.port'),
         origine: tEntrepot('entrepots.origine.national'),
         dispo: d.port.stock[cle],
-        prix: RESSOURCES_ECONOMIE[cle].prixBase, fret: 0, delai: 'entrepots.delai.j1',
+        prix: prixBasePays(RESSOURCES_ECONOMIE[cle]), fret: 0, delai: 'entrepots.delai.j1',
         posteId: 'commandant_port', posteVille: null, bloque: false
       });
     });
