@@ -1,6 +1,6 @@
 'use strict';
 const assert = require('node:assert/strict');
-const { demarrer, agir, RefusGoulag } = require('../../api/_goulag-survie.js');
+const { demarrer, agir, choisirChampignons, sommeilAvecChampignons, RefusGoulag } = require('../../api/_goulag-survie.js');
 const erreur = (fn, code) => assert.throws(fn, e => e instanceof RefusGoulag && e.code === code);
 const date = n => `2026-11-${String(n).padStart(2, '0')}`;
 
@@ -72,5 +72,22 @@ assert.equal(k.progressions, 10);
 const basse = { ...depart, pa: 1 };
 erreur(() => agir(basse, 'abri', date(1)), 'pa_insuffisants');
 erreur(() => agir(basse, 'progresser', date(1)), 'pa_insuffisants');
+
+
+// Evénement du cinquième jour : la décision est une fois, côté serveur.
+let cinquieme={...depart, progressions:5};
+for(const pa of [6,7,8,20]) {
+  const resultat=choisirChampignons({...cinquieme,pa},'manger');
+  assert.equal(resultat.pa, pa>7?7:pa+1);
+  erreur(()=>choisirChampignons(resultat,'manger'),'champignons_indisponibles');
+}
+const refus=choisirChampignons({...cinquieme,pa:20},'refuser');
+assert.equal(refus.champignonsRefuses,true);
+erreur(()=>agir(refus,'dormir',date(4)),'malus_champignons_non_arbitre');
+assert.equal(sommeilAvecChampignons(8,6,6),8);
+assert.equal(sommeilAvecChampignons(6,3,3),7);
+assert.equal(sommeilAvecChampignons(20,6,2),24);
+erreur(()=>sommeilAvecChampignons(20,6,undefined),'malus_champignons_non_arbitre');
+erreur(()=>choisirChampignons({...cinquieme,progressions:4},'manger'),'champignons_indisponibles');
 
 console.log('Goulag Sovarka : seuils, survie, double-clic, jours, bois, arrivée et fatigue : OK');
