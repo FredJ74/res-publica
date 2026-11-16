@@ -45,7 +45,7 @@ BEGIN
     WHERE name=v_nom AND user_id=auth.uid() FOR UPDATE;
   IF NOT FOUND OR v_p.country<>'soviet' OR v_p.current_city NOT IN ('capitale','ville_a','ville_b')
     THEN RETURN jsonb_build_object('ok',false,'raison','hors_sovarka'); END IF;
-  IF v_p.current_building NOT LIKE 'centre-multinodal-%' THEN
+  IF coalesce(v_p.current_building,'') NOT LIKE 'centre-multinodal-%' THEN
     RETURN jsonb_build_object('ok',false,'raison','pas_au_terminal'); END IF;
   IF EXISTS(SELECT 1 FROM public.detention_active(v_nom)) THEN
     RETURN jsonb_build_object('ok',false,'raison','detenu_interdit'); END IF;
