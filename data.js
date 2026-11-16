@@ -2841,8 +2841,8 @@ const WORLD = {
           desc:'Un camp de baraquements en bois perdu dans la neige. Derrière la simple palissade, le froid et la discipline.',
           // Le QHS de Républia est un gabarit de navigation uniquement :
           // ses pièces et ordres ne sont jamais proposés dans le goulag.
-          roomsExclues:['cellules_qhs','salle_interrogatoire','promenoir','salle_commune_qhs'],
-          roomOrder:['entree_qhs','dortoir_prisonniers','cachot_disciplinaire','bureau_chef','mirador'],
+          roomsExclues:['salle_interrogatoire','promenoir','salle_commune_qhs'],
+          roomOrder:['entree_qhs','cellules_qhs','cachot_disciplinaire','bureau_chef','mirador'],
           roomOverrides: {
             entree_qhs: {
               name:'Entrée du camp',
@@ -2851,15 +2851,18 @@ const WORLD = {
               personsVides:true,
               excludeOrders:['visiter_prisonnier','corrompre_fonct','archives_police']
             }
-          },
-          // Pièces purement descriptives : les ordres seront décidés ultérieurement.
-          roomsExtra: {
-            dortoir_prisonniers: {
+            },
+            cellules_qhs: {
+              // Conserver cet ID : celluleDeDetention() et le régime carcéral le référencent.
               name:'Dortoir des prisonniers',
               desc:'Lits superposés en bois et couvertures pliées. Un simple poêle réchauffe péniblement le baraquement.',
               imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_dortoir.webp',
-              persons:[], orders:[]
-            },
+              personsVides:true,
+              excludeOrders:['greve_faim','corrompre_gardien','tentative_evasion']
+            }
+          },
+          // Pièces descriptives sans ordre ; les mécanismes sont définis séparément.
+          roomsExtra: {
             cachot_disciplinaire: {
               name:'Cachot disciplinaire',
               desc:'Un cabanon glacial aux quatre couchettes superposées, privé de tout chauffage.',
