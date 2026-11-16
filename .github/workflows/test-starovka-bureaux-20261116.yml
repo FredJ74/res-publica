@@ -2,7 +2,7 @@ name: Starovka - test navigation des quatre bureaux
 on:
   push:
     branches: [chatgpt/starovka-correction-bureaux-20261116]
-    paths: ['.github/workflows/test-starovka-bureaux-20261116.yml']
+    paths: ['.github/workflows/test-starovka-bureaux-20261116.yml', 'outils/bancs/test-starovka-open-space-20261116.cjs', 'plateau-open-space.js', 'data.js']
 permissions:
   contents: read
 jobs:
