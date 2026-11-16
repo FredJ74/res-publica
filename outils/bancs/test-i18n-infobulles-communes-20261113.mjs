@@ -40,7 +40,7 @@ function descsParPays() {
   return { sov: parPays('soviet'), rep: parPays('republic') };
 }
 
-test('inventaire : 238 descriptions communes après ajout des quatre postes de Starovka, aucune nouvelle hors catalogue', t => {
+test('inventaire : 237 descriptions communes affichées après isolation du goulag, aucune nouvelle hors catalogue', t => {
   const { sov, rep } = descsParPays();
   const communesJeu = [...sov].filter(d => rep.has(d));
   const cat = [...I('republic', 'fr').communes].map(l => l[0]);
@@ -48,7 +48,7 @@ test('inventaire : 238 descriptions communes après ajout des quatre postes de S
   // catalogue (trou antérieur, chantier de traduction à venir, consigné dans RELAIS.md). Le plafond
   // autorise la seule description de gestion de caserne rétablie à Sovarka ;
   // elle doit rejoindre le catalogue partagé dans le prochain lot i18n.
-  assert.equal(communesJeu.length, 238, // Le 16/11 : 245 -> 237 ; +1 partage en Sovarka d'une description d'ordre de location des quatre postes de Starovka.  les ordres hérités du QHS de Républia disparaissent du goulag de Sovarka (entrée, cellules et salles républicaines), sans retirer leurs traductions encore nécessaires en Républia.
+  assert.equal(communesJeu.length, 237, // Le 16/11 : 245 -> 237 ; les ordres hérités du QHS de Républia disparaissent du goulag de Sovarka (entrée, cellules et salles républicaines), sans retirer leurs traductions encore nécessaires en Républia.
     'nombre de descriptions communes affichées après exclusions ministérielles spécifiques à Sovarka');
   const manquantes = communesJeu.filter(d => !cat.includes(d));
   t.diagnostic('Descriptions communes manquantes : ' + JSON.stringify(manquantes));
