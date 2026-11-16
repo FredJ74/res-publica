@@ -1,0 +1,20 @@
+name: Diagnostic interface mobile publique
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/diagnostic-interface-mobile.yml'
+      - 'outils/bancs/test-production-mobile-20261117.cjs'
+  workflow_dispatch:
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          cd outils/e2e
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - run: node outils/bancs/test-production-mobile-20261117.cjs
