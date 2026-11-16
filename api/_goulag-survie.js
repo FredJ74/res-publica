@@ -57,6 +57,32 @@ function demarrer({ destination, statut, pa }) {
  * jour : date civile canonique Europe/Paris, fournie par le serveur.
  * Les appels en concurrence doivent être sérialisés par le RPC.
  */
+
+/** Choix unique après la cinquième progression effective, jamais une chance. */
+function choisirChampignons(etat, choix) {
+  verifierEtat(etat);
+  verifierPA(etat.pa);
+  if (etat.progressions !== 5 || etat.champignonsChoisis)
+    refuser('champignons_indisponibles');
+  if (!['manger','refuser'].includes(choix))
+    refuser('choix_champignons_invalide');
+  if (choix === 'manger') {
+    return {...etat, pa:etat.pa > 7 ? 7 : etat.pa + 1,
+      champignonsChoisis:true, champignonsRefuses:false};
+  }
+  return {...etat, champignonsChoisis:true,
+    champignonsRefuses:etat.pa>7};
+}
+
+/** Montant encore non validé : aucune déduction silencieuse. */
+function sommeilAvecChampignons(pa, gain, malus) {
+  verifierPA(pa);
+  if (!entier(gain) || gain < 1) refuser('gain_invalide');
+  if (!entier(malus) || malus < 1 || malus > gain)
+    refuser('malus_champignons_non_arbitre');
+  return Math.max(7, pa + gain - malus);
+}
+
 function agir(etat, action, jour) {
   verifierEtat(etat);
   verifierPA(etat.pa);
@@ -76,8 +102,10 @@ function agir(etat, action, jour) {
     e.abri = true;
   } else if (action === 'dormir') {
     if (e.sommeil) refuser('sommeil_deja_fait');
-    pa += e.abri ? 6 : 3;
+    const gain = e.abri ? 6 : 3;
+    pa = etat.champignonsRefuses ? sommeilAvecChampignons(pa, gain, etat.malusChampignons) : pa + gain;
     e.sommeil = true;
+    if (etat.champignonsRefuses) etat = {...etat,champignonsRefuses:false};
   } else {
     if (e.progression) refuser('progression_deja_faite');
     if (pa - 5 < 1) refuser('pa_insuffisants');
@@ -101,4 +129,4 @@ function agir(etat, action, jour) {
   };
 }
 
-module.exports = { ITINERAIRES, RefusGoulag, demarrer, agir };
+module.exports = { ITINERAIRES, RefusGoulag, demarrer, agir, choisirChampignons, sommeilAvecChampignons };
