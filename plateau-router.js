@@ -27,7 +27,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
     goulag_visite_demander:'goulagAutorisationDemander',
     goulag_voyager:'goulagVoyager',
     goulag_autorisations_gerer:'goulagAutorisationsGerer',
-    goulag_visiteur_retour:'goulagVisiteurRetour'
+    goulag_visiteur_retour:'goulagVisiteurRetour',
+    goulag_refuge_nuit:'goulagRefugeNuit',
+    goulag_refuge_terminer:'goulagRefugeTerminer'
   };
   if (Object.prototype.hasOwnProperty.call(ordresVisiteGoulag, fn)) {
     const handler = window[ordresVisiteGoulag[fn]];
