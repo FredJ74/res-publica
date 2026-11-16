@@ -25,7 +25,12 @@ const {chromium}=require('../e2e/node_modules/playwright');
     if(width<1024){
       const rects=await page.evaluate(()=>{
         const box=s=>{const e=document.querySelector(s);if(!e)return null;const b=e.getBoundingClientRect();return {top:b.top,bottom:b.bottom,display:getComputedStyle(e).display}};
-        return {streetNav:box('.hg-explore-tabs'),streetScene:box('#vue-rue .rue-container'),roomNav:box('.hg-room-tabs'),roomScene:box('#vue-batiment .piece-container')};
+        const streetNav=box('.hg-explore-tabs'),streetScene=box('#vue-rue .rue-container');
+        const street=document.getElementById('vue-rue'),room=document.getElementById('vue-batiment');
+        street?.classList.remove('active');room?.classList.add('active');
+        const roomNav=box('.hg-room-tabs'),roomScene=box('#vue-batiment .piece-container');
+        room?.classList.remove('active');street?.classList.add('active');
+        return {streetNav,streetScene,roomNav,roomScene};
       });
       if(!(rects.streetNav?.top>=0&&rects.streetNav.top<rects.streetScene?.top))throw Error('Navigation rue invisible avant le décor '+width+': '+JSON.stringify(rects));
       if(!(rects.roomNav?.top<rects.roomScene?.top))throw Error('Navigation bâtiment après le décor '+width+': '+JSON.stringify(rects));
