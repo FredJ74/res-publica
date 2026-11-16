@@ -8,6 +8,10 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Goulag de Sovarka — cinq vues de bâtiment (16/11/2026)
+PR #1025 branche `chatgpt/goulag-cinq-pieces-decors-20261116` : cinq PNG déposés par Fred convertis en WebP qualité 85 et uniformisés 1448×1086 par workflow GitHub #43861365469 **SUCCESS**, anciens PNG supprimés. Chemins `images/Sovarka/Goulag/Sovarka_goulag_{entree,dortoir,cachot_disciplinaire,bureau_chef,mirador}.webp`. Dix anciennes vues de toundra conservées. `data.js` : `WORLD.soviet.qhs.buildingContext['qhs-prison']` a cinq pièces dans l'ordre entrée → dortoir (ID `cellules_qhs` conservé pour la détention) → cachot → bureau du chef → mirador ; contexte soviétique isolé, ordres hérités du QHS républicain exclus, aucun nouvel ordre. Migration `20261116105000_goulag_cinq_pieces_visuelles.sql` éprouvée dans une transaction annulée, **appliquée via Supabase** sous `goulag_cinq_pieces_visuelles_20261116` ; lecture serveur de la liste exacte des cinq pièces confirmée. Banc `outils/bancs/test-goulag-cinq-pieces-20261116.cjs` réussi dans le workflow conversion. Reste : fusion PR, Vercel READY et recette navigation PJ connectée ; ne pas confondre avec PR #1020 de survie, toujours inachevée.
+
+
 
 
 
