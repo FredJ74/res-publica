@@ -1,7 +1,7 @@
 -- Entrée judiciaire exclusivement réservée au juge de l'affaire.
 -- Débit 2 PA et sentence dans UNE transaction ; refus = aucun débit.
 CREATE OR REPLACE FUNCTION public.sovarka_goulag_juger(
-  p_affaire_id text,p_infraction text)
+  p_affaire_id text,p_infraction text,p_jours integer DEFAULT NULL)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $$
 DECLARE v_moi text:=public.mon_personnage(); v_j record; v_a record;
   v_calc jsonb; v_paiement jsonb; v_res jsonb; v_erreur jsonb;
@@ -27,7 +27,11 @@ BEGIN
     RETURN jsonb_build_object('ok',false,'raison','reserve_juge_sovarka'); END IF;
   v_calc:=public.justice_peine_proposer(p_affaire_id,p_infraction,'qhs');
   IF coalesce((v_calc->>'ok')::boolean,false) IS NOT TRUE THEN RETURN v_calc; END IF;
-  v_jours:=(v_calc->>'jours_min')::integer;
+  v_jours:=p_jours;
+  -- Le juge choisit dans le barème ; ne jamais imposer le minimum à sa place.
+  IF v_jours IS NULL OR v_jours<(v_calc->>'jours_min')::integer
+    OR v_jours>(v_calc->>'jours_max')::integer THEN
+    RETURN jsonb_build_object('ok',false,'raison','peine_hors_bornes'); END IF;
   IF v_jours IS NULL OR v_jours<1 THEN
     RETURN jsonb_build_object('ok',false,'raison','peine_invalide'); END IF;
   BEGIN
@@ -44,5 +48,5 @@ BEGIN
   END;
   RETURN v_res||jsonb_build_object('paiement',v_paiement,'lieu_detention','goulag');
 END $$;
-REVOKE ALL ON FUNCTION public.sovarka_goulag_juger(text,text) FROM PUBLIC,anon;
-GRANT EXECUTE ON FUNCTION public.sovarka_goulag_juger(text,text) TO authenticated;
+REVOKE ALL ON FUNCTION public.sovarka_goulag_juger(text,text,integer) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.sovarka_goulag_juger(text,text,integer) TO authenticated;

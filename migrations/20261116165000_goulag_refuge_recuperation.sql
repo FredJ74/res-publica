@@ -28,7 +28,11 @@ BEGIN
     RETURN jsonb_build_object('ok',false,'raison','arrivee_non_confirmee'); END IF;
   INSERT INTO public.sovarka_goulag_refuges(nom,destination,statut,arrivee_le)
   VALUES(p_nom,p_destination,p_statut,public.sovarka_jour_paris())
-  ON CONFLICT(nom) DO NOTHING;
+  ON CONFLICT(nom) DO UPDATE SET destination=EXCLUDED.destination,
+    statut=EXCLUDED.statut,arrivee_le=EXCLUDED.arrivee_le,nuits=0,
+    derniere_nuit=NULL,bois_paye=0,termine=false,actualise_le=now()
+    WHERE sovarka_goulag_refuges.termine;
+  IF NOT FOUND THEN RAISE EXCEPTION 'goulag_refuge_deja_actif'; END IF;
   RETURN jsonb_build_object('ok',true,'arrivee',p_destination,'repos_jours',3,'pa',1);
 END $$;
 REVOKE ALL ON FUNCTION public.sovarka_goulag_refuge_creer_interne(text,text,text)

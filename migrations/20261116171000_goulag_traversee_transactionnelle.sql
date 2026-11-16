@@ -40,6 +40,10 @@ BEGIN
     RETURN jsonb_build_object('ok',false,'raison','pa_insuffisants_depart','minimum',v_total); END IF;
   IF EXISTS(SELECT 1 FROM public.sovarka_goulag_traversees WHERE nom=v_nom AND en_cours) THEN
     RETURN jsonb_build_object('ok',false,'raison','traversee_deja_commencee'); END IF;
+  -- Une seconde marche ne doit jamais effacer une peine encore gelée.
+  IF EXISTS(SELECT 1 FROM public.sovarka_goulag_traversees WHERE nom=v_nom
+    AND peine_gelee_secondes>0 AND peine_reprise_le IS NULL) THEN
+    RETURN jsonb_build_object('ok',false,'raison','peine_gelee_non_reprise'); END IF;
   IF EXISTS(SELECT 1 FROM public.sovarka_goulag_refuges WHERE nom=v_nom AND NOT termine) THEN
     RETURN jsonb_build_object('ok',false,'raison','refuge_encore_actif'); END IF;
   SELECT * INTO v_det FROM public.detention_active(v_nom);
@@ -100,7 +104,8 @@ BEGIN
      peine_gelee_secondes=EXCLUDED.peine_gelee_secondes,recherche_id=EXCLUDED.recherche_id,
      jour_abri=NULL,jour_sommeil=NULL,jour_progression=NULL,bois_trouve=0,
      champignons_choix=NULL,champignons_penalite_en_attente=false,
-     debut_le=EXCLUDED.debut_le,arrivee_le=NULL,actualise_le=now();
+     debut_le=EXCLUDED.debut_le,arrivee_le=NULL,
+     peine_reprise_le=NULL,nouvelle_detention_id=NULL,actualise_le=now();
   RETURN jsonb_build_object('ok',true,'en_cours',true,'destination',p_destination,
     'statut',v_statut,'pa',p.pa,'progressions',0,'peine_gelee_secondes',v_rest);
 END $$;

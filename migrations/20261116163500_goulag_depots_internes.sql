@@ -40,7 +40,9 @@ BEGIN
   SELECT etat INTO v_etat FROM public.sovarka_goulag_depots WHERE detention_id=p_detention_id FOR UPDATE;
   IF FOUND THEN RETURN jsonb_build_object('ok',v_etat='confisque','raison',
      CASE WHEN v_etat='confisque' THEN 'deja_confisque' ELSE 'depot_clos' END); END IF;
-  v_inv := CASE WHEN jsonb_typeof(v_d.inventory)='array' THEN v_d.inventory ELSE '[]'::jsonb END;
+  IF v_d.inventory IS NOT NULL AND jsonb_typeof(v_d.inventory) IS DISTINCT FROM 'array' THEN
+    RAISE EXCEPTION 'goulag_inventaire_invalide'; END IF;
+  v_inv := coalesce(v_d.inventory,'[]'::jsonb);
   SELECT coalesce(jsonb_agg(x.objet ORDER BY x.ord)
         FILTER (WHERE public.sovarka_goulag_est_cle_interne(x.objet)),'[]'::jsonb),
          coalesce(jsonb_agg(x.objet ORDER BY x.ord)

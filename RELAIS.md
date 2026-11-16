@@ -9,7 +9,7 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 ### Reprise technique de #1020 — Codex, 16/11/2026
-- Réconciliation avec `main` `38a6621` : conflits de `plateau.html` et du relais résolus en conservant les scripts et versions du musée, les cinq pièces et leurs traductions. Audit serveur en cours ; la PR reste en brouillon, aucune migration appliquée ni mécanique activée.
+- Réconciliation avec `main` `38a6621` : conflits de `plateau.html` et du relais résolus en conservant les scripts et versions du musée, les cinq pièces et leurs traductions. Trois corrections de sûreté préparées : durée choisie par le juge transmise au serveur, conservation du reliquat avant une nouvelle marche, remise à zéro d’un ancien refuge terminé. Inventaire mal formé refusé plutôt qu’effacé. Audit serveur en cours ; la PR reste en brouillon, aucune migration appliquée ni mécanique activée.
 - Référence intégralement consultée : commentaire #6923959934. Les quatre arbitrages restent ouverts ; aucun taux, durée ou malus supposé ne sera utilisé.
 
 ### Complément du 16/11 — circuit complet préparé, activation volontairement impossible

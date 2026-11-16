@@ -2677,7 +2677,7 @@ async function prononcerSentence(affaireId, type, infraction, pa, cost) {
   if (type === 'qhs' && state.country === 'soviet') {
     const verdict = typeof sbRpcVerdict === 'function'
       ? await sbRpcVerdict('sovarka_goulag_juger', {
-          p_affaire_id: affaireId, p_infraction: infraction
+          p_affaire_id: affaireId, p_infraction: infraction, p_jours: jours
         }).catch(() => ({ok:false,raison:'serveur_indisponible'}))
       : {ok:false,raison:'serveur_indisponible'};
     if (!verdict || verdict.ok !== true) {
