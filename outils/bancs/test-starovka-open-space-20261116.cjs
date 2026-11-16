@@ -58,11 +58,11 @@ test('Luthécia : conserver les zones originales et aucun clic hors des deux vil
 });
 
 test('Correspondance des images et zones géométriques distinctes',()=>{
- assert.ok(data.includes("imageUrl:\""+dir+"Starovka_centre_affaires_poste.webp\""),'zoom image quatre postes');
+ assert.ok(data.includes("imageUrl:\""+dir+"Starovka_centre_affaires_poste.webp?v=20261116c\""),'zoom image quatre postes');
  assert.ok(data.includes("roomsMasquees:['open_space_a','open_space_b','open_space_c','open_space_d']"),'poste caché des onglets');
- assert.ok(data.includes("imageUrl:\""+dir+"Starovka_centre_affaires_grand_bureau.webp\""));
- assert.ok(data.includes("imageUrl:\""+dir+"Starovka_centre_affaires_petit_bureau.webp\""));
- assert.ok(data.includes("imageUrl:\""+dir+"Starovka_centre_affaires_open_space.webp\""));
+ assert.ok(data.includes("imageUrl:\""+dir+"Starovka_centre_affaires_grand_bureau.webp?v=20261116c\""));
+ assert.ok(data.includes("imageUrl:\""+dir+"Starovka_centre_affaires_petit_bureau.webp?v=20261116c\""));
+ assert.ok(data.includes("imageUrl:\""+dir+"Starovka_centre_affaires_open_space.webp?v=20261116c\""));
  for(const n of ['grand_bureau','petit_bureau','open_space','poste']){
   const b=fs.readFileSync(dir+'Starovka_centre_affaires_'+n+'.webp');
   assert.equal(b.subarray(0,4).toString(),'RIFF');
