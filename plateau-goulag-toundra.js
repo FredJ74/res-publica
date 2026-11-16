@@ -41,7 +41,7 @@
     const etape = Math.min(total, avance + 1);
     place.innerHTML =
       '<h2 style="font-size:clamp(1.5rem,3.4vw,2rem);margin:0 0 12px">Traversée de la toundra — '+encode(etat.destination === 'starovka' ? 'Starovka' : 'Krasnov')+'</h2>'+
-      '<p style="line-height:1.6;margin:0 0 14px">Progression : <strong>'+avance+' / '+total+'</strong> · PA : <strong>'+encode(etat.pa)+'</strong></p>'+
+      '<p style="line-height:1.6;margin:0 0 14px">Progression : <strong>'+avance+' / '+total+'</strong> · PA : <strong>'+encode(etat.pa)+'</strong> · Bois trouvé : <strong>'+encode(etat.bois_trouve || 0)+'</strong> / 8</p>'+
       '<img src="'+imageEtape(etat)+'" alt="Étape '+etape+' de la toundra de Sovarka" '+
       'style="width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:10px;display:block">'+
       '<p style="line-height:1.6;margin:12px 0 18px">Vous êtes seul dans la toundra. Votre marche ne peut pas être annulée. Une progression par jour ; aucun ordre ne peut vous ramener à zéro PA.</p>'+
@@ -52,7 +52,10 @@
       '</div><p id="goulag-toundra-message" role="status" aria-live="polite" style="margin-top:14px">'+encode(message)+'</p>';
     root.style.display = 'block';
     for (const btn of root.querySelectorAll('[data-goulag-action]')) {
-      btn.disabled = occupe;
+      const a=btn.dataset.goulagAction;
+      btn.disabled = occupe || (a==='abri' && (etat.abri_aujourdhui || etat.dormi_aujourdhui || etat.pa <= 1))
+        || (a==='dormir' && etat.dormi_aujourdhui)
+        || (a==='progresser' && (etat.progresse_aujourdhui || etat.pa <= 5));
       btn.addEventListener('click', () => action(btn.dataset.goulagAction));
     }
   }
