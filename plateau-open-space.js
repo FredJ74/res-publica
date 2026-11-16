@@ -41,6 +41,18 @@ const OPEN_SPACE_PLAN = {
       { piece: 'open_space_c', nom: 'Open Space C', zone: { x: 0.222, y: 0.485, w: 0.263, h: 0.300 } },
       { piece: 'open_space_d', nom: 'Open Space D', zone: { x: 0.555, y: 0.485, w: 0.263, h: 0.300 } }
     ]
+  },
+  // Starovka : quatre bureaux dans la scène photographique panoramique
+  // (gauche au fond, droite au fond, gauche devant, droite devant).
+  // Zones en fractions de l'image d'origine, calcul 'cover' commun à Luthécia.
+  'starovka-centre-affaires': {
+    image: 'images/Sovarka/Starovka/Starovka_centre_affaires_open_space.webp',
+    postes: [
+      { piece: 'open_space_a', nom: 'Open Space A', zone: { x: 0.146, y: 0.440, w: 0.196, h: 0.240 } },
+      { piece: 'open_space_b', nom: 'Open Space B', zone: { x: 0.493, y: 0.440, w: 0.195, h: 0.245 } },
+      { piece: 'open_space_c', nom: 'Open Space C', zone: { x: 0.003, y: 0.635, w: 0.262, h: 0.354 } },
+      { piece: 'open_space_d', nom: 'Open Space D', zone: { x: 0.664, y: 0.615, w: 0.327, h: 0.370 } }
+    ]
   }
 };
 
@@ -74,15 +86,17 @@ function openSpaceInjecterZones(buildingId, roomId, ville) {
   cadre.querySelectorAll('.os-zone').forEach(function (el) { el.remove(); });
   openSpaceMasquerInfobulle();
 
-  const plan = OPEN_SPACE_PLAN[buildingId];
+  const pays = typeof state !== 'undefined' ? state.country : null;
+  const planId = buildingId === 'centre-affaires'
+    ? (pays === 'republic' && ville === 'capitale' ? 'centre-affaires'
+      : (pays === 'soviet' && ville === 'ville_a' ? 'starovka-centre-affaires' : null))
+    : null;
+  const plan = planId && OPEN_SPACE_PLAN[planId];
+  // Le plan de la ville doit servir aussi à l'observateur de redimensionnement.
+  cadre.dataset.osPlan = planId || '';
   if (!plan || roomId !== 'open_space') return;
-  // Ces zones ont été mesurées uniquement sur le plan zénithal de Luthécia.
-  // Starovka utilise une vue photographique et des onglets dédiés aux 4 postes.
-  if (ville !== 'capitale' || (typeof state !== 'undefined' && state.country !== 'republic')) return;
-  // Le plan n'existe qu'a Luthecia : les autres villes gardent leur Open Space
-  // unique, et ce fichier n'y pose rien.
   if (typeof varianteDePiece === 'function'
-      && !varianteDePiece('centre-affaires', 'open_space_a', ville)) return;
+      && !varianteDePiece(buildingId, 'open_space_a', ville)) return;
 
   const cite = ville || (typeof state !== 'undefined' ? state.currentCity : null);
 
@@ -133,7 +147,7 @@ function openSpaceInstallerObservateur(cadre) {
   if (openSpaceObservateur || typeof ResizeObserver === 'undefined') return;
   openSpaceObservateur = new ResizeObserver(function () {
     if (!cadre.querySelector('.os-zone')) return;
-    const plan = OPEN_SPACE_PLAN[cadre.dataset.varBat];
+    const plan = OPEN_SPACE_PLAN[cadre.dataset.osPlan];
     if (plan) openSpacePositionnerZones(cadre, plan);
   });
   openSpaceObservateur.observe(cadre);
