@@ -10,6 +10,17 @@ CREATE TABLE IF NOT EXISTS public.sovarka_goulag_configuration (
  camp_bucherons_noeud text,
  actualise_le timestamptz NOT NULL DEFAULT now()
 );
+-- La configuration n'est PAS suffisante pour rendre l'évasion sûre :
+-- formule d'arrestation et destination du camp encore non arbitrées.
+-- Même un changement manuel de active=true est interdit par cette garde.
+DO $goulag_activation_figee$
+BEGIN
+  IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname='sovarka_goulag_activation_figee') THEN
+    ALTER TABLE public.sovarka_goulag_configuration
+      ADD CONSTRAINT sovarka_goulag_activation_figee CHECK(active IS FALSE);
+  END IF;
+END $goulag_activation_figee$;
+
 INSERT INTO public.sovarka_goulag_configuration(singleton,active) VALUES(true,false)
 ON CONFLICT(singleton) DO NOTHING;
 ALTER TABLE public.sovarka_goulag_configuration ENABLE ROW LEVEL SECURITY;
