@@ -5,6 +5,7 @@ const load=f=>fs.readFileSync(f,'utf8');
 const html=load('plateau.html'),router=load('plateau-router.js');
 const transports=load('plateau-goulag-transports.js'),refuge=load('plateau-goulag-refuge.js');
 const toundra=load('plateau-goulag-toundra.js');
+const justice=load('plateau-justice-economie.js');
 for(const name of ['plateau-goulag-toundra.js','plateau-goulag-transports.js','plateau-goulag-refuge.js']){
   assert.ok(html.includes(name),name+' chargé avant le routeur');
   assert.ok(html.indexOf(name)<html.indexOf('plateau-router.js'),name+' ordre');
@@ -25,6 +26,9 @@ for(const rpc of ['sovarka_goulag_visite_demander','sovarka_goulag_voyager',
  'sovarka_goulag_visiteur_repartir']) assert.ok(transports.includes(rpc),rpc);
 for(const rpc of ['sovarka_goulag_refuge_lire','sovarka_goulag_refuge_nuit',
  'sovarka_goulag_refuge_terminer']) assert.ok(refuge.includes(rpc),rpc);
+assert.ok(justice.includes("type === 'qhs' && state.country === 'soviet'"));
+assert.ok(justice.includes("sbRpcVerdict('sovarka_goulag_juger'"));
+assert.ok(justice.includes('Condamner — envoi au goulag'));
 assert.ok(toundra.includes('champignons_a_decider'));
 assert.ok(toundra.includes('sbAdopterInventaireServeur'));
 assert.ok(toundra.includes("v.recherche"));
