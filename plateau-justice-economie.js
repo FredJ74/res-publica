@@ -5884,8 +5884,8 @@ async function doOuvrirVenteDirecteUsine(pa, cost) {
     if (!res) return;
     const enStock = venteDirecte[cle] || 0;
     const prixActuel = prixManuel[cle] != null ? prixManuel[cle] : getPrixRessource(cle, enStock);
-    const prixMin = Math.round(res.prixBase * 0.6 * 100) / 100;
-    const prixMax = Math.round(res.prixBase * 1.4 * 100) / 100;
+    const prixMin = Math.round(prixBasePays(res) * 0.6 * 100) / 100;
+    const prixMax = Math.round(prixBasePays(res) * 1.4 * 100) / 100;
     html += '<tr style="border-top:1px solid #2a2010">';
     html += '<td style="padding:.55rem 0"><i class="ti ' + res.icon + '" style="margin-right:.4rem;font-size:1.1rem"></i>' + res.label + '</td>';
     html += '<td style="color:' + (enStock === 0 ? '#cc5540' : '#8a8060') + '">' + enStock + '</td>';
@@ -6149,7 +6149,8 @@ function usineRachatePrixDetail(buildingId, pays, ville) {
   return USINES_RACHAT_PRIX_DETAIL.has(cle);
 }
 function prixRachatMatierePremiereUsine(buildingId, pays, ville, res) {
-  return usineRachatePrixDetail(buildingId, pays, ville) ? res.prixBase : res.prixAchatFournisseur;
+  const prix = usineRachatePrixDetail(buildingId, pays, ville) ? res.prixBase : res.prixAchatFournisseur;
+  return Math.round(prix * coefPrixMatieres(pays) * 100) / 100;   // Sovarka : moitié prix (16/11/2026)
 }
 
 // =====================
@@ -6783,8 +6784,8 @@ async function doOuvrirFixerPrixVenteDirecte(pa, cost) {
     if (!res) return;
     const enStock = venteDirecte[cle] || 0;
     const prixAuto = getPrixRessource(cle, enStock);
-    const prixMin = Math.round(res.prixBase * 0.6 * 100) / 100;
-    const prixMax = Math.round(res.prixBase * 1.4 * 100) / 100;
+    const prixMin = Math.round(prixBasePays(res) * 0.6 * 100) / 100;
+    const prixMax = Math.round(prixBasePays(res) * 1.4 * 100) / 100;
     const prixFixe = prixManuel[cle];
     html += '<tr style="border-top:1px solid #2a2010">';
     html += '<td style="padding:.55rem 0"><i class="ti ' + res.icon + '" style="margin-right:.4rem;font-size:1.1rem"></i>' + res.label + '</td>';
@@ -6814,8 +6815,8 @@ async function confirmerFixerPrixVenteDirecte(buildingId, pa, cost) {
     if (valeur === '' || valeur == null) continue;
     const n = parseFloat(valeur);
     const res = RESSOURCES_ECONOMIE[cle];
-    const prixMin = Math.round(res.prixBase * 0.6 * 100) / 100;
-    const prixMax = Math.round(res.prixBase * 1.4 * 100) / 100;
+    const prixMin = Math.round(prixBasePays(res) * 0.6 * 100) / 100;
+    const prixMax = Math.round(prixBasePays(res) * 1.4 * 100) / 100;
     if (isNaN(n) || n < prixMin || n > prixMax) {
       showToast('Prix hors fourchette', res.label + ' doit être fixé entre ' + prixMin + ' et ' + prixMax + '.', false);
       return;

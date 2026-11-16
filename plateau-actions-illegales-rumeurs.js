@@ -6690,25 +6690,8 @@ function verifierEtResetRecoltesJour() {
   }
 }
 
-async function doRecolterMatiere(pa, cost) {
-  const pays = state.country || 'republic';
-  const ville = state.currentCity || 'capitale';
-  const matieres = typeof getMatieresPremieresVille === 'function' ? getMatieresPremieresVille(pays, ville) : [];
-  if (!matieres.length) { showToast('Indisponible', 'Aucune ressource naturelle à récolter ici.', false); return; }
-
-  verifierEtResetRecoltesJour();
-  const nb = state.char.recoltesJour?.nb || 0;
-
-  document.getElementById('postes-modal-title').textContent = 'Récolter';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.7rem">Récoltes aujourd\'hui : ' + nb + '/2</div>';
-  matieres.forEach(m => {
-    html += '<button ' + (nb >= 2 ? 'disabled' : '') + ' onclick="confirmerRecolte(\'' + m + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:' + (nb>=2?'#5a5040':'#c0b090') + ';cursor:' + (nb>=2?'default':'pointer') + ';font-size:.8rem">' + m + '</button>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
+// doRecolterMatiere et confirmerRecolte : plateau-regulation-production.js (16/11/2026, plus de limite
+// fixe de 2 par jour ; 1 PA, quantite fixe, regulation de l'adjoint au maire).
 
 // Correspondance entre le libelle d'affichage de MATIERES_PREMIERES_VILLE et la cle canonique
 // RESSOURCES_ECONOMIE, quand elle existe (17 aout 2026, releve economique + chantier commerces
@@ -6723,50 +6706,6 @@ const MATIERE_RECOLTE_VERS_CLE = {
   'Bois': 'bois',
   'Pétrole': 'petrole'
 };
-
-async function confirmerRecolte(matiere, pa, cost) {
-  verifierEtResetRecoltesJour();
-  if ((state.char.recoltesJour?.nb || 0) >= 2) { showToast('Limite atteinte', 'Maximum 2 récoltes par jour.', false); return; }
-
-  // PRODUCTION LEGALE D'UNE MATIERE (arbitrage du 30 septembre 2026). La recolte
-  // est le SEUL mecanisme du jeu qui CREE de la matiere premiere : l'Assemblee
-  // empeche la production legale de ce qu'elle interdit, on ne peut donc plus
-  // recolter une matiere prohibee. Quatre des matieres recoltables portent une
-  // cle economique (metal, poisson, charbon, bois) et sont donc susceptibles
-  // d'etre visees ; les autres n'ont aucun equivalent et ne peuvent pas l'etre.
-  //
-  // LIMITE ASSUMEE ET RAPPORTEE : ce controle n'est QU'UNE COUCHE NAVIGATEUR.
-  // Contrairement aux six circuits d'achat/vente, la recolte n'a aucune RPC --
-  // elle ecrit dans state.inventory puis s'appuie sur la sauvegarde generique du
-  // personnage. Il n'existe donc aucun point de passage serveur ou poser la
-  // garantie. La rendre serveur-autoritaire est un chantier a part, hors de ce lot.
-  const cleRecolte = MATIERE_RECOLTE_VERS_CLE[matiere];
-  if (cleRecolte && typeof assembleeControlerVenteLegale === 'function'
-      && !(await assembleeControlerVenteLegale([{ stackKey: cleRecolte }]))) return;
-
-  // PAR LE SERVEUR (27 octobre 2026, chantier inventaire) : recolte_effectuer verifie la matiere
-  // de la ville, tient la limite de 2 par jour (date de Paris), preleve l'ordre, tire 1 ou 2 unites
-  // et les depose. L'ecran ne fait plus qu'adopter l'inventaire rendu.
-  const brut = (typeof sbRpc === 'function')
-    ? await sbRpc('recolte_effectuer', { p_matiere: matiere, p_pa: pa || 0, p_cost: cost || 0 }).catch(() => null) : null;
-  const r = Array.isArray(brut) ? brut[0] : brut;
-  if (!r || r.ok !== true) {
-    if (r?.raison === 'limite_atteinte') showToast('Limite atteinte', 'Maximum 2 récoltes par jour.', false);
-    else if (r?.raison === 'rien_a_recolter_ici') showToast('Indisponible', 'Cette ressource ne se récolte pas ici.', false);
-    else if (r?.raison === 'inventaire_plein') showToast('Inventaire plein', 'Libérez de la place avant de récolter.', false);
-    else signalerRefusCout(r || { raison: 'paiement_indisponible' });
-    return;
-  }
-  const quantite = r.quantite;
-  if (typeof r.pa === 'number') state.pa = r.pa;
-  state.char.recoltesJour = { jour: state.day || 1, nb: r.recoltes_jour };
-  if (Array.isArray(r.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(r);
-
-  document.getElementById('modal-postes')?.classList.remove('open');
-  updateUI();
-  showToast('Récolte effectuée', '+' + quantite + ' ' + matiere + '.', true, true);
-  addJournalEntry('Récolte de ' + quantite + ' ' + matiere + '.', 'event-good');
-}
 
 async function doConsommerBuvette(pa, cost) {
   const contexte=contexteGroupePj();

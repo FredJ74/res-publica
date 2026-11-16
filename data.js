@@ -4080,7 +4080,7 @@ const BUILDINGS = {
         desc: "Champs, mines ou forets selon la vocation de la ville. Les matieres premieres locales s'y recoltent.",
         persons: [],
         orders: [
-          {fn:'recolter_matiere', label:'Récolter', pa:2, cost:0, type:'legal', icon:'ti-shovel', successRate:100, desc:'Recolter une matiere premiere locale. Maximum 2 fois par jour.'}
+          {fn:'recolter_matiere', label:'Récolter', pa:1, cost:0, type:'legal', icon:'ti-shovel', successRate:100, desc:'Recolter une matiere premiere locale. La quantite depend de la ressource ; l\'adjoint au maire peut en reguler la production.'}
         ]
       }
     }
@@ -4841,6 +4841,7 @@ const BUILDINGS = {
           {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de la ville (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
           {fn:'traiter_demandes_logement_social', label:'Tableau de bord des logements sociaux', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, requiresPost:'maire_adjoint', desc:'Voir les demandes en attente, l\'état des 4 logements, et attribuer un logement libre à un bénéficiaire.'},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
+          {fn:'regulation_production', label:'Régulation de la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'maire_adjoint', desc:'Limiter la recolte des ressources de la ville : par joueur et par jour, et/ou un plafond total de la ville par jour.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'}
         ]
       },
@@ -5568,6 +5569,7 @@ const BUILDINGS = {
           {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de la ville (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
           {fn:'traiter_demandes_logement_social', label:'Tableau de bord des logements sociaux', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, requiresPost:'maire_adjoint', desc:'Voir les demandes en attente, l\'état des 4 logements, et attribuer un logement libre à un bénéficiaire.'},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
+          {fn:'regulation_production', label:'Régulation de la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'maire_adjoint', desc:'Limiter la recolte des ressources de la ville : par joueur et par jour, et/ou un plafond total de la ville par jour.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'}
         ]
       }
@@ -10407,13 +10409,22 @@ const RESSOURCES_ECONOMIE = {
 // Prix effectif d'une ressource selon le taux de remplissage du stock (stock eleve = prix
 // bas, stock faible = prix haut), variation +/-40% autour du prix de base a 50% de
 // remplissage. tauxRemplissage attendu entre 0 (vide) et 1 (plein).
+// Prix des matières par pays (Fred, 16/11/2026) : en Sovarka, moitié des prix de Républia
+// (serveur : coef_prix_matieres / ressources_economie_pays). Pays par défaut : celui où l'on est.
+function coefPrixMatieres(pays) { return pays === 'soviet' ? 0.5 : 1; }
+function prixBasePays(res, pays) {
+  if (!res) return 0;
+  const p = pays !== undefined ? pays : (typeof state !== 'undefined' && state ? state.country : null);
+  return Math.round(res.prixBase * coefPrixMatieres(p) * 100) / 100;
+}
+
 function getPrixRessource(cle, quantiteEnStock) {
   const res = RESSOURCES_ECONOMIE[cle];
   if (!res) return 0;
   const tauxRemplissage = Math.max(0, Math.min(1, quantiteEnStock / res.plafond));
   // 0% rempli -> +40% ; 50% rempli -> prix de base ; 100% rempli -> -40%
   const variation = (0.5 - tauxRemplissage) * 0.8;
-  return Math.round(res.prixBase * (1 + variation) * 100) / 100;
+  return Math.round(prixBasePays(res) * (1 + variation) * 100) / 100;
 }
 
 // Prix automatique PNJ des ENTREPOTS MUNICIPAUX uniquement (arbitrage du 24 aout 2026) : marge
@@ -10427,7 +10438,7 @@ function getPrixRessource(cle, quantiteEnStock) {
 function getPrixRessourceEntrepot(cle) {
   const res = RESSOURCES_ECONOMIE[cle];
   if (!res) return 0;
-  return Math.round(res.prixBase * 100) / 100;
+  return prixBasePays(res);
 }
 
 // Quantite maximale livrable pour combler un entrepot vide a son plafond (dotation de
@@ -12244,7 +12255,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
       name: 'Forêt profonde — ' + vues[n][0], imageBg: 'linear-gradient(135deg,#0a120c,#132016)', desc: vues[n][1], persons: [],
       imageUrl: 'images/Sovarka/Krasnov/' + (n === '1' || n === '2' ? 'Krasnov_foret_coupe.webp' : 'Krasnov_foret_profonde.webp'),
       orders: [
-        { fn: 'foret_couper', label: 'Couper du bois', pa: 2, cost: 0, type: 'legal', icon: 'ti-axe', successRate: 100,
+        { fn: 'foret_couper', label: 'Couper du bois', pa: 1, cost: 0, type: 'legal', icon: 'ti-axe', successRate: 100,
           desc: 'Le bois de la forêt profonde : une coupe rapporte le double d’une récolte. Combien de fois avant que quelque chose ne bouge dans les fourrés ?' },
         // Retour de Fred (14/11/2026) : on peut s'enfoncer encore depuis une vue profonde (vers une autre vue), sans repasser par l'entrée.
         { fn: 'foret_enfoncer', label: 'S’enfoncer dans la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-trees', successRate: 100,

@@ -206,6 +206,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'produire_arme') { doProduireArme(); return; }
   if (fn === 'racheter_entreprise') { doRachatEntreprise(); return; }
   if (fn === 'recolter_matiere') { doRecolterMatiere(pa, cost); return; }
+  if (fn === 'regulation_production') { ouvrirRegulationProduction(pa, cost); return; }
   // Sovarka, lot des provinces (10/11/2026) : plateau-sovarka-provinces.js.
   if (fn === 'souscrire_bon_etat') { ouvrirBonsEtat(); return; }
   if (fn === 'sovarka_ecoutes') { ouvrirEcoutesMinistre(); return; }
