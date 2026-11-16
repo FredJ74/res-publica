@@ -95,7 +95,9 @@ function openSpaceInjecterZones(buildingId, roomId, ville) {
   // Le plan de la ville doit servir aussi à l'observateur de redimensionnement.
   cadre.dataset.osPlan = planId || '';
   if (!plan || roomId !== 'open_space') return;
-  if (typeof varianteDePiece === 'function'
+  // Le filtre de variantes appartient à Luthécia. Les quatre pièces de
+  // Starovka sont déclarées directement dans buildingContext.roomsExtra.
+  if (planId === 'centre-affaires' && typeof varianteDePiece === 'function'
       && !varianteDePiece(buildingId, 'open_space_a', ville)) return;
 
   const cite = ville || (typeof state !== 'undefined' ? state.currentCity : null);
