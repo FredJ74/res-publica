@@ -6052,7 +6052,9 @@ export const SCENES_PNJ = {
     "ville": "Starovka",
     "batiment": "Tribunal Municipal",
     "piece": "Greffe",
-    "personnes": []
+    "personnes": [
+      "Oyuna Tsybikova"
+    ]
   },
   "[\"soviet\",\"ville_a\",\"usine-principale\",\"direction_usine\"]": {
     "pays": "Sovarka",
@@ -6128,6 +6130,7 @@ export const SCENES_PNJ = {
     "batiment": "Centre Artisanal",
     "piece": "Travées",
     "personnes": [
+      "Saryuna Dorjieva",
       "Bayar Otchirov",
       "Ganbold Garmaïev",
       "Temür Dougarov"

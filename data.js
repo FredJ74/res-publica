@@ -12454,6 +12454,37 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   }
 })();
 
+// STAROVKA_CENTRE_ARTISANAL_GREFFIERE_20261116 (images de Fred, 16/11/2026)
+// Règle de Fred : les PNJ s'adaptent à la réalité des images (genre, présence, nom). Décors du centre
+// artisanal (accueil = travées, Box 1 à 3 = les trois locaux), réceptionniste visible à l'accueil,
+// greffière visible au greffe du tribunal. Aucun ordre, prix ni autre ville modifié.
+(function () {
+  const ville = WORLD.soviet && WORLD.soviet.ville_a;
+  const ctx = ville && ville.buildingContext;
+  const centre = ctx && ctx['centre-artisanal'];
+  const tribunal = ctx && ctx['tribunal-local'];
+  const gabarit = BUILDINGS['centre-artisanal'];
+  if (!centre || !tribunal || !gabarit) throw new Error('Centre artisanal ou tribunal de Starovka absent');
+  centre.roomOverrides = centre.roomOverrides || {};
+  const dir = 'images/Sovarka/Starovka/';
+  for (const [piece, fichier] of Object.entries({
+    travees: 'accueil', echoppe_facade: 'box_1', atelier_milieu: 'box_2', reserve_arriere: 'box_3'
+  })) {
+    if (!gabarit.rooms[piece]) throw new Error('Pièce du centre artisanal inconnue : ' + piece);
+    Object.assign(centre.roomOverrides[piece] = centre.roomOverrides[piece] || {}, {
+      imageUrl: dir + 'Starovka_centre_artisanal_' + fichier + '.webp'
+    });
+  }
+  const travees = centre.roomOverrides.travees;
+  const avant = travees.persons || gabarit.rooms.travees.persons || [];
+  travees.persons = [{ name: 'Saryuna Dorjieva (PNJ)', role: 'Réceptionniste', rel: 'neutral', job: 'secretaire',
+    photoUrl: dir + 'Starovka_portrait_centre-artisanal_saryuna-dorjieva.webp', photoPos: '50% 30%' },
+    ...avant.map(p => Object.assign({}, p))];
+  const greffe = tribunal.roomOverrides.greffe = tribunal.roomOverrides.greffe || {};
+  greffe.persons = [{ name: 'Oyuna Tsybikova (PNJ)', role: 'Greffière', rel: 'neutral', job: 'secretaire',
+    photoUrl: dir + 'Starovka_portrait_tribunal-local_oyuna-tsybikova.webp', photoPos: '50% 30%' }];
+})();
+
 // PORTRAITS_PNJ_STAROVKA_KRASNOV_20261116 (demande de Fred, 16/11/2026)
 // Photos de profil recadrées sur le visage du PNJ visible dans le décor de sa pièce
 // (outils/images/portraits-pnj-starovka-krasnov-20261116.json). Seule la ville visée change :

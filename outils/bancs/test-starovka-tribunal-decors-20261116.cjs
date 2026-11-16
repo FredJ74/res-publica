@@ -33,3 +33,19 @@ const photo = juge.photo || juge.photoUrl || juge.imageUrl || juge.portrait;
 assert.match(String(photo), /Starovka_portrait_tribunal-local_dulma-tsyrenova\.webp$/);
 assert.ok(fs.existsSync(path.join(root, photo)));
 console.log('OK : tribunal de Starovka, trois décors et portrait de la juge');
+
+// Centre artisanal (accueil + Box 1 à 3) et PNJ adaptés aux images (16/11/2026, soir).
+const centre = c.W.soviet.ville_a.buildingContext['centre-artisanal'];
+for (const [piece, f] of Object.entries({ travees: 'accueil', echoppe_facade: 'box_1', atelier_milieu: 'box_2', reserve_arriere: 'box_3' })) {
+  const url = centre.roomOverrides[piece].imageUrl;
+  assert.equal(url, 'images/Sovarka/Starovka/Starovka_centre_artisanal_' + f + '.webp');
+  assert.equal(fs.readFileSync(path.join(root, url)).subarray(12, 16).toString('ascii'), 'VP8 ');
+}
+const noms = Array.from(centre.roomOverrides.travees.persons, p => p.name);
+assert.deepEqual(noms, ['Saryuna Dorjieva (PNJ)', 'Bayar Otchirov', 'Ganbold Garmaïev', 'Temür Dougarov']);
+const greffiere = ctx.roomOverrides.greffe.persons[0];
+assert.equal(greffiere.name, 'Oyuna Tsybikova (PNJ)');
+for (const p of [centre.roomOverrides.travees.persons[0], greffiere]) assert.ok(fs.existsSync(path.join(root, p.photoUrl)));
+assert.ok(!/Starovka/.test(c.W.soviet.ville_b.buildingContext['centre-artisanal'].roomOverrides.travees.imageUrl));
+assert.ok(fs.readFileSync(path.join(root, 'i18n/sovarka-roles-resources.js'), 'utf8').includes('["Greffière","Court clerk"'));
+console.log('OK : centre artisanal de Starovka, réceptionniste et greffière');
