@@ -12313,6 +12313,9 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
       imageUrl: 'images/Sovarka/Starovka/' + fichier
     });
   }
+  // Starovka : le lycée n'a pas de salle de réunion (modèle universitaire partagé).
+  // Exclusion locale : conserver la salle de classe et la bibliothèque.
+  lycee.roomsExclues = [...new Set([...(lycee.roomsExclues || []), 'salle_reunion'])];
   lycee.roomOverrides = lycee.roomOverrides || {};
   Object.assign(lycee.roomOverrides.amphi = lycee.roomOverrides.amphi || {}, {
     imageUrl: 'images/Sovarka/Starovka/Starovka_lycee_amphi.webp'
