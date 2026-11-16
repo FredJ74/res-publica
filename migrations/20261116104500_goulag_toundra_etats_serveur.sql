@@ -23,6 +23,25 @@ CREATE TABLE IF NOT EXISTS public.sovarka_goulag_traversees (
 ALTER TABLE public.sovarka_goulag_traversees ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.sovarka_goulag_traversees FROM PUBLIC, anon, authenticated;
 
+-- Porte de départ volontairement FERMÉE tant que les habilitations,
+-- la confiscation, le gel de peine et le retour en ville ne sont pas raccordés.
+-- Aucune entrée de traversée ni débit PA n'est possible via cette RPC.
+CREATE OR REPLACE FUNCTION public.goulag_toundra_demarrer(p_destination text)
+RETURNS jsonb
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER
+SET search_path TO 'public','pg_temp'
+AS $
+BEGIN
+  IF auth.uid() IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
+  IF p_destination IS NULL OR p_destination NOT IN ('starovka','krasnov') THEN
+    RETURN jsonb_build_object('ok',false,'raison','destination_invalide');
+  END IF;
+  RETURN jsonb_build_object('ok',false,'raison','goulag_non_active');
+END;
+$;
+REVOKE ALL ON FUNCTION public.goulag_toundra_demarrer(text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.goulag_toundra_demarrer(text) TO authenticated;
+
 CREATE OR REPLACE FUNCTION public.goulag_toundra_lire()
 RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER
