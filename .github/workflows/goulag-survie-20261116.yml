@@ -23,6 +23,7 @@ jobs:
       - run: node --check api/_goulag-parcours.js
       - run: node --check outils/bancs/test-goulag-parcours-20261116.cjs
       - run: node outils/bancs/test-goulag-parcours-20261116.cjs
+      - run: node outils/bancs/test-goulag-sql-structure-20261116.cjs
       - run: node --check outils/bancs/test-goulag-survie-20261116.cjs
       - run: node outils/bancs/test-goulag-survie-20261116.cjs
       - run: node --check plateau-goulag-toundra.js
