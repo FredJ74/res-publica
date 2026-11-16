@@ -27,3 +27,4 @@ jobs:
       - run: node --check plateau-router.js
       - run: node outils/bancs/test-goulag-decors-20261116.cjs
       - run: node outils/bancs/test-goulag-decor-runtime-20261116.cjs
+      - run: node outils/bancs/test-goulag-ecran-interactif-20261116.cjs
