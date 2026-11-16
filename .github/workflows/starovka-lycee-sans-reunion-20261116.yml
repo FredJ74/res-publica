@@ -1,0 +1,24 @@
+name: "Starovka — lycée sans salle de réunion"
+on:
+  push:
+    branches: [chatgpt/starovka-lycee-retirer-reunion-goulag-spec-20261116]
+    paths:
+      - .github/workflows/starovka-lycee-sans-reunion-20261116.yml
+      - data.js
+      - outils/bancs/test-starovka-lycee-sans-reunion-20261116.cjs
+permissions:
+  contents: read
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Vérifier syntaxe, pièces lycée, isolation
+        run: |
+          node --check data.js
+          node outils/bancs/test-starovka-lycee-sans-reunion-20261116.cjs
+          node outils/bancs/test-starovka-commissariat-lycee-20261116.cjs
