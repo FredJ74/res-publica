@@ -17,6 +17,21 @@
     if(!reponse.ok) return null;
     return reponse;
   }
+  async function rejoindre() {
+    if(actif)return;
+    actif=true;
+    try {
+      const info=await lire();
+      if(!info || info.termine)return;
+      if(info.nuits!==0)return;
+      if(!window.confirm('Vous êtes épuisé après la toundra. Rejoindre l’habitant qui vous recueillera pendant trois jours ?'))return;
+      const res=await requete('sovarka_goulag_refuge_rejoindre');
+      if(!res.ok){avertir('Accueil refusé',res.raison||'Position non confirmée.',false);return;}
+      avertir('Refuge trouvé','L’habitant vous ouvre. Première nuit : 5 unités de bois ; deuxième nuit : 3.',true);
+      if(typeof sbLoadPersonnage==='function')await sbLoadPersonnage();
+      if(typeof updateUI==='function')updateUI();
+    } finally {actif=false;}
+  }
   async function nuit() {
     if(actif) return;
     actif=true;
@@ -62,7 +77,23 @@
   }
   window.RP_ORDRES_DYNAMIQUES=window.RP_ORDRES_DYNAMIQUES||[];
   window.RP_ORDRES_DYNAMIQUES.push(ordresRefuge);
+  window.goulagRefugeRejoindre=rejoindre;
   window.goulagRefugeNuit=nuit;
   window.goulagRefugeTerminer=terminer;
   window.goulagRefugeLire=lire;
+  // Reprise de session, sans état d'arrivée inventé par le navigateur.
+  document.addEventListener('DOMContentLoaded',()=>{
+    let essais=0;
+    const intervalle=window.setInterval(async()=>{
+      essais++;
+      if(typeof state!=='undefined' && state.personnageChargeDepuisServeur===true){
+        window.clearInterval(intervalle);
+        if(state.country==='soviet' && !state.currentBuilding
+          && (state.currentCity==='ville_a'||state.currentCity==='ville_b')){
+          const r=await lire();
+          if(r && !r.termine && r.nuits===0)await rejoindre();
+        }
+      }else if(essais>=20)window.clearInterval(intervalle);
+    },1500);
+  });
 })();
