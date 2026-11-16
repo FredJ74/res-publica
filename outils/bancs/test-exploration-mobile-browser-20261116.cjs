@@ -33,6 +33,12 @@ const html=`<!doctype html><html lang="fr"><head><meta name="viewport" content="
      const mobile=width<1024;
      assert.equal(await page.locator('.hg-explore-tabs').isVisible(),mobile,'onglets '+width);
      if(mobile){
+       const navTop=await page.locator('.hg-explore-tabs').evaluate(el=>el.getBoundingClientRect().top);
+       const sceneTop=await page.locator('.rue-container').evaluate(el=>el.getBoundingClientRect().top);
+       assert.ok(navTop<sceneTop,'navigation doit précéder le décor '+width+' '+navTop+' / '+sceneTop);
+       assert.ok(navTop<800,'onglets visibles sans défilement '+width);
+     }
+     if(mobile){
        assert.match(await page.locator('.hg-explore-place').innerText(),/Starovka/);
        assert.match(await page.locator('.hg-explore-stats').innerText(),/12/);
        await page.locator('#r-pa').evaluate(e=>e.textContent='9');

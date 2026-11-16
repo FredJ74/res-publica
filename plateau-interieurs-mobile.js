@@ -35,7 +35,8 @@
     });
     nav.append(button);return button;
   });
-  image.closest('.piece-container')?.after(nav,info);
+  // Afficher les acces des l'entree dans le batiment, pas apres l'image.
+  header.after(nav,info);
 
   function translate(){
     const lang=document.documentElement.lang||'fr';
