@@ -10,7 +10,9 @@ Contexte : au champ de pétrole de Starovka, « Récolter » est limité à 2 fo
    c'est une forme de régulation de la production.
 3. **Ordre « Régulation de la production »** (adjoint au maire), avec la **liste des productions de la
    ville à réguler**.
-4. **Le ministre de l'Économie** peut **sommer** la ville de limiter l'extraction, mais n'a **pas les
+4. **L'ordre revient à l'adjoint au maire seul** : chacun son pré carré ; le maire nomme l'adjoint et
+   peut le remplacer en cas de désaccord.
+5. **Le ministre de l'Économie** peut **sommer** la ville de limiter l'extraction, mais n'a **pas les
    commandes**. Proposition de Claude, à confirmer : sommation officielle publique et traçable (courrier
    au maire et à l'adjoint, visible), pour que la désobéissance ait un coût politique.
 
@@ -21,7 +23,6 @@ Contexte : au champ de pétrole de Starovka, « Récolter » est limité à 2 fo
 
 ## Questions encore ouvertes
 
-- Qui détient l'ordre : l'adjoint seul, ou le maire et l'adjoint ?
 - Forme de la limite (par joueur et par jour, par ressource ?), durée, valeur par défaut sans adjoint.
 
 ## Idée notée au passage
