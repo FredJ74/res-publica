@@ -1,0 +1,36 @@
+{
+  "baseCommit": "5e5a21edee169606e0c331be6a8769578dac54da",
+  "codeCommit": "31ad5e7a49f4bbb9d2687d991ef9ec6ee81b1eea",
+  "frenchTexts": 9,
+  "foreignValues": 72,
+  "targetedPassed": 3,
+  "existingI18nPassed": 27,
+  "nodeMjsMainPassed": 418,
+  "nodeMjsBranchPassed": 418,
+  "browserSwitches": 918,
+  "viewports": [
+    320,
+    390,
+    1280
+  ],
+  "locales": [
+    "fr",
+    "en",
+    "es",
+    "zh-TW",
+    "ru",
+    "ko",
+    "ar",
+    "pt-BR",
+    "de"
+  ],
+  "allNineKeysExercised": true,
+  "serverCallsPerLanguageChange": 0,
+  "frenchExactAgainstMain": true,
+  "commandsAndParametersIdentical": true,
+  "merged": false,
+  "productionVerified": false,
+  "authenticatedPlayerTest": false,
+  "physicalPhoneTest": false,
+  "nativeLinguisticReview": false
+}

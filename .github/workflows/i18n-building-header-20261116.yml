@@ -1,0 +1,30 @@
+name: I18N — en-têtes de bâtiments
+on:
+  pull_request:
+    paths: ['plateau-navigation.js', 'plateau.html', 'i18n/plateau-resources.js', 'i18n/packed/plateau-resources.js.br', 'outils/audits/I18N-BUILDING-HEADER-20261116*', 'outils/bancs/banc-i18n-building-header-20261116.cjs', '.github/workflows/i18n-building-header-20261116.yml']
+  push:
+    branches: [main]
+    paths: ['plateau-navigation.js', 'i18n/plateau-resources.js', 'outils/bancs/banc-i18n-building-header-20261116.cjs', '.github/workflows/i18n-building-header-20261116.yml']
+permissions:
+  contents: read
+jobs:
+  building-header:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --prefix outils/e2e
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - run: node --check plateau-navigation.js && node outils/generateurs/compresser-catalogues-i18n.cjs --check
+      - name: Français exact, neuf langues, permissions, réponses différées, mobile/RTL et aucune action supplémentaire
+        env:
+          NODE_PATH: ./outils/e2e/node_modules
+          CHROMIUM_PATH: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-i18n-building-header-20261116.cjs outils/bancs/banc-i18n-transport-catalogues-20261114.cjs
+      - run: node --test outils/bancs/banc-i18n-plateau-init.cjs outils/bancs/banc-i18n-plateau-ressources.cjs outils/bancs/banc-i18n-plateau-wiring.cjs outils/bancs/banc-i18n-navigation-transports.cjs
+      - run: git diff --check
