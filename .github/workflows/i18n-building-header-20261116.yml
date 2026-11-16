@@ -27,4 +27,5 @@ jobs:
           CHROMIUM_PATH: /usr/bin/google-chrome
         run: node --test outils/bancs/banc-i18n-building-header-20261116.cjs outils/bancs/banc-i18n-transport-catalogues-20261114.cjs
       - run: node --test outils/bancs/banc-i18n-plateau-init.cjs outils/bancs/banc-i18n-plateau-ressources.cjs outils/bancs/banc-i18n-plateau-wiring.cjs outils/bancs/banc-i18n-navigation-transports.cjs
+      - run: node --test outils/bancs/banc-pnj-localisation-psm.mjs
       - run: git diff --check

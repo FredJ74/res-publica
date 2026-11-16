@@ -6,10 +6,16 @@ Les textes étaient écrits directement par enterBuilding. Leur absence de tradu
 
 ## Vérification
 
-- Trois tests ciblés verts : anciennes ressources et français exacts, arbre du code métier identique à main hors écritures UI précisément filtrées ; tous les autres fichiers/fonctions préservés.
+- Quatre tests ciblés verts : anciennes ressources et français exacts, arbre du code métier identique à main hors écritures UI précisément filtrées ; tous les autres fichiers/fonctions préservés.
 - 918 bascules principales sous Chromium, neuf langues, 320/390/1280 ; arabe RTL, droits propriétaire/commissaire, trois villes de Sovarka, directeur PJ/PNJ/vacant, erreurs et attente. Paramètres d’entrée/navigation et intentions du clic de gestion identiques à main ; zéro RPC/fetch/PA supplémentaire par bascule ; saisie, sélection, focus, progression et position inchangés. Texte malveillant traité comme texte, pas comme HTML. Repli après changement de solde vérifié sans ancien français mis en cache.
 - 27 tests i18n existants verts ; 418 tests test-*.mjs verts sur main et branche avec les mêmes dépendances (pglast/Acorn installés). Les premiers échecs dus aux dépendances locales absentes ont été résolus sans changer les tests.
 - Archives Brotli déterministes vérifiées, sources lisibles conservées ; aucun nouveau moteur. Plafond de déploiement inchangé, environ 277 Mo / 330 Mo.
+
+## Maintenance nécessaire du contrôle général
+
+Le contrôle général était déjà rouge sur main 5e5a21e : le miroir des scènes PNJ n’avait pas suivi la bibliothèque et le déplacement de la presse de Starovka. Le générateur perdait aussi le nom d’une pièce ajoutée quand une surcharge ne contenait que son image. Le fallback de nom reprend maintenant roomsExtra avant le modèle commun ; les noms français existants sont préservés, et « salle_partis » redevient le nom canonique déjà présent « Salle des partis ».
+
+Régénération déterministe du miroir : deux scènes ajoutées (bibliothèque vide et nouvelle salle de presse), ancienne scène de presse retirée ; la journaliste conserve exactement son nom et sa présence dans le lieu déjà défini par data.js. Tous les noms/castings sont conservés ; aucun profil, prompt, handler ou fonction de dialogue n’est modifié. Les 16 tests PNJ existants redeviennent verts. Aucune donnée canonique ni règle de jeu modifiée ; aucun nouveau texte de conversation traduit ou inventé.
 
 ## Périmètre et suites
 

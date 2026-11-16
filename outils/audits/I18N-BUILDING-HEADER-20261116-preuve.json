@@ -3,7 +3,7 @@
   "codeCommit": "31ad5e7a49f4bbb9d2687d991ef9ec6ee81b1eea",
   "frenchTexts": 9,
   "foreignValues": 72,
-  "targetedPassed": 3,
+  "targetedPassed": 4,
   "existingI18nPassed": 27,
   "nodeMjsMainPassed": 418,
   "nodeMjsBranchPassed": 418,
@@ -34,5 +34,15 @@
   "physicalPhoneTest": false,
   "nativeLinguisticReview": false,
   "sameHeaderNodeAcrossBuildingChanges": true,
-  "currentFrenchFallbackOnSameNode": true
+  "currentFrenchFallbackOnSameNode": true,
+  "generatedScenesMaintenance": {
+    "mainPreviouslyFailed": true,
+    "addedScenes": 2,
+    "removedObsoleteScene": 1,
+    "existingRoomNameRecoveredFromCanonicalData": 1,
+    "allPersonNamesPreserved": true,
+    "dialogueFunctionsAndProfilesUnchanged": true,
+    "existingPnjTestsPassed": 16
+  },
+  "maintenanceCodeCommit": "f057f9e7369121d5565657441e191605f0ef6cd1"
 }

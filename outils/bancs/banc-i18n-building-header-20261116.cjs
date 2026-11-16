@@ -3,14 +3,15 @@ const{test}=require('node:test'),assert=require('node:assert/strict'),fs=require
 const root=path.resolve(__dirname,'../..'),assets=process.env.BUILDING_HEADER_ASSET_DIR||root,read=f=>fs.readFileSync(path.join(assets,f),'utf8'),base='5e5a21edee169606e0c331be6a8769578dac54da',old=f=>execFileSync('git',['show',base+':'+f],{cwd:root,encoding:'utf8',maxBuffer:5e6}),langs=['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de'];
 function fn(s,name){const n=parse(s).body.find(n=>n.type==='FunctionDeclaration'&&n.id.name===name);assert.ok(n,name);return s.slice(n.start,n.end)}
 function resources(source){const c={RP_I18N_RESOURCES:Object.fromEntries(langs.map(l=>[l,{translation:{}}]))};c.window=c;vm.createContext(c);vm.runInContext(source,c);return JSON.parse(JSON.stringify(c.RP_I18N_RESOURCES));}
+const recorded=JSON.parse(fs.readFileSync(path.join(root,'outils/audits/I18N-BUILDING-HEADER-20261116-preuve.json'))),snapshot=(commit,f)=>execFileSync('git',['show',commit+':'+f],{cwd:root,encoding:'utf8',maxBuffer:5e6});
 const keys=['buildingArmoryManage','buildingArmoryTooltip','buildingCashLoading','buildingCashAmount','buildingCashUnavailable','buildingDirectorLoading','buildingDirectorName','buildingDirectorVacant','buildingDirectorUnavailable'];
 test('neuf textes / 72 valeurs : français exact, neuf langues, variables et anciennes ressources conservées',()=>{
- const before=resources(old('i18n/plateau-resources.js')),after=resources(read('i18n/plateau-resources.js'));
+ const before=resources(old('i18n/plateau-resources.js')),after=resources(snapshot(recorded.codeCommit,'i18n/plateau-resources.js')),current=resources(read('i18n/plateau-resources.js'));
  const french=['Gérer mon armurerie','Accéder à la gestion de mon commerce','Caisse : ...','Caisse : {{values.amount}} {{values.currency}}','Caisse : indisponible','Directeur : ...','Directeur : {{values.name}}','Directeur : poste vacant','Directeur : indisponible'];
- for(const l of langs){const a=after[l].translation.plateau,b=before[l].translation.plateau;assert.deepEqual(Object.keys(a).filter(k=>!(k in b)),keys);for(const [i,k]of keys.entries()){assert.ok(a[k].trim());if(l==='fr')assert.equal(a[k],french[i]);else assert.notEqual(a[k],french[i]);assert.deepEqual(a[k].match(/\{\{[^}]+\}\}/g)||[],french[i].match(/\{\{[^}]+\}\}/g)||[]);}for(const k of keys)delete a[k];assert.deepEqual(a,b,l);}
+ for(const l of langs){const a=after[l].translation.plateau,b=before[l].translation.plateau;assert.deepEqual(Object.keys(a).filter(k=>!(k in b)),keys);for(const [i,k]of keys.entries()){assert.ok(current[l].translation.plateau[k].trim());assert.deepEqual(current[l].translation.plateau[k].match(/\{\{[^}]+\}\}/g)||[],french[i].match(/\{\{[^}]+\}\}/g)||[]);if(l==='fr')assert.equal(current[l].translation.plateau[k],french[i]);else assert.notEqual(current[l].translation.plateau[k],french[i]);assert.ok(a[k].trim());if(l==='fr')assert.equal(a[k],french[i]);else assert.notEqual(a[k],french[i]);assert.deepEqual(a[k].match(/\{\{[^}]+\}\}/g)||[],french[i].match(/\{\{[^}]+\}\}/g)||[]);}for(const k of keys)delete a[k];assert.deepEqual(a,b,l);}
 });
 test('toute la mécanique de navigation identique à main : fonctions, conditions, RPC, permissions, données et paramètres',()=>{
- const before=parse(old('plateau-navigation.js')),after=parse(read('plateau-navigation.js'));
+ const before=parse(old('plateau-navigation.js')),after=parse(snapshot(recorded.codeCommit,'plateau-navigation.js'));
  const clean=n=>JSON.parse(JSON.stringify(n,(k,v)=>['start','end','loc','raw'].includes(k)?undefined:v));
  function strip(n){if(!n||typeof n!=='object')return n;if(Array.isArray(n))return n.map(strip).filter(v=>v!==null);
   if(n.type==='FunctionDeclaration'&&n.id.name==='rpBuildingHeaderText')return null;
@@ -25,6 +26,18 @@ test('toute la mécanique de navigation identique à main : fonctions, condition
  const proof=JSON.parse(fs.readFileSync(path.join(root,'outils/audits/I18N-BUILDING-HEADER-20261116-preuve.json'))),changed=execFileSync('git',['diff','--name-only',base,proof.codeCommit],{cwd:root,encoding:'utf8'}).trim().split('\n');
  assert.deepEqual(changed.filter(f=>!['RELAIS.md','plateau-navigation.js','plateau.html','i18n/plateau-resources.js','i18n/packed/plateau-resources.js.br','outils/audits/I18N-CATALOGUES-TRANSPORT.json'].includes(f)),[]);
  for(const f of ['data.js','supabase.js','i18n/plateau-init.js','style.css'])assert.equal(execFileSync('git',['show',proof.codeCommit+':'+f],{cwd:root,encoding:'utf8',maxBuffer:5e6}),old(f),f);
+});
+test('miroir généré : lieux actuels, noms et casting conservés, aucune fonction de dialogue modifiée',()=>{
+ const local=f=>fs.readFileSync(path.join(root,f),'utf8'),generator=snapshot(recorded.maintenanceCodeCommit,'outils/generateurs/generer-pnj-lieux-metiers.cjs');
+ assert.equal(generator.replace('piece: r?.name || ctx?.roomsExtra?.[piece]?.name || b.rooms?.[piece]?.name || piece,','piece: r?.name || b.rooms?.[piece]?.name || piece,'),old('outils/generateurs/generer-pnj-lieux-metiers.cjs'));
+ const table=s=>JSON.parse(s.slice(s.indexOf('{'),s.lastIndexOf('}')+1)),before=table(old('api/_pnj-scenes-generes.js')),after=table(snapshot(recorded.maintenanceCodeCommit,'api/_pnj-scenes-generes.js'));
+ const k=(...parts)=>JSON.stringify(parts),removed=k('soviet','ville_a','centre-affaires','tribune_republia'),press=k('soviet','ville_a','presse-starovka','presse'),library=k('soviet','ville_a','universite','bibliotheque'),partis=k('soviet','ville_b','mairie','salle_partis');
+ assert.deepEqual(Object.keys(before).filter(k=>!after[k]),[removed]);assert.deepEqual(Object.keys(after).filter(k=>!before[k]).sort(),[press,library].sort());
+ for(const key of Object.keys(before).filter(k=>after[k]))if(key===partis){assert.deepEqual({...after[key],piece:before[key].piece},before[key]);assert.equal(before[key].piece,'salle_partis');assert.equal(after[key].piece,'Salle des partis');}else assert.deepEqual(after[key],before[key],key);
+ assert.deepEqual(after[press].personnes,before[removed].personnes);assert.deepEqual(after[library].personnes,[]);
+ const people=o=>Object.values(o).flatMap(s=>s.personnes).sort();assert.deepEqual(people(after),people(before),'aucun PNJ ajouté, retiré ou renommé');
+ for(const f of ['api/chat.js','api/_pnj-localisation.js','api/_pnj-profils.js','api/_pnj-personnalites.js'])assert.equal(snapshot(recorded.maintenanceCodeCommit,f),old(f),f);
+ assert.equal(execFileSync(process.execPath,['outils/generateurs/generer-pnj-lieux-metiers.cjs','--scenes-js'],{cwd:root,encoding:'utf8',maxBuffer:5e6}),local('api/_pnj-scenes-generes.js'));
 });
 test('Chromium : vrais en-têtes, neuf langues, 320/390/1280, attentes/réponses/permissions, français et commandes identiques à main',async()=>{
  const{chromium}=require('playwright'),browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});let switches=0;const covered=new Set();
