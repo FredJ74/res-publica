@@ -1125,7 +1125,16 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
   if (typeof enigme1InjecterZoneCliquable === 'function') enigme1InjecterZoneCliquable(buildingId, roomId);
   if (typeof enigme1VerifierDebarras === 'function') enigme1VerifierDebarras(buildingId, roomId);
-  if (typeof enigme1AccueilHall === 'function') enigme1AccueilHall(buildingId, roomId);
+  // Musée de Luthécia : le serveur vérifie le hall réel. Attendre l'écriture
+  // de position avant sa RPC ; autrement une arrivée depuis une autre salle
+  // répond « pas_sur_place » et l'accueil de Valérie peut se perdre.
+  if (typeof enigme1AccueilHall === 'function'
+      && buildingId === 'musee-ville-luthecia' && roomId === 'hall') {
+    positionEcriteSurLeServeur.then(() => {
+      if (state.currentBuilding === buildingId && state.currentRoom === roomId)
+        return enigme1AccueilHall(buildingId, roomId);
+    }).catch(() => {});
+  }
   // Supprimer ancien emoji si present
   const existing = pieceImg.querySelector('.piece-emoji');
   if (existing) existing.remove();
