@@ -46,7 +46,7 @@
   });
   const scene = vue.querySelector('.rue-container');
   // Le menu doit etre visible AVANT le decor, sans defilement.
-  scene?.before(head,info); if(bar.parentElement!==vue)head.after(bar);
+  if(bar.parentElement!==vue)scene?.before(bar);bar.before(head);bar.after(info);
 
   function traduire(){
     const langue=document.documentElement.lang||'fr';
