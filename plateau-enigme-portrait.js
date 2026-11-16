@@ -155,6 +155,8 @@ function enigme1Refus(titre, v) {
 
 // Description des quatre salles pendant l'enquête (ajoutée après la description de base).
 function enigme1SuffixeDescription(buildingId, roomId) {
+  if (buildingId === 'musee-ville-luthecia' && roomId === 'hall' && enigme1EtapeActive())
+    return " Valérie Loisillon, l'hôtesse d'accueil, attire votre attention : des portraits ont disparu. Parlez-lui de l'enquête avant de visiter les salles.";
   return enigme1DansSalleCadreVide(buildingId, roomId)
     ? " Parmi les portraits, un cadre vide attire l'œil : seule sa plaque subsiste." : '';
 }
