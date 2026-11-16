@@ -36,7 +36,7 @@
     if(!button.isConnected)nav.append(button);return button;
   });
   // Afficher les acces des l'entree dans le batiment, pas apres l'image.
-  header.after(info);if(nav.parentElement!==vue)header.after(nav);
+  if(nav.parentElement!==vue)header.after(nav);nav.after(info);
 
   function translate(){
     const lang=document.documentElement.lang||'fr';
