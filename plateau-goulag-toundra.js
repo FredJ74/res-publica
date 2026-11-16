@@ -100,6 +100,12 @@
     if (typeof state === 'undefined' || state.country !== 'soviet' || ville !== 'qhs' || buildingId !== 'qhs-prison') return [];
     const pieces = (typeof BUILDINGS !== 'undefined' && BUILDINGS['qhs-prison']?.rooms) || {};
     const masque = Object.values(pieces).flatMap(p => (p.orders || []).map(o => o.fn));
+    if (roomId === 'cellules_qhs') return [
+      { fn: '__goulag_masque', masque, invisible: true, label: '', pa: 0, cost: 0 },
+      { fn: 'goulag_detenu_entree', label: "Se rendre à l'entrée du goulag", pa: 0, cost: 0,
+        type: 'legal', icon: 'ti-door-enter', successRate: 100,
+        desc: "Rejoindre l'entrée sous contrôle de la détention. Ce n'est pas une libération ni un transport." }
+    ];
     if (roomId !== 'entree_qhs') return [{ fn: '__goulag_masque', masque, invisible: true, label: '', pa: 0, cost: 0 }];
     return [{ fn: 'goulag_depart_pied', label: "S'enfuir à pied", pa: 0, cost: 0,
       icon: 'ti-walk', type: 'legal', successRate: 100, masque,
@@ -111,6 +117,23 @@
     window.RP_ORDRES_DYNAMIQUES = window.RP_ORDRES_DYNAMIQUES || [];
     window.RP_ORDRES_DYNAMIQUES.push(ordresGoulagDuLieu);
   }
+
+  async function rejoindreEntree() {
+    if (occupe || typeof sbRpcVerdict !== 'function') return;
+    occupe = true;
+    try {
+      const r=await sbRpcVerdict('sovarka_goulag_detenu_vers_entree',{});
+      if (!r || r.ok!==true) {
+        if (typeof showToast==='function') showToast('Entrée inaccessible',r?.raison||'Refus du serveur.',false);
+        return;
+      }
+      if (typeof sbLoadPersonnage==='function') await sbLoadPersonnage();
+      if (typeof updateUI==='function') updateUI();
+    } catch (_) {
+      if (typeof showToast==='function') showToast('Entrée inaccessible','Le serveur ne confirme pas le déplacement.',false);
+    } finally { occupe=false; }
+  }
+  window.goulagDetenuVersEntree=rejoindreEntree;
 
   async function choisirDepart() {
     if (occupe || typeof sbRpcVerdict !== 'function') return;
