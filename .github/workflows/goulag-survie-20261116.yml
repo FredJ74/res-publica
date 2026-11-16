@@ -30,6 +30,7 @@ jobs:
       - run: node --check plateau-goulag-transports.js
       - run: node --check plateau-goulag-refuge.js
       - run: node --check plateau-router.js
+      - run: node --check plateau-justice-economie.js
       - run: node outils/bancs/test-goulag-interface-circuits-20261116.cjs
       - run: node --check plateau-politique.js
       - run: node --check plateau-router.js
