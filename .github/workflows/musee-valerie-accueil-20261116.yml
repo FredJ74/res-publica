@@ -1,0 +1,41 @@
+name: Musee - accueil Valerie et enquete Jodie
+on:
+  pull_request:
+    paths:
+      - 'plateau-enigme-portrait.js'
+      - 'plateau-router.js'
+      - 'outils/bancs/test-enigme1-musee-depart-20261113.mjs'
+      - 'migrations/20261116180000_musee_valerie_accueil_confirmation.sql'
+      - '.github/workflows/musee-valerie-accueil-20261116.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verifier-accueil-musee:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Controle syntaxe et scenarios musee
+        run: |
+          node --check plateau-enigme-portrait.js
+          node --check plateau-router.js
+          node outils/bancs/test-enigme1-musee-depart-20261113.mjs
+      - name: Verifier la garde sur le dialogue et la confirmation
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const sql=fs.readFileSync('migrations/20261116180000_musee_valerie_accueil_confirmation.sql','utf8');
+          const js=fs.readFileSync('plateau-enigme-portrait.js','utf8');
+          assert.match(sql,/accueil_confirmer/);
+          assert.match(sql,/accueilValerieConfirme/);
+          assert.match(js,/enigme1_parler_valerie/);
+          assert.match(js,/Parler à Valérie de l'enquête/);
+          assert.match(js,/Compris, je commence mon enquête/);
+          assert.match(js,/Parlez-lui de l'enquête/);
+          assert.doesNotMatch(js,/if \(state\.char\.enigme1\.accueilValerie\) return;/);
+          console.log('Intro musée garantie avec ordre manuel et confirmation après clic');
+          NODE
