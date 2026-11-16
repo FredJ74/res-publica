@@ -29,6 +29,7 @@ html=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');
   assert.equal(await page.locator('#hg-explore-primary').isVisible(),width<1024);
   if(width<1024){
    assert.ok(sizes.nav.top<sizes.scene.top,'navigation avant scene');
+   assert.ok(sizes.scene.bottom<=sizes.ambiance.top,'le cartel doit suivre le décor '+JSON.stringify(sizes));
    assert.ok(sizes.scene.bottom<=sizes.actions.top,'actions suivent decor et description '+JSON.stringify(sizes));
    assert.ok(sizes.actions.top-sizes.scene.bottom<360,'pas de grand vide avant les actions '+JSON.stringify(sizes));
    assert.ok(sizes.doc<=sizes.w+2,'pas de debordement horizontal '+JSON.stringify(sizes));
