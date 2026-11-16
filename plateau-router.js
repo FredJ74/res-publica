@@ -22,6 +22,19 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
     else showToast('Service indisponible', 'La traversée n’est pas encore accessible.', false);
     return;
   }
+  // Transport et autorisations du goulag : aucun paiement côté navigateur.
+  const ordresVisiteGoulag = {
+    goulag_visite_demander:'goulagAutorisationDemander',
+    goulag_voyager:'goulagVoyager',
+    goulag_autorisations_gerer:'goulagAutorisationsGerer',
+    goulag_visiteur_retour:'goulagVisiteurRetour'
+  };
+  if (Object.prototype.hasOwnProperty.call(ordresVisiteGoulag, fn)) {
+    const handler = window[ordresVisiteGoulag[fn]];
+    if (typeof handler === 'function') handler();
+    else showToast('Service indisponible', 'La fonction du goulag n’est pas encore disponible.', false);
+    return;
+  }
   if (fn === 'publicite_premium') { ouvrirPublicitePremium(); return; }
   if (typeof queteAccueilNotifierOrdre === 'function') queteAccueilNotifierOrdre(fn);
   successRate = successRate || 70;
