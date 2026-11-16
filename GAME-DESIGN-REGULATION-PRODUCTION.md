@@ -21,7 +21,8 @@ Contexte : au champ de pétrole de Starovka, « Récolter » est limité à 2 fo
    Il n'a pas les commandes.
 8. **Récolte à 1 PA** (au lieu de 2), quantité récoltée relevée pour que produire vaille la peine
    (PA minimum en Républia : 50 FR). Exemple validé par Fred : **poisson en Républia = 10 par PA**.
-   Quantités des autres ressources : proposition de Claude en attente de validation.
+   Quantités fixes par PA validées par Fred (16/11) : poisson 10 (PSM), charbon 6 et métal 3 (Montrouge),
+   pétrole 4 (Starovka), bois 6 (Krasnov ; forêt profonde doublée : 12).
 9. **Prix des matières en Sovarka = moitié des prix de Républia** (règle de Fred, rappelée le 16/11 ;
    pas encore codée : un seul tableau de prix `ressources_economie`, mêmes chiffres en FR et PSK).
    S'applique à **toutes les matières premières** de Sovarka (entrepôts, usines, trading).
