@@ -56,8 +56,10 @@
      const textes=demandes.map((x,i)=>(i+1)+' — '+x.nom).join('\n');
      const index=Number(window.prompt('Demandes de visite au goulag :\n'+textes+'\n\nNuméro de la demande à traiter :','1'));
      if(!Number.isSafeInteger(index)||index<1||index>demandes.length)return;
-     const oui=window.confirm('Accorder l’autorisation de visite à '+demandes[index-1].nom+' ? Annuler = refuser.');
-     const decision=oui?'accorder':'refuser';
+     const choix=window.prompt('Visite de '+demandes[index-1].nom+' : 1 — Accorder / 2 — Refuser. Annuler = aucune décision.','1');
+     if(choix===null)return;
+     const decision=choix.trim()==='1'?'accorder':choix.trim()==='2'?'refuser':null;
+     if(!decision)return;
      const verdict=await rpc('sovarka_goulag_visite_decider',{p_id:demandes[index-1].id,p_decision:decision});
      dire(verdict.ok?'Décision enregistrée':'Décision refusée',verdict.ok?'La décision est conservée au serveur.':verdict.raison||'Refus serveur',verdict.ok);
    }finally{occupe=false;}
