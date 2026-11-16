@@ -6,6 +6,7 @@ on:
       - 'plateau-exploration-mobile.css'
       - 'plateau-exploration-mobile.js'
       - 'outils/bancs/test-exploration-mobile-20261116.cjs'
+      - 'outils/bancs/test-exploration-mobile-browser-20261116.cjs'
       - '.github/workflows/exploration-mobile.yml'
   workflow_dispatch:
 jobs:
@@ -20,3 +21,10 @@ jobs:
         run: node --check plateau-exploration-mobile.js
       - name: Contrôles ciblés sans réseau ni Supabase
         run: node outils/bancs/test-exploration-mobile-20261116.cjs
+      - name: Installer Chromium de test
+        run: |
+          cd outils/e2e
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Navigation responsive 320 390 414 1280
+        run: node outils/bancs/test-exploration-mobile-browser-20261116.cjs
