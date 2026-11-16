@@ -60,7 +60,7 @@ if tag not in data:
   if (!ville || !ville.buildingContext) throw new Error('Contexte de Starovka absent');
   const hopital = ville.buildingContext['dispensaire-public-v'];
   if (!hopital || !hopital.roomsExtra || !hopital.roomsExtra.chambre) {
-    throw new Error('Pièces de l\'hôpital de Starovka absentes');
+    throw new Error("Pièces de l\'hôpital de Starovka absentes");
   }
   hopital.roomOverrides = hopital.roomOverrides || {};
   const path = 'images/Sovarka/Starovka/Starovka_hopital_';
