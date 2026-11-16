@@ -436,6 +436,14 @@
       "packedSha256": "273e7c540bd74de94fd9de9a07df6d6e58d5c8a880354f8bd9f89654cdd34050"
     },
     {
+      "source": "i18n/port-commerce-resources.js",
+      "packed": "i18n/packed/port-commerce-resources.js.br",
+      "sourceBytes": 37771,
+      "packedBytes": 8827,
+      "sourceSha256": "79facb81ec0e5b7465955e6f8adcdf60fd93af6d4fe7682fc7f6f67bb07cdec8",
+      "packedSha256": "78e8c2eae4981ec4eb1152121e057d1013acdd0dceae001b17a70d9f43c56e16"
+    },
+    {
       "source": "i18n/port-customs-ui-resources.js",
       "packed": "i18n/packed/port-customs-ui-resources.js.br",
       "sourceBytes": 15079,

@@ -94,11 +94,48 @@ Contexte : au champ de pétrole de Starovka, « Récolter » est limité à 2 fo
   cédé aux entrepôts de Sovarka au prix intérieur (4 PSK) ; la perte reste dans la caisse du port et c'est
   la balance commerciale qui l'équilibre (douanes, amendes, marges à l'exportation, dotations, quotas).
 
+- **Commandants du Port d'El Estado et d'Al-Khalija** (Fred, 16/11, midi) : codés pour que le commerce
+  international parte aussi de ces pays. Empires non jouables : commandant PNJ au réglage par défaut, port
+  avec une vraie caisse, l'État couvre le déficit tant que l'empire n'est pas ouvert (lecture de Claude).
+- **Importations de Républia payantes**, comme partout (Fred, 16/11) ; **caisse de départ de 20 000** pour
+  chaque port. « On va commencer à donner du corps et une réalité au modèle économique. »
+
+## Codé le 16/11/2026 (feu vert de Fred, midi)
+
+Migration `20261116113000_ports_commerce_international` (appliquée ; registre
+`ports_commerce_international_20261116113000`), écran `plateau-port-commerce.js`, catalogue
+`i18n/port-commerce-resources.js`, tâche de nuit `commerce_international` (`api/cron-minuit.js`).
+
+- **Tables** : `ports_commerce` (un port par pays : caisse, entrepôts, réglages du commandant, dotation
+  quotidienne), `ports_stock`, `commerce_contrats` (volumes d'avant ce lot, repris tels quels, à relire par
+  Fred), `ports_productions` (Scierie Guy Tarembois, 150 bois), `ports_journal`, `ports_balance_jours`.
+- **Prix par défaut** (choix de Claude) : exportation au **cours international** (prix de base de la table
+  des ressources, celui de Républia ; Sovarka vendait déjà ses exportations à ce prix) ; cession aux
+  entrepôts au **prix intérieur** du pays. Le port achète aux entrepôts au prix intérieur ce qu'il exporte.
+  Bornes des prix fixés : 10 % à 500 % de la référence.
+- **Passe de nuit** (`commerce_international_passe`) : dotations quotidiennes du ministre (plafonnées à la
+  caisse du ministère) ; production intérieure ; contrats (lois, quotas, stock des entrepôts, caisse du port
+  qui achète ; vente à perte possible) ; cession du stock des ports aux entrepôts selon le fléchage (place
+  et caisse de chaque entrepôt ; le reste attend au port) ; balance du jour.
+- **Pétrole et produits exotiques** n'arrivent plus en Républia que par les contrats (Al-Khalija 133 pétroles,
+  Sovarka 200, El Estado 125 produits exotiques) ; la part que le tirage des entrepôts réservait à la
+  raffinerie de Montrouge est conservée. Le bois de Sovarka (150) devient un contrat prélevé sur les
+  entrepôts de Sovarka.
+- **Commandant du Port** : `port_commandant_regler`, dans son bureau, 0 PA (comme l'ancien ordre) ;
+  `fixer_repartition_port` passe par la même porte. Retour d'un PNJ : réglages par défaut.
+- **Ministre de l'Économie** : « Dotation au port » dans « Gestion industrielle et portuaire » ; virement
+  ponctuel (1 PA) ou dotation quotidienne.
+- **Douane** : taux du port dans `fret_dedouaner` et dans l'amende d'inspection (`fret_inspecter_interne`) ;
+  droits, amendes et produit des caisses saisies pour amende à la caisse du port.
+- **Pêche** : ordre « Pêcher » au Port de Plaisance de PSM ; le serveur refuse le poisson ailleurs à PSM.
+- **Journal du jour** : bloc « Balance commerciale » en dernière page, après les indices de prix.
+- Premier essai annulé (nuit simulée) : Républia −2 652 FR, Sovarka +4 182 PSK, El Estado +547,
+  Al-Khalija −2 077 ; les entrepôts de Républia, pleins, ne prennent encore rien au port.
+
 ## Points relevés pour Fred
 
-- **Port-Sainte-Marie n'a pas de lieu de pêche** : la zone de production de PSM est la Scierie Guy
-  Tarembois, où « Récolter » est masqué depuis août. Le poisson à 10 par PA ne s'applique donc nulle
-  part tant qu'un lieu de pêche n'existe pas (où ? le port, la criée ?).
-- Les importations de Sovarka (médicaments, alcool, plantes, tabac) restent payées au prix du pays
-  d'origine alors que Sovarka revend à moitié prix : les entrepôts de Sovarka perdent sur ces produits
-  s'ils ne fixent pas un prix manuel. À surveiller lors de l'audit transversal des prix.
+- ~~Lieu de pêche de PSM~~ : réglé (Port de Plaisance). ~~Importations de Sovarka à perte~~ : réglé (caisse
+  du port, balance commerciale).
+- **Volumes des contrats** repris de l'existant, à relire par Fred (table `commerce_contrats`, corrigeable
+  sans code). Le déficit quotidien de Républia (environ 2 650 FR) épuisera la caisse de départ en une
+  semaine sans dotation, prix ou quotas : c'est le jeu voulu, à surveiller.

@@ -743,8 +743,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'revoquer_chef_douanes') { ouvrirModalRevoquerChefDouanes(pa, cost); return; }
   if (fn === 'nommer_commandant_port') { ouvrirModalNommerCommandantPort(); return; }
   if (fn === 'revoquer_commandant_port') { ouvrirModalRevoquerCommandantPort(pa, cost); return; }
-  if (fn === 'consulter_administration_port') { ouvrirConsulterPort(); return; }
-  if (fn === 'gerer_logistique_port') { ouvrirModifierRepartitionPort(); return; }
+  // Ports et commerce international (16/11/2026) : plateau-port-commerce.js, tout pays.
+  if (fn === 'consulter_administration_port') { ouvrirAdministrationPort(); return; }
+  if (fn === 'gerer_logistique_port') { ouvrirReglagesPort(); return; }
   if (fn === 'acheter_criee') { ouvrirAcheterCriee(pa, cost); return; }
   // Marchande de poissons de Novomirsk (06/11/2026) : plateau-poissonniere.js, tout par le serveur.
   if (fn === 'poissonniere_poisson') { ouvrirPoissonniere('poisson'); return; }
