@@ -48,11 +48,11 @@
       '<button type="button" data-goulag-action="abri">Dresser un abri (−1 PA)</button>'+
       '<button type="button" data-goulag-action="dormir" style="min-height:44px;padding:12px 16px">Dormir (+3 PA, +3 avec abri)</button>'+
       '<button type="button" data-goulag-action="progresser" style="min-height:44px;padding:12px 16px">Progresser (−5 PA)</button>'+
-      '</div><p id="goulag-toundra-message" role="status" aria-live="polite">'+encode(message)+'</p>';
+      '</div>'+(etat.champignons_a_decider ? '<div class="goulag-actions"><p>Vous découvrez des champignons. Les manger peut avoir des conséquences sur votre énergie.</p><button type="button" data-goulag-action="champignons_manger">Manger les champignons</button><button type="button" data-goulag-action="champignons_refuser">Ne pas les manger</button></div>' : '')+'<p id="goulag-toundra-message" role="status" aria-live="polite">'+encode(message)+'</p>';
     root.style.display = 'block';
     for (const btn of root.querySelectorAll('[data-goulag-action]')) {
       const a=btn.dataset.goulagAction;
-      btn.disabled = occupe || (a==='abri' && (etat.abri_aujourdhui || etat.dormi_aujourdhui || etat.pa <= 1))
+      btn.disabled = occupe || (a==='progresser' && etat.champignons_a_decider) || (a==='abri' && (etat.abri_aujourdhui || etat.dormi_aujourdhui || etat.pa <= 1))
         || (a==='dormir' && etat.dormi_aujourdhui)
         || (a==='progresser' && (etat.progresse_aujourdhui || etat.pa <= 5));
       btn.addEventListener('click', () => action(btn.dataset.goulagAction));
