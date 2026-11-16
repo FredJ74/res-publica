@@ -11251,12 +11251,13 @@ function slugPnjSovarka(nom) {
         orders: []
       },
       // Bureau du Commandant du Port de Sovarka (Fred, 16/11/2026, GAME-DESIGN-REGULATION-PRODUCTION.md) :
-      // piece du port, comme l'administration portuaire de PSM. Image a venir (ChatGPT) ; ordres du
-      // commandant (flechage, quotas, balance commerciale, douane) codes apres le feu vert de Fred.
+      // piece du port, comme l'administration portuaire de PSM. Image de Fred (16/11/2026). Ordres du
+      // commandant raccordes par le commerce international (#1024) : administration du port, logistique.
       administration_portuaire: {
         name: psm.administration_portuaire.name,
         imageBg: "linear-gradient(135deg,#0b1016,#16212c)",
-        desc: "Le bureau du Commandant du Port, au-dessus des quais. Une carte des routes maritimes couvre un mur, le planning du brise-glace l'autre.",
+        desc: "Le bureau du Commandant du Port, au-dessus des quais. Par la grande baie vitrée, les grues chargent les cargos ; au mur, le plan du port de Starovka. Les douaniers y déposent leurs dossiers.",
+        imageUrl: "images/Sovarka/Starovka/Starovka_port_administration_portuaire.webp",
         persons: [{name:'Commandant Tömör Ochirov (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}],
         orders: copie(psm.administration_portuaire.orders).filter(o => o.fn !== 'consulter_manifeste').map(o => Object.assign(o,
           o.fn === 'consulter_administration_port'
@@ -12405,4 +12406,25 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     persons: [],
     orders: []
   };
+})();
+
+
+// STAROVKA_HOPITAL_TROIS_SALLES_20261116
+// Uniquement les décors de l'hôpital de Starovka : pas de modification des soins, PNJ ni ordres.
+(function () {
+  const ville = WORLD.soviet && WORLD.soviet.ville_a;
+  if (!ville || !ville.buildingContext) throw new Error('Contexte de Starovka absent');
+  const hopital = ville.buildingContext['dispensaire-public-v'];
+  if (!hopital || !hopital.roomsExtra || !hopital.roomsExtra.chambre) {
+    throw new Error("Pièces de l'hôpital de Starovka absentes");
+  }
+  hopital.roomOverrides = hopital.roomOverrides || {};
+  const path = 'images/Sovarka/Starovka/Starovka_hopital_';
+  hopital.roomOverrides.attente = Object.assign(hopital.roomOverrides.attente || {}, {
+    imageUrl: path + 'accueil.webp'
+  });
+  hopital.roomOverrides.ehpad = Object.assign(hopital.roomOverrides.ehpad || {}, {
+    imageUrl: path + 'ehpad.webp'
+  });
+  hopital.roomsExtra.chambre.imageUrl = path + 'chambre.webp';
 })();
