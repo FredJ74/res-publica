@@ -22,6 +22,16 @@ const {chromium}=require('../e2e/node_modules/playwright');
     console.log('AUDIT '+width+' HTTP '+resp?.status()+' '+JSON.stringify(result)+' errors='+JSON.stringify(errors.slice(0,4)));
     if(!result.version||!result.css.some(x=>x.includes('plateau-exploration-mobile.css')))throw Error('Asset absent');
     if(!result.tabs||!result.roomTabs)throw Error('Modules UI non initialises: '+width);
+    if(width<1024){
+      const rects=await page.evaluate(()=>{
+        const box=s=>{const e=document.querySelector(s);if(!e)return null;const b=e.getBoundingClientRect();return {top:b.top,bottom:b.bottom,display:getComputedStyle(e).display}};
+        return {streetNav:box('.hg-explore-tabs'),streetScene:box('#vue-rue .rue-container'),roomNav:box('.hg-room-tabs'),roomScene:box('#vue-batiment .piece-container')};
+      });
+      if(!(rects.streetNav?.top>=0&&rects.streetNav.top<rects.streetScene?.top))throw Error('Navigation rue invisible avant le décor '+width+': '+JSON.stringify(rects));
+      if(!(rects.roomNav?.top<rects.roomScene?.top))throw Error('Navigation bâtiment après le décor '+width+': '+JSON.stringify(rects));
+      console.log('ORDRE VISIBLE '+width+' '+JSON.stringify(rects));
+    }
+
     await page.close();
    }
  }finally{await browser.close();}
