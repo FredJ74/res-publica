@@ -156,7 +156,10 @@ async function enigme1EcrireJodie() {
   // La lecture de l'historique est non mutante et confirmée par le serveur.
   if (typeof sbRpcVerdict !== 'function') return;
   const r=await sbRpcVerdict('jodie_enquete_ecrire',{p_message:null}).catch(()=>null);
-  if (r && r.ok && r.courrier && document.getElementById('postes-modal-title')?.textContent==='Écrire à Jodie Moitout') {
+  // Ne jamais effacer un brouillon déjà saisi pendant le chargement de la réponse précédente.
+  const brouillon = document.getElementById('enigme1-courrier-jodie')?.value?.trim();
+  if (r && r.ok && r.courrier && !brouillon
+      && document.getElementById('postes-modal-title')?.textContent==='Écrire à Jodie Moitout') {
     enigme1CourrierAfficher(r.courrier);
   }
 }
