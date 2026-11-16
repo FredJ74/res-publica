@@ -1,0 +1,36 @@
+name: Goulag Sovarka - importer et convertir dix images
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/goulag-moteur-survie-20261116
+    paths:
+      - 'outils/images/convertir_goulag_toundra_20261116.py'
+      - '.github/workflows/goulag-import-images-20261116.yml'
+permissions:
+  contents: write
+jobs:
+  convertir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install Pillow==11.3.0
+      - name: Reprendre seulement les dix PNG deposés sur main
+        shell: bash
+        run: |
+          git fetch origin main --depth=1
+          git checkout origin/main -- 'images/Sovarka/Image ChatGPT 16 nov. 2026, 03_34_42-1.png' 'images/Sovarka/Image ChatGPT 16 nov. 2026, 03_34_43-2.png' 'images/Sovarka/Image ChatGPT 16 nov. 2026, 03_34_44-3.png' 'images/Sovarka/Image ChatGPT 16 nov. 2026, 03_34_45-4.png' 'images/Sovarka/Image ChatGPT 16 nov. 2026, 03_34_46-5.png' 'images/Sovarka/Image ChatGPT 16 nov. 2026, 03_34_48-6.png' 'images/Sovarka/Image ChatGPT 16 nov. 2026, 03_34_49-7.png' 'images/Sovarka/Image ChatGPT 16 nov. 2026, 03_34_50-8.png' 'images/Sovarka/Image ChatGPT 16 nov. 2026, 03_34_51-9.png' 'images/Sovarka/Image ChatGPT 16 nov. 2026, 03_34_52-10.png'
+          # L'ancien "Goulag" est un fichier de 1 octet, pas un dossier.
+          if test -f images/Sovarka/Goulag; then git rm -f images/Sovarka/Goulag; fi
+          python outils/images/convertir_goulag_toundra_20261116.py
+          git add -A images/Sovarka
+          test "$(find images/Sovarka/Goulag -maxdepth 1 -name '*.webp' | wc -l)" -eq 10
+          test "$(find images/Sovarka -maxdepth 1 -name 'Image ChatGPT 16 nov. 2026*' | wc -l)" -eq 0
+          git -c user.name=github-actions -c user.email=41898282+github-actions[bot]@users.noreply.github.com commit -m "Sovarka Goulag : 10 WebP compressés, originaux PNG supprimés"
+          git push origin HEAD:chatgpt/goulag-moteur-survie-20261116
