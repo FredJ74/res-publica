@@ -12289,3 +12289,42 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   }
   mairie.roomsExtra.salle_partis.imageUrl = dir + 'salle_partis.webp';
 })();
+
+
+// STAROVKA_COMMISSARIAT_LYCEE_CINQ_WEBP_20261116
+// Décors exclusivement visuels : les ordres et les acteurs existants ne sont pas modifiés.
+(function () {
+  const cite = WORLD.soviet?.ville_a;
+  if (!cite) return;
+  const police = cite.buildingContext?.['commissariat-local'];
+  const lycee = cite.buildingContext?.universite;
+  if (!police || !lycee || !BUILDINGS['commissariat-local'] || !BUILDINGS.universite) {
+    throw new Error('Commissariat local ou lycée de Starovka introuvable');
+  }
+  police.roomOverrides = police.roomOverrides || {};
+  const imagesPolice = {
+    accueil_loc: 'Starovka_commissariat_accueil_loc.webp',
+    bureau_commissaire: 'Starovka_commissariat_bureau_commissaire.webp',
+    geoles: 'Starovka_commissariat_geoles.webp'
+  };
+  for (const [piece, fichier] of Object.entries(imagesPolice)) {
+    if (!BUILDINGS['commissariat-local'].rooms[piece]) throw new Error('Pièce de police inconnue : ' + piece);
+    Object.assign(police.roomOverrides[piece] = police.roomOverrides[piece] || {}, {
+      imageUrl: 'images/Sovarka/Starovka/' + fichier
+    });
+  }
+  lycee.roomOverrides = lycee.roomOverrides || {};
+  Object.assign(lycee.roomOverrides.amphi = lycee.roomOverrides.amphi || {}, {
+    imageUrl: 'images/Sovarka/Starovka/Starovka_lycee_amphi.webp'
+  });
+  // Bibliothèque ajoutée au lycée comme lieu de rencontre et d'étude ; aucune mécanique inventée.
+  lycee.roomsExtra = lycee.roomsExtra || {};
+  lycee.roomsExtra.bibliotheque = {
+    name: 'Bibliothèque et salle d’étude',
+    imageUrl: 'images/Sovarka/Starovka/Starovka_lycee_bibliotheque.webp',
+    imageBg: 'linear-gradient(135deg,#171718,#282c32)',
+    desc: 'Rayonnages et tables de travail, à l’abri de la neige. Des lycéens y étudient les langues et consultent des ouvrages.',
+    persons: [],
+    orders: []
+  };
+})();
