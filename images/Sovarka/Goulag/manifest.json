@@ -1,0 +1,79 @@
+{
+  "dimensions": [
+    1448,
+    1086
+  ],
+  "qualite": 85,
+  "vues": [
+    {
+      "etape": 1,
+      "source": "Image ChatGPT 16 nov. 2026, 03_34_42-1.png",
+      "fichier": "Sovarka_goulag_toundra_01.webp",
+      "octets": 241584,
+      "sha256": "c1b4fc8faca7a5ed7e3f06ea522d85096af48af398839ffc9c47ac77db279178"
+    },
+    {
+      "etape": 2,
+      "source": "Image ChatGPT 16 nov. 2026, 03_34_43-2.png",
+      "fichier": "Sovarka_goulag_toundra_02.webp",
+      "octets": 289658,
+      "sha256": "b414a7264df96f3495305e96441b7c1ad72b8f4f580a6bc2291999a0ef953c38"
+    },
+    {
+      "etape": 3,
+      "source": "Image ChatGPT 16 nov. 2026, 03_34_44-3.png",
+      "fichier": "Sovarka_goulag_toundra_03.webp",
+      "octets": 275412,
+      "sha256": "2dde4a70a9ec9c036595411aa890dbd762bb4e13823b8766d8f2f4fcc3a6b8cf"
+    },
+    {
+      "etape": 4,
+      "source": "Image ChatGPT 16 nov. 2026, 03_34_45-4.png",
+      "fichier": "Sovarka_goulag_toundra_04.webp",
+      "octets": 278986,
+      "sha256": "254c8c35e6e7aded05938e256b53d51191c36c532c00947edee063eb282fd0b4"
+    },
+    {
+      "etape": 5,
+      "source": "Image ChatGPT 16 nov. 2026, 03_34_46-5.png",
+      "fichier": "Sovarka_goulag_toundra_05.webp",
+      "octets": 395086,
+      "sha256": "353672a8baef65395201b01e76bac4d9a05c979a20d57e445b2927f1f39518e4"
+    },
+    {
+      "etape": 6,
+      "source": "Image ChatGPT 16 nov. 2026, 03_34_48-6.png",
+      "fichier": "Sovarka_goulag_toundra_06.webp",
+      "octets": 258316,
+      "sha256": "9a119506ae392dfcbcd995d15ab979ea6c4d7cce7c2f80d8c42a20ffac49a017"
+    },
+    {
+      "etape": 7,
+      "source": "Image ChatGPT 16 nov. 2026, 03_34_49-7.png",
+      "fichier": "Sovarka_goulag_toundra_07.webp",
+      "octets": 238090,
+      "sha256": "36ad9b94e7a6f9149ba84f83f4f63e40bdf5d675745ac13762e185307fc37446"
+    },
+    {
+      "etape": 8,
+      "source": "Image ChatGPT 16 nov. 2026, 03_34_50-8.png",
+      "fichier": "Sovarka_goulag_toundra_08.webp",
+      "octets": 325712,
+      "sha256": "32aea652bf265bfb18748beab07e062ec998af8727950eab435a5b0b4185569c"
+    },
+    {
+      "etape": 9,
+      "source": "Image ChatGPT 16 nov. 2026, 03_34_51-9.png",
+      "fichier": "Sovarka_goulag_toundra_09.webp",
+      "octets": 405388,
+      "sha256": "a83ab95620ad2910befe5bc888fb86d85878541991f597eeda21e2e5f559b1a0"
+    },
+    {
+      "etape": 10,
+      "source": "Image ChatGPT 16 nov. 2026, 03_34_52-10.png",
+      "fichier": "Sovarka_goulag_toundra_10.webp",
+      "octets": 478574,
+      "sha256": "fb16aa8f1564f782a3577062ba214b2ce3879202ac4700d7c0a73309a8ad381b"
+    }
+  ]
+}
