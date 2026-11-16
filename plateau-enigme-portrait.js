@@ -86,7 +86,15 @@ function enigme1AfficherCalepin(idx) {
     const titre = rempli ? ENIGME1_TITRES_CALEPIN[cle] : '...';
     html += '<div style="font-size:.85rem;color:' + (rempli ? '#e0d8c0' : '#5a5040') + ';font-style:' + (rempli ? 'normal' : 'italic') + '">Énigme du musée : ' + titre + '</div>';
   });
-  html += '</div></div>';
+  html += '</div>';
+  // Une fois une plaque examinée, Jodie reste joignable depuis le calepin,
+  // sans attendre un nouvel appel ni exiger de quitter la ville.
+  if (enigme1EtapeActive() && enigme1CadresVus().length > 0) {
+    html += '<div style="margin-top:1rem;padding-top:.8rem;border-top:1px solid #50452e">'
+      + '<p style="font-size:.88rem;line-height:1.5;color:#e0d8c0">Vous pouvez faire part de vos observations à Jodie Moitout, qui vous a proposé de lui écrire.</p>'
+      + '<button type="button" class="pnj-action-btn" style="min-height:44px" onclick="enigme1EcrireJodie()">Écrire à Jodie Moitout</button></div>';
+  }
+  html += '</div>';
 
   document.getElementById('postes-modal-title').textContent = "Calepin de l'enquête";
   document.getElementById('postes-body').innerHTML = html;
@@ -106,6 +114,77 @@ function enigme1ImageSalleVide(buildingId, roomId) {
   if (!enigme1EtapeActive()) return null;
   const info = ENIGME1_SALLES_CADRE_VIDE[roomId];
   return info ? info.imageUrl : null;
+}
+
+// Courrier d'enquête à Jodie : seules les plaques vraiment enregistrées au
+// serveur permettent de demander une piste. Aucune nouvelle preuve n'est créée.
+let enigme1CourrierEnCours = false;
+function enigme1CourrierEchappement(texte) {
+  return String(texte || '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function enigme1CourrierAfficher(echange, erreur) {
+  const titre=document.getElementById('postes-modal-title');
+  const body=document.getElementById('postes-body');
+  const modal=document.getElementById('modal-postes');
+  if (!titre || !body || !modal) return;
+  titre.textContent='Écrire à Jodie Moitout';
+  let html='<div style="padding:1rem;line-height:1.6;color:#e0d8c0">'
+    +'<p>À : <strong>Jodie Moitout — L’Autruche Entravée</strong></p>'
+    +'<p>Racontez-lui ce que vous avez découvert au Musée de la Ville de Luthécia. '
+    +'Elle pourra peut-être vous indiquer où poursuivre vos recherches.</p>';
+  if (echange && echange.message && echange.reponse) {
+    html+='<div style="padding:.8rem;margin:.7rem 0;border:1px solid #51462d">'
+      +'<strong>Votre message</strong><p>'+enigme1CourrierEchappement(echange.message)+'</p>'
+      +'<strong>Réponse de Jodie Moitout</strong><p style="white-space:pre-wrap">'
+      +enigme1CourrierEchappement(echange.reponse)+'</p></div>';
+  }
+  if (erreur) html+='<p role="alert" style="color:#f1b3a2">'+enigme1CourrierEchappement(erreur)+'</p>';
+  html+='<label for="enigme1-courrier-jodie">Votre message à Jodie</label>'
+    +'<textarea id="enigme1-courrier-jodie" maxlength="500" rows="4" '
+    +'style="width:100%;box-sizing:border-box;background:#121005;color:#f0ead6;'
+    +'border:1px solid #8a6a20;padding:.65rem;margin:.45rem 0 .7rem" '
+    +'placeholder="J’ai examiné les cadres vides du musée et…"></textarea>'
+    +'<button type="button" class="pnj-action-btn" style="min-height:44px" '
+    +'onclick="enigme1CourrierEnvoyer()">Envoyer à Jodie</button></div>';
+  body.innerHTML=html;
+  modal.classList.add('open');
+}
+async function enigme1EcrireJodie() {
+  if (!enigme1EtapeActive() || enigme1CourrierEnCours) return;
+  enigme1CourrierAfficher(state.char?.enigme1?.jodieCourrier || null);
+  // La lecture de l'historique est non mutante et confirmée par le serveur.
+  if (typeof sbRpcVerdict !== 'function') return;
+  const r=await sbRpcVerdict('jodie_enquete_ecrire',{p_message:null}).catch(()=>null);
+  // Ne jamais effacer un brouillon déjà saisi pendant le chargement de la réponse précédente.
+  const brouillon = document.getElementById('enigme1-courrier-jodie')?.value?.trim();
+  if (r && r.ok && r.courrier && !brouillon
+      && document.getElementById('postes-modal-title')?.textContent==='Écrire à Jodie Moitout') {
+    enigme1CourrierAfficher(r.courrier);
+  }
+}
+async function enigme1CourrierEnvoyer() {
+  if (enigme1CourrierEnCours || !enigme1EtapeActive()) return;
+  const champ=document.getElementById('enigme1-courrier-jodie');
+  const message=(champ?.value || '').trim();
+  if (!message || message.length>500) {
+    enigme1CourrierAfficher(state.char?.enigme1?.jodieCourrier,'Écrivez un message de 1 à 500 caractères.');
+    return;
+  }
+  enigme1CourrierEnCours=true;
+  if(champ)champ.disabled=true;
+  try {
+    const r=typeof sbRpcVerdict === 'function'
+      ? await sbRpcVerdict('jodie_enquete_ecrire',{p_message:message}).catch(()=>null) : null;
+    if (!r || !r.ok || !r.courrier) {
+      enigme1CourrierAfficher(state.char?.enigme1?.jodieCourrier,
+        'Votre message n’a pas été enregistré. Vous pouvez réessayer.');
+      return;
+    }
+    if (state.char?.enigme1) state.char.enigme1.jodieCourrier=r.courrier;
+    enigme1CourrierAfficher(r.courrier);
+    if(typeof showToast==='function')showToast('Jodie Moitout','Votre message a été enregistré. Jodie vous indique une piste.',true);
+  } finally { enigme1CourrierEnCours=false; }
 }
 
 // Injecte (ou retire) une zone cliquable generreuse sur la bande des portraits, permettant
@@ -1129,14 +1208,15 @@ function jodieEnqueteAfficherAppel(extra) {
       + 'Avez-vous découvert ce qui se cachait derrière leur disparition ? Vous accepteriez de me raconter ce que vous savez ?';
   } else if (r.type === 'rappel') {
     texte = 'Bonjour ' + nom + ', c\'est encore Jodie Moitout. Je sais, je suis un peu insistante… '
-      + 'Avez-vous eu l\'occasion de passer au ' + JODIE_ENQUETE_DESTINATION + ' ? Mon offre tient toujours.';
+      + 'Avez-vous eu l\'occasion de passer au ' + JODIE_ENQUETE_DESTINATION + ' ? Mon offre tient toujours. '
+      + 'Après avoir examiné les cadres, écrivez-moi depuis votre calepin pour me raconter vos découvertes.';
   } else {
     texte = 'Bonjour ' + nom + '. ' + deja + "Je suis Jodie Moitout, journaliste à L'Autruche Entravée. "
       + "Vous trouverez ma démarche étrange, mais j'ai besoin de votre aide. Vous êtes nouveau en ville, "
       + "et donc encore inconnu des habitants. Moi, je suis trop connue, par contre… "
       + "J'ai eu écho d'une histoire de disparition de tableaux au " + JODIE_ENQUETE_DESTINATION + ". "
       + "Pourriez-vous vous y rendre et consigner vos observations dans le calepin que vous avez reçu ? "
-      + "Et oui, c'est moi qui vous l'ai fait parvenir… Vous feriez ça pour moi ?";
+      + "Et oui, c'est moi qui vous l'ai fait parvenir… Si vous découvrez quelque chose, écrivez-moi depuis votre calepin : je pourrai peut-être vous mettre sur une piste. Vous feriez ça pour moi ?";
   }
   if (extra) texte = extra;
   const fin = r.type === 'conclusion';
