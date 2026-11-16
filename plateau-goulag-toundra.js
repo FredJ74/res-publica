@@ -88,6 +88,7 @@
         etat = null; rendre();
         if (typeof sbLoadPersonnage === 'function') await sbLoadPersonnage();
         if (typeof updateUI === 'function') updateUI();
+        if (typeof window.goulagRefugeRejoindre === 'function') await window.goulagRefugeRejoindre();
         return;
       }
       await lire();
