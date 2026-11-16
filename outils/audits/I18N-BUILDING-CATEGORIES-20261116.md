@@ -20,6 +20,6 @@ Les noms de bâtiments restent écrits directement dans `bat-nom` et les cartes 
 
 `plateau-commerce-pj.js`, panneau Commerce Premium : titre, annonce prochainement, présentation 3 activités/10 articles/personnalisation, transmission du droit, boutons 4,99 € et 0,99 €, code promotionnel et placeholder restent des chaînes françaises directes. Les autres écrans commerciaux emploient déjà largement commercepj/data-i18n et le catalogue économique : ne pas les retraduire en bloc. Ce panneau est seulement audité ici ; aucune activation, tarif ou règle économique modifié.
 
-Les chantiers #1020 (survie) et #1029/#1031 (décors de Starovka) sont exclus. Le dépôt temporaire de trois PNG dans main fait échouer le test historique de Starovka ; attendre le lot de conversion #1031, sans assouplir le test ni convertir les images dans ce lot.
+Les chantiers #1020 (survie) et #1029/#1031 (décors de Starovka) sont exclus. Le dépôt temporaire de trois PNG dans main avait fait échouer le test historique de Starovka ; la conversion #1031 est désormais fusionnée et intégrée sans modification de ses images ni assouplissement du test. Le nouveau texte du bureau du port #1029 est également préservé.
 
 Livraison : CI complète, fusion et production à terminer après livraison de #1030. Pas de pourcentage global. Non vérifiés : session PJ, téléphone physique et relecture native.
