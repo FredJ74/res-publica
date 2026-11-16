@@ -7611,7 +7611,7 @@ const BUILDINGS = {
   // Fred du 05/11/2026, GAME-DESIGN-VEHICULES.md). Seuls commerces PNJ de ce type : ils servent
   // d'exemple, les PJ ouvriront les autres. Commerces serveur garage-soviet-capitale et
   // station-soviet-ville_b (migration 20261105222000) ; tout se decide par vehicule_acte.
-  // PNJ valides par Fred : Sergueï Zaptchastov (garagiste), Lioudmila Zapravkina (station). Images a venir.
+  // PNJ valides par Fred : Sergueï Zaptchastov (garagiste), Lioudmila Zapravkina (station), devenu Leonid Zapravkine le 16/11/2026 pour coller a l'image (homme au comptoir).
   'garage-novomirsk': {
     name: "Garage de Novomirsk",
     shortName: "Garage",
@@ -8093,7 +8093,7 @@ const BUILDINGS = {
         name: "Boutique",
         imageBg: "linear-gradient(135deg,#16120e,#201a14)",
         desc: "Le comptoir de la station : bidons de carburant, huile et cartes routières du Parti.",
-        persons: [{name:'Lioudmila Zapravkina (PNJ)', role:'Gérante de la station-service', rel:'neutral', job:'pompiste'}],
+        persons: [{name:'Leonid Zapravkine (PNJ)', role:'Gérant de la station-service', rel:'neutral', job:'pompiste'}],
         orders: [
           {fn:'station_carburant', label:'Acheter des bidons de carburant', pa:0, cost:0, type:'legal', icon:'ti-gas-station', successRate:100, desc:"1 bidon = 1 unité de carburant. On peut aussi vendre du carburant à la station."},
           {fn:'mes_vehicules', label:'Mes véhicules', pa:0, cost:0, type:'legal', icon:'ti-steering-wheel', successRate:100, desc:"Faire le plein, charger, décharger, prendre la route."}
@@ -11072,6 +11072,10 @@ const PNJ_SOVARKA = {
     'Notaire Fontenelle (PNJ)': 'Camarade Bâtissov (PNJ)'
   }),
   ville_a: Object.assign({}, PNJ_SOVARKA_GENERIQUES, { // Starovka
+    // Décor du stade : une femme à la buvette et au micro (16/11/2026, Fred : « on adapte tout à la
+    // réalité des images »).
+    'Tenancier de Buvette (PNJ)': ['Tenancière de Buvette (PNJ)', 'Tenancière de la buvette'],
+    'Commentateur Sportif (PNJ)': ['Commentatrice Sportive (PNJ)', 'Commentatrice du stade'],
     'Delegue Morel (PNJ)': 'Délégué Batbayar Dachiev (PNJ)',
     'Directeur Fabre (PNJ)': 'Directeur Tsyren Badmaïev (PNJ)',
     'Francisca Brel': 'Tuya Sanjieva',
@@ -12436,6 +12440,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
 // gabarit partagé (BUILDINGS) et les autres villes restent intacts. Aucun nom, rôle ni ordre modifié.
 (function () {
   const portraits = [
+    ['ville_b', 'station-service-krasnov', 'boutique_station', "Leonid Zapravkine (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_station-service-krasnov_leonid-zapravkine.webp'],
     ['ville_a', 'mairie', 'accueil_mairie', "Secretaire Municipal", 'images/Sovarka/Starovka/Starovka_portrait_mairie_secretaire-municipal.webp'],
     ['ville_a', 'mairie', 'bureau_maire_local', "Le Maire (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_mairie_le-maire.webp'],
     ['ville_a', 'dispensaire-public-v', 'attente', "Infirmiere (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_dispensaire-public-v_infirmiere.webp'],
@@ -12443,8 +12448,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'commissariat-local', 'bureau_commissaire', "Bato Dashiev (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_commissariat-local_bato-dashiev.webp'],
     ['ville_a', 'stade', 'terrain', "Entraineur Local (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_entraineur-local.webp'],
     ['ville_a', 'stade', 'vestiaires', "Entraineur Local (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_entraineur-local.webp'],
-    ['ville_a', 'stade', 'terrain', "Commentateur Sportif (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_commentateur-sportif.webp'],
-    ['ville_a', 'stade', 'buvette', "Tenancier de Buvette (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_tenancier-de-buvette.webp'],
+    ['ville_a', 'stade', 'terrain', "Commentatrice Sportive (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_commentatrice-sportive.webp'],
+    ['ville_a', 'stade', 'buvette', "Tenancière de Buvette (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_tenanciere-de-buvette.webp'],
     ['ville_a', 'stade', 'guichet_paris', "Bookmaker Officiel (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_bookmaker-officiel.webp'],
     ['ville_a', 'stade', 'boutique', "Vendeur des accessoires de Starovka (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_vendeur-des-accessoires-de-starovka.webp'],
     ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Tömör Ochirov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],

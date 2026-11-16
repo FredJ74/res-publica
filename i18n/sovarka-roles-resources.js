@@ -148,6 +148,8 @@
   ["Commissaire de Krasnov","Krasnov police commissioner","Comisario de Krasnov","克拉斯諾夫警察局長","Комиссар Краснова","크라스노프 경찰서장","مفوض شرطة كراسنوف","Comissário de Krasnov","Polizeikommissar von Krasnov"],
   ["Juge Populaire de Krasnov","People's Judge of Krasnov","Juez Popular de Krasnov","克拉斯諾夫人民法官","Народный судья Краснова","크라스노프 인민 판사","القاضي الشعبي في كراسنوف","Juiz Popular de Krasnov","Volksrichter von Krasnov"],
   ["Gérante de la station-service","Petrol station manager","Encargada de la gasolinera","加油站經理","Управляющая заправкой","주유소 매니저","مديرة محطة الوقود","Gerente do posto de gasolina","Tankstellenleiterin"],
+  ["Gérant de la station-service","Petrol station manager","Encargado de la gasolinera","加油站經理","Управляющий заправкой","주유소 매니저","مدير محطة الوقود","Gerente do posto de gasolina","Tankstellenleiter"],
+  ["Commentatrice du stade","Stadium commentator","Comentarista del estadio","球場女解說員","Комментатор стадиона","경기장 해설자","معلّقة الملعب","Comentarista do estádio","Stadionkommentatorin"],
   ["Directeur de l'école","Head teacher","Director de la escuela","小學校長","Директор школы","교장","مدير المدرسة","Diretor da escola","Schulleiter"],
   ["Guide du musée","Museum guide","Guía del museo","博物館導覽員","Экскурсовод музея","박물관 가이드","مرشد المتحف","Guia do museu","Museumsführer"],
   ["Patron du bar","Bar owner","Dueño del bar","酒吧老闆","Хозяин бара","바 주인","صاحب البار","Dono do bar","Barbesitzer"],

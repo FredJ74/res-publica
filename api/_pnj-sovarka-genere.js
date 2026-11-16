@@ -418,6 +418,22 @@ export const PNJ_SOVARKA_RENOMMES = [
  },
  {
   "ville": "Starovka",
+  "ancien": "Tenancier de Buvette",
+  "nouveau": "Tenancière de Buvette",
+  "role": "Tenancière de la buvette",
+  "id": "sovarka_tenanciere_de_buvette",
+  "source": "tenancier_de_buvette"
+ },
+ {
+  "ville": "Starovka",
+  "ancien": "Commentateur Sportif",
+  "nouveau": "Commentatrice Sportive",
+  "role": "Commentatrice du stade",
+  "id": "sovarka_commentatrice_sportive",
+  "source": "commentateur_sportif"
+ },
+ {
+  "ville": "Starovka",
   "ancien": "Delegue Morel",
   "nouveau": "Délégué Batbayar Dachiev",
   "role": null,

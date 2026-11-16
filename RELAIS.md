@@ -37,7 +37,6 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ### Décisions attendues de Fred
 
-- **Portraits et genre (16/11)** : à Starovka, « Tenancier de Buvette » et « Commentateur Sportif » (noms du gabarit) ont reçu le portrait d'une femme, comme sur le décor ; garder ou renommer localement ? À Krasnov, la station-service montre un homme alors que la gérante est Lioudmila Zapravkina (portrait non posé).
 - **Ports et commerce international : codé le 16/11 (voir Derniers chantiers)** ; restent à relire par Fred les volumes des contrats (`commerce_contrats`) et le nom du commandant de Starovka (Tömör Ochirov). Idée notée : une ferme en Républia.
 - **Volumes de production de Sovarka** (15/11, nuit, en service) : proposés par Claude, consignés dans `GAME-DESIGN-NOVOMIRSK.md` (« Production et logistique de Sovarka ») ; table `sovarka_productions_villes`, corrigeable sans code. Aussi : importations proposées (plantes 38 + 37, tabac 50) et décision 4 pour un directeur PJ.
 - **Fiche de Galina Dokladova** (secrétaire de mairie de Krasnov, 15/11) : à relire par Fred (`api/_pnj-personnalites.js`).
@@ -130,6 +129,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - Aide HRP (PR #720) : **non certifiés** — réponses réelles DeepSeek dans les neuf langues, recette authentifiée, essais iPhone/Android. Sur téléphone : questions PA/but, fr→en→ko→fr, arabe RTL, clavier IME.
 
 ## Derniers chantiers
+- **PNJ adaptés au genre visible sur les décors (Claude, 16/11/2026, soir)** (branche `claude/pnj-genre-images-20261116`) : décision de Fred, « on adapte tout à la réalité des images ». Starovka, stade : « Tenancière de Buvette » (Tenancière de la buvette) et « Commentatrice Sportive » (Commentatrice du stade), ajoutés à `PNJ_SOVARKA.ville_a`, portraits renommés. Krasnov, station-service : Lioudmila Zapravkina devient **Leonid Zapravkine**, gérant (nom proposé par Claude, garde le jeu de mots *заправка*) ; fiche de dialogue `leonid_zapravkine`, portrait tiré du décor. Rôles nouveaux traduits dans les neuf langues (`sovarka-roles-resources.js`, paquet Brotli régénéré) ; table serveur et scènes régénérées. Aucun ordre ni migration.
 
 - **I18n catégories — #1032, LIVRÉ (16/11/2026)** : fusion cf0f218e, 58 catégories / 424 valeurs nouvelles et 40 réutilisées, 51 CI verts. Production dpl_2Xmkzj65Tv9Ptc5JTnipQHfe3xUT READY, alias et 19 fichiers vérifiés ; 14 tests / 3 375 bascules des deux lots et 86 catalogues natifs conformes. Preuves `outils/audits/I18N-BUILDING-CATEGORIES-20261116-production.json`.
 - **I18n goulag — #1030, LIVRÉ (16/11/2026)** : fusion 7f229f59, cinq textes français existants / 40 traductions nouvelles ; 49 CI et banc général de main verts, aucune mécanique/migration modifiée. Production et cinq WebP vérifiés (14 fichiers, 270 bascules, 86 catalogues). Preuves `outils/audits/I18N-GOULAG-DESCRIPTIONS-20261116-production.json`.

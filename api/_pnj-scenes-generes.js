@@ -6200,7 +6200,7 @@ export const SCENES_PNJ = {
     "piece": "Terrain",
     "personnes": [
       "Entraineur Local",
-      "Commentateur Sportif"
+      "Commentatrice Sportive"
     ]
   },
   "[\"soviet\",\"ville_a\",\"stade\",\"vestiaires\"]": {
@@ -6218,7 +6218,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade de Starovka",
     "piece": "Buvette",
     "personnes": [
-      "Tenancier de Buvette"
+      "Tenancière de Buvette"
     ]
   },
   "[\"soviet\",\"ville_a\",\"stade\",\"guichet_paris\"]": {
@@ -7218,7 +7218,7 @@ export const SCENES_PNJ = {
     "batiment": "Station-service de Krasnov",
     "piece": "Boutique",
     "personnes": [
-      "Lioudmila Zapravkina"
+      "Leonid Zapravkine"
     ]
   },
   "[\"soviet\",\"ville_b\",\"marche\",\"marche_ext\"]": {

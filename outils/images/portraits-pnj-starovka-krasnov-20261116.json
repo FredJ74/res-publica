@@ -76,7 +76,7 @@
   "bid": "stade",
   "rid": "terrain",
   "name": "Commentateur Sportif (PNJ)",
-  "photo": "images/Sovarka/Starovka/Starovka_portrait_stade_commentateur-sportif.webp",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_stade_commentatrice-sportive.webp",
   "crop": [
    47,
    486,
@@ -88,7 +88,7 @@
   "bid": "stade",
   "rid": "buvette",
   "name": "Tenancier de Buvette (PNJ)",
-  "photo": "images/Sovarka/Starovka/Starovka_portrait_stade_tenancier-de-buvette.webp",
+  "photo": "images/Sovarka/Starovka/Starovka_portrait_stade_tenanciere-de-buvette.webp",
   "crop": [
    722,
    269,
