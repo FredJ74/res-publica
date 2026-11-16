@@ -12259,3 +12259,33 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   });
   ctx.roomsMasquees = Array.from(new Set([...(ctx.roomsMasquees || []), 'foret_vue_1', 'foret_vue_2', 'foret_vue_3', 'foret_vue_4']));
 })();
+
+
+// STAROVKA_MARCHE_MAIRIE_SIX_WEBP_20261116
+// Décors propres à Starovka, sans modifier les commandes, PNJ, prix, accès ni autres villes.
+(function () {
+  const ville = WORLD.soviet?.ville_a;
+  if (!ville) return;
+  const marche = ville.buildingContext?.marche;
+  const mairie = ville.buildingContext?.mairie;
+  if (!marche || !mairie || !mairie.roomsExtra?.salle_elections || !mairie.roomsExtra?.salle_partis) {
+    throw new Error('Pièces du marché ou de la mairie de Starovka absentes');
+  }
+  marche.roomOverrides = marche.roomOverrides || {};
+  Object.assign(marche.roomOverrides.marche_ext = marche.roomOverrides.marche_ext || {}, {
+    imageUrl: 'images/Sovarka/Starovka/Starovka_marche_marche_ext.webp'
+  });
+  mairie.roomOverrides = mairie.roomOverrides || {};
+  const dir = 'images/Sovarka/Starovka/Starovka_mairie_';
+  for (const [pieceId, nomImage] of Object.entries({
+    accueil_mairie: 'accueil_mairie.webp',
+    bureau_maire_local: 'bureau_maire_local.webp',
+    bureau_maire_adjoint: 'bureau_maire_adjoint.webp',
+    salle_elections: 'salle_elections.webp'
+  })) {
+    Object.assign(mairie.roomOverrides[pieceId] = mairie.roomOverrides[pieceId] || {}, {
+      imageUrl: dir + nomImage
+    });
+  }
+  mairie.roomsExtra.salle_partis.imageUrl = dir + 'salle_partis.webp';
+})();
