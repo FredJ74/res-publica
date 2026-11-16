@@ -11,7 +11,7 @@
   #vue-rue .city-header{background:#19232e;padding:7px 12px;border-bottom:1px solid rgba(169,141,86,.3)}
   #vue-rue .game-time-display{color:#c1b08c;font-size:.85rem}
   #vue-rue .rue-container{display:flex;flex-direction:column;flex:none;min-height:0;overflow:visible}
-  #vue-rue #rue-image{display:block;flex:none;min-height:0;overflow:visible;background:#101720!important}
+  #vue-rue #rue-image{display:block;flex:none;min-height:0;overflow:visible}
   #vue-rue #rue-centrale-conteneur{overflow:visible;min-width:0}
   #vue-rue .rc-scene{border:0;border-radius:0;line-height:0;isolation:isolate}
   #vue-rue .rc-image{width:100%;height:auto;max-height:none;object-fit:contain}
