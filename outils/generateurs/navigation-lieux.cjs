@@ -34,6 +34,8 @@ for(const x of rows)if(x.pays==='soviet'&&x.ville==='capitale'&&x.id==='centre-a
 const EXCLUS_APRES_3110={soviet:{ville_a:['presse-starovka'],capitale:['logements-novomirsk-marche','logements-novomirsk-quais'],ville_b:['logements-krasnov-place-ours','logements-krasnov-rue-tabac','logements-novomirsk','tabac-presse-krasnov']}};
 for(let i=rows.length-1;i>=0;i--)if(EXCLUS_APRES_3110[rows[i].pays]?.[rows[i].ville]?.includes(rows[i].id))rows.splice(i,1);
 for(const x of rows){
+ // Cinq vues du goulag (16/11) : seule la référence historique garde les pièces QHS du 31/10.
+ if(x.pays==='soviet'&&x.ville==='qhs'&&x.id==='qhs-prison')x.rooms=['entree_qhs','cellules_qhs','salle_interrogatoire','promenoir','salle_commune_qhs'];
  if(/^dispensaire-public/.test(x.id))x.rooms=x.rooms.filter(r=>r!=='chambre');
  x.rooms=x.rooms.filter(r=>!/_chambre_\d+$/.test(r));
  if(x.pays==='soviet'&&x.id==='mairie')x.rooms=x.rooms.filter(r=>r!=='salle_elections');
