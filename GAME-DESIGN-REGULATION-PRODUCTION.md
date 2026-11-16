@@ -41,4 +41,23 @@ Contexte : au champ de pétrole de Starovka, « Récolter » est limité à 2 fo
 
 - **Créer une ferme en Républia** (Fred, 16/11/2026) : chantier à part, à décider plus tard.
 
-**Ne pas coder avant le feu vert de Fred** (session de décisions).
+## Codé le 16/11/2026 (feu vert de Fred, nuit)
+
+- Migration `20261116020000_regulation_production_recolte` (appliquée) : `recolte_effectuer` (1 PA, quantité
+  fixe par `recolte_quantite_par_pa`, plus de limite de 2/jour), forêt profonde (1 PA, 12 bois), tables
+  `production_regulations` / `production_recoltes_jour`, RPC `regulation_production_lire` / `_fixer`
+  (adjoint attesté, dans la mairie de sa ville, 1 PA ; deux champs vides = levée ; 0 = interdiction).
+- Prix : `coef_prix_matieres` (Sovarka 0,5) et `ressources_economie_pays(pays)` raccordés aux entrepôts,
+  usines (rachat et vente directe), trading (cours, achats, fournisseurs étrangers), commandes des
+  directeurs, commerces et fonds, chantiers, passes et exportations de Sovarka. Importations de Sovarka :
+  payées au prix du pays d'origine (pas de taux de change).
+- Écran : `plateau-regulation-production.js`, catalogue `i18n/regulation-production-resources.js`.
+
+## Points relevés pour Fred
+
+- **Port-Sainte-Marie n'a pas de lieu de pêche** : la zone de production de PSM est la Scierie Guy
+  Tarembois, où « Récolter » est masqué depuis août. Le poisson à 10 par PA ne s'applique donc nulle
+  part tant qu'un lieu de pêche n'existe pas (où ? le port, la criée ?).
+- Les importations de Sovarka (médicaments, alcool, plantes, tabac) restent payées au prix du pays
+  d'origine alors que Sovarka revend à moitié prix : les entrepôts de Sovarka perdent sur ces produits
+  s'ils ne fixent pas un prix manuel. À surveiller lors de l'audit transversal des prix.

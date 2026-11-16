@@ -40,7 +40,7 @@ function descsParPays() {
   return { sov: parPays('soviet'), rep: parPays('republic') };
 }
 
-test('inventaire : 244 descriptions communes affichées, aucune nouvelle hors catalogue, aucune en trop', t => {
+test('inventaire : 245 descriptions communes affichées, aucune nouvelle hors catalogue, aucune en trop', t => {
   const { sov, rep } = descsParPays();
   const communesJeu = [...sov].filter(d => rep.has(d));
   const cat = [...I('republic', 'fr').communes].map(l => l[0]);
@@ -48,7 +48,7 @@ test('inventaire : 244 descriptions communes affichées, aucune nouvelle hors ca
   // catalogue (trou antérieur, chantier de traduction à venir, consigné dans RELAIS.md). Le plafond
   // autorise la seule description de gestion de caserne rétablie à Sovarka ;
   // elle doit rejoindre le catalogue partagé dans le prochain lot i18n.
-  assert.equal(communesJeu.length, 244, // Inventaire réel de main b89a264 le 15/11 (248), puis −4 le 15/11 : plus de banques en Sovarka (décision de Fred), les descriptions des guichets bancaires ne s'y affichent plus ; contrôles des lacunes et du français maintenus.
+  assert.equal(communesJeu.length, 245, // +1 le 16/11 : « Régulation de la production » (adjoint au maire, Claude).  Inventaire réel de main b89a264 le 15/11 (248), puis −4 le 15/11 : plus de banques en Sovarka (décision de Fred), les descriptions des guichets bancaires ne s'y affichent plus ; contrôles des lacunes et du français maintenus.
     'nombre de descriptions communes affichées après exclusions ministérielles spécifiques à Sovarka');
   const manquantes = communesJeu.filter(d => !cat.includes(d));
   t.diagnostic('Descriptions communes manquantes : ' + JSON.stringify(manquantes));
@@ -61,9 +61,9 @@ test('inventaire : 244 descriptions communes affichées, aucune nouvelle hors ca
   assert.equal(new Set(cat).size, cat.length);
 });
 
-test('254 lignes de neuf colonnes non vides, sans guillemet droit ni balise, toutes traduites', () => {
+test('255 lignes de neuf colonnes non vides, sans guillemet droit ni balise, toutes traduites', () => {
   const lignes = I('soviet', 'fr').communes;
-  assert.equal(lignes.length, 254); // +1 le 14/11 : Dormir dans la chambre d’hôpital
+  assert.equal(lignes.length, 255); // +1 le 16/11 : régulation de la production ; +1 le 14/11 : Dormir dans la chambre d’hôpital
   for (const l of lignes) {
     assert.equal(l.length, 9, l[0]);
     for (const v of l) assert.ok(v.trim(), l[0]);
