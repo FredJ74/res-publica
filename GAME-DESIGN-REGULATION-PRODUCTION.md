@@ -19,6 +19,9 @@ Contexte : au champ de pétrole de Starovka, « Récolter » est limité à 2 fo
 7. **Pas d'ordre de sommation** : le ministre de l'Économie peut exiger une régulation, mais cela se
    traite en RP (forums), pas par un bouton ; Fred ne veut pas un bouton par interaction possible.
    Il n'a pas les commandes.
+8. **Récolte à 1 PA** (au lieu de 2), quantité récoltée relevée pour que produire vaille la peine
+   (PA minimum en Républia : 50 FR). Exemple validé par Fred : **poisson en Républia = 10 par PA**.
+   Quantités des autres ressources : proposition de Claude en attente de validation.
 
 ## À vérifier avant de coder (Claude)
 
