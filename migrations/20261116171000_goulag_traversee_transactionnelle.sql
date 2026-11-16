@@ -214,7 +214,7 @@ GRANT EXECUTE ON FUNCTION public.goulag_toundra_agir(text) TO authenticated;
 
 
 CREATE OR REPLACE FUNCTION public.goulag_toundra_lire()
-RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $$
 DECLARE v_nom text:=public.mon_personnage();tr public.sovarka_goulag_traversees%ROWTYPE;
         p record;v_total integer;v_jour date:=public.sovarka_jour_paris();
 BEGIN
@@ -235,7 +235,7 @@ BEGIN
    'champignons_a_decider',tr.progressions=5 AND tr.champignons_choix IS NULL,
    'champignons_choix',tr.champignons_choix,
    'peine_gelee_secondes',tr.peine_gelee_secondes);
-END $;
+END $$;
 REVOKE ALL ON FUNCTION public.goulag_toundra_lire() FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.goulag_toundra_lire() TO authenticated;
 
