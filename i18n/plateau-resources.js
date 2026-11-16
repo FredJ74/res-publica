@@ -926,6 +926,109 @@
     de:{help:'Hilfe',helpChat:'Frage stellen'}
   };
   for(const [locale,labels] of Object.entries(aideLabels))Object.assign(translations[locale],labels);
+  // En-têtes des bâtiments : présentation seule, moteur commun et valeurs opaques.
+  const buildingHeaderLabels={
+  "fr": {
+    "buildingArmoryManage": "Gérer mon armurerie",
+    "buildingArmoryTooltip": "Accéder à la gestion de mon commerce",
+    "buildingCashLoading": "Caisse : ...",
+    "buildingCashAmount": "Caisse : {{values.amount}} {{values.currency}}",
+    "buildingCashUnavailable": "Caisse : indisponible",
+    "buildingDirectorLoading": "Directeur : ...",
+    "buildingDirectorName": "Directeur : {{values.name}}",
+    "buildingDirectorVacant": "Directeur : poste vacant",
+    "buildingDirectorUnavailable": "Directeur : indisponible"
+  },
+  "en": {
+    "buildingArmoryManage": "Manage my gun shop",
+    "buildingArmoryTooltip": "Open my business management",
+    "buildingCashLoading": "Cashbox: ...",
+    "buildingCashAmount": "Cashbox: {{values.amount}} {{values.currency}}",
+    "buildingCashUnavailable": "Cashbox: unavailable",
+    "buildingDirectorLoading": "Director: ...",
+    "buildingDirectorName": "Director: {{values.name}}",
+    "buildingDirectorVacant": "Director: position vacant",
+    "buildingDirectorUnavailable": "Director: unavailable"
+  },
+  "es": {
+    "buildingArmoryManage": "Gestionar mi armería",
+    "buildingArmoryTooltip": "Acceder a la gestión de mi comercio",
+    "buildingCashLoading": "Caja: ...",
+    "buildingCashAmount": "Caja: {{values.amount}} {{values.currency}}",
+    "buildingCashUnavailable": "Caja: no disponible",
+    "buildingDirectorLoading": "Director: ...",
+    "buildingDirectorName": "Director: {{values.name}}",
+    "buildingDirectorVacant": "Director: puesto vacante",
+    "buildingDirectorUnavailable": "Director: no disponible"
+  },
+  "zh-TW": {
+    "buildingArmoryManage": "管理我的武器店",
+    "buildingArmoryTooltip": "開啟我的商店管理",
+    "buildingCashLoading": "金庫：...",
+    "buildingCashAmount": "金庫：{{values.amount}} {{values.currency}}",
+    "buildingCashUnavailable": "金庫：無法取得",
+    "buildingDirectorLoading": "主管：...",
+    "buildingDirectorName": "主管：{{values.name}}",
+    "buildingDirectorVacant": "主管：職位空缺",
+    "buildingDirectorUnavailable": "主管：無法取得"
+  },
+  "ru": {
+    "buildingArmoryManage": "Управлять моим оружейным магазином",
+    "buildingArmoryTooltip": "Открыть управление моим магазином",
+    "buildingCashLoading": "Касса: ...",
+    "buildingCashAmount": "Касса: {{values.amount}} {{values.currency}}",
+    "buildingCashUnavailable": "Касса: недоступна",
+    "buildingDirectorLoading": "Директор: ...",
+    "buildingDirectorName": "Директор: {{values.name}}",
+    "buildingDirectorVacant": "Директор: должность вакантна",
+    "buildingDirectorUnavailable": "Директор: недоступен"
+  },
+  "ko": {
+    "buildingArmoryManage": "내 무기점 관리",
+    "buildingArmoryTooltip": "내 상점 관리 열기",
+    "buildingCashLoading": "금고: ...",
+    "buildingCashAmount": "금고: {{values.amount}} {{values.currency}}",
+    "buildingCashUnavailable": "금고: 이용 불가",
+    "buildingDirectorLoading": "책임자: ...",
+    "buildingDirectorName": "책임자: {{values.name}}",
+    "buildingDirectorVacant": "책임자: 공석",
+    "buildingDirectorUnavailable": "책임자: 확인 불가"
+  },
+  "ar": {
+    "buildingArmoryManage": "إدارة متجر أسلحتي",
+    "buildingArmoryTooltip": "فتح إدارة متجري",
+    "buildingCashLoading": "الصندوق: ...",
+    "buildingCashAmount": "الصندوق: {{values.amount}} {{values.currency}}",
+    "buildingCashUnavailable": "الصندوق: غير متاح",
+    "buildingDirectorLoading": "المدير: ...",
+    "buildingDirectorName": "المدير: {{values.name}}",
+    "buildingDirectorVacant": "المدير: المنصب شاغر",
+    "buildingDirectorUnavailable": "المدير: غير متاح"
+  },
+  "pt-BR": {
+    "buildingArmoryManage": "Gerenciar minha loja de armas",
+    "buildingArmoryTooltip": "Acessar a gestão do meu comércio",
+    "buildingCashLoading": "Caixa: ...",
+    "buildingCashAmount": "Caixa: {{values.amount}} {{values.currency}}",
+    "buildingCashUnavailable": "Caixa: indisponível",
+    "buildingDirectorLoading": "Diretor: ...",
+    "buildingDirectorName": "Diretor: {{values.name}}",
+    "buildingDirectorVacant": "Diretor: cargo vago",
+    "buildingDirectorUnavailable": "Diretor: indisponível"
+  },
+  "de": {
+    "buildingArmoryManage": "Mein Waffengeschäft verwalten",
+    "buildingArmoryTooltip": "Verwaltung meines Geschäfts öffnen",
+    "buildingCashLoading": "Kasse: ...",
+    "buildingCashAmount": "Kasse: {{values.amount}} {{values.currency}}",
+    "buildingCashUnavailable": "Kasse: nicht verfügbar",
+    "buildingDirectorLoading": "Leitung: ...",
+    "buildingDirectorName": "Leitung: {{values.name}}",
+    "buildingDirectorVacant": "Leitung: Stelle unbesetzt",
+    "buildingDirectorUnavailable": "Leitung: nicht verfügbar"
+  }
+};
+  for(const [locale,labels] of Object.entries(buildingHeaderLabels))Object.assign(translations[locale],labels);
   for(const [locale,labels] of Object.entries(translations)) {
     if(resources[locale]?.translation) resources[locale].translation.plateau={...labels};
   }
