@@ -46,7 +46,7 @@ const OPEN_SPACE_PLAN = {
   // (gauche au fond, droite au fond, gauche devant, droite devant).
   // Zones en fractions de l'image d'origine, calcul 'cover' commun à Luthécia.
   'starovka-centre-affaires': {
-    image: 'images/Sovarka/Starovka/Starovka_centre_affaires_open_space.webp',
+    image: 'images/Sovarka/Starovka/Starovka_centre_affaires_open_space.webp?v=20261116c',
     postes: [
       { piece: 'open_space_a', nom: 'Open Space A', zone: { x: 0.028, y: 0.454, w: 0.246, h: 0.145 } },
       { piece: 'open_space_b', nom: 'Open Space B', zone: { x: 0.470, y: 0.455, w: 0.280, h: 0.145 } },
