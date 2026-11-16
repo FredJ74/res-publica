@@ -7,6 +7,7 @@
   const BASE = 'images/Sovarka/Goulag/Sovarka_goulag_toundra_';
   let etat = null;
   let occupe = false;
+  let message = '';
 
   const el = (id) => document.getElementById(id);
   const image = (numero) => BASE + String(Math.max(1, Math.min(10, numero))).padStart(2, '0') + '.webp';
@@ -48,7 +49,7 @@
       '<button type="button" data-goulag-action="abri" style="min-height:44px;padding:12px 16px">Dresser un abri (−1 PA)</button>'+
       '<button type="button" data-goulag-action="dormir" style="min-height:44px;padding:12px 16px">Dormir (+3 PA, +3 avec abri)</button>'+
       '<button type="button" data-goulag-action="progresser" style="min-height:44px;padding:12px 16px">Progresser (−5 PA)</button>'+
-      '</div><p id="goulag-toundra-message" role="status" aria-live="polite" style="margin-top:14px"></p>';
+      '</div><p id="goulag-toundra-message" role="status" aria-live="polite" style="margin-top:14px">'+encode(message)+'</p>';
     root.style.display = 'block';
     for (const btn of root.querySelectorAll('[data-goulag-action]')) {
       btn.disabled = occupe;
@@ -74,10 +75,10 @@
     try {
       const v = await sbRpcVerdict('goulag_toundra_agir', { p_action: nom });
       if (!v || v.ok !== true) {
-        const status = el('goulag-toundra-message');
-        if (status) status.textContent = 'Ordre refusé : ' + (v?.raison || 'réponse du serveur indisponible');
+        message = 'Ordre refusé : ' + (v?.raison || 'réponse du serveur indisponible');
         return;
       }
+      message = '';
       if (v.termine || v.arrivee) {
         etat = null; rendre();
         if (typeof sbLoadPersonnage === 'function') await sbLoadPersonnage();
@@ -85,10 +86,48 @@
         return;
       }
       await lire();
-    } finally { occupe = false; rendre(); }
+    } catch (_) { message = 'Impossible de confirmer cet ordre auprès du serveur.'; }
+    finally { occupe = false; rendre(); }
+  }
+
+  function ordresGoulagDuLieu(buildingId, roomId, ville) {
+    if (typeof state === 'undefined' || state.country !== 'soviet' || ville !== 'qhs' || buildingId !== 'qhs-prison') return [];
+    const pieces = (typeof BUILDINGS !== 'undefined' && BUILDINGS['qhs-prison']?.rooms) || {};
+    const masque = Object.values(pieces).flatMap(p => (p.orders || []).map(o => o.fn));
+    if (roomId !== 'entree_qhs') return [{ fn: '__goulag_masque', masque, invisible: true, label: '', pa: 0, cost: 0 }];
+    return [{ fn: 'goulag_depart_pied', label: "S'enfuir à pied", pa: 0, cost: 0,
+      icon: 'ti-walk', type: 'legal', successRate: 100, masque,
+      desc: 'Choisir Starovka (7 PA minimum, 7 progressions) ou Krasnov (10 PA minimum, 10 progressions). Départ irréversible.' }];
+  }
+
+  // Le registre dynamique masque les ordres républicains hérités du QHS dans le seul goulag.
+  if (typeof window !== 'undefined') {
+    window.RP_ORDRES_DYNAMIQUES = window.RP_ORDRES_DYNAMIQUES || [];
+    window.RP_ORDRES_DYNAMIQUES.push(ordresGoulagDuLieu);
+  }
+
+  async function choisirDepart() {
+    if (occupe || typeof sbRpcVerdict !== 'function') return;
+    const nom = window.prompt('Destination : 1 — Starovka (7 PA minimum, 7 jours) ; 2 — Krasnov (10 PA minimum, 10 jours). Départ irréversible.', '1');
+    if (nom === null) return;
+    const destination = String(nom).trim() === '1' ? 'starovka' : String(nom).trim() === '2' ? 'krasnov' : null;
+    if (!destination) { if (typeof showToast === 'function') showToast('Destination inconnue', 'Choisissez 1 ou 2.', false); return; }
+    if (!window.confirm('Confirmer le départ à pied vers '+(destination === 'starovka' ? 'Starovka' : 'Krasnov')+' ? Cette marche est irréversible.')) return;
+    occupe = true;
+    try {
+      const verdict = await sbRpcVerdict('goulag_toundra_demarrer', { p_destination: destination });
+      if (!verdict || verdict.ok !== true) {
+        if (typeof showToast === 'function') showToast('Départ refusé', verdict?.raison || 'Le serveur ne confirme pas le départ.', false);
+        return;
+      }
+      await lire();
+    } catch (_) {
+      if (typeof showToast === 'function') showToast('Départ non confirmé', 'Le serveur est indisponible.', false);
+    } finally { occupe = false; }
   }
 
   // Initialisation explicite depuis une entrée validée par le serveur.
+  window.goulagToundraChoisirDepart = choisirDepart;
   window.goulagToundraOuvrir = lire;
   window.goulagToundraImageEtape = imageEtape;
 })();
