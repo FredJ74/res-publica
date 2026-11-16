@@ -58,11 +58,11 @@ function demarrer({ destination, statut, pa }) {
  * Les appels en concurrence doivent être sérialisés par le RPC.
  */
 
-/** Choix unique après la cinquième progression effective, jamais une chance. */
-function choisirChampignons(etat, choix) {
+/** Choix unique à partir du 5e jour civil de traversée (pas la 5e progression). */
+function choisirChampignons(etat, choix, jourDepuisDepart) {
   verifierEtat(etat);
   verifierPA(etat.pa);
-  if (etat.progressions !== 5 || etat.champignonsChoisis)
+  if (!entier(jourDepuisDepart) || jourDepuisDepart < 5 || etat.champignonsChoisis)
     refuser('champignons_indisponibles');
   if (!['manger','refuser'].includes(choix))
     refuser('choix_champignons_invalide');
