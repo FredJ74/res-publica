@@ -1,0 +1,28 @@
+name: Starovka centre affaires et ecoute
+on:
+  push:
+    branches: [chatgpt/starovka-affaires-ecoute-20261116]
+    paths: ['.github/workflows/starovka-affaires-ecoute-20261116.yml']
+permissions:
+  contents: write
+jobs:
+  convertir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - run: python outils/images/starovka_affaires_ecoute_20261116.py
+      - run: |
+          node --check data.js
+          git diff --check
+      - run: |
+          git add -A -- images/Sovarka/Starovka data.js RELAIS.md
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "feat(starovka): WebP et pièces du centre affaires et écoute"
+          git push origin HEAD:chatgpt/starovka-affaires-ecoute-20261116
