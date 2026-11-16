@@ -2543,7 +2543,7 @@ function ouvrirQualificationSentence(affaireId, type, pa, cost) {
   if (!affaire) return;
   const liste = infractionsCanoniques();
   const titres = { amende: 'Amende', prison: 'Prison', amenagement: 'Amenagement de peine',
-                   qhs: 'Envoi au QHS', torture: 'Sanction torture' };
+                   qhs: (state.country === 'soviet' ? 'Envoi au goulag' : 'Envoi au QHS'), torture: 'Sanction torture' };
 
   document.getElementById('postes-modal-title').textContent = 'Qualifier les faits';
   let html = '<div style="padding:1rem">';
@@ -2672,6 +2672,26 @@ async function prononcerSentence(affaireId, type, infraction, pa, cost) {
     showToast('Amende hors bareme', 'La plage autorisee est ' + r.amende_min + ' a ' + r.amende_max + ' FR.', false);
     return;
   }
+  // Goulag de Sovarka : seul le juge prononce la sentence.
+  // Paiement + verdict + transfert + dépôt sont validés ensemble dans la même RPC.
+  if (type === 'qhs' && state.country === 'soviet') {
+    const verdict = typeof sbRpcVerdict === 'function'
+      ? await sbRpcVerdict('sovarka_goulag_juger', {
+          p_affaire_id: affaireId, p_infraction: infraction
+        }).catch(() => ({ok:false,raison:'serveur_indisponible'}))
+      : {ok:false,raison:'serveur_indisponible'};
+    if (!verdict || verdict.ok !== true) {
+      showToast('Condamnation refusée', verdict?.raison || 'Aucune peine n’a été prononcée.', false);
+      return;
+    }
+    const dossier = (state.plaintesEnCours || []).find(x => x.id === affaireId);
+    if (dossier) dossier.status = 'jugee';
+    showToast('Sentence prononcée', 'Le juge a condamné cette personne au goulag de Sovarka.', true);
+    if (typeof sbLoadPersonnage === 'function') await sbLoadPersonnage();
+    if (typeof updateUI === 'function') updateUI();
+    if (typeof fermerModalPostes === 'function') fermerModalPostes();
+    return;
+  }
   await appliquerSentence(affaireId, type, infraction, jours, amende, pa, cost);
 }
 
@@ -2685,7 +2705,7 @@ async function appliquerSentence(affaireId, type, infraction, joursServeur, amen
   // de l'affaire) : si la personne n'est pas detenue, l'action echoue proprement, l'affaire reste
   // "deposee" (rejugeable plus tard, y compris en prison si la personne est entre-temps
   // recherchee puis arretee) et aucune ligne detentions ni aucune entree recherche n'est creee.
-  if ((type === 'qhs' || type === 'torture') && !(await estActuellementDetenu(affaire.cible))) {
+  if (((type === 'qhs' && state.country !== 'soviet') || type === 'torture') && !(await estActuellementDetenu(affaire.cible))) {
     showToast('Action impossible', affaire.cible + " n'est pas actuellement détenu(e). Le QHS et la torture ne peuvent s'appliquer qu'à une personne déjà sous contrôle.", false);
     return;
   }
@@ -13301,7 +13321,7 @@ async function ouvrirDossiersJuge(pa, cost) {
       //
       // LA TORTURE RESTE CONDITIONNEE AU MOTIF, exactement comme avant : l'ancien ecran ne
       // l'offrait que si le motif mentionnait la torture. Aucune regle n'est elargie ici.
-      html += '<button onclick="ouvrirQualificationSentence(' + a + ',\'qhs\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a1a10;background:transparent;color:#9a4a3a;cursor:pointer">Condamner — envoi au QHS</button>';
+      html += '<button onclick="ouvrirQualificationSentence(' + a + ',\'qhs\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a1a10;background:transparent;color:#9a4a3a;cursor:pointer">' + (state.country === 'soviet' ? 'Condamner — envoi au goulag' : 'Condamner — envoi au QHS') + '</button>';
       if ((d.motif || '').toLowerCase().includes('tortur')) {
         html += '<button onclick="ouvrirQualificationSentence(' + a + ',\'torture\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #6a1010;background:#150505;color:#cc4444;cursor:pointer">⚖ Sanction torture</button>';
       }
