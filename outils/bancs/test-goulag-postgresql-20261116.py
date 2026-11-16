@@ -215,5 +215,22 @@ class Goulag(unittest.TestCase):
     q.execute("SELECT public.goulag_toundra_agir('progresser')");return q.fetchone()[0]
   with concurrent.futures.ThreadPoolExecutor(max_workers=2) as e:res=list(e.map(appel,range(2)))
   self.assertEqual(sum(r['ok'] for r in res),1);self.assertEqual(self.sql("SELECT pa FROM public.personnages_donnees WHERE name='__goulag_detenu'"),15)
+  # Deux paiements concurrents : une seule nuit, exactement 5 puis 3 bois.
+  self.q.execute("UPDATE public.sovarka_goulag_traversees SET en_cours=false")
+  self.q.execute("UPDATE public.personnages_donnees SET current_city='ville_a',current_building='maison-starovka',current_room='piece_maison',inventory='[{\"stackKey\":\"bois\",\"stackable\":true,\"qty\":8}]' WHERE name='__goulag_detenu'")
+  self.q.execute("INSERT INTO public.sovarka_goulag_refuges(nom,destination,statut,arrivee_le) VALUES('__goulag_detenu','starovka','detenu',public.sovarka_jour_paris())");self.c.commit()
+  def nuit(_):
+   with psycopg2.connect(self.s.get_uri()) as c:
+    q=c.cursor();q.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'sub':'00000000-0000-4000-8000-000000000001','role':'authenticated'}),));q.execute("SELECT set_config('request.path','/rpc/sovarka_goulag_refuge_nuit',true)");q.execute('SET LOCAL ROLE authenticated')
+    q.execute('SELECT public.sovarka_goulag_refuge_nuit()');return q.fetchone()[0]
+  for montant in [5,3]:
+   with concurrent.futures.ThreadPoolExecutor(max_workers=2) as e:res=list(e.map(nuit,range(2)))
+   self.assertEqual(sum(r['ok'] for r in res),1)
+   self.assertEqual(next(r['bois_preleves'] for r in res if r['ok']),montant)
+   if montant==5:
+    self.q.execute("UPDATE public.sovarka_goulag_refuges SET arrivee_le=arrivee_le-1,derniere_nuit=derniere_nuit-1");self.c.commit()
+  self.assertEqual(self.sql("SELECT bois_paye FROM public.sovarka_goulag_refuges WHERE nom='__goulag_detenu'"),8)
+  self.assertEqual(self.sql("SELECT inventory FROM public.personnages_donnees WHERE name='__goulag_detenu'"),[])
+
 
 if __name__=='__main__':unittest.main(argv=[sys.argv[0]],verbosity=2)

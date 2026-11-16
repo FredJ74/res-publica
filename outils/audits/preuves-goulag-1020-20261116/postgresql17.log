@@ -19,6 +19,6 @@ test_transport_sans_habilitation_refuse (__main__.Goulag.test_transport_sans_hab
 test_zz_concurrence_progression (__main__.Goulag.test_zz_concurrence_progression) ... ok
 
 ----------------------------------------------------------------------
-Ran 17 tests in 6.582s
+Ran 17 tests in 6.387s
 
 OK
