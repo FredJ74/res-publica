@@ -46,7 +46,7 @@ BEGIN
   IF NOT FOUND OR v_p.country IS DISTINCT FROM 'soviet'
     OR v_p.current_city NOT IN ('capitale','ville_a','ville_b') THEN
     RETURN jsonb_build_object('ok',false,'raison','hors_sovarka'); END IF;
-  IF v_p.current_building NOT LIKE 'centre-multinodal-%'
+  IF coalesce(v_p.current_building,'') NOT LIKE 'centre-multinodal-%'
     OR NOT EXISTS(SELECT 1 FROM public.navigation_lieux_regles
           WHERE pays='soviet' AND ville=v_p.current_city AND batiment=v_p.current_building
           AND pieces ? v_p.current_room) THEN
@@ -105,9 +105,9 @@ BEGIN
     AND user_id=auth.uid() FOR UPDATE;
   SELECT * INTO v_v FROM public.sovarka_goulag_visites WHERE nom=v_nom FOR UPDATE;
   SELECT * INTO v_c FROM public.sovarka_goulag_configuration WHERE singleton FOR SHARE;
-  IF NOT v_c.active OR v_c.retour_visiteur IS NULL THEN
+  IF coalesce(v_c.active,false) IS DISTINCT FROM true OR v_c.retour_visiteur IS NULL THEN
     RETURN jsonb_build_object('ok',false,'raison','goulag_non_active'); END IF;
-  IF NOT v_v.present OR v_p.country IS DISTINCT FROM 'soviet'
+  IF coalesce(v_v.present,false) IS DISTINCT FROM true OR v_p.country IS DISTINCT FROM 'soviet'
     OR (v_p.current_city,v_p.current_building,v_p.current_room)
        IS DISTINCT FROM ('qhs','qhs-prison','entree_qhs') THEN
     RETURN jsonb_build_object('ok',false,'raison','visiteur_non_present'); END IF;
