@@ -39,6 +39,12 @@ try{
     const small=width<=1023;
     assert.equal(await page.locator('.hg-room-tabs').isVisible(),small,'tabs '+width);
     if(small){
+      const top=await page.locator('.hg-room-tabs').evaluate(el=>el.getBoundingClientRect().top);
+      const scene=await page.locator('.piece-container').evaluate(el=>el.getBoundingClientRect().top);
+      assert.ok(top<scene,'navigation doit précéder la salle '+width+' '+top+' / '+scene);
+      assert.ok(top<800,'onglets visibles sans défilement '+width);
+    }
+    if(small){
       await page.locator('[data-room-tab="2"]').click();
       assert.equal(await page.locator('#hg-room-info').isVisible(),true);
       assert.match(await page.locator('#hg-room-info').innerText(),/Le greffe/);
