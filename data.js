@@ -11198,6 +11198,16 @@ function slugPnjSovarka(nom) {
         desc: "Le poste de douane du port. Le tampon est lourd, le formulaire en trois exemplaires.",
         persons: [{name:'Douanier Sükhbaatar Baïartouïev (PNJ)', role:'Douanier du port', rel:'neutral', job:'agent_portuaire'}],
         orders: []
+      },
+      // Bureau du Commandant du Port de Sovarka (Fred, 16/11/2026, GAME-DESIGN-REGULATION-PRODUCTION.md) :
+      // piece du port, comme l'administration portuaire de PSM. Image a venir (ChatGPT) ; ordres du
+      // commandant (flechage, quotas, balance commerciale, douane) codes apres le feu vert de Fred.
+      administration_portuaire: {
+        name: psm.administration_portuaire.name,
+        imageBg: "linear-gradient(135deg,#0b1016,#16212c)",
+        desc: "Le bureau du Commandant du Port, au-dessus des quais. Une carte des routes maritimes couvre un mur, le planning du brise-glace l'autre.",
+        persons: [{name:'Commandant Tömör Ochirov (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}],
+        orders: []
       }
     }
   };

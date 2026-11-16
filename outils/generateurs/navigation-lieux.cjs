@@ -40,6 +40,8 @@ for(const x of rows){
  if(x.pays==='soviet'&&(x.ville==='ville_b'||x.ville==='ville_a')&&x.id==='stade')x.rooms=x.rooms.filter(r=>r!=='boutique');
  // Raffinerie de Starovka (15/11) : deux salles ajoutées par 20261115192000, hors de la référence du 31/10.
  if(x.pays==='soviet'&&x.ville==='ville_a'&&x.id==='usine-principale')x.rooms=x.rooms.filter(r=>r!=='salle_ventes_raffinerie'&&r!=='interieur_raffinerie');
+ // Port de Starovka (16/11) : bureau du Commandant du Port ajouté par 20261116110000, hors de la référence du 31/10.
+ if(x.pays==='soviet'&&x.ville==='ville_a'&&x.id==='port-starovka')x.rooms=x.rooms.filter(r=>r!=='administration_portuaire');
  if(x.pays==='soviet'&&['ville_a','ville_b'].includes(x.ville)&&x.id==='centre-affaires')x.rooms=["hall","bureau_prestige","bureau_standard","open_space","tribune_republia"];
 }
 const quote=x=>x===null?'NULL':"'"+String(x).replace(/'/g,"''")+"'";
