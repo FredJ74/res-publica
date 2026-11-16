@@ -12486,6 +12486,13 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
       || (b.rooms && b.rooms[piece] && b.rooms[piece].persons) || [];
     if (!liste.some(p => p.name === nom)) throw new Error('Portrait : PNJ absent ' + nom + ' (' + ville + '/' + batiment + '/' + piece + ')');
     const copie = liste.map(p => p.name === nom ? Object.assign({}, p, { photoUrl: photo, photoPos: '50% 30%' }) : Object.assign({}, p));
+    const extra = ctx.roomsExtra && ctx.roomsExtra[piece];
+    if (!(ro && ro.persons) && extra && extra.persons === liste) {
+      // Pièce propre à la ville (roomsExtra) : sa propre liste est remplacée, sans surcharge en plus.
+      ctx.roomsExtra = Object.assign({}, ctx.roomsExtra);
+      ctx.roomsExtra[piece] = Object.assign({}, extra, { persons: copie });
+      continue;
+    }
     ctx.roomOverrides = Object.assign({}, ctx.roomOverrides);
     ctx.roomOverrides[piece] = Object.assign({}, ro, { persons: copie });
   }
