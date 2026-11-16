@@ -1,0 +1,30 @@
+name: Intérieurs mobile — présentation sans action serveur
+on:
+  pull_request:
+    paths:
+      - 'plateau.html'
+      - 'plateau-interieurs-mobile.css'
+      - 'plateau-interieurs-mobile.js'
+      - 'outils/bancs/test-interieurs-mobile-20261116.cjs'
+      - 'outils/bancs/test-interieurs-mobile-browser-20261116.cjs'
+      - '.github/workflows/interieurs-mobile.yml'
+  workflow_dispatch:
+jobs:
+  interieurs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe
+        run: node --check plateau-interieurs-mobile.js
+      - name: Invariants
+        run: node outils/bancs/test-interieurs-mobile-20261116.cjs
+      - name: Installer Chromium
+        run: |
+          cd outils/e2e
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Recette responsive 320 390 414 1280
+        run: node outils/bancs/test-interieurs-mobile-browser-20261116.cjs
