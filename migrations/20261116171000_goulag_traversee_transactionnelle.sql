@@ -149,6 +149,8 @@ BEGIN
       SET jour_sommeil=v_jour,champignons_penalite_en_attente=false,actualise_le=now()
       WHERE nom=v_nom;
   ELSIF p_action='progresser' THEN
+    IF tr.progressions=5 AND tr.champignons_choix IS NULL THEN
+      RETURN jsonb_build_object('ok',false,'raison','champignons_a_decider'); END IF;
     IF tr.jour_progression=v_jour THEN
       RETURN jsonb_build_object('ok',false,'raison','progression_deja_faite'); END IF;
     IF v_pa<=5 THEN RETURN jsonb_build_object('ok',false,'raison','pa_insuffisants'); END IF;
@@ -209,6 +211,33 @@ BEGIN
 END $$;
 REVOKE ALL ON FUNCTION public.goulag_toundra_agir(text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.goulag_toundra_agir(text) TO authenticated;
+
+
+CREATE OR REPLACE FUNCTION public.goulag_toundra_lire()
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $
+DECLARE v_nom text:=public.mon_personnage();tr public.sovarka_goulag_traversees%ROWTYPE;
+        p record;v_total integer;v_jour date:=public.sovarka_jour_paris();
+BEGIN
+ IF auth.uid() IS NULL OR v_nom IS NULL THEN
+   RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
+ SELECT * INTO tr FROM public.sovarka_goulag_traversees WHERE nom=v_nom AND en_cours;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','pas_de_traversee');END IF;
+ SELECT country,current_city,pa INTO p FROM public.personnages_donnees
+    WHERE name=v_nom AND user_id=auth.uid();
+ IF NOT FOUND OR (p.country,p.current_city) IS DISTINCT FROM ('soviet','qhs') THEN
+    RETURN jsonb_build_object('ok',false,'raison','hors_toundra'); END IF;
+ v_total:=CASE WHEN tr.destination='starovka' THEN 7 ELSE 10 END;
+ RETURN jsonb_build_object('ok',true,'en_cours',true,'destination',tr.destination,'statut',tr.statut,
+   'progressions',tr.progressions,'total',v_total,'pa',p.pa,'bois_trouve',tr.bois_trouve,
+   'abri_aujourdhui',coalesce(tr.jour_abri=v_jour,false),
+   'dormi_aujourdhui',coalesce(tr.jour_sommeil=v_jour,false),
+   'progresse_aujourdhui',coalesce(tr.jour_progression=v_jour,false),
+   'champignons_a_decider',tr.progressions=5 AND tr.champignons_choix IS NULL,
+   'champignons_choix',tr.champignons_choix,
+   'peine_gelee_secondes',tr.peine_gelee_secondes);
+END $;
+REVOKE ALL ON FUNCTION public.goulag_toundra_lire() FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.goulag_toundra_lire() TO authenticated;
 
 -- Un joueur en pleine traversée ne peut fuir via des actions de déplacement
 -- génériques : garde transversale du moteur de navigation existant.
