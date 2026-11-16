@@ -1,0 +1,24 @@
+name: Goulag Sovarka - survie
+on:
+  push:
+    branches:
+      - chatgpt/goulag-moteur-survie-20261116
+  pull_request:
+    paths:
+      - 'api/_goulag-survie.js'
+      - 'outils/bancs/test-goulag-survie-20261116.cjs'
+      - '.github/workflows/goulag-survie-20261116.yml'
+jobs:
+  moteur-survie:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check api/_goulag-survie.js
+      - run: node --check outils/bancs/test-goulag-survie-20261116.cjs
+      - run: node outils/bancs/test-goulag-survie-20261116.cjs
