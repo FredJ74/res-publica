@@ -1,0 +1,27 @@
+name: Dialogues mobile — présentation PNJ
+on:
+  pull_request:
+    paths:
+      - 'plateau.html'
+      - 'plateau-dialogues-mobile.css'
+      - 'outils/bancs/test-dialogues-mobile-20261116.cjs'
+      - 'outils/bancs/test-dialogues-mobile-browser-20261116.cjs'
+      - '.github/workflows/dialogues-mobile.yml'
+  workflow_dispatch:
+jobs:
+  dialogues:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Isolation CSS et commandes intactes
+        run: node outils/bancs/test-dialogues-mobile-20261116.cjs
+      - name: Installer Chromium
+        run: |
+          cd outils/e2e
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Vérifier PNJ et saisies 320 390 414 1280
+        run: node outils/bancs/test-dialogues-mobile-browser-20261116.cjs

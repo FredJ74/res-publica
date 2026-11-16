@@ -1,0 +1,13 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');const path=require('node:path');
+const root=path.resolve(__dirname,'../..');const read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const css=read('plateau-dialogues-mobile.css'),html=read('plateau.html');
+let n=0;const test=(t,fn)=>{fn();n++;console.log('OK '+t)};
+test('chargement unique du style',()=>assert.equal(html.split('plateau-dialogues-mobile.css').length-1,1));
+test('les vrais éléments PNJ sont conservés',()=>{for(const id of ['modal-pnj','pnj-identite','pnj-avatar-container','pnj-speech','pnj-actions','pnj-trait-display'])assert.ok(html.includes('id="'+id+'"'))});
+test('uniquement une feuille de style sans IA ni commande',()=>{assert.ok(!/\bfetch\s*\(|sbRpc|chatCompletion|openPnjModal\s*\(/.test(css));assert.ok(!/plateau-dialogues-mobile\.js/.test(html))});
+test('responsive et portrait décor protégé',()=>{assert.match(css,/@media\(max-width:1023px\)/);assert.match(css,/not\(\.pnj-identite-terrain\)/);assert.match(css,/\.pnj-identite-terrain/);});
+test('tactile et lecture',()=>{assert.match(css,/min-height:48px/);assert.match(css,/font-size:16px!important/);assert.match(css,/focus-visible/);});
+test('portée limitée à la modale PNJ',()=>{assert.doesNotMatch(css,/#modal-quete-accueil|#modal-char|\.modal-overlay\s*\{/);});
+console.log(n+' tests statiques dialogue réussis');
