@@ -47,6 +47,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ### Décisions attendues de Fred
 
+- **Régulation de la production** (16/11, nuit, en cours de décision) : plus de plafond fixe de récoltes, ordre « Régulation de la production » pour la mairie, sommation possible du ministre de l'Économie ; voir `GAME-DESIGN-REGULATION-PRODUCTION.md`. **Ne pas coder avant le feu vert de Fred.** Idée notée : une ferme en Républia.
 - **Volumes de production de Sovarka** (15/11, nuit, en service) : proposés par Claude, consignés dans `GAME-DESIGN-NOVOMIRSK.md` (« Production et logistique de Sovarka ») ; table `sovarka_productions_villes`, corrigeable sans code. Aussi : importations proposées (plantes 38 + 37, tabac 50) et décision 4 pour un directeur PJ.
 - **Fiche de Galina Dokladova** (secrétaire de mairie de Krasnov, 15/11) : à relire par Fred (`api/_pnj-personnalites.js`).
 - **Fiches de Kouzma Lapchine et de Praskovia Pakhomova** (15/11) : à relire par Fred (`api/_pnj-personnalites.js`).
