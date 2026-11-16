@@ -3951,6 +3951,9 @@ function renderRoomActions(room, buildingId, roomId) {
   // militaire ni pour aucune autre source existante.
   const dynMasque = [];
   dynOrders.forEach(d => { (d.masque || []).forEach(fn => dynMasque.push(fn)); });
+  // La source peut déclarer des masquages sans créer de bouton visible.
+  // On les enregistre d'abord, puis on enlève les marqueurs invisibles du rendu.
+  dynOrders = dynOrders.filter(d => !d.invisible);
 
   // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
   const allOrders = ordresDeclares
@@ -3977,9 +3980,9 @@ function renderRoomActions(room, buildingId, roomId) {
     .filter(o => !['produire_commerce','produire_arme'].includes(o.fn))
     .filter(o => o.fn !== 'gerer_commerce' || (typeof commerceDroitsPiece === 'function' && commerceDroitsPiece(buildingId, roomId)))
     .filter(o => !dynOrders.some(d => d.fn === o.fn))
-    .concat(dynOrders.filter(d => !d.basDeListe && !d.invisible))
+    .concat(dynOrders.filter(d => !d.basDeListe))
     // Ordres universels de piece places tout en bas (« Fouiller les lieux », decision de Fred, 11/11/2026).
-    .concat(dynOrders.filter(d => d.basDeListe && !d.invisible));
+    .concat(dynOrders.filter(d => d.basDeListe));
 
   const achatTerrainBloqueParIntrus = /^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain' &&
     typeof getTerrainState === 'function' &&
