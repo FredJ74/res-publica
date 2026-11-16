@@ -47,7 +47,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ### Décisions attendues de Fred
 
-- **Régulation de la production** (16/11, nuit, en cours de décision) : plus de plafond fixe de récoltes, ordre « Régulation de la production » pour la mairie, sommation possible du ministre de l'Économie ; voir `GAME-DESIGN-REGULATION-PRODUCTION.md`. **Ne pas coder avant le feu vert de Fred.** Idée notée : une ferme en Républia.
+- **Régulation de la production — deux points relevés** (16/11) : PSM n'a pas de lieu de pêche (le poisson à 10 par PA ne s'applique nulle part) ; importations de Sovarka payées au prix d'origine mais revendues à moitié prix. Voir `GAME-DESIGN-REGULATION-PRODUCTION.md`. Idée notée : une ferme en Républia.
 - **Volumes de production de Sovarka** (15/11, nuit, en service) : proposés par Claude, consignés dans `GAME-DESIGN-NOVOMIRSK.md` (« Production et logistique de Sovarka ») ; table `sovarka_productions_villes`, corrigeable sans code. Aussi : importations proposées (plantes 38 + 37, tabac 50) et décision 4 pour un directeur PJ.
 - **Fiche de Galina Dokladova** (secrétaire de mairie de Krasnov, 15/11) : à relire par Fred (`api/_pnj-personnalites.js`).
 - **Fiches de Kouzma Lapchine et de Praskovia Pakhomova** (15/11) : à relire par Fred (`api/_pnj-personnalites.js`).
@@ -94,6 +94,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - La passe de nuit pose `cycle.dernierScrutin` à chaque proclamation : ne pas le retirer, la contestation en dépend.
 
 ### À vérifier en jeu (Fred, Angie, Vince)
+- Régulation de la production (Claude, 16/11/2026, nuit) : au champ de pétrole de Starovka, « Récolter » coûte 1 PA et donne 4 pétroles, sans limite de 2 par jour ; à Montrouge 6 charbons ou 3 métaux ; à Krasnov 6 bois (12 par coupe en forêt profonde, 1 PA). En adjoint au maire, au bureau de l'adjoint, « Régulation de la production » : fixer un maximum par joueur ou un plafond de ville, puis constater le refus à la récolte. Prix des entrepôts de Sovarka à moitié (pétrole 4 PSK).
 - Champ de pétrole de Starovka (Claude, 15/11/2026, soir) : dans la rue des logements collectifs, cliquer le bâtiment de la Compagnie et les foreuses à gauche ; on entre au champ de pétrole (nouvelle image), « Sortir » ramène à la même rue.
 - Usines d'État de Sovarka (Claude, 15/11/2026, nuit) : à la Raffinerie d'État du Grand Nord (Starovka), Damdin Mazoutov au bureau ; vendre du pétrole extrait, produire du carburant (15 PSK), acheter en vente directe ; idem alcool à la distillerie de Krasnov. Après la première nuit : journaux des entrepôts de Sovarka (« Production de … », usines), médicaments de nouveau produits à Luthécia.
 - Bons d'État (Claude, 15/11/2026) : à la mairie de Novomirsk (hall), de Starovka ou de Krasnov (accueil), ordre « Bons d'État » ; souscrire une petite somme.
@@ -132,6 +133,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - Aide HRP (PR #720) : **non certifiés** — réponses réelles DeepSeek dans les neuf langues, recette authentifiée, essais iPhone/Android. Sur téléphone : questions PA/but, fr→en→ko→fr, arabe RTL, clavier IME.
 
 ## Derniers chantiers
+- **Régulation de la production ; récolte à 1 PA ; prix de Sovarka à moitié (Claude, 16/11/2026, nuit)** (PR #1017) : décisions de Fred (`GAME-DESIGN-REGULATION-PRODUCTION.md`). Migration `20261116020000_regulation_production_recolte` **appliquée** (registre `regulation_production_recolte_20261116020000`) après essai annulé ; banc annulé `outils/bancs/banc-regulation-production-20261116.sql` (Arnie à Starovka : 4 pétroles pour 1 PA, 3 récoltes de suite, refus `regulation_joueur` puis `regulation_ville`, lecture, non-adjoint refusé, pétrole de Sovarka à 4, fournisseur étranger Sovarka à 2). Ordre `regulation_production` dans les bureaux d'adjoint des deux gabarits de mairie, 9 langues. Prix par pays (`coef_prix_matieres`, `ressources_economie_pays`) raccordés à 21 fonctions serveur et à l'écran (`prixBasePays`). Bancs historiques adaptés (nouveaux tarifs hors photographies du 31/10 et du plan 97, catalogues ajoutés en fin de tableau, 421 ordres traduits).
 
 - **I18n gameplay — sorties refusées (#1021, 16/11/2026), LIVRÉ** : 14 textes / 112 traductions ; fusion da1c508, Vercel dpl_GHiRpj6jhrtiTa6gEAP14JiAFSaU READY, alias public vérifié, 47 CI verts ; sept tests / 1 539 bascules des deux lots et 84 catalogues natifs conformes en production. Preuves `outils/audits/I18N-EXIT-FEEDBACK-20261116-production.json`.
 - **I18n gameplay — caisses/directeurs/armurerie (#1018, 16/11/2026), LIVRÉ** : 9 textes / 72 traductions ; fusion 976aeb0, production vérifiée (9 fichiers, 1 080 bascules, 84 catalogues), 46 CI verts. Régression rejouée verte avec #1021. Détails archivés et preuves `outils/audits/I18N-BUILDING-HEADER-20261116-production.json`.

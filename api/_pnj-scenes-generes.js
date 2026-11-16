@@ -5973,7 +5973,7 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Starovka",
     "batiment": "Mairie",
-    "piece": "salle_elections",
+    "piece": "Salle des élections",
     "personnes": []
   },
   "[\"soviet\",\"ville_a\",\"mairie\",\"salle_partis\"]": {
@@ -6338,13 +6338,6 @@ export const SCENES_PNJ = {
     "personnes": [
       "Darima Zhambalova"
     ]
-  },
-  "[\"soviet\",\"ville_a\",\"universite\",\"bibliotheque\"]": {
-    "pays": "Sovarka",
-    "ville": "Starovka",
-    "batiment": "Lycée de l'Avenir",
-    "piece": "Bibliothèque et salle d’étude",
-    "personnes": []
   },
   "[\"soviet\",\"ville_a\",\"universite\",\"bibliotheque\"]": {
     "pays": "Sovarka",
