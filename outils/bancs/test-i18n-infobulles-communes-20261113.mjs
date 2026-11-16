@@ -57,13 +57,15 @@ test('inventaire : 245 descriptions communes affichées, aucune nouvelle hors ca
   // Français strictement identique : chaque texte du catalogue est une description exacte de data.js,
   // affichée dans au moins un pays (avec la fusion réelle, quelques-unes ne sont plus visibles qu'en Républia,
   // l'exclusion de Sovarka étant désormais prise en compte ; leur traduction y reste utile).
-  assert.deepEqual(cat.filter(d => !sov.has(d) && !rep.has(d)), [], 'textes du catalogue introuvables tels quels');
+  // Ancienne description de la récolte (avant le 16/11) : gardée à sa place, les bancs historiques figent les lignes livrées.
+  const HISTORIQUES = ['Recolter une matiere premiere locale. Maximum 2 fois par jour.'];
+  assert.deepEqual(cat.filter(d => !sov.has(d) && !rep.has(d) && !HISTORIQUES.includes(d)), [], 'textes du catalogue introuvables tels quels');
   assert.equal(new Set(cat).size, cat.length);
 });
 
-test('255 lignes de neuf colonnes non vides, sans guillemet droit ni balise, toutes traduites', () => {
+test('256 lignes de neuf colonnes non vides, sans guillemet droit ni balise, toutes traduites', () => {
   const lignes = I('soviet', 'fr').communes;
-  assert.equal(lignes.length, 255); // +1 le 16/11 : régulation de la production ; +1 le 14/11 : Dormir dans la chambre d’hôpital
+  assert.equal(lignes.length, 256); // +2 le 16/11 : récolte (nouvelle description) et régulation de la production ; +1 le 14/11 : Dormir dans la chambre d’hôpital
   for (const l of lignes) {
     assert.equal(l.length, 9, l[0]);
     for (const v of l) assert.ok(v.trim(), l[0]);
