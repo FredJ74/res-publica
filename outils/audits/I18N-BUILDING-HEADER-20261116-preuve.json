@@ -32,5 +32,7 @@
   "productionVerified": false,
   "authenticatedPlayerTest": false,
   "physicalPhoneTest": false,
-  "nativeLinguisticReview": false
+  "nativeLinguisticReview": false,
+  "sameHeaderNodeAcrossBuildingChanges": true,
+  "currentFrenchFallbackOnSameNode": true
 }
