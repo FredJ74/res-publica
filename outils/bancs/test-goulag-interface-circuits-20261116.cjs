@@ -29,6 +29,10 @@ for(const rpc of ['sovarka_goulag_refuge_lire','sovarka_goulag_refuge_nuit',
 assert.ok(justice.includes("type === 'qhs' && state.country === 'soviet'"));
 assert.ok(justice.includes("sbRpcVerdict('sovarka_goulag_juger'"));
 assert.ok(justice.includes('Condamner — envoi au goulag'));
+assert.ok(toundra.includes("roomId === 'cellules_qhs'"), 'accès depuis cellule');
+assert.ok(toundra.includes("sovarka_goulag_detenu_vers_entree"), 'RPC depuis cellule');
+assert.ok(router.includes("goulag_detenu_entree:'goulagDetenuVersEntree'"));
+assert.ok(refuge.includes('sovarka_goulag_refuge_rejoindre'), 'maison atteignable');
 assert.ok(toundra.includes('champignons_a_decider'));
 assert.ok(toundra.includes('sbAdopterInventaireServeur'));
 assert.ok(toundra.includes("v.recherche"));
