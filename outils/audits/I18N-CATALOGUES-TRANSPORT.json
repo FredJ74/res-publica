@@ -238,10 +238,10 @@
     {
       "source": "i18n/infobulles-communes-resources.js",
       "packed": "i18n/packed/infobulles-communes-resources.js.br",
-      "sourceBytes": 254407,
-      "packedBytes": 85475,
-      "sourceSha256": "6d4289ad7da2136034b03e447cd61b496c545482704be08997ca765afc06aa8c",
-      "packedSha256": "67207b6f5f2f710a0c53ad46b297a7d0e1bf5ba6fbedfdb187f749fb206919a7"
+      "sourceBytes": 256704,
+      "packedBytes": 86187,
+      "sourceSha256": "e0d1397d085caa8bba6a650ddc56ce95600e42d785af2eff05c3d3dcfd6cc367",
+      "packedSha256": "8b9720b2402560885922ef16789d31de7a257e6f90d31ab0b17b7bb498d7a3ec"
     },
     {
       "source": "i18n/inventory-ui-resources.js",
@@ -302,10 +302,10 @@
     {
       "source": "i18n/navigation-resources.js",
       "packed": "i18n/packed/navigation-resources.js.br",
-      "sourceBytes": 17532,
-      "packedBytes": 5037,
-      "sourceSha256": "5245a7dbab6e2ddc9126bcb2f197b3c27e5b009326a0414368363cb931e59458",
-      "packedSha256": "074eb102c0a54c037052d4e681a4516aeaab00b2abf78b72ac26c6a80c784d59"
+      "sourceBytes": 29261,
+      "packedBytes": 8086,
+      "sourceSha256": "96ecfa3999015a0abecd589bf67a3d8bc1080f6b31613bc27f5f56dba8b724c8",
+      "packedSha256": "5cb01a13d4d98e2d0c61b820335c9bd85eb465ec099d424b5b9bda6037dbb263"
     },
     {
       "source": "i18n/occupation-resources.js",
@@ -342,10 +342,10 @@
     {
       "source": "i18n/orders-resources.js",
       "packed": "i18n/packed/orders-resources.js.br",
-      "sourceBytes": 250796,
-      "packedBytes": 48719,
-      "sourceSha256": "94afc3d7da42cfbf4026ea4ff256ce2aa2ebac33e489af59fbd50937c878065d",
-      "packedSha256": "aab5617db429f8ae5127d71cde64671152b5167f8cd69aae36b87d5bceea574d"
+      "sourceBytes": 251325,
+      "packedBytes": 48863,
+      "sourceSha256": "489e6bc681c788a8cc2515c6e8e57e921d4c75538a9a753a7c3a108e55c9f099",
+      "packedSha256": "89a84db30b4fce67dcd4bfb57b5e0c06d7a05ae068738e87c4b3470bf070b2d4"
     },
     {
       "source": "i18n/organization-admissions-resources.js",
@@ -406,10 +406,10 @@
     {
       "source": "i18n/plateau-resources.js",
       "packed": "i18n/packed/plateau-resources.js.br",
-      "sourceBytes": 31260,
-      "packedBytes": 7086,
-      "sourceSha256": "5ab8d40c41eb8e1e60f30416019e7c2b3fb6ce8ab3725026cd9d1ccde96f55f0",
-      "packedSha256": "453ce61d3f3ef3bd14d88ac3c1b6215b01d4abe155abad43f8d04d639f27b010"
+      "sourceBytes": 36469,
+      "packedBytes": 7984,
+      "sourceSha256": "8609983a838ae27e62735f9fffa7b48e0aa4eb917699ecb5e21cf059d1cb2b64",
+      "packedSha256": "ac0319ff902bb918633307b12555cb474caa7090b0230eb5c09385a2a2c08bc9"
     },
     {
       "source": "i18n/player-directory-resources.js",
@@ -458,6 +458,14 @@
       "packedBytes": 7453,
       "sourceSha256": "f2f42d24c4bdc27acdf84b1ecaf65147af90bc2fe3cdc4d0a474bb81a49b8ba2",
       "packedSha256": "0bccc26b262362c80984798cadd54783678cde8c7abf86a2b349b380c5dba72e"
+    },
+    {
+      "source": "i18n/regulation-production-resources.js",
+      "packed": "i18n/packed/regulation-production-resources.js.br",
+      "sourceBytes": 8813,
+      "packedBytes": 2689,
+      "sourceSha256": "a44bf7f4f19a544647737050e569395901db7515a3ef3be91c4e453e82d4ad34",
+      "packedSha256": "f914a63f463673a7fffc8c0933ee7122caab86f4472c4cbbf53e298536096a7e"
     },
     {
       "source": "i18n/republia-infobulles-resources.js",
@@ -630,10 +638,10 @@
     {
       "source": "i18n/toast-bodies-resources.js",
       "packed": "i18n/packed/toast-bodies-resources.js.br",
-      "sourceBytes": 778378,
-      "packedBytes": 195267,
-      "sourceSha256": "23c221534e0a5ecfd009195cb892b700a609f8a22533f907309673cb8ef256e4",
-      "packedSha256": "3cf6eda95b89f629837f872ee61c8aac6474866e3a5e0781b51be5ee28c44b5f"
+      "sourceBytes": 781147,
+      "packedBytes": 196091,
+      "sourceSha256": "84940435f770726027b7c84135122dedbedfed4de2237fbb01f67a369e5fc679",
+      "packedSha256": "5ef651e58011cb0c1f63072d0c83a0d5070120e2635f6c3636c052389e5e3067"
     },
     {
       "source": "i18n/toast-resources.js",

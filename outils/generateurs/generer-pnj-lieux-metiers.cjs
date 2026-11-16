@@ -34,7 +34,7 @@ if (process.argv.includes('--scenes-js')) {
           const r = ctx?.roomOverrides?.[piece] || ctx?.roomsExtra?.[piece] || b.rooms?.[piece];
           out[JSON.stringify([pays,ville,id,piece])] = {
             pays: COUNTRIES[pays]?.n || pays, ville: VILLES[pays]?.[ville]?.nom || cite.name || ville,
-            batiment: ctx?.name || b.name || id, piece: r?.name || b.rooms?.[piece]?.name || piece,
+            batiment: ctx?.name || b.name || id, piece: r?.name || ctx?.roomsExtra?.[piece]?.name || b.rooms?.[piece]?.name || piece,
             personnes: personnesNormalesDeLaPiece(id,piece).map(p => p.name.replace(' (PNJ)','').trim())
           };
         }

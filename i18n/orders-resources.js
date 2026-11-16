@@ -1546,6 +1546,7 @@
     "fr": {
       "ssm_besoin_aide": "Besoin d’aide ?",
       "ssm_demander_rendezvous": "Prendre rendez-vous avec Edwige Jacquard",
+      "regulation_production": "Régulation de la production",
       "financer_communal": "Financer un batiment communal",
       "consulter_personnalites_musee": "Consulter les personnalités",
       "appeler_police_terrain": "Appeler la police",
@@ -1568,6 +1569,7 @@
     "en": {
       "ssm_besoin_aide": "Need help?",
       "ssm_demander_rendezvous": "Make an appointment with Edwige Jacquard",
+      "regulation_production": "Production regulation",
       "financer_communal": "Fund a municipal building",
       "consulter_personnalites_musee": "View notable figures",
       "appeler_police_terrain": "Call the police",
@@ -1590,6 +1592,7 @@
     "es": {
       "ssm_besoin_aide": "¿Necesitas ayuda?",
       "ssm_demander_rendezvous": "Pedir cita con Edwige Jacquard",
+      "regulation_production": "Regulación de la producción",
       "financer_communal": "Financiar un edificio municipal",
       "consulter_personnalites_musee": "Consultar personalidades destacadas",
       "appeler_police_terrain": "Llamar a la policía",
@@ -1612,6 +1615,7 @@
     "zh-TW": {
       "ssm_besoin_aide": "需要幫助嗎？",
       "ssm_demander_rendezvous": "預約與 Edwige Jacquard 會面",
+      "regulation_production": "生產管制",
       "financer_communal": "資助市政建築",
       "consulter_personnalites_musee": "查看知名人物",
       "appeler_police_terrain": "報警",
@@ -1634,6 +1638,7 @@
     "ru": {
       "ssm_besoin_aide": "Нужна помощь?",
       "ssm_demander_rendezvous": "Записаться на приём к Edwige Jacquard",
+      "regulation_production": "Регулирование добычи",
       "financer_communal": "Финансировать муниципальное здание",
       "consulter_personnalites_musee": "Посмотреть известных личностей",
       "appeler_police_terrain": "Вызвать полицию",
@@ -1656,6 +1661,7 @@
     "ko": {
       "ssm_besoin_aide": "도움이 필요하신가요?",
       "ssm_demander_rendezvous": "Edwige Jacquard와 면담 예약",
+      "regulation_production": "생산 규제",
       "financer_communal": "시립 건물 자금 지원",
       "consulter_personnalites_musee": "유명 인물 살펴보기",
       "appeler_police_terrain": "경찰 부르기",
@@ -1678,6 +1684,7 @@
     "ar": {
       "ssm_besoin_aide": "هل تحتاج إلى مساعدة؟",
       "ssm_demander_rendezvous": "حجز موعد مع Edwige Jacquard",
+      "regulation_production": "تنظيم الإنتاج",
       "financer_communal": "تمويل مبنى بلدي",
       "consulter_personnalites_musee": "الاطلاع على الشخصيات البارزة",
       "appeler_police_terrain": "الاتصال بالشرطة",
@@ -1700,6 +1707,7 @@
     "pt-BR": {
       "ssm_besoin_aide": "Precisa de ajuda?",
       "ssm_demander_rendezvous": "Marcar um horário com Edwige Jacquard",
+      "regulation_production": "Regulação da produção",
       "financer_communal": "Financiar um prédio municipal",
       "consulter_personnalites_musee": "Consultar personalidades",
       "appeler_police_terrain": "Chamar a polícia",
@@ -1722,6 +1730,7 @@
     "de": {
       "ssm_besoin_aide": "Hilfe benötigt?",
       "ssm_demander_rendezvous": "Einen Termin bei Edwige Jacquard vereinbaren",
+      "regulation_production": "Produktionsregulierung",
       "financer_communal": "Ein städtisches Gebäude finanzieren",
       "consulter_personnalites_musee": "Bekannte Persönlichkeiten ansehen",
       "appeler_police_terrain": "Die Polizei rufen",

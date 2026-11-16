@@ -1,0 +1,162 @@
+{
+  "scope": "En-têtes bat-caisse et bat-directeur uniquement, pas les noms/catégories des bâtiments ni les fenêtres métier",
+  "priorPRs": {
+    "924": "Corps fixes des notifications déjà raccordés, non refaits",
+    "1015": "Décors Starovka fusionnés, non modifiés",
+    "1016": "Bibliothèque Starovka traduite et compressée, non refaite"
+  },
+  "activePRsExcluded": [
+    993,
+    994
+  ],
+  "entries": [
+    {
+      "key": "plateau.buildingArmoryManage",
+      "french": "Gérer mon armurerie",
+      "frenchSourcePresentBefore": true,
+      "resourcePresentBefore": false,
+      "wiredBefore": false,
+      "foreignSessionBefore": "français confirmé dans Chromium malgré catalogue disponible",
+      "resourcePresentAfter": true,
+      "wiredAfter": "span data-i18n moteur RPI18nPlateau, assertion de couverture dans Chromium",
+      "frenchResidualAfter": false,
+      "dynamicExceptions": [
+        "nom propre",
+        "montant formaté comme dans le français original",
+        "sigle monétaire"
+      ]
+    },
+    {
+      "key": "plateau.buildingArmoryTooltip",
+      "french": "Accéder à la gestion de mon commerce",
+      "frenchSourcePresentBefore": true,
+      "resourcePresentBefore": false,
+      "wiredBefore": false,
+      "foreignSessionBefore": "français confirmé dans Chromium malgré catalogue disponible",
+      "resourcePresentAfter": true,
+      "wiredAfter": "span data-i18n moteur RPI18nPlateau, assertion de couverture dans Chromium",
+      "frenchResidualAfter": false,
+      "dynamicExceptions": [
+        "nom propre",
+        "montant formaté comme dans le français original",
+        "sigle monétaire"
+      ]
+    },
+    {
+      "key": "plateau.buildingCashLoading",
+      "french": "Caisse : ...",
+      "frenchSourcePresentBefore": true,
+      "resourcePresentBefore": false,
+      "wiredBefore": false,
+      "foreignSessionBefore": "français confirmé dans Chromium malgré catalogue disponible",
+      "resourcePresentAfter": true,
+      "wiredAfter": "span data-i18n moteur RPI18nPlateau, assertion de couverture dans Chromium",
+      "frenchResidualAfter": false,
+      "dynamicExceptions": [
+        "nom propre",
+        "montant formaté comme dans le français original",
+        "sigle monétaire"
+      ]
+    },
+    {
+      "key": "plateau.buildingCashAmount",
+      "french": "Caisse : {{values.amount}} {{values.currency}}",
+      "frenchSourcePresentBefore": true,
+      "resourcePresentBefore": false,
+      "wiredBefore": false,
+      "foreignSessionBefore": "français confirmé dans Chromium malgré catalogue disponible",
+      "resourcePresentAfter": true,
+      "wiredAfter": "span data-i18n moteur RPI18nPlateau, assertion de couverture dans Chromium",
+      "frenchResidualAfter": false,
+      "dynamicExceptions": [
+        "nom propre",
+        "montant formaté comme dans le français original",
+        "sigle monétaire"
+      ]
+    },
+    {
+      "key": "plateau.buildingCashUnavailable",
+      "french": "Caisse : indisponible",
+      "frenchSourcePresentBefore": true,
+      "resourcePresentBefore": false,
+      "wiredBefore": false,
+      "foreignSessionBefore": "français confirmé dans Chromium malgré catalogue disponible",
+      "resourcePresentAfter": true,
+      "wiredAfter": "span data-i18n moteur RPI18nPlateau, assertion de couverture dans Chromium",
+      "frenchResidualAfter": false,
+      "dynamicExceptions": [
+        "nom propre",
+        "montant formaté comme dans le français original",
+        "sigle monétaire"
+      ]
+    },
+    {
+      "key": "plateau.buildingDirectorLoading",
+      "french": "Directeur : ...",
+      "frenchSourcePresentBefore": true,
+      "resourcePresentBefore": false,
+      "wiredBefore": false,
+      "foreignSessionBefore": "français confirmé dans Chromium malgré catalogue disponible",
+      "resourcePresentAfter": true,
+      "wiredAfter": "span data-i18n moteur RPI18nPlateau, assertion de couverture dans Chromium",
+      "frenchResidualAfter": false,
+      "dynamicExceptions": [
+        "nom propre",
+        "montant formaté comme dans le français original",
+        "sigle monétaire"
+      ]
+    },
+    {
+      "key": "plateau.buildingDirectorName",
+      "french": "Directeur : {{values.name}}",
+      "frenchSourcePresentBefore": true,
+      "resourcePresentBefore": false,
+      "wiredBefore": false,
+      "foreignSessionBefore": "français confirmé dans Chromium malgré catalogue disponible",
+      "resourcePresentAfter": true,
+      "wiredAfter": "span data-i18n moteur RPI18nPlateau, assertion de couverture dans Chromium",
+      "frenchResidualAfter": false,
+      "dynamicExceptions": [
+        "nom propre",
+        "montant formaté comme dans le français original",
+        "sigle monétaire"
+      ]
+    },
+    {
+      "key": "plateau.buildingDirectorVacant",
+      "french": "Directeur : poste vacant",
+      "frenchSourcePresentBefore": true,
+      "resourcePresentBefore": false,
+      "wiredBefore": false,
+      "foreignSessionBefore": "français confirmé dans Chromium malgré catalogue disponible",
+      "resourcePresentAfter": true,
+      "wiredAfter": "span data-i18n moteur RPI18nPlateau, assertion de couverture dans Chromium",
+      "frenchResidualAfter": false,
+      "dynamicExceptions": [
+        "nom propre",
+        "montant formaté comme dans le français original",
+        "sigle monétaire"
+      ]
+    },
+    {
+      "key": "plateau.buildingDirectorUnavailable",
+      "french": "Directeur : indisponible",
+      "frenchSourcePresentBefore": true,
+      "resourcePresentBefore": false,
+      "wiredBefore": false,
+      "foreignSessionBefore": "français confirmé dans Chromium malgré catalogue disponible",
+      "resourcePresentAfter": true,
+      "wiredAfter": "span data-i18n moteur RPI18nPlateau, assertion de couverture dans Chromium",
+      "frenchResidualAfter": false,
+      "dynamicExceptions": [
+        "nom propre",
+        "montant formaté comme dans le français original",
+        "sigle monétaire"
+      ]
+    }
+  ],
+  "nextPriorities": [
+    "Messages dynamiques de détention et fermeture à l’entrée des bâtiments (pas les notifications fixes déjà couvertes par #924)",
+    "Catégories du bâtiment et libellés contextuels des commerces à vérifier en rendu"
+  ]
+}

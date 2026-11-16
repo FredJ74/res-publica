@@ -30,7 +30,8 @@ for(const x of rows)if(x.pays==='soviet'&&x.ville==='capitale'&&x.id==='centre-a
 // chambres d'hôpital des dispensaires (13-14/11), chambres des appartements (relecture du 13/11), salle des
 // élections des mairies de Starovka et Krasnov (14/11), boutique du stade de Krasnov (14/11) et de Starovka (15/11), salles de la raffinerie de Starovka (15/11), immeubles,
 // logements et Tabac/Presse de Krasnov et de Novomirsk (12-14/11), quatre bureaux du centre d'affaires de Krasnov (15/11).
-const EXCLUS_APRES_3110={soviet:{capitale:['logements-novomirsk-marche','logements-novomirsk-quais'],ville_b:['logements-krasnov-place-ours','logements-krasnov-rue-tabac','logements-novomirsk','tabac-presse-krasnov']}};
+// Tabac/Presse de Starovka et retrait de la tribune (15/11) : aucune réécriture des migrations historiques.
+const EXCLUS_APRES_3110={soviet:{ville_a:['presse-starovka'],capitale:['logements-novomirsk-marche','logements-novomirsk-quais'],ville_b:['logements-krasnov-place-ours','logements-krasnov-rue-tabac','logements-novomirsk','tabac-presse-krasnov']}};
 for(let i=rows.length-1;i>=0;i--)if(EXCLUS_APRES_3110[rows[i].pays]?.[rows[i].ville]?.includes(rows[i].id))rows.splice(i,1);
 for(const x of rows){
  if(/^dispensaire-public/.test(x.id))x.rooms=x.rooms.filter(r=>r!=='chambre');
@@ -39,7 +40,7 @@ for(const x of rows){
  if(x.pays==='soviet'&&(x.ville==='ville_b'||x.ville==='ville_a')&&x.id==='stade')x.rooms=x.rooms.filter(r=>r!=='boutique');
  // Raffinerie de Starovka (15/11) : deux salles ajoutées par 20261115192000, hors de la référence du 31/10.
  if(x.pays==='soviet'&&x.ville==='ville_a'&&x.id==='usine-principale')x.rooms=x.rooms.filter(r=>r!=='salle_ventes_raffinerie'&&r!=='interieur_raffinerie');
- if(x.pays==='soviet'&&x.ville==='ville_b'&&x.id==='centre-affaires')x.rooms=["hall","bureau_prestige","bureau_standard","open_space","tribune_republia"];
+ if(x.pays==='soviet'&&['ville_a','ville_b'].includes(x.ville)&&x.id==='centre-affaires')x.rooms=["hall","bureau_prestige","bureau_standard","open_space","tribune_republia"];
 }
 const quote=x=>x===null?'NULL':"'"+String(x).replace(/'/g,"''")+"'";
 const blocs=[];for(let i=0;i<rows.length;i+=60){const part=rows.slice(i,i+60);blocs.push('-- Généré par outils/generateurs/navigation-lieux.cjs depuis data.js.\nINSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,membership) VALUES\n'+part.map(x=>'('+[quote(x.pays),quote(x.ville),quote(x.id),quote(JSON.stringify(x.rooms))+'::jsonb',x.locked,quote(x.membership)].join(',')+')').join(',\n')+'\nON CONFLICT(pays,ville,batiment) DO UPDATE SET pieces=EXCLUDED.pieces,ferme=EXCLUDED.ferme,membership=EXCLUDED.membership;\n');}

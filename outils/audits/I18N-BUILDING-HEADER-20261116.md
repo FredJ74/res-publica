@@ -1,0 +1,28 @@
+# En-têtes de bâtiments — 16 novembre 2026
+
+Neuf textes français fixes ou gabarits nouvellement raccordés, 72 valeurs étrangères ajoutées au catalogue plateau existant. Caisse en attente, solde, indisponibilité ; directeur en attente, PJ/PNJ, vacance, indisponibilité ; gestion de son armurerie et son infobulle. Les variables (noms, montants, monnaies) restent opaques et formatées exactement comme auparavant.
+
+Les textes étaient écrits directement par enterBuilding. Leur absence de traduction est démontrée sous Chromium avec le catalogue chargé et la session anglaise : l’ancien rendu reste français. Le nouveau rendu exerce les neuf clés dans les neuf langues, y compris après une réponse différée, sans relancer enterBuilding ou ses lectures.
+
+## Vérification
+
+- Quatre tests ciblés verts : anciennes ressources et français exacts, arbre du code métier identique à main hors écritures UI précisément filtrées ; tous les autres fichiers/fonctions préservés.
+- 1 080 bascules principales sous Chromium, neuf langues, 320/390/1280 ; arabe RTL, droits propriétaire/commissaire, trois villes de Sovarka, directeur PJ/PNJ/vacant, erreurs et attente. Paramètres d’entrée/navigation et intentions du clic de gestion identiques à main ; zéro RPC/fetch/PA supplémentaire par bascule ; saisie, sélection, focus, progression et position inchangés. Texte malveillant traité comme texte, pas comme HTML. Repli après changement de solde vérifié sans ancien français mis en cache.
+- 27 tests i18n existants verts ; 418 tests test-*.mjs verts sur main et branche avec les mêmes dépendances (pglast/Acorn installés). Les premiers échecs dus aux dépendances locales absentes ont été résolus sans changer les tests.
+- Archives Brotli déterministes vérifiées, sources lisibles conservées ; aucun nouveau moteur. Plafond de déploiement inchangé, environ 277 Mo / 330 Mo.
+
+## Maintenance nécessaire du contrôle général
+
+Le contrôle général était déjà rouge sur main 5e5a21e : le miroir des scènes PNJ n’avait pas suivi la bibliothèque et le déplacement de la presse de Starovka. Le générateur perdait aussi le nom d’une pièce ajoutée quand une surcharge ne contenait que son image. Le fallback de nom reprend maintenant roomsExtra avant le modèle commun ; les noms français existants sont préservés, et « salle_partis » redevient le nom canonique déjà présent « Salle des partis ».
+
+Régénération déterministe du miroir : deux scènes ajoutées (bibliothèque vide et nouvelle salle de presse), ancienne scène de presse retirée ; la journaliste conserve exactement son nom et sa présence dans le lieu déjà défini par data.js. Tous les noms/castings sont conservés ; aucun profil, prompt, handler ou fonction de dialogue n’est modifié. Les 16 tests PNJ existants redeviennent verts. Aucune donnée canonique ni règle de jeu modifiée ; aucun nouveau texte de conversation traduit ou inventé.
+
+## Périmètre et suites
+
+Usines de Starovka et Krasnov, usines et entrepôts publics de Républia, commissariats des trois villes selon autorisation serveur et armurerie du propriétaire à Novomirsk/Starovka. Les caisses privées des entrepôts de Sovarka restent masquées. Aucun changement d’accès, de prix, de PA, de donnée joueur, de RPC ou de serveur. Pas de refonte graphique. PR #924 et #1015/#1016 examinées, travaux déjà livrés non refaits ; PR #993/#994 Ignat exclues.
+
+Les noms/catégories des bâtiments et le reste des fenêtres de gestion ne sont pas annoncés traduits par ce lot. Le lot suivant couvre les huit refus de sortie encore français, distincts des corps fixes déjà traduits ; PR #1021 préparée séparément. Aucun pourcentage global n’est annoncé. Pas de PJ connecté, de téléphone physique ou de relecture native vérifiés.
+
+Livraison vérifiée : PR #1018 fusionnée dans 976aeb0e8680cb002282850f6638ac163f4f3caf après 46 contrôles CI réussis. Production Vercel dpl_6xV9YvLDbAukzBs1fLCCSd8j7bCv READY sur res-publica.vercel.app, commit exact confirmé. Neuf fichiers publics identiques au dépôt, quatre tests / 1 080 bascules rejoués sur ces fichiers. Les 84 catalogues ont également été chargés depuis cet alias et décompressés nativement par Chromium, octet pour octet conformes. Preuves : fichier production.json associé.
+
+Le contrôle PostgreSQL a aussi révélé une dérive préexistante du vérificateur historique de navigation : presse et tribune de Starovka déplacées depuis le 31/10. Seules les exclusions de génération historique ont été ajustées ; les migrations restent immuables, 284 bâtiments vérifiés. Le dernier banc général est intégralement vert.

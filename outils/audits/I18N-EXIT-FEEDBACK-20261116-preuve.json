@@ -1,0 +1,181 @@
+{
+  "baseCommit": "dfb8dc50284573d2e856060f2286c3a3cfd0ecd5",
+  "codeCommit": "a271dabf0f1009602bbb091ba089c7ba764e0deb",
+  "frenchTexts": 14,
+  "foreignValues": 112,
+  "texts": [
+    {
+      "key": "exitSessionBody",
+      "fr": "Votre session n’est plus valide. Reconnectez-vous avant de sortir.",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "key": "exitUnconfirmedBody",
+      "fr": "La réponse est incertaine et la position serveur n’a pas pu être vérifiée. Réessayez : votre position sera relue avant tout nouvel ordre.",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "key": "exitNetworkBody",
+      "fr": "La connexion n’a pas permis de joindre le serveur. Réessayez.",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "key": "exitForbiddenBody",
+      "fr": "Le serveur refuse cet accès. Votre position reste inchangée.",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "key": "exitServiceBody",
+      "fr": "Le service a retourné une erreur. Réessayez dans un instant.",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "key": "exitUnregisteredBody",
+      "fr": "La sortie de ce bâtiment n’est pas déclarée sur le serveur.",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "key": "exitUnreadableBody",
+      "fr": "La sortie n’a pas pu être confirmée. Réessayez.",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "key": "exitDeniedBody",
+      "fr": "Le serveur n’autorise pas cette sortie dans votre situation actuelle.",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "key": "exitUnconfirmedTitle",
+      "fr": "Sortie non confirmée",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "key": "exitForbiddenTitle",
+      "fr": "Sortie non autorisée",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "key": "exitServiceTitle",
+      "fr": "Service de sortie indisponible",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "key": "exitUnregisteredTitle",
+      "fr": "Sortie non référencée",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "key": "exitUnreadableTitle",
+      "fr": "Réponse du serveur illisible",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "key": "exitDeniedTitle",
+      "fr": "Sortie refusée",
+      "source": "plateau-navigation.js:sortieBatimentMessage",
+      "resourceExisted": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    }
+  ],
+  "reusedTitles": [
+    {
+      "fr": "Session expirée",
+      "key": "toastTitles.sessionExpired"
+    },
+    {
+      "fr": "Connexion indisponible",
+      "key": "forumFeedback.titleConnection"
+    }
+  ],
+  "merged": true,
+  "productionVerified": true,
+  "authenticatedPlayerTest": false,
+  "physicalPhoneTest": false,
+  "nativeLinguisticReview": false,
+  "targetedPassed": 3,
+  "browserSwitches": 459,
+  "viewports": [
+    320,
+    390,
+    1280
+  ],
+  "locales": [
+    "fr",
+    "en",
+    "es",
+    "zh-TW",
+    "ru",
+    "ko",
+    "ar",
+    "pt-BR",
+    "de"
+  ],
+  "serverCallsPerLanguageChange": 0,
+  "originalFrenchExact": true,
+  "businessCallsIdentical": true,
+  "serverChecksNotChanged": true,
+  "mergeCommit": "da1c508e4ed7f1836cc318749a030b376ca6a35f",
+  "ciHead": "2ddd6aa8fee0cee3d54514d0e7bd7d262e91db19",
+  "ciPassed": 47,
+  "productionDeployment": "dpl_GHiRpj6jhrtiTa6gEAP14JiAFSaU",
+  "publicAlias": "https://res-publica.vercel.app",
+  "publicFilesVerified": 14,
+  "productionCombinedTestsPassed": 7,
+  "productionCombinedSwitches": 1539,
+  "nativeBrotliCatalogsVerified": 84,
+  "nodeMjsMainPassed": 418,
+  "nodeMjsBranchPassed": 418,
+  "localClientBanks": {
+    "banks": 384,
+    "initialPassed": 375,
+    "initialMissingDependencyFailures": 9,
+    "dependencyRestoredFromLockedReference": true,
+    "retryPassedBanks": 8,
+    "pythonEnvironmentRetryPassedBanks": 1,
+    "resolvedFailures": 9,
+    "remainingFailures": 0,
+    "rawResultsPreserved": true
+  },
+  "existingAndTargetedRegressionTestsPassed": 41,
+  "planRegressionTestsPassed": 14
+}
