@@ -81,7 +81,10 @@
         return;
       }
       message = '';
+      if (v.inventory && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
       if (v.termine || v.arrivee) {
+        if (v.recherche && typeof showToast === 'function') showToast('Évasion du goulag', 'Votre portrait circule désormais en ville. Trouvez un refuge chez un habitant : trois jours de repos vous attendent.', false);
+        else if (typeof showToast === 'function') showToast('Traversée achevée', 'Vous êtes épuisé. Vous devez récupérer trois jours chez un habitant.', true);
         etat = null; rendre();
         if (typeof sbLoadPersonnage === 'function') await sbLoadPersonnage();
         if (typeof updateUI === 'function') updateUI();
