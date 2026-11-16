@@ -12433,6 +12433,27 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   hopital.roomsExtra.chambre.imageUrl = path + 'chambre.webp';
 })();
 
+// STAROVKA_TRIBUNAL_TROIS_PIECES_20261116 (images de Fred, 16/11/2026)
+// Décors seuls du Tribunal Populaire de Starovka : ordres, PNJ et autres villes inchangés.
+(function () {
+  const ville = WORLD.soviet && WORLD.soviet.ville_a;
+  const tribunal = ville && ville.buildingContext && ville.buildingContext['tribunal-local'];
+  const gabarit = BUILDINGS['tribunal-local'];
+  if (!tribunal || !gabarit) throw new Error('Tribunal de Starovka absent');
+  tribunal.roomOverrides = tribunal.roomOverrides || {};
+  const dir = 'images/Sovarka/Starovka/Starovka_tribunal_';
+  for (const [piece, fichier] of Object.entries({
+    salle_audience_locale: 'salle_audience.webp',
+    bureau_magistrats: 'bureau_magistrats.webp',
+    greffe: 'greffe.webp'
+  })) {
+    if (!gabarit.rooms[piece]) throw new Error('Pièce du tribunal inconnue : ' + piece);
+    Object.assign(tribunal.roomOverrides[piece] = tribunal.roomOverrides[piece] || {}, {
+      imageUrl: dir + fichier
+    });
+  }
+})();
+
 // PORTRAITS_PNJ_STAROVKA_KRASNOV_20261116 (demande de Fred, 16/11/2026)
 // Photos de profil recadrées sur le visage du PNJ visible dans le décor de sa pièce
 // (outils/images/portraits-pnj-starovka-krasnov-20261116.json). Seule la ville visée change :
@@ -12455,7 +12476,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Tömör Ochirov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
     ['ville_a', 'marche', 'marche_ext', "Tuyana Dashieva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_marche_tuyana-dashieva.webp'],
     ['ville_a', 'capitaine-sauvage', 'salle_principale', "Sesegma Badmaeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_capitaine-sauvage_sesegma-badmaeva.webp'],
-    ['ville_a', 'universite', 'amphi', "Darima Zhambalova (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_universite_darima-zhambalova.webp'],
+    ['ville_a', 'tribunal-local', 'salle_audience_locale', "Dulma Tsyrenova (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_dulma-tsyrenova.webp'],
+    ['ville_a', 'universite', 'amphi', "Darima Zhambalova (PNJ)",'images/Sovarka/Starovka/Starovka_portrait_universite_darima-zhambalova.webp'],
     ['ville_b', 'mairie', 'accueil_mairie', "Galina Dokladova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_galina-dokladova.webp'],
     ['ville_b', 'mairie', 'salle_elections', "Zinaïda Izbirkova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_zinaida-izbirkova.webp'],
     ['ville_b', 'dispensaire-public-v', 'attente', "Infirmiere (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_dispensaire-public-v_infirmiere.webp'],
