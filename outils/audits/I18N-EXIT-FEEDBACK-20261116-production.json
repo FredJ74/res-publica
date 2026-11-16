@@ -1,0 +1,88 @@
+{
+  "commit": "da1c508e4ed7f1836cc318749a030b376ca6a35f",
+  "deployment": "dpl_GHiRpj6jhrtiTa6gEAP14JiAFSaU",
+  "files": [
+    {
+      "file": "plateau.html",
+      "sha256": "3f56bbc099428d1318c56e4b9024b333ac1cfb83aa655ba4ef9bbfc0b009631d",
+      "identical": true
+    },
+    {
+      "file": "style.css",
+      "sha256": "80d0c1fb04fded062e6a4acf5ac76251559f46ceba37850eefcb85158a6fe3e4",
+      "identical": true
+    },
+    {
+      "file": "data.js",
+      "sha256": "e00e02a290f05f65a1c886af81cf05a1ea89dc089bfa619c53d1a806592727ae",
+      "identical": true
+    },
+    {
+      "file": "plateau-core.js",
+      "sha256": "8e0da450f7edbafbd474e20e65266ca1433e7bdf641dde222e95e756c4b1d702",
+      "identical": true
+    },
+    {
+      "file": "plateau-navigation.js",
+      "sha256": "a7c1e260a715de535b5d26792851ca8b1b44aa0a3a991797fc633a304eccf4cb",
+      "identical": true
+    },
+    {
+      "file": "plateau-justice-economie.js",
+      "sha256": "7db036d17483486075a2d7dc528c2da348c38ca6fa94e84cf696ae476f956b62",
+      "identical": true
+    },
+    {
+      "file": "i18n/i18next.min.js",
+      "sha256": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "identical": true
+    },
+    {
+      "file": "i18n/resources.js",
+      "sha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-resources.js",
+      "sha256": "8609983a838ae27e62735f9fffa7b48e0aa4eb917699ecb5e21cf059d1cb2b64",
+      "identical": true
+    },
+    {
+      "file": "i18n/toast-resources.js",
+      "sha256": "8a57409e44396e0a59163dcb86b9f9d995cbf507d88ed82f56df7fc6c9bcc96e",
+      "identical": true
+    },
+    {
+      "file": "i18n/toast-bodies-resources.js",
+      "sha256": "23c221534e0a5ecfd009195cb892b700a609f8a22533f907309673cb8ef256e4",
+      "identical": true
+    },
+    {
+      "file": "i18n/forum-feedback-resources.js",
+      "sha256": "8bea83d82bd231d8acbabbc8b790d5bfc1c0f87085f268a915b55f52fe9c70f3",
+      "identical": true
+    },
+    {
+      "file": "i18n/navigation-resources.js",
+      "sha256": "96ecfa3999015a0abecd589bf67a3d8bc1080f6b31613bc27f5f56dba8b724c8",
+      "identical": true
+    },
+    {
+      "file": "i18n/plateau-init.js",
+      "sha256": "0fbd1edb1d94a175168e068c72991b5dc4b86e7d400202c20a6c6bcfc20bb160",
+      "identical": true
+    }
+  ],
+  "alias": "https://res-publica.vercel.app",
+  "state": "READY",
+  "target": "production",
+  "browserTestsPassed": 7,
+  "browserSwitches": 1539,
+  "exitSwitches": 459,
+  "buildingHeaderSwitches": 1080,
+  "nativeBrotliCatalogs": 84,
+  "ciPassed": 47,
+  "authenticatedPlayerTest": false,
+  "physicalPhoneTest": false,
+  "nativeLinguisticReview": false
+}
