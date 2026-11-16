@@ -302,10 +302,10 @@
     {
       "source": "i18n/navigation-resources.js",
       "packed": "i18n/packed/navigation-resources.js.br",
-      "sourceBytes": 29261,
-      "packedBytes": 8086,
-      "sourceSha256": "96ecfa3999015a0abecd589bf67a3d8bc1080f6b31613bc27f5f56dba8b724c8",
-      "packedSha256": "5cb01a13d4d98e2d0c61b820335c9bd85eb465ec099d424b5b9bda6037dbb263"
+      "sourceBytes": 41778,
+      "packedBytes": 11611,
+      "sourceSha256": "776b3479a47ab11ecf758428557ada2f9cdf18b24aade7732ea08ecfbc4c57c0",
+      "packedSha256": "b6cf21fb257d8ab2ff898f8e52b8f69f35e820ab84f69d35f5a68767843696c9"
     },
     {
       "source": "i18n/occupation-resources.js",

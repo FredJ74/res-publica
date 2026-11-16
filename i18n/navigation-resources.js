@@ -453,6 +453,77 @@
   }
 };
  for(const [locale,words] of Object.entries(exitFeedback))Object.assign(catalog[locale],words);
+ // Catégories fixes : valeurs françaises exactes, indépendantes des noms des bâtiments.
+ const categoryLocales=["fr","en","es","zh-TW","ru","ko","ar","pt-BR","de"];
+ const categoryRows=[
+  ["categoryPresidency","Institutions - Presidence","Institutions - Presidency","Instituciones - Presidencia","機構－總統府","Учреждения — президентство","기관 - 대통령부","المؤسسات - الرئاسة","Instituições - Presidência","Institutionen - Präsidentschaft"],
+  ["categoryHospitalityDining","Hotellerie - Restauration","Hotels - Dining","Hostelería - Restauración","旅宿－餐飲","Гостиницы — общественное питание","숙박 - 요식업","الفنادق - المطاعم","Hotelaria - Alimentação","Hotellerie - Gastronomie"],
+  ["categoryCapitalInstitutions","Institutions - Capitale uniquement","Institutions - Capital only","Instituciones - Solo en la capital","機構－僅限首都","Учреждения — только в столице","기관 - 수도 한정","المؤسسات - العاصمة فقط","Instituições - Somente na capital","Institutionen - Nur in der Hauptstadt"],
+  ["categoryCapitalJustice","Justice - Capitale uniquement","Justice - Capital only","Justicia - Solo en la capital","司法－僅限首都","Правосудие — только в столице","사법 - 수도 한정","العدالة - العاصمة فقط","Justiça - Somente na capital","Justiz - Nur in der Hauptstadt"],
+  ["categoryFinance","Finance","Finance","Finanzas","金融","Финансы","금융","المالية","Finanças","Finanzen"],
+  ["categoryDiscreetFinance","Finance discrete","Discreet finance","Finanzas discretas","隱密金融","Негласные финансы","은밀한 금융","المالية السرية","Finanças discretas","Diskrete Finanzen"],
+  ["categoryPremiumHealth","Santé (premium)","Health (premium)","Salud (premium)","醫療（premium）","Здоровье (премиум)","건강 (프리미엄)","الصحة (بريميوم)","Saúde (premium)","Gesundheit (Premium)"],
+  ["categoryPublicHealth","Sante (public)","Health (public)","Salud (pública)","醫療（公立）","Здоровье (государственное)","건강 (공공)","الصحة (عامة)","Saúde (pública)","Gesundheit (öffentlich)"],
+  ["categorySecurityPlain","Securite","Security","Seguridad","治安","Безопасность","치안","الأمن","Segurança","Sicherheit"],
+  ["categoryMedia","Medias","Media","Medios","媒體","СМИ","언론","الإعلام","Mídia","Medien"],
+  ["categorySecretNetwork","Reseau secret","Secret network","Red secreta","秘密網絡","Тайная сеть","비밀 조직망","شبكة سرية","Rede secreta","Geheimnetzwerk"],
+  ["categoryEducationNetwork","Formation - Reseau intellectuel","Education - Intellectual network","Formación - Red intelectual","教育－知識界網絡","Образование — интеллектуальная сеть","교육 - 지식인 조직망","التعليم - شبكة فكرية","Formação - Rede intelectual","Bildung - Intellektuelles Netzwerk"],
+  ["categorySecurityEquipment","Securite - Equipement","Security - Equipment","Seguridad - Equipamiento","治安－裝備","Безопасность — снаряжение","치안 - 장비","الأمن - التجهيزات","Segurança - Equipamentos","Sicherheit - Ausrüstung"],
+  ["categoryEverydayTrade","Commerce - Vie quotidienne","Trade - Everyday life","Comercio - Vida cotidiana","商業－日常生活","Торговля — повседневная жизнь","상업 - 일상생활","التجارة - الحياة اليومية","Comércio - Vida cotidiana","Handel - Alltag"],
+  ["categoryAdministrationApplications","Administration - Candidatures","Administration - Applications","Administración - Candidaturas","行政－參選登記","Администрация — выдвижение кандидатур","행정 - 입후보","الإدارة - الترشحات","Administração - Candidaturas","Verwaltung - Kandidaturen"],
+  ["categoryPapyrusisme","Religion - Papyrusisme","Religion - Papyrusisme","Religión - Papyrusisme","宗教－Papyrusisme","Религия — Papyrusisme","종교 - Papyrusisme","الدين - Papyrusisme","Religião - Papyrusisme","Religion - Papyrusisme"],
+  ["categoryTransport","Transport","Transport","Transporte","交通","Транспорт","교통","النقل","Transporte","Verkehr"],
+  ["categoryTrade","Commerce","Trade","Comercio","商業","Торговля","상업","التجارة","Comércio","Handel"],
+  ["categoryBusiness","Affaires","Business","Negocios","商務","Деловая деятельность","사업","الأعمال","Negócios","Geschäftswelt"],
+  ["categoryRealEstate","Immobilier","Real estate","Inmuebles","房地產","Недвижимость","부동산","العقارات","Imóveis","Immobilien"],
+  ["categoryCapitalServices","Services - Capitale uniquement","Services - Capital only","Servicios - Solo en la capital","服務－僅限首都","Услуги — только в столице","서비스 - 수도 한정","الخدمات - العاصمة فقط","Serviços - Somente na capital","Dienstleistungen - Nur in der Hauptstadt"],
+  ["categorySportsLeisure","Sport & Loisirs","Sport & Leisure","Deporte y ocio","運動與休閒","Спорт и досуг","스포츠 및 여가","الرياضة والترفيه","Esporte e lazer","Sport und Freizeit"],
+  ["categoryDiplomacy","Diplomatie","Diplomacy","Diplomacia","外交","Дипломатия","외교","الدبلوماسية","Diplomacia","Diplomatie"],
+  ["categoryPublicPlace","Lieu public","Public place","Lugar público","公共場所","Общественное место","공공장소","مكان عام","Local público","Öffentlicher Ort"],
+  ["categoryCulture","Culture","Culture","Cultura","文化","Культура","문화","الثقافة","Cultura","Kultur"],
+  ["categoryHospitalityPlain","Hotellerie","Hotels","Hostelería","旅宿","Гостиницы","숙박","الفنادق","Hotelaria","Hotellerie"],
+  ["categoryLocalInstitutions","Institutions locales","Local institutions","Instituciones locales","地方機構","Местные учреждения","지방 기관","المؤسسات المحلية","Instituições locais","Lokale Institutionen"],
+  ["categoryDining","Restauration","Dining","Restauración","餐飲","Общественное питание","요식업","المطاعم","Alimentação","Gastronomie"],
+  ["categoryNewsMedia","Medias - Information","Media - News","Medios - Información","媒體－新聞","СМИ — информация","언론 - 정보","الإعلام - المعلومات","Mídia - Informação","Medien - Information"],
+  ["categoryPort","Port","Port","Puerto","港口","Порт","항구","الميناء","Porto","Hafen"],
+  ["categoryRawMaterialsAccented","Économie - Matières premières","Economy - Raw materials","Economía - Materias primas","經濟－原料","Экономика — сырьё","경제 - 원자재","الاقتصاد - المواد الخام","Economia - Matérias-primas","Wirtschaft - Rohstoffe"],
+  ["categoryInstitutions","Institutions","Institutions","Instituciones","機構","Учреждения","기관","المؤسسات","Instituições","Institutionen"],
+  ["categoryEducation","Education","Education","Educación","教育","Образование","교육","التعليم","Educação","Bildung"],
+  ["categoryRawMaterialsPlain","Economie - Matieres premieres","Economy - Raw materials","Economía - Materias primas","經濟－原料","Экономика — сырьё","경제 - 원자재","الاقتصاد - المواد الخام","Economia - Matérias-primas","Wirtschaft - Rohstoffe"],
+  ["categoryReligion","Religion","Religion","Religión","宗教","Религия","종교","الدين","Religião","Religion"],
+  ["categoryAdministration","Administration","Administration","Administración","行政","Администрация","행정","الإدارة","Administração","Verwaltung"],
+  ["categoryServices","Services","Services","Servicios","服務","Услуги","서비스","الخدمات","Serviços","Dienstleistungen"],
+  ["categoryResourceIndustry","Industrie - Ressource","Industry - Resource","Industria - Recurso","工業－資源","Промышленность — ресурс","산업 - 자원","الصناعة - الموارد","Indústria - Recurso","Industrie - Ressource"],
+  ["categoryFaiths","Cultes","Faiths","Cultos","信仰","Культы","종교 의례","العبادات","Cultos","Kulte"],
+  ["categoryLeisure","Loisirs","Leisure","Ocio","休閒","Досуг","여가","الترفيه","Lazer","Freizeit"],
+  ["categoryGreenSpaces","Espaces verts","Green spaces","Zonas verdes","綠地","Зелёные зоны","녹지","المساحات الخضراء","Áreas verdes","Grünflächen"],
+  ["categoryHousing","Habitat","Housing","Vivienda","住宅","Жильё","주거","السكن","Habitação","Wohnen"],
+  ["categoryPublicPlaces","Lieux publics","Public places","Lugares públicos","公共場所","Общественные места","공공장소","أماكن عامة","Locais públicos","Öffentliche Orte"],
+  ["categoryRestrictedMilitary","Militaire - Acces restreint","Military - Restricted access","Militar - Acceso restringido","軍事－限制進入","Военные объекты — ограниченный доступ","군사 - 출입 제한","عسكري - دخول مقيّد","Militar - Acesso restrito","Militär - Zutritt beschränkt"],
+  ["categoryRestrictedPrison","Penitentiaire - Acces restreint","Prison - Restricted access","Penitenciario - Acceso restringido","監獄－限制進入","Пенитенциарные учреждения — ограниченный доступ","교정 시설 - 출입 제한","السجون - دخول مقيّد","Penitenciário - Acesso restrito","Strafvollzug - Zutritt beschränkt"],
+  ["categoryCocaisme","Religion - Cocaïsme","Religion - Cocaïsme","Religión - Cocaïsme","宗教－Cocaïsme","Религия — Cocaïsme","종교 - Cocaïsme","الدين - Cocaïsme","Religião - Cocaïsme","Religion - Cocaïsme"],
+  ["categoryTractorisme","Religion - Tractorisme","Religion - Tractorisme","Religión - Tractorisme","宗教－Tractorisme","Религия — Tractorisme","종교 - Tractorisme","الدين - Tractorisme","Religião - Tractorisme","Religion - Tractorisme"],
+  ["categoryPower","Pouvoir","Power","Poder","權力","Власть","권력","السلطة","Poder","Macht"],
+  ["categoryHospitalityAccented","Hôtellerie","Hotels","Hostelería","旅宿","Гостиницы","숙박","الفنادق","Hotelaria","Hotellerie"],
+  ["categoryAccommodation","Logement","Accommodation","Alojamiento","住宿","Жильё","주택","السكن","Moradia","Unterkunft"],
+  ["categorySecurityAccented","Sécurité","Security","Seguridad","治安","Безопасность","치안","الأمن","Segurança","Sicherheit"],
+  ["categorySocial","Social","Social services","Servicios sociales","社會服務","Социальная сфера","사회 복지","الشؤون الاجتماعية","Serviços sociais","Soziales"],
+  ["categoryLoukoumisme","Religion - Loukoumisme","Religion - Loukoumisme","Religión - Loukoumisme","宗教－Loukoumisme","Религия — Loukoumisme","종교 - Loukoumisme","الدين - Loukoumisme","Religião - Loukoumisme","Religion - Loukoumisme"],
+ ];
+ for(const row of categoryRows)for(const [i,locale]of categoryLocales.entries())catalog[locale][row[0]]=row[i+1];
+ const categoryKeys=new Map(categoryRows.map(row=>[row[1],"navigation."+row[0]]));
+ for(const [fr,key]of Object.entries({"Sante": "characterSheet.health", "Santé": "commerceMenu.effectHp", "Organisations": "plateau.organizations", "Économie": "plateau.rulesEconomy", "Justice": "sovarkaJustice.tJustice"}))categoryKeys.set(fr,key);
+ function categoryKey(original){return categoryKeys.get(original)||null;}
+ function categoryMarkup(original){
+  const key=categoryKey(original);
+  const text=String(original).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return key ? '<span data-i18n="'+key+'">'+text+'</span>' : text;
+ }
+ function markCategory(node,original){
+  if(!node)return;
+  node.innerHTML=categoryMarkup(original);
+  global.RPI18nPlateau?.apply?.(node);
+ }
  for(const [locale,strings] of Object.entries(catalog))
   if(resources[locale]?.translation) resources[locale].translation.navigation={...strings};
  const french=catalog.fr;
@@ -472,5 +543,5 @@
  const exitBodies=new Map(Object.entries(exitFeedback.fr).filter(([key])=>key.endsWith('Body')).map(([key,fr])=>[fr,'navigation.'+key]));
  function exitMessageKey(original){return exitBodies.get(original)||null;}
  for(const [key,fr] of Object.entries(exitFeedback.fr))if(key.endsWith('Title'))global.RPToastI18n?.registerTitle?.(fr,'navigation.'+key);
- global.RPNavigationI18n=Object.freeze({label,labelHtml,exitMessageKey});
+ global.RPNavigationI18n=Object.freeze({label,labelHtml,exitMessageKey,categoryKey,categoryMarkup,markCategory});
 })(window);

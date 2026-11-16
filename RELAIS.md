@@ -9,6 +9,9 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### #871 — catégories de bâtiments (Codex, 16/11/2026)
+Branche codex/i18n-categories-batiments-20261116, lot distinct préparé pendant la CI de #1030. Audit : 58 catégories écrites directement dans en-têtes et listes, cinq ressources existantes réutilisables, 53 textes/424 valeurs étrangères nouvelles dans navigation. Indication Accès restreint réutilisée, aucun droit ni nom de bâtiment modifié. Fenêtres Commerce Premium encore françaises documentées hors lot ; PR #1020/#1029 exclues. Tests et livraison en cours.
+
 ### #871 — descriptions du goulag (Codex, 16/11/2026)
 Branche codex/i18n-goulag-descriptions-20261116, base ee93360. Cinq absences du catalogue reproduites dans le banc global Sovarka. Les cinq textes français existent déjà dans les pièces : conservation exacte, ajout de 40 traductions dans la matrice existante, sans donnée ni mécanique modifiée. PR #1020 et autres chantiers exclus ; Trois tests ciblés / 270 bascules Chromium verts avec les vrais contextes et fragment de rendu enterRoom, cinq pièces par pays Sovarka/Républia, neuf langues et 320/390/1280 ; cinq tests du banc global Sovarka redevenus verts sans le modifier. Brotli conforme (86 catalogues). PR #1030 ouverte. 418 test-*.mjs verts sur branche contre 417/418 sur main (seule absence des cinq descriptions). Deux autres défauts main reproduits : miroir des scènes resté sur l’ancien QHS et vérificateur historique dérivé des nouvelles pièces. Miroir régénéré sur les données déjà livrées (aucun changement du casting canonique), référence historique des cinq pièces du QHS conservée sans modifier de migration. Quatre tests ciblés désormais, 16 tests PNJ et 284 bâtiments historiques conformes ; CI relancée avant livraison.
 ### Goulag de Sovarka — cinq vues de bâtiment (16/11/2026)
