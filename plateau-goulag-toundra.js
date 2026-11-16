@@ -19,6 +19,43 @@
     return image(numero);
   }
 
+  function afficherAvisRecherche(dest) {
+    if (typeof document==='undefined')return;
+    const old=el('goulag-avis-fugitif');
+    if(old)old.remove();
+    const fond=document.createElement('div');
+    fond.id='goulag-avis-fugitif';
+    fond.setAttribute('role','dialog');
+    fond.setAttribute('aria-modal','true');
+    fond.setAttribute('aria-label','Avis de recherche de Sovarka');
+    fond.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.88);display:flex;justify-content:center;align-items:center;padding:18px;';
+    const carte=document.createElement('section');
+    carte.style.cssText='max-width:520px;width:100%;max-height:90vh;overflow-y:auto;background:#171a1d;color:#ecdfc6;border:2px solid #a15d4a;border-radius:10px;text-align:center;padding:22px;box-sizing:border-box;';
+    const titre=document.createElement('h2');
+    titre.textContent='ÉVADÉ DU GOULAG — RECHERCHÉ';
+    titre.style.cssText='font-size:1.3rem;color:#e7b99a;letter-spacing:.04em;margin:0 0 18px;';
+    carte.appendChild(titre);
+    const photo=typeof state!=='undefined' ? state.char?.photoUrl : null;
+    if(typeof photo==='string' && (/^images\//.test(photo) || /^https:\/\//.test(photo))){
+      const img=document.createElement('img');
+      img.src=photo;
+      img.alt='Portrait du personnage recherché';
+      img.style.cssText='width:140px;height:170px;object-fit:cover;border:2px solid #a15d4a;margin:0 auto 16px;display:block;';
+      carte.appendChild(img);
+    }
+    const texte=document.createElement('p');
+    texte.textContent='Votre portrait circule à '+(dest==='ville_a'?'Starovka':'Krasnov')+
+      '. Vous êtes recherché pour votre évasion. Un hôtel ou un hôpital peut vous exposer à une arrestation. Trouvez refuge chez un habitant : trois jours de repos vous attendent.';
+    texte.style.cssText='font-size:1rem;line-height:1.6;margin:0 0 18px;';
+    carte.appendChild(texte);
+    const fermer=document.createElement('button');
+    fermer.type='button';fermer.textContent='Chercher un refuge';
+    fermer.style.cssText='min-height:44px;padding:10px 20px;border:1px solid #d1a86a;background:#383022;color:#fff;cursor:pointer;font-size:1rem;';
+    fermer.addEventListener('click',()=>fond.remove());
+    carte.appendChild(fermer);fond.appendChild(carte);document.body.appendChild(fond);
+    fermer.focus();
+  }
+
   function garantirSurface() {
     let root = el('goulag-toundra');
     if (root) return root;
@@ -88,6 +125,7 @@
         etat = null; rendre();
         if (typeof sbLoadPersonnage === 'function') await sbLoadPersonnage();
         if (typeof updateUI === 'function') updateUI();
+        if (v.recherche) afficherAvisRecherche(v.arrivee);
         if (typeof window.goulagRefugeRejoindre === 'function') await window.goulagRefugeRejoindre();
         return;
       }
