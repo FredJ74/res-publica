@@ -2475,6 +2475,33 @@ const WORLD = {
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production','entrepot-logistique-starovka','port-starovka'],
       buildingContext: {
+        // Starovka uniquement. Quatre postes, deux bureaux et un accueil.
+        'centre-affaires': {
+          name: "Centre d'affaires de Starovka",
+          roomOverrides: {
+            hall: {
+              name: "Accueil",
+              imageUrl: "images/Sovarka/Starovka/Starovka_centre_affaires_accueil.webp",
+              persons: [{ name: "Secrétaire du centre d'affaires de Starovka (PNJ)",
+                role: "Secrétaire d'accueil", rel:"neutral", job:"hotesse",
+                photoUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_accueil.webp", photoPos:"35% 46%" }]
+            },
+            bureau_prestige: { name:"Grand bureau — Local à louer",
+              imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_grand_bureau.webp" },
+            bureau_standard: { name:"Petit bureau — Local à louer",
+              imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_petit_bureau.webp" },
+            open_space: { name:"Open Space", imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_open_space.webp",
+              excludeOrders:['commerce_pj','louer_local','gerer_local','installer_equipements'] }
+          },
+          roomsExtra: Object.fromEntries(Object.entries(bureauxOpenSpaceCentreAffaires()).map(([id,room])=>[id,{
+            ...room, imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_open_space.webp",
+            sortieVers:{buildingId:'centre-affaires',roomId:'open_space',city:'ville_a'},
+            orders:(room.orders||[]).map(o=>({...o,desc:o.fn==='louer_local'?undefined:o.desc,label:typeof o.label==='string'?o.label.replace(' FR/jour',' PSK/jour'):o.label}))
+          }])),
+          roomsExclues:['tribune_republia'],
+          // Les quatre postes sont accessibles par onglets : la vue de Starovka
+          // n'est pas le plan zénithal de Luthécia, pas de zones artificielles.
+        },
         'centre-multinodal-montrouge': {
           name: "Gare de Starovka",
           desc: "Gare ferroviaire de la ville portuaire de Starovka.",
@@ -12099,6 +12126,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   centre('poste-vigilance-glaciale', 'Poste de Vigilance Glaciale', 'Poste militaire', 'Sergent Bair Dorjiev', 'Opérateur d’écoute',
     'Un poste militaire planté dans la glace, hérissé d’antennes : il écoute la ville et, au-delà de l’océan, El Estado.',
     'Des casques, des bandes magnétiques, un poêle et des classeurs alignés : le sergent Dorjiev écoute en silence.');
+  BUILDINGS['poste-vigilance-glaciale'].rooms.salle_ecoute.imageUrl = 'images/Sovarka/Starovka/Starovka_centre_ecoute_salle.webp';
+  BUILDINGS['poste-vigilance-glaciale'].imagesAVenir = false;
   centre('station-radar-krasnov', 'Station radar de Krasnov', 'Station radar', 'Colonel Gleb Voronov', 'Chef du centre d’écoute',
     'La station radar du kolkhoze : sa grande parabole tourne vers le sud, vers Al-Khalija, et écoute aussi Krasnov.',
     'Quatre téléphones, un par pays étranger, et un cinquième, rouge, pour Novomirsk. Le colonel Voronov tend l’oreille ; le caporal Sorokine branche les fiches du standard.');
@@ -12433,6 +12462,58 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   hopital.roomsExtra.chambre.imageUrl = path + 'chambre.webp';
 })();
 
+// STAROVKA_TRIBUNAL_TROIS_PIECES_20261116 (images de Fred, 16/11/2026)
+// Décors seuls du Tribunal Populaire de Starovka : ordres, PNJ et autres villes inchangés.
+(function () {
+  const ville = WORLD.soviet && WORLD.soviet.ville_a;
+  const tribunal = ville && ville.buildingContext && ville.buildingContext['tribunal-local'];
+  const gabarit = BUILDINGS['tribunal-local'];
+  if (!tribunal || !gabarit) throw new Error('Tribunal de Starovka absent');
+  tribunal.roomOverrides = tribunal.roomOverrides || {};
+  const dir = 'images/Sovarka/Starovka/Starovka_tribunal_';
+  for (const [piece, fichier] of Object.entries({
+    salle_audience_locale: 'salle_audience.webp',
+    bureau_magistrats: 'bureau_magistrats.webp',
+    greffe: 'greffe.webp'
+  })) {
+    if (!gabarit.rooms[piece]) throw new Error('Pièce du tribunal inconnue : ' + piece);
+    Object.assign(tribunal.roomOverrides[piece] = tribunal.roomOverrides[piece] || {}, {
+      imageUrl: dir + fichier
+    });
+  }
+})();
+
+// STAROVKA_CENTRE_ARTISANAL_GREFFIERE_20261116 (images de Fred, 16/11/2026)
+// Règle de Fred : les PNJ s'adaptent à la réalité des images (genre, présence, nom). Décors du centre
+// artisanal (accueil = travées, Box 1 à 3 = les trois locaux), réceptionniste visible à l'accueil,
+// greffière visible au greffe du tribunal. Aucun ordre, prix ni autre ville modifié.
+(function () {
+  const ville = WORLD.soviet && WORLD.soviet.ville_a;
+  const ctx = ville && ville.buildingContext;
+  const centre = ctx && ctx['centre-artisanal'];
+  const tribunal = ctx && ctx['tribunal-local'];
+  const gabarit = BUILDINGS['centre-artisanal'];
+  if (!centre || !tribunal || !gabarit) throw new Error('Centre artisanal ou tribunal de Starovka absent');
+  centre.roomOverrides = centre.roomOverrides || {};
+  const dir = 'images/Sovarka/Starovka/';
+  for (const [piece, fichier] of Object.entries({
+    travees: 'accueil', echoppe_facade: 'box_1', atelier_milieu: 'box_2', reserve_arriere: 'box_3'
+  })) {
+    if (!gabarit.rooms[piece]) throw new Error('Pièce du centre artisanal inconnue : ' + piece);
+    Object.assign(centre.roomOverrides[piece] = centre.roomOverrides[piece] || {}, {
+      imageUrl: dir + 'Starovka_centre_artisanal_' + fichier + '.webp'
+    });
+  }
+  const travees = centre.roomOverrides.travees;
+  const avant = travees.persons || gabarit.rooms.travees.persons || [];
+  travees.persons = [{ name: 'Saryuna Dorjieva (PNJ)', role: 'Réceptionniste', rel: 'neutral', job: 'secretaire',
+    photoUrl: dir + 'Starovka_portrait_centre-artisanal_saryuna-dorjieva.webp', photoPos: '50% 30%' },
+    ...avant.map(p => Object.assign({}, p))];
+  const greffe = tribunal.roomOverrides.greffe = tribunal.roomOverrides.greffe || {};
+  greffe.persons = [{ name: 'Oyuna Tsybikova (PNJ)', role: 'Greffière', rel: 'neutral', job: 'secretaire',
+    photoUrl: dir + 'Starovka_portrait_tribunal-local_oyuna-tsybikova.webp', photoPos: '50% 30%' }];
+})();
+
 // PORTRAITS_PNJ_STAROVKA_KRASNOV_20261116 (demande de Fred, 16/11/2026)
 // Photos de profil recadrées sur le visage du PNJ visible dans le décor de sa pièce
 // (outils/images/portraits-pnj-starovka-krasnov-20261116.json). Seule la ville visée change :
@@ -12455,7 +12536,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Tömör Ochirov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
     ['ville_a', 'marche', 'marche_ext', "Tuyana Dashieva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_marche_tuyana-dashieva.webp'],
     ['ville_a', 'capitaine-sauvage', 'salle_principale', "Sesegma Badmaeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_capitaine-sauvage_sesegma-badmaeva.webp'],
-    ['ville_a', 'universite', 'amphi', "Darima Zhambalova (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_universite_darima-zhambalova.webp'],
+    ['ville_a', 'tribunal-local', 'salle_audience_locale', "Dulma Tsyrenova (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_dulma-tsyrenova.webp'],
+    ['ville_a', 'universite', 'amphi', "Darima Zhambalova (PNJ)",'images/Sovarka/Starovka/Starovka_portrait_universite_darima-zhambalova.webp'],
     ['ville_b', 'mairie', 'accueil_mairie', "Galina Dokladova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_galina-dokladova.webp'],
     ['ville_b', 'mairie', 'salle_elections', "Zinaïda Izbirkova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_zinaida-izbirkova.webp'],
     ['ville_b', 'dispensaire-public-v', 'attente', "Infirmiere (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_dispensaire-public-v_infirmiere.webp'],

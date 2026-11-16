@@ -72,6 +72,37 @@ function contexte() {
   assert.ok(toasts.at(-1).ok === false && /plus dans cette salle/.test(toasts.at(-1).m));
 }
 
+// 2b. Échange avec Jodie après inspection d'un cadre : accessible depuis le
+// calepin, personnalisé, sécurisé par RPC et sans fuite HTML.
+{
+  const t = contexte(); const {ctx,els,appels,toasts}=t;
+  ctx.state.inventory=[{}];
+  ctx.enigme1AfficherCalepin(0);
+  assert.doesNotMatch(els['postes-body'].innerHTML,/Écrire à Jodie Moitout/,'aucune piste avant la première plaque');
+  ctx.state.char.enigme1.cadresVus=['salle_maires','salle_criminels','salle_entrepreneurs','salle_plumes'];
+  ctx.enigme1AfficherCalepin(0);
+  assert.match(els['postes-body'].innerHTML,/Écrire à Jodie Moitout/);
+  assert.match(source,/Si vous découvrez quelque chose, écrivez-moi depuis votre calepin/);
+  assert.match(source,/Après avoir examiné les cadres, écrivez-moi depuis votre calepin/);
+  t.reponse={ok:true,courrier:null};
+  await ctx.enigme1EcrireJodie();
+  assert.equal(els['postes-modal-title'].textContent,'Écrire à Jodie Moitout');
+  assert.ok(appels.some(a=>a.fn==='jodie_enquete_ecrire' && a.p.p_message===null));
+  els['enigme1-courrier-jodie'].value='J’ai trouvé quatre cadres vides : <script>alert(1)</script>';
+  const rep={message:els['enigme1-courrier-jodie'].value,
+    reponse:'Hmmm… Vous devriez commencer par aller voir à la mairie. Il y a le bilan des mandats de chaque maire.'};
+  t.reponse={ok:true,courrier:rep};
+  await ctx.enigme1CourrierEnvoyer();
+  assert.equal(appels.at(-1).fn,'jodie_enquete_ecrire');
+  assert.equal(appels.at(-1).p.p_message,rep.message);
+  assert.ok(els['postes-body'].innerHTML.includes('bilan des mandats'));
+  assert.doesNotMatch(els['postes-body'].innerHTML,/<script>/,'aucun HTML injecté via le courrier');
+  assert.match(els['postes-body'].innerHTML,/&lt;script&gt;/);
+  assert.equal(ctx.state.char.enigme1.jodieCourrier.message,rep.message);
+  assert.equal(t.sauvegardes,0,'enregistrement uniquement via RPC');
+  assert.ok(toasts.some(x=>x.ok && x.t==='Jodie Moitout'));
+}
+
 // 3. Accueil de Valérie : seulement sur « premiere » du serveur, jamais rappelé une fois vu.
 {
   const t = contexte(); const { ctx, els, appels } = t;

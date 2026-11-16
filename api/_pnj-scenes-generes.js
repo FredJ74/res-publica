@@ -6052,7 +6052,9 @@ export const SCENES_PNJ = {
     "ville": "Starovka",
     "batiment": "Tribunal Municipal",
     "piece": "Greffe",
-    "personnes": []
+    "personnes": [
+      "Oyuna Tsybikova"
+    ]
   },
   "[\"soviet\",\"ville_a\",\"usine-principale\",\"direction_usine\"]": {
     "pays": "Sovarka",
@@ -6128,6 +6130,7 @@ export const SCENES_PNJ = {
     "batiment": "Centre Artisanal",
     "piece": "Travées",
     "personnes": [
+      "Saryuna Dorjieva",
       "Bayar Otchirov",
       "Ganbold Garmaïev",
       "Temür Dougarov"
@@ -6157,33 +6160,59 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"centre-affaires\",\"hall\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Centre d'Affaires",
-    "piece": "Hall d'Entrée",
+    "batiment": "Centre d'affaires de Starovka",
+    "piece": "Accueil",
     "personnes": [
-      "Oyuuna Tsydenova",
-      "Khasar Baljirov",
-      "Dorji Filatov"
+      "Secrétaire du centre d'affaires de Starovka"
     ]
   },
   "[\"soviet\",\"ville_a\",\"centre-affaires\",\"bureau_prestige\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Centre d'Affaires",
-    "piece": "Bureau Prestige — Local à louer",
+    "batiment": "Centre d'affaires de Starovka",
+    "piece": "Grand bureau — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"ville_a\",\"centre-affaires\",\"bureau_standard\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Centre d'Affaires",
-    "piece": "Bureau Standard — Local à louer",
+    "batiment": "Centre d'affaires de Starovka",
+    "piece": "Petit bureau — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"ville_a\",\"centre-affaires\",\"open_space\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Centre d'Affaires",
-    "piece": "Open Space — Local à louer",
+    "batiment": "Centre d'affaires de Starovka",
+    "piece": "Open Space",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"centre-affaires\",\"open_space_a\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Centre d'affaires de Starovka",
+    "piece": "Open Space A — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"centre-affaires\",\"open_space_b\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Centre d'affaires de Starovka",
+    "piece": "Open Space B — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"centre-affaires\",\"open_space_c\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Centre d'affaires de Starovka",
+    "piece": "Open Space C — Local à louer",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"centre-affaires\",\"open_space_d\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Centre d'affaires de Starovka",
+    "piece": "Open Space D — Local à louer",
     "personnes": []
   },
   "[\"soviet\",\"ville_a\",\"terrain-a-batir-3\",\"terrain\"]": {

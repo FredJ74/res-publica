@@ -1,0 +1,38 @@
+name: Enquete musee - courrier Jodie vers mairie
+on:
+  pull_request:
+    paths:
+      - 'plateau-enigme-portrait.js'
+      - 'migrations/20261116192000_jodie_correspondance_piste_mairie.sql'
+      - 'outils/bancs/test-enigme1-musee-depart-20261113.mjs'
+      - '.github/workflows/jodie-correspondance-mairie-20261116.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verification-jodie:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe et enquete du musee
+        run: |
+          node --check plateau-enigme-portrait.js
+          node --check outils/bancs/test-enigme1-musee-depart-20261113.mjs
+          node outils/bancs/test-enigme1-musee-depart-20261113.mjs
+      - name: Garanties courrier
+        run: |
+          node - <<'NODE'
+          const a=require('node:assert/strict');
+          const fs=require('node:fs');
+          const s=fs.readFileSync('migrations/20261116192000_jodie_correspondance_piste_mairie.sql','utf8');
+          a.match(s,/auth\.uid\(\) IS NULL/);
+          a.match(s,/user_id=auth\.uid\(\) FOR UPDATE/);
+          a.match(s,/cadresVus/);
+          a.match(s,/bilan des mandats de chaque maire/);
+          a.match(s,/REVOKE ALL ON FUNCTION public\.jodie_enquete_ecrire\(text\) FROM PUBLIC,anon,authenticated/);
+          console.log('Courrier Jodie : sécurité RPC et piste vers la mairie OK');
+          NODE

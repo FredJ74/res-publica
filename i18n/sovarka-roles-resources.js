@@ -11,6 +11,7 @@
  const L=[
   ["Chef du protocole présidentiel","Head of presidential protocol","Jefe del protocolo presidencial","總統禮賓長","Глава президентского протокола","대통령 의전장","رئيس البروتوكول الرئاسي","Chefe do protocolo presidencial","Leiter des Präsidialprotokolls"],
   ["Chef du protocole presidentiel","Head of presidential protocol","Jefe del protocolo presidencial","總統禮賓長","Глава президентского протокола","대통령 의전장","رئيس البروتوكول الرئاسي","Chefe do protocolo presidencial","Leiter des Präsidialprotokolls"],
+  ["Greffière","Court clerk","Secretaria judicial","書記官","Секретарь суда","법원 서기","كاتبة المحكمة","Escrivã","Gerichtsschreiberin"],
   ["Réceptionniste","Receptionist","Recepcionista","接待員","Администратор","접수원","موظف الاستقبال","Recepcionista","Rezeptionist"],
   ["Bagagiste","Porter","Botones","行李員","Носильщик","벨보이","حامل الأمتعة","Carregador","Gepäckträger"],
   ["Serveur","Waiter","Camarero","服務生","Официант","웨이터","نادل","Garçom","Kellner"],
