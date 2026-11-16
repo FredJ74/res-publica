@@ -237,3 +237,46 @@
   #vue-rue #hg-explore-primary button{padding:7px 2px; font-size:.8rem;}
 }
 @media(min-width:1024px){#hg-explore-primary{display:none;}}
+
+/* Marque témoin volontairement visible sur toutes les pages plateau mobile.
+   Sa présence dans deux navigateurs identifie sans ambiguïté la version HTML. */
+#hg-mobile-identite-20261117{display:none}
+@media(max-width:1023px){
+  #hg-mobile-identite-20261117{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;
+    align-items:center;flex:none;padding:10px 13px 11px;
+    color:#efdfbc;background:linear-gradient(110deg,#0d1b2c,#1a3142);
+    border-bottom:2px solid #deb77c;box-shadow:0 5px 18px rgba(0,0,0,.5);
+    font-family:'Crimson Pro',serif;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-marque{display:flex;gap:10px;align-items:center;min-width:0;}
+  #hg-mobile-identite-20261117 .hg-identite-embleme{
+    color:#e6ba72;font-size:1.7rem;line-height:1;flex:none;
+    border:1px solid #b18b51;border-radius:50%;width:40px;height:40px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-marque strong{
+    display:block;font:700 clamp(1rem,4.1vw,1.35rem) 'Playfair Display',serif;
+    letter-spacing:.035em;color:#f2d397;line-height:1.25;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-marque span:not(.hg-identite-embleme){
+    display:block;color:#c7b9a1;font-size:.75rem;letter-spacing:.15em;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-version{
+    padding:7px 8px;color:#0e1a28;background:#e1bd7a;border-radius:5px;
+    font:700 clamp(.61rem,2.1vw,.77rem) 'Inter',sans-serif;
+    text-align:center;max-width:115px;line-height:1.35;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-version strong{display:block;font-size:1.06em;}
+  #hg-mobile-identite-20261117 .hg-identite-statut{
+    display:flex;flex-wrap:wrap;align-items:center;gap:7px;grid-column:1/-1;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-statut span{
+    background:#142839;border:1px solid #94794e;border-radius:7px;
+    padding:5px 8px;min-width:0;overflow-wrap:anywhere;
+    font-size:.9rem;color:#f5e5c7;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-statut span:first-child{
+    border-color:#dfbb7d;color:#eed2a1;font-weight:700;
+  }
+}
