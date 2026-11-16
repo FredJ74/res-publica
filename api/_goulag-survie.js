@@ -80,7 +80,7 @@ function sommeilAvecChampignons(pa, gain, malus) {
   if (!entier(gain) || gain < 1) refuser('gain_invalide');
   if (!entier(malus) || malus < 1 || malus > gain)
     refuser('malus_champignons_non_arbitre');
-  return Math.max(7, pa + gain - malus);
+  return Math.min(pa + gain, Math.max(7, pa + gain - malus));
 }
 
 function agir(etat, action, jour) {
