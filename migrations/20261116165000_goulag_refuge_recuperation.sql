@@ -40,7 +40,7 @@ DECLARE v_nom text:=public.mon_personnage(); v_r public.sovarka_goulag_refuges%R
 BEGIN
   IF auth.uid() IS NULL OR v_nom IS NULL THEN
     RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
-  SELECT * INTO v_r FROM public.sovarka_goulag_refuges r
+  SELECT r.* INTO v_r FROM public.sovarka_goulag_refuges r
     JOIN public.personnages_donnees p ON p.name=r.nom AND p.user_id=auth.uid()
     WHERE r.nom=v_nom;
   IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','pas_de_refuge'); END IF;
