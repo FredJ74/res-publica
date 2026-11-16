@@ -35,7 +35,8 @@ test('141 descriptions du catalogue Républia : françaises exactes et réelleme
  // Les 141 entrées de ce lot restent inchangées ; les autres descriptions doivent être suivies séparément.
  // 151 → 150 le 15/11 : « +6 INF +5 DIS +1 POP. » est aussi affichée à Krasnov (quatre bureaux du centre d'affaires), donc commune.
  // 150 → 154 le 15/11 : plus de banques en Sovarka (décision de Fred), les quatre descriptions des guichets bancaires ne s'affichent plus qu'en Républia.
- assert.equal(spec.length,154,'inventaire réel après les nouvelles exclusions des ministères de Sovarka');
+ // 154 → 162 le 16/11 : les huit descriptions distinctes héritées du QHS républicain ne sont plus affichées dans le nouveau bâtiment Goulag de Sovarka. Elles restent affichées en Républia et traduites dans le catalogue commun.
+ assert.equal(spec.length,162,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
  assert.equal(rows.length,141);
  for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(rep.has(line[0]),line[0]);}
