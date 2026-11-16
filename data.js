@@ -2491,13 +2491,12 @@ const WORLD = {
             bureau_standard: { name:"Petit bureau — Local à louer",
               imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_petit_bureau.webp" },
             open_space: { name:"Open Space", imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_open_space.webp",
-              desc:"Quatre postes de travail individuels face au centre d'écoute militaire.",
               excludeOrders:['commerce_pj','louer_local','gerer_local','installer_equipements'] }
           },
           roomsExtra: Object.fromEntries(Object.entries(bureauxOpenSpaceCentreAffaires()).map(([id,room])=>[id,{
             ...room, imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_open_space.webp",
             sortieVers:{buildingId:'centre-affaires',roomId:'open_space',city:'ville_a'},
-            orders:(room.orders||[]).map(o=>({...o,label:typeof o.label==='string'?o.label.replace(' FR/jour',' PSK/jour'):o.label}))
+            orders:(room.orders||[]).map(o=>({...o,desc:o.fn==='louer_local'?undefined:o.desc,label:typeof o.label==='string'?o.label.replace(' FR/jour',' PSK/jour'):o.label}))
           }])),
           roomsExclues:['tribune_republia'],
           // Les quatre postes sont accessibles par onglets : la vue de Starovka
