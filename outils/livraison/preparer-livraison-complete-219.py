@@ -68,7 +68,7 @@ def preparer(destination=None):
  if sorted((r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] in fns_sovarka)!=sorted(sovarka):
   raise ValueError('Ordres Sovarka absents, dupliqués ou mal tarifés')
  # Provinces de Sovarka (10/11, #681/#686) : memes ajouts que preparer-recette97-219.py, controles un par un.
- provinces=[('ferme_lapin',1,0),('ferme_legumes',1,0),('ferme_oeufs',1,0),('ferme_poulet',1,0),('ferme_renne',5,0),('ferme_traire',1,0),('foret_couper',2,0),('foret_enfoncer',0,0),('foret_revenir',0,0),('maison_habitant',0,0),('souscrire_bon_etat',0,0),('sovarka_ecoutes',0,0),('trinquer_habitant',3,0),('voler_archives_ecoute',2,0)]
+ provinces=[('ferme_lapin',1,0),('ferme_legumes',1,0),('ferme_oeufs',1,0),('ferme_poulet',1,0),('ferme_renne',5,0),('ferme_traire',1,0),('foret_couper',1,0),('foret_enfoncer',0,0),('foret_revenir',0,0),('maison_habitant',0,0),('souscrire_bon_etat',0,0),('sovarka_ecoutes',0,0),('trinquer_habitant',3,0),('voler_archives_ecoute',2,0)]
  if sorted((r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] in {f for f,_,_ in provinces})!=sorted(provinces):
   raise ValueError('Ordres des provinces de Sovarka absents, dupliqués ou mal tarifés')
  fns_sovarka=fns_sovarka|{f for f,_,_ in provinces}
