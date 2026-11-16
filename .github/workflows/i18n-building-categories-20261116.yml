@@ -1,0 +1,32 @@
+name: I18N — catégories de bâtiments
+on:
+  pull_request:
+    paths: ['plateau-navigation.js', 'plateau.html', 'i18n/navigation-resources.js', 'i18n/packed/navigation-resources.js.br', 'outils/audits/I18N-BUILDING-CATEGORIES-20261116*', 'outils/bancs/banc-i18n-building-categories-20261116.cjs', '.github/workflows/i18n-building-categories-20261116.yml']
+  push:
+    branches: [main]
+    paths: ['plateau-navigation.js', 'i18n/navigation-resources.js', 'outils/bancs/banc-i18n-building-categories-20261116.cjs', '.github/workflows/i18n-building-categories-20261116.yml']
+permissions:
+  contents: read
+jobs:
+  building-categories:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --prefix outils/e2e
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - run: node --check plateau-navigation.js && node outils/generateurs/compresser-catalogues-i18n.cjs --check
+      - name: Français exact, neuf langues, refus, mobile/RTL et aucune répétition métier
+        env:
+          NODE_PATH: ./outils/e2e/node_modules
+          CHROMIUM_PATH: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-i18n-building-categories-20261116.cjs outils/bancs/banc-i18n-transport-catalogues-20261114.cjs
+      - run: node --test outils/bancs/banc-i18n-plateau-init.cjs outils/bancs/banc-i18n-plateau-ressources.cjs outils/bancs/banc-i18n-plateau-wiring.cjs outils/bancs/banc-i18n-navigation-transports.cjs
+      - run: node --test outils/bancs/banc-i18n-building-header-20261116.cjs outils/bancs/banc-i18n-exit-feedback-20261116.cjs
+      - run: node --test outils/bancs/banc-pnj-localisation-psm.mjs
+      - run: git diff --check

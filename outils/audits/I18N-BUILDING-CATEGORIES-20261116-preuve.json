@@ -1,0 +1,434 @@
+{
+  "baseCommit": "88fc5f801a8c428824b665d3729dd2a071163f25",
+  "codeCommit": "9e658e244a6f500c8f6efd6d4ff5fe4e59c6da93",
+  "frenchCategoryTexts": 58,
+  "newFrenchResourceTexts": 53,
+  "foreignValuesAdded": 424,
+  "categoryForeignValuesReused": 40,
+  "restrictionForeignValuesReused": 8,
+  "categories": [
+    {
+      "fr": "Institutions - Presidence",
+      "key": "navigation.categoryPresidency",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Hotellerie - Restauration",
+      "key": "navigation.categoryHospitalityDining",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Institutions - Capitale uniquement",
+      "key": "navigation.categoryCapitalInstitutions",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Justice - Capitale uniquement",
+      "key": "navigation.categoryCapitalJustice",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Finance",
+      "key": "navigation.categoryFinance",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Finance discrete",
+      "key": "navigation.categoryDiscreetFinance",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Santé (premium)",
+      "key": "navigation.categoryPremiumHealth",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Sante (public)",
+      "key": "navigation.categoryPublicHealth",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Securite",
+      "key": "navigation.categorySecurityPlain",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Medias",
+      "key": "navigation.categoryMedia",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Reseau secret",
+      "key": "navigation.categorySecretNetwork",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Formation - Reseau intellectuel",
+      "key": "navigation.categoryEducationNetwork",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Securite - Equipement",
+      "key": "navigation.categorySecurityEquipment",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Commerce - Vie quotidienne",
+      "key": "navigation.categoryEverydayTrade",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Administration - Candidatures",
+      "key": "navigation.categoryAdministrationApplications",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Religion - Papyrusisme",
+      "key": "navigation.categoryPapyrusisme",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Transport",
+      "key": "navigation.categoryTransport",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Commerce",
+      "key": "navigation.categoryTrade",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Affaires",
+      "key": "navigation.categoryBusiness",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Immobilier",
+      "key": "navigation.categoryRealEstate",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Services - Capitale uniquement",
+      "key": "navigation.categoryCapitalServices",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Sport & Loisirs",
+      "key": "navigation.categorySportsLeisure",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Diplomatie",
+      "key": "navigation.categoryDiplomacy",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Lieu public",
+      "key": "navigation.categoryPublicPlace",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Culture",
+      "key": "navigation.categoryCulture",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Économie",
+      "key": "plateau.rulesEconomy",
+      "reused": true,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Hotellerie",
+      "key": "navigation.categoryHospitalityPlain",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Institutions locales",
+      "key": "navigation.categoryLocalInstitutions",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Sante",
+      "key": "characterSheet.health",
+      "reused": true,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Justice",
+      "key": "sovarkaJustice.tJustice",
+      "reused": true,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Restauration",
+      "key": "navigation.categoryDining",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Medias - Information",
+      "key": "navigation.categoryNewsMedia",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Port",
+      "key": "navigation.categoryPort",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Économie - Matières premières",
+      "key": "navigation.categoryRawMaterialsAccented",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Institutions",
+      "key": "navigation.categoryInstitutions",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Education",
+      "key": "navigation.categoryEducation",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Economie - Matieres premieres",
+      "key": "navigation.categoryRawMaterialsPlain",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Religion",
+      "key": "navigation.categoryReligion",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Administration",
+      "key": "navigation.categoryAdministration",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Services",
+      "key": "navigation.categoryServices",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Organisations",
+      "key": "plateau.organizations",
+      "reused": true,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Industrie - Ressource",
+      "key": "navigation.categoryResourceIndustry",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Cultes",
+      "key": "navigation.categoryFaiths",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Loisirs",
+      "key": "navigation.categoryLeisure",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Espaces verts",
+      "key": "navigation.categoryGreenSpaces",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Habitat",
+      "key": "navigation.categoryHousing",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Lieux publics",
+      "key": "navigation.categoryPublicPlaces",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Militaire - Acces restreint",
+      "key": "navigation.categoryRestrictedMilitary",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Penitentiaire - Acces restreint",
+      "key": "navigation.categoryRestrictedPrison",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Religion - Cocaïsme",
+      "key": "navigation.categoryCocaisme",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Religion - Tractorisme",
+      "key": "navigation.categoryTractorisme",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Pouvoir",
+      "key": "navigation.categoryPower",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Hôtellerie",
+      "key": "navigation.categoryHospitalityAccented",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Logement",
+      "key": "navigation.categoryAccommodation",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Santé",
+      "key": "commerceMenu.effectHp",
+      "reused": true,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Sécurité",
+      "key": "navigation.categorySecurityAccented",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Social",
+      "key": "navigation.categorySocial",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    },
+    {
+      "fr": "Religion - Loukoumisme",
+      "key": "navigation.categoryLoukoumisme",
+      "reused": false,
+      "renderWiredBefore": false,
+      "renderWiredAfter": true
+    }
+  ],
+  "cognatesAndProperNamesAllowed": true,
+  "merged": false,
+  "productionVerified": false,
+  "authenticatedPlayerTest": false,
+  "physicalPhoneTest": false,
+  "nativeLinguisticReview": false,
+  "targetedPassed": 3,
+  "browserSwitches": 1566,
+  "viewports": [
+    320,
+    390,
+    1280
+  ],
+  "lockedFlagTestSimulated": true,
+  "serverCallsPerLanguageChange": 0,
+  "existingBuildingAndExitTestsPassed": 7,
+  "existingBrowserSwitches": 1539
+}
