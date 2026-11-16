@@ -1,0 +1,21 @@
+name: Starovka - test navigation des quatre bureaux
+on:
+  push:
+    branches: [chatgpt/starovka-correction-bureaux-20261116]
+    paths: ['.github/workflows/test-starovka-bureaux-20261116.yml', 'outils/bancs/test-starovka-open-space-20261116.cjs', 'plateau-open-space.js', 'data.js']
+permissions:
+  contents: read
+jobs:
+  navigation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Banc Starovka et non-regression Luthécia
+        run: |
+          node --test outils/bancs/test-starovka-open-space-20261116.cjs
+          node --test outils/bancs/banc-i18n-open-space-20261112.cjs
+          node --check data.js
+          node --check plateau-open-space.js
