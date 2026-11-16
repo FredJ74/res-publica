@@ -9,7 +9,7 @@ const autor=lire('20261116164500_goulag_autorisations_ministre.sql');
 const refuge=lire('20261116165000_goulag_refuge_recuperation.sql');
 const trav=lire('20261116104500_goulag_toundra_etats_serveur.sql');
 for (const [nom,sql] of Object.entries({dep,juge,autor,refuge})) {
-  assert.match(sql,/ENABLE ROW LEVEL SECURITY|goulag_juge_seul/);
+  assert.match(sql,/ENABLE ROW LEVEL SECURITY|goulag_sovarka_juge_seul/);
   assert.doesNotMatch(sql,/\bDROP TABLE\b|\bTRUNCATE\b/i,nom);
 }
 assert.match(dep,/cle_serrure','cle_vierge/);
