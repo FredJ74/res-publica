@@ -14,7 +14,7 @@ const navigation = fs.readFileSync(new URL('plateau-navigation.js', racine), 'ut
 
 function contexte() {
   const els = {};
-  const el = id => (els[id] ||= { id, textContent: '', innerHTML: '', style: {}, classList: { add() { this.open = true; }, remove() { this.open = false; } },
+  const el = id => (els[id] ||= { id, textContent: '', innerHTML: '', style: {}, classList: { add() { this.open = true; }, remove() { this.open = false; }, contains() { return !!this.open; } },
     setAttribute() {}, querySelectorAll: () => [], appendChild() {} });
   const appels = []; const toasts = []; let reponse = null; let sauvegardes = 0;
   const ctx = {
@@ -34,6 +34,7 @@ function contexte() {
 // 1. Ordre et description : seulement pendant l'enquête et dans les quatre salles.
 {
   const t = contexte(); const { ctx } = t;
+  assert.equal(ctx.ordresEnigme1Musee('musee-ville-luthecia', 'hall')[0].fn, 'enigme1_parler_valerie');
   assert.equal(ctx.ordresEnigme1Musee('musee-ville-luthecia', 'salle_maires').length, 1);
   assert.equal(ctx.ordresEnigme1Musee('musee-ville-luthecia', 'salle_maires')[0].fn, 'enigme1_examiner_cadre');
   assert.equal(ctx.ordresEnigme1Musee('musee-ville-luthecia', 'salle_maires')[0].pa, 0);
@@ -80,13 +81,28 @@ function contexte() {
   assert.match(els['postes-body'].innerHTML, /excuses/);
   assert.match(els['postes-body'].innerHTML, /amputée/);
   assert.doesNotMatch(els['postes-body'].innerHTML, /Gérard/);
+  assert.match(els['postes-body'].innerHTML, /Compris, je commence mon enquête/);
+  assert.match(els['postes-body'].innerHTML, /Examiner le cadre vide/);
+  assert.equal(ctx.state.char.enigme1.accueilValerieConfirme, undefined);
+  t.reponse = {ok:true, premiere:true, enigme:{etape:'declenchee', accueilValerie:true, accueilValerieConfirme:true}};
+  await ctx.enigme1ValerieConfirmer();
+  assert.equal(ctx.state.char.enigme1.accueilValerieConfirme,true);
+  assert.ok(appels.some(a=>a.p.p_action==='accueil_confirmer'));
   const n = appels.length;
   await ctx.enigme1AccueilHall('musee-ville-luthecia', 'hall');
   assert.equal(appels.length, n, 'accueil déjà vu : aucun nouvel appel');
   const t2 = contexte();
-  t2.reponse = { ok: true, premiere: false, enigme: { etape: 'declenchee', accueilValerie: true } };
+  t2.ctx.state.char.enigme1.accueilValerie = true; // état réel Angie : ancien marqueur consommé sans popup
+  t2.reponse = { ok: true, premiere: true, enigme: { etape: 'relancee', accueilValerie: true } };
   await t2.ctx.enigme1AccueilHall('musee-ville-luthecia', 'hall');
-  assert.equal(t2.els['postes-modal-title']?.textContent || '', '');
+  assert.match(t2.els['postes-modal-title'].textContent,/Valérie/,'la visite déclenche enfin le dialogue chez Angie');
+  assert.equal(t2.ctx.ordresEnigme1Musee('musee-ville-luthecia','hall')[0].fn,'enigme1_parler_valerie');
+  const t4 = contexte();
+  t4.reponse = { ok:true, premiere:false, enigme:{etape:'declenchee',accueilValerieConfirme:true}};
+  await t4.ctx.enigme1AccueilHall('musee-ville-luthecia','hall');
+  assert.equal(t4.els['postes-modal-title']?.textContent||'','');
+  await t4.ctx.enigme1ParlerValerie();
+  assert.match(t4.els['postes-modal-title'].textContent,/Valérie/,'ordre manuel disponible même après confirmation');
   const t3 = contexte(); t3.ctx.state.char.enigme1 = { etape: 'non_commencee' };
   await t3.ctx.enigme1AccueilHall('musee-ville-luthecia', 'hall');
   assert.equal(t3.appels.length, 0, 'pas d\'appel hors enquête');
@@ -108,6 +124,7 @@ function contexte() {
 }
 
 // 5. Raccordements : routeur, description et entrée dans le hall.
+assert.match(routeur, /fn === 'enigme1_parler_valerie'/);
 assert.match(routeur, /fn === 'enigme1_examiner_cadre'[^\n]*enigme1ExaminerCadre\(\)/);
 assert.match(navigation, /enigme1SuffixeDescription\(buildingId, roomId\)/);
 assert.match(navigation, /enigme1AccueilHall\(buildingId, roomId\)/);
