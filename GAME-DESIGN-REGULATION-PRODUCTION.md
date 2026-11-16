@@ -14,7 +14,9 @@ Contexte : au champ de pétrole de Starovka, « Récolter » est limité à 2 fo
    peut le remplacer en cas de désaccord.
 5. **Deux limites possibles, cumulables**, réglées par ressource : un maximum de récoltes **par joueur
    et par jour**, et/ou un **plafond total de la ville par jour** (premiers arrivés, premiers servis).
-6. **Le ministre de l'Économie** peut **sommer** la ville de limiter l'extraction, mais n'a **pas les
+6. **Pas de durée fixe** : une régulation est un acte volontaire, elle reste en vigueur jusqu'à ce que
+   l'adjoint la change ou la lève (acte volontaire lui aussi).
+7. **Le ministre de l'Économie** peut **sommer** la ville de limiter l'extraction, mais n'a **pas les
    commandes**. Proposition de Claude, à confirmer : sommation officielle publique et traçable (courrier
    au maire et à l'adjoint, visible), pour que la désobéissance ait un coût politique.
 
@@ -25,7 +27,7 @@ Contexte : au champ de pétrole de Starovka, « Récolter » est limité à 2 fo
 
 ## Questions encore ouvertes
 
-- Durée d'une régulation, valeur par défaut sans adjoint.
+- Forme de la sommation du ministre (proposition de Claude ci-dessus à confirmer).
 
 ## Idée notée au passage
 
