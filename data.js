@@ -12428,3 +12428,72 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   });
   hopital.roomsExtra.chambre.imageUrl = path + 'chambre.webp';
 })();
+
+// PORTRAITS_PNJ_STAROVKA_KRASNOV_20261116 (demande de Fred, 16/11/2026)
+// Photos de profil recadrées sur le visage du PNJ visible dans le décor de sa pièce
+// (outils/images/portraits-pnj-starovka-krasnov-20261116.json). Seule la ville visée change :
+// la liste de personnes effective de la pièce est copiée dans roomOverrides de cette ville, le
+// gabarit partagé (BUILDINGS) et les autres villes restent intacts. Aucun nom, rôle ni ordre modifié.
+(function () {
+  const portraits = [
+    ['ville_a', 'mairie', 'accueil_mairie', "Secretaire Municipal", 'images/Sovarka/Starovka/Starovka_portrait_mairie_secretaire-municipal.webp'],
+    ['ville_a', 'mairie', 'bureau_maire_local', "Le Maire (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_mairie_le-maire.webp'],
+    ['ville_a', 'dispensaire-public-v', 'attente', "Infirmiere (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_dispensaire-public-v_infirmiere.webp'],
+    ['ville_a', 'commissariat-local', 'accueil_loc', "Brigadier Local (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_commissariat-local_brigadier-local.webp'],
+    ['ville_a', 'commissariat-local', 'bureau_commissaire', "Bato Dashiev (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_commissariat-local_bato-dashiev.webp'],
+    ['ville_a', 'stade', 'terrain', "Entraineur Local (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_entraineur-local.webp'],
+    ['ville_a', 'stade', 'vestiaires', "Entraineur Local (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_entraineur-local.webp'],
+    ['ville_a', 'stade', 'terrain', "Commentateur Sportif (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_commentateur-sportif.webp'],
+    ['ville_a', 'stade', 'buvette', "Tenancier de Buvette (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_tenancier-de-buvette.webp'],
+    ['ville_a', 'stade', 'guichet_paris', "Bookmaker Officiel (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_bookmaker-officiel.webp'],
+    ['ville_a', 'stade', 'boutique', "Vendeur des accessoires de Starovka (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_vendeur-des-accessoires-de-starovka.webp'],
+    ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Tömör Ochirov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
+    ['ville_a', 'marche', 'marche_ext', "Tuyana Dashieva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_marche_tuyana-dashieva.webp'],
+    ['ville_a', 'capitaine-sauvage', 'salle_principale', "Sesegma Badmaeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_capitaine-sauvage_sesegma-badmaeva.webp'],
+    ['ville_a', 'universite', 'amphi', "Darima Zhambalova (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_universite_darima-zhambalova.webp'],
+    ['ville_b', 'mairie', 'accueil_mairie', "Galina Dokladova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_galina-dokladova.webp'],
+    ['ville_b', 'mairie', 'salle_elections', "Zinaïda Izbirkova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_zinaida-izbirkova.webp'],
+    ['ville_b', 'dispensaire-public-v', 'attente', "Infirmiere (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_dispensaire-public-v_infirmiere.webp'],
+    ['ville_b', 'commissariat-local', 'accueil_loc', "Brigadier Local (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_commissariat-local_brigadier-local.webp'],
+    ['ville_b', 'stade', 'buvette', "Avdotia Doubova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_stade_avdotia-doubova.webp'],
+    ['ville_b', 'stade', 'guichet_paris', "Iossif Borissov (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_stade_iossif-borissov.webp'],
+    ['ville_b', 'stade', 'boutique', "Oxana Zvezdina (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_stade_oxana-zvezdina.webp'],
+    ['ville_b', 'marche', 'marche_ext', "Nina Gorbounova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_marche_nina-gorbounova.webp'],
+    ['ville_b', 'universite', 'amphi', "Alevtina Gramotova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_universite_alevtina-gramotova.webp'],
+    ['ville_b', 'cafe-tabac-cheminots-montrouge', 'salle', "Grigori Zaitsev (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_cafe-tabac-cheminots-montrouge_grigori-zaitsev.webp'],
+    ['ville_b', 'station-radar-krasnov', 'salle_ecoute', "Colonel Gleb Voronov (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_station-radar-krasnov_colonel-gleb-voronov.webp'],
+  ];
+  for (const [ville, batiment, piece, nom, photo] of portraits) {
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    const b = BUILDINGS[batiment];
+    if (!cite || !b) throw new Error('Portrait : bâtiment absent ' + ville + '/' + batiment);
+    let ctx = cite.buildingContext && cite.buildingContext[batiment];
+    if (!ctx) {
+      // Bâtiment propre à cette ville (sans contexte) : on vérifie qu'aucune autre ville ne le liste.
+      const ailleurs = Object.entries(WORLD).some(([pays, villes]) => Object.entries(villes || {})
+        .some(([v, c]) => !(pays === 'soviet' && v === ville) && c && Array.isArray(c.buildings) && c.buildings.includes(batiment)));
+      if (ailleurs) throw new Error('Portrait : bâtiment partagé sans contexte ' + batiment);
+      const salle = b.rooms && b.rooms[piece];
+      if (!salle || !(salle.persons || []).some(p => p.name === nom)) throw new Error('Portrait : PNJ absent ' + nom);
+      salle.persons = salle.persons.map(p => p.name === nom ? Object.assign({}, p, { photoUrl: photo, photoPos: '50% 30%' }) : p);
+      continue;
+    }
+    const premiere = Object.keys(b.rooms || {})[0];
+    const ro = ctx.roomOverrides && ctx.roomOverrides[piece];
+    const liste = (ro && ro.persons)
+      || (piece === premiere && ctx.persons && ctx.persons.length ? ctx.persons : null)
+      || (ctx.roomsExtra && ctx.roomsExtra[piece] && ctx.roomsExtra[piece].persons)
+      || (b.rooms && b.rooms[piece] && b.rooms[piece].persons) || [];
+    if (!liste.some(p => p.name === nom)) throw new Error('Portrait : PNJ absent ' + nom + ' (' + ville + '/' + batiment + '/' + piece + ')');
+    const copie = liste.map(p => p.name === nom ? Object.assign({}, p, { photoUrl: photo, photoPos: '50% 30%' }) : Object.assign({}, p));
+    const extra = ctx.roomsExtra && ctx.roomsExtra[piece];
+    if (!(ro && ro.persons) && extra && extra.persons === liste) {
+      // Pièce propre à la ville (roomsExtra) : sa propre liste est remplacée, sans surcharge en plus.
+      ctx.roomsExtra = Object.assign({}, ctx.roomsExtra);
+      ctx.roomsExtra[piece] = Object.assign({}, extra, { persons: copie });
+      continue;
+    }
+    ctx.roomOverrides = Object.assign({}, ctx.roomOverrides);
+    ctx.roomOverrides[piece] = Object.assign({}, ro, { persons: copie });
+  }
+})();
