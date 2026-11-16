@@ -2830,11 +2830,59 @@ const WORLD = {
       buildings: ['caserne-militaire']
     },
     qhs: {
-      name:'Goulag de Novomirsk',
-      imageUrl:'https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80',
-      desc:'Le goulag de Sovarka. On y entre facilement.',
+      name:'Camp de rééducation de Sovarka',
+      imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_entree.webp',
+      desc:'Camp de rééducation de Sovarka, situé dans les étendues enneigées hors des villes.',
       isCapitale: false, isSpecial: true, travelCost: 1,
-      buildings: ['qhs-prison']
+      buildings: ['qhs-prison'],
+      buildingContext: {
+        'qhs-prison': {
+          name:'Camp de rééducation de Sovarka',
+          desc:'Un camp de baraquements en bois perdu dans la neige. Derrière la simple palissade, le froid et la discipline.',
+          // Le QHS de Républia est un gabarit de navigation uniquement :
+          // ses pièces et ordres ne sont jamais proposés dans le goulag.
+          roomsExclues:['salle_interrogatoire','promenoir','salle_commune_qhs'],
+          roomOrder:['entree_qhs','cellules_qhs','cachot_disciplinaire','bureau_chef','mirador'],
+          roomOverrides: {
+            entree_qhs: {
+              name:'Entrée du camp',
+              desc:'Une grande ouverture entre deux poteaux de bois accueille les visiteurs, sous un panneau de bois gravé en russe et en français.',
+              imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_entree.webp',
+              personsVides:true,
+              excludeOrders:['visiter_prisonnier','corrompre_fonct','archives_police']
+            },
+            cellules_qhs: {
+              // Conserver cet ID : celluleDeDetention() et le régime carcéral le référencent.
+              name:'Dortoir des prisonniers',
+              desc:'Lits superposés en bois et couvertures pliées. Un simple poêle réchauffe péniblement le baraquement.',
+              imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_dortoir.webp',
+              personsVides:true,
+              excludeOrders:['greve_faim','corrompre_gardien','tentative_evasion']
+            }
+          },
+          // Pièces descriptives sans ordre ; les mécanismes sont définis séparément.
+          roomsExtra: {
+            cachot_disciplinaire: {
+              name:'Cachot disciplinaire',
+              desc:'Un cabanon glacial aux quatre couchettes superposées, privé de tout chauffage.',
+              imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_cachot_disciplinaire.webp',
+              persons:[], orders:[]
+            },
+            bureau_chef: {
+              name:'Bureau du chef administratif',
+              desc:'Un chalet en bois, un bureau encombré de dossiers, un poêle et des objets de discipline inquiétants.',
+              imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_bureau_chef.webp',
+              persons:[], orders:[]
+            },
+            mirador: {
+              name:'Mirador',
+              desc:'Une tour de bois domine les baraquements sous la neige. Deux gardes surveillent le camp.',
+              imageUrl:'images/Sovarka/Goulag/Sovarka_goulag_mirador.webp',
+              persons:[], orders:[]
+            }
+          }
+        }
+      }
     }
   },
 
