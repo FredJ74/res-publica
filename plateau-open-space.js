@@ -76,6 +76,9 @@ function openSpaceInjecterZones(buildingId, roomId, ville) {
 
   const plan = OPEN_SPACE_PLAN[buildingId];
   if (!plan || roomId !== 'open_space') return;
+  // Ces zones ont été mesurées uniquement sur le plan zénithal de Luthécia.
+  // Starovka utilise une vue photographique et des onglets dédiés aux 4 postes.
+  if (ville !== 'capitale' || (typeof state !== 'undefined' && state.country !== 'republic')) return;
   // Le plan n'existe qu'a Luthecia : les autres villes gardent leur Open Space
   // unique, et ce fichier n'y pose rien.
   if (typeof varianteDePiece === 'function'

@@ -2475,6 +2475,33 @@ const WORLD = {
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production','entrepot-logistique-starovka','port-starovka'],
       buildingContext: {
+        // Starovka uniquement. Quatre postes, deux bureaux et un accueil.
+        'centre-affaires': {
+          name: "Centre d'affaires de Starovka",
+          roomOverrides: {
+            hall: {
+              name: "Accueil",
+              imageUrl: "images/Sovarka/Starovka/Starovka_centre_affaires_accueil.webp",
+              persons: [{ name: "Secrétaire du centre d'affaires de Starovka (PNJ)",
+                role: "Secrétaire d'accueil", rel:"neutral", job:"hotesse",
+                photoUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_accueil.webp", photoPos:"35% 46%" }]
+            },
+            bureau_prestige: { name:"Grand bureau — Local à louer",
+              imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_grand_bureau.webp" },
+            bureau_standard: { name:"Petit bureau — Local à louer",
+              imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_petit_bureau.webp" },
+            open_space: { name:"Open Space", imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_open_space.webp",
+              excludeOrders:['commerce_pj','louer_local','gerer_local','installer_equipements'] }
+          },
+          roomsExtra: Object.fromEntries(Object.entries(bureauxOpenSpaceCentreAffaires()).map(([id,room])=>[id,{
+            ...room, imageUrl:"images/Sovarka/Starovka/Starovka_centre_affaires_open_space.webp",
+            sortieVers:{buildingId:'centre-affaires',roomId:'open_space',city:'ville_a'},
+            orders:(room.orders||[]).map(o=>({...o,desc:o.fn==='louer_local'?undefined:o.desc,label:typeof o.label==='string'?o.label.replace(' FR/jour',' PSK/jour'):o.label}))
+          }])),
+          roomsExclues:['tribune_republia'],
+          // Les quatre postes sont accessibles par onglets : la vue de Starovka
+          // n'est pas le plan zénithal de Luthécia, pas de zones artificielles.
+        },
         'centre-multinodal-montrouge': {
           name: "Gare de Starovka",
           desc: "Gare ferroviaire de la ville portuaire de Starovka.",
@@ -12099,6 +12126,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   centre('poste-vigilance-glaciale', 'Poste de Vigilance Glaciale', 'Poste militaire', 'Sergent Bair Dorjiev', 'Opérateur d’écoute',
     'Un poste militaire planté dans la glace, hérissé d’antennes : il écoute la ville et, au-delà de l’océan, El Estado.',
     'Des casques, des bandes magnétiques, un poêle et des classeurs alignés : le sergent Dorjiev écoute en silence.');
+  BUILDINGS['poste-vigilance-glaciale'].rooms.salle_ecoute.imageUrl = 'images/Sovarka/Starovka/Starovka_centre_ecoute_salle.webp';
+  BUILDINGS['poste-vigilance-glaciale'].imagesAVenir = false;
   centre('station-radar-krasnov', 'Station radar de Krasnov', 'Station radar', 'Colonel Gleb Voronov', 'Chef du centre d’écoute',
     'La station radar du kolkhoze : sa grande parabole tourne vers le sud, vers Al-Khalija, et écoute aussi Krasnov.',
     'Quatre téléphones, un par pays étranger, et un cinquième, rouge, pour Novomirsk. Le colonel Voronov tend l’oreille ; le caporal Sorokine branche les fiches du standard.');

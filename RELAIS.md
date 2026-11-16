@@ -8,6 +8,9 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Centre d'affaires / écoute Starovka — ChatGPT, 16/11
+Branche chatgpt/starovka-affaires-ecoute-20261116 : cinq WebP 1448×1086, PNG retirés ; accueil, deux bureaux, quatre postes et salle d'écoute raccordés. Ordres et prix hérités inchangés ; recette PJ connecté à faire.
+
 ### Musée de Luthécia — accueil de Valérie / enquête Jodie (16/11/2026)
 - **Défaut réel Angie Porcelana diagnostiqué sur Supabase** : enquête `relancee`, invitation Jodie acceptée, ancien champ `accueilValerie=true` alors qu'aucun dialogue ne s'était affiché. L'ancienne RPC consommait le drapeau avant rendu. Le crochet client partait aussi avant l'écriture effective de la position dans le hall (`pas_sur_place` silencieux).
 - **PR #1036 fusionnée** au commit `6a1bf52f` : hall avec description explicite et ordre gratuit permanent **« Parler à Valérie de l'enquête »** ; introduction spontanée après position Supabase confirmée, explication des quatre cadres et du calepin, validation uniquement après clic **« Compris, je commence mon enquête »**. Le nouveau marqueur `accueilValerieConfirme` n'est jamais déduit de l'ancien indicateur ; Angie pourra donc voir le dialogue sans remise à zéro de sa quête.
