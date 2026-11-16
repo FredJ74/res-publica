@@ -1,0 +1,22 @@
+name: Exploration mobile — présentation sans action serveur
+on:
+  pull_request:
+    paths:
+      - 'plateau.html'
+      - 'plateau-exploration-mobile.css'
+      - 'plateau-exploration-mobile.js'
+      - 'outils/bancs/test-exploration-mobile-20261116.cjs'
+      - '.github/workflows/exploration-mobile.yml'
+  workflow_dispatch:
+jobs:
+  exploration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe JavaScript
+        run: node --check plateau-exploration-mobile.js
+      - name: Contrôles ciblés sans réseau ni Supabase
+        run: node outils/bancs/test-exploration-mobile-20261116.cjs
