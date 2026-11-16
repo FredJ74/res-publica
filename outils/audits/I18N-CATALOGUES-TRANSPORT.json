@@ -542,10 +542,10 @@
     {
       "source": "i18n/sovarka-descriptions-resources.js",
       "packed": "i18n/packed/sovarka-descriptions-resources.js.br",
-      "sourceBytes": 212870,
-      "packedBytes": 79165,
-      "sourceSha256": "7e96dcb29baf230d9362aaaa4a501942494664ffdbda117792dbbe57b79814d9",
-      "packedSha256": "fb3dc19a833ef5b7155280ff37b00e6d5a332217398f238917fa484e6e7c3550"
+      "sourceBytes": 218113,
+      "packedBytes": 81031,
+      "sourceSha256": "12f6924b97bbc4ed6ba0b75c79124c03e0fef3c8b466a69de1a9c8f2083d9dba",
+      "packedSha256": "0ac59e1f2d039285128ee035d2bd8f214bcbfe704e02afd1a5a5e66a6a94fcdf"
     },
     {
       "source": "i18n/sovarka-droits-resources.js",
