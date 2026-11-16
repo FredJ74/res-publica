@@ -7,7 +7,7 @@
   "existingI18nPassed": 27,
   "nodeMjsMainPassed": 418,
   "nodeMjsBranchPassed": 418,
-  "browserSwitches": 918,
+  "browserSwitches": 1080,
   "viewports": [
     320,
     390,
@@ -46,5 +46,14 @@
     "subsequentMainRoomRemovalPreserved": "Starovka universite/salle_reunion"
   },
   "maintenanceCodeCommit": "f057f9e7369121d5565657441e191605f0ef6cd1",
-  "integratedMain": "1a26883bdb41819f1821f561ea932b4f6abdf3f6"
+  "integratedMain": "1a26883bdb41819f1821f561ea932b4f6abdf3f6",
+  "pathsAssertedInWorld": true,
+  "serverConfirmedRenderSimulated": true,
+  "realCashAndRoomIdentifiersUsed": true,
+  "privateSovarkaWarehousesRemainHidden": true,
+  "allLocalClientBanks": {
+    "commit": "702bbadd4e398193730771dfe02765274813a1ab",
+    "banks": 383,
+    "failures": 0
+  }
 }
