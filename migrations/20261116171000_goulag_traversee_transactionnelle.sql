@@ -149,7 +149,7 @@ BEGIN
       SET jour_sommeil=v_jour,champignons_penalite_en_attente=false,actualise_le=now()
       WHERE nom=v_nom;
   ELSIF p_action='progresser' THEN
-    IF tr.progressions=5 AND tr.champignons_choix IS NULL THEN
+    IF v_jour>=tr.debut_le+4 AND tr.champignons_choix IS NULL THEN
       RETURN jsonb_build_object('ok',false,'raison','champignons_a_decider'); END IF;
     IF tr.jour_progression=v_jour THEN
       RETURN jsonb_build_object('ok',false,'raison','progression_deja_faite'); END IF;
@@ -185,7 +185,7 @@ BEGIN
         RAISE EXCEPTION 'goulag_refuge_non_cree'; END IF;
     END IF;
   ELSIF p_action='champignons_manger' OR p_action='champignons_refuser' THEN
-    IF tr.progressions<>5 OR tr.champignons_choix IS NOT NULL THEN
+    IF v_jour<tr.debut_le+4 OR tr.champignons_choix IS NOT NULL THEN
       RETURN jsonb_build_object('ok',false,'raison','champignons_indisponibles'); END IF;
     IF p_action='champignons_manger' THEN
       v_pa:=CASE WHEN v_pa>7 THEN 7 ELSE v_pa+1 END;
@@ -233,7 +233,7 @@ BEGIN
    'abri_aujourdhui',coalesce(tr.jour_abri=v_jour,false),
    'dormi_aujourdhui',coalesce(tr.jour_sommeil=v_jour,false),
    'progresse_aujourdhui',coalesce(tr.jour_progression=v_jour,false),
-   'champignons_a_decider',tr.progressions=5 AND tr.champignons_choix IS NULL,
+   'champignons_a_decider',v_jour>=tr.debut_le+4 AND tr.champignons_choix IS NULL,
    'champignons_choix',tr.champignons_choix,
    'peine_gelee_secondes',tr.peine_gelee_secondes);
 END $$;
