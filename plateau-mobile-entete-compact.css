@@ -1,0 +1,59 @@
+/* Mobile : une seule identité, sortie intégrée à l'en-tête, sans modification métier. */
+#hg-mobile-brand,#hg-mobile-exit{display:none}
+@media(max-width:1023px){
+ #topbar{min-height:0!important;padding:7px 9px!important;gap:5px!important;flex-wrap:wrap}
+ #topbar>.logo{display:none!important}
+ #topbar #hg-mobile-brand{
+   display:flex;align-items:center;gap:7px;min-width:0;flex:1 1 55%;
+   border:0;background:transparent;color:#ecf0f3;text-align:left;padding:3px 2px;cursor:pointer;
+ }
+ #hg-mobile-brand .hg-mobile-brand-photo{
+   width:36px;height:42px;flex:0 0 36px;display:flex;align-items:center;justify-content:center;
+   overflow:hidden;border:1px solid #b59660;border-radius:6px;background:#253848;
+ }
+ #hg-mobile-brand .hg-mobile-brand-photo img{width:100%;height:100%;object-fit:cover}
+ #hg-mobile-brand .hg-mobile-brand-text{display:flex;flex-direction:column;min-width:0;gap:2px}
+ #hg-mobile-brand .hg-mobile-brand-text strong{
+   display:inline;font:700 clamp(.78rem,2.8vw,1.05rem) 'Playfair Display',serif;color:#e4d3b5;
+ }
+ #hg-mobile-brand .hg-mobile-brand-name{
+   display:inline;font:700 clamp(.78rem,2.8vw,1.05rem) 'Playfair Display',serif;color:#e4d3b5;
+ }
+ #hg-mobile-brand .hg-mobile-brand-text{display:block}
+ #hg-mobile-brand .hg-mobile-brand-role{
+   display:block;color:#bac7d2;font:italic clamp(.69rem,2.3vw,.85rem)/1.25 'Crimson Pro',serif;
+   overflow-wrap:anywhere;margin-top:2px;
+ }
+ #topbar>[data-hg-panneau="personnage"]{display:none!important}
+ #topbar #hg-mobile-exit:not([hidden]){display:inline-flex;align-items:center;justify-content:center;gap:4px}
+ #topbar #hg-mobile-exit[hidden]{display:none!important}
+ #topbar>.hg-mobile-acces{
+   min-height:42px!important;padding:5px 7px!important;
+   font-size:clamp(.7rem,2.35vw,.85rem)!important;
+ }
+ #topbar #hg-mobile-exit{border-color:#c0a06c;background:#2a3945;color:#e8d3ae}
+ #hg-mobile-identite-20261117{
+   padding:5px 9px!important;display:block!important;background:#172b3c!important;
+   border-bottom:1px solid #745f42!important;
+ }
+ #hg-mobile-identite-20261117>.hg-personnage-portrait,
+ #hg-mobile-identite-20261117>.hg-personnage-ligne{display:none!important}
+ #hg-mobile-identite-20261117 .hg-identite-statut{
+   display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;margin:0!important;
+ }
+ #hg-mobile-identite-20261117 .hg-identite-statut span{
+   min-height:34px!important;padding:3px 2px!important;
+   font-size:clamp(.62rem,2.25vw,.79rem)!important;
+ }
+ #hg-mobile-identite-20261117 .hg-identite-statut span small{margin:0 0 1px!important;font-size:.58rem!important}
+ #vue-batiment .batiment-header>.sortir-btn{display:none!important}
+ #vue-batiment .batiment-header{padding:5px 12px!important}
+ #vue-batiment .batiment-header-info{flex-basis:100%!important}
+ #vue-batiment .batiment-nom{font-size:1.05rem!important}
+ #vue-batiment .batiment-cat{font-size:.8rem!important}
+}
+@media(max-width:360px){
+ #topbar #hg-mobile-brand{flex-basis:48%}
+ #hg-mobile-identite-20261117 .hg-identite-statut{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
+@media(min-width:1024px){#hg-mobile-brand,#hg-mobile-exit{display:none!important}}
