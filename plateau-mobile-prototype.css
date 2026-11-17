@@ -173,3 +173,20 @@
 
 /* Composant exclusivement mobile : aucune apparition sur le plateau bureau. */
 @media(min-width:1024px){#hg-presences-mobiles{display:none!important}}
+
+/* Raccourcis persistants : journal et chat alignés horizontalement sur mobile.
+   Leurs gestionnaires historiques et panneaux restent inchangés. */
+@media (max-width:1023px) {
+  #journal-open-btn {
+    bottom:calc(20px + env(safe-area-inset-bottom)) !important;
+    left:20px !important;
+    width:48px !important;
+    height:48px !important;
+  }
+  #hg-chat-toggle {
+    bottom:calc(20px + env(safe-area-inset-bottom)) !important;
+    left:82px !important;
+    width:48px !important;
+    height:48px !important;
+  }
+}
