@@ -7,6 +7,12 @@ BEGIN
     RAISE EXCEPTION 'goulag_ordres_lot2_requis'; END IF;
 END $goulag_ordres_prerequis$;
 
+-- Coûts décidés par Fred le 17/11/2026 : 1 PA pour l'interrogateur, 1 PA pour le juge. Déclarés au
+-- référentiel que payer_ordre_interne exige (fn, pa, cost exacts) ; prélevés côté serveur uniquement.
+INSERT INTO public.ordres_couts(fn,pa,cost)
+SELECT x.fn, x.pa, x.cost FROM (VALUES ('sovarka_goulag_interroger',1,0),('sovarka_goulag_sanction',1,0)) AS x(fn,pa,cost)
+WHERE NOT EXISTS (SELECT 1 FROM public.ordres_couts o WHERE o.fn = x.fn AND o.pa = x.pa AND o.cost = x.cost);
+
 CREATE TABLE IF NOT EXISTS public.sovarka_goulag_interrogatoires (
   requete uuid PRIMARY KEY,
   interrogateur text NOT NULL REFERENCES public.personnages_donnees(name),
@@ -128,6 +134,7 @@ DECLARE v_nom text := public.mon_personnage(); v_refus jsonb; v_det text; v_deja
         d public.personnages_donnees%ROWTYPE; r public.sovarka_goulag_registre%ROWTYPE;
         v_vol_i numeric; v_vol_d numeric; v_proba integer; v_jet integer; v_reussi boolean;
         v_trace_cle text; v_trace_faits jsonb; v_mail jsonb; v_pa integer; v_res jsonb; v_ville text;
+        v_paie jsonb;
 BEGIN
   IF auth.uid() IS NULL OR v_nom IS NULL THEN
     RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
@@ -149,6 +156,9 @@ BEGIN
   IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','detenu_introuvable'); END IF;
   IF coalesce(d.pa,0) <= 1 THEN
     RETURN jsonb_build_object('ok',false,'raison','detenu_epuise'); END IF;
+  -- 1 PA pour l'interrogateur, prélevé par le serveur ; un refus n'a aucun autre effet.
+  v_paie := public.payer_ordre_interne(v_nom, 'sovarka_goulag_interroger', 1, 0);
+  IF coalesce((v_paie->>'ok')::boolean,false) IS NOT TRUE THEN RETURN v_paie; END IF;
   v_pa := greatest(1, coalesce(d.pa,0) - 7);
   UPDATE public.personnages_donnees SET pa = v_pa, updated_at = clock_timestamp() WHERE name = d.name;
   SELECT public.assemblee_stat_base(CASE WHEN jsonb_typeof(stats) = 'object' THEN stats ELSE '{}'::jsonb END,'VOL')
@@ -182,7 +192,7 @@ BEGIN
    WHERE detention_id = r.detention_id;
   v_res := jsonb_build_object('ok',true,'detenu',d.name,'probabilite',v_proba,'jet',v_jet,
     'reussi',v_reussi,'revelation',v_trace_cle IS NOT NULL,
-    'transmis_au_juge',false,'pa_detenu',v_pa);
+    'transmis_au_juge',false,'pa_detenu',v_pa,'pa',(v_paie->>'pa')::integer);
   INSERT INTO public.sovarka_goulag_interrogatoires(requete,interrogateur,detenu,detention_id,
     vol_interrogateur,vol_detenu,probabilite,jet,reussi,trace_cle,juge,pa_avant,pa_apres,resultat)
   VALUES (p_requete,v_nom,d.name,r.detention_id,v_vol_i,v_vol_d,v_proba,v_jet,v_reussi,
@@ -216,7 +226,7 @@ END $$;
 CREATE OR REPLACE FUNCTION public.sovarka_goulag_sanctionner(p_detenu text, p_nuits integer, p_requete uuid)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $$
 DECLARE v_nom text := public.mon_personnage(); v_refus jsonb; v_det text; v_res jsonb;
-        d public.personnages_donnees%ROWTYPE; v_cle text;
+        d public.personnages_donnees%ROWTYPE; v_cle text; v_paie jsonb;
 BEGIN
   IF auth.uid() IS NULL OR v_nom IS NULL THEN
     RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
@@ -237,11 +247,15 @@ BEGIN
   v_det := public.sovarka_goulag_detention_registree_interne(d.name);
   IF v_det IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','detenu_introuvable'); END IF;
   PERFORM 1 FROM public.sovarka_goulag_registre WHERE detention_id = v_det FOR UPDATE;
+  -- 1 PA pour le juge, prélevé par le serveur ; un refus n'a aucun autre effet.
+  v_paie := public.payer_ordre_interne(v_nom, 'sovarka_goulag_sanction', 1, 0);
+  IF coalesce((v_paie->>'ok')::boolean,false) IS NOT TRUE THEN RETURN v_paie; END IF;
   v_res := public.sovarka_goulag_cachot_placer_interne(d.name, v_det, p_nuits, 'decision_judiciaire');
-  IF coalesce((v_res->>'ok')::boolean,false) IS NOT TRUE THEN RETURN v_res; END IF;
+  IF coalesce((v_res->>'ok')::boolean,false) IS NOT TRUE THEN RAISE EXCEPTION 'goulag_sanction_impossible'; END IF;
   PERFORM public.sovarka_goulag_incident_interne(v_cle,'sanction_disciplinaire',d.name,v_det,
     jsonb_build_object('nuits',p_nuits,'juge',v_nom,'cachot_nuits',v_res->'cachot_nuits'));
-  RETURN jsonb_build_object('ok',true,'detenu',d.name,'nuits',p_nuits,'cachot_nuits',v_res->'cachot_nuits');
+  RETURN jsonb_build_object('ok',true,'detenu',d.name,'nuits',p_nuits,'cachot_nuits',v_res->'cachot_nuits',
+    'pa',(v_paie->>'pa')::integer);
 END $$;
 
 -- ---------------------------------------------------------------------------

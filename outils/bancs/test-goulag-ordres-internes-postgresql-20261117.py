@@ -172,8 +172,14 @@ class OrdresInternes(unittest.TestCase):
         for fn in ['sovarka_goulag_dormir()', 'sovarka_goulag_interroger(text,uuid)', 'sovarka_goulag_sanctionner(text,integer,uuid)']:
             self.assertFalse(self.sql("SELECT has_function_privilege('anon',%s,'EXECUTE')", ('public.' + fn,)))
 
-    def test_parametres_corruption_non_decides_par_defaut(self):
-        self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_parametres WHERE valeur IS NULL'), 4)
+    def test_parametres_corruption_seul_le_taux_de_base_decide(self):
+        self.assertEqual(self.sql("SELECT valeur FROM public.sovarka_goulag_parametres WHERE cle='corruption_taux_base'"), 70)
+        self.assertIsNotNone(self.sql("SELECT decide_le FROM public.sovarka_goulag_parametres WHERE cle='corruption_taux_base'"))
+        self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_parametres WHERE valeur IS NULL'), 3)
+
+    def test_couts_declares_au_referentiel(self):
+        lignes = self.sql("SELECT jsonb_agg(jsonb_build_array(fn,pa,cost) ORDER BY fn) FROM public.ordres_couts WHERE fn IN ('sovarka_goulag_interroger','sovarka_goulag_sanction')")
+        self.assertEqual(lignes, [['sovarka_goulag_interroger', 1, 0], ['sovarka_goulag_sanction', 1, 0]])
 
     def test_migrations_rejouables(self):
         for p in MIGRATIONS: self.q.execute(p.read_text())
@@ -332,6 +338,46 @@ class OrdresInternes(unittest.TestCase):
         self.client(2); self.assertEqual(self.sql(f"SELECT public.sovarka_goulag_interroger('{DETENU}','{uuid.uuid4()}')")['pa_detenu'], 13)
         self.assertEqual(self.val("SELECT interrogatoires FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"), 2)
 
+    def test_interrogatoire_coute_1_pa_et_refus_sans_pa(self):
+        self.detenu(pa=20); self.present()
+        self.q.execute(f"UPDATE public.personnages_donnees SET pa=0 WHERE name='{VISITEUR}'")
+        self.client(2); r = self.sql(f"SELECT public.sovarka_goulag_interroger('{DETENU}','{uuid.uuid4()}')")
+        self.assertEqual((r['ok'], r['raison']), (False, 'pa_insuffisants'))
+        self.assertEqual(self.val(f"SELECT pa FROM public.personnages_donnees WHERE name='{DETENU}'"), 20)
+        self.assertEqual(self.sql("SELECT interrogatoires FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"), 0)
+        self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_interrogatoires'), 0)
+        self.q.execute(f"UPDATE public.personnages_donnees SET pa=1 WHERE name='{VISITEUR}'")
+        req = str(uuid.uuid4()); self.client(2)
+        r = self.sql(f"SELECT public.sovarka_goulag_interroger('{DETENU}','{req}')"); self.assertTrue(r['ok'], r); self.assertEqual(r['pa'], 0)
+        self.assertTrue(self.sql(f"SELECT public.sovarka_goulag_interroger('{DETENU}','{req}')")['rejeu'])
+        self.assertEqual(self.val(f"SELECT pa FROM public.personnages_donnees WHERE name='{VISITEUR}'"), 0)
+        self.assertEqual(self.sql(f"SELECT pa FROM public.personnages_donnees WHERE name='{DETENU}'"), 13)
+        # Un refus en amont (détenu épuisé) ne prélève rien.
+        self.q.execute(f"UPDATE public.personnages_donnees SET pa=5 WHERE name='{VISITEUR}'")
+        self.q.execute(f"UPDATE public.personnages_donnees SET pa=1 WHERE name='{DETENU}'")
+        self.client(2); self.assertEqual(self.sql(f"SELECT public.sovarka_goulag_interroger('{DETENU}','{uuid.uuid4()}')")['raison'], 'detenu_epuise')
+        self.assertEqual(self.val(f"SELECT pa FROM public.personnages_donnees WHERE name='{VISITEUR}'"), 5)
+
+    def test_sanction_coute_1_pa_et_refus_sans_pa(self):
+        self.detenu(jours=5); self.juge()
+        self.q.execute(f"UPDATE public.personnages_donnees SET pa=0 WHERE name='{JUGE}'")
+        self.client(4); r = self.sql(f"SELECT public.sovarka_goulag_sanctionner('{DETENU}',2,'{uuid.uuid4()}')")
+        self.assertEqual((r['ok'], r['raison']), (False, 'pa_insuffisants'))
+        self.admin()
+        self.assertEqual(self.sql("SELECT cachot_nuits FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"), 0)
+        self.assertEqual(self.sql("SELECT count(*) FROM public.sovarka_goulag_incidents"), 0)
+        self.assertEqual(self.sql(f"SELECT current_room FROM public.personnages_donnees WHERE name='{DETENU}'"), 'cellules_qhs')
+        self.q.execute(f"UPDATE public.personnages_donnees SET pa=3 WHERE name='{JUGE}'")
+        req = str(uuid.uuid4()); self.client(4)
+        r = self.sql(f"SELECT public.sovarka_goulag_sanctionner('{DETENU}',1,'{req}')"); self.assertTrue(r['ok'], r); self.assertEqual(r['pa'], 2)
+        self.assertTrue(self.sql(f"SELECT public.sovarka_goulag_sanctionner('{DETENU}',1,'{req}')")['rejeu'])
+        self.assertEqual(self.val(f"SELECT pa FROM public.personnages_donnees WHERE name='{JUGE}'"), 2)
+        # Paramètre invalide ou juge absent : aucun prélèvement.
+        self.client(4); self.sql(f"SELECT public.sovarka_goulag_sanctionner('{DETENU}',3,'{uuid.uuid4()}')")
+        self.admin(); self.q.execute(f"UPDATE public.personnages_donnees SET current_room='mirador' WHERE name='{JUGE}'")
+        self.client(4); self.sql(f"SELECT public.sovarka_goulag_sanctionner('{DETENU}',2,'{uuid.uuid4()}')")
+        self.assertEqual(self.val(f"SELECT pa FROM public.personnages_donnees WHERE name='{JUGE}'"), 2)
+
     def test_interrogatoire_probabilites(self):
         self.detenu(pa=30); self.present()
         for vi, vd, attendu in [(10, 10, 50), (12, 8, 70), (8, 12, 30), (30, 1, 95), (1, 30, 5)]:
@@ -376,18 +422,28 @@ class OrdresInternes(unittest.TestCase):
     def test_corruption_bloquee_tant_que_non_arbitree(self):
         self.detenu(piece='mirador')
         self.client(); r = self.sql(f"SELECT public.sovarka_goulag_corrompre('{uuid.uuid4()}')")
-        self.assertEqual(r['raison'], 'corruption_a_arbitrer'); self.assertEqual(len(r['parametres']), 4)
+        self.assertEqual(r['raison'], 'corruption_a_arbitrer')
+        self.assertEqual(sorted(r['parametres']), ['corruption_bonus_objet', 'corruption_objet_perdu_si_echec', 'corruption_tentatives_jour'])
         self.assertEqual(self.val('SELECT count(*) FROM public.sovarka_goulag_corruptions'), 0)
+
+    def test_corruption_sans_objet_70_pour_cent(self):
+        self.detenu(piece='mirador')
+        self.q.execute("UPDATE public.sovarka_goulag_parametres SET valeur=CASE cle WHEN 'corruption_bonus_objet' THEN 20 WHEN 'corruption_objet_perdu_si_echec' THEN 0 WHEN 'corruption_tentatives_jour' THEN 1 ELSE valeur END")
+        self.client(); self.graine(lambda j: j > 70)
+        r = self.sql(f"SELECT public.sovarka_goulag_corrompre('{uuid.uuid4()}')")
+        self.assertEqual((r['ok'], r['reussi'], r['taux']), (True, False, 70))
+        self.assertFalse(self.val("SELECT corruption_bonus FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"))
+        self.client(); self.assertEqual(self.sql(f"SELECT public.sovarka_goulag_corrompre('{uuid.uuid4()}')")['raison'], 'corruption_deja_tentee_aujourdhui')
 
     def test_corruption_objet_puis_bonus_evasion_95(self):
         self.detenu(piece='entree_qhs', pa=20)
         self.q.execute("UPDATE public.personnages_donnees SET current_room='mirador',inventory='[{\"name\":\"Montre\",\"type\":\"objet\",\"stackKey\":\"montre\"}]' WHERE name=%s", (DETENU,))
-        # Valeurs de FIXTURE uniquement (aucune décision) : 50 %, +20, objet rendu si échec, 1/jour.
-        self.q.execute("UPDATE public.sovarka_goulag_parametres SET valeur=CASE cle WHEN 'corruption_taux_base' THEN 50 WHEN 'corruption_bonus_objet' THEN 20 WHEN 'corruption_objet_perdu_si_echec' THEN 0 ELSE 1 END")
-        self.client(); self.graine(lambda j: j <= 70)
+        # Taux de base décidé (70 %) ; les trois autres valeurs sont de FIXTURE (aucune décision) : +20, objet rendu si échec, 1/jour.
+        self.q.execute("UPDATE public.sovarka_goulag_parametres SET valeur=CASE cle WHEN 'corruption_bonus_objet' THEN 20 WHEN 'corruption_objet_perdu_si_echec' THEN 0 WHEN 'corruption_tentatives_jour' THEN 1 ELSE valeur END")
+        self.client(); self.graine(lambda j: j <= 90)
         req = str(uuid.uuid4())
         r = self.sql(f"SELECT public.sovarka_goulag_corrompre('{req}',0,'{{\"name\":\"Montre\",\"type\":\"objet\",\"stackKey\":\"montre\"}}')")
-        self.assertTrue(r['reussi'], r); self.assertEqual(r['taux'], 70); self.assertTrue(r['objet_perdu']); self.assertEqual(r['inventory'], [])
+        self.assertTrue(r['reussi'], r); self.assertEqual(r['taux'], 90); self.assertTrue(r['objet_perdu']); self.assertEqual(r['inventory'], [])
         self.assertTrue(self.sql(f"SELECT public.sovarka_goulag_corrompre('{req}')")['rejeu'])
         self.assertEqual(self.sql(f"SELECT public.sovarka_goulag_corrompre('{uuid.uuid4()}')")['raison'], 'gardien_deja_corrompu')
         self.assertTrue(self.sql("SELECT public.sovarka_goulag_detenu_aller('entree_qhs')")['ok'])
@@ -489,6 +545,7 @@ class OrdresInternes(unittest.TestCase):
             res = list(e.map(appel, [(2, f"SELECT public.sovarka_goulag_interroger('{DETENU}','{req}')")] * 2))
         self.assertTrue(all(r['ok'] for r in res), res)
         self.assertEqual(self.sql(f"SELECT pa FROM public.personnages_donnees WHERE name='{DETENU}'"), 14)
+        self.assertEqual(self.sql(f"SELECT pa FROM public.personnages_donnees WHERE name='{VISITEUR}'"), 19)
         self.assertEqual(self.sql("SELECT interrogatoires FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"), 1)
         self.q.execute(f"UPDATE public.personnages_donnees SET current_room='entree_qhs' WHERE name='{DETENU}'"); self.c.commit()
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as e:

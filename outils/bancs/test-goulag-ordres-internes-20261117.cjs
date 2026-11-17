@@ -43,7 +43,10 @@ test('ordres proposés par pièce, détenu ou personne habilitée', () => {
   assert.deepEqual(fns(visiteur('qhs-prison', 'bureau_chef', 'qhs')), ['sovarka_goulag_registre', 'sovarka_goulag_interroger']);
   assert.deepEqual(fns(visiteur('qhs-prison', 'mirador', 'qhs')), ['sovarka_goulag_incidents']);
   assert.deepEqual(fns(visiteur('qhs-prison', 'cellules_qhs', 'qhs')), []);
+  const couts = Object.fromEntries(Array.from(visiteur('qhs-prison', 'bureau_chef', 'qhs'), o => [o.fn, o.pa]));
+  assert.equal(couts.sovarka_goulag_interroger, 1); assert.equal(couts.sovarka_goulag_registre, 0);
   const juge = charger({ poste: 'juge' }).ctx.goulagOrdresInternes.ordresDuLieu;
+  assert.equal(Array.from(juge('qhs-prison', 'bureau_chef', 'qhs')).find(o => o.fn === 'sovarka_goulag_sanction').pa, 1);
   assert.ok(fns(juge('qhs-prison', 'bureau_chef', 'qhs')).includes('sovarka_goulag_sanction'));
   const ministre = charger({ poste: 'min_just' }).ctx.goulagOrdresInternes.ordresDuLieu;
   assert.ok(!fns(ministre('qhs-prison', 'bureau_chef', 'qhs')).includes('sovarka_goulag_sanction'));
@@ -127,7 +130,7 @@ test('cron de minuit : contrôle idempotent côté serveur, tolérant à un mote
   assert.match(cron, /tacheQuotidienne\('controle_goulag_sovarka', traiterControleGoulagQuotidien\)/);
   assert.match(cron, /rpc\/sovarka_goulag_controle_minuit/);
   assert.match(cron, /PGRST202/);
-  assert.match(cron, /herosTravail, controleGoulag,/);
+  assert.match(cron, /, controleGoulag \};/);
 });
 
 test('migrations : additives, verrouillées par #1020, sans écriture par la vue personnages', () => {
@@ -140,5 +143,9 @@ test('migrations : additives, verrouillées par #1020, sans écriture par la vue
   assert.doesNotMatch(sql, /\bDROP\s+TABLE\b/i);
   assert.doesNotMatch(sql, /sovarka_goulag_configuration\s+SET\s+active/i);
   for (const fixe of ['taux IN (80,95)', "CASE WHEN r.corruption_bonus THEN 95 ELSE 80 END", 'least(95, greatest(5, round(50 + 5 * (v_vol_i - v_vol_d))',
-    'greatest(1, coalesce(d.pa,0) - 7)', 'cachot_nuits BETWEEN 0 AND 2']) assert.ok(sql.includes(fixe), fixe);
+    'greatest(1, coalesce(d.pa,0) - 7)', 'cachot_nuits BETWEEN 0 AND 2', "('corruption_taux_base',70,",
+    "payer_ordre_interne(v_nom, 'sovarka_goulag_interroger', 1, 0)", "payer_ordre_interne(v_nom, 'sovarka_goulag_sanction', 1, 0)",
+    "('sovarka_goulag_interroger',1,0),('sovarka_goulag_sanction',1,0)"]) assert.ok(sql.includes(fixe), fixe);
+  const miroir = fs.readFileSync(path.join(R, 'baseline/seeds/95_a-regenerer/ordres_couts.sql'), 'utf8');
+  assert.match(miroir, /\('sovarka_goulag_interroger',1,0\)/); assert.match(miroir, /\('sovarka_goulag_sanction',1,0\)/);
 });

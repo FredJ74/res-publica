@@ -63,7 +63,7 @@
         non_detenu_goulag: "Vous n'êtes pas détenu au goulag.", detenu_introuvable: 'Détenu introuvable.',
         reserve_habilite_entree: 'Réservé aux personnes habilitées présentes.', reserve_habilite_bureau: 'Réservé aux personnes habilitées présentes.',
         reserve_habilite_mirador: 'Réservé aux personnes habilitées présentes.', objet_introuvable: 'Objet introuvable dans votre inventaire.',
-        pas_au_dortoir: 'Uniquement au dortoir.', pas_au_mirador: 'Uniquement au mirador.', defaut: 'Le serveur a refusé cet ordre.'
+        pas_au_dortoir: 'Uniquement au dortoir.', pas_au_mirador: 'Uniquement au mirador.', pa_insuffisants: 'Pas assez de PA pour cet ordre.', defaut: 'Le serveur a refusé cet ordre.'
       }
     },
     en: {
@@ -105,7 +105,7 @@
         non_detenu_goulag: 'You are not a prisoner of the gulag.', detenu_introuvable: 'Prisoner not found.',
         reserve_habilite_entree: 'Reserved for authorised people present.', reserve_habilite_bureau: 'Reserved for authorised people present.',
         reserve_habilite_mirador: 'Reserved for authorised people present.', objet_introuvable: 'Item not found in your inventory.',
-        pas_au_dortoir: 'Only in the dormitory.', pas_au_mirador: 'Only at the watchtower.', defaut: 'The server refused this order.'
+        pas_au_dortoir: 'Only in the dormitory.', pas_au_mirador: 'Only at the watchtower.', pa_insuffisants: 'Not enough AP for this order.', defaut: 'The server refused this order.'
       }
     },
     es: {
@@ -145,7 +145,7 @@
         non_detenu_goulag: 'No está preso en el gulag.', detenu_introuvable: 'Preso no encontrado.',
         reserve_habilite_entree: 'Reservado a personas autorizadas presentes.', reserve_habilite_bureau: 'Reservado a personas autorizadas presentes.',
         reserve_habilite_mirador: 'Reservado a personas autorizadas presentes.', objet_introuvable: 'Objeto no encontrado en su inventario.',
-        pas_au_dortoir: 'Solo en el dormitorio.', pas_au_mirador: 'Solo en la torre de vigilancia.', defaut: 'El servidor rechazó esta orden.'
+        pas_au_dortoir: 'Solo en el dormitorio.', pas_au_mirador: 'Solo en la torre de vigilancia.', pa_insuffisants: 'PA insuficientes para esta orden.', defaut: 'El servidor rechazó esta orden.'
       }
     },
     'zh-TW': {
@@ -179,7 +179,7 @@
         tentative_deja_faite_aujourdhui: '每天只能嘗試越獄一次。', pa_insuffisants_depart: '行動點不足以完成此行程。',
         non_detenu_goulag: '您不是古拉格的囚犯。', detenu_introuvable: '找不到該囚犯。', reserve_habilite_entree: '僅限在場的授權人員。',
         reserve_habilite_bureau: '僅限在場的授權人員。', reserve_habilite_mirador: '僅限在場的授權人員。', objet_introuvable: '您的物品欄中找不到該物品。',
-        pas_au_dortoir: '僅限宿舍。', pas_au_mirador: '僅限瞭望塔。', defaut: '伺服器拒絕了此命令。'
+        pas_au_dortoir: '僅限宿舍。', pas_au_mirador: '僅限瞭望塔。', pa_insuffisants: '行動點不足以執行此命令。', defaut: '伺服器拒絕了此命令。'
       }
     },
     ru: {
@@ -219,7 +219,7 @@
         non_detenu_goulag: 'Вы не заключённый лагеря.', detenu_introuvable: 'Заключённый не найден.',
         reserve_habilite_entree: 'Только для присутствующих допущенных лиц.', reserve_habilite_bureau: 'Только для присутствующих допущенных лиц.',
         reserve_habilite_mirador: 'Только для присутствующих допущенных лиц.', objet_introuvable: 'Предмет не найден в инвентаре.',
-        pas_au_dortoir: 'Только в бараке.', pas_au_mirador: 'Только на вышке.', defaut: 'Сервер отклонил этот приказ.'
+        pas_au_dortoir: 'Только в бараке.', pas_au_mirador: 'Только на вышке.', pa_insuffisants: 'Недостаточно ОД для этого приказа.', defaut: 'Сервер отклонил этот приказ.'
       }
     },
     ko: {
@@ -255,7 +255,7 @@
         non_detenu_goulag: '굴라크 수감자가 아닙니다.', detenu_introuvable: '수감자를 찾을 수 없습니다.',
         reserve_habilite_entree: '현장에 있는 허가된 사람만 가능합니다.', reserve_habilite_bureau: '현장에 있는 허가된 사람만 가능합니다.',
         reserve_habilite_mirador: '현장에 있는 허가된 사람만 가능합니다.', objet_introuvable: '인벤토리에서 물건을 찾을 수 없습니다.',
-        pas_au_dortoir: '숙소에서만 가능합니다.', pas_au_mirador: '감시탑에서만 가능합니다.', defaut: '서버가 이 명령을 거부했습니다.'
+        pas_au_dortoir: '숙소에서만 가능합니다.', pas_au_mirador: '감시탑에서만 가능합니다.', pa_insuffisants: '이 명령에 필요한 AP가 부족합니다.', defaut: '서버가 이 명령을 거부했습니다.'
       }
     },
     ar: {
@@ -293,7 +293,7 @@
         non_detenu_goulag: 'لست سجينًا في الغولاغ.', detenu_introuvable: 'لم يُعثر على السجين.',
         reserve_habilite_entree: 'مخصص للأشخاص المأذون لهم الحاضرين.', reserve_habilite_bureau: 'مخصص للأشخاص المأذون لهم الحاضرين.',
         reserve_habilite_mirador: 'مخصص للأشخاص المأذون لهم الحاضرين.', objet_introuvable: 'لم يُعثر على الغرض في مخزونك.',
-        pas_au_dortoir: 'في المهجع فقط.', pas_au_mirador: 'في برج المراقبة فقط.', defaut: 'رفض الخادم هذا الأمر.'
+        pas_au_dortoir: 'في المهجع فقط.', pas_au_mirador: 'في برج المراقبة فقط.', pa_insuffisants: 'نقاط العمل غير كافية لهذا الأمر.', defaut: 'رفض الخادم هذا الأمر.'
       }
     },
     'pt-BR': {
@@ -333,7 +333,7 @@
         non_detenu_goulag: 'Você não é preso do gulag.', detenu_introuvable: 'Preso não encontrado.',
         reserve_habilite_entree: 'Reservado às pessoas autorizadas presentes.', reserve_habilite_bureau: 'Reservado às pessoas autorizadas presentes.',
         reserve_habilite_mirador: 'Reservado às pessoas autorizadas presentes.', objet_introuvable: 'Objeto não encontrado no seu inventário.',
-        pas_au_dortoir: 'Somente no dormitório.', pas_au_mirador: 'Somente na torre de vigia.', defaut: 'O servidor recusou esta ordem.'
+        pas_au_dortoir: 'Somente no dormitório.', pas_au_mirador: 'Somente na torre de vigia.', pa_insuffisants: 'PA insuficientes para esta ordem.', defaut: 'O servidor recusou esta ordem.'
       }
     },
     de: {
@@ -373,7 +373,7 @@
         non_detenu_goulag: 'Sie sind kein Häftling des Gulags.', detenu_introuvable: 'Häftling nicht gefunden.',
         reserve_habilite_entree: 'Nur für anwesende befugte Personen.', reserve_habilite_bureau: 'Nur für anwesende befugte Personen.',
         reserve_habilite_mirador: 'Nur für anwesende befugte Personen.', objet_introuvable: 'Gegenstand nicht im Inventar gefunden.',
-        pas_au_dortoir: 'Nur in der Baracke.', pas_au_mirador: 'Nur auf dem Wachturm.', defaut: 'Der Server hat diesen Befehl abgelehnt.'
+        pas_au_dortoir: 'Nur in der Baracke.', pas_au_mirador: 'Nur auf dem Wachturm.', pa_insuffisants: 'Nicht genug AP für diesen Befehl.', defaut: 'Der Server hat diesen Befehl abgelehnt.'
       }
     }
   };
@@ -533,6 +533,7 @@
     return choisirDetenu(t('oInterroger'), '', async (nom, _b, cle) => {
       const v = await executer('sovarka_goulag_interroger', { p_detenu: nom, p_requete: cle });
       if (!v || v.ok !== true) return;
+      if (typeof v.pa === 'number' && typeof state !== 'undefined') state.pa = v.pa;
       fermer();
       const msg = v.reussi ? (v.revelation ? 'mInterroSecret' : 'mInterroRien') : 'mInterroEchec';
       toast(t('tInterro'), t(msg, { p: v.probabilite }), v.reussi === true);
@@ -546,6 +547,7 @@
       const nuits = Number(b.querySelector('input[name="goulag-ordres-nuits"]:checked')?.value || 0);
       const v = await executer('sovarka_goulag_sanctionner', { p_detenu: nom, p_nuits: nuits, p_requete: cle });
       if (!v || v.ok !== true) return;
+      if (typeof v.pa === 'number' && typeof state !== 'undefined') state.pa = v.pa;
       fermer();
       toast(t('tSanction'), t('mSanction', { nom: v.detenu, n: v.nuits || nuits }), true);
     });
@@ -614,30 +616,46 @@
   }
 
   // ---- Ordres proposés par pièce (le serveur reste seul juge des droits) ----
-  function ordre(fn, cle, desc, icon) {
-    return { fn, label: t(cle), pa: 0, cost: 0, type: 'legal', icon, successRate: 100, desc: t(desc) };
+  // Déclarations littérales (lues par le miroir des coûts) : seuls l'interrogatoire et la sanction
+  // coûtent 1 PA (décisions de Fred du 17/11/2026). Le serveur prélève lui-même ce PA.
+  const ORDRES = {
+    liste: { fn: 'sovarka_goulag_liste', label: 'oListe', desc: 'dListe', pa: 0, cost: 0, icon: 'ti-list' },
+    dormir: { fn: 'sovarka_goulag_dormir', label: 'oDormir', desc: 'dDormirDortoir', pa: 0, cost: 0, icon: 'ti-moon' },
+    manger: { fn: 'sovarka_goulag_manger', label: 'oManger', desc: 'dManger', pa: 0, cost: 0, icon: 'ti-soup' },
+    mirador: { fn: 'sovarka_goulag_mirador', label: 'oMirador', desc: 'dDeplacer', pa: 0, cost: 0, icon: 'ti-building-lighthouse' },
+    dortoir: { fn: 'sovarka_goulag_dortoir', label: 'oDortoir', desc: 'dDeplacer', pa: 0, cost: 0, icon: 'ti-bed' },
+    entree: { fn: 'sovarka_goulag_entree', label: 'oEntree', desc: 'dDeplacer', pa: 0, cost: 0, icon: 'ti-door-enter' },
+    registre: { fn: 'sovarka_goulag_registre', label: 'oRegistre', desc: 'dRegistre', pa: 0, cost: 0, icon: 'ti-archive' },
+    interroger: { fn: 'sovarka_goulag_interroger', label: 'oInterroger', desc: 'dInterroger', pa: 1, cost: 0, icon: 'ti-message-circle' },
+    sanction: { fn: 'sovarka_goulag_sanction', label: 'oSanction', desc: 'dSanction', pa: 1, cost: 0, icon: 'ti-gavel' },
+    corrompre: { fn: 'sovarka_goulag_corrompre', label: 'oCorrompre', desc: 'dCorrompre', pa: 0, cost: 0, icon: 'ti-coins' },
+    incidents: { fn: 'sovarka_goulag_incidents', label: 'oIncidents', desc: 'dIncidents', pa: 0, cost: 0, icon: 'ti-alert-triangle' }
+  };
+  function ordre(cle, descAutre) {
+    const d = ORDRES[cle];
+    return { fn: d.fn, label: t(d.label), pa: d.pa, cost: d.cost, type: 'legal', icon: d.icon, successRate: 100, desc: t(descAutre || d.desc) };
   }
   function ordresDuLieu(buildingId, roomId, ville) {
     if (typeof state === 'undefined' || state.country !== 'soviet' || ville !== 'qhs' || buildingId !== 'qhs-prison') return [];
     const detenu = !!state.estEmprisonne;
     switch (roomId) {
       case 'entree_qhs':
-        return detenu ? [ordre('sovarka_goulag_dortoir', 'oDortoir', 'dDeplacer', 'ti-bed'), ordre('sovarka_goulag_mirador', 'oMirador', 'dDeplacer', 'ti-building-lighthouse')]
-                      : [ordre('sovarka_goulag_liste', 'oListe', 'dListe', 'ti-list')];
+        return detenu ? [ordre('dortoir'), ordre('mirador')]
+                      : [ordre('liste')];
       case 'cellules_qhs':
-        return detenu ? [ordre('sovarka_goulag_dormir', 'oDormir', 'dDormirDortoir', 'ti-moon'), ordre('sovarka_goulag_manger', 'oManger', 'dManger', 'ti-soup'),
-                         ordre('sovarka_goulag_mirador', 'oMirador', 'dDeplacer', 'ti-building-lighthouse')] : [];
+        return detenu ? [ordre('dormir'), ordre('manger'),
+                         ordre('mirador')] : [];
       case 'cachot_disciplinaire':
-        return detenu ? [ordre('sovarka_goulag_dormir', 'oDormir', 'dDormirCachot', 'ti-moon')] : [];
+        return detenu ? [ordre('dormir', 'dDormirCachot')] : [];
       case 'bureau_chef':
         if (detenu) return [];
-        return [ordre('sovarka_goulag_registre', 'oRegistre', 'dRegistre', 'ti-archive'),
-                ordre('sovarka_goulag_interroger', 'oInterroger', 'dInterroger', 'ti-message-circle')]
-          .concat(state.char?.poste?.id === 'juge' ? [ordre('sovarka_goulag_sanction', 'oSanction', 'dSanction', 'ti-gavel')] : []);
+        return [ordre('registre'),
+                ordre('interroger')]
+          .concat(state.char?.poste?.id === 'juge' ? [ordre('sanction')] : []);
       case 'mirador':
-        return detenu ? [ordre('sovarka_goulag_corrompre', 'oCorrompre', 'dCorrompre', 'ti-coins'), ordre('sovarka_goulag_dortoir', 'oDortoir', 'dDeplacer', 'ti-bed'),
-                         ordre('sovarka_goulag_entree', 'oEntree', 'dDeplacer', 'ti-door-enter')]
-                      : [ordre('sovarka_goulag_incidents', 'oIncidents', 'dIncidents', 'ti-alert-triangle')];
+        return detenu ? [ordre('corrompre'), ordre('dortoir'),
+                         ordre('entree')]
+                      : [ordre('incidents')];
       default: return [];
     }
   }

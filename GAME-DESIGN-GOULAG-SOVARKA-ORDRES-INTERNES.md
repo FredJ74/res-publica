@@ -50,6 +50,14 @@ sur autorisation explicite de Fred.
 - **Consulter les incidents du camp** (habilités présents) : historique daté des tentatives d'évasion et de leur
   résultat, des sanctions disciplinaires et des absences constatées à minuit ; rien d'étranger au goulag.
 
+### Compléments décidés par Fred (17/11/2026, après la première livraison)
+- **Interroger un détenu : 1 PA** pour l'interrogateur.
+- **Prononcer une sanction disciplinaire : 1 PA** pour le juge.
+- **Corrompre le gardien : 70 % de réussite de base**, sans cadeau. Une corruption réussie conserve le bonus
+  décidé : l'évasion passe de 80 % à 95 %.
+- **Non décidés** (ordre maintenu désactivé) : bonus apporté par un objet offert, perte éventuelle de l'objet
+  en cas d'échec, nombre de tentatives de corruption par jour.
+
 ### Tentative d'évasion depuis le camp
 - Jet de **sortie du camp**, distinct de la survie : **80 %**, **95 %** après corruption d'un gardien ;
   **une tentative par jour** ; jet serveur non rejouable.
@@ -86,16 +94,20 @@ entre dortoir, entrée et mirador ; jamais le bureau ; aucune sortie du cachot p
   l'enregistre comme présent, pour qu'il reparte par le retour régulier des visiteurs prévu par #1020.
 - Le **reliquat figé** au départ d'une évasion est désormais le compteur de jours du registre (sommeil),
   et non plus un calcul calendaire.
+- **Coûts en PA** : 1 PA pour l'interrogateur et 1 PA pour le juge, déclarés dans `ordres_couts`
+  (`sovarka_goulag_interroger` et `sovarka_goulag_sanction`, 1 PA, 0 PSK) et prélevés par `payer_ordre_interne`
+  dans la même transaction que l'effet. PA insuffisants (`pa_insuffisants`) ou refus préalable : aucun effet,
+  aucun prélèvement ; un rejeu de la même requête ne prélève pas une seconde fois.
 - Écritures protégées : verrous de ligne, clé de requête rejouable (interrogatoire, sanction, corruption),
   clé (détention, jour) pour la tentative d'évasion, clé d'idempotence par incident, une ligne par jour de contrôle.
 
 ## Points réellement à arbitrer (Fred)
 
-1. **Corruption du gardien** — bloquée (`corruption_a_arbitrer`) tant que ces quatre valeurs ne sont pas
-   décidées (table `sovarka_goulag_parametres`, aucune valeur inventée) : chance de base sans objet ; bonus
-   apporté par un objet proposé ; l'objet est-il perdu en cas d'échec ; nombre de tentatives par jour.
-   Le reste du camp fonctionne sans elles.
-2. **Coût en PA de l'interrogateur et du juge** : non précisé ; codé à **0 PA** pour eux (le détenu perd 7 PA).
+1. **Corruption du gardien** — taux de base **70 %** enregistré (décision du 17/11) ; l'ordre reste bloqué
+   (`corruption_a_arbitrer`) tant que ces trois valeurs ne sont pas décidées (table `sovarka_goulag_parametres`,
+   aucune valeur inventée) : bonus apporté par un objet proposé ; l'objet est-il perdu en cas d'échec ; nombre
+   de tentatives par jour. Le reste du camp fonctionne sans elles.
+2. ~~Coût en PA de l'interrogateur et du juge~~ : **tranché le 17/11, 1 PA chacun** (codé, voir plus haut).
 3. **Détenu hors du camp sans évasion** (par exemple hospitalisé) au contrôle de minuit : codé comme absence
    enregistrée dans les incidents, statut administratif laissé à « Détenu ». À confirmer.
 4. **Transfert au goulag d'une détention déjà en cours** (prolongation) : le compteur démarre au reste calendaire
