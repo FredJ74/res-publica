@@ -1125,7 +1125,8 @@ const RUE_CENTRALE_NOEUDS = {
     'krasnov-rue-ecole-foret': {
       image: 'images/Sovarka/Krasnov/Krasnov rue école foret.webp',
       zones: [],
-      liens: { arriere: 'krasnov-rue-stade-commissariat', toutDroit: 'krasnov-rue-distillerie-radar', droite: 'krasnov-camp-bucherons' },
+      // La flèche « droite » vers la cour des bûcherons n'est posée que goulag ouvert (plateau-goulag-ouverture.js).
+      liens: { arriere: 'krasnov-rue-stade-commissariat', toutDroit: 'krasnov-rue-distillerie-radar' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
         toutDroit: 'top:10px; left:50%; transform:translateX(-50%);',

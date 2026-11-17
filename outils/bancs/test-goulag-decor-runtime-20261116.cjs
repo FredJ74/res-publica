@@ -1,6 +1,7 @@
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-const contexte=vm.createContext({console,window:{},state:{country:'soviet',currentCity:'qhs'},document:{}});
+// Goulag ouvert simulé (serveur qui confirme) : sans cela, le verrou d'ouverture cache tout.
+const contexte=vm.createContext({console,window:{goulagOuvert:()=>true},state:{country:'soviet',currentCity:'qhs'},document:{}});
 vm.runInContext(fs.readFileSync('data.js','utf8')+';this.B=BUILDINGS',contexte);
 contexte.BUILDINGS=contexte.B;
 vm.runInContext(fs.readFileSync('plateau-goulag-toundra.js','utf8'),contexte);

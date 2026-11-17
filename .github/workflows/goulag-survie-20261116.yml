@@ -9,6 +9,8 @@ on:
       - 'plateau-goulag*.js'
       - 'plateau-justice-economie.js'
       - 'plateau-rue-centrale.js'
+      - 'plateau.html'
+      - 'outils/bancs/test-krasnov-gare-rue-20261105.mjs'
       - 'migrations/*goulag*.sql'
       - 'outils/bancs/*goulag*'
       - 'outils/bancs/fixtures/goulag-20261116/**'
@@ -44,6 +46,10 @@ jobs:
       - run: node outils/bancs/test-goulag-decor-runtime-20261116.cjs
       - run: node outils/bancs/test-goulag-ecran-interactif-20261116.cjs
       - run: node --test outils/bancs/test-goulag-navigation-20261117.cjs
+      - run: node --check plateau-goulag-ouverture.js
+      # Goulag fermé (sans migrations) : écran du goulag et juge identiques à main.
+      - run: node --test outils/bancs/test-goulag-verrou-client-20261117.cjs
+      - run: node --test outils/bancs/test-krasnov-gare-rue-20261105.mjs
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
