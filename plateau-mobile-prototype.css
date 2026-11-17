@@ -168,3 +168,6 @@
   html[lang="ar"] #vue-rue #hg-explore-primary,
   html[dir="rtl"] #vue-rue #hg-explore-primary {direction:rtl}
 }
+
+/* Composant exclusivement mobile : aucune apparition sur le plateau bureau. */
+@media(min-width:1024px){#hg-presences-mobiles{display:none!important}}
