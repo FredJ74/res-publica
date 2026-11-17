@@ -54,7 +54,9 @@ jobs:
         run: |
           bash outils/bancs/installer-postgresql17-local.sh
           python3 outils/bancs/test-goulag-postgresql-20261116.py --postgres-bin "$HGPG17_PREFIX/bin"
-          git fetch --no-tags origin 4bb8f42a11bf9e5c2ce8e891445cf162d44d5adf
+          # Récupérer exactement le commit de #1085 lu par les bancs (référence par défaut du banc).
+          REF1085=$(grep -o "default='[0-9a-f]\{40\}'" outils/bancs/test-goulag-integration-1085-20261117.py | head -1 | cut -d"'" -f2)
+          git cat-file -e "$REF1085^{commit}" 2>/dev/null || git fetch --no-tags origin "$REF1085"
           python3 outils/bancs/test-goulag-integration-1085-20261117.py --postgres-bin "$HGPG17_PREFIX/bin"
           python3 outils/bancs/test-goulag-integration-1085-20261117.py --postgres-bin "$HGPG17_PREFIX/bin" --contrats
       - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
