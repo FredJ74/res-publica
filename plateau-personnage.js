@@ -999,6 +999,58 @@ async function confirmerCorrectionAdresse() {
   rafraichirSecuriteDuCompte();
 }
 
+// COMPTE CONFIRME OBLIGATOIRE (decision de Fred, 17/11/2026 : « il faut un compte et s'identifier »).
+// Le serveur refuse tout ordre d'un compte anonyme (mon_personnage nul). Au demarrage, on dit donc
+// au joueur pourquoi, et comment debloquer : saisir une adresse, puis cliquer sur le lien du courriel.
+async function rafraichirJetonApresConfirmation() {
+  try {
+    const rt = (typeof RP_AUTH_SESSION !== 'undefined' && RP_AUTH_SESSION) ? RP_AUTH_SESSION.refresh_token : null;
+    if (!rt || typeof rpAuthRenouveler !== 'function') return false;
+    const r = await rpAuthRenouveler(rt);
+    if (r && r.ok && r.session) { RP_AUTH_SESSION = r.session; rpAuthEcrireStockage(r.session); return true; }
+  } catch (e) {}
+  return false;
+}
+
+async function verifierCompteConfirme() {
+  if (typeof rpAuthEstAnonyme !== 'function' || !rpAuthEstAnonyme()) return;
+  const etat = await rpAuthEtatCompte().catch(() => null);
+  if (!etat || !etat.ok) return;
+  if (!etat.anonyme) {
+    // Confirme entre-temps (lien clique, ou autre appareil) : un jeton neuf suffit a jouer.
+    if (await rafraichirJetonApresConfirmation()) location.reload();
+    return;
+  }
+  ouvrirPorteCompteObligatoire(etat);
+}
+
+async function confirmerCompteEtRecharger() {
+  const etat = await rpAuthEtatCompte().catch(() => null);
+  if (etat && etat.ok && !etat.anonyme) {
+    await rafraichirJetonApresConfirmation();
+    location.reload();
+    return;
+  }
+  showToast('Pas encore confirmé', 'Cliquez d\'abord sur le lien reçu par courriel.', false);
+}
+
+function ouvrirPorteCompteObligatoire(etat) {
+  if (!etat || !etat.enAttente) { ouvrirModalSecuriserCompte(); return; }
+  const bouton = 'font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;'
+               + 'border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;margin:.4rem .4rem 0 0';
+  const adresse = String(etat.enAttente).replace(/[<>&"]/g, '');
+  document.getElementById('postes-modal-title').textContent = 'Confirmez votre compte pour jouer';
+  document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem;max-width:34rem;font-size:.85rem;line-height:1.7">'
+    + '<div>Un compte confirmé est nécessaire pour jouer. Un courriel a été envoyé à <strong>' + adresse + '</strong>.</div>'
+    + '<div style="margin-top:.5rem">Cliquez sur le lien qu\'il contient, puis revenez ici.</div>'
+    + '<div style="margin-top:.6rem">'
+    + '<button onclick="confirmerCompteEtRecharger()" style="' + bouton + '">J\'ai confirmé</button>'
+    + '<button onclick="ouvrirModalCorrigerAdresse()" style="' + bouton + '">Changer d\'adresse</button>'
+    + '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
 function ouvrirModalSecuriserCompte() {
   // Re-verification a l'ouverture : l'etat a pu changer depuis le rendu de l'onglet.
   if (!_compteEstProprietaireDuPersonnage()) {
@@ -1028,7 +1080,7 @@ function ouvrirModalSecuriserCompte() {
     + '<div style="margin-top:.9rem;padding:.6rem .7rem;background:#17120a;border-left:3px solid #8a6a20">'
     + '<div style="font-size:.78rem;color:#d8c088;line-height:1.6">'
     + '<i class="ti ti-mail"></i> <strong>Un courriel de confirmation vous sera envoyé.</strong> '
-    + 'Vous continuerez à jouer normalement en attendant, et vous pourrez corriger l\'adresse si '
+    + 'Vous pourrez jouer dès que vous aurez cliqué sur son lien, et vous pourrez corriger l\'adresse si '
     + 'vous vous êtes trompé.</div></div>'
     + '<div style="' + etiq + '">ADRESSE E-MAIL</div>'
     + '<input type="email" id="secu-email" autocomplete="email" placeholder="vous@exemple.fr" style="' + champ + '">'

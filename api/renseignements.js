@@ -1,3 +1,4 @@
+import { joueurAuthentifie } from './_deepseek.js';
 // =====================
 // API VERCEL — MEMOIRE DES RENSEIGNEMENTS CONNUS (Phase 1, 22 aout 2026)
 // =====================
@@ -177,6 +178,16 @@ const CATEGORIES_CONNUES = [
 ];
 
 const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
+
+// Nom du personnage par colonne (user_id ou name), lu avec la cle de service ; null si absent.
+async function nomDuPersonnage(colonne, valeur) {
+  if (typeof valeur !== 'string' || !valeur) return null;
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/personnages_donnees?${colonne}=eq.${encodeURIComponent(valeur)}&select=name&limit=1`,
+    { headers: serviceHeaders() }).catch(() => null);
+  if (!r || !r.ok) return null;
+  const rows = await r.json().catch(() => []);
+  return (Array.isArray(rows) && rows[0] && rows[0].name) || null;
+}
 
 function serviceHeaders() {
   return {
@@ -847,7 +858,7 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
   }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -858,7 +869,28 @@ export default async function handler(req, res) {
     return res.status(503).json({ error: 'Mémoire indisponible : configuration serveur incomplète.' });
   }
 
+  // IDENTITE VERIFIEE (failles de l'audit du 16/11/2026) : la route acceptait n'importe quel nom
+  // declare par le navigateur. Elle exige maintenant la session du joueur, et le nom qui agit
+  // (client, enqueteur, titulaire) doit etre le sien. Un titulaire PNJ (escort) reste admis.
+  const utilisateur = await joueurAuthentifie(req, { sansQuota: (req.body || {}).action === 'enregistrer' });
+  if (!utilisateur) return res.status(401).json({ error: 'Authentification requise.' });
+  const moi = await nomDuPersonnage('user_id', utilisateur.id);
+  if (!moi) return res.status(403).json({ error: 'Personnage introuvable.' });
+
   const body = req.body || {};
+  const acteurDeclare = {
+    enregistrer: body.titulaire,
+    tirer_confidence_escort: body.client,
+    secret_contre_secret: body.client,
+    interroger_pnj_sujet: body.enqueteur,
+    enregistrer_evenement_escort: body.client
+  }[body.action];
+  if (acteurDeclare !== moi) {
+    const autrePj = (body.action === 'enregistrer' && typeof acteurDeclare === 'string')
+      ? await nomDuPersonnage('name', acteurDeclare) : 'refus';
+    if (autrePj) return res.status(403).json({ error: 'Action au nom d\'un autre joueur refusée.' });
+  }
+
   if (body.action === 'enregistrer') return enregistrer(body, res);
   if (body.action === 'tirer_confidence_escort') return tirerConfidenceEscort(body, res);
   if (body.action === 'secret_contre_secret') return secretContreSecret(body, res);

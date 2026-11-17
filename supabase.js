@@ -5684,11 +5684,19 @@ async function sbGetMessagesChatPiece(country, city, buildingId, roomId, depuisT
 // sans aucune authentification pour verifier cette identite, aurait recree exactement le
 // SELECT arbitraire que RLS etait cense empecher. Reviendront avec un mecanisme de controle
 // d'acces reel, dans un lot ulterieur.
+// Renseignements : la route exige désormais la session du joueur (failles de l'audit du 16/11/2026).
+function sbEnTetesRenseignements() {
+  const jeton = (typeof rpAuthJeton === 'function') ? rpAuthJeton() : null;
+  const h = { 'Content-Type': 'application/json' };
+  if (jeton) h['Authorization'] = 'Bearer ' + jeton;
+  return h;
+}
+
 async function sbEnregistrerRenseignement(entry) {
   try {
     const res = await fetch('/api/renseignements', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: sbEnTetesRenseignements(),
       body: JSON.stringify({ action: 'enregistrer', ...entry })
     });
     if (!res.ok) return null;
@@ -5707,7 +5715,7 @@ async function sbTirerConfidenceEscort(client, escort, chaEscort) {
   try {
     const res = await fetch('/api/renseignements', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: sbEnTetesRenseignements(),
       body: JSON.stringify({ action: 'tirer_confidence_escort', client, escort, chaEscort })
     });
     if (!res.ok) return null;
@@ -5724,7 +5732,7 @@ async function sbEchangerSecretEscort(client, escort, declaration) {
   try {
     const res = await fetch('/api/renseignements', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: sbEnTetesRenseignements(),
       body: JSON.stringify({ action: 'secret_contre_secret', client, escort, declaration })
     });
     if (!res.ok) return null;
@@ -5742,7 +5750,7 @@ async function sbInterrogerPnjSurSujet(enqueteur, pnj, sujet) {
   try {
     const res = await fetch('/api/renseignements', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: sbEnTetesRenseignements(),
       body: JSON.stringify({ action: 'interroger_pnj_sujet', enqueteur, pnj, sujet })
     });
     if (!res.ok) return null;
@@ -5758,7 +5766,7 @@ async function sbEnregistrerEvenementEscort(client, escort, typeEvenement) {
   try {
     const res = await fetch('/api/renseignements', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: sbEnTetesRenseignements(),
       body: JSON.stringify({ action: 'enregistrer_evenement_escort', client, escort, type_evenement: typeEvenement })
     });
     if (!res.ok) return null;
