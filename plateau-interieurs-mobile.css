@@ -31,17 +31,9 @@
   #vue-batiment #piece-image[data-hg-split="1"] .piece-nom{
     margin:0;line-height:1.2;
   }
-  /* Toujours montrer la photographie en entier. Le module plateau-mobile.js
-     fournit le vrai ratio dans --hg-ratio-image : toute hauteur arbitraire
-     avec cover rogne le décor et peut désaligner les zones cliquables. */
-  #vue-batiment #piece-image[data-hg-split="1"] {
-    background-size:100% auto!important;
-    background-position:center top!important;
-    background-repeat:no-repeat!important;
-  }
-  #vue-batiment #piece-image[data-hg-split="1"]::before {
-    padding-top:var(--hg-ratio-image,56.25%);
-  }
+  /* L'image garde ses proportions naturelles, calculées par plateau-mobile.js
+     et style.css. Ne pas imposer de height/cover : pas de rognage, et cadrages
+     spécifiques (commerce, musée, zones cliquables) préservés. */
   #vue-batiment #actionbar-batiment{flex:0 0 auto;background:#1a2632;padding:12px;border-top:1px solid rgba(169,141,86,.35)}
   #vue-batiment #action-context-bat{font-family:'Crimson Pro',serif;font-size:.95rem;line-height:1.35;letter-spacing:.03em;color:#d6bd86;margin-bottom:10px;overflow-wrap:anywhere}
   /* Un ordre par rangée : le vrai moteur tactile entoure les boutons
