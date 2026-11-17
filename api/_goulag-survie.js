@@ -4,7 +4,7 @@
  * Moteur déterministe de la traversée du goulag de Sovarka.
  *
  * Aucun accès client direct : les fonctions ci-dessous sont des règles pures.
- * Le futur RPC devra verrouiller le personnage, vérifier les droits et persister
+ * Les RPC doivent verrouiller le personnage, vérifier les droits et persister
  * l'état + les PA + l'inventaire dans UNE transaction. Les décisions du 16/11 sont
  * documentées dans GAME-DESIGN-GOULAG-SOVARKA.md.
  */
@@ -74,7 +74,7 @@ function choisirChampignons(etat, choix, jourDepuisDepart) {
     champignonsRefuses:etat.pa>7};
 }
 
-/** Montant encore non validé : aucune déduction silencieuse. */
+/** Décision de Fred du 16/11 : deux PA sur le gain suivant, plancher sept. */
 function sommeilAvecChampignons(pa, gain, malus = 2) {
   verifierPA(pa);
   if (!entier(gain) || gain < 1) refuser('gain_invalide');
