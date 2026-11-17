@@ -35,6 +35,36 @@ Mise en œuvre : `election_contestation_appliquer` (migration
 `20261103001000_chaine_elective_contestation_portes`), photographie du scrutin enrichie par
 `api/cron-minuit.js` (`titulaireAvant`, `elusAvant`, `debutMandatAvant`, noms affichés).
 
+## Nationalité, domicile et élections (décisions de Fred, 18/11/2026, nuit)
+
+Constat du 18/11 : la colonne « pays » d'un personnage changeait quand il voyageait, et son domicile aussi.
+Un républicain domicilié à Luthécia est apparu « Sovarka · Domicile : Novomirsk » sans l'avoir demandé, et
+sa candidature à la présidentielle de Républia a disparu pendant son séjour en Sovarka. Les villes partagent
+leurs clés (ville_a = Montrouge et Starovka…) : un étranger pouvait être inscrit dans un scrutin de son
+propre pays depuis une mairie étrangère.
+
+**Règles, pour tous les pays :**
+- **Deux données distinctes et stables** : la **nationalité** (un pays) et le **domicile** (une ville, dans
+  n'importe quel pays). Voyager, se déplacer ou agir ne change **ni l'une ni l'autre**.
+- **Naturalisation** (seul moyen de changer de nationalité) : ordre à l'accueil de **n'importe quelle mairie du
+  pays visé**, quel que soit le domicile ; **2 PA et 50** dans la monnaie de ce pays (FR / PSK). La demande va
+  au **ministre de l'Intérieur** de ce pays (Sécurité du Peuple en Sovarka), qui accepte ou refuse. Ministre
+  PNJ ou poste vacant : **acceptée d'office au bout de 7 jours** ; si un PJ est nommé entre-temps, il reprend
+  la main. Après un refus, on peut redemander aussitôt. Une fois naturalisé, le personnage **perd tout poste,
+  tout mandat et son appartenance à un parti** dans l'ancien pays.
+- **Domiciliation** (seul moyen de changer de domicile) : **1 PA et 50** dans la monnaie du pays de la ville,
+  automatique (remplace le tarif de 200).
+- **Vote** : présidentielle selon la **nationalité** ; municipales selon le **domicile** (un Sovarkien domicilié
+  à Port-Sainte-Marie vote aux municipales de Port-Sainte-Marie et à la présidentielle de Sovarka, pas à
+  celle de Républia).
+- **Candidature à une mairie** : **nationalité du pays ET domicile dans cette ville**. Un étranger domicilié
+  vote mais ne peut pas se présenter.
+- **Une candidature ne disparaît jamais** parce que le candidat voyage.
+- **Personnages existants** : nationalité = pays de création.
+- **Partage des usages du « pays »** : par défaut, les **prix, les tarifs nationaux et la monnaie suivent le
+  lieu** où l'on se trouve ; les **droits politiques, les postes et la conscription suivent la nationalité**.
+  Un cas non tranché par ces règles est soumis à Fred.
+
 ## Candidature (rappel des règles en vigueur)
 
 - Une candidature n'existe que par la publication de son programme (16/09/2026) ; elle coûte
