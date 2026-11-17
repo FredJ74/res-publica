@@ -4020,6 +4020,9 @@ function renderRoomActions(room, buildingId, roomId) {
       'modifier_plan_chantier','diviser_construction','receptionner_chantier']);
     const fnLivre = new Set(['reconfigurer_lots']); // accès et location via onglets des locaux
     return allOrders.filter(o => {
+      // Sovarka (décision de Fred, 06/11/2026) : le terrain appartient à la mairie, on ne l'achète pas ;
+      // son ordre « Terrain municipal » ne dépend pas du parcours d'achat de la Républia (correctif 17/11/2026).
+      if (o.fn === 'sovarka_terrain_municipal') return true;
       if (avantAcquisition) {
         if (!fnAvant.has(o.fn)) return false;
         if (o.fn === 'racheter_terrain') return false;
@@ -4483,7 +4486,8 @@ function renderRoomActions(room, buildingId, roomId) {
     const tsInfo = typeof getTerrainState === 'function' ? getTerrainState(buildingId) : null;
     const btnInfo = (titre, nature) => `<button class="action-btn legal" onclick="ouvrirInformationsTerrainLuthecia('${nature}')" title="${titre}"><i class="ti ti-info-circle"></i> ${titre}</button>`;
     // Avant toute acquisition : afficher le barème de construction sans exiger d'être propriétaire.
-    if (!tsInfo?.proprietaire && !tsInfo?.chantier && !tsInfo?.niveau_construction) {
+    // Pas en Sovarka : on n'y achète pas de terrain, la mairie construit (correctif 17/11/2026).
+    if (state.country !== 'soviet' && !tsInfo?.proprietaire && !tsInfo?.chantier && !tsInfo?.niveau_construction) {
       buttons.push(btnInfo('Coût de construction', 'budget'));
     }
     if (tsInfo?.chantier) buttons.push(btnInfo('Information sur le chantier', 'chantier'));

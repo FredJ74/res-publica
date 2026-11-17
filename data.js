@@ -11415,6 +11415,8 @@ function slugPnjSovarka(nom) {
       if (ville === 'ville_b') o.imageUrl = 'images/Sovarka/Krasnov/Krasnov_terrain_a_batir.webp';
       // Image de Fred (17/11/2026) : la plaine enneigée balisée de Starovka, tant que le terrain n'est pas construit.
       if (ville === 'ville_a') o.imageUrl = 'images/Sovarka/Starovka/Starovka_terrain_a_batir.webp';
+      // Quatre parcelles à Starovka (Fred, 09/11/2026 ; serveur : sovarka_terrains) : nommées dans la fenêtre « Terrain municipal ».
+      if (ville === 'ville_a') WORLD.soviet.ville_a.buildingContext['terrain-a-batir-' + n].parcelles = 4;
       o.desc = 'Terrain de la commune. La mairie y fait construire, à ses frais, un immeuble collectif quand des dossiers de commerce attendent un local.';
       ajouter(o, [ordre('sovarka_terrain_municipal', 'Terrain municipal', 0, 'ti-building-community',
         'Voir l\'état du terrain : libre, immeuble en chantier ou immeuble livré.')], ordresTerrain);

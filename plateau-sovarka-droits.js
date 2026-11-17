@@ -330,10 +330,21 @@ async function ouvrirSovarkaTerrain(cache) {
   // le serveur nomme la parcelle n « terrain@pn ».
   const parcelle = t => (String(t).split('@')[1] || 'p1').slice(1);
   const imm = l.immeubles.filter(x => x.ville === state.currentCity && String(x.terrain).split('@')[0] === state.currentBuilding);
-  const html = !imm.length ? '<p>' + sovT('landFree') + '</p>'
-    : imm.map(i => '<p>' + (imm.length > 1 || String(i.terrain).includes('@') ? sovT('plot', { n: parcelle(i.terrain) }) : '') +
-      sovT('landBuilding', { n: i.nb_commerces }) + (i.nb_logements ? sovT('landHomes', { n: i.nb_logements }) : '') +
-      ' — ' + sovImmeuble(i.statut) + (i.statut === 'en_chantier' ? sovT('delivery', { date: sovEsc(i.livraison_le) }) : '') + '.</p>').join('');
+  // Demande de Fred (17/11/2026) : la fenêtre dit la marche à suivre (mairie, adjoint au maire) et nomme chaque
+  // parcelle. Le nombre de parcelles du terrain est déclaré dans data.js (parcelles, miroir de sovarka_terrains) ;
+  // l'état de chacune vient du serveur.
+  const ctxTerrain = (typeof getBuildingContext === 'function' && getBuildingContext(state.currentBuilding)) || {};
+  const nbParcelles = Math.max(Number(ctxTerrain.parcelles) || 1, ...imm.map(i => Number(parcelle(i.terrain)) || 1));
+  const nomTerrain = (ctxTerrain.name || BUILDINGS[state.currentBuilding]?.name || sovT('titleLand'))
+    + (typeof VILLES !== 'undefined' && VILLES.soviet?.[state.currentCity]?.nom ? ' (' + VILLES.soviet[state.currentCity].nom + ')' : '');
+  const etat = i => sovT('landBuilding', { n: i.nb_commerces }) + (i.nb_logements ? sovT('landHomes', { n: i.nb_logements }) : '') +
+    ' — ' + sovImmeuble(i.statut) + (i.statut === 'en_chantier' ? sovT('delivery', { date: sovEsc(i.livraison_le) }) : '');
+  let html = '<p class="cpj-note">' + sovT('landProcedure') + '</p>'
+    + '<p><strong>' + sovEsc(sovT('landHeader', { nom: nomTerrain, n: nbParcelles })) + '</strong></p>';
+  for (let k = 1; k <= nbParcelles; k++) {
+    const i = imm.find(x => (Number(parcelle(x.terrain)) || 1) === k);
+    html += '<p>' + sovT('plot', { n: k }) + (i ? etat(i) : sovT('plotFree')) + '.</p>';
+  }
   sovModal(sovT('titleLand'), html, ouvrirSovarkaTerrain);
   if (!cache && typeof rafraichirPiecesDynamiques === 'function') rafraichirPiecesDynamiques(state.currentBuilding);
 }
