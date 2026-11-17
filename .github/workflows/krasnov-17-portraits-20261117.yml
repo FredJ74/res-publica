@@ -1,4 +1,4 @@
-name: "Krasnov : 17 portraits WebP et raccordement"
+name: "Krasnov : 19 portraits WebP et raccordement"
 on:
   pull_request:
     types: [opened, synchronize]
@@ -18,6 +18,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           persist-credentials: true
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -26,14 +27,17 @@ jobs:
           node-version: "22"
       - name: Pillow
         run: python -m pip install "Pillow>=11,<13"
-      - name: Récupérer le lot de 17 portraits quand il est ajouté à main
+      - name: Réconcilier le main courant et récupérer le ZIP final
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git merge --no-edit origin/main
           if ! grep -q 'KRASNOV_PORTRAITS_MANQUANTS_20261117' data.js; then
-            git fetch origin main --depth=1
-            target="images/Sovarka/Krasnov/Krasnov_17_portraits_WebP.zip"
-            if [[ ! -f "$target" ]]; then
-              git show "origin/main:$target" > "$target" 2>/dev/null || rm -f "$target"
-            fi
+            test -f "images/Sovarka/Krasnov/Krasnov_19_portraits_WebP.zip" || {
+              echo "::error::Source absente : déposer Krasnov_19_portraits_WebP.zip dans images/Sovarka/Krasnov sur main"
+              exit 1
+            }
           fi
       - name: Valider la syntaxe du générateur
         run: python -m py_compile outils/images/decouper_portraits_krasnov_20261117.py
@@ -44,7 +48,7 @@ jobs:
           else
             python outils/images/decouper_portraits_krasnov_20261117.py
           fi
-      - name: Vérifier 17 WebP, noms et suppression des anciennes planches
+      - name: Vérifier 19 WebP, noms et suppression des anciennes planches
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -54,7 +58,7 @@ jobs:
               'platon-iermakov','varvara-kozlova','efim-iakovlev','stas-mironov',
               'valentina-makhorkina','stiopa-ossipov','fiodor-kolkhozov',
               'stepan-kouznetsov','antonina-merkoulova','matvei-rybakov',
-              'galina-belova','anatoli-pokhmelkine','vassili-gradousov']
+              'galina-belova','anatoli-pokhmelkine','vassili-gradousov','receptionniste','ilia-sorokine']
           all_files=list(p.glob('Krasnov_portrait_*.webp'))
           for name in names:
               found=[q for q in all_files if q.stem.endswith('_'+name)]
@@ -63,12 +67,12 @@ jobs:
                   assert image.format=='WEBP' and image.size==(512,512),found[0]
           assert not list(p.glob('Galerie des personnages de Krasnov*.png'))
           assert not list(p.glob('Grille de portraits du village*.png'))
-          assert not (p/'Krasnov_17_portraits_WebP.zip').exists()
+          assert not (p/'Krasnov_19_portraits_WebP.zip').exists()
           text=Path('data.js').read_text()
           assert text.count('KRASNOV_PORTRAITS_MANQUANTS_20261117')==1
           for stable in ['Praskovia.webp','Kouzma.webp','Krasnov_stade_entraineur_portrait.webp']:
               assert stable in text,stable
-          print('OK: 17 WebP 512x512, source supprimée, anciens portraits préservés')
+          print('OK: 19 WebP 512x512, source supprimée, anciens portraits préservés')
           PY
       - name: Syntaxe et chargement des villes
         run: |
@@ -82,5 +86,5 @@ jobs:
           git add data.js images/Sovarka/Krasnov
           git diff --cached --stat
           if git diff --cached --quiet; then echo "Déjà publié"; exit 0; fi
-          git commit -m "Krasnov : 17 nouveaux portraits WebP sans doublon ni Ignat"
+          git commit -m "Krasnov : 19 nouveaux portraits WebP sans doublon ni Ignat"
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
