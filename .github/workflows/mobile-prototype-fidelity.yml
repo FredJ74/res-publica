@@ -1,0 +1,26 @@
+name: Prototype mobile fidélité visuelle
+on:
+  pull_request:
+    paths:
+      - 'plateau.html'
+      - 'plateau-mobile-prototype.css'
+      - 'plateau-mobile-identite-20261117.js'
+      - 'outils/bancs/test-mobile-prototype-fidelity-20261117.cjs'
+      - '.github/workflows/mobile-prototype-fidelity.yml'
+jobs:
+  fidelity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe
+        run: node --check plateau-mobile-identite-20261117.js
+      - name: Installer navigateur
+        run: |
+          cd outils/e2e
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium webkit
+      - name: Disposition et ressources du personnage
+        run: node outils/bancs/test-mobile-prototype-fidelity-20261117.cjs

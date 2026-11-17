@@ -1,0 +1,92 @@
+/* Prototype d'exploration mobile — vraie composition, sans inventer d'ordres.
+   Réutilise image, pièces, ressources et actions déjà autorisées par le serveur. */
+@media(max-width:1023px){
+  #topbar{padding:11px 10px;min-height:73px;align-items:center;background:linear-gradient(135deg,#08131e,#152536);border-bottom:1px solid #b69660}
+  #topbar .logo{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;font:700 clamp(.88rem,3.5vw,1.25rem) 'Playfair Display',serif;color:#e9c58a;letter-spacing:.045em;min-width:0;line-height:1.2}
+  #topbar .logo::before{content:none}
+  #topbar .logo::after{content:'HUMAN GAMBIT';display:block;margin-top:4px;color:#cbb389;font:600 clamp(.55rem,1.95vw,.75rem) 'Crimson Pro',serif;letter-spacing:.14em}
+  #topbar>.hg-mobile-acces{min-height:48px;border:1px solid #bc9b65;border-radius:10px;background:#152738;padding:7px 6px;font-size:clamp(.69rem,2.65vw,.91rem)}
+  #hg-mobile-identite-20261117{
+    display:grid;grid-template-columns:58px minmax(0,1fr);gap:10px 12px;
+    align-items:center;padding:11px 14px 12px;background:linear-gradient(110deg,#101e2d,#0b1825);
+    border-bottom:1px solid #8f7650;box-shadow:none;color:#f1d9ab;
+  }
+  #hg-mobile-identite-20261117 .hg-personnage-portrait{
+    display:flex;width:58px;height:64px;align-items:center;justify-content:center;
+    border:1px solid #b79b68;border-radius:10px;background:#263644;
+    overflow:hidden;color:#d9b77e;font-size:1.7rem;
+  }
+  #hg-mobile-identite-20261117 .hg-personnage-portrait img{
+    display:block;width:100%;height:100%;object-fit:cover;object-position:center;
+  }
+  #hg-mobile-identite-20261117 .hg-personnage-ligne{min-width:0}
+  #hg-mobile-identite-20261117 .hg-personnage-ligne strong{
+    display:block;font:700 clamp(1.07rem,4.3vw,1.5rem) 'Playfair Display',serif;
+    color:#f5e2be;line-height:1.2;overflow-wrap:anywhere;
+  }
+  #hg-mobile-identite-20261117 .hg-personnage-ligne span{
+    display:block;margin-top:5px;color:#c9c1b4;font:italic .88rem 'Crimson Pro',serif;line-height:1.25;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-statut{
+    grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;margin-top:2px;min-width:0;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-statut span{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:51px;min-width:0;padding:6px 3px;border:1px solid #6e5d44;border-radius:7px;
+    background:#142535;color:#e9d2a4;text-align:center;
+    font:600 clamp(.69rem,2.8vw,.95rem) 'Crimson Pro',serif;overflow-wrap:anywhere;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-statut span[hidden]{display:none!important}
+  #hg-mobile-identite-20261117 .hg-identite-statut span small{
+    margin-bottom:4px;font:600 .65rem 'Inter',sans-serif;color:#c7aa77;letter-spacing:.04em;
+  }
+  #vue-rue.active{
+    display:flex;flex-direction:column;min-height:0;justify-content:flex-start;
+    background:#0d1b28;padding-bottom:calc(100px + env(safe-area-inset-bottom));
+  }
+  /* Les éléments deviennent des frères flex : place, date, photographie, navigation, cartel, actions. */
+  #vue-rue .rue-container,#vue-rue #rue-image {display:contents!important}
+  #vue-rue .hg-explore-head{order:0;display:flex;padding:13px 14px 10px;background:#142838;gap:6px;border:0}
+  #vue-rue .hg-explore-place{font-size:clamp(1.05rem,4.1vw,1.37rem);font-weight:600}
+  #vue-rue .hg-explore-stats{display:none!important}
+  #vue-rue .city-header{order:1;display:flex;justify-content:flex-start;padding:0 14px 10px;background:#142838;border-bottom:1px solid #b89963}
+  #vue-rue .game-time-display{font-size:.84rem;color:#cfbd99}
+  #vue-rue #rue-centrale-conteneur{
+    order:2;display:block;width:100%;max-width:100%;
+    box-shadow:0 9px 22px #0008;overflow:visible;
+  }
+  #vue-rue .rc-scene{width:100%;border:0;border-radius:0}
+  #vue-rue .rc-image{width:100%;height:auto;max-height:none;object-fit:contain}
+  #vue-rue #hg-explore-primary{
+    order:3;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;padding:10px;background:#101e2b;border:0;border-bottom:1px solid #a58b5d;
+  }
+  #vue-rue #hg-explore-primary button{min-height:50px;padding:7px 4px;white-space:normal;line-height:1.2;font-size:clamp(.73rem,2.9vw,.98rem)}
+  #vue-rue #hg-explore-primary button:first-child:not([aria-pressed="true"]){background:linear-gradient(#dbb879,#ac884e);color:#152232}
+  #vue-rue .rue-ambiance{
+    order:4;position:relative;display:block;margin:10px 12px 3px;width:auto;
+    border:1px solid #8e7650;border-left:4px solid #b9975f;
+    border-radius:11px;padding:13px 15px;background:linear-gradient(120deg,#213749,#142536);
+    box-shadow:none;
+  }
+  #vue-rue .rue-title{font-size:1.2rem;font-weight:700;color:#f2d29a}
+  #vue-rue .rue-desc{font-size:1rem;line-height:1.55;color:#e0e5ec}
+  #vue-rue .hg-explore-info{order:5}
+  #vue-rue #actionbar{
+    order:6;margin:12px 12px 0;padding:12px;border-radius:11px;
+    background:linear-gradient(140deg,#1b3041,#112231);border:1px solid #86714e;
+  }
+  #vue-rue #actionbar .action-context{font-size:1rem;font-family:'Playfair Display',serif}
+  #vue-rue #rue-actions-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  #vue-rue #rue-actions-row:empty{display:none}
+  #vue-rue #rue-actions-row .action-btn{min-height:50px;white-space:normal;overflow-wrap:anywhere}
+  /* La carte et la liste de présents conservent leur accès via les panneaux mobiles existants. */
+  #vue-rue .rue-container>.minimap,#vue-rue .rue-container>.persons-sidebar{order:7}
+  #vue-rue .hg-lieux-tactiles{border:1px solid #977f56;border-radius:9px;margin:6px 12px 8px}
+}
+@media(max-width:360px){
+  #hg-mobile-identite-20261117 .hg-identite-statut{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #topbar .logo{font-size:.81rem}
+}
+@media(min-width:1024px){#hg-mobile-identite-20261117{display:none}}

@@ -181,6 +181,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
   <link rel="stylesheet" href="plateau-interieurs-mobile.css?v=interieurs-mobile-20261116">
   <link rel="stylesheet" href="plateau-dialogues-mobile.css?v=dialogues-mobile-20261116">
   <link rel="stylesheet" href="plateau-mobile-refonte-visible.css?v=refonte-identite-visible-r2-20261117">
+  <link rel="stylesheet" href="plateau-mobile-prototype.css?v=prototype-r1-20261117">
 </head>
 <body class="plateau-body">
 
@@ -239,17 +240,18 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <button type="button" id="hg-mobile-fond" aria-label="Fermer le panneau" data-i18n-aria-label="plateau.mobileClosePanel" hidden></button>
 <!-- Information de transparence beta : traduction partielle, actions toujours jouables. -->
 <div id="i18n-beta-notice-plateau" role="note" style="padding:.32rem .8rem;text-align:center;color:#c3b78d;font-size:.72rem;line-height:1.5;background:#15130e;border-bottom:1px solid #302819" data-i18n="betaLanguage.notice">Traduction en cours : certaines parties du jeu restent en français. Elles demeurent entièrement jouables pendant cette bêta.</div>
-<!-- Bandeau mobile témoin : contenu HTML visible avant l'initialisation JavaScript. -->
-<section id="hg-mobile-identite-20261117" aria-label="Identité du jeu et état de l'interface mobile">
-  <div class="hg-identite-marque">
-    <span class="hg-identite-embleme" aria-hidden="true">✦</span>
-    <div><strong>HUMAN GAMBIT</strong><span>RES PUBLICA</span></div>
+<!-- Bandeau de personnage mobile : valeurs venant exclusivement du jeu. -->
+<section id="hg-mobile-identite-20261117" aria-label="Personnage et ressources">
+  <div class="hg-personnage-portrait" id="hg-identite-portrait" aria-hidden="true"><i class="ti ti-user"></i></div>
+  <div class="hg-personnage-ligne">
+    <strong id="hg-identite-personnage">Personnage</strong>
+    <span id="hg-identite-role"></span>
   </div>
-  <div class="hg-identite-version">NOUVELLE INTERFACE <strong>17.11</strong></div>
   <div class="hg-identite-statut">
-    <span id="hg-identite-personnage">Personnage</span>
-    <span id="hg-identite-pa">PA —</span>
-    <span id="hg-identite-argent">—</span>
+    <span id="hg-identite-pa"><small>PA</small> —</span>
+    <span id="hg-identite-argent"><small>Argent</small> —</span>
+    <span id="hg-identite-sante" hidden><small>Santé</small> —</span>
+    <span id="hg-identite-moral" hidden><small>Moral</small> —</span>
   </div>
 </section>
 <!-- MAIN LAYOUT -->
@@ -1061,7 +1063,7 @@ function signalerEvenementJournal() {
 <script src="plateau-ordres-info.js?v=20261113" defer></script>
 <script src="plateau-mobile.js?v=certification-reprise-r2-20261108-piece-20261111" defer></script>
 <script src="plateau-exploration-mobile.js?v=html-nav-visible-r1-20261117" defer></script>
-<script src="plateau-mobile-identite-20261117.js?v=identite-visible-20261117" defer></script>
+<script src="plateau-mobile-identite-20261117.js?v=prototype-r1-20261117" defer></script>
 <script src="plateau-interieurs-mobile.js?v=html-nav-visible-r1-20261117" defer></script>
 </body>
 </html>
