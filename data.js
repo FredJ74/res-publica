@@ -12799,3 +12799,55 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     desc: 'Un renne curieux vient vous renifler de près ; derrière lui, le troupeau gratte la neige et le foin, entre les barrières givrées et la grange. L’éleveur vous tend une paire de gants.' });
   ['magasin-kolkhoze-starovka', 'compagnie-petrole-starovka'].forEach(b => { if (!cite.buildings.includes(b)) cite.buildings.push(b); });
 })();
+
+// STAROVKA_PORTRAITS_MANQUANTS_20261117 — planche contrôlée après inventaire
+// 9 visages issus de la planche GitHub, plus le sergent recadré depuis son décor.
+// Pas de modification des portraits préexistants (bookmaker, secrétaire, etc.).
+(function () {
+  const ville = WORLD.soviet && WORLD.soviet.ville_a;
+  if (!ville) throw new Error('Starovka absente');
+  const portraits = [
+    ['usine-principale', 'direction_usine', 'Damdin Mazoutov (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_usine-principale_damdin-mazoutov.webp'],
+    ['centre-artisanal', 'travees', 'Bayar Otchirov', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_bayar-otchirov.webp'],
+    ['centre-artisanal', 'travees', 'Ganbold Garmaïev', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_ganbold-garmaiev.webp'],
+    ['centre-artisanal', 'travees', 'Temür Dougarov', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_temur-dougarov.webp'],
+    ['stade', 'siege_supporters', 'Meneur des Supporters (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_stade_meneur-supporters.webp'],
+    ['presse-starovka', 'presse', 'Saran Batbayar (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_presse-starovka_saran-batbayar.webp'],
+    ['maison-starovka', 'piece_maison', 'Dolgor Tsybikova (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_maison-starovka_dolgor-tsybikova.webp'],
+    ['maison-starovka-ouvrier', 'piece_maison', 'Zorigto Badmaev (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_maison-starovka-ouvrier_zorigto-badmaev.webp'],
+    ['ferme-starovka', 'cour_ferme', 'Bair Sambuev (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_ferme-starovka_bair-sambuev.webp'],
+    ['poste-vigilance-glaciale', 'salle_ecoute', 'Sergent Bair Dorjiev (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_poste-vigilance-glaciale_bair-dorjiev.webp']
+  ];
+  for (const [batiment, piece, nom, url] of portraits) {
+    const original = BUILDINGS[batiment];
+    if (!original || !original.rooms || !original.rooms[piece]) {
+      throw new Error('Portrait Starovka : pièce absente ' + batiment + '/' + piece);
+    }
+    const ctx = ville.buildingContext && ville.buildingContext[batiment];
+    const ro = ctx && ctx.roomOverrides && ctx.roomOverrides[piece];
+    const extra = ctx && ctx.roomsExtra && ctx.roomsExtra[piece];
+    const liste = (ro && ro.persons) || (extra && extra.persons)
+      || (original.rooms[piece] && original.rooms[piece].persons) || [];
+    if (!liste.some(p => p.name === nom)) {
+      throw new Error('Portrait Starovka : PNJ absent ' + nom + ' ' + batiment + '/' + piece);
+    }
+    const nouvelle = liste.map(p => p.name === nom
+      ? Object.assign({}, p, { photoUrl: url, photoPos: '50% 30%' })
+      : Object.assign({}, p));
+    if (!ctx) {
+      // Construction exclusivement utilisée par Starovka.
+      const utiliseAilleurs = Object.entries(WORLD).some(([pays, villes]) =>
+        Object.entries(villes || {}).some(([villeId, v]) =>
+          !(pays === 'soviet' && villeId === 'ville_a')
+          && Array.isArray(v && v.buildings) && v.buildings.includes(batiment)));
+      if (utiliseAilleurs) throw new Error('Portrait Starovka : bâtiment partagé sans contexte ' + batiment);
+      original.rooms[piece].persons = nouvelle;
+    } else if (extra && extra.persons === liste && !(ro && ro.persons)) {
+      ctx.roomsExtra = Object.assign({},ctx.roomsExtra);
+      ctx.roomsExtra[piece] = Object.assign({},extra,{ persons:nouvelle });
+    } else {
+      ctx.roomOverrides = Object.assign({},ctx.roomOverrides);
+      ctx.roomOverrides[piece] = Object.assign({},ro || {},{ persons:nouvelle });
+    }
+  }
+})();
