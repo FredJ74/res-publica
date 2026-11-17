@@ -1,0 +1,24 @@
+name: Création — empires bientôt disponibles
+on:
+  pull_request:
+    paths:
+      - 'creation.js'
+      - 'index.html'
+      - 'outils/bancs/test-empires-bientot-disponibles-20261117.cjs'
+      - '.github/workflows/creation-empires-bientot.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'creation.js'
+      - 'index.html'
+      - 'outils/bancs/test-empires-bientot-disponibles-20261117.cjs'
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check creation.js
+      - run: node outils/bancs/test-empires-bientot-disponibles-20261117.cjs

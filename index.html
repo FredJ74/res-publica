@@ -8,6 +8,23 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="preload" as="image" href="images/human-gambit-accueil.webp" fetchpriority="high">
 <link rel="stylesheet" href="style.css?v=lisibilite-pnj-20261031-caracs-mobile-l4-20261106">
+<style>
+/* Empires présents dans l'univers mais fermés aux nouvelles créations. */
+#country-grid .rp-empire-a-venir {
+  opacity:.48;filter:grayscale(1);cursor:not-allowed;
+  border-color:#69737b!important;background:#20252b!important;
+  box-shadow:none!important;transform:none!important;
+}
+#country-grid .rp-empire-a-venir:hover {
+  transform:none!important;box-shadow:none!important;
+}
+#country-grid .rp-empire-etiquette {
+  display:inline-block;margin:.2rem 0 .65rem;padding:.35rem .65rem;
+  border:1px solid #c4d0d8;border-radius:6px;
+  color:#fff;background:#253544;font-weight:700;font-size:.84rem;
+}
+#country-grid .rp-empire-a-venir .rp-empire-etiquette {opacity:1;filter:none}
+</style>
 </head>
 <body>
 
@@ -275,7 +292,7 @@
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
 <script src="auth.js?v=8"></script>
 <script src="supabase.js?v=jets-serveur-20261105-sovarka-nuit-20261110"></script>
-<script src="creation.js?v=explications-personnage-871-titres-personnage-871-compte-retours-871-recherche-871-confirmation-871-portraits-reduits-20261104-caracs-connexion-i18n-20261110"></script>
+<script src="creation.js?v=empires-a-venir-20261117"></script>
   <link rel="stylesheet" href="rue-centrale.css">
 </body>
 </html>

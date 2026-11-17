@@ -53,7 +53,14 @@
   #vue-rue .city-header{order:1;display:flex;justify-content:flex-start;padding:0 14px 10px;background:#142838;border-bottom:1px solid #b89963}
   #vue-rue .game-time-display{font-size:.84rem;color:#cfbd99}
   #vue-rue #rue-centrale-conteneur{
+    /* Le JS le crée avec position:absolute; inset:0. Une scène absolue ne
+       réserve aucune hauteur dans le flux : le rail des présents la recouvre.
+       L'image reprend sa hauteur naturelle dans le flex mobile uniquement. */
+    position:relative !important;
+    inset:auto !important;
+    height:auto !important;
     order:2;display:block;width:100%;max-width:100%;
+    flex:0 0 auto;
     box-shadow:0 9px 22px #0008;overflow:visible;
   }
   #vue-rue .rc-scene{width:100%;border:0;border-radius:0}
@@ -123,7 +130,7 @@
   #vue-rue .rue-ambiance{display:none!important}
   #vue-rue #hg-presences-mobiles{
     order:4;display:block;min-width:0;flex:0 0 auto;
-    margin:10px 12px 4px;padding:12px 10px 11px;
+    margin:12px 12px 8px;padding:14px 12px;box-sizing:border-box;position:relative;z-index:0;
     border:1px solid #58758a;border-radius:12px;background:#1b3041;
   }
   #vue-rue .hg-presences-total{
@@ -149,6 +156,8 @@
   #vue-rue .hg-presence-portrait img{width:100%;height:100%;object-fit:cover}
   #vue-rue .hg-presence-nom{line-height:1.25;text-align:center;overflow-wrap:anywhere}
   #vue-rue .hg-presence-personne:focus-visible{outline:2px solid #e4eff8;outline-offset:2px}
+  #vue-rue #hg-presences-mobiles.hg-presences-empty .hg-presences-total{margin:0;color:#bdd0df;font:italic .95rem/1.5 'Crimson Pro',serif}
+  #vue-rue #hg-presences-mobiles.hg-presences-empty .hg-presences-rail{display:none}
   #vue-rue .hg-presences-vide{color:#bdd0df;font:italic .9rem 'Crimson Pro',serif}
   body:has(#vue-rue.active) #topbar [data-hg-panneau="personnes"]{display:none!important}
   #vue-rue .hg-explore-info{order:6}
@@ -171,3 +180,20 @@
 
 /* Composant exclusivement mobile : aucune apparition sur le plateau bureau. */
 @media(min-width:1024px){#hg-presences-mobiles{display:none!important}}
+
+/* Raccourcis persistants : journal et chat alignés horizontalement sur mobile.
+   Leurs gestionnaires historiques et panneaux restent inchangés. */
+@media (max-width:1023px) {
+  #journal-open-btn {
+    bottom:calc(20px + env(safe-area-inset-bottom)) !important;
+    left:20px !important;
+    width:48px !important;
+    height:48px !important;
+  }
+  #hg-chat-toggle {
+    bottom:calc(20px + env(safe-area-inset-bottom)) !important;
+    left:82px !important;
+    width:48px !important;
+    height:48px !important;
+  }
+}
