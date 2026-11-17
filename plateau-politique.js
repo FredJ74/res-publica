@@ -2846,19 +2846,30 @@ async function ouvrirTableauElectoral() {
 }
 
 // Changer de domicile (depuis la mairie)
-function changerDomicile(newCountry, newCity) {
+// Au serveur depuis les failles de l'audit du 16/11/2026 : l'écran ne peut plus écrire le domicile
+// (il sert au vote, aux candidatures et aux logements réservés). domicile_changer domicilie le
+// joueur dans la ville où il se trouve et débite les 200 sous verrou.
+async function changerDomicile(newCountry, newCity) {
   const co = COUNTRIES[newCountry];
   const cur = co?.cur || 'FR';
   const cout = 200;
 
-  if (state.arg < cout) {
-    showToast('Fonds insuffisants', cout + ' ' + cur + ' requis pour changer de domicile.', false);
+  const r = (typeof sbRpcVerdict === 'function') ? await sbRpcVerdict('domicile_changer', {}) : null;
+  if (!r || r.ok !== true) {
+    const motifs = {
+      fonds_insuffisants: cout + ' ' + cur + ' requis pour changer de domicile.',
+      deja_domicilie: 'Vous êtes déjà domicilié ici.',
+      position_inconnue: 'Votre position n\'est pas reconnue.',
+      acteur_non_authentifie: 'Votre session n\'est pas reconnue.'
+    };
+    showToast('Changement de domicile impossible', (r && motifs[r.raison]) || 'Rien n\'a été débité.', false);
     return;
   }
-
-  state.arg -= cout;
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r);
   const ancienDomicile = state.domicile;
-  state.domicile = { country: newCountry, city: newCity, depuis: state.day || 1 };
+  state.domicile = r.domicile || { country: newCountry, city: newCity, depuis: state.day || 1 };
+  newCountry = state.domicile.country || newCountry;
+  newCity = state.domicile.city || newCity;
 
   // Logements sociaux de Montrouge (18 aout 2026) : resiliation automatique du bail social si
   // le domicile officiel quitte Montrouge -- ne touche jamais les autres locations (commerciales)

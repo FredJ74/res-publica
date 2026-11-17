@@ -704,10 +704,13 @@ async function doDemanderBenediction(pa, cost) {
   }
 }
 
+// Pèlerinage au serveur (failles de l'audit du 16/11/2026) : la discrétion ne monte plus à l'écran.
+// pelerinage_accomplir paie l'ordre (référentiel ordres_couts) et ajoute les +10 DIS sous verrou.
 async function doPelerin(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  state.dis = Math.min(100, state.dis + 10);
+  const r = (typeof sbRpcVerdict === 'function') ? await sbRpcVerdict('pelerinage_accomplir', {}) : null;
+  if (!r || r.ok !== true) { signalerRefusCout(r || { ok: false, raison: 'indisponible' }); return; }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r);
+  if (typeof r.dis === 'number') state.dis = r.dis;
   if (!state.pelerinExpire) state.pelerinExpire = state.day + 1;
   updateUI();
   showToast('Pèlerin déclaré', '+10 DIS pendant 24h. Accès facilité aux lieux saints des autres empires.', true);

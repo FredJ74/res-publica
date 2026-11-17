@@ -196,7 +196,26 @@ async function joueurAuthentifie(req, options = {}) {
     });
     if (!r.ok) return refuser('http', r.status);
     const u = await r.json();
-    return (u && u.id) ? { id: u.id, jeton } : refuser('reponse_invalide');
+    if (!u || !u.id) return refuser('reponse_invalide');
+    // Compte confirme obligatoire (decision de Fred, 17/11/2026) : un compte anonyme ne joue pas.
+    if (u.is_anonymous === true) return refuser('compte_non_confirme');
+    // Plafond d'appels par compte et par jour (failles de l'audit du 16/11/2026). Compte au serveur,
+    // sous le jeton du joueur ; une panne du compteur ne bloque pas le jeu (ouverture par defaut).
+    if (!options.sansQuota) {
+      try {
+        const q = await fetch(url.replace(/\/$/, '') + '/rest/v1/rpc/ia_quota_consommer', {
+          method: 'POST',
+          headers: { 'apikey': anon, 'Authorization': 'Bearer ' + jeton, 'Content-Type': 'application/json' },
+          body: '{}',
+          ...(options.signal ? { signal: options.signal } : {})
+        });
+        if (q.ok) {
+          const v = await q.json().catch(() => null);
+          if (v && v.ok === false && v.raison === 'quota_ia_atteint') return refuser('quota_ia_atteint', 429);
+        }
+      } catch (e) { /* compteur indisponible : on laisse passer */ }
+    }
+    return { id: u.id, jeton };
   } catch (e) {
     return refuser(e?.name === 'TimeoutError' || e?.name === 'AbortError' ? 'delai_depasse' : 'reseau_ou_format');
   }

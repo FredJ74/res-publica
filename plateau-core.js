@@ -742,6 +742,8 @@ window.addEventListener('DOMContentLoaded', () => {
         // Presence seule : jamais le jeton, jamais l'identifiant de compte (instrumentation).
         rpDiagId('session', session ? 'ouverte' : 'absente');
         if (!session) return;
+        // Compte confirme obligatoire (17/11/2026) : apres le chargement, on explique comment debloquer.
+        setTimeout(() => { if (typeof verifierCompteConfirme === 'function') verifierCompteConfirme().catch(() => {}); }, 2500);
         // Personnage cree AVANT l'authentification : il n'appartient encore a personne. On le
         // rattache au compte de ce navigateur. Fenetre transitoire, fermee a la
         // reinitialisation de la beta (voir rattacher_personnage, cote base).
