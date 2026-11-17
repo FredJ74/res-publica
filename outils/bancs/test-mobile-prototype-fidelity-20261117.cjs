@@ -35,6 +35,8 @@ const html=fs.readFileSync(path.join(root,'plateau.html'),'utf8')
   });
   await page.addScriptTag({path:path.join(root,'plateau-mobile-identite-20261117.js')});
   await page.addScriptTag({path:path.join(root,'plateau-exploration-mobile.js')});
+  await page.evaluate(()=>{document.getElementById('persons-list-rue').innerHTML='<div class="person-card" onclick="window.portraitOuvert=true"><span class="person-avatar"><i class="ti ti-user"></i></span><span class="person-name">Dolgor</span></div>';});
+  await page.addScriptTag({path:path.join(root,'plateau-presences-mobile.js')});
   const data=await page.evaluate(()=>{
     const r=s=>{const e=document.querySelector(s);if(!e)return null;const b=e.getBoundingClientRect();return {top:Math.round(b.top),bottom:Math.round(b.bottom),h:Math.round(b.height),display:getComputedStyle(e).display}};
     return {
@@ -45,7 +47,7 @@ const html=fs.readFileSync(path.join(root,'plateau.html'),'utf8')
       cash:document.getElementById('hg-identite-argent').textContent,
       location:r('.hg-explore-head'),time:r('.city-header'),
       scene:r('#rue-centrale-conteneur'),tabs:r('#hg-explore-primary'),
-      description:r('#rue-ambiance'),actions:r('#actionbar'),
+      description:r('#rue-ambiance'),presence:r('#hg-presences-mobiles'),actions:r('#actionbar'),
       scrollWidth:document.documentElement.scrollWidth,width:innerWidth,
       labels:[...document.querySelectorAll('#hg-explore-primary button')].map(e=>e.textContent)
     };
@@ -61,13 +63,15 @@ const html=fs.readFileSync(path.join(root,'plateau.html'),'utf8')
     assert.ok(data.location.top<data.time.top,'lieu avant date');
     assert.ok(data.time.top<data.scene.top,'date avant décor');
     assert.ok(data.scene.bottom<=data.tabs.top,'onglets APRES l’image');
-    assert.ok(data.tabs.bottom<=data.description.top,'cartel APRES onglets');
-    assert.ok(data.description.bottom<=data.actions.top,'ordres après description');
-    assert.ok(data.actions.top-data.description.bottom<70,'pas de vide artificiel');
+    assert.equal(data.description.display,'none','description uniquement dans Informations');
+    assert.ok(data.tabs.bottom<=data.presence.top,'portraits APRES onglets');
+    assert.ok(data.presence.bottom<=data.actions.top,'ordres après portraits');
+    assert.ok(data.actions.top-data.presence.bottom<70,'pas de vide artificiel');
     assert.ok(data.scrollWidth<=width+2,'débordement '+width);
   }else{
     assert.equal(data.banner.display,'none','bureau intact');
     assert.equal(data.tabs.display,'none','navigation mobile masquée au bureau');
+    assert.equal(data.presence.display,'none','portraits mobiles masqués au bureau');
   }
   await page.close();
  }
