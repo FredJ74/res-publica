@@ -30,6 +30,9 @@ function portOuvrirModal(titreHtml, corpsHtml) {
   document.getElementById('postes-modal-title').innerHTML = titreHtml;
   document.getElementById('postes-body').innerHTML = corpsHtml;
   document.getElementById('modal-postes').classList.add('open');
+  // Les textes posés par data-i18n attendent ce passage pour recevoir leurs valeurs ({{values.n}}) et leur
+  // traduction : sans lui, la fenêtre affichait le gabarit brut (signalé par Fred, 17/11/2026).
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
 }
 
 function portRaison(r) {
