@@ -1,7 +1,7 @@
 'use strict';
 // Deux lots chargés ensemble ; serveur simulé, aucun compte ni réseau métier.
 const assert=require('node:assert/strict'),fs=require('node:fs'),{execFileSync}=require('node:child_process');
-const pw=require('../e2e/node_modules/playwright'),ref=process.env.GOULAG_1085_REF||'4bb8f42a11bf9e5c2ce8e891445cf162d44d5adf';
+const pw=require('../e2e/node_modules/playwright'),ref=process.env.GOULAG_1085_REF||'77d457ad8e67702de8df5dec372f0596fa898737';
 const lecture=f=>fs.readFileSync(f,'utf8'),claude=execFileSync('git',['show',ref+':plateau-goulag-ordres.js'],{encoding:'utf8',maxBuffer:2e6});
 const htmlClaude=execFileSync('git',['show',ref+':plateau.html'],{encoding:'utf8',maxBuffer:2e6});
 const tag=htmlClaude.match(/<script src="plateau-goulag-ordres\.js[^>]+><\/script>/)[0];
@@ -11,7 +11,7 @@ const modules=[...html.matchAll(/<script src="(plateau-goulag-[^?"/]+\.js)/g)].m
 assert.equal(new Set(modules).size,4);assert.ok(html.indexOf(tag)<html.indexOf('<script src="plateau-router.js'));
 const moteur=process.env.GOULAG_BROWSER||'chromium';assert.ok(['chromium','webkit'].includes(moteur));
 (async()=>{
- const b=await pw[moteur].launch(moteur==='chromium'?{executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox']}:{headless:true});let scenarios=0;
+ const b=await pw[moteur].launch(moteur==='chromium'?{executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox']}:{headless:true});let scenarios=0;
  try{for(const width of [320,390,1280]){
   const p=await b.newPage({viewport:{width,height:850}});await p.route('**/*',r=>r.abort());
   await p.setContent(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')+'<input id="saisie-raccord" value="Brouillon 原 اسم">');

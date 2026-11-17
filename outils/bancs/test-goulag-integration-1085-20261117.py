@@ -6,7 +6,7 @@ reste un rouge, aucun expectedFailure ni remplacement de fonction métier.
 import argparse, importlib.util, json, subprocess, sys, tempfile, unittest, uuid
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
-p=argparse.ArgumentParser();p.add_argument('--postgres-bin',required=True);p.add_argument('--ordres-ref',default='4bb8f42a11bf9e5c2ce8e891445cf162d44d5adf');p.add_argument('--contrats',action='store_true');opt=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--postgres-bin',required=True);p.add_argument('--ordres-ref',default='77d457ad8e67702de8df5dec372f0596fa898737');p.add_argument('--contrats',action='store_true');opt=p.parse_args()
 files=['migrations/20261117170000_goulag_ordres_internes_registre.sql','migrations/20261117170500_goulag_ordres_internes_detention.sql','migrations/20261117171000_goulag_ordres_internes_bureau_mirador.sql','migrations/20261117171500_goulag_ordres_internes_raccord_evasion.sql','outils/bancs/test-goulag-ordres-internes-postgresql-20261117.py','outils/bancs/banc-goulag-ordres-internes-retour-arriere-20261117.sql']
 tmp=tempfile.TemporaryDirectory(prefix='hg-1085-lecture-');T=Path(tmp.name)
 for f in files:
@@ -55,18 +55,68 @@ class Contrats(m.OrdresInternes):
   self.client(2);self.assertTrue(self.sql('SELECT public.sovarka_goulag_interroger(%s,%s)',(D,req))['rejeu']);self.assertEqual(self.val('SELECT pa FROM public.personnages_donnees WHERE name=%s',(V,)),19)
  def test_contrat_juge_sanction_un_pa(self):
   self.detenu();self.juge();self.client(4);r=self.sql('SELECT public.sovarka_goulag_sanctionner(%s,1,%s)',(D,str(uuid.uuid4())));self.assertTrue(r['ok'],r);self.assertEqual(self.val('SELECT pa FROM public.personnages_donnees WHERE name=%s',(J,)),19)
- def test_contrat_corruption_base_soixante_dix(self):
-  if self.sql("SELECT to_regclass('public.sovarka_goulag_parametres')") is not None:
-   self.assertEqual(self.sql("SELECT valeur FROM public.sovarka_goulag_parametres WHERE cle='corruption_taux_base'"),70)
-   self.assertEqual(self.sql("SELECT count(*) FROM public.sovarka_goulag_parametres WHERE cle<>'corruption_taux_base' AND valeur IS NULL"),3)
-  else:
-   # Le lot ee21b38 supprime les paramètres : exécuter le test comportemental
-   # fourni par Claude, sans décider ici de bonus, cadeau ou cadence.
-   m.OrdresInternes.test_corruption_formule_et_plafond(self)
+ def test_contrat_corruption_definitive(self):
+  # Règle définitive de Fred (17/11) : cadeau obligatoire, min(90, 70 + 10 + 2 × CHARME), objet consommé.
+  self.assertIsNone(self.sql("SELECT to_regclass('public.sovarka_goulag_parametres')"))
+  self.detenu(piece='mirador');pain={'name':'Pain','type':'nourriture','stackKey':'pain'}
+  pile=dict(pain,stackable=True,qty=2)
+  self.q.execute('UPDATE public.personnages_donnees SET inventory=%s WHERE name=%s',(m.Json([pile]),D))
+  self.client();r=self.sql("SELECT public.sovarka_goulag_corrompre(%s)",(str(uuid.uuid4()),))
+  self.assertEqual((r['ok'],r['raison']),(False,'cadeau_obligatoire'))
+  self.assertEqual(self.val('SELECT inventory FROM public.personnages_donnees WHERE name=%s',(D,)),[pile])
+  self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_corruptions'),0)
+  for cha,attendu in [(None,90),(0,80),(3,86),(5,90),(-5,70)]:
+   self.admin();self.q.execute('UPDATE public.sovarka_goulag_registre SET corruption_bonus=false')
+   self.q.execute('UPDATE public.personnages_donnees SET stats=%s,inventory=%s WHERE name=%s',(m.Json({} if cha is None else {'CHA':cha}),m.Json([pile]),D))
+   self.client();self.graine(lambda j:j>attendu)
+   r=self.sql('SELECT public.sovarka_goulag_corrompre(%s,0,%s)',(str(uuid.uuid4()),m.Json(pain)))
+   self.assertEqual((r['ok'],r['reussi'],r['taux']),(True,False,attendu),cha)
+   self.assertEqual(r['inventory'],[dict(pile,qty=1)])
+ def test_contrat_corruption_reussie_refus_sans_perte(self):
+  # Validé par Fred : tant que le bonus à 95 % n'a pas servi, refus sans consommer d'objet.
+  self.detenu(piece='mirador',pa=20);montre={'name':'Montre','type':'objet','stackKey':'montre'};pain={'name':'Pain','type':'nourriture','stackKey':'pain'}
+  self.q.execute('UPDATE public.personnages_donnees SET stats=%s,inventory=%s WHERE name=%s',(m.Json({'CHA':0}),m.Json([montre,pain]),D))
+  self.client();self.graine(lambda j:j<=80);self.assertTrue(self.sql('SELECT public.sovarka_goulag_corrompre(%s,0,%s)',(str(uuid.uuid4()),m.Json(montre)))['reussi'])
+  r=self.sql('SELECT public.sovarka_goulag_corrompre(%s,0,%s)',(str(uuid.uuid4()),m.Json(pain)))
+  self.assertEqual((r['ok'],r['raison']),(False,'gardien_deja_corrompu'))
+  self.assertEqual(self.val('SELECT inventory FROM public.personnages_donnees WHERE name=%s',(D,)),[pain])
+  self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_corruptions'),1)
+  self.q.execute('UPDATE public.personnages_donnees SET current_room=%s WHERE name=%s',('entree_qhs',D))
+  self.client();self.graine(lambda j:80<j<=95);self.assertTrue(self.sql("SELECT public.goulag_toundra_demarrer('starovka')")['ok'])
+  self.assertEqual(self.val('SELECT (taux,corruption)::text FROM public.sovarka_goulag_tentatives'),'(95,t)')
+ def test_contrat_absence_minuit_sans_evasion(self):
+  # Validé par Fred : détenu hors du camp sans évasion, statut Détenu conservé, incident enregistré.
+  self.detenu(jours=4)
+  self.q.execute("UPDATE public.personnages_donnees SET current_city='capitale',current_building='dispensaire-public',current_room='chambre_1' WHERE name=%s",(D,))
+  r=self.sql('SELECT public.sovarka_goulag_controle_minuit(current_date)');self.assertEqual((r['absents'],r['en_fuite']),(1,0))
+  self.assertEqual(self.sql("SELECT (statut_controle,present_controle,jours_restants)::text FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"),'(detenu,f,4)')
+  self.assertEqual(self.sql("SELECT count(*) FROM public.sovarka_goulag_incidents WHERE nature='absence_minuit' AND details->>'motif'='hors_du_camp'"),1)
+  self.assertIsNone(self.sql("SELECT mode_fin FROM public.detentions WHERE id='fx-det'"))
+  self.assertTrue(self.sql('SELECT public.sovarka_goulag_controle_minuit(current_date)')['deja_fait'])
+ def test_contrat_transfert_detention_commencee(self):
+  # Validé par Fred : une détention commencée hors du goulag puis transférée reprend ses jours restants.
+  self.activer()
+  self.q.execute("UPDATE public.personnages_donnees SET current_city='capitale',current_building='commissariat',current_room='prison',est_emprisonne=jsonb_build_object('debutTs',extract(epoch from now()-interval '3 days')*1000,'jours',10,'detentionId','fx-cours') WHERE name=%s",(D,))
+  self.q.execute("INSERT INTO public.detentions(id,nom,country,city,qhs,jour_debut,jour_fin,created_at) VALUES('fx-cours',%s,'soviet','capitale',false,1,11,now()-interval '3 days')",(D,))
+  self.q.execute("SELECT set_config('rp.goulag_jugement_interne','valide',true)")
+  self.q.execute("UPDATE public.personnages_donnees SET current_city='qhs',current_building='qhs-prison',current_room='cellules_qhs' WHERE name=%s",(D,))
+  self.sql("SELECT public.detention_qhs_poser_interne(%s,'fx-cours','Transfert au goulag')",(D,))
+  self.q.execute('SET CONSTRAINTS ALL IMMEDIATE')
+  self.assertEqual(self.sql("SELECT jours_restants FROM public.sovarka_goulag_registre WHERE detention_id='fx-cours'"),7)
+  self.client();self.assertEqual(self.sql('SELECT public.sovarka_goulag_dormir()')['jours_restants'],6)
  def nouveau_jugement(self):
   self.admin();self.juge();self.q.execute("UPDATE public.personnages_donnees SET current_city='capitale',current_building='tribunal',current_room='bureau_juge' WHERE name=%s",(J,))
   self.q.execute("INSERT INTO public.plaintes_en_cours(id,country,city,data) VALUES('fx-addition','soviet','capitale',%s)",(json.dumps({'status':'saisie','audience_ouverte_le':'fixture','cible':D}),))
   self.client(4);r=self.sql("SELECT public.sovarka_goulag_juger('fx-addition','vol',30)");self.assertTrue(r['ok'],r);self.admin();self.q.execute('SET CONSTRAINTS ALL IMMEDIATE')
+ def test_contrat_transfert_par_jugement_reel(self):
+  # Détention ordinaire de 10 jours commencée il y a 3 jours, puis condamnation au goulag de 30 jours :
+  # jours restants au transfert (7) + peine prononcée (30), comptée une seule fois.
+  self.activer()
+  self.q.execute("UPDATE public.personnages_donnees SET current_city='capitale',current_building='commissariat',current_room='prison',est_emprisonne=jsonb_build_object('debutTs',extract(epoch from now()-interval '3 days')*1000,'jours',10,'detentionId','fx-ordinaire','city','capitale') WHERE name=%s",(D,))
+  self.q.execute("INSERT INTO public.detentions(id,nom,country,city,qhs,jour_debut,jour_fin,created_at) VALUES('fx-ordinaire',%s,'soviet','capitale',false,1,11,now()-interval '3 days')",(D,))
+  self.nouveau_jugement()
+  self.assertEqual(self.sql("SELECT jours_restants FROM public.sovarka_goulag_registre WHERE detention_id='fx-ordinaire'"),37)
+  self.assertEqual(self.sql("SELECT count(*) FROM public.sovarka_goulag_registre_jugements WHERE jugement_id='jug-fx-addition'"),1)
  def test_contrat_peine_ajoutee_en_detention(self):
   self.detenu(jours=5);self.nouveau_jugement();self.assertEqual(self.sql("SELECT jours_restants FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"),35)
  def test_contrat_reincarceration_et_nouvelle_peine(self):
