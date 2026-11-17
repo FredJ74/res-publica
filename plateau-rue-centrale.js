@@ -841,7 +841,9 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/Sovarka/Starovka/Starovka_maisons_ferme.webp',
       // 10/11/2026 : maison de Dolgor (hospitalité), migration 20261110094500.
       zones: [
-        { xPct: [0, 35], yPct: [8, 76], nom: 'Maison de Dolgor', type: 'batiment', buildingId: 'maison-starovka' }
+        // 17/11/2026 (Fred) : le chalet vert sculpté est celui de Dolgor, le chalet bleu celui de Zorigto.
+        { xPct: [0, 17], yPct: [6, 70], nom: 'Maison de Dolgor', type: 'batiment', buildingId: 'maison-starovka' },
+        { xPct: [18, 29], yPct: [24, 57], nom: 'Maison de Zorigto', type: 'batiment', buildingId: 'maison-starovka-ouvrier' }
       ],
       liens: { toutDroit: 'starovka-rue-hotel', arriere: 'starovka-rue-petrole-ferme' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
@@ -1573,7 +1575,7 @@ const RUE_CENTRALE_NOEUDS = {
   RUE_CENTRALE_NOEUDS.soviet['starovka-rue-petrole-ferme'].zones = RUE_CENTRALE_NOEUDS.soviet['starovka-rue-petrole-ferme'].zones
     .filter(z => z.buildingId !== 'zone-production' && z.buildingId !== 'ferme-starovka');
   Z('starovka-rue-petrole-ferme', [62, 100], 'Magasin du kolkhoze', 'magasin-kolkhoze-starovka', [22, 64]);
-  Z('starovka-maisons-ferme', [72, 100], 'Enclos des rennes', 'ferme-starovka', [14, 72]);
+  Z('starovka-maisons-ferme', [72, 100], 'Parc à rennes', 'ferme-starovka', [14, 72]);
   Z('krasnov-rue-marche-ferme', [70, 100], 'Kolkhoze S. M. Kirov', 'ferme-krasnov', [18, 66]);
   Z('krasnov-rue-distillerie-radar', [0, 34], 'Distillerie de Krasnov', 'distillerie-krasnov', [8, 66]);
   Z('starovka-rue-restaurant-boutique', [77, 100], 'Fourreur « La Fourrure chaude »', 'fourreur-starovka', [20, 64]);

@@ -11852,6 +11852,58 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   Object.assign(contexte('ville_a', 'hotel-mineur'), { name: 'Hôtel des Voyageurs', desc: 'L\'hôtel des voyageurs de Starovka : on y attend le train ou le bateau, au chaud, en buvant du thé au beurre.' });
   Object.assign(contexte('ville_b', 'hotel-mineur'), { name: 'Hôtel du Kolkhoze', desc: 'L\'hôtel du kolkhoze de Krasnov : chambres simples, poêle en faïence et petit-déjeuner de la ferme.' });
 
+  // HOTEL_DES_VOYAGEURS_STAROVKA_20261117 (decisions de Fred, 17/11/2026, GAME-DESIGN-NOVOMIRSK.md « Tour de
+  // Starovka ») : cinq pieces. La grande salle (hall_mineur, ID conserve pour la reservation et le commerce
+  // cafe-soviet-ville_a-hotel-mineur) regroupe reception, restaurant et bar du modele de La Republia, sans
+  // l'escort ; deux PNJ bouriates. Quatre chambres sur la meme image (chambre_mineur + 2 a 4, reconnues par
+  // hotel_nuitee_consommation_interne). Diner d'affaires 40 PSK (diner_commerce_lieu_interne). Montrouge et
+  // Krasnov, qui partagent le gabarit, ne changent pas.
+  {
+    const hotel = contexte('ville_a', 'hotel-mineur');
+    const dir = 'images/Sovarka/Starovka/';
+    const imageChambre = dir + 'Starovka_hotel_voyageurs_chambre.webp';
+    const descChambre = 'Lambris de bois, plaid écossais et peau de renne au pied du lit. Par la fenêtre, la gare enneigée, les rennes et les grues du port.';
+    const ordresChambre = BUILDINGS['hotel-mineur'].rooms.chambre_mineur.orders.map(o => Object.assign({}, o));
+    hotel.roomOrder = ['hall_mineur', 'chambre_mineur', 'chambre_mineur_2', 'chambre_mineur_3', 'chambre_mineur_4'];
+    hotel.roomOverrides = hotel.roomOverrides || {};
+    hotel.roomOverrides.hall_mineur = Object.assign(hotel.roomOverrides.hall_mineur || {}, {
+      name: 'Salle commune',
+      desc: 'Réception, bar et restaurant sous les mêmes poutres : le comptoir aux clés, les bouteilles alignées et les tables aux nappes brodées. Par les grandes fenêtres, la gare et le port de Starovka.',
+      imageUrl: dir + 'Starovka_hotel_voyageurs_salle.webp',
+      persons: [
+        { name: 'Erzhena Dambaeva (PNJ)', role: 'Réceptionniste', rel: 'neutral', job: 'hotelier',
+          photoUrl: dir + 'Starovka_portrait_hotel-mineur_erzhena-dambaeva.webp', photoPos: '50% 30%' },
+        { name: 'Aldar Zhamsuev (PNJ)', role: 'Serveur et barman', rel: 'neutral', job: 'barman',
+          photoUrl: dir + 'Starovka_portrait_hotel-mineur_aldar-zhamsuev.webp', photoPos: '50% 30%' }
+      ],
+      // Petit-dejeuner seul remplace par la carte complete ; reservation, gestion et vente de matieres heritees.
+      excludeOrders: ['produire_commerce', 'consulter_carte_commerce'],
+      orders: [
+        {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
+        {fn:'produire_commerce', label:'Cuisiner', i18nKey:'variant.commerce_cook', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
+        {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:40, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 tarassoun de la maison. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si l\'hotel n\'a pas de quoi servir.'},
+        {fn:'ecouter_rumeurs', label:'Ecouter le barman', i18nKey:'variant.rumours_barman', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:90, desc:'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Aldar Zhamsuev'},
+        {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'},
+        {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 FR par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'},
+        {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'}
+      ]
+    });
+    hotel.roomOverrides.chambre_mineur = Object.assign(hotel.roomOverrides.chambre_mineur || {}, {
+      name: 'Chambre 1', desc: descChambre, imageUrl: imageChambre
+    });
+    hotel.roomsExtra = hotel.roomsExtra || {};
+    for (const n of [2, 3, 4]) {
+      hotel.roomsExtra['chambre_mineur_' + n] = {
+        name: 'Chambre ' + n,
+        imageBg: BUILDINGS['hotel-mineur'].rooms.chambre_mineur.imageBg,
+        desc: descChambre,
+        imageUrl: imageChambre,
+        persons: [],
+        orders: ordresChambre.map(o => Object.assign({}, o))
+      };
+    }
+  }
+
   // Presse : « La Voix de Sovarka ».
   const voix = (ville, nom, journaliste) => {
     const p = piece(contexte(ville, 'centre-affaires'), 'tribune_republia');
@@ -12169,9 +12221,16 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
       } }
     };
   };
-  maison('maison-starovka', 'Maison de Dolgor', 'Dolgor Tsybikova', 'Habitante de Starovka',
-    'Une maison de bois basse, fumée qui monte droit dans le froid : la porte s’ouvre avant même qu’on ait frappé.',
-    'Un poêle ronflant, du thé au beurre sur le feu et une vieille dame bouriate qui vous fait signe de vous asseoir.');
+  // Fred (17/11/2026) : Dolgor est la vieille cantinière des ouvriers du pétrole ; le chalet coquet est le sien.
+  maison('maison-starovka', 'Maison de Dolgor', 'Dolgor Tsybikova', 'Cantinière des ouvriers du pétrole',
+    'Un chalet de bois coquet aux volets sculptés, fumée qui monte droit dans le froid : la porte s’ouvre avant même qu’on ait frappé.',
+    'Des rideaux brodés, une marmite qui mijote sur le poêle et une vieille dame bouriate, cantinière des foreurs depuis quarante ans, qui vous fait signe de vous asseoir.',
+    'images/Sovarka/Starovka/Starovka_maison_dolgor_interieur.webp');
+  // Fred (17/11/2026) : le chalet rustique voisin est celui d'un ouvrier du pétrole (nom proposé par Claude).
+  maison('maison-starovka-ouvrier', 'Maison de Zorigto', 'Zorigto Badmaev', 'Foreur de la Compagnie Nationale du Pétrole',
+    'Un petit chalet de rondins brut, une paire de skis plantée dans la neige devant la porte.',
+    'Un poêle de fonte, des cannes à pêche, un vieux fusil au mur et une peau de renard. Par la fenêtre givrée, les derricks au-delà du parc à rennes. Zorigto rentre du puits et pose la bouilloire.',
+    'images/Sovarka/Starovka/Starovka_maison_zorigto_interieur.webp');
   maison('maison-krasnov', 'Maison de Stepan', 'Stepan Kouznetsov', 'Habitant de Krasnov',
     'La maison d’un vieux kolkhozien, ses bocaux alignés sur le rebord de la fenêtre.',
     'Une table couverte d’une toile cirée, des cornichons, du pain noir et un vieil homme ravi d’avoir de la compagnie.',
@@ -12203,7 +12262,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   ];
   MAISONNETTES_KRASNOV.forEach(m => maison(...m));
   const cite = v => WORLD.soviet && WORLD.soviet[v];
-  if (cite('ville_a') && !cite('ville_a').buildings.includes('maison-starovka')) cite('ville_a').buildings.push('maison-starovka');
+  ['maison-starovka', 'maison-starovka-ouvrier'].forEach(id => { if (cite('ville_a') && !cite('ville_a').buildings.includes(id)) cite('ville_a').buildings.push(id); });
   ['maison-krasnov', ...MAISONNETTES_KRASNOV.map(m => m[0])].forEach(id => {
     if (cite('ville_b') && !cite('ville_b').buildings.includes(id)) cite('ville_b').buildings.push(id);
   });
@@ -12721,5 +12780,10 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   BUILDINGS['ferme-starovka'].name = 'Enclos des rennes de Starovka';
   BUILDINGS['ferme-starovka'].shortName = 'Enclos';
   BUILDINGS['ferme-starovka'].desc = 'L’enclos de rennes de la ferme de Starovka (« Оленина Старовки ») : on y vient prêter la main contre une part du travail.';
+  // Image de Fred (17/11/2026) : le parc à rennes, vue suivante du carrefour.
+  BUILDINGS['ferme-starovka'].imagesAVenir = false;
+  Object.assign(BUILDINGS['ferme-starovka'].rooms.cour_ferme, { name: 'Le parc à rennes',
+    imageUrl: dir + 'Starovka_enclos_rennes.webp',
+    desc: 'Un renne curieux vient vous renifler de près ; derrière lui, le troupeau gratte la neige et le foin, entre les barrières givrées et la grange. L’éleveur vous tend une paire de gants.' });
   ['magasin-kolkhoze-starovka', 'compagnie-petrole-starovka'].forEach(b => { if (!cite.buildings.includes(b)) cite.buildings.push(b); });
 })();

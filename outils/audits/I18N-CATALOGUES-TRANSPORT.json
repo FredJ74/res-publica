@@ -542,10 +542,10 @@
     {
       "source": "i18n/sovarka-descriptions-resources.js",
       "packed": "i18n/packed/sovarka-descriptions-resources.js.br",
-      "sourceBytes": 225323,
-      "packedBytes": 83314,
-      "sourceSha256": "50a38904ceb81efaceabf1b015981e258aaa059f32e37a53f6204e0d1c6cc0b9",
-      "packedSha256": "aa2c3434bc86b9d1c548f671a2ab3412607f4484344509348bef5db5100216a1"
+      "sourceBytes": 234335,
+      "packedBytes": 86379,
+      "sourceSha256": "6ec175c051f5c9b581d2ccb2f2437ea4427d4874ddc0306c94f76edb3730dcc6",
+      "packedSha256": "f88074adc0c0827f26c490302b4cb89ca470444043bf277af061b4612cc2910f"
     },
     {
       "source": "i18n/sovarka-droits-resources.js",
@@ -566,10 +566,10 @@
     {
       "source": "i18n/sovarka-infobulles-resources.js",
       "packed": "i18n/packed/sovarka-infobulles-resources.js.br",
-      "sourceBytes": 168091,
-      "packedBytes": 55418,
-      "sourceSha256": "4886dd3e1374ef9700d56274929af22daeab7a5fe3c6f47fc20b487096bf7eaa",
-      "packedSha256": "ba7752299c78f4e3e76b4b3a2ff7e8cab2ca1d7080644a4e3fa77425f6b50759"
+      "sourceBytes": 170790,
+      "packedBytes": 56364,
+      "sourceSha256": "61e25c71862fb2735203941787fa95f2ed7be3db416b344747c9af8f93491a56",
+      "packedSha256": "504edfe6236ef7d29976a4b20e16de8be1a4c3baf631ec94c8333a8fa584a42e"
     },
     {
       "source": "i18n/sovarka-justice-resources.js",
@@ -630,10 +630,10 @@
     {
       "source": "i18n/sovarka-roles-resources.js",
       "packed": "i18n/packed/sovarka-roles-resources.js.br",
-      "sourceBytes": 35430,
-      "packedBytes": 12196,
-      "sourceSha256": "4728a25fb6a952ddf21358d2643743a9d9938226292d8c43df8dbc27d8aa4219",
-      "packedSha256": "6d85fcd94c2b18e0865189c5b801edc08c61a73e59fc3b40becde98f465027b3"
+      "sourceBytes": 35656,
+      "packedBytes": 12266,
+      "sourceSha256": "c5ea6819c7d32aabb48dbde2efaa2cd947213ef5523574c6c7912296c3a88449",
+      "packedSha256": "b89136dbb4c6e706957325eccdd94d93120aef785b2b823e7ac848ba8fba378c"
     },
     {
       "source": "i18n/sport-bets-resources.js",

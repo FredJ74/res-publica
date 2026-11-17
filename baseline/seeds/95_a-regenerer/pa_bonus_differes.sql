@@ -19,5 +19,7 @@ INSERT INTO public.pa_bonus_differes (source,montant) VALUES
   ('starovka_menu_terre_mer', 3),
   ('volga_menu_proletaire', 3),
   ('volga_menu_repos', 3),
-  ('volga_menu_stakhanoviste', 3)
+  ('volga_menu_stakhanoviste', 3),
+  ('voyageurs_menu_cheminot', 3),
+  ('voyageurs_menu_voyageur', 3)
 ON CONFLICT DO NOTHING;

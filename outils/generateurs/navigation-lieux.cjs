@@ -34,13 +34,15 @@ for(const x of rows)if(x.pays==='soviet'&&x.ville==='capitale'&&x.id==='centre-a
 // logements et Tabac/Presse de Krasnov et de Novomirsk (12-14/11), quatre bureaux du centre d'affaires de Krasnov (15/11).
 // Locaux n°3 à 5 et champ de pétrole de la route de Starovka (17/11, migration 20261117120000).
 // Tabac/Presse de Starovka et retrait de la tribune (15/11) : aucune réécriture des migrations historiques.
-const EXCLUS_APRES_3110={soviet:{ville_a:['presse-starovka','locaux-starovka-route','champ-petrole-starovka','local-starovka-chasse','magasin-kolkhoze-starovka','compagnie-petrole-starovka'],capitale:['logements-novomirsk-marche','logements-novomirsk-quais'],ville_b:['logements-krasnov-place-ours','logements-krasnov-rue-tabac','logements-novomirsk','tabac-presse-krasnov']}};
+const EXCLUS_APRES_3110={soviet:{ville_a:['presse-starovka','locaux-starovka-route','champ-petrole-starovka','local-starovka-chasse','magasin-kolkhoze-starovka','compagnie-petrole-starovka','maison-starovka-ouvrier'],capitale:['logements-novomirsk-marche','logements-novomirsk-quais'],ville_b:['logements-krasnov-place-ours','logements-krasnov-rue-tabac','logements-novomirsk','tabac-presse-krasnov']}};
 for(let i=rows.length-1;i>=0;i--)if(EXCLUS_APRES_3110[rows[i].pays]?.[rows[i].ville]?.includes(rows[i].id))rows.splice(i,1);
 for(const x of rows){
  // Cinq vues du goulag (16/11) : seule la référence historique garde les pièces QHS du 31/10.
  if(x.pays==='soviet'&&x.ville==='qhs'&&x.id==='qhs-prison')x.rooms=['entree_qhs','cellules_qhs','salle_interrogatoire','promenoir','salle_commune_qhs'];
  // Local n°2 de Starovka devenu bâtiment propre (17/11, migration 20261117130000) : la référence historique garde les deux pièces.
  if(x.pays==='soviet'&&x.ville==='ville_a'&&x.id==='locaux-starovka')x.rooms=['local_1','local_2'];
+ // Hôtel des Voyageurs de Starovka (17/11) : chambres 2 à 4 ajoutées par 20261117160000, hors de la référence du 31/10.
+ if(x.pays==='soviet'&&x.ville==='ville_a'&&x.id==='hotel-mineur')x.rooms=x.rooms.filter(r=>!/^chambre_mineur_\d$/.test(r));
  if(/^dispensaire-public/.test(x.id))x.rooms=x.rooms.filter(r=>r!=='chambre');
  x.rooms=x.rooms.filter(r=>!/_chambre_\d+$/.test(r));
  if(x.pays==='soviet'&&x.id==='mairie')x.rooms=x.rooms.filter(r=>r!=='salle_elections');

@@ -160,6 +160,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('deposer_candidature',2,0),
   ('deposer_demande_permis',1,100),
   ('deposer_petite_annonce',1,0),
+  ('diner_affaires',2,40),
   ('diner_affaires',2,100),
   ('diner_affaires',2,150),
   ('diner_affaires',2,300),
