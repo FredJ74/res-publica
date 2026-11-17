@@ -59,7 +59,8 @@ test('provenance des phrases actives et de l’unique phrase retirée de navigat
  const ancien=require('node:child_process').execFileSync('git',['show','e688472:plateau-rue-centrale.js'],{cwd:root,encoding:'utf8',maxBuffer:4e6});
  assert.ok(ancien.includes(retire));assert.equal(present(retire),false);
  // 16/11/2026 : la limite fixe de 2 récoltes par jour n'existe plus (régulation de la production).
- assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.'].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
+ // 17/11/2026 : le +5 DIS du don au banquier PNJ est suspendu (failles de l'audit, la DIS ne monte plus à l'écran).
+ assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.'].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
 });
 
 test('aucun recouvrement avec les catalogues déjà raccordés (pas de double traduction ni de markToast contrarié)',()=>{
