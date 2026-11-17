@@ -558,3 +558,38 @@ async function rpAuthChangerMotDePasse(motDePasse) {
     return {ok:true};
   } catch (_) { return {ok:false,raison:'confirmation_absente'}; }
 }
+
+
+/* Déconnexion explicite des joueurs. Aucun personnage n'est effacé du serveur. */
+async function rpAuthSeDeconnecterJoueur() {
+  const session = RP_AUTH_SESSION || rpAuthLireStockage();
+  // Un compte anonyme sans identifiants ne pourrait pas être retrouvé après logout.
+  if (session?.user?.est_anonyme || !session?.user?.email) {
+    window.alert('Avant de vous déconnecter, associez une adresse e-mail et un mot de passe à votre compte pour conserver l’accès à votre personnage.');
+    return false;
+  }
+  if (!window.confirm('Se déconnecter de Human Gambit sur cet appareil ? Votre personnage restera enregistré.')) return false;
+  // Neutraliser les renouvellements encore en vol sans autoriser une autre mutation.
+  const jeton = session.access_token;
+  RP_AUTH_PROMESSE = null;
+  RP_AUTH_SESSION = null;
+  RP_AUTH_ETAT = 'reconnexion_requise';
+  rpAuthEcrireStockage(null);
+  if (typeof loadCharacter === 'function') loadCharacter.generation = (loadCharacter.generation || 0) + 1;
+  // Une ancienne fiche locale ne doit pas réapparaître après déconnexion.
+  if (typeof rpPurgerCachePersonnage === 'function') rpPurgerCachePersonnage('déconnexion volontaire');
+  // La révocation distante est tentée sans empêcher la fermeture locale en cas de panne.
+  if (jeton) {
+    try {
+      await Promise.race([
+        fetch(RP_AUTH_URL + '/logout', {
+          method:'POST',
+          headers:{apikey:rpAuthCleAnon(),Authorization:'Bearer '+jeton}
+        }).catch(()=>null),
+        new Promise(resolve=>setTimeout(resolve,2500))
+      ]);
+    } catch (_) {}
+  }
+  window.location.assign('index.html?connexion=1');
+  return true;
+}

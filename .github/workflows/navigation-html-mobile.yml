@@ -1,0 +1,27 @@
+name: Navigation mobile directement dans HTML
+on:
+  pull_request:
+    paths:
+      - 'plateau.html'
+      - 'plateau-exploration-mobile.js'
+      - 'plateau-interieurs-mobile.js'
+      - 'outils/bancs/test-navigation-html-20261117.cjs'
+      - 'outils/bancs/test-navigation-html-browser-20261117.cjs'
+      - '.github/workflows/navigation-html-mobile.yml'
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check plateau-exploration-mobile.js
+          node --check plateau-interieurs-mobile.js
+          node outils/bancs/test-navigation-html-20261117.cjs
+      - run: |
+          cd outils/e2e
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - run: node outils/bancs/test-navigation-html-browser-20261117.cjs

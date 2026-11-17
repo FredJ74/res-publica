@@ -177,6 +177,11 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 }
 </style>
   <link rel="stylesheet" href="rue-centrale.css?v=mobile-l3-20261106">
+  <link rel="stylesheet" href="plateau-exploration-mobile.css?v=exploration-mobile-20261116">
+  <link rel="stylesheet" href="plateau-interieurs-mobile.css?v=interieurs-mobile-20261116">
+  <link rel="stylesheet" href="plateau-dialogues-mobile.css?v=dialogues-mobile-20261116">
+  <link rel="stylesheet" href="plateau-mobile-refonte-visible.css?v=refonte-identite-visible-r2-20261117">
+  <link rel="stylesheet" href="plateau-mobile-prototype.css?v=street-flow-natural-height-20261117">
 </head>
 <body class="plateau-body">
 
@@ -201,6 +206,9 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
   <button type="button" class="hg-mobile-acces" data-hg-panneau="personnes" aria-expanded="false" data-i18n="plateau.mobilePresent">Présents</button>
   <button type="button" class="hg-mobile-acces" data-hg-panneau="menu" aria-expanded="false" aria-controls="hg-menu-existant" data-i18n="plateau.mobileMenu">Menu</button>
   <div class="top-right" id="hg-menu-existant">
+    <button type="button" class="forum-btn" id="rp-logout-player" onclick="rpAuthSeDeconnecterJoueur()" title="Se déconnecter de ce compte">
+      <i class="ti ti-log-out" aria-hidden="true"></i> Se déconnecter
+    </button>
     <button class="forum-btn" onclick="ouvrirIndicesImperiaux()" data-i18n-title="plateau.indicesTitle" title="Indices des 4 empires" style="white-space:nowrap;font-size:.65rem;letter-spacing:.08em">
       <i class="ti ti-chart-bar" style="font-size:.75rem;vertical-align:-1px"></i> <span data-i18n="plateau.imperialIndices" data-i18n-uppercase>INDICES IMPERIAUX</span>
     </button>
@@ -235,6 +243,20 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <button type="button" id="hg-mobile-fond" aria-label="Fermer le panneau" data-i18n-aria-label="plateau.mobileClosePanel" hidden></button>
 <!-- Information de transparence beta : traduction partielle, actions toujours jouables. -->
 <div id="i18n-beta-notice-plateau" role="note" style="padding:.32rem .8rem;text-align:center;color:#c3b78d;font-size:.72rem;line-height:1.5;background:#15130e;border-bottom:1px solid #302819" data-i18n="betaLanguage.notice">Traduction en cours : certaines parties du jeu restent en français. Elles demeurent entièrement jouables pendant cette bêta.</div>
+<!-- Bandeau de personnage mobile : valeurs venant exclusivement du jeu. -->
+<section id="hg-mobile-identite-20261117" aria-label="Personnage et ressources">
+  <div class="hg-personnage-portrait" id="hg-identite-portrait" aria-hidden="true"><i class="ti ti-user"></i></div>
+  <div class="hg-personnage-ligne">
+    <strong id="hg-identite-personnage">Personnage</strong>
+    <span id="hg-identite-role"></span>
+  </div>
+  <div class="hg-identite-statut">
+    <span id="hg-identite-pa"><small>PA</small> —</span>
+    <span id="hg-identite-argent"><small>Argent</small> —</span>
+    <span id="hg-identite-sante" hidden><small>Santé</small> —</span>
+    <span id="hg-identite-moral" hidden><small>Moral</small> —</span>
+  </div>
+</section>
 <!-- MAIN LAYOUT -->
 <div id="main">
 
@@ -316,6 +338,12 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
         </div>
       </div>
       <div style="display:none" id="city-name-display"></div>
+      <!-- Navigation mobile servie directement par HTML : visible avant JS et avant le décor. -->
+      <nav id="hg-explore-primary" class="hg-explore-tabs" aria-label="Navigation de rue">
+        <button type="button" data-explore-tab="0" aria-pressed="false">Lieux visibles</button>
+        <button type="button" data-explore-tab="1" aria-pressed="false">Ordres</button>
+        <button type="button" data-explore-tab="2" aria-pressed="false">Informations</button>
+      </nav>
 
       <!-- Image de rue + mini-carte -->
       <div class="rue-container">
@@ -441,6 +469,12 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
         </div>
         <div class="pieces-tabs" id="pieces-tabs"></div>
       </div>
+      <!-- Navigation des pièces présente dans la page même si le JS n'a pas encore fini. -->
+      <nav id="hg-room-primary" class="hg-room-tabs" aria-label="Navigation du bâtiment">
+        <button type="button" data-room-tab="0" aria-pressed="false">Pièces</button>
+        <button type="button" data-room-tab="1" aria-pressed="false">Ordres</button>
+        <button type="button" data-room-tab="2" aria-pressed="false">Informations</button>
+      </nav>
 
       <!-- Image de la piece -->
       <div class="piece-container">
@@ -663,11 +697,11 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
   <div class="toast-sub" id="toast-sub"></div>
 </div>
 
-<script src="data.js?v=stocks-prix-commerces-20261104-psm-pnj-20261104-livraison-terrestre-psm-terrains-onglets-novomirsk-librairie-petrochimie-20261104-novomirsk-v7-naval-20261104-novomirsk-entrepot-renseignement-krasnov-entrepot-caserne-novomirsk-vehicules-fabrication-salon-coiffure-prix-logements-novomirsk-pharmacie-pnj-sovarka-starovka-port-novomirsk-commissaire-seul-20261106-sovarka-droits-20261106-poissonniere-pharmanov-salaires-sovarka-musee-national-sovarka-grand-hotel-accueil-bar-restaurant-galeries-novomirsk-20261106-loyers-galeries-20261106-centre-affaires-novomirsk-20261107-evenements-diner-sovarka-pouvoir-repas-palais-gouvernement-nom-20261107-pnj-sovarka-noms-20261107-partis-sovarka-20261107-mairie-novomirsk-nom-salle-partis-balatov-marche-presse-novomirsk-sans-doublons-20261108-soviet-retire-20261108-sovarka-ministeres-20261108-novomirsk-ambassades-armurerie-webp-20261108-sovarka-tresor-signalements-20261108-surveillance-20261108-presidence-novomirsk-quatre-images-20261108-palais-pres-20261108-tribunal-novomirsk-webp-20261108-greffe-sovarka-entrepot-novomirsk-2-webp-20261108-novomirsk-renseignement-20261108-justice-sovarka-krasnov-starovka-20261109-dynamo-six-images-20261110-sovarka-nuit-20261110-artisanal-novomirsk-20261110-musee-national-sovarka-neuf-salles-20261110-guide-musee-20261111-pharmanov-webp-20261111-pavillon-cinq-images-20261111-pavillon-bar-20261111-guide-fiches-20261111-pavillon-pnj-suite-partis-buste-acces-reserve-20261112-novomirsk-hopital-trois-pieces-webp-20261112-hopital-novomirsk-doublon-corrige-20261112-escorts-sovarka-20261112-i18n-ordres-sovarka-20261112-logements-marche-20261112-quais-20261112-gare-novomirsk-20261112-tresor-tsars-20261112-i18n-fiches-tatiana-v3-volga-ancrage-appartements-20261112-hopitaux-chambre-20261113-heros-boite-20261113-min636-20261114-foret-perdu-20261114-chambres-partout-20261114-distillerie-ecoute-20261114-krasnov-bar-tabac-immeuble-20261114-audit-mairie-krasnov-20261114-krasnov-pnj-starovka-elections-20261114-krasnov-musee-six-salles-20261114-krasnov-station-antonina-affaires-20261115-krasnov-accueil-cadrage-20261115-krasnov-accueil-image-unique-20261115-krasnov-accueil-image-cachefix-20261115-guide-dokladova-20261115-kouzma-portraits-20261115-regulation-20261116-port-starovka-20261116-portraits-20261116-genre-20261116-tribunal-starovka-20261116-artisanal-starovka-20261116-starovka-bureaux-20261116c"></script>
+<script src="data.js?v=stocks-prix-commerces-20261104-psm-pnj-20261104-livraison-terrestre-psm-terrains-onglets-novomirsk-librairie-petrochimie-20261104-novomirsk-v7-naval-20261104-novomirsk-entrepot-renseignement-krasnov-entrepot-caserne-novomirsk-vehicules-fabrication-salon-coiffure-prix-logements-novomirsk-pharmacie-pnj-sovarka-starovka-port-novomirsk-commissaire-seul-20261106-sovarka-droits-20261106-poissonniere-pharmanov-salaires-sovarka-musee-national-sovarka-grand-hotel-accueil-bar-restaurant-galeries-novomirsk-20261106-loyers-galeries-20261106-centre-affaires-novomirsk-20261107-evenements-diner-sovarka-pouvoir-repas-palais-gouvernement-nom-20261107-pnj-sovarka-noms-20261107-partis-sovarka-20261107-mairie-novomirsk-nom-salle-partis-balatov-marche-presse-novomirsk-sans-doublons-20261108-soviet-retire-20261108-sovarka-ministeres-20261108-novomirsk-ambassades-armurerie-webp-20261108-sovarka-tresor-signalements-20261108-surveillance-20261108-presidence-novomirsk-quatre-images-20261108-palais-pres-20261108-tribunal-novomirsk-webp-20261108-greffe-sovarka-entrepot-novomirsk-2-webp-20261108-novomirsk-renseignement-20261108-justice-sovarka-krasnov-starovka-20261109-dynamo-six-images-20261110-sovarka-nuit-20261110-artisanal-novomirsk-20261110-musee-national-sovarka-neuf-salles-20261110-guide-musee-20261111-pharmanov-webp-20261111-pavillon-cinq-images-20261111-pavillon-bar-20261111-guide-fiches-20261111-pavillon-pnj-suite-partis-buste-acces-reserve-20261112-novomirsk-hopital-trois-pieces-webp-20261112-hopital-novomirsk-doublon-corrige-20261112-escorts-sovarka-20261112-i18n-ordres-sovarka-20261112-logements-marche-20261112-quais-20261112-gare-novomirsk-20261112-tresor-tsars-20261112-i18n-fiches-tatiana-v3-volga-ancrage-appartements-20261112-hopitaux-chambre-20261113-heros-boite-20261113-min636-20261114-foret-perdu-20261114-chambres-partout-20261114-distillerie-ecoute-20261114-krasnov-bar-tabac-immeuble-20261114-audit-mairie-krasnov-20261114-krasnov-pnj-starovka-elections-20261114-krasnov-musee-six-salles-20261114-krasnov-station-antonina-affaires-20261115-krasnov-accueil-cadrage-20261115-krasnov-accueil-image-unique-20261115-krasnov-accueil-image-cachefix-20261115-guide-dokladova-20261115-kouzma-portraits-20261115-regulation-20261116-port-starovka-20261116-portraits-20261116-genre-20261116-tribunal-starovka-20261116-artisanal-starovka-20261116-starovka-bureaux-20261116c-starovka-froid-20261117"></script>
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
-<script src="auth.js?v=8"></script>
+<script src="auth.js?v=logout-joueur-20261117"></script>
 <script src="supabase.js?v=jets-serveur-20261105-sovarka-nuit-20261110"></script>
 <!-- Tiptap (Lot C2) : chargé en ESM depuis un CDN, comme déjà validé dans les prototypes
      prototype-tiptap-image.html et prototype-canvas-composition.html. forum-canvas.js reste
@@ -770,7 +804,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 </script>
 <script src="forum-canvas.js?v=mobile-l6-20261106"></script>
 <script src="forum.js?v=confirmations-871-feedback-i18n-871-20261113-i18n-refresh-fenetres-20261110-courriers-sovarka-20261111-premium-coloc-20261113"></script>
-<script src="plateau-core.js?v=corps-toasts-20261114-refus-actions-871-mobile-l10-20261106-reconnexion-portrait-20261103-popinf379l3-forum-refus-20261104-arrivees-derives-petro-20261104-novomirsk-v7-entrepots-par-pays-fiche-domicile-pouvoir-sovarka-restauration-batiment-20261107-restauration-pieces-ville-20261112"></script>
+<script src="plateau-core.js?v=reprise-confirmation-r1-20261117"></script>
 <script src="plateau-immobilier.js?v=inventaire-213-integration-20261029-sovarka-droits-20261106"></script>
 <script src="plateau-chantiers.js?v=integration-logements-20261029"></script>
 <script src="plateau-fonds.js?v=1"></script>
@@ -1033,8 +1067,12 @@ function signalerEvenementJournal() {
 <script src="i18n/plateau-init.js?v=refus-compat-924-titre-seul-20261113-repertoire-toasts-20261113-inventaire-variables-20261110-i18n-refresh-fenetres-20261110-legendes-i18n-20261110-callbacks-20261111"></script>
 <link rel="stylesheet" href="plateau-aide.css?v=20261111">
 <script src="plateau-aide.js?v=20261111-neuf-langues-debut-reponse"></script>
-<script src="plateau-ordres-info.js?v=20261113" defer></script>
-<script src="plateau-mobile.js?v=certification-reprise-r2-20261108-piece-20261111" defer></script>
+<script src="plateau-ordres-info.js?v=info-direct-mobile-20261117" defer></script>
+<script src="plateau-mobile.js?v=sans-panneau-lieux-20261117" defer></script>
+<script src="plateau-exploration-mobile.js?v=html-nav-visible-r1-20261117" defer></script>
+<script src="plateau-mobile-identite-20261117.js?v=prototype-r1-20261117" defer></script>
+<script src="plateau-presences-mobile.js?v=presence-layout-r3-20261117" defer></script>
+<script src="plateau-interieurs-mobile.js?v=html-nav-visible-r1-20261117" defer></script>
 </body>
 </html>
 

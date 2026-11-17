@@ -1,0 +1,22 @@
+name: Recette navigateur production avec scripts du jeu
+on:
+  pull_request:
+    paths:
+      - 'outils/bancs/test-bandeau-public-plein-20261117.cjs'
+      - '.github/workflows/recette-production-mobile.yml'
+  workflow_dispatch:
+jobs:
+  production:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Chromium
+        run: |
+          cd outils/e2e
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Production avec tous les scripts présents
+        run: node outils/bancs/test-bandeau-public-plein-20261117.cjs

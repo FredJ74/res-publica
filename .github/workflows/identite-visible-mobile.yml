@@ -1,0 +1,26 @@
+name: Identité mobile visible et vérifiable
+on:
+  pull_request:
+    paths:
+      - 'plateau.html'
+      - 'plateau-mobile-refonte-visible.css'
+      - 'plateau-mobile-identite-20261117.js'
+      - 'outils/bancs/test-identite-visible-mobile-20261117.cjs'
+      - '.github/workflows/identite-visible-mobile.yml'
+jobs:
+  identite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntaxe du module UI
+        run: node --check plateau-mobile-identite-20261117.js
+      - name: Navigateur Chromium
+        run: |
+          cd outils/e2e
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Vérifier la présence visuelle avant scripts et mise à jour des stats
+        run: node outils/bancs/test-identite-visible-mobile-20261117.cjs

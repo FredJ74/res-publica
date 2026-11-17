@@ -1,0 +1,282 @@
+/* Res Publica — refonte visuelle mobile de l'exploration.
+   Les zones, fleches, ordres et leurs RPC restent fournis par les modules d'origine.
+   Nouvelle grammaire graphique appliquee a la vraie vue mobile, sans faux boutons. */
+@media (max-width:1023px) {
+  body.plateau-body {background:#0c1722; color:#eff1f4;}
+  #topbar {
+    background:linear-gradient(118deg,#0b1723 4%,#172938 60%,#0b1825 100%);
+    border-bottom:1px solid #c6a466;
+    box-shadow:0 4px 24px #03070c80;
+    padding:10px max(10px,env(safe-area-inset-right)) 10px max(10px,env(safe-area-inset-left));
+    gap:7px;
+  }
+  #topbar .logo {
+    color:#e4bf7f;
+    font-family:'Playfair Display',serif;
+    font-size:clamp(.91rem,3.35vw,1.2rem);
+    font-weight:700;
+    letter-spacing:.025em;
+    text-shadow:0 1px 8px #05080cb3;
+    line-height:1.18;
+  }
+  #topbar .logo::before {
+    content:'✦';
+    display:inline-block;
+    margin-right:7px;
+    font-size:1.15em;
+    color:#c7a365;
+  }
+  #topbar .hg-mobile-acces {
+    background:linear-gradient(160deg,#223747,#152532);
+    border:1px solid #ab8b59;
+    border-radius:10px;
+    box-shadow:inset 0 1px #e1c89528;
+    color:#f0dcb4;
+    font-family:'Crimson Pro',serif;
+    font-size:clamp(.78rem,2.65vw,.96rem);
+    min-height:48px;
+    padding:7px 8px;
+  }
+  #vue-rue.active {
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    background:linear-gradient(180deg,#122332 0%,#0a1722 65%,#0b1620 100%);
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding-bottom:calc(96px + env(safe-area-inset-bottom));
+  }
+  #vue-rue .city-header {
+    padding:7px 14px;
+    background:#132231;
+    border-bottom:1px solid #ac8a4d52;
+  }
+  #vue-rue .game-time-display{font-size:.85rem;color:#c9b58d;}
+  #vue-rue .hg-explore-head {
+    background:linear-gradient(115deg,#152b3b,#182a38);
+    border-bottom:0;
+    padding:13px 15px 11px;
+    gap:8px;
+  }
+  #vue-rue .hg-explore-place {
+    font-family:'Playfair Display',serif;
+    font-size:clamp(1.07rem,4.3vw,1.5rem);
+    font-weight:700;
+    color:#f1d296;
+    line-height:1.3;
+  }
+  #vue-rue .hg-explore-place:before {
+    content:'⌖';
+    font-family:serif;
+    font-size:1.25em;
+    margin-right:9px;
+  }
+  #vue-rue .hg-explore-stats{gap:7px;}
+  #vue-rue .hg-explore-stats span{
+    font:600 .85rem 'Crimson Pro',serif;
+    color:#f3ddb7;
+    background:#0b1829;
+    border:1px solid #9f855b;
+    padding:7px 9px;
+    border-radius:10px;
+  }
+  /* Les 3 onglets font partie du HTML et restent visibles, meme sans JS. */
+  #vue-rue #hg-explore-primary {
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+    padding:9px 10px 11px;
+    border-top:1px solid #c7a96c55;
+    border-bottom:1px solid #b69a67;
+    background:#0e1b29;
+  }
+  #vue-rue #hg-explore-primary button {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:49px;
+    padding:8px 4px;
+    border-radius:9px;
+    background:linear-gradient(#233a4c,#172938);
+    border:1px solid #b19463;
+    color:#f1ddba;
+    font:600 clamp(.78rem,3.05vw,.99rem) 'Crimson Pro',serif;
+    box-shadow:0 3px 9px #0005;
+  }
+  #vue-rue #hg-explore-primary button[aria-pressed="true"] {
+    background:linear-gradient(135deg,#e0bc79,#b28c53);
+    color:#112130;
+    border-color:#f5d69c;
+    box-shadow:0 3px 14px #98744170;
+  }
+  #vue-rue #hg-explore-primary button:focus-visible {outline:3px solid #f8dc9e;outline-offset:2px;}
+  /* Suppression du vide artificiel sous la scene : contenu suit le decor. */
+  #vue-rue .rue-container {flex:0 0 auto;min-height:0;display:block;overflow:visible;}
+  #vue-rue .rue-image {
+    width:100%;
+    min-height:0;
+    display:flex;
+    align-items:stretch;
+    flex-direction:column;
+    overflow:visible;
+    background:#0b1c2b;
+    border-bottom:1px solid #b89a64;
+    padding:0;
+  }
+  /* L'ancien #vue-rue #rue-image imposait display:block (spec. 2 IDs).
+     Le surcharger explicitement rend l'ordre scene puis cartel effectif. */
+  #vue-rue #rue-image {display:flex;flex-direction:column;align-items:stretch;}
+  #vue-rue .rue-image:has(#rue-centrale-conteneur){background:none;}
+  #vue-rue .rue-image:not(:has(#rue-centrale-conteneur)){min-height:clamp(210px,54vw,460px);}
+  #vue-rue .rue-image::before{display:none;}
+  #vue-rue #rue-centrale-conteneur {
+    order:0;
+    display:block;
+    overflow:visible;
+    box-shadow:0 10px 28px #02060b70;
+  }
+  #vue-rue .rc-scene{border:0;border-radius:0;overflow:hidden;background:#050c14;}
+  #vue-rue .rc-image{display:block;width:100%;height:auto;max-height:none;object-fit:contain;}
+  #vue-rue .rc-fleche{
+    width:50px;height:50px;
+    background:#0b192cdb;
+    border:2px solid #d9b676;
+    color:#f2d28e;
+    box-shadow:0 3px 16px #02070b99;
+    font-size:1.5rem;
+  }
+  #vue-rue .rue-ambiance {
+    order:2;
+    display:block;
+    position:relative;
+    z-index:1;
+    margin:12px 12px 4px;
+    padding:14px 16px;
+    width:auto;
+    border:1px solid #ad8e5c;
+    border-left:4px solid #d3b376;
+    border-radius:12px;
+    background:linear-gradient(115deg,#203748,#152636);
+    box-shadow:0 7px 22px #02070b55;
+    box-sizing:border-box;
+  }
+  #vue-rue .rue-title {
+    font-family:'Playfair Display',serif;
+    font-size:1.18rem;
+    line-height:1.4;
+    color:#f0d7a9;
+    margin-bottom:5px;
+  }
+  #vue-rue .rue-desc{font-size:1rem;line-height:1.55;color:#e5e9ed;font-style:normal;}
+  #vue-rue .hg-lieux-tactiles {
+    margin:10px 12px 0;
+    padding:2px 12px 9px;
+    border:1px solid #977b51;
+    border-radius:12px;
+    background:#1d3040;
+  }
+  #vue-rue .hg-lieux-tactiles summary{
+    color:#f0d49c;
+    font-family:'Playfair Display',serif;
+    font-weight:700;
+    font-size:1.06rem;
+    padding:12px 6px;
+  }
+  #vue-rue .hg-lieux-tactiles button{
+    min-height:48px;
+    padding:11px 12px;
+    border-radius:9px;
+    border:1px solid #ae915f;
+    background:#293f50;
+    color:#f0e1c4;
+    font-size:1rem;
+  }
+  #vue-rue #actionbar{
+    display:block;
+    flex:0 0 auto;
+    margin:14px 12px 0;
+    padding:14px;
+    border:1px solid #8e7650;
+    border-radius:12px;
+    background:linear-gradient(155deg,#1a3041,#112332);
+    box-shadow:0 8px 25px #02080d70;
+  }
+  #vue-rue #actionbar .action-context{
+    display:block;
+    font-family:'Playfair Display',serif;
+    font-size:.99rem;
+    font-weight:700;
+    color:#e2bb77;
+    letter-spacing:.02em;
+    margin-bottom:9px;
+    line-height:1.4;
+  }
+  #vue-rue #rue-actions-row{gap:9px;}
+  #vue-rue #rue-actions-row .action-btn {
+    min-height:48px;
+    border-radius:10px;
+    border:1px solid #b79968;
+    background:linear-gradient(135deg,#2b4658,#1b2d3b);
+    color:#f7e3bd;
+    padding:11px;
+    line-height:1.4;
+    font-size:1rem;
+    white-space:normal;
+  }
+  #vue-rue .hg-explore-info:not([hidden]) {
+    margin:10px 12px 0;
+    border:1px solid #9b7b4d;
+    border-radius:11px;
+    padding:13px;
+    background:#233749;
+  }
+}
+@media(max-width:360px){
+  #vue-rue .hg-explore-head{flex-wrap:wrap;}
+  #vue-rue .hg-explore-stats{justify-content:flex-start;}
+  #vue-rue #hg-explore-primary button{padding:7px 2px; font-size:.8rem;}
+}
+@media(min-width:1024px){#hg-explore-primary{display:none;}}
+
+/* Marque témoin volontairement visible sur toutes les pages plateau mobile.
+   Sa présence dans deux navigateurs identifie sans ambiguïté la version HTML. */
+#hg-mobile-identite-20261117{display:none}
+@media(max-width:1023px){
+  #hg-mobile-identite-20261117{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;
+    align-items:center;flex:none;padding:10px 13px 11px;
+    color:#efdfbc;background:linear-gradient(110deg,#0d1b2c,#1a3142);
+    border-bottom:2px solid #deb77c;box-shadow:0 5px 18px rgba(0,0,0,.5);
+    font-family:'Crimson Pro',serif;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-marque{display:flex;gap:10px;align-items:center;min-width:0;}
+  #hg-mobile-identite-20261117 .hg-identite-embleme{
+    color:#e6ba72;font-size:1.7rem;line-height:1;flex:none;
+    border:1px solid #b18b51;border-radius:50%;width:40px;height:40px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-marque strong{
+    display:block;font:700 clamp(1rem,4.1vw,1.35rem) 'Playfair Display',serif;
+    letter-spacing:.035em;color:#f2d397;line-height:1.25;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-marque span:not(.hg-identite-embleme){
+    display:block;color:#c7b9a1;font-size:.75rem;letter-spacing:.15em;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-version{
+    padding:7px 8px;color:#0e1a28;background:#e1bd7a;border-radius:5px;
+    font:700 clamp(.61rem,2.1vw,.77rem) 'Inter',sans-serif;
+    text-align:center;max-width:115px;line-height:1.35;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-version strong{display:block;font-size:1.06em;}
+  #hg-mobile-identite-20261117 .hg-identite-statut{
+    display:flex;flex-wrap:wrap;align-items:center;gap:7px;grid-column:1/-1;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-statut span{
+    background:#142839;border:1px solid #94794e;border-radius:7px;
+    padding:5px 8px;min-width:0;overflow-wrap:anywhere;
+    font-size:.9rem;color:#f5e5c7;
+  }
+  #hg-mobile-identite-20261117 .hg-identite-statut span:first-child{
+    border-color:#dfbb7d;color:#eed2a1;font-weight:700;
+  }
+}
