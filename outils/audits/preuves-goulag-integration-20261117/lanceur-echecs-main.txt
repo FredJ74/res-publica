@@ -1,3 +1,4 @@
+banc-aide-avancee.mjs
 banc-aide-interface.cjs
 banc-aide-neuf-langues-navigateur.cjs
 banc-appro-chantier.js
@@ -9,19 +10,23 @@ banc-calendrier-electoral.js
 banc-calendrier-succession.js
 banc-carrieres-creation-et-audience-client.js
 banc-chaines-17-a-20.js
+banc-chemins-historiques.cjs
 banc-chromium-cycle.cjs
 banc-circuits-residuels-219-client.cjs
 banc-commerce-unifie-navigateur.cjs
 banc-commerce-unifie.cjs
+banc-controles-globaux-20261107.cjs
 banc-controleur-processus.cjs
 banc-cycle-plaintes.js
 banc-deploiement-sobre.cjs
 banc-desertion-liberation.js
 banc-detention-plateau.js
 banc-dialogue-pnj-republia.js
+banc-entrepots-caisse-unique.cjs
 banc-equipements-collectifs-client.cjs
 banc-etat-terrain.js
 banc-forums-contextes-422.cjs
+banc-generateur-couts-serveur.cjs
 banc-grace-sql-379.cjs
 banc-greffe-documents-client.js
 banc-groupes-arrestation-confirmee.cjs
@@ -93,6 +98,7 @@ banc-i18n-titres-creation-20261114.cjs
 banc-i18n-titres-creation-navigateur-20261114.cjs
 banc-i18n-transport-catalogues-20261114.cjs
 banc-i18n-vente-don-matieres.cjs
+banc-indices-autorite-422.cjs
 banc-infobulles-navigateur.cjs
 banc-inspection-cargaisons-379.cjs
 banc-interception-reseau.cjs
@@ -114,6 +120,7 @@ banc-mutation-terrain.js
 banc-objectifs-secrets-379.cjs
 banc-occupation-actions-client.cjs
 banc-ordres-info-tactile-navigateur-20261113.cjs
+banc-organisations-activation-client.cjs
 banc-organisations-evenements-client.cjs
 banc-organisations-jauges-379.cjs
 banc-organisations-membres-client.cjs
@@ -121,6 +128,7 @@ banc-permis-cron-acquisition-135.cjs
 banc-pop-inf-cache-379.cjs
 banc-pop-inf-forge-379.cjs
 banc-position-ville-serveur-f5.cjs
+banc-prime-signature-saisie.cjs
 banc-psm-portrait-navigateur.cjs
 banc-reconnexion-trois-villes.cjs
 banc-reliquats-subtilisation-impacts-379.cjs

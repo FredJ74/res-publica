@@ -1,1 +1,1 @@
-248/386 bancs reussis ; 138 echec(s). Aucun SQL execute.
+240/386 bancs reussis ; 146 echec(s). Aucun SQL execute.

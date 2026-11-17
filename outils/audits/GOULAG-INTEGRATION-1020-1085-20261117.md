@@ -75,3 +75,11 @@ dépôt) : pas de prévisualisation de branche.
   `test_inactif_aucun_effet` (les neuf RPC des ordres internes refusent, contrôle de minuit inactif, aucune ligne),
   `test_raccord_verrou_conserve` (contrainte présente après les quatre migrations #1085) : verts.
 - `banc-mobile-coque` L1/L2 toujours rouges sur `main` `654bba9` (préexistant, hors goulag).
+
+## Verrou d'ouverture du client (17/11/2026, nuit — accord de Fred)
+- `main` `fb67691` intégré ; un seul conflit (étiquette de version de `plateau-politique.js` dans `plateau.html`, deux suffixes conservés).
+- Client du goulag caché tant que `sovarka_goulag_ouvert()` ne rend pas `true` (absente, en erreur, injoignable = fermé).
+- Preuve : `outils/bancs/test-goulag-verrou-client-20261117.cjs` (16 épreuves ; écran du goulag, centres de transport, bureau du ministre, refuge, rue de Krasnov et juge comparés à `main`).
+- Recette : PG 38/38, 33/33, 41/41, contrats 11/11 ; Node 25/25 et 20/20 ; Chrome 189 + 54 + 27 ; générateurs sans écart.
+- Lanceur `controler-client.py` : arbre commun 248/386, `main` fb67691 240/386 (copie fraîche) ; **aucun échec propre à l'arbre commun** (`lanceur-echecs-*.txt`).
+- CI : seul rouge `banc-mobile-coque` L1/L2, identique sur `main` fb67691.
