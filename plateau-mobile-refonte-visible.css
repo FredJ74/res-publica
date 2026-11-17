@@ -242,8 +242,9 @@
    Sa présence dans deux navigateurs identifie sans ambiguïté la version HTML. */
 #hg-mobile-identite-20261117{display:none}
 @media(max-width:1023px){
+  /* Bandeau diagnostic volumineux retire du flux mobile : le plateau redevient prioritaire. */
   #hg-mobile-identite-20261117{
-    display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;
+    display:none;grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;
     align-items:center;flex:none;padding:10px 13px 11px;
     color:#efdfbc;background:linear-gradient(110deg,#0d1b2c,#1a3142);
     border-bottom:2px solid #deb77c;box-shadow:0 5px 18px rgba(0,0,0,.5);
